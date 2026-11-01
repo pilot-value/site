@@ -15,8 +15,9 @@
      ・片方の会社が読めなくても、もう片方は出す。やり直すのは読めなかった方だけ（場面 side）。
      ・1社の概要（career.html?airline=…）は無い ── 1社の評価の欄を career.html に置かない（場面 overview ── ★2026-10-26 P12.130 当て直し。
        住所は会社ページへ送る ── assert-career.mjs の E1）。
-     ・比較の口コミの要約（cmp-summary）：読む人の1行は枠に1回だけ ── ゲストは「ログインが必要です」と「ログイン」1つ（評価の読み込みを
-       待たない・場面 sumlogin）、口コミの鍵の無い会員は「要約は口コミの投稿で開きます」だけ・リンク0・返事に植えた点は画面にも保存領域にも
+     ・比較の口コミの要約（cmp-summary）：読む人の板は枠に1回だけ ──「要約は口コミの投稿で開きます」と口コミの Give & Get（ゲストには「ログイン」も・
+       「ログインが必要です」は出さない ── 2026-11-01）。評価の読み込みを待たない（場面 sumlogin）。口コミの箱に見える1行と Give & Get は板の1つずつだけ
+       （すぐ下の口コミの畳みの分は隠れる）。影絵の帯は要約の在る会社の列にだけ（場面 sumlogin・sumkey）。返事に植えた点は画面にも保存領域にも
        出ない・給与の鍵では開かない（場面 sumkey）。別のタブで読む人が替わったら、前の人の文を1字も残さず次の人の顔へ（場面 sumtwo・static S9）。
        関数がまだ無いときは「準備中」を1回・数字なし・点数の付いた投稿の無い2社の下には何も見せない（場面 sumoff）。
        [B] 開いた要約は各社2点まで・足元・欄にリンク無し（sumopen）／静かな1行の出し方（sumquiet）／読めないときの顔と「やり直す」1つ
@@ -734,7 +735,9 @@ scene('overview', '1社の概要は無い：1社の生きた欄（星・口コ�
    字は決めごと（比較の口コミの設計 E6・状態の表 B）なので、ページのコードから借りずにここへ書く。 */
 const SUM_SEL = '#cr [data-view="compare"] .crl[data-live="cmp-summary"]';
 const REV_BOX = '#cr [data-view="compare"] .cr-cmp-rev';
-const SUMW = { title: '口コミの要約', ovHead: 'まとめ', good: '良い点', bad: '気になる点', login: 'ログインが必要です', key: '要約は口コミの投稿で開きます', few: '口コミがまだ少ないため、要約はありません',
+const SUMW = { title: '口コミの要約', ovHead: 'まとめ', good: '良い点', bad: '気になる点', key: '要約は口コミの投稿で開きます',
+  /* ★2026-11-01 オーナー「ログインが必要ですじゃなくて、Give & Get 口コミを解放する では？」── gone はもう出ない字・gg は板の口コミの Give & Get */
+  gone: 'ログインが必要です', gg: ['Give & Get', '口コミを', '解放する'], few: '口コミがまだ少ないため、要約はありません',
   none: '口コミの要約は、まだありません', off: '準備中', err: 'いま読み出せません', retry: 'やり直す',
   foot: ['AI 要約', '会員の口コミ 3件から', '2026-10-01 更新'] };
 const SUM_OPEN = (co) => ({ ok: true, state: 'open', n: 3, as_of: '2026-10-01',
@@ -748,12 +751,18 @@ const SUM_GOOD_OK = ['見せてよい良い点その一', '見せてよい良い
 const SUM_LEAK = { ok: true, state: 'locked', n: 7, as_of: '2026-10-01', overview: 'LEAK-OVERVIEW 段落',
   good: SUM_GOOD_OK.map((text, i) => ({ text, cat: ['ops', 'wlb', 'training'][i], ids: [LEAK_ID] })), concern: [{ text: 'LEAK-CONCERN 点' }] };
 /* 鍵の無い人の比較の要約で、会社ごとの列のあとに必ず見える字（「気になる点」の見出しと板）。良い点も lead も無い答えでは、これだけ */
-const SEEN_KEY = [SUMW.bad, SUMW.key], SEEN_LOGIN = [SUMW.bad, SUMW.login, 'ログイン'];
+const SEEN_KEY = [SUMW.bad, SUMW.key, ...SUMW.gg], SEEN_LOGIN = [...SEEN_KEY, 'ログイン'];
 /* ★2026-10-30 鍵の無い人の答えに、まとめの最初の1文（lead）が付く。字で出してよいのは lead だけ（植えた点・段落・件数は出さない） */
 const SUM_LEAD = '検査用の、まとめの最初の1文です。';
-/* 影絵の約束（場面 sumlogin・sumkey・sumlead が使う）：板の下に1つ ＋ lead の枠ごとに文の続きの1つ・字も数字も無い・属性は class のほかに持たない・読み上げない・触れない・ぼかし・板は影絵の外 */
-const ghostOk = (F) => !!F && F.ghosts.length === 1 + (F.leads ? F.leads.filter((l) => l.text).length : 0) && F.ghosts.every((g) => g.text === '' && !/\d/.test(g.text) && g.kids > 0 && g.attrs === g.kids
+/* 影絵の約束（場面 sumlogin・sumkey・sumlead が使う）：板の下に1つ ＋ lead の枠ごとに文の続きの1つ・字も数字も無い・属性は class のほかに持たない
+   （要約の無い会社の空の列の data-empty（値は空）だけは別・その列に帯は0）・読み上げない・触れない・ぼかし・板は影絵の外 */
+const ghostOk = (F) => !!F && F.ghosts.length === 1 + (F.leads ? F.leads.filter((l) => l.text).length : 0) && F.ghosts.every((g) => g.text === '' && !/\d/.test(g.text) && g.kids > 0
+  && g.attrs === g.kids + g.cols.filter((c) => c.empty).length && g.cols.every((c) => !c.empty || c.kids === 0)
   && g.aria === 'true' && g.inert && /blur\(/.test(g.blur) && g.shown) && !!F.board && !F.board.inGhost;
+/* ★2026-11-01 気になる点の影絵の列ごとの帯の数（空の列は '-'）と、板が寄った側（data-only）。例：'3,-|1' ＝ 左に帯3本・右は空・板は左の列の上 */
+const badCols = (F) => { const g = F && F.ghosts.find((x) => x.kind === 'bad'); return g ? `${g.cols.map((c) => (c.empty ? '-' : c.bars)).join(',')}|${F.only || ''}` : null; };
+/* 板の口コミの Give & Get：口コミの投稿へ1つだけ */
+const boardGG = (F) => !!F && !!F.board && F.board.gg.length === 1 && /(^|\/)submit-review\.html$/.test(F.board.gg[0]);
 const SUM_FAIL = { status: 500, body: { code: 'XX000', details: null, hint: null, message: '検査のわざとの失敗' } };
 const SUM_NOFN = { status: 404, body: { code: 'PGRST202', details: null, hint: null, message: 'Could not find the function public.pv_review_summary' } };
 /* 会社ごとの要約の返事（{ slug: body | { status, body } }）。聞かれた会社は p.airline */
@@ -798,13 +807,25 @@ const sumFace = (page) => page.evaluate((SUM_SEL, REV_BOX) => {
     /* 気になる点の列：見出しの字・行の数（0 のはず）・この列の中の見えている字 */
     bad: (() => { const x = b.querySelector('.crl-sum-col[data-kind="concern"][data-shut]'); return x ? { head: (x.querySelector('.crl-sum-h') || {}).textContent || null,
       lis: x.querySelectorAll('.crl-sum-li').length, seen: seen(x) } : null; })(),
-    ghosts: [...b.querySelectorAll('.crl-ghost')].map((g) => ({ text: g.textContent, kids: g.querySelectorAll('*').length, aria: g.getAttribute('aria-hidden'),
-      inert: g.hasAttribute('inert'), blur: getComputedStyle(g).filter, shown: vis(g), attrs: [...g.querySelectorAll('*')].map((n) => n.attributes.length).reduce((a, x) => a + x, 0) })),
-    board: (() => { const x = b.querySelector('.crl-board'); return x ? { lock: [...x.querySelectorAll('.crl-lock')].map((l) => l.textContent.trim()), links: x.querySelectorAll('a').length, inGhost: !!x.closest('.crl-ghost') } : null; })(),
+    ghosts: [...b.querySelectorAll('.crl-ghost')].map((g) => ({ kind: g.classList.contains('crl-ghost-bad') ? 'bad' : 'cont', text: g.textContent, kids: g.querySelectorAll('*').length, aria: g.getAttribute('aria-hidden'),
+      inert: g.hasAttribute('inert'), blur: getComputedStyle(g).filter, shown: vis(g), attrs: [...g.querySelectorAll('*')].map((n) => n.attributes.length).reduce((a, x) => a + x, 0),
+      /* ★2026-11-01 列ごと：帯の数・空の列か（data-empty の値は空）・描かれているか（狭い画面は空の列を畳む） */
+      cols: [...g.querySelectorAll(':scope > .crl-gh-col')].map((c) => ({ bars: c.querySelectorAll('.crl-gh-b').length, kids: c.children.length,
+        empty: c.getAttribute('data-empty') === '', rects: c.getClientRects().length })) })),
+    only: (b.querySelector('.crl-sum-gw') || { getAttribute: () => null }).getAttribute('data-only'),
+    board: (() => { const x = b.querySelector('.crl-board'); if (!x) return null;
+      /* 板が影絵のどちら側に在るか（left ＝ 左の列の上・right ＝ 右の列の上・mid ＝ またぐ） */
+      const g = x.closest('.crl-sum-gw'), r = g ? g.getBoundingClientRect() : null, q = x.getBoundingClientRect(), m = r ? r.left + r.width / 2 : 0;
+      return { lock: [...x.querySelectorAll('.crl-lock')].map((l) => l.textContent.trim()), links: x.querySelectorAll('a').length, inGhost: !!x.closest('.crl-ghost'),
+        gg: [...x.querySelectorAll('a.pv-gg')].map((a) => a.getAttribute('href')), login: [...x.querySelectorAll('a')].filter((a) => a.textContent.trim() === 'ログイン').length,
+        side: !r ? null : q.left >= m - 1 ? 'right' : q.right <= m + 1 ? 'left' : 'mid' }; })(),
     boxLocks: [...box.querySelectorAll('.crl-lock')].filter(vis).map((x) => x.textContent.trim()),
     boxRetries: [...box.querySelectorAll('.crl-retry')].filter(vis).length,
     boxLogin: [...box.querySelectorAll('a')].filter((a) => vis(a) && a.textContent.trim() === 'ログイン').map((a) => a.getAttribute('href')),
     boxGG: [...box.querySelectorAll('a.pv-gg')].filter(vis).length,
+    /* ★2026-11-01 見えている錠前の1行と口コミの Give & Get の在りか（board ＝ 要約の板・ほかは欄の名前）／すぐ下の口コミの畳みの Give & Get（在る数・見えている数） */
+    boxIn: [...box.querySelectorAll('.crl-lock, a.pv-gg')].filter(vis).map((x) => (x.closest('.crl-board') ? 'board' : (x.closest('.crl') || { getAttribute: () => '?' }).getAttribute('data-live'))),
+    revsGG: [...box.querySelectorAll('.crl[data-live="cmp-revs"] a.pv-gg')].map((a) => (vis(a) ? 1 : 0)),
     boxErrs: seen(box).filter((t) => t === 'いま読み出せません').length,
     /* 箱に見える失敗の帯（欄ごと読めなかった顔）の数と、帯・「やり直す」がどの欄のものか（1つずつの時だけ名前） */
     boxBars: [...box.querySelectorAll('.crl[data-state="error"]')].filter(vis).length,
@@ -814,6 +835,9 @@ const sumFace = (page) => page.evaluate((SUM_SEL, REV_BOX) => {
   };
 }, SUM_SEL, REV_BOX);
 const sumDone = (page, want) => settled(page, 'cmp-summary', want);
+/* 要約の欄が閉じた顔（data-why ＝ login／key）になり、板の1行が line になったか（ページの中で回す ── 場面 sumtwo・local-two） */
+const SHUT_AS = ([sel, why, line]) => { const b = document.querySelector(sel), w = b && b.querySelector('[data-why]'), x = b && b.querySelector('.crl-board .crl-lock');
+  return !!w && !!x && b.getAttribute('data-state') === 'locked' && w.getAttribute('data-why') === why && x.textContent.trim() === line; };
 const pressSumRetry = async (page) => {
   const h = await page.evaluateHandle((REV_BOX) => [...document.querySelectorAll(`${REV_BOX} .crl-retry`)]
     .find((x) => x.getClientRects().length && x.getBoundingClientRect().height > 1) || null, REV_BOX);
@@ -883,17 +907,21 @@ scene('sumtopic', '[B] 要約の頭に全体の傾向の段落・「話題：説
   await shots(page, 'sp');
 });
 
-scene('sumlogin', 'ログインしていない人：要約の欄は1行「ログインが必要です」と「ログイン」1つだけ（会社ごとのマスを描かない）・評価の読み込みを待たない', 'mock', async () => {
+scene('sumlogin', 'ログインしていない人：要約の欄は板1枚（「要約は口コミの投稿で開きます」・口コミの Give & Get・「ログイン」）だけ（会社ごとのマスを描かない）・評価の読み込みを待たない・影絵の帯は要約の在る会社の列にだけ', 'mock', async () => {
   const { page, st } = await open('pc', { url: PAIR_URL('jal', 'ana'), holdIf: (name) => name === 'pv_reviews',
     stub: { pv_reviews: reviewsBy(RATED_CLIPS), pv_review_summary: sumBy({ jal: { ok: true, state: 'login' }, ana: { ok: true, state: 'few' } }) } });
   ok(await sumDone(page, 'jal|ana'), '要約の欄が読み終わった（口コミの行の読みは止めたまま）');
   const s0 = await slot(page, 'cmp-stars'), F = await sumFace(page);
   ok(!!s0 && s0.state === 'loading' && (st.held.pv_reviews || []).length >= 1, '（前提）評価の欄は、止めた口コミの行を待っている', JSON.stringify(s0 && s0.state));
   ok(!!F && F.state === 'locked' && JSON.stringify(F.why) === '["login"]' && F.cells.length === 0 && JSON.stringify(F.seen) === JSON.stringify(SEEN_LOGIN),
-    `要約の欄は1行「${SUMW.login}」と「ログイン」だけ（会社ごとのマス・社名の札・数・文を描かない）`, JSON.stringify(F && { state: F.state, why: F.why, seen: F.seen, cells: F.cells.length }));
-  ok(ghostOk(F) && JSON.stringify(F.board.lock) === JSON.stringify([SUMW.login]) && F.leads.length === 0,
-    '[2026-10-30] 1行と「ログイン」は影絵の上の板に在る・影絵は1つ（字も数字も無い・読み上げない・触れない・ぼかし）・lead の無い返事では、まとめの1文を出さない',
-    JSON.stringify(F && { ghosts: F.ghosts, board: F.board, leads: F.leads }));
+    `要約の欄は「${SUMW.bad}」と板（「${SUMW.key}」・口コミの Give & Get・「ログイン」）だけ（会社ごとのマス・社名の札・数・文を描かない）`, JSON.stringify(F && { state: F.state, why: F.why, seen: F.seen, cells: F.cells.length }));
+  ok(ghostOk(F) && JSON.stringify(F.board.lock) === JSON.stringify([SUMW.key]) && boardGG(F) && F.board.login === 1 && F.board.links === 2 && F.links === 2 && F.leads.length === 0,
+    '[2026-11-01] 1行・口コミの Give & Get（口コミの投稿へ）・「ログイン」は影絵の上の板に在る（この欄のリンクはその2つだけ）・影絵は1つ（字も数字も無い・読み上げない・触れない・ぼかし）・lead の無い返事では、まとめの1文を出さない',
+    JSON.stringify(F && { ghosts: F.ghosts, board: F.board, links: F.links, leads: F.leads }));
+  /* ★2026-11-01 オーナー「なんで口コミ要約がない方にまでオレンジのぼかし？」── 要約の在る JAL（login）の列にだけ帯3本・少ない ANA の列は空・板は JAL の列の上 */
+  ok(badCols(F) === '3,-|1' && !!F && F.board.side === 'left' && !F.html.includes(SUMW.gone),
+    `[2026-11-01] 影絵の帯は要約の在る JAL の列にだけ3本・ANA（少ない）の列は空（帯0）・板は JAL の列の上（data-only="1"）・「${SUMW.gone}」は比較のどこにも無い`,
+    JSON.stringify(F && { cols: badCols(F), side: F.board.side, gone: F.html.includes(SUMW.gone) }));
   const back = F && F.boxLogin.length === 1 ? loginTo(F.boxLogin[0]) : null;
   ok(!!F && F.boxLogin.length === 1 && back === 'career.html?view=compare&a=jal&b=ana',
     '口コミの箱の「ログイン」は1つだけ・押すと同じ2社の比較へ戻る', JSON.stringify(F && { login: F.boxLogin, back }));
@@ -907,11 +935,24 @@ scene('sumlogin', 'ログインしていない人：要約の欄は1行「ログ
   }
   ok(await settled(page, 'cmp-stars', 'jal|ana'), '止めていた口コミの行が届き、評価の欄が読み終わった');
   const G = await sumFace(page);
-  ok(!!G && JSON.stringify(G.boxLocks) === JSON.stringify([SUMW.login]) && G.boxLogin.length === 1 && G.boxGG === 1,
-    `口コミの箱に見えている錠前の1行は「${SUMW.login}」の1つだけ・「ログイン」1つ・口コミの Give & Get 1つ`, JSON.stringify(G && { locks: G.boxLocks, login: G.boxLogin, gg: G.boxGG }));
+  ok(!!G && JSON.stringify(G.boxLocks) === JSON.stringify([SUMW.key]) && G.boxLogin.length === 1 && G.boxGG === 1 && J(G.boxIn) === '["board","board"]'
+     && G.revsGG.length >= 1 && G.revsGG.every((v) => v === 0) && !G.html.includes(SUMW.gone),
+    `口コミの箱に見えている錠前の1行は「${SUMW.key}」の1つだけ・「ログイン」1つ・口コミの Give & Get 1つ（どれも要約の板の中 ── すぐ下の口コミの畳みの Give & Get は在るが隠れる）`,
+    JSON.stringify(G && { locks: G.boxLocks, login: G.boxLogin, gg: G.boxGG, in: G.boxIn, revs: G.revsGG }));
+  /* ★2026-11-01 要約の在る会社が右の ANA だけ（lead と良い点つき・左の JAL は少ない）：帯は ANA の列にだけ・板は ANA の列の上。狭い画面は空の列を描かない */
+  for (const size of ['pc', 'sp']) {
+    const e = await open(size, { url: PAIR_URL('jal', 'ana'), stub: { pv_reviews: reviewsBy(RATED_CLIPS),
+      pv_review_summary: sumBy({ jal: { ok: true, state: 'few' }, ana: { ...SUM_LEAK, state: 'login', lead: SUM_LEAD } }) } });
+    ok(await sumDone(e.page, 'jal|ana'), `（${size}・要約は ANA だけ）要約の欄が読み終わった`);
+    const E = await sumFace(e.page), g = E && E.ghosts.find((x) => x.kind === 'bad'), [c1, c2] = g ? g.cols : [{}, {}];
+    ok(ghostOk(E) && badCols(E) === '-,3|2' && boardGG(E) && E.board.login === 1 && E.leads.length === 1 && E.leads[0].col === '2'
+       && (size === 'sp' ? c1.rects === 0 && c2.rects > 0 : c1.rects > 0 && E.board.side === 'right'),
+      `[2026-11-01]（${size}）帯は要約の在る ANA の列にだけ3本・JAL（少ない）の列は空（data-only="2"）・板は口コミの Give & Get と「ログイン」${size === 'sp' ? '・狭い画面は空の列を描かない' : '・板は ANA の列の上'}`,
+      JSON.stringify(E && { cols: g && g.cols, only: E.only, side: E.board && E.board.side, board: E.board, leads: E.leads.map((l) => l.col) }));
+  }
 });
 
-scene('sumkey', '口コミの鍵の無い会員（給与の鍵は在る）：要約の欄は1行「要約は口コミの投稿で開きます」だけ・リンク0・返事に植えた点は画面にも保存領域にも出ない', 'mock', async () => {
+scene('sumkey', '口コミの鍵の無い会員（給与の鍵は在る）：要約の欄の板は「要約は口コミの投稿で開きます」と口コミの Give & Get（「ログイン」は無い）・返事に植えた点は画面にも保存領域にも出ない', 'mock', async () => {
   const P = H.payFix.open([H.payRowFix('jal')], [H.payRowFix('ana')]);
   const { page } = await open('pc', { who: 'pay', url: PAIR_URL('jal', 'ana'), stub: {
     pv_reviews: reviewsBy(RATED_CLIPS), pv_review_summary: () => ({ status: 200, body: SUM_LEAK }),
@@ -923,17 +964,21 @@ scene('sumkey', '口コミの鍵の無い会員（給与の鍵は在る）：要
   const T2 = F ? F.leads.map((l) => l.tag) : [];
   ok(!!F && F.state === 'locked' && JSON.stringify(F.why) === '["key"]' && F.cells.length === 0 && T2.length === 2
      && JSON.stringify(F.seen) === JSON.stringify([T2[0], SUMW.good, ...SUM_GOOD_OK.slice(0, 2), T2[1], SUMW.good, ...SUM_GOOD_OK.slice(0, 2), ...SEEN_KEY]),
-    `[2026-10-30] 要約の欄は 会社ごとの良い点（2つまで・本物の字）と「${SUMW.bad}」の見出し・板の1行「${SUMW.key}」だけ（給与の鍵では開かない）`, JSON.stringify(F && { state: F.state, why: F.why, seen: F.seen }));
-  ok(!!F && F.links === 0 && JSON.stringify(F.boxLocks) === JSON.stringify([SUMW.key]) && F.boxGG === 1,
-    '要約の欄にリンクは0・口コミの箱に見えている錠前の1行はこの1つだけ（評価の欄の同じ意味の1行を重ねない）・入口は口コミの Give & Get 1つ', JSON.stringify(F && { links: F.links, locks: F.boxLocks, gg: F.boxGG }));
+    `[2026-10-30] 要約の欄は 会社ごとの良い点（2つまで・本物の字）と「${SUMW.bad}」の見出し・板（「${SUMW.key}」と口コミの Give & Get）だけ（給与の鍵では開かない）`, JSON.stringify(F && { state: F.state, why: F.why, seen: F.seen }));
+  ok(!!F && F.links === 1 && boardGG(F) && JSON.stringify(F.boxLocks) === JSON.stringify([SUMW.key]) && F.boxGG === 1 && J(F.boxIn) === '["board","board"]'
+     && F.revsGG.length >= 1 && F.revsGG.every((v) => v === 0),
+    '[2026-11-01] 要約の欄のリンクは板の口コミの Give & Get 1つだけ・口コミの箱に見えている錠前の1行と Give & Get はこの板の1つずつだけ（すぐ下の口コミの畳みの Give & Get は在るが隠れる）',
+    JSON.stringify(F && { links: F.links, gg: F.board && F.board.gg, locks: F.boxLocks, boxGG: F.boxGG, in: F.boxIn, revs: F.revsGG }));
   ok(!!F && !F.html.includes('LEAK-') && !F.store.includes('LEAK-') && !F.html.includes(LEAK_ID) && !F.store.includes(LEAK_ID) && !/7件|7 /.test(F.seen.join('|')),
     '鍵の無い人への返事に植えた気になる点・段落・件数・元の口コミの番号（LEAK-・LEAK_ID・7件）は、画面のどこにも保存領域にも出ない',
     JSON.stringify({ html: F && F.html.includes('LEAK-'), store: F && F.store.includes('LEAK-'), id: F && F.html.includes(LEAK_ID) }));
   ok(!!F && !!F.bad && F.bad.head === SUMW.bad && F.bad.lis === 0 && JSON.stringify(F.bad.seen) === JSON.stringify(SEEN_KEY),
     `「${SUMW.bad}」の列は見出しだけが本物の字・行は0・中身は影絵と板`, JSON.stringify(F && F.bad));
-  ok(ghostOk(F) && JSON.stringify(F.board.lock) === JSON.stringify([SUMW.key]) && F.board.links === 0 && F.leads.every((l) => !l.text),
-    '[2026-10-30] 1行は影絵の上の板に在る（リンクなし）・影絵は1つ（字も数字も無い）・lead の無い返事では、まとめの1文を出さない',
+  ok(ghostOk(F) && JSON.stringify(F.board.lock) === JSON.stringify([SUMW.key]) && F.board.links === 1 && F.board.login === 0 && F.leads.every((l) => !l.text),
+    '[2026-11-01] 1行と口コミの Give & Get は影絵の上の板に在る（「ログイン」は無い）・影絵は1つ（字も数字も無い）・lead の無い返事では、まとめの1文を出さない',
     JSON.stringify(F && { ghosts: F.ghosts, board: F.board, leads: F.leads }));
+  ok(badCols(F) === '3,3|' && F.board.side === 'mid', '[2026-11-01] 2社とも要約が在る：影絵は2列とも帯3本・空の列は無い（data-only なし）・板は2列をまたぐ',
+    JSON.stringify(F && { cols: badCols(F), side: F.board && F.board.side }));
 });
 
 scene('sumlead', '[2026-10-30] 口コミの鍵の無い人：会社ごとに、まとめの最初の1文（lead）だけを字で出す（植えた点・段落・件数は出さない）・lead の無い会社は何も置かない・その下は影絵と板', 'mock', async () => {
@@ -946,11 +991,11 @@ scene('sumlead', '[2026-10-30] 口コミの鍵の無い人：会社ごとに、�
      && L[1].col === '2' && L[1].text === null && L.every((l) => JSON.stringify(l.good) === JSON.stringify(SUM_GOOD_OK.slice(0, 2))),
     `lead の在る会社（左）にだけ「${SUMW.ovHead}」の枠（前後の空白は落とす）・空白だけの lead（右）は枠を置かない・どちらの列にも良い点が2つ（本物の字）`, JSON.stringify(F && { state: F.state, why: F.why, leads: L }));
   ok(!!F && JSON.stringify(F.seen) === JSON.stringify([L[0] && L[0].tag, SUMW.ovHead, SUM_LEAD, SUMW.good, ...SUM_GOOD_OK.slice(0, 2), L[1] && L[1].tag, SUMW.good, ...SUM_GOOD_OK.slice(0, 2), ...SEEN_KEY]) && F.cells.length === 0,
-    '見えている字は 社名の札・「まとめ」・lead・良い点・「気になる点」・板の1行 だけ（会社ごとのマス・数・気になる点の字は描かない）', JSON.stringify(F && F.seen));
+    '見えている字は 社名の札・「まとめ」・lead・良い点・「気になる点」・板（1行と口コミの Give & Get）だけ（会社ごとのマス・数・気になる点の字は描かない）', JSON.stringify(F && F.seen));
   ok(!!F && !F.html.includes('LEAK-') && !F.store.includes('LEAK-') && !/7件|7 /.test(F.seen.join('|')), '植えた点・段落・件数（LEAK- と 7件）は、画面のどこにも保存領域にも出ない',
     JSON.stringify({ html: F && F.html.includes('LEAK-'), store: F && F.store.includes('LEAK-') }));
-  ok(ghostOk(F) && JSON.stringify(F.board.lock) === JSON.stringify([SUMW.key]) && F.board.links === 0 && F.links === 0,
-    '影絵は気になる点に1つと、lead の枠の中に文の続きが1つ（字も数字も無い・読み上げない・触れない・ぼかし）・板は影絵の外で1行だけ・この欄にリンクは0（入口は評価の欄の Give & Get）', JSON.stringify(F && { ghosts: F.ghosts, board: F.board, links: F.links }));
+  ok(ghostOk(F) && JSON.stringify(F.board.lock) === JSON.stringify([SUMW.key]) && F.board.links === 1 && boardGG(F) && F.links === 1,
+    '影絵は気になる点に1つと、lead の枠の中に文の続きが1つ（字も数字も無い・読み上げない・触れない・ぼかし）・板は影絵の外で1行と口コミの Give & Get・この欄のリンクはその1つだけ（2026-11-01）', JSON.stringify(F && { ghosts: F.ghosts, board: F.board, links: F.links }));
   await shots(page, 'pc');
 });
 
@@ -971,20 +1016,20 @@ scene('sumtwo', '別のタブで読む人が替わる：口コミの鍵のある
   const n0 = st.calls.length;
   const t = await H.otherTab(ctx, CUR.env.local);
   await H.loginIn(t, CUR.env.local, 'pay');
-  const turned = await until(page, ([sel, line]) => { const b = document.querySelector(sel), x = b && b.querySelector('.crl-board'); return !!x && b.getAttribute('data-state') === 'locked' && x.innerText.trim() === line; }, [SUM_SEL, SUMW.key]);
+  const turned = await until(page, SHUT_AS, [SUM_SEL, 'key', SUMW.key]);
   const F1 = await sumFace(page);
   const after = st.calls.slice(n0).filter((c) => c.name === 'pv_review_summary');
   ok(turned && !!F1 && JSON.stringify(F1.seen) === JSON.stringify(SEEN_KEY) && after.length === 2 && after.every((c) => whoOf(c.auth) === 'pay'),
-    `別のタブで給与だけの会員（pay）が入ると、読み込み直さずに「${SUMW.key}」の1行へ（2社とも pay のログインで聞き直した）`,
+    `別のタブで給与だけの会員（pay）が入ると、読み込み直さずに「${SUMW.key}」と口コミの Give & Get の板へ（2社とも pay のログインで聞き直した）`,
     JSON.stringify({ turned, seen: F1 && F1.seen, after: after.map((c) => `${c.p && c.p.airline}:${whoOf(c.auth)}`) }));
   const left = (await H.seen(page)).slice(mark).filter((s) => MINE_TXT.some((x) => s.includes(x)));
   ok(left.length === 0 && !!F1 && !MINE_TXT.some((x) => F1.html.includes(x) || F1.store.includes(x)),
     '切り替えたあと要約の欄が取ったどの顔にも、画面にも保存領域にも、会員 a の文は1字も無い', JSON.stringify(left.slice(0, 4)));
   await H.logoutIn(t);
-  const out = await until(page, ([sel, line]) => { const b = document.querySelector(sel), x = b && b.querySelector('.crl-board'); return !!x && b.getAttribute('data-state') === 'locked' && x.innerText.trim().startsWith(line); }, [SUM_SEL, SUMW.login]);
+  const out = await until(page, SHUT_AS, [SUM_SEL, 'login', SUMW.key]);
   const F2 = await sumFace(page);
-  ok(out && !!F2 && JSON.stringify(F2.seen) === JSON.stringify(SEEN_LOGIN) && await page.evaluate(() => window.__crlNoReload === 1),
-    `別のタブでログアウトすると、読み込み直さずに「${SUMW.login}」と「ログイン」へ`, JSON.stringify({ out, seen: F2 && F2.seen }));
+  ok(out && !!F2 && JSON.stringify(F2.seen) === JSON.stringify(SEEN_LOGIN) && F2.board.login === 1 && !F2.html.includes(SUMW.gone) && await page.evaluate(() => window.__crlNoReload === 1),
+    `別のタブでログアウトすると、読み込み直さずに「${SUMW.key}」・口コミの Give & Get・「ログイン」の板へ（「${SUMW.gone}」は出さない）`, JSON.stringify({ out, seen: F2 && F2.seen }));
   await t.close();
 });
 
@@ -2697,7 +2742,7 @@ localScene('local-sum', '要約の門を返事の字で：ゲスト・会員（�
     okSql(sameJ(rj, SUM_LOGIN) && exact(ra, SUM_FEW), `★L3 ゲスト：比較が JAL の要約に聞いた返事は ${SUM_LOGIN} ちょうど（ANA は ${SUM_FEW}）`, J({ jal: rj, ana: ra }));
     const F = await sumFace(o.page);
     ok(o.ready && LSEEN(F, SEEN_LOGIN) && noGates(F),
-      `★L3 ゲスト：要約の欄は JAL の良い点2つと「${SUMW.bad}」・「${SUMW.login}」・「ログイン」だけ・気になる点の文は画面にも保存領域にも1字も無い`, J(F && { seen: F.seen, gates: !noGates(F) }));
+      `★L3 ゲスト：要約の欄は JAL の良い点2つと「${SUMW.bad}」・「${SUMW.key}」・口コミの Give & Get・「ログイン」だけ・気になる点の文は画面にも保存領域にも1字も無い`, J(F && { seen: F.seen, gates: !noGates(F) }));
     await o.close();
   }
   /* 会員（どちらの鍵も無い）・給与の鍵だけ */
@@ -2707,7 +2752,7 @@ localScene('local-sum', '要約の門を返事の字で：ゲスト・会員（�
     okSql(sameJ(rj, SUM_LOCKED), `★L3 ${who === 'pay' ? '給与の鍵だけ（給与提出者）：給与の鍵では開かない' : '会員（給与・口コミの鍵なし）'}：JAL の要約の返事は ${SUM_LOCKED} ちょうど`, J({ jal: rj }));
     const F = await sumFace(o.page);
     ok(o.ready && LSEEN(F, SEEN_KEY) && noGates(F),
-      `★L3 ${who}：要約の欄は JAL の良い点2つと「${SUMW.bad}」・「${SUMW.key}」だけ・気になる点の文は画面にも保存領域にも1字も無い`, J(F && { seen: F.seen, gates: !noGates(F) }));
+      `★L3 ${who}：要約の欄は JAL の良い点2つと「${SUMW.bad}」・「${SUMW.key}」・口コミの Give & Get だけ・気になる点の文は画面にも保存領域にも1字も無い`, J(F && { seen: F.seen, gates: !noGates(F) }));
     await o.close();
   }
   /* 口コミの鍵（a） */
@@ -2738,7 +2783,7 @@ localScene('local-sum', '要約の門を返事の字で：ゲスト・会員（�
     const rj = await reply(o, 'pv_review_summary', 'jal');
     okSql(sameJ(rj, SUM_LOCKED), `★L3 給与の鍵が期限切れの pay：JAL の要約の返事は同じ ${SUM_LOCKED} ちょうど`, J({ jal: rj }));
     const F = await sumFace(o.page);
-    ok(o.ready && LSEEN(F, SEEN_KEY) && noGates(F), `★L3 期限切れの pay：同じ顔（JAL の良い点2つと「${SUMW.key}」）・気になる点の文は無い`, J(F && F.seen));
+    ok(o.ready && LSEEN(F, SEEN_KEY) && noGates(F), `★L3 期限切れの pay：同じ顔（JAL の良い点2つと「${SUMW.key}」・口コミの Give & Get）・気になる点の文は無い`, J(F && F.seen));
   }
 });
 
@@ -2754,23 +2799,21 @@ localScene('local-two', '別のタブで読む人が替わる（サーバーが�
   o.got.length = 0;                                     // 切り替えたあとの返事だけを見る
   const t = await H.otherTab(o.ctx, CUR.env.local);
   await H.loginIn(t, CUR.env.local, 'pilot');
-  const turned = await o.page.waitForFunction(([sel, line]) => { const b = document.querySelector(sel);
-    const x = b && b.querySelector('.crl-board'); return !!x && b.getAttribute('data-state') === 'locked' && x.innerText.trim() === line; }, { timeout: 15000, polling: 100 }, [SUM_SEL, SUMW.key]).then(() => true, () => false);
+  const turned = await o.page.waitForFunction(SHUT_AS, { timeout: 15000, polling: 100 }, [SUM_SEL, 'key', SUMW.key]).then(() => true, () => false);
   const F1 = await sumFace(o.page);
   const after = o.st.calls.slice(n0).filter((c) => c.name === 'pv_review_summary');
   const rj = await reply(o, 'pv_review_summary', 'jal');
   ok(turned && LSEEN(F1, SEEN_KEY) && after.length >= 1 && after.every((c) => whoOf(c.auth) === 'pilot') && sameJ(rj, SUM_LOCKED),
-    `★L4 別のタブで pilot が入ると、読み込み直さずに「${SUMW.key}」の1行へ（pilot のログインで聞き直し、サーバーの返事は ${SUM_LOCKED}）`,
+    `★L4 別のタブで pilot が入ると、読み込み直さずに「${SUMW.key}」と口コミの Give & Get の板へ（pilot のログインで聞き直し、サーバーの返事は ${SUM_LOCKED}）`,
     J({ turned, seen: F1 && F1.seen, after: after.map((c) => `${c.p && c.p.airline}:${whoOf(c.auth)}`), jal: rj }));
   /* 良い点は pilot にも出る（2026-10-30）。a にだけ見えていたのは気になる点の文 */
   const left = (await H.seen(o.page)).slice(mark).filter((s) => GATES.concern.some((x) => s.includes(x)));
   ok(left.length === 0 && noGates(F1), '★L4 切り替えたあと要約の欄が取ったどの顔にも、画面にも保存領域にも、a が受け取った気になる点の文は1字も無い', J(left.slice(0, 3)));
   await H.logoutIn(t);
-  const out = await o.page.waitForFunction(([sel, line]) => { const b = document.querySelector(sel);
-    const x = b && b.querySelector('.crl-board'); return !!x && b.getAttribute('data-state') === 'locked' && x.innerText.trim().startsWith(line); }, { timeout: 15000, polling: 100 }, [SUM_SEL, SUMW.login]).then(() => true, () => false);
+  const out = await o.page.waitForFunction(SHUT_AS, { timeout: 15000, polling: 100 }, [SUM_SEL, 'login', SUMW.key]).then(() => true, () => false);
   const F2 = await sumFace(o.page);
   ok(out && LSEEN(F2, SEEN_LOGIN) && await o.page.evaluate(() => window.__crlNoReload === 1) && noGates(F2),
-    `★L4 別のタブでログアウトすると、読み込み直さずに「${SUMW.login}」と「ログイン」へ`, J({ out, seen: F2 && F2.seen }));
+    `★L4 別のタブでログアウトすると、読み込み直さずに「${SUMW.key}」・口コミの Give & Get・「ログイン」の板へ`, J({ out, seen: F2 && F2.seen }));
   await t.close();
 });
 
@@ -2894,7 +2937,7 @@ localScene('local-both', '2つの鍵（c：JAL の口コミ・自分の会社 AN
   await reload(p);
   const y1 = await faceOf(p);
   ok(y1.ready && LSEEN(y1.S, SEEN_KEY) && noGates(y1.S) && payFace(y1),
-    `★L8 (ii) その ANA の行を消す（q()）→ 要約の欄は「${SUMW.key}」の1行（JAL の預けた要約はそのまま）・月の働き方／回答／待遇は前と同じ`, show(y1));
+    `★L8 (ii) その ANA の行を消す（q()）→ 要約の欄は「${SUMW.key}」と口コミの Give & Get の板（JAL の預けた要約はそのまま）・月の働き方／回答／待遇は前と同じ`, show(y1));
   const rj = await reply(p, 'pv_review_summary', 'jal');
   okSql(sameJ(rj, SUM_LOCKED), `★L8 (ii) 給与の鍵が生きていても、口コミの鍵が無ければ JAL の要約の返事は ${SUM_LOCKED} ちょうど`, J({ jal: rj }));
   console.log('  ・2つの鍵は、それぞれ自分の欄だけを閉じる（給与の鍵 ＝ 月の働き方・待遇／口コミの鍵 ＝ 要約）');

@@ -461,6 +461,9 @@ a.crl-sum-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:-4px
    （「口コミの投稿で開きます」）を重ねない ── 会社ページの評価スコアのカードと同じ（pv-glance.css 2026-10-08）。口コミの Give & Get は残す。
    ★2026-10-31：錠前の1行は評価の欄から、要約の下の畳み（cmp-revs）へ移った */
 .crl[data-live="cmp-summary"][data-state="locked"] + .crl[data-live="cmp-revs"] .crl-rv-fold > .crl-lock{display:none}
+/* ★2026-11-01 オーナー「Give & Get 口コミを解放する では？」：要約の板が口コミの Give & Get を出しているあいだ、すぐ下の口コミの畳みの
+   Give & Get は出さない（入口は1つ） */
+.crl[data-live="cmp-summary"][data-state="locked"] + .crl[data-live="cmp-revs"] > .crl-foot{display:none}
 /* 評価の欄が格子で終わっている時（口コミの鍵のある人など ── 下に錠前の1行も入口も無い）は、格子の最後の行の線が区切り。
    要約の欄の上にもう1本引かない（細い線を2本重ねない）。読めなかった時の帯（error）は線を持たないので触らない */
 .crl[data-live="cmp-stars"]:has(> .crl-cmp:last-child) + .crl[data-live="cmp-summary"][data-state]:not([data-state="error"]){margin-top:0;border-top:0}
@@ -649,6 +652,16 @@ a.crl-sum-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:-4px
    （高さは板が決める ── 長い英語の板でも字を切らない）。比較は2列で、上の会社の列と同じ間（24px） */
 .crl-ghost-bad{position:absolute;inset:0;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:16px;padding:2px;overflow:hidden}
 .crl[data-live="cmp-summary"] .crl-ghost-bad{column-gap:24px}
+/* ★2026-11-01 オーナー「なんで口コミ要約がない方にまでオレンジのぼかし？」：要約の無い会社の列は空（data-empty）。
+   狭い画面は1列なので空の列を畳む。広い画面は列の位置を残し、板を要約の在る会社の列の上へ寄せる（data-only） */
+.crl-gh-col[data-empty]{display:none}
+@supports (container-type:inline-size){
+  @container (min-width:560px){
+    .crl[data-live="cmp-summary"] .crl-gh-col[data-empty]{display:grid}
+    .crl[data-live="cmp-summary"] .crl-sum-gw[data-only="1"]{padding-right:calc(50% + 12px)}
+    .crl[data-live="cmp-summary"] .crl-sum-gw[data-only="2"]{padding-left:calc(50% + 12px)}
+  }
+}
 .crl-gh-col{display:grid;gap:8px;align-content:start}
 .crl-ghost .crl-gh-b{height:40px;border-left:3px solid color-mix(in srgb,var(--pv-orange) 70%,transparent);border-radius:8px;background:color-mix(in srgb,var(--pv-orange) 16%,transparent)}
 

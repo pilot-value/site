@@ -102,7 +102,6 @@
     payTerms: '閲覧条件',
     payAll: 'REAL PAY で全部見る',
     login: 'ログイン',
-    loginLock: 'ログインが必要です',            // 口コミの要約の欄だけが使う（集計の欄は使わない）
     loginPayLock: 'ログインと給与の提出で開きます',
     /* ログインも給与の提出も済んでいて、自分の会社への回答がまだ足りない人の1行と、答えるカード。
        要る数（need）と答えた数（have）は、サーバーが返した数（ここには書かない）。 */
@@ -226,7 +225,6 @@
     payTerms: 'Viewing terms',
     payAll: 'See all in REAL PAY',
     login: 'Log in',
-    loginLock: 'You need to log in',
     loginPayLock: 'Opens when you log in and submit your pay',
     giveLock: function (need) { return 'Opens when you answer ' + need + (need === 1 ? ' item' : ' items') + ' about your own airline'; },
     giveHead: function (name) { return 'Fill in the gaps on pay and conditions at ' + name; },
@@ -1893,11 +1891,13 @@
   }
   /* 気になる点の影絵（2026-10-30 オーナー「悪いところだけぼかしを入れよう」）。cols ＝ 列の数（会社ページは1・比較は2 ＝ 会社の列にそろえる）。
      1列に3本の帯（決まった形・橙）。見出し「気になる点」は影絵の外の本物の字 */
-  function ghostBad(cols) {
+  function ghostBad(cols, on) {
     var g = ghost('bad');
     for (var c = 0; c < cols; c++) {
       var col = el('div', 'crl-gh-col');
-      for (var k = 0; k < 3; k++) col.appendChild(el('i', 'crl-gh-b'));
+      /* ★2026-11-01 要約の無い会社の列は空（列の位置だけ残す ── 広い画面で要約の在る会社の列にそろえる。狭い画面は CSS が畳む） */
+      if (on && !on[c]) col.setAttribute('data-empty', '');
+      else for (var k = 0; k < 3; k++) col.appendChild(el('i', 'crl-gh-b'));
       g.appendChild(col);
     }
     return g;
@@ -2258,14 +2258,16 @@
     box.appendChild(ghostCont());                          // 文が枠の中で続いている形（字は lead だけ）
     return box;
   }
-  /* 気になる点の列：見出し（本物の字）→ 影絵（cols 列）と、影絵の上の板（board ＝ 錠前の1行と入口）。板は影絵の外（ぼかさない） */
-  function sumBad(cols, board) {
+  /* 気になる点の列：見出し（本物の字）→ 影絵（cols 列）と、影絵の上の板（board ＝ 錠前の1行と入口）。板は影絵の外（ぼかさない）。
+     on ＝ 列ごとに要約が在るか（比較だけが渡す）。1列だけなら data-only にその列の番号（CSS が板をその列の上へ寄せる） */
+  function sumBad(cols, board, on) {
     var col = el('div', 'crl-sum-col');
     col.setAttribute('data-kind', 'concern');
     col.setAttribute('data-shut', '');
     col.appendChild(el('h4', 'crl-sum-h', T.sumConcern));
     var gw = el('div', 'crl-sum-gw');
-    gw.appendChild(ghostBad(cols));
+    if (on && on.filter(Boolean).length === 1) gw.setAttribute('data-only', String(on.indexOf(true) + 1));
+    gw.appendChild(ghostBad(cols, on));
     var bd = el('div', 'crl-board'), inn = el('div', 'crl-board-in');
     board.forEach(function (n) { if (n) inn.appendChild(n); });
     bd.appendChild(inn);
@@ -2347,7 +2349,10 @@
       if (st[0] === 'fail' && st[1] === 'fail') throw fail('error');
       /* ★2026-10-30 会社ごとの列：社名の札 → まとめの枠（先頭の字＋ぼかした続き）→ 良い点（2つまで・矢印なし）。その下に1つ：
          「気になる点」の見出し（本物の字）＋ 会社の列にそろえた2列の影絵 ＋ 板1枚（会社ページと同じ読み方 ── 鍵の無い答えから読むのは state・lead・good だけ）。
-         板の1行は枠に1回だけ。入口はすぐ下の口コミの畳み（cmp-revs）の、口コミの Give & Get の1つ（ここに足さない）── ゲストには「ログイン」だけ */
+         板の1行は枠に1回だけ。
+         ★2026-11-01 オーナー「ログインが必要ですじゃなくて、Give & Get 口コミを解放する では？」── 板は「要約は口コミの投稿で開きます」と
+           口コミの Give & Get（ゲストには小さな「ログイン」も）。このあいだ、すぐ下の口コミの畳みの錠の1行と Give & Get は CSS が隠す（入口は1つ）。
+         ★同日「なんで口コミ要約がない方にまでオレンジのぼかし？」── 影絵は要約の在る会社（state が login・locked）の列にだけ */
       if (st[0] === 'login' || st[1] === 'login' || st[0] === 'locked' || st[1] === 'locked') {
         var lg = el('div', 'crl-sum-leads');
         S.forEach(function (s, i) {
@@ -2362,8 +2367,9 @@
           lg.appendChild(c);
         });
         var guest = st[0] === 'login' || st[1] === 'login';
+        var on = S.map(function (s) { return !!(s.ok && (s.v.state === 'login' || s.v.state === 'locked')); });
         return sumShut(guest ? 'login' : 'key', [lg.childNodes.length ? lg : null,
-          sumBad(2, guest ? [lockLine(T.loginLock), loginLink()] : [lockLine(T.sumLock)])]);
+          sumBad(2, [lockLine(T.sumLock), foot([give2(T.revUnlock, UP + 'submit-review.html'), guest ? loginLink() : null])], on)]);
       }
       /* 2社とも同じ静かな1行なら、会社ごとに繰り返さない */
       if (st[0] === st[1] && (st[0] === 'few' || st[0] === 'none' || st[0] === 'off')) return view('empty', [quietNote(st[0])]);
