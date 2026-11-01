@@ -115,6 +115,57 @@
      ★写像（jaToEn / enToJa）にはパスだけを渡し、連結は最後にする。 */
   function withQS(dest) { return dest + location.search + location.hash; }
 
+  /* ── スペイン語のページ（2026-11-02・多言語化の段1）──────────────────
+     ★自動で別の言語へ飛ばさない（pv-lang を読まない）。日英のページの動きは1つも変えない。
+     ボタンを押すと「Español / English / 日本語」の小さなメニュー。es/ のページは英語のページから
+     作るので、同じページの英語版・日本語版は必ずある。 */
+  if (raw.indexOf('/es/') === 0) {
+    var esBare = raw.slice(4);
+    var esMenu = function () {
+      injectSkin();
+      if (document.getElementById('lang-toggle')) return;
+      var wrap = document.createElement('span');
+      wrap.className = 'pv-lang-wrap';
+      var btn = document.createElement('button');
+      btn.id = 'lang-toggle';
+      btn.className = 'lang-toggle';
+      btn.type = 'button';
+      btn.setAttribute('aria-label', 'Idioma');
+      btn.setAttribute('aria-haspopup', 'true');
+      btn.setAttribute('aria-expanded', 'false');
+      btn.innerHTML = '<span aria-hidden="true">🌐</span> ES';
+      var menu = document.createElement('span');
+      menu.className = 'pv-lang-menu';
+      menu.hidden = true;
+      [['Español', null, 'es'], ['English', '/en/' + esBare, 'en'], ['日本語', '/' + esBare, 'ja']].forEach(function (it) {
+        var a = document.createElement(it[1] ? 'a' : 'span');
+        a.textContent = it[0];
+        a.setAttribute('lang', it[2]);
+        if (it[1]) {
+          a.href = withQS(it[1]);
+          /* 押した瞬間の URL から作り直す（ページが読み込み後に ?claim= などを書き換えることがある＝日英のボタンと同じ） */
+          a.addEventListener('click', function () { a.href = withQS(it[1]); try { localStorage.setItem('pv-lang', it[2]); } catch (e) {} });
+        } else a.setAttribute('aria-current', 'true');
+        menu.appendChild(a);
+      });
+      var close = function () { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); };
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        menu.hidden = !menu.hidden;
+        btn.setAttribute('aria-expanded', String(!menu.hidden));
+      });
+      document.addEventListener('click', close);
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+      wrap.appendChild(btn);
+      wrap.appendChild(menu);
+      var themeBtn = document.getElementById('theme-toggle');
+      if (themeBtn) themeBtn.parentNode.insertBefore(wrap, themeBtn.nextSibling);
+      else { var host = document.getElementById('pv-toggle-float') || document.getElementById('main-nav'); if (host) host.appendChild(wrap); }
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', esMenu); else esMenu();
+    return;
+  }
+
   /* ── Auto-redirect based on saved preference ── */
   var saved = localStorage.getItem('pv-lang');
   if (saved === 'en' && !isEN) {
@@ -184,7 +235,17 @@
       '[data-theme="light"] .theme-toggle{background:rgba(0,0,0,.06);color:#0f172a;border-color:rgba(0,0,0,.13)}',
       '[data-theme="light"] .theme-toggle:hover{background:rgba(0,0,0,.11)}',
       '[data-theme="light"] .lang-toggle{background:rgba(0,0,0,.06);color:#0f172a;border-color:rgba(0,0,0,.13)}',
-      '[data-theme="light"] .lang-toggle:hover{background:rgba(0,0,0,.11)}'
+      '[data-theme="light"] .lang-toggle:hover{background:rgba(0,0,0,.11)}',
+      /* スペイン語のページの言語メニュー（日英のページには要素が無いので効かない） */
+      '.pv-lang-wrap{position:relative;display:inline-flex}',
+      '.pv-lang-menu{position:absolute;top:calc(100% + 6px);right:0;z-index:60;display:flex;flex-direction:column;min-width:9rem;padding:6px;border-radius:12px;background:#151b22;border:1px solid rgba(255,255,255,.12);box-shadow:0 10px 30px rgba(0,0,0,.28)}',
+      '.pv-lang-menu[hidden]{display:none}',
+      '.pv-lang-menu a,.pv-lang-menu span{padding:8px 10px;border-radius:8px;font-size:.85rem;color:#e8edf2;text-decoration:none}',
+      '.pv-lang-menu a:hover,.pv-lang-menu a:focus-visible{background:rgba(255,255,255,.1);outline:none}',
+      '.pv-lang-menu [aria-current]{font-weight:700;opacity:.7}',
+      '[data-theme="light"] .pv-lang-menu{background:#fff;border-color:rgba(0,0,0,.12);box-shadow:0 10px 30px rgba(15,23,42,.14)}',
+      '[data-theme="light"] .pv-lang-menu a,[data-theme="light"] .pv-lang-menu span{color:#0f172a}',
+      '[data-theme="light"] .pv-lang-menu a:hover{background:rgba(0,0,0,.06)}'
     ].join('\n');
     var head = document.head || document.documentElement;
     head.insertBefore(s, head.firstChild);

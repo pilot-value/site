@@ -26,7 +26,7 @@
 ════════════════════════════════════════════════════════════════ */
 import fs from 'fs';
 import path from 'path';
-import { LANGS, listSiteHtml, urlOfRel, langOfRel } from './langs.mjs';
+import { LANGS, listSiteHtml, urlOfRel, langOfRel, isPublished } from './langs.mjs';
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname).replace(/%20/g, ' ');
 const ORIGIN = 'https://pilot-value.com';
@@ -153,7 +153,8 @@ const add = (file, code, detail) => issues.push({ file, code, detail });
 const docs = new Map();
 for (const rel of files) {
   const html = fs.readFileSync(path.join(ROOT, rel), 'utf8');
-  docs.set(rel, { html, ...parse(html), url: relToUrl(rel), noindexExpected: isNoindexPage(rel) });
+  /* 機械で作る言語（スペイン語など）のページは、langs.mjs の indexed に入れるまで検索に出さない＝ noindex が正しい */
+  docs.set(rel, { html, ...parse(html), url: relToUrl(rel), noindexExpected: isNoindexPage(rel) || !isPublished(rel), unpublished: !isPublished(rel) });
 }
 
 const seenTitle = new Map();
@@ -208,7 +209,9 @@ for (const [rel, d] of docs) {
   const alts = d.link('alternate').filter((x) => x.hreflang);
   const byLang = Object.fromEntries(alts.map((x) => [x.hreflang.toLowerCase(), x.href]));
   const jaOnly = JA_ONLY.has(rel);
-  for (const need of jaOnly ? ['ja', 'x-default'] : ['ja', 'en', 'x-default']) {
+  /* まだ検索に出さない言語のページ：hreflang を1本も持たない（持つと、出していないページを Google に申告する） */
+  if (d.unpublished && alts.length) add(rel, 'hreflang-on-unpublished', `検索に出していないページに hreflang が ${alts.length} 本ある`);
+  for (const need of d.unpublished ? [] : jaOnly ? ['ja', 'x-default'] : ['ja', 'en', 'x-default']) {
     if (!byLang[need]) add(rel, 'hreflang-missing', `hreflang="${need}" が無い`);
   }
   if (jaOnly) {

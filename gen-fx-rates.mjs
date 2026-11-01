@@ -118,8 +118,10 @@ let next = cjs.replace(mRates[0], ratesLine);
 /* 「2026年時点」のままだと、いつのレートか読んだ人に分からない */
 const asOfJa = `${AS_OF.slice(0, 4)}年${Number(AS_OF.slice(5, 7))}月時点`;
 const asOfEn = `as of ${new Date(AS_OF + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' })}`;
+/* ★スペイン語の行も書く（2026-11-02）。ja・en だけ書くと es が消え、スペイン語のメニューに undefined が出る */
+const asOfEs = new Date(AS_OF + 'T00:00:00Z').toLocaleDateString('es', { month: 'long', year: 'numeric', timeZone: 'UTC' });
 next = next.replace(/ {2}var AS_OF = \{[^}]*\};/,
-  `  var AS_OF = { ja: '${asOfJa}', en: '${asOfEn}' };`);
+  () => `  var AS_OF = { ja: '${asOfJa}', en: '${asOfEn}', es: '${asOfEs}' };`);
 if (next === cjs) { console.error('❌ currency.js を書き替えられなかった'); process.exit(1); }
 writeFileSync(p('currency.js'), next, 'utf8');
 

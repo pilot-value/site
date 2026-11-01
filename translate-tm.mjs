@@ -31,10 +31,10 @@ import { fileURLToPath } from 'url';
 import { createHash } from 'crypto';
 import Anthropic from '@anthropic-ai/sdk';
 import { jsonSchemaOutputFormat } from '@anthropic-ai/sdk/helpers/json-schema';
-import { extract, plain, tagSet, reportPage } from './i18n-core.mjs';
+import { extract, extractHead, plain, tagSet, reportPage } from './i18n-core.mjs';
+import { LANG } from './langs.mjs';
 import { GLOSSARY_ES } from './i18n/glossary-es.mjs';
-import { SALARY } from './salary-data.mjs';
-import { OPS } from './airline-ops.mjs';
+import { needsAI } from './i18n/keep.mjs';   // 会社名・サービスの名前は AI に渡さない
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const MODEL = 'claude-opus-5-5';
@@ -67,14 +67,6 @@ const glTerms = GL.map((e) => {
 const termsIn = (text) => glTerms.filter((t) => t.res.some((r) => r.test(text))).map((t) => t.e);
 const glPrint = (es) => es.map((e) => `${e.id}:${glHash(e)}`).sort().join(',');
 
-/* ── 訳さない固有名（会社名）─────────────────────────────── */
-const KEEP = new Set(['PILOT VALUE', 'REAL PAY', 'DEEP PAY', 'VOTE', 'Give & Get', 'FOUNDING PILOT']);   // サービスの名前
-for (const d of [...Object.values(SALARY), ...Object.values(OPS)]) {
-  if (!d.en) continue;
-  KEEP.add(d.en); KEEP.add(d.en.replace(/\s*\(.*?\)\s*/g, '').trim());
-  for (const a of d.alias || []) if (/^[\x20-\x7e]+$/.test(a)) KEEP.add(a);
-}
-const needsAI = (key) => /[A-Za-z]{2,}/.test(plain(key)) && !KEEP.has(plain(key));
 
 /* ── 書き方の決まりと用語集（毎回同じ＝キャッシュに載る）──── */
 const STYLE = `You translate the website PILOT VALUE from English into Latin American Spanish (es-419).
@@ -187,8 +179,7 @@ function check(key, es) {
 }
 
 /* ── ページから文を集める ─────────────────────────────────── */
-const DEFAULT_PAGES = ['pay-report.html', 'signup.html', 'login.html', 'profile.html', 'actual-pay.html', 'my-value.html',
-  'terms.html', 'privacy.html', 'personal-data.html', 'contact.html'].map((p) => 'en/' + p);
+const DEFAULT_PAGES = LANG[code].pages.map((p) => 'en/' + p);   // 作るページは langs.mjs の1か所
 function collect(pages) {
   const out = [];
   for (const rel of pages) {
@@ -198,12 +189,14 @@ function collect(pages) {
     const ja = fs.existsSync(path.join(ROOT, jaRel)) ? extract(fs.readFileSync(path.join(ROOT, jaRel), 'utf8')) : { units: [], attrs: [] };
     const jaAt = new Map([...ja.units, ...ja.attrs].map((u) => [u.path, plain(u.key)]));
     const { units, attrs } = extract(enHtml);
-    const all = [...units, ...attrs].sort((a, b) => a.start - b.start);
+    /* <title> と説明文も訳す（gen-lang.mjs が head の管理ブロックを作り直すときに使う） */
+    const head = extractHead(enHtml).map((h, k) => ({ ...h, start: -10 + k, path: 'head@' + h.name }));
+    const all = [...head, ...units, ...attrs].sort((a, b) => a.start - b.start);
     all.forEach((u, i) => {
       if (!needsAI(u.key)) return;
       const jaText = /(^|>)option[:~]/.test(u.path) || /select/.test(u.path) ? '' : (jaAt.get(u.path) || '');
       out.push({
-        key: u.key, page: rel, kind: u.kind === 'attr' ? `attribute ${u.name}` : 'text',
+        key: u.key, page: rel, kind: u.kind === 'attr' ? `attribute ${u.name}` : u.kind === 'head' ? `page ${u.name} (search result)` : 'text',
         ja: /[ぁ-んァ-ヶ一-龠]/.test(jaText) ? jaText : '',
         before: all[i - 1] ? plain(all[i - 1].key).slice(-120) : '', after: all[i + 1] ? plain(all[i + 1].key).slice(0, 120) : '',
       });

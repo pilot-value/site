@@ -12,6 +12,10 @@
      ・hand: true ＝ 本文を人が書いている言語（日英）。seo-normalize.mjs が head を作る。
        3つ目からの言語は英語のページから機械で作る（手で書かない）── 段1で足す。
      ・x-default は英語（xDefault: true）。日本語だけのページは日本語を指す。
+     ・3つ目からの言語（hand が無い）は gen-lang.mjs が英語のページから作る。
+       pages ＝ 作るページ（ここに無いページへのリンクは英語版へ向ける）。
+       indexed ＝ 検索に出すページ（AI の4段＋機械検査を全部通ったもの・段4で足していく）。
+       ここに無いページは noindex で、サイトマップにも hreflang にも出さない。
      ・ページ一覧の並びは「言語の順 × ('' → airlines/ → countries/)」。
        並びを変えると sitemap.xml の行の順が全部動く。
    ════════════════════════════════════════════════════════════════ */
@@ -23,6 +27,11 @@ export const ORIGIN = 'https://pilot-value.com';
 export const LANGS = [
   { code: 'ja', dir: '',    hreflang: 'ja', htmlLang: 'ja', ogLocale: 'ja_JP', hand: true },
   { code: 'en', dir: 'en/', hreflang: 'en', htmlLang: 'en', ogLocale: 'en_US', hand: true, xDefault: true },
+  /* スペイン語（中南米）。スペイン版は後から 'es-es/'（hreflang es-ES・base: 'es'）で足す（2026-11-01 オーナー決定）。 */
+  { code: 'es', dir: 'es/', hreflang: 'es', htmlLang: 'es-419', ogLocale: 'es_LA', base: 'en',
+    pages: ['pay-report.html', 'signup.html', 'login.html', 'profile.html', 'actual-pay.html', 'my-value.html',
+      'terms.html', 'privacy.html', 'personal-data.html', 'contact.html'],
+    indexed: new Set([]) },
 ];
 
 /* どの言語にも同じ形で在るフォルダ（言語のフォルダの下） */
@@ -63,6 +72,12 @@ export function listSiteHtml(root, langs = LANGS) {
     }
   }
   return out;
+}
+
+/* 検索に出すページか（日英は全部・機械で作る言語は indexed に入れたものだけ）。noindex の判定は別（各道具の NOINDEX）。 */
+export function isPublished(rel) {
+  const l = langOfRel(rel);
+  return l.hand || !!l.indexed?.has(rel.slice(l.dir.length));
 }
 
 /* 同じページの言語ごとの URL（hreflang に書く分）。

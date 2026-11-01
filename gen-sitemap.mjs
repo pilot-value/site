@@ -25,7 +25,7 @@ import fs from 'fs';
 import path from 'path';
 import { SALARY } from './salary-data.mjs';
 import { pageDates } from './page-dates.mjs';
-import { listSiteHtml, urlOfRel, bareOf, relIn, alternatesFor, LANGS } from './langs.mjs';
+import { listSiteHtml, urlOfRel, bareOf, relIn, alternatesFor, LANGS, isPublished } from './langs.mjs';
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname).replace(/%20/g, ' ');
 
@@ -55,7 +55,7 @@ const NOINDEX = new Set([
 ]);
 
 /* 言語の順 × ('' → airlines/ → countries/)。並びは langs.mjs が決める。 */
-const files = listSiteHtml(ROOT).filter((rel) => !NOINDEX.has(path.basename(rel))
+const files = listSiteHtml(ROOT).filter(isPublished).filter((rel) => !NOINDEX.has(path.basename(rel))
   || rel.includes('/airlines/') || rel.includes('/countries/'));
 
 const relToUrl = urlOfRel;

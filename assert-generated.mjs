@@ -67,6 +67,8 @@ const GENERATORS = [
   /* 2026-10-29。就航地を出す会社を 19 → 96社に広げたとき、db/stays.sql の手で写した一覧（運営の「追加」が公開で入れてよい空港）を
      直し忘れた。SQL の検査（db/test-stays.mjs の ★N1）でしか分からず、DB を触らない回の push 前には流れない ＝ ここでも見る。 */
   ['gen-stay-network.mjs', 'db/stays.sql の pv_stay_network()（運営の「追加」が公開で入れてよい空港）'],
+  /* 2026-11-02（多言語化の段1）。英語のページや訳の辞書を直したのに流し忘れると、es/ だけ古い字が残る。 */
+  ['gen-lang.mjs',        'es/ のページ（英語のページ＋訳の辞書 i18n/tm-es.mjs から作る）'],
   /* ★日付とサイトマップは最後（2026-11-01・多言語化の段0）。ページの中身を書く生成スクリプト（gen-career・gen-lp-compare、
      これから足す言語の生成）より先に流すと、そのあと中身が変わったページの日付と、新しく増えたページが一覧から漏れる。 */
   /* 2026-09-18 に足した。seo-normalize.mjs が管理ブロックを作り直すたびに日付を消していて、
@@ -121,6 +123,8 @@ try {
   }).join(' ');
   const gitBefore = guard();
   symlinkSync(gitDir, join(work, '.git'));
+  /* 部品（parse5 など）を読む生成スクリプトのために node_modules も貸す（読むだけ。hashTree は数えない） */
+  if (existsSync(join(ROOT, 'node_modules'))) symlinkSync(realpathSync(join(ROOT, 'node_modules')), join(work, 'node_modules'));
 
   const before = hashTree(work);
 

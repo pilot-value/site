@@ -21,6 +21,7 @@
      日本語側のキー名は**変えない**＝今まで選んでいた人の設定はそのまま生きる。 */
   var STORE_KEY    = 'pv-currency';       // 日本語ページで選んだ通貨（昔からのキー）
   var STORE_KEY_EN = 'pv-currency-en';    // 英語ページで選んだ通貨
+  var STORE_KEY_ES = 'pv-currency-es';    // スペイン語ページで選んだ通貨（2026-11-02・多言語化。言語ごとに別々に覚える）
 
   // ── 固定・概算 為替レート（JPY / 1通貨単位）。オーナーが1箇所で編集可 ──
   // 概算・2026年時点。表示専用（SSOT の円は不変）。数値は後から1箇所で調整可。
@@ -35,14 +36,16 @@
   // 参照は下の LANG（isENPage() の結果）経由で行う。
   var NAME = {
     ja: { JPY: '日本円', USD: '米ドル', EUR: 'ユーロ', GBP: '英ポンド', AUD: '豪ドル', SGD: 'シンガポールドル', AED: 'UAEディルハム' },
-    en: { JPY: 'Japanese Yen', USD: 'US Dollar', EUR: 'Euro', GBP: 'British Pound', AUD: 'Australian Dollar', SGD: 'Singapore Dollar', AED: 'UAE Dirham' }
+    en: { JPY: 'Japanese Yen', USD: 'US Dollar', EUR: 'Euro', GBP: 'British Pound', AUD: 'Australian Dollar', SGD: 'Singapore Dollar', AED: 'UAE Dirham' },
+    es: { JPY: 'Yen japonés', USD: 'Dólar estadounidense', EUR: 'Euro', GBP: 'Libra esterlina', AUD: 'Dólar australiano', SGD: 'Dólar de Singapur', AED: 'Dírham de EAU' }
   };
-  var AS_OF = { ja: '2026年8月時点', en: 'as of Aug 2026' };
+  var AS_OF = { ja: '2026年8月時点', en: 'as of Aug 2026', es: 'agosto de 2026' };
   var NOTE  = {
     ja: function (asOf) { return '為替は概算・固定レート（' + asOf + '）。表示は目安です。'; },
-    en: function (asOf) { return 'Approximate fixed rates (' + asOf + '). Figures are indicative.'; }
+    en: function (asOf) { return 'Approximate fixed rates (' + asOf + '). Figures are indicative.'; },
+    es: function (asOf) { return 'Tipo de cambio fijo y aproximado (' + asOf + '). Las cifras son orientativas.'; }
   };
-  var ARIA  = { ja: '表示通貨を切り替え', en: 'Change display currency' };
+  var ARIA  = { ja: '表示通貨を切り替え', en: 'Change display currency', es: 'Cambiar la moneda' };
 
   // ── 状態 ──────────────────────────────────────────────────────
   // 英語ページ（/en/ 配下 or <html lang="en">）は既定を**見ている地域**から決め（下の TZ_CUR）、
@@ -55,9 +58,18 @@
       return !!(lang && lang.toLowerCase().indexOf('en') === 0);
     } catch (e) { return false; }
   }
+  /* スペイン語のページ（/es/ 配下 or <html lang="es…">）。2026-11-02・多言語化の段1。
+     ★「英語でなければ日本語」で判定すると、スペイン語のページに円と「万」が出る。日英の判定は1文字も変えない。 */
+  function isESPage() {
+    try {
+      if (w.location && w.location.pathname.indexOf('/es/') !== -1) return true;
+      var lang = d.documentElement && d.documentElement.getAttribute('lang');
+      return !!(lang && lang.toLowerCase().indexOf('es') === 0);
+    } catch (e) { return false; }
+  }
   // 既定通貨と同じ判定を、メニュー文言の言語にもそのまま使う。
-  var LANG  = isENPage() ? 'en' : 'ja';
-  var KEY   = LANG === 'en' ? STORE_KEY_EN : STORE_KEY;
+  var LANG  = isESPage() ? 'es' : isENPage() ? 'en' : 'ja';
+  var KEY   = LANG === 'en' ? STORE_KEY_EN : LANG === 'es' ? STORE_KEY_ES : STORE_KEY;
 
   /* ── 英語ページだけ、見ている地域から既定の通貨を決める（2026-09-24 オーナー指示）──
      ブラウザが持っているタイムゾーン（Asia/Dubai など）を読むだけ。**通信は1本もしない**し、
@@ -87,7 +99,8 @@
     return 'USD';                                   // 分からなければドル（英語ページの昔からの既定）
   }
 
-  var state = LANG === 'en' ? regionCurrency() : 'JPY';
+  /* 日本語のページだけが必ず円。英語・スペイン語は見ている地域から（中南米はいまドル＝メニューに無い通貨は足してから） */
+  var state = LANG === 'ja' ? 'JPY' : regionCurrency();
   try {
     var saved = w.localStorage && localStorage.getItem(KEY);
     /* ★自分で選んだ通貨は、ページを移っても地域の通貨に戻さない（2026-09-24 オーナー指示）。
@@ -107,6 +120,17 @@
   // ── 整形 ──────────────────────────────────────────────────────
   function parseNum(s) { return parseFloat(String(s).replace(/,/g, '')); }
   function trimZero(s) { return String(s).replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1'); }
+
+  /* スペイン語：千は mil・百万は M（K は使わない）。数字の書き方は中南米（小数点はピリオド）。 */
+  function compactEs(v) {
+    var a = Math.abs(v);
+    if (a >= 1e6)  return trimZero((v / 1e6).toFixed(1)) + ' M';
+    if (a >= 1e4)  return Math.round(v / 1e3).toLocaleString('en-US') + ' mil';
+    if (a >= 1e3)  return trimZero((v / 1e3).toFixed(1)) + ' mil';
+    return Math.round(v).toLocaleString('en-US');
+  }
+  /* 中南米では「$」は自国のペソ。ドルは必ず US$ と書く */
+  var SYM_ES = { USD: 'US$ ', EUR: '€ ', GBP: '£ ', AUD: 'A$ ', SGD: 'S$ ', AED: 'AED ' };
 
   function compact(v) {
     var a = Math.abs(v);
@@ -135,13 +159,13 @@
     jpy = Number(jpy) || 0;
     if (sig) jpy = sigRound(jpy, sig);
     if (state === 'JPY') {
-      if (LANG !== 'en' && jpy >= 10000 && jpy % 10000 === 0) return '¥' + (jpy / 10000).toLocaleString('en-US') + '万';
+      if (LANG === 'ja' && jpy >= 10000 && jpy % 10000 === 0) return '¥' + (jpy / 10000).toLocaleString('en-US') + '万';
       return '¥' + Math.round(jpy).toLocaleString('en-US');
     }
     var rate = RATES[state] || 1;
     var v = jpy / rate;
     if (sig) v = sigRound(v, sig);
-    return SYM[state] + compact(v);
+    return LANG === 'es' ? SYM_ES[state] + compactEs(v) : SYM[state] + compact(v);
   }
 
   // span に出す文字。JPY のときは原表記に戻す＝日本語ページは完全ノーオペ（回帰ゼロ）。
@@ -149,7 +173,7 @@
   //   「¥3,550万」と書いてある所（英語版の航空会社ページなど）が、JPY を選んだ瞬間に
   //   万表記へ戻ってしまうため。英語ページでは JPY も fmt() を通して ¥35,500,000 にする。
   function shown(jpy, orig) {
-    return (state === 'JPY' && LANG !== 'en') ? orig : fmt(jpy);
+    return (state === 'JPY' && LANG === 'ja') ? orig : fmt(jpy);
   }
 
   // ── 円トークン検出 ─────────────────────────────────────────────

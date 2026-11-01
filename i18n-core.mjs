@@ -259,3 +259,43 @@ export function reportPage(rows, m) {
   + '<div class="sum"><span class="chip ok"><i></i>採用 ' + m.ok + '</span><span class="chip rv"><i></i>要確認 ' + m.review + '</span><span class="chip ng"><i></i>機械検査で落とした ' + m.failed + '</span><span class="chip"><i></i>AI の呼び出し ' + m.calls + '回・約 $' + m.usd + '</span></div>\n'
   + '<div class="tbl"><table><thead><tr><th>#</th><th>英語（原文）</th><th>スペイン語（訳）</th><th>日本語に戻した文</th><th>確認のメモ</th></tr></thead><tbody>\n' + rows + '\n</tbody></table></div>\n</div>\n';
 }
+
+/* ── head の訳す字（<title> と説明文）。gen-lang.mjs は管理ブロックを作り直すので、訳だけ要る ── */
+export function extractHead(html) {
+  const doc = parse(html, { sourceCodeLocationInfo: true });
+  const head = doc.childNodes.find((c) => c.tagName === 'html')?.childNodes.find((c) => c.tagName === 'head');
+  const out = [];
+  for (const el of head?.childNodes || []) {
+    if (el.tagName === 'title' && el.childNodes[0]) {
+      const t = el.childNodes[0];
+      out.push({ kind: 'head', name: 'title', key: collapse(t.value).trim(), start: t.sourceCodeLocation.startOffset, end: t.sourceCodeLocation.endOffset });
+    }
+    if (el.tagName === 'meta' && attrOf(el, 'name') === 'description' && /[A-Za-z]/.test(attrOf(el, 'content') || '')) {
+      out.push({ kind: 'head', name: 'description', key: collapse(attrOf(el, 'content')).trim() });
+    }
+  }
+  return out;
+}
+
+/* ── 属性の場所（リンクの行き先・<html lang> を書き換えるため）── */
+export function findAttrs(html, names) {
+  const doc = parse(html, { sourceCodeLocationInfo: true });
+  const out = [];
+  const walk = (n) => {
+    for (const c of n.childNodes || []) {
+      if (isEl(c) && c.sourceCodeLocation?.attrs) {
+        for (const name of names) {
+          const loc = c.sourceCodeLocation.attrs[name];
+          if (!loc) continue;
+          const raw = html.slice(loc.startOffset, loc.endOffset);
+          const m = raw.match(/^[^=]+=\s*(["']?)/);
+          if (!m) continue;
+          out.push({ tag: c.tagName, name, value: attrOf(c, name), start: loc.startOffset + m[0].length, end: loc.endOffset - (m[1] ? 1 : 0), quote: m[1] });
+        }
+      }
+      walk(c.tagName === 'template' ? c.content : c);
+    }
+  };
+  walk(doc);
+  return out;
+}
