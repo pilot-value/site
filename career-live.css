@@ -71,8 +71,8 @@
 .crl-side-err{border-style:solid;border-color:transparent;background:var(--pv-orange-soft);color:var(--pv-orange-ink);font-weight:700;white-space:normal}
 .crl-blank{display:block;min-height:1px}
 .crl[data-part="1"] > .crl-retry{margin-top:10px}
-/* 「やり直す」のあと、押した人のフォーカスを受け取る欄と、中央値の器の見出し（押せるものではないので、輪は描かない） */
-.crl[tabindex="-1"]:focus,.crl-agg-h[tabindex="-1"]:focus{outline:none}
+/* 「やり直す」のあと、押した人のフォーカスを受け取る欄（押せるものではないので、輪は描かない） */
+.crl[tabindex="-1"]:focus{outline:none}
 
 /* ── 入口 ── */
 .crl-foot{display:flex;flex-wrap:wrap;align-items:center;gap:4px 18px;margin-top:6px}
@@ -457,9 +457,10 @@ a.crl-sum-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:-4px
     .crl-sum2-c[data-col="2"]{grid-column:2}
   }
 }
-/* 要約の欄が「ログインが必要です」か「要約は口コミの投稿で開きます」を言っている時は、すぐ上の評価の欄の錠前の1行
-   （「口コミの投稿で開きます」）を重ねない ── 会社ページの評価スコアのカードと同じ（pv-glance.css 2026-10-08）。口コミの Give & Get は残す */
-.crl[data-live="cmp-stars"]:has(+ .crl[data-live="cmp-summary"][data-state="locked"]) > .crl-lock{display:none}
+/* 要約の欄が「ログインが必要です」か「要約は口コミの投稿で開きます」を言っている時は、すぐ下の口コミの畳みの錠前の1行
+   （「口コミの投稿で開きます」）を重ねない ── 会社ページの評価スコアのカードと同じ（pv-glance.css 2026-10-08）。口コミの Give & Get は残す。
+   ★2026-10-31：錠前の1行は評価の欄から、要約の下の畳み（cmp-revs）へ移った */
+.crl[data-live="cmp-summary"][data-state="locked"] + .crl[data-live="cmp-revs"] .crl-rv-fold > .crl-lock{display:none}
 /* 評価の欄が格子で終わっている時（口コミの鍵のある人など ── 下に錠前の1行も入口も無い）は、格子の最後の行の線が区切り。
    要約の欄の上にもう1本引かない（細い線を2本重ねない）。読めなかった時の帯（error）は線を持たないので触らない */
 .crl[data-live="cmp-stars"]:has(> .crl-cmp:last-child) + .crl[data-live="cmp-summary"][data-state]:not([data-state="error"]){margin-top:0;border-top:0}
@@ -485,14 +486,11 @@ a.crl-sum-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:-4px
 .crl-ans-m{display:inline-flex;flex-wrap:wrap;gap:0 8px;font-size:12px;color:var(--pv-ink-3)}
 .crl-how{font-weight:700;color:var(--pv-ink-2)}
 
-/* ── 比較：提出された年収（2社の列。行は REAL PAY の行と同じ部品）── */
-.crl-pr-h{margin:14px 0 0;font:700 14px/1.5 Inter,'Noto Sans JP',sans-serif;color:var(--pv-ink)}
+/* ── 比較：提出された年収（会社ごとの件数。★2026-10-31 中央値と1件ずつの行は外した ── 残るのは件数と図）── */
 .crl-pc{display:flex;flex-direction:column;min-width:0}
 .crl-pc > .crl-msg{display:flex;align-items:center;min-height:32px;margin:0;color:var(--pv-ink-3)}
-.crl-cmp-c .crl-row{grid-template-columns:minmax(0,1fr)}                 /* 半分の幅では、額を条件の下へ */
-.crl-cmp-c .crl-row-b{justify-content:flex-start;flex-wrap:wrap;white-space:normal}
-.crl-cmp-c .crl-row-a:empty{display:none}                                /* 口コミに書かれた年収の行は、機種も年数も無い */
 .crl-cmp-c .crl-foot .crl-link > span{word-break:keep-all;overflow-wrap:anywhere}   /* 半分の幅の「REAL PAY で全部見る」：折るのは空白のところだけ（「る」1字を次の行へ落とさない） */
+/* ── 畳み（details.crl-more ＞ summary.crl-more-s。比較の「口コミを読む」）── */
 .crl-more-s{display:inline-flex;align-items:center;gap:6px;min-height:44px;cursor:pointer;list-style:none;color:var(--pv-accent-ink);font-size:13px;font-weight:700}
 .crl-more-s::-webkit-details-marker{display:none}
 .crl-more-s .crl-ic{transition:transform .18s var(--pv-ease)}
@@ -725,9 +723,3 @@ a.crl-sum-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:-4px
 .crl-pay-fold-s:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
 .crl-pay-fold[open] > .crl-pay-fold-s{margin-bottom:4px}
 @media (prefers-reduced-motion:reduce){.crl-pay-fold-s,.crl-pay-fold-s .crl-ic{transition:none}}
-.crl-agg{padding:0 0 12px;border-bottom:1px solid var(--pv-line)}
-.crl-agg[hidden]{display:none}
-.crl-agg-h{margin:12px 0 0;font:700 14px/1.5 Inter,'Noto Sans JP',sans-serif;color:var(--pv-ink)}
-.crl-agg .crl-cmp-row:last-of-type{border-bottom:0}
-.crl-agg > .crl-def{margin-top:4px}
-.crl-med{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;min-width:0}

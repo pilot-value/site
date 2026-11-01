@@ -548,11 +548,14 @@ scene('card', 'どの会社のカードも、比較の画面と同じ額・2社�
     await ready(page);
     await settled(page, 'jal|united');
     const seenOn = await page.evaluate(() => {
-      const v = document.querySelector('#cr .cr-view[data-view="compare"]'), t = v.innerText || '';
+      const v = document.querySelector('#cr .cr-view[data-view="compare"]');
+      /* 1件ずつの口コミは要約の下の畳み「口コミを読む」の中 ── 読む人と同じく開けてから見る（★2026-10-31） */
+      for (const d of v.querySelectorAll('details.crl-rv-fold:not([open])')) d.open = true;
+      const t = v.innerText || '';
       const vis = (e) => e.getClientRects().length > 0;
       return { zz: (t.match(/ZZ[^\s]*?ZZ/g) || []), amt: [...v.querySelectorAll('.crl[data-live="cmp-pay"] .crl-amt, .crl[data-live="cmp-pay"] .crl-rg .crl-yd-kv b, .crl[data-live="cmp-pay"] .crl-dn-a')].filter(vis).map((e) => e.textContent.trim()) };
     });
-    const pre = seenOn.zz.length > 0 && seenOn.amt.length > 0;
+    const pre = seenOn.zz.some((x) => x.startsWith('ZZ本文-')) && seenOn.zz.some((x) => x.startsWith('ZZ要約-')) && seenOn.amt.length > 0;
     ok(pre, pre ? `（前提）会員 c の比較 JAL｜ユナイテッドに、植えた印 ${[...new Set(seenOn.zz)].length}種（${[...new Set(seenOn.zz)].join('・')}）と提出された年収の額 ${seenOn.amt.length}つ（${seenOn.amt.join(' ')}）が出た`
       : '（前提）この場面は落ちることができない（植えた印か提出された年収の額が、比較の画面に出ていない）', J(seenOn));
     if (pre) {

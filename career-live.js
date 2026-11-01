@@ -96,8 +96,6 @@
     dnDef: function (from, to) { return '内訳を書いた給与の提出（給与の月が' + from + '〜' + to + '）から。金額は月の平均です。'; },
     dnSeg: { base: '基本給', guarantee: '保証手当・職務手当', variable: '変動給', command: '職位手当', role: '役割手当',
              perdiem: 'パーディアム', housing: '住宅手当', other: 'その他の現金', rest: 'その他・未分類' },
-    payDef: 'REAL PAY と同じ一覧（直近24か月の提出）。月の支給額を年に直した額と、口コミに書かれた年収の両方が入っています。',
-    medDef: function (from, to, floor) { return '中央値は、給与を提出した人ごとのまんなかの額から出しています（給与の月が' + from + '〜' + to + 'のもの・' + floor + '人以上の区分だけ）。口コミに書かれた年収と、登録前に預かった提出は入りません。'; },
     payGive: '匿名で給与を提出する',
     gg: 'Give & Get',
     payUnlock: ['全ての', '給与情報を', '解放する'],
@@ -161,6 +159,7 @@
     /* 比較の口コミの入口（口コミの鍵）。会社ページの概要の口コミの入口と同じ言葉（gen-airline-glance.mjs の RV_CTA.overview）。
        給与の入口（payUnlock）と混ぜない ── 開く鍵が別。 */
     revUnlock: ['口コミを', '解放する'],
+    revRead: '口コミを読む',                          // 比較の、1件ずつの口コミの畳み（要約の下・最初は閉じている）
     revAll: 'この会社の口コミを全部見る',
 
     factEmpty: 'まだ集計がありません',
@@ -221,8 +220,6 @@
     dnDef: function (from, to) { return 'From pay submissions with a breakdown (pay months ' + from + '–' + to + '). Amounts are monthly averages.'; },
     dnSeg: { base: 'Base pay', guarantee: 'Guarantee / duty pay', variable: 'Variable (flying)', command: 'Rank pay', role: 'Role pay',
              perdiem: 'Per diem', housing: 'Housing allowance', other: 'Other cash', rest: 'Other / unclassified' },
-    payDef: 'Same list as REAL PAY (submissions from the last 24 months). It includes monthly pay converted to an annual figure and annual pay reported in reviews.',
-    medDef: function (from, to, floor) { return 'The median uses one figure per pilot, that pilot’s own median (pay months ' + from + '–' + to + '; groups of ' + floor + ' or more only). Annual pay reported in reviews and submissions held before sign-up are not included.'; },
     payGive: 'Add your pay anonymously',
     gg: 'Give & Get',
     payUnlock: ['Unlock ', 'all ', 'pay data'],
@@ -284,6 +281,7 @@
     revLock: 'Opens when you post a review',
     revGive: 'Write a review anonymously',
     revUnlock: ['Unlock ', 'reviews'],
+    revRead: 'Read reviews',
     revAll: 'See all reviews for this airline',
 
     factEmpty: 'No results yet',
@@ -426,11 +424,14 @@
   function coTag(slug) {
     var s = el('span', 'crl-co');
     s.appendChild(el('span', 'crl-co-n', coName(slug)));
-    var c = companies()[slug];
-    if (c && typeof c.color === 'string' && /^#[0-9a-f]{3,8}$/i.test(c.color)) {
-      s.style.setProperty('--crl-co', c.color);
-    }
+    var col = coColor(slug);
+    if (col) s.style.setProperty('--crl-co', col);
     return s;
+  }
+  /* 会社の色（島の color）。形の確かな字だけ。無ければ ''（呼ぶ側は色を付けない ＝ CSS の既定の色） */
+  function coColor(slug) {
+    var c = companies()[slug];
+    return (c && typeof c.color === 'string' && /^#[0-9a-f]{3,8}$/i.test(c.color)) ? c.color : '';
   }
 
   /* ── 取ってくる側（同じ答えは使い回す。落ちたものだけ捨てる＝やり直せる）──── */
@@ -512,7 +513,7 @@
     if (uid === v) return;
     uid = v;
     drop('pay'); drop('rev:'); drop('sum:'); drop('wkv:'); drop('note:'); drop('fact:'); drop('give'); drop('town:'); drop('cmed:'); drop('ccomp:');
-    reset(['realpay', 'work', 'cmp-work', 'notes', 'reviews', 'stars', 'score', 'summary', 'cmp-stars', 'fact', 'cmp-facts', 'towns', 'cmp-pay', 'cmp-summary']);
+    reset(['realpay', 'work', 'cmp-work', 'notes', 'reviews', 'stars', 'score', 'summary', 'cmp-stars', 'fact', 'cmp-facts', 'towns', 'cmp-pay', 'cmp-summary', 'cmp-revs']);
     later();
   }
   function watchAuth(sb) {
@@ -1031,9 +1032,14 @@
   }
   /* 1つの職位の1行：職位の名前｜細い軸と帯｜数字｜単位。そろっていない側は「未取得」で、軸そのものを描かない（0 で埋めない） */
   function barRow(it, p, v) {
-    var r = el('div', 'crl-wb-r'), t = rangeOf(v);
+    var r = el('div', 'crl-wb-r');
     r.setAttribute('data-pos', p[0]);
     r.appendChild(el('span', 'crl-wb-p', p[1]));
+    return barBits(r, it, v);
+  }
+  /* 行（r）に 細い軸と帯｜数字｜単位｜目盛の外 を足す。会社ページ（barRow）と比較（cmpBars）が同じ部品を使う */
+  function barBits(r, it, v) {
+    var t = rangeOf(v);
     if (!t) { r.appendChild(el('span', 'crl-none', T.none)); return r; }
     var s = workScale(it, v), tr = el('span', 'crl-wb-tr' + (s.over ? ' is-over' : ''));
     tr.setAttribute('aria-hidden', 'true');
@@ -1312,16 +1318,36 @@
       return partial(view('open', [w0]), S);
     });
   }
-  /* 1社ぶんの月の勤務（今までの6マス。比較の欄は帯を描かない）。 */
-  function workPlain(by) {
-    var g = el('div', 'crl-work');
+  /* ── 比較の月の勤務を帯で（★2026-10-31 オーナー「月の働き方も比較のグラフにできない？数字だけじゃなくて」）──
+     会社ページの帯と同じ目盛（T.workMax・0 から・集まった値で動かさない）・同じ決まり（回答のまんなか半分の幅・そろっていない側は
+     「未取得」で帯を描かない・目盛の外は斜線と1語）。6つの項目の枠の中に、職位ごとに2社の帯を上下に並べる（同じ物差しの上で長さを比べる）。
+     帯と点の色はその会社の色（coTag と同じ --crl-co）。同じ色の2社は2社目を輪郭だけにする（career.css の .cr-cmp[data-near]）。
+     見える社名は格子の頭の札が言う。行の社名は読み上げ用の字（crl-sr）だけ。勝ち負けの語も色も付けない。 */
+  function cmpBars(ids, bys) {
+    var w = el('div', 'crl-wb crl-wb2');
     T.work.forEach(function (it) {
-      var c = el('div', 'crl-wk');
+      var c = el('div', 'crl-wb-c');
+      c.setAttribute('data-k', it.k);
+      c.setAttribute('data-fam', it.fam);
       c.appendChild(workName(it));
-      c.appendChild(workCell(by, it.k));
-      g.appendChild(c);
+      T.workPos.forEach(function (p) {
+        var g = el('div', 'crl-wb-g');
+        g.setAttribute('data-pos', p[0]);
+        g.appendChild(el('span', 'crl-wb-p', p[1]));
+        ids.forEach(function (slug, i) {
+          var r = el('div', 'crl-wb-r'), col = coColor(slug), dot = el('span', 'crl-wb-co');
+          r.setAttribute('data-airline', slug);
+          r.setAttribute('data-col', String(i + 1));
+          if (col) r.style.setProperty('--crl-co', col);
+          dot.appendChild(el('span', 'crl-sr', coName(slug)));
+          r.appendChild(dot);
+          g.appendChild(barBits(r, it, bys[i] && bys[i][p[0]] && bys[i][p[0]][it.k]));
+        });
+        c.appendChild(g);
+      });
+      w.appendChild(c);
     });
-    return g;
+    return w;
   }
   /* 1社ぶんの回答。行の部品は集計の欄と同じ（answer / answerNode）。 */
   function factList(map, V, keys) {
@@ -1349,69 +1375,37 @@
         /* 片方がそろっていなくても、もう片方は普通に出す */
         if (!workAny(A.by) && !workAny(B.by)) return view('empty', [msg(T.workEmpty)]);
         var g = cmpGrid(ids);
-        T.work.forEach(function (it) { cmpRow(g, workName(it), workCell(A.by, it.k), workCell(B.by, it.k)); });
-        return view('open', [g]);
+        g.appendChild(cmpBars(ids, [A.by, B.by]));
+        return view('open', [g, workCapLine()]);
       }
       /* どちらも開いていない（2社とも読めた）：欄に1行。言い方と入口は lockView のまま */
       if (S[0].ok && S[1].ok && !open[0] && !open[1]) return lockView(shut(st[0], st[1]), '', box, null);
       /* 片方だけ開いている／片方が読めなかった：会社ごとに上下へ */
+      /* 開いている会社は、会社ページと同じ帯（workBars）。帯の読み方と目盛の1行は、欄の下に1回だけ */
+      var bars = false;
       return splitView(ids, S.map(function (s, i) {
         if (!s.ok) return [sideFail(s)];
-        if (open[i]) return [workAny(s.v.by) ? workPlain(s.v.by) : msg(T.workEmpty)];
+        if (open[i]) { if (!workAny(s.v.by)) return [msg(T.workEmpty)]; bars = true; return [workBars(s.v.by)]; }
         return closedNodes(st[i], box);
-      }), S);
+      }), S).then(function (v) {
+        if (bars) v.nodes.push(workCapLine());
+        return v;
+      });
     });
   };
 
   /* ── 比較：提出された年収 ──────────────────────────────────
-     REAL PAY と同じ一覧を、2社の列に分けて並べるだけ。ここで足さない・平均しない・並べ替えない・機材で絞らない
-     （数えるのは返ってきた行の本数だけ）。中央値はサーバーが出した額をそのまま置く（db/company-pay.sql）。
+     ★2026-10-31 オーナー「上にすでに中央値出てるんだから下の部分いらない」── 中央値の器と、1件ずつの一覧（畳み）は外した。
+       残すのは 会社ごとの件数 → 年収の幅の棒 → 昇格後の年数ごとの年収 → 月の給与の内訳（図は 10-29〜30 のオーナー指示のまま）。
+     ここで足さない・平均しない・並べ替えない（数えるのは返ってきた行の本数だけ）。幅の額はサーバーの答え（db/company-pay.sql）のまま。
      会社の名前はここに1つも書かない（どの2社でも同じ道を通る）。 */
-  var PAY_TOP = 5;                                  // 6行目からは畳む（オーナーのご指示 2026-10-11）
   /* この面でただ1つの、給与の入口。形はサイト共通の「Give & Get」（pv-gg.css）。 */
   function cmpPayEntry() { return give2(T.payUnlock, UP + 'pay-report.html'); }
-  function rankName(pos, D) {
-    for (var i = 0; i < T.workPos.length; i++) if (T.workPos[i][0] === pos) return T.workPos[i][1];
-    return D.pos[pos] || '';
-  }
-  function payRanks(a, b) {                         // 機長・副操縦士、そのあと返ってきた順。職位の書いていない行は比較に出さない
-    var out = T.workPos.map(function (p) { return p[0]; });
-    a.concat(b).forEach(function (r) { var k = r.pos || ''; if (k && out.indexOf(k) < 0) out.push(k); });
-    return out;
-  }
-  function foldsOpen(box) {                         // 描き直す前に開いていた畳み（会社|職位）
-    var out = [], all = box.querySelectorAll('.crl-pc > details.crl-more[open]');
-    for (var i = 0; i < all.length; i++) {
-      var c = all[i].parentNode;
-      out.push((c.getAttribute('data-airline') || '') + '|' + (c.getAttribute('data-pos') || ''));
-    }
-    return out;
-  }
-  function payCell(list, slug, pos, D, keep) {
+  /* 会社ごとの件数だけ（行も額も作らない）。鍵の有無で形を変えない */
+  function payCell(list, slug) {
     var c = el('div', 'crl-pc');
     c.setAttribute('data-airline', slug);
-    if (pos != null) c.setAttribute('data-pos', pos);
-    if (!list.length) { c.appendChild(msg(T.payEmpty)); return c; }
-    c.appendChild(payCount(list.length));
-    if (!D) return c;                               // 開いていない人：本数だけ（行も板も作らない）
-    var ul = el('ul', 'crl-rows');
-    list.slice(0, PAY_TOP).forEach(function (r) { ul.appendChild(payRow(r, D, true)); });
-    c.appendChild(ul);
-    if (list.length > PAY_TOP) {
-      var dt = el('details', 'crl-more'), sm = el('summary', 'crl-more-s');
-      sm.appendChild(el('span', '', T.payMore(list.length)));
-      sm.appendChild(icon('down', 14));
-      dt.appendChild(sm);
-      var rest = el('ul', 'crl-rows');
-      list.slice(PAY_TOP).forEach(function (r) { rest.appendChild(payRow(r, D, true)); });
-      dt.appendChild(rest);
-      if (keep.indexOf(slug + '|' + pos) >= 0) dt.open = true;   // 通貨を替えて描き直しても、開けた畳みは開けたまま
-      c.appendChild(dt);
-    }
-    var name = rankName(pos, D);
-    var go = link(T.payAll, UP + 'actual-pay.html?air=' + enc(slug) + (pos ? '&pos=' + enc(pos) : ''));
-    go.setAttribute('aria-label', coName(slug) + (name ? ' ' + name : '') + ' ' + T.payAll);
-    c.appendChild(foot([go]));
+    c.appendChild(list.length ? payCount(list.length) : msg(T.payEmpty));
     return c;
   }
   /* 会社 × 職位の中央値。出すのはサーバー（db/company-pay.sql の pv_company_pay）── 誰に返すかも、人数の壁も向こうが決める。
@@ -1444,124 +1438,26 @@
       });
     });
   }
-  function medCell(c) {
-    var m = el('div', 'crl-med');
-    if (!c) { m.appendChild(el('span', 'crl-none', T.none)); return m; }
-    var v = el('b', 'crl-amt pv-no-cur', money(c.usd) || '—');
-    v.setAttribute('data-agg', '');
-    m.appendChild(v);
-    return m;
-  }
-  /* 中央値の器。空で隠したまま欄に入れ、答えが来たら「この器にだけ」書く。
-     ⚠️ ここから box へ書かない・セレクタで探さない ── 会社を替えたあとに届いた古い答えが、新しい2社の欄へ入る。 */
-  function aggBlock() {
-    var a = el('div', 'crl-agg');
-    a.setAttribute('data-kind', 'aggregate');
-    a.hidden = true;
-    return a;
-  }
-  /* 中央値の「やり直す」を押した人の居場所（キーボード）。押したボタンは描き直しで消えるので、答えが来たら、その器の見出し
-     「中央値」へ移す（もう一度読めなかったら次の「やり直す」へ・器に何も出ない答えなら欄へ）。動かすのは、押したその1回の
-     描き直しの器だけ（box._crlMed ＝ その回の番号）── 通貨の切り替えや会社の選び直しの描き直しでは動かさない。 */
-  function medBack(box, tok, agg, t) {
-    if (!tok || box._crlMed !== tok || box._crlTok !== tok || !box.contains(agg)) return;
-    box._crlMed = 0;
-    var at = d.activeElement;
-    if (at && at !== d.body && at !== d.documentElement) return;   // 待つあいだに読み手が自分で動いた先からは、引き戻さない
-    if (t.tagName !== 'BUTTON') t.setAttribute('tabindex', '-1');
-    try { t.focus({ preventScroll: true }); } catch (e) { /* フォーカスを移せないブラウザでは、今までどおり */ }
-  }
-  function aggFill(agg, ids, box) {
-    var tok = box._crlTok;
-    companyMed(ids[0], ids[1]).then(function (M) {
-      if (M.st !== 'open') return medBack(box, tok, agg, box);   // 開いていない答えからは何も描かない
-      var rows = [];
-      T.workPos.forEach(function (p) {
-        var a = M.by[ids[0]][p[0]], b = M.by[ids[1]][p[0]];
-        if (!a && !b) return;                       // 両社とも人数が足りない職位は、行ごと出さない
-        rows.push([p, a, b]);
-      });
-      if (!rows.length) return medBack(box, tok, agg, box);
-      var h = el('h3', 'crl-agg-h', T.median);
-      agg.appendChild(h);
-      rows.forEach(function (x) {
-        var row = cmpRow(agg, el('span', '', x[0][1]), medCell(x[1]), medCell(x[2])) || agg.lastChild;
-        row.setAttribute('data-med', x[0][0]);
-      });
-      var def = el('p', 'crl-def', T.medDef(M.from, M.to, M.floor));
-      def.setAttribute('data-def', 'median');
-      agg.appendChild(def);
-      agg.hidden = false;
-      medBack(box, tok, agg, h);
-    }, function (e) {
-      var h = el('h3', 'crl-agg-h', T.median), rb = null;
-      agg.appendChild(h);
-      if (e && e.crl === 'off') agg.appendChild(msg(T.off));
-      else {
-        agg.appendChild(msg(T.err));
-        /* この欄は「開いた」のまま（retryAll は拾わない）ので、押したらこの欄だけを描き直す。
-           形と字は共通の retryBtn() の写し（cloneNode は押した時の動きを持ってこない ＝ 動きはここで1つだけ付ける） */
-        rb = retryBtn().cloneNode(true);
-        rb.addEventListener('click', function () {
-          var back = d.activeElement === rb;
-          run(box, 'cmp-pay', box.getAttribute('data-for') || '', true);
-          if (back) box._crlMed = box._crlTok;     // run がいま付けた番号 ＝ この描き直し
-        });
-        agg.appendChild(rb);
-      }
-      agg.hidden = false;
-      medBack(box, tok, agg, rb || h);
-    });
-  }
   KIND['cmp-pay'] = function (box, ids) {
-    var keep = foldsOpen(box), keepAll = !!box.querySelector('details.crl-pay-fold[open]');
-    return Promise.all([payRows(), dict()]).then(function (r) {
-      var pay = r[0], D = r[1], A = ofCo(pay.rows, ids[0]), B = ofCo(pay.rows, ids[1]);
+    return payRows().then(function (pay) {
+      var A = ofCo(pay.rows, ids[0]), B = ofCo(pay.rows, ids[1]);
       var g = cmpGrid(ids), none = !A.length && !B.length;
+      cmpRow(g, null, payCell(A, ids[0]), payCell(B, ids[1]));
       if (!pay.open) {
-        cmpRow(g, null, payCell(A, ids[0], null, null, keep), payCell(B, ids[1], null, null, keep));
         var feet = foot([cmpPayEntry(), pay.who === 'guest' ? loginLink() : null]);
         if (none) return view('empty', [g, feet]);
         /* ★2026-10-30 件数の下に、図の影絵（決まった形・字も数字も無い ── 額は届いていない） */
         return view('locked', [g, ghostPay(), lockLine(pay.who === 'expired' ? T.payExpired : T.payLock), feet]);
       }
-      if (none) {
-        cmpRow(g, null, payCell(A, ids[0], null, null, keep), payCell(B, ids[1], null, null, keep));
-        return view('empty', [g]);
-      }
-      var agg = aggBlock();
-      g.appendChild(agg);                           // 会社の札の下・図と畳んだ行の上
-      /* ★2026-10-30 中央値の下に、会社ごとの年収の幅の棒（同じ目盛）。答えは中央値と同じ1本（companyMed） */
+      if (none) return view('empty', [g]);
+      /* ★2026-10-30 件数の下に、会社ごとの年収の幅の棒（同じ目盛）→ 昇格後の年数ごとの年収 → 2社の月の給与の内訳。
+         幅の棒と内訳は答えが来たら器に入る（待たない）。読めない・口が無い時は何も出さない */
       var rg = rangeBlock();
       g.appendChild(rg);
       var yd = ydBlock(A, B, ids);
       if (yd) g.appendChild(yd);
-      /* ★2026-10-30 図の下に、2社の月の給与の内訳（pv_company_comp）。読めない・口が無い時は何も出さない */
       var dn = compBlock();
       g.appendChild(dn);
-      /* ★2026-10-29 オーナー「給与の詳細（提出した）数字は押したら出てくる形にして」── 1件ずつの行は畳む（押すと開く）。
-         通貨を替えて描き直しても、開けたものは開けたまま（keepAll） */
-      var fold = el('details', 'crl-pay-fold'), fs = el('summary', 'crl-pay-fold-s'), rowsG = el('div', 'crl-cmp crl-pay-rows'), shown = 0;
-      payRanks(A, B).forEach(function (pos) {
-        var a = A.filter(function (x) { return (x.pos || '') === pos; }), b = B.filter(function (x) { return (x.pos || '') === pos; });
-        var named = T.workPos.some(function (p) { return p[0] === pos; });
-        if (!a.length && !b.length && !named) return;
-        shown += a.length + b.length;
-        var name = rankName(pos, D);
-        if (name) { var h = el('h3', 'crl-pr-h', name); h.setAttribute('data-pos', pos); rowsG.appendChild(h); }
-        var row = cmpRow(rowsG, null, payCell(a, ids[0], pos, D, keep), payCell(b, ids[1], pos, D, keep)) || rowsG.lastChild;
-        row.setAttribute('data-rows', pos);
-      });
-      fs.appendChild(el('span', '', T.payOpen(shown)));
-      fs.appendChild(icon('down', 14));
-      fold.appendChild(fs);
-      fold.appendChild(rowsG);
-      var def = el('p', 'crl-def', T.payDef);
-      def.setAttribute('data-def', 'rows');
-      fold.appendChild(def);
-      if (keepAll) fold.open = true;
-      g.appendChild(fold);
-      aggFill(agg, ids, box);                       // 待たない（行はすぐ出る。中央値は答えが来たら器に入る）
       rangeFill(rg, ids);
       compFill(dn, ids, box);
       return view('open', [g]);
@@ -1580,7 +1476,7 @@
      ★y は2社・2職位で1本の目盛（0 から・機長と副操縦士で同じ）── 図どうしで高さが比べられる。目盛の字は PVCurrency の表記。
      ★1つの点 ＝ 1件の提出。点を押すと（指はタップ）その額の札が出る。会社の色は札（.crl-co）と同じ。色の近い2社は右の会社が輪（career.css の data-near）。
      ★人数・平均・中央値をここで数えない（中央値はサーバーの pv_company_pay の1か所）。ここでの計算は、点を置く位置と目盛の刻みだけ。
-       そのため給与の区画（var PAY_TOP から ── 足さない・並べ替えない・計算しない区画。assert-career.mjs）の外に置いてある。呼ぶのは開いた答えの KIND['cmp-pay'] だけ
+       そのため給与の区画（「比較：提出された年収」の見出しから ── 足さない・並べ替えない・計算しない区画。assert-career.mjs）の外に置いてある。呼ぶのは開いた答えの KIND['cmp-pay'] だけ
      ★2026-10-30 1社（B を渡さない ── 会社ページ）でも同じ道。opt.pos の職位の図を1つだけ・凡例なし・点は会社の色（島が無ければ緑）・横に2列へずらさない。
        opt.band（companyMed の1社・1職位の { usd, lo?, hi? }）があれば、まんなか半分の帯と中央値の線を重ね、右の端に名前を置く（目盛は帯も入れて決める）。
        2社の図は1文字も変えない（assert-career-live.mjs の比較の図の場面）。 */
@@ -1620,7 +1516,7 @@
     var wrap = el('div', 'crl-yd');
     wrap.setAttribute('data-kind', 'years');
     if (one) wrap.setAttribute('data-n', '1');
-    wrap.appendChild(el('h3', 'crl-yd-tt', T.ydHead));   // 中央値の見出し（crl-agg-h）とは別の印 ── 中央値を数える側に混ざらない
+    wrap.appendChild(el('h3', 'crl-yd-tt', T.ydHead));
     if (!one) {
       var lg = el('div', 'crl-yd-lg');
       lg.setAttribute('aria-hidden', 'true');
@@ -1885,9 +1781,9 @@
     return pv;
   }
 
-  /* ── 比較：会社ごとの年収の幅（2026-10-30）── 中央値の器のすぐ下。2社で1本の目盛（0 から）。25%〜75% の箱と中央値の印。
+  /* ── 比較：会社ごとの年収の幅（2026-10-30）── 会社ごとの件数のすぐ下。2社で1本の目盛（0 から）。25%〜75% の箱と中央値の印。
      25%・75% の来ない区分（人数が少ない）は中央値の印だけ・人数の足りない区分は行ごと出さない。額は companyMed の答えだけ（聞き直さない）。
-     ⚠️ 中央値の額の印（data-agg）は付けない ── 中央値を数える側（中央値の器）と混ぜない。 */
+     ⚠️ 中央値の額の印（data-agg）は付けない（★2026-10-31 中央値の器は外した ── 印を付ける所はもう無い）。 */
   function rangeBlock() {
     var r = el('div', 'crl-rg');
     r.setAttribute('data-kind', 'range');
@@ -1897,7 +1793,7 @@
   function rangeFill(rg, ids) {
     companyMed(ids[0], ids[1]).then(function (M) {
       if (rangeDraw(rg, M, ids)) rg.hidden = false;
-    }, function () { /* 中央値の器が「いま読み出せません」を言っている。ここは何も出さない */ });
+    }, function () { /* 読めなければ幅の棒を出さないだけ（年数の図と内訳はそのまま） */ });
   }
   /* 1社（会社ページ ── 社名の札は置かない）でも2社でも同じ形。描けたら true（描けない答え・額の無い答えでは何も書かない） */
   function rangeDraw(rg, M, ids) {
@@ -2451,7 +2347,7 @@
       if (st[0] === 'fail' && st[1] === 'fail') throw fail('error');
       /* ★2026-10-30 会社ごとの列：社名の札 → まとめの枠（先頭の字＋ぼかした続き）→ 良い点（2つまで・矢印なし）。その下に1つ：
          「気になる点」の見出し（本物の字）＋ 会社の列にそろえた2列の影絵 ＋ 板1枚（会社ページと同じ読み方 ── 鍵の無い答えから読むのは state・lead・good だけ）。
-         板の1行は枠に1回だけ。入口はすぐ上の評価の欄の、口コミの Give & Get の1つ（ここに足さない）── ゲストには「ログイン」だけ */
+         板の1行は枠に1回だけ。入口はすぐ下の口コミの畳み（cmp-revs）の、口コミの Give & Get の1つ（ここに足さない）── ゲストには「ログイン」だけ */
       if (st[0] === 'login' || st[1] === 'login' || st[0] === 'locked' || st[1] === 'locked') {
         var lg = el('div', 'crl-sum-leads');
         S.forEach(function (s, i) {
@@ -2619,16 +2515,40 @@
         return f;
       });
       if (figs[0] || figs[1]) subRow(g, 'crl-rate-fig', figs[0] || blankCell(), figs[1] || blankCell());
-      /* 評価の下に、新しい投稿の抜粋。続きを読むのは Give & Get（口コミの投稿 ＝ 口コミの鍵。給与の鍵では開かない）── 鍵の無い人にだけ1つ */
+      /* 1件ずつの口コミ（抜粋・本文）は、ここには描かない ── 要約の下の畳み（cmp-revs）が描く。 */
+      return partial(view('open', [g]), S);
+    });
+  };
+
+  /* ── 比較の、1件ずつの口コミ（★2026-10-31 オーナー「要約の前に口コミの詳細がきちゃってる。詳細は開いたら見える形で十分」）──
+     読む順は 評価（cmp-stars）→ 要約（cmp-summary）→ この畳み。畳みは最初は閉じている（details）。
+     中身は今までどおり：口コミの鍵のある会社のマスは、ほかの人の投稿をスクロールで読める枠（revScroll）・無い会社は抜粋（clipsOf）。
+     字の決まり（鍵の無い人にはサーバーの抜粋だけ）は1文字も変えない。返事は評価の欄と同じ reviews()（once で使い回す ＝ 通信は増えない）。
+     ★ 読めなかったことを言うのは評価の欄だけ（「やり直す」も向こうの1つ）。片方だけ読めなければ、ここは印（data-part）だけ付けて黙る
+       ＝ retryAll が一緒に描き直す。2社とも読めなければ、ほかの欄と同じ失敗の顔（error）になり、CSS が高さ 0 に畳む（要約の欄と同じ形）。
+     ★ 続きを読む入口（口コミの Give & Get。給与の鍵では開かない）は畳みの外 ── 閉じていても見える。錠の1行は畳みの中（抜粋のすぐ下）。
+     ★ 描き直しても、開けていた畳みは開けたまま（戻る・読む人の確かめで取り直したとき、読んでいた人の目の前で閉じない）。 */
+  function hush(v, S) { v.part = S.some(function (x) { return !x.ok && !x.off; }); return v; }
+  KIND['cmp-revs'] = function (box, ids) {
+    var was = !!box.querySelector('details.crl-rv-fold[open]');
+    return both(reviews, ids).then(needOne).then(function (S) {
+      var O = [sideOf(S[0]), sideOf(S[1])];
       return i18n().then(function (I) { return I; }, function () { return null; }).then(function (I) {
-        /* 口コミの鍵のある会社のマスは、ほかの人の投稿をスクロールで読める枠（revScroll）。無い会社は抜粋（clipsOf）のまま */
         var C = O.map(function (o, i) { return S[i].ok && S[i].v.unlocked === true ? revScroll(ids[i], o, I) : clipsOf(o, I); });
-        if (C[0] || C[1]) subRow(g, 'crl-rate-rv', C[0] ? rvCell(ids[0], C[0].ul) : blankCell(), C[1] ? rvCell(ids[1], C[1].ul) : blankCell());
-        var nodes = [g];
-        if ((C[0] && C[0].locked) || (C[1] && C[1].locked)) {
-          nodes.push(lockLine(T.revLock), foot([give2(T.revUnlock, UP + 'submit-review.html')]));
-        }
-        return partial(view('open', nodes), S);
+        if (!C[0] && !C[1]) return hush(view('empty', []), S);
+        var g = cmpGrid(ids);
+        subRow(g, 'crl-rate-rv', C[0] ? rvCell(ids[0], C[0].ul) : blankCell(), C[1] ? rvCell(ids[1], C[1].ul) : blankCell());
+        var fold = el('details', 'crl-more crl-rv-fold'), sm = el('summary', 'crl-more-s');
+        sm.appendChild(el('span', '', T.revRead));
+        sm.appendChild(icon('down', 14));
+        fold.appendChild(sm);
+        fold.appendChild(g);
+        var locked = !!((C[0] && C[0].locked) || (C[1] && C[1].locked));
+        if (locked) fold.appendChild(lockLine(T.revLock));
+        if (was) fold.open = true;
+        var nodes = [fold];
+        if (locked) nodes.push(foot([give2(T.revUnlock, UP + 'submit-review.html')]));
+        return hush(view('open', nodes), S);
       });
     });
   };
@@ -2941,6 +2861,7 @@
       if (box._crlTok !== tok) return;
       paint(box, v.state, v.nodes, v);
       if (v.retry) { box.setAttribute('data-part', '1'); box.appendChild(retryBtn()); }   // 片方だけ読めなかった：読めた側は出したまま
+      else if (v.part) box.setAttribute('data-part', '1');   // 印だけ（「やり直す」はすぐ上の欄の1つ。押すと retryAll がこの欄も描き直す）
       refocus(box);
     }, function (e) {
       if (box._crlTok !== tok) return;
@@ -3033,7 +2954,7 @@
      前の人の欄を、静かに取り直すのではなく、その場で空にしてから今の人の形で取り直す。
      知らない名前（まだ無い欄・誰も控えていない答え）は飛ばす。 */
   var BACK_DROP = ['rev:', 'sum:', 'fact:', 'wkv:', 'note:', 'give', 'pay', 'cmed:', 'ccomp:'];
-  var BACK_KINDS = ['stars', 'reviews', 'cmp-stars', 'cmp-summary', 'fact', 'cmp-facts', 'work', 'cmp-work', 'notes', 'realpay', 'cmp-pay'];
+  var BACK_KINDS = ['stars', 'reviews', 'cmp-stars', 'cmp-summary', 'cmp-revs', 'fact', 'cmp-facts', 'work', 'cmp-work', 'notes', 'realpay', 'cmp-pay'];
   w.addEventListener('pageshow', function (e) {
     var S = w.PVSession;
     if (e && e.persisted && S && typeof S.hasToken === 'function' && !S.hasToken()) {

@@ -283,8 +283,10 @@ export async function slot(page, kind, nth = 0) {
     const b = document.querySelectorAll(`#cr [data-view="compare"] .crl[data-live="${kind}"]`)[nth];
     if (!b) return null;
     const w = b.matches('[data-why]') ? b : b.querySelector('[data-why]');
+    /* 閉じた畳みの中の字も text に足す（watch と同じ ── 押せば見える字） */
+    const folded = [...b.querySelectorAll('details:not([open])')].map((d) => [...d.children].filter((c) => c.tagName !== 'SUMMARY').map((c) => c.textContent).join('\n')).join('\n');
     return { state: b.getAttribute('data-state'), why: w ? w.getAttribute('data-why') : null, part: b.getAttribute('data-part'),
-      text: b.innerText, html: b.outerHTML, h: b.getBoundingClientRect().height };
+      text: b.innerText + (folded ? '\n' + folded : ''), html: b.outerHTML, h: b.getBoundingClientRect().height };
   }, kind, nth);
 }
 
@@ -308,8 +310,11 @@ export async function watch(page, kind, nth = 0) {
     const b = document.querySelectorAll(`#cr [data-view="compare"] .crl[data-live="${kind}"]`)[nth];
     const list = window.__crlSeen = window.__crlSeen || [];
     if (!b) { list.push(`${kind}#${nth}|（欄が無い）`); return; }
+    /* ★2026-10-31：閉じた畳み（比較の「口コミを読む」）の中の字も数える ── 押せば見える字。innerText だけだと、前の人の本文が
+       畳みの中に残っていても見逃す */
+    const folded = () => [...b.querySelectorAll('details:not([open])')].map((d) => [...d.children].filter((c) => c.tagName !== 'SUMMARY').map((c) => c.textContent).join('\n')).join('\n');
     const note = () => {
-      const s = `${b.getAttribute('data-state')}|${b.innerText}`;
+      const s = `${b.getAttribute('data-state')}|${b.innerText}${folded() ? '\n' + folded() : ''}`;
       if (list[list.length - 1] !== s) list.push(s);
     };
     note();

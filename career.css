@@ -525,6 +525,46 @@ html.cr-sheeting{overflow:hidden;scrollbar-gutter:stable;padding-right:var(--cr-
   .cr-cmp .crl-rate-rv .crl-rev{padding-left:10px;padding-right:10px}
   .cr-cmp .crl-rate-rv .crl-rv-scroll{padding-right:0}
 }
+/* ★2026-10-31 比較の1件ずつの口コミの畳み（career-live.js の cmp-revs）── オーナー「要約の前に口コミの詳細がきちゃってる。詳細は開いたら見える形で十分」。
+   読む順は 評価 → 要約 → この畳み（最初は閉じている）。字のある投稿が2社とも無いときは欄を畳む。
+   ⚠️ display:none にしない ── 見えていない欄は取りに行かない（career-live.js の shown()）ので、会社を選び直したときに描き直されなくなる。
+   要約の欄（career-live.css の cmp-summary）と同じ、高さ 0 の畳み方。 */
+.cr-cmp .crl[data-live="cmp-revs"]{margin-top:14px;padding-top:4px;border-top:1px solid var(--pv-line-soft)}
+.cr-cmp .crl[data-live="cmp-revs"][data-state="empty"]{height:0;min-height:0;margin:0;padding:0;border:0;overflow:hidden}
+.cr-cmp .crl[data-live="cmp-revs"][data-state="empty"] > *{visibility:hidden}
+/* 2社とも読めないときの失敗の顔（error・off）も畳む ── そのとき評価の欄が「いま読み出せません」と「やり直す」を1つずつ言っている（同じ箱で同じ1行を重ねない） */
+.cr-cmp .crl[data-live="cmp-revs"]:is([data-state="error"],[data-state="off"]){height:0;min-height:0;margin:0;padding:0;border:0;overflow:hidden}
+.cr-cmp .crl[data-live="cmp-revs"]:is([data-state="error"],[data-state="off"]) > *{display:none}
+.cr-cmp .crl-rv-fold > .crl-cmp{margin-top:4px}
+.cr-cmp .crl-rv-fold > .crl-lock{margin-top:10px}
+/* スマホ（〜759px）はカードの頭に社名の札が出る（上の rvCell の規則）── 畳みの中の列の頭の札は出さない（同じ札を2回並べない） */
+@media (max-width:759px){.cr-cmp .crl-rv-fold > .crl-cmp > .crl-cmp-head{display:none}}
+/* ★2026-10-31 比較の月の勤務の帯（career-live.js の cmpBars）── オーナー「月の働き方も比較のグラフにできない？数字だけじゃなくて」。
+   会社ページの帯（career-live.css の .crl-wb）の部品と目盛をそのまま使い、職位ごとに2社の行を上下に並べる：職位の名前｜点｜帯｜数字｜単位。
+   帯と点はその会社の色（行の --crl-co）。同じ色の2社（data-near）は、2社目を輪郭だけにする（上の札の輪の点・家賃の棒と同じ手がかり）。
+   比較の画面（.cr-cmp）は career.html にしか無いので、ここに置く（career-live.css の規則は会社ページの帯のまま）。 */
+.cr-cmp .crl-cmp > .crl-wb2{margin-top:12px}
+.cr-cmp .crl-wb-g{display:grid;grid-template-columns:56px minmax(0,1fr);align-items:center;gap:4px 8px}
+.cr-cmp .crl-wb-g + .crl-wb-g{margin-top:2px;padding-top:6px;border-top:1px solid var(--pv-line-soft)}
+.cr-cmp .crl-wb-g > .crl-wb-p{grid-row:1 / span 2;grid-column:1}
+.cr-cmp .crl-wb-g > .crl-wb-r{grid-column:2;grid-template-columns:8px minmax(0,1fr) 72px 30px;gap:0 8px}
+.cr-cmp .crl-wb-g > .crl-wb-r > *{grid-area:auto}
+.cr-cmp .crl-wb-g > .crl-wb-r > .crl-none,
+.cr-cmp .crl-wb-g > .crl-wb-r > .crl-wb-o{grid-column:2 / -1}
+.cr-cmp .crl-wb-co{position:relative;width:8px;height:8px;border-radius:50%;background:var(--crl-co,var(--pv-ink-3))}
+.cr-cmp .crl-wb2 .crl-wb-b{background:var(--crl-co,var(--pv-accent))}
+.cr-cmp[data-near] .crl-wb2 .crl-wb-r[data-col="2"] .crl-wb-co{background:transparent;box-shadow:inset 0 0 0 2px var(--crl-co,var(--pv-ink-3))}
+.cr-cmp[data-near] .crl-wb2 .crl-wb-r[data-col="2"] .crl-wb-b{background:color-mix(in srgb, var(--crl-co) 28%, transparent);box-shadow:inset 0 0 0 1.5px var(--crl-co)}
+.cr-cmp .crl-wb-g:lang(en){grid-template-columns:76px minmax(0,1fr)}
+/* 狭い枠（〜339px）では、職位の名前を行の上へ（帯に幅を渡す） */
+@container crlwb (width < 340px){
+  .cr-cmp .crl-wb-g,.cr-cmp .crl-wb-g:lang(en){grid-template-columns:minmax(0,1fr)}
+  .cr-cmp .crl-wb-g > .crl-wb-p{grid-row:auto}
+  .cr-cmp .crl-wb-g > .crl-wb-r{grid-column:1}
+}
+@media (forced-colors:active){
+  .cr-cmp .crl-wb-co{forced-color-adjust:none;background:CanvasText}
+}
 /* ★2026-10-25 英語の EN-9：英語の比較（en/career.html）の6角形の左右の列。英語の名前（CAT_FULL_EN の「Compensation」）は 76px の列に入らず、
    語の途中で折れていた（「Compensatio／n」）。英語のときだけ左右の列を広げ、図の列の幅は日本語と同じ（300 − 2×76 − 16 ＝ 340 − 2×96 − 16 ＝ 132px）。
    career-live.css には書かない（222枚の会社ページがその指紋を持つ ── WP-compare-all-12 と同じ理由）。比較の6角形はこの1枚の中にだけ在る。 */

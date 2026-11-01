@@ -411,19 +411,22 @@ scene('cdn', 'supabase-js の読み込みが返ってこなくても、欄は上
      同じ箱で同じ1行を重ねない。やり直しは月の働き方の「やり直す」が全部を聞き直す）。ほかの欄は、どれも失敗の顔で両方が1つずつ見えている。
      口コミの要約の欄（cmp-summary）も同じ形で、同じ強さで次へ移した（cmp-reviews-4 の LEAD の決め・A）：すぐ前の評価の欄（cmp-stars）が
      失敗の顔のとき、そのすぐ下の要約の欄は畳まれる（高さ 0・見える字も見える「やり直す」も無い。やり直しは評価の欄の「やり直す」が聞き直す）。
-     畳まれてよいのはこの2つだけ（回答の欄 1・要約の欄 1）。ほかの欄は今までどおり、どれも失敗の顔で両方が1つずつ見えている */
+     畳まれてよいのはこの2つだけ（回答の欄 1・要約の欄 1）。ほかの欄は今までどおり、どれも失敗の顔で両方が1つずつ見えている。
+     ★2026-10-31：要約の下に1件ずつの口コミの畳み（cmp-revs）が入った。2社とも読めないときは要約の欄と同じ形 ── 失敗の顔で、高さ 0 に畳む
+     （評価の欄が「いま読み出せません」と「やり直す」を1つずつ言っている）。畳まれてよいのは3つ（回答の欄 1・要約の欄 1・口コミの畳み 1） */
   const F = await cdnFaces(page), quiet = F.filter((f) => f.quiet);
   const sumFold = F.filter((f) => !f.quiet && f.kind === 'cmp-summary' && f.after === 'cmp-stars' && f.afterState === 'error');
-  const folded = [...quiet, ...sumFold], loud = F.filter((f) => !folded.includes(f));
+  const revFold = F.filter((f) => f.kind === 'cmp-revs' && f.after === 'cmp-summary');
+  const folded = [...quiet, ...sumFold, ...revFold], loud = F.filter((f) => !folded.includes(f));
   const wkF = F.find((f) => f.kind === 'cmp-work');
   ok(failed > 0 && st.heldUrl.length === 1 && loud.length >= 3
     && loud.every((f) => f.state === 'error' && f.errs === 1 && f.retries === 1 && f.shown === 1)
     && F.filter((f) => f.kind === 'cmp-facts').length === 2 && loud.some((f) => f.kind === 'cmp-facts')
-    && !!wkF && wkF.state === 'error' && quiet.length === 1 && sumFold.length === 1
+    && !!wkF && wkF.state === 'error' && quiet.length === 1 && sumFold.length === 1 && revFold.length === 1
     && quiet.every((f) => f.kind === 'cmp-facts' && f.after === 'cmp-work')
     && folded.every((f) => f.state === 'error' && f.h === 0 && f.text === '' && f.shown === 0),
     `部品の読み込みを止めたまま、見えている欄（${loud.map((f) => f.kind).join('・')}）が全部、${(LIMIT + 5000) / 1000}秒のうちに「${ERR}」と「${RETRY}」になった（${failed}ms）。月の働き方のすぐ下の回答の欄と、評価のすぐ下の要約の欄は畳まれて、字も「${RETRY}」も重ねない`,
-    J({ failed, heldUrl: st.heldUrl.length, faces: F.map((f) => `${f.kind}${f.quiet ? '(quiet)' : ''}${sumFold.includes(f) ? '(fold)' : ''}:${f.state}:${f.errs}:${f.retries}:${f.shown}:h${f.h}`) }));
+    J({ failed, heldUrl: st.heldUrl.length, faces: F.map((f) => `${f.kind}${f.quiet ? '(quiet)' : ''}${sumFold.includes(f) || revFold.includes(f) ? '(fold)' : ''}:${f.state}:${f.errs}:${f.retries}:${f.shown}:h${f.h}`) }));
   /* 止めるのをやめる（止めていた1本は切る）→「やり直す」 */
   st.holdUrl = null;
   for (const r of st.heldUrl.splice(0)) await r.abort('failed').catch(() => {});
@@ -935,7 +938,9 @@ const SIDE = [
   { kind: 'cmp-work', fn: 'pv_work_view', jal: ['70〜80'], ana: ['50〜55'], off: true },
   { kind: 'cmp-facts', fn: 'pv_contrib_facts', jal: ['37'], ana: ['64'], off: true },
 ];
-const SIDE_EXEMPT = { 'cmp-pay': '提出された年収（pv_pay_rows と pv_company_pay は2社で1本の読み）' };
+/* ★2026-10-31 口コミの畳み（cmp-revs）は読めなかったことを自分では言わない（評価の欄 cmp-stars と同じ pv_reviews を読む・片側の失敗は印だけ
+   ── 場面 side は assert-career-live.mjs が見る） */
+const SIDE_EXEMPT = { 'cmp-revs': '口コミの畳み（読めなかったことは評価の欄が言う。「やり直す」も評価の欄の1つ）', 'cmp-pay': '提出された年収（pv_pay_rows と pv_company_pay は2社で1本の読み）' };
 const ZERO_WORDS = ['未取得', '集計なし', 'まだ集計がありません', '口コミはまだありません', '会員からの投稿はまだありません'];
 const OFF = '準備中';
 const PGRST202 = (fn) => ({ status: 404, body: { code: 'PGRST202', details: null, hint: null, message: `Could not find the function public.${fn}` } });
@@ -962,6 +967,8 @@ const sideFaces = (page, kind) => page.evaluate((kind, ERR, RETRY) => [...docume
       if (cs.length === 2) { els[0].push(cs[0]); els[1].push(cs[1]); }
     });
     x.querySelectorAll('.crl-sum2-c[data-col]').forEach((c) => { const i = Number(c.getAttribute('data-col')) - 1; if (i === 0 || i === 1) els[i].push(c); });
+    /* ★2026-10-31：月の勤務の帯（cmpBars）は、項目ごとに2社の行を上下に並べる ── その会社の列は data-col の行 */
+    x.querySelectorAll('.crl-wb2 .crl-wb-r[data-col]').forEach((r) => { const i = Number(r.getAttribute('data-col')) - 1; if (i === 0 || i === 1) els[i].push(r); });
   }
   const col = (list) => {
     const text = list.map((c) => c.innerText).join(' ').replace(/\s+/g, ' ').trim();
@@ -1093,13 +1100,17 @@ const leakStub = () => ({
 const leakSeen = (page, M) => page.evaluate((M) => {
   const v = document.querySelector('#cr .cr-view:not([hidden])');
   if (!v) return null;
+  /* ★2026-10-31：1件ずつの口コミは要約の下の畳み「口コミを読む」の中 ── 読む人と同じく開けてから見る */
+  for (const d of v.querySelectorAll('details.crl-rv-fold:not([open])')) d.open = true;
   const vis = (n) => n.getClientRects().length > 0;
   const t = v.innerText || '';
   return {
     view: v.getAttribute('data-view') + (v.getAttribute('data-airline') ? ':' + v.getAttribute('data-airline') : ''),
     body: M.body.filter((x) => t.includes(x)), clip: t.includes(M.clip), sum: M.sum.filter((x) => t.includes(x)),
     work: t.includes(M.work), fact: t.includes(M.fact), note: t.includes(M.note),
-    amt: [...v.querySelectorAll('.crl[data-live="cmp-pay"] .crl-amt:not([data-agg]), .crl[data-live="realpay"] .crl-amt')].filter(vis).map((e) => e.textContent.trim()),
+    /* ★2026-10-31 比較の1件ずつの行は外した ── 植えた行の額は、年数の図の点（押すと出る札 data-tip の額）に在る */
+    amt: [...[...v.querySelectorAll('.crl[data-live="realpay"] .crl-amt')].filter(vis).map((e) => e.textContent.trim()),
+      ...[...v.querySelectorAll('.crl[data-live="cmp-pay"] .crl-yd-d')].filter(vis).flatMap((e) => (e.getAttribute('data-tip') || '').match(/¥[\d,.]+万?/g) || [])],
     /* 中央値の器の額・幅の棒の額（25%・中央値・75%）・内訳の月の平均額（2026-10-30） */
     med: [...v.querySelectorAll('.crl[data-live="cmp-pay"] .crl-amt[data-agg], .crl[data-live="cmp-pay"] .crl-rg .crl-yd-kv b, .crl[data-live="cmp-pay"] .crl-dn-a')].filter(vis).map((e) => e.textContent.trim()),
   };

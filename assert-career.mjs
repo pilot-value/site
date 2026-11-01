@@ -181,16 +181,21 @@ ok(!/innerHTML|insertAdjacentHTML|document\.write/.test(JSC), 'career.js は HTM
   ok(same(a, b), '古い会社コードの表が、比較（career-live.js）と会社ページ（airline-reviews-ui.js）で同じ集合', JSON.stringify([a, b]));
 }
 
-/* ★2026-10-22 段階4 cmp-pay-2：比較の「提出された年収」の区画（career-live.js の var PAY_TOP から、次の「/* ──」の区切りまで）。
-   まだどの画面もこの欄を持たない（置くのは WP-cmp-pay-4）── ここで見るのはファイルの約束だけ（どれも、わざと壊して赤くなるのを確かめた）。 */
+/* ★2026-10-22 段階4 cmp-pay-2：比較の「提出された年収」の区画（career-live.js の「/* ── 比較：提出された年収」から、次の「/* ──」の区切りまで）。
+   ここで見るのはファイルの約束だけ（どれも、わざと壊して赤くなるのを確かめた）。
+   ★2026-10-31 オーナー「上にすでに中央値出てるんだから下の部分いらない」：中央値の器（medCell・aggBlock・aggFill）と1件ずつの一覧を外した。
+   区画に残るのは 件数（payCell）・幅の答え（companyMed）・KIND['cmp-pay']（件数 → 年収の幅 → 年数の図 → 内訳）。 */
 head('career-live.js（比較：提出された年収）');
 {
   const RAW = read('career-live.js'), LJ = noJsCmt(RAW);
-  const at = RAW.indexOf('\n  var PAY_TOP'), end = at < 0 ? -1 : RAW.indexOf('\n  /* ──', at + 1);
+  const at = RAW.indexOf('\n  /* ── 比較：提出された年収'), end = at < 0 ? -1 : RAW.indexOf('\n  /* ──', at + 1);
   const BLK = at < 0 || end < 0 ? '' : RAW.slice(at, end), BC = noJsCmt(BLK);
   const fnOf = (src, nm) => (src.match(new RegExp(`\\n  function ${nm}\\([^)]*\\) \\{\\n([\\s\\S]*?)\\n  \\}\\n`)) || [])[1] || '';
-  ok(/\n  KIND\['cmp-pay'\] = function \(box, ids\) \{/.test(BLK) && ['payCell', 'companyMed', 'medCell', 'aggBlock', 'aggFill'].every(n => fnOf(BC, n)),
-     "比較の給与の区画が読めた（var PAY_TOP から次の区切りまで・KIND['cmp-pay'] と中央値の部品が在る）", `${at}・${end}`);
+  ok(/\n  KIND\['cmp-pay'\] = function \(box, ids\) \{/.test(BLK) && ['payCell', 'companyMed'].every(n => fnOf(BC, n)),
+     "比較の給与の区画が読めた（見出しから次の区切りまで・KIND['cmp-pay'] と件数・幅の答えの部品が在る）", `${at}・${end}`);
+  const gone = ['medCell', 'aggBlock', 'aggFill', 'medBack', 'payRanks', 'foldsOpen', 'rankName', 'PAY_TOP', 'payRow(', 'crl-pay-fold', 'T.median', 'T.medDef', 'T.payDef']
+    .filter(x => BC.includes(x));
+  ok(BLK.length > 0 && !gone.length, '比較の給与の区画に、中央値の器も1件ずつの行（と畳み）も無い（2026-10-31 オーナー）', gone.join(' '));
   /* T-S3b どの2社でも同じ道を通る ── 区画（コメントも含めて）に、会社の符号を1つも書かない */
   const SLUGS = [...new Set([...GLANCE, ...Object.keys(SALARY)])];
   const named = SLUGS.filter(s => new RegExp(`['"\`]${s}['"\`]`).test(BLK));
@@ -198,16 +203,14 @@ head('career-live.js（比較：提出された年収）');
   /* T-S4 画面は行からもサーバーの額からも何も計算しない（数えるのは返ってきた行の本数だけ） */
   const calc = ['.reduce(', '.sort(', 'Math.'].filter(x => BC.includes(x));
   ok(BLK.length > 0 && !calc.length, '比較の給与の区画は、足さない・並べ替えない・計算しない（.reduce( ・ .sort( ・ Math. が無い）', calc.join(' '));
-  /* T-S6（ファイルの半分）中央値の額の印 data-agg を付けるのは medCell だけ・中央値の器の印 data-kind="aggregate" を付けるのは aggBlock だけ */
+  /* T-S6（ファイルの半分）中央値の額の印 data-agg・中央値の器の印 data-kind="aggregate" は、どこにも付けない（★2026-10-31 中央値の器を外した） */
   const aggAt = LJ.split("setAttribute('data-agg'").length - 1, kindAt = LJ.split("'data-kind', 'aggregate'").length - 1;
-  ok(aggAt === 1 && fnOf(BC, 'medCell').includes("setAttribute('data-agg'") && !/dataset\.agg\b/.test(LJ) &&
-     kindAt === 1 && fnOf(BC, 'aggBlock').includes("setAttribute('data-kind', 'aggregate')"),
-     '中央値の額の印（data-agg）を付けるのは medCell だけ・中央値の器の印（data-kind="aggregate"）を付けるのは aggBlock だけ', `data-agg ${aggAt}か所・aggregate ${kindAt}か所`);
-  /* A24 やり直しのボタンは段階で1つ（共通の retryBtn）。この区画は宣言しない。中央値の「やり直す」は、その写し（形と字だけ。動きはここで1つ） */
-  const decl = ['function retryBtn(', 'function paintError('].filter(x => BC.includes(x)), af = fnOf(BC, 'aggFill');
-  ok(BLK.length > 0 && !decl.length && af.includes('retryBtn().cloneNode(true)') && !/retryBtn\([^)]/.test(LJ),
-     '比較の給与の区画は、やり直しのボタンを自分で作らない（retryBtn・paintError を宣言しない）・中央値の「やり直す」は共通の retryBtn() の写し（cloneNode）',
-     decl.join(' ') || (af.includes('retryBtn().cloneNode(true)') ? '引数つきの retryBtn(…) が在る' : '中央値のやり直しが retryBtn().cloneNode(true) でない'));
+  ok(aggAt === 0 && kindAt === 0 && !/dataset\.agg\b/.test(LJ),
+     '中央値の額の印（data-agg）も中央値の器の印（data-kind="aggregate"）も、career-live.js のどこにも無い', `data-agg ${aggAt}か所・aggregate ${kindAt}か所`);
+  /* A24 やり直しのボタンは段階で1つ（共通の retryBtn）。この区画は宣言しない */
+  const decl = ['function retryBtn(', 'function paintError('].filter(x => BC.includes(x));
+  ok(BLK.length > 0 && !decl.length && !/retryBtn\([^)]/.test(LJ),
+     '比較の給与の区画は、やり直しのボタンを自分で作らない（retryBtn・paintError を宣言しない・引数つきの retryBtn(…) が無い）', decl.join(' '));
   /* T-S8 読む人が替わった・通貨を替えた時の3つの並び */
   const su = fnOf(LJ, 'setUid');
   ok(/drop\('cmed:'\)/.test(su), '読む人が替わったら、中央値の答えも捨てる（setUid の drop に cmed:）', (su.split('\n').find(l => l.includes('drop(')) || '').trim());
@@ -219,6 +222,24 @@ head('career-live.js（比較：提出された年収）');
   const ppl = [/['"`]人['"`]|人['"`]\s*[;,)+]/, /\bpeople\b/, /T\.(people|answered)\b/].filter(re => re.test(BC)).map(String);
   ok(BLK.length > 0 && !!cm && !ppl.length && !/\bn\s*:/.test(cm),
      '比較の給与の区画は、人数を受け取らない・出さない（companyMed に people も n も無い・「人」を組み立てない）', ppl.join(' ') || (/\bn\s*:/.test(cm) ? 'companyMed に n:' : ''));
+  /* ★2026-10-31 口コミの節は 評価（cmp-stars）→ 要約（cmp-summary）→ 1件ずつの口コミの畳み（cmp-revs）。評価の欄は口コミのカードを描かない。
+     月の勤務は、会社ページの帯と同じ部品（barBits ＝ workScale と T.workMax の目盛）で2社を並べる（cmpBars）。 */
+  const kindOf = (k) => { const i = LJ.indexOf(`\n  KIND['${k}'] = function (box, ids) {`); if (i < 0) return ''; const j = LJ.indexOf('\n  };\n', i); return j < 0 ? '' : LJ.slice(i, j); };
+  ok(!!su && /reset\(\[[^\]]*'cmp-revs'[^\]]*\]\)/.test(su), '読む人が替わったら、口コミの畳み（cmp-revs）も描き直す（setUid の reset に cmp-revs）',
+     (su.split('\n').find(l => l.includes('reset(')) || '').trim());
+  const back = (LJ.match(/\n  var BACK_KINDS = \[([^\]]*)\];/) || [])[1] || '';
+  ok(/'cmp-revs'/.test(back), '戻るで手元から戻ったときも、口コミの畳みを取り直す（BACK_KINDS に cmp-revs）', back);
+  const stars = kindOf('cmp-stars'), revs = kindOf('cmp-revs');
+  ok(!!stars && !/clipsOf|revScroll|crl-rate-rv|T\.revLock|T\.revUnlock/.test(stars),
+     '評価の欄（cmp-stars）は口コミのカードも錠も入口も描かない（それは要約の下の畳みの仕事）', stars ? '' : 'cmp-stars が読めない');
+  ok(!!revs && /el\('details', 'crl-more crl-rv-fold'\)/.test(revs) && /clipsOf\(/.test(revs) && /revScroll\(/.test(revs) &&
+     (revs.match(/\.open = true/g) || []).length === 1 && /if \(was\) fold\.open = true;/.test(revs),
+     '口コミの畳み（cmp-revs）は details の中に今までのカード（clipsOf・revScroll）を入れ、開けるのは「開けていた畳み」を描き直すときだけ', revs ? '' : 'cmp-revs が読めない');
+  const work = kindOf('cmp-work'), bits = fnOf(LJ, 'barBits'), bars = fnOf(LJ, 'cmpBars');
+  ok(!!work && /cmpBars\(ids, \[A\.by, B\.by\]\)/.test(work) && /workBars\(s\.v\.by\)/.test(work) && !/workCell\(/.test(work),
+     '比較の月の勤務は帯（2社とも開いていれば cmpBars・片方だけなら会社ページの workBars）で、数字だけのマス（workCell）を並べない', work ? '' : 'cmp-work が読めない');
+  ok(!!bits && /workScale\(it, v\)/.test(bits) && !!bars && /barBits\(/.test(bars) && !/T\.workMax|Math\./.test(bars),
+     '比較の帯は会社ページと同じ部品（barBits → workScale の T.workMax の目盛）で描き、目盛を自分で作らない', `barBits ${!!bits}・cmpBars ${!!bars}`);
 }
 
 head('career.css');
@@ -334,10 +355,11 @@ const CMP = (BLOCK.match(/<section class="cr-view cr-cmp"[\s\S]*?<\/section>/) |
 ok(CMP.length > 0 && !/href="[^"]*[?&](?:amp;)?airline=/.test(CMP), '比較の中から、career.html の中の古い概要（?airline=）へ行くリンクが無い',
    (CMP.match(/href="[^"]*[?&](?:amp;)?airline=[^"]*"/) || [`比較の画面 ${CMP.length}字`])[0]);
 /* 比較の読む順（置き場所の順 ＝ 読み上げと Tab の順）。ほかの区画が足す箱（提出された年収・AI の要約・DEEP PAY の置き場）は、
-   在るときだけ、決まった間に在ること。月の働き方と待遇を1つにまとめる入れ物（cr-lives）は無い。 */
+   在るときだけ、決まった間に在ること。月の働き方と待遇を1つにまとめる入れ物（cr-lives）は無い。
+   ★2026-10-31 オーナー：口コミの節は 評価 → 要約 → 1件ずつの口コミの畳み（cmp-revs）の順（要約の前に口コミのカードを出さない）。 */
 {
   const at = m => CMP.indexOf(m);
-  const REQ = ['class="cr-panel"', 'class="cr-sec cr-cmp-rev"', 'data-live="cmp-stars"', 'class="cr-sec cr-rents"', 'class="cr-sec cr-cmp-work"',
+  const REQ = ['class="cr-panel"', 'class="cr-sec cr-cmp-rev"', 'data-live="cmp-stars"', 'data-live="cmp-summary"', 'data-live="cmp-revs"', 'class="cr-sec cr-rents"', 'class="cr-sec cr-cmp-work"',
     'data-live="cmp-work"', 'class="cr-sec cr-cmp-ben"', 'class="cr-cards"', 'id="cr-to-card"'];
   const pos = REQ.map(at);
   const rising = pos.every((p, i) => p >= 0 && (i === 0 || p > pos[i - 1]));
@@ -346,11 +368,10 @@ ok(CMP.length > 0 && !/href="[^"]*[?&](?:amp;)?airline=/.test(CMP), '比較の�
   const between = (m, lo, hi) => at(m) < 0 || (at(m) > lo && at(m) < hi);
   const opt = [
     between('class="cr-sec cr-subpay"', at('class="cr-panel"'), at('class="cr-sec cr-cmp-rev"')),
-    between('data-live="cmp-summary"', at('data-live="cmp-stars"'), at('class="cr-sec cr-rents"')),
     between('id="cr-deep"', last, at('class="cr-cards"')),
   ];
   const factsOk = facts.length > 0 && facts.every(i => i > at('data-live="cmp-work"')) && last > at('class="cr-sec cr-cmp-ben"') && last < at('class="cr-cards"');
-  ok(rising && opt.every(Boolean) && factsOk && !CMP.includes('cr-lives'), '比較の読む順：年収 → 提出された年収 → 口コミ → 家賃 → 月の働き方 → 待遇 → 内訳（公表額）',
+  ok(rising && opt.every(Boolean) && factsOk && !CMP.includes('cr-lives'), '比較の読む順：年収 → 提出された年収 → 口コミ（評価 → 要約 → 口コミの畳み）→ 家賃 → 月の働き方 → 待遇 → 内訳（公表額）',
      JSON.stringify({ pos, opt, facts, lives: CMP.includes('cr-lives') }));
 }
 
@@ -443,11 +464,16 @@ head('比較の提出された年収（出荷の形・住所）');
   ok(JS.split(KEYS_LINE).length === 2, '比較の住所の鍵（career.js の KEYS）は、給与の職位・機材・月の鍵を持たない（一字一句このまま）',
      (JS.match(/var KEYS = [^\n]*/) || ['（KEYS が無い）'])[0]);
   const RAW = read('career-live.js');
-  const at = RAW.indexOf('\n  var PAY_TOP'), end = at < 0 ? -1 : RAW.indexOf('\n  /* ──', at + 1);
+  const at = RAW.indexOf('\n  /* ── 比較：提出された年収'), end = at < 0 ? -1 : RAW.indexOf('\n  /* ──', at + 1);
   const BC = at < 0 || end < 0 ? '' : noJsCmt(RAW.slice(at, end));
   const qk = [...BC.matchAll(/'[^'\n]*'/g)].flatMap(m => [...m[0].matchAll(/[?&]([A-Za-z_]+)=/g)].map(x => x[1]));
-  ok(BC.includes("'actual-pay.html?air='") && qk.includes('pos') && qk.every(k => k === 'air' || k === 'pos'),
-     '比較の給与の区画が組む REAL PAY への住所は air= と pos= だけ（機材・月の絞り込みを付けない）', `住所の鍵: ${qk.join(',') || '（無い）'}`);
+  /* ★2026-10-31 1件ずつの一覧を外したので、比較の給与の区画は REAL PAY への住所を組まない（機材・月の絞り込みを付ける場所も無い） */
+  ok(BC.length > 0 && !BC.includes('actual-pay.html') && !qk.length,
+     '比較の給与の区画は REAL PAY への住所を組まない（1件ずつの一覧は外した・絞り込みの鍵も無い）', `住所の鍵: ${qk.join(',') || '（無い）'}`);
+  /* ★2026-10-31 口コミの畳みの生きた欄（cmp-revs）は、出荷の HTML では「—」だけで、字を1つも持たない（本文も抜粋も、読む人の鍵でサーバーが決める） */
+  const rv = [...CMP.matchAll(/<div class="crl" data-live="cmp-revs"[^>]*>[\s\S]*?<\/div>/g)].map(m => m[0]);
+  ok(HTML.split('data-live="cmp-revs"').length === 2 && rv.length === 1 && rv[0].replace(/<[^>]+>/g, '').trim() === '—',
+     '口コミの畳みの欄（data-live="cmp-revs"）は比較の画面にちょうど1つ・出荷の HTML では「—」だけ', rv[0] || '（欄が無い）');
 }
 
 /* ══════════════════════════════════════════════════════════════════

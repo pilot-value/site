@@ -313,7 +313,7 @@ const REV_NONE = '会員からの投稿はまだありません';
      cmp-work   口コミの区域の表 C の R0 ゲスト → 錠の1行（locked）
      cmp-facts  口コミの区域の表 C の R0 ゲスト → 錠の1行（locked）
    表に無い欄（あとの作業で足される欄）は、読み終わっていて・失敗の顔でないことだけを見る（その区域の表は、その作業が持つ） */
-const GUEST_ZERO = { 'cmp-stars': 'empty', 'cmp-work': 'locked', 'cmp-facts': 'locked' };
+const GUEST_ZERO = { 'cmp-stars': 'empty', 'cmp-revs': 'empty', 'cmp-work': 'locked', 'cmp-facts': 'locked' };   // cmp-revs ＝ 要約の下の口コミの畳み（字のある投稿が無ければ空）
 const ZERO_PAIRS = [['jal', 'ana'], ['etihad', 'cathay-pacific'], ['eva-air', 'jal']];
 const YEN = /^¥[\d,]+万$/;
 
@@ -492,6 +492,9 @@ const sameCo = (c, w) => (w.cnt ? c.avg === w.avg && c.cnt === w.cnt : c.avg ===
 const cmpStars = (page) => page.evaluate((re) => {
   const x = document.querySelector('#cr [data-view="compare"] .crl[data-live="cmp-stars"]');
   if (!x) return null;
+  /* ★2026-10-31：1件ずつの口コミ（本文・抜粋）・錠の1行・口コミの Give & Get は、要約の下の畳み（cmp-revs）に移った。
+     畳みは閉じていても中の字を数える（textContent ── 押せば見える字） */
+  const r = document.querySelector('#cr [data-view="compare"] .crl[data-live="cmp-revs"]');
   const tx = (e) => (e ? e.textContent.trim() : null);
   const vis = (n) => n.getClientRects().length > 0 && getComputedStyle(n).visibility !== 'hidden';
   return {
@@ -501,9 +504,9 @@ const cmpStars = (page) => page.evaluate((re) => {
       posts: tx(c.querySelector('.crl-posts')), none: tx(c.querySelector('.crl-none')), err: c.innerText.includes('いま読み出せません') })),
     msg: [...x.children].filter((c) => c.matches('p.crl-msg')).map(tx),
     retry: [...x.querySelectorAll('.crl-retry')].filter(vis).length,
-    marks: (x.innerText.match(new RegExp(re, 'g')) || []).length,
-    gg: [...x.querySelectorAll('a.pv-gg[href*="submit-review.html"]')].filter(vis).length,
-    lock: [...x.querySelectorAll('.crl-lock')].filter(vis).map(tx),
+    marks: ((x.innerText + '\n' + (r ? r.textContent : '')).match(new RegExp(re, 'g')) || []).length,
+    gg: [...x.querySelectorAll('a.pv-gg[href*="submit-review.html"]'), ...(r ? r.querySelectorAll('a.pv-gg[href*="submit-review.html"]') : [])].filter(vis).length,
+    lock: [...x.querySelectorAll('.crl-lock'), ...(r ? r.querySelectorAll('.crl-lock') : [])].filter(vis).map(tx),
   };
 }, READ_MARK.source);
 /* その会社のマス（札の名前で引く ── 列の順は並べた順） */
@@ -820,8 +823,8 @@ const READ_ORDER = [
 /* 比較の欄の顔（ページの並び：提出された年収・口コミ・要約・月の働き方・すぐ下の回答（静か）・待遇）と、錠の1行。
    字はその欄を持つ区域の表（給与 S1・S2・S3・S5／口コミ・要約・回答の表 C）のまま。要約は保存先に要約が無いので、だれにも「empty」
    （JAL「口コミの要約は、まだありません」・ANA「口コミがまだ少ないため、要約はありません」── サーバーの答え） */
-const FACE_OFF = 'cmp-pay:locked cmp-stars:open cmp-summary:empty cmp-work:locked cmp-facts(quiet):locked cmp-facts:locked';
-const FACE_ON = 'cmp-pay:open cmp-stars:open cmp-summary:empty cmp-work:open cmp-facts(quiet):open cmp-facts:open';
+const FACE_OFF = 'cmp-pay:locked cmp-stars:open cmp-summary:empty cmp-revs:open cmp-work:locked cmp-facts(quiet):locked cmp-facts:locked';
+const FACE_ON = 'cmp-pay:open cmp-stars:open cmp-summary:empty cmp-revs:open cmp-work:open cmp-facts(quiet):open cmp-facts:open';
 /* 錠の1行は「会社の札:字」（箱ぜんぶの1行は札なし）。給与の鍵のある人の月の働き方は、自分の会社が開き、もう片方の会社に
    答えるカードの1行（自分の会社に5つ答えると開きます ── 口コミの区域の表 C） */
 const PAY_LOCK = '給与の提出で開きます', PAY_GONE = '年収データの解放が切れています', WORK_LOGIN = 'ログインと給与の提出で開きます', REV_LOCK = '口コミの投稿で開きます';
@@ -841,7 +844,9 @@ const slotFace = (page) => page.evaluate(() => {
     return x ? [...x.querySelectorAll('.crl-lock')].filter(vis).map((l) => `${(l.closest('.crl [data-airline]') || { getAttribute: () => '' }).getAttribute('data-airline') || ''}:${l.textContent.trim()}`) : null; };
   const pay = V.querySelector('.crl[data-live="cmp-pay"]');
   return { face: [...V.querySelectorAll('.crl[data-live]')].map((x) => `${x.getAttribute('data-live')}${x.getAttribute('data-quiet') ? '(quiet)' : ''}:${x.getAttribute('data-state')}`).join(' '),
-    pay: lock('cmp-pay'), work: lock('cmp-work'), payText: pay ? pay.textContent : '' };   // 2026-10-29：1件ずつの額は畳んだ中（押すと出る）── 欄の中の字で見る（錠の顔に額が1つも無いことは、この方が厳しい）
+    pay: lock('cmp-pay'), work: lock('cmp-work'), payText: pay ? pay.textContent : '',
+    /* ★2026-10-31 オーナー：比較の提出された年収から、中央値の器と1件ずつの行（畳み）を外した ── 誰の画面にも1つも無い */
+    payRows: pay ? pay.querySelectorAll('.crl-rows, li.crl-row, .crl-agg, .crl-pay-fold, [data-agg]').length : -1 };   // 2026-10-29：1件ずつの額は畳んだ中（押すと出る）── 欄の中の字で見る（錠の顔に額が1つも無いことは、この方が厳しい）
 });
 
 scene('readers', '読む人6つ（ゲスト・pilot・a・c・pay・期限切れ）× JAL｜ANA：欄の顔・口コミの本文は口コミの鍵のある人だけ・顔 a・b と入口・会社ページと同じ公開の数', async () => {
@@ -873,11 +878,11 @@ scene('readers', '読む人6つ（ゲスト・pilot・a・c・pay・期限切れ
         inRev: login.filter((a) => a.closest('.cr-cmp-rev')).length, stamp: work ? work.getAttribute('data-entry') : null };
     });
     const tag = `${R.ja}`;
-    ok(done && X.face === E.face && J(X.pay) === J(E.pay) && J(X.work) === J(E.work) && (E.face === FACE_ON ? YEN_AMT.test(X.payText) : !YEN_AMT.test(X.payText)),
+    ok(done && X.face === E.face && J(X.pay) === J(E.pay) && J(X.work) === J(E.work) && X.payRows === 0 && (E.face === FACE_ON ? /[1-9]\d*件の提出/.test(X.payText) : !YEN_AMT.test(X.payText)),
       `${tag}：比較の欄の顔は表のとおり（${E.face === FACE_ON ? '提出された年収・月の働き方・待遇が開く' : '提出された年収・月の働き方・待遇は錠'}）・`
-      + `提出された年収の錠の1行 ${E.pay.length ? `「${E.pay[0].slice(1)}」` : 'なし（額が出る）'}・月の働き方 `
+      + `提出された年収の錠の1行 ${E.pay.length ? `「${E.pay[0].slice(1)}」` : 'なし（件数が出る）'}・中央値と1件ずつの行は無い・月の働き方 `
       + `${E.face === FACE_ON ? `は自分の会社が開き、${E.work[0].split(':')[0]} に「${E.work[0].split(':')[1]}」` : `「${E.work[0].slice(1)}」`}${E.face === FACE_ON ? '' : '・提出された年収の欄に額が1つも無い'}`,
-      J({ face: X.face, pay: X.pay, work: X.work, keyNow, payAmt: YEN_AMT.test(X.payText) }));
+      J({ face: X.face, pay: X.pay, work: X.work, keyNow, payRows: X.payRows, payAmt: YEN_AMT.test(X.payText) }));
     ok(!!S && S.state === 'open' && (R.rev ? S.marks > 0 && S.gg === 0 && !S.lock.includes(REV_LOCK) : S.marks === 0 && S.gg === 1 && S.lock.includes(REV_LOCK)),
       `${tag}：口コミの欄 ── ${R.rev ? `会員の口コミの本文が読める（本文の終わりの印 ${S && S.marks}）・口コミの Give & Get と錠の1行は無い`
         : `会員の口コミの本文は1字も無い（印 0）・「${REV_LOCK}」と口コミの Give & Get が1つ`}`,
