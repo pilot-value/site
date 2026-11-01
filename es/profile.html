@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="es-419" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png"/>
+<link rel="apple-touch-icon" href="../assets/favicon-180.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/><noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet"/></noscript>
+  <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Mi página | PILOT VALUE</title>
+<!--PV-SEO-->
+<!--PV-GEN lang="es" from="en/profile.html" — node gen-lang.mjs es が書く。手で直さない-->
+<meta name="description" content="Los datos de tu cuenta, las reseñas que has publicado, tus preferencias de correo electrónico y tus informes de valor de mercado guardados."/>
+<meta name="robots" content="noindex,follow"/>
+<link rel="canonical" href="https://pilot-value.com/es/profile.html"/>
+<meta property="og:title" content="Mi página | PILOT VALUE"/>
+<meta property="og:description" content="Los datos de tu cuenta, las reseñas que has publicado, tus preferencias de correo electrónico y tus informes de valor de mercado guardados."/>
+<meta property="og:url" content="https://pilot-value.com/es/profile.html"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="PILOT VALUE"/>
+<meta property="og:locale" content="es_LA"/>
+<meta property="og:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="Mi página | PILOT VALUE"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Mi página | PILOT VALUE"/>
+<meta name="twitter:description" content="Los datos de tu cuenta, las reseñas que has publicado, tus preferencias de correo electrónico y tus informes de valor de mercado guardados."/>
+<meta name="twitter:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
+<!--/PV-SEO-->
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../pv-reunlock.js?v=2"></script>
+  <!-- 匿名で出した給与データの預かり証。ログイン後にここでも拾う（最後の網）。
+       en/pay-report.html で出したあと login.html / signup.html から入った人は、
+       pay-report.html を通らずにここへ着地する。 -->
+  <script src="../pv-claim-pending.js"></script>
+  <script src="../review-i18n.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    /* 色は pv-tokens.css の --pv-* から取る。ここで hex を作らない。
+       上部バーとサイドバーの見た目は my-value.css の .mr-* が持つ。
+       ★ .btn-ghost はここに残す。上部バーから消えても「編集」ボタンが使っている。 */
+    body{background:var(--pv-bg-sub);color:var(--pv-ink);
+         font-family:Inter,'Noto Sans JP',sans-serif;min-height:100vh;
+         -webkit-font-smoothing:antialiased}
+    .btn-ghost{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:9px;background:rgba(255,255,255,.07);color:#e8edf2;border:1px solid rgba(255,255,255,.12);cursor:pointer;font-size:.83rem;font-weight:600;text-decoration:none;transition:background .2s;font-family:inherit}
+    .btn-ghost:hover{background:rgba(255,255,255,.12)}
+    [data-theme="light"] .btn-ghost{background:rgba(0,0,0,.05);color:#0f172a;border-color:rgba(0,0,0,.12)}
+    .theme-toggle{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.07);color:#e8edf2;border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:background .2s;flex-shrink:0}
+    .theme-toggle:hover{background:rgba(255,255,255,.13)}
+    [data-theme="light"] .theme-toggle{background:rgba(0,0,0,.06);color:#0f172a;border-color:rgba(0,0,0,.13)}
+    .glass{background:rgba(17,22,32,.7);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:28px}
+    [data-theme="light"] .glass{background:#fff;border-color:rgba(0,0,0,.09);box-shadow:0 2px 14px rgba(0,0,0,.07)}
+    /* ── メール通知のスイッチ ─────────────────────────────────────
+       ★色を持つのは CSS だけ。JS は aria-checked を切り替えるだけにする。
+       inline の style に background を書くと CSS が必ず負けるので、
+       明るいテーマではオフのトラック rgba(255,255,255,.14) が
+       白いカード（.glass = #fff）の上に白で乗り、**消えて見えなくなる**
+       （2026-08-27 オーナー指摘「色が薄くて見ずらい」）。
+       ⚠️ 枠は border ではなく inset の box-shadow で描く。border を足すと
+          padding box が 1px 縮み、中の丸（top:3px / translateX(22px)）が
+          上下左右でずれる。 */
+    .optin-sw{flex:none;width:52px;height:30px;border-radius:999px;border:none;cursor:pointer;position:relative;background:rgba(255,255,255,.20);box-shadow:inset 0 0 0 1px rgba(255,255,255,.42);transition:background-color .2s,box-shadow .2s}
+    .optin-sw[aria-checked="true"]{background:#f5c842;box-shadow:inset 0 0 0 1px rgba(122,86,0,.55)}
+    .optin-sw:hover{box-shadow:inset 0 0 0 1px rgba(255,255,255,.72)}
+    .optin-sw[aria-checked="true"]:hover{box-shadow:inset 0 0 0 1px rgba(122,86,0,.85)}
+    .optin-sw:focus-visible{outline:2px solid #f5c842;outline-offset:3px}
+    .optin-sw:active{opacity:.88}
+    .optin-knob{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.45);transition:transform .2s}
+    [data-theme="light"] .optin-sw{background:#c3ccd8;box-shadow:inset 0 0 0 1px rgba(15,23,42,.30)}
+    [data-theme="light"] .optin-sw[aria-checked="true"]{background:#f5c842;box-shadow:inset 0 0 0 1px rgba(122,86,0,.60)}
+    [data-theme="light"] .optin-sw:hover{box-shadow:inset 0 0 0 1px rgba(15,23,42,.50)}
+    [data-theme="light"] .optin-sw[aria-checked="true"]:hover{box-shadow:inset 0 0 0 1px rgba(122,86,0,.90)}
+    [data-theme="light"] .optin-knob{box-shadow:0 1px 3px rgba(15,23,42,.30)}
+    .optin-note{font-size:.76rem;color:#9aa9bd;line-height:1.6}
+    [data-theme="light"] .optin-note{color:#4a5768}
+    .optin-hint{font-size:.72rem;color:#9aa9bd;margin-top:10px}
+    [data-theme="light"] .optin-hint{color:#4a5768}
+    .avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#f5c842,#f97316);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:800;color:#000;flex-shrink:0}
+    .info-row{display:grid;grid-template-columns:120px 1fr;gap:8px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06);align-items:center}
+    .info-row:last-child{border-bottom:none}
+    [data-theme="light"] .info-row{border-bottom-color:rgba(0,0,0,.06)}
+    .info-label{font-size:.75rem;color:#6b7d93;font-weight:600;letter-spacing:.03em}
+    .info-value{font-size:.9rem;font-weight:600}
+    .pos-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:999px;font-size:.78rem;font-weight:700;letter-spacing:.04em}
+    .pos-captain{background:rgba(245,200,66,.12);color:#f5c842;border:1px solid rgba(245,200,66,.25)}
+    .pos-fo{background:rgba(99,179,237,.1);color:#63b3ed;border:1px solid rgba(99,179,237,.2)}
+    .pos-cadet{background:rgba(154,230,180,.1);color:#68d391;border:1px solid rgba(154,230,180,.2)}
+    .unlock-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:999px;font-size:.78rem;font-weight:600}
+    .unlock-active{background:rgba(72,199,142,.1);color:#48c78e;border:1px solid rgba(72,199,142,.25)}
+    .unlock-inactive{background:rgba(255,255,255,.05);color:#6b7d93;border:1px solid rgba(255,255,255,.1)}
+    [data-theme="light"] .unlock-inactive{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.1)}
+    [data-theme="light"] .unlock-active{background:rgba(13,138,99,.09);color:#0d8a63;border-color:rgba(13,138,99,.28)}
+    /* ようこそ／解放バナー。ここは色を要素に直に書いていたので、ライトテーマで
+       文字が背景に溶けていた（本文 #9ca3af が白地）。両テーマぶんをここに持つ。 */
+    .pv-b-body{color:#9ca3af}
+    .pv-b-list{color:#c9d4e0}
+    .pv-b-gold{color:#f5c842}
+    [data-theme="light"] .pv-b-body{color:#475569}
+    [data-theme="light"] .pv-b-list{color:#1e293b}
+    [data-theme="light"] .pv-b-gold{color:#a07200}
+    /* あなたが出したもの（口コミ／給与レポートの一覧） */
+    .mine-h{font-size:.8rem;font-weight:700;color:#b0c0d4;margin-bottom:8px}
+    [data-theme="light"] .mine-h{color:#475569}
+    .mine-row{padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+    .mine-row:last-child{border-bottom:none}
+    [data-theme="light"] .mine-row{border-bottom-color:rgba(0,0,0,.06)}
+    .mine-tag{display:inline-flex;font-size:.72rem;font-weight:700;padding:2px 9px;border-radius:999px;background:rgba(245,200,66,.1);color:#f5c842;border:1px solid rgba(245,200,66,.2)}
+    [data-theme="light"] .mine-tag{background:rgba(161,114,0,.08);color:#a07200;border-color:rgba(161,114,0,.3)}
+    .mine-when{font-size:.72rem;color:#6b7d93}
+    .mine-body{font-size:.82rem;line-height:1.6;color:#c9d4e0}
+    [data-theme="light"] .mine-body{color:#334155}
+    .mine-empty{font-size:.84rem;color:#6b7d93}
+    /* 匿名で出した給与レポートを拾えたときだけ出す1行（pv-claim-pending.js）。
+       ★明るいテーマでは金色が白地に沈むので色を変える。 */
+    .claim-note{display:none;margin-top:20px;font-size:.84rem;font-weight:600;color:#f5c842}
+    [data-theme="light"] .claim-note{color:#8a6400}
+    .pv-cta-fill{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:#f5c842;color:#000;border-radius:9px;font-size:.82rem;font-weight:800;text-decoration:none;box-shadow:0 4px 14px rgba(245,200,66,.18);transition:background .18s,box-shadow .18s,transform .12s cubic-bezier(.16,1,.3,1)}
+    .pv-cta-fill:hover{background:#f7d25e;box-shadow:0 6px 20px rgba(245,200,66,.28)}
+    .pv-cta-fill:focus-visible{outline:2px solid rgba(245,200,66,.65);outline-offset:3px}
+    .pv-cta-fill:active{transform:translateY(1px)}
+    .pv-cta-ghost{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;margin-left:8px;border:1px solid rgba(245,200,66,.35);color:#f5c842;border-radius:9px;font-size:.82rem;font-weight:700;text-decoration:none;transition:background .18s,border-color .18s,transform .12s cubic-bezier(.16,1,.3,1)}
+    .pv-cta-ghost:hover{background:rgba(245,200,66,.1);border-color:rgba(245,200,66,.6)}
+    .pv-cta-ghost:focus-visible{outline:2px solid rgba(245,200,66,.65);outline-offset:3px}
+    .pv-cta-ghost:active{transform:translateY(1px)}
+    [data-theme="light"] .pv-cta-fill{box-shadow:0 4px 14px rgba(161,114,0,.22)}
+    [data-theme="light"] .pv-cta-ghost{color:#a07200;border-color:rgba(161,114,0,.35)}
+    [data-theme="light"] .pv-cta-ghost:hover{background:rgba(161,114,0,.08);border-color:rgba(161,114,0,.55)}
+    @media (prefers-reduced-motion:reduce){.pv-cta-fill,.pv-cta-ghost{transition:none}}
+    .auth-input{width:100%;padding:10px 13px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:#e8edf2;font-size:.87rem;outline:none;transition:border-color .2s;font-family:inherit}
+    /* ★iOS は 16px 未満の入力欄に触れるとページごと拡大し、戻らない。拡大した画面では
+       position:fixed のヘッダーと常設バーが窓より広い箱になり、左右とも切れる
+       （2026-08-27、オーナーの iPhone 16 で実測 1.09 倍）。⚠️ この 16px を下げない。 */
+    @media (pointer:coarse),(max-width:820px){.auth-input{font-size:16px}}
+    .auth-input:focus{border-color:rgba(245,200,66,.5)}
+    .auth-input::placeholder{color:#6b7d93}
+    [data-theme="light"] .auth-input{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.12);color:#0f172a}
+    select.auth-input option{background:#111620;color:#e8edf2}
+    .radio-group{display:flex;gap:7px;flex-wrap:wrap}
+    .radio-chip input{display:none}
+    .radio-chip label{display:inline-flex;align-items:center;padding:6px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.1);font-size:.82rem;cursor:pointer;transition:border-color .2s,background .2s;color:#9ca3af}
+    .radio-chip input:checked+label{border-color:rgba(245,200,66,.5);background:rgba(245,200,66,.08);color:#f5c842;font-weight:600}
+    [data-theme="light"] .radio-chip label{border-color:rgba(0,0,0,.12);color:#64748b}
+    [data-theme="light"] .radio-chip input:checked+label{border-color:rgba(161,114,0,.4);background:rgba(161,114,0,.07);color:#a07200}
+    .field-label{font-size:.74rem;color:#9ca3af;margin-bottom:4px;font-weight:600;letter-spacing:.03em}
+    [data-theme="light"] .field-label{color:#64748b}
+    .btn-save{padding:10px 24px;background:linear-gradient(135deg,#f5c842,#f97316);color:#000;border:none;border-radius:10px;font-weight:700;font-size:.88rem;cursor:pointer;transition:opacity .2s;font-family:inherit}
+    .btn-save:hover{opacity:.88}
+    .btn-cancel{padding:10px 20px;background:rgba(255,255,255,.06);color:#9ca3af;border:1px solid rgba(255,255,255,.1);border-radius:10px;font-weight:600;font-size:.88rem;cursor:pointer;transition:background .2s;font-family:inherit}
+    .btn-cancel:hover{background:rgba(255,255,255,.1);color:#e8edf2}
+    .btn-logout{padding:9px 20px;background:rgba(248,113,113,.08);color:#f87171;border:1px solid rgba(248,113,113,.2);border-radius:10px;font-weight:600;font-size:.84rem;cursor:pointer;transition:background .2s;font-family:inherit}
+    .btn-logout:hover{background:rgba(248,113,113,.14)}
+    .success-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#111620;border:1px solid rgba(72,199,142,.3);border-radius:12px;padding:12px 24px;font-size:.85rem;font-weight:600;color:#48c78e;display:none;z-index:500;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+    /* ★2026-09-06、足元の下タブ（.mr-tabs）を廃止したので、持ち上げるのをやめた。
+         もとは 84px 上げていた（帯の裏に「保存しました ✓」が隠れるため）。
+         いま足元には何も居ない ── 狭い画面のメニューはヘッダーの ≡ から左に出る。
+       ⚠️ 帯を戻さない限り、この持ち上げも戻さない（何も無い所に浮くだけになる）。 */
+    /* signup.html の .error-msg と同じ見た目。赤が既定で、成功だけ .is-ok で緑にする */
+    .msg-inline{color:#f87171;font-size:.79rem;padding:8px 12px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;display:none;line-height:1.6}
+    .msg-inline.is-ok{color:#4ade80;background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.22)}
+    [data-theme="light"] .msg-inline.is-ok{color:#15803d;background:rgba(21,128,61,.07);border-color:rgba(21,128,61,.22)}
+    .btn-save:disabled{opacity:.5;cursor:default}
+    /* メールのリンクから #password-card に着地した人に、どのカードの話か一目でわからせる。
+       動かすのは opacity だけ。リングは ::after の別レイヤーなので中身のレイアウトに触らない。 */
+    #password-card{position:relative}
+    #password-card::after{content:'';position:absolute;inset:-3px;border-radius:19px;pointer-events:none;opacity:0;
+      border:2px solid rgba(245,200,66,.85);box-shadow:0 0 0 6px rgba(245,200,66,.10),0 14px 34px -10px rgba(249,115,22,.45)}
+    #password-card.is-flash::after{animation:pw-ring 2.8s cubic-bezier(.16,1,.3,1) forwards}
+    @keyframes pw-ring{0%{opacity:0}10%{opacity:1}60%{opacity:1}100%{opacity:0}}
+    @media (prefers-reduced-motion:reduce){#password-card.is-flash::after{animation:none;opacity:1}}
+    .skeleton{background:rgba(255,255,255,.06);border-radius:6px;animation:pulse 1.5s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:.4}50%{opacity:.8}}
+    [data-theme="light"] .skeleton{background:rgba(0,0,0,.08)}
+  </style>
+  <!-- 色と余白の唯一の正。下の骨格が --pv-* を読むので、必ず先に置く。 -->
+  <link rel="stylesheet" href="../pv-tokens.css">
+  <!-- マイページの骨格（.mr-top / .mr-shell / .mr-side / .mr-main）。
+       my-value / actual-pay / airline-conditions と共有する。
+       ★ 2層目の #pv-value .pt-* は id で閉じているので、このページの図には効かない。 -->
+  <link rel="stylesheet" href="../pv-give.css">
+  <link rel="stylesheet" href="../my-value.css">
+  <link rel="stylesheet" href="../app-nav.css">
+  <!-- Payslip chart styling. Shared by my-value.js and the pay-form result card. -->
+  <link rel="stylesheet" href="../pay-viz.css">
+<!-- Google tag (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-3XYF69VQ3X');
+</script>
+<!--PV-3P-->
+<script>
+/* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
+   利用者が最初に触った時か load の、どちらか早いほうで読み込む。
+   戻すときは node defer-third-party.mjs --undo */
+(function(){
+  var done=false;
+  function boot(){
+    if(done)return; done=true;
+    [{"src":"https://www.googletagmanager.com/gtag/js?id=G-3XYF69VQ3X","cross":false}].forEach(function(it){
+      var s=document.createElement('script');
+      s.src=it.src; s.async=true;
+      if(it.cross)s.crossOrigin='anonymous';
+      document.head.appendChild(s);
+    });
+  }
+  ['pointerdown','keydown','touchstart','scroll','wheel'].forEach(function(ev){
+    addEventListener(ev,boot,{once:true,passive:true});
+  });
+  if(document.readyState==='complete')boot();
+  else addEventListener('load',boot,{once:true});
+})();
+</script>
+<!--/PV-3P-->
+<script src="../pv-session.js?v=700cc594"></script>
+</head>
+<body class="pv-anav-shell pv-anav-app">
+  <header class="mr-top">
+    <div class="mr-top-in">
+      <a class="mr-brand" href="../en/index.html" aria-label="PILOT VALUE home">
+        <img src="../assets/logo.png" alt="PILOT VALUE" height="28"/>
+      </a>
+      <!-- ★ Keep #theme-toggle. lang-toggle.js and currency.js insert their own
+           buttons next to it; without it they fall to the end of the nav. -->
+      <div class="mr-top-r">
+        <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar tema"></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="mr-shell">
+    <!-- ★ patch-side-nav.mjs writes these four entries into every page. Never add one by hand
+         (assert-pay-rows.mjs checks all pages match, per language).
+         Below 1000px the sidebar becomes a single horizontal row instead (no vertical cost). -->
+    <nav class="mr-side" aria-label="Menú">
+      <a class="mr-side-a is-add" href="pay-report.html#ps">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+        <span>Agregar remuneración de forma anónima</span>
+      </a>
+      <a class="mr-side-a" href="../en/index.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 2l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>
+        <span>INICIO</span>
+      </a>
+      <a class="mr-side-a" href="actual-pay.html" data-mr-gate="real">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>REAL PAY</span>
+      </a>
+      <a class="mr-side-a" href="../en/community.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/></svg>
+        <span>VOTE</span>
+      </a>
+      <a class="mr-side-a" href="../en/roadmap.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V4s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+        <span>HOJA DE RUTA Y SOLICITUDES</span>
+      </a>
+      <a class="mr-side-a" href="../en/world-airlines.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
+        <span>AEROLÍNEAS</span>
+      </a>
+      <a class="mr-side-a" href="../en/invite.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        <span>INVITAR</span>
+      </a>
+      <a class="mr-side-a is-on" href="profile.html" aria-current="page">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>MI PÁGINA</span>
+      </a>
+      <a class="mr-side-sub" id="pv-anav-login" data-pv-auth="out" href="login.html">Iniciar sesión</a>
+      <a class="mr-side-sub" href="contact.html">Contacto</a>
+    </nav>
+
+    <main class="mr-main">
+    <!-- ══ MY PAGE は6層。上ほど強く、下へ行くほど畳む ══════════════
+         ① YOUR STATUS ② NEXT ACTION ③ YOUR PAY
+         ④ YOUR CONTRIBUTIONS ⑤ INVITE PILOTS ⑥ SETTINGS
+         ★実額（金額）が出るのは ③ の <section id="your-pay"> の中だけ。
+           将来「金額を隠す」を入れるときは、あの箱ひとつに hidden を掛ければ
+           全部隠れる。ほかの層へ実額を撒かない。
+         ★節の見出しは日英とも英語（左のレールと同じ言い方に揃える）。 -->
+
+    <!-- ① YOUR STATUS ─ 開いた瞬間に見える層 -->
+    <section class="mp-sec" id="your-status">
+      <div class="mp-hd">
+        <h1 class="mp-h1">MI PÁGINA</h1>
+        <!-- ★この1行は既定では空で出さない（2026-09-07 オーナー指示で説明文を削除）。
+           ただし要素は捨てない ── ?welcome=1 で来た人を名前で迎える唯一の置き場。 -->
+        <p class="mp-lead" hidden></p>
+      </div>
+    <!-- FOUNDING PILOT 100. Drawn by pv-founding.js.
+         ★2026-09-07 (owner): the plaque renders ONLY for people who hold a number.
+           Someone who has filed neither pay nor a review gets nothing drawn here
+           (this div stays empty; it carries no class, so it leaves no gap).
+         Never shows a member count or how many slots are left. -->
+    <div id="pv-founding-slot"></div>
+
+    <!-- Profile card -->
+    <div class="glass" id="profile-card">
+      <div style="display:flex;align-items:center;gap:18px;margin-bottom:24px;flex-wrap:wrap">
+        <div class="avatar" id="avatar-letter">…</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:1.25rem;font-weight:800;margin-bottom:4px" id="display-name">
+            <div class="skeleton" style="width:140px;height:22px"></div>
+          </div>
+          <div id="display-pos-badge"></div>
+          <div style="font-size:.78rem;color:#6b7d93;margin-top:4px" id="display-email">
+            <div class="skeleton" style="width:180px;height:14px;margin-top:6px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 鍵は2つある。年収（明細で90日・本当に切れる）と口コミ（投稿で解放・期限なし）は別物なので、
+           それぞれ今どちらなのかを出す。片方だけ出すと、明細を出した人に
+           「まだ何も解放されていない」ように見える。 -->
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px">
+        <span class="unlock-badge unlock-inactive" id="unlock-status-salary">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Datos de remuneración bloqueados
+        </span>
+        <span class="unlock-badge unlock-inactive" id="unlock-status">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Reseñas bloqueadas
+        </span>
+      </div>
+
+      <!-- ★旧「明細トラッカー」にしか無かった3つの数字をここへ移した
+           （解放の残り日数・連続提出・出した明細の枚数）。
+           出どころは my_pay_reports() を1回引いた結果。新しい通信を足さない。
+           ★引けなかった数字は行ごと出さない（0 で埋めない）。
+           ★ここに金額は出さない。実額は ③ YOUR PAY の中だけ。 -->
+      <div class="pt-stats mp-stats" id="status-stats" hidden></div>
+
+      <div id="info-rows">
+        <div class="info-row"><div class="info-label">Nombre</div><div class="info-value" id="v-name">—</div></div>
+        <div class="info-row"><div class="info-label">Género</div><div class="info-value" id="v-gender">—</div></div>
+        <div class="info-row"><div class="info-label">Fecha de nacimiento</div><div class="info-value" id="v-birth">—</div></div>
+        <div class="info-row"><div class="info-label">País de residencia</div><div class="info-value" id="v-country">—</div></div>
+        <div class="info-row"><div class="info-label">Empleador</div><div class="info-value" id="v-company">—</div></div>
+        <div class="info-row"><div class="info-label">Categoría (puesto)</div><div class="info-value" id="v-position">—</div></div>
+        <div class="info-row"><div class="info-label">Miembro desde</div><div class="info-value" id="v-joined">—</div></div>
+      </div>
+    </div>
+    <!-- パイロットであることの確認（申請）の入口。中身は pv-proof-offer.js が描く（返事が none / offered / approved のときだけ）。
+         ★何も止めない。オーナーが verified を押すまで、確認済みのパイロットだけが見られるものは閉じたまま。 -->
+    <div id="pv-proof-slot"></div>
+    <script src="../pv-proof-offer.js?v=cc4ef913" defer></script>
+    </section>
+
+    <!-- ② NEXT ACTION ─ ★強いものは常に1つだけ。同じ強さの CTA を並べない。
+         判定は init() の pickNext()（すでに引いてある値だけで決める）。
+         Give → Get の文面は PVGates.giveGetHTML() の1つだけを差す。
+         ★id="pay-tracker" は捨てない ── 給与を出した直後とログイン経由の導線が
+           profile.html#pay-tracker の形で来る。リンクを死なせない。 -->
+    <section class="mp-sec" id="pay-tracker">
+      <h2 class="mp-h2">PRÓXIMO PASO</h2>
+      <div class="glass mp-next" id="next-action">
+        <div class="mp-next-t" id="na-title">Cargando…</div>
+        <p class="mp-next-s" id="na-sub"></p>
+        <a class="mp-cta mp-next-c" id="na-cta" href="pay-report.html#ps" hidden></a>
+        <div class="mp-next-g" id="na-give"></div>
+      </div>
+    </section>
+
+    <!-- ③ YOUR PAY ─ ★実額が出る唯一の箱。中身は my-value.js（旧マイレポート）。
+         pv-no-cur ＝ currency.js の自動スキャンを止める。金額は SVG の中にも
+         入るので、span で包む方式では追えない。切替は 'pv-currency-change' で
+         描き直す（my-value.js が自分で聞いている）。 -->
+    <section class="mp-sec" id="your-pay">
+      <h2 class="mp-h2">TU REMUNERACIÓN</h2>
+      <div class="pv-no-cur" id="pv-value">
+        <div class="mr-skel" style="height:34px;width:56%"></div>
+        <div class="mr-skel" style="height:14px;width:76%;margin-top:14px"></div>
+        <div class="mr-skel" style="height:190px;margin-top:22px"></div>
+      </div>
+    </section>
+
+    <!-- ④ YOUR CONTRIBUTIONS ─ ★この層に金額は出さない（実額は ③ の中だけ）。 -->
+    <section class="mp-sec" id="your-contributions">
+      <h2 class="mp-h2">TUS APORTES</h2>
+    <!-- Secondary entry point for working conditions (pv-conditions.js).
+         Nothing is asked here until the pilot presses the button; only then does
+         the same modal open, with a single question. Hidden entirely for anyone
+         with no pay report yet, or with nothing left to ask. Fails quietly -->
+    <div id="cond-slot"></div>
+
+    <!-- あなたが出したもの。口コミも給与も user_id を持たない匿名テーブルなので、
+         pv-reunlock.js が proof_hash を作り直して本人の行だけを引き当てる。
+         ★ここを固定のゼロ件にすると、出した本人に「投稿はありません」と出続ける。 -->
+    <div class="glass" id="my-reviews-card" style="margin-top:20px">
+      <div style="font-size:.92rem;font-weight:700;margin-bottom:16px">Lo que has aportado</div>
+
+      <div class="mine-h">Reseñas</div>
+      <div id="my-reviews-list" class="mine-empty">Cargando…</div>
+
+      <!-- ログインした瞬間に預かり証を拾えたときだけ出す1行。★金額は出さない。 -->
+      <div id="claim-note" class="claim-note">El reporte de remuneración que enviaste ya está vinculado a tu cuenta ✓</div>
+
+      <div class="mine-h" style="margin-top:20px">Reportes de remuneración</div>
+      <div id="my-pay-list" class="mine-empty">Cargando…</div>
+    </div>
+    </section>
+
+    <!-- ⑤ INVITE PILOTS は 2026-09-07 に外した（オーナー指示）。
+         招待はレールの INVITE（invite.html）が唯一の入口。
+         ★ここに作り直さない ── 招待の SSOT は invite.html の1枚だけ。 -->
+
+    <!-- ⑥ SETTINGS ─ ★畳まない（2026-09-07 オーナー指示「setting を折りたたむ理由ない」）。
+         確定事項8 の「既定で畳む」はここで撤回した。<details> ではなく、
+         上の4つと同じ普通の節にしてある ── 開閉の状態を持たない＝
+         リンクで直接来た人のために開けてやる処理も要らない（openSettings を削除した）。
+         ★ここを再び <details> に戻さない。 -->
+    <section class="mp-sec mp-set" id="settings-card">
+      <h2 class="mp-h2">CONFIGURACIÓN</h2>
+      <div class="mp-set-b">
+        <!-- プロフィール編集。★ボタンは #profile-card から移した（開くのは同じ startEdit）。 -->
+        <div class="glass mp-row">
+          <div class="mp-row-b">
+            <div class="mp-row-t">Editar perfil</div>
+            <div class="mp-row-s">Nombre, género, fecha de nacimiento, país, empleador, categoría (puesto)</div>
+          </div>
+          <button class="btn-ghost" onclick="startEdit()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Editar
+          </button>
+        </div>
+    <!-- Edit form -->
+    <div class="glass" id="edit-card" style="display:none;margin-top:20px">
+      <div style="font-size:1rem;font-weight:700;margin-bottom:20px">Editar perfil</div>
+      <form onsubmit="saveEdit(event)" novalidate>
+        <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:20px">
+          <div><div class="field-label">Nombre</div><input class="auth-input" type="text" id="e-name" required/></div>
+          <div>
+            <div class="field-label">Género</div>
+            <div class="radio-group">
+              <div class="radio-chip"><input type="radio" name="e-gender" id="eg-male" value="male"/><label for="eg-male">Masculino</label></div>
+              <div class="radio-chip"><input type="radio" name="e-gender" id="eg-female" value="female"/><label for="eg-female">Femenino</label></div>
+              <div class="radio-chip"><input type="radio" name="e-gender" id="eg-other" value="other"/><label for="eg-other">Otro</label></div>
+            </div>
+          </div>
+          <div><div class="field-label">Fecha de nacimiento</div><input class="auth-input" type="date" id="e-birth" style="color-scheme:dark"/></div>
+          <div>
+            <div class="field-label">País de residencia</div>
+            <select class="auth-input" id="e-country">
+              <option value="">Seleccionar</option>
+              <option value="日本">Japón</option><option value="アメリカ">Estados Unidos</option><option value="UAE">Emiratos Árabes Unidos</option>
+              <option value="シンガポール">Singapur</option><option value="香港">Hong Kong</option><option value="イギリス">Reino Unido</option>
+              <option value="ドイツ">Alemania</option><option value="フランス">Francia</option><option value="オーストラリア">Australia</option>
+              <option value="カナダ">Canadá</option><option value="韓国">Corea del Sur</option><option value="中国">China</option><option value="その他">Otro</option>
+            </select>
+          </div>
+          <div><div class="field-label">Empleador</div><input class="auth-input" type="text" id="e-company"/></div>
+          <div>
+            <div class="field-label">Categoría (puesto)</div>
+            <div class="radio-group">
+              <!-- ★訓練生（cadet）は 2026-09-02 に選択肢から外した（オーナー指示）。
+                   ⚠️ 既に訓練生で登録している人の値は消さない。保存は下の
+                      position: p ? p.value : profile.position ＝ どれも選ばれて
+                      いなければ今の値をそのまま残すので、編集しても消えない。 -->
+              <div class="radio-chip"><input type="radio" name="e-pos" id="ep-cap" value="captain"/><label for="ep-cap">Capitán (Comandante)</label></div>
+              <div class="radio-chip"><input type="radio" name="e-pos" id="ep-fo" value="fo"/><label for="ep-fo">Primer oficial (Copiloto)</label></div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button type="submit" class="btn-save">Guardar</button>
+          <button type="button" class="btn-cancel" onclick="cancelEdit()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Notification settings -->
+    <div class="glass" id="notify-card" style="margin-top:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:14px">
+        <div>
+          <div style="font-size:.92rem;font-weight:700;margin-bottom:4px">Notificaciones por correo electrónico</div>
+          <div class="optin-note">Te enviamos novedades útiles, como datos de remuneración actualizados, nuevas reseñas y aerolíneas recién agregadas. Nunca enviamos publicidad.</div>
+        </div>
+        <button id="optin-toggle" role="switch" aria-checked="false" aria-label="Activar o desactivar las notificaciones por correo electrónico" onclick="toggleOptIn()" class="optin-sw">
+          <span id="optin-knob" class="optin-knob"></span>
+        </button>
+      </div>
+      <div id="optin-hint" class="optin-hint"></div>
+    </div>
+
+        <!-- 月次給与リマインド（子）。★上の「メール通知」（親 email_opt_in）とは
+             別の設定。1つに融合しない・片方を廃止しない。
+             送信条件は 親 ON かつ 子 ON の AND（db/pay-reminder.sql の pv_reminder_due）。
+             保存先は従来どおり set_mail_optin → profiles.mail_optin。
+             ★スイッチの実体は my-value.js が1つだけ描く（同じ設定を2つ置かない。
+               3つ目だった pay-tracker.js のスイッチはこの版で消した）。 -->
+        <div class="glass mp-remind" id="remind-card">
+          <div id="mv-remind-slot" class="mp-remind-slot">Cargando…</div>
+        </div>
+    <!-- Password -->
+    <div class="glass" id="password-card" style="margin-top:20px">
+      <div style="font-size:.92rem;font-weight:700;margin-bottom:4px">Contraseña</div>
+      <div style="font-size:.76rem;color:#6b7d93;line-height:1.6;margin-bottom:16px">
+        Si configuras una contraseña, también podrás iniciar sesión con tu correo electrónico y tu contraseña. Si te registraste con Google o con un código de 6 dígitos, todavía no tienes una. Si ya la tienes, con esto la cambias.
+      </div>
+      <form onsubmit="savePassword(event)" novalidate>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px">
+          <div><div class="field-label">Nueva contraseña (mínimo 8 caracteres)</div><input class="auth-input" type="password" id="pw-new" placeholder="••••••••" autocomplete="new-password" minlength="8"/></div>
+          <div><div class="field-label">Confirmar contraseña</div><input class="auth-input" type="password" id="pw-confirm" placeholder="••••••••" autocomplete="new-password" minlength="8"/></div>
+          <div class="msg-inline" id="pw-msg"></div>
+        </div>
+        <button type="submit" class="btn-save" id="pw-submit">Guardar contraseña</button>
+      </form>
+    </div>
+
+        <div class="glass mp-row">
+          <div class="mp-row-b">
+            <div class="mp-row-t">Cerrar sesión</div>
+            <div class="mp-row-s">Cerrar sesión en este dispositivo</div>
+          </div>
+          <button class="btn-logout" onclick="handleLogout()">Cerrar sesión</button>
+        </div>
+
+        <p class="mp-set-lk">
+          <a href="contact.html">Contacto</a>
+          <span aria-hidden="true">·</span>
+          <a href="personal-data.html">Cómo tratamos los datos personales</a>
+        </p>
+      </div>
+    </section>
+    </main>
+  </div>
+
+  <div class="success-toast" id="toast">Perfil guardado ✓</div>
+
+  <!-- 会社コード → 表示名。待遇カードの見出しに社名を出すため -->
+  <script src="../airlines-meta.js"></script>
+  <script src="../pv-conditions.js?v=fdf74359"></script>
+  <script src="../pv-referral.js"></script>
+  <script src="../pv-founding.js"></script>
+  <script>
+    const SB_URL = 'https://vzgmnkrggrwtsrpqndsm.supabase.co';
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6Z21ua3JnZ3J3dHNycHFuZHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MzkwOTcsImV4cCI6MjA5MDAxNTA5N30.wE4cJbqeYGCgn5ZvHd80hYWgQuySKvOMJMbsJWOvmtw';
+    const sb = supabase.createClient(SB_URL, SB_KEY);
+
+    const SUN = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+    const MOON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+    function applyTheme(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('pv-theme',t);const b=document.getElementById('theme-toggle');if(b)b.innerHTML=t==='dark'?SUN:MOON;}
+    applyTheme(localStorage.getItem('pv-theme')||'light');
+    document.getElementById('theme-toggle').addEventListener('click',function(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');});
+
+    const POS_LABEL = {captain:'Captain', fo:'First Officer', cadet:'Trainee'};
+    const POS_CLASS = {captain:'pos-captain', fo:'pos-fo', cadet:'pos-cadet'};
+    const GENDER_LABEL = {male:'Male', female:'Female', other:'Other'};
+
+    let currentUser = null;
+    let profile     = null;
+
+    /* ★ ③ YOUR PAY（my-value.js）に順番を守らせるための約束。
+         ここは **同期で** 作る ── my-value.js はこの下で読まれ、その場で
+         `await window.PV_SESSION` に入るので、そのとき既に在る必要がある。
+         解決するのは「招待の結びつけ → 預かり証の引き取り → 解放の復活」が
+         全部終わったあと。先に解決すると、いま引き取った1件が ③ の一覧から
+         抜ける（my-value.js:1679 に同じ理由が書いてある）。
+       ★PV_MYPAGE_HOST … ③ は MY PAGE の中の1節。my-value.js に
+         自前の大見出しと「解放中／枚数」の札を描かせない（この画面では重複する）。
+       ★PV_HOST_CLAIMED … claim と sweep はここで済ませた。同じ通信を
+         my-value.js 側でもう一度やらせない。 */
+    window.PV_MYPAGE_HOST = true;
+    let _sessionResolve;
+    window.PV_SESSION = new Promise(function (r) { _sessionResolve = r; });
+
+    async function init() {
+      const { data:{ session } } = await sb.auth.getSession();
+      // ★#pay-tracker を落とさない。明細を出した直後の導線がこの形で来るので、
+      //   ログインを挟んだ人だけページの一番上に着地する、という差を作らない。
+      //   en/login.html の safePath() は u.hash を残す（en/login.html:114）。
+      if (!session) {
+        _sessionResolve(null);          // ③ を待たせたままにしない
+        window.location.href = 'login.html?redirect='
+          + encodeURIComponent('profile.html' + (window.location.hash || ''));
+        return;
+      }
+      currentUser = session.user;
+
+      // Fetch profile
+      const { data: p } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
+      profile = p || {};
+      renderProfile();
+      renderOptIn();
+
+
+      const isWelcome = new URLSearchParams(location.search).get('welcome') === '1';
+
+      /* 招待リンクから来た人を紹介者に結びつける。★ここは Google で登録した人の
+         戻り先。給与のページを一度も通らずに終わる人が居るので、ここでも拾う。
+         冪等なので他の3か所と重なっても害は無い。落ちてもこの画面は止めない。
+         ★預かり証の引き取りより **先**（順番は下の PV_SESSION の注記のとおり）。 */
+      try { if (window.PVReferral) await window.PVReferral.claim(sb); } catch (e) {}
+
+      // 匿名で出した給与データの預かり証を拾う（最後の網）。
+      // ★pvCheckReunlock より先に回す。いま入った1件を、下の一覧と解放の判定に含めるため。
+      try {
+        if (window.PVClaimPending) {
+          const won = await PVClaimPending.sweep(sb);
+          const n = won && document.getElementById('claim-note');
+          if (n) n.style.display = 'block';
+        }
+      } catch(e) {}
+
+      // Restore unlocks (anonymous reviews_v2 via the proof_hash set + the payslip access_until).
+      try { if (window.pvCheckReunlock) await pvCheckReunlock(sb, currentUser.id); } catch(e) {}
+
+      /* ここまで来て初めて ③ YOUR PAY を動かす（claim → sweep → 解放の復活の順）。
+         ★claim と sweep は済んだ。my-value.js に同じ通信をやり直させない。 */
+      window.PV_HOST_CLAIMED = true;
+      _sessionResolve(session);
+
+      // 出したものを一覧にする（上と同じ proof_hash の照合結果を使う）
+      renderMyPosts();
+
+      /* ★給与レポートはページ全体で **1回だけ** 引く（pv-reunlock.js のキャッシュ経由）。
+         同じ答えを ④ の一覧・① の3つの数字・② の判定・③ YOUR PAY・
+         待遇の二次導線が使い回す。ここで新しい通信を足さない。 */
+      let mine = null;
+      try { if (window.pvMyPayReports) mine = await window.pvMyPayReports(sb, currentUser.id); } catch (e) {}
+
+      // Two separate keys: pay data (90 days, earned with a payslip — this one really does
+      // run out) and reviews (earned with a review, no expiry). Never mix them. pvCheckReunlock above has
+      // already restored both — even on a new device — so we only read here.
+      const exp = (k) => { try { return parseInt(localStorage.getItem(k)||'0',10) || 0; } catch(e) { return 0; } };
+      const salaryExp = exp('pv_salary_unlock_expiry');
+      const reviewExp = exp('pv_unlock_expiry');
+      const salaryOn  = salaryExp > Date.now();
+      const reviewOn  = reviewExp > Date.now();
+
+      const OPEN_LOCK = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg>';
+      /* ★Reviews carry no date. The review key stopped expiring on 2026-08-22, so a date
+           would read "until Aug 2126". Pay data keeps its date — that one really does run out
+           (the server's access_until, 90 days). */
+      const setBadge = (id, on, until, label) => {
+        const el = document.getElementById(id);
+        if (!el || !on) return;                       // still locked → leave the markup as it is
+        const d = until
+          ? ` (until ${new Date(until).toLocaleDateString('en-US',{month:'short',day:'numeric'})})`
+          : '';
+        el.className = 'unlock-badge unlock-active';
+        el.innerHTML = `${OPEN_LOCK} ${label} unlocked${d}`;
+      };
+      setBadge('unlock-status-salary', salaryOn, salaryExp, 'Pay data');
+      setBadge('unlock-status',        reviewOn, 0,         'Reviews');   // 0 = no date
+
+      /* ★ ようこそバナーと手書きの Give & Get（#welcome-banner / #unlock-cta）は
+           2026-09-06 に廃止した。同じ文面が3種類に育っていたので、
+           Give → Get の説明は PVGates.giveGetHTML() の1つだけにする。
+           名前で迎える役目は下の1行（mp-lead）が引き取っている。 */
+      if (isWelcome && profile && profile.name) {
+        const lead = document.querySelector('#your-status .mp-lead');
+        if (lead) { lead.textContent = 'Welcome, ' + profile.name + ' ✈️ This is your page.'; lead.hidden = false; }
+      }
+
+      renderStatusStats(mine);
+      pickNext(mine, salaryOn, reviewOn);
+
+      flashPasswordCard();
+      openEditIfAsked();
+
+      /* The FOUNDING PILOT 100 plaque. It renders for people without the title too,
+         so they can see what is on offer. If the RPC does not answer we draw
+         nothing — showing "not yet" to someone who holds a number is worse. */
+      try {
+        if (window.PVFounding) window.PVFounding.mount(
+          document.getElementById('pv-founding-slot'), { sb: sb });
+      } catch (e) {}
+
+      /* Secondary entry point. We never ask just because someone logged in —
+         asking before anything has been given back reads as a toll gate.
+         The modal only opens by itself right after a pay report (pay-report.html).
+         Here we place one card that opens it on press. */
+      let condShown = false;
+      try {
+        if (window.PVConditions) {
+          const r = window.PVConditions.secondaryCTA(document.getElementById('cond-slot'),
+            { sb: sb, cardClass: 'glass' });
+          if (r && typeof r.then === 'function') condShown = !!(await r);
+        }
+      } catch (e) {}
+      /* ★待遇は ② の中でいちばん弱い（順位4）。上に何か在るときは横取りさせない。
+           判定は非同期でしか分からないので、ここまで来てから格上げする。 */
+      if (condShown) upgradeNextToConditions();
+    }
+
+    /* ── ① 状態帯 ───────────────────────────────────────────
+       旧「明細トラッカー」（pay-tracker.js・2026-09-06 廃止）にしか無かった3つ。
+       数えているのはサーバ（my_pay_reports の答えそのもの）＝ここで数え直さない。
+       ★引けなかった数字は行ごと出さない。0 で埋めると「1枚も出していない」に読める。
+       ★ここに金額は出さない（実額は ③ YOUR PAY の中だけ）。 */
+    function renderStatusStats(dat) {
+      const el = document.getElementById('status-stats');
+      if (!el || !dat) return;
+      const rows = dat.reports || [];
+      if (!rows.length) return;                 // まだ1枚も出していない人には帯そのものを出さない
+      const until = dat.access_until ? Date.parse(dat.access_until) : 0;
+      const left  = until ? Math.max(0, Math.ceil((until - Date.now()) / 86400000)) : null;
+      const cell  = (v, unit, lab, on) =>
+        '<div class="pt-stat"><b' + (on ? ' style="color:#48c78e"' : '') + '>' + v +
+        (unit ? '<i>' + unit + '</i>' : '') + '</b><span>' + lab + '</span></div>';
+      const cells = [];
+      if (left != null)              cells.push(cell(left, 'days', 'Access left', left > 0));
+      if (dat.streak_months != null) cells.push(cell(dat.streak_months, 'mo', 'Streak', false));
+      const n = (dat.report_count != null) ? dat.report_count : rows.length;
+      cells.push(cell(n, '', 'Payslips filed', false));
+      el.setAttribute('data-n', String(cells.length));
+      el.innerHTML = cells.join('');
+      el.hidden = false;
+    }
+
+    /* ── ② NEXT ACTION ──────────────────────────────────────
+       ★強いものは常に1つだけ。同じ強さの口を並べない。
+       ★すでに引いてある値だけで決める（このために新しい通信を足さない）。
+       ★引けなかった条件はその行ごと飛ばす（0 で埋めない・REAL PAY と同じ決まり）。
+
+         順1 給与レポートが0件            → 匿名で給与を追加
+         順2 解放が切れている／14日以内   → 今月ぶんの給与を追加
+         順3 口コミが未解放               → 匿名で口コミを投稿
+         順4 待遇に聞くことが残っている   → 1問だけ答える（非同期なので後から格上げ）
+         順5 どれも無い                   → 次の月を名指しで追加
+
+       Give → Get の説明は PVGates.giveGetHTML() の1つだけを差す。
+       ★ただし給与が0件の人には差さない ── そのときは ③ YOUR PAY の空画面
+         （my-value.js の renderEmpty）が同じものを描くので、1画面に2つ出る。 */
+    let nextRank = 99;
+    function setNext(rank, title, sub, label, href, onClick) {
+      if (rank >= nextRank) return;
+      nextRank = rank;
+      document.getElementById('na-title').textContent = title;
+      const s2 = document.getElementById('na-sub');
+      s2.textContent = sub;
+      const a = document.getElementById('na-cta');
+      a.textContent = label;
+      a.href = href;
+      a.hidden = false;
+      a.onclick = onClick || null;
+    }
+    function pickNext(dat, salaryOn, reviewOn) {
+      const rows = (dat && dat.reports) || [];
+      const box  = document.getElementById('next-action');
+
+      if (!dat) {                                   // 引けなかった＝勝手に決めつけない
+        document.getElementById('na-title').textContent = 'We could not load what to do next';
+        document.getElementById('na-sub').textContent = 'Try opening the page again in a moment. YOUR PAY below still works.';
+        return;
+      }
+
+      /* 順5 … 次に出すべき月（いちばん新しい1件の翌月。無ければ今月）。 */
+      let ny, nm;
+      if (rows.length) {
+        const last = rows[rows.length - 1];
+        ny = last.period_year; nm = (last.period_month || 0) + 1;
+        if (nm > 12) { nm = 1; ny += 1; }
+      } else { const t = new Date(); ny = t.getFullYear(); nm = t.getMonth() + 1; }
+      setNext(5, 'Add your pay for ' + NEXT_YM(ny, nm),
+              "Add one each month and the trend and milestones appear in YOUR PAY below.", "Add this month’s pay", 'pay-report.html#ps');
+
+      /* 順3 … 口コミの鍵。年収の鍵とは別物なので混ぜない。 */
+      if (!reviewOn) setNext(3, "Reviews are still locked", "Post one review and you can read reviews from all 115 airlines.",
+                             "Post a review anonymously", 'submit-review.html');
+
+      /* 順2 … 解放が切れている／もうすぐ切れる（14日）。
+               access_until が無い人は順1 が拾うので、ここでは日数が読めるときだけ見る。 */
+      const until = dat.access_until ? Date.parse(dat.access_until) : 0;
+      if (rows.length && (!until || until - Date.now() <= 14 * 86400000)) {
+        const d = until ? Math.max(0, Math.ceil((until - Date.now()) / 86400000)) : 0;
+        setNext(2, (d > 0 ? 'Your pay-data access ends in ' + d + ' days' : 'Your pay-data access has ended'),
+          "File this month and it runs for another 90 days from there.", "Add this month’s pay", 'pay-report.html#ps');
+      }
+
+      /* 順1 … まだ1件も出していない。ここがいちばん強い。
+         ★見出しも説明も置かない（2026-09-07 オーナー指示で文言を削除）。
+           口の文字がそのまま用件になる。空の見出し・説明は CSS が畳む
+           （my-value.css の .mp-next-t:empty / .mp-next-s:empty）。 */
+      if (!rows.length) setNext(1, "", "", "Add pay anonymously", 'pay-report.html#ps');
+
+      /* Give → Get の説明（共有版1つ）。★0件の人には差さない（③ が描くので二重になる）。 */
+      if (rows.length && window.PVGates && window.PVGates.giveGetHTML) {
+        document.getElementById('na-give').innerHTML = window.PVGates.giveGetHTML();
+      }
+      if (box) box.hidden = false;
+    }
+    function NEXT_YM(y, m) { return ['January','February','March','April','May','June','July','August','September','October','November','December'][m-1] + ' ' + y; }
+
+    /* 順4 … 待遇。★上に何か在るときは横取りしない（setNext が順位で弾く）。
+       ★入口をここで作り直さない ── ④ に出ている本物のボタンを押すだけ。
+         判定と文面を2か所に増やさないため。 */
+    function upgradeNextToConditions() {
+      const btn = document.querySelector('#cond-slot .pvc-btn');
+      if (!btn) return;
+      setNext(4, "There are working-condition questions you have not answered", "Just one question. The more that get answered, the sharper the comparison for your airline.", "Answer one question",
+              '#your-contributions', function (e) { e.preventDefault(); btn.click(); });
+    }
+
+    /* 明細レポートのあとの「プロフィールを設定する」から来た人は #edit-card 付き。
+       このカードは既定で display:none なので、素のアンカーだけでは何も起きない
+       （リンクを踏んでも画面が変わらない＝壊れて見える）。ここで開く。
+       開ける処理は「編集」ボタンと同じ startEdit。中で寄せるところまでやる。 */
+    function openEditIfAsked() {
+      if (window.location.hash !== '#edit-card') return;
+      startEdit();
+    }
+
+    /* パスワード再設定のメールで「リンク」を押した人は、auth-callback 経由でここへ来る。
+       カードはページの一番下にあり、素のアンカースクロールだけだと
+       #pay-tracker が上に描かれた分だけ位置がずれて別の場所で止まる。
+       描画が落ち着いてから自分で寄せ、リングを1回光らせて場所を教える。 */
+    function flashPasswordCard() {
+      if (window.location.hash !== '#password-card') return;
+      const card = document.getElementById('password-card');
+      if (!card) return;
+      setTimeout(function () {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.classList.add('is-flash');
+        const pw = document.getElementById('pw-new');
+        if (pw) pw.focus({ preventScroll: true });
+      }, 400);
+    }
+
+    function renderProfile() {
+      const letter = (profile.name || currentUser.email || '?')[0].toUpperCase();
+      document.getElementById('avatar-letter').textContent = letter;
+      document.getElementById('display-name').textContent  = profile.name || '—';
+      document.getElementById('display-email').textContent = currentUser.email || '—';
+      if (profile.position) {
+        document.getElementById('display-pos-badge').innerHTML =
+          `<span class="pos-badge ${POS_CLASS[profile.position]||''}">${POS_LABEL[profile.position]||profile.position}</span>`;
+      }
+      document.getElementById('v-name').textContent     = profile.name     || '—';
+      document.getElementById('v-gender').textContent   = GENDER_LABEL[profile.gender] || '—';
+      document.getElementById('v-birth').textContent    = profile.birthdate || '—';
+      document.getElementById('v-country').textContent  = profile.country  || '—';
+      document.getElementById('v-company').textContent  = profile.company  || '—';
+      document.getElementById('v-position').textContent = POS_LABEL[profile.position] || '—';
+      document.getElementById('v-joined').textContent   = profile.created_at
+        ? new Date(profile.created_at).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) : '—';
+      // Update localStorage
+      localStorage.setItem('pv_user', JSON.stringify({...profile, email: currentUser.email}));
+    }
+
+    function renderOptIn() {
+      const on = !!(profile && profile.email_opt_in);
+      const t = document.getElementById('optin-toggle');
+      const k = document.getElementById('optin-knob');
+      const h = document.getElementById('optin-hint');
+      if (!t) return;
+      t.setAttribute('aria-checked', on ? 'true' : 'false');
+      k.style.transform  = on ? 'translateX(22px)' : 'translateX(0)';
+      if (h) h.textContent = on ? 'Subscribed: we only send useful updates.' : 'Currently off: no notifications about new posts or updates.';
+    }
+
+    async function toggleOptIn() {
+      const next = !(profile && profile.email_opt_in);
+      const updates = { email_opt_in: next, email_opt_in_at: next ? new Date().toISOString() : (profile.email_opt_in_at || null) };
+      const { error } = await sb.from('profiles').update(updates).eq('id', currentUser.id);
+      if (error) {
+        const h = document.getElementById('optin-hint');
+        if (h) h.textContent = 'We could not save this setting (the field may not be set up yet). Please try again later.';
+        return;
+      }
+      profile = { ...profile, ...updates };
+      localStorage.setItem('pv_user', JSON.stringify({...profile, email: currentUser.email}));
+      renderOptIn();
+      /* このページには同意のスイッチが2つある（ここ＝メール全般＝親 /
+         ⑥ SETTINGS の下＝月次給与リマインド＝子）。**別の設定のまま**で、
+         これをオフにすると DB のトリガー profiles_mail_consent_sync が
+         子も落とす。子のカードにもそれを伝える
+         ＝「解除したのにオンのまま見えている」を作らない。
+         ★2026-09-06、3つ目だった pay-tracker.js のスイッチだけを消した。
+           親と子の意味・保存先・送信条件は1文字も変えていない。 */
+      if (typeof window.PVRemindSync === 'function') window.PVRemindSync(next);
+      const toast = document.getElementById('toast');
+      if (toast) { toast.textContent = next ? 'Email notifications turned on ✓' : 'Email notifications turned off'; toast.style.display='block'; setTimeout(()=>{toast.style.display='none';}, 2500); }
+    }
+
+    /* 逆向き。⑥ SETTINGS の子（月次給与リマインド）をオンにすると、サーバ側で
+       親の同意（email_opt_in）も立つ（set_mail_optin）。その結果をここに反映する。
+       ★ここでは書きに行かない。DB が返した値に画面を合わせるだけ。 */
+    window.PVOptInSync = function (on) {
+      if (!profile || !!profile.email_opt_in === !!on) return;
+      profile = { ...profile, email_opt_in: !!on, email_opt_in_at: profile.email_opt_in_at || new Date().toISOString() };
+      if (currentUser) localStorage.setItem('pv_user', JSON.stringify({...profile, email: currentUser.email}));
+      renderOptIn();
+    };
+
+    /* ── あなたが出したもの ────────────────────────────────────
+       口コミも給与も user_id を持たない。pv-reunlock.js が proof_hash を
+       総当たりで作り直して本人の行だけを引く（給与はサーバの my_pay_reports）。
+       ここで出さないと、実際には保存されているのに本人には何も見えない。 */
+
+    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const CMT = ['culture_comment','salary_comment','benefits_comment','wlb_comment',
+                 'ops_comment','training_comment','mgmt_comment'];
+
+    // 口コミは利用者が書いた文字列。innerHTML に入るので必ず通す。
+    const esc = (s) => window.PVReviewI18n ? PVReviewI18n.esc(s)
+      : String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+    // 会社コード → 社名。pv_airlines は SSOT から生成され anon に公開済み
+    // （gen-airline-codes.mjs）。社名をこの画面で二重に持たない。
+    let airlineNames = {};
+    async function loadAirlineNames(codes) {
+      const want = [...new Set(codes.filter(Boolean))];
+      if (!want.length) return;
+      try {
+        const { data } = await sb.from('pv_airlines').select('code,name_ja,name_en').in('code', want);
+        for (const a of (data || [])) airlineNames[a.code] = a.name_en || a.code;
+      } catch (e) {}
+    }
+    // 引けなければコードのまま出す（「その他」の自由入力は社名そのものが入っている）
+    const airlineLabel = (code) => airlineNames[code] || code || '—';
+    const fmtDate = (x) => x ? new Date(x).toLocaleDateString('en-US') : '';
+    const snippet = (x) => {
+      const s = String(x || '').trim();
+      return s ? esc(s.slice(0, 80)) + (s.length > 80 ? '…' : '') : '';
+    };
+
+    const postRow = (label, date, body) => `
+        <div class="mine-row">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
+            <span class="mine-tag">${esc(label)}</span>
+            <span class="mine-when">${esc(date)}</span>
+          </div>${body ? `
+          <div class="mine-body">${body}</div>` : ''}
+        </div>`;
+
+    /* ★ null ＝引けなかった、[] ＝本当にゼロ件。ここを一緒にすると、通信や権限で
+       失敗しただけの人に「まだ投稿していません」と言い切ることになる。それが
+       今回の報告そのもの（出したのに、出していないことにされる）の作り方。 */
+    function renderReviews(revs) {
+      const el = document.getElementById('my-reviews-list');
+      if (!el) return;
+      if (!revs) { el.textContent = 'Could not load this list. Please reopen the page in a moment'; return; }
+      if (!revs.length) { el.textContent = 'You have not posted a review yet'; return; }
+      el.innerHTML = revs.map(r => {
+        // 訳文があればページの言語で出す（community.html と同じ出し分け）
+        const body = window.PVReviewI18n ? PVReviewI18n.pick(r).text
+                                         : (CMT.map(k => r[k]).find(v => v && v.trim()) || '');
+        return postRow(airlineLabel(r.airline), fmtDate(r.created_at), snippet(body));
+      }).join('');
+    }
+
+    function renderMyPay(reports) {
+      const el = document.getElementById('my-pay-list');
+      if (!el) return;
+      if (!reports) { el.textContent = 'Could not load this list. Please reopen the page in a moment'; return; }
+      if (!reports.length) { el.textContent = 'You have not submitted a pay report yet'; return; }
+      // ★④ の一覧は金額を出さない（人に見せる場面がある）。実額は ③ YOUR PAY の中だけ。
+      //   将来「金額を隠す」を入れるときは、あの1箱に hidden を掛ければ全部隠れる。
+      el.innerHTML = reports.map(r => {
+        const name = (r.airline === 'other' && r.airline_other) ? r.airline_other : airlineLabel(r.airline);
+        const period = (r.period_year && r.period_month) ? MONTHS[r.period_month - 1] + ' ' + r.period_year : '';
+        return postRow(name, fmtDate(r.created_at), period ? esc(period) + ' submitted' : '');
+      }).join('');
+    }
+
+    // 上の pvCheckReunlock と同じ照合結果を使う（pv-reunlock.js がキャッシュ
+    // するので通信は増えない）。await しないのは、ここで詰まってもバッジや
+    // プロフィール本体の描画を止めないため。
+    async function renderMyPosts() {
+      let revs = null, reports = null;                 // null のまま＝引けなかった
+      try {
+        const extra = window.PVReviewI18n ? PVReviewI18n.EXTRA_COLS : '';
+        if (window.pvFindMyReviews) revs = await pvFindMyReviews(sb, currentUser.id, { extraCols: extra });
+      } catch (e) {}
+      try {
+        const d = window.pvMyPayReports ? await pvMyPayReports(sb, currentUser.id) : null;
+        // my_pay_reports は古い順。ゼロ件でも reports は [] で返る（＝無いのは失敗のときだけ）
+        if (d && Array.isArray(d.reports)) reports = d.reports.slice().reverse();
+      } catch (e) {}
+      await loadAirlineNames([...(revs || []).map(r => r.airline),
+                              ...(reports || []).map(r => r.airline)]);
+      renderReviews(revs);
+      renderMyPay(reports);
+    }
+
+    function startEdit() {
+      document.getElementById('edit-card').style.display = 'block';
+      document.getElementById('edit-card').scrollIntoView({behavior:'smooth',block:'nearest'});
+      document.getElementById('e-name').value    = profile.name || '';
+      document.getElementById('e-birth').value   = profile.birthdate || '';
+      document.getElementById('e-country').value = profile.country || '';
+      document.getElementById('e-company').value = profile.company || '';
+      const g = document.querySelector(`input[name="e-gender"][value="${profile.gender||'male'}"]`);
+      if(g) g.checked = true;
+      const p = document.querySelector(`input[name="e-pos"][value="${profile.position||'fo'}"]`);
+      if(p) p.checked = true;
+    }
+
+    function cancelEdit() { document.getElementById('edit-card').style.display='none'; }
+
+    async function saveEdit(e) {
+      e.preventDefault();
+      const g = document.querySelector('input[name="e-gender"]:checked');
+      const p = document.querySelector('input[name="e-pos"]:checked');
+      const updates = {
+        name:      document.getElementById('e-name').value.trim(),
+        gender:    g ? g.value : profile.gender,
+        birthdate: document.getElementById('e-birth').value,
+        country:   document.getElementById('e-country').value,
+        company:   document.getElementById('e-company').value.trim(),
+        position:  p ? p.value : profile.position,
+      };
+      await sb.from('profiles').update(updates).eq('id', currentUser.id);
+      profile = {...profile, ...updates};
+      renderProfile();
+      cancelEdit();
+      const toast = document.getElementById('toast');
+      toast.style.display='block';
+      setTimeout(()=>{toast.style.display='none';}, 2500);
+    }
+
+    /* コードやGoogleだけで登録した人はパスワードを持たない。ここで持てるようにする。
+       ★「設定」と「変更」を画面上で分けない。OTP で作られた利用者にも identities に
+         provider:'email' が入るため、パスワードの有無をクライアントから確実に見分ける
+         手段が無い。持っていない断定も、持っている断定もしない書き方にしてある。 */
+    async function savePassword(e) {
+      e.preventDefault();
+      const msg  = document.getElementById('pw-msg');
+      const btn  = document.getElementById('pw-submit');
+      const pass = document.getElementById('pw-new').value;
+      const conf = document.getElementById('pw-confirm').value;
+      msg.className = 'msg-inline';
+      msg.style.display = 'none';
+      const fail = (t) => { msg.textContent = t; msg.style.display = 'block'; };
+
+      if (pass.length < 8) { fail('Your password must be at least 8 characters'); return; }
+      if (pass !== conf)   { fail('The two passwords do not match'); return; }
+
+      const label = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+      const { error } = await sb.auth.updateUser({ password: pass });
+      btn.disabled = false;
+      btn.textContent = label;
+
+      if (error) {
+        const m = error.message || '';
+        /* Supabase の Secure password change を有効にしていると、
+           古いセッションからの変更は再認証（nonce）を要求されて弾かれる。 */
+        if (/reauth|nonce/i.test(m)) { fail('For your security, please sign in again and then retry.'); return; }
+        fail(m || 'We could not save your password. Please try again later.');
+        return;
+      }
+
+      document.getElementById('pw-new').value = '';
+      document.getElementById('pw-confirm').value = '';
+      msg.className = 'msg-inline is-ok';
+      msg.textContent = 'Password saved. You can now sign in with your email address and password.';
+      msg.style.display = 'block';
+    }
+
+    async function handleLogout() {
+      if (!confirm('Log out?')) return;
+      try { Object.keys(sessionStorage).forEach(function (k) { if (/^pv_(contrib|stay|admin)_draft:/.test(k)) sessionStorage.removeItem(k); }); } catch (e) {}   // clear this tab's unsent drafts too
+      await sb.auth.signOut();
+      localStorage.removeItem('pv_user');
+      localStorage.removeItem('pv_unlock_expiry');
+      localStorage.removeItem('pv_salary_unlock_expiry');   // clear the salary key too
+      /* ★給与の入力も置いていかない（2026-09-11）。pv_pay_last / pv_pay_draft /
+         pv_pay_claim / pv_pay_pending の4つ。1つでも残ると、次にこの端末を
+         使った人の給与フォームに前の人の会社・総支給が戻り、その人がログイン
+         すると前の人の給与レポートまでその人のものになる。 */
+      try { PVPayLocal.forget(); } catch (e) {}
+      window.location.href = 'index.html';
+    }
+
+    /* ★Back brings this page out of the browser's back-forward cache as it was (pageshow persisted = no reload).
+         If the login ended while we were away (this page's "Log out", a logout on another page, an automatic logout),
+         none of the previous member's name, e-mail or My Page content may show: empty the page at once and go the
+         logged-out way (the same login.html as init()). replace(), so that Back does not land here again.
+         A live login = the supabase key (split .0 .1 counted too) AND the pv_user this page writes (the site's
+         "Log out" always removes pv_user - so a logout is seen even when removing the key failed on the network).
+         Seen in Chrome (2026-10-18): after the site's "Log out", Back showed the member's name, e-mail and My Page
+         (on a shared device, the next person sees it). Watched by H) in assert-admin.mjs.
+       ★Even with a live login: if another member logged in while we were away (the member this page was drawn for is not the
+         member of the live login, or the live member cannot be read), empty the page at once the same way and reload - init()
+         draws it again for the member of the live login. The same member: nothing (Back keeps My Page as it was).
+         Watched by KA8 ④ in assert-keep.mjs (ja and en). */
+    window.addEventListener('pageshow', function (e) {
+      if (!e || !e.persisted) return;
+      var live = false;
+      try {
+        var key = window.PVSession && typeof window.PVSession.hasToken === 'function'
+          ? !!window.PVSession.hasToken()
+          : Object.keys(localStorage).some(function (k) { return /^sb-.+-auth-token(\.\d+)?$/.test(k); });
+        live = key && !!localStorage.getItem('pv_user');
+      } catch (x) { live = false; }
+      if (live) {
+        if (!currentUser) return;
+        var who = '';
+        try {
+          var s = window.PVSession && typeof window.PVSession.readStoredSession === 'function' ? window.PVSession.readStoredSession() : null;
+          who = s && s.user && s.user.id ? String(s.user.id) : '';
+          if (!who) { var u = JSON.parse(localStorage.getItem('pv_user') || 'null'); who = u && u.id ? String(u.id) : ''; }
+        } catch (x) { who = ''; }
+        if (who === String(currentUser.id)) return;
+        try { document.body.replaceChildren(); } catch (x) {}
+        window.location.reload();
+        return;
+      }
+      try { document.body.replaceChildren(); } catch (x) {}
+      window.location.replace('login.html?redirect='
+        + encodeURIComponent('profile.html' + (window.location.hash || '')));
+    });
+
+    init();
+  </script>
+<!-- ★search.js はこの画面では ≡ を作らない ── 上の app-nav.js が先に
+     #pv-ham-btn を立てるので、search.js:416 の二重注入ガードでその場で戻る。
+     それでも読むのは、検索の索引と公開ページ用の引き出しを持っているため。
+     検索窓は生えない（buildUI() が .flex.items-center.gap-3 を要るので
+     .mr-top-r は該当しない）。 -->
+<script src="../search.js"></script>
+<script src="../lang-toggle.js"></script>
+<script src="../currency.js"></script>
+<!-- Give → Get の門。左メニューの錠前と、その説明を出す。
+     ★データは1バイトも隠さない（実給与を止めているのは pv_pay_rows() ）。
+     ⚠️ actual-pay.js より**前**に読む（PVGates.giveGetHTML() を使う）。 -->
+<script src="../pv-gates.js"></script>
+<script src="../pay-viz.js"></script>
+<!-- ③ YOUR PAY の中身（旧マイレポート）。★pay-viz.js の **後**に読む。
+     2026-09-06、pay-tracker.js（462行）を廃止してこの1本に寄せた ──
+     同じ my_pay_reports() を叩き、同じ pay-viz.js で図を描く実装が2つあった。 -->
+<script src="../my-value.js"></script>
+<!-- "Please resubmit" notice. Shown **only to the member themselves** when one of
+     their own pay reports has net pay above gross pay.
+     ★Nothing is shown to signed-out visitors or to members with nothing to fix
+       (the rule, and how it avoids extra requests, is at the top of pv-pay-fix.js).
+     ★Reads this page's PV_SESSION and sb, so it must load **after** them.
+     ★?v= is a fingerprint of the file. Change the file → copy it to all 8 pages
+       (4 screens × ja/en; assert-links.mjs checks). -->
+<script src="../pv-pay-fix.js?v=c3f06489"></script>
+<!-- PV-NAV: opens and closes the navigation. Loads AFTER search.js so it can adopt
+     the hamburger that file creates; on pages without search.js it makes its own. -->
+<script src="../app-nav.js"></script>
+</body>
+</html>
