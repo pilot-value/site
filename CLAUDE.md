@@ -268,8 +268,7 @@ baland_ass/                            ブランド資産（※ brand_assets の
   中身は [gen-lp-compare.mjs](gen-lp-compare.mjs) が career.html から写して `<!--PV-LPCMP-->` に書く（額・社名・写真・税の扱い・写真のクレジット）。手で直さない。
   ⚠️ **career.html を作り直したら `node gen-lp-compare.mjs` も流す**（流し忘れは assert-generated が捕まえる）。英語は生成器がドルの span に焼く。
   ⚠️ 写真のクレジット（CC BY / CC BY-SA は条件）は、見えている組のぶんだけ lp.js が出す。外さない。
-- **ヒーローの見出し**は日英で別の言い回しで確定（日本語「コックピット内の噂は本当？／待遇を実データで比較」・英語「Enough cockpit rumors.／Real data on pay and conditions.」）。
-  訳し直さない。1文＝1行・2行・**真ん中そろえ**（lp.css の `.hero-h1--two-lines` が欄の幅 cqw から大きさを決める）。
+- **ヒーローの見出し**は今までどおり日英とも「Take control of your career in the cockpit.」（2026-11-01 に別の見出しを試して同じ日に戻した）。
 - lp.css と lp.js は **?v= の指紋つき**（直したら日英2枚の指紋を更新する・assert-links が見ている）。
 
 ## 概要と2社比較の1枚（[career.html](career.html)・2026-10-03）
