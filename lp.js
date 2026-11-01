@@ -50,24 +50,20 @@
       emptyT:    'まだ投稿が少ないです',
       emptyD:    'ここには現役・元パイロット本人の投稿だけを載せます。件数を水増ししたり、他サイトの口コミを転載したりはしません。',
       mqMeta: function (years, base) { return '経験 ' + years + ' ・ ' + base; },
-      // REAL PAY の節の白いカード（報酬の内訳）の区分名。REAL PAY の行を開いた面と同じ呼び名。
-      heroPart: { base: '基本給', variable: '変動給', bonus: '賞与・利益分配' },
-      /* ★ヒーローの電話の中の「開いた行」用。区分は上と同じもので、名前だけ短い。
-         電話の画面は内幅 256px しかなく、3つを横1列に並べると上の長い名前では収まらない
-         （英語の "Bonus & profit share" で溢れる）。区分を増やしたり分けたりはしない。 */
-      openH: '報酬の内訳',
-      openPart: { base: '基本給', variable: '変動給', bonus: '賞与' },
-      /* ★2026-09-23、電話の中身を本物の REAL PAY のカードと同じ形にしたときに足した4つ。
-         文言は actual-pay.js から写す（同じものを2つの言い方で呼ばない）──
-         thMon / cbMore は :127 :175、dash は :217。
-         openNote だけは写しではない：本物の T.dwShare は
-         「構成比は匿名化された金額帯から算出した概算です」で内幅 228px に入らないので、
-         **短く言い直したもの**をここに置く。★actual-pay.js 側の文言は書き換えない。 */
-      thMon: '月あたり',
+      /* ★ヒーローの電話（REAL PAY の一覧のカード）と REAL PAY の節の白いカード（行を押すと出る面）の語。
+         ★2026-11-01、本物の画面と同じ形にしたとき、語も actual-pay.js の辞書から写し直した
+         （同じものを2つの言い方で呼ばない）── seg は S.seg、thAmt・dwYear・dwMonth・dwComp・cbMore・dash は T、
+         pos は pv-vocab.json の positions、ten は T.ten.r。
+         openNote だけは写しではない：本物の T.dwShare は「構成比は匿名化された金額帯から算出した概算です」。
+         見本の帯は誰かの投稿を匿名化したものではないので、その部分を言わない短い文にしてある。
+         ★actual-pay.js 側の文言は書き換えない。 */
+      seg: { base: '基本給', variable: '変動給', bonus: '賞与・利益分配' },
+      pos: { '機長': '機長（CAP）', '副操縦士': '副操縦士（FO）' },
+      thAmt: '年収',
+      dwYear: '年収', dwMonth: '月あたり', dwComp: '報酬の内訳',
       cbMore: 'ほか{n}区分',
       dash: '〜',
       openNote: '構成比は概算です',
-      // 年数の札。本物は「昇格後10〜15年」（actual-pay.js:204 の ten.r）。見本も同じ読み方にする。
       ten: function (y) { return '昇格後' + y; },
       voice: { culture: '企業文化', salary: '給与', benefits: '福利厚生',
                wlb: 'WLB', ops: '運航環境', training: '訓練環境', mgmt: '経営陣への提案' },
@@ -79,11 +75,11 @@
       emptyT:    'Not many posts yet.',
       emptyD:    'Only working and former pilots post here. We never pad the count, and we never repost reviews from other sites.',
       mqMeta: function (years, base) { return years + ' · ' + base; },
-      heroPart: { base: 'Base pay', variable: 'Variable (flying)', bonus: 'Bonus & profit share' },
-      openH: 'Pay breakdown',
-      openPart: { base: 'Base', variable: 'Variable', bonus: 'Bonus' },
       // 日本語側と対（actual-pay.js の英語から写す。openNote だけ短く言い直したもの）
-      thMon: 'Per month',
+      seg: { base: 'Base pay', variable: 'Variable (flying)', bonus: 'Bonus & profit share' },
+      pos: { '機長': 'Captain (CAP)', '副操縦士': 'First Officer (FO)' },
+      thAmt: 'Annual',
+      dwYear: 'Per year', dwMonth: 'Per month', dwComp: 'Compensation',
       cbMore: '+{n} more',
       dash: '–',
       openNote: 'Shares are approximate',
@@ -170,11 +166,6 @@
         表示側の丸めは mqAmt()。ここの値も同じ粒度で書く（片方だけ細かくしない）。
      並びは固定。Math.random() を使わない（スクショ差分と目視比較のため）。
      ══════════════════════════════════════════════════════════════ */
-  /* 報酬の内訳の見本（[区分, 割合%]・合計は必ず 100）。
-     ヒーローの電話の**開いた行**と、REAL PAY の節の白いカードが**この1つ**を共有する。
-     ★数字を2か所に持たない（片方だけ直して食い違うのを防ぐ）。 */
-  var PV_PARTS = [['base', 56], ['variable', 26], ['bonus', 18]];
-
   var PV_DEMO = {
     // [slug, 年収(万円), 内訳ラベル, 職位, 機種, 経験, ベース, 社名]
     marquee: [
@@ -194,54 +185,41 @@
       ['turkish-airlines',   1500, '基本給＋乗務手当',         '副操縦士', 'B737', '5〜10年',  'イスタンブール', 'ターキッシュ エアラインズ'],
     ],
     /* ヒーローの右の見本の画面（2026-09-22）。行は上の marquee の何番目を使うか。
-       ★2026-09-23 に6行 → 4行（電話を小さくして緑の面を 300px にした）→ 同じ日の追加指示
-         「ケータイ画面 1.2倍 縦に大きく」で 5行（電話 288 → 346px・緑の面 300 → 358px）
-         → さらに「PC版は Take control … の上の段に合うような大きさにして」で 6行
-         （電話 496px・緑の面 508px ＝ 上端が見出しの1行目に揃う。狭い幅は深く切って 386px。
-           足し算は lp.css の #hero-section .lp-phone の上のコメントにある）
-         → 同じ日、中身を1行ずつ厚くしたので **4行**（行 66px・開いた面 146px）。
-           電話の高さも緑の面も動かしていない（66×4 + 146 = 410 ＝ 52 + 98 + 52×5）。
-           デスクトップは4行目の途中で切れ、スマホは2行目の頭まで見える＝「まだ下に続く」。
-         ⚠️ 本数を変えたら index.html / en/index.html の灰色の棒の行も同じ数にする。
-       open ＝ rows の何番目を「開いた行」にするか（その下に報酬の内訳のバーを差し込む）。
-         ★オーナー指示「基本給とか変動給、その他が見えるバー作ったじゃん。ちゃんとリアルに」。
-         割合はその行の parts をそのまま使う（数字を2か所に持たない）。
-         ⚠️ 差し込む面の高さは lp.css の .hero-win-open で **146px 固定**。灰色の骨組みも同じ
-            高さの箱を1つ置いてある＝描き替えても跳ねない（CLS）。
-       rp.on ＝ REAL PAY の節の白いカード（行を開いた面の見本）がどの行の内訳か。
-       rp.next ＝ そのカードの下端（緑の面の切り口）に半分だけ見える「次の行」。
-       ⚠️ どちらも **marquee の何番目か**（rows の何番目か、ではない）。
-          2026-09-23 まで rows 経由で引いていて、rows を短くした瞬間に rows[next] が
-          undefined になり、REAL PAY の節を描く所で例外 → boot() の残り
-          （112 の電話・通貨の塗り直し・口コミ・下の固定バー）が全部止まる形だった。
-       detail.parts は [区分, 割合%]。額は rp.on の行の年収をそのまま使う（数字を2か所に持たない）。
-       ★割合の合計は必ず 100。区分の色は lp.css の .lp-c-*（REAL PAY と同じ色）。
-       ⚠️ ここに「割合は帯の長さにだけ使い、数字としては出さない（REAL PAY の開いた面も
-          ％を出さない）」と書いてあったが**誤り**。本物の開いた面は 2026-09-04 から
-          区分ごとの％を整数で出している（actual-pay.js の shareInts）。2026-09-23 に削除。 */
+       ★2026-11-01 オーナー指示「real pay とか…実際に即していない」で、本物の REAL PAY の
+         スマホの一覧（actual-pay.css の @media (max-width:720px) のカード）と同じ形にした。
+         1枚 ＝ ロゴ・社名／「年収」・額／職位 · 機材／内訳の棒と、いちばん大きい区分1つ＋「ほか◯区分」／ ›。
+         ・行の中に「開いた面」を差し込むのはやめた（本物の一覧には無い。押すと別の面が開く）。
+           内訳は各カードの棒で見える。開いた面の見本は REAL PAY の節の白いカード（下の detail）。
+         ・本物のカードに無いもの（月あたり・年数）はカードに出さない（月あたりは本物も狭い幅で伏せる）。
+         ・見本なので「✓ Verified」「本人申告」「投稿時期」は付けない（オーナー回答「1」＝
+           本物の REAL PAY のプレビューの行と同じ扱い。信用の印を作り物に付けない）。
+         カードは 76px × 5枚（あいだ 6px・上 6px）＝ 410px。前と同じ中身の高さ ＝ 電話も緑の面も 1px も動かない。
+         ⚠️ 本数を変えたら index.html / en/index.html の灰色の骨組みと lp.css の .hero-card の高さも同じ回に直す。
+       rp.on ＝ REAL PAY の節の白いカード（行を押すと出る面の見本）がどの行か。
+       ⚠️ **marquee の何番目か**（rows の何番目か、ではない）。2026-09-23 まで rows 経由で引いていて、
+          rows を短くした瞬間に undefined → 例外で boot() の残りが全部止まる形だった。
+       detail ＝ その面の報酬の内訳。parts は [区分, 割合%]（整数・合計は必ず 100 ＝ 本物の shareInts と同じ）、
+         band は区分ごとの**金額の帯**（万円）。本物は帯でしか出さないので見本も帯。
+         割合は帯の中点から出してある（2,100 ＋ 1,000 ＋ 600 ＝ 3,700 ＝ rp.on の年収）。
+       ★2026-11-01 オーナー指示「他社のパイロットはいくら稼いでる？の部分は ANA・JAL 以外の外航にして」──
+         キャセイパシフィックの機長（marquee の7番目・¥3,700万 は SSOT の幅 ¥3,000万〜¥7,700万 の中）。
+         ⚠️ 値は mqAmt() の有効数字2桁でそのまま出る粒度にしてある（1500→¥1,500万）。
+       ★区分の色は lp.css の .lp-c-*（REAL PAY と同じ色）。 */
     hero: {
       /* 行 ＝ marquee の何番目か（i）＋ その行の報酬の内訳（見本）。
-         ★2026-09-23、オーナー指示「緑色のカードの中身（電話の部分）をもっと細かく」で
-           本物の REAL PAY のカード（actual-pay.js の cardCompHTML / payHTML）と同じ形にした。
-           行は 6本 → **4本**、1行あたり 52px → **66px**、開いた面 98px → **146px**。
-           66×4 + 146 = 410 ＝ 前と同じ（緑の面の高さ 508 / 386 が 1px も動かない）。
-         割合（%）は整数だけ（本物の shareInts と同じ。小数を出さない）。合計は必ず 100。
-         区分が1つだけの行は棒も凡例も出さない（本物と同じ）。
-         ⚠️ 本数を変えたら index.html / en/index.html の灰色の骨組みと
-            lp.css の .hero-win-row / .hero-win-open の高さも同じ回に直す（4点セット）。 */
+         区分が1つだけの行は棒も凡例も出さない（本物の cardCompHTML と同じ）。 */
       rows: [
-        /* 開く行だけ、区分ごとの**金額の帯**（万円）を持つ。本物は帯でしか出さないので見本も帯。
-           合計が年収（4000万）に一致する必要はない（本物も匿名化された帯なので一致しない）。
-           ⚠️ 値は mqAmt() の有効数字2桁でそのまま出る粒度にしてある（2200→¥2,200万）。 */
-        { i: 0, parts: PV_PARTS,
-          band: { base: [2200, 2400], variable: [1000, 1200], bonus: [700, 800] } },
+        { i: 0, parts: [['base', 56], ['variable', 26], ['bonus', 18]] },
         { i: 1, parts: [['base', 62], ['variable', 22], ['bonus', 16]] },
         { i: 2, parts: [['base', 71], ['variable', 29]] },
         { i: 3, parts: [['base', 58], ['variable', 30], ['bonus', 12]] },
+        { i: 4, parts: [['base', 60], ['variable', 24], ['bonus', 16]] },
       ],
-      open: 0,
-      rp: { on: 1, next: 3 },
-      detail: { parts: PV_PARTS },
+      rp: { on: 6 },
+      detail: {
+        parts: [['base', 57], ['variable', 27], ['bonus', 16]],
+        band: { base: [2000, 2200], variable: [900, 1100], bonus: [500, 700] },
+      },
     },
   };
 
@@ -485,11 +463,8 @@
     for (var i = 0; i < els.length; i++) {
       els[i].textContent = mqAmt(parseInt(els[i].getAttribute('data-jpy'), 10));
     }
-    // 112 の電話のレンジ（公開データ。丸めない）。
-    var rs = d.querySelectorAll('#lp-airlines .pv-no-cur[data-jpy-lo]');
-    for (var j = 0; j < rs.length; j++) {
-      rs[j].textContent = rangeAmt(parseInt(rs[j].getAttribute('data-jpy-lo'), 10), parseInt(rs[j].getAttribute('data-jpy-hi'), 10));
-    }
+    /* ★112 の電話（比較のスライド）の額はここで塗らない。HTML に「¥2,556万」で書いてあり（日本語）・
+         英語はドルの span で焼いてある ＝ 走査も塗り直しも currency.js がやる（会社ページ・比較の画面と同じ）。 */
     // ランキングの金額（公開データ。こちらも丸めない）。
     var ks = d.querySelectorAll('#ranking .pv-no-cur[data-jpy]');
     for (var k = 0; k < ks.length; k++) {
@@ -497,22 +472,12 @@
     }
   }
 
-  /* 公開年収の1つの値。rangeAmt と同じ規約で、見本ではないので丸めない。 */
+  /* 公開年収の1つの値。見本ではないので丸めない（mqAmt の有効数字2桁を使わない）。
+     日本語で円のときは「¥2,200万」。それ以外は今の通貨で（英語ページは円でも「万」を使わない）。 */
   function salAmt(jpy) {
     var C = w.PVCurrency;
     if (C && typeof C.fmt === 'function' && (L === 'en' || (typeof C.get === 'function' && C.get() !== 'JPY'))) return C.fmt(jpy);
     return '¥' + Math.round(jpy / 10000).toLocaleString('en-US') + '万';
-  }
-
-  /* 公開年収のレンジ。★見本ではなく SSOT の値なので丸めない（mqAmt の有効数字2桁を使わない）。
-     日本語で円のときは「¥2,200万〜3,500万」。それ以外は両端を今の通貨で（salary-leveling.js の
-     fmtRange と同じ規約：英語ページは円でも「万」を使わない）。 */
-  function rangeAmt(lo, hi) {
-    var C = w.PVCurrency;
-    if (C && typeof C.fmt === 'function' && (L === 'en' || (typeof C.get === 'function' && C.get() !== 'JPY'))) {
-      return C.fmt(lo) + '–' + C.fmt(hi);
-    }
-    return '¥' + Math.round(lo / 10000).toLocaleString('en-US') + '万〜' + Math.round(hi / 10000).toLocaleString('en-US') + '万';
   }
 
   function mqCard(row, dup) {
@@ -575,163 +540,196 @@
     }).join('') + '</span>';
   }
 
-  /* ★行の下2段（内訳のミニ棒＋凡例＋月あたり）。2026-09-23 オーナー指示
-       「緑色のカードの中身（電話の部分）をもっと細かく記載できるんじゃない？」。
-     本物の REAL PAY のカード（actual-pay.js の cardCompHTML）と同じ約束 ──
+  /* 見本の機材の呼び名を、本物の画面の呼び名にする（actual-pay.js の fleetName ＝ pv-vocab.json の fleets の
+     カッコより前）。PV_DEMO は短い記号（B777）で持っているので、ここで1回だけ引き直す。載っていない記号はそのまま。 */
+  var FLEET = {
+    B777: 'Boeing 777', B787: 'Boeing 787 Dreamliner', B737: 'Boeing 737',
+    A350: 'Airbus A350', A330: 'Airbus A330', A380: 'Airbus A380',
+    A320: L === 'en' ? 'A320 family' : 'A320ファミリー',
+  };
+  function fleetReal(c) { return FLEET[c] || c; }
+  // 職位も本物の呼び名（「機長（CAP）」）。辞書に無い語は今までどおり tw() に任せる。
+  function posReal(p) { return T.pos[p] || tw(p); }
+  // 本物の画面の区切り（actual-pay.js は日英とも「 · 」）。トップのほかの所（' ・ '）とは別に持つ。
+  var DOT = ' · ';
+
+  /* ★カードの下の段（内訳のミニ棒＋凡例）。本物の REAL PAY のカード（actual-pay.js の cardCompHTML）と同じ約束 ──
        ・いちばん大きい区分を**1つだけ**名指しし、残りは「ほか◯区分」と数える
        ・区分が2つ未満のときは棒も凡例も出さない
-     「月あたり」は年収 ÷ 12。本物のカードにも同じ欄がある＝新しい情報は1つも増えていない。 */
-  function heroComp(parts, jpy) {
+     ★2026-11-01、月あたりは外した（本物のカードは狭い幅で伏せている。年収 ÷ 12 で新しい情報が無いため）。 */
+  function heroComp(parts) {
     if (!parts || parts.length < 2) return '';
     var top = 0;
     for (var k = 1; k < parts.length; k++) { if (parts[k][1] > parts[top][1]) top = k; }
-    var rest = parts.length - 1, mon = Math.round(jpy / 12);
-    return heroBar('hero-win-cb', parts) +
-      '<span class="hero-win-cbl">' +
-        '<span class="hero-win-cbi"><i class="lp-c-' + parts[top][0] + '" aria-hidden="true"></i>' +
-          esc(T.openPart[parts[top][0]]) + ' <b>' + parts[top][1] + '%</b></span>' +
-        '<span class="hero-win-cbm">' + esc(T.cbMore.replace('{n}', function () { return String(rest); })) + '</span>' +
-        '<span class="hero-win-mon"><span class="hero-win-cl">' + esc(T.thMon) + '</span>' +
-          '<span class="pv-no-cur" data-jpy="' + mon + '">' + esc(mqAmt(mon)) + '</span></span>' +
-      '</span>';
+    var rest = parts.length - 1;
+    return '<span class="hero-c-vf">' + heroBar('hero-c-cb', parts) +
+      '<span class="hero-c-cbl">' +
+        '<span class="hero-c-cbi"><i class="lp-c-' + parts[top][0] + '" aria-hidden="true"></i>' +
+          esc(T.seg[parts[top][0]]) + ' <b>' + parts[top][1] + '%</b></span>' +
+        '<span class="hero-c-cbm">' + esc(T.cbMore.replace('{n}', function () { return String(rest); })) + '</span>' +
+      '</span></span>';
   }
 
-  /* ★開いた行の下に差し込む「報酬の内訳」（2026-09-23 オーナー指示）。
-     ★2026-09-23、区分ごとの**金額の帯と％**を足した（本物の payHTML と同じ形）。
-       ・金額は必ず帯（◯〜◯）で出す。1つの数字にしない ── 本物は匿名化された帯でしか
-         出さないので、見本が実額に見えると製品を誤解させる。
-       ・％は整数だけ（本物の shareInts と同じ。小数を出さない）。
-       ・帯は span を**2つ**に分ける。repaintMarquee() は1要素＝1金額で塗り替えるので、
-         「¥2,200万〜¥2,400万」を1つの span に入れるとドルに切り替えたとき直らない。
-         ★両端に記号が付くのは本物と同じ（actual-pay.js:547 の rngMoney も fmt を2回呼ぶ）。
-     ⚠️ **ここに色の棒を置かない**（2026-09-23 オーナー指摘「なぜ最初の hero で emirates の
-        バーが二本もあるんだ？」）。棒は行の中（heroComp）に既にあり、この面はそのすぐ下
-        ＝同じ絵が2回出ていた。本物の payHTML は棒を描くが、あちらの面は**別の板**で
-        カードの棒と並ばない。ここは行の直下なので、重なるほうだけを落とす。
-        色の対応は一覧の丸が持っている（棒と同じ色・同じ並び）。
-     ⚠️ 高さは lp.css の .hero-win-open が 146px で固定している。ここで中身を増やしても
-        箱は伸びない＝溢れて隠れる。増やすなら CSS の高さと HTML の骨組みも一緒に直す。 */
-  function heroOpen(row) {
-    var parts = row.parts, band = row.band || {};
-    return '<div class="hero-win-open">' +
-      '<span class="hero-win-open-h">' + esc(T.openH) + '</span>' +
-      '<span class="hero-win-list">' + parts.map(function (p) {
-        var b = band[p[0]], lo = b ? b[0] * 10000 : 0, hi = b ? b[1] * 10000 : 0;
-        return '<span class="hero-win-li">' +
-          '<span class="hero-win-li-k"><i class="lp-c-' + p[0] + '" aria-hidden="true"></i>' +
-            esc(T.openPart[p[0]]) + '</span>' +
-          // 帯を持たない行が開いたときは金額だけ黙って出さない（0 で埋めない）。
-          (b ? '<span class="hero-win-li-v">' +
-            '<span class="pv-no-cur" data-jpy="' + lo + '">' + esc(mqAmt(lo)) + '</span>' + esc(T.dash) +
-            '<span class="pv-no-cur" data-jpy="' + hi + '">' + esc(mqAmt(hi)) + '</span></span>' : '') +
-          '<span class="hero-win-li-p">' + p[1] + '%</span>' +
-        '</span>';
-      }).join('') + '</span>' +
-      '<span class="hero-win-note">' + esc(T.openNote) + '</span>' +
-    '</div>';
-  }
-
-  function heroRow(row, open) {
+  /* ★ヒーローの電話の1枚（2026-11-01・本物の REAL PAY のスマホのカードの形）。
+       上の段 ＝ ロゴ・社名 ｜「年収」・額 ｜ ›（2段ぶん）／ 2段目 ＝ 職位 · 機材 ／ 3段目 ＝ 内訳の棒と凡例。
+     ★出典の札・投稿時期は出さない（見本。本物のプレビューの行と同じ）。
+     ⚠️ 高さは lp.css の .hero-card が 76px で固定している（灰色の骨組みと同じ ＝ 描き替えても跳ねない）。 */
+  function heroRow(row) {
     var r = PV_DEMO.marquee[row.i];
-    var slug = r[0], jpy = r[1] * 10000, pos = r[3], fleet = r[4], years = r[5];
-    var name = L === 'en' ? airlineName(slug, r[7]) : r[7];
-    return '<div class="hero-win-row' + (open ? ' is-open' : '') + '">' + heroLogo(slug, name) +
-      '<span class="hero-win-an">' + esc(name) + '</span>' +
-      '<span class="hero-win-amt pv-no-cur" data-jpy="' + jpy + '">' + esc(mqAmt(jpy)) + '</span>' +
-      '<span class="hero-win-meta">' + esc(tw(pos) + T.sep + fleet + T.sep + T.ten(tw(years))) + '</span>' +
-      heroComp(row.parts, jpy) +
+    var slug = r[0], jpy = r[1] * 10000;
+    var name = airlineName(slug, r[7]);
+    return '<div class="hero-card">' +
+      '<span class="hero-c-air">' + heroLogo(slug, name) + '<span class="hero-c-an">' + esc(name) + '</span></span>' +
+      '<span class="hero-c-amt"><span class="hero-c-cl">' + esc(T.thAmt) + '</span>' +
+        '<span class="hero-c-v pv-no-cur" data-jpy="' + jpy + '">' + esc(mqAmt(jpy)) + '</span></span>' +
+      '<span class="hero-c-go" aria-hidden="true">›</span>' +
+      '<span class="hero-c-pos">' + esc(posReal(r[3])) + '<span class="hero-c-flt">' + esc(fleetReal(r[4])) + '</span></span>' +
+      heroComp(row.parts) +
     '</div>';
   }
 
   function fillHero() {
-    var H = PV_DEMO.hero;
     var box = d.getElementById('hero-win-rows');
-    if (box) {
-      // 開いた行の**直後**に内訳の面を差し込む。open が rows の外なら差し込まない。
-      box.innerHTML = H.rows.map(function (row, n) {
-        return heroRow(row, n === H.open) + (n === H.open ? heroOpen(row) : '');
-      }).join('');
-    }
+    if (box) box.innerHTML = PV_DEMO.hero.rows.map(heroRow).join('');
 
     /* ★人数は出さない（2026-09-24 オーナー指示）。ここで pv_pay_rows() を呼んで
        stats.contributors を入れ、is-wait を外していた。文は HTML に書いてあるだけになった。 */
   }
 
-  /* ── ⓫ REAL PAY の節：白いカード（行を開いた面の見本）──────────────────
-     ★全部 PV_DEMO（サンプル）。社名は出さない。投稿時期・Verified・錠前も出さない。
-     ★割合は帯の長さにだけ使う（数字の％は出さない）。 */
+  /* ── ⓫ REAL PAY の節：白いカード（行を押すと出る面の見本）──────────────────
+     ★2026-11-01、本物の面（actual-pay.js の dwHTML）と同じ並びにした ──
+       ロゴ・社名・「サンプル」の札 ／ 職位 · 機材 · 年数 ／ 年収と月あたりの2つの箱 ／ 報酬の内訳（棒・注記・区分ごとの帯と％）。
+     ★全部 PV_DEMO（サンプル）。出典（Verified・本人申告）と投稿時期は出さない（本物のプレビューの面と同じ）。
+     ★金額は必ず帯（◯〜◯）で出す。1つの数字にしない ── 本物は匿名化された帯でしか出さない。
+       帯は span を**2つ**に分ける（repaintMarquee() は1要素＝1金額で塗り替える）。
+     ⚠️ 金額は HTML に書かない（ここで描く）。check-salary.mjs の照合に見本を入れないため。 */
   function fillRealPay() {
     var H = PV_DEMO.hero;
     // ⚠️ marquee を直に引く（rows の長さに巻き込まれない）。無ければ何も描かずに戻る。
     var on = PV_DEMO.marquee[H.rp.on];
-    if (!on) return;
-    var jpy = on[1] * 10000;
-    var amt = d.getElementById('lp-rp-amt');
-    if (!amt) return;
-    amt.setAttribute('data-jpy', jpy);
-    amt.textContent = mqAmt(jpy);
-    var meta = d.getElementById('lp-rp-meta');
-    if (meta) meta.textContent = tw(on[3]) + T.sep + on[4] + T.sep + tw(on[5]);
-    var parts = H.detail.parts;
-    var bar = d.getElementById('lp-rp-bar');
-    if (bar) {
-      bar.innerHTML = parts.map(function (p) {
-        return '<i class="lp-c-' + p[0] + '" style="flex:' + p[1] + ' 1 0"></i>';
-      }).join('');
-    }
-    var leg = d.getElementById('lp-rp-leg');
-    if (leg) {
-      leg.innerHTML = parts.map(function (p) {
-        return '<li><i class="lp-c-' + p[0] + '"></i>' + esc(T.heroPart[p[0]]) + '</li>';
-      }).join('');
-    }
-    var nx = PV_DEMO.marquee[H.rp.next];
-    if (!nx) return;
-    var nm = d.getElementById('lp-rp-next-m');
-    var na = d.getElementById('lp-rp-next-a');
-    if (nm) nm.textContent = tw(nx[3]) + T.sep + nx[4] + T.sep + tw(nx[5]);
-    if (na) { na.setAttribute('data-jpy', nx[1] * 10000); na.textContent = mqAmt(nx[1] * 10000); }
+    var box = d.getElementById('lp-rp-body');
+    if (!on || !box) return;
+    var slug = on[0], jpy = on[1] * 10000, mon = Math.round(jpy / 12);
+    var name = airlineName(slug, on[7]);
+    var parts = H.detail.parts, band = H.detail.band || {};
+    var nameEl = d.getElementById('lp-rp-name');
+    if (nameEl) nameEl.innerHTML = heroLogo(slug, name) + '<span class="lp-rp-an">' + esc(name) + '</span>';
+    box.innerHTML =
+      '<p class="lp-rp-meta">' + esc(posReal(on[3]) + DOT + fleetReal(on[4]) + DOT + T.ten(tw(on[5]))) + '</p>' +
+      '<div class="lp-rp-amts">' +
+        '<div class="lp-rp-a"><span class="lp-rp-al">' + esc(T.dwYear) + '</span>' +
+          '<span class="lp-rp-av pv-no-cur" data-jpy="' + jpy + '">' + esc(mqAmt(jpy)) + '</span></div>' +
+        '<div class="lp-rp-a"><span class="lp-rp-al">' + esc(T.dwMonth) + '</span>' +
+          '<span class="lp-rp-av pv-no-cur" data-jpy="' + mon + '">' + esc(mqAmt(mon)) + '</span></div>' +
+      '</div>' +
+      '<p class="lp-rp-h">' + esc(T.dwComp) + '</p>' +
+      heroBar('lp-rp-bar', parts) +
+      '<p class="lp-rp-stn">' + esc(T.openNote) + '</p>' +
+      '<ul class="lp-rp-list">' + parts.map(function (p) {
+        var b = band[p[0]], lo = b ? b[0] * 10000 : 0, hi = b ? b[1] * 10000 : 0;
+        return '<li><span class="lp-rp-k"><i class="lp-c-' + p[0] + '" aria-hidden="true"></i>' + esc(T.seg[p[0]]) + '</span>' +
+          // 帯を持たない区分は金額だけ黙って出さない（0 で埋めない）。
+          '<span class="lp-rp-v">' + (b ?
+            '<span class="pv-no-cur" data-jpy="' + lo + '">' + esc(mqAmt(lo)) + '</span>' + esc(T.dash) +
+            '<span class="pv-no-cur" data-jpy="' + hi + '">' + esc(mqAmt(hi)) + '</span>' : '') +
+            '<span class="lp-rp-sh">' + p[1] + '%</span></span></li>';
+      }).join('') + '</ul>';
   }
 
-  /* ── ⓬ 112 AIRLINES の節：電話の中の6社（本物の公開データ）──────────────
-     ★salary-data.json（SALARY から生成）の cap.lo〜cap.hi。avg は使わない＝「平均」と書かない
-       （avg は推計。公開資料が支えるのは lo〜hi だけ・DATA-PROVENANCE.md）。
-     ★PVLeveling.load() は1回だけ取りに行って使い回す（下のレベリング図と同じ約束＝通信は増えない）。
-     ★同じ JSON の社数で [data-pv-n="airlines"] を上書きする。HTML の「112」は JS を動かさない
+  /* ── ⓬ 112 AIRLINES の節：掲載社数の数字と、比較のスライド ─────────────────────
+     ★同じ salary-data.json の社数で [data-pv-n="airlines"] を上書きする。HTML の数字は JS を動かさない
        読み手のための控えで、assert-claims.mjs が SALARY の社数と照合している。
-     棒は6社共通の目盛り（いちばん低い下限〜いちばん高い上限を 1,000万円で丸めた幅）。 */
-  var AIR_SLUGS = ['ana', 'jal', 'emirates', 'delta', 'united', 'singapore-airlines'];
-
+       PVLeveling.load() は1回だけ取りに行って使い回す（下のレベリング図と同じ約束＝通信は増えない）。
+     ★2026-11-01、電話の中身を「機長の公開年収レンジ」の一覧から、本物の2社比較の画面のスライドに替えた
+       （オーナー「比較の画面はスライドできる（クリックしたらその比較画面になる）」）。
+       スライドの中身（社名・額・棒・写真・クレジット）は gen-lp-compare.mjs が career.html から写して HTML に書く。
+       ここは送るだけ（‹ › と点・いまの組の名前・クレジットの出し分け）。額を JS に持たない。 */
   function fillAirlines() {
-    var box = d.getElementById('lp-air-rows');
     var marks = d.querySelectorAll('[data-pv-n="airlines"]');
-    if (!box && !marks.length) return;
-    if (!w.PVLeveling || typeof w.PVLeveling.load !== 'function') return;   // 灰色の行のまま（数字を推測で埋めない）
+    if (!marks.length) return;
+    if (!w.PVLeveling || typeof w.PVLeveling.load !== 'function') return;   // 控えの数字のまま（推測で埋めない）
     w.PVLeveling.load().then(function (SAL) {
-      var all = (SAL && SAL.airlines) || {};
-      var n = Object.keys(all).length;
+      var n = Object.keys((SAL && SAL.airlines) || {}).length;
       if (n > 0) for (var k = 0; k < marks.length; k++) marks[k].textContent = String(n);
-      if (!box) return;
-      var rows = AIR_SLUGS.filter(function (sl) { return all[sl] && all[sl].cap && all[sl].cap.lo && all[sl].cap.hi; });
-      if (!rows.length) return;
-      var min = Infinity, max = 0;
-      rows.forEach(function (sl) { min = Math.min(min, all[sl].cap.lo); max = Math.max(max, all[sl].cap.hi); });
-      min = Math.floor(min / 1000) * 1000;
-      max = Math.ceil(max / 1000) * 1000;
-      var span = Math.max(1, max - min);
-      box.innerHTML = rows.map(function (sl) {
-        var c = all[sl].cap, lo = c.lo * 10000, hi = c.hi * 10000;
-        var name = airlineName(sl, L === 'en' ? all[sl].en : all[sl].ja);
-        var left = ((c.lo - min) / span * 100).toFixed(1);
-        var wid = ((c.hi - c.lo) / span * 100).toFixed(1);
-        return '<a class="lp-air-row" href="airlines/' + esc(sl) + '.html" data-pv-ev="lp_airlines_row">' +
-          heroLogo(sl, name) +
-          '<span class="lp-air-an">' + esc(name) + '</span>' +
-          '<span class="lp-air-rng pv-no-cur" data-jpy-lo="' + lo + '" data-jpy-hi="' + hi + '">' + esc(rangeAmt(lo, hi)) + '</span>' +
-          '<span class="lp-air-trk" aria-hidden="true"><i style="left:' + left + '%;width:' + wid + '%"></i></span>' +
-        '</a>';
-      }).join('');
     }).catch(function () {});
+  }
+
+  /* 比較のスライド。★指で横に滑らせる（scroll-snap ── ブラウザがやる）＋ ‹ › と点で送る。勝手には動かさない。
+     いま見えている1枚は、横の送り位置から決める（送った・滑らせた・Tab で入ったのどれでも同じ1か所）。
+     クレジットは見えている組の写真のぶんだけ出す（写真の条件は「その写真のそばに示す」）。 */
+  function wireCompare() {
+    var track = d.getElementById('lp-cmp-track');
+    if (!track) return;
+    var slides = track.querySelectorAll('.lp-cmp-s');
+    var n = slides.length;
+    if (n < 2) return;
+    var dots = d.querySelectorAll('#lp-cmp-nav .lp-cmp-dot');
+    var label = d.getElementById('lp-cmp-now');
+    var prev = d.getElementById('lp-cmp-prev'), next = d.getElementById('lp-cmp-next');
+    var credits = d.querySelectorAll('#lp-cmp-credits [data-slide]');
+    var reduce = w.matchMedia && w.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var cur = -1;
+    function at() {
+      var wd = track.clientWidth || 1;
+      return Math.max(0, Math.min(n - 1, Math.round(track.scrollLeft / wd)));
+    }
+    function paint(i) {
+      if (i === cur) return;
+      cur = i;
+      for (var k = 0; k < dots.length; k++) {
+        if (k === i) dots[k].setAttribute('aria-current', 'true'); else dots[k].removeAttribute('aria-current');
+      }
+      if (label) label.textContent = slides[i].getAttribute('data-pair') || '';
+      if (prev) prev.disabled = i === 0;
+      if (next) next.disabled = i === n - 1;
+      for (var c = 0; c < credits.length; c++) {
+        credits[c].hidden = credits[c].getAttribute('data-slide').split(' ').indexOf(String(i)) < 0;
+      }
+      var any = false;
+      for (var e = 0; e < credits.length; e++) if (!credits[e].hidden) { any = true; break; }
+      var box = d.getElementById('lp-cmp-credits');
+      if (box) {
+        box.hidden = !any;
+        // 頭の字（英語は Photo / Photos）は、見えているクレジットの数で選ぶ（字は HTML に2つ在る ── 作らない）。
+        var shown = 0;
+        for (var g = 0; g < credits.length; g++) if (!credits[g].hidden) shown++;
+        var h1 = box.querySelector('[data-n="1"]'), h2 = box.querySelector('[data-n="2"]');
+        if (h1) h1.hidden = shown !== 1;
+        if (h2) h2.hidden = shown === 1;
+      }
+    }
+    /* ★‹ › で送っている途中は、行き先（aim）を覚えておく。途中の位置で点や名前を塗り直さない・
+         続けて押したら行き先から数える（速く2回押すと1枚ずつ確実に進む）。着いたら（または 1.2 秒で）忘れる。 */
+    var aim = -1, aimT = 0;
+    function go(i) {
+      i = Math.max(0, Math.min(n - 1, i));
+      aim = i;
+      clearTimeout(aimT);
+      aimT = setTimeout(function () { aim = -1; paint(at()); }, 1200);
+      track.scrollTo({ left: i * track.clientWidth, behavior: reduce ? 'auto' : 'smooth' });
+      paint(i);
+    }
+    var raf = 0;
+    track.addEventListener('scroll', function () {
+      if (raf) return;
+      raf = (w.requestAnimationFrame || setTimeout)(function () {
+        raf = 0;
+        if (aim >= 0) {
+          if (Math.abs(track.scrollLeft - aim * track.clientWidth) > 2) return;
+          aim = -1; clearTimeout(aimT);
+        }
+        paint(at());
+      });
+    }, { passive: true });
+    function base() { return aim >= 0 ? aim : at(); }
+    if (prev) prev.addEventListener('click', function () { go(base() - 1); });
+    if (next) next.addEventListener('click', function () { go(base() + 1); });
+    for (var k = 0; k < dots.length; k++) {
+      (function (i) { dots[i].addEventListener('click', function () { go(i); }); })(k);
+    }
+    // 幅が変わったら、いまの1枚の頭へ合わせ直す（回転・ウィンドウの幅を変えたとき半端な位置で止めない）。
+    w.addEventListener('resize', function () { if (cur >= 0) track.scrollLeft = cur * track.clientWidth; });
+    paint(at());
   }
 
   /* ── ⓭ 航空会社別の年収ランキング（#ranking の棒グラフ）─────────────────
@@ -863,9 +861,10 @@
     fillHero();
     fillRealPay();
     fillAirlines();
+    wireCompare();
     fillRanking();
     // 金額は pv-no-cur ＝ currency.js の走査から外してある（mqAmt が自分で書く）ので、
-    // 通貨の切替はここで受ける（流れるカード・ヒーローの見本・REAL PAY のカード・112 の電話・ランキング）。currency.js は
+    // 通貨の切替はここで受ける（流れるカード・ヒーローの見本・REAL PAY のカード・ランキング）。currency.js は
     // 「保存された通貨が非JPY」の初期表示でも同じ報せを出すので、戻ってきた人もこれ1本で拾える。
     w.addEventListener('pv-currency-change', repaintMarquee);
     fillVoices();

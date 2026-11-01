@@ -159,7 +159,7 @@
           新しい値を言うので、日英2枚に写す。指紋が無いと、出した直後の最長4時間、
           前に来たことのある人の画面が「新しい HTML ＋ 端末に残った古い lp.css」になる
           （実測：主のボタンが1行で出て、375px では字がボタンの端に付き、PC では副が列の外へ出る）。 -->
-  <link rel="stylesheet" href="lp.css?v=cd4c23c8">
+  <link rel="stylesheet" href="lp.css?v=24451aa2">
 <!-- Google tag (gtag.js) -->
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -273,8 +273,9 @@
     <div class="hero-copy">
       <!-- LCP 要素はこの h1。⚠️ 透明から出さない。2026-08-15 の実測で、フェードで出すと
            表示が 2,200ms 遅れた（見出しがページでいちばん大きい文字＝LCP 要素）。
-           ★見出しは日英とも同じ英語（2026-09-22 オーナー指定）。 -->
-      <h1 class="hero-h1" lang="en">Take control of your career in the cockpit.</h1>
+           ★2026-11-01 オーナー確定のコピーに替えた。日本語は問いかけ・英語は「Enough cockpit rumors.」で、**日英は別の言い回しで確定**。
+             片方からもう片方を訳し直さない。1文＝1行・見出し全体で2行（文字の大きさは lp.css の .hero-h1--two-lines が欄の幅から決める）。 -->
+      <h1 class="hero-h1 hero-h1--two-lines" lang="ja"><span class="hero-sentence">コックピットでの噂、それ本当？</span><span class="hero-sentence">待遇を実データで。</span></h1>
       <p class="hero-lede">パイロットが匿名で出し合った実際の給与と待遇で、自分の市場価値を確かめる。</p>
 
       <!-- ★ボタンは2本（2026-09-22 オーナー指示。2026-08-22 の「CTA は1本だけ」を置き換えた）。
@@ -328,21 +329,17 @@
 
     <!-- ★PV_DEMO — 右は REAL PAY の見本。行も右下のカードも lp.js の PV_DEMO が描く（全部サンプル）。
          ★金額は HTML に書かない（AI の読み手が見本を実データとして拾わないように）。
-         灰色の棒だけの行を4本＋「開いた面」1つ先に置き、同じ高さ（行 66px・面 146px）に描き替える。
-         ★2026-09-23、オーナー指示「緑色のカードの中身（電話の部分）とかもっと細かく記載できる
-           んじゃない？」で、1行の中身を本物の REAL PAY のカードと同じにした（月あたり・内訳の
-           ミニ棒・凡例／開いた面に区分ごとの金額と％）。行は6 → 4本・行 52 → 66px・面 98 → 146px
-           で、**合計 410px は前と同じ**＝電話も緑の面も 1px も動いていない。
-         ★2026-09-23、オーナー指摘「なぜ最初の hero で emirates のバーが二本もあるんだ？」で、
-           **開いた面の色の棒をやめた**（行の中の棒と同じ絵が 40px 差で2回出ていた）。
-           骨組みの開いた面は h・li×3・note の5本。棒を戻すなら lp.js の heroOpen と
-           lp.css の .hero-sk--seg も一緒に戻す。
-         ⚠️ 本数を変えるときは lp.css の .hero-win-row / .hero-win-open の高さと
-            PV_DEMO.hero.rows・PV_DEMO.hero.open も一緒に直す（片方だけだと描き替えで跳ねる＝CLS）。
+         ★2026-11-01 オーナー指示「real pay とか…実際に即していない」で、中身を本物の REAL PAY の
+           スマホの一覧（actual-pay.css の狭い幅のカード）と同じ形にした。1枚 ＝ ロゴ・社名／「年収」・額／
+           職位 · 機材／内訳の棒といちばん大きい区分1つ／ ›。行の中に「開いた面」を差し込むのはやめた
+           （本物の一覧には無い。開いた面の見本は下の REAL PAY の節の白いカード）。
+         灰色の骨組みのカードを5枚先に置き、同じ高さ（76px）に描き替える ＝ 中身の合計 410px は前と同じ
+         （電話も緑の面も 1px も動かない）。
+         ⚠️ 枚数を変えるときは lp.css の .hero-card の高さと PV_DEMO.hero.rows も一緒に直す（片方だけだと描き替えで跳ねる＝CLS）。
          ★2026-09-23、オーナー指示で「サンプル」の札を消した（読み上げの説明文からも）。
            札が無くなっても、**見本の金額は配信される HTML に1つも無い**（上の約束）＝
            見本が実データとして拾われることはない。★札を戻さない。
-         見本に Verified・本人申告・投稿時期を付けない（信用の印は偽造しない）。
+         見本に Verified・本人申告・投稿時期を付けない（信用の印は偽造しない ── 2026-11-01 にオーナーが改めて「1」）。
          全体で1本のリンク（hero_realpay_ui）。 -->
     <a class="hero-shot" href="actual-pay.html" data-pv-ev="hero_realpay_ui" aria-label="REAL PAY を開く">
       <div class="hero-panel lp-panel">
@@ -351,11 +348,11 @@
             <i class="lp-phone-pill" aria-hidden="true"></i>
             <div class="hero-win-bar"><span class="hero-win-name">REAL PAY</span></div>
             <div id="hero-win-rows">
-              <div class="hero-win-row"><i class="hero-sk hero-sk--logo"></i><i class="hero-sk hero-sk--a"></i><i class="hero-sk hero-sk--v"></i><i class="hero-sk hero-sk--m"></i><i class="hero-sk hero-sk--cb"></i><i class="hero-sk hero-sk--leg"></i></div>
-              <div class="hero-win-open"><i class="hero-sk hero-sk--h"></i><i class="hero-sk hero-sk--li"></i><i class="hero-sk hero-sk--li"></i><i class="hero-sk hero-sk--li"></i><i class="hero-sk hero-sk--note"></i></div>
-              <div class="hero-win-row"><i class="hero-sk hero-sk--logo"></i><i class="hero-sk hero-sk--a"></i><i class="hero-sk hero-sk--v"></i><i class="hero-sk hero-sk--m"></i><i class="hero-sk hero-sk--cb"></i><i class="hero-sk hero-sk--leg"></i></div>
-              <div class="hero-win-row"><i class="hero-sk hero-sk--logo"></i><i class="hero-sk hero-sk--a"></i><i class="hero-sk hero-sk--v"></i><i class="hero-sk hero-sk--m"></i><i class="hero-sk hero-sk--cb"></i><i class="hero-sk hero-sk--leg"></i></div>
-              <div class="hero-win-row"><i class="hero-sk hero-sk--logo"></i><i class="hero-sk hero-sk--a"></i><i class="hero-sk hero-sk--v"></i><i class="hero-sk hero-sk--m"></i><i class="hero-sk hero-sk--cb"></i><i class="hero-sk hero-sk--leg"></i></div>
+              <div class="hero-card hero-card--sk"><i class="hero-sk hero-sk--logo"></i><i class="hero-sk hero-sk--a"></i><i class="hero-sk hero-sk--v"></i><i class="hero-sk hero-sk--m"></i><i class="hero-sk hero-sk--cb"></i></div>
+              <div class="hero-card hero-card--sk"><i class="hero-sk hero-sk--logo"></i><i class="hero-sk hero-sk--a"></i><i class="hero-sk hero-sk--v"></i><i class="hero-sk hero-sk--m"></i><i class="hero-sk hero-sk--cb"></i></div>
+              <div class="hero-card hero-card--sk"><i class="hero-sk hero-sk--logo"></i><i class="hero-sk hero-sk--a"></i><i class="hero-sk hero-sk--v"></i><i class="hero-sk hero-sk--m"></i><i class="hero-sk hero-sk--cb"></i></div>
+              <div class="hero-card hero-card--sk"><i class="hero-sk hero-sk--logo"></i><i class="hero-sk hero-sk--a"></i><i class="hero-sk hero-sk--v"></i><i class="hero-sk hero-sk--m"></i><i class="hero-sk hero-sk--cb"></i></div>
+              <div class="hero-card hero-card--sk"><i class="hero-sk hero-sk--logo"></i><i class="hero-sk hero-sk--a"></i><i class="hero-sk hero-sk--v"></i><i class="hero-sk hero-sk--m"></i><i class="hero-sk hero-sk--cb"></i></div>
             </div>
           </div>
         </div>
@@ -384,13 +381,11 @@
       <a class="lp-link lp-link--alt" href="pay-report.html" data-pv-ev="actual_pay_contribute_cta"><span class="lp-gg"><span lang="en">Give &amp; Get</span> 全ての待遇データを解放する</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
     </div>
     <div class="lp-panel lp-rp-panel">
+      <!-- ★2026-11-01、本物の「行を押すと出る面」（actual-pay.js の dwHTML）と同じ並びにした。中身は lp.js の fillRealPay が描く（全部サンプル）。
+           ⚠️ 金額を HTML に書かない。#lp-rp-body の高さは lp.css が固定している（描き替えても跳ねない）。 -->
       <div class="lp-rp-card">
-        <div class="lp-rp-top"><span class="lp-rp-h">報酬の内訳</span><span class="lp-tag">サンプル</span></div>
-        <p class="lp-rp-amt"><span class="pv-no-cur" id="lp-rp-amt"></span><span class="lp-rp-u">/ 年</span></p>
-        <p class="lp-rp-meta" id="lp-rp-meta"></p>
-        <div class="lp-rp-bar" id="lp-rp-bar"></div>
-        <ul class="lp-rp-leg" id="lp-rp-leg"><li></li><li></li><li></li></ul>
-        <div class="lp-rp-next"><span class="lp-rp-next-m" id="lp-rp-next-m"></span><span class="lp-rp-next-a pv-no-cur" id="lp-rp-next-a"></span></div>
+        <div class="lp-rp-top"><span class="lp-rp-name" id="lp-rp-name"><i class="hero-sk hero-sk--logo"></i></span><span class="lp-tag">サンプル</span><span class="lp-rp-x" aria-hidden="true">×</span></div>
+        <div class="lp-rp-body" id="lp-rp-body"></div>
       </div>
     </div>
   </div>
@@ -400,11 +395,13 @@
 <!-- ════════════════════════════════════
      ★ #lp-airlines — 112 AIRLINES の節（2026-09-22・Marit のスクショ3の形）
      左＝文章、右＝緑の面と電話（ヒーローと同じ .lp-phone）。
-     ★電話の中は本物の公開データ（salary-data.json の cap.lo〜cap.hi）。だから札は「公開情報」で、「サンプル」とは書かない。
-     ★「平均」と書かない（avg は推計で、公開資料が支えるのは lo〜hi だけ・DATA-PROVENANCE.md）。
+     ★電話の中は本物の2社比較の画面のスライド（2026-11-01）。1枚目 JAL × ANA・2枚目 エミレーツ × ユナイテッド（オーナー指定）・
+       3枚目 キャセイパシフィック × エティハド航空。1枚を押すと、その組の比較の画面（career.html?view=compare&a=…&b=…）が開く。
+       額・社名・写真・クレジットは gen-lp-compare.mjs が career.html から写す（本物の画面と1文字も違わない）。札は比較の画面と同じ「推定年収」。
+     ★「平均」と書かない（avg は推計 ── 比較の画面も「推定年収」と言う）。
      ★社数は data-pv-n="airlines" の印を付けて書く。lp.js が salary-data.json の社数で上書きし、
        assert-claims.mjs が SALARY の社数と照合する（JS を動かさない読み手にも同じ数が見える）。
-     ⚠️ 金額を HTML に書かない（lp.js が pv-no-cur ＋ data-jpy-lo/hi で描く）。
+     ⚠️ スライドの額は HTML に在る（日本語は「¥2,556万」・英語はドルの span）＝ check-salary.mjs が正本と照合する。手で直さない。
 ════════════════════════════════════ -->
 <section id="lp-airlines" class="lp-blk" data-pv-view="airlines_block_view">
   <div class="lp-blk-wrap">
@@ -416,22 +413,72 @@
       <!-- ★2026-09-26・2本目の入口。ここだけは旧版に対応する印が無いので新しい名前。 -->
       <a class="lp-btn lp-btn--alt" href="pay-report.html" data-pv-ev="lp_airlines_contribute"><span class="lp-gg"><span lang="en">Give &amp; Get</span> 全ての待遇データを解放する</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
     </div>
-    <div class="lp-panel lp-air-panel">
-      <div class="lp-phone">
-        <div class="lp-phone-scr lp-air-scr">
-          <i class="lp-phone-pill" aria-hidden="true"></i>
-          <div class="lp-air-bar"><span class="lp-air-name">機長の公開年収レンジ</span><span class="lp-air-tag">公開情報</span></div>
-          <div id="lp-air-rows">
-        <div class="lp-air-row lp-air-row--sk"><i class="lp-sk lp-sk--logo"></i><i class="lp-sk lp-sk--a"></i><i class="lp-sk lp-sk--r"></i><i class="lp-sk lp-sk--b"></i></div>
-        <div class="lp-air-row lp-air-row--sk"><i class="lp-sk lp-sk--logo"></i><i class="lp-sk lp-sk--a"></i><i class="lp-sk lp-sk--r"></i><i class="lp-sk lp-sk--b"></i></div>
-        <div class="lp-air-row lp-air-row--sk"><i class="lp-sk lp-sk--logo"></i><i class="lp-sk lp-sk--a"></i><i class="lp-sk lp-sk--r"></i><i class="lp-sk lp-sk--b"></i></div>
-        <div class="lp-air-row lp-air-row--sk"><i class="lp-sk lp-sk--logo"></i><i class="lp-sk lp-sk--a"></i><i class="lp-sk lp-sk--r"></i><i class="lp-sk lp-sk--b"></i></div>
-        <div class="lp-air-row lp-air-row--sk"><i class="lp-sk lp-sk--logo"></i><i class="lp-sk lp-sk--a"></i><i class="lp-sk lp-sk--r"></i><i class="lp-sk lp-sk--b"></i></div>
-        <div class="lp-air-row lp-air-row--sk"><i class="lp-sk lp-sk--logo"></i><i class="lp-sk lp-sk--a"></i><i class="lp-sk lp-sk--r"></i><i class="lp-sk lp-sk--b"></i></div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- ★2026-11-01、電話の中身を本物の2社比較の画面のスライドにした（オーナー「比較の画面はスライドできる
+         （クリックしたらその比較画面になる）」）。下の印の中は gen-lp-compare.mjs が career.html から写して書く。手で直さない。 -->
+<!--PV-LPCMP-->
+<div class="lp-cmp">
+<div class="lp-panel lp-air-panel">
+<div class="lp-phone">
+<div class="lp-phone-scr lp-cmp-scr">
+<i class="lp-phone-pill" aria-hidden="true"></i>
+<div class="lp-cmp-track" id="lp-cmp-track" aria-label="比較の画面の見本">
+<a class="lp-cmp-s" href="career.html?view=compare&amp;a=jal&amp;b=ana" data-pv-ev="lp_compare_slide" data-pair="日本航空（JAL） × 全日本空輸（ANA）" aria-label="比較の画面を開く：日本航空（JAL）と全日本空輸（ANA）">
+<span class="lp-cmp-back"><svg class="lp-cmp-ic" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>航空会社を選ぶ</span>
+<span class="lp-cmp-h">航空会社を比較</span>
+<span class="lp-cmp-pick"><span class="lp-cmp-side" data-side="a" style="--co:#CC0000"><span class="lp-cmp-p is-ph"><img src="assets/airlines/jal-b787-480.jpg" width="480" height="270" alt="" loading="lazy" decoding="async"/><span class="lp-cmp-code">JAL</span><span class="lp-cmp-n">日本航空（JAL）<svg class="lp-cmp-ic" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span></span></span><span class="lp-cmp-swap" aria-hidden="true"><svg class="lp-cmp-ic" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8h11l-3-3M17 16H6l3 3"/></svg></span><span class="lp-cmp-side" data-side="b" style="--co:#1A6EB5"><span class="lp-cmp-p is-ph"><img src="assets/airlines/ana-b777-480.jpg" width="480" height="320" alt="" loading="lazy" decoding="async"/><span class="lp-cmp-code">ANA</span><span class="lp-cmp-n">全日本空輸（ANA）<svg class="lp-cmp-ic" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span></span></span></span>
+<span class="lp-cmp-panel" style="--div:4">
+<span class="lp-cmp-top"><b class="lp-cmp-ph">年収</b><span class="lp-cmp-k">推定年収</span><span class="lp-cmp-t">機種の指定なし</span></span>
+<span class="lp-cmp-role">機長</span>
+<span class="lp-cmp-pair"><span class="lp-cmp-row" style="--co:#CC0000"><span class="lp-vh">日本航空（JAL）</span><span class="lp-vh">機長</span><b class="lp-cmp-v">¥2,556万</b><span class="lp-cmp-trk" aria-hidden="true"><i style="--w:63.90%"></i></span></span><span class="lp-cmp-row" style="--co:#1A6EB5"><span class="lp-vh">全日本空輸（ANA）</span><span class="lp-vh">機長</span><b class="lp-cmp-v">¥2,841万</b><span class="lp-cmp-trk" aria-hidden="true"><i style="--w:71.03%"></i></span></span></span>
+<span class="lp-cmp-role">副操縦士</span>
+<span class="lp-cmp-pair"><span class="lp-cmp-row" style="--co:#CC0000"><span class="lp-vh">日本航空（JAL）</span><span class="lp-vh">副操縦士</span><b class="lp-cmp-v">¥1,614万</b><span class="lp-cmp-trk" aria-hidden="true"><i style="--w:40.35%"></i></span></span><span class="lp-cmp-row" style="--co:#1A6EB5"><span class="lp-vh">全日本空輸（ANA）</span><span class="lp-vh">副操縦士</span><b class="lp-cmp-v">¥1,560万</b><span class="lp-cmp-trk" aria-hidden="true"><i style="--w:39.00%"></i></span></span></span>
+<span class="lp-cmp-axes"><span class="lp-cmp-axis"><span>0</span><span>¥4,000万</span></span><span class="lp-cmp-axis"><span>0</span><span>¥4,000万</span></span></span>
+<span class="lp-cmp-gos"><span class="lp-cmp-go" style="--co:#CC0000"><span class="lp-cmp-gt"><i class="lp-cmp-gd" aria-hidden="true"></i>詳しく<svg class="lp-cmp-ic" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><span class="lp-cmp-tx">課税（日本）</span></span><span class="lp-cmp-go" style="--co:#1A6EB5"><span class="lp-cmp-gt"><i class="lp-cmp-gd" aria-hidden="true"></i>詳しく<svg class="lp-cmp-ic" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><span class="lp-cmp-tx">課税（日本）</span></span></span>
+</span>
+<span class="lp-cmp-next"><b>提出された年収</b><span lang="en">REAL PAY</span></span>
+</a>
+<a class="lp-cmp-s" href="career.html?view=compare&amp;a=emirates&amp;b=united" data-pv-ev="lp_compare_slide" data-pair="エミレーツ × ユナイテッド航空" aria-label="比較の画面を開く：エミレーツとユナイテッド航空">
+<span class="lp-cmp-back"><svg class="lp-cmp-ic" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>航空会社を選ぶ</span>
+<span class="lp-cmp-h">航空会社を比較</span>
+<span class="lp-cmp-pick"><span class="lp-cmp-side" data-side="a" style="--co:#D4002B"><span class="lp-cmp-p is-ph"><img src="assets/airlines/emirates-b777-480.jpg" width="480" height="270" alt="" loading="lazy" decoding="async"/><span class="lp-cmp-lg"><img src="assets/airline-logos/emirates.svg" width="93" height="64" alt="" loading="lazy" decoding="async"/></span><span class="lp-cmp-n">エミレーツ<svg class="lp-cmp-ic" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span></span></span><span class="lp-cmp-swap" aria-hidden="true"><svg class="lp-cmp-ic" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8h11l-3-3M17 16H6l3 3"/></svg></span><span class="lp-cmp-side" data-side="b" style="--co:#005DAA"><span class="lp-cmp-p is-ph"><img src="assets/airlines/united-b737max-480.jpg" width="480" height="315" alt="" loading="lazy" decoding="async"/><span class="lp-cmp-lg"><img src="assets/airline-logos/united.svg" width="337" height="64" alt="" loading="lazy" decoding="async"/></span><span class="lp-cmp-n">ユナイテッド航空<svg class="lp-cmp-ic" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span></span></span></span>
+<span class="lp-cmp-panel" style="--div:9">
+<span class="lp-cmp-top"><b class="lp-cmp-ph">年収</b><span class="lp-cmp-k">推定年収</span><span class="lp-cmp-t">機種の指定なし</span></span>
+<span class="lp-cmp-role">機長</span>
+<span class="lp-cmp-pair"><span class="lp-cmp-row" style="--co:#D4002B"><span class="lp-vh">エミレーツ</span><span class="lp-vh">機長</span><b class="lp-cmp-v">¥5,130万</b><span class="lp-cmp-trk" aria-hidden="true"><i style="--w:57.00%"></i></span></span><span class="lp-cmp-row" style="--co:#005DAA"><span class="lp-vh">ユナイテッド航空</span><span class="lp-vh">機長</span><b class="lp-cmp-v">¥6,390万</b><span class="lp-cmp-trk" aria-hidden="true"><i style="--w:71.00%"></i></span></span></span>
+<span class="lp-cmp-role">副操縦士</span>
+<span class="lp-cmp-pair"><span class="lp-cmp-row" style="--co:#D4002B"><span class="lp-vh">エミレーツ</span><span class="lp-vh">副操縦士</span><b class="lp-cmp-v">¥3,900万</b><span class="lp-cmp-trk" aria-hidden="true"><i style="--w:43.33%"></i></span></span><span class="lp-cmp-row" style="--co:#005DAA"><span class="lp-vh">ユナイテッド航空</span><span class="lp-vh">副操縦士</span><b class="lp-cmp-v">¥3,980万</b><span class="lp-cmp-trk" aria-hidden="true"><i style="--w:44.22%"></i></span></span></span>
+<span class="lp-cmp-axes"><span class="lp-cmp-axis"><span>0</span><span>¥9,000万</span></span><span class="lp-cmp-axis"><span>0</span><span>¥9,000万</span></span></span>
+<span class="lp-cmp-gos"><span class="lp-cmp-go" style="--co:#D4002B"><span class="lp-cmp-gt"><i class="lp-cmp-gd" aria-hidden="true"></i>詳しく<svg class="lp-cmp-ic" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><span class="lp-cmp-tx">非課税（UAE に個人所得税なし）</span></span><span class="lp-cmp-go" style="--co:#005DAA"><span class="lp-cmp-gt"><i class="lp-cmp-gd" aria-hidden="true"></i>詳しく<svg class="lp-cmp-ic" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><span class="lp-cmp-tx">課税（米国）</span></span></span>
+</span>
+<span class="lp-cmp-next"><b>提出された年収</b><span lang="en">REAL PAY</span></span>
+</a>
+<a class="lp-cmp-s" href="career.html?view=compare&amp;a=cathay-pacific&amp;b=etihad" data-pv-ev="lp_compare_slide" data-pair="キャセイパシフィック × エティハド航空" aria-label="比較の画面を開く：キャセイパシフィックとエティハド航空">
+<span class="lp-cmp-back"><svg class="lp-cmp-ic" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>航空会社を選ぶ</span>
+<span class="lp-cmp-h">航空会社を比較</span>
+<span class="lp-cmp-pick"><span class="lp-cmp-side" data-side="a" style="--co:#006564"><span class="lp-cmp-p is-ph"><img src="assets/airlines/cathay-a350-480.jpg" width="480" height="320" alt="" loading="lazy" decoding="async"/><span class="lp-cmp-code">CX</span><span class="lp-cmp-n">キャセイパシフィック<svg class="lp-cmp-ic" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span></span></span><span class="lp-cmp-swap" aria-hidden="true"><svg class="lp-cmp-ic" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8h11l-3-3M17 16H6l3 3"/></svg></span><span class="lp-cmp-side" data-side="b" style="--co:#B08D57"><span class="lp-cmp-p is-ph"><img src="assets/airlines/etihad-a350-480.jpg" width="480" height="320" alt="" loading="lazy" decoding="async"/><span class="lp-cmp-code">EY</span><span class="lp-cmp-n">エティハド航空<svg class="lp-cmp-ic" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span></span></span></span>
+<span class="lp-cmp-panel" style="--div:8">
+<span class="lp-cmp-top"><b class="lp-cmp-ph">年収</b><span class="lp-cmp-k">推定年収</span><span class="lp-cmp-t">機種の指定なし</span></span>
+<span class="lp-cmp-role">機長</span>
+<span class="lp-cmp-pair"><span class="lp-cmp-row" style="--co:#006564"><span class="lp-vh">キャセイパシフィック</span><span class="lp-vh">機長</span><b class="lp-cmp-v">¥5,070万</b><span class="lp-cmp-trk" aria-hidden="true"><i style="--w:63.38%"></i></span></span><span class="lp-cmp-row" style="--co:#B08D57"><span class="lp-vh">エティハド航空</span><span class="lp-vh">機長</span><b class="lp-cmp-v">¥3,400万</b><span class="lp-cmp-trk" aria-hidden="true"><i style="--w:42.50%"></i></span></span></span>
+<span class="lp-cmp-role">副操縦士</span>
+<span class="lp-cmp-pair"><span class="lp-cmp-row" style="--co:#006564"><span class="lp-vh">キャセイパシフィック</span><span class="lp-vh">副操縦士</span><b class="lp-cmp-v">¥2,400万</b><span class="lp-cmp-trk" aria-hidden="true"><i style="--w:30.00%"></i></span></span><span class="lp-cmp-row" style="--co:#B08D57"><span class="lp-vh">エティハド航空</span><span class="lp-vh">副操縦士</span><b class="lp-cmp-v">¥2,358万</b><span class="lp-cmp-trk" aria-hidden="true"><i style="--w:29.48%"></i></span></span></span>
+<span class="lp-cmp-axes"><span class="lp-cmp-axis"><span>0</span><span>¥8,000万</span></span><span class="lp-cmp-axis"><span>0</span><span>¥8,000万</span></span></span>
+<span class="lp-cmp-gos"><span class="lp-cmp-go" style="--co:#006564"><span class="lp-cmp-gt"><i class="lp-cmp-gd" aria-hidden="true"></i>詳しく<svg class="lp-cmp-ic" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><span class="lp-cmp-tx">課税（香港）</span></span><span class="lp-cmp-go" style="--co:#B08D57"><span class="lp-cmp-gt"><i class="lp-cmp-gd" aria-hidden="true"></i>詳しく<svg class="lp-cmp-ic" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><span class="lp-cmp-tx">非課税（UAE に個人所得税なし）</span></span></span>
+</span>
+<span class="lp-cmp-next"><b>提出された年収</b><span lang="en">REAL PAY</span></span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<div class="lp-cmp-nav" id="lp-cmp-nav">
+<button type="button" class="lp-cmp-arw" id="lp-cmp-prev" aria-label="前の比較" disabled><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+<span class="lp-cmp-mid"><span class="lp-cmp-now" id="lp-cmp-now" aria-live="polite">日本航空（JAL） × 全日本空輸（ANA）</span><span class="lp-cmp-dots"><button type="button" class="lp-cmp-dot" aria-label="日本航空（JAL） × 全日本空輸（ANA）" aria-current="true"></button><button type="button" class="lp-cmp-dot" aria-label="エミレーツ × ユナイテッド航空"></button><button type="button" class="lp-cmp-dot" aria-label="キャセイパシフィック × エティハド航空"></button></span></span>
+<button type="button" class="lp-cmp-arw" id="lp-cmp-next" aria-label="次の比較"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+</div>
+<p class="lp-cmp-credits" id="lp-cmp-credits"><span data-n="1" hidden>写真（縮小・トリミング）</span><span data-n="2">写真（縮小・トリミング）</span> <span class="lp-cmp-cr" data-slide="0">日本航空（JAL） <a href="https://commons.wikimedia.org/wiki/File:Japan_Airlines_Boeing_787-9_JA881J_on_final_approach_to_Boston_April_2022.jpg" target="_blank" rel="noopener">4300streetcar</a>／<a href="https://creativecommons.org/licenses/by/4.0" target="_blank" rel="noopener">CC BY 4.0</a></span> <span class="lp-cmp-cr" data-slide="0">全日本空輸（ANA） <a href="https://commons.wikimedia.org/wiki/File:All_Nippon_Airways,_Boeing_777-300ER_JA792A_NRT_(26845813980).jpg" target="_blank" rel="noopener">Masakatsu Ukon</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span> <span class="lp-cmp-cr" data-slide="1" hidden>エミレーツ <a href="https://commons.wikimedia.org/wiki/File:(SGP-Singapore)_Emirates_Boeing_777-31HER_A6-EGU_@_WSSS_2026-09-03.jpg" target="_blank" rel="noopener">S5A-0043</a>／<a href="https://creativecommons.org/licenses/by/4.0" target="_blank" rel="noopener">CC BY 4.0</a></span> <span class="lp-cmp-cr" data-slide="2" hidden>キャセイパシフィック <a href="https://commons.wikimedia.org/wiki/File:Cathay_Pacific_Airbus_A350-1000_B-LXB.jpg" target="_blank" rel="noopener">Melv_L - MACASR</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span> <span class="lp-cmp-cr" data-slide="2" hidden>エティハド航空 <a href="https://commons.wikimedia.org/wiki/File:Etihad_Airways,_A6-XWA,_Airbus_A350-1041.jpg" target="_blank" rel="noopener">Anna Zvereva</a>／<a href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a></span></p>
+</div>
+<!--/PV-LPCMP-->
   </div>
 </section>
 
@@ -911,7 +958,7 @@ if (window.PVReferral) window.PVReferral.mountStrip();</script>
 </script>
 <!-- 口コミの日↔英出し分け（lp.js が Pilot Voices で使う）。currency.js より前に置く。 -->
 <script src="review-i18n.js"></script>
-<script defer src="lp.js"></script>
+<script defer src="lp.js?v=34845177"></script>
 <script src="currency.js"></script>
 <!-- PV-NAV: ナビの開け閉め。★search.js より**後**に読む ──
      あちらが作った ≡ を繋ぎ直すため（先に読むと search.js:416 の二重注入ガードで

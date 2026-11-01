@@ -63,6 +63,9 @@ const GENERATORS = [
      career.css / career.js の指紋（?v=）もここが書く。画像ファイルは読まない（このコピーに画像は無い）。
      ★2026-10-25 英語の EN-9：同じ1本が英語の1枚（en/career.html ── 同じ部品・字だけ英語・額はドルの span）も書く（2枚）。 */
   ['gen-career.mjs',      'career.html と en/career.html（概要と2社比較の1枚・日英の2枚）'],
+  /* 2026-11-01。トップの「世界の航空会社を比較できる」のスライドは career.html から写す。年収・社名・写真を直して career.html を
+     作り直したのに流し忘れると、トップだけ古い額が残る（必ず gen-career.mjs の後ろ）。 */
+  ['gen-lp-compare.mjs',  'index.html と en/index.html の比較のスライド（<!--PV-LPCMP-->）'],
   /* 2026-10-18（WP-close-a）。会社ページの暮らしのカードの街を直したのに流し忘れると、サーバの街の候補の種だけ古いまま残る。 */
   ['gen-towns.mjs',       'db/towns.generated.sql（暮らしのカードの街 → サーバの街の候補の種）'],
   /* 2026-10-29。就航地を出す会社を 19 → 96社に広げたとき、db/stays.sql の手で写した一覧（運営の「追加」が公開で入れてよい空港）を

@@ -440,6 +440,24 @@
     @media (min-width:768px) and (max-width:1099px) and (min-height:1000px){
       #hero-section .hero-h1{ font-size:clamp(34px,5.2vw,50px); }
     }
+    /* ★2026-11-01 オーナー確定の見出し（日本語「コックピットでの噂、それ本当？／待遇を実データで。」・英語
+         「Enough cockpit rumors.／Real data on pay and conditions.」）。1文＝1行・見出し全体で2行・2文とも同じ大きさと太さ。
+         文字の大きさは**文章の欄の幅**から決める（.hero-copy は上で container:herocopy ── cqw はその幅の 1%）。
+         目安は PC の約520px の欄で約33px・390px のスマホで約22px（オーナーの指示書）。
+         ⚠️ 上の .hero-h1 の大きさ（3つの @media）より強い指定（class 2つ）なので、並びに関係なくこちらが効く。
+         ⚠️ 320px より狭い画面だけ折り返しを許す（切れる・横に送れるよりよい）。 */
+    #hero-section .hero-h1.hero-h1--two-lines{ font-size:clamp(16px,2.3vw,34px); width:100%; max-width:none;
+      line-height:1.2; letter-spacing:-.02em; }
+    #hero-section .hero-h1--two-lines .hero-sentence{ display:block; width:max-content; white-space:nowrap; }
+    @media (max-width:900px){
+      #hero-section .hero-h1.hero-h1--two-lines{ font-size:clamp(16px,5.4vw,34px); }
+    }
+    @supports (font-size:1cqw){
+      #hero-section .hero-h1.hero-h1--two-lines{ font-size:clamp(16px,6.3cqw,34px); }
+    }
+    @media (max-width:319px){
+      #hero-section .hero-h1--two-lines .hero-sentence{ width:auto; white-space:normal; }
+    }
     #hero-section .hero-lede{ margin:18px 0 0; max-width:31em;
       font-size:clamp(16px,1.3vw,18.5px); line-height:1.75; font-weight:500;
       color:var(--pv-text-muted); word-break:auto-phrase; line-break:strict; text-wrap:pretty; }
@@ -655,132 +673,71 @@
     #hero-section .lp-phone::after{ top:104px; height:41px; }
     #hero-section .hero-shot:hover .lp-phone{ transform:translateY(-6px); }
     #hero-section .hero-shot:active .lp-phone{ transform:translateY(-2px) scale(.995); }
-    #hero-section .hero-win{ container:heroui / inline-size; }
-    #hero-section .hero-win-bar{ display:flex; align-items:center; gap:10px; height:38px; padding:0 14px;
-      border-bottom:1px solid var(--pv-border); }
-    #hero-section .hero-win-name{ display:inline-flex; align-items:center; gap:8px;
-      font-size:11.5px; font-weight:700; letter-spacing:.12em; color:var(--pv-text); }
-    #hero-section .hero-win-name::before{ content:''; width:8px; height:8px; border-radius:999px;
-      background:var(--pv-accent); box-shadow:0 0 0 3px var(--pv-accent-soft); }
+    /* ★2026-11-01 オーナー指示「real pay とか…実際に即していない」── 画面の中を本物の REAL PAY のスマホ（actual-pay.css の
+         @media (max-width:720px) のカード）と同じ形にした。地は本物のページと同じ灰色（--pv-bg）・カードは白・額は REAL PAY の橙。
+         見出しは本物の「REAL PAY」（太字と、その下の橙の線）。電話の外寸（268×496）と緑の面は 1px も変えていない。
+       ★カード 76px × 5枚 ＋ あいだ 6px × 4 ＋ 上 6px ＝ 410px ＝ 前の中身の合計と同じ（行 66 × 4 ＋ 開いた面 146）。
+         灰色の骨組みのカード（.hero-card--sk）も同じ 76px ＝ 描き替えても跳ねない（CLS）。
+       ⚠️ 枚数を変えたら index.html / en/index.html の骨組みと lp.js の PV_DEMO.hero.rows も一緒に直す。
+       ⚠️ 本物の行の中に「開いた面」は無い（押すと別の面が開く）。行の中に差し込む形に戻さない。 */
+    #hero-section .hero-win{ background:var(--pv-bg); }
+    #hero-section .hero-win-bar{ display:flex; align-items:center; height:38px; padding:0 12px 4px; }
+    #hero-section .hero-win-name{ position:relative; font-family:'Inter',sans-serif; font-size:15px; font-weight:800;
+      line-height:1; letter-spacing:-.01em; color:var(--pv-ink); }
+    #hero-section .hero-win-name::after{ content:''; position:absolute; left:0; right:0; bottom:-6px; height:2.5px;
+      border-radius:2px; background:var(--pv-orange); }
     /* ★2026-09-23、オーナー指示で「サンプル」の札（.hero-win-tag）を消した。
        見本だと分かる仕掛けは**金額を HTML に書かないこと**のほうで、札はその代わりではない。
        札を戻したくなったら、まず index.html のコメントを読む。 */
-    /* 1行＝4段。ロゴ／社名・年収／職位・機種・年数／内訳のミニ棒／凡例と月あたり。
-       ★行の高さは固定（66px）。灰色の棒の行と本物の行が同じ高さ＝描き替えてもガタつかない。
-         中身は 24.7(年収) + 2 + 13.7(添え字) + 2 + 8(棒) + 2 + 14(凡例) = 66.4 ≒ 66
-         （上の2段は grid の同じ段に重なる。年収 19px × 1.3 が段の高さを決める）。
-       ⚠️ 電話を縦 1.2 倍にしたときは 52 のまま**行を1本増やした**。2026-09-23 に
-          中身を厚くしたときは逆に **66px × 4本**にして、合計 410px を保った（上のコメント）。
-       ★どの子がどこへ行くかはクラスで決める（HTML の並びに頼らない）。 */
-    #hero-section .hero-win-row{ display:grid; height:66px; padding:0 14px;
-      grid-template-columns:30px minmax(0,1fr) auto;
-      grid-template-areas:"logo an amt" "logo meta meta" "cb cb cb" "leg leg leg";
-      align-content:center; column-gap:11px; row-gap:2px; }
-    #hero-section .hero-win-row + .hero-win-row{ border-top:1px solid var(--pv-border); }
-    /* ★2026-09-23 オーナー指示「電話の中の画面は年収とちゃんとバーが見えるように。
-         基本給とか変動給、その他が見えるバー作ったじゃん」── 1行目を**押して開いた状態**で置き、
-       その下に報酬の内訳の帯を出す（REAL PAY の節の白いカードと同じ区分・同じ色）。
-       ★2026-09-23、区分ごとの金額の帯と％を足した（本物の payHTML と同じ形）。
-       ★高さは固定（146px）。灰色の骨組みにも同じ 146px の箱が1つ置いてある＝描き替えても跳ねない。
-         中身は 14.7(見出し) + 10(帯) + 68.8(一覧 ＝ 17.6 × 3行 + 中の gap 8 × 2) + 12.6(注記)
-         = 106.1px、外の row-gap 10px × 3 = 30 → 136.1px なので 146 に収まる
-         （残る約 10px は align-content:center が上下へ 5px ずつ配る。本物の面も中央寄せ）。
-       ⚠️ 本数・位置を変えるときは index.html / en/index.html の骨組みと
-          lp.js の PV_DEMO.hero.rows / .open も一緒に直す（片方だけだと CLS）。 */
-    #hero-section .hero-win-row.is-open{ background:var(--pv-accent-soft); }
-    #hero-section .hero-win-open{ display:grid; height:146px; padding:0 14px; align-content:center; row-gap:10px;
-      background:var(--pv-accent-soft); border-bottom:1px solid var(--pv-border); }
-    #hero-section .hero-win-open-h{ font-size:10.5px; font-weight:700; line-height:1.4; letter-spacing:.06em;
-      color:var(--pv-accent-ink); }
-    /* ⚠️ **開いた面に色の棒を置かない**（2026-09-23 オーナー指摘「なぜ最初の hero で
-         emirates のバーが二本もあるんだ？」）。棒は行の中（.hero-win-cb）に既にあり、
-         開いた面はそのすぐ下＝同じ絵が 40px 差で2回出ていた。
-       本物（actual-pay.js の payHTML）は開いた面にも棒を描くが、あちらの面は**別の板**で
-       カードの棒と並ばない。ここは行の直下に差し込む形なので、重なるほうだけを落とす。
-       一覧の丸（.hero-win-li-k i）が棒と同じ色なので、色の対応は丸だけで読める。
-       ★棒を戻すなら HTML の骨組みの --seg と lp.js の heroOpen も一緒に戻す（片方だけだと CLS）。
-       開いた面の一覧（区分・金額の帯・％）。本物の payHTML の ap-dw-row と同じ並び。
-       金額は tabular-nums で桁を揃える（通貨を切り替えても右端が暴れない）。 */
-    #hero-section .hero-win-list{ display:grid; row-gap:11px; }
-    #hero-section .hero-win-li{ display:grid; align-items:center; column-gap:6px;
-      grid-template-columns:auto minmax(0,1fr) auto; font-size:11px; line-height:1.6; }
-    #hero-section .hero-win-li-k{ display:inline-flex; align-items:center; gap:5px; white-space:nowrap;
-      color:var(--pv-text-muted); }
-    #hero-section .hero-win-li-k i{ flex:none; width:7px; height:7px; border-radius:999px; }
-    #hero-section .hero-win-li-v{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-      text-align:right; font-weight:600; font-variant-numeric:tabular-nums; color:var(--pv-text); }
-    #hero-section .hero-win-li-p{ white-space:nowrap; font-weight:700;
-      font-variant-numeric:tabular-nums; color:var(--pv-accent-ink); }
-    /* 「構成比は概算です」。本物の T.dwShare を 228px 用に短く言い直したもの（lp.js の T.openNote）。 */
-    #hero-section .hero-win-note{ font-size:9px; line-height:1.4; color:var(--pv-text-muted); }
-    /* 行の中の内訳のミニ棒と凡例（本物の cardCompHTML と同じ）。棒は開いた面より薄い 8px。 */
-    #hero-section .hero-win-cb{ grid-area:cb; display:flex; gap:2px; height:8px; border-radius:999px;
-      overflow:hidden; background:var(--pv-surface); }
-    #hero-section .hero-win-cb i{ display:block; min-width:5px; }
-    #hero-section .hero-win-cbl{ grid-area:leg; display:flex; align-items:center; gap:9px; overflow:hidden;
-      font-size:10px; line-height:1.4; color:var(--pv-text-muted); }
-    #hero-section .hero-win-cbi{ display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
-    #hero-section .hero-win-cbi i{ flex:none; width:7px; height:7px; border-radius:999px; }
-    #hero-section .hero-win-cbi b{ font-weight:700; color:var(--pv-text); }
-    #hero-section .hero-win-cbm{ white-space:nowrap; }
-    /* 月あたり。凡例の段の右端へ寄せる（行の上の段は社名と年収で埋まっていて入らない）。 */
-    #hero-section .hero-win-mon{ display:inline-flex; align-items:center; gap:5px; margin-left:auto;
-      white-space:nowrap; font-variant-numeric:tabular-nums; color:var(--pv-text); }
-    /* 欄の見出し語（本物のカードの ap-cl と同じ役目）。 */
-    #hero-section .hero-win-cl{ font-size:9px; font-weight:600; letter-spacing:.04em;
-      color:var(--pv-text-muted); }
-    /* 灰色の骨組み側。高さと段の数を上と合わせる（ここが本物とずれると描き替えで跳ねる）。 */
-    #hero-section .hero-sk--h{ width:52px; height:8px; }
-    #hero-section .hero-sk--li{ width:100%; height:12px; }
-    #hero-section .hero-sk--note{ width:46%; height:7px; }
-    #hero-section .hero-win-logo, #hero-section .hero-sk--logo{ grid-area:logo; align-self:center; }
-    #hero-section .hero-win-an, #hero-section .hero-sk--a{ grid-area:an; align-self:center; }
-    #hero-section .hero-win-amt, #hero-section .hero-sk--v{ grid-area:amt; align-self:center; }
-    #hero-section .hero-win-meta, #hero-section .hero-sk--m{ grid-area:meta; align-self:center; }
-    #hero-section .hero-sk--cb{ grid-area:cb; align-self:center; }
-    #hero-section .hero-sk--leg{ grid-area:leg; align-self:center; }
-    :is(#hero-section,#lp-airlines) .hero-win-logo{ flex:none; width:30px; height:30px; object-fit:contain;
-      border-radius:8px; background:#fff; padding:3px; border:1px solid var(--pv-border); }
-    :is(#hero-section,#lp-airlines) .hero-win-mono{ display:inline-grid; place-items:center; padding:0;
+    #hero-section #hero-win-rows{ display:grid; row-gap:6px; padding:6px 10px 0; }
+    /* 1枚 ＝ 3段（本物の .ap-r と同じ並び）：「社名 ｜ 年収 ｜ ›」／「職位 · 機材 ｜ ›」／「内訳の棒と凡例」。 */
+    #hero-section .hero-card{ box-sizing:border-box; display:grid; height:76px; padding:5px 9px;
+      grid-template-columns:minmax(0,1fr) auto 22px; grid-template-areas:"air amt go" "pos pos go" "vf vf vf";
+      column-gap:7px; row-gap:1px; align-content:center;
+      background:var(--pv-surface); border:1px solid var(--pv-line); border-radius:12px; box-shadow:var(--pv-shadow); }
+    #hero-section .hero-c-air{ grid-area:air; display:flex; align-items:center; gap:6px; min-width:0; }
+    #hero-section .hero-c-air .hero-win-logo{ width:20px; height:20px; padding:2px; border-radius:5px; }
+    #hero-section .hero-c-air .hero-win-mono{ font-size:8px; }
+    /* 社名は本物と同じく折り返す（2行まで。「全日本空輸（ANA）」を「全日本空輸…」と切らない）。2行でも 76px に収まる。 */
+    #hero-section .hero-c-an{ min-width:0; overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2;
+      font-size:11px; font-weight:700; line-height:1.15; letter-spacing:-.01em; color:var(--pv-ink);
+      line-break:strict; word-break:auto-phrase; overflow-wrap:anywhere; }
+    #hero-section .hero-c-amt{ grid-area:amt; align-self:center; white-space:nowrap; text-align:right; }
+    #hero-section .hero-c-cl{ margin-right:3px; font-size:7px; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+      color:var(--pv-ink-3); }
+    #hero-section .hero-c-v{ font-family:'Inter',sans-serif; font-size:14px; font-weight:800; line-height:1.2; letter-spacing:-.02em;
+      font-variant-numeric:tabular-nums; color:var(--pv-orange-ink); }
+    #hero-section .hero-c-go{ grid-area:go; align-self:center; justify-self:end; display:grid; place-items:center;
+      width:22px; height:22px; border:1px solid var(--pv-line); border-radius:999px; background:var(--pv-surface);
+      font-size:13px; font-weight:700; line-height:1; color:var(--pv-ink-3); }
+    #hero-section .hero-c-pos{ grid-area:pos; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+      font-size:9.5px; line-height:1.4; color:var(--pv-ink); }
+    #hero-section .hero-c-flt{ font-weight:600; color:var(--pv-ink-3); }
+    #hero-section .hero-c-flt::before{ content:'\00B7'; margin:0 4px; }
+    #hero-section .hero-c-vf{ grid-area:vf; display:block; min-width:0; margin-top:4px; }
+    #hero-section .hero-c-cb{ display:flex; height:5px; border-radius:999px; overflow:hidden;
+      background:var(--pv-surface-2); box-shadow:inset 0 0 0 1px var(--pv-line); }
+    #hero-section .hero-c-cb i{ display:block; min-width:3px; }
+    #hero-section .hero-c-cb i + i{ box-shadow:inset 1px 0 0 var(--pv-surface); }
+    #hero-section .hero-c-cbl{ display:flex; align-items:center; gap:6px; margin-top:3px; overflow:hidden; white-space:nowrap;
+      font-size:8.5px; font-weight:600; line-height:1.3; color:var(--pv-ink-3); }
+    #hero-section .hero-c-cbi{ display:inline-flex; align-items:center; gap:4px; }
+    #hero-section .hero-c-cbi i{ flex:none; width:6px; height:6px; border-radius:999px; }
+    #hero-section .hero-c-cbi b{ font-weight:800; color:var(--pv-ink-2); font-variant-numeric:tabular-nums; }
+    /* 骨組み（lp.js が描くまで）。高さは本物のカードと同じ 76px。 */
+    #hero-section .hero-card--sk{ grid-template-columns:20px minmax(0,1fr) auto; grid-template-areas:"lg a v" "m m m" "cb cb cb";
+      row-gap:7px; }
+    #hero-section .hero-sk{ display:block; height:8px; border-radius:6px; background:var(--pv-border); }
+    #hero-section .hero-sk--logo{ grid-area:lg; width:20px; height:20px; border-radius:5px; }
+    #hero-section .hero-sk--a{ grid-area:a; width:62%; align-self:center; }
+    #hero-section .hero-sk--v{ grid-area:v; width:54px; height:11px; align-self:center; }
+    #hero-section .hero-sk--m{ grid-area:m; width:58%; height:7px; }
+    #hero-section .hero-sk--cb{ grid-area:cb; width:100%; height:5px; }
+    /* ロゴの札（ヒーローの電話と REAL PAY の節の白いカードで同じ見た目）。 */
+    :is(#hero-section,#lp-realpay) .hero-win-logo{ flex:none; width:30px; height:30px; object-fit:contain;
+      border-radius:8px; background:#fff; padding:3px; border:1px solid var(--pv-border); box-sizing:border-box; }
+    :is(#hero-section,#lp-realpay) .hero-win-mono{ display:inline-grid; place-items:center; padding:0;
       font-size:10.5px; font-weight:700; color:var(--pv-text-muted); background:var(--pv-surface-soft); }
-    #hero-section .hero-win-an,
-    #hero-section .hero-win-meta{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    /* ★2026-09-23、文字の大小を Marit の iPhone 版に倣って付け直した（オーナー指示
-         「文字の大きさとか参考にして」）。あちらは1画面に**大きい数字が1つだけ**あり、
-         まわりは全部小さい。電話の幅は 268px のまま（オーナー「文字は小さくなっても良い」）。
-         年収 15 → **19px**（画面で唯一の大きい数字）／社名 14 → 12.5／添え字 12 → 10.5。 */
-    /* 年収が 19px になったぶん、社名に回せる幅が 8px 減った。字間を少し詰めて margin も削り、
-       「All Nippon Airways」が「All Nippon Airw…」にならないようにする（英語がいちばん長い）。 */
-    #hero-section .hero-win-an{ font-size:12.5px; font-weight:600; line-height:1.3;
-      letter-spacing:-.01em; color:var(--pv-text); }
-    #hero-section .hero-win-meta{ font-size:10.5px; line-height:1.3; color:var(--pv-text-muted); }
-    #hero-section .hero-win-amt{ margin-left:4px; text-align:right; white-space:nowrap;
-      font-size:19px; font-weight:700; line-height:1.25; letter-spacing:-.02em;
-      font-variant-numeric:tabular-nums; color:var(--pv-text); }
-    /* lp.js が描くまでの灰色の棒。 */
-    #hero-section .hero-sk{ display:block; height:9px; border-radius:6px; background:var(--pv-border); }
-    #hero-section .hero-sk--logo{ width:30px; height:30px; border-radius:8px; }
-    #hero-section .hero-sk--a{ width:62%; }
-    #hero-section .hero-sk--m{ width:48%; }
-    #hero-section .hero-sk--v{ width:58px; margin-left:4px; }
-    #hero-section .hero-sk--cb{ width:100%; height:8px; }
-    #hero-section .hero-sk--leg{ width:70%; height:8px; }
-    /* 画面が狭いとき（スマホの 360px 前後）は左右の余白を詰める＝社名を切らない。
-       ⚠️ 2026-09-23 に電話を 332 → 268px にしたので、画面の内幅は常に 256px ＝ この段は
-          どの幅でも効いている（中の値は上の基準値と同じにしてあるので見た目は変わらない）。 */
-    @container heroui (max-width:279px){
-      #hero-section .hero-win-row{ padding:0 14px; column-gap:9px; }
-      #hero-section .hero-win-bar, #hero-section .hero-win-open{ padding:0 14px; }
-    }
-    /* 画面がとても狭いとき（幅 240px 未満）は、社名と年収だけにする。
-       ⚠️ いまはどの幅でも発動しない（電話の内幅は常に 256px）。将来ここを狭めたときのため、
-          2026-09-23 に足した内訳の棒・凡例・月あたりも一緒に消す行を入れてある。 */
-    @container heroui (max-width:239px){
-      #hero-section .hero-win-row{ grid-template-areas:"logo an amt"; }
-      #hero-section .hero-win-meta, #hero-section .hero-sk--m,
-      #hero-section .hero-win-cb, #hero-section .hero-sk--cb,
-      #hero-section .hero-win-cbl, #hero-section .hero-sk--leg{ display:none; }
-    }
 
     /* 狭い幅：1列。★2026-09-23、開いた面（98px）と6行目を足して電話が 346 → 496px になった。
        広い幅と同じ -38px で切るとスマホの緑の面が 340 → 490px になるので、**ここだけ深く切る**
@@ -790,6 +747,7 @@
          ＝ 1行目(66) + 開いた面(146) + 2行目の上 62px（2026-09-23 に中身を厚くした後の内訳。
            電話の高さも緑の面も 1px も動いていない）。
          ★オーナー指示の「年収とバー」はスマホでも最初に目に入る位置に残る。
+         ★2026-11-01 から中身はカード 76px × 5枚（デスクトップは3枚と4枚目の頭・スマホは3枚と4枚目の上 28px）。
        ⚠️ スマホでは電話は帯2本の**後ろ**にある＝ここが伸び縮みしても帯の位置は動かない。 */
     @media (max-width:767px){
       #hero-section .hero-panel{ padding:32px 20px 0; border-radius:22px; }
@@ -853,6 +811,7 @@
       #lp-airlines .lp-blk-wrap{ grid-template-columns:minmax(0,.92fr) minmax(0,1fr); grid-template-areas:"copy panel"; column-gap:80px; }
       :is(#lp-realpay,#lp-airlines) .lp-blk-copy{ grid-area:copy; }
       :is(#lp-realpay,#lp-airlines) .lp-panel{ grid-area:panel; }
+      #lp-airlines .lp-cmp{ grid-area:panel; }
     }
     /* ⚠️ flex にしない。「<span data-pv-n>112</span> AIRLINES」の空白が消えて gap に置き換わる。 */
     :is(#lp-realpay,#lp-airlines,#lp-explore,#lp-why) .lp-eyebrow{ display:block; margin:0 0 18px;
@@ -923,30 +882,46 @@
         0 2px 4px rgba(2,40,33,.18),
         0 24px 48px -20px rgba(2,48,40,.55),
         0 60px 90px -40px rgba(1,36,30,.55); }
+    /* ★2026-11-01、本物の面（actual-pay.css の .ap-dw-*）と同じ並び・同じ字の強弱にした ──
+         ロゴ・社名・「サンプル」の札・× ／ 職位 · 機材 · 年数 ／ 年収と月あたりの箱 ／ 報酬の内訳（橙の小見出し・棒・注記・区分ごとの帯と％）。
+       ★× は絵（押せない）。カードは見本なので、押して何かが起きる部品を置かない。
+       ★本体（#lp-rp-body）の高さは先に取ってある（lp.js が描いても跳ねない）。下は緑の面で切る＝続きがあると読める。 */
     #lp-realpay .lp-rp-top{ display:flex; align-items:center; gap:10px; }
-    #lp-realpay .lp-rp-h{ font-size:12.5px; font-weight:600; letter-spacing:.02em; color:var(--pv-text-muted); }
+    #lp-realpay .lp-rp-name{ display:flex; align-items:center; gap:10px; min-width:0; }
+    #lp-realpay .lp-rp-name .hero-sk{ display:block; width:30px; height:30px; border-radius:8px; background:var(--pv-border); }
+    #lp-realpay .lp-rp-an{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+      font-size:16.5px; font-weight:800; letter-spacing:-.01em; color:var(--pv-ink); }
     /* 「サンプル」の札はカードに1回だけ。 */
-    #lp-realpay .lp-tag{ margin-left:auto; padding:3px 10px; border-radius:999px;
+    #lp-realpay .lp-tag{ flex:none; margin-left:auto; padding:3px 10px; border-radius:999px;
       font-size:11px; font-weight:600; line-height:1.4; letter-spacing:.02em;
       background:var(--pv-surface-soft); color:var(--pv-text-muted); box-shadow:inset 0 0 0 1px var(--pv-border); }
-    #lp-realpay .lp-rp-amt{ margin:10px 0 0; min-height:40px; font-size:34px; font-weight:700; line-height:1.15;
-      letter-spacing:-.02em; font-variant-numeric:tabular-nums; color:var(--pv-text); }
-    #lp-realpay .lp-rp-u{ margin-left:6px; font-size:14px; font-weight:500; letter-spacing:0; color:var(--pv-text-muted); }
-    #lp-realpay .lp-rp-meta{ margin:4px 0 0; min-height:20px; font-size:13.5px; line-height:1.5; color:var(--pv-text-muted); }
-    #lp-realpay .lp-rp-bar{ display:flex; height:12px; margin-top:18px; border-radius:999px; overflow:hidden;
-      background:var(--pv-surface-soft); }
+    #lp-realpay .lp-rp-x{ flex:none; display:grid; place-items:center; width:32px; height:32px;
+      border:1px solid var(--pv-line); border-radius:10px; font-size:17px; line-height:1; color:var(--pv-ink-3); }
+    #lp-realpay .lp-rp-body{ min-height:360px; }
+    #lp-realpay .lp-rp-meta{ margin:10px 0 0; font-size:12.5px; font-weight:600; line-height:1.7; color:var(--pv-ink-2);
+      line-break:strict; word-break:auto-phrase; }
+    #lp-realpay .lp-rp-amts{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:14px;
+      padding:12px 14px; background:var(--pv-surface-2); border:1px solid var(--pv-line); border-radius:var(--pv-r); }
+    #lp-realpay .lp-rp-a{ min-width:0; }
+    #lp-realpay .lp-rp-al{ display:block; font-size:10.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+      color:var(--pv-ink-3); }
+    #lp-realpay .lp-rp-av{ display:block; margin-top:4px; font-size:19px; font-weight:800; letter-spacing:-.02em;
+      font-variant-numeric:tabular-nums; white-space:nowrap; color:var(--pv-ink); }
+    #lp-realpay .lp-rp-h{ margin:20px 0 9px; font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+      color:var(--pv-orange-ink); }
+    #lp-realpay .lp-rp-bar{ display:flex; height:12px; border-radius:999px; overflow:hidden;
+      background:var(--pv-surface-2); box-shadow:inset 0 0 0 1px var(--pv-line); }
     #lp-realpay .lp-rp-bar i{ display:block; min-width:6px; }
-    #lp-realpay .lp-rp-bar i + i{ box-shadow:inset 2px 0 0 var(--pv-surface); }
-    #lp-realpay .lp-rp-leg{ list-style:none; margin:14px 0 0; padding:0; }
-    #lp-realpay .lp-rp-leg li{ display:flex; align-items:center; gap:10px; min-height:30px;
-      font-size:14px; line-height:1.4; color:var(--pv-text); }
-    #lp-realpay .lp-rp-leg li i{ flex:none; width:10px; height:10px; border-radius:999px; }
-    #lp-realpay .lp-rp-next{ display:grid; grid-template-columns:minmax(0,1fr) auto; column-gap:12px; align-items:center;
-      margin-top:16px; padding:18px 0 48px; border-top:1px solid var(--pv-border); }
-    #lp-realpay .lp-rp-next-m{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-      font-size:13.5px; color:var(--pv-text-muted); }
-    #lp-realpay .lp-rp-next-a{ white-space:nowrap; font-size:15px; font-weight:700; font-variant-numeric:tabular-nums;
-      color:var(--pv-text); }
+    #lp-realpay .lp-rp-bar i + i{ box-shadow:inset 1.5px 0 0 var(--pv-surface); }
+    #lp-realpay .lp-rp-stn{ margin:8px 0 12px; font-size:11px; line-height:1.6; color:var(--pv-ink-3); }
+    #lp-realpay .lp-rp-list{ list-style:none; margin:0; padding:0 0 44px; display:grid; gap:10px; }
+    #lp-realpay .lp-rp-list li{ display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:baseline; gap:12px; }
+    #lp-realpay .lp-rp-k{ display:inline-flex; align-items:center; gap:7px; min-width:0;
+      font-size:12.5px; font-weight:600; color:var(--pv-ink-2); }
+    #lp-realpay .lp-rp-k i{ flex:none; width:8px; height:8px; border-radius:999px; }
+    #lp-realpay .lp-rp-v{ white-space:nowrap; text-align:right; font-size:13px; font-weight:700;
+      font-variant-numeric:tabular-nums; color:var(--pv-ink); }
+    #lp-realpay .lp-rp-sh{ margin-left:8px; font-size:11.5px; font-weight:700; font-variant-numeric:tabular-nums; color:var(--pv-ink-3); }
     /* 区分の色。★actual-pay.css の .ap-dw-c-* と同じ値（REAL PAY の行を開いた面と同じ色）。写しなので、
        あちらを変えたらここも変える。
        ★2026-09-23：ヒーローの電話の中の棒（.hero-win-cb）と一覧の丸も同じ色を使うので #hero-section を足した。 */
@@ -954,56 +929,140 @@
     :is(#hero-section,#lp-realpay) .lp-c-variable{ background:#f5c842; }
     :is(#hero-section,#lp-realpay) .lp-c-bonus{ background:#22d3ee; }
 
-    /* ── 112 AIRLINES：電話の中＝本物の公開データ（機長の cap.lo〜cap.hi）──────────
-       ★行は各社のページへのリンク。行の高さは固定（62px）＝灰色の行から描き替えてもガタつかない。
-       ★1行＝2段。上：ロゴ・社名／下：下限〜上限の額と、6社共通の目盛りの上の細い棒。 */
+    /* ── 112 AIRLINES：電話の中＝本物の2社比較の画面のスライド（2026-11-01）──────────
+       ★オーナー「比較の画面はスライドできる（クリックしたらその比較画面になる）」。1枚＝1組の比較の画面の上半分
+         （career.css のスマホの形：2枚の札・紺の「年収」の板・2列の額と棒・目盛・「詳しく」と税の扱い）。
+       ★中身は gen-lp-compare.mjs が career.html から写す（額・社名・写真・色）。ここは見た目だけ。
+         寸法は本物のスマホ（390px）を電話の画面の幅に縮めた値。色の作り方は career.css と同じ（紺の地・会社の色を白へ寄せた棒）。
+       ★送り方：指で横に滑らせる（scroll-snap）＋下の ‹ ● ● ● ›。勝手には動かさない。 */
+    #lp-airlines .lp-cmp{ min-width:0; }
     #lp-airlines .lp-air-panel{ padding:52px 32px 0; }
-    #lp-airlines .lp-air-scr{ container:airui / inline-size; }
-    #lp-airlines .lp-air-bar{ display:flex; align-items:center; gap:10px; height:44px; padding:0 18px;
-      border-bottom:1px solid var(--pv-border); }
-    #lp-airlines .lp-air-name{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-      font-size:13px; font-weight:700; letter-spacing:-.005em; color:var(--pv-text); }
-    /* 公開データなので札は緑（「サンプル」の灰色と見分ける）。 */
-    #lp-airlines .lp-air-tag{ flex:none; margin-left:auto; padding:3px 10px; border-radius:999px;
-      font-size:11px; font-weight:600; line-height:1.4; letter-spacing:.02em;
-      background:var(--pv-accent-soft); color:var(--pv-accent-ink); box-shadow:inset 0 0 0 1px var(--pv-accent-line); }
-    #lp-airlines .lp-air-row{ display:grid; height:62px; padding:0 18px;
-      grid-template-columns:30px auto minmax(0,1fr); grid-template-areas:"logo an an" "logo rng trk";
-      align-content:center; column-gap:11px; row-gap:5px; text-decoration:none; color:inherit; }
-    #lp-airlines .lp-air-row + .lp-air-row{ border-top:1px solid var(--pv-border); }
-    #lp-airlines a.lp-air-row:hover{ background:var(--pv-surface-soft); }
-    #lp-airlines a.lp-air-row:hover .lp-air-an{ color:var(--pv-accent-ink); }
-    #lp-airlines a.lp-air-row:active{ background:var(--pv-accent-soft); }
-    #lp-airlines a.lp-air-row:focus-visible{ outline:2px solid var(--pv-accent); outline-offset:-2px; }
-    #lp-airlines .hero-win-logo, #lp-airlines .lp-sk--logo{ grid-area:logo; align-self:center; }
-    #lp-airlines .lp-air-an, #lp-airlines .lp-sk--a{ grid-area:an; align-self:center; }
-    #lp-airlines .lp-air-rng, #lp-airlines .lp-sk--r{ grid-area:rng; align-self:center; }
-    #lp-airlines .lp-air-trk, #lp-airlines .lp-sk--b{ grid-area:trk; align-self:center; }
-    #lp-airlines .lp-air-an{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-      font-size:14px; font-weight:600; line-height:1.3; color:var(--pv-text); }
-    #lp-airlines .lp-air-rng{ white-space:nowrap; font-size:12.5px; font-weight:600; line-height:1.3;
-      font-variant-numeric:tabular-nums; color:var(--pv-text-muted); }
-    #lp-airlines .lp-air-trk{ position:relative; height:6px; margin-left:2px; border-radius:999px;
-      background:var(--pv-surface-soft); box-shadow:inset 0 0 0 1px var(--pv-border); }
-    #lp-airlines .lp-air-trk i{ position:absolute; top:0; bottom:0; min-width:6px; border-radius:999px;
-      background:linear-gradient(90deg,var(--pv-accent),var(--pv-accent-dark)); }
-    /* lp.js が描くまでの灰色の棒。 */
-    #lp-airlines .lp-sk{ display:block; height:9px; border-radius:6px; background:var(--pv-border); }
-    #lp-airlines .lp-sk--logo{ width:30px; height:30px; border-radius:8px; }
-    #lp-airlines .lp-sk--a{ width:52%; }
-    #lp-airlines .lp-sk--r{ width:104px; }
-    #lp-airlines .lp-sk--b{ height:6px; }
-    @container airui (max-width:279px){
-      #lp-airlines .lp-air-row{ padding:0 14px; column-gap:9px; }
-      #lp-airlines .lp-air-bar{ padding:0 14px; }
-    }
+    /* 切り口は次の節の見出し（提出された年収）が読めるところ。 */
+    #lp-airlines .lp-phone{ margin-bottom:-70px; }
+    #lp-airlines .lp-cmp-scr{ padding:44px 0 0; background:var(--pv-bg); }
+    #lp-airlines .lp-cmp-track{ display:flex; overflow-x:auto; overflow-y:hidden; scroll-snap-type:x mandatory;
+      overscroll-behavior-x:contain; scrollbar-width:none; }
+    #lp-airlines .lp-cmp-track::-webkit-scrollbar{ display:none; }
+    #lp-airlines .lp-cmp-s{ box-sizing:border-box; flex:0 0 100%; min-width:0; display:block; padding:4px 12px 0;
+      scroll-snap-align:start; scroll-snap-stop:always; text-decoration:none; color:var(--pv-ink); }
+    #lp-airlines .lp-cmp-s:hover .lp-cmp-panel{ box-shadow:0 0 0 2px var(--pv-accent-line), var(--pv-shadow-lift); }
+    #lp-airlines .lp-cmp-s:active{ opacity:.85; }
+    #lp-airlines .lp-cmp-s:focus-visible{ outline:2px solid var(--pv-accent); outline-offset:-3px; border-radius:24px; }
+    #lp-airlines .lp-vh{ position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; overflow:hidden;
+      clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; }
+    #lp-airlines .lp-cmp-ic{ flex:none; }
+    #lp-airlines .lp-cmp-back{ display:flex; align-items:center; gap:3px; font-size:10.5px; font-weight:700; color:var(--pv-ink-2); }
+    #lp-airlines .lp-cmp-h{ display:block; margin:5px 0 8px; font-size:19px; font-weight:800; line-height:1.2; letter-spacing:-.03em;
+      color:var(--pv-ink); }
+    /* 2枚の札（本物の .cr-pick / .cr-opt-p のスマホの形）。写真は札の地・下に会社の色の線。 */
+    #lp-airlines .lp-cmp-pick{ position:relative; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:8px; }
+    #lp-airlines .lp-cmp-side{ display:flex; flex-direction:column; min-width:0; overflow:hidden; border-radius:12px;
+      background:var(--pv-surface); border:1px solid var(--pv-line); box-shadow:var(--pv-shadow); }
+    #lp-airlines .lp-cmp-p{ position:relative; isolation:isolate; flex:1 0 auto; display:flex; flex-direction:column;
+      justify-content:space-between; gap:4px; min-height:52px; padding:5px 6px 4px; overflow:hidden;
+      background:var(--pv-navy); border-bottom:3px solid var(--co); }
+    #lp-airlines .lp-cmp-p > img{ position:absolute; inset:0; z-index:-1; display:block; width:100%; height:100%; object-fit:cover; }
+    #lp-airlines .lp-cmp-p::before{ content:''; position:absolute; inset:0; pointer-events:none;
+      background:linear-gradient(0deg, color-mix(in srgb, var(--pv-navy) 82%, transparent) 0%, transparent 62%); }
+    #lp-airlines .lp-cmp-p:not(.is-ph){ background:radial-gradient(120% 150% at 0% 0%, color-mix(in srgb, var(--co) 52%, var(--pv-navy)) 0%, var(--pv-navy) 66%); }
+    #lp-airlines .lp-cmp-code{ position:relative; align-self:flex-start; padding:1px 6px; border-radius:6px;
+      background:color-mix(in srgb, white 94%, transparent); color:var(--pv-navy);
+      font:800 10px/1.45 'Inter',sans-serif; letter-spacing:.07em; }
+    #lp-airlines .lp-cmp-lg{ position:relative; align-self:flex-start; box-sizing:border-box; display:inline-flex; align-items:center;
+      height:18px; max-width:56px; padding:2px 4px; overflow:hidden; border-radius:5px; background:#fff; border:1px solid var(--pv-line); }
+    #lp-airlines .lp-cmp-lg img{ display:block; width:auto; height:100%; max-width:100%; object-fit:contain; }
+    #lp-airlines .lp-cmp-side[data-side="b"] :is(.lp-cmp-code,.lp-cmp-lg){ margin-left:12px; }
+    #lp-airlines .lp-cmp-n{ position:relative; display:block; color:#fff; font-size:10.5px; font-weight:800; line-height:1.15;
+      letter-spacing:-.02em; word-break:keep-all; overflow-wrap:anywhere; }
+    #lp-airlines .lp-cmp-n .lp-cmp-ic{ display:inline-block; margin-left:3px; vertical-align:-1px; }
+    #lp-airlines .lp-cmp-swap{ position:absolute; z-index:2; left:50%; top:-9px; display:grid; place-items:center;
+      width:24px; height:24px; margin-left:-12px; border-radius:50%;
+      background:var(--pv-surface); border:1px solid var(--pv-line); box-shadow:var(--pv-shadow-lift); color:var(--pv-ink); }
+    /* 紺の「年収」の板（本物の .cr-panel のスマホの2列）。 */
+    #lp-airlines .lp-cmp-panel{ position:relative; isolation:isolate; overflow:hidden; display:block; margin-top:8px; padding:7px 8px 2px;
+      border-radius:12px; background:var(--pv-navy); border:1px solid color-mix(in srgb, white 11%, transparent);
+      color:#fff; box-shadow:var(--pv-shadow-lift); transition:box-shadow .2s ease; }
+    #lp-airlines .lp-cmp-panel::before{ content:''; position:absolute; inset:0; z-index:-1; background:
+      radial-gradient(90% 60% at 100% 0%, color-mix(in srgb, var(--pv-blue) 24%, transparent), transparent 70%),
+      radial-gradient(90% 70% at 0% 100%, color-mix(in srgb, var(--pv-accent) 16%, transparent), transparent 70%); }
+    #lp-airlines .lp-cmp-top{ display:flex; flex-wrap:wrap; align-items:center; gap:3px 7px; }
+    #lp-airlines .lp-cmp-ph{ font-size:13px; font-weight:800; letter-spacing:-.02em; line-height:1.3; }
+    #lp-airlines .lp-cmp-k{ padding:0 6px; border-radius:999px; font-size:9.5px; font-weight:700; line-height:1.55;
+      background:color-mix(in srgb, white 9%, transparent); border:1px solid color-mix(in srgb, white 16%, transparent);
+      color:color-mix(in srgb, white 74%, transparent); }
+    #lp-airlines .lp-cmp-t{ font-size:9.5px; line-height:1.5; color:color-mix(in srgb, white 58%, transparent); }
+    #lp-airlines .lp-cmp-role{ display:block; margin-top:5px; font-size:9.5px; font-weight:700; line-height:1.4;
+      color:color-mix(in srgb, white 74%, transparent); }
+    #lp-airlines :is(.lp-cmp-pair,.lp-cmp-axes,.lp-cmp-gos){ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); column-gap:18px; }
+    #lp-airlines .lp-cmp-row{ display:block; min-width:0; }
+    #lp-airlines .lp-cmp-v{ display:block; font:800 15.5px/1.15 'Inter','Noto Sans JP',sans-serif; letter-spacing:-.03em;
+      font-variant-numeric:tabular-nums; white-space:nowrap; color:#fff; }
+    #lp-airlines .lp-cmp-trk{ position:relative; display:block; height:6px; margin-top:4px; border-radius:3px;
+      background-color:color-mix(in srgb, white 8%, transparent);
+      background-image:linear-gradient(90deg, color-mix(in srgb, white 16%, transparent) 1px, transparent 1px);
+      background-size:calc(100% / var(--div)) 100%; }
+    #lp-airlines .lp-cmp-trk i{ position:absolute; left:0; top:0; bottom:0; width:var(--w); border-radius:inherit;
+      background:linear-gradient(90deg, color-mix(in srgb, var(--co) 78%, white), color-mix(in srgb, var(--co) 48%, white)); }
+    #lp-airlines .lp-cmp-axes{ margin-top:4px; }
+    #lp-airlines .lp-cmp-axis{ display:flex; justify-content:space-between; gap:6px; white-space:nowrap;
+      font-size:9px; line-height:1.4; font-variant-numeric:tabular-nums; color:color-mix(in srgb, white 58%, transparent); }
+    #lp-airlines .lp-cmp-gos{ margin-top:4px; padding-top:3px; border-top:1px solid color-mix(in srgb, white 11%, transparent); }
+    #lp-airlines .lp-cmp-go{ display:block; min-width:0; padding:2px 0 5px; }
+    #lp-airlines .lp-cmp-gt{ display:flex; align-items:center; gap:4px; font-size:11px; font-weight:700;
+      color:color-mix(in srgb, white 74%, transparent); }
+    #lp-airlines .lp-cmp-gd{ flex:none; width:6px; height:6px; border-radius:50%; background:color-mix(in srgb, var(--co) 66%, white); }
+    #lp-airlines .lp-cmp-tx{ display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2; overflow:hidden;
+      margin:1px 0 0 10px; font-size:9px; line-height:1.3; color:color-mix(in srgb, white 58%, transparent); }
+    /* 色の近い2社（本物と同じ手がかり：右の札の線は破線・右の棒は縁取り・右の点は輪）。 */
+    #lp-airlines .lp-cmp-s[data-near] .lp-cmp-side[data-side="b"] .lp-cmp-p{ border-bottom-style:dashed; }
+    #lp-airlines .lp-cmp-s[data-near] .lp-cmp-row + .lp-cmp-row .lp-cmp-trk i{ background:color-mix(in srgb, var(--co) 28%, transparent);
+      box-shadow:inset 0 0 0 1.5px color-mix(in srgb, var(--co) 72%, white); }
+    #lp-airlines .lp-cmp-s[data-near] .lp-cmp-go + .lp-cmp-go .lp-cmp-gd{ background:transparent;
+      box-shadow:inset 0 0 0 2px color-mix(in srgb, var(--co) 66%, white); }
+    /* 次の節「提出された年収 REAL PAY」の頭（緑の面の切り口で切れる）。 */
+    #lp-airlines .lp-cmp-next{ display:flex; align-items:baseline; gap:6px; margin-top:8px; padding:11px 12px 60px;
+      border-radius:12px; background:var(--pv-surface); border:1px solid var(--pv-line); box-shadow:var(--pv-shadow); }
+    #lp-airlines .lp-cmp-next b{ font-size:12.5px; font-weight:800; letter-spacing:-.01em; color:var(--pv-ink); }
+    #lp-airlines .lp-cmp-next span{ font-size:10px; font-weight:600; letter-spacing:.02em; color:var(--pv-ink-3); }
+    /* 送るボタン（電話の下・緑の面の外）。いまの組の名前 ＋ 点（押すとその組へ）。 */
+    #lp-airlines .lp-cmp-nav{ display:grid; grid-template-columns:44px minmax(0,1fr) 44px; align-items:center; gap:10px;
+      max-width:440px; margin:16px auto 0; }
+    #lp-airlines .lp-cmp-arw{ display:grid; place-items:center; width:44px; height:44px; padding:0; cursor:pointer;
+      border-radius:999px; border:1px solid var(--pv-border); background:var(--pv-surface); color:var(--pv-text);
+      box-shadow:0 1px 2px rgba(2,40,33,.08), 0 6px 16px -10px rgba(2,48,40,.35);
+      transition:transform .35s var(--lp-spring), border-color .2s ease, color .2s ease; }
+    #lp-airlines .lp-cmp-arw:hover:not(:disabled){ border-color:var(--pv-accent); color:var(--pv-accent-ink); transform:translateY(-1px); }
+    #lp-airlines .lp-cmp-arw:active:not(:disabled){ transform:scale(.94); }
+    #lp-airlines .lp-cmp-arw:focus-visible{ outline:3px solid var(--pv-accent); outline-offset:2px; }
+    #lp-airlines .lp-cmp-arw:disabled{ opacity:.35; cursor:default; box-shadow:none; }
+    #lp-airlines .lp-cmp-mid{ display:flex; flex-direction:column; align-items:center; gap:4px; min-width:0; }
+    /* 組の名前は2行まで（スマホで「全日本空輸（AN…」と切らない）。 */
+    #lp-airlines .lp-cmp-now{ max-width:100%; overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2;
+      text-align:center; font-size:13.5px; font-weight:700; line-height:1.35; letter-spacing:-.01em; color:var(--pv-text);
+      line-break:strict; word-break:auto-phrase; }
+    @media (max-width:479px){ #lp-airlines .lp-cmp-now{ font-size:12.5px; } }
+    #lp-airlines .lp-cmp-dots{ display:flex; gap:2px; }
+    #lp-airlines .lp-cmp-dot{ position:relative; width:24px; height:24px; padding:0; border:0; background:transparent; cursor:pointer; }
+    #lp-airlines .lp-cmp-dot::before{ content:''; position:absolute; left:50%; top:50%; width:8px; height:8px; margin:-4px 0 0 -4px;
+      border-radius:999px; background:var(--pv-border); transition:transform .35s var(--lp-spring), background-color .2s ease; }
+    #lp-airlines .lp-cmp-dot:hover::before{ background:var(--pv-accent-line); }
+    #lp-airlines .lp-cmp-dot:active::before{ transform:scale(.8); }
+    #lp-airlines .lp-cmp-dot[aria-current="true"]::before{ background:var(--pv-accent); transform:scale(1.25); }
+    #lp-airlines .lp-cmp-dot:focus-visible{ outline:2px solid var(--pv-accent); outline-offset:-2px; border-radius:999px; }
+    /* 写真のクレジット（CC BY / CC BY-SA の写真は、作者名とライセンス名を示すことが使う条件）。見えている組のぶんだけ。 */
+    #lp-airlines .lp-cmp-credits{ max-width:520px; margin:10px auto 0; text-align:center;
+      font-size:11px; line-height:1.6; color:var(--pv-text-muted); }
+    #lp-airlines .lp-cmp-credits a{ color:inherit; text-decoration:underline; text-underline-offset:2px; }
+    #lp-airlines .lp-cmp-credits a:hover{ color:var(--pv-accent-ink); }
+    #lp-airlines .lp-cmp-credits a:active{ opacity:.7; }
+    #lp-airlines .lp-cmp-credits a:focus-visible{ outline:2px solid var(--pv-accent); outline-offset:2px; border-radius:2px; }
+    #lp-airlines .lp-cmp-cr:not([hidden]) ~ .lp-cmp-cr:not([hidden])::before{ content:' · '; }
 
     @media (max-width:767px){
       :is(#lp-realpay,#lp-airlines,#lp-explore,#lp-why){ padding:56px 0; }
       #lp-airlines{ padding-top:8px; }
       #lp-realpay .lp-rp-panel{ min-height:0; padding:40px 20px 0; border-radius:22px; }
       #lp-realpay .lp-rp-card{ padding:20px 20px 0; }
-      #lp-realpay .lp-rp-amt{ font-size:30px; min-height:35px; }
       #lp-airlines .lp-air-panel{ padding:32px 20px 0; border-radius:22px; }
       #lp-airlines .lp-phone{ max-width:300px; margin-bottom:-160px; }   /* ヒーローと同じ切り方（縦に長くしない） */
     }
@@ -1011,15 +1070,22 @@
       :is(#lp-realpay,#lp-airlines) .lp-blk-wrap{ padding:0 20px; row-gap:32px; }
       #lp-airlines .lp-btn{ width:100%; }
     }
-    /* 360px：カードの下の行（副操縦士 ・ B737 ・ 5〜10年）が省略記号で切れた。面とカードの余白を詰める。 */
+    /* スマホ：社名を切らない（「全日本空輸（ANA）」が「全日本空輸…」にならない）。× は絵なので狭い幅では外し、社名と札を少し小さく。 */
+    @media (max-width:479px){
+      #lp-realpay .lp-rp-x{ display:none; }
+      #lp-realpay .lp-rp-an{ font-size:15px; }
+      #lp-realpay .lp-tag{ padding:2px 8px; font-size:10px; }
+    }
+    /* 360px：面とカードの余白を詰める。 */
     @media (max-width:379px){
       #lp-realpay .lp-rp-panel{ padding:36px 14px 0; }
       #lp-realpay .lp-rp-card{ padding:18px 16px 0; }
-      #lp-realpay .lp-rp-next-m{ font-size:13px; }
     }
     @media (prefers-reduced-motion:reduce){
       #lp-realpay .lp-link svg, #lp-airlines .lp-btn, #lp-airlines .lp-btn svg{ transition:none; }
       #lp-realpay .lp-link--alt, #lp-airlines .lp-btn--alt{ transition:none; }
+      #lp-airlines :is(.lp-cmp-arw,.lp-cmp-panel), #lp-airlines .lp-cmp-dot::before{ transition:none; }
+      #lp-airlines .lp-cmp-track{ scroll-behavior:auto; }
     }
 
     /* ══ データを探す（#lp-explore）と Why PILOT VALUE（#lp-why）══════════════════════

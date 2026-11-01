@@ -247,8 +247,9 @@ const STAMPS = [
     files: ['pv-session.js'] },
   { pages: [['actual-pay.html', ''], ['en/actual-pay.html', '../']],
     files: ['actual-pay.css', 'ap-preview.js', 'actual-pay.js'] },
+  /* ★2026-11-01 lp.js にも指紋を付けた（HTML の骨組みと lp.js の描き方が対 ── 古い lp.js が残ると見本のカードが崩れる）。 */
   { pages: [['index.html', ''], ['en/index.html', '../']],
-    files: ['lp.css'] },
+    files: ['lp.css', 'lp.js'] },
   /* ★2026-10-05 出し直しのお願い。4画面 × 日英の8枚が同じ1本を読む。
      1枚だけ古い指紋が残ると、その画面でだけ古い文言・古い線のまま最長4時間出る。 */
   { pages: [['actual-pay.html', ''], ['en/actual-pay.html', '../'],
