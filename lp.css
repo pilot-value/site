@@ -440,7 +440,7 @@
     @media (min-width:768px) and (max-width:1099px) and (min-height:1000px){
       #hero-section .hero-h1{ font-size:clamp(34px,5.2vw,50px); }
     }
-    /* ★2026-11-01 オーナー確定の見出し（日本語「コックピットでの噂、それ本当？／待遇を実データで。」・英語
+    /* ★2026-11-01 オーナー確定の見出し（日本語「そのコックピットでの噂、本当？／待遇を実データで比較」・英語
          「Enough cockpit rumors.／Real data on pay and conditions.」）。1文＝1行・見出し全体で2行・2文とも同じ大きさと太さ。
          文字の大きさは**文章の欄の幅**から決める（.hero-copy は上で container:herocopy ── cqw はその幅の 1%）。
          目安は PC の約520px の欄で約33px・390px のスマホで約22px（オーナーの指示書）。
