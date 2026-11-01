@@ -269,6 +269,7 @@ baland_ass/                            ブランド資産（※ brand_assets の
   ⚠️ **career.html を作り直したら `node gen-lp-compare.mjs` も流す**（流し忘れは assert-generated が捕まえる）。英語は生成器がドルの span に焼く。
   ⚠️ 写真のクレジット（CC BY / CC BY-SA は条件）は、見えている組のぶんだけ lp.js が出す。外さない。
 - **ヒーローの見出し**は今までどおり日英とも「Take control of your career in the cockpit.」（2026-11-01 に別の見出しを試して同じ日に戻した）。
+  その下の説明文の頭に問いを1行（日本語「コックピット内の噂は本当？」・英語「Enough cockpit rumors.」）。1行増えたので、問いの行は行の高さ 1.4・379px 以下は説明文を 15px にして、最初の1画面の決まり（assert-hero-fold）に収めてある。
 - lp.css と lp.js は **?v= の指紋つき**（直したら日英2枚の指紋を更新する・assert-links が見ている）。
 
 ## 概要と2社比較の1枚（[career.html](career.html)・2026-10-03）
