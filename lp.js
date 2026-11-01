@@ -41,7 +41,7 @@
      ⚠️ 金額の書式（¥N,NNN万）は日英とも同じ。currency.js がこの文字列を拾って
         英語面では USD に変える。ここを英語用に別書式にすると assert-currency.mjs が落ちる。
      ══════════════════════════════════════════════════════════════ */
-  var L = (d.documentElement.getAttribute('lang') || '').toLowerCase().indexOf('en') === 0 ? 'en' : 'ja';
+  var L = (window.PV_BASE === 'en' || (d.documentElement.getAttribute('lang') || '').toLowerCase().indexOf('en') === 0) ? 'en' : 'ja';   // スペイン語のページは英語と同じ動き（pv-session.js）
   var T = {
     ja: {
       sep: ' ・ ',
@@ -87,7 +87,8 @@
       voice: { culture: 'Culture', salary: 'Pay', benefits: 'Benefits',
                wlb: 'WLB', ops: 'Operations', training: 'Training', mgmt: 'To management' },
     },
-  }[L];
+  };
+  T = (window.PV_T && window.PV_T(T, L)) || T[L];   // スペイン語の辞書があればそれ
 
   /* 日本語で書いてある短い語を英語に置き換える1枚の辞書。
      ★PV_DEMO の配列を2本持たないための仕掛け（配列は日本語のまま1本）。
@@ -137,14 +138,14 @@
 
   /* 投稿フォームが保存するのは言語に依らない符号（captain / 10-15）。
      そのまま出すと日英どちらの画面でも符号が見えるので、ここで言葉に直す。 */
-  var POS_LABEL = {
+  var POS_LABEL = (function (D) { return (window.PV_T && window.PV_T(D, L)) || D[L]; })({
     ja: { captain: '機長', fo: '副操縦士', cadet: '訓練生' },
     en: { captain: 'Captain', fo: 'First Officer', cadet: 'Trainee' },
-  }[L];
-  var TENURE_LABEL = {
+  });
+  var TENURE_LABEL = (function (D) { return (window.PV_T && window.PV_T(D, L)) || D[L]; })({
     ja: { '1-5': '1〜5年', '5-10': '5〜10年', '10-15': '10〜15年', '15-20': '15〜20年', '20+': '20年以上' },
     en: { '1-5': '1–5 yrs', '5-10': '5–10 yrs', '10-15': '10–15 yrs', '15-20': '15–20 yrs', '20+': '20+ yrs' },
-  }[L];
+  });
 
   /* ══════════════════════════════════════════════════════════════
      ★PV_DEMO — 実在しないサンプル値。2026-08-11 のオーナー判断で、このまま公開する。

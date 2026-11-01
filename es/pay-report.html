@@ -1189,46 +1189,46 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
         <!-- Row templates. ★All wording lives here, never in the JS (that is how ja and en drift). -->
         <template id="tpl-pd-var">
           <div class="pd-row">
-            <button type="button" class="pd-del" aria-label="Remove this row">&times;</button>
+            <button type="button" class="pd-del" aria-label="Eliminar esta fila">&times;</button>
             <!-- ★2026-08-26 (2nd), reordered on the owner's instruction. Asking for the
                  amount first pushes the category to "later", and later never comes.
                  ★"You can leave this blank" is gone — say that and nobody picks one.
                    The way out is "Not sure" at the bottom, so it can be required. -->
             <div class="fld">
-              <label class="form-label">What it is paid on<span class="req-tag">Required</span></label>
+              <label class="form-label">Sobre qué se paga<span class="req-tag">Obligatorio</span></label>
               <select class="form-input pd-basis">
-                <option value="">Choose one</option>
-                <option value="block">Flight / Block / Credit Hours</option>
-                <option value="duty">Duty / Duty Hours</option>
-                <option value="sector">Sector / Landing</option>
-                <option value="overtime">Overtime / Extra Duty</option>
-                <option value="reserve">Reserve / Standby</option>
-                <option value="night">Night Premium</option>
-                <option value="weekend">Weekend / Sunday Premium</option>
-                <option value="holiday">Public Holiday Premium</option>
-                <option value="other">Other</option>
-                <option value="unknown">Not sure</option>
+                <option value="">Elige una opción</option>
+                <option value="block">Horas de vuelo / horas block / horas de crédito</option>
+                <option value="duty">Servicio / tiempo de servicio</option>
+                <option value="sector">Sector / aterrizaje</option>
+                <option value="overtime">Horas extra / servicio adicional</option>
+                <option value="reserve">Reserva / guardia</option>
+                <option value="night">Prima de nocturnidad</option>
+                <option value="weekend">Prima de fin de semana / prima dominical</option>
+                <option value="holiday">Recargo por día festivo</option>
+                <option value="other">Otro</option>
+                <option value="unknown">No lo sé</option>
               </select>
             </div>
             <div class="fld">
-              <label class="form-label">Amount</label>
+              <label class="form-label">Monto</label>
               <input type="text" class="form-input money pd-amt" inputmode="decimal" placeholder="e.g. 4,200"/>
             </div>
             <div class="fld">
-              <label class="form-label">Name on the payslip</label>
+              <label class="form-label">Nombre en el recibo de nómina</label>
               <input type="text" class="form-input pd-label" maxlength="60" placeholder="p. ej., pago por hora de vuelo, bono de productividad"/>
             </div>
           </div>
         </template>
         <template id="tpl-pd-oth">
           <div class="pd-row">
-            <button type="button" class="pd-del" aria-label="Remove this row">&times;</button>
+            <button type="button" class="pd-del" aria-label="Eliminar esta fila">&times;</button>
             <div class="fld">
-              <label class="form-label">Amount</label>
+              <label class="form-label">Monto</label>
               <input type="text" class="form-input money pd-amt" inputmode="decimal" placeholder="e.g. 250"/>
             </div>
             <div class="fld">
-              <label class="form-label">Name on the payslip</label>
+              <label class="form-label">Nombre en el recibo de nómina</label>
               <input type="text" class="form-input pd-label" maxlength="60" placeholder="p. ej., ayuda para transporte"/>
             </div>
           </div>
@@ -1768,7 +1768,10 @@ const CITIZEN_TAX = ['US','ER'];
 const TAX_TABLE = {"JP":{"cur":"JPY","emp":[[1900000,0,650000],[3600000,0.3,80000],[6600000,0.2,440000],[8500000,0.1,1100000],[null,0,1950000]],"basic":[[1320000,950000],[3360000,580000],[4890000,680000],[6550000,630000],[23500000,580000],[24000000,480000],[24500000,320000],[25000000,160000],[null,0]],"quick":[[1950000,0.05,0],[3300000,0.1,97500],[6950000,0.2,427500],[9000000,0.23,636000],[18000000,0.33,1536000],[40000000,0.4,2796000],[null,0.45,4796000]],"surtax":0.021,"local":0.1},"GB":{"cur":"GBP","allow":12570,"taperFrom":100000,"taperRate":0.5,"bands":[[37700,0.2],[125140,0.4],[null,0.45]],"note":"gb-scotland"},"US":{"cur":"USD","std":15750,"bands":[[11925,0.1],[48475,0.12],[103350,0.22],[197300,0.24],[250525,0.32],[626350,0.35],[null,0.37]],"note":"us-state"}};
 /*END:PVMETA*/
 
-const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+/* Display only (the month dropdown and the result line). The Spanish page (es/, generated from this file) shows Spanish month names. */
+const MONTH_NAMES = window.PV_LANG === 'es'
+  ? ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+  : ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
@@ -1872,8 +1875,8 @@ function showClaimState(kind) {
   const box = $('claim-state');
   const retry = kind === 'failed';
   box.innerHTML =
-    '<div class="cs-t">' + (retry ? "We have not finished taking it in" : "Este mes ya está guardado") + '</div>' +
-    '<p class="cs-l">' + (retry ? '<b>What you handed over is still on the server. Nothing is lost.</b> The connection did not go through. Please take it in once more.' : 'Este mes ya está guardado como tuyo. No lo guardaremos dos veces.') + '</p>' +
+    '<div class="cs-t">' + (retry ? "Aún no terminamos de registrarlo" : "Este mes ya está guardado") + '</div>' +
+    '<p class="cs-l">' + (retry ? '<b>Lo que enviaste sigue en el servidor. No se perdió nada.</b> La conexión no se completó. Vuelve a enviarlo.' : 'Este mes ya está guardado como tuyo. No lo guardaremos dos veces.') + '</p>' +
     '<div class="cs-a">' + (retry
       ? '<button type="button" class="btn-orange justify-center" id="cs-retry">' + "Registrar de nuevo" + '</button>'
       : '<a class="btn-orange justify-center" href="profile.html#your-pay">' + "Ver mi informe →" + '</a>') +
@@ -1909,7 +1912,7 @@ function recapLine() {
   const pos = pick('f-position'); if (pos) parts.push(pos);
   const fl = pick('f-fleet');     if (fl)  parts.push(fl);
   const mo = pick('f-month'), yr = pick('f-year');
-  if (mo && yr) parts.push(mo + ' ' + yr);
+  if (mo && yr) parts.push(window.PV_LANG === 'es' ? mo + ' de ' + yr : mo + ' ' + yr);   // Spanish page: "Octubre de 2026"
   return parts.join(' · ');
 }
 
@@ -2152,7 +2155,8 @@ function afterSaved(data, payload, airline) {
 // ── Country names come from the browser (never maintained twice) ──────
 (function () {
   let dn = null;
-  try { dn = new Intl.DisplayNames([LANG], { type: 'region' }); } catch (e) {}
+  /* Country names in the page language (the Spanish page gets Spanish names). */
+  try { dn = new Intl.DisplayNames([window.PV_LANG === 'es' ? 'es-419' : LANG], { type: 'region' }); } catch (e) {}
   const sel = $('f-taxcountry');
   if (!sel || !dn) return;
   /* ★Re-sort INSIDE each optgroup. The old code appendChild'd everything back onto
@@ -2750,7 +2754,7 @@ $('f-housing').addEventListener('change', () => {
   amt.disabled = !cash;
   if (!cash) amt.value = '';
   $('housing-amt-hint').textContent = cash
-    ? 'Enter the monthly housing allowance included in the gross above.'
+    ? 'Ingresa la ayuda para vivienda mensual incluida en el sueldo bruto indicado arriba.'
     : 'Se habilita cuando eliges “Ayuda para vivienda (en efectivo)” a la izquierda.';
   recalc();
 });
@@ -2861,7 +2865,7 @@ function updateTax() {
        Saying it everywhere contradicts the "federal tax only" line that follows
        for the United States. */
     let s = 'Según la tabla de tasas publicada para ' + countryPhrase(res, false) + ', una remuneración de este nivel equivale a <b>aproximadamente ' + pct + '%</b>, así que ese es el valor que completamos. '
-          + (t.local ? 'It combines national and local income tax and ' : 'Solo incluye el impuesto sobre la renta nacional y ')
+          + (t.local ? 'Combina el impuesto sobre la renta nacional y el local, y ' : 'Solo incluye el impuesto sobre la renta nacional y ')
           + '<b>no descuenta las cotizaciones a la seguridad social ni las deducciones por dependientes</b> (por eso la cifra sale alta). ';
     if (t.note === 'us-state') s += '<b>Solo impuesto federal</b> — no incluye el impuesto estatal. ';
     if (t.note === 'gb-scotland') s += 'Tasas de Inglaterra, Gales e Irlanda del Norte; en Escocia son distintas. ';
@@ -3148,7 +3152,7 @@ function askMoney(el, r) {
   const rule = document.createElement('p');
   rule.className = 'ma-rule';
   rule.textContent = window.PV_LANG === 'es'
-    ? 'Write 3.500,50 or 3,500.50 — a comma or dot followed by one or two digits is the decimal point'
+    ? 'Escribe 3.500,50 o 3,500.50 — una coma o un punto seguido de uno o dos dígitos es el separador decimal'
     : 'La coma separa los miles · el punto es el separador decimal';
   box.appendChild(rule);
   if (r.state === 'ambiguous') {
@@ -3525,7 +3529,7 @@ function recalc() {
   const t = annualTotal();
   /* ★同じ文字列を2か所へ。#sticky-total は常設バーの中（式は annualTotal() の1本のまま）。 */
   const totalHTML = t > 0
-    ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(t)) + '<span class="u">' + esc(cur || '') + ' / yr</span>'
+    ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(t)) + '<span class="u">' + esc(cur || '') + (window.PV_LANG === 'es' ? ' / año' : ' / yr') + '</span>'
     : '—';
   $('live-total').innerHTML = totalHTML;
   $('sticky-total').innerHTML = totalHTML;
@@ -5130,7 +5134,7 @@ if (WZ) {
         if (Array.isArray(ab)) ab.forEach((a) => {
           const n = parseFloat(a && a.amount);
           if (!isFinite(n)) return;
-          rows.push({ k: 'Descuento: ' + String((a && a.label) || 'Ausencia'), v: n, money: true });
+          rows.push({ k: 'Reduction: ' + String((a && a.label) || 'Ausencia'), v: n, money: true });
         });
       } catch (e) {}
       const src = $('f-source');
@@ -5253,8 +5257,7 @@ if (WZ) {
      country-based estimate does not overwrite it — a figure they read off their
      own payslip is the better number. */
   if (o['f-tax']) $('f-tax').dataset.touched = '1';
-  const MON = ['January','February','March','April','May','June',
-               'July','August','September','October','November','December'];
+  const MON = MONTH_NAMES;   // display only — Spanish on the Spanish page
   /* 月が分からないときも文が壊れないようにする（JP の「前回」に当たる）。
      'your last report' / 'your March 2026 report' のどちらでも同じ文に収まる形にする。 */
   const ym = r.period_year && r.period_month
@@ -5743,7 +5746,7 @@ function amtConfirmNeeded() {
   const n = document.createElement('p');
   n.className = 'ac-n';
   n.textContent = low
-    ? 'That is below the range we can compare against other airlines. A missing digit, an amount typed in thousands, or the wrong currency would all look like this. If it is right, submit it as it is.'
+    ? 'Está por debajo del rango que podemos comparar con otras aerolíneas. Un dígito faltante, un monto escrito en miles o una moneda equivocada se verían así. Si es correcto, envíalo tal como está.'
     : 'Esa cifra está por encima del rango que podemos comparar con otras aerolíneas. Un dígito de más, o una cifra anual escrita en la casilla mensual, se verían así. Si es correcta, envíala tal como está.';
   box.appendChild(n);
   const a = document.createElement('div');
@@ -6026,15 +6029,15 @@ function renderResult(d, p) {
     const parts = [];
     if (d.annual_total_usd != null) parts.push(usd(d.annual_total_usd));
     if (d.annual_total_jpy != null) parts.push(jpyMan(d.annual_total_jpy));
-    rows.push(['Converted', parts.join(' / ') + (d.fx_at ? ' <span style="font-size:.72rem;color:#6b7d93">(tipo de cambio del ' + esc(d.fx_at) + ')</span>' : ''), '']);
+    rows.push(['Convertido', parts.join(' / ') + (d.fx_at ? ' <span style="font-size:.72rem;color:#6b7d93">(tipo de cambio del ' + esc(d.fx_at) + ')</span>' : ''), '']);
   }
   if (d.usd_per_block_hour != null) {
-    rows.push(['★ Pay per block hour', '$' + Number(d.usd_per_block_hour).toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' <span style="font-size:.75rem;font-weight:600;color:#6b7d93">/ hora block</span>', 'hi']);
+    rows.push(['★ Remuneración por hora block', '$' + Number(d.usd_per_block_hour).toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' <span style="font-size:.75rem;font-weight:600;color:#6b7d93">/ block hour</span>', 'hi']);
   }
-  if (d.net_annual_jpy != null) rows.push(['Estimated take-home (yr)', jpyMan(d.net_annual_jpy), '']);
-  if (d.streak_months) rows.push(['Consecutive months', String(d.streak_months), '']);
+  if (d.net_annual_jpy != null) rows.push(['Sueldo neto anual estimado', jpyMan(d.net_annual_jpy), '']);
+  if (d.streak_months) rows.push(['Meses consecutivos', String(d.streak_months), '']);
   if (d.access_until) {
-    rows.push(['REAL PAY unlocked until', new Date(d.access_until).toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' }), '']);
+    rows.push(['REAL PAY desbloqueado hasta', new Date(d.access_until).toLocaleDateString(window.PV_LANG === 'es' ? 'es-419' : 'en-GB', { year: 'numeric', month: 'short', day: 'numeric' }), '']);
   }
 
   let bench = '';
@@ -6071,7 +6074,7 @@ function renderResult(d, p) {
   const backNote = back
     ? '<div class="warn-row" style="margin-top:16px;background:#f0fdf4;border-color:#bbf7d0;color:#166534">'
       + 'Compartiste el detalle de tu remuneración. '
-      + (shared3 ? '<b>The pay breakdown in REAL PAY is now open.</b>' : 'Completa sueldo base, horas garantizadas / asignación por servicio y remuneración variable, y se desbloquea el desglose de la remuneración en REAL PAY.')
+      + (shared3 ? '<b>El desglose de la remuneración en REAL PAY ya está abierto.</b>' : 'Completa sueldo base, horas garantizadas / asignación por servicio y remuneración variable, y se desbloquea el desglose de la remuneración en REAL PAY.')
       + '</div>'
     : '';
 
@@ -6082,7 +6085,7 @@ function renderResult(d, p) {
   $('result-wrap').innerHTML =
     '<div class="res">' +
       '<div class="res-pop">🎉</div>' +
-      '<div class="res-eyebrow">' + (d.is_new ? 'Received' : 'Corrección aplicada') + '</div>' +
+      '<div class="res-eyebrow">' + (d.is_new ? 'Recibido' : 'Corrección aplicada') + '</div>' +
       '<div class="res-big">' + esc(fmtCur(d.annual_total_orig, cur)) + '</div>' +
       '<div class="res-sub">Total anualizado, según tu recibo de nómina de ' + esc(MONTH_NAMES[Number(p.period_month) - 1]) + ' ' + esc(p.period_year) + ' payslip</div>' +
       '<div style="margin-top:18px">' +
@@ -6095,9 +6098,9 @@ function renderResult(d, p) {
       '<div class="res-note">Guardado <b>solo en este dispositivo</b>. El próximo mes solo actualizas lo que haya cambiado. ' +
         'Envía tu próximo recibo de nómina y el desbloqueo se extiende a 90 días a partir de esa fecha.</div>' +
       '<div class="mt-6 flex flex-col sm:flex-row gap-3">' +
-        '<a href="profile.html?new=1#your-pay" class="btn-orange justify-center flex-1">See my report →</a>' +
+        '<a href="profile.html?new=1#your-pay" class="btn-orange justify-center flex-1">Ver mi reporte →</a>' +
         /* ★Show the Get at the moment of the Give — this submission is what opened REAL PAY. */
-        '<a href="actual-pay.html" class="btn-ghost justify-center flex-1">' + (back ? 'Back to REAL PAY →' : 'Abrir REAL PAY →') + '</a>' +
+        '<a href="actual-pay.html" class="btn-ghost justify-center flex-1">' + (back ? 'Volver a REAL PAY →' : 'Abrir REAL PAY →') + '</a>' +
         '<button type="button" class="btn-ghost justify-center" id="btn-again">Agregar otro mes</button>' +
       '</div>' +
     '</div>';

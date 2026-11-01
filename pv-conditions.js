@@ -527,6 +527,14 @@
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (j) {
         if (!j || !j.questions) return null;
+        /* スペイン語のページ（2026-11-02）：台帳の es（gen-conditions.mjs が訳の辞書から書く）を en の場所へ。
+           読む側（q[L].label など・L は 'en'）は1つも変えない。es の無い所は英語のまま。 */
+        if (window.PV_LANG === 'es') (function use(o) {
+          if (Array.isArray(o)) { o.forEach(use); return; }
+          if (!o || typeof o !== 'object') return;
+          if (o.es !== undefined && o.en !== undefined) o.en = o.es;
+          for (var k in o) if (k !== 'es' && Object.prototype.hasOwnProperty.call(o, k)) use(o[k]);
+        })(j);
         var by = {};
         j.questions.forEach(function (q) { by[q.id] = q; });
         _bank = { raw: j, byId: by, settings: j.settings || FALLBACK };

@@ -36,7 +36,7 @@
   const GATE_STORAGE = { review: KEY_REVIEW, salary_detail: KEY_SALARY };
 
   /* ── Context detection ───────────────────────────────── */
-  const IS_EN     = /^\/en\//.test(location.pathname);
+  const IS_EN     = /^\/(en|es)\//.test(location.pathname);   // スペイン語のページも英語と同じ動き
   /* 自分の住所（評価している今しか取れない）。pv-gg.css の場所をここから解く ＝ 日英どちらのページでも同じ1枚。 */
   const SELF      = (document.currentScript && document.currentScript.src) || '';
   /* ★関数にしてある。このファイルは日英224ページのうち222ページで <head> から

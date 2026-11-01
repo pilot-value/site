@@ -30,7 +30,11 @@ export const LANGS = [
   /* スペイン語（中南米）。スペイン版は後から 'es-es/'（hreflang es-ES・base: 'es'）で足す（2026-11-01 オーナー決定）。 */
   { code: 'es', dir: 'es/', hreflang: 'es', htmlLang: 'es-419', ogLocale: 'es_LA', base: 'en',
     pages: ['pay-report.html', 'signup.html', 'login.html', 'profile.html', 'actual-pay.html', 'my-value.html',
-      'terms.html', 'privacy.html', 'personal-data.html', 'contact.html'],
+      'terms.html', 'privacy.html', 'personal-data.html', 'contact.html',
+      /* 段3（2026-11-02）：入口と中身。スペイン語圏の6社・5か国 */
+      'index.html', 'world-airlines.html', 'pilot-salary-guide.html', 'countries.html', 'submit-review.html', 'airline-conditions.html',
+      'airlines/iberia.html', 'airlines/vueling.html', 'airlines/aeromexico.html', 'airlines/avianca.html', 'airlines/copa-airlines.html', 'airlines/latam.html',
+      'countries/spain.html', 'countries/mexico.html', 'countries/colombia.html', 'countries/chile.html', 'countries/panama.html'],
     indexed: new Set([]) },
 ];
 

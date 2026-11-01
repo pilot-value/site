@@ -24,7 +24,10 @@
    ★日英で**鍵を完全に同じ**にする。片方にしか無い鍵を作らない
      （assert-pay-report-sync.mjs と同じ考え方）。 */
 /* 英語の月名。Intl に頼らない（環境で表記が揺れると検査が不安定になる）。 */
-var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
+/* スペイン語のページ（PV_LANG === 'es'）はスペイン語の月名（英語の辞書の写しの es が使う） */
+var MONTHS = window.PV_LANG === 'es'
+  ? ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+  : ['January', 'February', 'March', 'April', 'May', 'June',
               'July', 'August', 'September', 'October', 'November', 'December'];
 var T = {
   ja: {
@@ -781,6 +784,8 @@ function fieldValue(fld) {
   /* ★区切りは言語で変える。英語ページに「、」を出すと日本語の文字が混ざる
      （2026-09-09。確認画面の『役職・区分』が Line pilot、Instructor と出ていた）。 */
   if (!free) return boxed.join(C.lang === 'en' ? ', ' : '、');
+  /* スペイン語のページ：対象月は「Octubre de 2026」（欄の並びのままだと「2026 Octubre」になる）。日英は今までどおり */
+  if (window.PV_LANG === 'es' && parts.length === 2 && fld.querySelector('#f-year') && fld.querySelector('#f-month')) return parts[1] + ' de ' + parts[0];
   return parts.concat(boxed).join(' ');
 }
 /* ── 内訳の横棒 ────────────────────────────────────────────────

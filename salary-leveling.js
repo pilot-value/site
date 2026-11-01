@@ -35,9 +35,9 @@
   // そのまま返す＝描画結果は 1 バイトも変わらない（回帰ゼロ）。
   function isENPage() {
     try {
-      if (w.location && w.location.pathname.indexOf('/en/') !== -1) return true;
+      if (w.location && /\/(en|es)\//.test(w.location.pathname)) return true;   // スペイン語のページも英語と同じ（2026-11-02）
       var lang = d.documentElement && d.documentElement.getAttribute('lang');
-      return !!(lang && lang.toLowerCase().indexOf('en') === 0);
+      return !!(lang && /^(en|es)/i.test(lang));
     } catch (e) { return false; }
   }
   var IS_EN = isENPage();

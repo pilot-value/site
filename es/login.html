@@ -570,7 +570,7 @@
 
       if (error) {
         errEl.textContent = (error.status === 429)
-          ? 'Too many requests. Please wait a moment and try again.'
+          ? 'Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.'
           : 'No se pudo enviar el correo: ' + error.message;
         errEl.style.display = 'block';
         return;

@@ -8,7 +8,8 @@
    何度流しても同じ結果になる（生成物を消してから流しても同じ）。
    実行: node gen-conditions.mjs
 ════════════════════════════════════════════════════════════════ */
-import { writeFileSync } from 'fs';
+import { writeFileSync, existsSync } from 'fs';
+import { LANGS } from './langs.mjs';
 import { SECTIONS, QUESTIONS, SETTINGS, ASK, UNKNOWN, TEXT_MAX, LINES_MAX, LINE_NAME_MAX } from './pv-conditions.mjs';
 
 const KINDS = ['choice', 'multi', 'num', 'lines'];
@@ -322,6 +323,21 @@ const askRank = new Map();   // id → 1, 2, …（DB の ask_rank）
       return o;
     }),
   };
+  /* ★機械で作る言語（スペイン語など）の文言を足す（2026-11-02・多言語化）。ja と en を両方持つ所に、en の写しを
+     訳の辞書（i18n/tm-<言語>.mjs）で訳して置く。訳が無い字は英語のまま。DB（conditions.generated.sql）には足さない＝画面だけ。 */
+  for (const L of LANGS.filter((l) => !l.hand)) {
+    const tmUrl = new URL(`./i18n/tm-${L.code}.mjs`, import.meta.url);
+    if (!existsSync(tmUrl)) continue;
+    const { TM } = await import(tmUrl);
+    const tr = (s) => (TM[s] && ['validated', 'manual'].includes(TM[s].st) ? TM[s].es : s);
+    const deep = (v) => (typeof v === 'string' ? tr(v) : Array.isArray(v) ? v.map(deep) : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, deep(x)])) : v);
+    (function add(o) {
+      if (Array.isArray(o)) { o.forEach(add); return; }
+      if (!o || typeof o !== 'object') return;
+      if (o.ja !== undefined && o.en !== undefined) o[L.code] = deep(o.en);
+      for (const k of Object.keys(o)) if (!LANGS.some((l) => l.code === k)) add(o[k]);
+    })(json);
+  }
   writeFileSync(new URL('./pv-conditions.json', import.meta.url), JSON.stringify(json));
   console.log(`✅ pv-conditions.json 書き出し: 質問${QUESTIONS.length}（一覧に出るもの ${listed.length}・話題の入口からだけ出るもの ${topicOnly.length}・提出直後に出せるもの ${micros.length}）`);
 }

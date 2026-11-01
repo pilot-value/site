@@ -640,7 +640,7 @@
         const el = document.getElementById(id);
         if (!el || !on) return;                       // still locked → leave the markup as it is
         const d = until
-          ? ` (until ${new Date(until).toLocaleDateString('en-US',{month:'short',day:'numeric'})})`
+          ? ` (until ${new Date(until).toLocaleDateString(window.PV_LANG === 'es' ? 'es-419' : 'en-US',{month:'short',day:'numeric'})})`
           : '';
         el.className = 'unlock-badge unlock-active';
         el.innerHTML = `${OPEN_LOCK} ${label} unlocked${d}`;
@@ -838,7 +838,7 @@
       document.getElementById('v-company').textContent  = profile.company  || '—';
       document.getElementById('v-position').textContent = POS_LABEL[profile.position] || '—';
       document.getElementById('v-joined').textContent   = profile.created_at
-        ? new Date(profile.created_at).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) : '—';
+        ? new Date(profile.created_at).toLocaleDateString(window.PV_LANG === 'es' ? 'es-419' : 'en-US',{year:'numeric',month:'long',day:'numeric'}) : '—';
       // Update localStorage
       localStorage.setItem('pv_user', JSON.stringify({...profile, email: currentUser.email}));
     }
@@ -851,7 +851,7 @@
       if (!t) return;
       t.setAttribute('aria-checked', on ? 'true' : 'false');
       k.style.transform  = on ? 'translateX(22px)' : 'translateX(0)';
-      if (h) h.textContent = on ? 'Subscribed: we only send useful updates.' : 'Actualmente desactivadas: no recibirás notificaciones de nuevas publicaciones ni actualizaciones.';
+      if (h) h.textContent = on ? 'Suscrito: solo enviamos novedades útiles.' : 'Actualmente desactivadas: no recibirás notificaciones de nuevas publicaciones ni actualizaciones.';
     }
 
     async function toggleOptIn() {
@@ -875,7 +875,7 @@
            親と子の意味・保存先・送信条件は1文字も変えていない。 */
       if (typeof window.PVRemindSync === 'function') window.PVRemindSync(next);
       const toast = document.getElementById('toast');
-      if (toast) { toast.textContent = next ? 'Email notifications turned on ✓' : 'Notificaciones por correo electrónico desactivadas'; toast.style.display='block'; setTimeout(()=>{toast.style.display='none';}, 2500); }
+      if (toast) { toast.textContent = next ? 'Notificaciones por correo electrónico activadas ✓' : 'Notificaciones por correo electrónico desactivadas'; toast.style.display='block'; setTimeout(()=>{toast.style.display='none';}, 2500); }
     }
 
     /* 逆向き。⑥ SETTINGS の子（月次給与リマインド）をオンにすると、サーバ側で
@@ -914,7 +914,7 @@
     }
     // 引けなければコードのまま出す（「その他」の自由入力は社名そのものが入っている）
     const airlineLabel = (code) => airlineNames[code] || code || '—';
-    const fmtDate = (x) => x ? new Date(x).toLocaleDateString('en-US') : '';
+    const fmtDate = (x) => x ? new Date(x).toLocaleDateString(window.PV_LANG === 'es' ? 'es-419' : 'en-US') : '';
     const snippet = (x) => {
       const s = String(x || '').trim();
       return s ? esc(s.slice(0, 80)) + (s.length > 80 ? '…' : '') : '';

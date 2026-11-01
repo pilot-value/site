@@ -21,7 +21,7 @@
   'use strict';
 
   // ── 言語判定 ─────────────────────────────────────
-  var LANG = ((d.documentElement.getAttribute('lang') || '').toLowerCase().indexOf('en') === 0) ? 'en' : 'ja';
+  var LANG = (window.PV_BASE === 'en' || (d.documentElement.getAttribute('lang') || '').toLowerCase().indexOf('en') === 0) ? 'en' : 'ja';   // スペイン語のページは英語と同じ動き（pv-session.js）
 
   // ── UI文言（描画コードは共通・ここだけが言語で変わる）──────
   var STR = {
@@ -142,7 +142,7 @@
       secJobs: /Job|Requirement/,
     },
   };
-  var L = STR[LANG];
+  var L = (window.PV_T && window.PV_T(STR, LANG)) || STR[LANG];   // スペイン語の辞書があればそれ
 
   // ── データ ───────────────────────────────────────
   var _RD = w.PVReviewData || (function () {
@@ -1162,7 +1162,7 @@
     en: { all: 'Unlock all reviews', top: 'Unlock reviews' },
   };
   function unlockLabel(kind) {
-    var words = GG_WORDS[LANG] || GG_WORDS.ja;
+    var words = (window.PV_T && window.PV_T(GG_WORDS, LANG)) || GG_WORDS[LANG] || GG_WORDS.ja;
     return '<span class="pv-gg-t"><span class="pvg-gg-k" lang="en">Give &amp; Get</span>' +
            '<span class="pvg-gg-m">' + (words[kind] || words.all) + '</span></span>';
   }

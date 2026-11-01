@@ -176,7 +176,7 @@
      ・proofPick・proofWait は pv-proof-offer.js の T.en の pick・doneS の写し（1文字でもずれたら assert-proof-offer.mjs が落とす）。
      ・サイトに英語が在る字は、その写し（管理ページ admin-queue.js の英語：承認・却下・確認待ち・地図・名前・住所・ひとこと・種類・運営の断り／
        「情報を追加」pv-contrib.js の英語：あなたの投稿・送信中…・読み込めませんでした／ポップアップの Close）。 */
-  var LANG = /^en(-|$)/i.test(d.documentElement.getAttribute('lang') || '') ? 'en' : 'ja';
+  var LANG = (window.PV_BASE === 'en' || /^en(-|$)/i.test(d.documentElement.getAttribute('lang') || '')) ? 'en' : 'ja';   // スペイン語のページは英語と同じ動き（pv-session.js）
   var EN = (function () {
     var t = {
       off:        'Not available yet',

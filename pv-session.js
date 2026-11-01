@@ -46,6 +46,19 @@
     window.PV_BASE = lang === 'ja' ? 'ja' : 'en';
     window.PV_T = function (T, L) { return (lang === 'es' && T && T.es) || (T && T[L]); };
     /* 機械で作る言語に在るページ（リンクを その言語 → 英語 の順に探すため）。gen-lang.mjs が langs.mjs から書く。手で直さない */
+    /* スペイン語のページ：部品がその場で組み立てた英語のページへのリンク（/en/…）も、押した瞬間に
+       スペイン語版があればそちらへ差し替える（1本ずつ直すと漏れる）。日英のページでは何もしない。 */
+    if (lang === 'es') document.addEventListener('click', function (e) {
+      var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+      if (!a) return;
+      try {
+        var u = new URL(a.getAttribute('href'), location.href);
+        if (u.origin !== location.origin) return;
+        var m = u.pathname.match(/^\/en\/(.+)$/);
+        var es = (window.PV_LANG_PAGES && window.PV_LANG_PAGES.es) || [];
+        if (m && es.indexOf(m[1]) >= 0) { u.pathname = '/es/' + m[1]; a.setAttribute('href', u.pathname + u.search + u.hash); }
+      } catch (x) {}
+    }, true);
     /*PV-LANG-PAGES*/window.PV_LANG_PAGES = {"es":["pay-report.html","signup.html","login.html","profile.html","actual-pay.html","my-value.html","terms.html","privacy.html","personal-data.html","contact.html"]};/*/PV-LANG-PAGES*/
   })();
 

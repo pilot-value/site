@@ -21,13 +21,15 @@
 import { parse } from 'parse5';
 
 /* 中を見ない（訳さない・単位の境目になる） */
-const SKIP = new Set(['script', 'style', 'noscript', 'template', 'textarea', 'pre', 'iframe', 'object', 'video', 'audio', 'head']);
+/* ★<template> は中へ入る（行を足すときのひな形の字も画面に出る・2026-11-02 に「What it is paid on」が英語のまま残った） */
+const SKIP = new Set(['script', 'style', 'noscript', 'textarea', 'pre', 'iframe', 'object', 'video', 'audio', 'head']);
 /* 文の中に混ざる飾りのタグ（中身も訳す） */
 const INLINE = new Set(['a', 'abbr', 'b', 'bdi', 'bdo', 'cite', 'data', 'dfn', 'em', 'i', 'mark', 'q', 's', 'small', 'span', 'strong', 'sub', 'sup', 'time', 'u', 'font']);
 /* 文の中の「そのまま残す部品」（中身を訳さない） */
 const ATOMIC = new Set(['br', 'wbr', 'img', 'input', 'svg', 'math', 'code', 'kbd', 'samp', 'var', 'canvas', 'picture']);
 /* 訳す属性 */
-export const ATTRS = ['alt', 'title', 'aria-label', 'placeholder'];
+/* data-qty（給与フォームの回数の欄の名前）・data-label（絞り込みの札）は部品が画面に出す字（比べる用途なし・2026-11-02 に確認） */
+export const ATTRS = ['alt', 'title', 'aria-label', 'placeholder', 'data-qty', 'data-label'];
 
 const attrOf = (el, name) => (el.attrs || []).find((a) => a.name === name)?.value;
 const isEl = (n) => n && n.tagName !== undefined;
@@ -409,13 +411,19 @@ export function inlineScriptUnits(html) {
       if (!/[A-Za-z]{2,}/.test(txt)) continue;
       const words = txt.split(/\s+/).filter((w) => /[A-Za-z]{2,}/.test(w));
       if (words.length < 2 && !/^[A-Z][a-z]+(?:[ …:.?!]|$)/.test(txt)) continue;      // 1語は「大文字で始まる語」だけ（Next・Saving… など）
-      if (/^[a-z0-9_\-.:#\[\]=\/ ]+$/.test(inner) && !/ [a-z]+ [a-z]+/.test(inner)) continue;   // 識別子・クラス名・セレクタの形
-      if (/^(https?:|\/|\.\.?\/|#|\.)/.test(inner) || /\.(html|js|css|json|png|svg)(\?|$)/.test(inner)) continue;   // URL・ファイル
+      if (words.length < 2 && /^\s|\s$/.test(inner)) continue;                       // 1語の切れ端（'The ' + 国名）は文の形が言語で変わる＝触らない
+      if (txt.length <= 3 && !/\s/.test(txt)) continue;                                 // 記号（通貨の Ft・Rp・Br など）
+      /* ★形の判定は「画面に出る字」（タグを外した字）で見る。'<a href="profile.html">See my report</a>' をファイル名と取り違えない */
+      if (/^[a-z0-9_\-.:#\[\]=\/ ]+$/.test(txt) && !/ [a-z]+ [a-z]+/.test(txt)) continue;   // 識別子・クラス名・セレクタの形
+      if (/^(https?:|\/|\.\.?\/|#|\.)/.test(txt) || /^\S+\.(html|js|css|json|png|svg)(\?\S*|#\S*)?$/.test(txt)) continue;   // URL・ファイルだけの字
       if (/^[a-z][a-zA-Z0-9]*$/.test(inner)) continue;                                // camelCase の鍵
-      if (/^(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)$/.test(inner)) continue;   // 月・曜日の名前（明細の読み取りにも使う＝触らない）
+      if (/^(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Enero|Febrero|Marzo|Abril|Mayo|Junio|Julio|Agosto|Septiembre|Octubre|Noviembre|Diciembre)$/.test(inner)) continue;   // 月・曜日の名前（明細の読み取りにも使う＝触らない）
       const before = code.slice(Math.max(0, s.start - 80), s.start);
       const after = code.slice(s.end, s.end + 20);
-      if (/(===|!==|==|!=|\bcase|\bin|\[)\s*$/.test(before) || /^\s*(===|!==|==|!=|:(?!:)|\]|\bin\b)/.test(after)) continue;   // 比べる・鍵・添字
+      /* ★[ は添字（obj['key']）のときだけ外す。配列の頭（rows.push(['Pay per block hour', …])）は画面に出る字 */
+      if (/(===|!==|==|!=|\bcase|\bin)\s*$/.test(before) || /[\w$\]\)]\s*\[\s*$/.test(before)) continue;   // 比べる・添字
+      const ternary = /\?\s*$/.test(before);   // 条件 ? 'A' : 'B' の : は鍵ではない
+      if (/^\s*(===|!==|==|!=|\bin\b)/.test(after) || (!ternary && /^\s*:(?!:)/.test(after)) || (/^\s*\]/.test(after) && /[\w$\]\)]\s*\[\s*$/.test(before))) continue;   // 鍵・比べる
       if (CODEY_CALL.test(before)) continue;                                            // 識別子として渡す引数
       const ls = code.lastIndexOf('\n', s.start) + 1;
       const le = code.indexOf('\n', s.end);

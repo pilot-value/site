@@ -1772,7 +1772,10 @@ const CITIZEN_TAX = ['US','ER'];
 const TAX_TABLE = {"JP":{"cur":"JPY","emp":[[1900000,0,650000],[3600000,0.3,80000],[6600000,0.2,440000],[8500000,0.1,1100000],[null,0,1950000]],"basic":[[1320000,950000],[3360000,580000],[4890000,680000],[6550000,630000],[23500000,580000],[24000000,480000],[24500000,320000],[25000000,160000],[null,0]],"quick":[[1950000,0.05,0],[3300000,0.1,97500],[6950000,0.2,427500],[9000000,0.23,636000],[18000000,0.33,1536000],[40000000,0.4,2796000],[null,0.45,4796000]],"surtax":0.021,"local":0.1},"GB":{"cur":"GBP","allow":12570,"taperFrom":100000,"taperRate":0.5,"bands":[[37700,0.2],[125140,0.4],[null,0.45]],"note":"gb-scotland"},"US":{"cur":"USD","std":15750,"bands":[[11925,0.1],[48475,0.12],[103350,0.22],[197300,0.24],[250525,0.32],[626350,0.35],[null,0.37]],"note":"us-state"}};
 /*END:PVMETA*/
 
-const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+/* Display only (the month dropdown and the result line). The Spanish page (es/, generated from this file) shows Spanish month names. */
+const MONTH_NAMES = window.PV_LANG === 'es'
+  ? ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+  : ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
@@ -1913,7 +1916,7 @@ function recapLine() {
   const pos = pick('f-position'); if (pos) parts.push(pos);
   const fl = pick('f-fleet');     if (fl)  parts.push(fl);
   const mo = pick('f-month'), yr = pick('f-year');
-  if (mo && yr) parts.push(mo + ' ' + yr);
+  if (mo && yr) parts.push(window.PV_LANG === 'es' ? mo + ' de ' + yr : mo + ' ' + yr);   // Spanish page: "Octubre de 2026"
   return parts.join(' · ');
 }
 
@@ -2156,7 +2159,8 @@ function afterSaved(data, payload, airline) {
 // ── Country names come from the browser (never maintained twice) ──────
 (function () {
   let dn = null;
-  try { dn = new Intl.DisplayNames([LANG], { type: 'region' }); } catch (e) {}
+  /* Country names in the page language (the Spanish page gets Spanish names). */
+  try { dn = new Intl.DisplayNames([window.PV_LANG === 'es' ? 'es-419' : LANG], { type: 'region' }); } catch (e) {}
   const sel = $('f-taxcountry');
   if (!sel || !dn) return;
   /* ★Re-sort INSIDE each optgroup. The old code appendChild'd everything back onto
@@ -3529,7 +3533,7 @@ function recalc() {
   const t = annualTotal();
   /* ★同じ文字列を2か所へ。#sticky-total は常設バーの中（式は annualTotal() の1本のまま）。 */
   const totalHTML = t > 0
-    ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(t)) + '<span class="u">' + esc(cur || '') + ' / yr</span>'
+    ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(t)) + '<span class="u">' + esc(cur || '') + (window.PV_LANG === 'es' ? ' / año' : ' / yr') + '</span>'
     : '—';
   $('live-total').innerHTML = totalHTML;
   $('sticky-total').innerHTML = totalHTML;
@@ -5257,8 +5261,7 @@ if (WZ) {
      country-based estimate does not overwrite it — a figure they read off their
      own payslip is the better number. */
   if (o['f-tax']) $('f-tax').dataset.touched = '1';
-  const MON = ['January','February','March','April','May','June',
-               'July','August','September','October','November','December'];
+  const MON = MONTH_NAMES;   // display only — Spanish on the Spanish page
   /* 月が分からないときも文が壊れないようにする（JP の「前回」に当たる）。
      'your last report' / 'your March 2026 report' のどちらでも同じ文に収まる形にする。 */
   const ym = r.period_year && r.period_month
@@ -6038,7 +6041,7 @@ function renderResult(d, p) {
   if (d.net_annual_jpy != null) rows.push(['Estimated take-home (yr)', jpyMan(d.net_annual_jpy), '']);
   if (d.streak_months) rows.push(['Consecutive months', String(d.streak_months), '']);
   if (d.access_until) {
-    rows.push(['REAL PAY unlocked until', new Date(d.access_until).toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' }), '']);
+    rows.push(['REAL PAY unlocked until', new Date(d.access_until).toLocaleDateString(window.PV_LANG === 'es' ? 'es-419' : 'en-GB', { year: 'numeric', month: 'short', day: 'numeric' }), '']);
   }
 
   let bench = '';

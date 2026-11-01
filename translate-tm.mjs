@@ -163,7 +163,7 @@ const BAN = [
   [/\bsegundo piloto\b/i, /first officer|second officer|co-?pilot|\bFO\b|\bSO\b/i],
   [/\bescalas?\b/i, /layover|overnight|nights? away/i],
   [/\baguinaldo\b/i, /^(?![\s\S]*(13th|thirteenth|christmas))[\s\S]*\bbonus\b/i],
-  [/\breserva\b/i, /standby/i],
+  [/\breserva\b/i, /^(?![\s\S]*\breserve)[\s\S]*\bstandby/i],   // 英語に reserve も在るなら reserva は正しい（Reserve / Standby → Reserva / guardia）
   [/\bpilota\b/i, null], [/\bpiloto\/a\b/i, null], [/\d\s?K\b/, null],
 ];
 function check(key, es) {
@@ -293,7 +293,24 @@ const collectJS = () => MSG_FILES.flatMap((f) => msgUnits(f).map((u) => ({ key: 
 /* --inline：ページの中の台本の、画面に出る文字列（文字列1つずつ・前後のコードの行を添える） */
 const collectInline = () => (LANG[code].pages.map((p) => 'en/' + p)).flatMap((rel) => inlineScriptUnits(fs.readFileSync(path.join(ROOT, rel), 'utf8'))
   .map((u) => ({ key: u.key, src: u.raw, page: rel, kind: 'javascript string literal inside the page code (return only this one literal, same quote characters; the code line is given as context)', ja: '', before: u.line, after: '' })));
-let pool = flag('--js') ? collectJS() : flag('--inline') ? collectInline() : collect(pages);
+/* --bank：待遇の質問の台帳（pv-conditions.json）の英語。日本語の同じ所の字を意味の確認用に添える */
+const collectBank = () => {
+  const j = JSON.parse(fs.readFileSync(path.join(ROOT, 'pv-conditions.json'), 'utf8'));
+  const out = [];
+  const pair = (en, ja, where) => {
+    if (typeof en === 'string') { if (/[A-Za-z]{2,}/.test(en)) out.push({ key: en, page: 'pv-conditions.json', kind: `survey question for airline pilots about working conditions (${where})`, ja: typeof ja === 'string' ? ja : '', before: '', after: '' }); return; }
+    if (Array.isArray(en)) { en.forEach((x, i) => pair(x, Array.isArray(ja) ? ja[i] : undefined, where)); return; }
+    if (en && typeof en === 'object') for (const k of Object.keys(en)) pair(en[k], ja && typeof ja === 'object' ? ja[k] : undefined, where + '.' + k);
+  };
+  (function walk(o, where) {
+    if (Array.isArray(o)) { o.forEach((x, i) => walk(x, where)); return; }
+    if (!o || typeof o !== 'object') return;
+    if (o.ja !== undefined && o.en !== undefined) pair(o.en, o.ja, where + (o.id ? ' ' + o.id : o.code ? ' ' + o.code : ''));
+    for (const k of Object.keys(o)) if (!['ja', 'en', 'es'].includes(k)) walk(o[k], k);
+  })(j, 'bank');
+  return out;
+};
+let pool = flag('--js') ? collectJS() : flag('--inline') ? collectInline() : flag('--bank') ? collectBank() : collect(pages);
 pool = [...new Map(pool.map((c) => [c.key, c])).values()];
 if (flag('--again')) pool = pool.filter((c) => TM[c.key]);
 else if (opt('--trial')) pool = pickTrial(pool.filter((c) => !fresh(c.key)), Number(opt('--trial')));

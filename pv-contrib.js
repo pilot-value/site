@@ -86,7 +86,7 @@
      ・サーバへ送る lang も同じ LANG（月の勤務・質問・街の3つの送る形）。
      ・サーバの断り文は日本語。英語の面にはそのまま出さない（T.en.said）。どの欄の話かを当てる字（fieldOf・townFieldOf・NUMS の srv）は
        サーバの字なので日本語のまま。 */
-  var LANG = /^en(-|$)/i.test(d.documentElement.getAttribute('lang') || '') ? 'en' : 'ja';
+  var LANG = (window.PV_BASE === 'en' || /^en(-|$)/i.test(d.documentElement.getAttribute('lang') || '')) ? 'en' : 'ja';   // スペイン語のページは英語と同じ動き（pv-session.js）
   var MONTHS_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   var T = {
     ja: {
@@ -314,7 +314,7 @@
       capNote: 'Note on the limit', note: 'Note'
     }
   };
-  var TX = T[LANG];
+  var TX = (window.PV_T && window.PV_T(T, LANG)) || T[LANG];   // スペイン語の辞書があればそれ
   /* 台帳（pv-conditions.json・pv-vocab.json）の { ja, en } のうち、この面の言葉のほう。 */
   function loc(o) { return o && typeof o === 'object' ? o[LANG] : undefined; }
 

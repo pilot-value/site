@@ -48,7 +48,7 @@
        足したのは3つだけ：コードの中に直に在った字（並んだ答えの区切り「、」・年月の「年」「月」）を表へ移した list・ym と、数と単位のあいだ unitSp（日本語は空）。
      ・英語は T_EN。鍵も形も T と同じ（assert-career-live.mjs の en-words が見る）。英語のページでだけ、T_EN の下の1行で表を入れ替える。
      ・サーバーへ渡す言葉（口コミの要約の lang）・答えの名前（質問の台帳・職位と機材・会社の名前）も同じ LANG で選ぶ。 */
-  var LANG = /^en(-|$)/i.test(d.documentElement.getAttribute('lang') || '') ? 'en' : 'ja';
+  var LANG = (window.PV_BASE === 'en' || /^en(-|$)/i.test(d.documentElement.getAttribute('lang') || '')) ? 'en' : 'ja';   // スペイン語のページは英語と同じ動き（pv-session.js）
 
   var T = {
     loading: '読み込み中',
@@ -290,6 +290,7 @@
     answered: function (n) { return n === 1 ? '1 member' : n + ' members'; }
   };
   if (LANG === 'en') T = T_EN;
+  if (window.PV_LANG === 'es' && typeof T_ES !== 'undefined') T = T_ES;   // スペイン語の辞書（gen-msg.mjs が書く）
 
   /* ── 小さな道具 ─────────────────────────────────────────── */
   function isArr(v) { return Object.prototype.toString.call(v) === '[object Array]'; }

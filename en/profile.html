@@ -645,7 +645,7 @@
         const el = document.getElementById(id);
         if (!el || !on) return;                       // still locked → leave the markup as it is
         const d = until
-          ? ` (until ${new Date(until).toLocaleDateString('en-US',{month:'short',day:'numeric'})})`
+          ? ` (until ${new Date(until).toLocaleDateString(window.PV_LANG === 'es' ? 'es-419' : 'en-US',{month:'short',day:'numeric'})})`
           : '';
         el.className = 'unlock-badge unlock-active';
         el.innerHTML = `${OPEN_LOCK} ${label} unlocked${d}`;
@@ -843,7 +843,7 @@
       document.getElementById('v-company').textContent  = profile.company  || '—';
       document.getElementById('v-position').textContent = POS_LABEL[profile.position] || '—';
       document.getElementById('v-joined').textContent   = profile.created_at
-        ? new Date(profile.created_at).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) : '—';
+        ? new Date(profile.created_at).toLocaleDateString(window.PV_LANG === 'es' ? 'es-419' : 'en-US',{year:'numeric',month:'long',day:'numeric'}) : '—';
       // Update localStorage
       localStorage.setItem('pv_user', JSON.stringify({...profile, email: currentUser.email}));
     }
@@ -919,7 +919,7 @@
     }
     // 引けなければコードのまま出す（「その他」の自由入力は社名そのものが入っている）
     const airlineLabel = (code) => airlineNames[code] || code || '—';
-    const fmtDate = (x) => x ? new Date(x).toLocaleDateString('en-US') : '';
+    const fmtDate = (x) => x ? new Date(x).toLocaleDateString(window.PV_LANG === 'es' ? 'es-419' : 'en-US') : '';
     const snippet = (x) => {
       const s = String(x || '').trim();
       return s ? esc(s.slice(0, 80)) + (s.length > 80 ? '…' : '') : '';

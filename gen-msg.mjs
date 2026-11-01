@@ -22,7 +22,9 @@ const ROOT = fileURLToPath(new URL('.', import.meta.url));
 
 /* 辞書を持つ部品（スペイン語のページが読むもの） */
 export const MSG_FILES = ['pay-wizard.js', 'pay-login.js', 'payslip.js', 'pv-gates.js', 'pv-give-first.js', 'app-nav.js',
-  'pv-referral.js', 'pv-conditions.js', 'my-value.js', 'actual-pay.js', 'pv-proof-offer.js', 'ap-preview.js', 'review-i18n.js'];
+  'pv-referral.js', 'pv-conditions.js', 'my-value.js', 'actual-pay.js', 'pv-proof-offer.js', 'ap-preview.js', 'review-i18n.js',
+  /* 段3（2026-11-02）：会社ページ・トップ */
+  'career-live.js', 'pv-contrib.js', 'lp.js', 'airlines/airline-reviews-ui.js'];
 
 const OPEN = (code) => `/*PV-MSG:${code}*/`;
 const CLOSE = (code) => `/*/PV-MSG:${code}*/`;
@@ -67,7 +69,7 @@ function props(src, m, o) {
 
 /* ファイルの中の言語の辞書（ja と en を持つオブジェクト）を全部 */
 export function dicts(src) {
-  const clean = src.replace(/,\s*\/\*PV-MSG:[a-z-]+\*\/[\s\S]*?\/\*\/PV-MSG:[a-z-]+\*\//g, (m) => ' '.repeat(m.length));   // 前に書いた es は見ない
+  const clean = src.replace(/(,\s*|\n[ \t]*)\/\*PV-MSG:[a-z-]+\*\/[\s\S]*?\/\*\/PV-MSG:[a-z-]+\*\//g, (m) => m.replace(/[^\n]/g, ' '));   // 前に書いた es は見ない（プロパティの形と変数の形）
   const m = mask(clean);
   const out = [];
   const re = /(^|[{,\s])en\s*:\s*\{/g;
@@ -81,7 +83,18 @@ export function dicts(src) {
     const parent = props(clean, m, p);
     if (!parent.list.some((x) => x.key === 'ja')) continue;
     const en = props(clean, m, o);
-    out.push({ start: o, end: en.end + 1, list: en.list, ja: parent.list.find((x) => x.key === 'ja') });
+    out.push({ form: 'prop', start: o, end: en.end + 1, list: en.list, ja: parent.list.find((x) => x.key === 'ja') });
+  }
+  /* 変数の形：var T = {日本語} と var T_EN = {英語}（career-live.js）。es は var T_ES = {…}; として T_EN の後ろに書く */
+  const re2 = /\bvar\s+([A-Z][A-Z0-9_]*)_EN\s*=\s*\{/g;
+  while ((r = re2.exec(m))) {
+    const name = r[1];
+    const o = r.index + r[0].length - 1;
+    const en = props(clean, m, o);
+    const jm = new RegExp('\\bvar\\s+' + name + '\\s*=\\s*\\{').exec(m);
+    const jaObj = jm ? jm.index + jm[0].length - 1 : -1;
+    let semi = en.end + 1; while (semi < m.length && /\s/.test(m[semi])) semi++;
+    out.push({ form: 'var', name, start: o, end: en.end + 1, after: m[semi] === ';' ? semi + 1 : en.end + 1, list: en.list, jaObj });
   }
   return out;
 }
@@ -92,7 +105,7 @@ export function msgUnits(file) {
   const units = [];
   for (const dct of dicts(src)) {
     const m = mask(src);
-    const jaProps = dct.ja ? props(src, m, src.indexOf('{', dct.ja.vs)).list : [];
+    const jaProps = dct.form === 'var' ? (dct.jaObj >= 0 ? props(src, m, dct.jaObj).list : []) : dct.ja ? props(src, m, src.indexOf('{', dct.ja.vs)).list : [];
     for (const p of dct.list) {
       const v = src.slice(p.vs, p.ve);
       if (!/[A-Za-z]{2,}/.test(jsText(v))) continue;
@@ -107,7 +120,7 @@ export function msgUnits(file) {
 function write(file, code, TM, CHECK) {
   const abs = path.join(ROOT, file);
   const orig = fs.readFileSync(abs, 'utf8');
-  const re = new RegExp(`,\\s*\\/\\*PV-MSG:${code}\\*\\/[\\s\\S]*?\\/\\*\\/PV-MSG:${code}\\*\\/`, 'g');
+  const re = new RegExp(`(,\\s*|\\n[ \\t]*)\\/\\*PV-MSG:${code}\\*\\/[\\s\\S]*?\\/\\*\\/PV-MSG:${code}\\*\\/`, 'g');
   const src = orig.replace(re, '');
   const tr = (k) => (TM[k] && ['validated', 'manual'].includes(TM[k].st) ? TM[k].es.slice(3) : null);
   let out = ''; let i = 0; let missing = 0; let done = 0;
@@ -121,8 +134,13 @@ function write(file, code, TM, CHECK) {
       block += src.slice(k, p.vs) + t; k = p.ve; done++;
     }
     block += src.slice(k, dct.end);
-    out += src.slice(i, dct.end) + `, ${OPEN(code)} ${code}: ${block} ${CLOSE(code)}`;
-    i = dct.end;
+    if (dct.form === 'var') {
+      out += src.slice(i, dct.after) + `\n  ${OPEN(code)} var ${dct.name}_${code.toUpperCase()} = ${block}; ${CLOSE(code)}`;
+      i = dct.after;
+    } else {
+      out += src.slice(i, dct.end) + `, ${OPEN(code)} ${code}: ${block} ${CLOSE(code)}`;
+      i = dct.end;
+    }
   }
   out += src.slice(i);
   if (out !== orig && !CHECK) fs.writeFileSync(abs, out);

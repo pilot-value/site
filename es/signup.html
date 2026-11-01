@@ -626,7 +626,7 @@
 
       if(error){
         errEl.textContent = (error.status === 429)
-          ? 'Too many requests. Please wait a moment and try again.'
+          ? 'Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.'
           : 'No pudimos enviar el correo: ' + error.message;
         errEl.style.display='block';
         return;
@@ -761,7 +761,7 @@
         if(error){
           return fail(netErrMsg(error)
             || (error.message === 'User already registered'
-              ? 'This email address is already registered'
+              ? 'Este correo electrónico ya está registrado'
               : 'Ocurrió un error: ' + error.message));
         }
         if(!data.user){
