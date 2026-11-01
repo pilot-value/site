@@ -25,19 +25,21 @@
 
   // ── 固定・概算 為替レート（JPY / 1通貨単位）。オーナーが1箇所で編集可 ──
   // 概算・2026年時点。表示専用（SSOT の円は不変）。数値は後から1箇所で調整可。
-  var RATES = { JPY: 1, USD: 158.95, EUR: 185.69, GBP: 216.76, AUD: 113.88, SGD: 125.24, AED: 43.2825 };
-  var ORDER = ['JPY', 'USD', 'EUR', 'GBP', 'AUD', 'SGD', 'AED'];
-  var SYM   = { USD: '$', EUR: '€', GBP: '£', AUD: 'A$', SGD: 'S$', AED: 'AED ' };
+  var RATES = { JPY: 1, USD: 158.95, EUR: 185.69, GBP: 216.76, AUD: 113.88, SGD: 125.24, AED: 43.2825, CNY: 23.5913, KRW: 0.114707 };
+  /* 2026-11-02 オーナー指示「中国と韓国の通貨も」で CNY・KRW を足した（値は fx-rates.mjs の今の表のまま）。
+     ★人民元の記号は CN¥（¥ だけだと円と見分けられない）。 */
+  var ORDER = ['JPY', 'USD', 'EUR', 'GBP', 'AUD', 'SGD', 'AED', 'CNY', 'KRW'];
+  var SYM   = { USD: '$', EUR: '€', GBP: '£', AUD: 'A$', SGD: 'S$', AED: 'AED ', CNY: 'CN¥', KRW: '₩' };
   // LABEL は記号と通貨コードだけなので言語で変わらない。
-  var LABEL = { JPY: '¥ JPY', USD: '$ USD', EUR: '€ EUR', GBP: '£ GBP', AUD: 'A$ AUD', SGD: 'S$ SGD', AED: 'د.إ AED' };
+  var LABEL = { JPY: '¥ JPY', USD: '$ USD', EUR: '€ EUR', GBP: '£ GBP', AUD: 'A$ AUD', SGD: 'S$ SGD', AED: 'د.إ AED', CNY: 'CN¥ CNY', KRW: '₩ KRW' };
 
   // ── メニュー内の文言（言語別）─────────────────────────────────
   // 英語ページで「JPY 日本円 / USD 米ドル…」と出ていたのを言語に合わせる。
   // 参照は下の LANG（isENPage() の結果）経由で行う。
   var NAME = {
-    ja: { JPY: '日本円', USD: '米ドル', EUR: 'ユーロ', GBP: '英ポンド', AUD: '豪ドル', SGD: 'シンガポールドル', AED: 'UAEディルハム' },
-    en: { JPY: 'Japanese Yen', USD: 'US Dollar', EUR: 'Euro', GBP: 'British Pound', AUD: 'Australian Dollar', SGD: 'Singapore Dollar', AED: 'UAE Dirham' },
-    es: { JPY: 'Yen japonés', USD: 'Dólar estadounidense', EUR: 'Euro', GBP: 'Libra esterlina', AUD: 'Dólar australiano', SGD: 'Dólar de Singapur', AED: 'Dírham de EAU' }
+    ja: { JPY: '日本円', USD: '米ドル', EUR: 'ユーロ', GBP: '英ポンド', AUD: '豪ドル', SGD: 'シンガポールドル', AED: 'UAEディルハム', CNY: '人民元', KRW: '韓国ウォン' },
+    en: { JPY: 'Japanese Yen', USD: 'US Dollar', EUR: 'Euro', GBP: 'British Pound', AUD: 'Australian Dollar', SGD: 'Singapore Dollar', AED: 'UAE Dirham', CNY: 'Chinese Yuan', KRW: 'South Korean Won' },
+    es: { JPY: 'Yen japonés', USD: 'Dólar estadounidense', EUR: 'Euro', GBP: 'Libra esterlina', AUD: 'Dólar australiano', SGD: 'Dólar de Singapur', AED: 'Dírham de EAU', CNY: 'Yuan chino', KRW: 'Won surcoreano' }
   };
   var AS_OF = { ja: '2026年8月時点', en: 'as of Aug 2026', es: 'agosto de 2026' };
   var NOTE  = {
@@ -86,6 +88,8 @@
   var TZ_CUR = [
     [/^Asia\/Dubai$/,                                          'AED'],
     [/^Asia\/Singapore$/,                                      'SGD'],
+    [/^Asia\/Seoul$/,                                          'KRW'],   // 2026-11-02 韓国
+    [/^Asia\/(Shanghai|Chongqing|Harbin|Urumqi)$/,             'CNY'],   // 2026-11-02 中国本土（香港・マカオ・台湾は自分の通貨がメニューに無いのでドル）
     [/^Australia\//,                                           'AUD'],
     [/^Europe\/(London|Belfast|Jersey|Guernsey|Isle_of_Man)$/, 'GBP'],
     [/^Europe\//,                                              'EUR'],
@@ -130,7 +134,7 @@
     return Math.round(v).toLocaleString('en-US');
   }
   /* 中南米では「$」は自国のペソ。ドルは必ず US$ と書く */
-  var SYM_ES = { USD: 'US$ ', EUR: '€ ', GBP: '£ ', AUD: 'A$ ', SGD: 'S$ ', AED: 'AED ' };
+  var SYM_ES = { USD: 'US$ ', EUR: '€ ', GBP: '£ ', AUD: 'A$ ', SGD: 'S$ ', AED: 'AED ', CNY: 'CN¥ ', KRW: '₩ ' };
 
   function compact(v) {
     var a = Math.abs(v);
