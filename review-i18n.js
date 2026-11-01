@@ -39,9 +39,13 @@
   };
 
   function lang() {
+    /* スペイン語のページは、口コミの訳が全言語にそろうまで（段3）英語の訳を出す ＝ 英語と同じ動き */
+    if (window.PV_BASE === 'en') return 'en';
     var l = (d.documentElement.getAttribute('lang') || '').toLowerCase();
     return l.indexOf('en') === 0 ? 'en' : 'ja';
   }
+  /* 項目名と「自動翻訳」などの文言は、スペイン語の辞書（gen-msg.mjs が足す）があればそれ */
+  var pickT = function (D, l) { return (window.PV_T && window.PV_T(D, l)) || D[l]; };
 
   // 口コミは利用者が書いた文字列。innerHTML に入る経路が複数あるので必ずここを通す。
   function esc(s) {
@@ -99,7 +103,7 @@
     var to = lang();
     var from = (row && row.orig_lang) || 'ja';
     var tr = (row && row.translations && row.translations[to]) || null;
-    var lab = LABELS[to], wrap = WRAP[to];
+    var lab = pickT(LABELS, to), wrap = WRAP[to];
 
     // 本文の列が1つも来ていない＝鍵を持っていない。cats だけで組み立てる。
     var hasBody = false;
@@ -196,14 +200,14 @@
 
   /* 「自動翻訳」バッジ。訳文を出しているカードにだけ添える。 */
   function noteHTML(from) {
-    var u = UI[lang()];
+    var u = pickT(UI, lang());
     return '<span class="rv-tr-badge" title="' + esc(u.from(from)) + '">' + esc(u.note) + '</span>';
   }
 
   /* 原文トグル。原文は消さずに畳んでおく（忠実性の担保）。 */
   function origHTML(origText) {
     if (!origText) return '';
-    var u = UI[lang()];
+    var u = pickT(UI, lang());
     return '<button type="button" class="rv-tr-toggle" data-show="' + esc(u.show) + '" data-hide="' + esc(u.hide) +
       '" onclick="PVReviewI18n.toggle(this)">' + esc(u.show) + '</button>' +
       '<div class="rv-tr-orig" hidden>' + esc(origText) + '</div>';
@@ -246,7 +250,7 @@
   else injectCSS();
 
   w.PVReviewI18n = {
-    KEYS: KEYS, labels: function () { return LABELS[lang()]; }, lang: lang,
+    KEYS: KEYS, labels: function () { return pickT(LABELS, lang()); }, lang: lang,
     esc: esc, pick: pick, noteHTML: noteHTML, origHTML: origHTML, toggle: toggle,
     EXTRA_COLS: EXTRA_COLS, fetchWithFallback: fetchWithFallback,
     fetchRows: fetchRows,

@@ -791,6 +791,11 @@
       }
       if(upsertErr){ console.warn('profiles upsert failed; handle_new_user trigger will populate:', upsertErr.message); }
 
+      /* Remember which language this person signed up in (2026-11-02, multilingual). A separate call, never part of
+         the upsert above: before db/profile-lang.sql is applied the function does not exist, and folding the column
+         into the upsert would make the whole signup fail. Any error here is ignored. The Spanish page sends 'es'. */
+      try { await sb.rpc('pv_set_lang', { p_lang: window.PV_LANG === 'es' ? 'es' : 'en' }); } catch (e) {}
+
       /* ★There are two consent flags. The upsert above only sets the parent (email_opt_in);
          the monthly-reminder child (mail_optin) stayed false. pv_reminder_due requires BOTH,
          which is why the recipient list was permanently empty (measured 2026-08-11:

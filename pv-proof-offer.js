@@ -26,7 +26,7 @@
   'use strict';
 
   if (w.PVProofOffer) return;
-  var L = (d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';
+  var L = (window.PV_BASE === 'en' || d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';   // スペイン語のページは英語と同じ動き（pv-session.js）
 
   /* 文言。★印の付いていないものは pv-proof.js（止まった会員の板）と同じ字。
      ★NEW の4つ（lead2・okT・eUnavail・slotS）は pv-proof.js に無い字。
@@ -84,7 +84,8 @@
       eMany:    'You have reached the submission limit. Please get in touch via the contact page.',
       eUnavail: 'We cannot accept it right now. Please get in touch via the contact page.'      // NEW
     }
-  }[L];
+  };
+  T = (window.PV_T && window.PV_T(T, L)) || T[L];   // スペイン語の辞書（gen-msg.mjs が足す）があればそれ
 
   /* ▼ pv-proof.js の切り出しそのまま（K1：板の見た目）── 直さない。assert-proof-offer.mjs が1文字ずつ見ている */
   var CSS = [

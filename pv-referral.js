@@ -64,7 +64,7 @@
   'use strict';
   if (!w || !d) return;
 
-  var L = (d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';
+  var L = (window.PV_BASE === 'en' || d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';   // スペイン語のページは英語と同じ動き（pv-session.js）
 
   /* ── 運び手 ──────────────────────────────────────────────────
      ★?ref= は URL では運べない。クエリを捨てる場所が4つある：
@@ -219,7 +219,8 @@
              'We invite pilots only.'],
       invGo: 'Invite'
     }
-  }[L];
+  };
+  T = (window.PV_T && window.PV_T(T, L)) || T[L];   // スペイン語の辞書（gen-msg.mjs が足す）があればそれ
 
   /* ★招待された人が受け取った文面の最後の1行（T.msg の末尾）。
      着地の1枚に同じ行を置くと、送られた紙とここが地続きになる。

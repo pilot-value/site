@@ -30,6 +30,25 @@
 (function () {
   'use strict';
 
+  /* ── ページの言語（2026-11-02・多言語化の段2）────────────────────────
+     全ページの <head> で最初に読まれるのはこのファイルなので、ここで1回だけ決める。
+       window.PV_LANG … 'ja' | 'en' | 'es'（文言を出す言語）
+       window.PV_BASE … 'ja' | 'en'（動きの言語。スペイン語のページは英語のページと同じ動き＝
+                        数字の書き方・リンクの作り方。文言だけをスペイン語の辞書から出す）
+       window.PV_T(T, L) … 各部品の辞書 T から、出す文言の組を選ぶ（T.es が無ければ T[L]）。
+     ★日英のページでは今までの判定と同じ答えになる（/en/ か <html lang="en…"> なら en、ほかは ja）。 */
+  (function () {
+    var p = location.pathname;
+    var hl = ((document.documentElement && document.documentElement.getAttribute('lang')) || '').toLowerCase();
+    var lang = (p.indexOf('/es/') === 0 || hl.indexOf('es') === 0) ? 'es'
+      : (/(^|\/)en\//.test(p) || hl.indexOf('en') === 0) ? 'en' : 'ja';
+    window.PV_LANG = lang;
+    window.PV_BASE = lang === 'ja' ? 'ja' : 'en';
+    window.PV_T = function (T, L) { return (lang === 'es' && T && T.es) || (T && T[L]); };
+    /* 機械で作る言語に在るページ（リンクを その言語 → 英語 の順に探すため）。gen-lang.mjs が langs.mjs から書く。手で直さない */
+    /*PV-LANG-PAGES*/window.PV_LANG_PAGES = {"es":["pay-report.html","signup.html","login.html","profile.html","actual-pay.html","my-value.html","terms.html","privacy.html","personal-data.html","contact.html"]};/*/PV-LANG-PAGES*/
+  })();
+
   /* このファイルの置き場所。pv-give-first.js は同じ階層にある。
      ★currentScript は「今まさに走っている <script>」なので、
        トップレベルのこの行でしか取れない（あとで読むと null）。 */
@@ -309,6 +328,12 @@
     var parts = location.pathname.split('/').filter(function (x) { return x; });
     var depth = parts.length - 1;                 // 最後はファイル名
     if (parts[0] === 'en') depth -= 1;            // /en/ 自体は数えない
+    /* スペイン語のページ：その言語に在るページなら同じ階層・無ければ英語版へ（2026-11-02） */
+    if (parts[0] === 'es') {
+      var es = (window.PV_LANG_PAGES && window.PV_LANG_PAGES.es) || [];
+      if (es.indexOf(file) >= 0) return new Array(Math.max(depth - 1, 0) + 1).join('../') + file;
+      return new Array(Math.max(depth, 0) + 1).join('../') + 'en/' + file;
+    }
     return new Array(Math.max(depth, 0) + 1).join('../') + file;
   }
 

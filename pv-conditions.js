@@ -61,7 +61,7 @@
     }
   } catch (e) {}
 
-  var L = (d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';
+  var L = (window.PV_BASE === 'en' || d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';   // スペイン語のページは英語と同じ動き（pv-session.js）
 
   /* 詳細ページ（airline-conditions.html / en/airline-conditions.html）が
      あるかどうか。無い間は「もっと詳しく答える →」を1回も出さない
@@ -192,7 +192,8 @@
                    'are collected in reviews, as scores and in your own words.'],
       voicesLink: 'Write a review anonymously →'
     }
-  }[L];
+  };
+  T = (window.PV_T && window.PV_T(T, L)) || T[L];   // スペイン語の辞書（gen-msg.mjs が足す）があればそれ
 
   var esc = function (s) {
     return String(s == null ? '' : s)

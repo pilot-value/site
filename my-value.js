@@ -55,7 +55,7 @@
   if (!V) return;                       // 読み込み順が崩れたら黙って出さない
   var esc = V.esc, num = V.num, fmt = V.fmt;
 
-  var L = (d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';
+  var L = (window.PV_BASE === 'en' || d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';   // スペイン語のページは英語と同じ動き（pv-session.js）
   var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
   /* 掲載額（salary-data.json）の在り処。★ ページ相対で書くと /en/ から
@@ -481,7 +481,8 @@
         return isFinite(t) ? (MON[t.getMonth()] + ' ' + t.getDate() + ', ' + t.getFullYear()) : '—';
       }
     }
-  }[L];
+  };
+  T = (window.PV_T && window.PV_T(T, L)) || T[L];   // スペイン語の辞書（gen-msg.mjs が足す）があればそれ
 
   // 給料日は 1〜31 なので 11/12/13 の例外だけ見れば足りる
   function ORD(n) {

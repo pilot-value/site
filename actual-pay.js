@@ -116,7 +116,7 @@
     }
   } catch (e) {}
 
-  var L = (d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';
+  var L = (window.PV_BASE === 'en' || d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';   // スペイン語のページは英語と同じ動き（pv-session.js）
 
   // ── 文言 ───────────────────────────────────────────────────────
   var T = {
@@ -343,7 +343,8 @@
       errT: 'We cannot load this right now',
       errS: 'Please try again in a little while.'
     }
-  }[L];
+  };
+  T = (window.PV_T && window.PV_T(T, L)) || T[L];   // スペイン語の辞書（gen-msg.mjs が足す）があればそれ
 
   var PAY_URL = 'pay-report.html#ps';
   /* ★内訳の欄まで直接。pay-report.html の openDetailFromHash() が
@@ -411,7 +412,7 @@
        あちらは mail-bot/announce-mail.mjs と突き合わせている行を抱えている。 */
   function PT(k) {
     var p = pvData();
-    var t = (p && p.t) ? (p.t[L] || p.t.ja) : null;
+    var t = (p && p.t) ? ((window.PV_T && window.PV_T(p.t, L)) || p.t[L] || p.t.ja) : null;   // スペイン語の辞書があればそれ
     return (t && t[k]) || '';
   }
 

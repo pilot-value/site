@@ -50,6 +50,7 @@ export const SQL_FILES = [
   'db/pay-report-pending.sql',
   'db/pay-rows.sql',
   'db/admin.sql',
+  'db/profile-lang.sql',      // 会員の言語（2026-11-02・多言語化）。profiles の後ならどこでもよい
   'db/conditions.generated.sql',
   'db/airline-conditions.sql',
   'db/reviews-gate.sql',

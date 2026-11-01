@@ -41,7 +41,7 @@ const FAST = [
 const SQL = [
   ['db/test-pay-reports.mjs', 15], ['db/test-pay-rows.mjs', 15],
   ['db/test-conditions.mjs', 12], ['db/test-referrals.mjs', 10],
-  ['db/test-founding.mjs', 10], ['db/test-admin-grants.mjs', 10],
+  ['db/test-founding.mjs', 10], ['db/test-admin-grants.mjs', 10], ['db/test-profile-lang.mjs', 5],
   ['db/test-payslip-extras.mjs', 10], ['db/test-unlock-rule.mjs', 10],
   ['db/test-remind.mjs', 10], ['db/test-deep-pay.mjs', 2],
   ['db/test-requests.mjs', 5], ['db/test-reviews-gate.mjs', 6],

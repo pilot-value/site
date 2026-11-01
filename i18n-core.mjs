@@ -299,3 +299,129 @@ export function findAttrs(html, names) {
   walk(doc);
   return out;
 }
+
+/* ════════════════════════════════════════════════════════════════
+   JavaScript の中の文言（2026-11-02・多言語化の段2）
+   部品の辞書 T = { ja: {…}, en: {…} } の en を、コードの形を1文字も変えずに訳す。
+   ★訳してよいのは引用符の中の字だけ。変数・演算子・関数の中身・鍵は1つも変えない
+     → jsShape() が「字を全部 § に置き換えた形」を比べて確かめる。
+   ════════════════════════════════════════════════════════════════ */
+
+/* 文字列・テンプレート・コメント・正規表現を見分けて、文字列の場所を返す。
+   返す形：[{ start, end, q, parts }] … q は ' " ` のどれか。テンプレートの parts は ${…} の外の字の場所 */
+export function jsStrings(src) {
+  const out = [];
+  let prev = '';
+  const isRegexStart = () => !/[\w$)\]}]/.test(prev) || /\b(return|typeof|case|in|of|delete|void|throw|new|else|do)$/.test(src.slice(Math.max(0, lastTokEnd - 8), lastTokEnd));
+  let lastTokEnd = 0;
+  function readTemplate(i) {          // i は ` の位置。終わりの ` の次を返す
+    const parts = []; let j = i + 1; let segStart = j;
+    while (j < src.length) {
+      const c = src[j];
+      if (c === '\\') { j += 2; continue; }
+      if (c === '`') { parts.push([segStart, j]); return { end: j + 1, parts }; }
+      if (c === '$' && src[j + 1] === '{') {
+        parts.push([segStart, j]);
+        j = skipExpr(j + 2);           // } の次
+        segStart = j; continue;
+      }
+      j++;
+    }
+    return { end: src.length, parts };
+  }
+  function skipExpr(j) {               // ${ の中。対応する } の次を返す（中の文字列も拾う）
+    let depth = 1;
+    while (j < src.length) {
+      const c = src[j];
+      if (c === '"' || c === "'") { const e = readQuote(j); out.push({ start: j, end: e, q: c }); j = e; continue; }
+      if (c === '`') { const t = readTemplate(j); out.push({ start: j, end: t.end, q: '`', parts: t.parts }); j = t.end; continue; }
+      if (c === '{') depth++;
+      else if (c === '}') { depth--; if (!depth) return j + 1; }
+      j++;
+    }
+    return j;
+  }
+  function readQuote(i) {
+    const q = src[i]; let j = i + 1;
+    while (j < src.length && src[j] !== q) { if (src[j] === '\\') j++; if (src[j] === '\n') break; j++; }
+    return j + 1;
+  }
+  for (let i = 0; i < src.length; i++) {
+    const c = src[i];
+    if (c === '/' && src[i + 1] === '/') { i = src.indexOf('\n', i); if (i < 0) break; continue; }
+    if (c === '/' && src[i + 1] === '*') { i = src.indexOf('*/', i + 2) + 1; if (i <= 0) break; continue; }
+    if (c === '"' || c === "'") { const e = readQuote(i); out.push({ start: i, end: e, q: c }); i = e - 1; prev = c; lastTokEnd = e; continue; }
+    if (c === '`') { const t = readTemplate(i); out.push({ start: i, end: t.end, q: '`', parts: t.parts }); i = t.end - 1; prev = '`'; lastTokEnd = t.end; continue; }
+    if (c === '/' && isRegexStart()) {
+      let j = i + 1, cls = false;
+      while (j < src.length && src[j] !== '\n') { if (src[j] === '\\') { j += 2; continue; } if (src[j] === '[') cls = true; else if (src[j] === ']') cls = false; else if (src[j] === '/' && !cls) break; j++; }
+      i = j; while (/[a-z]/i.test(src[i + 1] || '')) i++; prev = '/'; lastTokEnd = i + 1; continue;
+    }
+    if (!/\s/.test(c)) { prev = c; lastTokEnd = i + 1; }
+  }
+  return out.sort((a, b) => a.start - b.start);
+}
+
+/* 文字列の中身（テンプレートは ${} の外）を全部 § にし、空白を詰めた形。訳の前後でこれが同じなら、コードは変わっていない */
+export function jsShape(src) {
+  const strs = jsStrings(src).filter((s, i, a) => !a.some((o) => o !== s && o.start < s.start && s.end <= o.end));
+  let out = ''; let i = 0;
+  for (const s of strs) {
+    out += src.slice(i, s.start);
+    if (s.q === '`') {
+      out += '`'; let k = s.start + 1;
+      for (const [a, b] of s.parts) { out += src.slice(k, a).replace(/[\s\S]*/, (m) => m); out += '§'; k = b; }
+      out += src.slice(k, s.end - 1) + '`';
+    } else out += s.q + '§' + s.q;
+    i = s.end;
+  }
+  return (out + src.slice(i)).replace(/\s+/g, '');
+}
+
+/* 文字列の中の「人が読む字」だけ（HTML のタグを除いた字）── 訳す必要があるかの判定・数字の検査に使う */
+export function jsText(src) {
+  return jsStrings(src).map((s) => (s.q === '`' ? s.parts.map(([a, b]) => src.slice(a, b)).join(' ') : src.slice(s.start + 1, s.end - 1)))
+    .join(' ').replace(/<[^>]*>/g, ' ').replace(/\\[nt]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+/* 文字列の中の HTML タグの一覧（訳の前後で同じか比べる） */
+export const jsTags = (src) => (jsStrings(src).map((s) => src.slice(s.start, s.end)).join(' ').match(/<\/?[a-z][^>]*>/gi) || []).sort().join(' ');
+
+/* ── ページの中の台本（インラインの <script>）の、画面に出る文字列 ───────────────
+   英語のページは触らずに、スペイン語のページを作るときにだけ差し替える（gen-lang.mjs）。
+   ★コードが比べたり鍵に使ったりする文字列は外す（=== の相手・case・オブジェクトの鍵・
+     querySelector や setItem などの引数・クラス名や識別子の形・URL）。外しすぎて英語が残るのは安全側。 */
+const CODEY_CALL = /\b(querySelector(All)?|getElementById|getElementsBy\w+|closest|matches|classList\.\w+|setAttribute|getAttribute|removeAttribute|hasAttribute|addEventListener|removeEventListener|dispatchEvent|CustomEvent|Event|getItem|setItem|removeItem|includes|indexOf|startsWith|endsWith|test|match|replace|split|join|fetch|rpc|from|select|eq|neq|in|order|channel|track|gtag|dataLayer|createElement|insertAdjacentHTML|has|get|set|delete|require|import|postMessage|toLocaleString|toLocaleDateString|Intl\.\w+|NumberFormat|DateTimeFormat|padStart|toFixed|localeCompare|sort)\s*\(\s*$/;
+export function inlineScriptUnits(html) {
+  const out = [];
+  const re = /<script(?![^>]*\bsrc=)(?![^>]*application\/ld\+json)(?![^>]*type="(?:text\/template|module)")[^>]*>([\s\S]*?)<\/script>/gi;
+  let m;
+  while ((m = re.exec(html))) {
+    const code = m[1];
+    if (/^\s*tailwind\.config\s*=/.test(code)) continue;                               // Tailwind の設定（色・字体の名前）
+    const base = m.index + m[0].indexOf('>') + 1;
+    const strs = jsStrings(code);
+    for (const s of strs) {
+      if (strs.some((o) => o !== s && o.start < s.start && s.end <= o.end)) continue;   // テンプレートの ${} の中の文字列は親ごと扱う
+      const raw = code.slice(s.start, s.end);
+      const inner = raw.slice(1, -1);
+      const txt = inner.replace(/<[^>]*>/g, ' ').replace(/\$\{[^}]*\}/g, ' ').replace(/\\[nt]/g, ' ').trim();
+      if (!/[A-Za-z]{2,}/.test(txt)) continue;
+      const words = txt.split(/\s+/).filter((w) => /[A-Za-z]{2,}/.test(w));
+      if (words.length < 2 && !/^[A-Z][a-z]+(?:[ …:.?!]|$)/.test(txt)) continue;      // 1語は「大文字で始まる語」だけ（Next・Saving… など）
+      if (/^[a-z0-9_\-.:#\[\]=\/ ]+$/.test(inner) && !/ [a-z]+ [a-z]+/.test(inner)) continue;   // 識別子・クラス名・セレクタの形
+      if (/^(https?:|\/|\.\.?\/|#|\.)/.test(inner) || /\.(html|js|css|json|png|svg)(\?|$)/.test(inner)) continue;   // URL・ファイル
+      if (/^[a-z][a-zA-Z0-9]*$/.test(inner)) continue;                                // camelCase の鍵
+      if (/^(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)$/.test(inner)) continue;   // 月・曜日の名前（明細の読み取りにも使う＝触らない）
+      const before = code.slice(Math.max(0, s.start - 80), s.start);
+      const after = code.slice(s.end, s.end + 20);
+      if (/(===|!==|==|!=|\bcase|\bin|\[)\s*$/.test(before) || /^\s*(===|!==|==|!=|:(?!:)|\]|\bin\b)/.test(after)) continue;   // 比べる・鍵・添字
+      if (CODEY_CALL.test(before)) continue;                                            // 識別子として渡す引数
+      const ls = code.lastIndexOf('\n', s.start) + 1;
+      const le = code.indexOf('\n', s.end);
+      const line = code.slice(ls, le < 0 ? code.length : le).trim().slice(0, 240);
+      out.push({ kind: 'jsl', start: base + s.start, end: base + s.end, key: 'jsl:' + raw, raw, line });
+    }
+  }
+  return out;
+}

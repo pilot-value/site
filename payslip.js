@@ -23,7 +23,7 @@
   if (!root) return;
   if (typeof _sb === 'undefined') return;                 // Supabase が落ちていたら出さない
 
-  var L = (typeof LANG !== 'undefined' && LANG === 'en') ? 'en' : 'ja';
+  var L = (window.PV_BASE === 'en' || (typeof LANG !== 'undefined' && LANG === 'en')) ? 'en' : 'ja';   // スペイン語のページは英語と同じ動き（pv-session.js）
 
   // ── 文言 ──────────────────────────────────────────────────
   var T = {
@@ -314,7 +314,8 @@
       ahaTaxFree: 'tax-free',
       ahaNote: '※ Compared against our published range for that airline and seat. <b>It does not account for fleet, years of experience or contract type.</b> In tax-free countries the gross figure is close to take-home, so the real gap is wider than this pre-tax line-up shows.',
     },
-  }[L];
+  };
+  T = (window.PV_T && window.PV_T(T, L)) || T[L];   // スペイン語の辞書（gen-msg.mjs が足す）があればそれ
 
   // ── 定数 ──────────────────────────────────────────────────
   var MAX_EDGE = 1568;        // Anthropic のビジョンが内部で縮める上限に合わせる

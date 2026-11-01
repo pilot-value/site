@@ -232,7 +232,7 @@
     if (!o || !o.sb || !o.mount) return;
     var sb = o.sb;
     var L = o.lang === 'en' ? 'en' : 'ja';
-    var t = T[L];
+    var t = (window.PV_T && window.PV_T(T, L)) || T[L];   // スペイン語の辞書（gen-msg.mjs が足す）があればそれ
     var mount = o.mount;
 
     /* 見出しは「もうサーバに預かってあるか」で変わる。

@@ -41,7 +41,7 @@
        トップレベルの今しか取れない（あとで取ると null）。 */
   var SELF = (d.currentScript && d.currentScript.src) || '';
 
-  var L = (d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';
+  var L = (window.PV_BASE === 'en' || d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';   // スペイン語のページは英語と同じ動き（pv-session.js）
 
   var T = {
     ja: {
@@ -68,7 +68,8 @@
       close:  'Close',
       aria:   'What sharing your pay unlocks'
     }
-  }[L];
+  };
+  T = (window.PV_T && window.PV_T(T, L)) || T[L];   // スペイン語の辞書（gen-msg.mjs が足す）があればそれ
 
   /* ── 見た目 ──────────────────────────────────────────────────
      ★新しい CSS はできるだけ書かない。カードそのものは my-value.css の

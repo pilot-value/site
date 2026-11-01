@@ -44,7 +44,7 @@
   'use strict';
   if (!w || !d) return;
 
-  var L = (d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';
+  var L = (window.PV_BASE === 'en' || d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';   // スペイン語のページは英語と同じ動き
 
   var T = (L === 'en') ? {
     logo:   'FOUNDING PILOT 100',

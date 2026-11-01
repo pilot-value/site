@@ -8,7 +8,8 @@
      node gen-lang.mjs es --check   書かずに、何が変わるかと訳の足りない文の数だけ出す
 
    やること（英語のページは読むだけ・1文字も書き換えない）
-     1) 本文の文と属性（alt・title・aria-label・placeholder）を、訳の辞書 i18n/tm-<言語>.mjs の訳で差し戻す。
+     1) 本文の文と属性（alt・title・aria-label・placeholder）と、ページの中の台本の画面に出る文字列を、
+        訳の辞書 i18n/tm-<言語>.mjs の訳で差し戻す。
         使うのは状態が validated（AI の4段と機械検査を通った）か manual（人が直した）の訳だけ。
         辞書に無い文は英語のまま残す（そのページは検索に出さない＝langs.mjs の indexed に入れない）。
      2) <html lang> をその言語に。
@@ -19,7 +20,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { extract, extractHead, restore, splice, findAttrs, escAttr, escText } from './i18n-core.mjs';
+import { extract, extractHead, restore, splice, findAttrs, escAttr, escText, inlineScriptUnits } from './i18n-core.mjs';
 import { LANG, LANGS, relIn, urlOfRel, alternatesFor } from './langs.mjs';
 import { needsAI } from './i18n/keep.mjs';
 
@@ -97,6 +98,17 @@ ${ogAlts.map((o) => `<meta property="og:locale:alternate" content="${o}"/>\n`).j
 <!--/PV-SEO-->`;
 }
 
+/* pv-session.js の PV_LANG_PAGES（JS がリンクを その言語 → 英語 の順に探すため）。変わったときだけ書く。
+   ★ここが変わると pv-session.js の指紋が変わる ＝ node inject-session.mjs → もう一度 node gen-lang.mjs の順に流す */
+{
+  const f = path.join(ROOT, 'pv-session.js');
+  const s = fs.readFileSync(f, 'utf8');
+  const want = '/*PV-LANG-PAGES*/window.PV_LANG_PAGES = ' + JSON.stringify(Object.fromEntries(LANGS.filter((l) => !l.hand).map((l) => [l.code, l.pages]))) + ';/*/PV-LANG-PAGES*/';
+  const next = s.replace(/\/\*PV-LANG-PAGES\*\/[\s\S]*?\/\*\/PV-LANG-PAGES\*\//, () => want);
+  if (next === s && !s.includes(want)) { console.error('pv-session.js に PV-LANG-PAGES の印が無い'); process.exit(1); }
+  if (next !== s) { if (!CHECK) fs.writeFileSync(f, next); console.log('pv-session.js の PV_LANG_PAGES を' + (CHECK ? '書き直す（--check なので書かない）' : '書き直した') + ' → node inject-session.mjs → node gen-lang.mjs'); }
+}
+
 let wrote = 0;
 const report = [];
 for (const bare of L.pages) {
@@ -118,6 +130,12 @@ for (const bare of L.pages) {
     const t = tr(a.key);
     if (!t) { if (needsAI(a.key)) missing++; continue; }
     edits.push({ start: a.start, end: a.end, text: a.quote === "'" ? escText(t).replace(/'/g, '&#39;') : escAttr(t) }); done++;
+  }
+  /* ページの中の台本の、画面に出る文字列（英語のページは触らない・ここで差し替えるだけ） */
+  for (const j of inlineScriptUnits(enHtml)) {
+    const t = TM[j.key] && ['validated', 'manual'].includes(TM[j.key].st) ? TM[j.key].es.slice(4) : null;
+    if (!t) { missing++; continue; }
+    edits.push({ start: j.start, end: j.end, text: t }); done++;
   }
   /* <title> */
   const head = extractHead(enHtml);

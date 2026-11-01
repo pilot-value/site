@@ -923,7 +923,7 @@ var API = {
              payload(), annualOrig(), fx(), nameOf(id), onStep(id,i) } */
   init: function (cfg) {
     C = cfg;
-    L = T[cfg.lang] || T.ja;
+    L = (window.PV_T && window.PV_T(T, cfg.lang)) || T[cfg.lang] || T.ja;   // スペイン語の辞書（gen-msg.mjs が足す）があればそれ
     buildChrome();
     var d = draftRead();
     /* 未ログインで書いた下書きは、同じブラウザなのでそのまま戻す（ただし

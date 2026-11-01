@@ -31,14 +31,15 @@ import { fileURLToPath } from 'url';
 import { createHash } from 'crypto';
 import Anthropic from '@anthropic-ai/sdk';
 import { jsonSchemaOutputFormat } from '@anthropic-ai/sdk/helpers/json-schema';
-import { extract, extractHead, plain, tagSet, reportPage } from './i18n-core.mjs';
+import { extract, extractHead, plain, tagSet, reportPage, jsShape, jsText, jsTags, inlineScriptUnits } from './i18n-core.mjs';
+import { MSG_FILES, msgUnits } from './gen-msg.mjs';
 import { LANG } from './langs.mjs';
 import { GLOSSARY_ES } from './i18n/glossary-es.mjs';
 import { needsAI } from './i18n/keep.mjs';   // 会社名・サービスの名前は AI に渡さない
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const MODEL = 'claude-opus-5-5';
-const PROMPT_VERSION = 3;   // 2026-11-02：欄の名前を先に訳して本文に渡す・pay の使い分け   // 2026-11-02 試し訳1回目のあと：prima de antigüedad の決まりを正確に・通読の直しも意味を判定
+const PROMPT_VERSION = 4;   // 2026-11-02：部品の台本の文言（JavaScript の式）も訳す   // 2026-11-02：欄の名前を先に訳して本文に渡す・pay の使い分け   // 2026-11-02 試し訳1回目のあと：prima de antigüedad の決まりを正確に・通読の直しも意味を判定
 const PRICE = { in: 4 / 1e6, out: 20 / 1e6, cacheRead: 0.2 / 1e6, cacheWrite: 5 / 1e6 };   // 2026-11 の公開価格（USD / トークン）
 const BATCH = 20;
 
@@ -86,7 +87,8 @@ Rules
 9. Buttons and menu items that are actions: infinitive (Enviar, Cambiar, Iniciar sesión). Direct invitations to the reader inside sentences: tú imperative.
 10. Never use: "segundo piloto" for First Officer or Second Officer; "escala" for a layover (a night away from base is "pernocta"); "prima de antigüedad" for a regular seniority pay increase or bonus (that is "bono de antigüedad"; in Mexico "prima de antigüedad" is only the statutory payment made ON LEAVING based on years of service — use it exactly when the English describes that); "aguinaldo" for an airline bonus (aguinaldo is the statutory 13th-month pay; an airline bonus is "bono"); "tiempo de vuelo" for block time; "reserva" for standby (reserve and standby are different duties: reserve = "reserva", standby = "guardia"); "K" as an abbreviation of thousands in prose; "salario" where the glossary says "sueldo".
 11. The Japanese text, when given, is the original the English was translated from. Use it only to understand the meaning. It may belong to a neighbouring element; ignore it if it clearly says something else.
-12. If the English is ambiguous, choose the meaning that fits a pilot pay website and explain in "note" (in Japanese, one short sentence). Otherwise leave "note" empty.`;
+12. If the English is ambiguous, choose the meaning that fits a pilot pay website and explain in "note" (in Japanese, one short sentence). Otherwise leave "note" empty.
+13. Items of kind "javascript" are small JavaScript expressions from the site's code (a string, an object of strings, or a short function that returns a string). Translate ONLY the human-readable text inside the quotes. Everything outside the quotes must stay byte-identical: keys, variable names, operators, brackets, function code, commas. Inside the quotes keep HTML tags and their attributes exactly, keep \n, keep placeholders such as {n}, %s, $1, and keep a space at the start or end of a string piece when it is joined to a variable ('Step ' + i). If Spanish word order would need a variable to move, rephrase so the variables keep their order. Return the whole expression.`;
 
 const GLOSS_TEXT = 'Glossary (en → es for Latin America; form = wording for form fields; first = wording at first mention on a page; notes = cautions)\n' +
   GL.map((e) => `- ${e.en} → ${e.es}${e.form ? ` | form: ${e.form}` : ''}${e.first ? ` | first: ${e.first}` : ''}${e.notes ? ` | notes: ${e.notes.replace(/\s+/g, ' ').slice(0, 220)}` : ''}`).join('\n');
@@ -95,11 +97,11 @@ const REVIEWER = `You are two people at once: (a) a senior airline captain from 
 Review each draft translation against the English (and the Japanese original when given). Fix: wrong meaning, wrong or inconsistent terminology (glossary is binding), anything a Latin American pilot would find unnatural, register (tú), capitalisation, punctuation, tags. Do not rewrite drafts that are already correct and natural.
 Return for every item the final Spanish, whether you changed it, and when you changed it a reason in Japanese (one short sentence).`;
 
-const BACK = `Translate each Spanish text from a pilot pay website into English. Translate faithfully, close to the Spanish wording — do not improve or correct it. Keep the <g1>…</g1> and <x1/> tags exactly where they are.`;
+const BACK = `Translate each Spanish text from a pilot pay website into English. Translate faithfully, close to the Spanish wording — do not improve or correct it. Keep the <g1>…</g1> and <x1/> tags exactly where they are. If an item is JavaScript code, translate only the text inside the quotes and keep the code as it is.`;
 
 const JUDGE = `You check translations for a pilot pay website. For each item you get the original English, the Spanish translation, and an independent back-translation of the Spanish into English.
 Decide whether the Spanish says the same thing as the original English. Check: facts, numbers, negation, conditions, scope (gross vs net, monthly vs annual, included vs excluded, estimate vs reported by pilots, per hour vs per day), who does what, and the strength of statements. Ignore differences of wording that do not change meaning.
-Return ok=false only for a real difference of meaning, with the issue in Japanese (one short sentence).`;
+Return ok=false only for a real difference of meaning, with the issue in Japanese (one short sentence). When an item is JavaScript code, compare only the text inside the quotes.`;
 
 const READ = `You are a senior airline captain from Latin America reading one page of the Spanish version of a pilot pay website, in page order.
 Fix only real problems that appear when reading the whole page: the same concept translated in different ways, switches of register, capitalisation that is inconsistent between similar items, sentences that read like stitched-together translations. Do not touch items that are fine. The glossary is binding for the concept it describes — but two different concepts may share an English word: when an item's translator note or Japanese original shows a deliberate, context-based choice of a different concept, keep it. Every change you make is checked again for meaning against the English.
@@ -166,6 +168,17 @@ const BAN = [
 ];
 function check(key, es) {
   const errs = [];
+  if (key.startsWith('js:') || key.startsWith('jsl:')) {
+    const src = key.slice(key.indexOf(':') + 1);
+    if (jsShape(es) !== jsShape(src)) errs.push('コードの形が変わった');
+    if (jsTags(es) !== jsTags(src)) errs.push('文字列の中のタグが変わった');
+    const want = NUM(jsText(src)); const have = new Set(NUM(jsText(es)));
+    const miss = [...new Set(want)].filter((n) => !have.has(n));
+    if (miss.length) errs.push('数字が消えた: ' + miss.join(' '));
+    if (/[ぁ-んァ-ヶ一-龠]/.test(jsText(es))) errs.push('日本語の字が残った');
+    for (const [b, when] of BAN) if (b.test(jsText(es)) && !b.test(jsText(src)) && (!when || when.test(jsText(src)))) errs.push('使わない語: ' + jsText(es).match(b)[0]);
+    return errs;
+  }
   if (tagSet(es) !== tagSet(key)) errs.push('札が合わない');
   const want = NUM(key); const have = new Set(NUM(es));
   const miss = [...new Set(want)].filter((n) => !have.has(n));
@@ -208,7 +221,7 @@ const fresh = (key) => {
   const t = TM[key];
   if (!t) return false;
   if (t.st === 'manual') return true;
-  return t.gl === glPrint(termsIn(plain(key)));   // 用語が直っていなければ使える
+  return t.gl === glPrint(termsIn(/^jsl?:/.test(key) ? jsText(key.slice(key.indexOf(':') + 1)) : plain(key)));   // 用語が直っていなければ使える
 };
 
 /* ── 試し訳の選び方：航空と給与の用語を含む文を中心に、ページをまたいで散らす ── */
@@ -233,7 +246,7 @@ const show = (it) => JSON.stringify(it);
 const known = (page) => Object.entries(TM).filter(([k, v]) => v.pages?.includes(page) && isLabel(k)).map(([k, v]) => `${plain(k)} => ${plain(v.es)}`);
 const isLabel = (key) => plain(key).split(/\s+/).length <= 6 && !/[.?!]$/.test(plain(key));
 async function stage12(batch, hints = new Map()) {
-  const items = batch.map((c, i) => ({ id: i + 1, english: c.key, kind: c.kind, japanese_original: c.ja || undefined, before: c.before || undefined, after: c.after || undefined, recheck: hints.get(i + 1) }));
+  const items = batch.map((c, i) => ({ id: i + 1, english: c.src ?? c.key, kind: c.kind, japanese_original: c.ja || undefined, before: c.before || undefined, after: c.after || undefined, recheck: hints.get(i + 1) }));
   const page = batch[0].page;
   const labels = known(page);
   const fixed = labels.length ? `\nLabels already translated on this page (when an item names one of these fields or buttons, use exactly this Spanish):\n${labels.slice(0, 400).join('\n')}\n` : '';
@@ -244,7 +257,7 @@ async function stage12(batch, hints = new Map()) {
 }
 async function stage3(batch, res) {
   const bk = byId(await ask(BACK, `Items (JSON lines):\n${res.map((r) => show({ id: r.id, spanish: r.es })).join('\n')}`, S_BK, 'medium', false));
-  const jd = byId(await ask(JUDGE, `Items (JSON lines):\n${res.map((r, i) => show({ id: r.id, english: batch[i].key, spanish: r.es, back_translation: bk.get(r.id)?.en ?? '' })).join('\n')}`, S_JD, 'high', false));
+  const jd = byId(await ask(JUDGE, `Items (JSON lines):\n${res.map((r, i) => show({ id: r.id, english: batch[i].src ?? batch[i].key, spanish: r.es, back_translation: bk.get(r.id)?.en ?? '' })).join('\n')}`, S_JD, 'high', false));
   return res.map((r) => ({ ...r, back: bk.get(r.id)?.en ?? '', ok: jd.get(r.id)?.ok !== false, issue: jd.get(r.id)?.issue || '' }));
 }
 async function translateBatch(batch) {
@@ -260,7 +273,7 @@ async function translateBatch(batch) {
 }
 async function readThrough(page, rows) {
   if (rows.length < 3) return new Map();
-  const items = rows.map((r, i) => ({ id: i + 1, english: r.key, japanese_original: r.c.ja || undefined, spanish: r.es, translator_note: r.note || undefined }));
+  const items = rows.map((r, i) => ({ id: i + 1, english: r.c.src ?? r.key, japanese_original: r.c.ja || undefined, spanish: r.es, translator_note: r.note || undefined }));
   return new Map((await ask(READ, `Page: ${page}\nAll translated items on this page, in page order (JSON lines):\n${items.map(show).join('\n')}`, S_RD, 'high'))
     .map((x) => [rows[x.id - 1]?.key, x]).filter(([k]) => k));
 }
@@ -276,12 +289,17 @@ if (flag('--prune')) {
 }
 
 const pages = (opt('--pages') || (flag('--trial') || opt('--trial') ? ['en/pay-report.html', 'en/airlines/aeromexico.html', 'en/signup.html', 'en/actual-pay.html', 'en/privacy.html'].join(',') : DEFAULT_PAGES.join(','))).split(',');
-let pool = collect(pages);
+const collectJS = () => MSG_FILES.flatMap((f) => msgUnits(f).map((u) => ({ key: u.key, src: u.value, page: f, kind: `javascript (property "${u.prop}" of the site's message table)`, ja: u.ja, before: '', after: '' })));
+/* --inline：ページの中の台本の、画面に出る文字列（文字列1つずつ・前後のコードの行を添える） */
+const collectInline = () => (LANG[code].pages.map((p) => 'en/' + p)).flatMap((rel) => inlineScriptUnits(fs.readFileSync(path.join(ROOT, rel), 'utf8'))
+  .map((u) => ({ key: u.key, src: u.raw, page: rel, kind: 'javascript string literal inside the page code (return only this one literal, same quote characters; the code line is given as context)', ja: '', before: u.line, after: '' })));
+let pool = flag('--js') ? collectJS() : flag('--inline') ? collectInline() : collect(pages);
 pool = [...new Map(pool.map((c) => [c.key, c])).values()];
 if (flag('--again')) pool = pool.filter((c) => TM[c.key]);
 else if (opt('--trial')) pool = pickTrial(pool.filter((c) => !fresh(c.key)), Number(opt('--trial')));
 let cands = pool.filter((c) => !fresh(c.key));
-const kept = pool.filter((c) => fresh(c.key));
+if (opt('--limit')) cands = cands.slice(0, Number(opt('--limit')));   // 少しだけ試すとき
+const kept = flag('--limit') ? [] : pool.filter((c) => fresh(c.key));
 
 const srcTok = cands.reduce((n, c) => n + Math.ceil((plain(c.key).length + (c.ja || '').length * 1.5 + 160) / 3.5), 0);
 const est = srcTok * 7.5 * PRICE.in + srcTok * 6 * PRICE.out;   // 6回の呼び出し × 文脈 ＋ 考える分を含めた大まかな額
@@ -304,7 +322,7 @@ for (const [page, list] of byPage) {
     try { res = await translateBatch(batch); }
     catch (e) { console.log(`  ✗ ${page} の ${i + 1}〜${i + batch.length} 件目で失敗（飛ばした・次に流すとここだけやり直す）: ${String(e.message).slice(0, 160)}`); continue; }
     res.forEach((r, j) => rows.push({ ...r, key: batch[j].key, c: batch[j] }));
-    for (const r of res) { const k = batch[r.id - 1].key; if (isLabel(k) && r.ok && !check(k, r.es).length && TM[k]?.st !== 'manual') TM[k] = { ...(TM[k] || {}), es: r.es, st: 'validated', by: 'ai', model: MODEL, pv: PROMPT_VERSION, gl: glPrint(termsIn(plain(k))), at: new Date().toLocaleDateString('sv-SE'), pages: [...new Set([...(TM[k]?.pages || []), page])].sort() }; }
+    for (const r of res) { const k = batch[r.id - 1].key; if (!/^jsl?:/.test(k) && isLabel(k) && r.ok && !check(k, r.es).length && TM[k]?.st !== 'manual') TM[k] = { ...(TM[k] || {}), es: r.es, st: 'validated', by: 'ai', model: MODEL, pv: PROMPT_VERSION, gl: glPrint(termsIn(plain(k))), at: new Date().toLocaleDateString('sv-SE'), pages: [...new Set([...(TM[k]?.pages || []), page])].sort() }; }
     saveTM();   // 途中で止まっても、ここまでの見出しの訳は残る
     console.log(`  ${page} ${Math.min(i + BATCH, list.length)}/${list.length}  （ここまで $${cost().toFixed(2)}）`);
   }
@@ -325,7 +343,7 @@ for (const [page, list] of byPage) {
     if (r.st !== 'failed') {
       const prev = TM[r.key];
       TM[r.key] = {
-        es: r.es, st: r.st, by: 'ai', model: MODEL, pv: PROMPT_VERSION, gl: glPrint(termsIn(plain(r.key))),
+        es: (r.key.startsWith('jsl:') ? 'jsl:' : r.key.startsWith('js:') ? 'js:' : '') + r.es, st: r.st, by: 'ai', model: MODEL, pv: PROMPT_VERSION, gl: glPrint(termsIn(/^jsl?:/.test(r.key) ? jsText(r.key.slice(r.key.indexOf(':') + 1)) : plain(r.key))),
         at: new Date().toLocaleDateString('sv-SE'), pages: [...new Set([...(prev?.pages || []), page])].sort(),
         ...(r.st === 'needs_review' ? { note: r.issue } : {}),
       };

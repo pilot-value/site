@@ -655,6 +655,8 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               <option value="BRL">BRL — Brazilian Real</option>
               <option value="CLP">CLP — Chilean Peso</option>
               <option value="COP">COP — Colombian Peso</option>
+              <option value="PEN">PEN — Peruvian Sol</option>
+              <option value="ARS">ARS — Argentine Peso</option>
             </select>
           </div>
         </div>
@@ -1764,7 +1766,7 @@ const LANG = 'en';
    we hold a published rate table for (everywhere else is left blank, never guessed).
    Source URLs live in pv-vocab.mjs, which is not served. */
 /*BEGIN:PVMETA*/
-const CUR_META = {USD:[2,'$'],EUR:[2,'€'],JPY:[0,'¥'],GBP:[2,'£'],AED:[2,'د.إ'],QAR:[2,'ر.ق'],SAR:[2,'ر.س'],KWD:[3,'د.ك'],BHD:[3,'.د.ب'],OMR:[3,'ر.ع.'],JOD:[3,'د.ا'],TRY:[2,'₺'],CHF:[2,'CHF'],SEK:[2,'kr'],NOK:[2,'kr'],DKK:[2,'kr'],ISK:[0,'kr'],PLN:[2,'zł'],HUF:[0,'Ft'],CZK:[2,'Kč'],RON:[2,'lei'],CAD:[2,'C$'],AUD:[2,'A$'],NZD:[2,'NZ$'],FJD:[2,'FJ$'],SGD:[2,'S$'],HKD:[2,'HK$'],TWD:[2,'NT$'],KRW:[0,'₩'],CNY:[2,'¥'],THB:[2,'฿'],MYR:[2,'RM'],IDR:[0,'Rp'],PHP:[2,'₱'],VND:[0,'₫'],BND:[2,'B$'],INR:[2,'₹'],EGP:[2,'E£'],ETB:[2,'Br'],KES:[2,'KSh'],ZAR:[2,'R'],MXN:[2,'MX$'],BRL:[2,'R$'],CLP:[0,'CLP$'],COP:[2,'COL$']};
+const CUR_META = {USD:[2,'$'],EUR:[2,'€'],JPY:[0,'¥'],GBP:[2,'£'],AED:[2,'د.إ'],QAR:[2,'ر.ق'],SAR:[2,'ر.س'],KWD:[3,'د.ك'],BHD:[3,'.د.ب'],OMR:[3,'ر.ع.'],JOD:[3,'د.ا'],TRY:[2,'₺'],CHF:[2,'CHF'],SEK:[2,'kr'],NOK:[2,'kr'],DKK:[2,'kr'],ISK:[0,'kr'],PLN:[2,'zł'],HUF:[0,'Ft'],CZK:[2,'Kč'],RON:[2,'lei'],CAD:[2,'C$'],AUD:[2,'A$'],NZD:[2,'NZ$'],FJD:[2,'FJ$'],SGD:[2,'S$'],HKD:[2,'HK$'],TWD:[2,'NT$'],KRW:[0,'₩'],CNY:[2,'¥'],THB:[2,'฿'],MYR:[2,'RM'],IDR:[0,'Rp'],PHP:[2,'₱'],VND:[0,'₫'],BND:[2,'B$'],INR:[2,'₹'],EGP:[2,'E£'],ETB:[2,'Br'],KES:[2,'KSh'],ZAR:[2,'R'],MXN:[2,'MX$'],BRL:[2,'R$'],CLP:[0,'CLP$'],COP:[2,'COL$'],PEN:[2,'S/'],ARS:[2,'AR$']};
 const TAX_ZERO = ['AE','QA','KW','BH','OM','SA','BN','KY','BM','BS','MC'];
 const CITIZEN_TAX = ['US','ER'];
 const TAX_TABLE = {"JP":{"cur":"JPY","emp":[[1900000,0,650000],[3600000,0.3,80000],[6600000,0.2,440000],[8500000,0.1,1100000],[null,0,1950000]],"basic":[[1320000,950000],[3360000,580000],[4890000,680000],[6550000,630000],[23500000,580000],[24000000,480000],[24500000,320000],[25000000,160000],[null,0]],"quick":[[1950000,0.05,0],[3300000,0.1,97500],[6950000,0.2,427500],[9000000,0.23,636000],[18000000,0.33,1536000],[40000000,0.4,2796000],[null,0.45,4796000]],"surtax":0.021,"local":0.1},"GB":{"cur":"GBP","allow":12570,"taperFrom":100000,"taperRate":0.5,"bands":[[37700,0.2],[125140,0.4],[null,0.45]],"note":"gb-scotland"},"US":{"cur":"USD","std":15750,"bands":[[11925,0.1],[48475,0.12],[103350,0.22],[197300,0.24],[250525,0.32],[626350,0.35],[null,0.37]],"note":"us-state"}};
@@ -2970,6 +2972,14 @@ function readMoney(s, dec) {
         ★This rule is what makes "drop the commas and re-group" **reversible**, which
           is why grouping while typing (fmtMoneyLive) could come back. **Do not undo
           only one of the two.** See the fmtMoneyLive note below. */
+  /* ★The Spanish page (es/, generated from this file) only: a comma followed by one or two
+       digits at the end is the decimal point (3500,50 → 3500.5). Spain, Argentina, Chile and
+       Colombia write money that way; reading it as thousands would save it 100x too high.
+       This English page never takes this branch (window.PV_LANG is 'en' here). */
+  if (com && window.PV_LANG === 'es' && /^\d+,\d{1,2}$/.test(t)) {
+    const v = asDec(t, ',');
+    return v == null ? bad : ok(v);
+  }
   if (com) {
     const v = asPlain(t);
     return v == null ? bad : ok(v);
@@ -3054,6 +3064,9 @@ function moneyRead(el) {
    Guarded by db/test-pay-gate.mjs ② — the only test that types. */
 function fmtMoneyLive(el) {
   if (!el || document.activeElement !== el) return;
+  /* The Spanish page (es/) does not group while typing: a person writing 3500,5 would see it
+     turn into 35,005. The box is rewritten to the amount we read when it loses focus (moneySettle). */
+  if (window.PV_LANG === 'es') return;
   const raw = String(el.value == null ? '' : el.value);
   if (raw.indexOf('.') >= 0) return;
   if (!/^[0-9,]*$/.test(raw)) return;
@@ -3138,7 +3151,9 @@ function askMoney(el, r) {
   box.appendChild(q);
   const rule = document.createElement('p');
   rule.className = 'ma-rule';
-  rule.textContent = 'Comma groups thousands · dot is the decimal point';
+  rule.textContent = window.PV_LANG === 'es'
+    ? 'Write 3.500,50 or 3,500.50 — a comma or dot followed by one or two digits is the decimal point'
+    : 'Comma groups thousands · dot is the decimal point';
   box.appendChild(rule);
   if (r.state === 'ambiguous') {
     const row = document.createElement('div');
@@ -5669,7 +5684,9 @@ function buildPayload(airline) {
        2026-09-11, unc() stripped the commas and broke the JSON). */
     pay_items:           $('f-payitems').value ? JSON.parse($('f-payitems').value) : null,
     source:              val('f-source') || 'web',
-    lang:                LANG,
+    /* The Spanish page (es/, generated from this file) records 'es' so Spanish submissions can be counted.
+       The server keeps any value as-is (pay_reports.lang has no list). This page sends 'en' as before. */
+    lang:                window.PV_LANG === 'es' ? 'es' : LANG,
   };
   return payload;
 }

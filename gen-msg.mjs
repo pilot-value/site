@@ -1,0 +1,146 @@
+/* ════════════════════════════════════════════════════════════════
+   PILOT VALUE — gen-msg.mjs（2026-11-02・多言語化の段2）
+   共通の部品（JS）の辞書 { ja: {…}, en: {…} } に、機械で作る言語の辞書（es: {…}）を足す。
+
+   使い方
+     node gen-msg.mjs            訳の辞書（i18n/tm-<言語>.mjs）から es: {…} を書く（何度流しても同じ）
+     node gen-msg.mjs --check    書かずに、変わる部品と訳の足りない項目の数だけ出す
+
+   決まり
+     ・es の辞書は en の辞書の写し。値（引用符の中の字）だけを訳で差し替える。鍵・並び・コード・コメントは en のまま。
+     ・訳の辞書に無い値は英語のまま残す（スペイン語のページでも英語で出る＝壊れない）。
+     ・書く場所は en: {…} の直後。/*PV-MSG:es*／ … /*／PV-MSG:es*／ の印の間だけを書き換える。手で直さない。
+     ・部品が辞書をどう選ぶかは各部品の中（window.PV_T）。ここは辞書を足すだけ。
+   ════════════════════════════════════════════════════════════════ */
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { jsStrings, jsText } from './i18n-core.mjs';
+import { LANGS } from './langs.mjs';
+
+const ROOT = fileURLToPath(new URL('.', import.meta.url));
+
+/* 辞書を持つ部品（スペイン語のページが読むもの） */
+export const MSG_FILES = ['pay-wizard.js', 'pay-login.js', 'payslip.js', 'pv-gates.js', 'pv-give-first.js', 'app-nav.js',
+  'pv-referral.js', 'pv-conditions.js', 'my-value.js', 'actual-pay.js', 'pv-proof-offer.js', 'ap-preview.js', 'review-i18n.js'];
+
+const OPEN = (code) => `/*PV-MSG:${code}*/`;
+const CLOSE = (code) => `/*/PV-MSG:${code}*/`;
+
+/* 文字列とコメントを空白にした写し（波括弧・カンマを数えるため） */
+function mask(src) {
+  const a = src.split('');
+  for (const s of jsStrings(src)) for (let k = s.start + 1; k < s.end - 1; k++) if (a[k] !== '\n') a[k] = ' ';
+  let out = a.join('');
+  out = out.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
+  out = out.replace(/(^|[^:\\'"`])\/\/[^\n]*/g, (m, p) => p + ' '.repeat(m.length - p.length));
+  return out;
+}
+const closeOf = (m, i) => {          // m[i] は { [ ( のどれか。対応する閉じの位置
+  const open = m[i]; const close = { '{': '}', '[': ']', '(': ')' }[open];
+  let d = 0;
+  for (let k = i; k < m.length; k++) { if (m[k] === open) d++; else if (m[k] === close) { d--; if (!d) return k; } }
+  return -1;
+};
+/* オブジェクト { … }（o は { の位置）の、深さ1の「鍵: 値」を返す */
+function props(src, m, o) {
+  const end = closeOf(m, o); const out = [];
+  let k = o + 1; let start = k; let depth = 0;
+  const push = (a, b) => {
+    const seg = m.slice(a, b);
+    const c = seg.search(/:/);
+    if (c < 0 || !seg.slice(0, c).trim()) return;
+    const key = src.slice(a, a + c).trim().replace(/^['"]|['"]$/g, '');
+    let vs = a + c + 1; while (/\s/.test(src[vs])) vs++;
+    let ve = b; while (ve > vs && /[\s,]/.test(src[ve - 1])) ve--;
+    out.push({ key, vs, ve });
+  };
+  for (; k < end; k++) {
+    const ch = m[k];
+    if ('{[('.includes(ch)) depth++;
+    else if ('}])'.includes(ch)) depth--;
+    else if (ch === ',' && depth === 0) { push(start, k); start = k + 1; }
+  }
+  push(start, end);
+  return { end, list: out };
+}
+
+/* ファイルの中の言語の辞書（ja と en を持つオブジェクト）を全部 */
+export function dicts(src) {
+  const clean = src.replace(/,\s*\/\*PV-MSG:[a-z-]+\*\/[\s\S]*?\/\*\/PV-MSG:[a-z-]+\*\//g, (m) => ' '.repeat(m.length));   // 前に書いた es は見ない
+  const m = mask(clean);
+  const out = [];
+  const re = /(^|[{,\s])en\s*:\s*\{/g;
+  let r;
+  while ((r = re.exec(m))) {
+    const o = r.index + r[0].length - 1;
+    /* 親のオブジェクトに ja: が在るか（言語の辞書かどうか） */
+    let p = r.index, d = 0;
+    for (; p >= 0; p--) { if (m[p] === '}') d++; else if (m[p] === '{') { if (!d) break; d--; } }
+    if (p < 0) continue;
+    const parent = props(clean, m, p);
+    if (!parent.list.some((x) => x.key === 'ja')) continue;
+    const en = props(clean, m, o);
+    out.push({ start: o, end: en.end + 1, list: en.list, ja: parent.list.find((x) => x.key === 'ja') });
+  }
+  return out;
+}
+
+/* 訳す単位（値に人が読む英字があるもの）。key は 'js:' ＋ 値のソース */
+export function msgUnits(file) {
+  const src = fs.readFileSync(path.join(ROOT, file), 'utf8');
+  const units = [];
+  for (const dct of dicts(src)) {
+    const m = mask(src);
+    const jaProps = dct.ja ? props(src, m, src.indexOf('{', dct.ja.vs)).list : [];
+    for (const p of dct.list) {
+      const v = src.slice(p.vs, p.ve);
+      if (!/[A-Za-z]{2,}/.test(jsText(v))) continue;
+      const jp = jaProps.find((x) => x.key === p.key);
+      units.push({ key: 'js:' + v, value: v, prop: p.key, file, ja: jp ? jsText(src.slice(jp.vs, jp.ve)) : '' });
+    }
+  }
+  return units;
+}
+
+/* es の辞書を書く */
+function write(file, code, TM, CHECK) {
+  const abs = path.join(ROOT, file);
+  const orig = fs.readFileSync(abs, 'utf8');
+  const re = new RegExp(`,\\s*\\/\\*PV-MSG:${code}\\*\\/[\\s\\S]*?\\/\\*\\/PV-MSG:${code}\\*\\/`, 'g');
+  const src = orig.replace(re, '');
+  const tr = (k) => (TM[k] && ['validated', 'manual'].includes(TM[k].st) ? TM[k].es.slice(3) : null);
+  let out = ''; let i = 0; let missing = 0; let done = 0;
+  for (const dct of dicts(src)) {
+    let block = ''; let k = dct.start;
+    for (const p of dct.list) {
+      const v = src.slice(p.vs, p.ve);
+      if (!/[A-Za-z]{2,}/.test(jsText(v))) continue;
+      const t = tr('js:' + v);
+      if (!t) { missing++; continue; }
+      block += src.slice(k, p.vs) + t; k = p.ve; done++;
+    }
+    block += src.slice(k, dct.end);
+    out += src.slice(i, dct.end) + `, ${OPEN(code)} ${code}: ${block} ${CLOSE(code)}`;
+    i = dct.end;
+  }
+  out += src.slice(i);
+  if (out !== orig && !CHECK) fs.writeFileSync(abs, out);
+  return { changed: out !== orig, missing, done };
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
+  const CHECK = process.argv.includes('--check');
+  for (const L of LANGS.filter((l) => !l.hand && !l.base?.startsWith?.('es-'))) {
+    const tmFile = path.join(ROOT, 'i18n', `tm-${L.code}.mjs`);
+    const { TM } = fs.existsSync(tmFile) ? await import(tmFile) : { TM: {} };
+    let n = 0;
+    console.log(`${CHECK ? '[check] ' : ''}${L.code}:`);
+    for (const f of MSG_FILES) {
+      const r = write(f, L.code, TM, CHECK);
+      if (r.changed) n++;
+      console.log(`  ${f.padEnd(20)} 訳した ${String(r.done).padStart(4)} / 英語のまま ${String(r.missing).padStart(3)}${r.changed ? (CHECK ? '  （変わる）' : '  （書いた）') : ''}`);
+    }
+    console.log(`  ${n} 本が${CHECK ? '変わる' : '変わった'}`);
+  }
+}

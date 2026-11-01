@@ -169,6 +169,10 @@ export const CURRENCIES = [
   { code:'BRL', dec:2, sym:'R$',   ja:'ブラジルレアル',      en:'Brazilian Real' },
   { code:'CLP', dec:0, sym:'CLP$', ja:'チリペソ',            en:'Chilean Peso' },
   { code:'COP', dec:2, sym:'COL$', ja:'コロンビアペソ',      en:'Colombian Peso' },
+  /* 2026-11-02（多言語化）：ペルーとアルゼンチンのパイロットが自国の通貨で出せるように。レートは node gen-fx-rates.mjs --add で足した。
+     ⚠️ ARS は動きが速い。半年ごとの取り直しを守る（gen-fx-rates.mjs）。 */
+  { code:'PEN', dec:2, sym:'S/',   ja:'ペルーソル',          en:'Peruvian Sol' },
+  { code:'ARS', dec:2, sym:'AR$',  ja:'アルゼンチンペソ',    en:'Argentine Peso' },
 ];
 
 /* 居住国・国籍（ISO 3166-1 alpha-2）。
