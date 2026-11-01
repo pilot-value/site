@@ -590,6 +590,24 @@ baland_ass/                            ブランド資産（※ brand_assets の
 ⚠️ **呼ばれるたびに全員分を数え直す処理を新しく足さない。** 足すなら、書き込みのときに数えて保存し、読むときは引くだけにする。
 - 本番の DB の毎日の書き出しは、リポジトリの外で動いている（場所は書かない）。パイロット確認の画像（`pv_proof_images`）は書き出さない約束。
 
+## 多言語化（スペイン語から・2026-11-01〜）
+
+★オーナー決定：スペイン語（中南米 `/es/`・後からスペイン `/es-es/`）から始め、何か国語にも広げる。訳は高品質（AI の4段＋公式文書の用語集＋機械検査）。
+計画は枝 i18n の作業の記録と記憶 `multilingual-expansion-later` にある。
+
+- **言語の一覧は [langs.mjs](langs.mjs) の1か所。** 日英は人が書く（`hand`）・3つ目からは英語のページから機械で作る。
+  `pages`＝作るページ・`indexed`＝検索に出すページ（入れるまで noindex・サイトマップにも hreflang にも出さない）。
+- **`es/` のファイルは手で直さない**（[gen-lang.mjs](gen-lang.mjs) が英語のページ＋訳の辞書から作る。流すたびに作り直す）。
+- **部品（JS）の辞書の `es: {…}` も手で直さない**（[gen-msg.mjs](gen-msg.mjs) が `/*PV-MSG:es*/` の間に書く）。部品が辞書を選ぶのは `window.PV_T`（[pv-session.js](pv-session.js) の頭）。
+  ⚠️ スペイン語のページは**英語のページと同じ動き**（`PV_BASE === 'en'`）で、文言だけスペイン語。新しい部品で `lang === 'en'` を書くときは `PV_BASE` を見る（見ないとスペイン語のページが日本語の動きになる）。
+- 訳は [translate-tm.mjs](translate-tm.mjs)（課金・check.mjs に入れない・先に `--estimate`）。訳の辞書は `i18n/tm-es.mjs`、用語集は `i18n/glossary-es.mjs`（公式文書の出典つき）。
+  **英語のページや部品の英語の文言を直したら**：`node translate-tm.mjs es`（`--js` 部品の辞書・`--inline` ページの台本の文字列）→ `node gen-msg.mjs` → `node gen-lang.mjs`。
+  流し忘れはスペイン語のページに英語が残るだけで壊れない（`assert-generated` が捕まえる）。
+- ⚠️ **英語の給与フォームの台本には `window.PV_LANG === 'es'` の分かれ道がある**（金額の「,」を小数点と読む・入力中にけた区切りを付けない・提出に lang='es'）。英語のページでは通らない。消さない。
+- 表示通貨は9通貨（2026-11-02 に人民元・韓国ウォンを足した）。フォームの通貨は47通貨（ペルー・ソルとアルゼンチン・ペソを `gen-fx-rates.mjs --add` で足した）。
+- 会員の言語は `profiles.lang`（[db/profile-lang.sql](db/profile-lang.sql)・書く口は `pv_set_lang` だけ・登録の upsert に混ぜない）。
+- 見るもの：`node assert-i18n.mjs`（日本語の字・訳の辞書・辞書の形・通貨・言語の一覧）／`node assert-i18n-pay.mjs`（★同じ給与を日英西で入れると送る中身が同じ・「3500,50」の読み方）。
+
 ## デプロイ前チェック
 
 **`node check.mjs` 1本で全部走る。** 中で並列に回すので、手で1本ずつ流すより速い。

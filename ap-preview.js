@@ -131,7 +131,18 @@
       msgS: 'This is a preview. No real submissions are included in this list.',
       have: 'Already have an account?',
       signIn: 'Sign in'
-    }
+    }, /*PV-MSG:es*/ es: {
+      h: 'Reportes de remuneración',
+      tag: 'Vista previa',
+      fGo: 'Ver la vista previa',
+      lkA: 'Bloqueado',
+      unT: 'Comparte un registro y desbloquea la remuneración de otros pilotos',
+      unS: 'Los pilotos que comparten su remuneración pueden comparar entre sí sus paquetes reales',
+      msgT: 'Comparte un registro para filtrar por aerolínea los datos reales aportados',
+      msgS: 'Esto es una vista previa. Esta lista no incluye datos reales aportados.',
+      have: '¿Ya tienes una cuenta?',
+      signIn: 'Iniciar sesión'
+    } /*/PV-MSG:es*/
   };
 
   w.PV_AP_PREVIEW = { rows: ROWS, t: T };

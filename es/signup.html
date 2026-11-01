@@ -177,7 +177,7 @@
 })();
 </script>
 <!--/PV-3P-->
-<script src="../pv-session.js?v=700cc594"></script>
+<script src="../pv-session.js?v=54191fa0"></script>
   <!-- PV-NAV: site-wide navigation (left rail on wide screens, left drawer on narrow).
        Written by patch-side-nav.mjs. app-nav.css loads last (after my-value.css). -->
   <link rel="stylesheet" href="../app-nav.css">
@@ -339,7 +339,9 @@
               <option value="日本">Japón</option><option value="アメリカ">Estados Unidos</option><option value="UAE">Emiratos Árabes Unidos</option>
               <option value="シンガポール">Singapur</option><option value="香港">Hong Kong</option><option value="イギリス">Reino Unido</option>
               <option value="ドイツ">Alemania</option><option value="フランス">Francia</option><option value="オーストラリア">Australia</option>
-              <option value="カナダ">Canadá</option><option value="韓国">Corea del Sur</option><option value="中国">China</option><option value="その他">Otro</option>
+              <option value="カナダ">Canadá</option><option value="韓国">Corea del Sur</option><option value="中国">China</option>
+              <!-- 2026-11-02 multilingual: Spanish-speaking countries (the same stored values on every signup/profile page) -->
+              <option value="メキシコ">México</option><option value="スペイン">España</option><option value="コロンビア">Colombia</option><option value="チリ">Chile</option><option value="ペルー">Perú</option><option value="アルゼンチン">Argentina</option><option value="パナマ">Panamá</option><option value="その他">Otro</option>
             </select>
           </div>
           <div><div class="field-label">Empleador actual</div><input class="auth-input" type="text" id="s2-company" placeholder="Ej.: ANA, JAL, Emirates" required/></div>
@@ -457,11 +459,11 @@
       const name = String((err && err.name) || '');
       if ((typeof navigator !== 'undefined' && navigator.onLine === false)
           || st === 0 || name === 'AuthRetryableFetchError' || name === 'TypeError')
-        return "We couldn't reach the server. Check your connection and try again.";
+        return "No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.";
       if (st === 429 || code.indexOf('rate_limit') >= 0)
-        return 'Too many attempts in a short time, so sign-up is paused for a moment. Please wait and try again.';
+        return 'Hubo demasiados intentos en poco tiempo, así que el registro está en pausa por un momento. Espera un poco e inténtalo de nuevo.';
       if (st >= 500)
-        return 'Something is wrong on our side. Please wait a moment and try again.';
+        return 'Algo falló de nuestro lado. Espera un momento e inténtalo de nuevo.';
       return null;
     }
 
@@ -503,24 +505,24 @@
       const p = to ? to.split(/[?#]/)[0].split('/').pop() : '';
       if (p === 'submit-review.html') {
         b.dataset.choice = 'review';
-        b.textContent = 'Write a review anonymously (about 60s)';
-        if (lead) lead.innerHTML = 'Post one review and <b style="color:#f5c842">every airline\'s reviews unlock</b>.';
-        if (later) later.textContent = 'Later';
+        b.textContent = 'Escribir una reseña de forma anónima (unos 60 s)';
+        if (lead) lead.innerHTML = 'Publica una reseña y <b style="color:#f5c842">se desbloquean las reseñas de todas las aerolíneas</b>.';
+        if (later) later.textContent = 'Más tarde';
         return;
       }
       if (p && p !== 'pay-report.html') {
         b.dataset.choice = 'other';
-        b.textContent = 'Continue →';
+        b.textContent = 'Continuar →';
         return;
       }
       /* ★Never say "submit" to someone whose report is already held (2026-09-11).
          Anonymous entry →（server holds it）→ sign up here: that person was being
          asked to type the whole thing again. The claim happens back on pay-report.html. */
       if (hasPending()) {
-        b.textContent = 'Claim the report you submitted →';
+        b.textContent = 'Vincular a tu cuenta el reporte que enviaste →';
         // The salary unlock comes from pay reports only (submit_pay_report pushes access_until 90 days out).
-        if (lead) lead.innerHTML = 'The report you just filled in is held on the server. Claim it and <b style="color:#f5c842">the pay data for every airline unlocks for 90 days</b>.';
-        if (later) later.textContent = 'Later';
+        if (lead) lead.innerHTML = 'El reporte que acabas de llenar está guardado en el servidor. Vincúlalo a tu cuenta y <b style="color:#f5c842">los datos de remuneración de todas las aerolíneas se desbloquean por 90 días</b>.';
+        if (later) later.textContent = 'Más tarde';
       }
     }
 
@@ -550,8 +552,8 @@
       const pass2= document.getElementById('s1-pass2').value;
       const errEl= document.getElementById('step1-error');
       errEl.style.display='none';
-      if(pass.length<8){errEl.textContent='Your password must be at least 8 characters';errEl.style.display='block';return;}
-      if(pass!==pass2){errEl.textContent='Passwords do not match';errEl.style.display='block';return;}
+      if(pass.length<8){errEl.textContent='Tu contraseña debe tener al menos 8 caracteres';errEl.style.display='block';return;}
+      if(pass!==pass2){errEl.textContent='Las contraseñas no coinciden';errEl.style.display='block';return;}
       authMode = 'password'; signupMethod = 'email';
       enterProfileStep();
     }
@@ -605,7 +607,7 @@
       // 再送は「さっき送った宛先」に送る。入力欄を触られていても宛先は変えない。
       const email = onOtpStep ? otpEmail : input.value.trim().toLowerCase();
       if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
-        errEl.textContent='Please enter a valid email address';
+        errEl.textContent='Ingresa un correo electrónico válido';
         errEl.style.display='block';
         if(!onOtpStep) input.focus();
         return;
@@ -613,7 +615,7 @@
 
       const active = onOtpStep ? resendBtn : sendBtn;
       const label  = active.innerHTML;
-      active.disabled = true; active.textContent = 'Sending…';
+      active.disabled = true; active.textContent = 'Enviando…';
 
       const { error } = await sb.auth.signInWithOtp({
         email,
@@ -625,20 +627,20 @@
       if(error){
         errEl.textContent = (error.status === 429)
           ? 'Too many requests. Please wait a moment and try again.'
-          : 'We could not send the email: ' + error.message;
+          : 'No pudimos enviar el correo: ' + error.message;
         errEl.style.display='block';
         return;
       }
 
       otpEmail = email;
       if(onOtpStep){
-        errEl.textContent='We sent the email again.';
+        errEl.textContent='Te enviamos el correo de nuevo.';
         errEl.classList.add('is-ok');
         errEl.style.display='block';
       }
       document.getElementById('otp-note').innerHTML =
-        'We sent an email to <b>' + email.replace(/[<>&]/g,'') + '</b>. '
-        + 'Type the 6-digit code from that email into this screen.';
+        'Enviamos un correo a <b>' + email.replace(/[<>&]/g,'') + '</b>. '
+        + 'Escribe en esta pantalla el código de 6 dígitos de ese correo.';
       show('email-step', false);
       show('otp-step', true);
       document.getElementById('otp-code').focus();
@@ -655,18 +657,18 @@
       resetMsg(errEl);
 
       if(!/^\d{6}$/.test(token)){
-        errEl.textContent='Please enter the 6 digits';
+        errEl.textContent='Ingresa los 6 dígitos';
         errEl.style.display='block';
         return;
       }
 
-      btn.textContent='Checking…'; btn.disabled=true;
+      btn.textContent='Verificando…'; btn.disabled=true;
       const { data, error } = await sb.auth.verifyOtp({ email: otpEmail, token, type:'email' });
 
       if(error || !data || !data.user){
-        errEl.textContent='That code is wrong or has expired. Please resend and try again.';
+        errEl.textContent='Ese código es incorrecto o ya venció. Reenvía el correo e inténtalo de nuevo.';
         errEl.style.display='block';
-        btn.textContent='Continue with code'; btn.disabled=false;
+        btn.textContent='Continuar con el código'; btn.disabled=false;
         return;
       }
 
@@ -722,20 +724,20 @@
       const company  = document.getElementById('s2-company').value.trim();
       const position = document.querySelector('input[name="position"]:checked');
 
-      if(!country) {errEl.textContent='Please select your country of residence';errEl.style.display='block';return;}
-      if(!company) {errEl.textContent='Please enter your current employer';errEl.style.display='block';return;}
-      if(!position){errEl.textContent='Please select your position';errEl.style.display='block';return;}
+      if(!country) {errEl.textContent='Selecciona tu país de residencia';errEl.style.display='block';return;}
+      if(!company) {errEl.textContent='Ingresa tu empleador actual';errEl.style.display='block';return;}
+      if(!position){errEl.textContent='Selecciona tu categoría (puesto)';errEl.style.display='block';return;}
 
       const optIn   = !!(document.getElementById('s2-optin') && document.getElementById('s2-optin').checked);
       const optInAt = optIn ? new Date().toISOString() : null;
       const meta = { country, company, position: position.value,
                      email_opt_in: optIn, email_opt_in_at: optInAt };
 
-      btn.textContent='Registering…'; btn.disabled=true;
+      btn.textContent='Registrando…'; btn.disabled=true;
 
       const fail = function(msg){
         errEl.textContent = msg; errEl.style.display='block';
-        btn.textContent='Complete registration'; btn.disabled=false;
+        btn.textContent='Completar registro'; btn.disabled=false;
       };
 
       let userId, email;
@@ -745,7 +747,7 @@
         // profiles の行は handle_new_user トリガーが作成済みなので、下の upsert が中身を埋める。
         const { data: u, error: uErr } = await sb.auth.updateUser({ data: meta });
         if (uErr || !u || !u.user) {
-          return fail('We could not save your profile: ' + ((uErr && uErr.message) || 'unknown error'));
+          return fail('No pudimos guardar tu perfil: ' + ((uErr && uErr.message) || 'unknown error'));
         }
         userId = u.user.id;
         email  = u.user.email;
@@ -760,15 +762,15 @@
           return fail(netErrMsg(error)
             || (error.message === 'User already registered'
               ? 'This email address is already registered'
-              : 'An error occurred: ' + error.message));
+              : 'Ocurrió un error: ' + error.message));
         }
         if(!data.user){
-          return fail('Please turn off email confirmation in the Supabase dashboard (Authentication → Sign In / Providers → Confirm email)');
+          return fail('Desactiva la confirmación por correo en el panel de Supabase (Authentication → Sign In / Providers → Confirm email)');
         }
         // 2. If no session was established, sign in to obtain one
         if(!data.session){
           const { error: signInErr } = await sb.auth.signInWithPassword({ email, password: pass });
-          if(signInErr) return fail(netErrMsg(signInErr) || ('Login failed: ' + signInErr.message));
+          if(signInErr) return fail(netErrMsg(signInErr) || ('Error al iniciar sesión: ' + signInErr.message));
         }
         userId = data.user.id;
       }
@@ -784,7 +786,12 @@
       if (upsertErr && /email_opt_in/i.test((upsertErr.message||'') + (upsertErr.details||''))) {
         ({ error: upsertErr } = await sb.from('profiles').upsert({ id: userId, email, ...profileData }));
       }
-      if(upsertErr){ console.warn('profiles upsert failed; handle_new_user trigger will populate:', upsertErr.message); }
+      if(upsertErr){ console.warn('falló el upsert de profiles; el trigger handle_new_user completará los datos:', upsertErr.message); }
+
+      /* Remember which language this person signed up in (2026-11-02, multilingual). A separate call, never part of
+         the upsert above: before db/profile-lang.sql is applied the function does not exist, and folding the column
+         into the upsert would make the whole signup fail. Any error here is ignored. The Spanish page sends 'es'. */
+      try { await sb.rpc('pv_set_lang', { p_lang: window.PV_LANG === 'es' ? 'es' : 'en' }); } catch (e) {}
 
       /* ★There are two consent flags. The upsert above only sets the parent (email_opt_in);
          the monthly-reminder child (mail_optin) stayed false. pv_reminder_due requires BOTH,

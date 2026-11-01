@@ -22,7 +22,8 @@
     ja: { culture:'企業文化', salary:'給与', benefits:'福利厚生', wlb:'WLB',
           ops:'運航環境', training:'訓練環境', mgmt:'経営陣への提案' },
     en: { culture:'Culture', salary:'Pay', benefits:'Benefits', wlb:'WLB',
-          ops:'Flight operations', training:'Training', mgmt:'Suggestions for management' },
+          ops:'Flight operations', training:'Training', mgmt:'Suggestions for management' }, /*PV-MSG:es*/ es: { culture:'Cultura', salary:'Remuneración', benefits:'Beneficios', wlb:'Equilibrio vida-trabajo',
+          ops:'Operaciones de vuelo', training:'Entrenamiento', mgmt:'Sugerencias para la dirección' } /*/PV-MSG:es*/,
   };
 
   // ラベルの囲み方だけ言語で変える（日本語は【】、英語は []）
@@ -35,7 +36,8 @@
     ja: { note: '自動翻訳', from: function (l) { return (l === 'en' ? '英語' : '日本語') + 'から自動翻訳'; },
           show: '原文を表示', hide: '原文を隠す' },
     en: { note: 'Machine-translated', from: function (l) { return 'Machine-translated from ' + (l === 'ja' ? 'Japanese' : 'English'); },
-          show: 'Show original', hide: 'Hide original' },
+          show: 'Show original', hide: 'Hide original' }, /*PV-MSG:es*/ es: { note: 'Traducido automáticamente', from: function (l) { return 'Traducido automáticamente del ' + (l === 'ja' ? 'japonés' : 'inglés'); },
+          show: 'Mostrar original', hide: 'Ocultar original' } /*/PV-MSG:es*/,
   };
 
   function lang() {

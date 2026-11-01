@@ -67,7 +67,18 @@
       later:  'Later',
       close:  'Close',
       aria:   'What sharing your pay unlocks'
-    }
+    }, /*PV-MSG:es*/ es: {
+      title:  '¡Solo falta un paso!',
+      done:   '✓ Crear cuenta',
+      now:    '② Agregar tu remuneración',
+      lead1:  'Comparte un registro de remuneración y ',
+      leadHi: 'los datos de remuneración de todas las aerolíneas se desbloquean por 90 días',
+      lead2:  '.',
+      cta:    'Agregar tu remuneración de forma anónima',
+      later:  'Más tarde',
+      close:  'Cerrar',
+      aria:   'Qué desbloqueas al compartir tu remuneración'
+    } /*/PV-MSG:es*/
   };
   T = (window.PV_T && window.PV_T(T, L)) || T[L];   // スペイン語の辞書（gen-msg.mjs が足す）があればそれ
 

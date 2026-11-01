@@ -215,7 +215,7 @@
 })();
 </script>
 <!--/PV-3P-->
-<script src="../pv-session.js?v=700cc594"></script>
+<script src="../pv-session.js?v=54191fa0"></script>
 </head>
 <body class="pv-anav-shell pv-anav-app">
   <header class="mr-top">
@@ -447,7 +447,9 @@
               <option value="日本">Japón</option><option value="アメリカ">Estados Unidos</option><option value="UAE">Emiratos Árabes Unidos</option>
               <option value="シンガポール">Singapur</option><option value="香港">Hong Kong</option><option value="イギリス">Reino Unido</option>
               <option value="ドイツ">Alemania</option><option value="フランス">Francia</option><option value="オーストラリア">Australia</option>
-              <option value="カナダ">Canadá</option><option value="韓国">Corea del Sur</option><option value="中国">China</option><option value="その他">Otro</option>
+              <option value="カナダ">Canadá</option><option value="韓国">Corea del Sur</option><option value="中国">China</option>
+              <!-- 2026-11-02 multilingual: Spanish-speaking countries (the same stored values on every signup/profile page) -->
+              <option value="メキシコ">México</option><option value="スペイン">España</option><option value="コロンビア">Colombia</option><option value="チリ">Chile</option><option value="ペルー">Perú</option><option value="アルゼンチン">Argentina</option><option value="パナマ">Panamá</option><option value="その他">Otro</option>
             </select>
           </div>
           <div><div class="field-label">Empleador</div><input class="auth-input" type="text" id="e-company"/></div>
@@ -545,9 +547,9 @@
     applyTheme(localStorage.getItem('pv-theme')||'light');
     document.getElementById('theme-toggle').addEventListener('click',function(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');});
 
-    const POS_LABEL = {captain:'Captain', fo:'First Officer', cadet:'Trainee'};
+    const POS_LABEL = {captain:'Capitán (Comandante)', fo:'Primer oficial (Copiloto)', cadet:'Piloto en formación'};
     const POS_CLASS = {captain:'pos-captain', fo:'pos-fo', cadet:'pos-cadet'};
-    const GENDER_LABEL = {male:'Male', female:'Female', other:'Other'};
+    const GENDER_LABEL = {male:'Masculino', female:'Femenino', other:'Otro'};
 
     let currentUser = null;
     let profile     = null;
@@ -643,8 +645,8 @@
         el.className = 'unlock-badge unlock-active';
         el.innerHTML = `${OPEN_LOCK} ${label} unlocked${d}`;
       };
-      setBadge('unlock-status-salary', salaryOn, salaryExp, 'Pay data');
-      setBadge('unlock-status',        reviewOn, 0,         'Reviews');   // 0 = no date
+      setBadge('unlock-status-salary', salaryOn, salaryExp, 'Datos de remuneración');
+      setBadge('unlock-status',        reviewOn, 0,         'Reseñas');   // 0 = no date
 
       /* ★ ようこそバナーと手書きの Give & Get（#welcome-banner / #unlock-cta）は
            2026-09-06 に廃止した。同じ文面が3種類に育っていたので、
@@ -652,7 +654,7 @@
            名前で迎える役目は下の1行（mp-lead）が引き取っている。 */
       if (isWelcome && profile && profile.name) {
         const lead = document.querySelector('#your-status .mp-lead');
-        if (lead) { lead.textContent = 'Welcome, ' + profile.name + ' ✈️ This is your page.'; lead.hidden = false; }
+        if (lead) { lead.textContent = 'Welcome, ' + profile.name + ' ✈️ Esta es tu página.'; lead.hidden = false; }
       }
 
       renderStatusStats(mine);
@@ -702,10 +704,10 @@
         '<div class="pt-stat"><b' + (on ? ' style="color:#48c78e"' : '') + '>' + v +
         (unit ? '<i>' + unit + '</i>' : '') + '</b><span>' + lab + '</span></div>';
       const cells = [];
-      if (left != null)              cells.push(cell(left, 'days', 'Access left', left > 0));
-      if (dat.streak_months != null) cells.push(cell(dat.streak_months, 'mo', 'Streak', false));
+      if (left != null)              cells.push(cell(left, 'days', 'Acceso restante', left > 0));
+      if (dat.streak_months != null) cells.push(cell(dat.streak_months, 'mo', 'Racha', false));
       const n = (dat.report_count != null) ? dat.report_count : rows.length;
-      cells.push(cell(n, '', 'Payslips filed', false));
+      cells.push(cell(n, '', 'Recibos de nómina enviados', false));
       el.setAttribute('data-n', String(cells.length));
       el.innerHTML = cells.join('');
       el.hidden = false;
@@ -743,8 +745,8 @@
       const box  = document.getElementById('next-action');
 
       if (!dat) {                                   // 引けなかった＝勝手に決めつけない
-        document.getElementById('na-title').textContent = 'We could not load what to do next';
-        document.getElementById('na-sub').textContent = 'Try opening the page again in a moment. YOUR PAY below still works.';
+        document.getElementById('na-title').textContent = 'No pudimos cargar tu próximo paso';
+        document.getElementById('na-sub').textContent = 'Intenta abrir la página de nuevo en un momento. TU REMUNERACIÓN, más abajo, sigue funcionando.';
         return;
       }
 
@@ -755,27 +757,27 @@
         ny = last.period_year; nm = (last.period_month || 0) + 1;
         if (nm > 12) { nm = 1; ny += 1; }
       } else { const t = new Date(); ny = t.getFullYear(); nm = t.getMonth() + 1; }
-      setNext(5, 'Add your pay for ' + NEXT_YM(ny, nm),
-              "Add one each month and the trend and milestones appear in YOUR PAY below.", "Add this month’s pay", 'pay-report.html#ps');
+      setNext(5, 'Agrega tu remuneración de ' + NEXT_YM(ny, nm),
+              "Agrega uno cada mes y la tendencia y los hitos aparecerán en TU REMUNERACIÓN, más abajo.", "Agregar la remuneración de este mes", 'pay-report.html#ps');
 
       /* 順3 … 口コミの鍵。年収の鍵とは別物なので混ぜない。 */
-      if (!reviewOn) setNext(3, "Reviews are still locked", "Post one review and you can read reviews from all 115 airlines.",
-                             "Post a review anonymously", 'submit-review.html');
+      if (!reviewOn) setNext(3, "Las reseñas siguen bloqueadas", "Publica una reseña y podrás leer las reseñas de las 115 aerolíneas.",
+                             "Publicar una reseña de forma anónima", 'submit-review.html');
 
       /* 順2 … 解放が切れている／もうすぐ切れる（14日）。
                access_until が無い人は順1 が拾うので、ここでは日数が読めるときだけ見る。 */
       const until = dat.access_until ? Date.parse(dat.access_until) : 0;
       if (rows.length && (!until || until - Date.now() <= 14 * 86400000)) {
         const d = until ? Math.max(0, Math.ceil((until - Date.now()) / 86400000)) : 0;
-        setNext(2, (d > 0 ? 'Your pay-data access ends in ' + d + ' days' : 'Your pay-data access has ended'),
-          "File this month and it runs for another 90 days from there.", "Add this month’s pay", 'pay-report.html#ps');
+        setNext(2, (d > 0 ? 'Tu acceso a los datos de remuneración termina en ' + d + ' days' : 'Tu acceso a los datos de remuneración ha terminado'),
+          "Envía tu reporte de este mes y el acceso se extiende 90 días más a partir de ese momento.", "Agregar la remuneración de este mes", 'pay-report.html#ps');
       }
 
       /* 順1 … まだ1件も出していない。ここがいちばん強い。
          ★見出しも説明も置かない（2026-09-07 オーナー指示で文言を削除）。
            口の文字がそのまま用件になる。空の見出し・説明は CSS が畳む
            （my-value.css の .mp-next-t:empty / .mp-next-s:empty）。 */
-      if (!rows.length) setNext(1, "", "", "Add pay anonymously", 'pay-report.html#ps');
+      if (!rows.length) setNext(1, "", "", "Agregar remuneración de forma anónima", 'pay-report.html#ps');
 
       /* Give → Get の説明（共有版1つ）。★0件の人には差さない（③ が描くので二重になる）。 */
       if (rows.length && window.PVGates && window.PVGates.giveGetHTML) {
@@ -791,7 +793,7 @@
     function upgradeNextToConditions() {
       const btn = document.querySelector('#cond-slot .pvc-btn');
       if (!btn) return;
-      setNext(4, "There are working-condition questions you have not answered", "Just one question. The more that get answered, the sharper the comparison for your airline.", "Answer one question",
+      setNext(4, "Hay preguntas sobre condiciones de trabajo que no has respondido", "Solo una pregunta. Cuantas más se respondan, más precisa será la comparación de tu aerolínea.", "Responder una pregunta",
               '#your-contributions', function (e) { e.preventDefault(); btn.click(); });
     }
 
@@ -849,7 +851,7 @@
       if (!t) return;
       t.setAttribute('aria-checked', on ? 'true' : 'false');
       k.style.transform  = on ? 'translateX(22px)' : 'translateX(0)';
-      if (h) h.textContent = on ? 'Subscribed: we only send useful updates.' : 'Currently off: no notifications about new posts or updates.';
+      if (h) h.textContent = on ? 'Subscribed: we only send useful updates.' : 'Actualmente desactivadas: no recibirás notificaciones de nuevas publicaciones ni actualizaciones.';
     }
 
     async function toggleOptIn() {
@@ -858,7 +860,7 @@
       const { error } = await sb.from('profiles').update(updates).eq('id', currentUser.id);
       if (error) {
         const h = document.getElementById('optin-hint');
-        if (h) h.textContent = 'We could not save this setting (the field may not be set up yet). Please try again later.';
+        if (h) h.textContent = 'No pudimos guardar esta configuración (es posible que el campo aún no esté configurado). Inténtalo de nuevo más tarde.';
         return;
       }
       profile = { ...profile, ...updates };
@@ -873,7 +875,7 @@
            親と子の意味・保存先・送信条件は1文字も変えていない。 */
       if (typeof window.PVRemindSync === 'function') window.PVRemindSync(next);
       const toast = document.getElementById('toast');
-      if (toast) { toast.textContent = next ? 'Email notifications turned on ✓' : 'Email notifications turned off'; toast.style.display='block'; setTimeout(()=>{toast.style.display='none';}, 2500); }
+      if (toast) { toast.textContent = next ? 'Email notifications turned on ✓' : 'Notificaciones por correo electrónico desactivadas'; toast.style.display='block'; setTimeout(()=>{toast.style.display='none';}, 2500); }
     }
 
     /* 逆向き。⑥ SETTINGS の子（月次給与リマインド）をオンにすると、サーバ側で
@@ -933,8 +935,8 @@
     function renderReviews(revs) {
       const el = document.getElementById('my-reviews-list');
       if (!el) return;
-      if (!revs) { el.textContent = 'Could not load this list. Please reopen the page in a moment'; return; }
-      if (!revs.length) { el.textContent = 'You have not posted a review yet'; return; }
+      if (!revs) { el.textContent = 'No pudimos cargar esta lista. Vuelve a abrir la página en un momento'; return; }
+      if (!revs.length) { el.textContent = 'Aún no has publicado ninguna reseña'; return; }
       el.innerHTML = revs.map(r => {
         // 訳文があればページの言語で出す（community.html と同じ出し分け）
         const body = window.PVReviewI18n ? PVReviewI18n.pick(r).text
@@ -946,8 +948,8 @@
     function renderMyPay(reports) {
       const el = document.getElementById('my-pay-list');
       if (!el) return;
-      if (!reports) { el.textContent = 'Could not load this list. Please reopen the page in a moment'; return; }
-      if (!reports.length) { el.textContent = 'You have not submitted a pay report yet'; return; }
+      if (!reports) { el.textContent = 'No pudimos cargar esta lista. Vuelve a abrir la página en un momento'; return; }
+      if (!reports.length) { el.textContent = 'Aún no has enviado ningún reporte de remuneración'; return; }
       // ★④ の一覧は金額を出さない（人に見せる場面がある）。実額は ③ YOUR PAY の中だけ。
       //   将来「金額を隠す」を入れるときは、あの1箱に hidden を掛ければ全部隠れる。
       el.innerHTML = reports.map(r => {
@@ -1027,12 +1029,12 @@
       msg.style.display = 'none';
       const fail = (t) => { msg.textContent = t; msg.style.display = 'block'; };
 
-      if (pass.length < 8) { fail('Your password must be at least 8 characters'); return; }
-      if (pass !== conf)   { fail('The two passwords do not match'); return; }
+      if (pass.length < 8) { fail('Tu contraseña debe tener al menos 8 caracteres'); return; }
+      if (pass !== conf)   { fail('Las dos contraseñas no coinciden'); return; }
 
       const label = btn.textContent;
       btn.disabled = true;
-      btn.textContent = 'Saving…';
+      btn.textContent = 'Guardando…';
       const { error } = await sb.auth.updateUser({ password: pass });
       btn.disabled = false;
       btn.textContent = label;
@@ -1041,20 +1043,20 @@
         const m = error.message || '';
         /* Supabase の Secure password change を有効にしていると、
            古いセッションからの変更は再認証（nonce）を要求されて弾かれる。 */
-        if (/reauth|nonce/i.test(m)) { fail('For your security, please sign in again and then retry.'); return; }
-        fail(m || 'We could not save your password. Please try again later.');
+        if (/reauth|nonce/i.test(m)) { fail('Por tu seguridad, vuelve a iniciar sesión y luego inténtalo de nuevo.'); return; }
+        fail(m || 'No pudimos guardar tu contraseña. Inténtalo de nuevo más tarde.');
         return;
       }
 
       document.getElementById('pw-new').value = '';
       document.getElementById('pw-confirm').value = '';
       msg.className = 'msg-inline is-ok';
-      msg.textContent = 'Password saved. You can now sign in with your email address and password.';
+      msg.textContent = 'Contraseña guardada. Ya puedes iniciar sesión con tu correo electrónico y tu contraseña.';
       msg.style.display = 'block';
     }
 
     async function handleLogout() {
-      if (!confirm('Log out?')) return;
+      if (!confirm('¿Cerrar sesión?')) return;
       try { Object.keys(sessionStorage).forEach(function (k) { if (/^pv_(contrib|stay|admin)_draft:/.test(k)) sessionStorage.removeItem(k); }); } catch (e) {}   // clear this tab's unsent drafts too
       await sb.auth.signOut();
       localStorage.removeItem('pv_user');
@@ -1133,7 +1135,7 @@
      ★Reads this page's PV_SESSION and sb, so it must load **after** them.
      ★?v= is a fingerprint of the file. Change the file → copy it to all 8 pages
        (4 screens × ja/en; assert-links.mjs checks). -->
-<script src="../pv-pay-fix.js?v=c3f06489"></script>
+<script src="../pv-pay-fix.js?v=5d53c013"></script>
 <!-- PV-NAV: opens and closes the navigation. Loads AFTER search.js so it can adopt
      the hamburger that file creates; on pages without search.js it makes its own. -->
 <script src="../app-nav.js"></script>

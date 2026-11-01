@@ -67,7 +67,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 })();
 </script>
 <!--/PV-3P-->
-<script src="../pv-session.js?v=700cc594"></script>
+<script src="../pv-session.js?v=54191fa0"></script>
 <!-- ★招待（?ref=）を受け取るところ。読み込む位置がここでなければならない。
      下の長いインラインスクリプトは、起動した時点で window.PVReferral.claim() を
      呼んで「招待リンクから来た人」を紹介者に結びつける。この script を
@@ -651,6 +651,8 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               <option value="BRL">BRL — Real brasileño</option>
               <option value="CLP">CLP — Peso chileno</option>
               <option value="COP">COP — Peso colombiano</option>
+              <option value="PEN">PEN — Sol peruano</option>
+              <option value="ARS">ARS — Peso argentino</option>
             </select>
           </div>
         </div>
@@ -1760,7 +1762,7 @@ const LANG = 'en';
    we hold a published rate table for (everywhere else is left blank, never guessed).
    Source URLs live in pv-vocab.mjs, which is not served. */
 /*BEGIN:PVMETA*/
-const CUR_META = {USD:[2,'$'],EUR:[2,'€'],JPY:[0,'¥'],GBP:[2,'£'],AED:[2,'د.إ'],QAR:[2,'ر.ق'],SAR:[2,'ر.س'],KWD:[3,'د.ك'],BHD:[3,'.د.ب'],OMR:[3,'ر.ع.'],JOD:[3,'د.ا'],TRY:[2,'₺'],CHF:[2,'CHF'],SEK:[2,'kr'],NOK:[2,'kr'],DKK:[2,'kr'],ISK:[0,'kr'],PLN:[2,'zł'],HUF:[0,'Ft'],CZK:[2,'Kč'],RON:[2,'lei'],CAD:[2,'C$'],AUD:[2,'A$'],NZD:[2,'NZ$'],FJD:[2,'FJ$'],SGD:[2,'S$'],HKD:[2,'HK$'],TWD:[2,'NT$'],KRW:[0,'₩'],CNY:[2,'¥'],THB:[2,'฿'],MYR:[2,'RM'],IDR:[0,'Rp'],PHP:[2,'₱'],VND:[0,'₫'],BND:[2,'B$'],INR:[2,'₹'],EGP:[2,'E£'],ETB:[2,'Br'],KES:[2,'KSh'],ZAR:[2,'R'],MXN:[2,'MX$'],BRL:[2,'R$'],CLP:[0,'CLP$'],COP:[2,'COL$']};
+const CUR_META = {USD:[2,'$'],EUR:[2,'€'],JPY:[0,'¥'],GBP:[2,'£'],AED:[2,'د.إ'],QAR:[2,'ر.ق'],SAR:[2,'ر.س'],KWD:[3,'د.ك'],BHD:[3,'.د.ب'],OMR:[3,'ر.ع.'],JOD:[3,'د.ا'],TRY:[2,'₺'],CHF:[2,'CHF'],SEK:[2,'kr'],NOK:[2,'kr'],DKK:[2,'kr'],ISK:[0,'kr'],PLN:[2,'zł'],HUF:[0,'Ft'],CZK:[2,'Kč'],RON:[2,'lei'],CAD:[2,'C$'],AUD:[2,'A$'],NZD:[2,'NZ$'],FJD:[2,'FJ$'],SGD:[2,'S$'],HKD:[2,'HK$'],TWD:[2,'NT$'],KRW:[0,'₩'],CNY:[2,'¥'],THB:[2,'฿'],MYR:[2,'RM'],IDR:[0,'Rp'],PHP:[2,'₱'],VND:[0,'₫'],BND:[2,'B$'],INR:[2,'₹'],EGP:[2,'E£'],ETB:[2,'Br'],KES:[2,'KSh'],ZAR:[2,'R'],MXN:[2,'MX$'],BRL:[2,'R$'],CLP:[0,'CLP$'],COP:[2,'COL$'],PEN:[2,'S/'],ARS:[2,'AR$']};
 const TAX_ZERO = ['AE','QA','KW','BH','OM','SA','BN','KY','BM','BS','MC'];
 const CITIZEN_TAX = ['US','ER'];
 const TAX_TABLE = {"JP":{"cur":"JPY","emp":[[1900000,0,650000],[3600000,0.3,80000],[6600000,0.2,440000],[8500000,0.1,1100000],[null,0,1950000]],"basic":[[1320000,950000],[3360000,580000],[4890000,680000],[6550000,630000],[23500000,580000],[24000000,480000],[24500000,320000],[25000000,160000],[null,0]],"quick":[[1950000,0.05,0],[3300000,0.1,97500],[6950000,0.2,427500],[9000000,0.23,636000],[18000000,0.33,1536000],[40000000,0.4,2796000],[null,0.45,4796000]],"surtax":0.021,"local":0.1},"GB":{"cur":"GBP","allow":12570,"taperFrom":100000,"taperRate":0.5,"bands":[[37700,0.2],[125140,0.4],[null,0.45]],"note":"gb-scotland"},"US":{"cur":"USD","std":15750,"bands":[[11925,0.1],[48475,0.12],[103350,0.22],[197300,0.24],[250525,0.32],[626350,0.35],[null,0.37]],"note":"us-state"}};
@@ -1870,11 +1872,11 @@ function showClaimState(kind) {
   const box = $('claim-state');
   const retry = kind === 'failed';
   box.innerHTML =
-    '<div class="cs-t">' + (retry ? "We have not finished taking it in" : "This month is already saved") + '</div>' +
-    '<p class="cs-l">' + (retry ? '<b>What you handed over is still on the server. Nothing is lost.</b> The connection did not go through. Please take it in once more.' : 'This month is already saved as yours. We will not save it twice.') + '</p>' +
+    '<div class="cs-t">' + (retry ? "We have not finished taking it in" : "Este mes ya está guardado") + '</div>' +
+    '<p class="cs-l">' + (retry ? '<b>What you handed over is still on the server. Nothing is lost.</b> The connection did not go through. Please take it in once more.' : 'Este mes ya está guardado como tuyo. No lo guardaremos dos veces.') + '</p>' +
     '<div class="cs-a">' + (retry
-      ? '<button type="button" class="btn-orange justify-center" id="cs-retry">' + "Take it in again" + '</button>'
-      : '<a class="btn-orange justify-center" href="profile.html#your-pay">' + "See my report →" + '</a>') +
+      ? '<button type="button" class="btn-orange justify-center" id="cs-retry">' + "Registrar de nuevo" + '</button>'
+      : '<a class="btn-orange justify-center" href="profile.html#your-pay">' + "Ver mi informe →" + '</a>') +
     '</div>';
   box.hidden = false;
   if (retry && $('cs-retry')) {
@@ -1914,8 +1916,8 @@ function recapLine() {
 /* ── The submit button's label ────────────────────────────────
    Without a session it reads "Submit anonymously", so it is clear before the
    press that no account is needed — that one press really does save it. */
-const BTN_LABEL_IN  = 'Submit and see the numbers →';
-const BTN_LABEL_OUT = 'Submit anonymously';
+const BTN_LABEL_IN  = 'Enviar y ver las cifras →';
+const BTN_LABEL_OUT = 'Enviar de forma anónima';
 let _btnLabel = BTN_LABEL_IN;
 /* ── The submit button ──────────────────────────────────────────
    Since 2026-09-08 there is only #submit-btn (the bar's #sticky-btn is gone —
@@ -2028,10 +2030,10 @@ function showGate(saved) {
    ★The 'local' line says plainly that the server does not have it. Reassuring someone
      here is how a person who switches browsers loses everything they typed. */
 var PLFB_COPY = {
-  saved: '<b>What you submitted is held on our server. Nothing is lost.</b> The connection looks to have '
-       + 'dropped. Use the button below to sign in or create an account, and what you handed over becomes your report.',
-  local: '<b>Your answers are still in this browser.</b> They have <b>not</b> reached our server yet. '
-       + 'Sign in or create an account with the button below, come back to this page <b>in the same browser</b>, and submit again.',
+  saved: '<b>Lo que enviaste está guardado en nuestro servidor. No se perdió nada.</b> Parece que la conexión se '
+       + 'cortó. Usa el botón de abajo para iniciar sesión o crear una cuenta, y lo que enviaste se convertirá en tu informe.',
+  local: '<b>Tus respuestas siguen en este navegador.</b> Aún <b>no</b> han llegado a nuestro servidor. '
+       + 'Inicia sesión o crea una cuenta con el botón de abajo, vuelve a esta página <b>en el mismo navegador</b> y envía de nuevo.',
 };
 var PLM_FALLBACK_AT = 50;    // 5s — show the way out here
 var PLM_GIVE_UP_AT  = 150;   // 15s — past this it really did not arrive
@@ -2219,8 +2221,8 @@ function afterSaved(data, payload, airline) {
   const AIR_Q_MAX = 8;
   const AIR_Q_TXT = {
     hits: (k) => k + (k === 1 ? ' match' : ' matches'),
-    other: 'Submit as a company not on the list',
-    zero: 'No match — you can still submit under this name.',
+    other: 'Enviar como empresa que no está en la lista',
+    zero: 'Sin coincidencias — aún puedes enviar con este nombre.',
   };
   /* Normalize for matching: drop spaces, dots, brackets and dashes, lowercase.
      ★Not the same thing as pv_airline_norm in the DB. That one resolves a **stored**
@@ -2749,7 +2751,7 @@ $('f-housing').addEventListener('change', () => {
   if (!cash) amt.value = '';
   $('housing-amt-hint').textContent = cash
     ? 'Enter the monthly housing allowance included in the gross above.'
-    : 'Enabled when you pick “Housing allowance (cash)” on the left.';
+    : 'Se habilita cuando eliges “Ayuda para vivienda (en efectivo)” a la izquierda.';
   recalc();
 });
 
@@ -2848,22 +2850,22 @@ function updateTax() {
   if (pct !== null && !fld.dataset.touched) fld.value = String(pct);
 
   if (res && TAX_ZERO.indexOf(res) >= 0) {
-    msgs.push(countryPhrase(res, true) + ' levies no personal income tax on employment income, so <b>0% has been filled in</b>. Overwrite it if that is not your situation.');
+    msgs.push(countryPhrase(res, true) + ' no aplica impuesto sobre la renta personal a los ingresos laborales, así que <b>se completó con 0%</b>. Sobrescríbelo si esa no es tu situación.');
     /* We stopped asking for nationality on 2026-08-12. Instead everyone resident
        in a 0% country gets told once: US and Eritrean citizens still file at
        home, so leaving 0% in place would be untrue for them. */
-    msgs.push('<b>If you are a citizen of a country that taxes by citizenship (notably the United States), this does not apply to you.</b> You still file at home, so your real rate is not 0%.');
+    msgs.push('<b>Si eres ciudadano de un país que grava por ciudadanía (en particular, Estados Unidos), esto no aplica en tu caso.</b> Igual tienes que declarar en tu país, así que tu tasa real no es 0%.');
   } else if (pct !== null) {
     const t = TAX_TABLE[res] || {};
     /* ★"national and local" is only true where we actually compute a local tax.
        Saying it everywhere contradicts the "federal tax only" line that follows
        for the United States. */
-    let s = 'Based on the published rate table for ' + countryPhrase(res, false) + ', pay at this level works out at <b>roughly ' + pct + '%</b>, so that is what we filled in. '
-          + (t.local ? 'It combines national and local income tax and ' : 'It covers national income tax only and ')
-          + '<b>excludes social-insurance and dependant deductions</b> (so it reads high). ';
-    if (t.note === 'us-state') s += '<b>Federal tax only</b> — state tax is not included. ';
-    if (t.note === 'gb-scotland') s += 'England, Wales and Northern Ireland rates; Scotland differs. ';
-    msgs.push(s + '<b>Please overwrite it with the figure on your payslip.</b>');
+    let s = 'Según la tabla de tasas publicada para ' + countryPhrase(res, false) + ', una remuneración de este nivel equivale a <b>aproximadamente ' + pct + '%</b>, así que ese es el valor que completamos. '
+          + (t.local ? 'It combines national and local income tax and ' : 'Solo incluye el impuesto sobre la renta nacional y ')
+          + '<b>no descuenta las cotizaciones a la seguridad social ni las deducciones por dependientes</b> (por eso la cifra sale alta). ';
+    if (t.note === 'us-state') s += '<b>Solo impuesto federal</b> — no incluye el impuesto estatal. ';
+    if (t.note === 'gb-scotland') s += 'Tasas de Inglaterra, Gales e Irlanda del Norte; en Escocia son distintas. ';
+    msgs.push(s + '<b>Reemplázala con la cifra que aparece en tu recibo de nómina.</b>');
   }
 
   box.innerHTML = msgs.length ? '<span>⚠</span><span>' + msgs.join('<br><br>') + '</span>' : '';
@@ -2966,6 +2968,14 @@ function readMoney(s, dec) {
         ★This rule is what makes "drop the commas and re-group" **reversible**, which
           is why grouping while typing (fmtMoneyLive) could come back. **Do not undo
           only one of the two.** See the fmtMoneyLive note below. */
+  /* ★The Spanish page (es/, generated from this file) only: a comma followed by one or two
+       digits at the end is the decimal point (3500,50 → 3500.5). Spain, Argentina, Chile and
+       Colombia write money that way; reading it as thousands would save it 100x too high.
+       This English page never takes this branch (window.PV_LANG is 'en' here). */
+  if (com && window.PV_LANG === 'es' && /^\d+,\d{1,2}$/.test(t)) {
+    const v = asDec(t, ',');
+    return v == null ? bad : ok(v);
+  }
   if (com) {
     const v = asPlain(t);
     return v == null ? bad : ok(v);
@@ -3050,6 +3060,9 @@ function moneyRead(el) {
    Guarded by db/test-pay-gate.mjs ② — the only test that types. */
 function fmtMoneyLive(el) {
   if (!el || document.activeElement !== el) return;
+  /* The Spanish page (es/) does not group while typing: a person writing 3500,5 would see it
+     turn into 35,005. The box is rewritten to the amount we read when it loses focus (moneySettle). */
+  if (window.PV_LANG === 'es') return;
   const raw = String(el.value == null ? '' : el.value);
   if (raw.indexOf('.') >= 0) return;
   if (!/^[0-9,]*$/.test(raw)) return;
@@ -3127,14 +3140,16 @@ function askMoney(el, r) {
   const q = document.createElement('p');
   q.className = 'ma-q';
   if (r.state === 'bad') {
-    q.textContent = '“' + el.value + '” is not a number we can read. Please type it again in digits.';
+    q.textContent = '“' + el.value + '” no es un número que podamos leer. Vuelve a escribirlo con dígitos.';
   } else {
-    q.textContent = 'Which amount is “' + el.value + '”?';
+    q.textContent = '¿Qué monto es “' + el.value + '”?';
   }
   box.appendChild(q);
   const rule = document.createElement('p');
   rule.className = 'ma-rule';
-  rule.textContent = 'Comma groups thousands · dot is the decimal point';
+  rule.textContent = window.PV_LANG === 'es'
+    ? 'Write 3.500,50 or 3,500.50 — a comma or dot followed by one or two digits is the decimal point'
+    : 'La coma separa los miles · el punto es el separador decimal';
   box.appendChild(rule);
   if (r.state === 'ambiguous') {
     const row = document.createElement('div');
@@ -3244,16 +3259,16 @@ function readNum(el) {
     .replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
     .replace(/[．｡。，、､,]/g, '.')            /* ★both , and . are the decimal point */
     .replace(/[\s ]/g, '');
-  const shape = '“' + raw + '” is not a number we can read. Please type it again in digits.';
+  const shape = '“' + raw + '” no es un número que podamos leer. Vuelve a escribirlo con dígitos.';
   const bad = (m) => ({ n: null, canon: raw, state: 'bad', msg: m });
   if (!/^\d*\.?\d*$/.test(t) || !/\d/.test(t)) return bad(shape);
-  if (t.indexOf('.') >= 0 && el.dataset.dec === '0') return bad('Please use a whole number here.');
+  if (t.indexOf('.') >= 0 && el.dataset.dec === '0') return bad('Ingresa un número entero aquí.');
   const v = parseFloat(t);
   if (!isFinite(v)) return bad(shape);
   const lo = el.dataset.min === undefined ? null : parseFloat(el.dataset.min);
   const hi = el.dataset.max === undefined ? null : parseFloat(el.dataset.max);
   if ((lo != null && v < lo) || (hi != null && v > hi)) {
-    return bad('Please enter a value between ' + lo + ' and ' + hi + '.');
+    return bad('Ingresa un valor entre ' + lo + ' and ' + hi + '.');
   }
   return { n: v, canon: String(v), state: 'ok', msg: '' };
 }
@@ -4878,8 +4893,8 @@ function foldContract() {
   };
   const bits = [label(c), 'resident in ' + label(t)];
   if ($('f-tax').value !== '') bits.push('income tax ' + $('f-tax').value + '%');
-  if ($('f-seniority').value !== '') bits.push($('f-seniority').value + ' yrs at the airline');
-  if ($('f-rankyears').value !== '') bits.push($('f-rankyears').value + ' yrs in rank');
+  if ($('f-seniority').value !== '') bits.push($('f-seniority').value + ' años en la aerolínea');
+  if ($('f-rankyears').value !== '') bits.push($('f-rankyears').value + ' años en el puesto actual');
   $('s4-sum-txt').innerHTML = '<b>' + esc(bits.join(' / ')) + '</b>';
   shutFold('s4-body', 's4-sum', 's4-sub');      // folded: the one-line summary is all that stays
 }
@@ -5005,7 +5020,7 @@ if (TWO_SCREEN) for (const id of ['s2', 's3']) {
   const d = document.createElement('details');
   d.className = 'sec-more';
   const sm = document.createElement('summary');
-  sm.textContent = 'More about this';
+  sm.textContent = 'Más información';
   d.appendChild(sm);
   subs[0].before(d);
   for (const p of subs) d.appendChild(p);
@@ -5100,11 +5115,11 @@ if (WZ) {
         if (kind === 'money') rows.push({ k, v: n, money: true });
         else rows.push({ k, v: n + ' h' });
       };
-      add('f-ytd',       'Year-to-date taxable pay', 'money');
-      add('f-deduct',    'Total deductions',         'money');
-      add('f-transport', 'Commuting allowance',      'money');
-      add('f-night-h',   'Night hours',              'h');
-      add('f-credit-h',  'Credit hours',             'h');
+      add('f-ytd',       'Remuneración gravable acumulada del año', 'money');
+      add('f-deduct',    'Total de deducciones',         'money');
+      add('f-transport', 'Ayuda para transporte',      'money');
+      add('f-night-h',   'Horas nocturnas',              'h');
+      add('f-credit-h',  'Horas de crédito',             'h');
       /* ★Absence / non-working reductions (2026-09-12, point 2). The most important
          of the values that were read but have no box on screen: without this line
          nobody can read back what was deducted, or by how much, before submitting.
@@ -5115,11 +5130,11 @@ if (WZ) {
         if (Array.isArray(ab)) ab.forEach((a) => {
           const n = parseFloat(a && a.amount);
           if (!isFinite(n)) return;
-          rows.push({ k: 'Reduction: ' + String((a && a.label) || 'Absence'), v: n, money: true });
+          rows.push({ k: 'Descuento: ' + String((a && a.label) || 'Ausencia'), v: n, money: true });
         });
       } catch (e) {}
       const src = $('f-source');
-      if (src && src.value === 'payslip') rows.push({ k: 'Entry method', v: 'Read from payslip' });
+      if (src && src.value === 'payslip') rows.push({ k: 'Método de registro', v: 'Leído del recibo de nómina' });
       return rows;
     },
     onStep: (id, i) => {
@@ -5246,8 +5261,8 @@ if (WZ) {
     ? MON[r.period_month - 1] + ' ' + r.period_year
     : 'last';
   $('restore-bar').firstElementChild.textContent =
-    'Carried over the airline, contract and fixed amounts from your ' + ym +
-    ' report. Fill in this month.';
+    'Copiamos la aerolínea, el contrato y los montos fijos de tu informe de ' + ym +
+    '. Completa los datos de este mes.';
   $('restore-bar').style.display = '';
   $('entry-prev').hidden = false;
 })();
@@ -5381,7 +5396,7 @@ function showErr(msg, title, blk) {
      apart from "never pressed the button".
      ★The message itself is never sent (it differs per language and could carry input). */
   trackBlocked(blk && blk.reason, blk && blk.host, blk && blk.n);
-  $('err').innerHTML = '<div class="form-alert"><span class="fa-title">' + esc(title || 'Could not submit') + '</span>' + esc(msg) + '</div>';
+  $('err').innerHTML = '<div class="form-alert"><span class="fa-title">' + esc(title || 'No se pudo enviar') + '</span>' + esc(msg) + '</div>';
   $('err').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 function clearErr() { const e = $('err'); e.innerHTML = ''; delete e.dataset.from; clearMissMarks(); }
@@ -5465,7 +5480,7 @@ function revealSteps() {
    land on the field, outline it red, and put "Missing" next to it.
    ★Every empty required field gets the mark. Only the first one is jumped to.
    ★Do not bring back .fa-list / .fa-jump (db/test-form-contract.mjs watches for it). */
-const MISS_TAG = 'Missing';
+const MISS_TAG = 'Falta';
 /* 役職・区分は値を hidden の #f-jobrole が持つので .form-input が無い。
    その場合はチェックボックスの1つ目を掴む（掴めないと飛べない）。 */
 const jumpTarget = (f) => f.querySelector('.form-input:not([type="hidden"])')
@@ -5494,7 +5509,7 @@ function markMissing(list) {
      （#err はウィザードが今の段の中へ引っ越すので、順番を逆にすると
        書いた直後に別の段へ持って行かれて、本人には何も出ない）。 */
   if (WZ) WZ.goToField(list[0]);
-  $('err').innerHTML = '<div class="form-alert"><span class="fa-title">Some required fields are still empty</span>The fields outlined in red are still empty.</div>';
+  $('err').innerHTML = '<div class="form-alert"><span class="fa-title">Aún hay campos obligatorios vacíos</span>Los campos marcados en rojo siguen vacíos.</div>';
   /* ★この赤箱は「空の欄がある」としか言っていない。全部埋まったら markRequired() が
      自分で消す（下の dataset を見ている）。1画面1段になった今、消さないと
      埋め終わった段の下にいつまでも赤が残り、押せないように見える。 */
@@ -5665,7 +5680,9 @@ function buildPayload(airline) {
        2026-09-11, unc() stripped the commas and broke the JSON). */
     pay_items:           $('f-payitems').value ? JSON.parse($('f-payitems').value) : null,
     source:              val('f-source') || 'web',
-    lang:                LANG,
+    /* The Spanish page (es/, generated from this file) records 'es' so Spanish submissions can be counted.
+       The server keeps any value as-is (pay_reports.lang has no list). This page sends 'en' as before. */
+    lang:                window.PV_LANG === 'es' ? 'es' : LANG,
   };
   return payload;
 }
@@ -5710,7 +5727,7 @@ function amtConfirmNeeded() {
   box.textContent = '';
   const t = document.createElement('p');
   t.className = 'ac-t';
-  t.textContent = 'Is this the right amount?';
+  t.textContent = '¿Es correcto este monto?';
   box.appendChild(t);
   const dl = document.createElement('dl');
   dl.className = 'ac-d';
@@ -5720,20 +5737,20 @@ function amtConfirmNeeded() {
     const dd = document.createElement('dd'); dd.textContent = v;
     d.appendChild(dt); d.appendChild(dd); dl.appendChild(d);
   };
-  row('Gross pay that month', fmtCur(monthly, cur));
-  row('Annualised total', fmtCur(annual, cur));
+  row('Sueldo bruto del mes', fmtCur(monthly, cur));
+  row('Total anualizado', fmtCur(annual, cur));
   box.appendChild(dl);
   const n = document.createElement('p');
   n.className = 'ac-n';
   n.textContent = low
     ? 'That is below the range we can compare against other airlines. A missing digit, an amount typed in thousands, or the wrong currency would all look like this. If it is right, submit it as it is.'
-    : 'That is above the range we can compare against other airlines. An extra digit, or an annual figure typed into the monthly box, would both look like this. If it is right, submit it as it is.';
+    : 'Esa cifra está por encima del rango que podemos comparar con otras aerolíneas. Un dígito de más, o una cifra anual escrita en la casilla mensual, se verían así. Si es correcta, envíala tal como está.';
   box.appendChild(n);
   const a = document.createElement('div');
   a.className = 'ac-a';
   const fix = document.createElement('button');
   fix.type = 'button'; fix.className = 'ac-b ac-fix'; fix.id = 'ac-fix';
-  fix.textContent = 'Change it';
+  fix.textContent = 'Cambiarlo';
   fix.addEventListener('click', () => {
     box.hidden = true;
     if (WZ) WZ.goToField($('f-gross'));
@@ -5741,7 +5758,7 @@ function amtConfirmNeeded() {
   });
   const go = document.createElement('button');
   go.type = 'button'; go.className = 'ac-b ac-go'; go.id = 'ac-go';
-  go.textContent = 'Submit this amount';
+  go.textContent = 'Enviar este monto';
   go.addEventListener('click', () => {
     AMT_OK = key;
     box.hidden = true;
@@ -5771,13 +5788,13 @@ async function submitPayReport() {
   if (miss.length) return markMissing(miss);
 
   const airline = val('f-airline');
-  if (!airline) return stopAt('f-airline', 'Please choose your airline.');
-  if (airline === 'other' && !val('f-airline-other')) return stopAt('f-airline-other', 'You picked “Other” — please type the airline name.');
-  if (!val('f-position')) return stopAt('f-position', 'Please choose your rank.');
-  if (!val('f-fleet')) return stopAt('f-fleet', 'Please choose your fleet.');
-  if (!val('f-jobrole')) return stopAt('f-jobrole', 'Please choose your role.');
-  if (!val('f-age')) return stopAt('f-age', 'Please choose your age band.');
-  if (!val('f-currency')) return stopAt('f-currency', 'Please choose the currency.');
+  if (!airline) return stopAt('f-airline', 'Elige tu aerolínea.');
+  if (airline === 'other' && !val('f-airline-other')) return stopAt('f-airline-other', 'Elegiste “Otra” — escribe el nombre de la aerolínea.');
+  if (!val('f-position')) return stopAt('f-position', 'Elige tu categoría (puesto).');
+  if (!val('f-fleet')) return stopAt('f-fleet', 'Elige tu flota.');
+  if (!val('f-jobrole')) return stopAt('f-jobrole', 'Elige tu función.');
+  if (!val('f-age')) return stopAt('f-age', 'Elige tu rango de edad.');
+  if (!val('f-currency')) return stopAt('f-currency', 'Elige la moneda.');
   /* ★Never submit while a money box has an unsettled reading (2026-09-11).
      Guessing silently is what turned 1.000,00 into 1 and dropped the row. */
   const mb = moneyBlocker();
@@ -5788,7 +5805,7 @@ async function submitPayReport() {
     const bad = moneyRead(mb).state === 'bad';
     return stopAtEl(mb, bad
       ? '“' + mb.value + '” is not a number we can read. Please type it again in digits.'
-      : 'We do not know how to read “' + mb.value + '”. Please pick the amount you meant, under the box.',
+      : 'No sabemos cómo interpretar “' + mb.value + '”. Elige debajo de la casilla el monto que quisiste ingresar.',
       bad ? 'money_bad' : 'money_pick');
   }
   /* ★Same for hours / days / percent: never submit one we cannot read, that is
@@ -5800,10 +5817,10 @@ async function submitPayReport() {
      is rejected. Without it there is no pay per block hour, and no way to compare
      across countries and airlines. */
   if (!val('f-block')) {
-    return stopAt('f-block', 'Please enter your flight time for the month. If you did not fly, or you do not track hours, enter 0.');
+    return stopAt('f-block', 'Ingresa tus horas de vuelo del mes. Si no volaste o no llevas registro de horas, ingresa 0.');
   }
   if (!val('f-stay')) {
-    return stopAt('f-stay', 'Please enter your layover nights. If you never stayed away from base, enter 0.');
+    return stopAt('f-stay', 'Ingresa tus noches de pernocta fuera de base. Si nunca pernoctaste fuera de base, ingresa 0.');
   }
   /* ★Same split as payEntered() used by the step gate (one place decides where to
      look). Only the amount being 0 is caught here. */
@@ -5812,19 +5829,19 @@ async function submitPayReport() {
      the submit button appear and then got stopped — f-hourly is a payslip-only hidden
      field they cannot fill. */
   if (num('f-gross') <= 0) {
-    return stopAt('f-gross', 'Please enter your gross pay for that month. Allowances alone give nothing to compare against.');
+    return stopAt('f-gross', 'Ingresa tu sueldo bruto de ese mes. Con solo las asignaciones no hay nada con qué comparar.');
   }
   /* ★Base pay and variable pay are required too (owner, 2026-10-08). They go through the
      same baseEntered() / varEntered() as the step gate — "None of this applies" is an
      answer. missingAll() above catches them first; this is the net for when the mark
      did not land (stopAt opens a folded breakdown before it scrolls). */
   if (!baseEntered()) {
-    return stopAt('f-base', 'Please enter your base pay. If your pay scheme has no base pay, tick "None of this applies".');
+    return stopAt('f-base', 'Ingresa tu sueldo base. Si tu esquema de remuneración no tiene sueldo base, marca "Nada de esto aplica".');
   }
   if (!varEntered()) {
-    return stopAt('pd-var-rows', 'Please enter your variable pay. If there was none that month, tick "None of this applies" or enter 0.');
+    return stopAt('pd-var-rows', 'Ingresa tu remuneración variable. Si no hubo ninguna ese mes, marca "Nada de esto aplica" o ingresa 0.');
   }
-  if (!val('f-netpay')) return stopAt('f-netpay', 'Please enter your net pay for that month ("Net Pay" on your payslip).');
+  if (!val('f-netpay')) return stopAt('f-netpay', 'Ingresa tu sueldo neto de ese mes ("Neto a pagar" en tu recibo de nómina).');
   /* ★Never send a net figure above the gross (2026-10-05). The step gate
      (netBlocking) stops it first, but the one-page fallback (shared JS failed to
      load) has no gate. The server rejects on the same line (pv_validate_pay_payload).
@@ -5836,10 +5853,10 @@ async function submitPayReport() {
     netBlocking();
     return;
   }
-  if (!val('f-perdiem')) return stopAt('f-perdiem', 'Please enter your per diem for the month. Enter 0 if none was paid.');
-  if (!val('f-housing')) return stopAt('f-housing', 'Please choose your housing.');
+  if (!val('f-perdiem')) return stopAt('f-perdiem', 'Ingresa el total de viáticos del mes. Si no te pagaron viáticos, ingresa 0.');
+  if (!val('f-housing')) return stopAt('f-housing', 'Elige tu tipo de vivienda.');
   if ($('f-housing').value === 'allowance' && !val('f-housing-amt')) {
-    return stopAt('f-housing-amt', 'You picked “Housing allowance (cash)” — please enter the monthly amount as well.');
+    return stopAt('f-housing-amt', 'Elegiste “Ayuda para vivienda (en efectivo)”: ingresa también el monto mensual.');
   }
   /* ★Once a variable pay row is added, "What it is paid on" is required (owner,
      2026-08-26, 2nd). "Not sure" is there for anyone who cannot tell. Add no rows
@@ -5849,16 +5866,16 @@ async function submitPayReport() {
      ★It drops rows locked by "None of this applies" as well (2026-10-08) — never stop
        someone with "please choose" on a field they cannot touch. */
   if (pdRead('var').some((r) => !r.basis)) {
-    return stopAt('pd-var-rows', 'Please choose “What it is paid on” for each variable pay row. Pick “Not sure” if you cannot tell.');
+    return stopAt('pd-var-rows', 'Elige “Sobre qué se paga” en cada fila de remuneración variable. Si no puedes determinarlo, elige “No lo sé”.');
   }
   /* ★4. Contract & tax (required since 2026-08-13). Folded or not, the values are
      there, so the same check works. */
-  if (!val('f-contract')) return stopAt('f-contract', 'Please choose your contract type.');
-  if (!val('f-taxcountry')) return stopAt('f-taxcountry', 'Please choose your country of tax residence.');
-  if (!val('f-seniority')) return stopAt('f-seniority', 'Please enter your years at the airline.');
-  if (!val('f-rankyears')) return stopAt('f-rankyears', 'Please enter your years in your current rank.');
+  if (!val('f-contract')) return stopAt('f-contract', 'Elige tu tipo de contrato.');
+  if (!val('f-taxcountry')) return stopAt('f-taxcountry', 'Elige tu país de residencia fiscal.');
+  if (!val('f-seniority')) return stopAt('f-seniority', 'Ingresa tus años en la aerolínea.');
+  if (!val('f-rankyears')) return stopAt('f-rankyears', 'Ingresa tus años en el puesto actual.');
   if (num('f-hourly') > 0 && num('f-block') <= 0 && num('f-guar') <= 0) {
-    return stopAt('f-block', 'With an hourly rate we also need flight time or guaranteed flight time.');
+    return stopAt('f-block', 'Con una tarifa por hora también necesitamos las horas de vuelo o las horas garantizadas.');
   }
 
   /* ★One last look at the magnitude (owner-approved 2026-09-11). It only shows
@@ -5868,7 +5885,7 @@ async function submitPayReport() {
 
   const payload = buildPayload(airline);
 
-  setSubmitBusy(true, 'Submitting…');
+  setSubmitBusy(true, 'Enviando…');
 
   /* ★Put the draft on the device before sending. Whatever happens from here on,
        what they typed survives.
@@ -5908,7 +5925,7 @@ async function submitPayReport() {
     try {
       const { data, error } = await _sb.rpc('submit_pay_report_pending', { p: payload });
       if (error) throw error;
-      if (!data || !data.ok || !data.claim_token) throw new Error('No claim token came back from the server');
+      if (!data || !data.ok || !data.claim_token) throw new Error('El servidor no devolvió ningún token de reclamación (claim token)');
       rememberClaim(data.claim_token, dupKey);
       /* ★No celebration here (2026-09-09). What is held is not theirs yet.
          markPopped is not called either — calling it sets _gatePopped, which would
@@ -5935,7 +5952,7 @@ async function submitPayReport() {
   try {
     const { data, error } = await _sb.rpc('submit_pay_report', { p: payload });
     if (error) throw error;
-    if (!data || !data.ok) throw new Error('No result came back from the server');
+    if (!data || !data.ok) throw new Error('El servidor no devolvió ningún resultado');
 
     savePreset();
     afterSaved(data, payload, airline);
@@ -6009,10 +6026,10 @@ function renderResult(d, p) {
     const parts = [];
     if (d.annual_total_usd != null) parts.push(usd(d.annual_total_usd));
     if (d.annual_total_jpy != null) parts.push(jpyMan(d.annual_total_jpy));
-    rows.push(['Converted', parts.join(' / ') + (d.fx_at ? ' <span style="font-size:.72rem;color:#6b7d93">(rate of ' + esc(d.fx_at) + ')</span>' : ''), '']);
+    rows.push(['Converted', parts.join(' / ') + (d.fx_at ? ' <span style="font-size:.72rem;color:#6b7d93">(tipo de cambio del ' + esc(d.fx_at) + ')</span>' : ''), '']);
   }
   if (d.usd_per_block_hour != null) {
-    rows.push(['★ Pay per block hour', '$' + Number(d.usd_per_block_hour).toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' <span style="font-size:.75rem;font-weight:600;color:#6b7d93">/ block hour</span>', 'hi']);
+    rows.push(['★ Pay per block hour', '$' + Number(d.usd_per_block_hour).toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' <span style="font-size:.75rem;font-weight:600;color:#6b7d93">/ hora block</span>', 'hi']);
   }
   if (d.net_annual_jpy != null) rows.push(['Estimated take-home (yr)', jpyMan(d.net_annual_jpy), '']);
   if (d.streak_months) rows.push(['Consecutive months', String(d.streak_months), '']);
@@ -6026,12 +6043,12 @@ function renderResult(d, p) {
     const pct = Math.max(0, Math.min(100, Number(b.percentile)));
     bench =
       '<div class="bench">' +
-        '<div style="font-size:.78rem;font-weight:700;color:#9ca3af;margin-bottom:2px">Where you sit in this segment</div>' +
+        '<div style="font-size:.78rem;font-weight:700;color:#9ca3af;margin-bottom:2px">Tu posición en este segmento</div>' +
         '<div style="font-size:.72rem;color:#6b7d93">' + esc(airlineName) + ' · ' + esc(optText('f-fleet', p.fleet)) + ' · ' + esc(optText('f-position', p.position)) + ' (n=' + b.n + ')</div>' +
         '<div class="bench-bar"><div class="bench-you" style="left:calc(' + pct + '% - 2px)"></div></div>' +
         '<div class="bench-scale"><span>' + usd(b.p25_usd) + '<br>25th</span><span style="text-align:center">' + usd(b.median_usd) + '<br>median</span><span style="text-align:right">' + usd(b.p75_usd) + '<br>75th</span></div>' +
         '<div style="margin-top:14px;font-size:.95rem;font-weight:800">Top ' + Math.max(1, 100 - pct) + '%' +
-          (b.median_usd_per_bh != null ? '<span style="font-size:.78rem;font-weight:600;color:#9ca3af;margin-left:10px">segment median $' + Number(b.median_usd_per_bh).toLocaleString('en-US', { maximumFractionDigits: 2 }) + '</span>' : '') +
+          (b.median_usd_per_bh != null ? '<span style="font-size:.78rem;font-weight:600;color:#9ca3af;margin-left:10px">mediana del segmento $' + Number(b.median_usd_per_bh).toLocaleString('en-US', { maximumFractionDigits: 2 }) + '</span>' : '') +
         '</div>' +
       '</div>';
   } else {
@@ -6053,21 +6070,21 @@ function renderResult(d, p) {
     && ($('f-var-sum').value.trim() !== '' || $('f-variable-none').checked);
   const backNote = back
     ? '<div class="warn-row" style="margin-top:16px;background:#f0fdf4;border-color:#bbf7d0;color:#166534">'
-      + 'Your pay detail is shared. '
-      + (shared3 ? '<b>The pay breakdown in REAL PAY is now open.</b>' : 'Answer base pay, flight time guarantee / duty allowance and variable pay, and the pay breakdown in REAL PAY opens up.')
+      + 'Compartiste el detalle de tu remuneración. '
+      + (shared3 ? '<b>The pay breakdown in REAL PAY is now open.</b>' : 'Completa sueldo base, horas garantizadas / asignación por servicio y remuneración variable, y se desbloquea el desglose de la remuneración en REAL PAY.')
       + '</div>'
     : '';
 
   const fxNote = d.fx_missing
-    ? '<div class="warn-row" style="margin-top:16px">We do not hold an exchange rate for ' + esc(cur) + ' yet, so USD and JPY cannot be shown. <b>Your figures are stored exactly as entered</b> and will be computed retroactively once the rate lands.</div>'
+    ? '<div class="warn-row" style="margin-top:16px">No tenemos un tipo de cambio para ' + esc(cur) + ' yet, so USD and JPY cannot be shown. <b>Your figures are stored exactly as entered</b> and will be computed retroactively once the rate lands.</div>'
     : '';
 
   $('result-wrap').innerHTML =
     '<div class="res">' +
       '<div class="res-pop">🎉</div>' +
-      '<div class="res-eyebrow">' + (d.is_new ? 'Received' : 'Correction applied') + '</div>' +
+      '<div class="res-eyebrow">' + (d.is_new ? 'Received' : 'Corrección aplicada') + '</div>' +
       '<div class="res-big">' + esc(fmtCur(d.annual_total_orig, cur)) + '</div>' +
-      '<div class="res-sub">Annualised total, from your ' + esc(MONTH_NAMES[Number(p.period_month) - 1]) + ' ' + esc(p.period_year) + ' payslip</div>' +
+      '<div class="res-sub">Total anualizado, según tu recibo de nómina de ' + esc(MONTH_NAMES[Number(p.period_month) - 1]) + ' ' + esc(p.period_year) + ' payslip</div>' +
       '<div style="margin-top:18px">' +
         rows.map((r) => '<div class="res-row"><span class="res-k">' + esc(r[0]) + '</span><span class="res-v ' + r[2] + '">' + r[1] + '</span></div>').join('') +
       '</div>' +
@@ -6075,13 +6092,13 @@ function renderResult(d, p) {
       /* ★The "Verified badge" sentence was dropped 2026-09-10 (owner's call).
          Do not explain what someone will not get on the screen that celebrates
          what they just did. The mechanism is still described on index.html. */
-      '<div class="res-note">Saved <b>on this device only</b>. Next month you only update what has changed. ' +
-        'File your next slip and the unlock extends to 90 days from that date.</div>' +
+      '<div class="res-note">Guardado <b>solo en este dispositivo</b>. El próximo mes solo actualizas lo que haya cambiado. ' +
+        'Envía tu próximo recibo de nómina y el desbloqueo se extiende a 90 días a partir de esa fecha.</div>' +
       '<div class="mt-6 flex flex-col sm:flex-row gap-3">' +
         '<a href="profile.html?new=1#your-pay" class="btn-orange justify-center flex-1">See my report →</a>' +
         /* ★Show the Get at the moment of the Give — this submission is what opened REAL PAY. */
-        '<a href="actual-pay.html" class="btn-ghost justify-center flex-1">' + (back ? 'Back to REAL PAY →' : 'Open REAL PAY →') + '</a>' +
-        '<button type="button" class="btn-ghost justify-center" id="btn-again">Report another month</button>' +
+        '<a href="actual-pay.html" class="btn-ghost justify-center flex-1">' + (back ? 'Back to REAL PAY →' : 'Abrir REAL PAY →') + '</a>' +
+        '<button type="button" class="btn-ghost justify-center" id="btn-again">Agregar otro mes</button>' +
       '</div>' +
     '</div>';
 
@@ -6149,10 +6166,10 @@ async function profileNudge() {
     box.className = 'res';
     box.style.marginTop = '18px';
     box.innerHTML =
-      '<div style="font-size:.95rem;font-weight:800;letter-spacing:-.01em;margin-bottom:6px">Your profile is still empty</div>' +
+      '<div style="font-size:.95rem;font-weight:800;letter-spacing:-.01em;margin-bottom:6px">Tu perfil todavía está vacío</div>' +
       '<div style="font-size:.82rem;line-height:1.7;color:#a8b3c2;margin-bottom:16px">' +
-        'Fill in country, employer and position and there is less to type next time. You can do this any time.</div>' +
-      '<a href="profile.html#edit-card" class="btn-ghost justify-center">Set up your profile →</a>';
+        'Completa país, empleador y puesto, y la próxima vez tendrás menos que escribir. Puedes hacerlo en cualquier momento.</div>' +
+      '<a href="profile.html#edit-card" class="btn-ghost justify-center">Configurar tu perfil →</a>';
     $('result-wrap').appendChild(box);
   } catch (e) { /* the report is already on screen — fail quietly */ }
 }

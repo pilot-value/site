@@ -587,7 +587,7 @@ for (const [k, b] of RALL) {
 
 /* ★主張の出どころ。actual-pay.js から実際に切り出して突き合わせる。 */
 {
-  const ap = read('actual-pay.js');
+  const ap = read('actual-pay.js').replace(/\/\*PV-MSG:[a-z-]+\*\/[\s\S]*?\/\*\/PV-MSG:[a-z-]+\*\//g, '')   // 機械で足した言語の辞書（gen-msg.mjs）は数えない;
   const pick = (re) => [...ap.matchAll(re)].map((m) => m[1]);
   const seeBlocks = [...ap.matchAll(/\bsee:\s*\[([\s\S]*?)\]/g)]
     .map((m) => [...m[1].matchAll(/'((?:[^'\\]|\\.)*)'/g)].map((x) => x[1]));

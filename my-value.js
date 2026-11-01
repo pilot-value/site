@@ -480,7 +480,190 @@
         var t = new Date(s);
         return isFinite(t) ? (MON[t.getMonth()] + ' ' + t.getDate() + ', ' + t.getFullYear()) : '—';
       }
-    }
+    }, /*PV-MSG:es*/ es: {
+      /* ★ 日本語側と同じ考え方。名前が取れたら本人の名前を主語にする。 */
+      titleOf: function (nm) { return nm ? nm + ': informe de remuneración' : 'Tu informe de remuneración'; },
+      leadNew: 'Generado a partir del recibo de nómina que acabas de enviar. Tu propio análisis de remuneración, basado en los datos que registraste.',
+      lead: 'Tu propio análisis de remuneración, basado en los datos que registraste. Se vuelve más preciso con cada mes que agregas.',
+      unlockOn: function (n) { return 'Desbloqueado · ' + n + (n === 1 ? ' día' : ' días'); },
+      unlockOff: 'Bloqueado',
+      kAirline: 'Aerolínea', kFleet: 'Tipo de aeronave', kPos: 'Categoría', kBase: 'Base',
+      kMonth: 'Mes de pago', kUpdated: 'Creado el', kSheets: 'Recibos de nómina registrados',
+      sheets: function (n) { return String(n); },
+
+      month: 'Este mes',
+      kGross: 'Sueldo bruto', kNet: 'Sueldo neto',
+      perBlock: 'Por hora block', perDuty: 'Por hora de servicio',
+      mBlockH: 'Horas block', mDutyH: 'Tiempo de servicio', mDays: 'Días de servicio',
+      mStay: 'Noches de pernocta fuera de base',
+      hDays: function (n) { return String(n); },
+      hStay: function (n) { return String(n); },
+      noDuty: 'No se pudo leer el tiempo de servicio en tu recibo de nómina, así que solo se muestra la cifra por hora block (calzo a calzo). <b>No estimamos el tiempo de servicio a partir de las horas block</b>: la proporción real varía hasta 2× entre aerolíneas.',
+      kDeduct: 'Total de deducciones', kYtd: 'Remuneración gravable acumulada en el año',
+      kUnionOut: 'Pagado aparte por tu sindicato', kGrossAll: 'Total recibido',
+      kAnnual: 'Este mes, anualizado de forma simple',
+      annualFrom: 'lo que sumarían doce meses como este',
+      annualWarn: '※ El bono, las asignaciones variables y las horas voladas hacen variar esta cifra. No es tu remuneración anual real.',
+      noGross: 'No ingresaste tu sueldo neto de este mes, así que no se pueden calcular las deducciones. Envía de nuevo el mismo mes y estas cifras serán las tuyas.',
+      mGuar: function (g) { return 'vs. ' + g + ' h garantizadas'; },
+      momOf: function (ym) { return 'vs. ' + ym; },
+
+      total: 'Remuneración total registrada',
+      tHead: 'Todo lo que tienes registrado',
+      tGross: 'Total bruto', tNet: 'Total neto', tDeduct: 'Total de deducciones',
+      tMonths: 'Meses registrados', tAvg: 'Bruto promedio / mes', tHourly: 'Por hora block, en toda tu carrera',
+      tUnionOut: 'de lo cual, pagado por tu sindicato',
+      tBlockH: 'Total de horas block', tDutyH: 'Total de horas de servicio',
+      tSpanOf: function (a, b) { return a === b ? a : a + ' – ' + b; },
+      tCountOf: function (m, n) { return m === n ? m + (m === 1 ? ' registro' : ' registros') : m + ' de ' + n + ' registros'; },
+      tOf: function (span, cnt) { return span + ' · ' + cnt; },
+      tOnly: function (m, n) {
+        return '※ Solo se suman los meses con un sueldo bruto legible (' + m + ' de ' + n + ').';
+      },
+      tNetOnly: function (m) { return '※ El sueldo neto y las deducciones corresponden solo a ' + m + (m === 1 ? ' mes' : ' meses') + ' en que ingresaste tu sueldo neto.'; },
+      tNone: 'Aún no hay nada registrado. Agrega tu remuneración y aquí empezará a acumularse.',
+      months: function (n) { return n + (n === 1 ? ' mes' : ' meses'); },
+
+      oppQ: '¿Qué te abren tu licencia y tu experiencia?',
+      oppEyebrow: 'TUS OPORTUNIDADES',
+      oppCurTag: 'Actual',
+      oppCurAnnual: 'Este mes, anualizado de forma simple',
+      oppUnit: '/ año',
+      oppMed: 'frente a la mediana en las mismas condiciones',
+      oppScope: function (n, m) { return 'a partir de ' + n + ' registros de la misma categoría y tipo de aeronave, en ' + m + ' aerolíneas'; },
+      oppScopeWide: function (n, m) { return 'a partir de ' + n + ' registros de la misma categoría, en ' + m + ' aerolíneas'; },
+      oppWide: 'No hay suficientes registros para tu tipo de aeronave, así que se amplía a todos los registros de tu categoría.',
+      oppThin: 'Todavía no hay suficientes registros para desglosarlo por aerolínea. Por ahora solo se muestra la diferencia con la mediana.',
+      oppNone: 'Todavía no hay suficientes datos reales para comparar. Cuando cinco o más pilotos en las mismas condiciones hayan registrado su remuneración, esto empezará a funcionar.',
+      oppNoPace: 'Tu cifra anual (mensual × 12 + bono) todavía no está disponible, así que no hay nada con qué comparar. Vuelve a enviar el recibo de nómina o llena los campos anuales del formulario.',
+      oppNoUp: 'Nada de lo registrado en tus condiciones está por encima de donde estás ahora. Eso cambiará a medida que lleguen más registros.',
+      oppHidden: function (n) { return n + (n === 1 ? ' aerolínea que está' : ' aerolíneas que están') + ' por debajo de tus condiciones actuales ' + (n === 1 ? 'no se muestra' : 'no se muestran') + '.'; },
+      oppMoreH: 'Ver las otras aerolíneas por encima de ti',
+      oppMoreS: 'Aerolíneas que no quedaron entre las tres primeras. Todas ellas también tienen una mediana anual más alta que tu remuneración anual actual.',
+      oppN: function (n) { return n + ' registros'; },
+      oppAnnual: 'Diferencia con la mediana anual', oppHourly: 'Diferencia por hora block',
+      /* スカウトは作らない。将来やる予定があることだけ示す。 */
+      scoutTag: 'PRÓXIMAMENTE',
+      scoutH: 'Reclutamiento anónimo',
+      scoutB: 'Estamos creando una forma para que las aerolíneas y los reclutadores puedan contactarte sin que se muestre tu nombre ni tu empleador. Participar o no será tu decisión, más adelante.',
+      scoutBtn: 'En preparación',
+      pubCap: 'frente a nuestro promedio publicado',
+      pubAvg: 'Promedio publicado en esa aerolínea',
+      pubFoot: 'Según datos de sueldos publicados',
+      pubScope: 'Todavía no hay suficientes registros de miembros, así que esta sección compara con el sueldo anual promedio que PILOT VALUE publica para cada aerolínea, a partir de información pública. Solo se compara por categoría (capitán / primer oficial), no por tipo de aeronave. Cuando cinco pilotos en las mismas condiciones hayan registrado su remuneración, se pasará a comparar con lo que realmente registraron.',
+      pubNoUp: 'Ninguno de los promedios publicados está por encima de donde estás ahora.',
+      pubMoreH: 'Ver las otras aerolíneas por encima de ti',
+      pubMoreS: 'Aerolíneas que no quedaron entre las tres primeras. Todas ellas también tienen un promedio publicado más alto que tu remuneración anual actual.',
+      pubRest: function (n) { return n + (n === 1 ? ' aerolínea más está' : ' aerolíneas más están') + ' por encima de ti.'; },
+      pubAll: 'Ver todas las aerolíneas →',
+
+      cmp: 'Cambio desde tu último recibo de nómina',
+      cmpGross: 'Sueldo bruto', cmpBlock: 'Por hora block', cmpDuty: 'Por hora de servicio',
+      cmpBlockH: 'Horas block', cmpDutyH: 'Tiempo de servicio',
+      cmpNone: 'Envía el recibo de nómina del próximo mes y el cambio aparecerá aquí.',
+      cmpFirstAt: function (nm) {
+        return 'Este es tu primer recibo de nómina en ' + nm + '. Los meses anteriores corresponden a otra aerolínea, así que aquí no se calculan diferencias con ellos: cambian la moneda, el contrato y los nombres de las asignaciones.';
+      },
+      cmpGap: function (n) { return 'Hay un salto de ' + n + ' meses. No son meses consecutivos.'; },
+      cmpCur: 'La moneda en que te pagan cambió desde el recibo de nómina anterior, así que no calculamos la diferencia de montos: el movimiento sería sobre todo por tipo de cambio y no te diría si tuviste un aumento. Solo se muestran las horas.',
+      cmpFx: function (c) {
+        return 'Los cambios se calculan en la moneda en que te pagan (' + c + '). Ambos meses se muestran al tipo de cambio del mes más reciente, así que un movimiento de la moneda no aparece como un aumento.';
+      },
+      cmpNoPair: 'Todavía no hay ninguna cifra legible en ambos meses.',
+      cmpNote: 'Estos cambios no se califican como buenos ni malos. Más horas de servicio significan una menor remuneración por hora; qué prefieres depende de tu contrato y de tu vida.',
+
+      breakdown: 'Cómo se compone tu remuneración',
+      housingNote: '※ La vivienda proporcionada por la empresa no es efectivo, así que no se incluye en el desglose.',
+      noBd: 'Ingresa tu remuneración asignación por asignación y esta gráfica mostrará tus propias cifras. Al leer un recibo de nómina, se completa automáticamente.',
+      restOnly: '※ Ingresa tu remuneración asignación por asignación y este círculo gris se dividirá en conceptos. Al leer un recibo de nómina, se completa automáticamente.',
+      sampleTag: 'Ejemplo', sampleBtn: 'Agregar remuneración de forma anónima →',
+      segBase: 'Sueldo base', segGuarantee: 'Horas garantizadas / asignación por servicio',
+      segCommand: 'Asignación por categoría (puesto)', segInstructor: 'Instrucción / entrenamiento',
+      segExaminer: 'Examinador / verificación',
+      segUnion: 'Actividad sindical / representación', segManagement: 'Cargo de gestión / mando',
+      segNonline: 'Otros / funciones fuera de la operación de línea',
+      segFlight: 'Remuneración variable de vuelo',
+      segOther: 'Otras asignaciones', segHousing: 'Vivienda', segTransport: 'Transporte', segPerDiem: 'Viáticos',
+      /* ★The two below only appear on a row filed as one gross figure (see segments() in pay-viz.js). */
+      segBonus: 'Bono del mes', segRest: 'Sin desglosar',
+      fixed: 'Fijo', variable: 'Variable', unknown: 'No se puede determinar',
+      baseRatio: 'Proporción del sueldo base en el sueldo bruto',
+
+      trend: 'Mes a mes',
+      mHourly: 'Por hora (block)', mAnnual: 'Anual (×12)', mNet: 'Sueldo neto (mes)',
+      onePoint: 'Por ahora solo hay un punto. Sube el recibo de nómina del próximo mes y esto se convertirá en una línea.',
+      noMetric: 'Todavía no hay ningún mes con los datos que necesita este indicador.',
+      trendScoped: 'Los recibos de nómina de tu otra aerolínea no están en esta línea. Al cambiar de aerolínea cambian tanto la moneda como el contrato, así que unirlos no tendría sentido.',
+      unionOutNote: '※ El dinero que te paga directamente tu sindicato no aparece en el recibo de nómina de la empresa. Aquí se incluye como remuneración que recibiste.',
+      absenceNote: '※ Los descuentos por ausencias sin goce de sueldo se restan del sueldo bruto en tu recibo de nómina. Este círculo muestra los conceptos antes de ese descuento, así que el total aquí supera en ese monto al sueldo bruto impreso.',
+      msH: 'Hitos',
+      msSub: 'Detectados a partir de los cambios en tus propios registros',
+      msPos: function (a, b) { return 'Categoría: ' + a + ' → ' + b; },
+      msFleet: function (a, b) { return 'Tipo de aeronave: ' + a + ' → ' + b; },
+      msAir: function (a, b) { return 'Aerolínea: ' + a + ' → ' + b; },
+      msBase: function (a, b) { return 'Base: ' + a + ' → ' + b; },
+      msCand: '※ Se detectan a partir del orden de tus propios registros. Nada de esto está confirmado como un cambio o un ascenso: son marcadores para que puedas comparar los montos reales antes y después.',
+
+      next: 'Cuando agregues tu próximo recibo de nómina',
+      nextAdd: 'Agregar remuneración de forma anónima →',
+      nextWhat: function (ym) {
+        return [
+          [ym + ' se suma a tu informe', 'Tu registro suma un mes más y esta página llega hasta ese mes.'],
+          ['Se actualiza el cambio', 'El sueldo bruto y la remuneración por hora se comparan con el mes que acabas de registrar.'],
+          ['Se actualiza tu total', 'Un mes más se suma al acumulado y la línea gana un punto.'],
+          ['Se recalculan las oportunidades', 'Cuando haya cinco registros con tu misma categoría y tipo de aeronave, empieza a calcularse la diferencia con la mediana.'],
+          ['Los eventos de carrera ganan precisión', 'Los meses antes y después de un cambio de flota o de categoría se vuelven comparables en montos reales.']
+        ];
+      },
+      mlH: 'Meses registrados',
+      mlDone: function (n) { return n + (n === 1 ? ' mes registrado' : ' meses registrados'); },
+      mlNext: function (k, g) { return k + ' más y este será un informe de ' + g + ' meses'; },
+      mlGoal: function (g) { return g + 'm'; },
+      mlMax: '36 meses registrados. A partir de aquí, cada recibo de nómina que agregues profundiza la comparación con tu propio historial.',
+      mlNote: 'Aquí no hay puntos. Lo que crece es tu propio registro.',
+      remind: 'Avísame cuando llegue mi recibo de nómina',
+      remindOn: 'Una vez al mes, cerca de tu día de pago.',
+      remindOff: 'Desactivado. No se enviarán recordatorios.',
+      remindWhen: function (dd) { return 'Alrededor del día ' + ORD(dd) + ' de cada mes'; },
+      remindNote: 'El correo nunca incluye conceptos ni montos de tu recibo de nómina, y siempre trae un enlace para darte de baja con un solo clic.',
+      remindErr: 'No se pudo guardar esa configuración. Inténtalo de nuevo en un momento.',
+
+      /* Same screen in English. A payslip is not required — typing it in unlocks the same thing. */
+      eTitle: 'Mi informe',
+      eRepT: 'Tu informe de remuneración',
+      eRepBadge: 'Sin iniciar',
+      eRepH: 'Todavía no has compartido tu remuneración',
+      eRepS: 'Agrega un registro de remuneración y aquí aparecerá tu propio informe. '
+           + 'No necesitas recibo de nómina: puedes ingresarlo a mano.',
+      eRepC: 'Agrega tu remuneración y genera el informe →',
+      eKnowT: 'Lo que muestra el informe',
+      eKnow: ['Tu desglose anual, mensual y de bonos',
+              'A qué distancia estás de la mediana y en qué posición quedas',
+              'Cuánto ganas por hora block (calzo a calzo)',
+              'Tu sueldo neto y las deducciones que ingresaste, apilados',
+              'Cómo cambia de un mes a otro'],
+      eKnowN: 'Cuando cinco pilotos compartan tus mismas condiciones, la comparación pasa a usar datos reales de los miembros.',
+      eBandT: 'Comparte tu remuneración y se desbloquea todo lo que hay aquí',
+      eBand: function (n, a) {
+        return '<b>' + n + '</b> registros de remuneración compartidos hasta ahora, de <b>' + a + '</b> aerolíneas';
+      },
+      eBand1: function (n) { return '<b>' + n + '</b> registros de remuneración compartidos hasta ahora'; },
+      eBandC: 'Ver REAL PAY →',
+      eStRep: 'Registros de remuneración',      eStRepU: '',
+      eStAir: 'Aerolíneas',         eStAirU: '',
+      eStMon: 'Agregados hace menos de 1 mes', eStMonU: '',
+      err: 'No se pudo cargar tu informe. Inténtalo de nuevo en un momento.',
+      /* sfo / tri_tre are retired codes (removed from the form 2026-08-18). Old reports still carry
+         them, so keep the labels — otherwise the raw code shows up on the member's own page. */
+      cap: 'Capitán', fo: 'Primer oficial', cadet: 'Piloto en formación',
+      sfo: 'Primer oficial sénior', tri_tre: 'Capitán instructor',
+      ym: function (y, m) { return MON[m - 1] + ' ' + y; },
+      ymShort: function (y, m) { return MON[m - 1]; },
+      date: function (s) {
+        var t = new Date(s);
+        return isFinite(t) ? (MON[t.getMonth()] + ' ' + t.getDate() + ', ' + t.getFullYear()) : '—';
+      }
+    } /*/PV-MSG:es*/
   };
   T = (window.PV_T && window.PV_T(T, L)) || T[L];   // スペイン語の辞書（gen-msg.mjs が足す）があればそれ
 

@@ -121,7 +121,7 @@
 })();
 </script>
 <!--/PV-3P-->
-<script src="../pv-session.js?v=700cc594"></script>
+<script src="../pv-session.js?v=54191fa0"></script>
   <!-- PV-NAV: site-wide navigation (left rail on wide screens, left drawer on narrow).
        Written by patch-side-nav.mjs. app-nav.css loads last (after my-value.css). -->
   <link rel="stylesheet" href="../app-nav.css">
@@ -372,11 +372,11 @@
       // Fixed short codes only. Never put a string from the URL on screen or into GA4.
       const reason = String(q.get('reason') || '').replace(/[^a-z_]/g, '').slice(0, 32) || 'unknown';
       const MSG = {
-        in_app_browser: 'Google sign-in does not work inside in-app browsers. Please use "Email me a code" below.',
-        oauth_error:    'Sign-in was interrupted. Please try again.',
-        no_code:        'Sign-in was interrupted. Please try again.',
-        set_session:    'Sign-in was interrupted. Please try again.',
-        timeout:        'Sign-in was interrupted. Please try again.'
+        in_app_browser: 'El inicio de sesión con Google no funciona en los navegadores integrados en apps. Usa "Enviarme un código por correo" abajo.',
+        oauth_error:    'Se interrumpió el inicio de sesión. Inténtalo de nuevo.',
+        no_code:        'Se interrumpió el inicio de sesión. Inténtalo de nuevo.',
+        set_session:    'Se interrumpió el inicio de sesión. Inténtalo de nuevo.',
+        timeout:        'Se interrumpió el inicio de sesión. Inténtalo de nuevo.'
       };
       const el = document.getElementById('auth-fail-notice');
       if (el) { el.textContent = MSG[reason] || MSG.oauth_error; el.style.display = 'block'; }
@@ -428,14 +428,14 @@
       const name = String((err && err.name) || '');
       const off  = (typeof navigator !== 'undefined' && navigator.onLine === false);
       if (off || st === 0 || name === 'AuthRetryableFetchError' || name === 'TypeError')
-        return "We couldn't reach the server. Check your connection and try again.";
+        return "No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.";
       if (st === 429 || code.indexOf('rate_limit') >= 0)
-        return 'Too many attempts in a short time, so sign-in is paused for a moment. Please wait and try again.';
+        return 'Demasiados intentos en poco tiempo, así que el inicio de sesión está pausado por un momento. Espera e inténtalo de nuevo.';
       if (st >= 500)
-        return 'Something is wrong on our side. Please wait a moment and try again.';
+        return 'Algo falló de nuestro lado. Espera un momento e inténtalo de nuevo.';
       if (code === 'email_not_confirmed')
-        return "Your email address hasn't been confirmed yet. Please check your inbox.";
-      return 'Your email address or password is incorrect';
+        return "Tu correo electrónico aún no ha sido confirmado. Revisa tu bandeja de entrada.";
+      return 'Tu correo electrónico o tu contraseña son incorrectos';
     }
 
     async function handleLogin(e) {
@@ -445,7 +445,7 @@
       const errEl    = document.getElementById('login-error');
       const btn      = document.getElementById('login-btn');
       errEl.style.display = 'none';
-      btn.textContent = 'Logging in…'; btn.disabled = true;
+      btn.textContent = 'Iniciando sesión…'; btn.disabled = true;
 
       /* fetch そのものが投げてくる経路もある（拡張機能・オフライン）。握りつぶさない。 */
       let data = null, error = null;
@@ -457,7 +457,7 @@
       if (error || !data || !data.user) {
         errEl.textContent = authErrMsg(error);
         errEl.style.display = 'block';
-        btn.textContent = 'Log in'; btn.disabled = false;
+        btn.textContent = 'Iniciar sesión'; btn.disabled = false;
         return;
       }
 
@@ -482,14 +482,14 @@
 
     const EMAIL_STEP_COPY = {
       login: {
-        title: 'Sign in with email',
-        note:  "Enter your email address.<br>"
-             + "We'll send you a 6-digit sign-in code. No password needed.",
+        title: 'Iniciar sesión con correo electrónico',
+        note:  "Ingresa tu correo electrónico.<br>"
+             + "Te enviaremos un código de acceso de 6 dígitos. No necesitas contraseña.",
       },
       reset: {
-        title: 'Reset your password',
-        note:  'Enter the email address you registered with.<br>'
-             + "We'll send you a 6-digit code. Once you're in, you can set a new password right there.",
+        title: 'Restablece tu contraseña',
+        note:  'Ingresa el correo electrónico con el que te registraste.<br>'
+             + "Te enviaremos un código de 6 dígitos. Una vez que entres, podrás establecer una nueva contraseña ahí mismo.",
       },
     };
 
@@ -534,7 +534,7 @@
       const email = onOtpStep ? otpEmail : input.value.trim().toLowerCase();
 
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        errEl.textContent = 'Please enter a valid email address';
+        errEl.textContent = 'Ingresa un correo electrónico válido';
         errEl.style.display = 'block';
         if (!onOtpStep) input.focus();
         return;
@@ -543,7 +543,7 @@
       const active = onOtpStep ? resendBtn : sendBtn;
       const label  = active.innerHTML;   // the send button carries an icon, so restore via innerHTML
       active.disabled = true;
-      active.textContent = 'Sending…';
+      active.textContent = 'Enviando…';
 
       /* Build the return URL with the same expression as handleGoogle (passes getRedirect's same-origin check).
          ★ただし再設定のときだけは戻り先を profile.html のパスワード欄に固定する。
@@ -571,20 +571,20 @@
       if (error) {
         errEl.textContent = (error.status === 429)
           ? 'Too many requests. Please wait a moment and try again.'
-          : 'Could not send the email: ' + error.message;
+          : 'No se pudo enviar el correo: ' + error.message;
         errEl.style.display = 'block';
         return;
       }
 
       otpEmail = email;
       if (onOtpStep) {
-        errEl.textContent = 'Email resent.';
+        errEl.textContent = 'Correo reenviado.';
         errEl.classList.add('is-ok');
         errEl.style.display = 'block';
       }
       document.getElementById('otp-note').innerHTML =
-        'We sent an email to <b>' + email.replace(/[<>&]/g, '') + '</b>.<br>'
-        + 'Type the 6-digit code from that email into this screen.';
+        'Enviamos un correo a <b>' + email.replace(/[<>&]/g, '') + '</b>.<br>'
+        + 'Escribe en esta pantalla el código de 6 dígitos de ese correo.';
       document.getElementById('login-form').style.display = 'none';
       document.getElementById('email-step').style.display = 'none';
       document.getElementById('otp-step').style.display   = 'block';
@@ -613,25 +613,25 @@
       resetMsg(errEl);
 
       if (!/^\d{6}$/.test(token)) {
-        errEl.textContent = 'Please enter the 6 digits';
+        errEl.textContent = 'Ingresa los 6 dígitos';
         errEl.style.display = 'block';
         return;
       }
 
-      btn.textContent = 'Checking…'; btn.disabled = true;
+      btn.textContent = 'Verificando…'; btn.disabled = true;
       const { data, error } = await sb.auth.verifyOtp({ email: otpEmail, token, type: 'email' });
 
       if (error || !data || !data.user) {
-        errEl.textContent = 'That code is wrong or has expired. Resend the email and try again.';
+        errEl.textContent = 'Ese código es incorrecto o ya venció. Reenvía el correo e inténtalo de nuevo.';
         errEl.style.display = 'block';
-        btn.textContent = 'Continue with code'; btn.disabled = false;
+        btn.textContent = 'Continuar con el código'; btn.disabled = false;
         return;
       }
 
       // 忘れた人はここで止めて、パスワードを決め直してもらう。それ以外は従来どおり素通し。
       if (otpIntent === 'reset') {
         pendingUser = data.user;
-        btn.textContent = 'Continue with code'; btn.disabled = false;
+        btn.textContent = 'Continuar con el código'; btn.disabled = false;
         showPasswordStep();
         return;
       }
@@ -659,18 +659,18 @@
       resetMsg(errEl);
       const fail = (t) => { errEl.textContent = t; errEl.style.display = 'block'; };
 
-      if (pass.length < 8) { fail('Your password must be at least 8 characters'); return; }
-      if (pass !== conf)   { fail('The two passwords do not match'); return; }
+      if (pass.length < 8) { fail('Tu contraseña debe tener al menos 8 caracteres'); return; }
+      if (pass !== conf)   { fail('Las dos contraseñas no coinciden'); return; }
 
-      btn.textContent = 'Saving…'; btn.disabled = true;
+      btn.textContent = 'Guardando…'; btn.disabled = true;
       const { error } = await sb.auth.updateUser({ password: pass });
 
       if (error) {
         const m = error.message || '';
-        btn.textContent = 'Save and continue'; btn.disabled = false;
+        btn.textContent = 'Guardar y continuar'; btn.disabled = false;
         // profile.html の savePassword と同じ扱い。Secure password change 有効時だけ言い換える。
-        if (/reauth|nonce/i.test(m)) { fail('For your security, please sign in again and then retry.'); return; }
-        fail(m || 'We could not save your password. Please try again later.');
+        if (/reauth|nonce/i.test(m)) { fail('Por tu seguridad, vuelve a iniciar sesión y luego inténtalo de nuevo.'); return; }
+        fail(m || 'No pudimos guardar tu contraseña. Inténtalo de nuevo más tarde.');
         return;
       }
 

@@ -136,7 +136,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 })();
 </script>
 <!--/PV-3P-->
-<script src="../pv-session.js?v=700cc594"></script>
+<script src="../pv-session.js?v=54191fa0"></script>
   <!-- PV-NAV: site-wide navigation (left rail on wide screens, left drawer on narrow).
        Written by patch-side-nav.mjs. app-nav.css loads last (after my-value.css). -->
   <link rel="stylesheet" href="../pv-tokens.css">
@@ -337,10 +337,10 @@ var PV_CONTACT = {
 
 function pvContactFallback(name, email, msg){
   return 'mailto:info@pilot-value.com'
-    + '?subject=' + encodeURIComponent('[PILOT VALUE] Inquiry: ' + name)
+    + '?subject=' + encodeURIComponent('[PILOT VALUE] Consulta: ' + name)
     + '&body=' + encodeURIComponent(
-        'Full name: ' + name + '\n' +
-        'Email address: ' + email + '\n' +
+        'Nombre completo: ' + name + '\n' +
+        'Correo electrónico: ' + email + '\n' +
         '\n' +
         '[Inquiry]\n' + msg);
 }
@@ -355,7 +355,7 @@ async function submitForm(e){
   var err = document.getElementById('error-msg');
   err.style.display = 'none';
   btn.disabled = true;
-  btn.textContent = 'Sending...';
+  btn.textContent = 'Enviando...';
 
   try {
     var res = await fetch(PV_CONTACT.url + '/rest/v1/contacts', {
@@ -377,12 +377,12 @@ async function submitForm(e){
     document.getElementById('success-msg').style.display = 'block';
   } catch (ex) {
     // 「送信できたことにする」のはやらない。何が起きたかを出して、代替手段を渡す。
-    err.innerHTML = 'We could not send your message. Please '
-      + '<a href="' + pvContactFallback(name, email, msg) + '">email info@pilot-value.com directly</a>'
-      + ', or try again in a moment.';
+    err.innerHTML = 'No pudimos enviar tu mensaje. Por favor, '
+      + '<a href="' + pvContactFallback(name, email, msg) + '">escribe directamente a info@pilot-value.com</a>'
+      + ', o vuelve a intentarlo en un momento.';
     err.style.display = 'block';
     btn.disabled = false;
-    btn.textContent = 'Send';
+    btn.textContent = 'Enviar';
     console.error('contact insert failed:', ex);
   }
 }

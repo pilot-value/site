@@ -24,7 +24,7 @@ const ROOT = fileURLToPath(new URL('.', import.meta.url));
 // ずれても結果は変わらない。並べ替えが少し鈍るだけ。
 const FAST = [
   ['check-salary.mjs', 1.7], ['check-sources.mjs', 0.1],
-  ['assert-seo.mjs', 0.1], ['assert-links.mjs', 0.1],
+  ['assert-seo.mjs', 0.1], ['assert-links.mjs', 0.1], ['assert-i18n.mjs', 1],
   ['assert-admin-notify.mjs', 0.1], ['assert-translate-review.mjs', 0.1],
   ['assert-jobs.mjs', 0.1], ['assert-no-pii.mjs', 1.0],
   ['assert-pay-report-sync.mjs', 0.1],
@@ -97,7 +97,7 @@ const WEB = [
   ['assert-referral.mjs', 126], ['assert-perf.mjs', 110],
   ['assert-currency.mjs', 93], ['assert-conditions.mjs', 60],
   ['assert-unlock.mjs', 59], ['assert-career.mjs', 55], ['assert-my-posts.mjs', 32],
-  ['assert-langtoggle.mjs', 24], ['assert-founding.mjs', 20],
+  ['assert-langtoggle.mjs', 24], ['assert-i18n-pay.mjs', 40], ['assert-founding.mjs', 20],
   /* assert-admin.mjs：2026-10-18（WP-close-a）に外への通信の門と H)（本物のブラウザでマイページの「戻る」）が入り、
      単独で約60秒・同時4本で 85秒になった（12 は門より前の値）。85 は 2026-10-18 の `node check.mjs all` の実測。 */
   ['assert-proof.mjs', 15], ['assert-give-first.mjs', 14], ['assert-ask.mjs', 30], ['assert-hero-fold.mjs', 13], ['assert-member-median.mjs', 12], ['assert-admin.mjs', 85],

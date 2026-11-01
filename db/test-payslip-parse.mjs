@@ -138,7 +138,7 @@ console.log('\n①-f 画面（payslip.js）が同じ判定を持っている');
   /* この関数はダッシュボードで手作業で貼り替える＝サイト（push で出る）より
      古い時期が必ずある。だから画面側にも同じ判定を置いてある。
      ★写経した複製を突き合わせても意味が無いので、payslip.js から実体を切り出して動かす。 */
-  const FRONT = readFileSync(path.join(ROOT, 'payslip.js'), 'utf8');
+  const FRONT = readFileSync(path.join(ROOT, 'payslip.js'), 'utf8').replace(/\/\*PV-MSG:[a-z-]+\*\/[\s\S]*?\/\*\/PV-MSG:[a-z-]+\*\//g, '')   // 機械で足した言語の辞書（gen-msg.mjs）は数えない;
   const cut = FRONT.match(/\n {2}function isCountRow\(label, amount\) \{[\s\S]*?\n {2}\}/);
   ok(!!cut, '★payslip.js から isCountRow を切り出せた（名前や形を変えたらここで気づく）');
   const front = new Function(cut[0] + '\nreturn isCountRow;')();
@@ -603,7 +603,7 @@ console.log('\n⑤-b 読み方の検査（通貨・小数点・桁）');
 // ═══ ⑥ 画面が checks を読んでいるか ══════════════════════════════
 console.log('\n⑥ 画面（payslip.js）が検算の結果を使っている');
 {
-  const FRONT = readFileSync(path.join(ROOT, 'payslip.js'), 'utf8');
+  const FRONT = readFileSync(path.join(ROOT, 'payslip.js'), 'utf8').replace(/\/\*PV-MSG:[a-z-]+\*\/[\s\S]*?\/\*\/PV-MSG:[a-z-]+\*\//g, '')   // 機械で足した言語の辞書（gen-msg.mjs）は数えない;
   ok(/res\.checks/.test(FRONT), 'renderResult が checks を見ている');
   ok(/chk\.gross === 'mismatch'/.test(FRONT) && /chk\.net === 'mismatch'/.test(FRONT),
      '支給側・手取り側の両方に文言がある');

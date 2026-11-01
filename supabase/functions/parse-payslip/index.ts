@@ -600,6 +600,7 @@ export const CUR_DEC: Record<string, number> = {
   THB: 2, MYR: 2, IDR: 0, PHP: 2, VND: 0,
   BND: 2, INR: 2, EGP: 2, ETB: 2, KES: 2,
   ZAR: 2, MXN: 2, BRL: 2, CLP: 0, COP: 2,
+  PEN: 2, ARS: 2,   // 2026-11-02 多言語化：ペルー・アルゼンチン（pv-vocab.mjs に足した）
 };
 
 /* 数字と区切りだけの形に均す。読めない形は null（＝黙って0にしない）。

@@ -115,7 +115,31 @@
         { give: '', get: 'DEEP PAY' },
         { give: 'From a payslip', get: 'VERIFIED PAY' }
       ]
-    }
+    }, /*PV-MSG:es*/ es: {
+      giveHd: 'Lo que aportas', getHd: 'Lo que puedes ver',
+      now: 'Comparte tu remuneración para desbloquear', soon: 'En preparación',
+      cta: 'Agregar tu remuneración de forma anónima',
+      close: 'Cerrar',
+      lockedNote: ' (bloqueado)', soonNote: ' (en preparación)',
+      hint: 'presiona para ver detalles',
+      panel: {
+        real: {
+          t: 'REAL PAY aún no está abierto',
+          s: 'Muestra lo que realmente ganan otros pilotos, una fila por piloto. '
+           + 'Comparte uno de tus propios registros de remuneración y se abrirá.'
+        },
+        verified: {
+          t: 'VERIFIED PAY está en preparación',
+          s: 'Reunirá solo cifras respaldadas por un recibo de nómina. '
+           + 'Todavía lo estamos construyendo.'
+        }
+      },
+      tiers: [
+        { give: 'Ingreso manual o escaneo del recibo de nómina', get: 'REAL PAY' },
+        { give: '', get: 'DEEP PAY' },
+        { give: 'Desde un recibo de nómina', get: 'VERIFIED PAY' }
+      ]
+    } /*/PV-MSG:es*/
   };
   T = (window.PV_T && window.PV_T(T, L)) || T[L];   // スペイン語の辞書（gen-msg.mjs が足す）があればそれ
 

@@ -218,7 +218,54 @@
       invS: ['The more pilots record their pay, the more accurate every comparison becomes.',
              'We invite pilots only.'],
       invGo: 'Invite'
-    }
+    }, /*PV-MSG:es*/ es: {
+      eyebrow: 'Mejora tu comparación',
+      /* ★日本語と同じ。順位の言い方（your position appears as a number）はやめた。 */
+      nearH: function (k) {
+        return (k === 1) ? 'Un piloto más para una comparación más detallada'
+                         : k + ' pilotos más para una comparación más detallada';
+      },
+      nearS: function (k) {
+        return ['Cuando haya ' + k + ' piloto' + (k === 1 ? '' : 's') + ' más de la misma aerolínea, categoría, flota',
+                'y año con su remuneración registrada, podrás comparar con cifras reales registradas.'];
+      },
+      fewH: 'Este segmento todavía tiene muy pocos registros',
+      fewS: ['Cuando cinco pilotos de la misma aerolínea, categoría, flota y año registren su remuneración,',
+             'podrás comparar con cifras reales registradas.'],
+      cta: 'Invita a un piloto',
+      copy: 'Copiar enlace',
+      copied: 'Copiado',
+      privacy: ['Nunca te decimos quién aceptó una invitación,',
+                'y esa persona nunca ve tu remuneración.'],
+      gained: function (k) {
+        return k + ' registro' + (k === 1 ? '' : 's') +
+               ' más en este segmento desde la última vez que registraste el tuyo.';
+      },
+      crossed: 'Este segmento llegó a cinco pilotos. Tu comparación detallada ya está visible.',
+      close: 'Cerrar',
+      /* ★日本語版と同じことを英語で言うだけ。タグラインは訳さない。
+         「完全匿名」はトップページと同じ Fully anonymous に揃える。 */
+      msg: function () {
+        return ['PILOT VALUE hace transparentes la remuneración, los beneficios y las condiciones de trabajo de los pilotos,',
+                "a partir únicamente de los registros anónimos de los propios pilotos, y en última instancia eleva el valor",
+                'de la profesión misma.',
+                'Totalmente anónimo, y solo invitamos a pilotos.',
+                'Know your value. Raise our value.'];
+      },
+      stripE: 'Invitación',
+      stripH: 'Un piloto anónimo te invitó',
+      stripV: ['PILOT VALUE ayuda a los pilotos a saber',
+               'cuánto valen realmente \u2014',
+               'y a elevar el valor de la profesión misma.'],
+      stripS: 'No mostramos quién te invitó, y esa persona nunca ve lo que registras.',
+      stripGo: 'Entrar al sitio',
+      /* ★日本語と同じ。件数も順位も言わない。 */
+      invE: 'Invitar',
+      invH: 'Invita a un piloto',
+      invS: ['Mientras más pilotos registren su remuneración, más precisa será cada comparación.',
+             'Solo invitamos a pilotos.'],
+      invGo: 'Invitar'
+    } /*/PV-MSG:es*/
   };
   T = (window.PV_T && window.PV_T(T, L)) || T[L];   // スペイン語の辞書（gen-msg.mjs が足す）があればそれ
 

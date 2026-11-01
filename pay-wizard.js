@@ -83,7 +83,33 @@ var T = {
            perdiem: 'Per diem', housing: 'Housing', other: 'Other cash',
            rest: 'Other', bonus: 'Bonus / profit share' },
     empty:     '(blank)'
-  }
+  }, /*PV-MSG:es*/ es: {
+    stepOf:    function (i, n) { return 'Paso ' + i + ' de ' + n; },
+    next:      'Siguiente',
+    back:      'Volver',
+    toReview:  'Revisa tus datos',
+    edit:      'Editar',
+    draftOk:   function (hm) { return 'Borrador guardado en este navegador (' + hm + ')'; },
+    draftNg:   'No se pudo guardar el borrador en este navegador (el modo privado lo impide)',
+    draftBack: 'Continúas con un borrador guardado en este navegador.',
+    draftBackYm: function (t) { return 'Restauramos tus datos de ' + t + ' desde este navegador.'; },
+    draftDrop: 'Descartar borrador',
+    newMonth:  'Empezar un mes nuevo',
+    monthBack: function (t) { return 'Todavía tienes datos ingresados para ' + t + '.'; },
+    monthTake: 'Restaurarlo',
+    ymText:    function (y, m) { return MONTHS[m - 1] + ' ' + y; },
+    revTitle:  'Revisa tus datos',
+    revSub:    'Revisa lo que ingresaste antes de enviar. Usa "Editar" en cualquier sección para volver.',
+    lblComp:    'Desglose de la remuneración (este mes)',
+    lblExtras:  'Leído de tu recibo de nómina (sin campo en pantalla)',
+    /* ★Provenance chips on the review screen (2026-09-12). fieldFrom() decides from DOM classes alone. */
+    src: { ai: 'leído de tu recibo de nómina', carry: 'copiado de la vez anterior' },
+    seg: { base: 'Sueldo base', guarantee: 'Horas garantizadas / asignación por servicio',
+           variable: 'Variable', command: 'Asignación por categoría', role: 'Función',
+           perdiem: 'Viáticos', housing: 'Vivienda', other: 'Otras asignaciones en efectivo',
+           rest: 'Otros', bonus: 'Bono / participación en las utilidades' },
+    empty:     '(sin completar)'
+  } /*/PV-MSG:es*/
 };
 
 /* ═══ 1. 公開イメージの数値処理 ═════════════════════════════════════
