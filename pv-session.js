@@ -59,6 +59,13 @@
         if (m && es.indexOf(m[1]) >= 0) { u.pathname = '/es/' + m[1]; a.setAttribute('href', u.pathname + u.search + u.hash); }
       } catch (x) {}
     }, true);
+    /* 行き先（/en/…）をスペイン語のページではスペイン語版へ読み替える。日英のページでは渡したまま返す。 */
+    window.PV_PATH = function (p) {
+      if (lang !== 'es' || typeof p !== 'string') return p;
+      var m = p.match(/^\/en\/([^?#]+)([?#].*)?$/);
+      var es = (window.PV_LANG_PAGES && window.PV_LANG_PAGES.es) || [];
+      return m && es.indexOf(m[1]) >= 0 ? '/es/' + m[1] + (m[2] || '') : p;
+    };
     /*PV-LANG-PAGES*/window.PV_LANG_PAGES = {"es":["pay-report.html","signup.html","login.html","profile.html","actual-pay.html","my-value.html","terms.html","privacy.html","personal-data.html","contact.html"]};/*/PV-LANG-PAGES*/
   })();
 

@@ -300,6 +300,7 @@
        ★マウント時ではなくクリックの瞬間に組む。マウントは提出より前に走ることがあり、
          その時点ではまだ預かり証が存在しない。 */
     var NEXT = L === 'en' ? '/en/pay-report.html' : '/pay-report.html';
+    if (window.PV_PATH) NEXT = window.PV_PATH(NEXT);   // スペイン語のページは /es/pay-report.html
     function callbackUrl() {
       var next = NEXT;
       var tok = '';
@@ -499,7 +500,7 @@
       busy(btn, t.sending);
       var res = await sb.auth.signInWithOtp({
         email: mail,
-        options: { emailRedirectTo: callbackUrl(), shouldCreateUser: true },
+        options: Object.assign({ emailRedirectTo: callbackUrl(), shouldCreateUser: true }, window.PV_LANG === 'es' ? { data: { lang: 'es' } } : {}),
       });
       free(btn);
       if (res.error) {

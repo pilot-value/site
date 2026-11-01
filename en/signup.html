@@ -548,7 +548,7 @@
        auth-callback.html はルート直下にあるので、en/ を明示する。 */
     function callbackUrl(){
       return 'https://pilot-value.com/auth-callback.html?next='
-           + encodeURIComponent('/en/signup.html' + location.search);
+           + encodeURIComponent((window.PV_PATH ? window.PV_PATH('/en/signup.html') : '/en/signup.html') + location.search);
     }
 
     function goStep2(e) {
@@ -624,7 +624,7 @@
 
       const { error } = await sb.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: callbackUrl(), shouldCreateUser: true }
+        options: Object.assign({ emailRedirectTo: callbackUrl(), shouldCreateUser: true }, window.PV_LANG === 'es' ? { data: { lang: 'es' } } : {})
       });
 
       active.disabled = false; active.innerHTML = label;

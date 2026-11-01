@@ -53,7 +53,10 @@ var PV_SEARCH_L10N = {
     var set = window.PV_EN_PAGES;
     return (set && set.has(base)) ? P + f : ROOT_P + f;
   }
-  function T(s) { return IS_EN && PV_SEARCH_L10N[s] ? PV_SEARCH_L10N[s] : s; }
+  function T(s) {
+    if (!IS_EN || !PV_SEARCH_L10N[s]) return s;
+    return (window.PV_LANG === 'es' && typeof PV_SEARCH_L10N_ES !== 'undefined' && PV_SEARCH_L10N_ES[s]) || PV_SEARCH_L10N[s];   // スペイン語の対応表（gen-msg.mjs が書く）
+  }
 
   /* ── Airline database ────────────────────────── */
   var DB = [
@@ -461,7 +464,10 @@ var PV_SEARCH_L10N = {
     var set = window.PV_EN_PAGES;
     return (set && set.has(base)) ? P + f : ROOT_P + f;
   }
-  function T(s) { return IS_EN && PV_SEARCH_L10N[s] ? PV_SEARCH_L10N[s] : s; }
+  function T(s) {
+    if (!IS_EN || !PV_SEARCH_L10N[s]) return s;
+    return (window.PV_LANG === 'es' && typeof PV_SEARCH_L10N_ES !== 'undefined' && PV_SEARCH_L10N_ES[s]) || PV_SEARCH_L10N[s];   // スペイン語の対応表（gen-msg.mjs が書く）
+  }
 
   function inject() {
     if (document.getElementById('pv-ham-btn')) return;

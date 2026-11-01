@@ -130,7 +130,10 @@
     '給与データを読み込めませんでした。時間をおいて再度お試しください。': 'Could not load the salary data. Please try again in a moment.',
     '給与データを読み込み中…': 'Loading salary data…'
   };
-  function T(s) { return IS_EN && L10N[s] ? L10N[s] : s; }
+  function T(s) {
+    if (!IS_EN || !L10N[s]) return s;
+    return (window.PV_LANG === 'es' && typeof L10N_ES !== 'undefined' && L10N_ES[s]) || L10N[s];   // スペイン語の対応表（gen-msg.mjs が書く）
+  }
 
   // 地域の名前（会社選びの一覧で社名の右に出す字）。airlines-meta.js の region は中の符号（eu_fsc など）なので、
   // 画面には必ずこの名前を出す（名前は航空会社一覧の地域ボタンと同じ字）。知らない符号は何も出さない（符号を読み手に見せない）。

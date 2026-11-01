@@ -186,4 +186,5 @@ export const GLOSSARY_ES = [
   {"id":"age-range","en":"age range","es":"rango de edad","regions":{"spain":"franja de edad","latam":"rango de edad"},"notes":"UNVERIFIED.","src":null,"verified":false},
   {"id":"search-by-company-name","en":"search by company name","es":"buscar por nombre de la aerolínea","regions":{"spain":"","latam":""},"notes":"UNVERIFIED.","src":null,"verified":false},
   {"id":"give-get","en":"Give & Get","es":"Give & Get","regions":{"spain":"Give & Get","latam":"Give & Get"},"notes":"Keep in English (brand mechanism). Explain once: 'aporta tus datos y desbloquea los de los demás'.","src":null,"verified":false},
+  {"id":"training-bond","en":"training bond / bond","es":"compromiso de permanencia","first":"compromiso de permanencia (training bond)","regions":{"spain":"pacto de permanencia","latam":"compromiso / cláusula de permanencia"},"notes":"2026-11-02 追加：訓練費の返還義務（一定期間内に辞めると訓練費用を返す取り決め）。単独の「compromiso」だけにしない。Spain labour law term: pacto de permanencia.","src":null,"verified":false},
 ];

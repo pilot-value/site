@@ -178,7 +178,8 @@
        「情報を追加」pv-contrib.js の英語：あなたの投稿・送信中…・読み込めませんでした／ポップアップの Close）。 */
   var LANG = (window.PV_BASE === 'en' || /^en(-|$)/i.test(d.documentElement.getAttribute('lang') || '')) ? 'en' : 'ja';   // スペイン語のページは英語と同じ動き（pv-session.js）
   var EN = (function () {
-    var t = {
+    /* 英語の辞書。★名前は T_EN（gen-msg.mjs がこの後ろにスペイン語の T_ES を書く・2026-11-02） */
+    var T_EN = {
       off:        'Not available yet',
       locked:     T.locked,
       login:      'Log in',
@@ -235,15 +236,16 @@
       badMap:     'Enter a Google Maps link (https). You can also leave it empty.'
     };
     return {
-      T: t,
+      T: T_EN,
+      T_ES: typeof T_ES !== 'undefined' ? T_ES : null,   // スペイン語のページ用（gen-msg.mjs が書く）
       SAY_ADD: {
         bad_airline:  'You cannot add to this destination right now.',
         bad_iata:     'You cannot add to this destination right now.',
-        bad_kind:     t.needKind,
-        bad_name:     t.needName,
+        bad_kind:     T_EN.needKind,
+        bad_name:     T_EN.needName,
         too_long:     'The address can be up to 200 characters and the note up to 500.',
         bad_city:     'The city name is too long.',
-        bad_hours:    t.badHours,
+        bad_hours:    T_EN.badHours,
         too_fast:     'Please wait a moment before adding another one.',
         rate_limited: 'You have reached the limit for adding. Please try again after 24 hours.',
         duplicate:    'You have already added this name.',
@@ -276,6 +278,7 @@
     };
   })();
   if (LANG === 'en') { T = EN.T; SAY_ADD = EN.SAY_ADD; SAY_EDIT = EN.SAY_EDIT; SAY_PHOTO = EN.SAY_PHOTO; SAY_MOD = EN.SAY_MOD; SAY_FAIL = EN.SAY_FAIL; KINDS = EN.KINDS; }
+  if (window.PV_LANG === 'es' && EN.T_ES) T = EN.T_ES;   // スペイン語の辞書（エラー文の一部は英語のまま）
 
   /* 欄の外に並べる3つの入口（押した種類を選んだまま、追加の面が開く）。 */
   var ENTS = [['hotel', T.entHotel], ['food', T.entFood], ['spot', T.entSpot]];

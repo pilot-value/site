@@ -21,10 +21,15 @@ import { LANGS } from './langs.mjs';
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 
 /* 辞書を持つ部品（スペイン語のページが読むもの） */
+/* 対応表の形の名前（日本語の文 → 英語の文）。es は NAME_ES に書く */
+const MAP_NAMES = ['L10N', 'PV_SEARCH_L10N'];
+
 export const MSG_FILES = ['pay-wizard.js', 'pay-login.js', 'payslip.js', 'pv-gates.js', 'pv-give-first.js', 'app-nav.js',
   'pv-referral.js', 'pv-conditions.js', 'my-value.js', 'actual-pay.js', 'pv-proof-offer.js', 'ap-preview.js', 'review-i18n.js',
   /* 段3（2026-11-02）：会社ページ・トップ */
-  'career-live.js', 'pv-contrib.js', 'lp.js', 'airlines/airline-reviews-ui.js'];
+  'career-live.js', 'career-stay.js', 'pv-contrib.js', 'lp.js', 'airlines/airline-reviews-ui.js',
+  /* 対応表の形（日本語 → 英語）：比べる図・検索 */
+  'salary-leveling.js', 'search.js'];
 
 const OPEN = (code) => `/*PV-MSG:${code}*/`;
 const CLOSE = (code) => `/*/PV-MSG:${code}*/`;
@@ -96,6 +101,15 @@ export function dicts(src) {
     let semi = en.end + 1; while (semi < m.length && /\s/.test(m[semi])) semi++;
     out.push({ form: 'var', name, start: o, end: en.end + 1, after: m[semi] === ';' ? semi + 1 : en.end + 1, list: en.list, jaObj });
   }
+  /* 対応表の形（日本語 → 英語の表）。名前を名指しした表だけ */
+  for (const name of MAP_NAMES) {
+    const mm = new RegExp('(^|\\n)\\s*var\\s+' + name + '\\s*=\\s*\\{').exec(m);
+    if (!mm) continue;
+    const o = mm.index + mm[0].length - 1;
+    const en = props(clean, m, o);
+    let semi = en.end + 1; while (semi < m.length && /\s/.test(m[semi])) semi++;
+    out.push({ form: 'map', name, start: o, end: en.end + 1, after: m[semi] === ';' ? semi + 1 : en.end + 1, list: en.list });
+  }
   return out;
 }
 
@@ -110,7 +124,7 @@ export function msgUnits(file) {
       const v = src.slice(p.vs, p.ve);
       if (!/[A-Za-z]{2,}/.test(jsText(v))) continue;
       const jp = jaProps.find((x) => x.key === p.key);
-      units.push({ key: 'js:' + v, value: v, prop: p.key, file, ja: jp ? jsText(src.slice(jp.vs, jp.ve)) : '' });
+      units.push({ key: 'js:' + v, value: v, prop: dct.form === 'map' ? 'translation of a Japanese UI string' : p.key, file, ja: dct.form === 'map' ? p.key : jp ? jsText(src.slice(jp.vs, jp.ve)) : '' });
     }
   }
   return units;
@@ -134,8 +148,8 @@ function write(file, code, TM, CHECK) {
       block += src.slice(k, p.vs) + t; k = p.ve; done++;
     }
     block += src.slice(k, dct.end);
-    if (dct.form === 'var') {
-      out += src.slice(i, dct.after) + `\n  ${OPEN(code)} var ${dct.name}_${code.toUpperCase()} = ${block}; ${CLOSE(code)}`;
+    if (dct.form === 'var' || dct.form === 'map') {
+      out += src.slice(i, dct.after) + `\n  ${OPEN(code)} var ${dct.name}_${code.toUpperCase()} = ${block}; ${CLOSE(code)}`;   // var X_EN → X_ES ／ 対応表 L10N → L10N_ES
       i = dct.after;
     } else {
       out += src.slice(i, dct.end) + `, ${OPEN(code)} ${code}: ${block} ${CLOSE(code)}`;
