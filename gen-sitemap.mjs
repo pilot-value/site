@@ -16,7 +16,8 @@
      ・lastmod は中身が最後に変わった日。決め方は page-dates.mjs の1か所で、
        JSON-LD の dateModified（gen-datemod.mjs）と必ず同じ日付になる。
        日付を入れただけのコミットは「変わった」に数えない。git が使えないときは mtime。
-     ・日英そろっているページには xhtml:link を3本（ja / en / x-default）。
+     ・2つ以上の言語にあるページには xhtml:link を言語の数＋x-default（いまは ja / en / x-default の3本）。
+     ・言語の一覧・フォルダ・URL の形は langs.mjs の1か所（2026-11-01・多言語化の段0）。
 
    実行: node gen-sitemap.mjs
 ════════════════════════════════════════════════════════════════ */
@@ -24,9 +25,9 @@ import fs from 'fs';
 import path from 'path';
 import { SALARY } from './salary-data.mjs';
 import { pageDates } from './page-dates.mjs';
+import { listSiteHtml, urlOfRel, bareOf, relIn, alternatesFor, LANGS } from './langs.mjs';
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname).replace(/%20/g, ' ');
-const ORIGIN = 'https://pilot-value.com';
 
 /* seo-normalize.mjs と同じ集合。片方だけ直すと sitemap と robots が食い違う。 */
 const NOINDEX = new Set([
@@ -53,21 +54,11 @@ const NOINDEX = new Set([
   'career.html',
 ]);
 
-const listHtml = (dir) => (fs.existsSync(path.join(ROOT, dir))
-  ? fs.readdirSync(path.join(ROOT, dir)).filter((f) => f.endsWith('.html')).sort() : []);
-
-const files = [
-  ...listHtml('.'),
-  ...listHtml('airlines').map((f) => `airlines/${f}`),
-  ...listHtml('countries').map((f) => `countries/${f}`),
-  ...listHtml('en').map((f) => `en/${f}`),
-  ...listHtml('en/airlines').map((f) => `en/airlines/${f}`),
-  ...listHtml('en/countries').map((f) => `en/countries/${f}`),
-].filter((rel) => !NOINDEX.has(path.basename(rel))
+/* 言語の順 × ('' → airlines/ → countries/)。並びは langs.mjs が決める。 */
+const files = listSiteHtml(ROOT).filter((rel) => !NOINDEX.has(path.basename(rel))
   || rel.includes('/airlines/') || rel.includes('/countries/'));
 
-const relToUrl = (rel) => (rel === 'index.html' ? `${ORIGIN}/`
-  : rel === 'en/index.html' ? `${ORIGIN}/en/` : `${ORIGIN}/${rel}`);
+const relToUrl = urlOfRel;
 
 /* ── lastmod ─────────────────────────────────────────────────── */
 /* ★2026-09-18 まで、ここは「そのファイルを最後に触ったコミットの日」を自前で数えていた。
@@ -83,7 +74,7 @@ const lastmod = (rel) => (dates.has(rel) ? dates.get(rel).modified
 /* ── 優先度と更新頻度 ────────────────────────────────────────── */
 function rank(rel) {
   const b = path.basename(rel);
-  if (rel === 'index.html' || rel === 'en/index.html') return ['1.0', 'weekly'];
+  if (bareOf(rel) === 'index.html') return ['1.0', 'weekly'];   // 各言語のトップ
   if (/countries\//.test(rel)) return ['0.9', 'weekly'];
   if (/airlines\//.test(rel)) return ['0.8', 'weekly'];
   if (['world-airlines.html', 'pilot-salary-guide.html', 'countries.html'].includes(b)) return ['0.95', 'weekly'];
@@ -96,26 +87,22 @@ function rank(rel) {
   return ['0.6', 'monthly'];
 }
 
-/* ── 日英の対応（ファイルが両方あるときだけ hreflang を出す）──── */
+/* ── 言語の対応（2つ以上の言語にファイルがあるときだけ hreflang を出す）──── */
 const has = new Set(files);
 function alternates(rel) {
-  const bare = rel.replace(/^en\//, '');
-  const enRel = bare === 'index.html' ? 'en/index.html' : `en/${bare}`;
-  if (!has.has(bare) || !has.has(enRel)) return null;
-  return { ja: relToUrl(bare), en: relToUrl(enRel) };
+  const bare = bareOf(rel);
+  const inLang = (code) => has.has(relIn(bare, code));
+  if (LANGS.filter((l) => inLang(l.code)).length < 2) return null;
+  return alternatesFor(bare, inLang);
 }
 
 /* ── 出力 ────────────────────────────────────────────────────── */
 const rows = files.map((rel) => {
   const [priority, changefreq] = rank(rel);
   const alt = alternates(rel);
-  const links = alt ? [
-    `    <xhtml:link rel="alternate" hreflang="ja" href="${alt.ja}"/>`,
-    `    <xhtml:link rel="alternate" hreflang="en" href="${alt.en}"/>`,
-    // x-default は ja / en のどちらにも当てはまらない検索者への既定。英語版を指す
-    // （ドイツ語圏・アラビア語圏のパイロットに日本語版を既定として申告していた）。
-    `    <xhtml:link rel="alternate" hreflang="x-default" href="${alt.en}"/>`,
-  ].join('\n') : '';
+  // x-default はどの言語にも当てはまらない検索者への既定。英語版を指す（langs.mjs の xDefault）
+  // （ドイツ語圏・アラビア語圏のパイロットに日本語版を既定として申告していた）。
+  const links = alt ? alt.map((a) => `    <xhtml:link rel="alternate" hreflang="${a.hreflang}" href="${a.url}"/>`).join('\n') : '';
   return `  <url>
     <loc>${relToUrl(rel)}</loc>
 ${lastmod(rel) ? `    <lastmod>${lastmod(rel)}</lastmod>\n` : ''}    <changefreq>${changefreq}</changefreq>
