@@ -975,6 +975,7 @@
     #lp-airlines .lp-cmp-n{ position:relative; display:block; color:#fff; font-size:10.5px; font-weight:800; line-height:1.15;
       letter-spacing:-.02em; word-break:keep-all; overflow-wrap:anywhere; }
     #lp-airlines .lp-cmp-n .lp-cmp-ic{ display:inline-block; margin-left:3px; vertical-align:-1px; }
+    #lp-airlines .lp-cmp-nw{ white-space:nowrap; }
     #lp-airlines .lp-cmp-swap{ position:absolute; z-index:2; left:50%; top:-9px; display:grid; place-items:center;
       width:24px; height:24px; margin-left:-12px; border-radius:50%;
       background:var(--pv-surface); border:1px solid var(--pv-line); box-shadow:var(--pv-shadow-lift); color:var(--pv-ink); }

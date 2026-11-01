@@ -136,13 +136,19 @@ function near(A, B, max) {
   return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]) < max;
 }
 
+/* 札の社名と ▾。英語の社名は最後の語と ▾ を離さない（▾ だけが次の行に落ちない）。日本語は語の切れ目が無いのでそのまま。 */
+const nameDown = n => {
+  const i = n.lastIndexOf(' ');
+  return i < 0 ? esc(n) + IC.down : `${esc(n.slice(0, i + 1))}<span class="lp-cmp-nw">${esc(n.slice(i + 1))}${IC.down}</span>`;
+};
+
 function tile(A, side, up) {
   const ph = A.photo ? small(A.photo, up) : null;
   const img = ph ? `<img src="${esc(ph.src)}" width="${ph.w}" height="${ph.h}" alt="" loading="lazy" decoding="async"/>` : '';
   const chip = A.code
     ? `<span class="lp-cmp-code">${esc(A.code)}</span>`
     : `<span class="lp-cmp-lg"><img src="${esc(up + A.logo.src.replace(/^(\.\.\/)+/, ''))}" width="${A.logo.w}" height="${A.logo.h}" alt="" loading="lazy" decoding="async"/></span>`;
-  return `<span class="lp-cmp-side" data-side="${side}" style="--co:${A.color}"><span class="lp-cmp-p${ph ? ' is-ph' : ''}">${img}${chip}<span class="lp-cmp-n">${esc(A.name)}${IC.down}</span></span></span>`;
+  return `<span class="lp-cmp-side" data-side="${side}" style="--co:${A.color}"><span class="lp-cmp-p${ph ? ' is-ph' : ''}">${img}${chip}<span class="lp-cmp-n">${nameDown(A.name)}</span></span></span>`;
 }
 
 function slide(pg, C, [a, b], i) {
