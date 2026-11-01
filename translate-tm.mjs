@@ -38,7 +38,7 @@ import { OPS } from './airline-ops.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const MODEL = 'claude-opus-5-5';
-const PROMPT_VERSION = 2;   // 2026-11-02 試し訳1回目のあと：prima de antigüedad の決まりを正確に・通読の直しも意味を判定
+const PROMPT_VERSION = 3;   // 2026-11-02：欄の名前を先に訳して本文に渡す・pay の使い分け   // 2026-11-02 試し訳1回目のあと：prima de antigüedad の決まりを正確に・通読の直しも意味を判定
 const PRICE = { in: 4 / 1e6, out: 20 / 1e6, cacheRead: 0.2 / 1e6, cacheWrite: 5 / 1e6 };   // 2026-11 の公開価格（USD / トークン）
 const BATCH = 20;
 
@@ -236,12 +236,17 @@ function pickTrial(cands, n) {
 
 /* ── 4段 ─────────────────────────────────────────────────── */
 const show = (it) => JSON.stringify(it);
+/* そのページで先に訳した短い見出し（欄の名前・ボタン）。本文がその名前を挙げるときは一字一句この訳を使う */
+const known = (page) => Object.entries(TM).filter(([k, v]) => v.pages?.includes(page) && isLabel(k)).map(([k, v]) => `${plain(k)} => ${plain(v.es)}`);
+const isLabel = (key) => plain(key).split(/\s+/).length <= 6 && !/[.?!]$/.test(plain(key));
 async function stage12(batch, hints = new Map()) {
   const items = batch.map((c, i) => ({ id: i + 1, english: c.key, kind: c.kind, japanese_original: c.ja || undefined, before: c.before || undefined, after: c.after || undefined, recheck: hints.get(i + 1) }));
   const page = batch[0].page;
-  const tr = byId(await ask('Translate each item.', `Page: ${page}\nItems (JSON lines):\n${items.map(show).join('\n')}`, S_TR, 'high'));
+  const labels = known(page);
+  const fixed = labels.length ? `\nLabels already translated on this page (when an item names one of these fields or buttons, use exactly this Spanish):\n${labels.slice(0, 400).join('\n')}\n` : '';
+  const tr = byId(await ask('Translate each item.', `Page: ${page}${fixed}\nItems (JSON lines):\n${items.map(show).join('\n')}`, S_TR, 'high'));
   const drafts = items.map((it) => ({ id: it.id, english: it.english, japanese_original: it.japanese_original, draft: tr.get(it.id)?.es ?? '', translator_note: tr.get(it.id)?.note || undefined, recheck: it.recheck }));
-  const rv = byId(await ask(REVIEWER, `Page: ${page}\nReview each item (JSON lines):\n${drafts.map(show).join('\n')}`, S_RV, 'high'));
+  const rv = byId(await ask(REVIEWER, `Page: ${page}${fixed}\nReview each item (JSON lines):\n${drafts.map(show).join('\n')}`, S_RV, 'high'));
   return items.map((it) => ({ id: it.id, draft: tr.get(it.id)?.es ?? '', es: rv.get(it.id)?.es ?? tr.get(it.id)?.es ?? '', reason: rv.get(it.id)?.changed ? rv.get(it.id).reason : '', note: tr.get(it.id)?.note || '' }));
 }
 async function stage3(batch, res) {
@@ -296,16 +301,22 @@ const CAP = Number(opt('--max-usd') || 5);
 const results = [];
 const byPage = new Map();
 for (const c of cands) { if (!byPage.has(c.page)) byPage.set(c.page, []); byPage.get(c.page).push(c); }
+for (const list of byPage.values()) list.sort((a, b) => Number(isLabel(b.key)) - Number(isLabel(a.key)));
 for (const [page, list] of byPage) {
   const rows = [];
   for (let i = 0; i < list.length; i += BATCH) {
     if (cost() > CAP) { console.log(`⚠️ 上限 $${CAP} に届いたので止めた（--max-usd で変えられる）`); break; }
     const batch = list.slice(i, i + BATCH);
-    const res = await translateBatch(batch);
+    let res;
+    try { res = await translateBatch(batch); }
+    catch (e) { console.log(`  ✗ ${page} の ${i + 1}〜${i + batch.length} 件目で失敗（飛ばした・次に流すとここだけやり直す）: ${String(e.message).slice(0, 160)}`); continue; }
     res.forEach((r, j) => rows.push({ ...r, key: batch[j].key, c: batch[j] }));
+    for (const r of res) { const k = batch[r.id - 1].key; if (isLabel(k) && r.ok && !check(k, r.es).length && TM[k]?.st !== 'manual') TM[k] = { ...(TM[k] || {}), es: r.es, st: 'validated', by: 'ai', model: MODEL, pv: PROMPT_VERSION, gl: glPrint(termsIn(plain(k))), at: new Date().toLocaleDateString('sv-SE'), pages: [...new Set([...(TM[k]?.pages || []), page])].sort() }; }
+    saveTM();   // 途中で止まっても、ここまでの見出しの訳は残る
     console.log(`  ${page} ${Math.min(i + BATCH, list.length)}/${list.length}  （ここまで $${cost().toFixed(2)}）`);
   }
-  const fixes = await readThrough(page, rows);
+  let fixes = new Map();
+  try { fixes = await readThrough(page, rows); } catch (e) { console.log(`  ⚠️ ${page} の通読が失敗（通読の直しなしで進めた）: ${String(e.message).slice(0, 160)}`); }
   const changed = rows.filter((r) => fixes.get(r.key)?.es && fixes.get(r.key).es !== r.es);
   if (changed.length) {
     const re = await stage3(changed.map((r) => r.c), changed.map((r, i) => ({ id: i + 1, es: fixes.get(r.key).es })));
