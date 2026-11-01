@@ -111,11 +111,12 @@ function readCareer(file, lang) {
   return { word, air, axis };
 }
 
-/* 写真は小さい版（480px ── 比較の画面の srcset と同じファイル）。ファイルが無ければ止まる。 */
+/* 写真は小さい版（480px ── 比較の画面の srcset と同じファイル）。元の写真が在るのに小さい版が無ければ止まる。
+   ★元の写真ごと無いとき（assert-generated.mjs の写し ── 画像を展開しない）は確かめない。 */
 function small(ph, up) {
   const rel = ph.src.replace(/^(\.\.\/)+/, '');
   const s = rel.replace(/\.jpg$/, '-480.jpg');
-  if (!fs.existsSync(path.join(ROOT, s))) throw new Error(`写真の小さい版が無い ── ${s}`);
+  if (fs.existsSync(path.join(ROOT, rel)) && !fs.existsSync(path.join(ROOT, s))) throw new Error(`写真の小さい版が無い ── ${s}`);
   return { src: up + s, w: 480, h: Math.round(ph.h * 480 / ph.w) };
 }
 
