@@ -343,6 +343,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
                 <option value="emirates">エミレーツ</option>
                 <option value="etihad">エティハド航空</option>
                 <option value="qatar-airways">カタール航空</option>
+                <option value="flydubai">フライドバイ</option>
                 <option value="gulf-air">ガルフ・エア</option>
                 <option value="kuwait-airways">クウェート航空</option>
                 <option value="oman-air">オマーン航空</option>
@@ -350,7 +351,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
                 <option value="royal-jordanian">ロイヤル・ヨルダン航空</option>
                 <option value="saudia">サウジア航空</option>
                 <option value="royal-jet" data-alias="ロイヤルジェット|RoyalJet">Royal Jet</option>
-                <option value="flydubai" data-alias="Fly Dubai|フライ・ドバイ|Dubai Aviation Corporation">フライドバイ（flydubai）</option>
               </optgroup>
               <optgroup label="アジア">
                 <option value="cathay-pacific">キャセイパシフィック</option>
@@ -365,6 +365,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
                 <option value="china-eastern">中国東方航空</option>
                 <option value="china-southern">中国南方航空</option>
                 <option value="hainan-airlines">海南航空</option>
+                <option value="juneyao-airlines">吉祥航空</option>
                 <option value="root-aviation">ルート・アビエーション</option>
                 <option value="air-india">エア・インディア</option>
                 <option value="airasia">エアアジア</option>
@@ -379,7 +380,6 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
                 <option value="vietjet">ベトジェット航空</option>
                 <option value="vietnam-airlines">ベトナム航空</option>
                 <option value="royal-brunei">ロイヤル・ブルネイ航空</option>
-                <option value="juneyao-airlines" data-alias="上海吉祥航空|ジュンヤオ航空|Juneyao Airlines Co., Ltd.">吉祥航空（Juneyao Air）</option>
               </optgroup>
               <optgroup label="欧州">
                 <option value="klm">KLMオランダ航空</option>
@@ -458,11 +458,11 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
                 <option value="latam">LATAM航空</option>
               </optgroup>
               <optgroup label="アフリカ">
+                <option value="air-peace">エア・ピース</option>
                 <option value="egyptair">エジプト航空</option>
                 <option value="ethiopian-airlines">エチオピア航空</option>
                 <option value="kenya-airways">ケニア航空</option>
                 <option value="south-african-airways">南アフリカ航空</option>
-                <option value="air-peace" data-alias="エアピース|Air Peace Limited">エア・ピース（Air Peace）</option>
               </optgroup>
               <optgroup label="一覧にない会社">
                 <option value="other">その他（自分で入力）</option>
@@ -1025,6 +1025,7 @@ const POS_MAP = { captain: '機長', fo: '副操縦士', cadet: '訓練生' };
   'china-eastern': '中国東方航空',
   'china-southern': '中国南方航空',
   'hainan-airlines': '海南航空',
+  'juneyao-airlines': '吉祥航空',
   'airx-charter': 'エアX・チャーター',
   'eagle-jet': 'イーグルジェット・インターナショナル',
   'root-aviation': 'ルート・アビエーション',
@@ -1041,8 +1042,10 @@ const POS_MAP = { captain: '機長', fo: '副操縦士', cadet: '訓練生' };
   scoot: 'スクート',
   vietjet: 'ベトジェット航空',
   'vietnam-airlines': 'ベトナム航空',
+  'air-peace': 'エア・ピース',
   egyptair: 'エジプト航空',
   'ethiopian-airlines': 'エチオピア航空',
+  flydubai: 'フライドバイ',
   'gulf-air': 'ガルフ・エア',
   'kenya-airways': 'ケニア航空',
   'kuwait-airways': 'クウェート航空',
@@ -1113,9 +1116,6 @@ const POS_MAP = { captain: '機長', fo: '副操縦士', cadet: '訓練生' };
   luxaviation: 'Luxaviation',
   'gama-aviation': 'Gama Aviation',
   'royal-jet': 'Royal Jet',
-  flydubai: 'フライドバイ（flydubai）',
-  'juneyao-airlines': '吉祥航空（Juneyao Air）',
-  'air-peace': 'エア・ピース（Air Peace）',
   other: 'その他',
 };/*END:LABELS*/
 

@@ -379,6 +379,15 @@ node check.mjs        # fast + sql（約80秒）
 - **`patch-site-salaries.mjs` が何も出力しない** → ランキングは上位21社だけ。圏外なら正常
 - **数年内に消える会社（統合・破綻）** → 消滅日をページに書き、SSOT のコメントに ⚠️ で見直し期限を残す。
   実例＝アシアナ航空（2026-12-17 に大韓航空へ統合）
+- **★2026-10-31 に3社（フライドバイ・エア・ピース・吉祥航空）を B5 で上げたときに踏んだこと**
+  - 借り元（`donor`）は `spirit` だけ（古い形のページが残っているのはスピリット航空だけ）。色は `donorColor: '#FFD700'`（大文字・小文字の両方を置き換える）。
+    借り元の `<style data-pv-light>` は生成器が外す（`patch-airline-pages.mjs` が新しい色で書き直す）。
+  - 新しい会社は `airline-rollout.mjs` の `WIDE` に足す（新しい形のページになる）。`gen-airline-glance.mjs` → `patch-airline-pages.mjs` も流す。
+  - GA の塊 `<!--PV-3P-->` は生成器が外すので、借り元と同じ場所へそのまま写す（日本語＝`pv-session.js` の直前／英語＝Google tag の `<script>` の直後）。
+  - トップの社数 `data-pv-n="airlines"` は日英で **12か所**（どの生成器も直さない）。
+  - 初めての国は `airline-countries.mjs` の `COUNTRIES` にも1行。その国が `pv-airline-view.mjs` の `NET_EN` に在ったら外す（使われない行として `assert-rollout.mjs` F が落ちる）。
+  - `assert-rollout.mjs` の `NO_LOGO`（ロゴの絵の無い会社）と `NO_RESEARCH_YET`（調べの台帳に行の無い会社）に足す。台帳に行が入ったら `NO_RESEARCH_YET` から外す。
+  - UAE の会社の英語の表は「🇦🇪 United Arab Emirates」の Emirates をエミレーツと読ませないよう、`check-salary.mjs` に国名の除外を入れた。
 
 ## エッジケース（道B）
 - **会社が無くなった／取り違えて足した** → `airline-ops.mjs` から消して `gen-airline-codes.mjs` を

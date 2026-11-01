@@ -2396,6 +2396,104 @@ export const BASIS = {
       as_of: '2026年4月', as_of_en: 'April 2026',
     } },
   },
+  /* ★2026-10-31 フライドバイ（投稿先だけの一覧から道Aへ上げた）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。
+     資料は会社の採用ページ（順位1）。教育補助・退職金・所得補償・医療保険・航空券は額が書いていないので推定に入れていない。 */
+  'flydubai': {
+    tax: '非課税（UAE に個人所得税なし）', tax_en: 'Tax-free (no personal income tax in the UAE)',
+    src: [
+      { pub: 'フライドバイ（flydubai Careers）', pub_en: 'flydubai (flydubai Careers)', name: 'Captain', name_en: 'Captain',
+        as_of: '発行日の記載なし', as_of_en: 'No publication date given', accessed: '2026-10-31',
+        url: 'https://careers.flydubai.com/captain' },
+      { pub: 'フライドバイ（flydubai Careers）', pub_en: 'flydubai (flydubai Careers)', name: 'First Officer', name_en: 'First Officer',
+        as_of: '発行日の記載なし', as_of_en: 'No publication date given', accessed: '2026-10-31',
+        url: 'https://careers.flydubai.com/first-officer' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', est: {
+      basis: 'フライドバイの採用ページ「Captain」（flydubai Careers）',
+      basis_en: 'flydubai’s careers page “Captain” (flydubai Careers)',
+      method: '採用ページの月額 AED 50,235 と乗務手当の平均 AED 16,310（月70時間）の合計×12。',
+      method_en: 'The careers page’s AED 50,235 a month plus the average flying pay of AED 16,310 (70 hours a month), times 12.',
+      as_of: '発行日の記載なし（2026年10月31日に確認）', as_of_en: 'No publication date given (checked 31 October 2026)',
+    } },
+    fo: { tier: 'estimate', est: {
+      basis: 'フライドバイの採用ページ「First Officer」（flydubai Careers）',
+      basis_en: 'flydubai’s careers page “First Officer” (flydubai Careers)',
+      method: '採用ページの月額 AED 37,000 と乗務手当の平均 AED 11,410（月70時間）の合計×12。',
+      method_en: 'The careers page’s AED 37,000 a month plus the average flying pay of AED 11,410 (70 hours a month), times 12.',
+      as_of: '発行日の記載なし（2026年10月31日に確認）', as_of_en: 'No publication date given (checked 31 October 2026)',
+    } },
+  },
+  /* ★2026-10-31 エア・ピース（投稿先だけの一覧から道Aへ上げた）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。
+     資料は採用代理店の求人2本（順位2・会社の公表ではない ＝ secondary）。どちらも外国人の契約パイロット（E170/E190/E195・ラゴス）の条件。
+     額は手取り（Flight Crew International が「NET」と明記）＝ pay_tax: 'net'。
+     乗務1回ごとの手当（pay per sector）と日当（per diem）は額が書いていないので推定に入れていない（本当の年額はこれより上）。
+     ⚠️ これは台帳の中だけの覚え書き。画面の注（notes）には書かない。
+     Flight Crew International の求人は締切（2026-08-21）を過ぎて元の URL が 410 なので、出どころは Wayback（2026-07-27）の写し。 */
+  'air-peace': {
+    tax: '課税（ナイジェリア）', tax_en: 'Taxed (Nigeria)',
+    pay_tax: 'net',
+    src: [
+      { pub: '採用代理店 Brookfield Aviation（英国）が出した求人', pub_en: 'A vacancy posted by the recruitment agency Brookfield Aviation (UK)',
+        name: 'E190/195 Captains - Air Peace', name_en: 'E190/195 Captains - Air Peace',
+        as_of: '日付の記載なし', as_of_en: 'No date given', accessed: '2026-10-31', secondary: true,
+        url: 'https://pilotsdb.brookfieldav.com/showjob/01290/E190-195-Captains---Air-Peace' },
+      { pub: '採用代理店 Brookfield Aviation（英国）が出した求人', pub_en: 'A vacancy posted by the recruitment agency Brookfield Aviation (UK)',
+        name: 'E190/195 First Officers - Air Peace', name_en: 'E190/195 First Officers - Air Peace',
+        as_of: '日付の記載なし', as_of_en: 'No date given', accessed: '2026-10-31', secondary: true,
+        url: 'https://pilotsdb.brookfieldav.com/showjob/01292/E190-195-First-Officers---Air-Peace' },
+      { pub: '採用代理店 Flight Crew International が出した求人（FlightGlobal Jobs・Wayback の写し）', pub_en: 'A vacancy posted by the recruitment agency Flight Crew International (FlightGlobal Jobs, Wayback copy)',
+        name: 'E170/E190/E195 Captain & First Officer Openings – Air Peace', name_en: 'E170/E190/E195 Captain & First Officer Openings – Air Peace',
+        as_of: '2026-07-24 掲載・2026-08-21 締切', as_of_en: 'Posted 24 July 2026, closed 21 August 2026', accessed: '2026-10-31', secondary: true,
+        url: 'https://web.archive.org/web/20260727171805/https://jobs.flightglobal.com/job/1401561324/e170-e190-e195-captain-and-first-officer-openings-air-peace/' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', est: {
+      basis: '採用代理店 Brookfield Aviation と Flight Crew International が出したエア・ピースの E190/195 機長の求人（2026年）',
+      basis_en: 'Postings by the recruitment agencies Brookfield Aviation and Flight Crew International for E190/195 captains at Air Peace (2026)',
+      method: '外国人機長の契約の月額 USD 9,000（手取り）×12。',
+      method_en: 'The contract captain’s USD 9,000 a month (net), times 12.',
+      as_of: '2026年7月（2026年10月31日も掲載中）', as_of_en: 'July 2026 (still posted on 31 October 2026)',
+    } },
+    fo: { tier: 'estimate', est: {
+      basis: '採用代理店 Brookfield Aviation と Flight Crew International が出したエア・ピースの E190/195 副操縦士の求人（2026年）',
+      basis_en: 'Postings by the recruitment agencies Brookfield Aviation and Flight Crew International for E190/195 first officers at Air Peace (2026)',
+      method: '外国人副操縦士の契約の月額 USD 7,000（手取り）×12。',
+      method_en: 'The contract first officer’s USD 7,000 a month (net), times 12.',
+      as_of: '2026年7月（2026年10月31日も掲載中）', as_of_en: 'July 2026 (still posted on 31 October 2026)',
+    } },
+  },
+  /* ★2026-10-31 吉祥航空（投稿先だけの一覧から道Aへ上げた）── 額は salary-data.mjs、出どころの記録は salary-sources.mjs。
+     機長はオーナー「一旦2017年の資料でいい」── Pilot Movers（採用代理店）の資料（2017年・外国人機長の契約）。
+     副操縦士はオーナー「まあ大体機長の2/3くらいだろ。それで推定で出しておけよ」── 資料は無い。
+     median: 'always' ＝ オーナー「同じ職位で2人以上集まったら中央値使おう」（ANA・JAL と同じ決まり）。
+       from: 'members' は付けない（いま書き込んでいる額は会員の中央値ではない）。会員の提出が2人に届いたら、ページがその場で中央値に替える。
+     税引き前か手取りかは資料に書いていない ＝ pay_tax: 'unknown'。 */
+  'juneyao-airlines': {
+    tax: '課税（中国）', tax_en: 'Taxed (China)',
+    pay_tax: 'unknown',
+    src: [
+      { pub: '採用代理店 Pilot Movers が出した資料', pub_en: 'A document from the recruitment agency Pilot Movers',
+        name: 'Juneyao Airlines A320 Captains（PDF）', name_en: 'Juneyao Airlines A320 Captains (PDF)',
+        as_of: '2017年（発行日の記載なし）', as_of_en: '2017 (no publication date given)', accessed: '2026-10-31', secondary: true,
+        url: 'https://pilotmovers.com/uploads/media/default/0001/04/720a5ec082721879107064d60f90a325bed4a7ab.pdf' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', median: 'always', est: {
+      basis: '採用代理店 Pilot Movers の資料「Juneyao Airlines A320 Captains」（2017年）',
+      basis_en: 'The recruitment agency Pilot Movers’ document “Juneyao Airlines A320 Captains” (2017)',
+      method: '外国人機長の契約 Option 1 の「年収の目安」US$317,640。',
+      method_en: 'The “Expected Annual Salary (Approx.)” of US$317,640 for the Option 1 expat captain contract.',
+      as_of: '2017年', as_of_en: '2017',
+    } },
+    fo: { tier: 'estimate', median: 'always', est: {
+      basis: '機長の推定（採用代理店 Pilot Movers の資料・2017年）',
+      basis_en: 'Our captain estimate (from the recruitment agency Pilot Movers’ document, 2017)',
+      method: '副操縦士の資料が無いため、機長の推定の約3分の2。',
+      method_en: 'There is no first officer source, so this is about two-thirds of the captain estimate.',
+      as_of: '2017年', as_of_en: '2017',
+    } },
+  },
 };
 
 /* ── 読む側のための小物 ───────────────────────────────────────── */

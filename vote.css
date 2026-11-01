@@ -278,7 +278,8 @@ html.vt-lock,html.vt-lock body{overflow:hidden}
 .vt-wk-head>span{font-size:10px;color:var(--vt-muted);white-space:nowrap}
 /* 1行ずつ：名前｜帯｜幅。★帯の長さを行どうしで比べられるように、名前と幅の列は固定の幅にする
    （幅の字数で帯が伸び縮みすると、同じ 0〜240 時間の目盛でも長さが合わなくなる）。 */
-.vt-wr{display:grid;grid-template-columns:var(--vt-wlw,66px) minmax(0,1fr) var(--vt-wvw,78px);align-items:center;gap:10px;margin-bottom:9px}
+/* ★2026-11-01 幅の列を 78→84px（英語と同じ）。太字の「140–165時間」が 78px ぎりぎりで、字の形がわずかに違うだけで欄からはみ出していた（assert-vote の 390px が時々赤）。 */
+.vt-wr{display:grid;grid-template-columns:var(--vt-wlw,66px) minmax(0,1fr) var(--vt-wvw,84px);align-items:center;gap:10px;margin-bottom:9px}
 .vt-wl{font-size:12px;font-weight:550;color:var(--vt-ink-2);line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .vt-wv{font-size:12.5px;color:var(--vt-ink);font-weight:700;font-variant-numeric:tabular-nums;line-height:1.4;white-space:nowrap;text-align:right}
 .vt-wu{font-size:.8em;font-weight:500;color:var(--vt-muted);margin-left:2px}

@@ -44,11 +44,11 @@ export const WIDE = Object.freeze([
   'daiichi-air', 'hac', 'ibex', 'j-air', 'jac', 'jta', 'orc', 'rac', 'shin-central', 'shin-nihon', 'toho-air', 'toki-air',
   /* アジア（キャセイパシフィック航空・エバー航空は先行5社） */
   'singapore-airlines', 'korean-air', 'asiana', 'starlux', 'china-airlines', 'thai-airways', 'air-china', 'china-eastern',
-  'china-southern', 'hainan-airlines', 'root-aviation', 'air-india', 'airasia', 'bamboo-airways', 'batik-air', 'garuda-indonesia',
+  'china-southern', 'hainan-airlines', 'juneyao-airlines', 'root-aviation', 'air-india', 'airasia', 'bamboo-airways', 'batik-air', 'garuda-indonesia',
   'hong-kong-express', 'indigo', 'malaysia-airlines', 'philippine-airlines', 'scoot', 'vietjet', 'vietnam-airlines', 'royal-brunei',
-  /* 中東（エティハド航空は先行5社）・アフリカ */
-  'emirates', 'qatar-airways', 'gulf-air', 'kuwait-airways', 'oman-air', 'riyadh-air', 'royal-jordanian', 'saudia',
-  'egyptair', 'ethiopian-airlines', 'kenya-airways', 'south-african-airways',
+  /* 中東（エティハド航空は先行5社）・アフリカ。★2026-10-31 フライドバイ・エア・ピースを足した（投稿先だけの一覧から道Aへ上げた3社のうち2社。吉祥航空はアジアの段） */
+  'emirates', 'qatar-airways', 'flydubai', 'gulf-air', 'kuwait-airways', 'oman-air', 'riyadh-air', 'royal-jordanian', 'saudia',
+  'air-peace', 'egyptair', 'ethiopian-airlines', 'kenya-airways', 'south-african-airways',
   /* 全社へ広げる d2（2026-10-22）：ヨーロッパ（運航会社の airx-charter・eagle-jet を含む） */
   'klm', 'air-france', 'lufthansa', 'british-airways', 'airx-charter', 'eagle-jet', 'turkish-airlines', 'aegean', 'aer-lingus',
   'austrian', 'easyjet', 'eurowings', 'finnair', 'iberia', 'icelandair', 'ita-airways', 'lot', 'norwegian', 'ryanair', 'sas', 'swiss',

@@ -87,6 +87,20 @@ export const SALARY = {
   'china-eastern':  { ja:'中国東方航空', en:'China Eastern Airlines', region:'asia',                                             cap:{avg:4770, lo:2100, hi:4770}, fo:{avg:1480, lo:980,  hi:2100}, taxFree:false, conf:'medium' },
   'china-southern': { ja:'中国南方航空', en:'China Southern Airlines', region:'asia',                                            cap:{avg:2950, lo:2100, hi:4700}, fo:{avg:1500, lo:980,  hi:2100}, taxFree:false, conf:'medium' },
   'hainan-airlines':{ ja:'海南航空', en:'Hainan Airlines', region:'asia',                                                        cap:{avg:3050, lo:2200, hi:4800}, fo:{avg:1550, lo:1000, hi:2200}, taxFree:false, conf:'medium' },
+  // ★2026-10-31 吉祥航空（juneyao-airlines）── 投稿先だけの一覧（airline-ops.mjs の OPS）から、同じコードのまま上げた（道A・B5）。
+  //   機長（オーナー 2026-10-31「一旦2017年の資料でいい」）：出所（salary-sources.mjs）＝ Pilot Movers の PDF「Juneyao Airlines A320 Captains」
+  //     （採用代理店・順位2・外国人機長の契約・発行日の記載なし＝ B787 の2018年受領を「予定」と書く2017年の資料・手取りか税引き前かは書いていない）。
+  //     p.8「Improved Terms for Pilots joining as from 1/06/2017」の表（画像）。
+  //     計算：USD × JPY_PER.USD（fx-rates.mjs・158.95）、10万円単位。
+  //     cap.avg ＝ Option 1（Residential）「Expected Annual Salary (Approx.) $ 317640」→ 50,488,878円 → 5,050万
+  //     cap.lo  ＝ いちばん低い Option 5 の保証分 ＝ 月 14,000 × 12 ＋ 海外勤務手当 4,000 ＋ 旅行手当 5,000 ＋ 契約満了賞与 20,000 ÷ 3年
+  //              ＝ USD 183,667 → 29,193,817円 → 2,920万（超過乗務・外泊・運航奨励は入れない）
+  //     cap.hi  ＝ 同じ表の最高額 Option 2「$ 330140」→ 52,475,753円 → 5,250万
+  //   副操縦士（オーナー 2026-10-31「まあ大体機長の2/3くらいだろ。それで推定で出しておけよ」）：資料は無い。
+  //     avg・lo・hi とも機長の 2/3（10万円単位）＝ 3,370万・1,950万・3,500万。
+  //   ★両方の職位に salary-basis.mjs の median: 'always'（オーナー「同じ職位で2人以上集まったら中央値使おう」＝ ANA・JAL と同じ）。
+  //   conf は 'low'（2017年の外国人契約の条件・副操縦士は資料なし）。
+  'juneyao-airlines':{ ja:'吉祥航空', en:'Juneyao Airlines', region:'asia',                                                      cap:{avg:5050, lo:2920, hi:5250}, fo:{avg:3370, lo:1950, hi:3500}, taxFree:false, conf:'low' },
   'airx-charter':   { ja:'エアX・チャーター', en:'AirX Charter Ltd', region:'europe',                                            cap:{avg:1850, lo:1350, hi:2500}, fo:{avg:1080, lo:750, hi:1500}, taxFree:false, conf:'medium' },
   'eagle-jet':      { ja:'イーグルジェット・インターナショナル', en:'Eagle Jet International, Inc.', region:'europe',            cap:{avg:1400, lo:1050, hi:1900}, fo:{avg:760, lo:550, hi:1050}, taxFree:false, conf:'low' },
   'root-aviation':  { ja:'ルート・アビエーション', en:'Root Aviation', region:'asia',                                            cap:{avg:1300, lo:1000, hi:1800}, fo:{avg:720, lo:500, hi:1000}, taxFree:false, conf:'low' },
@@ -107,8 +121,32 @@ export const SALARY = {
   'vietnam-airlines':  { ja:'ベトナム航空', en:'Vietnam Airlines', region:'asia',                                                cap:{avg:1900, lo:1400, hi:2500}, fo:{avg:1050, lo:700, hi:1450}, taxFree:false, conf:'medium' },
 
   // 中東・アフリカ
+  // ★2026-10-31 エア・ピース（air-peace）── 投稿先だけの一覧（airline-ops.mjs の OPS）から、同じコードのまま上げた（道A・B5）。
+  //   出所（salary-sources.mjs）：採用代理店の求人2本（会社の公表ではない・順位2）。どちらも外国人の契約パイロット（E170/E190/E195・ラゴス）の条件。
+  //     Flight Crew International（FlightGlobal Jobs・2026-07-24 掲載・2026-08-21 締切）「Captains: USD 9,000 / NET & FO: USD 7,000 / NET」
+  //       ＝ 元の URL はいま 410。本文は Wayback（2026-07-27）の写しで読んだ。
+  //     Brookfield Aviation「E190/195 Captains / First Officers - Air Peace」（2026-10-31 も掲載中・日付なし）「USD 9,000（FO 7,000）+ per diem + pay per sector」
+  //   計算：月額 × 12 × JPY_PER.USD（fx-rates.mjs・158.95）、10万円単位。
+  //     機長 9,000 × 12 × 158.95 ＝ 17,166,600円 → 1,720万 ／ 副操縦士 7,000 × 12 × 158.95 ＝ 13,351,800円 → 1,340万。
+  //   幅：資料に額が1つしか無いので avg・lo・hi とも同じ額。額は**手取り**（FCI が NET と明記）＝ salary-basis.mjs に pay_tax: 'net'。
+  //   ⚠️ 乗務1回ごとの手当（pay per sector）と日当（per diem）は額が書いていないので入れていない（本当の年額はこれより上）。
+  //      8週勤務・3週休みの休みの週にも月額が払われるかは資料に無い（毎月払いと読んだ）。
+  //   ⚠️ ナイジェリア人の社員パイロット（ナイラ払い）の額は、使える資料が見つからない。conf は 'low'。
+  'air-peace':             { ja:'エア・ピース', en:'Air Peace', region:'africa',                                                 cap:{avg:1720, lo:1720, hi:1720}, fo:{avg:1340, lo:1340, hi:1340}, taxFree:false, conf:'low' },
   'egyptair':              { ja:'エジプト航空', en:'EgyptAir', region:'africa',                                                  cap:{avg:1950, lo:1250, hi:1950}, fo:{avg:970, lo:650, hi:1050}, taxFree:false, conf:'medium' },
   'ethiopian-airlines':    { ja:'エチオピア航空', en:'Ethiopian Airlines', region:'africa',                                      cap:{avg:1610, lo:1300, hi:1950}, fo:{avg:880,  lo:700,  hi:1100}, taxFree:false, conf:'medium' },
+  // ★2026-10-31 フライドバイ（flydubai）── 投稿先だけの一覧（airline-ops.mjs の OPS）から、同じコードのまま上げた（道A・B5）。
+  //   出所（salary-sources.mjs）：会社の採用ページ（順位1）。2026-10-31 に開いて字を確かめた（ページの下に「@flydubai 2024」）。
+  //     https://careers.flydubai.com/captain       「Basic salary + Housing allowance + Transportation allowance: monthly AED 50,235」
+  //                                                 「Variable Flying pay: Avg. Monthly AED 16,310 (Based on average 70 flying hours)」
+  //     https://careers.flydubai.com/first-officer 「… monthly AED 37,000」「Variable Flying pay: Avg. Monthly AED 11,410 (…70 flying hours)」
+  //   計算：月額 × 12 × JPY_PER.AED（fx-rates.mjs・43.2825）、10万円単位。
+  //     cap.avg ＝ (50,235 ＋ 16,310) × 12 × 43.2825 ＝ 34,562,808円 → 3,460万 ／ cap.lo ＝ 50,235 × 12 × 43.2825 ＝ 26,091,557円 → 2,610万
+  //     fo.avg  ＝ (37,000 ＋ 11,410) × 12 × 43.2825 ＝ 25,143,670円 → 2,510万 ／ fo.lo  ＝ 37,000 × 12 × 43.2825 ＝ 19,217,430円 → 1,920万
+  //   幅：lo ＝ 乗務手当を除いた固定分（基本給＋住宅手当＋交通手当）。hi ＝ avg（資料にこれより高い額が無い）。
+  //   入れていないもの（額が書いていない）：Education assistance・End of service benefit・Pilot income protection・医療保険・航空券。
+  //   UAE は個人所得税なし（taxFree: true）。⚠️ エミレーツ（emirates）とは別会社。
+  'flydubai':              { ja:'フライドバイ', en:'flydubai', region:'mideast',                                                 cap:{avg:3460, lo:2610, hi:3460}, fo:{avg:2510, lo:1920, hi:2510}, taxFree:true,  conf:'high' },
   'gulf-air':              { ja:'ガルフ・エア', en:'Gulf Air', region:'mideast',                                                 cap:{avg:4130, lo:2300, hi:5400}, fo:{avg:2660, lo:1250, hi:3020}, taxFree:true,  conf:'medium' },
   'kenya-airways':         { ja:'ケニア航空', en:'Kenya Airways', region:'africa',                                               cap:{avg:2950, lo:1150, hi:3680}, fo:{avg:1110, lo:550, hi:1330}, taxFree:false, conf:'medium' },
   'kuwait-airways':        { ja:'クウェート航空', en:'Kuwait Airways', region:'mideast',                                         cap:{avg:2800, lo:2300, hi:3500}, fo:{avg:1550, lo:1250, hi:1950}, taxFree:true,  conf:'medium' },
