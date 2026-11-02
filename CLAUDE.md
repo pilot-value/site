@@ -603,6 +603,10 @@ baland_ass/                            ブランド資産（※ brand_assets の
 - 訳は [translate-tm.mjs](translate-tm.mjs)（課金・check.mjs に入れない・先に `--estimate`）。訳の辞書は `i18n/tm-es.mjs`、用語集は `i18n/glossary-es.mjs`（公式文書の出典つき）。
   **英語のページや部品の英語の文言を直したら**：`node translate-tm.mjs es`（`--js` 部品の辞書・`--inline` ページの台本の文字列）→ `node gen-msg.mjs` → `node gen-lang.mjs`。
   流し忘れはスペイン語のページに英語が残るだけで壊れない（`assert-generated` が捕まえる）。
+  構造化データ（JSON-LD）の文は `gen-lang.mjs` が**同じページの本文の訳から引く**。本文に無い文（トップの FAQ など）だけ `translate-tm.mjs es --ld`。
+  ⚠️ `--prune` は必ず先に `--dry` で消す一覧を見る（2026-11-02 まで、部品の辞書と待遇の質問の訳まで消す形だった）。
+- スペイン語のページの金額は **US$**（`$` だけだと中南米ではペソと読まれる）。焼き込んだ span の字も、title・説明文・構造化データも
+  `gen-lang.mjs` が `currency.js` の es の書き方（`US$ 174 mil`）に直す。⚠️ 訳の辞書の中で金額を書き換えない（数字の機械検査が見ている）。
 - ⚠️ **英語の給与フォームの台本には `window.PV_LANG === 'es'` の分かれ道がある**（金額の「,」を小数点と読む・入力中にけた区切りを付けない・提出に lang='es'）。英語のページでは通らない。消さない。
 - 表示通貨は9通貨（2026-11-02 に人民元・韓国ウォンを足した）。フォームの通貨は47通貨（ペルー・ソルとアルゼンチン・ペソを `gen-fx-rates.mjs --add` で足した）。
 - 会員の言語は `profiles.lang`（[db/profile-lang.sql](db/profile-lang.sql)・書く口は `pv_set_lang` だけ・登録の upsert に混ぜない）。

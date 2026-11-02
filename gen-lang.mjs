@@ -63,7 +63,8 @@ const usd = (s) => !ES_FMT ? s : s
   .replace(/\$(\d[\d.,]*)\s?K\b/g, (m, n) => `$${n} mil`)                     // 英語の K が残っていたら mil
   .replace(/\$(\d[\d.,]*)\s?M\b/g, (m, n) => `$${n} M`)
   .replace(/(\d[\d.,]*) (mil|M) (?:USD|dólares(?: estadounidenses)?)\b/g, (m, n, u) => `$${n} ${u}`)   // 「179 mil USD」も同じ書き方に
-  .replace(/(^|[^A-Za-z$])\$(?=\d)/g, (m, p) => `${p}US$ `);                 // $ だけはペソと読まれる → US$
+  .replace(/(^|[^A-Za-z$])\$(?=\d)/g, (m, p) => `${p}US$ `)                  // $ だけはペソと読まれる → US$
+  .replace(/US\$(?=\d)/g, () => 'US$ ');                                     // 訳が「US$107」と詰めて書いていても同じ形に
 /* 訳の辞書を「タグを外した英語 → タグを外した訳」でも引けるように（構造化データの文はタグを持たない） */
 const TM_PLAIN = new Map();
 for (const [k, v] of Object.entries(TM)) {
