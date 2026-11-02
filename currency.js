@@ -129,7 +129,7 @@
   /* スペイン語：千は mil・百万は M（K は使わない）。数字の書き方は中南米（小数点はピリオド）。 */
   function compactEs(v) {
     var a = Math.abs(v);
-    if (a >= 1e6)  return trimZero((v / 1e6).toFixed(1)) + ' M';
+    if (a >= 999500) return trimZero((v / 1e6).toFixed(1)) + ' M';   // 999,500 から上は千に丸めると 1,000 になる ＝ 百万で書く
     if (a >= 1e4)  return Math.round(v / 1e3).toLocaleString('en-US') + ' mil';
     if (a >= 1e3)  return trimZero((v / 1e3).toFixed(1)) + ' mil';
     return Math.round(v).toLocaleString('en-US');
@@ -139,7 +139,7 @@
 
   function compact(v) {
     var a = Math.abs(v);
-    if (a >= 1e6)  return trimZero((v / 1e6).toFixed(1)) + 'M';
+    if (a >= 999500) return trimZero((v / 1e6).toFixed(1)) + 'M';   // ★「1,000K」と書かない（2026-11-02・幅320pxで人民元の額がはみ出した）
     if (a >= 1e4)  return Math.round(v / 1e3).toLocaleString('en-US') + 'K';
     if (a >= 1e3)  return trimZero((v / 1e3).toFixed(1)) + 'K';
     return Math.round(v).toLocaleString('en-US');

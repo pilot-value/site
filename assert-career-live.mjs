@@ -3307,7 +3307,8 @@ function liveWords(src, lang) {
   const a = src.indexOf('\n  var LANG = '), b = src.indexOf(SWITCH_LINE);
   if (a < 0 || b < a || src.split(SWITCH_LINE).length !== 2) return null;
   const doc = { documentElement: { getAttribute: (k) => (k === 'lang' ? lang : null) } };
-  try { return new Function('d', `${src.slice(a, b + SWITCH_LINE.length)}\nreturn { T: T, T_EN: T_EN, LANG: LANG };`)(doc); } catch (e) { return { err: String(e.message) }; }
+  /* window は空の箱（2026-11-02：スペイン語のページは window.PV_BASE を見て英語と同じ動きになる。ここは日英の決め方だけを見る） */
+  try { return new Function('d', 'window', `${src.slice(a, b + SWITCH_LINE.length)}\nreturn { T: T, T_EN: T_EN, LANG: LANG };`)(doc, {}); } catch (e) { return { err: String(e.message) }; }
 }
 /* コメントと正規表現の字句を空白に替え（位置は保つ）、字句（'…' "…" `…`）のうち日本語の字を持つものを返す */
 function jaLiterals(src) {

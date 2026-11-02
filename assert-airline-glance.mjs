@@ -1575,7 +1575,7 @@ ok(/getAttribute\('data-pv-glance'\)\s*===\s*'1'\)\s*return/.test(noJsCmt(read('
   ok(fn.includes('<span class="pvg-gg-k" lang="en">Give &amp; Get</span>') && fn.includes(`'<span class="pvg-gg-m">' + (words[kind] || words.all) + '</span></span>'`)
      && words.includes(`ja: { all: '${cutOf('reviews')}', top: '${cutOf('overview')}' },`),
      `口コミの錠前のボタンは2行 ──「${GG}／${RV_GIVE.reviews}」・概要は「${GG}／${RV_GIVE.overview}」（語の切れ目つき）`);
-  ok(words.includes(`en: { all: '${OLD_GG.en.all}', top: '${OLD_GG.en.top}' },`) && /var words = GG_WORDS\[LANG\] \|\| GG_WORDS\.ja;/.test(fn),
+  ok(words.includes(`en: { all: '${OLD_GG.en.all}', top: '${OLD_GG.en.top}' },`) && /var words = (?:\(window\.PV_T && window\.PV_T\(GG_WORDS, LANG\)\) \|\| )?GG_WORDS\[LANG\] \|\| GG_WORDS\.ja;/.test(fn),
      `英語版の下の行は「${OLD_GG.en.all}」・概要は「${OLD_GG.en.top}」`);
   /* 1枚ごとの錠前のボタンは、黒い丸いボタンを出す時には置かない（同じ黒いボタンが口コミの数だけ並ぶ。ぼかしの帯の中では上下が切れる）。
      置くのは3か所だけ：一覧のいちばん下の「メンバー限定データ」・「続きを読む」の窓・公開情報のまとめの下。 */
@@ -1793,7 +1793,8 @@ head('月の勤務を枠と帯で描く部品（career-live.js / career-live.css
        ・240 は物差しで、会社の決まりではない。軸を説明する字（注記の「帯の軸の右端」から workOver まで）に、上限・規定・法定・制限を書かない
        ・枠の CSS の注記に、いちばん短い帯（96px）と枠のいちばん狭い幅（304px）を書いておく。.crl-wb の決まりは動きを持たない
      数の合計（transition が何か所か）はここに書かない（ほかの直しで動く数を、ここで縛らない）。 */
-  const LJS = read('career-live.js'), LCSS = read('career-live.css');
+  /* スペイン語の辞書（gen-msg.mjs が書く var T_ES・2026-11-02）は読まない ── workOver: は日英の2行を数える */
+  const LJS = read('career-live.js').replace(/(,\s*|\n[ \t]*)\/\*PV-MSG:[a-z-]+\*\/[\s\S]*?\/\*\/PV-MSG:[a-z-]+\*\//g, ''), LCSS = read('career-live.css');
   const want = ['workMax: { h: 240, d: 31 }', 'function workScale(', 'function barRow(', 'function workBars(', 'function workCapLine(', 'T.workMax[it.fam]'];
   const miss = want.filter(w => !LJS.includes(w));
   ok(!miss.length, '月の勤務の帯：軸の右端は T.workMax（時間 240・日と泊 31）の1か所で、帯を描く部品（workScale・barRow・workBars・workCapLine）が在る', `無い：${miss.join(' ／ ')}`);

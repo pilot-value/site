@@ -237,7 +237,7 @@ console.log('\n════ ソース ════');
      どの式も、面のファイルの字を1つ受け取る形 ＝ 1か所だけ変えた字に当てて、偽になることを確かめられる。 */
   const JA_CH = /[\u3000-\u303f\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uff00-\uffef]/;
   const tOf = (src) => {
-    const m = src.match(/\n {2}var T = \{\n([\s\S]*?)\n {2}\};\n {2}var TX = T\[LANG\];/);
+    const m = src.match(/\n {2}var T = \{\n([\s\S]*?)\n {2}\};\n {2}var TX = \(window\.PV_T && window\.PV_T\(T, LANG\)\) \|\| T\[LANG\];/);
     if (!m) return null;
     try { return new Function('MONTHS_EN', `return {\n${m[1]}\n};`)(['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']); } catch (e) { return null; }
   };
@@ -299,7 +299,7 @@ console.log('\n════ ソース ════');
     '乗務時間', '拘束時間', '勤務日数', '乗務日数', '公休日数', 'ステイ泊数', '職位', 'ひとこと',          // サーバの断り文の頭（fieldOf）
   ]);
   const tStray = (src) => {
-    const m = src.match(/\n {2}var T = \{\n[\s\S]*?\n {2}\};\n {2}var TX = T\[LANG\];/);
+    const m = src.match(/\n {2}var T = \{\n[\s\S]*?\n {2}\};\n {2}var TX = \(window\.PV_T && window\.PV_T\(T, LANG\)\) \|\| T\[LANG\];/);
     const rest = (m ? src.replace(m[0], '\n') : src).replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"\\])\/\/.*$/gm, (x, a) => a);
     return [...rest.matchAll(/'((?:[^'\\\n]|\\.)*)'|"((?:[^"\\\n]|\\.)*)"/g)].map((x) => x[1] ?? x[2]).filter((s) => JA_CH.test(s) && !INLINE_JA.has(s));
   };
@@ -312,16 +312,20 @@ console.log('\n════ ソース ════');
   };
   const tLang = (src) => {
     const c = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"\\])\/\/.*$/gm, (x, a) => a);
-    return cnt(c, "var LANG = /^en(-|$)/i.test(d.documentElement.getAttribute('lang') || '') ? 'en' : 'ja';") === 1
+    return cnt(c, "var LANG = (window.PV_BASE === 'en' || /^en(-|$)/i.test(d.documentElement.getAttribute('lang') || '')) ? 'en' : 'ja';") === 1
       && cnt(c, 'o.lang = LANG;') === 2 && cnt(c, "var pl = { airline: slug(), lang: LANG, answers: answers };") === 1
       && !/lang\s*[:=]\s*'ja'/.test(c);
   };
-  const sameBad = tSame(js), enBad = tEnJa(js), jaStray = tStray(js), unwired = tWired(js);
+  /* スペイン語の辞書（gen-msg.mjs が書く /*PV-MSG:es*／…／*／PV-MSG:es*／・2026-11-02）は読まない ── この検査は日英の対を見る。
+     スペイン語のページは英語と同じ動き（PV_BASE === 'en'）で、文言だけ PV_T がスペイン語の辞書に替える。 */
+  const noMsg = (src) => src.replace(/(,\s*|\n[ \t]*)\/\*PV-MSG:[a-z-]+\*\/[\s\S]*?\/\*\/PV-MSG:[a-z-]+\*\//g, '');
+  const jsT = noMsg(js);
+  const sameBad = tSame(jsT), enBad = tEnJa(jsT), jaStray = tStray(jsT), unwired = tWired(jsT);
   ok(sameBad.length === 0, '★英語版の準備：面の字の表（T.ja ／ T.en）は、日英で鍵と型が同じ（その場に書いた日本語の鍵には、英語が在る）', J(sameBad.slice(0, 6)));
   ok(enBad.length === 0, '★英語版の準備：英語の字にも、英語の文を組んだ字にも、日本語の字が1つも無い', J(enBad.slice(0, 6)));
   ok(jaStray.length === 0, '★英語版の準備：表（T）の外に、日本語の字を書いていない（その場に書いたままの字・サーバの断り文を当てる字のほか）', J(jaStray.slice(0, 6)));
   ok(unwired.length === 0, '★英語版の準備：その場に日本語を書いたままの所は、英語の面では T.en の字を出す（鍵がどれも面で使われている）', J(unwired));
-  ok(tLang(js), '★英語版の準備：言葉は <html lang> だけで決める。サーバへ送る lang は3つとも LANG（\'ja\' と書いた送り先が無い）');
+  ok(tLang(jsT), '★英語版の準備：言葉は <html lang> だけで決める。サーバへ送る lang は3つとも LANG（\'ja\' と書いた送り先が無い）');
 }
 
 // ═══════════════════════════════════════════════════════════════
