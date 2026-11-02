@@ -57,7 +57,9 @@ export const SALARY = {
   'united':            { ja:'ユナイテッド航空', en:'United Airlines', region:'us',                                               cap:{avg:6390, lo:5870, hi:8530}, fo:{avg:3980, lo:2070, hi:5440}, taxFree:false, conf:'high' },
   'delta':             { ja:'デルタ航空', en:'Delta Air Lines', region:'us',                                                     cap:{avg:7220, lo:5940, hi:8950}, fo:{avg:4500, lo:2320, hi:6110}, taxFree:false, conf:'high' },
   'american':          { ja:'アメリカン航空', en:'American Airlines', region:'us',                                               cap:{avg:6780, lo:6220, hi:8600}, fo:{avg:4220, lo:2180, hi:5740}, taxFree:false, conf:'high' },
-  'southwest':         { ja:'サウスウエスト航空', en:'Southwest Airlines', region:'us',                                          cap:{avg:6970, lo:4140, hi:7110}, fo:{avg:2610, lo:1660, hi:4880}, taxFree:false, conf:'medium' },
+  // ★2026-11-02（米国20社の統合調査の給与表）── サウスウエストの機長・副操縦士、アラスカの機長・副操縦士、ジェットブルー・フロンティアの副操縦士の
+  //   時給（サウスウエストは 1 TFP あたり）だけを入れ替えた。時間・利益配分・会社の年金拠出は 2026-10-29 のまま。根拠は salary-sources.mjs。
+  'southwest':         { ja:'サウスウエスト航空', en:'Southwest Airlines', region:'us',                                          cap:{avg:7150, lo:4140, hi:7150}, fo:{avg:4640, lo:1660, hi:4880}, taxFree:false, conf:'medium' },
   'klm':               { ja:'KLMオランダ航空', en:'KLM Royal Dutch Airlines', region:'europe',                                   cap:{avg:6630, lo:3030, hi:7270}, fo:{avg:3070, lo:1380, hi:5520}, taxFree:false, conf:'medium' },
   'air-france':        { ja:'エールフランス', en:'Air France', region:'europe',                                                  cap:{avg:5140, lo:2750, hi:6020}, fo:{avg:2200, lo:1200, hi:3220}, taxFree:false, conf:'low' },
   'lufthansa':         { ja:'ルフトハンザ', en:'Lufthansa', region:'europe',                                                     cap:{avg:3900, lo:2490, hi:4830}, fo:{avg:1890, lo:1260, hi:3010}, taxFree:false, conf:'medium' },
@@ -188,14 +190,14 @@ export const SALARY = {
   // 米州・オセアニア
   'aeromexico':      { ja:'アエロメヒコ航空', en:'Aeromexico', region:'latam',                                                   cap:{avg:2300, lo:1700, hi:2900}, fo:{avg:1200, lo:850,  hi:1700}, taxFree:false, conf:'low' },
   'air-new-zealand': { ja:'ニュージーランド航空', en:'Air New Zealand', region:'oceania',                                        cap:{avg:3420, lo:2500, hi:4000}, fo:{avg:1850, lo:1150, hi:2300}, taxFree:false, conf:'medium' },
-  'alaska-airlines': { ja:'アラスカ航空', en:'Alaska Airlines', region:'us',                                                     cap:{avg:6910, lo:3800, hi:6910}, fo:{avg:2850, lo:1700, hi:4770}, taxFree:false, conf:'medium' },
+  'alaska-airlines': { ja:'アラスカ航空', en:'Alaska Airlines', region:'us',                                                     cap:{avg:7290, lo:3800, hi:7290}, fo:{avg:4610, lo:1700, hi:4770}, taxFree:false, conf:'medium' },
   'allegiant':       { ja:'アレジアント航空', en:'Allegiant Air', region:'us',                                                   cap:{avg:5370, lo:2600, hi:5370}, fo:{avg:2990, lo:900, hi:3600}, taxFree:false, conf:'medium' },
   'avianca':         { ja:'アビアンカ航空', en:'Avianca', region:'latam',                                                        cap:{avg:1700, lo:1200, hi:2400}, fo:{avg:850,  lo:550,  hi:1300}, taxFree:false, conf:'low' },
   'breeze-airways':  { ja:'ブリーズ・エアウェイズ', en:'Breeze Airways', region:'us',                                            cap:{avg:3400, lo:3200, hi:4400}, fo:{avg:1900, lo:1650, hi:2500}, taxFree:false, conf:'medium' },
   'copa-airlines':   { ja:'コパ航空', en:'Copa Airlines', region:'latam',                                                        cap:{avg:2300, lo:1700, hi:3000}, fo:{avg:1200, lo:850,  hi:1700}, taxFree:false, conf:'low' },
   'fiji-airways':    { ja:'フィジー・エアウェイズ', en:'Fiji Airways', region:'oceania',                                         cap:{avg:2250, lo:1400, hi:2400}, fo:{avg:1390, lo:800, hi:1600}, taxFree:false, conf:'low' },
-  'frontier':        { ja:'フロンティア航空', en:'Frontier Airlines', region:'us',                                               cap:{avg:4740, lo:2600, hi:5330}, fo:{avg:2600, lo:1100, hi:3530}, taxFree:false, conf:'medium' },
-  'jetblue':         { ja:'ジェットブルー航空', en:'JetBlue Airways', region:'us',                                               cap:{avg:6420, lo:3500, hi:6420}, fo:{avg:2400, lo:1500, hi:4440}, taxFree:false, conf:'medium' },
+  'frontier':        { ja:'フロンティア航空', en:'Frontier Airlines', region:'us',                                               cap:{avg:4740, lo:2600, hi:5330}, fo:{avg:2610, lo:1100, hi:3530}, taxFree:false, conf:'medium' },
+  'jetblue':         { ja:'ジェットブルー航空', en:'JetBlue Airways', region:'us',                                               cap:{avg:6420, lo:3500, hi:6420}, fo:{avg:4020, lo:1500, hi:4440}, taxFree:false, conf:'medium' },
   'jetstar':         { ja:'ジェットスター航空', en:'Jetstar Airways (Jetstar)', region:'oceania',                                cap:{avg:3620, lo:3430, hi:4060}, fo:{avg:2250, lo:1940, hi:2560}, taxFree:false, conf:'medium' },
   'latam':           { ja:'LATAM航空', en:'LATAM Airlines', region:'latam',                                                      cap:{avg:1900, lo:1200, hi:2700}, fo:{avg:950,  lo:550,  hi:1500}, taxFree:false, conf:'low' },
   'porter':          { ja:'ポーター航空', en:'Porter Airlines', region:'us',                                                     cap:{avg:2700, lo:2300, hi:3200}, fo:{avg:1350, lo:1000, hi:1700}, taxFree:false, conf:'medium' },

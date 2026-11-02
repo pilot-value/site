@@ -510,14 +510,14 @@ function payScaleCard(v) {
 <div class="pvg-ps-reads">${t.fo.map((f, i) => `<div class="pvg-ps-read" data-ps-y="${i + 1}"${i + 1 === def ? '' : ' hidden'}><p class="pvg-ps-yr">${W.psYear(i + 1)}</p>${pair(t, 'fo', i + 1)}${pair(t, 'ca', i + 1)}</div>`).join('')}</div>
 </div>`;
   const seg = T.length > 1 ? `<div class="pvg-ps-seg" role="group" aria-label="${W.psFleet}">${T.map((t, k) => `<button type="button" data-ps-tb="${k}" aria-pressed="${!k}">${esc(LANG === 'en' ? t.en : t.ja)}</button>`).join('')}</div>` : '';
-  return `<div class="pvg-more-grid pvg-g-ps"${pane(v.slug, 'pay')}>
+  return `<!--PV-PAYSCALE--><div class="pvg-more-grid pvg-g-ps"${pane(v.slug, 'pay')}>
 <article class="pvg-card pvg-ps" data-ps-y="${def}">
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true">${IC.realpay}</span><h2 class="pvg-eyebrow">${W.ps}</h2><span class="pvg-chip">${W.psChip(P.at, !!P.ref)}</span></header>
 ${seg}
 ${T.map(panel).join('\n')}
 <p class="pvg-ps-note">${W.psNote(P.unit)}</p>
 </article>
-</div>`;
+</div><!--/PV-PAYSCALE-->`;
 }
 
 /* ── 勤務・待遇・暮らし ─────────────────────────────── */
