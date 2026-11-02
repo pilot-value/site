@@ -244,8 +244,10 @@ console.log('\n════ D) admin-queue.js（承認・追加）のソース �
     const bad = Object.entries(RULED[lang]).filter(([k, v]) => val(b, k) !== v).map(([k, v]) => [k, v, val(b, k)]);
     ok(bad.length === 0, `オーナーの言葉と決めた字（${lang}）：${Object.values(RULED[lang]).map((v) => '「' + v + '」').join('')}が1字も違わない`, JSON.stringify(bad));
   }
-  const apAge = [...read('actual-pay.js').matchAll(/^\s*age:\s*\[([^\]]*)\]/gm)].map((m) => [...m[1].matchAll(/'([^']*)'/g)].map((x) => x[1]));
-  const proofT = [...read('pv-proof-offer.js').matchAll(/^\s*close:\s*'([^']*)'/gm)].map((m) => m[1]);
+  /* 部品の中のスペイン語の辞書（gen-msg.mjs が書く /*PV-MSG:es*／…／*／PV-MSG:es*／）は数えない ── 日英の2つずつを比べる */
+  const noMsg = (src) => src.replace(/(,\s*|\n[ \t]*)\/\*PV-MSG:[a-z-]+\*\/[\s\S]*?\/\*\/PV-MSG:[a-z-]+\*\//g, '');
+  const apAge = [...noMsg(read('actual-pay.js')).matchAll(/^\s*age:\s*\[([^\]]*)\]/gm)].map((m) => [...m[1].matchAll(/'([^']*)'/g)].map((x) => x[1]));
+  const proofT = [...noMsg(read('pv-proof-offer.js')).matchAll(/^\s*close:\s*'([^']*)'/gm)].map((m) => m[1]);
   const emptyU = (f) => (read(f).match(/\$\{q\?'[^']*':'([^']*)'\}/) || [])[1] || null;
   const posOf = (f) => { const m = read(f).match(/const POS_LABEL\s*=\s*\{([^}]*)\}/); return m ? Object.fromEntries([...m[1].matchAll(/([a-z]+):'([^']*)'/g)].map((x) => [x[1], x[2]])) : null; };
   const SAME_OWN = {

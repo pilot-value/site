@@ -72,8 +72,9 @@ console.log('\n════ ソース ════');
      '引けなかった（null）ときに解放を消さない');
 
   for (const [f, i18n, locale] of [
-    ['profile.html', 'review-i18n.js', 'ja-JP'],
-    ['en/profile.html', '../review-i18n.js', 'en-US'],
+    ['profile.html', 'review-i18n.js', "'ja-JP'"],
+    /* 2026-11-02：英語のページはスペイン語のページ（es/ ＝ gen-lang.mjs が作る写し）でも動く。es のときだけ es-419 */
+    ['en/profile.html', '../review-i18n.js', "window.PV_LANG === 'es' ? 'es-419' : 'en-US'"],
   ]) {
     const raw = read('./' + f);
     const s = nohtml(raw);
@@ -82,7 +83,7 @@ console.log('\n════ ソース ════');
     ok(s.includes('pvFindMyReviews'), `${f} が本人の口コミを引く`);
     ok(s.includes('pvMyPayReports'), `${f} が本人の給与レポートを引く`);
     ok(s.includes('id="my-pay-list"'), `${f} に給与レポートの置き場がある`);
-    ok(s.includes(`toLocaleDateString('${locale}')`), `${f} の日付が ${locale}`);
+    ok(s.includes(`toLocaleDateString(${locale})`), `${f} の日付が ${locale}`);
 
     /* ★金額を出さない。カードの中で使う列名を実体で見る（言葉では守れない）。 */
     const block = s.slice(s.indexOf('function renderMyPay'), s.indexOf('function startEdit'));

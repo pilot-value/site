@@ -58,14 +58,17 @@ for (const k of KS) {
     ok(tt === mine, `★（取り込み後）${k.id} は、いまの ${src} と同じ（片方だけ直していない）`);
   }
 }
-const code = POP.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+/* 部品の中のスペイン語の辞書（gen-msg.mjs が書く /*PV-MSG:es*／…／*／PV-MSG:es*／・2026-11-02）は読まない ── この検査は日英の対を見る。
+   ★コメントを消す前に外す（印もコメントなので、先に消すと中身だけが残る） */
+const noMsg = (src) => src.replace(/(,\s*|\n[ \t]*)\/\*PV-MSG:[a-z-]+\*\/[\s\S]*?\/\*\/PV-MSG:[a-z-]+\*\//g, '');
+const code = noMsg(POP).replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 const rpcNames = [...code.matchAll(/rpc\('([a-z0-9_]+)'/g)].map((m) => m[1]);
 ok(rpcNames.length >= 1 && rpcNames.every((n) => n === 'pv_stay_apply'), '★サーバへ呼ぶのは pv_stay_apply だけ', J(rpcNames));
 ok(!/pv_proof_submit|pv_proof_state|proofWrite|proofRead|proofDue|'pv_proof'|localStorage|sessionStorage|indexedDB/.test(code),
    '★止まった会員の板の入口・写しに触らない・保存領域を1つも使わない');
 ok(!/\.innerHTML\s*=\s*[^;]*\b(v|r|st|status)\b(?!\w)/.test(code.replace(/card\.innerHTML = html\(\);/, '').replace(/back\.innerHTML = '[^;]*;/, '')),
    'サーバの返事を innerHTML に入れない（返事は決まった文言に置き換える）');
-const stay = read('career-stay.js');
+const stay = noMsg(read('career-stay.js'));
 /* ★ホテルの欄（career-stay.js）からこのポップアップを開くのは、会員の鍵の1行の入口だけ（2026-10-18 オーナー Q2「もし中身が見たいなら
    証明を提出してもらうポップアップ出さないと」。前は「開かない・申請を呼ばない」── L2 の付け替え。ホテルの追加から開かないのは同じ）。
    ・申請の口 pv_stay_apply を呼ぶのは1か所だけで、引数は空の {}（状態を読むだけ。画像はこのファイルを通らない）。
@@ -90,7 +93,7 @@ const stay = read('career-stay.js');
        日本語は日本語の表（var T = {…}）の中のちょうど1行・英語は英語の表（EN の t）の中のちょうど1行、ファイル全体ではちょうど2行
        （日英のほかに3つ目の書き場所が無い）。英語はポップアップの T.en の pick・doneS と同じ字。 */
   const csJa = (stay.match(/\n {2}var T = \{\n([\s\S]*?)\n {2}\};\n/) || [])[1] || '';
-  const csEn = (stay.match(/\n {2}var EN = \(function \(\) \{\n {4}var t = \{\n([\s\S]*?)\n {4}\};\n/) || [])[1] || '';
+  const csEn = (stay.match(/\n {2}var EN = \(function \(\) \{\n(?: {4}\/\*[^\n]*\*\/\n)? {4}var (?:t|T_EN) = \{\n([\s\S]*?)\n {4}\};\n/) || [])[1] || '';
   const inOne = (src, k) => { const m = [...('\n' + src).matchAll(new RegExp(`\\n\\s*${k}:\\s*'([^']*)'`, 'g'))]; return m.length === 1 ? m[0][1] : null; };
   const inFile = (k) => [...stay.matchAll(new RegExp(`\\n\\s*${k}:\\s*'([^']*)'`, 'g'))].length;
   const csWord = (k) => (inFile(k) === 2 ? inOne(csJa, k) : null), csWordEn = (k) => (inFile(k) === 2 ? inOne(csEn, k) : null);
@@ -124,7 +127,9 @@ const stay = read('career-stay.js');
     if (!ja || !en) return null;
     try {
       const j = new Function(ja[1] + 'return { T: T, SAY_ADD: SAY_ADD, SAY_EDIT: SAY_EDIT, SAY_PHOTO: SAY_PHOTO, SAY_MOD: SAY_MOD, SAY_FAIL: SAY_FAIL, KINDS: KINDS };')();
-      return { ja: j, en: new Function('T', en[1] + 'return EN;')(j.T), enSrc: en[1] };
+      const e = new Function('T', en[1] + 'return EN;')(j.T);
+      delete e.T_ES;   // スペイン語の辞書の口（スペイン語のページだけが使う・この検査は日英の対を見る）
+      return { ja: j, en: e, enSrc: en[1] };
     } catch (e) { return null; }
   };
   const shape = (v) => (Array.isArray(v) ? 'array' : typeof v);
@@ -197,13 +202,16 @@ const stay = read('career-stay.js');
     return C.filter(([, a, b]) => !a || !b || a !== b).map(([k, a, b]) => `${k}「${a}」／「${b}」`);
   };
   function popWordEnClose() { const b = (code.match(/\n    en: \{\n([\s\S]*?)\n    \},?\n/) || [])[1] || ''; const m = [...b.matchAll(/\n\s*close:\s*'([^']*)'/g)]; return m.length === 1 ? m[0][1] : null; }
-  const LANGL = "  var LANG = /^en(-|$)/i.test(d.documentElement.getAttribute('lang') || '') ? 'en' : 'ja';\n";
+  /* スペイン語のページは英語のページと同じ動き（PV_BASE === 'en'・2026-11-02）。文言だけを T_ES に替える1行がある */
+  const LANGL = "  var LANG = (window.PV_BASE === 'en' || /^en(-|$)/i.test(d.documentElement.getAttribute('lang') || '')) ? 'en' : 'ja';";
+  const ESL = "  if (window.PV_LANG === 'es' && EN.T_ES) T = EN.T_ES;";
   const SWAP = "  if (LANG === 'en') { T = EN.T; SAY_ADD = EN.SAY_ADD; SAY_EDIT = EN.SAY_EDIT; SAY_PHOTO = EN.SAY_PHOTO; SAY_MOD = EN.SAY_MOD; SAY_FAIL = EN.SAY_FAIL; KINDS = EN.KINDS; }\n";
   const wired = (src) => {
     const c = strip(src), n = (s) => c.split(s).length - 1;
     const iL = c.indexOf(LANGL), iE = c.indexOf('\n  var EN = (function () {'), iS = c.indexOf(SWAP), iN = c.indexOf('\n  var ENTS = [');
     const assigns = (c.match(/(^|[^.\w])(T|SAY_ADD|SAY_EDIT|SAY_PHOTO|SAY_MOD|SAY_FAIL|KINDS) = (?!\{|'|\[\[)/g) || []).length;
-    return n(LANGL) === 1 && n(SWAP) === 1 && iL >= 0 && iL < iE && iE < iS && iS < iN && assigns === 7
+    const iES = c.indexOf(ESL);
+    return n(LANGL) === 1 && n(SWAP) === 1 && n(ESL) === 1 && iL >= 0 && iL < iE && iE < iS && iS < iES && iES < iN && assigns === 8
       && n('client: client, lang: LANG, host: form,') === 1 && !/lang\s*[:=]\s*'ja'/.test(c);
   };
   /* 正規表現の字（地図の住所の全角の空白・ステイ時間の全角の数字を読む所）は面に出ない ── 字の並びとして数える前に外す */
