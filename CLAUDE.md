@@ -610,6 +610,14 @@ baland_ass/                            ブランド資産（※ brand_assets の
   （そのページだけの文を直す・共通の文は変えない）。⚠️ `--estimate` の額は実際より低めに出る（会社ページ109枚で見込み約45ドル → 実際 55ドル）。
   ⚠️ translate-tm を2つ同時に流さない（どちらも辞書のファイルを丸ごと書き直す＝後から終わった方が前の訳を消す）。
 - 会社ページは 135枚（日英の会社ページのうち、スピリット・比較のページ・`gaishi-vs-nikkei` などを除く）。**スピリットは入れない**（2026-10-11 にサイトから外すと決めた会社で、古い鍵の部品 `premium-auth-lock.js` の板を出す唯一のページ）。
+- ★**2社比較（`career.html`）と Vote（`community.html`）もスペイン語で作る**（2026-11-02 オーナー「やらないと意味ない」）。
+  - 共有カードの住所と QR は、`gen-lang.mjs` がスペイン語版の会社ページへ作り直す（gen-career と同じ `career-qr.mjs`）。
+  - ページに埋めた材料の JSON（`#crc-data`）のうち、社名・写真の作者・写真の説明は訳さない（[i18n-core.mjs](i18n-core.mjs) の `JSON_KEEP`）。
+    地域名と評価の6項目は訳す。項目の字は口コミ欄（`review-i18n.js`）と Vote のレーダーにそろえる（Cultura／Remuneración／Beneficios／Equilibrio vida-trabajo／Operaciones／Entrenamiento）。
+  - 口コミの本文は、いまは英語の訳を出す（スペイン語への自動翻訳はまだ）。
+  - `vote.js`・`vote.css`・`career-card.js` を `gen-msg.mjs` で書き直したら版の印を付け直す ── `career.html` は `node gen-career.mjs`、
+    `community.html` は `?v=`（sha256 の先頭8字）を手で。そのあと `gen-lang.mjs`。
+- 部品が相対で組んだリンク（`'airlines/' + slug` など）がスペイン語版の無いページ（スピリット）を指したら、押した瞬間に英語版へ移す（[pv-session.js](pv-session.js) の頭のクリックの見張り）。
 - 出典の資料名（「AIRDO “会社概要”」）と写真の作者名は元の字のまま（作者名は CC BY の条件）。`assert-i18n` は**英語のページに無い**日本語の字だけを落とす。
 - スペイン語のページの金額は **US$**（`$` だけだと中南米ではペソと読まれる）。焼き込んだ span の字も、title・説明文・構造化データも
   `gen-lang.mjs` が `currency.js` の es の書き方（`US$ 174 mil`）に直す。⚠️ 訳の辞書の中で金額を書き換えない（数字の機械検査が見ている）。
