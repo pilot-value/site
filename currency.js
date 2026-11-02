@@ -27,11 +27,12 @@
   // 概算・2026年時点。表示専用（SSOT の円は不変）。数値は後から1箇所で調整可。
   var RATES = { JPY: 1, USD: 158.95, EUR: 185.69, GBP: 216.76, AUD: 113.88, SGD: 125.24, AED: 43.2825, CNY: 23.5913, KRW: 0.114707 };
   /* 2026-11-02 オーナー指示「中国と韓国の通貨も」で CNY・KRW を足した（値は fx-rates.mjs の今の表のまま）。
-     ★人民元の記号は CN¥（¥ だけだと円と見分けられない）。 */
+     ★人民元の額は「CNY 1.2M」（AED と同じ形）。CN¥ にしない ── 額の中に ¥ があると、あとから描かれた字を MutationObserver の scan() が
+       円として読み直し、二重に換算する（makeRe は「¥1.2M」を円と読む）。メニューの札（LABEL）は「元 CNY」── 「CN¥ CNY」は幅 320px の画面でヘッダーを 1px 押し出した（A$ AUD より広い）。 */
   var ORDER = ['JPY', 'USD', 'EUR', 'GBP', 'AUD', 'SGD', 'AED', 'CNY', 'KRW'];
-  var SYM   = { USD: '$', EUR: '€', GBP: '£', AUD: 'A$', SGD: 'S$', AED: 'AED ', CNY: 'CN¥', KRW: '₩' };
+  var SYM   = { USD: '$', EUR: '€', GBP: '£', AUD: 'A$', SGD: 'S$', AED: 'AED ', CNY: 'CNY ', KRW: '₩' };
   // LABEL は記号と通貨コードだけなので言語で変わらない。
-  var LABEL = { JPY: '¥ JPY', USD: '$ USD', EUR: '€ EUR', GBP: '£ GBP', AUD: 'A$ AUD', SGD: 'S$ SGD', AED: 'د.إ AED', CNY: 'CN¥ CNY', KRW: '₩ KRW' };
+  var LABEL = { JPY: '¥ JPY', USD: '$ USD', EUR: '€ EUR', GBP: '£ GBP', AUD: 'A$ AUD', SGD: 'S$ SGD', AED: 'د.إ AED', CNY: '元 CNY', KRW: '₩ KRW' };
 
   // ── メニュー内の文言（言語別）─────────────────────────────────
   // 英語ページで「JPY 日本円 / USD 米ドル…」と出ていたのを言語に合わせる。
@@ -134,7 +135,7 @@
     return Math.round(v).toLocaleString('en-US');
   }
   /* 中南米では「$」は自国のペソ。ドルは必ず US$ と書く */
-  var SYM_ES = { USD: 'US$ ', EUR: '€ ', GBP: '£ ', AUD: 'A$ ', SGD: 'S$ ', AED: 'AED ', CNY: 'CN¥ ', KRW: '₩ ' };
+  var SYM_ES = { USD: 'US$ ', EUR: '€ ', GBP: '£ ', AUD: 'A$ ', SGD: 'S$ ', AED: 'AED ', CNY: 'CNY ', KRW: '₩ ' };
 
   function compact(v) {
     var a = Math.abs(v);
