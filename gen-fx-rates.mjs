@@ -53,6 +53,28 @@ const jpyPer = (code) => {
 };
 const NEW = Object.fromEntries(CURRENCIES.map((c) => [c.code, jpyPer(c.code)]));
 
+/* ── --add：語彙（pv-vocab.mjs の CURRENCIES）に足した通貨のレートだけを足す（2026-11-02）──
+   ★ほかの通貨・基準日・currency.js は1つも動かさない（全部取り直すと英語ページの金額が全部動く）。
+   ★足す通貨は「今の表の USD/JPY」で円にする＝表の中の換算がそろう。足した日と元の値は表の頭に書く。 */
+if (process.argv.includes('--add')) {
+  const fx = readFileSync(p('fx-rates.mjs'), 'utf8');
+  const have = new Set([...fx.matchAll(/^ {2}([A-Z]{3}):/gm)].map((m) => m[1]));
+  const add = CURRENCIES.filter((c) => !have.has(c.code));
+  if (!add.length) { console.log('足す通貨は無い（語彙の通貨は全部レートがある）'); process.exit(0); }
+  const usdJpy = Number((fx.match(/^ {2}USD:\s*([\d.]+)/m) || [])[1]);
+  if (!(usdJpy > 0)) { console.error('❌ fx-rates.mjs の USD が読めない'); process.exit(1); }
+  const val = (code) => { const v = usdJpy / j.rates[code]; return Number(v >= 100 ? v.toFixed(2) : v >= 1 ? v.toFixed(4) : v.toFixed(6)); };
+  const today = new Date().toISOString().slice(0, 10);
+  const lines = add.map((c) => `  ${(c.code + ':').padEnd(5)} ${String(val(c.code)).padStart(11)},   // ${c.ja}（${today} に足した）`).join('\n');
+  let next = fx.replace(/\n\};\s*$/, () => '\n' + lines + '\n};\n');
+  next = next.replace(/( {5}基準日: [^\n]*\n)/, (m) => m + `     足した通貨: ${add.map((c) => c.code).join('・')}（${today} の USD 基準のレートを、表の USD/JPY ${usdJpy} で円にした・node gen-fx-rates.mjs --add）\n`);
+  for (const c of add) console.log(`  + ${c.code} ${val(c.code)} 円（1 USD = ${j.rates[c.code]} ${c.code}）`);
+  if (CHECK) { console.log('[--check] 何も書いていない'); process.exit(0); }
+  writeFileSync(p('fx-rates.mjs'), next, 'utf8');
+  console.log(`✅ fx-rates.mjs に ${add.length} 通貨を足した（ほかは不変・currency.js も不変）\n   次に: node gen-vocab.mjs → db/vocab.generated.sql を Supabase で流す（オーナー作業）`);
+  process.exit(0);
+}
+
 /* ── 差分を出す（currency.js に今ある7通貨だけ、表示が動く） ── */
 const cjs = read('currency.js');
 const mOrder = cjs.match(/var ORDER = \[([^\]]*)\];/);
@@ -118,8 +140,10 @@ let next = cjs.replace(mRates[0], ratesLine);
 /* 「2026年時点」のままだと、いつのレートか読んだ人に分からない */
 const asOfJa = `${AS_OF.slice(0, 4)}年${Number(AS_OF.slice(5, 7))}月時点`;
 const asOfEn = `as of ${new Date(AS_OF + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' })}`;
+/* ★スペイン語の行も書く（2026-11-02）。ja・en だけ書くと es が消え、スペイン語のメニューに undefined が出る */
+const asOfEs = new Date(AS_OF + 'T00:00:00Z').toLocaleDateString('es', { month: 'long', year: 'numeric', timeZone: 'UTC' });
 next = next.replace(/ {2}var AS_OF = \{[^}]*\};/,
-  `  var AS_OF = { ja: '${asOfJa}', en: '${asOfEn}' };`);
+  () => `  var AS_OF = { ja: '${asOfJa}', en: '${asOfEn}', es: '${asOfEs}' };`);
 if (next === cjs) { console.error('❌ currency.js を書き替えられなかった'); process.exit(1); }
 writeFileSync(p('currency.js'), next, 'utf8');
 

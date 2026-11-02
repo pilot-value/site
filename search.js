@@ -14,6 +14,18 @@ var PV_SEARCH_L10N = {
   'お問い合わせ':     'Contact',
   'ログイン':         'Log in'
 };
+  /*PV-MSG:es*/ var PV_SEARCH_L10N_ES = {
+  '航空会社を検索':   'Buscar aerolíneas',
+  '航空会社を検索…': 'Buscar aerolíneas…',
+  '閉じる':           'Cerrar',
+  '世界の航空会社':   'Aerolíneas del mundo',
+  '日本 vs 海外':     'Japón vs el mundo',
+  '年収ランキング':   'Ranking de remuneración anual',
+  '求人情報':         'Vacantes',
+  'コミュニティ':     'Comunidad',
+  'お問い合わせ':     'Contacto',
+  'ログイン':         'Iniciar sesión'
+}; /*/PV-MSG:es*/
 
 /* ═══════════════════════════════════════════════════
    PILOT VALUE — Global Airline Search
@@ -28,7 +40,9 @@ var PV_SEARCH_L10N = {
      ROOT_P … サイトルートまで（共有アセットと、EN 版が無いページ用）
      pageHref() … EN 版が実在するトップ級ページだけ言語内リンク、他はルート（日本語版）へ退避。
      実在リストは lang-toggle.js が生成する PV_EN_PAGES を唯一の正として参照する。 */
-  var IS_EN  = location.pathname.indexOf('/en/') === 0;
+  /* スペイン語のページ（/es/）も英語と同じ動き（2026-11-02・多言語化）。行き先は pageHref() が スペイン語版 → 英語版 の順に探す */
+  var LANG_DIR = (location.pathname.match(/^\/(en|es)\//) || [])[1] || '';
+  var IS_EN  = LANG_DIR !== '';
   /* ⚠️ 以前は /airlines/ だけを見ていた。あとから増えた /countries/ では
         引き出しのロゴ画像とリンクの行き先が1階層ずれる（画像が出ない）。
         決め打ちをやめて、いま居る階層を数える。 */
@@ -41,11 +55,20 @@ var PV_SEARCH_L10N = {
   function pageHref(f) {
     if (!IS_EN) return P + f;
     var base = f.split('#')[0];
+    if (LANG_DIR === 'es') {
+      var esPages = window.PV_LANG_PAGES && window.PV_LANG_PAGES.es;
+      if (esPages && esPages.indexOf(base) >= 0) return P + f;
+      var enSet = window.PV_EN_PAGES;
+      return (base === 'index.html' || (enSet && enSet.has(base))) ? ROOT_P + 'en/' + f : ROOT_P + f;
+    }
     if (base === 'index.html') return P + f;          // /en/index.html は常に存在
     var set = window.PV_EN_PAGES;
     return (set && set.has(base)) ? P + f : ROOT_P + f;
   }
-  function T(s) { return IS_EN && PV_SEARCH_L10N[s] ? PV_SEARCH_L10N[s] : s; }
+  function T(s) {
+    if (!IS_EN || !PV_SEARCH_L10N[s]) return s;
+    return (window.PV_LANG === 'es' && typeof PV_SEARCH_L10N_ES !== 'undefined' && PV_SEARCH_L10N_ES[s]) || PV_SEARCH_L10N[s];   // スペイン語の対応表（gen-msg.mjs が書く）
+  }
 
   /* ── Airline database ────────────────────────── */
   var DB = [
@@ -433,7 +456,9 @@ var PV_SEARCH_L10N = {
      ROOT_P … サイトルートまで（共有アセットと、EN 版が無いページ用）
      pageHref() … EN 版が実在するトップ級ページだけ言語内リンク、他はルート（日本語版）へ退避。
      実在リストは lang-toggle.js が生成する PV_EN_PAGES を唯一の正として参照する。 */
-  var IS_EN  = location.pathname.indexOf('/en/') === 0;
+  /* スペイン語のページ（/es/）も英語と同じ動き（2026-11-02・多言語化）。行き先は pageHref() が スペイン語版 → 英語版 の順に探す */
+  var LANG_DIR = (location.pathname.match(/^\/(en|es)\//) || [])[1] || '';
+  var IS_EN  = LANG_DIR !== '';
   /* ⚠️ 以前は /airlines/ だけを見ていた。あとから増えた /countries/ では
         引き出しのロゴ画像とリンクの行き先が1階層ずれる（画像が出ない）。
         決め打ちをやめて、いま居る階層を数える。 */
@@ -446,11 +471,20 @@ var PV_SEARCH_L10N = {
   function pageHref(f) {
     if (!IS_EN) return P + f;
     var base = f.split('#')[0];
+    if (LANG_DIR === 'es') {
+      var esPages = window.PV_LANG_PAGES && window.PV_LANG_PAGES.es;
+      if (esPages && esPages.indexOf(base) >= 0) return P + f;
+      var enSet = window.PV_EN_PAGES;
+      return (base === 'index.html' || (enSet && enSet.has(base))) ? ROOT_P + 'en/' + f : ROOT_P + f;
+    }
     if (base === 'index.html') return P + f;          // /en/index.html は常に存在
     var set = window.PV_EN_PAGES;
     return (set && set.has(base)) ? P + f : ROOT_P + f;
   }
-  function T(s) { return IS_EN && PV_SEARCH_L10N[s] ? PV_SEARCH_L10N[s] : s; }
+  function T(s) {
+    if (!IS_EN || !PV_SEARCH_L10N[s]) return s;
+    return (window.PV_LANG === 'es' && typeof PV_SEARCH_L10N_ES !== 'undefined' && PV_SEARCH_L10N_ES[s]) || PV_SEARCH_L10N[s];   // スペイン語の対応表（gen-msg.mjs が書く）
+  }
 
   function inject() {
     if (document.getElementById('pv-ham-btn')) return;

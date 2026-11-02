@@ -41,7 +41,7 @@
      ⚠️ 金額の書式（¥N,NNN万）は日英とも同じ。currency.js がこの文字列を拾って
         英語面では USD に変える。ここを英語用に別書式にすると assert-currency.mjs が落ちる。
      ══════════════════════════════════════════════════════════════ */
-  var L = (d.documentElement.getAttribute('lang') || '').toLowerCase().indexOf('en') === 0 ? 'en' : 'ja';
+  var L = (window.PV_BASE === 'en' || (d.documentElement.getAttribute('lang') || '').toLowerCase().indexOf('en') === 0) ? 'en' : 'ja';   // スペイン語のページは英語と同じ動き（pv-session.js）
   var T = {
     ja: {
       sep: ' ・ ',
@@ -86,8 +86,27 @@
       ten: function (y) { return y + ' in rank'; },
       voice: { culture: 'Culture', salary: 'Pay', benefits: 'Benefits',
                wlb: 'WLB', ops: 'Operations', training: 'Training', mgmt: 'To management' },
-    },
-  }[L];
+    }, /*PV-MSG:es*/ es: {
+      sep: ' · ',
+      rating:    'Calificación ',
+      autoTr:    'Traducido automáticamente',
+      emptyT:    'Todavía hay pocas publicaciones.',
+      emptyD:    'Aquí solo publican pilotos en activo y expilotos. Nunca inflamos la cantidad de publicaciones ni republicamos reseñas de otros sitios.',
+      mqMeta: function (years, base) { return years + ' · ' + base; },
+      // 日本語側と対（actual-pay.js の英語から写す。openNote だけ短く言い直したもの）
+      seg: { base: 'Sueldo base', variable: 'Remuneración variable (vuelo)', bonus: 'Bonos y participación en las utilidades' },
+      pos: { '機長': 'Capitán / Comandante (CAP)', '副操縦士': 'Primer oficial / Copiloto (FO)' },
+      thAmt: 'Anual',
+      dwYear: 'Por año', dwMonth: 'Por mes', dwComp: 'Remuneración',
+      cbMore: '+{n} más',
+      dash: '–',
+      openNote: 'Las proporciones son aproximadas',
+      ten: function (y) { return y + ' en el puesto actual'; },
+      voice: { culture: 'Cultura', salary: 'Remuneración', benefits: 'Beneficios',
+               wlb: 'Equilibrio vida-trabajo', ops: 'Operaciones', training: 'Entrenamiento', mgmt: 'Para la dirección' },
+    } /*/PV-MSG:es*/,
+  };
+  T = (window.PV_T && window.PV_T(T, L)) || T[L];   // スペイン語の辞書があればそれ
 
   /* 日本語で書いてある短い語を英語に置き換える1枚の辞書。
      ★PV_DEMO の配列を2本持たないための仕掛け（配列は日本語のまま1本）。
@@ -112,7 +131,30 @@
     'シンガポール': 'Singapore', '香港': 'Hong Kong', 'フランクフルト': 'Frankfurt',
     'シドニー': 'Sydney', 'イスタンブール': 'Istanbul',
   };
-  function tw(s) { return L === 'en' ? (EN_WORD[s] || s) : s; }
+  /*PV-MSG:es*/ var EN_WORD_ES = {
+    // 職位
+    '機長': 'Capitán', '副操縦士': 'Primer oficial', '訓練生': 'Piloto en formación',
+    // 何で構成された額か
+    '年俸＋住宅手当（非課税）': 'Sueldo + ayuda para vivienda, libre de impuestos',
+    '年俸＋住宅手当': 'Sueldo + ayuda para vivienda',
+    '年俸＋年金拠出': 'Sueldo + aportación al plan de pensiones',
+    '年俸（税引前）': 'Anual, antes de impuestos',
+    '月給＋賞与＋乗務手当': 'Sueldo base + bono + pago por hora de vuelo',
+    '月給＋賞与': 'Sueldo base + bono',
+    '基本給＋乗務手当': 'Sueldo base + pago por hora de vuelo',
+    // 経験年数
+    '3〜5年': '3–5 años', '5〜10年': '5–10 años', '10〜15年': '10–15 años',
+    '15〜20年': '15–20 años', '20年以上': '20+ años',
+    // ベース
+    'ドバイ': 'Dubái', 'ドーハ': 'Doha', '羽田': 'Tokio Haneda', '伊丹': 'Osaka Itami',
+    '関西': 'Osaka Kansai', 'アトランタ': 'Atlanta', 'サンフランシスコ': 'San Francisco',
+    'シンガポール': 'Singapur', '香港': 'Hong Kong', 'フランクフルト': 'Frankfurt',
+    'シドニー': 'Sídney', 'イスタンブール': 'Estambul',
+  }; /*/PV-MSG:es*/
+  function tw(s) {
+    if (L !== 'en') return s;
+    return (window.PV_LANG === 'es' && typeof EN_WORD_ES !== 'undefined' && EN_WORD_ES[s]) || EN_WORD[s] || s;   // スペイン語の対応表（gen-msg.mjs が書く）
+  }
 
   /* 航空会社の表示名。英語面は airlines-meta.js の en を引く（英語の社名表を二重に持たない）。
      読み込み順で PV_AIRLINES が未定義のことがあるので、そのときは渡された名前をそのまま使う。 */
@@ -137,14 +179,14 @@
 
   /* 投稿フォームが保存するのは言語に依らない符号（captain / 10-15）。
      そのまま出すと日英どちらの画面でも符号が見えるので、ここで言葉に直す。 */
-  var POS_LABEL = {
+  var POS_LABEL = (function (D) { return (window.PV_T && window.PV_T(D, L)) || D[L]; })({
     ja: { captain: '機長', fo: '副操縦士', cadet: '訓練生' },
-    en: { captain: 'Captain', fo: 'First Officer', cadet: 'Trainee' },
-  }[L];
-  var TENURE_LABEL = {
+    en: { captain: 'Captain', fo: 'First Officer', cadet: 'Trainee' }, /*PV-MSG:es*/ es: { captain: 'Capitán', fo: 'Primer oficial', cadet: 'Piloto en formación' } /*/PV-MSG:es*/,
+  });
+  var TENURE_LABEL = (function (D) { return (window.PV_T && window.PV_T(D, L)) || D[L]; })({
     ja: { '1-5': '1〜5年', '5-10': '5〜10年', '10-15': '10〜15年', '15-20': '15〜20年', '20+': '20年以上' },
-    en: { '1-5': '1–5 yrs', '5-10': '5–10 yrs', '10-15': '10–15 yrs', '15-20': '15–20 yrs', '20+': '20+ yrs' },
-  }[L];
+    en: { '1-5': '1–5 yrs', '5-10': '5–10 yrs', '10-15': '10–15 yrs', '15-20': '15–20 yrs', '20+': '20+ yrs' }, /*PV-MSG:es*/ es: { '1-5': '1–5 años', '5-10': '5–10 años', '10-15': '10–15 años', '15-20': '15–20 años', '20+': '20+ años' } /*/PV-MSG:es*/,
+  });
 
   /* ══════════════════════════════════════════════════════════════
      ★PV_DEMO — 実在しないサンプル値。2026-08-11 のオーナー判断で、このまま公開する。

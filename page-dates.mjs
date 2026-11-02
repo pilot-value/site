@@ -25,6 +25,9 @@
      ページまで毎回「今日直した」になる＝数字を盛る。
      なので、比べる前に日付の部分（strip）を両側から取り除き、それでも違う
      コミットだけを「直した」と数える。コミットした後でも同じ答えが出る。
+   ★言語の対応の行（hreflang と og:locale:alternate）も、直した日に数えない（2026-11-01・多言語化の段0）。
+     言語を1つ足すと、日英の全ページの head にその言語の行が1本ずつ増える。素直に数えると、
+     本文が1文字も変わっていない約440枚が一斉に「今日直した」になる＝数字を盛る。
 
    ★日付は手元の時計の日付（git の %cs と同じく、その土地の日付）。
      toISOString() は UTC なので、日本では 0〜9時に「昨日」になり、
@@ -56,7 +59,8 @@ const drop = (v) => {
   }
   return out;
 };
-const strip = (s) => s.replace(LD, (all, open, json, close) => {
+const ALT = /[ \t]*<link rel="alternate" hreflang="[^"]*" href="[^"]*"\/>\n?|[ \t]*<meta property="og:locale:alternate" content="[^"]*"\/>\n?/g;
+const strip = (s) => s.replace(ALT, '').replace(LD, (all, open, json, close) => {
   try { return open + JSON.stringify(drop(JSON.parse(json))) + close; } catch { return all; }
 });
 

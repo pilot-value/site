@@ -52,10 +52,6 @@ const ROOT = fileURLToPath(new URL('.', import.meta.url));
 // 流す生成スクリプトと、それが何を作るか（メッセージ用）
 const GENERATORS = [
   ['gen-salary-json.mjs', 'salary-data.json（年収の公開用JSON）'],
-  ['gen-sitemap.mjs',     'sitemap.xml（検索エンジンに渡す一覧）'],
-  /* 2026-09-18 に足した。seo-normalize.mjs が管理ブロックを作り直すたびに日付を消していて、
-     216枚の日付が黙って巻き戻っていた（画面は何も変わらない）。流し忘れもこれで分かる。 */
-  ['gen-datemod.mjs',     'JSON-LD の datePublished / dateModified（ページの更新日）'],
   ['gen-en-manifest.mjs', 'lang-toggle.js の EN_PAGES（英語版がある頁の一覧）'],
   ['gen-vocab.mjs',       'pv-vocab.json / db/vocab.generated.sql（選択肢と為替）'],
   ['gen-airline-codes.mjs', 'airline-codes.json / pv-airlines.json / 投稿フォーム4枚 / db/airlines.generated.sql'],
@@ -71,6 +67,16 @@ const GENERATORS = [
   /* 2026-10-29。就航地を出す会社を 19 → 96社に広げたとき、db/stays.sql の手で写した一覧（運営の「追加」が公開で入れてよい空港）を
      直し忘れた。SQL の検査（db/test-stays.mjs の ★N1）でしか分からず、DB を触らない回の push 前には流れない ＝ ここでも見る。 */
   ['gen-stay-network.mjs', 'db/stays.sql の pv_stay_network()（運営の「追加」が公開で入れてよい空港）'],
+  /* 2026-11-02（多言語化の段2）。部品の英語の辞書や訳の辞書を直したのに流し忘れると、スペイン語の辞書だけ古い。 */
+  ['gen-msg.mjs',         '部品（JS）の辞書の es（英語の辞書＋訳の辞書から作る）'],
+  /* 2026-11-02（多言語化の段1）。英語のページや訳の辞書を直したのに流し忘れると、es/ だけ古い字が残る。 */
+  ['gen-lang.mjs',        'es/ のページ（英語のページ＋訳の辞書 i18n/tm-es.mjs から作る）'],
+  /* ★日付とサイトマップは最後（2026-11-01・多言語化の段0）。ページの中身を書く生成スクリプト（gen-career・gen-lp-compare、
+     これから足す言語の生成）より先に流すと、そのあと中身が変わったページの日付と、新しく増えたページが一覧から漏れる。 */
+  /* 2026-09-18 に足した。seo-normalize.mjs が管理ブロックを作り直すたびに日付を消していて、
+     216枚の日付が黙って巻き戻っていた（画面は何も変わらない）。流し忘れもこれで分かる。 */
+  ['gen-datemod.mjs',     'JSON-LD の datePublished / dateModified（ページの更新日）'],
+  ['gen-sitemap.mjs',     'sitemap.xml（検索エンジンに渡す一覧）'],
 ];
 
 // どれも読まない重いもの。展開しないぶん速くなる。
@@ -119,6 +125,8 @@ try {
   }).join(' ');
   const gitBefore = guard();
   symlinkSync(gitDir, join(work, '.git'));
+  /* 部品（parse5 など）を読む生成スクリプトのために node_modules も貸す（読むだけ。hashTree は数えない） */
+  if (existsSync(join(ROOT, 'node_modules'))) symlinkSync(realpathSync(join(ROOT, 'node_modules')), join(work, 'node_modules'));
 
   const before = hashTree(work);
 

@@ -125,7 +125,7 @@
 })();
 </script>
 <!--/PV-3P-->
-<script src="../pv-session.js?v=700cc594"></script>
+<script src="../pv-session.js?v=7620526d"></script>
   <!-- PV-NAV: site-wide navigation (left rail on wide screens, left drawer on narrow).
        Written by patch-side-nav.mjs. app-nav.css loads last (after my-value.css). -->
   <link rel="stylesheet" href="../app-nav.css">
@@ -341,7 +341,8 @@
          ?next= 付きで来た場合は safePath が /en/… の絶対パスを返すので元から正しい。 */
     function getRedirect(){
       const q = new URLSearchParams(location.search);
-      return safePath(q.get('next') || q.get('redirect') || q.get('return')) || '/en/actual-pay.html';
+      const to = safePath(q.get('next') || q.get('redirect') || q.get('return')) || '/en/actual-pay.html';
+      return (window.PV_PATH ? window.PV_PATH(to) : to);   // the Spanish page (es/) lands on the Spanish version when there is one
     }
 
     /* ★Do not drop the destination when handing off to "Sign up".
@@ -563,13 +564,15 @@
            ★next を省く分岐を置かない。省くと auth-callback の既定（日本語の
              /actual-pay.html）が効いて、やはり日本語版に落ちる。
              getRedirect() は必ず /en/… を返すので常に渡す。 */
-      const to = (otpIntent === 'reset') ? '/en/profile.html#password-card' : getRedirect();
+      const to = (otpIntent === 'reset') ? (window.PV_PATH ? window.PV_PATH('/en/profile.html#password-card') : '/en/profile.html#password-card') : getRedirect();
       const { error } = await sb.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: 'https://pilot-value.com/auth-callback.html'
                          + '?next=' + encodeURIComponent(to),
           shouldCreateUser: true,
+          /* The Spanish page marks new accounts so the login-code email can be sent in Spanish (mail-bot/auth-emails). */
+          ...(window.PV_LANG === 'es' ? { data: { lang: 'es' } } : {}),
         }
       });
 

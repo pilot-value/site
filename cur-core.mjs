@@ -143,7 +143,8 @@ export async function curCore(state = 'USD', lang = 'en') {
     `var LANG  = ${JSON.stringify(lang)};`,
     grabVar(src, 'RATES'),
     grabVar(src, 'SYM'),
-    ...['parseNum', 'trimZero', 'compact', 'sigRound', 'fmt', 'sufMul', 'makeRe', 'matchToParts']
+    grabVar(src, 'SYM_ES'),   // スペイン語のページ（lang 'es'）の書き方。2026-11-02
+    ...['parseNum', 'trimZero', 'compact', 'compactEs', 'sigRound', 'fmt', 'sufMul', 'makeRe', 'matchToParts']
       .map((n) => grabFn(src, n)),
     'return { fmt: fmt, makeRe: makeRe, matchToParts: matchToParts, RATES: RATES };'
   ].join('\n');

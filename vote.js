@@ -22,7 +22,7 @@
 (function (w, d) {
   'use strict';
 
-  var EN = /^en/i.test(d.documentElement.getAttribute('lang') || '');
+  var EN = w.PV_BASE === 'en' || /^en/i.test(d.documentElement.getAttribute('lang') || '');   // スペイン語のページは英語と同じ動き（pv-session.js）
   var cs = d.currentScript;
   /* サイトの根（JSON とロゴの置き場）。英語ページは en/ の下にいる。 */
   var ROOT = (cs && cs.src) ? cs.src.replace(/[?#].*$/, '').replace(/[^\/]*$/, '') : (EN ? '../' : '');
@@ -34,7 +34,7 @@
     ja: {
       latest: '最新の口コミ', seeAll: 'すべての口コミを見る', prev: '前の口コミ', next: '次の口コミ',
       read: 'この投稿を読む',
-      tenure: function (t) { return '勤務年数 ' + t; },
+      tenure: function (t) { return '勤務年数 ' + t; }, yearsWord: '年',
       ten: { '1-5': '1〜5年', '5-10': '5〜10年', '10-15': '10〜15年', '15-20': '15〜20年', '20+': '20年以上' },
       pos: { captain: '機長', fo: '副操縦士', cadet: '訓練生', former: '元乗務員' },
       cat: { culture: '企業文化', salary: '給与', benefits: '福利厚生', wlb: 'ワークライフバランス', ops: '運航環境', training: '訓練環境', mgmt: '経営陣への提案' },
@@ -87,7 +87,7 @@
     en: {
       latest: 'Latest reviews', seeAll: 'See all reviews', prev: 'Previous review', next: 'Next review',
       read: 'Read this review',
-      tenure: function (t) { return t + ' of service'; },
+      tenure: function (t) { return t + ' of service'; }, yearsWord: 'years',
       ten: { '1-5': '1–5 years', '5-10': '5–10 years', '10-15': '10–15 years', '15-20': '15–20 years', '20+': '20+ years' },
       pos: { captain: 'Captain', fo: 'First Officer', cadet: 'Trainee', former: 'Former crew' },
       cat: { culture: 'Culture', salary: 'Pay', benefits: 'Benefits', wlb: 'Work-life balance', ops: 'Flight operations', training: 'Training', mgmt: 'Suggestions for management' },
@@ -136,9 +136,61 @@
         'Flight time (block hours) and duty time are hours per month on a 0–240 h scale. Layover nights are nights away from base per month on a 0–31 scale. Hours and nights use separate scales.',
         function (p) { return 'Most viewed airlines are ordered by views of each airline page over the last ' + p.days + ' days.'; }
       ]
-    }
+    }, /*PV-MSG:es*/ es: {
+      latest: 'Últimas reseñas', seeAll: 'Ver todas las reseñas', prev: 'Reseña anterior', next: 'Reseña siguiente',
+      read: 'Leer esta reseña',
+      tenure: function (t) { return t + ' de antigüedad'; }, yearsWord: 'años',
+      ten: { '1-5': '1–5 años', '5-10': '5–10 años', '10-15': '10–15 años', '15-20': '15–20 años', '20+': '20 años o más' },
+      pos: { captain: 'Capitán', fo: 'Primer oficial', cadet: 'Piloto en formación', former: 'Extripulante' },
+      cat: { culture: 'Cultura', salary: 'Remuneración', benefits: 'Beneficios', wlb: 'Equilibrio vida-trabajo', ops: 'Operaciones de vuelo', training: 'Entrenamiento', mgmt: 'Sugerencias para la dirección' },
+      radar: [['Cultura'], ['Remuneración'], ['Beneficios'], ['Equilibrio vida-trabajo'], ['Operaciones'], ['Entrenamiento']],
+      radarTitle: 'Calificaciones de los pilotos en seis áreas', radarNone: 'Aún no hay datos de calificación', radarAxis: 'Cada eje va de 0 a 5.',
+      lockedBody: 'Solo los pilotos que han compartido una reseña pueden leer el texto completo.',
+      unlockBtn: 'Publicar una reseña de forma anónima para desbloquear',
+      gateTitle: 'Para ver todas las reseñas',
+      gateText: 'Publica una reseña propia<br>y podrás leer las reseñas de todas las aerolíneas <strong>gratis</strong>',
+      gateNote: 'Totalmente gratis · anónimo · sin datos personales', gateLogin: 'Iniciar sesión (si ya publicaste)',
+      noComment: 'No hay comentarios sobre este punto.',
+      loading: 'Cargando…', retry: 'Intentar de nuevo',
+      feedFail: 'No pudimos cargar las reseñas.', noReviews: 'Aún no hay reseñas.',
+      noFound: 'No se encontraron reseñas', noFoundSub: 'Prueba con otras palabras o borra la búsqueda.', clear: 'Borrar búsqueda',
+      popular: 'Aerolíneas más vistas', popularSub: 'Calificaciones y servicio mensual, aerolínea por aerolínea',
+      matching: 'Aerolíneas que coinciden', matchingSub: 'Resultados por nombre de la aerolínea y texto de las reseñas',
+      popFail: 'No pudimos cargar las aerolíneas más vistas.', noCo: 'No se encontraron aerolíneas',
+      overall: 'Calificación general', reviewsN: function (n) { return n + (n === 1 ? ' reseña' : ' reseñas'); },
+      starLabel: function (v) { return v + ' de 5'; },
+      coFail: 'No podemos cargar esto en este momento', off: 'Aún no disponible',
+      workHead: 'Servicio mensual', recent: 'Últimos 12 meses', roles: { fo: 'Primer oficial', cap: 'Capitán' },
+      work: [
+        { k: 'block_hours', label: 'Horas block', title: 'Horas block (calzo a calzo)', unit: 'h / mes', u: 'h', axis: ' h', max: 240 },
+        { k: 'duty_hours', label: 'Tiempo de servicio', title: 'Horas de servicio', unit: 'h / mes', u: 'h', axis: ' h', max: 240 },
+        { k: 'stay_nights', label: 'Noches de pernocta fuera de base', title: 'Noches fuera de base', unit: 'noches / mes', u: 'noches', axis: ' noches', max: 31 }
+      ],
+      none: 'Datos insuficientes',
+      barLabel: function (f, v, over) { return f.title + ': la mitad central de las respuestas está en ' + v + ' ' + f.unit + '. Escala de 0 a ' + f.max + f.axis + (over ? '; una parte queda fuera de la escala' : '') + '.'; },
+      loginPayLock: 'Se desbloquea cuando inicias sesión y envías los datos de tu remuneración', payLock: 'Se desbloquea cuando envías los datos de tu remuneración',
+      giveLock: function (n) { return 'Se abre cuando respondas ' + n + (n === 1 ? ' pregunta' : ' preguntas') + ' sobre tu propia aerolínea'; },
+      login: 'Iniciar sesión', payGive: 'Agregar tu remuneración de forma anónima', giveGo: 'Responder de forma anónima',
+      coReviews: 'Ver las reseñas de esta aerolínea',
+      drawerHead: 'Reseña anónima de piloto', close: 'Cerrar',
+      reviewOf: function (n) { return n + ': reseñas'; },
+      avgNote: 'La calificación general es el promedio de seis áreas.<br>No incluye las sugerencias para la dirección.',
+      openCo: 'Abrir la página de la aerolínea',
+      count: function (n) { return 'Más recientes primero · ' + n; },
+      noMatch: 'Ninguna reseña coincide con estos filtros', noMatchSub: 'Cambia los filtros o borra la búsqueda.',
+      allCo: 'Todas las aerolíneas', allCat: 'Todos los aspectos', allRole: 'Todas las categorías',
+      more: 'Ver más',
+      live: function (n) { return n + (n === 1 ? ' reseña encontrada' : ' reseñas encontradas'); },
+      chars: function (n) { return Number(n).toLocaleString('en-US') + ' caracteres en total'; },
+      info: [
+        'La calificación de una aerolínea es el promedio de las seis áreas calificadas en sus reseñas (cultura, remuneración, beneficios, equilibrio vida-trabajo, operaciones de vuelo y entrenamiento). No incluye las sugerencias para la dirección.',
+        'Cada barra de servicio toma el promedio mensual de cada persona en los últimos 12 meses y muestra la mitad central (percentiles 25 a 75) entre las personas. Capitanes y primeros oficiales se cuentan por separado, y una cifra aparece solo cuando al menos tres personas la han respondido.',
+        'Las horas block (calzo a calzo) y el tiempo de servicio son horas por mes, en un rango de 0 a 240 h. Las noches de pernocta son noches fuera de base por mes, en un rango de 0 a 31. Las horas y las noches usan rangos distintos.',
+        function (p) { return 'Las aerolíneas más vistas se ordenan según las visitas a la página de cada aerolínea en los últimos ' + p.days + ' días.'; }
+      ]
+    } /*/PV-MSG:es*/
   };
-  var T = TX[EN ? 'en' : 'ja'];
+  var T = (w.PV_T && w.PV_T(TX, EN ? 'en' : 'ja')) || TX[EN ? 'en' : 'ja'];   // スペイン語のページは TX.es（gen-msg.mjs が書く）
   var KEYS = ['culture', 'salary', 'benefits', 'wlb', 'ops', 'training', 'mgmt'];
 
   /* ── 会社ページと同じ数え方（career-live.js の写し。assert-vote.mjs が照合する） ── */
@@ -269,7 +321,7 @@
   }
   function fromSeed(r) {
     return { key: 's' + String(r.id).replace(/[^A-Za-z0-9_-]/g, ''), kind: 'seed', slug: slugOf(r.airline), code: r.airline || '',
-             pos: r.position || '', ten: r.exp || '—', date: ym(r.date), text: String(r.comment || ''), rating: num(Number(r.rating)) };
+             pos: r.position || '', ten: yearsIn(r.exp || '—'), date: ym(r.date), text: String(r.comment || ''), rating: num(Number(r.rating)) };
   }
   function fromLocal(r) {
     var text = [r.payText, r.evalText, r.benefitText, r.scheduleText, r.opsText].filter(Boolean).join('　') || r.comment || '';
@@ -277,8 +329,10 @@
     var iso = isFinite(dt) ? dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') : '';
     var rt = r.avgRating ? Math.round(r.avgRating) : (r.rating || null);
     return { key: 'u' + String(r.ts).replace(/[^0-9]/g, ''), kind: 'local', slug: slugOf(r.airline), code: r.airline || '',
-             pos: r.position || '', ten: r.years || r.experience || '—', date: ym(iso), text: String(text), rating: num(Number(rt)) };
+             pos: r.position || '', ten: yearsIn(r.years || r.experience || '—'), date: ym(iso), text: String(text), rating: num(Number(rt)) };
   }
+  /* 見本・この端末の口コミの年数は英語の字（'16+ years'）で来る。英語の動きのページ（スペイン語も）では、その言語の語に（英語は同じ字のまま） */
+  function yearsIn(s) { s = String(s); return EN && T.yearsWord ? s.replace(/ years$/, function () { return ' ' + T.yearsWord; }) : s; }
   function localItems() {
     var out = [];
     try { (JSON.parse(localStorage.getItem('pv_reviews') || '[]') || []).forEach(function (r) { if (r) out.push(fromLocal(r)); }); } catch (e) {}

@@ -39,7 +39,9 @@ const J = (x) => JSON.stringify(x);
 
 /* ═══ 1. ファイルだけで分かること ═══ */
 console.log('\n════ 1. ファイル ════');
-const VJ = read('vote.js'), CL = read('career-live.js');
+/* スペイン語の辞書（/*PV-MSG:es*／ … gen-msg.mjs が書く英語の写し）は外して読む ── 数える約束は日英の2組のまま */
+const noMsg = (src) => src.replace(/(,\s*|\n[ \t]*)\/\*PV-MSG:[a-z-]+\*\/[\s\S]*?\/\*\/PV-MSG:[a-z-]+\*\//g, '');
+const VJ = noMsg(read('vote.js')), CL = read('career-live.js');
 /* 関数・オブジェクトの本体を、波かっこの対で切り出す（空白は詰めて比べる） */
 function body(src, head) {
   const i = src.indexOf(head);

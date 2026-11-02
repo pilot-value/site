@@ -43,7 +43,7 @@
   'use strict';
   if (w.PVPayFix) return;
 
-  var EN  = /^\/en\//.test(location.pathname);
+  var EN  = /^\/(en|es)\//.test(location.pathname);   // スペイン語のページは英語と同じ（文言のスペイン語化は後で）
   var KEY = 'pv_pay_fix';
   var TTL = 24 * 60 * 60 * 1000;
   /* 並べるのは新しい順に6つまで。7つ目から先は、上を直すと繰り上がって出る。 */

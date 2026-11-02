@@ -108,7 +108,39 @@
       wrongCode: 'That code is wrong or has expired. Send it again and retry.',
       tooFast: 'Email sending is busy right now. Please wait a moment and try again.',
       sendFail: 'The email could not be sent. Check your connection and try again.',
-    },
+    }, /*PV-MSG:es*/ es: {
+      title: 'Te falta un paso para ver tu informe',
+      lead: 'Lo que ingresaste está <b>guardado en este dispositivo</b>. Inicia sesión y se enviará de inmediato. Tu correo electrónico nunca forma parte del informe.',
+      savedTitle: '✅ ¡Te falta un paso para terminar!',
+      savedLead: '<b>Lo que enviaste está guardado en nuestro servidor.</b> Crea una cuenta: se convertirá en tu informe y desbloquearás el <b>detalle completo de remuneración durante 90 días</b>. Tu correo electrónico nunca forma parte del informe.',
+      google: 'Continuar con Google',
+      orLine: 'o',
+      email: 'Correo electrónico',
+      password: 'Contraseña',
+      sendCode: 'Enviarme un código',
+      sending: 'Enviando…',
+      signIn: 'Iniciar sesión',
+      signingIn: 'Iniciando sesión…',
+      passWay: 'Iniciar sesión con contraseña',
+      optin: 'Quiero recibir por correo novedades sobre datos de remuneración y un <b>recordatorio mensual de mi recibo de nómina</b>',
+      optinNote: '(más o menos uno al mes, cerca de tu día de pago. Lo cancelas con un clic.)',
+      codeHead: function (mail) { return 'Te enviamos un correo a <b>' + mail + '</b>.'; },
+      codeNote: 'Escribe en esta pantalla el código de 6 dígitos de ese correo.',
+      code: 'Código de 6 dígitos',
+      verify: 'Continuar con el código',
+      verifying: 'Verificando…',
+      resend: 'Reenviar el correo',
+      resendWait: function (sec) { return 'Puedes reenviarlo en ' + sec + ' s'; },
+      back: '← Volver',
+      resent: 'Te reenviamos el correo.',
+      done: 'Sesión iniciada. Generando tu informe…',
+      badEmail: 'Ingresa un correo electrónico válido.',
+      badPass: 'El correo electrónico o la contraseña no son correctos.',
+      badCode: 'Ingresa los 6 dígitos.',
+      wrongCode: 'El código es incorrecto o ya venció. Reenvíalo e inténtalo de nuevo.',
+      tooFast: 'En este momento el envío de correos está saturado. Espera un poco e inténtalo de nuevo.',
+      sendFail: 'No se pudo enviar el correo. Revisa tu conexión e inténtalo de nuevo.',
+    } /*/PV-MSG:es*/,
   };
 
   var GOOGLE_SVG =
@@ -232,7 +264,7 @@
     if (!o || !o.sb || !o.mount) return;
     var sb = o.sb;
     var L = o.lang === 'en' ? 'en' : 'ja';
-    var t = T[L];
+    var t = (window.PV_T && window.PV_T(T, L)) || T[L];   // スペイン語の辞書（gen-msg.mjs が足す）があればそれ
     var mount = o.mount;
 
     /* 見出しは「もうサーバに預かってあるか」で変わる。
@@ -268,6 +300,7 @@
        ★マウント時ではなくクリックの瞬間に組む。マウントは提出より前に走ることがあり、
          その時点ではまだ預かり証が存在しない。 */
     var NEXT = L === 'en' ? '/en/pay-report.html' : '/pay-report.html';
+    if (window.PV_PATH) NEXT = window.PV_PATH(NEXT);   // スペイン語のページは /es/pay-report.html
     function callbackUrl() {
       var next = NEXT;
       var tok = '';
@@ -467,7 +500,7 @@
       busy(btn, t.sending);
       var res = await sb.auth.signInWithOtp({
         email: mail,
-        options: { emailRedirectTo: callbackUrl(), shouldCreateUser: true },
+        options: Object.assign({ emailRedirectTo: callbackUrl(), shouldCreateUser: true }, window.PV_LANG === 'es' ? { data: { lang: 'es' } } : {}),
       });
       free(btn);
       if (res.error) {

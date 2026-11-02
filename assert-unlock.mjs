@@ -70,6 +70,8 @@ const WRITERS = [
   'pv-reunlock.js',
   'submit-review.html',
   'en/submit-review.html',
+  /* 2026-11-02 多言語化：es/ は en/ から gen-lang.mjs が作る写し（台本は英語のページと同じ） */
+  'es/submit-review.html',
   /* 2026-10-29 Vote の作り直しで、口コミ一覧（日英）の読み書きは vote.js の1本へ移った */
   'vote.js',
   'airlines/starlux-tenshoku.html',

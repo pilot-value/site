@@ -35,9 +35,9 @@
   // そのまま返す＝描画結果は 1 バイトも変わらない（回帰ゼロ）。
   function isENPage() {
     try {
-      if (w.location && w.location.pathname.indexOf('/en/') !== -1) return true;
+      if (w.location && /\/(en|es)\//.test(w.location.pathname)) return true;   // スペイン語のページも英語と同じ（2026-11-02）
       var lang = d.documentElement && d.documentElement.getAttribute('lang');
-      return !!(lang && lang.toLowerCase().indexOf('en') === 0);
+      return !!(lang && /^(en|es)/i.test(lang));
     } catch (e) { return false; }
   }
   var IS_EN = isENPage();
@@ -130,7 +130,97 @@
     '給与データを読み込めませんでした。時間をおいて再度お試しください。': 'Could not load the salary data. Please try again in a moment.',
     '給与データを読み込み中…': 'Loading salary data…'
   };
-  function T(s) { return IS_EN && L10N[s] ? L10N[s] : s; }
+  /*PV-MSG:es*/ var L10N_ES = {
+    '全機種平均': 'Promedio de toda la flota',
+    '国内ナローボディ': 'Fuselaje angosto en vuelos nacionales',
+    '国際ワイドボディ': 'Fuselaje ancho en vuelos internacionales',
+    '訓練生・発令前': 'Piloto en formación · antes de la asignación',
+    'リージョナル機 副操縦士': 'Primer oficial de aeronave regional',
+    '小型機（単通路）副操縦士': 'Primer oficial de fuselaje angosto',
+    '大型機（複通路）副操縦士': 'Primer oficial de fuselaje ancho',
+    'リージョナル機 機長': 'Capitán de aeronave regional',
+    '小型機（単通路）機長': 'Capitán de fuselaje angosto',
+    '大型機（複通路）機長': 'Capitán de fuselaje ancho',
+    '査察機長・教官・運行幹部': 'Piloto inspector · Instructor · Operaciones de vuelo',
+    '訓練機（C172 / G58）・FFS': 'Aviones de entrenamiento (C172 / G58) · FFS',
+    '全機種（査察・教官ライセンス保有）': 'Todos los tipos de aeronave (habilitado como piloto inspector / instructor)',
+    '自社養成・航大卒・私大卒 訓練生': 'Pilotos en formación de la aerolínea · Civil Aviation College · Pilotos en formación de universidades',
+    'ANAウイングス・J-AIR・JAC・海外Regional': 'ANA Wings · J-AIR · JAC · aerolíneas regionales extranjeras',
+    'ANA/JAL小型機・Peach・Jetstar': 'Fuselaje angosto de ANA/JAL · Peach · Jetstar',
+    'ANA/JAL国際線・Emirates・Qatar': 'Vuelos internacionales de ANA/JAL · Emirates · Qatar',
+    '地方路線機長・リージョナル機長': 'Capitanes de rutas regionales',
+    '国内線機長・LCC機長・米メジャーN機長': 'Capitanes de vuelos nacionales · Capitanes de LCC · Capitanes de fuselaje angosto en grandes aerolíneas de EE. UU.',
+    '長距離国際線機長・A380·747 機長': 'Capitanes de vuelos internacionales de largo alcance · Capitanes de A380/747',
+    'Check Pilot・Instructor・運航管理者': 'Piloto inspector · Instructor · Operaciones de vuelo',
+    '推定年収（目安）の内訳': 'Desglose del sueldo anual estimado',
+    '基本給': 'Sueldo base',
+    '乗務手当': 'Asignación por vuelo',
+    '賞与': 'Bono',
+    '※内訳は一般的な構成比に基づく': 'El desglose se basa en una distribución típica de la remuneración — ',
+    '目安': 'referencia',
+    '。実額の内訳は現役の給与明細で解放します。': '. Los desgloses reales aportados se desbloquean cuando los pilotos envían un recibo de nómina.',
+    '国内ナローは飛行時間が短めで乗務手当が抑えめ＝レンジ下側に寄ります。': 'Los vuelos nacionales de fuselaje angosto tienen menos horas block (calzo a calzo) y una asignación por vuelo menor, por lo que la remuneración se ubica en el extremo bajo del rango.',
+    '国際ワイドは飛行時間が長く乗務手当が厚い＝レンジ上側に寄ります。': 'Los vuelos internacionales de fuselaje ancho tienen más horas block y una asignación por vuelo más alta, por lo que la remuneración se ubica en el extremo alto del rango.',
+    '国際線ワイドボディは月間ブロックタイムが伸び、同年次でもレンジ上側に寄ります。': 'Los vuelos internacionales de fuselaje ancho suman más horas block al mes, así que, con la misma antigüedad, la remuneración se ubica más arriba dentro del rango.',
+    '推定レンジ ': 'Rango estimado ',
+    '該当機材': 'Tipos de aeronave',
+    '具体例': 'Ejemplos',
+    'データ種別': 'Tipo de dato',
+    '監修レンジ×機種推計': 'Rango verificado × estimación por tipo de aeronave',
+    '推計レンジ×機種推計': 'Rango estimado × estimación por tipo de aeronave',
+    '※機種別の切り分けは現行レンジからの推計。実額は現役の給与明細で解放します。': 'El desglose por tipo de aeronave es una estimación a partir del rango actual. La remuneración real aportada se desbloquea cuando los pilotos envían un recibo de nómina.',
+    '（': ' (',
+    '）': ')',
+    '・': ' · ',
+    'レンジ ': 'Rango ',
+    ' ／ ': ' / ',
+    '各社ページ監修の実額': 'Montos reales aportados, verificados en la página de la aerolínea',
+    '現行レンジからの推計': 'Estimado a partir del rango actual',
+    'データ募集中': 'Recopilando datos',
+    /* ★「確認中」＝金額の出どころ・対象・計算方法が確認できていない段（2026-09-29）。
+       「データ募集中」とは別のもの。あちらは「まだ誰も出していない」、
+       こちらは「数字は在ったが、どの資料から作ったか確認できていない」。
+       ⚠️ 0 や空の数値で埋めない。数字そのものを持たせない（salary-data.mjs 側で外す）。 */
+    '確認中': 'En revisión',
+    '出どころを確認中': 'Fuente en revisión',
+    /* ★こちらは「金額は在るが平均ではない」段（公式募集例・求人・本人の申告など）。
+       年次ごとの段に割れる形の数字ではないので、この図には出さず会社ページへ送る。 */
+    '会社ページへ': 'Ver página de la aerolínea',
+    '平均ではない形で掲載': 'Publicado, no como promedio',
+    '役職手当は現役の明細で': 'Compensación por cargo de gestión según los recibos de nómina enviados',
+    '実額は明細で解放': 'La remuneración real se desbloquea con un recibo de nómina',
+    '実額': 'Real',
+    '推計': 'Estimación',
+    ' の詳細ページを見る →': ' — ver la página completa de sueldos →',
+    ' の年収詳細': ' — detalle del sueldo anual',
+    '閉じる': 'Cerrar',
+    '推定年収': 'Sueldo anual estimado',
+    '。実額の内訳は現役パイロットの給与明細で解放されます。': '. Los desgloses reales aportados se desbloquean cuando pilotos en activo envían un recibo de nómina.',
+    '給与明細を出して解放する': 'Enviar un recibo de nómina para desbloquear',
+    '募集中': 'Recopilando',
+    '会社を選ぶと、機種ごとの段位で年収を横並び比較できます。': 'Elige aerolíneas para comparar el sueldo anual lado a lado, nivel por nivel en cada tipo de aeronave.',
+    ' を比較から外す': ': quitar de la comparación',
+    '会社を選ぶと、段位ごとに年収を横並び比較できます。': 'Elige aerolíneas para comparar el sueldo anual lado a lado en cada nivel.',
+    '年次 / 役職': 'Antigüedad / Categoría',
+    '上＝役職・下＝若手': 'Arriba = sénior · abajo = júnior',
+    '比較から外す': 'Quitar de la comparación',
+    '会社を選んで比較': 'Elige aerolíneas para comparar',
+    'よく見られる航空会社': 'Aerolíneas populares',
+    '会社を追加': 'Agregar aerolínea',
+    '航空会社を検索…（社名・地域）': 'Buscar aerolíneas… (nombre o región)',
+    '航空会社を検索': 'Buscar aerolíneas',
+    ' 社': ' aerolíneas',
+    '社まで表示中。新しく選ぶと一番古い会社と入れ替わります。': ' aerolíneas como máximo — si eliges otra, reemplaza a la que elegiste primero.',
+    '「': '"',
+    '」に一致する会社がありません': '" — no hay aerolíneas que coincidan',
+    '＋': '+',
+    '給与データを読み込めませんでした。時間をおいて再度お試しください。': 'No se pudieron cargar los datos de remuneración. Inténtalo de nuevo en un momento.',
+    '給与データを読み込み中…': 'Cargando datos de remuneración…'
+  }; /*/PV-MSG:es*/
+  function T(s) {
+    if (!IS_EN || !L10N[s]) return s;
+    return (window.PV_LANG === 'es' && typeof L10N_ES !== 'undefined' && L10N_ES[s]) || L10N[s];   // スペイン語の対応表（gen-msg.mjs が書く）
+  }
 
   // 地域の名前（会社選びの一覧で社名の右に出す字）。airlines-meta.js の region は中の符号（eu_fsc など）なので、
   // 画面には必ずこの名前を出す（名前は航空会社一覧の地域ボタンと同じ字）。知らない符号は何も出さない（符号を読み手に見せない）。

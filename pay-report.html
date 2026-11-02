@@ -71,7 +71,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 })();
 </script>
 <!--/PV-3P-->
-<script src="pv-session.js?v=700cc594"></script>
+<script src="pv-session.js?v=7620526d"></script>
 <!-- ★招待（?ref=）を受け取るところ。読み込む位置がここでなければならない。
      下の長いインラインスクリプトは、起動した時点で window.PVReferral.claim() を
      呼んで「招待リンクから来た人」を紹介者に結びつける。この script を
@@ -653,6 +653,8 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               <option value="BRL">BRL — ブラジルレアル</option>
               <option value="CLP">CLP — チリペソ</option>
               <option value="COP">COP — コロンビアペソ</option>
+              <option value="PEN">PEN — ペルーソル</option>
+              <option value="ARS">ARS — アルゼンチンペソ</option>
             </select>
           </div>
         </div>
@@ -1732,7 +1734,7 @@ const LANG = 'ja';
    TAX_TABLE  = 税率表がある国だけ（無い国は税率を自動で入れない）。
    出所URLは pv-vocab.mjs 側にある（配信対象外なので、ここには載せない）。 */
 /*BEGIN:PVMETA*/
-const CUR_META = {USD:[2,'$'],EUR:[2,'€'],JPY:[0,'¥'],GBP:[2,'£'],AED:[2,'د.إ'],QAR:[2,'ر.ق'],SAR:[2,'ر.س'],KWD:[3,'د.ك'],BHD:[3,'.د.ب'],OMR:[3,'ر.ع.'],JOD:[3,'د.ا'],TRY:[2,'₺'],CHF:[2,'CHF'],SEK:[2,'kr'],NOK:[2,'kr'],DKK:[2,'kr'],ISK:[0,'kr'],PLN:[2,'zł'],HUF:[0,'Ft'],CZK:[2,'Kč'],RON:[2,'lei'],CAD:[2,'C$'],AUD:[2,'A$'],NZD:[2,'NZ$'],FJD:[2,'FJ$'],SGD:[2,'S$'],HKD:[2,'HK$'],TWD:[2,'NT$'],KRW:[0,'₩'],CNY:[2,'¥'],THB:[2,'฿'],MYR:[2,'RM'],IDR:[0,'Rp'],PHP:[2,'₱'],VND:[0,'₫'],BND:[2,'B$'],INR:[2,'₹'],EGP:[2,'E£'],ETB:[2,'Br'],KES:[2,'KSh'],ZAR:[2,'R'],MXN:[2,'MX$'],BRL:[2,'R$'],CLP:[0,'CLP$'],COP:[2,'COL$']};
+const CUR_META = {USD:[2,'$'],EUR:[2,'€'],JPY:[0,'¥'],GBP:[2,'£'],AED:[2,'د.إ'],QAR:[2,'ر.ق'],SAR:[2,'ر.س'],KWD:[3,'د.ك'],BHD:[3,'.د.ب'],OMR:[3,'ر.ع.'],JOD:[3,'د.ا'],TRY:[2,'₺'],CHF:[2,'CHF'],SEK:[2,'kr'],NOK:[2,'kr'],DKK:[2,'kr'],ISK:[0,'kr'],PLN:[2,'zł'],HUF:[0,'Ft'],CZK:[2,'Kč'],RON:[2,'lei'],CAD:[2,'C$'],AUD:[2,'A$'],NZD:[2,'NZ$'],FJD:[2,'FJ$'],SGD:[2,'S$'],HKD:[2,'HK$'],TWD:[2,'NT$'],KRW:[0,'₩'],CNY:[2,'¥'],THB:[2,'฿'],MYR:[2,'RM'],IDR:[0,'Rp'],PHP:[2,'₱'],VND:[0,'₫'],BND:[2,'B$'],INR:[2,'₹'],EGP:[2,'E£'],ETB:[2,'Br'],KES:[2,'KSh'],ZAR:[2,'R'],MXN:[2,'MX$'],BRL:[2,'R$'],CLP:[0,'CLP$'],COP:[2,'COL$'],PEN:[2,'S/'],ARS:[2,'AR$']};
 const TAX_ZERO = ['AE','QA','KW','BH','OM','SA','BN','KY','BM','BS','MC'];
 const CITIZEN_TAX = ['US','ER'];
 const TAX_TABLE = {"JP":{"cur":"JPY","emp":[[1900000,0,650000],[3600000,0.3,80000],[6600000,0.2,440000],[8500000,0.1,1100000],[null,0,1950000]],"basic":[[1320000,950000],[3360000,580000],[4890000,680000],[6550000,630000],[23500000,580000],[24000000,480000],[24500000,320000],[25000000,160000],[null,0]],"quick":[[1950000,0.05,0],[3300000,0.1,97500],[6950000,0.2,427500],[9000000,0.23,636000],[18000000,0.33,1536000],[40000000,0.4,2796000],[null,0.45,4796000]],"surtax":0.021,"local":0.1},"GB":{"cur":"GBP","allow":12570,"taperFrom":100000,"taperRate":0.5,"bands":[[37700,0.2],[125140,0.4],[null,0.45]],"note":"gb-scotland"},"US":{"cur":"USD","std":15750,"bands":[[11925,0.1],[48475,0.12],[103350,0.22],[197300,0.24],[250525,0.32],[626350,0.35],[null,0.37]],"note":"us-state"}};

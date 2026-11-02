@@ -16,7 +16,7 @@
 // 本体（TypeScript）をそのまま import する。Node 24 は .ts を直接読めるので、
 // 型注釈を正規表現で剥がす必要はない。Deno.env / Deno.serve だけ差し替える。
 globalThis.Deno = { env: { get: () => '' }, serve: () => {} };
-const { normalizeTranslation, parseLoose, detectLang, missingNumbers, isFatalKeyError } =
+const { normalizeTranslation, parseLoose, detectLang, planRow, guardFor, LANGS, missingNumbers, isFatalKeyError } =
   await import('./supabase/functions/translate-review/index.ts');
 // 鍵が死んだときの判定は parse-payslip も同じものを持つ。両方から実体を取って突き合わせる。
 const payslip = await import('./supabase/functions/parse-payslip/index.ts');
@@ -90,6 +90,24 @@ ck('英語の本文に機種・社名が混じっても en', detectLang(EN_LONG 
 ck('日本語の本文は ja', detectLang(JA_LONG), 'ja');
 ck('日本語に英語の業界語が混じっても ja', detectLang(JA_LONG + ' SOP や CRM の徹底も進んでいる。'), 'ja');
 ck('空文字は en（訳す本文が無いので実害なし）', detectLang(''), 'en');
+/* ★2026-11-02 スペイン語（中南米）を足した。スペイン語の口コミを en と判定すると、英語のページに原文（スペイン語）がそのまま出て、
+   スペイン語への訳を「英語から」作ってしまう。英語の口コミに per diem や地名が混じっても en のまま。 */
+const ES_LONG = 'El sueldo base es bajo comparado con otras aerolíneas de la región, pero los viáticos y las pernoctas compensan bastante. '
+  + 'La programación es estable y el ascenso a capitán tarda unos 8 años en el A320.';
+ck('スペイン語の本文は es', detectLang(ES_LONG), 'es');
+ck('スペイン語に機種・略語・英語の業界語が混じっても es', detectLang(ES_LONG + ' Hay mucho SOP y el roster sale tarde (B787, LPC).'), 'es');
+ck('英語の本文に per diem・スペインの地名が混じっても en', detectLang(EN_LONG + ' Per diem in Madrid and Bogotá is generous.'), 'en');
+ck('日本語にスペイン語の地名が混じっても ja', detectLang(JA_LONG + ' メキシコシティ（Ciudad de México）のステイ。'), 'ja');
+/* 訳す言語と書き込みの条件（★前からある訳を書き換えない・判定し直して原文の言語を入れ替えない） */
+const J = (x) => JSON.stringify(x);
+ck('言語は日英西の3つ', J(LANGS), J(['ja', 'en', 'es']));
+ck('訳の無いスペイン語の行 → 日英へ訳す', J(planRow({}, 'en', ES_LONG)), J({ from: 'es', targets: ['ja', 'en'] }));
+ck('訳の無い日本語の行 → 英西へ訳す', J(planRow({}, 'ja', JA_LONG)), J({ from: 'ja', targets: ['en', 'es'] }));
+ck('日本語へ訳し済みの英語の行（言語を足す前の行）→ 西だけ足す', J(planRow({ ja: { culture: 'x' } }, 'en', EN_LONG)), J({ from: 'en', targets: ['es'] }));
+ck('訳し済みの行は本文がスペイン語っぽくても原文の言語を入れ替えない', J(planRow({ ja: { culture: 'x' } }, 'en', ES_LONG)), J({ from: 'en', targets: ['es'] }));
+ck('全言語そろった行 → 何もしない', J(planRow({ ja: {}, es: {} }, 'en', EN_LONG).targets), J([]));
+ck('訳の無い行の書き込み条件は「訳が丸ごと無い」', guardFor({}, ['ja', 'en']), 'translations=is.null');
+ck('訳の在る行の書き込み条件は「足す言語がまだ無い」（前の訳を消さない）', guardFor({ ja: {} }, ['es']), 'translations->>es=is.null');
 
 /* 7) 訳文から数字が落ちていないか。落ちても文章としては自然に読めるので、
       人の目では気づけない。2パス目に渡す材料。 */

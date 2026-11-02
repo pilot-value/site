@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="es-419" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png"/>
+<link rel="apple-touch-icon" href="../assets/favicon-180.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/><noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet"/></noscript>
+  <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Iniciar sesión | PILOT VALUE</title>
+<!--PV-SEO-->
+<!--PV-GEN lang="es" from="en/login.html" — node gen-lang.mjs es が書く。手で直さない-->
+<meta name="description" content="Inicia sesión en PILOT VALUE. Necesitas una cuenta para publicar, pero tu correo electrónico nunca se asocia a lo que envías."/>
+<meta name="robots" content="noindex,follow"/>
+<link rel="canonical" href="https://pilot-value.com/es/login.html"/>
+<meta property="og:title" content="Iniciar sesión | PILOT VALUE"/>
+<meta property="og:description" content="Inicia sesión en PILOT VALUE. Necesitas una cuenta para publicar, pero tu correo electrónico nunca se asocia a lo que envías."/>
+<meta property="og:url" content="https://pilot-value.com/es/login.html"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="PILOT VALUE"/>
+<meta property="og:locale" content="es_LA"/>
+<meta property="og:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="Iniciar sesión | PILOT VALUE"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Iniciar sesión | PILOT VALUE"/>
+<meta name="twitter:description" content="Inicia sesión en PILOT VALUE. Necesitas una cuenta para publicar, pero tu correo electrónico nunca se asocia a lo que envías."/>
+<meta name="twitter:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
+<!--/PV-SEO-->
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../pv-reunlock.js?v=2"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    /* ★ body 直下に .mr-top が入ったので、body の flex は「ヘッダー ／ 本文」の縦積みに使う。
+         カードの中央寄せは <main class="auth-main"> が flex:1 でそのまま引き継ぐ。
+       ★ padding を body に残さない。残すと .mr-top の背景と下線が左右に届かず、
+         上にも隙間ができる＝どのページとも揃わないヘッダーになる。 */
+    body{background:#0a0c0f;color:#e8edf2;font-family:Inter,'Noto Sans JP',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+    .auth-main{flex:1;display:flex;align-items:center;justify-content:center;padding:20px}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(245,200,66,.05) 0%,transparent 70%);pointer-events:none}
+    [data-theme="light"] body{background:#f3f5f8;color:#0f172a}
+    .auth-card{background:rgba(17,22,32,.95);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:44px 40px;width:100%;max-width:420px;position:relative}
+    [data-theme="light"] .auth-card{background:#fff;border-color:rgba(0,0,0,.09);box-shadow:0 8px 40px rgba(0,0,0,.12)}
+    .auth-input{width:100%;padding:13px 16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:11px;color:#e8edf2;font-size:.9rem;outline:none;transition:border-color .2s,background .2s;font-family:inherit}
+    /* ★iOS は 16px 未満の入力欄に触れるとページごと拡大し、戻らない。拡大した画面では
+       position:fixed のヘッダーと常設バーが窓より広い箱になり、左右とも切れる
+       （2026-08-27、オーナーの iPhone 16 で実測 1.09 倍）。⚠️ この 16px を下げない。 */
+    @media (pointer:coarse),(max-width:820px){.auth-input{font-size:16px}}
+    .auth-input:focus{border-color:rgba(245,200,66,.5);background:rgba(255,255,255,.07)}
+    .auth-input::placeholder{color:#6b7d93}
+    [data-theme="light"] .auth-input{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.12);color:#0f172a}
+    [data-theme="light"] .auth-input:focus{border-color:rgba(161,114,0,.4);background:#fff}
+    .btn-login{width:100%;padding:14px;background:#e8edf2;color:#0a0c0f;border:none;border-radius:11px;font-weight:700;font-size:.92rem;cursor:pointer;transition:background .2s,transform .15s,opacity .2s;font-family:inherit}
+    .btn-login:hover:not(:disabled){background:#fff;transform:translateY(-1px)}
+    .btn-login:disabled{opacity:.6;cursor:not-allowed}
+    [data-theme="light"] .btn-login{background:#0f172a;color:#fff}
+    [data-theme="light"] .btn-login:hover:not(:disabled){background:#1e293b}
+    .btn-google{width:100%;padding:13px;background:rgba(255,255,255,.06);color:#e8edf2;border:1px solid rgba(255,255,255,.11);border-radius:11px;font-weight:600;font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:background .2s;font-family:inherit}
+    .btn-google:hover{background:rgba(255,255,255,.11)}
+    [data-theme="light"] .btn-google{background:rgba(0,0,0,.04);color:#0f172a;border-color:rgba(0,0,0,.12)}
+    .theme-toggle{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.07);color:#e8edf2;border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:background .2s;flex-shrink:0}
+    .theme-toggle:hover{background:rgba(255,255,255,.13)}
+    [data-theme="light"] .theme-toggle{background:rgba(0,0,0,.06);color:#0f172a;border-color:rgba(0,0,0,.13)}
+    .divider{display:flex;align-items:center;gap:12px;color:#6b7d93;font-size:.78rem;margin:4px 0}
+    .divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.08)}
+    [data-theme="light"] .divider::before,[data-theme="light"] .divider::after{background:rgba(0,0,0,.08)}
+    .error-msg{color:#f87171;font-size:.8rem;padding:8px 12px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;display:none}
+    /* The same box doubles as the "sent" notice. #4ade80 sinks into white, so light theme goes darker. */
+    .error-msg.is-ok{color:#4ade80;background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.22)}
+    [data-theme="light"] .error-msg.is-ok{color:#15803d;background:rgba(21,128,61,.07);border-color:rgba(21,128,61,.22)}
+    .notice{font-size:.8rem;color:#c9d4e0;line-height:1.65;padding:10px 13px;background:rgba(245,200,66,.07);border:1px solid rgba(245,200,66,.2);border-radius:10px;margin-bottom:18px;display:none}
+    [data-theme="light"] .notice{color:#3f4a5a;background:rgba(161,114,0,.07);border-color:rgba(161,114,0,.22)}
+    .otp-note{font-size:.82rem;color:#8fa0b4;line-height:1.7;margin-bottom:14px}
+    [data-theme="light"] .otp-note{color:#5a677b}
+    .step-title{font-size:1.02rem;font-weight:700;color:#e8edf2;letter-spacing:-.01em;margin-bottom:6px}
+    [data-theme="light"] .step-title{color:#0f172a}
+    .otp-code{text-align:center;letter-spacing:.45em;font-size:1.15rem;font-weight:700;text-indent:.45em}
+    /* Three of these in a row split mid-phrase at 430px. Keep each intact; wrap by line. */
+    .btn-link{background:none;border:none;color:#6b7d93;font-size:.8rem;cursor:pointer;font-family:inherit;padding:6px;border-radius:8px;white-space:nowrap;transition:color .2s,background .2s}
+    .btn-link:hover{color:#f5c842}
+    .btn-link:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+    .btn-link:disabled{opacity:.5;cursor:not-allowed}
+  </style>
+  <!-- 色と余白の唯一の正。下の骨格が --pv-* を読むので、必ず先に置く。 -->
+  <link rel="stylesheet" href="../pv-tokens.css">
+  <!-- 上部バーの骨格（.mr-top / .mr-top-in / .mr-brand / .mr-top-r）。
+       マイページ系と同じものを読む。★ここの .mr-* を HTML に書き写さない。 -->
+  <link rel="stylesheet" href="../pv-give.css">
+  <link rel="stylesheet" href="../my-value.css">
+<!-- Google tag (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-3XYF69VQ3X');
+</script>
+<!--PV-3P-->
+<script>
+/* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
+   利用者が最初に触った時か load の、どちらか早いほうで読み込む。
+   戻すときは node defer-third-party.mjs --undo */
+(function(){
+  var done=false;
+  function boot(){
+    if(done)return; done=true;
+    [{"src":"https://www.googletagmanager.com/gtag/js?id=G-3XYF69VQ3X","cross":false}].forEach(function(it){
+      var s=document.createElement('script');
+      s.src=it.src; s.async=true;
+      if(it.cross)s.crossOrigin='anonymous';
+      document.head.appendChild(s);
+    });
+  }
+  ['pointerdown','keydown','touchstart','scroll','wheel'].forEach(function(ev){
+    addEventListener(ev,boot,{once:true,passive:true});
+  });
+  if(document.readyState==='complete')boot();
+  else addEventListener('load',boot,{once:true});
+})();
+</script>
+<!--/PV-3P-->
+<script src="../pv-session.js?v=7620526d"></script>
+  <!-- PV-NAV: site-wide navigation (left rail on wide screens, left drawer on narrow).
+       Written by patch-side-nav.mjs. app-nav.css loads last (after my-value.css). -->
+  <link rel="stylesheet" href="../app-nav.css">
+</head>
+<body class="pv-anav-shell pv-anav-app">
+<nav class="mr-side" aria-label="Menú">
+      <a class="mr-side-a is-add" href="pay-report.html#ps">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+        <span>Agregar remuneración de forma anónima</span>
+      </a>
+      <a class="mr-side-a" href="index.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 2l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>
+        <span>INICIO</span>
+      </a>
+      <a class="mr-side-a" href="actual-pay.html" data-mr-gate="real">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>REAL PAY</span>
+      </a>
+      <a class="mr-side-a" href="community.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/></svg>
+        <span>VOTE</span>
+      </a>
+      <a class="mr-side-a" href="../en/roadmap.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V4s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+        <span>HOJA DE RUTA Y SOLICITUDES</span>
+      </a>
+      <a class="mr-side-a" href="world-airlines.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
+        <span>AEROLÍNEAS</span>
+      </a>
+      <a class="mr-side-a" href="../en/invite.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        <span>INVITAR</span>
+      </a>
+      <a class="mr-side-a" href="profile.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>MI PÁGINA</span>
+      </a>
+      <a class="mr-side-sub" id="pv-anav-login" data-pv-auth="out" href="login.html">Iniciar sesión</a>
+      <a class="mr-side-sub" href="contact.html">Contacto</a>
+    </nav>
+
+  <header class="mr-top">
+    <div class="mr-top-in">
+      <a class="mr-brand" href="index.html" aria-label="Inicio de PILOT VALUE">
+        <img src="../assets/logo.png" alt="PILOT VALUE" height="28"/>
+      </a>
+      <!-- ★ Keep #theme-toggle inside .mr-top-r. lang-toggle.js:165 inserts the language
+           button right after it, currency.js:345 puts the currency button after that,
+           and search.js:566 appends the ≡ to .mr-top-r. -->
+      <div class="mr-top-r">
+        <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar tema"></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="auth-main">
+  <div class="auth-card">
+    <div style="text-align:center;margin-bottom:32px">
+      <a href="index.html"><img src="../assets/logo.png" alt="PILOT VALUE" style="height:34px;margin:0 auto"/></a>
+      <div style="font-size:.75rem;color:#6b7d93;margin-top:8px;letter-spacing:.04em">Una de las más grandes del mundo｜Totalmente anónima｜Solo para pilotos｜Plataforma de información sobre sueldo anual y cambio de empleo</div>
+    </div>
+
+    <div class="notice" id="expired-notice">
+      Por tu seguridad, cerramos tu sesión automáticamente. Vuelve a iniciar sesión.
+    </div>
+
+    <!-- Shown when the sign-in round trip broke and auth-callback.html sent them back.
+         The wording comes from MSG below. Do not reuse expired-notice: that one is
+         pinned by db/test-session-expiry.mjs as "shows once, gone on reload", and
+         ?reason= stays in the URL here, so reusing it would muddy that. -->
+    <div class="notice" id="auth-fail-notice" style="display:none"></div>
+
+    <form id="login-form" onsubmit="handleLogin(event)" novalidate>
+      <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:16px">
+        <input class="auth-input" type="email" id="email" placeholder="Correo electrónico" autocomplete="email" required/>
+        <input class="auth-input" type="password" id="password" placeholder="Contraseña" autocomplete="current-password" required/>
+        <div class="error-msg" id="login-error">Tu correo electrónico o tu contraseña son incorrectos</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button type="submit" class="btn-login" id="login-btn">Iniciar sesión</button>
+        <!-- help.html はずっと「パスワードをお忘れの方」から再設定できると案内していたのに、
+             その入口が無かった。実物を置く。押すと下の #email-step が再設定の文面で開く。 -->
+        <div style="display:flex;justify-content:flex-end">
+          <button type="button" class="btn-link" onclick="showEmailStep('reset')">¿Olvidaste tu contraseña?</button>
+        </div>
+        <div class="divider">o</div>
+        <button type="button" class="btn-google" onclick="handleGoogle()">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Iniciar sesión con Google
+        </button>
+        <button type="button" class="btn-google" onclick="showEmailStep()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>
+          Enviarme un código por correo
+        </button>
+      </div>
+    </form>
+
+    <!-- ★A dedicated step for the destination address.
+         Reusing #email from the password form gave no clue about WHERE the
+         email was going. Make the recipient visible before anything is sent. -->
+    <div id="email-step" style="display:none">
+      <div class="step-title" id="email-step-title">Iniciar sesión con correo electrónico</div>
+      <div class="otp-note" id="email-step-note">
+        Ingresa tu correo electrónico.<br> Te enviaremos un código de acceso de 6 dígitos. No necesitas contraseña.
+      </div>
+      <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:16px">
+        <input class="auth-input" type="email" id="otp-email" placeholder="tu@ejemplo.com"
+               autocomplete="email" inputmode="email" aria-label="Correo electrónico"/>
+        <div class="error-msg" id="email-error"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button type="button" class="btn-login" id="otp-send-btn" onclick="startOtp()">Enviar el correo</button>
+        <div style="display:flex;justify-content:center">
+          <button type="button" class="btn-link" onclick="backToPassword()">Usar otro método</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Email OTP: the 6-digit code only.
+         On 2026-08-22 we removed {{ .ConfirmationURL }} from the Supabase
+         templates. Tapping the link opens the mail app's in-app browser,
+         stranding the anonymous pay-data claim token (pv_pay_claim) — that
+         really did lose four submissions. The PKCE code_verifier lives in the
+         originating browser too, so the link never worked across devices.
+         Do not write "open the link" back in. There is no link. -->
+    <div id="otp-step" style="display:none">
+      <div class="step-title">Ingresa tu código</div>
+      <div class="otp-note" id="otp-note"></div>
+      <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:16px">
+        <input class="auth-input otp-code" type="text" id="otp-code" inputmode="numeric" pattern="[0-9]*"
+               autocomplete="one-time-code" maxlength="6" placeholder="000000" aria-label="Código de 6 dígitos"/>
+        <div class="error-msg" id="otp-error"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button type="button" class="btn-login" id="otp-verify-btn" onclick="verifyOtpCode()">Continuar con el código</button>
+        <div style="display:flex;justify-content:center;gap:6px 14px;flex-wrap:wrap">
+          <button type="button" class="btn-link" id="otp-resend-btn" onclick="startOtp()">Reenviar correo</button>
+          <button type="button" class="btn-link" onclick="showEmailStep()">Cambiar correo</button>
+          <button type="button" class="btn-link" onclick="backToPassword()">Usar otro método</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 「パスワードをお忘れの方」から来た人だけが通る段。
+         コードで入れてしまうと、そのまま一生パスワードを思い出さないまま終わる。
+         ここで決め直してもらう。ただし口コミ投稿の途中で止めないよう逃げ道は残す。 -->
+    <div id="password-step" style="display:none">
+      <div class="step-title">Establecer una nueva contraseña</div>
+      <div class="otp-note">
+        Ya iniciaste sesión.<br> Elige una nueva contraseña para que la próxima vez también puedas iniciar sesión con tu correo electrónico y contraseña.
+      </div>
+      <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:16px">
+        <input class="auth-input" type="password" id="pw-new" placeholder="Nueva contraseña (mínimo 8 caracteres)"
+               autocomplete="new-password" minlength="8" aria-label="Nueva contraseña"/>
+        <input class="auth-input" type="password" id="pw-confirm" placeholder="Confirmar contraseña"
+               autocomplete="new-password" minlength="8" aria-label="Confirmar contraseña"/>
+        <div class="error-msg" id="pw-error"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button type="button" class="btn-login" id="pw-save-btn" onclick="savePasswordAndContinue()">Guardar y continuar</button>
+        <div style="display:flex;justify-content:center">
+          <button type="button" class="btn-link" id="pw-skip-btn" onclick="skipPassword()">Configurar más tarde</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:24px;font-size:.84rem;color:#6b7d93">
+      ¿Aún no tienes una cuenta? <!-- ★既定の行き先は pay-report.html。登録は給与の送信時にその場で済む。
+           口コミなど別の意図で来た人は、下の to-signup 書き換えが signup.html?next=… に戻す。 --> <a href="pay-report.html" id="to-signup" style="color:#f5c842;font-weight:700;text-decoration:none">Regístrate</a>
+    </div>
+  </div>
+  </main>
+
+  <script>
+    const SB_URL = 'https://vzgmnkrggrwtsrpqndsm.supabase.co';
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6Z21ua3JnZ3J3dHNycHFuZHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0MzkwOTcsImV4cCI6MjA5MDAxNTA5N30.wE4cJbqeYGCgn5ZvHd80hYWgQuySKvOMJMbsJWOvmtw';
+    const sb = supabase.createClient(SB_URL, SB_KEY, {
+      auth: { flowType: 'pkce' }
+    });
+
+    const SUN = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+    const MOON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+    function applyTheme(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('pv-theme',t);const b=document.getElementById('theme-toggle');if(b)b.innerHTML=t==='dark'?SUN:MOON;}
+    applyTheme(localStorage.getItem('pv-theme')||'light');
+    document.getElementById('theme-toggle').addEventListener('click',function(){applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');});
+
+    /* ★戻り先のパラメータ名がサイト内で3種類に割れている。
+         next= / redirect= / return=（airlines 配下はパスで来る）。
+       redirect しか読んでいなかったので、他の2つで来た人は全員 profile へ落ちていた。
+       ★外部サイトへ飛ばされないよう、拡張子ではなく同一オリジンで判定する
+         （?next=https://evil.com/x.html は .html で終わってしまうため）。 */
+    function safePath(to){
+      if (!to) return '';
+      if (/^[a-z][a-z0-9+.-]*:/i.test(to)) return '';      // http: javascript: data: …
+      if (to.startsWith('//') || to.includes('\\')) return '';
+      try {
+        const u = new URL(to, location.href);
+        return u.origin === location.origin ? u.pathname + u.search + u.hash : '';
+      } catch (e) { return ''; }
+    }
+    /* ★既定の着地先は REAL PAY（2026-09-06）。ログインした人が最初に見るのは
+         「他のパイロットが実際にいくら貰っているか」にする。
+       ★必ず絶対パス '/en/actual-pay.html' で書く。'actual-pay.html' にしない。
+         この戻り先は下で auth-callback へ ?next= として渡され、ルートの
+         /auth-callback.html から解決される。そこから見た 'actual-pay.html' は
+         /actual-pay.html ＝日本語の画面で、英語版から素でログインした人が
+         いきなり日本語の画面に落ちていた（2026-08-22 修正・当時は profile.html）。
+         ?next= 付きで来た場合は safePath が /en/… の絶対パスを返すので元から正しい。 */
+    function getRedirect(){
+      const q = new URLSearchParams(location.search);
+      const to = safePath(q.get('next') || q.get('redirect') || q.get('return')) || '/en/actual-pay.html';
+      return (window.PV_PATH ? window.PV_PATH(to) : to);   // the Spanish page (es/) lands on the Spanish version when there is one
+    }
+
+    /* ★Do not drop the destination when handing off to "Sign up".
+       The path for someone coming to write a review is
+       submit-review.html → login.html?next=… → Sign up, and this link was a bare
+       signup.html, so that single link erased the intent (they landed on profile.html
+       with no way back to the review form). */
+    (function(){
+      const a = document.getElementById('to-signup');
+      if (!a) return;
+      const to = getRedirect();
+      if (to && to !== '/en/actual-pay.html') a.href = 'signup.html?next=' + encodeURIComponent(to);
+    })();
+
+    // Notice shown when pv-session.js expired the session (show once, then clear)
+    (function(){
+      let expired = false;
+      try { expired = sessionStorage.getItem('pv_expired') === '1'; sessionStorage.removeItem('pv_expired'); } catch(e){}
+      if (!expired) expired = new URLSearchParams(location.search).get('expired') === '1';
+      if (expired) document.getElementById('expired-notice').style.display = 'block';
+    })();
+
+    /* ── Receives someone auth-callback.html sent back after a broken sign-in ──
+       On 2026-09-01 a Qantas pilot filled in the whole English pay form and never
+       reached sign-up. auth-callback.html sent everyone to the Japanese login no
+       matter the language, and nobody read ?error=1 — so nothing showed on screen
+       and nothing reached GA4.
+       ★GA4 can only be fired here: auth-callback.html is in inject-ga.mjs's SKIP
+         list so it has no gtag (?code= must never reach Google as page_location).
+       ★Keep next. getRedirect() picks it up, so a successful retry lands them back
+         on the page they came from. The claim token was already moved into
+         localStorage by auth-callback.html. */
+    (function(){
+      const q = new URLSearchParams(location.search);
+      if (q.get('error') !== '1') return;
+      // Fixed short codes only. Never put a string from the URL on screen or into GA4.
+      const reason = String(q.get('reason') || '').replace(/[^a-z_]/g, '').slice(0, 32) || 'unknown';
+      const MSG = {
+        in_app_browser: 'El inicio de sesión con Google no funciona en los navegadores integrados en apps. Usa "Enviarme un código por correo" abajo.',
+        oauth_error:    'Se interrumpió el inicio de sesión. Inténtalo de nuevo.',
+        no_code:        'Se interrumpió el inicio de sesión. Inténtalo de nuevo.',
+        set_session:    'Se interrumpió el inicio de sesión. Inténtalo de nuevo.',
+        timeout:        'Se interrumpió el inicio de sesión. Inténtalo de nuevo.'
+      };
+      const el = document.getElementById('auth-fail-notice');
+      if (el) { el.textContent = MSG[reason] || MSG.oauth_error; el.style.display = 'block'; }
+      try { if (window.gtag) gtag('event', 'auth_callback_fail', { reason: reason }); } catch(e){}
+      // Drop error/reason once shown (so a reload does not show it twice). ★Keep next.
+      try {
+        q.delete('error'); q.delete('reason');
+        const s = q.toString();
+        history.replaceState(null, '', location.pathname + (s ? '?' + s : '') + location.hash);
+      } catch(e){}
+    })();
+
+    // Redirect if already signed in
+    (async function(){
+      const { data:{ session } } = await sb.auth.getSession();
+      if(session) window.location.href = getRedirect();
+    })();
+
+    /* Post-login work, shared by the password and the OTP paths.
+       Writing this twice is how one of them silently stops re-unlocking. */
+    async function afterLogin(user) {
+      // Fetch profile (always save pv_user even if no profile has been created yet)
+      const { data: profile } = await sb.from('profiles').select('*').eq('id', user.id).single();
+      const userData = profile
+        ? {...profile, email: user.email}
+        : { id: user.id, email: user.email, name: (user.email||'').split('@')[0] };
+      localStorage.setItem('pv_user', JSON.stringify(userData));
+
+      // Start pv-session.js's idle clock here
+      try { localStorage.setItem('pv_last_active', String(Date.now()));
+            localStorage.setItem('pv_session_start', String(Date.now())); } catch(e){}
+
+      // Check for previously posted reviews → re-unlock (match anonymous reviews_v2 by proof_hash set, plus legacy reviews backward compatibility)
+      try { if (window.pvCheckReunlock) await pvCheckReunlock(sb, user.id); } catch(e){}
+
+      window.location.href = getRedirect();
+    }
+
+    /* ★Separate the reasons a sign-in failed (2026-09-11).
+       Everything used to come out as "your email address or password is incorrect", so
+       someone whose connection dropped — or who had hit the rate limit — retyped the same
+       correct password over and over (and every retry pushed them closer to the limit).
+       ⚠️ supabase-js returns network failures as error, it does not throw
+          (AuthRetryableFetchError, status 0). An error is not proof of a typo.
+       ★Read status first. The message string is Supabase's to change. */
+    function authErrMsg(err) {
+      const st   = Number(err && err.status) || 0;
+      const code = String((err && err.code) || '');
+      const name = String((err && err.name) || '');
+      const off  = (typeof navigator !== 'undefined' && navigator.onLine === false);
+      if (off || st === 0 || name === 'AuthRetryableFetchError' || name === 'TypeError')
+        return "No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.";
+      if (st === 429 || code.indexOf('rate_limit') >= 0)
+        return 'Demasiados intentos en poco tiempo, así que el inicio de sesión está pausado por un momento. Espera e inténtalo de nuevo.';
+      if (st >= 500)
+        return 'Algo falló de nuestro lado. Espera un momento e inténtalo de nuevo.';
+      if (code === 'email_not_confirmed')
+        return "Tu correo electrónico aún no ha sido confirmado. Revisa tu bandeja de entrada.";
+      return 'Tu correo electrónico o tu contraseña son incorrectos';
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email    = document.getElementById('email').value.trim().toLowerCase();
+      const password = document.getElementById('password').value;
+      const errEl    = document.getElementById('login-error');
+      const btn      = document.getElementById('login-btn');
+      errEl.style.display = 'none';
+      btn.textContent = 'Iniciando sesión…'; btn.disabled = true;
+
+      /* fetch そのものが投げてくる経路もある（拡張機能・オフライン）。握りつぶさない。 */
+      let data = null, error = null;
+      try {
+        const r = await sb.auth.signInWithPassword({ email, password });
+        data = r.data; error = r.error;
+      } catch (e) { error = e; }
+
+      if (error || !data || !data.user) {
+        errEl.textContent = authErrMsg(error);
+        errEl.style.display = 'block';
+        btn.textContent = 'Iniciar sesión'; btn.disabled = false;
+        return;
+      }
+
+      await afterLogin(data.user);
+    }
+
+    /* ── Email OTP ──
+       signInWithOtp sends ONE email. The template carries {{ .Token }} only —
+       {{ .ConfirmationURL }} was removed on 2026-08-22 because tapping it moves
+       the person into the mail app's browser and loses their pay-data claim.
+       ★There are TWO templates: "Confirm signup" (first-time) and "Magic Link"
+         (existing). Fixing only one leaves those users with no code at all. */
+    let otpEmail = '';
+
+    /* ★同じ「コードを送る」仕掛けを2つの目的で使い回している。どちらで来たかを覚えておく。
+         'login' … 自分でコードログインを選んだ人。従来どおり素通しする
+                   （画面に「パスワードは要りません」と書いてあるので、ここで設定を強いない）
+         'reset' … パスワードを忘れた人。コードで入れて終わりにすると一生思い出さないので、
+                   入った直後に設定の段を挟む */
+    let otpIntent   = 'login';
+    let pendingUser = null;
+
+    const EMAIL_STEP_COPY = {
+      login: {
+        title: 'Iniciar sesión con correo electrónico',
+        note:  "Ingresa tu correo electrónico.<br>"
+             + "Te enviaremos un código de acceso de 6 dígitos. No necesitas contraseña.",
+      },
+      reset: {
+        title: 'Restablece tu contraseña',
+        note:  'Ingresa el correo electrónico con el que te registraste.<br>'
+             + "Te enviaremos un código de 6 dígitos. Una vez que entres, podrás establecer una nueva contraseña ahí mismo.",
+      },
+    };
+
+    // .error-msg is red. Only the resend confirmation turns green (.is-ok), so always reset before reuse.
+    function resetMsg(el) {
+      el.style.display = 'none';
+      el.classList.remove('is-ok');
+    }
+
+    /* Show the address step. Carry over whatever was typed in the form above.
+       引数なしの呼び出し（従来の2箇所）は 'login' のまま＝挙動が変わらない。 */
+    function showEmailStep(intent) {
+      otpIntent = (intent === 'reset') ? 'reset' : 'login';
+      const copy = EMAIL_STEP_COPY[otpIntent];
+      document.getElementById('email-step-title').textContent = copy.title;
+      document.getElementById('email-step-note').innerHTML    = copy.note;
+
+      const input = document.getElementById('otp-email');
+      const typed = document.getElementById('email').value.trim();
+      if (typed && !input.value) input.value = typed;
+      resetMsg(document.getElementById('email-error'));
+      resetMsg(document.getElementById('otp-error'));
+      document.getElementById('login-form').style.display     = 'none';
+      document.getElementById('otp-step').style.display       = 'none';
+      document.getElementById('password-step').style.display  = 'none';
+      document.getElementById('email-step').style.display     = 'block';
+      input.focus();
+    }
+
+    async function startOtp() {
+      const sendBtn   = document.getElementById('otp-send-btn');
+      const resendBtn = document.getElementById('otp-resend-btn');
+      const input     = document.getElementById('otp-email');
+
+      /* ★Resend is pressed from the code step, where #email-step is hidden —
+           and #email-error lives inside it. Pick the target by step. */
+      const onOtpStep = document.getElementById('otp-step').style.display === 'block';
+      const errEl = document.getElementById(onOtpStep ? 'otp-error' : 'email-error');
+      resetMsg(errEl);
+
+      // Resend goes to the address we already used — never to a half-edited field.
+      const email = onOtpStep ? otpEmail : input.value.trim().toLowerCase();
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errEl.textContent = 'Ingresa un correo electrónico válido';
+        errEl.style.display = 'block';
+        if (!onOtpStep) input.focus();
+        return;
+      }
+
+      const active = onOtpStep ? resendBtn : sendBtn;
+      const label  = active.innerHTML;   // the send button carries an icon, so restore via innerHTML
+      active.disabled = true;
+      active.textContent = 'Enviando…';
+
+      /* Build the return URL with the same expression as handleGoogle (passes getRedirect's same-origin check).
+         ★ただし再設定のときだけは戻り先を profile.html のパスワード欄に固定する。
+           コードを打った人はこの画面に戻ってくるが、戻り先を分けておかないと
+           再設定で来た人が設定画面を一度も見ずに元の場所へ飛ばされる。 */
+      /* ★en/ 側は絶対パスで書く。emailRedirectTo が指すのは「ルートの」auth-callback.html で、
+           そこは next を自分の場所 (/auth-callback.html) から解決する。
+           'actual-pay.html' と書くと /actual-pay.html＝日本語版に着地してしまう。
+           ★next を省く分岐を置かない。省くと auth-callback の既定（日本語の
+             /actual-pay.html）が効いて、やはり日本語版に落ちる。
+             getRedirect() は必ず /en/… を返すので常に渡す。 */
+      const to = (otpIntent === 'reset') ? (window.PV_PATH ? window.PV_PATH('/en/profile.html#password-card') : '/en/profile.html#password-card') : getRedirect();
+      const { error } = await sb.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: 'https://pilot-value.com/auth-callback.html'
+                         + '?next=' + encodeURIComponent(to),
+          shouldCreateUser: true,
+          /* The Spanish page marks new accounts so the login-code email can be sent in Spanish (mail-bot/auth-emails). */
+          ...(window.PV_LANG === 'es' ? { data: { lang: 'es' } } : {}),
+        }
+      });
+
+      active.disabled = false;
+      active.innerHTML = label;
+
+      if (error) {
+        errEl.textContent = (error.status === 429)
+          ? 'Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.'
+          : 'No se pudo enviar el correo: ' + error.message;
+        errEl.style.display = 'block';
+        return;
+      }
+
+      otpEmail = email;
+      if (onOtpStep) {
+        errEl.textContent = 'Correo reenviado.';
+        errEl.classList.add('is-ok');
+        errEl.style.display = 'block';
+      }
+      document.getElementById('otp-note').innerHTML =
+        'Enviamos un correo a <b>' + email.replace(/[<>&]/g, '') + '</b>.<br>'
+        + 'Escribe en esta pantalla el código de 6 dígitos de ese correo.';
+      document.getElementById('login-form').style.display = 'none';
+      document.getElementById('email-step').style.display = 'none';
+      document.getElementById('otp-step').style.display   = 'block';
+      document.getElementById('otp-code').focus();
+    }
+
+    // Let Enter send it, so nobody has to travel back down to the button
+    document.getElementById('otp-email').addEventListener('keydown', function(e){
+      if (e.key === 'Enter') { e.preventDefault(); startOtp(); }
+    });
+
+    function backToPassword() {
+      otpIntent = 'login';
+      document.getElementById('otp-step').style.display      = 'none';
+      document.getElementById('email-step').style.display    = 'none';
+      document.getElementById('password-step').style.display = 'none';
+      resetMsg(document.getElementById('otp-error'));
+      resetMsg(document.getElementById('email-error'));
+      document.getElementById('login-form').style.display = 'block';
+    }
+
+    async function verifyOtpCode() {
+      const token = document.getElementById('otp-code').value.trim();
+      const errEl = document.getElementById('otp-error');
+      const btn   = document.getElementById('otp-verify-btn');
+      resetMsg(errEl);
+
+      if (!/^\d{6}$/.test(token)) {
+        errEl.textContent = 'Ingresa los 6 dígitos';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      btn.textContent = 'Verificando…'; btn.disabled = true;
+      const { data, error } = await sb.auth.verifyOtp({ email: otpEmail, token, type: 'email' });
+
+      if (error || !data || !data.user) {
+        errEl.textContent = 'Ese código es incorrecto o ya venció. Reenvía el correo e inténtalo de nuevo.';
+        errEl.style.display = 'block';
+        btn.textContent = 'Continuar con el código'; btn.disabled = false;
+        return;
+      }
+
+      // 忘れた人はここで止めて、パスワードを決め直してもらう。それ以外は従来どおり素通し。
+      if (otpIntent === 'reset') {
+        pendingUser = data.user;
+        btn.textContent = 'Continuar con el código'; btn.disabled = false;
+        showPasswordStep();
+        return;
+      }
+
+      await afterLogin(data.user);
+    }
+
+    /* ── 再設定の段 ──
+       この時点でセッションは張れている（＝ログイン済み）。afterLogin はまだ呼ばず、
+       保存かスキップのどちらかで必ず呼ぶ。afterLogin 側は一切いじらない。 */
+    function showPasswordStep() {
+      resetMsg(document.getElementById('pw-error'));
+      document.getElementById('login-form').style.display    = 'none';
+      document.getElementById('email-step').style.display    = 'none';
+      document.getElementById('otp-step').style.display      = 'none';
+      document.getElementById('password-step').style.display = 'block';
+      document.getElementById('pw-new').focus();
+    }
+
+    async function savePasswordAndContinue() {
+      const errEl = document.getElementById('pw-error');
+      const btn   = document.getElementById('pw-save-btn');
+      const pass  = document.getElementById('pw-new').value;
+      const conf  = document.getElementById('pw-confirm').value;
+      resetMsg(errEl);
+      const fail = (t) => { errEl.textContent = t; errEl.style.display = 'block'; };
+
+      if (pass.length < 8) { fail('Tu contraseña debe tener al menos 8 caracteres'); return; }
+      if (pass !== conf)   { fail('Las dos contraseñas no coinciden'); return; }
+
+      btn.textContent = 'Guardando…'; btn.disabled = true;
+      const { error } = await sb.auth.updateUser({ password: pass });
+
+      if (error) {
+        const m = error.message || '';
+        btn.textContent = 'Guardar y continuar'; btn.disabled = false;
+        // profile.html の savePassword と同じ扱い。Secure password change 有効時だけ言い換える。
+        if (/reauth|nonce/i.test(m)) { fail('Por tu seguridad, vuelve a iniciar sesión y luego inténtalo de nuevo.'); return; }
+        fail(m || 'No pudimos guardar tu contraseña. Inténtalo de nuevo más tarde.');
+        return;
+      }
+
+      await afterLogin(pendingUser);
+    }
+
+    // 設定しないまま進む。口コミ投稿の途中で人を止めないための逃げ道。
+    async function skipPassword() {
+      document.getElementById('pw-skip-btn').disabled = true;
+      await afterLogin(pendingUser);
+    }
+
+    // 確認欄で Enter を押したらそのまま保存する
+    document.getElementById('pw-confirm').addEventListener('keydown', function(e){
+      if (e.key === 'Enter') { e.preventDefault(); savePasswordAndContinue(); }
+    });
+
+    // Submit automatically once 6 digits are in (and keep the field numeric)
+    /* ★全角の１２３４５６を先に半角へ寄せる。ここを飛ばすと \D が全部消して
+         欄が空になり、貼った人には「効かない」としか見えない（pay-login.js と同じ）。 */
+    document.getElementById('otp-code').addEventListener('input', function(){
+      this.value = this.value
+        .replace(/[０-９]/g, function(c){ return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); })
+        .replace(/\D/g, '').slice(0, 6);
+      if (this.value.length === 6) verifyOtpCode();
+    });
+
+    async function handleGoogle() {
+      /* ★戻り先を callback にも引き継ぐ。ここで落としていたので、
+         Google で入った人は必ず profile.html に着地していた。
+
+         ★同意画面に出るドメインはここでは決まらない。
+           Google が表示するのは OAuth の redirect_uri
+           = https://<project-ref>.supabase.co/auth/v1/callback のホスト名で、
+           この redirectTo は Google から戻った「後」の Supabase 側の転送先。
+           表示を PILOT VALUE にするのは Google Cloud Console の
+           「Google Auth Platform → ブランディング」＋本番公開。ここを触っても変わらない。 */
+      const to = getRedirect();
+      await sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: 'https://pilot-value.com/auth-callback.html'
+                    + '?next=' + encodeURIComponent(to),
+        }
+      });
+    }
+  </script>
+<script src="../search.js"></script>
+<script src="../lang-toggle.js"></script>
+<script src="../currency.js"></script>
+<!-- PV-NAV: opens and closes the navigation. Loads AFTER search.js so it can adopt
+     the hamburger that file creates; on pages without search.js it makes its own. -->
+<script src="../app-nav.js"></script>
+</body>
+</html>

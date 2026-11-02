@@ -590,6 +590,48 @@ baland_ass/                            ブランド資産（※ brand_assets の
 ⚠️ **呼ばれるたびに全員分を数え直す処理を新しく足さない。** 足すなら、書き込みのときに数えて保存し、読むときは引くだけにする。
 - 本番の DB の毎日の書き出しは、リポジトリの外で動いている（場所は書かない）。パイロット確認の画像（`pv_proof_images`）は書き出さない約束。
 
+## 多言語化（スペイン語から・2026-11-01〜）
+
+★オーナー決定：スペイン語（中南米 `/es/`・後からスペイン `/es-es/`）から始め、何か国語にも広げる。訳は高品質（AI の4段＋公式文書の用語集＋機械検査）。
+計画は枝 i18n の作業の記録と記憶 `multilingual-expansion-later` にある。
+
+- **言語の一覧は [langs.mjs](langs.mjs) の1か所。** 日英は人が書く（`hand`）・3つ目からは英語のページから機械で作る。
+  `pages`＝作るページ・`indexed`＝検索に出すページ（入れるまで noindex・サイトマップにも hreflang にも出さない）。
+- **`es/` のファイルは手で直さない**（[gen-lang.mjs](gen-lang.mjs) が英語のページ＋訳の辞書から作る。流すたびに作り直す）。
+- **部品（JS）の辞書の `es: {…}` も手で直さない**（[gen-msg.mjs](gen-msg.mjs) が `/*PV-MSG:es*/` の間に書く）。部品が辞書を選ぶのは `window.PV_T`（[pv-session.js](pv-session.js) の頭）。
+  ⚠️ スペイン語のページは**英語のページと同じ動き**（`PV_BASE === 'en'`）で、文言だけスペイン語。新しい部品で `lang === 'en'` を書くときは `PV_BASE` を見る（見ないとスペイン語のページが日本語の動きになる）。
+- 訳は [translate-tm.mjs](translate-tm.mjs)（課金・check.mjs に入れない・先に `--estimate`）。訳の辞書は `i18n/tm-es.mjs`、用語集は `i18n/glossary-es.mjs`（公式文書の出典つき）。
+  **英語のページや部品の英語の文言を直したら**：`node translate-tm.mjs es`（`--js` 部品の辞書・`--inline` ページの台本の文字列）→ `node gen-msg.mjs` → `node gen-lang.mjs`。
+  流し忘れはスペイン語のページに英語が残るだけで壊れない（`assert-generated` が捕まえる）。
+  構造化データ（JSON-LD）の文は `gen-lang.mjs` が**同じページの本文の訳から引く**。本文に無い文（トップの FAQ など）だけ `translate-tm.mjs es --ld`。
+  ⚠️ `--prune` は必ず先に `--dry` で消す一覧を見る（2026-11-02 まで、部品の辞書と待遇の質問の訳まで消す形だった）。
+  **量が多いときは `--batch`**（Message Batches・半額。4段の流れはそのまま、呼び出しをまとめて送る。1往復2〜6分）。
+  `--dump <file>` で結果を残し、検査の線引きを直したら `--recheck <file>`（AI を呼ばない）。費用の上限で通読が飛んだページは `--read <ページ,…>`
+  （そのページだけの文を直す・共通の文は変えない）。⚠️ `--estimate` の額は実際より低めに出る（会社ページ109枚で見込み約45ドル → 実際 55ドル）。
+  ⚠️ translate-tm を2つ同時に流さない（どちらも辞書のファイルを丸ごと書き直す＝後から終わった方が前の訳を消す）。
+- 会社ページは 135枚（日英の会社ページのうち、スピリット・比較のページ・`gaishi-vs-nikkei` などを除く）。**スピリットは入れない**（2026-10-11 にサイトから外すと決めた会社で、古い鍵の部品 `premium-auth-lock.js` の板を出す唯一のページ）。
+- ★**2社比較（`career.html`）と Vote（`community.html`）もスペイン語で作る**（2026-11-02 オーナー「やらないと意味ない」）。
+  - 共有カードの住所と QR は、`gen-lang.mjs` がスペイン語版の会社ページへ作り直す（gen-career と同じ `career-qr.mjs`）。
+  - ページに埋めた材料の JSON（`#crc-data`）のうち、社名・写真の作者・写真の説明は訳さない（[i18n-core.mjs](i18n-core.mjs) の `JSON_KEEP`）。
+    地域名と評価の6項目は訳す。項目の字は口コミ欄（`review-i18n.js`）と Vote のレーダーにそろえる（Cultura／Remuneración／Beneficios／Equilibrio vida-trabajo／Operaciones／Entrenamiento）。
+  - 口コミの本文は、いまは英語の訳を出す（スペイン語への自動翻訳はまだ）。
+  - `vote.js`・`vote.css`・`career-card.js` を `gen-msg.mjs` で書き直したら版の印を付け直す ── `career.html` は `node gen-career.mjs`、
+    `community.html` は `?v=`（sha256 の先頭8字）を手で。そのあと `gen-lang.mjs`。
+- 部品が相対で組んだリンク（`'airlines/' + slug` など）がスペイン語版の無いページ（スピリット）を指したら、押した瞬間に英語版へ移す（[pv-session.js](pv-session.js) の頭のクリックの見張り）。
+- 出典の資料名（「AIRDO “会社概要”」）と写真の作者名は元の字のまま（作者名は CC BY の条件）。`assert-i18n` は**英語のページに無い**日本語の字だけを落とす。
+- スペイン語のページの金額は **US$**（`$` だけだと中南米ではペソと読まれる）。焼き込んだ span の字も、title・説明文・構造化データも
+  `gen-lang.mjs` が `currency.js` の es の書き方（`US$ 174 mil`）に直す。⚠️ 訳の辞書の中で金額を書き換えない（数字の機械検査が見ている）。
+- 職位は**入力フォームの欄だけ** `Capitán (Comandante)` ／ `Primer oficial (Copiloto)`、それ以外のページは短く `Capitán` ／ `Primer oficial`
+  （`gen-lang.mjs` の `SHORT` と `FORM_PAGES`。長いまま切り替えボタンに出して 390px で横にはみ出した）。
+- スペイン語だけの見た目の直しは `html[lang^="es"]` を付けて書く（lp.css・pv-directory.css・en/submit-review.html の頭）。日英には効かない。
+- ⚠️ **部品（JS）を `gen-msg.mjs` の `MSG_FILES` に足すと、その部品を正規表現で読む検査が黙って読めなくなる**（2026-11-02 に7本）。
+  足したら `git grep` でその部品を読む検査を探し、`/*PV-MSG:…*/` の塊を読み飛ばす（`noMsg`）形にする。
+- 人民元の額は `CNY 1.2M`（`CN¥` にしない ── 額の中に ¥ があると currency.js の監視が円と読み直して二重に換算する）。
+- ⚠️ **英語の給与フォームの台本には `window.PV_LANG === 'es'` の分かれ道がある**（金額の「,」を小数点と読む・入力中にけた区切りを付けない・提出に lang='es'）。英語のページでは通らない。消さない。
+- 表示通貨は9通貨（2026-11-02 に人民元・韓国ウォンを足した）。フォームの通貨は47通貨（ペルー・ソルとアルゼンチン・ペソを `gen-fx-rates.mjs --add` で足した）。
+- 会員の言語は `profiles.lang`（[db/profile-lang.sql](db/profile-lang.sql)・書く口は `pv_set_lang` だけ・登録の upsert に混ぜない）。
+- 見るもの：`node assert-i18n.mjs`（日本語の字・訳の辞書・辞書の形・通貨・言語の一覧）／`node assert-i18n-pay.mjs`（★同じ給与を日英西で入れると送る中身が同じ・「3500,50」の読み方）。
+
 ## デプロイ前チェック
 
 **`node check.mjs` 1本で全部走る。** 中で並列に回すので、手で1本ずつ流すより速い。

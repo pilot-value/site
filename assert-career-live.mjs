@@ -3307,7 +3307,8 @@ function liveWords(src, lang) {
   const a = src.indexOf('\n  var LANG = '), b = src.indexOf(SWITCH_LINE);
   if (a < 0 || b < a || src.split(SWITCH_LINE).length !== 2) return null;
   const doc = { documentElement: { getAttribute: (k) => (k === 'lang' ? lang : null) } };
-  try { return new Function('d', `${src.slice(a, b + SWITCH_LINE.length)}\nreturn { T: T, T_EN: T_EN, LANG: LANG };`)(doc); } catch (e) { return { err: String(e.message) }; }
+  /* window は空の箱（2026-11-02：スペイン語のページは window.PV_BASE を見て英語と同じ動きになる。ここは日英の決め方だけを見る） */
+  try { return new Function('d', 'window', `${src.slice(a, b + SWITCH_LINE.length)}\nreturn { T: T, T_EN: T_EN, LANG: LANG };`)(doc, {}); } catch (e) { return { err: String(e.message) }; }
 }
 /* コメントと正規表現の字句を空白に替え（位置は保つ）、字句（'…' "…" `…`）のうち日本語の字を持つものを返す */
 function jaLiterals(src) {
@@ -3379,7 +3380,9 @@ scene('en-words', '英語の字の表（T_EN）：鍵と形が日本語の表と
   const ggEn = [...PAL.matchAll(/\n\s*ggSalary:\s*'([^']*)'/g)].map((m) => m[1]).filter((s) => !JA_CHAR.test(s) && !s.includes('<wbr>'));
   ok(E.payUnlock.join('') === 'Unlock all pay data' && ggEn.length === 1 && ggEn[0] === E.payUnlock.join('') && IDX.includes('<span>Give &amp; Get</span> Unlock all pay data</span>'),
     'W4 給与の Give & Get の下の行は「Unlock all pay data」（オーナーの字 ── 英語のトップと premium-auth-lock.js の英語の ggSalary と同じ）', JSON.stringify([E.payUnlock, ggEn]));
-  const AP = read('actual-pay.js'), apA = AP.indexOf('\n    en: {'), apB = apA < 0 ? -1 : AP.indexOf('\n  }[L];', apA);
+  /* スペイン語の辞書（gen-msg.mjs が書く /*PV-MSG:es*／…／*／PV-MSG:es*／・2026-11-02）は読まない ── ここは英語の字の写しを見る */
+  const noMsg = (src) => src.replace(/(,\s*|\n[ \t]*)\/\*PV-MSG:[a-z-]+\*\/[\s\S]*?\/\*\/PV-MSG:[a-z-]+\*\//g, '');
+  const AP = noMsg(read('actual-pay.js')), apA = AP.indexOf('\n    en: {'), apEnd = (i) => { const x = AP.indexOf('\n  }[L];', i); return x >= 0 ? x : AP.indexOf('\n  };\n  T = (window.PV_T && window.PV_T(T, L)) || T[L];', i); }, apB = apA < 0 ? -1 : apEnd(apA);
   let AE = null;
   try { AE = apA > 0 && apB > apA ? new Function(`return {${AP.slice(apA + '\n    en: {'.length, AP.lastIndexOf('}', apB))}};`)() : null; } catch { AE = null; }
   const apSame = AE ? ['vfNo', 'far', 'age', 'ten'].filter((k) => JSON.stringify(AE[k]) !== JSON.stringify(E[k])) : ['（actual-pay.js の英語が読めない）'];
@@ -3389,7 +3392,7 @@ scene('en-words', '英語の字の表（T_EN）：鍵と形が日本語の表と
   const csPairs = [['townWait', 'pending'], ['townNo', 'rejected'], ['townEdit', 'edit'], ['noteMine', 'mine'], ['login', 'login'], ['off', 'off'], ['retry', 'retry']];
   const csBad = csPairs.filter(([k, c]) => !csOf(c) || csOf(c) !== E[k]).map(([k, c]) => `${k}「${E[k]}」／${c}「${csOf(c)}」`);
   ok(!!CSE && !csBad.length, 'W4 街の欄の札（確認待ち・見送り・修正）・あなたの投稿・ログイン・準備中・やり直すは、ステイ先の英語（career-stay.js の EN）と同じ', csBad.join(' ／ '));
-  const PC = read('pv-contrib.js');
+  const PC = noMsg(read('pv-contrib.js'));
   const held = [...PC.matchAll(/\n\s*heldList: '([^']*)'/g)].map((m) => m[1]);
   const nums = Object.fromEntries([...PC.matchAll(/\n {8}([a-z_]+): \['[^']*', '([^']*)', '[^']*', '[^']*'\]/g)].filter((m) => !JA_CHAR.test(m[2])).map((m) => [m[1], m[2]]));
   const numBad = E.work.filter((it) => nums[it.k] !== it.name).map((it) => `${it.k}「${it.name}」／「${nums[it.k]}」`);

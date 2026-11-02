@@ -22,26 +22,35 @@
     ja: { culture:'企業文化', salary:'給与', benefits:'福利厚生', wlb:'WLB',
           ops:'運航環境', training:'訓練環境', mgmt:'経営陣への提案' },
     en: { culture:'Culture', salary:'Pay', benefits:'Benefits', wlb:'WLB',
-          ops:'Flight operations', training:'Training', mgmt:'Suggestions for management' },
+          ops:'Flight operations', training:'Training', mgmt:'Suggestions for management' }, /*PV-MSG:es*/ es: { culture:'Cultura', salary:'Remuneración', benefits:'Beneficios', wlb:'Equilibrio vida-trabajo',
+          ops:'Operaciones de vuelo', training:'Entrenamiento', mgmt:'Sugerencias para la dirección' } /*/PV-MSG:es*/,
   };
 
   // ラベルの囲み方だけ言語で変える（日本語は【】、英語は []）
   var WRAP = {
     ja: function (label, text) { return '【' + label + '】' + text; },
     en: function (label, text) { return '[' + label + '] ' + text; },
+    es: function (label, text) { return '[' + label + '] ' + text; },
   };
 
   var UI = {
-    ja: { note: '自動翻訳', from: function (l) { return (l === 'en' ? '英語' : '日本語') + 'から自動翻訳'; },
+    ja: { note: '自動翻訳', from: function (l) { return (l === 'en' ? '英語' : l === 'es' ? 'スペイン語' : '日本語') + 'から自動翻訳'; },
           show: '原文を表示', hide: '原文を隠す' },
-    en: { note: 'Machine-translated', from: function (l) { return 'Machine-translated from ' + (l === 'ja' ? 'Japanese' : 'English'); },
-          show: 'Show original', hide: 'Hide original' },
+    en: { note: 'Machine-translated', from: function (l) { return 'Machine-translated from ' + (l === 'ja' ? 'Japanese' : l === 'es' ? 'Spanish' : 'English'); },
+          show: 'Show original', hide: 'Hide original' }, /*PV-MSG:es*/ es: { note: 'Traducido automáticamente', from: function (l) { return 'Traducido automáticamente del ' + (l === 'ja' ? 'japonés' : l === 'es' ? 'español' : 'inglés'); },
+          show: 'Mostrar original', hide: 'Ocultar original' } /*/PV-MSG:es*/,
   };
 
   function lang() {
+    /* スペイン語のページはスペイン語の訳（2026-11-02 translate-review が日英西へ訳す）。
+       まだスペイン語の訳が無い口コミは英語の訳に落とす（pick の tr）。 */
+    if (window.PV_LANG === 'es') return 'es';
+    if (window.PV_BASE === 'en') return 'en';
     var l = (d.documentElement.getAttribute('lang') || '').toLowerCase();
     return l.indexOf('en') === 0 ? 'en' : 'ja';
   }
+  /* 項目名と「自動翻訳」などの文言は、スペイン語の辞書（gen-msg.mjs が足す）があればそれ */
+  var pickT = function (D, l) { return (window.PV_T && window.PV_T(D, l)) || D[l]; };
 
   // 口コミは利用者が書いた文字列。innerHTML に入る経路が複数あるので必ずここを通す。
   function esc(s) {
@@ -98,8 +107,10 @@
   function pick(row) {
     var to = lang();
     var from = (row && row.orig_lang) || 'ja';
-    var tr = (row && row.translations && row.translations[to]) || null;
-    var lab = LABELS[to], wrap = WRAP[to];
+    var T = (row && row.translations) || null;
+    /* スペイン語の訳がまだ無い（言語を足す前の口コミ・埋め戻しの前）→ 英語の訳。原文が英語ならそのまま原文 */
+    var tr = (T && (T[to] || (to === 'es' && from !== 'en' ? T.en : null))) || null;
+    var lab = pickT(LABELS, to), wrap = WRAP[to];
 
     // 本文の列が1つも来ていない＝鍵を持っていない。cats だけで組み立てる。
     var hasBody = false;
@@ -117,7 +128,7 @@
             「原文を表示」を出し、origHTML() が原文を丸ごと画面に出す。 */
       var cl = (row && row.clip) || null;
       var snip = (cl && cl.k)
-        ? trimMoney(flatten((cl.t && cl.t[to]) || cl.o || '')) : '';
+        ? trimMoney(flatten((cl.t && (cl.t[to] || (to === 'es' && from !== 'en' && cl.t.en))) || cl.o || '')) : '';
       var locked = [];
       for (var c = 0; c < row.cats.length; c++) {
         var ck = row.cats[c];
@@ -196,14 +207,14 @@
 
   /* 「自動翻訳」バッジ。訳文を出しているカードにだけ添える。 */
   function noteHTML(from) {
-    var u = UI[lang()];
+    var u = pickT(UI, lang());
     return '<span class="rv-tr-badge" title="' + esc(u.from(from)) + '">' + esc(u.note) + '</span>';
   }
 
   /* 原文トグル。原文は消さずに畳んでおく（忠実性の担保）。 */
   function origHTML(origText) {
     if (!origText) return '';
-    var u = UI[lang()];
+    var u = pickT(UI, lang());
     return '<button type="button" class="rv-tr-toggle" data-show="' + esc(u.show) + '" data-hide="' + esc(u.hide) +
       '" onclick="PVReviewI18n.toggle(this)">' + esc(u.show) + '</button>' +
       '<div class="rv-tr-orig" hidden>' + esc(origText) + '</div>';
@@ -246,7 +257,7 @@
   else injectCSS();
 
   w.PVReviewI18n = {
-    KEYS: KEYS, labels: function () { return LABELS[lang()]; }, lang: lang,
+    KEYS: KEYS, labels: function () { return pickT(LABELS, lang()); }, lang: lang,
     esc: esc, pick: pick, noteHTML: noteHTML, origHTML: origHTML, toggle: toggle,
     EXTRA_COLS: EXTRA_COLS, fetchWithFallback: fetchWithFallback,
     fetchRows: fetchRows,

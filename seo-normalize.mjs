@@ -30,10 +30,10 @@ import { SALARY } from './salary-data.mjs';
 import { BASIS, TIERS, KINDS_EN, yearly, cardFigure } from './salary-basis.mjs';
 import { AIRLINE_COUNTRY, BY_CODE, nameIn } from './airline-countries.mjs';
 import { curCore } from './cur-core.mjs';
+import { ORIGIN, LANGS, LANG, listSiteHtml, urlOfRel, langOfRel, bareOf, alternatesFor } from './langs.mjs';
 const CUR = await curCore('USD', 'en');   // 金額の作り方は currency.js が正
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname).replace(/%20/g, ' ');
-const ORIGIN = 'https://pilot-value.com';
 const DRY = process.argv.includes('--dry');
 
 /* ── 数値ヘルパ（すべて SSOT 由来） ─────────────────────────── */
@@ -757,20 +757,11 @@ function shortenDesc(d, max = 170) {
 /* ════════════════════════════════════════════════════════════════
    ページ収集
    ════════════════════════════════════════════════════════════════ */
-const listHtml = (dir) => (fs.existsSync(path.join(ROOT, dir))
-  ? fs.readdirSync(path.join(ROOT, dir)).filter((f) => f.endsWith('.html')).sort() : []);
+/* 人が本文を書いている言語（日英）のページだけ。言語の一覧と並びは langs.mjs が決める（2026-11-01）。
+   3つ目からの言語のページは英語のページから機械で作るので、head もそちらが書く。 */
+const files = listSiteHtml(ROOT, LANGS.filter((l) => l.hand));
 
-const files = [
-  ...listHtml('.'),
-  ...listHtml('airlines').map((f) => `airlines/${f}`),
-  ...listHtml('countries').map((f) => `countries/${f}`),
-  ...listHtml('en').map((f) => `en/${f}`),
-  ...listHtml('en/airlines').map((f) => `en/airlines/${f}`),
-  ...listHtml('en/countries').map((f) => `en/countries/${f}`),
-];
-
-const relToUrl = (rel) => (rel === 'index.html' ? `${ORIGIN}/`
-  : rel === 'en/index.html' ? `${ORIGIN}/en/` : `${ORIGIN}/${rel}`);
+const relToUrl = urlOfRel;
 
 const attr = (tag, name) => {
   const m = tag.match(new RegExp(`${name}\\s*=\\s*"([^"]*)"`, 'i')) || tag.match(new RegExp(`${name}\\s*=\\s*'([^']*)'`, 'i'));
@@ -842,13 +833,16 @@ for (const rel of files) {
   let html = fs.readFileSync(abs, 'utf8');
   const orig = html;
 
-  const lang = rel.startsWith('en/') ? 'en' : 'ja';
-  const bare = rel.replace(/^en\//, '');
-  const jaUrl = relToUrl(bare);
-  const enUrl = relToUrl(bare === 'index.html' ? 'en/index.html' : `en/${bare}`);
-  const selfUrl = lang === 'ja' ? jaUrl : enUrl;
+  const L = langOfRel(rel);
+  const lang = L.code;
+  const bare = bareOf(rel);
+  const selfUrl = relToUrl(rel);
   const noindex = NOINDEX.has(path.basename(rel)) && !rel.includes('/airlines/') && !rel.includes('/countries/');
-  const jaOnly = JA_ONLY.has(rel);
+  /* hreflang に並べる言語。自分と日本語は必ず。英語は JA_ONLY に無いページ（ファイルが在るかは assert-seo.mjs が見る）。
+     人が書いていない言語（段1から）は、ここではまだ並べない。 */
+  const alts = alternatesFor(bare, (code) => code === lang || code === 'ja' || (LANG[code].hand && !JA_ONLY.has(bare)));
+  const ogAlts = alts.filter((a) => a.hreflang !== 'x-default' && a.hreflang !== L.hreflang)
+    .map((a) => LANGS.find((l) => l.hreflang === a.hreflang).ogLocale);
 
   const headEnd = html.search(/<\/head>/i);
   if (headEnd === -1) { notes.push(`${rel}: </head> が無い — 飛ばした`); continue; }
@@ -1162,15 +1156,14 @@ for (const rel of files) {
 <meta name="description" content="${esc(desc)}"/>
 ${curKw ? `<meta name="keywords" content="${esc(fixCount(curKw))}"/>\n` : ''}<meta name="robots" content="${noindex ? 'noindex,follow' : 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1'}"/>
 <link rel="canonical" href="${selfUrl}"/>
-<link rel="alternate" hreflang="ja" href="${jaUrl}"/>
-${jaOnly ? '' : `<link rel="alternate" hreflang="en" href="${enUrl}"/>\n`}<link rel="alternate" hreflang="x-default" href="${jaOnly ? jaUrl : enUrl}"/>
+${alts.map((a) => `<link rel="alternate" hreflang="${a.hreflang}" href="${a.url}"/>`).join('\n')}
 <meta property="og:title" content="${esc(ogTitle)}"/>
 <meta property="og:description" content="${esc(ogDesc)}"/>
 <meta property="og:url" content="${selfUrl}"/>
 <meta property="og:type" content="${ogType}"/>
 <meta property="og:site_name" content="PILOT VALUE"/>
-<meta property="og:locale" content="${lang === 'ja' ? 'ja_JP' : 'en_US'}"/>
-${jaOnly ? '' : `<meta property="og:locale:alternate" content="${lang === 'ja' ? 'en_US' : 'ja_JP'}"/>\n`}<meta property="og:image" content="${img}"/>
+<meta property="og:locale" content="${L.ogLocale}"/>
+${ogAlts.map((o) => `<meta property="og:locale:alternate" content="${o}"/>\n`).join('')}<meta property="og:image" content="${img}"/>
 <meta property="og:image:width" content="1200"/>
 <meta property="og:image:height" content="630"/>
 <meta property="og:image:alt" content="${esc(ogTitle)}"/>

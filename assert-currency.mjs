@@ -83,6 +83,7 @@ if (noMoney.length) {
       （片方だけ直すと、地域判定が黙って別物になっても緑のまま）。 */
 const REGION = [
   ['Asia/Dubai', 'AED'], ['Asia/Singapore', 'SGD'], ['Australia/Sydney', 'AUD'],
+  ['Asia/Seoul', 'KRW'], ['Asia/Shanghai', 'CNY'], ['Asia/Hong_Kong', 'USD'], ['Asia/Taipei', 'USD'],
   ['Europe/London', 'GBP'], ['Europe/Paris', 'EUR'], ['Europe/Zurich', 'EUR'],
   ['America/New_York', 'USD'], ['America/Toronto', 'USD'], ['Asia/Tokyo', 'USD'],
   ['Asia/Kolkata', 'USD'], ['Africa/Johannesburg', 'USD'],

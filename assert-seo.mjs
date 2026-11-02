@@ -26,6 +26,7 @@
 ════════════════════════════════════════════════════════════════ */
 import fs from 'fs';
 import path from 'path';
+import { LANGS, listSiteHtml, urlOfRel, langOfRel, isPublished } from './langs.mjs';
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname).replace(/%20/g, ' ');
 const ORIGIN = 'https://pilot-value.com';
@@ -71,31 +72,16 @@ const isNoindexPage = (rel) => NOINDEX.has(path.basename(rel))
   && !rel.includes('/airlines/') && !rel.includes('/countries/');
 
 /* ── 対象ファイルの収集 ─────────────────────────────────────── */
-const listHtml = (dir) =>
-  fs.existsSync(path.join(ROOT, dir))
-    ? fs.readdirSync(path.join(ROOT, dir)).filter((f) => f.endsWith('.html')).sort()
-    : [];
+/* 言語の一覧とフォルダは langs.mjs の1か所（2026-11-01・多言語化の段0）。言語を足すと、ここで見るページも増える。 */
+const files = listSiteHtml(ROOT);
 
-const files = [
-  ...listHtml('.').map((f) => f),
-  ...listHtml('airlines').map((f) => `airlines/${f}`),
-  ...listHtml('countries').map((f) => `countries/${f}`),
-  ...listHtml('en').map((f) => `en/${f}`),
-  ...listHtml('en/airlines').map((f) => `en/airlines/${f}`),
-  ...listHtml('en/countries').map((f) => `en/countries/${f}`),
-];
-
-/* ── URL 正規化：index.html は /（ディレクトリ）で表す ───────────── */
-const relToUrl = (rel) => {
-  if (rel === 'index.html') return `${ORIGIN}/`;
-  if (rel === 'en/index.html') return `${ORIGIN}/en/`;
-  return `${ORIGIN}/${rel}`;
-};
+/* ── URL 正規化：各言語のトップ（index.html）は /（ディレクトリ）で表す ───────────── */
+const relToUrl = urlOfRel;
 /* 逆変換（sitemap 検証用） */
 const urlToRel = (url) => {
   const p = url.replace(ORIGIN, '').replace(/^\//, '');
   if (p === '') return 'index.html';
-  if (p === 'en/') return 'en/index.html';
+  if (LANGS.some((l) => l.dir && p === l.dir)) return p + 'index.html';
   return p;
 };
 
@@ -167,18 +153,20 @@ const add = (file, code, detail) => issues.push({ file, code, detail });
 const docs = new Map();
 for (const rel of files) {
   const html = fs.readFileSync(path.join(ROOT, rel), 'utf8');
-  docs.set(rel, { html, ...parse(html), url: relToUrl(rel), noindexExpected: isNoindexPage(rel) });
+  /* 機械で作る言語（スペイン語など）のページは、langs.mjs の indexed に入れるまで検索に出さない＝ noindex が正しい */
+  docs.set(rel, { html, ...parse(html), url: relToUrl(rel), noindexExpected: isNoindexPage(rel) || !isPublished(rel), unpublished: !isPublished(rel) });
 }
 
 const seenTitle = new Map();
 const seenDesc = new Map();
 
 for (const [rel, d] of docs) {
-  const expectLang = rel.startsWith('en/') ? 'en' : 'ja';
+  const L = langOfRel(rel);
+  const expectLang = L.hreflang;
 
   /* 1) lang */
   if (!d.lang) add(rel, 'lang-missing', '<html> に lang 属性が無い');
-  else if (d.lang.toLowerCase().split('-')[0] !== expectLang)
+  else if (d.lang.toLowerCase().split('-')[0] !== L.htmlLang.toLowerCase().split('-')[0])
     add(rel, 'lang-mismatch', `lang="${d.lang}" だがディレクトリ的には ${expectLang}`);
 
   /* 2) title */
@@ -221,7 +209,9 @@ for (const [rel, d] of docs) {
   const alts = d.link('alternate').filter((x) => x.hreflang);
   const byLang = Object.fromEntries(alts.map((x) => [x.hreflang.toLowerCase(), x.href]));
   const jaOnly = JA_ONLY.has(rel);
-  for (const need of jaOnly ? ['ja', 'x-default'] : ['ja', 'en', 'x-default']) {
+  /* まだ検索に出さない言語のページ：hreflang を1本も持たない（持つと、出していないページを Google に申告する） */
+  if (d.unpublished && alts.length) add(rel, 'hreflang-on-unpublished', `検索に出していないページに hreflang が ${alts.length} 本ある`);
+  for (const need of d.unpublished ? [] : jaOnly ? ['ja', 'x-default'] : ['ja', 'en', 'x-default']) {
     if (!byLang[need]) add(rel, 'hreflang-missing', `hreflang="${need}" が無い`);
   }
   if (jaOnly) {

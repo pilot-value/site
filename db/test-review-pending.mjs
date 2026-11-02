@@ -124,6 +124,17 @@ let T1;
   await asAnon();
   ok((await boom(`select count(*) from public.pv_review_pending`)) === null, '…（壊す証明）権限を足すと読めてしまう＝上の検査はそれを捕まえる');
   await asOwner(); await db.exec(`revoke select on public.pv_review_pending from anon`);
+  /* ★スペイン語のページから預けた口コミは orig_lang = es（2026-11-02）。知らない言語は今までどおり ja。
+     作った行はこの場で消す（あとの一覧の件数を変えない） */
+  const langOf = async (lang) => {
+    await asAnon(); const r = await submit(good('jal', { lang }));
+    await asOwner(); const v = (await one(`select orig_lang from public.pv_review_pending where id = $1`, [r.id])).orig_lang;
+    await db.query(`delete from public.pv_review_pending where id = $1`, [r.id]);
+    return v;
+  };
+  ok(await langOf('es') === 'es', 'スペイン語のページから預けた口コミは orig_lang = es');
+  ok(await langOf('en') === 'en', '英語のページからは en（今までどおり）');
+  ok(await langOf('fr') === 'ja', '知らない言語は ja（今までどおり）');
 }
 
 // ════════════════════════════════════════════════════════════

@@ -8,11 +8,26 @@
   <div style="font-size:12px;font-weight:700;letter-spacing:2px;color:#94a3b8">PILOT VALUE</div>
 
   <div style="font-size:40px;font-weight:700;letter-spacing:10px;margin:24px 0 8px;color:#0f172a">{{ .Token }}</div>
+  {{ if eq .Data.lang "es" }}
+  <div style="font-size:13px;color:#64748b;line-height:1.6">
+    Código de acceso &mdash; vence en 10 minutos
+  </div>
+  {{ else }}
   <div style="font-size:13px;color:#64748b;line-height:1.6">
     ログインコード（10分で無効になります） <br>
     <span style="color:#64748b">Login code &mdash; expires in 10 minutes</span>
   </div>
+  {{ end }}
 
+  {{ if eq .Data.lang "es" }}
+  <div style="font-size:13px;color:#64748b;line-height:1.7;margin-top:24px">
+    Escribe este código en la pestaña del navegador desde la que llegaste.<br>
+    Lo que ya habías ingresado sigue ahí.
+  </div>
+  <div style="border-top:1px solid #e2e8f0;margin:28px 0 0;padding-top:16px;font-size:12px;color:#94a3b8;line-height:1.7">
+    Si no lo solicitaste, puedes ignorar este correo.
+  </div>
+  {{ else }}
   <div style="font-size:13px;color:#64748b;line-height:1.7;margin-top:24px">
     さっきまで開いていたブラウザの画面に、このコードを入力してください。<br>
     入力の途中だったものは、その画面に残っています。<br>
@@ -24,6 +39,7 @@
     心当たりが無い場合は、このメールを破棄してください。<br>
     If you didn't request this, you can ignore this email.
   </div>
+  {{ end }}
 
 </td></tr></table>
 </td></tr></table>

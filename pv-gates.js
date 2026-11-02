@@ -54,7 +54,7 @@
   'use strict';
   if (!w || !d) return;
 
-  var L = (d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';
+  var L = (window.PV_BASE === 'en' || d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';   // スペイン語のページは英語と同じ動き（pv-session.js）
   var KEY = 'pv_salary_unlock_expiry';
   var PAY_URL = 'pay-report.html#ps';
   /* ★DEEP PAY の住所はここに持たない（冒頭の「DEEP PAY / VERIFIED PAY について」）。
@@ -115,8 +115,33 @@
         { give: '', get: 'DEEP PAY' },
         { give: 'From a payslip', get: 'VERIFIED PAY' }
       ]
-    }
-  }[L];
+    }, /*PV-MSG:es*/ es: {
+      giveHd: 'Lo que aportas', getHd: 'Lo que puedes ver',
+      now: 'Comparte tu remuneración para desbloquear', soon: 'En preparación',
+      cta: 'Agregar tu remuneración de forma anónima',
+      close: 'Cerrar',
+      lockedNote: ' (bloqueado)', soonNote: ' (en preparación)',
+      hint: 'presiona para ver detalles',
+      panel: {
+        real: {
+          t: 'REAL PAY aún no está abierto',
+          s: 'Muestra lo que realmente ganan otros pilotos, una fila por piloto. '
+           + 'Comparte uno de tus propios registros de remuneración y se abrirá.'
+        },
+        verified: {
+          t: 'VERIFIED PAY está en preparación',
+          s: 'Reunirá solo cifras respaldadas por un recibo de nómina. '
+           + 'Todavía lo estamos construyendo.'
+        }
+      },
+      tiers: [
+        { give: 'Ingreso manual o escaneo del recibo de nómina', get: 'REAL PAY' },
+        { give: '', get: 'DEEP PAY' },
+        { give: 'Desde un recibo de nómina', get: 'VERIFIED PAY' }
+      ]
+    } /*/PV-MSG:es*/
+  };
+  T = (window.PV_T && window.PV_T(T, L)) || T[L];   // スペイン語の辞書（gen-msg.mjs が足す）があればそれ
 
   /* 段の状態。★REAL PAY と DEEP PAY が live（DEEP PAY は 2026-10-11 に公開）。
        VERIFIED PAY だけが 'soon' ── ページを作った回に 'live' へ変える。

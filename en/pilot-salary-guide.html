@@ -83,6 +83,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(10,12,15,.95
 .salary-table td{padding:14px 16px;font-size:.9rem;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
 .salary-table tr:hover td{background:rgba(255,255,255,.02)}
 .salary-table tr:last-child td{border-bottom:none}
+.article-body{min-width:0}   /* 2026-11-02：狭い画面で、表の幅に本文の列ごと引っ張られて横にはみ出していた（390px で 63〜85px）。表は枠の中で横に送る */
 .article-body h2{font-size:1.5rem;font-weight:800;margin:2.5rem 0 1rem;padding-bottom:.5rem;border-bottom:1px solid rgba(255,255,255,.08)}
 .article-body h3{font-size:1.15rem;font-weight:700;margin:1.8rem 0 .8rem;color:#f5c842}
 .article-body p{margin-bottom:1.2rem;color:#b0bec9;line-height:1.85}
@@ -129,7 +130,7 @@ details[open] summary svg{transform:rotate(180deg)}
 })();
 </script>
 <!--/PV-3P-->
-<script src="../pv-session.js?v=700cc594"></script>
+<script src="../pv-session.js?v=7620526d"></script>
   <!-- PV-NAV: site-wide navigation (left rail on wide screens, left drawer on narrow).
        Written by patch-side-nav.mjs. app-nav.css loads last (after my-value.css). -->
   <link rel="stylesheet" href="../pv-tokens.css">

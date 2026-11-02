@@ -181,7 +181,7 @@
 })();
 </script>
 <!--/PV-3P-->
-<script src="../pv-session.js?v=700cc594"></script>
+<script src="../pv-session.js?v=7620526d"></script>
   <!-- PV-NAV: site-wide navigation (left rail on wide screens, left drawer on narrow).
        Written by patch-side-nav.mjs. app-nav.css loads last (after my-value.css). -->
   <link rel="stylesheet" href="../app-nav.css">
@@ -343,7 +343,9 @@
               <option value="日本">Japan</option><option value="アメリカ">United States</option><option value="UAE">UAE</option>
               <option value="シンガポール">Singapore</option><option value="香港">Hong Kong</option><option value="イギリス">United Kingdom</option>
               <option value="ドイツ">Germany</option><option value="フランス">France</option><option value="オーストラリア">Australia</option>
-              <option value="カナダ">Canada</option><option value="韓国">South Korea</option><option value="中国">China</option><option value="その他">Other</option>
+              <option value="カナダ">Canada</option><option value="韓国">South Korea</option><option value="中国">China</option>
+              <!-- 2026-11-02 multilingual: Spanish-speaking countries (the same stored values on every signup/profile page) -->
+              <option value="メキシコ">Mexico</option><option value="スペイン">Spain</option><option value="コロンビア">Colombia</option><option value="チリ">Chile</option><option value="ペルー">Peru</option><option value="アルゼンチン">Argentina</option><option value="パナマ">Panama</option><option value="その他">Other</option>
             </select>
           </div>
           <div><div class="field-label">Current employer</div><input class="auth-input" type="text" id="s2-company" placeholder="e.g. ANA, JAL, Emirates" required/></div>
@@ -546,7 +548,7 @@
        auth-callback.html はルート直下にあるので、en/ を明示する。 */
     function callbackUrl(){
       return 'https://pilot-value.com/auth-callback.html?next='
-           + encodeURIComponent('/en/signup.html' + location.search);
+           + encodeURIComponent((window.PV_PATH ? window.PV_PATH('/en/signup.html') : '/en/signup.html') + location.search);
     }
 
     function goStep2(e) {
@@ -622,7 +624,7 @@
 
       const { error } = await sb.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: callbackUrl(), shouldCreateUser: true }
+        options: Object.assign({ emailRedirectTo: callbackUrl(), shouldCreateUser: true }, window.PV_LANG === 'es' ? { data: { lang: 'es' } } : {})
       });
 
       active.disabled = false; active.innerHTML = label;
@@ -790,6 +792,11 @@
         ({ error: upsertErr } = await sb.from('profiles').upsert({ id: userId, email, ...profileData }));
       }
       if(upsertErr){ console.warn('profiles upsert failed; handle_new_user trigger will populate:', upsertErr.message); }
+
+      /* Remember which language this person signed up in (2026-11-02, multilingual). A separate call, never part of
+         the upsert above: before db/profile-lang.sql is applied the function does not exist, and folding the column
+         into the upsert would make the whole signup fail. Any error here is ignored. The Spanish page sends 'es'. */
+      try { await sb.rpc('pv_set_lang', { p_lang: window.PV_LANG === 'es' ? 'es' : 'en' }); } catch (e) {}
 
       /* ★There are two consent flags. The upsert above only sets the parent (email_opt_in);
          the monthly-reminder child (mail_optin) stayed false. pv_reminder_due requires BOTH,

@@ -61,7 +61,7 @@
     }
   } catch (e) {}
 
-  var L = (d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';
+  var L = (window.PV_BASE === 'en' || d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';   // スペイン語のページは英語と同じ動き（pv-session.js）
 
   /* 詳細ページ（airline-conditions.html / en/airline-conditions.html）が
      あるかどうか。無い間は「もっと詳しく答える →」を1回も出さない
@@ -191,8 +191,56 @@
       voicesBody: ['Relationships between pilots, management, training culture and work-life balance',
                    'are collected in reviews, as scores and in your own words.'],
       voicesLink: 'Write a review anonymously →'
-    }
-  }[L];
+    }, /*PV-MSG:es*/ es: {
+      eyebrow: ['Diez segundos más,', 'si los tienes'],
+      close: 'Cerrar',
+      skip: 'Omitir esta pregunta',
+      more: 'Cuéntanos más →',
+      step: function (i, n) { return i + ' / ' + n; },
+      thanks: function (name) {
+        return ['Gracias.', 'Se actualizaron las condiciones de ' + (name || 'esta aerolínea') + '.'];
+      },
+      failed: ['No se pudo guardar.', 'Inténtalo de nuevo más tarde.'],
+      again: function (label) { return ['Antes respondiste "' + label + '".', '¿Sigue siendo así?']; },
+      same: 'Sigue igual',
+      changed: 'Cambió',
+      dunno: "No sé",
+      askHead: function (name) { return ['Cuéntanos una cosa sobre ' + (name || 'tu aerolínea') + '.']; },
+      next: 'Siguiente',
+      multiHint: 'Elige todas las que correspondan.',
+      followUp: function (label) { return ['Pregunta de seguimiento sobre:', '“' + label + '”']; },
+      numBad: function (min, max) { return ['Ingresa un número', 'del ' + min + ' al ' + max + '.']; },
+      ctaTitle: function (name) { return 'Condiciones de trabajo' + (name ? ' en ' + name : ''); },
+      ctaSub: ['Hay preguntas que aún no has respondido.', 'Aunque sea una, le sirve al siguiente piloto.'],
+      ctaBtn: 'Responder una pregunta →',
+      fullTitle: 'Condiciones de trabajo',
+      fullCount: function (n, all) { return 'Respondiste ' + n + ' de ' + all; },
+      fullPick: 'Elige tu aerolínea',
+      fullPickHelp: ['Las condiciones varían según la aerolínea,', 'así que no se puede guardar nada hasta saber de cuál se trata.'],
+      fullOther: 'No está en la lista',
+      fullOtherPh: 'Nombre de la aerolínea',
+      fullGo: 'Empezar con esta aerolínea',
+      fullNeedLogin: ['Inicia sesión y tus respuestas quedarán guardadas.'],
+      fullSaved: 'Guardado',
+      fullFail: 'No se pudo guardar',
+      fullNote: 'Nota (opcional, hasta 300 caracteres)',
+      fullNum: 'Ingresar',
+      fullSkip: 'Omitir',
+      fullCur: 'Moneda',
+      fullCurPick: 'Elegir moneda',
+      fullCurNeed: 'Elige una moneda.',
+      fullRangeOrder: 'El monto más bajo es mayor que el monto más alto.',
+      fullRangeCur: 'Usa la misma moneda para el monto más bajo y el más alto.',
+      fullDeadTitle: 'No se pudieron cargar las preguntas',
+      fullDead: ['Esto pasa cuando la conexión es inestable', 'o cuando se interrumpe la carga.'],
+      fullRetry: 'Volver a cargar',
+      voicesTitle: 'Cómo es el ambiente de trabajo',
+      voicesBody: ['La relación entre pilotos, la dirección, la cultura de entrenamiento y el equilibrio entre trabajo y vida personal',
+                   'se recopilan en las reseñas, con puntuaciones y con tus propias palabras.'],
+      voicesLink: 'Escribir una reseña de forma anónima →'
+    } /*/PV-MSG:es*/
+  };
+  T = (window.PV_T && window.PV_T(T, L)) || T[L];   // スペイン語の辞書（gen-msg.mjs が足す）があればそれ
 
   var esc = function (s) {
     return String(s == null ? '' : s)
@@ -479,6 +527,14 @@
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (j) {
         if (!j || !j.questions) return null;
+        /* スペイン語のページ（2026-11-02）：台帳の es（gen-conditions.mjs が訳の辞書から書く）を en の場所へ。
+           読む側（q[L].label など・L は 'en'）は1つも変えない。es の無い所は英語のまま。 */
+        if (window.PV_LANG === 'es') (function use(o) {
+          if (Array.isArray(o)) { o.forEach(use); return; }
+          if (!o || typeof o !== 'object') return;
+          if (o.es !== undefined && o.en !== undefined) o.en = o.es;
+          for (var k in o) if (k !== 'es' && Object.prototype.hasOwnProperty.call(o, k)) use(o[k]);
+        })(j);
         var by = {};
         j.questions.forEach(function (q) { by[q.id] = q; });
         _bank = { raw: j, byId: by, settings: j.settings || FALLBACK };

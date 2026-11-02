@@ -30,6 +30,48 @@
 (function () {
   'use strict';
 
+  /* ── ページの言語（2026-11-02・多言語化の段2）────────────────────────
+     全ページの <head> で最初に読まれるのはこのファイルなので、ここで1回だけ決める。
+       window.PV_LANG … 'ja' | 'en' | 'es'（文言を出す言語）
+       window.PV_BASE … 'ja' | 'en'（動きの言語。スペイン語のページは英語のページと同じ動き＝
+                        数字の書き方・リンクの作り方。文言だけをスペイン語の辞書から出す）
+       window.PV_T(T, L) … 各部品の辞書 T から、出す文言の組を選ぶ（T.es が無ければ T[L]）。
+     ★日英のページでは今までの判定と同じ答えになる（/en/ か <html lang="en…"> なら en、ほかは ja）。 */
+  (function () {
+    var p = location.pathname;
+    var hl = ((document.documentElement && document.documentElement.getAttribute('lang')) || '').toLowerCase();
+    var lang = (p.indexOf('/es/') === 0 || hl.indexOf('es') === 0) ? 'es'
+      : (/(^|\/)en\//.test(p) || hl.indexOf('en') === 0) ? 'en' : 'ja';
+    window.PV_LANG = lang;
+    window.PV_BASE = lang === 'ja' ? 'ja' : 'en';
+    window.PV_T = function (T, L) { return (lang === 'es' && T && T.es) || (T && T[L]); };
+    /* 機械で作る言語に在るページ（リンクを その言語 → 英語 の順に探すため）。gen-lang.mjs が langs.mjs から書く。手で直さない */
+    /* スペイン語のページ：部品がその場で組み立てた英語のページへのリンク（/en/…）も、押した瞬間に
+       スペイン語版があればそちらへ差し替える（1本ずつ直すと漏れる）。日英のページでは何もしない。 */
+    if (lang === 'es') document.addEventListener('click', function (e) {
+      var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+      if (!a) return;
+      try {
+        var u = new URL(a.getAttribute('href'), location.href);
+        if (u.origin !== location.origin) return;
+        var m = u.pathname.match(/^\/en\/(.+)$/);
+        var es = (window.PV_LANG_PAGES && window.PV_LANG_PAGES.es) || [];
+        if (m && es.indexOf(m[1]) >= 0) { u.pathname = '/es/' + m[1]; a.setAttribute('href', u.pathname + u.search + u.hash); }
+        /* 逆向き：部品が相対で組んだリンク（'airlines/' + slug など）がスペイン語版の無いページ（スピリットなど）を指したら英語版へ */
+        var k = !m && u.pathname.match(/^\/es\/(.+\.html)$/);
+        if (k && es.indexOf(k[1]) < 0) { u.pathname = '/en/' + k[1]; a.setAttribute('href', u.pathname + u.search + u.hash); }
+      } catch (x) {}
+    }, true);
+    /* 行き先（/en/…）をスペイン語のページではスペイン語版へ読み替える。日英のページでは渡したまま返す。 */
+    window.PV_PATH = function (p) {
+      if (lang !== 'es' || typeof p !== 'string') return p;
+      var m = p.match(/^\/en\/([^?#]+)([?#].*)?$/);
+      var es = (window.PV_LANG_PAGES && window.PV_LANG_PAGES.es) || [];
+      return m && es.indexOf(m[1]) >= 0 ? '/es/' + m[1] + (m[2] || '') : p;
+    };
+    /*PV-LANG-PAGES*/window.PV_LANG_PAGES = {"es":["pay-report.html","signup.html","login.html","profile.html","actual-pay.html","my-value.html","terms.html","privacy.html","personal-data.html","contact.html","index.html","world-airlines.html","pilot-salary-guide.html","countries.html","submit-review.html","airline-conditions.html","career.html","community.html","airlines/abx-air.html","airlines/atlas-air.html","airlines/fedex-express.html","airlines/kalitta-air.html","airlines/ups-airlines.html","airlines/iberia.html","airlines/vueling.html","airlines/aeromexico.html","airlines/avianca.html","airlines/copa-airlines.html","airlines/latam.html","countries/spain.html","countries/mexico.html","countries/colombia.html","countries/chile.html","countries/panama.html","airlines/aegean.html","airlines/aer-lingus.html","airlines/air-canada.html","airlines/air-china.html","airlines/air-france.html","airlines/air-india.html","airlines/air-new-zealand.html","airlines/air-peace.html","airlines/airasia.html","airlines/airdo.html","airlines/airjapan.html","airlines/airx-charter.html","airlines/alaska-airlines.html","airlines/allegiant.html","airlines/american.html","airlines/amx.html","airlines/ana-wings.html","airlines/ana.html","airlines/asiana.html","airlines/austrian.html","airlines/bamboo-airways.html","airlines/batik-air.html","airlines/breeze-airways.html","airlines/british-airways.html","airlines/cathay-pacific.html","airlines/china-airlines.html","airlines/china-eastern.html","airlines/china-southern.html","airlines/daiichi-air.html","airlines/delta.html","airlines/eagle-jet.html","airlines/easyjet.html","airlines/egyptair.html","airlines/emirates.html","airlines/ethiopian-airlines.html","airlines/etihad.html","airlines/eurowings.html","airlines/eva-air.html","airlines/fda.html","airlines/fiji-airways.html","airlines/finnair.html","airlines/flydubai.html","airlines/frontier.html","airlines/garuda-indonesia.html","airlines/gulf-air.html","airlines/hac.html","airlines/hainan-airlines.html","airlines/hong-kong-express.html","airlines/ibex.html","airlines/icelandair.html","airlines/indigo.html","airlines/ita-airways.html","airlines/j-air.html","airlines/jac.html","airlines/jal.html","airlines/jetblue.html","airlines/jetstar-japan.html","airlines/jetstar.html","airlines/jta.html","airlines/juneyao-airlines.html","airlines/kenya-airways.html","airlines/klm.html","airlines/korean-air.html","airlines/kuwait-airways.html","airlines/lot.html","airlines/lufthansa.html","airlines/malaysia-airlines.html","airlines/norwegian.html","airlines/oman-air.html","airlines/orc.html","airlines/peach.html","airlines/philippine-airlines.html","airlines/porter.html","airlines/qantas.html","airlines/qatar-airways.html","airlines/rac.html","airlines/riyadh-air.html","airlines/root-aviation.html","airlines/royal-brunei.html","airlines/royal-jordanian.html","airlines/ryanair.html","airlines/sas.html","airlines/saudia.html","airlines/scoot.html","airlines/shin-central.html","airlines/shin-nihon.html","airlines/singapore-airlines.html","airlines/skymark.html","airlines/solairus.html","airlines/solaseed.html","airlines/south-african-airways.html","airlines/southwest.html","airlines/spring-japan.html","airlines/starflyer.html","airlines/starlux.html","airlines/swiss.html","airlines/tap.html","airlines/thai-airways.html","airlines/toho-air.html","airlines/toki-air.html","airlines/turkish-airlines.html","airlines/united.html","airlines/vietjet.html","airlines/vietnam-airlines.html","airlines/virgin-atlantic.html","airlines/westjet.html","airlines/wizz-air.html","airlines/zipair.html"]};/*/PV-LANG-PAGES*/
+  })();
+
   /* このファイルの置き場所。pv-give-first.js は同じ階層にある。
      ★currentScript は「今まさに走っている <script>」なので、
        トップレベルのこの行でしか取れない（あとで読むと null）。 */
@@ -309,6 +351,12 @@
     var parts = location.pathname.split('/').filter(function (x) { return x; });
     var depth = parts.length - 1;                 // 最後はファイル名
     if (parts[0] === 'en') depth -= 1;            // /en/ 自体は数えない
+    /* スペイン語のページ：その言語に在るページなら同じ階層・無ければ英語版へ（2026-11-02） */
+    if (parts[0] === 'es') {
+      var es = (window.PV_LANG_PAGES && window.PV_LANG_PAGES.es) || [];
+      if (es.indexOf(file) >= 0) return new Array(Math.max(depth - 1, 0) + 1).join('../') + file;
+      return new Array(Math.max(depth, 0) + 1).join('../') + 'en/' + file;
+    }
     return new Array(Math.max(depth, 0) + 1).join('../') + file;
   }
 

@@ -41,7 +41,7 @@
        トップレベルの今しか取れない（あとで取ると null）。 */
   var SELF = (d.currentScript && d.currentScript.src) || '';
 
-  var L = (d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';
+  var L = (window.PV_BASE === 'en' || d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';   // スペイン語のページは英語と同じ動き（pv-session.js）
 
   var T = {
     ja: {
@@ -67,8 +67,20 @@
       later:  'Later',
       close:  'Close',
       aria:   'What sharing your pay unlocks'
-    }
-  }[L];
+    }, /*PV-MSG:es*/ es: {
+      title:  '¡Solo falta un paso!',
+      done:   '✓ Crear cuenta',
+      now:    '② Agregar tu remuneración',
+      lead1:  'Comparte un registro de remuneración y ',
+      leadHi: 'los datos de remuneración de todas las aerolíneas se desbloquean por 90 días',
+      lead2:  '.',
+      cta:    'Agregar tu remuneración de forma anónima',
+      later:  'Más tarde',
+      close:  'Cerrar',
+      aria:   'Qué desbloqueas al compartir tu remuneración'
+    } /*/PV-MSG:es*/
+  };
+  T = (window.PV_T && window.PV_T(T, L)) || T[L];   // スペイン語の辞書（gen-msg.mjs が足す）があればそれ
 
   /* ── 見た目 ──────────────────────────────────────────────────
      ★新しい CSS はできるだけ書かない。カードそのものは my-value.css の

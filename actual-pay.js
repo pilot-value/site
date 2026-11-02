@@ -116,7 +116,7 @@
     }
   } catch (e) {}
 
-  var L = (d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';
+  var L = (window.PV_BASE === 'en' || d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';   // スペイン語のページは英語と同じ動き（pv-session.js）
 
   // ── 文言 ───────────────────────────────────────────────────────
   var T = {
@@ -342,8 +342,98 @@
       fEmptyS: 'Clear the filters to see the other records.',
       errT: 'We cannot load this right now',
       errS: 'Please try again in a little while.'
-    }
-  }[L];
+    }, /*PV-MSG:es*/ es: {
+      all: 'Todas',
+      thAir: 'Aerolínea', thPos: 'Categoría',
+      thAmt: 'Anual', thMon: 'Por mes', thVf: 'Fuente', thAge: 'Fecha de envío',
+      othAir: 'Aerolínea no incluida en la lista',
+      vfNo: 'Declarado por el piloto',
+      far: 'Esta cifra está muy fuera del rango publicado para esta aerolínea y categoría.',
+      hold: 'Todavía estamos confirmando que quien publicó este registro es piloto.',
+      age: ['Hace menos de 1 mes', 'Hace menos de 3 meses', 'Hace menos de 6 meses',
+            'Hace menos de un año', 'Hace más de un año'],
+      stRep: 'Registros de remuneración',      stRepU: '',
+      stAir: 'Aerolíneas',         stAirU: '',
+      stMon: 'Agregados hace menos de 1 mes', stMonU: '',
+      foot: 'Esta lista solo pueden leerla los pilotos que enviaron su propia remuneración. '
+          + 'Todas las cifras son rangos '
+          + '(la columna mensual es la cifra anual dividida entre doce). '
+          + 'La base, la edad, la nacionalidad y el tipo de contrato no aparecen en ninguna fila, '
+          + 'y la fecha de envío de cada fila solo se muestra como un periodo amplio.',
+      hintComp: 'Desglose', hintWork: 'Trabajo', hintGo: 'Abrir el detalle anónimo',
+      dwOpen: 'Abrir el registro de {pos} en {air}',
+      dwOpenM: 'Abrir el registro de {air}',
+      dwClose: 'Cerrar',
+      dwYear: 'Por año', dwMonth: 'Por mes',
+      dwComp: 'Remuneración', dwWork: 'Trabajo',
+      dwSim: 'Otros registros de la misma aerolínea y categoría',
+      dwOnly: 'Este envío solo incluye la cifra anual.',
+      dwNoComp: 'Este envío no incluye el desglose de la remuneración.',
+      dwNoWork: 'Este envío no incluye datos de trabajo.',
+      dwNote: 'Las cifras de remuneración y de trabajo se muestran en rangos para que nadie pueda ser identificado. '
+            + 'Nunca se publican nombres, números de empleado ni correos electrónicos.',
+      dwShare: 'Los porcentajes son aproximados, calculados a partir de los rangos anonimizados',
+      fGo: 'Mostrar {n} registros',
+      fN: '{n} filas',
+      cBh: 'Horas block',
+      cbMore: '+{n} más',
+      dwCta: 'Agregar tu remuneración de forma anónima',
+      lockPT: 'Los desgloses de remuneración se comparten entre los pilotos que comparten el suyo',
+      lockPS: 'Responde tres cosas —sueldo base, horas garantizadas / asignación por servicio '
+            + 'y remuneración variable— y esto se desbloquea. '
+            + 'Lo que tu recibo de nómina no incluya puedes marcarlo como “no aplica”.',
+      lockPC: 'Agregar el desglose de tu remuneración',
+      ten: { r: ['Menos de 5 años en el puesto', '5–10 años en el puesto', '10–15 años en el puesto',
+                 '15–20 años en el puesto', '20+ años en el puesto'],
+             s: ['Menos de 5 años en la aerolínea', '5–10 años en la aerolínea',
+                 '10–15 años en la aerolínea', '15–20 años en la aerolínea',
+                 '20+ años en la aerolínea'] },
+      seg: { base: 'Sueldo base', guarantee: 'Horas garantizadas / asignación por servicio',
+             variable: 'Variable (vuelo)', command: 'Asignación por categoría',
+             role: 'Compensación por funciones', perdiem: 'Viáticos', housing: 'Ayuda para vivienda',
+             other: 'Otras asignaciones en efectivo', rest: 'Otros / sin clasificar',
+             bonus: 'Bonos y participación en las utilidades' },
+      wk: { bh: 'Horas block', dd: 'Días de servicio', off: 'Días libres' },
+      wkU: { bh: 'h / mes', dd: 'días / mes', off: 'días / mes' },
+      dash: '–', under: 'Menos de {v}',
+      pgPrev: 'Anterior', pgNext: 'Siguiente', pgRange: 'Mostrando {a}–{b} de {n}',
+      lockT: 'Mira cuánto cobran realmente otros pilotos',
+      /* ⚠️ See the Japanese note above: do not write "processed on your own device"
+           as if nothing is sent. The redaction and the crop happen on the device;
+           the cropped area is then sent to be read. */
+      lockS: 'Nunca recopilamos tu nombre ni tu número de empleado. '
+           + 'Si usas un recibo de nómina, tu nombre, número de empleado y datos bancarios se tapan '
+           + 'en tu navegador antes de enviarlo, y la imagen nunca se almacena.',
+      lockS2: 'Cada fila muestra la aerolínea, la categoría y la aeronave, '
+            + 'con las cifras anual y mensual en rangos. '
+            + 'Al abrir una fila ves el desglose de esa remuneración y el trabajo que la respalda.',
+      lockC: 'Agregar tu remuneración de forma anónima',
+      lockN: 'Unos 50 segundos. Puedes agregar el desglose después.',
+      skelT: 'Así se ve la lista una vez desbloqueada',
+      skelL: 'Comparte un registro de remuneración para ver la lista',
+      mkT: 'Registros de remuneración que los pilotos realmente enviaron',
+      mkS: 'Comparte un registro de remuneración para ver las cifras anuales, la categoría y la aeronave',
+      mkA: 'Cifra anual oculta',
+      mkF: 'Categoría y tipo de aeronave ocultos',
+      seeT: 'Lo que muestra REAL PAY',
+      see: ['Lo que realmente ganan al año los pilotos de cada aerolínea y categoría',
+            'Esa cifra dividida entre doce, como monto mensual',
+            'La aeronave que vuela cada piloto',
+            'El desglose de la remuneración —sueldo base, remuneración variable, asignaciones— en rangos',
+            'Horas block (calzo a calzo), días de servicio y días libres, en rangos',
+            'La marca Verified en las filas respaldadas por un recibo de nómina',
+            'Cuándo se envió aproximadamente cada registro'],
+      seeN: 'Todas las cifras son rangos. Ninguna fila muestra un monto exacto.',
+      emptyT: 'Aún no hay filas',
+      emptyS: 'Cada piloto que envía su remuneración aparece aquí en una fila. Puedes ser el primero.',
+      emptyC: 'Agregar tu remuneración de forma anónima',
+      fEmptyT: 'Aún no hay nada que coincida con este filtro',
+      fEmptyS: 'Quita los filtros para ver los demás registros.',
+      errT: 'No podemos cargar esto en este momento',
+      errS: 'Vuelve a intentarlo en un rato.'
+    } /*/PV-MSG:es*/
+  };
+  T = (window.PV_T && window.PV_T(T, L)) || T[L];   // スペイン語の辞書（gen-msg.mjs が足す）があればそれ
 
   var PAY_URL = 'pay-report.html#ps';
   /* ★内訳の欄まで直接。pay-report.html の openDetailFromHash() が
@@ -414,7 +504,7 @@
        あちらは mail-bot/announce-mail.mjs と突き合わせている行を抱えている。 */
   function PT(k) {
     var p = pvData();
-    var t = (p && p.t) ? (p.t[L] || p.t.ja) : null;
+    var t = (p && p.t) ? ((window.PV_T && window.PV_T(p.t, L)) || p.t[L] || p.t.ja) : null;   // スペイン語の辞書があればそれ
     return (t && t[k]) || '';
   }
 

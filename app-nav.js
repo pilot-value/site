@@ -51,11 +51,11 @@
   /* ── 日英。★同じ鍵で1ファイルに持つ（2か所に分けると片方だけ古くなる）── */
   var L10N = {
     ja: { menu: 'メニュー', close: '閉じる', title: 'メニュー' },
-    en: { menu: 'Menu',     close: 'Close',  title: 'Menu' },
+    en: { menu: 'Menu',     close: 'Close',  title: 'Menu' }, /*PV-MSG:es*/ es: { menu: 'Menú',     close: 'Cerrar',  title: 'Menú' } /*/PV-MSG:es*/,
   };
-  var IS_EN = /(^|\/)en\//.test(location.pathname) ||
-              (d.documentElement.getAttribute('lang') || '').toLowerCase().indexOf('en') === 0;
-  var T = L10N[IS_EN ? 'en' : 'ja'];
+  var IS_EN = window.PV_BASE === 'en' || /(^|\/)en\//.test(location.pathname) ||
+              (d.documentElement.getAttribute('lang') || '').toLowerCase().indexOf('en') === 0;   // スペイン語のページは英語と同じ動き
+  var T = (window.PV_T && window.PV_T(L10N, IS_EN ? 'en' : 'ja')) || L10N[IS_EN ? 'en' : 'ja'];
 
   /* 板が左から出るのは狭い画面だけ。境目は app-nav.css の @media と同じ 1000px。
      ⚠️ 2か所に数を書いているので、片方を変えたらもう片方も変える。 */

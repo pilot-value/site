@@ -290,6 +290,9 @@ html.vt-lock,html.vt-lock body{overflow:hidden}
 .vt-over{position:absolute;right:-5px;top:-6px;color:var(--vt-jade-ink);font-size:12px;line-height:1}
 .vt-wk-note{margin:8px 0 0;font-size:10.5px;line-height:1.6;color:var(--vt-muted)}
 html[lang^="en"] .vt{--vt-wlw:86px;--vt-wvw:84px}
+/* スペイン語（2026-11-02）：月の勤務の見出しは英語と同じ幅より少し広く・鍵の板のボタンは字が長いので折り返す（390px で 68px はみ出した） */
+html[lang^="es"] .vt{--vt-wlw:96px;--vt-wvw:84px}
+html[lang^="es"] .vt-btn{white-space:normal;text-align:center;max-width:100%}
 .vt-wk-lock{margin:0;font-size:12px;line-height:1.7;color:var(--vt-ink-2)}
 .vt-wk-cta{display:inline-flex;margin-top:8px;font-size:12px;font-weight:650;color:var(--vt-jade-ink);text-decoration:underline!important;text-underline-offset:3px;transition:opacity .15s}
 .vt-wk-cta:hover{color:var(--vt-jade-dark)}

@@ -48,7 +48,7 @@
        足したのは3つだけ：コードの中に直に在った字（並んだ答えの区切り「、」・年月の「年」「月」）を表へ移した list・ym と、数と単位のあいだ unitSp（日本語は空）。
      ・英語は T_EN。鍵も形も T と同じ（assert-career-live.mjs の en-words が見る）。英語のページでだけ、T_EN の下の1行で表を入れ替える。
      ・サーバーへ渡す言葉（口コミの要約の lang）・答えの名前（質問の台帳・職位と機材・会社の名前）も同じ LANG で選ぶ。 */
-  var LANG = /^en(-|$)/i.test(d.documentElement.getAttribute('lang') || '') ? 'en' : 'ja';
+  var LANG = (window.PV_BASE === 'en' || /^en(-|$)/i.test(d.documentElement.getAttribute('lang') || '')) ? 'en' : 'ja';   // スペイン語のページは英語と同じ動き（pv-session.js）
 
   var T = {
     loading: '読み込み中',
@@ -289,7 +289,119 @@
     split: 'Answers are split',
     answered: function (n) { return n === 1 ? '1 member' : n + ' members'; }
   };
+  /*PV-MSG:es*/ var T_ES = {
+    loading: 'Cargando',
+    err: 'No podemos cargar esto en este momento',
+    retry: 'Intentar de nuevo',
+    off: 'Aún no disponible',
+    none: 'Datos insuficientes',
+    dash: '–',
+    list: ', ',
+    unitSp: ' ',
+    ym: function (y, m) { return MONTHS_EN[m - 1] + ' ' + y; },
+
+    annual: 'Anual',
+    vfYes: 'Verificado',
+    vfNo: 'Declarado por el piloto',
+    far: 'Esta cifra está muy fuera del rango publicado para esta aerolínea y categoría.',
+    age: ['Hace 1 mes o menos', 'Hace 3 meses o menos', 'Hace 6 meses o menos', 'Hace un año o menos', 'Hace más de un año'],
+    ten: {
+      r: ['Menos de 5 años en el puesto actual', '5–10 años en el puesto actual', '10–15 años en el puesto actual', '15–20 años en el puesto actual', '20 años o más en el puesto actual'],
+      s: ['Menos de 5 años en la aerolínea', '5–10 años en la aerolínea', '10–15 años en la aerolínea', '15–20 años en la aerolínea', '20 años o más en la aerolínea']
+    },
+    payEmpty: 'Aún no hay datos enviados',
+    payCount: function (n) { return ['', String(n), n === 1 ? ' envío' : ' envíos']; },
+    payLock: 'Se desbloquea cuando envías los datos de tu remuneración',
+    payExpired: 'Tu acceso a los datos de remuneración terminó',
+    payMore: function (n) { return 'Ver más (' + n + ' en total)'; },
+    payOpen: function (n) { return 'Ver las cifras enviadas (' + n + ')'; },
+    ydHead: 'Remuneración anual por años en el puesto',
+    ydX: ['<5 años', '5–10', '10–15', '15–20', '20+'],
+    ydXs: ['0', '5', '10', '15', '20+'],
+    ydAxis: 'Años en el puesto actual',
+    ydAxisS: 'Años en el puesto',
+    ydNote: function (old) { return 'Cada punto es un envío.' + (old ? ' ' + old + (old === 1 ? ' envío anterior' : ' envíos anteriores') + ' con solo el dato de años en la aerolínea ' + (old === 1 ? 'no se muestra' : 'no se muestran') + '.' : ''); },
+    ydFar: 'Muy alejado del rango de remuneración publicado',
+    ydBand: ['P25', 'Mediana', 'P75'],
+    ydSep: ' · ',
+    posPick: 'Elegir categoría',
+    rgHead: 'Rango de remuneración (percentil 25–75)',
+    dnHead: 'Desglose de la remuneración mensual (promedio)',
+    dnDef: function (from, to) { return 'Basado en los datos de remuneración enviados con desglose (meses de pago ' + from + '–' + to + '). Los montos son promedios mensuales.'; },
+    dnSeg: { base: 'Sueldo base', guarantee: 'Pago garantizado / asignación por servicio', variable: 'Remuneración variable (vuelo)', command: 'Asignación por categoría', role: 'Compensación por funciones',
+             perdiem: 'Viáticos', housing: 'Ayuda para vivienda', other: 'Otras asignaciones en efectivo', rest: 'Otros / sin clasificar' },
+    payGive: 'Agregar tu remuneración de forma anónima',
+    gg: 'Give & Get',
+    payUnlock: ['Desbloquear ', 'todos los ', 'datos de remuneración'],
+    payTerms: 'Condiciones de acceso',
+    payAll: 'Ver todo en REAL PAY',
+    login: 'Iniciar sesión',
+    loginPayLock: 'Se desbloquea cuando inicias sesión y envías los datos de tu remuneración',
+    giveLock: function (need) { return 'Se desbloquea cuando respondes ' + need + (need === 1 ? ' pregunta' : ' preguntas') + ' sobre tu propia aerolínea'; },
+    giveHead: function (name) { return 'Completa los datos que faltan sobre remuneración y condiciones en ' + name; },
+    giveCount: function (have, need) { return 'Preguntas que respondiste: ' + have + ' / ' + need; },
+    giveGo: 'Responder de forma anónima',
+
+    work: [
+      { k: 'block_hours', name: 'Horas block (calzo a calzo)', unit: 'h / mes', u: 'h', fam: 'h' },
+      { k: 'duty_hours', name: 'Tiempo de servicio', unit: 'h / mes', u: 'h', fam: 'h' },
+      { k: 'work_days', name: 'Días trabajados', unit: 'días / mes', u: 'días', fam: 'd' },
+      { k: 'duty_days', name: 'Días de vuelo', unit: 'días / mes', u: 'días', fam: 'd' },
+      { k: 'days_off', name: 'Días libres', unit: 'días / mes', u: 'días', fam: 'd' },
+      { k: 'stay_nights', name: 'Noches de pernocta fuera de base', unit: 'noches / mes', u: 'noches', fam: 'd' }
+    ],
+    workPos: [['cap', 'Capitán (Comandante)'], ['fo', 'Primer oficial (Copiloto)']],
+    workEmpty: 'Aún no hay resultados',
+    workMax: { h: 240, d: 31 },
+    workCap: 'Las barras y cifras muestran el 50% central de las respuestas',
+    workAxis: ['Escala: horas 0', ', días y noches 0'],
+    workOver: 'Fuera de escala',
+    noteHead: 'Notas de los miembros',
+    noteWork: 'Servicio mensual',
+    noteMine: 'Tu publicación',
+    townHead: 'Lugares preferidos para vivir',
+    townWait: 'Pendiente',
+    townNo: 'Rechazado',
+    townEdit: 'Editar',
+    townHeld: 'Tienes respuestas guardadas sin haber iniciado sesión.',
+
+    revEmpty: 'Aún no hay reseñas',
+    revNone: 'Aún no hay publicaciones de miembros',
+    revNo: 'Aún sin calificación',
+    revPosts: function (n) { return 'Publicaciones de miembros: ' + n; },
+    revRated: function (n) { return n + (n === 1 ? ' calificación' : ' calificaciones'); },
+    sumHead: 'Resumen de reseñas',
+    sumOvHead: 'Panorama general',
+    sumGood: 'Puntos positivos',
+    sumConcern: 'Inquietudes',
+    sumLock: 'El resumen se desbloquea cuando publicas una reseña',
+    sumAi: 'Resumen con IA',
+    sumFrom: function (n) { return 'Basado en ' + n + (n === 1 ? ' reseña de miembro' : ' reseñas de miembros'); },
+    /* ★2026-10-26 EN-11c：英語は月の名前で「Updated 1 October 2026」（英語ページのほかの日付と同じ「日 月 年」の形）。
+       月の名前は上の MONTHS_EN だけから ── ブラウザの言語の設定（toLocaleDateString など）では作らない。形の違う字はそのまま */
+    sumWhen: function (d) {
+      var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d), mo = m && MONTHS_EN[Number(m[2]) - 1];
+      return 'Actualizado: ' + (mo && Number(m[3]) >= 1 && Number(m[3]) <= 31 ? Number(m[3]) + ' ' + mo + ' ' + m[1] : d);
+    },
+    sumFew: 'Todavía hay muy pocas reseñas para generar un resumen',
+    sumNone: 'Aún no hay resumen de reseñas',
+    sumOff: 'Aún no disponible',
+    sumSrc: 'Ver las reseñas en las que se basa este resumen',
+    revLock: 'Se desbloquea cuando publicas una reseña',
+    revGive: 'Escribir una reseña de forma anónima',
+    revUnlock: ['Desbloquear ', 'reseñas'],
+    revRead: 'Leer reseñas',
+    revAll: 'Ver todas las reseñas de esta aerolínea',
+
+    factEmpty: 'Aún no hay resultados',
+    factNone: 'Sin resultados',
+    top: 'Más frecuente',
+    median: 'Mediana',
+    split: 'Las respuestas están divididas',
+    answered: function (n) { return n === 1 ? '1 miembro' : n + ' miembros'; }
+  }; /*/PV-MSG:es*/
   if (LANG === 'en') T = T_EN;
+  if (window.PV_LANG === 'es' && typeof T_ES !== 'undefined') T = T_ES;   // スペイン語の辞書（gen-msg.mjs が書く）
 
   /* ── 小さな道具 ─────────────────────────────────────────── */
   function isArr(v) { return Object.prototype.toString.call(v) === '[object Array]'; }
@@ -3038,19 +3150,28 @@
      ⚠️ サーバーは保存した表を引くだけ（pv_member_medians）。ページを開くたびに全員分を数え直さない（2026-10-31 に本番が止まった原因）。
      決まり（台帳 salary-basis.mjs → HTML の data-*）：always ＝ いつも中央値（ANA・JAL）／higher ＝ 中央値が base（中央値に替える前の推定）を超えたときだけ。
      返事が無い・失敗したときは何もしない（書き込んである額のまま）。人数はサーバーが返さない（2人以上の組だけ返る）。 */
-  var MED_T = LANG === 'en'
-    ? { med: '<span class="pvg-vh">, median pay</span>', est: '<span class="pvg-vh">, estimated annual pay</span>',
-        byEst: 'Our estimate', byMed: 'Median of pay submitted by members', sep: ' · ',
-        mix: function (e, m) { return e + ': our estimate · ' + m + ': median of pay submitted by members'; },
-        rank: { cap: 'Captain', fo: 'First Officer' },
-        method: 'Median of the annual pay members have submitted (latest entry per person, to the nearest ¥10,000).', asOf: 'As of: latest submission',
-        yen: function (man) { return '¥' + (+(man / 100).toFixed(2)) + 'M'; } }
-    : { med: 'の中央値', est: 'の推定年収',
+  /* 日英の字の表（★2026-11-02 多言語化：前は LANG === 'en' ? {…} : {…}。gen-msg.mjs がこの en の後ろにスペイン語の es を書けるよう、
+     ja ／ en の辞書の形にした。選び方は同じ ── 日本語のページは ja・英語のページは en・スペイン語のページは es（無ければ en）） */
+  var MED_ALL = {
+    ja: { med: 'の中央値', est: 'の推定年収',
         byEst: '当サイトの推定', byMed: '会員が出した年収の中央値', sep: '・',
         mix: function (e, m) { return e + 'は当サイトの推定・' + m + 'は会員が出した年収の中央値'; },
         rank: { cap: '機長', fo: '副操縦士' },
         method: '会員が出した年収の中央値（1人1件・1万円単位）。', asOf: '時点：最新の提出まで',
-        yen: function (man) { return '¥' + man.toLocaleString('en-US') + '万'; } };
+        yen: function (man) { return '¥' + man.toLocaleString('en-US') + '万'; } },
+    en: { med: '<span class="pvg-vh">, median pay</span>', est: '<span class="pvg-vh">, estimated annual pay</span>',
+        byEst: 'Our estimate', byMed: 'Median of pay submitted by members', sep: ' · ',
+        mix: function (e, m) { return e + ': our estimate · ' + m + ': median of pay submitted by members'; },
+        rank: { cap: 'Captain', fo: 'First Officer' },
+        method: 'Median of the annual pay members have submitted (latest entry per person, to the nearest ¥10,000).', asOf: 'As of: latest submission',
+        yen: function (man) { return '¥' + (+(man / 100).toFixed(2)) + 'M'; } }, /*PV-MSG:es*/ es: { med: '<span class="pvg-vh">, mediana de la remuneración</span>', est: '<span class="pvg-vh">, sueldo anual estimado</span>',
+        byEst: 'Nuestra estimación', byMed: 'Mediana de la remuneración enviada por los miembros', sep: ' · ',
+        mix: function (e, m) { return e + ': nuestra estimación · ' + m + ': mediana de la remuneración enviada por los miembros'; },
+        rank: { cap: 'Capitán', fo: 'Primer oficial' },
+        method: 'Mediana de la remuneración anual que han enviado los miembros (último dato por persona, redondeado al múltiplo de ¥10,000 más cercano).', asOf: 'Fecha de corte: último envío',
+        yen: function (man) { return '¥' + (+(man / 100).toFixed(2)) + 'M'; } } /*/PV-MSG:es*/
+  };
+  var MED_T = (window.PV_T && window.PV_T(MED_ALL, LANG)) || MED_ALL[LANG];
   function medianRows(slug) {
     return once('med:' + slug, function (sig) {
       return client().then(function (sb) { return cut(sb.rpc('pv_member_medians', { p_airline: slug }), sig); }).then(function (res) {

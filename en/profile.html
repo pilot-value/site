@@ -219,7 +219,7 @@
 })();
 </script>
 <!--/PV-3P-->
-<script src="../pv-session.js?v=700cc594"></script>
+<script src="../pv-session.js?v=7620526d"></script>
 </head>
 <body class="pv-anav-shell pv-anav-app">
   <header class="mr-top">
@@ -349,7 +349,7 @@
     <!-- パイロットであることの確認（申請）の入口。中身は pv-proof-offer.js が描く（返事が none / offered / approved のときだけ）。
          ★何も止めない。オーナーが verified を押すまで、確認済みのパイロットだけが見られるものは閉じたまま。 -->
     <div id="pv-proof-slot"></div>
-    <script src="../pv-proof-offer.js?v=cc4ef913" defer></script>
+    <script src="../pv-proof-offer.js?v=436fb390" defer></script>
     </section>
 
     <!-- ② NEXT ACTION ─ ★強いものは常に1つだけ。同じ強さの CTA を並べない。
@@ -451,7 +451,9 @@
               <option value="日本">Japan</option><option value="アメリカ">United States</option><option value="UAE">UAE</option>
               <option value="シンガポール">Singapore</option><option value="香港">Hong Kong</option><option value="イギリス">United Kingdom</option>
               <option value="ドイツ">Germany</option><option value="フランス">France</option><option value="オーストラリア">Australia</option>
-              <option value="カナダ">Canada</option><option value="韓国">South Korea</option><option value="中国">China</option><option value="その他">Other</option>
+              <option value="カナダ">Canada</option><option value="韓国">South Korea</option><option value="中国">China</option>
+              <!-- 2026-11-02 multilingual: Spanish-speaking countries (the same stored values on every signup/profile page) -->
+              <option value="メキシコ">Mexico</option><option value="スペイン">Spain</option><option value="コロンビア">Colombia</option><option value="チリ">Chile</option><option value="ペルー">Peru</option><option value="アルゼンチン">Argentina</option><option value="パナマ">Panama</option><option value="その他">Other</option>
             </select>
           </div>
           <div><div class="field-label">Employer</div><input class="auth-input" type="text" id="e-company"/></div>
@@ -536,7 +538,7 @@
 
   <!-- 会社コード → 表示名。待遇カードの見出しに社名を出すため -->
   <script src="../airlines-meta.js"></script>
-  <script src="../pv-conditions.js?v=fdf74359"></script>
+  <script src="../pv-conditions.js?v=94db8134"></script>
   <script src="../pv-referral.js"></script>
   <script src="../pv-founding.js"></script>
   <script>
@@ -643,7 +645,7 @@
         const el = document.getElementById(id);
         if (!el || !on) return;                       // still locked → leave the markup as it is
         const d = until
-          ? ` (until ${new Date(until).toLocaleDateString('en-US',{month:'short',day:'numeric'})})`
+          ? ` (until ${new Date(until).toLocaleDateString(window.PV_LANG === 'es' ? 'es-419' : 'en-US',{month:'short',day:'numeric'})})`
           : '';
         el.className = 'unlock-badge unlock-active';
         el.innerHTML = `${OPEN_LOCK} ${label} unlocked${d}`;
@@ -841,7 +843,7 @@
       document.getElementById('v-company').textContent  = profile.company  || '—';
       document.getElementById('v-position').textContent = POS_LABEL[profile.position] || '—';
       document.getElementById('v-joined').textContent   = profile.created_at
-        ? new Date(profile.created_at).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) : '—';
+        ? new Date(profile.created_at).toLocaleDateString(window.PV_LANG === 'es' ? 'es-419' : 'en-US',{year:'numeric',month:'long',day:'numeric'}) : '—';
       // Update localStorage
       localStorage.setItem('pv_user', JSON.stringify({...profile, email: currentUser.email}));
     }
@@ -917,7 +919,7 @@
     }
     // 引けなければコードのまま出す（「その他」の自由入力は社名そのものが入っている）
     const airlineLabel = (code) => airlineNames[code] || code || '—';
-    const fmtDate = (x) => x ? new Date(x).toLocaleDateString('en-US') : '';
+    const fmtDate = (x) => x ? new Date(x).toLocaleDateString(window.PV_LANG === 'es' ? 'es-419' : 'en-US') : '';
     const snippet = (x) => {
       const s = String(x || '').trim();
       return s ? esc(s.slice(0, 80)) + (s.length > 80 ? '…' : '') : '';
@@ -1138,7 +1140,7 @@
      ★Reads this page's PV_SESSION and sb, so it must load **after** them.
      ★?v= is a fingerprint of the file. Change the file → copy it to all 8 pages
        (4 screens × ja/en; assert-links.mjs checks). -->
-<script src="../pv-pay-fix.js?v=c3f06489"></script>
+<script src="../pv-pay-fix.js?v=5d53c013"></script>
 <!-- PV-NAV: opens and closes the navigation. Loads AFTER search.js so it can adopt
      the hamburger that file creates; on pages without search.js it makes its own. -->
 <script src="../app-nav.js"></script>

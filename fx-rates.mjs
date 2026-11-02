@@ -2,6 +2,7 @@
    fx-rates.mjs — ★自動生成。手で編集しない。
      生成元: node gen-fx-rates.mjs（https://www.exchangerate-api.com の USD 基準スナップショット）
      基準日: 2026-08-22（USD/JPY = 158.9549）
+     足した通貨: PEN・ARS（2026-11-01 の USD 基準のレートを、表の USD/JPY 158.95 で円にした・node gen-fx-rates.mjs --add）
 
    1通貨あたりの円。ここが換算レートの唯一の正で、
      ・currency.js の RATES（サイトの通貨切替。下の 7 通貨だけ）
@@ -62,4 +63,6 @@ export const JPY_PER = {
   BRL:      30.7039,   // ブラジルレアル
   CLP:     0.194221,   // チリペソ
   COP:     0.043384,   // コロンビアペソ
+  PEN:      45.9615,   // ペルーソル（2026-11-01 に足した）
+  ARS:     0.103392,   // アルゼンチンペソ（2026-11-01 に足した）
 };

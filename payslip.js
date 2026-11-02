@@ -23,7 +23,7 @@
   if (!root) return;
   if (typeof _sb === 'undefined') return;                 // Supabase が落ちていたら出さない
 
-  var L = (typeof LANG !== 'undefined' && LANG === 'en') ? 'en' : 'ja';
+  var L = (window.PV_BASE === 'en' || (typeof LANG !== 'undefined' && LANG === 'en')) ? 'en' : 'ja';   // スペイン語のページは英語と同じ動き（pv-session.js）
 
   // ── 文言 ──────────────────────────────────────────────────
   var T = {
@@ -313,8 +313,147 @@
       ahaNoUp: function (n) { return 'None of the ' + n + ' airlines with a published range for this seat pays more on average.'; },
       ahaTaxFree: 'tax-free',
       ahaNote: '※ Compared against our published range for that airline and seat. <b>It does not account for fleet, years of experience or contract type.</b> In tax-free countries the gross figure is close to take-home, so the real gap is wider than this pre-tax line-up shows.',
-    },
-  }[L];
+    }, /*PV-MSG:es*/ es: {
+      reading: 'Leyendo tu recibo de nómina…',
+      sending: 'Leyéndolo (unos 15 segundos)…',
+      redacted: 'Buscamos tu nombre, número de empleado y número de cuenta y los tapamos aquí mismo, en tu dispositivo.',
+      scanning: 'Buscándolos… (la primera vez se descargan los datos de lectura, así que tarda un momento)',
+      scanDone: function (n) { return n + ' área' + (n === 1 ? '' : 's') + ' en negro de forma automática. Si se pasó algo por alto, agrega más.'; },
+      scanNone: '⚠ No se pudieron encontrar automáticamente tu nombre, número de empleado ni número de cuenta. No hay nada tapado. Reduce el marco o agrega recuadros manualmente sobre todo lo que siga visible.',
+      scanFail: '⚠ No se pudo ejecutar la búsqueda automática. No hay nada tapado. Reduce el marco o agrega recuadros manualmente sobre todo lo que siga visible.',
+      redactNone: '⚠ No hay nada tapado. Vuelve a revisar que no se vea ningún nombre ni número de empleado.',
+      confirm: 'Confirmo que dentro del marco no queda ningún nombre, número de empleado ni número de cuenta',
+      confirmWait: 'Espera a que termine la búsqueda.',
+      waitTitle: 'Leyendo tu recibo de nómina y buscando qué tapar…',
+      waitNote: 'Tu recibo de nómina permanece oculto hasta que esto termine, para que no confundas la imagen sin tapar con la terminada y la envíes.',
+      preview: 'Esta es la imagen que se enviará.',
+      addRect: '+ Agregar recuadro para tapar',
+      reset: 'Volver a la posición automática',
+      cancel: 'Cancelar',
+      send: 'Enviar esta imagen',
+      del: 'Quitar',
+      hint: 'Arrastra un recuadro para moverlo. Toma la esquina inferior derecha para cambiar su tamaño.',
+      frameTag: '⤧ Área que se envía',
+      frameLead: 'Solo se envía lo que está <b>dentro del marco iluminado</b>. Todo lo que está en la zona oscurecida se recorta antes de enviar.',
+      frameHint: 'Toma la pestaña “Área que se envía” para mover el marco. Las cuatro esquinas cambian su tamaño.',
+      frameOff: '⚠ Ahora el marco cubre <b>toda la imagen</b>, así que se enviaría la imagen completa. Toma las esquinas y ajusta el marco para que encierre <b>solo las tablas de remuneración</b>.',
+      frameAll: 'Ampliar el marco a toda la imagen',
+      diagCopy: 'Copiar diagnóstico',
+      diagDone: 'Diagnóstico copiado',
+      note: 'Nada de lo que está fuera del marco sale de tu dispositivo: se recorta antes de enviar. Solo se envía lo que está dentro del marco; se usa únicamente para leer las cifras y nunca se almacena. Las áreas tapadas quedan en negro en los propios píxeles, así que no se pueden recuperar.',
+      badImage: 'No se pudo leer el archivo. Usa un PDF, JPEG, PNG o WebP.',
+      tooLarge: 'El archivo es demasiado grande. Las imágenes deben pesar menos de 6 MB y los PDF, menos de 20 MB.',
+      pdfReading: 'Abriendo el PDF… (el lector solo se descarga la primera vez)',
+      pdfText: 'Se leyó el texto directamente del PDF.',
+      pdfPages: function (n) { return ' (solo la página 1 de ' + n + ')'; },
+      pdfLocked: 'Este PDF está protegido con contraseña. Guarda una copia sin contraseña o, en su lugar, arrastra aquí una captura de pantalla.',
+      pdf: 'No se pudo abrir el PDF. Ábrelo y, en su lugar, arrastra aquí una captura de pantalla.',
+      /* ★Same two cases as above: the file opens but nothing can be drawn from it. */
+      pdfXfa: 'Este PDF usa un formato de formulario especial (XFA) que no se puede mostrar aquí. Ábrelo y, en su lugar, arrastra aquí una captura de pantalla.',
+      pdfBlank: 'No se pudo mostrar nada de este PDF — sale en blanco. Ábrelo y, en su lugar, arrastra aquí una captura de pantalla.',
+      errNet: 'No se pudo enviar. Revisa tu conexión e inténtalo de nuevo.',
+      /* ★A failed read must always end with “you can type it in”. doSend opens the
+         form at the same moment, so the words match what is on screen. A dead end
+         here loses the most motivated person on the page. */
+      errRead: 'No se pudo leer el recibo de nómina. <b>Puedes ingresarlo a mano abajo</b> — el formulario ya está abierto. Para intentar leerlo de nuevo, vuelve a tomar la foto con buena luz y con todo el recibo dentro del encuadre.',
+      errNotSlip: 'Esto no parece un recibo de nómina. <b>Puedes ingresarlo a mano abajo</b> — el formulario ya está abierto. Para intentar leerlo de nuevo, usa una imagen recortada que muestre solo el recibo.',
+      errQuota: 'Ya usaste las lecturas automáticas de hoy. <b>Puedes ingresarlo a mano abajo</b> — el formulario ya está abierto. La lectura automática vuelve a estar disponible mañana.',
+      errQuotaGlobal: 'La lectura automática está saturada en este momento y hoy ya no podemos procesar más. <b>Puedes ingresarlo a mano abajo</b> — el formulario ya está abierto. Esto no contó como una de tus lecturas.',
+      errServer: 'La lectura automática no está disponible en este momento. <b>Puedes ingresarlo a mano abajo</b> — el formulario ya está abierto.',
+      /* ★The disagreement list (owner, 2026-09-12, decision 6). What you typed is never overwritten. */
+      cfTitle: 'Diferencias entre lo que ingresaste y el recibo de nómina',
+      cfLead: '<b>No se cambió nada.</b> Presiona solo aquellas en las que el recibo es el correcto.',
+      cfMine: 'Lo que ingresaste',
+      cfSlip: 'Recibo de nómina',
+      cfUse: 'Usar el valor del recibo de nómina',
+      /* ★Fixed amounts the payslip did not show (owner, 2026-09-12, decision 6).
+         Last month's figure is never filled in on its own — only when pressed. */
+      cdTitle: 'Montos que no aparecían en el recibo de nómina',
+      cdLead: 'Puedes reutilizar la cifra del mes pasado. <b>Si no haces nada, la casilla queda vacía.</b>',
+      cdUse: function (v) { return 'Usar la cifra del mes pasado: ' + v; },
+      resultTitle: 'Esto es lo que leímos',
+      resultLead: 'Estas son las cifras que leyó la IA. <b>Compáralas con tu recibo</b> y corrige lo que esté mal. <b>Todavía no se ha enviado nada.</b>',
+      col1: 'Concepto en tu recibo de nómina', col2: 'Se registra en', col3: 'Monto',
+      askBlockT: 'No se pudieron leer las horas block (calzo a calzo)',
+      askBlockOkT: 'Horas block',
+      askBlockL: 'Agrega solo este número y obtendrás tu remuneración por hora block. Es la línea de horas block (calzo a calzo) / horas de vuelo de tu recibo.',
+      askBlockF: 'Lo tomamos de tu recibo. Si se ve bien, déjalo así.',
+      editHint: 'Puedes corregir los montos aquí mismo. Los cambios se reflejan en el formulario de abajo y en tu remuneración por hora.',
+      foldTitle: 'Ver lo que leímos de tu recibo de nómina ({n} líneas)',
+      foldTitleNoN: 'Ver lo que leímos de tu recibo de nómina',
+      nextT: '{n} por completar',
+      nextL: 'La aerolínea, el puesto y la flota no aparecen en el recibo, así que elígelos tú.',
+      nextB: 'Elegir aerolínea y puesto →',
+      nextOkT: 'Listo para enviar',
+      nextOkL: 'Revísalo primero. No se publica nada hasta que presiones Enviar.',
+      nextOkB: 'Ir a enviar →',
+      days: 'Días de vuelo',
+      uncTag: ' (sin clasificar)',
+      askT: function (n) { return n === 1 ? 'Una línea que puedes confirmar' : n + ' líneas que puedes confirmar'; },
+      askL: 'Tu reporte ya está completo sin esto. El monto se cuenta en “Otras asignaciones”.',
+      askQ: '¿A qué se parece más esto?',
+      askSkip: 'Omitir',
+      askOpts: ['Pago por vuelo / servicio', 'Horas extra o nocturnidad', 'Asignación mensual fija', 'Bono o pago único', 'Viáticos / gastos', 'Otro concepto'],
+      unmappedTitle: 'Líneas que no se cuentan como monto',
+      unmappedLead: 'Líneas que no son montos, como los días de vuelo. Se muestran como referencia.',
+      notStored: '※ El total de deducciones, el sueldo neto y el tiempo de servicio también <b>se guardan con este reporte</b> al enviarlo (con ellos se calculan tu remuneración por hora de servicio y lo que recibes en mano). El <b>desglose</b> de las deducciones nunca se guarda.',
+      lowConf: '※ La imagen era difícil de leer, así que la lectura es poco confiable. Revisa cada cifra.',
+      /* ★同上。合わない所を名指しする。差額を出すと、どこを見ればよいか分かる。 */
+      chkGross: function (d) {
+        return '※ El <b>total bruto</b> impreso en tu recibo de nómina no coincide con las líneas que leímos ' +
+               '(diferencia de ' + d + '). Falta una línea o se leyó mal un monto. ' +
+               'Compara el desglose de abajo con tu recibo de nómina y corrígelo.';
+      },
+      /* ★Same place as the reconcile warnings — this is the one screen where the
+         person actually compares figures, and say() is wiped by the next paint. */
+      chkCur: function (c) {
+        return '※ Tu recibo de nómina está en <b>' + c + '</b>, que este formulario todavía no permite seleccionar. ' +
+               'Elige la moneda más cercana, o deja los montos como están y envíalos (las cifras se conservan).';
+      },
+      chkMoney: '※ No pudimos distinguir el punto decimal del separador de miles. Revisa los montos — podrían estar desfasados por un factor de 1,000.',
+      chkScale: '※ El total bruto que leímos es demasiado bajo para una cifra mensual. Probablemente se leyó mal un punto decimal — compara cada monto con tu recibo de nómina.',
+      chkNet: function (d) {
+        return '※ <b>Bruto − deducciones</b> no coincide con el <b>sueldo neto</b> que leímos (diferencia de ' + d +
+               '). Uno de los dos se leyó mal. Compara la cifra de lo que recibes en mano con tu recibo de nómina.';
+      },
+      fieldMissing: '(aún no hay campo — solo se muestra)',
+      rate: 'Tu remuneración por hora',
+      perBlock: 'por hora block',
+      perDuty: 'por hora de servicio',
+      perMin: 'por minuto',
+      pdOn: 'Incluir viáticos',
+      needDuty: 'No se pudo leer el tiempo de servicio en tu recibo.',
+      deduct: 'Total de deducciones', net: 'Sueldo neto', dutyH: 'Tiempo de servicio', nightH: 'Horas nocturnas', blockH: 'Horas block', creditH: 'Horas de crédito',
+      notionalTag: ' (no se cuenta como ingreso)',
+      notionalNote: '※ Ingreso imputado que se descuenta de inmediato en la columna de deducciones por el mismo monto (p. ej., boletos de empleado gravables). Lo que recibes en mano no cambia, así que se excluye de las cifras por hora.',
+      absenceTag: ' (descuento)',
+      absenceNote: '※ El bruto impreso en tu recibo ya tiene descontada esta reducción. No la restamos por segunda vez. El nombre del concepto y el monto se registran tal como aparecen.',
+      aiMark: 'leído por IA',
+      ahaT: 'Tu remuneración anual al ritmo de este recibo',
+      ahaPace: 'Ritmo anual',
+      ahaPaceH: 'Total mensual × 12, más el bono y la participación en las utilidades que hayas ingresado',
+      ahaPick: 'Elige tu aerolínea y tu puesto y verás la comparación con los rangos publicados.',
+      ahaPickB: 'Elegir aerolínea y puesto →',
+      ahaNoAirline: '“Otra” no tiene rango publicado, así que no hay con qué comparar.',
+      ahaNoBand: 'Todavía no hay un rango publicado para pilotos en formación. La comparación empieza en primer oficial.',
+      ahaNoRange: 'Todavía no hay un rango publicado para esta aerolínea; no hay nada mal en lo que ingresaste. '
+        + 'Envía tus datos y podrás comparar directamente con los datos de remuneración aportados en REAL PAY.',
+      ahaNoFx: function (c) { return 'Todavía no tenemos tipo de cambio para ' + c + ', así que no se puede convertir (monedas disponibles hoy: JPY / USD / EUR / GBP / AUD / SGD / AED).'; },
+      ahaRangeT: function (a, p) { return 'Rango publicado — ' + a + ', ' + p; },
+      ahaAvgTick: 'Promedio publicado',
+      ahaBelow: function (v) { return v + ' por debajo del límite inferior del rango'; },
+      ahaAbove: function (v) { return v + ' por encima del límite superior del rango'; },
+      ahaIn: 'Dentro del rango publicado',
+      ahaDiff: function (v, up) { return v + (up ? ' por encima del' : ' por debajo del') + ' promedio publicado'; },
+      ahaSame: 'Justo en el promedio publicado',
+      ahaRank: function (r, n) { return 'Alrededor del lugar #' + r + ' de las ' + n + ' aerolíneas con rango publicado para este puesto'; },
+      ahaUpT: 'Aerolíneas con un promedio publicado más alto para el mismo puesto',
+      ahaNoUp: function (n) { return 'Ninguna de las ' + n + ' aerolíneas con rango publicado para este puesto paga más en promedio.'; },
+      ahaTaxFree: 'libre de impuestos',
+      ahaNote: '※ Comparación con nuestro rango publicado para esa aerolínea y ese puesto. <b>No toma en cuenta la flota, los años de experiencia ni el tipo de contrato.</b> En los países sin impuestos el monto bruto es cercano al neto, así que la diferencia real es mayor de lo que muestra esta comparación antes de impuestos.',
+    } /*/PV-MSG:es*/,
+  };
+  T = (window.PV_T && window.PV_T(T, L)) || T[L];   // スペイン語の辞書（gen-msg.mjs が足す）があればそれ
 
   // ── 定数 ──────────────────────────────────────────────────
   var MAX_EDGE = 1568;        // Anthropic のビジョンが内部で縮める上限に合わせる

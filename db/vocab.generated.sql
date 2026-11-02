@@ -137,7 +137,9 @@ insert into public.pv_currencies (code, dec, sym, name_ja, name_en) values
   ('MXN', 2, 'MX$', 'メキシコペソ', 'Mexican Peso'),
   ('BRL', 2, 'R$', 'ブラジルレアル', 'Brazilian Real'),
   ('CLP', 0, 'CLP$', 'チリペソ', 'Chilean Peso'),
-  ('COP', 2, 'COL$', 'コロンビアペソ', 'Colombian Peso')
+  ('COP', 2, 'COL$', 'コロンビアペソ', 'Colombian Peso'),
+  ('PEN', 2, 'S/', 'ペルーソル', 'Peruvian Sol'),
+  ('ARS', 2, 'AR$', 'アルゼンチンペソ', 'Argentine Peso')
 on conflict (code) do update set dec = excluded.dec, sym = excluded.sym,
   name_ja = excluded.name_ja, name_en = excluded.name_en, active = true;
 
@@ -147,12 +149,12 @@ update public.pv_job_roles set active = false where code not in ('line', 'instru
 update public.pv_age_buckets set active = false where code not in ('20-29', '30-39', '40-49', '50-59', '60+');
 update public.pv_housing_types  set active = false where code not in ('provided', 'allowance', 'none');
 update public.pv_contract_types set active = false where code not in ('direct', 'contract', 'agency');
-update public.pv_currencies set active = false where code not in ('USD', 'EUR', 'JPY', 'GBP', 'AED', 'QAR', 'SAR', 'KWD', 'BHD', 'OMR', 'JOD', 'TRY', 'CHF', 'SEK', 'NOK', 'DKK', 'ISK', 'PLN', 'HUF', 'CZK', 'RON', 'CAD', 'AUD', 'NZD', 'FJD', 'SGD', 'HKD', 'TWD', 'KRW', 'CNY', 'THB', 'MYR', 'IDR', 'PHP', 'VND', 'BND', 'INR', 'EGP', 'ETB', 'KES', 'ZAR', 'MXN', 'BRL', 'CLP', 'COP');
+update public.pv_currencies set active = false where code not in ('USD', 'EUR', 'JPY', 'GBP', 'AED', 'QAR', 'SAR', 'KWD', 'BHD', 'OMR', 'JOD', 'TRY', 'CHF', 'SEK', 'NOK', 'DKK', 'ISK', 'PLN', 'HUF', 'CZK', 'RON', 'CAD', 'AUD', 'NZD', 'FJD', 'SGD', 'HKD', 'TWD', 'KRW', 'CNY', 'THB', 'MYR', 'IDR', 'PHP', 'VND', 'BND', 'INR', 'EGP', 'ETB', 'KES', 'ZAR', 'MXN', 'BRL', 'CLP', 'COP', 'PEN', 'ARS');
 
 -- ── 換算レート ───────────────────────────────────────────────
 -- ★ fx-rates.mjs（1通貨あたりの円。USD 1 = 158.95 円）から生成。
 --    基準日 2026-08-22 / 出所 https://www.exchangerate-api.com / 取り直しは node gen-fx-rates.mjs。
--- ★ 語彙の 45 通貨すべてにレートがある（2026-08-22 に7→45）。
+-- ★ 語彙の 47 通貨すべてにレートがある（2026-08-22 に7→47）。
 --    レートが無い通貨で出すと to_usd が無く annual_total_usd が null になり、
 --    pay_benchmarks から黙って外れる。実際にエバー航空の台湾ドルが1件外れていた。
 --    原本（currency ＋ 各金額）は必ず保存されるので、レートを入れた時点で再計算できる。
@@ -208,7 +210,9 @@ insert into public.fx_rates (code, to_usd, to_jpy) values
   ('MXN', 0.059093, 9.392900),
   ('BRL', 0.193167, 30.703900),
   ('CLP', 0.001222, 0.194221),
-  ('COP', 0.000273, 0.043384)
+  ('COP', 0.000273, 0.043384),
+  ('PEN', 0.289157, 45.961500),
+  ('ARS', 0.000650, 0.103392)
 on conflict (code) do update
   set to_usd = excluded.to_usd, to_jpy = excluded.to_jpy, as_of = current_date;
 
@@ -267,7 +271,7 @@ begin
   end loop;
 end $$;
 
--- 検算：機種19 / 職位2 / 役職6 / 年代5 / 通貨45 / レート45
+-- 検算：機種19 / 職位2 / 役職6 / 年代5 / 通貨47 / レート47
 select
   (select count(*) from public.pv_fleets     where active) as 機種,
   (select count(*) from public.pv_positions  where active) as 職位,

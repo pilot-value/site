@@ -306,7 +306,7 @@ head('入口は航空会社一覧（会社の概要は会社ページ）');
    見るのは リポジトリの全部の HTML の href（そのページから見た住所に直して、career.html か en/career.html を指すもの）と、
    ブラウザが読む JS（.js ── コメントを外して）の中の career.html を含む字。よい形は4つだけ ──
    比較（view=compare）・会社つきのカード（view=card&a=）・就航地（airline=…&stay=）・詳細（airline=…&d=）。
-   JS の、いまの住所をそのまま連れていく形（'career.html' + location.search ── ログインの戻り先）と、ファイルの名前の一覧（lang-toggle.js の EN_PAGES）は住所を作らない。 */
+   JS の、いまの住所をそのまま連れていく形（'career.html' + location.search ── ログインの戻り先）と、ファイルの名前の一覧（lang-toggle.js の EN_PAGES・pv-session.js の PV_LANG_PAGES）は住所を作らない。 */
 {
   const okQ = q => { const p = new URLSearchParams(q);
     return (p.get('view') === 'compare') || (p.get('view') === 'card' && !!p.get('a')) || (!!p.get('airline') && (p.has('stay') || p.has('d'))); };
@@ -331,7 +331,8 @@ head('入口は航空会社一覧（会社の概要は会社ページ）');
   for (const f of jsFiles) {
     const src = read(f);
     if (!src.includes('career.html')) continue;
-    const code = noJsCmt(src).replace(/var EN_PAGES = new Set\(\[[\s\S]*?\]\)/, ' ');
+    const code = noJsCmt(src).replace(/var EN_PAGES = new Set\(\[[\s\S]*?\]\)/, ' ')
+      .replace(/window\.PV_LANG_PAGES = \{[\s\S]*?\};/, ' ');   // スペイン語版のページの一覧（pv-session.js・ファイルの名前だけ）
     for (const m of code.matchAll(/(['"`])((?:(?!\1)[^\\\n])*career\.html(?:(?!\1)[^\\\n])*)\1(\s*\+\s*location\.search)?/g)) {
       lits++;
       const s = m[2], i = s.indexOf('career.html'), q = s.slice(i + 'career.html'.length);
