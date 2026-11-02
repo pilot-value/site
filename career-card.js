@@ -67,7 +67,7 @@
 
   /* ★2026-10-25 英語の EN-9：ページの <html lang> が en（en/career.html）なら、下の字は英語（WORD_EN ── 鍵は WORD と同じ）。
      読むのはページの言葉だけ（端末の言語設定は読まない）。社名はいまの言葉の名前（#crc-data の ja／en）、英語のカードの見出しは英語の社名だけ。 */
-  var LANG = /^en(-|$)/i.test(document.documentElement.getAttribute('lang') || '') ? 'en' : 'ja';
+  var LANG = (window.PV_BASE === 'en' || /^en(-|$)/i.test(document.documentElement.getAttribute('lang') || '')) ? 'en' : 'ja';   // スペイン語のページは英語と同じ動き（pv-session.js）
   var FAM_NUM = 'Inter, "Noto Sans JP", sans-serif';     // 数字・英字
   var FAM_JP = LANG === 'en' ? FAM_NUM : '"Noto Sans JP", Inter, sans-serif';      // 見出し・日本語（英語のカードは英字の書体を先に）
   var THEMES = ['color', 'gold'];
@@ -91,7 +91,15 @@
     rated1: ' rating', lp: ' (', rp: ')', mid: ' · ',
     design: 'Design', color: 'Colorful', gold: 'Black & gold', save: 'Save image', share: 'Share', preview: 'Card preview', rated: ' ratings'
   };
+  /*PV-MSG:es*/ var WORD_ES = {
+    brand: 'PILOT VALUE', head: 'Sueldo de pilotos', cap: 'Capitán', fo: 'Primer oficial', max: 'Máximo',
+    photo: 'Foto (redimensionada y recortada)',
+    one: '1 aerolínea', two: '2 aerolíneas', count: 'Número de aerolíneas', co: 'Aerolínea', coA: 'Primera aerolínea', coB: 'Segunda aerolínea', pic: 'Foto',
+    rated1: ' calificación', lp: ' (', rp: ')', mid: ' · ',
+    design: 'Diseño', color: 'Colorido', gold: 'Negro y dorado', save: 'Guardar imagen', share: 'Compartir', preview: 'Vista previa de la tarjeta', rated: ' calificaciones'
+  }; /*/PV-MSG:es*/
   if (LANG === 'en') WORD = WORD_EN;
+  if (window.PV_LANG === 'es' && typeof WORD_ES !== 'undefined') WORD = WORD_ES;   // スペイン語の字（gen-msg.mjs が書く）
   /* カードに描く社名（いまの言葉の名前）と、その下に添える英語の名前（英語のカードは添えない ── 同じ名前を2度言わない） */
   var nameOf = function (a) { return (LANG === 'en' ? a.en : a.ja) || ''; };
   var subOf = function (a) { return LANG === 'en' ? '' : a.en || ''; };

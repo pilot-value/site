@@ -29,6 +29,7 @@ import { extract, extractHead, restore, splice, findAttrs, escAttr, escText, inl
 import { LANG, LANGS, relIn, urlOfRel, alternatesFor } from './langs.mjs';
 import { needsAI } from './i18n/keep.mjs';
 import { curCore } from './cur-core.mjs';
+import { qrMatrix } from './career-qr.mjs';
 
 /* HTML の一切れ → 人が読む字（タグを外し・文字参照を戻し・空白を1つに） */
 const ENT = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', rsquo: '’', lsquo: '‘', ldquo: '“', rdquo: '”', ndash: '–', mdash: '—', hellip: '…', times: '×', middot: '·' };
@@ -246,6 +247,19 @@ for (const bare of L.pages) {
     return open + neu.replace(/<\//g, '<\\/') + close;
   });
   missing += ldMiss; done += ldDone;
+
+  /* 7) 共有カードの材料（2社比較の #crc-data）：会社の住所と QR を、その言語のページがある会社だけ その言語のページへ。
+        QR は gen-career.mjs と同じ道具で作り直す（英語のページの住所のままだと、スペイン語で作ったカードが英語のページへ連れて行く） */
+  html = html.replace(/(<script type="application\/json" id="crc-data">)([\s\S]*?)(<\/script>)/, (all, open, json, close) => {
+    let o; try { o = JSON.parse(json); } catch { return all; }
+    let n = 0;
+    for (const a of Object.values(o.airlines || {})) {
+      const u = typeof a.url === 'string' && a.url.match(/^https:\/\/pilot-value\.com\/en\/([^?#]*)$/);
+      if (!u || !mine.has(u[1]) || !Array.isArray(a.qr)) continue;
+      a.url = `https://pilot-value.com/${L.dir}${u[1]}`; a.qr = qrMatrix(a.url).map((r) => r.join('')); n++;
+    }
+    return n ? open + JSON.stringify(o).replace(/</g, () => '\\u003c') + close : all;   // gen-career.mjs と同じ逃がし方
+  });
 
   const abs = path.join(ROOT, outRel);
   const prev = fs.existsSync(abs) ? fs.readFileSync(abs, 'utf8') : null;

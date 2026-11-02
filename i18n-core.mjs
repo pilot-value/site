@@ -403,6 +403,7 @@ export const jsTags = (src) => (jsStrings(src).map((s) => src.slice(s.start, s.e
    ★コードが比べたり鍵に使ったりする文字列は外す（=== の相手・case・オブジェクトの鍵・
      querySelector や setItem などの引数・クラス名や識別子の形・URL）。外しすぎて英語が残るのは安全側。 */
 const CODEY_CALL = /\b(querySelector(All)?|getElementById|getElementsBy\w+|closest|matches|classList\.\w+|setAttribute|getAttribute|removeAttribute|hasAttribute|addEventListener|removeEventListener|dispatchEvent|CustomEvent|Event|getItem|setItem|removeItem|includes|indexOf|startsWith|endsWith|test|match|replace|split|join|fetch|rpc|from|select|eq|neq|in|order|channel|track|gtag|dataLayer|createElement|insertAdjacentHTML|has|get|set|delete|require|import|postMessage|toLocaleString|toLocaleDateString|Intl\.\w+|NumberFormat|DateTimeFormat|padStart|toFixed|localeCompare|sort)\s*\(\s*$/;
+const JSON_KEEP = new Set(['ja', 'en', 'name', 'code', 'color', 'url', 'host', 'credit', 'alt', 'src', 'file']);
 export function inlineScriptUnits(html) {
   const out = [];
   const re = /<script(?![^>]*\bsrc=)(?![^>]*application\/ld\+json)(?![^>]*type="(?:text\/template|module)")[^>]*>([\s\S]*?)<\/script>/gi;
@@ -410,6 +411,7 @@ export function inlineScriptUnits(html) {
   while ((m = re.exec(html))) {
     const code = m[1];
     if (/^\s*tailwind\.config\s*=/.test(code)) continue;                               // Tailwind の設定（色・字体の名前）
+    const isJson = /type=["']application\/json["']/i.test(m[0].slice(0, m[0].indexOf('>')));   // 材料の JSON（#crc-data など）
     const base = m.index + m[0].indexOf('>') + 1;
     const strs = jsStrings(code);
     for (const s of strs) {
@@ -434,6 +436,8 @@ export function inlineScriptUnits(html) {
       const ternary = /\?\s*$/.test(before);   // 条件 ? 'A' : 'B' の : は鍵ではない
       if (/^\s*(===|!==|==|!=|\bin\b)/.test(after) || (!ternary && /^\s*:(?!:)/.test(after)) || (/^\s*\]/.test(after) && /[\w$\]\)]\s*\[\s*$/.test(before))) continue;   // 鍵・比べる
       if (CODEY_CALL.test(before)) continue;                                            // 識別子として渡す引数
+      /* 材料の JSON の、名前・出典・住所の値は訳さない（社名・写真の作者とライセンス・写真の説明＝固有名）。地域名 g などは訳す */
+      if (isJson) { const km = before.match(/"([A-Za-z_]+)"\s*:\s*$/); if (km && JSON_KEEP.has(km[1])) continue; }
       const ls = code.lastIndexOf('\n', s.start) + 1;
       const le = code.indexOf('\n', s.end);
       const line = code.slice(ls, le < 0 ? code.length : le).trim().slice(0, 240);

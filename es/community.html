@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es-419">
+<head>
+  <meta charset="UTF-8" />
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png"/>
+<link rel="apple-touch-icon" href="../assets/favicon-180.png"/>
+  <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reseñas de pilotos — lo más reciente de cada aerolínea | PILOT VALUE</title>
+<!--PV-SEO-->
+<!--PV-GEN lang="es" from="en/community.html" — node gen-lang.mjs es が書く。手で直さない-->
+<meta name="description" content="Reseñas de pilotos de línea actuales y anteriores, de la más reciente a la más antigua — remuneración, programación, formación y rapidez del ascenso a capitán en 115 aerolíneas, de forma anónima. Publica una reseña para desbloquearlas todas."/>
+<meta name="robots" content="noindex,follow"/>
+<link rel="canonical" href="https://pilot-value.com/es/community.html"/>
+<meta property="og:title" content="Reseñas de pilotos — lo más reciente de cada aerolínea | PILOT VALUE"/>
+<meta property="og:description" content="Reseñas de pilotos de línea actuales y anteriores, de la más reciente a la más antigua — remuneración, programación, formación y rapidez del ascenso a capitán en 115 aerolíneas, de forma anónima. Publica una reseña para desbloquearlas todas."/>
+<meta property="og:url" content="https://pilot-value.com/es/community.html"/>
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="PILOT VALUE"/>
+<meta property="og:locale" content="es_LA"/>
+<meta property="og:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="Reseñas de pilotos — lo más reciente de cada aerolínea | PILOT VALUE"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Reseñas de pilotos — lo más reciente de cada aerolínea | PILOT VALUE"/>
+<meta name="twitter:description" content="Reseñas de pilotos de línea actuales y anteriores, de la más reciente a la más antigua — remuneración, programación, formación y rapidez del ascenso a capitán en 115 aerolíneas, de forma anónima. Publica una reseña para desbloquearlas todas."/>
+<meta name="twitter:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
+<!--/PV-SEO-->
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../review-i18n.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/><noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"/></noscript>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg:      '#0a0c0f',
+            surface: '#111620',
+            raised:  '#18212f',
+            accent:  '#3d9bff',
+            gold:    '#f5c842',
+            orange:  '#f97316',
+            text:    '#e8edf2',
+            muted:   '#6b7d93',
+          },
+          fontFamily: { sans: ['Inter', 'Noto Sans JP', 'sans-serif'] },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background-color: #0a0c0f;
+      color: #e8edf2;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    body::before {
+      content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size:128px; opacity:.3;
+    }
+    nav { position:fixed; top:0; left:0; right:0; z-index:200; transition: background 0.4s ease; }
+    nav.scrolled { background:rgba(10,12,15,0.92); backdrop-filter:blur(20px); border-bottom:1px solid rgba(255,255,255,0.06); }
+    .nav-link { color:rgba(255,255,255,0.6); font-size:.85rem; font-weight:500; letter-spacing:.04em; transition:color .2s; text-decoration:none; }
+    .nav-link:hover { color:#fff; }
+    .logo-img { height:40px; width:auto; filter:brightness(1.15) drop-shadow(0 0 8px rgba(249,115,22,.5)); transition:filter .3s; }
+    .btn-orange {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 24px; border-radius: 10px; font-weight: 700; font-size: .9rem;
+      background: linear-gradient(135deg,#f97316,#f5c842);
+      color: #000; border: none; cursor: pointer;
+      transition: opacity .2s, transform .2s cubic-bezier(.16,1,.3,1);
+      text-decoration: none;
+    }
+    .btn-orange:hover { opacity:.9; transform:translateY(-1px); }
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 24px; border-radius: 10px; font-weight: 600; font-size: .9rem;
+      color: #e8edf2; border: 1px solid rgba(255,255,255,.15); background: transparent;
+      cursor: pointer; transition: border-color .2s, background .2s; text-decoration: none;
+    }
+    .btn-ghost:hover { border-color:rgba(255,255,255,.3); background:rgba(255,255,255,.05); }
+    ::-webkit-scrollbar { width:6px; }
+    ::-webkit-scrollbar-track { background:#0a0c0f; }
+    ::-webkit-scrollbar-thumb { background:#18212f; border-radius:3px; }
+    footer { background:#060809; border-top:1px solid rgba(255,255,255,.05); }
+    /* Theme toggle */
+    .theme-toggle { display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.07);color:#e8edf2;border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:background .2s,color .2s,border-color .2s;flex-shrink:0; }
+    [data-theme="light"] .theme-toggle { background:rgba(0,0,0,.06);color:#0f172a;border-color:rgba(0,0,0,.13); }
+    /* Light mode overrides */
+    [data-theme="light"] body { background:#f3f5f8 !important; color:#0f172a !important; }
+    [data-theme="light"] body::before { opacity:.03; }
+    /* Nav */
+    [data-theme="light"] nav { background:rgba(243,245,248,.95) !important; backdrop-filter:blur(16px); border-bottom:1px solid rgba(0,0,0,.07) !important; }
+    [data-theme="light"] nav.scrolled { background:rgba(243,245,248,.98) !important; }
+    [data-theme="light"] .nav-link { color:rgba(15,23,42,.55) !important; }
+    [data-theme="light"] .nav-link:hover { color:#0f172a !important; }
+    /* Footer */
+    [data-theme="light"] footer { background:#e8ebf0 !important; border-top-color:rgba(0,0,0,.08) !important; }
+    [data-theme="light"] footer .text-muted { color:#64748b !important; }
+    [data-theme="light"] footer a.hover\:text-text { color:#64748b !important; }
+    /* Muted text global */
+    [data-theme="light"] .text-muted { color:#64748b !important; }
+    /* Darkens the near-white .text-text(#e8edf2) in light mode. Same pattern as index.html:526, but it was
+       missing on this page, which left the text invisible
+       → makes the hero line, the five anonymity labels and the gate panel visible in one go */
+    [data-theme="light"] .text-text { color:#0f172a !important; }
+  </style>
+<!-- Google tag (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-3XYF69VQ3X');
+</script>
+<!--PV-3P-->
+<script>
+/* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
+   利用者が最初に触った時か load の、どちらか早いほうで読み込む。
+   戻すときは node defer-third-party.mjs --undo */
+(function(){
+  var done=false;
+  function boot(){
+    if(done)return; done=true;
+    [{"src":"https://www.googletagmanager.com/gtag/js?id=G-3XYF69VQ3X","cross":false}].forEach(function(it){
+      var s=document.createElement('script');
+      s.src=it.src; s.async=true;
+      if(it.cross)s.crossOrigin='anonymous';
+      document.head.appendChild(s);
+    });
+  }
+  ['pointerdown','keydown','touchstart','scroll','wheel'].forEach(function(ev){
+    addEventListener(ev,boot,{once:true,passive:true});
+  });
+  if(document.readyState==='complete')boot();
+  else addEventListener('load',boot,{once:true});
+})();
+</script>
+<!--/PV-3P-->
+<script src="../pv-session.js?v=e1714570"></script>
+  <link rel="stylesheet" href="../vote.css?v=119f6bbc">
+  <!-- PV-NAV: site-wide navigation (left rail on wide screens, left drawer on narrow).
+       Written by patch-side-nav.mjs. app-nav.css loads last (after my-value.css). -->
+  <link rel="stylesheet" href="../pv-tokens.css">
+  <link rel="stylesheet" href="../app-nav.css">
+</head>
+<body class="relative vt-body pv-anav-shell pv-anav-pub pv-anav-t69">
+<nav class="mr-side" aria-label="Menú">
+      <a class="mr-side-a is-add" href="pay-report.html#ps">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+        <span>Agregar remuneración de forma anónima</span>
+      </a>
+      <a class="mr-side-a" href="index.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 2l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>
+        <span>INICIO</span>
+      </a>
+      <a class="mr-side-a" href="actual-pay.html" data-mr-gate="real">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>REAL PAY</span>
+      </a>
+      <a class="mr-side-a is-on" href="community.html" aria-current="page">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/></svg>
+        <span>VOTE</span>
+      </a>
+      <a class="mr-side-a" href="../en/roadmap.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V4s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+        <span>HOJA DE RUTA Y SOLICITUDES</span>
+      </a>
+      <a class="mr-side-a" href="world-airlines.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
+        <span>AEROLÍNEAS</span>
+      </a>
+      <a class="mr-side-a" href="../en/invite.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        <span>INVITAR</span>
+      </a>
+      <a class="mr-side-a" href="profile.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>MI PÁGINA</span>
+      </a>
+      <a class="mr-side-sub" id="pv-anav-login" data-pv-auth="out" href="login.html">Iniciar sesión</a>
+      <a class="mr-side-sub" href="contact.html">Contacto</a>
+    </nav>
+
+
+<!-- NAV -->
+<nav id="main-nav">
+  <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-[68px]">
+    <a href="index.html" class="flex items-center gap-3 flex-shrink-0">
+      <img src="../assets/logo.png" alt="PILOT VALUE" class="logo-img" />
+    </a>
+    <!-- PV-NAV: the header link row folded into the left navigation on 2026-09-06.
+         Do not add links here; add destinations to ITEMS in patch-side-nav.mjs. -->
+    <div class="flex items-center gap-3">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar entre modo oscuro y claro"></button>
+      <a id="nav-auth-btn" href="login.html" class="btn-ghost" style="font-size:.82rem;padding:7px 14px">Iniciar sesión</a>
+    </div>
+  </div>
+</nav>
+
+
+<!-- VOTE (rebuilt 2026-10-29): skeleton only. vote.js draws the content; vote.css styles it.
+     Modelled on the owner’s Vote prototype (heading → search → latest reviews → most viewed airlines). Keep this reading order.
+     ⚠️ id="review-feed", id="gate-panel" (placed by vote.js) and id="unlock-badge" are checked by assert-unlock.mjs. -->
+<main id="vt-main" class="vt vt-main">
+<div class="vt-shell">
+<div id="vt-home">
+  <div class="vt-head">
+    <div><h1 class="vt-h1">Vote</h1><p>Reseñas de pilotos y calificaciones de aerolíneas</p></div>
+    <a class="vt-btn" href="submit-review.html"><svg class="vt-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Publicar una reseña de forma anónima</a>
+  </div>
+  <div class="vt-search-row"><label class="vt-search"><svg class="vt-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="vt-sr">Buscar aerolíneas y reseñas</span><input type="search" data-q placeholder="Buscar aerolíneas o palabras clave en reseñas" autocomplete="off" enterkeyhint="search"><button type="button" class="vt-clear" data-q-clear aria-label="Borrar búsqueda"><svg class="vt-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></label></div>
+  <section class="vt-sec" id="latest" aria-labelledby="vt-latest-h">
+    <div class="vt-sec-head">
+      <h2 class="vt-title" id="vt-latest-h">Últimas reseñas<span id="unlock-badge" class="vt-unlock" style="display:none">🔓 Reseñas desbloqueadas</span></h2>
+      <div class="vt-sec-actions">
+        <a class="vt-link" href="#all">Ver todas las reseñas<svg class="vt-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
+      </div>
+    </div>
+    <!-- 流れる帯（トップの .hero-mq と同じ作り）。#review-feed は本物の1組だけ ── 写しは vote.js が兄弟に足す -->
+    <div class="vt-mq" id="vt-mq" role="region" aria-label="Últimas reseñas"><div class="vt-mq-track" id="vt-mq-track"><div class="vt-mq-set" id="review-feed"></div></div></div>
+    <p class="vt-status" id="vt-feed-status"></p>
+    <div id="vt-gate-slot"></div>
+  </section>
+  <section class="vt-sec" id="companies" aria-labelledby="vt-co-h">
+    <div class="vt-sec-head">
+      <div><h2 class="vt-title" id="vt-co-h">Aerolíneas más vistas</h2><p class="vt-sec-sub" id="vt-co-sub">Calificaciones y servicio mensual, aerolínea por aerolínea</p></div>
+      <div class="vt-co-tools">
+        <div class="vt-role" role="group" aria-label="Categoría (puesto) para el servicio mensual"><button type="button" data-role="fo" aria-pressed="true">Primer oficial</button><button type="button" data-role="cap" aria-pressed="false">Capitán</button></div>
+        <button type="button" class="vt-info" data-info><svg class="vt-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>Cómo contabilizamos</button>
+        <a class="vt-link" href="world-airlines.html">Todas las aerolíneas<svg class="vt-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
+      </div>
+    </div>
+    <div class="vt-co-grid" id="vt-co-grid"></div>
+    <p class="vt-foot"><svg class="vt-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg><span>Las barras muestran el 50% central de las respuestas de los últimos 12 meses (por mes). Las horas block y el tiempo de servicio se miden en horas; las noches de pernocta son noches fuera de base. El rango es el mismo para todas las aerolíneas: horas de 0 a 240, noches de 0 a 31.</span></p>
+  </section>
+  <section class="vt-sec vt-privacy" aria-labelledby="vt-pv-h">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 5 6v5c0 4.4 3 7.6 7 8.5 4-.9 7-4.1 7-8.5V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg>
+    <div><h2 id="vt-pv-h">Cómo protegemos tu anonimato y tu seguridad</h2>
+      <ul>
+        <li>• <strong class="text-text">Nunca mostramos la edad exacta</strong> — mostramos rangos como "30 y pocos" o "los 40"</li>
+        <li>• <strong class="text-text">Eliges a tu empleador de una lista</strong> — no se permite texto libre que pueda identificar a una aerolínea</li>
+        <li>• <strong class="text-text">Las rutas y bases específicas se ocultan</strong> — solo se publica la distinción "internacional" / "nacional"</li>
+        <li>• <strong class="text-text">No publicamos reseñas que puedan identificar a una persona</strong> — las revisamos mediante moderación</li>
+        <li>• <strong class="text-text">No registramos direcciones IP</strong> — el anonimato de las publicaciones está garantizado técnicamente</li>
+      </ul></div>
+  </section>
+</div>
+<div id="vt-all" hidden>
+  <a class="vt-back" href="#"><svg class="vt-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></svg>Volver a Vote</a>
+  <div class="vt-head">
+    <div><h2 class="vt-h1 is-sub">Todas las reseñas</h2><p>Pilotos actuales y anteriores, por tema</p></div>
+    <a class="vt-btn" id="vt-all-post" href="submit-review.html"><svg class="vt-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Publicar una reseña de forma anónima</a>
+  </div>
+  <div class="vt-search-row"><label class="vt-search"><svg class="vt-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="vt-sr">Buscar aerolíneas y reseñas</span><input type="search" data-q placeholder="Buscar aerolíneas o palabras clave en reseñas" autocomplete="off" enterkeyhint="search"><button type="button" class="vt-clear" data-q-clear aria-label="Borrar búsqueda"><svg class="vt-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></label></div>
+  <div class="vt-all-body">
+    <div class="vt-toolbar">
+      <select class="vt-select" id="vt-f-co" aria-label="Aerolínea"></select>
+      <select class="vt-select" id="vt-f-cat" aria-label="Tema"></select>
+      <select class="vt-select" id="vt-f-role" aria-label="Categoría (puesto)"></select>
+      <span class="vt-count" id="vt-count" aria-live="polite"></span>
+    </div>
+    <p class="vt-status" id="vt-feed-status2"></p>
+    <div class="vt-list" id="vt-list"></div>
+    <button type="button" class="vt-btn-line vt-more" id="vt-more" hidden>Ver más</button>
+  </div>
+</div>
+</div>
+</main>
+<dialog id="vt-dialog" class="vt vt-dialog" aria-labelledby="vt-d-title"><div id="vt-dialog-body"></div></dialog>
+<dialog id="vt-info" class="vt vt-info-dialog" aria-labelledby="vt-info-h"><button type="button" class="vt-d-close" data-close aria-label="Cerrar"><svg class="vt-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button><h2 id="vt-info-h">Cómo contabilizamos</h2><div id="vt-info-body"></div></dialog>
+<div id="vt-live" class="vt-sr" aria-live="polite"></div>
+
+<!-- FOOTER -->
+<footer class="py-10">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <a href="index.html"><img src="../assets/logo.png" alt="PILOT VALUE" class="h-7 w-auto opacity-70"/></a>
+      <div class="flex gap-6 text-sm text-muted">
+        <a href="index.html" class="hover:text-text transition-colors">Inicio</a>
+        <a href="index.html#compare" class="hover:text-text transition-colors">Comparación de sueldos</a>
+        <a href="community.html" class="hover:text-text transition-colors" style="color:#f5c842">Últimas reseñas</a>
+      </div>
+      <div class="text-xs text-muted">© 2026 PILOT VALUE. Todas las cifras son valores de referencia.</div>
+    </div>
+  </div>
+<div style="border-top:1px solid rgba(255,255,255,.06);margin-top:20px;padding-top:16px;text-align:center"><div style="display:flex;flex-wrap:wrap;justify-content:center"><a href="../en/guide.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;border-right:1px solid rgba(255,255,255,.08);transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">Guía de uso</a><a href="../en/policy.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;border-right:1px solid rgba(255,255,255,.08);transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">Política de funcionamiento</a><a href="terms.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;border-right:1px solid rgba(255,255,255,.08);transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">Términos de servicio</a><a href="privacy.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;border-right:1px solid rgba(255,255,255,.08);transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">Política de privacidad</a><a href="personal-data.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;border-right:1px solid rgba(255,255,255,.08);transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">Tratamiento de datos personales</a><a href="../en/help.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;border-right:1px solid rgba(255,255,255,.08);transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">Ayuda</a><a href="../en/sitemap.html" style="color:#6b7d93;font-size:.72rem;padding:5px 14px;text-decoration:none;transition:color .2s" onmouseover="this.style.color='#e8edf2'" onmouseout="this.style.color='#6b7d93'">Mapa del sitio</a></div></div></footer>
+
+
+<script>
+// ── Nav scroll ────────────────────────────────────────────────
+window.addEventListener('scroll', () => {
+  document.getElementById('main-nav').classList.toggle('scrolled', window.scrollY > 40);
+}, { passive: true });
+
+// ── Sample reviews (kept by owner decision, 2026-10-29). vote.js draws them (window.PV_VOTE_SEED).
+//    They are not counted in the airline cards' ratings or review counts (so the numbers match the airline pages).
+const SEED_REVIEWS = [
+  { id:1, airline:'ana', position:'captain', salaryRange:'2,700万', exp:'16+ years', rating:4,
+    comment:'El sueldo de capitán varía mucho según el tipo de aeronave y la edad. En rutas internacionales de B777, la realidad es ¥2,700–2,800万. Sumando las distintas asignaciones, se pueden superar los ¥3,000万. La estabilidad, el paquete de retiro y la pensión son excelentes. No pagar nada de los costos de formación también es una gran ventaja.', date:'2026.03' },
+  { id:2, airline:'emirates', position:'captain', salaryRange:'3,700万', exp:'8–15 years', rating:5,
+    comment:'La mayor ventaja es que en los EAU no hay impuesto sobre la renta. Vivienda y gastos de educación de los hijos (hasta tres) están cubiertos prácticamente en su totalidad. Comparado con el sueldo neto en Japón, lo que realmente te llevas a casa es más del doble. Eso sí, tienes que adaptarte a la vida en el desierto y a un entorno en inglés.', date:'2026.02' },
+  { id:3, airline:'delta', position:'fo', salaryRange:'3,510万', exp:'4–7 years', rating:5,
+    comment:'Incluso en el año 5 ya superas los ¥3,500万. El 401(k) y la participación en las utilidades suman otros ¥700万–1,000万. Si tienes el inglés y puedes obtener una licencia extranjera, es una meta realista para un piloto japonés. Los ascensos llegan rápido.', date:'2026.03' },
+  { id:4, airline:'jal', position:'captain', salaryRange:'2,700万', exp:'16+ years', rating:4,
+    comment:'El sueldo está al mismo nivel que en ANA. La velocidad de ascenso varía según la flota. El A350 es relativamente nuevo y tiene vacantes de ascenso. Las prestaciones y el plan de retiro son completos. El equilibrio entre trabajo y vida personal es bueno.', date:'2026.01' },
+  { id:5, airline:'qatar', position:'captain', salaryRange:'2,900万', exp:'8–15 years', rating:3,
+    comment:'El sueldo libre de impuestos pesa mucho, pero la flexibilidad de la programación es más bien baja. Con base en Doha, el costo de vida es alto si llevas a tu familia. La formación cuenta con buenos recursos. La flota es variada: A350 / A380 / B777.', date:'2026.02' },
+  { id:6, airline:'united', position:'captain', salaryRange:'6,320万', exp:'16+ years', rating:5,
+    comment:'Un capitán sénior de B777 puede llegar a ¥8,530万 al año. El 401(k), el seguro médico y la participación en las utilidades son de primer nivel. También hay muchas opciones de programación. Es un entorno donde puedes llegar a este nivel en un plazo de 10 años desde tu ingreso.', date:'2026.03' },
+  { id:7, airline:'ana', position:'fo', salaryRange:'1,800万', exp:'4–7 years', rating:4,
+    comment:'Las condiciones como primer oficial son estables. La evaluación para el ascenso a capitán es más bien exigente, pero la empresa cubre por completo los costos de formación. El sueldo de primer oficial es algo más alto que en JAL. Una vez que te asignan a rutas internacionales, las asignaciones cambian bastante el panorama.', date:'2026.02' },
+  { id:8, airline:'singapore', position:'captain', salaryRange:'3,400万', exp:'8–15 years', rating:4,
+    comment:'El costo de vida en Singapur es alto, pero los ingresos también. El sueldo es en SGD, así que un yen débil te favorece. No hay cultura de jumpseat y el ambiente a bordo es profesional. Los ascensos van estrictamente por antigüedad.', date:'2026.01' },
+  { id:9, airline:'southwest', position:'captain', salaryRange:'4,820万', exp:'8–15 years', rating:5,
+    comment:'Con el sistema de antigüedad, los ascensos y la solicitud de rutas (bidding) son totalmente transparentes. Toda la operación es B737, así que no hay cambios de tipo. Los beneficios de pases son generosos y toda la familia puede viajar casi gratis. El seguro médico y el 401(k) también son excelentes.', date:'2026.03' },
+  { id:10, airline:'cathay', position:'fo', salaryRange:'2,400万', exp:'6–10 years', rating:4,
+    comment:'Hong Kong es caro, pero el sueldo está a la altura. Es un entorno en inglés donde es frecuente volar con tripulaciones multinacionales. La formación cuenta con buenos recursos y el camino al ascenso a capitán es claro. El EF es generoso.', date:'2026.02' },
+  { id:11, airline:'skymark', position:'captain', salaryRange:'1,900万', exp:'8–15 years', rating:3,
+    comment:'Como aerolínea doméstica mediana, hay una sensación sólida de estabilidad. El sueldo es menor que en ANA / JAL, pero los ascensos llegan más rápido. La flexibilidad de la programación es algo mejor. La formación se hace internamente y es de nivel estándar.', date:'2026.03' },
+  { id:12, airline:'etihad', position:'captain', salaryRange:'3,400万', exp:'8–15 years', rating:4,
+    comment:'Abu Dabi está libre de impuestos. Las condiciones están al mismo nivel que en Emirates, pero al ser más pequeña, los patrones de vuelo suelen ser más tranquilos. Se otorga ayuda para vivienda y se cubren los gastos de educación de los hijos. La clave es adaptarse a la vida en Medio Oriente.', date:'2026.01' },
+  { id:13, airline:'peach', position:'fo', salaryRange:'1,400万', exp:'1–5 years', rating:3,
+    comment:'El sueldo es más bien bajo, como es de esperar en una aerolínea de bajo costo. Dicho esto, hay margen para que los pilotos jóvenes asciendan pronto. Son principalmente rutas domésticas, así que la programación es relativamente regular. Muchos acumulan experiencia aquí y luego se van.', date:'2026.02' },
+  { id:14, airline:'lufthansa', position:'captain', salaryRange:'3,440万', exp:'8–15 years', rating:4,
+    comment:'La mayor aerolínea de servicio completo de Europa. El paquete global de sueldo, pensión y seguro médico está entre los mejores de Europa. El alemán no es obligatorio, pero el ambiente interno tiene un fuerte sello cultural alemán.', date:'2026.03' },
+];
+window.PV_VOTE_SEED = SEED_REVIEWS;
+
+// ── Theme toggle ──────────────────────────────────────────────
+const SUN_SVG_C = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+const MOON_SVG_C = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+function applyThemeC(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('pv-theme', t);
+  const btn = document.getElementById('theme-toggle');
+  if (btn) btn.innerHTML = t === 'dark' ? SUN_SVG_C : MOON_SVG_C;
+}
+(function(){ applyThemeC(localStorage.getItem('pv-theme') || 'light'); })();
+document.getElementById('theme-toggle').addEventListener('click', function() {
+  applyThemeC(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+});
+
+// ── Init (name in the header)
+(function(){try{var u=JSON.parse(localStorage.getItem('pv_user')||'null');var b=document.getElementById('nav-auth-btn');if(!b)return;var nm=(u&&(u.name||String(u.email||'').split('@')[0]))||'';if(nm){b.textContent=nm.replace(/[\s　].*/,'');b.href='../profile.html';b.style.color='#f5c842';b.style.fontWeight='700';}}catch(e){}})();
+</script>
+
+<script src="../search.js"></script>
+<script src="../lang-toggle.js"></script>
+<script src="../currency.js"></script>
+<script src="../airline-logos.js"></script>
+<script src="../vote.js?v=f7803fa2"></script>
+<!-- PV-NAV: opens and closes the navigation. Loads AFTER search.js so it can adopt
+     the hamburger that file creates; on pages without search.js it makes its own. -->
+<script src="../app-nav.js"></script>
+</body>
+</html>
