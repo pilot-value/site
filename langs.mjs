@@ -35,6 +35,8 @@ export const LANGS = [
       'index.html', 'world-airlines.html', 'pilot-salary-guide.html', 'countries.html', 'submit-review.html', 'airline-conditions.html',
       /* 2026-11-02 オーナー「2社比較と Vote もやらないと意味ない」：会社の概要と2社比較・口コミ一覧 */
       'career.html', 'community.html',
+      /* 2026-11-02 本番で足された米国の貨物5社 */
+      'airlines/abx-air.html', 'airlines/atlas-air.html', 'airlines/fedex-express.html', 'airlines/kalitta-air.html', 'airlines/ups-airlines.html',
       'airlines/iberia.html', 'airlines/vueling.html', 'airlines/aeromexico.html', 'airlines/avianca.html', 'airlines/copa-airlines.html', 'airlines/latam.html',
       'countries/spain.html', 'countries/mexico.html', 'countries/colombia.html', 'countries/chile.html', 'countries/panama.html',
       /* 2026-11-02 オーナー「会社ページはやりたい」：残りの会社ページ（比較のページ・国のページは後回し）。

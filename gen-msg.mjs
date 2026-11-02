@@ -29,7 +29,7 @@ export const MSG_FILES = ['pay-wizard.js', 'pay-login.js', 'payslip.js', 'pv-gat
   /* 段3（2026-11-02）：会社ページ・トップ */
   'career-live.js', 'career-stay.js', 'pv-contrib.js', 'lp.js', 'airlines/airline-reviews-ui.js',
   /* 2026-11-02：口コミ一覧（Vote） */
-  'vote.js', 'career-card.js',
+  'vote.js', 'career-card.js', 'pv-glance.js',
   /* 対応表の形（日本語 → 英語）：比べる図・検索 */
   'salary-leveling.js', 'search.js'];
 
