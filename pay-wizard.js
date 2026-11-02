@@ -25,7 +25,7 @@
      （assert-pay-report-sync.mjs と同じ考え方）。 */
 /* 英語の月名。Intl に頼らない（環境で表記が揺れると検査が不安定になる）。 */
 /* スペイン語のページ（PV_LANG === 'es'）はスペイン語の月名（英語の辞書の写しの es が使う） */
-var MONTHS = window.PV_LANG === 'es'
+var MONTHS = (typeof window !== 'undefined' && window.PV_LANG === 'es')   // 検査は Node でも読む（window が無い）
   ? ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
   : ['January', 'February', 'March', 'April', 'May', 'June',
               'July', 'August', 'September', 'October', 'November', 'December'];
