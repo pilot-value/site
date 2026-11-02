@@ -1191,15 +1191,6 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/southwest.html"/>
   </url>
   <url>
-    <loc>https://pilot-value.com/airlines/spirit.html</loc>
-    <lastmod>2026-10-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/spirit.html"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/spirit.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/spirit.html"/>
-  </url>
-  <url>
     <loc>https://pilot-value.com/airlines/spring-japan.html</loc>
     <lastmod>2026-11-02</lastmod>
     <changefreq>weekly</changefreq>
@@ -3034,15 +3025,6 @@
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/southwest.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/southwest.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/southwest.html"/>
-  </url>
-  <url>
-    <loc>https://pilot-value.com/en/airlines/spirit.html</loc>
-    <lastmod>2026-10-30</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/spirit.html"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/spirit.html"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/spirit.html"/>
   </url>
   <url>
     <loc>https://pilot-value.com/en/airlines/spring-japan.html</loc>

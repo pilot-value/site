@@ -393,7 +393,6 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <option value="frontier">フロンティア航空</option>
                 <option value="jetblue">ジェットブルー航空</option>
                 <option value="porter">ポーター航空</option>
-                <option value="spirit">スピリット航空</option>
                 <option value="westjet">ウェストジェット航空</option>
                 <option value="fedex-express">FedEx Express</option>
                 <option value="ups-airlines">UPS Airlines</option>
@@ -2167,7 +2166,7 @@ function afterSaved(data, payload, airline) {
 /* ★候補の元は下の <select> の <option> そのもの。社名を2か所で持たない。
    略称は既にある2つの資産から引く ──
      ① <option data-alias="…">（airline-ops.mjs の alias。年収がまだ無い運航会社）
-     ② search.js の window.PV_DB（年収のある120社が 'ANA' / 'NH' / '全日空' を既に持つ）
+     ② search.js の window.PV_DB（年収のある119社が 'ANA' / 'NH' / '全日空' を既に持つ）
    ⚠️ 運航会社を search.js の PV_DB に足してはいけない。あの表の f: は
       会社ページへのリンクで、ページを持たない会社を入れるとヘッダー検索から 404 が生える。
    ★0件でも提出は止めない。打った文字列を「一覧にない会社」の欄へ渡して other に落とす。 */

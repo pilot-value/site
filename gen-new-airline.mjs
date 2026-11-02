@@ -34,6 +34,10 @@ import fs from 'fs';
 import path from 'path';
 import { SALARY } from './salary-data.mjs';
 import { curCore } from './cur-core.mjs';
+/* ★借り元のページ（2026-11-02）。古い形のページはスピリット航空の2枚しか残っておらず、スピリット航空をサイトから外したとき
+   その2枚を1バイトも変えずに airline-donor-pages.mjs（配信されない .mjs）へ写した。donor にその名前があればそちらを読み、
+   無ければ今までどおりリポジトリのページを読む。⚠️ ここへ戻して airlines/spirit.html を置き直さない（住所は 404 のまま）。 */
+import { DONOR_PAGES } from './airline-donor-pages.mjs';
 /* ★ドルの換算レートを手で持たない（2026-09-18）。
    ここが 160 のまま置き去りになり、currency.js（158.95）が塗る本文と食い違って
    **同じページの中でタイトルが $231K・本文が $233K** になっていた。
@@ -1499,10 +1503,16 @@ if (!C) {
   process.exit(1);
 }
 
+/* ── 借り元。写してある（airline-donor-pages.mjs）ならそれ、無ければリポジトリのページ ── */
+const kept = (lang) => (DONOR_PAGES[C.donor] || {})[lang];
+const donorName = (lang) => kept(lang) ? `airline-donor-pages.mjs の ${C.donor}（${lang}）`
+  : (lang === 'ja' ? `airlines/${C.donor}.html` : `en/airlines/${C.donor}.html`);
+const donorHtml = (donor, lang) => kept(lang) || fs.readFileSync(path.join(ROOT, donor), 'utf8');
+
 /* ── 出力先。既にあるものには絶対に書かない ───────────────────── */
 const targets = [
-  { rel: `airlines/${slug}.html`, donor: `airlines/${C.donor}.html`, lang: 'ja' },
-  { rel: `en/airlines/${slug}.html`, donor: `en/airlines/${C.donor}.html`, lang: 'en' },
+  { rel: `airlines/${slug}.html`, donor: donorName('ja'), lang: 'ja' },
+  { rel: `en/airlines/${slug}.html`, donor: donorName('en'), lang: 'en' },
 ];
 for (const t of targets) {
   if (fs.existsSync(path.join(ROOT, t.rel)) && !FORCE) {
@@ -1776,7 +1786,7 @@ function ldEn() {
 const CONTAINER = '<div class="max-w-7xl mx-auto px-6 pb-24 space-y-10">';
 
 function build({ donor, lang }) {
-  let html = fs.readFileSync(path.join(ROOT, donor), 'utf8');
+  let html = donorHtml(donor, lang);
 
   /* 1) 管理ブロックを剥がす。中身はパイプラインが入れ直す。 */
   html = html.replace(/<!--PV-SEO-->[\s\S]*?<!--\/PV-SEO-->[ \t]*\n?/g, '')

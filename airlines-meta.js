@@ -102,7 +102,6 @@
 {code:'WN',  name:'サウスウエスト航空',     en:'Southwest Airlines',    region:'us',     color:'#FF7900',salary:'¥7,150万',file:'airlines/southwest.html',fleet:'n',        flag:'🇺🇸',type:'lcc',taxfree:false,alliance:''},
 {code:'AS',  name:'アラスカ航空',           en:'Alaska Airlines',       region:'us',     color:'#0060AB',salary:'¥7,290万',file:'airlines/alaska-airlines.html',fleet:'n',  flag:'🇺🇸',type:'fsc',taxfree:false,alliance:'ワンワールド'},
 {code:'B6',  name:'ジェットブルー航空',     en:'JetBlue',               region:'us',     color:'#003876',salary:'¥6,420万',file:'airlines/jetblue.html',fleet:'n',          flag:'🇺🇸',type:'lcc',taxfree:false,alliance:''},
-{code:'NK',  name:'スピリット航空',         en:'Spirit Airlines',       region:'us',     color:'#FFD700',salary:'¥3,700万',file:'airlines/spirit.html',fleet:'n',           flag:'🇺🇸',type:'lcc',taxfree:false,alliance:''},
 {code:'F9',  name:'フロンティア航空',       en:'Frontier Airlines',     region:'us',     color:'#00AE42',salary:'¥4,740万',file:'airlines/frontier.html',fleet:'n',         flag:'🇺🇸',type:'lcc',taxfree:false,alliance:''},
 {code:'G4',  name:'アリジャント エアー',    en:'Allegiant Air',         region:'us',     color:'#F4A024',salary:'¥5,370万',file:'airlines/allegiant.html',fleet:'n',        flag:'🇺🇸',type:'lcc',taxfree:false,alliance:''},
 {code:'FX',  name:'FedEx Express',          en:'FedEx Express',         region:'us',     color:'#4D148C',salary:'¥6,410万',file:'airlines/fedex-express.html',fleet:'nw', flag:'🇺🇸',type:'fsc',taxfree:false,alliance:''},

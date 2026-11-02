@@ -90,7 +90,6 @@ export const LOGO_SIZES = Object.freeze({
   'solaseed': [257, 64],
   'south-african-airways': [162, 64],
   'southwest': [420, 64],
-  'spirit': [230, 64],
   'spring-japan': [324, 64],
   'starflyer': [77, 64],
   'starlux': [285, 64],

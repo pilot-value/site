@@ -201,7 +201,8 @@ export const SALARY = {
   'jetstar':         { ja:'ジェットスター航空', en:'Jetstar Airways (Jetstar)', region:'oceania',                                cap:{avg:3620, lo:3430, hi:4060}, fo:{avg:2250, lo:1940, hi:2560}, taxFree:false, conf:'medium' },
   'latam':           { ja:'LATAM航空', en:'LATAM Airlines', region:'latam',                                                      cap:{avg:1900, lo:1200, hi:2700}, fo:{avg:950,  lo:550,  hi:1500}, taxFree:false, conf:'low' },
   'porter':          { ja:'ポーター航空', en:'Porter Airlines', region:'us',                                                     cap:{avg:2700, lo:2300, hi:3200}, fo:{avg:1350, lo:1000, hi:1700}, taxFree:false, conf:'medium' },
-  'spirit':          { ja:'スピリット航空', en:'Spirit Airlines', region:'us',                                                   cap:{avg:3700, lo:2900, hi:4700}, fo:{avg:2000, lo:1300, hi:3000}, taxFree:false, conf:'medium' },
+  // ★2026-11-02 スピリット航空（spirit）を外した（2026-05-02 に全便の運航を停止・オーナー決定 2026-10-11／再確認 2026-11-02）。
+  //   会社ページは置かない（住所は 404）。過去の投稿の社名のためだけに airline-ops.mjs の RETIRED に残してある（投稿の選択肢には出ない）。
   'westjet':         { ja:'ウェストジェット航空', en:'WestJet Airlines', region:'us',                                            cap:{avg:3800, lo:2600, hi:4400}, fo:{avg:2000, lo:1400, hi:2470}, taxFree:false, conf:'medium' },
 
   // ★2026-11-02 米国の貨物5社（オーナー受領の米国20社の統合調査・オーナー判断「ほぼ間違いない資料・出典は問わない」）。

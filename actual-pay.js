@@ -370,6 +370,9 @@
   // ── 状態 ───────────────────────────────────────────────────────
   var S = {
     air: {},          // 航空会社コード → 表示名
+    /* 名簿から外した会社（pv-airlines.json の kind:'retired' ── 2026-11-02 スピリット航空）。社名は air で引けるが、
+       プレビューの会社プルダウン（公開している会社マスタ）には並べない。 */
+    airGone: {},
     pos: {},          // 職位コード → 表示名
     flt: {},          // 機材コード → 表示名（2026-09-03）
     rows: null,       // pv_pay_rows() の行（そのまま持つ）
@@ -1998,7 +2001,7 @@
   function masterAirList() {
     var out = [];
     Object.keys(S.air).forEach(function (c) {
-      if (!hitQ(c)) return;
+      if (S.airGone[c] || !hitQ(c)) return;
       out.push({ v: c, label: airName(c) });
     });
     out.sort(function (a, b) { return a.label.localeCompare(b.label, L); });
@@ -2351,7 +2354,10 @@
       return fetch(AIR_URL).then(function (r) { return r.json(); });
     }).then(function (j) {
       var a = (j && j.airlines) || {};
-      Object.keys(a).forEach(function (c) { S.air[c] = a[c][L] || a[c].ja || c; });
+      Object.keys(a).forEach(function (c) {
+        S.air[c] = a[c][L] || a[c].ja || c;
+        if (a[c].kind === 'retired') S.airGone[c] = 1;
+      });
       /* ★辞書が後から届いても描き直す。RPC のほうが先に返ると、
            行はコードのまま（ana / cap）で固まる。 */
       render();

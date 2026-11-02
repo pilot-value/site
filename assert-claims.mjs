@@ -300,7 +300,7 @@ console.log('\n── D) ログインせずに出した人の鍵と回線の印�
          時間の数として在るものだけ
      E4  新しい形の会社ページ（SWITCH）の答えに、その会社の推定年収の幅（機長の lo〜hi・副操縦士の lo〜hi・副操縦士の lo〜機長の hi）
          が無い ── ページが幅を出していないので、答えだけが幅を言うと、ページに無い数を言うことになる（gen-faq.mjs は幅を書かない）。
-         SWITCH の外（古い形のスピリット航空）は手で書いた答えと表が今も幅を出しているので、ここでは見ない
+         SWITCH の外の会社は見ない（2026-11-02 に最後の古い形 ── スピリット航空 ── を外したので、いまは全社が SWITCH の中）
    ※ 数を足すときは、先に台帳へ出どころつきで入れる（入れてから答えに書く）。ここを緩めて通さない。
 
    ★2026-10-26（WP-compare-all-17）E2 と E3 を「よくある質問」の外へ広げた ── 同じページの上の段（古い「募集要項」の枠・
@@ -584,7 +584,8 @@ console.log('\n── H) 会社ページの手で書いた所が、出どころ�
   /* 許す表（台帳に在る数・名前を並べた数だけ） */
   const ALLOW_SEATS = { 'j-air': ['76', '95'], amx: ['48'] };
   const ALLOW_COUNT = { klm: ['160都市以上', 'more than 160 cities'], sas: ['3カ国', 'three countries'] };
-  const ALLOW_APPROX = { spirit: ['25+ yrs'] };   // 古い形のページの年次の表の段（上の年収の幅から組んだ「推定」と表に書いてある）
+  /* ★2026-11-02 スピリット航空のページ（古い形の年次の表の段「25+ yrs」）を外したので、許す言い回しは無い（表の形は残す） */
+  const ALLOW_APPROX = {};
   /* H5 免許・審査の当局の名前。その会社の国のもの ＝ airline-countries.mjs の auth（EU の国は EASA）＋ 下の OWN_EXTRA */
   const { AIRLINE_COUNTRY, BY_CODE } = await import('./airline-countries.mjs');
   const AUTH = /\b(?:FAA|EASA|JCAB|CAAK|MOLIT|CASA|CAA ?NZ|CAA New Zealand|UK CAA|CAA UK|DGAC|LBA|ANAC|Aerocivil|AFAC|GCAA|GACA|QCAA|BCAA|ECAA|SACAA|KCAA|DGCA|CAAC|CAAS|CAAT|CAAP|CAAV|CAAM|HKCAD|Transport Canada|TCCA|SHGM|CARC|CAAF|ENAC|AESA|ULC|R-ATP|Part[- ]1(?:21|35|42)|Check Airman)\b/g;

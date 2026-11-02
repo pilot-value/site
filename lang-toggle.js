@@ -30,10 +30,10 @@
     "qatar-airways", "rac", "riyadh-air", "root-aviation", "royal-brunei", "royal-jordanian",
     "ryanair", "sas", "saudia", "scoot", "shin-central", "shin-nihon",
     "singapore-airlines", "skymark", "solairus", "solaseed", "south-african-airways", "southwest",
-    "spirit", "spring-japan", "starflyer", "starlux", "starlux-tenshoku", "swiss",
-    "taiwan-hikaku", "tap", "thai-airways", "toho-air", "toki-air", "turkish-airlines",
-    "united", "ups-airlines", "vietjet", "vietnam-airlines", "virgin-atlantic", "vueling",
-    "westjet", "wizz-air", "zipair"
+    "spring-japan", "starflyer", "starlux", "starlux-tenshoku", "swiss", "taiwan-hikaku",
+    "tap", "thai-airways", "toho-air", "toki-air", "turkish-airlines", "united",
+    "ups-airlines", "vietjet", "vietnam-airlines", "virgin-atlantic", "vueling", "westjet",
+    "wizz-air", "zipair"
   ]);
   /* EN-AIRLINES:END */
 

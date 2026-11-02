@@ -245,3 +245,33 @@ export const OPS = {
          ⚠️ フライドバイはエミレーツ（emirates）とは別会社（エミレーツ・グループに入っていない）。 */
 
 };
+
+/* ════════════════════════════════════════════════════════════════
+   RETIRED ── 名簿から外した会社（運航をやめた会社など）。★もう投稿を受け付けない。
+
+   なぜ消さずに残すか: 過去の給与・口コミの行がこのコードを持っている。
+     gen-airline-codes.mjs が次の4つにだけ配る（どれも「過去の行を読む」側）──
+       ・pv-airlines.json に kind:'retired' で残す ＝ REAL PAY・Vote・マイページなどが社名を出せる
+         （vote.js の hasPage は kind === 'airline' だけ ＝ 会社ページへのリンクは張られない・会社の一覧にも出ない）
+       ・airline-codes.json と pv-reunlock.js の FALLBACK_CODES に残す ＝ その会社に口コミを出した人が、
+         別の端末でログインしても鍵が戻る（proof_hash はコードの文字列から作るので、コードが一覧から消えると二度と当たらない）
+       ・db/airlines.generated.sql に active=false で残す ＝ 外部キーは生きたまま、新しい給与だけ止まる
+         （submit_pay_report は active を見る・pv_review_codes は active を見ない＝口コミの鍵も残る）。
+         年収の幅（cap_lo〜fo_hi）は null ＝ 公開していない幅で REAL PAY の ⚠ を付けない
+     配らないもの ── 投稿フォーム日英4枚の選択肢と AIRLINE_LABELS・salary-data.json・会社ページ・国別ページ・sitemap・検索。
+   ⚠️ 年収（cap / fo）を書かない。コードを変えない・SALARY や OPS と同じコードを書かない（gen-airline-codes.mjs が止める）。
+   ⚠️ 戻すとき（運航を再開した等）は、ここから消して SALARY か OPS へ同じコードのまま移す（add-airline.md の道A／道B）。
+   手順は workflows/add-airline.md の「会社を外す」。
+   ════════════════════════════════════════════════════════════════ */
+export const RETIRED = {
+
+  'spirit': {
+    ja: 'スピリット航空', en: 'Spirit Airlines', region: 'us',
+    // 2026-05-02 に全便の運航を停止。オーナー決定（2026-10-11「スピリットを外す」・2026-11-02 再確認）で会社ページごと外した。
+    // 住所（airlines/spirit.html・en/airlines/spirit.html）は 404。お知らせのページは置かない（オーナー判断）。
+    // 古い形のページは gen-new-airline.mjs の借り元として airline-donor-pages.mjs に写してある（配信されない）。
+    until: '2026-05-02',
+    src: 'オーナー決定 2026-10-11（2026-11-02 再確認）',
+  },
+
+};
