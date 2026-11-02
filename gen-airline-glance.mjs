@@ -500,7 +500,8 @@ function payScaleCard(v) {
     const prev = y > 1 ? a[y - 2] : null, dlt = prev == null ? '' : `<p class="pvg-ps-d"><span>${x >= prev ? '+' : '−'}${yen(Math.abs(x - prev))}</span><small>${W.psPrev}</small></p>`;
     return `<div class="pvg-ps-pr"><p class="pvg-ps-k">${sw(r)}${W.rank[r === 'ca' ? 'cap' : 'fo']}</p><p class="pvg-ps-v">${yen(x)}</p>${dlt}</div>`; };
   const grid = Array.from({ length: Math.round(top / stepMan) + 1 }, (_, k) => k * stepMan).map(x => `<span style="bottom:${pc(x)}"><i>${x ? yen(Math.round(x)) : '0'}</i></span>`).join('');
-  const panel = (t, k) => `<div class="pvg-ps-t" data-ps-t="${k}"${k ? ' hidden' : ''}>
+  const main = P.main || 0;
+  const panel = (t, k) => `<div class="pvg-ps-t" data-ps-t="${k}"${k === main ? '' : ' hidden'}>
 <div class="pvg-ps-tiles">${tile(t, 'fo')}${tile(t, 'ca')}</div>
 <div class="pvg-ps-plot">
 <div class="pvg-ps-grid" aria-hidden="true">${grid}</div>
@@ -509,7 +510,11 @@ function payScaleCard(v) {
 </div>
 <div class="pvg-ps-reads">${t.fo.map((f, i) => `<div class="pvg-ps-read" data-ps-y="${i + 1}"${i + 1 === def ? '' : ' hidden'}><p class="pvg-ps-yr">${W.psYear(i + 1)}</p>${pair(t, 'fo', i + 1)}${pair(t, 'ca', i + 1)}</div>`).join('')}</div>
 </div>`;
-  const seg = T.length > 1 ? `<div class="pvg-ps-seg" role="group" aria-label="${W.psFleet}">${T.map((t, k) => `<button type="button" data-ps-tb="${k}" aria-pressed="${!k}">${esc(LANG === 'en' ? t.en : t.ja)}</button>`).join('')}</div>` : '';
+  /* 区分が3つまではボタン、4つからは選ぶ欄（機種別の給与表は区分が9つある会社がある） */
+  const fl = t => esc(LANG === 'en' ? t.en : t.ja);
+  const seg = T.length > 3
+    ? `<label class="pvg-ps-pick"><span>${W.psFleet}</span><select class="pvg-ps-sel">${T.map((t, k) => `<option value="${k}"${k === main ? ' selected' : ''}>${fl(t)}</option>`).join('')}</select></label>`
+    : T.length > 1 ? `<div class="pvg-ps-seg" role="group" aria-label="${W.psFleet}">${T.map((t, k) => `<button type="button" data-ps-tb="${k}" aria-pressed="${k === main}">${fl(t)}</button>`).join('')}</div>` : '';
   return `<!--PV-PAYSCALE--><div class="pvg-more-grid pvg-g-ps"${pane(v.slug, 'pay')}>
 <article class="pvg-card pvg-ps" data-ps-y="${def}">
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true">${IC.realpay}</span><h2 class="pvg-eyebrow">${W.ps}</h2><span class="pvg-chip">${W.psChip(P.at, !!P.ref)}</span></header>

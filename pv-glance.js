@@ -635,9 +635,18 @@
     var card = (col || tb) && (col || tb).closest('.pvg-ps');
     if (!card) return;
     if (col) { psYear(card, col.getAttribute('data-ps-y')); return; }
-    var k = tb.getAttribute('data-ps-tb');
     [].forEach.call(card.querySelectorAll('.pvg-ps-seg button'), function (b) { b.setAttribute('aria-pressed', String(b === tb)); });
+    psTable(card, tb.getAttribute('data-ps-tb'));
+  });
+  function psTable(card, k) {
     [].forEach.call(card.querySelectorAll('.pvg-ps-t'), function (p) { p.hidden = p.getAttribute('data-ps-t') !== k; });
     psYear(card, card.getAttribute('data-ps-y'));
+  }
+  /* 区分が4つ以上の会社は選ぶ欄（select） */
+  d.addEventListener('change', function (e) {
+    var sel = e.target;
+    if (!sel.classList || !sel.classList.contains('pvg-ps-sel')) return;
+    var card = sel.closest('.pvg-ps');
+    if (card) psTable(card, sel.value);
   });
 })(window, document);
