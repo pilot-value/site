@@ -281,6 +281,13 @@ const rowsOf = slug => Object.values(R.FACTS[slug] || {}).flat();
   const capRow = pay.find(r => r.rank === 'cap' && SHOWN.includes(r.use) && r.use !== '過去');
   ok(!!capRow && !why(capRow, { pay: true }), 'B 機長の給与の行は出せる（使い方が4つのどれかなら）', capRow && why(capRow, { pay: true }));
   for (const rk of ['all', 'crew', undefined]) ok(capRow && why({ ...capRow, rank: rk, applies_to: { ...(capRow.applies_to || {}), rank: rk } }, { pay: true }), `B 職位が「${rk ?? '無し'}」の給与は出さない`);
+  /* ★2026-11-02 オーナー指摘：本人が払う保険料（アメリカンの医療保険の本人負担 16行）を「医療の補助」の額として出さない。
+     行ごとに字を書いた行（LINES ── 「本人の拠出」と字で言う行）は出してよい。 */
+  const ownPay = rowsOf('american').filter(r => r.key === 'medical' && /本人負担/.test(r.label_ja || '') && !LINES[r.id]);
+  ok(ownPay.length >= 1 && ownPay.every(r => why(r)), `B 本人が払う額を「◯◯の補助」の額として出さない（アメリカンの医療保険の本人負担 ${ownPay.length}行）`, ownPay.filter(r => !why(r)).map(r => r.id).slice(0, 5).join(','));
+  ok(ownPay.length >= 1 && !why({ ...ownPay[0], label_ja: '医療の補助', amount: { ...(ownPay[0].amount || {}), kind_note_ja: '' } }), 'B 同じ行でも、本人負担と書いていなければ通る（壊す証明 ── 止めているのは本人負担の字）');
+  const ownLine = Object.values(R.FACTS).flatMap(F => Object.values(F).flat()).find(r => LINES[r.id] && /本人拠出/.test(r.label_ja || ''));
+  ok(!!ownLine && !why(ownLine), 'B 「本人の拠出」と字で言う行（LINES）は出してよい', ownLine && why(ownLine));
   /* 空港までの移動：ダラスの Love Field の行（サウスウエストの拠点）を、同じ街につないだアメリカン（DFW の会社）に出さない */
   const love = (R.LIVING.dallas ? R.LIVING.dallas.commute : []).find(r => /Love Field/.test(`${r.value} ${r.label_ja}`));
   const swBase = rowsOf('southwest').filter(r => r.key === 'pilot_base' && !why(r)).map(r => r.value);

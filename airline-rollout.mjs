@@ -100,6 +100,7 @@ function airportsIn(r, also = []) {
  *   o.pay      … 給与の行として見る（機長・副操縦士のどちらかの行だけ）
  *   o.commute  … 空港までの移動の行として見る。o.bases ＝ その会社の拠点の空港（3字の並び）
  */
+const OWN_PAY = /本人負担|本人の負担|本人拠出|本人の拠出|給与控除|自己負担|payroll contribution|employee contribution/i;
 export function why(r, o = {}) {
   if (!r || typeof r !== 'object') return '行が無い';
   if (!SHOWN.includes(r.use)) return `使い方が「${r.use || '無し'}」`;
@@ -109,6 +110,10 @@ export function why(r, o = {}) {
     if (rank !== 'cap' && rank !== 'fo') return '機長と副操縦士を分けない給与';
   }
   if (r.use === '過去' && !dateOf(r)) return '過去の話なのに日付が無い';
+  /* ★2026-11-02 オーナー指摘（アメリカンの「医療の補助」が16行）：本人が払う額（保険料の本人負担・給与からの積み立てなど）を、
+     項目の言い方の表（ITEM）の「◯◯の補助」の額として出さない ── 会社が出すお金に見える。
+     行ごとに字を書いた行（LINES）は「本人」と字で言っているので出してよい。 */
+  if (!LINES[r.id] && OWN_PAY.test(`${r.label_ja || ''} ${(r.amount && r.amount.kind_note_ja) || ''}`)) return '本人が払う額（会社の補助ではない）';
   if (o.commute || (r.domain === 'living' && r.key === 'commute')) {
     const bases = o.bases || [];
     const at = airportsIn(r, bases);
