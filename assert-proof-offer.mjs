@@ -178,7 +178,7 @@ const stay = noMsg(read('career-stay.js'));
     return bad;
   };
   /* サイトに英語が在る字の写し */
-  const aq = read('admin-queue.js'), pc = read('pv-contrib.js');
+  const aq = read('admin-queue.js'), pc = noMsg(read('pv-contrib.js'));
   const aqEnT = (aq.match(/\n {2}var T = EN \? \{\n([\s\S]*?)\n {2}\} : \{\n/) || [])[1] || '';
   const aqEnSay = (aq.match(/\n {2}var SAY = EN \? \{\n([\s\S]*?)\n {2}\} : \{\n/) || [])[1] || '';
   const pcEn = (pc.match(/\n {4}en: \{\n([\s\S]*?)\n {4}\}\n {2}\};\n/) || [])[1] || '';
