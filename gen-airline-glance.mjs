@@ -480,7 +480,7 @@ ${payDetails(v)}
    ⚠️ ここに社名を書かない（check-salary.mjs が「社名 → 職位 → 額」で読む。基本給を推定年収として照合させない）。 */
 /* ★2026-11-02 米国の会社の「調べた条件」（us-terms.mjs）── オーナー「せっかく調べてきた内容を無駄にしないで。ちゃんと活用して」。
    ChatGPT の米国20社の調べ（2026-11-02）の、給与のまわり・勤務・通勤・ステイの条件。タブごとに1枚（そのタブの行が無ければ置かない）。
-   資料に出典の住所が無いので、行ごとの出典リンクは無い ── 札で「PILOT VALUE の調べ」と日付を言う。
+   資料に出典の住所が無いので、行ごとの出典リンクは無い ── 札で調べた日を、カードの下の1行で誰が何からまとめたかを言う（札は狭い画面で切れないよう短く）。
    「会社が公表している条件」の一覧には入れない（会社自身の資料だと言えない）。今と言い切れない値は「参考」の札。
    額は外貨の字のまま（円に直さない・通貨切替に読ませない ── prose）。 */
 const TM_ICON = { pay: 'benefits', work: 'work', life: 'living', stay: 'stay' };
@@ -1354,7 +1354,7 @@ export const WORDS = Object.freeze({
     member: (a, x) => (x ? `${a}加盟（${x}）` : `${a}加盟`),
     pay: '給与', realPay: '提出された年収', estBy: '当サイトの推定', medBy: '会員が出した年収の中央値',
     tm: { pay: '給与と待遇の条件', work: '勤務の条件', life: '通勤の条件', stay: 'ステイの条件' }, tmRef: '参考',
-    tmChip: d => `PILOT VALUE の調べ · ${d}`, tmSrc: '労働協約・会社・労働組合の公開資料をもとに、PILOT VALUE がまとめた条件です。',
+    tmChip: d => `${d}の調べ`, tmSrc: '労働協約・会社・労働組合の公開資料をもとに、PILOT VALUE がまとめた条件です。',
     ps: '勤続年数ごとの基本給', psFleet: '機種', psYear: n => `${n}年目`, psOver: n => `${n}年で`, psPrev: '前の年から',
     psAxis: '勤続年数（年目）', psTap: '年を押すと額が出ます',
     psChip: (at, ref) => (ref ? '参考の給与表' : at ? `労働協約の給与表 · ${at.replace(/^(\d{4})(?:-(\d\d))?$/, (m, y, mo) => (mo ? `${y}年${+mo}月` : `${y}年`))}` : '労働協約の給与表'),
@@ -1425,7 +1425,7 @@ export const WORDS = Object.freeze({
     member: (a, x) => (x ? `${a} member (${x})` : `${a} member`),
     pay: 'Pay', realPay: 'Submitted pay', estBy: 'Our estimate', medBy: 'Median of pay submitted by members',
     tm: { pay: 'Pay and benefit terms', work: 'Work rules', life: 'Getting to work', stay: 'Layover rules' }, tmRef: 'Reference',
-    tmChip: d => `PILOT VALUE research · ${d}`, tmSrc: 'Summarized by PILOT VALUE from public union contracts and company and union materials.',
+    tmChip: d => `Researched ${d}`, tmSrc: 'Summarized by PILOT VALUE from public union contracts and company and union materials.',
     ps: 'Base pay by year of service', psFleet: 'Aircraft', psYear: n => `Year ${n}`, psOver: n => `over ${n} years`, psPrev: 'vs. the year before',
     psAxis: 'Year of service', psTap: 'Tap a year to see the pay',
     psChip: (at, ref) => (ref ? 'Reference pay scale' : at ? `Contract pay scale · ${at.replace(/^(\d{4})(?:-(\d\d))?$/, (m, y, mo) => (mo ? `${MONTHS_EN[+mo - 1]} ${y}` : y))}` : 'Contract pay scale'),
