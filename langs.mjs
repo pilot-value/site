@@ -35,7 +35,8 @@ export const LANGS = [
       'index.html', 'world-airlines.html', 'pilot-salary-guide.html', 'countries.html', 'submit-review.html', 'airline-conditions.html',
       'airlines/iberia.html', 'airlines/vueling.html', 'airlines/aeromexico.html', 'airlines/avianca.html', 'airlines/copa-airlines.html', 'airlines/latam.html',
       'countries/spain.html', 'countries/mexico.html', 'countries/colombia.html', 'countries/chile.html', 'countries/panama.html',
-      /* 2026-11-02 オーナー「会社ページはやりたい」：残りの会社ページ（比較のページ・国のページは後回し） */
+      /* 2026-11-02 オーナー「会社ページはやりたい」：残りの会社ページ（比較のページ・国のページは後回し）。
+         スピリットは入れない（2026-10-11 にサイトから外すと決めた会社・古い鍵の部品を使う唯一のページ） */
       'airlines/aegean.html', 'airlines/aer-lingus.html', 'airlines/air-canada.html', 'airlines/air-china.html', 'airlines/air-france.html',
       'airlines/air-india.html', 'airlines/air-new-zealand.html', 'airlines/air-peace.html', 'airlines/airasia.html', 'airlines/airdo.html',
       'airlines/airjapan.html', 'airlines/airx-charter.html', 'airlines/alaska-airlines.html', 'airlines/allegiant.html',
@@ -55,7 +56,7 @@ export const LANGS = [
       'airlines/riyadh-air.html', 'airlines/root-aviation.html', 'airlines/royal-brunei.html', 'airlines/royal-jordanian.html',
       'airlines/ryanair.html', 'airlines/sas.html', 'airlines/saudia.html', 'airlines/scoot.html', 'airlines/shin-central.html',
       'airlines/shin-nihon.html', 'airlines/singapore-airlines.html', 'airlines/skymark.html', 'airlines/solairus.html',
-      'airlines/solaseed.html', 'airlines/south-african-airways.html', 'airlines/southwest.html', 'airlines/spirit.html',
+      'airlines/solaseed.html', 'airlines/south-african-airways.html', 'airlines/southwest.html',
       'airlines/spring-japan.html', 'airlines/starflyer.html', 'airlines/starlux.html', 'airlines/swiss.html', 'airlines/tap.html',
       'airlines/thai-airways.html', 'airlines/toho-air.html', 'airlines/toki-air.html', 'airlines/turkish-airlines.html', 'airlines/united.html',
       'airlines/vietjet.html', 'airlines/vietnam-airlines.html', 'airlines/virgin-atlantic.html', 'airlines/westjet.html',

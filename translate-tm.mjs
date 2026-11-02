@@ -399,6 +399,44 @@ if (flag('--prune')) {
   console.log(`使わなくなった訳を消した: ${gone.length}件`);
   process.exit(0);
 }
+/* --read <ページ,…>：もう訳してあるページの通読（④）だけを流す（費用の上限で通読が飛んだページのやり直し・2026-11-02）。
+   直してよいのはそのページだけの文（辞書の pages がそのページ1枚）。ほかのページと共通の文は、そちらの通読で見てある＝ここでは変えない。
+   直しは③（逆に訳して意味を比べる）と機械検査を通ったものだけ採る。 */
+if (opt('--read')) {
+  if (!process.env.ANTHROPIC_API_KEY) { console.error('❌ ANTHROPIC_API_KEY がありません'); process.exit(1); }
+  const CAPR = Number(opt('--max-usd') || 5);
+  let n = 0, seenFix = 0;
+  const doRead = async (page) => {
+    const seen = new Set(), rows = [];
+    for (const c of collect([page])) {
+      if (seen.has(c.key) || TM[c.key]?.st !== 'validated' && TM[c.key]?.st !== 'manual') continue;
+      seen.add(c.key); rows.push({ key: c.key, c, es: TM[c.key].es, note: '' });
+    }
+    let fixes = new Map();
+    try { fixes = await readThrough(page, rows); } catch (e) { console.log(`  ⚠️ ${page} の通読が失敗: ${String(e.message).slice(0, 140)}`); return; }
+    const own = (k) => { const ps = TM[k]?.pages || []; return ps.length === 1 && ps[0] === page && TM[k].st !== 'manual'; };
+    const changed = rows.filter((r) => own(r.key) && fixes.get(r.key)?.es && fixes.get(r.key).es !== r.es);
+    seenFix += changed.length;
+    if (!changed.length) { console.log(`  ${page}：直しなし`); return; }
+    let re = [];
+    try { re = await stage3(changed.map((r) => r.c), changed.map((r, i) => ({ id: i + 1, es: fixes.get(r.key).es }))); }
+    catch (e) { console.log(`  ⚠️ ${page} の直しの判定が失敗（採らない）: ${String(e.message).slice(0, 140)}`); return; }
+    let m = 0;
+    re.forEach((x, i) => {
+      const r = changed[i];
+      if (!x.ok || check(r.key, x.es).length) return;
+      TM[r.key] = { ...TM[r.key], es: x.es, at: new Date().toLocaleDateString('sv-SE'), pv: PROMPT_VERSION, read: fixes.get(r.key).reason };
+      m++;
+    });
+    n += m; saveTM();
+    console.log(`  ${page}：通読の直し ${m}/${changed.length} を採った（ここまで $${cost().toFixed(2)}）`);
+  };
+  const rp = opt('--read').split(',').filter(Boolean);
+  if (cost() > CAPR) process.exit(1);
+  if (BATCH_MODE) await Promise.all(rp.map(doRead)); else for (const pg of rp) await doRead(pg);
+  console.log(`\n通読：${rp.length}ページ・直しの候補 ${seenFix}・採った ${n} ／ 呼び出し ${used.calls}回 ／ 使った額 $${cost().toFixed(2)}`);
+  process.exit(0);
+}
 /* --recheck <dump.json>：--dump で書き出した結果のうち、機械検査で落ちた訳を今の検査でもう一度見る（AI は呼ばない）。
    通って、意味の判定（③）も通っていた訳だけを辞書に入れる。検査の線引きを直したあとに使う */
 if (opt('--recheck')) {
