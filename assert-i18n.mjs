@@ -53,7 +53,10 @@ for (const L of GEN) {
   const bad = [];
   for (const [k, v] of Object.entries(TM)) {
     if (!ST.has(v.st)) bad.push(`状態が変: ${v.st} ← ${k.slice(0, 40)}`);
-    if (JA.test(v.es || '')) bad.push(`日本語の字: ${k.slice(0, 40)}`);
+    /* JS の訳は、元のコードにある日本語（正規表現・日本語の鍵）はそのまま残ってよい。元に無い日本語が増えたら落とす */
+    const jaSet = (x) => new Set((x || '').match(/[ぁ-んァ-ヶ一-龠ー・（）]+/g) || []);
+    const srcJa = jaSet(k);
+    if ([...jaSet(v.es)].some((w) => !srcJa.has(w))) bad.push(`日本語の字: ${k.slice(0, 40)}`);
     const js = /^jsl?:/.test(k);
     if (js !== /^jsl?:/.test(v.es || '') || (js && k.slice(0, k.indexOf(':')) !== v.es.slice(0, v.es.indexOf(':')))) bad.push(`JS の印が合わない: ${k.slice(0, 40)}`);
     if (js) {
@@ -69,7 +72,7 @@ for (const file of MSG_FILES) {
   const src = read(file);
   const probs = [];
   for (const L of GEN) {
-    const re = new RegExp(`\\/\\*PV-MSG:${L.code}\\*\\/\\s*${L.code}:\\s*([\\s\\S]*?)\\s*\\/\\*\\/PV-MSG:${L.code}\\*\\/`, 'g');
+    const re = new RegExp(`\\/\\*PV-MSG:${L.code}\\*\\/\\s*(?:${L.code}:|var \\w+_${L.code.toUpperCase()} =)\\s*([\\s\\S]*?);?\\s*\\/\\*\\/PV-MSG:${L.code}\\*\\/`, 'g');
     const blocks = [...src.matchAll(re)].map((m) => m[1]);
     const ds = dicts(src);
     if (blocks.length !== ds.length) { probs.push(`${L.code} の辞書が ${blocks.length} 個・en は ${ds.length} 個（node gen-msg.mjs）`); continue; }

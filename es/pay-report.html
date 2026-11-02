@@ -67,7 +67,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 })();
 </script>
 <!--/PV-3P-->
-<script src="../pv-session.js?v=54191fa0"></script>
+<script src="../pv-session.js?v=094ee264"></script>
 <!-- ★招待（?ref=）を受け取るところ。読み込む位置がここでなければならない。
      下の長いインラインスクリプトは、起動した時点で window.PVReferral.claim() を
      呼んで「招待リンクから来た人」を紹介者に結びつける。この script を
@@ -90,7 +90,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
         <span>Agregar remuneración de forma anónima</span>
       </a>
-      <a class="mr-side-a" href="../en/index.html">
+      <a class="mr-side-a" href="index.html">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 2l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>
         <span>INICIO</span>
       </a>
@@ -106,7 +106,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V4s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
         <span>HOJA DE RUTA Y SOLICITUDES</span>
       </a>
-      <a class="mr-side-a" href="../en/world-airlines.html">
+      <a class="mr-side-a" href="world-airlines.html">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
         <span>AEROLÍNEAS</span>
       </a>
@@ -126,7 +126,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 <!-- NAV -->
 <nav id="main-nav">
   <div class="max-w-5xl mx-auto px-6 flex items-center justify-between h-[68px]">
-    <a href="../en/index.html" class="flex items-center gap-3 flex-shrink-0">
+    <a href="index.html" class="flex items-center gap-3 flex-shrink-0">
       <img src="../assets/logo.png" alt="PILOT VALUE" class="logo-img"/>
     </a>
     <div class="flex items-center gap-3">
@@ -889,12 +889,12 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                   <select id="f-instr-method" class="form-input">
                     <option value="" data-qty="">Elige una opción</option>
                     <option value="monthly" data-qty="">Monto fijo mensual</option>
-                    <option value="duty" data-qty="Days this month">Por servicio / por día</option>
-                    <option value="session" data-qty="Sessions this month">Por sesión</option>
-                    <option value="sector" data-qty="Sectors this month">Por sector / tramo</option>
-                    <option value="hour" data-qty="Hours this month">Por hora</option>
-                    <option value="course" data-qty="Courses this month">Por curso / evento</option>
-                    <option value="other" data-qty="Units this month">Otro</option>
+                    <option value="duty" data-qty="Días de este mes">Por servicio / por día</option>
+                    <option value="session" data-qty="Sesiones de este mes">Por sesión</option>
+                    <option value="sector" data-qty="Sectores de este mes">Por sector / tramo</option>
+                    <option value="hour" data-qty="Horas de este mes">Por hora</option>
+                    <option value="course" data-qty="Cursos de este mes">Por curso / evento</option>
+                    <option value="other" data-qty="Unidades de este mes">Otro</option>
                   </select>
                 </div>
 
@@ -975,11 +975,11 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                   <select id="f-exam-method" class="form-input">
                     <option value="" data-qty="">Elige una opción</option>
                     <option value="monthly" data-qty="">Monto fijo mensual</option>
-                    <option value="check" data-qty="Checks this month">Por verificación / evento</option>
-                    <option value="session" data-qty="Sessions this month">Por sesión de simulador</option>
-                    <option value="duty" data-qty="Days this month">Por servicio / por día</option>
-                    <option value="hour" data-qty="Hours this month">Por hora</option>
-                    <option value="other" data-qty="Units this month">Otro</option>
+                    <option value="check" data-qty="Verificaciones de este mes">Por verificación / evento</option>
+                    <option value="session" data-qty="Sesiones de este mes">Por sesión de simulador</option>
+                    <option value="duty" data-qty="Días de este mes">Por servicio / por día</option>
+                    <option value="hour" data-qty="Horas de este mes">Por hora</option>
+                    <option value="other" data-qty="Unidades de este mes">Otro</option>
                   </select>
                 </div>
 
@@ -1733,9 +1733,9 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 <!-- FOOTER -->
 <footer class="py-10">
   <div class="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-    <a href="../en/index.html"><img src="../assets/logo.png" alt="PILOT VALUE" class="h-7 opacity-70"/></a>
+    <a href="index.html"><img src="../assets/logo.png" alt="PILOT VALUE" class="h-7 opacity-70"/></a>
     <div class="flex gap-6 text-sm text-muted">
-      <a href="../en/world-airlines.html" class="hover:text-text transition-colors">Aerolíneas del mundo</a>
+      <a href="world-airlines.html" class="hover:text-text transition-colors">Aerolíneas del mundo</a>
       <a href="../en/privacy-pilot.html" class="hover:text-text transition-colors">Cómo funciona el anonimato</a>
       <a href="privacy.html" class="hover:text-text transition-colors">Política de privacidad</a>
     </div>

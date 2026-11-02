@@ -121,7 +121,7 @@
 })();
 </script>
 <!--/PV-3P-->
-<script src="../pv-session.js?v=54191fa0"></script>
+<script src="../pv-session.js?v=094ee264"></script>
   <!-- PV-NAV: site-wide navigation (left rail on wide screens, left drawer on narrow).
        Written by patch-side-nav.mjs. app-nav.css loads last (after my-value.css). -->
   <link rel="stylesheet" href="../app-nav.css">
@@ -132,7 +132,7 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
         <span>Agregar remuneración de forma anónima</span>
       </a>
-      <a class="mr-side-a" href="../en/index.html">
+      <a class="mr-side-a" href="index.html">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 2l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>
         <span>INICIO</span>
       </a>
@@ -148,7 +148,7 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V4s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
         <span>HOJA DE RUTA Y SOLICITUDES</span>
       </a>
-      <a class="mr-side-a" href="../en/world-airlines.html">
+      <a class="mr-side-a" href="world-airlines.html">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
         <span>AEROLÍNEAS</span>
       </a>
@@ -166,7 +166,7 @@
 
   <header class="mr-top">
     <div class="mr-top-in">
-      <a class="mr-brand" href="../en/index.html" aria-label="PILOT VALUE home">
+      <a class="mr-brand" href="index.html" aria-label="PILOT VALUE home">
         <img src="../assets/logo.png" alt="PILOT VALUE" height="28"/>
       </a>
       <!-- ★ Keep #theme-toggle inside .mr-top-r. lang-toggle.js:165 inserts the language
@@ -181,7 +181,7 @@
   <main class="auth-main">
   <div class="auth-card">
     <div style="text-align:center;margin-bottom:32px">
-      <a href="../en/index.html"><img src="../assets/logo.png" alt="PILOT VALUE" style="height:34px;margin:0 auto"/></a>
+      <a href="index.html"><img src="../assets/logo.png" alt="PILOT VALUE" style="height:34px;margin:0 auto"/></a>
       <div style="font-size:.75rem;color:#6b7d93;margin-top:8px;letter-spacing:.04em">Una de las más grandes del mundo｜Totalmente anónima｜Solo para pilotos｜Plataforma de información sobre sueldo anual y cambio de empleo</div>
     </div>
 
@@ -333,7 +333,8 @@
          ?next= 付きで来た場合は safePath が /en/… の絶対パスを返すので元から正しい。 */
     function getRedirect(){
       const q = new URLSearchParams(location.search);
-      return safePath(q.get('next') || q.get('redirect') || q.get('return')) || '/en/actual-pay.html';
+      const to = safePath(q.get('next') || q.get('redirect') || q.get('return')) || '/en/actual-pay.html';
+      return (window.PV_PATH ? window.PV_PATH(to) : to);   // the Spanish page (es/) lands on the Spanish version when there is one
     }
 
     /* ★Do not drop the destination when handing off to "Sign up".
@@ -555,13 +556,15 @@
            ★next を省く分岐を置かない。省くと auth-callback の既定（日本語の
              /actual-pay.html）が効いて、やはり日本語版に落ちる。
              getRedirect() は必ず /en/… を返すので常に渡す。 */
-      const to = (otpIntent === 'reset') ? '/en/profile.html#password-card' : getRedirect();
+      const to = (otpIntent === 'reset') ? (window.PV_PATH ? window.PV_PATH('/en/profile.html#password-card') : '/en/profile.html#password-card') : getRedirect();
       const { error } = await sb.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: 'https://pilot-value.com/auth-callback.html'
                          + '?next=' + encodeURIComponent(to),
           shouldCreateUser: true,
+          /* The Spanish page marks new accounts so the login-code email can be sent in Spanish (mail-bot/auth-emails). */
+          ...(window.PV_LANG === 'es' ? { data: { lang: 'es' } } : {}),
         }
       });
 

@@ -86,7 +86,25 @@
       ten: function (y) { return y + ' in rank'; },
       voice: { culture: 'Culture', salary: 'Pay', benefits: 'Benefits',
                wlb: 'WLB', ops: 'Operations', training: 'Training', mgmt: 'To management' },
-    },
+    }, /*PV-MSG:es*/ es: {
+      sep: ' · ',
+      rating:    'Calificación ',
+      autoTr:    'Traducido automáticamente',
+      emptyT:    'Todavía hay pocas publicaciones.',
+      emptyD:    'Aquí solo publican pilotos en activo y expilotos. Nunca inflamos la cantidad de publicaciones ni republicamos reseñas de otros sitios.',
+      mqMeta: function (years, base) { return years + ' · ' + base; },
+      // 日本語側と対（actual-pay.js の英語から写す。openNote だけ短く言い直したもの）
+      seg: { base: 'Sueldo base', variable: 'Remuneración variable (vuelo)', bonus: 'Bonos y participación en las utilidades' },
+      pos: { '機長': 'Capitán / Comandante (CAP)', '副操縦士': 'Primer oficial / Copiloto (FO)' },
+      thAmt: 'Anual',
+      dwYear: 'Por año', dwMonth: 'Por mes', dwComp: 'Remuneración',
+      cbMore: '+{n} más',
+      dash: '–',
+      openNote: 'Las proporciones son aproximadas',
+      ten: function (y) { return y + ' en el puesto actual'; },
+      voice: { culture: 'Cultura', salary: 'Remuneración', benefits: 'Beneficios',
+               wlb: 'Equilibrio vida-trabajo', ops: 'Operaciones', training: 'Entrenamiento', mgmt: 'Para la dirección' },
+    } /*/PV-MSG:es*/,
   };
   T = (window.PV_T && window.PV_T(T, L)) || T[L];   // スペイン語の辞書があればそれ
 
@@ -140,11 +158,11 @@
      そのまま出すと日英どちらの画面でも符号が見えるので、ここで言葉に直す。 */
   var POS_LABEL = (function (D) { return (window.PV_T && window.PV_T(D, L)) || D[L]; })({
     ja: { captain: '機長', fo: '副操縦士', cadet: '訓練生' },
-    en: { captain: 'Captain', fo: 'First Officer', cadet: 'Trainee' },
+    en: { captain: 'Captain', fo: 'First Officer', cadet: 'Trainee' }, /*PV-MSG:es*/ es: { captain: 'Capitán', fo: 'Primer oficial', cadet: 'Piloto en formación' } /*/PV-MSG:es*/,
   });
   var TENURE_LABEL = (function (D) { return (window.PV_T && window.PV_T(D, L)) || D[L]; })({
     ja: { '1-5': '1〜5年', '5-10': '5〜10年', '10-15': '10〜15年', '15-20': '15〜20年', '20+': '20年以上' },
-    en: { '1-5': '1–5 yrs', '5-10': '5–10 yrs', '10-15': '10–15 yrs', '15-20': '15–20 yrs', '20+': '20+ yrs' },
+    en: { '1-5': '1–5 yrs', '5-10': '5–10 yrs', '10-15': '10–15 yrs', '15-20': '15–20 yrs', '20+': '20+ yrs' }, /*PV-MSG:es*/ es: { '1-5': '1–5 años', '5-10': '5–10 años', '10-15': '10–15 años', '15-20': '15–20 años', '20+': '20+ años' } /*/PV-MSG:es*/,
   });
 
   /* ══════════════════════════════════════════════════════════════

@@ -14,6 +14,18 @@ var PV_SEARCH_L10N = {
   'お問い合わせ':     'Contact',
   'ログイン':         'Log in'
 };
+  /*PV-MSG:es*/ var PV_SEARCH_L10N_ES = {
+  '航空会社を検索':   'Buscar aerolíneas',
+  '航空会社を検索…': 'Buscar aerolíneas…',
+  '閉じる':           'Cerrar',
+  '世界の航空会社':   'Aerolíneas del mundo',
+  '日本 vs 海外':     'Japón vs el mundo',
+  '年収ランキング':   'Ranking de remuneración anual',
+  '求人情報':         'Vacantes',
+  'コミュニティ':     'Comunidad',
+  'お問い合わせ':     'Contacto',
+  'ログイン':         'Iniciar sesión'
+}; /*/PV-MSG:es*/
 
 /* ═══════════════════════════════════════════════════
    PILOT VALUE — Global Airline Search

@@ -66,7 +66,7 @@
       var es = (window.PV_LANG_PAGES && window.PV_LANG_PAGES.es) || [];
       return m && es.indexOf(m[1]) >= 0 ? '/es/' + m[1] + (m[2] || '') : p;
     };
-    /*PV-LANG-PAGES*/window.PV_LANG_PAGES = {"es":["pay-report.html","signup.html","login.html","profile.html","actual-pay.html","my-value.html","terms.html","privacy.html","personal-data.html","contact.html"]};/*/PV-LANG-PAGES*/
+    /*PV-LANG-PAGES*/window.PV_LANG_PAGES = {"es":["pay-report.html","signup.html","login.html","profile.html","actual-pay.html","my-value.html","terms.html","privacy.html","personal-data.html","contact.html","index.html","world-airlines.html","pilot-salary-guide.html","countries.html","submit-review.html","airline-conditions.html","airlines/iberia.html","airlines/vueling.html","airlines/aeromexico.html","airlines/avianca.html","airlines/copa-airlines.html","airlines/latam.html","countries/spain.html","countries/mexico.html","countries/colombia.html","countries/chile.html","countries/panama.html"]};/*/PV-LANG-PAGES*/
   })();
 
   /* このファイルの置き場所。pv-give-first.js は同じ階層にある。

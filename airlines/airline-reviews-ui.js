@@ -140,7 +140,62 @@
       // Salary タブが空になる。
       secSalary: /Salary|Career Ladder/,
       secJobs: /Job|Requirement/,
-    },
+    }, /*PV-MSG:es*/ es: {
+      hrbHeading: function (n) { return 'Calificaciones de los pilotos — ' + n; },
+      hrbLabel: 'Calificación general según los pilotos',
+      respondents: function (n) { return n + (n === 1 ? ' respuesta' : ' respuestas'); },
+      sampleData: 'Datos de ejemplo',
+      postReview: 'Publicar una reseña de forma anónima',
+      ctaSub: 'Anónimo · Gratis',
+      rcgHeading: function (c) { return 'Reseñas de pilotos por categoría (' + c + ')'; },
+      catCount: function (n) { return String(n); },
+      tabs: { overview: 'Resumen', reviews: 'Reseñas', salary: 'Sueldos', jobs: 'Contratación' },
+      reviewsHeading: 'Todas las reseñas',
+      postReviewShort: '＋ Publicar una reseña de forma anónima',
+      all: 'Todas',
+      empty: 'Aún no hay reseñas en esta categoría.<br>Publica la primera.',
+      gateTitle: 'Datos exclusivos para miembros',
+      gateAll: function (n) { return 'Leer el texto completo de todas las reseñas (' + n + (n === 1 ? ' reseña' : ' reseñas') + ' en total)'; },
+      lockedCta: 'Publicar una reseña de forma anónima para desbloquear',
+      srvLockNote: 'Solo los pilotos que han compartido una reseña pueden leer el texto completo.',
+      gateDesc: 'Publica una reseña anónima y se desbloquean las reseñas<br>de todas las aerolíneas.',
+      gateBtn: 'Publicar una reseña de forma anónima para desbloquear',
+      gateLogin: 'Iniciar sesión (si ya publicaste)',
+      sumSrcTag: 'Usada en el resumen',
+      gateFine: 'Completamente anónimo · No se requiere nombre',
+      catFallback: 'Reseña',
+      pilot: 'Piloto',
+      POS: { captain: 'Capitán', fo: 'Primer oficial', cadet: 'Piloto en formación', former: 'Extripulante', pilot: 'Piloto' },
+      JOIN: { new: 'Recién egresado', mid: 'Con experiencia previa' },
+      joined: function (j) { return 'Ingreso: ' + j; },
+      tenure: function (y) { return y + ' años de antigüedad'; },
+      postedOn: 'Fecha de publicación: ',
+      readMore: function (n) { return 'Leer más (' + n + ' caracteres)'; },
+      source: 'Fuente',
+      salaryLabels: ['Anual', 'Mensual (bruto)', 'Horas extra (mes)', 'Bono (año)'],
+      viewReview: 'Ver reseña',
+      rmTitle: 'Publica una reseña para seguir leyendo',
+      rmDesc: 'Publica una reseña propia<br>para leer <strong style="color:#e8edf2">todas las reseñas completas</strong>',
+      rmBtn: 'Publicar una reseña de forma anónima para desbloquear',
+      rmLogin: '¿Ya tienes una cuenta? Inicia sesión',
+      rmFine: 'Gratis · anónimo · sin datos personales',
+      vcBadge: 'Opiniones de pilotos de línea',
+      vcPro: 'Lo que los pilotos valoran más',
+      vcCon: 'Advertencias y preocupaciones',
+      vcGateTitle: 'Lee todas las reseñas de las seis categorías — cultura de la empresa, remuneración, prestaciones, equilibrio entre vida laboral y personal, operaciones y entrenamiento',
+      vcGateDesc: 'Arriba solo se muestra una reseña de cada lado. Publica una reseña tuya para leer todas las categorías <strong style="color:#e8edf2">gratis</strong>.',
+      vcGateBtn: 'Publicar una reseña de forma anónima para desbloquear todas las categorías →',
+      vcGateFine: 'Gratis · anónimo · sin datos personales',
+      vcSrcLabel: 'Fuentes de las reseñas',
+      vcRating: function (r) { return ' (★' + r.toFixed(1) + '/5)'; },
+      vcYear: function (y) { return ' · ' + y; },
+      // Career Ladder は等級別の給与表なので Salary タブが正しい。ここに入れないと
+      // overview 扱いになり、年収枠（premium-gate）が Salary Data と Career Ladder を
+      // まとめて包んだとき、下の :842 で枠のタブ属性が overview に上書きされて
+      // Salary タブが空になる。
+      secSalary: /Salary|Career Ladder/,
+      secJobs: /Job|Requirement/,
+    } /*/PV-MSG:es*/,
   };
   var L = (window.PV_T && window.PV_T(STR, LANG)) || STR[LANG];   // スペイン語の辞書があればそれ
 
@@ -1159,7 +1214,7 @@
   function ggShape() { return isTabbed(); }
   var GG_WORDS = {
     ja: { all: '全ての<wbr>口コミデータを<wbr>解放する', top: '口コミを<wbr>解放する' },
-    en: { all: 'Unlock all reviews', top: 'Unlock reviews' },
+    en: { all: 'Unlock all reviews', top: 'Unlock reviews' }, /*PV-MSG:es*/ es: { all: 'Desbloquear todas las reseñas', top: 'Desbloquear reseñas' } /*/PV-MSG:es*/,
   };
   function unlockLabel(kind) {
     var words = (window.PV_T && window.PV_T(GG_WORDS, LANG)) || GG_WORDS[LANG] || GG_WORDS.ja;

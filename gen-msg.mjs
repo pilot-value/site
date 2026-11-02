@@ -107,6 +107,7 @@ export function dicts(src) {
     if (!mm) continue;
     const o = mm.index + mm[0].length - 1;
     const en = props(clean, m, o);
+    if (en.list.some((x) => x.key === 'ja' || x.key === 'en')) continue;   // { ja: {…}, en: {…} } は言語の辞書（上の形が扱う）
     let semi = en.end + 1; while (semi < m.length && /\s/.test(m[semi])) semi++;
     out.push({ form: 'map', name, start: o, end: en.end + 1, after: m[semi] === ';' ? semi + 1 : en.end + 1, list: en.list });
   }

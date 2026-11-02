@@ -175,7 +175,10 @@ function check(key, es) {
     const want = NUM(jsText(src)); const have = new Set(NUM(jsText(es)));
     const miss = [...new Set(want)].filter((n) => !have.has(n));
     if (miss.length) errs.push('数字が消えた: ' + miss.join(' '));
-    if (/[ぁ-んァ-ヶ一-龠]/.test(jsText(es))) errs.push('日本語の字が残った');
+    /* 日本語の鍵の対応表（{ '機長': 'Captain' }）は鍵が日本語で正しい ＝ 元に無い日本語が増えたときだけ落とす */
+    const jaOf = (x) => new Set(jsText(x).match(/[ぁ-んァ-ヶ一-龠ー・（）]+/g) || []);
+    const srcJa = jaOf(src);
+    if ([...jaOf(es)].some((w) => !srcJa.has(w))) errs.push('日本語の字が残った');
     for (const [b, when] of BAN) if (b.test(jsText(es)) && !b.test(jsText(src)) && (!when || when.test(jsText(src)))) errs.push('使わない語: ' + jsText(es).match(b)[0]);
     return errs;
   }
