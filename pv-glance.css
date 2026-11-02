@@ -1358,6 +1358,8 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
 .pvg-ps-d{display:flex;flex-direction:column;margin:0;white-space:nowrap;font-size:13px;font-weight:600;color:var(--pv-accent-ink)}
 .pvg-ps-d small{font-size:12px;font-weight:500;color:var(--pv-ink-3)}
 .pvg-ps-note{margin:12px 0 0;font-size:12.5px;line-height:1.7;color:var(--pv-ink-3)}
+/* 13年より多い表（FedEx・UPS の15段）は、狭い箱で偶数年の数字を間引く（選んだ年は出す）── 数字どうしがくっつくため */
+@container pvg (max-width:559.98px){.pvg-ps-many .pvg-ps-col:nth-child(even):not([aria-pressed="true"]) .pvg-ps-x{visibility:hidden}}
 @container pvg (max-width:419.98px){.pvg-ps-plot{padding-left:44px}.pvg-ps-grid > span{left:44px}.pvg-ps-g{font-size:22px}.pvg-ps-ax span{display:block}.pvg-ps-ax span::before{content:none}}
 @container pvg (min-width:860px){
   .pvg-ps-t{grid-template-columns:minmax(0,1fr) 340px;grid-template-areas:"plot tiles" "plot reads";grid-template-rows:auto 1fr;column-gap:28px;row-gap:12px;align-items:start}

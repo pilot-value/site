@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════
-   airline-countries.mjs — 航空会社115社 → 国 の対応表と、国別のメタ情報
+   airline-countries.mjs — 航空会社120社 → 国 の対応表と、国別のメタ情報
 
    なぜ別ファイルか: salary-data.mjs は「年収の唯一の正」であって、
    そこに国名・免許当局・査証といった別種の事実を混ぜると
@@ -32,6 +32,7 @@ export const AIRLINE_COUNTRY = {
   'united': 'US', 'delta': 'US', 'american': 'US', 'southwest': 'US',
   'alaska-airlines': 'US', 'allegiant': 'US', 'breeze-airways': 'US',
   'frontier': 'US', 'jetblue': 'US', 'spirit': 'US', 'solairus': 'US',
+  'fedex-express': 'US', 'ups-airlines': 'US', 'atlas-air': 'US', 'abx-air': 'US', 'kalitta-air': 'US',
   'air-canada': 'CA', 'porter': 'CA', 'westjet': 'CA',
   // 欧州
   'british-airways': 'GB', 'easyjet': 'GB', 'virgin-atlantic': 'GB', 'wizz-air': 'GB',

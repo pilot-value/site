@@ -22,7 +22,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/community.html</loc>
-    <lastmod>2026-11-01</lastmod>
+    <lastmod>2026-11-02</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/community.html"/>
@@ -58,7 +58,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/guide.html</loc>
-    <lastmod>2026-10-31</lastmod>
+    <lastmod>2026-11-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/guide.html"/>
@@ -121,7 +121,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/pilot-salary-guide.html</loc>
-    <lastmod>2026-11-01</lastmod>
+    <lastmod>2026-11-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.95</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/pilot-salary-guide.html"/>
@@ -193,7 +193,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/sitemap.html</loc>
-    <lastmod>2026-10-31</lastmod>
+    <lastmod>2026-11-02</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/sitemap.html"/>
@@ -217,6 +217,15 @@
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/world-airlines.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/world-airlines.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/world-airlines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/abx-air.html</loc>
+    <lastmod>2026-11-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/abx-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/abx-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/abx-air.html"/>
   </url>
   <url>
     <loc>https://pilot-value.com/airlines/aegean.html</loc>
@@ -426,6 +435,15 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/asiana.html"/>
   </url>
   <url>
+    <loc>https://pilot-value.com/airlines/atlas-air.html</loc>
+    <lastmod>2026-11-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/atlas-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/atlas-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/atlas-air.html"/>
+  </url>
+  <url>
     <loc>https://pilot-value.com/airlines/austrian.html</loc>
     <lastmod>2026-11-02</lastmod>
     <changefreq>weekly</changefreq>
@@ -631,6 +649,15 @@
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/fda.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/fda.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/fda.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/fedex-express.html</loc>
+    <lastmod>2026-11-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/fedex-express.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/fedex-express.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/fedex-express.html"/>
   </url>
   <url>
     <loc>https://pilot-value.com/airlines/fiji-airways.html</loc>
@@ -847,6 +874,15 @@
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/juneyao-airlines.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/juneyao-airlines.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/juneyao-airlines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/kalitta-air.html</loc>
+    <lastmod>2026-11-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/kalitta-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/kalitta-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/kalitta-air.html"/>
   </url>
   <url>
     <loc>https://pilot-value.com/airlines/kenya-airways.html</loc>
@@ -1270,6 +1306,15 @@
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/united.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/united.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/united.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/airlines/ups-airlines.html</loc>
+    <lastmod>2026-11-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/ups-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/ups-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/ups-airlines.html"/>
   </url>
   <url>
     <loc>https://pilot-value.com/airlines/vietjet.html</loc>
@@ -1822,7 +1867,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/en/community.html</loc>
-    <lastmod>2026-11-01</lastmod>
+    <lastmod>2026-11-02</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/community.html"/>
@@ -1858,7 +1903,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/en/guide.html</loc>
-    <lastmod>2026-10-31</lastmod>
+    <lastmod>2026-11-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/guide.html"/>
@@ -1921,7 +1966,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/en/pilot-salary-guide.html</loc>
-    <lastmod>2026-11-01</lastmod>
+    <lastmod>2026-11-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.95</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/pilot-salary-guide.html"/>
@@ -1993,7 +2038,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/en/sitemap.html</loc>
-    <lastmod>2026-10-31</lastmod>
+    <lastmod>2026-11-02</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/sitemap.html"/>
@@ -2017,6 +2062,15 @@
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/world-airlines.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/world-airlines.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/world-airlines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/abx-air.html</loc>
+    <lastmod>2026-11-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/abx-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/abx-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/abx-air.html"/>
   </url>
   <url>
     <loc>https://pilot-value.com/en/airlines/aegean.html</loc>
@@ -2226,6 +2280,15 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/asiana.html"/>
   </url>
   <url>
+    <loc>https://pilot-value.com/en/airlines/atlas-air.html</loc>
+    <lastmod>2026-11-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/atlas-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/atlas-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/atlas-air.html"/>
+  </url>
+  <url>
     <loc>https://pilot-value.com/en/airlines/austrian.html</loc>
     <lastmod>2026-11-02</lastmod>
     <changefreq>weekly</changefreq>
@@ -2431,6 +2494,15 @@
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/fda.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/fda.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/fda.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/fedex-express.html</loc>
+    <lastmod>2026-11-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/fedex-express.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/fedex-express.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/fedex-express.html"/>
   </url>
   <url>
     <loc>https://pilot-value.com/en/airlines/fiji-airways.html</loc>
@@ -2647,6 +2719,15 @@
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/juneyao-airlines.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/juneyao-airlines.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/juneyao-airlines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/kalitta-air.html</loc>
+    <lastmod>2026-11-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/kalitta-air.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/kalitta-air.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/kalitta-air.html"/>
   </url>
   <url>
     <loc>https://pilot-value.com/en/airlines/kenya-airways.html</loc>
@@ -3070,6 +3151,15 @@
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/united.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/united.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/united.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/en/airlines/ups-airlines.html</loc>
+    <lastmod>2026-11-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/ups-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/ups-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/ups-airlines.html"/>
   </url>
   <url>
     <loc>https://pilot-value.com/en/airlines/vietjet.html</loc>

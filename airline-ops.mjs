@@ -154,20 +154,13 @@ export const OPS = {
     src: '雇用主体 SkyWest Airlines, Inc.（SkyWest, Inc. の完全子会社・本社 ユタ州セントジョージ）・米国の調査パックの記録 OO-A-001（現行適用を確認） / 確認 2026-10-11',
   },
 
-  /* 貨物 */
-  'fedex-express': {
-    ja: 'FedEx Express', en: 'FedEx Express', region: 'us', kind: 'cargo',
-    alias: ['フェデックス', 'フェデックス・エクスプレス', 'フェデラル・エクスプレス', 'Federal Express Corporation'],
-    // 雇用主は Federal Express Corporation。持株会社 FedEx Corporation・FedEx Ground などとは別
-    src: '雇用主体 Federal Express Corporation（ブランド名 FedEx Express・ALPA との労働協約の当事者）・米国の調査パックの記録 FX-A-001（現行適用を確認） / 確認 2026-10-11',
-  },
-
-  'ups-airlines': {
-    ja: 'UPS Airlines', en: 'UPS Airlines', region: 'us', kind: 'cargo',
-    alias: ['UPS航空', 'ユーピーエス'],
-    // パイロットの雇用法人の名前は、調査の台帳でも公開資料で未確認の行が多い（表示名は公式の呼び名の確認待ち）
-    src: '親会社 United Parcel Service, Inc. の子会社一覧（Form 10-K・2025-12-31 期）に掲載・米国の調査パックの記録 5X-A-002（現行適用は未確認） / 確認 2026-10-11',
-  },
+  /* 貨物
+     ★2026-11-02 FedEx Express（fedex-express）と UPS Airlines（ups-airlines）は、同じコードのまま salary-data.mjs の SALARY へ上げた
+       （道A・B5 ── 米国20社の統合調査の給与表で推定年収を出した）。ここから消したのはそのため（両方に書くと gen-airline-codes.mjs が「コードの衝突」で止まる）。
+       名前（ja・en）は SALARY でもここに書いていたまま（FedEx Express／UPS Airlines）。
+       ⚠️ ここに在った別名（フェデックス・フェデラル・エクスプレス・Federal Express Corporation・UPS航空・ユーピーエス）は、
+          給与フォームの検索欄だけが読む道具だった（DB には出していない）。SALARY の会社は search.js の t:[...] がその役をする。
+       ⚠️ FedEx の雇用主は Federal Express Corporation。持株会社 FedEx Corporation・FedEx Ground とは別。 */
 
   /* ── 北米（ビジネスジェット）──────────────────────────────── */
 

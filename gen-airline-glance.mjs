@@ -504,7 +504,7 @@ function payScaleCard(v) {
 <div class="pvg-ps-tiles">${tile(t, 'fo')}${tile(t, 'ca')}</div>
 <div class="pvg-ps-plot">
 <div class="pvg-ps-grid" aria-hidden="true">${grid}</div>
-<div class="pvg-ps-cols" style="--n:${N}">${t.fo.map((f, i) => `<button type="button" class="pvg-ps-col" data-ps-y="${i + 1}" aria-pressed="${i + 1 === def}" aria-label="${W.psYear(i + 1)}"><span class="pvg-ps-bars"><span class="pvg-ps-b pvg-ps-fo" style="height:${pc(f)}"></span><span class="pvg-ps-b pvg-ps-ca" style="height:${t.ca[i] == null ? '0%' : pc(t.ca[i])}"></span></span><span class="pvg-ps-x">${i + 1}</span></button>`).join('')}</div>
+<div class="pvg-ps-cols${N > 12 ? ' pvg-ps-many' : ''}" style="--n:${N}">${t.fo.map((f, i) => `<button type="button" class="pvg-ps-col" data-ps-y="${i + 1}" aria-pressed="${i + 1 === def}" aria-label="${W.psYear(i + 1)}"><span class="pvg-ps-bars"><span class="pvg-ps-b pvg-ps-fo" style="height:${pc(f)}"></span><span class="pvg-ps-b pvg-ps-ca" style="height:${t.ca[i] == null ? '0%' : pc(t.ca[i])}"></span></span><span class="pvg-ps-x">${i + 1}</span></button>`).join('')}</div>
 <p class="pvg-ps-ax">${W.psAxis}<span>${W.psTap}</span></p>
 </div>
 <div class="pvg-ps-reads">${t.fo.map((f, i) => `<div class="pvg-ps-read" data-ps-y="${i + 1}"${i + 1 === def ? '' : ' hidden'}><p class="pvg-ps-yr">${W.psYear(i + 1)}</p>${pair(t, 'fo', i + 1)}${pair(t, 'ca', i + 1)}</div>`).join('')}</div>

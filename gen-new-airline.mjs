@@ -836,6 +836,661 @@ const CONTENT = {
     ],
     compareNoteEn: compareFootEn(),
   },
+
+  /* ★2026-11-02 米国の貨物5社。FedEx・UPS は投稿先だけの一覧（airline-ops.mjs）から道Aへ（B5・コードは変えない）。
+     Atlas・ABX・Kalitta は新しく道Aで足す。借り元はスピリット航空。本文は短く、確かめた事実だけ。 */
+  'fedex-express': {
+    code: 'FX',
+    donor: 'spirit',
+    donorColor: '#FFD700',
+    donorTokens: [
+      'spirit', 'Spirit', 'スピリット', 'FFD700', 'ffd700', '786508', 'ULCC',
+      'フォートローダーデール', 'Fort Lauderdale', 'Miramar', 'フロリダ', 'Florida',
+    ],
+    /* 採用サイト（careers.fedex.com）の app.css でいちばん多く使われている色（FedEx のパープル・65か所）。導出していない。
+       同じ CSS に FedEx Express のオレンジ #FF6200（31か所）も在る。 */
+    color: '#4D148C',
+    flag: '🇺🇸',
+    countryJa: '米国', countryEn: 'United States',
+    tags: { ja: ['メンフィス拠点', '貨物航空', 'ALPA の協約'], en: ['Memphis-based', 'Cargo airline', 'ALPA contract'] },
+    subtitleJa: 'フェデックス・エクスプレス — メンフィスを本拠とする米国の貨物航空会社。雇用主は Federal Express Corporation。',
+    subtitleEn: 'FedEx Express — a Memphis-based US cargo airline. The employer is Federal Express Corporation.',
+    statsJa: [['機材', 'B777F / B767F / MD-11 / A300 / B757'], ['拠点', 'メンフィス（MEM）・インディアナポリス（IND）ほか']],
+    statsEn: [['Fleet', 'B777F / B767F / MD-11 / A300 / B757'], ['Bases', 'Memphis (MEM), Indianapolis (IND) and others']],
+    /* 2026-11-02 に開いて、FedEx の採用サイトの操縦士のページであることを確かめた（題「Pilot Careers | FedEx Careers」・200）。 */
+    careers: [
+      { url: 'https://careers.fedex.com/career-areas/pilot/', ja: 'FedEx 操縦士の採用ページ（外部サイト）', en: 'FedEx pilot careers (external)' },
+    ],
+
+    rowSubJa: { cap: 'B777F / B767F / A300（大型機の時給表）', fo: 'B777F / B767F / A300（大型機の時給表）' },
+    rowSubEn: { cap: 'B777F / B767F / A300 (widebody pay table)', fo: 'B777F / B767F / A300 (widebody pay table)' },
+    payTag: { ja: 'USD建て・税引前', en: 'Paid in USD, pre-tax' },
+    stepTag: { ja: '年次制（労働協約）', en: 'Seniority scale (union contract)' },
+    tableNote: {
+      ja: '※ 推定年収は、労働協約の大型機の時給（機長12年目・副操縦士6年目）に年884時間（4週ごとの最低保証68時間 × 13）を掛けた額です。利益配分・日当・会社の年金は入れていません。幅の下の端は B757 の時給表の1年目、上の端は大型機の時給表の15年目で同じ計算をした額です。',
+      en: 'The estimate is the contract’s widebody hourly rate (year-12 captain, year-6 first officer) times 884 hours a year (the 68-hour minimum per four-week period, 13 times a year). Profit sharing, per diem and the company retirement plan are not included. The low end is year 1 on the B757 table and the high end is year 15 on the widebody table, worked out the same way.',
+    },
+    ldTail: {
+      ja: 'パイロットの労働協約の時給表から計算した推定年収と、応募条件。',
+      en: 'Estimated from the pilot contract’s pay table, plus the entry requirements.',
+    },
+
+    basisJa: '※ 出典：FedEx Express のパイロットの労働協約（ALPA と結んだもの・2026年6月29日発効）の時給表（2026年7月の bid period から）。'
+      + '機長は大型機（B777F / B767F / A300）の12年目 時給 $456.35 × 年884時間（4週ごとの最低保証68時間 × 13）＝ $403,413.40。'
+      + '副操縦士は同じ表の6年目 時給 $283.40 × 884時間 ＝ $250,525.60。'
+      + '利益配分・日当・国際線の加算は入れていない。会社の年金は、在職者が従来の確定給付と確定拠出から選ぶ制度で拠出率が分からないため入れていない。円は1ドル＝158.95円で換算。',
+    basisEn: 'Source: FedEx Express’s pilot contract with ALPA (effective 29 June 2026), pay table from the July 2026 bid period. '
+      + 'Captains: year-12 widebody (B777F / B767F / A300) rate of $456.35 an hour × 884 hours a year (the 68-hour minimum per four-week period × 13) = $403,413.40. '
+      + 'First officers: year-6 rate on the same table, $283.40 × 884 hours = $250,525.60. '
+      + 'Profit sharing, per diem and international premiums are not included. The company retirement plan (a choice between the legacy defined-benefit plan and defined contribution for current pilots) is left out because the contribution rate is not known. Converted at 158.95 yen to the dollar.',
+
+    overviewJa: 'FedEx Express は、米国テネシー州メンフィスを本拠とする貨物航空会社。雇用主は Federal Express Corporation（FedEx Corporation の主な事業会社）で、親会社の年次報告書（2026年5月期）は「1973年に速達の輸送を切り開いた」と書いている。'
+      + 'メンフィスの仕分け拠点が航空網の中心で、2つ目の全米ハブはインディアナポリス。操縦士は労働組合 ALPA が代表し、新しい労働協約は2026年6月に批准された。',
+    overviewEn: 'FedEx Express is a cargo airline based in Memphis, Tennessee. The employer is Federal Express Corporation, FedEx Corporation’s main operating company, which its parent’s annual report (year to May 2026) says pioneered express transportation in 1973. '
+      + 'The Memphis sorting facility is the center of the air network, with a second national hub in Indianapolis. Pilots are represented by ALPA, and a new contract was ratified in June 2026.',
+
+    factsJa: [
+      ['本社', 'メンフィス（テネシー州）'],
+      ['航空網の中心', 'メンフィス。2つ目の全米ハブはインディアナポリス'],
+      ['操縦士の基地', 'MEM・IND・OAK・ANC'],
+      ['事業開始', '1973年'],
+      ['労働組合', 'ALPA（新しい協約は2026年6月に批准）'],
+      ['所得税', '米国（課税）'],
+    ],
+    factsEn: [
+      ['Headquarters', 'Memphis, Tennessee'],
+      ['Network center', 'Memphis, with a second national hub in Indianapolis'],
+      ['Pilot bases', 'MEM, IND, OAK, ANC'],
+      ['Started', '1973'],
+      ['Union', 'ALPA (new contract ratified June 2026)'],
+      ['Income tax', 'United States (taxed)'],
+    ],
+
+    routesJa: 'メンフィスを中心にした航空網で、220を超える国・地域へ配送している（親会社の年次報告書）。',
+    routesEn: 'An air network centered on Memphis, delivering to more than 220 countries and territories (parent company’s annual report).',
+    fleetJa: '2026年5月31日時点で B777F 59機・B767F 152機・MD-11 29機・A300-600 57機・B757-200 86機（親会社の年次報告書）。MD-11 は2025年11月の耐空性改善命令で運航を止め、2026年5月から順に戻している。',
+    fleetEn: 'As of 31 May 2026: 59 B777F, 152 B767F, 29 MD-11, 57 A300-600 and 86 B757-200 (parent company’s annual report). The MD-11s were grounded by an FAA emergency directive in November 2025 and have been returning to service since May 2026.',
+
+    trainingJa: [
+      ['選考', '採用ページにプロフィールを登録 → 選ばれた人にメールで応募の案内 → 遠隔のコンピューター試験 → 1日の対面の面接（パネル面接と状況面接）。'],
+      ['入り方', '経験者の採用のほか、大学・軍・Purple Runway（FedEx の小型機のフィーダー網を飛ぶ会社から大型機へ進む育成制度）。'],
+    ],
+    trainingEn: [
+      ['Selection', 'Create a profile on the careers site → selected applicants get an email with a link to apply → remote computer-based testing → a one-day in-person panel and situational interview.'],
+      ['Pathways', 'Qualified pilots, college, military, and Purple Runway (a development program from FedEx’s feeder-network airlines to the widebody fleet).'],
+    ],
+
+    benefitsJa: [
+      ['📅', '年休', '勤続（その年の12月31日時点）1〜4年未満 15日・5〜9年未満 22日・10〜19年未満 29日・20年以上 36日。翌年に使う（2026年の協約）。'],
+      ['🍽️', '日当', '国内 1時間あたり $2.85・国際 $3.85（2026年の協約。24か月後に $3.00・$4.05）。'],
+      ['💼', '年金', '在職者は従来の確定給付と確定拠出の選択制。新しく入る人は従来の確定給付の対象外。'],
+      ['✈️', '私用の旅行', '本人と対象の家族が他社便に空席待ちで乗れる（ALPA の案内）。'],
+    ],
+    benefitsEn: [
+      ['📅', 'Vacation', 'Earned for the following year by years of service at 31 December: 15 days (1 to under 4 years), 22 (5 to under 9), 29 (10 to under 19), 36 (20 or more) — 2026 contract.'],
+      ['🍽️', 'Per diem', '$2.85 an hour domestic and $3.85 international (2026 contract; $3.00 and $4.05 after 24 months).'],
+      ['💼', 'Retirement', 'Current pilots choose between the legacy defined-benefit plan and defined contribution. New hires are not eligible for the legacy defined-benefit plan.'],
+      ['✈️', 'Personal travel', 'Pilots and eligible dependents can fly standby on other airlines (ALPA guidance).'],
+    ],
+
+    hiringStatusJa: '採用ページにプロフィールを登録し、選ばれた人に応募の案内が届く形（2026年11月2日に確認）。',
+    hiringStatusEn: 'Pilots register a profile on the careers site; selected applicants are emailed a link to apply (checked 2 November 2026).',
+    hiring: { color: null, tagClass: 'tag-gray', tagJa: '採用ページあり', tagEn: 'Careers page' },
+    job: {
+      titleJa: '操縦士',
+      subJa: '就労ビザの支援は無い。米国の市民権か永住権が要る。',
+      titleEn: 'Pilots',
+      subEn: 'No work-visa sponsorship: non-US citizens need a Permanent Resident Card.',
+    },
+    hiringRowsJa: [
+      ['免許など', 'ATP・第1種身体検査・無線の許可（Radiotelephone Operator Permit）・有効な米国のパスポート・SIDA の資格'],
+      ['飛行時間', '固定翼で総1,500時間。機長時間（ジェット・12,500ポンド以上の多発ターボプロップなど）500時間以上が必須・1,000時間が望ましい'],
+      ['学歴', '4年制大学の学位が望ましい'],
+      ['就労資格', '就労ビザの支援なし。米国人以外は永住権（グリーンカード）が要る'],
+    ],
+    hiringRowsEn: [
+      ['Licenses', 'ATP, first-class medical, radiotelephone operator permit, valid US passport, SIDA badge eligibility'],
+      ['Flight hours', '1,500 hours total fixed-wing; at least 500 hours PIC (jets, multi-engine turboprops of 12,500 lb or more, and similar), 1,000 hours PIC preferred'],
+      ['Education', 'Bachelor’s degree preferred'],
+      ['Work authorization', 'No visa sponsorship; non-US citizens need a Permanent Resident Card'],
+    ],
+    hiringNoteJa: '※ 条件は採用ページの記載（2026年11月2日に確認）。応募の前に、採用ページで最新の条件を確かめる。',
+    hiringNoteEn: 'Requirements as listed on the careers site (checked 2 November 2026). Check the current terms there before applying.',
+
+    faqEn: (h) => [
+      [`What is ${h.A.en} captain salary in 2026?`,
+       `We estimate ${h.A.en} captain pay at about ${h.mm(h.A.cap.avg)} a year: the year-12 widebody (B777F / B767F / A300) captain rate of $456.35 an hour in the pilot contract that took effect on 29 June 2026, times 884 hours a year (the 68-hour minimum per four-week bid period, 13 times a year). Profit sharing, per diem and the company retirement plan are not included.`],
+      [`What is ${h.A.en} first officer salary?`,
+       `We estimate ${h.A.en} first officer pay at about ${h.mm(h.A.fo.avg)} a year: the year-6 widebody first officer rate of $283.40 an hour times the same 884 hours.`],
+      [`What are the requirements to fly for ${h.A.en}?`,
+       `The careers page asks for an ATP certificate, a first-class medical, a radiotelephone operator permit, a valid US passport and SIDA badge eligibility, plus 1,500 hours total fixed-wing time with at least 500 hours PIC (1,000 hours preferred). FedEx does not sponsor work visas: non-US citizens need a Permanent Resident Card.`],
+    ],
+    compareNoteEn: compareFootEn(),
+  },
+
+  'ups-airlines': {
+    code: '5X',
+    donor: 'spirit',
+    donorColor: '#FFD700',
+    donorTokens: [
+      'spirit', 'Spirit', 'スピリット', 'FFD700', 'ffd700', '786508', 'ULCC',
+      'フォートローダーデール', 'Fort Lauderdale', 'Miramar', 'フロリダ', 'Florida',
+    ],
+    /* UPS の求人サイト（jobs-ups.com）のボタンの地の色（UPS のゴールド）。導出していない。
+       同じ所と CSS の --brand-color-secondary に UPS のブラウン #351C15 も在る（暗い画面ではほぼ見えない 1.2:1）。 */
+    color: '#FFB500',
+    flag: '🇺🇸',
+    countryJa: '米国', countryEn: 'United States',
+    tags: { ja: ['ルイビル拠点', '貨物航空', 'IPA の協約'], en: ['Louisville-based', 'Cargo airline', 'IPA contract'] },
+    subtitleJa: 'ユーピーエス・エアラインズ — ケンタッキー州ルイビルの Worldport を中心に飛ぶ、UPS の貨物航空会社。',
+    subtitleEn: 'UPS Airlines — UPS’s cargo airline, flying a network centered on Worldport in Louisville, Kentucky.',
+    statsJa: [['機材', 'B767 / B757 / B747 / A300'], ['拠点', 'ルイビル（SDF）ほか']],
+    statsEn: [['Fleet', 'B767 / B757 / B747 / A300'], ['Bases', 'Louisville (SDF) and others']],
+    /* 2026-11-02 に UPS の操縦士の採用ページを確かめられなかった（cargo-notes.md）。確かめていないリンクは貼らない。 */
+    careers: [],
+
+    rowSubJa: { cap: '全機種共通の時給表', fo: '全機種共通の時給表' },
+    rowSubEn: { cap: 'One pay table for all fleets', fo: 'One pay table for all fleets' },
+    payTag: { ja: 'USD建て・税引前', en: 'Paid in USD, pre-tax' },
+    stepTag: { ja: '年次制（労働協約）', en: 'Seniority scale (union contract)' },
+    tableNote: {
+      ja: '※ 推定年収は、労働協約の時給（2025年9月1日からの表・全機種共通。機長12年目・副操縦士6年目）に年975時間（28日ごとの75時間 × 13）を掛け、会社の確定拠出年金 12% を足した額です。確定給付の年金・利益配分・日当は入れていません。幅の下の端は1年目（機長は2年目。1年目の機長欄は全員共通の初年度の時給のため）、上の端は15年目で同じ計算をした額です。',
+      en: 'The estimate is the contract hourly rate (table from 1 September 2025, all fleets; year-12 captain, year-6 first officer) times 975 hours a year (75 hours per 28-day period × 13), plus the 12% company defined contribution. The defined-benefit pension, profit sharing and per diem are not included. The low end is year 1 (year 2 for captains, because the year-1 captain column is the common first-year rate) and the high end is year 15, worked out the same way.',
+    },
+    ldTail: {
+      ja: 'パイロットの労働協約の時給表から計算した推定年収。',
+      en: 'Estimated from the pilot contract’s pay table.',
+    },
+
+    basisJa: '※ 出典：UPS Airlines のパイロットの労働協約（IPA と結んだもの）の時給表（2025年9月1日からの表）と、組合の比較資料（28日ごとの時間・会社の確定拠出年金 12%）。'
+      + '機長は12年目 時給 $390.21 × 年975時間（28日ごとの75時間 × 13）＝ $380,454.75、確定拠出年金 12% を足して $426,109.32。'
+      + '副操縦士は6年目 時給 $242.32 × 975時間 ＝ $236,262.00、12% を足して $264,613.44。'
+      + '確定給付の年金・利益配分・日当は入れていない。協約は2025年9月1日に改定できるようになり、交渉中（親会社の年次報告書・2025年12月期）。円は1ドル＝158.95円で換算。',
+    basisEn: 'Source: UPS Airlines’ pilot contract with the IPA, pay table from 1 September 2025, plus the union’s comparison material (hours per 28-day period and the 12% company defined contribution). '
+      + 'Captains: year-12 rate of $390.21 an hour × 975 hours a year (75 hours per 28-day period × 13) = $380,454.75; with the 12% defined contribution, $426,109.32. '
+      + 'First officers: year-6 rate of $242.32 × 975 hours = $236,262.00; with 12%, $264,613.44. '
+      + 'The defined-benefit pension, profit sharing and per diem are not included. The contract became amendable on 1 September 2025 and was under negotiation (parent company’s annual report for 2025). Converted at 158.95 yen to the dollar.',
+
+    overviewJa: 'UPS Airlines は、米国の物流会社 UPS（United Parcel Service）の貨物航空会社。親会社の年次報告書（2025年12月期）によると、米国内はハブ・アンド・スポークで飛び、中心のハブはケンタッキー州ルイビルの Worldport。'
+      + '操縦士は約3,400人で、労働組合 IPA（Independent Pilots Association）が代表している。MD-11 は2025年10〜12月に運航を止めて退役させた。',
+    overviewEn: 'UPS Airlines is the cargo airline of UPS (United Parcel Service). According to the parent company’s annual report for 2025, its US flying runs on a hub-and-spoke pattern centered on Worldport in Louisville, Kentucky. '
+      + 'About 3,400 pilots are represented by the Independent Pilots Association (IPA). The MD-11 fleet was permanently grounded and retired in the fourth quarter of 2025.',
+
+    factsJa: [
+      ['親会社', 'United Parcel Service, Inc.'],
+      ['中心のハブ', 'Worldport（ケンタッキー州ルイビル・SDF）'],
+      ['操縦士の基地', 'SDF・ANC・ONT・MIA'],
+      ['操縦士', '約3,400人（IPA が代表）'],
+      ['所得税', '米国（課税）'],
+    ],
+    factsEn: [
+      ['Parent', 'United Parcel Service, Inc.'],
+      ['Main hub', 'Worldport, Louisville, Kentucky (SDF)'],
+      ['Pilot bases', 'SDF, ANC, ONT, MIA'],
+      ['Pilots', 'About 3,400 (represented by the IPA)'],
+      ['Income tax', 'United States (taxed)'],
+    ],
+
+    routesJa: '米国内はルイビルの Worldport を中心にしたハブ・アンド・スポーク。欧州の主なハブはドイツ、アジアは中国と香港に主なハブが複数ある（親会社の年次報告書）。',
+    routesEn: 'Hub-and-spoke in the US, centered on Worldport in Louisville. The main European hub is in Germany, and there are several major hubs in China and Hong Kong (parent company’s annual report).',
+    fleetJa: '2025年12月31日時点で B757-200 75機・B767-300 89機（ほかに改造貨物機10機・18機を発注）・A300-600 52機・B747-400F 13機（改造機を含む）・B747-8F 30機（親会社の年次報告書）。MD-11 は2025年10〜12月に運航を止め、退役させた。',
+    fleetEn: 'As of 31 December 2025: 75 B757-200, 89 B767-300 (plus 10 converted freighters, with 18 on order), 52 A300-600, 13 B747-400 freighters (including conversions) and 30 B747-8F (parent company’s annual report). The MD-11s were grounded and retired in the fourth quarter of 2025.',
+
+    trainingJa: [
+      ['協約', '2025年9月1日に改定できるようになり、交渉中（親会社の年次報告書・2025年12月期）。'],
+    ],
+    trainingEn: [
+      ['Contract', 'Amendable since 1 September 2025 and under negotiation (parent company’s annual report for 2025).'],
+    ],
+
+    benefitsJa: [
+      ['💼', '年金', '会社の確定拠出 12% と確定給付の両方（組合の比較資料）。'],
+      ['🍽️', '日当', '国内 1時間あたり $3.35・国際 $4.10（2025年1月1日の参考値。2026年の額は確かめていない）。'],
+      ['🌏', '国際線の加算', '機長 1時間あたり $6.50・副操縦士 $4.50（組合の比較資料）。'],
+      ['📅', '年休', '比較資料の参考値で、勤続2年 14日・5年 21日・12年 28日・20年 35日。'],
+    ],
+    benefitsEn: [
+      ['💼', 'Retirement', 'Both a 12% company defined contribution and a defined-benefit pension (union comparison material).'],
+      ['🍽️', 'Per diem', '$3.35 an hour domestic and $4.10 international (reference rates from 1 January 2025; 2026 rates not confirmed).'],
+      ['🌏', 'International premium', '$6.50 an hour for captains and $4.50 for first officers (union comparison material).'],
+      ['📅', 'Vacation', 'Reference figures from comparison material: 14 days at 2 years of service, 21 at 5, 28 at 12, 35 at 20.'],
+    ],
+
+    hiringStatusJa: 'UPS の求人サイト（jobs-ups.com）で「pilot」を検索しても、操縦士の求人は出てこなかった（2026年11月2日に確認）。',
+    hiringStatusEn: 'A search for “pilot” on UPS’s jobs site (jobs-ups.com) returned no pilot postings (checked 2 November 2026).',
+    hiring: { color: null, tagClass: 'tag-gray', tagJa: '求人の掲載なし', tagEn: 'No posting found' },
+    job: {
+      titleJa: '操縦士',
+      subJa: '公式の募集要項は確かめられていない。',
+      titleEn: 'Pilots',
+      subEn: 'No official requirements page could be confirmed.',
+    },
+    hiringRowsJa: [
+      ['労働組合', 'IPA（Independent Pilots Association）'],
+      ['協約', '2025年9月1日に改定可能・交渉中（親会社の年次報告書・2025年12月期）'],
+    ],
+    hiringRowsEn: [
+      ['Union', 'Independent Pilots Association (IPA)'],
+      ['Contract', 'Amendable since 1 September 2025, under negotiation (parent company’s annual report for 2025)'],
+    ],
+    hiringNoteJa: '※ 応募の前に、UPS の求人サイトで最新の募集を確かめる。',
+    hiringNoteEn: 'Check UPS’s jobs site for current openings before applying.',
+
+    faqEn: (h) => [
+      [`What is ${h.A.en} captain salary in 2026?`,
+       `We estimate ${h.A.en} captain pay at about ${h.mm(h.A.cap.avg)} a year: the year-12 captain rate of $390.21 an hour (one table for all fleets, from 1 September 2025) times 975 hours a year (75 hours per 28-day period, 13 times a year), plus the 12% company defined contribution. The defined-benefit pension, profit sharing and per diem are not included.`],
+      [`What is ${h.A.en} first officer salary?`,
+       `We estimate ${h.A.en} first officer pay at about ${h.mm(h.A.fo.avg)} a year: the year-6 rate of $242.32 an hour times the same 975 hours, plus the 12% defined contribution.`],
+      [`Is ${h.A.en} hiring pilots?`,
+       `We could not find a pilot posting on UPS’s jobs site (checked 2 November 2026). UPS pilots are represented by the Independent Pilots Association (IPA); their contract became amendable on 1 September 2025 and was under negotiation according to the parent company’s 2025 annual report.`],
+    ],
+    compareNoteEn: compareFootEn(),
+  },
+
+  'atlas-air': {
+    code: '5Y',
+    donor: 'spirit',
+    donorColor: '#FFD700',
+    donorTokens: [
+      'spirit', 'Spirit', 'スピリット', 'FFD700', 'ffd700', '786508', 'ULCC',
+      'フォートローダーデール', 'Fort Lauderdale', 'Miramar', 'フロリダ', 'Florida',
+    ],
+    /* 会社のサイト（atlasairworldwide.com）のテーマの style.css で h1 と .btn-primary の色（いちばん多く使われている色・78か所）。導出していない。
+       ロゴの金 #FFB608（logo_atlas-air_main_v2.svg）とヘッダーの紺 #101E40 も在る。 */
+    color: '#25B0ED',
+    flag: '🇺🇸',
+    countryJa: '米国', countryEn: 'United States',
+    tags: { ja: ['B747 貨物', 'ACMI・チャーター', 'Teamsters の協約'], en: ['747 freighters', 'ACMI and charter', 'Teamsters contract'] },
+    subtitleJa: 'Atlas Air — B747・B777 の貨物機と旅客チャーターを運航する米国の航空会社。',
+    subtitleEn: 'Atlas Air — a US airline flying 747 and 777 freighters as well as passenger charters.',
+    statsJa: [['機材', 'B747 / B777 / B767'], ['基地', 'ANC / JFK / ORD / LAX / MIA / SEA']],
+    statsEn: [['Fleet', 'B747 / B777 / B767'], ['Bases', 'ANC / JFK / ORD / LAX / MIA / SEA']],
+    /* 2026-11-02 に2本とも開いて確かめた。1本目は会社の採用ページ（題「Careers - Atlas Air Worldwide」・Pilots の節あり）。
+       2本目は副操縦士の登録窓口（Greenhouse の API で題「First Officer Talent Community」・2026-05-28 更新を確認）。 */
+    careers: [
+      { url: 'https://www.atlasairworldwide.com/careers/', ja: 'アトラス航空 採用ページ（外部サイト）', en: 'Atlas Air careers (external)' },
+      { url: 'https://www.atlasairworldwide.com/careers/job-board/?gh_jid=4194418009', ja: '副操縦士の登録窓口（外部サイト）', en: 'First officer talent community (external)' },
+    ],
+
+    rowSubJa: { cap: 'B747（2021年の協約・2025年9月の列）', fo: 'B747（2021年の協約・2025年9月の列）' },
+    rowSubEn: { cap: 'B747 (2021 contract, September 2025 column)', fo: 'B747 (2021 contract, September 2025 column)' },
+    payTag: { ja: 'USD建て・税引前', en: 'Paid in USD, pre-tax' },
+    stepTag: { ja: '年次制（労働協約）', en: 'Seniority scale (union contract)' },
+    tableNote: {
+      ja: '※ 推定年収は、労働協約の B747 の時給（2025年9月1日の列。機長12年目・副操縦士6年目）に年768時間（月の最低保証64時間 × 12）を掛け、会社の確定拠出年金 16% を足した額です。利益配分と日当は入れていません。幅の下の端は1年目（機長は B767 の表）、上の端は B747 の表の12年目で同じ計算をした額です。',
+      en: 'The estimate is the contract’s B747 hourly rate (1 September 2025 column; year-12 captain, year-6 first officer) times 768 hours a year (the 64-hour monthly minimum × 12), plus the 16% company defined contribution. Profit sharing and per diem are not included. The low end is year 1 (on the B767 table for captains) and the high end is year 12 on the B747 table, worked out the same way.',
+    },
+    ldTail: {
+      ja: 'パイロットの労働協約の時給表から計算した推定年収と、応募条件。',
+      en: 'Estimated from the pilot contract’s pay table, plus the entry requirements.',
+    },
+
+    basisJa: '※ 出典：Atlas Air のパイロットの労働協約（Teamsters Local 2750 と結んだ2021年の協約）の時給表の2025年9月1日の列。'
+      + '月64時間の最低保証は協約と副操縦士の募集要項（2026年5月更新）に、確定拠出年金 16% は参考表（2026年）に書かれている。'
+      + '機長は B747 の12年目 時給 $332.68 × 年768時間（64時間 × 12）＝ $255,498.24、16% を足して $296,377.96。'
+      + '副操縦士は B747 の6年目 時給 $195.07 × 768時間 ＝ $149,813.76、16% を足して $173,783.96。'
+      + '利益配分（制度はある）と日当は入れていない。協約は2026年9月10日から改定できる。円は1ドル＝158.95円で換算。',
+    basisEn: 'Source: Atlas Air’s 2021 pilot contract with Teamsters Local 2750, 1 September 2025 column of the pay table. '
+      + 'The 64-hour monthly minimum is in the contract and the first officer posting (updated May 2026); the 16% defined contribution is from a reference table (2026). '
+      + 'Captains: year-12 B747 rate of $332.68 an hour × 768 hours a year (64 × 12) = $255,498.24; with 16%, $296,377.96. '
+      + 'First officers: year-6 B747 rate of $195.07 × 768 hours = $149,813.76; with 16%, $173,783.96. '
+      + 'Profit sharing (the plan exists) and per diem are not included. The contract became amendable on 10 September 2026. Converted at 158.95 yen to the dollar.',
+
+    overviewJa: 'Atlas Air は、貨物機と旅客チャーターを運航する米国の航空会社（親会社は Atlas Air Worldwide）。会社のサイトによると、B747 の貨物機を世界でいちばん多く持ち、B747・B777・B767 を飛ばす。'
+      + '顧客に機体と乗員を貸す ACMI・CMI とチャーターが中心で、米軍の輸送や人道支援の便も飛ぶ。2026年3月に Airbus A350F を20機発注した。本社はニューヨーク州ホワイトプレーンズ、運航の拠点（Global Operations Center）はケンタッキー州アーランガー。',
+    overviewEn: 'Atlas Air is a US airline flying freighters and passenger charters (parent: Atlas Air Worldwide). According to the company’s site, it operates the world’s largest fleet of 747 freighters, alongside 777s and 767s. '
+      + 'Its work is mainly ACMI, CMI and charter, including military charters and humanitarian missions. In March 2026 it ordered 20 Airbus A350Fs. Headquarters are in White Plains, New York, and the Global Operations Center is in Erlanger, Kentucky.',
+
+    factsJa: [
+      ['本社', 'ホワイトプレーンズ（ニューヨーク州）'],
+      ['運航の拠点', 'Global Operations Center（ケンタッキー州アーランガー）'],
+      ['操縦士の基地', 'ANC・JFK・ORD・LAX・MIA・SEA'],
+      ['機材', 'B747 / B777 / B767（A350F を20機発注）'],
+      ['労働組合', 'Teamsters Local 2750（2021年の協約）'],
+      ['所得税', '米国（課税）'],
+    ],
+    factsEn: [
+      ['Headquarters', 'White Plains, New York'],
+      ['Operations', 'Global Operations Center, Erlanger, Kentucky'],
+      ['Pilot bases', 'ANC, JFK, ORD, LAX, MIA, SEA'],
+      ['Fleet', 'B747 / B777 / B767 (20 A350F on order)'],
+      ['Union', 'Teamsters Local 2750 (2021 contract)'],
+      ['Income tax', 'United States (taxed)'],
+    ],
+
+    routesJa: '決まった路線網ではなく、顧客との契約（ACMI・CMI）とチャーターで世界中を飛ぶ。副操縦士の募集要項では、70を超える国で運航していると紹介している。',
+    routesEn: 'No fixed route network: it flies worldwide under customer contracts (ACMI and CMI) and charters. The first officer posting describes operations in more than 70 countries.',
+    fleetJa: 'B747・B777・B767（会社のサイトでは、B747 の貨物機の数は世界一）。2026年3月に Airbus A350F を20機発注した。',
+    fleetEn: 'B747, B777 and B767 (the company’s site says it has the world’s largest 747 freighter fleet). It ordered 20 Airbus A350Fs in March 2026.',
+
+    trainingJa: [
+      ['選考で見るもの', '飛行時間は、機材の複雑さ・運航の種類・直近の飛行・記録の確かさもあわせて見る（副操縦士の募集要項）。'],
+    ],
+    trainingEn: [
+      ['What selection looks at', 'Flight hours are weighed with the complexity of the aircraft, the type of operation, recency, and how verifiable the logs are (first officer posting).'],
+    ],
+
+    benefitsJa: [
+      ['✈️', '通勤', '米国内で基地から130マイルより遠くに住む人に、通勤の確定席の航空券。米国外に住む人には片道 $1,250 までの gateway travel。'],
+      ['💵', '最低保証', '入社の日から月64時間。休みの日に飛ぶと割増。'],
+      ['🏨', 'ホテル', '基地での滞在・乗務の前後・予備勤務中のホテルは会社負担。'],
+      ['💼', '年金・利益配分', '会社の確定拠出（参考表では2026年 16%）と利益配分の制度。'],
+      ['📅', '年休', '勤続6年未満 14日・6〜11年 21日・12年以上 28日（協約）。'],
+      ['🧳', '家族の旅行', '入社6か月後から、近い家族が MyID Travel で他社便を使える。'],
+    ],
+    benefitsEn: [
+      ['✈️', 'Commuting', 'Positive-space tickets for pilots living more than 130 miles from base within the US; gateway travel of up to $1,250 each way for crew living outside the US.'],
+      ['💵', 'Minimum pay', 'A 64-hour monthly guarantee from the date of hire, and premium pay for flying on days off.'],
+      ['🏨', 'Hotels', 'Company-paid hotels in base, before and after trips, and on reserve.'],
+      ['💼', 'Retirement and profit sharing', 'A company direct contribution (16% in 2026 per a reference table) and a profit sharing plan.'],
+      ['📅', 'Vacation', '14 days under 6 years of service, 21 days for 6 to 11 years, 28 days from 12 years (contract).'],
+      ['🧳', 'Family travel', 'Travel benefits via MyID Travel for immediate family after 6 months of employment.'],
+    ],
+
+    hiringStatusJa: '副操縦士は「いまは採用していない・再開の時期は未定」で、登録窓口だけが開いている（2026年5月28日更新・2026年11月2日に確認）。',
+    hiringStatusEn: 'First officers: “not currently hiring” with no restart date; only the talent community is open (updated 28 May 2026, checked 2 November 2026).',
+    hiring: { color: null, tagClass: 'tag-gray', tagJa: '登録受付のみ', tagEn: 'Talent community only' },
+    job: {
+      titleJa: '副操縦士（登録窓口）',
+      subJa: '採用を再開する時期は未定。登録しておくと再開のときに連絡が来る。',
+      titleEn: 'First officer (talent community)',
+      subEn: 'Not hiring now, with no restart date. Register to be contacted when hiring resumes.',
+    },
+    hiringRowsJa: [
+      ['免許など', '米国 FAA の ATP（多発・英語能力の記載）・第1種身体検査・FCC の無線の許可'],
+      ['飛行時間', '総1,500時間。うち固定翼1,000時間、または121部・135部の運航会社で500時間（回転翼の軍の課程を出た人は固定翼の機長250時間）'],
+      ['年齢', '23歳以上・65歳まで'],
+      ['就労資格・旅券', '米国で働ける資格（市民権・永住権・EAD など）と、有効期間24か月以上のパスポート'],
+      ['望ましい', '総2,500時間・タービン500時間・直近12か月で200時間を超える飛行'],
+    ],
+    hiringRowsEn: [
+      ['Licenses', 'FAA ATP (multi-engine, English proficiency endorsement), FAA Class 1 medical, FCC restricted radiotelephone operator permit'],
+      ['Flight hours', '1,500 hours total, with 1,000 hours fixed-wing or 500 hours with a Part 121 or 135 operator (rotary-wing military graduates: 250 hours fixed-wing PIC)'],
+      ['Age', '23 to 65'],
+      ['Work authorization and passport', 'Legally authorized to work in the US (citizen, green card, EAD or other), passport valid for at least 24 months'],
+      ['Preferred', '2,500 hours total, 500 hours turbine, more than 200 hours in the last 12 months'],
+    ],
+    hiringNoteJa: '※ 条件は副操縦士の募集要項（2026年5月28日更新）の記載（2026年11月2日に確認）。応募の前に、採用ページで最新の条件を確かめる。',
+    hiringNoteEn: 'Requirements as listed in the first officer posting (updated 28 May 2026, checked 2 November 2026). Check the current terms on the careers site before applying.',
+
+    faqEn: (h) => [
+      [`What is ${h.A.en} captain salary in 2026?`,
+       `We estimate ${h.A.en} captain pay at about ${h.mm(h.A.cap.avg)} a year: the year-12 B747 captain rate of $332.68 an hour (1 September 2025 column of the 2021 contract) times 768 hours a year (the 64-hour monthly minimum × 12), plus the 16% company defined contribution. Profit sharing and per diem are not included.`],
+      [`What is ${h.A.en} first officer salary?`,
+       `We estimate ${h.A.en} first officer pay at about ${h.mm(h.A.fo.avg)} a year: the year-6 B747 rate of $195.07 an hour times the same 768 hours, plus 16%.`],
+      [`Is ${h.A.en} hiring pilots?`,
+       `The first officer posting (updated 28 May 2026) says Atlas is not currently hiring and has no timeline for resuming; pilots can join the talent community to be contacted. The posting asks for an FAA ATP, a Class 1 medical and 1,500 hours total time, and offers positive-space commuting and a 64-hour monthly guarantee from the date of hire.`],
+    ],
+    compareNoteEn: compareFootEn(),
+  },
+
+  'abx-air': {
+    code: 'GB',
+    donor: 'spirit',
+    donorColor: '#FFD700',
+    donorTokens: [
+      'spirit', 'Spirit', 'スピリット', 'FFD700', 'ffd700', '786508', 'ULCC',
+      'フォートローダーデール', 'Fort Lauderdale', 'Miramar', 'フロリダ', 'Florida',
+    ],
+    /* 会社のサイト（abxair.com）のロゴ（ABXAir-Header-Logo.png）の赤。画像の色表から読んだ値で、導出していない。
+       サイトの CSS の赤 #CB0024 は ATSG のグループ共通の stylesheets/shared/ に在るので、ABX のものとは言い切れない。 */
+    color: '#D13239',
+    flag: '🇺🇸',
+    countryJa: '米国', countryEn: 'United States',
+    tags: { ja: ['B767 貨物', 'ACMI・CMI'], en: ['767 freighters', 'ACMI and CMI'] },
+    subtitleJa: 'ABX Air — B767 の貨物機で ACMI・CMI を飛ばす米国の貨物航空会社。本社はオハイオ州ウィルミントン。',
+    subtitleEn: 'ABX Air — a US cargo airline flying Boeing 767 freighters on ACMI and CMI contracts, headquartered in Wilmington, Ohio.',
+    statsJa: [['機材', 'B767-300F / B767-200F'], ['基地', 'シンシナティ（CVG）']],
+    statsEn: [['Fleet', 'B767-300F / B767-200F'], ['Base', 'Cincinnati (CVG)']],
+    /* 2026-11-02 に2本とも開いて、ABX Air の会社のサイトであることを確かめた（題「ABX Air Pilots | ABX Air Services」「ACC Pathway Program | ABX Air Services」）。 */
+    careers: [
+      { url: 'https://www.abxair.com/careers/abx-air-pilots', ja: 'ABX Air 操縦士の採用ページ（外部サイト）', en: 'ABX Air pilot careers (external)' },
+      { url: 'https://www.abxair.com/careers/acc-pathway-program', ja: 'Air Cargo Carriers からの採用の道（外部サイト）', en: 'ACC pathway program (external)' },
+    ],
+
+    rowSubJa: { cap: 'B767（協約の「B767/A330」の時給区分）', fo: 'B767（協約の「B767/A330」の時給区分）' },
+    rowSubEn: { cap: 'B767 (the contract’s “B767/A330” pay class)', fo: 'B767 (the contract’s “B767/A330” pay class)' },
+    payTag: { ja: 'USD建て・税引前', en: 'Paid in USD, pre-tax' },
+    stepTag: { ja: '年次制（労働協約）', en: 'Seniority scale (union contract)' },
+    tableNote: {
+      ja: '※ 推定年収は、労働協約の時給（2026年1月1日の表。機長12年目・副操縦士6年目）に年777.92時間（2週ごとの最低保証29.92時間 × 26）を掛け、会社の確定拠出年金 14% を足した額です。日当と割増は入れていません。幅の下の端は1年目（機長は2年目。表の機長1年目 $164.58 は2年目 $210.30 より大きく低いため）、上の端は12年目で同じ計算をした額です。',
+      en: 'The estimate is the contract hourly rate (1 January 2026 table; year-12 captain, year-6 first officer) times 777.92 hours a year (the 29.92-hour minimum per two-week pay period × 26), plus the 14% company defined contribution. Per diem and premiums are not included. The low end is year 1 (year 2 for captains, because the table’s year-1 captain rate of $164.58 is far below year 2’s $210.30) and the high end is year 12, worked out the same way.',
+    },
+    ldTail: {
+      ja: 'パイロットの労働協約の時給表から計算した推定年収と、応募条件。',
+      en: 'Estimated from the pilot contract’s pay table, plus the entry requirements.',
+    },
+
+    basisJa: '※ 出典：ABX Air のパイロットの労働組合（APA Teamsters Local 1224）の採用資料にある2026〜2030年の時給表（2026年1月1日の表）と、2週ごとの最低保証・会社の確定拠出年金（2026年 14%・2027〜30年 15%）。'
+      + '機長は12年目 時給 $314.14 × 年777.92時間（29.92時間 × 26）＝ $244,375.79、14% を足して $278,588.40。'
+      + '副操縦士は6年目 時給 $183.08 × 777.92時間 ＝ $142,421.59、14% を足して $162,360.62。'
+      + '日当（1日 $71〜$93）と割増は入れていない。2027年から毎年1月に3%ずつ上がる表が決まっている。円は1ドル＝158.95円で換算。',
+    basisEn: 'Source: the 2026–2030 pay tables in the ABX pilots’ union (APA Teamsters Local 1224) hiring material (1 January 2026 table), with the two-week minimum and the company defined contribution (14% in 2026, 15% in 2027–30). '
+      + 'Captains: year-12 rate of $314.14 an hour × 777.92 hours a year (29.92 × 26) = $244,375.79; with 14%, $278,588.40. '
+      + 'First officers: year-6 rate of $183.08 × 777.92 hours = $142,421.59; with 14%, $162,360.62. '
+      + 'Per diem ($71 to $93 a day) and premiums are not included. The tables rise 3% every January from 2027. Converted at 158.95 yen to the dollar.',
+
+    overviewJa: 'ABX Air は、オハイオ州ウィルミントンに本社を置く米国の貨物航空会社。会社のサイトによると、1980年4月に Airborne Express の名前で始まり、2003年8月に今の名前になった。2007年から ATSG が親会社。'
+      + 'B767 の貨物機で、電子商取引・速達の会社や米国政府向けに ACMI と CMI を飛ばしている。操縦士の基地はシンシナティ（CVG）。',
+    overviewEn: 'ABX Air is a US cargo airline headquartered in Wilmington, Ohio. According to its site, it was founded in April 1980 under the Airborne Express name and took its current name in August 2003; ATSG has been its parent since 2007. '
+      + 'It flies Boeing 767 freighters on ACMI and CMI contracts for e-commerce and express customers and the US government. Pilots are based in Cincinnati (CVG).',
+
+    factsJa: [
+      ['本社', 'ウィルミントン（オハイオ州）'],
+      ['設立', '1980年4月（Airborne Express として）'],
+      ['親会社', 'ATSG（2007年から）'],
+      ['機材', 'B767-300F 26機・B767-200F 7機'],
+      ['操縦士の基地', 'シンシナティ（CVG）'],
+      ['所得税', '米国（課税）'],
+    ],
+    factsEn: [
+      ['Headquarters', 'Wilmington, Ohio'],
+      ['Founded', 'April 1980 (as Airborne Express)'],
+      ['Parent', 'ATSG (since 2007)'],
+      ['Fleet', '26 B767-300F, 7 B767-200F'],
+      ['Pilot base', 'Cincinnati (CVG)'],
+      ['Income tax', 'United States (taxed)'],
+    ],
+
+    routesJa: '決まった路線網ではなく、顧客との契約（ACMI・CMI）で飛ぶ。会社の沿革には、2015年に Amazon と ACMI の契約を始め、DHL との運航契約を2028年4月まで延ばしたとある。',
+    routesEn: 'No fixed route network: it flies under customer contracts (ACMI and CMI). The company history notes ACMI agreements with Amazon from 2015 and DHL operating agreements extended to April 2028.',
+    fleetJa: 'B767-300F 26機・B767-200F 7機（会社のサイト）。時給表の区分の名前に A330 が入っているが、A330 を運航しているかは確かめていない。',
+    fleetEn: '26 B767-300F and 7 B767-200F (company site). The pay class is named “B767/A330”, but we have not confirmed any A330 flying.',
+
+    trainingJa: [
+      ['訓練', 'オハイオ州ウィルミントンの Airborne Training Services で約8週間：地上学科3週間 → 固定のシミュレーター → B767 のフルモーション・シミュレーター（レベルC）→ 審査のあと約3週間の路線訓練。終えると B767 の型式と ETOPS の資格を持つ副操縦士になる。'],
+      ['訓練中の待遇', '65時間の保証・日当・個室のホテル（約60日。組合の採用資料）。'],
+    ],
+    trainingEn: [
+      ['Training', 'About eight weeks at Airborne Training Services in Wilmington, Ohio: three weeks of ground school, fixed-base simulator, then full-motion training in a Level C B767 simulator, a proficiency check and about three weeks of initial operating experience. Pilots finish as type-rated B767 first officers with ETOPS.'],
+      ['Pay in training', 'A 65-hour guarantee, per diem and a single hotel room (about 60 days; union hiring material).'],
+    ],
+
+    benefitsJa: [
+      ['💼', '年金', '会社の確定拠出 2026年 14%・2027〜30年 15%（本人の拠出は要らない）。'],
+      ['🍽️', '日当', '1日 国内 $71・国際 $93（2026年1月1日）。'],
+      ['📅', '年休', '1年未満は月1日・1〜4年 14日・5〜14年 21日・15年以上 28日。'],
+      ['🩺', '医療保険', 'United Healthcare（保険料の75%を会社負担）・歯科・眼科・就業不能保険・生命保険。'],
+      ['🗓️', '公休', '月の最低公休は、通常のラインで14日・予備勤務で13日。'],
+      ['✈️', '通勤', 'CASS と Known Crewmember に参加。国内の通勤は、出頭前に着く予定の便を1便試みれば守られる（組合の採用資料）。'],
+    ],
+    benefitsEn: [
+      ['💼', 'Retirement', 'Company defined contribution of 14% in 2026 and 15% in 2027–30, with no pilot match required.'],
+      ['🍽️', 'Per diem', '$71 a day domestic and $93 international (1 January 2026).'],
+      ['📅', 'Vacation', '1 day a month in the first year, 14 days for 1–4 years, 21 days for 5–14 years, 28 days from 15 years.'],
+      ['🩺', 'Health', 'United Healthcare with 75% of the premium paid by the company, plus dental, vision, disability and life insurance.'],
+      ['🗓️', 'Days off', 'At least 14 days off a month on a regular line and 13 on reserve.'],
+      ['✈️', 'Commuting', 'CASS and Known Crewmember. Domestic commuters are protected if they try one listed flight due to arrive before report time (union hiring material).'],
+    ],
+
+    hiringStatusJa: '会社の採用ページに操縦士の募集要項が載っている（2026年11月2日に確認）。',
+    hiringStatusEn: 'The company careers page lists pilot requirements (checked 2 November 2026).',
+    hiring: { color: null, tagClass: 'tag-gray', tagJa: '採用ページあり', tagEn: 'Careers page' },
+    job: {
+      titleJa: '副操縦士（B767）',
+      subJa: '訓練を終えると B767 の型式と ETOPS の資格を持つ副操縦士になる。',
+      titleEn: 'First officer (B767)',
+      subEn: 'Training ends with a B767 type rating and ETOPS qualification.',
+    },
+    hiringRowsJa: [
+      ['免許など', '米国 FAA の ATP（多発・英語能力の記載）・第1種身体検査'],
+      ['飛行時間', '固定翼で総1,500時間'],
+      ['パスポート', '有効期間が2年以上残り、海外渡航の制限がないもの'],
+      ['学歴', '大学の学位が望ましい'],
+      ['別の道', 'Air Cargo Carriers で機長を2年務めると、ABX の面接なしで B767 の副操縦士になれる（ABX が採用中で、推薦があるとき。各クラスの最大25%）'],
+    ],
+    hiringRowsEn: [
+      ['Licenses', 'FAA ATP (multi-engine, English proficiency endorsement), first-class medical'],
+      ['Flight hours', '1,500 hours total fixed-wing'],
+      ['Passport', 'At least two years’ validity and no restrictions on international travel'],
+      ['Education', 'College degree preferred'],
+      ['Pathway', 'Two years as a captain at Air Cargo Carriers leads to a B767 first officer job without the ABX interview (when ABX is hiring and with a recommendation; up to 25% of each class)'],
+    ],
+    hiringNoteJa: '※ 条件は採用ページの記載（2026年11月2日に確認）。応募の前に、採用ページで最新の条件を確かめる。',
+    hiringNoteEn: 'Requirements as listed on the careers page (checked 2 November 2026). Check the current terms there before applying.',
+
+    faqEn: (h) => [
+      [`What is ${h.A.en} captain salary in 2026?`,
+       `We estimate ${h.A.en} captain pay at about ${h.mm(h.A.cap.avg)} a year: the year-12 captain rate of $314.14 an hour (1 January 2026 table) times 777.92 hours a year (the 29.92-hour minimum per two-week pay period × 26), plus the 14% company defined contribution. Per diem and premiums are not included.`],
+      [`What is ${h.A.en} first officer salary?`,
+       `We estimate ${h.A.en} first officer pay at about ${h.mm(h.A.fo.avg)} a year: the year-6 rate of $183.08 an hour times the same 777.92 hours, plus 14%.`],
+      [`What are the requirements to fly for ${h.A.en}?`,
+       `The careers page asks for an unrestricted FAA ATP with a multi-engine rating and English proficiency endorsement, 1,500 hours total fixed-wing time, a first-class medical and a passport with two years’ validity; a college degree is preferred. New first officers train for about eight weeks in Wilmington, Ohio, and finish type-rated on the B767 with ETOPS.`],
+    ],
+    compareNoteEn: compareFootEn(),
+  },
+
+  'kalitta-air': {
+    code: 'K4',
+    donor: 'spirit',
+    donorColor: '#FFD700',
+    donorTokens: [
+      'spirit', 'Spirit', 'スピリット', 'FFD700', 'ffd700', '786508', 'ULCC',
+      'フォートローダーデール', 'Fort Lauderdale', 'Miramar', 'フロリダ', 'Florida',
+    ],
+    /* 会社のサイト（kalittaair.com）の CSS（kalittaair.shared.*.min.css）の --accent--primary-1。導出していない。 */
+    color: '#B53835',
+    flag: '🇺🇸',
+    countryJa: '米国', countryEn: 'United States',
+    tags: { ja: ['B747・B777 貨物', '通勤の航空券は会社負担'], en: ['747 and 777 freighters', 'Company-paid commuting'] },
+    subtitleJa: 'Kalitta Air — B747・B777 の貨物機を飛ばす米国の航空会社。本社はミシガン州イプシランティ。',
+    subtitleEn: 'Kalitta Air — a US airline flying 747 and 777 freighters, headquartered in Ypsilanti, Michigan.',
+    statsJa: [['機材', 'B747-400F / B777F'], ['本社', 'ウィローラン空港（ミシガン州）']],
+    statsEn: [['Fleet', 'B747-400F / B777F'], ['Headquarters', 'Willow Run Airport, Michigan']],
+    /* 2026-11-02 に2本とも開いて、Kalitta Air の会社のサイトであることを確かめた（題「Kalitta Air - Pilots」「Kalitta Air - Careers」。2本目に副操縦士の応募の窓口）。
+       応募先の ADP（workforcenow.adp.com）は JS で描く画面で中身を確かめられないので貼らない。 */
+    careers: [
+      { url: 'https://www.kalittaair.com/teams/pilots', ja: 'カリッタ航空 操縦士の採用ページ（外部サイト）', en: 'Kalitta Air pilot careers (external)' },
+      { url: 'https://www.kalittaair.com/careers', ja: '採用ページ・副操縦士の応募（外部サイト）', en: 'Careers and first officer applications (external)' },
+    ],
+
+    rowSubJa: { cap: 'B747 / B777（整数の参考表）', fo: 'B747 / B777（整数の参考表）' },
+    rowSubEn: { cap: 'B747 / B777 (whole-dollar reference table)', fo: 'B747 / B777 (whole-dollar reference table)' },
+    payTag: { ja: 'USD建て・税引前', en: 'Paid in USD, pre-tax' },
+    stepTag: { ja: '参考表（整数）', en: 'Reference table (whole dollars)' },
+    tableNote: {
+      ja: '※ 推定年収は、整数で書かれた時給の参考表（適用年は確かめられていない。機長12年目・副操縦士6年目）に年768時間（月の最低保証64時間 × 12）を掛け、会社の確定拠出年金 12% を足した額です。副操縦士1年目の時給 $117 だけは採用ページの額と一致します。日当と割増は入れていません。幅の下の端は1年目（機長は2年目。表の機長1年目 $165 は2年目 $211 より大きく低いため）、上の端は12年目で同じ計算をした額です。',
+      en: 'The estimate uses a whole-dollar reference pay table (year not confirmed; year-12 captain, year-6 first officer) times 768 hours a year (the 64-hour monthly minimum × 12), plus the 12% company defined contribution. Only the first-year first officer rate of $117 matches the careers page. Per diem and premiums are not included. The low end is year 1 (year 2 for captains, because the table’s year-1 captain rate of $165 is far below year 2’s $211) and the high end is year 12, worked out the same way.',
+    },
+    ldTail: {
+      ja: '時給の参考表と採用ページから計算した推定年収と、応募条件。',
+      en: 'Estimated from a reference pay table and the careers page, plus the entry requirements.',
+    },
+
+    basisJa: '※ 出典：Kalitta Air の採用ページ（1年目 時給 $117・月64時間の保証・確定拠出年金 12%。2026年11月2日に確認）と、整数で書かれた時給の参考表（適用年は確かめられていない）。'
+      + '機長は12年目 時給 $316 × 年768時間（64時間 × 12）＝ $242,688、12% を足して $271,810.56。'
+      + '副操縦士は6年目 時給 $184 × 768時間 ＝ $141,312、12% を足して $158,269.44。'
+      + '日当と、休みの日の乗務の割増（150%）は入れていない。円は1ドル＝158.95円で換算。',
+    basisEn: 'Sources: Kalitta Air’s careers page ($117 an hour in the first year, a 64-hour monthly guarantee and a 12% 401(k) direct contribution; checked 2 November 2026) and a whole-dollar reference pay table (year not confirmed). '
+      + 'Captains: year-12 rate of $316 an hour × 768 hours a year (64 × 12) = $242,688; with 12%, $271,810.56. '
+      + 'First officers: year-6 rate of $184 × 768 hours = $141,312; with 12%, $158,269.44. '
+      + 'Per diem and the 150% premium for flying on days off are not included. Converted at 158.95 yen to the dollar.',
+
+    overviewJa: 'Kalitta Air は、ミシガン州イプシランティのウィローラン空港に本社を置く米国の貨物航空会社。会社のサイトによると、コンラッド・カリッタが全部を持つミシガン州の有限責任会社で、2000年11月に B747 の3機で運航を始めた。'
+      + 'B747-400F・B777-200F・B777-300ERSF で、定期便とチャーターの貨物を世界中へ飛ばす。操縦士は米国内のどこに住んでもよく、乗務の地までの航空券を会社が買う。',
+    overviewEn: 'Kalitta Air is a US cargo airline headquartered at Willow Run Airport in Ypsilanti, Michigan. According to its site, it is a Michigan limited liability company owned solely by Conrad Kalitta, and it began service in November 2000 with three Boeing 747s. '
+      + 'It flies scheduled and on-demand cargo worldwide with the 747-400F, 777-200F and 777-300ERSF. Pilots may live almost anywhere in the US, and the company buys their tickets to and from duty.',
+
+    factsJa: [
+      ['本社', 'ウィローラン空港（ミシガン州イプシランティ）'],
+      ['運航開始', '2000年11月'],
+      ['所有', 'コンラッド・カリッタ（100%）'],
+      ['機材', 'B747-400F / B777-200F / B777-300ERSF'],
+      ['訓練', '本社の訓練センター（B777 と B747-400 のフルモーション・シミュレーターが2台ずつ）'],
+      ['所得税', '米国（課税）'],
+    ],
+    factsEn: [
+      ['Headquarters', 'Willow Run Airport, Ypsilanti, Michigan'],
+      ['Began service', 'November 2000'],
+      ['Owner', 'Conrad Kalitta (100%)'],
+      ['Fleet', 'B747-400F / B777-200F / B777-300ERSF'],
+      ['Training', 'Company training center with two 777 and two 747-400 full-motion simulators'],
+      ['Income tax', 'United States (taxed)'],
+    ],
+
+    routesJa: '定期便とチャーターで世界中へ。採用ページはシドニー・ホノルル・香港・ロサンゼルス・アンカレッジを例に挙げている。',
+    routesEn: 'Scheduled and charter flying worldwide. The careers page gives Sydney, Honolulu, Hong Kong, Los Angeles and Anchorage as examples.',
+    fleetJa: 'B747-400F・B777-200F・B777-300ERSF の3種類（会社のサイト）。B777-300ERSF はカリッタ航空が最初の顧客。',
+    fleetEn: 'Three types: 747-400F, 777-200F and 777-300ERSF (company site). Kalitta Air is the launch customer for the 777-300ERSF.',
+
+    trainingJa: [
+      ['訓練の場所', '入社の日から型式のシミュレーター審査まで、訓練はすべてイプシランティの本社で行う。'],
+      ['訓練中の給与', '訓練の初日から乗務と同じ給与（1年目 時給 $117・月64時間の保証）。'],
+    ],
+    trainingEn: [
+      ['Where', 'All training, from the first day of orientation to the type-rating simulator check, is at company headquarters in Ypsilanti.'],
+      ['Pay in training', 'Full flight pay from the first day of training ($117 an hour in the first year, with a 64-hour monthly guarantee).'],
+    ],
+
+    benefitsJa: [
+      ['✈️', '通勤', '米国内のほぼどこに住んでもよい（アラスカ・ハワイも）。乗務の地までの往復は、会社が確定席の航空券を買う。'],
+      ['📅', '勤務の形', '16日勤務・15日休み（30日の月は14日休み）。8日勤務・15日休み・8日勤務のような分け方も、あれば選べる。'],
+      ['💵', '休みの日の乗務', '時給の150%。junior manning（休みの日の乗務の割り当て）は無い。'],
+      ['💼', '年金', '会社の確定拠出 12%（401(k)）。'],
+      ['🩺', '医療保険', 'Blue Cross Blue Shield の医療・歯科・眼科。'],
+    ],
+    benefitsEn: [
+      ['✈️', 'Commuting', 'Live virtually anywhere in the US, including Alaska and Hawaii; the company buys positive-space tickets to and from duty.'],
+      ['📅', 'Schedule', '16 days on, 15 off (14 off in a 30-day month). Split schedules such as 8 on, 15 off, 8 on can be bid when available.'],
+      ['💵', 'Flying on days off', 'Paid at 150% of the hourly rate. No junior manning.'],
+      ['💼', 'Retirement', '12% 401(k) direct contribution.'],
+      ['🩺', 'Health', 'Blue Cross Blue Shield health, dental and vision.'],
+    ],
+
+    hiringStatusJa: '採用ページに副操縦士の応募の窓口が載っている（2026年11月2日に確認）。',
+    hiringStatusEn: 'The careers page has a first officer application link (checked 2 November 2026).',
+    hiring: { color: null, tagClass: 'tag-gray', tagJa: '採用ページあり', tagEn: 'Careers page' },
+    job: {
+      titleJa: '副操縦士',
+      subJa: '米国内のどこに住んでもよい。訓練はイプシランティの本社。',
+      titleEn: 'First officer',
+      subEn: 'Live anywhere in the US. Training at headquarters in Ypsilanti.',
+    },
+    hiringRowsJa: [
+      ['免許など', '米国 FAA の ATP（多発・制限なし）・第1種身体検査・FCC の無線の免許'],
+      ['飛行時間', '総1,500時間以上（2,000時間以上が望ましい）。タービン1,000時間・タービンの機長500時間が望ましい（軍の出身者は柔軟に見る）'],
+      ['パスポート', '有効な米国のパスポート・海外渡航の制限がないこと'],
+      ['審査', '10年分の身元調査・入社前の薬物とアルコールの検査'],
+    ],
+    hiringRowsEn: [
+      ['Licenses', 'Unrestricted FAA multi-engine ATP, FAA Class 1 medical, FCC radio license'],
+      ['Flight hours', '1,500+ hours total (2,000+ preferred); 1,000 hours turbine and 500 hours turbine PIC preferred (flexible for military)'],
+      ['Passport', 'Current US passport, no restrictions on international travel'],
+      ['Checks', '10-year security background check and pre-employment drug and alcohol test'],
+    ],
+    hiringNoteJa: '※ 条件は採用ページの記載（2026年11月2日に確認）。応募の前に、採用ページで最新の条件を確かめる。',
+    hiringNoteEn: 'Requirements as listed on the careers page (checked 2 November 2026). Check the current terms there before applying.',
+
+    faqEn: (h) => [
+      [`What is ${h.A.en} captain salary in 2026?`,
+       `We estimate ${h.A.en} captain pay at about ${h.mm(h.A.cap.avg)} a year: a year-12 captain rate of $316 an hour from a whole-dollar reference table (year not confirmed) times 768 hours a year (the 64-hour monthly minimum × 12), plus the 12% 401(k) direct contribution. Per diem and the 150% day-off premium are not included.`],
+      [`What is ${h.A.en} first officer salary?`,
+       `We estimate ${h.A.en} first officer pay at about ${h.mm(h.A.fo.avg)} a year: a year-6 rate of $184 an hour from the same reference table times 768 hours, plus 12%. The careers page lists first-year pay of $117 an hour with a 64-hour monthly guarantee, paid in full from day one of training.`],
+      [`What are the requirements to fly for ${h.A.en}?`,
+       `The careers page asks for an unrestricted FAA multi-engine ATP, 1,500+ hours total time (2,000+ preferred), a Class 1 medical, an FCC radio license and a current US passport. Pilots can live anywhere in the US: the company buys positive-space tickets to and from duty.`],
+    ],
+    compareNoteEn: compareFootEn(),
+  },
 };
 
 const C = CONTENT[slug];
@@ -857,6 +1512,8 @@ for (const t of targets) {
 }
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+/* 日本語の社名の行。和名と英名が同じ字の会社（FedEx Express・UPS Airlines）は1回だけ（「FedEx Express（FedEx Express）」にしない）。2026-11-02 */
+const nameJa = A.ja === A.en ? esc(A.ja) : `${esc(A.ja)}（${esc(A.en)}）`;
 const CARD = 'style="background:rgba(17,22,32,.6);border:1px solid rgba(255,255,255,.07)"';
 
 /* ════════════════════════════════════════════════════════════════
@@ -876,7 +1533,7 @@ function bodyJa() {
     `<a href="${l.url}" target="_blank" rel="noopener" class="${i === 0 ? 'btn-orange' : 'btn-ghost'}">${esc(l.ja)}<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 12L12 2M8 2h4v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></a>`).join(' ');
 
   return `
-<div class="glass p-8 fade-up"><div class="section-badge mb-4">概要</div><h2 class="text-2xl font-bold mb-4">${esc(A.ja)}（${esc(A.en)}）について</h2>
+<div class="glass p-8 fade-up"><div class="section-badge mb-4">概要</div><h2 class="text-2xl font-bold mb-4">${nameJa}について</h2>
 <div class="grid lg:grid-cols-2 gap-8"><p class="text-muted leading-relaxed">${esc(C.overviewJa)}</p>
 <div class="grid grid-cols-2 gap-4">${facts}</div></div></div>
 <div class="glass p-8 fade-up"><div class="section-badge mb-4">年収データ</div>
@@ -1048,7 +1705,7 @@ function heroJa() {
 <div class="flex items-start gap-6 mb-8">
 <div class="w-20 h-20 rounded-2xl flex items-center justify-center text-xl font-black flex-shrink-0" style="background:${C.color}20;color:${C.color};border:1px solid ${C.color}35">${C.code}</div>
 <div><div class="flex flex-wrap items-center gap-3 mb-3">${tags}</div>
-<h1 class="text-4xl lg:text-5xl font-extrabold tracking-tight mb-2" style="background:linear-gradient(135deg,#fff,${C.color});-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">${esc(A.ja)}（${esc(A.en)}）</h1>
+<h1 class="text-4xl lg:text-5xl font-extrabold tracking-tight mb-2" style="background:linear-gradient(135deg,#fff,${C.color});-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">${nameJa}</h1>
 <p class="text-muted text-lg">${esc(C.subtitleJa)}</p></div></div>
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">${stats}</div>
 </div></div>`;

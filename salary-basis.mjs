@@ -2520,6 +2520,132 @@ export const BASIS = {
       as_of: '2017年', as_of_en: '2017',
     } },
   },
+
+  /* ★2026-11-02 米国の貨物5社（FedEx Express・UPS Airlines は投稿先だけの一覧から道Aへ上げた・Atlas Air・ABX Air・Kalitta Air は新しく足した）。
+     額は salary-data.mjs、出どころの記録は salary-sources.mjs。時給はオーナーが受け取った米国20社の統合調査（2026-11-02・URL なし）の給与表
+     （pay-scales.mjs と同じ）。オーナー判断「ほぼ間違いない資料・出典は問わない」。
+     src に置いたのは、2026-11-02 に開いて字を確かめられた資料だけ（統合調査そのものは URL が無いので置けない）。
+     どれも利益配分・日当・国際線の加算・確定給付の年金は入れていない（本当の年額はこれより上になりうる）。 */
+  'fedex-express': {
+    tax: '課税（米国）', tax_en: 'Taxed (United States)',
+    src: [
+      { pub: 'AeroCorner', pub_en: 'AeroCorner', name: 'The Highest-Paying Airlines for Pilots in 2026, Ranked by Their Contracts',
+        name_en: 'The Highest-Paying Airlines for Pilots in 2026, Ranked by Their Contracts',
+        as_of: '2026-10-20 掲載', as_of_en: 'Published 20 October 2026', accessed: '2026-11-02', secondary: true,
+        url: 'https://aerocorner.com/blog/highest-paying-airlines-for-pilots/' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', est: {
+      basis: 'FedEx Express のパイロットの労働協約（ALPA・2026年6月29日発効）の給与表（2026年7月の bid period から）',
+      basis_en: 'FedEx Express’s pilot contract with ALPA (effective 29 June 2026), pay table from the July 2026 bid period',
+      method: '大型機（B777F・B767F・A300）12年目の機長 時給 $456.35 × 年884時間（4週ごとの最低保証68時間 × 13）。',
+      method_en: 'Year-12 widebody (B777F / B767F / A300) captain at $456.35 an hour × 884 hours a year (the 68-hour minimum per four-week period × 13).',
+      as_of: '2026年7月の給与表', as_of_en: 'Pay table from July 2026',
+    } },
+    fo: { tier: 'estimate', est: {
+      basis: 'FedEx Express のパイロットの労働協約（ALPA・2026年6月29日発効）の給与表（2026年7月の bid period から）',
+      basis_en: 'FedEx Express’s pilot contract with ALPA (effective 29 June 2026), pay table from the July 2026 bid period',
+      method: '大型機（B777F・B767F・A300）6年目の副操縦士 時給 $283.40 × 年884時間（4週ごとの最低保証68時間 × 13）。',
+      method_en: 'Year-6 widebody (B777F / B767F / A300) first officer at $283.40 an hour × 884 hours a year (the 68-hour minimum per four-week period × 13).',
+      as_of: '2026年7月の給与表', as_of_en: 'Pay table from July 2026',
+    } },
+  },
+  'ups-airlines': {
+    tax: '課税（米国）', tax_en: 'Taxed (United States)',
+    src: [
+      { pub: 'AeroCorner', pub_en: 'AeroCorner', name: 'The Highest-Paying Airlines for Pilots in 2026, Ranked by Their Contracts',
+        name_en: 'The Highest-Paying Airlines for Pilots in 2026, Ranked by Their Contracts',
+        as_of: '2026-10-20 掲載', as_of_en: 'Published 20 October 2026', accessed: '2026-11-02', secondary: true,
+        url: 'https://aerocorner.com/blog/highest-paying-airlines-for-pilots/' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', est: {
+      basis: 'UPS Airlines のパイロットの労働協約（IPA）の給与表（2025年9月1日から・全機種で1つ）と、会社の確定拠出年金 12%',
+      basis_en: 'UPS Airlines’ pilot contract with the IPA (pay table from 1 September 2025, one table for all fleets) and the 12% company defined contribution',
+      method: '12年目の機長 時給 $390.21 × 年975時間（28日ごとの75時間 × 13）＋確定拠出 12%。',
+      method_en: 'Year-12 captain at $390.21 an hour × 975 hours a year (75 hours per 28-day period × 13), plus the 12% defined contribution.',
+      as_of: '2025年9月の給与表', as_of_en: 'Pay table from September 2025',
+    } },
+    fo: { tier: 'estimate', est: {
+      basis: 'UPS Airlines のパイロットの労働協約（IPA）の給与表（2025年9月1日から・全機種で1つ）と、会社の確定拠出年金 12%',
+      basis_en: 'UPS Airlines’ pilot contract with the IPA (pay table from 1 September 2025, one table for all fleets) and the 12% company defined contribution',
+      method: '6年目の副操縦士 時給 $242.32 × 年975時間（28日ごとの75時間 × 13）＋確定拠出 12%。',
+      method_en: 'Year-6 first officer at $242.32 an hour × 975 hours a year (75 hours per 28-day period × 13), plus the 12% defined contribution.',
+      as_of: '2025年9月の給与表', as_of_en: 'Pay table from September 2025',
+    } },
+  },
+  'atlas-air': {
+    tax: '課税（米国）', tax_en: 'Taxed (United States)',
+    src: [
+      { pub: 'アトラス航空（Atlas Air Worldwide Careers）', pub_en: 'Atlas Air (Atlas Air Worldwide Careers)', name: 'First Officer Talent Community',
+        name_en: 'First Officer Talent Community',
+        as_of: '2026-05-28 更新', as_of_en: 'Updated 28 May 2026', accessed: '2026-11-02',
+        url: 'https://www.atlasairworldwide.com/careers/job-board/?gh_jid=4194418009' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', est: {
+      basis: 'Atlas Air のパイロットの労働協約（Teamsters Local 2750・2021年）の給与表（2025年9月1日の列）と、副操縦士の募集要項（月64時間の最低保証）',
+      basis_en: 'Atlas Air’s 2021 pilot contract with Teamsters Local 2750 (1 September 2025 column of the pay table) and the first officer posting (64-hour monthly minimum)',
+      method: 'B747 の12年目の機長 時給 $332.68 × 年768時間（月64時間 × 12）＋確定拠出 16%（参考表の2026年の率）。',
+      method_en: 'Year-12 B747 captain at $332.68 an hour × 768 hours a year (64 a month × 12), plus the 16% defined contribution (2026 rate in a reference table).',
+      as_of: '2025年9月の給与表', as_of_en: 'Pay table from September 2025',
+    } },
+    fo: { tier: 'estimate', est: {
+      basis: 'Atlas Air のパイロットの労働協約（Teamsters Local 2750・2021年）の給与表（2025年9月1日の列）と、副操縦士の募集要項（月64時間の最低保証）',
+      basis_en: 'Atlas Air’s 2021 pilot contract with Teamsters Local 2750 (1 September 2025 column of the pay table) and the first officer posting (64-hour monthly minimum)',
+      method: 'B747 の6年目の副操縦士 時給 $195.07 × 年768時間（月64時間 × 12）＋確定拠出 16%（参考表の2026年の率）。',
+      method_en: 'Year-6 B747 first officer at $195.07 an hour × 768 hours a year (64 a month × 12), plus the 16% defined contribution (2026 rate in a reference table).',
+      as_of: '2025年9月の給与表', as_of_en: 'Pay table from September 2025',
+    } },
+  },
+  'abx-air': {
+    tax: '課税（米国）', tax_en: 'Taxed (United States)',
+    src: [
+      { pub: 'Aero Crew News', pub_en: 'Aero Crew News', name: 'ABX Air Pilot 2024 Agreement', name_en: 'ABX Air Pilot 2024 Agreement',
+        as_of: '2024-05-07 掲載', as_of_en: 'Published 7 May 2024', accessed: '2026-11-02', secondary: true,
+        url: 'https://aerocrewnews.com/2024/05/07/abx-air-pilot-2024-agreement/' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', est: {
+      basis: 'ABX Air のパイロットの労働組合（APA Teamsters Local 1224）の採用資料にある給与表（2026年1月1日から・2030年までの協約）',
+      basis_en: 'The pay table (from 1 January 2026, under the agreement running to 2030) in the ABX pilots’ union (APA Teamsters Local 1224) hiring material',
+      method: '12年目の機長 時給 $314.14 × 年777.92時間（2週ごとの29.92時間 × 26）＋確定拠出 14%。',
+      method_en: 'Year-12 captain at $314.14 an hour × 777.92 hours a year (29.92 per two-week pay period × 26), plus the 14% defined contribution.',
+      as_of: '2026年1月の給与表', as_of_en: 'Pay table from January 2026',
+    } },
+    fo: { tier: 'estimate', est: {
+      basis: 'ABX Air のパイロットの労働組合（APA Teamsters Local 1224）の採用資料にある給与表（2026年1月1日から・2030年までの協約）',
+      basis_en: 'The pay table (from 1 January 2026, under the agreement running to 2030) in the ABX pilots’ union (APA Teamsters Local 1224) hiring material',
+      method: '6年目の副操縦士 時給 $183.08 × 年777.92時間（2週ごとの29.92時間 × 26）＋確定拠出 14%。',
+      method_en: 'Year-6 first officer at $183.08 an hour × 777.92 hours a year (29.92 per two-week pay period × 26), plus the 14% defined contribution.',
+      as_of: '2026年1月の給与表', as_of_en: 'Pay table from January 2026',
+    } },
+  },
+  /* カリッタ航空の時給は整数の参考表（適用年は確かめられていない）。会社の採用ページと一致するのは副操縦士1年目 $117・月64時間・確定拠出 12% だけ。
+     SALARY は conf: 'low'。 */
+  'kalitta-air': {
+    tax: '課税（米国）', tax_en: 'Taxed (United States)',
+    src: [
+      { pub: 'カリッタ航空（Kalitta Air）', pub_en: 'Kalitta Air', name: 'Kalitta Air - Pilots', name_en: 'Kalitta Air - Pilots',
+        as_of: '発行日の記載なし', as_of_en: 'No publication date given', accessed: '2026-11-02',
+        url: 'https://www.kalittaair.com/teams/pilots' },
+    ],
+    notes: [], notes_en: [],
+    cap: { tier: 'estimate', est: {
+      basis: '整数で書かれた時給の参考表（適用年は確かめられていない）と、会社の採用ページ（月64時間の保証・確定拠出 12%）',
+      basis_en: 'A whole-dollar reference pay table (year not confirmed) and the company careers page (64-hour monthly guarantee, 12% direct contribution)',
+      method: '12年目の機長 時給 $316 × 年768時間（月64時間 × 12）＋確定拠出 12%。',
+      method_en: 'Year-12 captain at $316 an hour × 768 hours a year (64 a month × 12), plus the 12% direct contribution.',
+      as_of: '参考表（適用年は不明）・採用ページは2026年11月2日に確認', as_of_en: 'Reference table (year unknown); careers page checked 2 November 2026',
+    } },
+    fo: { tier: 'estimate', est: {
+      basis: '整数で書かれた時給の参考表（適用年は確かめられていない）と、会社の採用ページ（1年目 時給 $117・月64時間の保証・確定拠出 12%）',
+      basis_en: 'A whole-dollar reference pay table (year not confirmed) and the company careers page ($117 an hour in the first year, 64-hour monthly guarantee, 12% direct contribution)',
+      method: '6年目の副操縦士 時給 $184 × 年768時間（月64時間 × 12）＋確定拠出 12%。',
+      method_en: 'Year-6 first officer at $184 an hour × 768 hours a year (64 a month × 12), plus the 12% direct contribution.',
+      as_of: '参考表（適用年は不明）・採用ページは2026年11月2日に確認', as_of_en: 'Reference table (year unknown); careers page checked 2 November 2026',
+    } },
+  },
 };
 
 /* ── 読む側のための小物 ───────────────────────────────────────── */

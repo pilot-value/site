@@ -53,9 +53,10 @@ export const WIDE = Object.freeze([
   'klm', 'air-france', 'lufthansa', 'british-airways', 'airx-charter', 'eagle-jet', 'turkish-airlines', 'aegean', 'aer-lingus',
   'austrian', 'easyjet', 'eurowings', 'finnair', 'iberia', 'icelandair', 'ita-airways', 'lot', 'norwegian', 'ryanair', 'sas', 'swiss',
   'tap', 'virgin-atlantic', 'vueling', 'wizz-air',
-  /* アメリカ大陸（北米・中南米。スピリット航空は入れない ── オーナー 2026-10-11） */
+  /* アメリカ大陸（北米・中南米。スピリット航空は入れない ── オーナー 2026-10-11）。
+     ★2026-11-02 米国の貨物5社（FedEx Express・UPS Airlines は投稿先だけの一覧から道Aへ上げた2社、Atlas Air・ABX Air・Kalitta Air は新しく足した3社）を足した */
   'united', 'delta', 'american', 'southwest', 'air-canada', 'solairus', 'alaska-airlines', 'allegiant', 'breeze-airways', 'frontier',
-  'jetblue', 'porter', 'westjet', 'aeromexico', 'avianca', 'copa-airlines', 'latam',
+  'jetblue', 'porter', 'westjet', 'fedex-express', 'ups-airlines', 'atlas-air', 'abx-air', 'kalitta-air', 'aeromexico', 'avianca', 'copa-airlines', 'latam',
   /* オセアニア（カンタス航空は見本の2社） */
   'air-new-zealand', 'fiji-airways', 'jetstar',
 ]);

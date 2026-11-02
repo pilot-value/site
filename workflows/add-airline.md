@@ -388,6 +388,14 @@ node check.mjs        # fast + sql（約80秒）
   - 初めての国は `airline-countries.mjs` の `COUNTRIES` にも1行。その国が `pv-airline-view.mjs` の `NET_EN` に在ったら外す（使われない行として `assert-rollout.mjs` F が落ちる）。
   - `assert-rollout.mjs` の `NO_LOGO`（ロゴの絵の無い会社）と `NO_RESEARCH_YET`（調べの台帳に行の無い会社）に足す。台帳に行が入ったら `NO_RESEARCH_YET` から外す。
   - UAE の会社の英語の表は「🇦🇪 United Arab Emirates」の Emirates をエミレーツと読ませないよう、`check-salary.mjs` に国名の除外を入れた。
+- **★2026-11-02 に米国の貨物5社（FedEx Express・UPS Airlines を B5・Atlas Air・ABX Air・Kalitta Air を道A）で踏んだこと**
+  - 新しい形のページに残るのは `CONTENT` の **`faqEn`（英語の「よくある質問」）だけ**。ここは検査が厳しい ──
+    米国のつづり（license・program・center ── `assert-claims.mjs` F）／応募条件の飛行時間と「About N」「N+」の数は、その会社の台帳
+    （`salary-sources.mjs` の SOURCES など）に同じ数が在るものだけ（同 E3・H2。数を書くなら先に採用ページの行を台帳へ）／
+    「the first」「largest」などの言い分を書かない（`assert-rollout.mjs` L6）。直したらページを消して `gen-new-airline.mjs` から起こし直す。
+  - 和名と英名が同じ字の会社（FedEx Express）は、社名の行が「FedEx Express（FedEx Express）」にならないよう生成器が1回だけ書く。
+    社名の下の灰色の行は `subtitleJa` の「—」の左（読みのカタカナを置いた）。
+  - 左メニューを持つページが1社につき2枚増える ＝ `assert-pay-rows.mjs` の枚数（合計と公開）を足す（`check.mjs web` でしか赤くならない）。
 
 ## エッジケース（道B）
 - **会社が無くなった／取り違えて足した** → `airline-ops.mjs` から消して `gen-airline-codes.mjs` を

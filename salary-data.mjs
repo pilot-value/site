@@ -203,6 +203,41 @@ export const SALARY = {
   'porter':          { ja:'ポーター航空', en:'Porter Airlines', region:'us',                                                     cap:{avg:2700, lo:2300, hi:3200}, fo:{avg:1350, lo:1000, hi:1700}, taxFree:false, conf:'medium' },
   'spirit':          { ja:'スピリット航空', en:'Spirit Airlines', region:'us',                                                   cap:{avg:3700, lo:2900, hi:4700}, fo:{avg:2000, lo:1300, hi:3000}, taxFree:false, conf:'medium' },
   'westjet':         { ja:'ウェストジェット航空', en:'WestJet Airlines', region:'us',                                            cap:{avg:3800, lo:2600, hi:4400}, fo:{avg:2000, lo:1400, hi:2470}, taxFree:false, conf:'medium' },
+
+  // ★2026-11-02 米国の貨物5社（オーナー受領の米国20社の統合調査・オーナー判断「ほぼ間違いない資料・出典は問わない」）。
+  //   FedEx Express（fedex-express）と UPS Airlines（ups-airlines）は投稿先だけの一覧（airline-ops.mjs の OPS）から、同じコードのまま上げた（道A・B5）。
+  //   Atlas Air（atlas-air）・ABX Air（abx-air）・Kalitta Air（kalitta-air）は新しく道Aで足した。
+  //   決め方は米国の旅客の会社（2026-10-29）と同じ：機長＝12年目・副操縦士＝6年目の時給 × 年間の時間（保証の時間）×（1 ＋ 会社の確定拠出年金）。
+  //     利益配分・日当・国際線の加算・確定給付の年金は入れていない。時給の表は pay-scales.mjs（同じ統合調査）。
+  //   計算：USD × JPY_PER.USD（fx-rates.mjs・158.95）、10万円単位。根拠の記録は salary-sources.mjs、画面の説明は salary-basis.mjs。
+  //   幅：lo ＝ その職位の1年目（いちばん低い表）。ただし機長の1年目が入社時の一律の額（UPS）か、2年目より大きく低い試用期間らしい額（ABX $164.58・Kalitta $165）の会社は2年目。
+  //       hi ＝ いちばん高い表のいちばん上の段（FedEx・UPS は15年目。Atlas・ABX・Kalitta は12年目が上の段なので機長は avg ＝ hi）。
+  //   ■ fedex-express ── 2026年6月29日発効の ALPA の協約・2026年7月の bid period からの表。年884時間（4週ごとの最低保証68時間 × 13）。会社の年金は在職者の選択制で率が分からないので入れない。
+  //       cap.avg ＝ 大型機（B777F・B767F・A300）12年目 $456.35 × 884 ＝ USD 403,413 → 6,412万 → 6,410万
+  //       cap.lo  ＝ B757 の1年目 $327.84 × 884 ＝ USD 289,811 → 4,607万 → 4,610万 ／ cap.hi ＝ 大型機 15年目 $469.00 × 884 ＝ USD 414,596 → 6,590万
+  //       fo.avg  ＝ 大型機 6年目 $283.40 × 884 ＝ USD 250,526 → 3,982万 → 3,980万
+  //       fo.lo   ＝ B757 の1年目 $113.39 × 884 ＝ USD 100,237 → 1,593万 → 1,590万 ／ fo.hi ＝ 大型機 15年目 $332.49 × 884 ＝ USD 293,921 → 4,672万 → 4,670万
+  //   ■ ups-airlines ── IPA の協約・2025年9月1日からの表（全機種で1つ）。年975時間（28日ごとの75時間 × 13）× 1.12（会社の確定拠出 12%）。協約は2025年9月から交渉中。
+  //       cap.avg ＝ 12年目 $390.21 → USD 426,109 → 6,773万 → 6,770万 ／ cap.lo ＝ 2年目 $367.39 → USD 401,190 → 6,377万 → 6,380万（1年目 $59.77 は全員共通の入社時の額）
+  //       cap.hi  ＝ 15年目 $401.01 → USD 437,903 → 6,960万
+  //       fo.avg  ＝ 6年目 $242.32 → USD 264,613 → 4,206万 → 4,210万 ／ fo.lo ＝ 1年目 $59.77 → USD 65,269 → 1,037万 → 1,040万 ／ fo.hi ＝ 15年目 $284.29 → USD 310,445 → 4,934万 → 4,930万
+  //   ■ atlas-air ── Teamsters Local 2750 の2021年の協約・2025年9月1日の列（B747 > B777 > B767）。年768時間（月の最低保証64時間 × 12）× 1.16（確定拠出 16%・参考表の2026年の率）。
+  //       cap.avg ＝ cap.hi ＝ B747 12年目 $332.68 → USD 296,378 → 4,711万 → 4,710万 ／ cap.lo ＝ B767 の1年目 $240.67 → USD 214,408 → 3,408万 → 3,410万
+  //       fo.avg  ＝ B747 6年目 $195.07 → USD 173,784 → 2,762万 → 2,760万 ／ fo.lo ＝ 1年目 $103.55（全機種共通）→ USD 92,251 → 1,466万 → 1,470万
+  //       fo.hi   ＝ B747 12年目 $226.22 → USD 201,535 → 3,203万 → 3,200万
+  //   ■ abx-air ── APA Teamsters Local 1224 の採用資料にある2026年1月1日の表（「B767/A330」の区分）。年777.92時間（2週ごとの29.92時間 × 26）× 1.14（確定拠出 2026年 14%）。
+  //       cap.avg ＝ cap.hi ＝ 12年目 $314.14 → USD 278,588 → 4,428万 → 4,430万 ／ cap.lo ＝ 2年目 $210.30 → USD 186,500 → 2,964万 → 2,960万（1年目 $164.58 は試用期間らしい額）
+  //       fo.avg  ＝ 6年目 $183.08 → USD 162,361 → 2,581万 → 2,580万 ／ fo.lo ＝ 1年目 $108.44 → USD 96,168 → 1,529万 → 1,530万 ／ fo.hi ＝ 12年目 $212.26 → USD 188,238 → 2,992万 → 2,990万
+  //   ■ kalitta-air ── 整数で書かれた時給の参考表（適用年は確かめられていない）。会社の採用ページと一致するのは副操縦士1年目 $117・月64時間の保証・確定拠出 12% だけ。
+  //       年768時間（64時間 × 12）× 1.12。
+  //       cap.avg ＝ cap.hi ＝ 12年目 $316 → USD 271,811 → 4,320万 ／ cap.lo ＝ 2年目 $211 → USD 181,494 → 2,885万 → 2,880万（1年目 $165 は試用期間らしい額）
+  //       fo.avg  ＝ 6年目 $184 → USD 158,269 → 2,516万 → 2,520万 ／ fo.lo ＝ 1年目 $117 → USD 100,639 → 1,600万 ／ fo.hi ＝ 12年目 $213 → USD 183,214 → 2,912万 → 2,910万
+  //       conf は 'low'（参考表・適用年が分からない・セント単位の額が無い）。
+  'fedex-express':   { ja:'FedEx Express', en:'FedEx Express', region:'us',                                                      cap:{avg:6410, lo:4610, hi:6590}, fo:{avg:3980, lo:1590, hi:4670}, taxFree:false, conf:'medium' },
+  'ups-airlines':    { ja:'UPS Airlines', en:'UPS Airlines', region:'us',                                                        cap:{avg:6770, lo:6380, hi:6960}, fo:{avg:4210, lo:1040, hi:4930}, taxFree:false, conf:'medium' },
+  'atlas-air':       { ja:'アトラス航空', en:'Atlas Air', region:'us',                                                           cap:{avg:4710, lo:3410, hi:4710}, fo:{avg:2760, lo:1470, hi:3200}, taxFree:false, conf:'medium' },
+  'abx-air':         { ja:'ABXエア', en:'ABX Air', region:'us',                                                                  cap:{avg:4430, lo:2960, hi:4430}, fo:{avg:2580, lo:1530, hi:2990}, taxFree:false, conf:'medium' },
+  'kalitta-air':     { ja:'カリッタ航空', en:'Kalitta Air', region:'us',                                                         cap:{avg:4320, lo:2880, hi:4320}, fo:{avg:2520, lo:1600, hi:2910}, taxFree:false, conf:'low' },
 };
 
 // ─────────────────────────────────────────────────────────────────────────
