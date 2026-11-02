@@ -889,7 +889,7 @@ async function claimReviews(uid) {
 async function submitPending(v) {
   const p = {
     airline: effectiveAirline(v), position: v.pos, tenure_bucket: v.tenure, age_bucket: v.age,
-    fleet: v.fleet || null, job_role: v.jobRole || null, lang: 'en',
+    fleet: v.fleet || null, job_role: v.jobRole || null, lang: window.PV_LANG === 'es' ? 'es' : 'en',   // スペイン語のページ（es/）は es
   };
   for (const k of CAT_KEYS) { p[k + '_score'] = v.cats[k].score || null; p[k + '_comment'] = v.cats[k].comment || null; }
   const { data, error } = await _sb.rpc('submit_review_pending', { p });

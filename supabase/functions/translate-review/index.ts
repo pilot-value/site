@@ -1,17 +1,18 @@
 /* ════════════════════════════════════════════════════════════════
-   translate-review — 新しい口コミを反対言語へ自動翻訳する Edge Function
+   translate-review — 新しい口コミを、原文以外の全言語へ自動翻訳する Edge Function
 
    reviews_v2 に行が入ったら Database Webhook から呼ばれ、
-   原文の言語を判定して反対言語の訳文を作り、その行の
-   translations / orig_lang を埋める。表示側（review-i18n.js）は
+   原文の言語を判定して、ほかの言語（LANGS）の訳文を作り、その行の
+   translations / orig_lang を埋める。★2026-11-02 スペイン語を足した（日英西）。表示側（review-i18n.js）は
    ページ言語に合わせて原文か訳文かを選ぶ。
 
    ── 設計上の約束 ──────────────────────────────────────────
    1. 本文は必ず DB から読み直す。webhook のペイロードに入っている
       本文は信用しない。外から偽のペイロードを投げられても、
       実在する未翻訳の行しか処理できない＝API 費用の踏み倒しが効かない。
-   2. translations が既に入っている行は何もしない（冪等）。
-      同じ行に何度呼ばれても課金は1回きり。
+   2. 訳が既に入っている言語は訳さない（冪等）。
+      同じ行に何度呼ばれても、1つの言語の課金は1回きり。
+      言語を足したときは、まだ無い言語だけを足す（前からある訳は書き換えない）。
    3. 訳は忠実訳。要約・意訳・脚色・補足を禁じる（口コミの引用としての
       信頼性を壊さないため）。訳せない欄は出力しない＝表示側が原文に落とす。
    4. 失敗しても 200 を返す。webhook の再送ループで課金が膨らむより、
@@ -56,6 +57,12 @@ const MODEL = 'claude-opus-5';
 const MAX_ROWS = 20;          // 1回の呼び出しで触る行数の上限（暴走防止）
 const TABLE = 'reviews_v2';
 
+/* 口コミを読む言語（2026-11-02 にスペイン語＝中南米を足した）。原文の言語を除く全部へ訳す。
+   ⚠️ 言語を足したら、下の GLOSSARY・langName と、review-i18n.js の lang() も足す。 */
+type Lang = 'ja' | 'en' | 'es';
+const LANGS: Lang[] = ['ja', 'en', 'es'];
+const isLang = (v: unknown): v is Lang => typeof v === 'string' && (LANGS as string[]).includes(v);
+
 // review-i18n.js の KEYS と一致させること。ずれると訳文が表示されない。
 const KEYS = ['culture', 'salary', 'benefits', 'wlb', 'ops', 'training', 'mgmt'] as const;
 type Key = typeof KEYS[number];
@@ -93,7 +100,7 @@ const TOOL = {
      flight duty allowance → 「フライトデューティアラウンス」（音写が崩れている）
      European and Asian carriers → 「ヨーロッパやアジアのキャリア」（経歴の意味に読める）
    語を足すときは、実際に出た誤訳だけを足すこと（推測で膨らませない）。 */
-const GLOSSARY: Record<'ja' | 'en', string[]> = {
+const GLOSSARY: Record<Lang, string[]> = {
   ja: [
     'carrier / airline → 航空会社（「キャリア」と書かない。日本語では経歴の意味に読まれる）',
     'allowance → 手当（flight duty allowance / flying pay → 乗務手当。音写しない）',
@@ -115,6 +122,20 @@ const GLOSSARY: Record<'ja' | 'en', string[]> = {
       + '投稿者の性別は分からないし、読み手も限らない）',
     'ステイ・ステイ先 → layover ／ 時差の戻し → getting back onto local time',
   ],
+  /* スペイン語（中南米）。サイトの訳と同じ字（i18n/glossary-es.mjs ── 各国の操縦士の労働協約と法令から）。
+     ⚠️ 取り違えやすい語は、ページの訳の機械検査（translate-tm.mjs の BAN）と同じもの。 */
+  es: [
+    'Captain / 機長 → capitán ／ First Officer / 副操縦士 → primer oficial ／ Second Officer → segundo oficial ／ cadet / 訓練生 → piloto en formación'
+      + '（First Officer を "segundo piloto" と書かない。スペインでは副操縦士の下の等級になる）',
+    'layover / ステイ（外泊） → pernocta（"escala" と書かない。escala は経由地の意味）',
+    'per diem / 日当 → viáticos ／ allowance / 手当 → asignación ／ base pay / 基本給 → sueldo base ／ annual pay / 年収 → sueldo anual',
+    'bonus / 賞与 → bono（会社の賞与を "aguinaldo" と書かない。aguinaldo は法定の年末給与）／ profit sharing → participación en las utilidades',
+    'block hours → horas block ／ duty time → tiempo de servicio ／ FDP → periodo de servicio de vuelo ／ roster → programación (rol de vuelo)',
+    'standby → guardia ／ reserve → reserva ／ seniority → antigüedad ／ seniority list → escalafón ／ CBA → contrato colectivo',
+    'command upgrade / 機長昇格 → ascenso a capitán ／ type rating → habilitación de tipo ／ line training → entrenamiento en línea ／ simulator → simulador',
+    'widebody → fuselaje ancho ／ narrowbody → fuselaje angosto ／ fleet / 機材 → flota ／ airline / 航空会社 → aerolínea ／ tax-free → libre de impuestos',
+    'Keep pilot acronyms as written (SOP, LPC, OPC, TRI, TRE, LIFUS, ATPL). Write natural Latin American Spanish; do not use vosotros.',
+  ],
 };
 
 const json = (body: unknown, status = 200) =>
@@ -126,12 +147,24 @@ const json = (body: unknown, status = 200) =>
    すると日本語ページは from===to と見なして原文（英語）をそのまま出す
    ＝2026-08-10 にオーナーが見つけた症状とまったく同じ見え方になる。
    日本語の文章なら助詞だけで軽く3割を超えるので、1割で十分に離れている。 */
-function detectLang(text: string): 'ja' | 'en' {
+function detectLang(text: string): Lang {
   const body = text.replace(/\s/g, '');
   if (!body.length) return 'en';
   const ja = body.match(/[぀-ヿ㐀-䶿一-鿿]/g)?.length ?? 0;
-  return ja / body.length >= 0.1 ? 'ja' : 'en';
+  if (ja / body.length >= 0.1) return 'ja';
+  /* スペイン語か英語か（2026-11-02）。よく出る機能語と、ñ・¿・¡・アクセントの付いた字を数えて多い方。
+     ⚠️ 社名・機種・略語は両方の言語に出るので数えない（数えるのは小文字の機能語だけ）。
+     ⚠️ 1語でも出れば es、にしない（英語の口コミに "per diem" や地名が入るのは普通）。 */
+  const words = text.toLowerCase().match(/[a-záéíóúüñ]+/g) ?? [];
+  let es = 0, en = 0;
+  for (const w of words) { if (ES_WORDS.has(w)) es++; else if (EN_WORDS.has(w)) en++; }
+  es += (text.match(/[ñ¿¡áéíóú]/gi)?.length ?? 0) * 0.5;
+  return es > en ? 'es' : 'en';
 }
+const ES_WORDS = new Set(['el', 'la', 'los', 'las', 'de', 'del', 'que', 'y', 'en', 'por', 'para', 'con', 'una', 'es', 'son',
+  'muy', 'pero', 'se', 'lo', 'al', 'como', 'su', 'sus', 'hay', 'está', 'están', 'también', 'más', 'mucho', 'poco', 'sin']);
+const EN_WORDS = new Set(['the', 'and', 'of', 'to', 'is', 'are', 'in', 'for', 'with', 'that', 'it', 'but', 'very', 'not',
+  'on', 'as', 'was', 'be', 'have', 'has', 'you', 'they', 'there', 'good', 'bad', 'more', 'much', 'without']);
 
 /* 訳文から数字が消えていないかを機械で見る。
    金額・年数・機種（B777 の 777）はこの口コミの中身そのもので、
@@ -208,10 +241,10 @@ function contextLines(ctx: Ctx): string[] {
   return l;
 }
 
-const langName = (l: 'ja' | 'en') => (l === 'ja' ? 'Japanese' : 'English');
+const langName = (l: Lang) => (l === 'ja' ? 'Japanese' : l === 'es' ? 'Latin American Spanish' : 'English');
 
 /* 1パス目。忠実訳をさせる。 */
-function systemTranslate(from: 'ja' | 'en', to: 'ja' | 'en', ctx: Ctx): string {
+function systemTranslate(from: Lang, to: Lang, ctx: Ctx): string {
   return [
     `You translate anonymous employee reviews written by airline pilots from ${langName(from)} into ${langName(to)}.`,
     'These are quoted testimony. Translate faithfully and completely.',
@@ -238,7 +271,7 @@ function systemTranslate(from: 'ja' | 'en', to: 'ja' | 'en', ctx: Ctx): string {
 /* 2パス目。人間の翻訳と同じで、訳したものを原文と突き合わせて直す工程。
    1パス目だけだと「訳せてはいるが読んだ瞬間に機械翻訳と分かる」文が残る
    （2026-08-10 の「非税」「フライトデューティアラウンス」がこれ）。 */
-function systemRevise(from: 'ja' | 'en', to: 'ja' | 'en', ctx: Ctx): string {
+function systemRevise(from: Lang, to: Lang, ctx: Ctx): string {
   return [
     `You are a senior ${langName(to)} editor checking a draft translation of an anonymous airline pilot's review,`,
     `translated from ${langName(from)}.`,
@@ -369,8 +402,8 @@ async function callAnthropic(system: string, user: unknown): Promise<Record<stri
    （訳が無い＝原文表示に落ちるより、下訳でも出ている方が読み手には良い）。 */
 async function translate(
   fields: Array<[Key, string]>,
-  from: 'ja' | 'en',
-  to: 'ja' | 'en',
+  from: Lang,
+  to: Lang,
   ctx: Ctx,
   // 手元で下訳と推敲後を並べて見るためだけの覗き口（本番は渡さない）。
   onDraft?: (draft: Record<string, string>, suspect: Record<string, string[]>) => void,
@@ -399,6 +432,18 @@ async function translate(
   return draft;
 }
 
+/* 原文の言語と、訳す言語。訳がもう在る行は、そのとき決めた言語のまま（判定し直して入れ替えない ──
+   入れ替えると、前の訳と原文の言語が食い違う）。訳の無い行だけ本文から判定する。訳がもう在る言語は訳さない。 */
+function planRow(have: Record<string, unknown>, origLang: unknown, text: string): { from: Lang; targets: Lang[] } {
+  const from: Lang = Object.keys(have).length && isLang(origLang) ? origLang : detectLang(text);
+  return { from, targets: LANGS.filter((l) => l !== from && !have[l]) };
+}
+/* 書き込みの条件。足すだけ（前からある訳は書き換えない）。同時に2回呼ばれても先に書いた方を消さないよう、
+   訳の無い行は「訳が丸ごと無い」、訳の在る行は「足す言語の訳がまだ無い」ことを条件にする。 */
+function guardFor(have: Record<string, unknown>, got: Lang[]): string {
+  return Object.keys(have).length ? got.map((l) => `translations->>${l}=is.null`).join('&') : 'translations=is.null';
+}
+
 async function translateRow(id: string) {
   const cols = ['id', 'orig_lang', 'translations', 'airline', 'position',
     ...KEYS.map((k) => `${k}_comment`)].join(',');
@@ -408,38 +453,48 @@ async function translateRow(id: string) {
   const rows = await res.json();
   const row = Array.isArray(rows) ? rows[0] : null;
   if (!row) return { id, status: 'not_found' };
-  if (row.translations) return { id, status: 'already_translated' };
+  const have: Record<string, unknown> =
+    row.translations && typeof row.translations === 'object' && !Array.isArray(row.translations) ? row.translations : {};
 
   const fields = KEYS
     .map((k) => [k, (row[`${k}_comment`] ?? '').toString().trim()] as [Key, string])
     .filter(([, t]) => t.length > 0);
   if (!fields.length) return { id, status: 'nothing_to_translate' };
 
-  const from = detectLang(fields.map(([, t]) => t).join('\n'));
-  const to = from === 'ja' ? 'en' : 'ja';
+  const { from, targets } = planRow(have, row.orig_lang, fields.map(([, t]) => t).join('\n'));
+  if (!targets.length) return { id, status: 'already_translated' };
 
-  const translated = await translate(fields, from, to, {
+  const ctx = {
     airline: (row.airline ?? '').toString().trim() || undefined,
     position: (row.position ?? '').toString().trim() || undefined,
-  });
-  if (!Object.keys(translated).length) return { id, status: 'empty_translation' };
+  };
+  const done: Partial<Record<Lang, Record<string, string>>> = {};
+  for (const to of targets) {
+    const t = await translate(fields, from, to, ctx);
+    if (Object.keys(t).length) done[to] = t;
+  }
+  const got = Object.keys(done) as Lang[];
+  if (!got.length) return { id, status: 'empty_translation' };
 
-  // orig_lang も同時に確定させる。表示側はこの2つが揃って初めて訳文を出す。
-  const up = await sb(`${TABLE}?id=eq.${encodeURIComponent(id)}&translations=is.null`, {
+  /* orig_lang も同時に確定させる。表示側はこの2つが揃って初めて訳文を出す。
+     足すだけ（前からある訳は書き換えない）。同時に2回呼ばれても先に書いた方を消さないよう、
+     「その言語の訳がまだ無い」ことを書き込みの条件にする。 */
+  const guard = guardFor(have, got);
+  const up = await sb(`${TABLE}?id=eq.${encodeURIComponent(id)}&${guard}`, {
     method: 'PATCH',
     headers: { Prefer: 'return=minimal' },
-    body: JSON.stringify({ orig_lang: from, translations: { [to]: translated } }),
+    body: JSON.stringify({ orig_lang: from, translations: { ...have, ...done } }),
   });
   if (!up.ok) return { id, status: 'update_failed', detail: (await up.text()).slice(0, 200) };
 
-  return { id, status: 'translated', from, to, fields: Object.keys(translated).length };
+  return { id, status: 'translated', from, to: got, fields: fields.length };
 }
 
 /* 手元の検査用に中身を公開する。Edge Function の動きは何も変わらない
    （Deno も Supabase も、export のある ES モジュールをそのまま動かす）。
    これがあるので translate-eval.mjs / assert-translate-review.mjs は
    プロンプトのコピーを持たずに済む＝本体と乖離しない。 */
-export { translate, detectLang, missingNumbers, normalizeTranslation, parseLoose, systemTranslate, systemRevise, MODEL };
+export { translate, detectLang, planRow, guardFor, LANGS, missingNumbers, normalizeTranslation, parseLoose, systemTranslate, systemRevise, MODEL };
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'method not allowed' }, 405);
@@ -456,11 +511,30 @@ Deno.serve(async (req) => {
   // Database Webhook は {type, table, record, old_record} を送る。
   // 手動の埋め戻し用に {"ids":[...]} も受ける（本文は常に DB から読む）。
   const record = body.record as { id?: string } | undefined;
-  const ids = Array.isArray(body.ids)
+  let ids = Array.isArray(body.ids)
     ? (body.ids as unknown[]).filter((v): v is string => typeof v === 'string')
     : record?.id
       ? [record.id]
       : [];
+
+  /* 言語を足したときの埋め戻し：{"backfill":"es"} で、その言語の訳がまだ無い行（ほかの言語へはもう訳してある行）を
+     少しずつ（既定 3件・1行に2回 AI を呼ぶので、多いと関数の時間切れになる）。db/backfill-review-lang.mjs が繰り返し呼ぶ。
+     {"backfill":"es","count":true} は残りの行数だけ返す（AI を呼ばない＝費用を先に出すため）。
+     本文は今までどおり DB から読む＝実在する未翻訳の行しか触れない。 */
+  if (!ids.length && isLang(body.backfill)) {
+    const L = body.backfill;
+    const need = `translations=not.is.null&translations->>${L}=is.null&orig_lang=neq.${L}`;
+    if (body.count === true) {
+      const c = await sb(`${TABLE}?select=id&${need}`, { method: 'HEAD', headers: { Prefer: 'count=exact' } });
+      const n = Number((c.headers.get('content-range') ?? '').split('/')[1]);
+      return json({ ok: c.ok, backfill: L, remaining: Number.isFinite(n) ? n : null });
+    }
+    /* offset … 訳せなかった行（訳が空で返った・失敗した）を飛ばして先へ進むため。呼ぶ側が数えて渡す */
+    const off = Number.isInteger(body.offset) && (body.offset as number) >= 0 ? body.offset as number : 0;
+    const lim = Number.isInteger(body.limit) ? Math.min(Math.max(body.limit as number, 1), MAX_ROWS) : 3;
+    const r = await sb(`${TABLE}?select=id&${need}&order=created_at.desc&limit=${lim}&offset=${off}`);
+    if (r.ok) ids = ((await r.json()) as Array<{ id?: unknown }>).map((x) => x.id).filter((v): v is string => typeof v === 'string');
+  }
 
   if (!ids.length) return json({ ok: true, results: [], note: 'no id in payload' });
 

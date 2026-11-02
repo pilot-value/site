@@ -122,7 +122,7 @@ begin
   end if;
   perform public.pv_validate_review_payload(p);
   v_air  := btrim(p->>'airline');
-  v_lang := case when p->>'lang' = 'en' then 'en' else 'ja' end;
+  v_lang := case when p->>'lang' in ('en', 'es') then p->>'lang' else 'ja' end;   -- es ＝ スペイン語のページから（2026-11-02）
 
   -- ── 同じ回線から1日5件まで（給与の預かりと同じ数え方。IP が取れない手元の検査では数えない）
   begin

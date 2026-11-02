@@ -30,18 +30,21 @@
   var WRAP = {
     ja: function (label, text) { return '【' + label + '】' + text; },
     en: function (label, text) { return '[' + label + '] ' + text; },
+    es: function (label, text) { return '[' + label + '] ' + text; },
   };
 
   var UI = {
-    ja: { note: '自動翻訳', from: function (l) { return (l === 'en' ? '英語' : '日本語') + 'から自動翻訳'; },
+    ja: { note: '自動翻訳', from: function (l) { return (l === 'en' ? '英語' : l === 'es' ? 'スペイン語' : '日本語') + 'から自動翻訳'; },
           show: '原文を表示', hide: '原文を隠す' },
-    en: { note: 'Machine-translated', from: function (l) { return 'Machine-translated from ' + (l === 'ja' ? 'Japanese' : 'English'); },
-          show: 'Show original', hide: 'Hide original' }, /*PV-MSG:es*/ es: { note: 'Traducido automáticamente', from: function (l) { return 'Traducido automáticamente del ' + (l === 'ja' ? 'japonés' : 'inglés'); },
+    en: { note: 'Machine-translated', from: function (l) { return 'Machine-translated from ' + (l === 'ja' ? 'Japanese' : l === 'es' ? 'Spanish' : 'English'); },
+          show: 'Show original', hide: 'Hide original' }, /*PV-MSG:es*/ es: { note: 'Traducido automáticamente', from: function (l) { return 'Traducido automáticamente del ' + (l === 'ja' ? 'japonés' : l === 'es' ? 'español' : 'inglés'); },
           show: 'Mostrar original', hide: 'Ocultar original' } /*/PV-MSG:es*/,
   };
 
   function lang() {
-    /* スペイン語のページは、口コミの訳が全言語にそろうまで（段3）英語の訳を出す ＝ 英語と同じ動き */
+    /* スペイン語のページはスペイン語の訳（2026-11-02 translate-review が日英西へ訳す）。
+       まだスペイン語の訳が無い口コミは英語の訳に落とす（pick の tr）。 */
+    if (window.PV_LANG === 'es') return 'es';
     if (window.PV_BASE === 'en') return 'en';
     var l = (d.documentElement.getAttribute('lang') || '').toLowerCase();
     return l.indexOf('en') === 0 ? 'en' : 'ja';
@@ -104,7 +107,9 @@
   function pick(row) {
     var to = lang();
     var from = (row && row.orig_lang) || 'ja';
-    var tr = (row && row.translations && row.translations[to]) || null;
+    var T = (row && row.translations) || null;
+    /* スペイン語の訳がまだ無い（言語を足す前の口コミ・埋め戻しの前）→ 英語の訳。原文が英語ならそのまま原文 */
+    var tr = (T && (T[to] || (to === 'es' && from !== 'en' ? T.en : null))) || null;
     var lab = pickT(LABELS, to), wrap = WRAP[to];
 
     // 本文の列が1つも来ていない＝鍵を持っていない。cats だけで組み立てる。
@@ -123,7 +128,7 @@
             「原文を表示」を出し、origHTML() が原文を丸ごと画面に出す。 */
       var cl = (row && row.clip) || null;
       var snip = (cl && cl.k)
-        ? trimMoney(flatten((cl.t && cl.t[to]) || cl.o || '')) : '';
+        ? trimMoney(flatten((cl.t && (cl.t[to] || (to === 'es' && from !== 'en' && cl.t.en))) || cl.o || '')) : '';
       var locked = [];
       for (var c = 0; c < row.cats.length; c++) {
         var ck = row.cats[c];

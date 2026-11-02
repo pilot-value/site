@@ -34,7 +34,7 @@
     ja: {
       latest: '最新の口コミ', seeAll: 'すべての口コミを見る', prev: '前の口コミ', next: '次の口コミ',
       read: 'この投稿を読む',
-      tenure: function (t) { return '勤務年数 ' + t; },
+      tenure: function (t) { return '勤務年数 ' + t; }, yearsWord: '年',
       ten: { '1-5': '1〜5年', '5-10': '5〜10年', '10-15': '10〜15年', '15-20': '15〜20年', '20+': '20年以上' },
       pos: { captain: '機長', fo: '副操縦士', cadet: '訓練生', former: '元乗務員' },
       cat: { culture: '企業文化', salary: '給与', benefits: '福利厚生', wlb: 'ワークライフバランス', ops: '運航環境', training: '訓練環境', mgmt: '経営陣への提案' },
@@ -87,7 +87,7 @@
     en: {
       latest: 'Latest reviews', seeAll: 'See all reviews', prev: 'Previous review', next: 'Next review',
       read: 'Read this review',
-      tenure: function (t) { return t + ' of service'; },
+      tenure: function (t) { return t + ' of service'; }, yearsWord: 'years',
       ten: { '1-5': '1–5 years', '5-10': '5–10 years', '10-15': '10–15 years', '15-20': '15–20 years', '20+': '20+ years' },
       pos: { captain: 'Captain', fo: 'First Officer', cadet: 'Trainee', former: 'Former crew' },
       cat: { culture: 'Culture', salary: 'Pay', benefits: 'Benefits', wlb: 'Work-life balance', ops: 'Flight operations', training: 'Training', mgmt: 'Suggestions for management' },
@@ -139,7 +139,7 @@
     }, /*PV-MSG:es*/ es: {
       latest: 'Últimas reseñas', seeAll: 'Ver todas las reseñas', prev: 'Reseña anterior', next: 'Reseña siguiente',
       read: 'Leer esta reseña',
-      tenure: function (t) { return String(t).replace(/ years?$/, " años") + ' de antigüedad'; },
+      tenure: function (t) { return t + ' de antigüedad'; }, yearsWord: 'años',
       ten: { '1-5': '1–5 años', '5-10': '5–10 años', '10-15': '10–15 años', '15-20': '15–20 años', '20+': '20 años o más' },
       pos: { captain: 'Capitán', fo: 'Primer oficial', cadet: 'Piloto en formación', former: 'Extripulante' },
       cat: { culture: 'Cultura', salary: 'Remuneración', benefits: 'Beneficios', wlb: 'Equilibrio vida-trabajo', ops: 'Operaciones de vuelo', training: 'Entrenamiento', mgmt: 'Sugerencias para la dirección' },
@@ -321,7 +321,7 @@
   }
   function fromSeed(r) {
     return { key: 's' + String(r.id).replace(/[^A-Za-z0-9_-]/g, ''), kind: 'seed', slug: slugOf(r.airline), code: r.airline || '',
-             pos: r.position || '', ten: r.exp || '—', date: ym(r.date), text: String(r.comment || ''), rating: num(Number(r.rating)) };
+             pos: r.position || '', ten: yearsIn(r.exp || '—'), date: ym(r.date), text: String(r.comment || ''), rating: num(Number(r.rating)) };
   }
   function fromLocal(r) {
     var text = [r.payText, r.evalText, r.benefitText, r.scheduleText, r.opsText].filter(Boolean).join('　') || r.comment || '';
@@ -329,8 +329,10 @@
     var iso = isFinite(dt) ? dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') : '';
     var rt = r.avgRating ? Math.round(r.avgRating) : (r.rating || null);
     return { key: 'u' + String(r.ts).replace(/[^0-9]/g, ''), kind: 'local', slug: slugOf(r.airline), code: r.airline || '',
-             pos: r.position || '', ten: r.years || r.experience || '—', date: ym(iso), text: String(text), rating: num(Number(rt)) };
+             pos: r.position || '', ten: yearsIn(r.years || r.experience || '—'), date: ym(iso), text: String(text), rating: num(Number(rt)) };
   }
+  /* 見本・この端末の口コミの年数は英語の字（'16+ years'）で来る。英語の動きのページ（スペイン語も）では、その言語の語に（英語は同じ字のまま） */
+  function yearsIn(s) { s = String(s); return EN && T.yearsWord ? s.replace(/ years$/, function () { return ' ' + T.yearsWord; }) : s; }
   function localItems() {
     var out = [];
     try { (JSON.parse(localStorage.getItem('pv_reviews') || '[]') || []).forEach(function (r) { if (r) out.push(fromLocal(r)); }); } catch (e) {}

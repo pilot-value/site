@@ -122,5 +122,30 @@ console.log('\n▼ 6) pv-session.js の PV_LANG_PAGES');
   ok(m && m[1] === want, 'langs.mjs の pages と同じ（違えば node gen-lang.mjs → node inject-session.mjs → node gen-lang.mjs）', m ? m[1] : '印が無い');
 }
 
+console.log('\n▼ 7) 口コミの本文をどの言語で出すか（review-i18n.js の pick）');
+{
+  /* ★2026-11-02 translate-review が日英西へ訳す。スペイン語のページはスペイン語の訳 → 無ければ英語の訳 → 原文。
+     日英のページの選び方は今までどおり（スペイン語の原文には日英の訳）。 */
+  const src = read('review-i18n.js');
+  const load = (pvLang, htmlLang) => {
+    const w = { PV_LANG: pvLang, PV_BASE: pvLang === 'ja' ? 'ja' : 'en' };
+    w.PV_T = (T, L) => (pvLang === 'es' && T && T.es) || (T && T[L]);
+    const d = { documentElement: { getAttribute: () => htmlLang }, getElementById: () => ({}), createElement: () => ({}), head: { appendChild() {} } };
+    new Function('window', 'document', src)(w, d);
+    return w.PVReviewI18n;
+  };
+  const row = (orig, tr) => ({ orig_lang: orig, translations: tr, culture_comment: 'ORIG-' + orig });
+  const ES = load('es', 'es-419'), EN = load('en', 'en'), JA = load('ja', 'ja');
+  const txt = (R, r) => R.pick(r).cats[0].text;
+  ok(ES && txt(ES, row('ja', { en: { culture: 'EN-TR' }, es: { culture: 'ES-TR' } })) === 'ES-TR', 'スペイン語のページ：スペイン語の訳があればそれ');
+  ok(txt(ES, row('ja', { en: { culture: 'EN-TR' } })) === 'EN-TR', 'スペイン語のページ：スペイン語の訳がまだ無ければ英語の訳（埋め戻しの前）');
+  ok(txt(ES, row('en', { ja: { culture: 'JA-TR' } })) === 'ORIG-en', 'スペイン語のページ：原文が英語で西訳が無ければ原文（日本語の訳を出さない）');
+  ok(txt(ES, row('es', { en: { culture: 'EN-TR' } })) === 'ORIG-es', 'スペイン語のページ：原文がスペイン語なら原文');
+  ok(txt(EN, row('es', { en: { culture: 'EN-TR' }, ja: { culture: 'JA-TR' } })) === 'EN-TR', '英語のページ：スペイン語の原文には英語の訳');
+  ok(txt(JA, row('es', { en: { culture: 'EN-TR' }, ja: { culture: 'JA-TR' } })) === 'JA-TR', '日本語のページ：スペイン語の原文には日本語の訳');
+  ok(txt(JA, row('en', { ja: { culture: 'JA-TR' }, es: { culture: 'ES-TR' } })) === 'JA-TR', '日本語のページ：今までどおり（英語の原文には日本語の訳）');
+  ok(ES.pick(row('ja', { es: { culture: 'ES-TR' } })).translated === true && EN.pick(row('en', {})).translated === false, '訳を出したときだけ「自動翻訳」の印');
+}
+
 console.log(`\n==== ${pass}/${pass + fail} passed ====`);
 process.exit(fail ? 1 : 0);
