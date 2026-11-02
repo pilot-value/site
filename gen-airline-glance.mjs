@@ -814,7 +814,9 @@ ${row(W.evRef, list([...refs, ...extra]))}
 }
 /* 棒の行の、名前の列の幅（em）。字の長さで決める ＝ どの間取りの組でも・どの通貨でも、棒の土台の長さが同じになる。 */
 const emLen = s => [...String(s)].reduce((n, ch) => n + (/[\x20-\x7e]/.test(ch) ? 0.58 : 1), 0);
-const RB_V = 9;                       // 額の列の幅（em・12.5px の字で）。どの通貨の額も入る長さ
+/* 額の列の幅（em・12.5px の字で）。どの通貨の額も入る長さ。英語は「USD 2,190 a month」と後ろに a month が付くぶん長い
+   （9em だと米国の会社の英語ページで額が箱の右端を1pxはみ出していた。2026-11-03 実測）。日本語は今までと1文字も同じ */
+const rbV = () => (LANG === 'en' ? 10.5 : 9);
 /* 家賃の棒（都市に1組）。0 から・全部の間取りで同じ目盛・同じ長さの土台・額の無い行に棒を出さない。並びは台帳の順（並べ替えない）。
    行は、団地ごとの家賃（estates）が在れば団地（名前の下に街の名前・額の横に件数）、無ければ額を持つ街（額の無い街は棒の組に行を持たない）。
    どの行にも data-town（その行の街の鍵）を付ける ── 選んだ街の行に印を付けるのは pv-glance.js。 */
@@ -836,7 +838,7 @@ function rentBars(L) {
       none: '<span class="pvg-none">—</span>' })),
   })).join('\n');
   const lead = L.rents.find(r => r.lead);
-  return `<div class="pvg-rb" data-pvg-rent style="--rb-n:${nameEm}em;--rb-v:${RB_V}em">
+  return `<div class="pvg-rb" data-pvg-rent style="--rb-n:${nameEm}em;--rb-v:${rbV()}em">
 <div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">${W.rent}<small>${esc(L.measure)}${W.sep}${perSpan(L)}</small></p>
 <div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
 ${L.bars.map(k => `<button type="button" class="pvg-rb-b" data-pvg-size="${esc(k)}" aria-pressed="${k === L.leadCol ? 'true' : 'false'}">${esc(L.words[k])}</button>`).join('\n')}
@@ -856,10 +858,16 @@ function livingCell(v) {
       note: W.rentNone, body: asks(v.slug, LIVE_ASK),
     });
   }
-  /* 街の欄（拠点の街ごとに1つ。先行5社は1つ）。並びは拠点の順。 */
-  const section = C => {
+  /* 街の欄（拠点の街ごとに1つ。先行5社は1つ）。並びは拠点の順。
+     ★2026-11-03 オーナー「複数ある都市を羅列ではなく、タブとかにして選んだらその都市見れるようにして」──
+       都市が2つ以上の会社は、欄の上に都市のタブを置き、選んだ都市の欄だけを出す（切り替えるのは pv-glance.js）。
+       動かなければタブは出ず、都市の欄が縦に並んだまま（中身は1つも消えない）。都市が1つの会社は1文字も変わらない。 */
+  const all = v.livings && v.livings.length ? v.livings : [L];
+  const multi = all.length > 1;
+  const section = (C, i) => {
     const t = townTracks(C.rents.length), sizes = townSizes(t);
-    return `<section class="pvg-liv" data-pvg-towns data-city="${esc(C.cityKey)}" data-base="${esc(C === townLiving(v) ? baseCode(v) : C.airports[0].iata)}">
+    const tab = multi ? ` id="pvg-lv-${esc(C.cityKey)}" role="tabpanel" aria-labelledby="pvg-lvt-${esc(C.cityKey)}"` : '';
+    return `<section class="pvg-liv" data-pvg-towns data-city="${esc(C.cityKey)}" data-base="${esc(C === townLiving(v) ? baseCode(v) : C.airports[0].iata)}"${tab}>
 ${livingHead(v, C)}
 <ul class="pvg-tgrid" data-n="${C.rents.length}" style="--tg-a:${t.a};--tg-b:${t.b};--tg-c:${t.c};--tg-d:${t.d}">
 ${C.rents.map(r => townCard(C, r, sizes)).join('\n')}
@@ -872,8 +880,8 @@ ${C.rents.map(r => townDetail(v, C, r)).join('\n')}
 ${cityEvidence(v, C)}
 </section>`;
   };
-  const all = v.livings && v.livings.length ? v.livings : [L];
-  const towns = all.map(section).join('\n');
+  const cityTabs = `<div class="pvg-lvt" role="tablist" aria-label="${W.liveCities}">${all.map((C, i) => `<button type="button" class="pvg-pill" role="tab" id="pvg-lvt-${esc(C.cityKey)}" data-pvg-liv="${esc(C.cityKey)}" aria-controls="pvg-lv-${esc(C.cityKey)}" aria-selected="${i ? 'false' : 'true'}">${esc(C.city)}<small>${C.airports.map(a => esc(a.iata)).join(W.codes)}</small></button>`).join('')}</div>`;
+  const towns = multi ? `<div class="pvg-livs" data-pvg-livs>\n${cityTabs}\n${all.map(section).join('\n')}\n</div>` : all.map(section).join('\n');
   const credits = placeCredits(all.flatMap(C => C.rents.map(r => [townName(r).main, PLACE.primary(r.key), r.key])));
   const has = !!L.leadCol && lead.value[L.leadCol] != null, way = lead.way;
   /* 概要に出す移動の1行：by_town の都市は、先頭の街のカードの行。まだの都市は、今までの lead の行。 */
@@ -1374,7 +1382,7 @@ export const WORDS = Object.freeze({
     moved: (labels, n) => `${labels}は「勤務・訓練」に載せています。`, seeWork: '勤務・訓練で見る', pilotAns3: 'パイロットの回答（3人そろった項目だけ）',
     per: Object.freeze({ year: ['年 ', ''], month: ['月 ', ''], week: ['週 ', ''] }), perSpan: Object.freeze({ month: '1か月あたり', week: '1週あたり' }),
     mode: Object.freeze({ ...MODE_JA }), kind: Object.freeze({ ...KIND_JA }), ride: n => `乗車${n}分`,
-    photoCr: '写真の出典', liveArea: '住むエリア', liveGm: '空港までの時間は Google マップの表示', townAdd: '＋パイロットに人気の街を追加',
+    photoCr: '写真の出典', liveArea: '住むエリア', liveCities: '住む都市', liveGm: '空港までの時間は Google マップの表示', townAdd: '＋パイロットに人気の街を追加',
     details: '詳細', waysNone: '空港までの時間と手段は、資料を確認できていません', taxiNone: '運賃や時間の資料を確認できていません',
     taxiAdd: '会社のタクシーの条件を追加', rent: '家賃', rentNone: '家賃の資料を確認できていません', toAirport: '空港までの移動',
     gmShown: 'Google マップの表示', stationAirport: '駅と空港のあいだ', gmSee: 'Google マップで見る', gmName: 'Google マップ',
@@ -1451,7 +1459,7 @@ export const WORDS = Object.freeze({
     per: Object.freeze({ year: ['', ' a year'], month: ['', ' a month'], week: ['', ' a week'] }), perSpan: Object.freeze({ month: 'per month', week: 'per week' }),
     mode: Object.freeze({ train: 'Train', taxi: 'Taxi', bus: 'Bus', car: 'Car' }), kind: Object.freeze({ walk_total: 'incl. walking', shown_total: 'route total', drive: '' }),
     ride: n => `${n} min ride`,
-    photoCr: 'Photo credits', liveArea: 'Where to live', liveGm: 'Travel times to the airport, as shown on Google Maps', townAdd: '+ Add a town popular with pilots',
+    photoCr: 'Photo credits', liveArea: 'Where to live', liveCities: 'Cities', liveGm: 'Travel times to the airport, as shown on Google Maps', townAdd: '+ Add a town popular with pilots',
     details: 'Details', waysNone: 'We have not been able to confirm sources for travel times and transport to the airport',
     taxiNone: 'We have not been able to confirm sources for fares or travel times', taxiAdd: 'Add the airline’s taxi rules',
     rent: 'Rent', rentNone: 'We have not been able to confirm rent sources', toAirport: 'Getting to the airport',

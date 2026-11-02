@@ -818,8 +818,22 @@ for (const s of ROLLED) {
   const fl = (g.match(/<div class="pvg-fleet">[\s\S]*?<\/ul><\/div>/) || [''])[0], chips = (fl.match(/<li /g) || []).length;
   ok(chips === v.company.fleet.length && (chips > 0 || !SAMPLES.includes(s)) && !/<b>|機種|\d+機/.test(fl), `E ${s}: 機材は型式の札だけ（${chips}つ・機数も「◯機種」も書かない）`, fl.replace(/<[^>]+>/g, ' ').slice(0, 120));
   /* 暮らし：街は拠点の順。どの街の欄にも、その街の拠点の空港の移動の行だけ。家賃の無い街は今までの字 */
-  const starts = [...g.matchAll(/<section class="pvg-liv" data-pvg-towns data-city="([^"]+)" data-base="([A-Z]{3})">/g)];
+  const starts = [...g.matchAll(/<section class="pvg-liv" data-pvg-towns data-city="([^"]+)" data-base="([A-Z]{3})"([^>]*)>/g)];
   const order = starts.map(m => m[1]), want = v.livings.map(L => L.cityKey);
+  /* ★2026-11-03 オーナー「複数ある都市を羅列ではなく、タブとかにして選んだらその都市見れるようにして」──
+     都市が2つ以上なら、欄の上に都市のタブが欄と同じ数・同じ順（最初のタブが選ばれている・タブと欄が id で対）。1つなら、タブも枠も無い（1文字も変わらない） */
+  {
+    const strip = (/<div class="pvg-lvt" role="tablist"[^>]*>([\s\S]*?)<\/div>/.exec(g) || [])[1];
+    const tabs = strip ? [...strip.matchAll(/<button type="button" class="pvg-pill" role="tab" id="pvg-lvt-([^"]+)" data-pvg-liv="([^"]+)" aria-controls="pvg-lv-([^"]+)" aria-selected="(true|false)">/g)] : [];
+    const bad = [];
+    if (starts.length > 1) {
+      if (!/<div class="pvg-livs" data-pvg-livs>\n<div class="pvg-lvt"/.test(g)) bad.push('タブの枠が欄の上に無い');
+      if (!same(tabs.map(t => t[2]), order)) bad.push(`タブ ${tabs.map(t => t[2]).join(',')} ／ 欄 ${order.join(',')}`);
+      tabs.forEach((t, i) => { if (t[1] !== t[2] || t[3] !== t[2]) bad.push(`${t[2]}: id が対でない`); if ((t[4] === 'true') !== !i) bad.push(`${t[2]}: 選ばれている印`); });
+      starts.forEach(m => { if (m[3] !== ` id="pvg-lv-${m[1]}" role="tabpanel" aria-labelledby="pvg-lvt-${m[1]}"`) bad.push(`${m[1]}: 欄の札「${m[3]}」`); });
+    } else if (strip != null || /data-pvg-livs/.test(g) || starts.some(m => m[3])) bad.push('都市が1つなのにタブがある');
+    ok(!bad.length, `E ${s}: 暮らしの都市が2つ以上ならタブ（${starts.length > 1 ? `${tabs.length}都市` : '1都市・タブなし'}）`, bad.join(' ／ '));
+  }
   const base = v.base.iata, baseOrder = v.livings.map(L => base.findIndex(c => L.airports.some(a => a.iata === c)));
   ok((order.length >= 1 || !v.livings.length) && same(order, want) && baseOrder.every((x, i) => x >= 0 && (!i || x > baseOrder[i - 1])), `E ${s}: 暮らしの街の欄は拠点の順（${order.join('・')}）`, `${order.join(',')} ／ 拠点 ${base.join(',')}`);
   /* 見てよい空港は、台帳から（読み口の答えを使わない）：先行5社の台帳の街はその街の空港のうち会社の拠点の空港・調べの台帳の街は字の表（CITY）の空港

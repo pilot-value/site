@@ -123,7 +123,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </style>
 <!--PV-GLANCE-HEAD-->
 <link rel="stylesheet" href="../../career-live.css?v=99f8b57a">
-<link rel="stylesheet" href="../../pv-glance.css?v=dcd968b6">
+<link rel="stylesheet" href="../../pv-glance.css?v=d63311bf">
 <link rel="stylesheet" href="../../pv-gg.css?v=fcf7ad09">
 <link rel="stylesheet" href="../../pv-contrib.css?v=45fd85fa">
 <link rel="stylesheet" href="../../career-stay.css?v=fa905cac">
@@ -354,7 +354,9 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </article>
 <div class="pvg-card pvg-panel" id="pvg-p-living" data-panel="living" data-pvg-pane="overview life" hidden>
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"/></svg></span><h3 class="pvg-ptitle">Living</h3><button type="button" class="pvg-x" aria-label="Close"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-<section class="pvg-liv" data-pvg-towns data-city="us-sea" data-base="SEA">
+<div class="pvg-livs" data-pvg-livs>
+<div class="pvg-lvt" role="tablist" aria-label="Cities"><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-sea" data-pvg-liv="us-sea" aria-controls="pvg-lv-us-sea" aria-selected="true">Seattle / Everett<small>SEA</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-anc" data-pvg-liv="us-anc" aria-controls="pvg-lv-us-anc" aria-selected="false">Anchorage<small>ANC</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-pdx" data-pvg-liv="us-pdx" aria-controls="pvg-lv-us-pdx" aria-selected="false">Portland<small>PDX</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-lax" data-pvg-liv="us-lax" aria-controls="pvg-lv-us-lax" aria-selected="false">Los Angeles<small>LAX</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-bay" data-pvg-liv="us-bay" aria-controls="pvg-lv-us-bay" aria-selected="false">San Francisco Bay Area<small>SFO</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-san" data-pvg-liv="us-san" aria-controls="pvg-lv-us-san" aria-selected="false">San Diego<small>SAN</small></button></div>
+<section class="pvg-liv" data-pvg-towns data-city="us-sea" data-base="SEA" id="pvg-lv-us-sea" role="tabpanel" aria-labelledby="pvg-lvt-us-sea">
 <header class="pvg-liv-h"><p class="pvg-askh">Where to live<small>Seattle / Everett · SEA</small></p></header>
 <ul class="pvg-tgrid" data-n="3" style="--tg-a:2;--tg-b:3;--tg-c:3;--tg-d:3">
 <li><button type="button" class="pvg-town" data-town="us-mercer-island" aria-controls="pvg-town-us-mercer-island" aria-pressed="false">
@@ -412,7 +414,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 </section>
 </div>
-<div class="pvg-rb" data-pvg-rent style="--rb-n:8em;--rb-v:9em">
+<div class="pvg-rb" data-pvg-rent style="--rb-n:8em;--rb-v:10.5em">
 <div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">Rent<small>Rent benchmark by ZIP code, utilities included · per month</small></p>
 <div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
 <button type="button" class="pvg-rb-b" data-pvg-size="bed1" aria-pressed="true">1-Bed</button>
@@ -455,7 +457,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="us-anc" data-base="ANC">
+<section class="pvg-liv" data-pvg-towns data-city="us-anc" data-base="ANC" id="pvg-lv-us-anc" role="tabpanel" aria-labelledby="pvg-lvt-us-anc">
 <header class="pvg-liv-h"><p class="pvg-askh">Where to live<small>Anchorage · ANC</small></p></header>
 <ul class="pvg-tgrid" data-n="2" style="--tg-a:2;--tg-b:2;--tg-c:2;--tg-d:2">
 <li><button type="button" class="pvg-town" data-town="us-south-anchorage-hillside" aria-controls="pvg-town-us-south-anchorage-hillside" aria-pressed="false">
@@ -496,7 +498,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 </section>
 </div>
-<div class="pvg-rb" data-pvg-rent style="--rb-n:9em;--rb-v:9em">
+<div class="pvg-rb" data-pvg-rent style="--rb-n:9em;--rb-v:10.5em">
 <div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">Rent<small>Rent benchmark by ZIP code, utilities included · per month</small></p>
 <div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
 <button type="button" class="pvg-rb-b" data-pvg-size="bed1" aria-pressed="true">1-Bed</button>
@@ -536,7 +538,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="us-pdx" data-base="PDX">
+<section class="pvg-liv" data-pvg-towns data-city="us-pdx" data-base="PDX" id="pvg-lv-us-pdx" role="tabpanel" aria-labelledby="pvg-lvt-us-pdx">
 <header class="pvg-liv-h"><p class="pvg-askh">Where to live<small>Portland · PDX</small></p></header>
 <ul class="pvg-tgrid" data-n="2" style="--tg-a:2;--tg-b:2;--tg-c:2;--tg-d:2">
 <li><button type="button" class="pvg-town" data-town="us-lake-oswego" aria-controls="pvg-town-us-lake-oswego" aria-pressed="false">
@@ -577,7 +579,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 </section>
 </div>
-<div class="pvg-rb" data-pvg-rent style="--rb-n:8em;--rb-v:9em">
+<div class="pvg-rb" data-pvg-rent style="--rb-n:8em;--rb-v:10.5em">
 <div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">Rent<small>Rent benchmark by ZIP code, utilities included · per month</small></p>
 <div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
 <button type="button" class="pvg-rb-b" data-pvg-size="bed1" aria-pressed="true">1-Bed</button>
@@ -617,7 +619,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="us-lax" data-base="LAX">
+<section class="pvg-liv" data-pvg-towns data-city="us-lax" data-base="LAX" id="pvg-lv-us-lax" role="tabpanel" aria-labelledby="pvg-lvt-us-lax">
 <header class="pvg-liv-h"><p class="pvg-askh">Where to live<small>Los Angeles · LAX</small></p></header>
 <ul class="pvg-tgrid" data-n="2" style="--tg-a:2;--tg-b:2;--tg-c:2;--tg-d:2">
 <li><button type="button" class="pvg-town" data-town="us-manhattan-beach" aria-controls="pvg-town-us-manhattan-beach" aria-pressed="false">
@@ -658,7 +660,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 </section>
 </div>
-<div class="pvg-rb" data-pvg-rent style="--rb-n:9em;--rb-v:9em">
+<div class="pvg-rb" data-pvg-rent style="--rb-n:9em;--rb-v:10.5em">
 <div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">Rent<small>Rent benchmark by ZIP code, utilities included · per month</small></p>
 <div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
 <button type="button" class="pvg-rb-b" data-pvg-size="bed1" aria-pressed="true">1-Bed</button>
@@ -698,7 +700,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="us-bay" data-base="SFO">
+<section class="pvg-liv" data-pvg-towns data-city="us-bay" data-base="SFO" id="pvg-lv-us-bay" role="tabpanel" aria-labelledby="pvg-lvt-us-bay">
 <header class="pvg-liv-h"><p class="pvg-askh">Where to live<small>San Francisco Bay Area · SFO</small></p></header>
 <ul class="pvg-tgrid" data-n="3" style="--tg-a:2;--tg-b:3;--tg-c:3;--tg-d:3">
 <li><button type="button" class="pvg-town" data-town="us-san-mateo" aria-controls="pvg-town-us-san-mateo" aria-pressed="false">
@@ -756,7 +758,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 </section>
 </div>
-<div class="pvg-rb" data-pvg-rent style="--rb-n:6.5em;--rb-v:9em">
+<div class="pvg-rb" data-pvg-rent style="--rb-n:6.5em;--rb-v:10.5em">
 <div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">Rent<small>Rent benchmark by ZIP code, utilities included · per month</small></p>
 <div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
 <button type="button" class="pvg-rb-b" data-pvg-size="bed1" aria-pressed="true">1-Bed</button>
@@ -799,7 +801,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="us-san" data-base="SAN">
+<section class="pvg-liv" data-pvg-towns data-city="us-san" data-base="SAN" id="pvg-lv-us-san" role="tabpanel" aria-labelledby="pvg-lvt-us-san">
 <header class="pvg-liv-h"><p class="pvg-askh">Where to live<small>San Diego · SAN</small></p></header>
 <ul class="pvg-tgrid" data-n="2" style="--tg-a:2;--tg-b:2;--tg-c:2;--tg-d:2">
 <li><button type="button" class="pvg-town" data-town="us-coronado" aria-controls="pvg-town-us-coronado" aria-pressed="false">
@@ -840,7 +842,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 </section>
 </div>
-<div class="pvg-rb" data-pvg-rent style="--rb-n:7em;--rb-v:9em">
+<div class="pvg-rb" data-pvg-rent style="--rb-n:7em;--rb-v:10.5em">
 <div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">Rent<small>Rent benchmark by ZIP code, utilities included · per month</small></p>
 <div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
 <button type="button" class="pvg-rb-b" data-pvg-size="bed1" aria-pressed="true">1-Bed</button>
@@ -879,7 +881,8 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
 
 </dl></details>
-</section><details class="pvg-dt pvg-srcd pvg-phc"><summary>Photo credits<small>13</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><ul class="pvg-phl"><li data-cr="us-mercer-island"><b>Mercer Island</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Aerial_photo_of_Mercer_Island,_Washington.jpg" target="_blank" rel="noopener">Dllu</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-burien"><b>Burien</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Seahurst_Park_01.jpg" target="_blank" rel="noopener">Joe Mabel</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-mukilteo"><b>Mukilteo</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Mulkiteo,_WA_waterfront.JPG" target="_blank" rel="noopener">Compdude123</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a> (resized and cropped)</span></li><li data-cr="us-south-anchorage-hillside"><b>South Anchorage Hillside</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Hillside_from_Rabbit_Creek.jpg" target="_blank" rel="noopener">James Brooks</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by/2.0" target="_blank" rel="noopener">CC BY 2.0</a> (resized and cropped)</span></li><li data-cr="us-eagle-river"><b>Eagle River</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Fall_colors_near_the_end_of_Hiland_Road,_Eagle_River_(4141113879).jpg" target="_blank" rel="noopener">Frank Kovalchek from USA</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by/2.0" target="_blank" rel="noopener">CC BY 2.0</a> (resized and cropped)</span></li><li data-cr="us-lake-oswego"><b>Lake Oswego</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Lake_Oswego,_Oregon_(2018)_-_29.jpg" target="_blank" rel="noopener">Another Believer</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-vancouver-wa"><b>Vancouver, WA</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Vancouver_Waterfront_and_Interstate_Bridge_from_Grant_Street_Pier,_2020.jpg" target="_blank" rel="noopener">Steve Morgan</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-manhattan-beach"><b>Manhattan Beach</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:The_Manhattan_Beach_Pier.jpg" target="_blank" rel="noopener">Jacob Gelman</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-el-segundo"><b>El Segundo</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Recreation_Park_-_El_Segundo.jpg" target="_blank" rel="noopener">DocFreeman24</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-san-mateo"><b>San Mateo</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:B_Street_San_Mateo_1_2023-06-03.jpeg" target="_blank" rel="noopener">FASTILY</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-burlingame"><b>Burlingame</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:BBB2.jpg" target="_blank" rel="noopener">Javelinca</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-coronado"><b>Coronado</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Orange_Avenue,_Coronado_-_panoramio.jpg" target="_blank" rel="noopener">nick hoke</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by/3.0" target="_blank" rel="noopener">CC BY 3.0</a> (resized and cropped)</span></li><li data-cr="us-chula-vista"><b>Chula Vista</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Trees_in_Chula_Vista_Bayfront_Park.jpg" target="_blank" rel="noopener">Ryuch</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li></ul></details>
+</section>
+</div><details class="pvg-dt pvg-srcd pvg-phc"><summary>Photo credits<small>13</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><ul class="pvg-phl"><li data-cr="us-mercer-island"><b>Mercer Island</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Aerial_photo_of_Mercer_Island,_Washington.jpg" target="_blank" rel="noopener">Dllu</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-burien"><b>Burien</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Seahurst_Park_01.jpg" target="_blank" rel="noopener">Joe Mabel</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-mukilteo"><b>Mukilteo</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Mulkiteo,_WA_waterfront.JPG" target="_blank" rel="noopener">Compdude123</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a> (resized and cropped)</span></li><li data-cr="us-south-anchorage-hillside"><b>South Anchorage Hillside</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Hillside_from_Rabbit_Creek.jpg" target="_blank" rel="noopener">James Brooks</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by/2.0" target="_blank" rel="noopener">CC BY 2.0</a> (resized and cropped)</span></li><li data-cr="us-eagle-river"><b>Eagle River</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Fall_colors_near_the_end_of_Hiland_Road,_Eagle_River_(4141113879).jpg" target="_blank" rel="noopener">Frank Kovalchek from USA</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by/2.0" target="_blank" rel="noopener">CC BY 2.0</a> (resized and cropped)</span></li><li data-cr="us-lake-oswego"><b>Lake Oswego</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Lake_Oswego,_Oregon_(2018)_-_29.jpg" target="_blank" rel="noopener">Another Believer</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-vancouver-wa"><b>Vancouver, WA</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Vancouver_Waterfront_and_Interstate_Bridge_from_Grant_Street_Pier,_2020.jpg" target="_blank" rel="noopener">Steve Morgan</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-manhattan-beach"><b>Manhattan Beach</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:The_Manhattan_Beach_Pier.jpg" target="_blank" rel="noopener">Jacob Gelman</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-el-segundo"><b>El Segundo</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Recreation_Park_-_El_Segundo.jpg" target="_blank" rel="noopener">DocFreeman24</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-san-mateo"><b>San Mateo</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:B_Street_San_Mateo_1_2023-06-03.jpeg" target="_blank" rel="noopener">FASTILY</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-burlingame"><b>Burlingame</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:BBB2.jpg" target="_blank" rel="noopener">Javelinca</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-coronado"><b>Coronado</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Orange_Avenue,_Coronado_-_panoramio.jpg" target="_blank" rel="noopener">nick hoke</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by/3.0" target="_blank" rel="noopener">CC BY 3.0</a> (resized and cropped)</span></li><li data-cr="us-chula-vista"><b>Chula Vista</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Trees_in_Chula_Vista_Bayfront_Park.jpg" target="_blank" rel="noopener">Ryuch</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li></ul></details>
 </div>
 </div>
 </div>
@@ -2011,7 +2014,7 @@ var tb=document.getElementById('theme-toggle');if(tb){tb.innerHTML=document.docu
 <script src="../../airlines/airline-reviews-ui.js"></script>
 <!--PV-GLANCE-JS-->
 <script src="../../career-live.js?v=8dc5f0a2"></script>
-<script src="../../pv-glance.js?v=bf8a9701"></script>
+<script src="../../pv-glance.js?v=977ddad5"></script>
 <script src="../../pv-contrib.js?v=ecb006c8"></script>
 <script src="../../pv-proof-offer.js?v=cc4ef913"></script>
 <script src="../../pv-hotel-suggest.js?v=179d17b8"></script>

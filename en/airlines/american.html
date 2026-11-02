@@ -123,7 +123,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </style>
 <!--PV-GLANCE-HEAD-->
 <link rel="stylesheet" href="../../career-live.css?v=99f8b57a">
-<link rel="stylesheet" href="../../pv-glance.css?v=dcd968b6">
+<link rel="stylesheet" href="../../pv-glance.css?v=d63311bf">
 <link rel="stylesheet" href="../../pv-gg.css?v=fcf7ad09">
 <link rel="stylesheet" href="../../pv-contrib.css?v=45fd85fa">
 <link rel="stylesheet" href="../../career-stay.css?v=fa905cac">
@@ -363,7 +363,9 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </article>
 <div class="pvg-card pvg-panel" id="pvg-p-living" data-panel="living" data-pvg-pane="overview life" hidden>
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"/></svg></span><h3 class="pvg-ptitle">Living</h3><button type="button" class="pvg-x" aria-label="Close"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-<section class="pvg-liv" data-pvg-towns data-city="us-dfw" data-base="DFW">
+<div class="pvg-livs" data-pvg-livs>
+<div class="pvg-lvt" role="tablist" aria-label="Cities"><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-dfw" data-pvg-liv="us-dfw" aria-controls="pvg-lv-us-dfw" aria-selected="true">Dallas–Fort Worth<small>DFW</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-clt" data-pvg-liv="us-clt" aria-controls="pvg-lv-us-clt" aria-selected="false">Charlotte<small>CLT</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-mia" data-pvg-liv="us-mia" aria-controls="pvg-lv-us-mia" aria-selected="false">Miami<small>MIA</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-phl" data-pvg-liv="us-phl" aria-controls="pvg-lv-us-phl" aria-selected="false">Philadelphia<small>PHL</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-chi" data-pvg-liv="us-chi" aria-controls="pvg-lv-us-chi" aria-selected="false">Chicago<small>ORD</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-phx" data-pvg-liv="us-phx" aria-controls="pvg-lv-us-phx" aria-selected="false">Phoenix / Mesa<small>PHX</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-lax" data-pvg-liv="us-lax" aria-controls="pvg-lv-us-lax" aria-selected="false">Los Angeles<small>LAX</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-nyc" data-pvg-liv="us-nyc" aria-controls="pvg-lv-us-nyc" aria-selected="false">New York / New Jersey<small>JFK · LGA</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-dc" data-pvg-liv="us-dc" aria-controls="pvg-lv-us-dc" aria-selected="false">Washington, D.C.<small>DCA</small></button></div>
+<section class="pvg-liv" data-pvg-towns data-city="us-dfw" data-base="DFW" id="pvg-lv-us-dfw" role="tabpanel" aria-labelledby="pvg-lvt-us-dfw">
 <header class="pvg-liv-h"><p class="pvg-askh">Where to live<small>Dallas–Fort Worth · DFW</small></p></header>
 <ul class="pvg-tgrid" data-n="3" style="--tg-a:2;--tg-b:3;--tg-c:3;--tg-d:3">
 <li><button type="button" class="pvg-town" data-town="us-southlake" aria-controls="pvg-town-us-southlake" aria-pressed="false">
@@ -421,7 +423,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 </section>
 </div>
-<div class="pvg-rb" data-pvg-rent style="--rb-n:9em;--rb-v:9em">
+<div class="pvg-rb" data-pvg-rent style="--rb-n:9em;--rb-v:10.5em">
 <div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">Rent<small>Rent benchmark by ZIP code, utilities included · per month</small></p>
 <div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
 <button type="button" class="pvg-rb-b" data-pvg-size="bed1" aria-pressed="true">1-Bed</button>
@@ -464,7 +466,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="us-clt" data-base="CLT">
+<section class="pvg-liv" data-pvg-towns data-city="us-clt" data-base="CLT" id="pvg-lv-us-clt" role="tabpanel" aria-labelledby="pvg-lvt-us-clt">
 <header class="pvg-liv-h"><p class="pvg-askh">Where to live<small>Charlotte · CLT</small></p></header>
 <ul class="pvg-tgrid" data-n="2" style="--tg-a:2;--tg-b:2;--tg-c:2;--tg-d:2">
 <li><button type="button" class="pvg-town" data-town="us-davidson" aria-controls="pvg-town-us-davidson" aria-pressed="false">
@@ -505,7 +507,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 </section>
 </div>
-<div class="pvg-rb" data-pvg-rent style="--rb-n:5.5em;--rb-v:9em">
+<div class="pvg-rb" data-pvg-rent style="--rb-n:5.5em;--rb-v:10.5em">
 <div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">Rent<small>Rent benchmark by ZIP code, utilities included · per month</small></p>
 <div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
 <button type="button" class="pvg-rb-b" data-pvg-size="bed1" aria-pressed="true">1-Bed</button>
@@ -545,7 +547,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="us-mia" data-base="MIA">
+<section class="pvg-liv" data-pvg-towns data-city="us-mia" data-base="MIA" id="pvg-lv-us-mia" role="tabpanel" aria-labelledby="pvg-lvt-us-mia">
 <header class="pvg-liv-h"><p class="pvg-askh">Where to live<small>Miami · MIA</small></p></header>
 <ul class="pvg-tgrid" data-n="2" style="--tg-a:2;--tg-b:2;--tg-c:2;--tg-d:2">
 <li><button type="button" class="pvg-town" data-town="us-pinecrest" aria-controls="pvg-town-us-pinecrest" aria-pressed="false">
@@ -586,7 +588,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 </section>
 </div>
-<div class="pvg-rb" data-pvg-rent style="--rb-n:6em;--rb-v:9em">
+<div class="pvg-rb" data-pvg-rent style="--rb-n:6em;--rb-v:10.5em">
 <div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">Rent<small>Rent benchmark by ZIP code, utilities included · per month</small></p>
 <div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
 <button type="button" class="pvg-rb-b" data-pvg-size="bed1" aria-pressed="true">1-Bed</button>
@@ -626,7 +628,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="us-phl" data-base="PHL">
+<section class="pvg-liv" data-pvg-towns data-city="us-phl" data-base="PHL" id="pvg-lv-us-phl" role="tabpanel" aria-labelledby="pvg-lvt-us-phl">
 <header class="pvg-liv-h"><p class="pvg-askh">Where to live<small>Philadelphia · PHL</small></p></header>
 <ul class="pvg-tgrid" data-n="2" style="--tg-a:2;--tg-b:2;--tg-c:2;--tg-d:2">
 <li><button type="button" class="pvg-town" data-town="us-bala-cynwyd-lower-merion-area" aria-controls="pvg-town-us-bala-cynwyd-lower-merion-area" aria-pressed="false">
@@ -667,7 +669,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 </section>
 </div>
-<div class="pvg-rb" data-pvg-rent style="--rb-n:9em;--rb-v:9em">
+<div class="pvg-rb" data-pvg-rent style="--rb-n:9em;--rb-v:10.5em">
 <div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">Rent<small>Rent benchmark by ZIP code, utilities included · per month</small></p>
 <div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
 <button type="button" class="pvg-rb-b" data-pvg-size="bed1" aria-pressed="true">1-Bed</button>
@@ -707,7 +709,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="us-chi" data-base="ORD">
+<section class="pvg-liv" data-pvg-towns data-city="us-chi" data-base="ORD" id="pvg-lv-us-chi" role="tabpanel" aria-labelledby="pvg-lvt-us-chi">
 <header class="pvg-liv-h"><p class="pvg-askh">Where to live<small>Chicago · ORD</small></p></header>
 <ul class="pvg-tgrid" data-n="3" style="--tg-a:2;--tg-b:3;--tg-c:3;--tg-d:3">
 <li><button type="button" class="pvg-town" data-town="us-hinsdale" aria-controls="pvg-town-us-hinsdale" aria-pressed="false">
@@ -765,7 +767,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 </section>
 </div>
-<div class="pvg-rb" data-pvg-rent style="--rb-n:6.5em;--rb-v:9em">
+<div class="pvg-rb" data-pvg-rent style="--rb-n:6.5em;--rb-v:10.5em">
 <div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">Rent<small>Rent benchmark by ZIP code, utilities included · per month</small></p>
 <div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
 <button type="button" class="pvg-rb-b" data-pvg-size="bed1" aria-pressed="true">1-Bed</button>
@@ -808,7 +810,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="us-phx" data-base="PHX">
+<section class="pvg-liv" data-pvg-towns data-city="us-phx" data-base="PHX" id="pvg-lv-us-phx" role="tabpanel" aria-labelledby="pvg-lvt-us-phx">
 <header class="pvg-liv-h"><p class="pvg-askh">Where to live<small>Phoenix / Mesa · PHX</small></p></header>
 <ul class="pvg-tgrid" data-n="3" style="--tg-a:2;--tg-b:3;--tg-c:3;--tg-d:3">
 <li><button type="button" class="pvg-town" data-town="us-paradise-valley" aria-controls="pvg-town-us-paradise-valley" aria-pressed="false">
@@ -866,7 +868,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 </section>
 </div>
-<div class="pvg-rb" data-pvg-rent style="--rb-n:9em;--rb-v:9em">
+<div class="pvg-rb" data-pvg-rent style="--rb-n:9em;--rb-v:10.5em">
 <div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">Rent<small>Rent benchmark by ZIP code, utilities included · per month</small></p>
 <div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
 <button type="button" class="pvg-rb-b" data-pvg-size="bed1" aria-pressed="true">1-Bed</button>
@@ -909,7 +911,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="us-lax" data-base="LAX">
+<section class="pvg-liv" data-pvg-towns data-city="us-lax" data-base="LAX" id="pvg-lv-us-lax" role="tabpanel" aria-labelledby="pvg-lvt-us-lax">
 <header class="pvg-liv-h"><p class="pvg-askh">Where to live<small>Los Angeles · LAX</small></p></header>
 <ul class="pvg-tgrid" data-n="2" style="--tg-a:2;--tg-b:2;--tg-c:2;--tg-d:2">
 <li><button type="button" class="pvg-town" data-town="us-manhattan-beach" aria-controls="pvg-town-us-manhattan-beach" aria-pressed="false">
@@ -950,7 +952,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 </section>
 </div>
-<div class="pvg-rb" data-pvg-rent style="--rb-n:9em;--rb-v:9em">
+<div class="pvg-rb" data-pvg-rent style="--rb-n:9em;--rb-v:10.5em">
 <div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">Rent<small>Rent benchmark by ZIP code, utilities included · per month</small></p>
 <div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
 <button type="button" class="pvg-rb-b" data-pvg-size="bed1" aria-pressed="true">1-Bed</button>
@@ -990,7 +992,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="us-nyc" data-base="JFK">
+<section class="pvg-liv" data-pvg-towns data-city="us-nyc" data-base="JFK" id="pvg-lv-us-nyc" role="tabpanel" aria-labelledby="pvg-lvt-us-nyc">
 <header class="pvg-liv-h"><p class="pvg-askh">Where to live<small>New York / New Jersey · JFK · LGA</small></p></header>
 <ul class="pvg-tgrid" data-n="3" style="--tg-a:2;--tg-b:3;--tg-c:3;--tg-d:3">
 <li><button type="button" class="pvg-town" data-town="us-garden-city" aria-controls="pvg-town-us-garden-city" aria-pressed="false">
@@ -1048,7 +1050,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 </section>
 </div>
-<div class="pvg-rb" data-pvg-rent style="--rb-n:7em;--rb-v:9em">
+<div class="pvg-rb" data-pvg-rent style="--rb-n:7em;--rb-v:10.5em">
 <div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">Rent<small>Rent benchmark by ZIP code, utilities included · per month</small></p>
 <div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
 <button type="button" class="pvg-rb-b" data-pvg-size="bed1" aria-pressed="true">1-Bed</button>
@@ -1091,7 +1093,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="us-dc" data-base="DCA">
+<section class="pvg-liv" data-pvg-towns data-city="us-dc" data-base="DCA" id="pvg-lv-us-dc" role="tabpanel" aria-labelledby="pvg-lvt-us-dc">
 <header class="pvg-liv-h"><p class="pvg-askh">Where to live<small>Washington, D.C. · DCA</small></p></header>
 <ul class="pvg-tgrid" data-n="3" style="--tg-a:2;--tg-b:3;--tg-c:3;--tg-d:3">
 <li><button type="button" class="pvg-town" data-town="us-vienna" aria-controls="pvg-town-us-vienna" aria-pressed="false">
@@ -1149,7 +1151,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 </section>
 </div>
-<div class="pvg-rb" data-pvg-rent style="--rb-n:6.5em;--rb-v:9em">
+<div class="pvg-rb" data-pvg-rent style="--rb-n:6.5em;--rb-v:10.5em">
 <div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">Rent<small>Rent benchmark by ZIP code, utilities included · per month</small></p>
 <div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
 <button type="button" class="pvg-rb-b" data-pvg-size="bed1" aria-pressed="true">1-Bed</button>
@@ -1191,7 +1193,8 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
 
 </dl></details>
-</section><details class="pvg-dt pvg-srcd pvg-phc"><summary>Photo credits<small>18</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><ul class="pvg-phl"><li data-cr="us-southlake"><b>Southlake</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Southlake_TX.JPG" target="_blank" rel="noopener">Fredlyfish4</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a> (resized and cropped)</span></li><li data-cr="us-grapevine"><b>Grapevine</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Grapevine_Commercial_Historic_District1_(1_of_1).jpg" target="_blank" rel="noopener">Renelibrary</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-highland-park-area"><b>Highland Park area</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Highland_Park,_Texas.JPG" target="_blank" rel="noopener">Ansem27 at the English-language Wikipedia</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a> (resized and cropped)</span></li><li data-cr="us-davidson"><b>Davidson</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Commercial_street_Davidson_(6124620552).jpg" target="_blank" rel="noopener">Brett VA</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by/2.0" target="_blank" rel="noopener">CC BY 2.0</a> (resized and cropped)</span></li><li data-cr="us-doral"><b>Doral</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Doral,_Florida.jpg" target="_blank" rel="noopener">Natalialm0110</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-media-area"><b>Media area</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:State_Street_EB_past_Olive_Street_Media_PA.jpeg" target="_blank" rel="noopener">Dough4872</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-hinsdale"><b>Hinsdale</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Downtown_Hinsdale_Block.JPG" target="_blank" rel="noopener">Teemu08 at en.wikipedia</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a> (resized and cropped)</span></li><li data-cr="us-park-ridge"><b>Park Ridge</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Hodges_Park,_Park_Ridge,_IL.jpg" target="_blank" rel="noopener">Nick Number</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by/4.0" target="_blank" rel="noopener">CC BY 4.0</a> (resized and cropped)</span></li><li data-cr="us-oak-lawn"><b>Oak Lawn</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:West_95th_Street,_Oak_Lawn,_Illinois_(7993005951).jpg" target="_blank" rel="noopener">Ken Lund from Reno, Nevada, USA</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a> (resized and cropped)</span></li><li data-cr="us-paradise-valley"><b>Paradise Valley</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Paradise_Valley,_Arizona_(52069353266).jpg" target="_blank" rel="noopener">Gage Skidmore</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a> (resized and cropped)</span></li><li data-cr="us-chandler"><b>Chandler</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:231119-11_Desert_Breeze_Lake.jpg" target="_blank" rel="noopener">Hunter Trick (TrickHunter)</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-scottsdale"><b>Scottsdale</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Scottsdale,_Arizona.jpg" target="_blank" rel="noopener">Quintin Soloviev</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by/4.0" target="_blank" rel="noopener">CC BY 4.0</a> (resized and cropped)</span></li><li data-cr="us-manhattan-beach"><b>Manhattan Beach</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:The_Manhattan_Beach_Pier.jpg" target="_blank" rel="noopener">Jacob Gelman</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-el-segundo"><b>El Segundo</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Recreation_Park_-_El_Segundo.jpg" target="_blank" rel="noopener">DocFreeman24</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-chatham"><b>Chatham</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:2018-08-07_09_09_10_View_west_along_New_Jersey_State_Route_124_(Main_Street)_at_Morris_County_Route_607_(Passaic_Avenue)_in_Chatham,_Morris_County,_New_Jersey.jpg" target="_blank" rel="noopener">Famartin</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-vienna"><b>Vienna</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Vienna,_VA_22180,_USA_-_panoramio.jpg" target="_blank" rel="noopener">Idawriter</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a> (resized and cropped)</span></li><li data-cr="us-alexandria"><b>Alexandria</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Alexandria_from_George_Washington_Masonic_National_Memorial_August_2014.jpg" target="_blank" rel="noopener">ALXCHO</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by/3.0" target="_blank" rel="noopener">CC BY 3.0</a> (resized and cropped)</span></li><li data-cr="us-herndon"><b>Herndon</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Herndon_Depot2.jpg" target="_blank" rel="noopener">Cecouchman</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a> (resized and cropped)</span></li></ul></details>
+</section>
+</div><details class="pvg-dt pvg-srcd pvg-phc"><summary>Photo credits<small>18</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><ul class="pvg-phl"><li data-cr="us-southlake"><b>Southlake</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Southlake_TX.JPG" target="_blank" rel="noopener">Fredlyfish4</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a> (resized and cropped)</span></li><li data-cr="us-grapevine"><b>Grapevine</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Grapevine_Commercial_Historic_District1_(1_of_1).jpg" target="_blank" rel="noopener">Renelibrary</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-highland-park-area"><b>Highland Park area</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Highland_Park,_Texas.JPG" target="_blank" rel="noopener">Ansem27 at the English-language Wikipedia</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a> (resized and cropped)</span></li><li data-cr="us-davidson"><b>Davidson</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Commercial_street_Davidson_(6124620552).jpg" target="_blank" rel="noopener">Brett VA</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by/2.0" target="_blank" rel="noopener">CC BY 2.0</a> (resized and cropped)</span></li><li data-cr="us-doral"><b>Doral</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Doral,_Florida.jpg" target="_blank" rel="noopener">Natalialm0110</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-media-area"><b>Media area</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:State_Street_EB_past_Olive_Street_Media_PA.jpeg" target="_blank" rel="noopener">Dough4872</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-hinsdale"><b>Hinsdale</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Downtown_Hinsdale_Block.JPG" target="_blank" rel="noopener">Teemu08 at en.wikipedia</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a> (resized and cropped)</span></li><li data-cr="us-park-ridge"><b>Park Ridge</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Hodges_Park,_Park_Ridge,_IL.jpg" target="_blank" rel="noopener">Nick Number</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by/4.0" target="_blank" rel="noopener">CC BY 4.0</a> (resized and cropped)</span></li><li data-cr="us-oak-lawn"><b>Oak Lawn</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:West_95th_Street,_Oak_Lawn,_Illinois_(7993005951).jpg" target="_blank" rel="noopener">Ken Lund from Reno, Nevada, USA</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a> (resized and cropped)</span></li><li data-cr="us-paradise-valley"><b>Paradise Valley</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Paradise_Valley,_Arizona_(52069353266).jpg" target="_blank" rel="noopener">Gage Skidmore</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a> (resized and cropped)</span></li><li data-cr="us-chandler"><b>Chandler</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:231119-11_Desert_Breeze_Lake.jpg" target="_blank" rel="noopener">Hunter Trick (TrickHunter)</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-scottsdale"><b>Scottsdale</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Scottsdale,_Arizona.jpg" target="_blank" rel="noopener">Quintin Soloviev</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by/4.0" target="_blank" rel="noopener">CC BY 4.0</a> (resized and cropped)</span></li><li data-cr="us-manhattan-beach"><b>Manhattan Beach</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:The_Manhattan_Beach_Pier.jpg" target="_blank" rel="noopener">Jacob Gelman</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-el-segundo"><b>El Segundo</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Recreation_Park_-_El_Segundo.jpg" target="_blank" rel="noopener">DocFreeman24</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-chatham"><b>Chatham</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:2018-08-07_09_09_10_View_west_along_New_Jersey_State_Route_124_(Main_Street)_at_Morris_County_Route_607_(Passaic_Avenue)_in_Chatham,_Morris_County,_New_Jersey.jpg" target="_blank" rel="noopener">Famartin</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-vienna"><b>Vienna</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Vienna,_VA_22180,_USA_-_panoramio.jpg" target="_blank" rel="noopener">Idawriter</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a> (resized and cropped)</span></li><li data-cr="us-alexandria"><b>Alexandria</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Alexandria_from_George_Washington_Masonic_National_Memorial_August_2014.jpg" target="_blank" rel="noopener">ALXCHO</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by/3.0" target="_blank" rel="noopener">CC BY 3.0</a> (resized and cropped)</span></li><li data-cr="us-herndon"><b>Herndon</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Herndon_Depot2.jpg" target="_blank" rel="noopener">Cecouchman</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a> (resized and cropped)</span></li></ul></details>
 </div>
 </div>
 </div>
@@ -3340,7 +3343,7 @@ var tb=document.getElementById('theme-toggle');if(tb){tb.innerHTML=document.docu
 <script src="../../airlines/airline-reviews-ui.js"></script>
 <!--PV-GLANCE-JS-->
 <script src="../../career-live.js?v=8dc5f0a2"></script>
-<script src="../../pv-glance.js?v=bf8a9701"></script>
+<script src="../../pv-glance.js?v=977ddad5"></script>
 <script src="../../pv-contrib.js?v=ecb006c8"></script>
 <script src="../../pv-proof-offer.js?v=cc4ef913"></script>
 <script src="../../pv-hotel-suggest.js?v=179d17b8"></script>

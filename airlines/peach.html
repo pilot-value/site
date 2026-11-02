@@ -110,7 +110,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </style>
 <!--PV-GLANCE-HEAD-->
 <link rel="stylesheet" href="../career-live.css?v=99f8b57a">
-<link rel="stylesheet" href="../pv-glance.css?v=dcd968b6">
+<link rel="stylesheet" href="../pv-glance.css?v=d63311bf">
 <link rel="stylesheet" href="../pv-gg.css?v=fcf7ad09">
 <link rel="stylesheet" href="../pv-contrib.css?v=45fd85fa">
 <link rel="stylesheet" href="../career-stay.css?v=fa905cac">
@@ -326,7 +326,9 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </article>
 <div class="pvg-card pvg-panel" id="pvg-p-living" data-panel="living" data-pvg-pane="overview life" hidden>
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"/></svg></span><h3 class="pvg-ptitle">暮らし</h3><button type="button" class="pvg-x" aria-label="閉じる"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-<section class="pvg-liv" data-pvg-towns data-city="izumisano" data-base="KIX">
+<div class="pvg-livs" data-pvg-livs>
+<div class="pvg-lvt" role="tablist" aria-label="住む都市"><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-izumisano" data-pvg-liv="izumisano" aria-controls="pvg-lv-izumisano" aria-selected="true">泉佐野市<small>KIX</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-tokyo" data-pvg-liv="tokyo" aria-controls="pvg-lv-tokyo" aria-selected="false">東京<small>NRT</small></button></div>
+<section class="pvg-liv" data-pvg-towns data-city="izumisano" data-base="KIX" id="pvg-lv-izumisano" role="tabpanel" aria-labelledby="pvg-lvt-izumisano">
 <header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>泉佐野市・KIX</small></p></header>
 <ul class="pvg-tgrid" data-n="1" style="--tg-a:1;--tg-b:1;--tg-c:1;--tg-d:1">
 <li><button type="button" class="pvg-town" data-town="izumisano" aria-controls="pvg-town-izumisano" aria-pressed="false">
@@ -380,7 +382,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <div><dt>参考</dt><dd><ul class="pvg-notes"><li><b>Studio</b><span>泉佐野市 月 5.65万円</span></li></ul></dd></div>
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="tokyo" data-base="NRT">
+<section class="pvg-liv" data-pvg-towns data-city="tokyo" data-base="NRT" id="pvg-lv-tokyo" role="tabpanel" aria-labelledby="pvg-lvt-tokyo">
 <header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>東京・NRT</small></p><a class="pvg-link pvg-liv-add" href="?add=town" data-pvc-open="town" data-pvc-base="NRT" data-pvc-basetext="KIX・NRT" data-pvc-ports="[&quot;NRT&quot;]" data-pvc-towns="[[&quot;品川&quot;,&quot;東京都港区&quot;],[&quot;豊洲&quot;,&quot;東京都江東区&quot;],[&quot;横浜&quot;,&quot;神奈川県横浜市西区&quot;]]">＋パイロットに人気の街を追加</a></header>
 <ul class="pvg-tgrid" data-n="3" style="--tg-a:2;--tg-b:3;--tg-c:3;--tg-d:3">
 <li><button type="button" class="pvg-town" data-town="shinagawa" aria-controls="pvg-town-shinagawa" aria-pressed="false">
@@ -480,7 +482,8 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <div><dt>移動</dt><dd><ul class="pvg-notes"><li data-way-src="nrt_skyliner_time">京成スカイライナー：日暮里駅 → 空港第2ビル駅<span>36分</span><span class="pv-no-cur">最短の時間（いつもこの時間という意味ではない）。日暮里駅から空港第2ビル駅まで</span><span>2026年10月に開いた時点の表示</span><a class="pvg-src" href="https://www.keisei.co.jp/keisei/tetudou/skyliner/jp/skyliner/" target="_blank" rel="noopener">京成電鉄「スカイライナーとは」</a></li><li data-way-src="nrt_skyliner_fare">京成スカイライナー：京成上野・日暮里 〜 空港第2ビル・成田空港<span>運賃 ¥1,280 ／ ライナー料金 ¥1,300</span><span class="pv-no-cur">おとな・片道。運賃（きっぷ。IC は¥1,267）とライナー料金は別建てで、合計はページに書いていない</span><span>2026年10月に開いた時点の表示</span><a class="pvg-src" href="https://www.keisei.co.jp/keisei/tetudou/skyliner/jp/skyliner/ticket.php" target="_blank" rel="noopener">京成電鉄「スカイライナー 料金・購入方法」</a></li></ul></dd></div>
 <div><dt>参考</dt><dd><ul class="pvg-notes"><li data-ref="suumo_wards"><b>区・市ごとの家賃相場</b><span>家賃相場・2026年7月10日更新</span><span class="pv-no-cur">SUUMO に登録された賃貸物件の賃料から、SUUMO が独自に集計した相場。成約した家賃ではない。マンション・間取りの組ごと。管理費を含むかはページに書いていない</span><span class="pv-no-cur" data-ref-basis="what">SUUMO に登録されている賃貸物件の賃料をもとに、SUUMO が独自の集計で出した相場</span><span class="pv-no-cur" data-ref-basis="caveat">載っている物件の平均とは違うことがあり、正確さは保証しない</span><span class="pv-no-cur" data-ref-basis="cols">マンションの間取りの組（Studio／Studio・1-Bed／1-Bed・2-Bed／2-Bed・3-Bed／3-Bed・4-Bed〜）</span><a class="pvg-src" href="https://suumo.jp/chintai/soba/tokyo/" target="_blank" rel="noopener">SUUMO「東京都の家賃相場情報」</a><a class="pvg-src" href="https://suumo.jp/chintai/soba/chiba/" target="_blank" rel="noopener">SUUMO「千葉県の家賃相場情報」</a><ul class="pvg-refl"><li><b>大田区</b><span>Studio <b>7.2万円</b></span><span>Studio・1-Bed <b>8.5万円</b></span><span>1-Bed・2-Bed <b>12.5万円</b></span><span>2-Bed・3-Bed <b>17.2万円</b></span><span>3-Bed・4-Bed〜 <b>20.9万円</b></span></li><li><b>港区</b><span>Studio <b>11.8万円</b></span><span>Studio・1-Bed <b>11.9万円</b></span><span>1-Bed・2-Bed <b>23.4万円</b></span><span>2-Bed・3-Bed <b>37.1万円</b></span><span>3-Bed・4-Bed〜 <b>59.3万円</b></span></li><li><b>成田市（千葉県）</b><span>Studio <b>5.7万円</b></span><span>Studio・1-Bed <b>6.4万円</b></span><span>1-Bed・2-Bed <b>7.3万円</b></span><span>2-Bed・3-Bed <b>8.0万円</b></span><span>3-Bed・4-Bed〜 <b>8.9万円</b></span></li></ul></li></ul></dd></div>
 </dl></details>
-</section><div class="pvg-liv-got"><p class="pvg-askh">パイロットの回答</p><div class="crl" data-live="towns" data-airline="peach" data-base="NRT" data-state="idle"><span class="crl-ph">—</span></div></div><details class="pvg-dt pvg-srcd pvg-phc"><summary>写真の出典<small>2枚</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><ul class="pvg-phl"><li data-cr="shinagawa"><b>品川</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Shinagawa_Station_-_outside_-_May_25_2019_340pm.jpeg" target="_blank" rel="noopener">Nesnad</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by/4.0" target="_blank" rel="noopener">CC BY 4.0</a>（縮小・トリミング）</span></li><li data-cr="toyosu"><b>豊洲</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Bridge_@_Toyosu_(9654163316).jpg" target="_blank" rel="noopener">Guilhem Vellut from Annecy, France</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by/2.0" target="_blank" rel="noopener">CC BY 2.0</a>（縮小・トリミング）</span></li></ul></details>
+</section>
+</div><div class="pvg-liv-got"><p class="pvg-askh">パイロットの回答</p><div class="crl" data-live="towns" data-airline="peach" data-base="NRT" data-state="idle"><span class="crl-ph">—</span></div></div><details class="pvg-dt pvg-srcd pvg-phc"><summary>写真の出典<small>2枚</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><ul class="pvg-phl"><li data-cr="shinagawa"><b>品川</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Shinagawa_Station_-_outside_-_May_25_2019_340pm.jpeg" target="_blank" rel="noopener">Nesnad</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by/4.0" target="_blank" rel="noopener">CC BY 4.0</a>（縮小・トリミング）</span></li><li data-cr="toyosu"><b>豊洲</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Bridge_@_Toyosu_(9654163316).jpg" target="_blank" rel="noopener">Guilhem Vellut from Annecy, France</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by/2.0" target="_blank" rel="noopener">CC BY 2.0</a>（縮小・トリミング）</span></li></ul></details>
 </div>
 </div>
 </div>
@@ -862,7 +865,7 @@ setTimeout(()=>{document.querySelectorAll('.fade-up:not(.visible)').forEach(el=>
 <script src="../currency.js"></script>
 <!--PV-GLANCE-JS-->
 <script src="../career-live.js?v=8dc5f0a2"></script>
-<script src="../pv-glance.js?v=bf8a9701"></script>
+<script src="../pv-glance.js?v=977ddad5"></script>
 <script src="../pv-contrib.js?v=ecb006c8"></script>
 <script src="../pv-proof-offer.js?v=cc4ef913"></script>
 <script src="../pv-hotel-suggest.js?v=179d17b8"></script>

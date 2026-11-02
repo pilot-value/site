@@ -123,7 +123,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </style>
 <!--PV-GLANCE-HEAD-->
 <link rel="stylesheet" href="../../career-live.css?v=99f8b57a">
-<link rel="stylesheet" href="../../pv-glance.css?v=dcd968b6">
+<link rel="stylesheet" href="../../pv-glance.css?v=d63311bf">
 <link rel="stylesheet" href="../../pv-gg.css?v=fcf7ad09">
 <link rel="stylesheet" href="../../pv-contrib.css?v=45fd85fa">
 <link rel="stylesheet" href="../../career-stay.css?v=fa905cac">
@@ -333,7 +333,9 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </article>
 <div class="pvg-card pvg-panel" id="pvg-p-living" data-panel="living" data-pvg-pane="overview life" hidden>
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"/></svg></span><h3 class="pvg-ptitle">Living</h3><button type="button" class="pvg-x" aria-label="Close"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-<section class="pvg-liv" data-pvg-towns data-city="tokyo" data-base="HND">
+<div class="pvg-livs" data-pvg-livs>
+<div class="pvg-lvt" role="tablist" aria-label="Cities"><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-tokyo" data-pvg-liv="tokyo" aria-controls="pvg-lv-tokyo" aria-selected="true">Tokyo<small>HND</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-kitakyushu" data-pvg-liv="kitakyushu" aria-controls="pvg-lv-kitakyushu" aria-selected="false">Kokurakita, Kitakyushu<small>KKJ</small></button></div>
+<section class="pvg-liv" data-pvg-towns data-city="tokyo" data-base="HND" id="pvg-lv-tokyo" role="tabpanel" aria-labelledby="pvg-lvt-tokyo">
 <header class="pvg-liv-h"><p class="pvg-askh">Where to live<small>Tokyo · HND</small><small>Travel times to the airport, as shown on Google Maps</small></p><a class="pvg-link pvg-liv-add" href="?add=town" data-pvc-open="town" data-pvc-base="HND" data-pvc-basetext="HND · KKJ" data-pvc-ports="[&quot;HND&quot;]" data-pvc-towns="[[&quot;Shinagawa&quot;,&quot;Minato City, Tokyo&quot;],[&quot;Toyosu&quot;,&quot;Koto City, Tokyo&quot;],[&quot;Yokohama&quot;,&quot;Nishi Ward, Yokohama, Kanagawa&quot;]]">+ Add a town popular with pilots</a></header>
 <ul class="pvg-tgrid" data-n="3" style="--tg-a:2;--tg-b:3;--tg-c:3;--tg-d:3">
 <li><button type="button" class="pvg-town" data-town="shinagawa" aria-controls="pvg-town-shinagawa" aria-pressed="false">
@@ -391,7 +393,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 </section>
 </div>
-<div class="pvg-rb" data-pvg-rent style="--rb-n:6em;--rb-v:9em">
+<div class="pvg-rb" data-pvg-rent style="--rb-n:6em;--rb-v:10.5em">
 <div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">Rent<small>Typical rent · per month</small></p>
 <div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
 <button type="button" class="pvg-rb-b" data-pvg-size="ldk1" aria-pressed="true">1-Bed</button>
@@ -434,7 +436,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <div><dt>Reference</dt><dd><ul class="pvg-notes"><li data-ref="suumo_wards"><b>Typical rent by ward or city</b><span>Typical rent · updated 10 July 2026</span><span class="pv-no-cur">Typical rent calculated by SUUMO from the rents of rental properties registered on SUUMO; not agreed rents. Apartments, by group of layouts. The page does not say whether management fees are included</span><span class="pv-no-cur" data-ref-basis="what">Typical rent calculated by SUUMO with its own method from the rents of rental properties registered on SUUMO</span><span class="pv-no-cur" data-ref-basis="caveat">May differ from the average of listed properties; accuracy is not guaranteed</span><span class="pv-no-cur" data-ref-basis="cols">Groups of apartment layouts (Studio; Studio / 1-Bed; 1-Bed / 2-Bed; 2-Bed / 3-Bed; 3-Bed / 4-Bed+)</span><a class="pvg-src" href="https://suumo.jp/chintai/soba/tokyo/" target="_blank" rel="noopener">SUUMO, “Typical rents in Tokyo”</a><a class="pvg-src" href="https://suumo.jp/chintai/soba/chiba/" target="_blank" rel="noopener">SUUMO, “Typical rents in Chiba Prefecture”</a><ul class="pvg-refl"><li><b>Ota City</b><span>Studio <b><span class="pv-cur" data-jpy="72000" data-orig="7.2万円">$453</span></b></span><span>Studio / 1-Bed <b><span class="pv-cur" data-jpy="85000" data-orig="8.5万円">$535</span></b></span><span>1-Bed / 2-Bed <b><span class="pv-cur" data-jpy="125000" data-orig="12.5万円">$786</span></b></span><span>2-Bed / 3-Bed <b><span class="pv-cur" data-jpy="172000" data-orig="17.2万円">$1.1K</span></b></span><span>3-Bed / 4-Bed+ <b><span class="pv-cur" data-jpy="209000" data-orig="20.9万円">$1.3K</span></b></span></li><li><b>Minato City</b><span>Studio <b><span class="pv-cur" data-jpy="118000" data-orig="11.8万円">$742</span></b></span><span>Studio / 1-Bed <b><span class="pv-cur" data-jpy="119000" data-orig="11.9万円">$749</span></b></span><span>1-Bed / 2-Bed <b><span class="pv-cur" data-jpy="234000" data-orig="23.4万円">$1.5K</span></b></span><span>2-Bed / 3-Bed <b><span class="pv-cur" data-jpy="371000" data-orig="37.1万円">$2.3K</span></b></span><span>3-Bed / 4-Bed+ <b><span class="pv-cur" data-jpy="593000" data-orig="59.3万円">$3.7K</span></b></span></li><li><b>Narita City (Chiba)</b><span>Studio <b><span class="pv-cur" data-jpy="57000" data-orig="5.7万円">$359</span></b></span><span>Studio / 1-Bed <b><span class="pv-cur" data-jpy="64000" data-orig="6.4万円">$403</span></b></span><span>1-Bed / 2-Bed <b><span class="pv-cur" data-jpy="73000" data-orig="7.3万円">$459</span></b></span><span>2-Bed / 3-Bed <b><span class="pv-cur" data-jpy="80000" data-orig="8.0万円">$503</span></b></span><span>3-Bed / 4-Bed+ <b><span class="pv-cur" data-jpy="89000" data-orig="8.9万円">$560</span></b></span></li></ul></li></ul></dd></div>
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="kitakyushu" data-base="KKJ">
+<section class="pvg-liv" data-pvg-towns data-city="kitakyushu" data-base="KKJ" id="pvg-lv-kitakyushu" role="tabpanel" aria-labelledby="pvg-lvt-kitakyushu">
 <header class="pvg-liv-h"><p class="pvg-askh">Where to live<small>Kokurakita, Kitakyushu · KKJ</small></p></header>
 <ul class="pvg-tgrid" data-n="1" style="--tg-a:1;--tg-b:1;--tg-c:1;--tg-d:1">
 <li><button type="button" class="pvg-town" data-town="kitakyushu" aria-controls="pvg-town-kitakyushu" aria-pressed="false">
@@ -458,7 +460,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 </div>
 </section>
 </div>
-<div class="pvg-rb" data-pvg-rent style="--rb-n:9em;--rb-v:9em">
+<div class="pvg-rb" data-pvg-rent style="--rb-n:9em;--rb-v:10.5em">
 <div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">Rent<small>Market rent · per month</small></p>
 <div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
 <button type="button" class="pvg-rb-b" data-pvg-size="bed1" aria-pressed="true">1-Bed</button>
@@ -494,7 +496,8 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
 <div><dt>Reference</dt><dd><ul class="pvg-notes"><li><b>Studio</b><span>Kokurakita, Kitakyushu <span class="pv-cur" data-jpy="45000" data-orig="4.5万円">$283</span> a month</span></li></ul></dd></div>
 </dl></details>
-</section><div class="pvg-liv-got"><p class="pvg-askh">Pilots’ answers</p><div class="crl" data-live="towns" data-airline="starflyer" data-base="HND" data-state="idle"><span class="crl-ph">—</span></div></div><details class="pvg-dt pvg-srcd pvg-phc"><summary>Photo credits<small>2</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><ul class="pvg-phl"><li data-cr="shinagawa"><b>Shinagawa</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Shinagawa_Station_-_outside_-_May_25_2019_340pm.jpeg" target="_blank" rel="noopener">Nesnad</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by/4.0" target="_blank" rel="noopener">CC BY 4.0</a> (resized and cropped)</span></li><li data-cr="toyosu"><b>Toyosu</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Bridge_@_Toyosu_(9654163316).jpg" target="_blank" rel="noopener">Guilhem Vellut from Annecy, France</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by/2.0" target="_blank" rel="noopener">CC BY 2.0</a> (resized and cropped)</span></li></ul></details>
+</section>
+</div><div class="pvg-liv-got"><p class="pvg-askh">Pilots’ answers</p><div class="crl" data-live="towns" data-airline="starflyer" data-base="HND" data-state="idle"><span class="crl-ph">—</span></div></div><details class="pvg-dt pvg-srcd pvg-phc"><summary>Photo credits<small>2</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><ul class="pvg-phl"><li data-cr="shinagawa"><b>Shinagawa</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Shinagawa_Station_-_outside_-_May_25_2019_340pm.jpeg" target="_blank" rel="noopener">Nesnad</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by/4.0" target="_blank" rel="noopener">CC BY 4.0</a> (resized and cropped)</span></li><li data-cr="toyosu"><b>Toyosu</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Bridge_@_Toyosu_(9654163316).jpg" target="_blank" rel="noopener">Guilhem Vellut from Annecy, France</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by/2.0" target="_blank" rel="noopener">CC BY 2.0</a> (resized and cropped)</span></li></ul></details>
 </div>
 </div>
 </div>
@@ -762,7 +765,7 @@ var tb=document.getElementById('theme-toggle');if(tb){tb.innerHTML=document.docu
 <script src="../../airlines/airline-reviews-ui.js"></script>
 <!--PV-GLANCE-JS-->
 <script src="../../career-live.js?v=8dc5f0a2"></script>
-<script src="../../pv-glance.js?v=bf8a9701"></script>
+<script src="../../pv-glance.js?v=977ddad5"></script>
 <script src="../../pv-contrib.js?v=ecb006c8"></script>
 <script src="../../pv-proof-offer.js?v=cc4ef913"></script>
 <script src="../../pv-hotel-suggest.js?v=179d17b8"></script>

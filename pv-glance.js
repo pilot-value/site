@@ -57,11 +57,13 @@
   }
 
   /* ── 1.2) 暮らし：街のカードを選ぶと、その街の詳細だけが出る ──
-     動かなければ hidden が付かない ＝ どの街の詳細も縦に並んだまま（中身は1つも消えない）。 */
-  var townBtns = [].slice.call(root.querySelectorAll('[data-pvg-towns] .pvg-town[data-town]'));
-  function pickTown(key, move) {
+     動かなければ hidden が付かない ＝ どの街の詳細も縦に並んだまま（中身は1つも消えない）。
+     選ぶのは都市の欄（section[data-pvg-towns]）ごと ── ほかの都市の欄の詳細と棒の印には触らない（都市のタブで切り替えても、それぞれの選んだ街のまま）。 */
+  var townSecs = [].slice.call(root.querySelectorAll('[data-pvg-towns]'));
+  function pickTown(key, move, sec) {
     var hit = null;
-    townBtns.forEach(function (b) {
+    var rentBox = sec.querySelector('[data-pvg-rent]');
+    [].forEach.call(sec.querySelectorAll('.pvg-town[data-town]'), function (b) {
       var on = b.getAttribute('data-town') === key;
       var p = d.getElementById(b.getAttribute('aria-controls'));
       b.setAttribute('aria-pressed', on ? 'true' : 'false');
@@ -80,18 +82,92 @@
     else if (r.top < top) glide(r.top - top);
   }
   /* ── 1.3) 暮らし：家賃の間取りを切り替える（見せる・隠すだけ。額は HTML に在る。履歴も保存もしない）──
-     動かなければ、どの間取りの棒も縦に並んだまま（切り替えのボタンは CSS が隠す）。 */
-  var rentBox = root.querySelector('[data-pvg-rent]');
-  var sizeBtns = rentBox ? [].slice.call(rentBox.querySelectorAll('[data-pvg-size]')) : [];
-  function pickSize(key) {
-    sizeBtns.forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-pvg-size') === key ? 'true' : 'false'); });
-    [].forEach.call(rentBox.querySelectorAll('[data-size-panel]'), function (g) { g.hidden = g.getAttribute('data-size-panel') !== key; });
+     動かなければ、どの間取りの棒も縦に並んだまま（切り替えのボタンは CSS が隠す）。
+     家賃の箱は都市の欄ごとに1つ。選んだ間取りは、同じ間取りを持つほかの都市の箱にもそろえる（都市を替えても 2-Bed のまま）。 */
+  var rentBoxes = [].slice.call(root.querySelectorAll('[data-pvg-rent]'));
+  function sizeIn(box, key) {
+    var btns = [].slice.call(box.querySelectorAll('[data-pvg-size]'));
+    if (!btns.some(function (b) { return b.getAttribute('data-pvg-size') === key; })) return;
+    btns.forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-pvg-size') === key ? 'true' : 'false'); });
+    [].forEach.call(box.querySelectorAll('[data-size-panel]'), function (g) { g.hidden = g.getAttribute('data-size-panel') !== key; });
   }
-  if (sizeBtns.length) {
-    rentBox.setAttribute('data-js', '');
-    pickSize((sizeBtns.filter(function (b) { return b.getAttribute('aria-pressed') === 'true'; })[0] || sizeBtns[0]).getAttribute('data-pvg-size'));
+  function pickSize(key) { rentBoxes.forEach(function (box) { sizeIn(box, key); }); }
+  rentBoxes.forEach(function (box) {
+    var btns = [].slice.call(box.querySelectorAll('[data-pvg-size]'));
+    if (!btns.length) return;
+    box.setAttribute('data-js', '');
+    sizeIn(box, (btns.filter(function (b) { return b.getAttribute('aria-pressed') === 'true'; })[0] || btns[0]).getAttribute('data-pvg-size'));
+  });
+  townSecs.forEach(function (sec) {
+    var first = sec.querySelector('.pvg-town[data-town]');
+    if (first) pickTown(first.getAttribute('data-town'), false, sec);
+  });
+
+  /* ── 1.4) 暮らし：都市のタブ（都市が2つ以上の会社だけ。HTML の [data-pvg-livs]）──
+     選んだ都市の欄だけを出す（hidden）。履歴も保存もしない。動かなければタブは CSS が隠し、都市の欄は縦に並んだまま。
+     狭い画面ではタブが横に流れる ── 選んだタブを帯のまんなかへ寄せ（ページは動かさない）、続きの在る端を薄くする（data-more）。 */
+  var livs = root.querySelector('[data-pvg-livs]');
+  var livStrip = livs ? livs.querySelector('.pvg-lvt') : null;
+  var livTabs = livStrip ? [].slice.call(livStrip.querySelectorAll('[data-pvg-liv]')) : [];
+  function livEdges() {
+    var max = livStrip.scrollWidth - livStrip.clientWidth, x = livStrip.scrollLeft, m = [];
+    if (max > 1) { if (x > 1) m.push('l'); if (x < max - 1) m.push('r'); }
+    m = m.join(' ');
+    if (!m) livStrip.removeAttribute('data-more');
+    else if (livStrip.getAttribute('data-more') !== m) livStrip.setAttribute('data-more', m);
   }
-  if (townBtns.length) pickTown(townBtns[0].getAttribute('data-town'), false);
+  function livSeat(b) {
+    var max = livStrip.scrollWidth - livStrip.clientWidth;
+    if (max > 1) {
+      var r = b.getBoundingClientRect(), sr = livStrip.getBoundingClientRect();
+      livStrip.scrollLeft = Math.max(0, Math.min(max, Math.round(livStrip.scrollLeft + r.left + r.width / 2 - sr.left - sr.width / 2)));
+    }
+    livEdges();
+  }
+  function pickCity(key, focus, init) {
+    var hit = null;
+    livTabs.forEach(function (b) {
+      var on = b.getAttribute('data-pvg-liv') === key;
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+      b.tabIndex = on ? 0 : -1;
+      var p = d.getElementById(b.getAttribute('aria-controls'));
+      if (p) p.hidden = !on;
+      if (on) hit = b;
+    });
+    if (!hit) return;
+    livSeat(hit);
+    if (focus) hit.focus({ preventScroll: true });
+    if (!init) fire();                             // 見えるようになった欄の実データ（career-live.js）
+  }
+  /* 寄る先（# の id）が、隠れている都市の欄の中なら、その都市を選ぶ */
+  function livReveal(el) {
+    if (!livs) return;
+    var sec = el && el.closest ? el.closest('[data-pvg-livs] > [data-pvg-towns]') : null;
+    if (sec && sec.hidden) pickCity(sec.getAttribute('data-city'), false);
+  }
+  if (livTabs.length) {
+    livs.setAttribute('data-js', '');
+    pickCity(((livTabs.filter(function (b) { return b.getAttribute('aria-selected') === 'true'; })[0]) || livTabs[0]).getAttribute('data-pvg-liv'), false, true);
+    livStrip.addEventListener('scroll', livEdges, { passive: true });
+    /* 板が閉じている間は幅が0 ── 見えるようになったとき（タブを開いた・幅が変わった）に、選んだタブを寄せ直して端の印を付け直す */
+    if (w.ResizeObserver) new w.ResizeObserver(function () {
+      var on = livTabs.filter(function (b) { return b.getAttribute('aria-selected') === 'true'; })[0];
+      if (on) livSeat(on); else livEdges();
+    }).observe(livStrip);
+    else w.addEventListener('resize', livEdges);
+    /* 左右の矢印・Home・End でタブを移る（選ぶのも同時） */
+    livStrip.addEventListener('keydown', function (e) {
+      var i = livTabs.indexOf(d.activeElement), n = livTabs.length, j = -1;
+      if (i < 0) return;
+      if (e.key === 'ArrowRight') j = (i + 1) % n;
+      else if (e.key === 'ArrowLeft') j = (i - 1 + n) % n;
+      else if (e.key === 'Home') j = 0;
+      else if (e.key === 'End') j = n - 1;
+      if (j < 0) return;
+      e.preventDefault();
+      pickCity(livTabs[j].getAttribute('data-pvg-liv'), true);
+    });
+  }
 
   /* ── 1.5) タブ ────────────────────────────────────────── */
   var bar = d.getElementById('pvg-tabs');
@@ -170,6 +246,7 @@
   /* 寄る先が畳んだ箱（<details>）か、その中に在るなら、先に開ける。
      閉じたままだと、寄った先に見出しの1行しか無い（「この数字の出どころ」を押したのに、出どころが見えない）。 */
   function unfold(el) {
+    livReveal(el);
     for (var n = el; n && n.nodeName; n = n.parentNode) if (n.nodeName === 'DETAILS') n.open = true;
   }
   function near(el) {
@@ -528,9 +605,11 @@
       return;
     }
     var sz = t.closest('[data-pvg-size]');
-    if (sz && rentBox && rentBox.contains(sz)) { pickSize(sz.getAttribute('data-pvg-size')); return; }
+    if (sz && sz.closest('[data-pvg-rent]') && root.contains(sz)) { pickSize(sz.getAttribute('data-pvg-size')); return; }
     var tw = t.closest('.pvg-town[data-town]');
-    if (tw && root.contains(tw)) { pickTown(tw.getAttribute('data-town'), true); return; }
+    if (tw && root.contains(tw) && tw.closest('[data-pvg-towns]')) { pickTown(tw.getAttribute('data-town'), true, tw.closest('[data-pvg-towns]')); return; }
+    var lv = t.closest('[data-pvg-liv]');
+    if (lv && livStrip && livStrip.contains(lv)) { pickCity(lv.getAttribute('data-pvg-liv'), false); return; }
     /* 就航地のカード（別のタブで開く押し方は、ブラウザに任せる ＝ #stay-NRT がそのまま開く） */
     var ct = t.closest('.pvg-city[data-city]');
     if (ct && root.contains(ct)) {

@@ -50,7 +50,7 @@
 </style>
 <!--PV-GLANCE-HEAD-->
 <link rel="stylesheet" href="../career-live.css?v=99f8b57a">
-<link rel="stylesheet" href="../pv-glance.css?v=dcd968b6">
+<link rel="stylesheet" href="../pv-glance.css?v=d63311bf">
 <link rel="stylesheet" href="../pv-gg.css?v=fcf7ad09">
 <link rel="stylesheet" href="../pv-contrib.css?v=45fd85fa">
 <link rel="stylesheet" href="../career-stay.css?v=fa905cac">
@@ -258,7 +258,9 @@
 </article>
 <div class="pvg-card pvg-panel" id="pvg-p-living" data-panel="living" data-pvg-pane="overview life" hidden>
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"/></svg></span><h3 class="pvg-ptitle">暮らし</h3><button type="button" class="pvg-x" aria-label="閉じる"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-<section class="pvg-liv" data-pvg-towns data-city="cologne" data-base="CGN">
+<div class="pvg-livs" data-pvg-livs>
+<div class="pvg-lvt" role="tablist" aria-label="住む都市"><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-cologne" data-pvg-liv="cologne" aria-controls="pvg-lv-cologne" aria-selected="true">ケルン<small>CGN</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-dusseldorf" data-pvg-liv="dusseldorf" aria-controls="pvg-lv-dusseldorf" aria-selected="false">デュッセルドルフ<small>DUS</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-hamburg" data-pvg-liv="hamburg" aria-controls="pvg-lv-hamburg" aria-selected="false">ハンブルク<small>HAM</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-stuttgart" data-pvg-liv="stuttgart" aria-controls="pvg-lv-stuttgart" aria-selected="false">シュトゥットガルト<small>STR</small></button></div>
+<section class="pvg-liv" data-pvg-towns data-city="cologne" data-base="CGN" id="pvg-lv-cologne" role="tabpanel" aria-labelledby="pvg-lvt-cologne">
 <header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>ケルン・CGN</small></p></header>
 <ul class="pvg-tgrid" data-n="1" style="--tg-a:1;--tg-b:1;--tg-c:1;--tg-d:1">
 <li><button type="button" class="pvg-town" data-town="cologne" aria-controls="pvg-town-cologne" aria-pressed="false">
@@ -305,7 +307,7 @@
 <div><dt>参考</dt><dd><ul class="pvg-notes"><li><b>Studio</b><span>ケルン <span class="pv-no-cur">月 EUR 1,250</span><small class="pvg-yen" data-cur="EUR">（約23.2万円）</small></span></li></ul></dd></div>
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="dusseldorf" data-base="DUS">
+<section class="pvg-liv" data-pvg-towns data-city="dusseldorf" data-base="DUS" id="pvg-lv-dusseldorf" role="tabpanel" aria-labelledby="pvg-lvt-dusseldorf">
 <header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>デュッセルドルフ・DUS</small></p></header>
 <ul class="pvg-tgrid" data-n="1" style="--tg-a:1;--tg-b:1;--tg-c:1;--tg-d:1">
 <li><button type="button" class="pvg-town" data-town="dusseldorf" aria-controls="pvg-town-dusseldorf" aria-pressed="false">
@@ -340,7 +342,7 @@
 
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="hamburg" data-base="HAM">
+<section class="pvg-liv" data-pvg-towns data-city="hamburg" data-base="HAM" id="pvg-lv-hamburg" role="tabpanel" aria-labelledby="pvg-lvt-hamburg">
 <header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>ハンブルク・HAM</small></p></header>
 <ul class="pvg-tgrid" data-n="1" style="--tg-a:1;--tg-b:1;--tg-c:1;--tg-d:1">
 <li><button type="button" class="pvg-town" data-town="hamburg" aria-controls="pvg-town-hamburg" aria-pressed="false">
@@ -375,7 +377,7 @@
 
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="stuttgart" data-base="STR">
+<section class="pvg-liv" data-pvg-towns data-city="stuttgart" data-base="STR" id="pvg-lv-stuttgart" role="tabpanel" aria-labelledby="pvg-lvt-stuttgart">
 <header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>シュトゥットガルト・STR</small></p></header>
 <ul class="pvg-tgrid" data-n="1" style="--tg-a:1;--tg-b:1;--tg-c:1;--tg-d:1">
 <li><button type="button" class="pvg-town" data-town="stuttgart" aria-controls="pvg-town-stuttgart" aria-pressed="false">
@@ -422,6 +424,7 @@
 <div><dt>参考</dt><dd><ul class="pvg-notes"><li><b>Studio</b><span>シュトゥットガルト <span class="pv-no-cur">月 EUR 860</span><small class="pvg-yen" data-cur="EUR">（約16.0万円）</small></span></li></ul></dd></div>
 </dl></details>
 </section>
+</div>
 </div>
 </div>
 </div>
@@ -595,7 +598,7 @@
 <script src="../currency.js"></script>
 <!--PV-GLANCE-JS-->
 <script src="../career-live.js?v=8dc5f0a2"></script>
-<script src="../pv-glance.js?v=bf8a9701"></script>
+<script src="../pv-glance.js?v=977ddad5"></script>
 <script src="../pv-contrib.js?v=ecb006c8"></script>
 <script src="../pv-proof-offer.js?v=cc4ef913"></script>
 <script src="../pv-hotel-suggest.js?v=179d17b8"></script>

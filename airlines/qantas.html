@@ -75,7 +75,7 @@
 </style>
 <!--PV-GLANCE-HEAD-->
 <link rel="stylesheet" href="../career-live.css?v=99f8b57a">
-<link rel="stylesheet" href="../pv-glance.css?v=dcd968b6">
+<link rel="stylesheet" href="../pv-glance.css?v=d63311bf">
 <link rel="stylesheet" href="../pv-gg.css?v=fcf7ad09">
 <link rel="stylesheet" href="../pv-contrib.css?v=45fd85fa">
 <link rel="stylesheet" href="../career-stay.css?v=fa905cac">
@@ -283,7 +283,9 @@
 </article>
 <div class="pvg-card pvg-panel" id="pvg-p-living" data-panel="living" data-pvg-pane="overview life" hidden>
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"/></svg></span><h3 class="pvg-ptitle">暮らし</h3><button type="button" class="pvg-x" aria-label="閉じる"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-<section class="pvg-liv" data-pvg-towns data-city="brisbane" data-base="BNE">
+<div class="pvg-livs" data-pvg-livs>
+<div class="pvg-lvt" role="tablist" aria-label="住む都市"><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-brisbane" data-pvg-liv="brisbane" aria-controls="pvg-lv-brisbane" aria-selected="true">ブリスベン<small>BNE</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-melbourne" data-pvg-liv="melbourne" aria-controls="pvg-lv-melbourne" aria-selected="false">メルボルン<small>MEL</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-sydney" data-pvg-liv="sydney" aria-controls="pvg-lv-sydney" aria-selected="false">シドニー<small>SYD</small></button></div>
+<section class="pvg-liv" data-pvg-towns data-city="brisbane" data-base="BNE" id="pvg-lv-brisbane" role="tabpanel" aria-labelledby="pvg-lvt-brisbane">
 <header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>ブリスベン・BNE</small></p></header>
 <ul class="pvg-tgrid" data-n="1" style="--tg-a:1;--tg-b:1;--tg-c:1;--tg-d:1">
 <li><button type="button" class="pvg-town" data-town="brisbane" aria-controls="pvg-town-brisbane" aria-pressed="false">
@@ -318,7 +320,7 @@
 
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="melbourne" data-base="MEL">
+<section class="pvg-liv" data-pvg-towns data-city="melbourne" data-base="MEL" id="pvg-lv-melbourne" role="tabpanel" aria-labelledby="pvg-lvt-melbourne">
 <header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>メルボルン・MEL</small></p></header>
 <ul class="pvg-tgrid" data-n="1" style="--tg-a:1;--tg-b:1;--tg-c:1;--tg-d:1">
 <li><button type="button" class="pvg-town" data-town="melbourne" aria-controls="pvg-town-melbourne" aria-pressed="false">
@@ -353,7 +355,7 @@
 
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="sydney" data-base="SYD">
+<section class="pvg-liv" data-pvg-towns data-city="sydney" data-base="SYD" id="pvg-lv-sydney" role="tabpanel" aria-labelledby="pvg-lvt-sydney">
 <header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>シドニー・SYD</small></p></header>
 <ul class="pvg-tgrid" data-n="1" style="--tg-a:1;--tg-b:1;--tg-c:1;--tg-d:1">
 <li><button type="button" class="pvg-town" data-town="sydney" aria-controls="pvg-town-sydney" aria-pressed="false">
@@ -388,6 +390,7 @@
 
 </dl></details>
 </section>
+</div>
 </div>
 </div>
 </div>
@@ -651,7 +654,7 @@
 <script src="../currency.js"></script>
 <!--PV-GLANCE-JS-->
 <script src="../career-live.js?v=8dc5f0a2"></script>
-<script src="../pv-glance.js?v=bf8a9701"></script>
+<script src="../pv-glance.js?v=977ddad5"></script>
 <script src="../pv-contrib.js?v=ecb006c8"></script>
 <script src="../pv-proof-offer.js?v=cc4ef913"></script>
 <script src="../pv-hotel-suggest.js?v=179d17b8"></script>

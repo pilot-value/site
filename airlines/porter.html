@@ -72,7 +72,7 @@
 <script src="premium-auth-lock.js"></script>
 <!--PV-GLANCE-HEAD-->
 <link rel="stylesheet" href="../career-live.css?v=99f8b57a">
-<link rel="stylesheet" href="../pv-glance.css?v=dcd968b6">
+<link rel="stylesheet" href="../pv-glance.css?v=d63311bf">
 <link rel="stylesheet" href="../pv-gg.css?v=fcf7ad09">
 <link rel="stylesheet" href="../pv-contrib.css?v=45fd85fa">
 <link rel="stylesheet" href="../career-stay.css?v=fa905cac">
@@ -279,7 +279,9 @@
 </article>
 <div class="pvg-card pvg-panel" id="pvg-p-living" data-panel="living" data-pvg-pane="overview life" hidden>
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"/></svg></span><h3 class="pvg-ptitle">暮らし</h3><button type="button" class="pvg-x" aria-label="閉じる"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-<section class="pvg-liv" data-pvg-towns data-city="ottawa" data-base="YOW">
+<div class="pvg-livs" data-pvg-livs>
+<div class="pvg-lvt" role="tablist" aria-label="住む都市"><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-ottawa" data-pvg-liv="ottawa" aria-controls="pvg-lv-ottawa" aria-selected="true">オタワ<small>YOW</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-toronto" data-pvg-liv="toronto" aria-controls="pvg-lv-toronto" aria-selected="false">トロント<small>YYZ</small></button></div>
+<section class="pvg-liv" data-pvg-towns data-city="ottawa" data-base="YOW" id="pvg-lv-ottawa" role="tabpanel" aria-labelledby="pvg-lvt-ottawa">
 <header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>オタワ・YOW</small></p></header>
 <ul class="pvg-tgrid" data-n="1" style="--tg-a:1;--tg-b:1;--tg-c:1;--tg-d:1">
 <li><button type="button" class="pvg-town" data-town="ottawa" aria-controls="pvg-town-ottawa" aria-pressed="false">
@@ -340,7 +342,7 @@
 <div><dt>参考</dt><dd><ul class="pvg-notes"><li><b>Studio</b><span>オタワ <span class="pv-no-cur">月 CAD 1,550</span><small class="pvg-yen" data-cur="CAD">（約17.9万円）</small></span></li></ul></dd></div>
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="toronto" data-base="YYZ">
+<section class="pvg-liv" data-pvg-towns data-city="toronto" data-base="YYZ" id="pvg-lv-toronto" role="tabpanel" aria-labelledby="pvg-lvt-toronto">
 <header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>トロント・YYZ</small></p></header>
 <ul class="pvg-tgrid" data-n="1" style="--tg-a:1;--tg-b:1;--tg-c:1;--tg-d:1">
 <li><button type="button" class="pvg-town" data-town="toronto" aria-controls="pvg-town-toronto" aria-pressed="false">
@@ -401,6 +403,7 @@
 <div><dt>参考</dt><dd><ul class="pvg-notes"><li><b>Studio</b><span>トロント <span class="pv-no-cur">月 CAD 1,725</span><small class="pvg-yen" data-cur="CAD">（約19.9万円）</small></span></li></ul></dd></div>
 </dl></details>
 </section>
+</div>
 </div>
 </div>
 </div>
@@ -574,7 +577,7 @@
 <script src="../currency.js"></script>
 <!--PV-GLANCE-JS-->
 <script src="../career-live.js?v=8dc5f0a2"></script>
-<script src="../pv-glance.js?v=bf8a9701"></script>
+<script src="../pv-glance.js?v=977ddad5"></script>
 <script src="../pv-contrib.js?v=ecb006c8"></script>
 <script src="../pv-proof-offer.js?v=cc4ef913"></script>
 <script src="../pv-hotel-suggest.js?v=179d17b8"></script>

@@ -1385,3 +1385,17 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
 .pvg-tm-src{margin-top:10px;font-size:12px;line-height:1.6;color:var(--pv-ink-3)}
 /* 米国の住宅地の詳細：紹介の下に、3寝室の戸建ての掲載例（成約ではない ── 字で言う）。紹介より一段控えめ */
 .pvg-td-h > p.pvg-td-more{margin-top:4px!important;font-size:12px;color:var(--pv-ink-3)}
+
+/* ── 暮らし：都市のタブ（都市が2つ以上の会社。★2026-11-03 オーナー「複数ある都市を羅列ではなく、タブとかにして選んだらその都市見れるようにして」）──
+   見た目は就航地の地域の札（.pvg-pill）と同じ。狭い箱では横へ送る（折ると何段にもなり、都市の欄が下がる）・広い箱では折り返して全部見せる。
+   切り替えるのは pv-glance.js（data-js が付く）。動かなければタブは出ず、都市の欄が縦に並んだまま。 */
+.pvg-lvt{display:flex;gap:6px;min-width:0;margin:-6px -2px 10px;padding:6px 2px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;--lvt-fade:36px}
+.pvg-lvt::-webkit-scrollbar{display:none}
+.pvg-livs:not([data-js]) > .pvg-lvt{display:none}
+.pvg-livs > .pvg-liv[hidden]{display:none}
+.pvg-lvt > .pvg-pill[aria-selected="true"]{color:var(--pv-accent-ink);background:var(--pv-accent-soft);border-color:var(--pv-accent)}
+.pvg-lvt > .pvg-pill[aria-selected="true"] > small{color:var(--pv-accent-ink)}
+.pvg-lvt[data-more="r"]{-webkit-mask-image:linear-gradient(to right,black calc(100% - var(--lvt-fade)),transparent);mask-image:linear-gradient(to right,black calc(100% - var(--lvt-fade)),transparent)}
+.pvg-lvt[data-more="l"]{-webkit-mask-image:linear-gradient(to left,black calc(100% - var(--lvt-fade)),transparent);mask-image:linear-gradient(to left,black calc(100% - var(--lvt-fade)),transparent)}
+.pvg-lvt[data-more="l r"]{-webkit-mask-image:linear-gradient(to right,transparent,black var(--lvt-fade),black calc(100% - var(--lvt-fade)),transparent);mask-image:linear-gradient(to right,transparent,black var(--lvt-fade),black calc(100% - var(--lvt-fade)),transparent)}
+@container pvg (min-width:700px){ .pvg-lvt{flex-wrap:wrap;overflow:visible} .pvg-lvt[data-more]{-webkit-mask-image:none;mask-image:none} }

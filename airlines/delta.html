@@ -113,7 +113,7 @@
 </style>
 <!--PV-GLANCE-HEAD-->
 <link rel="stylesheet" href="../career-live.css?v=99f8b57a">
-<link rel="stylesheet" href="../pv-glance.css?v=dcd968b6">
+<link rel="stylesheet" href="../pv-glance.css?v=d63311bf">
 <link rel="stylesheet" href="../pv-gg.css?v=fcf7ad09">
 <link rel="stylesheet" href="../pv-contrib.css?v=45fd85fa">
 <link rel="stylesheet" href="../career-stay.css?v=fa905cac">
@@ -398,7 +398,9 @@
 </article>
 <div class="pvg-card pvg-panel" id="pvg-p-living" data-panel="living" data-pvg-pane="overview life" hidden>
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"/></svg></span><h3 class="pvg-ptitle">暮らし</h3><button type="button" class="pvg-x" aria-label="閉じる"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-<section class="pvg-liv" data-pvg-towns data-city="us-atl" data-base="ATL">
+<div class="pvg-livs" data-pvg-livs>
+<div class="pvg-lvt" role="tablist" aria-label="住む都市"><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-atl" data-pvg-liv="us-atl" aria-controls="pvg-lv-us-atl" aria-selected="true">アトランタ<small>ATL</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-bos" data-pvg-liv="us-bos" aria-controls="pvg-lv-us-bos" aria-selected="false">ボストン<small>BOS</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-dtw" data-pvg-liv="us-dtw" aria-controls="pvg-lv-us-dtw" aria-selected="false">デトロイト<small>DTW</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-lax" data-pvg-liv="us-lax" aria-controls="pvg-lv-us-lax" aria-selected="false">ロサンゼルス<small>LAX</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-msp" data-pvg-liv="us-msp" aria-controls="pvg-lv-us-msp" aria-selected="false">ミネアポリス・セントポール<small>MSP</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-nyc" data-pvg-liv="us-nyc" aria-controls="pvg-lv-us-nyc" aria-selected="false">ニューヨーク・ニュージャージー<small>JFK・LGA</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-slc" data-pvg-liv="us-slc" aria-controls="pvg-lv-us-slc" aria-selected="false">ソルトレイクシティ<small>SLC</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-sea" data-pvg-liv="us-sea" aria-controls="pvg-lv-us-sea" aria-selected="false">シアトル・エバレット<small>SEA</small></button></div>
+<section class="pvg-liv" data-pvg-towns data-city="us-atl" data-base="ATL" id="pvg-lv-us-atl" role="tabpanel" aria-labelledby="pvg-lvt-us-atl">
 <header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>アトランタ・ATL</small></p></header>
 <ul class="pvg-tgrid" data-n="3" style="--tg-a:2;--tg-b:3;--tg-c:3;--tg-d:3">
 <li><button type="button" class="pvg-town" data-town="us-johns-creek" aria-controls="pvg-town-us-johns-creek" aria-pressed="false">
@@ -499,7 +501,7 @@
 
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="us-bos" data-base="BOS">
+<section class="pvg-liv" data-pvg-towns data-city="us-bos" data-base="BOS" id="pvg-lv-us-bos" role="tabpanel" aria-labelledby="pvg-lvt-us-bos">
 <header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>ボストン・BOS</small></p></header>
 <ul class="pvg-tgrid" data-n="2" style="--tg-a:2;--tg-b:2;--tg-c:2;--tg-d:2">
 <li><button type="button" class="pvg-town" data-town="us-wellesley" aria-controls="pvg-town-us-wellesley" aria-pressed="false">
@@ -580,7 +582,7 @@
 
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="us-dtw" data-base="DTW">
+<section class="pvg-liv" data-pvg-towns data-city="us-dtw" data-base="DTW" id="pvg-lv-us-dtw" role="tabpanel" aria-labelledby="pvg-lvt-us-dtw">
 <header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>デトロイト・DTW</small></p></header>
 <ul class="pvg-tgrid" data-n="3" style="--tg-a:2;--tg-b:3;--tg-c:3;--tg-d:3">
 <li><button type="button" class="pvg-town" data-town="us-plymouth-area" aria-controls="pvg-town-us-plymouth-area" aria-pressed="false">
@@ -681,7 +683,7 @@
 
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="us-lax" data-base="LAX">
+<section class="pvg-liv" data-pvg-towns data-city="us-lax" data-base="LAX" id="pvg-lv-us-lax" role="tabpanel" aria-labelledby="pvg-lvt-us-lax">
 <header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>ロサンゼルス・LAX</small></p></header>
 <ul class="pvg-tgrid" data-n="2" style="--tg-a:2;--tg-b:2;--tg-c:2;--tg-d:2">
 <li><button type="button" class="pvg-town" data-town="us-manhattan-beach" aria-controls="pvg-town-us-manhattan-beach" aria-pressed="false">
@@ -762,7 +764,7 @@
 
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="us-msp" data-base="MSP">
+<section class="pvg-liv" data-pvg-towns data-city="us-msp" data-base="MSP" id="pvg-lv-us-msp" role="tabpanel" aria-labelledby="pvg-lvt-us-msp">
 <header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>ミネアポリス・セントポール・MSP</small></p></header>
 <ul class="pvg-tgrid" data-n="2" style="--tg-a:2;--tg-b:2;--tg-c:2;--tg-d:2">
 <li><button type="button" class="pvg-town" data-town="us-edina" aria-controls="pvg-town-us-edina" aria-pressed="false">
@@ -843,7 +845,7 @@
 
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="us-nyc" data-base="JFK">
+<section class="pvg-liv" data-pvg-towns data-city="us-nyc" data-base="JFK" id="pvg-lv-us-nyc" role="tabpanel" aria-labelledby="pvg-lvt-us-nyc">
 <header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>ニューヨーク・ニュージャージー・JFK・LGA</small></p></header>
 <ul class="pvg-tgrid" data-n="3" style="--tg-a:2;--tg-b:3;--tg-c:3;--tg-d:3">
 <li><button type="button" class="pvg-town" data-town="us-garden-city" aria-controls="pvg-town-us-garden-city" aria-pressed="false">
@@ -944,7 +946,7 @@
 
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="us-slc" data-base="SLC">
+<section class="pvg-liv" data-pvg-towns data-city="us-slc" data-base="SLC" id="pvg-lv-us-slc" role="tabpanel" aria-labelledby="pvg-lvt-us-slc">
 <header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>ソルトレイクシティ・SLC</small></p></header>
 <ul class="pvg-tgrid" data-n="2" style="--tg-a:2;--tg-b:2;--tg-c:2;--tg-d:2">
 <li><button type="button" class="pvg-town" data-town="us-park-city" aria-controls="pvg-town-us-park-city" aria-pressed="false">
@@ -1025,7 +1027,7 @@
 
 </dl></details>
 </section>
-<section class="pvg-liv" data-pvg-towns data-city="us-sea" data-base="SEA">
+<section class="pvg-liv" data-pvg-towns data-city="us-sea" data-base="SEA" id="pvg-lv-us-sea" role="tabpanel" aria-labelledby="pvg-lvt-us-sea">
 <header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>シアトル・エバレット・SEA</small></p></header>
 <ul class="pvg-tgrid" data-n="3" style="--tg-a:2;--tg-b:3;--tg-c:3;--tg-d:3">
 <li><button type="button" class="pvg-town" data-town="us-mercer-island" aria-controls="pvg-town-us-mercer-island" aria-pressed="false">
@@ -1125,7 +1127,8 @@
 
 
 </dl></details>
-</section><details class="pvg-dt pvg-srcd pvg-phc"><summary>写真の出典<small>14枚</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><ul class="pvg-phl"><li data-cr="us-peachtree-city"><b>ピーチツリーシティ</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:City_Hall_Dogwoods_and_Golf_Cart.jpg" target="_blank" rel="noopener">PTCdude</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a>（縮小・トリミング）</span></li><li data-cr="us-newnan"><b>ニューナン</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Coweta_County_Courthouse,_Newnan,_GA,_US.jpg" target="_blank" rel="noopener">Jud McCranie</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a>（縮小・トリミング）</span></li><li data-cr="us-wellesley"><b>ウェルズリー</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Wellesley_Center,_MA.jpg" target="_blank" rel="noopener">John Phelan</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by/3.0" target="_blank" rel="noopener">CC BY 3.0</a>（縮小・トリミング）</span></li><li data-cr="us-braintree"><b>ブレインツリー</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Braintree_Town_Hall,_MA.jpg" target="_blank" rel="noopener">John Phelan</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by/3.0" target="_blank" rel="noopener">CC BY 3.0</a>（縮小・トリミング）</span></li><li data-cr="us-plymouth-area"><b>プリマス周辺</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Kellogg_Park_Pymouth_2019.jpg" target="_blank" rel="noopener">Antony-22</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a>（縮小・トリミング）</span></li><li data-cr="us-northville-area"><b>ノースビル周辺</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Downtown_Northville_4th_of_July.jpg" target="_blank" rel="noopener">Detroit Lions Super Bowl Champs</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a>（縮小・トリミング）</span></li><li data-cr="us-bloomfield-hills-area"><b>ブルームフィールドヒルズ周辺</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Cranbrook_Tower_and_Quadrangle.jpg" target="_blank" rel="noopener">Bradley Portnoy, User:Piranhaex at en.wikipedia</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a>（縮小・トリミング）</span></li><li data-cr="us-manhattan-beach"><b>マンハッタンビーチ</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:The_Manhattan_Beach_Pier.jpg" target="_blank" rel="noopener">Jacob Gelman</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a>（縮小・トリミング）</span></li><li data-cr="us-el-segundo"><b>エルセグンド</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Recreation_Park_-_El_Segundo.jpg" target="_blank" rel="noopener">DocFreeman24</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a>（縮小・トリミング）</span></li><li data-cr="us-eagan"><b>イーガン</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Lebanon_Hills_Regional_Park,_Minnesota.jpg" target="_blank" rel="noopener">Mgust</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a>（縮小・トリミング）</span></li><li data-cr="us-chatham"><b>チャタム</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:2018-08-07_09_09_10_View_west_along_New_Jersey_State_Route_124_(Main_Street)_at_Morris_County_Route_607_(Passaic_Avenue)_in_Chatham,_Morris_County,_New_Jersey.jpg" target="_blank" rel="noopener">Famartin</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a>（縮小・トリミング）</span></li><li data-cr="us-mercer-island"><b>マーサーアイランド</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Aerial_photo_of_Mercer_Island,_Washington.jpg" target="_blank" rel="noopener">Dllu</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a>（縮小・トリミング）</span></li><li data-cr="us-burien"><b>ブリエン</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Seahurst_Park_01.jpg" target="_blank" rel="noopener">Joe Mabel</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a>（縮小・トリミング）</span></li><li data-cr="us-mukilteo"><b>マキルテオ</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Mulkiteo,_WA_waterfront.JPG" target="_blank" rel="noopener">Compdude123</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a>（縮小・トリミング）</span></li></ul></details>
+</section>
+</div><details class="pvg-dt pvg-srcd pvg-phc"><summary>写真の出典<small>14枚</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><ul class="pvg-phl"><li data-cr="us-peachtree-city"><b>ピーチツリーシティ</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:City_Hall_Dogwoods_and_Golf_Cart.jpg" target="_blank" rel="noopener">PTCdude</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a>（縮小・トリミング）</span></li><li data-cr="us-newnan"><b>ニューナン</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Coweta_County_Courthouse,_Newnan,_GA,_US.jpg" target="_blank" rel="noopener">Jud McCranie</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a>（縮小・トリミング）</span></li><li data-cr="us-wellesley"><b>ウェルズリー</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Wellesley_Center,_MA.jpg" target="_blank" rel="noopener">John Phelan</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by/3.0" target="_blank" rel="noopener">CC BY 3.0</a>（縮小・トリミング）</span></li><li data-cr="us-braintree"><b>ブレインツリー</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Braintree_Town_Hall,_MA.jpg" target="_blank" rel="noopener">John Phelan</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by/3.0" target="_blank" rel="noopener">CC BY 3.0</a>（縮小・トリミング）</span></li><li data-cr="us-plymouth-area"><b>プリマス周辺</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Kellogg_Park_Pymouth_2019.jpg" target="_blank" rel="noopener">Antony-22</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a>（縮小・トリミング）</span></li><li data-cr="us-northville-area"><b>ノースビル周辺</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Downtown_Northville_4th_of_July.jpg" target="_blank" rel="noopener">Detroit Lions Super Bowl Champs</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a>（縮小・トリミング）</span></li><li data-cr="us-bloomfield-hills-area"><b>ブルームフィールドヒルズ周辺</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Cranbrook_Tower_and_Quadrangle.jpg" target="_blank" rel="noopener">Bradley Portnoy, User:Piranhaex at en.wikipedia</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a>（縮小・トリミング）</span></li><li data-cr="us-manhattan-beach"><b>マンハッタンビーチ</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:The_Manhattan_Beach_Pier.jpg" target="_blank" rel="noopener">Jacob Gelman</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a>（縮小・トリミング）</span></li><li data-cr="us-el-segundo"><b>エルセグンド</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Recreation_Park_-_El_Segundo.jpg" target="_blank" rel="noopener">DocFreeman24</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a>（縮小・トリミング）</span></li><li data-cr="us-eagan"><b>イーガン</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Lebanon_Hills_Regional_Park,_Minnesota.jpg" target="_blank" rel="noopener">Mgust</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a>（縮小・トリミング）</span></li><li data-cr="us-chatham"><b>チャタム</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:2018-08-07_09_09_10_View_west_along_New_Jersey_State_Route_124_(Main_Street)_at_Morris_County_Route_607_(Passaic_Avenue)_in_Chatham,_Morris_County,_New_Jersey.jpg" target="_blank" rel="noopener">Famartin</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a>（縮小・トリミング）</span></li><li data-cr="us-mercer-island"><b>マーサーアイランド</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Aerial_photo_of_Mercer_Island,_Washington.jpg" target="_blank" rel="noopener">Dllu</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a>（縮小・トリミング）</span></li><li data-cr="us-burien"><b>ブリエン</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Seahurst_Park_01.jpg" target="_blank" rel="noopener">Joe Mabel</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a>（縮小・トリミング）</span></li><li data-cr="us-mukilteo"><b>マキルテオ</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Mulkiteo,_WA_waterfront.JPG" target="_blank" rel="noopener">Compdude123</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a>（縮小・トリミング）</span></li></ul></details>
 </div>
 </div>
 </div>
@@ -3287,7 +3290,7 @@ setTimeout(()=>{document.querySelectorAll('.fade-up:not(.visible)').forEach(el=>
 <script src="../currency.js"></script>
 <!--PV-GLANCE-JS-->
 <script src="../career-live.js?v=8dc5f0a2"></script>
-<script src="../pv-glance.js?v=bf8a9701"></script>
+<script src="../pv-glance.js?v=977ddad5"></script>
 <script src="../pv-contrib.js?v=ecb006c8"></script>
 <script src="../pv-proof-offer.js?v=cc4ef913"></script>
 <script src="../pv-hotel-suggest.js?v=179d17b8"></script>
