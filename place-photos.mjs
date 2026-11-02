@@ -629,7 +629,7 @@ export const PHOTOS = {
   ],
   'us-johns-creek': [
     { file: 'town-johns-creek', orig: 'town-johns-creek.jpg', subject: 'ジョンズクリークを流れるチャタフーチー川', w: 960, h: 720,
-      author: 'Thomson200', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0/', changes: CHANGES,
+      author: 'Thomson200', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0/deed.en', changes: CHANGES,
       source: 'https://commons.wikimedia.org/wiki/File:Chattahoochee_River,_Johns_Creek_Jan_2021.jpg' },
   ],
   'us-braintree': [
@@ -674,17 +674,17 @@ export const PHOTOS = {
   ],
   'us-edina': [
     { file: 'town-edina', orig: 'town-edina.jpg', subject: 'フランス通りへ向かう50丁目の通り', w: 960, h: 640,
-      author: 'Thomson200', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0/', changes: CHANGES,
+      author: 'Thomson200', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0/deed.en', changes: CHANGES,
       source: 'https://commons.wikimedia.org/wiki/File:50th_Street,_Edina,_MN_Oct_2017_2.jpg' },
   ],
   'us-garden-city': [
     { file: 'town-garden-city', orig: 'town-garden-city.jpg', subject: '夕方のフランクリン通り', w: 960, h: 720,
-      author: 'Infrastorian', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0/', changes: CHANGES,
+      author: 'Infrastorian', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0/deed.en', changes: CHANGES,
       source: 'https://commons.wikimedia.org/wiki/File:Franklin_Avenue,_Garden_City,_NY_May_3,_2026_A.jpg' },
   ],
   'us-manhasset': [
     { file: 'town-manhasset', orig: 'town-manhasset.jpg', subject: '雨の朝のプランドーム通り沿いの緑地とあずまや', w: 960, h: 719,
-      author: 'Jim.henderson', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0/', changes: CHANGES,
+      author: 'Jim.henderson', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0/deed.en', changes: CHANGES,
       source: 'https://commons.wikimedia.org/wiki/File:Manhasset_Gazebo_rain_jeh.jpg' },
   ],
   'us-chatham': [
@@ -694,12 +694,12 @@ export const PHOTOS = {
   ],
   'us-bountiful': [
     { file: 'town-bountiful', orig: 'town-bountiful.jpg', subject: 'ファーミントン湾から望むバウンティフルとワサッチ山脈', w: 960, h: 723,
-      author: 'Boluotou18', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0/', changes: CHANGES,
+      author: 'Boluotou18', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0/deed.en', changes: CHANGES,
       source: 'https://commons.wikimedia.org/wiki/File:PXL_20250914_215112073~3.jpg' },
   ],
   'us-park-city': [
     { file: 'town-park-city', orig: 'town-park-city.jpg', subject: 'パークシティのメインストリート', w: 960, h: 720,
-      author: 'Saalebaer', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0/', changes: CHANGES,
+      author: 'Saalebaer', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0/deed.en', changes: CHANGES,
       source: 'https://commons.wikimedia.org/wiki/File:View_on_Main_Street_in_Park_City_Utah.JPG' },
   ],
   'us-burien': [
@@ -754,7 +754,7 @@ export const PHOTOS = {
   ],
   'us-west-university-place': [
     { file: 'town-west-university-place', orig: 'town-west-university-place.jpg', subject: 'ウエストユニバーシティプレイスの住宅街の交差点', w: 960, h: 720,
-      author: 'WhisperToMe', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0', changes: CHANGES,
+      author: 'WhisperToMe', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0/deed.en', changes: CHANGES,
       source: 'https://commons.wikimedia.org/wiki/File:WestUScene0.JPG' },
   ],
   'us-herndon': [
@@ -784,7 +784,7 @@ export const PHOTOS = {
   ],
   'us-alameda': [
     { file: 'town-alameda', orig: 'town-alameda.jpg', subject: '空から見たベイファーム島の住宅地', w: 960, h: 720,
-      author: 'Alfred Twu', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0', changes: CHANGES,
+      author: 'Alfred Twu', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0/deed.en', changes: CHANGES,
       source: 'https://commons.wikimedia.org/wiki/File:03-bay-farm-island.jpg' },
   ],
   'us-lake-nona-area': [
@@ -819,7 +819,7 @@ export const PHOTOS = {
   ],
   'us-belmont': [
     { file: 'town-belmont', orig: 'town-belmont.jpg', subject: 'ベルモントのメインストリート', w: 960, h: 606,
-      author: 'Indy beetle', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0', changes: CHANGES,
+      author: 'Indy beetle', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0/deed.en', changes: CHANGES,
       source: 'https://commons.wikimedia.org/wiki/File:Main_Street,_Belmont_04.jpg' },
   ],
   'us-davidson': [
@@ -834,12 +834,12 @@ export const PHOTOS = {
   ],
   'us-pinecrest': [
     { file: 'town-pinecrest', orig: 'town-pinecrest.jpg', subject: 'パインクレスト・ガーデンズのスワン湖', w: 960, h: 720,
-      author: 'Rook48', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0', changes: CHANGES,
+      author: 'Rook48', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0/deed.en', changes: CHANGES,
       source: 'https://commons.wikimedia.org/wiki/File:Swan_Lake_at_Pinecrest_Gardens.jpg' },
   ],
   'us-bala-cynwyd-lower-merion-area': [
     { file: 'town-bala-cynwyd-lower-merion-area', orig: 'town-bala-cynwyd-lower-merion-area.jpg', subject: 'バラキンウッドの商店が並ぶ通り', w: 960, h: 720,
-      author: 'Ii2nmd', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0', changes: CHANGES,
+      author: 'Ii2nmd', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0/deed.en', changes: CHANGES,
       source: 'https://commons.wikimedia.org/wiki/File:Bala_Cynwyd,_Pennsylvania.jpg' },
   ],
   'us-media-area': [
@@ -884,7 +884,7 @@ export const PHOTOS = {
   ],
   'us-summerlin-south-area': [
     { file: 'town-summerlin-south-area', orig: 'town-summerlin-south-area.jpg', subject: 'ダウンタウン・サマーリンのショッピングセンター', w: 960, h: 720,
-      author: 'Roc0ast3r', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0', changes: CHANGES,
+      author: 'Roc0ast3r', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0/deed.en', changes: CHANGES,
       source: 'https://commons.wikimedia.org/wiki/File:Downtown_Summerlin_in_Summerlin_South,_Nevada_(2024)_--_3197.jpg' },
   ],
   'us-anthem-henderson-area': [
@@ -949,7 +949,7 @@ export const PHOTOS = {
   ],
   'us-indian-hill': [
     { file: 'town-indian-hill', orig: 'town-indian-hill.jpg', subject: 'インディアンヒルのスタンリー・M・ロウ樹木園', w: 960, h: 640,
-      author: 'Daderot', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0', changes: CHANGES,
+      author: 'Daderot', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0/deed.en', changes: CHANGES,
       source: 'https://commons.wikimedia.org/wiki/File:Stanley_M._Rowe_Arboretum_-_DSC03485.JPG' },
   ],
   'us-berea': [
@@ -1009,7 +1009,7 @@ export const PHOTOS = {
   ],
   'us-moon-township': [
     { file: 'town-moon-township', orig: 'town-moon-township.jpg', subject: 'ムーンタウンシップを流れる小川モントゥア・ラン（秋）', w: 960, h: 720,
-      author: 'Cbaile19', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0', changes: CHANGES,
+      author: 'Cbaile19', licence: 'CC0', licence_url: 'https://creativecommons.org/publicdomain/zero/1.0/deed.en', changes: CHANGES,
       source: 'https://commons.wikimedia.org/wiki/File:Placid_pool_in_Montour_Run,_Moon_Township,_2024-10-24-2.jpg' },
   ],
   'us-upper-st-clair': [
