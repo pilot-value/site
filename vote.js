@@ -139,7 +139,7 @@
     }, /*PV-MSG:es*/ es: {
       latest: 'Últimas reseñas', seeAll: 'Ver todas las reseñas', prev: 'Reseña anterior', next: 'Reseña siguiente',
       read: 'Leer esta reseña',
-      tenure: function (t) { return t + ' de antigüedad'; },
+      tenure: function (t) { return String(t).replace(/ years?$/, " años") + ' de antigüedad'; },
       ten: { '1-5': '1–5 años', '5-10': '5–10 años', '10-15': '10–15 años', '15-20': '15–20 años', '20+': '20 años o más' },
       pos: { captain: 'Capitán', fo: 'Primer oficial', cadet: 'Piloto en formación', former: 'Extripulante' },
       cat: { culture: 'Cultura', salary: 'Remuneración', benefits: 'Beneficios', wlb: 'Equilibrio vida-trabajo', ops: 'Operaciones de vuelo', training: 'Entrenamiento', mgmt: 'Sugerencias para la dirección' },
