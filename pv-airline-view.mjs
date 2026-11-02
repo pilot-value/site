@@ -40,6 +40,7 @@ import { primary } from './airline-photos.mjs';
 import { axisEnd } from './pv-bars.mjs';
 import { LEAD, SWITCH, researchFacts, researchNetwork, researchCities } from './airline-rollout.mjs';
 import { REGIONS, PLACES, networkOf, placeCountry } from './airline-destinations.mjs';
+import * as US from './us-housing.mjs';
 import { countryEn } from './airline-display.mjs';
 import { AIRLINE_COUNTRY, BY_CODE } from './airline-countries.mjs';
 
@@ -782,6 +783,58 @@ function livingsOf(slug, bases, T = TX_JA) {
   }
   return out;
 }
+/* ★2026-11-02 米国の会社（us-housing.mjs に在る13社）の暮らし ── 拠点の近くの住宅地と、その郵便番号の家賃（HUD の指標）。
+   オーナー「基地の近くの富裕層が住むところのデータなかった？？」。街ぜんたいの平均（調べの台帳の Zumper の表）はこの会社たちには出さない
+   （メモリの決まり「家賃は拠点の近くの住宅地の相場・街全体の平均を出さない」）。
+   欄は住む地域ごと（拠点の順）・カードは地域の街（その会社の空港に通いやすい街 → 世帯の所得が高い街の順）。 */
+const US_WORDS = {
+  ja: { measure: '郵便番号ごとの家賃の指標・光熱費込み', when: 'FY2027（2026年10月1日から）',
+    scope: '米国住宅都市開発省（HUD）が郵便番号の区域ごとに出す家賃の指標（Small Area Fair Market Rent）。その区域のふつうの賃貸住宅の家賃の、下から40%の水準で、決まった光熱費を含む。募集の平均や高級物件の家賃ではない。郵便番号の区域は街の境と一致しない（「周辺」と書いた街）。1-Bed・2-Bed・3-Bed は寝室の数',
+    offers: (list, seen) => `3寝室の戸建ての掲載例（${seen}に見た掲載・成約の家賃ではない）：${list.map(o => `月 USD ${o.rent.toLocaleString('en-US')}${o.sqft ? `（${Math.round(o.sqft).toLocaleString('en-US')} sq ft）` : ''}`).join('・')}` },
+  en: { measure: 'Rent benchmark by ZIP code, utilities included', when: 'FY2027 (from October 1, 2026)',
+    scope: 'HUD\'s Small Area Fair Market Rent for the ZIP code: the 40th percentile of standard rental housing in that ZIP, including set utilities. Not an average of listings and not luxury-home rents. ZIP areas do not match town borders ("area" towns). 1-Bed, 2-Bed and 3-Bed are bedrooms',
+    offers: (list, seen) => `3-bedroom house listings (seen ${seen}, asking rents, not signed leases): ${list.map(o => `USD ${o.rent.toLocaleString('en-US')} a month${o.sqft ? ` (${Math.round(o.sqft).toLocaleString('en-US')} sq ft)` : ''}`).join(' · ')}` },
+};
+export const usHoused = slug => !!US.COMPANIES[slug];
+function usLivings(slug, bases, lang = 'ja') {
+  const co = US.COMPANIES[slug], en = lang === 'en', Wd = US_WORDS[en ? 'en' : 'ja'];
+  /* 空港までの移動の行（調べの台帳・出典つき）は、今までの街の欄から、同じ空港の欄へ移す（消さない） */
+  const found = researchCities(slug, bases, undefined, undefined, lang);
+  /* 会社の拠点の空港（ページの拠点の行と同じ並び）。欄の見出しの空港・街の並びはこれだけで決める */
+  const mine = a => bases.includes(a);
+  const seen = en ? atTextEn(US.SEEN) : whenText({ at: US.SEEN });
+  /* 住む地域：会社の拠点の空港を持つ地域（資料がその会社の地域に挙げていなくても、拠点の空港の地域なら出す）。並びは拠点の順 */
+  const at = key => Math.min(...US.REGIONS[key].airports.map(a => bases.indexOf(a)).filter(i => i >= 0));
+  const keys = Object.keys(US.REGIONS).filter(key => US.REGIONS[key].airports.some(mine)).sort((a, b) => at(a) - at(b));
+  return keys.map(key => {
+    const G = US.REGIONS[key];
+    const list = Object.entries(US.TOWNS).filter(([, t]) => t.region === key)
+      .sort(([, a], [, b]) => (b.near.some(mine) - a.near.some(mine)) || ((b.income ?? -1) - (a.income ?? -1)));
+    if (!list.length) throw new Error(`${slug}: 住む地域 ${key} に街が無い（us-housing.mjs）`);
+    const ports = G.airports.filter(mine);
+    const rents = list.map(([k, t], i) => ({
+      key: k, name: en ? t.en : t.ja, sub: '', en: en ? `${t.state} ${t.zip}` : `${t.en}, ${t.state} ${t.zip}`, area: '', label: en ? t.en : t.ja,
+      iata: (t.near.find(mine) || t.near[0] || ''), pick: t.offers.length ? Wd.offers(t.offers, seen) : '', pickSrc: null,
+      value: { bed1: t.bed1, bed2: t.bed2, bed3: t.bed3 }, when: Wd.when,
+      src: { name: en ? US.SRC.name_en : US.SRC.name, url: US.SRC.url, kind: 'gov' }, cond: '', quote: '', lead: i === 0, way: null,
+    }));
+    return gate(slug, {
+      cityKey: `us-${key.toLowerCase()}`, city: en ? G.en : G.ja, cur: 'USD', per: 'month', measure: Wd.measure,
+      site: 'hud', siteName: en ? US.SRC.name_en : US.SRC.name, stat: 'index',
+      cols: [['bed1', '1-Bed'], ['bed2', '2-Bed'], ['bed3', '3-Bed']], bars: ['bed1', 'bed2', 'bed3'], words: { bed1: '1-Bed', bed2: '2-Bed', bed3: '3-Bed' },
+      leadCol: 'bed1', beside: '', byTown: false, cardFamily: '',
+      airports: ports.map(iata => ({ iata, to: (PLACES[iata] || [])[en ? 1 : 0] || (en ? G.en : G.ja) })),
+      ends: [], rents, estates: [], basis: [{ key: 'scope', value: Wd.scope }], refs: [], research: true,
+      commute: found.filter(c => ports.includes(c.iata)).flatMap(c => c.commute.map(({ r, d, src }) => ({
+        key: r.id, town: '', iata: c.iata, end: '', mode: d.mode || 'train', modes: [d.mode || 'train'], via: 'operator', line: '', from: '', to: '',
+        kind: null, mins: null, ride: null, warn: '', label: d.label, value: d.value, orig: false, yen: '', cond: d.cond || '', when: '',
+        src: { name: src.name, url: src.url, kind: src.kind }, checked: r.checked_at || '', pilot: true, fare: false, day: '', card: false, lead: false,
+      }))),
+    }, ['Efficiency One-Bedroom Two-Bedroom Three-Bedroom Four-Bedroom'], { bed1: 'One-Bedroom', bed2: 'Two-Bedroom', bed3: 'Three-Bedroom' });
+  });
+}
+/* 拠点の空港：資料の並び（us-housing.mjs）を先に・調べの台帳の拠点で資料に無いものを後ろに */
+const usBases = (slug, iata) => (US.COMPANIES[slug] ? [...new Set([...US.COMPANIES[slug].bases, ...iata])] : iata);
 /* 調べの台帳の会社の英語の行は、airline-rollout.mjs の researchFacts(…, 'en') がもう英語の字にしてある（対の無い行は出ない）。
    ここではその字をそのまま運ぶ（もう一度英語の対を探さない ── 英語の題の “…” の中の原文の字を、日本語と読み違えない）。 */
 const TX_EN_READY = Object.freeze({
@@ -795,9 +848,9 @@ function rolloutView(slug, lang = 'ja') {
   /* 額の行（月・年あたりの通貨つきの額）は、期間の字を額の前に置く（「月 ZAR 4,000」）。英語は後ろ（「ZAR 4,000 a month」） */
   const rows = list => list.map(x => { const f = { ...fact(x, TR), lead: !!x.lead, use: x.use, tag: x.tag || '', id: x.id }; if (x.per && x.cur) f.value = en ? `${f.value} a ${x.per}` : `${x.per} ${f.value}`; return f; });
   const base = R.base
-    ? { city: R.base.city, country: R.base.country, iata: R.base.iata, text: R.base.city || R.base.iata[0], rows: rows(R.base.rows) }
-    : { city: '', country: '', iata: [], text: '', rows: [] };
-  const livings = livingsOf(slug, base.iata, T);
+    ? { city: R.base.city, country: R.base.country, iata: usBases(slug, R.base.iata), text: R.base.city || usBases(slug, R.base.iata)[0], rows: rows(R.base.rows) }
+    : { city: '', country: '', iata: usBases(slug, []), text: usBases(slug, [])[0] || '', rows: [] };
+  const livings = usHoused(slug) ? usLivings(slug, base.iata, lang) : livingsOf(slug, base.iata, T);
   const profile = rows(R.profile), fleet = rows(R.fleet);
   return {
     slug, name: en ? S.en : S.ja, ...metaOf(slug), rollout: true, ...(en ? { lang } : {}),

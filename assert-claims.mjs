@@ -324,6 +324,7 @@ let faqOf = null;
   const { BASIS } = await import('./salary-basis.mjs');
   const { SOURCES } = await import('./salary-sources.mjs');
   const { LEDGER } = await import('./research-ledger.mjs');
+  const { TERMS: US_TERMS } = await import('./us-terms.mjs');
   const { unbake, curCore } = await import('./cur-core.mjs');
   const C_EN = await curCore('USD', 'en');
   const txt = (s) => String(s).replace(/<span[^>]*class="[^"]*text-muted text-xl[^"]*"[^>]*>[\s\S]*?<\/span>/g, () => '').replace(/<[^>]*>/g, () => ' ')
@@ -381,6 +382,8 @@ let faqOf = null;
       for (const x of Object.values(v)) walk(x);
     };
     walk((LEDGER.FACTS || {})[slug]); walk(BASIS[slug]); walk(SOURCES[slug]);
+    /* ★2026-11-02 米国の会社の「調べた条件」（us-terms.mjs）も、その会社の台帳（保証・割増の時間はここに在る。行の字の数はどれも台帳の数として数える ── 「4〜8時間」の4も） */
+    allNums(US_TERMS[slug]);
     return set;
   };
   const JP_RATE = /(?:Japan|日本)[^.。]{0,60}?\d+(?:\.\d+)?\s*[%％]|\d+(?:\.\d+)?\s*[%％][^.。]{0,60}?(?:Japan|日本)/;

@@ -43,6 +43,7 @@ import * as PLACE from './place-photos.mjs';
 import { networkOf, placeCountry } from './airline-destinations.mjs';
 import { curCore, bakeText } from './cur-core.mjs';
 import { PAY_SCALES, MONTH } from './pay-scales.mjs';
+import { TERMS, TERMS_AT } from './us-terms.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 /* いま書いている言葉と、そのページから見た道（build() の中だけ英語になる ── inLang）。
@@ -477,6 +478,25 @@ ${payDetails(v)}
    ・目盛の字も HTML（SVG の <text> に円を書くと currency.js が span を差し込んで字が消える）。
    ・1年目の機長が副操縦士と同じ額の表（入社時の一律の額）は、機長の1年目を描かない。
    ⚠️ ここに社名を書かない（check-salary.mjs が「社名 → 職位 → 額」で読む。基本給を推定年収として照合させない）。 */
+/* ★2026-11-02 米国の会社の「調べた条件」（us-terms.mjs）── オーナー「せっかく調べてきた内容を無駄にしないで。ちゃんと活用して」。
+   ChatGPT の米国20社の調べ（2026-11-02）の、給与のまわり・勤務・通勤・ステイの条件。タブごとに1枚（そのタブの行が無ければ置かない）。
+   資料に出典の住所が無いので、行ごとの出典リンクは無い ── 札で「PILOT VALUE の調べ」と日付を言う。
+   「会社が公表している条件」の一覧には入れない（会社自身の資料だと言えない）。今と言い切れない値は「参考」の札。
+   額は外貨の字のまま（円に直さない・通貨切替に読ませない ── prose）。 */
+const TM_ICON = { pay: 'benefits', work: 'work', life: 'living', stay: 'stay' };
+function termsCard(v, tab) {
+  const rows = ((TERMS[v.slug] || {})[tab] || []);
+  if (!rows.length) return '';
+  const L = LANG === 'en' ? 'en' : 'ja';
+  const dl = rows.map(r => `<div data-tm="${esc(r.key)}"><dt>${esc(r[L].label)}${r.ref ? `<span class="pvg-tag pvg-tag-q">${W.tmRef}</span>` : ''}</dt><dd><b>${prose(r[L].value)}</b>${r[L].note ? `<small>${prose(r[L].note)}</small>` : ''}</dd></div>`).join('');
+  return `<!--PV-USTERMS--><div class="pvg-more-grid pvg-g-tm"${pane(v.slug, tab)}>
+<article class="pvg-card pvg-tm" data-tm-tab="${tab}">
+<header class="pvg-hd"><span class="pvg-ico" aria-hidden="true">${IC[TM_ICON[tab]]}</span><h2 class="pvg-eyebrow">${W.tm[tab]}</h2><span class="pvg-chip">${W.tmChip(esc(dateJa(TERMS_AT)))}</span></header>
+<dl class="pvg-dl">${dl}</dl>
+<p class="pvg-tm-src">${W.tmSrc}</p>
+</article>
+</div><!--/PV-USTERMS-->`;
+}
 function payScaleCard(v) {
   const P = PAY_SCALES[v.slug];
   if (!P) return '';
@@ -1280,6 +1300,7 @@ ${payCard(v)}
 ${reviewsCard(v)}
 </div>
 ${payScaleCard(v)}
+${termsCard(v, 'pay')}
 <div class="pvg-more-grid pvg-g-jobs"${pane(v.slug, 'overview')}>
 ${jobsCard(v)}
 </div>
@@ -1290,10 +1311,13 @@ ${benCell(v)}
 ${livingCell(v)}
 </div>
 </div>
+${termsCard(v, 'work')}
+${termsCard(v, 'life')}
 <div class="pvg-more-grid pvg-g-st"${pane(v.slug, 'overview stay')}>
 ${stayCard(v)}
 ${askCard(v)}
 </div>
+${termsCard(v, 'stay')}
 <div id="pvg-revcats"${pane(v.slug, 'reviews')}></div>${tabbed(v.slug) ? '\n' + reviewsList(v) : ''}
 <script type="application/json" id="crc-data">${island}</script>
 </section>`;
@@ -1329,6 +1353,8 @@ export const WORDS = Object.freeze({
     saveCard: 'カードを保存', compare: '他社と比較', compareShort: '比較する', makeCard: 'カードにする',
     member: (a, x) => (x ? `${a}加盟（${x}）` : `${a}加盟`),
     pay: '給与', realPay: '提出された年収', estBy: '当サイトの推定', medBy: '会員が出した年収の中央値',
+    tm: { pay: '給与と待遇の条件', work: '勤務の条件', life: '通勤の条件', stay: 'ステイの条件' }, tmRef: '参考',
+    tmChip: d => `PILOT VALUE の調べ · ${d}`, tmSrc: '労働協約・会社・労働組合の公開資料をもとに、PILOT VALUE がまとめた条件です。',
     ps: '勤続年数ごとの基本給', psFleet: '機種', psYear: n => `${n}年目`, psOver: n => `${n}年で`, psPrev: '前の年から',
     psAxis: '勤続年数（年目）', psTap: '年を押すと額が出ます',
     psChip: (at, ref) => (ref ? '参考の給与表' : at ? `労働協約の給与表 · ${at.replace(/^(\d{4})(?:-(\d\d))?$/, (m, y, mo) => (mo ? `${y}年${+mo}月` : `${y}年`))}` : '労働協約の給与表'),
@@ -1398,6 +1424,8 @@ export const WORDS = Object.freeze({
     saveCard: 'Save card', compare: 'Compare', compareShort: 'Compare', makeCard: 'Make a card',
     member: (a, x) => (x ? `${a} member (${x})` : `${a} member`),
     pay: 'Pay', realPay: 'Submitted pay', estBy: 'Our estimate', medBy: 'Median of pay submitted by members',
+    tm: { pay: 'Pay and benefit terms', work: 'Work rules', life: 'Getting to work', stay: 'Layover rules' }, tmRef: 'Reference',
+    tmChip: d => `PILOT VALUE research · ${d}`, tmSrc: 'Summarized by PILOT VALUE from public union contracts and company and union materials.',
     ps: 'Base pay by year of service', psFleet: 'Aircraft', psYear: n => `Year ${n}`, psOver: n => `over ${n} years`, psPrev: 'vs. the year before',
     psAxis: 'Year of service', psTap: 'Tap a year to see the pay',
     psChip: (at, ref) => (ref ? 'Reference pay scale' : at ? `Contract pay scale · ${at.replace(/^(\d{4})(?:-(\d\d))?$/, (m, y, mo) => (mo ? `${MONTHS_EN[+mo - 1]} ${y}` : y))}` : 'Contract pay scale'),

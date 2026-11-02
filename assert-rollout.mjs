@@ -75,6 +75,7 @@ import { curCore } from './cur-core.mjs';
 import { LIVING } from './living-facts.mjs';
 import { PLACES, US_STATE, sharedNames } from './airline-destinations.mjs';
 import { AIRLINE_COUNTRY, BY_CODE } from './airline-countries.mjs';
+import * as US_H from './us-housing.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 let pass = 0, failN = 0;
@@ -760,7 +761,8 @@ for (const s of ROLLED) {
      残りが無い会社は、今までの「…確認してから開きます。」で一覧を置かない（カンタスの1空港 SYD は拠点だった）。 */
   /* 拠点：台帳の拠点の空港の行（出せる使い方）と、拠点の街の行の街の空港（PLACES の街の名前が同じ空港 ── 2026-10-21 d1。2026-10-29 から両方） */
   const baseRows = (((R2.FACTS || {})[s] || {}).base || []).filter(r => SHOWN.includes(r.use));
-  const homeIata = [...new Set(baseRows.map(r => String(r.value)).filter(c => /^[A-Z]{3}$/.test(c)))];
+  /* ★2026-11-02 米国の会社は、調べ（us-housing.mjs）の拠点の空港も拠点に数える（ページの拠点の行と同じ） */
+  const homeIata = [...new Set([...((US_H.COMPANIES[s] || {}).bases || []), ...baseRows.map(r => String(r.value)).filter(c => /^[A-Z]{3}$/.test(c))])];
   /* ★2026-10-29：空港の行と街の行の両方を拠点に数える（空港の行が一部だけの会社でも、拠点の街の空港を就航地に並べない ── アレジアント航空のアレンタウン ABE） */
   const homeCity = [...new Set(baseRows.filter(r => r.key === 'pilot_base_city').map(r => say(r)).filter(Boolean).map(d => d.value))];
   const homes = [...homeIata, ...Object.entries(PLACES).filter(([, p]) => homeCity.includes(String(p[0]).replace(/（.*$/, ''))).map(([c]) => c)];
@@ -826,7 +828,10 @@ for (const s of ROLLED) {
   const stray = [], noRent = [], said = [];
   starts.forEach((m, i) => {
     const key = m[1], L = v.livings[i], a = m.index, e = g.indexOf('</dl></details>\n</section>', a), sec = g.slice(a, e < 0 ? a : e);
-    const ports = LIVING[key] ? LIVING[key].airports.map(([c]) => c).filter(c => base.includes(c)) : CITY[key] ? [CITY[key].iata, ...(CITY[key].also || [])].filter(c => base.includes(c)) : [];
+    /* ★2026-11-02 米国の会社の住む地域（us-*）は、us-housing.mjs の地域の空港のうち会社の拠点の空港 */
+    const usKey = /^us-/.test(key) ? key.slice(3).toUpperCase() : '';
+    const ports = usKey ? US_H.REGIONS[usKey].airports.filter(c => base.includes(c))
+      : LIVING[key] ? LIVING[key].airports.map(([c]) => c).filter(c => base.includes(c)) : CITY[key] ? [CITY[key].iata, ...(CITY[key].also || [])].filter(c => base.includes(c)) : [];
     /* 欄の見出し（住むエリア・<街>・<空港>）と「＋パイロットに人気の街を追加」の面に渡す空港も、その会社の拠点の空港だけ
        （東京の欄に、スカイマークの拠点ではない成田を書かない。2026-10-21 全社へ広げる c の確かめで足した） */
     const hdr = (/<p class="pvg-askh">住むエリア<small>([^<]*)<\/small>/.exec(sec) || [])[1];
@@ -839,7 +844,8 @@ for (const s of ROLLED) {
       if (!c || !ports.includes(c.iata)) stray.push(`${L.cityKey}:${k}`);
     }
     for (const c of [...sec.matchAll(/<i class="pvg-code3">([A-Z]{3})<\/i>/g)].map(x => x[1])) if (!ports.includes(c)) stray.push(`${L.cityKey}:${c}`);
-    const ledgerRents = LIVING[key] ? LIVING[key].rents.length : (((R2.LIVING || {})[key] || {}).rents || []).filter(r => !why(r)).length;
+    const ledgerRents = usKey ? Object.values(US_H.TOWNS).filter(t => t.region === usKey).length
+      : LIVING[key] ? LIVING[key].rents.length : (((R2.LIVING || {})[key] || {}).rents || []).filter(r => !why(r)).length;
     if (!ledgerRents && !sec.includes('家賃の資料を確認できていません')) noRent.push(key);
     if (!ledgerRents && /<span class="pvg-town-r">/.test(sec)) noRent.push(`${key}（家賃の額が出ている）`);
   });
@@ -1292,6 +1298,48 @@ ok(O1N.n >= 10, `E 切り替えた会社のページに、勤務・待遇の「�
     `G 会社ページ（日本語 ${SWITCH.length}枚・英語 ${EN_SWITCH.length}枚）の新しい部品より下は、先行5社ではない会社では「よくある質問」の節1つだけ（本文の箱の中の最後の節・FAQPage つき）、先行5社では何も無い（「よくある質問」も FAQPage も無い）`,
     bad.slice(0, 6).join(' ／ '));
 }
+/* ═══ H) 米国の会社の調べ（2026-11-02 オーナー「せっかく調べてきた内容を無駄にしないで」）═══
+   H1 暮らし：us-housing.mjs の会社ごとの住む地域の、全部の街が日英のページに在り、1〜3寝室の家賃がその額で出ている。
+      街ぜんたいの平均（Zumper の表）は、この会社たちのページには出さない（家賃は拠点の近くの住宅地の相場 ── メモリの決まり）。
+   H2 調べた条件：us-terms.mjs の行が、決めたタブの1枚に全部在る。円・「$」・本人が払う額・「未確認」は書かない。 */
+{
+  const { COMPANIES: UC, TOWNS: UT } = await import('./us-housing.mjs');
+  const { TERMS: TM } = await import('./us-terms.mjs');
+  const usd = n => `USD ${n.toLocaleString('en-US')}`;
+  const bad1 = [], bad2 = [];
+  let towns = 0, rows = 0;
+  for (const slug of Object.keys(UC)) for (const lang of ['ja', 'en']) {
+    const f = path.join(HERE, pageOf(slug, lang === 'en' ? 'en' : undefined));
+    const h = fs.readFileSync(f, 'utf8');
+    if (/Zumper/.test(h)) bad1.push(`${slug} ${lang}: 街ぜんたいの平均（Zumper）が残っている`);
+    for (const key of UC[slug].regions) {
+      const at = h.indexOf(`data-city="us-${key.toLowerCase()}"`), next = at < 0 ? -1 : h.indexOf('<section class="pvg-liv"', at);
+      const sec = at < 0 ? '' : h.slice(at, next < 0 ? at + 80000 : next);
+      if (!sec) { bad1.push(`${slug} ${lang}: 地域 ${key} の欄が無い`); continue; }
+      for (const [k, t] of Object.entries(UT).filter(([, t]) => t.region === key)) {
+        towns++;
+        const bars = [...sec.matchAll(new RegExp(`data-town="${k}"[^>]*>[\\s\\S]{0,900}?</li>`, 'g'))].map(m => m[0]).join(' ');
+        for (const n of [t.bed1, t.bed2, t.bed3]) if (!bars.includes(usd(n))) bad1.push(`${slug} ${lang}: ${k} の ${usd(n)} が無い`);
+      }
+    }
+  }
+  for (const [slug, tabs] of Object.entries(TM)) for (const lang of ['ja', 'en']) {
+    const h = fs.readFileSync(path.join(HERE, pageOf(slug, lang === 'en' ? 'en' : undefined)), 'utf8');
+    for (const [tab, list] of Object.entries(tabs)) {
+      const card = (h.match(new RegExp(`<article class="pvg-card pvg-tm" data-tm-tab="${tab}">[\\s\\S]*?</article>`)) || [''])[0];
+      if (!card) { bad2.push(`${slug} ${lang}: ${tab} の札が無い`); continue; }
+      for (const r of list) {
+        rows++;
+        if (!card.includes(`data-tm="${r.key}"`) || !card.includes(esc2(r[lang].value))) bad2.push(`${slug} ${lang}: ${tab}.${r.key} が無い`);
+        const all = `${r[lang].label} ${r[lang].value} ${r[lang].note}`;
+        if (/[¥円]|\$|本人負担|payroll contribution|未確認|unconfirmed/.test(all)) bad2.push(`${slug} ${lang}: ${tab}.${r.key} に書いてはいけない字`);
+      }
+    }
+  }
+  ok(towns > 0 && !bad1.length, `H1 米国の会社の暮らし：拠点の近くの住宅地 ${towns}件（日英）が、1〜3寝室の家賃そのままの額で出る・街ぜんたいの平均は出さない`, bad1.slice(0, 6).join(' ／ '));
+  ok(rows > 0 && !bad2.length, `H2 米国の会社の調べた条件 ${rows}行（日英）が、決めたタブの1枚に全部在る・円や「$」や本人が払う額を書かない`, bad2.slice(0, 6).join(' ／ '));
+}
+function esc2(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 ok(sha(ALL.map(s => read(pageOf(s))).join('\u0000')) === REPO_SHA, 'リポジトリの会社ページは、この検査で1バイトも変わっていない');
 ok(sha(ALL.map(s => (fs.existsSync(path.join(HERE, pageOf(s, 'en'))) ? read(pageOf(s, 'en')) : '')).join('\u0000')) === REPO_SHA_EN, 'リポジトリの英語の会社ページも、この検査で1バイトも変わっていない');
 

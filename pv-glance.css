@@ -1377,3 +1377,9 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
   .pvg-ps-read .pvg-ps-yr{grid-area:yr}
   .pvg-ps-grid,.pvg-ps-bars{height:300px}
 }
+
+/* ── 調べた条件（米国の会社・2026-11-02）──────────────────────────
+   us-terms.mjs の行を、タブごとに1枚。一覧の見た目は「会社が公表している条件」と同じ（.pvg-dl）。
+   下の1行は、行ごとの出典リンクが無いことの代わりに、誰が何からまとめたかを言う。 */
+.pvg-tm .pvg-dl{margin-top:4px}
+.pvg-tm-src{margin-top:10px;font-size:12px;line-height:1.6;color:var(--pv-ink-3)}
