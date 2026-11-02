@@ -8,6 +8,7 @@
      node --env-file=<mail-bot/.env の場所> translate-tm.mjs es --estimate              何文・いくらかだけ出す（AI を呼ばない）
      node --env-file=… translate-tm.mjs es --trial 50 --report <点検表.html>            試し訳（約50文）と、日本語の逆訳つきの点検表
      node --env-file=… translate-tm.mjs es --pages en/pay-report.html,en/signup.html   そのページの足りない文だけ訳す
+     node --env-file=… translate-tm.mjs es --ld                                         構造化データ（JSON-LD）の文で、本文の訳から引けないものだけ訳す
      node translate-tm.mjs es --prune                                                  どのページにも無くなった訳を辞書から消す（AI を呼ばない）
      鍵は ANTHROPIC_API_KEY（mail-bot/.env にある開発用のもの。translate-eval.mjs と同じ）。
 
@@ -29,6 +30,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { createHash } from 'crypto';
+import { execFileSync } from 'child_process';
 import Anthropic from '@anthropic-ai/sdk';
 import { jsonSchemaOutputFormat } from '@anthropic-ai/sdk/helpers/json-schema';
 import { extract, extractHead, plain, tagSet, reportPage, jsShape, jsText, jsTags, inlineScriptUnits } from './i18n-core.mjs';
@@ -282,15 +284,6 @@ async function readThrough(page, rows) {
 }
 
 /* ── 本体 ─────────────────────────────────────────────────── */
-if (flag('--prune')) {
-  const live = new Set(collect(DEFAULT_PAGES.concat((opt('--pages') || '').split(',').filter(Boolean))).map((c) => c.key));
-  const gone = Object.keys(TM).filter((k) => !live.has(k) && TM[k].st !== 'manual');
-  for (const k of gone) delete TM[k];
-  saveTM();
-  console.log(`使わなくなった訳を消した: ${gone.length}件`);
-  process.exit(0);
-}
-
 const pages = (opt('--pages') || (flag('--trial') || opt('--trial') ? ['en/pay-report.html', 'en/airlines/aeromexico.html', 'en/signup.html', 'en/actual-pay.html', 'en/privacy.html'].join(',') : DEFAULT_PAGES.join(','))).split(',');
 const collectJS = () => MSG_FILES.flatMap((f) => msgUnits(f).map((u) => ({ key: u.key, src: u.value, page: f, kind: `javascript (property "${u.prop}" of the site's message table)`, ja: u.ja, before: '', after: '' })));
 /* --inline：ページの中の台本の、画面に出る文字列（文字列1つずつ・前後のコードの行を添える） */
@@ -313,7 +306,29 @@ const collectBank = () => {
   })(j, 'bank');
   return out;
 };
-let pool = flag('--js') ? collectJS() : flag('--inline') ? collectInline() : flag('--bank') ? collectBank() : collect(pages);
+/* --ld：構造化データ（JSON-LD）の文のうち、本文の訳から引けないもの（gen-lang.mjs --ld-miss が出す）。鍵は英語の字そのまま（タグ無し） */
+const collectLD = () => execFileSync(process.execPath, ['gen-lang.mjs', code, '--check', '--ld-miss'], { cwd: ROOT, encoding: 'utf8', maxBuffer: 1 << 26 })
+  .split('\n').filter((l) => l.startsWith('LDMISS\t')).map((l) => JSON.parse(l.slice(7)))
+  .map((m) => ({ key: m.key, page: m.page, kind: `structured data for search engines (schema.org JSON-LD, field "${m.field}"; plain text, no markup)`, ja: m.ja, before: '', after: '' }));
+/* 構造化データの文を全部（--prune が「まだ使っている」と数えるため。訳した後は --ld-miss に出てこない） */
+const allLD = () => DEFAULT_PAGES.flatMap((rel) => [...fs.readFileSync(path.join(ROOT, rel), 'utf8').matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].flatMap((m) => {
+  const out = [];
+  const walk = (v) => { if (Array.isArray(v)) v.forEach(walk); else if (v && typeof v === 'object') Object.values(v).forEach(walk); else if (typeof v === 'string') out.push(v); };
+  try { walk(JSON.parse(m[1])); } catch { /* 読めない塊は飛ばす */ }
+  return out;
+}));
+
+if (flag('--prune')) {
+  /* ★全部の集め方を足して「まだ使っている」を作る（2026-11-02 まではページの本文だけを見ていて、部品の辞書 js: と待遇の質問の訳まで消す形だった） */
+  const live = new Set([...collect(DEFAULT_PAGES.concat((opt('--pages') || '').split(',').filter(Boolean))), ...collectJS(), ...collectInline(), ...collectBank()].map((c) => c.key).concat(allLD()));
+  const gone = Object.keys(TM).filter((k) => !live.has(k) && TM[k].st !== 'manual');
+  if (flag('--dry')) { gone.forEach((k) => console.log('  消す: ' + k.slice(0, 100))); console.log(`消す予定: ${gone.length}件（--dry なので消していない）`); process.exit(0); }
+  for (const k of gone) delete TM[k];
+  saveTM();
+  console.log(`使わなくなった訳を消した: ${gone.length}件`);
+  process.exit(0);
+}
+let pool = flag('--js') ? collectJS() : flag('--inline') ? collectInline() : flag('--bank') ? collectBank() : flag('--ld') ? collectLD() : collect(pages);
 pool = [...new Map(pool.map((c) => [c.key, c])).values()];
 if (flag('--again')) pool = pool.filter((c) => TM[c.key]);
 else if (opt('--trial')) pool = pickTrial(pool.filter((c) => !fresh(c.key)), Number(opt('--trial')));

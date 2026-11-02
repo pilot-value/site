@@ -16,16 +16,33 @@
      3) リンク：その言語のページがあればそちらへ、無ければ英語版へ（../en/…）。?next= の戻り先も同じ。
      4) head の管理ブロック（<!--PV-SEO-->）を作り直す：訳した説明文・自分の canonical・
         検索に出すページだけ robots index と hreflang（ja / en / その言語 / x-default）。出さないページは noindex。
+     5) 金額：焼き込んだドルの span（pv-cur）の字を、その言語で currency.js が実行時に出すのと同じ字に焼き直す
+        （JS を動かさない読み手にも「US$ 174 mil」。人の画面は1ピクセルも変わらない）。
+        title・説明文・構造化データの「$174 mil」も「US$ 174 mil」に（中南米では $ だけだとペソと読まれる）。
+     6) 構造化データ（JSON-LD）：文の欄は、同じページの本文の訳（英語の字 → 訳の字）か訳の辞書で差し替える。
+        AI は呼ばない。どちらにも無い文は英語のまま（数を出す）。その言語のページがある URL はそちらへ。
    ════════════════════════════════════════════════════════════════ */
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { extract, extractHead, restore, splice, findAttrs, escAttr, escText, inlineScriptUnits } from './i18n-core.mjs';
+import { extract, extractHead, restore, splice, findAttrs, escAttr, escText, inlineScriptUnits, plain } from './i18n-core.mjs';
 import { LANG, LANGS, relIn, urlOfRel, alternatesFor } from './langs.mjs';
 import { needsAI } from './i18n/keep.mjs';
+import { curCore } from './cur-core.mjs';
+
+/* HTML の一切れ → 人が読む字（タグを外し・文字参照を戻し・空白を1つに） */
+const ENT = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', rsquo: '’', lsquo: '‘', ldquo: '“', rdquo: '”', ndash: '–', mdash: '—', hellip: '…', times: '×', middot: '·' };
+const textOf = (h) => h.replace(/<[^>]*>/g, '')
+  .replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, e) => e[0] === '#' ? String.fromCodePoint(e[1].toLowerCase() === 'x' ? parseInt(e.slice(2), 16) : +e.slice(1)) : ENT[e.toLowerCase()] ?? m)
+  .replace(/[\s ]+/g, ' ').trim();
+/* 照合に使う形：範囲の記号は本文が「〜」・構造化データが「–」なので、引くときだけそろえる */
+const keyOf = (s) => textOf(s).replace(/[〜～~–]/g, '–');
+/* JSON-LD の中で、人が読む文が入る欄 */
+const LD_TEXT = new Set(['name', 'text', 'headline', 'alternativeHeadline', 'description', 'abstract']);
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const CHECK = process.argv.includes('--check');
+const LD_MISS = process.argv.includes('--ld-miss');   // 訳の無い構造化データの文を1行ずつ出す（translate-tm.mjs --ld が使う）
 const arg = process.argv.slice(2).find((a) => !a.startsWith('--'));
 const CODES = arg ? [arg] : LANGS.filter((l) => !l.hand).map((l) => l.code);
 for (const c of CODES) if (!LANG[c] || LANG[c].hand) { console.error(`使い方: node gen-lang.mjs [言語]（機械で作る言語: ${LANGS.filter((l) => !l.hand).map((l) => l.code).join(', ')}）`); process.exit(1); }
@@ -37,6 +54,23 @@ const { TM } = fs.existsSync(tmFile) ? await import(tmFile) : { TM: {} };
 const tr = (key) => (TM[key] && ['validated', 'manual'].includes(TM[key].st) ? TM[key].es : null);
 const mine = new Set(L.pages);
 const P = path.posix;
+/* 金額の書き方（currency.js の LANG。いまスペイン語の書き方を持つのは es だけ。ほかの言語は英語の書き方のまま） */
+const ES_FMT = code === 'es' || L.base === 'es';
+const CUR = await curCore('USD', ES_FMT ? 'es' : 'en');
+const reBake = (h) => h.replace(/(<span class="pv-cur" data-jpy="(\d+)"[^>]*>)([^<]*)(<\/span>)/g,
+  (all, open, jpy, _t, close) => open + CUR.fmt(+jpy).replace(/&/g, '&amp;').replace(/</g, '&lt;') + close);
+const usd = (s) => !ES_FMT ? s : s
+  .replace(/\$(\d[\d.,]*)\s?K\b/g, (m, n) => `$${n} mil`)                     // 英語の K が残っていたら mil
+  .replace(/\$(\d[\d.,]*)\s?M\b/g, (m, n) => `$${n} M`)
+  .replace(/(\d[\d.,]*) (mil|M) (?:USD|dólares(?: estadounidenses)?)\b/g, (m, n, u) => `$${n} ${u}`)   // 「179 mil USD」も同じ書き方に
+  .replace(/(^|[^A-Za-z$])\$(?=\d)/g, (m, p) => `${p}US$ `);                 // $ だけはペソと読まれる → US$
+/* 訳の辞書を「タグを外した英語 → タグを外した訳」でも引けるように（構造化データの文はタグを持たない） */
+const TM_PLAIN = new Map();
+for (const [k, v] of Object.entries(TM)) {
+  if (/^jsl?:/.test(k) || !['validated', 'manual'].includes(v.st)) continue;
+  const p = keyOf(plain(k));
+  if (!TM_PLAIN.has(p)) TM_PLAIN.set(p, textOf(plain(v.es)));
+}
 
 /* リンクの行き先。enRel のページの中のリンク v を、outRel のページの中で正しく指す形に */
 function fixLink(v, enRel, outRel) {
@@ -111,6 +145,7 @@ ${ogAlts.map((o) => `<meta property="og:locale:alternate" content="${o}"/>\n`).j
 
 let wrote = 0;
 const report = [];
+const ldMissList = [];   // 構造化データの文で、訳が見つからなかったもの（translate-tm.mjs --ld が読む）
 for (const bare of L.pages) {
   const enRel = relIn(bare, 'en');
   const outRel = relIn(bare, code);
@@ -121,10 +156,14 @@ for (const bare of L.pages) {
   let missing = 0; let done = 0;
   const attrTr = (name, en) => tr(en);
   const edits = [];
+  const pageText = new Map();          // このページの本文：英語の字 → 訳の字（構造化データを引く）
   for (const u of units) {
     const t = tr(u.key);
     if (!t) { if (needsAI(u.key)) missing++; continue; }
-    edits.push({ start: u.start, end: u.end, text: restore(u, t, attrTr) }); done++;
+    const out = restore(u, t, attrTr);
+    edits.push({ start: u.start, end: u.end, text: out }); done++;
+    const enT = keyOf(enHtml.slice(u.start, u.end));
+    if (enT && !pageText.has(enT)) pageText.set(enT, textOf(reBake(out)));
   }
   for (const a of attrs.filter((x) => !x.inUnit)) {
     const t = tr(a.key);
@@ -140,10 +179,10 @@ for (const bare of L.pages) {
   /* <title> */
   const head = extractHead(enHtml);
   const tTitle = head.find((h) => h.name === 'title');
-  const title = tTitle ? (tr(tTitle.key) ?? tTitle.key) : '';
+  const title = tTitle ? usd(tr(tTitle.key) ?? tTitle.key) : '';
   if (tTitle) edits.push({ start: tTitle.start, end: tTitle.end, text: escText(title) });
   const dHead = head.find((h) => h.name === 'description');
-  const desc = dHead ? (tr(dHead.key) ?? dHead.key) : '';
+  const desc = dHead ? usd(tr(dHead.key) ?? dHead.key) : '';
   let html = splice(enHtml, edits);
 
   /* 2) 3) <html lang> とリンク */
@@ -163,6 +202,44 @@ for (const bare of L.pages) {
   const e2 = html.indexOf('<!--/PV-SEO-->') + '<!--/PV-SEO-->'.length;
   if (s2 >= 0) html = html.slice(0, s2) + seoBlock(enHtml, bare, outRel, title, desc) + html.slice(e2);
 
+  /* 5) 焼き込んだ金額の字をその言語の書き方に */
+  html = reBake(html);
+
+  /* 6) 構造化データ */
+  let ldDone = 0; let ldMiss = 0; let blockNo = -1;
+  const jaRel = relIn(bare, 'ja');
+  const jaLD = fs.existsSync(path.join(ROOT, jaRel))
+    ? [...fs.readFileSync(path.join(ROOT, jaRel), 'utf8').matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => { try { return JSON.parse(m[1]); } catch { return null; } })
+    : [];
+  html = html.replace(/(<script type="application\/ld\+json">)([\s\S]*?)(<\/script>)/g, (all, open, json, close) => {
+    blockNo++;
+    let o;
+    try { o = JSON.parse(json); } catch { return all; }
+    const walk = (v, k, at) => {
+      if (Array.isArray(v)) return v.map((x, i) => walk(x, k, [...at, i]));
+      if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v).map(([kk, x]) => [kk, walk(x, kk, [...at, kk])]));
+      if (typeof v !== 'string') return v;
+      if (k === 'inLanguage') return L.htmlLang;
+      const u = v.match(/^https:\/\/pilot-value\.com\/en\/([^?#]*)(.*)$/);
+      if (u) return mine.has(u[1]) ? `https://pilot-value.com/${L.dir}${u[1]}${u[2]}` : v;
+      if (!LD_TEXT.has(k) || !/[A-Za-z]{2,}/.test(v) || !needsAI(v)) return v;
+      const t = pageText.get(keyOf(v)) ?? TM_PLAIN.get(keyOf(v)) ?? (tr(v) != null ? textOf(plain(tr(v))) : null);
+      if (t == null) {
+        ldMiss++;
+        /* 日本語のページの同じ場所の字（意味の確認用。形が違えば無し） */
+        const ja = at.reduce((x, s2) => (x == null ? x : x[s2]), jaLD[blockNo]);
+        ldMissList.push({ page: enRel, key: v, field: k, ja: typeof ja === 'string' ? ja : '' });
+        return v;
+      }
+      ldDone++;
+      return usd(t);
+    };
+    const neu = JSON.stringify(walk(o, '', []));
+    if (neu === JSON.stringify(o)) return all;
+    return open + neu.replace(/<\//g, '<\\/') + close;
+  });
+  missing += ldMiss; done += ldDone;
+
   const abs = path.join(ROOT, outRel);
   const prev = fs.existsSync(abs) ? fs.readFileSync(abs, 'utf8') : null;
   report.push(`  ${outRel.padEnd(28)} 訳した ${String(done).padStart(4)} / 英語のまま ${String(missing).padStart(3)}${prev === html ? '' : prev === null ? '  （新しく作る）' : '  （変わる）'}`);
@@ -170,4 +247,5 @@ for (const bare of L.pages) {
 }
 console.log(`${CHECK ? '[check] ' : ''}${code}: ${L.pages.length} ページ（${wrote} 枚が${CHECK ? '変わる' : '変わった'}）`);
 console.log(report.join('\n'));
+if (LD_MISS) for (const m of ldMissList) console.log('LDMISS\t' + JSON.stringify(m));
 }
