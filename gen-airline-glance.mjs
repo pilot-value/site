@@ -42,6 +42,7 @@ import { needsCredit, src as photoSrc, smallH, SMALL_W } from './airline-photos.
 import * as PLACE from './place-photos.mjs';
 import { networkOf, placeCountry } from './airline-destinations.mjs';
 import { curCore, bakeText } from './cur-core.mjs';
+import { PAY_SCALES, MONTH } from './pay-scales.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 /* いま書いている言葉と、そのページから見た道（build() の中だけ英語になる ── inLang）。
@@ -467,6 +468,56 @@ ${live('realpay', { airline: v.slug, top: '3' })}
 ${pubBlock(v)}
 ${payDetails(v)}
 </article>`;
+}
+
+/* 勤続年数ごとの基本給（★2026-11-02 オーナー「年次ごとに fo・cap で年収分かれてるじゃん？グラフで表現したい」）。
+   数字は pay-scales.mjs の給与表だけ（1時間あたりの米ドル）。年額 ＝ 単価 × 月の量（MONTH）× 12 × サイトの換算レート、10万円で丸める。
+   推定年収（上の棒）とは別物 ＝ 利益配分・日当・会社の年金の拠出を入れない。見出しの下の1行がそれを言う。
+   ・額は全部 HTML に書く（円の字）＝ 通貨切替がそのまま読む・英語は bakeEn がドルに焼く。pv-glance.js は見せる・隠すだけ。
+   ・目盛の字も HTML（SVG の <text> に円を書くと currency.js が span を差し込んで字が消える）。
+   ・1年目の機長が副操縦士と同じ額の表（入社時の一律の額）は、機長の1年目を描かない。
+   ⚠️ ここに社名を書かない（check-salary.mjs が「社名 → 職位 → 額」で読む。基本給を推定年収として照合させない）。 */
+function payScaleCard(v) {
+  const P = PAY_SCALES[v.slug];
+  if (!P) return '';
+  const usd = C_EN.RATES.USD, mo = MONTH[P.unit];
+  if (!usd || !mo) throw new Error(`勤続年数ごとの基本給：換算レートか月の量が無い（${v.slug}）`);
+  const man = r => Math.round(r * mo * 12 * usd / 1e5) * 10;
+  const T = P.tables.map(t => ({ ...t, ca: t.ca.map((r, i) => (i === 0 && r === t.fo[0] ? null : man(r))), fo: t.fo.map(man) }));
+  const N = T[0].fo.length;
+  if (T.some(t => t.fo.length !== N || t.ca.length !== N)) throw new Error(`勤続年数ごとの基本給：表の長さがそろっていない（${v.slug}）`);
+  /* 目盛はその言葉の既定の通貨でキリのいい数（日本語 ＝ 2,000万円ごと・英語 ＝ 10万ドルごと）。どちらも円の字で書く（通貨切替が読む） */
+  const max = Math.max(...T.flatMap(t => [...t.ca, ...t.fo].filter(x => x != null)));
+  const stepMan = LANG === 'en' ? 1e5 * usd / 1e4 : 2000;
+  const top = Math.ceil(max / stepMan) * stepMan;
+  const pc = x => `${(x / top * 100).toFixed(2)}%`;
+  const def = Math.min(6, N);
+  const sw = r => `<i class="pvg-ps-sw pvg-ps-${r}" aria-hidden="true"></i>`;
+  const first = a => a.findIndex(x => x != null);
+  const tile = (t, r) => { const a = t[r], i = first(a);
+    return `<div class="pvg-ps-tile"><p class="pvg-ps-k">${sw(r)}${W.rank[r === 'ca' ? 'cap' : 'fo']}</p><p class="pvg-ps-g">+${Math.round((a[N - 1] / a[i] - 1) * 100)}%<small>${W.psOver(N - i)}</small></p><p class="pvg-ps-r">${W.psYear(i + 1)} ${yen(a[i])}<br>${W.psYear(N)} ${yen(a[N - 1])}</p></div>`; };
+  const pair = (t, r, y) => { const a = t[r], x = a[y - 1]; if (x == null) return '';
+    const prev = y > 1 ? a[y - 2] : null, dlt = prev == null ? '' : `<p class="pvg-ps-d"><span>${x >= prev ? '+' : '−'}${yen(Math.abs(x - prev))}</span><small>${W.psPrev}</small></p>`;
+    return `<div class="pvg-ps-pr"><p class="pvg-ps-k">${sw(r)}${W.rank[r === 'ca' ? 'cap' : 'fo']}</p><p class="pvg-ps-v">${yen(x)}</p>${dlt}</div>`; };
+  const grid = Array.from({ length: Math.round(top / stepMan) + 1 }, (_, k) => k * stepMan).map(x => `<span style="bottom:${pc(x)}"><i>${x ? yen(Math.round(x)) : '0'}</i></span>`).join('');
+  const panel = (t, k) => `<div class="pvg-ps-t" data-ps-t="${k}"${k ? ' hidden' : ''}>
+<div class="pvg-ps-tiles">${tile(t, 'fo')}${tile(t, 'ca')}</div>
+<div class="pvg-ps-plot">
+<div class="pvg-ps-grid" aria-hidden="true">${grid}</div>
+<div class="pvg-ps-cols" style="--n:${N}">${t.fo.map((f, i) => `<button type="button" class="pvg-ps-col" data-ps-y="${i + 1}" aria-pressed="${i + 1 === def}" aria-label="${W.psYear(i + 1)}"><span class="pvg-ps-bars"><span class="pvg-ps-b pvg-ps-fo" style="height:${pc(f)}"></span><span class="pvg-ps-b pvg-ps-ca" style="height:${t.ca[i] == null ? '0%' : pc(t.ca[i])}"></span></span><span class="pvg-ps-x">${i + 1}</span></button>`).join('')}</div>
+<p class="pvg-ps-ax">${W.psAxis}<span>${W.psTap}</span></p>
+</div>
+<div class="pvg-ps-reads">${t.fo.map((f, i) => `<div class="pvg-ps-read" data-ps-y="${i + 1}"${i + 1 === def ? '' : ' hidden'}><p class="pvg-ps-yr">${W.psYear(i + 1)}</p>${pair(t, 'fo', i + 1)}${pair(t, 'ca', i + 1)}</div>`).join('')}</div>
+</div>`;
+  const seg = T.length > 1 ? `<div class="pvg-ps-seg" role="group" aria-label="${W.psFleet}">${T.map((t, k) => `<button type="button" data-ps-tb="${k}" aria-pressed="${!k}">${esc(LANG === 'en' ? t.en : t.ja)}</button>`).join('')}</div>` : '';
+  return `<div class="pvg-more-grid pvg-g-ps"${pane(v.slug, 'pay')}>
+<article class="pvg-card pvg-ps" data-ps-y="${def}">
+<header class="pvg-hd"><span class="pvg-ico" aria-hidden="true">${IC.realpay}</span><h2 class="pvg-eyebrow">${W.ps}</h2><span class="pvg-chip">${W.psChip(P.at, !!P.ref)}</span></header>
+${seg}
+${T.map(panel).join('\n')}
+<p class="pvg-ps-note">${W.psNote(P.unit)}</p>
+</article>
+</div>`;
 }
 
 /* ── 勤務・待遇・暮らし ─────────────────────────────── */
@@ -1223,6 +1274,7 @@ ${co}
 ${payCard(v)}
 ${reviewsCard(v)}
 </div>
+${payScaleCard(v)}
 <div class="pvg-more-grid pvg-g-jobs"${pane(v.slug, 'overview')}>
 ${jobsCard(v)}
 </div>
@@ -1272,6 +1324,10 @@ export const WORDS = Object.freeze({
     saveCard: 'カードを保存', compare: '他社と比較', compareShort: '比較する', makeCard: 'カードにする',
     member: (a, x) => (x ? `${a}加盟（${x}）` : `${a}加盟`),
     pay: '給与', realPay: '提出された年収', estBy: '当サイトの推定', medBy: '会員が出した年収の中央値',
+    ps: '勤続年数ごとの基本給', psFleet: '機種', psYear: n => `${n}年目`, psOver: n => `${n}年で`, psPrev: '前の年から',
+    psAxis: '勤続年数（年目）', psTap: '年を押すと額が出ます',
+    psChip: (at, ref) => (ref ? '参考の給与表' : at ? `労働協約の給与表 · ${at.replace(/^(\d{4})(?:-(\d\d))?$/, (m, y, mo) => (mo ? `${y}年${+mo}月` : `${y}年`))}` : '労働協約の給与表'),
+    psNote: unit => `${unit === 'tfp' ? '1 TFP あたりの単価 × 月90 TFP' : '時給 × 月75時間'} × 12か月で年額にした基本給。利益配分・日当・会社の年金の拠出は入っていません。`,
     mixBy: (e, m) => `${e}は当サイトの推定・${m}は会員が出した年収の中央値`,
     rank: Object.freeze(Object.fromEntries(RANKS)), rankEst: 'の推定年収', rankMed: 'の中央値', vhName: n => n, vhWho: n => `${n}・`, introJoin: '',
     fig: Object.freeze({ ...FIG_LABEL }), upTo: y => `〜${y}`, over: y => `${y}超`, from: y => `${y}〜`,
@@ -1337,6 +1393,10 @@ export const WORDS = Object.freeze({
     saveCard: 'Save card', compare: 'Compare', compareShort: 'Compare', makeCard: 'Make a card',
     member: (a, x) => (x ? `${a} member (${x})` : `${a} member`),
     pay: 'Pay', realPay: 'Submitted pay', estBy: 'Our estimate', medBy: 'Median of pay submitted by members',
+    ps: 'Base pay by year of service', psFleet: 'Aircraft', psYear: n => `Year ${n}`, psOver: n => `over ${n} years`, psPrev: 'vs. the year before',
+    psAxis: 'Year of service', psTap: 'Tap a year to see the pay',
+    psChip: (at, ref) => (ref ? 'Reference pay scale' : at ? `Contract pay scale · ${at.replace(/^(\d{4})(?:-(\d\d))?$/, (m, y, mo) => (mo ? `${MONTHS_EN[+mo - 1]} ${y}` : y))}` : 'Contract pay scale'),
+    psNote: unit => `${unit === 'tfp' ? 'Rate per TFP × 90 TFP a month' : 'Hourly rate × 75 credit hours a month'} × 12 months, base pay only. Profit sharing, per diem and company retirement contributions are not included.`,
     mixBy: (e, m) => `${e}: our estimate · ${m}: median of pay submitted by members`,
     /* 職位の見出しは1行（white-space:nowrap）・狭い画面で2列 ── 英語は「Captain」「First Officer」だけを見せ、「推定年収」は読み上げにだけ（下の行が「Our estimate」と言う） */
     rank: Object.freeze({ cap: 'Captain', fo: 'First Officer' }), rankEst: '<span class="pvg-vh">, estimated annual pay</span>', rankMed: '<span class="pvg-vh">, median pay</span>', vhName: n => `${n} `, vhWho: n => `${n}, `, introJoin: ' ',
