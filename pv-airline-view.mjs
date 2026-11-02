@@ -41,6 +41,7 @@ import { axisEnd } from './pv-bars.mjs';
 import { LEAD, SWITCH, researchFacts, researchNetwork, researchCities } from './airline-rollout.mjs';
 import { REGIONS, PLACES, networkOf, placeCountry } from './airline-destinations.mjs';
 import * as US from './us-housing.mjs';
+import { ABOUT as US_ABOUT } from './us-town-notes.mjs';
 import { countryEn } from './airline-display.mjs';
 import { AIRLINE_COUNTRY, BY_CODE } from './airline-countries.mjs';
 
@@ -814,7 +815,8 @@ function usLivings(slug, bases, lang = 'ja') {
     const ports = G.airports.filter(mine);
     const rents = list.map(([k, t], i) => ({
       key: k, name: en ? t.en : t.ja, sub: '', en: en ? `${t.state} ${t.zip}` : `${t.en}, ${t.state} ${t.zip}`, area: '', label: en ? t.en : t.ja,
-      iata: (t.near.find(mine) || t.near[0] || ''), pick: t.offers.length ? Wd.offers(t.offers, seen) : '', pickSrc: null,
+      iata: (t.near.find(mine) || t.near[0] || ''), pick: US_ABOUT[k] ? US_ABOUT[k][en ? 'en' : 'ja'] : '', pickSrc: null,
+      more: t.offers.length ? Wd.offers(t.offers, seen) : '',
       value: { bed1: t.bed1, bed2: t.bed2, bed3: t.bed3 }, when: Wd.when,
       src: { name: en ? US.SRC.name_en : US.SRC.name, url: US.SRC.url, kind: 'gov' }, cond: '', quote: '', lead: i === 0, way: null,
     }));

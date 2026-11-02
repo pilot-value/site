@@ -764,7 +764,7 @@ ${Object.keys(r.value).length
     ? `<dl class="pvg-kv">${cols.map(([key, label]) => `<div><dt>${esc(label)}</dt><dd>${r.value[key] == null ? '<span class="pvg-none">—</span>' : rentText(L, r, key)}</dd></div>`).join('')}</dl>`
     : `<p class="pvg-quiet">${W.rentNone}</p>`}</div>`;
   return `<section class="pvg-td" id="pvg-town-${esc(r.key)}" data-town-detail="${esc(r.key)}" aria-label="${esc(n.main)}">
-<header class="pvg-td-h"><h4>${esc(n.main)}${n.sub ? `<small${n.en ? ' lang="en"' : ''}>${esc(n.sub)}</small>` : ''}</h4>${r.pick ? `<p>${prose(coText(v.slug, r.pick, LANG))}</p>` : ''}</header>
+<header class="pvg-td-h"><h4>${esc(n.main)}${n.sub ? `<small${n.en ? ' lang="en"' : ''}>${esc(n.sub)}</small>` : ''}</h4>${r.pick ? `<p>${prose(coText(v.slug, r.pick, LANG))}</p>` : ''}${r.more ? `<p class="pvg-td-more">${prose(r.more)}</p>` : ''}</header>
 <div class="pvg-td-g${rentBlock ? '' : ' is-one'}">
 ${rentBlock}
 <div class="pvg-td-c"><p class="pvg-askh">${W.toAirport}<small>${TW.ends.length ? W.gmShown : W.stationAirport}</small></p>

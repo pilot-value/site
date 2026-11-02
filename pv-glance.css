@@ -1383,3 +1383,5 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
    下の1行は、行ごとの出典リンクが無いことの代わりに、誰が何からまとめたかを言う。 */
 .pvg-tm .pvg-dl{margin-top:4px}
 .pvg-tm-src{margin-top:10px;font-size:12px;line-height:1.6;color:var(--pv-ink-3)}
+/* 米国の住宅地の詳細：紹介の下に、3寝室の戸建ての掲載例（成約ではない ── 字で言う）。紹介より一段控えめ */
+.pvg-td-h > p.pvg-td-more{margin-top:4px!important;font-size:12px;color:var(--pv-ink-3)}
