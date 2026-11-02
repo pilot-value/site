@@ -131,7 +131,30 @@
     'シンガポール': 'Singapore', '香港': 'Hong Kong', 'フランクフルト': 'Frankfurt',
     'シドニー': 'Sydney', 'イスタンブール': 'Istanbul',
   };
-  function tw(s) { return L === 'en' ? (EN_WORD[s] || s) : s; }
+  /*PV-MSG:es*/ var EN_WORD_ES = {
+    // 職位
+    '機長': 'Capitán', '副操縦士': 'Primer oficial', '訓練生': 'Piloto en formación',
+    // 何で構成された額か
+    '年俸＋住宅手当（非課税）': 'Sueldo + ayuda para vivienda, libre de impuestos',
+    '年俸＋住宅手当': 'Sueldo + ayuda para vivienda',
+    '年俸＋年金拠出': 'Sueldo + aportación al plan de pensiones',
+    '年俸（税引前）': 'Anual, antes de impuestos',
+    '月給＋賞与＋乗務手当': 'Sueldo base + bono + pago por hora de vuelo',
+    '月給＋賞与': 'Sueldo base + bono',
+    '基本給＋乗務手当': 'Sueldo base + pago por hora de vuelo',
+    // 経験年数
+    '3〜5年': '3–5 años', '5〜10年': '5–10 años', '10〜15年': '10–15 años',
+    '15〜20年': '15–20 años', '20年以上': '20+ años',
+    // ベース
+    'ドバイ': 'Dubái', 'ドーハ': 'Doha', '羽田': 'Tokio Haneda', '伊丹': 'Osaka Itami',
+    '関西': 'Osaka Kansai', 'アトランタ': 'Atlanta', 'サンフランシスコ': 'San Francisco',
+    'シンガポール': 'Singapur', '香港': 'Hong Kong', 'フランクフルト': 'Frankfurt',
+    'シドニー': 'Sídney', 'イスタンブール': 'Estambul',
+  }; /*/PV-MSG:es*/
+  function tw(s) {
+    if (L !== 'en') return s;
+    return (window.PV_LANG === 'es' && typeof EN_WORD_ES !== 'undefined' && EN_WORD_ES[s]) || EN_WORD[s] || s;   // スペイン語の対応表（gen-msg.mjs が書く）
+  }
 
   /* 航空会社の表示名。英語面は airlines-meta.js の en を引く（英語の社名表を二重に持たない）。
      読み込み順で PV_AIRLINES が未定義のことがあるので、そのときは渡された名前をそのまま使う。 */

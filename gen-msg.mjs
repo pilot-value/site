@@ -22,7 +22,7 @@ const ROOT = fileURLToPath(new URL('.', import.meta.url));
 
 /* 辞書を持つ部品（スペイン語のページが読むもの） */
 /* 対応表の形の名前（日本語の文 → 英語の文）。es は NAME_ES に書く */
-const MAP_NAMES = ['L10N', 'PV_SEARCH_L10N'];
+const MAP_NAMES = ['L10N', 'PV_SEARCH_L10N', 'EN_WORD'];   // EN_WORD はトップの見本（lp.js）
 
 export const MSG_FILES = ['pay-wizard.js', 'pay-login.js', 'payslip.js', 'pv-gates.js', 'pv-give-first.js', 'app-nav.js',
   'pv-referral.js', 'pv-conditions.js', 'my-value.js', 'actual-pay.js', 'pv-proof-offer.js', 'ap-preview.js', 'review-i18n.js',
@@ -111,7 +111,8 @@ export function dicts(src) {
     let semi = en.end + 1; while (semi < m.length && /\s/.test(m[semi])) semi++;
     out.push({ form: 'map', name, start: o, end: en.end + 1, after: m[semi] === ';' ? semi + 1 : en.end + 1, list: en.list });
   }
-  return out;
+  /* ★ファイルの中の順に並べる（書くときは前から順に切り貼りする。2つの形が混ざる lp.js で位置がずれた・2026-11-02） */
+  return out.sort((a, b) => a.start - b.start);
 }
 
 /* 訳す単位（値に人が読む英字があるもの）。key は 'js:' ＋ 値のソース */
