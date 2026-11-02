@@ -617,6 +617,14 @@ baland_ass/                            ブランド資産（※ brand_assets の
   - 口コミの本文は、いまは英語の訳を出す（スペイン語への自動翻訳はまだ）。
   - `vote.js`・`vote.css`・`career-card.js` を `gen-msg.mjs` で書き直したら版の印を付け直す ── `career.html` は `node gen-career.mjs`、
     `community.html` は `?v=`（sha256 の先頭8字）を手で。そのあと `gen-lang.mjs`。
+- ★**2026-11-03 段4：スペイン語の全ページを検索に出した**（`langs.mjs` の `indexed: 'all'`・noindex は今までどおり各道具の `NOINDEX`）。
+  日英のページの hreflang にも es が並ぶ（[seo-normalize.mjs](seo-normalize.mjs)・noindex のページも組は同じ）。サイトマップにも es。
+  - **題名と説明文は [i18n/seo-es.mjs](i18n/seo-es.mjs) が検索の言い方に組み直す**（本文は訳のまま）。会社のページは
+    「¿Cuánto gana un piloto de {会社}? Sueldo 2026」、国は「…piloto de avión en {国}?」（スペインは cobra・チリは piloto comercial）。
+    根拠は 2026-11-03 の調べ（問いの形がいちばん多い・salario より sueldo・piloto だけだと F1 と混ざる・副操縦士は copiloto で探される）。
+    ⚠️ 題名に額を書かない・年は英語の題名に在る年だけ・年収の無い会社は問いの形にしない。長さは assert-seo と同じ線（題名70・説明文170）で自動で詰める。
+  - 英語の管理ブロック（`<!--PV-SEO-->`）の中の構造化データは `gen-lang.mjs` が持ち越す（持ち越さなかった頃、約130枚の構造化データが黙って消えていた）。
+    構造化データの見出しが英語の題名と同じなら、スペイン語の題名にそろえる。
 - 部品が相対で組んだリンク（`'airlines/' + slug` など）がスペイン語版の無いページ（スピリット）を指したら、押した瞬間に英語版へ移す（[pv-session.js](pv-session.js) の頭のクリックの見張り）。
 - 出典の資料名（「AIRDO “会社概要”」）と写真の作者名は元の字のまま（作者名は CC BY の条件）。`assert-i18n` は**英語のページに無い**日本語の字だけを落とす。
 - スペイン語のページの金額は **US$**（`$` だけだと中南米ではペソと読まれる）。焼き込んだ span の字も、title・説明文・構造化データも

@@ -57,6 +57,9 @@ for (const code of CODES) {
 const L = LANG[code];
 const tmFile = path.join(ROOT, 'i18n', `tm-${code}.mjs`);
 const { TM } = fs.existsSync(tmFile) ? await import(tmFile) : { TM: {} };
+/* 題名と説明文の組み直し（検索の言い方。無ければ訳のまま） */
+const seoFile = path.join(ROOT, 'i18n', `seo-${code}.mjs`);
+const SEO_FIX = fs.existsSync(seoFile) ? (await import(seoFile)).seoFix : (x) => ({ title: x.title, desc: x.desc });
 const tr = (key) => (TM[key] && ['validated', 'manual'].includes(TM[key].st) ? TM[key].es : null);
 const mine = new Set(L.pages);
 const P = path.posix;
@@ -106,6 +109,9 @@ function fixLink(v, enRel, outRel) {
   return res === v ? null : res;
 }
 
+/* 英語の管理ブロックの中の構造化データ（seo-normalize.mjs が中に置くページがある）。持ち越して、6) で訳と住所を直す。
+   ★2026-11-03 段4：持ち越さなかった頃、9枚（Vote・規約・ANA・JAL など）の構造化データが黙って消えていた（assert-seo の jsonld-missing） */
+const ldIn = (block) => (block.match(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g) || []).map((x) => x + '\n').join('');
 /* head の管理ブロック */
 function seoBlock(enHtml, bare, outRel, title, desc) {
   const en = enHtml.match(/<!--PV-SEO-->[\s\S]*?<!--\/PV-SEO-->/)?.[0] || '';
@@ -115,7 +121,8 @@ function seoBlock(enHtml, bare, outRel, title, desc) {
   const noindexEn = /<meta name="robots" content="noindex/.test(en);
   const indexed = L.indexed.has(bare) && !noindexEn;
   const self = urlOfRel(outRel);
-  const alts = indexed ? alternatesFor(bare, (c) => c === 'ja' || c === 'en' || c === code) : [];
+  /* hreflang の組は検索に出すかどうかに関係なく、日英のページと同じ（日英の noindex のページも組を持つ・seo-normalize.mjs） */
+  const alts = L.indexed.has(bare) ? alternatesFor(bare, (c) => c === 'ja' || c === 'en' || c === code) : [];
   const ogAlts = alts.filter((a) => a.hreflang !== 'x-default' && a.hreflang !== L.hreflang).map((a) => LANGS.find((l) => l.hreflang === a.hreflang).ogLocale);
   return `<!--PV-SEO-->
 <!--PV-GEN lang="${code}" from="en/${bare}" — node gen-lang.mjs ${code} が書く。手で直さない-->
@@ -136,7 +143,7 @@ ${ogAlts.map((o) => `<meta property="og:locale:alternate" content="${o}"/>\n`).j
 <meta name="twitter:title" content="${escAttr(title)}"/>
 <meta name="twitter:description" content="${escAttr(desc)}"/>
 <meta name="twitter:image" content="${img}"/>
-<!--/PV-SEO-->`;
+${ldIn(en)}<!--/PV-SEO-->`;
 }
 
 /* pv-session.js の PV_LANG_PAGES（JS がリンクを その言語 → 英語 の順に探すため）。変わったときだけ書く。
@@ -187,10 +194,16 @@ for (const bare of L.pages) {
   /* <title> */
   const head = extractHead(enHtml);
   const tTitle = head.find((h) => h.name === 'title');
-  const title = tTitle ? usd(tr(tTitle.key) ?? tTitle.key) : '';
-  if (tTitle) edits.push({ start: tTitle.start, end: tTitle.end, text: escText(title) });
   const dHead = head.find((h) => h.name === 'description');
-  const desc = dHead ? usd(tr(dHead.key) ?? dHead.key) : '';
+  /* 題名と説明文：訳した字を、その言語の検索の言い方に合わせて組み直す（i18n/seo-<言語>.mjs があれば・2026-11-03 段4） */
+  const seoTr = SEO_FIX({ bare, title: tTitle ? usd(tr(tTitle.key) ?? tTitle.key) : '', desc: dHead ? usd(tr(dHead.key) ?? dHead.key) : '' });
+  const title = seoTr.title;
+  /* 構造化データの見出し・名前が英語の題名（ブランドを除く）と同じなら、こちらの題名（ブランドを除く）にそろえる */
+  const noBrand = (x) => x.replace(/\s*\|\s*PILOT VALUE\s*$/, '');
+  const enTitleBare = tTitle ? keyOf(noBrand(textOf(enHtml.slice(tTitle.start, tTitle.end)))) : '';
+  const esTitleBare = noBrand(title);
+  if (tTitle) edits.push({ start: tTitle.start, end: tTitle.end, text: escText(title) });
+  const desc = seoTr.desc;
   let html = splice(enHtml, edits);
 
   /* 2) 3) <html lang> とリンク */
@@ -231,6 +244,7 @@ for (const bare of L.pages) {
       const u = v.match(/^https:\/\/pilot-value\.com\/en\/([^?#]*)(.*)$/);
       if (u) return mine.has(u[1]) ? `https://pilot-value.com/${L.dir}${u[1]}${u[2]}` : v;
       if (!LD_TEXT.has(k) || !/[A-Za-z]{2,}/.test(v) || !needsAI(v)) return v;
+      if (enTitleBare && keyOf(v) === enTitleBare) { ldDone++; return esTitleBare; }
       const t = pageText.get(keyOf(v)) ?? TM_PLAIN.get(keyOf(v)) ?? (tr(v) != null ? textOf(plain(tr(v))) : null);
       if (t == null) {
         ldMiss++;

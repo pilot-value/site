@@ -65,8 +65,12 @@ export const LANGS = [
       'airlines/thai-airways.html', 'airlines/toho-air.html', 'airlines/toki-air.html', 'airlines/turkish-airlines.html', 'airlines/united.html',
       'airlines/vietjet.html', 'airlines/vietnam-airlines.html', 'airlines/virgin-atlantic.html', 'airlines/westjet.html',
       'airlines/wizz-air.html', 'airlines/zipair.html'],
-    indexed: new Set([]) },
+    /* ★2026-11-03 オーナー「通ったら push・SEO も上位3位に入るように徹底的に」→ 作った全ページを検索に出す
+       （4段の訳＋機械検査＋ページ通読を全部通した）。noindex のページ（フォーム・2社比較など）は今までどおり各道具の NOINDEX が決める。 */
+    indexed: 'all' },
 ];
+/* indexed: 'all' は pages と同じ集合 */
+for (const l of LANGS) if (l.indexed === 'all') l.indexed = new Set(l.pages);
 
 /* どの言語にも同じ形で在るフォルダ（言語のフォルダの下） */
 export const SUBDIRS = ['', 'airlines/', 'countries/'];

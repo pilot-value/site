@@ -839,8 +839,10 @@ for (const rel of files) {
   const selfUrl = relToUrl(rel);
   const noindex = NOINDEX.has(path.basename(rel)) && !rel.includes('/airlines/') && !rel.includes('/countries/');
   /* hreflang に並べる言語。自分と日本語は必ず。英語は JA_ONLY に無いページ（ファイルが在るかは assert-seo.mjs が見る）。
-     人が書いていない言語（段1から）は、ここではまだ並べない。 */
-  const alts = alternatesFor(bare, (code) => code === lang || code === 'ja' || (LANG[code].hand && !JA_ONLY.has(bare)));
+     機械で作る言語（スペイン語など）は、検索に出すページ（langs.mjs の indexed）なら並べる。noindex のページも組は同じ
+     （日英の noindex のページが日英の組を持つのと同じ・2026-11-03 段4。向こうのページも同じ組＝ gen-lang.mjs の seoBlock）。 */
+  const alts = alternatesFor(bare, (code) => code === lang || code === 'ja' || (LANG[code].hand && !JA_ONLY.has(bare))
+    || (!LANG[code].hand && !JA_ONLY.has(bare) && !!LANG[code].indexed?.has(bare)));
   const ogAlts = alts.filter((a) => a.hreflang !== 'x-default' && a.hreflang !== L.hreflang)
     .map((a) => LANGS.find((l) => l.hreflang === a.hreflang).ogLocale);
 
