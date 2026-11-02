@@ -185,6 +185,8 @@ function check(key, es) {
     return errs;
   }
   if (tagSet(es) !== tagSet(key)) errs.push('札が合わない');
+  const slots = (x) => (x.match(/\{[a-z]+\}/g) || []).sort().join(' ');   // 差し込み口（{n} {m}）は1つも変えない
+  if (slots(es) !== slots(key)) errs.push('差し込み口が合わない');
   const want = NUM(key); const have = new Set(NUM(es));
   const miss = [...new Set(want)].filter((n) => !have.has(n));
   if (miss.length) errs.push('数字が消えた: ' + miss.join(' '));

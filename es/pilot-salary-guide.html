@@ -46,6 +46,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(10,12,15,.95
 .salary-table td{padding:14px 16px;font-size:.9rem;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
 .salary-table tr:hover td{background:rgba(255,255,255,.02)}
 .salary-table tr:last-child td{border-bottom:none}
+.article-body{min-width:0}   /* 2026-11-02：狭い画面で、表の幅に本文の列ごと引っ張られて横にはみ出していた（390px で 63〜85px）。表は枠の中で横に送る */
 .article-body h2{font-size:1.5rem;font-weight:800;margin:2.5rem 0 1rem;padding-bottom:.5rem;border-bottom:1px solid rgba(255,255,255,.08)}
 .article-body h3{font-size:1.15rem;font-weight:700;margin:1.8rem 0 .8rem;color:#f5c842}
 .article-body p{margin-bottom:1.2rem;color:#b0bec9;line-height:1.85}
@@ -249,7 +250,7 @@ details[open] summary svg{transform:rotate(180deg)}
 
         <div class="glass p-4 mb-6 overflow-x-auto">
           <table class="salary-table">
-            <thead><tr><th>Aerolínea</th><th>Primer oficial (Copiloto)</th><th>Capitán (Comandante)</th><th>Tipo de cifra y su origen</th></tr></thead>
+            <thead><tr><th>Aerolínea</th><th>Primer oficial</th><th>Capitán</th><th>Tipo de cifra y su origen</th></tr></thead>
             <tbody>
               <tr><td><strong>ANA</strong></td><td><span class="pv-cur" data-jpy="15600000" data-orig="¥1,560万">US$ 98 mil</span></td><td><span class="pv-cur" data-jpy="28410000" data-orig="¥2,841万">US$ 179 mil</span></td><td style="color:#6b7d93">Nuestra estimación</td></tr>
               <tr><td><strong>JAL</strong></td><td><span class="pv-cur" data-jpy="16140000" data-orig="¥1,614万">US$ 102 mil</span></td><td><span class="pv-cur" data-jpy="25560000" data-orig="¥2,556万">US$ 161 mil</span></td><td style="color:#6b7d93">Nuestra estimación.</td></tr>

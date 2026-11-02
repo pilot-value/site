@@ -547,3 +547,7 @@ html:not(.wd-q) .wd-stage:has(.wam-zc:not([hidden])) #wd-rh .wd-clear{display:no
 }
 /* ── /wam-stage ── */
 /* ── /wam ── */
+/* スペイン語のページ（2026-11-02・多言語化）：表示の切り替え（Lista de tarjetas ／ Comparación normalizada）が英語より長く、
+   幅 320〜360px で横にはみ出した。スペイン語のページだけ、ボタンを詰めて折り返す（日英には効かない） */
+html[lang^="es"] .view-toggle{flex-wrap:wrap;max-width:100%}
+html[lang^="es"] .view-btn{padding:8px 10px}

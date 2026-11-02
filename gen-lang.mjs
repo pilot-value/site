@@ -37,6 +37,11 @@ const textOf = (h) => h.replace(/<[^>]*>/g, '')
   .replace(/[\s ]+/g, ' ').trim();
 /* 照合に使う形：範囲の記号は本文が「〜」・構造化データが「–」なので、引くときだけそろえる */
 const keyOf = (s) => textOf(s).replace(/[〜～~–]/g, '–');
+/* 職位の札：入力フォームの欄は両方の呼び方を書く（「Capitán (Comandante)」── 中南米とスペインで呼び方が違う・用語集の決め）。
+   それ以外（切り替えのボタン・表の見出し・カード）は短く書く（2026-11-02：一覧の「機長｜副操縦士」の切り替えが 390px で横にはみ出した）。
+   文の単位がちょうどこの字のときだけ替える（文の中の言い回しは触らない） */
+const SHORT = { es: { 'Capitán (Comandante)': 'Capitán', 'Primer oficial (Copiloto)': 'Primer oficial' } };
+const FORM_PAGES = new Set(['pay-report.html', 'signup.html', 'profile.html', 'submit-review.html', 'login.html']);
 /* JSON-LD の中で、人が読む文が入る欄 */
 const LD_TEXT = new Set(['name', 'text', 'headline', 'alternativeHeadline', 'description', 'abstract']);
 
@@ -158,8 +163,9 @@ for (const bare of L.pages) {
   const attrTr = (name, en) => tr(en);
   const edits = [];
   const pageText = new Map();          // このページの本文：英語の字 → 訳の字（構造化データを引く）
+  const short = FORM_PAGES.has(bare) ? {} : (SHORT[code] || {});
   for (const u of units) {
-    const t = tr(u.key);
+    const t0 = tr(u.key), t = t0 != null && short[t0] ? short[t0] : t0;
     if (!t) { if (needsAI(u.key)) missing++; continue; }
     const out = restore(u, t, attrTr);
     edits.push({ start: u.start, end: u.end, text: out }); done++;

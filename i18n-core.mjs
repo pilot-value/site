@@ -29,7 +29,8 @@ const INLINE = new Set(['a', 'abbr', 'b', 'bdi', 'bdo', 'cite', 'data', 'dfn', '
 const ATOMIC = new Set(['br', 'wbr', 'img', 'input', 'svg', 'math', 'code', 'kbd', 'samp', 'var', 'canvas', 'picture']);
 /* 訳す属性 */
 /* data-qty（給与フォームの回数の欄の名前）・data-label（絞り込みの札）は部品が画面に出す字（比べる用途なし・2026-11-02 に確認） */
-export const ATTRS = ['alt', 'title', 'aria-label', 'placeholder', 'data-qty', 'data-label'];
+/* data-fmt ／ data-fmt-one ／ data-on ／ data-rm は一覧（pv-directory.js）が画面に出す字（「{n} airlines」「✓ Added」「Remove」）。2026-11-02 */
+export const ATTRS = ['alt', 'title', 'aria-label', 'placeholder', 'data-qty', 'data-label', 'data-fmt', 'data-fmt-one', 'data-on', 'data-rm'];
 
 const attrOf = (el, name) => (el.attrs || []).find((a) => a.name === name)?.value;
 const isEl = (n) => n && n.tagName !== undefined;
@@ -117,14 +118,22 @@ export function extract(html) {
     let idx = 0;
     /* 間に字の無い飾りのタグの並び（メニューのリンクの列・「見出し」「必須」の札の並び）は1つの文ではない
        ＝ 字を持つ要素が2つ以上あって、そのあいだに字が1つも無ければ、要素ごとに中へ入って分ける。 */
+    /* 字を持たない要素（中身が空の件数の札・アイコンだけのボタン）は文に入らないが、属性（aria-label・data-fmt など）は訳す。
+       ★2026-11-02 まで、文の両端から外した要素の属性を拾っていなかった（一覧の「{n} airlines」が英語のまま出ていた） */
+    const bare = (el, st) => {
+      if (!isEl(el) || SKIP.has(el.tagName)) return;
+      const lab = [...st, `${el.tagName}^${idx}`];
+      collectAttrs(el, lab);
+      for (const c of el.childNodes || []) bare(c, lab);
+    };
     const flush = () => {
-      if (!run.some(hasText)) { run = []; return; }
+      if (!run.some(hasText)) { run.forEach((c) => bare(c, stack)); run = []; return; }
       /* 両端の空白・コメント・部品（アイコンの svg など）は単位に入れない（HTML にそのまま残る）。
          残りが飾りのタグ1つだけなら、その中へ入る（「<g1>HOME</g1>」ではなく「HOME」を訳す）。 */
       const edge = (c) => (c.nodeName === '#text' && !/\S/.test(c.value)) || c.nodeName === '#comment'
         || (isEl(c) && !hasText(c));
-      while (run.length && edge(run[0])) run.shift();
-      while (run.length && edge(run[run.length - 1])) run.pop();
+      while (run.length && edge(run[0])) bare(run.shift(), stack);
+      while (run.length && edge(run[run.length - 1])) bare(run.pop(), stack);
       if (run.length === 1 && isEl(run[0])) {
         const el = run[0]; run = [];
         const label = `${el.tagName}~${idx++}`; collectAttrs(el, [...stack, label]); walk(el, [...stack, label]);

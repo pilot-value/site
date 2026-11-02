@@ -3150,19 +3150,28 @@
      ⚠️ サーバーは保存した表を引くだけ（pv_member_medians）。ページを開くたびに全員分を数え直さない（2026-10-31 に本番が止まった原因）。
      決まり（台帳 salary-basis.mjs → HTML の data-*）：always ＝ いつも中央値（ANA・JAL）／higher ＝ 中央値が base（中央値に替える前の推定）を超えたときだけ。
      返事が無い・失敗したときは何もしない（書き込んである額のまま）。人数はサーバーが返さない（2人以上の組だけ返る）。 */
-  var MED_T = LANG === 'en'
-    ? { med: '<span class="pvg-vh">, median pay</span>', est: '<span class="pvg-vh">, estimated annual pay</span>',
-        byEst: 'Our estimate', byMed: 'Median of pay submitted by members', sep: ' · ',
-        mix: function (e, m) { return e + ': our estimate · ' + m + ': median of pay submitted by members'; },
-        rank: { cap: 'Captain', fo: 'First Officer' },
-        method: 'Median of the annual pay members have submitted (latest entry per person, to the nearest ¥10,000).', asOf: 'As of: latest submission',
-        yen: function (man) { return '¥' + (+(man / 100).toFixed(2)) + 'M'; } }
-    : { med: 'の中央値', est: 'の推定年収',
+  /* 日英の字の表（★2026-11-02 多言語化：前は LANG === 'en' ? {…} : {…}。gen-msg.mjs がこの en の後ろにスペイン語の es を書けるよう、
+     ja ／ en の辞書の形にした。選び方は同じ ── 日本語のページは ja・英語のページは en・スペイン語のページは es（無ければ en）） */
+  var MED_ALL = {
+    ja: { med: 'の中央値', est: 'の推定年収',
         byEst: '当サイトの推定', byMed: '会員が出した年収の中央値', sep: '・',
         mix: function (e, m) { return e + 'は当サイトの推定・' + m + 'は会員が出した年収の中央値'; },
         rank: { cap: '機長', fo: '副操縦士' },
         method: '会員が出した年収の中央値（1人1件・1万円単位）。', asOf: '時点：最新の提出まで',
-        yen: function (man) { return '¥' + man.toLocaleString('en-US') + '万'; } };
+        yen: function (man) { return '¥' + man.toLocaleString('en-US') + '万'; } },
+    en: { med: '<span class="pvg-vh">, median pay</span>', est: '<span class="pvg-vh">, estimated annual pay</span>',
+        byEst: 'Our estimate', byMed: 'Median of pay submitted by members', sep: ' · ',
+        mix: function (e, m) { return e + ': our estimate · ' + m + ': median of pay submitted by members'; },
+        rank: { cap: 'Captain', fo: 'First Officer' },
+        method: 'Median of the annual pay members have submitted (latest entry per person, to the nearest ¥10,000).', asOf: 'As of: latest submission',
+        yen: function (man) { return '¥' + (+(man / 100).toFixed(2)) + 'M'; } }, /*PV-MSG:es*/ es: { med: '<span class="pvg-vh">, mediana de la remuneración</span>', est: '<span class="pvg-vh">, sueldo anual estimado</span>',
+        byEst: 'Nuestra estimación', byMed: 'Mediana de la remuneración enviada por los miembros', sep: ' · ',
+        mix: function (e, m) { return e + ': nuestra estimación · ' + m + ': mediana de la remuneración enviada por los miembros'; },
+        rank: { cap: 'Capitán', fo: 'Primer oficial' },
+        method: 'Mediana de la remuneración anual que han enviado los miembros (último dato por persona, redondeado al múltiplo de ¥10,000 más cercano).', asOf: 'Fecha de corte: último envío',
+        yen: function (man) { return '¥' + (+(man / 100).toFixed(2)) + 'M'; } } /*/PV-MSG:es*/
+  };
+  var MED_T = (window.PV_T && window.PV_T(MED_ALL, LANG)) || MED_ALL[LANG];
   function medianRows(slug) {
     return once('med:' + slug, function (sig) {
       return client().then(function (sb) { return cut(sb.rpc('pv_member_medians', { p_airline: slug }), sig); }).then(function (res) {
