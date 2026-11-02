@@ -8,6 +8,7 @@
      node --env-file=<mail-bot/.env の場所> translate-tm.mjs es --estimate              何文・いくらかだけ出す（AI を呼ばない）
      node --env-file=… translate-tm.mjs es --trial 50 --report <点検表.html>            試し訳（約50文）と、日本語の逆訳つきの点検表
      node --env-file=… translate-tm.mjs es --pages en/pay-report.html,en/signup.html   そのページの足りない文だけ訳す
+     node --env-file=… translate-tm.mjs es --pages … --batch --max-usd 50                 まとめて送る（Message Batches API・半額）。結果が返るまで数分〜数時間
      node --env-file=… translate-tm.mjs es --ld                                         構造化データ（JSON-LD）の文で、本文の訳から引けないものだけ訳す
      node translate-tm.mjs es --prune                                                  どのページにも無くなった訳を辞書から消す（AI を呼ばない）
      鍵は ANTHROPIC_API_KEY（mail-bot/.env にある開発用のもの。translate-eval.mjs と同じ）。
@@ -126,7 +127,9 @@ const S_JA = listOf({ id: { type: 'integer' }, ja: { type: 'string' } });
 /* ── AI の呼び出し（使った量を数える）────────────────────── */
 let client = null;
 const used = { in: 0, out: 0, cr: 0, cw: 0, calls: 0 };
-const cost = () => used.in * PRICE.in + used.out * PRICE.out + used.cr * PRICE.cacheRead + used.cw * PRICE.cacheWrite;
+/* --batch：Message Batches API で送る（2026-11-02 オーナー判断「割引の仕組みを足してから会社ページ」）。料金は全部半額 */
+const BATCH_MODE = argv.includes('--batch');
+const cost = () => (used.in * PRICE.in + used.out * PRICE.out + used.cr * PRICE.cacheRead + used.cw * PRICE.cacheWrite) * (BATCH_MODE ? 0.5 : 1);
 /* translator=true … 書き方の決まり＋用語集（毎回同じ＝キャッシュ）を前に置く（①②④）。
    false … 逆に訳す・意味を比べる・日本語に戻す呼び出し。訳す側の決まりを見せない（見せると逆訳が「直した」英語になる）。 */
 async function ask(system, user, schema, effort = 'high', translator = true) {
@@ -134,6 +137,11 @@ async function ask(system, user, schema, effort = 'high', translator = true) {
   const sys = translator
     ? [{ type: 'text', text: STYLE }, { type: 'text', text: GLOSS_TEXT, cache_control: { type: 'ephemeral' } }, { type: 'text', text: system }]
     : [{ type: 'text', text: system }];
+  if (BATCH_MODE) return enqueue({
+    model: MODEL, max_tokens: 16000, system: sys,
+    messages: [{ role: 'user', content: user }],
+    output_config: { effort, format: { type: 'json_schema', schema } },
+  });
   for (let attempt = 1; ; attempt++) {
     try {
       const r = await client.beta.messages.parse({
@@ -154,6 +162,65 @@ async function ask(system, user, schema, effort = 'high', translator = true) {
       if (attempt >= 3 || e instanceof Anthropic.BadRequestError || e instanceof Anthropic.AuthenticationError) throw e;
       await new Promise((res) => setTimeout(res, 3000 * attempt));
     }
+  }
+}
+/* ── まとめて送る（--batch）────────────────────────────────
+   4段の流れ（stage12・stage3・通読）はそのまま。ask() が呼ばれたら列に積み、どの流れも答えを待つだけになったら（2秒だれも積まなかったら）
+   列をまとめて1つのバッチで送る。返ってきたら各流れへ答えを返す ＝ 流れは次の段の呼び出しを積む ＝ 次のバッチになる。
+   失敗（errored・expired）した1件は次のバッチで送り直す（2回まで）。上限の額を超えたら、それ以上は送らない。 */
+const queue = [];
+let qTimer = null, flushing = false, rounds = 0;
+function enqueue(params) {
+  return new Promise((resolve, reject) => { queue.push({ params, resolve, reject, tries: 0 }); kick(); });
+}
+function kick() {
+  if (flushing) return;
+  clearTimeout(qTimer);
+  qTimer = setTimeout(flush, 2000);
+}
+async function flush() {
+  qTimer = null;
+  if (!queue.length || flushing) return;
+  flushing = true;
+  const jobs = queue.splice(0);
+  const CAPV = Number(opt('--max-usd') || 5);
+  try {
+    if (cost() > CAPV) throw new Error(`上限 $${CAPV} に届いたので送らない（--max-usd で変えられる）`);
+    rounds++;
+    const b = await client.messages.batches.create({ requests: jobs.map((j, i) => ({ custom_id: 'r' + i, params: j.params })) });
+    const t0 = Date.now();
+    console.log(`  … バッチ${rounds}（${jobs.length}件）を送った ${b.id}`);
+    let st = b;
+    while (st.processing_status !== 'ended') {
+      await new Promise((r) => setTimeout(r, 20000));
+      try { st = await client.messages.batches.retrieve(b.id); } catch (e) { /* 一時的な失敗は次の回に読み直す */ }
+    }
+    const got = new Map();
+    for await (const r of await client.messages.batches.results(b.id)) got.set(r.custom_id, r);
+    console.log(`  … バッチ${rounds} が戻った（${Math.round((Date.now() - t0) / 60000)}分・成功 ${st.request_counts.succeeded}・失敗 ${st.request_counts.errored + st.request_counts.expired}）`);
+    jobs.forEach((j, i) => {
+      const r = got.get('r' + i);
+      if (r && r.result.type === 'succeeded') {
+        const m = r.result.message, u = m.usage || {};
+        used.calls++;
+        used.in += u.input_tokens || 0; used.out += u.output_tokens || 0;
+        used.cr += u.cache_read_input_tokens || 0; used.cw += u.cache_creation_input_tokens || 0;
+        try {
+          if (m.stop_reason === 'refusal') throw new Error('AI が断った');
+          if (m.stop_reason === 'max_tokens') throw new Error('答えが途中で切れた（max_tokens）');
+          const text = (m.content.find((c) => c.type === 'text') || {}).text;
+          const items = JSON.parse(text || 'null')?.items;
+          if (!Array.isArray(items)) throw new Error('答えの形が読めない');
+          j.resolve(items);
+        } catch (e) { j.reject(e); }
+      } else if (j.tries < 2) { j.tries++; queue.push(j); }
+      else j.reject(new Error('バッチの1件が ' + (r ? r.result.type : '返ってこなかった') + ' のまま（2回送り直した）'));
+    });
+  } catch (e) {
+    jobs.forEach((j) => j.reject(e));
+  } finally {
+    flushing = false;
+    if (queue.length) kick();
   }
 }
 const byId = (items) => new Map(items.map((x) => [x.id, x]));
@@ -190,7 +257,9 @@ function check(key, es) {
   const want = NUM(key); const have = new Set(NUM(es));
   const miss = [...new Set(want)].filter((n) => !have.has(n));
   if (miss.length) errs.push('数字が消えた: ' + miss.join(' '));
-  if (/[ぁ-んァ-ヶ一-龠]/.test(es)) errs.push('日本語の字が残った');
+  /* 元の英語に在る日本語・中国語の字（出典の資料名「会社概要」など）は、そのまま残すのが正しい。元に無い字が増えたときだけ落とす（2026-11-02） */
+  const cjk = (x) => new Set(plain(x).match(/[ぁ-んァ-ヶ一-龠㐀-鿿ー・（）｜【】：，。、—]+/g) || []);
+  { const src = cjk(key); if ([...cjk(es)].some((w) => !src.has(w))) errs.push('日本語の字が残った'); }
   for (const [b, when] of BAN) if (b.test(plain(es)) && !b.test(plain(key)) && (!when || when.test(plain(key)))) errs.push('使わない語: ' + plain(es).match(b)[0]);
   const r = plain(es).length / Math.max(1, plain(key).length);
   if (plain(key).length > 20 && (r < 0.5 || r > 2.6)) errs.push(`長さが極端（${r.toFixed(2)}倍）`);
@@ -330,6 +399,24 @@ if (flag('--prune')) {
   console.log(`使わなくなった訳を消した: ${gone.length}件`);
   process.exit(0);
 }
+/* --recheck <dump.json>：--dump で書き出した結果のうち、機械検査で落ちた訳を今の検査でもう一度見る（AI は呼ばない）。
+   通って、意味の判定（③）も通っていた訳だけを辞書に入れる。検査の線引きを直したあとに使う */
+if (opt('--recheck')) {
+  const rows = JSON.parse(fs.readFileSync(opt('--recheck'), 'utf8'));
+  let n = 0; const still = [];
+  for (const r of rows.filter((x) => x.st === 'failed')) {
+    const errs = check(r.key, r.es);
+    if (errs.length || !r.ok) { still.push([plain(r.key).slice(0, 70), errs.join('・') || '意味の判定'].join(' → ')); continue; }
+    if (TM[r.key]?.st === 'manual') continue;
+    TM[r.key] = { es: (r.key.startsWith('jsl:') ? 'jsl:' : r.key.startsWith('js:') ? 'js:' : '') + r.es, st: 'validated', by: 'ai', model: MODEL, pv: PROMPT_VERSION,
+      gl: glPrint(termsIn(/^jsl?:/.test(r.key) ? jsText(r.key.slice(r.key.indexOf(':') + 1)) : plain(r.key))), at: new Date().toLocaleDateString('sv-SE'), pages: [...new Set([...(TM[r.key]?.pages || []), r.page])].sort() };
+    n++;
+  }
+  saveTM();
+  console.log(`検査を通り直した訳: ${n}件 ／ まだ落ちる: ${still.length}件`);
+  still.forEach((x) => console.log('  ✗ ' + x));
+  process.exit(0);
+}
 let pool = flag('--js') ? collectJS() : flag('--inline') ? collectInline() : flag('--bank') ? collectBank() : flag('--ld') ? collectLD() : collect(pages);
 pool = [...new Map(pool.map((c) => [c.key, c])).values()];
 if (flag('--again')) pool = pool.filter((c) => TM[c.key]);
@@ -350,24 +437,38 @@ const results = [];
 const byPage = new Map();
 for (const c of cands) { if (!byPage.has(c.page)) byPage.set(c.page, []); byPage.get(c.page).push(c); }
 for (const list of byPage.values()) list.sort((a, b) => Number(isLabel(b.key)) - Number(isLabel(a.key)));
-for (const [page, list] of byPage) {
+async function doPage(page, list) {
   const rows = [];
-  for (let i = 0; i < list.length; i += BATCH) {
-    if (cost() > CAP) { console.log(`⚠️ 上限 $${CAP} に届いたので止めた（--max-usd で変えられる）`); break; }
+  /* 20件ずつの塊。1つの塊を訳して、見出しの訳を辞書に残す（次の塊が「このページで先に訳した見出し」として使う） */
+  const doChunk = async (i) => {
+    if (cost() > CAP) { console.log(`⚠️ 上限 $${CAP} に届いたので止めた（--max-usd で変えられる）`); return false; }
     const batch = list.slice(i, i + BATCH);
     let res;
     try { res = await translateBatch(batch); }
-    catch (e) { console.log(`  ✗ ${page} の ${i + 1}〜${i + batch.length} 件目で失敗（飛ばした・次に流すとここだけやり直す）: ${String(e.message).slice(0, 160)}`); continue; }
+    catch (e) { console.log(`  ✗ ${page} の ${i + 1}〜${i + batch.length} 件目で失敗（飛ばした・次に流すとここだけやり直す）: ${String(e.message).slice(0, 160)}`); return true; }
     res.forEach((r, j) => rows.push({ ...r, key: batch[j].key, c: batch[j] }));
     for (const r of res) { const k = batch[r.id - 1].key; if (!/^jsl?:/.test(k) && isLabel(k) && r.ok && !check(k, r.es).length && TM[k]?.st !== 'manual') TM[k] = { ...(TM[k] || {}), es: r.es, st: 'validated', by: 'ai', model: MODEL, pv: PROMPT_VERSION, gl: glPrint(termsIn(plain(k))), at: new Date().toLocaleDateString('sv-SE'), pages: [...new Set([...(TM[k]?.pages || []), page])].sort() }; }
     saveTM();   // 途中で止まっても、ここまでの見出しの訳は残る
     console.log(`  ${page} ${Math.min(i + BATCH, list.length)}/${list.length}  （ここまで $${cost().toFixed(2)}）`);
+    return true;
+  };
+  const starts = []; for (let i = 0; i < list.length; i += BATCH) starts.push(i);
+  if (!BATCH_MODE) { for (const i of starts) if (!(await doChunk(i))) break; }
+  else {
+    /* まとめて送るとき：見出しの塊（list の頭・isLabel）を先に全部、そのあと残りの塊を全部いっしょに（1段ずつ待つ回数を減らす） */
+    const nLabel = list.filter((c) => isLabel(c.key)).length;
+    await Promise.all(starts.filter((i) => i < nLabel).map(doChunk));
+    rows.sort((a, b) => list.indexOf(a.c) - list.indexOf(b.c));
+    await Promise.all(starts.filter((i) => i >= nLabel).map(doChunk));
+    rows.sort((a, b) => list.indexOf(a.c) - list.indexOf(b.c));   // 通読はページの順に読む
   }
   let fixes = new Map();
   try { fixes = await readThrough(page, rows); } catch (e) { console.log(`  ⚠️ ${page} の通読が失敗（通読の直しなしで進めた）: ${String(e.message).slice(0, 160)}`); }
   const changed = rows.filter((r) => fixes.get(r.key)?.es && fixes.get(r.key).es !== r.es);
   if (changed.length) {
-    const re = await stage3(changed.map((r) => r.c), changed.map((r, i) => ({ id: i + 1, es: fixes.get(r.key).es })));
+    let re = [];
+    try { re = await stage3(changed.map((r) => r.c), changed.map((r, i) => ({ id: i + 1, es: fixes.get(r.key).es }))); }
+    catch (e) { console.log(`  ⚠️ ${page} の通読の直しの判定が失敗（直しは採らない）: ${String(e.message).slice(0, 160)}`); }
     re.forEach((x, i) => {
       const r = changed[i];
       if (x.ok) { r.read = fixes.get(r.key).reason; r.es = x.es; r.back = x.back; }
@@ -389,11 +490,16 @@ for (const [page, list] of byPage) {
   }
   saveTM();
 }
+/* まとめて送るときは、ページもいっしょに進める（どのページも同じバッチに乗る） */
+if (BATCH_MODE) await Promise.all([...byPage].map(([page, list]) => doPage(page, list)));
+else for (const [page, list] of byPage) await doPage(page, list);
 for (const c of kept) results.push({ key: c.key, c, es: TM[c.key].es, st: TM[c.key].st, ok: true, errs: [], kept: true });
 const n = (s) => results.filter((r) => r.st === s).length;
 console.log(`\n採用 ${n('validated')} / 要確認 ${n('needs_review')} / 機械検査で落とした ${n('failed')} / 呼び出し ${used.calls}回 / 使った額 $${cost().toFixed(2)}`);
 for (const r of results.filter((x) => x.st === 'failed')) console.log('  ✗', plain(r.key).slice(0, 60), '→', r.errs.join('・'));
 
+/* --dump：結果をそのまま書き出す（AI は呼ばない。点検表は、あとで抜き出した分だけ日本語に戻して作る） */
+if (opt('--dump')) fs.writeFileSync(opt('--dump'), JSON.stringify(results.map((r) => ({ ...r, c: undefined, page: r.c.page, ja_ref: r.c.ja })), null, 1));
 /* ── 点検表（オーナーが日本語で確かめる）────────────────────── */
 const report = opt('--report');
 if (report && results.length) {

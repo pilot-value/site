@@ -26,21 +26,28 @@ const ok = (c, l, e = '') => { c ? (pass++, console.log('  ✅ ' + l)) : (fail++
 const JA = /[ぁ-んァ-ヶ一-龠]/;
 const GEN = LANGS.filter((l) => !l.hand);
 
-console.log('\n▼ 1) 機械で作る言語のページに日本語の字が出ていない');
+console.log('\n▼ 1) 機械で作る言語のページに日本語の字が出ていない（英語のページに在る字＝出典の資料名・写真の作者名は除く）');
+/* 画面に出る字の中の、日本語・中国語の字の並び。出典の資料名（「会社概要」）や写真の作者名（CC BY の条件で書かれたとおりに出す）は
+   英語のページにも同じ字で在る ＝ 訳し残しではない。英語のページに無い並びが出たときだけ落とす（2026-11-02・会社ページ109枚を足したとき） */
+const JA_RUN = /[ぁ-んァ-ヶ一-龠㐀-鿿ー・（）｜【】：，。、—々〜０-９Ａ-Ｚａ-ｚ－]+/g;
+const runsOf = (html) => {
+  const out = new Set();
+  const walk = (n) => {
+    if (n.nodeName === '#text') for (const m of n.value.match(JA_RUN) || []) if (JA.test(m)) out.add(m);
+    if (['script', 'style', 'noscript', 'template'].includes(n.tagName)) return;
+    for (const a of n.attrs || []) if (['alt', 'title', 'aria-label', 'placeholder'].includes(a.name)) for (const m of a.value.match(JA_RUN) || []) if (JA.test(m)) out.add(m);
+    (n.childNodes || []).forEach(walk);
+  };
+  walk(parse(html));
+  return out;
+};
 for (const L of GEN) {
   for (const bare of L.pages) {
     const rel = L.dir + bare;
     if (!fs.existsSync(path.join(ROOT, rel))) { ok(false, `${rel} がある`, 'node gen-lang.mjs を流す'); continue; }
-    const doc = parse(read(rel));
-    const hits = [];
-    const walk = (n) => {
-      if (n.nodeName === '#text' && JA.test(n.value)) hits.push(n.value.trim().slice(0, 40));
-      if (['script', 'style', 'noscript', 'template'].includes(n.tagName)) return;
-      for (const a of n.attrs || []) if (['alt', 'title', 'aria-label', 'placeholder'].includes(a.name) && JA.test(a.value)) hits.push(a.value.slice(0, 40));
-      (n.childNodes || []).forEach(walk);
-    };
-    walk(doc);
-    ok(!hits.length, `${rel}：画面に出る字に日本語が無い`, hits.slice(0, 5).join(' / '));
+    const en = runsOf(read('en/' + bare));
+    const hits = [...runsOf(read(rel))].filter((x) => !en.has(x));
+    ok(!hits.length, `${rel}：画面に出る字に、英語のページに無い日本語が無い`, hits.slice(0, 5).join(' / '));
   }
 }
 
