@@ -7,7 +7,7 @@
 
    使い方
      node db/backfill-review-lang.mjs es            残りの件数だけ出す（AI を呼ばない・費用ゼロ）
-     node db/backfill-review-lang.mjs es --run      3件ずつ、残りが無くなるまで訳す
+     node db/backfill-review-lang.mjs es --run      1件ずつ、残りが無くなるまで訳す
      node db/backfill-review-lang.mjs es --run --max 30   最大30件で止める
 
    関数に PV_WEBHOOK_SECRET を入れてあるときは、同じ値を環境変数 PV_WEBHOOK_SECRET で渡す
@@ -50,7 +50,14 @@ if (!RUN) { console.log('（訳すときは --run。1件あたり AI を2回呼�
 
 let done = 0, skip = 0;
 while (done < MAX) {
-  const j = await call({ backfill: LANG, offset: skip, limit: Math.min(3, MAX - done) });
+  /* 1回に1件（1件で AI を2回・約1分。関数の時間切れ 150秒に余裕を持たせる） */
+  /* 関数が資源切れ（546）などで落ちたら、10秒おいて2回まで流し直す（2026-11-02 に37件中1回起きた・流し直すと通った） */
+  let j = null;
+  for (let t = 0; t < 3 && !j; t++) {
+    try { j = await call({ backfill: LANG, offset: skip, limit: 1 }); }
+    catch (e) { console.log(`  （${t + 1}回目が失敗：${String(e.message).slice(0, 120)}）`); if (t < 2) await new Promise((r) => setTimeout(r, 10000)); }
+  }
+  if (!j) { console.log('3回続けて失敗したので止めた（もう一度流せば続きから）'); break; }
   const res = Array.isArray(j.results) ? j.results : [];
   if (!res.length) break;
   for (const x of res) {
