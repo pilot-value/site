@@ -154,20 +154,13 @@ export const OPS = {
     src: '雇用主体 SkyWest Airlines, Inc.（SkyWest, Inc. の完全子会社・本社 ユタ州セントジョージ）・米国の調査パックの記録 OO-A-001（現行適用を確認） / 確認 2026-10-11',
   },
 
-  /* 貨物 */
-  'fedex-express': {
-    ja: 'FedEx Express', en: 'FedEx Express', region: 'us', kind: 'cargo',
-    alias: ['フェデックス', 'フェデックス・エクスプレス', 'フェデラル・エクスプレス', 'Federal Express Corporation'],
-    // 雇用主は Federal Express Corporation。持株会社 FedEx Corporation・FedEx Ground などとは別
-    src: '雇用主体 Federal Express Corporation（ブランド名 FedEx Express・ALPA との労働協約の当事者）・米国の調査パックの記録 FX-A-001（現行適用を確認） / 確認 2026-10-11',
-  },
-
-  'ups-airlines': {
-    ja: 'UPS Airlines', en: 'UPS Airlines', region: 'us', kind: 'cargo',
-    alias: ['UPS航空', 'ユーピーエス'],
-    // パイロットの雇用法人の名前は、調査の台帳でも公開資料で未確認の行が多い（表示名は公式の呼び名の確認待ち）
-    src: '親会社 United Parcel Service, Inc. の子会社一覧（Form 10-K・2025-12-31 期）に掲載・米国の調査パックの記録 5X-A-002（現行適用は未確認） / 確認 2026-10-11',
-  },
+  /* 貨物
+     ★2026-11-02 FedEx Express（fedex-express）と UPS Airlines（ups-airlines）は、同じコードのまま salary-data.mjs の SALARY へ上げた
+       （道A・B5 ── 米国20社の統合調査の給与表で推定年収を出した）。ここから消したのはそのため（両方に書くと gen-airline-codes.mjs が「コードの衝突」で止まる）。
+       名前（ja・en）は SALARY でもここに書いていたまま（FedEx Express／UPS Airlines）。
+       ⚠️ ここに在った別名（フェデックス・フェデラル・エクスプレス・Federal Express Corporation・UPS航空・ユーピーエス）は、
+          給与フォームの検索欄だけが読む道具だった（DB には出していない）。SALARY の会社は search.js の t:[...] がその役をする。
+       ⚠️ FedEx の雇用主は Federal Express Corporation。持株会社 FedEx Corporation・FedEx Ground とは別。 */
 
   /* ── 北米（ビジネスジェット）──────────────────────────────── */
 
@@ -250,5 +243,35 @@ export const OPS = {
        ★2026-10-31 3社とも（フライドバイ flydubai・エア・ピース air-peace・吉祥航空 juneyao-airlines）、同じコードのまま
          salary-data.mjs の SALARY へ上げた（道A・B5）。ここから消したのはそのため（両方に書くと gen-airline-codes.mjs が「コードの衝突」で止まる）。
          ⚠️ フライドバイはエミレーツ（emirates）とは別会社（エミレーツ・グループに入っていない）。 */
+
+};
+
+/* ════════════════════════════════════════════════════════════════
+   RETIRED ── 名簿から外した会社（運航をやめた会社など）。★もう投稿を受け付けない。
+
+   なぜ消さずに残すか: 過去の給与・口コミの行がこのコードを持っている。
+     gen-airline-codes.mjs が次の4つにだけ配る（どれも「過去の行を読む」側）──
+       ・pv-airlines.json に kind:'retired' で残す ＝ REAL PAY・Vote・マイページなどが社名を出せる
+         （vote.js の hasPage は kind === 'airline' だけ ＝ 会社ページへのリンクは張られない・会社の一覧にも出ない）
+       ・airline-codes.json と pv-reunlock.js の FALLBACK_CODES に残す ＝ その会社に口コミを出した人が、
+         別の端末でログインしても鍵が戻る（proof_hash はコードの文字列から作るので、コードが一覧から消えると二度と当たらない）
+       ・db/airlines.generated.sql に active=false で残す ＝ 外部キーは生きたまま、新しい給与だけ止まる
+         （submit_pay_report は active を見る・pv_review_codes は active を見ない＝口コミの鍵も残る）。
+         年収の幅（cap_lo〜fo_hi）は null ＝ 公開していない幅で REAL PAY の ⚠ を付けない
+     配らないもの ── 投稿フォーム日英4枚の選択肢と AIRLINE_LABELS・salary-data.json・会社ページ・国別ページ・sitemap・検索。
+   ⚠️ 年収（cap / fo）を書かない。コードを変えない・SALARY や OPS と同じコードを書かない（gen-airline-codes.mjs が止める）。
+   ⚠️ 戻すとき（運航を再開した等）は、ここから消して SALARY か OPS へ同じコードのまま移す（add-airline.md の道A／道B）。
+   手順は workflows/add-airline.md の「会社を外す」。
+   ════════════════════════════════════════════════════════════════ */
+export const RETIRED = {
+
+  'spirit': {
+    ja: 'スピリット航空', en: 'Spirit Airlines', region: 'us',
+    // 2026-05-02 に全便の運航を停止。オーナー決定（2026-10-11「スピリットを外す」・2026-11-02 再確認）で会社ページごと外した。
+    // 住所（airlines/spirit.html・en/airlines/spirit.html）は 404。お知らせのページは置かない（オーナー判断）。
+    // 古い形のページは gen-new-airline.mjs の借り元として airline-donor-pages.mjs に写してある（配信されない）。
+    until: '2026-05-02',
+    src: 'オーナー決定 2026-10-11（2026-11-02 再確認）',
+  },
 
 };

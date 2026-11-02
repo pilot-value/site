@@ -802,8 +802,8 @@
     'hong-kong-express', 'iberia', 'icelandair', 'indigo', 'ita-airways', 'jetblue', 'klm', 'korean-air',
     'latam', 'lot', 'lufthansa', 'malaysia-airlines', 'norwegian', 'oman-air', 'porter', 'qantas',
     'qatar-airways', 'riyadh-air', 'ryanair', 'sas', 'saudia', 'singapore-airlines', 'solairus', 'southwest',
-    'spirit', 'spring-japan', 'starlux', 'swiss', 'tap', 'thai-airways', 'turkish-airlines', 'united',
-    'vietjet', 'virgin-atlantic', 'vueling', 'westjet', 'wizz-air'
+    'spring-japan', 'starlux', 'swiss', 'tap', 'thai-airways', 'turkish-airlines', 'united', 'vietjet',
+    'virgin-atlantic', 'vueling', 'westjet', 'wizz-air'
   ];
   /* PV_OVERSEAS_LIST:END */
   var pvOverseasRec = null, pvOverseasFetched = false;

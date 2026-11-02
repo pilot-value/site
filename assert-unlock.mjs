@@ -29,6 +29,7 @@ import puppeteer from 'puppeteer';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { DONOR_PAGES } from './airline-donor-pages.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const read = (p) => readFileSync(path.join(ROOT, p), 'utf8');
@@ -391,15 +392,32 @@ const gateState = () => ({
      新しい形になり、ANA の英語のページから錠前の節が無くなった（エミレーツの英語のページは EN-8 まで古い形・錠前が在る）。 */
 /* ★2026-10-27：2026-10-26 の compare-all-21 で、先行5社のほかの会社ページからも古い節を外した（錠前の節も一緒に消えた）。
      古い形のまま残っているのはスピリット航空のページ（日英）だけなので、見本をスピリット航空にした。
-     スピリット航空を外すとき（オーナーの決め・未実行）は、錠前の節そのものが無くなる ── この節ごと外す。 */
+     スピリット航空を外すとき（2026-11-02 に実行）は、この節ごと外す予定だった ── 錠前の JS（premium-auth-lock.js）は今も約240枚が読み、
+     新しい会社を起こした直後のページには錠前が付くので、外さずに借り元の写しで測り続ける（下の注）。 */
+/* ★2026-11-02 スピリット航空をサイトから外した（オーナー決定・住所は 404）── 旧い錠前（.premium-gate の年収枠）を持つページは、
+     配っているサイトに1枚も無い。旧い形が生まれるのは gen-new-airline.mjs が借り元（airline-donor-pages.mjs ── 外す直前のスピリット航空の
+     2枚を1バイトも変えずに写したもの）から新しい会社を起こした直後だけ（inject-salary-gate.mjs がその年収枠を包む）。
+     そこで見本は借り元の2枚そのもの。本物の住所（404）を開く代わりに、手元のブラウザの中だけでこの2枚を同じ住所に返して測る
+     （premium-auth-lock.js ほかの共有の JS は本物のファイルを読む ── 守っているものは前と同じ）。 */
 for (const [lang, url] of [['ja', '/airlines/spirit.html'], ['en', '/en/airlines/spirit.html']]) {
+  const OLD = (DONOR_PAGES.spirit || {})[lang] || '';
+  const oldPage = async () => {
+    const pg = await browser.newPage();
+    await pg.setRequestInterception(true);
+    pg.on('request', (r) => {
+      let u; try { u = new URL(r.url()); } catch { return r.continue(); }
+      if (u.origin === BASE && u.pathname === url) return r.respond({ status: 200, contentType: 'text/html; charset=utf-8', body: OLD });
+      return r.continue();
+    });
+    return pg;
+  };
   console.log(`\n════ 航空会社ページ（${lang}）— 年収枠は明細でしか開かない ════`);
-  ok(/class="premium-gate[^"]*"[^>]*data-gate-key="salary_detail"/.test(read(url.slice(1))),
-     '見本のページに旧い錠前（年収枠）が在る ── 無ければ見本を替える', url);
+  ok(/class="premium-gate[^"]*"[^>]*data-gate-key="salary_detail"/.test(OLD) && !existsSync(path.join(ROOT, url.slice(1))),
+     '見本（借り元の写し）に旧い錠前（年収枠）が在る・その住所のページはリポジトリに無い（404）── 無ければ見本を替える', url);
 
   // ── A1: 端末に口コミの鍵だけある ──
   {
-    const page = await browser.newPage();
+    const page = await oldPage();
     await stub(page, { hasReview: false, accessUntil: null, preset: { pv_unlock_expiry: FAR } });
     await page.goto(BASE + url, { waitUntil: 'networkidle2', timeout: 30000 });
     await new Promise((r) => setTimeout(r, 1000));
@@ -416,7 +434,7 @@ for (const [lang, url] of [['ja', '/airlines/spirit.html'], ['en', '/en/airlines
   //       224ページ中222ページで <head> から読まれるので document.body がまだ無く、
   //       data-airline を定数で受けていたため常に '' → reviews_v2 の照合ごと素通り。
   {
-    const page = await browser.newPage();
+    const page = await oldPage();
     await stub(page, { hasReview: true, accessUntil: null, preset: {} });
     await page.goto(BASE + url, { waitUntil: 'networkidle2', timeout: 30000 });
     await new Promise((r) => setTimeout(r, 1500));
@@ -434,7 +452,7 @@ for (const [lang, url] of [['ja', '/airlines/spirit.html'], ['en', '/en/airlines
   //       必ず 42501 で落ちる。サーバの口（pv_reviews）に聞き直せていないと、
   //       別端末から戻ってきた人の口コミ解放が**黙って復活しなくなる**。
   {
-    const page = await browser.newPage();
+    const page = await oldPage();
     await stub(page, { hasReview: true, accessUntil: null, preset: {}, gated: true });
     await page.goto(BASE + url, { waitUntil: 'networkidle2', timeout: 30000 });
     await new Promise((r) => setTimeout(r, 1500));
@@ -465,7 +483,7 @@ for (const [lang, url] of [['ja', '/airlines/spirit.html'], ['en', '/en/airlines
 
   // ── A4: 貼ったあと・口コミを1件も出していない人 ──
   {
-    const page = await browser.newPage();
+    const page = await oldPage();
     await stub(page, { hasReview: false, accessUntil: null, preset: {}, gated: true });
     await page.goto(BASE + url, { waitUntil: 'networkidle2', timeout: 30000 });
     await new Promise((r) => setTimeout(r, 1500));
@@ -477,7 +495,7 @@ for (const [lang, url] of [['ja', '/airlines/spirit.html'], ['en', '/en/airlines
 
   // ── B: 明細だけ出した人 ──
   {
-    const page = await browser.newPage();
+    const page = await oldPage();
     await stub(page, { hasReview: false,
       accessUntil: new Date(Date.now() + 90 * DAY).toISOString(), preset: {} });
     await page.goto(BASE + url, { waitUntil: 'networkidle2', timeout: 30000 });

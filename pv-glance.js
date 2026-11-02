@@ -622,4 +622,31 @@
     });
   }
   [].forEach.call(d.querySelectorAll('.pvg small, .pvg .pvg-note'), keepDates);
+
+  /* 勤続年数ごとの基本給（.pvg-ps・★2026-11-02）── 年を押すとその年の額を出す・機種を切り替える。
+     額は全部 HTML に在る（隠してあるだけ）。ここは hidden と aria-pressed を付け替えるだけ。 */
+  function psYear(card, y) {
+    card.setAttribute('data-ps-y', y);
+    [].forEach.call(card.querySelectorAll('.pvg-ps-col'), function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-ps-y') === y)); });
+    [].forEach.call(card.querySelectorAll('.pvg-ps-read'), function (r) { r.hidden = r.getAttribute('data-ps-y') !== y; });
+  }
+  d.addEventListener('click', function (e) {
+    var t = e.target, col = t.closest && t.closest('.pvg-ps-col'), tb = t.closest && t.closest('.pvg-ps-seg button');
+    var card = (col || tb) && (col || tb).closest('.pvg-ps');
+    if (!card) return;
+    if (col) { psYear(card, col.getAttribute('data-ps-y')); return; }
+    [].forEach.call(card.querySelectorAll('.pvg-ps-seg button'), function (b) { b.setAttribute('aria-pressed', String(b === tb)); });
+    psTable(card, tb.getAttribute('data-ps-tb'));
+  });
+  function psTable(card, k) {
+    [].forEach.call(card.querySelectorAll('.pvg-ps-t'), function (p) { p.hidden = p.getAttribute('data-ps-t') !== k; });
+    psYear(card, card.getAttribute('data-ps-y'));
+  }
+  /* 区分が4つ以上の会社は選ぶ欄（select） */
+  d.addEventListener('change', function (e) {
+    var sel = e.target;
+    if (!sel.classList || !sel.classList.contains('pvg-ps-sel')) return;
+    var card = sel.closest('.pvg-ps');
+    if (card) psTable(card, sel.value);
+  });
 })(window, document);

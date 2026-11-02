@@ -78,6 +78,7 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { SALARY } from './salary-data.mjs';
+import { DONOR_PAGES } from './airline-donor-pages.mjs';
 import { BASIS } from './salary-basis.mjs';
 import { JPY_PER } from './fx-rates.mjs';
 import { GLANCE, LEAD } from './pv-airline-view.mjs';
@@ -2254,15 +2255,23 @@ head('暮らし（街・家賃・空港までの移動）');
    英語で旧い形のまま残る会社ページもスピリット航空だけ → 英語の見本もその1枚（測る面は日本語と同じ決まりで数える）。
    スピリット航空には海外の評判が無いので、旧い形のページで「海外の評判」の鍵を出すページは日英ともにもう1枚も無い
    （鍵を測る手順は消さない ── 見本の会社に評判が在れば、今までどおり測る。下の段は、評判の表が読めていて、そのうえで見本に評判が無いことを見る）。 */
+/* ★2026-11-02 スピリット航空をサイトから外した（オーナー決定・住所は 404）── 年収の正本の会社ページに旧い形は1枚も無い。
+   旧い形のページが生まれるのは、gen-new-airline.mjs が借り元（airline-donor-pages.mjs ── 外す直前のスピリット航空の2枚を1バイトも変えずに写したもの）
+   から新しい会社を起こした直後だけ（WIDE に足して切り替えるまで、その会社のページは旧い形で配られる）。
+   そこで見本は、その借り元の2枚そのもの（OLD_HTML）。場面 ggold は、本物の住所（404）を開く代わりに、手元のブラウザの中だけで
+   この2枚を同じ住所に返して測る（共有の JS 2本 ── premium-auth-lock.js・airline-reviews-ui.js ── は本物のファイルを読む）。 */
 const OLD_SAMPLE = { ja: 'spirit', en: 'spirit' };
+const OLD_HTML = { ja: (DONOR_PAGES[OLD_SAMPLE.ja] || {}).ja || '', en: (DONOR_PAGES[OLD_SAMPLE.en] || {}).en || '' };
 const VOICE_KEYS = (() => { const t = read('airlines/airline-reviews-data.js'), i = t.indexOf('const VOICES = {'); return i < 0 ? [] : [...t.slice(i).matchAll(/^\s{4}'?([a-z0-9-]+)'?\s*:\s*\{/gm)].map(m => m[1]); })();
 const OLD_VOICES = { ja: VOICE_KEYS.includes(OLD_SAMPLE.ja), en: VOICE_KEYS.includes(OLD_SAMPLE.en) };
 {
   head('旧い形の会社ページ（見本）');
   const oldJa = Object.keys(SALARY).filter(s => !GLANCE.includes(s)), oldEn = Object.keys(SALARY).filter(s => !EN_SWITCH.includes(s));
-  ok(same(oldJa, [OLD_SAMPLE.ja]) && same(oldEn, [OLD_SAMPLE.en]) && !OLD_VOICES.ja && !OLD_VOICES.en && VOICE_KEYS.length > 0,
-    `会社ページで旧い形のまま残るのは、日英とも見本の1枚（日本語 ${OLD_SAMPLE.ja}・英語 ${OLD_SAMPLE.en}）だけ ── ほかは新しい会社ページ（日本語 ${GLANCE.length}社・英語 ${EN_SWITCH.length}社）。見本には海外の評判が無く、旧い形のページで「海外の評判」の鍵を出すページは日英ともにもう1枚も無い（評判の表は読めている）`,
-    `旧い形 日本語 ${oldJa.join(',')}・英語 ${oldEn.join(',')}・見本の評判 日本語 ${OLD_VOICES.ja}・英語 ${OLD_VOICES.en}・評判の会社 ${VOICE_KEYS.length}`);
+  const donorOld = ['ja', 'en'].every(l => /<div class="hero-airline"/.test(OLD_HTML[l]) && /class="premium-gate[^"]*"[^>]*data-gate-key="salary_detail"/.test(OLD_HTML[l]) && !/<!--PV-GLANCE-->|data-pv-glance="1"/.test(OLD_HTML[l]));
+  const gone = ['ja', 'en'].every(l => !fs.existsSync(path.join(ROOT, (l === 'en' ? 'en/' : '') + 'airlines/' + OLD_SAMPLE[l] + '.html')));
+  ok(same(oldJa, []) && same(oldEn, []) && donorOld && gone && !OLD_VOICES.ja && !OLD_VOICES.en && VOICE_KEYS.length > 0,
+    `会社ページで旧い形のまま残るのは日英とも0枚（日本語 ${GLANCE.length}社・英語 ${EN_SWITCH.length}社 ── 年収の正本の全社が新しい会社ページ）。旧い形の見本は gen-new-airline.mjs の借り元（airline-donor-pages.mjs の ${OLD_SAMPLE.ja}・旧い錠前と本文の器を持つ）で、その住所のページはリポジトリに無い（404）。見本には海外の評判が無く、旧い形のページで「海外の評判」の鍵を出すページは日英ともにもう1枚も無い（評判の表は読めている）`,
+    `旧い形 日本語 ${oldJa.join(',')}・英語 ${oldEn.join(',')}・借り元の形 ${donorOld}・住所のページが無い ${gone}・見本の評判 日本語 ${OLD_VOICES.ja}・英語 ${OLD_VOICES.en}・評判の会社 ${VOICE_KEYS.length}`);
 }
 
 if (STATIC_ONLY) {
@@ -7444,6 +7453,8 @@ async function openOld(browser, lang, w, h, { block = '', stale = false } = {}) 
     let u; try { u = new URL(r.url()); } catch { return r.continue(); }
     if (['data:', 'blob:', 'about:'].includes(u.protocol)) return r.continue();
     if (u.origin === BASE) {
+      /* 見本のページ（借り元の写し）は、この手元のブラウザの中だけで本物の住所に返す（配っているサイトでは 404） */
+      if (u.pathname === OLD_PATH[lang]) return r.respond({ status: 200, contentType: 'text/html; charset=utf-8', body: OLD_HTML[lang] });
       if (block === 'css' && u.pathname === '/pv-gg.css') return r.abort();
       /* 空のファイルが 200 で届く（配信の途中・切れた写し）。読み込みは「成功」で終わるが、決まりは1つも入っていない。 */
       if (block === 'empty' && u.pathname === '/pv-gg.css') return r.respond({ status: 200, contentType: 'text/css', body: '' });
@@ -7517,7 +7528,7 @@ async function runGGOld(browser, lang, [w, h]) {
   const tag = `旧い形の会社ページ ${lang} ${w}（Give & Get のボタン）`;
   const lp = await ggBase(browser);
   if (!lp) { ok(false, `${tag}: トップページのいちばん上の黒いボタンを測れた（基準）`); return; }
-  const html = read((lang === 'en' ? 'en/' : '') + 'airlines/' + OLD_SAMPLE[lang] + '.html');
+  const html = OLD_HTML[lang];
   const nGate = (html.match(/class="premium-gate[" ]/g) || []).length;
   const { ctx, p, seen, ready } = await openOld(browser, lang, w, h);
   const until = (fn, ...a) => p.waitForFunction(fn, { timeout: 8000 }, ...a).then(() => true, () => false);
@@ -7650,7 +7661,7 @@ async function runGGOld(browser, lang, [w, h]) {
    「古いボタンのまま」＝ 数だけでなく、字も押した先も今までと同じ（OLD_WAS・OLD_CLICK）。 */
 async function runGGOldOff(browser, lang, [w, h], block) {
   const tag = `旧い形の会社ページ ${lang} ${w}（${block === 'css' ? '形のファイルが読めない時' : block === 'empty' ? '形のファイルが空で届いた時' : '錠前の JS が無い時'}）`;
-  const html = read((lang === 'en' ? 'en/' : '') + 'airlines/' + OLD_SAMPLE[lang] + '.html');
+  const html = OLD_HTML[lang];
   const nGate = (html.match(/class="premium-gate[" ]/g) || []).length;
   const { ctx, p, ready } = await openOld(browser, lang, w, h, { block });
   try {

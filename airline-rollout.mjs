@@ -37,7 +37,9 @@ export const LEAD = Object.freeze(['jal', 'ana', 'cathay-pacific', 'etihad', 'ev
 export const SAMPLES = Object.freeze(['qantas', 'skymark']);
 /** 全社へ広げる d1（2026-10-21・リード P12.82／P12.84）：地域ごとに足す。並びは年収の正本（SALARY）の地域の中の順。
     ★スピリット航空は入れない（オーナー 2026-10-11「スピリットを外す」）。d2（2026-10-22）で ヨーロッパ・アメリカ大陸・オセアニアを足した
-    ＝ 年収の正本の 112社のうち、古い形のページはスピリット航空だけ。 */
+    ＝ 年収の正本の 112社のうち、古い形のページはスピリット航空だけ。
+    ★2026-11-02 スピリット航空をサイトから外した（年収の正本からも・ページは 404）── いまは年収の正本の全社が SWITCH。
+    古い形のページは、gen-new-airline.mjs が借り元（airline-donor-pages.mjs）から新しい会社を起こした直後にだけ在る（ここへ足して切り替える）。 */
 export const WIDE = Object.freeze([
   /* 日本 */
   'zipair', 'jetstar-japan', 'peach', 'solaseed', 'spring-japan', 'airdo', 'starflyer', 'fda', 'airjapan', 'amx', 'ana-wings',
@@ -53,9 +55,10 @@ export const WIDE = Object.freeze([
   'klm', 'air-france', 'lufthansa', 'british-airways', 'airx-charter', 'eagle-jet', 'turkish-airlines', 'aegean', 'aer-lingus',
   'austrian', 'easyjet', 'eurowings', 'finnair', 'iberia', 'icelandair', 'ita-airways', 'lot', 'norwegian', 'ryanair', 'sas', 'swiss',
   'tap', 'virgin-atlantic', 'vueling', 'wizz-air',
-  /* アメリカ大陸（北米・中南米。スピリット航空は入れない ── オーナー 2026-10-11） */
+  /* アメリカ大陸（北米・中南米。スピリット航空は入れない ── オーナー 2026-10-11）。
+     ★2026-11-02 米国の貨物5社（FedEx Express・UPS Airlines は投稿先だけの一覧から道Aへ上げた2社、Atlas Air・ABX Air・Kalitta Air は新しく足した3社）を足した */
   'united', 'delta', 'american', 'southwest', 'air-canada', 'solairus', 'alaska-airlines', 'allegiant', 'breeze-airways', 'frontier',
-  'jetblue', 'porter', 'westjet', 'aeromexico', 'avianca', 'copa-airlines', 'latam',
+  'jetblue', 'porter', 'westjet', 'fedex-express', 'ups-airlines', 'atlas-air', 'abx-air', 'kalitta-air', 'aeromexico', 'avianca', 'copa-airlines', 'latam',
   /* オセアニア（カンタス航空は見本の2社） */
   'air-new-zealand', 'fiji-airways', 'jetstar',
 ]);
@@ -63,7 +66,7 @@ export const SWITCH = Object.freeze([...LEAD, ...SAMPLES, ...WIDE]);
 /** 英語の会社ページ（en/airlines/）を新しい形で書く会社（2026-10-23 英語の EN-6）。★ここに足した会社だけ、gen-airline-glance.mjs が
     英語のページを書き直す。2026-10-23 英語の EN-7 で先行5社と見本の2社（カンタス航空・スカイマーク）を足した。
     2026-10-23 英語の EN-8 で SWITCH の全部（111社）にした ＝ 日本語が新しい形の会社は、英語のページも新しい形。
-    SWITCH に無い会社（スピリット航空）は足さない（日本語のページが古い形のまま）。 */
+    SWITCH に無い会社は足さない（日本語のページが古い形のまま ── 2026-11-02 からは、起こした直後の新しい会社だけ）。 */
 export const EN_SWITCH = Object.freeze([...SWITCH]);
 /** 画面に出してよい使い方。 */
 export const SHOWN = Object.freeze(['条件つき', '募集', '過去', '参考']);

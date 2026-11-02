@@ -826,7 +826,9 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
        （アプリ 18 → 19）。
      ★2026-10-25、その英語版（en/career.html・英語の EN-9）を足して **420枚**になった（アプリ 19 → 20）。
      ★2026-10-31、会社ページを3社（フライドバイ・エア・ピース・吉祥航空）×日英と、国別ページ（ナイジェリア）×日英を足して **428枚**になった（公開 400 → 408）。
-       数が増えるのは新しいページを置いたときだけで、減ったら入れ物の置き忘れ。
+     ★2026-11-02、米国の貨物5社（FedEx Express・UPS Airlines・Atlas Air・ABX Air・Kalitta Air）の会社ページ×日英を足して **438枚**になった（公開 408 → 418）。
+     ★2026-11-02、スピリット航空の会社ページ×日英を外して **436枚**になった（公開 418 → 416。オーナー決定 ── 運航停止・住所は 404）。
+       数が増えるのは新しいページを置いたときだけで、減ったら入れ物の置き忘れ（ページを外した回は、ここに1行書いて数を下げる）。
        ⚠️ 数を合わせるために公開ページを除外リストへ逃がさない（それが捕まえたい形そのもの）。
      ★2026-09-07、オーナー指示で **412枚**になった。除外していた6枚のうち
        ログイン・新規登録の日英4枚と給与フォームの日英2枚を**入れた**。
@@ -843,9 +845,9 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   const side = pages.filter((p) => p.html.includes('<nav class="mr-side"'));
   const pub = side.filter((p) => p.html.includes('id="main-nav"'));
   const app = side.filter((p) => !p.html.includes('id="main-nav"'));
-  ok(side.length === 428, '★★同じ板が 428枚に在る（公開408 ＋ アプリ20）',
+  ok(side.length === 436, '★★同じ板が 436枚に在る（公開416 ＋ アプリ20）',
      `公開 ${pub.length} ／ アプリ ${app.length} ／ 合計 ${side.length}`);
-  ok(pub.length === 408 && app.length === 20, '★内訳も 408 ＋ 20 のまま',
+  ok(pub.length === 416 && app.length === 20, '★内訳も 416 ＋ 20 のまま',
      `公開 ${pub.length} ／ アプリ ${app.length}`);
   for (const rel of ['invite.html', 'en/invite.html']) {
     ok(side.some((p) => p.rel === rel), `★${rel} にアプリのナビが在る`);

@@ -3,7 +3,8 @@
    会社の選択肢と DB 側の会社マスタを、2つの名簿から生成する。
 
      salary-data.mjs の SALARY ─┐   年収がある社（会社ページを持つ）
-     airline-ops.mjs  の OPS  ─┴─→ ALL（合流）
+     airline-ops.mjs  の OPS  ─┴─→ ALL（合流）＝ いま投稿できる社
+     airline-ops.mjs  の RETIRED ── 名簿から外した社（過去の投稿の社名・鍵のためだけ。下の「★名簿から外した社」）
                                     ├─→ airline-codes.json     （全社 ＋ other）
                                     ├─→ pv-airlines.json       （画面が社名を引く辞書）
                                     ├─→ submit-review.html    #f-airline ＋ AIRLINE_LABELS
@@ -31,6 +32,13 @@
      正規化後に一致すると、片方の会社の投稿が黙ってもう片方に混ざる。
      ここで例外にして止める。
 
+   ★名簿から外した社（RETIRED・2026-11-02 スピリット航空から）
+     投稿の選択肢（フォーム4枚・AIRLINE_LABELS）には出さない。残すのは過去の行を読む側だけ ──
+     airline-codes.json と FALLBACK_CODES（口コミの鍵を別の端末で取り戻す総当たり）・
+     pv-airlines.json（kind:'retired' ＝ 社名は引けるが会社ページへのリンクは張られない）・
+     db/airlines.generated.sql（active=false・年収の幅は null）。
+     ⚠️ 一覧から黙って消すと、その社に口コミを出した人の proof_hash が二度と当たらない（鍵が戻らない）。
+
    airline-codes.json の用途: ログイン/OAuth コールバック時の「再解放」照合。
    reviews_v2 は匿名（proof_hash）で user_id を持たないため
    「この人の全口コミ」を直接引けない。代わりに投稿可能な全社コードの
@@ -40,7 +48,7 @@
 ════════════════════════════════════════════════════════════════ */
 import { readFileSync, writeFileSync } from 'fs';
 import { SALARY } from './salary-data.mjs';
-import { OPS } from './airline-ops.mjs';
+import { OPS, RETIRED } from './airline-ops.mjs';
 
 /* --check … 書き出さずに検査だけ流す（gen-fx-rates.mjs と同じ作法）。
    PV_OPS_INJECT は --check のときだけ効く検査用の注入口で、
@@ -51,6 +59,8 @@ const INJECT = (CHECK && process.env.PV_OPS_INJECT) ? JSON.parse(process.env.PV_
 
 const ALL = { ...SALARY, ...OPS, ...(INJECT || {}) };
 const KEYS = Object.keys(ALL);
+/* 名簿から外した社（過去の行を読む側にだけ配る）。KEYS には入れない ＝ 選択肢にも「有効」にも数えない。 */
+const RKEYS = Object.keys(RETIRED || {});
 
 // ── 地域グループ。語彙は world-airlines.html の data-region と同一 ──
 // JP は日本の読者が多いので日本から、EN は最初の主戦場（湾岸・契約市場）から並べる。
@@ -89,6 +99,13 @@ const KINDS = ['bizjet', 'charter', 'regional', 'cargo', 'passenger'];
       `会社コードが SALARY と OPS で衝突: ${dup.join(', ')}\n` +
       '  → 既に年収付きで載っている社。airline-ops.mjs から消す。');
   }
+  /* 名簿から外した社が、まだ投稿できる側（SALARY・OPS）にも居る ＝ どちらが正か分からない */
+  const back = RKEYS.filter((k) => Object.prototype.hasOwnProperty.call(ALL, k));
+  if (back.length) {
+    throw new Error(
+      `名簿から外した社（RETIRED）が SALARY / OPS にも居る: ${back.join(', ')}\n` +
+      '  → 戻すなら RETIRED から消す。外すなら SALARY / OPS から消す。');
+  }
 }
 
 /* ── 検査②：OPS の形 ────────────────────────────────────── */
@@ -102,6 +119,15 @@ for (const [k, a] of Object.entries({ ...OPS, ...(INJECT || {}) })) {
   if (a.alias != null && (!Array.isArray(a.alias) || a.alias.some((s) => typeof s !== 'string')))
     throw new Error(`${k}: alias は文字列の配列`);
   if (a.cap || a.fo) throw new Error(`${k}: 年収は airline-ops.mjs に書かない（SALARY へ昇格させる）`);
+}
+/* ── 検査②-b：RETIRED の形（年収は持たない・名前と地域だけ）── */
+for (const [k, a] of Object.entries(RETIRED || {})) {
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(k)) throw new Error(`RETIRED の code の形が不正: ${k}`);
+  for (const f of ['ja', 'en', 'region', 'until', 'src']) {
+    if (!a[f] || typeof a[f] !== 'string') throw new Error(`RETIRED.${k}: ${f} が無い`);
+  }
+  if (!GROUPS.ja.order.includes(a.region)) throw new Error(`RETIRED.${k}: region が不正: ${a.region}`);
+  if (a.cap || a.fo) throw new Error(`RETIRED.${k}: 年収を書かない（公開しない）`);
 }
 
 /* ── 検査③：社名の衝突 ──────────────────────────────────────
@@ -123,9 +149,12 @@ function nameVariants(code, a) {
 }
 
 {
+  /* ★名簿から外した社も入れる。pv_airline_resolve の索引（pv_airline_alias）は active を見ないので、
+     外した社の名前も「その他」の打ち込みを寄せる先に残る（db/pay-rows.sql の索引の引き金の注）。 */
   const owner = new Map(); // 正規化後の名前 → その名前を出す code の集合
-  for (const k of KEYS) {
-    for (const nm of nameVariants(k, ALL[k])) {
+  const NAMED = { ...ALL, ...(RETIRED || {}) };
+  for (const k of Object.keys(NAMED)) {
+    for (const nm of nameVariants(k, NAMED[k])) {
       const n = airNorm(nm);
       if (!n) continue;
       if (!owner.has(n)) owner.set(n, new Set());
@@ -142,7 +171,7 @@ function nameVariants(code, a) {
 }
 
 if (CHECK) {
-  console.log(`✅ 検査のみ（書き出さない）: ${KEYS.length} 社 ＝ 年収あり ${Object.keys(SALARY).length} ＋ 投稿先のみ ${Object.keys(OPS).length}`);
+  console.log(`✅ 検査のみ（書き出さない）: ${KEYS.length} 社 ＝ 年収あり ${Object.keys(SALARY).length} ＋ 投稿先のみ ${Object.keys(OPS).length}（ほかに名簿から外した社 ${RKEYS.length}）`);
   console.log('   コードの衝突なし／OPS の形も正しい／社名の衝突なし');
   process.exit(0);
 }
@@ -216,13 +245,14 @@ function patchSelect(path, lang) {
   return n;
 }
 
-// ── 1. airline-codes.json（全社 ＋ other）─────────────────────
-const codes = [...KEYS, 'other'];
+// ── 1. airline-codes.json（全社 ＋ 名簿から外した社 ＋ other）─────────
+// ★名簿から外した社も入れる ── 口コミの鍵を取り戻す総当たり（pv-reunlock.js）は、ここに在るコードでしか hash を作らない。
+const codes = [...KEYS, ...RKEYS, 'other'];
 if (new Set(codes).size !== codes.length) throw new Error('コードが重複している');
-if (codes.length !== KEYS.length + 1) throw new Error('件数が合わない');
+if (codes.length !== KEYS.length + RKEYS.length + 1) throw new Error('件数が合わない');
 writeFileSync(new URL('./airline-codes.json', import.meta.url), JSON.stringify(codes));
-console.log(`✅ airline-codes.json 書き出し: ${codes.length} 件（${KEYS.length} 社 ＋ other）`);
-console.log(`   内訳: 年収あり ${Object.keys(SALARY).length} 社 ＋ 投稿先のみ ${Object.keys(OPS).length} 社`);
+console.log(`✅ airline-codes.json 書き出し: ${codes.length} 件（${KEYS.length} 社 ＋ 名簿から外した社 ${RKEYS.length} ＋ other）`);
+console.log(`   内訳: 年収あり ${Object.keys(SALARY).length} 社 ＋ 投稿先のみ ${Object.keys(OPS).length} 社（選択肢に出るのはこの ${KEYS.length} 社だけ）`);
 
 /* 確認画面で社名を出すための対応表。ここを更新し忘れると、一覧に無いコードが
    'qatar-airways' のような生の文字列のまま利用者に見える（実際そうなっていた）。 */
@@ -276,12 +306,19 @@ for (const [path, lang] of [['./pay-report.html', 'ja'], ['./en/pay-report.html'
     const a = ALL[k];
     airlines[k] = { ja: a.ja, en: a.en, region: a.region, kind: a.kind || 'airline' };
   }
+  /* 名簿から外した社は kind:'retired'。社名は引ける（REAL PAY・Vote・マイページの過去の行）。
+     ⚠️ kind を 'airline' にしない ── vote.js の hasPage と gen-vote-popular.mjs は kind === 'airline' を
+        「会社ページが在る」と読むので、404 へのリンクが生える。 */
+  for (const k of RKEYS) {
+    const a = RETIRED[k];
+    airlines[k] = { ja: a.ja, en: a.en, region: a.region, kind: 'retired' };
+  }
   const json = {
     note: '自動生成（node gen-airline-codes.mjs）。手で編集しない。',
     airlines,
   };
   writeFileSync(new URL('./pv-airlines.json', import.meta.url), JSON.stringify(json));
-  console.log(`✅ pv-airlines.json 書き出し: ${KEYS.length} 社`);
+  console.log(`✅ pv-airlines.json 書き出し: ${KEYS.length} 社 ＋ 名簿から外した社 ${RKEYS.length}（kind:'retired'）`);
 }
 
 // ── 4. DB 側の会社マスタ（pay_reports が外部キーで参照する）────
@@ -309,6 +346,11 @@ for (const [path, lang] of [['./pay-report.html', 'ja'], ['./en/pay-report.html'
     return `  (${q(k)}, ${q(a.ja)}, ${q(a.en)}, ${q(a.region)}, ${band(k)})`;
   }).concat([`  ('other', ${q('その他（自由入力）')}, ${q('Other (free text)')}, 'other', null, null, null, null)`]);
   const nBand = KEYS.filter((k) => k in SALARY).length;
+  /* 名簿から外した社は active=false で入れる（年収の幅は null）。外部キーの参照先を壊さずに、新しい給与だけ止める。 */
+  const retiredRows = RKEYS.map((k) => {
+    const a = RETIRED[k];
+    return `  (${q(k)}, ${q(a.ja)}, ${q(a.en)}, ${q(a.region)}, null, null, null, null, false)`;
+  });
 
   const sql = `-- ════════════════════════════════════════════════════════════════
 -- db/airlines.generated.sql — ★自動生成。手で編集しない。
@@ -354,7 +396,22 @@ on conflict (code) do update
       fo_hi   = excluded.fo_hi,
       active  = true;
 
--- 名簿から消えた社は残したまま active=false にする（投稿の参照先を壊さない）
+${retiredRows.length ? `-- 名簿から外した社（airline-ops.mjs の RETIRED）── 消さずに active=false・年収の幅は null。
+--   過去の給与・口コミの外部キーは生きたまま、新しい給与だけ止まる（submit_pay_report は active を見る）。
+--   幅を null にするのは、公開していない幅で REAL PAY の ⚠ を付けないため。
+insert into public.pv_airlines (code, name_ja, name_en, region, cap_lo, cap_hi, fo_lo, fo_hi, active) values
+${retiredRows.join(',\n')}
+on conflict (code) do update
+  set name_ja = excluded.name_ja,
+      name_en = excluded.name_en,
+      region  = excluded.region,
+      cap_lo  = null,
+      cap_hi  = null,
+      fo_lo   = null,
+      fo_hi   = null,
+      active  = false;
+
+` : ''}-- 名簿から消えた社は残したまま active=false にする（投稿の参照先を壊さない）
 update public.pv_airlines set active = false
  where code not in (${[...KEYS, 'other'].map(q).join(', ')});
 
@@ -362,13 +419,14 @@ alter table public.pv_airlines enable row level security;
 drop policy if exists pv_airlines_read on public.pv_airlines;
 create policy pv_airlines_read on public.pv_airlines for select to anon, authenticated using (true);
 
--- 検算：${KEYS.length + 1} 件（${KEYS.length}社 ＋ other）・年収の幅あり ${nBand} 社
+-- 検算：有効 ${KEYS.length + 1} 件（${KEYS.length}社 ＋ other）・年収の幅あり ${nBand} 社・名簿から外した社 ${RKEYS.length}（無効で残る）
+--       全件は ${KEYS.length + RKEYS.length + 1} 件以上（前に名簿から消えた社が DB に残っていれば、そのぶん多い）
 select count(*) filter (where active) as 有効, count(*) as 全件,
        count(*) filter (where active and cap_hi is not null and fo_hi is not null) as 年収の幅あり
   from public.pv_airlines;
 `;
   writeFileSync(new URL('./db/airlines.generated.sql', import.meta.url), sql);
-  console.log(`✅ db/airlines.generated.sql 書き出し: ${rows.length} 件`);
+  console.log(`✅ db/airlines.generated.sql 書き出し: ${rows.length} 件 ＋ 名簿から外した社 ${retiredRows.length} 件（active=false）`);
 }
 
 // ── 5. pv-reunlock.js のフォールバック（fetch 失敗時の保険）────

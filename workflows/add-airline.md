@@ -381,6 +381,8 @@ node check.mjs        # fast + sql（約80秒）
   実例＝アシアナ航空（2026-12-17 に大韓航空へ統合）
 - **★2026-10-31 に3社（フライドバイ・エア・ピース・吉祥航空）を B5 で上げたときに踏んだこと**
   - 借り元（`donor`）は `spirit` だけ（古い形のページが残っているのはスピリット航空だけ）。色は `donorColor: '#FFD700'`（大文字・小文字の両方を置き換える）。
+    ★2026-11-02 スピリット航空のページは消した（下の「会社を外す」）。借り元の2枚は [airline-donor-pages.mjs](../airline-donor-pages.mjs)
+    （配信されない `.mjs`）に1バイトも変えずに写してあり、`gen-new-airline.mjs` は `donor: 'spirit'` をそこから読む。`donor` の書き方は今までどおり。
     借り元の `<style data-pv-light>` は生成器が外す（`patch-airline-pages.mjs` が新しい色で書き直す）。
   - 新しい会社は `airline-rollout.mjs` の `WIDE` に足す（新しい形のページになる）。`gen-airline-glance.mjs` → `patch-airline-pages.mjs` も流す。
   - GA の塊 `<!--PV-3P-->` は生成器が外すので、借り元と同じ場所へそのまま写す（日本語＝`pv-session.js` の直前／英語＝Google tag の `<script>` の直後）。
@@ -388,10 +390,20 @@ node check.mjs        # fast + sql（約80秒）
   - 初めての国は `airline-countries.mjs` の `COUNTRIES` にも1行。その国が `pv-airline-view.mjs` の `NET_EN` に在ったら外す（使われない行として `assert-rollout.mjs` F が落ちる）。
   - `assert-rollout.mjs` の `NO_LOGO`（ロゴの絵の無い会社）と `NO_RESEARCH_YET`（調べの台帳に行の無い会社）に足す。台帳に行が入ったら `NO_RESEARCH_YET` から外す。
   - UAE の会社の英語の表は「🇦🇪 United Arab Emirates」の Emirates をエミレーツと読ませないよう、`check-salary.mjs` に国名の除外を入れた。
+- **★2026-11-02 に米国の貨物5社（FedEx Express・UPS Airlines を B5・Atlas Air・ABX Air・Kalitta Air を道A）で踏んだこと**
+  - 新しい形のページに残るのは `CONTENT` の **`faqEn`（英語の「よくある質問」）だけ**。ここは検査が厳しい ──
+    米国のつづり（license・program・center ── `assert-claims.mjs` F）／応募条件の飛行時間と「About N」「N+」の数は、その会社の台帳
+    （`salary-sources.mjs` の SOURCES など）に同じ数が在るものだけ（同 E3・H2。数を書くなら先に採用ページの行を台帳へ）／
+    「the first」「largest」などの言い分を書かない（`assert-rollout.mjs` L6）。直したらページを消して `gen-new-airline.mjs` から起こし直す。
+  - 和名と英名が同じ字の会社（FedEx Express）は、社名の行が「FedEx Express（FedEx Express）」にならないよう生成器が1回だけ書く。
+    社名の下の灰色の行は `subtitleJa` の「—」の左（読みのカタカナを置いた）。
+  - 左メニューを持つページが1社につき2枚増える ＝ `assert-pay-rows.mjs` の枚数（合計と公開）を足す（`check.mjs web` でしか赤くならない）。
 
 ## エッジケース（道B）
 - **会社が無くなった／取り違えて足した** → `airline-ops.mjs` から消して `gen-airline-codes.mjs` を
-  流し直し、`db/airlines.generated.sql` を貼り直す。会社は削除されず `active=false` に落ちるだけなので、
+  流し直し、`db/airlines.generated.sql` を貼り直す。
+  ★**その社に投稿が在る（在りうる）なら、消すのではなく `RETIRED` へ移す**（下の「会社を外す」の R1）。
+  黙って消すと、口コミを出した人の鍵が別の端末で戻らなくなり、REAL PAY の社名がコードのまま出る。会社は削除されず `active=false` に落ちるだけなので、
   万一その社で投稿済みでも外部キーは生きたまま、新規投稿だけが止まる。
   **`delete from pv_airlines` は使わない**
 - **本人が打ち込んだ表記と正式名称がずれている** → `pv_airline_resolve` は**完全一致だけ**。
@@ -399,6 +411,59 @@ node check.mjs        # fast + sql（約80秒）
   それでも当たらない表記は**未解決として報告する。推測で寄せない**
 - **同じ会社を道Aと道Bの両方に書いた** → `gen-airline-codes.mjs` が
   `コードの衝突` で落ちる（`OPS` 側を消す）
+
+# 会社を外す（運航停止など・2026-11-02 スピリット航空で通した）
+
+道A／道Bの逆。**会社の行は DB から消さない**（過去の給与・口コミが外部キーで指している）。
+会社ページは消して住所は 404（お知らせのページは置かない ── オーナー判断）。
+
+## R1. 名簿を移す（手で書くのはここ）
+| ファイル | すること |
+|---|---|
+| [salary-data.mjs](../salary-data.mjs) の `SALARY`（道Bなら [airline-ops.mjs](../airline-ops.mjs) の `OPS`） | 1行消す（理由と日付をコメントに残す） |
+| [airline-ops.mjs](../airline-ops.mjs) の `RETIRED` | **同じコードのまま** `ja / en / region / until / src` を1件足す。年収は書かない |
+| [airline-countries.mjs](../airline-countries.mjs)・[airlines-meta.js](../airlines-meta.js)・[search.js](../search.js)・[airline-logos.js](../airline-logos.js)・`sitemap.html`（日英） | その社の行を消す |
+| `index.html`・`en/index.html` の `data-pv-n="airlines"`（日英で12か所） | 社数を1つ減らす（どの生成器も直さない） |
+| 消すファイル | `airlines/{slug}.html`・`en/airlines/{slug}.html`・`assets/airline-logos/{slug}.*`・`assets/og/a-{slug}-{ja,en}.jpg`・`overseas-rep/{slug}.json` |
+
+`RETIRED` に入れた社は `gen-airline-codes.mjs` が**過去の行を読む側にだけ**配る ──
+`airline-codes.json`／`pv-reunlock.js` の FALLBACK_CODES（口コミの鍵を別の端末で取り戻す総当たり。コードが消えると二度と当たらない）・
+`pv-airlines.json`（`kind:'retired'` ＝ REAL PAY・Vote・マイページで社名は出るが、`vote.js` の `hasPage` は `kind === 'airline'` だけなので会社ページへのリンクは張られない）・
+`db/airlines.generated.sql`（`active=false`・年収の幅は null ＝ 公開していない幅で ⚠ を付けない）。
+投稿フォーム日英4枚の選択肢と `AIRLINE_LABELS` には出ない（REAL PAY のプレビューの会社のプルダウン ── `actual-pay.js` ── も `kind:'retired'` は並べない）。`submit_pay_report` は `active` を見るので新しい給与は弾かれる
+（`db/test-pay-reports.mjs` が見ている）。⚠️ 口コミの保存（`submit_review_pending` ほか）は会社の表を見ない ── 止めているのはフォームの選択肢だけ。
+
+## R2. 流す（道Aの工程4と同じ顔ぶれ＋α）
+```bash
+node gen-airline-codes.mjs && node gen-salary-json.mjs && node patch-site-salaries.mjs && \
+node gen-countries.mjs && node inject-session.mjs && node patch-side-nav.mjs && \
+node gen-faq.mjs && node bake-en-currency.mjs && node link-countries.mjs && node bake-en-currency.mjs && \
+node gen-overseas-rep-list.mjs && node airline-logo.mjs --write && node gen-en-manifest.mjs && \
+node gen-airline-glance.mjs && node patch-airline-pages.mjs && node gen-career.mjs && node gen-lp-compare.mjs && \
+node gen-directory.mjs && node seo-normalize.mjs && node gen-sitemap.mjs && node inject-salary-gate.mjs && \
+node gen-og-images.mjs default && node gen-og-images.mjs c-{国コード小文字} && node gen-datemod.mjs
+```
+- 1社が抜けると世界・その国・その地域の平均が動き、**国別・地域の全ページ（日英）が書き変わる**（正常）。
+- ⚠️ `seo-normalize.mjs` の社数の書き換え（`fixCount`）は **100〜199社** を見る（2026-11-02 に広げた。前は 110〜119 だけで、
+  120社 → 119社 に戻すときに「120社」が全ページに残った）。200社を超える日が来たら、ここをもう一度広げる。
+
+## R3. 検査を当て直す（どれも「その社の名前」で書いてある）
+- `assert-pay-rows.mjs` の左メニューの枚数（1社につき日英2枚減る。履歴の行を1つ足す）
+- 会社ページの見本・壊す証明に、その社の名前が書いてあるもの（`git grep -n {slug} -- 'assert-*.mjs' 'db/*.mjs'`）。
+  名前を書き換えるだけで済ませず、**同じ決まりを別の会社で赤くする**形にする（2026-11-02 の例：`assert-directory.mjs` の H4f は
+  「EN_SWITCH の外のカードに印」を、写しの EN_SWITCH から jal を外して作る）。
+- ★旧い形（`<div class="hero-airline">`・旧い錠前 `.premium-gate`）のページは、いまサイトに1枚も無い。旧い形の見本が要る検査
+  （`assert-unlock.mjs`・`assert-airline-glance.mjs` の場面 ggold・`assert-rollout.mjs` の D と F）は、借り元の写し
+  （`airline-donor-pages.mjs`）を使う ── ブラウザの検査は手元のブラウザの中だけで同じ住所に返し、`assert-rollout.mjs` は写しの中で
+  `NEWBORN`（いまは kalitta-air）を WIDE から外して `gen-new-airline.mjs` → `gen-faq.mjs` で起こし直してから切り替える。
+
+## R4. 見る
+`node check-salary.mjs`（社数が1つ減って ❌0 ⚠️0）／`node check.mjs`（fast ＋ sql）／`git grep -il {slug}` の残りが
+「RETIRED が配った4つ」「借り元の写し」「ほかの会社の本文に出てくる社名（過去の事実）」だけであること。
+
+## R5. Supabase（オーナー作業）
+`db/airlines.generated.sql` を貼る。貼るまで本番の会社の表ではその社が `active=true` のまま ＝ **給与の保存側では弾かれない**
+（フォームの選択肢から消えているので普通は来ない）。貼っても行は消えない（`active=false`・年収の幅が null になるだけ）。
 
 ## この手順書のメンテ
 - **`airlines-meta.js` の `salary` がハードコード**なのは、この配列が SSOT 化されていないため。

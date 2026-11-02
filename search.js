@@ -107,10 +107,15 @@ var PV_SEARCH_L10N = {
     {n:'サウスウエスト航空',     e:'Southwest Airlines',          g:'🇺🇸', t:['WN','southwest','さうすうえすと'],                     f:'airlines/southwest.html'},
     {n:'アラスカ航空',           e:'Alaska Airlines',             g:'🇺🇸', t:['ASA','AS','alaska','あらすか'],                        f:'airlines/alaska-airlines.html'},
     {n:'ジェットブルー',         e:'JetBlue Airways',             g:'🇺🇸', t:['B6','jetblue','じぇっとぶるー'],                       f:'airlines/jetblue.html'},
-    {n:'スピリット航空',         e:'Spirit Airlines',             g:'🇺🇸', t:['NK','spirit'],                                         f:'airlines/spirit.html'},
     {n:'フロンティア航空',       e:'Frontier Airlines',           g:'🇺🇸', t:['F9','frontier'],                                       f:'airlines/frontier.html'},
     {n:'アレジアント航空',       e:'Allegiant Air',               g:'🇺🇸', t:['G4','allegiant'],                                      f:'airlines/allegiant.html'},
     {n:'ブリーズ航空',           e:'Breeze Airways',              g:'🇺🇸', t:['MX','breeze'],                                         f:'airlines/breeze-airways.html'},
+    /* ─ Americas — US cargo（2026-11-02） ─ */
+    {n:'FedEx Express',          e:'FedEx Express',               g:'🇺🇸', t:['FX','FDX','fedex','フェデックス','フェデックス・エクスプレス','フェデラル・エクスプレス','Federal Express','メンフィス','Memphis','貨物','cargo'], f:'airlines/fedex-express.html'},
+    {n:'UPS Airlines',           e:'UPS Airlines',                g:'🇺🇸', t:['5X','UPS','ups','UPS航空','ユーピーエス','ルイビル','Louisville','貨物','cargo'], f:'airlines/ups-airlines.html'},
+    {n:'アトラス航空',           e:'Atlas Air',                   g:'🇺🇸', t:['5Y','GTI','atlas','あとらす','アトラス・エア','Atlas Air Worldwide','貨物','cargo'], f:'airlines/atlas-air.html'},
+    {n:'ABXエア',                e:'ABX Air',                     g:'🇺🇸', t:['GB','ABX','abx','ABX航空','Airborne Express','ウィルミントン','Wilmington','貨物','cargo'], f:'airlines/abx-air.html'},
+    {n:'カリッタ航空',           e:'Kalitta Air',                 g:'🇺🇸', t:['K4','CKS','kalitta','かりった','カリッタ・エア','イプシランティ','Ypsilanti','貨物','cargo'], f:'airlines/kalitta-air.html'},
     /* ─ Americas — Canada/Latin ─ */
     {n:'エアカナダ',             e:'Air Canada',                  g:'🇨🇦', t:['ACA','AC','あえかなだ','カナダ'],                      f:'airlines/air-canada.html'},
     {n:'ウエストジェット',       e:'WestJet',                     g:'🇨🇦', t:['WJA','WS'],                                            f:'airlines/westjet.html'},

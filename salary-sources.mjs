@@ -447,7 +447,9 @@ export const SOURCES = {
                  + 'Based on 89 TFP in a 31-day bid period converted to hours (87 TFP or 75:43 in 30-day bid period, 84 TFP or 73:06 in 28/29-day bid period) ／ '
                  + 'Southwest 2% contribution to MBCBP … 18% contribution [20% total with 401(k) and MBCBP]',
       status:      'in_use',
-      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+      note:        '★2026-11-02 機長の推定（cap.avg・cap.hi 7,150万）は、この行の時給（$394.27 × 918時間）ではなく下の米国20社の統合調査（2026-11-02・オーナー受領・ChatGPT）の行（1 TFP あたり $343.14 × 年1,080 TFP）で作り直した。'
+                 + '副操縦士の推定（fo.avg 4,640万）も下の行。この行が今も支えているのは fo.hi（4,880万）・利益配分 1.10%・会社の年金拠出 20%（以下は 2026-10-29 の記録）。'
+                 + '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
                  + '★ cap.avg（6,970万）＝ 12年目の機長 $394.27 × 年918時間（保証の TFP を時間に直した年の合計 ＝ 下限）＋ 利益配分 1.10% ＋ 会社の年金拠出 20%（約6,970万）。'
                  + '★ fo.hi（4,880万）＝ 12年目の副操縦士 $275.99 で同じ計算。'
                  + '⚠️ 副操縦士の6年目の時給はどの資料にも無い（この資料にあるのは「6年目は機長の 68%」という比だけで、機長の6年目の時給が無い）→ fo.avg（2,610万）は前の値のまま（出所の記録なし）。'
@@ -464,7 +466,40 @@ export const SOURCES = {
       quote:       'Southwest Airlines | $343.14/TFP, about $394.27/hour equivalent | $354,841 equivalent',
       status:      'in_use',
       note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
-                 + '⚠️ まとめ記事（二次情報）。上の組合資料の $394.27 と同じ額であることの確かめにだけ使った（計算には使っていない）。',
+                 + '⚠️ まとめ記事（二次情報）。上の組合資料の $394.27 と同じ額であることの確かめにだけ使った（計算には使っていない）。'
+                 + '★2026-11-02 からは、機長の推定がこの額（$343.14/TFP）をそのまま使う（下の米国20社の統合調査（2026-11-02・オーナー受領・ChatGPT）の行。統合調査に URL が無いので、同じ額を載せたこの記事の URL と引用を下の行に書いた）。',
+    },
+    /* ★2026-11-02（米国20社の統合調査（2026-11-02・オーナー受領・ChatGPT））── 時給（1 TFP あたり）だけを入れ替えた。時間の量は統合調査の比較の型（月90 TFP）。 */
+    {
+      rank:        'cap',
+      source_type: 'third_party_reference',
+      name:        '米国20社の統合調査（2026-11-02・オーナー受領・ChatGPT） ── サウスウエスト航空の給与表（B737・2026年1月・1 TFP あたり）の機長',
+      url:         'https://travelohlic.com/highest-paid-airline-pilots-world-salary-rankings/',
+      published_at:null,
+      accessed_at: '2026-10-29',
+      value_orig:  '機長 12年目 $343.14/TFP（1年目 $314.76）。年額の量は月 90 TFP × 12 ＝ 年1,080 TFP（統合調査の比較の型）。',
+      quote:       'Southwest Airlines | $343.14/TFP, about $394.27/hour equivalent | $354,841 equivalent',
+      status:      'in_use',
+      note:        '★2026-11-02 cap.avg 6,970万 → 7,150万・cap.hi 7,110万 → 7,150万 ＝ $343.14 × 年1,080 TFP（月90 TFP × 12）× 1.011（利益配分 1.10%）× 1.20（会社の年金拠出 20%）'
+                 + '＝ USD 449,601 × 158.95（fx-rates.mjs 2026-08-22） ＝ 約7,146万円。オーナー 2026-11-02「ほぼ間違いない資料・出典は問わない」。'
+                 + '統合調査には URL が無いので、url と quote は同じ額（$343.14/TFP）を載せた上の Travelohlic の記事のもの。'
+                 + '前の 6,970万は時間に直した $394.27 × 保証の 918時間（上の組合資料の行）。利益配分・年金拠出は上の組合資料の行のまま。cap.lo（4,140万）は前の値のまま。',
+    },
+    {
+      rank:        'fo',
+      source_type: 'third_party_reference',
+      name:        '米国20社の統合調査（2026-11-02・オーナー受領・ChatGPT） ── サウスウエスト航空の給与表（B737・2026年1月・1 TFP あたり）の副操縦士',
+      url:         'https://dal.alpa.org/Portals/1/ThemePluginPro/uploads/2025/9/2/DALContractComparison-2026.pdf',
+      published_at:null,
+      accessed_at: '2026-10-29',
+      value_orig:  '副操縦士 6年目 $222.73/TFP（1年目 $125.90・12年目 $240.20）。年額の量は月 90 TFP × 12 ＝ 年1,080 TFP。',
+      quote:       'Southwest $265.37 $275.99 $287.03 $296.36 … 12-Year Rates: B-737-800',
+      status:      'candidate',
+      note:        '★2026-11-02 fo.avg 2,610万 → 4,640万 ＝ $222.73 × 年1,080 TFP × 1.011（利益配分 1.10%）× 1.20（会社の年金拠出 20%）＝ USD 291,833 × 158.95（fx-rates.mjs 2026-08-22） ＝ 約4,639万円。'
+                 + 'オーナー 2026-11-02「ほぼ間違いない資料・出典は問わない」で採用した。'
+                 + '⚠️ 統合調査には URL が無い。url と quote は同じ給与表の12年目を載せた組合の比較資料（上の組合資料の行）── 12年目の副操縦士 $240.20/TFP を'
+                 + '時間に直すと（× 1.149 ＝ 機長の $394.27 ÷ $343.14）その資料の $275.99 と一致する ＝ 同じ表。6年目の段そのものはその資料に無いので、表を開いて6年目を目視するまで candidate。'
+                 + '前の 2,610万は出所の記録が無かった。fo.lo（1,660万）・fo.hi（4,880万）は前の値のまま（12年目で出し直すと約5,000万になるが、上げていない）。',
     },
   ],
   'alaska-airlines': [
@@ -480,11 +515,45 @@ export const SOURCES = {
       quote:       'Alaska $361.29 $375.74 $390.77 $390.77 … Alaska $249.76 $259.75 $270.14 $270.14 ／ '
                  + '2024 10.04 1.50 7.64 1.10 11.48 Historical Profit Sharing / BONUS Payout as a Percentage of Pilot Pay ／ Alaska 75:00 ／ Pilots hired 1/1/10 and after: 17% contribution',
       status:      'in_use',
-      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+      note:        '★2026-11-02 機長の推定（cap.avg ＝ cap.hi 7,290万）は、この行の 1/1/2026 の $375.74 ではなく下の米国20社の統合調査（2026-11-02・オーナー受領・ChatGPT）の行（2026年9月1日からの表の $390.77 ── この資料の Alaska の行の次の列の額）で作り直した。'
+                 + '副操縦士の推定（fo.avg 4,610万）も下の行。この行が今も支えているのは fo.hi（4,770万）・年900時間・利益配分 11.48%・会社の年金拠出 17%（以下は 2026-10-29 の記録）。'
+                 + '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
                  + '★ cap.avg ＝ cap.hi（6,910万）＝ 12年目の機長 $375.74 × 年900時間（月の保証 75時間 × 12 ＝ 下限）＋ 利益配分 11.48%（2024年分）＋ 会社の年金拠出 17%（約6,910万）。'
                  + '★ fo.hi（4,770万）＝ 12年目の副操縦士 $259.75 で同じ計算。'
                  + '⚠️ 副操縦士の年次ごとの時給は公開されていない（この資料にあるのは「6年目は機長の 66%」という比だけ）→ fo.avg（2,850万）は前の値のまま（出所の記録なし）。'
                  + 'cap.lo（3,800万）・fo.lo（1,700万）は前の値のまま（1年目の表が無い）。アラスカ航空とハワイアン航空の統合後の協約は入っていない。日当は入れていない（1時間あたりの額は資料にあるが、家を離れている時間の資料が無い）。',
+    },
+    /* ★2026-11-02（米国20社の統合調査（2026-11-02・オーナー受領・ChatGPT））── 時給だけを入れ替えた。時間・利益配分・会社の年金拠出は上の行のまま。 */
+    {
+      rank:        'cap',
+      source_type: 'third_party_reference',
+      name:        '米国20社の統合調査（2026-11-02・オーナー受領・ChatGPT） ── アラスカ航空の給与表（B737・2026年9月1日から）の機長',
+      url:         'https://dal.alpa.org/Portals/1/ThemePluginPro/uploads/2025/9/2/DALContractComparison-2026.pdf',
+      published_at:null,
+      accessed_at: '2026-10-29',
+      value_orig:  '機長 12年目 $390.77（1年目 $360.08）。',
+      quote:       'Alaska $361.29 $375.74 $390.77 $390.77',
+      status:      'in_use',
+      note:        '★2026-11-02 cap.avg 6,910万 → 7,290万・cap.hi 6,910万 → 7,290万 ＝ $390.77 × 年900時間（月の保証 75時間 × 12）× 1.1148（利益配分 11.48%）× 1.17（会社の年金拠出 17%）'
+                 + '＝ USD 458,719 × 158.95（fx-rates.mjs 2026-08-22） ＝ 約7,291万円。オーナー 2026-11-02「ほぼ間違いない資料・出典は問わない」。'
+                 + '統合調査には URL が無いので、url と quote は同じ額 $390.77 が Alaska の行（1/1/2026 の $375.74 の次の列）に載っている組合の比較資料（上の行）のもの。'
+                 + '時間・利益配分・年金拠出は上の行のまま。cap.lo（3,800万）は前の値のまま。',
+    },
+    {
+      rank:        'fo',
+      source_type: 'third_party_reference',
+      name:        '米国20社の統合調査（2026-11-02・オーナー受領・ChatGPT） ── アラスカ航空の給与表（B737・2026年9月1日から）の副操縦士',
+      url:         'https://dal.alpa.org/Portals/1/ThemePluginPro/uploads/2025/9/2/DALContractComparison-2026.pdf',
+      published_at:null,
+      accessed_at: '2026-10-29',
+      value_orig:  '副操縦士 6年目 $246.98（1年目 $129.71・12年目 $270.14）。',
+      quote:       'Alaska $249.76 $259.75 $270.14 $270.14',
+      status:      'candidate',
+      note:        '★2026-11-02 fo.avg 2,850万 → 4,610万 ＝ $246.98 × 年900時間 × 1.1148（利益配分 11.48%）× 1.17（会社の年金拠出 17%）＝ USD 289,926 × 158.95（fx-rates.mjs 2026-08-22） ＝ 約4,608万円。'
+                 + 'オーナー 2026-11-02「ほぼ間違いない資料・出典は問わない」で採用した。'
+                 + '⚠️ 統合調査には URL が無い。url と quote は同じ表の12年目の副操縦士 $270.14 が Alaska の行に載っている組合の比較資料（上の行）。'
+                 + '6年目の段そのものはその資料に無いので、表を開いて6年目を目視するまで candidate。'
+                 + '前の 2,850万は出所の記録が無かった。fo.lo（1,700万）・fo.hi（4,770万）は前の値のまま（2026年9月の表の12年目で出し直すと約5,040万になるが、上げていない）。',
     },
   ],
   'jetblue': [
@@ -499,12 +568,31 @@ export const SOURCES = {
       quote:       'JetBlue $359.40 $359.40 $359.40 $359.40 … JetBlue $248.45 $248.45 $248.45 $248.45 … 12-Year Rates: A-321 ／ '
                  + 'JetBlue 70:00 … Pre-month ± 7 hours of published bid target (74:00–86:00 hour bid target range) ／ JetBlue n/a 17% contribution',
       status:      'in_use',
-      note:        '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
+      note:        '★2026-11-02 副操縦士の推定（fo.avg 4,020万）は下の米国20社の統合調査（2026-11-02・オーナー受領・ChatGPT）の行（6年目 $225.28）で作り直した（下の「fo.avg は前の値のまま」は 2026-10-29 の記録）。'
+                 + '機長の推定（6,420万）・fo.hi（4,440万）・年960時間・会社の年金拠出 17% は今もこの行。'
+                 + '★2026-10-29（オーナー OK「11社ぜんぶ」・WP-compare-all-26）の作り直しで使った。'
                  + '★ cap.avg ＝ cap.hi（6,420万）＝ 12年目の機長 $359.40 × 年960時間（会社が組む月の目標 74〜86時間のまん中 80時間 × 12）＋ 会社の年金拠出 17%（約6,420万）。'
                  + 'この資料の利益配分の表に、ジェットブルーの2024年の率は無い（足していない）。'
                  + '★ fo.hi（4,440万）＝ 12年目の副操縦士 $248.45 で同じ計算。'
                  + '⚠️ 副操縦士の6年目の時給は、このサイトが使わない資料にしか無い → fo.avg（2,400万）は前の値のまま（出所の記録なし）。'
                  + 'cap.lo（3,500万）・fo.lo（1,500万）は前の値のまま（1年目の表が無い）。日当は入れていない（1時間あたりの額は資料にあるが、家を離れている時間の資料が無い）。',
+    },
+    /* ★2026-11-02（米国20社の統合調査（2026-11-02・オーナー受領・ChatGPT））── 副操縦士の6年目の時給を足した。時間・会社の年金拠出は上の行のまま。 */
+    {
+      rank:        'fo',
+      source_type: 'third_party_reference',
+      name:        '米国20社の統合調査（2026-11-02・オーナー受領・ChatGPT） ── ジェットブルー航空の給与表（A320・A321・2024年8月から）の副操縦士',
+      url:         'https://dal.alpa.org/Portals/1/ThemePluginPro/uploads/2025/9/2/DALContractComparison-2026.pdf',
+      published_at:null,
+      accessed_at: '2026-10-29',
+      value_orig:  '副操縦士 6年目 $225.28（1年目 $112.32・12年目 $248.45）。',
+      quote:       'JetBlue $248.45 $248.45 $248.45 $248.45 … 12-Year Rates: A-321',
+      status:      'candidate',
+      note:        '★2026-11-02 fo.avg 2,400万 → 4,020万 ＝ $225.28 × 年960時間（月の目標の真ん中 80時間 × 12）× 1.17（会社の年金拠出 17%・利益配分なし）＝ USD 253,034 × 158.95（fx-rates.mjs 2026-08-22） ＝ 約4,022万円。'
+                 + 'オーナー 2026-11-02「ほぼ間違いない資料・出典は問わない」で採用した。'
+                 + '⚠️ 統合調査には URL が無い。url と quote は同じ表の12年目（機長 $359.40・副操縦士 $248.45 ── 統合調査の表と同じ額）が載っている組合の比較資料（上の行）。'
+                 + '6年目の段そのものはその資料に無いので、表を開いて6年目を目視するまで candidate。'
+                 + '前の 2,400万は出所の記録が無かった。fo.lo（1,500万）・fo.hi（4,440万）は前の値のまま。',
     },
   ],
   'air-canada': [
@@ -3237,7 +3325,8 @@ export const SOURCES = {
       value_orig:  '協約の副操縦士の時給表 1年目 $100〜12年目 $179（6年目 $148）',
       quote:       'First Officer 12 11 10 9 8 7 6 5 4 3 2 1 All 179 175 170 166 160 155 148 142 134 127 118 100',
       status:      'in_use',
-      note:        '★2026-10-31 fo.avg 1,750万 → 2,600万 ＝ 6年目 $148 × 年960時間 × 1.15 ＝ USD 163,392 × 158.95（fx-rates.mjs 2026-08-22） ＝ 約2,597万円。fo.hi 2,200万 → 3,530万 ＝ 12年目 $179 × 年1,080時間 × 1.15 ＝ 約3,534万円。オーナー 2026-10-31「案のまま」。オーナー 2026-10-30「はじいた資料も使う・上がるときだけ」。資料の順位＝5（6年目の段）／4（RFTO の同じ表：5年目 $142・7年目 $155・12年目 $179 で6年目を飛ばす）。月の時間は RFTO の「80〜90時間が普通」。fo.lo は前の値のまま。使わない資料：ATP の表の6年目 $245（同じ計算で 4,300万）・Epic の「平均 $148」。',
+      note:        '★2026-11-02 fo.avg（2,610万）は下の米国20社の統合調査（2026-11-02・オーナー受領・ChatGPT）の行（6年目 $148.88 ── この表の 148 のセントまで）で作り直した。この行が今も支えているのは fo.hi（3,530万）（以下は 2026-10-31 の記録）。'
+                 + '★2026-10-31 fo.avg 1,750万 → 2,600万 ＝ 6年目 $148 × 年960時間 × 1.15 ＝ USD 163,392 × 158.95（fx-rates.mjs 2026-08-22） ＝ 約2,597万円。fo.hi 2,200万 → 3,530万 ＝ 12年目 $179 × 年1,080時間 × 1.15 ＝ 約3,534万円。オーナー 2026-10-31「案のまま」。オーナー 2026-10-30「はじいた資料も使う・上がるときだけ」。資料の順位＝5（6年目の段）／4（RFTO の同じ表：5年目 $142・7年目 $155・12年目 $179 で6年目を飛ばす）。月の時間は RFTO の「80〜90時間が普通」。fo.lo は前の値のまま。使わない資料：ATP の表の6年目 $245（同じ計算で 4,300万）・Epic の「平均 $148」。',
     },
     {
       rank:        'fo',
@@ -3250,6 +3339,21 @@ export const SOURCES = {
       quote:       '125% Premium pay above 82.5 credit hours On top of your earnings, 15% additional cash added to your retirement',
       status:      'in_use',
       note:        '★2026-10-31 副操縦士の推定に会社の拠出 15% を足した。資料の順位＝1（会社の公式）。',
+    },
+    /* ★2026-11-02（米国20社の統合調査（2026-11-02・オーナー受領・ChatGPT））── 副操縦士の6年目の時給をセントまでにした。時間・会社の年金拠出は上の行のまま。 */
+    {
+      rank:        'fo',
+      source_type: 'third_party_reference',
+      name:        '米国20社の統合調査（2026-11-02・オーナー受領・ChatGPT） ── フロンティア航空の給与表（A320・A321・2023年3月から）の副操縦士',
+      url:         'https://aviatorintelligence.com/frontier-airlines/',
+      published_at:null,
+      accessed_at: '2026-10-30',
+      value_orig:  '副操縦士 6年目 $148.88（1年目 $100.00・12年目 $179.26）。',
+      quote:       'First Officer 12 11 10 9 8 7 6 5 4 3 2 1 All 179 175 170 166 160 155 148 142 134 127 118 100',
+      status:      'in_use',
+      note:        '★2026-11-02 fo.avg 2,600万 → 2,610万 ＝ $148.88 × 年960時間（月80時間）× 1.15（公式の 15%）＝ USD 164,364 × 158.95（fx-rates.mjs 2026-08-22） ＝ 約2,613万円。オーナー 2026-11-02「ほぼ間違いない資料・出典は問わない」。'
+                 + '統合調査には URL が無いので、url と quote は同じ表をドル未満を切り捨てて載せた上の Aviator Intelligence のもの'
+                 + '（12段ぜんぶが統合調査の額の切り捨てと一致 ＝ 同じ表。6年目は 148）。セントまでの額は統合調査から。時間・年金拠出は上の行のまま。fo.lo（1,100万）・fo.hi（3,530万）は前の値のまま。',
     },
   ],
   'westjet': [
@@ -3405,6 +3509,259 @@ export const SOURCES = {
       note:        '★2026-10-31 年収の額には使っていない。調べの段（Gemini）が、職位別の年間平均飛行時間（機長 808.35時間・副操縦士 683.96時間）を'
                  + 'この年報から写した。給与は職位別に出ていない。PDF は取れた（2026-10-31・約23MB）が、'
                  + '本文が埋め込みの字形で文字として取り出せず、この2つの数をまだ目で確かめていない ＝ candidate のまま。',
+    },
+  ],
+  /* ★2026-11-02 米国の貨物5社（FedEx Express・UPS Airlines は投稿先だけの一覧から道Aへ上げた・Atlas Air・ABX Air・Kalitta Air は新しく足した）。
+     時給・時間・年金の率は、オーナーが受け取った米国20社の統合調査（2026-11-02・ChatGPT・URL なし）の給与表（pay-scales.mjs と同じ）。
+     オーナー 2026-11-02「ほぼ間違いない資料・出典は問わない」で採用した。
+     url と quote は、2026-11-02 に開いて字を確かめた、いちばん近い資料。その資料自身に額が載っている数だけ in_use、ほかは candidate。
+     計算はどれも 時給 × 年間の時間 ×（1 ＋ 会社の確定拠出年金）× 158.95（fx-rates.mjs 2026-08-22）、10万円単位（salary-data.mjs の注に全部の式）。 */
+  'fedex-express': [
+    {
+      rank:        'cap',
+      source_type: 'third_party_reference',
+      name:        'AeroCorner — The Highest-Paying Airlines for Pilots in 2026, Ranked by Their Contracts（FedEx Express の機長の上の段）',
+      url:         'https://aerocorner.com/blog/highest-paying-airlines-for-pilots/',
+      published_at:'2026-10-20',
+      accessed_at: '2026-11-02',
+      value_orig:  '大型機の機長の上の段 $469.00/時（2026年6月29日発効の協約・2026年7月から）。',
+      quote:       'put a top widebody captain at $469 an hour from July 2026. ／ 4 | FedEx Express | $469.00 (widebody) | About $113 to $117 | New deal, effective June 29, 2026',
+      status:      'in_use',
+      note:        '★2026-11-02 cap.hi 6,590万 ＝ 大型機 15年目 $469.00 × 年884時間（4週ごとの最低保証68時間 × 13）＝ USD 414,596 × 158.95 ＝ 約6,590万円。'
+                 + '会社の年金は在職者の選択制で率が分からないので足していない。時間（4週68時間）は統合調査から（この記事には無い）。',
+    },
+    {
+      rank:        'cap',
+      source_type: 'third_party_reference',
+      name:        '米国20社の統合調査（2026-11-02・オーナー受領・ChatGPT） ── FedEx Express の給与表（2026年7月の bid period から）の機長',
+      url:         'https://aerocorner.com/blog/highest-paying-airlines-for-pilots/',
+      published_at:null,
+      accessed_at: '2026-11-02',
+      value_orig:  '大型機（B777F・B767F・A300）の機長 12年目 $456.35（1年目 $386.72・15年目 $469.00）。B757 の機長 1年目 $327.84（15年目 $404.29）。',
+      quote:       '4 | FedEx Express | $469.00 (widebody) | About $113 to $117 | New deal, effective June 29, 2026',
+      status:      'candidate',
+      note:        '★2026-11-02 cap.avg 6,410万 ＝ $456.35 × 884時間 ＝ USD 403,413 × 158.95 ＝ 約6,412万円。cap.lo 4,610万 ＝ B757 の1年目 $327.84 × 884 ＝ USD 289,811 ＝ 約4,607万円。'
+                 + 'オーナー 2026-11-02「ほぼ間違いない資料・出典は問わない」で採用した。'
+                 + '⚠️ 統合調査には URL が無い。url と quote は同じ協約の上の段（$469.00）が載っている上の行の記事。12年目と B757 の段そのものはその記事に無いので、協約の表を開いて目視するまで candidate。',
+    },
+    {
+      rank:        'fo',
+      source_type: 'third_party_reference',
+      name:        'AeroCorner — The Highest-Paying Airlines for Pilots in 2026, Ranked by Their Contracts（FedEx Express の1年目の副操縦士）',
+      url:         'https://aerocorner.com/blog/highest-paying-airlines-for-pilots/',
+      published_at:'2026-10-20',
+      accessed_at: '2026-11-02',
+      value_orig:  '1年目の副操縦士 About $113 to $117/時（統合調査の B757 の1年目 $113.39・大型機の1年目 $117.54 と、ドル未満を切り捨てて一致）。',
+      quote:       'Rank | Airline | Top captain rate (per hour) | First-year first officer (per hour) | … ／ 4 | FedEx Express | $469.00 (widebody) | About $113 to $117 | New deal, effective June 29, 2026',
+      status:      'in_use',
+      note:        '★2026-11-02 fo.lo 1,590万 ＝ B757 の1年目 $113.39 × 884時間 ＝ USD 100,237 × 158.95 ＝ 約1,593万円。セントまでの額は統合調査から。',
+    },
+    {
+      rank:        'fo',
+      source_type: 'third_party_reference',
+      name:        '米国20社の統合調査（2026-11-02・オーナー受領・ChatGPT） ── FedEx Express の給与表（2026年7月の bid period から）の副操縦士',
+      url:         'https://aerocorner.com/blog/highest-paying-airlines-for-pilots/',
+      published_at:null,
+      accessed_at: '2026-11-02',
+      value_orig:  '大型機の副操縦士 6年目 $283.40（1年目 $117.54・15年目 $332.49）。',
+      quote:       '4 | FedEx Express | $469.00 (widebody) | About $113 to $117 | New deal, effective June 29, 2026',
+      status:      'candidate',
+      note:        '★2026-11-02 fo.avg 3,980万 ＝ $283.40 × 884時間 ＝ USD 250,526 × 158.95 ＝ 約3,982万円。fo.hi 4,670万 ＝ 15年目 $332.49 × 884 ＝ USD 293,921 ＝ 約4,672万円。'
+                 + 'オーナー 2026-11-02「ほぼ間違いない資料・出典は問わない」で採用した。'
+                 + '⚠️ 統合調査には URL が無い。url と quote は同じ協約の1年目の額が載っている上の行の記事。6年目・15年目の段はその記事に無いので candidate。',
+    },
+    /* 年収の額には使っていない。会社ページの「よくある質問」が言う応募条件の飛行時間の出どころ（assert-claims.mjs の E3 ── 台帳に時間として在る数だけ）。 */
+    {
+      rank:        'all',
+      source_type: 'job_posting',
+      name:        'Pilot Careers | FedEx Careers（会社の採用ページ・応募条件）',
+      url:         'https://careers.fedex.com/career-areas/pilot/',
+      published_at:null,
+      accessed_at: '2026-11-02',
+      value_orig:  '応募条件：固定翼の総時間 1,500 hours・機長 500 hours 以上（必須）・ジェット機の機長 1,000 hours（望ましい）・ATP・第1種身体検査・有効な米国のパスポート。就労ビザの支援なし（米国人以外は永住権）。',
+      quote:       '1500 hours total fixed-wing. ／ A minimum of 500 hours PIC as described is required. ／ 1000 hours PIC in jet aircraft is preferred ／ '
+                 + 'No, all non-U.S. citizens must possess a Permanent Resident Card for employment with FedEx.',
+      status:      'in_use',
+      note:        '★2026-11-02 年収の額（SALARY）には使っていない。会社ページの「よくある質問」の応募条件（総1,500時間・機長500時間以上・1,000時間が望ましい）の出どころとして、2026-11-02 に開いて字を確かめた。',
+    },
+  ],
+  'ups-airlines': [
+    {
+      rank:        'cap',
+      source_type: 'third_party_reference',
+      name:        'AeroCorner — The Highest-Paying Airlines for Pilots in 2026, Ranked by Their Contracts（UPS Airlines の機長の上の段・確定拠出 12%）',
+      url:         'https://aerocorner.com/blog/highest-paying-airlines-for-pilots/',
+      published_at:'2026-10-20',
+      accessed_at: '2026-11-02',
+      value_orig:  '機長の上の段 $401/時（2025年9月の表・全機種）。確定給付の年金に加えて、会社が別の制度へ 12% を拠出。',
+      quote:       'UPS tops out at $401 an hour for a captain and $284 for a first officer on its September 2025 scale. ／ plus a 12% company contribution to a second plan.',
+      status:      'in_use',
+      note:        '★2026-11-02 cap.hi 6,960万 ＝ 15年目 $401.01 × 年975時間（28日ごとの75時間 × 13）× 1.12（確定拠出 12%）＝ USD 437,903 × 158.95 ＝ 約6,961万円。'
+                 + 'セントまでの額と時間（28日75時間）は統合調査から。',
+    },
+    {
+      rank:        'cap',
+      source_type: 'third_party_reference',
+      name:        '米国20社の統合調査（2026-11-02・オーナー受領・ChatGPT） ── UPS Airlines の給与表（2025年9月1日から・全機種）の機長',
+      url:         'https://aerocorner.com/blog/highest-paying-airlines-for-pilots/',
+      published_at:null,
+      accessed_at: '2026-11-02',
+      value_orig:  '機長 12年目 $390.21・2年目 $367.39（1年目 $59.77 は副操縦士と同じ入社時の一律の額・15年目 $401.01）。',
+      quote:       'UPS tops out at $401 an hour for a captain and $284 for a first officer on its September 2025 scale.',
+      status:      'candidate',
+      note:        '★2026-11-02 cap.avg 6,770万 ＝ $390.21 × 975時間 × 1.12 ＝ USD 426,109 × 158.95 ＝ 約6,773万円。cap.lo 6,380万 ＝ 2年目 $367.39 × 975 × 1.12 ＝ USD 401,190 ＝ 約6,377万円'
+                 + '（1年目の機長の欄は入社時の一律の額なので使わない）。オーナー 2026-11-02「ほぼ間違いない資料・出典は問わない」で採用した。'
+                 + '⚠️ 統合調査には URL が無い。url と quote は同じ表の上の段が載っている上の行の記事。12年目・2年目の段はその記事に無いので candidate。',
+    },
+    {
+      rank:        'fo',
+      source_type: 'third_party_reference',
+      name:        'AeroCorner — The Highest-Paying Airlines for Pilots in 2026, Ranked by Their Contracts（UPS Airlines の副操縦士の上の段）',
+      url:         'https://aerocorner.com/blog/highest-paying-airlines-for-pilots/',
+      published_at:'2026-10-20',
+      accessed_at: '2026-11-02',
+      value_orig:  '副操縦士の上の段 $284/時（2025年9月の表）。',
+      quote:       'UPS tops out at $401 an hour for a captain and $284 for a first officer on its September 2025 scale.',
+      status:      'in_use',
+      note:        '★2026-11-02 fo.hi 4,930万 ＝ 15年目 $284.29 × 975時間 × 1.12 ＝ USD 310,445 × 158.95 ＝ 約4,934万円。セントまでの額は統合調査から。',
+    },
+    {
+      rank:        'fo',
+      source_type: 'third_party_reference',
+      name:        '米国20社の統合調査（2026-11-02・オーナー受領・ChatGPT） ── UPS Airlines の給与表（2025年9月1日から・全機種）の副操縦士',
+      url:         'https://aerocorner.com/blog/highest-paying-airlines-for-pilots/',
+      published_at:null,
+      accessed_at: '2026-11-02',
+      value_orig:  '副操縦士 6年目 $242.32・1年目 $59.77（15年目 $284.29）。',
+      quote:       '6 | UPS Airlines | $401 (all fleets) | $56 to $60 | Amendable since Sept. 2025',
+      status:      'candidate',
+      note:        '★2026-11-02 fo.avg 4,210万 ＝ $242.32 × 975時間 × 1.12 ＝ USD 264,613 × 158.95 ＝ 約4,206万円。fo.lo 1,040万 ＝ 1年目 $59.77 × 975 × 1.12 ＝ USD 65,269 ＝ 約1,037万円。'
+                 + 'オーナー 2026-11-02「ほぼ間違いない資料・出典は問わない」で採用した。'
+                 + '⚠️ 統合調査には URL が無い。記事の1年目の欄は「$56 to $60」（$59.77 は上の端に近いが同じ字ではない）。6年目の段はその記事に無いので candidate。',
+    },
+  ],
+  'atlas-air': [
+    {
+      rank:        'cap',
+      source_type: 'third_party_reference',
+      name:        '米国20社の統合調査（2026-11-02・オーナー受領・ChatGPT） ── Atlas Air の給与表（Teamsters Local 2750 の2021年の協約・2025年9月1日の列）の機長',
+      url:         'https://www.atlasairworldwide.com/careers/job-board/?gh_jid=4194418009',
+      published_at:'2026-05-28',
+      accessed_at: '2026-11-02',
+      value_orig:  'B747 の機長 12年目 $332.68（1年目 $253.55）・B767 の機長 1年目 $240.67。月の最低保証64時間。確定拠出 16%（参考表の2026年の率）。'
+                 + '（募集そのものに載っている副操縦士の応募条件：総 1,500 hours 以上・固定翼 1,000 hours か 121部・135部の運航会社で 500 hours・回転翼の軍の課程を出た人は固定翼の機長 250 hours。望ましい：総 2,500 hours・タービン 500 hours・直近12か月で 200 hours 超）',
+      quote:       '64-hour minimum monthly pay guarantee – commencing date of hire ／ Retirement Direct Contributions by the Company',
+      status:      'candidate',
+      note:        '★2026-11-02 cap.avg ＝ cap.hi 4,710万 ＝ B747 12年目 $332.68 × 年768時間（64時間 × 12）× 1.16 ＝ USD 296,378 × 158.95 ＝ 約4,711万円。'
+                 + 'cap.lo 3,410万 ＝ B767 の1年目 $240.67 × 768 × 1.16 ＝ USD 214,408 ＝ 約3,408万円。オーナー 2026-11-02「ほぼ間違いない資料・出典は問わない」で採用した。'
+                 + '⚠️ 統合調査には URL が無い。url と quote は会社の副操縦士の募集（月64時間の最低保証・会社の拠出があることだけが載っている）。時給と 16% はその募集に無いので candidate。'
+                 + '16% は統合調査が「参考表の率・後の LOA の精査は未了」と書いている。',
+    },
+    {
+      rank:        'fo',
+      source_type: 'third_party_reference',
+      name:        '米国20社の統合調査（2026-11-02・オーナー受領・ChatGPT） ── Atlas Air の給与表（Teamsters Local 2750 の2021年の協約・2025年9月1日の列）の副操縦士',
+      url:         'https://www.atlasairworldwide.com/careers/job-board/?gh_jid=4194418009',
+      published_at:'2026-05-28',
+      accessed_at: '2026-11-02',
+      value_orig:  'B747 の副操縦士 6年目 $195.07・12年目 $226.22。1年目 $103.55（全機種共通）。',
+      quote:       '64-hour minimum monthly pay guarantee – commencing date of hire',
+      status:      'candidate',
+      note:        '★2026-11-02 fo.avg 2,760万 ＝ $195.07 × 768時間 × 1.16 ＝ USD 173,784 × 158.95 ＝ 約2,762万円。fo.lo 1,470万 ＝ $103.55 × 768 × 1.16 ＝ USD 92,251 ＝ 約1,466万円。'
+                 + 'fo.hi 3,200万 ＝ $226.22 × 768 × 1.16 ＝ USD 201,535 ＝ 約3,203万円。オーナー 2026-11-02「ほぼ間違いない資料・出典は問わない」で採用した。'
+                 + '⚠️ 統合調査には URL が無い。url と quote は会社の副操縦士の募集（時間だけ）。時給はその募集に無いので candidate。',
+    },
+  ],
+  'abx-air': [
+    {
+      rank:        'cap',
+      source_type: 'third_party_reference',
+      name:        '米国20社の統合調査（2026-11-02・オーナー受領・ChatGPT） ── ABX Air の給与表（APA Teamsters Local 1224 の採用資料・2026年1月1日から）の機長',
+      url:         'https://aerocrewnews.com/2024/05/07/abx-air-pilot-2024-agreement/',
+      published_at:'2024-05-07',
+      accessed_at: '2026-11-02',
+      value_orig:  '機長 12年目 $314.14・2年目 $210.30（1年目 $164.58）。2週ごとの最低保証 29.92時間。確定拠出 2026年 14%（2027〜30年 15%）。',
+      quote:       'extending the prior agreement (amendable in 2026) through the year 2030.',
+      status:      'candidate',
+      note:        '★2026-11-02 cap.avg ＝ cap.hi 4,430万 ＝ $314.14 × 年777.92時間（29.92時間 × 26）× 1.14 ＝ USD 278,588 × 158.95 ＝ 約4,428万円。'
+                 + 'cap.lo 2,960万 ＝ 2年目 $210.30 × 777.92 × 1.14 ＝ USD 186,500 ＝ 約2,964万円（1年目 $164.58 は2年目より大きく低い ── 試用期間らしい額なので使わない。使うと 2,320万）。'
+                 + 'オーナー 2026-11-02「ほぼ間違いない資料・出典は問わない」で採用した。'
+                 + '⚠️ 統合調査には URL が無い（組合の採用資料は開けていない）。url と quote は、2030年までに延ばしたこの協約を伝えた記事。時給はその記事に無いので candidate。',
+    },
+    {
+      rank:        'fo',
+      source_type: 'third_party_reference',
+      name:        '米国20社の統合調査（2026-11-02・オーナー受領・ChatGPT） ── ABX Air の給与表（APA Teamsters Local 1224 の採用資料・2026年1月1日から）の副操縦士',
+      url:         'https://aerocrewnews.com/2024/05/07/abx-air-pilot-2024-agreement/',
+      published_at:'2024-05-07',
+      accessed_at: '2026-11-02',
+      value_orig:  '副操縦士 6年目 $183.08・1年目 $108.44・12年目 $212.26。',
+      quote:       'extending the prior agreement (amendable in 2026) through the year 2030.',
+      status:      'candidate',
+      note:        '★2026-11-02 fo.avg 2,580万 ＝ $183.08 × 777.92時間 × 1.14 ＝ USD 162,361 × 158.95 ＝ 約2,581万円。fo.lo 1,530万 ＝ $108.44 × 777.92 × 1.14 ＝ USD 96,168 ＝ 約1,529万円。'
+                 + 'fo.hi 2,990万 ＝ $212.26 × 777.92 × 1.14 ＝ USD 188,238 ＝ 約2,992万円。オーナー 2026-11-02「ほぼ間違いない資料・出典は問わない」で採用した。'
+                 + '⚠️ 統合調査には URL が無い。url と quote は協約の延長を伝えた記事（時給は無い）なので candidate。',
+    },
+    /* 年収の額には使っていない。会社ページの「よくある質問」が言う応募条件の飛行時間の出どころ（assert-claims.mjs の E3）。 */
+    {
+      rank:        'all',
+      source_type: 'job_posting',
+      name:        'ABX Air Pilots | ABX Air Services（会社の採用ページ・応募条件）',
+      url:         'https://www.abxair.com/careers/abx-air-pilots',
+      published_at:null,
+      accessed_at: '2026-11-02',
+      value_orig:  '応募条件：固定翼の総時間 1,500 hours・制限なしの ATP（多発）と英語能力の記載・第1種身体検査・有効期間が2年以上残るパスポート。大学の学位が望ましい。'
+                 + '会社のページの福利厚生には「401(k) with Company Contribution」（率は書いていない）。',
+      quote:       '1,500 hours total fixed-wing flying time ／ Current passport with 2 years validity remaining and no restrictions on international travel ／ 401(k) with Company Contribution',
+      status:      'in_use',
+      note:        '★2026-11-02 年収の額（SALARY）には使っていない。会社ページの「よくある質問」の応募条件（総1,500時間）の出どころとして、2026-11-02 に開いて字を確かめた。確定拠出の率（14%）はこのページに無い（上の2行の統合調査から）。',
+    },
+  ],
+  'kalitta-air': [
+    {
+      rank:        'fo',
+      source_type: 'job_posting',
+      name:        'Kalitta Air - Pilots（会社の採用ページ）',
+      url:         'https://www.kalittaair.com/teams/pilots',
+      published_at:null,
+      accessed_at: '2026-11-02',
+      value_orig:  '1年目 時給 $117・月64時間の保証・訓練の初日から満額・休みの日の乗務は150%・401(k) への会社の直接拠出 12%。'
+                 + '副操縦士の応募条件：総時間 1,500+ hours（最低）・総時間 2,000+ hours（望ましい）・タービン 1,000 hours と タービンの機長 500 hours（望ましい・軍の出身者は柔軟）。',
+      quote:       '$117/hr. 1st year pay with a 64-hour guarantee per month. ／ 12% 401(k) direct contribution. ／ '
+                 + '1500+ hours of total time ／ 2000+ total time preferred ／ 1000 turbine (Jet) flight time preferred ／ 500 PIC turbine (Jet) flight time preferred',
+      status:      'in_use',
+      note:        '★2026-11-02 fo.lo 1,600万 ＝ $117 × 年768時間（64時間 × 12）× 1.12 ＝ USD 100,639 × 158.95 ＝ 約1,600万円。資料の順位＝1（会社の公式）。'
+                 + '時間（64時間）と年金（12%）はほかの4つの額にも使っている。',
+    },
+    {
+      rank:        'cap',
+      source_type: 'third_party_reference',
+      name:        '米国20社の統合調査（2026-11-02・オーナー受領・ChatGPT） ── Kalitta Air の整数の時給の参考表（適用年は不明）の機長',
+      url:         'https://www.kalittaair.com/teams/pilots',
+      published_at:null,
+      accessed_at: '2026-11-02',
+      value_orig:  '機長 12年目 $316・2年目 $211（1年目 $165）。整数の参考表。',
+      quote:       '$117/hr. 1st year pay with a 64-hour guarantee per month. ／ 12% 401(k) direct contribution.',
+      status:      'candidate',
+      note:        '★2026-11-02 cap.avg ＝ cap.hi 4,320万 ＝ $316 × 768時間 × 1.12 ＝ USD 271,811 × 158.95 ＝ 約4,320万円。'
+                 + 'cap.lo 2,880万 ＝ 2年目 $211 × 768 × 1.12 ＝ USD 181,494 ＝ 約2,885万円（1年目 $165 は2年目より大きく低い ── 試用期間らしい額なので使わない。使うと 2,260万）。'
+                 + 'オーナー 2026-11-02「ほぼ間違いない資料・出典は問わない」で採用した。'
+                 + '⚠️ 統合調査が「参考表・整数・適用年は未確定・セント単位は未確認」と書いている（会社の採用ページと一致するのは副操縦士1年目 $117 だけ）。'
+                 + 'url と quote は会社の採用ページ（時間と年金の率だけが載っている）。機長の時給はそこに無いので candidate。SALARY は conf: \'low\'。',
+    },
+    {
+      rank:        'fo',
+      source_type: 'third_party_reference',
+      name:        '米国20社の統合調査（2026-11-02・オーナー受領・ChatGPT） ── Kalitta Air の整数の時給の参考表（適用年は不明）の副操縦士',
+      url:         'https://www.kalittaair.com/teams/pilots',
+      published_at:null,
+      accessed_at: '2026-11-02',
+      value_orig:  '副操縦士 6年目 $184・12年目 $213（1年目 $117 は会社の採用ページと一致）。整数の参考表。',
+      quote:       '$117/hr. 1st year pay with a 64-hour guarantee per month.',
+      status:      'candidate',
+      note:        '★2026-11-02 fo.avg 2,520万 ＝ $184 × 768時間 × 1.12 ＝ USD 158,269 × 158.95 ＝ 約2,516万円。fo.hi 2,910万 ＝ $213 × 768 × 1.12 ＝ USD 183,214 ＝ 約2,912万円。'
+                 + 'オーナー 2026-11-02「ほぼ間違いない資料・出典は問わない」で採用した。'
+                 + '⚠️ 参考表の6年目・12年目は会社の採用ページに無いので candidate。',
     },
   ],
 };

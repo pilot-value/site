@@ -38,12 +38,12 @@
      F  英語の会社ページ（2026-10-23 英語の EN-6 ── 生成器が英語を話す／EN-7 ── 先行5社と見本の2社の英語のページを新しい形で書いた）:
         生成器の字（WORDS）は日本語と英語で鍵・形が同じ・英語の字に日本語の字が無い（壊した写しを渡すと赤い）／
         英語の読み口（viewOf(slug, 'en')）が SWITCH の全社で対の欠けなく作れて、読み口の英語の表に使われない行が無い／
-        EN_SWITCH は SWITCH の全部（EN-8）・印を持つ英語のページはその111枚だけで、生成器の出力と1文字も違わない（スピリット航空は古い形のまま）／
+        EN_SWITCH は SWITCH の全部（EN-8）・印を持つ英語のページはその111枚だけで、生成器の出力と1文字も違わない（2026-11-02 にスピリット航空を外して、古い形の会社ページは0枚）／
         その111枚の残した節・題と説明に支える資料の無い最上級が無い（L6）・gen-faq.mjs は先行5社の英語のページを飛ばし失敗0枚／
         その111枚の「よくある質問」と FAQPage は gen-faq.mjs → bake-en-currency.mjs の出力そのもの（構造化データは本文の問と答え・額はドルの字）・
         推定を「average」「avg」と呼ばない・日本の会社の本社は日本語のページと同じ街（EN-8）・
         題・説明と構造化データのドルの額はどれもそのページの額（画面の字か SALARY を currency.js の fmt でドルにした字 ── EN-8 の検査役）／
-        写しの中で最後の古い形の会社（スピリット航空）を切り替えて流すと、その英語のページが
+        写しの中で、借り元から古い形で起こし直した会社（NEWBORN ── 2026-11-02 まではスピリット航空）を切り替えて流すと、その英語のページが
         書けて2回めは「✓ 変更なし」・ほかの日本語のページは1バイトも変わらない・bake-en-currency.mjs --check が 0 件／
         英語のページの推定年収は SALARY の額（data-orig「¥…万」のドルの span）／新しい部品の字に日本語の字が無い（写真の作者名・原文の題を除く）／
         部品・ページへの道（../../・../）は在るファイルを指す／「Compare」は en/career.html ができるまで出さない／
@@ -112,7 +112,7 @@ ok(LEAD.every(s => SWITCH.includes(s)) && GLANCE === SWITCH && same([...TABBED],
   ok(!missing.length, 'A SWITCH の会社ページには新しい会社ページの印が在る（流し忘れが無い）', missing.join(','));
   let stale = [];
   try { stale = SWITCH.filter(s => build(s, ORIG[s]) !== ORIG[s]); } catch (e) { stale = [String(e.message)]; }
-  ok(!stale.length && same(SWITCH, [...LEAD, ...SAMPLES, ...WIDE]) && !SWITCH.includes('spirit'), `A 新しい会社ページ（SWITCH ＝ 先行5社＋見本 ${SAMPLES.join('・')}＋全社へ広げる ${WIDE.length}社。スピリットは入れない）は gen-airline-glance.mjs の出力と1文字も違わない`, stale.join(','));
+  ok(!stale.length && same(SWITCH, [...LEAD, ...SAMPLES, ...WIDE]) && SWITCH.every(x => x in SALARY), `A 新しい会社ページ（SWITCH ＝ 先行5社＋見本 ${SAMPLES.join('・')}＋全社へ広げる ${WIDE.length}社。どれも年収の正本に在る会社 ── 外した会社〈2026-11-02 スピリット航空〉は入れない）は gen-airline-glance.mjs の出力と1文字も違わない`, stale.join(','));
   /* L-LOGO（リード P12.86-2）：社名の左の札は airline-logo.mjs の1か所が描く ── どの新しい会社ページの札も、その関数の答えと1文字も違わない。
      札の大きさの表（airline-logo-sizes.mjs）は、ロゴの絵を計り直した答えと同じ。ページを作るときは画像を1つも読まない。 */
   {
@@ -127,8 +127,9 @@ ok(LEAD.every(s => SWITCH.includes(s)) && GLANCE === SWITCH && same([...TABBED],
   }
   /* 社名の左横のロゴ（オーナー 2026-10-21）：h1 のすぐ前（間に何も挟まない）に、その会社のロゴの札。ロゴの無い会社は頭文字の札。 */
   /* ★2026-10-31 投稿先だけの一覧から道Aへ上げた3社（フライドバイ・エア・ピース・吉祥航空）も、ロゴの絵がまだ無い（頭文字の札） */
+  /* ★2026-11-02 米国の貨物5社（FedEx Express・UPS Airlines・Atlas Air・ABX Air・Kalitta Air）もロゴの絵がまだ無い（頭文字の札） */
   const NO_LOGO = ['asiana', 'daiichi-air', 'toho-air', 'airx-charter', 'eagle-jet', 'root-aviation', 'solairus', 'eurowings',
-    'flydubai', 'air-peace', 'juneyao-airlines'];
+    'flydubai', 'air-peace', 'juneyao-airlines', 'fedex-express', 'ups-airlines', 'atlas-air', 'abx-air', 'kalitta-air'];
   const logoBad = SWITCH.filter(s => {
     const m = /<div class="pvg-name">\n(<span class="pvg-logo[^"]*" aria-hidden="true">[\s\S]*?<\/span>)<h1>/.exec(block(ORIG[s], 'PV-HERO'));
     if (!m) return true;
@@ -478,7 +479,38 @@ const cardText = h => textOf(h.replace(/<(p|dd) class="pvg-srcs">[\s\S]*?<\/\1>/
      目盛の段 → 推定のいちばん大きい会社を写しの SWITCH から外す（右端が下がる・外した会社のページは1文字も変わらない）。 */
 const SWEEP = process.env.PV_ROLLOUT_TRY || '';
 const OLD_FORM = ALL.filter(s => !SWITCH.includes(s));
-const TRY = (SWEEP === 'all' ? OTHER : SWEEP ? SWEEP.split(',') : OLD_FORM).filter(s => !SWITCH.includes(s));
+/* ★2026-11-02 スピリット航空を外した（オーナー 2026-10-11「スピリットを外す」・11-02 再確認）── 年収の正本の会社ページに古い形は1枚も無い（OLD_FORM は空）。
+   古い形のページが生まれるのは、gen-new-airline.mjs が借り元（airline-donor-pages.mjs ── 外したスピリット航空の2枚の写し）から新しい会社を
+   起こした直後だけ（そのあと WIDE に足して切り替える ── workflows/add-airline.md）。そこで既定の回は、写しの中で NEWBORN を WIDE から外し、
+   ページを消して gen-new-airline.mjs → gen-faq.mjs（英語はさらに bake-en-currency.mjs）でその道どおり古い形から起こし直してから切り替える（REBORN）。
+   見るものは今までと同じ（古い形 → 新しい形で、よくある質問・構造化データ・<head> が残る・古い節が外れる・額が正本どおり …）。
+   比べる「前」のページは、リポジトリのページではなく写しの中で起こし直したページ（PRE・PRE_EN）。 */
+const NEWBORN = 'kalitta-air';
+const REBORN = !SWEEP && !OLD_FORM.length ? [NEWBORN] : [];
+const TRY = REBORN.length ? REBORN : (SWEEP === 'all' ? OTHER : SWEEP ? SWEEP.split(',') : OLD_FORM).filter(s => !SWITCH.includes(s));
+const PRE = {}, PRE_EN = {};
+/* gen-new-airline.mjs の CONTENT[NEWBORN] の借り元（donor）。写しの外の本物のファイルを読むだけ */
+const donorOf = slug => { const t = fs.readFileSync(path.join(HERE, 'gen-new-airline.mjs'), 'utf8'), i = t.indexOf(`\n  '${slug}': {`); return i < 0 ? '' : ((/\n    donor: '([a-z0-9-]+)'/.exec(t.slice(i)) || [])[1] || ''); };
+/* 写しの中で REBORN の会社を古い形から起こし直す（dir ＝ 写し。そこへ写した gen-new-airline.mjs・gen-faq.mjs（・bake-en-currency.mjs）だけを流す）。
+   WIDE の1行から外す → 日英のページを消す → 借り元から起こす → よくある質問を書く。返すのは流した結果の字（空 ＝ 止まらなかった） */
+const rebirth = (dir, swFile, withBake) => {
+  let t = fs.readFileSync(swFile, 'utf8');
+  const errs = [];
+  for (const s of REBORN) {
+    const n = t.split(`'${s}', `).length - 1;
+    if (n !== 1) { errs.push(`WIDE に '${s}' が ${n} 個`); continue; }
+    t = t.replace(`'${s}', `, () => '');
+    for (const lang of ['ja', 'en']) fs.rmSync(path.join(dir, pageOf(s, lang)), { force: true });
+    const gn = spawnSync(process.execPath, ['gen-new-airline.mjs', s], { cwd: dir, encoding: 'utf8' });
+    if (gn.status !== 0) errs.push(`gen-new-airline.mjs ${s}: ${(gn.stderr || gn.stdout).slice(0, 300)}`);
+  }
+  fs.writeFileSync(swFile, t);
+  for (const sc of withBake ? ['gen-faq.mjs', 'bake-en-currency.mjs'] : ['gen-faq.mjs']) {
+    const r = spawnSync(process.execPath, [sc], { cwd: dir, encoding: 'utf8', maxBuffer: 1 << 26 });
+    if (r.status !== 0) errs.push(`${sc}: ${(r.stderr || r.stdout).slice(-300)}`);
+  }
+  return errs.join(' ／ ');
+};
 /* 過去・参考の行（why は通る・字の長さが4字から）。下の2つの段が見る */
 const wordlessOf = s => rowsOf(s).filter(r => (r.use === '過去' || r.use === '参考') && !why(r) && typeof r.label_ja === 'string' && r.label_ja.length > 3);
 const cellOf2 = (g, id) => (g.match(new RegExp(`<article class="pvg-card pvg-cell" data-cell="${id}"[\\s\\S]*?</article>`)) || [''])[0];
@@ -486,9 +518,12 @@ const htmlEsc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&l
 const htmlText = h => h.replace(/<span[^>]*>[\s\S]*?<\/span>/g, '').replace(/<[^>]*>/g, '').replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').trim();
 const T = fs.mkdtempSync(path.join(os.tmpdir(), 'pv-rollout-'));
 try {
-  ok(SWEEP ? TRY.length > 0 : same(TRY, ['spirit']), SWEEP ? `D 写しの中で切り替える会社（${TRY.length}社）` : 'D 古い形のまま残る会社はスピリット航空1社だけ（オーナー 2026-10-11「スピリットを外す」）で、写しの中でそれを切り替えて見る', TRY.join(','));
+  ok(SWEEP ? TRY.length > 0 : (!OLD_FORM.length && same(TRY, [NEWBORN]) && WIDE.includes(NEWBORN) && donorOf(NEWBORN) === 'spirit'),
+    SWEEP ? `D 写しの中で切り替える会社（${TRY.length}社）` : `D 年収の正本の会社ページに古い形は1枚も無い（スピリット航空は 2026-11-02 に外した）── 古い形が生まれるのは gen-new-airline.mjs が借り元（spirit の写し）から起こした直後だけなので、写しの中で ${NEWBORN} をその道で起こし直して切り替えて見る`,
+    `古い形 ${OLD_FORM.join(',')} ／ 切り替える ${TRY.join(',')} ／ ${NEWBORN} の借り元 ${donorOf(NEWBORN)}`);
   /* 写し：上の段はリンク。会社ページのフォルダは本物のフォルダ（ページは本物の写し）。生成の道すじのモジュールと台帳は本物の写し。 */
-  const COPY = ['airline-rollout.mjs', 'airline-display.mjs', 'pv-airline-view.mjs', 'gen-airline-glance.mjs', 'gen-career.mjs', 'gen-faq.mjs', 'research-ledger.mjs'];
+  /* gen-new-airline.mjs も写す ── 自分の置き場所（import.meta.url）に書くので、リンクのまま流すとリポジトリのページへ書いてしまう */
+  const COPY = ['airline-rollout.mjs', 'airline-display.mjs', 'pv-airline-view.mjs', 'gen-airline-glance.mjs', 'gen-career.mjs', 'gen-faq.mjs', 'research-ledger.mjs', 'gen-new-airline.mjs'];
   for (const b of fs.readdirSync(HERE)) {
     if (['.git', 'airlines', 'en', ...COPY].includes(b)) continue;
     fs.symlinkSync(path.join(HERE, b), path.join(T, b));
@@ -522,11 +557,17 @@ try {
   /* （字を置くのは、下の「使い方を替える」段の直前 ── それより上の段は、本物の字の表のまま見る） */
   const gen = () => spawnSync(process.execPath, ['gen-airline-glance.mjs'], { cwd: T, encoding: 'utf8' });
   const page = s => fs.readFileSync(path.join(T, pageOf(s)), 'utf8');
+  if (REBORN.length) {
+    const err = rebirth(T, sw, false);
+    for (const s of REBORN) PRE[s] = fs.existsSync(path.join(T, pageOf(s))) ? page(s) : '';
+    ok(!err && REBORN.every(s => /<div class="hero-airline"/.test(PRE[s]) && !/<!--PV-GLANCE-->|data-pv-glance="1"/.test(PRE[s]) && /<!--PV-FAQ-->/.test(PRE[s])),
+      `D 写しの中で、${REBORN.join('・')} を借り元（airline-donor-pages.mjs）から古い形で起こし直せる（gen-new-airline.mjs → gen-faq.mjs。WIDE から外して）`, err);
+  }
   const r1 = gen(), r2 = gen();
   ok(r1.status === 0 && TRY.every(s => r1.stdout.includes(pageOf(s))), `D 写しの中で切り替えた${TRY.length}社のページが生成できる（止まらない）`, r1.stderr || r1.stdout);
   ok(r2.status === 0 && /✓ 変更なし/.test(r2.stdout), 'D 2回めは「✓ 変更なし」', r2.stdout + r2.stderr);
   for (const s of TRY) {
-    const a = ORIG[s], b = page(s), g = block(b, 'PV-GLANCE');
+    const a = PRE[s] ?? ORIG[s], b = page(s), g = block(b, 'PV-GLANCE');
     ok(/<!--PV-HERO-->/.test(b) && g && /data-pv-glance="1"/.test(b) && /id="pvg-tabs"/.test(b), `D ${s}: 新しい会社ページの塊とタブが在る`);
     ok(/<div class="pvg-name">\n<span class="pvg-logo[^"]*" aria-hidden="true">[\s\S]*?<\/span><h1>/.test(block(b, 'PV-HERO')), `D ${s}: 社名（h1）のすぐ左にロゴの札`);
     {
@@ -627,8 +668,8 @@ try {
   const cs = spawnSync(process.execPath, [path.join(HERE, 'check-salary.mjs')], { cwd: T, encoding: 'utf8' });
   const csLine = (cs.stdout.match(/\d+ファイル・\d+件照合[^\n]*/) || [''])[0];
   ok(cs.status === 0 && /❌0 ⚠️0/.test(csLine), 'D 切り替えた写しで check-salary.mjs が ❌0 ⚠️0（新しい会社ページの額も、残した節の額も正本どおり）', csLine || cs.stdout.slice(-400));
-  const changed = ALL.filter(s => !SWITCH.includes(s) && !TRY.includes(s) && page(s) !== ORIG[s]);
-  ok(!changed.length, `D SWITCH の外の会社ページ（写しの中の${ALL.length - SWITCH.length - TRY.length}枚）は1文字も変わらない`, changed.join(','));
+  const outside = ALL.filter(s => !SWITCH.includes(s) && !TRY.includes(s)), changed = outside.filter(s => page(s) !== ORIG[s]);
+  ok(!changed.length, `D SWITCH の外の会社ページ（写しの中の${outside.length}枚）は1文字も変わらない`, changed.join(','));
   if (!SWEEP) {
     const lead = LEAD.filter(s => { const a = ORIG[s].split('\n'), b = page(s).split('\n'); return a.length !== b.length || a.some((l, i) => l !== b[i] && !/id="crc-data"/.test(l)); });
     ok(!lead.length, 'D 先行5社のページは、島（#crc-data に会社が足される）の1行のほかは変わらない（目盛が動かない額の会社だけなので）', lead.join(','));
@@ -640,7 +681,7 @@ try {
     {
       const pool = WIDE.filter(s => !TRY.includes(s)).sort((a, b) => scaleOfPage(b) - scaleOfPage(a));
       const DROP = pool.filter(s => scaleOfPage(s) === scaleOfPage(pool[0]));
-      const keep = [...SWITCH, ...TRY].filter(x => !DROP.includes(x)), TOP = keep.filter(s => !LEAD.includes(s)).sort((a, b) => scaleOfPage(b) - scaleOfPage(a))[0];
+      const keep = [...new Set([...SWITCH, ...TRY])].filter(x => !DROP.includes(x)), TOP = keep.filter(s => !LEAD.includes(s)).sort((a, b) => scaleOfPage(b) - scaleOfPage(a))[0];
       const facts = s => {
         const g = block(page(s), 'PV-GLANCE');
         return [(g.match(/<section class="pvg"[^>]*style="[^"]*--pvg-n:(\d+)"/) || [])[1], (g.match(/<p class="pvg-axis">[^<]*<\/p>/) || [])[0],
@@ -674,7 +715,8 @@ const A2N = { hq: 0, days: 0, pr: 0 };
 /* ★2026-10-31 投稿先だけの一覧から道Aへ上げた3社は、調べの台帳（research-ledger.mjs）にまだ1行も無い（調査パックが届いていない）。
    ここに名前を書いた会社だけ、下の L1 の「行が1つ以上」を求めない ── その代わり「行が0」であることを求める
    （台帳に行が入ったら赤くなる ＝ この一覧から外して、ほかの会社と同じ強さに戻す）。 */
-const NO_RESEARCH_YET = ['flydubai', 'air-peace', 'juneyao-airlines'];
+/* ★2026-11-02 米国の貨物5社も同じ（米国20社の統合調査は給与表だけを pay-scales.mjs に入れた。調べの台帳にはまだ行が無い） */
+const NO_RESEARCH_YET = ['flydubai', 'air-peace', 'juneyao-airlines', 'fedex-express', 'ups-airlines', 'atlas-air', 'abx-air', 'kalitta-air'];
 const O1N = { n: 0 };
 for (const s of ROLLED) {
   const b = ORIG[s], g = block(b, 'PV-GLANCE'), v = viewOf(s);
@@ -1002,7 +1044,7 @@ ok(O1N.n >= 10, `E 切り替えた会社のページに、勤務・待遇の「�
      古い形から新しい形へ書けることは、残った1社で見る。ほかの111枚は、写しの中でも1文字も書き直されない） */
   const T2 = fs.mkdtempSync(path.join(os.tmpdir(), 'pv-rollout-en-'));
   try {
-    const COPY2 = ['airline-rollout.mjs', 'airline-display.mjs', 'pv-airline-view.mjs', 'gen-airline-glance.mjs', 'gen-career.mjs', 'gen-faq.mjs', 'research-ledger.mjs', 'bake-en-currency.mjs'];
+    const COPY2 = ['airline-rollout.mjs', 'airline-display.mjs', 'pv-airline-view.mjs', 'gen-airline-glance.mjs', 'gen-career.mjs', 'gen-faq.mjs', 'research-ledger.mjs', 'bake-en-currency.mjs', 'gen-new-airline.mjs'];
     for (const b of fs.readdirSync(HERE)) if (!['.git', 'airlines', 'en', ...COPY2].includes(b)) fs.symlinkSync(path.join(HERE, b), path.join(T2, b));
     for (const f of COPY2) fs.copyFileSync(path.join(HERE, f), path.join(T2, f));
     const realDir = (rel, deeper = []) => {
@@ -1032,19 +1074,26 @@ ok(O1N.n >= 10, `E 切り替えた会社のページに、勤務・待遇の「�
     const swf = path.join(T2, 'airline-rollout.mjs'), SW2 = 'export const SWITCH = Object.freeze([...LEAD, ...SAMPLES, ...WIDE]);', est = fs.readFileSync(swf, 'utf8');
     ok(est.split(SW2).length === 2 && est.split('export const EN_SWITCH = Object.freeze([...SWITCH]);').length === 2, 'F 写しの中に、切り替えの1行（SWITCH）がちょうど1つ・英語の切り替え（EN_SWITCH）は SWITCH そのもの');
     fs.writeFileSync(swf, est.replace(SW2, () => `export const SWITCH = Object.freeze([...LEAD, ...SAMPLES, ...WIDE, ${TRY.map(s => `'${s}'`).join(', ')}]);`));
+    /* REBORN（D と同じ）── 写しの中で古い形から起こし直す。英語のページの額は bake-en-currency.mjs まで流した形（リポジトリの古い形のページと同じ道） */
+    if (REBORN.length) {
+      const err = rebirth(T2, swf, true);
+      for (const s of REBORN) { PRE_EN[s] = fs.existsSync(path.join(T2, pageOf(s, 'en'))) ? pageT(s, 'en') : ''; }
+      ok(!err && REBORN.every(s => /<div class="hero-airline"/.test(PRE_EN[s]) && !/<!--PV-GLANCE-->|data-pv-glance="1"/.test(PRE_EN[s]) && /Frequently Asked Questions/.test(PRE_EN[s])),
+        `F 写しの中で、${REBORN.join('・')} の英語のページを借り元から古い形で起こし直せる（gen-new-airline.mjs → gen-faq.mjs → bake-en-currency.mjs）`, err);
+    }
     const genT = () => spawnSync(process.execPath, ['gen-airline-glance.mjs'], { cwd: T2, encoding: 'utf8', maxBuffer: 1 << 26 });
     const g1 = genT(), g2 = genT();
     /* 切り替えた会社（TRY）の日英のページが書ける。ほかのページが書き直されるのは、どのページにも在る会社の一覧（<script id="crc-data"> ── 比べる相手の候補。
        切り替えた会社がそこに1社増える）だけで、それより外は1文字も変わらない（日本語も英語も） */
-    const EVERY = [...SWITCH, ...TRY];
+    const EVERY = [...new Set([...SWITCH, ...TRY])];
     const CRC = /(<script type="application\/json" id="crc-data">)[\s\S]*?(<\/script>)/;
     const noCrc = h => h.replace(CRC, (m, a, b) => `${a}…${b}`);
     const wroteEn = EVERY.filter(s => g1.stdout.includes(`✎ ${pageOf(s, 'en')}`)), wroteJa = EVERY.filter(s => g1.stdout.includes(`✎ ${pageOf(s)}`));
     ok(g1.status === 0 && TRY.every(s => wroteEn.includes(s) && wroteJa.includes(s)), `F 写しの中で古い形の会社（${TRY.join('・')}）を切り替えると、その英語のページも書ける（止まらない）`,
       `${g1.stderr.slice(0, 400)} 英語 ${wroteEn.length}（${TRY.filter(s => !wroteEn.includes(s)).join(',')} が無い） ／ 日本語 ${wroteJa.length}`);
     ok(g2.status === 0 && /✓ 変更なし/.test(g2.stdout), 'F 英語のページも、2回めは「✓ 変更なし」', g2.stdout.slice(-300) + g2.stderr.slice(0, 300));
-    const moved = [...ALL.filter(s => !TRY.includes(s) && noCrc(pageT(s)) !== noCrc(ORIG[s])), ...EN_SWITCH.filter(s => noCrc(pageT(s, 'en')) !== noCrc(ORIG_EN[s])).map(s => `en/${s}`)];
-    ok(!moved.length, `F 会社を切り替えても、ほかの会社ページ（日本語 ${ALL.length - TRY.length}枚・英語 ${EN_SWITCH.length}枚）が変わるのは会社の一覧（crc-data）だけ`, moved.slice(0, 8).join(','));
+    const moved = [...ALL.filter(s => !TRY.includes(s) && noCrc(pageT(s)) !== noCrc(ORIG[s])), ...EN_SWITCH.filter(s => !TRY.includes(s) && noCrc(pageT(s, 'en')) !== noCrc(ORIG_EN[s])).map(s => `en/${s}`)];
+    ok(!moved.length, `F 会社を切り替えても、ほかの会社ページ（日本語 ${ALL.length - TRY.length}枚・英語 ${EN_SWITCH.filter(s => !TRY.includes(s)).length}枚）が変わるのは会社の一覧（crc-data）だけ`, moved.slice(0, 8).join(','));
     const bk = spawnSync(process.execPath, ['bake-en-currency.mjs', '--check'], { cwd: T2, encoding: 'utf8' });
     ok(bk.status === 0 && /枚を見て 0枚・0件/.test(bk.stdout), 'F 書いた英語のページに bake-en-currency.mjs --check が 0件（額は生成器が焼いてある ── あとで流しても変わらない）', bk.stdout + bk.stderr);
     /* ページごと（落ちた会社の名前を集めて、検査ごとに1行） */
@@ -1066,7 +1115,7 @@ ok(O1N.n >= 10, `E 切り替えた会社のページに、勤務・待遇の「�
     /* ★2026-10-25 EN-9 で向け直した（弱めていない）：前は「ページが無いあいだ false」の片側だけ。いまは両側 ── ページが在るときだけ true・無いあいだは false */
     ok(EN_CAREER === CMP_EN, 'F 生成器の CMP_EN は、英語の比較のページ（en/career.html）が在るときだけ true（無いあいだは false）', `CMP_EN ${CMP_EN} ／ en/career.html ${EN_CAREER ? '在る' : '無い'}`);
     for (const s of EVERY) {
-      const a = ORIG_EN[s], b = pageT(s, 'en'), hero = block(b, 'PV-HERO'), g = block(b, 'PV-GLANCE'), gen = hero + g + block(b, 'PV-GLANCE-HEAD') + block(b, 'PV-GLANCE-JS');
+      const a = PRE_EN[s] ?? ORIG_EN[s], b = pageT(s, 'en'), hero = block(b, 'PV-HERO'), g = block(b, 'PV-GLANCE'), gen = hero + g + block(b, 'PV-GLANCE-HEAD') + block(b, 'PV-GLANCE-JS');
       if (!hero || !g || !/data-pv-glance="1"/.test(b) || !/id="pvg-tabs"/.test(hero)) bad.marks.push(s);
       /* 推定年収：SALARY の額を「¥…万」の data-orig に持つドルの span（機長・副操縦士の順） */
       const big = [...g.matchAll(/<p class="pvg-big"><span class="pv-cur" data-jpy="(\d+)" data-orig="([^"]*)">[^<]+<\/span><\/p>/g)].map(m => [+m[1], m[2]]);

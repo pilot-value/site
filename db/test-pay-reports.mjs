@@ -19,7 +19,7 @@ import { readFileSync } from 'fs';
 /* 会社数の期待値は SSOT から取る。ここを固定値にすると、1社足すたびに
    「SQL は正しいのにテストだけ落ちる」になり、落ちたテストを疑わなくなる。 */
 import { SALARY } from '../salary-data.mjs';
-import { OPS } from '../airline-ops.mjs';
+import { OPS, RETIRED } from '../airline-ops.mjs';
 
 const read = (f) => readFileSync(new URL('../' + f, import.meta.url), 'utf8');
 
@@ -95,6 +95,13 @@ ok(Number(cnt.p) === 2, `選べる職位 2（機長・副操縦士）→ ${cnt.p
   const cd = await one(`select active from pv_positions where code = 'cadet'`);
   ok(cd && cd.active === false,
      '★訓練生の行は消さずに残っている（消すと過去の投稿が外部キーごと宙に浮く）');
+}
+/* ★2026-11-02 名簿から外した会社（RETIRED）は、訓練生と同じく行を消さずに active=false で残る
+   （消すと過去の給与・口コミの外部キーが宙に浮く）。公開していない年収の幅は持たない（REAL PAY の ⚠ を付けない）。 */
+for (const [code, a] of Object.entries(RETIRED)) {
+  const r = await one(`select name_ja, name_en, active, cap_lo, cap_hi, fo_lo, fo_hi from pv_airlines where code = $1`, [code]);
+  ok(r && r.active === false && r.name_ja === a.ja && r.name_en === a.en && [r.cap_lo, r.cap_hi, r.fo_lo, r.fo_hi].every((v) => v === null),
+     `★名簿から外した会社（${code}）の行は消さずに残る（active=false・社名そのまま・年収の幅なし）`, JSON.stringify(r));
 }
 /* ★年代は口コミ（submit-review.html）が5歳刻みで先に集めている。こちらは10歳刻み。
    件数がずれたら、どちらかの刻みを動かした合図（gen-vocab.mjs が突き合わせている）。 */
@@ -263,6 +270,12 @@ ok(r.streak_months === 3, `過去月の穴埋めでは連続を減らさない �
 console.log('\n▼ 入口の検品');
 ok((await boom(`select submit_pay_report($1::jsonb)`, [JSON.stringify({ ...BASE, period_year: 2030, period_month: 1 })]) || '').includes('未来'), '未来の月は弾く');
 ok((await boom(`select submit_pay_report($1::jsonb)`, [JSON.stringify({ ...BASE, airline: 'qatar', period_year: 2026, period_month: 5 })]) || '').includes('会社コード'), "旧コード 'qatar' は弾く（SSOT に無い）");
+/* ★2026-11-02 名簿から外した会社（airline-ops.mjs の RETIRED ── スピリット航空）。行は DB に残る（過去の投稿の外部キー）が、新しい給与は弾く */
+ok(Object.keys(RETIRED).length > 0, '名簿から外した会社が1社以上ある（RETIRED）');
+for (const code of Object.keys(RETIRED)) {
+  ok((await boom(`select submit_pay_report($1::jsonb)`, [JSON.stringify({ ...BASE, airline: code, period_year: 2026, period_month: 5 })]) || '').includes('会社コード'),
+     `★名簿から外した会社（${code}）の新しい給与は弾く（行は残っていても active=false）`);
+}
 ok((await boom(`select submit_pay_report($1::jsonb)`, [JSON.stringify({ ...BASE, fleet: 'b797', period_year: 2026, period_month: 5 })]) || '').includes('機材コード'), '存在しない機種は弾く');
 ok((await boom(`select submit_pay_report($1::jsonb)`, [JSON.stringify({ ...BASE, base_pay: null, hourly_rate: null, period_year: 2026, period_month: 5 })]) || '').includes('報酬額'), '金額ゼロの空レポートは弾く');
 ok((await boom(`select submit_pay_report($1::jsonb)`, [JSON.stringify({ ...BASE, airline: 'other', period_year: 2026, period_month: 5 })]) || '').includes('社名'), "'other' なのに社名が無ければ弾く");

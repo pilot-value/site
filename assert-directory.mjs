@@ -1783,9 +1783,11 @@ const ROWS = [
   ['H4h', (I) => onCard(I, 'ja', 'ana', (c) => c.replace(/<button type="button" class="wd-cmp"[\s\S]*?<\/button>/, () => '<label class="wd-cmp"><input type="checkbox" class="wd-cmp-i" value="ana" aria-labelledby="wn-ana wc-ana"><span id="wc-ana">比較</span></label>')), 'H', ['H4']],
   ['H4e', (I) => { if (!I.sw.delete('jal')) throw new Error('SWITCH に jal が無い'); }, 'H', ['H4']],
   ['H5', (I) => onCard(I, 'ja', 'jal', (c) => c.replace('data-two="1"', () => 'data-two="0"')), 'H', ['H4', 'H5']],
-  /* ★EN-9：英語も同じ強さ（英語のカードの data-two を外す ＝ 印が1つ多い H4 と、en/career.html の選ぶ面との食い違い H5・spirit ＝ EN_SWITCH の外に印を足す・盆の行き先を消す） */
+  /* ★EN-9：英語も同じ強さ（英語のカードの data-two を外す ＝ 印が1つ多い H4 と、en/career.html の選ぶ面との食い違い H5・H4f ＝ EN_SWITCH の外のカードに印が在る・盆の行き先を消す）
+     ★2026-11-02 スピリット航空（EN_SWITCH の外に残っていた最後のカード）を外した。いまは全社が EN_SWITCH の中なので、H4e と同じ形で
+       写しの EN_SWITCH から jal を外す ＝ jal の英語のカードの印が「EN_SWITCH の外のカードに在る印」になる（見る決まりは前と同じ・同じ強さ） */
   ['H5e', (I) => onCard(I, 'en', 'jal', (c) => c.replace('data-two="1"', () => 'data-two="0"')), 'H', ['H4', 'H5']],
-  ['H4f', (I) => onCard(I, 'en', 'spirit', (c) => c.replace(/(<div class="wd-foot">[\s\S]*?)(<\/div>)/, (_, a, z) => a + tickHtml('spirit', 'en') + z)), 'H', ['H4']],
+  ['H4f', (I) => { if (!I.swEn.delete('jal')) throw new Error('EN_SWITCH に jal が無い'); }, 'H', ['H4']],
   /* WP-dmap-10：盆は比較リスト（PV-DIR-LIST）になり、「航空会社を比較」は hidden を持たずに出荷する（2社がそろうまで台本が行き先を外す） */
   ['H5t', (I) => { I.page.en = sub(I.page.en, '<a class="wd-tray-two" id="wd-tray-two" href="career.html?view=compare">Compare 2 airlines</a>', ''); }, 'H', ['H5']],
   /* H6（class A）：決まりの行の数を変える（台本は5社のまま）／台本の決まりを変える（字は5社のまま）／「なぜ」が指す行を消す */
