@@ -37,6 +37,8 @@ export const LANGS = [
       'career.html', 'community.html',
       /* 2026-11-02 本番で足された米国の貨物5社 */
       'airlines/abx-air.html', 'airlines/atlas-air.html', 'airlines/fedex-express.html', 'airlines/kalitta-air.html', 'airlines/ups-airlines.html',
+      /* ★2026-11-03 北米追加20社の5社（会社ページは全部スペイン語にもする） */
+      'airlines/avelo-airlines.html', 'airlines/gojet.html', 'airlines/northern-air-cargo.html', 'airlines/contour.html', 'airlines/jazz.html',
       'airlines/iberia.html', 'airlines/vueling.html', 'airlines/aeromexico.html', 'airlines/avianca.html', 'airlines/copa-airlines.html', 'airlines/latam.html',
       'countries/spain.html', 'countries/mexico.html', 'countries/colombia.html', 'countries/chile.html', 'countries/panama.html',
       /* 2026-11-02 オーナー「会社ページはやりたい」：残りの会社ページ（比較のページ・国のページは後回し）。

@@ -799,10 +799,10 @@ const US_WORDS = {
 /* ★2026-11-03 カナダの地域（us-housing.mjs の cc: 'CA'）は、カナダ住宅金融公社（CMHC）の賃貸市場調査 ── 調査区ごとの、いま住んでいる人の家賃の平均 */
 const CA_WORDS = {
   ja: { measure: '調査区ごとの家賃の平均・いま住んでいる人の家賃', when: '2025年10月の調査（2025年12月公表）',
-    scope: 'カナダ住宅金融公社（CMHC）の賃貸市場調査による、調査区ごとの民間の賃貸アパートの家賃の平均（いま住んでいる人が払っている家賃）。募集中の家賃や戸建ての家賃ではない。調査区は街の境と一致しない（「周辺」と書いた街）。3-Bed+ は3寝室以上',
+    scope: 'カナダ住宅金融公社（CMHC）の賃貸市場調査による、調査区ごとの民間の賃貸アパートの家賃の平均（いま住んでいる人が払っている家賃）。募集中の家賃や戸建ての家賃ではない。調査区は街の境と一致しない（「周辺」と書いた街）。3-Bed は3寝室以上',
     offers: (list, seen) => `3寝室の住宅の掲載例（${seen}に見た掲載・成約の家賃ではない）：${list.map(o => `月 CAD ${o.rent.toLocaleString('en-US')}${o.sqft ? `（${Math.round(o.sqft).toLocaleString('en-US')} sq ft）` : ''}`).join('・')}` },
   en: { measure: 'Average rent by survey zone, paid by current tenants', when: 'October 2025 survey (published December 2025)',
-    scope: 'CMHC Rental Market Survey: the average rent of purpose-built rental apartments in the survey zone, as paid by current tenants. Not asking rents and not house rents. Survey zones do not match town borders ("area" towns). 3-Bed+ means three or more bedrooms',
+    scope: 'CMHC Rental Market Survey: the average rent of purpose-built rental apartments in the survey zone, as paid by current tenants. Not asking rents and not house rents. Survey zones do not match town borders ("area" towns). 3-Bed means three or more bedrooms',
     offers: (list, seen) => `3-bedroom home listings (seen ${seen}, asking rents, not signed leases): ${list.map(o => `CAD ${o.rent.toLocaleString('en-US')} a month${o.sqft ? ` (${Math.round(o.sqft).toLocaleString('en-US')} sq ft)` : ''}`).join(' · ')}` },
 };
 export const usHoused = slug => !!US.COMPANIES[slug];
@@ -817,7 +817,7 @@ function usLivings(slug, bases, lang = 'ja') {
   const at = key => Math.min(...US.REGIONS[key].airports.map(a => bases.indexOf(a)).filter(i => i >= 0));
   const keys = Object.keys(US.REGIONS).filter(key => US.REGIONS[key].airports.some(mine)).sort((a, b) => at(a) - at(b));
   return keys.map(key => {
-    const G = US.REGIONS[key], CA = G.cc === 'CA', SRC = CA ? US.SRC_CA : US.SRC, Wr = CA ? CA_WORDS[en ? 'en' : 'ja'] : Wd, b3 = CA ? '3-Bed+' : '3-Bed';
+    const G = US.REGIONS[key], CA = G.cc === 'CA', SRC = CA ? US.SRC_CA : US.SRC, Wr = CA ? CA_WORDS[en ? 'en' : 'ja'] : Wd, b3 = '3-Bed';
     const list = Object.entries(US.TOWNS).filter(([, t]) => t.region === key)
       .sort(([, a], [, b]) => (b.near.some(mine) - a.near.some(mine)) || ((b.income ?? -1) - (a.income ?? -1)));
     if (!list.length) throw new Error(`${slug}: 住む地域 ${key} に街が無い（us-housing.mjs）`);

@@ -711,6 +711,8 @@ for (const p of PLACES) {
     'CC BY 2.0': 'https://creativecommons.org/licenses/by/2.0',
     'CC BY 2.5': 'https://creativecommons.org/licenses/by/2.5',
     'CC BY 3.0': 'https://creativecommons.org/licenses/by/3.0',
+    /* ★2026-11-03 北米の街の写真（オタワ西部）。BY-SA の 2.5 版 ＝ 商用と改変ができる */
+    'CC BY-SA 2.5': 'https://creativecommons.org/licenses/by-sa/2.5',
   };
   const oddP = PLACES.filter(p => PLACE_LICENCES[p.licence] !== p.licence_url);
   ok(!oddP.length, '街と就航地の写真のライセンスは、商用と改変ができるものだけ（名前とリンクが対）', oddP.map(p => `${p.file}: ${p.licence}`).join(', '));
@@ -1109,7 +1111,10 @@ head('掲載している全社（比較の材料）');
     /* ★2026-11-02 米国13社の暮らし（us-housing.mjs ── 拠点の近くの住宅地と HUD の家賃）で、アメリカン・デルタ・貨物の5社などに家賃の箱が付いた。
        測った値：日本語の career.html は 生 +17,516・gzip +1,949・要素 +222（origin/main 586709a1 との差）。少しだけ余裕を足して広げた。 */
     const LEADUS = { raw: 20000, gz: 2500, tags: 250 };
-    const ROOM = { raw: up(GROW1.raw + 250000, 25000) + LEAD122.raw + LEAD123.raw + LEAD131.raw + LEADUS.raw, gz: up(GROW1.gz + 37000, 2500) + GRANT11.gz + GRANT12.gz + GRANT13.gz + LEAD118.gz + LEAD122.gz + LEAD123.gz + LEAD131.gz + LEADUS.gz, tags: up(GROW1.tags + 1550, 250) + LEAD123.tags + LEAD131.tags + LEADUS.tags };
+    /* ★2026-11-03 北米追加20社（新しい会社5社・暮らしの欄を9社に）。測った値：日本語の career.html は 生 +46,763・gzip +4,631・要素 +579
+       （英語は +47,535・+4,583・+611 ── origin/main 07927783 との差）。少しだけ余裕を足して広げた。 */
+    const LEADNA = { raw: 50000, gz: 5000, tags: 650 };
+    const ROOM = { raw: up(GROW1.raw + 250000, 25000) + LEAD122.raw + LEAD123.raw + LEAD131.raw + LEADUS.raw + LEADNA.raw, gz: up(GROW1.gz + 37000, 2500) + GRANT11.gz + GRANT12.gz + GRANT13.gz + LEAD118.gz + LEAD122.gz + LEAD123.gz + LEAD131.gz + LEADUS.gz + LEADNA.gz, tags: up(GROW1.tags + 1550, 250) + LEAD123.tags + LEAD131.tags + LEADUS.tags };
     const bytes = fs.readFileSync(path.join(ROOT, PAGE));
     const now = { raw: bytes.length, gz: zlib.gzipSync(bytes).length, tags: (bytes.toString('utf8').match(/<[a-z]/g) || []).length };
     const kb = n => Math.round(n / 1024);
