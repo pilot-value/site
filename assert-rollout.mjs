@@ -130,7 +130,9 @@ ok(LEAD.every(s => SWITCH.includes(s)) && GLANCE === SWITCH && same([...TABBED],
   /* ★2026-10-31 投稿先だけの一覧から道Aへ上げた3社（フライドバイ・エア・ピース・吉祥航空）も、ロゴの絵がまだ無い（頭文字の札） */
   /* ★2026-11-02 米国の貨物5社（FedEx Express・UPS Airlines・Atlas Air・ABX Air・Kalitta Air）もロゴの絵がまだ無い（頭文字の札） */
   const NO_LOGO = ['asiana', 'daiichi-air', 'toho-air', 'airx-charter', 'eagle-jet', 'root-aviation', 'solairus', 'eurowings',
-    'flydubai', 'air-peace', 'juneyao-airlines', 'fedex-express', 'ups-airlines', 'atlas-air', 'abx-air', 'kalitta-air'];
+    'flydubai', 'air-peace', 'juneyao-airlines', 'fedex-express', 'ups-airlines', 'atlas-air', 'abx-air', 'kalitta-air',
+    /* ★2026-11-03 北米追加20社の5社もロゴの絵がまだ無い */
+    'avelo-airlines', 'gojet', 'northern-air-cargo', 'contour', 'jazz'];
   const logoBad = SWITCH.filter(s => {
     const m = /<div class="pvg-name">\n(<span class="pvg-logo[^"]*" aria-hidden="true">[\s\S]*?<\/span>)<h1>/.exec(block(ORIG[s], 'PV-HERO'));
     if (!m) return true;
@@ -724,7 +726,8 @@ const A2N = { hq: 0, days: 0, pr: 0 };
    ここに名前を書いた会社だけ、下の L1 の「行が1つ以上」を求めない ── その代わり「行が0」であることを求める
    （台帳に行が入ったら赤くなる ＝ この一覧から外して、ほかの会社と同じ強さに戻す）。 */
 /* ★2026-11-02 米国の貨物5社も同じ（米国20社の統合調査は給与表だけを pay-scales.mjs に入れた。調べの台帳にはまだ行が無い） */
-const NO_RESEARCH_YET = ['flydubai', 'air-peace', 'juneyao-airlines', 'fedex-express', 'ups-airlines', 'atlas-air', 'abx-air', 'kalitta-air'];
+/* ★2026-11-03 北米追加20社の5社も同じ（給与表は pay-scales.mjs・条件は us-terms.mjs・暮らしは us-housing.mjs。調べの台帳には行が無い） */
+const NO_RESEARCH_YET = ['flydubai', 'air-peace', 'juneyao-airlines', 'fedex-express', 'ups-airlines', 'atlas-air', 'abx-air', 'kalitta-air', 'avelo-airlines', 'gojet', 'northern-air-cargo', 'contour', 'jazz'];
 const O1N = { n: 0 };
 for (const s of ROLLED) {
   const b = ORIG[s], g = block(b, 'PV-GLANCE'), v = viewOf(s);

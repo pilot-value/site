@@ -63,7 +63,7 @@ export const SALARY = {
   'klm':               { ja:'KLMオランダ航空', en:'KLM Royal Dutch Airlines', region:'europe',                                   cap:{avg:6630, lo:3030, hi:7270}, fo:{avg:3070, lo:1380, hi:5520}, taxFree:false, conf:'medium' },
   'air-france':        { ja:'エールフランス', en:'Air France', region:'europe',                                                  cap:{avg:5140, lo:2750, hi:6020}, fo:{avg:2200, lo:1200, hi:3220}, taxFree:false, conf:'low' },
   'lufthansa':         { ja:'ルフトハンザ', en:'Lufthansa', region:'europe',                                                     cap:{avg:3900, lo:2490, hi:4830}, fo:{avg:1890, lo:1260, hi:3010}, taxFree:false, conf:'medium' },
-  'air-canada':        { ja:'エア・カナダ', en:'Air Canada', region:'us',                                                        cap:{avg:3680, lo:3260, hi:4770}, fo:{avg:1990, lo:980,  hi:3100}, taxFree:false, conf:'medium' },
+  'air-canada':        { ja:'エア・カナダ', en:'Air Canada', region:'us',                                                        cap:{avg:4140, lo:3260, hi:4770}, fo:{avg:2210, lo:980,  hi:3100}, taxFree:false, conf:'medium' },
   'british-airways':   { ja:'ブリティッシュ・エアウェイズ', en:'British Airways', region:'europe',                               cap:{avg:3980, lo:3320, hi:5710}, fo:{avg:2810, lo:2300, hi:3910}, taxFree:false, conf:'medium' },
 
   // ── 第2バッチ：地方・中小・海外中堅（79社） ─────────────────
@@ -203,7 +203,7 @@ export const SALARY = {
   'porter':          { ja:'ポーター航空', en:'Porter Airlines', region:'us',                                                     cap:{avg:2700, lo:2300, hi:3200}, fo:{avg:1350, lo:1000, hi:1700}, taxFree:false, conf:'medium' },
   // ★2026-11-02 スピリット航空（spirit）を外した（2026-05-02 に全便の運航を停止・オーナー決定 2026-10-11／再確認 2026-11-02）。
   //   会社ページは置かない（住所は 404）。過去の投稿の社名のためだけに airline-ops.mjs の RETIRED に残してある（投稿の選択肢には出ない）。
-  'westjet':         { ja:'ウェストジェット航空', en:'WestJet Airlines', region:'us',                                            cap:{avg:3800, lo:2600, hi:4400}, fo:{avg:2000, lo:1400, hi:2470}, taxFree:false, conf:'medium' },
+  'westjet':         { ja:'ウェストジェット航空', en:'WestJet Airlines', region:'us',                                            cap:{avg:3890, lo:2600, hi:4400}, fo:{avg:2050, lo:1400, hi:2470}, taxFree:false, conf:'medium' },
 
   // ★2026-11-02 米国の貨物5社（オーナー受領の米国20社の統合調査・オーナー判断「ほぼ間違いない資料・出典は問わない」）。
   //   FedEx Express（fedex-express）と UPS Airlines（ups-airlines）は投稿先だけの一覧（airline-ops.mjs の OPS）から、同じコードのまま上げた（道A・B5）。
@@ -239,6 +239,14 @@ export const SALARY = {
   'atlas-air':       { ja:'アトラス航空', en:'Atlas Air', region:'us',                                                           cap:{avg:4710, lo:3410, hi:4710}, fo:{avg:2760, lo:1470, hi:3200}, taxFree:false, conf:'medium' },
   'abx-air':         { ja:'ABXエア', en:'ABX Air', region:'us',                                                                  cap:{avg:4430, lo:2960, hi:4430}, fo:{avg:2580, lo:1530, hi:2990}, taxFree:false, conf:'medium' },
   'kalitta-air':     { ja:'カリッタ航空', en:'Kalitta Air', region:'us',                                                         cap:{avg:4320, lo:2880, hi:4320}, fo:{avg:2520, lo:1600, hi:2910}, taxFree:false, conf:'low' },
+  /* ★2026-11-03 北米追加20社（ChatGPT の調べ・2026-11-02 基準）から5社（オーナー「1」＝ 見せた案のまま）。
+     機長 ＝ 12年目（Contour は表の最上段の10年目）・副操縦士 ＝ 6年目。lo ＝ 機長は2年目・副操縦士は1年目／hi ＝ 表の最上段。計算と出どころは salary-basis.mjs。
+     avelo-airlines は投稿先だけの一覧（airline-ops.mjs）から同じコードのまま上げた。 */
+  'avelo-airlines':  { ja:'アベロ航空', en:'Avelo Airlines', region:'us',                                                        cap:{avg:3980, lo:3270, hi:3980}, fo:{avg:2280, lo:1470, hi:2680}, taxFree:false, conf:'medium' },
+  'gojet':           { ja:'ゴージェット航空', en:'GoJet Airlines', region:'us',                                                  cap:{avg:2900, lo:2200, hi:2900}, fo:{avg:1510, lo:1350, hi:1510}, taxFree:false, conf:'medium' },
+  'northern-air-cargo': { ja:'ノーザン・エア・カーゴ', en:'Northern Air Cargo', region:'us',                                     cap:{avg:2970, lo:2160, hi:2970}, fo:{avg:1700, lo:1310, hi:2140}, taxFree:false, conf:'low' },
+  'contour':         { ja:'コンツアー航空', en:'Contour Airlines', region:'us',                                                  cap:{avg:2480, lo:2040, hi:2480}, fo:{avg:690,  lo:610,  hi:760},  taxFree:false, conf:'medium' },
+  'jazz':            { ja:'ジャズ航空', en:'Jazz Aviation', region:'us',                                                         cap:{avg:1820, lo:1350, hi:1820}, fo:{avg:920,  lo:790,  hi:1250}, taxFree:false, conf:'medium' },
 };
 
 // ─────────────────────────────────────────────────────────────────────────

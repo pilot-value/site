@@ -87,11 +87,7 @@ export const OPS = {
        提携ブランド（American Eagle・Delta Connection・United Express）は複数社が共有するので alias に入れない。 */
 
   /* 定期旅客（年収の公開レンジがまだ無い社） */
-  'avelo-airlines': {
-    ja: 'Avelo Airlines', en: 'Avelo Airlines', region: 'us', kind: 'passenger',
-    alias: ['アベロ航空', 'アヴェロ航空', 'Avelo Airlines, Inc.'],
-    src: '雇用主体 Avelo Airlines, Inc.（本社 テキサス州ヒューストン）・米国の調査パックの記録 XP-A-001（現行適用を確認） / 確認 2026-10-11',
-  },
+  /* ★2026-11-03 avelo-airlines は道Aへ上げた（同じコードのまま salary-data.mjs の SALARY へ・add-airline.md の B5） */
 
   'sun-country': {
     ja: 'Sun Country Airlines', en: 'Sun Country Airlines', region: 'us', kind: 'passenger',
@@ -244,6 +240,60 @@ export const OPS = {
          salary-data.mjs の SALARY へ上げた（道A・B5）。ここから消したのはそのため（両方に書くと gen-airline-codes.mjs が「コードの衝突」で止まる）。
          ⚠️ フライドバイはエミレーツ（emirates）とは別会社（エミレーツ・グループに入っていない）。 */
 
+
+  /* ★2026-11-03 北米追加20社（ChatGPT の調べ・2026-11-02 基準）のうち、会社ページを作らない10社（オーナー「A1 B1」）。
+     年収の出どころが無い・旧い協約か署名前の案しか無い・給与表の出どころが APC（使わない決まり）しか無い会社。
+     正式な名前と会社のサイトは 2026-11-03 に開いて確かめた（omniairinternational.com はパーキングドメイン・21air.com は別の会社 ── 使わない）。 */
+  'commuteair': {
+    ja: 'CommuteAir', en: 'CommuteAir', region: 'us', kind: 'regional',
+    alias: ['コミュートエアー', 'コミュートエア', 'CommuteAir LLC'],
+    src: '会社のサイト https://www.commuteair.com/ / 確認 2026-11-03',
+  },
+  'omni-air-international': {
+    ja: 'Omni Air International', en: 'Omni Air International', region: 'us', kind: 'charter',
+    alias: ['オムニ・エア・インターナショナル', 'オムニエア', 'OAI'],
+    src: '会社のサイト https://www.oai.aero/ / 確認 2026-11-03',
+  },
+  'air-transport-international': {
+    ja: 'Air Transport International', en: 'Air Transport International', region: 'us', kind: 'cargo',
+    alias: ['エア・トランスポート・インターナショナル', 'ATI'],
+    src: '会社のサイト https://www.airtransport.cc/ / 確認 2026-11-03',
+  },
+  'amerijet': {
+    ja: 'Amerijet International', en: 'Amerijet International', region: 'us', kind: 'cargo',
+    alias: ['アメリジェット', 'Amerijet'],
+    src: '会社のサイト https://amerijet.com/ / 確認 2026-11-03',
+  },
+  '21-air': {
+    ja: '21 Air', en: '21 Air', region: 'us', kind: 'cargo',
+    alias: ['21エアー', '21エア'],
+    src: '会社のサイト https://www.21air.us/ / 確認 2026-11-03',
+  },
+  'national-airlines': {
+    ja: 'National Airlines', en: 'National Airlines', region: 'us', kind: 'charter',
+    alias: ['ナショナル航空'],
+    src: '会社のサイト https://www.nationalairlines.com/careers/ / 確認 2026-11-03',
+  },
+  'global-crossing': {
+    ja: 'Global Crossing Airlines', en: 'Global Crossing Airlines', region: 'us', kind: 'charter',
+    alias: ['グローバル・クロッシング航空', 'GlobalX', 'グローバルX'],
+    src: '会社のサイト https://globalxair.com/company/ / 確認 2026-11-03',
+  },
+  'mountain-air-cargo': {
+    ja: 'Mountain Air Cargo', en: 'Mountain Air Cargo', region: 'us', kind: 'cargo',
+    alias: ['マウンテン・エア・カーゴ'],
+    src: '会社のサイト https://mtaircargo.com/about/ / 確認 2026-11-03',
+  },
+  'air-transat': {
+    ja: 'Air Transat', en: 'Air Transat', region: 'us', kind: 'passenger',
+    alias: ['エア・トランザット', 'Air Transat A.T. Inc.'],
+    src: '会社のサイト https://www.airtransat.com/（規約の表記 Air Transat A.T. Inc.） / 確認 2026-11-03',
+  },
+  'cargojet': {
+    ja: 'Cargojet', en: 'Cargojet', region: 'us', kind: 'cargo',
+    alias: ['カーゴジェット', 'Cargojet Inc.', 'Cargojet Airways'],
+    src: '会社のサイト https://cargojet.com/（表記 Cargojet Inc.） / 確認 2026-11-03',
+  },
 };
 
 /* ════════════════════════════════════════════════════════════════

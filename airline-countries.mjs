@@ -33,6 +33,8 @@ export const AIRLINE_COUNTRY = {
   'alaska-airlines': 'US', 'allegiant': 'US', 'breeze-airways': 'US',
   'frontier': 'US', 'jetblue': 'US', 'solairus': 'US',
   'fedex-express': 'US', 'ups-airlines': 'US', 'atlas-air': 'US', 'abx-air': 'US', 'kalitta-air': 'US',
+  /* ★2026-11-03 北米追加20社の5社 */
+  'avelo-airlines': 'US', 'gojet': 'US', 'northern-air-cargo': 'US', 'contour': 'US', 'jazz': 'CA',
   'air-canada': 'CA', 'porter': 'CA', 'westjet': 'CA',
   // 欧州
   'british-airways': 'GB', 'easyjet': 'GB', 'virgin-atlantic': 'GB', 'wizz-air': 'GB',

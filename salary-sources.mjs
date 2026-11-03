@@ -3764,6 +3764,77 @@ export const SOURCES = {
                  + '⚠️ 参考表の6年目・12年目は会社の採用ページに無いので candidate。',
     },
   ],
+  /* ★2026-11-03 北米追加20社の5社（オーナー「1」＝見せた案のまま）。ChatGPT の調べ（2026-11-02 基準・URL なし）の数字を、助手が会社・組合の資料で確かめた。 */
+  'avelo-airlines': [
+    {
+      rank:        'all',
+      source_type: 'published_pay_scale',
+      name:        'アベロ航空の採用ページ「Avelo Airlines Pilots」の給与表（B737）',
+      url:         'https://www.aveloair.com/pilots',
+      published_at:null,
+      accessed_at: '2026-11-03',
+      value_orig:  '時給（USD）：機長 12年目 $298・2年目 $245・1年目 $215／副操縦士 6年目 $171・1年目 $110・12年目 $201。月70時間の保証（リザーブも70時間）。',
+      quote:       '',
+      status:      'candidate',
+      note:        '★2026-11-03 cap.avg 3,980万 ＝ $298 × 年840時間（70 × 12）＝ USD 250,320 × 158.95。cap.lo 3,270万 ＝ 2年目 × 840／fo.avg 2,280万 ＝ $171 × 840／fo.lo 1,470万 ＝ 1年目 $110 × 840／fo.hi 2,680万 ＝ 12年目 $201 × 840。2023-10-10 の発表（表は2023年11月1日から）も2〜12年目は同じ額。401(k) のマッチ・利益配分は率が無いので入れていない＝下寄り。',
+    },
+  ],
+  'gojet': [
+    {
+      rank:        'all',
+      source_type: 'published_pay_scale',
+      name:        'ゴージェット航空の給与表の画像（CAPTAINFO-PAY-SCALE-2025.png・CRJ550）',
+      url:         'https://gojetairlines.com/wp-content/uploads/2025/03/CAPTAINFO-PAY-SCALE-2025.png',
+      published_at:'2025-03-05',
+      accessed_at: '2026-11-03',
+      value_orig:  '時給（USD）・DOS+3 の列：機長 1年目 $149.01・2年目 $153.71・12年目 $202.86・18年目 $219.59／副操縦士 1年目 $94.11・6年目 $105.61（最上段）。機長の採用ページの「Minimum Guarantee 75」。',
+      quote:       '',
+      status:      'candidate',
+      note:        '★2026-11-03 cap.avg 2,900万 ＝ $202.86 × 年900時間（75 × 12）。fo.avg 1,510万 ＝ $105.61 × 900。ChatGPT の $199・$104 は1つ前の列（DOS+2 の $199.86・$104.05）。採用ページの初任給（機長 $149.01・副操縦士 $94.11）が DOS+3 の1年目と同じなので、DOS+3 を今の列とした。「75」の単位（月・時間）はページに書いていない。',
+    },
+  ],
+  'northern-air-cargo': [
+    {
+      rank:        'all',
+      source_type: 'union_cba',
+      name:        'Northern Air Cargo と IBT のパイロットの労働協約（2018年7月24日署名）付録 A・第3節 B',
+      url:         'https://teamsterslocal769.org/airline/CompleteNAC-JCBA%20-28-2019.pdf',
+      published_at:'2018-07-24',
+      accessed_at: '2026-11-03',
+      value_orig:  '時給（USD）・B737・Amend.（2023年7月24日）の列：機長 12年目 $208.89／副操縦士 6年目 $119.75。月の最低保証 65時間。会社の確定拠出 4%（入社3年後から）・401(k) のマッチ 最大4%。',
+      quote:       'On the Amendable Date of this Agreement and every anniversary thereafter until the Effective Date of an amended Agreement, Hourly Pay Rates shall increase by two percent (2%).',
+      status:      'candidate',
+      note:        '★2026-11-03 新しい協約は見つからない → 2024・2025・2026年の7月24日に2%ずつ（× 1.061208）。cap.avg 2,970万 ＝ $221.68 × 780 × 1.08。fo.avg 1,700万 ＝ $127.08 × 780 × 1.08。B767 は2025年10月に運航をやめた（FreightWaves 2025-07-23）ので B737 を代表に。8% のうち 4% は本人が4%以上出したときのマッチ。conf: low（昇給は条文からの計算）。',
+    },
+  ],
+  'contour': [
+    {
+      rank:        'all',
+      source_type: 'published_pay_scale',
+      name:        'コンツアー航空の採用ページ「Pilots | Contour Careers」の給与表（2024年・ERJ と CRJ・年額）',
+      url:         'https://www.careers.contourairlines.com/pilots-careers',
+      published_at:null,
+      accessed_at: '2026-11-03',
+      value_orig:  '年額（USD）：機長 10年目 $147,365.83（最上段）・2年目 $120,950／副操縦士 6年目 $40,730.70・1年目 $36,000。401(k) のマッチ 6%（福利厚生のページ）。',
+      quote:       '',
+      status:      'candidate',
+      note:        '★2026-11-03 cap.avg 2,480万 ＝ $147,365.83 × 1.06 × 158.95（11・12年目の段は無い）。fo.avg 690万 ＝ $40,730.70 × 1.06。2024年の表 ── 今も同じかは確かめていない。',
+    },
+  ],
+  'jazz': [
+    {
+      rank:        'all',
+      source_type: 'third_party_reference',
+      name:        'avcentral.ca「Jazz Aviation Pilot Salary 2026: FO $68K, Captain $178K」（2026年7月1日からの時給）',
+      url:         'https://avcentral.ca/pilot-salaries/jazz-aviation/',
+      published_at:null,
+      accessed_at: '2026-11-03',
+      value_orig:  '時給（CAD）・全機材で1本：機長 12年目 C$158.83・1年目 C$114.85・18年目 C$179.51／副操縦士 6年目 C$80.58・1年目 C$68.93・12年目 C$109.42。会社の公式：初年度 副操縦士 C$68,240・機長 C$113,701（月平均82.5時間）。',
+      quote:       '',
+      status:      'candidate',
+      note:        '★2026-11-03 cap.avg 1,820万 ＝ C$158.83 × 990（82.5 × 12）× 115.49。fo.avg 920万 ＝ C$80.58 × 990。会社の初年度の年額がこの表の1年目 × 990 と一致（だから表を使った）。確定拠出のマッチは「最大8%」で12年目・6年目の率が無いので入れていない＝下寄り。990時間は平均で保証ではない。',
+    },
+  ],
 };
 
 export default SOURCES;

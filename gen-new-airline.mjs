@@ -1495,6 +1495,605 @@ const CONTENT = {
     ],
     compareNoteEn: compareFootEn(),
   },
+  /* NA20 ── ★2026-11-03 北米追加20社の5社。本文は助手が会社のサイトで確かめた下書き（scratchpad の content/*.json）・英語の FAQ は推定年収の計算の書き方と同じ。
+     作り直し：scratchpad の make-content.mjs（リポジトリの外）。 */
+  'avelo-airlines': {
+    code: 'XP',
+    donor: 'spirit',
+    donorColor: '#FFD700',
+    donorTokens: [
+      'spirit', 'Spirit', 'スピリット', 'FFD700', 'ffd700', '786508', 'ULCC',
+      'フォートローダーデール', 'Fort Lauderdale', 'Miramar', 'フロリダ', 'Florida',
+    ],
+    /* aveloair.com のテーマの CSS（wp-content/themes/avelo-web-20/style.css）で、いちばん多く使われている紫 #4c12a1（12回。メニューの選択中の下線・ボタンの地・FAQ の見出しなど）。導出していない。 */
+    color: '#4C12A1',
+    flag: '🇺🇸',
+    countryJa: '米国', countryEn: 'United States',
+    tags: { ja: ['B737 の低運賃航空', '12年分の時給表を公開'], en: ['737 low-fare airline', 'Publishes a 12-year pay scale'] },
+    subtitleJa: 'Avelo Airlines — B737 で米国の東海岸と中西部を飛ぶ低運賃航空会社。本社はテキサス州ヒューストン。',
+    subtitleEn: 'Avelo Airlines — a US low-fare airline flying Boeing 737s on East Coast and Midwest routes, headquartered in Houston, Texas.',
+    statsJa: [["機材","B737-800 / B737-700"],["基地","ニューヘイブン（HVN）ほか3か所"]],
+    statsEn: [["Fleet","737-800 / 737-700"],["Base","New Haven (HVN) and 3 more"]],
+    careers: [
+      { url: 'https://www.aveloair.com/pilots', ja: 'アベロ航空 操縦士の採用ページ（外部サイト）', en: 'Avelo Airlines pilot careers (external)' },
+    ],
+
+    rowSubJa: { cap: 'B737（会社の給与表）', fo: 'B737（会社の給与表）' },
+    rowSubEn: { cap: 'B737 (company pay scale)', fo: 'B737 (company pay scale)' },
+    payTag: { ja: 'USD建て・税引前', en: 'Paid in USD, pre-tax' },
+    stepTag: { ja: '年次制（会社の給与表）', en: 'Seniority scale (company pay scale)' },
+    tableNote: {
+      ja: '※ 推定年収は、会社の採用ページの給与表の時給（機長12年目・副操縦士6年目）に年840時間（月70時間の保証 × 12）を掛けた額です。401(k) のマッチ・利益配分・日当は入っていません。円は1ドル＝158.95円で換算。',
+      en: 'The estimate is the hourly rate on the company’s pay scale (year-12 captain, year-6 first officer) times 840 hours a year (the 70-hour monthly guarantee × 12). The 401(k) match, profit sharing and per diem are not included. Converted at 158.95 yen to the dollar.',
+    },
+    ldTail: {
+      ja: 'パイロットの給与表から計算した推定年収と、応募条件。',
+      en: 'Estimated from the pilot pay scale, plus the entry requirements.',
+    },
+
+    basisJa: '※ 出典と計算：会社の採用ページの給与表の時給（機長12年目・副操縦士6年目）に年840時間（月70時間の保証 × 12）を掛けた額です。401(k) のマッチ・利益配分・日当は入っていません。円は1ドル＝158.95円で換算。',
+    basisEn: 'Source and method: the hourly rate on the company’s pay scale (year-12 captain, year-6 first officer) times 840 hours a year (the 70-hour monthly guarantee × 12). The 401(k) match, profit sharing and per diem are not included. Converted at 158.95 yen to the dollar.',
+
+    overviewJa: 'Avelo Airlines は、テキサス州ヒューストンに本社を置く米国の低運賃航空会社。会社の発表によると、2021年4月28日に運航を始めた（創業者で CEO は Andrew Levy）。B737-800 と B737-700 で東海岸と中西部の路線を飛ばし、操縦士の基地はニューヘイブン・ウィルミントン（デラウェア州）・レイクランド・コンコード（ノースカロライナ州）の4か所。',
+    overviewEn: 'Avelo Airlines is a US low-fare airline headquartered in Houston, Texas. According to the company, it began flying on 28 April 2021; founder Andrew Levy is its CEO. It flies Boeing 737-800s and 737-700s on East Coast and Midwest routes, with pilot bases in New Haven, Wilmington (Delaware), Lakeland and Concord (North Carolina).',
+
+    factsJa: [
+      ['本社', 'ヒューストン（テキサス州）'],
+      ['運航開始', '2021年4月28日'],
+      ['機材', 'B737-800 / B737-700（計17機・2026年10月の発表）'],
+      ['操縦士の基地', 'ニューヘイブン（HVN）・ウィルミントン（ILG・デラウェア州）・レイクランド（LAL）・コンコード（USA・ノースカロライナ州）'],
+      ['所得税', '米国（課税）'],
+    ],
+    factsEn: [
+      ['Headquarters', 'Houston, Texas'],
+      ['Began service', '28 April 2021'],
+      ['Fleet', '737-800 / 737-700 (17 aircraft, October 2026 release)'],
+      ['Pilot bases', 'New Haven (HVN), Wilmington, Delaware (ILG), Lakeland (LAL), Concord, North Carolina (USA)'],
+      ['Income tax', 'United States (taxed)'],
+    ],
+
+    routesJa: '東海岸と中西部を中心に、プエルトリコを含む39都市へ（2026年10月の発表）。会社によると、路線の多くは少なくとも片側が混まない小さめの空港。',
+    routesEn: 'Mostly East Coast and Midwest flying to 39 destinations, including Puerto Rico (October 2026 release). The company says most of its routes use at least one small, convenient airport.',
+    fleetJa: 'B737-800 と B737-700 で計17機（2026年10月の発表）。2025年9月に E195-E2 を100機まで発注し、2028年から飛ばす予定（2026年4月の発表）。',
+    fleetEn: '17 Boeing Next-Generation 737s, -800s and -700s (October 2026 release). Avelo ordered up to 100 Embraer E195-E2s in September 2025 and plans to start flying them in 2028 (April 2026 release).',
+
+    trainingJa: [
+      ['訓練', 'ダラスの Avenger Flight Group の訓練センターで行う。訓練中のホテルと移動は会社が用意し、入社時の制服と会社の iPad も支給される。'],
+      ['訓練中の給与', '新しく入った人は訓練中 月 $6,020。'],
+    ],
+    trainingEn: [
+      ['Training', 'At the Avenger Flight Group Dallas Training Center. Hotels and travel during training are provided, along with the initial uniform and a company-issued iPad.'],
+      ['Pay in training', '$6,020 a month for new hires in training.'],
+    ],
+
+    benefitsJa: [
+      ['⏱️', '保証と超過', '月70時間の保証（リザーブも70時間）。月75時間を超えた分は時給の125%。'],
+      ['🗓️', '公休', 'ライン・リザーブとも月12日以上。'],
+      ['💼', '年金・利益配分', 'Fidelity の 401(k) に会社の上乗せ（率は採用ページに無い）。会社が利益の目標に届いた年は利益配分。'],
+      ['🩺', '医療保険', 'Blue Cross Blue Shield（HDP・PPO）・歯科・眼科・FSA と HSA。'],
+      ['🛡️', '就業不能・免許喪失', '長期と短期の就業不能保険・Harvey Watt の免許喪失の補償と FAA の身体検査の相談・会社負担の生命保険。'],
+      ['✈️', '通勤・優待', 'CASS と KCM に参加。米国の全社とジャンプシートの協定。Air Canada・Delta・United など多くの会社で割引運賃。'],
+    ],
+    benefitsEn: [
+      ['⏱️', 'Guarantee and overtime', '70-hour monthly guarantee (70 hours on reserve too). Hours over 75 a month are paid at 125%.'],
+      ['🗓️', 'Days off', 'At least 12 days off a month for both line holders and reserves.'],
+      ['💼', 'Retirement and profit sharing', 'Fidelity 401(k) with a company match (the rate is not listed on the careers page). Profit sharing when the company reaches its earnings goal.'],
+      ['🩺', 'Health', 'Blue Cross Blue Shield medical (HDP and PPO), dental, vision, and FSA and HSA options.'],
+      ['🛡️', 'Disability and loss of license', 'Long- and short-term disability, loss of license protection and FAA medical advocacy through Harvey Watt, plus company-provided life insurance.'],
+      ['✈️', 'Commuting and travel', 'CASS and KCM, jumpseat agreements with all US carriers, and reduced-rate travel on Air Canada, Delta, United and many others.'],
+    ],
+
+    hiringStatusJa: '採用ページに「副操縦士と直接入社の機長を常に募集」とあり、応募の窓口（AirlineApps）に両方の募集が載っている（2026年11月3日に確認）。',
+    hiringStatusEn: 'The careers page says Avelo is constantly hiring first officers and direct entry captains, and both openings are posted on its AirlineApps page (checked 3 November 2026).',
+    hiring: { color: null, tagClass: 'tag-gray', tagJa: '採用ページあり', tagEn: 'Careers page' },
+    job: {
+      titleJa: '副操縦士（B737）',
+      subJa: '直接入社の機長も募集している。訓練はダラス。',
+      titleEn: 'First officer (737)',
+      subEn: 'Direct entry captains are hired too. Training is in Dallas.',
+    },
+    hiringRowsJa: [
+      ['免許など', '制限なしの ATP（多発）か軍の R-ATP（特に優れた人は軍以外の R-ATP も可）・ATP-CTP と ATP の筆記・第1種身体検査'],
+      ['飛行時間', '14 CFR 121.436 の最低時間：航空の学士（Part 141）1,000時間・航空の準学士 1,250時間・それ以外は21歳以上で1,500時間'],
+      ['国籍・旅券', '米国の市民で、有効期間が6か月以上残る米国のパスポート・米国の運転免許'],
+      ['審査', 'DOT の入社前の薬物検査'],
+      ['望ましい経験', '大型ジェットかボーイングの経験、または B737 の型式'],
+    ],
+    hiringRowsEn: [
+      ['Licenses', 'Unrestricted ATP with airplane multi-engine rating, or military R-ATP (non-military R-ATP for highly exceptional candidates); ATP-CTP and ATP written; FAA first-class medical'],
+      ['Flight hours', '14 CFR 121.436 minimums: 1,000 hours with an aviation bachelor’s degree (Part 141), 1,250 with an aviation associate degree, otherwise 1,500 hours and age 21'],
+      ['Citizenship and passport', 'US citizen with a US passport valid for at least six more months; valid US driver’s license'],
+      ['Checks', 'DOT pre-employment drug screening'],
+      ['Preferred', 'Heavy jet or Boeing experience, or a 737 type rating'],
+    ],
+    hiringNoteJa: '※ 条件は採用ページの記載（2026年11月3日に確認）。応募の前に、採用ページで最新の条件を確かめる。',
+    hiringNoteEn: 'Requirements as listed on the careers page (checked 3 November 2026). Check the current terms there before applying.',
+
+    faqEn: (h) => [
+      [`What is ${h.A.en} captain salary in 2026?`,
+       `We estimate ${h.A.en} captain pay at about ${h.mm(h.A.cap.avg)} a year: the year-12 captain rate of $298 an hour on Avelo’s published B737 pay scale times 840 hours a year (the 70-hour monthly guarantee × 12).`],
+      [`What is ${h.A.en} first officer salary?`,
+       `We estimate ${h.A.en} first officer pay at about ${h.mm(h.A.fo.avg)} a year: the year-6 rate of $171 an hour on the same scale times 840 hours a year.`],
+    ],
+    compareNoteEn: compareFootEn(),
+  },
+  'gojet': {
+    code: 'G7',
+    donor: 'spirit',
+    donorColor: '#FFD700',
+    donorTokens: [
+      'spirit', 'Spirit', 'スピリット', 'FFD700', 'ffd700', '786508', 'ULCC',
+      'フォートローダーデール', 'Fort Lauderdale', 'Miramar', 'フロリダ', 'Florida',
+    ],
+    /* gojetairlines.com のロゴの画像（wp-content/uploads/2025/04/Logo@2x-e1744336172602.png・alt「GoJet Logo blue Color」）の色表を読んだ値。不透明な画素の 76.6% が #0078C2（17.6% が #0079C2、残りは黒の文字）。導出していない。サイトの CSS（Elementor の全体の色 uploads/elementor/css/post-7.css）の primary は #1572FE で、ロゴとは別の値。 */
+    color: '#0078C2',
+    flag: '🇺🇸',
+    countryJa: '米国', countryEn: 'United States',
+    tags: { ja: ['ユナイテッド・エクスプレス', 'CRJ550'], en: ['United Express', 'CRJ550'] },
+    subtitleJa: 'GoJet Airlines — ユナイテッド・エクスプレスとして CRJ550 を飛ばす米国の地域航空会社。本社はミズーリ州セントルイス。',
+    subtitleEn: 'GoJet Airlines — a US regional airline flying the CRJ550 as United Express, headquartered in St. Louis, Missouri.',
+    statsJa: [["機材","CRJ550"],["基地","5か所（EWR・IAD・IAH・ORD・STL）"]],
+    statsEn: [["Fleet","CRJ550"],["Bases","5 (EWR, IAD, IAH, ORD, STL)"]],
+    careers: [
+      { url: 'https://gojetairlines.com/pilot-careers/', ja: 'ゴージェット航空 操縦士の採用ページ（外部サイト）', en: 'GoJet Airlines pilot careers (external)' },
+    ],
+
+    rowSubJa: { cap: 'CRJ550（会社の給与表）', fo: 'CRJ550（会社の給与表）' },
+    rowSubEn: { cap: 'CRJ550 (company pay scale)', fo: 'CRJ550 (company pay scale)' },
+    payTag: { ja: 'USD建て・税引前', en: 'Paid in USD, pre-tax' },
+    stepTag: { ja: '年次制（会社の給与表）', en: 'Seniority scale (company pay scale)' },
+    tableNote: {
+      ja: '※ 推定年収は、会社の給与表の時給（協約の署名から3年目の列。機長12年目・副操縦士6年目＝副操縦士の表の最上段）に年900時間（月75時間の最低保証 × 12）を掛けた額です。日当・401(k) のマッチは入っていません。円は1ドル＝158.95円で換算。',
+      en: 'The estimate is the hourly rate on the company pay scale (the third-year column after the contract signing; year-12 captain, year-6 first officer, the top of the first officer scale) times 900 hours a year (the 75-hour monthly minimum × 12). Per diem and the 401(k) match are not included. Converted at 158.95 yen to the dollar.',
+    },
+    ldTail: {
+      ja: 'パイロットの給与表から計算した推定年収と、応募条件。',
+      en: 'Estimated from the pilot pay scale, plus the entry requirements.',
+    },
+
+    basisJa: '※ 出典と計算：会社の給与表の時給（協約の署名から3年目の列。機長12年目・副操縦士6年目＝副操縦士の表の最上段）に年900時間（月75時間の最低保証 × 12）を掛けた額です。日当・401(k) のマッチは入っていません。円は1ドル＝158.95円で換算。',
+    basisEn: 'Source and method: the hourly rate on the company pay scale (the third-year column after the contract signing; year-12 captain, year-6 first officer, the top of the first officer scale) times 900 hours a year (the 75-hour monthly minimum × 12). Per diem and the 401(k) match are not included. Converted at 158.95 yen to the dollar.',
+
+    overviewJa: 'GoJet Airlines は、ミズーリ州セントルイスに本社を置く米国の地域航空会社。会社のサイトによると2005年に設立され、ユナイテッド航空の便だけをユナイテッド・エクスプレスとして飛ばしている。機材は CRJ550 で、1日250便以上・50都市以上へ。社員は1,100人以上で、ユナイテッド航空と10年の契約を結んでいる。',
+    overviewEn: 'GoJet Airlines is a US regional airline headquartered in St. Louis, Missouri. According to its site, it was established in 2005 and flies exclusively for United Airlines as United Express, with more than 250 daily flights to over 50 destinations on the CRJ550. It has more than 1,100 employees and a 10-year contract with United.',
+
+    factsJa: [
+      ['本社', 'セントルイス（ミズーリ州）'],
+      ['設立', '2005年'],
+      ['運航', 'ユナイテッド・エクスプレス（ユナイテッド航空の便だけ）'],
+      ['機材', 'CRJ550（50席）'],
+      ['操縦士の基地', 'ニューアーク（EWR）・ワシントン・ダレス（IAD）・ヒューストン（IAH）・シカゴ（ORD）・セントルイス（STL）'],
+      ['所得税', '米国（課税）'],
+    ],
+    factsEn: [
+      ['Headquarters', 'St. Louis, Missouri'],
+      ['Founded', '2005'],
+      ['Operation', 'United Express (flies only for United Airlines)'],
+      ['Fleet', 'CRJ550 (50 seats)'],
+      ['Pilot bases', 'Newark (EWR), Washington Dulles (IAD), Houston (IAH), Chicago (ORD), St. Louis (STL)'],
+      ['Income tax', 'United States (taxed)'],
+    ],
+
+    routesJa: 'ユナイテッド航空の便として、1日250便以上・50都市以上へ（会社のサイト）。路線図はシカゴ（ORD）・ワシントン・ダレス（IAD）・ニューアーク（EWR）・ヒューストン（IAH）の基地ごとに載っている。',
+    routesEn: 'More than 250 daily flights to over 50 destinations for United (company site). Route maps are listed by base: Chicago (ORD), Washington Dulles (IAD), Newark (EWR) and Houston (IAH).',
+    fleetJa: 'CRJ550 の3クラス50席（ファースト10席・エコノミープラス20席・エコノミー20席）。',
+    fleetEn: 'CRJ550 in a three-cabin, 50-seat layout: 10 first class, 20 Economy Plus and 20 economy.',
+
+    trainingJa: [
+      ['Wingman', '操縦士の訓練校に在籍中の人の制度。セントルイスの本社の見学（費用は会社）で新人の座学に同席でき、R-ATP か ATP の時間に届くと、副操縦士の採用と訓練日の選択で優先される。見学のあとはユナイテッド航空のスタンバイ搭乗も使える。'],
+      ['直接入社の機長', '入社1日目の導入を終えると先任順位を確保でき、6か月以内に訓練へ戻ればよい（その日は全額支給・往復の移動とホテルは会社負担）。'],
+      ['United Aviate', 'GoJet で飛んでいると、ユナイテッド航空の Aviate に応募できる。'],
+    ],
+    trainingEn: [
+      ['Wingman', 'For pilots still in a training program: a company-paid visit to St. Louis headquarters to sit in on a new-hire ground school class, then priority for first officer hiring and class dates once they reach R-ATP or ATP minimums. United standby travel is available after the visit.'],
+      ['Direct entry captains', 'Complete day 1 of indoctrination to lock in seniority, then return for training within six months. Day 1 is paid in full, with round-trip travel and hotel covered.'],
+      ['United Aviate', 'GoJet pilots can apply to United’s Aviate program.'],
+    ],
+
+    benefitsJa: [
+      ['💼', '年金', '401(k) に本人の拠出の50%を会社が上乗せ・1年で権利確定（上乗せの上限の率は書いていない）。'],
+      ['🩺', '医療保険', 'UnitedHealthcare・Delta Dental の歯科・VSP の眼科。'],
+      ['🛡️', '保険', '長期の就業不能保険・AD&D・生命保険。'],
+      ['📅', '休み', '有給の病気休暇。年休は在籍年数に応じて増える。'],
+      ['✈️', '航空券', 'ユナイテッド航空の優待と ZED。'],
+      ['💵', '乗務の扱い', '日当は1時間 $2.10。欠航とデッドヘッドは100%支給（デッドヘッドは副操縦士のページ）。制服手当 月 $25。'],
+    ],
+    benefitsEn: [
+      ['💼', 'Retirement', '401(k) with a 50% company match, vested after one year (the cap on the match is not listed).'],
+      ['🩺', 'Health', 'UnitedHealthcare, Delta Dental and VSP Vision.'],
+      ['🛡️', 'Insurance', 'Long-term disability, AD&D and life insurance.'],
+      ['📅', 'Time off', 'Paid sick time; vacation accrues with length of service.'],
+      ['✈️', 'Travel', 'United flight benefits and ZED fares.'],
+      ['💵', 'Pay rules', 'Per diem of $2.10 an hour. Cancellations and deadheads are paid at 100% (deadhead pay is listed on the page for first officers). $25 monthly uniform allowance.'],
+    ],
+
+    hiringStatusJa: '採用ページに副操縦士と直接入社の機長の応募の窓口が載っている（2026年11月3日に確認）。',
+    hiringStatusEn: 'The careers pages have application links for first officers and direct entry captains (checked 3 November 2026).',
+    hiring: { color: null, tagClass: 'tag-gray', tagJa: '採用ページあり', tagEn: 'Careers page' },
+    job: {
+      titleJa: '副操縦士（CRJ550）',
+      subJa: 'ユナイテッド・エクスプレスの CRJ550 に乗る。GoJet で飛びながら United Aviate に応募できる。',
+      titleEn: 'First officer (CRJ550)',
+      subEn: 'Fly the United Express CRJ550, with the option to apply to United Aviate.',
+    },
+    hiringRowsJa: [
+      ['免許など', 'ATP・R-ATP か事業用（多発陸上）・計器飛行証明・第1種身体検査・FCC の無線の許可・ATP-CTP と ATP の筆記'],
+      ['飛行時間', 'ATP か R-ATP の総時間の最低に届いていること。夜間100時間・計器75時間・野外飛行200時間・多発25時間'],
+      ['就労・旅券', '米国で働けて、米国を自由に出入りできること・有効なパスポート'],
+      ['直接入社の機長', '23歳以上・ATP・総1,750時間（すべて固定翼）・多発1,000時間・エアキャリア1,000時間・タービン1,000時間。他社の在籍を18年まで1対1で給与の年次に数える'],
+    ],
+    hiringRowsEn: [
+      ['Licenses', 'ATP, restricted ATP or commercial multi-engine land; instrument rating; first-class medical; FCC radio operator permit; ATP-CTP and ATP written'],
+      ['Flight hours', 'ATP or R-ATP total-time minimums, with 100 hours night, 75 instrument, 200 cross-country and 25 multi-engine'],
+      ['Work and passport', 'Eligible to work in the US and travel in and out of the US freely; current, valid passport'],
+      ['Direct entry captain', 'Age 23+, ATP, 1,750 hours (all fixed-wing), 1,000 multi-engine, 1,000 air carrier and 1,000 turbine. Up to 18 years of longevity from another carrier counts 1:1 for pay'],
+    ],
+    hiringNoteJa: '※ 条件は採用ページの記載（2026年11月3日に確認）。応募の前に、採用ページで最新の条件を確かめる。',
+    hiringNoteEn: 'Requirements as listed on the careers page (checked 3 November 2026). Check the current terms there before applying.',
+
+    faqEn: (h) => [
+      [`What is ${h.A.en} captain salary in 2026?`,
+       `We estimate ${h.A.en} captain pay at about ${h.mm(h.A.cap.avg)} a year: the year-12 captain rate of $202.86 an hour on GoJet’s CRJ550 pay scale times 900 hours a year (the 75-hour monthly minimum guarantee × 12).`],
+      [`What is ${h.A.en} first officer salary?`,
+       `We estimate ${h.A.en} first officer pay at about ${h.mm(h.A.fo.avg)} a year: the year-6 rate of $105.61 an hour, the top of the first officer scale, times the same 900 hours.`],
+    ],
+    compareNoteEn: compareFootEn(),
+  },
+  'northern-air-cargo': {
+    code: 'NC',
+    donor: 'spirit',
+    donorColor: '#FFD700',
+    donorTokens: [
+      'spirit', 'Spirit', 'スピリット', 'FFD700', 'ffd700', '786508', 'ULCC',
+      'フォートローダーデール', 'Fort Lauderdale', 'Miramar', 'フロリダ', 'Florida',
+    ],
+    /* 会社のサイト（nac.aero）のヘッダーのロゴ画像 NAC-new-logo-Registered.png の赤（不透明な画素の94%。残りは黒 #000000）。画像の色表から読んだ値で、導出していない。サイトの CSS の --secondary-color #d73832 はテーマの色なので使わなかった。 */
+    color: '#ED2024',
+    flag: '🇺🇸',
+    countryJa: '米国', countryEn: 'United States',
+    tags: { ja: ['B737 貨物', 'アラスカ州内の定期貨物便'], en: ['737 freighters', 'Scheduled cargo across Alaska'] },
+    subtitleJa: 'ノーザン・エア・カーゴ — アンカレッジを拠点に、B737 の貨物機でアラスカ州内へ定期の貨物便を飛ばす米国の航空会社。',
+    subtitleEn: 'Northern Air Cargo — a US cargo airline flying scheduled Boeing 737 freighter service across Alaska from its Anchorage hub.',
+    statsJa: [["機材","B737-300 / B737-400"],["基地","アンカレッジ（ANC）"]],
+    statsEn: [["Fleet","B737-300 / B737-400"],["Base","Anchorage (ANC)"]],
+    careers: [
+      { url: 'https://www.nac.aero/employment/', ja: 'ノーザン・エア・カーゴの採用ページ（外部サイト）', en: 'Northern Air Cargo careers (external)' },
+    ],
+
+    rowSubJa: { cap: 'B737（労働協約の時給表）', fo: 'B737（労働協約の時給表）' },
+    rowSubEn: { cap: 'B737 (contract pay table)', fo: 'B737 (contract pay table)' },
+    payTag: { ja: 'USD建て・税引前', en: 'Paid in USD, pre-tax' },
+    stepTag: { ja: '年次制（労働協約）', en: 'Seniority scale (union contract)' },
+    tableNote: {
+      ja: '※ 推定年収は、労働協約の B737 の時給（2023年7月の表に、協約で決まった毎年7月の2%を2026年まで入れた額。機長12年目・副操縦士6年目）に年780時間（月65時間の保証 × 12）を掛け、会社の確定拠出 4% と 401(k) のマッチ 4% を足した額です。日当は入っていません。円は1ドル＝158.95円で換算。',
+      en: 'The estimate is the contract B737 hourly rate (the July 2023 table with the 2% July raises set in the contract through 2026; year-12 captain, year-6 first officer) times 780 hours a year (the 65-hour monthly guarantee × 12), plus the 4% company DC contribution and the 4% 401(k) match. Per diem is not included. Converted at 158.95 yen to the dollar.',
+    },
+    ldTail: {
+      ja: 'パイロットの給与表から計算した推定年収と、応募条件。',
+      en: 'Estimated from the pilot pay scale, plus the entry requirements.',
+    },
+
+    basisJa: '※ 出典と計算：労働協約の B737 の時給（2023年7月の表に、協約で決まった毎年7月の2%を2026年まで入れた額。機長12年目・副操縦士6年目）に年780時間（月65時間の保証 × 12）を掛け、会社の確定拠出 4% と 401(k) のマッチ 4% を足した額です。日当は入っていません。円は1ドル＝158.95円で換算。',
+    basisEn: 'Source and method: the contract B737 hourly rate (the July 2023 table with the 2% July raises set in the contract through 2026; year-12 captain, year-6 first officer) times 780 hours a year (the 65-hour monthly guarantee × 12), plus the 4% company DC contribution and the 4% 401(k) match. Per diem is not included. Converted at 158.95 yen to the dollar.',
+
+    overviewJa: 'ノーザン・エア・カーゴ（NAC）は、アラスカ州アンカレッジに本社を置く米国の貨物航空会社。会社のサイトによると、1956年に C-82 の2機でチャーターの貨物会社として始まり、2006年3月に運輸の持株会社 Saltchuk Resources の傘下に入った。アンカレッジを拠点に、ベセル・ノーム・コッツビューなどアラスカ州内へ定期の貨物便を飛ばし、州内と米本土48州でチャーターも受ける。',
+    overviewEn: 'Northern Air Cargo (NAC) is a US cargo airline headquartered in Anchorage, Alaska. According to its site, it started in 1956 as a charter airfreight company with two C-82s and became part of Saltchuk Resources, a transportation holding company, in March 2006. From its Anchorage hub it flies scheduled cargo to communities across Alaska such as Bethel, Nome and Kotzebue, and flies charters within Alaska and the contiguous US.',
+
+    factsJa: [
+      ['本社', 'アンカレッジ（アラスカ州）'],
+      ['設立', '1956年'],
+      ['親会社', 'Saltchuk Resources（2006年から）'],
+      ['機材', 'B737-300 / B737-400'],
+      ['操縦士の基地', 'アンカレッジ（ANC）'],
+      ['所得税', '米国（課税）'],
+    ],
+    factsEn: [
+      ['Headquarters', 'Anchorage, Alaska'],
+      ['Founded', '1956'],
+      ['Parent', 'Saltchuk Resources (since 2006)'],
+      ['Fleet', 'B737-300 / B737-400'],
+      ['Pilot base', 'Anchorage (ANC)'],
+      ['Income tax', 'United States (taxed)'],
+    ],
+
+    routesJa: 'アンカレッジから、アニアク・バロー・ベセル・デッドホース・ディリングハム・キングサーモン・コッツビュー・ノーム・ウナラクリートへ定期の貨物便（会社のサイト）。チャーターはアラスカ州内と米本土48州。副操縦士の求人には、ACMI の運航で最長20日続けて基地を離れることがあると書かれている。',
+    routesEn: 'Scheduled cargo from Anchorage to Aniak, Barrow, Bethel, Deadhorse, Dillingham, King Salmon, Kotzebue, Nome and Unalakleet (company site), plus charters within Alaska and the contiguous US. The first officer posting notes ACMI flying of up to 20 consecutive days away from domicile.',
+    fleetJa: 'B737-300・B737-400（会社のサイトのチャーターの案内）。機数は会社のサイトに書かれていない。',
+    fleetEn: '737-300s and 737-400s (company charter page). The site does not give aircraft numbers.',
+
+    trainingJa: [
+      ['訓練', '入社後の訓練の長さと内容は、会社のサイトと求人に書かれていない。Part 121 で乗務するには、その機種の型式限定と多発陸上の限定が要る（求人）。'],
+    ],
+    trainingEn: [
+      ['Training', 'The company site and posting do not describe the length or content of new-hire training. Part 121 flying requires the aircraft type rating and an airplane multi-engine land rating (posting).'],
+    ],
+
+    benefitsJa: [
+      ['🩺', '医療保険', '医療・歯科・眼科・処方薬の保険（正社員）。'],
+      ['💼', '年金', '401(k)。会社のマッチあり（率は会社のサイトに書かれていない）。'],
+      ['🛡️', '生命保険', '会社負担の生命保険。'],
+      ['📅', '休暇', '有給休暇（PTO）と有給の祝日。'],
+      ['✈️', '割引', '他社の航空券（インターライン）と貨物の割引。'],
+      ['🎓', 'その他', '学費の補助・フィットネスの補助。'],
+    ],
+    benefitsEn: [
+      ['🩺', 'Health', 'Medical, dental, vision and prescription drug coverage for regular full-time employees.'],
+      ['💼', 'Retirement', '401(k) with company-matched contributions (the match rate is not given on the company site).'],
+      ['🛡️', 'Life insurance', 'Company-paid life insurance.'],
+      ['📅', 'Time off', 'Paid time off and paid holidays.'],
+      ['✈️', 'Discounts', 'Interline discounts on travel and freight.'],
+      ['🎓', 'Other', 'Tuition assistance and fitness benefits.'],
+    ],
+
+    hiringStatusJa: '求人の一覧に B737 の副操縦士の募集が載っている（2026年10月27日掲載。2026年11月3日に確認）。',
+    hiringStatusEn: 'The job board lists a 737 first officer opening (posted 27 October 2026; checked 3 November 2026).',
+    hiring: { color: null, tagClass: 'tag-gray', tagJa: '採用ページあり', tagEn: 'Careers page' },
+    job: {
+      titleJa: '副操縦士（B737）',
+      subJa: 'アンカレッジの勤務。ACMI の運航で最長20日続けて基地を離れることがある。',
+      titleEn: 'First officer (737)',
+      subEn: 'Based in Anchorage. ACMI flying can mean up to 20 consecutive days away from domicile.',
+    },
+    hiringRowsJa: [
+      ['免許など', '米国 FAA の ATP（多発）・第1種身体検査・FCC の無線の許可（Restricted Radiotelephone Operator Permit）・運転免許。FAR 61.151 に沿った航空英語'],
+      ['飛行時間', '総1,500時間・野外飛行500時間・夜間100時間・計器75時間・機長（PIC）250時間。ターボジェットの経験があれば望ましい'],
+      ['学歴', '高校卒業か GED'],
+      ['審査', '入社前の薬物検査・5年分の職歴の調査・10年分の犯罪歴の照会・TSA のセキュリティ審査（STA）。海外渡航に制限がないこと'],
+    ],
+    hiringRowsEn: [
+      ['Licenses', 'FAA ATP with multi-engine rating, FAA first-class medical, FCC Restricted Radiotelephone Operator Permit, valid driver’s license; aviation English per FAR 61.151'],
+      ['Flight hours', '1,500 hours total, 500 cross-country, 100 night, 75 instrument and 250 PIC; turbojet experience preferred'],
+      ['Education', 'High school diploma or GED'],
+      ['Checks', 'Pre-employment drug test, 5-year employment background investigation, 10-year criminal history records check and TSA Security Threat Assessment; able to travel internationally without restriction'],
+    ],
+    hiringNoteJa: '※ 条件は採用ページの記載（2026年11月3日に確認）。応募の前に、採用ページで最新の条件を確かめる。',
+    hiringNoteEn: 'Requirements as listed on the careers page (checked 3 November 2026). Check the current terms there before applying.',
+
+    faqEn: (h) => [
+      [`What is ${h.A.en} captain salary in 2026?`,
+       `We estimate ${h.A.en} captain pay at about ${h.mm(h.A.cap.avg)} a year: the year-12 B737 captain rate in the pilot contract, $208.89 an hour in July 2023 and $221.68 after the 2% July raises the contract sets through 2026, times 780 hours a year (the 65-hour monthly guarantee × 12), plus the 4% company DC contribution and the 4% 401(k) match.`],
+      [`What is ${h.A.en} first officer salary?`,
+       `We estimate ${h.A.en} first officer pay at about ${h.mm(h.A.fo.avg)} a year: the year-6 rate of $127.08 an hour on the same basis, times 780 hours, plus the same 8%.`],
+    ],
+    compareNoteEn: compareFootEn(),
+  },
+  'contour': {
+    code: 'LF',
+    donor: 'spirit',
+    donorColor: '#FFD700',
+    donorTokens: [
+      'spirit', 'Spirit', 'スピリット', 'FFD700', 'ffd700', '786508', 'ULCC',
+      'フォートローダーデール', 'Fort Lauderdale', 'Miramar', 'フロリダ', 'Florida',
+    ],
+    /* 採用サイト（careers.contourairlines.com）のヘッダーのロゴ画像 Contour_Final.png の紺（文字「CONTOUR」の色・不透明な画素の76%）。画像の色表から読んだ値で、導出していない。ロゴの十字の青は #0077C8・#005EB8・#00A3E0・#71C5E8。 */
+    color: '#082C88',
+    flag: '🇺🇸',
+    countryJa: '米国', countryEn: 'United States',
+    tags: { ja: ['ERJ・CRJ200', '年額制の給与'], en: ['ERJ and CRJ200', 'Annual salary scale'] },
+    subtitleJa: 'コンツアー航空 — テネシー州スマーナに本社を置き、リージョナルジェットで定期便とチャーターを飛ばす米国の航空会社。',
+    subtitleEn: 'Contour Airlines — a US regional airline based in Smyrna, Tennessee, flying scheduled and charter service with regional jets.',
+    statsJa: [["機材","ERJ-135/145 / CRJ200"],["本社","スマーナ（テネシー州）"]],
+    statsEn: [["Fleet","ERJ-135/145 / CRJ200"],["Headquarters","Smyrna, Tennessee"]],
+    careers: [
+      { url: 'https://www.careers.contourairlines.com/pilots-careers', ja: 'コンツアー航空 操縦士の採用ページ（外部サイト）', en: 'Contour Airlines pilot careers (external)' },
+    ],
+
+    rowSubJa: { cap: 'ERJ・CRJ（会社の年額の給与表）', fo: 'ERJ・CRJ（会社の年額の給与表）' },
+    rowSubEn: { cap: 'ERJ / CRJ (company salary scale)', fo: 'ERJ / CRJ (company salary scale)' },
+    payTag: { ja: 'USD建て・税引前', en: 'Paid in USD, pre-tax' },
+    stepTag: { ja: '年額制（会社の給与表）', en: 'Annual salary scale (company pay scale)' },
+    tableNote: {
+      ja: '※ 推定年収は、会社の採用ページの年額の給与表（2024年。機長は表の最上段の10年目・副操縦士6年目）に、401(k) のマッチ 6% を足した額です。日当・一時金は入っていません。円は1ドル＝158.95円で換算。',
+      en: 'The estimate is the annual salary on the company’s 2024 pay scale (year-10 captain, the top of the scale; year-6 first officer), plus the 6% 401(k) match. Per diem and bonuses are not included. Converted at 158.95 yen to the dollar.',
+    },
+    ldTail: {
+      ja: 'パイロットの給与表から計算した推定年収と、応募条件。',
+      en: 'Estimated from the pilot pay scale, plus the entry requirements.',
+    },
+
+    basisJa: '※ 出典と計算：会社の採用ページの年額の給与表（2024年。機長は表の最上段の10年目・副操縦士6年目）に、401(k) のマッチ 6% を足した額です。日当・一時金は入っていません。円は1ドル＝158.95円で換算。',
+    basisEn: 'Source and method: the annual salary on the company’s 2024 pay scale (year-10 captain, the top of the scale; year-6 first officer), plus the 6% 401(k) match. Per diem and bonuses are not included. Converted at 158.95 yen to the dollar.',
+
+    overviewJa: 'コンツアー航空は、テネシー州スマーナに本社を置く Contour Aviation のリージョナル航空のブランド。会社のサイトによると、Contour Aviation は1982年にビジネスジェットのチャーター会社 Corporate Flight Management として始まり、いまは機体の管理・整備・FBO なども手がける。リージョナルジェット（ERJ-135/145・CRJ200）で定期便とチャーターを飛ばし、アラスカ航空・アメリカン航空・ジェットブルー・ユナイテッド航空とインターラインの提携を結んでいる。',
+    overviewEn: 'Contour Airlines is the regional airline brand of Contour Aviation, headquartered in Smyrna, Tennessee. According to its site, Contour Aviation was founded in 1982 as Corporate Flight Management, a private jet charter company, and now also handles aircraft management, maintenance and FBO services. The airline flies scheduled and charter service with regional jets (ERJ-135/145 and CRJ200) and has interline agreements with Alaska, American, JetBlue and United.',
+
+    factsJa: [
+      ['本社', 'スマーナ（テネシー州）'],
+      ['設立', '1982年（Corporate Flight Management として）'],
+      ['機材', 'ERJ-135/145 / CRJ200'],
+      ['操縦士の基地', 'ERJ：シャーロット（CLT）・フェニックス（PHX）／CRJ：シカゴ・フォートローダーデール（FLL）・ホワイトプレインズ（HPN）'],
+      ['所得税', '米国（課税）'],
+    ],
+    factsEn: [
+      ['Headquarters', 'Smyrna, Tennessee'],
+      ['Founded', '1982 (as Corporate Flight Management)'],
+      ['Fleet', 'ERJ-135/145 / CRJ200'],
+      ['Pilot bases', 'ERJ: Charlotte (CLT), Phoenix (PHX); CRJ: Chicago, Fort Lauderdale (FLL), White Plains (HPN)'],
+      ['Income tax', 'United States (taxed)'],
+    ],
+
+    routesJa: '小さな町と大きな空港を結ぶ定期便（採用サイトでは36路線）と、チャーター。乗り継ぎは、アラスカ航空・アメリカン航空・ジェットブルー・ユナイテッド航空とのインターラインで。',
+    routesEn: 'Scheduled service linking smaller communities with major airports (36 routes, according to the careers site), plus charters. Connections are through interline agreements with Alaska, American, JetBlue and United.',
+    fleetJa: 'ERJ-135/145 と CRJ200（会社のサイトと採用ページ）。会社の発表では、定期便は30席のリージョナルジェットで飛ぶ。機数は会社のサイトに書かれていない。',
+    fleetEn: 'ERJ-135/145s and CRJ200s (company site and careers pages). Company announcements describe scheduled flights on its 30-seat regional jets. The site does not give aircraft numbers.',
+
+    trainingJa: [
+      ['訓練', '会社の中に FAR Part 141 の操縦士・整備士の訓練部門がある（採用サイトの会社紹介）。入社後の訓練の長さと内容は、採用ページに書かれていない。'],
+    ],
+    trainingEn: [
+      ['Training', 'The company runs an FAR Part 141 pilot and maintenance training operation (careers site). The careers pages do not describe the length or content of new-hire training.'],
+    ],
+
+    benefitsJa: [
+      ['✈️', '航空券', '本人と対象の家族が、コンツアー航空と MyIDTravel の提携会社に空席待ちで乗れる。操縦士は KCM と CASS（相互のジャンプシート）に登録。'],
+      ['💼', '年金', '401(k)。会社のマッチ 6%、入社初日から入れる。'],
+      ['🩺', '医療保険', '医療（PPO か HDHP/HSA を選ぶ）・歯科・眼科・短期と長期の就業不能保険・ペット保険。生命保険は任意加入（Symetra）。'],
+      ['🍽️', '日当', '1時間あたり：定期便 国内 $2.08・国際 $3.14、チャーター 国内 $3.08・国際 $4.14（採用ページの2024年の表）。'],
+      ['💵', '機長の一時金', '入社の一時金 $15,000・型式が有効な人に $10,000・在籍の一時金 $10,000（あとの2つは24か月）。審査役（Check Airman）は年 $25,000 の上乗せ（採用ページの2024年の画像）。'],
+    ],
+    benefitsEn: [
+      ['✈️', 'Travel', 'Employees and eligible family members fly space-available on Contour and MyIDTravel partners. Pilots are enrolled in KCM and CASS with reciprocal jumpseat agreements.'],
+      ['💼', 'Retirement', '401(k) with a 6% match and no waiting period; pilots can join on day one.'],
+      ['🩺', 'Health', 'Medical (PPO or HDHP/HSA), dental, vision, short- and long-term disability and pet insurance; voluntary life insurance through Symetra.'],
+      ['🍽️', 'Per diem', 'Per hour: scheduled flying $2.08 domestic and $3.14 international; charter $3.08 domestic and $4.14 international (2024 table on the careers page).'],
+      ['💵', 'Captain bonuses', '$15,000 signing bonus, $10,000 24-month current-type bonus and $10,000 24-month retention bonus; check airmen get a $25,000 annual override (2024 image on the careers page).'],
+    ],
+
+    hiringStatusJa: '採用ページに CRJ200 の機長の募集が載っている。ERJ・CRJ の副操縦士は、いまは募集なし（2026年11月3日に確認）。',
+    hiringStatusEn: 'The careers page lists a CRJ200 captain opening; there are no ERJ or CRJ first officer openings at the moment (checked 3 November 2026).',
+    hiring: { color: null, tagClass: 'tag-gray', tagJa: '採用ページあり', tagEn: 'Careers page' },
+    job: {
+      titleJa: '機長（CRJ200）',
+      subJa: '基地は面接で相談する。1年目の機長には、条件つきの一時金がある。',
+      titleEn: 'Captain (CRJ200)',
+      subEn: 'Base is discussed at interview. First-year captains are eligible for qualifying bonuses.',
+    },
+    hiringRowsJa: [
+      ['飛行時間（機長）', '総1,500時間以上（2,500時間を推奨）・機長（PIC）500時間以上（1,000時間を推奨）・多発500時間以上（1,000時間を推奨）'],
+      ['型式', '型式限定と最近の乗務経験があれば望ましい'],
+      ['副操縦士（ERJ・CRJ）', '総500時間以上・多発25時間以上（いまは募集なし）'],
+    ],
+    hiringRowsEn: [
+      ['Flight hours (captain)', '1,500 hours total minimum (2,500 recommended), 500 PIC minimum (1,000 recommended), 500 multi-engine minimum (1,000 recommended)'],
+      ['Type rating', 'Type rating and currency recommended'],
+      ['First officer (ERJ/CRJ)', '500 hours total minimum and 25 multi-engine minimum (no openings at the moment)'],
+    ],
+    hiringNoteJa: '※ 条件は採用ページの記載（2026年11月3日に確認）。応募の前に、採用ページで最新の条件を確かめる。',
+    hiringNoteEn: 'Requirements as listed on the careers page (checked 3 November 2026). Check the current terms there before applying.',
+
+    faqEn: (h) => [
+      [`What is ${h.A.en} captain salary in 2026?`,
+       `We estimate ${h.A.en} captain pay at about ${h.mm(h.A.cap.avg)} a year: the year-10 captain salary of $147,365.83 at the top of Contour’s 2024 pay scale, plus the 6% 401(k) match.`],
+      [`What is ${h.A.en} first officer salary?`,
+       `We estimate ${h.A.en} first officer pay at about ${h.mm(h.A.fo.avg)} a year: the year-6 first officer salary of $40,730.70 on the same scale, plus the 6% match.`],
+    ],
+    compareNoteEn: compareFootEn(),
+  },
+  'jazz': {
+    code: 'QK',
+    donor: 'spirit',
+    donorColor: '#FFD700',
+    donorTokens: [
+      'spirit', 'Spirit', 'スピリット', 'FFD700', 'ffd700', '786508', 'ULCC',
+      'フォートローダーデール', 'Fort Lauderdale', 'Miramar', 'フロリダ', 'Florida',
+    ],
+    /* 会社のサイト（flyjazz.com）のヘッダーのロゴ画像 jazz-logo.png（wp-content/themes/jazz/library/images/）の赤。画像の色は1色だけ。色表から読んだ値で、導出していない。 */
+    color: '#CF3628',
+    flag: '🇨🇦',
+    countryJa: 'カナダ', countryEn: 'Canada',
+    tags: { ja: ['エア・カナダ・エクスプレス', 'エア・カナダへの移籍の制度'], en: ['Air Canada Express', 'Flow to Air Canada'] },
+    subtitleJa: 'ジャズ航空 — エア・カナダ・エクスプレスの便を飛ばすカナダのリージョナル航空会社。本社はノバスコシア州エンフィールド（ハリファックス）。',
+    subtitleEn: 'Jazz Aviation — a Canadian regional airline flying Air Canada Express, with its head office in Enfield, Nova Scotia, near Halifax.',
+    statsJa: [["機材","E175 / CRJ900 / Dash 8-400"],["基地","トロント・モントリオール・カルガリー・バンクーバー"]],
+    statsEn: [["Fleet","E175 / CRJ900 / Dash 8-400"],["Bases","Toronto, Montreal, Calgary, Vancouver"]],
+    careers: [
+      { url: 'https://flyjazz.com/en/pilot-recruitment/', ja: 'ジャズ航空 操縦士の採用ページ（外部サイト）', en: 'Jazz pilot recruitment (external)' },
+    ],
+
+    rowSubJa: { cap: '全機材で1本の時給表', fo: '全機材で1本の時給表' },
+    rowSubEn: { cap: 'One pay table for all fleets', fo: 'One pay table for all fleets' },
+    payTag: { ja: 'CAD建て・税引前', en: 'Paid in CAD, pre-tax' },
+    stepTag: { ja: '年次制（労働協約）', en: 'Seniority scale (union contract)' },
+    tableNote: {
+      ja: '※ 推定年収は、2026年7月1日からの時給（全機材で1本。機長12年目・副操縦士6年目）に年990時間（会社が出している月平均82.5時間 × 12）を掛けた額です。確定拠出年金のマッチ・日当は入っていません。円は1カナダドル＝115.49円で換算。',
+      en: 'The estimate is the hourly rate from 1 July 2026 (one table for all fleets; year-12 captain, year-6 first officer) times 990 hours a year (the company’s 82.5-hour monthly average × 12). The pension match and per diem are not included. Converted at 115.49 yen to the Canadian dollar.',
+    },
+    ldTail: {
+      ja: 'パイロットの給与表から計算した推定年収と、応募条件。',
+      en: 'Estimated from the pilot pay scale, plus the entry requirements.',
+    },
+
+    basisJa: '※ 出典と計算：2026年7月1日からの時給（全機材で1本。機長12年目・副操縦士6年目）に年990時間（会社が出している月平均82.5時間 × 12）を掛けた額です。確定拠出年金のマッチ・日当は入っていません。円は1カナダドル＝115.49円で換算。',
+    basisEn: 'Source and method: the hourly rate from 1 July 2026 (one table for all fleets; year-12 captain, year-6 first officer) times 990 hours a year (the company’s 82.5-hour monthly average × 12). The pension match and per diem are not included. Converted at 115.49 yen to the Canadian dollar.',
+
+    overviewJa: 'ジャズ航空（Jazz Aviation LP）は、ノバスコシア州エンフィールド（ハリファックス）に本社と運航の拠点を置くカナダのリージョナル航空会社。会社のサイトによると、2002年に Air Canada Jazz のブランドで始まり、2010年から Chorus Aviation（トロント証券取引所 CHR）の傘下。エア・カナダとの契約で、エア・カナダ・エクスプレスの便を E175・CRJ900・Dash 8-400 で飛ばす。操縦士の基地はトロント・モントリオール・カルガリー・バンクーバーの4つ。',
+    overviewEn: 'Jazz Aviation LP is a Canadian regional airline with its head office and operations center in Enfield, Nova Scotia, near Halifax. According to its site, the Air Canada Jazz brand launched in 2002, and Jazz has been owned by Chorus Aviation (TSX: CHR) since 2010. It flies Air Canada Express under its agreement with Air Canada, using the E175, CRJ900 and Dash 8-400. Pilots are based in Toronto, Montreal, Calgary and Vancouver.',
+
+    factsJa: [
+      ['本社', 'エンフィールド（ノバスコシア州・ハリファックス）'],
+      ['ブランドの始まり', '2002年（Air Canada Jazz として）'],
+      ['親会社', 'Chorus Aviation（2010年から）'],
+      ['機材', 'E175 25機・CRJ900 30機・Dash 8-400 33機'],
+      ['操縦士の基地', 'トロント・モントリオール・カルガリー・バンクーバー'],
+      ['所得税', 'カナダ（課税）'],
+    ],
+    factsEn: [
+      ['Headquarters', 'Enfield, Nova Scotia (Halifax)'],
+      ['Brand launched', '2002 (as Air Canada Jazz)'],
+      ['Parent', 'Chorus Aviation (since 2010)'],
+      ['Fleet', '25 E175, 30 CRJ900, 33 Dash 8-400'],
+      ['Pilot bases', 'Toronto, Montreal, Calgary, Vancouver'],
+      ['Income tax', 'Canada (taxed)'],
+    ],
+
+    routesJa: 'エア・カナダ・エクスプレスとして、カナダ41・米国24の計65地点へ1日約380便（会社の概要。2026年6月時点）。2019年のエア・カナダとの契約で、エア・カナダ・エクスプレスの主な運航会社の立場は2035年まで。',
+    routesEn: 'As Air Canada Express, about 380 daily flights to 65 destinations, 41 in Canada and 24 in the US (company fact sheet, effective June 2026). A 2019 agreement with Air Canada secures its role as the primary Air Canada Express operator through 2035.',
+    fleetJa: 'E175 25機・CRJ900 30機・Dash 8-400 33機の計88機（会社のサイトのエア・カナダ・エクスプレスの機材の表）。',
+    fleetEn: '88 aircraft: 25 E175s, 30 CRJ900s and 33 Dash 8-400s (Air Canada Express fleet table on the company site).',
+
+    trainingJa: [
+      ['入社後', '採用の流れの最後は「Jazz Initial Pilot Training」。期間と内容は採用ページに書かれていない。iPad と Bose のヘッドセットが支給される。'],
+      ['訓練生の道', 'Jazz Approach：CAE と Cygnet Aviation Academy との制度。選ばれると条件付きの採用通知が出て、Cygnet で18か月の ATPL 一貫課程 → CAE のトロントの施設でジェットへの移行訓練。'],
+      ['機長への準備', 'PICUS（監督下で機長を務める）の制度がある。'],
+    ],
+    trainingEn: [
+      ['After hiring', 'The hiring process ends with Jazz Initial Pilot Training; the recruitment page does not give its length or content. Pilots are issued an iPad and a Bose aviation headset.'],
+      ['Cadet pathway', 'Jazz Approach, with CAE and Cygnet Aviation Academy: selected cadets receive a conditional letter of employment, complete an 18-month integrated ATPL at Cygnet, then jet transition training at CAE in Toronto.'],
+      ['Upgrade', 'A Pilot in Command Under Supervision (PICUS) program for pilots building upgrade qualifications.'],
+    ],
+
+    benefitsJa: [
+      ['💼', '年金', '確定拠出年金（会社のマッチは毎年上がり、最大8%）と従業員持株制度。'],
+      ['🍽️', '日当・手当', '1日ごとの非課税の食事の日当。会社の例では年平均 C$9,000（平均の月82.5クレジット時間・2026年7月1日）。身体検査の費用・パスポート・制服の手当で年 C$1,600 超。'],
+      ['🩺', '保険', '医療・歯科・就業不能の保険（会社と本人で保険料を分担）。'],
+      ['📅', '休み', '月の公休は最低12日。育児の休業は1回ごとに最長52週で、先任順位を失わない。'],
+      ['✈️', '航空券', 'エア・カナダの路線網での社員旅行の特典。'],
+      ['🛫', 'エア・カナダへ', '移籍の制度（flow program）があり、採用ページはエア・カナダの操縦士の優先の供給元と書いている。'],
+    ],
+    benefitsEn: [
+      ['💼', 'Retirement', 'Defined contribution pension with a company match that rises each year to a maximum of 8%, plus an employee share ownership program.'],
+      ['🍽️', 'Per diem and allowances', 'Daily tax-free meal per diems, averaging about C$9,000 a year in the company’s example (82.5 average monthly credit hours, 1 July 2026). Medical fees, passport and uniform allowances total over C$1,600 a year.'],
+      ['🩺', 'Health', 'Health, dental and disability coverage with company/pilot cost sharing.'],
+      ['📅', 'Days off', 'At least 12 days off a month guaranteed. Up to 52 weeks of parental leave per birth, adoption, foster or ward custody, without loss of seniority.'],
+      ['✈️', 'Travel', 'Employee travel benefits across the Air Canada network.'],
+      ['🛫', 'Path to Air Canada', 'A flow program; the recruitment page describes Jazz as Air Canada’s preferential source of qualified pilots.'],
+    ],
+
+    hiringStatusJa: '採用ページから副操縦士の募集（Pilot (First Officer)・2026年6月30日掲載）に応募できる（2026年11月3日に確認）。',
+    hiringStatusEn: 'The recruitment page links to an open first officer posting, Pilot (First Officer), posted 30 June 2026 (checked 3 November 2026).',
+    hiring: { color: null, tagClass: 'tag-gray', tagJa: '採用ページあり', tagEn: 'Careers page' },
+    job: {
+      titleJa: '副操縦士',
+      subJa: '基地はトロント・モントリオール・カルガリー・バンクーバーの4つ。基地の移動もできる。',
+      titleEn: 'First officer',
+      subEn: 'Four bases: Toronto, Montreal, Calgary and Vancouver, with the option to move between them.',
+    },
+    hiringRowsJa: [
+      ['免許など', 'カナダ運輸省の事業用操縦士（CPL）・計器飛行証明 Group 1（計器飛行の最近の経験の要件を満たすこと）・第1種身体検査。705 類の機材で副操縦士として乗れる資格'],
+      ['飛行時間', '総500時間以上'],
+      ['就労資格', 'カナダの市民権か永住権。米国に入国できること（恩赦のない有罪歴がない）。永住者は米国内の乗務に要る乗員ビザを取れること'],
+      ['優遇', 'カナダの ATPL・2人乗務の多発タービンの経験・航空の大学や専門学校の卒業・民間か軍の飛行経験・FMS やグラスコックピットの経験'],
+      ['別の道', '提携校の卒業生は Jazz Direct で250時間から応募できる（ATPL 一貫課程は250時間より前でも可）'],
+    ],
+    hiringRowsEn: [
+      ['Licenses', 'Transport Canada commercial pilot license, valid Group 1 instrument rating meeting recency requirements, Class 1 medical; licensed to act as first officer on 705-category aircraft'],
+      ['Flight hours', '500 hours total minimum'],
+      ['Work eligibility', 'Canadian citizen or permanent resident, legally able to enter the US (no criminal conviction without a pardon); permanent residents must be able to obtain crew visas for US operations'],
+      ['Preferred', 'Canadian ATPL, two-crew multi-engine turbine experience, an aviation college degree or diploma, commercial or military flying, FMS or glass cockpit experience'],
+      ['Pathway', 'Graduates of Jazz-affiliated schools can apply through Jazz Direct from 250 hours (integrated ATPL graduates may move forward sooner)'],
+    ],
+    hiringNoteJa: '※ 条件は採用ページの記載（2026年11月3日に確認）。応募の前に、採用ページで最新の条件を確かめる。',
+    hiringNoteEn: 'Requirements as listed on the careers page (checked 3 November 2026). Check the current terms there before applying.',
+
+    faqEn: (h) => [
+      [`What is ${h.A.en} captain salary in 2026?`,
+       `We estimate ${h.A.en} captain pay at about ${h.mm(h.A.cap.avg)} a year: the year-12 captain rate of C$158.83 an hour from 1 July 2026 (one table for all fleets) times 990 hours a year (the company’s 82.5-hour monthly average × 12).`],
+      [`What is ${h.A.en} first officer salary?`,
+       `We estimate ${h.A.en} first officer pay at about ${h.mm(h.A.fo.avg)} a year: the year-6 rate of C$80.58 an hour on the same table times the same 990 hours.`],
+    ],
+    compareNoteEn: compareFootEn(),
+  },
+  /* /NA20 */
 };
 
 const C = CONTENT[slug];

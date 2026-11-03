@@ -116,6 +116,11 @@ var PV_SEARCH_L10N = {
     {n:'アトラス航空',           e:'Atlas Air',                   g:'🇺🇸', t:['5Y','GTI','atlas','あとらす','アトラス・エア','Atlas Air Worldwide','貨物','cargo'], f:'airlines/atlas-air.html'},
     {n:'ABXエア',                e:'ABX Air',                     g:'🇺🇸', t:['GB','ABX','abx','ABX航空','Airborne Express','ウィルミントン','Wilmington','貨物','cargo'], f:'airlines/abx-air.html'},
     {n:'カリッタ航空',           e:'Kalitta Air',                 g:'🇺🇸', t:['K4','CKS','kalitta','かりった','カリッタ・エア','イプシランティ','Ypsilanti','貨物','cargo'], f:'airlines/kalitta-air.html'},
+    {n:'アベロ航空',              e:'Avelo Airlines',             g:'🇺🇸', t:['XP','VXP','avelo','あべろ','アベロ','アベロ・エアラインズ','ヒューストン','Houston','ニューヘイブン','New Haven','LCC','格安航空'], f:'airlines/avelo-airlines.html'},
+    {n:'ゴージェット航空',           e:'GoJet Airlines',             g:'🇺🇸', t:['G7','GJS','gojet','ごーじぇっと','ゴージェット','GoJet航空','セントルイス','St. Louis','United Express','ユナイテッド・エクスプレス','リージョナル','regional'], f:'airlines/gojet.html'},
+    {n:'ノーザン・エア・カーゴ',        e:'Northern Air Cargo',         g:'🇺🇸', t:['NC','NAC','northern air cargo','のーざんえあかーご','ノーザンエアカーゴ','アンカレッジ','Anchorage','アラスカ','Alaska','貨物','cargo'], f:'airlines/northern-air-cargo.html'},
+    {n:'コンツアー航空',            e:'Contour Airlines',           g:'🇺🇸', t:['LF','VTE','contour','contour airlines','こんつあー','コンツアー','コントゥア','スマーナ','Smyrna','テネシー','Tennessee','リージョナル','regional'], f:'airlines/contour.html'},
+    {n:'ジャズ航空',              e:'Jazz Aviation',              g:'🇨🇦', t:['QK','JZA','jazz','jazz aviation','air canada express','じゃず','ジャズ','エアカナダエクスプレス','ハリファックス','Halifax','ノバスコシア','Nova Scotia','カナダ','リージョナル','regional'], f:'airlines/jazz.html'},
     /* ─ Americas — Canada/Latin ─ */
     {n:'エアカナダ',             e:'Air Canada',                  g:'🇨🇦', t:['ACA','AC','あえかなだ','カナダ'],                      f:'airlines/air-canada.html'},
     {n:'ウエストジェット',       e:'WestJet',                     g:'🇨🇦', t:['WJA','WS'],                                            f:'airlines/westjet.html'},
