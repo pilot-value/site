@@ -1114,7 +1114,7 @@ head('掲載している全社（比較の材料）');
     /* ★2026-11-03 北米追加20社（新しい会社5社・暮らしの欄を9社に）。測った値：日本語の career.html は 生 +46,763・gzip +4,631・要素 +579
        （英語は +47,535・+4,583・+611 ── origin/main 07927783 との差）。少しだけ余裕を足して広げた。 */
     const LEADNA = { raw: 50000, gz: 5000, tags: 650 };
-    const ROOM = { raw: up(GROW1.raw + 250000, 25000) + LEAD122.raw + LEAD123.raw + LEAD131.raw + LEADUS.raw + LEADNA.raw, gz: up(GROW1.gz + 37000, 2500) + GRANT11.gz + GRANT12.gz + GRANT13.gz + LEAD118.gz + LEAD122.gz + LEAD123.gz + LEAD131.gz + LEADUS.gz + LEADNA.gz, tags: up(GROW1.tags + 1550, 250) + LEAD123.tags + LEAD131.tags + LEADUS.tags };
+    const ROOM = { raw: up(GROW1.raw + 250000, 25000) + LEAD122.raw + LEAD123.raw + LEAD131.raw + LEADUS.raw + LEADNA.raw, gz: up(GROW1.gz + 37000, 2500) + GRANT11.gz + GRANT12.gz + GRANT13.gz + LEAD118.gz + LEAD122.gz + LEAD123.gz + LEAD131.gz + LEADUS.gz + LEADNA.gz, tags: up(GROW1.tags + 1550, 250) + LEAD123.tags + LEAD131.tags + LEADUS.tags + LEADNA.tags };
     const bytes = fs.readFileSync(path.join(ROOT, PAGE));
     const now = { raw: bytes.length, gz: zlib.gzipSync(bytes).length, tags: (bytes.toString('utf8').match(/<[a-z]/g) || []).length };
     const kb = n => Math.round(n / 1024);
