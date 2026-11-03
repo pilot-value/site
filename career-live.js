@@ -2263,10 +2263,12 @@
         未接続は PGRST202（関数が無い）のときだけ。ほかの失敗は「やり直す」の出る失敗の形。
      ★ 文は textContent で入れる。点の矢印は data-pvg-cat（分類）と data-pvg-ids（もとの口コミ）を持ち、
         押すと同じページの口コミがその分類で開き、もとの口コミに札が付く（pv-glance.js → airline-reviews-ui.js）。 */
+  /* ★要約の言葉（2026-11-03）── スペイン語のページは es（ほかの欄はスペイン語のページも LANG＝en で動くが、要約はサーバーが es を別に持つ）。 */
+  var SUM_LANG = window.PV_LANG === 'es' ? 'es' : LANG;
   function summary(slug) {
     return once('sum:' + slug, function (sig) {
       return client().then(function (sb) {
-        return cut(sb.rpc('pv_review_summary', { p: { airline: slug, lang: LANG } }), sig);   // 要約はページの言葉のもの（サーバーは会社 × 言葉ごとに持つ）
+        return cut(sb.rpc('pv_review_summary', { p: { airline: slug, lang: SUM_LANG } }), sig);   // 要約はページの言葉のもの（サーバーは会社 × 言葉ごとに持つ）
       }).then(function (res) {
         if (!res || res.error) {
           var code = String((res && res.error && res.error.code) || '');
@@ -2289,9 +2291,10 @@
     return box;
   }
   /* 要約の1点は「話題：説明」（2026-10-30〜 summarize-reviews の指示）。「：」の前を太字の見出しにする。
-     「：」は消さずに見えなくするだけ（読み上げと文字の並びは元の1行のまま）。形が合わない古い文はそのまま1行で出す。 */
+     「：」は消さずに見えなくするだけ（読み上げと文字の並びは元の1行のまま）。形が合わない古い文はそのまま1行で出す。
+     ★スペイン語の話題（「Ascenso a capitán:」「Días libres:」）はアクセントの付いた字を持つ（2026-11-03）── ラテン文字の拡張（À〜ɏ）も話題の字に数える。 */
   function sumSplit(text) {
-    var m = /^([^：:]{1,12})：(.+)$/.exec(text) || /^([A-Za-z][A-Za-z' &/-]{0,31}): (.+)$/.exec(text);
+    var m = /^([^：:]{1,12})：(.+)$/.exec(text) || /^([A-Za-z\u00C0-\u024F][A-Za-z\u00C0-\u024F' &/-]{0,31}): (.+)$/.exec(text);
     return m && m[2].trim() ? { k: m[1], sep: text.slice(m[1].length, text.length - m[2].length), b: m[2] } : null;
   }
   function sumText(text) {
@@ -2352,7 +2355,7 @@
     return by;
   }
   /* 鍵の無い人の要約の欄（2026-10-30 オーナー「要約は1文じゃなくて60文字にしよう。会社のいいところは全部見せよう。悪いところだけぼかしを入れよう」）。
-     ★鍵の無い答えから読むのは state・lead（まとめの段落の先頭 ── 日本語60字・英語120字。切るのはサーバー）・good（text と cat）だけ。
+     ★鍵の無い答えから読むのは state・lead（まとめの段落の先頭 ── 日本語60字・英語120字・スペイン語140字。切るのはサーバー）・good（text と cat）だけ。
        n・as_of・concern・overview・ids は、届いても読まない（sumGood が text と cat だけの新しい行に作り直す）。
      ★まとめの続きと気になる点は影絵（決まった形 ── 答えを1つも読まない）。lead が無ければ「まとめ」の枠ごと置かない。 */
   function sumGood(x) {

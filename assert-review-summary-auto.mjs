@@ -38,7 +38,8 @@ delete globalThis.Deno;
    出荷の形と同じ言語を頼まれたら、本物の1枚をそのまま読む（別の実体として）。
    違うときだけ、その1行を書き換えた写しを一時フォルダに置いて読む（リポジトリには書かない）。
    ★下の場面は全部「日本語だけ」の形で書いてある。LANGS に 'en' を足しても、この検査は緑のまま
-     （足した形そのものは 16 で見ている）。 */
+     （足した形そのものは 16 で見ている）。
+   ★2026-11-03 から出荷の形は日本語・英語・スペイン語の3つ（16 が出荷の形そのものを動かす）。 */
 const SRC = readFileSync(SRC_AT, 'utf8');
 const LANGS_LINE = /^export const LANGS = \[[^\]\n]*\];$/m;
 const temps = [];
@@ -252,8 +253,12 @@ const world = () => { const w = makeWorld(); worlds.push(w); return w; };
 await section(async () => {
   const src = SRC;
   ok('作る言語の一覧は1行で書いてある（1語足せば済む形）', (src.match(new RegExp(LANGS_LINE.source, 'gm')) || []).length === 1);
-  ck('作る言語は、文面と字数の上限を持っている言語だけ（空でない・重複なし）',
-     [SR.LANGS.length > 0, SR.LANGS.filter((l) => !(l in SR.LIMITS) || !SR.systemPrompt(l)), new Set(SR.LANGS).size === SR.LANGS.length], [true, [], true]);
+  ck('作る言語は、文面と字数の上限（点・段落）を持っている言語だけ（空でない・重複なし）',
+     [SR.LANGS.length > 0, SR.LANGS.filter((l) => !(l in SR.LIMITS) || !(l in SR.OVERVIEW_LIMITS) || !SR.systemPrompt(l)), new Set(SR.LANGS).size === SR.LANGS.length], [true, [], true]);
+  ck('出荷の形は日本語・英語・スペイン語（英語のページは en・スペイン語のページは es を読む）', SR.LANGS, ['ja', 'en', 'es']);
+  ck('文面は言語ごとに別のもの・それぞれ「その言語で書く」と言っている',
+     SR.LANGS.map((l) => [l, new Set(SR.LANGS.map((x) => SR.systemPrompt(x))).size === SR.LANGS.length, (SR.systemPrompt(l).match(/Write everything in (\w+)\./) || [])[1]]),
+     [['ja', true, 'Japanese'], ['en', true, 'English'], ['es', true, 'Spanish']]);
   ck('下の場面で使う形は「日本語だけ」', JA.LANGS, ['ja']);
   ck('モデルの名前は道具と同じ定数', [SR.MODEL, TOOLSIDE.MODEL], ['claude-opus-5', 'claude-opus-5']);
   const shared = ['MODEL', 'CATS', 'LIMITS', 'MAX_POINTS', 'MIN_REVIEWS', 'MIN_SUPPORT', 'LEGACY_OF', 'codesOf',
@@ -765,33 +770,80 @@ await section(async () => {
 
 
 // ════════════════════════════════════════════════════════════
-// 16) 英語を足したとき（LANGS に 'en' を1語）── その形を実際に動かす
+// 16) 出荷の形（LANGS ＝ 日本語・英語・スペイン語）── その形を実際に動かす
 // ════════════════════════════════════════════════════════════
 await section(async () => {
-  const BOTH = await build(['ja', 'en'], 'both');
-  ck('1語足した形', BOTH.LANGS, ['ja', 'en']);
+  const ALL = await build(['ja', 'en', 'es'], 'all');
+  ck('3つの言語の形', ALL.LANGS, ['ja', 'en', 'es']);
   const EN_G = 'YOUYAKU Several reviews describe an open atmosphere among crew.';
   const EN_C = 'YOUYAKU Some reviews mention roster changes arriving at short notice.';
+  const ES_G = 'YOUYAKU Ambiente: varias reseñas describen un ambiente abierto entre tripulaciones.';
+  const ES_C = 'YOUYAKU Programación: algunas reseñas mencionan cambios de último momento.';
+  const byLang = (req) => (req.system === SR.systemPrompt('en') ? 'en' : req.system === SR.systemPrompt('es') ? 'es' : req.system === SR.systemPrompt('ja') ? 'ja' : '?');
+  const reply3 = (req) => {
+    const l = byLang(req);
+    return l === 'en' ? modelOk({ good: [{ text: EN_G, cat: 'culture', reviews: [1, 2] }], concern: [{ text: EN_C, cat: 'wlb', reviews: [1, 2] }] })
+         : l === 'es' ? modelOk({ good: [{ text: ES_G, cat: 'culture', reviews: [1, 2] }], concern: [{ text: ES_C, cat: 'wlb', reviews: [1, 2] }] })
+         : modelOk(GOOD_REPLY);
+  };
   const w = world(); w.add('ana', 3);
-  for (const r of w.rows.get('ana')) r.translations = { en: { culture: 'HONBUN-EN the atmosphere is open', wlb: 'HONBUN-EN rosters change late' } };
+  for (const r of w.rows.get('ana')) r.translations = { en: { culture: 'HONBUN-EN the atmosphere is open', wlb: 'HONBUN-EN rosters change late' },
+                                                        es: { culture: 'HONBUN-ES el ambiente es abierto', wlb: 'HONBUN-ES la programación cambia tarde' } };
   w.rows.get('ana')[2].translations = null;                       // 訳がまだ入っていない1件
-  w.model = (req) => (req.system === SR.systemPrompt('en')
-    ? modelOk({ good: [{ text: EN_G, cat: 'culture', reviews: [1, 2] }], concern: [{ text: EN_C, cat: 'wlb', reviews: [1, 2] }] })
-    : modelOk(GOOD_REPLY));
-  const r = await call(w, event('INSERT', 'ana'), {}, BOTH.handle);
-  ck('日本語と英語を1回ずつ作る', r.body,
-     { ok: true, mode: 'event', checked: 2, calls: 2, deferred: 0,
+  w.model = reply3;
+  /* ★本物の DB は一覧を言語の字の順（en・es・ja）で返す。その並びで返しても、作るのは日本語が先（LANGS の順）。 */
+  const dbOrder = (name, p, ww) => {
+    if (name !== 'pv_review_summary_due') return undefined;
+    const d = ww.rpc.pv_review_summary_due(p);
+    return { raw: { ...d, due: [...d.due].sort((a, b) => (a.lang < b.lang ? -1 : a.lang > b.lang ? 1 : 0)) } };
+  };
+  const r = await call(w, event('INSERT', 'ana'), { rpc: dbOrder }, ALL.handle);
+  ck('1社の知らせで、日本語・英語・スペイン語を1回ずつ作る（上限の4回に収まる・見送りなし）', r.body,
+     { ok: true, mode: 'event', checked: 3, calls: 3, deferred: 0,
        results: [{ airline: 'ana', lang: 'ja', state: 'saved', n: 3, good: 1, concern: 1, dropped: 0 },
-                 { airline: 'ana', lang: 'en', state: 'saved', n: 3, good: 1, concern: 1, dropped: 0 }] });
-  ck('DB には両方の言語を聞く', rpcs(w, 'pv_review_summary_due').map((h) => h.p), [{ langs: ['ja', 'en'], airline: 'ana' }]);
-  ck('文面は言語ごと', w.modelCalls.map((m) => m.req.system), [SR.systemPrompt('ja'), SR.systemPrompt('en')]);
-  const en = w.modelCalls[1].req.messages[0].content;
-  ok('英語の回には訳を渡す（訳がまだ無い1件だけは原文のまま）',
-     en.includes('[1]\nculture: HONBUN-EN the atmosphere is open') && en.includes('[3]\nculture: ホンブン') && !en.includes('[1]\nculture: ホンブン'), en.slice(0, 120));
-  ck('日本語の回には原文を渡す', w.modelCalls[0].req.messages[0].content.includes('HONBUN-EN'), false);
-  ck('言語ごとに預かる（英語の字数の上限で検品している）',
-     [w.stored.get('ana|ja').good[0].text, w.stored.get('ana|en').good[0].text, w.stored.get('ana|en').concern[0].k], [G_TEXT, EN_G, 2]);
-  ck('次の知らせでは、どちらの言語も呼ばない', [(await call(w, event('UPDATE', 'ana'), {}, BOTH.handle)).body.calls, w.modelCalls.length], [0, 2]);
+                 { airline: 'ana', lang: 'en', state: 'saved', n: 3, good: 1, concern: 1, dropped: 0 },
+                 { airline: 'ana', lang: 'es', state: 'saved', n: 3, good: 1, concern: 1, dropped: 0 }] });
+  ck('DB には3つの言語を聞く', rpcs(w, 'pv_review_summary_due').map((h) => h.p), [{ langs: ['ja', 'en', 'es'], airline: 'ana' }]);
+  ck('★DB の一覧が en・es・ja の順でも、モデルを呼ぶのは日本語が先（文面は言語ごと）', w.modelCalls.map((m) => byLang(m.req)), ['ja', 'en', 'es']);
+  const en = w.modelCalls[1].req.messages[0].content, es = w.modelCalls[2].req.messages[0].content;
+  ok('英語の回には英語の訳・スペイン語の回にはスペイン語の訳を渡す（訳がまだ無い1件だけは原文のまま）',
+     en.includes('[1]\nculture: HONBUN-EN the atmosphere is open') && en.includes('[3]\nculture: ホンブン') && !en.includes('HONBUN-ES')
+     && es.includes('[1]\nculture: HONBUN-ES el ambiente es abierto') && es.includes('[3]\nculture: ホンブン') && !es.includes('HONBUN-EN'), es.slice(0, 160));
+  ck('日本語の回には原文を渡す', /HONBUN-(EN|ES)/.test(w.modelCalls[0].req.messages[0].content), false);
+  ck('言語ごとに預かる（その言語の字数の上限で検品している）',
+     [w.stored.get('ana|ja').good[0].text, w.stored.get('ana|en').good[0].text, w.stored.get('ana|es').good[0].text, w.stored.get('ana|es').concern[0].k], [G_TEXT, EN_G, ES_G, 2]);
+  ck('次の知らせでは、どの言語も呼ばない', [(await call(w, event('UPDATE', 'ana'), {}, ALL.handle)).body.calls, w.modelCalls.length], [0, 3]);
+
+  /* スペイン語にだけ訳が入った（英語・日本語の集合は同じ）── スペイン語だけを作り直す。 */
+  w.rows.get('ana')[2].translations = { es: { culture: 'HONBUN-ES llegó la traducción', wlb: 'HONBUN-ES llegó la traducción' } };
+  const t = await call(w, event('UPDATE', 'ana'), {}, ALL.handle);
+  ck('スペイン語の訳が入った知らせでは、スペイン語だけを1回作り直す', [t.body.calls, t.body.results.map((x) => [x.lang, x.state]), byLang(w.modelCalls.at(-1).req)], [1, [['es', 'saved']], 'es']);
+
+  /* 作っているあいだに1件入った ── 取り直しを入れても1回の上限（4回）に収まり、3つとも新しい集合で預ける。 */
+  const w2 = world(); w2.add('jal', 3);
+  w2.model = (req, ww, nth) => { if (nth === 1) ww.add('jal', 1); return reply3(req); };
+  const r2 = await call(w2, event('INSERT', 'jal'), {}, ALL.handle);
+  ck('3つの言語＋取り直し1回 ＝ 4回（上限ちょうど）で、見送りなし', [r2.body.calls, r2.body.deferred, r2.body.results.map((x) => [x.lang, x.state, x.n])],
+     [4, 0, [['ja', 'superseded', 3], ['ja', 'saved', 4], ['en', 'saved', 4], ['es', 'saved', 4]]]);
+
+  /* モデルが遅い（1回20秒）── 呼び始めは30秒まで。見送られるのは後ろの言語で、日本語は見送られない。 */
+  const w3 = world(); w3.add('peach', 3);
+  w3.model = (req, ww) => { ww.t += 20_000; return reply3(req); };
+  const r3 = await call(w3, event('INSERT', 'peach'), {}, ALL.handle);
+  ck('モデルが遅いと、30秒を過ぎた言語は見送る（日本語は先に作る）', [r3.body.calls, r3.body.deferred, r3.body.results.map((x) => [x.lang, x.state])],
+     [2, 1, [['ja', 'saved'], ['en', 'saved'], ['es', 'deferred']]]);
+  ck('見送った言語の番は取っていない・次の知らせ（訳が入ったときの UPDATE など）で作る',
+     [w3.runs.has('peach|es'), (await call(w3, event('UPDATE', 'peach'), {}, ALL.handle)).body.results.map((x) => [x.lang, x.state])], [false, [['es', 'saved']]]);
+
+  /* 前から日本語の要約を持つ会社が並ぶ（en・es はまだ無い）── {} の見回りを繰り返すと埋まる。日本語は作り直さない。 */
+  const w4 = world(); const five = ['b1', 'b2', 'b3', 'b4', 'b5'];
+  for (const a of five) { w4.add(a, 3); w4.store(a, 'ja'); }
+  w4.model = reply3;
+  const rounds = [];
+  for (let k = 0; k < 5; k++) { const x = (await call(w4, {}, {}, ALL.handle)).body; rounds.push([x.calls, x.deferred]); if (!x.deferred) break; }
+  ck('前から在る会社の英語・スペイン語は {} の見回りで埋まる（1回4件まで・deferred が 0 になるまで繰り返す）', rounds, [[4, 6], [4, 2], [2, 0]]);
+  ck('埋まったあと: 3つの言語とも作り直しは要らない・日本語のモデルは1回も呼んでいない',
+     [five.every((a) => ['ja', 'en', 'es'].every((l) => w4.need(a, l) === 'fresh')), w4.modelCalls.filter((m) => byLang(m.req) === 'ja').length], [true, 0]);
 });
 
 

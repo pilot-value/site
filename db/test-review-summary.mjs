@@ -7,7 +7,7 @@
    なぜ要るか
      要約は「数人の感想を、会社の顔として1か所に大きく出す」部品。間違えたときの害が
      口コミ1件より大きい。なので守る線を全部サーバ側に置いてあり、ここがその線を1本ずつ踏む。
-       ・本文を読めない人には、まとめの段落の先頭（lead・日本語60字／英語120字）と良い点の字（good・{text, cat}）しか
+       ・本文を読めない人には、まとめの段落の先頭（lead・日本語60字／英語120字／スペイン語140字）と良い点の字（good・{text, cat}）しか
          返らない（判定は本文と同じ関数・5 と 19。2026-10-30 オーナー指示「要約は60文字にしよう。会社のいいところは
          全部見せよう。悪いところだけぼかしを入れよう」）。気になる点・段落の残り・ids・件数は返らない
        ・要約が無いときの返事が、鍵の有無で変わらない
@@ -280,27 +280,28 @@ console.log('\n▼ 1. 写しの突き合わせ（SQL ⇄ 画面 ⇄ gen-review-s
   const bad = async (text, lang) =>
     (await one(`select public.pv_review_summary_bad($1::jsonb, $2, 3) e`, [J([{ text, cat: 'wlb', k: 2, ids: [R2, R3] }]), lang])).e;
   let lim = true;
-  for (const lang of ['ja', 'en']) {
+  for (const lang of ['ja', 'en', 'es']) {
     const { min, max } = LIMITS[lang];
     const ch = lang === 'ja' ? 'あ' : 'a';
     const got = [await bad(ch.repeat(min - 1), lang), await bad(ch.repeat(min), lang),
                  await bad(ch.repeat(max), lang), await bad(ch.repeat(max + 1), lang)];
     if (J(got) !== J(['text_too_short', null, null, 'text_too_long'])) { lim = false; console.log(`     ${lang}: ${J(got)}`); }
   }
-  ok(lim, `字数の境目が SQL と gen-review-summary.mjs で同じ（日本語 ${LIMITS.ja.min}〜${LIMITS.ja.max}・英語 ${LIMITS.en.min}〜${LIMITS.en.max}）`);
+  ok(lim, `字数の境目が SQL と gen-review-summary.mjs で同じ（日本語 ${LIMITS.ja.min}〜${LIMITS.ja.max}・英語 ${LIMITS.en.min}〜${LIMITS.en.max}・スペイン語 ${LIMITS.es?.min}〜${LIMITS.es?.max}）`);
   ok(LIMITS.ja.min === 8 && LIMITS.ja.max === 90, '日本語は 8〜90字（決めた線そのもの）');
+  ok(J(LIMITS.es) === J({ min: 18, max: 210 }), 'スペイン語は 18〜210字（決めた線そのもの・英語の約1.17倍 ── スペイン語は英語より2割近く長くなる）', J(LIMITS.es));
   ok(MAX_POINTS === 3 && MIN_REVIEWS === 3 && MIN_SUPPORT === 2, '3つまで・3件から・2件以上（gen-review-summary.mjs の定数）');
 
   /* ★全体の傾向の段落（overview・2026-10-30）の字数。写しは summarize-reviews/index.ts の OVERVIEW_LIMITS
      （gen-review-summary.mjs は出し直していないので、18 と同じく関数の本体から直に読む）。
      読めなくても（書きかけで落ちていても）ここで止めず、❌ を出して先へ進む。 */
-  let OVL = null;
-  try { OVL = (await import('../supabase/functions/summarize-reviews/index.ts')).OVERVIEW_LIMITS || null; }
+  let OVL = null, SRL = null;
+  try { const SR1 = await import('../supabase/functions/summarize-reviews/index.ts'); OVL = SR1.OVERVIEW_LIMITS || null; SRL = SR1.LANGS || null; }
   catch (e) { console.log(`     index.ts を読めない: ${String((e && e.message) || e).slice(0, 200)}`); }
-  ok(!!(OVL && OVL.ja && OVL.en), 'summarize-reviews/index.ts から OVERVIEW_LIMITS を読めた', J(OVL));
+  ok(!!(OVL && OVL.ja && OVL.en && OVL.es), 'summarize-reviews/index.ts から OVERVIEW_LIMITS を読めた', J(OVL));
   const ovBad = async (text, lang) => (await one(`select public.pv_review_summary_overview_bad($1, $2) e`, [text, lang])).e;
-  let ovLim = !!(OVL && OVL.ja && OVL.en);
-  for (const lang of ['ja', 'en']) {
+  let ovLim = !!(OVL && OVL.ja && OVL.en && OVL.es);
+  for (const lang of ['ja', 'en', 'es']) {
     if (!ovLim) break;
     const { min, max } = OVL[lang];
     const ch = lang === 'ja' ? 'あ' : 'a';
@@ -308,13 +309,20 @@ console.log('\n▼ 1. 写しの突き合わせ（SQL ⇄ 画面 ⇄ gen-review-s
                  await ovBad(ch.repeat(max), lang), await ovBad(ch.repeat(max + 1), lang)];
     if (J(got) !== J(['text_too_short', null, null, 'text_too_long'])) { ovLim = false; console.log(`     ${lang}: ${J(got)}`); }
   }
-  ok(ovLim, `段落の字数の境目が SQL と index.ts の OVERVIEW_LIMITS で同じ（日本語 ${OVL?.ja?.min}〜${OVL?.ja?.max}・英語 ${OVL?.en?.min}〜${OVL?.en?.max}）`);
-  ok(J(OVL) === J({ ja: { min: 40, max: 220 }, en: { min: 80, max: 440 } }), '段落は 日本語 40〜220字・英語 80〜440字（決めた線そのもの）', J(OVL));
+  ok(ovLim, `段落の字数の境目が SQL と index.ts の OVERVIEW_LIMITS で同じ（日本語 ${OVL?.ja?.min}〜${OVL?.ja?.max}・英語 ${OVL?.en?.min}〜${OVL?.en?.max}・スペイン語 ${OVL?.es?.min}〜${OVL?.es?.max}）`);
+  ok(J(OVL) === J({ ja: { min: 40, max: 220 }, en: { min: 80, max: 440 }, es: { min: 90, max: 520 } }), '段落は 日本語 40〜220字・英語 80〜440字・スペイン語 90〜520字（決めた線そのもの）', J(OVL));
   /* 決めた線そのものの境目を、SQL にも直接聞く（写しの片方が両方とも動いた、を捕まえる）。 */
   const edges = [await ovBad('あ'.repeat(39), 'ja'), await ovBad('あ'.repeat(40), 'ja'), await ovBad('あ'.repeat(220), 'ja'), await ovBad('あ'.repeat(221), 'ja'),
                  await ovBad('a'.repeat(79), 'en'), await ovBad('a'.repeat(80), 'en'), await ovBad('a'.repeat(440), 'en'), await ovBad('a'.repeat(441), 'en')];
   ok(J(edges) === J(['text_too_short', null, null, 'text_too_long', 'text_too_short', null, null, 'text_too_long']),
      '段落の境目（日本語 39/40/220/221字・英語 79/80/440/441字）', J(edges));
+  const esEdges = [await ovBad('a'.repeat(89), 'es'), await ovBad('a'.repeat(90), 'es'), await ovBad('a'.repeat(520), 'es'), await ovBad('a'.repeat(521), 'es'), await ovBad('', 'es')];
+  ok(J(esEdges) === J(['text_too_short', null, null, 'text_too_long', null]), '段落の境目（スペイン語 89/90/520/521字・空は通る）', J(esEdges));
+  /* 作る言語（index.ts の LANGS）を、SQL がどれも受け付けること ── 片方だけ足すと、一覧ごと bad_lang で断られて日本語も止まる。 */
+  const langOk = [];
+  for (const l of SRL || []) langOk.push([l, await bad('a'.repeat(LIMITS[l].min), l), await ovBad('', l)]);
+  ok(Array.isArray(SRL) && SRL.length > 0 && langOk.every(([, b, o]) => b === null && o === null) && (await bad('a'.repeat(30), 'pt')) === 'bad_lang',
+     `作る言語（${J(SRL)}）は全部 SQL が受け付ける・知らない言語（pt）は bad_lang`, J(langOk));
   const ovOther = [await ovBad('', 'ja'), await ovBad('', 'en'), await ovBad(null, 'ja'), await ovBad('あ'.repeat(50), 'fr'),
                    await ovBad('あ'.repeat(50) + '２', 'ja'), await ovBad('あ'.repeat(50) + '¥', 'ja'), await ovBad('あ'.repeat(50) + '三千万円', 'ja'),
                    await ovBad('<b>' + 'あ'.repeat(50) + '</b>', 'ja'), await ovBad(' ' + 'あ'.repeat(50), 'ja'), await ovBad('あ'.repeat(25) + '\n' + 'あ'.repeat(25), 'ja'),
@@ -348,6 +356,8 @@ console.log('\n▼ 2. 預かった要約が無いとき ── 3件以上なら�
   ok(J(await rpc('pv_review_summary', {})) === J({ ok: false, error: 'bad_airline' }), '空の引数は bad_airline');
   ok(J(await rpc('pv_review_summary', null)) === J({ ok: false, error: 'bad_airline' }), 'null でも落ちずに bad_airline');
   ok(J(await rpc('pv_review_summary', { airline: 'ana', lang: 'fr' })) === J({ ok: false, error: 'bad_lang' }), '知らない言語は bad_lang');
+  ok(J(await rpc('pv_review_summary', { airline: 'ana', lang: 'es' })) === want && J(await rpc('pv_review_summary', { airline: 'ana', lang: 'pt' })) === J({ ok: false, error: 'bad_lang' }),
+     'スペイン語（es）は読める言語（まだ預かっていないので none）・ポルトガル語（pt）は bad_lang');
   ok(J(await rpc('pv_review_summary', { airline: 'ana' })) === J({ ok: false, error: 'bad_lang' }), '言語が無ければ bad_lang');
   ok(J(await rpc('pv_review_summary', { airline: '  ANA ', lang: 'ja' })) === want, '会社コードの前後の空白・大文字はそろえて読む');
   await asOwner();
@@ -430,6 +440,10 @@ console.log('\n▼ 4. 預けるときの検査（運営が呼んでも、線を�
     ['古い短いコード（cathay）',                   anaPayload({ airline: 'cathay' }),                       'bad_airline'],
     ['知らない言語',                               anaPayload({ lang: 'fr' }),                              'bad_lang'],
     ['英語として預けるには短い文（15字）',         anaPayload({ lang: 'en', good: [T('a'.repeat(15))], concern: [] }), 'text_too_short'],
+    ['スペイン語として預けるには短い文（17字）',   anaPayload({ lang: 'es', good: [T('a'.repeat(17))], concern: [] }), 'text_too_short'],
+    ['スペイン語でも長すぎる文（211字）',          anaPayload({ lang: 'es', good: [T('a'.repeat(211))], concern: [] }), 'text_too_long'],
+    ['スペイン語の段落が長すぎる（521字）',        anaPayload({ lang: 'es', overview: 'a'.repeat(521), good: [T('a'.repeat(210))], concern: [] }), 'bad_overview'],
+    ['ポルトガル語（pt）',                         anaPayload({ lang: 'pt' }),                              'bad_lang'],
   ];
   for (const [label, p, want] of cases) {
     const r = await putAs(OP, p);
@@ -535,6 +549,14 @@ let today;
       ['x'.repeat(120) + ' and more', 'en', 'x'.repeat(120), '英語: 121字目が空白なら120字で切る'],
       ['abcd '.repeat(30), 'en', 'abcd '.repeat(24).trimEnd(), '英語: 120字目が空白で121字目が語の頭なら、その空白の手前まで（うしろの空白は落とす）'],
       [null, 'ja', null, '段落が null'], ['', 'en', null, "段落が ''"], ['あ'.repeat(80), 'fr', null, '知らない言語'],
+      /* スペイン語（2026-11-03）── 140字・語の途中で切らない（英語と同じ切り方で、長さだけ違う）。 */
+      ['x'.repeat(140), 'es', null, 'スペイン語140字ちょうど → 出さない'],
+      ['x'.repeat(150), 'es', 'x'.repeat(140), 'スペイン語: 140字の中に空白が無ければ140字のまま'],
+      ['abcdefgh '.repeat(20), 'es', 'abcdefgh '.repeat(15).trimEnd(), 'スペイン語: 141字目が語の途中なら、最後の空白の手前まで戻す'],
+      ['x'.repeat(140) + ' y más', 'es', 'x'.repeat(140), 'スペイン語: 141字目が空白なら140字で切る'],
+      ['á'.repeat(150), 'es', 'á'.repeat(140), 'スペイン語: アクセントの付いた字も1字と数える（バイトで数えない）'],
+      ['x'.repeat(125) + ' ' + 'y'.repeat(20), 'es', 'x'.repeat(125), 'スペイン語: 英語の上限（120字）では切らない'],
+      [null, 'es', null, 'スペイン語の段落が null'],
     ];
     for (const [t, l, want, name] of CASES) {
       const got = await leadSql(t, l);
@@ -574,6 +596,28 @@ let today;
        && J(await getAs(NOKEY, 'ana', 'en')) === J(shutOf('locked', { lead: LEAD_EN, good: [EN_G] })),
        '★英語も、鍵の無い人へは段落の先頭（120字・語の途中で切らない）と良い点の字だけ', J(await getAs(NOKEY, 'ana', 'en')));
     ok((await getAs(KEYED, 'ana', 'en')).overview === OV_EN, '（英語の open は段落を丸ごと）');
+
+    /* スペイン語（2026-11-03）。140字・語の途中で切らない。日本語・英語の行とは別に預かる。 */
+    const ES_G = { text: 'Entrenamiento: varias reseñas dicen que los instructores son cuidadosos y pacientes.', cat: 'training', k: 2, ids: [R1, R2] };
+    const ES_PT = { text: 'Programación: varias reseñas mencionan cambios de último momento.', cat: 'wlb', k: 2, ids: [R2, R3] };
+    const OV_ES = 'Varias reseñas dicen que la programación cambia a menudo con poca anticipación. El entrenamiento se describe como cuidadoso y los instructores, como pacientes.';
+    const LEAD_ES = 'Varias reseñas dicen que la programación cambia a menudo con poca anticipación. El entrenamiento se describe como cuidadoso y los';
+    const SHORT_ES = 'Varias reseñas dicen que la programación cambia con poca anticipación, y que el entrenamiento es cuidadoso.';
+    const esPut = (ov, good = [ES_G]) => putAs(OP, { airline: 'ana', lang: 'es', n: 3, newest: NEWEST_ANA, overview: ov, good, concern: [ES_PT] });
+    ok([...OV_ES].length > 140 && [...LEAD_ES].length <= 140 && [...SHORT_ES].length <= 140 && [...SHORT_ES].length >= 90, '（見本: 長い段落は140字を超え・短い段落は140字以下で段落の線の内側）');
+    ok((await esPut(OV_ES)).state === 'saved', '（スペイン語も段落つきで預ける）');
+    ok(J(await getAs('anon', 'ana', 'es')) === J(shutOf('login', { lead: LEAD_ES, good: [ES_G] }))
+       && J(await getAs(NOKEY, 'ana', 'es')) === J(shutOf('locked', { lead: LEAD_ES, good: [ES_G] })),
+       '★スペイン語も、鍵の無い人へは段落の先頭（140字・語の途中で切らない）と良い点の字だけ', J(await getAs(NOKEY, 'ana', 'es')));
+    const opEs = await getAs(KEYED, 'ana', 'es');
+    ok(opEs.state === 'open' && opEs.overview === OV_ES && J((opEs.concern || []).map((p) => p.text)) === J([ES_PT.text]) && sameSet(opEs.good?.[0]?.ids, ES_G.ids),
+       '（スペイン語の open は段落を丸ごと・点は ids つき）', J(opEs));
+    ok((await getAs(KEYED, 'ana', 'en')).overview === OV_EN && (await getAs(KEYED, 'ana')).overview === OV_ANA, '（スペイン語を預けても、日本語・英語の行はそのまま）');
+    ok((await esPut(SHORT_ES)).state === 'saved'
+       && J(await getAs('anon', 'ana', 'es')) === J(shutOf('login', { good: [ES_G] })) && J(await getAs(NOKEY, 'ana', 'es')) === J(shutOf('locked', { good: [ES_G] })),
+       '★スペイン語の段落が140字以下なら lead の鍵ごと無い（良い点は返る）');
+    ok(J(await putAs(OP, { airline: 'ana', lang: 'es', good: [], concern: [] })) === J({ ok: true, state: 'deleted' }) && await stored('ana', 'es') === 0,
+       '（スペイン語の行を消して、この節の前の形に戻す）');
 
     /* 段落が上限以下 ── lead を返さない（良い点は返る）。 */
     const SHORT_JA = '勤務の変更が直前に来るという声が目立ちます。訓練については、教え方が丁寧だという声が複数の口コミにそろって見られます。';
@@ -833,10 +877,49 @@ console.log('\n▼ 8. 表は直に読めない・書けない／中の部品は�
      '手で入れられた行（指紋がでたらめ）は、表に在っても出さない（口コミの無い会社は few）');
   await db.exec(`delete from public.pv_review_summaries where airline = 'jal'`);
   ok(/pv_review_summaries_lang_chk/.test(await boom(`insert into public.pv_review_summaries(airline, lang, n, newest_at, sig, good) values('jal','fr',3,now(),'x',$1::jsonb)`, [J([G()])]) || ''), '手で入れても知らない言語は入らない');
+  ok(await boom(`insert into public.pv_review_summaries(airline, lang, n, newest_at, sig, good) values('jal','es',3,now(),'x',$1::jsonb)`, [J([G()])]) === null,
+     '言語の錠はスペイン語（es）を通す');
+  await db.exec(`delete from public.pv_review_summaries where airline = 'jal'`);
   ok(/foreign key|pv_review_summaries_airline_fkey/.test(await boom(`insert into public.pv_review_summaries(airline, lang, n, newest_at, sig, good) values('no-such-air','ja',3,now(),'x',$1::jsonb)`, [J([G()])]) || ''), '手で入れても名簿に無い会社は入らない');
 
-  const chk = await rows(read('db/review-summary.sql').slice(read('db/review-summary.sql').lastIndexOf("select '表は anon")));
-  ok(chk.length === 8 && chk.every((r) => r['結果'] === '✅'), 'ファイル末尾の検算が8行とも ✅（7行目 ＝ 全体の傾向の段落の口・8行目 ＝ 鍵の無い人へ返す段落の先頭と良い点の口）', J(chk));
+  const CHECK_SQL = read('db/review-summary.sql').slice(read('db/review-summary.sql').lastIndexOf("select '表は anon"));
+  const chk = await rows(CHECK_SQL);
+  ok(chk.length === 9 && chk.every((r) => r['結果'] === '✅'), 'ファイル末尾の検算が9行とも ✅（7行目 ＝ 全体の傾向の段落の口・8行目 ＝ 鍵の無い人へ返す段落の先頭と良い点の口・9行目 ＝ スペイン語の口）', J(chk));
+
+  /* 壊す証明（2026-11-03）── ja・en だけの前のファイルを貼った DB の形を作ると、9行目だけが ❌ になる。begin … rollback の中で動かす。
+     a) 言語の錠を ja・en だけに戻す／b) 段落の先頭の部品からスペイン語の枝を外す／c) 番を返す関数の言語の門を ja・en だけに戻す */
+  const sqlSrc = read('db/review-summary.sql');
+  const fnSrc = (name) => sqlSrc.slice(sqlSrc.indexOf(`create or replace function public.${name}(`), sqlSrc.indexOf(`revoke all on function public.${name}(`));
+  const broken = [
+    ['a) 言語の錠', `alter table public.pv_review_summaries drop constraint pv_review_summaries_lang_chk;
+                   alter table public.pv_review_summaries add constraint pv_review_summaries_lang_chk check (lang in ('ja', 'en')) not valid;`],
+    ['b) 段落の先頭', fnSrc('pv_review_summary_lead').replace(/  elsif p_lang = 'es' then\n    v_cap := 140;\n/, () => '')],
+    ['c) 番を返す関数の門', fnSrc('pv_review_summary_done').replace(`not in ('ja', 'en', 'es')`, () => `not in ('ja', 'en')`)],
+  ];
+  for (const [label, ddl] of broken) {
+    await asOwner(); await db.exec('begin');
+    let got = null;
+    try { await db.exec(ddl); got = await rows(CHECK_SQL); } catch (e) { got = String(e.message || e); }
+    await db.exec('rollback'); await asOwner();
+    ok(Array.isArray(got) && got.length === 9 && got[8]['結果'] === '❌' && got.slice(0, 8).every((r) => r['結果'] === '✅') && ddl.length > 80,
+       `壊す証明 ${label}を ja・en だけの形に戻すと、検算の9行目だけが ❌`, J(Array.isArray(got) ? got.map((r) => r['結果']) : got));
+  }
+  ok((await rows(CHECK_SQL)).every((r) => r['結果'] === '✅'), '（巻き戻したあと: 検算は9行とも ✅）');
+
+  /* 前の版（ja・en だけ）の言語の錠が在る DB に、このファイルを貼り直す ── drop → add で es を含む錠に入れ替わる（前から在る行はそのまま）。 */
+  {
+    await asOwner(); await db.exec('begin');
+    await db.exec(broken[0][1]);
+    const cnt = async () => (await one(`select count(*)::int c from public.pv_review_summaries`)).c;
+    const lockDef = async () => (await one(`select pg_get_constraintdef(oid) d from pg_constraint where conname = 'pv_review_summaries_lang_chk'`)).d;
+    const n0 = await cnt(), d0 = await lockDef();
+    let rp = null;
+    try { await db.exec(sqlSrc); rp = await rows(CHECK_SQL); } catch (e) { rp = String(e.message || e); }
+    const n1 = await cnt(), d1 = await lockDef();
+    await db.exec('rollback'); await asOwner();
+    ok(!/'es'/.test(d0) && /'es'/.test(d1) && Array.isArray(rp) && rp.length === 9 && rp.every((r) => r['結果'] === '✅') && n0 === n1 && n0 > 0,
+       '前の版の言語の錠（ja・en だけ）が在る DB に貼り直しても流れる・錠が es を含む形に入れ替わる・預かった行はそのまま', J({ d0, d1, rp: Array.isArray(rp) ? rp.map((r) => r['結果']) : rp, n0, n1 }));
+  }
 }
 {
   await asOwner();
@@ -900,6 +983,43 @@ console.log('\n▼ 10. 英語');
   ok((await getAs(KEYED, 'ana', 'ja')).good?.[0]?.text === G().text, '日本語のほうはそのまま');
   ok(J(await getAs('anon', 'ana', 'en')) === J({ ok: true, state: 'login' }), '英語も、未ログインには login だけ');
   ok(J(await putAs(OP, { airline: 'ana', lang: 'en', n: 3, newest: NEWEST_ANA, good: [{ ...en, text: 'x'.repeat(181) }], concern: [] })) === J({ ok: false, error: 'text_too_long' }), '英語は181字で断る');
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 10-b. スペイン語（2026-11-03・中南米の /es/）');
+// ════════════════════════════════════════════════════════════
+{
+  const es = { text: 'Programación: varias reseñas mencionan cambios de último momento en la programación.', cat: 'wlb', k: 2, ids: [R2, R3] };
+  const r = await putAs(OP, { airline: 'ana', lang: 'es', n: 3, newest: NEWEST_ANA, good: [], concern: [es] });
+  ok(r.state === 'saved' && r.lang === 'es', 'スペイン語の要約は日本語・英語とは別に預かる', J(r));
+  const o = await getAs(KEYED, 'ana', 'es');
+  ok(o.state === 'open' && J((o.concern || []).map((p) => [p.text, p.cat])) === J([[es.text, 'wlb']])
+     && sameSet(o.concern?.[0]?.ids, es.ids) && J(o.good) === '[]', 'スペイン語で読める（点のもとの口コミも同じ）', J(o));
+  ok(await stored('ana', 'ja') === 1 && await stored('ana', 'en') === 1 && await stored('ana', 'es') === 1, '1社に3つの言語の行が並ぶ（主キーは会社 × 言語）');
+
+  /* ★指紋は言語ごと。日本語で書かれた口コミにスペイン語の訳が入ると、スペイン語の指紋だけが変わる（英語・日本語は作り直さない）。 */
+  const needOf = async (l) => { await asOwner(); return (await one(`select public.pv_review_summary_need('ana', $1) as v`, [l])).v; };
+  await asOwner(); await db.exec(`begin`);
+  await db.query(`update public.reviews_v2 set translations = '{"es":{"wlb":"x"}}'::jsonb where id = $1`, [R2]);
+  const oe = await getAs(KEYED, 'ana', 'es'), oen = await getAs(KEYED, 'ana', 'en');
+  const ns = [await needOf('es'), await needOf('en'), await needOf('ja')];
+  ok(J(oe) === J({ ok: true, state: 'none' }) && oen.state === 'open' && J(ns) === J(['stale', 'fresh', 'fresh']),
+     'スペイン語の訳が入ったら、スペイン語の要約だけ出さない・作り直す（英語・日本語は fresh のまま）', J({ oe, en: oen.state, ns }));
+  await db.exec(`rollback`); await asOwner();
+  await db.exec(`begin`);
+  await db.query(`update public.reviews_v2 set translations = '{"en":{"wlb":"x"}}'::jsonb where id = $1`, [R2]);
+  const ns2 = [await needOf('es'), await needOf('en')];
+  ok((await getAs(KEYED, 'ana', 'es')).state === 'open' && J(ns2) === J(['fresh', 'stale']), '英語の訳だけなら、スペイン語の要約はそのまま（fresh）', J(ns2));
+  await db.exec(`rollback`); await asOwner();
+  ok(J([await needOf('es'), await needOf('en'), await needOf('ja')]) === J(['fresh', 'fresh', 'fresh']), '（訳を戻したあと: 3つの言語とも fresh）');
+
+  ok(J(await getAs('anon', 'ana', 'es')) === J({ ok: true, state: 'login' }) && J(await getAs(NOKEY, 'ana', 'es')) === J({ ok: true, state: 'locked' }),
+     'スペイン語も、鍵の無い人には login / locked だけ（良い点も段落も無い要約）');
+  ok(J(await putAs(OP, { airline: 'ana', lang: 'es', n: 3, newest: NEWEST_ANA, good: [{ ...es, text: 'x'.repeat(211) }], concern: [] })) === J({ ok: false, error: 'text_too_long' }), 'スペイン語は211字で断る');
+  const long = await putAs(OP, { airline: 'ana', lang: 'es', n: 3, newest: NEWEST_ANA, good: [], concern: [{ ...es, text: 'x'.repeat(200) }] });
+  ok(long.state === 'saved' && (await getAs(KEYED, 'ana', 'es')).concern?.[0]?.text?.length === 200, 'スペイン語は200字の点も預けられる（英語なら181字で断る長さ）', J(long));
+  ok((await putAs(OP, { airline: 'ana', lang: 'es', n: 3, newest: NEWEST_ANA, good: [], concern: [es] })).state === 'saved', '（元の1点に戻す ── スペイン語を預かっている ANA は 16 の一覧に出ない）');
 }
 
 
@@ -1397,6 +1517,11 @@ console.log('\n▼ 16. 3件を切った会社は消す／古い短いコード�
   const en = both.due.filter((d) => d.lang === 'en').map((d) => d.airline);
   ok(!en.includes('ana') && en.includes('jal') && en.includes(A_STAR) && en.includes(E) && both.due.filter((d) => d.lang === 'ja').length === 1,
      '英語を足すと、英語の要約がまだ無い会社が並ぶ（英語を預かっている ANA は出ない）', J(both.due));
+  const three = await dueOf(null, ['ja', 'en', 'es']);
+  const esDue = three.due.filter((d) => d.lang === 'es').map((d) => d.airline);
+  ok(three.checked === all.checked * 3 && !esDue.includes('ana') && esDue.includes('jal') && esDue.includes(E)
+     && J(three.due.filter((d) => d.lang !== 'es')) === J(both.due),
+     'スペイン語も足すと、スペイン語の要約がまだ無い会社が並ぶ（スペイン語を預かっている ANA は出ない・日本語と英語の並びは変わらない）', J(three.due));
 
   console.log('  ── SQL を貼り直しても、控えと要約は消えない ──');
   await asOwner();
@@ -1551,7 +1676,8 @@ console.log('\n▼ 18. 関数の本体を、本物の SQL につないで通し�
      ・DB への呼び出しは、関数が組み立てた宛先・鍵・本文をそのまま読み、同じ名前の SQL を
        サーバの鍵の役（service_role）で呼ぶ
      ・モデルは呼ばない。返事の代わりを返す（知らない宛先へ投げたら落とす）
-   ★作る言語が増えても（LANGS に 'en' を足しても）このまま通るように、言語の数で数える。 */
+   ★作る言語が増えても（LANGS に 'en' を足しても）このまま通るように、言語の数で数える。
+   ★2026-11-03 から LANGS は日本語・英語・スペイン語の3つ。モデルが考えているあいだに1件入る回は 3＋1 ＝ 4回 ＝ 1回の上限（MAX_CALLS）ちょうど。 */
 try {
   const SR = await import('../supabase/functions/summarize-reviews/index.ts');
   const LANGS = SR.LANGS;
@@ -1560,6 +1686,7 @@ try {
   const TEXT = {
     ja: { good: '訓練の教え方が丁寧だという声が複数ある', concern: '勤務の変更が直前に来るという声が複数ある', weak: '提案を聞いてもらえるという声がある' },
     en: { good: 'Several pilots say the training is careful and thorough.', concern: 'Several pilots say roster changes arrive at short notice.', weak: 'One pilot says suggestions are listened to.' },
+    es: { good: 'Entrenamiento: varias reseñas dicen que es cuidadoso y minucioso.', concern: 'Programación: varias reseñas dicen que los cambios llegan con poca anticipación.', weak: 'Una reseña dice que escuchan las sugerencias.' },
   };
   const net = { model: [], rpc: [], other: [], logs: [], results: [] };
   let modelStatus = 200;      // モデルの返事（200 以外なら落とす）
@@ -1885,6 +2012,9 @@ console.log('\n▼ 19. 全体の傾向の段落（overview・2026-10-30）──
   const eEn = await boom(`insert into public.pv_review_summaries(airline, lang, n, newest_at, sig, good, overview) values('qantas','en',3,now(),'x',$1::jsonb,$2)`,
                          [J([{ ...G(), text: 'Several pilots say the training is careful and thorough.' }]), 'a'.repeat(79)]);
   ok(/pv_review_summaries_overview_chk/.test(eEn || ''), '英語の行は英語の線で見る（79字は入らない）', eEn || '← 入ってしまった');
+  const eEs = await boom(`insert into public.pv_review_summaries(airline, lang, n, newest_at, sig, good, overview) values('qantas','es',3,now(),'x',$1::jsonb,$2)`,
+                         [J([{ ...G(), text: 'Varias reseñas dicen que el entrenamiento es cuidadoso.' }]), 'a'.repeat(89)]);
+  ok(/pv_review_summaries_overview_chk/.test(eEs || ''), 'スペイン語の行はスペイン語の線で見る（89字は入らない ── 英語なら通る長さ）', eEs || '← 入ってしまった');
   ok((await one(`select count(*)::int c from public.pv_review_summaries where airline = 'qantas'`)).c === 0 && (await row())?.overview === OV,
      '断られた直の書き込みのあとも、1行も増えていない・預かっていた段落はそのまま');
 

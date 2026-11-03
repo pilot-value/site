@@ -4,7 +4,7 @@
    出すのは db/review-summary.sql の pv_review_summary_set() に渡す JSON だけ。
 
    使い方
-     node gen-review-summary.mjs --in <口コミの束.json> --airline <会社コード> [--lang ja|en]
+     node gen-review-summary.mjs --in <口コミの束.json> --airline <会社コード> [--lang ja|en|es]
          既定は --dry。モデルへ送る文面を出して終わる（通信ゼロ・課金ゼロ・鍵も読まない）
      node gen-review-summary.mjs --in … --airline … --lang … --call
          Anthropic を1回呼び、検品を通った点だけを JSON で出す（⚠️ 課金される）
@@ -192,6 +192,20 @@ export async function selftest(log = console.log) {
                              { text: 'Good training.', cat: 'training', reviews: [1, 3] },
                              { text: 'Several pilots mention ' + 'x'.repeat(170), cat: 'ops', reviews: [1, 3] }], concern: [] }, { lang: 'en', n: 3 });
   ok(en.good.length === 1 && en.dropped.map((d) => d.why).join() === 'text_too_short,text_too_long', '英語は 16〜180字', JSON.stringify(en.dropped));
+  /* スペイン語（2026-11-03）── 英語より長い線（18〜210字）。英語なら長すぎる181〜210字の点も通る。 */
+  const es = settle({ good: [{ text: 'Ascenso a capitán: varias reseñas dicen que la espera es larga y que ' + 'x'.repeat(130), cat: 'training', reviews: [1, 3] },
+                             { text: 'Buen ambiente.', cat: 'culture', reviews: [1, 3] },
+                             { text: 'Varias reseñas mencionan ' + 'x'.repeat(190), cat: 'ops', reviews: [1, 3] }], concern: [] }, { lang: 'es', n: 3 });
+  ok(es.good.length === 1 && [...es.good[0].text].length > LIMITS.en.max && es.dropped.map((d) => d.why).join() === 'text_too_short,text_too_long',
+     `スペイン語は ${LIMITS.es.min}〜${LIMITS.es.max}字（英語の上限を超える点も通る）`, JSON.stringify(es.dropped));
+  const esOv = (n) => settle({ overview: 'a'.repeat(n), good: [{ text: 'Días libres: varias reseñas dicen que se respetan.', cat: 'wlb', reviews: [1, 2] }], concern: [] }, { lang: 'es', n: 3 }).overview.length;
+  ok(esOv(OVERVIEW_LIMITS.es.min - 1) === 0 && esOv(OVERVIEW_LIMITS.es.min) === OVERVIEW_LIMITS.es.min && esOv(OVERVIEW_LIMITS.es.max) === OVERVIEW_LIMITS.es.max && esOv(OVERVIEW_LIMITS.es.max + 1) === 0,
+     `スペイン語の段落は ${OVERVIEW_LIMITS.es.min}〜${OVERVIEW_LIMITS.es.max}字（境目の前後で確かめる）`);
+  ok(/Write everything in Spanish\./.test(systemPrompt('es')) && /Tema: explicación/.test(systemPrompt('es')) && /Ascenso a capitán/.test(systemPrompt('es'))
+     && /muchas reseñas, varias reseñas, las opiniones están divididas/.test(systemPrompt('es')) && /primer oficial/.test(systemPrompt('es')) && /do not use vosotros/.test(systemPrompt('es'))
+     && !/Write everything in (Japanese|English)/.test(systemPrompt('es')) && !/話題：説明/.test(systemPrompt('es')),
+     'スペイン語の文面：話題の例・広がりの言い方・中南米の操縦士の用語・「スペイン語で書く」（日本語や英語の書き方の指示は混ざらない）');
+  ok(!/Spanish|reseña|vosotros/.test(systemPrompt('ja')) && !/Spanish|reseña|vosotros/.test(systemPrompt('en')), '日本語・英語の文面にスペイン語の指示は入らない');
 
   log('\n▼ 口コミの束 → 材料');
   const rows = [
@@ -282,11 +296,11 @@ async function main(argv) {
   const call = argv.includes('--call');
   if (call && argv.includes('--dry')) { console.error('❌ --dry と --call は一緒に付けられません'); process.exit(1); }
   if (!file || !airline) {
-    console.error('使い方: node gen-review-summary.mjs --in <口コミの束.json> --airline <会社コード> [--lang ja|en] [--dry|--call]');
+    console.error('使い方: node gen-review-summary.mjs --in <口コミの束.json> --airline <会社コード> [--lang ja|en|es] [--dry|--call]');
     console.error('        node gen-review-summary.mjs --selftest');
     process.exit(1);
   }
-  if (!LIMITS[lang]) { console.error(`❌ --lang は ja か en: ${lang}`); process.exit(1); }
+  if (!LIMITS[lang]) { console.error(`❌ --lang は ja・en・es のどれか: ${lang}`); process.exit(1); }
   if (!existsSync(file)) { console.error(`❌ ファイルがありません: ${file}`); process.exit(1); }
 
   let rows;

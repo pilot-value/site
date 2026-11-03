@@ -64,7 +64,7 @@
 --     点と同じ線で確かめる（数字・通貨記号・タグ・前後の空白は入らない・字数は言語ごと）。
 --     検査は pv_review_summary_overview_bad() の1か所で、書く側・表の制約・読む側が同じこれを呼ぶ。
 --     段落を丸ごと返すのは open のときだけ（few / none / login / locked に overview の鍵は無い）。
---     鍵の無い人（login / locked）へは、段落の先頭（日本語60字・英語120字）だけを lead として返す（3-d・2026-10-30 オーナー指示）。
+--     鍵の無い人（login / locked）へは、段落の先頭（日本語60字・英語120字・スペイン語140字）だけを lead として返す（3-d・2026-10-30 オーナー指示）。
 --       ・overview が null の行 ＝ 段落ができる前（2026-10-30 より前）に預けた行。
 --         読む側は '' として返し、作り直しの判定（6-b）は**1回だけ**作り直させる。
 --       ・''（空）＝ 段落なし。正しい形（点が1つも残らなかった・検品で段落だけ落ちた）。
@@ -83,9 +83,10 @@
 --  ⚠️ 分類の鍵（cat）は会社ページの絞り込みチップと同じ6つ
 --     （airlines/airline-reviews-data.js の REVIEW_CATS）。'mgmt' は口コミの欄には
 --     在るがチップに無いので、要約の点には付けられない（押しても辿れない）。
---  ⚠️ 字数は言語で違う。日本語 8〜90字・英語 16〜180字（pv_review_summary_bad の1か所）。
+--  ⚠️ 字数は言語で違う。日本語 8〜90字・英語 16〜180字・スペイン語 18〜210字（pv_review_summary_bad の1か所）。
 --     gen-review-summary.mjs の LIMITS が写し。片方だけ動かさない。
---     全体の傾向の段落は 日本語 40〜220字・英語 80〜440字（pv_review_summary_overview_bad の1か所）。
+--     全体の傾向の段落は 日本語 40〜220字・英語 80〜440字・スペイン語 90〜520字（pv_review_summary_overview_bad の1か所）。
+--     ★スペイン語（es・2026-11-03 中南米の /es/）は英語より2割近く長くなるので、英語の線の約1.17倍にした。
 --     supabase/functions/summarize-reviews/index.ts の OVERVIEW_LIMITS が写し（db/test-review-summary.mjs が突き合わせる）。
 --  ⚠️ 検査用の制約は not valid で足している ── 規則をあとで厳しくしたとき、
 --     前に預けた行のせいで**このファイルごと流れなくなる**のを避けるため。
@@ -309,17 +310,17 @@ comment on function public.pv_review_summary_sig(text[], timestamptz, text) is
 -- ════════════════════════════════════════════════════════════════
 -- 3. 点の検査（書く側・表の制約・読む側の3か所が同じこれを呼ぶ）
 --
--- 引数: p_list = [{text, cat, k, ids}, …]／p_lang = 'ja' | 'en'／p_n = 口コミの件数
+-- 引数: p_list = [{text, cat, k, ids}, …]／p_lang = 'ja' | 'en' | 'es'／p_n = 口コミの件数
 -- 返り値: 問題なければ null。あれば理由の語（そのまま {ok:false, error} に載る）
---   bad_lang        言語が ja でも en でもない
+--   bad_lang        言語が ja・en・es のどれでもない
 --   bad_shape       配列ではない
 --   too_many        4つ以上ある
 --   bad_point       点が {text, cat, k, ids} の形でない（★ほかの鍵が1つでも在れば弾く
 --                   ＝ モデルの番号（reviews）などを付けたまま預けられない）
 --   not_plain_text  改行・タブなどの制御文字、< >、前後の空白がある
 --   has_figure      数字（全角・漢数字＋円を含む）・通貨記号が在る（数は口コミから数えたものしか出さない）
---   text_too_short  短すぎる（日本語 8字未満・英語 16字未満）
---   text_too_long   長すぎる（日本語 90字超・英語 180字超）
+--   text_too_short  短すぎる（日本語 8字未満・英語 16字未満・スペイン語 18字未満）
+--   text_too_long   長すぎる（日本語 90字超・英語 180字超・スペイン語 210字超）
 --   bad_cat         分類の鍵が6つのどれでもない
 --   weak_point      1件の口コミにしか支えられていない（k < 2）
 --   bad_k           k が整数でない・口コミの件数より多い
@@ -345,6 +346,8 @@ begin
     v_lo := 8;  v_hi := 90;
   elsif p_lang = 'en' then
     v_lo := 16; v_hi := 180;
+  elsif p_lang = 'es' then
+    v_lo := 18; v_hi := 210;
   else
     return 'bad_lang';
   end if;
@@ -416,14 +419,14 @@ comment on function public.pv_review_summary_bad(jsonb, text, integer) is
 
 
 -- 3-a. 全体の傾向の段落（overview）の検査（約束 8）。点と同じ線で見る。
--- 引数: p_text = 段落の字／p_lang = 'ja' | 'en'
+-- 引数: p_text = 段落の字／p_lang = 'ja' | 'en' | 'es'
 -- 返り値: 問題なければ null。あれば理由の語（書く側はまとめて bad_overview で断る）
---   bad_lang        言語が ja でも en でもない
+--   bad_lang        言語が ja・en・es のどれでもない
 --   bad_shape       null（「段落ができる前の行」は、呼ぶ側が null を先に受け取る）
 --   not_plain_text  改行・タブなどの制御文字、< >、前後の空白がある
 --   has_figure      数字（全角・漢数字＋円を含む）・通貨記号が在る（点と同じ式）
---   text_too_short  短すぎる（日本語 40字未満・英語 80字未満）
---   text_too_long   長すぎる（日本語 220字超・英語 440字超）
+--   text_too_short  短すぎる（日本語 40字未満・英語 80字未満・スペイン語 90字未満）
+--   text_too_long   長すぎる（日本語 220字超・英語 440字超・スペイン語 520字超）
 -- ★ ''（空）は通る ＝ 段落なし（点が1つも残らなかった・検品で段落だけ落ちた）。
 -- ⚠️ 字数は supabase/functions/summarize-reviews/index.ts の OVERVIEW_LIMITS が写し。片方だけ動かさない。
 create or replace function public.pv_review_summary_overview_bad(p_text text, p_lang text)
@@ -440,6 +443,8 @@ begin
     v_lo := 40; v_hi := 220;
   elsif p_lang = 'en' then
     v_lo := 80; v_hi := 440;
+  elsif p_lang = 'es' then
+    v_lo := 90; v_hi := 520;
   else
     return 'bad_lang';
   end if;
@@ -479,9 +484,10 @@ comment on function public.pv_review_summary_overview_bad(text, text) is
 --   全体の傾向の段落も、3-a を通らない字（数字・タグ・字数の外）は入らない。
 --   （id が本当に口コミかは表の制約では見られない ── 預かる時と読む時に pv_review_summary_backed が見る）
 -- ⚠️ not valid ＝ 前から在る行は見直さない（冒頭の罠）。新しく入る行には効く。
+-- ★言語の錠は drop → add（2026-11-03 に es を足した）── ja・en だけの古い制約が在る DB に貼り直しても、ここで入れ替わる。
 alter table public.pv_review_summaries drop constraint if exists pv_review_summaries_lang_chk;
 alter table public.pv_review_summaries add  constraint pv_review_summaries_lang_chk
-  check (lang in ('ja', 'en')) not valid;
+  check (lang in ('ja', 'en', 'es')) not valid;
 
 alter table public.pv_review_summaries drop constraint if exists pv_review_summaries_n_chk;
 alter table public.pv_review_summaries add  constraint pv_review_summaries_n_chk
@@ -557,10 +563,11 @@ comment on function public.pv_review_summary_backed(jsonb, text[], timestamptz) 
 --   日本語 … 先頭60字（char_length で60）
 --   英語   … 先頭120字。語の途中で切らない ── 121字目が空白でなければ、120字の中の最後の空白まで戻す
 --              （120字の中に空白が無ければ120字のまま）
+--   スペイン語 … 先頭140字（英語より2割近く長くなるぶん・2026-11-03）。語の途中で切らないのは英語と同じ
 --   前後の空白は落とす。
--- ★段落が上限以下（日本語60字以下・英語120字以下）なら null ＝ lead の鍵ごと無い。
+-- ★段落が上限以下（日本語60字以下・英語120字以下・スペイン語140字以下）なら null ＝ lead の鍵ごと無い。
 --   短い段落を丸ごと渡すと、画面の「続きはぼかし」が嘘になる（続きが無いのにぼかしが乗る）。
--- ★段落が null（段落ができる前の行）・''（段落なし）・ja / en 以外の言語も null。
+-- ★段落が null（段落ができる前の行）・''（段落なし）・ja / en / es 以外の言語も null。
 -- ★読む関数（4）が、段落の検査（3-a）を通ったあとの字にだけ使う。
 create or replace function public.pv_review_summary_lead(p_overview text, p_lang text)
 returns text
@@ -577,6 +584,8 @@ begin
     v_cap := 60;
   elsif p_lang = 'en' then
     v_cap := 120;
+  elsif p_lang = 'es' then
+    v_cap := 140;
   else
     return null;
   end if;
@@ -585,8 +594,8 @@ begin
   end if;
 
   v_one := left(v_txt, v_cap);
-  -- 英語は語の途中で切らない（121字目が空白でなければ、最後の空白の手前まで）
-  if p_lang = 'en' and substr(v_txt, v_cap + 1, 1) !~ '\s' then
+  -- 英語・スペイン語は語の途中で切らない（上限の次の字が空白でなければ、最後の空白の手前まで）
+  if p_lang in ('en', 'es') and substr(v_txt, v_cap + 1, 1) !~ '\s' then
     v_one := coalesce(substring(v_one from '^(.*)\s'), v_one);
   end if;
 
@@ -601,13 +610,13 @@ $fn$;
 revoke all on function public.pv_review_summary_lead(text, text) from public, anon, authenticated;
 
 comment on function public.pv_review_summary_lead(text, text) is
-  'まとめの段落の先頭（日本語60字・英語120字。英語は語の途中で切らない）。段落が上限以下・段落が無い・知らない言語なら null。鍵の無い人へ返す lead の出どころ。誰にも grant しない。';
+  'まとめの段落の先頭（日本語60字・英語120字・スペイン語140字。英語とスペイン語は語の途中で切らない）。段落が上限以下・段落が無い・知らない言語なら null。鍵の無い人へ返す lead の出どころ。誰にも grant しない。';
 
 
 -- ════════════════════════════════════════════════════════════════
 -- 4. 読む（会社ページが呼ぶ）
 -- ════════════════════════════════════════════════════════════════
--- 引数: p = {airline:'<会社コード>', lang:'ja'|'en'}
+-- 引数: p = {airline:'<会社コード>', lang:'ja'|'en'|'es'}
 -- 返り値:
 --   {ok:false, error:'bad_airline'|'bad_lang'}   引数が変（名簿に無い会社など）
 --   {ok:true,  state:'few'}      いま読める口コミが3件に満たない（0件を含む）
@@ -646,7 +655,7 @@ begin
                   where a.code = v_air and a.code <> 'other') then
     return jsonb_build_object('ok', false, 'error', 'bad_airline');
   end if;
-  if v_lang not in ('ja', 'en') then
+  if v_lang not in ('ja', 'en', 'es') then
     return jsonb_build_object('ok', false, 'error', 'bad_lang');
   end if;
 
@@ -732,7 +741,7 @@ comment on function public.pv_review_summary(jsonb) is
 --   {ok:true, state:'saved', airline, lang, n, as_of}
 --   {ok:true, state:'deleted'}
 --   {ok:false, error:…}
---     bad_airline / bad_lang   名簿に無い会社・ja でも en でもない
+--     bad_airline / bad_lang   名簿に無い会社・ja・en・es のどれでもない
 --     bad_shape                good か concern が配列で届いていない
 --                              （★鍵ごと無いときも弾く。書き損じで消えないように）
 --     bad_n / bad_newest       n が整数でない・newest が時刻として読めない／先の時刻
@@ -777,7 +786,7 @@ begin
                   where a.code = v_air and a.code <> 'other') then
     return jsonb_build_object('ok', false, 'error', 'bad_airline');
   end if;
-  if v_lang not in ('ja', 'en') then
+  if v_lang not in ('ja', 'en', 'es') then
     return jsonb_build_object('ok', false, 'error', 'bad_lang');
   end if;
   if jsonb_typeof(v_good) is distinct from 'array'
@@ -1098,7 +1107,7 @@ begin
      or jsonb_array_length(v_langs) = 0
      or exists (select 1 from jsonb_array_elements(v_langs) e
                  where jsonb_typeof(e) <> 'string'
-                    or (e #>> '{}') not in ('ja', 'en')) then
+                    or (e #>> '{}') not in ('ja', 'en', 'es')) then
     return jsonb_build_object('ok', false, 'error', 'bad_lang');
   end if;
 
@@ -1135,7 +1144,7 @@ comment on function public.pv_review_summary_due(jsonb) is
 
 
 -- 6-d. 1社ぶんの番を取り、材料を受け取る。
--- 引数: p = {airline:'<いまの会社コード>', lang:'ja'|'en'}
+-- 引数: p = {airline:'<いまの会社コード>', lang:'ja'|'en'|'es'}
 -- 返り値:
 --   {ok:false, error:'bad_airline'|'bad_lang'}
 --   {ok:true, state:'go', why:'missing'|'stale', n, basis, rows:[…]}
@@ -1171,7 +1180,7 @@ begin
                   where a.code = v_air and a.code <> 'other') then
     return jsonb_build_object('ok', false, 'error', 'bad_airline');
   end if;
-  if v_lang not in ('ja', 'en') then
+  if v_lang not in ('ja', 'en', 'es') then
     return jsonb_build_object('ok', false, 'error', 'bad_lang');
   end if;
 
@@ -1285,7 +1294,7 @@ begin
                   where a.code = v_air and a.code <> 'other') then
     return jsonb_build_object('ok', false, 'error', 'bad_airline');
   end if;
-  if v_lang not in ('ja', 'en') then
+  if v_lang not in ('ja', 'en', 'es') then
     return jsonb_build_object('ok', false, 'error', 'bad_lang');
   end if;
   if v_basis !~ '^[0-9a-f]{32}$' then
@@ -1382,7 +1391,7 @@ declare
   v_state text := coalesce(p ->> 'state', '');
   v_hit   boolean;
 begin
-  if v_lang not in ('ja', 'en') then
+  if v_lang not in ('ja', 'en', 'es') then
     return jsonb_build_object('ok', false, 'error', 'bad_lang');
   end if;
   if v_basis !~ '^[0-9a-f]{32}$' then
@@ -1430,11 +1439,12 @@ $grant$;
 
 
 -- ════════════════════════════════════════════════════════════════
--- 検算（貼ったあと、8行とも ✅ になっていること）
+-- 検算（貼ったあと、9行とも ✅ になっていること）
 --   ⚠️ 6行目は service_role という役が在る DB でだけ ✅ になる（Supabase には必ず在る）。
 --   ★7行目は全体の傾向の段落（overview）の口が入ったか（2026-10-30）。❌ なら、段落の入る前のこのファイルを貼っている。
 --   ★8行目は鍵の無い人へ返す段落の先頭（lead・60字／120字）と良い点（good）の口が入ったか（2026-10-30）。
 --     ❌ なら、その前のこのファイル（1文で切っていた版も含む）を貼っている。
+--   ★9行目はスペイン語（es）の口が入ったか（2026-11-03）。❌ なら、ja・en だけの前のこのファイルを貼っている。
 -- ════════════════════════════════════════════════════════════════
 select '表は anon / authenticated から直に読めない' as 確認,
        case when not has_table_privilege('anon', 'public.pv_review_summaries', 'select')
@@ -1524,4 +1534,25 @@ select '鍵の無い人へは、まとめの段落の先頭（lead）と良い�
              and pg_get_functiondef('public.pv_review_summary(jsonb)'::regprocedure) like '%pv_review_summary_lead(v_row.overview%'
              and pg_get_functiondef('public.pv_review_summary(jsonb)'::regprocedure) like '%''state'', ''login'', ''lead'', v_lead, ''good'', v_good)%'
              and pg_get_functiondef('public.pv_review_summary(jsonb)'::regprocedure) like '%''state'', ''locked'', ''lead'', v_lead, ''good'', v_good)%'
+            then '✅' else '❌' end
+union all
+select 'スペイン語（es）の要約を受ける口が入っている',
+       case when exists (select 1 from pg_constraint k
+                          where k.conrelid = 'public.pv_review_summaries'::regclass
+                            and k.conname = 'pv_review_summaries_lang_chk'
+                            and pg_get_constraintdef(k.oid) like '%''es''%')
+             and public.pv_review_summary_bad('[]'::jsonb, 'es', 3) is null
+             and public.pv_review_summary_bad('[]'::jsonb, 'pt', 3) = 'bad_lang'
+             and public.pv_review_summary_overview_bad(repeat('a', 89), 'es') = 'text_too_short'
+             and public.pv_review_summary_overview_bad(repeat('a', 520), 'es') is null
+             and public.pv_review_summary_overview_bad(repeat('a', 521), 'es') = 'text_too_long'
+             and public.pv_review_summary_lead(repeat('a', 150), 'es') = repeat('a', 140)
+             and public.pv_review_summary_lead(repeat('abcdef ', 22), 'es') = btrim(repeat('abcdef ', 20))
+             and public.pv_review_summary_lead(repeat('a', 140), 'es') is null
+             and not exists (
+                   select 1
+                     from (values ('public.pv_review_summary(jsonb)'), ('public.pv_review_summary_put(jsonb)'),
+                                  ('public.pv_review_summary_due(jsonb)'), ('public.pv_review_summary_take(jsonb)'),
+                                  ('public.pv_review_summary_set_auto(jsonb)'), ('public.pv_review_summary_done(jsonb)')) f(sig)
+                    where pg_get_functiondef(f.sig::regprocedure) not like '%''ja'', ''en'', ''es''%')
             then '✅' else '❌' end;
