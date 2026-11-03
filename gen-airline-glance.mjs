@@ -43,6 +43,7 @@ import * as PLACE from './place-photos.mjs';
 import { networkOf, placeCountry } from './airline-destinations.mjs';
 import { curCore, bakeText } from './cur-core.mjs';
 import { PAY_SCALES, MONTH } from './pay-scales.mjs';
+import { JPY_PER } from './fx-rates.mjs';
 import { TERMS, TERMS_AT } from './us-terms.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
@@ -500,22 +501,24 @@ function termsCard(v, tab) {
 function payScaleCard(v) {
   const P = PAY_SCALES[v.slug];
   if (!P) return '';
-  const usd = C_EN.RATES.USD, mo = MONTH[P.unit];
-  if (!usd || !mo) throw new Error(`勤続年数ごとの基本給：換算レートか月の量が無い（${v.slug}）`);
-  const man = r => Math.round(r * mo * 12 * usd / 1e5) * 10;
-  const T = P.tables.map(t => ({ ...t, ca: t.ca.map((r, i) => (i === 0 && r === t.fo[0] ? null : man(r))), fo: t.fo.map(man) }));
-  const N = T[0].fo.length;
-  if (T.some(t => t.fo.length !== N || t.ca.length !== N)) throw new Error(`勤続年数ごとの基本給：表の長さがそろっていない（${v.slug}）`);
+  /* 円にするレート：米ドルは画面の通貨切替と同じ（currency.js）。ほかの通貨（カナダドル）は集計と同じ fx-rates.mjs */
+  const cur = P.cur || 'USD', rate = cur === 'USD' ? C_EN.RATES.USD : JPY_PER[cur], mo = P.unit === 'year' ? 1 / 12 : MONTH[P.unit];
+  if (!rate || !mo) throw new Error(`勤続年数ごとの基本給：換算レートか月の量が無い（${v.slug}）`);
+  const man = r => Math.round(r * mo * 12 * rate / 1e5) * 10;
+  /* 機長と副操縦士で年次の数がちがう表（Jazz の機長18年・副操縦士12年など）は、短いほうの先を空にする（数字を足さない） */
+  const T = P.tables.map(t => { const n = Math.max(t.ca.length, t.fo.length), pad = a => Array.from({ length: n }, (_, i) => (a[i] == null ? null : a[i]));
+    return { ...t, n, ca: pad(t.ca).map((r, i) => (r == null || (i === 0 && r === t.fo[0]) ? null : man(r))), fo: pad(t.fo).map(r => (r == null ? null : man(r))) }; });
+  const N = Math.max(...T.map(t => t.n));
   /* 目盛はその言葉の既定の通貨でキリのいい数（日本語 ＝ 2,000万円ごと・英語 ＝ 10万ドルごと）。どちらも円の字で書く（通貨切替が読む） */
   const max = Math.max(...T.flatMap(t => [...t.ca, ...t.fo].filter(x => x != null)));
-  const stepMan = LANG === 'en' ? 1e5 * usd / 1e4 : 2000;
+  const stepMan = LANG === 'en' ? 1e5 * C_EN.RATES.USD / 1e4 : 2000;
   const top = Math.ceil(max / stepMan) * stepMan;
   const pc = x => `${(x / top * 100).toFixed(2)}%`;
-  const def = Math.min(6, N);
+  const def = Math.min(6, ...T.map(t => t.n));
   const sw = r => `<i class="pvg-ps-sw pvg-ps-${r}" aria-hidden="true"></i>`;
   const first = a => a.findIndex(x => x != null);
-  const tile = (t, r) => { const a = t[r], i = first(a);
-    return `<div class="pvg-ps-tile"><p class="pvg-ps-k">${sw(r)}${W.rank[r === 'ca' ? 'cap' : 'fo']}</p><p class="pvg-ps-g">+${Math.round((a[N - 1] / a[i] - 1) * 100)}%<small>${W.psOver(N - i)}</small></p><p class="pvg-ps-r">${W.psYear(i + 1)} ${yen(a[i])}<br>${W.psYear(N)} ${yen(a[N - 1])}</p></div>`; };
+  const tile = (t, r) => { const a = t[r], i = first(a), z = a.findLastIndex(x => x != null);
+    return `<div class="pvg-ps-tile"><p class="pvg-ps-k">${sw(r)}${W.rank[r === 'ca' ? 'cap' : 'fo']}</p><p class="pvg-ps-g">+${Math.round((a[z] / a[i] - 1) * 100)}%<small>${W.psOver(z + 1 - i)}</small></p><p class="pvg-ps-r">${W.psYear(i + 1)} ${yen(a[i])}<br>${W.psYear(z + 1)} ${yen(a[z])}</p></div>`; };
   const pair = (t, r, y) => { const a = t[r], x = a[y - 1]; if (x == null) return '';
     const prev = y > 1 ? a[y - 2] : null, dlt = prev == null ? '' : `<p class="pvg-ps-d"><span>${x >= prev ? '+' : '−'}${yen(Math.abs(x - prev))}</span><small>${W.psPrev}</small></p>`;
     return `<div class="pvg-ps-pr"><p class="pvg-ps-k">${sw(r)}${W.rank[r === 'ca' ? 'cap' : 'fo']}</p><p class="pvg-ps-v">${yen(x)}</p>${dlt}</div>`; };
@@ -525,7 +528,7 @@ function payScaleCard(v) {
 <div class="pvg-ps-tiles">${tile(t, 'fo')}${tile(t, 'ca')}</div>
 <div class="pvg-ps-plot">
 <div class="pvg-ps-grid" aria-hidden="true">${grid}</div>
-<div class="pvg-ps-cols${N > 12 ? ' pvg-ps-many' : ''}" style="--n:${N}">${t.fo.map((f, i) => `<button type="button" class="pvg-ps-col" data-ps-y="${i + 1}" aria-pressed="${i + 1 === def}" aria-label="${W.psYear(i + 1)}"><span class="pvg-ps-bars"><span class="pvg-ps-b pvg-ps-fo" style="height:${pc(f)}"></span><span class="pvg-ps-b pvg-ps-ca" style="height:${t.ca[i] == null ? '0%' : pc(t.ca[i])}"></span></span><span class="pvg-ps-x">${i + 1}</span></button>`).join('')}</div>
+<div class="pvg-ps-cols${t.n > 12 ? ' pvg-ps-many' : ''}" style="--n:${t.n}">${t.fo.map((f, i) => `<button type="button" class="pvg-ps-col" data-ps-y="${i + 1}" aria-pressed="${i + 1 === def}" aria-label="${W.psYear(i + 1)}"><span class="pvg-ps-bars"><span class="pvg-ps-b pvg-ps-fo" style="height:${f == null ? '0%' : pc(f)}"></span><span class="pvg-ps-b pvg-ps-ca" style="height:${t.ca[i] == null ? '0%' : pc(t.ca[i])}"></span></span><span class="pvg-ps-x">${i + 1}</span></button>`).join('')}</div>
 <p class="pvg-ps-ax">${W.psAxis}<span>${W.psTap}</span></p>
 </div>
 <div class="pvg-ps-reads">${t.fo.map((f, i) => `<div class="pvg-ps-read" data-ps-y="${i + 1}"${i + 1 === def ? '' : ' hidden'}><p class="pvg-ps-yr">${W.psYear(i + 1)}</p>${pair(t, 'fo', i + 1)}${pair(t, 'ca', i + 1)}</div>`).join('')}</div>
@@ -537,7 +540,7 @@ function payScaleCard(v) {
     : T.length > 1 ? `<div class="pvg-ps-seg" role="group" aria-label="${W.psFleet}">${T.map((t, k) => `<button type="button" data-ps-tb="${k}" aria-pressed="${k === main}">${fl(t)}</button>`).join('')}</div>` : '';
   return `<!--PV-PAYSCALE--><div class="pvg-more-grid pvg-g-ps"${pane(v.slug, 'pay')}>
 <article class="pvg-card pvg-ps" data-ps-y="${def}">
-<header class="pvg-hd"><span class="pvg-ico" aria-hidden="true">${IC.realpay}</span><h2 class="pvg-eyebrow">${W.ps}</h2><span class="pvg-chip">${W.psChip(P.at, !!P.ref)}</span></header>
+<header class="pvg-hd"><span class="pvg-ico" aria-hidden="true">${IC.realpay}</span><h2 class="pvg-eyebrow">${W.ps}</h2><span class="pvg-chip">${W.psChip(P.at, !!P.ref, P.src)}</span></header>
 ${seg}
 ${T.map(panel).join('\n')}
 <p class="pvg-ps-note">${W.psNote(P.unit)}</p>
@@ -1365,8 +1368,8 @@ export const WORDS = Object.freeze({
     tmChip: d => `${d}の調べ`, tmSrc: '労働協約・会社・労働組合の公開資料をもとに、PILOT VALUE がまとめた条件です。',
     ps: '勤続年数ごとの基本給', psFleet: '機種', psYear: n => `${n}年目`, psOver: n => `${n}年で`, psPrev: '前の年から',
     psAxis: '勤続年数（年目）', psTap: '年を押すと額が出ます',
-    psChip: (at, ref) => (ref ? '参考の給与表' : at ? `労働協約の給与表 · ${at.replace(/^(\d{4})(?:-(\d\d))?$/, (m, y, mo) => (mo ? `${y}年${+mo}月` : `${y}年`))}` : '労働協約の給与表'),
-    psNote: unit => `${unit === 'tfp' ? '1 TFP あたりの単価 × 月90 TFP' : '時給 × 月75時間'} × 12か月で年額にした基本給。利益配分・日当・会社の年金の拠出は入っていません。`,
+    psChip: (at, ref, src) => (ref ? '参考の給与表' : src === 'company' ? '会社が公表した給与表' : at ? `労働協約の給与表 · ${at.replace(/^(\d{4})(?:-(\d\d))?$/, (m, y, mo) => (mo ? `${y}年${+mo}月` : `${y}年`))}` : '労働協約の給与表'),
+    psNote: unit => `${unit === 'year' ? '年額の給与表のままの基本給' : `${unit === 'tfp' ? '1 TFP あたりの単価 × 月90 TFP' : '時給 × 月75時間'} × 12か月で年額にした基本給`}。利益配分・日当・会社の年金の拠出は入っていません。`,
     mixBy: (e, m) => `${e}は当サイトの推定・${m}は会員が出した年収の中央値`,
     rank: Object.freeze(Object.fromEntries(RANKS)), rankEst: 'の推定年収', rankMed: 'の中央値', vhName: n => n, vhWho: n => `${n}・`, introJoin: '',
     fig: Object.freeze({ ...FIG_LABEL }), upTo: y => `〜${y}`, over: y => `${y}超`, from: y => `${y}〜`,
@@ -1436,8 +1439,8 @@ export const WORDS = Object.freeze({
     tmChip: d => `Researched ${d}`, tmSrc: 'Summarized by PILOT VALUE from public union contracts and company and union materials.',
     ps: 'Base pay by year of service', psFleet: 'Aircraft', psYear: n => `Year ${n}`, psOver: n => `over ${n} years`, psPrev: 'vs. the year before',
     psAxis: 'Year of service', psTap: 'Tap a year to see the pay',
-    psChip: (at, ref) => (ref ? 'Reference pay scale' : at ? `Contract pay scale · ${at.replace(/^(\d{4})(?:-(\d\d))?$/, (m, y, mo) => (mo ? `${MONTHS_EN[+mo - 1]} ${y}` : y))}` : 'Contract pay scale'),
-    psNote: unit => `${unit === 'tfp' ? 'Rate per TFP × 90 TFP a month' : 'Hourly rate × 75 credit hours a month'} × 12 months, base pay only. Profit sharing, per diem and company retirement contributions are not included.`,
+    psChip: (at, ref, src) => (ref ? 'Reference pay scale' : src === 'company' ? 'Company-published pay scale' : at ? `Contract pay scale · ${at.replace(/^(\d{4})(?:-(\d\d))?$/, (m, y, mo) => (mo ? `${MONTHS_EN[+mo - 1]} ${y}` : y))}` : 'Contract pay scale'),
+    psNote: unit => `${unit === 'year' ? 'Annual salary from the pay scale' : `${unit === 'tfp' ? 'Rate per TFP × 90 TFP a month' : 'Hourly rate × 75 credit hours a month'} × 12 months`}, base pay only. Profit sharing, per diem and company retirement contributions are not included.`,
     mixBy: (e, m) => `${e}: our estimate · ${m}: median of pay submitted by members`,
     /* 職位の見出しは1行（white-space:nowrap）・狭い画面で2列 ── 英語は「Captain」「First Officer」だけを見せ、「推定年収」は読み上げにだけ（下の行が「Our estimate」と言う） */
     rank: Object.freeze({ cap: 'Captain', fo: 'First Officer' }), rankEst: '<span class="pvg-vh">, estimated annual pay</span>', rankMed: '<span class="pvg-vh">, median pay</span>', vhName: n => `${n} `, vhWho: n => `${n}, `, introJoin: ' ',
