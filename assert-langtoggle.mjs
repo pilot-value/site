@@ -155,6 +155,12 @@ s = await page.evaluate(() => { const t = document.getElementById('lang-toggle')
 ok(s.popup === 'true' && s.items === 'es,en,ja' && s.label === '🇯🇵 JP', 'JP トップ：ボタンは今までの見た目のまま、押すと Español / English / 日本語', JSON.stringify(s));
 await clickToggle('es');
 ok(new URL(page.url()).pathname === '/es/', 'JP トップ → Español → /es/', `url=${page.url()}`);
+await open(`${BASE}/en/`, null);
+await clickToggle('es');
+ok(new URL(page.url()).pathname === '/es/', 'EN トップ → Español → /es/（末尾の / を外した住所でも見つける）', `url=${page.url()}`);
+s = await page.evaluate(() => { const t = document.getElementById('lang-toggle'); const m = t && t.parentNode.querySelector('.pv-lang-menu');
+  return { n: document.querySelectorAll('#lang-toggle').length, items: m ? [...m.children].map((x) => x.getAttribute('lang') + (x.getAttribute('href') ? ':' + new URL(x.href).pathname : '')).join(',') : '' }; });
+ok(s.n === 1 && s.items === 'es,en:/en/,ja:/', '★スペイン語のトップにも言語のボタンがある（Español / English / 日本語）', JSON.stringify(s));
 await open(`${BASE}/en/airlines/emirates.html`, null);
 await clickToggle('es');
 ok(new URL(page.url()).pathname === '/es/airlines/emirates.html', 'EN 航空会社ページ → Español → スペイン語の同じ会社', `url=${page.url()}`);
