@@ -435,6 +435,9 @@
 
     // #theme-toggle / #lang-toggle の隣に配置（無ければナビ末尾へ）
     var anchor = d.getElementById('lang-toggle') || d.getElementById('theme-toggle');
+    /* 言語のボタンがメニューの枠（.pv-lang-wrap・lang-toggle.js）に入っているときは、枠の隣に置く。
+       枠の中に入れると、言語と通貨のボタンの間の空きが無くなる（2026-11-03 オーナー「距離感おかしい」） */
+    if (anchor && anchor.parentNode && anchor.parentNode.classList && anchor.parentNode.classList.contains('pv-lang-wrap')) anchor = anchor.parentNode;
     if (anchor && anchor.parentNode) {
       anchor.parentNode.insertBefore(wrap, anchor.nextSibling);
     } else {
