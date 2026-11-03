@@ -15,7 +15,10 @@
    ★ 比べる印と比較リスト（#wd-tray）は WP-dd-7 → WP-dmap-10。印を付ける・外すは住所の cmp だけを書き直す（save()）。
    ★ 並べ替え（2026-11-03・オーナー「a-z・年収順（上→下・下→上）・よく見られている順にできるようにして」）は #wd-sort の1つ。
      並べる鍵はカードの data-cap（機長の額・万円）・data-fo・data-pop（閲覧の順位）だけ ＝ gen-directory.mjs が書く。ここで額を作らない。
-     住所の鍵 sort（pay-desc・pay-asc・popular。A→Z は書かない）。鍵が無い会社（確認中・閲覧なし）は、どちらの向きでも最後に A→Z。
+     住所の鍵 sort（pay-desc・pay-asc・popular・recent。A→Z は書かない）。鍵が無い会社（確認中・閲覧なし・投稿なし）は、どちらの向きでも最後に A→Z。
+     ★新しい投稿順（recent・2026-11-04 オーナー「情報の更新順」→「1」＝会員の給与・口コミが新しく入った順）だけは並びをサーバーに聞く
+       （pv_airline_activity_order ＝ 会社コードの並びだけ。日付も件数も来ない・db/airline-activity.sql）。聞くのは選んだときに1回だけ
+       （開いただけでは通信ゼロ）。取れなければ A→Z に戻す（口の字も A→Z に）。
      検索で打っていれば、今までどおり「ぴったり同じもの」を先に（その中も外も、選んだ並び）。 */
 (function (w, d) {
   'use strict';
@@ -94,7 +97,7 @@
   }
 
   /* ── 並べ替え（A→Z ＝ ページの並び。ほかは鍵の順・鍵の無い会社は最後に A→Z・同じ値も A→Z）── */
-  var SORTS = ['az', 'pay-desc', 'pay-asc', 'popular'], ORDERS = { az: CARDS };
+  var SORTS = ['az', 'pay-desc', 'pay-asc', 'popular', 'recent'], ORDERS = { az: CARDS }, asking = false;
   function by(key, dir) {
     return CARDS.slice().sort(function (x, y) {
       var a = x[key], b = y[key];
@@ -104,7 +107,28 @@
       return x.i - y.i;
     });
   }
+  /** 新しい投稿順の並びをサーバーに聞く（1回だけ）。答えが来たら並べ直す・来なければ A→Z に戻す */
+  function askRecent() {
+    if (asking || ORDERS.recent) return;
+    asking = true;
+    var S = w.PVSession, q;
+    try { q = S && typeof S.rpc === 'function' ? S.rpc('pv_airline_activity_order', {}, true) : null; } catch (e) { q = null; }
+    if (!q || typeof q.then !== 'function') q = Promise.reject(new Error('no-rpc'));
+    q.then(function (a) {
+      if (!Array.isArray(a)) throw new Error('shape');
+      var at = {};
+      a.forEach(function (s, k) { if (typeof s === 'string' && !Object.prototype.hasOwnProperty.call(at, s)) at[s] = k; });
+      CARDS.forEach(function (c) { c.rec = Object.prototype.hasOwnProperty.call(at, c.slug) ? at[c.slug] : null; });
+      ORDERS.recent = by('rec', 1);
+      asking = false;
+      if (st.sort === 'recent') apply();
+    }).catch(function () {
+      asking = false;
+      if (st.sort === 'recent') { set({ sort: 'az' }); commit(); }
+    });
+  }
   function ordered(sort) {
+    if (sort === 'recent' && !ORDERS.recent) { askRecent(); return CARDS; }   // 答えが来るまではページの並び（A→Z）
     if (!ORDERS[sort]) ORDERS[sort] = sort === 'pay-desc' ? by('cap', -1) : sort === 'pay-asc' ? by('cap', 1) : sort === 'popular' ? by('pop', 1) : CARDS;
     return ORDERS[sort];
   }

@@ -474,6 +474,10 @@ baland_ass/                            ブランド資産（※ brand_assets の
   ⚠️ 評価順・件数順で代用しない。⚠️ GA4 を叩くので check.mjs に入れない。**月に1回は流し直す。**
   ★同じ回に [airline-popular.mjs](airline-popular.mjs)（閲覧のあった全社の順・本番には配らない）も書く ＝ 航空会社一覧の「よく見られている順」。
   **流したら続けて `node gen-directory.mjs`**（カードの `data-pop` に焼く。流さないと一覧だけ古い並び・`assert-directory.mjs` の H7 が落とす）。
+  ★一覧の「新しい投稿順」（2026-11-04 オーナー「情報の更新順」→ 会員の給与・口コミが新しく入った順）は [db/airline-activity.sql](db/airline-activity.sql)。
+  書き込みの引き金で会社ごとの最新の時刻を表に保存し、一覧は `pv_airline_activity_order()`（会社コードの並びだけ・日付も件数も返さない）を
+  **選んだときに1回だけ**呼ぶ。給与の預かり（未引き取り）は数えない（2026-09-01 の決定と同じ）。関数が無ければ A→Z に戻る。
+  貼る順は `db/member-median.sql` の後。見るもの: `node db/test-airline-activity.mjs`／`node assert-directory-ui.mjs --scenes sort`。
 - 見本の口コミ14件（`SEED_REVIEWS`）はオーナー判断で残した。会社カードの評価・件数には入れない。
 - 上の帯（口コミ件数・掲載社数）と `totalReviewCount()` はページごと無くなった。件数は「すべての口コミ」の「新着順 · N件」だけ（今までと同じ3つを数える）。
 - ★第2回（2026-10-29）：**最新の口コミはトップの口コミの帯と同じ大きさで流れる**（幅 304px・狭い画面 268px）。

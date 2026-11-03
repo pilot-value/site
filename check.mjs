@@ -67,6 +67,8 @@ const SQL = [
   ['db/test-company-comp.mjs', 5],
   /* 2026-10-31 会社ページの「会員が出した年収の中央値」（db/member-median.sql）。道具の規則と同じか・引き金・人数を出さない・壊す証明 */
   ['db/test-member-median.mjs', 6],
+  /* 2026-11-04 航空会社の一覧の「新しい投稿順」（db/airline-activity.sql）。数えるもの・外すもの・引き金・順番だけを返す・壊す証明 */
+  ['db/test-airline-activity.mjs', 5],
 ];
 
 // localhost:3000 が要るもの。長い順に並べてある。

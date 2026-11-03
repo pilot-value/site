@@ -865,8 +865,8 @@ const LIST_RULE = { ja: '比較は2社・レベリング比較は5社まで', en
 /** 比べる印（自己検査で印を足すときだけ使う。ページの印は gen-directory.mjs が書く） */
 /** 並べ替え（2026-11-03・オーナー「a-z・年収順（上→下・下→上）・よく見られている順」）の口の値と字（ここに書いた字が正） */
 const SORT_OPTS = {
-  ja: { label: '並べ替え', opts: [['az', '社名（A→Z）'], ['pay-desc', '機長の年収が高い順'], ['pay-asc', '機長の年収が低い順'], ['popular', 'よく見られている順']] },
-  en: { label: 'Sort by', opts: [['az', 'Name (A–Z)'], ['pay-desc', 'Captain pay: high to low'], ['pay-asc', 'Captain pay: low to high'], ['popular', 'Most viewed']] },
+  ja: { label: '並べ替え', opts: [['az', '社名（A→Z）'], ['pay-desc', '機長の年収が高い順'], ['pay-asc', '機長の年収が低い順'], ['popular', 'よく見られている順'], ['recent', '新しい投稿順']] },
+  en: { label: 'Sort by', opts: [['az', 'Name (A–Z)'], ['pay-desc', 'Captain pay: high to low'], ['pay-asc', 'Captain pay: low to high'], ['popular', 'Most viewed'], ['recent', 'Latest posts']] },
 };
 const tickHtml = (slug, lang) => `<button type="button" class="wd-cmp" value="${slug}" aria-pressed="false" aria-labelledby="wn-${slug} wc-${slug}">`
   + `<span class="wd-cmp-off" aria-hidden="true">${TOGGLE[lang].off}</span><span class="wd-cmp-on" aria-hidden="true">${TOGGLE[lang].on}</span><span class="wd-vh" id="wc-${slug}">${TOGGLE[lang].say}</span></button>`;
@@ -1822,7 +1822,7 @@ const ROWS = [
   ['H7a', (I) => onCard(I, 'ja', 'ana', (c) => c.replace(/data-cap="\d+"/, () => 'data-cap="1"')), 'H', ['H7']],
   ['H7b', (I) => onCard(I, 'en', 'jal', (c) => c.replace(/ data-pop="\d+"/, () => '')), 'H', ['H7']],
   ['H7c', (I) => { I.page.en = sub(I.page.en, '<option value="popular">Most viewed</option>', ''); }, 'H', ['H7']],
-  ['H7d', (I) => { I.assets['pv-directory.js'] = sub(I.assets['pv-directory.js'], "var SORTS = ['az', 'pay-desc', 'pay-asc', 'popular']", "var SORTS = ['az', 'pay-desc', 'popular']"); }, 'H', ['H7']],
+  ['H7d', (I) => { I.assets['pv-directory.js'] = sub(I.assets['pv-directory.js'], "var SORTS = ['az', 'pay-desc', 'pay-asc', 'popular', 'recent']", "var SORTS = ['az', 'pay-desc', 'popular', 'recent']"); }, 'H', ['H7']],
   ['H6a', (I) => { I.page.ja = sub(I.page.ja, '>比較は2社・レベリング比較は5社まで</p>', '>比較は2社・レベリング比較は6社まで</p>'); }, 'H', ['H6']],
   ['H6b', (I) => { I.assets['pv-directory.js'] = sub(I.assets['pv-directory.js'], 'var MAX = 5;', 'var MAX = 6;'); }, 'H', ['H6']],
   ['H6c', (I) => { I.page.en = I.page.en.replace(/<p class="wd-cl-why" id="wd-cl-why" hidden>[^<]*<\/p>\n?/, () => ''); }, 'H', ['H6']],

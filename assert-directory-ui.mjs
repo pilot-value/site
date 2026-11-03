@@ -26,8 +26,9 @@
      b8 ヘッダーの検索（#pv-search-btn）で «Solairus» → airlines/solairus.html へのリンクが出る
      b9 quiet(st, 'base') が空
 
-   場面 sort（日英・1440×900 ── 2026-11-03）── 並べ替えの4つ（A→Z・機長の年収が高い順・低い順・よく見られている順）が約束どおりに並ぶ・
-     住所の sort と「戻る」・打った時と地域で絞った時も選んだ並び・レベリング比較では口を見せない
+   場面 sort（日英・1440×900 ── 2026-11-03）── 並べ替えの5つ（A→Z・機長の年収が高い順・低い順・よく見られている順・新しい投稿順）が約束どおりに並ぶ・
+     住所の sort と「戻る」・打った時と地域で絞った時も選んだ並び・レベリング比較では口を見せない・
+     新しい投稿順だけはサーバーに聞く（選ぶまで0本・選んだら1回だけ・答えは会社コードの並びだけ ── 2026-11-04）
 
    場面 first（日英・390×680 のスマホ）
      検索欄（#search）が最初の1画面の中・高さ 48px 以上・字 16px 以上・見出しと検索欄のあいだに押せるもの無し・
@@ -927,7 +928,7 @@ async function main() {
       const WANT = { az: ORDER, 'pay-desc': pay(-1), 'pay-asc': pay(1), popular: [...pop, ...ORDER.filter((s) => !pop.includes(s))] };
       ok(pop.length > 0 && same(Object.keys(keys).sort(), ORDER.slice().sort()), T(`sort 期待する並びが作れる（閲覧の順 ${pop.length}社・カード ${ORDER.length}枚）`), J({ pop: pop.length, cards: Object.keys(keys).length }));
       for (const v of ['pay-desc', 'pay-asc', 'popular', 'az']) {
-        await page.select('#wd-sort', v);
+        await page.select('#wd-sort', v);   // ★新しい投稿順（recent）は下で別に見る（サーバーに聞く唯一の並び）
         const vis = await visible(page), a = await addr(page), s = await stateOf(page);
         const q = new URLSearchParams(a.search).get('sort');
         ok(same(vis, WANT[v]) && s && s.sort === v && q === (v === 'az' ? null : v),
@@ -947,14 +948,37 @@ async function main() {
       await page.goto(plain + '?sort=pay-asc&region=asia', { waitUntil: 'load', timeout: 60000 }); await ready(page);
       const r4 = await visible(page), w4 = WANT['pay-asc'].filter((s) => SALARY[s].region === 'asia');
       ok(same(r4, w4), T(`sort 地域（アジア）で絞っても低い順（${w4.length}社）`), J({ r4: r4.slice(0, 5), w4: w4.slice(0, 5) }));
+      /* 新しい投稿順（2026-11-04 オーナー「1」＝会員の給与・口コミが新しく入った順）── 手元の保存先に、いちばん新しい2件（預かりの口コミ）を
+         足してから選ぶ。期待する並び ＝ 保存先の読む口（pv_airline_activity_order）の答えの順 → 答えに無い会社は A→Z。
+         選ぶまでは1本も聞かない・選んだら1回だけ・住所の sort=recent・住所から開いても同じ並び・答えに日付も数も無い */
+      const ACT = 'pv_airline_activity_order', nAct = () => st.calls.filter((f) => f === ACT).length;
+      await L.q(`insert into public.pv_review_pending (claim_token, airline, created_at)
+                 values ('t-sort-a-${lang}', 'starlux', now() + interval '1 hour'), ('t-sort-b-${lang}', 'zipair', now() + interval '2 hours')`);
+      const act = (await L.q(`select public.${ACT}() as o`)).rows[0].o;
+      const WR = [...act.filter((x) => ORDER.includes(x)), ...ORDER.filter((x) => !act.includes(x))];
+      ok(Array.isArray(act) && act.every((x) => typeof x === 'string') && act[0] === 'zipair' && act[1] === 'starlux',
+        T('sort 読む口の答えは会社コードの並びだけ（新しく足した2件が先頭・日付も数も無い）'), J(act.slice(0, 5)));
+      await page.goto(plain, { waitUntil: 'load', timeout: 60000 }); await ready(page);
+      const n0 = nAct();
+      await page.select('#wd-sort', 'popular');
+      const n1 = nAct();
+      await page.select('#wd-sort', 'recent');
+      const r5 = await untilVisible(page, WR), n2 = nAct(), a5 = await addr(page), s5 = await stateOf(page);
+      ok(r5 && n0 === 0 && n1 === 0 && n2 === 1 && new URLSearchParams(a5.search).get('sort') === 'recent' && s5.sort === 'recent',
+        T('sort 新しい投稿順：選ぶまでは聞かない・選んだら1回だけ聞いて、その順（答えに無い会社は A→Z）・住所の sort「recent」'), J({ n0, n1, n2, first: (await visible(page)).slice(0, 4), want: WR.slice(0, 4) }));
+      await page.select('#wd-sort', 'az');
+      await page.select('#wd-sort', 'recent');
+      ok(await untilVisible(page, WR) && nAct() === 1, T('sort もう一度選んでも聞き直さない（1回目の答えを使う）'), J({ n: nAct() }));
+      await page.goto(plain + '?sort=recent', { waitUntil: 'load', timeout: 60000 }); await ready(page);
+      ok(await untilVisible(page, WR), T('sort ?sort=recent から開く → 新しい投稿順'), J((await visible(page)).slice(0, 4)));
       await press(page, '.view-btn[data-view="range"]');
       const hid = await until(page, () => { const b = document.querySelector('.wd-sort'); return !!b && b.hidden && getComputedStyle(b).display === 'none'; });
       await press(page, '.view-btn[data-view="card"]');
       const back = await until(page, () => { const b = document.querySelector('.wd-sort'); return !!b && !b.hidden && getComputedStyle(b).display !== 'none'; });
       ok(hid && back, T('sort レベリング比較では並べ替えの口を見せない・カード一覧に戻すと出る'), J({ hid, back }));
       await shot(page, 'sort', lang, '1440');
-      const q = quiet(st, 'sort');
-      ok(q.length === 0, T("sort quiet(st, 'sort') が空"), J(q));
+      const q = quiet(st, 'sort', { allow: ['pv_airline_activity_order'] });   // 新しい投稿順を選んだときの1本だけ（数は上で見た）
+      ok(q.length === 0, T("sort quiet(st, 'sort') が空（新しい投稿順の1本のほか）"), J(q));
     } finally {
       await P.ctx.close().catch(() => {});
     }

@@ -15668,4 +15668,5 @@ export const TM = {
   "Captain pay: high to low": {"es":"Sueldo de capitán: de mayor a menor","st":"manual","by":"claude-review","at":"2026-11-03","pages":["en/world-airlines.html"],"note":"一覧の並べ替え（2026-11-03）。「Más vistas」は aerolíneas を受ける"},
   "Captain pay: low to high": {"es":"Sueldo de capitán: de menor a mayor","st":"manual","by":"claude-review","at":"2026-11-03","pages":["en/world-airlines.html"],"note":"一覧の並べ替え（2026-11-03）。「Más vistas」は aerolíneas を受ける"},
   "Most viewed": {"es":"Más vistas","st":"manual","by":"claude-review","at":"2026-11-03","pages":["en/world-airlines.html"],"note":"一覧の並べ替え（2026-11-03）。「Más vistas」は aerolíneas を受ける"},
+  "Latest posts": {"es":"Publicaciones más recientes","st":"manual","by":"claude-review","at":"2026-11-04","pages":["en/world-airlines.html"],"note":"一覧の並べ替え「新しい投稿順」（会員の給与・口コミ）"},
 };
