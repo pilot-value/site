@@ -168,8 +168,9 @@
       }
   }
 
-  if (raw.indexOf('/es/') === 0) {
-    var esBare = raw.slice(4);
+  /* ★raw は末尾の / を外してある＝スペイン語のトップは '/es'（2026-11-03 まで、これを見落としてトップにだけボタンが無かった） */
+  if (raw === '/es' || raw.indexOf('/es/') === 0) {
+    var esBare = raw === '/es' ? '' : raw.slice(4);
     var esMenu = function () {
       langMenu('<span aria-hidden="true">🌐</span> ES', 'Idioma',
         [['Español', null, 'es'], ['English', '/en/' + esBare, 'en'], ['日本語', '/' + esBare, 'ja']]);
@@ -273,7 +274,7 @@
     /* ★2026-11-03 オーナー「ヘッダーのボタン、選択式でスペイン語も選べるように」：スペイン語版もあるページは、
        押すと「Español / English / 日本語」から選ぶ（スペイン語のページと同じメニュー・ボタンの見た目は今までどおり）。
        スペイン語版の無いページは今までどおり、押すと日英が入れ替わる。スペイン語版の一覧は pv-session.js の PV_LANG_PAGES。 */
-    var here = isEN ? raw.replace(/^\/en\//, '') : raw.replace(/^\//, '');
+    var here = isEN ? raw.replace(/^\/en(\/|$)/, '') : raw.replace(/^\//, '');   // raw は末尾の / を外してある（英語のトップは '/en'）
     if (here === '') here = 'index.html';
     var esList = (window.PV_LANG_PAGES && window.PV_LANG_PAGES.es) || [];
     if (esList.indexOf(here) >= 0) {
