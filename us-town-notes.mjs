@@ -492,7 +492,7 @@ export const ABOUT = Object.freeze({
  },
  "ca-oakville": {
   "ja": "ピアソン空港の南西、オンタリオ湖に面した町。レイクショア通り沿いに中心街があり、湖岸に港がある。",
-  "en": "A Lake Ontario town southwest of Pearson Airport, with its downtown along Lakeshore Road and a harbour on the waterfront."
+  "en": "A Lake Ontario town southwest of Pearson Airport, with its downtown along Lakeshore Road and a harbor on the waterfront."
  },
  "ca-markham": {
   "ja": "トロント中心部の北東約30kmの市。IT企業が多く集まり、旧村ユニオンビルの本通りは歴史的町並みの保存地区。",
@@ -520,15 +520,15 @@ export const ABOUT = Object.freeze({
  },
  "ca-richmond": {
   "ja": "バンクーバー空港のあるシーアイランドを含む市。南西端のスティーブストンは、漁港と缶詰工場の史跡が残る旧漁村。",
-  "en": "The city that includes Sea Island, home of YVR. Steveston, on its southwest tip, is an old fishing village with a working harbour."
+  "en": "The city that includes Sea Island, home of YVR. Steveston, on its southwest tip, is an old fishing village with a working harbor."
  },
  "ca-kitsilano-point-grey": {
   "ja": "バンクーバー西側、イングリッシュ湾の南岸の住宅地。キツラノ・ビーチから西へ、ジェリコやスパニッシュ・バンクスの浜が続く。",
-  "en": "Residential West Side neighbourhoods on the south shore of English Bay, from Kitsilano Beach west to Jericho and Spanish Banks."
+  "en": "Residential West Side neighborhoods on the south shore of English Bay, from Kitsilano Beach west to Jericho and Spanish Banks."
  },
  "ca-kerrisdale-westside": {
   "ja": "バンクーバー空港の北、市の西側（ウェストサイド）の住宅地。西41番街沿いに商店が並ぶ。",
-  "en": "A residential neighbourhood on Vancouver's West Side, north of YVR, with a shopping district along West 41st Avenue."
+  "en": "A residential neighborhood on Vancouver's West Side, north of YVR, with a shopping district along West 41st Avenue."
  },
  "ca-west-vancouver": {
   "ja": "バラード入江の北岸、バンクーバー中心部の北西の町。ライオンズゲート橋で中心部と結ばれ、海辺から山の斜面へ住宅地が続く。",
@@ -588,7 +588,7 @@ export const ABOUT = Object.freeze({
  },
  "ca-hunt-club-south-keys": {
   "ja": "オタワ空港のすぐ北の住宅地。サウスキーズ駅はOトレイン2号線と空港線4号線の乗換駅で、隣に大型ショッピングセンターがある。",
-  "en": "Just north of Ottawa's airport; South Keys station, next to a shopping centre, connects O-Train Line 2 with the Line 4 airport link."
+  "en": "Just north of Ottawa's airport; South Keys station, next to a shopping center, connects O-Train Line 2 with the Line 4 airport link."
  },
  "ca-nepean": {
   "ja": "オタワ中心部の西にある旧ネピアン市の地域。南西のバーヘイブンは人口10万人を超える郊外の住宅地。",
@@ -596,7 +596,7 @@ export const ABOUT = Object.freeze({
  },
  "ca-glebe-old-ottawa-south": {
   "ja": "オタワ中心部のすぐ南、リドー運河沿いの住宅地。バンク通りに小さな店や飲食店が並び、ランズダウン公園がある。",
-  "en": "Neighbourhoods just south of downtown Ottawa along the Rideau Canal, with small shops on Bank Street and Lansdowne Park."
+  "en": "Neighborhoods just south of downtown Ottawa along the Rideau Canal, with small shops on Bank Street and Lansdowne Park."
  },
  "ca-ottawa": {
   "ja": "オタワ中心部の西約22kmの郊外。カナタは計画的に造られた町で、マーチ通り沿いにIT企業が集まり、隣にスティッツビルがある。",

@@ -1320,7 +1320,7 @@ ok(O1N.n >= 10, `E 切り替えた会社のページに、勤務・待遇の「�
       街ぜんたいの平均（Zumper の表）は、この会社たちのページには出さない（家賃は拠点の近くの住宅地の相場 ── メモリの決まり）。
    H2 調べた条件：us-terms.mjs の行が、決めたタブの1枚に全部在る。円・「$」・本人が払う額・「未確認」は書かない。 */
 {
-  const { COMPANIES: UC, TOWNS: UT } = await import('./us-housing.mjs');
+  const { COMPANIES: UC, TOWNS: UT, REGIONS: UR } = await import('./us-housing.mjs');
   const { TERMS: TM } = await import('./us-terms.mjs');
   const usd = n => `USD ${n.toLocaleString('en-US')}`;
   const bad1 = [], bad2 = [];
@@ -1336,7 +1336,9 @@ ok(O1N.n >= 10, `E 切り替えた会社のページに、勤務・待遇の「�
       for (const [k, t] of Object.entries(UT).filter(([, t]) => t.region === key)) {
         towns++;
         const bars = [...sec.matchAll(new RegExp(`data-town="${k}"[^>]*>[\\s\\S]{0,900}?</li>`, 'g'))].map(m => m[0]).join(' ');
-        for (const n of [t.bed1, t.bed2, t.bed3]) if (!bars.includes(usd(n))) bad1.push(`${slug} ${lang}: ${k} の ${usd(n)} が無い`);
+        /* ★2026-11-03 カナダの地域（cc: 'CA'）はカナダドル。出さない値（信頼度 d・伏せた値）は null ＝ 照合しない */
+        const cur = (UR[key] && UR[key].cur) || 'USD', amt = n => `${cur} ${n.toLocaleString('en-US')}`;
+        for (const n of [t.bed1, t.bed2, t.bed3]) if (n != null && !bars.includes(amt(n))) bad1.push(`${slug} ${lang}: ${k} の ${amt(n)} が無い`);
       }
     }
   }
