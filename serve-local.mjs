@@ -62,6 +62,7 @@ export const SQL_FILES = [
   'db/founding.sql',
   'db/pilot-proof.sql',      // 2026-10-23 main を取り込んだ（それまでの db/proof-store.sql は消した）。pay-rows・admin より後
   'db/proof-offer.sql',
+  'db/proof-notice.sql',   // パイロット確認の画像が届いた印（運営への通知メールの元・2026-11-03）。proof-offer.sql のあと
   'db/stays.sql',
   'db/work-months.sql',
   'db/pay-median.sql',      // 「提出された給与」の中央値の決め方（地域と比較で同じ式）。誰にも渡さない（2026-10-21）

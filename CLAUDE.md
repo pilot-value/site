@@ -372,7 +372,10 @@ baland_ass/                            ブランド資産（※ brand_assets の
   `db/work-months.sql` は `db/pay-rows.sql` の後）。申請の状態 `offered` の制約は `db/pay-rows.sql` 1-e2 に在る。
   **SQL を貼るのが先・push が後。** 逆でも壊れない（板は入口が無ければ黙って何もしない・
   管理画面は「まだ使えません」と書く）が、貼るまでは誰も止まらない。
-- 提出があっても通知メールは飛ばない。管理画面の「資格確認」のタブに、確認待ちの人数が出る。
+- ★画像が届くと、運営に通知メールが1通届く（2026-11-03 オーナー指示。止めた会員が出した／自分から申請した、の両方）。
+  印は [db/proof-notice.sql](db/proof-notice.sql) の `pv_proof_notice`（いつ・どちらの道か・確認待ちの合計だけ）→ Webhook → `notify-admin`。
+  ⚠️ 画像の表（`pv_proof_images`）に Webhook を付けない（行に画像そのものが入っていて、丸ごと送られる）・印に誰が出したかを入れない。
+  貼る順は `db/proof-offer.sql` の後 → `db/notify-admin-webhooks.sql`。管理画面の「資格確認」のタブに、確認待ちの人数が出る。
 
 見るもの: `node db/test-proof.mjs`（門・印・画像の一生・壊す証明）／`node assert-proof.mjs`（板と管理画面）。
 

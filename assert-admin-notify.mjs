@@ -73,6 +73,10 @@ const SECRET = {
      「この12件は同じ人が書いた」が受信箱と Resend のログの上で組める。 */
   '要望の投稿者ハッシュ': 'ZZ-AUTHOR-HASH-DO-NOT-SEND',
   'コメントの投稿者ハッシュ': 'ZZ-COMMENT-HASH-DO-NOT-SEND',
+  /* ★2026-11-03 追加。パイロット確認の画像と、出した会員。印の表は持っていないが、
+     ビルダーが別の表を引き足しても、メールに出さない限り通る形で見る。 */
+  '確認の画像':        'ZZ-PROOF-IMAGE-B64',
+  '確認を出した会員':  'ZZ-PROOF-USER-ID',
 };
 const leaks = (mail) => {
   const hay = `${mail.subject}\n${mail.html}`;
@@ -607,6 +611,30 @@ ck('元の要望は抜粋だけ載る',
    rcL.html.includes('…') && !rcL.html.includes('あ'.repeat(120)), rcL.html.slice(0, 400));
 ck('★「運営だけに見せる」だと分かる', rcL.html.includes('運営だけに見せる'), rcL.html);
 
+/* ── パイロット確認の画像が届いた ─────────────────────────── */
+/* ★守るのは画像と「誰が出したか」。画像には氏名・免許番号・会社名が写りうる。
+     メールに出してよいのは、いつ・どちらの道か・確認待ちの合計・見る場所だけ。 */
+console.log('\n── パイロット確認の画像 ─────────────────');
+ROWS = {
+  pv_proof_notice: {
+    id: 'pn-1', created_at: '2026-11-03T06:00:00+00:00', kind: 'offered', waiting: 3,
+    // ↓ ビルダーが SELECT を広げても、本文に出さない限り通る
+    user_id: 'ZZ-PROOF-USER-ID', bytes: 'ZZ-PROOF-IMAGE-B64',
+  },
+};
+const pn = await nx.buildProofNotice('pn-1');
+ck('メールができる', !!pn);
+ck('★画像も、出した会員も1文字も出ない', leaks(pn).length === 0, `漏れた: ${leaks(pn).join(' / ')}`);
+ck('件名でパイロット確認とわかる', pn.subject.includes('パイロット確認'), pn.subject);
+ck('自分からの申請は「申請してきた人」へ案内する',
+   pn.subject.includes('申請') && pn.html.includes('申請してきた人'), pn.html);
+ck('管理画面へのリンクがある', pn.html.includes('href="https://pilot-value.com/admin.html"'), pn.html);
+ck('確認待ちの合計が出る', pn.html.includes('3人'), pn.html);
+ROWS.pv_proof_notice = { ...ROWS.pv_proof_notice, kind: 'required', waiting: 1 };
+const pnR = await nx.buildProofNotice('pn-1');
+ck('「証明を求める」の道は「資格確認」のタブへ案内する',
+   pnR.html.includes('「資格確認」のタブ') && !pnR.html.includes('申請してきた人'), pnR.html);
+
 /* ════════════════════════════════════════════════════════════════
    ③ ビルダーと Webhook のトリガの顔ぶれが一致すること
    ════════════════════════════════════════════════════════════════ */
@@ -621,8 +649,9 @@ const aStart = sql.indexOf('foreach tbl in array array[');
 const aBlock = sql.slice(aStart, sql.indexOf('] loop', aStart));
 const tables = [...aBlock.matchAll(/'([a-z_0-9]+)'/g)].map((m) => m[1]).sort();
 
-/* 2026-10-29 pv_review_pending（ログインせずに出した口コミの預かり）を足して9つ。 */
-ck('ビルダーを9つ持っている', builders.length === 9, builders.join(', '));
+/* 2026-10-29 pv_review_pending（ログインせずに出した口コミの預かり）を足して9つ。
+   2026-11-03 pv_proof_notice（パイロット確認の画像が届いた印）を足して10。 */
+ck('ビルダーを10持っている', builders.length === 10, builders.join(', '));
 ck('index.ts の builders と db/notify-admin-webhooks.sql の表が同じ',
    JSON.stringify(builders) === JSON.stringify(tables),
    `builders: ${builders.join(', ')}\n      webhooks: ${tables.join(', ')}`);
@@ -654,6 +683,8 @@ console.log('\n── SQL の形 ───────────────�
       'pv_requests'].every((t) => live.includes(`'${t}'`)));
   /* ★♡ の表は入れない。1押しごとにメールが飛ぶ。 */
   ck('★pv_request_likes は Webhook を作らない', !live.includes("'pv_request_likes'"));
+  /* ★画像の表は入れない。行に画像そのものが入っていて、Webhook が丸ごと送る。 */
+  ck('★pv_proof_images は Webhook を作らない', !live.includes("'pv_proof_images'"));
 }
 
 /* ════════════════════════════════════════════════════════════════

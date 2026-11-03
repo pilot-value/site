@@ -5,7 +5,7 @@
    飛んでいなかった（cron も GitHub Actions も無い）。この関数を
    Database Webhook から呼ぶことで、投稿・登録・問い合わせの瞬間に届く。
 
-   1本で6つのテーブルを捌く：
+   1本で10の表を捌く（顔ぶれは下の builders と db/notify-admin-webhooks.sql の配列）。主なもの：
      reviews_v2          … 新着口コミ（品質フラグ付き）
      profiles            … 新規会員
      contacts            … お問い合わせ（返信先を投稿者のメールに設定）
@@ -13,6 +13,7 @@
      pay_reports_pending … 会員登録せずに出した給与レポート（預かり）
      pv_review_pending   … ログインせずに出した口コミ（預かり・一覧には掲載中）
      airline_conditions  … 待遇アンケートの回答（1問＝1通）
+     pv_proof_notice     … パイロット確認の画像が届いた印（★画像・誰が出したかは載せない・2026-11-03）
 
    ★ 金額をメールに載せないのは決めごと。給与レポートは user_id を持たない設計で
      「誰がいくら」を運営側に残さない（db/pay-reports.sql）。1件単位の報酬額を
@@ -581,10 +582,35 @@ async function buildRequestComment(id: string): Promise<Mail | null> {
   };
 }
 
+/* ── pv_proof_notice ──────────────────────────────────────── */
+/* パイロット確認の画像が届いた（db/proof-notice.sql・2026-11-03 オーナー指示）。
+   道は2つ ── required ＝ 運営が「証明を求める」を押した会員が出した／offered ＝ 会員が自分から申請した。
+   ★画像は載せない。氏名・免許番号・会社名が写りうる（画像はほかの関数から読まない約束）。
+   ★誰が出したかも載せない。印の表がそもそも持っていない。見るのは管理画面で。 */
+async function buildProofNotice(id: string): Promise<Mail | null> {
+  const r = await sbSelect('pv_proof_notice', id, 'id,created_at,kind,waiting');
+  if (!r) return null;
+  const offered = r.kind === 'offered';
+  const waiting = Number.isFinite(Number(r.waiting)) ? `${Number(r.waiting)}人` : '—';
+  return {
+    subject: `【PILOT VALUE】パイロット確認の画像 — ${offered ? '自分からの申請' : '確認を求めた会員から'}`,
+    html: shell('パイロット確認の画像が1件届きました',
+      `${esc(r.created_at)} に届きました。画像・氏名・会社名はメールに載せません。管理画面で確認してください。`,
+      table(
+        row('種類', offered
+              ? '会員が自分から申請した（verified の申請）'
+              : '「証明を求める」を押した会員が画像を出した') +
+        row('見る場所', `<a href="https://pilot-value.com/admin.html">管理画面</a> の${
+              offered ? '「申請してきた人」（オーナーだけに出ます）' : '「資格確認」のタブ'}`) +
+        row('確認待ち（全部で）', esc(waiting)),
+      )),
+  };
+}
+
 /* 手元の検査（assert-admin-notify.mjs）が実体をそのまま動かせるように出す。
    translate-review/index.ts と同じ形。Deno 側では無害。 */
 export { buildReview, buildProfile, buildContact, buildPayReport, buildPayReportPending, buildReviewPending, buildCondition, buildRequest,
-         buildRequestComment };
+         buildRequestComment, buildProofNotice };
 
 async function send(mail: Mail, idemKey: string) {
   const res = await fetch('https://api.resend.com/emails', {
@@ -643,6 +669,7 @@ Deno.serve(async (req) => {
     airline_conditions: buildCondition,
     pv_requests: buildRequest,
     pv_request_comments: buildRequestComment,
+    pv_proof_notice: buildProofNotice,
   };
   const build = builders[tbl];
   if (!build) return json({ ok: true, note: `unhandled table ${tbl}` });

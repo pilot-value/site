@@ -91,7 +91,7 @@ const FILES = ['db/airlines.generated.sql', 'db/vocab.generated.sql', 'db/schema
                'db/pay-reports.sql', 'db/pay-report-pending.sql', 'db/pay-rows.sql', 'db/admin.sql',
                'db/reviews-gate.sql', 'db/deep-pay.sql',
                ...(MERGED ? ['db/pilot-proof.sql'] : ['db/proof-store.sql']),
-               'db/proof-offer.sql', 'db/stays.sql'];
+               'db/proof-offer.sql', 'db/proof-notice.sql', 'db/stays.sql'];
 console.log('\n▼ SQL の適用（本番に貼る順）' + (MERGED ? '── main を取り込んだあとの形' : ''));
 const checks = {};
 for (const f of FILES) {
@@ -215,8 +215,10 @@ console.log('\n▼ 1. 申請は何も止めない（REAL PAY・DEEP PAY・口コ
   ok(J(rv.v) === J({ ok: true, state: 'approved' }) && (await images(V)) === 0 && (await prow(V)) === null
      && opens(await stays(V)), '★もう見てよい人が出しても何も預からない・読めるまま', J(rv));
   const trg = (await db.query(`select t.tgname from pg_trigger t where not t.tgisinternal and t.tgrelid in ('public.pv_proof'::regclass, 'public.pv_proof_images'::regclass) order by 1`)).rows.map((r) => r.tgname);
-  ok(J(trg) === J(['pv_proof_discard', 'pv_proof_image_guard', 'pv_proof_offer_keep']),
-     '★2つの表の引き金はこの3つだけ（申請を置く途中の submitted を聞いている引き金が無い ── 増えたら proof-offer.sql を見直す）', J(trg));
+  /* ★2026-11-03 pv_proof_notice（db/proof-notice.sql）を見直して足した。途中の submitted を聞くが、
+       するのは「申請（offered）」の印を1行置くことだけ（止めない・画像に触らない・途中で失敗すれば印も巻き戻る。▼ 8 が見ている） */
+  ok(J(trg) === J(['pv_proof_discard', 'pv_proof_image_guard', 'pv_proof_notice', 'pv_proof_offer_keep']),
+     '★2つの表の引き金はこの4つだけ（申請を置く途中の submitted を聞いているのは、申請の印を置く pv_proof_notice だけ ── 増えたら proof-offer.sql を見直す）', J(trg));
   const sc = await selfCheck('db/proof-offer.sql');
   ok(sc.length === 6 && sc.every((x) => x === '✅'), 'db/proof-offer.sql の検算が6行とも ✅（申請の画像があるとき）', J(sc));
 }
@@ -353,6 +355,52 @@ if (MERGED) {
      '運営の承認は申請には効かない（画像も残る）');
   const sc = await selfCheck('db/pilot-proof.sql');
   ok(sc.length === 8 && sc.every((x) => x === '✅'), 'main の検算8行が、申請の画像があっても全部 ✅', J(sc));
+}
+
+console.log('\n▼ 8. 画像が届いた印（運営への通知メールの元・db/proof-notice.sql・2026-11-03）');
+{
+  /* 印1行 ＝ メール1通（Webhook が INSERT を notify-admin へ渡す）。画像が届いた回だけ・届かなかった回は残らない。 */
+  const N1 = '00000000-0000-4000-8000-0000000000e8';   // 運営が「証明を求める」を押す会員
+  const N2 = '00000000-0000-4000-8000-0000000000e9';   // 自分から申請する会員
+  for (const id of [N1, N2]) {
+    await db.query(`insert into auth.users(id,email) values($1,$2)`, [id, id.slice(-4) + '@example.com']);
+    await db.query(`insert into public.profiles(id,email,company,"position") values($1,$2,'テスト社','cap') on conflict (id) do nothing`, [id, id.slice(-4) + '@example.com']);
+  }
+  const added = async (fn) => {
+    const before = new Set((await db.query(`select id from public.pv_proof_notice`)).rows.map((r) => r.id));
+    await fn();
+    return (await db.query(`select id, kind from public.pv_proof_notice`)).rows.filter((r) => !before.has(r.id)).map((r) => r.kind);
+  };
+  const waitingNow = async () => Number((await own(`select count(*)::int n from public.pv_proof where state in ('submitted','offered')`)).n);
+  const adm = (fn, uid) => call(OP2, `select public.${fn}($1::uuid) as v`, [uid]);
+  const submit = (uid, img) => call(uid, `select public.pv_proof_submit($1) as v`, [img]);
+
+  const steps = [
+    ['「証明を求める」を押しただけ', () => adm('admin_proof_require', N1), []],
+    ['求められた会員が画像を出した', () => submit(N1, IMG1), ['required']],
+    ['確認待ちのまま出し直した（新しい画像）', () => submit(N1, IMG2), ['required']],
+    ['「出し直してください」と返した', () => adm('admin_proof_reject', N1), []],
+    ['返されたあとにもう一度出した', () => submit(N1, IMG3), ['required']],
+    ['運営が承認した', () => adm('admin_proof_approve', N1), []],
+    ['自分から申請した', () => apply(N2, { image: IMG1 }), ['offered']],
+    ['大きすぎて画像が通らなかった申請', () => apply(N2, { image: jpeg(900001) }), []],
+    ['画像を付けずに状態を読んだだけ', () => apply(N2, {}), []],
+    ['申請を出し直した', () => apply(N2, { image: IMG2 }), ['offered']],
+  ];
+  const got = [];
+  for (const [label, fn, want] of steps) got.push([label, J(await added(fn)), J(want)]);
+  const bad = got.filter(([, g, w]) => g !== w);
+  ok(bad.length === 0, '★画像が届いた回にだけ印が1つ（道は required / offered）・届かなかった回・ほかの操作では0',
+     bad.map(([l, g, w]) => `${l}: ${g}（期待 ${w}）`).join(' / '));
+
+  const last = await own(`select waiting from public.pv_proof_notice order by created_at desc limit 1`);
+  ok(last && last.waiting === await waitingNow(), '印の「確認待ち（全部で）」が、その時点の確認待ちの人数と同じ', J([last, await waitingNow()]));
+
+  const cols = (await db.query(`select column_name from information_schema.columns
+                                 where table_schema = 'public' and table_name = 'pv_proof_notice' order by column_name`)).rows.map((r) => r.column_name);
+  ok(J(cols) === J(['created_at', 'id', 'kind', 'waiting']), '★印は「いつ・どちらの道か・確認待ちの合計」だけ（誰が出したか・画像の列が無い）', J(cols));
+  ok(denied(await call(N2, `select count(*) as v from public.pv_proof_notice`)) && denied(await call(null, `select count(*) as v from public.pv_proof_notice`)),
+     '会員にも未ログインにも、印の表は読めない');
 }
 
 console.log(`\n${fail ? '❌' : '✅'} ${pass} passed, ${fail} failed`);

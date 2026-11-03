@@ -1,7 +1,7 @@
 -- ════════════════════════════════════════════════════════════════
 -- PILOT VALUE — db/notify-admin-webhooks.sql
 --
--- Database Webhook（9本）を SQL だけで作る。ダッシュボードの
+-- Database Webhook（10本）を SQL だけで作る。ダッシュボードの
 -- Database Webhooks 画面に辿り着けないときの代替手段。
 -- 画面から作った場合はこのファイルを流す必要はない（流しても二重には
 -- ならない — その表に notify-admin を呼ぶトリガが既にあれば作成を飛ばす）。
@@ -10,11 +10,11 @@
 -- 呼ぶ普通のトリガ。なので、既に本番で動いている translate-review の
 -- トリガを「ひな型」として読み取り、
 --   ・呼び先を notify-admin に差し替え
---   ・対象テーブルを下の9つに差し替え
+--   ・対象テーブルを下の10に差し替え
 --   ・イベントを INSERT のみに固定
--- した9本を作る。
+-- した10本を作る。
 --
--- 9つの内訳:
+-- 10の内訳:
 --   contacts / profiles / reviews_v2   … お問い合わせ・新規会員・新着口コミ
 --   pay_reports                        … 給与レポート（★金額はメールに載せない）
 --   pay_reports_pending                … 会員登録せずに出した給与レポート（預かり）
@@ -26,6 +26,9 @@
 --   pv_request_comments                … その要望へのコメント
 --                                        （★運営自身の返信では送らない。判定は
 --                                          Edge Function 側の is_staff で行う）
+--   pv_proof_notice                    … パイロット確認の画像が届いた印（2026-11-03・db/proof-notice.sql）
+--                                        （★画像の表 pv_proof_images には付けない。
+--                                          行に画像そのものが入っていて、丸ごと送られる）
 --
 -- ⚠️ ここの配列と supabase/functions/notify-admin/index.ts の builders は
 --    同じ顔ぶれでなければならない。片方だけ足すと「実装は正しく見えるのに
@@ -39,8 +42,8 @@
 -- 冪等（何度流しても安全）。
 --
 -- Run のあとに出る表で確認すること:
---   ・「呼び先」が notify-admin の行が **9本ちょうど**（同じ table が2行出ない）
---   ・その9本すべて「イベント」が **Insert のみ**
+--   ・「呼び先」が notify-admin の行が **10本ちょうど**（同じ table が2行出ない）
+--   ・その10本すべて「イベント」が **Insert のみ**
 -- ════════════════════════════════════════════════════════════════
 
 do $$
@@ -67,12 +70,13 @@ begin
                 'ダッシュボードの Database Webhooks 画面から作ってください。';
   end if;
 
-  -- ── 9本作る ───────────────────────────────────────────────
+  -- ── 10本作る ───────────────────────────────────────────────
   -- ⚠️ pv_request_likes は入れない。♡ を1押しするたびにメールが飛ぶ。
   foreach tbl in array array['contacts', 'profiles', 'reviews_v2',
                              'pay_reports', 'pay_reports_pending', 'airline_conditions',
                              'pv_requests', 'pv_request_comments',
-                             'pv_review_pending'] loop   -- 2026-10-29 ログインせずに出した口コミ（db/review-pending.sql）
+                             'pv_review_pending',      -- 2026-10-29 ログインせずに出した口コミ（db/review-pending.sql）
+                             'pv_proof_notice'] loop   -- 2026-11-03 パイロット確認の画像が届いた印（db/proof-notice.sql）
     hook := 'notify_admin_' || tbl;
 
     -- 対象テーブルが無ければ飛ばす（contacts 未作成のまま流した場合など）。
