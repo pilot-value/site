@@ -19,6 +19,16 @@ export const SRC = Object.freeze({
   name_en: 'U.S. Department of Housing and Urban Development (HUD), "Small Area Fair Market Rents (FY2027)"',
   url: 'https://www.huduser.gov/portal/datasets/fmr/smallarea/index.html',
 });
+/* ★2026-11-03 北米追加20社（ChatGPT の調べ・2026-11-02 基準）。カナダの地域（cc: 'CA'）の家賃は、カナダ住宅金融公社（CMHC）の
+   賃貸市場調査（2025年10月の調査・2025年12月公表）── 調査区ごとの、民間の賃貸アパートでいま住んでいる人が払っている家賃の平均。
+   3寝室（bed3）は3寝室以上。信頼度 d（慎重に扱う）と伏せた値は null（画面は「—」）。カナダの街は zone ＝ 調査区の名前（zip は無い）。
+   作り直し：scratchpad の make-na-housing.mjs（リポジトリの外）。 */
+export const SRC_CA = Object.freeze({
+  name: 'カナダ住宅金融公社（CMHC）「賃貸市場調査（2025年10月）」',
+  name_en: 'Canada Mortgage and Housing Corporation (CMHC), "Rental Market Survey (October 2025)"',
+  url: 'https://www.cmhc-schl.gc.ca/professionals/housing-markets-data-and-research/housing-data/data-tables/rental-market/rental-market-report-data-tables',
+});
+export const NA20 = Object.freeze({"regions":["CAK","PVD","RSW","VRB","CHS","ORF","BDL","PVU","MSY","HVN","ILG","LAL","USA","STL","HNL","HPN","YYZ","YUL","YVR","YWG","YYC","YEG","YOW"],"towns":["us-green","us-hudson","us-warwick","us-east-greenwich","us-estero","us-bonita-springs","us-vero-beach","us-indian-river-shores","us-summerville","us-mount-pleasant","us-chesapeake-greenbrier","us-virginia-beach","us-windsor-locks","us-glastonbury","us-lehi","us-alpine","us-kenner","us-mandeville","us-branford","us-madison","us-newark-delaware","us-greenville-delaware","us-south-lakeland","us-lake-hollingsworth","us-concord","us-st-charles","us-chesterfield","us-aiea","us-kailua-oahu","us-harrison","us-scarsdale","ca-etobicoke-central","ca-mississauga-northwest","ca-oakville","ca-markham","ca-richmond-hill-vaughan-king","ca-dorval-lachine-saint-pierre","ca-beaconsfield-baie-d-urfe","ca-saint-laurent","ca-mount-royal-outremont","ca-richmond","ca-kitsilano-point-grey","ca-kerrisdale-westside","ca-west-vancouver","ca-north-vancouver-district","ca-st-james","ca-assiniboine-park","ca-fort-garry","ca-st-vital","ca-calgary-northeast","ca-calgary-northwest","ca-calgary-southwest","ca-airdrie-cochrane","ca-leduc","ca-edmonton-southwest","ca-st-albert","ca-strathcona-county","ca-hunt-club-south-keys","ca-nepean","ca-glebe-old-ottawa-south","ca-ottawa"],"companies":["breeze-airways","avelo-airlines","gojet","northern-air-cargo","contour","air-canada","westjet","jazz","porter"]});
 export const REGIONS = Object.freeze({
  "ATL": {
   "ja": "アトランタ",
@@ -345,6 +355,182 @@ export const REGIONS = Object.freeze({
   "airports": [
    "YIP"
   ]
+ },
+ "CAK": {
+  "ja": "アクロン・カントン",
+  "en": "Akron–Canton",
+  "airports": [
+   "CAK"
+  ]
+ },
+ "PVD": {
+  "ja": "プロビデンス",
+  "en": "Providence",
+  "airports": [
+   "PVD"
+  ]
+ },
+ "RSW": {
+  "ja": "フォートマイヤーズ",
+  "en": "Fort Myers",
+  "airports": [
+   "RSW"
+  ]
+ },
+ "VRB": {
+  "ja": "ベロビーチ",
+  "en": "Vero Beach",
+  "airports": [
+   "VRB"
+  ]
+ },
+ "CHS": {
+  "ja": "チャールストン",
+  "en": "Charleston",
+  "airports": [
+   "CHS"
+  ]
+ },
+ "ORF": {
+  "ja": "ノーフォーク",
+  "en": "Norfolk",
+  "airports": [
+   "ORF"
+  ]
+ },
+ "BDL": {
+  "ja": "ハートフォード",
+  "en": "Hartford",
+  "airports": [
+   "BDL"
+  ]
+ },
+ "PVU": {
+  "ja": "プロボ",
+  "en": "Provo",
+  "airports": [
+   "PVU"
+  ]
+ },
+ "MSY": {
+  "ja": "ニューオーリンズ",
+  "en": "New Orleans",
+  "airports": [
+   "MSY"
+  ]
+ },
+ "HVN": {
+  "ja": "ニューヘイブン",
+  "en": "New Haven",
+  "airports": [
+   "HVN"
+  ]
+ },
+ "ILG": {
+  "ja": "ウィルミントン（デラウェア州）",
+  "en": "Wilmington, DE",
+  "airports": [
+   "ILG"
+  ]
+ },
+ "LAL": {
+  "ja": "レイクランド",
+  "en": "Lakeland",
+  "airports": [
+   "LAL"
+  ]
+ },
+ "USA": {
+  "ja": "コンコード（ノースカロライナ州）",
+  "en": "Concord, NC",
+  "airports": [
+   "USA"
+  ]
+ },
+ "STL": {
+  "ja": "セントルイス",
+  "en": "St. Louis",
+  "airports": [
+   "STL"
+  ]
+ },
+ "HNL": {
+  "ja": "ホノルル",
+  "en": "Honolulu",
+  "airports": [
+   "HNL"
+  ]
+ },
+ "HPN": {
+  "ja": "ウエストチェスター",
+  "en": "Westchester",
+  "airports": [
+   "HPN"
+  ]
+ },
+ "YYZ": {
+  "ja": "トロント",
+  "en": "Toronto",
+  "airports": [
+   "YYZ",
+   "YTZ"
+  ],
+  "cc": "CA",
+  "cur": "CAD"
+ },
+ "YUL": {
+  "ja": "モントリオール",
+  "en": "Montréal",
+  "airports": [
+   "YUL"
+  ],
+  "cc": "CA",
+  "cur": "CAD"
+ },
+ "YVR": {
+  "ja": "バンクーバー",
+  "en": "Vancouver",
+  "airports": [
+   "YVR"
+  ],
+  "cc": "CA",
+  "cur": "CAD"
+ },
+ "YWG": {
+  "ja": "ウィニペグ",
+  "en": "Winnipeg",
+  "airports": [
+   "YWG"
+  ],
+  "cc": "CA",
+  "cur": "CAD"
+ },
+ "YYC": {
+  "ja": "カルガリー",
+  "en": "Calgary",
+  "airports": [
+   "YYC"
+  ],
+  "cc": "CA",
+  "cur": "CAD"
+ },
+ "YEG": {
+  "ja": "エドモントン",
+  "en": "Edmonton",
+  "airports": [
+   "YEG"
+  ],
+  "cc": "CA",
+  "cur": "CAD"
+ },
+ "YOW": {
+  "ja": "オタワ",
+  "en": "Ottawa",
+  "airports": [
+   "YOW"
+  ],
+  "cc": "CA",
+  "cur": "CAD"
  }
 });
 export const TOWNS = Object.freeze({
@@ -2179,6 +2365,1041 @@ export const TOWNS = Object.freeze({
   "income": null,
   "incomeTop": false,
   "offers": []
+ },
+ "us-green": {
+  "region": "CAK",
+  "ja": "グリーン（オハイオ州）周辺",
+  "en": "Green, Ohio area",
+  "state": "OH",
+  "zip": "44312",
+  "bed1": 940,
+  "bed2": 1210,
+  "bed3": 1450,
+  "near": [
+   "CAK"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-hudson": {
+  "region": "CAK",
+  "ja": "ハドソン",
+  "en": "Hudson",
+  "state": "OH",
+  "zip": "44236",
+  "bed1": 1430,
+  "bed2": 1850,
+  "bed3": 2220,
+  "near": [
+   "CAK"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-warwick": {
+  "region": "PVD",
+  "ja": "ウォリック",
+  "en": "Warwick",
+  "state": "RI",
+  "zip": "02886",
+  "bed1": 1730,
+  "bed2": 2150,
+  "bed3": 2630,
+  "near": [
+   "PVD"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-east-greenwich": {
+  "region": "PVD",
+  "ja": "イーストグリニッジ",
+  "en": "East Greenwich",
+  "state": "RI",
+  "zip": "02818",
+  "bed1": 1660,
+  "bed2": 2070,
+  "bed3": 2540,
+  "near": [
+   "PVD"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-estero": {
+  "region": "RSW",
+  "ja": "エステロ",
+  "en": "Estero",
+  "state": "FL",
+  "zip": "33928",
+  "bed1": 1930,
+  "bed2": 2300,
+  "bed3": 3000,
+  "near": [
+   "RSW"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-bonita-springs": {
+  "region": "RSW",
+  "ja": "ボニータスプリングス",
+  "en": "Bonita Springs",
+  "state": "FL",
+  "zip": "34135",
+  "bed1": 1760,
+  "bed2": 2060,
+  "bed3": 2660,
+  "near": [
+   "RSW"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-vero-beach": {
+  "region": "VRB",
+  "ja": "ベロビーチ内陸側",
+  "en": "Vero Beach (mainland)",
+  "state": "FL",
+  "zip": "32960",
+  "bed1": 1100,
+  "bed2": 1450,
+  "bed3": 1770,
+  "near": [
+   "VRB"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-indian-river-shores": {
+  "region": "VRB",
+  "ja": "インディアンリバーショアーズ周辺",
+  "en": "Indian River Shores area",
+  "state": "FL",
+  "zip": "32963",
+  "bed1": 1770,
+  "bed2": 2310,
+  "bed3": 2820,
+  "near": [
+   "VRB"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-summerville": {
+  "region": "CHS",
+  "ja": "サマービル",
+  "en": "Summerville",
+  "state": "SC",
+  "zip": "29483",
+  "bed1": 1450,
+  "bed2": 1580,
+  "bed3": 1960,
+  "near": [
+   "CHS"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-mount-pleasant": {
+  "region": "CHS",
+  "ja": "マウントプレザント",
+  "en": "Mount Pleasant",
+  "state": "SC",
+  "zip": "29464",
+  "bed1": 2230,
+  "bed2": 2430,
+  "bed3": 3010,
+  "near": [
+   "CHS"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-chesapeake-greenbrier": {
+  "region": "ORF",
+  "ja": "チェサピーク・グリーンブライアー周辺",
+  "en": "Greenbrier, Chesapeake area",
+  "state": "VA",
+  "zip": "23320",
+  "bed1": 1870,
+  "bed2": 2100,
+  "bed3": 2890,
+  "near": [
+   "ORF"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-virginia-beach": {
+  "region": "ORF",
+  "ja": "バージニアビーチ東側",
+  "en": "Virginia Beach (east)",
+  "state": "VA",
+  "zip": "23454",
+  "bed1": 1700,
+  "bed2": 1910,
+  "bed3": 2630,
+  "near": [
+   "ORF"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-windsor-locks": {
+  "region": "BDL",
+  "ja": "ウィンザーロックス",
+  "en": "Windsor Locks",
+  "state": "CT",
+  "zip": "06096",
+  "bed1": 1490,
+  "bed2": 1870,
+  "bed3": 2230,
+  "near": [
+   "BDL"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-glastonbury": {
+  "region": "BDL",
+  "ja": "グラストンベリー",
+  "en": "Glastonbury",
+  "state": "CT",
+  "zip": "06033",
+  "bed1": 1880,
+  "bed2": 2350,
+  "bed3": 2800,
+  "near": [
+   "BDL"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-lehi": {
+  "region": "PVU",
+  "ja": "リーハイ",
+  "en": "Lehi",
+  "state": "UT",
+  "zip": "84043",
+  "bed1": 1490,
+  "bed2": 1700,
+  "bed3": 2350,
+  "near": [
+   "PVU"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-alpine": {
+  "region": "PVU",
+  "ja": "アルパイン",
+  "en": "Alpine",
+  "state": "UT",
+  "zip": "84004",
+  "bed1": 1500,
+  "bed2": 1720,
+  "bed3": 2380,
+  "near": [
+   "PVU"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-kenner": {
+  "region": "MSY",
+  "ja": "ケナー",
+  "en": "Kenner",
+  "state": "LA",
+  "zip": "70065",
+  "bed1": 1120,
+  "bed2": 1350,
+  "bed3": 1730,
+  "near": [
+   "MSY"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-mandeville": {
+  "region": "MSY",
+  "ja": "マンデビル",
+  "en": "Mandeville",
+  "state": "LA",
+  "zip": "70448",
+  "bed1": 1350,
+  "bed2": 1570,
+  "bed3": 2020,
+  "near": [
+   "MSY"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-branford": {
+  "region": "HVN",
+  "ja": "ブランフォード",
+  "en": "Branford",
+  "state": "CT",
+  "zip": "06405",
+  "bed1": 1730,
+  "bed2": 2080,
+  "bed3": 2590,
+  "near": [
+   "HVN"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-madison": {
+  "region": "HVN",
+  "ja": "マディソン（コネチカット州）",
+  "en": "Madison, Connecticut",
+  "state": "CT",
+  "zip": "06443",
+  "bed1": 2430,
+  "bed2": 2910,
+  "bed3": 3620,
+  "near": [
+   "HVN"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-newark-delaware": {
+  "region": "ILG",
+  "ja": "ニューアーク（デラウェア州）",
+  "en": "Newark, Delaware",
+  "state": "DE",
+  "zip": "19711",
+  "bed1": 1590,
+  "bed2": 1900,
+  "bed3": 2260,
+  "near": [
+   "ILG"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-greenville-delaware": {
+  "region": "ILG",
+  "ja": "グリーンビル（デラウェア州）",
+  "en": "Greenville, Delaware",
+  "state": "DE",
+  "zip": "19807",
+  "bed1": 1820,
+  "bed2": 2170,
+  "bed3": 2590,
+  "near": [
+   "ILG"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-south-lakeland": {
+  "region": "LAL",
+  "ja": "サウスレイクランド",
+  "en": "South Lakeland",
+  "state": "FL",
+  "zip": "33813",
+  "bed1": 1690,
+  "bed2": 2030,
+  "bed3": 2790,
+  "near": [
+   "LAL"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-lake-hollingsworth": {
+  "region": "LAL",
+  "ja": "ホリングスワース湖周辺",
+  "en": "Lake Hollingsworth area",
+  "state": "FL",
+  "zip": "33803",
+  "bed1": 1520,
+  "bed2": 1830,
+  "bed3": 2520,
+  "near": [
+   "LAL"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-concord": {
+  "region": "USA",
+  "ja": "コンコード（ノースカロライナ州）",
+  "en": "Concord, North Carolina",
+  "state": "NC",
+  "zip": "28027",
+  "bed1": 1640,
+  "bed2": 1790,
+  "bed3": 2190,
+  "near": [
+   "USA"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-st-charles": {
+  "region": "STL",
+  "ja": "セントチャールズ",
+  "en": "St. Charles",
+  "state": "MO",
+  "zip": "63301",
+  "bed1": 1150,
+  "bed2": 1400,
+  "bed3": 1800,
+  "near": [
+   "STL"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-chesterfield": {
+  "region": "STL",
+  "ja": "チェスターフィールド",
+  "en": "Chesterfield",
+  "state": "MO",
+  "zip": "63017",
+  "bed1": 1580,
+  "bed2": 1930,
+  "bed3": 2480,
+  "near": [
+   "STL"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-aiea": {
+  "region": "HNL",
+  "ja": "アイエア",
+  "en": "Aiea",
+  "state": "HI",
+  "zip": "96701",
+  "bed1": 1810,
+  "bed2": 2360,
+  "bed3": 3270,
+  "near": [
+   "HNL"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-kailua-oahu": {
+  "region": "HNL",
+  "ja": "カイルア（オアフ島）",
+  "en": "Kailua (Oahu)",
+  "state": "HI",
+  "zip": "96734",
+  "bed1": 2810,
+  "bed2": 3660,
+  "bed3": 5070,
+  "near": [
+   "HNL"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-harrison": {
+  "region": "HPN",
+  "ja": "ハリソン",
+  "en": "Harrison",
+  "state": "NY",
+  "zip": "10528",
+  "bed1": 3820,
+  "bed2": 4160,
+  "bed3": 5260,
+  "near": [
+   "HPN"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "us-scarsdale": {
+  "region": "HPN",
+  "ja": "スカースデール",
+  "en": "Scarsdale",
+  "state": "NY",
+  "zip": "10583",
+  "bed1": 3550,
+  "bed2": 3860,
+  "bed3": 4880,
+  "near": [
+   "HPN"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "ca-etobicoke-central": {
+  "region": "YYZ",
+  "ja": "エトビコ中部",
+  "en": "Central Etobicoke",
+  "state": "ON",
+  "zip": null,
+  "zone": "Zone 6 - Etobicoke (Central)",
+  "bed1": 1874,
+  "bed2": 2190,
+  "bed3": 2497,
+  "near": [
+   "YYZ",
+   "YTZ"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "ca-mississauga-northwest": {
+  "region": "YYZ",
+  "ja": "ミシサガ北西部",
+  "en": "Northwest Mississauga",
+  "state": "ON",
+  "zip": null,
+  "zone": "Zone 19 - Mississauga (Northwest)",
+  "bed1": 1987,
+  "bed2": 2280,
+  "bed3": 2255,
+  "near": [
+   "YYZ",
+   "YTZ"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "ca-oakville": {
+  "region": "YYZ",
+  "ja": "オークビル",
+  "en": "Oakville",
+  "state": "ON",
+  "zip": null,
+  "zone": "Zone 23 - Oakville",
+  "bed1": 1915,
+  "bed2": 2337,
+  "bed3": 2439,
+  "near": [
+   "YYZ",
+   "YTZ"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": [
+   {
+    "rent": 2900,
+    "beds": 3,
+    "baths": 2,
+    "sqft": 2123,
+    "seen": "2026-11-02"
+   }
+  ]
+ },
+ "ca-markham": {
+  "region": "YYZ",
+  "ja": "マーカム",
+  "en": "Markham",
+  "state": "ON",
+  "zip": null,
+  "zone": "Zone 27 - Markham",
+  "bed1": 1885,
+  "bed2": 1996,
+  "bed3": 1969,
+  "near": [
+   "YYZ",
+   "YTZ"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "ca-richmond-hill-vaughan-king": {
+  "region": "YYZ",
+  "ja": "リッチモンドヒル・ボーン・キング",
+  "en": "Richmond Hill, Vaughan & King",
+  "state": "ON",
+  "zip": null,
+  "zone": "Zone 25 - Richmond Hill/Vaughan/King",
+  "bed1": 1583,
+  "bed2": 1827,
+  "bed3": 2332,
+  "near": [
+   "YYZ",
+   "YTZ"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "ca-dorval-lachine-saint-pierre": {
+  "region": "YUL",
+  "ja": "ドーバル・ラシーン・サンピエール",
+  "en": "Dorval, Lachine & Saint-Pierre",
+  "state": "QC",
+  "zip": null,
+  "zone": "Zone 14 - Dorval/Lachine/Saint-Pierre",
+  "bed1": 978,
+  "bed2": 1138,
+  "bed3": null,
+  "near": [
+   "YUL"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "ca-beaconsfield-baie-d-urfe": {
+  "region": "YUL",
+  "ja": "ビーコンズフィールド・ベ・デュルフェ周辺",
+  "en": "Beaconsfield & Baie-D'Urfé area",
+  "state": "QC",
+  "zip": null,
+  "zone": "Zone 15 - Baie-d'Urfé/Beaconsfield etc.",
+  "bed1": 1451,
+  "bed2": 1773,
+  "bed3": null,
+  "near": [
+   "YUL"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "ca-saint-laurent": {
+  "region": "YUL",
+  "ja": "サンローラン（モントリオール）",
+  "en": "Saint-Laurent",
+  "state": "QC",
+  "zip": null,
+  "zone": "Zone 13 - Saint-Laurent",
+  "bed1": 1163,
+  "bed2": 1365,
+  "bed3": 2125,
+  "near": [
+   "YUL"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "ca-mount-royal-outremont": {
+  "region": "YUL",
+  "ja": "マウントロイヤル・ウトルモン周辺",
+  "en": "Mount Royal & Outremont area",
+  "state": "QC",
+  "zip": null,
+  "zone": "Zone 5 - Ct-des-Neiges/Mt-Royal/Outremont",
+  "bed1": 1146,
+  "bed2": 1415,
+  "bed3": null,
+  "near": [
+   "YUL"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "ca-richmond": {
+  "region": "YVR",
+  "ja": "リッチモンド（BC州）",
+  "en": "Richmond",
+  "state": "BC",
+  "zip": null,
+  "zone": "Zone 19 - Richmond",
+  "bed1": 1676,
+  "bed2": 2018,
+  "bed3": 2450,
+  "near": [
+   "YVR"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": [
+   {
+    "rent": 3550,
+    "beds": 3,
+    "baths": 3,
+    "sqft": 1504,
+    "seen": "2026-11-02"
+   }
+  ]
+ },
+ "ca-kitsilano-point-grey": {
+  "region": "YVR",
+  "ja": "キツラノ・ポイントグレイ",
+  "en": "Kitsilano & Point Grey",
+  "state": "BC",
+  "zip": null,
+  "zone": "Zone 5 - Kitsilano/Point Grey",
+  "bed1": 1915,
+  "bed2": 2651,
+  "bed3": 3733,
+  "near": [
+   "YVR"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "ca-kerrisdale-westside": {
+  "region": "YVR",
+  "ja": "ケリスデール・ウェストサイド",
+  "en": "Kerrisdale & West Side",
+  "state": "BC",
+  "zip": null,
+  "zone": "Zone 6 - Westside/Kerrisdale",
+  "bed1": 1905,
+  "bed2": 2957,
+  "bed3": 4468,
+  "near": [
+   "YVR"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "ca-west-vancouver": {
+  "region": "YVR",
+  "ja": "ウェストバンクーバー",
+  "en": "West Vancouver",
+  "state": "BC",
+  "zip": null,
+  "zone": "Zone 18 - West Vancouver",
+  "bed1": 2153,
+  "bed2": 3252,
+  "bed3": null,
+  "near": [
+   "YVR"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "ca-north-vancouver-district": {
+  "region": "YVR",
+  "ja": "ノースバンクーバー地区",
+  "en": "District of North Vancouver",
+  "state": "BC",
+  "zip": null,
+  "zone": "Zone 17 - North Vancouver DM",
+  "bed1": 2359,
+  "bed2": 2756,
+  "bed3": 2656,
+  "near": [
+   "YVR"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "ca-st-james": {
+  "region": "YWG",
+  "ja": "セントジェームズ（ウィニペグ）",
+  "en": "St. James",
+  "state": "MB",
+  "zip": null,
+  "zone": "Zone 5 - St. James",
+  "bed1": 1182,
+  "bed2": 1442,
+  "bed3": 1858,
+  "near": [
+   "YWG"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "ca-assiniboine-park": {
+  "region": "YWG",
+  "ja": "アシニボイン公園周辺",
+  "en": "Assiniboine Park area",
+  "state": "MB",
+  "zip": null,
+  "zone": "Zone 12 - Assiniboine Park",
+  "bed1": 1402,
+  "bed2": 1809,
+  "bed3": 1878,
+  "near": [
+   "YWG"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "ca-fort-garry": {
+  "region": "YWG",
+  "ja": "フォートギャリー周辺",
+  "en": "Fort Garry area",
+  "state": "MB",
+  "zip": null,
+  "zone": "Zone 11 - Fort Garry",
+  "bed1": 1458,
+  "bed2": 1731,
+  "bed3": 2060,
+  "near": [
+   "YWG"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "ca-st-vital": {
+  "region": "YWG",
+  "ja": "セントバイタル",
+  "en": "St. Vital",
+  "state": "MB",
+  "zip": null,
+  "zone": "Zone 10 - St. Vital",
+  "bed1": 1265,
+  "bed2": 1620,
+  "bed3": 1882,
+  "near": [
+   "YWG"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "ca-calgary-northeast": {
+  "region": "YYC",
+  "ja": "カルガリー北東部",
+  "en": "Northeast Calgary",
+  "state": "AB",
+  "zip": null,
+  "zone": "Zone 7 - Northeast",
+  "bed1": 1501,
+  "bed2": 1762,
+  "bed3": 2006,
+  "near": [
+   "YYC"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "ca-calgary-northwest": {
+  "region": "YYC",
+  "ja": "カルガリー北西部",
+  "en": "Northwest Calgary",
+  "state": "AB",
+  "zip": null,
+  "zone": "Zone 6 - Northwest",
+  "bed1": 1648,
+  "bed2": 1818,
+  "bed3": 2254,
+  "near": [
+   "YYC"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "ca-calgary-southwest": {
+  "region": "YYC",
+  "ja": "カルガリー南西部",
+  "en": "Southwest Calgary",
+  "state": "AB",
+  "zip": null,
+  "zone": "Zone 4 - Southwest",
+  "bed1": 1642,
+  "bed2": 2083,
+  "bed3": 2318,
+  "near": [
+   "YYC"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "ca-airdrie-cochrane": {
+  "region": "YYC",
+  "ja": "エアドリー・コクラン周辺",
+  "en": "Airdrie & Cochrane area",
+  "state": "AB",
+  "zip": null,
+  "zone": "Zone 10 - Other Centres",
+  "bed1": 1470,
+  "bed2": 1805,
+  "bed3": 2014,
+  "near": [
+   "YYC"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "ca-leduc": {
+  "region": "YEG",
+  "ja": "レダック",
+  "en": "Leduc",
+  "state": "AB",
+  "zip": null,
+  "zone": "Zone 16 - Leduc",
+  "bed1": 1342,
+  "bed2": 1465,
+  "bed3": null,
+  "near": [
+   "YEG"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": [
+   {
+    "rent": 2295,
+    "beds": 3,
+    "baths": 2.5,
+    "sqft": null,
+    "seen": "2026-11-02"
+   }
+  ]
+ },
+ "ca-edmonton-southwest": {
+  "region": "YEG",
+  "ja": "エドモントン南西部",
+  "en": "Southwest Edmonton",
+  "state": "AB",
+  "zip": null,
+  "zone": "Zone 7 - South West",
+  "bed1": 1386,
+  "bed2": 1603,
+  "bed3": 1833,
+  "near": [
+   "YEG"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "ca-st-albert": {
+  "region": "YEG",
+  "ja": "セントアルバート",
+  "en": "St. Albert",
+  "state": "AB",
+  "zip": null,
+  "zone": "Zone 13 - St. Albert",
+  "bed1": 1659,
+  "bed2": 1939,
+  "bed3": 1874,
+  "near": [
+   "YEG"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "ca-strathcona-county": {
+  "region": "YEG",
+  "ja": "ストラスコーナ郡（シャーウッドパーク）",
+  "en": "Strathcona County (Sherwood Park)",
+  "state": "AB",
+  "zip": null,
+  "zone": "Zone 19 - Strathcona County",
+  "bed1": 1610,
+  "bed2": 1913,
+  "bed3": 2213,
+  "near": [
+   "YEG"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "ca-hunt-club-south-keys": {
+  "region": "YOW",
+  "ja": "ハントクラブ・サウスキーズ",
+  "en": "Hunt Club & South Keys",
+  "state": "ON",
+  "zip": null,
+  "zone": "Zone 9 - Hunt Club/South Keys",
+  "bed1": 1440,
+  "bed2": 1768,
+  "bed3": 1945,
+  "near": [
+   "YOW"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "ca-nepean": {
+  "region": "YOW",
+  "ja": "ネピアン",
+  "en": "Nepean",
+  "state": "ON",
+  "zip": null,
+  "zone": "Zone 13 - Nepean",
+  "bed1": 1581,
+  "bed2": 1851,
+  "bed3": 2013,
+  "near": [
+   "YOW"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "ca-glebe-old-ottawa-south": {
+  "region": "YOW",
+  "ja": "グリーブ・オールドオタワサウス",
+  "en": "The Glebe & Old Ottawa South",
+  "state": "ON",
+  "zip": null,
+  "zone": "Zone 3 - Glebe/Old Ottawa South",
+  "bed1": 1778,
+  "bed2": 2074,
+  "bed3": 2143,
+  "near": [
+   "YOW"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
+ },
+ "ca-ottawa": {
+  "region": "YOW",
+  "ja": "カナタ周辺（オタワ西部）",
+  "en": "Kanata area (west Ottawa)",
+  "state": "ON",
+  "zip": null,
+  "zone": "Zone 14 - Western Ottawa Surrounding Areas",
+  "bed1": 2062,
+  "bed2": 2495,
+  "bed3": null,
+  "near": [
+   "YOW"
+  ],
+  "income": null,
+  "incomeTop": false,
+  "offers": []
  }
 });
 export const COMPANIES = Object.freeze({
@@ -2535,5 +3756,216 @@ export const COMPANIES = Object.freeze({
   "bases": [],
   "regions": [],
   "airports": []
+ },
+ "breeze-airways": {
+  "bases": [
+   "CAK",
+   "PVD",
+   "TPA",
+   "RSW",
+   "VRB",
+   "MCO",
+   "CHS",
+   "ORF",
+   "BDL",
+   "PVU",
+   "MSY"
+  ],
+  "regions": [
+   "CAK",
+   "PVD",
+   "TPA",
+   "RSW",
+   "VRB",
+   "ORL",
+   "CHS",
+   "ORF",
+   "BDL",
+   "PVU",
+   "MSY"
+  ],
+  "airports": [
+   "CAK",
+   "PVD",
+   "TPA",
+   "RSW",
+   "VRB",
+   "MCO",
+   "CHS",
+   "ORF",
+   "BDL",
+   "PVU",
+   "MSY"
+  ]
+ },
+ "avelo-airlines": {
+  "bases": [
+   "HVN",
+   "ILG",
+   "LAL",
+   "USA"
+  ],
+  "regions": [
+   "HVN",
+   "ILG",
+   "LAL",
+   "USA"
+  ],
+  "airports": [
+   "HVN",
+   "ILG",
+   "LAL",
+   "USA"
+  ]
+ },
+ "gojet": {
+  "bases": [
+   "STL",
+   "EWR",
+   "IAD",
+   "ORD",
+   "IAH"
+  ],
+  "regions": [
+   "STL",
+   "NYC",
+   "DC",
+   "CHI"
+  ],
+  "airports": [
+   "STL",
+   "EWR",
+   "IAD",
+   "ORD",
+   "IAH"
+  ]
+ },
+ "northern-air-cargo": {
+  "bases": [
+   "ANC",
+   "HNL",
+   "MIA"
+  ],
+  "regions": [
+   "ANC",
+   "HNL",
+   "MIA"
+  ],
+  "airports": [
+   "ANC",
+   "HNL",
+   "MIA"
+  ]
+ },
+ "contour": {
+  "bases": [
+   "CLT",
+   "PHX",
+   "ORD",
+   "FLL",
+   "HPN"
+  ],
+  "regions": [
+   "CLT",
+   "PHX",
+   "CHI",
+   "FLL",
+   "HPN"
+  ],
+  "airports": [
+   "CLT",
+   "PHX",
+   "ORD",
+   "FLL",
+   "HPN"
+  ]
+ },
+ "air-canada": {
+  "bases": [
+   "YUL",
+   "YYZ",
+   "YWG",
+   "YVR"
+  ],
+  "regions": [
+   "YYZ",
+   "YUL",
+   "YWG",
+   "YVR"
+  ],
+  "airports": [
+   "YUL",
+   "YYZ",
+   "YWG",
+   "YVR"
+  ]
+ },
+ "westjet": {
+  "bases": [
+   "YYC",
+   "YEG",
+   "YVR",
+   "YWG",
+   "YYZ",
+   "YUL"
+  ],
+  "regions": [
+   "YYC",
+   "YEG",
+   "YVR",
+   "YWG",
+   "YYZ",
+   "YUL"
+  ],
+  "airports": [
+   "YYC",
+   "YEG",
+   "YVR",
+   "YWG",
+   "YYZ",
+   "YUL"
+  ]
+ },
+ "jazz": {
+  "bases": [
+   "YYZ",
+   "YUL",
+   "YYC",
+   "YVR"
+  ],
+  "regions": [
+   "YYZ",
+   "YUL",
+   "YYC",
+   "YVR"
+  ],
+  "airports": [
+   "YYZ",
+   "YUL",
+   "YYC",
+   "YVR"
+  ]
+ },
+ "porter": {
+  "bases": [
+   "YYZ",
+   "YTZ",
+   "YOW",
+   "YUL",
+   "YVR"
+  ],
+  "regions": [
+   "YYZ",
+   "YUL",
+   "YOW",
+   "YVR"
+  ],
+  "airports": [
+   "YYZ",
+   "YTZ",
+   "YOW",
+   "YUL",
+   "YVR"
+  ]
  }
 });

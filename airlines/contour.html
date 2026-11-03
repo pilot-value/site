@@ -115,6 +115,7 @@
 <p class="text-muted pvg-sub">コンツアー航空</p>
 </div>
 <div class="pvg-meta">
+<span class="pvg-base"><svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6-5.2-6-10a6 6 0 1 1 12 0c0 4.8-6 10-6 10zM12 9.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg><b>CLT・PHX・ORD・FLL・HPN</b></span>
 <div class="crl" data-live="stars" data-airline="contour" data-state="idle"><span class="crl-ph">—</span></div>
 </div>
 </div>
@@ -150,7 +151,7 @@
 <div class="pvg-more-grid" data-pvg-pane="overview">
 <article class="pvg-card pvg-co pvg-co-np" data-pvg-pane="overview">
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16M15 10h4a1 1 0 0 1 1 1v10M3 21h18M8 8h3M8 12h3M8 16h3"/></svg></span><h2 class="pvg-eyebrow">会社</h2></header>
-<p class="pvg-about" data-pvg-about="rows">アメリカの航空会社。</p>
+<p class="pvg-about" data-pvg-about="rows">アメリカの航空会社。シャーロット（CLT）、フェニックス（PHX）、シカゴ（ORD）などにパイロットの拠点がある。</p>
 </article>
 </div>
 <div class="pvg-payrow" data-pvg-pane="overview pay reviews">
@@ -258,17 +259,464 @@
 <article class="pvg-card pvg-cell" data-cell="living" data-pvg-pane="overview">
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"/></svg></span><h2 class="pvg-eyebrow">暮らし</h2></header>
 <div class="pvg-lead">
-<p class="pvg-k">拠点の街</p>
-<p class="pvg-v">確認できていません</p>
-<p class="pvg-note">家賃の資料を確認できていません</p>
+<p class="pvg-k">デビッドソン・1-Bedの郵便番号ごとの家賃の指標・光熱費込み</p>
+<p class="pvg-v"><span class="pv-no-cur">月 USD 1,880</span><small class="pvg-yen" data-cur="USD">（約29.9万円）</small></p>
+<p class="pvg-note">米国住宅都市開発省（HUD）「Small Area Fair Market Rents（FY2027）」・FY2027（2026年10月1日から）</p>
 </div>
 
 <div class="pvg-qs"><p class="pvg-qh">匿名で答える</p><ul><li><a href="../airline-conditions.html?airline=contour&amp;q=commuting_transport" data-pvc-open="taxi" data-pvc-q="commuting_transport">通勤の足を会社が用意するか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when">タクシーを使えるとき<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=contour&amp;q=commuting_bus_when" data-pvc-open="taxi" data-pvc-q="commuting_bus_when">クルーバスを使えるとき<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li></ul></div>
-<button type="button" class="pvg-more" aria-expanded="false" aria-controls="pvg-p-living"><span>答える</span><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+<button type="button" class="pvg-more" aria-expanded="false" aria-controls="pvg-p-living"><span>街ごとの家賃と出典</span><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
 </article>
 <div class="pvg-card pvg-panel" id="pvg-p-living" data-panel="living" data-pvg-pane="overview life" hidden>
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"/></svg></span><h3 class="pvg-ptitle">暮らし</h3><button type="button" class="pvg-x" aria-label="閉じる"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-<div class="pvg-ask"><p class="pvg-askh">匿名で答える</p><ul><li><a href="../airline-conditions.html?airline=contour&amp;q=commuting_transport" data-pvc-open="taxi" data-pvc-q="commuting_transport">通勤の足を会社が用意するか<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when">タクシーを使えるとき<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=contour&amp;q=commuting_bus_when" data-pvc-open="taxi" data-pvc-q="commuting_bus_when">クルーバスを使えるとき<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li></ul></div>
+<div class="pvg-livs" data-pvg-livs>
+<div class="pvg-lvt" role="tablist" aria-label="住む都市"><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-clt" data-pvg-liv="us-clt" aria-controls="pvg-lv-us-clt" aria-selected="true">シャーロット<small>CLT</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-phx" data-pvg-liv="us-phx" aria-controls="pvg-lv-us-phx" aria-selected="false">フェニックス・メサ<small>PHX</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-chi" data-pvg-liv="us-chi" aria-controls="pvg-lv-us-chi" aria-selected="false">シカゴ<small>ORD</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-fll" data-pvg-liv="us-fll" aria-controls="pvg-lv-us-fll" aria-selected="false">フォートローダーデール<small>FLL</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-hpn" data-pvg-liv="us-hpn" aria-controls="pvg-lv-us-hpn" aria-selected="false">ウエストチェスター<small>HPN</small></button></div>
+<section class="pvg-liv" data-pvg-towns data-city="us-clt" data-base="CLT" id="pvg-lv-us-clt" role="tabpanel" aria-labelledby="pvg-lvt-us-clt">
+<header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>シャーロット・CLT</small></p></header>
+<ul class="pvg-tgrid" data-n="2" style="--tg-a:2;--tg-b:2;--tg-c:2;--tg-d:2">
+<li><button type="button" class="pvg-town" data-town="us-davidson" aria-controls="pvg-town-us-davidson" aria-pressed="false">
+<span class="pvg-town-ph"><img src="../assets/places/town-davidson-480.jpg" srcset="../assets/places/town-davidson-480.jpg 480w, ../assets/places/town-davidson.jpg 960w" sizes="(min-width: 1100px) 600px, (min-width: 700px) 48vw, 46vw" width="480" height="319" alt="デビッドソン中心街の商店が並ぶ通り" loading="lazy" decoding="async"></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">デビッドソン</b><span class="pvg-town-s" lang="en">Davidson, NC 28036</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">月 USD 1,880</span><small class="pvg-yen" data-cur="USD">（約29.9万円）</small></span></span>
+
+<span class="pvg-town-go">詳細<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+<li><button type="button" class="pvg-town" data-town="us-belmont" aria-controls="pvg-town-us-belmont" aria-pressed="false">
+<span class="pvg-town-ph"><img src="../assets/places/town-belmont-480.jpg" srcset="../assets/places/town-belmont-480.jpg 480w, ../assets/places/town-belmont.jpg 960w" sizes="(min-width: 1100px) 600px, (min-width: 700px) 48vw, 46vw" width="480" height="303" alt="ベルモントのメインストリート" loading="lazy" decoding="async"></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">ベルモント</b><span class="pvg-town-s" lang="en">Belmont, NC 28012</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">月 USD 1,470</span><small class="pvg-yen" data-cur="USD">（約23.4万円）</small></span></span>
+
+<span class="pvg-town-go">詳細<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+</ul>
+<div class="pvg-liv-2 has-rb">
+<div class="pvg-tds">
+<section class="pvg-td" id="pvg-town-us-davidson" data-town-detail="us-davidson" aria-label="デビッドソン">
+<header class="pvg-td-h"><h4>デビッドソン<small lang="en">Davidson, NC 28036</small></h4><p><span class="pv-no-cur">シャーロットの北、ノーマン湖のほとりにある大学の町。デビッドソン大学の向かいに歴史地区の中心街が広がる。</span></p><p class="pvg-td-more"><span class="pv-no-cur">3寝室の戸建ての掲載例（2026年11月2日に見た掲載・成約の家賃ではない）：月 USD 2,400（2,528 sq ft）・月 USD 2,880（2,418 sq ft）・月 USD 2,225（1,935 sq ft）</span></p></header>
+<div class="pvg-td-g is-one">
+
+<div class="pvg-td-c"><p class="pvg-askh">空港までの移動<small>駅と空港のあいだ</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">CLT</i></span><span class="pvg-way-l">空港までの時間と手段は、資料を確認できていません</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">タクシー</i></span><span class="pvg-way-l">運賃や時間の資料を確認できていません</span><a class="pvg-link" href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="デビッドソン">会社のタクシーの条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+<section class="pvg-td" id="pvg-town-us-belmont" data-town-detail="us-belmont" aria-label="ベルモント">
+<header class="pvg-td-h"><h4>ベルモント<small lang="en">Belmont, NC 28012</small></h4><p><span class="pv-no-cur">シャーロットの西約19km、カトーバ川とその支流に挟まれた半島の街。歴史地区の中心街とベルモント・アビー大学がある。</span></p></header>
+<div class="pvg-td-g is-one">
+
+<div class="pvg-td-c"><p class="pvg-askh">空港までの移動<small>駅と空港のあいだ</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">CLT</i></span><span class="pvg-way-l">空港までの時間と手段は、資料を確認できていません</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">タクシー</i></span><span class="pvg-way-l">運賃や時間の資料を確認できていません</span><a class="pvg-link" href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="ベルモント">会社のタクシーの条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+</div>
+<div class="pvg-rb" data-pvg-rent style="--rb-n:6.5em;--rb-v:9em">
+<div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">家賃<small>郵便番号ごとの家賃の指標・光熱費込み・1か月あたり</small></p>
+<div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
+<button type="button" class="pvg-rb-b" data-pvg-size="bed1" aria-pressed="true">1-Bed</button>
+<button type="button" class="pvg-rb-b" data-pvg-size="bed2" aria-pressed="false">2-Bed</button>
+<button type="button" class="pvg-rb-b" data-pvg-size="bed3" aria-pressed="false">3-Bed</button>
+</div></div>
+<div class="pvg-rb-g" data-size-panel="bed1"><p class="pvg-rb-t">1-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-davidson" data-town="us-davidson"><span class="pvg-rb-n">デビッドソン</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:62.67%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 1,880</span><small class="pvg-yen" data-cur="USD">（約29.9万円）</small></span></li>
+<li class="pvg-rb-row" data-bar="us-belmont" data-town="us-belmont"><span class="pvg-rb-n">ベルモント</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:49.00%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 1,470</span><small class="pvg-yen" data-cur="USD">（約23.4万円）</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 3,000</span><small class="pvg-yen" data-cur="USD">（約47.7万円）</small></i></span><span></span></li>
+</ul>
+</div>
+<div class="pvg-rb-g" data-size-panel="bed2"><p class="pvg-rb-t">2-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-davidson" data-town="us-davidson"><span class="pvg-rb-n">デビッドソン</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:68.00%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 2,040</span><small class="pvg-yen" data-cur="USD">（約32.4万円）</small></span></li>
+<li class="pvg-rb-row" data-bar="us-belmont" data-town="us-belmont"><span class="pvg-rb-n">ベルモント</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:53.33%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 1,600</span><small class="pvg-yen" data-cur="USD">（約25.4万円）</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 3,000</span><small class="pvg-yen" data-cur="USD">（約47.7万円）</small></i></span><span></span></li>
+</ul>
+</div>
+<div class="pvg-rb-g" data-size-panel="bed3"><p class="pvg-rb-t">3-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-davidson" data-town="us-davidson"><span class="pvg-rb-n">デビッドソン</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:83.67%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 2,510</span><small class="pvg-yen" data-cur="USD">（約39.9万円）</small></span></li>
+<li class="pvg-rb-row" data-bar="us-belmont" data-town="us-belmont"><span class="pvg-rb-n">ベルモント</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:65.00%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 1,950</span><small class="pvg-yen" data-cur="USD">（約31.0万円）</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 3,000</span><small class="pvg-yen" data-cur="USD">（約47.7万円）</small></i></span><span></span></li>
+</ul>
+</div>
+<p class="pvg-rb-s pv-no-cur">米国住宅都市開発省（HUD）「Small Area Fair Market Rents（FY2027）」<span>FY2027（2026年10月1日から）</span></p>
+</div>
+</div>
+<details class="pvg-dt pvg-srcd pvg-ev" data-pvg-ev><summary>出典<small>根拠・条件・時点</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+<dl class="pvg-evl">
+<div><dt>根拠</dt><dd class="pvg-srcs"><a class="pvg-src" href="https://www.huduser.gov/portal/datasets/fmr/smallarea/index.html" target="_blank" rel="noopener">米国住宅都市開発省（HUD）「Small Area Fair Market Rents（FY2027）」</a></dd></div>
+<div><dt>条件</dt><dd><ul class="pvg-notes"><li><span class="pv-no-cur">米国住宅都市開発省（HUD）が郵便番号の区域ごとに出す家賃の指標（Small Area Fair Market Rent）。その区域のふつうの賃貸住宅の家賃の、下から40%の水準で、決まった光熱費を含む。募集の平均や高級物件の家賃ではない。郵便番号の区域は街の境と一致しない（「周辺」と書いた街）。1-Bed・2-Bed・3-Bed は寝室の数</span></li><li>円額は比較用の換算です（1 USD＝158.95円・2026-08-22 時点）。現在の為替レートではありません。</li></ul></dd></div>
+<div><dt>時点</dt><dd><span><b>家賃</b>FY2027（2026年10月1日から）</span></dd></div>
+
+
+</dl></details>
+</section>
+<section class="pvg-liv" data-pvg-towns data-city="us-phx" data-base="PHX" id="pvg-lv-us-phx" role="tabpanel" aria-labelledby="pvg-lvt-us-phx">
+<header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>フェニックス・メサ・PHX</small></p></header>
+<ul class="pvg-tgrid" data-n="3" style="--tg-a:2;--tg-b:3;--tg-c:3;--tg-d:3">
+<li><button type="button" class="pvg-town" data-town="us-paradise-valley" aria-controls="pvg-town-us-paradise-valley" aria-pressed="false">
+<span class="pvg-town-ph"><img src="../assets/places/town-paradise-valley-480.jpg" srcset="../assets/places/town-paradise-valley-480.jpg 480w, ../assets/places/town-paradise-valley.jpg 960w" sizes="(min-width: 1100px) 400px, (min-width: 700px) 32vw, 46vw" width="480" height="320" alt="パラダイスバレーの住宅地と奥のキャメルバック山" loading="lazy" decoding="async"></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">パラダイスバレー</b><span class="pvg-town-s" lang="en">Paradise Valley, AZ 85253</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">月 USD 1,940</span><small class="pvg-yen" data-cur="USD">（約30.8万円）</small></span></span>
+
+<span class="pvg-town-go">詳細<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+<li><button type="button" class="pvg-town" data-town="us-chandler" aria-controls="pvg-town-us-chandler" aria-pressed="false">
+<span class="pvg-town-ph"><img src="../assets/places/town-chandler-480.jpg" srcset="../assets/places/town-chandler-480.jpg 480w, ../assets/places/town-chandler.jpg 960w" sizes="(min-width: 1100px) 400px, (min-width: 700px) 32vw, 46vw" width="480" height="360" alt="空から見たデザート・ブリーズ公園の湖" loading="lazy" decoding="async"></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">チャンドラー</b><span class="pvg-town-s" lang="en">Chandler, AZ 85286</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">月 USD 1,910</span><small class="pvg-yen" data-cur="USD">（約30.4万円）</small></span></span>
+
+<span class="pvg-town-go">詳細<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+<li><button type="button" class="pvg-town" data-town="us-scottsdale" aria-controls="pvg-town-us-scottsdale" aria-pressed="false">
+<span class="pvg-town-ph"><img src="../assets/places/town-scottsdale-480.jpg" srcset="../assets/places/town-scottsdale-480.jpg 480w, ../assets/places/town-scottsdale.jpg 960w" sizes="(min-width: 1100px) 400px, (min-width: 700px) 32vw, 46vw" width="480" height="320" alt="キャメルバック山から見たスコッツデール中心部" loading="lazy" decoding="async"></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">スコッツデール</b><span class="pvg-town-s" lang="en">Scottsdale, AZ 85254</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">月 USD 1,860</span><small class="pvg-yen" data-cur="USD">（約29.6万円）</small></span></span>
+
+<span class="pvg-town-go">詳細<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+</ul>
+<div class="pvg-liv-2 has-rb">
+<div class="pvg-tds">
+<section class="pvg-td" id="pvg-town-us-paradise-valley" data-town-detail="us-paradise-valley" aria-label="パラダイスバレー">
+<header class="pvg-td-h"><h4>パラダイスバレー<small lang="en">Paradise Valley, AZ 85253</small></h4><p><span class="pv-no-cur">フェニックスとスコッツデールに挟まれた町。キャメルバック山の北に広がり、1〜5エーカーの広い区画の住宅地やゴルフ場で知られる。</span></p></header>
+<div class="pvg-td-g is-one">
+
+<div class="pvg-td-c"><p class="pvg-askh">空港までの移動<small>駅と空港のあいだ</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">PHX</i></span><span class="pvg-way-l">空港までの時間と手段は、資料を確認できていません</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">タクシー</i></span><span class="pvg-way-l">運賃や時間の資料を確認できていません</span><a class="pvg-link" href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="パラダイスバレー">会社のタクシーの条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+<section class="pvg-td" id="pvg-town-us-chandler" data-town-detail="us-chandler" aria-label="チャンドラー">
+<header class="pvg-td-h"><h4>チャンドラー<small lang="en">Chandler, AZ 85286</small></h4><p><span class="pv-no-cur">フェニックス中心部の南東約35km、イースト・バレーの都市。インテルをはじめ技術系企業の拠点が集まる。</span></p></header>
+<div class="pvg-td-g is-one">
+
+<div class="pvg-td-c"><p class="pvg-askh">空港までの移動<small>駅と空港のあいだ</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">PHX</i></span><span class="pvg-way-l">空港までの時間と手段は、資料を確認できていません</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">タクシー</i></span><span class="pvg-way-l">運賃や時間の資料を確認できていません</span><a class="pvg-link" href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="チャンドラー">会社のタクシーの条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+<section class="pvg-td" id="pvg-town-us-scottsdale" data-town-detail="us-scottsdale" aria-label="スコッツデール">
+<header class="pvg-td-h"><h4>スコッツデール<small lang="en">Scottsdale, AZ 85254</small></h4><p><span class="pv-no-cur">フェニックスの東隣の都市。歴史ある旧市街（オールドタウン）と、公園を自転車道で結ぶ約19kmのグリーンベルトがある。</span></p></header>
+<div class="pvg-td-g is-one">
+
+<div class="pvg-td-c"><p class="pvg-askh">空港までの移動<small>駅と空港のあいだ</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">PHX</i></span><span class="pvg-way-l">空港までの時間と手段は、資料を確認できていません</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">タクシー</i></span><span class="pvg-way-l">運賃や時間の資料を確認できていません</span><a class="pvg-link" href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="スコッツデール">会社のタクシーの条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+</div>
+<div class="pvg-rb" data-pvg-rent style="--rb-n:8.5em;--rb-v:9em">
+<div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">家賃<small>郵便番号ごとの家賃の指標・光熱費込み・1か月あたり</small></p>
+<div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
+<button type="button" class="pvg-rb-b" data-pvg-size="bed1" aria-pressed="true">1-Bed</button>
+<button type="button" class="pvg-rb-b" data-pvg-size="bed2" aria-pressed="false">2-Bed</button>
+<button type="button" class="pvg-rb-b" data-pvg-size="bed3" aria-pressed="false">3-Bed</button>
+</div></div>
+<div class="pvg-rb-g" data-size-panel="bed1"><p class="pvg-rb-t">1-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-paradise-valley" data-town="us-paradise-valley"><span class="pvg-rb-n">パラダイスバレー</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:55.43%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 1,940</span><small class="pvg-yen" data-cur="USD">（約30.8万円）</small></span></li>
+<li class="pvg-rb-row" data-bar="us-chandler" data-town="us-chandler"><span class="pvg-rb-n">チャンドラー</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:54.57%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 1,910</span><small class="pvg-yen" data-cur="USD">（約30.4万円）</small></span></li>
+<li class="pvg-rb-row" data-bar="us-scottsdale" data-town="us-scottsdale"><span class="pvg-rb-n">スコッツデール</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:53.14%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 1,860</span><small class="pvg-yen" data-cur="USD">（約29.6万円）</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 3,500</span><small class="pvg-yen" data-cur="USD">（約55.6万円）</small></i></span><span></span></li>
+</ul>
+</div>
+<div class="pvg-rb-g" data-size-panel="bed2"><p class="pvg-rb-t">2-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-paradise-valley" data-town="us-paradise-valley"><span class="pvg-rb-n">パラダイスバレー</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:64.29%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 2,250</span><small class="pvg-yen" data-cur="USD">（約35.8万円）</small></span></li>
+<li class="pvg-rb-row" data-bar="us-chandler" data-town="us-chandler"><span class="pvg-rb-n">チャンドラー</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:63.43%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 2,220</span><small class="pvg-yen" data-cur="USD">（約35.3万円）</small></span></li>
+<li class="pvg-rb-row" data-bar="us-scottsdale" data-town="us-scottsdale"><span class="pvg-rb-n">スコッツデール</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:61.71%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 2,160</span><small class="pvg-yen" data-cur="USD">（約34.3万円）</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 3,500</span><small class="pvg-yen" data-cur="USD">（約55.6万円）</small></i></span><span></span></li>
+</ul>
+</div>
+<div class="pvg-rb-g" data-size-panel="bed3"><p class="pvg-rb-t">3-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-paradise-valley" data-town="us-paradise-valley"><span class="pvg-rb-n">パラダイスバレー</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:86.57%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 3,030</span><small class="pvg-yen" data-cur="USD">（約48.2万円）</small></span></li>
+<li class="pvg-rb-row" data-bar="us-chandler" data-town="us-chandler"><span class="pvg-rb-n">チャンドラー</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:83.71%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 2,930</span><small class="pvg-yen" data-cur="USD">（約46.6万円）</small></span></li>
+<li class="pvg-rb-row" data-bar="us-scottsdale" data-town="us-scottsdale"><span class="pvg-rb-n">スコッツデール</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:82.29%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 2,880</span><small class="pvg-yen" data-cur="USD">（約45.8万円）</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 3,500</span><small class="pvg-yen" data-cur="USD">（約55.6万円）</small></i></span><span></span></li>
+</ul>
+</div>
+<p class="pvg-rb-s pv-no-cur">米国住宅都市開発省（HUD）「Small Area Fair Market Rents（FY2027）」<span>FY2027（2026年10月1日から）</span></p>
+</div>
+</div>
+<details class="pvg-dt pvg-srcd pvg-ev" data-pvg-ev><summary>出典<small>根拠・条件・時点</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+<dl class="pvg-evl">
+<div><dt>根拠</dt><dd class="pvg-srcs"><a class="pvg-src" href="https://www.huduser.gov/portal/datasets/fmr/smallarea/index.html" target="_blank" rel="noopener">米国住宅都市開発省（HUD）「Small Area Fair Market Rents（FY2027）」</a></dd></div>
+<div><dt>条件</dt><dd><ul class="pvg-notes"><li><span class="pv-no-cur">米国住宅都市開発省（HUD）が郵便番号の区域ごとに出す家賃の指標（Small Area Fair Market Rent）。その区域のふつうの賃貸住宅の家賃の、下から40%の水準で、決まった光熱費を含む。募集の平均や高級物件の家賃ではない。郵便番号の区域は街の境と一致しない（「周辺」と書いた街）。1-Bed・2-Bed・3-Bed は寝室の数</span></li><li>円額は比較用の換算です（1 USD＝158.95円・2026-08-22 時点）。現在の為替レートではありません。</li></ul></dd></div>
+<div><dt>時点</dt><dd><span><b>家賃</b>FY2027（2026年10月1日から）</span></dd></div>
+
+
+</dl></details>
+</section>
+<section class="pvg-liv" data-pvg-towns data-city="us-chi" data-base="ORD" id="pvg-lv-us-chi" role="tabpanel" aria-labelledby="pvg-lvt-us-chi">
+<header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>シカゴ・ORD</small></p></header>
+<ul class="pvg-tgrid" data-n="3" style="--tg-a:2;--tg-b:3;--tg-c:3;--tg-d:3">
+<li><button type="button" class="pvg-town" data-town="us-hinsdale" aria-controls="pvg-town-us-hinsdale" aria-pressed="false">
+<span class="pvg-town-ph"><img src="../assets/places/town-hinsdale-480.jpg" srcset="../assets/places/town-hinsdale-480.jpg 480w, ../assets/places/town-hinsdale.jpg 960w" sizes="(min-width: 1100px) 400px, (min-width: 700px) 32vw, 46vw" width="480" height="279" alt="ヒンズデール中心街の街並み" loading="lazy" decoding="async"></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">ヒンズデール</b><span class="pvg-town-s" lang="en">Hinsdale, IL 60521</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">月 USD 2,360</span><small class="pvg-yen" data-cur="USD">（約37.5万円）</small></span></span>
+
+<span class="pvg-town-go">詳細<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+<li><button type="button" class="pvg-town" data-town="us-park-ridge" aria-controls="pvg-town-us-park-ridge" aria-pressed="false">
+<span class="pvg-town-ph"><img src="../assets/places/town-park-ridge-480.jpg" srcset="../assets/places/town-park-ridge-480.jpg 480w, ../assets/places/town-park-ridge.jpg 960w" sizes="(min-width: 1100px) 400px, (min-width: 700px) 32vw, 46vw" width="480" height="258" alt="パークリッジのホッジス公園" loading="lazy" decoding="async"></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">パークリッジ</b><span class="pvg-town-s" lang="en">Park Ridge, IL 60068</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">月 USD 1,850</span><small class="pvg-yen" data-cur="USD">（約29.4万円）</small></span></span>
+
+<span class="pvg-town-go">詳細<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+<li><button type="button" class="pvg-town" data-town="us-oak-lawn" aria-controls="pvg-town-us-oak-lawn" aria-pressed="false">
+<span class="pvg-town-ph"><img src="../assets/places/town-oak-lawn-480.jpg" srcset="../assets/places/town-oak-lawn-480.jpg 480w, ../assets/places/town-oak-lawn.jpg 960w" sizes="(min-width: 1100px) 400px, (min-width: 700px) 32vw, 46vw" width="480" height="360" alt="上空から見た95丁目通り沿いのオークローン" loading="lazy" decoding="async"></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">オークローン</b><span class="pvg-town-s" lang="en">Oak Lawn, IL 60453</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">月 USD 1,640</span><small class="pvg-yen" data-cur="USD">（約26.1万円）</small></span></span>
+
+<span class="pvg-town-go">詳細<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+</ul>
+<div class="pvg-liv-2 has-rb">
+<div class="pvg-tds">
+<section class="pvg-td" id="pvg-town-us-hinsdale" data-town-detail="us-hinsdale" aria-label="ヒンズデール">
+<header class="pvg-td-h"><h4>ヒンズデール<small lang="en">Hinsdale, IL 60521</small></h4><p><span class="pv-no-cur">シカゴ中心部の西約24kmの村。国の歴史地区に指定された中心街に店と駅がまとまり、メトラで市内へ通える。</span></p><p class="pvg-td-more"><span class="pv-no-cur">3寝室の戸建ての掲載例（2026年11月2日に見た掲載・成約の家賃ではない）：月 USD 3,395・月 USD 6,000（2,120 sq ft）・月 USD 3,200（1,630 sq ft）</span></p></header>
+<div class="pvg-td-g is-one">
+
+<div class="pvg-td-c"><p class="pvg-askh">空港までの移動<small>駅と空港のあいだ</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">ORD</i></span><span class="pvg-way-l">空港までの時間と手段は、資料を確認できていません</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">タクシー</i></span><span class="pvg-way-l">運賃や時間の資料を確認できていません</span><a class="pvg-link" href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="ヒンズデール">会社のタクシーの条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+<section class="pvg-td" id="pvg-town-us-park-ridge" data-town-detail="us-park-ridge" aria-label="パークリッジ">
+<header class="pvg-td-h"><h4>パークリッジ<small lang="en">Park Ridge, IL 60068</small></h4><p><span class="pv-no-cur">オヘア空港のすぐ北東にある住宅の市。1928年築のアールデコ様式の映画館、ピックウィック劇場が街の目印。</span></p></header>
+<div class="pvg-td-g is-one">
+
+<div class="pvg-td-c"><p class="pvg-askh">空港までの移動<small>駅と空港のあいだ</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">ORD</i></span><span class="pvg-way-l">空港までの時間と手段は、資料を確認できていません</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">タクシー</i></span><span class="pvg-way-l">運賃や時間の資料を確認できていません</span><a class="pvg-link" href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="パークリッジ">会社のタクシーの条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+<section class="pvg-td" id="pvg-town-us-oak-lawn" data-town-detail="us-oak-lawn" aria-label="オークローン">
+<header class="pvg-td-h"><h4>オークローン<small lang="en">Oak Lawn, IL 60453</small></h4><p><span class="pv-no-cur">シカゴの南西に接する村。ミッドウェー空港の南にあり、大規模な救命救急病院アドボケイト・クライスト医療センターがある。</span></p></header>
+<div class="pvg-td-g is-one">
+
+<div class="pvg-td-c"><p class="pvg-askh">空港までの移動<small>駅と空港のあいだ</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">ORD</i></span><span class="pvg-way-l">空港までの時間と手段は、資料を確認できていません</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">タクシー</i></span><span class="pvg-way-l">運賃や時間の資料を確認できていません</span><a class="pvg-link" href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="オークローン">会社のタクシーの条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+</div>
+<div class="pvg-rb" data-pvg-rent style="--rb-n:6.5em;--rb-v:9em">
+<div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">家賃<small>郵便番号ごとの家賃の指標・光熱費込み・1か月あたり</small></p>
+<div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
+<button type="button" class="pvg-rb-b" data-pvg-size="bed1" aria-pressed="true">1-Bed</button>
+<button type="button" class="pvg-rb-b" data-pvg-size="bed2" aria-pressed="false">2-Bed</button>
+<button type="button" class="pvg-rb-b" data-pvg-size="bed3" aria-pressed="false">3-Bed</button>
+</div></div>
+<div class="pvg-rb-g" data-size-panel="bed1"><p class="pvg-rb-t">1-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-hinsdale" data-town="us-hinsdale"><span class="pvg-rb-n">ヒンズデール</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:67.43%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 2,360</span><small class="pvg-yen" data-cur="USD">（約37.5万円）</small></span></li>
+<li class="pvg-rb-row" data-bar="us-park-ridge" data-town="us-park-ridge"><span class="pvg-rb-n">パークリッジ</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:52.86%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 1,850</span><small class="pvg-yen" data-cur="USD">（約29.4万円）</small></span></li>
+<li class="pvg-rb-row" data-bar="us-oak-lawn" data-town="us-oak-lawn"><span class="pvg-rb-n">オークローン</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:46.86%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 1,640</span><small class="pvg-yen" data-cur="USD">（約26.1万円）</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 3,500</span><small class="pvg-yen" data-cur="USD">（約55.6万円）</small></i></span><span></span></li>
+</ul>
+</div>
+<div class="pvg-rb-g" data-size-panel="bed2"><p class="pvg-rb-t">2-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-hinsdale" data-town="us-hinsdale"><span class="pvg-rb-n">ヒンズデール</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:76.29%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 2,670</span><small class="pvg-yen" data-cur="USD">（約42.4万円）</small></span></li>
+<li class="pvg-rb-row" data-bar="us-park-ridge" data-town="us-park-ridge"><span class="pvg-rb-n">パークリッジ</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:59.71%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 2,090</span><small class="pvg-yen" data-cur="USD">（約33.2万円）</small></span></li>
+<li class="pvg-rb-row" data-bar="us-oak-lawn" data-town="us-oak-lawn"><span class="pvg-rb-n">オークローン</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:52.86%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 1,850</span><small class="pvg-yen" data-cur="USD">（約29.4万円）</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 3,500</span><small class="pvg-yen" data-cur="USD">（約55.6万円）</small></i></span><span></span></li>
+</ul>
+</div>
+<div class="pvg-rb-g" data-size-panel="bed3"><p class="pvg-rb-t">3-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-hinsdale" data-town="us-hinsdale"><span class="pvg-rb-n">ヒンズデール</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:98.00%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 3,430</span><small class="pvg-yen" data-cur="USD">（約54.5万円）</small></span></li>
+<li class="pvg-rb-row" data-bar="us-park-ridge" data-town="us-park-ridge"><span class="pvg-rb-n">パークリッジ</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:76.86%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 2,690</span><small class="pvg-yen" data-cur="USD">（約42.8万円）</small></span></li>
+<li class="pvg-rb-row" data-bar="us-oak-lawn" data-town="us-oak-lawn"><span class="pvg-rb-n">オークローン</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:68.00%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 2,380</span><small class="pvg-yen" data-cur="USD">（約37.8万円）</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 3,500</span><small class="pvg-yen" data-cur="USD">（約55.6万円）</small></i></span><span></span></li>
+</ul>
+</div>
+<p class="pvg-rb-s pv-no-cur">米国住宅都市開発省（HUD）「Small Area Fair Market Rents（FY2027）」<span>FY2027（2026年10月1日から）</span></p>
+</div>
+</div>
+<details class="pvg-dt pvg-srcd pvg-ev" data-pvg-ev><summary>出典<small>根拠・条件・時点</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+<dl class="pvg-evl">
+<div><dt>根拠</dt><dd class="pvg-srcs"><a class="pvg-src" href="https://www.huduser.gov/portal/datasets/fmr/smallarea/index.html" target="_blank" rel="noopener">米国住宅都市開発省（HUD）「Small Area Fair Market Rents（FY2027）」</a></dd></div>
+<div><dt>条件</dt><dd><ul class="pvg-notes"><li><span class="pv-no-cur">米国住宅都市開発省（HUD）が郵便番号の区域ごとに出す家賃の指標（Small Area Fair Market Rent）。その区域のふつうの賃貸住宅の家賃の、下から40%の水準で、決まった光熱費を含む。募集の平均や高級物件の家賃ではない。郵便番号の区域は街の境と一致しない（「周辺」と書いた街）。1-Bed・2-Bed・3-Bed は寝室の数</span></li><li>円額は比較用の換算です（1 USD＝158.95円・2026-08-22 時点）。現在の為替レートではありません。</li></ul></dd></div>
+<div><dt>時点</dt><dd><span><b>家賃</b>FY2027（2026年10月1日から）</span></dd></div>
+
+
+</dl></details>
+</section>
+<section class="pvg-liv" data-pvg-towns data-city="us-fll" data-base="FLL" id="pvg-lv-us-fll" role="tabpanel" aria-labelledby="pvg-lvt-us-fll">
+<header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>フォートローダーデール・FLL</small></p></header>
+<ul class="pvg-tgrid" data-n="2" style="--tg-a:2;--tg-b:2;--tg-c:2;--tg-d:2">
+<li><button type="button" class="pvg-town" data-town="us-weston" aria-controls="pvg-town-us-weston" aria-pressed="false">
+<span class="pvg-town-ph"><img src="../assets/places/town-weston-480.jpg" srcset="../assets/places/town-weston-480.jpg 480w, ../assets/places/town-weston.jpg 960w" sizes="(min-width: 1100px) 600px, (min-width: 700px) 48vw, 46vw" width="480" height="360" alt="ウェストンのタウンセンター公園" loading="lazy" decoding="async"></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">ウェストン</b><span class="pvg-town-s" lang="en">Weston, FL 33326</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">月 USD 2,510</span><small class="pvg-yen" data-cur="USD">（約39.9万円）</small></span></span>
+
+<span class="pvg-town-go">詳細<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+<li><button type="button" class="pvg-town" data-town="us-davie" aria-controls="pvg-town-us-davie" aria-pressed="false">
+<span class="pvg-town-ph"><img src="../assets/places/town-davie-480.jpg" srcset="../assets/places/town-davie-480.jpg 480w, ../assets/places/town-davie.jpg 960w" sizes="(min-width: 1100px) 600px, (min-width: 700px) 48vw, 46vw" width="480" height="360" alt="デイビーの森の小道" loading="lazy" decoding="async"></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">デイビー</b><span class="pvg-town-s" lang="en">Davie, FL 33324</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">月 USD 2,320</span><small class="pvg-yen" data-cur="USD">（約36.9万円）</small></span></span>
+
+<span class="pvg-town-go">詳細<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+</ul>
+<div class="pvg-liv-2 has-rb">
+<div class="pvg-tds">
+<section class="pvg-td" id="pvg-town-us-weston" data-town-detail="us-weston" aria-label="ウェストン">
+<header class="pvg-td-h"><h4>ウェストン<small lang="en">Weston, FL 33326</small></h4><p><span class="pv-no-cur">フォートローダーデールのすぐ西、エバーグレーズに接する計画都市。1980年代から住宅地として整備された。</span></p></header>
+<div class="pvg-td-g is-one">
+
+<div class="pvg-td-c"><p class="pvg-askh">空港までの移動<small>駅と空港のあいだ</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">FLL</i></span><span class="pvg-way-l">空港までの時間と手段は、資料を確認できていません</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">タクシー</i></span><span class="pvg-way-l">運賃や時間の資料を確認できていません</span><a class="pvg-link" href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="ウェストン">会社のタクシーの条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+<section class="pvg-td" id="pvg-town-us-davie" data-town-detail="us-davie" aria-label="デイビー">
+<header class="pvg-td-h"><h4>デイビー<small lang="en">Davie, FL 33324</small></h4><p><span class="pv-no-cur">フォートローダーデール空港の西、ブロワード郡の街。乗馬が盛んで、牧場や西部風の建物が残る。</span></p></header>
+<div class="pvg-td-g is-one">
+
+<div class="pvg-td-c"><p class="pvg-askh">空港までの移動<small>駅と空港のあいだ</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">FLL</i></span><span class="pvg-way-l">空港までの時間と手段は、資料を確認できていません</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">タクシー</i></span><span class="pvg-way-l">運賃や時間の資料を確認できていません</span><a class="pvg-link" href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="デイビー">会社のタクシーの条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+</div>
+<div class="pvg-rb" data-pvg-rent style="--rb-n:5.5em;--rb-v:9em">
+<div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">家賃<small>郵便番号ごとの家賃の指標・光熱費込み・1か月あたり</small></p>
+<div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
+<button type="button" class="pvg-rb-b" data-pvg-size="bed1" aria-pressed="true">1-Bed</button>
+<button type="button" class="pvg-rb-b" data-pvg-size="bed2" aria-pressed="false">2-Bed</button>
+<button type="button" class="pvg-rb-b" data-pvg-size="bed3" aria-pressed="false">3-Bed</button>
+</div></div>
+<div class="pvg-rb-g" data-size-panel="bed1"><p class="pvg-rb-t">1-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-weston" data-town="us-weston"><span class="pvg-rb-n">ウェストン</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:55.78%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 2,510</span><small class="pvg-yen" data-cur="USD">（約39.9万円）</small></span></li>
+<li class="pvg-rb-row" data-bar="us-davie" data-town="us-davie"><span class="pvg-rb-n">デイビー</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:51.56%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 2,320</span><small class="pvg-yen" data-cur="USD">（約36.9万円）</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 4,500</span><small class="pvg-yen" data-cur="USD">（約71.5万円）</small></i></span><span></span></li>
+</ul>
+</div>
+<div class="pvg-rb-g" data-size-panel="bed2"><p class="pvg-rb-t">2-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-weston" data-town="us-weston"><span class="pvg-rb-n">ウェストン</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:68.00%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 3,060</span><small class="pvg-yen" data-cur="USD">（約48.6万円）</small></span></li>
+<li class="pvg-rb-row" data-bar="us-davie" data-town="us-davie"><span class="pvg-rb-n">デイビー</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:62.89%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 2,830</span><small class="pvg-yen" data-cur="USD">（約45.0万円）</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 4,500</span><small class="pvg-yen" data-cur="USD">（約71.5万円）</small></i></span><span></span></li>
+</ul>
+</div>
+<div class="pvg-rb-g" data-size-panel="bed3"><p class="pvg-rb-t">3-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-weston" data-town="us-weston"><span class="pvg-rb-n">ウェストン</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:92.89%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 4,180</span><small class="pvg-yen" data-cur="USD">（約66.4万円）</small></span></li>
+<li class="pvg-rb-row" data-bar="us-davie" data-town="us-davie"><span class="pvg-rb-n">デイビー</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:86.00%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 3,870</span><small class="pvg-yen" data-cur="USD">（約61.5万円）</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 4,500</span><small class="pvg-yen" data-cur="USD">（約71.5万円）</small></i></span><span></span></li>
+</ul>
+</div>
+<p class="pvg-rb-s pv-no-cur">米国住宅都市開発省（HUD）「Small Area Fair Market Rents（FY2027）」<span>FY2027（2026年10月1日から）</span></p>
+</div>
+</div>
+<details class="pvg-dt pvg-srcd pvg-ev" data-pvg-ev><summary>出典<small>根拠・条件・時点</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+<dl class="pvg-evl">
+<div><dt>根拠</dt><dd class="pvg-srcs"><a class="pvg-src" href="https://www.huduser.gov/portal/datasets/fmr/smallarea/index.html" target="_blank" rel="noopener">米国住宅都市開発省（HUD）「Small Area Fair Market Rents（FY2027）」</a></dd></div>
+<div><dt>条件</dt><dd><ul class="pvg-notes"><li><span class="pv-no-cur">米国住宅都市開発省（HUD）が郵便番号の区域ごとに出す家賃の指標（Small Area Fair Market Rent）。その区域のふつうの賃貸住宅の家賃の、下から40%の水準で、決まった光熱費を含む。募集の平均や高級物件の家賃ではない。郵便番号の区域は街の境と一致しない（「周辺」と書いた街）。1-Bed・2-Bed・3-Bed は寝室の数</span></li><li>円額は比較用の換算です（1 USD＝158.95円・2026-08-22 時点）。現在の為替レートではありません。</li></ul></dd></div>
+<div><dt>時点</dt><dd><span><b>家賃</b>FY2027（2026年10月1日から）</span></dd></div>
+
+
+</dl></details>
+</section>
+<section class="pvg-liv" data-pvg-towns data-city="us-hpn" data-base="HPN" id="pvg-lv-us-hpn" role="tabpanel" aria-labelledby="pvg-lvt-us-hpn">
+<header class="pvg-liv-h"><p class="pvg-askh">住むエリア<small>ウエストチェスター・HPN</small></p></header>
+<ul class="pvg-tgrid" data-n="2" style="--tg-a:2;--tg-b:2;--tg-c:2;--tg-d:2">
+<li><button type="button" class="pvg-town" data-town="us-harrison" aria-controls="pvg-town-us-harrison" aria-pressed="false">
+<span class="pvg-town-ph"><img src="../assets/places/town-harrison-480.jpg" srcset="../assets/places/town-harrison-480.jpg 480w, ../assets/places/town-harrison.jpg 960w" sizes="(min-width: 1100px) 600px, (min-width: 700px) 48vw, 46vw" width="480" height="360" alt="ハリソン中心部の郵便局" loading="lazy" decoding="async"></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">ハリソン</b><span class="pvg-town-s" lang="en">Harrison, NY 10528</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">月 USD 3,820</span><small class="pvg-yen" data-cur="USD">（約60.7万円）</small></span></span>
+
+<span class="pvg-town-go">詳細<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+<li><button type="button" class="pvg-town" data-town="us-scarsdale" aria-controls="pvg-town-us-scarsdale" aria-pressed="false">
+<span class="pvg-town-ph"><img src="../assets/places/town-scarsdale-480.jpg" srcset="../assets/places/town-scarsdale-480.jpg 480w, ../assets/places/town-scarsdale.jpg 960w" sizes="(min-width: 1100px) 600px, (min-width: 700px) 48vw, 46vw" width="480" height="270" alt="中心部のハーウッド・ビル" loading="lazy" decoding="async"></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">スカースデール</b><span class="pvg-town-s" lang="en">Scarsdale, NY 10583</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">月 USD 3,550</span><small class="pvg-yen" data-cur="USD">（約56.4万円）</small></span></span>
+
+<span class="pvg-town-go">詳細<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+</ul>
+<div class="pvg-liv-2 has-rb">
+<div class="pvg-tds">
+<section class="pvg-td" id="pvg-town-us-harrison" data-town-detail="us-harrison" aria-label="ハリソン">
+<header class="pvg-td-h"><h4>ハリソン<small lang="en">Harrison, NY 10528</small></h4><p><span class="pv-no-cur">マンハッタンの北東約18kmにあるニューヨーク郊外の町。1696年に開かれ、パーチェス地区とウエストチェスター郡空港の一部を含む。</span></p></header>
+<div class="pvg-td-g is-one">
+
+<div class="pvg-td-c"><p class="pvg-askh">空港までの移動<small>駅と空港のあいだ</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">HPN</i></span><span class="pvg-way-l">空港までの時間と手段は、資料を確認できていません</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">タクシー</i></span><span class="pvg-way-l">運賃や時間の資料を確認できていません</span><a class="pvg-link" href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="ハリソン">会社のタクシーの条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+<section class="pvg-td" id="pvg-town-us-scarsdale" data-town-detail="us-scarsdale" aria-label="スカースデール">
+<header class="pvg-td-h"><h4>スカースデール<small lang="en">Scarsdale, NY 10583</small></h4><p><span class="pv-no-cur">マンハッタンの北約31km、ブロンクス川の谷にある町。メトロノース鉄道ハーレム線の駅があり、17の住宅地区からなる。</span></p></header>
+<div class="pvg-td-g is-one">
+
+<div class="pvg-td-c"><p class="pvg-askh">空港までの移動<small>駅と空港のあいだ</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">HPN</i></span><span class="pvg-way-l">空港までの時間と手段は、資料を確認できていません</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">タクシー</i></span><span class="pvg-way-l">運賃や時間の資料を確認できていません</span><a class="pvg-link" href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="スカースデール">会社のタクシーの条件を追加<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+</div>
+<div class="pvg-rb" data-pvg-rent style="--rb-n:7.5em;--rb-v:9em">
+<div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">家賃<small>郵便番号ごとの家賃の指標・光熱費込み・1か月あたり</small></p>
+<div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
+<button type="button" class="pvg-rb-b" data-pvg-size="bed1" aria-pressed="true">1-Bed</button>
+<button type="button" class="pvg-rb-b" data-pvg-size="bed2" aria-pressed="false">2-Bed</button>
+<button type="button" class="pvg-rb-b" data-pvg-size="bed3" aria-pressed="false">3-Bed</button>
+</div></div>
+<div class="pvg-rb-g" data-size-panel="bed1"><p class="pvg-rb-t">1-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-harrison" data-town="us-harrison"><span class="pvg-rb-n">ハリソン</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:69.45%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 3,820</span><small class="pvg-yen" data-cur="USD">（約60.7万円）</small></span></li>
+<li class="pvg-rb-row" data-bar="us-scarsdale" data-town="us-scarsdale"><span class="pvg-rb-n">スカースデール</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:64.55%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 3,550</span><small class="pvg-yen" data-cur="USD">（約56.4万円）</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 5,500</span><small class="pvg-yen" data-cur="USD">（約87.4万円）</small></i></span><span></span></li>
+</ul>
+</div>
+<div class="pvg-rb-g" data-size-panel="bed2"><p class="pvg-rb-t">2-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-harrison" data-town="us-harrison"><span class="pvg-rb-n">ハリソン</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:75.64%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 4,160</span><small class="pvg-yen" data-cur="USD">（約66.1万円）</small></span></li>
+<li class="pvg-rb-row" data-bar="us-scarsdale" data-town="us-scarsdale"><span class="pvg-rb-n">スカースデール</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:70.18%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 3,860</span><small class="pvg-yen" data-cur="USD">（約61.4万円）</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 5,500</span><small class="pvg-yen" data-cur="USD">（約87.4万円）</small></i></span><span></span></li>
+</ul>
+</div>
+<div class="pvg-rb-g" data-size-panel="bed3"><p class="pvg-rb-t">3-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-harrison" data-town="us-harrison"><span class="pvg-rb-n">ハリソン</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:95.64%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 5,260</span><small class="pvg-yen" data-cur="USD">（約83.6万円）</small></span></li>
+<li class="pvg-rb-row" data-bar="us-scarsdale" data-town="us-scarsdale"><span class="pvg-rb-n">スカースデール</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:88.73%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">月 USD 4,880</span><small class="pvg-yen" data-cur="USD">（約77.6万円）</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 5,500</span><small class="pvg-yen" data-cur="USD">（約87.4万円）</small></i></span><span></span></li>
+</ul>
+</div>
+<p class="pvg-rb-s pv-no-cur">米国住宅都市開発省（HUD）「Small Area Fair Market Rents（FY2027）」<span>FY2027（2026年10月1日から）</span></p>
+</div>
+</div>
+<details class="pvg-dt pvg-srcd pvg-ev" data-pvg-ev><summary>出典<small>根拠・条件・時点</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+<dl class="pvg-evl">
+<div><dt>根拠</dt><dd class="pvg-srcs"><a class="pvg-src" href="https://www.huduser.gov/portal/datasets/fmr/smallarea/index.html" target="_blank" rel="noopener">米国住宅都市開発省（HUD）「Small Area Fair Market Rents（FY2027）」</a></dd></div>
+<div><dt>条件</dt><dd><ul class="pvg-notes"><li><span class="pv-no-cur">米国住宅都市開発省（HUD）が郵便番号の区域ごとに出す家賃の指標（Small Area Fair Market Rent）。その区域のふつうの賃貸住宅の家賃の、下から40%の水準で、決まった光熱費を含む。募集の平均や高級物件の家賃ではない。郵便番号の区域は街の境と一致しない（「周辺」と書いた街）。1-Bed・2-Bed・3-Bed は寝室の数</span></li><li>円額は比較用の換算です（1 USD＝158.95円・2026-08-22 時点）。現在の為替レートではありません。</li></ul></dd></div>
+<div><dt>時点</dt><dd><span><b>家賃</b>FY2027（2026年10月1日から）</span></dd></div>
+
+
+</dl></details>
+</section>
+</div><details class="pvg-dt pvg-srcd pvg-phc"><summary>写真の出典<small>11枚</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><ul class="pvg-phl"><li data-cr="us-davidson"><b>デビッドソン</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Commercial_street_Davidson_(6124620552).jpg" target="_blank" rel="noopener">Brett VA</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by/2.0" target="_blank" rel="noopener">CC BY 2.0</a>（縮小・トリミング）</span></li><li data-cr="us-paradise-valley"><b>パラダイスバレー</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Paradise_Valley,_Arizona_(52069353266).jpg" target="_blank" rel="noopener">Gage Skidmore</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a>（縮小・トリミング）</span></li><li data-cr="us-chandler"><b>チャンドラー</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:231119-11_Desert_Breeze_Lake.jpg" target="_blank" rel="noopener">Hunter Trick (TrickHunter)</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a>（縮小・トリミング）</span></li><li data-cr="us-scottsdale"><b>スコッツデール</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Scottsdale,_Arizona.jpg" target="_blank" rel="noopener">Quintin Soloviev</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by/4.0" target="_blank" rel="noopener">CC BY 4.0</a>（縮小・トリミング）</span></li><li data-cr="us-hinsdale"><b>ヒンズデール</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Downtown_Hinsdale_Block.JPG" target="_blank" rel="noopener">Teemu08 at en.wikipedia</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a>（縮小・トリミング）</span></li><li data-cr="us-park-ridge"><b>パークリッジ</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Hodges_Park,_Park_Ridge,_IL.jpg" target="_blank" rel="noopener">Nick Number</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by/4.0" target="_blank" rel="noopener">CC BY 4.0</a>（縮小・トリミング）</span></li><li data-cr="us-oak-lawn"><b>オークローン</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:West_95th_Street,_Oak_Lawn,_Illinois_(7993005951).jpg" target="_blank" rel="noopener">Ken Lund from Reno, Nevada, USA</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a>（縮小・トリミング）</span></li><li data-cr="us-weston"><b>ウェストン</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Town_Center_Park,_Weston,_Florida_February_24,_2022_C.jpg" target="_blank" rel="noopener">AITFFan1</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a>（縮小・トリミング）</span></li><li data-cr="us-davie"><b>デイビー</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Davie,_FL,_USA_-_panoramio_(4).jpg" target="_blank" rel="noopener">William “Patrick” Ma…</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a>（縮小・トリミング）</span></li><li data-cr="us-harrison"><b>ハリソン</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:U.S._Post_Office_Harrison_NY_Jul_10.jpg" target="_blank" rel="noopener">Doug Kerr from Upstate New York</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a>（縮小・トリミング）</span></li><li data-cr="us-scarsdale"><b>スカースデール</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Scarsdale,_NY_(54741801357).jpg" target="_blank" rel="noopener">ajay_suresh</a>／<a class="pvg-src" href="https://creativecommons.org/licenses/by/4.0" target="_blank" rel="noopener">CC BY 4.0</a>（縮小・トリミング）</span></li></ul></details>
 </div>
 </div>
 </div>
@@ -283,7 +731,8 @@
 <div class="pvg-more-grid pvg-g-st" data-pvg-pane="overview stay">
 <article class="pvg-card pvg-stay" id="pvg-stay" data-pvg-pane="overview stay">
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18V7M3 16h18M21 18v-3a3 3 0 0 0-3-3H3M7 12V9h5a2 2 0 0 1 2 2v1"/></svg></span><h2 class="pvg-eyebrow">ステイ</h2></header>
-
+<p class="pvg-stay-base"><svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6-5.2-6-10a6 6 0 1 1 12 0c0 4.8-6 10-6 10zM12 9.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg><span>拠点</span><b>CLT・PHX・ORD・FLL・HPN</b>
+<a class="pvg-link" href="https://www.google.com/maps/search/?api=1&amp;query=CLT" target="_blank" rel="noopener">Google マップで見る</a></p>
 <p class="pvg-quiet">就航地ごとのホテル・レストランは、会社が公表する就航地の一覧を確認してから開きます。</p>
 </article>
 <article class="pvg-card pvg-askc" data-pvg-pane="overview">

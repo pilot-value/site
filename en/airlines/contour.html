@@ -168,6 +168,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <p class="text-muted pvg-sub"></p>
 </div>
 <div class="pvg-meta">
+<span class="pvg-base"><svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6-5.2-6-10a6 6 0 1 1 12 0c0 4.8-6 10-6 10zM12 9.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg><b>CLT · PHX · ORD · FLL · HPN</b></span>
 <div class="crl" data-live="stars" data-airline="contour" data-state="idle"><span class="crl-ph">—</span></div>
 </div>
 </div>
@@ -203,7 +204,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <div class="pvg-more-grid" data-pvg-pane="overview">
 <article class="pvg-card pvg-co pvg-co-np" data-pvg-pane="overview">
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16M15 10h4a1 1 0 0 1 1 1v10M3 21h18M8 8h3M8 12h3M8 16h3"/></svg></span><h2 class="pvg-eyebrow">Company</h2></header>
-<p class="pvg-about" data-pvg-about="rows">Airline based in the USA.</p>
+<p class="pvg-about" data-pvg-about="rows">Airline based in the USA. Pilot bases include Charlotte (CLT), Phoenix (PHX) and Chicago (ORD).</p>
 </article>
 </div>
 <div class="pvg-payrow" data-pvg-pane="overview pay reviews">
@@ -311,17 +312,464 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <article class="pvg-card pvg-cell" data-cell="living" data-pvg-pane="overview">
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"/></svg></span><h2 class="pvg-eyebrow">Living</h2></header>
 <div class="pvg-lead">
-<p class="pvg-k">Base city</p>
-<p class="pvg-v">Not confirmed</p>
-<p class="pvg-note">We have not been able to confirm rent sources</p>
+<p class="pvg-k">Davidson · Rent benchmark by ZIP code, utilities included, 1-Bed</p>
+<p class="pvg-v is-long"><span class="pv-no-cur">USD 1,880 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="299000" data-orig="29.9万円">$1.9K</span>)</small></p>
+<p class="pvg-note">U.S. Department of Housing and Urban Development (HUD), &quot;Small Area Fair Market Rents (FY2027)&quot; · FY2027 (from October 1, 2026)</p>
 </div>
 
 <div class="pvg-qs"><p class="pvg-qh">Answer anonymously</p><ul><li><a href="../airline-conditions.html?airline=contour&amp;q=commuting_transport" data-pvc-open="taxi" data-pvc-q="commuting_transport">Does the company provide or pay for your travel to and from work?<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when">When can you take a taxi to or from work, arranged or reimbursed by the company?<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=contour&amp;q=commuting_bus_when" data-pvc-open="taxi" data-pvc-q="commuting_bus_when">When can you use the crew bus (company bus) to get to or from work?<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li></ul></div>
-<button type="button" class="pvg-more" aria-expanded="false" aria-controls="pvg-p-living"><span>Answer</span><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+<button type="button" class="pvg-more" aria-expanded="false" aria-controls="pvg-p-living"><span>Rent by town, with sources</span><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
 </article>
 <div class="pvg-card pvg-panel" id="pvg-p-living" data-panel="living" data-pvg-pane="overview life" hidden>
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"/></svg></span><h3 class="pvg-ptitle">Living</h3><button type="button" class="pvg-x" aria-label="Close"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
-<div class="pvg-ask"><p class="pvg-askh">Answer anonymously</p><ul><li><a href="../airline-conditions.html?airline=contour&amp;q=commuting_transport" data-pvc-open="taxi" data-pvc-q="commuting_transport">Does the company provide or pay for your travel to and from work?<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when">When can you take a taxi to or from work, arranged or reimbursed by the company?<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li><li><a href="../airline-conditions.html?airline=contour&amp;q=commuting_bus_when" data-pvc-open="taxi" data-pvc-q="commuting_bus_when">When can you use the crew bus (company bus) to get to or from work?<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a></li></ul></div>
+<div class="pvg-livs" data-pvg-livs>
+<div class="pvg-lvt" role="tablist" aria-label="Cities"><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-clt" data-pvg-liv="us-clt" aria-controls="pvg-lv-us-clt" aria-selected="true">Charlotte<small>CLT</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-phx" data-pvg-liv="us-phx" aria-controls="pvg-lv-us-phx" aria-selected="false">Phoenix / Mesa<small>PHX</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-chi" data-pvg-liv="us-chi" aria-controls="pvg-lv-us-chi" aria-selected="false">Chicago<small>ORD</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-fll" data-pvg-liv="us-fll" aria-controls="pvg-lv-us-fll" aria-selected="false">Fort Lauderdale<small>FLL</small></button><button type="button" class="pvg-pill" role="tab" id="pvg-lvt-us-hpn" data-pvg-liv="us-hpn" aria-controls="pvg-lv-us-hpn" aria-selected="false">Westchester<small>HPN</small></button></div>
+<section class="pvg-liv" data-pvg-towns data-city="us-clt" data-base="CLT" id="pvg-lv-us-clt" role="tabpanel" aria-labelledby="pvg-lvt-us-clt">
+<header class="pvg-liv-h"><p class="pvg-askh">Where to live<small>Charlotte · CLT</small></p></header>
+<ul class="pvg-tgrid" data-n="2" style="--tg-a:2;--tg-b:2;--tg-c:2;--tg-d:2">
+<li><button type="button" class="pvg-town" data-town="us-davidson" aria-controls="pvg-town-us-davidson" aria-pressed="false">
+<span class="pvg-town-ph"><img src="../../assets/places/town-davidson-480.jpg" srcset="../../assets/places/town-davidson-480.jpg 480w, ../../assets/places/town-davidson.jpg 960w" sizes="(min-width: 1100px) 600px, (min-width: 700px) 48vw, 46vw" width="480" height="319" alt="A shopping street in downtown Davidson" loading="lazy" decoding="async"></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">Davidson</b><span class="pvg-town-s" lang="en">NC 28036</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">USD 1,880 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="299000" data-orig="29.9万円">$1.9K</span>)</small></span></span>
+
+<span class="pvg-town-go">Details<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+<li><button type="button" class="pvg-town" data-town="us-belmont" aria-controls="pvg-town-us-belmont" aria-pressed="false">
+<span class="pvg-town-ph"><img src="../../assets/places/town-belmont-480.jpg" srcset="../../assets/places/town-belmont-480.jpg 480w, ../../assets/places/town-belmont.jpg 960w" sizes="(min-width: 1100px) 600px, (min-width: 700px) 48vw, 46vw" width="480" height="303" alt="Main Street, Belmont" loading="lazy" decoding="async"></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">Belmont</b><span class="pvg-town-s" lang="en">NC 28012</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">USD 1,470 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="234000" data-orig="23.4万円">$1.5K</span>)</small></span></span>
+
+<span class="pvg-town-go">Details<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+</ul>
+<div class="pvg-liv-2 has-rb">
+<div class="pvg-tds">
+<section class="pvg-td" id="pvg-town-us-davidson" data-town-detail="us-davidson" aria-label="Davidson">
+<header class="pvg-td-h"><h4>Davidson<small lang="en">NC 28036</small></h4><p><span class="pv-no-cur">A college town north of Charlotte on the shore of Lake Norman, with a historic downtown facing Davidson College.</span></p><p class="pvg-td-more"><span class="pv-no-cur">3-bedroom house listings (seen 2 November 2026, asking rents, not signed leases): USD 2,400 a month (2,528 sq ft) · USD 2,880 a month (2,418 sq ft) · USD 2,225 a month (1,935 sq ft)</span></p></header>
+<div class="pvg-td-g is-one">
+
+<div class="pvg-td-c"><p class="pvg-askh">Getting to the airport<small>Between the station and the airport</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">CLT</i></span><span class="pvg-way-l">We have not been able to confirm sources for travel times and transport to the airport</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">Taxi</i></span><span class="pvg-way-l">We have not been able to confirm sources for fares or travel times</span><a class="pvg-link" href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="Davidson">Add the airline’s taxi rules<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+<section class="pvg-td" id="pvg-town-us-belmont" data-town-detail="us-belmont" aria-label="Belmont">
+<header class="pvg-td-h"><h4>Belmont<small lang="en">NC 28012</small></h4><p><span class="pv-no-cur">A small city 12 miles (19 km) west of Charlotte, on a peninsula between the Catawba River and its South Fork, with a historic downtown.</span></p></header>
+<div class="pvg-td-g is-one">
+
+<div class="pvg-td-c"><p class="pvg-askh">Getting to the airport<small>Between the station and the airport</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">CLT</i></span><span class="pvg-way-l">We have not been able to confirm sources for travel times and transport to the airport</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">Taxi</i></span><span class="pvg-way-l">We have not been able to confirm sources for fares or travel times</span><a class="pvg-link" href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="Belmont">Add the airline’s taxi rules<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+</div>
+<div class="pvg-rb" data-pvg-rent style="--rb-n:5.5em;--rb-v:10.5em">
+<div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">Rent<small>Rent benchmark by ZIP code, utilities included · per month</small></p>
+<div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
+<button type="button" class="pvg-rb-b" data-pvg-size="bed1" aria-pressed="true">1-Bed</button>
+<button type="button" class="pvg-rb-b" data-pvg-size="bed2" aria-pressed="false">2-Bed</button>
+<button type="button" class="pvg-rb-b" data-pvg-size="bed3" aria-pressed="false">3-Bed</button>
+</div></div>
+<div class="pvg-rb-g" data-size-panel="bed1"><p class="pvg-rb-t">1-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-davidson" data-town="us-davidson"><span class="pvg-rb-n">Davidson</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:62.67%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 1,880 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="299000" data-orig="29.9万円">$1.9K</span>)</small></span></li>
+<li class="pvg-rb-row" data-bar="us-belmont" data-town="us-belmont"><span class="pvg-rb-n">Belmont</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:49.00%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 1,470 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="234000" data-orig="23.4万円">$1.5K</span>)</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 3,000</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="477000" data-orig="47.7万円">$3K</span>)</small></i></span><span></span></li>
+</ul>
+</div>
+<div class="pvg-rb-g" data-size-panel="bed2"><p class="pvg-rb-t">2-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-davidson" data-town="us-davidson"><span class="pvg-rb-n">Davidson</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:68.00%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 2,040 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="324000" data-orig="32.4万円">$2K</span>)</small></span></li>
+<li class="pvg-rb-row" data-bar="us-belmont" data-town="us-belmont"><span class="pvg-rb-n">Belmont</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:53.33%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 1,600 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="254000" data-orig="25.4万円">$1.6K</span>)</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 3,000</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="477000" data-orig="47.7万円">$3K</span>)</small></i></span><span></span></li>
+</ul>
+</div>
+<div class="pvg-rb-g" data-size-panel="bed3"><p class="pvg-rb-t">3-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-davidson" data-town="us-davidson"><span class="pvg-rb-n">Davidson</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:83.67%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 2,510 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="399000" data-orig="39.9万円">$2.5K</span>)</small></span></li>
+<li class="pvg-rb-row" data-bar="us-belmont" data-town="us-belmont"><span class="pvg-rb-n">Belmont</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:65.00%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 1,950 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="310000" data-orig="31.0万円">$2K</span>)</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 3,000</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="477000" data-orig="47.7万円">$3K</span>)</small></i></span><span></span></li>
+</ul>
+</div>
+<p class="pvg-rb-s pv-no-cur">U.S. Department of Housing and Urban Development (HUD), &quot;Small Area Fair Market Rents (FY2027)&quot;<span>FY2027 (from October 1, 2026)</span></p>
+</div>
+</div>
+<details class="pvg-dt pvg-srcd pvg-ev" data-pvg-ev><summary>Sources<small>basis · conditions · date</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+<dl class="pvg-evl">
+<div><dt>Basis</dt><dd class="pvg-srcs"><a class="pvg-src" href="https://www.huduser.gov/portal/datasets/fmr/smallarea/index.html" target="_blank" rel="noopener">U.S. Department of Housing and Urban Development (HUD), &quot;Small Area Fair Market Rents (FY2027)&quot;</a></dd></div>
+<div><dt>Conditions</dt><dd><ul class="pvg-notes"><li><span class="pv-no-cur">HUD's Small Area Fair Market Rent for the ZIP code: the 40th percentile of standard rental housing in that ZIP, including set utilities. Not an average of listings and not luxury-home rents. ZIP areas do not match town borders (&quot;area&quot; towns). 1-Bed, 2-Bed and 3-Bed are bedrooms</span></li><li>Yen amounts are converted for comparison at 1 USD = 158.95 JPY as of 2026-08-22, and are not a current exchange rate.</li></ul></dd></div>
+<div><dt>As of</dt><dd><span><b>Rent</b>FY2027 (from October 1, 2026)</span></dd></div>
+
+
+</dl></details>
+</section>
+<section class="pvg-liv" data-pvg-towns data-city="us-phx" data-base="PHX" id="pvg-lv-us-phx" role="tabpanel" aria-labelledby="pvg-lvt-us-phx">
+<header class="pvg-liv-h"><p class="pvg-askh">Where to live<small>Phoenix / Mesa · PHX</small></p></header>
+<ul class="pvg-tgrid" data-n="3" style="--tg-a:2;--tg-b:3;--tg-c:3;--tg-d:3">
+<li><button type="button" class="pvg-town" data-town="us-paradise-valley" aria-controls="pvg-town-us-paradise-valley" aria-pressed="false">
+<span class="pvg-town-ph"><img src="../../assets/places/town-paradise-valley-480.jpg" srcset="../../assets/places/town-paradise-valley-480.jpg 480w, ../../assets/places/town-paradise-valley.jpg 960w" sizes="(min-width: 1100px) 400px, (min-width: 700px) 32vw, 46vw" width="480" height="320" alt="Homes in Paradise Valley with Camelback Mountain beyond" loading="lazy" decoding="async"></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">Paradise Valley</b><span class="pvg-town-s" lang="en">AZ 85253</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">USD 1,940 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="308000" data-orig="30.8万円">$1.9K</span>)</small></span></span>
+
+<span class="pvg-town-go">Details<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+<li><button type="button" class="pvg-town" data-town="us-chandler" aria-controls="pvg-town-us-chandler" aria-pressed="false">
+<span class="pvg-town-ph"><img src="../../assets/places/town-chandler-480.jpg" srcset="../../assets/places/town-chandler-480.jpg 480w, ../../assets/places/town-chandler.jpg 960w" sizes="(min-width: 1100px) 400px, (min-width: 700px) 32vw, 46vw" width="480" height="360" alt="Desert Breeze Park’s lake from the air" loading="lazy" decoding="async"></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">Chandler</b><span class="pvg-town-s" lang="en">AZ 85286</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">USD 1,910 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="304000" data-orig="30.4万円">$1.9K</span>)</small></span></span>
+
+<span class="pvg-town-go">Details<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+<li><button type="button" class="pvg-town" data-town="us-scottsdale" aria-controls="pvg-town-us-scottsdale" aria-pressed="false">
+<span class="pvg-town-ph"><img src="../../assets/places/town-scottsdale-480.jpg" srcset="../../assets/places/town-scottsdale-480.jpg 480w, ../../assets/places/town-scottsdale.jpg 960w" sizes="(min-width: 1100px) 400px, (min-width: 700px) 32vw, 46vw" width="480" height="320" alt="Downtown Scottsdale seen from Camelback Mountain" loading="lazy" decoding="async"></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">Scottsdale</b><span class="pvg-town-s" lang="en">AZ 85254</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">USD 1,860 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="296000" data-orig="29.6万円">$1.9K</span>)</small></span></span>
+
+<span class="pvg-town-go">Details<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+</ul>
+<div class="pvg-liv-2 has-rb">
+<div class="pvg-tds">
+<section class="pvg-td" id="pvg-town-us-paradise-valley" data-town-detail="us-paradise-valley" aria-label="Paradise Valley">
+<header class="pvg-td-h"><h4>Paradise Valley<small lang="en">AZ 85253</small></h4><p><span class="pv-no-cur">A town between Phoenix and Scottsdale, north of Camelback Mountain, known for homes on one-to-five-acre lots and its golf courses.</span></p></header>
+<div class="pvg-td-g is-one">
+
+<div class="pvg-td-c"><p class="pvg-askh">Getting to the airport<small>Between the station and the airport</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">PHX</i></span><span class="pvg-way-l">We have not been able to confirm sources for travel times and transport to the airport</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">Taxi</i></span><span class="pvg-way-l">We have not been able to confirm sources for fares or travel times</span><a class="pvg-link" href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="Paradise Valley">Add the airline’s taxi rules<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+<section class="pvg-td" id="pvg-town-us-chandler" data-town-detail="us-chandler" aria-label="Chandler">
+<header class="pvg-td-h"><h4>Chandler<small lang="en">AZ 85286</small></h4><p><span class="pv-no-cur">An East Valley city 22 miles (35 km) southeast of downtown Phoenix and a tech hub, with major sites for Intel and other companies.</span></p></header>
+<div class="pvg-td-g is-one">
+
+<div class="pvg-td-c"><p class="pvg-askh">Getting to the airport<small>Between the station and the airport</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">PHX</i></span><span class="pvg-way-l">We have not been able to confirm sources for travel times and transport to the airport</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">Taxi</i></span><span class="pvg-way-l">We have not been able to confirm sources for fares or travel times</span><a class="pvg-link" href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="Chandler">Add the airline’s taxi rules<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+<section class="pvg-td" id="pvg-town-us-scottsdale" data-town-detail="us-scottsdale" aria-label="Scottsdale">
+<header class="pvg-td-h"><h4>Scottsdale<small lang="en">AZ 85254</small></h4><p><span class="pv-no-cur">A city just east of Phoenix, with a historic Old Town and the 12-mile (19 km) Scottsdale Greenbelt linking city parks by bike path.</span></p></header>
+<div class="pvg-td-g is-one">
+
+<div class="pvg-td-c"><p class="pvg-askh">Getting to the airport<small>Between the station and the airport</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">PHX</i></span><span class="pvg-way-l">We have not been able to confirm sources for travel times and transport to the airport</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">Taxi</i></span><span class="pvg-way-l">We have not been able to confirm sources for fares or travel times</span><a class="pvg-link" href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="Scottsdale">Add the airline’s taxi rules<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+</div>
+<div class="pvg-rb" data-pvg-rent style="--rb-n:9em;--rb-v:10.5em">
+<div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">Rent<small>Rent benchmark by ZIP code, utilities included · per month</small></p>
+<div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
+<button type="button" class="pvg-rb-b" data-pvg-size="bed1" aria-pressed="true">1-Bed</button>
+<button type="button" class="pvg-rb-b" data-pvg-size="bed2" aria-pressed="false">2-Bed</button>
+<button type="button" class="pvg-rb-b" data-pvg-size="bed3" aria-pressed="false">3-Bed</button>
+</div></div>
+<div class="pvg-rb-g" data-size-panel="bed1"><p class="pvg-rb-t">1-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-paradise-valley" data-town="us-paradise-valley"><span class="pvg-rb-n">Paradise Valley</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:55.43%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 1,940 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="308000" data-orig="30.8万円">$1.9K</span>)</small></span></li>
+<li class="pvg-rb-row" data-bar="us-chandler" data-town="us-chandler"><span class="pvg-rb-n">Chandler</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:54.57%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 1,910 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="304000" data-orig="30.4万円">$1.9K</span>)</small></span></li>
+<li class="pvg-rb-row" data-bar="us-scottsdale" data-town="us-scottsdale"><span class="pvg-rb-n">Scottsdale</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:53.14%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 1,860 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="296000" data-orig="29.6万円">$1.9K</span>)</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 3,500</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="556000" data-orig="55.6万円">$3.5K</span>)</small></i></span><span></span></li>
+</ul>
+</div>
+<div class="pvg-rb-g" data-size-panel="bed2"><p class="pvg-rb-t">2-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-paradise-valley" data-town="us-paradise-valley"><span class="pvg-rb-n">Paradise Valley</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:64.29%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 2,250 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="358000" data-orig="35.8万円">$2.3K</span>)</small></span></li>
+<li class="pvg-rb-row" data-bar="us-chandler" data-town="us-chandler"><span class="pvg-rb-n">Chandler</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:63.43%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 2,220 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="353000" data-orig="35.3万円">$2.2K</span>)</small></span></li>
+<li class="pvg-rb-row" data-bar="us-scottsdale" data-town="us-scottsdale"><span class="pvg-rb-n">Scottsdale</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:61.71%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 2,160 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="343000" data-orig="34.3万円">$2.2K</span>)</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 3,500</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="556000" data-orig="55.6万円">$3.5K</span>)</small></i></span><span></span></li>
+</ul>
+</div>
+<div class="pvg-rb-g" data-size-panel="bed3"><p class="pvg-rb-t">3-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-paradise-valley" data-town="us-paradise-valley"><span class="pvg-rb-n">Paradise Valley</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:86.57%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 3,030 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="482000" data-orig="48.2万円">$3K</span>)</small></span></li>
+<li class="pvg-rb-row" data-bar="us-chandler" data-town="us-chandler"><span class="pvg-rb-n">Chandler</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:83.71%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 2,930 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="466000" data-orig="46.6万円">$2.9K</span>)</small></span></li>
+<li class="pvg-rb-row" data-bar="us-scottsdale" data-town="us-scottsdale"><span class="pvg-rb-n">Scottsdale</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:82.29%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 2,880 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="458000" data-orig="45.8万円">$2.9K</span>)</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 3,500</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="556000" data-orig="55.6万円">$3.5K</span>)</small></i></span><span></span></li>
+</ul>
+</div>
+<p class="pvg-rb-s pv-no-cur">U.S. Department of Housing and Urban Development (HUD), &quot;Small Area Fair Market Rents (FY2027)&quot;<span>FY2027 (from October 1, 2026)</span></p>
+</div>
+</div>
+<details class="pvg-dt pvg-srcd pvg-ev" data-pvg-ev><summary>Sources<small>basis · conditions · date</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+<dl class="pvg-evl">
+<div><dt>Basis</dt><dd class="pvg-srcs"><a class="pvg-src" href="https://www.huduser.gov/portal/datasets/fmr/smallarea/index.html" target="_blank" rel="noopener">U.S. Department of Housing and Urban Development (HUD), &quot;Small Area Fair Market Rents (FY2027)&quot;</a></dd></div>
+<div><dt>Conditions</dt><dd><ul class="pvg-notes"><li><span class="pv-no-cur">HUD's Small Area Fair Market Rent for the ZIP code: the 40th percentile of standard rental housing in that ZIP, including set utilities. Not an average of listings and not luxury-home rents. ZIP areas do not match town borders (&quot;area&quot; towns). 1-Bed, 2-Bed and 3-Bed are bedrooms</span></li><li>Yen amounts are converted for comparison at 1 USD = 158.95 JPY as of 2026-08-22, and are not a current exchange rate.</li></ul></dd></div>
+<div><dt>As of</dt><dd><span><b>Rent</b>FY2027 (from October 1, 2026)</span></dd></div>
+
+
+</dl></details>
+</section>
+<section class="pvg-liv" data-pvg-towns data-city="us-chi" data-base="ORD" id="pvg-lv-us-chi" role="tabpanel" aria-labelledby="pvg-lvt-us-chi">
+<header class="pvg-liv-h"><p class="pvg-askh">Where to live<small>Chicago · ORD</small></p></header>
+<ul class="pvg-tgrid" data-n="3" style="--tg-a:2;--tg-b:3;--tg-c:3;--tg-d:3">
+<li><button type="button" class="pvg-town" data-town="us-hinsdale" aria-controls="pvg-town-us-hinsdale" aria-pressed="false">
+<span class="pvg-town-ph"><img src="../../assets/places/town-hinsdale-480.jpg" srcset="../../assets/places/town-hinsdale-480.jpg 480w, ../../assets/places/town-hinsdale.jpg 960w" sizes="(min-width: 1100px) 400px, (min-width: 700px) 32vw, 46vw" width="480" height="279" alt="A block in downtown Hinsdale" loading="lazy" decoding="async"></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">Hinsdale</b><span class="pvg-town-s" lang="en">IL 60521</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">USD 2,360 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="375000" data-orig="37.5万円">$2.4K</span>)</small></span></span>
+
+<span class="pvg-town-go">Details<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+<li><button type="button" class="pvg-town" data-town="us-park-ridge" aria-controls="pvg-town-us-park-ridge" aria-pressed="false">
+<span class="pvg-town-ph"><img src="../../assets/places/town-park-ridge-480.jpg" srcset="../../assets/places/town-park-ridge-480.jpg 480w, ../../assets/places/town-park-ridge.jpg 960w" sizes="(min-width: 1100px) 400px, (min-width: 700px) 32vw, 46vw" width="480" height="258" alt="Hodges Park, Park Ridge" loading="lazy" decoding="async"></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">Park Ridge</b><span class="pvg-town-s" lang="en">IL 60068</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">USD 1,850 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="294000" data-orig="29.4万円">$1.8K</span>)</small></span></span>
+
+<span class="pvg-town-go">Details<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+<li><button type="button" class="pvg-town" data-town="us-oak-lawn" aria-controls="pvg-town-us-oak-lawn" aria-pressed="false">
+<span class="pvg-town-ph"><img src="../../assets/places/town-oak-lawn-480.jpg" srcset="../../assets/places/town-oak-lawn-480.jpg 480w, ../../assets/places/town-oak-lawn.jpg 960w" sizes="(min-width: 1100px) 400px, (min-width: 700px) 32vw, 46vw" width="480" height="360" alt="Oak Lawn along West 95th Street, from the air" loading="lazy" decoding="async"></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">Oak Lawn</b><span class="pvg-town-s" lang="en">IL 60453</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">USD 1,640 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="261000" data-orig="26.1万円">$1.6K</span>)</small></span></span>
+
+<span class="pvg-town-go">Details<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+</ul>
+<div class="pvg-liv-2 has-rb">
+<div class="pvg-tds">
+<section class="pvg-td" id="pvg-town-us-hinsdale" data-town-detail="us-hinsdale" aria-label="Hinsdale">
+<header class="pvg-td-h"><h4>Hinsdale<small lang="en">IL 60521</small></h4><p><span class="pv-no-cur">A village 15 miles west of the Chicago Loop whose historic downtown, with shops and a Metra station, is on the National Register.</span></p><p class="pvg-td-more"><span class="pv-no-cur">3-bedroom house listings (seen 2 November 2026, asking rents, not signed leases): USD 3,395 a month · USD 6,000 a month (2,120 sq ft) · USD 3,200 a month (1,630 sq ft)</span></p></header>
+<div class="pvg-td-g is-one">
+
+<div class="pvg-td-c"><p class="pvg-askh">Getting to the airport<small>Between the station and the airport</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">ORD</i></span><span class="pvg-way-l">We have not been able to confirm sources for travel times and transport to the airport</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">Taxi</i></span><span class="pvg-way-l">We have not been able to confirm sources for fares or travel times</span><a class="pvg-link" href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="Hinsdale">Add the airline’s taxi rules<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+<section class="pvg-td" id="pvg-town-us-park-ridge" data-town-detail="us-park-ridge" aria-label="Park Ridge">
+<header class="pvg-td-h"><h4>Park Ridge<small lang="en">IL 60068</small></h4><p><span class="pv-no-cur">A residential city just northeast of O'Hare whose best-known landmark is the Art Deco Pickwick Theatre, built in 1928.</span></p></header>
+<div class="pvg-td-g is-one">
+
+<div class="pvg-td-c"><p class="pvg-askh">Getting to the airport<small>Between the station and the airport</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">ORD</i></span><span class="pvg-way-l">We have not been able to confirm sources for travel times and transport to the airport</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">Taxi</i></span><span class="pvg-way-l">We have not been able to confirm sources for fares or travel times</span><a class="pvg-link" href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="Park Ridge">Add the airline’s taxi rules<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+<section class="pvg-td" id="pvg-town-us-oak-lawn" data-town-detail="us-oak-lawn" aria-label="Oak Lawn">
+<header class="pvg-td-h"><h4>Oak Lawn<small lang="en">IL 60453</small></h4><p><span class="pv-no-cur">A village bordering Chicago's southwest side, south of Midway Airport, and home to Advocate Christ Medical Center, a Level I trauma center.</span></p></header>
+<div class="pvg-td-g is-one">
+
+<div class="pvg-td-c"><p class="pvg-askh">Getting to the airport<small>Between the station and the airport</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">ORD</i></span><span class="pvg-way-l">We have not been able to confirm sources for travel times and transport to the airport</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">Taxi</i></span><span class="pvg-way-l">We have not been able to confirm sources for fares or travel times</span><a class="pvg-link" href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="Oak Lawn">Add the airline’s taxi rules<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+</div>
+<div class="pvg-rb" data-pvg-rent style="--rb-n:6.5em;--rb-v:10.5em">
+<div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">Rent<small>Rent benchmark by ZIP code, utilities included · per month</small></p>
+<div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
+<button type="button" class="pvg-rb-b" data-pvg-size="bed1" aria-pressed="true">1-Bed</button>
+<button type="button" class="pvg-rb-b" data-pvg-size="bed2" aria-pressed="false">2-Bed</button>
+<button type="button" class="pvg-rb-b" data-pvg-size="bed3" aria-pressed="false">3-Bed</button>
+</div></div>
+<div class="pvg-rb-g" data-size-panel="bed1"><p class="pvg-rb-t">1-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-hinsdale" data-town="us-hinsdale"><span class="pvg-rb-n">Hinsdale</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:67.43%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 2,360 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="375000" data-orig="37.5万円">$2.4K</span>)</small></span></li>
+<li class="pvg-rb-row" data-bar="us-park-ridge" data-town="us-park-ridge"><span class="pvg-rb-n">Park Ridge</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:52.86%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 1,850 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="294000" data-orig="29.4万円">$1.8K</span>)</small></span></li>
+<li class="pvg-rb-row" data-bar="us-oak-lawn" data-town="us-oak-lawn"><span class="pvg-rb-n">Oak Lawn</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:46.86%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 1,640 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="261000" data-orig="26.1万円">$1.6K</span>)</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 3,500</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="556000" data-orig="55.6万円">$3.5K</span>)</small></i></span><span></span></li>
+</ul>
+</div>
+<div class="pvg-rb-g" data-size-panel="bed2"><p class="pvg-rb-t">2-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-hinsdale" data-town="us-hinsdale"><span class="pvg-rb-n">Hinsdale</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:76.29%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 2,670 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="424000" data-orig="42.4万円">$2.7K</span>)</small></span></li>
+<li class="pvg-rb-row" data-bar="us-park-ridge" data-town="us-park-ridge"><span class="pvg-rb-n">Park Ridge</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:59.71%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 2,090 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="332000" data-orig="33.2万円">$2.1K</span>)</small></span></li>
+<li class="pvg-rb-row" data-bar="us-oak-lawn" data-town="us-oak-lawn"><span class="pvg-rb-n">Oak Lawn</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:52.86%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 1,850 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="294000" data-orig="29.4万円">$1.8K</span>)</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 3,500</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="556000" data-orig="55.6万円">$3.5K</span>)</small></i></span><span></span></li>
+</ul>
+</div>
+<div class="pvg-rb-g" data-size-panel="bed3"><p class="pvg-rb-t">3-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-hinsdale" data-town="us-hinsdale"><span class="pvg-rb-n">Hinsdale</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:98.00%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 3,430 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="545000" data-orig="54.5万円">$3.4K</span>)</small></span></li>
+<li class="pvg-rb-row" data-bar="us-park-ridge" data-town="us-park-ridge"><span class="pvg-rb-n">Park Ridge</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:76.86%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 2,690 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="428000" data-orig="42.8万円">$2.7K</span>)</small></span></li>
+<li class="pvg-rb-row" data-bar="us-oak-lawn" data-town="us-oak-lawn"><span class="pvg-rb-n">Oak Lawn</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:68.00%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 2,380 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="378000" data-orig="37.8万円">$2.4K</span>)</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 3,500</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="556000" data-orig="55.6万円">$3.5K</span>)</small></i></span><span></span></li>
+</ul>
+</div>
+<p class="pvg-rb-s pv-no-cur">U.S. Department of Housing and Urban Development (HUD), &quot;Small Area Fair Market Rents (FY2027)&quot;<span>FY2027 (from October 1, 2026)</span></p>
+</div>
+</div>
+<details class="pvg-dt pvg-srcd pvg-ev" data-pvg-ev><summary>Sources<small>basis · conditions · date</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+<dl class="pvg-evl">
+<div><dt>Basis</dt><dd class="pvg-srcs"><a class="pvg-src" href="https://www.huduser.gov/portal/datasets/fmr/smallarea/index.html" target="_blank" rel="noopener">U.S. Department of Housing and Urban Development (HUD), &quot;Small Area Fair Market Rents (FY2027)&quot;</a></dd></div>
+<div><dt>Conditions</dt><dd><ul class="pvg-notes"><li><span class="pv-no-cur">HUD's Small Area Fair Market Rent for the ZIP code: the 40th percentile of standard rental housing in that ZIP, including set utilities. Not an average of listings and not luxury-home rents. ZIP areas do not match town borders (&quot;area&quot; towns). 1-Bed, 2-Bed and 3-Bed are bedrooms</span></li><li>Yen amounts are converted for comparison at 1 USD = 158.95 JPY as of 2026-08-22, and are not a current exchange rate.</li></ul></dd></div>
+<div><dt>As of</dt><dd><span><b>Rent</b>FY2027 (from October 1, 2026)</span></dd></div>
+
+
+</dl></details>
+</section>
+<section class="pvg-liv" data-pvg-towns data-city="us-fll" data-base="FLL" id="pvg-lv-us-fll" role="tabpanel" aria-labelledby="pvg-lvt-us-fll">
+<header class="pvg-liv-h"><p class="pvg-askh">Where to live<small>Fort Lauderdale · FLL</small></p></header>
+<ul class="pvg-tgrid" data-n="2" style="--tg-a:2;--tg-b:2;--tg-c:2;--tg-d:2">
+<li><button type="button" class="pvg-town" data-town="us-weston" aria-controls="pvg-town-us-weston" aria-pressed="false">
+<span class="pvg-town-ph"><img src="../../assets/places/town-weston-480.jpg" srcset="../../assets/places/town-weston-480.jpg 480w, ../../assets/places/town-weston.jpg 960w" sizes="(min-width: 1100px) 600px, (min-width: 700px) 48vw, 46vw" width="480" height="360" alt="Town Center Park, Weston" loading="lazy" decoding="async"></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">Weston</b><span class="pvg-town-s" lang="en">FL 33326</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">USD 2,510 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="399000" data-orig="39.9万円">$2.5K</span>)</small></span></span>
+
+<span class="pvg-town-go">Details<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+<li><button type="button" class="pvg-town" data-town="us-davie" aria-controls="pvg-town-us-davie" aria-pressed="false">
+<span class="pvg-town-ph"><img src="../../assets/places/town-davie-480.jpg" srcset="../../assets/places/town-davie-480.jpg 480w, ../../assets/places/town-davie.jpg 960w" sizes="(min-width: 1100px) 600px, (min-width: 700px) 48vw, 46vw" width="480" height="360" alt="A woodland trail in Davie" loading="lazy" decoding="async"></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">Davie</b><span class="pvg-town-s" lang="en">FL 33324</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">USD 2,320 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="369000" data-orig="36.9万円">$2.3K</span>)</small></span></span>
+
+<span class="pvg-town-go">Details<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+</ul>
+<div class="pvg-liv-2 has-rb">
+<div class="pvg-tds">
+<section class="pvg-td" id="pvg-town-us-weston" data-town-detail="us-weston" aria-label="Weston">
+<header class="pvg-td-h"><h4>Weston<small lang="en">FL 33326</small></h4><p><span class="pv-no-cur">A master-planned city just west of Fort Lauderdale, built from the 1980s; Broward County's westernmost city, bordering the Everglades.</span></p></header>
+<div class="pvg-td-g is-one">
+
+<div class="pvg-td-c"><p class="pvg-askh">Getting to the airport<small>Between the station and the airport</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">FLL</i></span><span class="pvg-way-l">We have not been able to confirm sources for travel times and transport to the airport</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">Taxi</i></span><span class="pvg-way-l">We have not been able to confirm sources for fares or travel times</span><a class="pvg-link" href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="Weston">Add the airline’s taxi rules<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+<section class="pvg-td" id="pvg-town-us-davie" data-town-detail="us-davie" aria-label="Davie">
+<header class="pvg-td-h"><h4>Davie<small lang="en">FL 33324</small></h4><p><span class="pv-no-cur">A Broward County town west of Fort Lauderdale's airport, where horseback riding is common and ranches and Western-style buildings remain.</span></p></header>
+<div class="pvg-td-g is-one">
+
+<div class="pvg-td-c"><p class="pvg-askh">Getting to the airport<small>Between the station and the airport</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">FLL</i></span><span class="pvg-way-l">We have not been able to confirm sources for travel times and transport to the airport</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">Taxi</i></span><span class="pvg-way-l">We have not been able to confirm sources for fares or travel times</span><a class="pvg-link" href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="Davie">Add the airline’s taxi rules<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+</div>
+<div class="pvg-rb" data-pvg-rent style="--rb-n:4em;--rb-v:10.5em">
+<div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">Rent<small>Rent benchmark by ZIP code, utilities included · per month</small></p>
+<div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
+<button type="button" class="pvg-rb-b" data-pvg-size="bed1" aria-pressed="true">1-Bed</button>
+<button type="button" class="pvg-rb-b" data-pvg-size="bed2" aria-pressed="false">2-Bed</button>
+<button type="button" class="pvg-rb-b" data-pvg-size="bed3" aria-pressed="false">3-Bed</button>
+</div></div>
+<div class="pvg-rb-g" data-size-panel="bed1"><p class="pvg-rb-t">1-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-weston" data-town="us-weston"><span class="pvg-rb-n">Weston</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:55.78%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 2,510 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="399000" data-orig="39.9万円">$2.5K</span>)</small></span></li>
+<li class="pvg-rb-row" data-bar="us-davie" data-town="us-davie"><span class="pvg-rb-n">Davie</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:51.56%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 2,320 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="369000" data-orig="36.9万円">$2.3K</span>)</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 4,500</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="715000" data-orig="71.5万円">$4.5K</span>)</small></i></span><span></span></li>
+</ul>
+</div>
+<div class="pvg-rb-g" data-size-panel="bed2"><p class="pvg-rb-t">2-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-weston" data-town="us-weston"><span class="pvg-rb-n">Weston</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:68.00%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 3,060 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="486000" data-orig="48.6万円">$3.1K</span>)</small></span></li>
+<li class="pvg-rb-row" data-bar="us-davie" data-town="us-davie"><span class="pvg-rb-n">Davie</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:62.89%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 2,830 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="450000" data-orig="45.0万円">$2.8K</span>)</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 4,500</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="715000" data-orig="71.5万円">$4.5K</span>)</small></i></span><span></span></li>
+</ul>
+</div>
+<div class="pvg-rb-g" data-size-panel="bed3"><p class="pvg-rb-t">3-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-weston" data-town="us-weston"><span class="pvg-rb-n">Weston</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:92.89%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 4,180 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="664000" data-orig="66.4万円">$4.2K</span>)</small></span></li>
+<li class="pvg-rb-row" data-bar="us-davie" data-town="us-davie"><span class="pvg-rb-n">Davie</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:86.00%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 3,870 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="615000" data-orig="61.5万円">$3.9K</span>)</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 4,500</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="715000" data-orig="71.5万円">$4.5K</span>)</small></i></span><span></span></li>
+</ul>
+</div>
+<p class="pvg-rb-s pv-no-cur">U.S. Department of Housing and Urban Development (HUD), &quot;Small Area Fair Market Rents (FY2027)&quot;<span>FY2027 (from October 1, 2026)</span></p>
+</div>
+</div>
+<details class="pvg-dt pvg-srcd pvg-ev" data-pvg-ev><summary>Sources<small>basis · conditions · date</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+<dl class="pvg-evl">
+<div><dt>Basis</dt><dd class="pvg-srcs"><a class="pvg-src" href="https://www.huduser.gov/portal/datasets/fmr/smallarea/index.html" target="_blank" rel="noopener">U.S. Department of Housing and Urban Development (HUD), &quot;Small Area Fair Market Rents (FY2027)&quot;</a></dd></div>
+<div><dt>Conditions</dt><dd><ul class="pvg-notes"><li><span class="pv-no-cur">HUD's Small Area Fair Market Rent for the ZIP code: the 40th percentile of standard rental housing in that ZIP, including set utilities. Not an average of listings and not luxury-home rents. ZIP areas do not match town borders (&quot;area&quot; towns). 1-Bed, 2-Bed and 3-Bed are bedrooms</span></li><li>Yen amounts are converted for comparison at 1 USD = 158.95 JPY as of 2026-08-22, and are not a current exchange rate.</li></ul></dd></div>
+<div><dt>As of</dt><dd><span><b>Rent</b>FY2027 (from October 1, 2026)</span></dd></div>
+
+
+</dl></details>
+</section>
+<section class="pvg-liv" data-pvg-towns data-city="us-hpn" data-base="HPN" id="pvg-lv-us-hpn" role="tabpanel" aria-labelledby="pvg-lvt-us-hpn">
+<header class="pvg-liv-h"><p class="pvg-askh">Where to live<small>Westchester · HPN</small></p></header>
+<ul class="pvg-tgrid" data-n="2" style="--tg-a:2;--tg-b:2;--tg-c:2;--tg-d:2">
+<li><button type="button" class="pvg-town" data-town="us-harrison" aria-controls="pvg-town-us-harrison" aria-pressed="false">
+<span class="pvg-town-ph"><img src="../../assets/places/town-harrison-480.jpg" srcset="../../assets/places/town-harrison-480.jpg 480w, ../../assets/places/town-harrison.jpg 960w" sizes="(min-width: 1100px) 600px, (min-width: 700px) 48vw, 46vw" width="480" height="360" alt="The post office in central Harrison" loading="lazy" decoding="async"></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">Harrison</b><span class="pvg-town-s" lang="en">NY 10528</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">USD 3,820 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="607000" data-orig="60.7万円">$3.8K</span>)</small></span></span>
+
+<span class="pvg-town-go">Details<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+<li><button type="button" class="pvg-town" data-town="us-scarsdale" aria-controls="pvg-town-us-scarsdale" aria-pressed="false">
+<span class="pvg-town-ph"><img src="../../assets/places/town-scarsdale-480.jpg" srcset="../../assets/places/town-scarsdale-480.jpg 480w, ../../assets/places/town-scarsdale.jpg 960w" sizes="(min-width: 1100px) 600px, (min-width: 700px) 48vw, 46vw" width="480" height="270" alt="The Harwood Building in Scarsdale's village center" loading="lazy" decoding="async"></span>
+<span class="pvg-town-b">
+<b class="pvg-town-n">Scarsdale</b><span class="pvg-town-s" lang="en">NY 10583</span>
+<span class="pvg-town-r"><small>1-Bed</small><span><span class="pv-no-cur">USD 3,550 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="564000" data-orig="56.4万円">$3.5K</span>)</small></span></span>
+
+<span class="pvg-town-go">Details<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+</span>
+</button></li>
+</ul>
+<div class="pvg-liv-2 has-rb">
+<div class="pvg-tds">
+<section class="pvg-td" id="pvg-town-us-harrison" data-town-detail="us-harrison" aria-label="Harrison">
+<header class="pvg-td-h"><h4>Harrison<small lang="en">NY 10528</small></h4><p><span class="pv-no-cur">A New York City suburb about 18 km northeast of Manhattan, founded in 1696; it includes Purchase and part of Westchester County Airport.</span></p></header>
+<div class="pvg-td-g is-one">
+
+<div class="pvg-td-c"><p class="pvg-askh">Getting to the airport<small>Between the station and the airport</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">HPN</i></span><span class="pvg-way-l">We have not been able to confirm sources for travel times and transport to the airport</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">Taxi</i></span><span class="pvg-way-l">We have not been able to confirm sources for fares or travel times</span><a class="pvg-link" href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="Harrison">Add the airline’s taxi rules<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+<section class="pvg-td" id="pvg-town-us-scarsdale" data-town-detail="us-scarsdale" aria-label="Scarsdale">
+<header class="pvg-td-h"><h4>Scarsdale<small lang="en">NY 10583</small></h4><p><span class="pv-no-cur">A village in the Bronx River Valley about 31 km north of Midtown Manhattan, on Metro-North's Harlem Line, made up of 17 neighborhoods.</span></p></header>
+<div class="pvg-td-g is-one">
+
+<div class="pvg-td-c"><p class="pvg-askh">Getting to the airport<small>Between the station and the airport</small></p>
+<ul class="pvg-way"><li class="is-none"><span class="pvg-way-t"><i class="pvg-code3">HPN</i></span><span class="pvg-way-l">We have not been able to confirm sources for travel times and transport to the airport</span></li><li class="is-none"><span class="pvg-way-t"><i class="pvg-mode">Taxi</i></span><span class="pvg-way-l">We have not been able to confirm sources for fares or travel times</span><a class="pvg-link" href="../airline-conditions.html?airline=contour&amp;q=commuting_taxi_when" data-pvc-open="taxi" data-pvc-q="commuting_taxi_when" data-pvc-ctx="Scarsdale">Add the airline’s taxi rules<svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></li></ul></div>
+</div>
+</section>
+</div>
+<div class="pvg-rb" data-pvg-rent style="--rb-n:6em;--rb-v:10.5em">
+<div class="pvg-rb-hd"><p class="pvg-askh" id="pvg-rb-h">Rent<small>Rent benchmark by ZIP code, utilities included · per month</small></p>
+<div class="pvg-rb-sw" role="group" aria-labelledby="pvg-rb-h">
+<button type="button" class="pvg-rb-b" data-pvg-size="bed1" aria-pressed="true">1-Bed</button>
+<button type="button" class="pvg-rb-b" data-pvg-size="bed2" aria-pressed="false">2-Bed</button>
+<button type="button" class="pvg-rb-b" data-pvg-size="bed3" aria-pressed="false">3-Bed</button>
+</div></div>
+<div class="pvg-rb-g" data-size-panel="bed1"><p class="pvg-rb-t">1-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-harrison" data-town="us-harrison"><span class="pvg-rb-n">Harrison</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:69.45%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 3,820 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="607000" data-orig="60.7万円">$3.8K</span>)</small></span></li>
+<li class="pvg-rb-row" data-bar="us-scarsdale" data-town="us-scarsdale"><span class="pvg-rb-n">Scarsdale</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:64.55%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 3,550 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="564000" data-orig="56.4万円">$3.5K</span>)</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 5,500</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="874000" data-orig="87.4万円">$5.5K</span>)</small></i></span><span></span></li>
+</ul>
+</div>
+<div class="pvg-rb-g" data-size-panel="bed2"><p class="pvg-rb-t">2-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-harrison" data-town="us-harrison"><span class="pvg-rb-n">Harrison</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:75.64%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 4,160 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="661000" data-orig="66.1万円">$4.2K</span>)</small></span></li>
+<li class="pvg-rb-row" data-bar="us-scarsdale" data-town="us-scarsdale"><span class="pvg-rb-n">Scarsdale</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:70.18%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 3,860 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="614000" data-orig="61.4万円">$3.9K</span>)</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 5,500</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="874000" data-orig="87.4万円">$5.5K</span>)</small></i></span><span></span></li>
+</ul>
+</div>
+<div class="pvg-rb-g" data-size-panel="bed3"><p class="pvg-rb-t">3-Bed</p>
+<ul class="pvg-rb-rows">
+<li class="pvg-rb-row" data-bar="us-harrison" data-town="us-harrison"><span class="pvg-rb-n">Harrison</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:95.64%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 5,260 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="836000" data-orig="83.6万円">$5.3K</span>)</small></span></li>
+<li class="pvg-rb-row" data-bar="us-scarsdale" data-town="us-scarsdale"><span class="pvg-rb-n">Scarsdale</span><span class="pvg-rb-track"><i class="pvg-rb-fill" style="width:88.73%"></i></span><span class="pvg-rb-v"><span class="pv-no-cur">USD 4,880 a month</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="776000" data-orig="77.6万円">$4.9K</span>)</small></span></li>
+<li class="pvg-rb-axis" aria-hidden="true"><span></span><span class="pvg-rb-ax"><i>0</i><i><span class="pv-no-cur">USD 5,500</span><small class="pvg-yen" data-cur="USD"> (≈<span class="pv-cur" data-jpy="874000" data-orig="87.4万円">$5.5K</span>)</small></i></span><span></span></li>
+</ul>
+</div>
+<p class="pvg-rb-s pv-no-cur">U.S. Department of Housing and Urban Development (HUD), &quot;Small Area Fair Market Rents (FY2027)&quot;<span>FY2027 (from October 1, 2026)</span></p>
+</div>
+</div>
+<details class="pvg-dt pvg-srcd pvg-ev" data-pvg-ev><summary>Sources<small>basis · conditions · date</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+<dl class="pvg-evl">
+<div><dt>Basis</dt><dd class="pvg-srcs"><a class="pvg-src" href="https://www.huduser.gov/portal/datasets/fmr/smallarea/index.html" target="_blank" rel="noopener">U.S. Department of Housing and Urban Development (HUD), &quot;Small Area Fair Market Rents (FY2027)&quot;</a></dd></div>
+<div><dt>Conditions</dt><dd><ul class="pvg-notes"><li><span class="pv-no-cur">HUD's Small Area Fair Market Rent for the ZIP code: the 40th percentile of standard rental housing in that ZIP, including set utilities. Not an average of listings and not luxury-home rents. ZIP areas do not match town borders (&quot;area&quot; towns). 1-Bed, 2-Bed and 3-Bed are bedrooms</span></li><li>Yen amounts are converted for comparison at 1 USD = 158.95 JPY as of 2026-08-22, and are not a current exchange rate.</li></ul></dd></div>
+<div><dt>As of</dt><dd><span><b>Rent</b>FY2027 (from October 1, 2026)</span></dd></div>
+
+
+</dl></details>
+</section>
+</div><details class="pvg-dt pvg-srcd pvg-phc"><summary>Photo credits<small>11</small><svg class="pvg-ic pvg-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><ul class="pvg-phl"><li data-cr="us-davidson"><b>Davidson</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Commercial_street_Davidson_(6124620552).jpg" target="_blank" rel="noopener">Brett VA</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by/2.0" target="_blank" rel="noopener">CC BY 2.0</a> (resized and cropped)</span></li><li data-cr="us-paradise-valley"><b>Paradise Valley</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Paradise_Valley,_Arizona_(52069353266).jpg" target="_blank" rel="noopener">Gage Skidmore</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a> (resized and cropped)</span></li><li data-cr="us-chandler"><b>Chandler</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:231119-11_Desert_Breeze_Lake.jpg" target="_blank" rel="noopener">Hunter Trick (TrickHunter)</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-scottsdale"><b>Scottsdale</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Scottsdale,_Arizona.jpg" target="_blank" rel="noopener">Quintin Soloviev</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by/4.0" target="_blank" rel="noopener">CC BY 4.0</a> (resized and cropped)</span></li><li data-cr="us-hinsdale"><b>Hinsdale</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Downtown_Hinsdale_Block.JPG" target="_blank" rel="noopener">Teemu08 at en.wikipedia</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a> (resized and cropped)</span></li><li data-cr="us-park-ridge"><b>Park Ridge</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Hodges_Park,_Park_Ridge,_IL.jpg" target="_blank" rel="noopener">Nick Number</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by/4.0" target="_blank" rel="noopener">CC BY 4.0</a> (resized and cropped)</span></li><li data-cr="us-oak-lawn"><b>Oak Lawn</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:West_95th_Street,_Oak_Lawn,_Illinois_(7993005951).jpg" target="_blank" rel="noopener">Ken Lund from Reno, Nevada, USA</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a> (resized and cropped)</span></li><li data-cr="us-weston"><b>Weston</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Town_Center_Park,_Weston,_Florida_February_24,_2022_C.jpg" target="_blank" rel="noopener">AITFFan1</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a> (resized and cropped)</span></li><li data-cr="us-davie"><b>Davie</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Davie,_FL,_USA_-_panoramio_(4).jpg" target="_blank" rel="noopener">William “Patrick” Ma…</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a> (resized and cropped)</span></li><li data-cr="us-harrison"><b>Harrison</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:U.S._Post_Office_Harrison_NY_Jul_10.jpg" target="_blank" rel="noopener">Doug Kerr from Upstate New York</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by-sa/2.0" target="_blank" rel="noopener">CC BY-SA 2.0</a> (resized and cropped)</span></li><li data-cr="us-scarsdale"><b>Scarsdale</b><span><a class="pvg-src" href="https://commons.wikimedia.org/wiki/File:Scarsdale,_NY_(54741801357).jpg" target="_blank" rel="noopener">ajay_suresh</a> / <a class="pvg-src" href="https://creativecommons.org/licenses/by/4.0" target="_blank" rel="noopener">CC BY 4.0</a> (resized and cropped)</span></li></ul></details>
 </div>
 </div>
 </div>
@@ -336,7 +784,8 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 <div class="pvg-more-grid pvg-g-st" data-pvg-pane="overview stay">
 <article class="pvg-card pvg-stay" id="pvg-stay" data-pvg-pane="overview stay">
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true"><svg class="pvg-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18V7M3 16h18M21 18v-3a3 3 0 0 0-3-3H3M7 12V9h5a2 2 0 0 1 2 2v1"/></svg></span><h2 class="pvg-eyebrow">Layovers</h2></header>
-
+<p class="pvg-stay-base"><svg class="pvg-ic pvg-ic-s" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6-5.2-6-10a6 6 0 1 1 12 0c0 4.8-6 10-6 10zM12 9.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg><span>Base</span><b>CLT · PHX · ORD · FLL · HPN</b>
+<a class="pvg-link" href="https://www.google.com/maps/search/?api=1&amp;query=CLT" target="_blank" rel="noopener">View on Google Maps</a></p>
 <p class="pvg-quiet">Hotels and restaurants by destination open once we have confirmed the airline’s published list of destinations.</p>
 </article>
 <article class="pvg-card pvg-askc" data-pvg-pane="overview">

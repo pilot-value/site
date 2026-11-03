@@ -1,4 +1,4 @@
-/* us-town-notes.mjs ── 米国の住宅地（us-housing.mjs の街）の短い紹介（日英）。2026-11-02。
+/* us-town-notes.mjs ── 北米の住宅地（us-housing.mjs の街）の短い紹介（日英）。2026-11-02（米国）・2026-11-03（北米追加20社の米国・カナダ）。
  *
  * ★オーナー「ちゃんと街の画像と、どんなところなのか魅力を簡単に説明も入れてね」。
  *   字は、その街の Wikipedia（英語版）や街の公式サイトで確かめられる事実だけで書いた（場所・街の性格）。
@@ -357,5 +357,249 @@ export const ABOUT = Object.freeze({
  "us-claremont": {
   "ja": "サンガブリエル山地のふもと、7つの大学からなるクレアモント・カレッジズの街。並木道と歴史ある建物が多く、「ビレッジ」と呼ばれる商店街がある。",
   "en": "A foothill college town east of Los Angeles, home to the seven Claremont Colleges and known for tree-lined streets and historic buildings."
+ },
+ "us-green": {
+  "ja": "アクロンとカントンのあいだにある郊外の市で、アクロン・カントン空港もこの市内にある。かつての農地に住宅地が広がった。",
+  "en": "A suburban city between Akron and Canton that is home to Akron–Canton Airport, where former farmland grew into residential areas."
+ },
+ "us-hudson": {
+  "ja": "アクロン都市圏の北部にある郊外の市。コネチカットからの入植者が開いた町で、赤れんがのウェスタン・リザーブ・アカデミーがある。",
+  "en": "A suburb in northern Summit County near Akron, with New England roots from its first settlers and the red-brick Western Reserve Academy."
+ },
+ "us-warwick": {
+  "ja": "プロビデンスの南約19km、T・F・グリーン空港がある市。ナラガンセット湾に面し、入り江や海辺の州立公園がある。",
+  "en": "A city about 19 km south of Providence and home to T. F. Green Airport, with coves and shoreline state parks on Narragansett Bay."
+ },
+ "us-east-greenwich": {
+  "ja": "ウォリックの南隣の町。水辺と、飲食店や店が並ぶ中心街、そして学区の評価が高いことで知られる。",
+  "en": "A town just south of Warwick, known for its waterfront, a downtown of restaurants and shops, and a well-regarded school district."
+ },
+ "us-estero": {
+  "ja": "南西フロリダ国際空港のすぐ南にある村。州立公園が2つあり、湧き水のエステロ川が流れ、ゴルフ場も多い。",
+  "en": "A village just south of Southwest Florida International Airport, with two state parks, the spring-fed Estero River and many golf courses."
+ },
+ "us-bonita-springs": {
+  "ja": "エステロの南、メキシコ湾とエステロ湾に面した市。ボニータ・ビーチの砂浜と、中心街を流れるインペリアル川がある。",
+  "en": "A city south of Estero on the Gulf of Mexico and Estero Bay, with Bonita Beach and the Imperial River running through downtown."
+ },
+ "us-vero-beach": {
+  "ja": "インディアンリバー・ラグーンの本土側の市街。歴史ある中心街に店や飲食店、画廊が並び、橋で海辺の島へ渡れる。",
+  "en": "The mainland side of Vero Beach on the Indian River Lagoon, with a historic downtown of shops, restaurants and galleries."
+ },
+ "us-indian-river-shores": {
+  "ja": "ベロビーチのすぐ北、大西洋とインディアンリバー・ラグーンにはさまれたオーキッド島の町。低密度の住宅地が中心。",
+  "en": "A town on Orchid Island just north of Vero Beach, between the Atlantic and the Indian River Lagoon, mostly low-density neighborhoods."
+ },
+ "us-summerville": {
+  "ja": "チャールストンの北西約39kmの町。1847年に木の伐採を法律で禁じた歴史があり、歴史地区に古い家並みが残る。",
+  "en": "A town about 39 km northwest of Charleston that protected its trees by law in 1847, with a historic district of older homes."
+ },
+ "us-mount-pleasant": {
+  "ja": "クーパー川をはさんでチャールストンの対岸にある町。ラベネル橋で結ばれ、シェム・クリークの水辺と、町で最も古い地区オールドビレッジがある。",
+  "en": "A town across the Cooper River from Charleston, linked by the Ravenel Bridge, with the Shem Creek waterfront and the historic Old Village."
+ },
+ "us-chesapeake-greenbrier": {
+  "ja": "ノーフォーク国際空港の南にあるチェサピーク市の地区。大型のグリーンブライアー・モールがあり、無料で入れる植物園も近い。",
+  "en": "A district of Chesapeake south of Norfolk International Airport, with the large Greenbrier Mall and a free-entry arboretum nearby."
+ },
+ "us-virginia-beach": {
+  "ja": "チェサピーク湾の入り口、大西洋に面したリゾートの市。海沿いに長い砂浜が続き、ホテルや飲食店が並ぶ。",
+  "en": "A resort city at the mouth of the Chesapeake Bay on the Atlantic, with miles of beaches lined by hotels and restaurants."
+ },
+ "us-windsor-locks": {
+  "ja": "ハートフォードとスプリングフィールドの中間にあり、ブラッドリー国際空港が町の約3分の1を占める。コネチカット川沿いに古い運河が通る。",
+  "en": "Midway between Hartford and Springfield, the town is home to Bradley International Airport and a historic canal along the Connecticut River."
+ },
+ "us-glastonbury": {
+  "ja": "ハートフォードの南東約11km、コネチカット川の東岸にある町。1636年に入植が始まり、1655年からの渡し船が今も川を渡る。",
+  "en": "A town on the east bank of the Connecticut River, 11 km southeast of Hartford, settled in 1636; a ferry has crossed here since 1655."
+ },
+ "us-lehi": {
+  "ja": "ユタバレー北端の市。IT企業が集まる「シリコン・スロープ」とともに急成長し、中心街は歴史地区に指定されている。",
+  "en": "A city at the north end of Utah Valley that has grown fast with the Silicon Slopes tech industry; its downtown is a historic district."
+ },
+ "us-alpine": {
+  "ja": "ユタ郡の北東端、ワサッチ山脈の斜面にある市。高台からの眺めがスイス・アルプスにたとえられ、この名が付いた。",
+  "en": "A city on the slopes of the Wasatch Range at the northeast edge of Utah County, named because its views were compared to the Swiss Alps."
+ },
+ "us-kenner": {
+  "ja": "ニューオーリンズの西にある郊外の市で、ルイ・アームストロング・ニューオーリンズ国際空港がある。北はポンチャートレイン湖に面する。",
+  "en": "A suburb west of New Orleans and home to Louis Armstrong New Orleans International Airport, bordered by Lake Pontchartrain to the north."
+ },
+ "us-mandeville": {
+  "ja": "ポンチャートレイン湖の北岸、ニューオーリンズの対岸にある市。19世紀にニューオーリンズの人の湖畔の保養地として開けた。",
+  "en": "A city on the north shore of Lake Pontchartrain, across the lake from New Orleans, first developed in the 1800s as a lakeside resort."
+ },
+ "us-branford": {
+  "ja": "ニューヘイブンの東約10km、ロングアイランド湾沿いの町。ブランフォード港とストーニークリーク港があり、沖にシンブル諸島が浮かぶ。",
+  "en": "A shoreline town on Long Island Sound about 10 km east of New Haven, with two harbors and the Thimble Islands offshore."
+ },
+ "us-madison": {
+  "ja": "コネチカット州のロングアイランド湾沿いの中ほどにある町。1641年に入植が始まり、中心部に歴史地区のグリーン、海辺に砂浜がある。",
+  "en": "A town midway along Connecticut's Long Island Sound shore, settled in 1641, with a historic town green and several beaches."
+ },
+ "us-newark-delaware": {
+  "ja": "ウィルミントンの西南西約13kmにある、デラウェア大学の街。1694年に開かれ、フィラデルフィア都市圏に属する。",
+  "en": "Home to the University of Delaware, about 13 km west-southwest of Wilmington; founded in 1694 and part of the Philadelphia metro area."
+ },
+ "us-greenville-delaware": {
+  "ja": "ウィルミントン郊外のベッドタウン。近くにデュポン家ゆかりのウィンタートゥールの庭園とハグリー博物館がある。",
+  "en": "A bedroom community outside Wilmington, near Winterthur, the former du Pont estate and gardens, and the Hagley Museum."
+ },
+ "us-south-lakeland": {
+  "ja": "レイクランド市の南側に広がる住宅地。市は州間高速4号線沿いのタンパとオーランドのあいだにあり、名前のとおり湖が多い。",
+  "en": "The southern side of Lakeland, a city on I-4 between Tampa and Orlando that is named for its many lakes."
+ },
+ "us-lake-hollingsworth": {
+  "ja": "レイクランド中心部近くの湖。湖を一周する遊歩道があり、北岸にはライト設計の校舎で知られるフロリダ・サザン大学がある。",
+  "en": "A lake near central Lakeland with a path all the way around and Florida Southern College's Frank Lloyd Wright buildings on its north shore."
+ },
+ "us-concord": {
+  "ja": "シャーロットの北東約32kmにある市。モータースピードウェイなどの施設があり、ユニオン通り沿いの歴史地区に古い邸宅が並ぶ。",
+  "en": "A city about 32 km northeast of Uptown Charlotte, home to Charlotte Motor Speedway, with historic homes along Union Street."
+ },
+ "us-st-charles": {
+  "ja": "セントルイスの北西約32km、ミズーリ川沿いの市。1769年ごろに開かれ、ミズーリ州の最初の州都が置かれた。",
+  "en": "A city on the Missouri River about 32 km northwest of St. Louis, founded around 1769 and Missouri's first state capital."
+ },
+ "us-chesterfield": {
+  "ja": "セントルイスの西にある郊外の市。ミズーリ川沿いの低地チェスターフィールド・バレーには商業施設が集まる。",
+  "en": "A western suburb of St. Louis; the Chesterfield Valley along the Missouri River has become a large commercial area."
+ },
+ "us-aiea": {
+  "ja": "真珠湾に面したホノルル郊外の町。山側のアイエア・ハイツには、真珠湾を見渡せる州立レクリエーション地区と遊歩道がある。",
+  "en": "A Honolulu suburb on Pearl Harbor; up in Aiea Heights, a state recreation area has a long trail and views over the harbor."
+ },
+ "us-kailua-oahu": {
+  "ja": "オアフ島の風上側、ホノルルの北東約19kmにある住宅地。弓形に約4km続くカイルア・ビーチや、ラニカイ・ビーチがある。",
+  "en": "A mainly residential town on Oahu's windward coast, 19 km northeast of Honolulu, with the 4 km crescent of Kailua Beach."
+ },
+ "us-harrison": {
+  "ja": "マンハッタンの北東約18kmにあるニューヨーク郊外の町。1696年に開かれ、パーチェス地区とウエストチェスター郡空港の一部を含む。",
+  "en": "A New York City suburb about 18 km northeast of Manhattan, founded in 1696; it includes Purchase and part of Westchester County Airport."
+ },
+ "us-scarsdale": {
+  "ja": "マンハッタンの北約31km、ブロンクス川の谷にある町。メトロノース鉄道ハーレム線の駅があり、17の住宅地区からなる。",
+  "en": "A village in the Bronx River Valley about 31 km north of Midtown Manhattan, on Metro-North's Harlem Line, made up of 17 neighborhoods."
+ },
+ "ca-etobicoke-central": {
+  "ja": "トロント市の西端、ピアソン空港の南東に広がる住宅地。地下鉄2号線の西の終点キプリング駅がある。",
+  "en": "Toronto's west end, southeast of Pearson Airport, where Kipling station marks the western end of subway Line 2."
+ },
+ "ca-mississauga-northwest": {
+  "ja": "ピアソン空港の西に広がるミシサガ市の北西部。クレジット川沿いのストリーツビルは、歴史ある建物と町並みを残す旧町。",
+  "en": "The northwest corner of Mississauga, west of Pearson Airport. Streetsville, on the Credit River, keeps its historic small-town streetscape."
+ },
+ "ca-oakville": {
+  "ja": "ピアソン空港の南西、オンタリオ湖に面した町。レイクショア通り沿いに中心街があり、湖岸に港がある。",
+  "en": "A Lake Ontario town southwest of Pearson Airport, with its downtown along Lakeshore Road and a harbour on the waterfront."
+ },
+ "ca-markham": {
+  "ja": "トロント中心部の北東約30kmの市。IT企業が多く集まり、旧村ユニオンビルの本通りは歴史的町並みの保存地区。",
+  "en": "A city about 30 km northeast of downtown Toronto, home to many tech firms; Main Street Unionville is a heritage conservation district."
+ },
+ "ca-richmond-hill-vaughan-king": {
+  "ja": "トロントのすぐ北、ヨーク地域の市と町。リッチモンドヒル北部にはウィルコックス湖があり、キングは丘陵に馬の牧場が広がる。",
+  "en": "Cities and a township in York Region just north of Toronto: Richmond Hill has Lake Wilcox, and King is rolling country with horse farms."
+ },
+ "ca-dorval-lachine-saint-pierre": {
+  "ja": "市域の約6割をトルドー空港が占めるドーバルと、東隣のラシーン。サンルイ湖に面し、ラシーン運河の起点がある。",
+  "en": "Dorval, where Trudeau Airport covers about 60% of the land, and neighbouring Lachine on Lac Saint-Louis, where the Lachine Canal begins."
+ },
+ "ca-beaconsfield-baie-d-urfe": {
+  "ja": "トルドー空港の西、サンルイ湖の北岸の住宅の町。1950〜60年代に郊外住宅地として発展し、住民の多くが戸建てに住む。",
+  "en": "A residential suburb on the north shore of Lac Saint-Louis, west of Trudeau Airport, where most residents live in single-family homes."
+ },
+ "ca-saint-laurent": {
+  "ja": "トルドー空港に接するモントリオールの区。エア・カナダ本社があり、ボワフラン地区は旧飛行場の跡地に造られた住宅地。",
+  "en": "A Montréal borough bordering Trudeau Airport and home to Air Canada's head office; Bois-Franc was built on a former airfield."
+ },
+ "ca-mount-royal-outremont": {
+  "ja": "モン・ロワイヤル山の北西側の住宅地。マウントロイヤルは田園都市の考えで計画された町、ウトルモンはローリエ通りに店が並ぶ。",
+  "en": "Residential areas northwest of Mount Royal: the Town of Mount Royal, planned as a garden city, and Outremont, with shops on Laurier."
+ },
+ "ca-richmond": {
+  "ja": "バンクーバー空港のあるシーアイランドを含む市。南西端のスティーブストンは、漁港と缶詰工場の史跡が残る旧漁村。",
+  "en": "The city that includes Sea Island, home of YVR. Steveston, on its southwest tip, is an old fishing village with a working harbour."
+ },
+ "ca-kitsilano-point-grey": {
+  "ja": "バンクーバー西側、イングリッシュ湾の南岸の住宅地。キツラノ・ビーチから西へ、ジェリコやスパニッシュ・バンクスの浜が続く。",
+  "en": "Residential West Side neighbourhoods on the south shore of English Bay, from Kitsilano Beach west to Jericho and Spanish Banks."
+ },
+ "ca-kerrisdale-westside": {
+  "ja": "バンクーバー空港の北、市の西側（ウェストサイド）の住宅地。西41番街沿いに商店が並ぶ。",
+  "en": "A residential neighbourhood on Vancouver's West Side, north of YVR, with a shopping district along West 41st Avenue."
+ },
+ "ca-west-vancouver": {
+  "ja": "バラード入江の北岸、バンクーバー中心部の北西の町。ライオンズゲート橋で中心部と結ばれ、海辺から山の斜面へ住宅地が続く。",
+  "en": "On Burrard Inlet's north shore, linked to downtown Vancouver by the Lions Gate Bridge, with homes rising from the water up the mountainside."
+ },
+ "ca-north-vancouver-district": {
+  "ja": "バラード入江の北、ノースショアの山の斜面に広がる町。ディープコーブの入り江やリン渓谷の吊り橋など自然が身近。",
+  "en": "Spread across the North Shore mountain slopes above Burrard Inlet, with Deep Cove and Lynn Canyon's suspension bridge close by."
+ },
+ "ca-st-james": {
+  "ja": "ウィニペグ空港を含む市西部の地区。ポーテージ通り沿いに20世紀初めから住宅地が広がり、ブルース公園などの緑地がある。",
+  "en": "Winnipeg's west end around the airport, with residential streets along Portage Avenue dating from the early 1900s and parks like Bruce Park."
+ },
+ "ca-assiniboine-park": {
+  "ja": "ウィニペグ南西部、アシニボイン川南岸の広い公園のまわり。公園には動物園や庭園、広いアシニボインの森がある。",
+  "en": "Around Assiniboine Park on the south bank of the Assiniboine River in southwest Winnipeg, with a zoo, gardens and the Assiniboine Forest."
+ },
+ "ca-fort-garry": {
+  "ja": "ウィニペグ南西部の地区で、マニトバ大学の本キャンパスがある。ペンビナ・ハイウェイが地区を南北に通る。",
+  "en": "A southwest Winnipeg community home to the University of Manitoba's main campus, with Pembina Highway running through it."
+ },
+ "ca-st-vital": {
+  "ja": "ウィニペグ南部、レッド川とセーヌ川にはさまれた住宅地。レッド川沿いにセントバイタル公園がある。",
+  "en": "A residential area in south Winnipeg between the Red and Seine rivers, home to St. Vital Park on the Red River."
+ },
+ "ca-calgary-northeast": {
+  "ja": "カルガリー空港のある市の北東部。空港の東のサドルリッジには新しい住宅地が広がり、LRT（CTrain）の駅がある。",
+  "en": "Calgary's northeast quadrant around YYC; Saddle Ridge, east of the airport, is a newer suburb at the end of a CTrain line."
+ },
+ "ca-calgary-northwest": {
+  "ja": "カルガリー中心街の北西の住宅地。11km²を超える自然公園ノーズヒル公園があり、在来の草原が残る。",
+  "en": "Residential northwest Calgary, home to Nose Hill Park, a natural park of over 11 km² that protects native grassland."
+ },
+ "ca-calgary-southwest": {
+  "ja": "中心街の南西の住宅地。グレンモア貯水池を一周する16kmの遊歩道があり、湖畔に歴史村ヘリテージ・パークがある。",
+  "en": "Residential southwest Calgary around the Glenmore Reservoir, circled by a 16 km pathway, with Heritage Park Historical Village on its shore."
+ },
+ "ca-airdrie-cochrane": {
+  "ja": "カルガリーの郊外。北のエアドリーは高速2号線沿いの市、西へ18kmのコクランはボウ川の谷にある町。",
+  "en": "Communities near Calgary: Airdrie to the north on Highway 2, and Cochrane, 18 km west of the city in the Bow River valley."
+ },
+ "ca-leduc": {
+  "ja": "エドモントン空港と高速2号線をはさんで向かい合う市。エドモントンの南33kmにあり、東端にテルフォード湖がある。",
+  "en": "A city across Highway 2 from Edmonton International Airport, 33 km south of Edmonton, with Telford Lake on its east side."
+ },
+ "ca-edmonton-southwest": {
+  "ja": "空港の北、エドモントン市の南西部の住宅地。ノースサスカチュワン川の谷に公園と遊歩道が続き、テルウィリガー公園もその一つ。",
+  "en": "Residential southwest Edmonton, north of the airport, beside the North Saskatchewan River valley parks, including Terwillegar Park."
+ },
+ "ca-st-albert": {
+  "ja": "エドモントンの北西に接する市。スタージョン川が流れ、メティスの集落として始まった古い歴史を持つ。",
+  "en": "A city on Edmonton's northwest edge along the Sturgeon River, first settled as a Métis community."
+ },
+ "ca-strathcona-county": {
+  "ja": "エドモントンの東に接する郡。人口の約7割がシャーウッドパークに住み、東にはエルクアイランド国立公園がある。",
+  "en": "East of Edmonton, reaching toward Elk Island National Park; about 73% of residents live in the suburban community of Sherwood Park."
+ },
+ "ca-hunt-club-south-keys": {
+  "ja": "オタワ空港のすぐ北の住宅地。サウスキーズ駅はOトレイン2号線と空港線4号線の乗換駅で、隣に大型ショッピングセンターがある。",
+  "en": "Just north of Ottawa's airport; South Keys station, next to a shopping centre, connects O-Train Line 2 with the Line 4 airport link."
+ },
+ "ca-nepean": {
+  "ja": "オタワ中心部の西にある旧ネピアン市の地域。南西のバーヘイブンは人口10万人を超える郊外の住宅地。",
+  "en": "The former city of Nepean, west of central Ottawa, including Barrhaven, a suburb of over 100,000 people to the southwest."
+ },
+ "ca-glebe-old-ottawa-south": {
+  "ja": "オタワ中心部のすぐ南、リドー運河沿いの住宅地。バンク通りに小さな店や飲食店が並び、ランズダウン公園がある。",
+  "en": "Neighbourhoods just south of downtown Ottawa along the Rideau Canal, with small shops on Bank Street and Lansdowne Park."
+ },
+ "ca-ottawa": {
+  "ja": "オタワ中心部の西約22kmの郊外。カナタは計画的に造られた町で、マーチ通り沿いにIT企業が集まり、隣にスティッツビルがある。",
+  "en": "Ottawa's western suburbs, 22 km from downtown: Kanata, a planned community with a tech cluster on March Road, and neighbouring Stittsville."
  }
 });
