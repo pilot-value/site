@@ -114,8 +114,22 @@ async function state() {
   });
 }
 
-async function clickToggle() {
-  await page.evaluate(() => document.getElementById('lang-toggle').click());
+/* ボタンを押して、日英の反対側へ。★2026-11-03 スペイン語版もあるページは、押すとメニュー（Español / English / 日本語）
+   ＝メニューの中の反対側の言語を押す。to を渡すとその言語（'es' など）を押す。 */
+async function clickToggle(to) {
+  const menu = await page.evaluate(() => document.getElementById('lang-toggle').getAttribute('aria-haspopup') === 'true');
+  if (!menu) {
+    await page.evaluate(() => document.getElementById('lang-toggle').click());
+  } else {
+    await page.evaluate(() => document.getElementById('lang-toggle').click());
+    await new Promise((r) => setTimeout(r, 200));
+    await page.evaluate((to) => {
+      const cur = /^\/en(\/|$)/.test(location.pathname) ? 'en' : 'ja';
+      const want = to || (cur === 'en' ? 'ja' : 'en');
+      const a = [...document.querySelectorAll('.pv-lang-menu a')].find((x) => x.getAttribute('lang') === want);
+      if (a) a.click();
+    }, to || null);
+  }
   await page.waitForNavigation({ waitUntil: 'load', timeout: 45000 }).catch(() => {});
   await new Promise((r) => setTimeout(r, 500));
 }
@@ -133,6 +147,20 @@ await clickToggle();
 const backJa = new URL(page.url()).pathname;
 ok(backJa === '/' || backJa === '/index.html', '★EN トップ → クリック → 日本語トップへ戻る', `url=${page.url()}`);
 ok((await state()).saved === 'ja', 'EN→JP のクリックで pv-lang が ja に更新される');
+
+/* --- ★スペイン語版もあるページは、押すと選ぶ（2026-11-03 オーナー「選択式でスペイン語も選べるように」）--- */
+await open(`${BASE}/`, null);
+s = await page.evaluate(() => { const t = document.getElementById('lang-toggle'); const m = t && t.parentNode.querySelector('.pv-lang-menu');
+  return { popup: t && t.getAttribute('aria-haspopup'), items: m ? [...m.children].map((x) => x.getAttribute('lang')).join(',') : '', label: t && t.textContent.trim() }; });
+ok(s.popup === 'true' && s.items === 'es,en,ja' && s.label === '🇯🇵 JP', 'JP トップ：ボタンは今までの見た目のまま、押すと Español / English / 日本語', JSON.stringify(s));
+await clickToggle('es');
+ok(new URL(page.url()).pathname === '/es/', 'JP トップ → Español → /es/', `url=${page.url()}`);
+await open(`${BASE}/en/airlines/emirates.html`, null);
+await clickToggle('es');
+ok(new URL(page.url()).pathname === '/es/airlines/emirates.html', 'EN 航空会社ページ → Español → スペイン語の同じ会社', `url=${page.url()}`);
+await open(`${BASE}/airlines/ana-vs-jal.html`, null);
+s = await page.evaluate(() => { const t = document.getElementById('lang-toggle'); return { popup: t && t.getAttribute('aria-haspopup'), menu: !!document.querySelector('.pv-lang-menu') }; });
+ok(s.popup === null && !s.menu, 'スペイン語版の無いページは今までどおり、押すと日英が入れ替わる（メニューを出さない）', JSON.stringify(s));
 
 /* --- 保存言語による自動リダイレクト --- */
 await open(`${BASE}/en/`, 'ja');

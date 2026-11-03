@@ -120,9 +120,9 @@
      ★自動で別の言語へ飛ばさない（pv-lang を読まない）。日英のページの動きは1つも変えない。
      ボタンを押すと「Español / English / 日本語」の小さなメニュー。es/ のページは英語のページから
      作るので、同じページの英語版・日本語版は必ずある。 */
-  if (raw.indexOf('/es/') === 0) {
-    var esBare = raw.slice(4);
-    var esMenu = function () {
+  /* 言語のメニュー（押すと選ぶ）。スペイン語のページと、スペイン語版もある日英のページで使う（2026-11-03 日英にも）。
+     items: [[表示, 行き先（今の言語は null）, 言語コード], …] */
+  function langMenu(label, ariaLabel, items) {
       injectSkin();
       if (document.getElementById('lang-toggle')) return;
       var wrap = document.createElement('span');
@@ -131,14 +131,14 @@
       btn.id = 'lang-toggle';
       btn.className = 'lang-toggle';
       btn.type = 'button';
-      btn.setAttribute('aria-label', 'Idioma');
+      btn.setAttribute('aria-label', ariaLabel);
       btn.setAttribute('aria-haspopup', 'true');
       btn.setAttribute('aria-expanded', 'false');
-      btn.innerHTML = '<span aria-hidden="true">🌐</span> ES';
+      btn.innerHTML = label;
       var menu = document.createElement('span');
       menu.className = 'pv-lang-menu';
       menu.hidden = true;
-      [['Español', null, 'es'], ['English', '/en/' + esBare, 'en'], ['日本語', '/' + esBare, 'ja']].forEach(function (it) {
+      items.forEach(function (it) {
         var a = document.createElement(it[1] ? 'a' : 'span');
         a.textContent = it[0];
         a.setAttribute('lang', it[2]);
@@ -161,7 +161,18 @@
       wrap.appendChild(menu);
       var themeBtn = document.getElementById('theme-toggle');
       if (themeBtn) themeBtn.parentNode.insertBefore(wrap, themeBtn.nextSibling);
-      else { var host = document.getElementById('pv-toggle-float') || document.getElementById('main-nav'); if (host) host.appendChild(wrap); }
+      else {
+        var nav = document.getElementById('main-nav'), inner = nav && nav.querySelector('.max-w-7xl');
+        var host = inner || nav || document.getElementById('pv-toggle-float');
+        if (host) host.appendChild(wrap);
+      }
+  }
+
+  if (raw.indexOf('/es/') === 0) {
+    var esBare = raw.slice(4);
+    var esMenu = function () {
+      langMenu('<span aria-hidden="true">🌐</span> ES', 'Idioma',
+        [['Español', null, 'es'], ['English', '/en/' + esBare, 'en'], ['日本語', '/' + esBare, 'ja']]);
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', esMenu); else esMenu();
     return;
@@ -258,6 +269,21 @@
     if (document.getElementById('lang-toggle')) return;
     // JP専用ページ（EN版なし）では言語トグル不要
     if (!isEN && !jaToEn(raw)) return;
+
+    /* ★2026-11-03 オーナー「ヘッダーのボタン、選択式でスペイン語も選べるように」：スペイン語版もあるページは、
+       押すと「Español / English / 日本語」から選ぶ（スペイン語のページと同じメニュー・ボタンの見た目は今までどおり）。
+       スペイン語版の無いページは今までどおり、押すと日英が入れ替わる。スペイン語版の一覧は pv-session.js の PV_LANG_PAGES。 */
+    var here = isEN ? raw.replace(/^\/en\//, '') : raw.replace(/^\//, '');
+    if (here === '') here = 'index.html';
+    var esList = (window.PV_LANG_PAGES && window.PV_LANG_PAGES.es) || [];
+    if (esList.indexOf(here) >= 0) {
+      langMenu(isEN ? '<span aria-hidden="true" style="font-size:1.05em">🇺🇸</span> EN' : '<span aria-hidden="true" style="font-size:1.05em">🇯🇵</span> JP',
+        isEN ? 'Language' : '言語',
+        [['Español', '/es/' + (here === 'index.html' ? '' : here), 'es'],
+         ['English', isEN ? null : jaToEn(raw), 'en'],
+         ['日本語', isEN ? enToJa(raw) : null, 'ja']]);
+      return;
+    }
 
     var btn = document.createElement('button');
     btn.id = 'lang-toggle';
