@@ -400,7 +400,11 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
                 <option value="atlas-air">Atlas Air</option>
                 <option value="abx-air">ABX Air</option>
                 <option value="kalitta-air">Kalitta Air</option>
-                <option value="avelo-airlines" data-alias="アベロ航空|アヴェロ航空|Avelo Airlines, Inc.">Avelo Airlines</option>
+                <option value="avelo-airlines">Avelo Airlines</option>
+                <option value="gojet">GoJet Airlines</option>
+                <option value="northern-air-cargo">Northern Air Cargo</option>
+                <option value="contour">Contour Airlines</option>
+                <option value="jazz">Jazz Aviation</option>
                 <option value="sun-country" data-alias="サンカントリー航空|Sun Country, Inc.">Sun Country Airlines</option>
                 <option value="endeavor-air" data-alias="エンデバー航空|エンデバー・エア|Endeavor Air, Inc.">Endeavor Air</option>
                 <option value="envoy-air" data-alias="エンボイ航空|エンボイ・エア|Envoy Air Inc.">Envoy Air</option>
@@ -415,6 +419,16 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
                 <option value="wheels-up" data-alias="ウィールズ・アップ|Wheels Up Experience">Wheels Up</option>
                 <option value="flyexclusive" data-alias="フライエクスクルーシブ|Exclusive Jets">flyExclusive</option>
                 <option value="clay-lacy" data-alias="クレイ・レイシー・アビエーション|Clay Lacy">Clay Lacy Aviation</option>
+                <option value="commuteair" data-alias="コミュートエアー|コミュートエア|CommuteAir LLC">CommuteAir</option>
+                <option value="omni-air-international" data-alias="オムニ・エア・インターナショナル|オムニエア|OAI">Omni Air International</option>
+                <option value="air-transport-international" data-alias="エア・トランスポート・インターナショナル|ATI">Air Transport International</option>
+                <option value="amerijet" data-alias="アメリジェット|Amerijet">Amerijet International</option>
+                <option value="21-air" data-alias="21エアー|21エア">21 Air</option>
+                <option value="national-airlines" data-alias="ナショナル航空">National Airlines</option>
+                <option value="global-crossing" data-alias="グローバル・クロッシング航空|GlobalX|グローバルX">Global Crossing Airlines</option>
+                <option value="mountain-air-cargo" data-alias="マウンテン・エア・カーゴ">Mountain Air Cargo</option>
+                <option value="air-transat" data-alias="エア・トランザット|Air Transat A.T. Inc.">Air Transat</option>
+                <option value="cargojet" data-alias="カーゴジェット|Cargojet Inc.|Cargojet Airways">Cargojet</option>
               </optgroup>
               <optgroup label="Oceania">
                 <option value="qantas">Qantas</option>
@@ -1097,12 +1111,16 @@ const POS_MAP = { captain: 'Capitán (Comandante)', fo: 'Primer oficial (Copilot
   'atlas-air': 'Atlas Air',
   'abx-air': 'ABX Air',
   'kalitta-air': 'Kalitta Air',
+  'avelo-airlines': 'Avelo Airlines',
+  gojet: 'GoJet Airlines',
+  'northern-air-cargo': 'Northern Air Cargo',
+  contour: 'Contour Airlines',
+  jazz: 'Jazz Aviation',
   'aero-toyota': 'AERO TOYOTA',
   'nakanihon-air': 'Nakanihon Air (NNK)',
   'honda-airways': 'Honda Airways',
   'fuji-business-jet': 'Fuji Business Jet (FBJ)',
   'japan-biz-aviation': 'Japan Biz Aviation',
-  'avelo-airlines': 'Avelo Airlines',
   'sun-country': 'Sun Country Airlines',
   'endeavor-air': 'Endeavor Air',
   'envoy-air': 'Envoy Air',
@@ -1122,6 +1140,16 @@ const POS_MAP = { captain: 'Capitán (Comandante)', fo: 'Primer oficial (Copilot
   luxaviation: 'Luxaviation',
   'gama-aviation': 'Gama Aviation',
   'royal-jet': 'Royal Jet',
+  commuteair: 'CommuteAir',
+  'omni-air-international': 'Omni Air International',
+  'air-transport-international': 'Air Transport International',
+  amerijet: 'Amerijet International',
+  '21-air': '21 Air',
+  'national-airlines': 'National Airlines',
+  'global-crossing': 'Global Crossing Airlines',
+  'mountain-air-cargo': 'Mountain Air Cargo',
+  'air-transat': 'Air Transat',
+  cargojet: 'Cargojet',
   other: 'Otro',
 };/*END:LABELS*/
 
