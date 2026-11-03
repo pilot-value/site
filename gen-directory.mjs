@@ -33,6 +33,7 @@ import { curCore, bakeText } from './cur-core.mjs';
 import { logoHtml } from './airline-logo.mjs';
 import { SALARY } from './salary-data.mjs';
 import { mapSection } from './directory-map.mjs';
+import { POPULAR } from './airline-popular.mjs';
 
 export * from './directory-model.mjs';
 
@@ -103,6 +104,9 @@ export function listPanel(lang) {
   ].join('\n');
 }
 
+/* よく見られている順の順位（1から・一覧に載っている会社だけで数え直す） */
+const POP_RANK = new Map(POPULAR.order.filter((s) => SALARY[s]).map((s, i) => [s, i + 1]));
+
 /** 112社のカード。★2026-10-25 英語の EN-9：英語のカードも data-two ＝ 2社比較（en/career.html）で出せる会社（前は英語だけ 0） */
 export function cards(lang, M = model(), rule = CARD_RULE) {
   const page = pageOf(lang), en = lang === 'en', bake = bakeOf(lang);
@@ -113,6 +117,12 @@ export function cards(lang, M = model(), rule = CARD_RULE) {
     const line = (rank, f, pub) => `<p class="wd-fig${pub ? ' wd-fig-pub' : ''}" data-rank="${rank}"${pub ? ' data-pub="1"' : ''}>`
       + `<span class="wd-vh">${esc(hid)}</span>${esc(en ? f.labelEn : f.labelJa)}<b class="wd-v">${amount(f.yen)}</b></p>`;
     const figs = RANKS.flatMap((rank) => { const f = figure(A, rank, rule); return [line(rank, f, false), ...(f.extra ? [line(rank, f.extra, true)] : [])]; });
+    /* ★2026-11-03 並べ替え（オーナー「a-z・年収順（上→下・下→上）・よく見られている順にできるようにして」）の鍵。台本はこれを読むだけ。
+       data-cap / data-fo ＝ カードの1行目の額（万円。確認中は書かない ＝ 年収の順では最後）・data-pop ＝ 閲覧の順位（airline-popular.mjs。
+       閲覧の無い会社は書かない ＝ よく見られている順では最後に A→Z） */
+    const manOf = (rank) => { const f = figure(A, rank, rule); return f.kind === 'pub' ? A[rank].pub.man : f.kind === 'est' ? A[rank].est.man : null; };
+    const sortKeys = RANKS.map((rank) => { const m = manOf(rank); return m == null ? '' : ` data-${rank}="${m}"`; }).join('')
+      + (POP_RANK.has(slug) ? ` data-pop="${POP_RANK.get(slug)}"` : '');
     /* 札は免税と提携だけ。FSC / LCC の札は付けない・種類（data-type）も免税（data-tax）もカードに書かない ── 種類で絞る口が無い
        （WP-dmap-7・オーナー P12.114「スカイマークはLCCだろ。日本でさえこんなに正確にわかられないならもう分けなくっていいよ」「免税もいらないよ」）。
        一覧の行（airlines-meta.js）の type はデータとして残るが、画面のどこも読まない */
@@ -120,7 +130,7 @@ export function cards(lang, M = model(), rule = CARD_RULE) {
       + (A.alliance ? `<span class="tag tag-gray">${esc(A.alliance[lang])}</span>` : '');
     const flag = A.show.flag ? `${esc(A.show.flag)} ` : '', second = en ? regionLabel[A.region] : A.show.en;
     return [
-      `<li class="wd-li" data-slug="${esc(slug)}" data-region="${esc(A.region)}" data-lvl="${A.lvl ? 1 : 0}" data-two="${A.two ? 1 : 0}" data-c="${esc(A.codes.join(' '))}" data-k="${esc(A.keys.join('|'))}" style="--ac:${esc(A.color)};--pvg-c:${esc(A.color)}">`,
+      `<li class="wd-li" data-slug="${esc(slug)}" data-region="${esc(A.region)}" data-lvl="${A.lvl ? 1 : 0}" data-two="${A.two ? 1 : 0}"${sortKeys} data-c="${esc(A.codes.join(' '))}" data-k="${esc(A.keys.join('|'))}" style="--ac:${esc(A.color)};--pvg-c:${esc(A.color)}">`,
       `<a class="wd-go" href="${esc(A.href)}"><span class="wd-logo">${logoOf(A, page.up)}</span><span class="wd-names"><span class="wd-name" id="wn-${esc(slug)}">${flag}${esc(A.show[lang])}</span><span class="wd-meta"><span class="wd-sub">${esc(second)}</span><span class="wd-code">${esc(A.code)}</span></span></span><span class="wd-chev" aria-hidden="true"></span></a>`,
       BARRIER,
       '<div class="wd-figs">',

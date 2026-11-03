@@ -70,6 +70,7 @@ import { AIRLINE_COUNTRY, BY_CODE } from './airline-countries.mjs';
 import { LEAD, SWITCH, EN_SWITCH } from './airline-rollout.mjs';
 import { unbake, curCore } from './cur-core.mjs';
 import { widthOf, checkWidth } from './pv-bars.mjs';
+import { POPULAR } from './airline-popular.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const argv = process.argv.slice(2);
@@ -607,7 +608,7 @@ const NONE = { ja: '該当する航空会社が見つかりませんでした', 
 const FMT = { ja: '{n}社', en: '{n} airlines' };
 const FMT_ONE = { ja: null, en: '{n} airline' };
 const HEAD_Q = "<script>(function(){try{if(/[?&]q=[^&#]/.test(location.search))document.documentElement.classList.add('wd-q');}catch(e){}}());</script>";
-const NOSCRIPT = '<noscript><style>.wd-search,#filter-bar,.view-toggle,.map-wrapper,.wd-cmp,.wd-tray{display:none!important}</style></noscript>';
+const NOSCRIPT = '<noscript><style>.wd-search,#filter-bar,.view-toggle,.wd-sort,.map-wrapper,.wd-cmp,.wd-tray{display:none!important}</style></noscript>';
 /** id="…" を持つ <div> の始まりから、対になる </div> まで（div の入れ子を数える）。無い・閉じない・2つ以上なら null */
 function divById(html, id) {
   const hits = [...html.matchAll(new RegExp(`<div\\b[^>]*\\bid="${id}"[^>]*>`, 'g'))];
@@ -862,12 +863,21 @@ const TOGGLE = { ja: { off: '＋ 比較に追加', on: '✓ 比較中', say: '�
 /** 比較リストの決まりの行（シートの字 ── WP-dmap-10。書いた2つの数 ＝ 台本の決まり：段の無い社が入れば 2 社・どの社も段を持てば MAX 社） */
 const LIST_RULE = { ja: '比較は2社・レベリング比較は5社まで', en: 'Compare: 2 airlines · Leveling: up to 5' };
 /** 比べる印（自己検査で印を足すときだけ使う。ページの印は gen-directory.mjs が書く） */
+/** 並べ替え（2026-11-03・オーナー「a-z・年収順（上→下・下→上）・よく見られている順」）の口の値と字（ここに書いた字が正） */
+const SORT_OPTS = {
+  ja: { label: '並べ替え', opts: [['az', '社名（A→Z）'], ['pay-desc', '機長の年収が高い順'], ['pay-asc', '機長の年収が低い順'], ['popular', 'よく見られている順']] },
+  en: { label: 'Sort by', opts: [['az', 'Name (A–Z)'], ['pay-desc', 'Captain pay: high to low'], ['pay-asc', 'Captain pay: low to high'], ['popular', 'Most viewed']] },
+};
 const tickHtml = (slug, lang) => `<button type="button" class="wd-cmp" value="${slug}" aria-pressed="false" aria-labelledby="wn-${slug} wc-${slug}">`
   + `<span class="wd-cmp-off" aria-hidden="true">${TOGGLE[lang].off}</span><span class="wd-cmp-on" aria-hidden="true">${TOGGLE[lang].on}</span><span class="wd-vh" id="wc-${slug}">${TOGGLE[lang].say}</span></button>`;
 
 /** H) カードの形 */
 function secH(I) {
-  const U = pagesOf(I), p = { H1: [], H2: [], H3: [], H4: [], H5: [], H6: [] };
+  const U = pagesOf(I), p = { H1: [], H2: [], H3: [], H4: [], H5: [], H6: [], H7: [] };
+  /* H7 並べ替えの鍵（期待する値はここで作る）── data-cap・data-fo ＝ そのカードのその職位の1行目の額（万円。額が無い行は鍵も無い）・
+     data-pop ＝ airline-popular.mjs の並びの順位（一覧に載っている会社だけで1から数える。閲覧の無い会社は鍵が無い）。
+     ずれると、年収の順・よく見られている順が画面の額や閲覧とちがう並びになる（画面は普通に動いたまま） */
+  const POP = new Map(POPULAR.order.filter((x) => SALARY[x]).map((x, i) => [x, String(i + 1)]));
   const rowOf = new Map(I.list.map((r) => [r.slug, r]));
   let K = null; try { K = scanOf(I); } catch (e) { p.H3.push(e.message); }
   for (const lang of ['ja', 'en']) {
@@ -891,6 +901,13 @@ function secH(I) {
         if (unesc(off ?? '') !== T.off || unesc(on ?? '') !== T.on || unesc(say ?? '') !== T.say) p.H4.push(`${rel} ${c.slug}：印の字「${off}」「${on}」「${say}」／「${T.off}」「${T.on}」「${T.say}」`);
       }
       const F = figLines(c.body);
+      for (const rank of ['cap', 'fo']) {
+        const f = F.find((x) => x.rank === rank && !x.pub), man = f && /¥([\d,]+)万/.exec(f.src)?.[1]?.replace(/,/g, '');
+        const got = new RegExp(`\\bdata-${rank}="([^"]*)"`).exec(c.html.slice(0, c.html.indexOf('>')))?.[1] ?? null;
+        if ((man ?? null) !== got) p.H7.push(`${rel} ${c.slug}：data-${rank}「${got}」／カードの額「${man ?? '無し'}」`);
+      }
+      { const got = /\bdata-pop="([^"]*)"/.exec(c.html.slice(0, c.html.indexOf('>')))?.[1] ?? null, want = POP.get(c.slug) ?? null;
+        if (got !== want) p.H7.push(`${rel} ${c.slug}：data-pop「${got}」／閲覧の順位「${want ?? '無し'}」`); }
       if (!same(F.map((f) => `${f.rank}${f.pub ? '+' : ''}`), ['cap', 'fo'])) p.H1.push(`${rel} ${c.slug}：額の行 ${F.map((f) => f.rank + (f.pub ? '（2行目）' : '')).join('・') || '無し'}（機長・副操縦士の2行であること）`);
       for (const f of F) {
         /* 職位の語の終わりから額の最初の数字まで：タグ1つ＝1・字1つ＝1（check-salary.mjs の GAP は24まで） */
@@ -904,6 +921,17 @@ function secH(I) {
       const go = /<a class="wd-go"[^>]*>([\s\S]*?)<\/a>/.exec(c.body)?.[1] ?? '';
       if (/<(input|label|button|select|textarea)\b/i.test(go)) p.H3.push(`${rel} ${c.slug}：リンクの中に押せる部品`);
     }
+  }
+  /* H7 並べ替えの口 ── 各ページに select#wd-sort がちょうど1つ・値と字はシートの字（SORT_OPTS）の順・台本の SORTS と同じ値の並び */
+  const JS7 = (I.assets || {})['pv-directory.js'] || '', sorts = /var SORTS = \[([^\]]*)\]/.exec(JS7)?.[1]?.match(/'([^']*)'/g)?.map((x) => x.slice(1, -1)) ?? null;
+  for (const lang of ['ja', 'en']) {
+    const h = U[lang], rel = PAGE_REL[lang], T = SORT_OPTS[lang];
+    if ((h.match(/\bid="wd-sort"/g) || []).length !== 1) { p.H7.push(`${rel}：#wd-sort が ${(h.match(/\bid="wd-sort"/g) || []).length} 個（ちょうど1つであること）`); continue; }
+    const box = /<label class="wd-sort"><span class="wd-sort-l">([^<]*)<\/span><select class="wd-sort-in" id="wd-sort">([\s\S]*?)<\/select>/.exec(h);
+    if (!box) { p.H7.push(`${rel}：並べ替えの口の形（label.wd-sort ＞ 字 ＋ select#wd-sort）が読めない`); continue; }
+    const got = [...box[2].matchAll(/<option value="([^"]*)">([^<]*)<\/option>/g)].map((m) => [m[1], unesc(m[2])]);
+    if (unesc(box[1]) !== T.label || JSON.stringify(got) !== JSON.stringify(T.opts)) p.H7.push(`${rel}：並べ替えの字・値 ${JSON.stringify([unesc(box[1]), got])}／${JSON.stringify([T.label, T.opts])}`);
+    if (!sorts || !same(sorts, T.opts.map((o) => o[0]))) p.H7.push(`${rel}：台本の SORTS ${JSON.stringify(sorts)}／口の値 ${JSON.stringify(T.opts.map((o) => o[0]))}`);
   }
   /* H5 その言葉のカードの data-two="1" ＝ その言葉の比較のページ（日本語 career.html・英語 en/career.html）が出せる会社（offered）。
      ★2026-10-25 英語の EN-9 で向け直した（弱めていない）：前は「英語のカードに data-two="1" は無く、英語の PV-DIR-CARDS と #wd-tray は career.html を
@@ -1767,7 +1795,7 @@ const ROWS = [
   ['G10b', (I) => { I.page.en = sub(I.page.en, '<div class="wd-rh" id="wd-rh">', '<button class="ftype-btn" data-type="taxfree">🏖️ Tax-free</button><div class="wd-rh" id="wd-rh">'); }, 'G', ['G10']],
   ['G10c', (I) => { I.assets['pv-directory.js'] = sub(I.assets['pv-directory.js'], 'var t = tier(c, Q), hit = t >= 0;', "var t = tier(c, Q), hit = t >= 0 && (st.type === 'all' || c.type === st.type);"); }, 'G', ['G10']],
   ['G10d', (I) => onCard(I, 'en', 'ana', (c) => c.replace(' data-lvl="', () => ' data-type="fsc" data-lvl="')), 'G', ['G10']],
-  ['H1', (I) => onCard(I, 'ja', 'jal', (c) => c.replace(/<p class="wd-fig" data-rank="fo"[\s\S]*?<\/p>\n?/, () => '')), 'H', ['H1']],
+  ['H1', (I) => onCard(I, 'ja', 'jal', (c) => c.replace(/<p class="wd-fig" data-rank="fo"[\s\S]*?<\/p>\n?/, () => '')), 'H', ['H1', 'H7']],   // 額の行が無いのに data-fo が残る ＝ H7 も
   /* 札の全体を <span> で包むだけでは、職位の語の後ろに増えるのは閉じタグ1つ（23 → 24 ＝ まだ読める）。語の直後で包んで 25 にする */
   ['H2', (I) => onCard(I, 'en', 'etihad', (c) => c.replace(/(data-rank="cap"><span class="wd-vh">[^<]*<\/span>Captain)([^<]*)/, (_, a, l) => `${a}<span>${l}</span>`)), 'H', ['H2']],
   ['H3', (I) => onCard(I, 'ja', 'ana', (c) => c.replace('<span class="wd-names">', () => '<button type="button">x</button><span class="wd-names">')), 'H', ['H3']],
@@ -1791,6 +1819,10 @@ const ROWS = [
   /* WP-dmap-10：盆は比較リスト（PV-DIR-LIST）になり、「航空会社を比較」は hidden を持たずに出荷する（2社がそろうまで台本が行き先を外す） */
   ['H5t', (I) => { I.page.en = sub(I.page.en, '<a class="wd-tray-two" id="wd-tray-two" href="career.html?view=compare">Compare 2 airlines</a>', ''); }, 'H', ['H5']],
   /* H6（class A）：決まりの行の数を変える（台本は5社のまま）／台本の決まりを変える（字は5社のまま）／「なぜ」が指す行を消す */
+  ['H7a', (I) => onCard(I, 'ja', 'ana', (c) => c.replace(/data-cap="\d+"/, () => 'data-cap="1"')), 'H', ['H7']],
+  ['H7b', (I) => onCard(I, 'en', 'jal', (c) => c.replace(/ data-pop="\d+"/, () => '')), 'H', ['H7']],
+  ['H7c', (I) => { I.page.en = sub(I.page.en, '<option value="popular">Most viewed</option>', ''); }, 'H', ['H7']],
+  ['H7d', (I) => { I.assets['pv-directory.js'] = sub(I.assets['pv-directory.js'], "var SORTS = ['az', 'pay-desc', 'pay-asc', 'popular']", "var SORTS = ['az', 'pay-desc', 'popular']"); }, 'H', ['H7']],
   ['H6a', (I) => { I.page.ja = sub(I.page.ja, '>比較は2社・レベリング比較は5社まで</p>', '>比較は2社・レベリング比較は6社まで</p>'); }, 'H', ['H6']],
   ['H6b', (I) => { I.assets['pv-directory.js'] = sub(I.assets['pv-directory.js'], 'var MAX = 5;', 'var MAX = 6;'); }, 'H', ['H6']],
   ['H6c', (I) => { I.page.en = I.page.en.replace(/<p class="wd-cl-why" id="wd-cl-why" hidden>[^<]*<\/p>\n?/, () => ''); }, 'H', ['H6']],

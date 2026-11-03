@@ -15663,4 +15663,9 @@ export const TM = {
   "📊 Data from 119 airlines analyzed": {"es":"📊 Análisis de datos de 119 aerolíneas","st":"validated","by":"ai","model":"claude-opus-5-5","pv":4,"gl":"","at":"2026-11-02","pages":["en/pilot-salary-guide.html"]},
   "📊 Data from 124 airlines analyzed": {"es":"📊 Análisis de datos de 124 aerolíneas","st":"validated","by":"ai","model":"claude-opus-5-5","pv":4,"gl":"","at":"2026-11-03","pages":["en/pilot-salary-guide.html"]},
   "📋 Contents": {"es":"📋 Contenido","st":"validated","by":"ai","model":"claude-opus-5-5","pv":4,"gl":"","at":"2026-11-02","pages":["en/pilot-salary-guide.html"]},
+  "Sort by": {"es":"Ordenar por","st":"manual","by":"claude-review","at":"2026-11-03","pages":["en/world-airlines.html"],"note":"一覧の並べ替え（2026-11-03）。「Más vistas」は aerolíneas を受ける"},
+  "Name (A–Z)": {"es":"Nombre (A–Z)","st":"manual","by":"claude-review","at":"2026-11-03","pages":["en/world-airlines.html"],"note":"一覧の並べ替え（2026-11-03）。「Más vistas」は aerolíneas を受ける"},
+  "Captain pay: high to low": {"es":"Sueldo de capitán: de mayor a menor","st":"manual","by":"claude-review","at":"2026-11-03","pages":["en/world-airlines.html"],"note":"一覧の並べ替え（2026-11-03）。「Más vistas」は aerolíneas を受ける"},
+  "Captain pay: low to high": {"es":"Sueldo de capitán: de menor a mayor","st":"manual","by":"claude-review","at":"2026-11-03","pages":["en/world-airlines.html"],"note":"一覧の並べ替え（2026-11-03）。「Más vistas」は aerolíneas を受ける"},
+  "Most viewed": {"es":"Más vistas","st":"manual","by":"claude-review","at":"2026-11-03","pages":["en/world-airlines.html"],"note":"一覧の並べ替え（2026-11-03）。「Más vistas」は aerolíneas を受ける"},
 };

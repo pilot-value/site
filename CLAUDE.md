@@ -472,6 +472,8 @@ baland_ass/                            ブランド資産（※ brand_assets の
   月の勤務は `pv_work_view()` の 25〜75% をそのまま・目盛は 0〜240 時間／0〜31 泊で固定・機長と副操縦士は切替。
 - **よく見られている会社の並びは [vote-popular.json](vote-popular.json) だけ**（[gen-vote-popular.mjs](gen-vote-popular.mjs) が GA4 の閲覧数から書く・閲覧数そのものは書かない）。
   ⚠️ 評価順・件数順で代用しない。⚠️ GA4 を叩くので check.mjs に入れない。**月に1回は流し直す。**
+  ★同じ回に [airline-popular.mjs](airline-popular.mjs)（閲覧のあった全社の順・本番には配らない）も書く ＝ 航空会社一覧の「よく見られている順」。
+  **流したら続けて `node gen-directory.mjs`**（カードの `data-pop` に焼く。流さないと一覧だけ古い並び・`assert-directory.mjs` の H7 が落とす）。
 - 見本の口コミ14件（`SEED_REVIEWS`）はオーナー判断で残した。会社カードの評価・件数には入れない。
 - 上の帯（口コミ件数・掲載社数）と `totalReviewCount()` はページごと無くなった。件数は「すべての口コミ」の「新着順 · N件」だけ（今までと同じ3つを数える）。
 - ★第2回（2026-10-29）：**最新の口コミはトップの口コミの帯と同じ大きさで流れる**（幅 304px・狭い画面 268px）。

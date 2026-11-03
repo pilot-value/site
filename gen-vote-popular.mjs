@@ -10,6 +10,10 @@
 
    書くもの
      vote-popular.json … { asOf, days, slugs:[上位6社] }
+     airline-popular.mjs … POPULAR = { asOf, days, order:[閲覧のあった全社・多い順] }
+       ★2026-11-03 航空会社一覧（world-airlines.html）の「よく見られている順」の並び。gen-directory.mjs が読んで、
+         カードに順位（data-pop）を焼く ＝ **これを流したら node gen-directory.mjs も流す**（流さないと一覧だけ古い並びのまま）。
+         .mjs なので本番には配らない（ページに出るのは順位だけ）。
      ★**閲覧数そのものは書かない**（公開ファイル。並びだけを渡す）。数は画面にだけ出す。
 
    数え方
@@ -74,10 +78,19 @@ ranked.slice(0, 12).forEach(([s, n], i) => console.log(`  ${String(i + 1).padSta
 const out = { asOf: iso(Date.now()), days: DAYS, slugs: ranked.slice(0, TOP).map(([s]) => s) };
 const file = path.join(ROOT, 'vote-popular.json');
 const next = JSON.stringify(out, null, 2) + '\n';
+/* 一覧の「よく見られている順」（閲覧のあった全社。閲覧の無い会社は書かない ＝ 一覧では最後に A→Z） */
+const all = { asOf: out.asOf, days: DAYS, order: ranked.map(([s]) => s) };
+const file2 = path.join(ROOT, 'airline-popular.mjs');
+const next2 = `/* airline-popular.mjs ── 航空会社一覧の「よく見られている順」。gen-vote-popular.mjs が GA4 の閲覧数から書く（手で直さない）。
+   閲覧数そのものは書かない（並びだけ）。読むのは gen-directory.mjs（カードの data-pop）。これを書き直したら node gen-directory.mjs。 */
+export const POPULAR = Object.freeze(${JSON.stringify(all, null, 1)});
+`;
 if (CHECK) {
   const prev = existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : null;
   console.log(`\n--check：書いていません。いまのファイル: ${prev ? prev.slugs.join(', ') + `（${prev.asOf}）` : '無し'}`);
 } else {
   writeFileSync(file, next);
+  writeFileSync(file2, next2);
   console.log(`\n✅ vote-popular.json を書きました（${out.asOf}・${out.slugs.join(', ')}）`);
+  console.log(`✅ airline-popular.mjs を書きました（${all.order.length}社）→ 続けて node gen-directory.mjs`);
 }

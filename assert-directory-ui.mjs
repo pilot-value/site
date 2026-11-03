@@ -26,6 +26,9 @@
      b8 ヘッダーの検索（#pv-search-btn）で «Solairus» → airlines/solairus.html へのリンクが出る
      b9 quiet(st, 'base') が空
 
+   場面 sort（日英・1440×900 ── 2026-11-03）── 並べ替えの4つ（A→Z・機長の年収が高い順・低い順・よく見られている順）が約束どおりに並ぶ・
+     住所の sort と「戻る」・打った時と地域で絞った時も選んだ並び・レベリング比較では口を見せない
+
    場面 first（日英・390×680 のスマホ）
      検索欄（#search）が最初の1画面の中・高さ 48px 以上・字 16px 以上・見出しと検索欄のあいだに押せるもの無し・
      見出し「次のキャリアを、選択する」／«Choose your next career»・結果の見出し「すべて」／«All»・
@@ -174,6 +177,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { bring, open, LIBS } from './local-chain.mjs';
 import { SALARY } from './salary-data.mjs';
+import { POPULAR } from './airline-popular.mjs';
 import { AIRLINE_COUNTRY, BY_CODE } from './airline-countries.mjs';
 import { SWITCH, EN_SWITCH } from './airline-rollout.mjs';
 import { POINT_AT, SEA, PROBES, toPage } from './world-outline-probes.mjs';
@@ -380,7 +384,7 @@ if (process.argv[1] && realOf(process.argv[1]) === realOf(fileURLToPath(import.m
 async function main() {
   const argv = process.argv.slice(2);
   const val = (name) => { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : undefined; };
-  const SCENES = { base, first, nojs, search, scope, empty, url, back, touch, card, list, 'map-pos': mapPos,
+  const SCENES = { base, first, nojs, search, scope, empty, url, back, touch, card, list, sort, 'map-pos': mapPos,
     'map-card': mapCard, 'map-keys': mapKeys, 'map-fit': mapFit, 'map-point': mapPoint, 'map-tap': mapTap, 'map-first': mapFirst,
     'map-move': mapMove, 'map-strip': mapStrip, 'head-name': headName };
   const want = (val('--scenes') || Object.keys(SCENES).join(',')).split(',').map((s) => s.trim()).filter(Boolean);
@@ -639,9 +643,9 @@ async function main() {
       ok(same(v, ORDER), T(`nojs 台帳の${ORDER.length}社のリンクが見えている（一覧の並び）`), J({ n: v.length }));
       const h2 = await page.evaluate(() => (document.getElementById('wd-rh-name') || {}).textContent ?? null);
       ok(h2 === REGION_LABEL.all[lang === 'en' ? 1 : 0], T(`nojs h2#wd-rh-name「${REGION_LABEL.all[lang === 'en' ? 1 : 0]}」`), J(h2));
-      const vis = await page.evaluate(() => ['.wd-search', '#filter-bar', '.view-toggle', '.map-wrapper', '.wd-cmp', '.wd-tray']
+      const vis = await page.evaluate(() => ['.wd-search', '#filter-bar', '.view-toggle', '.wd-sort', '.map-wrapper', '.wd-cmp', '.wd-tray']
         .filter((sel) => [...document.querySelectorAll(sel)].some((el) => getComputedStyle(el).display !== 'none' && el.getClientRects().length > 0)));
-      ok(vis.length === 0, T('nojs 検索欄・絞り込みの帯・表示の切り替え・古い地図・比べる印・盆を見せない'), J(vis));
+      ok(vis.length === 0, T('nojs 検索欄・絞り込みの帯・表示の切り替え・並べ替え・古い地図・比べる印・盆を見せない'), J(vis));
       await shot(page, 'nojs', lang, '1440');
       const q = quiet(st, 'nojs');
       ok(q.length === 0, T('nojs quiet(st, \'nojs\') が空'), J(q));
@@ -896,6 +900,66 @@ async function main() {
     }
   }
 
+  /* 場面 sort（日英・1440×900 ── 2026-11-03 オーナー「a-z・年収順（上→下・下→上）・よく見られている順にできるようにして」）
+     期待する並び：よく見られている順 ＝ airline-popular.mjs の順（一覧に載っている会社だけ）→ 閲覧の無い会社は A→Z。
+     年収の順 ＝ カードの data-cap（額と同じことは assert-directory.mjs の H7 が見る）の高い順／低い順・同じ額は副操縦士・それも同じなら A→Z・
+     額の無い会社は最後に A→Z。選ぶ → 並び・住所の sort・状態／住所から開く → 同じ並び／打つ → ぴったり同じものが先・残りは選んだ並び／
+     地域で絞っても選んだ並び／レベリング比較では並べ替えの口を見せない／quiet が空 */
+  async function sort(lang) {
+    const T = (s) => `[${lang}] ${s}`, rel = PAGE_REL[lang], plain = `${L.base}/${rel}`;
+    const P = await dirOpen(browser, L, { rel });
+    PAGES.push(P);
+    const { page, st } = P;
+    try {
+      const keys = await page.evaluate(() => Object.fromEntries([...document.querySelectorAll('#airline-grid li[data-slug]')].map((li) => {
+        const n = (k) => (li.hasAttribute(k) ? Number(li.getAttribute(k)) : null);
+        return [li.dataset.slug, { cap: n('data-cap'), fo: n('data-fo') }];
+      })));
+      const ix = new Map(ORDER.map((s, i) => [s, i]));
+      const pay = (dir) => ORDER.slice().sort((x, y) => {
+        const a = keys[x].cap, b = keys[y].cap;
+        if (a === null || b === null) return a === b ? ix.get(x) - ix.get(y) : a === null ? 1 : -1;
+        if (a !== b) return (a - b) * dir;
+        if (keys[x].fo !== null && keys[y].fo !== null && keys[x].fo !== keys[y].fo) return (keys[x].fo - keys[y].fo) * dir;
+        return ix.get(x) - ix.get(y);
+      });
+      const pop = POPULAR.order.filter((s) => SALARY[s]);
+      const WANT = { az: ORDER, 'pay-desc': pay(-1), 'pay-asc': pay(1), popular: [...pop, ...ORDER.filter((s) => !pop.includes(s))] };
+      ok(pop.length > 0 && same(Object.keys(keys).sort(), ORDER.slice().sort()), T(`sort 期待する並びが作れる（閲覧の順 ${pop.length}社・カード ${ORDER.length}枚）`), J({ pop: pop.length, cards: Object.keys(keys).length }));
+      for (const v of ['pay-desc', 'pay-asc', 'popular', 'az']) {
+        await page.select('#wd-sort', v);
+        const vis = await visible(page), a = await addr(page), s = await stateOf(page);
+        const q = new URLSearchParams(a.search).get('sort');
+        ok(same(vis, WANT[v]) && s && s.sort === v && q === (v === 'az' ? null : v),
+          T(`sort 「${v}」を選ぶ → ${WANT[v].length}社がその並び・住所の sort「${v === 'az' ? '（書かない）' : v}」`), J({ first: vis.slice(0, 5), want: WANT[v].slice(0, 5), q, s }));
+      }
+      await page.goto(plain + '?sort=pay-desc', { waitUntil: 'load', timeout: 60000 }); await ready(page);
+      const r1 = { vis: await visible(page), sel: await page.evaluate(() => document.getElementById('wd-sort').value) };
+      ok(same(r1.vis, WANT['pay-desc']) && r1.sel === 'pay-desc', T('sort ?sort=pay-desc から開く → 高い順で並び・口も「高い順」'), J({ first: r1.vis.slice(0, 5), sel: r1.sel }));
+      await page.goto(plain + '?sort=zz', { waitUntil: 'load', timeout: 60000 }); await ready(page);
+      const r2 = { vis: await visible(page), sel: await page.evaluate(() => document.getElementById('wd-sort').value), s: await stateOf(page) };
+      ok(same(r2.vis, ORDER) && r2.sel === 'az' && r2.s.sort === 'az', T('sort 知らない値（?sort=zz）は A→Z'), J({ sel: r2.sel, s: r2.s }));
+      await page.goto(plain + '?sort=popular', { waitUntil: 'load', timeout: 60000 }); await ready(page);
+      await type(page, 'ana');
+      const r3 = await visible(page), rest = r3.slice(1), wantRest = WANT.popular.filter((s) => rest.includes(s));
+      ok(r3[0] === 'ana' && same(rest, wantRest), T('sort よく見られている順のまま «ana» と打つ → 先頭が ANA・残りもよく見られている順'), J({ r3: r3.slice(0, 6) }));
+      await type(page, '');
+      await page.goto(plain + '?sort=pay-asc&region=asia', { waitUntil: 'load', timeout: 60000 }); await ready(page);
+      const r4 = await visible(page), w4 = WANT['pay-asc'].filter((s) => SALARY[s].region === 'asia');
+      ok(same(r4, w4), T(`sort 地域（アジア）で絞っても低い順（${w4.length}社）`), J({ r4: r4.slice(0, 5), w4: w4.slice(0, 5) }));
+      await press(page, '.view-btn[data-view="range"]');
+      const hid = await until(page, () => { const b = document.querySelector('.wd-sort'); return !!b && b.hidden && getComputedStyle(b).display === 'none'; });
+      await press(page, '.view-btn[data-view="card"]');
+      const back = await until(page, () => { const b = document.querySelector('.wd-sort'); return !!b && !b.hidden && getComputedStyle(b).display !== 'none'; });
+      ok(hid && back, T('sort レベリング比較では並べ替えの口を見せない・カード一覧に戻すと出る'), J({ hid, back }));
+      await shot(page, 'sort', lang, '1440');
+      const q = quiet(st, 'sort');
+      ok(q.length === 0, T("sort quiet(st, 'sort') が空"), J(q));
+    } finally {
+      await P.ctx.close().catch(() => {});
+    }
+  }
+
   /* ── 住所と「戻る」の場面で使う道具（WP-dd-6）── */
   const fieldOf = (page) => page.evaluate(() => document.getElementById('search').value);
   const stateOf = (page) => page.evaluate(() => (window.PVDirectory ? window.PVDirectory.state() : null));
@@ -906,7 +970,7 @@ async function main() {
     .filter((a) => a.getClientRects().length > 0)
     .map((a) => a.getAttribute('href').replace(/^airlines\//, () => '').replace(/\.html$/, () => ''))) === JSON.stringify(v), v);
   const pressedIs = (page, code) => until(page, (c) => (document.querySelector(`#region-strip .rstrip-btn[data-region="${c}"]`) || {}).getAttribute?.('aria-pressed') === 'true', code);
-  const D0 = { q: '', region: 'all', view: 'card' };   // 状態は q・region・view の3つ（種類 type は WP-dmap-7 で無くなった）
+  const D0 = { q: '', region: 'all', view: 'card', sort: 'az' };   // 状態は q・region・view・sort の4つ（種類 type は WP-dmap-7 で無くなった・sort は 2026-11-03）
   /* 別の文書（道の終わりが end）へ移って読み終わるまで。⚠️ waitForNavigation は使わない ── 押した時の住所の書き込み
      （replaceState ＝ 同じ文書の中の移り）でも返るので、まだ一覧のページにいるうちに先へ進んでしまう */
   const toDoc = async (page, end, act) => {

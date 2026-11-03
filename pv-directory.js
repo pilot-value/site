@@ -12,7 +12,11 @@
    ★ 住所（?q=・region・view・cmp）と「戻る」は WP-dd-6。履歴に触るのは commit()・save() と、開いた時に古い ?type= を消す cleanType() の3つ
      （どれも replaceState）と、狭い画面の「会社を追加」の板が積む1段（openAdd() の pushState・閉じると戻す）だけ。
    ★ 航空会社の種類（FSC・LCC/ULCC・免税）で絞る口は無い（WP-dmap-7・オーナー P12.114）。カードも種類を持たない。
-   ★ 比べる印と比較リスト（#wd-tray）は WP-dd-7 → WP-dmap-10。印を付ける・外すは住所の cmp だけを書き直す（save()）。 */
+   ★ 比べる印と比較リスト（#wd-tray）は WP-dd-7 → WP-dmap-10。印を付ける・外すは住所の cmp だけを書き直す（save()）。
+   ★ 並べ替え（2026-11-03・オーナー「a-z・年収順（上→下・下→上）・よく見られている順にできるようにして」）は #wd-sort の1つ。
+     並べる鍵はカードの data-cap（機長の額・万円）・data-fo・data-pop（閲覧の順位）だけ ＝ gen-directory.mjs が書く。ここで額を作らない。
+     住所の鍵 sort（pay-desc・pay-asc・popular。A→Z は書かない）。鍵が無い会社（確認中・閲覧なし）は、どちらの向きでも最後に A→Z。
+     検索で打っていれば、今までどおり「ぴったり同じもの」を先に（その中も外も、選んだ並び）。 */
 (function (w, d) {
   'use strict';
   var GRID = d.getElementById('airline-grid');
@@ -22,7 +26,7 @@
   var FIELD = $('search'), CNT = $('result-count'), RH = $('wd-rh-name'), RHBOX = $('wd-rh'), STRIPBOX = $('region-strip');
   var NOR = $('no-results'), NONE = $('wd-none'), RVIEW = $('range-view'), FBAR = $('filter-bar');
   var STRIP = all('#region-strip .rstrip-btn'), ELSE = all('#wd-else .wd-else-b'), SCOPES = [$('wd-scope'), $('wd-scope-e')].filter(Boolean);
-  var CLEARS = all('.wd-clear'), VIEWS = all('.view-btn');
+  var CLEARS = all('.wd-clear'), VIEWS = all('.view-btn'), SORT = $('wd-sort'), SORTBOX = SORT && SORT.closest ? SORT.closest('.wd-sort') : null;
   /* 打ったら地域を外すか（外さない。外す読み方はこの1つを true にするだけ） */
   var RELEASE_ON_TYPE = false;
   var coarse = function () { try { return w.matchMedia('(pointer:coarse)').matches; } catch (e) { return false; } };
@@ -67,12 +71,15 @@
   }
   /* ── 検索の6つの道具（ここまで）──────────────────────────────── */
 
+  /** 並べる鍵の数（無い・数でない ＝ null） */
+  function num(v) { var n = v === '' ? NaN : Number(v); return isFinite(n) ? n : null; }
   /* カード（ページの並び）。呼び名をそろえるのはここで1回だけ */
   var CARDS = Array.prototype.slice.call(GRID.querySelectorAll('li[data-slug]')).map(function (li, i) {
     var a = function (n) { return li.getAttribute(n) || ''; };
     return {
       li: li, slug: a('data-slug'), region: a('data-region'),
       lvl: a('data-lvl') === '1', two: a('data-two') === '1', i: i,
+      cap: num(a('data-cap')), fo: num(a('data-fo')), pop: num(a('data-pop')),
       codes: a('data-c').split(' ').filter(Boolean).map(compact),
       keys: a('data-k').split('|').filter(Boolean).map(function (k) { var S = spaced(k); return { S: S, C: S.replace(/ /g, function () { return ''; }), W: starts(S) }; }),
     };
@@ -86,12 +93,28 @@
     return f.replace('{n}', function () { return String(n); });
   }
 
+  /* ── 並べ替え（A→Z ＝ ページの並び。ほかは鍵の順・鍵の無い会社は最後に A→Z・同じ値も A→Z）── */
+  var SORTS = ['az', 'pay-desc', 'pay-asc', 'popular'], ORDERS = { az: CARDS };
+  function by(key, dir) {
+    return CARDS.slice().sort(function (x, y) {
+      var a = x[key], b = y[key];
+      if (a === null || b === null) return a === b ? x.i - y.i : a === null ? 1 : -1;
+      if (a !== b) return (a - b) * dir;
+      if (key === 'cap' && x.fo !== null && y.fo !== null && x.fo !== y.fo) return (x.fo - y.fo) * dir;   // 機長が同じ額なら副操縦士で
+      return x.i - y.i;
+    });
+  }
+  function ordered(sort) {
+    if (!ORDERS[sort]) ORDERS[sort] = sort === 'pay-desc' ? by('cap', -1) : sort === 'pay-asc' ? by('cap', 1) : sort === 'popular' ? by('pop', 1) : CARDS;
+    return ORDERS[sort];
+  }
+
   /* ── いまの状態 ─────────────────────────────────────────────── */
-  var st = { q: '', region: 'all', view: 'card' };
+  var st = { q: '', region: 'all', view: 'card', sort: 'az' };
   var counts = { all: CARDS.length }, lastRegion = st.region;
 
   function apply() {
-    var Q = query(st.q), n = 0, first = [], rest = [];
+    var Q = query(st.q), n = 0, first = [], rest = [], tiers = {};
     counts = {};
     CODES.forEach(function (c) { counts[c] = 0; });
     counts.all = 0;
@@ -101,10 +124,12 @@
       var on = hit && (st.region === 'all' || c.region === st.region);
       if (c.li.hidden === on) c.li.hidden = !on;
       if (on) n++;
-      (t === 0 ? first : rest).push(c);
+      tiers[c.slug] = t;
     });
-    /* 並び：何も打っていなければページの並び・打っていれば、ぴったり同じものを先に（どちらもページの並び）。違うときだけ並べ直す */
-    var want = Q.C === '' ? CARDS : first.concat(rest), now = GRID.querySelectorAll('li[data-slug]'), moved = false;
+    /* 並び：何も打っていなければ選んだ並び・打っていれば、ぴったり同じものを先に（どちらも選んだ並び）。違うときだけ並べ直す */
+    var base = ordered(st.sort);
+    if (Q.C !== '') base.forEach(function (c) { (tiers[c.slug] === 0 ? first : rest).push(c); });
+    var want = Q.C === '' ? base : first.concat(rest), now = GRID.querySelectorAll('li[data-slug]'), moved = false;
     for (var i = 0; i < want.length && !moved; i++) if (now[i] !== want[i].li) moved = true;
     if (moved) want.forEach(function (c) { GRID.appendChild(c.li); });
     /* 地域のボタン（押した見た目は aria-pressed だけ）と、その地域の当たりの数 */
@@ -114,6 +139,9 @@
       if (el && el.textContent !== v) el.textContent = v;
     });
     VIEWS.forEach(function (b) { var on = b.getAttribute('data-view') === st.view; b.classList.toggle('active', on); b.setAttribute('aria-selected', on ? 'true' : 'false'); });
+    /* 並べ替えはカード一覧のときだけ見せる（レベリング比較はカードを並べない） */
+    if (SORT && SORT.value !== st.sort) SORT.value = st.sort;
+    if (SORTBOX && SORTBOX.hidden !== (st.view === 'range')) SORTBOX.hidden = st.view === 'range';
     /* 結果の見出し ＝ 選んでいる地域の名前 ＋ 見えているカードの数（0 のときは数を書かない）＋ 絞り込みを解除 */
     if (RH) RH.textContent = labelOf(st.region);
     if (CNT) CNT.textContent = n ? fmt(n) : '';
@@ -155,7 +183,7 @@
     tray();
     var c2 = {};
     for (var key in counts) if (Object.prototype.hasOwnProperty.call(counts, key)) c2[key] = counts[key];
-    var detail = { q: st.q, region: st.region, view: st.view, n: n, counts: c2 };
+    var detail = { q: st.q, region: st.region, view: st.view, sort: st.sort, n: n, counts: c2 };
     try { d.dispatchEvent(new CustomEvent('wd:change', { detail: detail })); } catch (e) {}
   }
 
@@ -194,7 +222,7 @@
     apply();
   }
   /* ── 住所と「戻る」（WP-dd-6）──────────────────────────────────
-     住所の鍵は q・region・view の3つ（既定は書かない・知らない値は無視）。開いたときは住所を書き換えない ── ただ1つの例外は古い ?type=
+     住所の鍵は q・region・view・sort の4つ（既定は書かない・知らない値は無視。sort は 2026-11-03 に足した）。開いたときは住所を書き換えない ── ただ1つの例外は古い ?type=
      （種類の絞り込みの住所。WP-dmap-7 で口ごと外した）：すべてとして開き、住所から type だけを消す（cleanType。ほかの鍵・# と history.state はそのまま）。
      書くのは history.replaceState だけ ＝ 地域を選び直しても履歴を積まない（このファイルは履歴を1段も足さない）。
      書く時：Enter・Escape・欄の消すボタン（search）・欄の change・カードのリンクを押した時・pagehide・beforeunload・地域・表示・解除。
@@ -225,9 +253,10 @@
       q: g('q').slice(0, 80),
       region: CODES.indexOf(region) >= 0 ? region : 'all',
       view: g('view') === 'range' ? 'range' : 'card',
+      sort: SORT && SORTS.indexOf(g('sort')) > 0 ? g('sort') : 'az',
     };
   }
-  function same(a, b) { return a.q === b.q && a.region === b.region && a.view === b.view; }
+  function same(a, b) { return a.q === b.q && a.region === b.region && a.view === b.view && a.sort === b.sort; }
   /** 古い住所の ?type=（fsc・lcc・ulcc・taxfree …どの値でも）を消す。すべてとして開き、ほかの鍵と # と history.state はそのまま（WP-dmap-7） */
   function cleanType() {
     try {
@@ -241,10 +270,11 @@
   /** 状態を書いた住所（ほかの鍵 ref・utm_* と # はそのまま残す。古い type は書かない。比べる社 cmp は最後に） */
   function url(s) {
     var p = new URLSearchParams(w.location.search);
-    ['q', 'region', 'type', 'view', 'cmp'].forEach(function (k) { p.delete(k); });
+    ['q', 'region', 'type', 'view', 'sort', 'cmp'].forEach(function (k) { p.delete(k); });
     if (s.q !== '') p.set('q', s.q);
     if (s.region !== 'all') p.set('region', s.region);
     if (s.view !== 'card') p.set('view', s.view);
+    if (s.sort !== 'az') p.set('sort', s.sort);
     if (cmp.length) p.set('cmp', cmp.join(' '));
     var qs = p.toString();
     return w.location.pathname + (qs ? '?' + qs : '') + w.location.hash;
@@ -598,6 +628,7 @@
     b.addEventListener('click', function () { clear(); if (FIELD && !coarse()) FIELD.focus(); });
   });
   VIEWS.forEach(function (b) { b.addEventListener('click', function () { set({ view: b.getAttribute('data-view') === 'range' ? 'range' : 'card' }); commit(); }); });
+  if (SORT) SORT.addEventListener('change', function () { set({ sort: SORTS.indexOf(SORT.value) >= 0 ? SORT.value : 'az' }); commit(); });
   /* カードの「＋ 比較」を押す ＝ 付ける・外す（足せない時は付けず、なぜかを見せる）。住所は cmp だけ書き直す */
   GRID.addEventListener('click', function (e) {
     var b = e.target && e.target.closest ? e.target.closest('button.wd-cmp') : null;
@@ -748,7 +779,7 @@
   /* 戻る（ブラウザの手元に置いてあった時 ＝ pageshow の persisted）は、離れた時のまま ── 何もしない */
 
   w.PVDirectory = {
-    state: function () { return { q: st.q, region: st.region, view: st.view }; },
+    state: function () { return { q: st.q, region: st.region, view: st.view, sort: st.sort }; },
     setRegion: setRegion,
     clear: clear,
     regions: function () { return STRIP.map(function (b) { var c = b.getAttribute('data-region'); return { code: c, label: b.getAttribute('data-label') || '', n: counts[c] || 0 }; }); },
