@@ -2694,7 +2694,7 @@ export const TERMS = Object.freeze({
     },
     "en": {
      "label": "Retirement match",
-     "value": "DC pension match up to 8%, depending on service",
+     "value": "Company match to the defined contribution pension of up to 8%, rising with years of service",
      "note": "Company information"
     }
    },

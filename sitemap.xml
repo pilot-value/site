@@ -32,7 +32,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/contact.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/contact.html"/>
@@ -70,7 +70,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/help.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/help.html"/>
@@ -135,7 +135,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/pilot-tenshoku.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/pilot-tenshoku.html"/>
@@ -144,7 +144,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/pilot-vs-bengoshi.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/pilot-vs-bengoshi.html"/>
@@ -153,7 +153,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/pilot-vs-isha.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/pilot-vs-isha.html"/>
@@ -162,7 +162,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/pilot-vs-kochin.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/pilot-vs-kochin.html"/>
@@ -171,7 +171,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/policy.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/policy.html"/>
@@ -180,7 +180,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/privacy-pilot.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/privacy-pilot.html"/>
@@ -189,7 +189,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/privacy.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/privacy.html"/>
@@ -208,7 +208,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/terms.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/terms.html"/>
@@ -408,7 +408,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/airlines/ana-vs-emirates.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/ana-vs-emirates.html"/>
@@ -417,7 +417,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/airlines/ana-vs-jal.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/ana-vs-jal.html"/>
@@ -446,7 +446,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/airlines/asia-hikaku.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/asia-hikaku.html"/>
@@ -490,6 +490,7 @@
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/avelo-airlines.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/avelo-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://pilot-value.com/es/airlines/avelo-airlines.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/avelo-airlines.html"/>
   </url>
   <url>
@@ -589,6 +590,7 @@
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/contour.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/contour.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://pilot-value.com/es/airlines/contour.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/contour.html"/>
   </url>
   <url>
@@ -653,7 +655,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/airlines/emirates-vs-qatar.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/emirates-vs-qatar.html"/>
@@ -772,7 +774,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/airlines/gaishi-vs-nikkei.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/gaishi-vs-nikkei.html"/>
@@ -796,6 +798,7 @@
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/gojet.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/gojet.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://pilot-value.com/es/airlines/gojet.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/gojet.html"/>
   </url>
   <url>
@@ -810,7 +813,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/airlines/gulf-hikaku.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/gulf-hikaku.html"/>
@@ -934,6 +937,7 @@
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/jazz.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/jazz.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://pilot-value.com/es/airlines/jazz.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/jazz.html"/>
   </url>
   <url>
@@ -1048,7 +1052,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/airlines/lcc-hikaku.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/lcc-hikaku.html"/>
@@ -1092,6 +1096,7 @@
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/northern-air-cargo.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/northern-air-cargo.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://pilot-value.com/es/airlines/northern-air-cargo.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/northern-air-cargo.html"/>
   </url>
   <url>
@@ -1366,7 +1371,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/airlines/starlux-tenshoku.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/starlux-tenshoku.html"/>
@@ -1395,7 +1400,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/airlines/taiwan-hikaku.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/taiwan-hikaku.html"/>
@@ -2045,7 +2050,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/en/contact.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/contact.html"/>
@@ -2083,7 +2088,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/en/help.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/help.html"/>
@@ -2148,7 +2153,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/en/pilot-tenshoku.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/pilot-tenshoku.html"/>
@@ -2157,7 +2162,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/en/pilot-vs-bengoshi.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/pilot-vs-bengoshi.html"/>
@@ -2166,7 +2171,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/en/pilot-vs-isha.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/pilot-vs-isha.html"/>
@@ -2175,7 +2180,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/en/pilot-vs-kochin.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/pilot-vs-kochin.html"/>
@@ -2184,7 +2189,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/en/policy.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/policy.html"/>
@@ -2193,7 +2198,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/en/privacy-pilot.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/privacy-pilot.html"/>
@@ -2202,7 +2207,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/en/privacy.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/privacy.html"/>
@@ -2221,7 +2226,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/en/terms.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/terms.html"/>
@@ -2421,7 +2426,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/en/airlines/ana-vs-emirates.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/ana-vs-emirates.html"/>
@@ -2430,7 +2435,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/en/airlines/ana-vs-jal.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/ana-vs-jal.html"/>
@@ -2459,7 +2464,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/en/airlines/asia-hikaku.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/asia-hikaku.html"/>
@@ -2503,6 +2508,7 @@
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/avelo-airlines.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/avelo-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://pilot-value.com/es/airlines/avelo-airlines.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/avelo-airlines.html"/>
   </url>
   <url>
@@ -2602,6 +2608,7 @@
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/contour.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/contour.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://pilot-value.com/es/airlines/contour.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/contour.html"/>
   </url>
   <url>
@@ -2666,7 +2673,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/en/airlines/emirates-vs-qatar.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/emirates-vs-qatar.html"/>
@@ -2785,7 +2792,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/en/airlines/gaishi-vs-nikkei.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/gaishi-vs-nikkei.html"/>
@@ -2809,6 +2816,7 @@
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/gojet.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/gojet.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://pilot-value.com/es/airlines/gojet.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/gojet.html"/>
   </url>
   <url>
@@ -2823,7 +2831,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/en/airlines/gulf-hikaku.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/gulf-hikaku.html"/>
@@ -2947,6 +2955,7 @@
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/jazz.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/jazz.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://pilot-value.com/es/airlines/jazz.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/jazz.html"/>
   </url>
   <url>
@@ -3061,7 +3070,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/en/airlines/lcc-hikaku.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/lcc-hikaku.html"/>
@@ -3105,6 +3114,7 @@
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/northern-air-cargo.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/northern-air-cargo.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://pilot-value.com/es/airlines/northern-air-cargo.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/northern-air-cargo.html"/>
   </url>
   <url>
@@ -3379,7 +3389,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/en/airlines/starlux-tenshoku.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/starlux-tenshoku.html"/>
@@ -3408,7 +3418,7 @@
   </url>
   <url>
     <loc>https://pilot-value.com/en/airlines/taiwan-hikaku.html</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/taiwan-hikaku.html"/>
@@ -4339,6 +4349,16 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/austrian.html"/>
   </url>
   <url>
+    <loc>https://pilot-value.com/es/airlines/avelo-airlines.html</loc>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/avelo-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/avelo-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://pilot-value.com/es/airlines/avelo-airlines.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/avelo-airlines.html"/>
+  </url>
+  <url>
     <loc>https://pilot-value.com/es/airlines/avianca.html</loc>
     <lastmod>2026-11-03</lastmod>
     <changefreq>weekly</changefreq>
@@ -4427,6 +4447,16 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/china-southern.html"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://pilot-value.com/es/airlines/china-southern.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/china-southern.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/es/airlines/contour.html</loc>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/contour.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/contour.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://pilot-value.com/es/airlines/contour.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/contour.html"/>
   </url>
   <url>
     <loc>https://pilot-value.com/es/airlines/copa-airlines.html</loc>
@@ -4609,6 +4639,16 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/garuda-indonesia.html"/>
   </url>
   <url>
+    <loc>https://pilot-value.com/es/airlines/gojet.html</loc>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/gojet.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/gojet.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://pilot-value.com/es/airlines/gojet.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/gojet.html"/>
+  </url>
+  <url>
     <loc>https://pilot-value.com/es/airlines/gulf-air.html</loc>
     <lastmod>2026-11-03</lastmod>
     <changefreq>weekly</changefreq>
@@ -4727,6 +4767,16 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/jal.html"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://pilot-value.com/es/airlines/jal.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/jal.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/es/airlines/jazz.html</loc>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/jazz.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/jazz.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://pilot-value.com/es/airlines/jazz.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/jazz.html"/>
   </url>
   <url>
     <loc>https://pilot-value.com/es/airlines/jetblue.html</loc>
@@ -4867,6 +4917,16 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/malaysia-airlines.html"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://pilot-value.com/es/airlines/malaysia-airlines.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/malaysia-airlines.html"/>
+  </url>
+  <url>
+    <loc>https://pilot-value.com/es/airlines/northern-air-cargo.html</loc>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://pilot-value.com/airlines/northern-air-cargo.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pilot-value.com/en/airlines/northern-air-cargo.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://pilot-value.com/es/airlines/northern-air-cargo.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/airlines/northern-air-cargo.html"/>
   </url>
   <url>
     <loc>https://pilot-value.com/es/airlines/norwegian.html</loc>
