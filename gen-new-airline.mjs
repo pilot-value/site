@@ -1501,9 +1501,9 @@ const CONTENT = {
     code: 'XP',
     donor: 'spirit',
     donorColor: '#FFD700',
+    /* 借り元（スピリット航空）の字が残っていないかを見る語。その会社の本文に本当に出る地名（Contour の FLL 基地など）は外す */
     donorTokens: [
-      'spirit', 'Spirit', 'スピリット', 'FFD700', 'ffd700', '786508', 'ULCC',
-      'フォートローダーデール', 'Fort Lauderdale', 'Miramar', 'フロリダ', 'Florida',
+      'spirit', 'Spirit', 'スピリット', 'FFD700', 'ffd700', '786508', 'ULCC', 'フォートローダーデール', 'Fort Lauderdale', 'Miramar', 'フロリダ', 'Florida',
     ],
     /* aveloair.com のテーマの CSS（wp-content/themes/avelo-web-20/style.css）で、いちばん多く使われている紫 #4c12a1（12回。メニューの選択中の下線・ボタンの地・FAQ の見出しなど）。導出していない。 */
     color: '#4C12A1',
@@ -1621,9 +1621,9 @@ const CONTENT = {
     code: 'G7',
     donor: 'spirit',
     donorColor: '#FFD700',
+    /* 借り元（スピリット航空）の字が残っていないかを見る語。その会社の本文に本当に出る地名（Contour の FLL 基地など）は外す */
     donorTokens: [
-      'spirit', 'Spirit', 'スピリット', 'FFD700', 'ffd700', '786508', 'ULCC',
-      'フォートローダーデール', 'Fort Lauderdale', 'Miramar', 'フロリダ', 'Florida',
+      'spirit', 'Spirit', 'スピリット', 'FFD700', 'ffd700', '786508', 'ULCC', 'フォートローダーデール', 'Fort Lauderdale', 'Miramar', 'フロリダ', 'Florida',
     ],
     /* gojetairlines.com のロゴの画像（wp-content/uploads/2025/04/Logo@2x-e1744336172602.png・alt「GoJet Logo blue Color」）の色表を読んだ値。不透明な画素の 76.6% が #0078C2（17.6% が #0079C2、残りは黒の文字）。導出していない。サイトの CSS（Elementor の全体の色 uploads/elementor/css/post-7.css）の primary は #1572FE で、ロゴとは別の値。 */
     color: '#0078C2',
@@ -1743,9 +1743,9 @@ const CONTENT = {
     code: 'NC',
     donor: 'spirit',
     donorColor: '#FFD700',
+    /* 借り元（スピリット航空）の字が残っていないかを見る語。その会社の本文に本当に出る地名（Contour の FLL 基地など）は外す */
     donorTokens: [
-      'spirit', 'Spirit', 'スピリット', 'FFD700', 'ffd700', '786508', 'ULCC',
-      'フォートローダーデール', 'Fort Lauderdale', 'Miramar', 'フロリダ', 'Florida',
+      'spirit', 'Spirit', 'スピリット', 'FFD700', 'ffd700', '786508', 'ULCC', 'フォートローダーデール', 'Fort Lauderdale', 'Miramar', 'フロリダ', 'Florida',
     ],
     /* 会社のサイト（nac.aero）のヘッダーのロゴ画像 NAC-new-logo-Registered.png の赤（不透明な画素の94%。残りは黒 #000000）。画像の色表から読んだ値で、導出していない。サイトの CSS の --secondary-color #d73832 はテーマの色なので使わなかった。 */
     color: '#ED2024',
@@ -1861,9 +1861,9 @@ const CONTENT = {
     code: 'LF',
     donor: 'spirit',
     donorColor: '#FFD700',
+    /* 借り元（スピリット航空）の字が残っていないかを見る語。その会社の本文に本当に出る地名（Contour の FLL 基地など）は外す */
     donorTokens: [
-      'spirit', 'Spirit', 'スピリット', 'FFD700', 'ffd700', '786508', 'ULCC',
-      'フォートローダーデール', 'Fort Lauderdale', 'Miramar', 'フロリダ', 'Florida',
+      'spirit', 'Spirit', 'スピリット', 'FFD700', 'ffd700', '786508', 'ULCC', 'Miramar', 'フロリダ', 'Florida',
     ],
     /* 採用サイト（careers.contourairlines.com）のヘッダーのロゴ画像 Contour_Final.png の紺（文字「CONTOUR」の色・不透明な画素の76%）。画像の色表から読んだ値で、導出していない。ロゴの十字の青は #0077C8・#005EB8・#00A3E0・#71C5E8。 */
     color: '#082C88',
@@ -1973,9 +1973,9 @@ const CONTENT = {
     code: 'QK',
     donor: 'spirit',
     donorColor: '#FFD700',
+    /* 借り元（スピリット航空）の字が残っていないかを見る語。その会社の本文に本当に出る地名（Contour の FLL 基地など）は外す */
     donorTokens: [
-      'spirit', 'Spirit', 'スピリット', 'FFD700', 'ffd700', '786508', 'ULCC',
-      'フォートローダーデール', 'Fort Lauderdale', 'Miramar', 'フロリダ', 'Florida',
+      'spirit', 'Spirit', 'スピリット', 'FFD700', 'ffd700', '786508', 'ULCC', 'フォートローダーデール', 'Fort Lauderdale', 'Miramar', 'フロリダ', 'Florida',
     ],
     /* 会社のサイト（flyjazz.com）のヘッダーのロゴ画像 jazz-logo.png（wp-content/themes/jazz/library/images/）の赤。画像の色は1色だけ。色表から読んだ値で、導出していない。 */
     color: '#CF3628',
