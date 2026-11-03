@@ -796,6 +796,15 @@ const US_WORDS = {
     scope: 'HUD\'s Small Area Fair Market Rent for the ZIP code: the 40th percentile of standard rental housing in that ZIP, including set utilities. Not an average of listings and not luxury-home rents. ZIP areas do not match town borders ("area" towns). 1-Bed, 2-Bed and 3-Bed are bedrooms',
     offers: (list, seen) => `3-bedroom house listings (seen ${seen}, asking rents, not signed leases): ${list.map(o => `USD ${o.rent.toLocaleString('en-US')} a month${o.sqft ? ` (${Math.round(o.sqft).toLocaleString('en-US')} sq ft)` : ''}`).join(' · ')}` },
 };
+/* ★2026-11-03 カナダの地域（us-housing.mjs の cc: 'CA'）は、カナダ住宅金融公社（CMHC）の賃貸市場調査 ── 調査区ごとの、いま住んでいる人の家賃の平均 */
+const CA_WORDS = {
+  ja: { measure: '調査区ごとの家賃の平均・いま住んでいる人の家賃', when: '2025年10月の調査（2025年12月公表）',
+    scope: 'カナダ住宅金融公社（CMHC）の賃貸市場調査による、調査区ごとの民間の賃貸アパートの家賃の平均（いま住んでいる人が払っている家賃）。募集中の家賃や戸建ての家賃ではない。調査区は街の境と一致しない（「周辺」と書いた街）。3-Bed+ は3寝室以上',
+    offers: (list, seen) => `3寝室の住宅の掲載例（${seen}に見た掲載・成約の家賃ではない）：${list.map(o => `月 CAD ${o.rent.toLocaleString('en-US')}${o.sqft ? `（${Math.round(o.sqft).toLocaleString('en-US')} sq ft）` : ''}`).join('・')}` },
+  en: { measure: 'Average rent by survey zone, paid by current tenants', when: 'October 2025 survey (published December 2025)',
+    scope: 'CMHC Rental Market Survey: the average rent of purpose-built rental apartments in the survey zone, as paid by current tenants. Not asking rents and not house rents. Survey zones do not match town borders ("area" towns). 3-Bed+ means three or more bedrooms',
+    offers: (list, seen) => `3-bedroom home listings (seen ${seen}, asking rents, not signed leases): ${list.map(o => `CAD ${o.rent.toLocaleString('en-US')} a month${o.sqft ? ` (${Math.round(o.sqft).toLocaleString('en-US')} sq ft)` : ''}`).join(' · ')}` },
+};
 export const usHoused = slug => !!US.COMPANIES[slug];
 function usLivings(slug, bases, lang = 'ja') {
   const co = US.COMPANIES[slug], en = lang === 'en', Wd = US_WORDS[en ? 'en' : 'ja'];
@@ -808,25 +817,25 @@ function usLivings(slug, bases, lang = 'ja') {
   const at = key => Math.min(...US.REGIONS[key].airports.map(a => bases.indexOf(a)).filter(i => i >= 0));
   const keys = Object.keys(US.REGIONS).filter(key => US.REGIONS[key].airports.some(mine)).sort((a, b) => at(a) - at(b));
   return keys.map(key => {
-    const G = US.REGIONS[key];
+    const G = US.REGIONS[key], CA = G.cc === 'CA', SRC = CA ? US.SRC_CA : US.SRC, Wr = CA ? CA_WORDS[en ? 'en' : 'ja'] : Wd, b3 = CA ? '3-Bed+' : '3-Bed';
     const list = Object.entries(US.TOWNS).filter(([, t]) => t.region === key)
       .sort(([, a], [, b]) => (b.near.some(mine) - a.near.some(mine)) || ((b.income ?? -1) - (a.income ?? -1)));
     if (!list.length) throw new Error(`${slug}: 住む地域 ${key} に街が無い（us-housing.mjs）`);
     const ports = G.airports.filter(mine);
     const rents = list.map(([k, t], i) => ({
-      key: k, name: en ? t.en : t.ja, sub: '', en: en ? `${t.state} ${t.zip}` : `${t.en}, ${t.state} ${t.zip}`, area: '', label: en ? t.en : t.ja,
+      key: k, name: en ? t.en : t.ja, sub: '', en: en ? `${t.state}${t.zip ? ` ${t.zip}` : ''}` : `${t.en}, ${t.state}${t.zip ? ` ${t.zip}` : ''}`, area: '', label: en ? t.en : t.ja,
       iata: (t.near.find(mine) || t.near[0] || ''), pick: US_ABOUT[k] ? US_ABOUT[k][en ? 'en' : 'ja'] : '', pickSrc: null,
-      more: t.offers.length ? Wd.offers(t.offers, seen) : '',
-      value: { bed1: t.bed1, bed2: t.bed2, bed3: t.bed3 }, when: Wd.when,
-      src: { name: en ? US.SRC.name_en : US.SRC.name, url: US.SRC.url, kind: 'gov' }, cond: '', quote: '', lead: i === 0, way: null,
+      more: t.offers.length ? Wr.offers(t.offers, seen) : '',
+      value: { bed1: t.bed1, bed2: t.bed2, bed3: t.bed3 }, when: Wr.when,
+      src: { name: en ? SRC.name_en : SRC.name, url: SRC.url, kind: 'gov' }, cond: '', quote: '', lead: i === 0, way: null,
     }));
     return gate(slug, {
-      cityKey: `us-${key.toLowerCase()}`, city: en ? G.en : G.ja, cur: 'USD', per: 'month', measure: Wd.measure,
-      site: 'hud', siteName: en ? US.SRC.name_en : US.SRC.name, stat: 'index',
-      cols: [['bed1', '1-Bed'], ['bed2', '2-Bed'], ['bed3', '3-Bed']], bars: ['bed1', 'bed2', 'bed3'], words: { bed1: '1-Bed', bed2: '2-Bed', bed3: '3-Bed' },
+      cityKey: `us-${key.toLowerCase()}`, city: en ? G.en : G.ja, cur: CA ? 'CAD' : 'USD', per: 'month', measure: Wr.measure,
+      site: CA ? 'cmhc' : 'hud', siteName: en ? SRC.name_en : SRC.name, stat: CA ? 'mean' : 'index',
+      cols: [['bed1', '1-Bed'], ['bed2', '2-Bed'], ['bed3', b3]], bars: ['bed1', 'bed2', 'bed3'], words: { bed1: '1-Bed', bed2: '2-Bed', bed3: b3 },
       leadCol: 'bed1', beside: '', byTown: false, cardFamily: '',
       airports: ports.map(iata => ({ iata, to: (PLACES[iata] || [])[en ? 1 : 0] || (en ? G.en : G.ja) })),
-      ends: [], rents, estates: [], basis: [{ key: 'scope', value: Wd.scope }], refs: [], research: true,
+      ends: [], rents, estates: [], basis: [{ key: 'scope', value: Wr.scope }], refs: [], research: true,
       commute: found.filter(c => ports.includes(c.iata)).flatMap(c => c.commute.map(({ r, d, src }) => ({
         key: r.id, town: '', iata: c.iata, end: '', mode: d.mode || 'train', modes: [d.mode || 'train'], via: 'operator', line: '', from: '', to: '',
         kind: null, mins: null, ride: null, warn: '', label: d.label, value: d.value, orig: false, yen: '', cond: d.cond || '', when: '',

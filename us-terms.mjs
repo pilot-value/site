@@ -1997,5 +1997,1109 @@ export const TERMS = Object.freeze({
     }
    }
   ]
+ },
+ "breeze-airways": {
+  "pay": [
+   {
+    "key": "min_guarantee",
+    "ref": true,
+    "ja": {
+     "label": "最低保証",
+     "value": "ライン・リザーブとも月70時間",
+     "note": "参考の値"
+    },
+    "en": {
+     "label": "Minimum guarantee",
+     "value": "70 hours a month, line and reserve",
+     "note": "Reference figure"
+    }
+   },
+   {
+    "key": "per_diem",
+    "ref": true,
+    "ja": {
+     "label": "パーディアム（日当）",
+     "value": "国内線 1時間 USD 2.00",
+     "note": "参考の掲載値"
+    },
+    "en": {
+     "label": "Per diem",
+     "value": "USD 2.00 an hour domestic",
+     "note": "Reference figure"
+    }
+   },
+   {
+    "key": "contract",
+    "ref": false,
+    "ja": {
+     "label": "労働協約",
+     "value": "初めての協約を交渉中。パイロットの労組は ALPA（2022年から）",
+     "note": ""
+    },
+    "en": {
+     "label": "Contract status",
+     "value": "Negotiating a first contract; pilots represented by ALPA since 2022",
+     "note": ""
+    }
+   }
+  ]
+ },
+ "avelo-airlines": {
+  "pay": [
+   {
+    "key": "min_guarantee",
+    "ref": false,
+    "ja": {
+     "label": "最低保証",
+     "value": "ライン・リザーブとも月70時間",
+     "note": "会社の公開値"
+    },
+    "en": {
+     "label": "Minimum guarantee",
+     "value": "70 hours a month, line and reserve",
+     "note": "Company-published"
+    }
+   },
+   {
+    "key": "premiums",
+    "ref": false,
+    "ja": {
+     "label": "割増",
+     "value": "月75時間を超えた分と、休日に飛んだ分は通常の単価の125%",
+     "note": "会社の公開値"
+    },
+    "en": {
+     "label": "Premium pay",
+     "value": "125% for hours over 75 a month and for flying on days off",
+     "note": "Company-published"
+    }
+   },
+   {
+    "key": "profit_sharing",
+    "ref": false,
+    "ja": {
+     "label": "利益分配",
+     "value": "あり。会社の利益目標を達成したとき",
+     "note": ""
+    },
+    "en": {
+     "label": "Profit sharing",
+     "value": "Yes, when the company hits its profit targets",
+     "note": ""
+    }
+   },
+   {
+    "key": "per_diem",
+    "ref": true,
+    "ja": {
+     "label": "パーディアム（日当）",
+     "value": "国内線 1時間 USD 2.25",
+     "note": "参考の掲載値"
+    },
+    "en": {
+     "label": "Per diem",
+     "value": "USD 2.25 an hour domestic",
+     "note": "Reference figure"
+    }
+   },
+   {
+    "key": "retirement",
+    "ref": false,
+    "ja": {
+     "label": "会社の退職拠出",
+     "value": "本人拠出の最初の3%に100%・次の2%に50%を会社が上乗せ。本人5%で会社は最大4%",
+     "note": "すぐに権利が確定（即時ベスティング）"
+    },
+    "en": {
+     "label": "Retirement match",
+     "value": "100% on the first 3% you put in, 50% on the next 2% — up to 4% from the company at 5%",
+     "note": "Immediate vesting"
+    }
+   }
+  ],
+  "work": [
+   {
+    "key": "days_off",
+    "ref": false,
+    "ja": {
+     "label": "月の最低休日",
+     "value": "ライン・リザーブとも月12日",
+     "note": "会社の公開値"
+    },
+    "en": {
+     "label": "Minimum days off",
+     "value": "12 a month, line and reserve",
+     "note": "Company-published"
+    }
+   },
+   {
+    "key": "training",
+    "ref": false,
+    "ja": {
+     "label": "訓練中の給与",
+     "value": "月 USD 6,020",
+     "note": "今の採用案内の額"
+    },
+    "en": {
+     "label": "Training pay",
+     "value": "USD 6,020 a month",
+     "note": "Current recruiting information"
+    }
+   },
+   {
+    "key": "commuter",
+    "ref": true,
+    "ja": {
+     "label": "航空通勤",
+     "value": "他社機のジャンプシート（CASS）を使える",
+     "note": "参考の情報"
+    },
+    "en": {
+     "label": "Commuting",
+     "value": "Jumpseat access through CASS",
+     "note": "Reference information"
+    }
+   }
+  ]
+ },
+ "gojet": {
+  "pay": [
+   {
+    "key": "min_guarantee",
+    "ref": true,
+    "ja": {
+     "label": "最低保証",
+     "value": "月75時間",
+     "note": "2026年の求人の転載にある参考の値"
+    },
+    "en": {
+     "label": "Minimum guarantee",
+     "value": "75 hours a month",
+     "note": "Reference figure from a 2026 job-ad repost"
+    }
+   },
+   {
+    "key": "retirement",
+    "ref": false,
+    "ja": {
+     "label": "会社の退職拠出",
+     "value": "本人の拠出に会社が50%を上乗せ（マッチ）",
+     "note": "会社のページ"
+    },
+    "en": {
+     "label": "Retirement match",
+     "value": "50% company match on your contributions",
+     "note": "Company website"
+    }
+   },
+   {
+    "key": "union",
+    "ref": false,
+    "ja": {
+     "label": "労組",
+     "value": "Teamsters",
+     "note": ""
+    },
+    "en": {
+     "label": "Union",
+     "value": "Teamsters",
+     "note": ""
+    }
+   },
+   {
+    "key": "staff_travel",
+    "ref": false,
+    "ja": {
+     "label": "社員の航空券",
+     "value": "United の航空券の優待。他社は ZED 運賃（航空会社の社員向けの割引運賃）",
+     "note": "社員ぜんたいの制度"
+    },
+    "en": {
+     "label": "Staff travel",
+     "value": "United travel privileges; ZED fares on other airlines",
+     "note": "Company-wide employee benefit"
+    }
+   },
+   {
+    "key": "health",
+    "ref": false,
+    "ja": {
+     "label": "保険",
+     "value": "医療 UnitedHealthcare・歯科 Delta Dental・眼科 VSP",
+     "note": "社員ぜんたいの制度"
+    },
+    "en": {
+     "label": "Health cover",
+     "value": "Medical (UnitedHealthcare), dental (Delta Dental), vision (VSP)",
+     "note": "Company-wide employee benefit"
+    }
+   },
+   {
+    "key": "disability",
+    "ref": false,
+    "ja": {
+     "label": "所得補償・生命保険",
+     "value": "長期の所得補償（LTD）・事故の死亡傷害（AD&D）・生命保険",
+     "note": "社員ぜんたいの制度"
+    },
+    "en": {
+     "label": "Disability & life",
+     "value": "Long-term disability, AD&D and life insurance",
+     "note": "Company-wide employee benefit"
+    }
+   },
+   {
+    "key": "uniform",
+    "ref": false,
+    "ja": {
+     "label": "制服手当",
+     "value": "月 USD 25",
+     "note": ""
+    },
+    "en": {
+     "label": "Uniform allowance",
+     "value": "USD 25 a month",
+     "note": ""
+    }
+   }
+  ],
+  "work": [
+   {
+    "key": "training",
+    "ref": false,
+    "ja": {
+     "label": "直接入社の機長",
+     "value": "初期訓練の移動とホテルは会社負担",
+     "note": "機長での直接入社（DEC）の場合"
+    },
+    "en": {
+     "label": "Direct-entry captains",
+     "value": "Company-paid travel and hotels for initial training",
+     "note": "Direct-entry captain (DEC) hires"
+    }
+   }
+  ]
+ },
+ "national-airlines": {
+  "pay": [
+   {
+    "key": "min_guarantee",
+    "ref": true,
+    "ja": {
+     "label": "最低保証",
+     "value": "月65時間。リザーブだけのラインは無い",
+     "note": "参考の条件"
+    },
+    "en": {
+     "label": "Minimum guarantee",
+     "value": "65 hours a month; no reserve-only lines",
+     "note": "Reference terms"
+    }
+   },
+   {
+    "key": "premiums",
+    "ref": true,
+    "ja": {
+     "label": "割増",
+     "value": "休日の乗務は200%",
+     "note": "参考の条件"
+    },
+    "en": {
+     "label": "Premium pay",
+     "value": "200% for flying on days off",
+     "note": "Reference terms"
+    }
+   },
+   {
+    "key": "per_diem",
+    "ref": true,
+    "ja": {
+     "label": "パーディアム（日当）",
+     "value": "国内 1日 USD 50・国際 1日 USD 75",
+     "note": "参考の条件。1日あたりの額"
+    },
+    "en": {
+     "label": "Per diem",
+     "value": "USD 50 a day domestic, USD 75 a day international",
+     "note": "Reference terms; daily rates"
+    }
+   },
+   {
+    "key": "retirement",
+    "ref": true,
+    "ja": {
+     "label": "会社の退職拠出",
+     "value": "退職制度あり。本人の最初の5%に会社が100%を上乗せ（入社1年後から）",
+     "note": "上乗せの率は以前の参考の値"
+    },
+    "en": {
+     "label": "Retirement",
+     "value": "Retirement plan; 100% match on the first 5% after one year of service",
+     "note": "Match rate is an older reference figure"
+    }
+   },
+   {
+    "key": "health",
+    "ref": false,
+    "ja": {
+     "label": "保険",
+     "value": "本人と家族の医療・歯科・眼科",
+     "note": "社員ぜんたいの制度"
+    },
+    "en": {
+     "label": "Health cover",
+     "value": "Medical, dental and vision for you and your family",
+     "note": "Company-wide employee benefit"
+    }
+   }
+  ],
+  "work": [
+   {
+    "key": "days_off",
+    "ref": true,
+    "ja": {
+     "label": "勤務と休み",
+     "value": "月に17〜18日の勤務・13日の休み。移動の日も勤務に数える",
+     "note": "参考の条件"
+    },
+    "en": {
+     "label": "Work and days off",
+     "value": "17–18 work days and 13 days off a month; travel days count as work days",
+     "note": "Reference terms"
+    }
+   },
+   {
+    "key": "bidding",
+    "ref": true,
+    "ja": {
+     "label": "休みの希望",
+     "value": "休みの日を3か月ごとに希望する",
+     "note": "参考の条件"
+    },
+    "en": {
+     "label": "Day-off requests",
+     "value": "Days off are requested in three-month blocks",
+     "note": "Reference terms"
+    }
+   },
+   {
+    "key": "vacation",
+    "ref": true,
+    "ja": {
+     "label": "年休",
+     "value": "入社1年後から年14日の有給（PTO）",
+     "note": "参考の条件"
+    },
+    "en": {
+     "label": "Vacation",
+     "value": "14 days of PTO a year after one year of service",
+     "note": "Reference terms"
+    }
+   },
+   {
+    "key": "commuter",
+    "ref": false,
+    "ja": {
+     "label": "通勤（ホームベース）",
+     "value": "米国内のホームベース。会社が認めた空港から乗務へ移動",
+     "note": ""
+    },
+    "en": {
+     "label": "Home-based commuting",
+     "value": "US home-based; you position to trips from a company-approved airport",
+     "note": ""
+    }
+   },
+   {
+    "key": "jumpseat",
+    "ref": true,
+    "ja": {
+     "label": "ジャンプシート",
+     "value": "他社機のジャンプシート（CASS）を使える",
+     "note": "参考の情報"
+    },
+    "en": {
+     "label": "Jumpseat",
+     "value": "Jumpseat access through CASS",
+     "note": "Reference information"
+    }
+   }
+  ]
+ },
+ "northern-air-cargo": {
+  "pay": [
+   {
+    "key": "min_guarantee",
+    "ref": true,
+    "ja": {
+     "label": "最低保証",
+     "value": "ライン・リザーブとも月65クレジット時間",
+     "note": "参考の条件"
+    },
+    "en": {
+     "label": "Minimum guarantee",
+     "value": "65 credit hours a month, line and reserve",
+     "note": "Reference terms"
+    }
+   },
+   {
+    "key": "premiums",
+    "ref": true,
+    "ja": {
+     "label": "割増",
+     "value": "オープンタイムは150%。ジュニアマン（指名の追加乗務）は1回目200%・2回目250%、90日に2回まで",
+     "note": "参考の条件"
+    },
+    "en": {
+     "label": "Premium pay",
+     "value": "Open time 150%; junior man 200% the first time and 250% the second, max twice in 90 days",
+     "note": "Reference terms"
+    }
+   },
+   {
+    "key": "retirement",
+    "ref": true,
+    "ja": {
+     "label": "会社の退職拠出",
+     "value": "会社の上乗せ（マッチ）あり。以前の表では 4%、3年後から 8%",
+     "note": "率は以前の表の値"
+    },
+    "en": {
+     "label": "Retirement",
+     "value": "Company match; an older table shows 4%, rising to 8% after three years",
+     "note": "Rates from an older table"
+    }
+   },
+   {
+    "key": "health",
+    "ref": false,
+    "ja": {
+     "label": "保険",
+     "value": "医療・歯科・眼科・処方薬、生命保険",
+     "note": "社員ぜんたいの制度"
+    },
+    "en": {
+     "label": "Health cover",
+     "value": "Medical, dental, vision, prescription and life insurance",
+     "note": "Company-wide employee benefit"
+    }
+   },
+   {
+    "key": "staff_travel",
+    "ref": false,
+    "ja": {
+     "label": "社員の航空券",
+     "value": "他社の航空券の割引（インターライン）",
+     "note": "社員ぜんたいの制度"
+    },
+    "en": {
+     "label": "Staff travel",
+     "value": "Interline discounts on other airlines",
+     "note": "Company-wide employee benefit"
+    }
+   }
+  ],
+  "work": [
+   {
+    "key": "jumpseat",
+    "ref": true,
+    "ja": {
+     "label": "ジャンプシート",
+     "value": "他社機のジャンプシート（CASS）を使える",
+     "note": "参考の情報"
+    },
+    "en": {
+     "label": "Jumpseat",
+     "value": "Jumpseat access through CASS",
+     "note": "Reference information"
+    }
+   }
+  ]
+ },
+ "global-crossing": {
+  "pay": [
+   {
+    "key": "per_diem",
+    "ref": true,
+    "ja": {
+     "label": "パーディアム（日当）",
+     "value": "国内線とその他の国際線 1時間 USD 2.55・欧州とアジア 1時間 USD 3.55",
+     "note": "参考の条件"
+    },
+    "en": {
+     "label": "Per diem",
+     "value": "USD 2.55 an hour domestic and other international, USD 3.55 Europe and Asia",
+     "note": "Reference terms"
+    }
+   }
+  ],
+  "work": [
+   {
+    "key": "days_off",
+    "ref": true,
+    "ja": {
+     "label": "月の最低休日",
+     "value": "ライン・リザーブとも月12日",
+     "note": "参考の条件"
+    },
+    "en": {
+     "label": "Minimum days off",
+     "value": "12 a month, line and reserve",
+     "note": "Reference terms"
+    }
+   },
+   {
+    "key": "commuter",
+    "ref": true,
+    "ja": {
+     "label": "通勤の支援",
+     "value": "ゲートウェイの都市から MIA への移動とホテルの支援",
+     "note": "以前の参考の情報"
+    },
+    "en": {
+     "label": "Commuting support",
+     "value": "Travel from a gateway city to MIA, plus hotel support",
+     "note": "Older reference information"
+    }
+   },
+   {
+    "key": "jumpseat",
+    "ref": true,
+    "ja": {
+     "label": "ジャンプシート",
+     "value": "他社機のジャンプシート（CASS）を使える",
+     "note": "以前の参考の情報"
+    },
+    "en": {
+     "label": "Jumpseat",
+     "value": "Jumpseat access through CASS",
+     "note": "Older reference information"
+    }
+   }
+  ]
+ },
+ "contour": {
+  "pay": [
+   {
+    "key": "premiums",
+    "ref": true,
+    "ja": {
+     "label": "割増",
+     "value": "月18勤務日を超えた勤務などは150%。日額は年俸を216で割った額",
+     "note": "参考の条件"
+    },
+    "en": {
+     "label": "Premium pay",
+     "value": "150% for duty beyond 18 days a month, among others; day rate is annual salary ÷ 216",
+     "note": "Reference terms"
+    }
+   },
+   {
+    "key": "per_diem",
+    "ref": false,
+    "ja": {
+     "label": "パーディアム（日当）",
+     "value": "定期便 国内 USD 2.08・国際 USD 3.14、チャーター 国内 USD 3.08・国際 USD 4.14",
+     "note": "1時間あたりの額。会社の公開値"
+    },
+    "en": {
+     "label": "Per diem",
+     "value": "Scheduled: USD 2.08 domestic, USD 3.14 international; charter: USD 3.08 and USD 4.14",
+     "note": "Hourly rates; company-published"
+    }
+   },
+   {
+    "key": "retirement",
+    "ref": false,
+    "ja": {
+     "label": "会社の退職拠出",
+     "value": "401(k)（確定拠出年金）に会社が最大6%を上乗せ（マッチ）。入社日から",
+     "note": "会社の採用ページ"
+    },
+    "en": {
+     "label": "Retirement match",
+     "value": "401(k) match up to 6%, from your first day",
+     "note": "Company careers page"
+    }
+   },
+   {
+    "key": "staff_travel",
+    "ref": false,
+    "ja": {
+     "label": "社員の航空券",
+     "value": "Contour の便と他社の優待（MyIDTravel）。対象の家族も",
+     "note": "社員ぜんたいの制度"
+    },
+    "en": {
+     "label": "Staff travel",
+     "value": "Travel on Contour and other airlines via MyIDTravel, including eligible family",
+     "note": "Company-wide employee benefit"
+    }
+   },
+   {
+    "key": "health",
+    "ref": false,
+    "ja": {
+     "label": "保険",
+     "value": "医療・歯科・眼科、短期・長期の所得補償",
+     "note": "社員ぜんたいの制度"
+    },
+    "en": {
+     "label": "Health cover",
+     "value": "Medical, dental and vision; short- and long-term disability",
+     "note": "Company-wide employee benefit"
+    }
+   }
+  ],
+  "work": [
+   {
+    "key": "training",
+    "ref": true,
+    "ja": {
+     "label": "初期訓練",
+     "value": "7〜8週間。初日から給与、個室のホテル・移動・パーディアム",
+     "note": "参考の条件"
+    },
+    "en": {
+     "label": "Initial training",
+     "value": "7–8 weeks; paid from day one, with single hotel rooms, travel and per diem",
+     "note": "Reference terms"
+    }
+   },
+   {
+    "key": "jumpseat",
+    "ref": false,
+    "ja": {
+     "label": "ジャンプシート",
+     "value": "他社機のジャンプシート（CASS）を使える",
+     "note": ""
+    },
+    "en": {
+     "label": "Jumpseat",
+     "value": "Jumpseat access through CASS",
+     "note": ""
+    }
+   }
+  ]
+ },
+ "mountain-air-cargo": {
+  "pay": [
+   {
+    "key": "location_pay",
+    "ref": true,
+    "ja": {
+     "label": "地域手当",
+     "value": "選ばれた地点で最大 USD 30,000",
+     "note": "参考の条件。対象の地点だけ"
+    },
+    "en": {
+     "label": "Location pay",
+     "value": "Up to USD 30,000 at selected locations",
+     "note": "Reference terms; selected locations only"
+    }
+   },
+   {
+    "key": "per_diem",
+    "ref": true,
+    "ja": {
+     "label": "パーディアム（日当）",
+     "value": "勤務（デューティー）が12時間以上の日に1日 USD 45",
+     "note": "参考の条件"
+    },
+    "en": {
+     "label": "Per diem",
+     "value": "USD 45 a day on duty days of 12 hours or more",
+     "note": "Reference terms"
+    }
+   },
+   {
+    "key": "retirement",
+    "ref": true,
+    "ja": {
+     "label": "会社の退職拠出",
+     "value": "401(k)（確定拠出年金）の会社の上乗せあり。以前の参考では本人6%に50%（会社 最大3%）",
+     "note": "率は以前の参考の値"
+    },
+    "en": {
+     "label": "Retirement match",
+     "value": "401(k) match; older reference: 50% of the first 6% (up to 3%)",
+     "note": "Rate is an older reference figure"
+    }
+   },
+   {
+    "key": "health",
+    "ref": false,
+    "ja": {
+     "label": "保険",
+     "value": "医療・歯科・眼科、生命保険・長期の所得補償",
+     "note": "社員ぜんたいの制度"
+    },
+    "en": {
+     "label": "Health cover",
+     "value": "Medical, dental and vision; life and long-term disability",
+     "note": "Company-wide employee benefit"
+    }
+   }
+  ],
+  "work": [
+   {
+    "key": "schedule",
+    "ref": true,
+    "ja": {
+     "label": "勤務の型",
+     "value": "ATR は3週勤務・1週休み、C408 は4週・1週、C208 の拠点勤務は5日・1日 など",
+     "note": "参考の条件。機材と所属の形で違う"
+    },
+    "en": {
+     "label": "Schedule pattern",
+     "value": "ATR 3 weeks on/1 off; C408 4 on/1 off; based C208 5 days on/1 off, among others",
+     "note": "Reference terms; varies by aircraft and based/float status"
+    }
+   },
+   {
+    "key": "jumpseat",
+    "ref": false,
+    "ja": {
+     "label": "ジャンプシート",
+     "value": "ジャンプシートの協定あり",
+     "note": "会社の案内"
+    },
+    "en": {
+     "label": "Jumpseat",
+     "value": "Jumpseat agreements in place",
+     "note": "Company information"
+    }
+   }
+  ]
+ },
+ "air-canada": {
+  "pay": [
+   {
+    "key": "min_guarantee",
+    "ref": false,
+    "ja": {
+     "label": "最低保証",
+     "value": "入社から2年間の副操縦士は月75時間以上。その後は機材・ライン・リザーブで変わる。年900時間の調整もある",
+     "note": "2023〜2027年の協約"
+    },
+    "en": {
+     "label": "Minimum guarantee",
+     "value": "75+ hours a month for first officers in their first two years; after that it varies by fleet and line or reserve, with a 900-hour annual adjustment",
+     "note": "2023–2027 CBA"
+    }
+   },
+   {
+    "key": "per_diem",
+    "ref": false,
+    "ja": {
+     "label": "パーディアム（日当）",
+     "value": "カナダ・米国は政府の出張基準（NJC）の地域の日額の85%を24で割った時間額。海外は地域で65%・70%・75%など",
+     "note": "協約の決め方。半年ごとに見直し"
+    },
+    "en": {
+     "label": "Per diem",
+     "value": "Canada/US: 85% of the NJC regional daily rate ÷ 24, paid by the hour; international: 65%, 70% or 75% by region",
+     "note": "Contract formula; updated every six months"
+    }
+   },
+   {
+    "key": "retirement",
+    "ref": false,
+    "ja": {
+     "label": "会社の年金",
+     "value": "入社の時期で確定給付（DB）・複数事業主の年金（MEPP）・確定拠出（DC）などに分かれる",
+     "note": ""
+    },
+    "en": {
+     "label": "Pension",
+     "value": "DB, MEPP or DC plans, depending on when you were hired",
+     "note": ""
+    }
+   },
+   {
+    "key": "contract",
+    "ref": false,
+    "ja": {
+     "label": "労働協約",
+     "value": "2023年9月30日〜2027年9月29日。今の給与表は2026年9月30日から",
+     "note": "ALPA"
+    },
+    "en": {
+     "label": "Contract status",
+     "value": "CBA runs Sep 30, 2023 – Sep 29, 2027; current pay rates effective Sep 30, 2026",
+     "note": "ALPA"
+    }
+   },
+   {
+    "key": "health",
+    "ref": false,
+    "ja": {
+     "label": "保険",
+     "value": "医療・歯科などの保険",
+     "note": "社員ぜんたいの制度"
+    },
+    "en": {
+     "label": "Health cover",
+     "value": "Medical, dental and other cover",
+     "note": "Company-wide employee benefit"
+    }
+   }
+  ],
+  "work": [
+   {
+    "key": "training",
+    "ref": false,
+    "ja": {
+     "label": "訓練中",
+     "value": "ホテルと食事。距離の条件で滞在を選べる。会社の送迎が無いときはタクシー代を領収書で精算",
+     "note": "訓練のときの決まり。ふだんの通勤とは別"
+    },
+    "en": {
+     "label": "During training",
+     "value": "Hotel and meals, with stay options based on distance; receipted taxi fares reimbursed when no transport is provided",
+     "note": "Training only — not your regular commute"
+    }
+   }
+  ]
+ },
+ "westjet": {
+  "pay": [
+   {
+    "key": "min_guarantee",
+    "ref": true,
+    "ja": {
+     "label": "最低保証",
+     "value": "月77.5時間",
+     "note": "参考の値"
+    },
+    "en": {
+     "label": "Minimum guarantee",
+     "value": "77.5 hours a month",
+     "note": "Reference figure"
+    }
+   },
+   {
+    "key": "premiums",
+    "ref": false,
+    "ja": {
+     "label": "割増",
+     "value": "85クレジット時間を超えた分は割増",
+     "note": "会社の案内"
+    },
+    "en": {
+     "label": "Premium pay",
+     "value": "Premium pay above 85 credit hours",
+     "note": "Company information"
+    }
+   },
+   {
+    "key": "contract",
+    "ref": false,
+    "ja": {
+     "label": "労働協約",
+     "value": "WestJet 本体（Mainline）の協約は2023年1月1日〜2026年12月31日",
+     "note": "ALPA。Encore は別"
+    },
+    "en": {
+     "label": "Contract status",
+     "value": "Mainline CBA runs Jan 1, 2023 – Dec 31, 2026",
+     "note": "ALPA; Encore is separate"
+    }
+   }
+  ],
+  "work": [
+   {
+    "key": "bidding",
+    "ref": false,
+    "ja": {
+     "label": "勤務の希望",
+     "value": "ソーシャライズド・ビッド（先任順位だけで決めない）。勤務の交換・削除・追加ができる",
+     "note": ""
+    },
+    "en": {
+     "label": "Bidding",
+     "value": "Socialized bidding (not seniority-only); trips can be traded, dropped and picked up",
+     "note": ""
+    }
+   },
+   {
+    "key": "reserve",
+    "ref": false,
+    "ja": {
+     "label": "リザーブ",
+     "value": "短い呼び出し（ショートコール）と長い呼び出し（ロングコール）のリザーブがある",
+     "note": ""
+    },
+    "en": {
+     "label": "Reserve",
+     "value": "Short-call and long-call reserve",
+     "note": ""
+    }
+   },
+   {
+    "key": "jumpseat",
+    "ref": false,
+    "ja": {
+     "label": "ジャンプシート",
+     "value": "他社と相互のジャンプシート（レシプロカル）",
+     "note": "会社の案内"
+    },
+    "en": {
+     "label": "Jumpseat",
+     "value": "Reciprocal jumpseat agreements",
+     "note": "Company information"
+    }
+   }
+  ]
+ },
+ "jazz": {
+  "pay": [
+   {
+    "key": "min_guarantee",
+    "ref": true,
+    "ja": {
+     "label": "最低保証",
+     "value": "月75時間",
+     "note": "参考の条件"
+    },
+    "en": {
+     "label": "Minimum guarantee",
+     "value": "75 hours a month",
+     "note": "Reference terms"
+    }
+   },
+   {
+    "key": "per_diem",
+    "ref": false,
+    "ja": {
+     "label": "パーディアムなど",
+     "value": "給与とは別の手当が年平均 約 CAD 9,000。求人の例では月 CAD 800〜1,000",
+     "note": "会社の例。勤務で変わる"
+    },
+    "en": {
+     "label": "Per diem & allowances",
+     "value": "Non-salary allowances average about CAD 9,000 a year; job ads cite CAD 800–1,000 a month",
+     "note": "Company examples; varies with flying"
+    }
+   },
+   {
+    "key": "retirement",
+    "ref": false,
+    "ja": {
+     "label": "会社の退職拠出",
+     "value": "確定拠出（DC）の年金に会社が最大8%を上乗せ（マッチ）。在籍などで変わる",
+     "note": "会社の案内"
+    },
+    "en": {
+     "label": "Retirement match",
+     "value": "DC pension match up to 8%, depending on service",
+     "note": "Company information"
+    }
+   },
+   {
+    "key": "medical_cost",
+    "ref": false,
+    "ja": {
+     "label": "身体検査などの手当",
+     "value": "身体検査・パスポート・制服などの手当が年 CAD 1,600 超",
+     "note": "会社の例"
+    },
+    "en": {
+     "label": "Medicals & other allowances",
+     "value": "Over CAD 1,600 a year for medicals, passport, uniforms and more",
+     "note": "Company example"
+    }
+   },
+   {
+    "key": "union",
+    "ref": false,
+    "ja": {
+     "label": "労組",
+     "value": "ALPA",
+     "note": ""
+    },
+    "en": {
+     "label": "Union",
+     "value": "ALPA",
+     "note": ""
+    }
+   },
+   {
+    "key": "staff_travel",
+    "ref": false,
+    "ja": {
+     "label": "社員の航空券",
+     "value": "Air Canada の社員の航空券の優待",
+     "note": "社員ぜんたいの制度"
+    },
+    "en": {
+     "label": "Staff travel",
+     "value": "Air Canada staff travel privileges",
+     "note": "Company-wide employee benefit"
+    }
+   }
+  ],
+  "work": [
+   {
+    "key": "bidding",
+    "ref": false,
+    "ja": {
+     "label": "勤務の希望",
+     "value": "先任順位で希望を出す。アプリで出せる",
+     "note": "会社の案内"
+    },
+    "en": {
+     "label": "Bidding",
+     "value": "Seniority-based bidding, done through an app",
+     "note": "Company information"
+    }
+   },
+   {
+    "key": "equipment",
+    "ref": false,
+    "ja": {
+     "label": "支給の機器",
+     "value": "iPad と Bose のヘッドセット",
+     "note": "会社の案内"
+    },
+    "en": {
+     "label": "Equipment",
+     "value": "iPad and Bose headset provided",
+     "note": "Company information"
+    }
+   }
+  ]
+ },
+ "porter": {
+  "pay": [
+   {
+    "key": "min_guarantee",
+    "ref": true,
+    "ja": {
+     "label": "最低保証",
+     "value": "月77.5時間",
+     "note": "第三者の参考の値"
+    },
+    "en": {
+     "label": "Minimum guarantee",
+     "value": "77.5 hours a month",
+     "note": "Third-party reference figure"
+    }
+   },
+   {
+    "key": "contract",
+    "ref": false,
+    "ja": {
+     "label": "労働協約",
+     "value": "2025年8月12日に ALPA の組合ができた。初めての協約を交渉中",
+     "note": ""
+    },
+    "en": {
+     "label": "Contract status",
+     "value": "Pilots joined ALPA on Aug 12, 2025; first ALPA contract under negotiation",
+     "note": ""
+    }
+   }
+  ]
  }
 });
