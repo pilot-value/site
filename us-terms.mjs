@@ -134,7 +134,7 @@ export const TERMS = Object.freeze({
     },
     "en": {
      "label": "Disability cover",
-     "value": "Company-paid LTD; optional STD",
+     "value": "Company-paid long-term disability (LTD); optional short-term disability (STD)",
      "note": "Company-wide employee benefit"
     }
    },
