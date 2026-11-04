@@ -320,7 +320,7 @@ function secD(I) {
   const jp = regionSlugs(I, 'japan'), m3 = [...unbake(I.hub['middle-east-pilot-salary.html']).matchAll(/日本の掲載(\d+)社の機長の推定年収の平均は¥([\d,]+)万/g)];
   out.push(R('D3', m3.length ? m3.filter((m) => num(m[1]) !== jp.length || num(m[2]) !== mean10(I, jp, 'cap'))
     .map((m) => `middle-east：「日本の掲載${m[1]}社…¥${m[2]}万」／台帳「${jp.length}社…${yen(mean10(I, jp, 'cap'))}」`) : ['middle-east：「日本の掲載…社の機長の推定年収の平均は…」が読めない']));
-  const all = Object.keys(I.ledger), m4 = /<div class="stat-label">世界の機長の推定年収<\/div>\s*<div[^>]*>¥([\d,]+)万<\/div>\s*<div class="stat-sub">パイロット数で重み付けした推定年収の平均<\/div>/.exec(unbake(I.hub['countries.html']));
+  const all = Object.keys(I.ledger), m4 = /<div class="stat-label">世界の機長の推定年収<\/div>\s*<div[^>]*>¥([\d,]+)万<\/div>\s*<div class="stat-sub">推定年収の平均<\/div>/.exec(unbake(I.hub['countries.html']));
   out.push(R('D4', !m4 ? ['countries.html：「世界の機長の推定年収」の札が読めない']
     : [...(num(m4[1]) !== mean10(I, all, 'cap') ? [`countries.html：¥${m4[1]}万／台帳 ${yen(mean10(I, all, 'cap'))}`] : []),
     ]));
@@ -1193,10 +1193,10 @@ function secM(I) {
     英語の Lowest / Highest / Range はその候補（リードの決め待ち ── 決まったら directory-map.mjs の WORDS とここを一緒に直す）。
     ここに打った字が正（書き換えに対する杭） */
 const MAP_WORD = {
-  ja: { k: '公開情報からの推定', def: 'パイロット数で重み付けした推定年収の平均', cond: '条件/出典', dt: ['対象', '対象掲載社数', '換算'], go: 'この地域の航空会社を見る',
+  ja: { k: '公開情報からの推定', def: '推定年収の平均', cond: '条件/出典', dt: ['対象', '対象掲載社数', '換算'], go: 'この地域の航空会社を見る',
         lo: '最低', hi: '最高', span: '幅', count: '{N}社', region: '{L} {N}社', group: '職位', hint: '地図をクリックして地域を選択',
         zoom: { in: '拡大', out: '縮小', reset: '元に戻す', touch: '2本の指で動かせます' }, close: '閉じる' },
-  en: { k: 'Estimate from public information', def: 'Mean of our estimates, weighted by pilot numbers', cond: 'Conditions / Sources',
+  en: { k: 'Estimate from public information', def: 'Mean of our estimates', cond: 'Conditions / Sources',
         dt: ['Airlines included', 'Number of airlines', 'Exchange rates'], go: 'View airlines in this region',
         lo: 'Lowest', hi: 'Highest', span: 'Range', count: '{N}', region: '{L} {N}', group: 'Rank', hint: 'Click the map to choose a region',
         zoom: { in: 'Zoom in', out: 'Zoom out', reset: 'Reset', touch: 'Use two fingers to move the map' }, close: 'Close' },

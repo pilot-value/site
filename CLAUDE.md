@@ -604,8 +604,9 @@ baland_ass/                            ブランド資産（※ brand_assets の
 - 人数と機材の数は [pilot-counts.mjs](pilot-counts.mjs)（ROUND8 の調査パック・1行ずつ URL と引用つき）。**平均の計算だけが読む・画面には出さない。**
   ⚠️ research-ledger.mjs（取り込みの台帳）に入れない ── あちらは会社ページが読むので、入れると26社のページに「運航している機材 ○機」が黙って増える
   （英国の子会社だけの数 ＝ ウィズエア 21機 のような範囲違いも混じる）。会社ページに出すかは別の判断。
-- 字：「パイロット数で重み付けした推定年収の平均」。**社数を書かない**（[seo-normalize.mjs](seo-normalize.mjs) の `fixCount` が「1xx社」を掲載社数へ書き換えるので、平均に入った111社と書いても124社に化ける）。
-  「全パイロットの平均年収」とは呼ばない（各社の額は代表の1人の推定年収）。見積もりについての注記は足さない。
+- 字：「推定年収の平均」だけ。**「パイロット数で重み付け」とは画面に書かない**（2026-11-04 オーナー「わざわざ表示の必要性なし」）。
+  **社数も書かない**（[seo-normalize.mjs](seo-normalize.mjs) の `fixCount` が「1xx社」を掲載社数へ書き換えるので、平均に入った111社と書いても124社に化ける）。
+  「全パイロットの平均年収」とは呼ばない（各社の額は代表の1人の推定年収）。見積もりについての注記も足さない。
 - ⚠️ 1社1票の単純平均に戻さない。[assert-directory.mjs](assert-directory.mjs) の D5b・M7 が「戻すと落ちる」を見ている。
 - 調べ直したら（新しい人数の調査パック）、pilot-counts.mjs を作り直す → `node gen-directory.mjs` → `node gen-countries.mjs` → `inject-session` → `patch-side-nav` →
   `bake-en-currency` → `gen-lang.mjs es`（訳の足りない文を足す）→ `seo-normalize` → `gen-datemod` → `gen-sitemap`。

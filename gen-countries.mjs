@@ -948,11 +948,11 @@ ${basisTable}${openTable}
     <h2 id="compare">${ja ? `${name}は世界のどのあたりか` : `Where ${name} sits worldwide`}</h2>
     <p>${ja
     ? `機長の推定年収の平均で比べたものです。${name}は${man(c.capAvg)}で、世界の推定年収の平均${man(WORLD_CAP)}に対して<strong>${diff >= 0 ? `約${diff}%高い` : `約${Math.abs(diff)}%低い`}</strong>水準。平均を掲載している${RANKED.length}カ国の中では第${rank}位です。`
-    : `Captain estimates side by side. ${nameCap} sits at ${man(c.capAvg)} against a ${man(WORLD_CAP)} pilot-weighted world average — <strong>${diff >= 0 ? `about ${diff}% above` : `about ${Math.abs(diff)}% below`}</strong>. That places it ${ordinal(rank)} of the ${RANKED.length} countries we give an average for.`}</p>
+    : `Captain estimates side by side. ${nameCap} sits at ${man(c.capAvg)} against a ${man(WORLD_CAP)} world average — <strong>${diff >= 0 ? `about ${diff}% above` : `about ${Math.abs(diff)}% below`}</strong>. That places it ${ordinal(rank)} of the ${RANKED.length} countries we give an average for.`}</p>
     <div class="glass" style="padding:18px 20px">${bars(cmpRows, lang)}</div>
     <p style="font-size:.78rem;color:#6b7d93;margin-top:10px">${ja
-    ? `※ 各国の値は、その国に本拠を置く掲載社の機長の推定年収を、各社のパイロット数で重み付けした平均です。副操縦士の世界の平均は${man(WORLD_FO)}。どれも公開情報から当サイトが出した推定で、会社が公表した平均ではありません。会社が募集などで自分から示した金額は、各社のページに別に載せています。`
-    : `Country figures are our captain estimates for the airlines we list there, averaged with each airline weighted by its number of pilots. First officers: ${man(WORLD_FO)} worldwide. These are our own estimates from public information, not figures the airlines publish. Where an airline has published a figure itself, we show that separately on its own page.`}</p>`}
+    ? `※ 各国の値は、その国に本拠を置く掲載社の機長の推定年収の平均です。副操縦士の世界の平均は${man(WORLD_FO)}。どれも公開情報から当サイトが出した推定で、会社が公表した平均ではありません。会社が募集などで自分から示した金額は、各社のページに別に載せています。`
+    : `Country figures are the mean of our captain estimates for the airlines we list there. First officers: ${man(WORLD_FO)} worldwide. These are our own estimates from public information, not figures the airlines publish. Where an airline has published a figure itself, we show that separately on its own page.`}</p>`}
 
     <h2 id="others">${ja ? '他の国と比べる' : 'Compare other countries'}</h2>
 ${hub ? `    <p>${ja
@@ -1350,11 +1350,11 @@ ${held ? `    <h2 id="compare">${ja ? `${name}の順位を出していない理�
 ` : `    <h2 id="compare">${ja ? `${name}は世界のどのあたりか` : `Where ${name} sits worldwide`}</h2>
     <p>${ja
     ? `機長の推定年収を地域ごとに比べたものです。${name}は${man(r.capAvg)}で、世界の推定年収の平均${man(WORLD_CAP)}に対して<strong>${diff >= 0 ? `約${diff}%高い` : `約${Math.abs(diff)}%低い`}</strong>水準。推定年収の平均を出している${REG_RANKED.length}地域の中では第${rank}位です。`
-    : `Captain averages by region. ${nameCap} sits at ${man(r.capAvg)} against a ${man(WORLD_CAP)} pilot-weighted world average — <strong>${diff >= 0 ? `about ${diff}% above` : `about ${Math.abs(diff)}% below`}</strong>. That is ${nth(rank)} of the ${REG_RANKED.length} regions we publish an average for.`}</p>
+    : `Captain averages by region. ${nameCap} sits at ${man(r.capAvg)} against a ${man(WORLD_CAP)} world average — <strong>${diff >= 0 ? `about ${diff}% above` : `about ${Math.abs(diff)}% below`}</strong>. That is ${nth(rank)} of the ${REG_RANKED.length} regions we publish an average for.`}</p>
     <div class="glass" style="padding:18px 20px">${bars(cmpRows, lang)}</div>
     <p style="font-size:.78rem;color:#6b7d93;margin-top:10px">${ja
-    ? `※ 各地域の値は、その地域の掲載社の機長の推定年収を、各社のパイロット数で重み付けした平均。日本は地域ハブを別に置かず <a href="countries/japan.html">日本のページ</a>にまとめています。${name}の副操縦士の推定年収の平均は${man(r.foAvg)}（世界では${man(WORLD_FO)}）。出どころを確認して表示を変えた会社も、推定年収でこの平均に入っています。`
-    : `Regional figures are our captain estimates for the airlines we list there, averaged with each airline weighted by its number of pilots. Japan has no separate regional hub — see the <a href="countries/japan.html">Japan page</a>. First officers in ${name} average ${man(r.foAvg)}, against ${man(WORLD_FO)} worldwide. Airlines whose sources we have checked and relabelled are included in that mean at their estimated pay.`}</p>
+    ? `※ 各地域の値は、その地域の掲載社の機長の推定年収の平均。日本は地域ハブを別に置かず <a href="countries/japan.html">日本のページ</a>にまとめています。${name}の副操縦士の推定年収の平均は${man(r.foAvg)}（世界では${man(WORLD_FO)}）。出どころを確認して表示を変えた会社も、推定年収でこの平均に入っています。`
+    : `Regional figures are the mean of our captain estimates for the airlines we list there. Japan has no separate regional hub — see the <a href="countries/japan.html">Japan page</a>. First officers in ${name} average ${man(r.foAvg)}, against ${man(WORLD_FO)} worldwide. Airlines whose sources we have checked and relabelled are included in that mean at their estimated pay.`}</p>
 `}
 
     <h2 id="regions">${ja ? '他の地域と比べる' : 'Compare other regions'}</h2>
@@ -1443,7 +1443,7 @@ function indexPage(lang) {
     <div class="stat-card">
       <div class="stat-label">${ja ? '世界の機長の推定年収' : 'World captain estimate'}</div>
       <div class="stat-value num" style="color:#f5c842">${man(WORLD_CAP)}</div>
-      <div class="stat-sub">${ja ? 'パイロット数で重み付けした推定年収の平均' : 'pilot-weighted mean of our estimates'}</div>
+      <div class="stat-sub">${ja ? '推定年収の平均' : 'mean of our estimates'}</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">${ja ? '最高水準の国' : 'Highest country'}</div>
@@ -1523,8 +1523,8 @@ ${[...RANKED, ...HOLD_C].map((c, i) => `          <tr>
       </table>
     </div>
     <p style="font-size:.78rem;color:#6b7d93;margin-top:10px">${ja
-    ? `※ 各国の値は、その国に本拠を置く掲載社の掲載値を、各社のパイロット数で重み付けして平均したもので、その国のパイロット全体の平均ではありません。金額の種類が混ざる国は平均を出していません（0として計算していません）。年収の正は <a href="world-airlines.html">航空会社別のページ</a>。`
-    : `Country figures are the figures we list for airlines based there, averaged with each airline weighted by its number of pilots — not the average pay of all pilots in that country. Countries whose figures are not on one scale have no average; they are not counted as zero. The per-airline pages are the source of record — see <a href="world-airlines.html">all airlines</a>.`}</p>
+    ? `※ 各国の値は、その国に本拠を置く掲載社の掲載値を平均したもので、その国のパイロット全体の平均ではありません。金額の種類が混ざる国は平均を出していません（0として計算していません）。年収の正は <a href="world-airlines.html">航空会社別のページ</a>。`
+    : `Country figures are the mean of the figures we list for airlines based there — not the average pay of all pilots in that country. Countries whose figures are not on one scale have no average; they are not counted as zero. The per-airline pages are the source of record — see <a href="world-airlines.html">all airlines</a>.`}</p>
 
     <div class="glass" style="padding:22px 24px;margin-top:2.5rem">
       <p style="margin:0 0 12px;font-weight:800;font-size:1rem">${ja ? '次に見るなら' : 'Where to next'}</p>
