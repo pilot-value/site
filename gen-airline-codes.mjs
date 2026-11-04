@@ -182,16 +182,23 @@ const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, 
 const jsKey = (k) => (/^[A-Za-z_$][\w$]*$/.test(k) ? k : `'${k}'`);
 const jsStr = (s) => `'${s.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
 
-/* 地域ごとに <optgroup> を組む。地域内の並びは名簿の並び順をそのまま使う
-   （大手が先頭に来るよう手で整えてあるので、並べ直さない）。
-   OPS の社は各地域の末尾に付く（ALL の合流順がそのまま出る）。 */
+/* 地域ごとに <optgroup> を組む。
+   ★2026-11-04 オーナー「給与提出の会社部分、地域ごとに分けて、かつ a-z 順にしよう」で、地域の中は
+     **英語の社名の A→Z** にした（それまでは名簿の手並べ＝大手が先・投稿先だけの社は末尾）。
+     日本語ページも英語の社名で並べる（表示は日本語のまま・日英西で同じ並び）。
+     比べ方は会社一覧の A→Z（directory-model.mjs の az）と同じ式。同じ名前は code の順。
+     年収のある社（SALARY）と投稿先だけの社（OPS）を分けない。地域の順番と「一覧にない会社」が最後なのは今までどおり。
+   ★並べ替えるのはフォームの選択肢だけ。airline-codes.json・pv-airlines.json・SQL は名簿の順のまま。 */
+const byEnName = (a, b) => String(ALL[a].en || '').localeCompare(String(ALL[b].en || ''), 'en', { sensitivity: 'base' })
+  || (a < b ? -1 : a > b ? 1 : 0);
+
 function buildOptions(lang) {
   const g = GROUPS[lang];
   const seen = new Set();
   const out = [];
 
   for (const region of g.order) {
-    const members = KEYS.filter((k) => ALL[k].region === region);
+    const members = KEYS.filter((k) => ALL[k].region === region).sort(byEnName);
     if (!members.length) throw new Error(`region に1社も居ない: ${region}`);
     out.push(`              <optgroup label="${esc(g.label[region])}">`);
     for (const k of members) {
