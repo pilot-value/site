@@ -66,6 +66,7 @@
       errNotSlip: '給与明細に見えませんでした。',
       errBusy: '混み合っていて、返事が来ませんでした。少し待ってもう一度どうぞ。',
       errPrep: 'この明細を送れる形に整えられませんでした。',
+      errBlank: '画像を開けませんでした。スクリーンショットか PDF で選んでください。',
       errApply: '読めましたが、入力欄に入れられませんでした。',
       errQuota: '今日の自動読み取りの上限に達しました。明日また使えます。',
       /* ★全体の天井に当たったとき。本人のせいではないので言い方を変える。
@@ -207,6 +208,7 @@
       errNotSlip: 'That does not look like a payslip.',
       errBusy: 'Reading is busy and no answer came back. Wait a moment and try again.',
       errPrep: 'This payslip could not be prepared for sending.',
+      errBlank: 'This image could not be opened. Please choose a screenshot or a PDF.',
       errApply: 'It was read, but the figures could not be placed in the form.',
       errQuota: 'You have used today’s automatic reads. They are available again tomorrow.',
       errQuotaGlobal: 'Automatic reading is busy and we cannot take any more today. This did not use one of your reads.',
@@ -341,6 +343,7 @@
       errNotSlip: 'No parece un recibo de nómina.',
       errBusy: 'La lectura está saturada y no llegó respuesta. Espera un momento y vuelve a intentarlo.',
       errPrep: 'No se pudo preparar este recibo de nómina para enviarlo.',
+      errBlank: 'No se pudo abrir esta imagen. Elige una captura de pantalla o un PDF.',
       errApply: 'Se leyó, pero no se pudieron colocar las cifras en el formulario.',
       errQuota: 'Ya usaste las lecturas automáticas de hoy. Mañana vuelven a estar disponibles.',
       errQuotaGlobal: 'La lectura automática está saturada y hoy no podemos aceptar más. Esto no consumió ninguna de tus lecturas.',
@@ -696,6 +699,9 @@
        向こうの処理は止まらないので、返ってきても画面には入れない。 */
     var mine = ++readToken;
     busy = false;
+    /* ★前に選んだ明細の絵と送る画像を捨てる（新しい明細で失敗したとき、前の明細の絵を出さない）。 */
+    if (viewUrl) { try { URL.revokeObjectURL(viewUrl); } catch (e) {} viewUrl = ''; }
+    work = null;
     kindNow = isPdf ? 'pdf' : 'image';
     pageNote = '';
     track('payslip_loaded', { kind: kindNow });
@@ -704,8 +710,9 @@
     var t0 = now();
     var p = isPdf ? withTimeout(renderPdf(file), PREP_MS, 'pdf_timeout')
                   : withTimeout(loadImage(file), PREP_MS, 'image_timeout');
+    var via = 'img';
     p.then(function (r) {
-      if (mine !== readToken) return;
+      if (mine !== readToken) return false;
       var bmp = isPdf ? r.canvas : r;
       /* ★何ページ目を読むかを、読み取り中の表示に添える（初版は1ページ目だけ）。 */
       pageNote = (isPdf && r.pages > 1) ? T.pdfPages(r.pages) : '';
@@ -714,8 +721,21 @@
          2026-11-04 までは閉じた ImageBitmap を送る段でもう一度描こうとして、
          予備の読み込み方に落ちたときだけ「通信エラー」に化けていた。 */
       if (!isPdf && bmp && typeof bmp.close === 'function') { try { bmp.close(); } catch (e) {} }
+      if (isPdf || !blank(work)) return true;
+      /* ★描けていない（2026-11-05・iPhone 実機）。別の読み込み方でもう一度だけ描く。
+         それでも一色なら送らない ── 読み取りの回数も費用も使わずに、本人に分かる言葉で止める。 */
+      via = 'bitmap';
+      return withTimeout(altBitmap(file), PREP_MS, 'image_timeout').then(function (b2) {
+        if (mine !== readToken) return false;
+        try { buildWork(b2); } catch (e) { throw tag('image_blank'); }
+        try { if (b2 && b2.close) b2.close(); } catch (e) {}
+        if (blank(work)) throw tag('image_blank');
+        return true;
+      }, function (e) { throw (e && e.pvCode === 'image_timeout') ? e : tag('image_blank'); });
+    }).then(function (go) {
+      if (!go || mine !== readToken) return;
       makeView();
-      track('payslip_prepared', { kind: kindNow, ms: since(t0) });
+      track('payslip_prepared', { kind: kindNow, ms: since(t0), via: via });
       startRead();
     }).catch(function (e) {
       if (mine !== readToken) return;
@@ -925,14 +945,14 @@
     network: 'errNet',
     prep_failed: 'errPrep', apply_failed: 'errApply',
     image_too_large: 'tooLarge', too_large: 'tooLarge', bad_mime: 'badImage', bad_type: 'badImage',
-    image_decode: 'badImage', image_timeout: 'errPrep',
+    image_decode: 'badImage', image_timeout: 'errPrep', image_blank: 'errBlank',
     pdf_locked: 'pdfLocked', pdf_xfa: 'pdfXfa', pdf_blank: 'pdfBlank', pdf_broken: 'pdf', pdf_timeout: 'errPrep',
     server_misconfigured: 'errServer', quota_unavailable: 'errServer',
   };
   /* ★同じ画像のままもう一度読んで直る見込みがあるものだけ。断られた・明細でない・
      上限に達した・入力欄に入れられなかった、は同じ画像では直らない。 */
   var RETRY = { network: 1, timeout: 1, read_busy: 1, read_failed: 1, read_bad_format: 1, read_truncated: 1 };
-  var FILE_ERR = { too_large: 1, bad_type: 1, image_decode: 1, image_too_large: 1, bad_mime: 1, not_a_payslip: 1,
+  var FILE_ERR = { too_large: 1, bad_type: 1, image_decode: 1, image_blank: 1, image_too_large: 1, bad_mime: 1, not_a_payslip: 1,
                    pdf_locked: 1, pdf_xfa: 1, pdf_blank: 1, pdf_broken: 1, image_timeout: 1, pdf_timeout: 1, prep_failed: 1 };
   function showFail(code) {
     loadClose();
@@ -1205,7 +1225,29 @@
     });
   }
 
-  /* work ＝ 送る画像。長辺 MAX_EDGE まで縮める（引き伸ばしはしない＝無い画素は作れない）。 */
+  /* 予備の読み込み方（<img> で描けなかったとき・W と H は1回目の buildWork が決めた大きさ）。
+     縮めながら開ける端末では縮めて開く（大きな写真を原寸で開けない端末のため）。
+     ★縦横が入れ替わって返ってきたら（向きを直す前に縮める端末）使わず、原寸で開き直す。 */
+  function altBitmap(file) {
+    if (typeof createImageBitmap !== 'function') return Promise.reject(tag('image_blank'));
+    var want = W / H;
+    var plain = function () {
+      return createImageBitmap(file, { imageOrientation: 'from-image' })
+        .catch(function () { return createImageBitmap(file); });
+    };
+    return createImageBitmap(file, { imageOrientation: 'from-image', resizeWidth: W, resizeHeight: H, resizeQuality: 'high' })
+      .then(function (b) {
+        if (b && b.width && b.height && Math.abs(b.width / b.height - want) < 0.02) return b;
+        try { if (b && b.close) b.close(); } catch (e) {}
+        return plain();
+      }, plain);
+  }
+
+  /* work ＝ 送る画像。長辺 MAX_EDGE まで縮める（引き伸ばしはしない＝無い画素は作れない）。
+     ★先に白で塗ってから描く（2026-11-05・iPhone 実機で真っ黒の画像が届いた）。
+       JPEG は透明を持てず、透明な画素は黒になる。PDF から書き出した PNG のような
+       背景が透明な明細は、黒い字が黒い地に沈んで「真っ黒」になっていた。
+       描けなかったときも塗った白が残るだけ＝送る前に blank() で見つけられる。 */
   function buildWork(bmp) {
     var iw = bmp.width || bmp.naturalWidth, ih = bmp.height || bmp.naturalHeight;
     if (!iw || !ih) throw new Error('size');
@@ -1214,7 +1256,30 @@
     H = Math.max(1, Math.round(ih * s));
     work = document.createElement('canvas');
     work.width = W; work.height = H;
-    work.getContext('2d').drawImage(bmp, 0, 0, W, H);
+    var cx = work.getContext('2d');
+    cx.fillStyle = '#fff';
+    cx.fillRect(0, 0, W, H);
+    cx.drawImage(bmp, 0, 0, W, H);
+  }
+
+  /* ★描けたかを、送る前に確かめる（2026-11-05）。一色だけの絵は明細ではありえない ──
+     端末が画像を描けなかった（塗った白のまま）か、中身が無い。そのまま送ると、
+     読み取りの側が「給与明細に見えません」と返し、本人には何が悪いか分からない。
+     確かめられないとき（読み出しが禁じられた端末など）は止めない。 */
+  function blank(c) {
+    try {
+      var n = 96, t = document.createElement('canvas');
+      t.width = n; t.height = n;
+      var x = t.getContext('2d');
+      x.drawImage(c, 0, 0, n, n);
+      var d = x.getImageData(0, 0, n, n).data, lo = 765, hi = 0;
+      for (var i = 0; i < d.length; i += 4) {
+        var v = d[i] + d[i + 1] + d[i + 2];
+        if (v < lo) lo = v;
+        if (v > hi) hi = v;
+      }
+      return hi - lo < 12;
+    } catch (e) { return false; }
   }
 
   function toB64(canvas) {

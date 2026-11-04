@@ -575,6 +575,97 @@ console.log('\n══ 開けない PDF（鍵付き・XFA・白紙）');
   await page.close();
 }
 
+// ══ ⑦ 透明な画像を黒にしない・描けない画像は送らない（2026-11-05）══════════
+/* ★2026-11-05、オーナーが iPhone 実機で明細の画像を送ったら、真っ黒の画像が読み取りに届き
+   「給与明細に見えませんでした」と返った（手元の検査は全部緑だった）。
+   JPEG は透明を持てず、透明な画素は黒になる。端末が画像を描けなかったときも同じく黒になる。
+   直したこと：白で塗ってから描く／一色なら別の読み込み方でもう一度だけ描く／それでも一色なら送らない。 */
+console.log('\n══ ⑦ 透明な背景の画像を黒にしない・描けない画像は送らない');
+{
+  const { page, seen, errs } = await open(URL_JA, { body: FAKE });
+  /* 見本はこの画面の中で作る（合成。実在の明細ではない）。 */
+  const make = async (kind) => {
+    const b64 = await page.evaluate((kind) => new Promise((res) => {
+      const c = document.createElement('canvas');
+      c.width = 900; c.height = 1200;
+      const x = c.getContext('2d');
+      if (kind === 'white') { x.fillStyle = '#fff'; x.fillRect(0, 0, 900, 1200); }
+      else {
+        /* 背景は透明のまま、黒い字と罫線だけ（PDF から書き出した PNG の形）。 */
+        x.fillStyle = '#000';
+        x.font = '28px sans-serif';
+        for (let i = 0; i < 24; i++) { x.fillText('基本給 420,000  職務手当 185,000', 60, 80 + i * 44); x.fillRect(60, 92 + i * 44, 780, 1); }
+      }
+      c.toBlob((b) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(',')[1]); fr.readAsDataURL(b); }, 'image/png');
+    }), kind);
+    const p = path.join(TMP, `img-${kind}.png`);
+    writeFileSync(p, Buffer.from(b64, 'base64'));
+    return p;
+  };
+  /* 送った JPEG の平均の明るさ（0＝黒・255＝白）。
+     ★<img> ではなく ImageBitmap から測る（(c) で <img> から描けない端末をまねるので、測る側が巻き込まれない）。 */
+  const lum = (b64) => page.evaluate(async (b64) => {
+    try {
+      const blob = await (await fetch('data:image/jpeg;base64,' + b64)).blob();
+      const bm = await createImageBitmap(blob);
+      const c = document.createElement('canvas'); c.width = 60; c.height = 80;
+      const x = c.getContext('2d'); x.drawImage(bm, 0, 0, 60, 80);
+      const d = x.getImageData(0, 0, 60, 80).data; let s = 0;
+      for (let i = 0; i < d.length; i += 4) s += (d[i] + d[i + 1] + d[i + 2]) / 3;
+      return Math.round(s / (d.length / 4));
+    } catch (e) { return -1; }
+  }, b64);
+  const settle = () => page.waitForFunction(() => !document.querySelector('.ps-load'), { timeout: 8000 }).catch(() => {});
+  const clear = () => page.evaluate(() => { const n = document.getElementById('ps-panel'); if (n) n.innerHTML = ''; });
+
+  // (a) 背景が透明な画像
+  await (await page.$('#ps-file')).uploadFile(await make('clear'));
+  await page.waitForSelector('.ps-res, .ps-fail', { timeout: 20000 });
+  const sentA = seen.bodies[seen.bodies.length - 1];
+  const la = sentA && sentA.image_b64 ? await lum(sentA.image_b64) : -1;
+  ok(seen.calls === 1 && la > 180, '★背景が透明な画像は白地で送る（真っ黒にしない）', `平均の明るさ ${la}（0＝黒・255＝白）`);
+  await settle();
+
+  // (b) 一色だけの画像（端末が描けなかったときと同じ見え方）
+  await clear();
+  const beforeB = seen.calls;
+  await (await page.$('#ps-file')).uploadFile(await make('white'));
+  await page.waitForSelector('.ps-fail', { timeout: 20000 }).catch(() => {});
+  const fb = await page.evaluate(() => {
+    const n = document.querySelector('.ps-fail');
+    return n ? { code: n.getAttribute('data-code'), t: n.textContent, thumb: !!n.querySelector('.ps-thumb'),
+                 primary: (n.querySelector('.ps-btn-primary') || {}).id || '' } : null;
+  });
+  ok(!!fb && fb.code === 'image_blank' && seen.calls === beforeB,
+     '★一色だけの画像は送らずに止める（読み取りの回数も費用も使わない）', fb ? `${fb.code} / 送った ${seen.calls - beforeB} 回` : '札が出ない');
+  ok(!!fb && fb.t.includes('画像を開けませんでした。スクリーンショットか PDF で選んでください。'), '止めたときは本人に分かる言葉', fb && fb.t.slice(0, 60));
+  ok(!!fb && !fb.thumb, '★前に選んだ明細の絵を出さない（新しい画像の失敗に古い絵を添えない）');
+  ok(!!fb && fb.primary === 'ps-choose', '止めたときの主ボタンは「別の明細を選ぶ」', fb && fb.primary);
+  ok((await events(page)).includes('payslip_reject:image_blank'), '記録は「画像が描けなかった」で残る（明細ではない、と数えない）');
+
+  // (c) 1つ目の読み込み方で描けない端末 → 2つ目で読める
+  await page.evaluate(() => {
+    const o = CanvasRenderingContext2D.prototype.drawImage;
+    CanvasRenderingContext2D.prototype.drawImage = function (src, ...a) {
+      if (src instanceof HTMLImageElement) return;   // <img> からは何も描けない端末のまね
+      return o.call(this, src, ...a);
+    };
+  });
+  await clear();
+  const beforeC = seen.calls;
+  await upload(page, 'payslip-jp-major.png');
+  await page.waitForSelector('.ps-res, .ps-fail', { timeout: 20000 });
+  const sentC = seen.bodies[seen.bodies.length - 1];
+  const lc = seen.calls === beforeC + 1 && sentC && sentC.image_b64 ? await lum(sentC.image_b64) : -1;
+  const via = await page.evaluate(() => {
+    const e = (window.dataLayer || []).filter((a) => a && a[0] === 'event' && a[1] === 'payslip_prepared').pop();
+    return e && e[2] ? e[2].via : '';
+  });
+  ok(lc > 150 && via === 'bitmap', '★<img> で描けなくても、別の読み込み方で描いて送る', `明るさ ${lc} / 読み込み方 ${via}`);
+  ok(errs.length === 0, '画面のエラーなし', errs.join(' | '));
+  await page.close();
+}
+
 // ── コード側の約束：画像・ラベルをログに出していないこと（db/test-payslip-redact.mjs から移した）──
 console.log('\n══ Edge Function のログ検査');
 const fn = readFileSync(path.join(DIR, '..', 'supabase', 'functions', 'parse-payslip', 'index.ts'), 'utf8');
