@@ -593,6 +593,23 @@ baland_ass/                            ブランド資産（※ brand_assets の
 
 見るもの：`node db/test-member-median.mjs`（サーバー・壊す証明つき）／`node assert-member-median.mjs`（ページの差し替え）。
 
+## 地域・国・世界の平均はパイロット数で重み付け（2026-11-04）
+
+★オーナー「1000万の機長100人と6000万の機長1000人じゃ平均が大きく変わる」「（人数が無い会社は）機材数で見積もる」。
+一覧の地図のカード・国と地域のページ・検索の説明の「推定年収の平均」は、**各社のパイロット数で重み付け**した平均（1社1票の単純平均をやめた）。
+
+- 重みは [pilot-weights.mjs](pilot-weights.mjs) の `pilotMean` の1か所。`regionMean`（[directory-model.mjs](directory-model.mjs)）・[gen-countries.mjs](gen-countries.mjs)・[seo-normalize.mjs](seo-normalize.mjs) が呼ぶ。
+  人数が分かる会社は人数・分からない会社は「機材の数 × 1機あたりの人数」（両方そろった会社の真ん中の値を毎回計算・いま 13.4 人）・どちらも無い会社は**平均に入れない**（0 で埋めない）。
+  `node pilot-weights.mjs` で、見積もった会社と外した会社（理由つき）の一覧が出る。
+- 人数と機材の数は [pilot-counts.mjs](pilot-counts.mjs)（ROUND8 の調査パック・1行ずつ URL と引用つき）。**平均の計算だけが読む・画面には出さない。**
+  ⚠️ research-ledger.mjs（取り込みの台帳）に入れない ── あちらは会社ページが読むので、入れると26社のページに「運航している機材 ○機」が黙って増える
+  （英国の子会社だけの数 ＝ ウィズエア 21機 のような範囲違いも混じる）。会社ページに出すかは別の判断。
+- 字：「パイロット数で重み付けした推定年収の平均」。**社数を書かない**（[seo-normalize.mjs](seo-normalize.mjs) の `fixCount` が「1xx社」を掲載社数へ書き換えるので、平均に入った111社と書いても124社に化ける）。
+  「全パイロットの平均年収」とは呼ばない（各社の額は代表の1人の推定年収）。見積もりについての注記は足さない。
+- ⚠️ 1社1票の単純平均に戻さない。[assert-directory.mjs](assert-directory.mjs) の D5b・M7 が「戻すと落ちる」を見ている。
+- 調べ直したら（新しい人数の調査パック）、pilot-counts.mjs を作り直す → `node gen-directory.mjs` → `node gen-countries.mjs` → `inject-session` → `patch-side-nav` →
+  `bake-en-currency` → `gen-lang.mjs es`（訳の足りない文を足す）→ `seo-normalize` → `gen-datemod` → `gen-sitemap`。
+
 ## 給与一覧の処理を軽くした（2026-10-31）
 
 本番の DB（Supabase 無料・Nano）が 2026-10-31 12:55〜13:28 に止まった。会社ページを開くたびに走る `pv_pay_rows()` が、

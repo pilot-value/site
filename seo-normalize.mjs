@@ -30,6 +30,7 @@ import { SALARY } from './salary-data.mjs';
 import { BASIS, TIERS, KINDS_EN, yearly, cardFigure } from './salary-basis.mjs';
 import { AIRLINE_COUNTRY, BY_CODE, nameIn } from './airline-countries.mjs';
 import { curCore } from './cur-core.mjs';
+import { pilotMean } from './pilot-weights.mjs';
 import { ORIGIN, LANGS, LANG, listSiteHtml, urlOfRel, langOfRel, bareOf, alternatesFor } from './langs.mjs';
 const CUR = await curCore('USD', 'en');   // 金額の作り方は currency.js が正
 
@@ -1121,10 +1122,10 @@ for (const rel of files) {
       const cc = Object.values(BY_CODE).find((x) => x.slug === slug);
       const mem = cc ? Object.keys(S).filter((k) => AIRLINE_COUNTRY[k] === cc.code) : [];
       if (cc && mem.length) {
-        /* 国の値は gen-countries.mjs と同じ導出（平均は各社平均の単純平均、
+        /* 国の値は gen-countries.mjs と同じ導出（平均は各社のパイロット数で重み付けした平均＝pilotMean・2026-11-04、
            上下限は所属各社の最小・最大）。ページの表示と一字一句そろえる。 */
         const agg = (key) => ({
-          avg: Math.round(mem.reduce((s, k) => s + S[k][key].avg, 0) / mem.length / 10) * 10,
+          avg: Math.round(pilotMean(mem, (k) => S[k][key].avg).value / 10) * 10,
           lo: Math.min(...mem.map((k) => S[k][key].lo)),
           hi: Math.max(...mem.map((k) => S[k][key].hi)),
         });

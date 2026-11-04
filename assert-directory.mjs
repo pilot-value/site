@@ -71,6 +71,7 @@ import { LEAD, SWITCH, EN_SWITCH } from './airline-rollout.mjs';
 import { unbake, curCore } from './cur-core.mjs';
 import { widthOf, checkWidth } from './pv-bars.mjs';
 import { POPULAR } from './airline-popular.mjs';
+import { WEIGHTS } from './pilot-weights.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const argv = process.argv.slice(2);
@@ -128,8 +129,17 @@ function want(I, slug, rank) {
     labelJa: `${w.ja} ${TIERS[tier].ja}${up ? '（上限）' : ''}`, labelEn: `${w.en} · ${TIERS[tier].en}${up ? ' (max)' : ''}`,
   };
 }
-/** 万円の平均を10万円で丸める（地域ページ・countries.html と同じ） */
-const mean10 = (I, slugs, rank) => Math.round(slugs.reduce((a, s) => a + I.ledger[s][rank].avg, 0) / slugs.length / 10) * 10;
+/** パイロット数で重み付けした平均（★2026-11-04・pilot-weights.mjs の WEIGHTS ＝ 会社ごとの人数。生成側の pilotMean は呼ばず、ここで足し算し直す）。
+    重みの無い会社は分母にも分子にも入れない・1社も重みが無い集まりだけ単純平均 */
+const wmean = (slugs, val) => {
+  const u = slugs.filter((s) => WEIGHTS[s]);
+  if (!u.length) return slugs.reduce((a, s) => a + val(s), 0) / slugs.length;
+  return u.reduce((a, s) => a + WEIGHTS[s].n * val(s), 0) / u.reduce((a, s) => a + WEIGHTS[s].n, 0);
+};
+/** 万円の平均を10万円で丸める（地域ページ・countries.html と同じ。パイロット数で重み付け） */
+const mean10 = (I, slugs, rank) => Math.round(wmean(slugs, (s) => I.ledger[s][rank].avg) / 10) * 10;
+/** 1社1票の単純平均（2026-11-04 まで。壊す証明 D5b・M7 が「これに戻すと落ちる」を見る） */
+const plain10 = (I, slugs, rank) => Math.round(slugs.reduce((a, s) => a + I.ledger[s][rank].avg, 0) / slugs.length / 10) * 10;
 const regionSlugs = (I, code) => Object.keys(I.ledger).filter((s) => code === 'all' || I.ledger[s].region === code);
 /** 一覧の並び（英語の社名 ＝ 一覧の行の en の A→Z。同じ名前は slug の順 ── 2026-10-29 オーナー「a-z 順にして」）。ここで台帳と一覧の行から作る */
 function orderOf(I) {
@@ -310,10 +320,10 @@ function secD(I) {
   const jp = regionSlugs(I, 'japan'), m3 = [...unbake(I.hub['middle-east-pilot-salary.html']).matchAll(/日本の掲載(\d+)社の機長の推定年収の平均は¥([\d,]+)万/g)];
   out.push(R('D3', m3.length ? m3.filter((m) => num(m[1]) !== jp.length || num(m[2]) !== mean10(I, jp, 'cap'))
     .map((m) => `middle-east：「日本の掲載${m[1]}社…¥${m[2]}万」／台帳「${jp.length}社…${yen(mean10(I, jp, 'cap'))}」`) : ['middle-east：「日本の掲載…社の機長の推定年収の平均は…」が読めない']));
-  const all = Object.keys(I.ledger), m4 = /<div class="stat-label">世界の機長の推定年収<\/div>\s*<div[^>]*>¥([\d,]+)万<\/div>\s*<div class="stat-sub">掲載(\d+)社の推定年収の平均<\/div>/.exec(unbake(I.hub['countries.html']));
+  const all = Object.keys(I.ledger), m4 = /<div class="stat-label">世界の機長の推定年収<\/div>\s*<div[^>]*>¥([\d,]+)万<\/div>\s*<div class="stat-sub">パイロット数で重み付けした推定年収の平均<\/div>/.exec(unbake(I.hub['countries.html']));
   out.push(R('D4', !m4 ? ['countries.html：「世界の機長の推定年収」の札が読めない']
     : [...(num(m4[1]) !== mean10(I, all, 'cap') ? [`countries.html：¥${m4[1]}万／台帳 ${yen(mean10(I, all, 'cap'))}`] : []),
-      ...(num(m4[2]) !== all.length ? [`countries.html：掲載${m4[2]}社／台帳 ${all.length}社`] : [])]));
+    ]));
   const p5 = [];
   if (!I.fn.regionMean) p5.push(I.err || 'regionMean が無い');
   else {
@@ -1183,10 +1193,10 @@ function secM(I) {
     英語の Lowest / Highest / Range はその候補（リードの決め待ち ── 決まったら directory-map.mjs の WORDS とここを一緒に直す）。
     ここに打った字が正（書き換えに対する杭） */
 const MAP_WORD = {
-  ja: { k: '公開情報からの推定', def: '掲載{N}社の推定年収の平均', cond: '条件/出典', dt: ['対象', '対象掲載社数', '換算'], go: 'この地域の航空会社を見る',
+  ja: { k: '公開情報からの推定', def: 'パイロット数で重み付けした推定年収の平均', cond: '条件/出典', dt: ['対象', '対象掲載社数', '換算'], go: 'この地域の航空会社を見る',
         lo: '最低', hi: '最高', span: '幅', count: '{N}社', region: '{L} {N}社', group: '職位', hint: '地図をクリックして地域を選択',
         zoom: { in: '拡大', out: '縮小', reset: '元に戻す', touch: '2本の指で動かせます' }, close: '閉じる' },
-  en: { k: 'Estimate from public information', def: 'Mean of our estimates across {N} airlines', cond: 'Conditions / Sources',
+  en: { k: 'Estimate from public information', def: 'Mean of our estimates, weighted by pilot numbers', cond: 'Conditions / Sources',
         dt: ['Airlines included', 'Number of airlines', 'Exchange rates'], go: 'View airlines in this region',
         lo: 'Lowest', hi: 'Highest', span: 'Range', count: '{N}', region: '{L} {N}', group: 'Rank', hint: 'Click the map to choose a region',
         zoom: { in: 'Zoom in', out: 'Zoom out', reset: 'Reset', touch: 'Use two fingers to move the map' }, close: 'Close' },
@@ -1268,8 +1278,6 @@ function secMcard(I) {
       const P = C[code]; if (!P) continue;
       const sl = slugsOf(code), N = sl.length, at = `${rel} ${code}`;
       /* M7 社数・平均・散らばり・対象 */
-      const dn = /(\d+)/.exec(P.def)?.[1];
-      if (Number(dn) !== N) p.M7.push(`${at}：定義の行の社数 ${dn}／${N}`);
       for (const r of ['cap', 'fo']) {
         const got = manOf(P.rows[r]?.n), want = mean10(I, sl, r);
         if (got !== want) p.M7.push(`${at} ${r}：平均 ${P.rows[r]?.n ?? '（行が無い）'}／${yen(want)}`);
@@ -1381,17 +1389,15 @@ function secMcard(I) {
     if (num(jp[1]) !== manOf(J.japan?.rows.cap?.n)) p.M8.push(`countries/japan.html は日本の機長 ¥${jp[1]}万／一覧 ${J.japan?.rows.cap?.n}`);
     if (num(jp[2]) !== manOf(J.japan?.rows.fo?.n)) p.M8.push(`countries/japan.html は日本の副操縦士 ¥${jp[2]}万／一覧 ${J.japan?.rows.fo?.n}`);
   }
-  const eu = /（世界(\d+)社では¥([\d,]+)万）/.exec(I.hub['europe-pilot-salary.html'] || '');
-  if (!eu) p.M8.push('europe-pilot-salary.html：「（世界N社では…）」が読めない');
-  else {
-    if (Number(eu[1]) !== order.length || num(eu[2]) !== manOf(J.all?.rows.fo?.n)) p.M8.push(`europe-pilot-salary.html は世界${eu[1]}社 ¥${eu[2]}万／一覧 すべて ${order.length}社 ${J.all?.rows.fo?.n}`);
-  }
+  const eu = /（世界では¥([\d,]+)万）/.exec(I.hub['europe-pilot-salary.html'] || '');
+  if (!eu) p.M8.push('europe-pilot-salary.html：「（世界では…）」が読めない');
+  else if (num(eu[1]) !== manOf(J.all?.rows.fo?.n)) p.M8.push(`europe-pilot-salary.html は世界 ¥${eu[1]}万／一覧 すべて ${J.all?.rows.fo?.n}`);
   /* M9 会社のカードの額の平均ではなく、推定の平均を出している（違うマスが1つ以上在り、そのマスで一覧はカードの平均を出していない）。
      directory-map.mjs は研究の台帳も乗員全体の額も読まない */
   const cardMan = (s, r) => { const w = want(I, s, r); const m = w.yen ? /([\d,]+)万/.exec(w.yen) : null; return m ? num(m[1]) : I.ledger[s][r].avg; };
   const diff = [];
   for (const code of codes) for (const r of ['cap', 'fo']) {
-    const sl = slugsOf(code), cm = Math.round(sl.reduce((a, s) => a + cardMan(s, r), 0) / sl.length / 10) * 10, em = mean10(I, sl, r);
+    const sl = slugsOf(code), cm = Math.round(wmean(sl, (s) => cardMan(s, r)) / 10) * 10, em = mean10(I, sl, r);
     if (cm !== em) { diff.push(`${code} ${r} ${em}（カード ${cm}）`); for (const lang of ['ja', 'en']) if (manOf(cards[lang][code]?.rows[r]?.n) === cm) p.M9.push(`${PAGE_REL[lang]} ${code} ${r}：カードの額の平均 ${yen(cm)} を出している（推定の平均は ${yen(em)}）`); }
   }
   if (!diff.length) p.M9.push('カードの額の平均と推定の平均が違うマスが1つも無い（この項目が何も確かめていない）');
@@ -1696,7 +1702,7 @@ const lowOf = (I, code, r) => Math.min(...regionSlugs(I, code).map((s) => I.ledg
 const m9Cell = (I) => {
   const cardMan = (s, r) => { const w = want(I, s, r); const m = w.yen ? /([\d,]+)万/.exec(w.yen) : null; return m ? num(m[1]) : I.ledger[s][r].avg; };
   for (const r of ['cap', 'fo']) for (const code of REG8) {
-    const sl = regionSlugs(I, code), em = mean10(I, sl, r), cm = Math.round(sl.reduce((a, s) => a + cardMan(s, r), 0) / sl.length / 10) * 10;
+    const sl = regionSlugs(I, code), em = mean10(I, sl, r), cm = Math.round(wmean(sl, (s) => cardMan(s, r)) / 10) * 10;
     if (cm !== em && !same(toneMap(I, r), toneMap(I, r, { [code]: cm }))) return { code, r, em, cm };
   }
   throw new Error('カードの額の平均と推定の平均が違い、描き直すと地図の濃さも動く地域のマスが無い');
@@ -1723,8 +1729,10 @@ const ROWS = [
   ['D1', (I) => bump(I, 'asia-pilot-salary.html', /(の航空会社)(\d+)(社では)/), 'D', ['D1']],
   ['D2', (I) => bump(I, 'en/asia-pilot-salary.html', /(\()(\d+)( airlines\)<\/h2>)/), 'D', ['D2']],
   ['D3', (I) => bump(I, 'middle-east-pilot-salary.html', /(日本の掲載)(\d+)(社)/), 'D', ['D3']],
-  ['D4', (I) => bump(I, 'countries.html', /(掲載)(\d+)(社の推定年収の平均)/), 'D', ['D4']],
+  ['D4', (I) => { I.hub['countries.html'] = I.hub['countries.html'].replace(/(世界の機長の推定年収<\/div>\s*<div[^>]*>¥)([\d,]+)(万)/, (m, a, n, b) => `${a}${(num(n) + 10).toLocaleString('en-US')}${b}`); }, 'D', ['D4']],
   ['D5', (I) => { const f = I.fn.regionMean; I.fn.regionMean = (c, r) => f(c, r) + 10; }, 'D', ['D5']],
+  /* ★2026-11-04 1社1票の単純平均に戻すと落ちる */
+  ['D5b', (I) => { I.fn.regionMean = (c, r) => plain10(I, regionSlugs(I, c), r); }, 'D', ['D5']],
   ['E1', (I) => { const s = I.M.slugs; [s[0], s[1]] = [s[1], s[0]]; }, 'E', ['E1']],
   ['E2', (I) => { I.M.airlines.etihad.cap.pub = null; }, 'E', ['E2', 'E5']],
   ['E3a', (I) => { const A = I.M.airlines.ana; A.codes = A.codes.filter((c) => c !== 'NH'); }, 'E', ['E3']],
@@ -1845,7 +1853,8 @@ const ROWS = [
   ['M5', (I) => { I.map.outline.META.home = ['', 'Users', 'x', 'sources-raw', 'natural-earth'].join('/'); }, 'M', ['M5']],
   /* M) 地域のまとめのカード（M7〜M14） */
   /* M7・M7b・M8・M15e・M20b の数は台帳から作る（WP-dmap-7。M9・M20 と同じ ── 手で打った字は年収・社数を直すたびに古くなる） */
-  ['M7', (I) => { const n = regionSlugs(I, 'japan').length; onPanel(I, 'ja', 'japan', (c) => sub(c, `掲載${n}社`, `掲載${n + 1}社`)); }, 'M', ['M7']],
+  /* ★2026-11-04 カードの平均を1社1票の単純平均に戻すと落ちる */
+  ['M7', (I) => { const sl = regionSlugs(I, 'japan'), w = mean10(I, sl, 'cap'), p0 = plain10(I, sl, 'cap'); if (w === p0) throw new Error('日本の機長で重み付けと単純平均が同じ（壊し方が当たらない）'); onPanel(I, 'ja', 'japan', (c) => sub(c, `<b class="wam-n">${yen(w)}</b>`, `<b class="wam-n">${yen(p0)}</b>`)); }, 'M', ['M7', 'M8', 'M10', 'M20']],
   ['M7b', (I) => { const lo = lowOf(I, 'europe', 'cap'); onPanel(I, 'ja', 'europe', (c) => sub(c, `<b class="wam-mm-v">${yen(lo)}</b>`, `<b class="wam-mm-v">${yen(lo + 10)}</b>`)); }, 'M', ['M7']],
   ['M7c', (I) => onPanel(I, 'ja', 'europe', (c) => c.replace(/(<div class="wam-hi">[\s\S]*?<ul class="wam-who"><li>)[^<]*/, (_, a) => a + SALARY.aegean.ja)), 'M', ['M7']],
   /* A36：日本のページの文の1つ目（<head> の説明ではなく本文の文）を直す */

@@ -19,6 +19,7 @@ import { SALARY } from './salary-data.mjs';
 import { cardFigure } from './salary-basis.mjs';
 import { AIRLINE_COUNTRY, BY_CODE } from './airline-countries.mjs';
 import { LEAD, SWITCH, EN_SWITCH } from './airline-rollout.mjs';
+import { pilotMean } from './pilot-weights.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 
@@ -143,10 +144,13 @@ export function figure(A, rank, rule = CARD_RULE) {
   return pub;
 }
 
-/** 地域の推定年収の平均（万円・10万円で丸める）。'all' は全社の平均（地域の平均の平均ではない）。この区域はページに書かない */
+/** 地域の推定年収の平均（万円・10万円で丸める）。'all' は全社の平均（地域の平均の平均ではない）。この区域はページに書かない。
+    ★2026-11-04 オーナー「1000万の機長100人と6000万の機長1000人じゃ平均が大きく変わる」→ 各社のパイロット数で重み付け
+      （pilot-weights.mjs の pilotMean。人数が分からない会社は機材の数から見積もり、どちらも無い会社は平均に入れない）。
+    ⚠️ 1社1票の単純平均に戻さない。国のページ（gen-countries.mjs）と検索の説明（seo-normalize.mjs）も同じ pilotMean を呼ぶ */
 export function regionMean(code, rank) {
   if (!RANKS.includes(rank)) throw new Error(`regionMean：職位「${rank}」`);
   const M = model(), sl = code === 'all' ? M.slugs : M.regions.find((r) => r.code === code)?.slugs;
   if (!sl) throw new Error(`regionMean：知らない地域「${code}」`);
-  return Math.round(sl.reduce((a, s) => a + M.airlines[s][rank].est.man, 0) / sl.length / 10) * 10;
+  return Math.round(pilotMean(sl, (s) => M.airlines[s][rank].est.man).value / 10) * 10;
 }

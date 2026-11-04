@@ -186,13 +186,13 @@ const POS = ['cap', 'fo'];
     close ＝ 区域 1000px 未満で下から出る板（開いたカード）の閉じるボタンの字（WP-dmap-11 の直し）── このページの比較リストの閉じるボタンと同じ字 */
 const WORDS = {
   ja: {
-    all: 'すべて', k: '公開情報からの推定', def: (n) => `掲載${n}社の推定年収の平均`, rank: { cap: '機長', fo: '副操縦士' }, rankGroup: '職位',
+    all: 'すべて', k: '公開情報からの推定', def: () => 'パイロット数で重み付けした推定年収の平均', rank: { cap: '機長', fo: '副操縦士' }, rankGroup: '職位',
     cond: '条件/出典', who: '対象', count: '対象掲載社数', countN: (n) => `${n}社`, fx: '換算',
     lo: '最低', hi: '最高', span: '幅', regionN: (l, n) => `${l} ${n}社`, hint: '地図をクリックして地域を選択',
     zoom: { in: '拡大', out: '縮小', reset: '元に戻す', touch: '2本の指で動かせます' }, close: '閉じる',
   },
   en: {
-    all: 'All', k: 'Estimate from public information', def: (n) => `Mean of our estimates across ${n} airlines`, rank: { cap: 'Captain', fo: 'First Officer' }, rankGroup: 'Rank',
+    all: 'All', k: 'Estimate from public information', def: () => 'Mean of our estimates, weighted by pilot numbers', rank: { cap: 'Captain', fo: 'First Officer' }, rankGroup: 'Rank',
     cond: 'Conditions / Sources', who: 'Airlines included', count: 'Number of airlines', countN: (n) => `${n}`, fx: 'Exchange rates',
     lo: 'Lowest', hi: 'Highest', span: 'Range', regionN: (l, n) => `${l} ${n}`, hint: 'Click the map to choose a region',
     zoom: { in: 'Zoom in', out: 'Zoom out', reset: 'Reset', touch: 'Use two fingers to move the map' }, close: 'Close',
@@ -270,7 +270,7 @@ export function mapSection(o) {
       `<h2 class="wam-h">${esc(g.label)}</h2>`,
       `<div class="wam-est" id="wam-f-${g.code}">`,
       `<p class="wam-k">${esc(W.k)}</p>`,
-      `<p class="wam-def">${esc(W.def(g.n))}</p>`,
+      `<p class="wam-def">${esc(W.def())}</p>`,
       ...POS.map((r) => `<p class="wam-row" data-pos="${r}"><span class="wam-rk">${esc(W.rank[r])}</span><b class="wam-n">${yen(meanOf(g, r))}</b></p>`),
       '</div>',
       '<div class="wam-sps">',

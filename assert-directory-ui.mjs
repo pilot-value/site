@@ -536,9 +536,11 @@ async function main() {
       await page.hover(AS);
       const hov = await until(page, (n) => {
         const p = document.querySelector('.wam-panel.is-shown');
-        return !!p && p.id === 'wam-p-asia' && (/(\d+)/.exec((p.querySelector('.wam-def') || {}).textContent || '') || [])[1] === String(n);
+        /* ★2026-11-04 社数は定義の行から「条件/出典」の「対象掲載社数」の行へ（定義の行はパイロット数で重み付けした平均の言葉だけ） */
+        const dd = [...p?.querySelectorAll('.wam-cl dt') || []].find((x) => /対象掲載社数|Number of airlines/.test(x.textContent))?.nextElementSibling;
+        return !!p && p.id === 'wam-p-asia' && (/(\d+)/.exec(dd?.textContent || '') || [])[1] === String(n);
       }, nAsia);
-      ok(hov, T(`b6 アジアのボタンにマウスを載せる → カードが見せているのは wam-p-asia・定義の行の社数 ${nAsia}`),
+      ok(hov, T(`b6 アジアのボタンにマウスを載せる → カードが見せているのは wam-p-asia・対象掲載社数 ${nAsia}`),
         J(await page.evaluate(() => { const p = document.querySelector('.wam-panel.is-shown'); return p ? [p.id, (p.querySelector('.wam-def') || {}).textContent] : null; })));
       await shot(page, 'base', lang, 'b6-card');
       await press(page, AS);
@@ -551,9 +553,9 @@ async function main() {
       const v6b = await visible(page);
       ok(sel2 && same(v6b, ORDER), T('b6 もう1回押す → 選ぶのをやめ、112社に戻る'), J({ n: v6b.length, pr: await pressed(page) }));
       await still(page);
-      const nums = await page.evaluate((codes) => codes.map((c) => ((/(\d+)/.exec(((document.querySelector(`#wam-p-${c} .wam-def`) || {}).textContent) || '') || [])[1] || '')), ['all', ...REG8]);
+      const nums = await page.evaluate((codes) => codes.map((c) => { const dd = [...document.querySelectorAll(`#wam-p-${c} .wam-cl dt`)].find((x) => /対象掲載社数|Number of airlines/.test(x.textContent))?.nextElementSibling; return (/(\d+)/.exec(dd?.textContent || '') || [])[1] || ''; }), ['all', ...REG8]);
       const numWant = ['all', ...REG8].map((c) => String(inRegion(c).length));
-      ok(same(nums, numWant), T('b6 9枚のカードの社数（定義の行）＝ 地域の社数'), J({ nums, numWant }));
+      ok(same(nums, numWant), T('b6 9枚のカードの社数（対象掲載社数の行）＝ 地域の社数'), J({ nums, numWant }));
 
       /* b7 一覧の検索欄 */
       await type(page, 'emirates');
