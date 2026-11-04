@@ -22,6 +22,7 @@
          行数は表の下の「全N件中」が言っているので二度言わない）。横に線画のアイコン
        ・表のいちばん右に**投稿時期**の列を足した。出るのは
          **5段の粗い区分の言葉だけ**（1ヶ月以内 / 3ヶ月以内 / 6ヶ月以内 / 1年以内 / それより前）。
+         ★2026-11-04、1ヶ月の手前に 3日以内 / 7日以内 / 14日以内 を足して8段（オーナー指示）。
          ⚠️ ここは守りを1段ゆるめたところ。**並べ替えの口も絞り込みの口も作らない**
 
    ★2026-10-11、DEEP PAY を公開した（オーナー判断）。この画面で変わったのは3つ：
@@ -347,7 +348,7 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
      '★投稿時期で絞り込む仕掛けが無い');
   /* ★投稿時期は5段の言葉だけを持つ。日付を組み立てる道具を持ち込まない。 */
   ok(/T\.age\[/.test(j) && /ageName\(/.test(j),
-     '★投稿時期は段の番号（0〜4）を言葉にするだけ');
+     '★投稿時期は段の番号（0〜7）を言葉にするだけ');
   ok(!/toLocaleDateString|new Date\(|getFullYear|getMonth/.test(j),
      '★日付を組み立てる道具をこの画面が1つも持っていない');
   /* ★支給の内訳について（2026-09-03 に方針が変わったところ）。
@@ -670,7 +671,7 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
      "★直近1ヶ月ぶんを数えている（暦の月に戻っていない）");
   ok(!/date_trunc\('month'/.test(FN), '★暦の月（date_trunc）で数えていない');
   ok(/max\(cat\) >= now\(\) - interval '1 month'/.test(FN),
-     '★表の段0（1ヶ月以内）とカードが同じ境目を使っている');
+     '★表の段3（1ヶ月以内）とカードが同じ境目を使っている');
   /* ★数えるために投稿時刻を読むが、行としては返さない（契約⑥・②）。 */
   ok(!/'created_at'/.test(FN) && !/'cat'/.test(FN),
      '★数え上げに使う投稿時刻を、行としては返していない');
@@ -1430,7 +1431,7 @@ const POISON_VALUES = ['ZQX', '137', '40s', 'deadbeefcafe0001',
                        '19,440,000', '19440000', '2026-08-05', 'Somewhere Air',
                        'zqx-cat', '132,456', '132456', '73%', '19%'];
 
-/* ★age ＝ 投稿時期の段（0〜4）。サーバが返すのはこの番号だけで、日付は来ない
+/* ★age ＝ 投稿時期の段（0〜7。2026-11-04 に5段から8段）。サーバが返すのはこの番号だけで、日付は来ない
      （db/pay-rows.sql の「★投稿の時期について」）。 */
 const row = (airline, pos, usd, vf, age, extra) => Object.assign(
   { airline: airline, pos: pos, annual_usd: usd, verified: vf, age: age }, extra || {});
@@ -1450,7 +1451,7 @@ const WORK = { bh: [60, 70], dd: [14, 16], off: [12, 14] };
 
 /* 本番に近い形（2026-08-23 時点は8人・全員が手入力＝verified はほぼ付かない）。
    ★1人目にだけ毒を混ぜる。★自由入力の社名の人は airline:'other' で来る。
-   ★段は5つとも出るように配る（言葉が1つでも欠けていたら気づける）。 */
+   ★段は8つとも出るように配る（言葉が1つでも欠けていたら気づける）。 */
 const ROWS = [
   row('ana', 'cap', 180000, true, 0, Object.assign({}, POISON, {
     fleet: 'b787', ten: 1, tenk: 'r',
@@ -1472,16 +1473,16 @@ const ROWS = [
     work: { bh: [50, 60], dd: [12, 14], off: [14, 16] } }),
   /* ★年収だけ（口コミ由来）。機材も年数も内訳も勤務も無い。 */
   row('jal', 'fo', 110000, false, 4),
-  row('emirates', 'cap', 250000, false, 0, {
+  row('emirates', 'cap', 250000, false, 5, {
     fleet: 'a380', ten: 3, tenk: 'r',
     pay: bnd([130000, 140000], [50000, 60000], [20000, 30000], [0, 20000]),
     work: { bh: [80, 90], dd: [16, 18], off: [10, 12] } }),
-  row('other', 'cap', 130000, false, 2, { airline_other: 'Somewhere Air',
+  row('other', 'cap', 130000, false, 6, { airline_other: 'Somewhere Air',
     fleet: 'b737', ten: 4, tenk: 'r',
     pay: bnd([70000, 75000], [30000, 35000], [10000, 15000], [0, 5000]),
     work: { bh: [60, 70], dd: [14, 16], off: [12, 14] } }),
   /* ★fo の段の2つ目。fo に3段目が生えていないことは、これが出ることで見える。 */
-  row('other', 'fo', 90000, false, 4, {
+  row('other', 'fo', 90000, false, 7, {
     fleet: 'b737', ten: 1, tenk: 'r',
     pay: bnd([50000, 55000], [20000, 25000], [5000, 10000], [0, 5000]),
     work: { bh: [60, 70], dd: [14, 16], off: [12, 14] } })
@@ -1502,10 +1503,12 @@ const TH6 = {
 const FLEET_WORDS = ['Boeing', 'Airbus', 'A320', 'A380', '787', '777', '737'];
 
 const AGE_WORDS = {
-  ja: ['1ヶ月以内', '3ヶ月以内', '6ヶ月以内', '1年以内', 'それより前'],
-  en: ['Within 1 month', 'Within 3 months', 'Within 6 months',
-       'Within a year', 'Over a year ago']
+  ja: ['3日以内', '7日以内', '14日以内', '1ヶ月以内', '3ヶ月以内', '6ヶ月以内', '1年以内', 'それより前'],
+  en: ['Within 3 days', 'Within 7 days', 'Within 14 days', 'Within 1 month',
+       'Within 3 months', 'Within 6 months', 'Within a year', 'Over a year ago']
 };
+/* 「1ヶ月以内の新規投稿」のカードと同じ窓に入る段（3日・7日・14日・1ヶ月以内 ＝ 段0〜3） */
+const AGE_IN_MONTH = 4;
 
 /* 自分の給与（my_pay_reports()）。★2026-08-24、図を外したのでこの画面は
    **もう1度も引かない**。それでも渡し続ける＝万一また引き始めたら、
@@ -1528,7 +1531,7 @@ for (let i = 0; i < 23; i++) {
 
 /* ★数え上げ（2026-08-24）。サーバは一覧と同じ材料から数えるので、
      **投稿件数 ≧ 行数** かつ **直近1ヶ月 ≦ 投稿件数** になる。ここもその形で渡す。 */
-const ST = { reports: 11, month: 3 };
+const ST = { reports: 11, month: 4 };   // 1ヶ月以内の行（段0〜3）が4行ある
 const ST_MANY = { reports: 31, month: 6 };
 
 const LOCKED = { ok: true, state: 'locked', rows: [] };
@@ -2702,14 +2705,14 @@ for (const lang of ['ja', 'en']) {
        `★3枚目の札は「${monLabel}」`, JSON.stringify(v.stats.map((c) => c.l)));
     ok(!/今月の新規投稿|Added this month/.test(v.bodyText),
        '★「今月の新規投稿」に戻っていない');
-    /* ★カードの窓と、表のいちばん右の段0（「1ヶ月以内」）は同じ境目
+    /* ★カードの窓と、表のいちばん右の段3（「1ヶ月以内」）は同じ境目
        （どちらも now() - interval '1 month'）。だから札の件数は、表に見えている
-       段0の行数を必ず上回る（同じ人の複数月は1行に畳まれるので、件数のほうが多い）。
+       段0〜3（3日・7日・14日・1ヶ月以内）の行数を必ず上回る（同じ人の複数月は1行に畳まれるので、件数のほうが多い）。
        ここが逆転したら、片方の窓だけを動かした証拠＝
-       「1ヶ月以内 4件」と書いた下に「1ヶ月以内」の行が10本並ぶ絵になっている。 */
-    const nAge0 = v.ages.filter((t) => t === AGE_WORDS[lang][0]).length;
+       「1ヶ月以内 4件」と書いた下に「1ヶ月以内」までの行が10本並ぶ絵になっている。 */
+    const nAge0 = v.ages.filter((t) => AGE_WORDS[lang].indexOf(t) >= 0 && AGE_WORDS[lang].indexOf(t) < AGE_IN_MONTH).length;
     ok(got[2] >= nAge0,
-       '★「1ヶ月以内の新規投稿」は表の「1ヶ月以内」の行数を下回らない（窓が同じ）',
+       '★「1ヶ月以内の新規投稿」は表の「1ヶ月以内」までの行数を下回らない（窓が同じ）',
        `札 ${got[2]} / 行 ${nAge0}`);
     /* ★「一覧のパイロット」の枚が戻っていないこと。 */
     const label = lang === 'en' ? 'Pilots listed' : '一覧のパイロット';
@@ -2730,12 +2733,13 @@ for (const lang of ['ja', 'en']) {
     ok(v.ages.length === ROWS.length, '★投稿時期は全部の行に出る',
        `${v.ages.length} / ${ROWS.length}`);
     ok(v.ages.every((t) => words.includes(t)),
-       '★出るのは5段の言葉だけ（日付も年月も出ない）', JSON.stringify(v.ages));
+       '★出るのは8段の言葉だけ（日付も年月も出ない）', JSON.stringify(v.ages));
     ok(v.ages.join('|') === ROWS.map((r) => words[r.age]).join('|'),
        '★段の番号と言葉が1つずつ対応している', JSON.stringify(v.ages));
-    /* ★数字を含む段の言葉（「1ヶ月以内」）はあるが、それは件数でも人数でもない。
-         下の「表の中に件・人が無い」がここを誤検知しないことも、同時に見ている。 */
-    ok(!/\d{4}|\d+\s*\/\s*\d+|\d+日/.test(v.ages.join(' ')),
+    /* ★数字を含む段の言葉（「1ヶ月以内」「3日以内」）はあるが、それは件数でも人数でも日付でもない。
+         下の「表の中に件・人が無い」がここを誤検知しないことも、同時に見ている。
+         「◯日」は「◯日以内」の形だけ通す（「11月3日」のような日付は落ちる）。 */
+    ok(!/\d{4}|\d+\s*\/\s*\d+|\d+日(?!以内)/.test(v.ages.join(' ')),
        '★段の言葉に日付らしい数字が混ざっていない', JSON.stringify(v.ages));
   }
 

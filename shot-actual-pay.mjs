@@ -127,13 +127,16 @@ const UID = '00000000-0000-4000-8000-00000000c001';
         下の checkRows が起動時に全部を検算して、外れていたら止める。
      ⚠️ 口コミ由来の行（FROM_REVIEWS）には**何も足さない**。元データに無いので、
         本番でも機材も内訳も勤務も付かない。押すと「年収だけ」の面が出る。
-   ★age ＝ 投稿時期の段。0=1ヶ月以内 / 1=3ヶ月以内 / 2=6ヶ月以内 / 3=1年以内 / 4=それより前。
+   ★age ＝ 投稿時期の段。0=3日以内 / 1=7日以内 / 2=14日以内 / 3=1ヶ月以内 / 4=3ヶ月以内 /
+     5=6ヶ月以内 / 6=1年以内 / 7=それより前（2026-11-04 に1ヶ月の手前の3段を足して8段）。
      サーバが返すのはこの番号だけで、日付も年月も返らない。ここでも番号しか作らない。
    ⚠️ **段 3・4 をここで作らないこと**（2026-08-25 オーナー指摘
       「このサイト始めたの4ヶ月前くらいなんだけど。それより前とかあるはずがない」）。
       いちばん古い会員登録が 2026-05-04＝約4ヶ月前なので、本番にありうるのは 0〜2 だけ。
       3・4 の言葉が画面に出ていたら、それは作り物を見せているということ。
-      （サーバ側は5段のまま。来年になれば普通に届く。）
+      （サーバ側は段を全部持っている。来年になれば普通に届く。）
+      ★2026-11-04 に8段にした。いまの段 6・7（1年以内・それより前）が、上で言う「3・4」にあたる。
+        ここで作るのは 0〜5 だけ。
    ★並びは**新しい順（新しいほうが上）**（2026-08-25 オーナー指示）。
       段は同じ時刻から出るので、上から下へ段は 0→2 の向きにしか動かない。
       ここで作る行も必ずその向きに並べる。逆流させると本番に無い絵になる。 */
@@ -187,8 +190,8 @@ function checkRows(list, tag) {
    reports ＝ 提出の件数（同じ人の複数月もそれぞれ1件）、month ＝ 直近1ヶ月に入った件数。
    ⚠️ 必ず reports ≧ 行数。ここを行数より小さくすると、
       「126件なのに表は60行」の逆＝説明のつかない絵になる。
-   ⚠️ **month ≧ 段0（「1ヶ月以内」）の行数**（2026-08-25）。カードの窓と表のいちばん右の
-      段0は同じ境目（now() - interval '1 month'）なので、month を段0の行数より小さくすると
+   ⚠️ **month ≧ 段0〜3（「1ヶ月以内」まで）の行数**（2026-08-25）。カードの窓と表のいちばん右の
+      段3は同じ境目（now() - interval '1 month'）なので、month を段0〜3の行数より小さくすると
       「1ヶ月以内 4件」と書いてある下に「1ヶ月以内」の行が10本並ぶ絵になる。
       本番ではありえない形なので、見本でも作らない。 */
 const ST = (reports, month) => ({ reports: reports, month: month });
@@ -227,48 +230,48 @@ const ROWS = [
     { fleet: 'a380', ten: 4,   // いちばん長い札（昇格後20年以上）を絵に入れる
       pay: P({ base: [190000, 200000], variable: [70000, 80000],
                perdiem: [20000, 30000], bonus: [0, 20000] }) }),
-  R('ana', 'fo',  94000, false, 0,                  // 預かり ── 勤務だけ
+  R('ana', 'fo',  94000, false, 1,                  // 預かり ── 勤務だけ
     { fleet: 'b787', ten: 0, work: WK([70, 80], [16, 18], [10, 12]) }),
-  R('air-canada', 'cap', 240000, false, 0,          // 預かり
+  R('air-canada', 'cap', 240000, false, 1,          // 預かり
     { fleet: 'b777', ten: 1,
       pay: P({ base: [140000, 150000], variable: [50000, 60000],
                perdiem: [10000, 20000], bonus: [0, 20000] }),
       work: WK([60, 70], [12, 14], [14, 16]) }),
   /* ★預かり ── 総支給しか書かなかった人。機材と在籍は出るが、面には内訳も勤務も出ない。 */
-  R('zipair', 'fo', 82000, false, 0, { fleet: 'b787', ten: 0 }),
-  R('eva-air', 'cap', 170000, false, 0,
+  R('zipair', 'fo', 82000, false, 2, { fleet: 'b787', ten: 0 }),
+  R('eva-air', 'cap', 170000, false, 2,
     { fleet: 'a330', ten: 1,
       pay: P({ base: [95000, 100000], variable: [35000, 40000],
                housing: [10000, 15000], bonus: [0, 10000] }),
       work: WK([50, 60], [12, 14], [14, 16]) }),
-  R('ana', 'cap', 180000, false, 0,
+  R('ana', 'cap', 180000, false, 3,
     { fleet: 'b787', ten: 1,
       pay: P({ base: [100000, 105000], variable: [35000, 40000],
                command: [15000, 20000], bonus: [0, 10000] }),
       work: WK([60, 70], [14, 16], [12, 14]) }),
-  R('lufthansa', 'fo', 140000, false, 0,
+  R('lufthansa', 'fo', 140000, false, 3,
     { fleet: 'a320', ten: 1,
       pay: P({ base: [85000, 90000], variable: [30000, 35000],
                other: [10000, 15000], bonus: [0, 10000] }) }),
-  R('ana', 'fo', 110000, false, 0,
+  R('ana', 'fo', 110000, false, 3,
     { fleet: 'b737', ten: 0,
       pay: P({ base: [70000, 75000], variable: [25000, 30000],
                perdiem: [5000, 10000], bonus: [0, 10000] }),
       work: WK([60, 70], [14, 16], [12, 14]) }),
-  R('jal', 'fo',  81000, false, 0,
+  R('jal', 'fo',  81000, false, 3,
     { fleet: 'e-jet', ten: 0, work: WK([40, 50], [12, 14], [14, 16]) }),
-  R('ana', 'fo',  95000, false, 1,
+  R('ana', 'fo',  95000, false, 4,
     { fleet: 'a320', ten: 0,
       pay: P({ base: [60000, 65000], variable: [20000, 25000],
                perdiem: [5000, 10000], bonus: [0, 10000] }),
       work: WK([50, 60], [12, 14], [14, 16]) }),
   /* ★昇格後年数の欄ができる前の投稿（在籍年数で段を作った行）。
        札が「在籍5年未満」になっていることを絵で確かめるために1行だけ置いてある。 */
-  R('jal', 'fo',  99000, false, 1,
+  R('jal', 'fo',  99000, false, 4,
     { fleet: 'b767', ten: 0, tenk: 's',
       pay: P({ base: [65000, 70000], variable: [20000, 25000],
                other: [5000, 10000], bonus: [0, 10000] }) }),
-  R('ana', 'fo', 110000, false, 1,
+  R('ana', 'fo', 110000, false, 4,
     { fleet: 'b787', ten: 1,
       pay: P({ base: [70000, 75000], variable: [25000, 30000],
                housing: [10000, 15000], bonus: [0, 10000] }),
@@ -286,13 +289,13 @@ const ROWS = [
      画面は「一覧にない航空会社」と書く（2026-08-25 オーナー指示。前は「その他の航空会社」）
    ⚠️ 金額は作り物。実際の8件の額はここに写していない。 */
 const FROM_REVIEWS = [
-  R('ana', 'fo',  100000, false, 1),
-  R('jal', 'fo',   96000, false, 1),
-  R('ana', 'cap', 170000, false, 1),
-  R('emirates', 'cap', 230000, false, 2),
-  R('other', 'fo',  88000, false, 2),
-  R('jal', 'cap', 180000, false, 2),
-  R('ana', 'cap', 160000, false, 2),
+  R('ana', 'fo',  100000, false, 4),
+  R('jal', 'fo',   96000, false, 4),
+  R('ana', 'cap', 170000, false, 4),
+  R('emirates', 'cap', 230000, false, 5),
+  R('other', 'fo',  88000, false, 5),
+  R('jal', 'cap', 180000, false, 5),
+  R('ana', 'cap', 160000, false, 5),
 ];
 
 /* 合流した後の20行。★並びは**新しい順（新しいほうが上）**。
@@ -300,7 +303,7 @@ const FROM_REVIEWS = [
    ここを混ぜ返さないこと＝本番と違う絵になる。 */
 const MERGED = [...ROWS, ...FROM_REVIEWS];
 /* もっと集まったら、という絵。★並びは新しい順（新しいほうが上）なので、
-   段は上から 0 → 1 → 2 の向きにしか動かない。
+   段は上から 0 → 5 の向きにしか動かない（2026-11-04 に8段。前の 0→1→2 を置き直した）。
    会社と金額はばらけさせる（会社ごとに固めると絞り込みの絵が読めない）。
    ★段は 0〜2 だけ。サイトはまだ約4ヶ月なので 3・4 は本番にありえない（上の ⚠️）。
    ★ここは表と頁送りを見るための場面なので、機材と在籍の段までしか持たせていない
@@ -308,26 +311,26 @@ const MERGED = [...ROWS, ...FROM_REVIEWS];
 const MANY = [
   R('cathay-pacific', 'fo', 125000, false, 0, { fleet: 'a350', ten: 0 }),
   R('korean-air', 'cap', 175000, false, 0, { fleet: 'b777', ten: 1 }),
-  R('ana', 'fo', 98000, false, 0, { fleet: 'b737', ten: 0 }),
-  R('emirates', 'fo', 150000, false, 0, { fleet: 'b777', ten: 1 }),
-  R('qatar-airways', 'cap', 260000, true, 0, { fleet: 'a350', ten: 1 }),
-  R('jal', 'fo', 105000, false, 0, { fleet: 'b767', ten: 0 }),
-  R('ana', 'cap', 180000, true, 0, { fleet: 'b787', ten: 1 }),
-  R('eva-air', 'fo', 105000, false, 1, { fleet: 'a330', ten: 0 }),
-  R('other', 'fo', 90000, false, 1, { fleet: 'a320', ten: 0 }),
-  R('zipair', 'fo', 86000, false, 1, { fleet: 'b787', ten: 0 }),
-  R('jal', 'fo', 112000, false, 1, { fleet: 'a350', ten: 1 }),
-  R('lufthansa', 'fo', 110000, false, 1, { fleet: 'a320', ten: 1 }),
-  R('ana', 'cap', 195000, false, 1, { fleet: 'b777', ten: 2 }),
-  R('cathay-pacific', 'cap', 200000, false, 1, { fleet: 'a350', ten: 1 }),
-  R('emirates', 'cap', 240000, false, 1, { fleet: 'a380', ten: 2 }),
-  R('jal', 'cap', 185000, true, 2, { fleet: 'b787', ten: 1, tenk: 's' }),  // 古い投稿＝在籍年数の段
-  R('other', 'cap', 130000, false, 2, { fleet: 'b737', ten: 0 }),
-  R('korean-air', 'fo', 95000, false, 2, { fleet: 'a320', ten: 0 }),
-  R('jal', 'cap', 190000, false, 2, { fleet: 'b777', ten: 2 }),
-  R('ana', 'fo', 120000, false, 2, { fleet: 'b787', ten: 1 }),
-  R('lufthansa', 'cap', 160000, false, 2, { fleet: 'a350', ten: 0 }),
-  R('singapore-airlines', 'fo', 130000, false, 2, { fleet: 'b787', ten: 1 }),
+  R('ana', 'fo', 98000, false, 1, { fleet: 'b737', ten: 0 }),
+  R('emirates', 'fo', 150000, false, 1, { fleet: 'b777', ten: 1 }),
+  R('qatar-airways', 'cap', 260000, true, 2, { fleet: 'a350', ten: 1 }),
+  R('jal', 'fo', 105000, false, 3, { fleet: 'b767', ten: 0 }),
+  R('ana', 'cap', 180000, true, 3, { fleet: 'b787', ten: 1 }),
+  R('eva-air', 'fo', 105000, false, 4, { fleet: 'a330', ten: 0 }),
+  R('other', 'fo', 90000, false, 4, { fleet: 'a320', ten: 0 }),
+  R('zipair', 'fo', 86000, false, 4, { fleet: 'b787', ten: 0 }),
+  R('jal', 'fo', 112000, false, 4, { fleet: 'a350', ten: 1 }),
+  R('lufthansa', 'fo', 110000, false, 4, { fleet: 'a320', ten: 1 }),
+  R('ana', 'cap', 195000, false, 4, { fleet: 'b777', ten: 2 }),
+  R('cathay-pacific', 'cap', 200000, false, 4, { fleet: 'a350', ten: 1 }),
+  R('emirates', 'cap', 240000, false, 4, { fleet: 'a380', ten: 2 }),
+  R('jal', 'cap', 185000, true, 5, { fleet: 'b787', ten: 1, tenk: 's' }),  // 古い投稿＝在籍年数の段
+  R('other', 'cap', 130000, false, 5, { fleet: 'b737', ten: 0 }),
+  R('korean-air', 'fo', 95000, false, 5, { fleet: 'a320', ten: 0 }),
+  R('jal', 'cap', 190000, false, 5, { fleet: 'b777', ten: 2 }),
+  R('ana', 'fo', 120000, false, 5, { fleet: 'b787', ten: 1 }),
+  R('lufthansa', 'cap', 160000, false, 5, { fleet: 'a350', ten: 0 }),
+  R('singapore-airlines', 'fo', 130000, false, 5, { fleet: 'b787', ten: 1 }),
 ];
 
 /* ★伏せた行（2026-09-16 オーナー指示）。鍵の無い人へサーバが返すのは

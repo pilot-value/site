@@ -3432,7 +3432,7 @@ const EN_READERS = [
     pv_town_board: () => enOk({ state: 'login' }),
     pv_reviews: () => enOk({ unlocked: false, rows: [] }),
     pv_review_summary: () => enOk({ state: 'login' }),
-  }, want: ['2 submissions', 'Annual', 'Verified', 'Self-reported', 'Within 1 month', 'Within a year', 'Opens when you submit your pay', 'Give & Get',
+  }, want: ['2 submissions', 'Annual', 'Verified', 'Self-reported', 'Within 3 days', 'Within 1 month', 'Opens when you submit your pay', 'Give & Get',
     'Unlock all pay data', 'Log in', 'Viewing terms', 'Opens when you log in and submit your pay', 'Not rated yet', 'No posts from members yet',
     'Write a review anonymously', 'The summary opens when you post a review'] },   // ★2026-10-30 要約の板の1行は、ログインしていない人にも「The summary opens when you post a review」
   { key: 'give', who: 'a', stub: {

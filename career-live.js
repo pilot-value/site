@@ -65,7 +65,7 @@
     vfYes: '明細で確認済み',
     vfNo: '本人申告',
     far: '同じ会社・同じ職位の公開年収から大きく外れた金額です。',
-    age: ['1ヶ月以内', '3ヶ月以内', '6ヶ月以内', '1年以内', 'それより前'],
+    age: ['3日以内', '7日以内', '14日以内', '1ヶ月以内', '3ヶ月以内', '6ヶ月以内', '1年以内', 'それより前'],   // サーバの段 0〜7（db/pay-rows.sql・2026-11-04 に8段）
     ten: {
       r: ['昇格後5年未満', '昇格後5〜10年', '昇格後10〜15年', '昇格後15〜20年', '昇格後20年以上'],
       s: ['在籍5年未満', '在籍5〜10年', '在籍10〜15年', '在籍15〜20年', '在籍20年以上']
@@ -193,7 +193,7 @@
     vfYes: 'Verified',
     vfNo: 'Self-reported',
     far: 'This figure is far outside the published range for this airline and position.',
-    age: ['Within 1 month', 'Within 3 months', 'Within 6 months', 'Within a year', 'Over a year ago'],
+    age: ['Within 3 days', 'Within 7 days', 'Within 14 days', 'Within 1 month', 'Within 3 months', 'Within 6 months', 'Within a year', 'Over a year ago'],
     ten: {
       r: ['Under 5 yrs in rank', '5–10 yrs in rank', '10–15 yrs in rank', '15–20 yrs in rank', '20+ yrs in rank'],
       s: ['Under 5 yrs at airline', '5–10 yrs at airline', '10–15 yrs at airline', '15–20 yrs at airline', '20+ yrs at airline']
@@ -304,7 +304,7 @@
     vfYes: 'Verificado',
     vfNo: 'Declarado por el piloto',
     far: 'Esta cifra está muy fuera del rango publicado para esta aerolínea y categoría.',
-    age: ['Hace 1 mes o menos', 'Hace 3 meses o menos', 'Hace 6 meses o menos', 'Hace un año o menos', 'Hace más de un año'],
+    age: ['Hace 3 días o menos', 'Hace 7 días o menos', 'Hace 14 días o menos', 'Hace 1 mes o menos', 'Hace 3 meses o menos', 'Hace 6 meses o menos', 'Hace un año o menos', 'Hace más de un año'],
     ten: {
       r: ['Menos de 5 años en el puesto actual', '5–10 años en el puesto actual', '10–15 años en el puesto actual', '15–20 años en el puesto actual', '20 años o más en el puesto actual'],
       s: ['Menos de 5 años en la aerolínea', '5–10 años en la aerolínea', '10–15 años en la aerolínea', '15–20 años en la aerolínea', '20 años o más en la aerolínea']

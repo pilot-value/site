@@ -87,9 +87,10 @@
         どちらの帯の中の位置も絞り込む足がかりになる。
 
    ── 投稿の時期（いちばん右の列）────────────────────────────────
-   ★2026-08-24 に足した。出すのは**5段の粗い区分の言葉だけ**
-     （1ヶ月以内 / 3ヶ月以内 / 6ヶ月以内 / 1年以内 / それより前）。
-     日付も年月もサーバから来ない（来るのは 0〜4 の段の番号）。
+   ★2026-08-24 に足した。出すのは**粗い区分の言葉だけ**。
+     2026-11-04 オーナー指示で1ヶ月の手前に3段を足して8段
+     （3日以内 / 7日以内 / 14日以内 / 1ヶ月以内 / 3ヶ月以内 / 6ヶ月以内 / 1年以内 / それより前）。
+     日付も年月もサーバから来ない（来るのは 0〜7 の段の番号。決めるのは db/pay-rows.sql の person の1か所）。
    ⚠️ **並べ替えの口も絞り込みの口も付けない。**
      並びに投稿の新しさが乗ると「誰が最近出したか」が読める（db/pay-rows.sql の契約⑥）。
    ════════════════════════════════════════════════════════════════ */
@@ -134,8 +135,9 @@
            行の ⚠ の読み上げ・マウスを重ねた時の説明・詳細の面の1文は、全部この1文。 */
       far: '同じ会社・同じ職位の公開年収から大きく外れた金額です。',
       hold: '投稿者がパイロットであることを確認中の記録です。',
-      /* ★投稿時期。段の番号（0〜4）を言葉にするだけ。日付は持っていない。 */
-      age: ['1ヶ月以内', '3ヶ月以内', '6ヶ月以内', '1年以内', 'それより前'],
+      /* ★投稿時期。段の番号（0〜7）を言葉にするだけ。日付は持っていない。
+           ⚠️ 並びはサーバの段と同じ。career-live.js の age とも同じ並び。 */
+      age: ['3日以内', '7日以内', '14日以内', '1ヶ月以内', '3ヶ月以内', '6ヶ月以内', '1年以内', 'それより前'],
       stRep: '実給与の投稿',       stRepU: '件',
       stAir: '航空会社',           stAirU: '社',
       stMon: '1ヶ月以内の新規投稿', stMonU: '件',
@@ -261,8 +263,8 @@
       vfNo: 'Self-reported',
       far: 'This figure is far outside the published range for this airline and position.',
       hold: 'We are still confirming that the person who posted this record is a pilot.',
-      age: ['Within 1 month', 'Within 3 months', 'Within 6 months',
-            'Within a year', 'Over a year ago'],
+      age: ['Within 3 days', 'Within 7 days', 'Within 14 days', 'Within 1 month',
+            'Within 3 months', 'Within 6 months', 'Within a year', 'Over a year ago'],
       stRep: 'Pay records',      stRepU: '',
       stAir: 'Airlines',         stAirU: '',
       stMon: 'Added within 1 month', stMonU: '',
@@ -350,8 +352,8 @@
       vfNo: 'Declarado por el piloto',
       far: 'Esta cifra está muy fuera del rango publicado para esta aerolínea y categoría.',
       hold: 'Todavía estamos confirmando que quien publicó este registro es piloto.',
-      age: ['Hace menos de 1 mes', 'Hace menos de 3 meses', 'Hace menos de 6 meses',
-            'Hace menos de un año', 'Hace más de un año'],
+      age: ['Hace menos de 3 días', 'Hace menos de 7 días', 'Hace menos de 14 días', 'Hace menos de 1 mes',
+            'Hace menos de 3 meses', 'Hace menos de 6 meses', 'Hace menos de un año', 'Hace más de un año'],
       stRep: 'Registros de remuneración',      stRepU: '',
       stAir: 'Aerolíneas',         stAirU: '',
       stMon: 'Agregados hace menos de 1 mes', stMonU: '',

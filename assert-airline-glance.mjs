@@ -2707,7 +2707,7 @@ const ratedRows = slug => RATED.map((sc, i) => ({
 }));
 const ratedBody = slug => JSON.stringify({ unlocked: false, rows: ratedRows(slug) });
 const VF_TEXT = v => (v ? '明細で確認済み' : '本人申告');
-const AGE_TEXT = ['1ヶ月以内', '3ヶ月以内', '6ヶ月以内', '1年以内', 'それより前'];
+const AGE_TEXT = ['3日以内', '7日以内', '14日以内', '1ヶ月以内', '3ヶ月以内', '6ヶ月以内', '1年以内', 'それより前'];   // サーバの段 0〜7（2026-11-04 に8段）
 /* ★2026-10-30 会社 × 職位の中央値（pv_company_pay）と月の給与の内訳（pv_company_comp）── 給与の鍵の開いた人の画面だけが呼ぶ。
    〔検査用の見本。実データではない〕機長は 25%・75% つき（人数のそろった区分の形）・副操縦士は中央値だけ（3〜4人の形）。人数（people）を植えてある（出さないことを見る）。
    内訳は機長だけ（副操縦士は人数が足りない few）。場面が seen.cpay・seen.comp に返事を置けば、そちら（'nofn' ＝ 口がまだ無い 404 PGRST202）。 */

@@ -544,7 +544,7 @@ console.log('\n▼ 6. ★並びは新しい順（2026-08-25。前は md5 順だ�
 {
   /* ★並びと右端の列が食い違わないこと。
      新しい順（新しいほうが上）に並び、段はその同じ時刻から決まるので、
-     上から下へ段は必ず 0→4 の向きにしか動かない。逆流したら、
+     上から下へ段は必ず 0→7 の向きにしか動かない。逆流したら、
      並べるのに使った時刻と段を出した時刻が別物になっている。 */
   const ages = R.map(x => x.age);
   const bad  = ages.findIndex((a, i) => i > 0 && a < ages[i - 1]);
@@ -593,8 +593,8 @@ ok(!raw.includes(OTHER_NAME) && !raw.toLowerCase().includes('somewhere'),
 ok(only(R, x => x.airline === 'other')
      .every(x => Object.keys(x).every(k => ALLOWED.includes(k))),
    '　その人たちの行にも余分な欄が1つも無い（打ち込まれた社名の置き場が無い）');
-ok(R.every(x => Number.isInteger(x.age) && x.age >= 0 && x.age <= 4),
-   '★投稿の時期は0〜4の段だけ（日付も年月も入っていない）');
+ok(R.every(x => Number.isInteger(x.age) && x.age >= 0 && x.age <= 7),
+   '★投稿の時期は0〜7の段だけ（日付も年月も入っていない）');
 ok(!/\d{4}-\d{2}/.test(raw),
    '★返り値の文字列に年月の形をした数字が1つも無い');
 
@@ -1408,11 +1408,11 @@ ok(!(await one(`select has_table_privilege('anon','public.pv_review_person','sel
 }
 
 // ════════════════════════════════════════════════════════════
-console.log('\n▼ 12-d. ★投稿の時期は5段の粗い区分だけ');
+console.log('\n▼ 12-d. ★投稿の時期は8段の粗い区分だけ（2026-11-04 に 3日・7日・14日を足した）');
 // ════════════════════════════════════════════════════════════
-/* 段の境目。1ヶ月／3ヶ月／6ヶ月／1年 の内と外に、余裕を持たせて置く。
+/* 段の境目。3日／7日／14日／1ヶ月／3ヶ月／6ヶ月／1年 の内と外に、余裕を持たせて置く。
    ★段は「その人のいちばん新しい提出」から決まる。 */
-const AGE_CASES = [[20, 0], [40, 1], [100, 2], [200, 3], [400, 4]];
+const AGE_CASES = [[1, 0], [5, 1], [10, 2], [20, 3], [40, 4], [100, 5], [200, 6], [400, 7]];
 for (const [days, want] of AGE_CASES) {
   const u = await review(A_AGE, 'fo', { ann: 1000 + days }, days);
   ok(true, `　${days}日前の口コミを1件置いた（uid ${u % 1000}）`);
@@ -1423,7 +1423,7 @@ await asViewer();
   const got = only((await payRows()).rows, x => x.airline === A_AGE)
     .map(x => x.age).sort((a, b) => a - b);
   ok(JSON.stringify(got) === JSON.stringify(AGE_CASES.map(c => c[1])),
-     '★20/40/100/200/400日前が 0/1/2/3/4 の段に分かれる', JSON.stringify(got));
+     '★1/5/10/20/40/100/200/400日前が 0〜7 の段に分かれる', JSON.stringify(got));
 }
 {
   /* 同じ人が古い月と新しい月を出していたら、新しいほうの段になる。 */
@@ -1450,8 +1450,10 @@ console.log('\n▼ 12-e. ★段が「その人の本当の投稿日」と1つず
 {
   /* (a) 境目。「1ヶ月」はカレンダー基準（2月と8月で長さが違う）なので、
      日数ではなく**同じ interval を使って** 6時間だけ内と外にずらす。
-     8人ぶんを金額で見分けられるようにしてある（丸めても重ならない額）。 */
-  const IV = [['1 month', 0, 1], ['3 months', 1, 2], ['6 months', 2, 3], ['12 months', 3, 4]];
+     14人ぶんを金額で見分けられるようにしてある（丸めても重ならない額）。
+     ★3日・7日・14日（2026-11-04 に足した段）の境目も同じ形で見る。 */
+  const IV = [['3 days', 0, 1], ['7 days', 1, 2], ['14 days', 2, 3],
+              ['1 month', 3, 4], ['3 months', 4, 5], ['6 months', 5, 6], ['12 months', 6, 7]];
   const want = [];
   let g = 10000;
   for (const [iv, inner, outer] of IV) {
@@ -1467,7 +1469,7 @@ console.log('\n▼ 12-e. ★段が「その人の本当の投稿日」と1つず
   }
   await asViewer();
   const got = only((await payRows()).rows, x => x.airline === A_EDGE);
-  ok(got.length === 8, '境目に置いた8人が8行として出る', `= ${got.length}行`);
+  ok(got.length === IV.length * 2, `境目に置いた${IV.length * 2}人が${IV.length * 2}行として出る`, `= ${got.length}行`);
   for (const w of want) {
     const row = got.find(x => Number(x.annual_usd) === w.usd);
     ok(!!row && row.age === w.age,
@@ -1490,11 +1492,14 @@ console.log('\n▼ 12-e. ★段が「その人の本当の投稿日」と1つず
            r."position" as pos,
            public.pv_sig2((percentile_cont(0.5) within group
              (order by r.annual_total_usd))::numeric) as usd,
-           case when max(r.created_at) >= now() - interval '1 month'   then 0
-                when max(r.created_at) >= now() - interval '3 months'  then 1
-                when max(r.created_at) >= now() - interval '6 months'  then 2
-                when max(r.created_at) >= now() - interval '12 months' then 3
-                else 4 end as age
+           case when max(r.created_at) >= now() - interval '3 days'    then 0
+                when max(r.created_at) >= now() - interval '7 days'    then 1
+                when max(r.created_at) >= now() - interval '14 days'   then 2
+                when max(r.created_at) >= now() - interval '1 month'   then 3
+                when max(r.created_at) >= now() - interval '3 months'  then 4
+                when max(r.created_at) >= now() - interval '6 months'  then 5
+                when max(r.created_at) >= now() - interval '12 months' then 6
+                else 7 end as age
       from pay_reports r
      where r.annual_total_usd is not null
        and r.annual_total_usd between 10000 and 700000
