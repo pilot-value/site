@@ -440,15 +440,11 @@
     @media (min-width:768px) and (max-width:1099px) and (min-height:1000px){
       #hero-section .hero-h1{ font-size:clamp(34px,5.2vw,50px); }
     }
-    #hero-section .hero-lede{ margin:12px 0 0; max-width:31em;
+    #hero-section .hero-lede{ margin:18px 0 0; max-width:31em;
       font-size:clamp(16px,1.3vw,18.5px); line-height:1.75; font-weight:500;
       color:var(--pv-text-muted); word-break:auto-phrase; line-break:strict; text-wrap:pretty; }
-    /* ★2026-11-01 説明文の頭の1行（日本語「コックピット内の噂は本当？」・英語「Enough cockpit rumors.」）。
-       本文と同じ字・同じ太さ・同じ色で、改行だけ（オーナー回答「1」── 太くしない）。 */
-    #hero-section .hero-lede-q{ display:block; }
-    /* ⚠️ 1行増えたぶん、最初の1画面に帯2本を入れる決まり（assert-hero-fold）が苦しい。説明文の上の空きを 18 → 12px（スマホと同じ）、
-       幅 379px 以下だけ説明文を 15px にする（英語の本文が3行 → 2行に戻る）。上の余白・見出し・ボタンは触らない。 */
-    @media (max-width:379px){ #hero-section .hero-lede{ font-size:15px; } }
+    /* ★2026-11-04 オーナー指示で、説明文の頭の問いの1行（日本語「コックピット内の噂は本当？」・英語「Enough cockpit rumors.」）を外した。
+       1行ぶん詰めていた説明文の上の空き（12px）と、幅 379px 以下の 15px も、入れる前（2026-11-01 より前）の形に戻した。 */
 
     /* ボタン2本（2026-09-22 オーナー指示。08-22 の「1本だけ」を置き換えた）。
        ★並びは grid の名前付きの場所で決める。広い幅は「主｜副」の下に添え書き、
