@@ -218,11 +218,11 @@
            明細は VERIFIED PAY の話になったので、ここで要求すると Give を1つ減らす。 */
       lockT: '他のパイロットが実際に提出した給与を見る',
       /* ⚠️ 「サーバーには送られません」と書かない。**事実でない。**（2026-09-20）
-           端末でやっているのは黒塗りと枠の外の切り落としで、読み取りは枠の中を
-           切り出した画像を送ってやっている。サイト全体でこの1文に揃えてある
-           （index.html §7・pay-report.html・personal-data.html・premium-auth-lock.js）。 */
-      lockS: '氏名も社員番号も受け取りません。'
-           + '明細を使う場合、氏名・社員番号・口座はブラウザの中で黒塗りしてから送り、画像は保存しません。',
+           ★2026-11-04 から、明細は塗らずにページ全体を送って読む（黒塗りの画面をやめた）。
+             守っているのは「氏名・社員番号・口座を回答・保存の対象にしない」こと。
+             サイト全体でこの1文に揃えてある（index.html §7・pay-report.html・personal-data.html・premium-auth-lock.js）。 */
+      lockS: '氏名も社員番号も記録しません。'
+           + '明細は給与の数字を読み取るためだけに使い、氏名・社員番号・口座は回答・保存の対象にしません。画像は保存しません。',
       lockS2: '一覧に出るのは、航空会社・職位・機材と、帯にした年収・月あたりです。'
             + '行を押すと、その人の報酬の内訳と勤務も帯で見られます。',
       lockC: '匿名で給与を追加する',
@@ -312,11 +312,10 @@
       pgPrev: 'Previous', pgNext: 'Next', pgRange: 'Showing {a}–{b} of {n}',
       lockT: 'See what other pilots actually get paid',
       /* ⚠️ See the Japanese note above: do not write "processed on your own device"
-           as if nothing is sent. The redaction and the crop happen on the device;
-           the cropped area is then sent to be read. */
-      lockS: 'We never take your name or staff number. '
-           + 'If you use a payslip, your name, staff number and bank details are blacked out '
-           + 'in your browser before it is sent, and the image itself is never stored.',
+           as if nothing is sent. Since 2026-11-04 the whole page is sent to be read;
+           what we guarantee is that names, staff numbers and bank details are never returned or stored. */
+      lockS: 'We never record your name or staff number. '
+           + 'Your payslip is used only to read the pay figures; your name, staff number and bank details are not part of what is returned or stored. The image itself is never stored.',
       lockS2: 'A row carries the airline, the rank and the aircraft, '
             + 'with the yearly and monthly figures as ranges. '
             + 'Opening a row shows how that pay breaks down, and the work behind it.',
@@ -401,11 +400,10 @@
       pgPrev: 'Anterior', pgNext: 'Siguiente', pgRange: 'Mostrando {a}–{b} de {n}',
       lockT: 'Mira cuánto cobran realmente otros pilotos',
       /* ⚠️ See the Japanese note above: do not write "processed on your own device"
-           as if nothing is sent. The redaction and the crop happen on the device;
-           the cropped area is then sent to be read. */
-      lockS: 'Nunca recopilamos tu nombre ni tu número de empleado. '
-           + 'Si usas un recibo de nómina, tu nombre, número de empleado y datos bancarios se tapan '
-           + 'en tu navegador antes de enviarlo, y la imagen nunca se almacena.',
+           as if nothing is sent. Since 2026-11-04 the whole page is sent to be read;
+           what we guarantee is that names, staff numbers and bank details are never returned or stored. */
+      lockS: 'Nunca registramos tu nombre ni tu número de empleado. '
+           + 'Tu recibo de nómina se usa solo para leer las cifras de pago; tu nombre, tu número de empleado y tus datos bancarios no forman parte de lo que se devuelve ni de lo que se guarda. La imagen nunca se guarda.',
       lockS2: 'Cada fila muestra la aerolínea, la categoría y la aeronave, '
             + 'con las cifras anual y mensual en rangos. '
             + 'Al abrir una fila ves el desglose de esa remuneración y el trabajo que la respalda.',

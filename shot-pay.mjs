@@ -546,12 +546,7 @@ if (process.argv.includes('open')) {
     }, { timeout: 10000 });
     const f = await pg.$('#ps-file');
     await f.uploadFile(path.join(ROOT, 'db/fixtures/payslip-pdf-gulf.pdf'));
-    await pg.waitForFunction(() => {
-      const b = document.getElementById('ps-confirm');
-      return !!b && !b.disabled;
-    }, { timeout: 60000 });
-    await pg.click('#ps-confirm');
-    await pg.click('#ps-send');
+    /* ★2026-11-04 から、選んだらそのまま読み取りに送られる（黒塗りの確認と送るボタンは無い）。 */
     await pg.waitForFunction(() => {
       const e = document.getElementById('f-gross');
       return !!e && Math.abs(Number(String(e.value).replace(/[^0-9.]/g, '')) - 583000) < 0.5;
@@ -862,13 +857,7 @@ if (ROUND === 'second') {
       }, { timeout: 10000 });
       const input = await p.$('#ps-file');
       await input.uploadFile(PDF);
-      await p.waitForSelector('.ps-edit', { timeout: 40000 });
-      await p.waitForFunction(() => {
-        const b3 = document.getElementById('ps-confirm');
-        return !!b3 && !b3.disabled;
-      }, { timeout: 60000 });
-      await p.click('#ps-confirm');
-      await p.click('#ps-send');
+      /* ★2026-11-04 から、選んだらそのまま読み取りに送られる（黒塗りの確認と送るボタンは無い）。 */
       await p.waitForFunction(() => !!document.querySelector('.ps-res, .ps-msg-warn'),
         { timeout: 30000 });
       await new Promise((r) => setTimeout(r, 700));

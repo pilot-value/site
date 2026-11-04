@@ -5,7 +5,7 @@
      明細まわりのテストは合計1,400件以上通っているが、測っているのは
      黒塗りの命中率・配管・フォームの契約であって、
      **モデルが返した数字が合っているか**は1件も見ていなかった。
-     db/test-payslip-redact.mjs は偽の解析結果を注入して API を叩かない。
+     db/test-payslip-flow.mjs は偽の解析結果を注入して API を叩かない（2026-11-04 まで db/test-payslip-redact.mjs）。
      db/smoke-parse-payslip.mjs --live は「earnings が0行でない」しか見ない。
      合成明細は20枚以上あり、正解の金額はこちらが作ったので全部分かっているのに、
      一度も突き合わせていなかった。だから「読み取りは完璧か」に
@@ -30,10 +30,24 @@
      聞き返し ＝ unmapped に落ちたもの。設計どおりの動作であって誤りではない。
 
    使い方（node serve.mjs が動いている状態で）:
-     node db/eval-payslip.mjs                     15枚ぜんぶ  ≒$0.30
+     node db/eval-payslip.mjs                     16枚ぜんぶ  ≒$0.30
      node db/eval-payslip.mjs --id gulf           1枚だけ     ≒$0.02
      node db/eval-payslip.mjs --id oceania,latam,sea  カンマ区切りで何枚でも
      node db/eval-payslip.mjs --list              正解表を見るだけ（費用ゼロ）
+
+   ★2026-11-04 に足した口（旧い頼み方と比べるため）:
+     --variant off,old     頼み方を並べて同じ画像で読ませる（カンマ区切り・既定は off）
+         off   … 本番の頼み方（index.ts の buildRequest の既定＝考える処理なし・構造化出力・上限 8000）
+         low   … 考える処理あり（effort low）・構造化出力・上限 8000
+         adapt … 考える処理あり（effort 既定）・構造化出力・上限 8000
+         old   … 2026-11-04 より前の頼み方そのもの（--old-ref の版の index.ts を読み込んで、
+                 その systemPrompt・上限 2000・考える処理の指定なし・括弧を切り出す読み方で再現）
+     --old-ref <git の版>  old に使う版（既定 11af0204 ＝ 作り直す直前の main）
+     --direct              画面を通さず、正解表の PNG をそのまま送る（PDF は飛ばす）
+     --base <URL>          画面の置き場所（既定 http://localhost:3000）
+     --budget <ドル>       この費用を超えそうなら次の1回を送らずに止める（既定 0.50）
+     --ledger <ファイル>   使った費用を足し込んでいく帳面（回をまたいで上限を守る）
+     費用は返事のトークン数から数える（入力 $2・出力 $10 ／ 100万トークン）。
 
    要るもの: mail-bot/.env の ANTHROPIC_API_KEY（gitignore 済み・開発用）
 
@@ -44,7 +58,9 @@
      自動で書き戻すと、退化した出力がそのまま正解になって検査が死ぬ。
    ════════════════════════════════════════════════════════════════ */
 import puppeteer from 'puppeteer';
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, existsSync, writeFileSync, mkdtempSync } from 'fs';
+import { execFileSync } from 'child_process';
+import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -52,10 +68,26 @@ const DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(DIR, '..');
 const FIX = path.join(DIR, 'fixtures');
 const FN = '/functions/v1/parse-payslip';
-const PAGE = { ja: 'http://localhost:3000/pay-report.html',
-               en: 'http://localhost:3000/en/pay-report.html' };
-
 const argv = process.argv.slice(2);
+const opt = (k, d) => { const i = argv.indexOf(k); return i >= 0 && argv[i + 1] ? argv[i + 1] : d; };
+const BASE = opt('--base', 'http://localhost:3000').replace(/\/$/, '');
+const PAGE = { ja: BASE + '/pay-report.html', en: BASE + '/en/pay-report.html' };
+const DIRECT = argv.includes('--direct');
+const VARIANTS = opt('--variant', 'off').split(',').map((x) => x.trim()).filter(Boolean);
+const OLD_REF = opt('--old-ref', '11af0204');
+const BUDGET = Number(opt('--budget', '0.50'));
+const LEDGER = opt('--ledger', null);
+/* --save <ファイル> … 読めた結果（sanitize 後の形）と時間・トークンを保存する。
+   ★採点の規則を直したときに、お金をかけずに採点し直すため（--rescore <ファイル>）。 */
+const SAVE = opt('--save', null);
+const RESCORE = opt('--rescore', null);
+/* 料金（ドル / トークン）。このモデルの公開価格。返事の usage から1回ずつ数える。 */
+const PRICE = { in: 2 / 1e6, out: 10 / 1e6 };
+const KNOWN = ['off', 'low', 'adapt', 'old'];
+if (VARIANTS.some((v) => !KNOWN.includes(v))) {
+  console.error(`❌ --variant は ${KNOWN.join(' / ')} のどれか（カンマ区切り）`);
+  process.exit(1);
+}
 /* --id はカンマ区切りで何枚でも受ける（新しく足した様式だけ回すため）。
    ★知らない id は黙って無視しない。打ち間違えたときに「0枚が全部緑」で終わるのが
      いちばん危ない（測っていないのに測ったつもりになる）。 */
@@ -74,7 +106,29 @@ if (only) {
     process.exit(1);
   }
 }
-const slips = EXPECTED.slips.filter((s) => !only || only.includes(s.id));
+const slips = EXPECTED.slips.filter((s) => !only || only.includes(s.id))
+  .filter((s) => !DIRECT || /\.png$/i.test(s.file));
+/* 明細に印字してある氏名・社員番号・口座（黒塗りの正解表 payslips.json の pii）。
+   ★答えのどこかにこれが1つでも出たら「漏れ」として数える（2026-11-04）。 */
+const PII = Object.fromEntries(JSON.parse(readFileSync(path.join(FIX, 'payslips.json'), 'utf8'))
+  .map((f) => [f.file, (f.pii || []).map((p) => p.text)]));
+const squash = (t) => String(t).replace(/[\s　]+/g, '');
+/* ★照合の単位（2026-11-04 に1回誤検知して直した）:
+     ・数字は5けた以上の並びだけ（社員番号・口座番号）。4けた以下（支店番号 200・銀行コード 0009）は
+       金額や年号と区別がつかないので見ない ── 見ると「200,000円」で漏れと数えてしまう。
+     ・字の部分は空白で区切った1語ずつ（姓だけ・名だけが出ても漏れ）。数字と記号だけの語は上の規則に任せる。 */
+function leaks(file, result) {
+  const out = squash(JSON.stringify(result));
+  const hits = [];
+  for (const t of PII[file] || []) {
+    const parts = [
+      ...(String(t).match(/\d{5,}/g) || []),
+      ...String(t).split(/[\s　]+/).filter((w) => w.length >= 2 && /[^\d\-.,()]/.test(w)),
+    ];
+    for (const p of parts) if (out.includes(squash(p))) { hits.push(p); break; }
+  }
+  return hits;
+}
 
 if (listOnly) {
   console.log('\n正解表（db/fixtures/payslips.expected.json）— 数字はすべて作り話\n');
@@ -106,8 +160,30 @@ if (!process.env.ANTHROPIC_API_KEY) {
 
 /* ── 本体をそのまま読み込む（写経した複製を測らない）── */
 globalThis.Deno = { env: { get: (k) => process.env[k] ?? '' }, serve: () => {} };
-const { systemPrompt, sanitize, reconcile, applyChecks, isCountRow } =
+const { systemPrompt, sanitize, reconcile, applyChecks, isCountRow, buildRequest, readReply } =
   await import('../supabase/functions/parse-payslip/index.ts');
+
+/* ★旧い頼み方は、その版の index.ts をそのまま読み込んで再現する（写さない）。 */
+let OLD = null;
+if (VARIANTS.includes('old')) {
+  const src = execFileSync('git', ['show', `${OLD_REF}:supabase/functions/parse-payslip/index.ts`],
+                           { cwd: ROOT, encoding: 'utf8' });
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'pv-old-parse-'));
+  const file = path.join(dir, 'index.ts');
+  writeFileSync(file, src);
+  OLD = { ...(await import(file)), model: (src.match(/const MODEL = '([a-z0-9-]+)'/) || [])[1] };
+}
+
+/* ── 費用の帳面 ── */
+let spent = 0;
+if (LEDGER && existsSync(LEDGER)) spent = Number(JSON.parse(readFileSync(LEDGER, 'utf8')).usd) || 0;
+const charge = (u) => {
+  const usd = (u?.input_tokens || 0) * PRICE.in + (u?.output_tokens || 0) * PRICE.out;
+  spent += usd;
+  if (LEDGER) writeFileSync(LEDGER, JSON.stringify({ usd: Math.round(spent * 1e6) / 1e6, at: new Date().toISOString() }));
+  return usd;
+};
+const NEXT_MAX = 0.04;   // 1回で使いうる上限の見積もり（画像≒5千トークン＋答え≒2千トークンでも $0.03 未満）
 
 /* 分類できなかった行のうち「金額の行」だけ。乗務日数・SECTORS のような
    回数の行は年収に足さない（画面 payslip.js の apply() と同じ判定を使う）。 */
@@ -165,34 +241,21 @@ async function capturePayload(browser, slip) {
 
   const input = await page.$('#ps-file');
   await input.uploadFile(path.join(FIX, slip.file));
-  await page.waitForSelector('.ps-edit', { timeout: 40000 });
-  // 黒塗りの探索が終わる＝確認チェックが押せるようになる（初回は学習データ 8.7MB）
-  await page.waitForFunction(() => {
-    const c = document.getElementById('ps-confirm');
-    return !!c && !c.disabled;
-  }, { timeout: 120000 });
-  await new Promise((r) => setTimeout(r, 250));
-  await page.click('#ps-confirm');
-  await page.click('#ps-send');
-  await page.waitForFunction(() => !!document.querySelector('.ps-res, .ps-msg-warn'), { timeout: 20000 })
-    .catch(() => {});
+  /* ★2026-11-04 から、選んだらそのまま読み取りに送られる（黒塗りと確認の画面は無い）。 */
+  const t0 = Date.now();
+  while (!sent && Date.now() - t0 < 30000) await new Promise((r) => setTimeout(r, 100));
   await page.close();
   return sent;
 }
 
 /* ═══ 読み取り（Edge Function を経由しない）═══════════════════ */
-async function readSlip(payload) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': process.env.ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-5',
+/* 頼み方ごとの要求。off/low/adapt は本番の buildRequest、old は旧い版そのもの。 */
+function requestFor(variant, payload) {
+  if (variant === 'old') {
+    return {
+      model: OLD.model,
       max_tokens: 2000,
-      system: systemPrompt(payload.lang),
+      system: OLD.systemPrompt(payload.lang),
       messages: [{
         role: 'user',
         content: [
@@ -200,14 +263,49 @@ async function readSlip(payload) {
           { type: 'text', text: 'Return the JSON object described in the system prompt. Nothing else.' },
         ],
       }],
-    }),
+    };
+  }
+  const o = variant === 'low' ? { thinking: 'adaptive', effort: 'low' }
+    : variant === 'adapt' ? { thinking: 'adaptive' } : {};
+  return buildRequest(payload.image_b64, payload.mime, payload.lang, o);
+}
+
+/* 1回読ませる。★返すのは結果と「なぜ失敗したか」の固定の語・stop_reason・トークン・時間。 */
+async function readSlip(variant, payload) {
+  const t0 = Date.now();
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': process.env.ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(requestFor(variant, payload)),
   });
-  if (!res.ok) throw new Error(`anthropic ${res.status}`);
+  const ms = Date.now() - t0;
+  if (!res.ok) {
+    let t = ''; try { t = (await res.json())?.error?.type || ''; } catch { /* 本文は見ない */ }
+    return { ms, code: `upstream_${res.status}${t ? ':' + t : ''}`, stop: '', it: 0, ot: 0, usd: 0 };
+  }
   const data = await res.json();
-  const text = (data?.content ?? []).map((c) => c.text ?? '').join('').trim();
-  const raw = text.startsWith('{') ? text : text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1);
-  const parsed = sanitize(JSON.parse(raw));
-  return applyChecks(parsed, reconcile(parsed));
+  const usd = charge(data.usage);
+  const base = { ms, stop: data.stop_reason || '', it: data.usage?.input_tokens || 0,
+                 ot: data.usage?.output_tokens || 0, usd };
+  if (variant === 'old') {
+    /* ★旧い読み方そのまま（括弧を切り出す）。失敗の理由は stop_reason から後で分ける。 */
+    try {
+      const text = (data?.content ?? []).map((c) => c.text ?? '').join('').trim();
+      const raw = text.startsWith('{') ? text : text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1);
+      const parsed = OLD.sanitize(JSON.parse(raw));
+      return { ...base, code: 'ok', r: OLD.applyChecks(parsed, OLD.reconcile(parsed)) };
+    } catch {
+      return { ...base, code: base.stop === 'max_tokens' ? 'read_truncated' : 'read_bad_format' };
+    }
+  }
+  const got = readReply(data);
+  if (!got.ok) return { ...base, code: got.code };
+  const parsed = sanitize(got.raw);
+  return { ...base, code: 'ok', r: applyChecks(parsed, reconcile(parsed)) };
 }
 
 /* ═══ 採点 ═══════════════════════════════════════════════════ */
@@ -306,33 +404,61 @@ function score(slip, r) {
 }
 
 /* ═══ 実行 ═══════════════════════════════════════════════════ */
-try {
-  const probe = await fetch('http://localhost:3000/pay-report.html');
-  if (!probe.ok) throw new Error(String(probe.status));
-} catch {
-  console.error('❌ localhost:3000 が応答しません。先に `node serve.mjs` を起動してください。');
-  process.exit(1);
-}
-
-console.log(`\n明細 ${slips.length} 枚を本番と同じ経路で読ませます（≒$${(slips.length * 0.02).toFixed(2)}）\n`);
-const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
-const rows = [];
-
-for (const slip of slips) {
-  process.stdout.write(`  ${slip.id.padEnd(14)} 画像を作成中…`);
-  let payload, r, err = null;
+if (!DIRECT) {
   try {
-    payload = await capturePayload(browser, slip);
-    if (!payload?.image_b64) throw new Error('画像が送信されなかった');
-    process.stdout.write(`\r  ${slip.id.padEnd(14)} 読み取り中…（${Math.round(payload.image_b64.length / 1024)}KB）   `);
-    r = await readSlip(payload);
-  } catch (e) { err = e.message; }
-  const s = r ? score(slip, r) : null;
-  rows.push({ slip, r, s, err, kb: payload ? Math.round(payload.image_b64.length / 1024) : 0 });
-  const mark = err ? '💥' : s.fatal.length ? '🚨' : s.silent ? '❌' : s.money.length ? '⚠️ ' : s.cls.length ? '△' : '✅';
-  console.log(`\r  ${slip.id.padEnd(14)} ${mark}${' '.repeat(24)}`);
+    const probe = await fetch(PAGE.ja);
+    if (!probe.ok) throw new Error(String(probe.status));
+  } catch {
+    console.error(`❌ ${BASE} が応答しません。先に画面のサーバーを起動してください（または --direct）。`);
+    process.exit(1);
+  }
 }
-await browser.close();
+
+if (RESCORE) {
+  const saved = JSON.parse(readFileSync(RESCORE, 'utf8'));
+  globalThis.__RESCORED = saved.map((z) => {
+    const slip = EXPECTED.slips.find((s) => s.id === z.id);
+    const s = z.r ? score(slip, z.r) : null;
+    return { slip, variant: z.variant, x: z.x, r: z.r, s, err: z.err, leak: z.r ? leaks(slip.file, z.r) : [] };
+  });
+}
+if (!RESCORE) console.log(`\n明細 ${slips.length} 枚 × 頼み方 ${VARIANTS.join('/')}（${DIRECT ? 'PNG をそのまま' : '画面と同じ経路'}）`);
+console.log(`   上限 $${BUDGET.toFixed(2)} ／ これまでに使った分 $${spent.toFixed(4)}\n`);
+const browser = (DIRECT || RESCORE) ? null : await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
+const rows = RESCORE ? globalThis.__RESCORED : [];
+let stopped = false;
+
+for (const slip of (RESCORE ? [] : slips)) {
+  let payload = null, perr = null;
+  try {
+    if (DIRECT) {
+      payload = { image_b64: readFileSync(path.join(FIX, slip.file)).toString('base64'), mime: 'image/png', lang: slip.lang };
+    } else {
+      payload = await capturePayload(browser, slip);
+      if (!payload?.image_b64) throw new Error('画像が送信されなかった');
+    }
+  } catch (e) { perr = e.message; }
+  for (const variant of VARIANTS) {
+    if (perr) { rows.push({ slip, variant, err: perr }); continue; }
+    if (spent + NEXT_MAX > BUDGET) { stopped = true; break; }
+    process.stdout.write(`  ${slip.id.padEnd(14)} ${variant.padEnd(6)} 読み取り中…`);
+    let x, err = null;
+    try { x = await readSlip(variant, payload); } catch (e) { err = String(e.message).slice(0, 80); }
+    const r = x && x.r;
+    const s = r ? score(slip, r) : null;
+    const leak = r ? leaks(slip.file, r) : [];
+    rows.push({ slip, variant, x, r, s, err: err || (x && x.code !== 'ok' ? x.code : null), leak,
+                kb: Math.round(payload.image_b64.length / 1024) });
+    const mark = (err || !r) ? '💥' : leak.length ? '🔓' : s.fatal.length ? '🚨' : s.silent ? '❌'
+      : s.money.length ? '⚠️ ' : s.cls.length ? '△' : '✅';
+    console.log(`\r  ${slip.id.padEnd(14)} ${variant.padEnd(6)} ${mark} ${x ? `${(x.ms / 1000).toFixed(1)}s stop=${x.stop || '-'} out=${x.ot} $${x.usd.toFixed(4)}` : ''}${err ? ' ' + err : (x && x.code !== 'ok' ? ' ' + x.code : '')}`);
+  }
+  if (stopped) break;
+}
+if (browser) await browser.close();
+if (SAVE) writeFileSync(SAVE, JSON.stringify(rows.map((x) => ({ id: x.slip.id, variant: x.variant, x: x.x
+  ? { ms: x.x.ms, stop: x.x.stop, it: x.x.it, ot: x.x.ot, usd: x.x.usd, code: x.x.code } : null, r: x.r || null, err: x.err || null })), null, 1));
+if (stopped) console.log(`\n⏹  上限 $${BUDGET.toFixed(2)} に届きそうなので、ここで止めました（使った分 $${spent.toFixed(4)}）`);
 
 // ── 表 ──────────────────────────────────────────────────────
 const H = ['id', '通貨', '対象月', '支給合計', '手取り', 'kind', '時間', '検算', 'conf', '判定'];
@@ -341,15 +467,15 @@ const cell = (v, i) => String(v).padEnd(W[i]);
 console.log('\n' + H.map(cell).join(' '));
 console.log('─'.repeat(84));
 const yn = (b) => (b ? '✅' : '❌');
-for (const { slip, r, s, err } of rows) {
-  if (err) { console.log(`${cell(slip.id, 0)} 💥 ${err}`); continue; }
+for (const { slip, variant, r, s, err } of rows) {
+  if (!r) { console.log(`${cell(slip.id + ' ' + variant, 0)} 💥 ${err}`); continue; }
   const verdict = s.fatal.length ? `🚨 大事故 ${s.fatal.join(' / ')}`
     : s.silent ? '❌ 黙って外した'
     : s.money.length ? '⚠️  外したが検算が拾った'
     : s.cls.length ? '△ 分類ずれ（総額は合っている）'
     : '✅';
   console.log([
-    slip.id, yn(scalarOk(r.currency, slip.currency)), yn(periodOk(r.period, slip.period)),
+    (slip.id + ' ' + variant).slice(0, 14), yn(scalarOk(r.currency, slip.currency)), yn(periodOk(r.period, slip.period)),
     yn(moneyOk(r.gross_total, slip.gross_total)), yn(moneyOk(r.net_pay, slip.net_pay)),
     `${s.kindHit}/${s.kindAll}`, `${s.hourHit}/${s.hourAll}`,
     r.checks?.gross === 'mismatch' || r.checks?.net === 'mismatch' ? 'NG' : (r.checks?.gross ?? '-'),
@@ -358,9 +484,10 @@ for (const { slip, r, s, err } of rows) {
 }
 
 // ── 中身 ────────────────────────────────────────────────────
-for (const { slip, s, err } of rows) {
-  if (err || (!s.money.length && !s.cls.length && !s.asked.length && !s.fatal.length)) continue;
-  console.log(`\n── ${slip.id}`);
+for (const { slip, variant, s, r, leak } of rows) {
+  if (!r || (!s.money.length && !s.cls.length && !s.asked.length && !s.fatal.length && !leak.length)) continue;
+  console.log(`\n── ${slip.id}（${variant}）`);
+  for (const m of leak) console.log(`   🔓 明細の個人情報が答えに出た: ${m.slice(0, 2)}…`);
   for (const m of s.fatal) console.log(`   🚨 大事故: ${m}`);
   for (const m of s.money) console.log(`   金額: ${m}`);
   for (const m of s.cls) console.log(`   分類: ${m}`);
@@ -368,7 +495,7 @@ for (const { slip, s, err } of rows) {
 }
 
 // ── まとめ ──────────────────────────────────────────────────
-const done = rows.filter((x) => !x.err);
+const done = rows.filter((x) => x.r);
 const silent = done.filter((x) => x.s.silent).length;
 const caught = done.filter((x) => !x.s.silent && (x.s.money.length || x.s.fatal.length)).length;
 const clsOnly = done.filter((x) => !x.s.money.length && !x.s.fatal.length && x.s.cls.length).length;
@@ -387,5 +514,26 @@ if (rows.length - done.length) console.log(`  💥 読めなかった           
 const askedRows = done.reduce((a, x) => a + unmappedMoney(x.r).length, 0);
 const askedSlips = done.filter((x) => unmappedMoney(x.r).length).length;
 console.log(`  ─ 分類できず本人に聞いた行   ${askedRows} 行 / ${askedSlips} 枚（金額は数えている＝年収は正しい）`);
+/* ── 頼み方ごとの比べ（2026-11-04）── */
+console.log('\n頼み方ごと（読めた枚数・失敗の理由・時間・答えのトークン・費用・漏れ）');
+for (const v of VARIANTS) {
+  const vs = rows.filter((x) => x.variant === v && x.x);
+  if (!vs.length) continue;
+  const okN = vs.filter((x) => x.r).length;
+  const codes = {};
+  for (const x of vs) if (!x.r) codes[x.x.code] = (codes[x.x.code] || 0) + 1;
+  const ms = vs.map((x) => x.x.ms).sort((a, b) => a - b);
+  const med = ms[Math.floor(ms.length / 2)];
+  const ot = Math.round(vs.reduce((a, x) => a + x.x.ot, 0) / vs.length);
+  const usd = vs.reduce((a, x) => a + x.x.usd, 0);
+  const mOk = vs.filter((x) => x.r && !x.s.money.length && !x.s.fatal.length).length;
+  const lk = vs.filter((x) => x.leak && x.leak.length).length;
+  const stops = {};
+  for (const x of vs) stops[x.x.stop || '-'] = (stops[x.x.stop || '-'] || 0) + 1;
+  console.log(`  ${v.padEnd(6)} 読めた ${okN}/${vs.length}  金額すべて一致 ${mOk}/${vs.length}  中央 ${(med / 1000).toFixed(1)}s  答え平均 ${ot}トークン  $${usd.toFixed(4)}  漏れ ${lk}`
+    + `  stop: ${JSON.stringify(stops)}${Object.keys(codes).length ? '  失敗: ' + JSON.stringify(codes) : ''}`);
+}
+console.log(`  使った費用の合計（帳面） $${spent.toFixed(4)} ／ 上限 $${BUDGET.toFixed(2)}`);
 console.log(`${'═'.repeat(84)}\n`);
-process.exit(silent || rows.length - done.length ? 1 : 0);
+const leaked = rows.some((x) => x.leak && x.leak.length);
+process.exit(silent || leaked || rows.length - done.length ? 1 : 0);

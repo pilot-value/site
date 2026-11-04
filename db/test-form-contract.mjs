@@ -1648,7 +1648,7 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   await new Promise((r) => setTimeout(r, 150));
   ok((await vis('ps')) && !(await vis('entry')),
      '「明細から自動入力」を押すと読み込み画面に入る（ステップ 1/2）');
-  ok(!(await vis('s1')), '★明細を読んでいるあいだはフォームを出さない');
+  ok(!(await vis('s1')), '★明細を選ぶまではフォームを出さない（選んで読み取りを始めた時点で開く・2026-11-04）');
   ok(await vis('ps-skip'),
      '★「読まずに手で入力する」の逃げ道が常にある（読めない明細で行き止まりにしない）');
 
@@ -4383,14 +4383,7 @@ console.log('\n明細1枚が REAL PAY に出るまで（＋下書きが上書き
 
     const input = await page.$('#ps-file');
     await input.uploadFile(PDF);
-    await page.waitForSelector('.ps-edit', { timeout: 40000 });
-    /* ★時間で待たない。黒塗りを探し終わって「送る」に手が届いた瞬間を条件で待つ。 */
-    await page.waitForFunction(() => {
-      const b = document.getElementById('ps-confirm');
-      return !!b && !b.disabled;
-    }, { timeout: 60000 });
-    await page.click('#ps-confirm');
-    await page.click('#ps-send');
+    /* ★2026-11-04 から、選んだらそのまま読み取りに送られる（黒塗りの確認と送るボタンは無い）。 */
     /* 読み取り結果のパネルが出る＝apply() が最後まで走った（この中で
        PVEnterMode('manual') → WZ.start() → 下書きの復元まで済んでいる）。 */
     await page.waitForFunction(() => !!document.querySelector('.ps-res, .ps-msg-warn'),
@@ -4600,21 +4593,9 @@ console.log('\n明細を落とし直す（前の値が残らない・5/5 に隠�
 
   /* 明細を1枚読ませて、結果がフォームに入りきるまで待つ（時間で待たない）。 */
   const drop = async (wantGross) => {
-    /* ★古い確認欄の id を退かす。落とし直すと payslip.js が panel を作り直すので、
-       これで「新しく出てきたほう」を条件で待てる（時間で待つと混んだ回に嘘の赤が出る）。 */
-    await page.evaluate(() => {
-      const c = document.getElementById('ps-confirm'); if (c) c.id = 'ps-confirm-old';
-      const s2 = document.getElementById('ps-send');   if (s2) s2.id = 'ps-send-old';
-    });
     const input = await page.$('#ps-file');
     await input.uploadFile(PDF);
-    await page.waitForSelector('#ps-confirm', { timeout: 60000 });
-    await page.waitForFunction(() => {
-      const b = document.getElementById('ps-confirm');
-      return !!b && !b.disabled;
-    }, { timeout: 60000 });
-    await page.click('#ps-confirm');
-    await page.click('#ps-send');
+    /* ★2026-11-04 から、選んだらそのまま読み取りに送られる（黒塗りの確認と送るボタンは無い）。 */
     await page.waitForFunction((g) => {
       const e = document.getElementById('f-gross');
       return !!e && Math.abs(Number(String(e.value).replace(/[^0-9.]/g, '')) - g) < 0.5;
@@ -4822,13 +4803,7 @@ console.log('\n前回の内容の上に明細を落とす（先月の額が積�
   }, { timeout: 10000 });
   const input = await page.$('#ps-file');
   await input.uploadFile(PDF);
-  await page.waitForSelector('#ps-confirm', { timeout: 60000 });
-  await page.waitForFunction(() => {
-    const b = document.getElementById('ps-confirm');
-    return !!b && !b.disabled;
-  }, { timeout: 60000 });
-  await page.click('#ps-confirm');
-  await page.click('#ps-send');
+  /* ★2026-11-04 から、選んだらそのまま読み取りに送られる（黒塗りの確認と送るボタンは無い）。 */
   await page.waitForFunction(() => {
     const e = document.getElementById('f-gross');
     return !!e && Math.abs(Number(String(e.value).replace(/[^0-9.]/g, '')) - 1129446) < 0.5;
@@ -4984,13 +4959,7 @@ console.log('\n「該当なし」を付けたあとで明細を読む（明細�
   // ── そのまま明細を1枚読ませる ───────────────────────────────
   const input = await page.$('#ps-file');
   await input.uploadFile(PDF);
-  await page.waitForSelector('#ps-confirm', { timeout: 60000 });
-  await page.waitForFunction(() => {
-    const b = document.getElementById('ps-confirm');
-    return !!b && !b.disabled;
-  }, { timeout: 60000 });
-  await page.evaluate(() => document.getElementById('ps-confirm').click());
-  await page.evaluate(() => document.getElementById('ps-send').click());
+  /* ★2026-11-04 から、選んだらそのまま読み取りに送られる（黒塗りの確認と送るボタンは無い）。 */
   await page.waitForFunction(() => {
     const e = document.getElementById('f-gross');
     return !!e && Math.abs(Number(String(e.value).replace(/[^0-9.]/g, '')) - 1129446) < 0.5;
@@ -6446,20 +6415,13 @@ console.log('\n★20 不就労減額（読み取り → 画面 → 送信 → �
     }, { timeout: 10000 });
     const input = await page.$('#ps-file');
     await input.uploadFile(PDF);
-    await page.waitForSelector('#ps-confirm', { timeout: 60000 });
-    await page.waitForFunction(() => {
-      const b = document.getElementById('ps-confirm');
-      return !!b && !b.disabled;
-    }, { timeout: 60000 });
-    await page.click('#ps-confirm');
-    await page.click('#ps-send');
+    /* ★2026-11-04 から、選んだらそのまま読み取りに送られる（黒塗りの確認と送るボタンは無い）。 */
     await page.waitForFunction(() => {
       const e = document.getElementById('f-gross');
       return !!e && Math.abs(Number(String(e.value).replace(/[^0-9.]/g, '')) - 583000) < 0.5;
     }, { timeout: 60000 });
 
-    /* ★読み取り結果の面（#ps-panel）は ps-send のあとに描かれる
-       （#ps-confirm は塗りつぶしの確認ボタン）。 */
+    /* ★読み取り結果の面（#ps-panel）は、読み取りの返事が来たあとに描かれる。 */
     const panelText = await page.$eval('#ps-panel', (n) => n.textContent);
     ok(panelText.indexOf('欠勤控除') >= 0,
        `${T} ★20 読み取り結果の面に減額の項目名が出る（黙って消さない）`,

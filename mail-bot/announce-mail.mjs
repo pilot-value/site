@@ -17,8 +17,8 @@
    ── 書いてよい事実の出どころ ────────────────────────────────
    ここの主張は全部サイトの実装から取っている。盛らない。
      ・明細から自動入力 …… pay-report.html:692 の入口
-     ・端末の中で黒塗り／枠の中だけ送る／保存しない
-                      …… payslip.js:60（枠の外は端末から出ません…保存しません）
+     ・給与の数字だけを読み取る／氏名などは記録しない／画像は保存しない
+                      …… pay-report.html の #ps-consent（2026-11-04 から。前は端末の中で黒塗り）
      ・最後だけログイン …… pay-login.js（2026-08-14）
      ・解放90日 ……… db/pay-reports.sql:722（now() + interval '90 days'）
      ・出る数字4つ …… pay-report.html renderResult()
@@ -245,8 +245,8 @@ function copy(lang, filed) {
       safe: filed
         ? []
         : [
-          '氏名・社員番号・口座番号は、送信前に<b>お使いの端末上で塗りつぶします</b>。塗りつぶした部分は画素ごと削除されるため、送信後に復元することはできません。',
-          '送信されるのは<b>枠内の情報だけ</b>です。読み取りに使用した画像は保存しません。',
+          '明細の画像は給与の数字を読み取るためだけに使い、<b>氏名・社員番号・口座番号は回答・保存の対象にしません</b>。',
+          '読み取りに使用した画像は保存しません。',
         ],
       why: 'このメールは、ご登録のときに「年収データの更新などをメールで受け取る」にチェックを入れた方にお送りしています。',
       unsub: '配信を停止する',
@@ -281,8 +281,8 @@ function copy(lang, filed) {
     safe: filed
       ? []
       : [
-        'Your name, staff number and account number are <b>masked on your own device</b> before anything is sent. Those pixels are deleted, so they cannot be recovered from what we receive.',
-        'Only <b>what is inside the frame</b> is sent. The image used for the reading is not stored.',
+        'Your payslip image is used only to read the pay figures; <b>your name, staff number and account number are not part of what is returned or stored</b>.',
+        'The image used for the reading is not stored.',
       ],
     why: 'You are getting this because you ticked "email me useful updates" when you registered.',
     unsub: 'Unsubscribe',

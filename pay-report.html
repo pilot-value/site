@@ -9,7 +9,7 @@
 <title>給与レポートを出す｜明細から自動入力 | PILOT VALUE</title>
 <!--PV-SEO-->
 <!--PV-SRC t="給与レポートを出す | PILOT VALUE" d=""-->
-<meta name="description" content="給与明細に書いてあることだけ答えれば、年換算・時間あたり報酬・世界での位置をこちらで計算して返します。氏名も社員番号も受け取りません。"/>
+<meta name="description" content="給与明細に書いてあることだけ答えれば、年換算・時間あたり報酬・世界での位置をこちらで計算して返します。氏名も社員番号も記録しません。"/>
 <meta name="robots" content="noindex,follow"/>
 <link rel="canonical" href="https://pilot-value.com/pay-report.html"/>
 <link rel="alternate" hreflang="ja" href="https://pilot-value.com/pay-report.html"/>
@@ -17,7 +17,7 @@
 <link rel="alternate" hreflang="es" href="https://pilot-value.com/es/pay-report.html"/>
 <link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/pay-report.html"/>
 <meta property="og:title" content="給与レポートを出す｜明細から自動入力 | PILOT VALUE"/>
-<meta property="og:description" content="給与明細に書いてあることだけ答えれば、年換算・時間あたり報酬・世界での位置をこちらで計算して返します。氏名も社員番号も受け取りません。"/>
+<meta property="og:description" content="給与明細に書いてあることだけ答えれば、年換算・時間あたり報酬・世界での位置をこちらで計算して返します。氏名も社員番号も記録しません。"/>
 <meta property="og:url" content="https://pilot-value.com/pay-report.html"/>
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="PILOT VALUE"/>
@@ -30,7 +30,7 @@
 <meta property="og:image:alt" content="給与レポートを出す｜明細から自動入力 | PILOT VALUE"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="給与レポートを出す｜明細から自動入力 | PILOT VALUE"/>
-<meta name="twitter:description" content="給与明細に書いてあることだけ答えれば、年換算・時間あたり報酬・世界での位置をこちらで計算して返します。氏名も社員番号も受け取りません。"/>
+<meta name="twitter:description" content="給与明細に書いてあることだけ答えれば、年換算・時間あたり報酬・世界での位置をこちらで計算して返します。氏名も社員番号も記録しません。"/>
 <meta name="twitter:image" content="https://pilot-value.com/assets/og/default-ja.jpg"/>
 <!--/PV-SEO-->
 
@@ -48,7 +48,7 @@
 <script>
 tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#18212f',accent:'#3d9bff',gold:'#f5c842',orange:'#f97316',text:'#e8edf2',muted:'#6b7d93'},fontFamily:{sans:['Inter','Noto Sans JP','sans-serif']}}}};
 </script>
-<link rel="stylesheet" href="pay-report.css">
+<link rel="stylesheet" href="pay-report.css?v=f5d9fa75">
 <!--PV-3P-->
 <script>
 /* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
@@ -170,7 +170,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                （db/test-form-contract.mjs が現に禁止している）。本人確認が動いたら足す。
                ★2026-08-14（オーナー指示）ここの3語は 匿名／暗号化＆セキュア／簡単。
                それぞれ何を指すか＝
-               ・匿名 ………… 氏名・社員番号・口座は端末の中で黒塗りしてから送る
+               ・匿名 ………… 氏名・社員番号・口座は回答・保存の対象にしない（2026-11-04 から。前は端末の中で黒塗り）
                ・暗号化＆セキュア … 送信は HTTPS、読み取った画像は保存しない
                ・簡単 ………… 落とすだけで金額の欄が埋まる
                事実の要約であって、盛った言い方に書き換えない。 -->
@@ -197,23 +197,24 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
         </div>
       </div>
 
-      <!-- 明細から自動入力 ── 端末の中で黒塗り → 本人が見る → 送る -->
+      <!-- 明細から自動入力 ── 選ぶ → すぐ読み取る（読み取りのあいだに先の質問へ進める）→ 数字を確かめて保存 -->
       <div class="ps" id="ps" hidden>
         <p class="ps-step" id="ps-step">明細を読み込む（任意）</p>
         <button type="button" class="ps-drop" id="ps-drop">
           <span class="ps-ico" aria-hidden="true">📄</span>
           <span class="ps-drop-txt">
             <b>明細から自動入力</b>
-            <small>給与明細の画像か PDF をここに落とすか、クリックして選んでください</small>
+            <small>給与明細を撮るか、PDF・画像を選んでください（ここに落としても選べます）</small>
           </span>
         </button>
         <input type="file" id="ps-file" accept="application/pdf,image/png,image/jpeg,image/webp" hidden>
-        <!-- ★2026-08-13（その4）長い注意書き（.ps-priv）を消して3行に絞った。
-             塗る／枠の外を切り落とす／保存しない の説明は、実際に明細を上げた直後の
-             確認画面が payslip.js の T.redacted / T.note で出す。読ませるべきはそこ。
-             ★2026-08-13（その5）「画像は送りません」を消した。**事実でなかった。**
-             端末でやっているのは黒塗りで、読み取りは枠の中を切り出した画像を送ってやっている。
-             言い換えずに消す（オーナー判断）。送る範囲の説明は送る直前の確認画面にある。 -->
+        <!-- ★2026-11-04 作り直し（オーナー判断）：選んだらそのまま読み取りに送る。
+             端末の中の黒塗りと、塗った明細を確かめる画面はやめた（手間に見合わなかった）。
+             氏名・社員番号・口座は「回答・保存の対象にしない」で守る
+             （サーバーの答えの形に、それを書く欄が無い／supabase/functions/parse-payslip の OUT_SCHEMA）。
+             ★確かめる画面が無くなったぶん、送ることの説明と同意をここ（選ぶボタンのすぐ下）に置く。
+               文は assert-claims.mjs が全ページで見張っている。言い換えるときは同じ約束のまま。 -->
+        <p class="ps-consent" id="ps-consent">明細の画像は、給与の数字を読み取るために AI（Anthropic 社・米国）へ送ります。<b>氏名・社員番号・口座などは回答・保存の対象にせず、PILOT VALUE は画像を保存しません。</b>マイナンバーの載った書類は送らないでください。<a href="personal-data.html">取り扱いの詳細</a></p>
         <!-- ★匿名／暗号化＆セキュア／簡単 の3語はここではなく、ひとつ前の
              「明細から自動入力」のカードに置いてある（2026-08-14 オーナー指示）。
              選ぶ前に読ませる語なので、選んだあとのこの画面で繰り返さない。 -->
@@ -2102,7 +2103,7 @@ function afterSaved(data, payload, airline) {
   }
   try {
     if (typeof gtag === 'function') {
-      gtag('event', 'pay_report_submit', { airline: airline || '', position: (payload && payload.position) || '', is_new: !!data.is_new });
+      gtag('event', 'pay_report_submit', { airline: airline || '', position: (payload && payload.position) || '', is_new: !!data.is_new, source: (payload && payload.source) || 'web' });
       gtag('event', 'unlock', { method: 'pay_report' });
     }
   } catch (e) {}
@@ -3692,8 +3693,9 @@ $('form-wrap').addEventListener('change', () => updateSteps());
    画面の出し入れはこの関数だけで行う。呼ぶのは4か所：
    入口の2つのボタン／明細の「読み取らずに手動で入力する」／
    明細が読めたとき（payslip.js から window.PVEnterMode）。
-   ★payslip：明細のカードをそのまま出し、フォームはまだ出さない（ステップ 1/2）。
-     読めた時点で manual に切り替わってフォームが出る（ステップ 2/2）。
+   ★payslip：明細のカードをそのまま出し、フォームはまだ出さない（明細を選ぶまで）。
+     明細を選んで読み取りを始めた時点で manual に切り替わってフォームが出る
+     （2026-11-04 から。読み取りのあいだに明細に載っていない質問へ先に進めるように）。
    ★manual ：明細のカードを1行の帯に縮めて上に残し、フォームを出す。 */
 function enterMode(mode) {
   const slim = mode !== 'payslip';
@@ -5710,7 +5712,7 @@ async function submitPayReport() {
          markPopped も呼ばない ── 呼ぶと _gatePopped が立って、登録を終えた
          あとの結果カードで鳴らなくなる。 */
       savePreset();
-      track('pay_report_pending');
+      track('pay_report_pending', { source: val('f-source') || 'web' });
       setSubmitBusy(false, _btnLabel);
       return showGate(true);
     } catch (e) {
@@ -5971,7 +5973,7 @@ addEventListener('scroll', () => {
   });
 })();
 </script>
-<script src="payslip.js"></script>
+<script src="payslip.js?v=b57b99ad"></script>
 <script src="confetti.js"></script>
 <script src="pay-login.js"></script>
 <!-- ★ヘッダーを畳むのは search.js。id="main-nav" を持つページは必ず読む。

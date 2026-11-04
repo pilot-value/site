@@ -71,7 +71,7 @@
     ggSalary:      'Unlock all pay data',
     ggReview:      'Unlock all reviews',
     // ⚠️ See the Japanese note below: never claim the image does not leave the device.
-    salFootNote:   'Blacked out in your browser, never stored · No name required · 90-day access',
+    salFootNote:   'Only the pay figures are read, image never stored · No name required · 90-day access',
     give:          'GIVE',
     take:          'GET',
     ctaPost:       'Post a Review Anonymously & Unlock',
@@ -92,9 +92,9 @@
     ggSalary:      '全ての<wbr>給与情報を<wbr>解放する',
     ggReview:      '全ての<wbr>口コミデータを<wbr>解放する',
     /* ⚠️ 「画像は端末から出ません」と書かない。**事実でない。**（2026-09-20）
-         端末から出ないのは「枠の外」と「黒塗りした部分」であって、枠の中は送っている。
-         この文言は226枚に出るので、ここが一番広く嘘をついていた。 */
-    salFootNote:   'ブラウザの中で黒塗りしてから送信・画像は保存しません · 名前不要 · 90日間アクセス',
+         ★2026-11-04 から明細は塗らずにページ全体を送る。守っているのは「氏名などを回答・保存の対象にしない」こと。
+         この文言は226枚に出るので、ここが一番広く嘘をつきうる。 */
+    salFootNote:   '給与の数字だけを読み取り・画像は保存しません · 名前不要 · 90日間アクセス',
     give:          'GIVE',
     take:          'GET',
     ctaPost:       '匿名で口コミを投稿して解放する',

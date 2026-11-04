@@ -9,7 +9,7 @@
 <title>Handling of Personal Data | PILOT VALUE</title>
 <!--PV-SEO-->
 <!--PV-SRC t="Handling of Personal Data | PILOT VALUE" d="How PILOT VALUE handles personal data: the data we collect, why we collect it, how long we retain it, overseas data transfers, and how to request deletion or disclosure of your data."-->
-<meta name="description" content="Every category of data PILOT VALUE holds and why. Email preferences, how payslips are blacked out in your browser before they are sent, and the specific things we deliberately never store."/>
+<meta name="description" content="Every category of data PILOT VALUE holds and why. Email preferences, how only the pay figures are read from a payslip, and the specific things we deliberately never store."/>
 <meta name="keywords" content="personal data,data handling,privacy,data retention,data deletion request,cookies,PILOT VALUE"/>
 <meta name="robots" content="noindex,follow"/>
 <link rel="canonical" href="https://pilot-value.com/en/personal-data.html"/>
@@ -18,7 +18,7 @@
 <link rel="alternate" hreflang="es" href="https://pilot-value.com/es/personal-data.html"/>
 <link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/personal-data.html"/>
 <meta property="og:title" content="Handling of Personal Data | PILOT VALUE"/>
-<meta property="og:description" content="Every category of data PILOT VALUE holds and why. Email preferences, how payslips are blacked out in your browser before they are sent, and the specific things we deliberately never store."/>
+<meta property="og:description" content="Every category of data PILOT VALUE holds and why. Email preferences, how only the pay figures are read from a payslip, and the specific things we deliberately never store."/>
 <meta property="og:url" content="https://pilot-value.com/en/personal-data.html"/>
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="PILOT VALUE"/>
@@ -31,7 +31,7 @@
 <meta property="og:image:alt" content="Handling of Personal Data | PILOT VALUE"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="Handling of Personal Data | PILOT VALUE"/>
-<meta name="twitter:description" content="Every category of data PILOT VALUE holds and why. Email preferences, how payslips are blacked out in your browser before they are sent, and the specific things we deliberately never store."/>
+<meta name="twitter:description" content="Every category of data PILOT VALUE holds and why. Email preferences, how only the pay figures are read from a payslip, and the specific things we deliberately never store."/>
 <meta name="twitter:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
 <!--/PV-SEO-->
 
@@ -202,7 +202,7 @@ ul{list-style:disc;padding-left:1.2rem;margin-bottom:8px}
       </div>
       <div class="data-row">
         <div><p style="color:#e8edf2;font-weight:600;font-size:.9rem">Payslip images</p></div>
-        <div><p>Used only to read the figures for auto-fill. What is sent is <b>only what is inside the “sent area” frame you approved</b>. <b>Everything outside the frame is cropped away on your own device before sending and never leaves it.</b> The frame is placed automatically over the pay tables and you can move it yourself. Inside the frame, <b>your name, staff number and account number are also found and blacked out automatically on your device</b>, and the image is sent only after you have checked it (the un-redacted image never leaves your device). Automatic detection can miss things, so there is a step where you check the image before it is sent. If you drop a PDF, <b>only its first page is turned into an image on your device</b> and goes through the same steps — later pages are never sent. The image is read in server memory only — it is <b>never written to storage or to a database, and never written to logs</b> — and is discarded as soon as it has been read.</p></div>
+        <div><p>Used only to read the pay figures for auto-fill. The image is redrawn on your own device first (location and other attached details are dropped there), and then <b>the whole payslip page</b> is sent to be read. The reading extracts <b>only the pay items, amounts, period, currency and duty hours</b>; <b>your name, staff number, account number, address and similar are not part of what is returned or stored</b> (the shape of what we extract has no field for them). If you drop a PDF, <b>only its first page is turned into an image on your device</b> before it is sent — later pages are never sent. The image is read in server memory only — <b>we never write it to storage or to a database, and never to logs</b> — and it is discarded as soon as it has been read. How Anthropic, who runs the reading, handles it is set out under “Overseas Transfer of Data” below. <b>Please do not send documents that show a national ID or tax number (such as Japan’s My Number).</b></p></div>
       </div>
       <div class="data-row">
         <div><p style="color:#e8edf2;font-weight:600;font-size:.9rem">Pay reports</p></div>
@@ -231,7 +231,7 @@ ul{list-style:disc;padding-left:1.2rem;margin-bottom:8px}
         <li>Member account data: deleted within 30 days of a withdrawal request</li>
         <li>Access logs: retained for up to 90 days, then deleted</li>
         <li>Community posts: may remain in anonymized form even after you withdraw</li>
-        <li>Payslip images: <b>not retained at all</b> — discarded immediately after being read</li>
+        <li>Payslip images: <b>not retained by us</b> — discarded immediately after being read (for Anthropic, see “Overseas Transfer of Data” below)</li>
         <li>Hashed IP addresses used for rate limiting: deleted after 30 days</li>
         <li>If you answer questions or add a hotel, restaurant, place or town without signing in, a key that lets only your device see your own posts is stored in this browser (the server keeps only an irreversible value made from it). To count additions from one connection, a value derived from your IP address is kept for one day and then deleted. We do not ask for an e-mail address, a name or a location.</li>
         <li>Email preferences: deleted when you withdraw (the date you gave consent is kept until then, as the record of that consent)</li>
@@ -243,7 +243,7 @@ ul{list-style:disc;padding-left:1.2rem;margin-bottom:8px}
       <p>This site is operated primarily from within Japan. In the course of providing the service, some data processing may take place on servers located overseas. Where this occurs, we implement appropriate protective measures.</p>
       <p style="margin-top:12px">Specifically, the following processing involves providers outside Japan.</p>
       <ul>
-        <li><b>Reading payslips</b>: what is sent to Anthropic's API (United States) is <b>only what is inside the “sent area” frame you approved</b>. <b>Anything outside the frame never leaves your device</b> — it is cropped away before sending — and the redaction inside the frame is burned into the pixels on your device first. It is sent solely to be read and is not stored by us.</li>
+        <li><b>Reading payslips</b>: the image of the whole payslip page is sent to Anthropic's API (United States) to read the pay figures. <b>Your name, staff number, bank details and similar are not part of what is returned or stored</b>, and we do not store the image. <b>How Anthropic handles it</b>: under its terms, content received through the API is <b>not used to train its models and is deleted within 30 days</b> (it can be kept for up to 2 years if automatically flagged as a possible breach of its usage policy, among other exceptions). We do not have a Zero Data Retention agreement with Anthropic.</li>
         <li><b>Translating reviews</b>: review text is sent to the same API to be translated between Japanese and English.</li>
         <li><b>Authentication and database</b>: provided by Supabase.</li>
         <li><b>Sending email</b>: handled by Resend (United States). Your email address and the message body pass through them in order to be delivered (the body contains no amounts and no airline name).</li>

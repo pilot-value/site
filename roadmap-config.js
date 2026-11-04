@@ -196,13 +196,18 @@ window.PVRoadmap = {
       en: { t: 'Reviews translated both ways',
             d: 'Japanese readable in English, and the other way round.' } },
 
+    /* ★2026-11-04：端末の中で黒塗りする仕組みは、選ぶだけで読める形に置き換えた（オーナー判断）。
+         古い項目の文（「送る前に消す」）は事実でなくなったので、今の仕組みの言い方に直した。 */
     { id: 'payslip-redact', state: 'done', date: '2026-08-06',
-      ja: { t: '明細を端末の中で黒塗りしてから読み取る',
-            d: '氏名・社員番号・住所は送る前に消す。画像は保存しない。' },
-      /* ⚠️ 日本語と同じ言い方にそろえる（2026-09-20）。「never leave the phone」は
-           氏名・住所については本当だが、読み手は「画像が」と読む。枠の中の画像は
-           実際に送っている（サイト全体の言い方は index.html §7 を見る）。 */
-      en: { t: 'Payslips redacted on your device',
-            d: 'Name and address are removed before sending. Image not stored.' } }
+      ja: { t: '明細から給与の数字だけを読み取る',
+            d: '氏名・社員番号・口座は記録しない。画像は保存しない。' },
+      en: { t: 'Only the pay figures are read from a payslip',
+            d: 'Name, staff number and bank details are never recorded. Image not stored.' } },
+
+    { id: 'payslip-oneshot', state: 'done', date: '2026-11-04',
+      ja: { t: '明細を選ぶだけで読み取る',
+            d: '塗る・確かめる手順をなくした。読み取りのあいだに先の質問へ進める。' },
+      en: { t: 'Choose a payslip and it is read',
+            d: 'No more redacting and approving first. Go on with the other questions while it is read.' } }
   ]
 };

@@ -9,7 +9,7 @@
 <title>Report Your Pay — Autofill from a Payslip | PILOT VALUE</title>
 <!--PV-SEO-->
 <!--PV-SRC t="Report your pay | PILOT VALUE" d=""-->
-<meta name="description" content="Answer only what is printed on your payslip; we work out the annualised figure, your hourly rate and where you sit worldwide. We never take your name or staff number."/>
+<meta name="description" content="Answer only what is printed on your payslip; we work out the annualised figure, your hourly rate and where you sit worldwide. We never record your name or staff number."/>
 <meta name="robots" content="noindex,follow"/>
 <link rel="canonical" href="https://pilot-value.com/en/pay-report.html"/>
 <link rel="alternate" hreflang="ja" href="https://pilot-value.com/pay-report.html"/>
@@ -17,7 +17,7 @@
 <link rel="alternate" hreflang="es" href="https://pilot-value.com/es/pay-report.html"/>
 <link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/pay-report.html"/>
 <meta property="og:title" content="Report Your Pay — Autofill from a Payslip | PILOT VALUE"/>
-<meta property="og:description" content="Answer only what is printed on your payslip; we work out the annualised figure, your hourly rate and where you sit worldwide. We never take your name or staff number."/>
+<meta property="og:description" content="Answer only what is printed on your payslip; we work out the annualised figure, your hourly rate and where you sit worldwide. We never record your name or staff number."/>
 <meta property="og:url" content="https://pilot-value.com/en/pay-report.html"/>
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="PILOT VALUE"/>
@@ -30,7 +30,7 @@
 <meta property="og:image:alt" content="Report Your Pay — Autofill from a Payslip | PILOT VALUE"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="Report Your Pay — Autofill from a Payslip | PILOT VALUE"/>
-<meta name="twitter:description" content="Answer only what is printed on your payslip; we work out the annualised figure, your hourly rate and where you sit worldwide. We never take your name or staff number."/>
+<meta name="twitter:description" content="Answer only what is printed on your payslip; we work out the annualised figure, your hourly rate and where you sit worldwide. We never record your name or staff number."/>
 <meta name="twitter:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
 <!--/PV-SEO-->
 
@@ -48,7 +48,7 @@
 <script>
 tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#18212f',accent:'#3d9bff',gold:'#f5c842',orange:'#f97316',text:'#e8edf2',muted:'#6b7d93'},fontFamily:{sans:['Inter','Noto Sans JP','sans-serif']}}}};
 </script>
-<link rel="stylesheet" href="../pay-report.css">
+<link rel="stylesheet" href="../pay-report.css?v=f5d9fa75">
 <!--PV-3P-->
 <script>
 /* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
@@ -197,23 +197,24 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
         </div>
       </div>
 
-      <!-- Auto-fill from a payslip — redacted on your device, you approve it, then it is sent -->
+      <!-- Auto-fill from a payslip — choose it → it is read straight away (go on with the other questions meanwhile) → check the figures and save -->
       <div class="ps" id="ps" hidden>
         <p class="ps-step" id="ps-step">READ THE PAYSLIP (OPTIONAL)</p>
         <button type="button" class="ps-drop" id="ps-drop">
           <span class="ps-ico" aria-hidden="true">📄</span>
           <span class="ps-drop-txt">
             <b>Auto-fill from a payslip</b>
-            <small>Drop a PDF or an image of your payslip here, or click to choose one</small>
+            <small>Take a photo of your payslip, or choose a PDF or image (you can also drop it here)</small>
           </span>
         </button>
         <input type="file" id="ps-file" accept="application/pdf,image/png,image/jpeg,image/webp" hidden>
-        <!-- ★2026-08-13（その4）長い注意書き（.ps-priv）を消して3行に絞った。
-             塗る／枠の外を切り落とす／保存しない の説明は、実際に明細を上げた直後の
-             確認画面が payslip.js の T.redacted / T.note で出す。読ませるべきはそこ。
-             ★2026-08-13（その5）「The image is not sent」を消した。**事実でなかった。**
-             端末でやっているのは黒塗りで、読み取りは枠の中を切り出した画像を送ってやっている。
-             言い換えずに消す（オーナー判断）。送る範囲の説明は送る直前の確認画面にある。 -->
+        <!-- ★2026-11-04 作り直し（オーナー判断）：選んだらそのまま読み取りに送る。
+             端末の中の黒塗りと、塗った明細を確かめる画面はやめた（手間に見合わなかった）。
+             氏名・社員番号・口座は「回答・保存の対象にしない」で守る
+             （サーバーの答えの形に、それを書く欄が無い／supabase/functions/parse-payslip の OUT_SCHEMA）。
+             ★確かめる画面が無くなったぶん、送ることの説明と同意をここ（選ぶボタンのすぐ下）に置く。
+               文は assert-claims.mjs が全ページで見張っている。言い換えるときは同じ約束のまま。 -->
+        <p class="ps-consent" id="ps-consent">Your payslip image is sent to an AI service (Anthropic, USA) to read the pay figures. <b>Your name, staff number, bank details and similar are not part of what is returned or stored, and PILOT VALUE never stores the image.</b> Please do not send documents that show a national ID or tax number (such as Japan’s My Number). <a href="personal-data.html">How we handle it</a></p>
         <!-- ★Anonymous／Encrypted &amp; secure／Quick の3語はここではなく、ひとつ前の
              「Auto-fill from a payslip」のカードに置いてある（2026-08-14 オーナー指示）。
              選ぶ前に読ませる語なので、選んだあとのこの画面で繰り返さない。 -->
@@ -2152,7 +2153,7 @@ function afterSaved(data, payload, airline) {
   }
   try {
     if (typeof gtag === 'function') {
-      gtag('event', 'pay_report_submit', { airline: airline || '', position: (payload && payload.position) || '', is_new: !!data.is_new });
+      gtag('event', 'pay_report_submit', { airline: airline || '', position: (payload && payload.position) || '', is_new: !!data.is_new, source: (payload && payload.source) || 'web' });
       gtag('event', 'unlock', { method: 'pay_report' });
     }
   } catch (e) {}
@@ -3832,10 +3833,11 @@ $('form-wrap').addEventListener('change', () => updateSteps());
 
 /* ── The two-way entry screen (owner, 2026-08-13) ─────────────────
    All show/hide happens here and nowhere else. Four callers: the two entry
-   buttons, "skip this and enter manually", and payslip.js once a slip is read
+   buttons, "skip this and enter manually", and payslip.js once reading starts
    (window.PVEnterMode).
-   ★payslip: show the payslip card as-is, form still hidden (step 1 of 2).
-     Once it reads, we switch to manual and the form appears (step 2 of 2).
+   ★payslip: show the payslip card as-is, form still hidden (until a slip is chosen).
+     Once reading starts we switch to manual and the form appears (since 2026-11-04,
+     so people can answer the questions the payslip does not cover while it is read).
    ★manual : shrink the payslip card to a one-line strip on top, show the form. */
 function enterMode(mode) {
   const slim = mode !== 'payslip';
@@ -5956,7 +5958,7 @@ async function submitPayReport() {
          markPopped is not called either — calling it sets _gatePopped, which would
          silence the result card once they finish registering. */
       savePreset();
-      track('pay_report_pending');
+      track('pay_report_pending', { source: val('f-source') || 'web' });
       setSubmitBusy(false, _btnLabel);
       return showGate(true);
     } catch (e) {
@@ -6220,7 +6222,7 @@ addEventListener('scroll', () => {
   });
 })();
 </script>
-<script src="../payslip.js"></script>
+<script src="../payslip.js?v=b57b99ad"></script>
 <script src="../confetti.js"></script>
 <script src="../pay-login.js"></script>
 <!-- ★ヘッダーを畳むのは search.js。id="main-nav" を持つページは必ず読む。

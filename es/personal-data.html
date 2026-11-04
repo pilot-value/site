@@ -9,7 +9,7 @@
 <title>Tratamiento de datos personales | PILOT VALUE</title>
 <!--PV-SEO-->
 <!--PV-GEN lang="es" from="en/personal-data.html" — node gen-lang.mjs es が書く。手で直さない-->
-<meta name="description" content="Todas las categorías de datos que guarda PILOT VALUE y por qué. Preferencias de correo, cómo se tapan los recibos de nómina en tu navegador antes de enviarse y las…"/>
+<meta name="description" content="Cada categoría de datos que guarda PILOT VALUE y para qué. Preferencias de correo, cómo leemos solo las cifras de pago de un recibo de nómina y lo que deliberadamente…"/>
 <meta name="robots" content="noindex,follow"/>
 <link rel="canonical" href="https://pilot-value.com/es/personal-data.html"/>
 <link rel="alternate" hreflang="ja" href="https://pilot-value.com/personal-data.html"/>
@@ -17,7 +17,7 @@
 <link rel="alternate" hreflang="es" href="https://pilot-value.com/es/personal-data.html"/>
 <link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/personal-data.html"/>
 <meta property="og:title" content="Tratamiento de datos personales | PILOT VALUE"/>
-<meta property="og:description" content="Todas las categorías de datos que guarda PILOT VALUE y por qué. Preferencias de correo, cómo se tapan los recibos de nómina en tu navegador antes de enviarse y las…"/>
+<meta property="og:description" content="Cada categoría de datos que guarda PILOT VALUE y para qué. Preferencias de correo, cómo leemos solo las cifras de pago de un recibo de nómina y lo que deliberadamente…"/>
 <meta property="og:url" content="https://pilot-value.com/es/personal-data.html"/>
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="PILOT VALUE"/>
@@ -30,7 +30,7 @@
 <meta property="og:image:alt" content="Tratamiento de datos personales | PILOT VALUE"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="Tratamiento de datos personales | PILOT VALUE"/>
-<meta name="twitter:description" content="Todas las categorías de datos que guarda PILOT VALUE y por qué. Preferencias de correo, cómo se tapan los recibos de nómina en tu navegador antes de enviarse y las…"/>
+<meta name="twitter:description" content="Cada categoría de datos que guarda PILOT VALUE y para qué. Preferencias de correo, cómo leemos solo las cifras de pago de un recibo de nómina y lo que deliberadamente…"/>
 <meta name="twitter:image" content="https://pilot-value.com/assets/og/default-en.jpg"/>
 <!--/PV-SEO-->
 
@@ -190,7 +190,7 @@ ul{list-style:disc;padding-left:1.2rem;margin-bottom:8px}
       </div>
       <div class="data-row">
         <div><p style="color:#e8edf2;font-weight:600;font-size:.9rem">Imágenes del recibo de nómina</p></div>
-        <div><p>Se usan solo para leer las cifras y completar los campos automáticamente. Lo único que se envía es <b>lo que queda dentro del marco “área de envío” que aprobaste</b>. <b>Todo lo que queda fuera del marco se recorta en tu propio dispositivo antes del envío y nunca sale de él.</b> El marco se coloca automáticamente sobre las tablas de remuneración y puedes moverlo tú. Dentro del marco, <b>tu nombre, número de empleado y número de cuenta también se detectan y se tapan automáticamente en tu dispositivo</b>, y la imagen se envía solo después de que la hayas revisado (la imagen sin tapar nunca sale de tu dispositivo). La detección automática puede pasar cosas por alto, por eso hay un paso en el que revisas la imagen antes de enviarla. Si arrastras un PDF, <b>solo su primera página se convierte en imagen en tu dispositivo</b> y pasa por los mismos pasos; las páginas siguientes nunca se envían. La imagen solo se lee en la memoria del servidor —<b>nunca se guarda en almacenamiento ni en una base de datos, ni se escribe en los registros</b>— y se descarta en cuanto se termina de leer.</p></div>
+        <div><p>Se usa solo para leer las cifras de pago y completar el formulario automáticamente. Primero, la imagen se vuelve a dibujar en tu propio dispositivo (ahí se eliminan la ubicación y otros datos adjuntos) y luego se envía <b>la página completa del recibo de nómina</b> para leerla. La lectura extrae <b>solo los conceptos de pago, los montos, el periodo, la moneda y las horas de servicio</b>; <b>tu nombre, tu número de empleado, tu número de cuenta, tu domicilio y otros datos similares no forman parte de lo que se devuelve ni de lo que se guarda</b> (la estructura de lo que extraemos no tiene ningún campo para ellos). Si sueltas un PDF, <b>solo su primera página se convierte en imagen en tu dispositivo</b> antes de enviarse; las páginas siguientes nunca se envían. La imagen se lee solo en la memoria del servidor: <b>nunca la guardamos en un almacenamiento ni en una base de datos, ni la registramos en los logs</b>, y se descarta en cuanto se termina de leer. Cómo la trata Anthropic, que hace la lectura, se explica abajo en “Transferencia internacional de datos”. <b>No envíes documentos que muestren un número de identificación nacional o fiscal (como el My Number de Japón).</b></p></div>
       </div>
       <div class="data-row">
         <div><p style="color:#e8edf2;font-weight:600;font-size:.9rem">Reportes de remuneración</p></div>
@@ -219,7 +219,7 @@ ul{list-style:disc;padding-left:1.2rem;margin-bottom:8px}
         <li>Datos de la cuenta de miembro: se eliminan dentro de los 30 días posteriores a la solicitud de baja</li>
         <li>Registros de acceso: se conservan hasta 90 días y luego se eliminan</li>
         <li>Publicaciones en la comunidad: pueden permanecer de forma anonimizada incluso después de que te des de baja</li>
-        <li>Imágenes del recibo de nómina: <b>no se conservan en absoluto</b> — se descartan inmediatamente después de leerlas</li>
+        <li>Imágenes de recibos de nómina: <b>no las guardamos</b>; se descartan en cuanto se leen (para Anthropic, consulta “Transferencia internacional de datos” más abajo)</li>
         <li>Direcciones IP con hash usadas para limitar la frecuencia de uso: se eliminan después de 30 días</li>
         <li>Si respondes preguntas o agregas un hotel, restaurante, lugar o ciudad sin iniciar sesión, en este navegador se guarda una clave que permite que solo tu dispositivo vea tus propias publicaciones (el servidor solo conserva un valor irreversible generado a partir de ella). Para contar las adiciones desde una misma conexión, se conserva durante un día un valor derivado de tu dirección IP y luego se elimina. No te pedimos correo electrónico, nombre ni ubicación.</li>
         <li>Preferencias de correo: se eliminan cuando te das de baja (hasta entonces conservamos la fecha en que diste tu consentimiento, como registro de ese consentimiento)</li>
@@ -231,7 +231,7 @@ ul{list-style:disc;padding-left:1.2rem;margin-bottom:8px}
       <p>Este sitio se opera principalmente desde Japón. Para prestar el servicio, parte del procesamiento de datos puede realizarse en servidores ubicados en el extranjero. Cuando esto ocurre, aplicamos medidas de protección adecuadas.</p>
       <p style="margin-top:12px">En concreto, en los siguientes procesos intervienen proveedores fuera de Japón.</p>
       <ul>
-        <li><b>Lectura de recibos de nómina</b>: a la API de Anthropic (Estados Unidos) se envía <b>solo lo que está dentro del marco “área de envío” que aprobaste</b>. <b>Nada de lo que está fuera del marco sale de tu dispositivo</b> —se recorta antes del envío— y lo que se tapa dentro del marco queda incrustado primero en los píxeles en tu dispositivo. Se envía únicamente para leerlo y no lo almacenamos.</li>
+        <li><b>Lectura de recibos de nómina</b>: la imagen de la página completa del recibo de nómina se envía a la API de Anthropic (Estados Unidos) para leer las cifras de pago. <b>Tu nombre, tu número de empleado, tus datos bancarios y otros datos similares no forman parte de lo que se devuelve ni de lo que se guarda</b>, y nosotros no guardamos la imagen. <b>Cómo la trata Anthropic</b>: según sus términos, el contenido recibido a través de la API <b>no se usa para entrenar sus modelos y se elimina en un plazo de 30 días</b> (puede conservarse hasta 2 años si se marca automáticamente como posible incumplimiento de su política de uso, entre otras excepciones). No tenemos un acuerdo de retención cero de datos (Zero Data Retention) con Anthropic.</li>
         <li><b>Traducción de reseñas</b>: el texto de las reseñas se envía a la misma API para traducirlo entre japonés e inglés.</li>
         <li><b>Autenticación y base de datos</b>: proporcionadas por Supabase.</li>
         <li><b>Envío de correos</b>: a cargo de Resend (Estados Unidos). Tu correo electrónico y el cuerpo del mensaje pasan por Resend para poder entregarse (el cuerpo no incluye montos ni el nombre de la aerolínea).</li>

@@ -138,7 +138,7 @@ ok(/表で金額を直したら専用列も追随/.test(PAYSLIP) || /pushTrace[\
 
 /* ══ ②-b 2026-08-27：読み取りをフォーム（8-26 / 8-27）に追いつかせた分 ══
    ★ここは「どの欄へ行くか」だけを見る。金額が1円も変わらないことは
-     db/test-payslip-redact.mjs が**本物のページの sumField** で測っている
+     db/test-payslip-flow.mjs が**本物のページの sumField** で測っている（2026-11-04 に db/test-payslip-redact.mjs から移した）
      （式をこちらに書き写すと、片方だけ直したときに黙ってズレる）。 */
 console.log('\n②-b 保証給・教官・審査の行き先（2026-08-27）');
 eq(kindField && /guarantee:\s*'(f-[a-z-]+)'/.exec(kindField[0])?.[1], 'f-guarantee',

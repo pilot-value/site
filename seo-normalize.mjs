@@ -305,9 +305,9 @@ const COPY = {
      ページ側は「順位を主役にしない」方針に変わっている（順位を煽る文言に戻さない）。 */
   'my-value.html': {
     ja: { t: 'マイレポート｜記録した実データで見る、あなたの報酬',
-          d: '記録した給与明細の実データから、今月の報酬・累計の積み上がり・前回との差を1枚にまとめます。明細の画像は、氏名・社員番号・口座をブラウザの中で黒塗りしてから送り、保存しません。' },
+          d: '記録した給与明細の実データから、今月の報酬・累計の積み上がり・前回との差を1枚にまとめます。明細の画像は給与の数字の読み取りにだけ使い、氏名・社員番号・口座は記録せず、画像も保存しません。' },
     en: { t: 'My Pay Report — Built From What You Have Recorded',
-          d: 'Your pay, month by month: this month, the total built up since you started, and the change since your last payslip. Payslip images are blacked out in your browser before they are sent, and are never stored.' },
+          d: 'Your pay, month by month: this month, the total built up since you started, and the change since your last payslip. Payslip images are used only to read the pay figures; names, staff numbers and bank details are never recorded, and the image is never stored.' },
   },
   /* 同上。noindex だがここに無いと、次に seo-normalize を流した人が
      タイトルを空にする（noindex でも <title> は出るので中身は要る）。 */
@@ -346,15 +346,15 @@ const COPY = {
   },
   'pay-report.html': {
     ja: { t: '給与レポートを出す｜明細から自動入力',
-          d: '給与明細に書いてあることだけ答えれば、年換算・時間あたり報酬・世界での位置をこちらで計算して返します。氏名も社員番号も受け取りません。' },
+          d: '給与明細に書いてあることだけ答えれば、年換算・時間あたり報酬・世界での位置をこちらで計算して返します。氏名も社員番号も記録しません。' },
     en: { t: 'Report Your Pay — Autofill from a Payslip',
-          d: 'Answer only what is printed on your payslip; we work out the annualised figure, your hourly rate and where you sit worldwide. We never take your name or staff number.' },
+          d: 'Answer only what is printed on your payslip; we work out the annualised figure, your hourly rate and where you sit worldwide. We never record your name or staff number.' },
   },
   'personal-data.html': {
     ja: { t: 'パーソナルデータの扱い｜PILOT VALUE',
-          d: 'PILOT VALUE が取得するデータの種別と目的を一覧にしています。メール配信の設定、給与明細をブラウザの中で黒塗りしてから送る仕組み、保存しない情報について記載しています。' },
+          d: 'PILOT VALUE が取得するデータの種別と目的を一覧にしています。メール配信の設定、給与明細から数字だけを読み取る仕組み、保存しない情報について記載しています。' },
     en: { t: 'Handling of Personal Data | PILOT VALUE',
-          d: 'Every category of data PILOT VALUE holds and why. Email preferences, how payslips are blacked out in your browser before they are sent, and the specific things we deliberately never store.' },
+          d: 'Every category of data PILOT VALUE holds and why. Email preferences, how only the pay figures are read from a payslip, and the specific things we deliberately never store.' },
   },
   'profile.html': { ja: { t: 'マイページ｜PILOT VALUE', d: 'アカウント情報、投稿した口コミ、メール配信の設定、市場価値レポートの履歴を確認できます。' },
                     en: { t: 'My Page | PILOT VALUE', d: 'Your account details, the reviews you have posted, your email preferences and your saved market value reports.' } },

@@ -82,20 +82,10 @@ for (const lang of ['ja', 'en']) {
 
     const inp = await page.$('#ps-file');
     await inp.uploadFile(path.join(DIR, 'fixtures', 'payslip-jp-major.png'));
-    /* ★黒塗りが出るまで待つ。画像は OCR に落ちるので**数十秒**かかる
-       （db/test-payslip-redact.mjs も 40秒の予算で回している）。8秒では足りない。 */
-    await page.waitForSelector('.ps-rect', { timeout: 60000 });
-    await new Promise((r) => setTimeout(r, 600));
-    await shot(await page.$('#ps'), `${tag}-2edit`);
-
-    /* ★「送る」の前に、黒塗りを確かめる同意が要る（#ps-confirm）。
-       探し終わるまで disabled なので、**時間ではなく条件で**待つ。 */
-    await page.waitForFunction(() => {
-      const b = document.getElementById('ps-confirm');
-      return !!b && !b.disabled;
-    }, { timeout: 60000 });
-    await page.click('#ps-confirm');
-    await page.click('#ps-send');
+    /* ★2026-11-04 から、選んだらそのまま読み取りに送られる（黒塗りの確認と送るボタンは無い）。
+       読み取り中の札を1枚撮ってから、結果を待つ。 */
+    await page.waitForSelector('.ps-state.is-read', { timeout: 30000 }).catch(() => {});
+    await shot(await page.$('#ps'), `${tag}-2reading`);
     await page.waitForSelector('.ps-res', { timeout: 30000 });
     await new Promise((r) => setTimeout(r, 600));
     await shot(await page.$('#ps'), `${tag}-3read`);

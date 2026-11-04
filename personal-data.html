@@ -9,7 +9,7 @@
 <title>パーソナルデータの扱い｜PILOT VALUE</title>
 <!--PV-SEO-->
 <!--PV-SRC t="パーソナルデータの扱い | PILOT VALUE" d=""-->
-<meta name="description" content="PILOT VALUE が取得するデータの種別と目的を一覧にしています。メール配信の設定、給与明細をブラウザの中で黒塗りしてから送る仕組み、保存しない情報について記載しています。"/>
+<meta name="description" content="PILOT VALUE が取得するデータの種別と目的を一覧にしています。メール配信の設定、給与明細から数字だけを読み取る仕組み、保存しない情報について記載しています。"/>
 <meta name="robots" content="noindex,follow"/>
 <link rel="canonical" href="https://pilot-value.com/personal-data.html"/>
 <link rel="alternate" hreflang="ja" href="https://pilot-value.com/personal-data.html"/>
@@ -17,7 +17,7 @@
 <link rel="alternate" hreflang="es" href="https://pilot-value.com/es/personal-data.html"/>
 <link rel="alternate" hreflang="x-default" href="https://pilot-value.com/en/personal-data.html"/>
 <meta property="og:title" content="パーソナルデータの扱い｜PILOT VALUE"/>
-<meta property="og:description" content="PILOT VALUE が取得するデータの種別と目的を一覧にしています。メール配信の設定、給与明細をブラウザの中で黒塗りしてから送る仕組み、保存しない情報について記載しています。"/>
+<meta property="og:description" content="PILOT VALUE が取得するデータの種別と目的を一覧にしています。メール配信の設定、給与明細から数字だけを読み取る仕組み、保存しない情報について記載しています。"/>
 <meta property="og:url" content="https://pilot-value.com/personal-data.html"/>
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="PILOT VALUE"/>
@@ -30,7 +30,7 @@
 <meta property="og:image:alt" content="パーソナルデータの扱い｜PILOT VALUE"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="パーソナルデータの扱い｜PILOT VALUE"/>
-<meta name="twitter:description" content="PILOT VALUE が取得するデータの種別と目的を一覧にしています。メール配信の設定、給与明細をブラウザの中で黒塗りしてから送る仕組み、保存しない情報について記載しています。"/>
+<meta name="twitter:description" content="PILOT VALUE が取得するデータの種別と目的を一覧にしています。メール配信の設定、給与明細から数字だけを読み取る仕組み、保存しない情報について記載しています。"/>
 <meta name="twitter:image" content="https://pilot-value.com/assets/og/default-ja.jpg"/>
 <!--/PV-SEO-->
 
@@ -189,7 +189,7 @@ ul{list-style:disc;padding-left:1.2rem;margin-bottom:8px}
       </div>
       <div class="data-row">
         <div><p style="color:#e8edf2;font-weight:600;font-size:.9rem">給与明細の画像</p></div>
-        <div><p>自動入力のために解析するときだけ使います。送信されるのは<b>ご本人が確認した「送る枠」の中だけ</b>です。<b>枠の外は、送信前にお使いの端末の中で画像ごと切り落とされ、端末を出ることはありません</b>。枠は給与の表に合わせて自動で置き、ご自身で動かしていただけます。さらに枠の中についても、<b>氏名・社員番号・口座番号を端末の中で自動で探して黒く塗り</b>、塗ったうえでご確認いただいてから送信します（塗る前の画像が端末を出ることはありません）。自動の検出は取りこぼすことがあるため、送信前にご自身でご確認いただく画面を挟んでいます。PDF を落としていただいた場合も、<b>端末の中で1ページ目だけを画像にしてから</b>同じ手順を通します（2ページ目以降は送られません）。画像はサーバのメモリ上で読み取るだけで、<b>ストレージにもデータベースにも保存せず、ログにも残しません</b>。読み取りが終わり次第、破棄されます。</p></div>
+        <div><p>自動入力のために給与の数字を読み取るときだけ使います。お使いの端末の中で画像を描き直したうえで（撮影場所などの付帯情報はここで消えます）、<b>明細のページ全体</b>を読み取りに送ります。読み取りで取り出すのは<b>給与の項目・金額・対象月・通貨・勤務時間だけ</b>で、<b>氏名・社員番号・口座番号・住所などは回答・保存の対象にしません</b>（取り出す項目の形そのものに、それを書く欄がありません）。PDF を落としていただいた場合は、<b>端末の中で1ページ目だけを画像にしてから</b>送ります（2ページ目以降は送られません）。画像はサーバのメモリ上で読み取るだけで、<b>当サイトではストレージにもデータベースにも保存せず、ログにも残しません</b>。読み取りが終わり次第、破棄されます。読み取りに使う Anthropic 社での扱いは、下の「データの海外移転」に書いています。<b>マイナンバーの載った書類は送らないでください。</b></p></div>
       </div>
       <div class="data-row">
         <div><p style="color:#e8edf2;font-weight:600;font-size:.9rem">給与レポート</p></div>
@@ -218,7 +218,7 @@ ul{list-style:disc;padding-left:1.2rem;margin-bottom:8px}
         <li>会員アカウントデータ：退会申請後30日以内に削除</li>
         <li>アクセスログ：最大90日間保持後に削除</li>
         <li>コミュニティ投稿：退会後も匿名化した形で残存する場合があります</li>
-        <li>給与明細の画像：<b>保存しません</b>（読み取り後ただちに破棄）</li>
+        <li>給与明細の画像：当サイトでは<b>保存しません</b>（読み取り後ただちに破棄。Anthropic 社での扱いは下の「データの海外移転」）</li>
         <li>回数制限用のハッシュ化IPアドレス：30日後に削除</li>
         <li>ログインせずに回答したり、ホテル・レストラン・場所やパイロットに人気の街を追加したりした場合、あなたの投稿をあなたの端末にだけ見せるための鍵を、この端末のブラウザに保存します（サーバーには、その鍵から作った復元できない値だけを置きます）。同じ回線からの回数を数えるため、IPアドレスを変換した値を1日だけ保持し、その後削除します。メールアドレス・氏名・位置情報は伺いません。</li>
         <li>メール配信の設定：退会時に削除（同意した日時は、同意をいただいた証跡として退会まで保持します）</li>
@@ -230,7 +230,7 @@ ul{list-style:disc;padding-left:1.2rem;margin-bottom:8px}
       <p>当サイトは日本国内を主な運営基盤としています。サービス提供にあたり、一部のデータ処理が海外のサーバーで行われる場合があります。その際は適切な保護措置を講じます。</p>
       <p style="margin-top:12px">具体的には、次の処理で海外の事業者を利用しています。</p>
       <ul>
-        <li><b>給与明細の読み取り</b>：Anthropic 社（米国）の API に、<b>ご本人が確認した「送る枠」の中だけ</b>を送って解析します。<b>枠の外は端末を出ません</b>（送信前に端末の中で画像ごと切り落としています）。枠の中の黒塗りも端末側で画素に焼き込んでから送ります。画像は解析のためだけに送られ、当サイトでは保存しません。</li>
+        <li><b>給与明細の読み取り</b>：Anthropic 社（米国）の API に明細のページ全体の画像を送り、給与の数字を読み取ります。<b>氏名・社員番号・口座などは回答・保存の対象にしません</b>。当サイトでは画像を保存しません。<b>Anthropic 社での扱い</b>：同社の規約では、API で受け取った内容は<b>モデルの学習に使われず、30日以内に削除</b>されます（同社の利用ポリシーへの違反の疑いで自動的に検知された場合などは、最長2年保管されることがあります）。保管をしない特別な契約（Zero Data Retention）は結んでいません。</li>
         <li><b>口コミの翻訳</b>：同社の API に投稿本文を送って日英に翻訳します。</li>
         <li><b>認証・データベース</b>：Supabase 社のサービスを利用しています。</li>
         <li><b>メールの送信</b>：Resend 社（米国）を利用しています。送信のため、メールアドレスと本文が同社を経由します（本文に金額・会社名は含めていません）。</li>

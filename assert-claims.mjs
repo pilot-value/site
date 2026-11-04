@@ -14,15 +14,19 @@
 
    ※ どちらも 2026-09-20 にオーナーの指摘で見つかった。経緯は各節の頭にある。
 
-   ── 本当は何が起きているか ──────────────────────────────
-     ① 端末の中で「送る枠」の外を**画像ごと切り落とす**
-     ② 端末の中で氏名・社員番号・口座を**画素ごと黒く塗る**
-     ③ 本人が見て確認する
-     ④ **枠の中だけを送る**（Edge Function → Anthropic の API）
-     ⑤ 読み取ったら捨てる。ストレージにも DB にもログにも書かない
+   ── 本当は何が起きているか（2026-11-04 作り直し・オーナー判断）──────────
+     ① 端末の中で画像を描き直す（向き・撮影場所などの付帯情報はここで消える）
+     ② **明細のページ全体**を送る（Edge Function → Anthropic の API）。黒塗りと確認の画面はやめた
+     ③ 取り出すのは給与の項目・金額・対象月・通貨・勤務時間だけ。氏名・社員番号・口座を書く欄は
+        答えの形そのものに無い（supabase/functions/parse-payslip の OUT_SCHEMA）
+     ④ 読み取ったら捨てる。PILOT VALUE はストレージにも DB にもログにも書かない
+     ⑤ Anthropic 側は同社の規約どおり（学習に使わない・30日以内に削除・違反の疑いで最長2年）。
+        保管ゼロの契約（ZDR）は結んでいない
 
-   つまり「画像は送らない」は**嘘**で、「黒塗りしてから送る・保存しない」が本当。
-   端末を出ないのは**枠の外**と**塗った部分**であって、画像そのものではない。
+   つまり「画像は送らない」も「黒塗りしてから送る」も**いまは嘘**で、
+   「給与の数字を読み取るためだけに使い、氏名などは回答・保存の対象にしない・画像は保存しない」が本当。
+   ★「氏名を読まない」とも書かない（画像には写っていて、読み取りの AI は見ている。
+     言えるのは「回答・保存の対象にしない」まで）。
 
    ── この検査がある理由 ──────────────────────────────────
    2026-08-13、pay-report.html の入口カードに「画像は送りません」と書いた。
@@ -103,6 +107,15 @@ const NEVER_SAY = [
        主語を payslip に固定する（「塗る前の画像は端末に残る」は事実なので当てない）。 */
   [/\bpayslips?[^.]{0,40}stays? on your own device\b/i,    '"payslip processing stays on your own device"'],
   [/\b(?:figures|numbers) are read on(?: this| your)? device\b/i, '"read on this device"'],
+  /* ★2026-11-04 から嘘になった言い方（黒塗りの画面をやめた）。 */
+  [/黒塗りしてから送/,                                      '「黒塗りしてから送る」（2026-11-04 にやめた）'],
+  [/(?:端末|ブラウザ)の?(?:中|上)で[^。]{0,12}(?:黒く)?塗/,   '「端末の中で塗る」（2026-11-04 にやめた）'],
+  [/送る枠の中だけ|「送る枠」の中だけ|枠(?:内|の中)の情報だけ/, '「送る枠の中だけを送る」（2026-11-04 にやめた）'],
+  [/氏名[^。]{0,16}読み(?:取り)?ません|氏名を読まない/,      '「氏名を読みません」（言えるのは「回答・保存の対象にしない」まで）'],
+  [/\bblacked out (?:in|on) your (?:browser|device)\b/i,  '"blacked out in your browser"（2026-11-04 にやめた）'],
+  [/\bmasked on your own device\b/i,                      '"masked on your own device"（2026-11-04 にやめた）'],
+  [/\bonly (?:what is )?inside the (?:“sent area” )?frame\b/i, '"only what is inside the frame"（2026-11-04 にやめた）'],
+  [/\bwe (?:do not|don't|never) read your name\b/i,        '"we never read your name"'],
 ];
 
 console.log('\n── A) 明細の扱いについて、事実と違う言い方を書いていない ─────');
@@ -119,21 +132,44 @@ ok(`サイト全体 ${files.length} ファイル（HTML＋共有 JS）`,
    禁則だけだと「何も書かない」で通ってしまう。送る直前の確認画面と、
    扱いを説明したページには、正しい説明が**在る**ことを要求する。 */
 console.log('\n── A) 正しい説明が、要る場所に在る ───────────────────────');
+/* ★2026-11-04：確認の画面をやめたので、説明と同意は**選ぶボタンのすぐ下**（#ps-consent）に置いた。
+     送る先（Anthropic・米国）・氏名などを回答と保存の対象にしない・画像を保存しない・マイナンバー書類は送らない、の4つ。
+     扱いのページは、PILOT VALUE の非保存と Anthropic 側の保管の条件を**分けて**書く（ZDR は結んでいない）。 */
 const MUST_SAY = [
-  ['payslip.js', [
-    ['枠の外は端末から出ません', '送る直前の確認画面（日）：枠の外は出ないと書いてある'],
-    ['解析にだけ使い、保存しません', '送る直前の確認画面（日）：保存しないと書いてある'],
-    ['Nothing outside the frame leaves your device', '送る直前の確認画面（英）：枠の外は出ない'],
-    ['is never stored', '送る直前の確認画面（英）：保存しない'],
+  ['pay-report.html', [
+    ['id="ps-consent"', '選ぶボタンの下の説明と同意（日）がある'],
+    ['AI（Anthropic 社・米国）へ送ります', '同意（日）：送る先を書いている'],
+    ['氏名・社員番号・口座などは回答・保存の対象にせず', '同意（日）：氏名などを回答・保存の対象にしない'],
+    ['PILOT VALUE は画像を保存しません', '同意（日）：画像を保存しない'],
+    ['マイナンバーの載った書類は送らないでください', '同意（日）：マイナンバー書類は送らない'],
+  ]],
+  ['en/pay-report.html', [
+    ['id="ps-consent"', '選ぶボタンの下の説明と同意（英）がある'],
+    ['sent to an AI service (Anthropic, USA)', '同意（英）：送る先を書いている'],
+    ['are not part of what is returned or stored', '同意（英）：氏名などを回答・保存の対象にしない'],
+    ['PILOT VALUE never stores the image', '同意（英）：画像を保存しない'],
+    ['My Number', '同意（英）：マイナンバー書類は送らない'],
+  ]],
+  ['es/pay-report.html', [
+    ['id="ps-consent"', '選ぶボタンの下の説明と同意（西）がある'],
+    ['no forman parte de lo que se devuelve ni de lo que se guarda', '同意（西）：氏名などを回答・保存の対象にしない'],
+    ['PILOT VALUE nunca guarda la imagen', '同意（西）：画像を保存しない'],
   ]],
   ['personal-data.html', [
-    ['ご本人が確認した「送る枠」の中だけ', '扱いのページ（日）：送るのは枠の中だけ'],
-    ['ストレージにもデータベースにも保存せず', '扱いのページ（日）：保存しない'],
+    ['回答・保存の対象にしません', '扱いのページ（日）：氏名などを回答・保存の対象にしない'],
+    ['当サイトではストレージにもデータベースにも保存せず', '扱いのページ（日）：PILOT VALUE は保存しない'],
+    ['30日以内に削除', '扱いのページ（日）：Anthropic 側の保管の条件を分けて書いている'],
+    ['Zero Data Retention', '扱いのページ（日）：保管ゼロの契約を結んでいないと書いている'],
+    ['マイナンバーの載った書類は送らないでください', '扱いのページ（日）：マイナンバー書類は送らない'],
   ]],
   ['en/personal-data.html', [
-    ['only what is inside the “sent area” frame you approved', '扱いのページ（英）：送るのは枠の中だけ'],
-    ['never written to storage or to a database', '扱いのページ（英）：保存しない'],
+    ['not part of what is returned or stored', '扱いのページ（英）：氏名などを回答・保存の対象にしない'],
+    ['we never write it to storage or to a database', '扱いのページ（英）：PILOT VALUE は保存しない'],
+    ['deleted within 30 days', '扱いのページ（英）：Anthropic 側の保管の条件を分けて書いている'],
+    ['We do not have a Zero Data Retention agreement', '扱いのページ（英）：保管ゼロの契約を結んでいない'],
   ]],
+  ['index.html', [['氏名・社員番号・口座は回答・保存の対象にしません', 'トップ（日）：同じ約束の文']]],
+  ['en/index.html', [['are not part of what is returned or stored', 'トップ（英）：同じ約束の文']]],
 ];
 for (const [rel, needles] of MUST_SAY) {
   const s = readFileSync(path.join(ROOT, rel), 'utf8');

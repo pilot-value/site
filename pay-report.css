@@ -567,6 +567,14 @@ body.has-cta #form-wrap{padding-bottom:120px}
 .entry-b b{color:#e8edf2;font-weight:700}
 .entry-formats{margin-top:auto;padding-top:10px;font-size:.63rem;font-weight:700;letter-spacing:.09em;color:#6b7d93}
 .ps-benefits{margin-top:10px}
+/* 送ることの説明と同意（2026-11-04）。選ぶボタンのすぐ下。
+   ★帯に縮んだあとも隠さない ── 先に手入力を選んだ人が、帯のボタンから明細を選ぶことがある（説明を見ずに送らせない）。 */
+.ps-consent{margin:10px 0 0;font-size:.72rem;line-height:1.65;color:#a8b3c2}
+.ps-consent b{color:#e8edf2;font-weight:700}
+.ps-consent a{color:#f5c842;text-decoration:underline;text-underline-offset:2px}
+.ps-consent a:hover{color:#ffdd77}
+.ps-consent a:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px;border-radius:3px}
+.ps.is-slim .ps-consent{margin-top:6px;font-size:.68rem}
 /* 「暗号化＆セキュア」の横の盾（2026-08-14）。行の頭の ✓ と同じ緑にして、
    同じ「安心の印」の仲間に見せる。文字の流れの中に置くので inline のまま。 */
 .entry-shield{flex:none;width:14px;height:14px;margin-top:2px;color:#34d399}
@@ -708,6 +716,25 @@ body.has-cta #form-wrap{padding-bottom:120px}
 .ps-res-title{font-size:.95rem;font-weight:800;letter-spacing:-.01em;color:#34d399}
 .ps-res-title.ps-sm{font-size:.82rem;color:#a8b3c2;margin-top:18px}
 .ps-res-lead{font-size:.78rem;color:#a8b3c2;line-height:1.7;margin-top:4px}
+/* ── 明細の読み取り：状態の札・失敗の札・明細を見る（2026-11-04 作り直し）──────────
+   ★待つあいだに出すのは実際の状態だけ（進み具合の％は出さない）。
+   ★失敗の札にはいつも「もう一度読む／別の明細を選ぶ／手で入力する」のどれかがある（行き止まりにしない）。 */
+.ps-state{display:flex;flex-direction:column;gap:6px}
+.ps-state.is-read .ps-state-t,.ps-state.is-busy .ps-state-t{display:flex;align-items:center;gap:9px}
+.ps-state.is-read .ps-state-t::before,.ps-state.is-busy .ps-state-t::before{content:"";flex:none;width:14px;height:14px;border-radius:999px;border:2px solid rgba(245,200,66,.28);border-top-color:#f5c842;animation:psSpin .7s linear infinite}
+.ps-state-t{font-size:.84rem;font-weight:800;color:#e8edf2;letter-spacing:-.01em}
+.ps-state-l{margin:0;font-size:.78rem;line-height:1.65}
+.ps-state-l b{color:#e8edf2}
+.ps-fail .ps-state-l b{color:#f7d15e}
+.ps-state .ps-bar,.ps-fail .ps-bar{margin-top:8px}
+@media (prefers-reduced-motion:reduce){.ps-state .ps-state-t::before{animation:none}}
+.ps-view{position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;background:rgba(2,6,12,.92);backdrop-filter:blur(2px)}
+.ps-view-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
+.ps-view-hint{font-size:.74rem;color:#a8b3c2}
+.ps-view-body{flex:1 1 auto;overflow:auto;-webkit-overflow-scrolling:touch;padding:16px;display:flex;justify-content:center;align-items:flex-start}
+.ps-view-img{display:block;width:100%;max-width:1100px;height:auto;border-radius:8px;background:#fff;box-shadow:0 18px 40px -20px rgba(0,0,0,.8);cursor:zoom-in}
+.ps-view-img.is-zoom{width:220%;max-width:none;cursor:zoom-out}
+html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 .ps-res-lead b{color:#e8edf2}
 /* ── 明細の値と本人の入力が食い違ったところ（2026-09-12）──────────
    ★本人の入力は書き換えていない。押されたときだけ入る。
@@ -1228,6 +1255,12 @@ body.has-cta #form-wrap{padding-bottom:120px}
 [data-theme="light"] .ps-res-title{color:#0d8a63}
 [data-theme="light"] .ps-res-title.ps-sm{color:#475569}
 [data-theme="light"] .ps-res-lead{color:#475569}
+[data-theme="light"] .ps-consent{color:#475569}
+[data-theme="light"] .ps-consent b{color:#0f172a}
+[data-theme="light"] .ps-consent a{color:#8a6600}
+[data-theme="light"] .ps-state-t,[data-theme="light"] .ps-state-l b{color:#0f172a}
+[data-theme="light"] .ps-fail .ps-state-l b{color:#6b4f00}
+[data-theme="light"] .ps-state.is-read .ps-state-t::before,[data-theme="light"] .ps-state.is-busy .ps-state-t::before{border-color:rgba(200,149,0,.28);border-top-color:#a97e00}
 [data-theme="light"] .ps-res-lead b{color:#0f172a}
 [data-theme="light"] .ps-cf{border-color:rgba(180,140,20,.42);border-left-color:#b48c14;background:rgba(245,200,66,.14)}
 [data-theme="light"] .ps-cf-t{color:#8a6206}

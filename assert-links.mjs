@@ -272,6 +272,11 @@ const STAMPS = [
      直したら、出た値を日英2枚に写す。 */
   { pages: [['community.html', ''], ['en/community.html', '../']],
     files: ['vote.css', 'vote.js'] },
+  /* ★2026-11-04 明細から自動入力の作り直し。payslip.js が組む札（読み取り中・失敗・明細を見る画面）に
+     pay-report.css が形を付ける（対で動く）。古い CSS が残ると「明細を見る」の画面が崩れて出る。
+     直したら、出た値を日英の2枚に写す（西は gen-lang.mjs が英語のページから写す。この表はスペイン語のページを読まない）。 */
+  { pages: [['pay-report.html', ''], ['en/pay-report.html', '../']],
+    files: ['payslip.js', 'pay-report.css'] },
 ];
 const stampIssues = [];
 for (const { pages, files } of STAMPS) {

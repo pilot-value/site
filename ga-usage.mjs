@@ -31,6 +31,7 @@
      node ga-usage.mjs --days 30
      node ga-usage.mjs --bot        ボットを除かない（素の数字）
      node ga-usage.mjs --pages      よく見られたページも出す
+     node ga-usage.mjs --payslip    明細から自動入力の段階ごとの数（2026-11-04 の前後で分けて）
 
    ── 要るもの ──────────────────────────────────────────────────
      mail-bot/.env.ga.json … GA4 の読み取り鍵（gitignore 済み・.env.* に当たる）
@@ -150,6 +151,41 @@ stage('送信を押した', sum2('pay_report_submit'), since('pay_report_submit'
 const blocked = sum2('pay_form_blocked');
 if (blocked) stage('※ 途中で止められた', blocked, since('pay_form_blocked') || '　（総支給を超えた等）');
 console.log('   ─ 段どうしを割らないこと。記録を始めた日が段ごとに違うため、割ると 300% のような数が出ます。');
+
+/* ── 3-b) 明細から自動入力（payslip_*）。--payslip で出す ──────────────────
+   ★2026-11-04 に記録の意味を変えた（明細の黒塗りと確認の画面をやめた回）。前後を同じ名前で足し合わせない。
+       payslip_sent    … 前：送るボタンを押した瞬間（画像を作る前）／後：画像ができて呼び出す直前
+       payslip_read_ok … 前：サーバーが答えた／後：読めた数字が入力欄に入った（サーバーの答えは payslip_api_ok）
+       payslip_read_ng … 前：入力欄に入れる所で落ちても network と記録していた／後：段ごとの理由（apply_failed など）
+     新しく足した名前：payslip_prepared（画像の準備ができた）・payslip_api_ok・payslip_retry・payslip_cancel・payslip_view。
+   ★公開サイト（hostName = pilot-value.com）だけを数える。手元の検査（localhost）が混ざると、
+     1日に「5人が読めた」のような嘘の山ができる（2026-09-12 に実際にあった）。
+   ★ここで出るのは「人数」と「回数」だけ。失敗の理由ごとの数は GA4 の管理画面で
+     カスタムディメンション reason（イベントのパラメータ）を登録してから出る（オーナー作業・登録した日より後だけ）。 */
+if (has('--payslip')) {
+  const CHANGE = '2026-11-04';
+  const NAMES = ['pay_entry_payslip', 'payslip_loaded', 'payslip_reject', 'payslip_prepared', 'payslip_sent',
+                 'payslip_api_ok', 'payslip_read_ok', 'payslip_read_ng', 'payslip_retry', 'payslip_cancel', 'payslip_view'];
+  const host = { filter: { fieldName: 'hostName', stringFilter: { matchType: 'EXACT', value: 'pilot-value.com' } } };
+  const names = { filter: { fieldName: 'eventName', inListFilter: { values: NAMES } } };
+  const part = async (start, end) => run({
+    dateRanges: [{ startDate: start, endDate: end }], dimensions: [{ name: 'eventName' }],
+    metrics: [{ name: 'eventCount' }, { name: 'totalUsers' }],
+    dimensionFilter: { andGroup: { expressions: [host, names] } },
+  });
+  const show = (label, rows) => {
+    console.log('\n■ 明細から自動入力 ' + label + '（公開サイトだけ・回数／人）');
+    const m = Object.fromEntries(rows.map((r) => [r.dimensionValues[0].value, r]));
+    for (const n of NAMES) {
+      const r = m[n];
+      if (r) console.log('   ' + n.padEnd(20) + String(r.metricValues[0].value).padStart(6) + '回' + String(r.metricValues[1].value).padStart(6) + '人');
+    }
+  };
+  const d0s = iso(d0);
+  if (d0s < CHANGE) show('— ' + d0s + '〜' + iso(Date.parse(CHANGE) - 86400000) + '（古い意味）', await part(d0s, iso(Date.parse(CHANGE) - 86400000)));
+  show('— ' + (d0s < CHANGE ? CHANGE : d0s) + '〜今日（新しい意味）', await part(d0s < CHANGE ? CHANGE : d0s, 'today'));
+  console.log('   ─ 人数は「ブラウザの数」。同じ人がスマホとパソコンで試すと2人になる。広告ブロックの人は数えられていない。');
+}
 
 /* ── 4) おまけ：よく見られたページ ── */
 if (has('--pages')) {

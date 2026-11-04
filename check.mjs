@@ -93,7 +93,9 @@ const SQL = [
 //             ⚠️ 下の SQL / FAST は**この回では測っていない**（あちらは -j8・
 //                ブラウザ無しで走る＝条件が違う）。直すならその区分で測り直す。
 const WEB = [
-  ['db/test-payslip-redact.mjs', 203], ['assert-header.mjs', 279],
+  /* 2026-11-04：明細の黒塗りの検査（db/test-payslip-redact.mjs・203秒）は、黒塗りをやめたので外した。
+     代わりに選んで読む流れの通し（db/test-payslip-flow.mjs）。秒数は単独で測った値。 */
+  ['db/test-payslip-flow.mjs', 70], ['assert-header.mjs', 279],
   ['assert-pay-rows.mjs', 210], ['db/test-pay-gate.mjs', 194],
   ['db/test-form-contract.mjs', 179], ['assert-jp.mjs', 153],
   ['assert-referral.mjs', 126], ['assert-perf.mjs', 110],
@@ -187,7 +189,9 @@ const run = (file) => new Promise(res => {
 // 「赤ければ本当に壊れている」を取り戻すほうが安い。
 //
 // ⚠️ ここに足すと、その1本の間ほぼ全コアが遊ぶ。**本当に単独が要るものだけ**にする。
-const SOLO = new Set(['db/test-payslip-redact.mjs']);
+/* ★2026-11-04：ここにあった db/test-payslip-redact.mjs（文字読み取りに40秒の制限）は、
+     黒塗りをやめたので消した。いまは単独で流すものは無い。足すときは上の注意を読む。 */
+const SOLO = new Set([]);
 
 const ordered = [...list].sort((a, b) => b[1] - a[1]).map(x => x[0]);
 const solo = ordered.filter(f => SOLO.has(f));
@@ -237,10 +241,9 @@ const serial = results.reduce((s, r) => s + r.secs, 0);
 // 落ちたときに、いちばんありがちな「検査の中身ではない原因」を1行だけ添える。
 // 疑うべき先が製品ではなく走らせ方だと分かるまでに時間を溶かすのを防ぐため。
 const HINTS = {
-  'db/test-payslip-redact.mjs':
-    '★ 2026-08-28 から、これは単独で流している（上の SOLO）。'
-    + 'つまり CPU の食い合いではなく**本物の赤**の可能性が高い。'
-    + 'それでも `語 0／行 0／0ms` と出ていたら、裏で重い別プロセスが動いていないか見る',
+  'db/test-payslip-flow.mjs':
+    '★ parse-payslip は偽の返事・Supabase には1本も出さない。ここが落ちたら、先に '
+    + '`node db/test-payslip-parse.mjs`（1秒）を流す ── サーバーの読み方が先に壊れていればそちらが赤くなる',
   'db/test-form-contract.mjs':
     '★ 明細を1枚通す節（2026-09-11 追加）は、parse-payslip を interception で**偽の応答**に'
     + 'すり替えて回している。ネットも課金も無い。ここが落ちたら、先に '
