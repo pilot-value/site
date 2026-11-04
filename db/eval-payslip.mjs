@@ -212,6 +212,12 @@ async function capturePayload(browser, slip) {
   await page.setRequestInterception(true);
   page.on('request', (req) => {
     const u = req.url();
+    /* ★本番の Supabase（DB・認証）には1本も出さない（2026-11-04。画面を開くと辞書や認証を取りに行く）。
+       読み取りの画像を横取りする parse-payslip だけ下で扱う。解析（GA）も止める。 */
+    if (!u.includes(FN) && u.includes('supabase.co')) {
+      return req.respond({ status: 200, body: '[]', headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': '*', 'Content-Type': 'application/json' } });
+    }
+    if (/googletagmanager|google-analytics/.test(u)) return req.abort();
     if (!u.includes(FN)) return req.continue();
     if (req.method() === 'OPTIONS') {
       return req.respond({ status: 204, body: '', headers: { 'Access-Control-Allow-Origin': '*',
