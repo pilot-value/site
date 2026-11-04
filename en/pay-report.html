@@ -48,7 +48,7 @@
 <script>
 tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#18212f',accent:'#3d9bff',gold:'#f5c842',orange:'#f97316',text:'#e8edf2',muted:'#6b7d93'},fontFamily:{sans:['Inter','Noto Sans JP','sans-serif']}}}};
 </script>
-<link rel="stylesheet" href="../pay-report.css?v=c810a468">
+<link rel="stylesheet" href="../pay-report.css?v=b897f2ba">
 <!--PV-3P-->
 <script>
 /* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
@@ -731,6 +731,12 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
         <div class="fld">
           <label class="form-label" for="f-perdiem">Per diem (total for the month)<span class="req-tag">Required</span></label>
           <input type="text" id="f-perdiem" class="form-input money" inputmode="decimal" placeholder="Monthly total"/>
+          <div class="pd-src" id="pd-src-wrap" hidden>
+            <select id="f-perdiem-src" class="form-input" aria-label="How your per diem is paid">
+              <option value="included" selected>Included in the gross on my payslip</option>
+              <option value="outside">Paid separately from my payslip</option>
+            </select>
+          </div>
           <p class="fld-hint">The <b>monthly total of per diem</b>. Enter <b>0</b> if none was paid, or your airline pays none.</p>
         </div>
 
@@ -2612,6 +2618,19 @@ function unionOutsideGross() {
   if ($('f-union-extra').value !== 'yes') return 0;
   return $('f-union-src').value === 'union' ? 1 : 0;
 }
+/* ★2026-11-04 明細とは別に受け取るパーディアム（オーナー決定）。組合の分と同じ作り ──
+   「別に受け取る」で額があるときだけ、年収に月額 ×12 で足す。サーバーの写しは pv_perdiem_outside_gross。
+   ★内訳を1つも書いていない形（f-payitems が空）ではサーバーがしるしを捨てるので、画面も足さない。 */
+function perdiemOutsideGross() {
+  return ($('f-perdiem-src').value === 'outside' && num('f-perdiem') > 0 && $('f-payitems').value !== '') ? 1 : 0;
+}
+/* 額が入っているときだけ選択を出す。空・0 に戻したら「含まれている」に戻す。 */
+function pdSrcShow() {
+  const has = num('f-perdiem') > 0;
+  $('pd-src-wrap').hidden = !has;
+  if (!has || $('f-perdiem-src').value === '') $('f-perdiem-src').value = 'included';
+}
+function pdSrcSync() { pdSrcShow(); pdSync(); }
 
 function unionSync() {
   const yes = $('f-union-extra').value === 'yes';
@@ -3365,7 +3384,7 @@ const num = (id) => {
 function monthlyDetail() {
   const hours = Math.max(num('f-block'), num('f-guar'));
   const housing = $('f-housing').value === 'allowance' ? num('f-housing-amt') : 0;
-  return num('f-base') + num('f-guarantee') + num('f-hourly') * hours + num('f-perdiem') + housing
+  return num('f-base') + num('f-guarantee') + num('f-hourly') * hours + (perdiemOutsideGross() ? 0 : num('f-perdiem')) + housing
          + num('f-transport') + num('f-command') + num('f-other')
          + num('f-var-sum') + num('f-oth-sum') + num('f-instructor') + num('f-examiner')
   /* ★The union one is conditional. Money paid by the union is not on the company
@@ -3531,7 +3550,9 @@ function annualTotal() {
   const gross = num('f-gross');
   const monthly = gross
                 + (gross > 0 && unionOutsideGross() ? num('f-union-pay') : 0);
-  return monthly * 12 + num('f-bonus') + num('f-profit');
+  /* ★明細とは別に受け取るパーディアム（2026-11-04）。総支給の中に無いので、組合の分と同じく足す。 */
+  const pdOut = (gross > 0 && perdiemOutsideGross()) ? num('f-perdiem') : 0;
+  return (monthly + pdOut) * 12 + num('f-bonus') + num('f-profit');
 }
 
 function fmtCur(v, code) {
@@ -3586,6 +3607,8 @@ function syncStickyBar() {
    The repeating rows report through f-var-sum / f-oth-sum, written by pdSync(). */
 ['f-gross','f-base','f-guarantee','f-hourly','f-guar','f-block','f-perdiem','f-housing-amt','f-command','f-bonus','f-profit','f-instructor','f-examiner','f-union-pay','f-mgmt-pay','f-nonline-pay']
   .forEach((id) => $(id).addEventListener('input', () => { _lastMoney = id; recalc(); }));
+$('f-perdiem').addEventListener('input', pdSrcSync);
+$('f-perdiem-src').addEventListener('change', pdSync);
 /* ★When the currency changes, read every money box again.
    readMoney's answer depends on the currency's decimal places (in JPY we settle
    1.000 as 1,000), so a box entered as 1.000 under AED and pinned to "1,000"
@@ -4125,6 +4148,7 @@ function pdSync() {
   if (ins) pi.instructor = ins;
   if (exm) pi.examiner = exm;
   if (uni) pi.union = uni;
+  if ($('f-perdiem-src').value === 'outside' && num('f-perdiem') > 0) pi.per_diem_src = 'outside';
   if (mgt) pi.management = mgt;
   if (nol) pi.nonline = nol;
   /* Nothing entered -> leave the column empty rather than send a meaningless {}. */
@@ -4449,7 +4473,7 @@ const CARRY = {
     'f-bonus','f-profit','f-pension','f-jobrole','f-age','f-base-iata'],
   fixed: ['f-base','f-guar','f-guarantee','f-command','f-housing-amt'],
   shape: ['f-payitems'],
-  never: ['f-year','f-month','f-gross','f-netpay','f-perdiem',
+  never: ['f-year','f-month','f-gross','f-netpay','f-perdiem','f-perdiem-src',
     'f-transport','f-other','f-hourly','f-flightvar','f-deduct','f-ytd',
     'f-block','f-duty','f-stay','f-duty-h','f-night-h','f-credit-h',
     'f-instructor','f-examiner','f-union-pay','f-mgmt-pay','f-nonline-pay',
@@ -4603,6 +4627,7 @@ function restoreInto(o, opts) {
      ここを「keep があるときは 1 を返す」に直さないこと。 */
   if (!n) return 0;
   syncRoleBoxes();  // hidden に入った値をチェックの絵に戻す
+  pdSrcShow();      // パーディアムの受け取り方の選択も、戻した額に合わせて出す
   fmtMoneyAll();   // assignment fires no input event — put the separators back on
   fmtNumAll();     // same reason: do not leave 85,5 sitting in an hours box
   /* ★If even one breakdown box came back, leave the breakdown open — folded away,
@@ -4672,7 +4697,7 @@ function snapPrev(ids) {
      currency, contract, seniority, tax country, the role chips (f-jobrole), pension rate.
      Those must not be retyped every month. */
 const PAYSLIP_MONTH_IDS = ['f-gross','f-base','f-guarantee','f-command','f-housing-amt','f-other',
-  'f-perdiem','f-transport','f-profit','f-instructor','f-examiner','f-payitems',
+  'f-perdiem','f-perdiem-src','f-transport','f-profit','f-instructor','f-examiner','f-payitems',
   'f-block','f-guar','f-duty-h','f-night-h','f-credit-h',
   'f-netpay','f-ytd','f-deduct','f-flightvar','f-psdetail',
   /* ★The fields a payslip CANNOT read are the dangerous ones (added 2026-09-11).
@@ -6222,7 +6247,7 @@ addEventListener('scroll', () => {
   });
 })();
 </script>
-<script src="../payslip.js?v=5ff43fff"></script>
+<script src="../payslip.js?v=2f4b1f69"></script>
 <script src="../confetti.js"></script>
 <script src="../pay-login.js"></script>
 <!-- ★ヘッダーを畳むのは search.js。id="main-nav" を持つページは必ず読む。

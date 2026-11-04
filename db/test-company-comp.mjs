@@ -347,6 +347,15 @@ const sameAsDeep = (cell, d) => !!d && !d.__err && d.state === 'open'
           command_pay: 200000, per_diem: 100000, housing_type: 'allowance', housing_amount: 80000, examiner_pay: 50000 }]]);
   await person(A_MIX, 'cap', [[1, { gross_monthly: 20000, base_pay: 9000, flight_variable_pay: 4000, other_allowance: 4000, command_pay: 2000 }]]);
   await person(A_MIX, 'cap', [[1, { fleet: 'b737', gross_monthly: 18000 }]]);
+  /* ★明細とは別に受け取ったパーディアム（2026-11-04）。総支給 14,000 は印字どおり・パーディアム 2,500 は別払い。
+     内訳 9,000＋3,000＋1,000＋2,500 ＝ 15,500 は総支給の 1.02 倍を超えるので、現金（cash_m）に 2,500 を
+     足していなければ給与構成から落ちる（＝足す前と同じ答えのまま）。pv_deep_pay と同じ1行かは下の C4 が見る。 */
+  const pdBefore = canon((await comp(OPERATOR, { airlines: [A_MIX] })).airlines?.[A_MIX]?.cap);
+  await person(A_MIX, 'cap', [[2, { gross_monthly: 14000, base_pay: 9000, flight_variable_pay: 3000, other_allowance: 3000,
+    command_pay: 1000, per_diem: 2500,
+    pay_items: { v: 2, variable: [{ amount: 3000, basis: 'block', label: 'Flight' }], per_diem_src: 'outside' } }]]);
+  ok(canon((await comp(OPERATOR, { airlines: [A_MIX] })).airlines?.[A_MIX]?.cap) !== pdBefore,
+    '★明細とは別に受け取ったパーディアムの月も給与構成に入る（現金に足してあるので 1.02 倍の関所で落ちない）');
   await person(A_MIX, 'fo', [[1, { base_pay: 5000, flight_variable_pay: 2000, other_allowance: 2000, per_diem: 500 }]]);
   await person(A_MIX, 'fo', [[2, { base_pay: 6000, flight_variable_pay: 2500, other_allowance: 2600, per_diem: 700, instructor_pay: 300 }]]);
   await person(A_ONE, 'fo', [[1, ONE_DET]]);

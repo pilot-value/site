@@ -1,7 +1,7 @@
 -- ════════════════════════════════════════════════════════════════
 -- db/pay-reports.roundtrip.sql — 貼ったあとに「本当に保存されるか」を1回で見る
 --
--- pay-reports.verify.sql（16行）は**関数の計算**しか見ていない。
+-- pay-reports.verify.sql（17行）は**関数の計算**しか見ていない。
 -- 列を1つ足したときに実際に起きるのは、そこではなく
 --   「保存はされたが、その鍵だけ黙って消えている」
 -- という壊れ方で、画面はどこも壊れない。pay_items はサーバ側で
@@ -37,6 +37,8 @@ declare
   -- 金額の作りは「印字の総支給 54,250」「変動給 3,200」「その他手当 4,100」
   -- （＝変動給3,200 ＋ 家族手当900）に、**不就労減額 −1,800** を足したもの。
   -- 総支給は減額後の額として印字されている前提なので、どの金額の列からも引かない。
+  -- ★2026-11-04、**明細とは別に受け取ったパーディアム 1,500**（per_diem_src = 'outside'）も足した。
+  --   総支給に印字されない額なので、年換算は 12×(54,250 + 1,500) = 669,000 になる。
   v_payload constant jsonb := jsonb_build_object(
     'airline', 'emirates', 'position', 'cap', 'fleet', 'b777', 'job_role', 'line',
     'period_year', 2015, 'period_month', 1, 'currency', 'AED',
@@ -47,9 +49,11 @@ declare
     'gross_monthly', 54250,
     'flight_variable_pay', 3200,
     'other_allowance', 4100,
+    'per_diem', 1500,
     'source', 'manual', 'lang', 'ja',
     'pay_items', jsonb_build_object(
       'v', 2,
+      'per_diem_src', 'outside',
       'variable', jsonb_build_array(
         jsonb_build_object('label', 'Flying Pay', 'amount', 3200, 'basis', 'block')),
       'other', jsonb_build_array(
@@ -132,9 +136,17 @@ begin
     || ' / 12 / 4   '
     || case when v_row.seniority_years = 12 and v_row.rank_years = 4 then '✅' else '❌' end;
 
-  n := n + 1; v_out := v_out || E'\n  ' || n || '  保存：年換算は総支給×12（減額で動かない）            '
-    || coalesce(v_row.annual_total_orig::text, 'null') || ' / 651000   '
-    || case when v_row.annual_total_orig = 651000 then '✅' else '❌' end;
+  n := n + 1; v_out := v_out || E'\n  ' || n || '  保存：年換算は（総支給＋明細外のパーディアム）×12（減額で動かない）'
+    || coalesce(v_row.annual_total_orig::text, 'null') || ' / 669000   '
+    || case when v_row.annual_total_orig = 669000 then '✅' else '❌' end;
+
+  -- ★2026-11-04。印（per_diem_src）が白リストを生き延び、再取得で真偽値として戻ること。
+  --   書き忘れると印が保存の瞬間に消え、上の年換算が 651,000 に戻る（画面は普通に動いたまま）。
+  n := n + 1; v_out := v_out || E'\n  ' || n || '  保存→再取得：明細外のパーディアムの印が残る          '
+    || coalesce(v_items->>'per_diem_src', 'なし') || ' / ' || coalesce(v_m->>'perdiem_outside_gross', 'null')
+    || ' / outside / true   '
+    || case when v_items->>'per_diem_src' = 'outside'
+              and coalesce((v_m->>'perdiem_outside_gross')::boolean, false) then '✅' else '❌' end;
 
   n := n + 1; v_out := v_out || E'\n  ' || n || '  保存：集計に載る形（USD 換算が空でない）              '
     || case when v_row.annual_total_usd is null then 'null' else '値あり' end || ' / 値あり   '

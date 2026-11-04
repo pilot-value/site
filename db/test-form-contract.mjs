@@ -702,6 +702,23 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
        `${f}: ★組合の中身は pay_items.union に乗る`);
     ok(/\buni\b/.test(emitCond(s)),
        `${f}: ★組合だけ書いた人の pay_items が空にされない`, emitCond(s));
+
+    /* ⑧-b ★明細とは別に受け取ったパーディアム（2026-11-04 オーナー決定）。組合の分と同じ作り。
+       サーバの pv_perdiem_outside_gross（pay_items.per_diem_src = 'outside'）の写し。
+       ★印だけでは pay_items を出さない ── サーバは印だけの殻を null に潰して足さないので、
+         画面も f-payitems が空なら足さない（両方そろえないと、画面とサーバで年収が食い違う）。 */
+    const pdo = (s.match(/function perdiemOutsideGross\(\)[\s\S]*?\n}/) || [''])[0];
+    ok(/f-perdiem-src'\)\.value\s*===\s*'outside'/.test(pdo) && /num\('f-perdiem'\)\s*>\s*0/.test(pdo)
+       && /f-payitems'\)\.value\s*!==\s*''/.test(pdo),
+       `${f}: ★明細外のパーディアムは「別に受け取っている」・額あり・内訳あり の3つがそろったときだけ`,
+       pdo.slice(0, 200));
+    ok(/gross\s*>\s*0\s*&&\s*perdiemOutsideGross\(\)/.test(at) && /num\('f-perdiem'\)/.test(at),
+       `${f}: ★年換算は総支給があるときだけ、明細外のパーディアムを足す`, at.slice(-240));
+    ok(/perdiemOutsideGross\(\)\s*\?\s*0\s*:\s*num\('f-perdiem'\)/.test(md),
+       `${f}: ★総支給との突き合わせ（monthlyDetail）には明細外のパーディアムを入れない`, md.slice(0, 240));
+    ok(/pi\.per_diem_src\s*=\s*'outside'/.test(s) && !/per_diem_src|perdiem/i.test(emitCond(s)),
+       `${f}: ★印は pay_items.per_diem_src に乗る・印だけで pay_items を出さない（サーバの空の殻と同じ）`,
+       emitCond(s));
   }
 
   /* ⑦-f 管理・マネジメント（Management / Leadership）の手当（2026-08-26 その6）──
@@ -1110,8 +1127,9 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
     const sum = (s.match(/\.pay-detail>summary\{[^}]*\}/) || [''])[0];
     ok(sum.includes('solid') && !sum.includes('dashed'),
        `${f}: ★閉じているときの「＋…を追加」が破線の弱い見た目に戻っていない`, sum.slice(0, 90));
-    ok(sum.includes('#f5c842') && sum.includes('max-width:100%'),
-       `${f}: ★ブランド金で、狭い画面でもはみ出さない`);
+    /* ★2026-11-04 ブランドの色を緑に（オーナー「ブランドの色は緑」）。金の直書きに戻さない。 */
+    ok(sum.includes('var(--pv-accent') && !/#f5c842|245,200,66/.test(sum) && sum.includes('max-width:100%'),
+       `${f}: ★ブランドの緑で、狭い画面でもはみ出さない`);
     /* ★ここに説明文を足さない。DEEP PAY のページはまだ無く「準備中」なので、
          「詳しく出すと開きます」と書くと嘘になる。 */
     const sums = [...s.matchAll(/<summary[^>]*>([\s\S]*?)<\/summary>/g)]

@@ -104,9 +104,10 @@
            金額はどの欄にも入っていなかった＝年収から黙って欠けていた。いまは
            「その他手当（未分類）」として数え、答えるかどうかは本人に任せる。 */
       uncTag: '（未分類）',
-      askT: function (n) { return n === 1 ? 'あと1項目、確認できます' : 'あと' + n + '項目、確認できます'; },
-      askL: '答えなくてもレポートは完成しています。金額は「その他手当」に入れてあります。',
-      askQ: 'これは何に近いですか？',
+      /* ★2026-11-04 オーナー「確認して欲しいの？確認可能ですって言ってんの？」── 何をしてほしいかを題で言う。 */
+      askT: function (n) { return n === 1 ? '何の手当か分からない行があります' : '何の手当か分からない行が' + n + 'つあります'; },
+      askL: '選ばなくても送れます（金額は「その他手当」に入っています）。',
+      askQ: 'いちばん近いものを選んでください',
       askSkip: 'スキップ',
       askOpts: ['飛行・勤務手当', '残業・深夜など', '毎月の固定手当', '賞与・一時金', '日当・立替精算', 'その他'],
       unmappedTitle: '金額として数えていない行',
@@ -147,7 +148,13 @@
       aiMark: 'AIが読んだ値',
       ahaT: 'この明細だと、年収はいくらのペースか',
       ahaPace: '年間ペース',
-      ahaPaceH: '明細の月額 ×12（入力したボーナス・プロフィットシェアを足しています）',
+      ahaPaceH: '明細の月額 ×12 ＋ 明細にないお金',
+      exT: '明細にないお金',
+      exBonus: 'ボーナス',
+      exProfit: 'プロフィットシェア',
+      exPd: 'パーディアム',
+      perYear: '年',
+      perMonth: '月',
       ahaPick: '会社と職位を選ぶと、公開レンジとの比較が出ます。',
       ahaPickB: '会社と職位を選ぶ →',
       ahaNoAirline: '「その他」の会社は公開レンジを持っていないので、比較は出せません。',
@@ -233,9 +240,9 @@
       nextOkB: 'Go to send →',
       days: 'Flight days',
       uncTag: ' (unclassified)',
-      askT: function (n) { return n === 1 ? 'One line you can confirm' : n + ' lines you can confirm'; },
-      askL: 'Your report is already complete without this. The amount is counted under “Other allowances”.',
-      askQ: 'What is this closest to?',
+      askT: function (n) { return n === 1 ? 'We could not tell what this line is' : 'We could not tell what ' + n + ' lines are'; },
+      askL: 'Optional — the amount is already counted under “Other allowances”.',
+      askQ: 'Pick the closest match',
       askSkip: 'Skip',
       askOpts: ['Flight / duty pay', 'Overtime or night', 'Fixed monthly allowance', 'Bonus or one-off', 'Per diem / expenses', 'Something else'],
       unmappedTitle: 'Lines not counted as money',
@@ -276,7 +283,13 @@
       aiMark: 'read by AI',
       ahaT: 'What this slip puts you on for the year',
       ahaPace: 'Annual pace',
-      ahaPaceH: 'Monthly total × 12, plus any bonus and profit share you entered',
+      ahaPaceH: 'Monthly total × 12, plus what is not on your payslip',
+      exT: 'Not on your payslip',
+      exBonus: 'Bonus',
+      exProfit: 'Profit share',
+      exPd: 'Per diem',
+      perYear: 'yr',
+      perMonth: 'mo',
       ahaPick: 'Pick your airline and seat and you get the comparison against the published ranges.',
       ahaPickB: 'Pick airline and seat →',
       ahaNoAirline: '“Other” has no published range, so there is nothing to compare against.',
@@ -361,9 +374,9 @@
       nextOkB: 'Ir a enviar →',
       days: 'Días de vuelo',
       uncTag: ' (sin clasificar)',
-      askT: function (n) { return n === 1 ? 'Una línea que puedes confirmar' : n + ' líneas que puedes confirmar'; },
-      askL: 'Tu reporte ya está completo sin esto. El monto se cuenta en “Otras asignaciones”.',
-      askQ: '¿A qué se parece más esto?',
+      askT: function (n) { return n === 1 ? 'No pudimos saber qué es esta línea' : 'No pudimos saber qué son ' + n + ' líneas'; },
+      askL: 'Opcional: el monto ya se cuenta en “Otras asignaciones”.',
+      askQ: 'Elige la opción más parecida',
       askSkip: 'Omitir',
       askOpts: ['Pago por vuelo / servicio', 'Horas extra o nocturnidad', 'Asignación mensual fija', 'Bono o pago único', 'Viáticos / gastos', 'Otro concepto'],
       unmappedTitle: 'Líneas que no se cuentan como monto',
@@ -404,7 +417,13 @@
       aiMark: 'leído por IA',
       ahaT: 'Tu remuneración anual al ritmo de este recibo',
       ahaPace: 'Ritmo anual',
-      ahaPaceH: 'Total mensual × 12, más el bono y la participación en las utilidades que hayas ingresado',
+      ahaPaceH: 'Total mensual × 12, más lo que no figura en tu recibo de nómina',
+      exT: 'Fuera de tu recibo de nómina',
+      exBonus: 'Bono',
+      exProfit: 'Participación en las utilidades',
+      exPd: 'Viáticos',
+      perYear: 'año',
+      perMonth: 'mes',
       ahaPick: 'Elige tu aerolínea y tu puesto y verás la comparación con los rangos publicados.',
       ahaPickB: 'Elegir aerolínea y puesto →',
       ahaNoAirline: '“Otra” no tiene rango publicado, así que no hay con qué comparar.',
@@ -1616,6 +1635,7 @@
        （2026-09-15 に判定を change へ移した）。読み取りの直後だけ手で呼ぶ。 */
     if (typeof settleOver === 'function') settleOver();
 
+    if (sumKind(trace, 'per_diem') > 0) writeField('f-perdiem-src', 'included');
     renderResult(res, trace);
     renderRate();
   }
@@ -1964,6 +1984,9 @@
     /* 時給の直後に「で、年収はいくらのペースか」を置く。
        n=0（他人の投稿ゼロ）でも公開レンジと突き合わせられるので、初日から成立する。 */
     box.appendChild(ahaCard());
+    /* ★明細に載らないお金（2026-11-04 オーナー「賞与やパーディアムが入っていないので年額がかなり減る。簡単に足せるように」）。
+       年収の段のすぐ下に、欄を最大3つだけ。#ps-aha の中に置かない（入力のたびに作り直され、打った字が消える）。 */
+    box.appendChild(extraCard(trace));
 
     /* ── ここから下は「畳む」（2026-08-12 方針判断）────────────
        読み取り結果の内訳は、明細1枚で10〜20行になる。全部を開いたまま出すと
@@ -2344,6 +2367,70 @@
     var R = (window.PVCurrency && window.PVCurrency.rates) || { JPY: 1 };
     return R.hasOwnProperty(cur) ? v * R[cur] : null;
   }
+  /* 明細に載らないお金：ボーナス（年）・プロフィットシェア（年）・明細とは別に受け取るパーディアム（月）。
+     ★値はフォームの欄へそのまま書く（writeField）＝年収の段・下の合計・時給がその場で動く。
+     ★パーディアムは、明細にその行があったら聞かない（総支給の中にある＝足すと二重になる）。
+     ★説明の文は置かない（オーナー「文言は最小限に」）。 */
+  function extraCard(trace) {
+    var card = el('div', 'ps-extra');
+    card.appendChild(el('div', 'ps-extra-t', esc2(T.exT)));
+    var rows = [['f-bonus', T.exBonus, T.perYear], ['f-profit', T.exProfit, T.perYear]];
+    if (!(sumKind(trace, 'per_diem') > 0)) rows.push(['f-perdiem', T.exPd, T.perMonth]);
+    rows.forEach(function (r) {
+      var id = r[0];
+      var lab = el('label', 'ps-extra-row');
+      lab.appendChild(el('span', 'ps-extra-k', esc2(r[1])));
+      var v = el('span', 'ps-extra-v');
+      var inp = document.createElement('input');
+      inp.type = 'text';
+      inp.inputMode = 'decimal';
+      inp.autocomplete = 'off';
+      inp.className = 'ps-extra-in';
+      inp.id = 'ps-ex-' + id.slice(2);
+      inp.placeholder = '0';
+      var cur0 = document.getElementById(id);
+      if (cur0 && cur0.value) inp.value = cur0.value;
+      inp.addEventListener('input', function () {
+        if (id === 'f-profit' && typeof window.openOpt === 'function') { try { window.openOpt('f-profit', true); } catch (e) {} }
+        writeField(id, inp.value);
+        /* 額を先に書く（0 に戻すと選択は「含まれている」へ戻る）→ そのあと受け取り方を決める */
+        if (id === 'f-perdiem') {
+          var n = window.readMoney ? window.readMoney(inp.value, window.curDec ? window.curDec() : undefined) : null;
+          var amt = (n && typeof n === 'object') ? n.n : n;
+          writeField('f-perdiem-src', (Number(amt) || 0) > 0 ? 'outside' : 'included');
+        }
+      });
+      /* 離れたら、フォームと同じ桁区切りで見せ直す（2000000 → 2,000,000） */
+      inp.addEventListener('blur', function () {
+        if (typeof window.fmtMoneyAll === 'function') { try { window.fmtMoneyAll(); } catch (e) {} }
+        var f2 = document.getElementById(id);
+        if (f2 && f2.value && inp.value) inp.value = f2.value;
+      });
+      v.appendChild(inp);
+      var u = el('span', 'ps-extra-u', '');
+      u.setAttribute('data-per', r[2]);
+      v.appendChild(u);
+      lab.appendChild(v);
+      card.appendChild(lab);
+    });
+    paintUnits(card);
+    var curSel = document.getElementById('f-currency');
+    if (curSel && !curSel.__psUnits) {
+      curSel.__psUnits = true;
+      curSel.addEventListener('change', function () { var c = panel.querySelector('.ps-extra'); if (c) paintUnits(c); });
+    }
+    return card;
+  }
+  /* 単位＝通貨＋「/年」「/月」。日本語のページの円だけ「円」と書く（ほかは通貨コード）。 */
+  function paintUnits(card) {
+    var sel = document.getElementById('f-currency');
+    var code = sel ? sel.value : '';
+    var c = (L === 'ja' && code === 'JPY') ? '円' : code;
+    [].forEach.call(card.querySelectorAll('.ps-extra-u'), function (u) {
+      u.textContent = (c ? c + '/' : '') + u.getAttribute('data-per');
+    });
+  }
+
   function ahaCard() {
     var card = el('div', 'ps-aha pv-no-cur');
     card.id = 'ps-aha';

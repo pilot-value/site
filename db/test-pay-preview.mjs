@@ -200,6 +200,15 @@ ok(W.unionOutside({ union: { extra: 'yes', source: 'union' } }) === true
    && W.unionOutside({ union: { extra: 'no', source: 'union' } }) === false
    && W.unionOutside(null) === false,
    '★組合が「総支給の外」になるのは 支給あり かつ 支給元＝組合 のときだけ');
+/* ★明細とは別に受け取ったパーディアム（2026-11-04）。SQL の pv_perdiem_outside_gross と同じ真理表。 */
+ok(W.perdiemOutside({ per_diem_src: 'outside' }) === true
+   && W.perdiemOutside({ per_diem_src: 'included' }) === false
+   && W.perdiemOutside({ per_diem_src: 'OUTSIDE' }) === false
+   && W.perdiemOutside({ variable_none: true }) === false
+   && W.perdiemOutside(null) === false,
+   '★パーディアムが「明細の外」になるのは per_diem_src が outside のときだけ（キーが無ければ中）');
+ok(W.hasItems({ v: 2, per_diem_src: 'outside' }) === false,
+   '　印だけの内訳は「無い」と数える（サーバの空の殻と同じ。印は中身ではない）');
 
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ B. 本物の行と突き合わせる（submit → pv_pay_rows）');
@@ -254,6 +263,16 @@ const FIX = [
     p: { gross_monthly: 10000, union_pay: 2000, base_pay: 6000, guarantee_pay: 1000,
          pay_items: { v: 1, union: { days: 4, extra: 'yes', source: 'company' } } },
     note: '　同じ額でも支給元が違えば現金は 10000 のまま' },
+
+  { name: 'パーディアムが明細とは別（per_diem_src = outside）',
+    p: { gross_monthly: 10000, per_diem: 2000, base_pay: 6000, guarantee_pay: 1000,
+         pay_items: { v: 2, variable_none: true, per_diem_src: 'outside' } },
+    note: '★現金は 10000 ではなく 12000（総支給 ＋ 明細とは別のパーディアム）・2026-11-04' },
+
+  { name: 'パーディアムの印だけ（空の殻・保存で消える）',
+    p: { gross_monthly: 10000, per_diem: 2000, base_pay: 6000,
+         pay_items: { v: 2, per_diem_src: 'outside' } },
+    note: '　印だけの内訳はサーバが null に潰す＝足さない。現金は 10000 のまま' },
 
   { name: '内訳の合計が総支給を2%超えた人',
     p: { gross_monthly: 5000, base_pay: 9000 },
@@ -401,6 +420,15 @@ for (const m of made) {
   ok(u1.js.annual_usd === 140000 && num(u1.sql.annual_usd) === 140000,
      '　組合払いの人の年収は 144,000 → 有効数字2桁で 140,000（両方）',
      JSON.stringify([u1.js.annual_usd, u1.sql.annual_usd]));
+
+  const p1 = pick('パーディアムが明細とは別（per_diem_src = outside）');
+  const p2 = pick('パーディアムの印だけ（空の殻・保存で消える）');
+  ok(W.shelf(p1.m.payload).cash_m === 12000 && W.shelf(p2.m.payload).cash_m === 10000,
+     '★明細とは別のパーディアムは現金に足す・印だけの殻では足さない（写しの側）',
+     JSON.stringify([W.shelf(p1.m.payload).cash_m, W.shelf(p2.m.payload).cash_m]));
+  ok(p1.m.annualOrig === 144000 && p2.m.annualOrig === 120000,
+     '　本物の年換算も (10,000 + 2,000) × 12 = 144,000 ／ 殻なら 120,000',
+     JSON.stringify([p1.m.annualOrig, p2.m.annualOrig]));
 
   const ov = pick('内訳の合計が総支給を2%超えた人');
   ok(ov.js.why === 'over' && !('pay' in ov.sql),

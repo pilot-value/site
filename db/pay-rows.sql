@@ -516,6 +516,10 @@ as $$
              -- ★ 2026-09-02 追加。組合の分が総支給の外か。判定は本棚と同じ関数を呼ぶ
              --   （ここに規則を書き写すと、預かりと本棚で違う年収が出る）。
              public.pv_union_outside_gross(
+               case when jsonb_typeof(p->'pay_items') = 'object' then p->'pay_items' end),
+             -- ★ 2026-11-04 追加。パーディアムが明細とは別か。同じく本棚と同じ関数を呼ぶ。
+             --   額（x.perdiem）は上で総支給と排他にしていないので、そのまま足される。
+             public.pv_perdiem_outside_gross(
                case when jsonb_typeof(p->'pay_items') = 'object' then p->'pay_items' end)
            ) * r.to_usd, 2)
     from (
@@ -587,6 +591,10 @@ as $$
                    then greatest(x.gross - coalesce(x.bonus_m, 0), 0)
                       + case when public.pv_union_outside_gross(x.items)
                              then coalesce(x.upay, 0) else 0 end
+                      /* ★明細とは別に受け取ったパーディアムも総支給の外（2026-11-04）。
+                         下の 'pd' に数えるので、足さないと分母だけ小さい。deep-pay.sql と同じ1行。 */
+                      + case when public.pv_perdiem_outside_gross(x.items)
+                             then coalesce(x.perdiem, 0) else 0 end
                       /* ★不就労減額も足し戻す（2026-09-12）。印字の総支給は
                          減額後・下の9区分は減額前。deep-pay.sql の cash_m と同じ1行。 */
                       + public.pv_absence_total(x.items)
@@ -884,6 +892,7 @@ comment on function public.pv_airline_resolve(text) is
 --
 -- ★引数の並びは pv_annual_total と1文字も違わない。呼ぶ側が並べ違えないため。
 --   （2026-09-02、pv_annual_total だけ21本目 p_union_outside_gross が付いた。
+--     2026-11-04、22本目 p_perdiem_outside_gross も付いた。
 --     この関数は金額しか受け取らないので、そこまでは並べていない。
 --     20本目までは今も1文字も違わない。）
 --
@@ -2122,6 +2131,9 @@ begin
                 then greatest(r.gross_monthly - coalesce(r.bonus_month, 0), 0)
                    + case when public.pv_union_outside_gross(r.pay_items)
                           then coalesce(r.union_pay, 0) else 0 end
+                   /* ★明細とは別に受け取ったパーディアム（2026-11-04）。deep-pay.sql と同じ1行。 */
+                   + case when public.pv_perdiem_outside_gross(r.pay_items)
+                          then coalesce(r.per_diem, 0) else 0 end
                    /* ★不就労減額も足し戻す（2026-09-12）。deep-pay.sql と同じ1行。 */
                    + public.pv_absence_total(r.pay_items)
                 else coalesce(r.base_pay, 0) + coalesce(r.guarantee_pay, 0)

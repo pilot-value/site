@@ -106,6 +106,8 @@
          上の「総支給」には入っていない。出さないと年換算だけが大きくなり、
          画面の中で掛け算が合わなくなる（2026-09-02）。 */
       kUnionOut: '組合から別に受け取った分', kGrossAll: '合わせて受け取った額',
+      /* ★明細とは別に受け取ったパーディアム（2026-11-04）。組合の分と同じ理由で出す。 */
+      kPerdiemOut: '明細とは別に受け取ったパーディアム',
       kAnnual: '今月ベースの単純年換算',
       annualFrom: '今月と同水準の給与が12ヶ月続いた場合の参考値',
       annualWarn: '※ 賞与・変動手当・勤務時間によって、実際の年間報酬とは異なります。',
@@ -122,6 +124,7 @@
          「額面 − 手取り ＝ 控除」の外側にある。出さないと、控除と手取りを足しても
          上の合計に届かない理由が画面のどこにも書いていないことになる（2026-09-02）。 */
       tUnionOut: 'うち組合から別に受け取った分',
+      tPerdiemOut: 'うち明細とは別に受け取ったパーディアム',
       tBlockH: '累計の乗務時間', tDutyH: '累計の総勤務時間',
       tSpanOf: function (a, b) { return a === b ? a : a + '〜' + b; },
       tCountOf: function (m, n) { return m === n ? m + '件' : n + '件中 ' + m + '件'; },
@@ -318,6 +321,7 @@
       noDuty: 'Duty hours were not readable from your payslip, so only the block-hour figure is shown. <b>We do not estimate duty hours from block hours</b> — the real ratio varies by up to 2× between operators.',
       kDeduct: 'Total deductions', kYtd: 'Taxable pay, year to date',
       kUnionOut: 'Paid separately by your union', kGrossAll: 'Received in total',
+      kPerdiemOut: 'Per diem paid separately from the payslip',
       kAnnual: 'This month, straight-annualised',
       annualFrom: 'what twelve months like this one would come to',
       annualWarn: '※ Bonus, variable allowances and hours flown all move this. It is not your actual annual pay.',
@@ -330,6 +334,7 @@
       tGross: 'Gross, total', tNet: 'Take-home, total', tDeduct: 'Deductions, total',
       tMonths: 'Months recorded', tAvg: 'Average gross / month', tHourly: 'Career per block hour',
       tUnionOut: 'of which, paid by your union',
+      tPerdiemOut: 'of which, per diem paid separately from the payslip',
       tBlockH: 'Block hours, total', tDutyH: 'Duty hours, total',
       tSpanOf: function (a, b) { return a === b ? a : a + ' – ' + b; },
       tCountOf: function (m, n) { return m === n ? m + (m === 1 ? ' record' : ' records') : m + ' of ' + n + ' records'; },
@@ -501,6 +506,7 @@
       noDuty: 'No se pudo leer el tiempo de servicio en tu recibo de nómina, así que solo se muestra la cifra por hora block (calzo a calzo). <b>No estimamos el tiempo de servicio a partir de las horas block</b>: la proporción real varía hasta 2× entre aerolíneas.',
       kDeduct: 'Total de deducciones', kYtd: 'Remuneración gravable acumulada en el año',
       kUnionOut: 'Pagado aparte por tu sindicato', kGrossAll: 'Total recibido',
+      kPerdiemOut: 'Viáticos pagados aparte del recibo de nómina',
       kAnnual: 'Este mes, anualizado de forma simple',
       annualFrom: 'lo que sumarían doce meses como este',
       annualWarn: '※ El bono, las asignaciones variables y las horas voladas hacen variar esta cifra. No es tu remuneración anual real.',
@@ -513,6 +519,7 @@
       tGross: 'Total bruto', tNet: 'Total neto', tDeduct: 'Total de deducciones',
       tMonths: 'Meses registrados', tAvg: 'Bruto promedio / mes', tHourly: 'Por hora block, en toda tu carrera',
       tUnionOut: 'de lo cual, pagado por tu sindicato',
+      tPerdiemOut: 'de lo cual, viáticos pagados aparte del recibo de nómina',
       tBlockH: 'Total de horas block', tDutyH: 'Total de horas de servicio',
       tSpanOf: function (a, b) { return a === b ? a : a + ' – ' + b; },
       tCountOf: function (m, n) { return m === n ? m + (m === 1 ? ' registro' : ' registros') : m + ' de ' + n + ' registros'; },
@@ -979,10 +986,14 @@
        下の年換算だけが大きくなって「12倍が合わない」画面になる（2026-09-02）。
        ★足し算をそのまま見せる。合計は年換算の分子と同じ額＝画面の中で追える。 */
     var uo = V.unionOutsideJpy(r);
-    if (uo > 0 && gross != null) {
+    /* ★明細とは別に受け取ったパーディアム（2026-11-04）も同じ理由で、同じ枠に出す。
+       古い pay-viz.js が残っている端末でも落ちないように、関数があるときだけ読む。 */
+    var po = typeof V.perdiemOutsideJpy === 'function' ? V.perdiemOutsideJpy(r) : 0;
+    if ((uo > 0 || po > 0) && gross != null) {
       body += '<div class="mv-grid" style="margin-top:14px">' +
-        row(T.kUnionOut, fmt(uo)) +
-        row(T.kGrossAll, fmt(jpyOf(r, gross) + uo)) + '</div>';
+        (uo > 0 ? row(T.kUnionOut, fmt(uo)) : '') +
+        (po > 0 ? row(T.kPerdiemOut, fmt(po)) : '') +
+        row(T.kGrossAll, fmt(jpyOf(r, gross) + uo + po)) + '</div>';
     }
 
     /* 控除は「総支給 − 手取り」でしか作れないので、手取りを書いた月にだけ出る。
@@ -1064,6 +1075,8 @@
                      mini(esc(fmt(t.deduct)), T.tDeduct) : '') +
       /* 組合が総支給の外で払った分（内数）。0 の人には出さない。 */
       (t.unionOut > 0 ? mini(esc(fmt(t.unionOut)), T.tUnionOut) : '') +
+      /* 明細とは別に受け取ったパーディアム（内数・2026-11-04）。理由は組合と同じ。 */
+      (t.perdiemOut > 0 ? mini(esc(fmt(t.perdiemOut)), T.tPerdiemOut) : '') +
       mini(T.months(t.months), T.tMonths) +
       mini(esc(fmt(t.gross / t.months)), T.tAvg) +
       (hDen > 0 ? mini(esc(fmt(hNum / hDen)), T.tHourly) : '') +

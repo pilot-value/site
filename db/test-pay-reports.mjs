@@ -127,11 +127,12 @@ ok(Number(nfn.c) === 1, `pv_annual_total は1本だけ（古い12引数版が残
    管理職の手当（p_management_pay）を末尾に足して19本になった。
    ★2026-08-27、その他の兼務・配属の手当（p_nonline_pay）を足して20本。
    ★2026-09-02、組合の分が総支給の外か（p_union_outside_gross）を足して21本。
+   ★2026-11-04、パーディアムが明細とは別か（p_perdiem_outside_gross）を足して22本。
      どれも default 付きなので、13本で呼んでいる下の検査はそのまま通る。 */
 const narg = await one(`select p.pronargs n from pg_proc p join pg_namespace nn on nn.oid=p.pronamespace
                          where nn.nspname='public' and p.proname='pv_annual_total'`);
-ok(Number(narg.n) === 21,
-   `pv_annual_total は21引数（保証給・教官・審査・組合・管理職・兼務＋組合の支給元まで受ける）→ ${narg.n}`);
+ok(Number(narg.n) === 22,
+   `pv_annual_total は22引数（保証給・教官・審査・組合・管理職・兼務＋組合の支給元＋パーディアムの受け取り方まで受ける）→ ${narg.n}`);
 /* 保証給は基本給と足し上げる（別の列だが、年収では同じ「固定の支給」）。 */
 const gp = await one(`select pv_annual_total(null,20000,null,null,null,null,null,null,
                                              null,null,null,null,null,null,5000) v`);
@@ -698,6 +699,82 @@ const uo3 = await one(`select pv_annual_total(54250,null,null,null,null,null,nul
                                               null,null,null,null,null,null,null,null,null,
                                               3000) v`);
 ok(Number(uo3.v) === 651000, `21番目を省くと今までどおり → ${uo3.v}（期待 651000）`);
+
+/* ★明細とは別に受け取ったパーディアム（2026-11-04 オーナー決定）。組合の分とまったく同じ作り。
+   総支給に印字されない＝中に入っていないので、総支給の枝でも ×12 で足す。
+   印は pay_items.per_diem_src = 'outside' の1つだけ（判定は pv_perdiem_outside_gross の1か所）。 */
+console.log('\n▼ 明細とは別に受け取ったパーディアム（per_diem_src・2026-11-04）');
+const PDO = [
+  [`'{"per_diem_src":"outside"}'`,                    true,  '受け取り方＝明細とは別 → 外'],
+  [`'{"per_diem_src":"included"}'`,                   false, '★含まれている → 中'],
+  [`'{"per_diem_src":"OUTSIDE"}'`,                    false, '大文字など白リストの外の値 → 中（盛らない側）'],
+  [`'{"per_diem_src":true}'`,                         false, '真偽値 → 中'],
+  [`'{"variable_none":true}'`,                        false, '★キーが無い（2026-11-04 より前の行は全部これ）→ 中'],
+  [`'{}'`,                                            false, '空の内訳 → 中'],
+  ['null',                                             false, 'pay_items が無い行 → 中'],
+];
+for (const [js, want, why] of PDO) {
+  const u = await one(`select public.pv_perdiem_outside_gross(${js}::jsonb) v`);
+  ok(u.v === want, `${why} → ${u.v}`);
+}
+/* 関数を直に叩いて、22番目の引数が総支給の枝にだけ効くことを固定する。 */
+const pdA = (gross, flag) => one(`select pv_annual_total(${gross},null,null,null,null,5000,null,null,
+                                              null,null,null,null,null,null,null,null,null,null,
+                                              null,null,false${flag === undefined ? '' : ',' + flag}) v`);
+ok(Number((await pdA(54250, true)).v) === 711000,
+   `★総支給54,250＋パーディアム5,000（明細とは別）→ 12×59,250（期待 711000）`);
+ok(Number((await pdA(54250, false)).v) === 651000, '　明細に含まれている → 651,000 のまま（二重に足さない）');
+ok(Number((await pdA(54250)).v) === 651000, '　22番目を省くと今までどおり 651,000（古い呼び出しは1円も動かない）');
+ok(Number((await pdA('null', true)).v) === 60000 && Number((await pdA('null', false)).v) === 60000,
+   '★内訳の枝（総支給なし）はパーディアムを1回だけ数える（印があっても二重にしない）→ 12×5,000');
+/* 組合の分と一緒でも、それぞれ1回ずつ。 */
+const pdU = await one(`select pv_annual_total(54250,null,null,null,null,5000,null,null,
+                                              null,null,null,null,null,null,null,null,null,3000,
+                                              null,null,true,true) v`);
+ok(Number(pdU.v) === 747000, `組合3,000（外）＋パーディアム5,000（外）→ 12×62,250 → ${pdU.v}（期待 747000）`);
+
+/* 保存 → 再取得の通し。BASE のパーディアムは 3,000 → 651,000 + 3,000×12 = 687,000。 */
+const PD_ROW = { ...BASE, gross_monthly: 54250, airline: 'cathay-pacific', period_year: 2024 };
+await asUser(61);
+r = (await submit({ ...PD_ROW, period_month: 10,
+                    pay_items: { v: 2, variable_none: true, per_diem_src: 'outside' } })).r;
+ok(Number(r.annual_total_orig) === 687000,
+   `★明細とは別のパーディアムは総支給に足して ×12 → ${r.annual_total_orig}（期待 687000）`);
+const pdRow = await one(`select * from pay_reports where airline='cathay-pacific' and period_year=2024 and period_month=10`);
+ok(pdRow && pdRow.pay_items && pdRow.pay_items.per_diem_src === 'outside' && pdRow.pay_items.variable_none === true,
+   `★印が白リストの組み直しを生き延びる → ${JSON.stringify(pdRow && pdRow.pay_items)}`);
+ok(pdRow && Number(pdRow.per_diem) === 3000 && Number(pdRow.gross_monthly) === 54250,
+   '　額は今までどおり per_diem の列・総支給は印字どおり（どちらも書き換えない）');
+{
+  const my = (await one(`select my_pay_reports() j`)).j;
+  const m = (my.reports || []).find((x) => x.airline === 'cathay-pacific' && x.period_month === 10);
+  ok(m && m.perdiem_outside_gross === true && m.pay_items === undefined,
+     `★my_pay_reports() が真偽値だけ返す（pay_items そのものは返さない）→ ${m && m.perdiem_outside_gross}`);
+}
+/* ★壊す証明：同じ payload から印だけ外すと 1円も足さない（＝上の 687,000 は印が作っている）。 */
+await asUser(62);
+r = (await submit({ ...PD_ROW, period_month: 11, pay_items: { v: 2, variable_none: true } })).r;
+ok(Number(r.annual_total_orig) === 651000,
+   `★印が無ければ（＝総支給に含まれている）1円も足さない → ${r.annual_total_orig}（期待 651000）`);
+{
+  const my = (await one(`select my_pay_reports() j`)).j;
+  const m = (my.reports || []).find((x) => x.airline === 'cathay-pacific' && x.period_month === 11);
+  ok(m && m.perdiem_outside_gross === false, `　my_pay_reports() も false → ${m && m.perdiem_outside_gross}`);
+}
+/* ★印だけの内訳は「空の殻」として null に潰れる＝印も残らず、足しもしない
+   （画面の perdiemOutsideGross も f-payitems が空なら足さない）。 */
+await asUser(63);
+r = (await submit({ ...PD_ROW, period_month: 12, pay_items: { v: 2, per_diem_src: 'outside' } })).r;
+const pdShell = await one(`select pay_items from pay_reports where airline='cathay-pacific' and period_year=2024 and period_month=12`);
+ok(pdShell && pdShell.pay_items === null && Number(r.annual_total_orig) === 651000,
+   `★印だけの pay_items は潰れて足さない → ${JSON.stringify(pdShell && pdShell.pay_items)} / ${r.annual_total_orig}`);
+/* ★白リストの外の値は保存の時点で落ちる（足さない）。 */
+await asUser(64);
+r = (await submit({ ...PD_ROW, period_month: 9,
+                    pay_items: { v: 2, variable_none: true, per_diem_src: 'elsewhere' } })).r;
+const pdBad = await one(`select pay_items from pay_reports where airline='cathay-pacific' and period_year=2024 and period_month=9`);
+ok(pdBad && pdBad.pay_items && !('per_diem_src' in pdBad.pay_items) && Number(r.annual_total_orig) === 651000,
+   `　'outside' 以外の値は鍵ごと落ちる → ${JSON.stringify(pdBad && pdBad.pay_items)} / ${r.annual_total_orig}`);
 
 /* ★管理・マネジメント（2026-08-26 その6）。役割ごとのモジュールの4本目。
    ここでは4つ全部を同時に出して、どれもが自分の列に残り、
@@ -1468,8 +1545,8 @@ console.log('\n▼ db/pay-reports.verify.sql（オーナーが貼る検算）');
 {
   const vr = await rows(read('db/pay-reports.verify.sql'));
   const bad = vr.filter((x) => x['判定'] !== '✅');
-  ok(vr.length === 16, `検算は16行（増やしたら CLAUDE.md の行数も直す）→ ${vr.length}`);
-  ok(bad.length === 0, '★検算が16行すべて ✅',
+  ok(vr.length === 17, `検算は17行（増やしたら CLAUDE.md の行数も直す）→ ${vr.length}`);
+  ok(bad.length === 0, '★検算が17行すべて ✅',
      bad.map((x) => `${x['検査']}: 実際 ${x['実際']} / 期待 ${x['期待']}`).join(' | '));
 }
 
@@ -1502,7 +1579,7 @@ console.log('\n▼ db/pay-reports.roundtrip.sql（オーナーが貼る通し確
   ok(/これはエラーではありません/.test(msg),
      '★最後まで走って、わざと巻き戻している（途中で落ちていない）', msg.slice(0, 300));
   const marks = (msg.match(/[✅❌]/g) || []);
-  ok(marks.length === 18, `判定は18項目（増やしたら CLAUDE.md も直す）→ ${marks.length}`);
+  ok(marks.length === 19, `判定は19項目（増やしたら CLAUDE.md も直す）→ ${marks.length}`);
   ok(marks.length > 0 && marks.every((m) => m === '✅'),
      '★通し確認が全項目 ✅',
      msg.split('\n').filter((l) => l.indexOf('❌') >= 0).join(' | '));

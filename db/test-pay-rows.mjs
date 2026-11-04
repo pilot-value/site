@@ -167,7 +167,7 @@ const pv2 = (v) => Number(v.toPrecision(2));
 // 会社コードは語彙から取る（このテストのために特定の社名を覚えない）
 const VOCAB = (await rows(
   `select code, name_ja, name_en from pv_airlines
-    where code <> 'other' and active order by code limit 49`
+    where code <> 'other' and active order by code limit 50`
 ));
 const AIR = VOCAB.map(r => r.code);
 const [A_ONE, A_M12, A_MIX, A_OLD, A_ORD, A_VF, A_OUT, A_FOTHER,
@@ -189,7 +189,9 @@ const [A_ONE, A_M12, A_MIX, A_OLD, A_ORD, A_VF, A_OUT, A_FOTHER,
        // ★2026-09-11。引き取りに失敗したまま新規保存された人（N-2）。1社＝1人。
        A_N2,
        // ★2026-09-12。不就労減額のあった月（帯が消えないこと）。1社＝1人。
-       A_ABS] = AIR;
+       A_ABS,
+       // ★2026-11-04。明細とは別に受け取ったパーディアム（本棚1人＋預かり1人）。
+       A_PDO] = AIR;
 const nameOf = (code) => VOCAB.find(r => r.code === code);
 
 /* ★2026-09-19 見本の額は、社ごとの公開年収に合わせて作っていない（社は語彙の先頭から
@@ -1166,6 +1168,50 @@ console.log('\n▼ 12. ★預かりの年換算が、本棚に入れたときと
 }
 
 // ════════════════════════════════════════════════════════════
+console.log('\n▼ 12-k. ★明細とは別に受け取ったパーディアム（2026-11-04）── 預かりと本棚で1円まで同じ');
+// ════════════════════════════════════════════════════════════
+/* 総支給 15,000 は印字どおり・パーディアム 1,000 は明細とは別（pay_items.per_diem_src = 'outside'）。
+   内訳 基本給10,000＋変動3,000＋職位2,000＋パーディアム1,000 ＝ 16,000 ＝ 現金ちょうど。
+   ・現金に足し忘れると … 内訳 16,000 が現金 15,000 の 1.02 倍を超え、帯がまるごと出ない
+   ・二重に足すと     … 現金 17,000 になり、余り（rest）1,000 の帯が生える
+   だから「帯が出る・余りの帯が無い」の2つで、現金が1円まで 16,000 だと分かる。
+   本棚（pv_pay_rows の shelf）と預かり（pv_pending_detail）の両方で同じ絵になること。 */
+{
+  const PD = { ...BASE, airline: A_PDO, fleet: 'b777', period_year: YEAR, period_month: 6,
+               gross_monthly: 15000, base_pay: 10000, flight_variable_pay: 3000, other_allowance: 3000,
+               command_pay: 2000, per_diem: 1000,
+               pay_items: { v: 2, variable: [{ amount: 3000, basis: 'block', label: 'Flight' }],
+                            per_diem_src: 'outside' } };
+  const u = ++seat; await asUser(u);
+  await submit({ ...PD, position: 'cap' });                       // 本棚（会員として保存）
+  await asAnon();                                                 // 預かり（登録前・同じ額）
+  const pr = (await one(`select submit_pay_report_pending($1::jsonb) r`,
+    [JSON.stringify({ ...PD, position: 'fo' })])).r;
+  await db.query(`update pay_reports_pending set ip_day_hash = 'iph-pdo' where id = $1::uuid`, [pr.id]);
+
+  const st = await one(`select annual_total_usd v, pay_items->>'per_diem_src' src
+                          from pay_reports where airline = $1`, [A_PDO]);
+  const pUsd = (await one(`select pv_pending_usd($1::jsonb) v`, [JSON.stringify({ ...PD, position: 'fo' })])).v;
+  ok(st && Number(st.v) === 192000 && Number(pUsd) === 192000 && st.src === 'outside',
+     '★年換算は (15,000 + 1,000) × 12 = 192,000（本棚も預かりも1円まで同じ）', JSON.stringify({ st, pUsd }));
+  const det = (await one(`select pv_pending_detail($1::jsonb) d`, [JSON.stringify({ ...PD, position: 'fo' })])).d;
+  ok(det && Number(det.cash_m) === 16000, '★預かりの現金は 16,000（総支給 ＋ 明細とは別のパーディアム）', JSON.stringify(det));
+
+  await asViewer();
+  const RP = (await payRows()).rows.filter((x) => x.airline === A_PDO);
+  const sh = RP.find((x) => x.pos === 'cap'), pe = RP.find((x) => x.pos === 'fo');
+  const ks = (x) => ((x && x.pay) || []).map((p) => p.k).join(',');
+  ok(sh && ks(sh) === 'base,variable,command,perdiem',
+     '★本棚の帯：はみ出しで消えない・余り（rest）の帯も生えない＝現金が内訳とちょうど同じ', JSON.stringify(sh));
+  ok(pe && sh && JSON.stringify(pe.pay) === JSON.stringify(sh.pay) && pe.annual_usd === sh.annual_usd,
+     '★預かりの帯も1本残らず同じ（shelf と pv_pending_detail が同じ1行を持っている）',
+     JSON.stringify({ pend: pe, shelf: sh }));
+  /* 後片付け：預かりの1行は消す（12-e が一覧を本棚と1行ずつ突き合わせるので、
+     人の単位が違う預かりを残すとそこで数が合わなくなる）。本棚の1行は普通の行として残す。 */
+  await db.query(`delete from pay_reports_pending where id = $1::uuid`, [pr.id]);
+}
+
+// ════════════════════════════════════════════════════════════
 console.log('\n▼ 12-b. ★数え上げ（画面の上に並ぶ数字のうち、サーバから来る2つ）');
 // ════════════════════════════════════════════════════════════
 /* 2026-08-24 オーナー判断で「本当の数字だけ出す」ことになった。
@@ -1581,7 +1627,7 @@ console.log('\n▼ 12-x. 年収の無い運航会社（小規模・チャータ�
       だからここは「行は触らない」ことそのものを検査にしている。 */
 // ════════════════════════════════════════════════════════════
 {
-  /* 年収を持たない会社だけを取り出す。上の VOCAB（先頭49社）と重なると
+  /* 年収を持たない会社だけを取り出す。上の VOCAB（先頭50社）と重なると
      別の検査の座席を奪うので、重なった分は外す。 */
   const OPS_CODES = Object.keys(OPS).filter((c) => AIR.indexOf(c) < 0);
   ok(OPS_CODES.length >= 3,

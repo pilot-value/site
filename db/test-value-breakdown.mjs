@@ -249,6 +249,37 @@ console.log('\n④-b 組合が総支給の外で払われている行（2026-09-
      '会社払いの組合手当はスライスとして出る', String(inn && val(inn, 'union')));
 }
 
+// ── ④-b2 パーディアムを明細とは別に受け取った行 ─────────────
+console.log('\n④-b2 パーディアムを明細とは別に受け取った行（2026-11-04）');
+{
+  /* 組合の ④-b とまったく同じ形。明細とは別のパーディアムは総支給に印字されないので、
+     円ぜんぶ＝総支給 ＋ そのパーディアム。足さないと、パーディアムを数えた分だけ
+     known が総支給を超え、rest < -1 で図が丸ごと消える。
+     ★判定は自分でせず、サーバが付けてくる perdiem_outside_gross を読む。 */
+  const out = V.segments(mk({ gross_monthly: 800000, base_pay: 600000, per_diem: 300000,
+                              perdiem_outside_gross: true }));
+  ok(out !== null, '★ パーディアムが明細の外でも図が消えない');
+  ok(out && near(out.total, 1100000) && val(out, 'perdiem') === 300000 && val(out, 'rest') === 200000,
+     '★ 円ぜんぶ＝総支給 ＋ 明細外のパーディアム（800,000 ＋ 300,000）・灰色は総支給の説明できない分だけ',
+     JSON.stringify(out && { total: out.total, pd: val(out, 'perdiem'), rest: val(out, 'rest') }));
+  /* ★壊す証明：同じ行で印が無い（＝総支給に含まれている）と、合計が総支給を超えて図を出さない。
+       ＝ 上の図が出ているのは perdiem_outside_gross を読んでいるから。 */
+  ok(V.segments(mk({ gross_monthly: 800000, base_pay: 600000, per_diem: 300000 })) === null,
+     '★ 印の無い古い行は今までどおり（総支給を超える行は図を出さない・二重に足さない）');
+  ok(typeof V.perdiemOutsideJpy === 'function'
+     && V.perdiemOutsideJpy(mk({ per_diem: 300000, perdiem_outside_gross: true })) === 300000
+     && V.perdiemOutsideJpy(mk({ per_diem: 300000, perdiem_outside_gross: false })) === 0
+     && V.perdiemOutsideJpy(mk({ per_diem: 300000 })) === 0
+     && V.perdiemOutsideJpy(mk({ currency: 'AED', fx_to_jpy: 30, per_diem: 1000, perdiem_outside_gross: true })) === 30000,
+     '★ perdiemOutsideJpy() は印があるときだけ、その行のレートで円に直して返す');
+  /* 累計の額面にも足す（受け取った額の足し算）。控除の分母には足さない（明細の外＝控除が無い）。 */
+  const t = V.totals([mk({ period_year: 2026, period_month: 1, gross_monthly: 800000, per_diem: 300000,
+                           perdiem_outside_gross: true, net_pay_actual: 600000 })]);
+  ok(near(t.gross, 1100000) && near(t.perdiemOut, 300000) && near(t.deduct, 200000),
+     '★ 累計の額面は 1,100,000（内数 300,000）・控除は 800,000 − 600,000 ＝ 200,000 のまま',
+     JSON.stringify({ gross: t.gross, perdiemOut: t.perdiemOut, deduct: t.deduct }));
+}
+
 // ── ④-c 不就労減額（欠勤控除など）があった月 ───────────────
 console.log('\n④-c 不就労減額があった月（2026-09-12）');
 {

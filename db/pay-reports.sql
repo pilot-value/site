@@ -440,6 +440,7 @@ comment on column public.profiles.access_until is
 --   2026-08-26 にもう1つ増えた（p_management_pay）。
 --   2026-08-27 にもう1つ増えた（p_nonline_pay）。
 --   2026-09-02 にもう1つ増えた（p_union_outside_gross）。
+--   2026-11-04 にもう1つ増えた（p_perdiem_outside_gross）。
 --   create or replace は引数リストを変えられない（別の関数として
 --   増えるだけ）ので、古い版を先に落とす。落とさないと、呼び出し側の引数の数によって
 --   新旧どちらが呼ばれるかが変わり、同じ入力から違う年収が出る。
@@ -473,6 +474,13 @@ drop function if exists public.pv_annual_total(
   numeric, numeric, numeric, numeric, numeric, numeric, text, numeric,
   numeric, numeric, numeric, numeric, numeric, numeric, numeric, numeric, numeric, numeric,
   numeric, numeric);
+--   2026-11-04、22本目（p_perdiem_outside_gross）を足したので21引数版も落とす。
+--   ⚠️ 落としても壊れない：呼ぶ側（pv_pending_usd など）の21本の呼び出しは、
+--      22本目の default false で新しい版にそのまま当たる（貼る順が前後しても動く）。
+drop function if exists public.pv_annual_total(
+  numeric, numeric, numeric, numeric, numeric, numeric, text, numeric,
+  numeric, numeric, numeric, numeric, numeric, numeric, numeric, numeric, numeric, numeric,
+  numeric, numeric, boolean);
 
 
 -- ── 組合・乗員代表の手当が「総支給の外」で払われているか ──────────
@@ -498,6 +506,30 @@ $$;
 -- 権限は pv_annual_total と同じ扱い（純粋な計算だけで、渡した jsonb 以外を読まない）。
 comment on function public.pv_union_outside_gross(jsonb) is
   '組合の手当が総支給の外で払われているか。pay_items.union.source が組合のときだけ真。会社／両方／その他／空は「中」に倒す（年収を盛らない側）';
+
+
+-- ── パーディアムが「明細とは別に」払われているか ──────────────────
+-- 2026-11-04 追加（オーナー決定）。組合の分とまったく同じ理由。
+-- 明細とは別に（現金・別の振込で）受け取るパーディアムは**会社の明細の総支給に
+-- 印字されない**ので、本人が書いた総支給の中に入っていない。それでも受け取った額では
+-- あるので、総支給に足さないと年収がその分だけ低く出る。
+--
+-- ★見るのは pay_items.per_diem_src（画面の pdSync() が、受け取り方で
+--   「明細とは別に受け取っている」を選び、額が 0 より大きいときだけ 'outside' を書く）。
+--   画面の写しは pay-report.html の perdiemOutsideGross()。
+-- ★**'outside' だけが外**。キーが無い・それ以外の値はぜんぶ「総支給の中」に倒す
+--   （2026-11-04 より前の行は全部キーが無い＝今までどおり1円も動かない）。
+--   年収は外すと**盛る**方向に効くので、迷ったら中。
+-- ⚠️ 中身が印だけの pay_items は、保存の時点で null に潰れる（5章の「空の殻」）。
+--    ＝ 内訳を1つも書いていない人の印は残らず、足しもしない（画面も同じ条件で足さない）。
+create or replace function public.pv_perdiem_outside_gross(p_items jsonb)
+returns boolean
+language sql immutable as $$
+  select coalesce(p_items->>'per_diem_src' = 'outside', false);
+$$;
+
+comment on function public.pv_perdiem_outside_gross(jsonb) is
+  'パーディアムが明細の総支給の外で払われているか。pay_items.per_diem_src が outside のときだけ真。キーが無い行は「中」に倒す（年収を盛らない側）';
 
 
 -- ── 不就労減額（欠勤控除・遅刻早退など）の合計 ───────────────────
@@ -695,7 +727,14 @@ create or replace function public.pv_annual_total(
   --    ⚠️ ここだけは**総支給の枝にも効く**。ほかの手当と違い、組合が直接払った額は
   --       会社の明細に印字されない＝本人が書いた総支給の中に入っていないため。
   --       既定は false ＝ 今までどおり総支給を1円も動かさない。
-  p_union_outside_gross boolean default false
+  p_union_outside_gross boolean default false,
+  -- ★ 2026-11-04 追加（オーナー決定）。パーディアムが「明細とは別に」払われているか
+  --    （pv_perdiem_outside_gross がこの真偽値を出す）。組合の分と同じ作り。
+  --    ⚠️ ここも**総支給の枝にだけ効く**。明細とは別に受け取ったパーディアムは
+  --       総支給に印字されないので、足しても二重計上にならない。
+  --       内訳の枝（総支給が無い行）は今までどおりパーディアムを無条件に1回足す。
+  --       既定は false ＝ 今までどおり総支給を1円も動かさない（古い行は全部これ）。
+  p_perdiem_outside_gross boolean default false
 ) returns numeric
 language sql immutable as $$
   select 12 * coalesce(
@@ -703,8 +742,9 @@ language sql immutable as $$
             ★ここで内訳を足してはいけない。総支給には住宅手当も乗務手当も
               パーディアムも既に入っているので、足すと二重計上になる。
               coalesce の第1引数に置く＝入っていれば下は一切評価しない。
-            ★例外は組合が直接払った分だけ（p_union_outside_gross）。会社の明細に
-              印字されない＝総支給の中に無いので、そこだけは二重計上にならない。
+            ★例外は組合が直接払った分（p_union_outside_gross）と、明細とは別に
+              受け取ったパーディアム（p_perdiem_outside_gross・2026-11-04）の2つだけ。
+              会社の明細に印字されない＝総支給の中に無いので、そこだけは二重計上にならない。
             ★総支給は「明細のとおり」なので、ボーナスが出た月はそれが入っている。
               ×12 する前にその月のボーナスだけ引く（2026-08-13）。
             ★greatest を case when で包むこと。Postgres の greatest は null を
@@ -718,7 +758,12 @@ language sql immutable as $$
                         （実際に1件、年収が半分に出ていた）。
                         支給元が会社／両方のときは false ＝ 1円も足さない。 */
                    + case when coalesce(p_union_outside_gross, false)
-                          then coalesce(p_union_pay, 0) else 0 end end,
+                          then coalesce(p_union_pay, 0) else 0 end
+                     /* ★明細とは別に受け取ったパーディアムも、ここで足す（2026-11-04）。
+                        組合の分と同じ理由 ── 総支給に印字されないので中に入っていない。
+                        「総支給に含まれている」（既定）のときは false ＝ 1円も足さない。 */
+                   + case when coalesce(p_perdiem_outside_gross, false)
+                          then coalesce(p_per_diem, 0) else 0 end end,
          /* ── くわしく入力／明細から読めた場合：内訳を足し上げる ── */
            coalesce(p_base_pay, 0)
          -- 保証給（Minimum Guarantee）。基本給と別に明細へ出ている会社のぶん。
@@ -945,6 +990,10 @@ begin
          見なかった側に倒しても、この関数が使う v_ann は「0でないか」を
          見るだけで、組合を足せば増える方向にしか動かない＝取りこぼさない。 */
     public.pv_union_outside_gross(
+      case when jsonb_typeof(p->'pay_items') = 'object' then p->'pay_items' end),
+    /* ★ 明細とは別のパーディアムか（2026-11-04）。組合と同じ読み方・同じ理由で安全
+         （足せば増える方向にしか動かない＝ここで弾く行は1つも増えない）。 */
+    public.pv_perdiem_outside_gross(
       case when jsonb_typeof(p->'pay_items') = 'object' then p->'pay_items' end));
   if v_ann is null or v_ann <= 0 then
     raise exception '年換算が0になりました（時給制なら乗務時間か保証時間が必要です）'
@@ -1193,11 +1242,21 @@ begin
         --       「全部答えた月」として割合の母数に入る（画面は普通に動いたまま）。
         --    ★false は書かない（jsonb_strip_nulls が落とす）。無いこと＝揃っている。
         'partial',    case when jsonb_typeof(v_items->'partial') = 'boolean'
-                            and (v_items->>'partial')::boolean then to_jsonb(true) end
+                            and (v_items->>'partial')::boolean then to_jsonb(true) end,
+        -- ★ 2026-11-04 追加（オーナー決定）。パーディアムを**明細とは別に**受け取っているか。
+        --    値は 'outside' の1つだけ（画面の pdSync が書く）。それ以外・キーが無いは
+        --    「総支給の中」＝ここで null → jsonb_strip_nulls が落とす（無いこと＝中）。
+        --    ⚠️ 書き忘れると、この組み直しで黙って落ちる ＝ 明細の外で受け取った人の
+        --       年収がパーディアムのぶん低く出る（画面は普通に動いたまま）。
+        --    ⚠️ 金額はここに入れない。額は今までどおり per_diem の列。
+        'per_diem_src', case when v_items->>'per_diem_src' = 'outside'
+                             then to_jsonb('outside'::text) end
       ));
       -- 行も「該当なし」も無い＝中身が無い。空の殻を溜めない。
       -- ★ partial はここに足さない（2026-09-12）。あれは中身ではなく
       --   「中身の一部が未回答」という印なので、印だけの殻を溜める理由が無い。
+      -- ★ per_diem_src も足さない（2026-11-04）。同じく印。印だけの殻は null に潰れ、
+      --   年収にも足さない（画面の perdiemOutsideGross も f-payitems が空なら足さない）。
       -- ★「該当なし」3つは、それだけでも中身として扱う（2026-09-03）。
       --   3つとも「会社に無い」と答えるのは立派な回答で、REAL PAY の門は
       --   それで開く。ここで潰すと、その人の答えがどこにも残らない。
@@ -1256,6 +1315,7 @@ begin
   -- ⚠️ 二重計上は起きない。pv_annual_total は総支給があれば内訳を一切見ない。
   --    唯一の例外が組合（2026-09-02）。支給元が組合／その他のときだけ、その額を
   --    総支給に足す ── 会社の明細に印字されない＝総支給の中に無いため。
+  --    2026-11-04 から、明細とは別に受け取ったパーディアムも同じ扱い（per_diem_src）。
   -- ⚠️ 一致は求めない。差は「どの項目にも入れていない分」としてレポートの図が灰色で描く。
   -- （判定は pv_validate_pay_payload 側にも同じ趣旨のコメントがある）
 
@@ -1271,7 +1331,10 @@ begin
     nullif(p->>'bonus_annual','')::numeric,     nullif(p->>'profit_share_annual','')::numeric,
     v_bonusm,  v_gpay, v_ipay, v_epay, v_upay, v_mpay, v_npay,
     -- ★ 組合の分が総支給の外か（2026-09-02）。上で検品を通した v_items から出す。
-    public.pv_union_outside_gross(v_items));
+    public.pv_union_outside_gross(v_items),
+    -- ★ パーディアムが明細とは別か（2026-11-04）。同じく検品済みの v_items から出す
+    --   （印だけの pay_items は上で null に潰れている＝ここで false になる）。
+    public.pv_perdiem_outside_gross(v_items));
 
   -- 金額が足りているかは pv_validate_pay_payload が既に見ている（4-b）。
   -- ★ここに残す1本は判定ではなく最後の網。annual_total_orig は null を許す列なので、
@@ -1572,6 +1635,11 @@ begin
            --    組合払いの人の図が「組合手当がほぼ全部」になるか、合計が総支給を
            --    超えて図ごと消える（rest < -1）。年収の式（pv_annual_total）と同じ判定。
            public.pv_union_outside_gross(r.pay_items) as union_outside_gross,
+           -- ★ 2026-11-04。パーディアムを明細とは別に受け取ったか（真偽値だけ）。組合と同じ理由 ──
+           --    これが無いと pay-viz.js の segments() が総支給を円ぜんぶにしてしまい、
+           --    パーディアムを数えた known が円を超えて図ごと消える（rest < -1）。
+           --    年収の式（pv_annual_total の p_perdiem_outside_gross）と同じ判定。
+           public.pv_perdiem_outside_gross(r.pay_items) as perdiem_outside_gross,
            -- ★ 2026-09-12。不就労減額の合計（絶対値）だけ。項目名は返さない。
            --    印字の総支給は減額後・内訳は減額前なので、これが無いと
            --    pay-viz.js の segments() で合計が総支給を超え、減額のあった月だけ
@@ -1958,13 +2026,21 @@ select public.pv_annual_total(null, 20000, null, null, null, null, null, null,
 select public.pv_annual_total(54250, 20000, null, null, null, null, null, null,
                               null, null, null, null, null, null, null, null, null, null,
                               null, 30000) as 期待651000_兼務は無視;
+-- ★明細とは別に受け取ったパーディアム（2026-11-04）。22番目が真のときだけ総支給に足す。
+--   総支給54,250＋パーディアム5,000 → 12×59,250 = 711,000。偽なら 651,000 のまま。
+select public.pv_annual_total(54250, null, null, null, null, 5000, null, null,
+                              null, null, null, null, null, null, null, null, null, null,
+                              null, null, false, true) as 期待711000;
+select public.pv_annual_total(54250, null, null, null, null, 5000, null, null,
+                              null, null, null, null, null, null, null, null, null, null,
+                              null, null, false, false) as 期待651000_明細の中;
 
 -- 8-7b. かんたん入力の列が入ったこと（期待：1 行 gross_monthly numeric）
 select column_name, data_type from information_schema.columns
  where table_schema='public' and table_name='pay_reports'
    and column_name = 'gross_monthly';
 
--- 8-7c. pv_annual_total が21引数の1本だけになっていること（期待：1 行）
+-- 8-7c. pv_annual_total が22引数の1本だけになっていること（期待：1 行・引数の数 22）
 --       2行出たら drop function が流れておらず、呼び出し側の引数の数で
 --       新旧どちらが呼ばれるか変わる＝同じ入力から違う年収が出る。
 select p.oid::regprocedure as 定義, p.pronargs as 引数の数

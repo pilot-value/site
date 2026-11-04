@@ -48,7 +48,7 @@
 <script>
 tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#18212f',accent:'#3d9bff',gold:'#f5c842',orange:'#f97316',text:'#e8edf2',muted:'#6b7d93'},fontFamily:{sans:['Inter','Noto Sans JP','sans-serif']}}}};
 </script>
-<link rel="stylesheet" href="pay-report.css?v=c810a468">
+<link rel="stylesheet" href="pay-report.css?v=b897f2ba">
 <!--PV-3P-->
 <script>
 /* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
@@ -719,6 +719,12 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
         <div class="fld">
           <label class="form-label" for="f-perdiem">パーディアム（その月の合計）<span class="req-tag">必須</span></label>
           <input type="text" id="f-perdiem" class="form-input money" inputmode="decimal" placeholder="滞在手当の月合計"/>
+          <div class="pd-src" id="pd-src-wrap" hidden>
+            <select id="f-perdiem-src" class="form-input" aria-label="パーディアムの受け取り方">
+              <option value="included" selected>明細の総支給に含まれている</option>
+              <option value="outside">明細とは別に受け取っている</option>
+            </select>
+          </div>
           <p class="fld-hint"><b>滞在手当の月合計</b>。付かない会社・出なかった月は <b>0</b>。</p>
         </div>
 
@@ -2550,6 +2556,19 @@ function unionOutsideGross() {
   if ($('f-union-extra').value !== 'yes') return 0;
   return $('f-union-src').value === 'union' ? 1 : 0;
 }
+/* ★2026-11-04 明細とは別に受け取るパーディアム（オーナー決定）。組合の分と同じ作り ──
+   「別に受け取る」で額があるときだけ、年収に月額 ×12 で足す。サーバーの写しは pv_perdiem_outside_gross。
+   ★内訳を1つも書いていない形（f-payitems が空）ではサーバーがしるしを捨てるので、画面も足さない。 */
+function perdiemOutsideGross() {
+  return ($('f-perdiem-src').value === 'outside' && num('f-perdiem') > 0 && $('f-payitems').value !== '') ? 1 : 0;
+}
+/* 額が入っているときだけ選択を出す。空・0 に戻したら「含まれている」に戻す。 */
+function pdSrcShow() {
+  const has = num('f-perdiem') > 0;
+  $('pd-src-wrap').hidden = !has;
+  if (!has || $('f-perdiem-src').value === '') $('f-perdiem-src').value = 'included';
+}
+function pdSrcSync() { pdSrcShow(); pdSync(); }
 
 function unionSync() {
   const yes = $('f-union-extra').value === 'yes';
@@ -3249,7 +3268,7 @@ const num = (id) => {
 function monthlyDetail() {
   const hours = Math.max(num('f-block'), num('f-guar'));
   const housing = $('f-housing').value === 'allowance' ? num('f-housing-amt') : 0;
-  return num('f-base') + num('f-guarantee') + num('f-hourly') * hours + num('f-perdiem') + housing
+  return num('f-base') + num('f-guarantee') + num('f-hourly') * hours + (perdiemOutsideGross() ? 0 : num('f-perdiem')) + housing
          + num('f-transport') + num('f-command') + num('f-other')
          + num('f-var-sum') + num('f-oth-sum') + num('f-instructor') + num('f-examiner')
   /* ★組合だけ条件つき。支給元が組合（Union / Association）のときは会社の明細に
@@ -3401,7 +3420,9 @@ function annualTotal() {
   const gross = num('f-gross');
   const monthly = gross
                 + (gross > 0 && unionOutsideGross() ? num('f-union-pay') : 0);
-  return monthly * 12 + num('f-bonus') + num('f-profit');
+  /* ★明細とは別に受け取るパーディアム（2026-11-04）。総支給の中に無いので、組合の分と同じく足す。 */
+  const pdOut = (gross > 0 && perdiemOutsideGross()) ? num('f-perdiem') : 0;
+  return (monthly + pdOut) * 12 + num('f-bonus') + num('f-profit');
 }
 
 function fmtCur(v, code) {
@@ -3452,6 +3473,8 @@ function syncStickyBar() {
    代わりに繰り返し行の合計 f-var-sum / f-oth-sum を pdSync() が書いて recalc を呼ぶ。 */
 ['f-gross','f-base','f-guarantee','f-hourly','f-guar','f-block','f-perdiem','f-housing-amt','f-command','f-bonus','f-profit','f-instructor','f-examiner','f-union-pay','f-mgmt-pay','f-nonline-pay']
   .forEach((id) => $(id).addEventListener('input', () => { _lastMoney = id; recalc(); }));
+$('f-perdiem').addEventListener('input', pdSrcSync);
+$('f-perdiem-src').addEventListener('change', pdSync);
 /* ★通貨を変えたら、金額の読み方を全部やり直す。
    readMoney は通貨の小数桁で答えが変わる（JPY では 1.000＝1,000 と決め打つ）ので、
    AED のまま 1.000 と入れて「1,000」に確定した欄が、JPY へ切り替えても
@@ -3968,6 +3991,7 @@ function pdSync() {
   if (ins) pi.instructor = ins;
   if (exm) pi.examiner = exm;
   if (uni) pi.union = uni;
+  if ($('f-perdiem-src').value === 'outside' && num('f-perdiem') > 0) pi.per_diem_src = 'outside';
   if (mgt) pi.management = mgt;
   if (nol) pi.nonline = nol;
   /* 何も入っていないときは列ごと空にする（意味の無い {} を送らない）。 */
@@ -4279,7 +4303,7 @@ const CARRY = {
     'f-bonus','f-profit','f-pension','f-jobrole','f-age','f-base-iata'],
   fixed: ['f-base','f-guar','f-guarantee','f-command','f-housing-amt'],
   shape: ['f-payitems'],
-  never: ['f-year','f-month','f-gross','f-netpay','f-perdiem',
+  never: ['f-year','f-month','f-gross','f-netpay','f-perdiem','f-perdiem-src',
     'f-transport','f-other','f-hourly','f-flightvar','f-deduct','f-ytd',
     'f-block','f-duty','f-stay','f-duty-h','f-night-h','f-credit-h',
     'f-instructor','f-examiner','f-union-pay','f-mgmt-pay','f-nonline-pay',
@@ -4429,6 +4453,7 @@ function restoreInto(o, opts) {
      ここを「keep があるときは 1 を返す」に直さないこと。 */
   if (!n) return 0;
   syncRoleBoxes();  // hidden に入った値をチェックの絵に戻す
+  pdSrcShow();      // パーディアムの受け取り方の選択も、戻した額に合わせて出す
   fmtMoneyAll();   // 代入では input が出ない＝桁区切りが付かないので、ここで付け直す
   fmtNumAll();     // 同じ理由で、時間・率も 85,5 のまま残さない
   /* ★内訳が1つでも入っていたら「給与の内訳を追加」を開いておく（畳んだままだと
@@ -4493,7 +4518,7 @@ function snapPrev(ids) {
    ⚠️ 逆に、ここに**入れてはいけない**のは月に依らないもの ── 会社・職位・機材・通貨・
      契約・在籍年次・税の居住国・役割の札（f-jobrole）・年金の率。毎月打ち直させない。 */
 const PAYSLIP_MONTH_IDS = ['f-gross','f-base','f-guarantee','f-command','f-housing-amt','f-other',
-  'f-perdiem','f-transport','f-profit','f-instructor','f-examiner','f-payitems',
+  'f-perdiem','f-perdiem-src','f-transport','f-profit','f-instructor','f-examiner','f-payitems',
   'f-block','f-guar','f-duty-h','f-night-h','f-credit-h',
   'f-netpay','f-ytd','f-deduct','f-flightvar','f-psdetail',
   /* ★明細から読めない欄こそ危ない（2026-09-11 に足した）。
@@ -5973,7 +5998,7 @@ addEventListener('scroll', () => {
   });
 })();
 </script>
-<script src="payslip.js?v=5ff43fff"></script>
+<script src="payslip.js?v=2f4b1f69"></script>
 <script src="confetti.js"></script>
 <script src="pay-login.js"></script>
 <!-- ★ヘッダーを畳むのは search.js。id="main-nav" を持つページは必ず読む。

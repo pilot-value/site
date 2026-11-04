@@ -3,10 +3,10 @@
 --
 -- pay-reports.sql の「8. 検算」は select が8本並んでいるが、Supabase の
 -- SQL Editor は最後の1文の結果しか表示しない。＝ 8-1〜8-7 が見えないまま
--- 「通った」と誤認できてしまう。ここでは16項目を1つの結果表にまとめ、
+-- 「通った」と誤認できてしまう。ここでは17項目を1つの結果表にまとめ、
 -- 期待値との一致を 判定 列で出す。スキーマを触るたびに流し直す。
 --
--- 期待：16行すべて 判定 = ✅
+-- 期待：17行すべて 判定 = ✅
 -- ════════════════════════════════════════════════════════════════
 
 with c as (
@@ -82,7 +82,13 @@ with c as (
     --    組合が総支給の外で払った分（月3,000）は分子から抜く：
     --    (687,000 − 3,000×12) ÷ (12×50) = 1,085.00
     --    ⚠️ ここで「関数が無い」と怒られたら db/pay-reports.sql を貼り直すこと。
-    public.pv_block_hour_usd(687000, 1, 50, 3000, true)                        as c16
+    public.pv_block_hour_usd(687000, 1, 50, 3000, true)                        as c16,
+    -- ★ 2026-11-04。明細とは別に受け取ったパーディアム（月5,000）も、組合と同じく
+    --    最後（22番目）の引数が真のときだけ総支給の枝で足す：12×(54250 + 5000) = 711,000
+    --    ⚠️ 「関数が無い」と怒られたら、本番にまだ古い21引数版しか無い。db/pay-reports.sql を貼り直すこと。
+    public.pv_annual_total(54250, null, null, null, null, 5000, null, null,
+                           null, null, null, null, null, null, null, null, null, null,
+                           null, null, false, true)                            as c17
 )
 select * from (
   select 1 as "#", '8-1 user_id/uid/email 列が無い'          as 検査,
@@ -118,5 +124,7 @@ select * from (
          case when c15 = 1      then '✅' else '❌' end from c
   union all select 16, '8-11 時間あたりは組合の分を分子から抜く',   c16::text, '1085.00',
          case when c16 = 1085   then '✅' else '❌' end from c
+  union all select 17, '8-12 明細とは別のパーディアムは総支給に足す', c17::text, '711000',
+         case when c17 = 711000 then '✅' else '❌' end from c
 ) t
 order by "#";

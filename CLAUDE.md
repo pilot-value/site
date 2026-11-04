@@ -785,8 +785,18 @@ baland_ass/                            ブランド資産（※ brand_assets の
    [workflows/deploy-checklist.md](workflows/deploy-checklist.md) の「出し直しのお願い」
    年換算は昔から総支給が正（[db/pay-reports.sql](db/pay-reports.sql) の `pv_annual_total` の
    `coalesce` 第1引数）＝**内訳の列を足しても年収の数字は1円も動かない**
-   ⚠️ **例外は組合の手当が1つだけ**（2026-09-02）。**支給元が「組合」のときだけ**、そのお金が
+   ⚠️ **例外は2つだけ ── 組合の手当**（2026-09-02）**と、明細とは別に受け取ったパーディアム**（2026-11-04）。
+   **支給元が「組合」のときだけ**、そのお金が
    会社の明細に印字されない＝本人が書いた総支給の中に無いので、総支給の枝でも足す。
+   ★パーディアムも同じ作り（オーナー決定）── 受け取り方で「明細とは別に受け取っている」を選んだ月だけ
+   `pay_items.per_diem_src = 'outside'` が乗り、総支給の枝で ×12 して足す。判定は `pv_perdiem_outside_gross`
+   の1か所・`pv_annual_total` の22本目。キーが無い（＝含まれている・古い行）は1円も動かない。
+   ⚠️ 印だけの `pay_items` は「空の殻」として null に潰れる＝足さない（画面の `perdiemOutsideGross()` も同じ条件）。
+   ⚠️ 写しは組合と同じ場所 ── 画面日英西の `perdiemOutsideGross`／`pv_validate_pay_payload`・`submit_pay_report`・
+   `my_pay_reports`（`perdiem_outside_gross`）／`pv_pending_usd`・`pv_pending_detail`・`pv_pay_rows` の shelf／
+   `pv_deep_pay`・`pv_company_comp` の `cash_m`／[pay-viz.js](pay-viz.js) の `perdiemOutsideJpy`／
+   [my-value.js](my-value.js)／[pay-wizard.js](pay-wizard.js) の `perdiemOutside`。**1つだけ直さない。**
+   ⚠️ `pv_block_hour_usd` には足さない（パーディアムは今までどおり分子に残る）。
    会社・両方・**その他**・空は「総支給の中」（その他を選ぶ人も、お金は会社から出ている）。
    判定は `pv_union_outside_gross` の**1か所だけ**（画面・預かり・本棚・DEEP PAY が全部これを呼ぶ）。
    ここを直す前は、乗員代表の年収が組合払いのぶん丸ごと落ちていた（本番で1件・年収が半分）
@@ -794,10 +804,10 @@ baland_ass/                            ブランド資産（※ brand_assets の
    「飛んだことへの対価」で年収そのものではない。式は `pv_block_hour_usd` の1か所だけ
    ⚠️ **支給構成の円にも入れる**（2026-09-02）。入れないと、半分が組合から出ている人の円が
    会社ぶんだけになり、内訳を書いていない人は図そのものが出ない（本番の1件がそうだった）。
-   ★**総支給ぜんぶ ＝ 会社から ＋ 組合から**（オーナーが決めた定義）。年収も・円も・
+   ★**総支給ぜんぶ ＝ 会社から ＋ 組合から ＋ 明細とは別に受け取るパーディアム**（オーナーが決めた定義）。年収も・円も・
    「基本給が総支給に占める割合」の分母も・DEEP PAY の支給構成も**全部これ1つ**。
    どこかで引き算を始めない（2026-09-02 に割合の分母だけ引いてみて、同じ日に戻した）。
-   額そのものは `unionOutsideJpy` の1か所だけ
+   額そのものは `unionOutsideJpy`・`perdiemOutsideJpy` の1か所ずつ
    ⚠️ **不就労減額（欠勤控除など）は、同じ話の逆向き**（2026-09-12）。印字の総支給は減額**後**・
    内訳の欄は減額**前**なので、**比べる側の分母にだけ足し戻す**（`pv_absence_total` →
    `my_pay_reports` の `absence_total`）。**年収にも総支給の列にも1円も足さない。**
@@ -858,12 +868,12 @@ baland_ass/                            ブランド資産（※ brand_assets の
 `node db/test-pay-preview.mjs`（確認画面の公開イメージ ⇄ SQL）。
 絵は `node shot-pay.mjs`（日英 × Desktop/Mobile × ライト/ダークで 198枚）と
 `node shot-value.mjs both ja`、はみ出しは `node measure-pay.mjs`（5段を歩く）。
-[db/pay-reports.verify.sql](db/pay-reports.verify.sql) は**オーナーが Supabase に貼る検算**（16行が ✅）。
+[db/pay-reports.verify.sql](db/pay-reports.verify.sql) は**オーナーが Supabase に貼る検算**（17行が ✅）。
 中身は `db/test-pay-reports.mjs` が毎回流している＝**検算だけ古い**にはならない。
 ★**列や鍵を足した回は [db/pay-reports.roundtrip.sql](db/pay-reports.roundtrip.sql) も貼る**（2026-09-12）。
 あちらは関数の計算しか見ていないので、「保存はされたが**その鍵だけ黙って消えている**」を捕まえられない
 （`pay_items` はサーバ側の白リストを通って作り直される）。こちらは**保存 → 再取得 → 表示**を実際に通して
-18項目を判定し、最後にわざと例外を投げて**巻き戻す**＝検証用の行が REAL PAY・DEEP PAY・公開集計に1件も混ざらない。
+19項目を判定し、最後にわざと例外を投げて**巻き戻す**＝検証用の行が REAL PAY・DEEP PAY・公開集計に1件も混ざらない。
 ⚠️ 赤い枠で出るのが正常（中に結果表が入っている）。これも `db/test-pay-reports.mjs` が毎回流している。
 
 **⚠️ 「,」の読みは、画面と明細でわざと違う**（2026-09-15）。

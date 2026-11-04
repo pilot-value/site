@@ -13,15 +13,15 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;transition:background .4s ea
 nav.scrolled{background:rgba(10,12,15,.92);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.06)}
 .nav-link{color:rgba(255,255,255,.6);font-size:.85rem;font-weight:500;letter-spacing:.04em;transition:color .2s;text-decoration:none}
 .nav-link:hover{color:#fff}
-.logo-img{height:40px;width:auto;filter:brightness(1.15) drop-shadow(0 0 8px rgba(249,115,22,.5));transition:filter .3s}
-.btn-orange{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:10px;font-weight:700;font-size:.9rem;background:linear-gradient(135deg,#f97316,#f5c842);color:#000;border:none;cursor:pointer;transition:opacity .2s,transform .2s cubic-bezier(.16,1,.3,1);text-decoration:none}
+.logo-img{height:40px;width:auto;filter:brightness(1.15) drop-shadow(0 0 8px color-mix(in srgb,var(--pv-accent) 50%,transparent));transition:filter .3s}
+.btn-orange{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:10px;font-weight:700;font-size:.9rem;background:var(--pv-accent-dark);color:#fff;border:none;box-shadow:0 1px 2px rgba(6,117,99,.24),0 10px 24px -12px rgba(6,117,99,.62);cursor:pointer;transition:opacity .2s,transform .2s cubic-bezier(.16,1,.3,1);text-decoration:none}
 .btn-orange:hover{opacity:.9;transform:translateY(-1px)}
-.btn-orange:focus-visible{outline:2px solid rgba(245,200,66,.7);outline-offset:3px}
+.btn-orange:focus-visible{outline:2px solid var(--pv-accent);outline-offset:3px}
 .btn-orange:active{transform:translateY(1px)}
 .btn-orange:disabled{opacity:.4;cursor:not-allowed;transform:none}
 .btn-ghost{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:10px;font-weight:600;font-size:.9rem;color:#e8edf2;border:1px solid rgba(255,255,255,.15);background:transparent;cursor:pointer;transition:border-color .2s,background .2s;text-decoration:none}
 .btn-ghost:hover{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.05)}
-.btn-ghost:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.btn-ghost:focus-visible{outline:2px solid color-mix(in srgb,var(--pv-accent) 60%,transparent);outline-offset:2px}
 .card{background:rgba(17,22,32,.7);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:26px}
 /* ★内側の余白（2026-09-08 オーナー指摘「全体的に枠とかもデカすぎませんか」で
      32 → 26px、角丸も 20 → 16px）。Marit の実機はカラム幅 640px でこちらと同じ。
@@ -53,7 +53,7 @@ nav.scrolled{background:rgba(10,12,15,.92);backdrop-filter:blur(20px);border-bot
      ズレると画面と送信の判定が食い違う。db/test-form-contract.mjs の静的検査⑧が見張る。 */
 .opt-tag,.req-tag,.auto-tag,.miss-tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;font-size:.6rem;font-weight:700;letter-spacing:.04em;text-transform:none}
 .opt-tag{color:#9ca3af;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14)}
-.req-tag{color:#fb923c;background:rgba(249,115,22,.13);border:1px solid rgba(249,115,22,.3)}
+.req-tag{color:var(--pv-ink-3);background:transparent;border:1px solid var(--pv-line)}
 .auto-tag{color:#34d399;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.28)}
 /* ★2026-08-27 オーナー指示。「匿名で提出」を押したとき、足りない必須項目の
    右横に出す赤い札。markMissing() が挿し、markRequired() が埋まった瞬間に落とす。
@@ -65,8 +65,8 @@ nav.scrolled{background:rgba(10,12,15,.92);backdrop-filter:blur(20px);border-bot
    position:fixed のヘッダーと常設バーが窓より広い箱になり、左右とも切れる
    （2026-08-27、オーナーの iPhone 16 で実測 1.09 倍）。⚠️ この 16px を下げない。 */
 @media (pointer:coarse),(max-width:820px){.form-input{font-size:16px}}
-.form-input:focus{border-color:rgba(245,200,66,.4);background:rgba(255,255,255,.07)}
-.form-input:focus-visible{outline:2px solid rgba(245,200,66,.35);outline-offset:1px}
+.form-input:focus{border-color:color-mix(in srgb,var(--pv-accent) 40%,transparent);background:rgba(255,255,255,.07)}
+.form-input:focus-visible{outline:2px solid color-mix(in srgb,var(--pv-accent) 35%,transparent);outline-offset:1px}
 .form-input::placeholder{color:#6b7d93}
 .form-input:disabled{opacity:.45;cursor:not-allowed}
 /* ★読み取り専用は「無効」に見せない（opacity を落とさない）。こちらが計算した
@@ -124,8 +124,8 @@ main .text-center.mb-9{margin-bottom:22px}
   .card.sec{padding-top:12px}
 }
 .pay-count{display:inline-flex;align-items:center;gap:8px;padding:8px 15px;border-radius:999px;
-  background:radial-gradient(120% 160% at 0% 50%,rgba(245,200,66,.14),transparent 70%),rgba(245,200,66,.05);
-  border:1px solid rgba(245,200,66,.24);color:#f5c842;font-size:.82rem;font-weight:700;letter-spacing:-.01em;
+  background:radial-gradient(120% 160% at 0% 50%,color-mix(in srgb,var(--pv-accent) 14%,transparent),transparent 70%),color-mix(in srgb,var(--pv-accent) 5%,transparent);
+  border:1px solid color-mix(in srgb,var(--pv-accent) 24%,transparent);color:var(--pv-accent-ink);font-size:.82rem;font-weight:700;letter-spacing:-.01em;
   /* 狭い画面で2行になったとき、2行目に数文字だけ残さない。
      auto-phrase は日本語を文節で折る（「パイロッ／ト」で切れるのを防ぐ）。
      対応していないブラウザは balance だけが効いて、2行が均等に割れる。 */
@@ -141,7 +141,7 @@ main .text-center.mb-9{margin-bottom:22px}
 .sec-title{font-size:1.25rem;font-weight:700;letter-spacing:-.02em;line-height:1.35}
 @media (max-width:600px){.sec-title{font-size:1.14rem}}
 .sec-tag{font-size:.62rem;font-weight:800;padding:3px 10px;border-radius:999px;letter-spacing:.05em;white-space:nowrap}
-.sec-tag.req{background:rgba(249,115,22,.14);color:#fb923c;border:1px solid rgba(249,115,22,.32)}
+.sec-tag.req{color:var(--pv-ink-3);background:transparent;border:1px solid var(--pv-line)}
 .sec-tag.rec{background:rgba(61,155,255,.12);color:#5fb0ff;border:1px solid rgba(61,155,255,.3)}
 .sec-tag.opt{background:rgba(255,255,255,.06);color:#9ca3af;border:1px solid rgba(255,255,255,.14)}
 .sec-sub{font-size:.83rem;color:#6b7d93;margin-bottom:16px;line-height:1.55}
@@ -185,10 +185,11 @@ main .text-center.mb-9{margin-bottom:22px}
      隣に任意の欄が並ぶ2列組み（フライトタイム／勤務時間 など）で行がガタつく。 */
 .fld.is-req{position:relative}
 .fld.is-req::before{content:'';position:absolute;left:-12px;top:3px;bottom:3px;width:2px;border-radius:2px;
-  background:rgba(249,115,22,.32);transition:background .28s cubic-bezier(.16,1,.3,1)}
+  background:color-mix(in srgb,var(--pv-ink-3) 35%,transparent);transition:background .28s cubic-bezier(.16,1,.3,1)}
 /* ★埋まったら「消す」のではなく「緑にする」（2026-08-17 オーナー指摘）。
    もとは中立グレーに落としていた＝印が消えるので、埋めた欄と、そもそも必須でない欄が
-   同じ見た目になっていた。残り＝オレンジ／済み＝緑 の2値にして、どちらも目に見える形にする。 */
+   同じ見た目になっていた。残り＝灰色／済み＝緑 の2値にして、どちらも目に見える形にする
+   （2026-11-04 にブランドの色を緑1つにしたので、残りはオレンジから灰色へ）。 */
 .fld.is-req.is-done::before{background:rgba(52,211,153,.45)}
 /* 埋まった欄の右上に小さい ✓。欄が縦に並ぶと ✓ が1列に揃うので、
    上から眺めるだけで「まだ残っている欄」が分かる。
@@ -228,7 +229,7 @@ main .text-center.mb-9{margin-bottom:22px}
   color:#9ca3af;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);
   transition:background .2s,border-color .2s,color .2s,transform .12s cubic-bezier(.16,1,.3,1)}
 .sec-prog:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.22)}
-.sec-prog:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.sec-prog:focus-visible{outline:2px solid color-mix(in srgb,var(--pv-accent) 60%,transparent);outline-offset:2px}
 .sec-prog:active{transform:translateY(1px)}
 .sec-prog.done{color:#34d399;background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.3);cursor:default}
 .sec-prog.done:hover{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.3)}
@@ -250,9 +251,9 @@ main .text-center.mb-9{margin-bottom:22px}
 .cur-row{display:grid;grid-template-columns:260px 1fr;gap:10px}
 @media(max-width:420px){.cur-row{grid-template-columns:1fr}}
 /* ── 年換算のライブ表示 ─────────────────────────────────── */
-.sal-total{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:15px 18px;border-radius:14px;border:1px solid rgba(245,200,66,.25);background:radial-gradient(130% 170% at 100% 0%,rgba(245,200,66,.11),transparent 60%),rgba(245,200,66,.04)}
+.sal-total{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:15px 18px;border-radius:14px;border:1px solid color-mix(in srgb,var(--pv-accent) 25%,transparent);background:radial-gradient(130% 170% at 100% 0%,color-mix(in srgb,var(--pv-accent) 11%,transparent),transparent 60%),color-mix(in srgb,var(--pv-accent) 4%,transparent)}
 .sal-total-lab{font-size:.75rem;font-weight:700;color:#9ca3af;letter-spacing:.04em}
-.sal-total-val{font-size:1.7rem;font-weight:800;letter-spacing:-.02em;color:#f5c842;font-variant-numeric:tabular-nums;line-height:1.1}
+.sal-total-val{font-size:1.7rem;font-weight:800;letter-spacing:-.02em;color:var(--pv-accent-ink);font-variant-numeric:tabular-nums;line-height:1.1}
 .sal-total-val .u{font-size:.8rem;font-weight:600;color:#9ca3af;margin-left:5px;letter-spacing:0}
 /* ── 下端の帯（2026-08-27 → 2026-09-08 に作り替え）──────────────────
    出すのは「3. 報酬」と「5. 確認」の2つの段だけ（pay-wizard.js の steps[].totalBar）。
@@ -269,7 +270,7 @@ main .text-center.mb-9{margin-bottom:22px}
   box-sizing:border-box;max-width:100vw;
   padding:10px 16px calc(10px + env(safe-area-inset-bottom));
   background:linear-gradient(180deg,rgba(10,12,15,0),rgba(10,12,15,.93) 26%,rgba(10,12,15,.985));
-  border-top:1px solid rgba(245,200,66,.18);backdrop-filter:blur(14px);
+  border-top:1px solid color-mix(in srgb,var(--pv-accent) 18%,transparent);backdrop-filter:blur(14px);
   transition:opacity .22s cubic-bezier(.16,1,.3,1),transform .22s cubic-bezier(.16,1,.3,1)}
 .sticky-cta[hidden]{display:none}
 /* ★左の柱のぶんだけ避ける。
@@ -283,7 +284,7 @@ main .text-center.mb-9{margin-bottom:22px}
 .sticky-cta-in{max-width:640px;margin:0 auto;display:flex;align-items:center;gap:14px}
 .sticky-cta-sum{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
 .sticky-cta-lab{font-size:.66rem;font-weight:700;color:#9ca3af;letter-spacing:.05em}
-.sticky-cta-val{font-size:1.18rem;font-weight:800;letter-spacing:-.02em;color:#f5c842;font-variant-numeric:tabular-nums;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sticky-cta-val{font-size:1.18rem;font-weight:800;letter-spacing:-.02em;color:var(--pv-accent-ink);font-variant-numeric:tabular-nums;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sticky-cta-val .u{font-size:.68rem;font-weight:600;color:#9ca3af;margin-left:4px;letter-spacing:0}
 .sticky-cta .btn-orange{flex:0 0 auto;padding:11px 20px;font-size:.86rem}
 /* ── 内訳の割合バー（2026-09-15 オーナー指示）──────────────────────
@@ -340,10 +341,10 @@ body.has-cta #form-wrap{padding-bottom:120px}
 .res-row:last-child{border-bottom:none}
 .res-k{color:#6b7d93;font-size:.82rem;flex:none}
 .res-v{font-weight:700;font-size:.95rem;font-variant-numeric:tabular-nums;text-align:right}
-.res-v.hi{color:#f5c842;font-size:1.15rem;font-weight:800}
+.res-v.hi{color:var(--pv-accent-ink);font-size:1.15rem;font-weight:800}
 .bench{margin-top:18px;padding:18px 20px;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.025)}
 .bench-bar{position:relative;height:10px;border-radius:999px;background:linear-gradient(90deg,rgba(95,176,255,.35),rgba(52,211,153,.35),rgba(245,200,66,.45));margin:16px 0 8px}
-.bench-you{position:absolute;top:-5px;width:4px;height:20px;border-radius:2px;background:#f5c842;box-shadow:0 0 0 3px rgba(245,200,66,.22);transition:left .5s cubic-bezier(.16,1,.3,1)}
+.bench-you{position:absolute;top:-5px;width:4px;height:20px;border-radius:2px;background:var(--pv-accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--pv-accent) 22%,transparent);transition:left .5s cubic-bezier(.16,1,.3,1)}
 .bench-scale{display:flex;justify-content:space-between;font-size:.68rem;color:#6b7d93;font-variant-numeric:tabular-nums}
 .bench b{color:#e8edf2;font-weight:700}
 .res-note{font-size:.75rem;color:#6b7d93;margin-top:16px;line-height:1.7}
@@ -355,7 +356,7 @@ body.has-cta #form-wrap{padding-bottom:120px}
 .restore-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;border-radius:12px;background:rgba(61,155,255,.07);border:1px solid rgba(61,155,255,.22);color:#5fb0ff;font-size:.79rem;margin-bottom:18px}
 .restore-bar button{margin-left:auto;font-size:.74rem;font-weight:700;color:#9ca3af;background:transparent;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:4px 12px;cursor:pointer;transition:color .2s,border-color .2s}
 .restore-bar button:hover{color:#e8edf2;border-color:rgba(255,255,255,.32)}
-.restore-bar button:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.restore-bar button:focus-visible{outline:2px solid color-mix(in srgb,var(--pv-accent) 60%,transparent);outline-offset:2px}
 /* ── 段階表示 ── 一度出したら隠さないので、出るときだけ動かす。
    高さは animate しない（レイアウトが跳ねる）。transform と opacity だけ。 */
 .step[hidden],.opt-fld[hidden]{display:none}
@@ -367,18 +368,18 @@ body.has-cta #form-wrap{padding-bottom:120px}
 .opt-fld>.fld:last-child{margin-bottom:0}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;font-size:.78rem;font-weight:700;color:#a8b3c2;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.18);cursor:pointer;transition:color .2s,border-color .2s,background .2s,transform .2s cubic-bezier(.16,1,.3,1)}
-.chip:hover{color:#f5c842;border-color:rgba(245,200,66,.45);background:rgba(245,200,66,.07)}
-.chip:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.chip:hover{color:var(--pv-accent-ink);border-color:color-mix(in srgb,var(--pv-accent) 45%,transparent);background:color-mix(in srgb,var(--pv-accent) 7%,transparent)}
+.chip:focus-visible{outline:2px solid color-mix(in srgb,var(--pv-accent) 60%,transparent);outline-offset:2px}
 .chip:active{transform:translateY(1px)}
-.chip .p{font-size:.95rem;line-height:1;font-weight:800;color:#f5c842}
+.chip .p{font-size:.95rem;line-height:1;font-weight:800;color:var(--pv-accent-ink)}
 /* 役職・区分（複数選択）。中身は node gen-vocab.mjs が配る。 */
 .roleboxes{display:flex;flex-wrap:wrap;gap:7px}
 .rolebox{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:10px;font-size:.78rem;font-weight:600;color:#a8b3c2;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:color .2s,border-color .2s,background .2s,transform .18s cubic-bezier(.16,1,.3,1)}
-.rolebox:hover{color:#e8edf2;border-color:rgba(245,200,66,.4);background:rgba(245,200,66,.06)}
+.rolebox:hover{color:#e8edf2;border-color:color-mix(in srgb,var(--pv-accent) 40%,transparent);background:color-mix(in srgb,var(--pv-accent) 6%,transparent)}
 .rolebox:active{transform:translateY(1px)}
-.rolebox input{flex:none;width:15px;height:15px;margin:0;accent-color:#f5c842;cursor:pointer}
-.rolebox:has(input:checked){color:#f5c842;border-color:rgba(245,200,66,.55);background:rgba(245,200,66,.1)}
-.rolebox:has(input:focus-visible){outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.rolebox input{flex:none;width:15px;height:15px;margin:0;accent-color:var(--pv-accent);cursor:pointer}
+.rolebox:has(input:checked){color:var(--pv-accent-ink);border-color:color-mix(in srgb,var(--pv-accent) 55%,transparent);background:color-mix(in srgb,var(--pv-accent) 10%,transparent)}
+.rolebox:has(input:focus-visible){outline:2px solid color-mix(in srgb,var(--pv-accent) 60%,transparent);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){.rolebox{transition:none}}
 /* 給与の内訳。繰り返し行（変動給／その他の現金手当）と年に一度のもの。 */
 .pd-none{margin-top:10px;padding:7px 12px;font-size:.78rem}
@@ -397,7 +398,7 @@ body.has-cta #form-wrap{padding-bottom:120px}
 .is-rail::before{content:'';position:absolute;left:-12px;top:3px;bottom:3px;width:2px;
   border-radius:2px;background:rgba(255,255,255,.13);
   transition:background .28s cubic-bezier(.16,1,.3,1)}
-.is-rail.is-rail-key::before{background:rgba(249,115,22,.32)}
+.is-rail.is-rail-key::before{background:color-mix(in srgb,var(--pv-ink-3) 35%,transparent)}
 .is-rail.is-rail-done::before{background:rgba(52,211,153,.45)}
 @media (prefers-reduced-motion:reduce){.is-rail::before{transition:none}}
 .pd-block{margin-bottom:16px}
@@ -422,7 +423,7 @@ body.has-cta #form-wrap{padding-bottom:120px}
 .pd-row>.fld:last-child{margin-bottom:0}
 .pd-del{position:absolute;top:9px;right:9px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:transparent;color:#8a95a3;font-size:1rem;line-height:1;cursor:pointer;transition:color .18s,border-color .18s,background .18s}
 .pd-del:hover{color:#e8edf2;border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.06)}
-.pd-del:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.pd-del:focus-visible{outline:2px solid color-mix(in srgb,var(--pv-accent) 60%,transparent);outline-offset:2px}
 .pd-warn{margin:4px 0 16px;padding:11px 14px;border-radius:12px;font-size:.8rem;line-height:1.6;color:#f0b8b8;background:rgba(214,92,92,.1);border:1px solid rgba(214,92,92,.32)}
 .pd-warn[hidden]{display:none}
 /* ── 登録の箱が描けなかったときの逃げ道（#pay-login-fallback）───────────
@@ -446,7 +447,7 @@ body.has-cta #form-wrap{padding-bottom:120px}
    ★色は新しく作らない。字は .plfb-l と同じ、✓ だけ山吹。 */
 .gate-done{margin-bottom:14px;font-size:.78rem;line-height:1.6;color:#a8b3c2}
 .gate-done[hidden]{display:none}
-.gate-done .gd-i{margin-right:2px;color:#f5c842;font-weight:800}
+.gate-done .gd-i{margin-right:2px;color:var(--pv-accent-ink);font-weight:800}
 /* ── 登録の枠そのもの（#login-gate）─────────────────────────
    ★画面の中でここが一番大事な1枚。既定の .card は線がほとんど見えず、
      背景に溶けて「まだ1歩ある」ことに気づかない（オーナー指示・2026-09-10）。
@@ -456,23 +457,23 @@ body.has-cta #form-wrap{padding-bottom:120px}
       （pay-report.css の [data-theme="light"] .card）。id だけでは勝てないので
       ライトの対にも !important を置く。片方だけ直すと白いままになる。 */
 #login-gate{
-  border-color:rgba(245,200,66,.40);
+  border-color:color-mix(in srgb,var(--pv-accent) 40%,transparent);
   background:
-    radial-gradient(120% 140% at 50% 0%, rgba(245,200,66,.11) 0%, rgba(245,200,66,0) 58%),
+    radial-gradient(120% 140% at 50% 0%, color-mix(in srgb,var(--pv-accent) 11%,transparent) 0%, color-mix(in srgb,var(--pv-accent) 0%,transparent) 58%),
     rgba(22,26,36,.82);
   box-shadow:
-    0 0 0 1px rgba(245,200,66,.14),
-    0 18px 44px -18px rgba(245,200,66,.30),
+    0 0 0 1px color-mix(in srgb,var(--pv-accent) 14%,transparent),
+    0 18px 44px -18px color-mix(in srgb,var(--pv-accent) 30%,transparent),
     0 10px 30px -12px rgba(0,0,0,.55);
 }
 [data-theme="light"] #login-gate{
-  border-color:rgba(200,149,0,.42)!important;
+  border-color:color-mix(in srgb,var(--pv-accent) 42%,transparent)!important;
   background:
-    radial-gradient(120% 140% at 50% 0%, rgba(245,200,66,.20) 0%, rgba(245,200,66,0) 58%),
+    radial-gradient(120% 140% at 50% 0%, color-mix(in srgb,var(--pv-accent) 20%,transparent) 0%, color-mix(in srgb,var(--pv-accent) 0%,transparent) 58%),
     rgba(255,255,255,.95)!important;
   box-shadow:
-    0 0 0 1px rgba(200,149,0,.13),
-    0 18px 40px -20px rgba(200,149,0,.34),
+    0 0 0 1px color-mix(in srgb,var(--pv-accent) 13%,transparent),
+    0 18px 40px -20px color-mix(in srgb,var(--pv-accent) 34%,transparent),
     0 8px 24px -14px rgba(15,23,42,.16);
 }
 /* ★提出が済んだら #submit-block の頭へ運ぶ。ヘッダーは position:fixed で
@@ -491,18 +492,18 @@ body.has-cta #form-wrap{padding-bottom:120px}
    （用の済んだボタンが居座らない）。6つ（内訳＋役割5つ）ともこの1か所で決まる。
    ★ここに説明文を足さない。うたい文句になり得るのは「DEEP PAY が開く」だけだが、
      DEEP PAY のページはまだ無く「準備中」なので、書くと嘘になる。 */
-.pay-detail>summary{display:flex;align-items:center;gap:9px;width:fit-content;max-width:100%;list-style:none;cursor:pointer;font-size:.84rem;font-weight:700;color:#f5c842;padding:9px 16px 9px 13px;border-radius:999px;border:1px solid rgba(245,200,66,.42);
-  background:radial-gradient(120% 160% at 0% 50%,rgba(245,200,66,.14),transparent 70%),rgba(245,200,66,.05);
+.pay-detail>summary{display:flex;align-items:center;gap:9px;width:fit-content;max-width:100%;list-style:none;cursor:pointer;font-size:.84rem;font-weight:700;color:var(--pv-accent-ink);padding:9px 16px 9px 13px;border-radius:999px;border:1px solid color-mix(in srgb,var(--pv-accent) 42%,transparent);
+  background:radial-gradient(120% 160% at 0% 50%,color-mix(in srgb,var(--pv-accent) 14%,transparent),transparent 70%),color-mix(in srgb,var(--pv-accent) 5%,transparent);
   transition:color .2s,border-color .2s,background .2s,transform .2s cubic-bezier(.16,1,.3,1)}
 .pay-detail>summary::-webkit-details-marker{display:none}
-.pay-detail>summary:hover{color:#ffd968;border-color:rgba(245,200,66,.7);transform:translateY(-1px);
-  background:radial-gradient(120% 160% at 0% 50%,rgba(245,200,66,.2),transparent 70%),rgba(245,200,66,.09)}
-.pay-detail>summary:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.pay-detail>summary:hover{color:var(--pv-accent-ink);border-color:color-mix(in srgb,var(--pv-accent) 70%,transparent);transform:translateY(-1px);
+  background:radial-gradient(120% 160% at 0% 50%,color-mix(in srgb,var(--pv-accent) 20%,transparent),transparent 70%),color-mix(in srgb,var(--pv-accent) 9%,transparent)}
+.pay-detail>summary:focus-visible{outline:2px solid color-mix(in srgb,var(--pv-accent) 60%,transparent);outline-offset:2px}
 .pay-detail>summary:active{transform:translateY(1px)}
 /* ＋は丸に入れる。文字だけだと「開く印」に見えず、押せる物に見えない。 */
-.pay-detail>summary .p{flex:none;width:19px;height:19px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:.86rem;line-height:1;font-weight:800;color:#f5c842;background:rgba(245,200,66,.16);border:1px solid rgba(245,200,66,.42);transition:transform .2s cubic-bezier(.16,1,.3,1)}
-.pay-detail[open]>summary{color:#e8edf2;border-color:rgba(245,200,66,.32);background:rgba(255,255,255,.04);margin-bottom:16px}
-.pay-detail[open]>summary:hover{color:#f5c842;background:rgba(245,200,66,.07);transform:none}
+.pay-detail>summary .p{flex:none;width:19px;height:19px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:.86rem;line-height:1;font-weight:800;color:var(--pv-accent-ink);background:color-mix(in srgb,var(--pv-accent) 16%,transparent);border:1px solid color-mix(in srgb,var(--pv-accent) 42%,transparent);transition:transform .2s cubic-bezier(.16,1,.3,1)}
+.pay-detail[open]>summary{color:#e8edf2;border-color:color-mix(in srgb,var(--pv-accent) 32%,transparent);background:rgba(255,255,255,.04);margin-bottom:16px}
+.pay-detail[open]>summary:hover{color:var(--pv-accent-ink);background:color-mix(in srgb,var(--pv-accent) 7%,transparent);transform:none}
 .pay-detail[open]>summary .p{transform:rotate(45deg)}
 .pay-detail-b{animation:stepIn .3s cubic-bezier(.16,1,.3,1) both}
 @media (prefers-reduced-motion:reduce){.pay-detail-b{animation:none}.pay-detail>summary,.pay-detail>summary .p{transition:none}}
@@ -510,8 +511,8 @@ body.has-cta #form-wrap{padding-bottom:120px}
 .sum-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);font-size:.81rem;color:#c8d2de;line-height:1.7}
 .sum-row b{color:#e8edf2;font-weight:700}
 .sum-row button{margin-left:auto;flex:none;font-size:.74rem;font-weight:700;color:#a8b3c2;background:transparent;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:5px 12px;cursor:pointer;transition:color .2s,border-color .2s}
-.sum-row button:hover{color:#f5c842;border-color:rgba(245,200,66,.45)}
-.sum-row button:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.sum-row button:hover{color:var(--pv-accent-ink);border-color:color-mix(in srgb,var(--pv-accent) 45%,transparent)}
+.sum-row button:focus-visible{outline:2px solid color-mix(in srgb,var(--pv-accent) 60%,transparent);outline-offset:2px}
 .sum-row[hidden],#s4-body[hidden],#s1-body[hidden]{display:none}
 /* ★2回目以降、初回向けの手引きは「くわしく」の中へ畳む（文言は消さない）。 */
 .sec-more{margin:0 0 14px}
@@ -520,8 +521,8 @@ body.has-cta #form-wrap{padding-bottom:120px}
 .sec-more>summary::-webkit-details-marker{display:none}
 .sec-more>summary::before{content:'＋ ';font-weight:800}
 .sec-more[open]>summary::before{content:'− '}
-.sec-more>summary:hover{color:#f5c842}
-.sec-more>summary:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:3px;border-radius:6px}
+.sec-more>summary:hover{color:var(--pv-accent-ink)}
+.sec-more>summary:focus-visible{outline:2px solid color-mix(in srgb,var(--pv-accent) 60%,transparent);outline-offset:3px;border-radius:6px}
 .sec-more .sec-sub{margin:8px 0 0}
 /* ── 明細から自動入力 ── 端末の中で黒塗り → 本人が見る → 送る ── */
 /* 入口の2択（明細から自動入力／手動で入力）*/
@@ -533,12 +534,12 @@ body.has-cta #form-wrap{padding-bottom:120px}
   border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.025);
   box-shadow:0 20px 44px -32px rgba(0,0,0,.95),0 2px 6px -3px rgba(0,0,0,.55);
   transition:border-color .22s,background .22s,box-shadow .22s,transform .3s cubic-bezier(.16,1,.3,1)}
-.entry-card.is-primary{border-color:rgba(245,200,66,.34);
-  background:radial-gradient(120% 150% at 0% 0%,rgba(245,200,66,.11),transparent 62%),rgba(245,200,66,.03);
-  box-shadow:0 24px 50px -32px rgba(245,200,66,.5),0 2px 6px -3px rgba(0,0,0,.55)}
-.entry-card:hover{transform:translateY(-2px);border-color:rgba(245,200,66,.6);
-  box-shadow:0 26px 54px -30px rgba(245,200,66,.55),0 3px 8px -3px rgba(0,0,0,.6)}
-.entry-card:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:3px}
+.entry-card.is-primary{border-color:color-mix(in srgb,var(--pv-accent) 34%,transparent);
+  background:radial-gradient(120% 150% at 0% 0%,color-mix(in srgb,var(--pv-accent) 11%,transparent),transparent 62%),color-mix(in srgb,var(--pv-accent) 3%,transparent);
+  box-shadow:0 24px 50px -32px color-mix(in srgb,var(--pv-accent) 50%,transparent),0 2px 6px -3px rgba(0,0,0,.55)}
+.entry-card:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--pv-accent) 60%,transparent);
+  box-shadow:0 26px 54px -30px color-mix(in srgb,var(--pv-accent) 55%,transparent),0 3px 8px -3px rgba(0,0,0,.6)}
+.entry-card:focus-visible{outline:2px solid color-mix(in srgb,var(--pv-accent) 60%,transparent);outline-offset:3px}
 .entry-card:active{transform:translateY(0)}
 /* 入口の2択の見出しは**札**にする（2026-09-09 オーナー指示）── 役割の
    「◯◯の手当を追加」（.pay-detail>summary）と同じ形。押せるものだと一目で分かり、
@@ -552,10 +553,10 @@ body.has-cta #form-wrap{padding-bottom:120px}
 .entry-t .p{flex:none;width:24px;height:24px;border-radius:999px;display:inline-flex;
   align-items:center;justify-content:center;font-size:.8rem;line-height:1;
   background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14)}
-.entry-card.is-primary .entry-t{color:#f5c842;border-color:rgba(245,200,66,.5);background:rgba(245,200,66,.13)}
-.entry-card.is-primary .entry-t .p{background:rgba(245,200,66,.2);border-color:rgba(245,200,66,.5)}
+.entry-card.is-primary .entry-t{color:var(--pv-accent-ink);border-color:color-mix(in srgb,var(--pv-accent) 50%,transparent);background:color-mix(in srgb,var(--pv-accent) 13%,transparent)}
+.entry-card.is-primary .entry-t .p{background:color-mix(in srgb,var(--pv-accent) 20%,transparent);border-color:color-mix(in srgb,var(--pv-accent) 50%,transparent)}
 .entry-card:hover .entry-t{transform:translateY(-1px)}
-.entry-card.is-primary:hover .entry-t{color:#ffd968;border-color:rgba(245,200,66,.8);background:rgba(245,200,66,.19)}
+.entry-card.is-primary:hover .entry-t{color:var(--pv-accent-ink);border-color:color-mix(in srgb,var(--pv-accent) 80%,transparent);background:color-mix(in srgb,var(--pv-accent) 19%,transparent)}
 .entry-card:not(.is-primary):hover .entry-t{color:#e8edf2;border-color:rgba(255,255,255,.26)}
 @media (prefers-reduced-motion:reduce){.entry-t{transition:none}}
 /* 選ぶ材料（2026-08-13 その4）。説明1行だと「明細を読ませると何が良いのか」が伝わらない。
@@ -586,13 +587,13 @@ body.has-cta #form-wrap{padding-bottom:120px}
 .ai-legend[hidden]{display:none}
 .entry-tag{position:absolute;top:14px;right:14px;font-size:.62rem;font-weight:800;letter-spacing:.05em;
   padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.05);color:#a8b3c2;border:1px solid rgba(255,255,255,.12)}
-.entry-card.is-primary .entry-tag{background:rgba(245,200,66,.12);color:#f5c842;border-color:rgba(245,200,66,.28)}
+.entry-card.is-primary .entry-tag{background:color-mix(in srgb,var(--pv-accent) 12%,transparent);color:var(--pv-accent-ink);border-color:color-mix(in srgb,var(--pv-accent) 28%,transparent)}
 .ps-step{font-size:.68rem;font-weight:800;letter-spacing:.08em;color:var(--pv-accent-ink);margin:0 0 8px}
 .ps-skip{display:inline-block;margin-top:10px;padding:4px 2px;font-size:.76rem;font-weight:700;
   color:#a8b3c2;background:none;border:0;border-bottom:1px solid rgba(255,255,255,.18);cursor:pointer;
   transition:color .2s,border-color .2s,transform .2s cubic-bezier(.16,1,.3,1)}
-.ps-skip:hover{color:#e8edf2;border-bottom-color:rgba(245,200,66,.6)}
-.ps-skip:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:3px}
+.ps-skip:hover{color:#e8edf2;border-bottom-color:color-mix(in srgb,var(--pv-accent) 60%,transparent)}
+.ps-skip:focus-visible{outline:2px solid color-mix(in srgb,var(--pv-accent) 60%,transparent);outline-offset:3px}
 .ps-skip:active{transform:translateY(1px)}
 /* 手動で入力を選んだあと ── 明細の入口は1行の帯にして上に残す */
 .ps.is-slim .ps-step,.ps.is-slim .ps-benefits,.ps.is-slim .ps-skip,.ps.is-slim .ps-drop-txt small{display:none}
@@ -631,54 +632,54 @@ body.has-cta #form-wrap{padding-bottom:120px}
 .ps-drop-txt{display:flex;flex-direction:column;gap:2px;min-width:0}
 .ps-drop-txt b{font-size:.86rem;font-weight:700;letter-spacing:-.01em}
 .ps-drop-txt small{font-size:.72rem;color:#a8b3c2;line-height:1.5}
-.ps-edit,.ps-res{margin-top:12px;padding:16px;border-radius:14px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.025);box-shadow:0 18px 40px -28px rgba(245,200,66,.35),0 2px 6px -2px rgba(0,0,0,.5);animation:stepIn .34s cubic-bezier(.16,1,.3,1) both}
-.ps-lead{font-size:.82rem;font-weight:700;color:#e8edf2;margin-bottom:10px}
-.ps-lead-sm{font-size:.78rem;font-weight:600;color:#f5c842;margin:10px 0 2px}
+.ps-res{margin-top:12px;padding:16px;border-radius:14px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.025);box-shadow:0 18px 40px -28px color-mix(in srgb,var(--pv-accent) 35%,transparent),0 2px 6px -2px rgba(0,0,0,.5);animation:stepIn .34s cubic-bezier(.16,1,.3,1) both}
+
+
 /* ★確認画面だけ本文の段組み（max-w-2xl＝約640px）より外へ広げる。
    ここは「本人が字を読んで確かめる」ただ一つの場所で、**読めない大きさは
    確認していないのと同じ**。負のマージンで外へ出すので transform を使わない
    （transform を掛けると中の position:fixed の基準がここに移ってしまう）。
    上限 1440px は明細の実寸（長辺 MAX_EDGE=1568px）に届く手前まで。これ以上広げても
    canvas は width:auto ＝実寸止まりで、拡大されずに余白が増えるだけ。 */
-.ps-edit{width:min(1440px,94vw);max-width:none;margin-left:calc((100% - min(1440px,94vw)) / 2)}
-.ps-stage{position:relative;display:block;width:fit-content;max-width:100%;margin:0 auto;line-height:0;border-radius:10px;overflow:hidden;background:#0b0f14;touch-action:none}
+
+
 /* ★頭打ちは「高さ」ではなく「幅」で決める。以前は max-height:62vh で、A4縦の紙は
    高さで先に止まり、幅はカードの半分ほどしか使えなかった（＝字が読めない）。
    縦に長い紙は画面をはみ出して縦スクロールになるが、**読めないより良い**。 */
-.ps-cv{display:block;max-width:100%;max-height:min(150vh,1500px);width:auto;height:auto}
-.ps-rect{position:absolute;z-index:2;background:#000;border:1px solid rgba(245,200,66,.75);cursor:move;touch-action:none}
+
+
 /* 送る枠。外側を暗く落とすのは box-shadow を画面いっぱいに広げるだけ（要素は1つ）。
    本体は pointer-events:none ＝中の黒塗りをこれまで通りつまめる。 */
-.ps-frame{position:absolute;z-index:3;pointer-events:none;border:2px solid #f5c842;border-radius:3px;box-shadow:0 0 0 9999px rgba(2,6,12,.7)}
-.ps-frame-tag{position:absolute;left:0;top:0;pointer-events:auto;cursor:move;touch-action:none;background:#f5c842;color:#0b0f14;font-size:.66rem;font-weight:800;line-height:1;letter-spacing:.02em;padding:5px 8px;border-radius:0 0 7px 0;white-space:nowrap;user-select:none}
-.ps-frame-grip{position:absolute;width:18px;height:18px;pointer-events:auto;touch-action:none;background:#f5c842;border:1px solid rgba(0,0,0,.45);border-radius:3px}
-.ps-frame-grip.is-nw{left:-9px;top:-9px;cursor:nwse-resize}
-.ps-frame-grip.is-ne{right:-9px;top:-9px;cursor:nesw-resize}
-.ps-frame-grip.is-sw{left:-9px;bottom:-9px;cursor:nesw-resize}
-.ps-frame-grip.is-se{right:-9px;bottom:-9px;cursor:nwse-resize}
-.ps-rect:focus-visible{outline:2px solid #f5c842;outline-offset:2px}
-.ps-rect-del{position:absolute;top:6px;right:6px;width:22px;height:22px;line-height:1;border-radius:999px;border:1px solid rgba(0,0,0,.3);background:rgba(255,255,255,.92);color:#0f172a;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s,border-color .2s,color .2s,transform .2s cubic-bezier(.16,1,.3,1)}
-.ps-rect-del:hover{background:#dc2626;border-color:#dc2626;color:#fff}
-.ps-rect-del:focus-visible{outline:2px solid #f5c842;outline-offset:2px}
-.ps-rect-del:active{transform:scale(.9)}
-.ps-rect-grip{position:absolute;right:3px;bottom:3px;width:16px;height:16px;border-radius:3px;background:#f5c842;border:1px solid rgba(0,0,0,.4);cursor:nwse-resize}
-.ps-hint,.ps-note{font-size:.72rem;color:#6b7d93;line-height:1.65;margin-top:8px}
+
+
+
+
+
+
+
+
+
+
+
+
+
+.ps-note{font-size:.72rem;color:#6b7d93;line-height:1.65;margin-top:8px}
 .ps-note b{color:#a8b3c2}
 .ps-bar{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .ps-btn{font-size:.78rem;font-weight:700;padding:8px 14px;border-radius:10px;cursor:pointer;transition:color .2s,border-color .2s,background .2s,transform .2s cubic-bezier(.16,1,.3,1)}
-.ps-btn:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.ps-btn:focus-visible{outline:2px solid color-mix(in srgb,var(--pv-accent) 60%,transparent);outline-offset:2px}
 .ps-btn:active{transform:translateY(1px)}
 .ps-btn-ghost{color:#a8b3c2;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.16)}
 .ps-btn-ghost:hover{color:#e8edf2;border-color:rgba(255,255,255,.34)}
-.ps-btn-go{display:block;width:100%;margin-top:12px;padding:13px;font-size:.9rem;font-weight:800;color:#0b0f14;background:linear-gradient(180deg,#f7d15e,#e6b52c);border:1px solid rgba(245,200,66,.9);box-shadow:0 14px 30px -18px rgba(245,200,66,.8)}
-.ps-btn-go:hover:not([disabled]){background:linear-gradient(180deg,#ffdd77,#f0c33e)}
-.ps-btn-go[disabled]{opacity:.34;filter:grayscale(.75);box-shadow:none;cursor:not-allowed}
+
+
+
 .ps-warn{margin-top:10px;font-size:.76rem;line-height:1.6;color:#f5c842}
 /* ★枠が画像ぜんぶになったときの警告。ふつうの注意書き（.ps-warn の小さな金色）と
    同じ見え方だと読み飛ばされる。ここは「このまま押すと紙が丸ごと出ていく」唯一の
    歯止めなので、フォームのエラー（.form-alert）と同じ赤い呼び方に揃えて強くする。 */
-.ps-frwarn{display:block;margin-top:12px;border:1px solid rgba(239,68,68,.45);border-left:3px solid #ef4444;background:rgba(239,68,68,.10);border-radius:12px;padding:13px 15px;color:#e8edf2;font-size:.88rem;line-height:1.7}
-.ps-frwarn b{color:#f87171;font-weight:800}
+
+
 /* ★探している間は明細そのものを出さない ────────────────────────
    以前は明細を先に描いてから、探索の結果を**あとから**その上に乗せていた。
    その数秒のあいだ、画面には「黒塗りの無い明細」＋「送る」ボタンが並ぶ。
@@ -687,34 +688,26 @@ body.has-cta #form-wrap{padding-bottom:120px}
    歯止めとして数えない。だから見えるところから消す。
    ★.ps-wait には JS が aspect-ratio を入れる（明細と同じ縦横比）。
      入れないと、明細が現れた瞬間にページの高さが飛んで、読んでいた場所を失う。 */
-.ps-edit.is-wait > .ps-stage,
-.ps-edit.is-wait > .ps-lead-sm,
-.ps-edit.is-wait > .ps-frwarn,
-.ps-edit.is-wait > .ps-hint,
-.ps-edit.is-wait > .ps-bar,
-.ps-edit.is-wait > .ps-warn,
-.ps-edit.is-wait > .ps-confirm,
-.ps-edit.is-wait > .ps-btn-go,
-.ps-edit.is-wait > .ps-note{display:none !important}
-.ps-wait{display:none}
-.ps-edit.is-wait > .ps-wait{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;width:100%;margin:0 auto;padding:24px;border-radius:10px;background:#0b0f14;border:1px solid rgba(255,255,255,.08);color:#a8b3c2;font-size:.78rem;line-height:1.7;text-align:center}
-.ps-wait::before{content:"";flex:none;width:26px;height:26px;border-radius:999px;border:3px solid rgba(245,200,66,.22);border-top-color:#f5c842;animation:psSpin .7s linear infinite}
-.ps-wait b{display:block;font-size:.86rem;font-weight:800;color:#e8edf2;margin-bottom:4px}
-@media (prefers-reduced-motion:reduce){.ps-wait::before{animation:none;border-top-color:rgba(245,200,66,.22)}}
-.ps-scan{display:flex;align-items:flex-start;gap:7px;font-size:.75rem;line-height:1.6;color:#a8b3c2;margin:-4px 0 10px}
-.ps-scan.is-busy::before{content:"";flex:0 0 auto;width:11px;height:11px;margin-top:3px;border-radius:999px;border:2px solid rgba(245,200,66,.28);border-top-color:#f5c842;animation:psSpin .7s linear infinite}
-.ps-scan.is-warn{color:#f5c842}
+
+
+
+
+
+@media (prefers-reduced-motion:reduce){}
+
+
+
 @keyframes psSpin{to{transform:rotate(360deg)}}
-@media (prefers-reduced-motion:reduce){.ps-scan.is-busy::before{animation:none;border-top-color:rgba(245,200,66,.28)}}
-.ps-confirm{display:flex;align-items:flex-start;gap:9px;margin-top:14px;padding:11px 13px;border-radius:11px;border:1px solid rgba(245,200,66,.3);background:rgba(245,200,66,.06);font-size:.78rem;font-weight:700;line-height:1.55;color:#e8edf2;cursor:pointer;transition:border-color .2s,background .2s}
-.ps-confirm:hover{border-color:rgba(245,200,66,.55);background:rgba(245,200,66,.1)}
-.ps-confirm:focus-within{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
-.ps-confirm.is-off{opacity:.5;cursor:default}
-.ps-confirm input{flex:0 0 auto;width:17px;height:17px;margin-top:1px;accent-color:#e6b52c;cursor:pointer}
-.ps-confirm.is-off input{cursor:default}
+@media (prefers-reduced-motion:reduce){}
+
+
+
+
+
+
 .ps-msg{margin-top:10px;padding:12px 14px;border-radius:12px;font-size:.8rem;line-height:1.6}
-.ps-msg-busy{color:#a8b3c2;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.03)}
-.ps-msg-warn{color:#f5c842;border:1px solid rgba(245,200,66,.32);background:rgba(245,200,66,.07)}
+
+
 .ps-res-title{font-size:.95rem;font-weight:800;letter-spacing:-.01em;color:#34d399}
 .ps-res-title.ps-sm{font-size:.82rem;color:#a8b3c2;margin-top:18px}
 .ps-res-lead{font-size:.78rem;color:#a8b3c2;line-height:1.7;margin-top:4px}
@@ -836,24 +829,42 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 .ps-fold-s{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:11px 2px;font-size:.78rem;font-weight:700;color:#a8b3c2;transition:color .18s cubic-bezier(.16,1,.3,1),opacity .18s}
 .ps-fold-s::-webkit-details-marker{display:none}
 .ps-fold-s:hover{color:#e8edf2}
-.ps-fold-s:focus-visible{outline:2px solid rgba(245,200,66,.7);outline-offset:3px;border-radius:6px}
+.ps-fold-s:focus-visible{outline:2px solid color-mix(in srgb,var(--pv-accent) 70%,transparent);outline-offset:3px;border-radius:6px}
 .ps-fold-s:active{opacity:.72}
 .ps-fold-i{margin-left:auto;flex:none;width:9px;height:9px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translate(-2px,-2px);transition:transform .22s cubic-bezier(.16,1,.3,1)}
 .ps-fold[open] > .ps-fold-s > .ps-fold-i{transform:rotate(225deg) translate(-2px,-2px)}
 .ps-fold-b{padding-bottom:4px;animation:stepIn .28s cubic-bezier(.16,1,.3,1) both}
 .ps-fold-b > .ps-tbl:first-child{margin-top:0}
 .form-input.ai-filled{border-color:rgba(52,211,153,.55);background:rgba(52,211,153,.07)}
-.ps-rate{margin-bottom:16px;padding:16px 18px;border-radius:14px;border:1px solid rgba(245,200,66,.28);background:radial-gradient(130% 170% at 100% 0%,rgba(245,200,66,.10),transparent 60%),rgba(255,255,255,.025)}
+.ps-rate{margin-bottom:16px;padding:16px 18px;border-radius:14px;border:1px solid color-mix(in srgb,var(--pv-accent) 28%,transparent);background:radial-gradient(130% 170% at 100% 0%,color-mix(in srgb,var(--pv-accent) 10%,transparent),transparent 60%),rgba(255,255,255,.025)}
 .ps-rate:empty{display:none}
-.ps-rate-t{font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#f5c842}
+.ps-rate-t{font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--pv-accent-ink)}
 .ps-rate-row{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.07)}
 .ps-rate-row:last-of-type{border-bottom:none}
 .ps-rate-k{font-size:.82rem;font-weight:700;color:#e8edf2}
-.ps-rate-v{flex:none;text-align:right;font-size:1.35rem;font-weight:800;letter-spacing:-.02em;color:#f5c842;font-variant-numeric:tabular-nums;line-height:1.15}
+.ps-rate-v{flex:none;text-align:right;font-size:1.35rem;font-weight:800;letter-spacing:-.02em;color:var(--pv-accent-ink);font-variant-numeric:tabular-nums;line-height:1.15}
 .ps-rate-min{display:block;font-size:.68rem;font-weight:600;color:#6b7d93;letter-spacing:0}
 /* 年間ペース × 公開レンジ（payslip.js の renderAha）。時給カードの直後に出る。
    ★時給＝黄（#f5c842）、こちら＝緑（#48c78e）で役割を分ける。同じ色にすると
      「同じことを2回言っている」に見えて、2枚目を読まれない。 */
+/* 明細にないお金（2026-11-04）── 年収の段のすぐ下。見出し1つと欄3つだけ（説明の文は置かない）。
+   ★色は pv-tokens のトークンだけ（ライトとダークはトークンが切り替える）。 */
+.ps-extra{margin:-4px 0 16px;padding:14px 18px 8px;border-radius:14px;border:1px solid var(--pv-line);background:var(--pv-surface)}
+.ps-extra-t{margin-bottom:6px;font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--pv-ink-3)}
+.ps-extra-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;border-top:1px solid var(--pv-line-soft);cursor:text}
+.ps-extra-row:first-of-type{border-top:0}
+.ps-extra-k{font-size:.88rem;font-weight:600;color:var(--pv-ink);white-space:nowrap}
+.ps-extra-v{display:flex;align-items:center;gap:8px}
+.ps-extra-in{width:132px;padding:8px 10px;border-radius:9px;border:1px solid var(--pv-line);background:var(--pv-bg-sub);color:var(--pv-ink);
+  font-size:16px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums;font-family:inherit;outline:none;
+  transition:border-color .2s,background .2s}
+.ps-extra-in::placeholder{color:var(--pv-ink-3);font-weight:400}
+.ps-extra-in:hover{border-color:color-mix(in srgb,var(--pv-ink-3) 45%,transparent)}
+.ps-extra-in:focus{border-color:var(--pv-accent);background:var(--pv-surface);box-shadow:0 0 0 3px var(--pv-accent-soft)}
+.ps-extra-u{min-width:44px;font-size:.76rem;color:var(--pv-ink-3);white-space:nowrap}
+@media (max-width:400px){.ps-extra{padding:12px 14px 6px}.ps-extra-in{width:108px}.ps-extra-v{gap:6px}.ps-extra-u{min-width:40px}}
+/* パーディアムの受け取り方（額が入ったときだけ出る） */
+.pd-src{margin-top:8px}
 .ps-aha{margin-bottom:16px;padding:16px 18px;border-radius:14px;border:1px solid rgba(72,199,142,.24);background:radial-gradient(130% 170% at 0% 0%,rgba(72,199,142,.09),transparent 62%),rgba(255,255,255,.025)}
 .ps-aha:empty{display:none}
 .ps-aha-t{font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#48c78e}
@@ -866,8 +877,8 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 .ps-aha-sec{margin-top:18px;font-size:.76rem;font-weight:700;color:#e8edf2}
 .ps-aha-bar{position:relative;height:8px;margin-top:12px;border-radius:99px;background:linear-gradient(90deg,rgba(72,199,142,.16),rgba(72,199,142,.44))}
 .ps-aha-avg{position:absolute;top:-3px;width:2px;height:14px;border-radius:2px;background:rgba(255,255,255,.5);transform:translateX(-1px)}
-.ps-aha-dot{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:#f5c842;border:2px solid #0d1520;box-shadow:0 2px 9px rgba(245,200,66,.42);transform:translate(-50%,-50%)}
-.ps-aha-bar.is-under .ps-aha-dot,.ps-aha-bar.is-over .ps-aha-dot{box-shadow:0 0 0 3px rgba(245,200,66,.22),0 2px 9px rgba(245,200,66,.42)}
+.ps-aha-dot{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:var(--pv-accent);border:2px solid #0d1520;box-shadow:0 2px 9px color-mix(in srgb,var(--pv-accent) 42%,transparent);transform:translate(-50%,-50%)}
+.ps-aha-bar.is-under .ps-aha-dot,.ps-aha-bar.is-over .ps-aha-dot{box-shadow:0 0 0 3px color-mix(in srgb,var(--pv-accent) 22%,transparent),0 2px 9px color-mix(in srgb,var(--pv-accent) 42%,transparent)}
 .ps-aha-avgl{position:relative;height:1.15em;margin-top:7px}
 .ps-aha-avgl span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap;font-size:.68rem;color:#6b7d93;font-variant-numeric:tabular-nums}
 .ps-aha-ends{display:flex;justify-content:space-between;gap:8px;margin-top:2px;font-size:.68rem;color:#6b7d93;font-variant-numeric:tabular-nums}
@@ -882,7 +893,7 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 .ps-aha-gap{flex:none;min-width:5.5em;text-align:right;font-size:.8rem;font-weight:800;color:#48c78e;font-variant-numeric:tabular-nums}
 .ps-aha-rank{margin-top:11px;font-size:.72rem;color:#6b7d93}
 .ps-pd{display:inline-flex;align-items:center;gap:7px;margin-top:10px;font-size:.75rem;color:#a8b3c2;cursor:pointer}
-.ps-pd input{accent-color:#f5c842;cursor:pointer}
+.ps-pd input{accent-color:var(--pv-accent);cursor:pointer}
 .ps-tbl-edit td{padding:5px 0}
 .ps-tbl-edit .ps-amt{display:flex;align-items:center;justify-content:flex-end;gap:6px}
 .ps-cur{font-size:.66rem;font-weight:700;letter-spacing:.04em;color:#6b7d93}
@@ -890,17 +901,17 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 .ps-amt-in{width:9ch;min-width:74px;padding:5px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:#e8edf2;font:inherit;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;transition:border-color .2s,background .2s,color .2s}
 .ps-amt-in::-webkit-outer-spin-button,.ps-amt-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .ps-amt-in:hover{border-color:rgba(255,255,255,.3)}
-.ps-amt-in:focus{outline:none;border-color:rgba(245,200,66,.7);background:rgba(245,200,66,.07);color:#fff}
-.ps-amt-in:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:1px}
-.ps-ask{margin-top:12px;padding:12px 14px;border-radius:12px;border:1px dashed rgba(245,200,66,.34);background:rgba(245,200,66,.05)}
+.ps-amt-in:focus{outline:none;border-color:color-mix(in srgb,var(--pv-accent) 70%,transparent);background:color-mix(in srgb,var(--pv-accent) 7%,transparent);color:#fff}
+.ps-amt-in:focus-visible{outline:2px solid color-mix(in srgb,var(--pv-accent) 60%,transparent);outline-offset:1px}
+.ps-ask{margin-top:12px;padding:12px 14px;border-radius:12px;border:1px dashed color-mix(in srgb,var(--pv-accent) 34%,transparent);background:color-mix(in srgb,var(--pv-accent) 5%,transparent)}
 .ps-ask[hidden]{display:none}
-.ps-ask-t{font-size:.8rem;font-weight:700;color:#f5c842}
+.ps-ask-t{font-size:.8rem;font-weight:700;color:var(--pv-accent-ink)}
 .ps-ask-l{font-size:.72rem;line-height:1.65;color:#a8b3c2;margin-top:3px}
 .ps-ask-in{display:flex;align-items:center;gap:7px;margin-top:9px}
-.ps-ask-in input{width:112px;padding:8px 10px;border-radius:9px;border:1px solid rgba(245,200,66,.4);background:rgba(0,0,0,.25);color:#e8edf2;font:inherit;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;transition:border-color .2s,background .2s}
-.ps-ask-in input:hover{border-color:rgba(245,200,66,.65)}
-.ps-ask-in input:focus{outline:none;border-color:#f5c842;background:rgba(0,0,0,.4)}
-.ps-ask-in input:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.ps-ask-in input{width:112px;padding:8px 10px;border-radius:9px;border:1px solid color-mix(in srgb,var(--pv-accent) 40%,transparent);background:rgba(0,0,0,.25);color:#e8edf2;font:inherit;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;transition:border-color .2s,background .2s}
+.ps-ask-in input:hover{border-color:color-mix(in srgb,var(--pv-accent) 65%,transparent)}
+.ps-ask-in input:focus{outline:none;border-color:var(--pv-accent);background:rgba(0,0,0,.4)}
+.ps-ask-in input:focus-visible{outline:2px solid color-mix(in srgb,var(--pv-accent) 60%,transparent);outline-offset:2px}
 .ps-ask-in input::placeholder{color:#5c6a7d;font-weight:600;opacity:1}
 .ps-ask-in span{font-size:.78rem;font-weight:700;color:#a8b3c2}
 .ps-ask.is-filled{border-style:solid;border-color:rgba(255,255,255,.1);background:rgba(255,255,255,.03)}
@@ -908,24 +919,24 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 /* 「1項目だけ確認できます」（payslip.js の renderAsk）。分類できなかった行は
    もう金額として数えてあるので、これは**答えなくてよい質問**。だから時給（黄）・
    年収ペース（緑）より弱い面に置く。強く出すと「まだ終わっていない」に見える。 */
-.ps-q{margin-top:16px;padding:14px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.09);background:radial-gradient(120% 160% at 100% 0%,rgba(245,200,66,.07),transparent 62%),rgba(255,255,255,.02)}
+.ps-q{margin-top:16px;padding:14px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.09);background:radial-gradient(120% 160% at 100% 0%,color-mix(in srgb,var(--pv-accent) 7%,transparent),transparent 62%),rgba(255,255,255,.02)}
 .ps-q-h{display:flex;align-items:baseline;gap:12px}
 .ps-q-t{flex:1;min-width:0;font-size:.8rem;font-weight:800;letter-spacing:-.01em;color:#e8edf2}
 .ps-q-skip{flex:none;padding:4px 9px;border:0;border-radius:8px;background:none;color:#6b7d93;font:inherit;font-size:.72rem;font-weight:700;cursor:pointer;transition:color .2s,background .2s,transform .2s cubic-bezier(.16,1,.3,1)}
 .ps-q-skip:hover{color:#a8b3c2;background:rgba(255,255,255,.05)}
-.ps-q-skip:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.ps-q-skip:focus-visible{outline:2px solid color-mix(in srgb,var(--pv-accent) 60%,transparent);outline-offset:2px}
 .ps-q-skip:active{transform:translateY(1px)}
 .ps-q-l{font-size:.72rem;line-height:1.65;color:#6b7d93;margin-top:3px}
 .ps-q-row{display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin-top:11px;padding:9px 11px;border-radius:9px;background:rgba(0,0,0,.22)}
 .ps-q-lb{min-width:0;font-size:.82rem;font-weight:700;color:#e8edf2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ps-q-am{flex:none;font-size:.86rem;font-weight:800;color:#f5c842;font-variant-numeric:tabular-nums}
+.ps-q-am{flex:none;font-size:.86rem;font-weight:800;color:var(--pv-accent-ink);font-variant-numeric:tabular-nums}
 .ps-q-q{font-size:.76rem;font-weight:700;color:#a8b3c2;margin-top:11px}
 .ps-q-c{margin-top:9px}
 .ps-next{margin-top:16px;padding:14px 16px;border-radius:12px;border:1px solid rgba(52,211,153,.26);background:rgba(52,211,153,.06)}
 .ps-next-t{font-size:.86rem;font-weight:800;letter-spacing:-.01em;color:#34d399}
 .ps-next-l{font-size:.74rem;line-height:1.65;color:#a8b3c2;margin-top:4px}
 .ps-next .btn-orange{margin-top:11px;padding:10px 20px;font-size:.85rem}
-@media (prefers-reduced-motion:reduce){.ps-edit,.ps-res{animation:none}}
+@media (prefers-reduced-motion:reduce){.ps-res{animation:none}}
 /* ── Light mode ─────────────────────────────────────────── */
 /* ══ ウィザード（Phase 5・2026-09-08）═══════════════════════════════
    1枚の長いページを5つの段に分けた器。骨組みは pay-wizard.js が組む。
@@ -941,7 +952,8 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
    Marit 実測値（1439×813 CSS ＝ 2倍のスクリーンショットを走査）
      カード 640px 中央寄せ／内側の余白 32px／進捗バー 高さ 8px・カード幅いっぱい
      入力 外寸 40px・枠 1px・角丸 6px／欄と欄 44px／ピル 29px
-   色は向こうの緑（#05a87d）を持ってこない。ブランドの橙と金のまま。 */
+   色はブランドの緑（pv-tokens の --pv-accent*）。2026-11-04 にオレンジと金から移した（オーナー「ブランドの色は緑」）。
+   ★注意の琥珀色・データの色（円の住宅手当＝橙・変動給＝金）は変えていない。 */
 
 /* ── 進捗（1/5〜5/5）── ヘッダーの下に貼り付く ─────────────────── */
 .wz-top{position:sticky;top:var(--pv-topbar,69px);z-index:5;
@@ -952,10 +964,10 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
      伸ばす向きを決めないと中央から広がるので transform-origin を左に固定する。 */
 .wz-bar>i{display:block;width:100%;height:100%;border-radius:999px;
   transform:scaleX(0);transform-origin:left center;
-  background:linear-gradient(90deg,#f97316,#f5c842);
+  background:var(--pv-accent);
   transition:transform .45s cubic-bezier(.16,1,.3,1)}
 .wz-meta{display:flex;align-items:baseline;gap:10px;margin-top:7px;min-width:0}
-.wz-count{flex:none;font-size:.68rem;font-weight:800;letter-spacing:.06em;color:#fb923c;
+.wz-count{flex:none;font-size:.68rem;font-weight:800;letter-spacing:.06em;color:var(--pv-accent-ink);
   font-variant-numeric:tabular-nums}
 /* 段の名前は長いほうが折り返さず切れるほうがよい（バーの高さが動くと目が滑る）。 */
 .wz-name{min-width:0;font-size:.78rem;font-weight:700;color:#a8b3c2;
@@ -970,15 +982,15 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
   border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:3px 10px;cursor:pointer;
   transition:color .2s,border-color .2s}
 .wz-draft-drop:hover{color:#e8edf2;border-color:rgba(255,255,255,.32)}
-.wz-draft-drop:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.wz-draft-drop:focus-visible{outline:2px solid color-mix(in srgb,var(--pv-accent) 60%,transparent);outline-offset:2px}
 .wz-draft-drop:active{transform:translateY(1px)}
 /* ★「新しい月を入力する」。下書きを消すより目立たせる（押し間違いは戻せる側だが、
      消すほうは戻せない）。色はブランドの琥珀を薄く敷くだけで、面は増やさない。 */
-.wz-new-month{font-size:.7rem;font-weight:800;color:#f5c842;background:rgba(245,200,66,.08);
-  border:1px solid rgba(245,200,66,.34);border-radius:8px;padding:3px 10px;cursor:pointer;
+.wz-new-month{font-size:.7rem;font-weight:800;color:var(--pv-accent-ink);background:color-mix(in srgb,var(--pv-accent) 8%,transparent);
+  border:1px solid color-mix(in srgb,var(--pv-accent) 34%,transparent);border-radius:8px;padding:3px 10px;cursor:pointer;
   transition:color .2s,border-color .2s,background-color .2s}
-.wz-new-month:hover{color:#fde68a;border-color:rgba(245,200,66,.6);background:rgba(245,200,66,.14)}
-.wz-new-month:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.wz-new-month:hover{color:var(--pv-accent-ink);border-color:color-mix(in srgb,var(--pv-accent) 60%,transparent);background:color-mix(in srgb,var(--pv-accent) 14%,transparent)}
+.wz-new-month:focus-visible{outline:2px solid color-mix(in srgb,var(--pv-accent) 60%,transparent);outline-offset:2px}
 .wz-new-month:active{transform:translateY(1px)}
 /* 別の月の控えがあることを知らせる帯。下書きの帯のすぐ下に出る。 */
 #wz-offer{margin:-12px 0 16px}
@@ -990,17 +1002,17 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
   border-top:1px solid rgba(255,255,255,.07)}
 .wz-next{flex:1 1 auto;min-height:46px;padding:0 20px;border-radius:11px;border:none;
   font-size:.9rem;font-weight:700;font-family:inherit;letter-spacing:.01em;
-  background:linear-gradient(135deg,#f97316,#f5c842);color:#000;cursor:pointer;
+  background:var(--pv-accent-dark);color:#fff;box-shadow:0 1px 2px rgba(6,117,99,.24),0 10px 24px -12px rgba(6,117,99,.62);cursor:pointer;
   transition:opacity .2s,transform .2s cubic-bezier(.16,1,.3,1)}
 .wz-next:hover{opacity:.9;transform:translateY(-1px)}
-.wz-next:focus-visible{outline:2px solid rgba(245,200,66,.7);outline-offset:3px}
+.wz-next:focus-visible{outline:2px solid var(--pv-accent);outline-offset:3px}
 .wz-next:active{transform:translateY(1px)}
 .wz-back{flex:0 0 auto;min-height:46px;padding:0 18px;border-radius:11px;
   font-size:.85rem;font-weight:600;font-family:inherit;color:#e8edf2;
   border:1px solid rgba(255,255,255,.15);background:transparent;cursor:pointer;
   transition:color .2s,border-color .2s,background .2s}
 .wz-back:hover{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.05)}
-.wz-back:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.wz-back:focus-visible{outline:2px solid color-mix(in srgb,var(--pv-accent) 60%,transparent);outline-offset:2px}
 .wz-back:active{transform:translateY(1px)}
 @media (prefers-reduced-motion:reduce){.wz-next{transition:none}}
 
@@ -1019,16 +1031,16 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 .wz-rev-more>summary::-webkit-details-marker{display:none}
 .wz-rev-more>summary .wz-rev-t::before{content:'＋ ';font-weight:800}
 .wz-rev-more[open]>summary .wz-rev-t::before{content:'− '}
-.wz-rev-more>summary:hover .wz-rev-t{color:#f5c842}
-.wz-rev-more>summary:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:3px;border-radius:6px}
+.wz-rev-more>summary:hover .wz-rev-t{color:var(--pv-accent-ink)}
+.wz-rev-more>summary:focus-visible{outline:2px solid color-mix(in srgb,var(--pv-accent) 60%,transparent);outline-offset:3px;border-radius:6px}
 .wz-rev-head{display:flex;align-items:center;gap:10px;
   padding-bottom:8px;margin-bottom:6px;border-bottom:1px solid rgba(255,255,255,.09)}
 .wz-rev-t{min-width:0;font-size:.9rem;font-weight:800;letter-spacing:-.01em;color:#e8edf2}
-.wz-rev-edit{margin-left:auto;flex:none;font-size:.72rem;font-weight:700;color:#f5c842;
-  background:transparent;border:1px solid rgba(245,200,66,.32);border-radius:999px;
+.wz-rev-edit{margin-left:auto;flex:none;font-size:.72rem;font-weight:700;color:var(--pv-accent-ink);
+  background:transparent;border:1px solid color-mix(in srgb,var(--pv-accent) 32%,transparent);border-radius:999px;
   padding:3px 12px;cursor:pointer;transition:color .2s,border-color .2s,background .2s}
-.wz-rev-edit:hover{background:rgba(245,200,66,.1);border-color:rgba(245,200,66,.55)}
-.wz-rev-edit:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.wz-rev-edit:hover{background:color-mix(in srgb,var(--pv-accent) 10%,transparent);border-color:color-mix(in srgb,var(--pv-accent) 55%,transparent)}
+.wz-rev-edit:focus-visible{outline:2px solid color-mix(in srgb,var(--pv-accent) 60%,transparent);outline-offset:2px}
 .wz-rev-edit:active{transform:translateY(1px)}
 /* ★flex-wrap:wrap が要る（2026-09-12）。下の .wz-rev-src は
      order:3 + width:100% で「自分の行へ落ちる」つもりで書いてあるが、
@@ -1141,7 +1153,7 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 /* ★ライトには .form-label の上書きが無く、暗い地むけの #9ca3af が白いカードに
    そのまま乗っていた（コントラスト 2.3:1 ＝ 読めない）。濃い側に落とす。 */
 [data-theme="light"] .form-label{color:#334155}
-[data-theme="light"] .form-input:focus{border-color:rgba(200,149,0,.5);background:rgba(0,0,0,.06)}
+[data-theme="light"] .form-input:focus{border-color:color-mix(in srgb,var(--pv-accent) 50%,transparent);background:rgba(0,0,0,.06)}
 [data-theme="light"] .form-input[readonly],
 [data-theme="light"] .form-input[readonly]:focus{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.18)}
 [data-theme="light"] select.form-input{color-scheme:light}
@@ -1149,22 +1161,22 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 [data-theme="light"] .btn-ghost{color:#0f172a!important;border-color:rgba(0,0,0,.15)!important}
 [data-theme="light"] .btn-ghost:hover{border-color:rgba(0,0,0,.3)!important;background:rgba(0,0,0,.04)!important}
 [data-theme="light"] .text-text{color:#0f172a!important}
-[data-theme="light"] .pay-count{border-color:rgba(200,149,0,.32);color:#a97e00;
-  background:radial-gradient(120% 160% at 0% 50%,rgba(200,149,0,.14),transparent 70%),rgba(200,149,0,.05)}
+[data-theme="light"] .pay-count{border-color:color-mix(in srgb,var(--pv-accent) 32%,transparent);color:var(--pv-accent-ink);
+  background:radial-gradient(120% 160% at 0% 50%,color-mix(in srgb,var(--pv-accent) 14%,transparent),transparent 70%),color-mix(in srgb,var(--pv-accent) 5%,transparent)}
 [data-theme="light"] .warn-row{background:rgba(200,149,0,.07);border-color:rgba(200,149,0,.3);color:#8a6600}
 /* ★白いカードの上ではオレンジ #fb923c が沈む。必須の印は読めなければ意味が無いので、
    ライトだけ濃いオレンジに落とす（.sec-tag.req はこれまでライトの定義が無く、暗いまま置かれていた）。 */
 [data-theme="light"] .opt-tag{color:#64748b;background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.12)}
-[data-theme="light"] .req-tag,[data-theme="light"] .sec-tag.req{color:#a34a00;background:rgba(163,74,0,.08);border-color:rgba(163,74,0,.28)}
+[data-theme="light"] .req-tag,[data-theme="light"] .sec-tag.req{color:var(--pv-ink-3);background:transparent;border:1px solid var(--pv-line)}
 [data-theme="light"] .auto-tag{color:#0d8a63;background:rgba(13,138,99,.08);border-color:rgba(13,138,99,.28)}
 [data-theme="light"] .miss-tag{color:#dc2626;background:rgba(220,38,38,.08);border-color:rgba(220,38,38,.32)}
-[data-theme="light"] .fld.is-req::before{background:rgba(163,74,0,.3)}
+[data-theme="light"] .fld.is-req::before{background:color-mix(in srgb,var(--pv-ink-3) 35%,transparent)}
 /* ★白の上では #34d399 が薄すぎて読めない。済みの印はライトだけ濃い緑に落とす
    （既存の .auto-tag と同じ #0d8a63）。もとは rgba(0,0,0,.12) ＝ ほぼ見えなかった。 */
 [data-theme="light"] .fld.is-req.is-done::before{background:rgba(13,138,99,.5)}
 /* 内訳のレールもライトだけ濃く落とす（白い地では薄い色が消える）。 */
 [data-theme="light"] .is-rail::before{background:rgba(0,0,0,.13)}
-[data-theme="light"] .is-rail.is-rail-key::before{background:rgba(163,74,0,.3)}
+[data-theme="light"] .is-rail.is-rail-key::before{background:color-mix(in srgb,var(--pv-ink-3) 35%,transparent)}
 [data-theme="light"] .is-rail.is-rail-done::before{background:rgba(13,138,99,.5)}
 [data-theme="light"] .fld.is-req::after{color:#0d8a63;background:rgba(13,138,99,.1);border-color:rgba(13,138,99,.32)}
 [data-theme="light"] .sec-prog{color:#64748b;background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.11)}
@@ -1185,12 +1197,12 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 [data-theme="light"] .sec-sub,[data-theme="light"] .fld-hint,[data-theme="light"] .sal-hint,[data-theme="light"] .res-note{color:#64748b}
 [data-theme="light"] .fld-hint b{color:#334155}
 [data-theme="light"] .sec-tag.opt{background:rgba(0,0,0,.05);color:#64748b;border-color:rgba(0,0,0,.12)}
-[data-theme="light"] .sal-total{border-color:rgba(200,149,0,.32);background:radial-gradient(130% 170% at 100% 0%,rgba(200,149,0,.12),transparent 60%),rgba(200,149,0,.05)}
+[data-theme="light"] .sal-total{border-color:color-mix(in srgb,var(--pv-accent) 32%,transparent);background:radial-gradient(130% 170% at 100% 0%,color-mix(in srgb,var(--pv-accent) 12%,transparent),transparent 60%),color-mix(in srgb,var(--pv-accent) 5%,transparent)}
 [data-theme="light"] .sal-total-lab,[data-theme="light"] .sal-total-val .u{color:#64748b}
-[data-theme="light"] .sal-total-val{color:#a97e00}
-[data-theme="light"] .sticky-cta{background:linear-gradient(180deg,rgba(243,245,248,0),rgba(243,245,248,.94) 26%,rgba(243,245,248,.99));border-top-color:rgba(200,149,0,.3)}
+[data-theme="light"] .sal-total-val{color:var(--pv-accent-ink)}
+[data-theme="light"] .sticky-cta{background:linear-gradient(180deg,rgba(243,245,248,0),rgba(243,245,248,.94) 26%,rgba(243,245,248,.99));border-top-color:color-mix(in srgb,var(--pv-accent) 30%,transparent)}
 [data-theme="light"] .sticky-cta-lab,[data-theme="light"] .sticky-cta-val .u{color:#64748b}
-[data-theme="light"] .sticky-cta-val{color:#a97e00}
+[data-theme="light"] .sticky-cta-val{color:var(--pv-accent-ink)}
 [data-theme="light"] .fld.is-miss .form-input{border-color:rgba(220,38,38,.65);background:rgba(220,38,38,.05);
   box-shadow:0 0 0 3px rgba(220,38,38,.1)}
 [data-theme="light"] .fld.is-miss .form-input:focus{border-color:rgba(220,38,38,.8);background:rgba(220,38,38,.07)}
@@ -1206,7 +1218,7 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 [data-theme="light"] .res-eyebrow,[data-theme="light"] .res-big{color:#0d8a63}
 [data-theme="light"] .res-sub,[data-theme="light"] .res-k{color:#64748b}
 [data-theme="light"] .res-row{border-bottom-color:rgba(0,0,0,.08)}
-[data-theme="light"] .res-v.hi{color:#a97e00}
+[data-theme="light"] .res-v.hi{color:var(--pv-accent-ink)}
 [data-theme="light"] .bench{border-color:rgba(0,0,0,.08);background:rgba(0,0,0,.02)}
 [data-theme="light"] .bench-scale{color:#64748b}
 [data-theme="light"] .bench b{color:#0f172a}
@@ -1216,12 +1228,12 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 [data-theme="light"] .restore-bar button{color:#475569;border-color:rgba(0,0,0,.15)}
 [data-theme="light"] .restore-bar button:hover{color:#0f172a;border-color:rgba(0,0,0,.32)}
 [data-theme="light"] .chip{color:#475569;background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.18)}
-[data-theme="light"] .chip:hover{color:#a97e00;border-color:rgba(200,149,0,.5);background:rgba(200,149,0,.07)}
-[data-theme="light"] .chip .p{color:#a97e00}
+[data-theme="light"] .chip:hover{color:var(--pv-accent-ink);border-color:color-mix(in srgb,var(--pv-accent) 50%,transparent);background:color-mix(in srgb,var(--pv-accent) 7%,transparent)}
+[data-theme="light"] .chip .p{color:var(--pv-accent-ink)}
 [data-theme="light"] .rolebox{color:#475569;background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.14)}
-[data-theme="light"] .rolebox:hover{color:#1e293b;border-color:rgba(200,149,0,.45);background:rgba(200,149,0,.07)}
-[data-theme="light"] .rolebox:has(input:checked){color:#a97e00;border-color:rgba(200,149,0,.6);background:rgba(200,149,0,.1)}
-[data-theme="light"] .rolebox input{accent-color:#a97e00}
+[data-theme="light"] .rolebox:hover{color:#1e293b;border-color:color-mix(in srgb,var(--pv-accent) 45%,transparent);background:color-mix(in srgb,var(--pv-accent) 7%,transparent)}
+[data-theme="light"] .rolebox:has(input:checked){color:var(--pv-accent-ink);border-color:color-mix(in srgb,var(--pv-accent) 60%,transparent);background:color-mix(in srgb,var(--pv-accent) 10%,transparent)}
+[data-theme="light"] .rolebox input{accent-color:var(--pv-accent)}
 [data-theme="light"] .pd-row{background:rgba(0,0,0,.02);border-color:rgba(0,0,0,.1)}
 [data-theme="light"] .pd-del{color:#64748b;border-color:rgba(0,0,0,.14)}
 [data-theme="light"] .pd-del:hover{color:#1e293b;border-color:rgba(0,0,0,.28);background:rgba(0,0,0,.04)}
@@ -1233,74 +1245,74 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 [data-theme="light"] .plfb-r{color:#475569}
 [data-theme="light"] .plfb-r:hover{color:#8a6600}
 [data-theme="light"] .gate-done{color:#475569}
-[data-theme="light"] .gate-done .gd-i{color:#c89500}
+[data-theme="light"] .gate-done .gd-i{color:var(--pv-accent-ink)}
 [data-theme="light"] .pd-year{border-top-color:rgba(0,0,0,.1)}
 [data-theme="light"] .pd-year-h{color:#64748b}
 [data-theme="light"] .pay-detail{border-top-color:rgba(0,0,0,.08)}
-[data-theme="light"] .pay-detail>summary{color:#a97e00;border-color:rgba(200,149,0,.45);
-  background:radial-gradient(120% 160% at 0% 50%,rgba(200,149,0,.14),transparent 70%),rgba(200,149,0,.05)}
-[data-theme="light"] .pay-detail>summary:hover{color:#8a6600;border-color:rgba(200,149,0,.72);
-  background:radial-gradient(120% 160% at 0% 50%,rgba(200,149,0,.2),transparent 70%),rgba(200,149,0,.09)}
-[data-theme="light"] .pay-detail>summary .p{color:#a97e00;background:rgba(200,149,0,.14);border-color:rgba(200,149,0,.42)}
-[data-theme="light"] .pay-detail[open]>summary{color:#0f172a;border-color:rgba(200,149,0,.4);background:rgba(0,0,0,.03)}
-[data-theme="light"] .pay-detail[open]>summary:hover{color:#a97e00;background:rgba(200,149,0,.07)}
+[data-theme="light"] .pay-detail>summary{color:var(--pv-accent-ink);border-color:color-mix(in srgb,var(--pv-accent) 45%,transparent);
+  background:radial-gradient(120% 160% at 0% 50%,color-mix(in srgb,var(--pv-accent) 14%,transparent),transparent 70%),color-mix(in srgb,var(--pv-accent) 5%,transparent)}
+[data-theme="light"] .pay-detail>summary:hover{color:var(--pv-accent-ink);border-color:color-mix(in srgb,var(--pv-accent) 72%,transparent);
+  background:radial-gradient(120% 160% at 0% 50%,color-mix(in srgb,var(--pv-accent) 20%,transparent),transparent 70%),color-mix(in srgb,var(--pv-accent) 9%,transparent)}
+[data-theme="light"] .pay-detail>summary .p{color:var(--pv-accent-ink);background:color-mix(in srgb,var(--pv-accent) 14%,transparent);border-color:color-mix(in srgb,var(--pv-accent) 42%,transparent)}
+[data-theme="light"] .pay-detail[open]>summary{color:#0f172a;border-color:color-mix(in srgb,var(--pv-accent) 40%,transparent);background:rgba(0,0,0,.03)}
+[data-theme="light"] .pay-detail[open]>summary:hover{color:var(--pv-accent-ink);background:color-mix(in srgb,var(--pv-accent) 7%,transparent)}
 [data-theme="light"] .sum-row{background:rgba(0,0,0,.025);border-color:rgba(0,0,0,.08);color:#475569}
 [data-theme="light"] .sec-more>summary{color:#64748b}
-[data-theme="light"] .sec-more>summary:hover{color:#8a6206}
+[data-theme="light"] .sec-more>summary:hover{color:var(--pv-accent-ink)}
 [data-theme="light"] .sum-row b{color:#0f172a}
 [data-theme="light"] .sum-row button{color:#475569;border-color:rgba(0,0,0,.15)}
-[data-theme="light"] .sum-row button:hover{color:#a97e00;border-color:rgba(200,149,0,.5)}
+[data-theme="light"] .sum-row button:hover{color:var(--pv-accent-ink);border-color:color-mix(in srgb,var(--pv-accent) 50%,transparent)}
 [data-theme="light"] .entry-q{color:#64748b}
 [data-theme="light"] .entry-card{color:#0f172a;border-color:rgba(0,0,0,.09);background:rgba(255,255,255,.85);
   box-shadow:0 20px 44px -34px rgba(15,23,42,.55),0 2px 6px -3px rgba(15,23,42,.14)}
-[data-theme="light"] .entry-card.is-primary{border-color:rgba(200,149,0,.4);
-  background:radial-gradient(120% 150% at 0% 0%,rgba(200,149,0,.12),transparent 62%),rgba(255,255,255,.9);
-  box-shadow:0 24px 50px -34px rgba(200,149,0,.6),0 2px 6px -3px rgba(15,23,42,.14)}
-[data-theme="light"] .entry-card:hover{border-color:rgba(200,149,0,.7)}
-[data-theme="light"] .entry-card:focus-visible{outline-color:rgba(200,149,0,.85)}
+[data-theme="light"] .entry-card.is-primary{border-color:color-mix(in srgb,var(--pv-accent) 40%,transparent);
+  background:radial-gradient(120% 150% at 0% 0%,color-mix(in srgb,var(--pv-accent) 12%,transparent),transparent 62%),rgba(255,255,255,.9);
+  box-shadow:0 24px 50px -34px color-mix(in srgb,var(--pv-accent) 60%,transparent),0 2px 6px -3px rgba(15,23,42,.14)}
+[data-theme="light"] .entry-card:hover{border-color:color-mix(in srgb,var(--pv-accent) 70%,transparent)}
+[data-theme="light"] .entry-card:focus-visible{outline-color:color-mix(in srgb,var(--pv-accent) 85%,transparent)}
 [data-theme="light"] .entry-t{color:#475569;border-color:rgba(0,0,0,.12);background:rgba(0,0,0,.03)}
 [data-theme="light"] .entry-t .p{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.12)}
-[data-theme="light"] .entry-card.is-primary .entry-t{color:#a97e00;border-color:rgba(200,149,0,.5);background:rgba(200,149,0,.12)}
-[data-theme="light"] .entry-card.is-primary .entry-t .p{background:rgba(200,149,0,.16);border-color:rgba(200,149,0,.5)}
-[data-theme="light"] .entry-card.is-primary:hover .entry-t{color:#8a6600;border-color:rgba(200,149,0,.8);background:rgba(200,149,0,.17)}
+[data-theme="light"] .entry-card.is-primary .entry-t{color:var(--pv-accent-ink);border-color:color-mix(in srgb,var(--pv-accent) 50%,transparent);background:color-mix(in srgb,var(--pv-accent) 12%,transparent)}
+[data-theme="light"] .entry-card.is-primary .entry-t .p{background:color-mix(in srgb,var(--pv-accent) 16%,transparent);border-color:color-mix(in srgb,var(--pv-accent) 50%,transparent)}
+[data-theme="light"] .entry-card.is-primary:hover .entry-t{color:var(--pv-accent-ink);border-color:color-mix(in srgb,var(--pv-accent) 80%,transparent);background:color-mix(in srgb,var(--pv-accent) 17%,transparent)}
 [data-theme="light"] .entry-card:not(.is-primary):hover .entry-t{color:#0f172a;border-color:rgba(0,0,0,.24)}
 [data-theme="light"] .entry-tag{background:rgba(0,0,0,.04);color:#64748b;border-color:rgba(0,0,0,.12)}
-[data-theme="light"] .entry-card.is-primary .entry-tag{background:rgba(200,149,0,.12);color:#a97e00;border-color:rgba(200,149,0,.35)}
+[data-theme="light"] .entry-card.is-primary .entry-tag{background:color-mix(in srgb,var(--pv-accent) 12%,transparent);color:var(--pv-accent-ink);border-color:color-mix(in srgb,var(--pv-accent) 35%,transparent)}
 [data-theme="light"] .ps-skip{color:#475569;border-bottom-color:rgba(0,0,0,.18)}
-[data-theme="light"] .ps-skip:hover{color:#0f172a;border-bottom-color:rgba(200,149,0,.7)}
-[data-theme="light"] .ps-skip:focus-visible{outline-color:rgba(200,149,0,.85)}
+[data-theme="light"] .ps-skip:hover{color:#0f172a;border-bottom-color:color-mix(in srgb,var(--pv-accent) 70%,transparent)}
+[data-theme="light"] .ps-skip:focus-visible{outline-color:color-mix(in srgb,var(--pv-accent) 85%,transparent)}
 [data-theme="light"] .ps-drop-txt small{color:#64748b}
 [data-theme="light"] .ps-fold{border-top-color:rgba(0,0,0,.09)}
 [data-theme="light"] .ps-fold-s{color:#64748b}
 [data-theme="light"] .ps-fold-s:hover{color:#0f172a}
-[data-theme="light"] .ps-fold-s:focus-visible{outline-color:rgba(200,149,0,.85)}
-[data-theme="light"] .ps-hint,[data-theme="light"] .ps-note,[data-theme="light"] .ps-rate-min{color:#64748b}
+[data-theme="light"] .ps-fold-s:focus-visible{outline-color:color-mix(in srgb,var(--pv-accent) 85%,transparent)}
+[data-theme="light"] .ps-note,[data-theme="light"] .ps-rate-min{color:#64748b}
 [data-theme="light"] .ps-note b{color:#334155}
-[data-theme="light"] .ps-edit,[data-theme="light"] .ps-res{border-color:rgba(0,0,0,.09);background:rgba(255,255,255,.85);box-shadow:0 18px 40px -30px rgba(6,117,99,.45),0 2px 6px -3px rgba(15,23,42,.18)}
-[data-theme="light"] .ps-lead{color:#0f172a}
-[data-theme="light"] .ps-stage{background:#e2e8f0}
-[data-theme="light"] .ps-rect{border-color:rgba(200,149,0,.85)}
-[data-theme="light"] .ps-frame{border-color:#a97e00;box-shadow:0 0 0 9999px rgba(15,23,42,.55)}
-[data-theme="light"] .ps-frame-tag,[data-theme="light"] .ps-frame-grip{background:#a97e00;color:#fff}
-[data-theme="light"] .ps-lead-sm{color:#a97e00}
-[data-theme="light"] .ps-rect-grip{background:#a97e00}
+[data-theme="light"] .ps-res{border-color:rgba(0,0,0,.09);background:rgba(255,255,255,.85);box-shadow:0 18px 40px -30px rgba(6,117,99,.45),0 2px 6px -3px rgba(15,23,42,.18)}
+
+
+
+
+
+
+
 [data-theme="light"] .ps-btn-ghost{color:#475569;background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.16)}
 [data-theme="light"] .ps-btn-ghost:hover{color:#0f172a;border-color:rgba(0,0,0,.34)}
-[data-theme="light"] .ps-btn-go{color:#3a2c00;background:linear-gradient(180deg,#f7d15e,#e0ac1e);border-color:rgba(200,149,0,.9);box-shadow:0 14px 30px -20px rgba(200,149,0,.85)}
-[data-theme="light"] .ps-btn-go:hover:not([disabled]){background:linear-gradient(180deg,#ffe083,#eaba2c)}
+
+
 [data-theme="light"] .ps-warn{color:#8a6600}
-[data-theme="light"] .ps-frwarn{background:rgba(220,38,38,.07);border-color:rgba(220,38,38,.35);border-left-color:#dc2626;color:#7f1d1d}
-[data-theme="light"] .ps-frwarn b{color:#dc2626}
-[data-theme="light"] .ps-edit.is-wait > .ps-wait{background:rgba(255,255,255,.72);border-color:rgba(15,23,42,.12);color:#64748b}
-[data-theme="light"] .ps-wait b{color:#0f172a}
-[data-theme="light"] .ps-wait::before{border-color:rgba(200,149,0,.24);border-top-color:#a97e00}
-[data-theme="light"] .ps-scan{color:#64748b}
-[data-theme="light"] .ps-scan.is-warn{color:#8a6600}
-[data-theme="light"] .ps-scan.is-busy::before{border-color:rgba(200,149,0,.28);border-top-color:#a97e00}
-[data-theme="light"] .ps-confirm{color:#0f172a;border-color:rgba(200,149,0,.4);background:rgba(200,149,0,.08)}
-[data-theme="light"] .ps-confirm:hover{border-color:rgba(200,149,0,.65);background:rgba(200,149,0,.13)}
-[data-theme="light"] .ps-msg-busy{color:#475569;border-color:rgba(0,0,0,.1);background:rgba(0,0,0,.02)}
-[data-theme="light"] .ps-msg-warn{color:#8a6600;border-color:rgba(200,149,0,.35);background:rgba(200,149,0,.07)}
+
+
+
+
+
+
+
+
+
+
+
+
 [data-theme="light"] .ps-res-title{color:#0d8a63}
 [data-theme="light"] .ps-res-title.ps-sm{color:#475569}
 [data-theme="light"] .ps-res-lead{color:#475569}
@@ -1322,8 +1334,8 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 [data-theme="light"] .ps-tbl td{color:#0f172a;border-top-color:rgba(0,0,0,.08)}
 [data-theme="light"] .ps-tbl .ps-to,[data-theme="light"] .ps-tbl-dim td{color:#475569}
 [data-theme="light"] .form-input.ai-filled{border-color:rgba(13,138,99,.5);background:rgba(13,138,99,.07)}
-[data-theme="light"] .ps-rate{border-color:rgba(200,149,0,.32);background:radial-gradient(130% 170% at 100% 0%,rgba(200,149,0,.12),transparent 60%),rgba(255,255,255,.6)}
-[data-theme="light"] .ps-rate-t,[data-theme="light"] .ps-rate-v{color:#a97e00}
+[data-theme="light"] .ps-rate{border-color:color-mix(in srgb,var(--pv-accent) 32%,transparent);background:radial-gradient(130% 170% at 100% 0%,color-mix(in srgb,var(--pv-accent) 12%,transparent),transparent 60%),rgba(255,255,255,.6)}
+[data-theme="light"] .ps-rate-t,[data-theme="light"] .ps-rate-v{color:var(--pv-accent-ink)}
 [data-theme="light"] .ps-rate-k{color:#0f172a}
 [data-theme="light"] .ps-rate-row{border-bottom-color:rgba(0,0,0,.08)}
 [data-theme="light"] .ps-aha{border-color:rgba(15,118,86,.26);background:radial-gradient(130% 170% at 0% 0%,rgba(15,118,86,.10),transparent 62%),rgba(255,255,255,.6)}
@@ -1338,21 +1350,21 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 [data-theme="light"] .ps-cur{color:#64748b}
 [data-theme="light"] .ps-amt-in{border-color:rgba(0,0,0,.14);background:#fff;color:#0f172a}
 [data-theme="light"] .ps-amt-in:hover{border-color:rgba(0,0,0,.3)}
-[data-theme="light"] .ps-amt-in:focus{border-color:rgba(200,149,0,.8);background:rgba(200,149,0,.08);color:#0f172a}
-[data-theme="light"] .ps-ask{border-color:rgba(200,149,0,.4);background:rgba(200,149,0,.07)}
-[data-theme="light"] .ps-ask-t{color:#a97e00}
+[data-theme="light"] .ps-amt-in:focus{border-color:color-mix(in srgb,var(--pv-accent) 80%,transparent);background:color-mix(in srgb,var(--pv-accent) 8%,transparent);color:#0f172a}
+[data-theme="light"] .ps-ask{border-color:color-mix(in srgb,var(--pv-accent) 40%,transparent);background:color-mix(in srgb,var(--pv-accent) 7%,transparent)}
+[data-theme="light"] .ps-ask-t{color:var(--pv-accent-ink)}
 [data-theme="light"] .ps-ask-l,[data-theme="light"] .ps-ask-in span,[data-theme="light"] .ps-next-l{color:#475569}
-[data-theme="light"] .ps-ask-in input{border-color:rgba(200,149,0,.45);background:#fff;color:#0f172a}
-[data-theme="light"] .ps-ask-in input:focus{border-color:#a97e00;background:#fffdf5}
+[data-theme="light"] .ps-ask-in input{border-color:color-mix(in srgb,var(--pv-accent) 45%,transparent);background:#fff;color:#0f172a}
+[data-theme="light"] .ps-ask-in input:focus{border-color:var(--pv-accent);background:var(--pv-surface)}
 [data-theme="light"] .ps-ask-in input::placeholder{color:#94a3b8}
 [data-theme="light"] .ps-ask.is-filled{border-color:rgba(0,0,0,.1);background:rgba(255,255,255,.7)}
 [data-theme="light"] .ps-ask.is-filled .ps-ask-t{color:#475569}
-[data-theme="light"] .ps-q{border-color:rgba(0,0,0,.09);background:radial-gradient(120% 160% at 100% 0%,rgba(200,149,0,.09),transparent 62%),rgba(255,255,255,.6)}
+[data-theme="light"] .ps-q{border-color:rgba(0,0,0,.09);background:radial-gradient(120% 160% at 100% 0%,color-mix(in srgb,var(--pv-accent) 9%,transparent),transparent 62%),rgba(255,255,255,.6)}
 [data-theme="light"] .ps-q-t,[data-theme="light"] .ps-q-lb{color:#0f172a}
 [data-theme="light"] .ps-q-l,[data-theme="light"] .ps-q-skip{color:#64748b}
 [data-theme="light"] .ps-q-skip:hover{color:#0f172a;background:rgba(0,0,0,.05)}
 [data-theme="light"] .ps-q-row{background:rgba(15,23,42,.05)}
-[data-theme="light"] .ps-q-am{color:#a97e00}
+[data-theme="light"] .ps-q-am{color:var(--pv-accent-ink)}
 [data-theme="light"] .ps-q-q{color:#475569}
 [data-theme="light"] .ps-next{border-color:rgba(13,138,99,.28);background:rgba(13,138,99,.06)}
 [data-theme="light"] .ps-next-t{color:#0d8a63}
@@ -1360,14 +1372,14 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 /* ── ウィザード（ライト）── ダーク側と同じ順・同じ粒度で対にする ─────── */
 [data-theme="light"] .wz-top{background:rgba(243,245,248,.94)}
 [data-theme="light"] .wz-bar{background:rgba(15,23,42,.10)}
-[data-theme="light"] .wz-count{color:#c2410c}
+[data-theme="light"] .wz-count{color:var(--pv-accent-ink)}
 [data-theme="light"] .wz-name{color:#475569}
 [data-theme="light"] .wz-draft{color:#64748b}
 [data-theme="light"] .wz-draft.is-ng{color:#b91c1c}
 [data-theme="light"] .wz-draft-drop{color:#64748b;border-color:rgba(0,0,0,.16)}
 [data-theme="light"] .wz-draft-drop:hover{color:#0f172a;border-color:rgba(0,0,0,.34)}
-[data-theme="light"] .wz-new-month{color:#8a6206;background:rgba(245,200,66,.16);border-color:rgba(180,140,20,.42)}
-[data-theme="light"] .wz-new-month:hover{color:#5c4104;border-color:rgba(180,140,20,.7);background:rgba(245,200,66,.26)}
+[data-theme="light"] .wz-new-month{color:var(--pv-accent-ink);background:color-mix(in srgb,var(--pv-accent) 16%,transparent);border-color:color-mix(in srgb,var(--pv-accent) 42%,transparent)}
+[data-theme="light"] .wz-new-month:hover{color:var(--pv-accent-ink);border-color:color-mix(in srgb,var(--pv-accent) 70%,transparent);background:color-mix(in srgb,var(--pv-accent) 26%,transparent)}
 [data-theme="light"] .wz-nav{border-top-color:rgba(0,0,0,.09)}
 [data-theme="light"] .wz-back{color:#0f172a;border-color:rgba(0,0,0,.16)}
 [data-theme="light"] .wz-back:hover{border-color:rgba(0,0,0,.34);background:rgba(0,0,0,.04)}
@@ -1377,8 +1389,8 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 [data-theme="light"] .wz-rev-t{color:#0f172a}
 /* ★金の字（#f5c842）は白に置くとコントラスト 1.65 でほぼ見えない。
      ライトでは必ず濃い側（--pv-gold-ink と同じ #8a6e00）へ落とす。 */
-[data-theme="light"] .wz-rev-edit{color:#8a6e00;border-color:rgba(180,140,20,.4)}
-[data-theme="light"] .wz-rev-edit:hover{background:rgba(245,200,66,.16);border-color:rgba(180,140,20,.6)}
+[data-theme="light"] .wz-rev-edit{color:var(--pv-accent-ink);border-color:color-mix(in srgb,var(--pv-accent) 40%,transparent)}
+[data-theme="light"] .wz-rev-edit:hover{background:color-mix(in srgb,var(--pv-accent) 16%,transparent);border-color:color-mix(in srgb,var(--pv-accent) 60%,transparent)}
 [data-theme="light"] .wz-rev-row{border-bottom-color:rgba(0,0,0,.07)}
 [data-theme="light"] .wz-rev-src{color:#64748b}
 [data-theme="light"] .wz-rev-src.is-ai{color:#047857}
@@ -1488,8 +1500,8 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
   line-height:1.45;outline:none;font-family:'Inter','Noto Sans JP',sans-serif;
   transition:border-color .2s,background .2s}
 .air-q::placeholder{color:#6b7d93}
-.air-q:focus{border-color:rgba(245,200,66,.4);background:rgba(255,255,255,.07)}
-.air-q:focus-visible{outline:2px solid rgba(245,200,66,.35);outline-offset:1px}
+.air-q:focus{border-color:color-mix(in srgb,var(--pv-accent) 40%,transparent);background:rgba(255,255,255,.07)}
+.air-q:focus-visible{outline:2px solid color-mix(in srgb,var(--pv-accent) 35%,transparent);outline-offset:1px}
 /* iOS は 16px 未満の入力欄で勝手に拡大する。.form-input と同じ扱いに揃える。 */
 @media (pointer:coarse),(max-width:820px){.air-q{font-size:16px}}
 .air-hits{display:flex;flex-direction:column;gap:4px;margin:0 0 8px;
@@ -1500,7 +1512,7 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
   background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
   transition:background .18s,border-color .18s,transform .12s cubic-bezier(.16,1,.3,1)}
 .air-hit:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2)}
-.air-hit:focus-visible{outline:2px solid rgba(245,200,66,.55);outline-offset:1px}
+.air-hit:focus-visible{outline:2px solid color-mix(in srgb,var(--pv-accent) 55%,transparent);outline-offset:1px}
 .air-hit:active{transform:translateY(1px)}
 .air-hit .ah-n{flex:1 1 auto;font-size:.86rem;font-weight:600;line-height:1.4;
   overflow-wrap:anywhere}
@@ -1512,19 +1524,19 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
    ★これがあるので、検索が当たらなくても・**違う会社が1件だけ当たっても**、提出は止まらない。
    候補の下に続くときだけ少し離す（候補と地続きに見えると、もう1つの候補だと読まれる）。 */
 .air-hit + .air-hit--other{margin-top:4px}
-.air-hit--other{border-color:rgba(245,200,66,.34);background:rgba(245,200,66,.08)}
-.air-hit--other:hover{background:rgba(245,200,66,.15);border-color:rgba(245,200,66,.5)}
-.air-hit--other .ah-g{color:#f5c842;white-space:normal}
+.air-hit--other{border-color:color-mix(in srgb,var(--pv-accent) 34%,transparent);background:color-mix(in srgb,var(--pv-accent) 8%,transparent)}
+.air-hit--other:hover{background:color-mix(in srgb,var(--pv-accent) 15%,transparent);border-color:color-mix(in srgb,var(--pv-accent) 50%,transparent)}
+.air-hit--other .ah-g{color:var(--pv-accent-ink);white-space:normal}
 .air-qn{margin:0 0 6px;font-size:.72rem;line-height:1.5;color:#8b97a6}
 .air-qn:empty{display:none}
 [data-theme="light"] .air-q{background:rgba(15,23,42,.03);border-color:rgba(15,23,42,.12);color:#0f172a}
 [data-theme="light"] .air-q::placeholder{color:#94a3b8}
-[data-theme="light"] .air-q:focus{border-color:rgba(200,149,0,.5);background:rgba(15,23,42,.05)}
+[data-theme="light"] .air-q:focus{border-color:color-mix(in srgb,var(--pv-accent) 50%,transparent);background:rgba(15,23,42,.05)}
 [data-theme="light"] .air-hit{color:#0f172a;background:rgba(15,23,42,.03);border-color:rgba(15,23,42,.12)}
 [data-theme="light"] .air-hit:hover{background:rgba(15,23,42,.06);border-color:rgba(15,23,42,.24)}
 [data-theme="light"] .air-hit .ah-g{color:#64748b}
-[data-theme="light"] .air-hit--other{border-color:rgba(200,149,0,.4);background:rgba(200,149,0,.09)}
-[data-theme="light"] .air-hit--other:hover{background:rgba(200,149,0,.16);border-color:rgba(200,149,0,.6)}
-[data-theme="light"] .air-hit--other .ah-g{color:#8a6600}
+[data-theme="light"] .air-hit--other{border-color:color-mix(in srgb,var(--pv-accent) 40%,transparent);background:color-mix(in srgb,var(--pv-accent) 9%,transparent)}
+[data-theme="light"] .air-hit--other:hover{background:color-mix(in srgb,var(--pv-accent) 16%,transparent);border-color:color-mix(in srgb,var(--pv-accent) 60%,transparent)}
+[data-theme="light"] .air-hit--other .ah-g{color:var(--pv-accent-ink)}
 [data-theme="light"] .air-qn{color:#64748b}
 @media (prefers-reduced-motion:reduce){.air-q,.air-hit{transition:none}}

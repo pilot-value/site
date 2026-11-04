@@ -174,6 +174,17 @@
     return (num(r.union_pay) || 0) * fx;
   }
 
+  /* ── 明細とは別に受け取ったパーディアム（円）──────────────────
+     2026-11-04（オーナー決定）。組合の分とまったく同じ作り ── 総支給に印字されない
+     ＝本人が書いた総支給の中に無いので、年収にも円ぜんぶにも足す。
+     ★ 判定を書き写さない。サーバが付けてくる perdiem_outside_gross を読む
+       （db/pay-reports.sql の pv_perdiem_outside_gross が唯一の判定）。 */
+  function perdiemOutsideJpy(r) {
+    var fx = num(r.fx_to_jpy);
+    if (fx == null || !r.perdiem_outside_gross) return 0;
+    return (num(r.per_diem) || 0) * fx;
+  }
+
   /* ★不就労減額（欠勤控除・遅刻早退など）の合計（円）。
      明細に印字されている総支給は、この減額を**すでに引いたあとの額**。
      いっぽう下の vals（基本給・変動給・その他…）は引く**前**の額なので、
@@ -211,8 +222,9 @@
        実際は「まだ読み取れていない」。
 
      戻り: { gross, unionOut, net, deduct, months, monthsNet, skipped, total, from, to, series }
-       gross          … 円。総支給が分かる月の合計（＋総支給の外で組合が払った分）
+       gross          … 円。総支給が分かる月の合計（＋総支給の外で組合が払った分・明細とは別のパーディアム）
        unionOut       … 円。そのうち組合が総支給の外で払った分（gross の内数）
+       perdiemOut     … 円。そのうち明細とは別に受け取ったパーディアム（gross の内数・2026-11-04）
        net / deduct   … 円。手取りも書いてある月だけの合計（deduct は同じ月の額面 − 手取り）
        months         … 額面を足せた枚数 / monthsNet … 手取りを足せた枚数
        total          … 手元にある全枚数 / skipped … 総支給が出せず落とした枚数
@@ -222,7 +234,7 @@
     var list = (rows || []).slice().sort(function (a, b) {
       return (a.period_year * 12 + a.period_month) - (b.period_year * 12 + b.period_month);
     });
-    var counted = [], series = [], skipped = 0, gross = 0, unionOut = 0;
+    var counted = [], series = [], skipped = 0, gross = 0, unionOut = 0, perdiemOut = 0;
     var netMonths = 0, net = 0, netGross = 0;   // 手取りを書いた月だけの合計
 
     list.forEach(function (r) {
@@ -234,7 +246,10 @@
          足さないと、乗員代表の累計が受け取った額の半分で止まる（本番で1件）。 */
       var uo = unionOutsideJpy(r);
       unionOut += uo;
-      gross += g * fx + uo;
+      /* ★明細とは別に受け取ったパーディアムも同じ（2026-11-04）。足すのは額面の合計だけ。 */
+      var po = perdiemOutsideJpy(r);
+      perdiemOut += po;
+      gross += g * fx + uo + po;
       /* ★控除の分母（netGross）には足さない。組合の分は会社の明細の外にあり、
          そこから引かれた控除が1円も無い。足すと画面の
          「額面 − 手取り ＝ 控除」が組合の額ぶんズレる。 */
@@ -246,6 +261,7 @@
     return {
       gross:     counted.length ? gross : null,
       unionOut:  unionOut,                            // 上の gross に含まれている（内数）
+      perdiemOut: perdiemOut,                         // 同じく内数（明細とは別のパーディアム）
       net:       netMonths ? net : null,
       deduct:    netMonths ? netGross - net : null,   // 同じ月の額面から引く＝必ず一致する
       months:    counted.length,
@@ -330,7 +346,8 @@
     var noBreakdown = false;
     var gross = num(r.gross_monthly);
     // 総支給の外で組合が払った分（円）。上の union に含まれている＝円ぜんぶにも足す
-    var outsideGross = unionOutsideJpy(r);
+    // ★明細とは別に受け取ったパーディアム（2026-11-04）も同じ。上の perdiem に含まれている。
+    var outsideGross = unionOutsideJpy(r) + perdiemOutsideJpy(r);
     if (gross != null) {
       /* ★2026-08-26、総支給と内訳が両立するようになった（フォームの作り直し）。
          partial は「総支給がある」ではなく **「基本給が分かっていない」** の意味。
@@ -586,7 +603,7 @@
     SEG: SEG, LINE: LINE, COMP: COMP,
     esc: esc, num: num, fmt: fmt,
     calc: calc, metricOf: metricOf, segments: segments,
-    grossOrig: grossOrig, unionOutsideJpy: unionOutsideJpy,
+    grossOrig: grossOrig, unionOutsideJpy: unionOutsideJpy, perdiemOutsideJpy: perdiemOutsideJpy,
     absenceJpy: absenceJpy, totals: totals,
     donut: donut, donutFromSegs: donutFromSegs, compSegs: compSegs,
     chart: chart, widthOf: widthOf

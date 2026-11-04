@@ -740,7 +740,7 @@ SQL は変更不要（`submit_pay_report` が版をそのまま往復させて�
    関数の計算しか見ていないのでこれを捕まえられない。
    ★**検証用の行は1件も残らない** ── 最後にわざと例外を投げてトランザクションごと
    巻き戻している。REAL PAY・DEEP PAY・公開集計に1件も混ざらない。
-   ⚠️ **赤い枠で出るのが正常**（その中に18項目の結果表が入っている）。
+   ⚠️ **赤い枠で出るのが正常**（その中に19項目の結果表が入っている）。
    ⚠️ 運営の口座（`info@pilot-value.com`）を借りて保存を試すので、**その口座が要る**。
 
 ⚠️ `pv_pay_items_shape()` は**画面の `payItemsShape()` と同じ物を返す**。片方だけ直すと、
@@ -1120,6 +1120,45 @@ Committee 種別・Union 内の役職名・Negotiation / Safety の活動内容�
   `pay_items` の行数は `variable` / `other` の配列だけを数えていて、`union` は
   **オブジェクト**なので数にも入らない）。**Edge Function の Deploy は不要。**
 - 明細読み取り（[payslip.js](payslip.js)）は組合の欄に**何も入れない**（`KIND_FIELD` を増やしていない）。
+
+### 明細とは別に受け取るパーディアム（per_diem_src・2026-11-04 オーナー決定）
+
+組合の「総支給の外」と**まったく同じ作り**。パーディアムを明細とは別に（現金・別の振込で）
+受け取る会社では、その額が明細の総支給に印字されない＝本人が書いた総支給の中に無い。
+足さないと年収がパーディアムのぶん低く出る。
+
+- **画面**：パーディアムの欄に額を入れたときだけ、受け取り方の選択（`#f-perdiem-src`）が出る。
+  既定は「明細の総支給に含まれている」（`included`）。
+  `pdSync()` は「明細とは別に受け取っている」かつ額 > 0 のときだけ `pay_items.per_diem_src = 'outside'` を書く。
+  **値は `'outside'` の1つだけ。キーが無い＝含まれている**（2026-11-04 より前の行は全部これ＝1円も動かない）。
+  ⚠️ **この印は「中身」に数えない** ── `pdSync()` の出す条件にも、サーバの「空の殻」の判定にも入れない。
+  印だけの `pay_items` は空になり（画面）・null に潰れ（サーバ）、**足さない**。
+  画面の `perdiemOutsideGross()` も `#f-payitems` が空なら 0 を返す ＝ 画面とサーバで同じ年収。
+- **年収**：`annualTotal()` ＝（総支給 ＋ 組合の外の分 ＋ 総支給があるときだけ明細外のパーディアム）× 12 ＋ 賞与 ＋ 利益分配。
+  サーバは `pv_annual_total` の**22本目** `p_perdiem_outside_gross`（総支給の枝にだけ効く・既定 false）。
+  判定は `pv_perdiem_outside_gross(pay_items)` の**1か所だけ**。内訳の枝（総支給なし）は今までどおりパーディアムを1回足す。
+- **総支給との突き合わせ**（`monthlyDetail()`）には明細外のパーディアムを**入れない**（入れると「超えています」が嘘で出る）。
+- **写し**（どれも同じ関数を呼ぶ。1つだけ直さない）：
+  `pv_validate_pay_payload`・`submit_pay_report`（[db/pay-reports.sql](../db/pay-reports.sql)）／
+  `my_pay_reports` の `perdiem_outside_gross`（真偽値だけ。`pay_items` は返さない）／
+  `pv_pending_usd`・`pv_pending_detail`・`pv_pay_rows` の shelf の `cash_m`（[db/pay-rows.sql](../db/pay-rows.sql)）／
+  `pv_deep_pay`・`pv_company_comp` の `cash_m`（[db/deep-pay.sql](../db/deep-pay.sql)・2つは1文字も違えない）／
+  [pay-viz.js](../pay-viz.js) の `perdiemOutsideJpy()`（円ぜんぶ・累計の額面に足す。控除の分母 `netGross` には足さない）／
+  [my-value.js](../my-value.js)（「明細とは別に受け取ったパーディアム」の行と累計の内数の札）／
+  [pay-wizard.js](../pay-wizard.js) の `perdiemOutside()`（確認画面の shelf）。
+- ⚠️ **`pv_block_hour_usd` には足さない**（パーディアムは今までどおり分子に残る）。
+- ⚠️ 白リストの組み直し（`jsonb_build_object`）に `'per_diem_src'` を書き忘れると、印が保存の瞬間に消える
+  （年収がパーディアムのぶん低いまま・画面は普通に動く）。`db/pay-reports.roundtrip.sql` の1項目がこれを見ている。
+- ⚠️ 過去の行は1行も書き換えない（修復 SQL は無い。キーが無い行は「含まれている」のまま）。
+- **貼る順**：`db/pay-reports.sql` → `db/pay-rows.sql` → `db/deep-pay.sql` → `db/pay-reports.verify.sql`（17行 ✅）
+  → `db/pay-reports.roundtrip.sql`（19項目 ✅）。**SQL が先・push が後**
+  （21本で呼んでいる古い呼び出しは22本目の既定 false で新しい版に当たるので、貼る途中でも壊れない。
+  `db/deep-pay.sql` は `pv_perdiem_outside_gross` が無ければ頭の関所で止まる）。
+  ⚠️ `db/repair-union-gross-*.sql`（使い捨て）は「21引数」を確かめているので、もう流さない。
+- 見張り：`db/test-pay-reports.mjs`（真理表・22本・保存の通し・壊す証明）／`db/test-pay-rows.mjs` の ▼12-k
+  （預かりと本棚が1円まで同じ）／`db/test-company-comp.mjs`（DEEP PAY と同じ答え）／
+  `db/test-pay-preview.mjs`（写し）／`db/test-value-breakdown.mjs` の ④-b2（円が消えない）／
+  `db/test-form-contract.mjs` の ⑧-b（画面の式）。
 
 ### 管理・マネジメントの手当（2026-08-26 その6）
 
@@ -1868,9 +1907,9 @@ X から来た人たち）。「閉じたから減った」と言い切れる数
 `node db/test-payslip-extras.mjs`（隠し欄 → payload）／`node assert-admin-notify.mjs`（メール）／
 `node db/test-value-breakdown.mjs`（支給構成の切れ）。
 [db/pay-reports.verify.sql](db/pay-reports.verify.sql) は**オーナーが Supabase に貼る検算**
-（16行が全部 ✅ になる。手元では PGlite に流して確かめてある）。
+（17行が全部 ✅ になる。手元では PGlite に流して確かめてある）。
 ★列や鍵を足した回は [db/pay-reports.roundtrip.sql](db/pay-reports.roundtrip.sql) も貼る
-（保存 → 再取得 → 表示 を実際に通す16項目。**行は1件も残らない**）。どちらも `db/test-pay-reports.mjs`
+（保存 → 再取得 → 表示 を実際に通す19項目。**行は1件も残らない**）。どちらも `db/test-pay-reports.mjs`
 が毎回流しているので、**確認だけ古い**にはならない。
 絵は `node shot-pay.mjs`（3a＝開いた直後＝基本給と4つの「＋」だけ / 3＝全部開いた状態 /
 3b＝超えたときの注意 / 3c＝教官の節を書いた状態 / 3d＝教官を外して消えた状態 /

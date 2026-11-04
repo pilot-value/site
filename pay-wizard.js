@@ -175,6 +175,11 @@ function unionOutside(items) {
   var u = items && items.union;
   return !!(u && u.extra === 'yes' && u.source === 'union');
 }
+/* pv_perdiem_outside_gross ── パーディアムを明細とは別に受け取ったか（2026-11-04）。
+   'outside' のときだけ真。キーが無い・ほかの値は「総支給の中」。 */
+function perdiemOutside(items) {
+  return !!(items && items.per_diem_src === 'outside');
+}
 
 /* 「中身のある内訳か」── db/pay-reports.sql の**空の殻の判定**と同じ条件。
    行も「該当なし」も役割モジュールも無い pay_items は、サーバが保存の時点で
@@ -219,7 +224,10 @@ function shelf(p) {
   var cash;
   if (gross != null && gross !== 0) {
     cash = Math.max(gross - n0(p.bonus_month), 0)
-         + (unionOutside(items) ? n0(p.union_pay) : 0);
+         + (unionOutside(items) ? n0(p.union_pay) : 0)
+         /* ★明細とは別に受け取ったパーディアム（2026-11-04）。SQL の shelf と同じ1行。
+              items は上で「空の殻」を潰したあと＝印だけの内訳では足さない（サーバと同じ）。 */
+         + (perdiemOutside(items) ? n0(p.per_diem) : 0);
   } else {
     cash = n0(p.base_pay) + n0(p.guarantee_pay) + n0(p.hourly_rate) * hours
          + n0(p.per_diem) + house + n0(p.transport) + n0(p.command_pay)
@@ -1065,7 +1073,7 @@ var API = {
   compBar: function (p) { return barEl(reviewComp(p)); },
   /* db/test-pay-preview.mjs が呼ぶ純関数（DOM を1つも触らない）。 */
   preview: { sig2: sig2, bandGrid: bandGrid, band: band, shelf: shelf, row: publicRow,
-             unionOutside: unionOutside, hasItems: hasItems }
+             unionOutside: unionOutside, perdiemOutside: perdiemOutside, hasItems: hasItems }
 };
 
 if (typeof window !== 'undefined') window.PVPayWizard = API;
@@ -1073,7 +1081,8 @@ if (typeof window !== 'undefined') window.PVPayWizard = API;
 /* Node（検査）からも同じ関数を呼べるようにする。ブラウザでは何も起きない。 */
 if (typeof module === 'object' && module.exports) {
   module.exports = { sig2: sig2, bandGrid: bandGrid, band: band, shelf: shelf,
-                     row: publicRow, unionOutside: unionOutside, hasItems: hasItems,
+                     row: publicRow, unionOutside: unionOutside, perdiemOutside: perdiemOutside,
+                     hasItems: hasItems,
                      /* 帯に出る区分の全部（固定順＋その他・未分類＋賞与）。
                         db/test-pay-preview.mjs の C) が、この並びぶんの色が
                         2つの CSS に同じ値であることを見る。 */

@@ -161,6 +161,12 @@ begin
   if to_regprocedure('public.pv_proof_blocked()') is null then
     raise exception '先に db/pay-rows.sql を実行してください（pv_proof_blocked が無い）';
   end if;
+  /* ★2026-11-04。下の cash_m（pv_deep_pay と pv_company_comp）が pv_perdiem_outside_gross
+     （db/pay-reports.sql 4章）を呼ぶ。どちらも plpgsql なので、無いまま貼れても
+     **呼ばれた瞬間に**会社ページの支給構成がエラーになる。ここで先に止める。 */
+  if to_regprocedure('public.pv_perdiem_outside_gross(jsonb)') is null then
+    raise exception '先に db/pay-reports.sql を実行してください（pv_perdiem_outside_gross が無い）';
+  end if;
 end
 $guard$;
 
@@ -1018,6 +1024,12 @@ begin
                         pv_annual_total と同じ1行。 */
                    + case when public.pv_union_outside_gross(r.pay_items)
                           then coalesce(r.union_pay, 0) else 0 end
+                   /* ★明細とは別に受け取ったパーディアムも総支給の外（2026-11-04）。
+                      下の a_pd に数えるので、足さないと同じ理由で 1.02 倍の関所に落ちる。
+                      pv_annual_total の p_perdiem_outside_gross と同じ1行。
+                      ★★ pv_company_comp（4章）にも1文字も違わない同じ行がある。★★ */
+                   + case when public.pv_perdiem_outside_gross(r.pay_items)
+                          then coalesce(r.per_diem, 0) else 0 end
                    /* ★不就労減額（欠勤控除など）も足し戻す（2026-09-12）。
                       印字の総支給は減額を**引いたあと**、下の9区分は引く**前**。
                       足さないと分母だけ小さく、同じ理由で 1.02 倍の関所に
@@ -2192,6 +2204,8 @@ begin
                 then greatest(r.gross_monthly - coalesce(r.bonus_month, 0), 0)
                    + case when public.pv_union_outside_gross(r.pay_items)
                           then coalesce(r.union_pay, 0) else 0 end
+                   + case when public.pv_perdiem_outside_gross(r.pay_items)
+                          then coalesce(r.per_diem, 0) else 0 end
                    + public.pv_absence_total(r.pay_items)
                 else coalesce(r.base_pay, 0)
                    + coalesce(r.guarantee_pay, 0)
