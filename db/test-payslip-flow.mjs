@@ -148,7 +148,7 @@ console.log('\n══ ① 選んだらすぐ読み取り・確認の画面は無
 {
   const { page, seen, errs } = await open(URL_JA, () => ({ body: FAKE, delay: 1500 }));
   const consent = await page.$eval('#ps-consent', (n) => ({ h: n.offsetHeight, t: n.textContent }));
-  ok(consent.h > 0 && /Anthropic/.test(consent.t) && /マイナンバー/.test(consent.t),
+  ok(consent.h > 0 && /回答・保存の対象にせず/.test(consent.t) && /マイナンバー/.test(consent.t),
      '★選ぶ前に、送る先と扱いの説明（同意）が見えている');
   await upload(page, 'payslip-jp-major.png');
   await page.waitForSelector('.ps-state.is-read', { timeout: 15000 });
@@ -486,7 +486,7 @@ console.log('\n══ ⑤ 読み取りの途中でやめる → あとから返�
 console.log('\n══ 英語のページも同じ流れ');
 {
   const { page, seen } = await open(URL_EN, { body: FAKE });
-  ok(/Anthropic/.test(await page.$eval('#ps-consent', (n) => n.textContent)), '英語：選ぶ前に説明と同意が見えている');
+  ok(/not part of what is returned or stored/.test(await page.$eval('#ps-consent', (n) => n.textContent)), '英語：選ぶ前に説明と同意が見えている');
   await upload(page, 'payslip-jp-major.png');
   await page.waitForSelector('.ps-res', { timeout: 20000 });
   ok(seen.bodies[0] && seen.bodies[0].lang === 'en', '英語のページは lang=en で送る');
