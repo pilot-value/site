@@ -185,7 +185,7 @@ console.log('\n市場価値レポート（my-value）');
    下の CSS を見ている検査は「空を相手に通った」のではないと言える。 */
 for (const f of ['pay-report.html', 'en/pay-report.html']) {
   const s = read(f);
-  ok(/<link rel="stylesheet" href="(\.\.\/)?pay-report\.css">/.test(s),
+  ok(/<link rel="stylesheet" href="(\.\.\/)?pay-report\.css(\?v=[0-9a-f]+)?">/.test(s),   // 2026-11-04 から指紋（?v=）付き
      `${f}: ★pay-report.css を読み込んでいる`);
   ok(s.includes('.pay-detail>summary{') && s.includes('.form-label{') && s.length > 120000,
      `${f}: ★CSS が検査の材料に入っている（空を相手に通っていない）`, `${s.length} 文字`);

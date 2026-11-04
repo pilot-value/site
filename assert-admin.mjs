@@ -255,11 +255,12 @@ console.log('\n════ D) admin-queue.js（承認・追加）のソース �
          ['roadmap.js の「取り消す」', read('roadmap.js').includes('取り消す') ? '取り消す' : null, val(tJA, 'revoke')],
          ['pv-proof-offer.js close（日本語）', proofT[0] || null, val(tJA, 'close')],
          ['admin.html 会員の表が空のとき', emptyU('admin.html'), val(tJA, 'noUsers')],
-         ['actual-pay.js 投稿時期の段 0〜3（日本語）', JSON.stringify((apAge[0] || []).slice(0, 4)), JSON.stringify(listOf(tJA, 'age'))],
+         /* ★2026-11-04、REAL PAY の投稿時期に 3日・7日・14日以内を足して8段にした（1ヶ月以内は段3）。管理画面の4つは段3〜6と同じ字。 */
+         ['actual-pay.js 投稿時期の段 3〜6（日本語）', JSON.stringify((apAge[0] || []).slice(3, 7)), JSON.stringify(listOf(tJA, 'age'))],
          ['admin.html POS_LABEL', JSON.stringify(posOf('admin.html')), JSON.stringify(mapOf(tJA, 'pos'))]],
     en: [['pv-proof-offer.js close（英語）', proofT[1] || null, val(tEN, 'close')],
          ['en/admin.html 会員の表が空のとき', emptyU('en/admin.html'), val(tEN, 'noUsers')],
-         ['actual-pay.js 投稿時期の段 0〜3（英語）', JSON.stringify((apAge[1] || []).slice(0, 4)), JSON.stringify(listOf(tEN, 'age'))],
+         ['actual-pay.js 投稿時期の段 3〜6（英語）', JSON.stringify((apAge[1] || []).slice(3, 7)), JSON.stringify(listOf(tEN, 'age'))],
          ['en/admin.html POS_LABEL', JSON.stringify(posOf('en/admin.html')), JSON.stringify(mapOf(tEN, 'pos'))]]
   };
   for (const lang of ['ja', 'en']) {
