@@ -475,6 +475,20 @@ console.log('\n④-c 検算B は検算A と独立に効く');
   eq(c.net_diff, 300000, 'いくらずれたか');
 }
 
+console.log('\n④-c2 控除合計と手取りの取り違え（足し算は合ってしまう・2026-11-04）');
+{
+  const sw = slip({ earnings: JP, gross_total: GROSS, deductions_total: NET, net_pay: DEDUCT });
+  const c = reconcile(sw);
+  eq(c.net, 'ok', '入れ替えても 支給 − 控除 ＝ 手取り は成り立つ（検算B では捕まらない）');
+  eq(c.order, 'suspect', '★控除合計が手取りより大きければ取り違えを疑う');
+  eq(applyChecks(sw, c).confidence, 'low', '★confidence も落とす（黙って外さない）');
+  eq(applyChecks(sw, c).net_pay, DEDUCT, '数字は入れ替えない（どちらが正しいかはこちらで決めない）');
+  eq(reconcile(slip({ earnings: JP, gross_total: GROSS, deductions_total: DEDUCT, net_pay: NET })).order,
+     'ok', 'ふつうの明細（控除 < 手取り）は疑わない');
+  eq(reconcile(slip({ earnings: JP, gross_total: GROSS, deductions_total: DEDUCT, net_pay: null })).order,
+     'unknown', '★手取りが読めなければ unknown（失敗ではない）');
+}
+
 console.log('\n④-d 許容差の境界（1通貨単位 か 0.5% の大きいほう）');
 eq(payTolerance(1045000), 5225, 'JPY 104.5万 → 0.5% ＝ 5,225円');
 eq(payTolerance(100), 1, '小さい額は 1通貨単位が下限');

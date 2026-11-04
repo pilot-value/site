@@ -31,11 +31,14 @@
     ja: {
       /* ★2026-11-04 作り直し。黒塗り・送る枠・確認の画面の文言はまとめて外した。
            待つあいだに出すのは**実際の状態だけ**（進み具合の％は出さない）。 */
-      prep: '画像を準備しています…',
-      readingNow: '明細を読み取っています（ふつう15秒ほど）',
-      readWhile: 'その間に、下の質問（会社・職位・機材）へ進めます。読めたら金額の欄に自動で入ります。<b>あなたが入れた欄は書き換えません。</b>',
-      cancelRead: 'やめて手で入力する',
-      canceled: '読み取りをやめました。<b>下のフォームに手で入力できます。</b>',
+      prep: '画像を整えています',
+      readingNow: '明細を読み取っています',
+      stepPrep: '画像を整える',
+      stepRead: '金額を読む',
+      stepFill: 'フォームに入れる',
+      /* ★2026-11-04（その2）。経過の秒数は本物（1秒ごとに数える）。「ふつう◯秒」の約束は書かない。 */
+      failT: '読み取れませんでした',
+      resultTitleN: function (n) { return '読み取りました · ' + n + '項目を入れました'; },
       retry: 'もう一度読む',
       choose: '別の明細を選ぶ',
       manual: '手で入力する',
@@ -53,20 +56,22 @@
          送って「明細として読み取れません」で終わっていた＝本人には原因が分からない。 */
       pdfXfa: 'この PDF は特殊な形式（XFA フォーム）で、この画面では中身を描き出せません。開いた画面のスクリーンショットを撮って落としてください。',
       pdfBlank: 'この PDF の中身を描き出せませんでした（白紙になります）。開いた画面のスクリーンショットを撮って落としてください。',
-      errNet: '送れませんでした。通信を確かめて「もう一度読む」を押してください。<b>下のフォームに手で入力することもできます。</b>',
-      /* ★読み取りに失敗したときは、必ず「このまま手で入力できます」で終える。
+      errNet: '通信がつながりませんでした。',
+      /* ★2026-11-04（その3）文は短く1つだけ（題が「読み取れませんでした」、道は下のボタン）。
+           ★それでも行き止まりにしない ──「手で入力する」のボタンは、どの失敗でも必ず出る（showFail）。
+         ★（旧）読み取りに失敗したときは、必ず「このまま手で入力できます」で終える。
          読み取りを始めた時点で入力フォームは開いているので、文章と画面が一致する。
          ここで行き止まりにすると、いちばん濃い見込み客がそのまま離脱する。 */
-      errRead: '明細として読み取れませんでした。<b>このまま手で入力できます</b>（下のフォーム）。もう一度読むか、明るいところで明細全体が入るように撮り直してください。',
-      errNotSlip: '給与明細に見えませんでした。<b>このまま手で入力できます</b>（下のフォーム）。別の明細を選ぶこともできます。',
-      errBusy: 'いま読み取りが混み合っていて、返事が来ませんでした。少し待って「もう一度読む」を押してください。<b>下のフォームに手で入力することもできます。</b>',
-      errPrep: 'この明細を送れる形に整えられませんでした。別の明細を選ぶか、<b>手で入力してください。</b>',
-      errApply: '読み取りはできましたが、入力欄に入れられませんでした。お手数ですが<b>手で入力してください。</b>',
-      errQuota: '今日の自動読み取りの上限に達しました。<b>このまま手で入力できます</b>（下のフォームを開きました）。自動読み取りは明日また使えます。',
+      errRead: '明るいところで、明細全体が入るように撮り直すと読めることがあります。',
+      errNotSlip: '給与明細に見えませんでした。',
+      errBusy: '混み合っていて、返事が来ませんでした。少し待ってもう一度どうぞ。',
+      errPrep: 'この明細を送れる形に整えられませんでした。',
+      errApply: '読めましたが、入力欄に入れられませんでした。',
+      errQuota: '今日の自動読み取りの上限に達しました。明日また使えます。',
       /* ★全体の天井に当たったとき。本人のせいではないので言い方を変える。
            サーバ側で本人の回数は戻してあるので、残り回数の一文は本当のこと。 */
-      errQuotaGlobal: 'いま自動読み取りが混み合っていて、今日はこれ以上お受けできません。<b>このまま手で入力できます</b>（下のフォームを開きました）。あなたの残り回数は減っていません。',
-      errServer: 'いま自動読み取りが使えません。<b>このまま手で入力できます</b>（下のフォームを開きました）。',
+      errQuotaGlobal: '混み合っていて、今日はこれ以上お受けできません。あなたの残り回数は減っていません。',
+      errServer: 'いま自動読み取りが使えません。',
       /* ★食い違いの一覧（2026-09-12 オーナー決定6）。本人が打った値は上書きしない。 */
       cfTitle: 'あなたの入力と、明細の値が違うところ',
       cfLead: '<b>どれも書き換えていません。</b>明細のほうが正しいものだけ押してください。',
@@ -122,6 +127,7 @@
       },
       chkMoney: '※ 小数点とけた区切りの見分けがつきませんでした。金額が1000倍ずれていないか、明細と見比べてください。',
       chkScale: '※ 読み取った支給合計が、月の金額としては小さすぎます。小数点を読み違えている可能性が高いので、必ず明細と見比べてください。',
+      chkSwap: '※ 読み取った<b>控除合計</b>が<b>差引支給額（手取り）</b>より大きくなっています。2つを取り違えている可能性があるので、手取りの欄を明細と見比べてください。',
       chkNet: function (d) {
         return '※ <b>支給合計 − 控除合計</b>と、読み取った<b>差引支給額</b>が合いません（差 ' + d +
                '）。どちらかを読み違えています。手取りの欄を明細と見比べてください。';
@@ -163,11 +169,13 @@
       ahaNote: '※ 会社×職位の公開レンジ（当サイトの推計）との比較です。<b>機材・経験年数・契約形態は入っていません。</b>無税の国は総額が手取りに近いので、税引前どうしで並べたこの表より、実際の差は大きくなります。',
     },
     en: {
-      prep: 'Preparing the image…',
-      readingNow: 'Reading your payslip (usually about 15 seconds)',
-      readWhile: 'Meanwhile you can go on to the questions below (airline, position, aircraft). The amounts will fill in by themselves once it is read. <b>Nothing you have typed will be overwritten.</b>',
-      cancelRead: 'Stop and type it in',
-      canceled: 'Reading stopped. <b>You can type it in below.</b>',
+      prep: 'Preparing the image',
+      readingNow: 'Reading your payslip',
+      stepPrep: 'Preparing the image',
+      stepRead: 'Reading the amounts',
+      stepFill: 'Filling in the form',
+      failT: 'Could not read it',
+      resultTitleN: function (n) { return 'Read · ' + (n === 1 ? '1 field filled in' : n + ' fields filled in'); },
       retry: 'Read again',
       choose: 'Choose another payslip',
       manual: 'Type it in',
@@ -184,18 +192,18 @@
       /* ★Same two cases as above: the file opens but nothing can be drawn from it. */
       pdfXfa: 'This PDF uses a special form format (XFA) that cannot be drawn here. Open it and drop a screenshot instead.',
       pdfBlank: 'Nothing could be drawn from this PDF — it comes out blank. Open it and drop a screenshot instead.',
-      errNet: 'Could not send it. Check your connection and press “Read again”. <b>You can also type it in below.</b>',
+      errNet: 'Could not connect.',
       /* ★A failed read must always end with “you can type it in”. The form is already
          open once reading starts, so the words match what is on screen. A dead end
          here loses the most motivated person on the page. */
-      errRead: 'The payslip could not be read. <b>You can type it in below.</b> Read it again, or retake the photo in good light with the whole slip in frame.',
-      errNotSlip: 'That does not look like a payslip. <b>You can type it in below</b>, or choose another payslip.',
-      errBusy: 'Reading is busy right now and no answer came back. Wait a moment and press “Read again”. <b>You can also type it in below.</b>',
-      errPrep: 'This payslip could not be prepared for sending. Choose another one, or <b>type it in.</b>',
-      errApply: 'It was read, but the figures could not be placed in the form. Sorry — <b>please type them in.</b>',
-      errQuota: 'You have used today’s automatic reads. <b>You can type it in below</b> — the form is now open. Automatic reading is available again tomorrow.',
-      errQuotaGlobal: 'Automatic reading is busy right now and we cannot take any more today. <b>You can type it in below</b> — the form is now open. This did not use one of your reads.',
-      errServer: 'Automatic reading is unavailable right now. <b>You can type it in below</b> — the form is now open.',
+      errRead: 'Retaking the photo in good light, with the whole slip in frame, often helps.',
+      errNotSlip: 'That does not look like a payslip.',
+      errBusy: 'Reading is busy and no answer came back. Wait a moment and try again.',
+      errPrep: 'This payslip could not be prepared for sending.',
+      errApply: 'It was read, but the figures could not be placed in the form.',
+      errQuota: 'You have used today’s automatic reads. They are available again tomorrow.',
+      errQuotaGlobal: 'Automatic reading is busy and we cannot take any more today. This did not use one of your reads.',
+      errServer: 'Automatic reading is unavailable right now.',
       /* ★The disagreement list (owner, 2026-09-12, decision 6). What you typed is never overwritten. */
       cfTitle: 'Where your entry and the payslip differ',
       cfLead: '<b>Nothing here was changed.</b> Press only the ones where the payslip is right.',
@@ -248,6 +256,7 @@
       },
       chkMoney: '※ We could not tell the decimal point from the thousands separator. Please check the amounts — they may be off by a factor of 1,000.',
       chkScale: '※ The gross total we read is too small for a monthly figure. A decimal point was probably misread — please compare every amount with your payslip.',
+      chkSwap: '※ The <b>total deductions</b> we read are larger than the <b>net pay (take-home)</b>. The two may have been swapped — please check the net pay field against your payslip.',
       chkNet: function (d) {
         return '※ <b>Gross − deductions</b> does not match the <b>net pay</b> we read (off by ' + d +
                '). One of them was misread. Please check the take-home figure against your payslip.';
@@ -288,11 +297,13 @@
       ahaTaxFree: 'tax-free',
       ahaNote: '※ Compared against our published range for that airline and seat. <b>It does not account for fleet, years of experience or contract type.</b> In tax-free countries the gross figure is close to take-home, so the real gap is wider than this pre-tax line-up shows.',
     }, /*PV-MSG:es*/ es: {
-      prep: 'Preparando la imagen…',
-      readingNow: 'Leyendo tu recibo de nómina (normalmente unos 15 segundos)',
-      readWhile: 'Mientras tanto, puedes seguir con las preguntas de abajo (aerolínea, categoría, aeronave). Los montos se completarán solos cuando termine la lectura. <b>No se sobrescribirá nada de lo que hayas escrito.</b>',
-      cancelRead: 'Detener y escribirlo a mano',
-      canceled: 'Se detuvo la lectura. <b>Puedes escribirlo a mano abajo.</b>',
+      prep: 'Preparando la imagen',
+      readingNow: 'Leyendo tu recibo de nómina',
+      stepPrep: 'Preparando la imagen',
+      stepRead: 'Leyendo los importes',
+      stepFill: 'Rellenando el formulario',
+      failT: 'No se pudo leer',
+      resultTitleN: function (n) { return 'Leído · ' + (n === 1 ? '1 campo completado' : n + ' campos completados'); },
       retry: 'Leer de nuevo',
       choose: 'Elegir otro recibo de nómina',
       manual: 'Escribirlo a mano',
@@ -309,18 +320,18 @@
       /* ★Same two cases as above: the file opens but nothing can be drawn from it. */
       pdfXfa: 'Este PDF usa un formato de formulario especial (XFA) que no se puede mostrar aquí. Ábrelo y, en su lugar, arrastra aquí una captura de pantalla.',
       pdfBlank: 'No se pudo mostrar nada de este PDF — sale en blanco. Ábrelo y, en su lugar, arrastra aquí una captura de pantalla.',
-      errNet: 'No se pudo enviar. Revisa tu conexión y pulsa “Leer de nuevo”. <b>También puedes escribirlo a mano abajo.</b>',
+      errNet: 'No se pudo conectar.',
       /* ★A failed read must always end with “you can type it in”. The form is already
          open once reading starts, so the words match what is on screen. A dead end
          here loses the most motivated person on the page. */
-      errRead: 'No se pudo leer el recibo de nómina. <b>Puedes escribirlo a mano abajo.</b> Vuelve a leerlo o toma otra foto con buena luz y con todo el recibo dentro del encuadre.',
-      errNotSlip: 'No parece un recibo de nómina. <b>Puedes escribirlo a mano abajo</b> o elegir otro recibo de nómina.',
-      errBusy: 'La lectura está saturada en este momento y no llegó respuesta. Espera un momento y pulsa “Leer de nuevo”. <b>También puedes escribirlo a mano abajo.</b>',
-      errPrep: 'No se pudo preparar este recibo de nómina para enviarlo. Elige otro o <b>escríbelo a mano.</b>',
-      errApply: 'Se leyó, pero no se pudieron colocar las cifras en el formulario. Lo sentimos: <b>escríbelas a mano.</b>',
-      errQuota: 'Ya usaste las lecturas automáticas de hoy. <b>Puedes ingresarlo a mano abajo</b> — el formulario ya está abierto. La lectura automática vuelve a estar disponible mañana.',
-      errQuotaGlobal: 'La lectura automática está saturada en este momento y hoy ya no podemos procesar más. <b>Puedes ingresarlo a mano abajo</b> — el formulario ya está abierto. Esto no contó como una de tus lecturas.',
-      errServer: 'La lectura automática no está disponible en este momento. <b>Puedes ingresarlo a mano abajo</b> — el formulario ya está abierto.',
+      errRead: 'Suele ayudar tomar otra foto con buena luz y con todo el recibo de nómina en el encuadre.',
+      errNotSlip: 'No parece un recibo de nómina.',
+      errBusy: 'La lectura está saturada y no llegó respuesta. Espera un momento y vuelve a intentarlo.',
+      errPrep: 'No se pudo preparar este recibo de nómina para enviarlo.',
+      errApply: 'Se leyó, pero no se pudieron colocar las cifras en el formulario.',
+      errQuota: 'Ya usaste las lecturas automáticas de hoy. Mañana vuelven a estar disponibles.',
+      errQuotaGlobal: 'La lectura automática está saturada y hoy no podemos aceptar más. Esto no consumió ninguna de tus lecturas.',
+      errServer: 'La lectura automática no está disponible en este momento.',
       /* ★The disagreement list (owner, 2026-09-12, decision 6). What you typed is never overwritten. */
       cfTitle: 'Diferencias entre lo que ingresaste y el recibo de nómina',
       cfLead: '<b>No se cambió nada.</b> Presiona solo aquellas en las que el recibo es el correcto.',
@@ -373,6 +384,7 @@
       },
       chkMoney: '※ No pudimos distinguir el punto decimal del separador de miles. Revisa los montos — podrían estar desfasados por un factor de 1,000.',
       chkScale: '※ El total bruto que leímos es demasiado bajo para una cifra mensual. Probablemente se leyó mal un punto decimal — compara cada monto con tu recibo de nómina.',
+      chkSwap: '※ El <b>total de deducciones</b> que leímos es mayor que el <b>salario neto</b>. Puede que se hayan intercambiado: compara el campo del salario neto con tu recibo de nómina.',
       chkNet: function (d) {
         return '※ <b>Bruto − deducciones</b> no coincide con el <b>sueldo neto</b> que leímos (diferencia de ' + d +
                '). Uno de los dos se leyó mal. Compara la cifra de lo que recibes en mano con tu recibo de nómina.';
@@ -668,7 +680,8 @@
     kindNow = isPdf ? 'pdf' : 'image';
     pageNote = '';
     track('payslip_loaded', { kind: kindNow });
-    status('busy', isPdf ? T.pdfReading : T.prep);
+    clearPanel();
+    loadOpen();
     var t0 = now();
     var p = isPdf ? withTimeout(renderPdf(file), PREP_MS, 'pdf_timeout')
                   : withTimeout(loadImage(file), PREP_MS, 'image_timeout');
@@ -713,7 +726,8 @@
     var mine = ++readToken;
     markReading();
     openForm();
-    status('read');
+    loadOpen();
+    loadStep(1);
     var hints = loadHints();
     var t0 = now();
     toB64(work).then(function (b64) {
@@ -741,6 +755,7 @@
         if (!out) throw tag('network');
         if (!out.ok) throw tag(String(out.reason || 'unknown'), 'server');
         track('payslip_api_ok', { ms: since(t0) });
+        loadStep(2);
         /* 辞書が来てから下書きする（loadHints は失敗しても解決する）。 */
         return hints.then(function () {
           if (mine !== readToken) return;
@@ -748,6 +763,7 @@
              read_ok のあとに read_ng network も記録していた）。 */
           try { apply(out.result); } catch (e) { throw tag('apply_failed', 'apply'); }
           busy = false;
+          loadDone();
           /* ★payslip_read_ok ＝ 読めた数字が入力欄に入った（2026-11-04 に定義を変えた。
              前は「サーバーが答えた」の時点で記録していた。サーバーの答えは payslip_api_ok）。 */
           track('payslip_read_ok', { ms: since(t0) });
@@ -760,14 +776,6 @@
         track('payslip_read_ng', { reason: code, stage: (e && e.pvStage) || 'network' });
         showFail(code);
       });
-  }
-
-  /* 読み取りの途中でやめる。★向こうの処理は止まらないが、返事は捨てる（番号を進める）。 */
-  function cancelRead() {
-    readToken++;
-    busy = false;
-    track('payslip_cancel');
-    status('canceled');
   }
 
   /* ★読み取りを始める前に「明細を読んでいる」印を立てる（2026-11-04）。
@@ -816,31 +824,79 @@
     items.forEach(function (b) { if (b) d.appendChild(b); });
     return d;
   }
-  /* kind: busy（画像の準備）／read（読み取り中）／canceled（やめた） */
-  function status(kind, msg) {
-    panel.innerHTML = '';
-    var box = el('div', 'ps-msg ps-msg-busy ps-state is-' + kind);
-    box.setAttribute('role', 'status');
-    box.setAttribute('aria-live', 'polite');
-    if (kind === 'read') {
-      box.appendChild(el('b', 'ps-state-t', esc2(T.readingNow)));
-      box.appendChild(el('p', 'ps-state-l', T.readWhile));
-      if (pageNote) box.appendChild(el('p', 'ps-state-l', esc2(pageNote)));
-      box.appendChild(bar([viewBtn(), btn(T.cancelRead, 'ps-btn-ghost', cancelRead, 'ps-cancel')]));
-    } else if (kind === 'canceled') {
-      box.classList.remove('ps-msg-busy');
-      box.appendChild(el('p', 'ps-state-l', T.canceled));
-      box.appendChild(bar([work ? btn(T.retry, 'ps-btn-ghost', retryRead, 'ps-retry') : null, viewBtn(), chooseBtn()]));
-    } else {
-      box.appendChild(el('b', 'ps-state-t', esc2(msg || T.prep)));
-    }
-    panel.appendChild(box);
+  /* ★2026-11-04（その4）オーナー指示「ローディングの画面になって、
+       明細を読み取っています／✓画像を整える／✓金額を読む／✓フォームに入れる　それだけ。他は白い画面でいい」。
+     読み取りのあいだは画面全体を白で覆い、出すのは見出しと3つの段だけ。
+     段が終わるたびに ✓ が付き、3つそろったら覆いが消えて、数字の入ったフォームが出る。
+     ★秒数・見本の絵・×・お知らせ・説明の文を足し戻さない（オーナーが外した）。
+     ★止まったままにはならない ── 画像の準備は30秒・読み取りは90秒で打ち切り、失敗の札へ移る（withTimeout）。 */
+  var load = null;
+  function loadOpen() {
+    if (load) return;
+    load = el('div', 'ps-load ps-state is-busy');
+    load.setAttribute('role', 'status');
+    load.setAttribute('aria-live', 'polite');
+    load.setAttribute('aria-busy', 'true');
+    var inner = el('div', 'ps-load-in');
+    inner.appendChild(el('p', 'ps-load-t', esc2(T.readingNow)));
+    var ol = el('ol', 'ps-steps');
+    [T.stepPrep, T.stepRead, T.stepFill].forEach(function (name) {
+      var li = el('li', '');
+      li.appendChild(el('i', 'ps-step-dot'));
+      li.appendChild(el('span', '', esc2(name)));
+      li.setAttribute('data-s', 'todo');
+      ol.appendChild(li);
+    });
+    inner.appendChild(ol);
+    load.appendChild(inner);
+    document.body.appendChild(load);
+    /* ★スクロールを止めるのは html の class（body.style.overflow を直に書くと、ほかの部品が閉じるときに外れる）。 */
+    document.documentElement.classList.add('ps-load-lock');
+    loadStep(0);
   }
-  function chooseBtn() { return btn(T.choose, 'ps-btn-ghost', function () { fileInput.click(); }, 'ps-choose'); }
+  /* at: いま動いている段（0＝整える・1＝読む・2＝入れる・3＝全部終わった） */
+  function loadStep(at) {
+    if (!load) return;
+    load.className = 'ps-load ps-state ' + (at === 0 ? 'is-busy' : at < 3 ? 'is-read' : 'is-done');
+    [].forEach.call(load.querySelectorAll('.ps-steps li'), function (li, i) {
+      li.setAttribute('data-s', i < at ? 'done' : i === at ? 'active' : 'todo');
+    });
+  }
+  function loadClose() {
+    if (!load) return;
+    var n = load;
+    load = null;
+    document.documentElement.classList.remove('ps-load-lock');
+    n.classList.add('is-out');
+    setTimeout(function () { if (n.parentNode) n.parentNode.removeChild(n); }, 260);
+  }
+  /* 3つそろった ✓ を一拍見せてから覆いを外し、読めた結果の札へ移る。 */
+  function loadDone() {
+    loadStep(3);
+    setTimeout(function () {
+      loadClose();
+      try { panel.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (e) { panel.scrollIntoView(); }
+    }, 650);
+  }
+  /* 失敗の札に出す、選んだ明細の小さな見本。押すと拡大して見られる（#ps-view-btn）。 */
+  function thumb() {
+    var d = btn('', 'ps-thumb', openView, 'ps-view-btn');
+    d.className = 'ps-thumb';
+    d.setAttribute('aria-label', T.view);
+    d.title = T.view;
+    var im = document.createElement('img');
+    im.id = 'ps-thumb-img';
+    im.alt = '';
+    im.src = viewUrl;
+    d.appendChild(im);
+    return d;
+  }
+  function chooseBtn(cls) { return btn(T.choose, cls || 'ps-btn-ghost', function () { fileInput.click(); }, 'ps-choose'); }
   function retryRead() { track('payslip_retry'); startRead(); }
 
   /* 読み取りの失敗・ファイルの失敗。★どれでも行き止まりにしない ──
-     もう一度読む（直る見込みのあるものだけ）／別の明細を選ぶ／手で入力する、の道を必ず出す。 */
+     もう一度読む（直る見込みのあるものだけ）／別の明細を選ぶ／手で入力する、の道を必ず出す。
+     ★いちばん勧める道を1つだけ緑の主ボタンにする（同じ画像で直りうる → もう一度読む／ファイルの問題 → 別の明細／それ以外 → 手で入力）。 */
   var ERR = {
     rate_limited: 'errQuota',
     rate_limited_global: 'errQuotaGlobal',
@@ -857,19 +913,29 @@
   /* ★同じ画像のままもう一度読んで直る見込みがあるものだけ。断られた・明細でない・
      上限に達した・入力欄に入れられなかった、は同じ画像では直らない。 */
   var RETRY = { network: 1, timeout: 1, read_busy: 1, read_failed: 1, read_bad_format: 1, read_truncated: 1 };
+  var FILE_ERR = { too_large: 1, bad_type: 1, image_decode: 1, image_too_large: 1, bad_mime: 1, not_a_payslip: 1,
+                   pdf_locked: 1, pdf_xfa: 1, pdf_blank: 1, pdf_broken: 1, image_timeout: 1, pdf_timeout: 1, prep_failed: 1 };
   function showFail(code) {
+    loadClose();
     panel.innerHTML = '';
-    var box = el('div', 'ps-msg ps-msg-warn ps-fail');
+    var box = el('div', 'ps-live ps-fail');
     box.setAttribute('role', 'alert');
     box.setAttribute('data-code', code);
-    box.appendChild(el('p', 'ps-state-l', T[ERR[code] || 'errRead']));
-    box.appendChild(bar([
-      (work && RETRY[code]) ? btn(T.retry, 'ps-btn-ghost', retryRead, 'ps-retry') : null,
-      chooseBtn(),
-      viewBtn(),
-      btn(T.manual, 'ps-btn-ghost', function () { openForm(); focusForm(); }, 'ps-manual'),
-    ]));
+    var row = el('div', 'ps-live-row');
+    if (viewUrl) { row.appendChild(thumb()); box.classList.add('has-thumb'); }
+    var main = el('div', 'ps-live-main');
+    main.appendChild(el('span', 'ps-state-t ps-live-t', esc2(T.failT)));
+    main.appendChild(el('p', 'ps-live-msg', T[ERR[code] || 'errRead']));
+    row.appendChild(main);
+    box.appendChild(row);
+    /* ★いちばん勧める道だけ緑のボタン。ほかは字のボタン（明細を見るは、見本の絵を押す）。 */
+    var retry = (work && RETRY[code]) ? btn(T.retry, 'ps-btn-primary', retryRead, 'ps-retry') : null;
+    var choose = chooseBtn('ps-btn-link');
+    var manual = btn(T.manual, 'ps-btn-link', function () { openForm(); focusForm(); }, 'ps-manual');
+    if (!retry) (FILE_ERR[code] ? choose : manual).className = 'ps-btn ps-btn-primary';
+    box.appendChild(bar([retry, choose, manual]));
     panel.appendChild(box);
+    try { panel.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (e) { panel.scrollIntoView(); }
   }
   function focusForm() {
     var h = document.querySelector('#form-body:not([hidden]) h2, #form-body:not([hidden]) select, #form-body:not([hidden]) input');
@@ -887,9 +953,9 @@
     work.toBlob(function (b) {
       if (!b) return;
       viewUrl = URL.createObjectURL(b);
-      /* blob は少し遅れてできる。読み取り中の札がもう出ていたら、そこにボタンを足す。 */
-      var bar0 = panel.querySelector('.ps-state .ps-bar');
-      if (bar0 && !document.getElementById('ps-view-btn')) bar0.insertBefore(viewBtn(), bar0.firstChild);
+      /* blob は少し遅れてできる。読み取り中の札がもう出ていたら、見本の絵をそこに入れる（押すと拡大）。 */
+      var im = document.getElementById('ps-thumb-img');
+      if (im) { im.src = viewUrl; if (im.parentNode) im.parentNode.classList.remove('is-empty'); }
     }, 'image/jpeg', 0.9);
   }
   var viewer = null;
@@ -1849,7 +1915,8 @@
        換算した数字を明細の隣に並べると、どちらが実額か分からなくなる。 */
     var cur = res.currency ? esc2(res.currency) + ' ' : '';
     var box = el('div', 'ps-res');
-    box.appendChild(el('div', 'ps-res-title', esc2(T.resultTitle)));
+    var nIn = trace.length;
+    box.appendChild(el('div', 'ps-res-title', esc2(nIn > 0 ? T.resultTitleN(nIn) : T.resultTitle)));
     box.appendChild(el('p', 'ps-res-lead', T.resultLead));
     /* ★直すとき、自分の明細をその場で見比べられるように（2026-11-04）。別の明細を選び直す道もここに置く。
        ★ページ数の注も残す（PDF の2ページ目以降は読んでいない＝足りない欄があるのはそのせい、と分かるように）。 */
@@ -1876,6 +1943,8 @@
     if (res._curMissed) chkMsg.push(T.chkCur(esc2(res._curMissed)));
     if (chk.money === 'assumed') chkMsg.push(T.chkMoney);
     if (chk.scale === 'suspect') chkMsg.push(T.chkScale);
+    /* ★控除合計と手取りの取り違え（2026-11-04）。足し算は合ってしまうので、検算Bでは出ない。 */
+    if (chk.order === 'suspect') chkMsg.push(T.chkSwap);
     if (chkMsg.length) {
       chkMsg.forEach(function (m) { box.appendChild(el('p', 'ps-warn', m)); });
     } else if (res.confidence === 'low') {

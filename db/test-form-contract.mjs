@@ -4386,7 +4386,7 @@ console.log('\n明細1枚が REAL PAY に出るまで（＋下書きが上書き
     /* ★2026-11-04 から、選んだらそのまま読み取りに送られる（黒塗りの確認と送るボタンは無い）。 */
     /* 読み取り結果のパネルが出る＝apply() が最後まで走った（この中で
        PVEnterMode('manual') → WZ.start() → 下書きの復元まで済んでいる）。 */
-    await page.waitForFunction(() => !!document.querySelector('.ps-res, .ps-msg-warn'),
+    await page.waitForFunction(() => !!document.querySelector('.ps-res, .ps-fail') && !document.querySelector('.ps-load'),
       { timeout: 30000 });
     await new Promise((r) => setTimeout(r, 400));
 
@@ -4965,7 +4965,7 @@ console.log('\n「該当なし」を付けたあとで明細を読む（明細�
     return !!e && Math.abs(Number(String(e.value).replace(/[^0-9.]/g, '')) - 1129446) < 0.5;
   }, { timeout: 60000 });
   /* 読み取りの結果が画面に出るまで待つ（時間で待たない）。 */
-  await page.waitForFunction(() => !!document.querySelector('.ps-res, .ps-msg-warn'),
+  await page.waitForFunction(() => !!document.querySelector('.ps-res, .ps-fail') && !document.querySelector('.ps-load'),
     { timeout: 20000 }).catch(() => {});
 
   const after = await snap();

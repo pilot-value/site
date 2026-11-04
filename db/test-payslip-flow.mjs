@@ -146,23 +146,48 @@ const events = (page) => page.evaluate(() => (window.dataLayer || [])
 // ══ ① 選んだらすぐ読み取り・フォームが先に開く ═════════════════════
 console.log('\n══ ① 選んだらすぐ読み取り・確認の画面は無い・フォームは先に開く');
 {
-  const { page, seen, errs } = await open(URL_JA, () => ({ body: FAKE, delay: 1500 }));
+  /* ★返事を 3.5 秒待たせる（読み取り中の札の秒数が進むこと・知らせが出ることを見るため）。 */
+  const { page, seen, errs } = await open(URL_JA, () => ({ body: FAKE, delay: 3500 }));
   const consent = await page.$eval('#ps-consent', (n) => ({ h: n.offsetHeight, t: n.textContent }));
   ok(consent.h > 0 && /回答・保存の対象にせず/.test(consent.t) && /マイナンバー/.test(consent.t),
      '★選ぶ前に、送る先と扱いの説明（同意）が見えている');
   await upload(page, 'payslip-jp-major.png');
-  await page.waitForSelector('.ps-state.is-read', { timeout: 15000 });
+  await page.waitForSelector('.ps-load.is-read', { timeout: 15000 });
   const mid = await page.evaluate(() => ({
     formOpen: !document.getElementById('form-body').hidden,
-    cancel: !!document.getElementById('ps-cancel'),
     confirm: !!document.getElementById('ps-confirm') || !!document.getElementById('ps-send'),
     gross: (document.getElementById('f-gross') || {}).value || '',
   }));
-  ok(mid.formOpen, '★読み取りのあいだにフォームが開いている（明細に無い質問へ先に進める）');
-  ok(mid.cancel, '読み取り中に「やめて手で入力する」がある');
+  ok(mid.formOpen, '読み取りのあいだにフォームの準備ができている（覆いが消えたらすぐ入力できる）');
   ok(!mid.confirm, '★塗った明細を確かめる画面（確認のチェック・送るボタン）が無い');
   ok(mid.gross === '', '読み取りが終わるまで金額は入っていない（前月の下書きを混ぜていない）', mid.gross);
+  /* ★2026-11-04（その4）オーナー指示「ローディングの画面になって、明細を読み取っています／
+     ✓画像を整える／✓金額を読む／✓フォームに入れる　それだけ。他は白い画面でいい」。 */
+  const cover = await page.evaluate(() => {
+    const b = document.querySelector('.ps-load');
+    const r = b.getBoundingClientRect();
+    return {
+      full: r.top <= 0 && r.left <= 0 && r.width >= innerWidth && r.height >= innerHeight,
+      text: b.innerText.replace(/\s+/g, ' ').trim(),
+      steps: [...b.querySelectorAll('.ps-steps li')].map((n) => n.getAttribute('data-s')).join(','),
+      extra: b.querySelectorAll('button, a, img, input').length,
+      lock: document.documentElement.classList.contains('ps-load-lock'),
+    };
+  });
+  ok(cover.full, '★読み取りのあいだは画面全体を覆う');
+  ok(cover.text === '明細を読み取っています 画像を整える 金額を読む フォームに入れる',
+     '★出す字は見出しと3つの段だけ（秒数・説明・ボタンは無い）', cover.text);
+  ok(cover.steps === 'done,active,todo' && cover.extra === 0, '★段が終わるたびに ✓（整える ✓ → 読む → 入れる）', cover.steps + ' / 部品 ' + cover.extra);
+  ok(cover.lock, '覆っているあいだ後ろはスクロールしない');
   await page.waitForSelector('.ps-res', { timeout: 20000 });
+  await page.waitForFunction(() => !document.querySelector('.ps-load'), { timeout: 5000 }).catch(() => {});
+  const done = await page.evaluate(() => ({
+    gone: !document.querySelector('.ps-load'),
+    lock: document.documentElement.classList.contains('ps-load-lock'),
+    title: (document.querySelector('.ps-res > .ps-res-title') || {}).textContent || '',
+  }));
+  ok(done.gone && !done.lock, '★読めたら覆いが消え、スクロールも戻る');
+  ok(/読み取りました · \d+項目を入れました/.test(done.title), '読めた結果の見出しに、入れた行の数が出る', done.title);
 
   // ── ② 送る中身 ──
   const sent = seen.bodies[0];
@@ -420,6 +445,7 @@ console.log('\n══ ④ 失敗しても行き止まりにしない・自動で
   const { page, seen, errs } = await open(URL_JA, (n) => (n === 1 ? { body: { ok: false, reason: 'read_busy' } } : { body: FAKE }));
   await upload(page, 'payslip-jp-major.png');
   await page.waitForSelector('.ps-fail', { timeout: 15000 });
+  await page.waitForFunction(() => !document.querySelector('.ps-load'), { timeout: 5000 });
   ok(await page.$eval('.ps-fail', (n) => n.getAttribute('data-code')) === 'read_busy', '理由（read_busy）を拾う');
   await new Promise((r) => setTimeout(r, 1500));
   ok(seen.calls === 1, '★自動で送り直さない', String(seen.calls));
@@ -439,6 +465,7 @@ console.log('\n══ ④ 失敗しても行き止まりにしない・自動で
   const { page } = await open(URL_JA, { status: 500, body: { ok: false, reason: 'read_failed' } });
   await upload(page, 'payslip-jp-major.png');
   await page.waitForSelector('.ps-fail', { timeout: 15000 });
+  await page.waitForFunction(() => !document.querySelector('.ps-load'), { timeout: 5000 });
   ok(await page.$eval('.ps-fail', (n) => n.getAttribute('data-code')) === 'read_failed', 'HTTP 500 でも本文の理由を拾う');
   await page.close();
 }
@@ -446,6 +473,7 @@ console.log('\n══ ④ 失敗しても行き止まりにしない・自動で
   const { page } = await open(URL_JA, { body: { ok: false, reason: 'not_a_payslip' } });
   await upload(page, 'payslip-jp-major.png');
   await page.waitForSelector('.ps-fail', { timeout: 15000 });
+  await page.waitForFunction(() => !document.querySelector('.ps-load'), { timeout: 5000 });
   const r = await page.evaluate(() => ({ retry: !!document.getElementById('ps-retry'), choose: !!document.getElementById('ps-choose') }));
   ok(!r.retry && r.choose, '同じ画像で直らない失敗（明細ではない）には「もう一度読む」を出さず、別の明細を勧める');
   await page.close();
@@ -456,29 +484,11 @@ console.log('\n══ ④ 失敗しても行き止まりにしない・自動で
   const { page } = await open(URL_JA, { body: broken });
   await upload(page, 'payslip-jp-major.png');
   await page.waitForSelector('.ps-fail', { timeout: 15000 });
+  await page.waitForFunction(() => !document.querySelector('.ps-load'), { timeout: 5000 });
   const e = await events(page);
   ok(await page.$eval('.ps-fail', (n) => n.getAttribute('data-code')) === 'apply_failed' && e.includes('payslip_read_ng:apply_failed')
      && !e.includes('payslip_read_ok') && !e.includes('payslip_read_ng:network'),
      '★入力欄に入れられなかったときは apply_failed（read_ok も network も記録しない）', e.join(','));
-  await page.close();
-}
-
-// ══ ⑤ やめたあとの返事 ════════════════════════════════════════════
-console.log('\n══ ⑤ 読み取りの途中でやめる → あとから返事が来ても画面に入れない');
-{
-  const { page, seen, errs } = await open(URL_JA, 'hang');
-  await upload(page, 'payslip-jp-major.png');
-  await page.waitForSelector('#ps-cancel', { timeout: 15000 });
-  await page.click('#ps-cancel');
-  await page.waitForSelector('.ps-state.is-canceled', { timeout: 5000 });
-  for (let i = 0; i < 30 && !seen.hold; i++) await new Promise((r) => setTimeout(r, 100));
-  if (seen.hold) await seen.hold.respond({ status: 200, headers: JSONH, body: JSON.stringify(FAKE) });
-  await new Promise((r) => setTimeout(r, 1200));
-  const g = await page.$eval('#f-gross', (n) => n.value).catch(() => '');
-  ok(!g && !(await page.$('.ps-res')), '★やめたあとの返事は画面に入れない', 'f-gross=' + g);
-  const e = await events(page);
-  ok(e.includes('payslip_cancel') && !e.includes('payslip_read_ok'), 'やめた記録だけが残る', e.join(','));
-  ok(errs.length === 0, 'ページのエラーが無い', errs.join(' | '));
   await page.close();
 }
 
@@ -546,10 +556,10 @@ console.log('\n══ 開けない PDF（鍵付き・XFA・白紙）');
     /* ★時間で待たない。警告が出るか、確認画面が出るか、どちらかが起きるまで待つ。
        確認画面が出てしまったら、その時点で下の判定が赤くなる。 */
     await page.waitForFunction(
-      () => !!document.querySelector('#ps-panel .ps-msg-warn') || !!document.querySelector('.ps-edit'),
+      () => !!document.querySelector('#ps-panel .ps-fail') || !!document.querySelector('.ps-edit'),
       { timeout: 30000 });
     const m = await page.evaluate(() => ({
-      warn: (document.querySelector('#ps-panel .ps-msg-warn') || {}).textContent || '',
+      warn: (document.querySelector('#ps-panel .ps-fail') || {}).textContent || '',
       edit: !!document.querySelector('.ps-edit'),
       confirm: !!document.getElementById('ps-confirm'),
     }));

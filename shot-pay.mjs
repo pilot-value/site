@@ -858,7 +858,7 @@ if (ROUND === 'second') {
       const input = await p.$('#ps-file');
       await input.uploadFile(PDF);
       /* ★2026-11-04 から、選んだらそのまま読み取りに送られる（黒塗りの確認と送るボタンは無い）。 */
-      await p.waitForFunction(() => !!document.querySelector('.ps-res, .ps-msg-warn'),
+      await p.waitForFunction(() => !!document.querySelector('.ps-res, .ps-fail') && !document.querySelector('.ps-load'),
         { timeout: 30000 });
       await new Promise((r) => setTimeout(r, 700));
       await shoot(p, `${lang}-6-slip-read`);

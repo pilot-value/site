@@ -84,7 +84,7 @@ for (const lang of ['ja', 'en']) {
     await inp.uploadFile(path.join(DIR, 'fixtures', 'payslip-jp-major.png'));
     /* ★2026-11-04 から、選んだらそのまま読み取りに送られる（黒塗りの確認と送るボタンは無い）。
        読み取り中の札を1枚撮ってから、結果を待つ。 */
-    await page.waitForSelector('.ps-state.is-read', { timeout: 30000 }).catch(() => {});
+    await page.waitForSelector('.ps-load.is-read', { timeout: 30000 }).catch(() => {});
     await shot(await page.$('#ps'), `${tag}-2reading`);
     await page.waitForSelector('.ps-res', { timeout: 30000 });
     await new Promise((r) => setTimeout(r, 600));

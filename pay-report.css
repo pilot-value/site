@@ -571,9 +571,11 @@ body.has-cta #form-wrap{padding-bottom:120px}
    ★帯に縮んだあとも隠さない ── 先に手入力を選んだ人が、帯のボタンから明細を選ぶことがある（説明を見ずに送らせない）。 */
 .ps-consent{margin:10px 0 0;font-size:.72rem;line-height:1.65;color:#a8b3c2}
 .ps-consent b{color:#e8edf2;font-weight:700}
-.ps-consent a{color:#f5c842;text-decoration:underline;text-underline-offset:2px}
-.ps-consent a:hover{color:#ffdd77}
-.ps-consent a:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px;border-radius:3px}
+/* ★2026-11-04（その2）明細の入口は緑（ブランドの色・pv-tokens の --pv-accent*）。ライトとダークはトークンが切り替える。 */
+.ps-consent a{color:var(--pv-accent-ink);text-decoration:underline;text-underline-offset:2px}
+.ps-consent a:hover{color:var(--pv-accent-dark)}
+[data-theme="dark"] .ps-consent a:hover{color:var(--pv-accent-ink);opacity:.85}
+.ps-consent a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px;border-radius:3px}
 .ps.is-slim .ps-consent{margin-top:6px;font-size:.68rem}
 /* 「暗号化＆セキュア」の横の盾（2026-08-14）。行の頭の ✓ と同じ緑にして、
    同じ「安心の印」の仲間に見せる。文字の流れの中に置くので inline のまま。 */
@@ -585,7 +587,7 @@ body.has-cta #form-wrap{padding-bottom:120px}
 .entry-tag{position:absolute;top:14px;right:14px;font-size:.62rem;font-weight:800;letter-spacing:.05em;
   padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.05);color:#a8b3c2;border:1px solid rgba(255,255,255,.12)}
 .entry-card.is-primary .entry-tag{background:rgba(245,200,66,.12);color:#f5c842;border-color:rgba(245,200,66,.28)}
-.ps-step{font-size:.68rem;font-weight:800;letter-spacing:.08em;color:#f5c842;margin:0 0 8px}
+.ps-step{font-size:.68rem;font-weight:800;letter-spacing:.08em;color:var(--pv-accent-ink);margin:0 0 8px}
 .ps-skip{display:inline-block;margin-top:10px;padding:4px 2px;font-size:.76rem;font-weight:700;
   color:#a8b3c2;background:none;border:0;border-bottom:1px solid rgba(255,255,255,.18);cursor:pointer;
   transition:color .2s,border-color .2s,transform .2s cubic-bezier(.16,1,.3,1)}
@@ -603,20 +605,20 @@ body.has-cta #form-wrap{padding-bottom:120px}
    ★.ps-drop:hover は (0,2,0)、こちらは (0,3,0) で勝ってしまうので、
      hover と is-over は下で必ず書き直す（書かないと押した感じが消える）。 */
 .ps.is-slim .ps-drop{width:fit-content;max-width:100%;gap:9px;padding:9px 17px 9px 10px;
-  border-radius:999px;border:1px solid rgba(245,200,66,.55);color:#f5c842;
-  background:radial-gradient(120% 160% at 0% 50%,rgba(245,200,66,.18),transparent 70%),rgba(245,200,66,.07);
-  box-shadow:0 10px 26px -18px rgba(245,200,66,.75)}
-.ps.is-slim .ps-drop:hover,.ps.is-slim .ps-drop.is-over{color:#ffd968;border-color:rgba(245,200,66,.85);transform:translateY(-1px);
-  background:radial-gradient(120% 160% at 0% 50%,rgba(245,200,66,.26),transparent 70%),rgba(245,200,66,.12)}
+  border-radius:999px;border:1px solid var(--pv-accent-line);color:var(--pv-accent-ink);
+  background:radial-gradient(120% 160% at 0% 50%,var(--pv-accent-soft),transparent 70%),var(--pv-surface);
+  box-shadow:0 1px 2px rgba(6,117,99,.10),0 10px 24px -16px rgba(6,117,99,.55)}
+.ps.is-slim .ps-drop:hover,.ps.is-slim .ps-drop.is-over{color:var(--pv-accent-ink);border-color:var(--pv-accent);transform:translateY(-1px);
+  background:radial-gradient(120% 160% at 0% 50%,var(--pv-accent-soft),transparent 85%),var(--pv-accent-soft)}
 .ps.is-slim .ps-drop:active{transform:translateY(1px)}
 .ps.is-slim .ps-ico{width:24px;height:24px;border-radius:999px;display:inline-flex;
   align-items:center;justify-content:center;font-size:.8rem;
-  background:rgba(245,200,66,.2);border:1px solid rgba(245,200,66,.5)}
+  background:var(--pv-accent-soft);border:1px solid var(--pv-accent-line)}
 .ps.is-slim .ps-drop-txt b{font-size:.84rem;font-weight:800;letter-spacing:-.01em}
 .ps{margin-bottom:18px}
-.ps-drop{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px 16px;border-radius:12px;border:1px dashed rgba(245,200,66,.3);background:linear-gradient(180deg,rgba(245,200,66,.06),rgba(245,200,66,.02));color:#e8edf2;cursor:pointer;transition:border-color .2s,background .2s,transform .2s cubic-bezier(.16,1,.3,1)}
-.ps-drop:hover,.ps-drop.is-over{border-color:rgba(245,200,66,.6);background:linear-gradient(180deg,rgba(245,200,66,.12),rgba(245,200,66,.04))}
-.ps-drop:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}
+.ps-drop{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px 16px;border-radius:12px;border:1.5px dashed var(--pv-accent-line);background:linear-gradient(180deg,var(--pv-accent-soft),var(--pv-surface));color:var(--pv-ink);cursor:pointer;transition:border-color .2s,background .2s,transform .2s cubic-bezier(.16,1,.3,1)}
+.ps-drop:hover,.ps-drop.is-over{border-color:var(--pv-accent);background:linear-gradient(180deg,var(--pv-accent-soft),var(--pv-accent-soft))}
+.ps-drop:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
 .ps-drop:active{transform:translateY(1px)}
 /* 明細を選んだときだけ（ステップ 1/2）── ここが画面の主役なので落とす的を大きく取る。
    帯のまま出すと、何をする画面なのかが一目で分からない。 */
@@ -719,15 +721,71 @@ body.has-cta #form-wrap{padding-bottom:120px}
 /* ── 明細の読み取り：状態の札・失敗の札・明細を見る（2026-11-04 作り直し）──────────
    ★待つあいだに出すのは実際の状態だけ（進み具合の％は出さない）。
    ★失敗の札にはいつも「もう一度読む／別の明細を選ぶ／手で入力する」のどれかがある（行き止まりにしない）。 */
-.ps-state{display:flex;flex-direction:column;gap:6px}
-.ps-state.is-read .ps-state-t,.ps-state.is-busy .ps-state-t{display:flex;align-items:center;gap:9px}
-.ps-state.is-read .ps-state-t::before,.ps-state.is-busy .ps-state-t::before{content:"";flex:none;width:14px;height:14px;border-radius:999px;border:2px solid rgba(245,200,66,.28);border-top-color:#f5c842;animation:psSpin .7s linear infinite}
-.ps-state-t{font-size:.84rem;font-weight:800;color:#e8edf2;letter-spacing:-.01em}
-.ps-state-l{margin:0;font-size:.78rem;line-height:1.65}
-.ps-state-l b{color:#e8edf2}
-.ps-fail .ps-state-l b{color:#f7d15e}
-.ps-state .ps-bar,.ps-fail .ps-bar{margin-top:8px}
-@media (prefers-reduced-motion:reduce){.ps-state .ps-state-t::before{animation:none}}
+/* ════════════════════════════════════════════════════════════
+   読み取り中の画面（2026-11-04 その4・オーナー指示）
+   「ローディングの画面になって、明細を読み取っています／✓画像を整える／✓金額を読む／✓フォームに入れる
+     それだけ。他は白い画面でいい」「ブランドの色は緑」。
+   ★画面全体を白（面の色）で覆い、真ん中に見出しと3つの段だけ。秒数・絵・×・説明の文を足し戻さない。
+   ★色は pv-tokens.css のトークンだけ（ライトとダークはトークンが切り替える）。動かすのは transform と opacity だけ。
+   ════════════════════════════════════════════════════════════ */
+.ps-state{display:block}
+html.ps-load-lock,html.ps-load-lock body{overflow:hidden}
+.ps-load{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;
+  padding:24px;background:var(--pv-surface);color:var(--pv-ink);
+  animation:psFadeIn .22s var(--pv-ease) both}
+.ps-load.is-out{opacity:0;transition:opacity .24s var(--pv-ease)}
+@keyframes psFadeIn{from{opacity:0}to{opacity:1}}
+.ps-load-in{width:100%;max-width:300px;animation:psRise .4s var(--pv-ease) both}
+@keyframes psRise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.ps-load-t{margin:0 0 22px;font-size:1.15rem;font-weight:700;letter-spacing:-.02em;line-height:1.4;color:var(--pv-ink)}
+.ps-load .ps-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:16px}
+.ps-load .ps-steps li{display:flex;align-items:center;gap:12px;font-size:.95rem;line-height:1.4;color:var(--pv-ink-3);
+  transition:color .25s var(--pv-ease)}
+.ps-load .ps-steps li[data-s="active"]{color:var(--pv-ink)}
+.ps-load .ps-steps li[data-s="done"]{color:var(--pv-ink-2)}
+/* 段の印：まだ＝細い輪／いま＝回る輪／済み＝緑の ✓ */
+.ps-step-dot{position:relative;flex:none;box-sizing:border-box;width:20px;height:20px;border-radius:999px;border:1.5px solid var(--pv-line)}
+li[data-s="active"] .ps-step-dot{border:2px solid var(--pv-accent-soft);border-top-color:var(--pv-accent);animation:psSpin .8s linear infinite}
+li[data-s="done"] .ps-step-dot{border-color:var(--pv-accent);background:var(--pv-accent);animation:psPop .3s var(--pv-ease) both}
+li[data-s="done"] .ps-step-dot::after{content:"";position:absolute;left:6px;top:3px;width:5px;height:9px;
+  border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+@keyframes psPop{from{transform:scale(.6)}to{transform:none}}
+/* 失敗の札（★赤で叱らない。道は緑のボタン1つ＋字のボタン） */
+.ps-live{margin-top:12px;padding:10px;border-radius:14px;background:var(--pv-surface);
+  border:1px solid var(--pv-line);color:var(--pv-ink);
+  box-shadow:0 1px 2px rgba(15,23,42,.04),0 10px 26px -18px rgba(6,117,99,.30);
+  animation:psRise .32s var(--pv-ease) both}
+.ps-live-row{display:flex;align-items:flex-start;gap:12px}
+.ps-live-main{flex:1 1 auto;min-width:0}
+.ps-live .ps-live-t{display:block;padding-top:2px;font-size:.92rem;font-weight:600;letter-spacing:-.01em;line-height:1.4;color:var(--pv-ink)}
+.ps-live.ps-fail:not(.has-thumb) .ps-live-row{padding-left:4px}
+.ps-live-msg{margin:3px 0 0;font-size:.78rem;line-height:1.6;color:var(--pv-ink-2)}
+.ps-live-msg b{font-weight:600;color:var(--pv-ink)}
+.ps-live.ps-fail .ps-bar{margin:12px 0 2px;gap:4px 14px;align-items:center;padding-left:4px}
+@media (min-width:481px){.ps-live.ps-fail.has-thumb .ps-bar{padding-left:50px}}
+.ps-thumb{position:relative;flex:none;box-sizing:border-box;width:38px;height:48px;padding:0;margin:0;border-radius:7px;overflow:hidden;
+  background:var(--pv-bg-sub);border:1px solid var(--pv-line);cursor:zoom-in;transition:transform .2s var(--pv-ease)}
+.ps-thumb:hover{transform:translateY(-1px)}
+.ps-thumb:active{transform:scale(.96)}
+.ps-thumb:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.ps-thumb img{display:block;width:100%;height:100%;object-fit:cover;object-position:top center}
+.ps-live .ps-btn:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+/* ボタン（緑の主ボタン・字のボタン） */
+.ps-btn-primary{color:#fff;background:var(--pv-accent);border:1px solid var(--pv-accent-dark);
+  box-shadow:0 1px 2px rgba(6,117,99,.25),0 8px 18px -12px rgba(6,117,99,.7)}
+.ps-btn-primary:hover{background:var(--pv-accent-dark);transform:translateY(-1px)}
+.ps-btn-primary:active{transform:translateY(1px)}
+.ps-btn-link{padding:6px 2px;color:var(--pv-ink-2);background:none;border:0;border-radius:6px;font-weight:600}
+.ps-btn-link:hover{color:var(--pv-accent-ink)}
+/* 読めたときの見出し（緑の ✓ と、入れた行の数） */
+.ps-res>.ps-res-title:first-child{display:flex;align-items:center;gap:9px;color:var(--pv-accent-ink)}
+.ps-res>.ps-res-title:first-child::before{content:"✓";flex:none;width:22px;height:22px;border-radius:999px;
+  display:inline-flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:900;color:#fff;
+  background:var(--pv-accent);box-shadow:0 6px 14px -8px rgba(6,117,99,.8);animation:psPop .42s var(--pv-ease) both}
+@media (prefers-reduced-motion:reduce){
+  .ps-load,.ps-load-in,.ps-live,.ps-res>.ps-res-title:first-child::before,li[data-s="done"] .ps-step-dot{animation:none}
+  li[data-s="active"] .ps-step-dot{animation:none;border-color:var(--pv-accent)}
+  .ps-load.is-out{transition:none}}
 .ps-view{position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;background:rgba(2,6,12,.92);backdrop-filter:blur(2px)}
 .ps-view-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
 .ps-view-hint{font-size:.74rem;color:#a8b3c2}
@@ -1208,26 +1266,17 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 [data-theme="light"] .entry-card:not(.is-primary):hover .entry-t{color:#0f172a;border-color:rgba(0,0,0,.24)}
 [data-theme="light"] .entry-tag{background:rgba(0,0,0,.04);color:#64748b;border-color:rgba(0,0,0,.12)}
 [data-theme="light"] .entry-card.is-primary .entry-tag{background:rgba(200,149,0,.12);color:#a97e00;border-color:rgba(200,149,0,.35)}
-[data-theme="light"] .ps-step{color:#a97e00}
 [data-theme="light"] .ps-skip{color:#475569;border-bottom-color:rgba(0,0,0,.18)}
 [data-theme="light"] .ps-skip:hover{color:#0f172a;border-bottom-color:rgba(200,149,0,.7)}
 [data-theme="light"] .ps-skip:focus-visible{outline-color:rgba(200,149,0,.85)}
-[data-theme="light"] .ps-drop{color:#0f172a;border-color:rgba(200,149,0,.4);background:linear-gradient(180deg,rgba(200,149,0,.08),rgba(200,149,0,.02))}
-[data-theme="light"] .ps-drop:hover,[data-theme="light"] .ps-drop.is-over{border-color:rgba(200,149,0,.7);background:linear-gradient(180deg,rgba(200,149,0,.14),rgba(200,149,0,.05))}
 [data-theme="light"] .ps-drop-txt small{color:#64748b}
-[data-theme="light"] .ps.is-slim .ps-drop{color:#a97e00;border-color:rgba(200,149,0,.55);
-  background:radial-gradient(120% 160% at 0% 50%,rgba(200,149,0,.16),transparent 70%),rgba(200,149,0,.06);
-  box-shadow:0 10px 26px -20px rgba(200,149,0,.7)}
-[data-theme="light"] .ps.is-slim .ps-drop:hover,[data-theme="light"] .ps.is-slim .ps-drop.is-over{color:#8a6600;border-color:rgba(200,149,0,.85);
-  background:radial-gradient(120% 160% at 0% 50%,rgba(200,149,0,.24),transparent 70%),rgba(200,149,0,.11)}
-[data-theme="light"] .ps.is-slim .ps-ico{background:rgba(200,149,0,.18);border-color:rgba(200,149,0,.5)}
 [data-theme="light"] .ps-fold{border-top-color:rgba(0,0,0,.09)}
 [data-theme="light"] .ps-fold-s{color:#64748b}
 [data-theme="light"] .ps-fold-s:hover{color:#0f172a}
 [data-theme="light"] .ps-fold-s:focus-visible{outline-color:rgba(200,149,0,.85)}
 [data-theme="light"] .ps-hint,[data-theme="light"] .ps-note,[data-theme="light"] .ps-rate-min{color:#64748b}
 [data-theme="light"] .ps-note b{color:#334155}
-[data-theme="light"] .ps-edit,[data-theme="light"] .ps-res{border-color:rgba(0,0,0,.09);background:rgba(255,255,255,.85);box-shadow:0 18px 40px -30px rgba(200,149,0,.45),0 2px 6px -3px rgba(15,23,42,.18)}
+[data-theme="light"] .ps-edit,[data-theme="light"] .ps-res{border-color:rgba(0,0,0,.09);background:rgba(255,255,255,.85);box-shadow:0 18px 40px -30px rgba(6,117,99,.45),0 2px 6px -3px rgba(15,23,42,.18)}
 [data-theme="light"] .ps-lead{color:#0f172a}
 [data-theme="light"] .ps-stage{background:#e2e8f0}
 [data-theme="light"] .ps-rect{border-color:rgba(200,149,0,.85)}
@@ -1257,10 +1306,6 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 [data-theme="light"] .ps-res-lead{color:#475569}
 [data-theme="light"] .ps-consent{color:#475569}
 [data-theme="light"] .ps-consent b{color:#0f172a}
-[data-theme="light"] .ps-consent a{color:#8a6600}
-[data-theme="light"] .ps-state-t,[data-theme="light"] .ps-state-l b{color:#0f172a}
-[data-theme="light"] .ps-fail .ps-state-l b{color:#6b4f00}
-[data-theme="light"] .ps-state.is-read .ps-state-t::before,[data-theme="light"] .ps-state.is-busy .ps-state-t::before{border-color:rgba(200,149,0,.28);border-top-color:#a97e00}
 [data-theme="light"] .ps-res-lead b{color:#0f172a}
 [data-theme="light"] .ps-cf{border-color:rgba(180,140,20,.42);border-left-color:#b48c14;background:rgba(245,200,66,.14)}
 [data-theme="light"] .ps-cf-t{color:#8a6206}

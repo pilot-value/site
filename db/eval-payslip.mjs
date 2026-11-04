@@ -48,6 +48,13 @@
      --budget <ドル>       この費用を超えそうなら次の1回を送らずに止める（既定 0.50）
      --ledger <ファイル>   使った費用を足し込んでいく帳面（回をまたいで上限を守る）
      費用は返事のトークン数から数える（入力 $2・出力 $10 ／ 100万トークン）。
+     --dense 40,80         項目がとても多い架空の明細をその場で作って読ませる（行の数をカンマ区切り）。
+                           正解はこちらで作ったので全部分かる。--id を付けなければ、作った明細だけを読む。
+                           ★答えが上限で切れるか（stop_reason = max_tokens）を確かめるため（2026-11-04）
+     --photo               選んだ PNG を「スマホで撮った写真」に描き直してから読ませる
+                           （机の上・少し傾き・影・3024×4032・JPEG）。正解と個人情報の照合は元の明細のまま。
+     --hard                --photo を悪条件にする（大きく傾く・台形のゆがみ・暗い・手ぶれ・光の反射・JPEG 0.7）
+     画面の経路では、ファイルを渡してから送信が始まるまでの時間（端末で画像を整える時間）も出す（prep）。
 
    要るもの: mail-bot/.env の ANTHROPIC_API_KEY（gitignore 済み・開発用）
 
@@ -81,6 +88,9 @@ const LEDGER = opt('--ledger', null);
    ★採点の規則を直したときに、お金をかけずに採点し直すため（--rescore <ファイル>）。 */
 const SAVE = opt('--save', null);
 const RESCORE = opt('--rescore', null);
+const DENSE = (opt('--dense', '') || '').split(',').map((x) => Number(x)).filter((n) => n > 0);
+const PHOTO = argv.includes('--photo');
+const HARD = argv.includes('--hard');
 /* 料金（ドル / トークン）。このモデルの公開価格。返事の usage から1回ずつ数える。 */
 const PRICE = { in: 2 / 1e6, out: 10 / 1e6 };
 const KNOWN = ['off', 'low', 'adapt', 'old'];
@@ -106,8 +116,8 @@ if (only) {
     process.exit(1);
   }
 }
-const slips = EXPECTED.slips.filter((s) => !only || only.includes(s.id))
-  .filter((s) => !DIRECT || /\.png$/i.test(s.file));
+const slips = EXPECTED.slips.filter((s) => (only ? only.includes(s.id) : !DENSE.length))
+  .filter((s) => !(DIRECT || PHOTO) || /\.png$/i.test(s.file));
 /* 明細に印字してある氏名・社員番号・口座（黒塗りの正解表 payslips.json の pii）。
    ★答えのどこかにこれが1つでも出たら「漏れ」として数える（2026-11-04）。 */
 const PII = Object.fromEntries(JSON.parse(readFileSync(path.join(FIX, 'payslips.json'), 'utf8'))
@@ -246,10 +256,11 @@ async function capturePayload(browser, slip) {
   }, { timeout: 10000 });
 
   const input = await page.$('#ps-file');
-  await input.uploadFile(path.join(FIX, slip.file));
+  await input.uploadFile(slip.path || path.join(FIX, slip.file));
   /* ★2026-11-04 から、選んだらそのまま読み取りに送られる（黒塗りと確認の画面は無い）。 */
   const t0 = Date.now();
-  while (!sent && Date.now() - t0 < 30000) await new Promise((r) => setTimeout(r, 100));
+  while (!sent && Date.now() - t0 < 30000) await new Promise((r) => setTimeout(r, 50));
+  if (sent) sent.prepMs = Date.now() - t0;
   await page.close();
   return sent;
 }
@@ -423,14 +434,102 @@ if (!DIRECT) {
 if (RESCORE) {
   const saved = JSON.parse(readFileSync(RESCORE, 'utf8'));
   globalThis.__RESCORED = saved.map((z) => {
-    const slip = EXPECTED.slips.find((s) => s.id === z.id);
+    const slip = z.slip || EXPECTED.slips.find((s) => s.id === z.id);
     const s = z.r ? score(slip, z.r) : null;
     return { slip, variant: z.variant, x: z.x, r: z.r, s, err: z.err, leak: z.r ? leaks(slip.file, z.r) : [] };
   });
 }
 if (!RESCORE) console.log(`\n明細 ${slips.length} 枚 × 頼み方 ${VARIANTS.join('/')}（${DIRECT ? 'PNG をそのまま' : '画面と同じ経路'}）`);
 console.log(`   上限 $${BUDGET.toFixed(2)} ／ これまでに使った分 $${spent.toFixed(4)}\n`);
-const browser = (DIRECT || RESCORE) ? null : await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
+const browser = (RESCORE || (DIRECT && !DENSE.length && !PHOTO)) ? null : await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox'] });
+const TMPD = mkdtempSync(path.join(os.tmpdir(), 'pv-eval-'));
+
+/* ── 項目がとても多い架空の明細（2026-11-04）──────────────────────
+   ★数字はすべて作り話。並びは毎回同じ（決まった種から作る）。
+   ★氏名・社員番号・口座も架空のものを印字し、答えに出たら「漏れ」に数える。 */
+async function makeDense(n) {
+  let seed = 7 + n;
+  const rnd = () => { seed = (seed * 48271) % 2147483647; return seed / 2147483647; };
+  const rows = [['基本給', 412000, 'base'], ['職務手当', 168000, 'command'], ['住宅手当', 55000, 'housing'], ['通勤手当', 21300, 'transport']];
+  for (let i = 1; rows.length < n; i++) {
+    const r = rnd();
+    if (i % 4 === 0) rows.push([`日当（行先${i}）`, 3000 + Math.round(rnd() * 90) * 100, 'per_diem']);
+    else rows.push([`乗務手当（区間${i}）`, 2000 + Math.round(r * 380) * 100, 'flight_variable']);
+  }
+  const gross = rows.reduce((a, x) => a + x[1], 0);
+  const ded = [['健康保険', 41200], ['厚生年金', 59475], ['雇用保険', 5469], ['所得税', 62310], ['住民税', 48700], ['組合費', 4200]];
+  const dedT = ded.reduce((a, x) => a + x[1], 0);
+  const kinds = {};
+  for (const [, a, k] of rows) kinds[k] = (kinds[k] || 0) + a;
+  const yen = (v) => v.toLocaleString('en-US');
+  const cell = (r) => r ? `<td>${r[0]}</td><td class="n">${yen(r[1])}</td>` : '<td></td><td></td>';
+  const half = Math.ceil(rows.length / 2);
+  let body = '';
+  for (let i = 0; i < half; i++) body += `<tr>${cell(rows[i])}${cell(rows[i + half])}</tr>`;
+  const html = `<!doctype html><meta charset="utf-8"><style>
+    body{font-family:"Hiragino Sans","Noto Sans JP",sans-serif;margin:0;padding:28px;width:1040px;color:#111;background:#fff}
+    h1{font-size:22px;text-align:center;letter-spacing:.3em;margin:0 0 10px}
+    .hd{display:flex;justify-content:space-between;font-size:13px;margin-bottom:10px}
+    table{border-collapse:collapse;width:100%;font-size:12.5px;margin-bottom:12px}
+    td,th{border:1px solid #444;padding:3px 6px}th{background:#e8e8e8;text-align:left}.n{text-align:right;font-variant-numeric:tabular-nums}
+    .tot td{font-weight:700;background:#f3f3f3}</style>
+    <h1>給 与 明 細 書</h1>
+    <div class="hd"><span>社員番号 9988-77665　架空　花子 様　所属 運航本部</span><span>2026年7月分（支給日 2026/07/25）</span></div>
+    <div class="hd"><span>振込口座 ◇◇銀行 本店 普通 7766554</span></div>
+    <table><tr><th colspan="4">支給</th></tr>${body}<tr class="tot"><td>支給合計</td><td class="n">${yen(gross)}</td><td></td><td></td></tr></table>
+    <table><tr><th colspan="4">控除</th></tr>${ded.map((d, i) => i % 2 ? '' : `<tr>${cell(d)}${cell(ded[i + 1])}</tr>`).join('')}
+      <tr class="tot"><td>控除合計</td><td class="n">${yen(dedT)}</td><td>差引支給額</td><td class="n">${yen(gross - dedT)}</td></tr></table>
+    <table><tr><th colspan="4">勤怠</th></tr><tr><td>総勤務時間</td><td class="n">168:30</td><td>乗務時間</td><td class="n">78:12</td></tr></table>`;
+  const page = await browser.newPage();
+  await page.setViewport({ width: 1100, height: 800, deviceScaleFactor: 1 });
+  await page.setContent(html, { waitUntil: 'load' });
+  const file = path.join(TMPD, `dense-${n}.png`);
+  await page.screenshot({ path: file, fullPage: true });
+  await page.close();
+  PII[`dense-${n}.png`] = ['架空　花子', '9988-77665', '7766554'];
+  return { id: `dense-${n}`, file: `dense-${n}.png`, path: file, lang: 'ja', note: `項目 ${rows.length} 行の架空の明細`,
+           currency: ['JPY', null], period: { year: 2026, month: 7 }, gross_total: gross, deductions_total: dedT,
+           net_pay: gross - dedT, ytd_taxable: null, kinds, hours: { duty: 168.5, block: 78.2 } };
+}
+
+/* ── スマホで撮った写真のような明細（2026-11-04）── 机の上・少し傾き・影・光のむら・3024×4032・JPEG */
+async function makePhoto(slip, hard) {
+  const src = 'data:image/png;base64,' + readFileSync(path.join(FIX, slip.file)).toString('base64');
+  const page = await browser.newPage();
+  const b64 = await page.evaluate(async (u, hard) => {
+    const im = new Image(); im.src = u; await im.decode();
+    const c = document.createElement('canvas'); c.width = 3024; c.height = 4032;
+    const x = c.getContext('2d');
+    const g = x.createLinearGradient(0, 0, 3024, 4032); g.addColorStop(0, '#6d635a'); g.addColorStop(1, '#a3978a');
+    x.fillStyle = g; x.fillRect(0, 0, 3024, 4032);
+    const w = hard ? 2300 : 2560, h = Math.round(im.naturalHeight * w / im.naturalWidth);
+    x.save(); x.translate(1512, 2016); x.rotate((hard ? 8 : 3.5) * Math.PI / 180);
+    /* 悪条件：斜め上から撮った台形のゆがみ（上が狭い）を、横方向の縮みと剪断で近づける */
+    if (hard) x.transform(1, 0, -0.06, 0.94, 0, 0);
+    x.shadowColor = 'rgba(0,0,0,.45)'; x.shadowBlur = 50; x.shadowOffsetX = 18; x.shadowOffsetY = 24;
+    x.filter = hard ? 'blur(1.6px) brightness(0.72) contrast(0.85)' : 'blur(0.8px) brightness(0.96)';
+    x.drawImage(im, -w / 2, -h / 2, w, h); x.restore();
+    const r = x.createRadialGradient(1300, 1500, 300, 1512, 2016, 2600);
+    r.addColorStop(0, 'rgba(255,250,240,0.10)'); r.addColorStop(1, hard ? 'rgba(0,0,0,0.45)' : 'rgba(0,0,0,0.30)');
+    x.fillStyle = r; x.fillRect(0, 0, 3024, 4032);
+    if (hard) {   // 蛍光灯の反射（白く飛んだ丸い光）
+      const gl = x.createRadialGradient(2050, 1150, 20, 2050, 1150, 420);
+      gl.addColorStop(0, 'rgba(255,255,255,0.85)'); gl.addColorStop(1, 'rgba(255,255,255,0)');
+      x.fillStyle = gl; x.fillRect(0, 0, 3024, 4032);
+    }
+    return c.toDataURL('image/jpeg', hard ? 0.7 : 0.82).split(',')[1];
+  }, src, hard);
+  await page.close();
+  const tag = hard ? '-hard' : '-photo';
+  const file = path.join(TMPD, slip.id + tag + '.jpg');
+  writeFileSync(file, Buffer.from(b64, 'base64'));
+  return { ...slip, id: slip.id + tag, path: file };
+}
+if (!RESCORE) {
+  for (const n of DENSE) slips.push(await makeDense(n));
+  if (PHOTO) for (let i = 0; i < slips.length; i++) if (/\.png$/i.test(slips[i].file) && !slips[i].path) slips[i] = await makePhoto(slips[i], HARD);
+  if (DENSE.length || PHOTO) console.log(`   作った明細 → ${slips.length} 枚（${slips.map((x) => x.id).join(', ')}）／置き場 ${TMPD}`);
+}
 const rows = RESCORE ? globalThis.__RESCORED : [];
 let stopped = false;
 
@@ -438,7 +537,8 @@ for (const slip of (RESCORE ? [] : slips)) {
   let payload = null, perr = null;
   try {
     if (DIRECT) {
-      payload = { image_b64: readFileSync(path.join(FIX, slip.file)).toString('base64'), mime: 'image/png', lang: slip.lang };
+      const fp = slip.path || path.join(FIX, slip.file);
+      payload = { image_b64: readFileSync(fp).toString('base64'), mime: /\.jpe?g$/i.test(fp) ? 'image/jpeg' : 'image/png', lang: slip.lang };
     } else {
       payload = await capturePayload(browser, slip);
       if (!payload?.image_b64) throw new Error('画像が送信されなかった');
@@ -457,12 +557,12 @@ for (const slip of (RESCORE ? [] : slips)) {
                 kb: Math.round(payload.image_b64.length / 1024) });
     const mark = (err || !r) ? '💥' : leak.length ? '🔓' : s.fatal.length ? '🚨' : s.silent ? '❌'
       : s.money.length ? '⚠️ ' : s.cls.length ? '△' : '✅';
-    console.log(`\r  ${slip.id.padEnd(14)} ${variant.padEnd(6)} ${mark} ${x ? `${(x.ms / 1000).toFixed(1)}s stop=${x.stop || '-'} out=${x.ot} $${x.usd.toFixed(4)}` : ''}${err ? ' ' + err : (x && x.code !== 'ok' ? ' ' + x.code : '')}`);
+    console.log(`\r  ${slip.id.padEnd(14)} ${variant.padEnd(6)} ${mark} ${x ? `${(x.ms / 1000).toFixed(1)}s stop=${x.stop || '-'} out=${x.ot} $${x.usd.toFixed(4)}${payload.prepMs ? ` prep=${(payload.prepMs / 1000).toFixed(1)}s ${Math.round(payload.image_b64.length * 3 / 4 / 1024)}KB` : ''}` : ''}${err ? ' ' + err : (x && x.code !== 'ok' ? ' ' + x.code : '')}`);
   }
   if (stopped) break;
 }
 if (browser) await browser.close();
-if (SAVE) writeFileSync(SAVE, JSON.stringify(rows.map((x) => ({ id: x.slip.id, variant: x.variant, x: x.x
+if (SAVE) writeFileSync(SAVE, JSON.stringify(rows.map((x) => ({ id: x.slip.id, slip: x.slip, variant: x.variant, x: x.x
   ? { ms: x.x.ms, stop: x.x.stop, it: x.x.it, ot: x.x.ot, usd: x.x.usd, code: x.x.code } : null, r: x.r || null, err: x.err || null })), null, 1));
 if (stopped) console.log(`\n⏹  上限 $${BUDGET.toFixed(2)} に届きそうなので、ここで止めました（使った分 $${spent.toFixed(4)}）`);
 

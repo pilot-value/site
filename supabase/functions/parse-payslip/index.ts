@@ -503,7 +503,12 @@ export function systemPrompt(lang: string): string {
     '- Deductions (tax, social insurance, union dues, loans) must NOT appear in "earnings".',
     '  Return only their SUM in "deductions_total". Never itemise deductions.',
     '  NEVER return 組合費 or the name of a union — which union someone belongs to is highly sensitive.',
-    '- "net_pay" is the take-home actually paid (差引支給額 / net pay / net salary).',
+    '- "net_pay" is the take-home actually paid to the bank (差引支給額 / 振込額 / net pay / net salary /',
+    '  Auszahlungsbetrag / Nettoverdienst / Net à payer / Netto / Líquido / 实发 / 실수령액).',
+    '  "deductions_total" is the sum of what was withheld (控除合計 / total deductions / Summe Abzüge /',
+    '  Gesetzliche Abzüge / Total des retenues / Cotisations / 扣款合计 / 공제총액). They are different',
+    '  printed lines — read each one from its own label and never swap them. Take-home is usually the',
+    '  larger of the two and is normally printed last.',
     '- "ytd_taxable" is the year-to-date cumulative taxable pay if printed',
     '  (累積課税支給額 / 課税支給額累計 / YTD gross / year to date taxable). null if absent.',
     /* ★印字された支給合計を返させる。これが無いと、こちら側で検算のしようがなく、
@@ -951,11 +956,13 @@ export type CheckState = 'ok' | 'mismatch' | 'unknown';
    currency … 明細の通貨が45通貨の中にあるか。unsupported でも金額はそのまま返す
    money    … 1.000 の形を「通貨が分からないので dec=2 と仮定して」決めたか
    scale    … 支給合計が月額としてあり得ないほど小さい（＝小数点の読み違い）
+   order    … 控除合計が手取りより大きい（＝2つを取り違えた形。2026-11-04 に足した）
    ★どれも送信は止めない。画面の同じ場所（renderResult の chkMsg）に1行出すだけ。 */
 export type CurState = 'ok' | 'unsupported' | 'unknown';
 export type Checks = {
   gross: CheckState; net: CheckState;
   currency: CurState; money: 'ok' | 'assumed'; scale: 'ok' | 'suspect';
+  order: 'ok' | 'suspect' | 'unknown';
   gross_printed: number | null; gross_summed: number | null; gross_diff: number | null;
   net_printed: number | null; net_expected: number | null; net_diff: number | null;
 };
@@ -1020,10 +1027,17 @@ export function reconcile(parsed: Parsed): Checks {
      数字はいじらない。旗を立てて本人に見比べてもらう（confidence も low に落ちる）。 */
   const scale: 'ok' | 'suspect' =
     printed !== null && printed !== 0 && Math.abs(printed) < 100 ? 'suspect' : 'ok';
+  /* ★控除合計と手取りの取り違え（2026-11-04）。写真の明細で、ドイツ・フランスの2枚が
+     控除合計 ⇄ 手取りを入れ替えて返した。2つを入れ替えても「支給 − 控除 ＝ 手取り」は
+     そのまま成り立つので、検算B では捕まらない（黙って外した）。
+     控除合計が手取りより大きい月給はふつう無い（見本16枚の正しい読みでは控除は支給の39%まで）。
+     ★数字は入れ替えない（どちらが正しいかはこちらでは決めない）。旗を立てて本人に見比べてもらう。 */
+  const order: 'ok' | 'suspect' | 'unknown' = (deduct === null || net === null) ? 'unknown'
+    : (deduct > 0 && net > 0 && deduct > net) ? 'suspect' : 'ok';
 
   return {
     gross, net: netState,
-    currency, money: parsed.money_assumed === true ? 'assumed' : 'ok', scale,
+    currency, money: parsed.money_assumed === true ? 'assumed' : 'ok', scale, order,
     gross_printed: printed, gross_summed: summed, gross_diff: grossDiff,
     net_printed: net, net_expected: netExpected, net_diff: netDiff,
   };
@@ -1034,7 +1048,8 @@ export function reconcile(parsed: Parsed): Checks {
    ★payslip.js は confidence === 'low' のときだけ警告を出す。落とさないと、
      checks を返しても画面には何も出ない。 */
 export function applyChecks(parsed: Parsed, checks: Checks): Parsed {
-  const bad = checks.gross === 'mismatch' || checks.net === 'mismatch' || checks.scale === 'suspect';
+  const bad = checks.gross === 'mismatch' || checks.net === 'mismatch' || checks.scale === 'suspect'
+    || checks.order === 'suspect';
   return { ...parsed, checks, confidence: bad ? 'low' : parsed.confidence };
 }
 
