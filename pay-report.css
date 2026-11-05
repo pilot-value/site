@@ -1727,3 +1727,7 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 .wz-quick .sec-no{display:none}
 /* 確認の画面の「前回から引き継ぎ」（欄名の下に小さく・2026-11-05）。「明細から読み取り」の札は外した。 */
 .wz-rev-carry{display:block;margin-top:2px;font-size:.68rem;font-weight:700;letter-spacing:.02em;color:var(--pv-ink-3)}
+/* 確認の画面：値や欄名に添える小さな字（受け取り方・箱の名前と何に連動するか）。値が折り返しても右に寄せる */
+.wz-rev-sub{display:block;margin-top:2px;font-size:.68rem;font-weight:600;letter-spacing:.01em;color:var(--pv-ink-3)}
+.wz-rev-v{margin-left:auto}
+.wz-rev-v .wz-rev-sub{text-align:right}

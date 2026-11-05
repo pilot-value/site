@@ -48,7 +48,7 @@
 <script>
 tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#18212f',accent:'#3d9bff',gold:'#f5c842',orange:'#f97316',text:'#e8edf2',muted:'#6b7d93'},fontFamily:{sans:['Inter','Noto Sans JP','sans-serif']}}}};
 </script>
-<link rel="stylesheet" href="../pay-report.css?v=c40c1ed2">
+<link rel="stylesheet" href="../pay-report.css?v=a6811a49">
 <!--PV-3P-->
 <script>
 /* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
@@ -729,7 +729,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <label class="form-label" for="f-perdiem">Viáticos (dietas), total del mes<span class="req-tag">Obligatorio</span></label>
           <input type="text" id="f-perdiem" class="form-input money" inputmode="decimal" placeholder="Total mensual"/>
           <div class="pd-src" id="pd-src-wrap" hidden>
-            <select id="f-perdiem-src" class="form-input" aria-label="Cómo se pagan tus viáticos">
+            <select id="f-perdiem-src" class="form-input rev-sub" aria-label="Cómo se pagan tus viáticos">
               <option value="included" selected>Incluidos en el sueldo bruto de mi recibo de nómina</option>
               <option value="outside">Se pagan aparte de mi recibo de nómina</option>
             </select>
@@ -1635,7 +1635,6 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <span class="sal-total-lab">Total anualizado<br>(según lo que ingresaste)</span>
           <span class="sal-total-val pv-no-cur" id="live-total">—</span>
         </div>
-        <p class="sal-hint pv-no-cur" id="live-hint">Tu sueldo bruto mensual × 12, más el bono anual y la participación en las utilidades.</p>
 
         <!-- ログインは送信のときだけ。ここに出す（押した場所に出す）。
              ★中身は pay-login.js が日英1枚で組む。login.html へ飛ばさない
@@ -1772,7 +1771,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 <!-- ★5ステップの器（Phase 5・2026-09-08）。日英でこの1本を共有する。
      読み込みに失敗したら window.PVPayWizard が無いまま＝下のインラインは
      これまでどおり「埋めると下が生える」1枚の長いページとして動く。 -->
-<script src="../pay-wizard.js?v=97cd683d"></script>
+<script src="../pay-wizard.js?v=80026d1f"></script>
 <script>
 // ── Supabase ──────────────────────────────────────────────────
 const _sb = supabase.createClient(
@@ -5129,8 +5128,9 @@ function quickStart() {
   STEP_EV = QUICK_EV;
   stepMax = -1;
   /* ★1枚の段では下の帯（年換算の総額）を出さない ── 読めた札の年間ペースと同じ数字が2つ並ぶだけ（2026-11-05） */
+  /* ★確認の段でも下の帯は出さない ── 送るボタンのすぐ上に同じ「年換算の総額」がある（同じ数字を2つ並べない） */
   WZ.reflow([{ id: 's4', also: ['s1', 's2', 's3'], title: QUICK_TITLE },
-             { id: 's5', totalBar: true }]);
+             { id: 's5' }]);
   WZ.focus(keep);
   return true;
 }

@@ -860,6 +860,27 @@ function qBare(fn) {
    下：匿名で公開されるイメージ（帯と段だけ）
    ★ラベルも値も**画面の DOM から**取る。ここに日英の対照表を持たない
      （持った瞬間、片方だけ直された文言とズレる）。 */
+/* 繰り返し行1本を、確認の画面の1行にする：名前（無ければ箱の名前）＝ 金額、名前の下に小さく「箱の名前 · 何に連動する支給か」。 */
+function pdRowReview(pr) {
+  var amtEl = pr.querySelector('.pd-amt'), nmEl = pr.querySelector('.pd-label'), bsEl = pr.querySelector('.pd-basis');
+  var amt = amtEl ? String(amtEl.value || '').trim() : '';
+  if (!amt) return null;
+  var blk = pr.closest('.pd-block'), bl = blk ? blk.querySelector('.form-label') : null, kind = '';
+  if (bl) {
+    var c = bl.cloneNode(true);
+    c.querySelectorAll('.req-tag, .opt-tag, .auto-tag, .miss-tag').forEach(function (t) { t.remove(); });
+    kind = c.textContent.trim();
+  }
+  var name = nmEl ? String(nmEl.value || '').trim() : '';
+  var basis = (bsEl && bsEl.value && bsEl.options[bsEl.selectedIndex]) ? bsEl.options[bsEl.selectedIndex].textContent.trim() : '';
+  basis = basis.replace(/\s*（[^）]*）\s*$/, '');   // 確認の画面では括弧の中の英語を外す（「飛行・クレジット時間（Flight / Block / Credit Hours）」が3行に折れていた）
+  var r = el('div', 'wz-rev-row');
+  var k = el('span', 'wz-rev-k', name || kind);
+  var sub = [name ? kind : '', basis].filter(Boolean).join(' · ');
+  if (sub) k.appendChild(el('small', 'wz-rev-sub', sub));
+  r.append(k, el('span', 'wz-rev-v', amt));
+  return r;
+}
 function fieldLabel(fld) {
   var lab = fld.querySelector('.form-label');
   if (!lab) return '';
@@ -904,6 +925,11 @@ function fieldValue(fld) {
   var parts = [], boxed = [], free = 0;
   fld.querySelectorAll('select, input:not([type="hidden"]), textarea').forEach(function (e) {
     if (e.disabled) return;
+    /* ★欄の中で条件により隠れている入力は読まない（2026-11-05：パーディアムが 0 のときも、隠れた受け取り方の
+         「明細の総支給に含まれている」が値に付いていた）。.rev-sub は値の下に小さく別に出す（renderReview）。 */
+    var hid = e.closest('[hidden]');
+    if (hid && fld.contains(hid)) return;
+    if (e.classList.contains('rev-sub')) return;
     if (e.type === 'checkbox' || e.type === 'radio') {
       if (!e.checked) return;
       var lab = e.closest('label');
@@ -1048,8 +1074,19 @@ function renderReviewIn(pay) {
     });
     head.appendChild(ed);
     sec.appendChild(head);
-    var rows = 0;
+    var rows = 0, seenRows = [];
     box.querySelectorAll('.fld').forEach(function (fld) {
+      /* ★繰り返し行（変動給・その他の手当）は、1行＝1つの支給として読み返す（2026-11-05）。
+           前は「何に連動する支給か」「支給額」「明細上の名称」…と欄の名前が見出し無しで並び、何の行か分からなかった。 */
+      var pr = fld.closest('.pd-row');
+      if (pr) {
+        if (seenRows.indexOf(pr) >= 0) return;
+        seenRows.push(pr);
+        if (!pr.offsetParent) return;
+        var prr = pdRowReview(pr);
+        if (prr) { sec.appendChild(prr); rows++; }
+        return;
+      }
       if (!fld.offsetParent) return;                   // 条件で隠れている欄は出さない
       var v = fieldValue(fld);
       if (!v) return;
@@ -1061,7 +1098,15 @@ function renderReviewIn(pay) {
            （確認の画面の値は全部見直すもの・行ごとに1行使って画面が倍の長さになっていた）。
            「前回から引き継ぎ」だけ、欄名の下に小さく残す ── 先月の額がそのまま入っていることに気づけるように。 */
       if (fieldFrom(fld) === 'carry') k.appendChild(el('small', 'wz-rev-carry', L.src.carry));
-      r.append(k, el('span', 'wz-rev-v', v));
+      var vEl = el('span', 'wz-rev-v', v);
+      /* 値に添える小さな字（パーディアムの受け取り方など・.rev-sub）。隠れていれば出さない。 */
+      [].forEach.call(fld.querySelectorAll('.rev-sub'), function (e) {
+        var hd = e.closest('[hidden]');
+        if ((hd && fld.contains(hd)) || !e.value) return;
+        var o = e.tagName === 'SELECT' ? e.options[e.selectedIndex] : null;
+        vEl.appendChild(el('small', 'wz-rev-sub', o ? o.textContent.trim() : String(e.value)));
+      });
+      r.append(k, vEl);
       sec.appendChild(r);
       rows++;
     });
