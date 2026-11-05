@@ -778,8 +778,23 @@ console.log('\n══ ⑧ 明細を読んだあとは、明細にない項目だ
   ok(rv.pd, '確認画面に、パーディアムと受け取り方が出る');
   ok(rv.ev === 'pay_quick1_input,pay_quick2_review', '段の通過は別の名前で1回ずつ', rv.ev);
 
+  /* ★書き方は1つ・換算するのは「出した数字」だけ（2026-11-05 オーナー「なんで JPY と ¥1,404万の数え方があるんだ」）。
+       ヘッダーをドルにすると、時給・年間ペース・年換算はドルに。確認の画面の読み返し（明細の通貨）は ¥ のまま ＝ 紙の明細と同じ数字。 */
+  const conv = await page.evaluate(async () => {
+    window.PVCurrency.set('USD');
+    await new Promise((r) => setTimeout(r, 400));
+    const rows = [...document.querySelectorAll('#wz-review .wz-rev-row')].map((r) => r.textContent);
+    const o = { review: rows.some((t) => /^基本給¥700,000$/.test(t)), pace: document.querySelector('.ps-aha-pv').textContent.trim(),
+      rate: document.querySelector('.ps-rate-v').textContent.trim(), sticky: document.getElementById('sticky-total').textContent.trim() };
+    window.PVCurrency.set('JPY');
+    await new Promise((r) => setTimeout(r, 300));
+    return o;
+  });
+  ok(conv.review && /^\$/.test(conv.pace) && /^\$/.test(conv.rate) && /^\$/.test(conv.sticky),
+     '★ヘッダーをドルにすると時給・年間ペース・年換算はドルに、確認の画面の明細の額は ¥ のまま', JSON.stringify(conv));
+
   /* 確認の「編集」で戻ると、全部の欄が出る（直したい欄が隠れたままにならない） */
-  await page.evaluate(() => [...document.querySelectorAll('#wz-review .wz-rev-edit')].find((b) => /3\. 報酬/.test(b.parentNode.textContent)).click());
+  await page.evaluate(() => [...document.querySelectorAll('#wz-review .wz-rev-edit')].find((b) => /報酬/.test(b.parentNode.textContent)).click());
   const ed = await page.evaluate(() => ({ cur: PVPayWizard.current(), q: PVPayWizard.focusing(), base: !!$('f-base').offsetParent, gross: !!$('f-gross').offsetParent }));
   ok(ed.cur === 's4' && !ed.q && ed.base && ed.gross, '★確認の「編集」で戻ると、明細から入った欄も全部出る');
   ok(errs.length === 0, '画面のエラーなし', errs.join(' | '));

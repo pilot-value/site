@@ -1700,7 +1700,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 pv_contributors() (up to 24 months of them).
              ★The JS builds the contents (they live with the condition). -->
         <div id="claim-state" class="claim-st" hidden></div>
-        <div id="amt-confirm" class="amt-cf" hidden></div>
+        <div id="amt-confirm" class="amt-cf pv-no-cur" hidden></div>
         <!-- ★Cancel removed 2026-09-20 (owner's call). Only people who have filled
              in all five steps ever see this screen, yet right next to the decision
              (directly below it, full width, on a phone) sat a way off the page.
@@ -6193,7 +6193,7 @@ function renderResult(d, p) {
     '<div class="res">' +
       '<div class="res-pop">🎉</div>' +
       '<div class="res-eyebrow">' + (d.is_new ? 'Received' : 'Correction applied') + '</div>' +
-      '<div class="res-big">' + esc(fmtCur(d.annual_total_orig, cur)) + '</div>' +
+      '<div class="res-big pv-no-cur">' + esc(fmtCur(d.annual_total_orig, cur)) + '</div>' +
       '<div class="res-sub">Annualised total, from your ' + esc(MONTH_NAMES[Number(p.period_month) - 1]) + ' ' + esc(p.period_year) + ' payslip</div>' +
       '<div style="margin-top:18px">' +
         rows.map((r) => '<div class="res-row"><span class="res-k">' + esc(r[0]) + '</span><span class="res-v ' + r[2] + '">' + r[1] + '</span></div>').join('') +

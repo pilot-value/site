@@ -3454,7 +3454,8 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     ok(lowBox.rows.length === 2 && lowBox.rows.every((r) => /\d/.test(r[1])),
        '★D: 解釈した「その月の総支給額」と「年換算の総額」を出す',
        lowBox.rows.map((r) => r.join('=')).join(' / '));
-    ok(lowBox.rows.every((r) => r[1].indexOf('JPY') >= 0),
+    /* ★2026-11-05 から円・ドル・ユーロ・ポンドは記号で書く（¥54,250）。換算していないことは「¥ か JPY のまま」で見る。 */
+    ok(lowBox.rows.every((r) => r[1].indexOf('JPY') >= 0 || /^¥[\d,]+$/.test(r[1])),
        '★D: 選ばれている通貨のまま出す（別の通貨に換算して見せない）',
        lowBox.rows.map((r) => r[1]).join(' / '));
     ok(lowBox.fix && lowBox.go, '★D: 「修正する」と「この金額で提出する」の両方が選べる');

@@ -1669,7 +1669,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 同じ人が REAL PAY に2行・人数に2重に載る（最大24か月ぶん）。
              ★中身は JS が組む（出す条件と対で持つ）。 -->
         <div id="claim-state" class="claim-st" hidden></div>
-        <div id="amt-confirm" class="amt-cf" hidden></div>
+        <div id="amt-confirm" class="amt-cf pv-no-cur" hidden></div>
         <!-- ★2026-09-20 オーナー指示で「やめる」を外した。
              ここは5段ぜんぶを埋め終えた人だけが見る画面なのに、決める場所の真横
              （スマホでは真下に同じ幅）へ、サイトの別のページへ飛ぶ出口を置いていた。
@@ -5947,7 +5947,7 @@ function renderResult(d, p) {
     '<div class="res">' +
       '<div class="res-pop">🎉</div>' +
       '<div class="res-eyebrow">' + (d.is_new ? '受け取りました' : '訂正を反映しました') + '</div>' +
-      '<div class="res-big">' + esc(fmtCur(d.annual_total_orig, cur)) + '</div>' +
+      '<div class="res-big pv-no-cur">' + esc(fmtCur(d.annual_total_orig, cur)) + '</div>' +
       '<div class="res-sub">年換算の総額（' + esc(p.period_year) + '年' + esc(p.period_month) + '月の明細から）</div>' +
       '<div style="margin-top:18px">' +
         rows.map((r) => '<div class="res-row"><span class="res-k">' + esc(r[0]) + '</span><span class="res-v ' + r[2] + '">' + r[1] + '</span></div>').join('') +
