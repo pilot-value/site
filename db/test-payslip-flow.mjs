@@ -769,7 +769,7 @@ console.log('\n══ ⑧ 明細を読んだあとは、明細にない項目だ
   await page.waitForFunction(() => PVPayWizard.current() === 's5', { timeout: 5000 }).catch(() => {});
   const rv = await page.evaluate(() => {
     const rows = [...document.querySelectorAll('#wz-review .wz-rev-row')].map((r) => r.textContent);
-    return { cur: PVPayWizard.current(), base: rows.some((t) => /^基本給¥700,000$/.test(t)),
+    return { cur: PVPayWizard.current(), base: rows.some((t) => /^基本給700,000$/.test(t)),
       gross: rows.some((t) => /^その月の総支給額1,169,867/.test(t)), pd: rows.some((t) => /^パーディアム.*45,000.*明細とは別に受け取っている/.test(t)),
       ev: (window.dataLayer || []).filter((x) => x && x[0] === 'event' && /^pay_quick/.test(x[1])).map((x) => x[1]).join(',') };
   });
@@ -779,19 +779,19 @@ console.log('\n══ ⑧ 明細を読んだあとは、明細にない項目だ
   ok(rv.ev === 'pay_quick1_input,pay_quick2_review', '段の通過は別の名前で1回ずつ', rv.ev);
 
   /* ★書き方は1つ・換算するのは「出した数字」だけ（2026-11-05 オーナー「なんで JPY と ¥1,404万の数え方があるんだ」）。
-       ヘッダーをドルにすると、時給・年間ペース・年換算はドルに。確認の画面の読み返し（明細の通貨）は ¥ のまま ＝ 紙の明細と同じ数字。 */
+       ヘッダーをドルにすると、時給・年間ペース・年換算はドルに。確認の画面の読み返しは打った数字のまま（換算しない）＝ 紙の明細と同じ数字。 */
   const conv = await page.evaluate(async () => {
     window.PVCurrency.set('USD');
     await new Promise((r) => setTimeout(r, 400));
     const rows = [...document.querySelectorAll('#wz-review .wz-rev-row')].map((r) => r.textContent);
-    const o = { review: rows.some((t) => /^基本給¥700,000$/.test(t)), pace: document.querySelector('.ps-aha-pv').textContent.trim(),
+    const o = { review: rows.some((t) => /^基本給700,000$/.test(t)), pace: document.querySelector('.ps-aha-pv').textContent.trim(),
       rate: document.querySelector('.ps-rate-v').textContent.trim(), sticky: document.getElementById('sticky-total').textContent.trim() };
     window.PVCurrency.set('JPY');
     await new Promise((r) => setTimeout(r, 300));
     return o;
   });
   ok(conv.review && /^\$/.test(conv.pace) && /^\$/.test(conv.rate) && /^\$/.test(conv.sticky),
-     '★ヘッダーをドルにすると時給・年間ペース・年換算はドルに、確認の画面の明細の額は ¥ のまま', JSON.stringify(conv));
+     '★ヘッダーをドルにすると時給・年間ペース・年換算はドルに、確認の画面の明細の額は打ったまま（換算しない）', JSON.stringify(conv));
 
   /* 確認の「編集」で戻ると、全部の欄が出る（直したい欄が隠れたままにならない） */
   await page.evaluate(() => [...document.querySelectorAll('#wz-review .wz-rev-edit')].find((b) => /報酬/.test(b.parentNode.textContent)).click());
