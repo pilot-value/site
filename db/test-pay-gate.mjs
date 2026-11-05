@@ -1050,23 +1050,32 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
   await p.goto(`${BASE}${dir}/pay-report.html`, { waitUntil: 'networkidle0' });
   await p.click('#entry-manual');
   await p.evaluate(fillForm);
-  const dropped = await p.evaluate(async () => {
+  const had = await p.evaluate(async () => {
     /* 離れる拍子の控え（pagehide）まで含めて、実際と同じ順に起こす。 */
     window.dispatchEvent(new Event('pagehide'));
     if (window.PVPayWizard) window.PVPayWizard.saveDraft();
     await new Promise((r) => setTimeout(r, 100));
-    const had = ['pv_pay_last', 'pv_pay_draft'].filter((k) => localStorage.getItem(k) != null);
+    return ['pv_pay_last', 'pv_pay_draft'].filter((k) => localStorage.getItem(k) != null);
+  });
+  /* ★2026-11-06 から、保存できたことは画面に出さない（毎段の頭に出ていた）。「下書きを消す」が出るのは、
+       戻ってきて下書きから戻したとき ── 消したくなるのはその場面なので、そこで押す。 */
+  await p.goto(`${BASE}${dir}/pay-report.html`, { waitUntil: 'networkidle0' });
+  await p.click('#entry-manual');
+  await new Promise((r) => setTimeout(r, 600));
+  const dropped = await p.evaluate(async (had) => {
     const b = document.querySelector('#wz-draft .wz-draft-drop');
+    const btn = !!(b && b.offsetParent);
     if (b) b.click();
     await new Promise((r) => setTimeout(r, 100));
     window.dispatchEvent(new Event('pagehide'));   // 消した直後に離れても書き戻さない
     return {
-      had,
+      had, btn,
       left: ['pv_pay_last', 'pv_pay_draft'].filter((k) => localStorage.getItem(k) != null),
       bar: (() => { const x = document.getElementById('restore-bar'); return !!(x && x.offsetParent); })(),
     };
-  });
+  }, had);
   ok(dropped.had.length === 2, '（前提）下書きと「前回の内容」の両方が端末にある', dropped.had);
+  ok(dropped.btn, '★戻ってきて下書きから戻したときは「下書きを消す」が出る');
   ok(dropped.left.length === 0,
     '★★「下書きを消す」で両方消える（片方だけ残るから復活していた）', dropped.left);
   ok(!dropped.bar, '「前回の内容」の帯も畳む', dropped.bar);

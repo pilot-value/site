@@ -1979,8 +1979,11 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     (r.querySelector('.wz-rev-v') || {}).textContent || '']));
   ok(revRows.some(([k, v]) => /^(基本給|Base pay)$/.test(k) && /該当なし|None of this applies/.test(v)),
      '★「該当なし」と答えた基本給が、確認に「該当なし」で出る', JSON.stringify(revRows.slice(0, 12)));
-  ok(!revRows.some(([k]) => /^(変動給|Variable pay)$/.test(k)),
-     '★変動給の見出しは確認に行を足さない', JSON.stringify(revRows.map((r) => r[0])));
+  /* ★2026-11-06 ── 「該当なし」と答えた変動給は、基本給と同じく「該当なし」の1行で出る（札が欄の外にあるので、前は行ごと落ちていた）。
+       見出しの欄が行を足すのは「該当なし」のときだけ。行（.pd-row）があるときは値が空なので、見出しは今までどおり行を足さない。 */
+  ok(revRows.filter(([k]) => /^(変動給|Variable pay)$/.test(k)).length === 1
+     && revRows.some(([k, v]) => /^(変動給|Variable pay)$/.test(k) && /該当なし|None of this applies/.test(v)),
+     '★「該当なし」と答えた変動給が、確認に「該当なし」の1行で出る', JSON.stringify(revRows.map((r) => r[0])));
 
   /* ★確認から戻っても、報酬の段は入れたままで出てくる。
      ここから下は「3. 報酬」の中身を見るので、そこまで帰ってから続ける。 */
