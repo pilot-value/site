@@ -745,6 +745,21 @@ console.log('\n══ ⑧ 明細を読んだあとは、明細にない項目だ
   ok(hs, '★答えで新しく必須になった欄（住宅手当の額）はその場で出る');
   await page.select('#f-housing', 'provided');
 
+  /* ★選択肢が少ない欄は押すだけのボタン（2026-11-05 オーナー「1問ずつ画面が切り替わるのもめんどくさい」）。
+       画面は切り替えない・select の選ぶ画面も開かない。本物は select のまま。 */
+  const chip = await page.evaluate(() => {
+    const pos = document.getElementById('f-position'), air = document.getElementById('f-airline');
+    const box = pos.__qc, b = box && [...box.querySelectorAll('.qchip')].find((x) => x.getAttribute('data-v') === 'cap');
+    if (b) b.click();
+    return { chips: !!box && !!box.offsetParent, selHidden: !pos.offsetParent, val: pos.value, on: !!b && b.classList.contains('is-on'),
+      bigSelect: !air.__qc && !!air.offsetParent, n: document.querySelectorAll('.wz-quick .qchips').length };
+  });
+  ok(chip.chips && chip.selHidden && chip.val === 'cap' && chip.on, '★職位は押すだけのボタン（押すと本物の欄に入り、押した印が付く）', JSON.stringify(chip));
+  ok(chip.bigSelect, '選択肢の多い欄（会社）は選ぶ欄のまま');
+  const back = await page.evaluate(() => { PVPayWizard.bare(() => {}); const pos = document.getElementById('f-position');
+    return PVPayWizard.bare(() => ({ sel: !!pos.offsetParent, chips: !!(pos.__qc && pos.__qc.offsetParent) })); });
+  ok(back.sel && !back.chips, '数えるあいだはボタンを外して select に戻る（必須の数えはいつもの欄で）');
+
   /* 残りを埋めて確認へ */
   await page.evaluate(() => {
     const setv = (id, v) => { const e = $(id); e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); e.dispatchEvent(new Event('change', { bubbles: true })); };
