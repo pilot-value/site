@@ -554,8 +554,14 @@ function go(i, opt) {
   saveDraft();
   if (!opt || !opt.quiet) {
     scrollToTop();
-    var first = $(C.steps[i].id).querySelector('.form-input:not([type="hidden"]), .rolebox input');
-    if (first) { try { first.focus({ preventScroll: true }); } catch (e) {} }
+    /* ★段の先頭の欄にカーソルを置かない（2026-11-05 オーナー「次へを押すと、次の画面の1番上の選択肢が
+       勝手に開く。やめて」）。iPhone は選択肢にカーソルが当たると選ぶ画面を開き、文字の欄ならキーボードを出す。
+       代わりに段の名前へ置く（読み上げとキーボード操作の居場所は段の頭に移る・何も開かない）。 */
+    var head = $(C.steps[i].id).querySelector('.sec-title');
+    if (head) {
+      if (!head.hasAttribute('tabindex')) head.setAttribute('tabindex', '-1');
+      try { head.focus({ preventScroll: true }); } catch (e) {}
+    }
   }
 }
 /* Next。押した段の未入力だけを見て、あれば**その場**で赤く示す（次へ進めない）。 */

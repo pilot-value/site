@@ -2359,10 +2359,9 @@
     b.addEventListener('click', function () {
       var need = needList();
       if (need.length) {
+        /* ★運ぶだけ。カーソルは置かない（iPhone が選ぶ画面・キーボードを勝手に開く・2026-11-05 オーナー指摘）。 */
         var f = need[0];
-        var inp = f.querySelector('input:not([type="hidden"]), select, textarea') || f;
-        try { inp.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { inp.scrollIntoView(); }
-        if (inp.focus) setTimeout(function () { try { inp.focus({ preventScroll: true }); } catch (e) {} }, 400);
+        try { f.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { f.scrollIntoView(); }
         return;
       }
       /* 埋まっていれば、出ている段の「入力内容を確認する」を押したのと同じ（注意の門もそこで効く）。 */

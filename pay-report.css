@@ -1560,3 +1560,6 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 .wz-quick .card.q-bare{background:none!important;border:0!important;box-shadow:none!important;padding:0!important;backdrop-filter:none!important}
 .wz-quick .card.q-bare>.wz-nav{margin-top:0}
 .wz-quick .sec-head .sec-tag,.wz-quick .sec-head .sec-prog,.wz-quick #ai-legend{display:none!important}
+/* 段を進めたとき、カーソルは段の名前に置く（欄に置くと iPhone が選ぶ画面・キーボードを勝手に開く・2026-11-05）。
+   名前は押せる物ではないので、枠は出さない。 */
+.step .sec-title:focus{outline:none}
