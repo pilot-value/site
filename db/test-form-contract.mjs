@@ -1041,9 +1041,10 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
     ok(!/<button|<a[ >]|role="button"/.test(barBox),
        `${f}: ★バーの中に押す物を置いていない（送信の入口は 5/5 の1つだけ）`,
        barBox.slice(0, 90));
-    /* ★長い説明はバーに載せない。#live-hint は #submit-block の中の1つだけ。 */
-    ok((s.match(/id="live-hint"/g) || []).length === 1,
-       `${f}: 年換算の長い説明は1か所だけ（バーは金額とボタンだけ）`);
+    /* ★長い説明はバーに載せない。#live-hint は #submit-block の中の1つまで。
+       ★2026-11-05 に説明（「その月の総支給 ×12 に…を足した額です」）そのものを外した（字を減らす）＝ 0 か所でよい。 */
+    ok((s.match(/id="live-hint"/g) || []).length <= 1 && !/id="live-hint"/.test(barBox),
+       `${f}: 年換算の長い説明は1か所まで・バーには載せない（バーは金額とボタンだけ）`);
     /* ★送信ボタンは #submit-btn の1つ。一覧の形は残してある ── 配る先が
          増えた日に、配り忘れた1つが送信中も押せてしまう事故をここで止める。 */
     ok(/const SUBMIT_BTNS = \(\) => \[[^\]]*\]\.map\(\$\)/.test(s),
