@@ -1136,9 +1136,15 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
     const sums = [...s.matchAll(/<summary[^>]*>([\s\S]*?)<\/summary>/g)]
       .map((m) => m[1]).filter((t) => t.includes('class="p"'));
     const sumTxt = sums.map((t) => t.replace(/<[^>]+>/g, '').replace(/[+＋]/g, '').trim());
-    ok(sums.length === 6 && sumTxt.every((t) => t.length < 60 && !/[。]|\.\s|DEEP PAY/i.test(t)),
-       `${f}: ★「＋…を追加」はボタンの名前だけ（説明文も DEEP PAY の約束も足さない）`,
+    ok(sums.length === 5 && sumTxt.every((t) => t.length < 60 && !/[。]|\.\s|DEEP PAY/i.test(t)),
+       `${f}: ★「＋…を追加」（役割の5つ）はボタンの名前だけ（説明文も DEEP PAY の約束も足さない）`,
        sumTxt.join(' / '));
+    /* ★2026-11-06（オーナー「同じ物差しで」）── 「給与の内訳」は畳めない見出しになった（中に必須の基本給・変動給がある）。
+         押せない形を当てるのは #pay-detail だけ。.pay-detail で書くと、役割の5つの「＋…を追加」まで押せなくなる（作っている途中で一度踏んだ）。 */
+    ok(/<details class="pay-detail" id="pay-detail">\s*<summary tabindex="-1">[^<+＋]+<\/summary>/.test(s)
+       && /#pay-detail>summary,[^{]*\{[^}]*pointer-events:none/.test(s)
+       && !/(^|[,}\s])\.pay-detail(\[open\])?>summary[^{]*\{[^}]*pointer-events:none/.test(s),
+       `${f}: ★内訳は「＋」の無い見出しで、押せない形は #pay-detail だけに効く`);
 
     /* ── ★項目名（.form-label）が読める強さであること（2026-08-27 オーナー指摘
          「『対象月』『勤務時間（Duty time）』…が灰色の薄い文字で見えにくい」）。
@@ -1954,9 +1960,11 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
      沈めていた仕掛け（.is-off の IntersectionObserver）を外した ── あれは帯に
      「匿名で提出」が載っていたころ、同じボタンを2つ見せないためのもの。
      押す物が無くなった今それを残すと、いちばん見たい数字が黙って消える。 */
-  ok(await stickyOn(), '★5/5（確認）でも帯を出す');
-  ok(await page.$eval('#sticky-submit', (el) => !el.classList.contains('is-off')),
-     '★提出ボタンが見えていても帯を沈めない（合計が読めたままでいる）');
+  /* ★2026-11-06（オーナー「同じ物差しで」）── 確認の段では下の帯を出さない。09-08 に頼まれたころは、確認の中に合計が無かった。
+       いまは提出ボタンの真上に同じ年換算があり、帯は同じ数字の2つ目になる（明細を読んだあとの確認と同じ形）。 */
+  ok(!(await stickyOn()), '★5/5（確認）では帯を出さない（同じ年換算を2つ並べない）');
+  ok(await page.$eval('#s5', (el) => { const v = el.querySelector('.sal-total-val'); return !!v && !!v.offsetParent; }),
+     '★年換算は確認の中（提出ボタンの真上）に出ている');
 
   /* ★5/5 に「明細から読み取った値」の節を足した（2026-09-11）。あれは明細から
      来た人だけのもの。**手で入れた人の画面には1行も増えない**ことを先に固定する
@@ -5237,9 +5245,10 @@ console.log('\n下書き（このブラウザだけ・pv_pay_draft）');
   ok(d1.uid === 'anon' && d1.step === 's1',
      '★未ログインの下書きは持ち主なし（anon）で、居た段まで覚えている',
      `${d1.uid} / ${d1.step}`);
-  ok(await page.$eval('#wz-draft', (el) => !el.hidden && el.classList.contains('is-ok')
-     && /このブラウザ/.test(el.textContent)),
-     '★「このブラウザに保存した」と本人に読める形で出す',
+  /* ★2026-11-06（オーナー「同じ物差しで」）── 保存できたことは言わない。毎段の頭に「保存しました（05:15）」が出ていた。
+       言うのは、戻したときと、保存できなかったとき（下の④）だけ。 */
+  ok(await page.$eval('#wz-draft', (el) => el.hidden),
+     '★保存できたことは画面に出さない（黙って残す）',
      await page.$eval('#wz-draft', (el) => el.textContent.trim()));
 
   /* ── ④ 保存に失敗したら「保存しました」と出さない ────────────────

@@ -48,7 +48,7 @@
 <script>
 tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#18212f',accent:'#3d9bff',gold:'#f5c842',orange:'#f97316',text:'#e8edf2',muted:'#6b7d93'},fontFamily:{sans:['Inter','Noto Sans JP','sans-serif']}}}};
 </script>
-<link rel="stylesheet" href="pay-report.css?v=a6811a49">
+<link rel="stylesheet" href="pay-report.css?v=7795e802">
 <!--PV-3P-->
 <script>
 /* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
@@ -518,7 +518,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
             <!--END:BOXES:f-jobrole-->
           </div>
           <input type="hidden" id="f-jobrole"/>
-          <p class="fld-hint">あてはまるものを<b>すべて</b>選んでください。</p>
+          <p class="fld-hint">複数選べます。</p>
         </div>
         <div class="fld">
           <!-- ★中身は node gen-vocab.mjs が pv-vocab.mjs の AGE_BUCKETS から生成する。手で足さない。 -->
@@ -531,7 +531,6 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
             <option value="50-59">50〜59歳</option>
             <option value="60+">60歳以上</option>
           </select>
-          <p class="fld-hint">10歳の幅までしか聞きません。</p>
         </div>
         </div><!-- /s1-body -->
       </div>
@@ -542,7 +541,6 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <span class="sec-tag req">必須</span>
           <button type="button" class="sec-prog" hidden></button>
         </div>
-        <p class="sec-sub">明細1枚ぶんの月と、その月の乗務。</p>
 
         <div class="fld">
           <label class="form-label" for="f-year">対象月<span class="req-tag">必須</span></label>
@@ -550,7 +548,6 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
             <select id="f-year" class="form-input" aria-label="対象年"></select>
             <select id="f-month" class="form-input" aria-label="対象月"></select>
           </div>
-          <p class="fld-hint">同じ会社・同じ月の出し直しは、訂正として上書きされます。</p>
         </div>
         <!-- ★実績と保証を並べて聞く。時給の欄と一緒に隠していたので、月給制の人には
              保証時間を聞く画面が一度も出ていなかった。中東の75〜80時間保証と、
@@ -562,19 +559,19 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <div class="fld">
             <label class="form-label" for="f-block">フライトタイム<span class="req-tag">必須</span></label>
             <input type="text" id="f-block" class="form-input num" inputmode="decimal" placeholder="例：78.5" data-min="0" data-max="200"/>
-            <p class="fld-hint">実際に飛んだ時間（block hours）。飛んでいない月・時間を管理していない場合は <b>0</b>。</p>
+            <p class="fld-hint">実際に飛んだ時間（block hours）。無ければ <b>0</b>。</p>
           </div>
           <div class="fld">
             <label class="form-label" for="f-duty-h">勤務時間（Duty time）<span class="opt-tag">任意</span></label>
             <input type="text" id="f-duty-h" class="form-input num" inputmode="decimal" placeholder="例：160" data-min="0" data-max="400"/>
-            <p class="fld-hint">出頭から解散までの<b>月の合計</b>。待機・地上業務を含みます。</p>
+            <p class="fld-hint">出頭から解散までの、月の合計。</p>
           </div>
         </div>
         <div class="grid2">
           <div class="fld">
             <label class="form-label" for="f-guar">保証フライトタイム<span class="opt-tag">任意</span></label>
             <input type="text" id="f-guar" class="form-input num" inputmode="decimal" placeholder="例：75" data-min="0" data-max="200"/>
-            <p class="fld-hint">飛ばなくても<b>この時間ぶんは払う</b>、という契約上の下限（Minimum Guarantee）。契約に無ければ空欄。</p>
+            <p class="fld-hint">契約上の最低保証（Minimum Guarantee）。無ければ空欄。</p>
           </div>
           <div class="fld">
             <!-- ★2026-09-12、必須 → 任意（オーナー決定5）。泊数を数えていない人に
@@ -587,7 +584,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                  ⚠️ 数えていない人は 0 を入れて通るので、実態と違う 0 が混ざり得る。 -->
             <label class="form-label" for="f-stay">ステイ日数<span class="req-tag">必須</span></label>
             <input type="text" id="f-stay" class="form-input num" inputmode="numeric" placeholder="例：8" data-min="0" data-max="31" data-dec="0"/>
-            <p class="fld-hint">基地の外で泊まった<b>泊数</b>。日帰りだけの月は <b>0</b>。</p>
+            <p class="fld-hint">基地の外で泊まった数。無ければ <b>0</b>。</p>
           </div>
         </div>
 
@@ -685,13 +682,13 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
         <div class="fld" id="pay-gross-fld">
           <label class="form-label" for="f-gross">その月の総支給額<span class="req-tag">必須</span></label>
           <input type="text" id="f-gross" class="form-input money" inputmode="decimal" placeholder="例：1,080,000"/>
-          <p class="fld-hint" id="gross-hint-own">税引き前の<b>額面</b>（明細の「総支給額」「Gross Pay」）。賞与は下の<b>年間ボーナス</b>へ。</p>
+          <p class="fld-hint" id="gross-hint-own">税引き前の額面（Gross Pay）。賞与は<b>年間ボーナス</b>へ。</p>
         </div>
 
         <div class="fld">
           <label class="form-label" for="f-netpay">その月の手取り額<span class="req-tag">必須</span></label>
           <input type="text" id="f-netpay" class="form-input money" inputmode="decimal" placeholder="例：842,000"/>
-          <p class="fld-hint">税・保険が引かれた<b>後</b>に振り込まれた額（「差引支給額」「Net Pay」）。</p>
+          <p class="fld-hint">振り込まれた額（Net Pay）。</p>
           <!-- ★手取りが総支給より多いときの注意（2026-10-05 オーナー指摘「なんで通ってんだ？」）。
                手取りが総支給の何倍もある提出がそのまま通っていた ── どこも2つの額を比べていなかった。
                ⚠️ id を pd-over で始めない・OVER_IDS に入れない。あちらは showOver() が6枚まとめて
@@ -722,7 +719,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               <option value="outside">明細とは別に受け取っている</option>
             </select>
           </div>
-          <p class="fld-hint"><b>滞在手当の月合計</b>。付かない会社・出なかった月は <b>0</b>。</p>
+          <p class="fld-hint">無ければ <b>0</b>。</p>
         </div>
 
         <div class="grid2">
@@ -735,17 +732,16 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               <option value="none">なし</option>
             </select>
           </div>
-          <div class="fld">
+          <div class="fld" hidden>
             <label class="form-label" for="f-housing-amt">住宅手当（月額）<span class="req-tag">必須</span></label>
             <input type="text" id="f-housing-amt" class="form-input money" inputmode="decimal" placeholder="現金支給の額" disabled/>
-            <p class="fld-hint" id="housing-amt-hint">「住宅手当（現金）」を選ぶと入力できます。</p>
           </div>
         </div>
 
         <div class="fld">
           <label class="form-label" for="f-bonus">年間ボーナス<span class="opt-tag">任意</span></label>
           <input type="text" id="f-bonus" class="form-input money" inputmode="decimal" placeholder="1年の合計"/>
-          <p class="fld-hint">年換算にそのまま足します（見込みで構いません）。</p>
+          <p class="fld-hint">見込みで構いません。</p>
         </div>
 
         <!-- ── 給与の内訳（畳んで残す）────────────────────────────
@@ -757,7 +753,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
              ★教官・審査・組合などの追加ロールの手当はここに入れない。
                役割ごとの追加モジュールで別に聞く。 -->
         <details class="pay-detail" id="pay-detail">
-          <summary><span class="p">+</span>給与の内訳を追加</summary>
+          <summary tabindex="-1">給与の内訳</summary>
           <div class="pay-detail-b">
 
             <p class="fld-hint pd-gate" id="pd-gate" hidden>この3つを答えると <b>REAL PAY の給与内訳</b>が開きます。明細に無い項目は「該当なし」を選んでください。</p>
@@ -772,7 +768,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               <div class="fld is-rail is-rail-key">
                 <label class="form-label" for="f-guarantee">Flight time 保証手当 / 職務手当</label>
                 <input type="text" id="f-guarantee" class="form-input money" inputmode="decimal" placeholder="例：90,000"/>
-                <p class="fld-hint">基本給とは<b>別に金額として明細に出ている</b>場合だけ（Minimum Guarantee・保証給・職務手当）。</p>
+                <p class="fld-hint">基本給と<b>別の行</b>で明細に出ている場合だけ。</p>
                 <label class="rolebox pd-none"><input type="checkbox" id="f-guarantee-none"><span>該当なし</span></label>
               </div>
             </div>
@@ -785,7 +781,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <div class="fld" data-none="f-variable-none" style="margin-bottom:0">
                   <label class="form-label" for="f-var-sum">変動給<span class="req-tag">必須</span></label>
                 </div>
-                <p class="fld-hint" style="margin-top:0">乗務時間・セクター数・待機などで<b>月ごとに変わる支給</b>。明細のとおりの金額と名称を書き写してください。</p>
+                <p class="fld-hint" style="margin-top:0">乗務時間・セクター数・待機などで<b>月ごとに変わる支給</b>。</p>
                 <div class="pd-rows" id="pd-var-rows"></div>
                 <button type="button" class="chip" id="pd-var"><span class="p">+</span>変動給を追加</button>
                 <!-- ★入力補助（2026-09-12 オーナー決定4）。**必須のチェックではない。**
@@ -1246,7 +1242,6 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <span class="sec-tag req">必須</span>
           <button type="button" class="sec-prog" hidden></button>
         </div>
-        <p class="sec-sub" id="s4-sub">契約形態と納税地で、同じ総支給でも手取りは大きく変わります。</p>
 
         <!-- ★前月と同じなら毎月聞かない。ここは「契約」なので月ごとに変わらない。
              前回の内容が入っているときは要約1行に畳み、変わった人だけ開く。
@@ -1275,12 +1270,12 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <div class="fld">
             <label class="form-label" for="f-seniority">在籍年数<span class="req-tag">必須</span></label>
             <input type="text" id="f-seniority" class="form-input num" inputmode="numeric" placeholder="例：7" data-min="0" data-max="60" data-dec="0"/>
-            <p class="fld-hint">この会社に入ってからの年数。<b>訓練期間も含みます。</b></p>
+            <p class="fld-hint">この会社に入ってから。<b>訓練期間を含む。</b></p>
           </div>
           <div class="fld">
             <label class="form-label" for="f-rankyears">昇格後年数<span class="req-tag">必須</span></label>
             <input type="text" id="f-rankyears" class="form-input num" inputmode="numeric" placeholder="例：3" data-min="0" data-max="60" data-dec="0"/>
-            <p class="fld-hint">いまの職位になってからの年数。訓練期間は含めません。<b>他社での同じ職位も通算します。</b></p>
+            <p class="fld-hint">いまの職位になってから。<b>他社も通算</b>、訓練は除く。</p>
           </div>
         </div>
         <div class="grid2 tax-row">
@@ -1541,7 +1536,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           </div>
         </div>
         <div id="tax-warn" class="warn-row" style="display:none;margin-top:2px"></div>
-        <p class="fld-hint" style="margin-top:10px">居住国を選ぶと<b>おおよその率を入れます</b>（日本・英国・米国・所得税のない国）。目安なので、明細の数字で上書きしてください。空欄でも送信できます。</p>
+        <p class="fld-hint tax-hint">居住国から目安を入れます。違えば直してください。</p>
         </div><!-- /s4-body -->
       </div>
 
@@ -1609,7 +1604,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 
       <div class="step wz-err-here" id="submit-block" hidden>
         <div class="sal-total pv-no-cur" style="margin-bottom:8px">
-          <span class="sal-total-lab">年換算の総額<br>（あなたの入力から）</span>
+          <span class="sal-total-lab">年換算の総額</span>
           <span class="sal-total-val pv-no-cur" id="live-total">—</span>
         </div>
 
@@ -1737,7 +1732,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 <!-- ★5ステップの器（Phase 5・2026-09-08）。日英でこの1本を共有する。
      読み込みに失敗したら window.PVPayWizard が無いまま＝下のインラインは
      これまでどおり「埋めると下が生える」1枚の長いページとして動く。 -->
-<script src="pay-wizard.js?v=80026d1f"></script>
+<script src="pay-wizard.js?v=1de73646"></script>
 <script>
 // ── Supabase ──────────────────────────────────────────────────
 const _sb = supabase.createClient(
@@ -2728,10 +2723,9 @@ $('f-housing').addEventListener('change', () => {
   const cash = $('f-housing').value === 'allowance';
   const amt = $('f-housing-amt');
   amt.disabled = !cash;
+  /* ★現金のときだけ欄を出す（2026-11-06）。前は灰色の欄と「選ぶと入力できます」の説明を、いつも並べていた。 */
+  amt.closest('.fld').hidden = !cash;
   if (!cash) amt.value = '';
-  $('housing-amt-hint').textContent = cash
-    ? '総支給に含まれている住宅手当の月額を入れてください。'
-    : '左の住居で「住宅手当（現金）」を選ぶと入力できます。';
   recalc();
 });
 
@@ -2765,6 +2759,8 @@ $('pay-detail').addEventListener('toggle', updatePayMode);
       「開いている」状態になる（画面は普通に見えたまま計算だけ動かない）。
       既存の流儀（restoreInto() / pdRestore() の `.open = true`）に合わせる。 */
 $('pay-detail').open = true;
+/* ★畳めない（2026-11-06）。中に必須の2つ（基本給・変動給）があるので、閉じる理由が無い。押せる形もやめて見出しにした。 */
+$('pay-detail').querySelector('summary').addEventListener('click', (e) => e.preventDefault());
 
 /* ── 税：居住国と年収から概算して差し出す ─────────────────────
    ★決めつけない。入れるのは本人が触っていない間だけで、上書きは常にできる。
@@ -4766,7 +4762,7 @@ function foldContract() {
   if ($('f-seniority').value !== '') bits.push('在籍 ' + $('f-seniority').value + '年');
   if ($('f-rankyears').value !== '') bits.push('昇格後 ' + $('f-rankyears').value + '年');
   $('s4-sum-txt').innerHTML = '<b>' + esc(bits.join(' ／ ')) + '</b>';
-  shutFold('s4-body', 's4-sum', 's4-sub');      // 畳んだら説明文も消す（要約1行だけを残す）
+  shutFold('s4-body', 's4-sum');      // 畳んだら要約1行だけを残す
 }
 /* ── 畳む／開くを1か所で決める（2026-09-12）──────────────────────
    ★いま人が居る段は**必ず開く**。畳まれたまま出てくると、その画面は
@@ -4778,13 +4774,13 @@ function syncFolds() {
   const W = window.PVPayWizard;
   const at = (W && W.current) ? W.current() : null;
   if (at === 's1') openFold('s1-body', 's1-sum', null);
-  if (at === 's4') openFold('s4-body', 's4-sum', 's4-sub');
+  if (at === 's4') openFold('s4-body', 's4-sum');
   foldIdentity();
   foldContract();
 }
 
 $('s4-edit').addEventListener('click', () => {
-  openFold('s4-body', 's4-sum', 's4-sub');
+  openFold('s4-body', 's4-sum');
   $('f-contract').focus();
 });
 /* ★引数なしで呼ぶ＝まだ誰か分かっていない段階。押印済みのものには触らない。
@@ -4961,8 +4957,8 @@ if (WZ) {
     /* ★合計の帯を出すのは「3. 報酬」の段だけ（オーナー指示）。
        2画面のときは「3. 報酬」が1画面目の中に居るので、1画面目に出す。 */
     steps: TWO_SCREEN
-      ? [{ id: 's2', also: ['s1', 's3', 's4'], totalBar: true }, { id: 's5', totalBar: true }]
-      : [{ id: 's1' }, { id: 's2' }, { id: 's3', totalBar: true }, { id: 's4' }, { id: 's5', totalBar: true }],
+      ? [{ id: 's2', also: ['s1', 's3', 's4'], totalBar: true }, { id: 's5' }]
+      : [{ id: 's1' }, { id: 's2' }, { id: 's3', totalBar: true }, { id: 's4' }, { id: 's5' }],
     /* ★いま画面に出ている対象月。月ごとの下書きの棚の鍵になる
        （「新しい月を入力する」を押した人の元の月を、この鍵で戻す）。 */
     ym: () => ($('f-year').value && $('f-month').value)
@@ -4996,7 +4992,7 @@ if (WZ) {
     /* 確認画面の「編集」で戻ったとき、その節が畳まれていたら開く。 */
     reviewOpen: (id) => {
       if (id === 's1') openFold('s1-body', 's1-sum', null);
-      if (id === 's4') openFold('s4-body', 's4-sum', 's4-sub');
+      if (id === 's4') openFold('s4-body', 's4-sum');
     },
     /* ★明細から読み取ったのに、画面に欄が無い値（2026-09-11）。保存にも計算にも
        使うのに 5/5 に一度も出てこず、本人が読み返せないまま送られていた。
@@ -5040,6 +5036,8 @@ if (WZ) {
       trackStep(id, i);
       /* ★出した段は必ず開き、出ていない段は畳み直す（2026-09-12）。 */
       syncFolds();
+      /* ★「前回の内容を復元しました」は最初の段の上でだけ言う（2026-11-06）。進んだら外す。 */
+      if (i > 0) $('restore-bar').style.display = 'none';
       /* 段を出し直したので、印とゲージを引き直す（隠れている間は数えていない）。 */
       markRequired();
       markProgress();
@@ -5324,7 +5322,7 @@ function missingAllIn() {
   for (const [id] of back) $(id).hidden = false;
   /* 畳んだ「1. 会社と職務」「4. 契約と税」も一度開く。畳んだままだと在籍年数が
      空でも数えられず、送信の1件ずつの判定でしか出てこない（その欄は画面に無い）。 */
-  const FOLDS = [['s1-body', 's1-sum', null], ['s4-body', 's4-sum', 's4-sub']];
+  const FOLDS = [['s1-body', 's1-sum', null], ['s4-body', 's4-sum', null]];
   const was = FOLDS.map(([body]) => !!($(body) && $(body).hidden));
   FOLDS.forEach((f, i) => { if (was[i]) openFold(f[0], f[1], f[2]); });
   const m = missingRequired();

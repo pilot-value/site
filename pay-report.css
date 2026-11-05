@@ -1731,3 +1731,51 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 .wz-rev-sub{display:block;margin-top:2px;font-size:.68rem;font-weight:600;letter-spacing:.01em;color:var(--pv-ink-3)}
 .wz-rev-v{margin-left:auto}
 .wz-rev-v .wz-rev-sub{text-align:right}
+
+/* ════════════════════════════════════════════════════════════
+   手で入力する5段も、明細を読んだあとの1枚と同じ物差しで（2026-11-06 オーナー「同じ物差しかそれ以上で直せ」）
+   部品ごとに「何のためにあるか」を問い、答えの無いものを外した。
+   ・段の名前の横の「必須」と 0〜100% …… 上の進み具合の棒と同じことを言っていた（1画面に3つ）
+   ・段の番号 …… 上の「ステップ n/5」と同じ
+   ・欄ごとの「必須」…… ほとんど全部が必須なので、印は「任意」の側にだけ付ける
+   ・欄の左の線と右上の ✓ …… 埋まったかは欄の中身で分かる。未入力の赤い線だけ残す
+   ・点線の「＋」…… 実線に
+   ・内訳の見出し …… 中に必須（基本給・変動給）があるので畳めない。押せる形をやめ、「年に一度のもの」と同じ見出しに
+     ⚠️ #pay-detail だけ。役割ごとの5つ（「＋教官・訓練の手当を追加」など）も .pay-detail なので、class で書くと押せなくなる。
+   ════════════════════════════════════════════════════════════ */
+.sec-head .sec-tag,.sec-head .sec-prog{display:none!important}
+.sec-no{display:none}
+.req-tag{display:none}
+.fld.is-req:not(.is-miss)::before,.fld.is-req::after{display:none}
+/* 内訳の左の線（2026-09-03 オーナー指示で付けた）も外す。入れる場所は欄の箱そのものが示している。
+   未入力で止めたときの赤い線だけは残す。 */
+.is-rail:not(.is-miss)::before{display:none}
+.fld[hidden]{display:none!important}
+.chip{border-style:solid}
+#pay-detail>summary,#pay-detail[open]>summary,[data-theme="light"] #pay-detail>summary,[data-theme="light"] #pay-detail[open]>summary{
+  display:block;width:auto;max-width:none;padding:0;margin:0 0 14px;border:0;border-radius:0;background:none;box-shadow:none;
+  cursor:default;pointer-events:none;transform:none;font-size:.74rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#8a95a3}
+[data-theme="light"] #pay-detail>summary,[data-theme="light"] #pay-detail[open]>summary{color:#64748b}
+/* 書き始めたら、ページの頭の「1件出すと…」は出さない（入口で読んでいる・出す前の確認にも同じ約束がある） */
+body:has(#entry[hidden]) #pay-count{display:none}
+/* 上の進み具合の横の段の名前は出さない（カードの頭に同じ題がある）。数え方は「ステップ n/5」の1つ。 */
+.wz-name{display:none!important}
+/* 間隔（2026-11-06 オーナー「もっと間隔を意識して」）。トークンの 8 / 16 / 24 だけで組む。
+   段の題 → 最初の欄 24・欄と欄 24・ラベル → 欄 8。箱の中の行（変動給など）は 16 のまま詰める。 */
+.card.sec>.sec-head{margin-bottom:var(--pv-s-3)}
+.sec-head+.fld,.sec-head+.grid2,.sec-head+#wz-review{margin-top:0}
+.card.sec .fld{margin-bottom:var(--pv-s-3)}
+.card.sec .grid2:has(>.fld),.card.sec .grid3:has(>.fld){margin-bottom:var(--pv-s-3)}
+.card.sec .grid2>.fld,.card.sec .grid3>.fld{margin-bottom:0}
+@media(max-width:600px){
+  .card.sec .grid2>.fld,.card.sec .grid3>.fld{margin-bottom:var(--pv-s-3)}
+  .card.sec .grid2>.fld:last-child,.card.sec .grid3>.fld:last-child{margin-bottom:0}
+}
+.card.sec .form-label{margin-bottom:var(--pv-s-1)}
+.card.sec .pd-row>.fld{margin-bottom:var(--pv-s-2)}
+.card.sec .pd-row>.fld:last-child{margin-bottom:0}
+/* 対象月の年と月は、狭い画面でも横に並べる（1つの答えを2段に割らない） */
+.grid2:has(>#f-year){grid-template-columns:1fr 1fr!important}
+/* 税率の説明は欄のすぐ下に（間を空けると、どの欄の話か分からない） */
+.card.sec .grid2.tax-row:has(+.tax-hint){margin-bottom:0}
+.card.sec .tax-hint{margin:6px 0 0}

@@ -36,7 +36,6 @@ var T = {
     back:      '戻る',
     toReview:  '入力内容を確認する',
     edit:      '編集',
-    draftOk:   function (hm) { return 'このブラウザに下書きを保存しました（' + hm + '）'; },
     draftNg:   'このブラウザには下書きを保存できませんでした（プライベートモードなどでは保存されません）',
     draftBack: 'このブラウザに保存した下書きから続けています。',
     draftBackYm: function (t) { return t + 'の入力を、このブラウザから戻しました。'; },
@@ -64,7 +63,6 @@ var T = {
     back:      'Back',
     toReview:  'Review your entry',
     edit:      'Edit',
-    draftOk:   function (hm) { return 'Draft saved in this browser (' + hm + ')'; },
     draftNg:   'Could not save a draft in this browser (private mode blocks it)',
     draftBack: 'Continuing from a draft saved in this browser.',
     draftBackYm: function (t) { return 'Restored your ' + t + ' entry from this browser.'; },
@@ -88,7 +86,6 @@ var T = {
     back:      'Volver',
     toReview:  'Revisa tus datos',
     edit:      'Editar',
-    draftOk:   function (hm) { return 'Borrador guardado en este navegador (' + hm + ')'; },
     draftNg:   'No se pudo guardar el borrador en este navegador (el modo privado lo impide)',
     draftBack: 'Continúas con un borrador guardado en este navegador.',
     draftBackYm: function (t) { return 'Restauramos tus datos de ' + t + ' desde este navegador.'; },
@@ -521,6 +518,10 @@ function show(i) {
     stepEls(k).forEach(function (e) { e.hidden = k !== i; });
   });
   cur = i;
+  /* ★「下書きから続けています」は、戻した段の上でだけ言う（2026-11-06）。進んだら外す。
+     保存できなかった知らせ（is-ng）は残す。 */
+  var db = $('wz-draft');
+  if (db && !db.hidden && !db.classList.contains('is-ng') && db.dataset.step !== String(i)) db.hidden = true;
   /* ★エラーの箱を、今出ている段の中へ引っ越す。置きっぱなしにすると、
      1/5 で Next を押して止まった人のエラーが画面のずっと下（5/5 の中）に出て、
      本人には「押しても何も起きない」ようにしか見えない。
@@ -650,6 +651,7 @@ function draftBar(text, cls) {
   if (!box) return null;
   box.hidden = false;
   box.className = 'wz-draft ' + (cls || 'is-ok');
+  box.dataset.step = String(cur);
   box.textContent = '';
   box.append(document.createTextNode(text + ' '));
   var b = el('button', 'wz-draft-drop', L.draftDrop);
@@ -710,9 +712,8 @@ function saveDraft() {
   var box = $('wz-draft');
   if (!box) return;
   if (!ok) { box.hidden = false; box.className = 'wz-draft is-ng'; box.textContent = L.draftNg; return; }
-  var d = new Date();
-  var hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-  draftBar(L.draftOk(hm));
+  /* ★保存できたことは言わない（2026-11-06 オーナー「同じ物差しで」）。前は毎段の頭に「保存しました（05:15）」が出ていた。
+     言うのは、戻したとき（draftBar）と、保存できなかったときだけ。 */
 }
 function saveSoon() {
   clearTimeout(saveTimer);
@@ -944,6 +945,12 @@ function fieldValue(fld) {
       parts.push(String(e.value).trim());
     }
   });
+  /* ★「該当なし」の札が欄の外にある欄（変動給 ── 札は「＋変動給を追加」の横）も、答えとして読む（2026-11-06）。
+       前は確認画面に変動給の行が出ず、「該当なし」と答えたことを読み返せなかった。どの札が対かは HTML の data-none が決める。 */
+  if (!parts.length && !boxed.length && fld.dataset && fld.dataset.none) {
+    var nb = document.getElementById(fld.dataset.none);
+    if (nb && nb.checked && !fld.contains(nb)) { var nl = nb.closest('label'); return nl ? nl.textContent.trim() : ''; }
+  }
   /* ★区切りは言語で変える。英語ページに「、」を出すと日本語の文字が混ざる
      （2026-09-09。確認画面の『役職・区分』が Line pilot、Instructor と出ていた）。 */
   if (!free) return boxed.join(C.lang === 'en' ? ', ' : '、');
@@ -1059,7 +1066,7 @@ function renderReviewIn(pay) {
     var head = el('div', 'wz-rev-head');
     var t = box.querySelector('.sec-title');
     /* 1枚の段組み（明細を読んだあと）では段の番号を出さない（「ステップ 2/2」と「5.」が食い違う） */
-    head.appendChild(el('span', 'wz-rev-t', t ? (qon ? String(t.textContent).replace(/^\s*\d+\.\s*/, '') : t.textContent) : ''));
+    head.appendChild(el('span', 'wz-rev-t', t ? String(t.textContent).replace(/^\s*\d+\.\s*/, '') : ''));
     var ed = el('button', 'wz-rev-edit', L.edit);
     ed.type = 'button';
     ed.addEventListener('click', function () {
