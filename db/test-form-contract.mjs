@@ -3634,9 +3634,17 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   ok(!!pend && String(pend['f-base']).replace(/,/g, '') === SAMPLE['f-base'] && !!pend['f-year'],
     '入力は対象月ごと端末に預けられている', JSON.stringify(pend && Object.keys(pend).length));
 
-  // 送信前にページが表示している年換算（クライアント式）
+  // 送信前にページが出している年換算（クライアント式）
+  /* ★2026-11-05 から、帯の字はヘッダーの通貨・サイトの表記（¥3,121万 / $196K）で出す（オーナー指示で書き方を1つに）。
+     字は換算して丸めたものなので、比べるのは画面の式の答えそのもの（明細の通貨のまま）。
+     帯がその答えから出ていることは、下の「帯の字が式の答えを換算したもの」で見る。 */
+  const live = await page.evaluate(() => annualTotal());
   const liveText = await page.$eval('#live-total', (el) => el.textContent);
-  const live = Number(liveText.replace(/[^0-9.]/g, '').replace(/\.$/, ''));
+  const liveShown = await page.evaluate((t) => {
+    const R = window.PVCurrency && window.PVCurrency.rates, cur = document.getElementById('f-currency').value;
+    return R && R[cur] ? window.PVCurrency.fmt(Math.round(t * R[cur] / 10000) * 10000) : null;
+  }, live);
+  ok(!!liveShown && liveText.startsWith(liveShown), `帯の字が式の答えを換算したもの（書き方は1つ） → ${liveText}`);
 
   // セッションを持たせて送り直す（＝ログインから戻ってきた状態）
   /* ★2026-09-10、ここも page.click をやめた。預かったあとは提出ボタンの行ごと
