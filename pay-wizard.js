@@ -48,7 +48,7 @@ var T = {
     lblComp:    '支給の内訳（今月）',
     lblExtras:  '明細から読み取った値（欄が無いもの）',
     /* ★確認画面の出どころの札（2026-09-12）。判定は fieldFrom() が DOM の class だけで行う。 */
-    src: { ai: '明細から読み取り', carry: '前回から引き継ぎ' },
+    src: { carry: '前回から引き継ぎ' },
     /* ★2026-09-15、「固定・保証給」を基本給と保証手当に割った（オーナー指示）。
        同じ緑で並んでいて、フォームの欄が2つあるのに図では1色だったため。
        色は pay-viz.js の SEG が最初から持っている base(#34d399)/guarantee(#a3e635)。 */
@@ -76,7 +76,7 @@ var T = {
     lblComp:    'Pay composition (this month)',
     lblExtras:  'Read from your payslip (no field on screen)',
     /* ★Provenance chips on the review screen (2026-09-12). fieldFrom() decides from DOM classes alone. */
-    src: { ai: 'read from your payslip', carry: 'carried over from last time' },
+    src: { carry: 'carried over from last time' },
     seg: { base: 'Base pay', guarantee: 'Guarantee / duty pay',
            variable: 'Variable', command: 'Command', role: 'Role',
            perdiem: 'Per diem', housing: 'Housing', other: 'Other cash',
@@ -100,7 +100,7 @@ var T = {
     lblComp:    'Desglose de la remuneración (este mes)',
     lblExtras:  'Leído de tu recibo de nómina (sin campo en pantalla)',
     /* ★Provenance chips on the review screen (2026-09-12). fieldFrom() decides from DOM classes alone. */
-    src: { ai: 'leído de tu recibo de nómina', carry: 'copiado de la vez anterior' },
+    src: { carry: 'copiado de la vez anterior' },
     seg: { base: 'Sueldo base', guarantee: 'Horas garantizadas / asignación por servicio',
            variable: 'Variable', command: 'Asignación por categoría', role: 'Función',
            perdiem: 'Viáticos', housing: 'Vivienda', other: 'Otras asignaciones en efectivo',
@@ -1056,9 +1056,12 @@ function renderReviewIn(pay) {
       var lab = fieldLabel(fld);
       if (!lab) return;
       var r = el('div', 'wz-rev-row');
-      r.append(el('span', 'wz-rev-k', lab), el('span', 'wz-rev-v', v));
-      var frm = fieldFrom(fld);
-      if (frm) r.appendChild(el('span', 'wz-rev-src is-' + frm, L.src[frm]));
+      var k = el('span', 'wz-rev-k', lab);
+      /* ★出どころの印（2026-11-05 オーナー「いる？これ」）。「明細から読み取り」の札は外した
+           （確認の画面の値は全部見直すもの・行ごとに1行使って画面が倍の長さになっていた）。
+           「前回から引き継ぎ」だけ、欄名の下に小さく残す ── 先月の額がそのまま入っていることに気づけるように。 */
+      if (fieldFrom(fld) === 'carry') k.appendChild(el('small', 'wz-rev-carry', L.src.carry));
+      r.append(k, el('span', 'wz-rev-v', v));
       sec.appendChild(r);
       rows++;
     });

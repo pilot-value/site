@@ -6131,7 +6131,9 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     /* ★12 の材料。欄名は画面から読む（日英で文言を書き写さない）。 */
     out.secs = Array.from(document.querySelectorAll('#wz-review section.wz-rev-sec .wz-rev-t'))
       .map((e) => e.textContent.trim());
-    const keyOf = (r) => { const k = r.querySelector('.wz-rev-k'); return k ? k.textContent.trim() : ''; };
+    /* ★欄名の下の「前回から引き継ぎ」（.wz-rev-carry・2026-11-05）は欄名ではない。落として読む。 */
+    const keyOf = (r) => { const k = r.querySelector('.wz-rev-k'); if (!k) return ''; const c = k.cloneNode(true);
+      c.querySelectorAll('.wz-rev-carry').forEach((x) => x.remove()); return c.textContent.trim(); };
     const valOf = (r) => { const v = r.querySelector('.wz-rev-v'); return v ? v.textContent.trim() : ''; };
     for (const id of ['f-base', 'f-guarantee', 'f-command', 'f-housing-amt']) {
       const l = document.querySelector('label[for="' + id + '"]');
@@ -6155,7 +6157,8 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
                            + Math.round(cr.right) + ' / 行 ' + Math.round(rr.left) + '..'
                            + Math.round(rr.right));
       }
-      const src = row.querySelector('.wz-rev-src');
+      /* ★2026-11-05 から出どころの印は「前回から引き継ぎ」だけで、欄名の下に小さく（.wz-rev-carry）。 */
+      const src = row.querySelector('.wz-rev-carry');
       const v = row.querySelector('.wz-rev-v');
       if (!src) continue;
       out.srcs++;
@@ -6175,10 +6178,8 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     }
     return out;
   });
-  ok(m.srcs > 0, `${T} ★11 出どころの札が実際に出ている（検査が空振りしていない）`,
+  ok(m.srcs > 0, `${T} ★11 「前回から引き継ぎ」の印が実際に出ている（検査が空振りしていない）`,
      String(m.srcs));
-  ok(m.sameLine.length === 0, `${T} ★11 札は自分の行へ落ちる（金額と同じ行に居座らない）`,
-     m.sameLine.join(' / '));
   ok(m.outside.length === 0, `${T} ★11 確認画面の行から、はみ出す要素が1つも無い`,
      m.outside.join(' / '));
   ok(m.thin.length === 0, `${T} ★11 金額の欄が1文字ずつの縦書きに潰れない`,
