@@ -348,11 +348,11 @@ console.log('\n══ ① 選んだらすぐ読み取り・確認の画面は無
     /* ★入口で「明細から自動入力」を選んだ時点ではフォームはまだ出ていない（ステップ 1/2）。
        読めた時点で payslip.js が window.PVEnterMode('manual') を呼んで出す。
        ここが出ないと、読み取れても入力を始められないまま行き止まりになる。
-       ★「あと何が要るか」を画面が言っているかを見る。数は必須の数え（missingAll）そのもの
-         （2026-11-05 まで会社・職位・機材の3つだけを数え、「あと3つ」と言いながら12欄が残っていた）。 */
+       ★2026-11-05 から「あと◯項目／入力する →」の札は置かない（オーナー「このボタンは何のために存在してるの？」
+         ── 押すとすぐ下の欄へ動くだけだった）。読めた札のすぐ下に、明細にない項目の1枚が並ぶ。 */
     ok(!v.formBodyHidden && v.s1, '読み取れたらフォームが出る（ステップ 1/2 → 2/2）',
       v.formBodyHidden ? 'form-body が隠れたまま' : '');
-    ok(/あと\d+項目で送信できます/.test(v.res), '★あと何が要るかを画面が言っている（数だけ・説明の文は置かない）');
+    ok(!(await page.$('.ps-next')), '★「あと◯項目／入力する →」の札は無い（欄はすぐ下に並んでいる）');
     ok(/乗務時間あたり/.test(v.rate), '乗務時間あたりの時給が出る');
     ok(/総勤務時間あたり/.test(v.rate), '★総勤務時間あたりの時給が出る（自分では思いつかない方）');
     ok(!seen.rpc.includes('submit_pay_report'),
@@ -697,7 +697,6 @@ console.log('\n══ ⑧ 明細を読んだあとは、明細にない項目だ
       needAllVisible: need.every((f) => !!f.offsetParent),
       visNotNeeded: vis.filter((f) => f.classList.contains('is-req') && !need.includes(f)).map((f) => f.querySelector('.form-label').textContent),
       grossVis: !!document.getElementById('f-gross').offsetParent, baseVis: !!document.getElementById('f-base').offsetParent,
-      card: (document.querySelector('.ps-next-t') || {}).textContent || '',
       pdRow: [...document.querySelectorAll('.ps-extra-k')].some((e) => /パーディアム/.test(e.textContent)),
       navs: [...document.querySelectorAll('.wz-nav')].filter((n) => n.offsetParent).length,
     };
@@ -707,7 +706,6 @@ console.log('\n══ ⑧ 明細を読んだあとは、明細にない項目だ
   ok(a.need >= 10 && a.needAllVisible && a.visReq === a.need && !a.visNotNeeded.length,
      '★出ている必須の欄 ＝ まだ答えていない必須の欄（ちょうど同じ）', `出ている ${a.visReq} / 足りない ${a.need} ${a.visNotNeeded.join(',')}`);
   ok(!a.grossVis && !a.baseVis, '★明細から入った欄（総支給・基本給）は出さない');
-  ok(a.card === `あと${a.need}項目で送信できます`, '★札の「あと◯項目」が本当の数', a.card);
   ok(!a.pdRow, 'パーディアムは「明細にないお金」に並べない（必須の欄として下の1枚で1回だけ聞く）');
   ok(a.navs === 1, 'ボタンは4つの節のいちばん下に1組だけ', String(a.navs));
 
@@ -733,11 +731,10 @@ console.log('\n══ ⑧ 明細を読んだあとは、明細にない項目だ
   await page.keyboard.press('Tab');
   const pd = await page.evaluate(() => ({ src: $('f-perdiem-src').value, shown: !$('pd-src-wrap').hidden,
     over: OVER_IDS.filter((id) => !$(id).hidden), annual: annualTotal(), gross: num('f-gross'),
-    card: document.querySelector('.ps-next-t').textContent }));
+    }));
   ok(pd.src === 'outside' && pd.shown, '★明細に行が無いパーディアムは「明細とは別に受け取っている」が既定（選択は出る）', pd.src);
   ok(pd.over.length === 0, '★入れても「内訳の合計が総支給を超えています」が出ない（オーナーが本番で止まった形）', pd.over.join(','));
   ok(pd.annual === pd.gross * 12 + 45000 * 12, '★年収に ×12 で入る', `${pd.annual}`);
-  ok(pd.card === `あと${a.need - 1}項目で送信できます`, '埋めるたびに札の数が減る', pd.card);
 
   /* 答えで新しく必須になった欄（住宅手当の額）は、その場で出る */
   await page.select('#f-housing', 'allowance');

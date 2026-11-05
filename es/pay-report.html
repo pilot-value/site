@@ -48,7 +48,7 @@
 <script>
 tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#18212f',accent:'#3d9bff',gold:'#f5c842',orange:'#f97316',text:'#e8edf2',muted:'#6b7d93'},fontFamily:{sans:['Inter','Noto Sans JP','sans-serif']}}}};
 </script>
-<link rel="stylesheet" href="../pay-report.css?v=72c6c4cd">
+<link rel="stylesheet" href="../pay-report.css?v=39bcbb4f">
 <!--PV-3P-->
 <script>
 /* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
@@ -239,7 +239,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 
       <div class="card sec step" id="s1">
         <div class="sec-head">
-          <span class="sec-title">1. Aerolínea y puesto</span>
+          <span class="sec-title"><span class="sec-no">1. </span>Company &amp; role</span>
           <span class="sec-tag req">Obligatorio</span>
           <!-- 進み具合のゲージ。中身は markProgress() が書く。押すと最初の未入力欄へ飛ぶ。 -->
           <button type="button" class="sec-prog" hidden></button>
@@ -271,7 +271,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                   .form-input inside the same .fld (the gauge jump and the
                   missing-field jump); the search box would stand in for the <select>. -->
           <input type="search" id="f-airline-q" class="air-q" autocomplete="off"
-                 placeholder="Buscar por nombre de la aerolínea (opcional)" aria-label="Buscar por nombre de la aerolínea">
+                 placeholder="Buscar por nombre de la aerolínea" aria-label="Buscar por nombre de la aerolínea">
           <p id="f-airline-qn" class="air-qn" aria-live="polite"></p>
           <div id="f-airline-hits" class="air-hits" hidden></div>
           <select id="f-airline" class="form-input">
@@ -539,7 +539,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 
       <div class="card sec step" id="s2" hidden>
         <div class="sec-head">
-          <span class="sec-title">2. Mes y actividad de vuelo</span>
+          <span class="sec-title"><span class="sec-no">2. </span>Month &amp; flying</span>
           <span class="sec-tag req">Obligatorio</span>
           <button type="button" class="sec-prog" hidden></button>
         </div>
@@ -616,7 +616,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 
       <div class="card sec step" id="s3" hidden>
         <div class="sec-head">
-          <span class="sec-title">3. Remuneración</span>
+          <span class="sec-title"><span class="sec-no">3. </span>Pay</span>
           <span class="sec-tag req">Obligatorio</span>
           <button type="button" class="sec-prog" hidden></button>
         </div>
@@ -1263,7 +1263,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 
       <div class="card sec step" id="s4" hidden>
         <div class="sec-head">
-          <span class="sec-title">4. Contrato e impuestos</span>
+          <span class="sec-title"><span class="sec-no">4. </span>Contract &amp; tax</span>
           <span class="sec-tag req">Obligatorio</span>
           <button type="button" class="sec-prog" hidden></button>
         </div>
@@ -1626,9 +1626,9 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
            ★中身は pay-wizard.js が組む。ここに文言を置かない（日英で1本のため）。 -->
       <div class="card sec step" id="s5" hidden>
         <div class="sec-head">
-          <span class="sec-title">5. Revisión</span>
+          <span class="sec-title"><span class="sec-no">5. </span>Review</span>
         </div>
-        <div id="wz-review"></div>
+        <div id="wz-review" class="pv-no-cur"></div>
 
       <div class="step wz-err-here" id="submit-block" hidden>
         <div class="sal-total pv-no-cur" style="margin-bottom:8px">
@@ -1772,7 +1772,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 <!-- ★5ステップの器（Phase 5・2026-09-08）。日英でこの1本を共有する。
      読み込みに失敗したら window.PVPayWizard が無いまま＝下のインラインは
      これまでどおり「埋めると下が生える」1枚の長いページとして動く。 -->
-<script src="../pay-wizard.js?v=2cbdb7aa"></script>
+<script src="../pay-wizard.js?v=4a0a383d"></script>
 <script>
 // ── Supabase ──────────────────────────────────────────────────
 const _sb = supabase.createClient(
@@ -3559,7 +3559,9 @@ function annualTotal() {
 function fmtCur(v, code) {
   const meta = CUR_META[code] || [2, ''];
   const s = new Intl.NumberFormat('en-US', { minimumFractionDigits: 0, maximumFractionDigits: meta[0] }).format(Math.round(v));
-  return (code ? code + ' ' : '') + s;
+  /* ★円・ドル・ユーロ・ポンドは記号（¥1,297,038）、ほかは略号（確認の画面の読み返しと同じ・2026-11-05） */
+  const SYM = { JPY: '¥', USD: '$', EUR: '€', GBP: '£' };
+  return SYM[code] ? SYM[code] + s : (code ? code + ' ' : '') + s;
 }
 
 function recalc() {
@@ -5126,7 +5128,8 @@ function quickStart() {
   const keep = missingAll().map(quickUnit);
   STEP_EV = QUICK_EV;
   stepMax = -1;
-  WZ.reflow([{ id: 's4', also: ['s1', 's2', 's3'], title: QUICK_TITLE, totalBar: true },
+  /* ★1枚の段では下の帯（年換算の総額）を出さない ── 読めた札の年間ペースと同じ数字が2つ並ぶだけ（2026-11-05） */
+  WZ.reflow([{ id: 's4', also: ['s1', 's2', 's3'], title: QUICK_TITLE },
              { id: 's5', totalBar: true }]);
   WZ.focus(keep);
   return true;
@@ -6302,7 +6305,7 @@ addEventListener('scroll', () => {
   });
 })();
 </script>
-<script src="../payslip.js?v=07e3ec8b"></script>
+<script src="../payslip.js?v=b40c46e8"></script>
 <script src="../confetti.js"></script>
 <script src="../pay-login.js"></script>
 <!-- ★ヘッダーを畳むのは search.js。id="main-nav" を持つページは必ず読む。

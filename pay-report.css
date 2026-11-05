@@ -1723,3 +1723,5 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 .wz-quick .is-miss .qchip{border-color:rgba(220,38,38,.45)}
 /* 1枚の上では、囲みの中の「見えている最後の段」の下の余りを外す（隠した段のぶんの余白が残って、囲みの下だけ広くなる） */
 .wz-quick .card.sec > :nth-last-child(1 of :not(.q-off):not([hidden])){margin-bottom:0}
+/* 1枚の段組みでは段の番号（1.〜5.）を出さない（「ステップ 1/2」と食い違う） */
+.wz-quick .sec-no{display:none}

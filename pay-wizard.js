@@ -45,8 +45,6 @@ var T = {
     monthBack: function (t) { return t + 'の入力が残っています。'; },
     monthTake: '戻す',
     ymText:    function (y, m) { return y + '年' + m + '月'; },
-    revTitle:  '入力内容の確認',
-    revSub:    '出す前に、入れた内容をひととおり見てください。直すところは各節の「編集」から戻れます。',
     lblComp:    '支給の内訳（今月）',
     lblExtras:  '明細から読み取った値（欄が無いもの）',
     /* ★確認画面の出どころの札（2026-09-12）。判定は fieldFrom() が DOM の class だけで行う。 */
@@ -75,8 +73,6 @@ var T = {
     monthBack: function (t) { return 'You still have an entry for ' + t + '.'; },
     monthTake: 'Restore it',
     ymText:    function (y, m) { return MONTHS[m - 1] + ' ' + y; },
-    revTitle:  'Review your entry',
-    revSub:    'Check what you entered before you submit. Use "Edit" on any section to go back.',
     lblComp:    'Pay composition (this month)',
     lblExtras:  'Read from your payslip (no field on screen)',
     /* ★Provenance chips on the review screen (2026-09-12). fieldFrom() decides from DOM classes alone. */
@@ -101,8 +97,6 @@ var T = {
     monthBack: function (t) { return 'Todavía tienes datos ingresados para ' + t + '.'; },
     monthTake: 'Restaurarlo',
     ymText:    function (y, m) { return MONTHS[m - 1] + ' ' + y; },
-    revTitle:  'Revisa tus datos',
-    revSub:    'Revisa lo que ingresaste antes de enviar. Usa "Editar" en cualquier sección para volver.',
     lblComp:    'Desglose de la remuneración (este mes)',
     lblExtras:  'Leído de tu recibo de nómina (sin campo en pantalla)',
     /* ★Provenance chips on the review screen (2026-09-12). fieldFrom() decides from DOM classes alone. */
@@ -969,10 +963,14 @@ function reviewComp(p) {
   return parts;
 }
 /* 本人用の額。原本の通貨のまま出す（換算はサーバの仕事）。 */
+/* 明細の通貨のまま書く額（確認の画面の読み返し）。★円・ドル・ユーロ・ポンドは記号（¥700,000）、ほかは略号（AED 7,000）
+   ── サイトのほかの額と同じ書き方にそろえる（2026-11-05 オーナー「なんで JPY と ¥ の2通りがあるんだ」）。
+   ★#wz-review は pv-no-cur（自動の換算で別の通貨に書き換えさせない ＝ 紙の明細と同じ数字のまま）。 */
+var SYM_ORIG = { JPY: '¥', USD: '$', EUR: '€', GBP: '£' };
 function moneyOrig(v) {
   var cur = C.read ? String(C.read('f-currency') || '').trim() : '';
   var n = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(v));
-  return cur ? cur + ' ' + n : n;
+  return SYM_ORIG[cur] ? SYM_ORIG[cur] + n : (cur ? cur + ' ' + n : n);
 }
 
 /* ★明細を読んだあとの1枚で隠した欄も、確認画面には全部出す（読むあいだだけ隠すのを外す）。 */
@@ -981,9 +979,8 @@ function renderReviewIn(pay) {
   var host = $(C.reviewId);
   if (!host) return;
   host.textContent = '';
-  var h = el('h3', 'wz-h', L.revTitle);
-  var p = el('p', 'wz-p', L.revSub);
-  host.append(h, p);
+  /* ★見出し（入力内容の確認）と説明の1文は置かない（2026-11-05）。段の名前「確認」と重なり、
+       「編集」のボタンが説明そのもの。 */
   /* ★入れた額が、どの区分にどれだけ乗っているかを1本で見せる。
      ★置き場所は**一番上**（2026-09-09 オーナー指示・Marit と同じ並び）。
        下に置くと、打った欄の読み返しを全部抜けないと全体像に届かない。
@@ -1035,7 +1032,8 @@ function renderReviewIn(pay) {
     var sec = el('section', 'wz-rev-sec');
     var head = el('div', 'wz-rev-head');
     var t = box.querySelector('.sec-title');
-    head.appendChild(el('span', 'wz-rev-t', t ? t.textContent : ''));
+    /* 1枚の段組み（明細を読んだあと）では段の番号を出さない（「ステップ 2/2」と「5.」が食い違う） */
+    head.appendChild(el('span', 'wz-rev-t', t ? (qon ? String(t.textContent).replace(/^\s*\d+\.\s*/, '') : t.textContent) : ''));
     var ed = el('button', 'wz-rev-edit', L.edit);
     ed.type = 'button';
     ed.addEventListener('click', function () {

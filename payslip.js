@@ -91,13 +91,8 @@
       askBlockOkT: '乗務時間（block hours）',
       askBlockL: '1つ入れるだけで「乗務時間あたりの時給」が出ます。明細の block / 乗務時間の欄です。',
       askBlockF: '明細から拾いました。合っていれば、このままで大丈夫です。',
-      editHint: '金額はこの表で直せます。直すと下のフォームと時給に反映されます。',
       foldTitle: '読み取った明細の内訳を見る（{n}行）',
       foldTitleNoN: '読み取った明細の内訳を見る',
-      nextT: 'あと{n}項目で送信できます',
-      nextB: '入力する →',
-      nextOkT: '送信できます',
-      nextOkB: '入力内容を確認する →',
       days: '乗務日数',
       /* ★2026-08-14 まで、分類できなかった行はここに「これはどれですか？」と出すだけで、
            金額はどの欄にも入っていなかった＝年収から黙って欠けていた。いまは
@@ -223,13 +218,8 @@
       askBlockOkT: 'Block hours',
       askBlockL: 'Add this one number and you get pay per block hour. It is the block / flight time line on your slip.',
       askBlockF: 'Picked up from your slip. Leave it if it looks right.',
-      editHint: 'You can fix the amounts right here. Edits flow into the form below and into your hourly pay.',
       foldTitle: 'See what we read off your payslip ({n} lines)',
       foldTitleNoN: 'See what we read off your payslip',
-      nextT: '{n} more to go',
-      nextB: 'Fill them in →',
-      nextOkT: 'Ready to send',
-      nextOkB: 'Review your entry →',
       days: 'Flight days',
       uncTag: ' (unclassified)',
       askT: function (n) { return n === 1 ? 'We could not tell what this line is' : 'We could not tell what ' + n + ' lines are'; },
@@ -350,13 +340,8 @@
       askBlockOkT: 'Horas block',
       askBlockL: 'Agrega solo este número y obtendrás tu remuneración por hora block. Es la línea de horas block (calzo a calzo) / horas de vuelo de tu recibo.',
       askBlockF: 'Lo tomamos de tu recibo. Si se ve bien, déjalo así.',
-      editHint: 'Puedes corregir los montos aquí mismo. Los cambios se reflejan en el formulario de abajo y en tu remuneración por hora.',
       foldTitle: 'Ver lo que leímos de tu recibo de nómina ({n} líneas)',
       foldTitleNoN: 'Ver lo que leímos de tu recibo de nómina',
-      nextT: '{n} por completar',
-      nextB: 'Completarlos →',
-      nextOkT: 'Listo para enviar',
-      nextOkB: 'Revisa tus datos →',
       days: 'Días de vuelo',
       uncTag: ' (sin clasificar)',
       askT: function (n) { return n === 1 ? 'No pudimos saber qué es esta línea' : 'No pudimos saber qué son ' + n + ' líneas'; },
@@ -1758,7 +1743,6 @@
     /* ★段を「明細にない項目 → 確認」の2つに組み替え、まだ答えていない欄だけを出す（2026-11-05 オーナー指示）。
        関数が無い＝古い HTML・共有 JS が落ちた1枚もの ── そのときは今までどおり。 */
     if (typeof window.PVPayQuick === 'function') { try { window.PVPayQuick(); } catch (e) {} }
-    syncNext();
   }
 
   /* ── 欄が無い値を隠しフィールドへ ─────────────────────────────
@@ -1904,6 +1888,12 @@
   var lastFields = [];                                // 前回 trace から書いた欄（行き先が変わったとき空にする）
   var askSkipped = false;                             // 「スキップ」を押したら、その明細ではもう聞かない
 
+  /* 明細の通貨のまま書く額の頭（確認の画面と同じ決まり：円・ドル・ユーロ・ポンドは記号、ほかは略号＋空白）。 */
+  function origPre(code) {
+    var S = { JPY: '¥', USD: '$', EUR: '€', GBP: '£' };
+    code = String(code || '');
+    return S[code] || (code ? esc2(code) + ' ' : '');
+  }
   function writeField(id, v) {
     var e2 = document.getElementById(id);
     if (!e2) return;
@@ -1983,14 +1973,6 @@
     else if (!(typeof num === 'function' && num('f-perdiem') > 0)) sel.value = 'outside';
   }
 
-  function missingForSubmit() {
-    var need = [];
-    ['f-airline', 'f-position', 'f-fleet'].forEach(function (id) {
-      var e2 = document.getElementById(id);
-      if (e2 && !String(e2.value).trim()) need.push(id);
-    });
-    return need;
-  }
 
   /* ── 食い違いの一覧（2026-09-12 オーナー決定6）───────────────────
      ★出すのは「本人が打った値があって、明細の値と違った」欄だけ。
@@ -2068,8 +2050,9 @@
     clearPanel();
     /* ★通貨は「明細に書いてあった通貨」をそのまま出す。ここで換算しない。
        換算した数字を明細の隣に並べると、どちらが実額か分からなくなる。 */
-    var cur = res.currency ? esc2(res.currency) + ' ' : '';
-    var box = el('div', 'ps-res');
+    var cur = origPre(res.currency);
+    /* pv-no-cur ＝ 自動の換算から外す（中の額は自分で整えている：年間ペース・時給はヘッダーの通貨、内訳の表は明細の通貨のまま） */
+    var box = el('div', 'ps-res pv-no-cur');
     var nIn = trace.length;
     box.appendChild(el('div', 'ps-res-title', esc2(nIn > 0 ? T.resultTitleN(nIn) : T.resultTitle)));
     box.appendChild(el('p', 'ps-res-lead', T.resultLead));
@@ -2176,7 +2159,7 @@
         pushTrace();
       });
       box.appendChild(tbl);
-      box.appendChild(el('p', 'ps-note', esc2(T.editHint)));
+      /* 「金額はこの表で直せます」の1文は置かない（欄そのものが直せる形をしている・2026-11-05） */
     }
 
     // 読めたが保存先がまだ無いもの＝画面に出すだけ。黙って捨てない。
@@ -2240,11 +2223,11 @@
 
     /* ★確認カードは畳んだ内訳の「外」に置く。中に入れると既定で閉じているので
          誰の目にも触れない（＝聞いていないのと同じ）。
-       ★送信ボタンへ連れて行く nextCard より前。ここが「レポートの最後」。 */
+       ★ここが「レポートの最後」。この下にすぐ「明細にない項目」の1枚が並ぶ。
+       ★「あと◯項目で送信できます／入力する →」の札は 2026-11-05 に外した（オーナー「このボタンは何のために存在してるの？」
+         ── 押すとすぐ下の欄へ動くだけだった）。 */
     box.appendChild(askWrap);
     renderAsk();
-
-    box.appendChild(nextCard());
 
     panel.appendChild(box);
     box.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -2271,7 +2254,7 @@
     if (!pend.length) return;
 
     var i = pend[0], t = lastTrace[i];
-    var cur = (lastRes && lastRes.currency) ? esc2(lastRes.currency) + ' ' : '';
+    var cur = origPre(lastRes && lastRes.currency);
     var card = el('div', 'ps-q');
     card.innerHTML =
       '<div class="ps-q-h"><span class="ps-q-t">' + esc2(T.askT(pend.length)) + '</span></div>' +
@@ -2322,48 +2305,6 @@
     renderAsk();                    // 次の1件へ（無ければカードごと消える）
   }
 
-  /* ── 次の行動 ───────────────────────────────────────────
-     「読み取りました」で止めない。明細に書いていない必須の欄は、すぐ下の1枚（明細にない項目）に
-     並んでいるので、そこへ連れて行く。全部埋まっていたら確認の画面へ。
-     ★数えるのはフォームの必須の数え（missingAll）そのもの ＝ 送信を止めている条件と同じ。
-       会社・職位・機材の3つだけを数えていた頃は「あと3つ」と言いながら12欄が残っていた
-       （2026-11-05 オーナー「次へ次へと押していくのがだるい」）。
-     ★埋めるたびに数え直す（syncNext ── change のたび）。 */
-  function needList() {
-    if (typeof window.missingAll === 'function') { try { return window.missingAll(); } catch (e) {} }
-    return missingForSubmit().map(function (id) { return document.getElementById(id); }).filter(Boolean);
-  }
-  function nextCard() {
-    var card = el('div', 'ps-next');
-    card.innerHTML = '<div class="ps-next-t"></div>';
-    var b = el('button', 'btn-orange', '');
-    b.type = 'button';
-    b.addEventListener('click', function () {
-      var need = needList();
-      if (need.length) {
-        /* ★運ぶだけ。カーソルは置かない（iPhone が選ぶ画面・キーボードを勝手に開く・2026-11-05 オーナー指摘）。 */
-        var f = need[0];
-        try { f.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { f.scrollIntoView(); }
-        return;
-      }
-      /* 埋まっていれば、出ている段の「入力内容を確認する」を押したのと同じ（注意の門もそこで効く）。 */
-      var nx = [].filter.call(document.querySelectorAll('.wz-next'), function (x) { return !!x.offsetParent; })[0];
-      if (nx) { nx.click(); return; }
-      var sb = document.getElementById('submit-block');
-      if (sb) sb.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
-    card.appendChild(b);
-    syncNext(card);
-    return card;
-  }
-  function syncNext(c) {
-    var card = c || (panel && panel.querySelector('.ps-next'));
-    if (!card) return;
-    var n = needList().length, ok = n === 0;
-    card.querySelector('.ps-next-t').textContent = ok ? T.nextOkT : T.nextT.replace('{n}', n);
-    card.querySelector('button').textContent = ok ? T.nextOkB : T.nextB;
-  }
-  document.addEventListener('change', function () { syncNext(); });
 
   // ════════════════════════════════════════════════════════
   // 時給 ── 商品そのもの
@@ -2600,7 +2541,7 @@
     return '<div class="ps-aha-t">' + esc2(T.ahaT) + '</div>' + inner;
   }
   /* ★withBtn は今どこからも true で呼ばれていない。復活させないこと ―
-     同じ文言のボタンを nextCard が出すので、2つ並ぶ（2026-08-12にそれで1つ消した）。 */
+     同じ文言のボタンが2つ並ぶ形になる（2026-08-12にそれで1つ消した）。 */
   function ahaMsg(msg, withBtn) {
     return ahaShell('<p class="ps-aha-msg">' + esc2(msg) + '</p>' +
       (withBtn ? '<button type="button" class="btn-orange ps-aha-b" id="ps-aha-go">' + esc2(T.ahaPickB) + '</button>' : ''));
@@ -2629,9 +2570,7 @@
       '<div class="ps-aha-pv">' + esc2(money(jpy)) + '</div></div>';
 
     /* 会社・職位はまだ選ばれていないのが普通（明細に書いていない）。
-       ★ボタンはここに置かない。同じ文言・同じ行き先のボタンを nextCard が出しており、
-         内訳を畳んだ（2026-08-12）ことで両者が40pxしか離れていない。
-         押す場所が2つあると、どちらが「次」なのか分からなくなる。 */
+       ★ボタンはここに置かない。会社と職位は、すぐ下の1枚で選ぶ（押す場所を2つにしない）。 */
     if (!air || !pos) {
       host.innerHTML = out;
       return;
