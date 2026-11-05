@@ -85,7 +85,7 @@
       cdLead: '前回の額を入れることもできます。<b>押さなければ空のまま</b>です。',
       cdUse: function (v) { return '前回の ' + v + ' を使う'; },
       resultTitle: '読み取りました',
-      resultLead: 'AIが読んだ値です。<b>明細と見比べて</b>、違うところは直してください。<b>この時点ではまだ投稿されていません。</b>',
+      resultLead: '<b>まだ投稿されていません。</b>最後に全部見直せます。',
       col1: '明細の項目', col2: '入れた欄', col3: '金額',
       askBlockT: '乗務時間（block hours）が読み取れませんでした',
       askBlockOkT: '乗務時間（block hours）',
@@ -95,10 +95,8 @@
       foldTitle: '読み取った明細の内訳を見る（{n}行）',
       foldTitleNoN: '読み取った明細の内訳を見る',
       nextT: 'あと{n}項目で送信できます',
-      nextL: '明細に書いていないことだけ聞きます。',
       nextB: '入力する →',
       nextOkT: '送信できます',
-      nextOkL: '内容を確かめてから送ってください。押すまで投稿されません。',
       nextOkB: '入力内容を確認する →',
       days: '乗務日数',
       /* ★2026-08-14 まで、分類できなかった行はここに「これはどれですか？」と出すだけで、
@@ -139,8 +137,6 @@
       perBlock: '乗務時間あたり',
       perDuty: '総勤務時間あたり',
       perMin: '分給',
-      pdOn: 'パーディアムを含める',
-      needDuty: '総勤務時間が明細から読めませんでした。',
       deduct: '控除合計', net: '差引支給額', dutyH: '総勤務時間', nightH: '深夜時間', blockH: '乗務時間', creditH: 'クレジットアワー',
       notionalTag: '（収入に数えていません）',
       notionalNote: '※ 控除欄に同額が立つ現物給与の課税処理（航空券課税など）です。手取りが動かないので、時給の計算には入れていません。',
@@ -149,12 +145,10 @@
       aiMark: 'AIが読んだ値',
       ahaT: 'この明細だと、年収はいくらのペースか',
       ahaPace: '年間ペース',
-      ahaPaceH: '明細の月額 ×12 ＋ 明細にないお金',
       exT: '明細にないお金',
       exBonus: 'ボーナス',
       exProfit: 'プロフィットシェア',
       perYear: '年',
-      ahaPick: '会社と職位を選ぶと、公開レンジとの比較が出ます。',
       ahaPickB: '会社と職位を選ぶ →',
       ahaNoAirline: '「その他」の会社は公開レンジを持っていないので、比較は出せません。',
       ahaNoBand: '訓練生の公開レンジはまだありません。副操縦士から比較が出ます。',
@@ -223,7 +217,7 @@
       cdLead: 'You can reuse last month&rsquo;s figure. <b>Leave it alone and the box stays empty.</b>',
       cdUse: function (v) { return 'Use last month&rsquo;s ' + v; },
       resultTitle: 'Here is what we read',
-      resultLead: 'These are the figures the AI read. <b>Check them against your slip</b> and fix anything wrong. <b>Nothing has been submitted yet.</b>',
+      resultLead: '<b>Nothing has been submitted yet.</b> You review everything at the end.',
       col1: 'Line on your slip', col2: 'Goes into', col3: 'Amount',
       askBlockT: 'Block hours could not be read',
       askBlockOkT: 'Block hours',
@@ -233,10 +227,8 @@
       foldTitle: 'See what we read off your payslip ({n} lines)',
       foldTitleNoN: 'See what we read off your payslip',
       nextT: '{n} more to go',
-      nextL: 'We only ask what is not on your payslip.',
       nextB: 'Fill them in →',
       nextOkT: 'Ready to send',
-      nextOkL: 'Check it over first. Nothing is posted until you press send.',
       nextOkB: 'Review your entry →',
       days: 'Flight days',
       uncTag: ' (unclassified)',
@@ -273,8 +265,6 @@
       perBlock: 'per block hour',
       perDuty: 'per duty hour',
       perMin: 'per minute',
-      pdOn: 'Include per diem',
-      needDuty: 'Duty hours were not readable from your slip.',
       deduct: 'Total deductions', net: 'Net pay', dutyH: 'Duty hours', nightH: 'Night hours', blockH: 'Block hours', creditH: 'Credit hours',
       notionalTag: ' (not counted as income)',
       notionalNote: '※ Imputed income that is taken straight back in the deductions column by the same amount (e.g. taxable staff travel). Your take-home does not change, so it is left out of the hourly figures.',
@@ -283,12 +273,10 @@
       aiMark: 'read by AI',
       ahaT: 'What this slip puts you on for the year',
       ahaPace: 'Annual pace',
-      ahaPaceH: 'Monthly total × 12, plus what is not on your payslip',
       exT: 'Not on your payslip',
       exBonus: 'Bonus',
       exProfit: 'Profit share',
       perYear: 'yr',
-      ahaPick: 'Pick your airline and seat and you get the comparison against the published ranges.',
       ahaPickB: 'Pick airline and seat →',
       ahaNoAirline: '“Other” has no published range, so there is nothing to compare against.',
       ahaNoBand: 'There is no published range for cadets yet. Comparison starts at first officer.',
@@ -356,7 +344,7 @@
       cdLead: 'Puedes reutilizar la cifra del mes pasado. <b>Si no haces nada, la casilla queda vacía.</b>',
       cdUse: function (v) { return 'Usar la cifra del mes pasado: ' + v; },
       resultTitle: 'Esto es lo que leímos',
-      resultLead: 'Estas son las cifras que leyó la IA. <b>Compáralas con tu recibo</b> y corrige lo que esté mal. <b>Todavía no se ha enviado nada.</b>',
+      resultLead: '<b>Todavía no se ha enviado nada.</b> Al final lo revisas todo.',
       col1: 'Concepto en tu recibo de nómina', col2: 'Se registra en', col3: 'Monto',
       askBlockT: 'No se pudieron leer las horas block (calzo a calzo)',
       askBlockOkT: 'Horas block',
@@ -366,10 +354,8 @@
       foldTitle: 'Ver lo que leímos de tu recibo de nómina ({n} líneas)',
       foldTitleNoN: 'Ver lo que leímos de tu recibo de nómina',
       nextT: '{n} por completar',
-      nextL: 'Solo te preguntamos lo que no aparece en tu recibo de nómina.',
       nextB: 'Completarlos →',
       nextOkT: 'Listo para enviar',
-      nextOkL: 'Revísalo primero. No se publica nada hasta que presiones Enviar.',
       nextOkB: 'Revisa tus datos →',
       days: 'Días de vuelo',
       uncTag: ' (sin clasificar)',
@@ -406,8 +392,6 @@
       perBlock: 'por hora block',
       perDuty: 'por hora de servicio',
       perMin: 'por minuto',
-      pdOn: 'Incluir viáticos',
-      needDuty: 'No se pudo leer el tiempo de servicio en tu recibo.',
       deduct: 'Total de deducciones', net: 'Sueldo neto', dutyH: 'Tiempo de servicio', nightH: 'Horas nocturnas', blockH: 'Horas block', creditH: 'Horas de crédito',
       notionalTag: ' (no se cuenta como ingreso)',
       notionalNote: '※ Ingreso imputado que se descuenta de inmediato en la columna de deducciones por el mismo monto (p. ej., boletos de empleado gravables). Lo que recibes en mano no cambia, así que se excluye de las cifras por hora.',
@@ -416,12 +400,10 @@
       aiMark: 'leído por IA',
       ahaT: 'Tu remuneración anual al ritmo de este recibo',
       ahaPace: 'Ritmo anual',
-      ahaPaceH: 'Total mensual × 12, más lo que no figura en tu recibo de nómina',
       exT: 'Fuera de tu recibo de nómina',
       exBonus: 'Bono',
       exProfit: 'Participación en las utilidades',
       perYear: 'año',
-      ahaPick: 'Elige tu aerolínea y tu puesto y verás la comparación con los rangos publicados.',
       ahaPickB: 'Elegir aerolínea y puesto →',
       ahaNoAirline: '“Otra” no tiene rango publicado, así que no hay con qué comparar.',
       ahaNoBand: 'Todavía no hay un rango publicado para pilotos en formación. La comparación empieza en primer oficial.',
@@ -2353,7 +2335,7 @@
   }
   function nextCard() {
     var card = el('div', 'ps-next');
-    card.innerHTML = '<div class="ps-next-t"></div><p class="ps-next-l"></p>';
+    card.innerHTML = '<div class="ps-next-t"></div>';
     var b = el('button', 'btn-orange', '');
     b.type = 'button';
     b.addEventListener('click', function () {
@@ -2379,7 +2361,6 @@
     if (!card) return;
     var n = needList().length, ok = n === 0;
     card.querySelector('.ps-next-t').textContent = ok ? T.nextOkT : T.nextT.replace('{n}', n);
-    card.querySelector('.ps-next-l').textContent = ok ? T.nextOkL : T.nextL;
     card.querySelector('button').textContent = ok ? T.nextOkB : T.nextB;
   }
   document.addEventListener('change', function () { syncNext(); });
@@ -2389,6 +2370,7 @@
   //   ★煽らない。パーディアムは非課税の実費補填なので既定では分子に入れない。
   //   ★乗務時間あたりと総勤務時間あたりを両方出す。差そのものが発見。
   // ════════════════════════════════════════════════════════
+  /* ★パーディアムは時給の分子に入れない（非課税の実費補填）。切り替えは 2026-11-05 に外した（文言を減らす）。 */
   var pdOn = false;
 
   function monthlyCash() {
@@ -2418,7 +2400,7 @@
           'inputmode="decimal" id="ps-ask-block" placeholder="78.5"><span>h</span></div>' +
         '<p class="ps-note" id="ps-ask-f" hidden>' + esc2(T.askBlockF) + '</p>' +
       '</div>' +
-      '<label class="ps-pd"><input type="checkbox" id="ps-pd"><span>' + esc2(T.pdOn) + '</span></label>';
+      '';
 
     var ask = card.querySelector('#ps-ask-block');
     ask.addEventListener('input', function () {
@@ -2430,10 +2412,6 @@
       card.querySelector('#ps-ask-f').hidden = false;
       writeField('f-block', guess);
     }
-    var cb = card.querySelector('#ps-pd');
-    cb.checked = pdOn;
-    cb.addEventListener('change', function () { pdOn = cb.checked; renderRate(); });
-
     setTimeout(renderRate, 0);                 // DOM に入ってから数字を描く
     return card;
   }
@@ -2481,7 +2459,7 @@
     body.innerHTML =
       big(m, block, 'perBlock') +
       big(m, duty, 'perDuty') +
-      (duty ? '' : '<p class="ps-note">' + esc2(T.needDuty) + '</p>');
+      '';
   }
 
   // ════════════════════════════════════════════════════════
@@ -2637,15 +2615,14 @@
        見出しの下が空の依頼文だけになっていた（実測）。 */
     var out = '<div class="ps-aha-t">' + esc2(T.ahaT) + '</div>' +
       '<div class="ps-aha-pace"><div class="ps-aha-pk">' + esc2(T.ahaPace) + '</div>' +
-      '<div class="ps-aha-pv">' + esc2(money(jpy)) + '</div></div>' +
-      '<p class="ps-aha-h">' + esc2(T.ahaPaceH) + '</p>';
+      '<div class="ps-aha-pv">' + esc2(money(jpy)) + '</div></div>';
 
     /* 会社・職位はまだ選ばれていないのが普通（明細に書いていない）。
        ★ボタンはここに置かない。同じ文言・同じ行き先のボタンを nextCard が出しており、
          内訳を畳んだ（2026-08-12）ことで両者が40pxしか離れていない。
          押す場所が2つあると、どちらが「次」なのか分からなくなる。 */
     if (!air || !pos) {
-      host.innerHTML = out + '<p class="ps-aha-msg">' + esc2(T.ahaPick) + '</p>';
+      host.innerHTML = out;
       return;
     }
     if (air === 'other')  { host.innerHTML = out + '<p class="ps-aha-msg">' + esc2(T.ahaNoAirline) + '</p>'; return; }

@@ -48,7 +48,7 @@
 <script>
 tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#18212f',accent:'#3d9bff',gold:'#f5c842',orange:'#f97316',text:'#e8edf2',muted:'#6b7d93'},fontFamily:{sans:['Inter','Noto Sans JP','sans-serif']}}}};
 </script>
-<link rel="stylesheet" href="../pay-report.css?v=176eaca9">
+<link rel="stylesheet" href="../pay-report.css?v=b0c95a0f">
 <!--PV-3P-->
 <script>
 /* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
@@ -199,12 +199,11 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 
       <!-- Auto-fill from a payslip — choose it → it is read straight away (go on with the other questions meanwhile) → check the figures and save -->
       <div class="ps" id="ps" hidden>
-        <p class="ps-step" id="ps-step">READ THE PAYSLIP (OPTIONAL)</p>
         <button type="button" class="ps-drop" id="ps-drop">
           <span class="ps-ico" aria-hidden="true">📄</span>
           <span class="ps-drop-txt">
             <b>Auto-fill from a payslip</b>
-            <small>Take a photo of your payslip, or choose a PDF or image (you can also drop it here)</small>
+            <small>PDF, photo or screenshot</small>
           </span>
         </button>
         <input type="file" id="ps-file" accept="application/pdf,image/png,image/jpeg,image/webp" hidden>
@@ -218,9 +217,6 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
         <!-- ★Anonymous／Encrypted &amp; secure／Quick の3語はここではなく、ひとつ前の
              「Auto-fill from a payslip」のカードに置いてある（2026-08-14 オーナー指示）。
              選ぶ前に読ませる語なので、選んだあとのこの画面で繰り返さない。 -->
-        <span class="entry-benefits ps-benefits">
-          <span class="entry-b"><i aria-hidden="true">✓</i>Dropping <b>the PDF itself</b> gives the most accurate read</span>
-        </span>
         <!-- ★逃げ道。読み取りが失敗した人・PDF を持っていない人がここで行き止まりになる。 -->
         <button type="button" class="ps-skip" id="ps-skip">Skip this and enter manually →</button>
         <div id="ps-panel"></div>
@@ -6293,7 +6289,7 @@ addEventListener('scroll', () => {
   });
 })();
 </script>
-<script src="../payslip.js?v=c574315d"></script>
+<script src="../payslip.js?v=9684739d"></script>
 <script src="../confetti.js"></script>
 <script src="../pay-login.js"></script>
 <!-- ★ヘッダーを畳むのは search.js。id="main-nav" を持つページは必ず読む。
