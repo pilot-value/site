@@ -477,7 +477,14 @@ function buildChrome() {
   var of = el('p', 'wz-draft'); of.id = 'wz-offer'; of.hidden = true;
   d.after(of);
 
-  /* 各ステップの末尾に 戻る／次へ。日英で同じ形になるよう JS が組む。 */
+  buildNavs();
+}
+/* 各ステップの末尾に 戻る／次へ。日英で同じ形になるよう JS が組む。
+   ★段を組み替える（reflow）ときは、前の段組みのボタンを全部外してから組み直す。 */
+function buildNavs() {
+  [].forEach.call(document.querySelectorAll('.wz-nav'), function (n) {
+    if (n.parentNode) n.parentNode.removeChild(n);
+  });
   C.steps.forEach(function (s, i) {
     var box = $(s.id);
     if (!box) return;
@@ -586,8 +593,10 @@ function sync() {
   if (cnt) cnt.textContent = L.stepOf(cur + 1, n);
   var nm = $('wz-name');
   if (nm) {
+    /* ★段組みが名前を持っていればそれ（明細を読んだあとの1枚 ＝ 4つの節の寄せ集めで、1つの節の名前ではない）。 */
     var t = $(C.steps[cur].id).querySelector('.sec-title');
-    nm.textContent = t ? String(t.textContent).replace(/^\s*\d+\.\s*/, '') : '';
+    nm.textContent = C.steps[cur].title ||
+      (t ? String(t.textContent).replace(/^\s*\d+\.\s*/, '') : '');
   }
   var top = $('wz-top');
   if (top) top.setAttribute('aria-label', L.stepOf(cur + 1, n));
@@ -726,6 +735,82 @@ function restoreDraft(d) {
   return true;
 }
 
+/* ═══ 3-b. 明細を読んだあとの1枚：必要な欄だけ見せる（2026-11-05 オーナー指示）══
+   「明細を読み込んでるのに、次へ次へと押していくのがだるい。必要なものだけ抜き出して入れさせて」。
+   明細を読めたら、呼ぶ側が段を「明細にない項目 → 確認」の2つに組み替え（reflow）、
+   まだ答えていない必須の欄（keep）だけを残して、ほかを隠す（.q-off）。
+   ★隠すのは見た目だけ。値はそのまま送られるし、確認画面には全部出る。
+   ★隠し方は「器（bodyId）に .wz-quick が付いているあいだだけ効く class」1つ。
+     画面に出ているか（offsetParent）で数える所 ── 必須の数え（呼ぶ側の missingAll）・
+     確認画面の読み取り（renderReview）── は、数えるあいだだけ .wz-quick を外す（bare）。
+     外さないと、隠した欄の必須が素通りし、確認画面から明細の値が消える。
+   ★keep は増えるだけ。一度出した欄は、埋まっても隠さない（打っている途中で欄が消えない）。
+   ★「編集」で戻ったら全部出す（unfocus）── 直したい欄が隠れたままにならないように。 */
+var qkeep = [];
+var qon = false;
+function qHost() { return C ? $(C.bodyId) : null; }
+function qClear() {
+  [].forEach.call(document.querySelectorAll('.q-off, .q-bare'), function (e) {
+    e.classList.remove('q-off'); e.classList.remove('q-bare');
+  });
+}
+function qHit(node) { return qkeep.some(function (k) { return node === k || node.contains(k); }); }
+function qWalk(node, top) {
+  [].forEach.call(node.children, function (ch) {
+    if (ch.classList.contains('wz-nav') || (C.errId && ch.id === C.errId)) return;
+    if (top && ch.classList.contains('sec-head')) return;      // 節の名前は残す
+    if (qkeep.indexOf(ch) >= 0) return;                         // 残す欄はまるごと
+    if (!qHit(ch)) { ch.classList.add('q-off'); return; }
+    if (ch.tagName === 'DETAILS' && !ch.open) ch.open = true;  // 畳んだ箱の中の欄も出す
+    qWalk(ch, false);
+  });
+}
+function qApply() {
+  qClear();
+  if (!qon) return;
+  C.steps.forEach(function (s, i) {
+    if (i >= C.steps.length - 1) return;                        // 確認の段は触らない
+    stepEls(i).forEach(function (box) {
+      if (!qHit(box)) {
+        /* 何も聞かない節は丸ごと隠す。ボタン（戻る／確認へ）を持つ節だけは、枠を消してボタンを残す。 */
+        if (box.querySelector(':scope > .wz-nav')) { box.classList.add('q-bare'); qWalk(box, false); }
+        else box.classList.add('q-off');
+        return;
+      }
+      qWalk(box, true);
+    });
+  });
+}
+function qFocus(nodes) {
+  if (!C) return;
+  (nodes || []).forEach(function (n) { if (n && qkeep.indexOf(n) < 0) qkeep.push(n); });
+  qon = true;
+  var h = qHost();
+  if (h) h.classList.add('wz-quick');
+  qApply();
+}
+function qAdd(nodes) {
+  if (!qon) return;
+  var add = (nodes || []).filter(function (n) { return n && qkeep.indexOf(n) < 0; });
+  if (!add.length) return;
+  qkeep = qkeep.concat(add);
+  qApply();
+}
+function qOff() {
+  if (!qon) return;
+  qon = false;
+  var h = qHost();
+  if (h) h.classList.remove('wz-quick');
+  qClear();
+}
+/* 隠した欄も「画面に出ている」として数えるあいだだけ、隠すのを外す。 */
+function qBare(fn) {
+  var h = qHost();
+  var on = qon && h && h.classList.contains('wz-quick');
+  if (on) h.classList.remove('wz-quick');
+  try { return fn(); } finally { if (on) h.classList.add('wz-quick'); }
+}
+
 /* ═══ 4. 確認画面（5/5）══════════════════════════════════════════
    上：入力内容の確認（本人用・実額そのまま）
    下：匿名で公開されるイメージ（帯と段だけ）
@@ -840,7 +925,9 @@ function moneyOrig(v) {
   return cur ? cur + ' ' + n : n;
 }
 
-function renderReview(pay) {
+/* ★明細を読んだあとの1枚で隠した欄も、確認画面には全部出す（読むあいだだけ隠すのを外す）。 */
+function renderReview(pay) { return qBare(function () { return renderReviewIn(pay); }); }
+function renderReviewIn(pay) {
   var host = $(C.reviewId);
   if (!host) return;
   host.textContent = '';
@@ -902,10 +989,14 @@ function renderReview(pay) {
     var ed = el('button', 'wz-rev-edit', L.edit);
     ed.type = 'button';
     ed.addEventListener('click', function () {
-      go(i);
+      /* ★明細を読んだあとの1枚では、直したい欄が隠れている。全部出してから、その節へ運ぶ。 */
+      var was = qon;
+      qOff();
+      go(i, was ? { quiet: true } : undefined);
       /* ★その節が畳まれているなら開いてから渡す。開けないと「編集」を押した人が
          要約1行の前に立たされ、もう一度「変更」を探すことになる。 */
       if (typeof C.reviewOpen === 'function') C.reviewOpen(box.id);
+      if (was) { try { box.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (e) { box.scrollIntoView(); } }
     });
     head.appendChild(ed);
     sec.appendChild(head);
@@ -1020,6 +1111,22 @@ var API = {
        帰った人が、次に普通に開いたときは下書きから続けられる。 */
   skipDraft: function () { this._resume = null; this._pending = null; },
   sync: function () { if (!C) return; sync(); saveSoon(); },
+  /* ★段を組み替える（2026-11-05）。明細を読めたら、呼ぶ側が「明細にない項目 → 確認」の2つにする。
+     ボタンを組み直し、1つ目の段を出す（画面は動かさない ── 読めた結果の札へ運ぶのは payslip.js）。 */
+  reflow: function (steps) {
+    if (!C || !steps || !steps.length) return;
+    C.steps = steps;
+    buildNavs();
+    started = true;
+    show(0);
+    saveDraft();
+  },
+  /* 明細を読んだあとの1枚：まだ答えていない欄だけを出す（3-b）。 */
+  focus: qFocus,
+  focusAdd: qAdd,
+  unfocus: qOff,
+  focusing: function () { return qon; },
+  bare: qBare,
   go: go,
   goLast: function () { if (C) go(C.steps.length - 1); },
   goToField: goToField,

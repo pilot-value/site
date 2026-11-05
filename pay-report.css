@@ -697,7 +697,6 @@ body.has-cta #form-wrap{padding-bottom:120px}
 
 
 
-@keyframes psSpin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){}
 
 
@@ -728,17 +727,27 @@ html.ps-load-lock,html.ps-load-lock body{overflow:hidden}
   animation:psFadeIn .22s var(--pv-ease) both}
 .ps-load.is-out{opacity:0;transition:opacity .24s var(--pv-ease)}
 @keyframes psFadeIn{from{opacity:0}to{opacity:1}}
-.ps-load-in{width:100%;max-width:300px;animation:psRise .4s var(--pv-ease) both}
+.ps-load-in{width:100%;max-width:300px;display:flex;flex-direction:column;align-items:center;text-align:center;
+  animation:psRise .4s var(--pv-ease) both}
+/* 0〜100% の輪（2026-11-05 オーナー指示「進むごとに時計回りに緑が回ってく」）。
+   緑の弧は JS が stroke-dashoffset で伸ばす（CSS の遷移は付けない ── 毎フレーム書いている）。 */
+.ps-ring{position:relative;width:112px;height:112px;margin:0 0 20px}
+.ps-ring svg{display:block;width:100%;height:100%}
+.ps-ring-bg{fill:none;stroke:var(--pv-line);stroke-width:8}
+.ps-ring-fg{fill:none;stroke:var(--pv-accent);stroke-width:8;stroke-linecap:round}
+.ps-ring-n{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--pv-ink)}
+.ps-ring-n small{margin-left:1px;font-size:.55em;font-weight:700;color:var(--pv-ink-2)}
 @keyframes psRise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.ps-load-t{margin:0 0 22px;font-size:1.15rem;font-weight:700;letter-spacing:-.02em;line-height:1.4;color:var(--pv-ink)}
-.ps-load .ps-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:16px}
+.ps-load-t{margin:0 0 20px;font-size:1.15rem;font-weight:700;letter-spacing:-.02em;line-height:1.4;color:var(--pv-ink)}
+.ps-load .ps-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px;text-align:left}
 .ps-load .ps-steps li{display:flex;align-items:center;gap:12px;font-size:.95rem;line-height:1.4;color:var(--pv-ink-3);
   transition:color .25s var(--pv-ease)}
 .ps-load .ps-steps li[data-s="active"]{color:var(--pv-ink)}
 .ps-load .ps-steps li[data-s="done"]{color:var(--pv-ink-2)}
-/* 段の印：まだ＝細い輪／いま＝回る輪／済み＝緑の ✓ */
+/* 段の印：まだ＝細い輪／いま＝緑の輪（回さない・2026-11-05）／済み＝緑の ✓ */
 .ps-step-dot{position:relative;flex:none;box-sizing:border-box;width:20px;height:20px;border-radius:999px;border:1.5px solid var(--pv-line)}
-li[data-s="active"] .ps-step-dot{border:2px solid var(--pv-accent-soft);border-top-color:var(--pv-accent);animation:psSpin .8s linear infinite}
+li[data-s="active"] .ps-step-dot{border:2px solid var(--pv-accent)}
 li[data-s="done"] .ps-step-dot{border-color:var(--pv-accent);background:var(--pv-accent);animation:psPop .3s var(--pv-ease) both}
 li[data-s="done"] .ps-step-dot::after{content:"";position:absolute;left:6px;top:3px;width:5px;height:9px;
   border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
@@ -777,7 +786,6 @@ li[data-s="done"] .ps-step-dot::after{content:"";position:absolute;left:6px;top:
   background:var(--pv-accent);box-shadow:0 6px 14px -8px rgba(6,117,99,.8);animation:psPop .42s var(--pv-ease) both}
 @media (prefers-reduced-motion:reduce){
   .ps-load,.ps-load-in,.ps-live,.ps-res>.ps-res-title:first-child::before,li[data-s="done"] .ps-step-dot{animation:none}
-  li[data-s="active"] .ps-step-dot{animation:none;border-color:var(--pv-accent)}
   .ps-load.is-out{transition:none}}
 .ps-view{position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;background:rgba(2,6,12,.92);backdrop-filter:blur(2px)}
 .ps-view-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
@@ -1540,3 +1548,15 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 [data-theme="light"] .air-hit--other .ah-g{color:var(--pv-accent-ink)}
 [data-theme="light"] .air-qn{color:#64748b}
 @media (prefers-reduced-motion:reduce){.air-q,.air-hit{transition:none}}
+
+/* ════════════════════════════════════════════════════════════
+   明細を読んだあとの1枚（2026-11-05 オーナー指示「必要なものだけ抜き出して入れさせて」）
+   pay-wizard.js の 3-b が、まだ答えていない必須の欄のほかに .q-off を付ける。
+   ★効くのは器（#form-body）に .wz-quick があるあいだだけ。数えるとき・確認画面を作るときは、
+     JS が .wz-quick を一瞬外す（隠した欄も「画面に出ている」として数える）。
+   ★.q-bare ＝ 何も聞かないがボタンを持っている節。枠を消してボタンだけ残す。
+   ════════════════════════════════════════════════════════════ */
+.wz-quick .q-off{display:none!important}
+.wz-quick .card.q-bare{background:none!important;border:0!important;box-shadow:none!important;padding:0!important;backdrop-filter:none!important}
+.wz-quick .card.q-bare>.wz-nav{margin-top:0}
+.wz-quick .sec-head .sec-tag,.wz-quick .sec-head .sec-prog,.wz-quick #ai-legend{display:none!important}

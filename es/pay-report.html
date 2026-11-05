@@ -48,7 +48,7 @@
 <script>
 tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#18212f',accent:'#3d9bff',gold:'#f5c842',orange:'#f97316',text:'#e8edf2',muted:'#6b7d93'},fontFamily:{sans:['Inter','Noto Sans JP','sans-serif']}}}};
 </script>
-<link rel="stylesheet" href="../pay-report.css?v=b897f2ba">
+<link rel="stylesheet" href="../pay-report.css?v=1d3eb17f">
 <!--PV-3P-->
 <script>
 /* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
@@ -1775,7 +1775,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 <!-- ★5ステップの器（Phase 5・2026-09-08）。日英でこの1本を共有する。
      読み込みに失敗したら window.PVPayWizard が無いまま＝下のインラインは
      これまでどおり「埋めると下が生える」1枚の長いページとして動く。 -->
-<script src="../pay-wizard.js"></script>
+<script src="../pay-wizard.js?v=100f910c"></script>
 <script>
 // ── Supabase ──────────────────────────────────────────────────
 const _sb = supabase.createClient(
@@ -2628,7 +2628,11 @@ function perdiemOutsideGross() {
 function pdSrcShow() {
   const has = num('f-perdiem') > 0;
   $('pd-src-wrap').hidden = !has;
-  if (!has || $('f-perdiem-src').value === '') $('f-perdiem-src').value = 'included';
+  /* ★Default is "included". Only when a payslip was read and it had no per-diem line does it
+     default to "received separately" (payslip.js sets data-def, 2026-11-05). The owner hit this
+     in production: a per diem that is not on the payslip was counted inside its gross, so the
+     breakdown exceeded the gross and Next stayed blocked. */
+  if (!has || $('f-perdiem-src').value === '') $('f-perdiem-src').value = $('f-perdiem-src').dataset.def || 'included';
 }
 function pdSrcSync() { pdSrcShow(); pdSync(); }
 
@@ -5089,7 +5093,7 @@ if (TWO_SCREEN) for (const id of ['s2', 's3']) {
    ★送るのは段の名前だけ。金額も社名も明細の項目名も送らない。
    ⚠️ 日英で**同じ名前**でなければ、階段が2本に割れてどちらも半分の数で出る。
       assert-pay-report-sync.mjs の「計測イベント名」と D-4 が見ている。 */
-const STEP_EV = TWO_SCREEN
+let STEP_EV = TWO_SCREEN
   ? { s2: 'pay_again1_input', s5: 'pay_again2_review' }
   : { s1: 'pay_step1_company', s2: 'pay_step2_month', s3: 'pay_step3_pay',
       s4: 'pay_step4_terms', s5: 'pay_step5_review' };
@@ -5098,6 +5102,44 @@ function trackStep(id, i) {
   if (!(i > stepMax)) return;
   stepMax = i;
   if (STEP_EV[id]) track(STEP_EV[id]);
+}
+
+/* ── The after-payslip screen (2026-11-05, owner) ────────────────────
+   "We read the payslip, yet people still press Next, Next, Next. Ask only what is needed."
+   Once read (payslip.js calls this), the steps become "Not on your payslip → Review" and only the
+   required fields still unanswered are shown (how they are hidden: pay-wizard.js 3-b).
+   ★missingAll() decides what to show = the same rule that blocks submitting. No new rule.
+   ★Fields that become required from an answer (company name for "not listed", housing amount)
+     are added on every change.
+   ★Separate step-event names (do not mix with the 5 steps or the 2-screen repeat flow).
+   ★s4 holds the buttons so that "Review" sits below all four sections. */
+const QUICK_TITLE = 'Lo que falta';
+const QUICK_EV = { s4: 'pay_quick1_input', s5: 'pay_quick2_review' };
+const quickUnit = (f) => f.closest('.pd-block') || f.closest('.pd-row') || f;
+function quickStart() {
+  if (!WZ || !WZ.reflow || !WZ.focus) return false;
+  const keep = missingAll().map(quickUnit);
+  STEP_EV = QUICK_EV;
+  stepMax = -1;
+  WZ.reflow([{ id: 's4', also: ['s1', 's2', 's3'], title: QUICK_TITLE, totalBar: true },
+             { id: 's5', totalBar: true }]);
+  WZ.focus(keep);
+  return true;
+}
+window.PVPayQuick = quickStart;
+document.addEventListener('change', () => {
+  if (WZ && WZ.focusing && WZ.focusing()) WZ.focusAdd(missingAll().map(quickUnit));
+});
+/* ★If a notice blocks (breakdown over gross / net above gross), show everything, then go to it —
+     on the after-payslip screen both the notice and the fields to fix are hidden. */
+function quickBlocked() {
+  const b = overBlocking() || netBlocking();
+  if (b && WZ && WZ.focusing && WZ.focusing()) {
+    WZ.unfocus();
+    const p = OVER_IDS.concat(['net-over']).map((id) => $(id)).find((e) => e && !e.hidden);
+    if (p) p.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+  return b;
 }
 
 if (WZ) {
@@ -5133,7 +5175,7 @@ if (WZ) {
          would walk straight past it. */
     /* ★Same for a net figure above the gross (2026-10-05). The breakdown check
          goes first — when both are showing, scroll to one place only. */
-    blocked: (ids) => ids.indexOf('s3') >= 0 && (overBlocking() || netBlocking()),
+    blocked: (ids) => ids.indexOf('s3') >= 0 && quickBlocked(),
     payload: () => buildPayload(),
     annualOrig: annualTotal,
     nameOf: optLabel,
@@ -5488,7 +5530,9 @@ function missingRequired() {
    missingRequired() は offsetParent で「条件が揃っていない欄」を落としているが、
    その目は「別の段に居るから隠れている欄」と区別が付かない。数え終えたら必ず戻す
    ＝画面には1度も2段は出ない（同じ関数の中で開いて閉じる）。 */
-function missingAll() {
+/* ★Also count the fields hidden on the after-payslip screen (hiding is visual only; lifted while counting — pay-wizard.js 3-b). */
+function missingAll() { return (WZ && WZ.bare) ? WZ.bare(missingAllIn) : missingAllIn(); }
+function missingAllIn() {
   if (!WZ) return missingRequired();
   const back = STEP_IDS.map((id) => [id, $(id).hidden]);
   for (const [id] of back) $(id).hidden = false;
@@ -5546,6 +5590,8 @@ function clearMissMarks() {
   for (const t of document.querySelectorAll('.miss-tag')) t.remove();
 }
 function markMissing(list) {
+  /* ★On the after-payslip screen a field to outline may still be hidden (it became required later). Show it first. */
+  if (WZ && WZ.focusing && WZ.focusing()) WZ.focusAdd(list.map(quickUnit));
   trackBlocked('missing', list[0] && jumpTarget(list[0]), list.length);
   clearMissMarks();
   for (const f of list) {
@@ -6247,7 +6293,7 @@ addEventListener('scroll', () => {
   });
 })();
 </script>
-<script src="../payslip.js?v=431ef5a3"></script>
+<script src="../payslip.js?v=dd838502"></script>
 <script src="../confetti.js"></script>
 <script src="../pay-login.js"></script>
 <!-- ★ヘッダーを畳むのは search.js。id="main-nav" を持つページは必ず読む。

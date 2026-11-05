@@ -48,7 +48,7 @@
 <script>
 tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#18212f',accent:'#3d9bff',gold:'#f5c842',orange:'#f97316',text:'#e8edf2',muted:'#6b7d93'},fontFamily:{sans:['Inter','Noto Sans JP','sans-serif']}}}};
 </script>
-<link rel="stylesheet" href="pay-report.css?v=b897f2ba">
+<link rel="stylesheet" href="pay-report.css?v=1d3eb17f">
 <!--PV-3P-->
 <script>
 /* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
@@ -1741,7 +1741,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 <!-- ★5ステップの器（Phase 5・2026-09-08）。日英でこの1本を共有する。
      読み込みに失敗したら window.PVPayWizard が無いまま＝下のインラインは
      これまでどおり「埋めると下が生える」1枚の長いページとして動く。 -->
-<script src="pay-wizard.js"></script>
+<script src="pay-wizard.js?v=100f910c"></script>
 <script>
 // ── Supabase ──────────────────────────────────────────────────
 const _sb = supabase.createClient(
@@ -2566,7 +2566,11 @@ function perdiemOutsideGross() {
 function pdSrcShow() {
   const has = num('f-perdiem') > 0;
   $('pd-src-wrap').hidden = !has;
-  if (!has || $('f-perdiem-src').value === '') $('f-perdiem-src').value = 'included';
+  /* ★既定は「含まれている」。明細を読んで、その明細にパーディアムの行が無かったときだけ
+     「明細とは別に受け取っている」（payslip.js が data-def を立てる・2026-11-05）。
+     オーナーが本番で「パーディアムを入れると、内訳の合計が総支給を超えています、と出る」
+     ── 明細に無い額が「総支給の中にある」扱いのまま内訳の合計に足され、次へ進めなかった。 */
+  if (!has || $('f-perdiem-src').value === '') $('f-perdiem-src').value = $('f-perdiem-src').dataset.def || 'included';
 }
 function pdSrcSync() { pdSrcShow(); pdSync(); }
 
@@ -4890,7 +4894,7 @@ if (TWO_SCREEN) for (const id of ['s2', 's3']) {
    ★送るのは段の名前だけ。金額も社名も明細の項目名も送らない。
    ⚠️ 日英で**同じ名前**でなければ、階段が2本に割れてどちらも半分の数で出る。
       assert-pay-report-sync.mjs の「計測イベント名」と D-4 が見ている。 */
-const STEP_EV = TWO_SCREEN
+let STEP_EV = TWO_SCREEN
   ? { s2: 'pay_again1_input', s5: 'pay_again2_review' }
   : { s1: 'pay_step1_company', s2: 'pay_step2_month', s3: 'pay_step3_pay',
       s4: 'pay_step4_terms', s5: 'pay_step5_review' };
@@ -4899,6 +4903,43 @@ function trackStep(id, i) {
   if (!(i > stepMax)) return;
   stepMax = i;
   if (STEP_EV[id]) track(STEP_EV[id]);
+}
+
+/* ── 明細を読んだあとの1枚（2026-11-05 オーナー指示）────────────────
+   「明細を読み込んでるのに、次へ次へと押していくのがだるい。必要なものだけ抜き出して入れさせて」。
+   読めたら（payslip.js が呼ぶ）段を「明細にない項目 → 確認」の2つに組み替え、
+   まだ答えていない必須の欄だけを出す（隠し方は pay-wizard.js の 3-b）。
+   ★出す欄は missingAll() が決める ＝ 送信を止めている条件と同じ。新しい判定を作らない。
+   ★選んだ答えで新しく必須になった欄（一覧にない会社の社名・住宅手当の額など）は change のたびに足す。
+   ★段の通過の名前は別にする（初めての人の5段・2回目以降の2画面と混ぜない）。
+   ★ボタンを持つ段を s4 にするのは、4つの節のいちばん下に「確認へ」を置くため。 */
+const QUICK_TITLE = '明細にない項目';
+const QUICK_EV = { s4: 'pay_quick1_input', s5: 'pay_quick2_review' };
+const quickUnit = (f) => f.closest('.pd-block') || f.closest('.pd-row') || f;
+function quickStart() {
+  if (!WZ || !WZ.reflow || !WZ.focus) return false;
+  const keep = missingAll().map(quickUnit);
+  STEP_EV = QUICK_EV;
+  stepMax = -1;
+  WZ.reflow([{ id: 's4', also: ['s1', 's2', 's3'], title: QUICK_TITLE, totalBar: true },
+             { id: 's5', totalBar: true }]);
+  WZ.focus(keep);
+  return true;
+}
+window.PVPayQuick = quickStart;
+document.addEventListener('change', () => {
+  if (WZ && WZ.focusing && WZ.focusing()) WZ.focusAdd(missingAll().map(quickUnit));
+});
+/* ★注意（内訳の合計が総支給を超えた・手取りが多い）で止まったら、全部出してからその注意へ運ぶ。
+     1枚の上では注意も直す欄も隠れている。 */
+function quickBlocked() {
+  const b = overBlocking() || netBlocking();
+  if (b && WZ && WZ.focusing && WZ.focusing()) {
+    WZ.unfocus();
+    const p = OVER_IDS.concat(['net-over']).map((id) => $(id)).find((e) => e && !e.hidden);
+    if (p) p.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+  return b;
 }
 
 if (WZ) {
@@ -4933,7 +4974,7 @@ if (WZ) {
          1画面目の also に居るので、先頭の id だけを見ると素通りする。 */
     /* ★手取りが総支給より多いときも同じ（2026-10-05）。先に内訳の超過を見る ──
          両方出ているとき、寄せる先は1つにする。 */
-    blocked: (ids) => ids.indexOf('s3') >= 0 && (overBlocking() || netBlocking()),
+    blocked: (ids) => ids.indexOf('s3') >= 0 && quickBlocked(),
     payload: () => buildPayload(),
     annualOrig: annualTotal,
     nameOf: optLabel,
@@ -5265,7 +5306,9 @@ function missingRequired() {
    missingRequired() は offsetParent で「条件が揃っていない欄」を落としているが、
    その目は「別の段に居るから隠れている欄」と区別が付かない。数え終えたら必ず戻す
    ＝画面には1度も2段は出ない（同じ関数の中で開いて閉じる）。 */
-function missingAll() {
+/* ★明細を読んだあとの1枚で隠した欄も数える（隠すのは見た目だけ。数えるあいだだけ外す・pay-wizard.js の 3-b）。 */
+function missingAll() { return (WZ && WZ.bare) ? WZ.bare(missingAllIn) : missingAllIn(); }
+function missingAllIn() {
   if (!WZ) return missingRequired();
   const back = STEP_IDS.map((id) => [id, $(id).hidden]);
   for (const [id] of back) $(id).hidden = false;
@@ -5323,6 +5366,8 @@ function clearMissMarks() {
   for (const t of document.querySelectorAll('.miss-tag')) t.remove();
 }
 function markMissing(list) {
+  /* ★明細を読んだあとの1枚では、赤く囲う欄が隠れていることがある（あとから必須になった欄）。先に出す。 */
+  if (WZ && WZ.focusing && WZ.focusing()) WZ.focusAdd(list.map(quickUnit));
   trackBlocked('missing', list[0] && jumpTarget(list[0]), list.length);
   clearMissMarks();
   for (const f of list) {
@@ -5998,7 +6043,7 @@ addEventListener('scroll', () => {
   });
 })();
 </script>
-<script src="payslip.js?v=431ef5a3"></script>
+<script src="payslip.js?v=dd838502"></script>
 <script src="confetti.js"></script>
 <script src="pay-login.js"></script>
 <!-- ★ヘッダーを畳むのは search.js。id="main-nav" を持つページは必ず読む。

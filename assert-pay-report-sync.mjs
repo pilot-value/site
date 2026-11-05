@@ -166,7 +166,8 @@ const enHtml = read('en/pay-report.html');
 /* D-1 それぞれが正しい相対パスで読み込んでいるか。en/ は1つ上。 */
 for (const [label, html, want] of [['日 pay-report.html', jaHtml, 'pay-wizard.js'],
                                    ['英 en/pay-report.html', enHtml, '../pay-wizard.js']]) {
-  const re = new RegExp('<script[^>]*\\bsrc="' + want.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '"');
+  /* ★2026-11-05 から版の印（?v=…）が付く（古い部品が残って新しいページと食い違わないように）。 */
+  const re = new RegExp('<script[^>]*\\bsrc="' + want.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?:\\?v=[0-9a-f]+)?"');
   const ok = re.test(html);
   checked++;
   if (!ok) fail++;
@@ -217,11 +218,15 @@ const jaUse = used(ja), enUse = used(en);
    あわせて、段を1つ増やして表に足し忘れていないかも見る
    （足し忘れると、その段だけ黙って数に出てこない）。 */
 {
+  /* ★2026-11-05 から STEP_EV は let（明細を読んだあとの1枚で QUICK_EV に差し替える）。
+     差し替え先の表も日英で同じ名前でなければならないので、2つを続けて取る。 */
   const grab = (src) => {
-    const i = src.indexOf('const STEP_EV');
+    const i = src.search(/(?:const|let) STEP_EV\b/);
     if (i < 0) return '';
     const j = src.indexOf('};', i);
-    return j < 0 ? '' : src.slice(i, j + 2).replace(/\s+/g, ' ');
+    const q = src.indexOf('const QUICK_EV');
+    const qe = q < 0 ? -1 : src.indexOf('};', q);
+    return j < 0 ? '' : (src.slice(i, j + 2) + (qe < 0 ? '' : ' ' + src.slice(q, qe + 2))).replace(/\s+/g, ' ');
   };
   const a = grab(ja), b = grab(en);
   const ok = !!a && a === b;

@@ -175,8 +175,9 @@ console.log('\n══ ① 選んだらすぐ読み取り・確認の画面は無
     };
   });
   ok(cover.full, '★読み取りのあいだは画面全体を覆う');
-  ok(cover.text === '明細を読み取っています 画像を整える 金額を読む フォームに入れる',
-     '★出す字は見出しと3つの段だけ（秒数・説明・ボタンは無い）', cover.text);
+  /* ★2026-11-05 オーナー指示で、見出しの上に 0〜100% の輪を足した（⑨ で中身を見る）。字は％の数だけ増える。 */
+  ok(/^\d{1,2} ?% 明細を読み取っています 画像を整える 金額を読む フォームに入れる$/.test(cover.text),
+     '★出す字は輪の％と見出しと3つの段だけ（秒数・説明・ボタンは無い）', cover.text);
   ok(cover.steps === 'done,active,todo' && cover.extra === 0, '★段が終わるたびに ✓（整える ✓ → 読む → 入れる）', cover.steps + ' / 部品 ' + cover.extra);
   ok(cover.lock, '覆っているあいだ後ろはスクロールしない');
   await page.waitForSelector('.ps-res', { timeout: 20000 });
@@ -345,13 +346,12 @@ console.log('\n══ ① 選んだらすぐ読み取り・確認の画面は無
     /* ★入口で「明細から自動入力」を選んだ時点ではフォームはまだ出ていない（ステップ 1/2）。
        読めた時点で payslip.js が window.PVEnterMode('manual') を呼んで出す。
        ここが出ないと、読み取れても入力を始められないまま行き止まりになる。
-       ★2段目以降（会社・職位・機材）は前の段が埋まってから開く段階表示なので、
-       明細だけでは開かない。**開いていないのが正しい。**
-       代わりに「あと何が要るか」を画面が言っているかを見る。 */
+       ★「あと何が要るか」を画面が言っているかを見る。数は必須の数え（missingAll）そのもの
+         （2026-11-05 まで会社・職位・機材の3つだけを数え、「あと3つ」と言いながら12欄が残っていた）。 */
     ok(!v.formBodyHidden && v.s1, '読み取れたらフォームが出る（ステップ 1/2 → 2/2）',
       v.formBodyHidden ? 'form-body が隠れたまま' : '');
-    ok(/あと\d+つで送信できます/.test(v.res) && /会社と職位を選ぶ/.test(v.res),
-      '★あと何が要るかを画面が言っている（会社・職位・機材は明細に書いていない）');
+    ok(/あと\d+項目で送信できます/.test(v.res) && /明細に書いていないことだけ聞きます/.test(v.res),
+      '★あと何が要るかを画面が言っている（明細に書いていないことだけ聞く）');
     ok(/乗務時間あたり/.test(v.rate), '乗務時間あたりの時給が出る');
     ok(/総勤務時間あたり/.test(v.rate), '★総勤務時間あたりの時給が出る（自分では思いつかない方）');
     ok(!seen.rpc.includes('submit_pay_report'),
@@ -663,6 +663,155 @@ console.log('\n══ ⑦ 透明な背景の画像を黒にしない・描けな
   });
   ok(lc > 150 && via === 'bitmap', '★<img> で描けなくても、別の読み込み方で描いて送る', `明るさ ${lc} / 読み込み方 ${via}`);
   ok(errs.length === 0, '画面のエラーなし', errs.join(' | '));
+  await page.close();
+}
+
+// ══ ⑧ 明細を読んだあとの1枚（2026-11-05 オーナー指示）══════════════════
+/* 「明細を読み込んでるのに、次へ次へと押していくのがだるい。必要なものだけ抜き出して入れさせて」。
+   読めたら段が「明細にない項目 → 確認」の2つになり、まだ答えていない必須の欄だけが出る。
+   ★隠すのは見た目だけ ── 必須の数えと確認画面は隠した欄も見る（壊す証明つき）。
+   あわせて、オーナーが本番で踏んだ「パーディアムを入れると、内訳の合計が総支給を超えています」。 */
+console.log('\n══ ⑧ 明細を読んだあとは、明細にない項目だけの1枚 → 確認（パーディアムで止まらない）');
+{
+  /* 明細にパーディアムの行が無い明細（オーナーの明細と同じ形）。 */
+  const NOPD = { ok: true, result: { currency: 'JPY', period: { year: 2026, month: 7 },
+    earnings: [{ label: '基本給', amount: 700000, kind: 'base' },
+               { label: '乗務手当', amount: 450000, kind: 'flight_variable', basis: 'block' },
+               { label: '株式積立奨励金', amount: 1867, kind: 'other' },
+               { label: '通勤手当', amount: 18000, kind: 'transport' }],
+    gross_total: 1169867, deductions_total: 300000, net_pay: 869867,
+    hours: [{ label: '乗務時間', value: 70, kind: 'block' }], unmapped: [], confidence: 'high' } };
+  const { page, errs } = await open(URL_JA, { body: NOPD });
+  await upload(page, 'payslip-jp-major.png');
+  await page.waitForSelector('.ps-res', { timeout: 20000 });
+  await page.waitForFunction(() => !document.querySelector('.ps-load'), { timeout: 8000 });
+  const shown = () => page.evaluate(() => {
+    const flds = [...document.querySelectorAll('#s1 .fld, #s2 .fld, #s3 .fld, #s4 .fld')];
+    const vis = flds.filter((f) => f.offsetParent);
+    const need = missingAll();
+    return {
+      steps: PVPayWizard.count(), cur: PVPayWizard.current(), name: document.getElementById('wz-name').textContent,
+      visReq: vis.filter((f) => f.classList.contains('is-req')).length,
+      need: need.length,
+      needAllVisible: need.every((f) => !!f.offsetParent),
+      visNotNeeded: vis.filter((f) => f.classList.contains('is-req') && !need.includes(f)).map((f) => f.querySelector('.form-label').textContent),
+      grossVis: !!document.getElementById('f-gross').offsetParent, baseVis: !!document.getElementById('f-base').offsetParent,
+      card: (document.querySelector('.ps-next-t') || {}).textContent || '',
+      pdRow: [...document.querySelectorAll('.ps-extra-k')].some((e) => /パーディアム/.test(e.textContent)),
+      navs: [...document.querySelectorAll('.wz-nav')].filter((n) => n.offsetParent).length,
+    };
+  });
+  const a = await shown();
+  ok(a.steps === 2 && a.cur === 's4' && a.name === '明細にない項目', '★読めたら段が「明細にない項目 → 確認」の2つになる', `${a.steps}段 / ${a.cur} / ${a.name}`);
+  ok(a.need >= 10 && a.needAllVisible && a.visReq === a.need && !a.visNotNeeded.length,
+     '★出ている必須の欄 ＝ まだ答えていない必須の欄（ちょうど同じ）', `出ている ${a.visReq} / 足りない ${a.need} ${a.visNotNeeded.join(',')}`);
+  ok(!a.grossVis && !a.baseVis, '★明細から入った欄（総支給・基本給）は出さない');
+  ok(a.card === `あと${a.need}項目で送信できます`, '★札の「あと◯項目」が本当の数', a.card);
+  ok(!a.pdRow, 'パーディアムは「明細にないお金」に並べない（必須の欄として下の1枚で1回だけ聞く）');
+  ok(a.navs === 1, 'ボタンは4つの節のいちばん下に1組だけ', String(a.navs));
+
+  /* ★隠した欄の必須も数える。総支給を空にすると、隠れていても「足りない」に入る。 */
+  const hid = await page.evaluate(() => {
+    const g = document.getElementById('f-gross'), keep = g.value, fld = g.closest('.fld');
+    g.value = '';
+    const real = missingAll().includes(fld);
+    /* 壊す証明：数えるあいだ隠すのを外す口（bare）を素通しにすると、隠れた必須を見落とす */
+    const bare = PVPayWizard.bare;
+    PVPayWizard.bare = (fn) => fn();
+    const broken = missingAll().includes(fld);
+    PVPayWizard.bare = bare;
+    g.value = keep;
+    return { real, broken, back: !missingAll().includes(fld) };
+  });
+  ok(hid.real && hid.back, '★隠した欄の必須も数える（空にすると「足りない」に入り、戻すと外れる）');
+  ok(!hid.broken, '　壊す証明：隠すのを外さずに数えると、隠れた必須を見落とす（＝この口が要る）');
+
+  /* ★オーナーが本番で踏んだ形：明細にパーディアムの行が無いのに、フォームの欄に入れる */
+  await page.click('#f-perdiem');
+  await page.keyboard.type('45000');
+  await page.keyboard.press('Tab');
+  const pd = await page.evaluate(() => ({ src: $('f-perdiem-src').value, shown: !$('pd-src-wrap').hidden,
+    over: OVER_IDS.filter((id) => !$(id).hidden), annual: annualTotal(), gross: num('f-gross'),
+    card: document.querySelector('.ps-next-t').textContent }));
+  ok(pd.src === 'outside' && pd.shown, '★明細に行が無いパーディアムは「明細とは別に受け取っている」が既定（選択は出る）', pd.src);
+  ok(pd.over.length === 0, '★入れても「内訳の合計が総支給を超えています」が出ない（オーナーが本番で止まった形）', pd.over.join(','));
+  ok(pd.annual === pd.gross * 12 + 45000 * 12, '★年収に ×12 で入る', `${pd.annual}`);
+  ok(pd.card === `あと${a.need - 1}項目で送信できます`, '埋めるたびに札の数が減る', pd.card);
+
+  /* 答えで新しく必須になった欄（住宅手当の額）は、その場で出る */
+  await page.select('#f-housing', 'allowance');
+  const hs = await page.evaluate(() => !!document.getElementById('f-housing-amt').offsetParent);
+  ok(hs, '★答えで新しく必須になった欄（住宅手当の額）はその場で出る');
+  await page.select('#f-housing', 'provided');
+
+  /* 残りを埋めて確認へ */
+  await page.evaluate(() => {
+    const setv = (id, v) => { const e = $(id); e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); e.dispatchEvent(new Event('change', { bubbles: true })); };
+    const pick = (id) => setv(id, [...$(id).options].find((x) => x.value && x.value !== 'other').value);
+    ['f-airline', 'f-position', 'f-fleet', 'f-age', 'f-contract', 'f-taxcountry'].forEach(pick);
+    document.querySelector('#s1 .rolebox input[type=checkbox]').click();
+    setv('f-stay', '8'); setv('f-seniority', '10'); setv('f-rankyears', '3');
+  });
+  await page.evaluate(() => [...document.querySelectorAll('.wz-next')].find((b) => b.offsetParent).click());
+  await page.waitForFunction(() => PVPayWizard.current() === 's5', { timeout: 5000 }).catch(() => {});
+  const rv = await page.evaluate(() => {
+    const rows = [...document.querySelectorAll('#wz-review .wz-rev-row')].map((r) => r.textContent);
+    return { cur: PVPayWizard.current(), base: rows.some((t) => /^基本給700,000明細から読み取り/.test(t)),
+      gross: rows.some((t) => /^その月の総支給額1,169,867/.test(t)), pd: rows.some((t) => /^パーディアム.*45,000.*明細とは別に受け取っている/.test(t)),
+      ev: (window.dataLayer || []).filter((x) => x && x[0] === 'event' && /^pay_quick/.test(x[1])).map((x) => x[1]).join(',') };
+  });
+  ok(rv.cur === 's5', '★1枚を埋めたら、次は確認の画面（途中の段を通らない）', rv.cur);
+  ok(rv.base && rv.gross, '★確認画面には、隠していた明細の値（基本給・総支給）も全部出る');
+  ok(rv.pd, '確認画面に、パーディアムと受け取り方が出る');
+  ok(rv.ev === 'pay_quick1_input,pay_quick2_review', '段の通過は別の名前で1回ずつ', rv.ev);
+
+  /* 確認の「編集」で戻ると、全部の欄が出る（直したい欄が隠れたままにならない） */
+  await page.evaluate(() => [...document.querySelectorAll('#wz-review .wz-rev-edit')].find((b) => /3\. 報酬/.test(b.parentNode.textContent)).click());
+  const ed = await page.evaluate(() => ({ cur: PVPayWizard.current(), q: PVPayWizard.focusing(), base: !!$('f-base').offsetParent, gross: !!$('f-gross').offsetParent }));
+  ok(ed.cur === 's4' && !ed.q && ed.base && ed.gross, '★確認の「編集」で戻ると、明細から入った欄も全部出る');
+  ok(errs.length === 0, '画面のエラーなし', errs.join(' | '));
+  await page.close();
+}
+{
+  /* 明細にパーディアムの行がある明細（FAKE）：受け取り方は「含まれている」、欄は出さない */
+  const { page } = await open(URL_JA, { body: FAKE });
+  await upload(page, 'payslip-jp-major.png');
+  await page.waitForSelector('.ps-res', { timeout: 20000 });
+  await page.waitForFunction(() => !document.querySelector('.ps-load'), { timeout: 8000 });
+  const b = await page.evaluate(() => ({ src: $('f-perdiem-src').value, def: $('f-perdiem-src').dataset.def,
+    vis: !!$('f-perdiem').offsetParent, over: OVER_IDS.filter((id) => !$(id).hidden).length }));
+  ok(b.src === 'included' && b.def === 'included' && !b.vis, '★明細にパーディアムの行があれば「含まれている」・欄は出さない（二重に足さない）', `${b.src}/${b.def}`);
+  await page.close();
+}
+
+// ══ ⑨ 読み取り中の輪（0〜100%・2026-11-05 オーナー指示）══════════════════
+/* 「ぐるぐる回るエフェクトじゃなくて、進むごとに時計回りに緑が回ってく方がいい。0-100% 表示にして」。 */
+console.log('\n══ ⑨ 読み取り中は 0〜100% の輪（回る印は無い・返事が来るまで 100 にしない）');
+{
+  const { page } = await open(URL_JA, () => ({ body: FAKE, delay: 3000 }));
+  await page.evaluate(() => {
+    window.__ring = []; window.__spin = [];
+    const t = setInterval(() => {
+      const r = document.querySelector('.ps-ring');
+      if (r) window.__ring.push({ v: +r.getAttribute('aria-valuenow'), off: +r.querySelector('.ps-ring-fg').getAttribute('stroke-dashoffset'),
+        n: r.querySelector('.ps-ring-n').textContent, res: !!document.querySelector('.ps-res') });
+      const d = document.querySelector('.ps-steps li[data-s="active"] .ps-step-dot');
+      if (d) window.__spin.push(getComputedStyle(d).animationName);
+      if (window.__ring.length && !r) clearInterval(t);
+    }, 50);
+  });
+  await upload(page, 'payslip-jp-major.png');
+  await page.waitForSelector('.ps-res', { timeout: 20000 });
+  await page.waitForFunction(() => !document.querySelector('.ps-load'), { timeout: 8000 });
+  const g = await page.evaluate(() => ({ ring: window.__ring, spin: [...new Set(window.__spin)] }));
+  const vs = g.ring.map((x) => x.v);
+  const before = g.ring.filter((x) => !x.res).map((x) => x.v);
+  ok(vs.length > 20, '読み取りのあいだ輪が出ている', `${vs.length} 回見た`);
+  ok(vs.every((v, i) => i === 0 || v >= vs[i - 1]), '★％は戻らない（前より小さい値を出さない）', vs.slice(0, 8).join(',') + '…');
+  ok(before.length && Math.max(...before) < 100 && Math.max(...before) > 15, '★返事が来るまでは 100 にならない（でも止まって見えない）', `返事前の最大 ${Math.max(...before)}`);
+  ok(vs[vs.length - 1] === 100, '★読めたら 100% になってから閉じる', String(vs[vs.length - 1]));
+  ok(g.ring.every((x) => x.n === x.v + '%' && Math.abs(x.off - (100 - x.v)) < 1.01), '数字と緑の弧が同じ値（弧は 12時から時計回り・pathLength 100）');
+  ok(g.spin.length && g.spin.every((n) => n === 'none'), '★回る印は無い（いまの段の印は止まっている）', g.spin.join(','));
   await page.close();
 }
 

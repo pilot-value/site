@@ -94,12 +94,12 @@
       editHint: '金額はこの表で直せます。直すと下のフォームと時給に反映されます。',
       foldTitle: '読み取った明細の内訳を見る（{n}行）',
       foldTitleNoN: '読み取った明細の内訳を見る',
-      nextT: 'あと{n}つで送信できます',
-      nextL: '会社・職位・機材は明細に書いていないので、ここだけ選んでください。',
-      nextB: '会社と職位を選ぶ →',
+      nextT: 'あと{n}項目で送信できます',
+      nextL: '明細に書いていないことだけ聞きます。',
+      nextB: '入力する →',
       nextOkT: '送信できます',
       nextOkL: '内容を確かめてから送ってください。押すまで投稿されません。',
-      nextOkB: '送信ボタンへ →',
+      nextOkB: '入力内容を確認する →',
       days: '乗務日数',
       /* ★2026-08-14 まで、分類できなかった行はここに「これはどれですか？」と出すだけで、
            金額はどの欄にも入っていなかった＝年収から黙って欠けていた。いまは
@@ -153,9 +153,7 @@
       exT: '明細にないお金',
       exBonus: 'ボーナス',
       exProfit: 'プロフィットシェア',
-      exPd: 'パーディアム',
       perYear: '年',
-      perMonth: '月',
       ahaPick: '会社と職位を選ぶと、公開レンジとの比較が出ます。',
       ahaPickB: '会社と職位を選ぶ →',
       ahaNoAirline: '「その他」の会社は公開レンジを持っていないので、比較は出せません。',
@@ -235,11 +233,11 @@
       foldTitle: 'See what we read off your payslip ({n} lines)',
       foldTitleNoN: 'See what we read off your payslip',
       nextT: '{n} more to go',
-      nextL: 'Airline, seat and fleet are not on the slip, so pick those yourself.',
-      nextB: 'Pick airline and seat →',
+      nextL: 'We only ask what is not on your payslip.',
+      nextB: 'Fill them in →',
       nextOkT: 'Ready to send',
       nextOkL: 'Check it over first. Nothing is posted until you press send.',
-      nextOkB: 'Go to send →',
+      nextOkB: 'Review your entry →',
       days: 'Flight days',
       uncTag: ' (unclassified)',
       askT: function (n) { return n === 1 ? 'We could not tell what this line is' : 'We could not tell what ' + n + ' lines are'; },
@@ -289,9 +287,7 @@
       exT: 'Not on your payslip',
       exBonus: 'Bonus',
       exProfit: 'Profit share',
-      exPd: 'Per diem',
       perYear: 'yr',
-      perMonth: 'mo',
       ahaPick: 'Pick your airline and seat and you get the comparison against the published ranges.',
       ahaPickB: 'Pick airline and seat →',
       ahaNoAirline: '“Other” has no published range, so there is nothing to compare against.',
@@ -370,11 +366,11 @@
       foldTitle: 'Ver lo que leímos de tu recibo de nómina ({n} líneas)',
       foldTitleNoN: 'Ver lo que leímos de tu recibo de nómina',
       nextT: '{n} por completar',
-      nextL: 'La aerolínea, el puesto y la flota no aparecen en el recibo, así que elígelos tú.',
-      nextB: 'Elegir aerolínea y puesto →',
+      nextL: 'Solo te preguntamos lo que no aparece en tu recibo de nómina.',
+      nextB: 'Completarlos →',
       nextOkT: 'Listo para enviar',
       nextOkL: 'Revísalo primero. No se publica nada hasta que presiones Enviar.',
-      nextOkB: 'Ir a enviar →',
+      nextOkB: 'Revisa tus datos →',
       days: 'Días de vuelo',
       uncTag: ' (sin clasificar)',
       askT: function (n) { return n === 1 ? 'No pudimos saber qué es esta línea' : 'No pudimos saber qué son ' + n + ' líneas'; },
@@ -424,9 +420,7 @@
       exT: 'Fuera de tu recibo de nómina',
       exBonus: 'Bono',
       exProfit: 'Participación en las utilidades',
-      exPd: 'Viáticos',
       perYear: 'año',
-      perMonth: 'mes',
       ahaPick: 'Elige tu aerolínea y tu puesto y verás la comparación con los rangos publicados.',
       ahaPickB: 'Elegir aerolínea y puesto →',
       ahaNoAirline: '“Otra” no tiene rango publicado, así que no hay con qué comparar.',
@@ -848,7 +842,7 @@
   }
 
   // ════════════════════════════════════════════════════════
-  // ③ 状態を見せる（実際の状態だけ。進み具合の％は出さない）
+  // ③ 状態を見せる（読み取り中は 0〜100% の輪・2026-11-05 オーナー指示）
   // ════════════════════════════════════════════════════════
   function btn(label, cls, fn, id) {
     var b = el('button', 'ps-btn ' + cls, esc2(label));
@@ -868,8 +862,75 @@
      読み取りのあいだは画面全体を白で覆い、出すのは見出しと3つの段だけ。
      段が終わるたびに ✓ が付き、3つそろったら覆いが消えて、数字の入ったフォームが出る。
      ★秒数・見本の絵・×・お知らせ・説明の文を足し戻さない（オーナーが外した）。
-     ★止まったままにはならない ── 画像の準備は30秒・読み取りは90秒で打ち切り、失敗の札へ移る（withTimeout）。 */
+     ★止まったままにはならない ── 画像の準備は30秒・読み取りは90秒で打ち切り、失敗の札へ移る（withTimeout）。
+     ★2026-11-05 オーナー指示「ぐるぐる回るエフェクトじゃなくて、進むごとに時計回りに緑が回ってく方がいい。
+       0-100% 表示にして」。見出しの上に輪を1つ置き、緑が12時から時計回りに伸びる。真ん中に％。
+       回る印（psSpin）は外した。段の ✓ はそのまま。
+     ★％の決め方（RING）：整える 0→10・読む 10→92・入れる 92→99・終わったら 100。
+       読む段の中身の進み具合はサーバーから返ってこないので、返事を待つあいだは時間で伸ばし、
+       だんだん遅くなって 92 を超えない（返事が来るまで 100 にしない）。前より小さい値は出さない。 */
   var load = null;
+  var RING = [[0, 10, 0.6], [10, 92, 14], [92, 99, 0.35]];   // [始め, 終わり, 伸び方の秒]
+  var ring = null;                                           // { at, t0, tgt, d, raf, fg, n, box }
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  function ringEl() {
+    var box = el('div', 'ps-ring');
+    box.setAttribute('role', 'progressbar');
+    box.setAttribute('aria-valuemin', '0');
+    box.setAttribute('aria-valuemax', '100');
+    box.setAttribute('aria-valuenow', '0');
+    box.setAttribute('aria-label', T.readingNow);
+    var svg = document.createElementNS(SVGNS, 'svg');
+    svg.setAttribute('viewBox', '0 0 120 120');
+    svg.setAttribute('aria-hidden', 'true');
+    var bg = document.createElementNS(SVGNS, 'circle');
+    var fg = document.createElementNS(SVGNS, 'circle');
+    [bg, fg].forEach(function (c) { c.setAttribute('cx', '60'); c.setAttribute('cy', '60'); c.setAttribute('r', '52'); });
+    bg.setAttribute('class', 'ps-ring-bg');
+    fg.setAttribute('class', 'ps-ring-fg');
+    fg.setAttribute('pathLength', '100');
+    fg.setAttribute('stroke-dasharray', '100');
+    fg.setAttribute('stroke-dashoffset', '100');
+    fg.setAttribute('transform', 'rotate(-90 60 60)');      // 12時から時計回り
+    svg.appendChild(bg);
+    svg.appendChild(fg);
+    box.appendChild(svg);
+    var n = el('span', 'ps-ring-n');
+    n.setAttribute('aria-hidden', 'true');
+    n.innerHTML = '0<small>%</small>';
+    box.appendChild(n);
+    ring = { at: 0, t0: now(), tgt: 0, d: 0, raf: 0, fg: fg, n: n, box: box, shown: 0 };
+    return box;
+  }
+  function ringPaint() {
+    if (!ring) return;
+    var v = ring.d >= 99.95 ? 100 : Math.floor(ring.d);
+    ring.fg.setAttribute('stroke-dashoffset', String(100 - ring.d));
+    if (v !== ring.shown) {
+      ring.shown = v;
+      ring.n.innerHTML = v + '<small>%</small>';
+      ring.box.setAttribute('aria-valuenow', String(v));
+    }
+  }
+  function ringTick() {
+    if (!ring || !load) return;
+    var t = (now() - ring.t0) / 1000;
+    var want = 100;
+    if (ring.at < 3) {
+      var r = RING[ring.at];
+      want = r[0] + (r[1] - r[0]) * (1 - Math.exp(-t / r[2]));
+    }
+    ring.tgt = Math.max(ring.tgt, want);
+    ring.d += (ring.tgt - ring.d) * 0.18;                   // 段が変わっても跳ばずに追いつく
+    if (ring.tgt - ring.d < 0.05) ring.d = ring.tgt;
+    ringPaint();
+    ring.raf = window.requestAnimationFrame ? window.requestAnimationFrame(ringTick) : setTimeout(ringTick, 50);
+  }
+  function ringStop() {
+    if (!ring) return;
+    if (window.cancelAnimationFrame) window.cancelAnimationFrame(ring.raf); else clearTimeout(ring.raf);
+    ring = null;
+  }
   function loadOpen() {
     if (load) return;
     load = el('div', 'ps-load ps-state is-busy');
@@ -877,6 +938,7 @@
     load.setAttribute('aria-live', 'polite');
     load.setAttribute('aria-busy', 'true');
     var inner = el('div', 'ps-load-in');
+    inner.appendChild(ringEl());
     inner.appendChild(el('p', 'ps-load-t', esc2(T.readingNow)));
     var ol = el('ol', 'ps-steps');
     [T.stepPrep, T.stepRead, T.stepFill].forEach(function (name) {
@@ -892,6 +954,7 @@
     /* ★スクロールを止めるのは html の class（body.style.overflow を直に書くと、ほかの部品が閉じるときに外れる）。 */
     document.documentElement.classList.add('ps-load-lock');
     loadStep(0);
+    ringTick();
   }
   /* at: いま動いている段（0＝整える・1＝読む・2＝入れる・3＝全部終わった） */
   function loadStep(at) {
@@ -900,11 +963,14 @@
     [].forEach.call(load.querySelectorAll('.ps-steps li'), function (li, i) {
       li.setAttribute('data-s', i < at ? 'done' : i === at ? 'active' : 'todo');
     });
+    /* 段が進んだら、輪はその段の始めから伸び直す（いまの値より下には戻らない）。 */
+    if (ring && at !== ring.at) { ring.at = at; ring.t0 = now(); }
   }
   function loadClose() {
     if (!load) return;
     var n = load;
     load = null;
+    ringStop();
     document.documentElement.classList.remove('ps-load-lock');
     n.classList.add('is-out');
     setTimeout(function () { if (n.parentNode) n.parentNode.removeChild(n); }, 260);
@@ -1701,8 +1767,16 @@
     if (typeof settleOver === 'function') settleOver();
 
     if (sumKind(trace, 'per_diem') > 0) writeField('f-perdiem-src', 'included');
+    /* ★明細にパーディアムの行が無ければ、あとで入れる額は明細の総支給の外（2026-11-05）。
+       既定を「含まれている」のままにすると、入れた瞬間に「内訳の合計が総支給を超えています」で止まる
+       （オーナーが本番で踏んだ）。選択はそのまま出るので、本人が「含まれている」へ直せる。 */
+    syncPdSrc(trace);
     renderResult(res, trace);
     renderRate();
+    /* ★段を「明細にない項目 → 確認」の2つに組み替え、まだ答えていない欄だけを出す（2026-11-05 オーナー指示）。
+       関数が無い＝古い HTML・共有 JS が落ちた1枚もの ── そのときは今までどおり。 */
+    if (typeof window.PVPayQuick === 'function') { try { window.PVPayQuick(); } catch (e) {} }
+    syncNext();
   }
 
   /* ── 欄が無い値を隠しフィールドへ ─────────────────────────────
@@ -1882,6 +1956,8 @@
       writeField(id, Math.round(sums[id]));
     });
     lastFields = Object.keys(sums);
+    /* ★6択で「パーディアム」と答えた行も明細の上の行 ＝ 総支給の中。行き先が変わったら受け取り方も合わせる。 */
+    syncPdSrc(lastTrace);
     /* 表で金額を直したら専用列も追随させる。直せるのは金額だけで行き先(field)は
        変わらないので、kind で拾えば その他手当と混ざっていても正しく分かれる。 */
     writeHidden('f-flightvar', okAmount(sumKind(lastTrace, 'flight_variable')));
@@ -1911,6 +1987,18 @@
       }
     }
     return 0;
+  }
+
+  /* パーディアムの受け取り方の既定（2026-11-05）。明細にパーディアムの行がある ＝ 総支給の中（included）。
+     無い ＝ あとで入れる額は明細の外（outside）。既定は data-def に置き、pdSrcShow()（pay-report.html）が読む。
+     ★本人が額を入れたあとの選択は、行が無い側では書き換えない（本人が「含まれている」に直したかもしれない）。 */
+  function syncPdSrc(trace) {
+    var sel = document.getElementById('f-perdiem-src');
+    if (!sel || !trace) return;
+    var line = sumKind(trace, 'per_diem') > 0;
+    sel.dataset.def = line ? 'included' : 'outside';
+    if (line) { if (sel.value !== 'included') writeField('f-perdiem-src', 'included'); }
+    else if (!(typeof num === 'function' && num('f-perdiem') > 0)) sel.value = 'outside';
   }
 
   function missingForSubmit() {
@@ -2253,27 +2341,49 @@
   }
 
   /* ── 次の行動 ───────────────────────────────────────────
-     「読み取りました」で止めない。送信ボタンはページのいちばん下にあるので、
-     ここから連れて行く。会社・職位・機材は明細に書いていないので人が選ぶ。 */
+     「読み取りました」で止めない。明細に書いていない必須の欄は、すぐ下の1枚（明細にない項目）に
+     並んでいるので、そこへ連れて行く。全部埋まっていたら確認の画面へ。
+     ★数えるのはフォームの必須の数え（missingAll）そのもの ＝ 送信を止めている条件と同じ。
+       会社・職位・機材の3つだけを数えていた頃は「あと3つ」と言いながら12欄が残っていた
+       （2026-11-05 オーナー「次へ次へと押していくのがだるい」）。
+     ★埋めるたびに数え直す（syncNext ── change のたび）。 */
+  function needList() {
+    if (typeof window.missingAll === 'function') { try { return window.missingAll(); } catch (e) {} }
+    return missingForSubmit().map(function (id) { return document.getElementById(id); }).filter(Boolean);
+  }
   function nextCard() {
-    var need = missingForSubmit();
     var card = el('div', 'ps-next');
-    var ok = need.length === 0;
-    card.innerHTML =
-      '<div class="ps-next-t">' + esc2(ok ? T.nextOkT : T.nextT.replace('{n}', need.length)) + '</div>' +
-      '<p class="ps-next-l">' + esc2(ok ? T.nextOkL : T.nextL) + '</p>';
-    var b = el('button', 'btn-orange', esc2(ok ? T.nextOkB : T.nextB));
+    card.innerHTML = '<div class="ps-next-t"></div><p class="ps-next-l"></p>';
+    var b = el('button', 'btn-orange', '');
     b.type = 'button';
     b.addEventListener('click', function () {
-      var target = document.getElementById(need[0] || 'submit-block') ||
-                   document.getElementById('submit-block');
-      if (!target) return;
-      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      if (need[0] && target.focus) setTimeout(function () { target.focus(); }, 400);
+      var need = needList();
+      if (need.length) {
+        var f = need[0];
+        var inp = f.querySelector('input:not([type="hidden"]), select, textarea') || f;
+        try { inp.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { inp.scrollIntoView(); }
+        if (inp.focus) setTimeout(function () { try { inp.focus({ preventScroll: true }); } catch (e) {} }, 400);
+        return;
+      }
+      /* 埋まっていれば、出ている段の「入力内容を確認する」を押したのと同じ（注意の門もそこで効く）。 */
+      var nx = [].filter.call(document.querySelectorAll('.wz-next'), function (x) { return !!x.offsetParent; })[0];
+      if (nx) { nx.click(); return; }
+      var sb = document.getElementById('submit-block');
+      if (sb) sb.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
     card.appendChild(b);
+    syncNext(card);
     return card;
   }
+  function syncNext(c) {
+    var card = c || (panel && panel.querySelector('.ps-next'));
+    if (!card) return;
+    var n = needList().length, ok = n === 0;
+    card.querySelector('.ps-next-t').textContent = ok ? T.nextOkT : T.nextT.replace('{n}', n);
+    card.querySelector('.ps-next-l').textContent = ok ? T.nextOkL : T.nextL;
+    card.querySelector('button').textContent = ok ? T.nextOkB : T.nextB;
+  }
+  document.addEventListener('change', function () { syncNext(); });
 
   // ════════════════════════════════════════════════════════
   // 時給 ── 商品そのもの
@@ -2432,15 +2542,16 @@
     var R = (window.PVCurrency && window.PVCurrency.rates) || { JPY: 1 };
     return R.hasOwnProperty(cur) ? v * R[cur] : null;
   }
-  /* 明細に載らないお金：ボーナス（年）・プロフィットシェア（年）・明細とは別に受け取るパーディアム（月）。
+  /* 明細に載らないお金：ボーナス（年）・プロフィットシェア（年）。
      ★値はフォームの欄へそのまま書く（writeField）＝年収の段・下の合計・時給がその場で動く。
-     ★パーディアムは、明細にその行があったら聞かない（総支給の中にある＝足すと二重になる）。
+     ★パーディアムはここで聞かない（2026-11-05）。必須の欄なので、すぐ下の「明細にない項目」に必ず出る
+       ── 2か所に同じ欄を置かない。明細に行が無ければ、そこで入れた額は「明細とは別に受け取っている」が既定
+       （syncPdSrc）＝年収に ×12 で入る。
      ★説明の文は置かない（オーナー「文言は最小限に」）。 */
   function extraCard(trace) {
     var card = el('div', 'ps-extra');
     card.appendChild(el('div', 'ps-extra-t', esc2(T.exT)));
     var rows = [['f-bonus', T.exBonus, T.perYear], ['f-profit', T.exProfit, T.perYear]];
-    if (!(sumKind(trace, 'per_diem') > 0)) rows.push(['f-perdiem', T.exPd, T.perMonth]);
     rows.forEach(function (r) {
       var id = r[0];
       var lab = el('label', 'ps-extra-row');
@@ -2458,12 +2569,6 @@
       inp.addEventListener('input', function () {
         if (id === 'f-profit' && typeof window.openOpt === 'function') { try { window.openOpt('f-profit', true); } catch (e) {} }
         writeField(id, inp.value);
-        /* 額を先に書く（0 に戻すと選択は「含まれている」へ戻る）→ そのあと受け取り方を決める */
-        if (id === 'f-perdiem') {
-          var n = window.readMoney ? window.readMoney(inp.value, window.curDec ? window.curDec() : undefined) : null;
-          var amt = (n && typeof n === 'object') ? n.n : n;
-          writeField('f-perdiem-src', (Number(amt) || 0) > 0 ? 'outside' : 'included');
-        }
       });
       /* 離れたら、フォームと同じ桁区切りで見せ直す（2000000 → 2,000,000） */
       inp.addEventListener('blur', function () {
