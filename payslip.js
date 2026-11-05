@@ -98,16 +98,6 @@
       nextB: '入力する →',
       nextOkT: '送信できます',
       nextOkB: '入力内容を確認する →',
-      deckNext: '次へ',
-      deckBack: '戻る',
-      deckClose: '閉じる',
-      deckFind: '名前で探す',
-      deckNoHit: '見つかりません',
-      deckNone: '該当なし',
-      deckBad: 'この値は使えません',
-      unitNight: '泊',
-      unitYear: '年',
-      unitHour: '時間',
       days: '乗務日数',
       /* ★2026-08-14 まで、分類できなかった行はここに「これはどれですか？」と出すだけで、
            金額はどの欄にも入っていなかった＝年収から黙って欠けていた。いまは
@@ -240,16 +230,6 @@
       nextB: 'Fill them in →',
       nextOkT: 'Ready to send',
       nextOkB: 'Review your entry →',
-      deckNext: 'Next',
-      deckBack: 'Back',
-      deckClose: 'Close',
-      deckFind: 'Search by name',
-      deckNoHit: 'No match',
-      deckNone: 'Not applicable',
-      deckBad: 'That value cannot be used',
-      unitNight: 'nights',
-      unitYear: 'years',
-      unitHour: 'hours',
       days: 'Flight days',
       uncTag: ' (unclassified)',
       askT: function (n) { return n === 1 ? 'We could not tell what this line is' : 'We could not tell what ' + n + ' lines are'; },
@@ -377,16 +357,6 @@
       nextB: 'Completarlos →',
       nextOkT: 'Listo para enviar',
       nextOkB: 'Revisa tus datos →',
-      deckNext: 'Siguiente',
-      deckBack: 'Volver',
-      deckClose: 'Cerrar',
-      deckFind: 'Buscar por nombre',
-      deckNoHit: 'Sin resultados',
-      deckNone: 'No aplica',
-      deckBad: 'Ese valor no se puede usar',
-      unitNight: 'noches',
-      unitYear: 'años',
-      unitHour: 'horas',
       days: 'Días de vuelo',
       uncTag: ' (sin clasificar)',
       askT: function (n) { return n === 1 ? 'No pudimos saber qué es esta línea' : 'No pudimos saber qué son ' + n + ' líneas'; },
@@ -2370,7 +2340,6 @@
     b.type = 'button';
     b.addEventListener('click', function () {
       var need = needList();
-      if (need.length && deckOpen()) return;
       if (need.length) {
         /* ★運ぶだけ。カーソルは置かない（iPhone が選ぶ画面・キーボードを勝手に開く・2026-11-05 オーナー指摘）。 */
         var f = need[0];
@@ -2395,212 +2364,6 @@
     card.querySelector('button').textContent = ok ? T.nextOkB : T.nextB;
   }
   document.addEventListener('change', function () { syncNext(); });
-
-  // ════════════════════════════════════════════════════════
-  // 1問ずつ聞く（2026-11-05 オーナー「必要なものだけ抜き出して入れさせて」＋ ChatGPT の案「一度に1〜2問・押したら次へ」）
-  //   ★聞く欄・順番・終わりは、フォームの必須の数え（missingAll）がそのまま決める。新しい判定を作らない。
-  //   ★答えはフォームの本物の欄へ書く（値 → input / change）。保存・計算・確認の画面は今までどおり。
-  //   ★選ぶ問いは押した瞬間に次へ（「次へ」を押させない）。打つ問い・複数選ぶ問いだけ「次へ」。
-  //   ★扱えない欄（変動給の行など）が来たら閉じて、フォームのその欄へ運ぶ。× でいつでもフォームに戻れる。
-  // ════════════════════════════════════════════════════════
-  var DECK_UNIT = { 'f-stay': 'unitNight', 'f-seniority': 'unitYear', 'f-rankyears': 'unitYear', 'f-block': 'unitHour', 'f-guar': 'unitHour' };
-  var deck = null;
-  function deckCtrl(f) {
-    var lab = f.querySelector('label.form-label');
-    var t = lab && lab.htmlFor ? document.getElementById(lab.htmlFor) : null;
-    if (t && t.tagName === 'SELECT' && !t.disabled) return { kind: 'select', el: t };
-    if (t && t.tagName === 'INPUT' && t.type !== 'hidden' && t.type !== 'checkbox' && !t.disabled) {
-      var nid = f.getAttribute('data-none');
-      return { kind: t.classList.contains('money') ? 'money' : 'num', el: t, none: nid ? document.getElementById(nid) : null };
-    }
-    var boxes = f.querySelectorAll('.rolebox input[type="checkbox"]');
-    if (boxes.length > 1) return { kind: 'multi', boxes: [].slice.call(boxes) };
-    return null;
-  }
-  function deckLabel(f) {
-    var lab = f.querySelector('.form-label');
-    if (!lab) return '';
-    var c = lab.cloneNode(true);
-    [].forEach.call(c.querySelectorAll('.req-tag, .opt-tag, .auto-tag, .miss-tag'), function (x) { x.parentNode.removeChild(x); });
-    return c.textContent.trim();
-  }
-  function fire(e2) {
-    e2.dispatchEvent(new Event('input', { bubbles: true }));
-    e2.dispatchEvent(new Event('change', { bubbles: true }));
-  }
-  function deckOpen() {
-    if (typeof window.missingAll !== 'function') return false;
-    var need = needList();
-    if (!need.length || !deckCtrl(need[0])) return false;
-    deck = { hist: [], total: need.length, box: null };
-    var box = el('div', 'pq');
-    box.setAttribute('role', 'dialog');
-    box.setAttribute('aria-modal', 'true');
-    box.innerHTML = '<div class="pq-top">' +
-      '<button type="button" class="pq-back" aria-label="' + esc2(T.deckBack) + '"><span aria-hidden="true"></span></button>' +
-      '<div class="pq-bar" aria-hidden="true"><i></i></div><span class="pq-n"></span>' +
-      '<button type="button" class="pq-x" aria-label="' + esc2(T.deckClose) + '"><span aria-hidden="true"></span></button></div>' +
-      '<div class="pq-body"></div>';
-    box.querySelector('.pq-back').addEventListener('click', deckBack);
-    box.querySelector('.pq-x').addEventListener('click', function () { deckClose(true); });
-    box.addEventListener('keydown', function (e) { if (e.key === 'Escape') deckClose(true); });
-    document.body.appendChild(box);
-    document.documentElement.classList.add('ps-load-lock');
-    deck.box = box;
-    deckShow(need[0]);
-    return true;
-  }
-  function deckClose(toForm) {
-    if (!deck) return;
-    var b = deck.box;
-    deck = null;
-    document.documentElement.classList.remove('ps-load-lock');
-    if (b && b.parentNode) b.parentNode.removeChild(b);
-    if (toForm) {
-      var n = needList()[0];
-      if (n) { try { n.scrollIntoView({ block: 'center' }); } catch (e) {} }
-    }
-    syncNext();
-  }
-  function deckBack() {
-    if (!deck || !deck.hist.length) return;
-    deckShow(deck.hist.pop(), true);
-  }
-  function deckNext(f) {
-    if (!deck) return;
-    var need = needList();
-    if (need.indexOf(f) >= 0 && deck.box) {           // 答えたのにまだ足りない＝範囲の外などで使えない値
-      var bad = deck.box.querySelector('.pq-bad');
-      if (bad) bad.hidden = false;
-      return;
-    }
-    deck.hist.push(f);
-    if (!need.length) {
-      deckClose(false);
-      /* 全部埋まった ＝ 出ている段の「入力内容を確認する」を押したのと同じ（注意の門もそこで効く） */
-      var nx = [].filter.call(document.querySelectorAll('.wz-next'), function (x) { return !!x.offsetParent; })[0];
-      if (nx) nx.click();
-      return;
-    }
-    if (!deckCtrl(need[0])) { deckClose(true); return; }
-    deckShow(need[0]);
-  }
-  function deckShow(f) {
-    var c = deckCtrl(f);
-    if (!c) { deckClose(true); return; }
-    var done = deck.hist.length;
-    deck.total = Math.max(deck.total, done + needList().length);
-    var box = deck.box;
-    box.querySelector('.pq-bar > i').style.transform = 'scaleX(' + (done / deck.total) + ')';
-    box.querySelector('.pq-n').textContent = (done + 1) + ' / ' + deck.total;
-    box.querySelector('.pq-back').style.visibility = done ? 'visible' : 'hidden';
-    var body = box.querySelector('.pq-body');
-    body.innerHTML = '';
-    var q = el('div', 'pq-q');
-    var h = el('h2', 'pq-t', esc2(deckLabel(f)));
-    h.setAttribute('tabindex', '-1');
-    q.appendChild(h);
-    var hint = f.querySelector('.fld-hint');
-    if (hint && hint.textContent.trim()) q.appendChild(el('p', 'pq-h', hint.innerHTML));
-    var go = function () { deckNext(f); };
-    if (c.kind === 'select') {
-      var seen = {}, opts = [].filter.call(c.el.options, function (o) {
-        if (!o.value || o.disabled || o.hidden || seen[o.value]) return false;
-        seen[o.value] = 1; return true;
-      });
-      var pick = function (o) { c.el.value = o.value; fire(c.el); go(); };
-      if (opts.length <= 8) {
-        var g = el('div', 'pq-tiles' + (opts.length <= 3 ? ' is-row' : ''));
-        opts.forEach(function (o) {
-          var b = el('button', 'pq-tile' + (c.el.value === o.value ? ' is-on' : ''), esc2(o.textContent.trim()));
-          b.type = 'button';
-          b.addEventListener('click', function () { pick(o); });
-          g.appendChild(b);
-        });
-        q.appendChild(g);
-      } else {
-        var inp = document.createElement('input');
-        inp.type = 'search'; inp.className = 'pq-find'; inp.placeholder = T.deckFind; inp.autocomplete = 'off';
-        var list = el('div', 'pq-list');
-        var draw = function () {
-          var s2 = inp.value.trim().toLowerCase(), n = 0;
-          list.innerHTML = '';
-          opts.forEach(function (o) {
-            var hay = (o.textContent + ' ' + (o.getAttribute('data-alias') || '') + ' ' + o.value).toLowerCase();
-            if (s2 && hay.indexOf(s2) < 0) return;
-            var b = el('button', 'pq-row' + (c.el.value === o.value ? ' is-on' : ''), esc2(o.textContent.trim()));
-            b.type = 'button';
-            b.addEventListener('click', function () { pick(o); });
-            list.appendChild(b); n++;
-          });
-          if (!n) list.appendChild(el('p', 'pq-empty', esc2(T.deckNoHit)));
-        };
-        inp.addEventListener('input', draw);
-        q.appendChild(inp); q.appendChild(list); draw();
-      }
-    } else if (c.kind === 'multi') {
-      var g2 = el('div', 'pq-tiles');
-      var nb2 = el('button', 'pq-go', esc2(T.deckNext));
-      nb2.type = 'button';
-      var any = function () { return c.boxes.some(function (x) { return x.checked; }); };
-      c.boxes.forEach(function (bx) {
-        var sp = bx.parentNode.querySelector('span');
-        var b = el('button', 'pq-tile pq-check' + (bx.checked ? ' is-on' : ''), esc2(sp ? sp.textContent.trim() : bx.value));
-        b.type = 'button';
-        b.setAttribute('aria-pressed', bx.checked ? 'true' : 'false');
-        b.addEventListener('click', function () {
-          bx.checked = !bx.checked;
-          bx.dispatchEvent(new Event('change', { bubbles: true }));
-          b.classList.toggle('is-on', bx.checked);
-          b.setAttribute('aria-pressed', bx.checked ? 'true' : 'false');
-          nb2.disabled = !any();
-        });
-        g2.appendChild(b);
-      });
-      nb2.disabled = !any();
-      nb2.addEventListener('click', go);
-      q.appendChild(g2); q.appendChild(nb2);
-    } else {
-      var w2 = el('div', 'pq-num');
-      var ip = document.createElement('input');
-      ip.type = 'text'; ip.className = 'pq-in'; ip.inputMode = 'decimal'; ip.autocomplete = 'off';
-      ip.value = c.el.value || '';
-      ip.setAttribute('aria-label', deckLabel(f));
-      w2.appendChild(ip);
-      var cu = (document.getElementById('f-currency') || {}).value || '';
-      /* 単位は「明細にないお金」の札と同じ（日本語のページの円だけ「円」・ほかは通貨コード） */
-      var unit = c.kind === 'money' ? ((L === 'ja' && cu === 'JPY') ? '円' : cu) : (DECK_UNIT[c.el.id] ? T[DECK_UNIT[c.el.id]] : '');
-      if (unit) w2.appendChild(el('span', 'pq-u', esc2(unit)));
-      q.appendChild(w2);
-      var bad = el('p', 'pq-bad', esc2(T.deckBad));
-      bad.hidden = true;
-      q.appendChild(bad);
-      var nb = el('button', 'pq-go', esc2(T.deckNext));
-      nb.type = 'button';
-      var take = function () {
-        c.el.value = ip.value.trim();
-        c.el.classList.remove('ai-filled');
-        fire(c.el);
-        go();
-      };
-      nb.addEventListener('click', take);
-      ip.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); take(); } });
-      q.appendChild(nb);
-      if (c.none) {
-        var nn = el('button', 'pq-link', esc2(T.deckNone));
-        nn.type = 'button';
-        nn.addEventListener('click', function () {
-          c.el.value = ''; fire(c.el);
-          if (!c.none.checked) { c.none.checked = true; c.none.dispatchEvent(new Event('change', { bubbles: true })); }
-          go();
-        });
-        q.appendChild(nn);
-      }
-      setTimeout(function () { try { ip.focus({ preventScroll: true }); } catch (e) {} }, 60);
-    }
-    body.appendChild(q);
-    if (c.kind !== 'money' && c.kind !== 'num') { try { h.focus({ preventScroll: true }); } catch (e) {} }
-  }
 
   // ════════════════════════════════════════════════════════
   // 時給 ── 商品そのもの

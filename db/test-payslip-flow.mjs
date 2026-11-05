@@ -785,61 +785,6 @@ console.log('\n══ ⑧ 明細を読んだあとは、明細にない項目だ
   await page.close();
 }
 
-// ══ ⑩ 1問ずつ聞く画面（2026-11-05）══════════════════════════════
-/* 読めた札の「入力する」を押すと、まだ答えていない必須の欄を1問ずつ聞く。選ぶ問いは押した瞬間に次へ。
-   ★聞く欄・順番・終わりは missingAll のまま（新しい判定を作らない）。答えは本物の欄へ入り、全部答えたら確認の画面。 */
-console.log('\n══ ⑩ 読んだあとは1問ずつ・押したら次へ・全部答えたら確認');
-{
-  const NOPD2 = { ok: true, result: { currency: 'JPY', period: { year: 2026, month: 7 },
-    earnings: [{ label: '基本給', amount: 700000, kind: 'base' }, { label: '乗務手当', amount: 450000, kind: 'flight_variable', basis: 'block' }],
-    gross_total: 1150000, deductions_total: 300000, net_pay: 850000,
-    hours: [{ label: '乗務時間', value: 70, kind: 'block' }], unmapped: [], confidence: 'high' } };
-  const { page, errs } = await open(URL_JA, { body: NOPD2 });
-  await upload(page, 'payslip-jp-major.png');
-  await page.waitForSelector('.ps-res', { timeout: 20000 });
-  await page.waitForFunction(() => !document.querySelector('.ps-load'), { timeout: 8000 });
-  const need0 = await page.evaluate(() => missingAll().length);
-  await page.evaluate(() => document.querySelector('.ps-next button').click());
-  const q = () => page.evaluate(() => { const b = document.querySelector('.pq'); if (!b) return null;
-    return { t: b.querySelector('.pq-t').textContent, n: b.querySelector('.pq-n').textContent,
-      kind: b.querySelector('.pq-check') ? 'multi' : b.querySelector('.pq-tile') ? 'tiles' : b.querySelector('.pq-row') ? 'list' : b.querySelector('.pq-in') ? 'input' : '?' }; });
-  const first = await q();
-  ok(!!first && first.n === '1 / ' + need0, '★「入力する」で1問ずつの画面が開く（数は足りない必須の数と同じ）', first && first.n);
-  /* 戻る：1問答えてから戻ると、前の問いに戻る */
-  await page.evaluate(() => document.querySelector('.pq-row').click());
-  const second = await q();
-  await page.evaluate(() => document.querySelector('.pq-back').click());
-  const backTo = await q();
-  ok(second && second.n.startsWith('2 / ') && backTo && backTo.t === first.t, '戻ると前の問いに戻る', `${second && second.t} → ${backTo && backTo.t}`);
-  const seen = [];
-  for (let i = 0; i < 25; i++) {
-    const s0 = await q(); if (!s0) break; seen.push(s0.kind);
-    if (s0.kind === 'list') await page.evaluate(() => document.querySelector('.pq-row').click());
-    else if (s0.kind === 'multi') await page.evaluate(() => { document.querySelector('.pq-check').click(); document.querySelector('.pq-go').click(); });
-    else if (s0.kind === 'tiles') await page.evaluate(() => { const t = [...document.querySelectorAll('.pq-tile')]; (t.find((x) => /社宅/.test(x.textContent)) || t[0]).click(); });
-    else if (s0.kind === 'input') { await page.type('.pq-in', /パーディアム/.test(s0.t) ? '45000' : '8'); await page.keyboard.press('Enter'); }
-  }
-  await page.waitForFunction(() => PVPayWizard.current() === 's5', { timeout: 5000 }).catch(() => {});
-  const end = await page.evaluate(() => ({ cur: PVPayWizard.current(), deck: !!document.querySelector('.pq'), miss: missingAll().length,
-    air: $('f-airline').value, role: $('f-jobrole').value, stay: $('f-stay').value, pd: num('f-perdiem'), src: $('f-perdiem-src').value,
-    lock: document.documentElement.classList.contains('ps-load-lock') }));
-  ok(seen.includes('tiles') && seen.includes('list') && seen.includes('input') && seen.includes('multi'), '選ぶ（ボタン・一覧）・打つ・複数選ぶ の4つの形で聞いた', seen.join(','));
-  ok(end.cur === 's5' && !end.deck && end.miss === 0 && !end.lock, '★全部答えたら閉じて確認の画面へ（足りない欄は0・スクロールも戻る）', JSON.stringify(end));
-  ok(!!end.air && !!end.role && end.stay === '8' && end.pd === 45000, '★答えは本物の欄に入っている（会社・役職・ステイ日数・パーディアム）');
-  ok(end.src === 'outside', '明細に行が無いパーディアムは「明細とは別に受け取っている」のまま', end.src);
-  /* × で閉じると、いつものフォームに戻れる */
-  const { page: p2 } = await open(URL_JA, { body: NOPD2 });
-  await upload(p2, 'payslip-jp-major.png');
-  await p2.waitForSelector('.ps-res', { timeout: 20000 });
-  await p2.waitForFunction(() => !document.querySelector('.ps-load'), { timeout: 8000 });
-  await p2.evaluate(() => document.querySelector('.ps-next button').click());
-  await p2.evaluate(() => document.querySelector('.pq-x').click());
-  const x = await p2.evaluate(() => ({ deck: !!document.querySelector('.pq'), lock: document.documentElement.classList.contains('ps-load-lock'), q: PVPayWizard.focusing() }));
-  ok(!x.deck && !x.lock && x.q, '× で閉じると、明細にない項目の1枚（フォーム）に戻る');
-  ok(errs.length === 0, '画面のエラーなし', errs.join(' | '));
-  await page.close(); await p2.close();
-}
-
 // ══ ⑨ 読み取り中の輪（0〜100%・2026-11-05 オーナー指示）══════════════════
 /* 「ぐるぐる回るエフェクトじゃなくて、進むごとに時計回りに緑が回ってく方がいい。0-100% 表示にして」。 */
 console.log('\n══ ⑨ 読み取り中は 0〜100% の輪（回る印は無い・返事が来るまで 100 にしない）');

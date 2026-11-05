@@ -771,9 +771,53 @@ function qWalk(node, top) {
     qWalk(ch, false);
   });
 }
+/* 選択肢が少ない欄は、1枚の上では押すだけのボタンにする（2026-11-05 オーナー「1問ずつ毎度画面が切り替わるのもめんどくさい」）。
+   画面は切り替えない。選ぶ画面（iPhone の回すつまみ）も開かない。1回押せば答えになる。
+   ★本物は select のまま（値・change・保存・確認の画面は今までどおり）。ボタンは select に書いて change を出すだけ。
+   ★.wz-quick のあいだだけ見える（外したら・数えるあいだは select に戻る ＝ CSS の1か所）。
+   ★選択肢が QCHIP_MAX を超える欄（会社・機材・居住国）は select のまま（並べると長すぎる）。 */
+var QCHIP_MAX = 8;
+function qChips() {
+  qkeep.forEach(function (unit) {
+    [].forEach.call(unit.querySelectorAll('select'), function (sel) {
+      if (sel.__qc) return;
+      var opts = [].filter.call(sel.options, function (o) { return o.value && !o.disabled; });
+      if (!opts.length || opts.length > QCHIP_MAX) return;
+      var box = el('div', 'qchips');
+      box.setAttribute('role', 'group');
+      var lab = sel.id ? document.querySelector('label[for="' + sel.id + '"]') : null;
+      if (lab) box.setAttribute('aria-label', lab.textContent.replace(/\s+/g, ' ').trim());
+      var paint = function () {
+        [].forEach.call(box.children, function (b) {
+          var on = b.getAttribute('data-v') === sel.value;
+          b.classList.toggle('is-on', on);
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+      };
+      opts.forEach(function (o) {
+        var b = el('button', 'qchip', o.textContent.replace(/\s+/g, ' ').trim());
+        b.type = 'button';
+        b.setAttribute('data-v', o.value);
+        b.addEventListener('click', function () {
+          sel.value = o.value;
+          sel.dispatchEvent(new Event('input', { bubbles: true }));
+          sel.dispatchEvent(new Event('change', { bubbles: true }));
+          paint();
+        });
+        box.appendChild(b);
+      });
+      sel.addEventListener('change', paint);
+      sel.parentNode.insertBefore(box, sel.nextSibling);
+      sel.classList.add('q-chipped');
+      sel.__qc = box;
+      paint();
+    });
+  });
+}
 function qApply() {
   qClear();
   if (!qon) return;
+  qChips();
   C.steps.forEach(function (s, i) {
     if (i >= C.steps.length - 1) return;                        // 確認の段は触らない
     stepEls(i).forEach(function (box) {

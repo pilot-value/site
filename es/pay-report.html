@@ -48,7 +48,7 @@
 <script>
 tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#18212f',accent:'#3d9bff',gold:'#f5c842',orange:'#f97316',text:'#e8edf2',muted:'#6b7d93'},fontFamily:{sans:['Inter','Noto Sans JP','sans-serif']}}}};
 </script>
-<link rel="stylesheet" href="../pay-report.css?v=d850f27f">
+<link rel="stylesheet" href="../pay-report.css?v=72c6c4cd">
 <!--PV-3P-->
 <script>
 /* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
@@ -1772,7 +1772,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 <!-- ★5ステップの器（Phase 5・2026-09-08）。日英でこの1本を共有する。
      読み込みに失敗したら window.PVPayWizard が無いまま＝下のインラインは
      これまでどおり「埋めると下が生える」1枚の長いページとして動く。 -->
-<script src="../pay-wizard.js?v=e5864495"></script>
+<script src="../pay-wizard.js?v=2cbdb7aa"></script>
 <script>
 // ── Supabase ──────────────────────────────────────────────────
 const _sb = supabase.createClient(
@@ -5620,7 +5620,9 @@ function markMissing(list) {
      埋め終わった段の下にいつまでも赤が残り、押せないように見える。 */
   $('err').dataset.from = 'miss';
   /* ★飛ぶのは先頭ひとつ。印は上で全部に付けてある。 */
-  const inp = jumpTarget(list[0]);
+  let inp = jumpTarget(list[0]);
+  /* ★1枚の上で選ぶ欄がボタンになっているとき（pay-wizard.js の qChips）は、隠れた select ではなくボタンへ運ぶ */
+  if (inp && inp.__qc && inp.__qc.offsetParent) inp = inp.__qc.querySelector('.qchip') || inp;
   if (!inp) return;
   inp.scrollIntoView({ block: 'center', behavior: 'smooth' });
   inp.focus({ preventScroll: true });
@@ -6300,7 +6302,7 @@ addEventListener('scroll', () => {
   });
 })();
 </script>
-<script src="../payslip.js?v=f83129e9"></script>
+<script src="../payslip.js?v=07e3ec8b"></script>
 <script src="../confetti.js"></script>
 <script src="../pay-login.js"></script>
 <!-- ★ヘッダーを畳むのは search.js。id="main-nav" を持つページは必ず読む。
