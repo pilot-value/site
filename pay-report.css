@@ -1640,3 +1640,46 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
   #ps .ps-rate,#ps .ps-aha,#ps .ps-extra,#ps .ps-next{margin-left:-8px;margin-right:-8px;padding-left:12px;padding-right:12px}
   #ps:not(.is-slim)>.ps-drop{flex-basis:calc(100% + 16px);margin-left:-8px;margin-right:-8px;padding:var(--pv-s-4) 12px}
   #ps-panel>.ps-res{margin-top:var(--pv-s-1)}}
+
+/* ── 読めた札の強弱（2026-11-05 オーナー「もっと間隔を意識して、ジョブズも納得する洗練さ」）──
+   ★主役の数字は1つ ＝ 年間ペースを大きく。時給は同じ囲みの下の段（囲みを1つ減らす）。
+   ★並びは CSS の order で決める（中身を作る payslip.js は触らない）：
+     見出し → 数字の囲み（年間ペース＋時給）→ 明細にないお金 → 脇の操作（文字のリンク）→ 内訳 → 入力へ（幅いっぱいのボタン）。
+   ★大きな区切りは 24px（--pv-s-3）、同じまとまりの中は 16px。 */
+#ps .ps-res>*{order:5}
+#ps .ps-res>.ps-res-title{order:0}
+#ps .ps-res>.ps-res-lead{order:1}
+#ps .ps-res>.ps-aha{order:2;margin-top:var(--pv-s-1)}
+#ps .ps-res>.ps-rate{order:3}
+#ps .ps-res>.ps-extra{order:4}
+#ps .ps-res>.ps-bar{order:6;margin-top:var(--pv-s-1)}
+#ps .ps-res>.ps-fold{order:7}
+#ps .ps-res>.ps-next{order:9;margin-top:var(--pv-s-1)}
+/* 年間ペース（上）と時給（下）を1つの囲みに見せる。年間ペースが空のときは時給だけの囲み */
+#ps .ps-aha{box-shadow:none}
+#ps .ps-res>.ps-rate:has(+ .ps-aha:not(:empty)){margin-top:calc(-1 * var(--pv-s-2));border-top:1px solid var(--pv-line-soft);
+  border-top-left-radius:0;border-top-right-radius:0}
+#ps .ps-res:has(> .ps-rate + .ps-aha:not(:empty)) > .ps-aha{border-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0;padding-bottom:var(--pv-s-3)}
+#ps .ps-aha-t{display:none}
+#ps .ps-aha-pace{flex-direction:column;align-items:flex-start;gap:6px;margin:0}
+#ps .ps-aha-pk{font-size:.78rem;font-weight:700;letter-spacing:.02em;color:var(--pv-ink-2)}
+#ps .ps-aha-pv{font-size:2.5rem;font-weight:800;letter-spacing:-.035em;line-height:1;color:var(--pv-accent-ink)}
+#ps .ps-rate{padding-top:var(--pv-s-2)}
+#ps .ps-rate-t{font-size:.78rem;font-weight:700;letter-spacing:.02em;text-transform:none;color:var(--pv-ink-2)}
+#ps .ps-rate-row{align-items:baseline}
+#ps .ps-rate-k{font-size:.86rem;font-weight:600;color:var(--pv-ink)}
+#ps .ps-rate-v{font-size:1.25rem;color:var(--pv-ink)}
+#ps .ps-rate-min{margin-top:2px;font-size:.72rem;font-weight:600;color:var(--pv-ink-3)}
+/* 明細にないお金：見出しは同じ小さな字 */
+#ps .ps-extra-t{font-size:.78rem;font-weight:700;letter-spacing:.02em;text-transform:none;color:var(--pv-ink-2)}
+/* 脇の操作は文字のリンク（主役のボタンと張り合わない） */
+#ps .ps-res>.ps-bar{gap:var(--pv-s-3)}
+#ps .ps-res>.ps-bar .ps-btn{padding:2px 0;border:0;border-radius:0;background:none;box-shadow:none;
+  font-size:.84rem;font-weight:600;color:var(--pv-ink-2);border-bottom:1px solid var(--pv-line)}
+#ps .ps-res>.ps-bar .ps-btn:hover{color:var(--pv-accent-ink);border-bottom-color:var(--pv-accent-line);transform:none}
+#ps .ps-res>.ps-bar .ps-btn:focus-visible{outline:2px solid var(--pv-accent);outline-offset:3px}
+#ps .ps-res>.ps-fold .ps-fold-s{padding:var(--pv-s-1) 0;font-size:.84rem;font-weight:600;color:var(--pv-ink-2)}
+/* 入力へ：囲みにしない。小さな字の上に、幅いっぱいの1つのボタン */
+#ps .ps-res>.ps-next{align-items:stretch;gap:10px;padding:0;border:0;background:none;margin-left:0;margin-right:0}
+#ps .ps-next-t{text-align:center;font-size:.84rem;font-weight:600;color:var(--pv-ink-2)}
+#ps .ps-next .btn-orange{justify-content:center;width:100%;min-height:52px;border-radius:var(--pv-r);font-size:1rem}

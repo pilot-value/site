@@ -2384,7 +2384,8 @@
        #ps-panel は #form-wrap の中にあるので、ここで input を出すと
        フォーム側の再描画ハンドラが必ず走る。 */
   function rateCard(guess) {
-    var card = el('div', 'ps-rate');
+    /* pv-no-cur ＝ 自動の換算から外す（下の renderRate が自分で現在の通貨に整える） */
+    var card = el('div', 'ps-rate pv-no-cur');
     card.id = 'ps-rate';
     card.innerHTML =
       '<div class="ps-rate-t">' + esc2(T.rate) + '</div>' +
@@ -2448,12 +2449,22 @@
 
     if (m <= 0 || (!block && !duty)) { body.innerHTML = ''; return; }
 
+    /* ★金額は年間ペースと同じ書き方（ヘッダーで選んだ通貨・サイトの表記 ＝ PVCurrency.fmt・2026-11-05 オーナー
+         「なんで JPY と ¥1,404万の数え方があるんだ」）。前は明細の通貨の略号つき（JPY 16,712）で、同じ画面に2通りあった。
+       ★切替に無い通貨（換算できない）だけ、明細の通貨のまま略号つきで出す。 */
+    var cash = function (jpy) {
+      return (window.PVCurrency && typeof window.PVCurrency.fmt === 'function')
+        ? window.PVCurrency.fmt(Math.round(jpy)) : '¥' + Math.round(jpy).toLocaleString('en-US');
+    };
     var big = function (v, hours, key) {
       if (!hours) return '';
       var per = v / hours;
+      var jh = toJpy(per, cur);
+      var vH = jh != null ? cash(jh) : cur + ' ' + nf.format(Math.round(per));
+      var vM = jh != null ? cash(jh / 60) : nf1.format(per / 60);
       return '<div class="ps-rate-row"><div class="ps-rate-k">' + esc2(T[key]) + '</div>' +
-        '<div class="ps-rate-v">' + esc2(cur) + ' ' + nf.format(Math.round(per)) +
-        '<span class="ps-rate-min">' + esc2(T.perMin) + ' ' + nf1.format(per / 60) + '</span></div></div>';
+        '<div class="ps-rate-v">' + esc2(vH) +
+        '<span class="ps-rate-min">' + esc2(T.perMin) + ' ' + esc2(vM) + '</span></div></div>';
     };
 
     body.innerHTML =
@@ -2719,6 +2730,7 @@
 
   // 通貨を切り替えたら描き直す（カードは pv-no-cur ＝自動スキャンの対象外）
   window.addEventListener('pv-currency-change', renderAha);
+  window.addEventListener('pv-currency-change', function () { renderRate(); });
 
   // 手で直したら時給もついてくる
   document.getElementById('form-wrap').addEventListener('input', function () {

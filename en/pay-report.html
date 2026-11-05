@@ -48,7 +48,7 @@
 <script>
 tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#18212f',accent:'#3d9bff',gold:'#f5c842',orange:'#f97316',text:'#e8edf2',muted:'#6b7d93'},fontFamily:{sans:['Inter','Noto Sans JP','sans-serif']}}}};
 </script>
-<link rel="stylesheet" href="../pay-report.css?v=97d30462">
+<link rel="stylesheet" href="../pay-report.css?v=52e454bd">
 <!--PV-3P-->
 <script>
 /* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
@@ -1633,7 +1633,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
       <div class="step wz-err-here" id="submit-block" hidden>
         <div class="sal-total pv-no-cur" style="margin-bottom:8px">
           <span class="sal-total-lab">Annualised total<br>(from what you entered)</span>
-          <span class="sal-total-val" id="live-total">—</span>
+          <span class="sal-total-val pv-no-cur" id="live-total">—</span>
         </div>
         <p class="sal-hint pv-no-cur" id="live-hint">Your monthly gross &times; 12, plus the annual bonus and profit share.</p>
 
@@ -1733,7 +1733,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
         <div class="sticky-cta-in">
           <div class="sticky-cta-sum pv-no-cur">
             <span class="sticky-cta-lab">Annualised total</span>
-            <span class="sticky-cta-val" id="sticky-total">—</span>
+            <span class="sticky-cta-val pv-no-cur" id="sticky-total">—</span>
           </div>
           <!-- ★Share-of-pay bar (owner, 2026-09-15: "a bar like the one REAL PAY shows").
                recalc() rebuilds it through WZ.compBar() — the same picture as the
@@ -3573,8 +3573,15 @@ function recalc() {
      warning red from the first digit of the gross. settleOver() does it on change. */
   const t = annualTotal();
   /* ★同じ文字列を2か所へ。#sticky-total は常設バーの中（式は annualTotal() の1本のまま）。 */
+  /* ★年換算は、読めた札の年間ペース・時給と同じ書き方（ヘッダーで選んだ通貨・サイトの表記・2026-11-05 オーナー
+       「なんで JPY と ¥1,404万の数え方があるんだ」）。前は「14,038,404 JPY / 年」で、同じ画面に3通りあった。
+     ★1万円の位で丸める（年間ペースと同じ）。切替に無い通貨だけ、明細の通貨のまま略号つき。 */
+  const R = (window.PVCurrency && window.PVCurrency.rates) || null;
+  const jpyT = (t > 0 && R && typeof window.PVCurrency.fmt === 'function' && Object.prototype.hasOwnProperty.call(R, cur)) ? t * R[cur] : null;
   const totalHTML = t > 0
-    ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(t)) + '<span class="u">' + esc(cur || '') + (window.PV_LANG === 'es' ? ' / año' : ' / yr') + '</span>'
+    ? (jpyT != null
+        ? esc(window.PVCurrency.fmt(Math.round(jpyT / 10000) * 10000)) + '<span class="u">' + (window.PV_LANG === 'es' ? '/ año' : '/ yr') + '</span>'
+        : new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(t)) + '<span class="u">' + esc(cur || '') + (window.PV_LANG === 'es' ? ' / año' : ' / yr') + '</span>')
     : '—';
   $('live-total').innerHTML = totalHTML;
   $('sticky-total').innerHTML = totalHTML;
@@ -5373,6 +5380,8 @@ if (WZ) {
     sel.dispatchEvent(new Event('change'));
   };
   window.addEventListener('pv-currency-change', pick);
+  /* 年換算の総額も現在の通貨で描き直す（pv-no-cur で自動の換算から外してある） */
+  window.addEventListener('pv-currency-change', () => { try { recalc(); } catch (e) {} });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', pick);
   else pick();
 })();
@@ -6290,7 +6299,7 @@ addEventListener('scroll', () => {
   });
 })();
 </script>
-<script src="../payslip.js?v=9684739d"></script>
+<script src="../payslip.js?v=07e3ec8b"></script>
 <script src="../confetti.js"></script>
 <script src="../pay-login.js"></script>
 <!-- ★ヘッダーを畳むのは search.js。id="main-nav" を持つページは必ず読む。
