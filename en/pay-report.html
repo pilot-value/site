@@ -48,7 +48,7 @@
 <script>
 tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#18212f',accent:'#3d9bff',gold:'#f5c842',orange:'#f97316',text:'#e8edf2',muted:'#6b7d93'},fontFamily:{sans:['Inter','Noto Sans JP','sans-serif']}}}};
 </script>
-<link rel="stylesheet" href="../pay-report.css?v=b0c95a0f">
+<link rel="stylesheet" href="../pay-report.css?v=20cb7d00">
 <!--PV-3P-->
 <script>
 /* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
@@ -200,7 +200,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
       <!-- Auto-fill from a payslip — choose it → it is read straight away (go on with the other questions meanwhile) → check the figures and save -->
       <div class="ps" id="ps" hidden>
         <button type="button" class="ps-drop" id="ps-drop">
-          <span class="ps-ico" aria-hidden="true">📄</span>
+          <span class="ps-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 17v-6"/><path d="m9.5 13.5 2.5-2.5 2.5 2.5"/></svg></span>
           <span class="ps-drop-txt">
             <b>Auto-fill from a payslip</b>
             <small>PDF, photo or screenshot</small>
@@ -211,9 +211,10 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
              端末の中の黒塗りと、塗った明細を確かめる画面はやめた（手間に見合わなかった）。
              氏名・社員番号・口座は「回答・保存の対象にしない」で守る
              （サーバーの答えの形に、それを書く欄が無い／supabase/functions/parse-payslip の OUT_SCHEMA）。
-             ★確かめる画面が無くなったぶん、送ることの説明と同意をここ（選ぶボタンのすぐ下）に置く。
-               文は assert-claims.mjs が全ページで見張っている。言い換えるときは同じ約束のまま。 -->
-        <p class="ps-consent" id="ps-consent"><b>Your name, staff number, bank details and similar are not part of what is returned or stored, and PILOT VALUE never stores the image.</b> Please do not send documents that show a national ID or tax number (such as Japan’s My Number). <a href="personal-data.html">How we handle it</a></p>
+             ★2026-11-05 オーナー指示「下の注釈必要？全部取り扱いの詳細にまとめりゃいい」── ここは「取り扱いの詳細」の
+               リンクだけ。約束の文（回答・保存の対象にしない・画像を保存しない・マイナンバー書類は送らない）は
+               personal-data.html にあり、assert-claims.mjs がそちらを見張っている。 -->
+        <p class="ps-consent" id="ps-consent"><a href="personal-data.html">How we handle it</a></p>
         <!-- ★Anonymous／Encrypted &amp; secure／Quick の3語はここではなく、ひとつ前の
              「Auto-fill from a payslip」のカードに置いてある（2026-08-14 オーナー指示）。
              選ぶ前に読ませる語なので、選んだあとのこの画面で繰り返さない。 -->

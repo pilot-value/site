@@ -149,8 +149,10 @@ console.log('\n══ ① 選んだらすぐ読み取り・確認の画面は無
   /* ★返事を 3.5 秒待たせる（読み取り中の札の秒数が進むこと・知らせが出ることを見るため）。 */
   const { page, seen, errs } = await open(URL_JA, () => ({ body: FAKE, delay: 3500 }));
   const consent = await page.$eval('#ps-consent', (n) => ({ h: n.offsetHeight, t: n.textContent }));
-  ok(consent.h > 0 && /回答・保存の対象にせず/.test(consent.t) && /マイナンバー/.test(consent.t),
-     '★選ぶ前に、送る先と扱いの説明（同意）が見えている');
+  /* ★2026-11-05 オーナー指示で、選ぶボタンの下は「取り扱いの詳細」のリンクだけ（約束の文は personal-data.html・assert-claims が見る）。 */
+  const pdHref = await page.$eval('#ps-consent a', (a) => a.getAttribute('href')).catch(() => '');
+  ok(consent.h > 0 && /取り扱いの詳細/.test(consent.t) && pdHref === 'personal-data.html',
+     '★選ぶ前に「取り扱いの詳細」が見えている（扱いの説明のページへ）');
   await upload(page, 'payslip-jp-major.png');
   await page.waitForSelector('.ps-load.is-read', { timeout: 15000 });
   const mid = await page.evaluate(() => ({
@@ -496,7 +498,7 @@ console.log('\n══ ④ 失敗しても行き止まりにしない・自動で
 console.log('\n══ 英語のページも同じ流れ');
 {
   const { page, seen } = await open(URL_EN, { body: FAKE });
-  ok(/not part of what is returned or stored/.test(await page.$eval('#ps-consent', (n) => n.textContent)), '英語：選ぶ前に説明と同意が見えている');
+  ok(/How we handle it/.test(await page.$eval('#ps-consent', (n) => n.textContent)), '英語：選ぶ前に説明と同意が見えている');
   await upload(page, 'payslip-jp-major.png');
   await page.waitForSelector('.ps-res', { timeout: 20000 });
   ok(seen.bodies[0] && seen.bodies[0].lang === 'en', '英語のページは lang=en で送る');

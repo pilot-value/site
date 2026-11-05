@@ -134,25 +134,19 @@ ok(`サイト全体 ${files.length} ファイル（HTML＋共有 JS）`,
 console.log('\n── A) 正しい説明が、要る場所に在る ───────────────────────');
 /* ★2026-11-04：確認の画面をやめたので、説明と同意は**選ぶボタンのすぐ下**（#ps-consent）に置いた。
      氏名などを回答と保存の対象にしない・画像を保存しない・マイナンバー書類は送らない、の3つ。
+     ★2026-11-05 オーナー指示「下の注釈必要？全部取り扱いの詳細にまとめりゃいい」── 選ぶボタンの下は
+       「取り扱いの詳細」のリンクだけにした。3つの約束は扱いのページ（personal-data.html・日英西）に在ることを下で要求する。
      ★送る先（Anthropic・米国）の一文は 2026-11-04 にオーナー指示で外した（「取り扱いの詳細」＝ personal-data.html に書いてある）。
      扱いのページは、PILOT VALUE の非保存と Anthropic 側の保管の条件を**分けて**書く（ZDR は結んでいない）。 */
 const MUST_SAY = [
   ['pay-report.html', [
-    ['id="ps-consent"', '選ぶボタンの下の説明と同意（日）がある'],
-    ['氏名・社員番号・口座などは回答・保存の対象にせず', '同意（日）：氏名などを回答・保存の対象にしない'],
-    ['PILOT VALUE は画像を保存しません', '同意（日）：画像を保存しない'],
-    ['マイナンバーの載った書類は送らないでください', '同意（日）：マイナンバー書類は送らない'],
+    ['<p class="ps-consent" id="ps-consent"><a href="personal-data.html">', '選ぶボタンの下に「取り扱いの詳細」（日）がある'],
   ]],
   ['en/pay-report.html', [
-    ['id="ps-consent"', '選ぶボタンの下の説明と同意（英）がある'],
-    ['are not part of what is returned or stored', '同意（英）：氏名などを回答・保存の対象にしない'],
-    ['PILOT VALUE never stores the image', '同意（英）：画像を保存しない'],
-    ['My Number', '同意（英）：マイナンバー書類は送らない'],
+    ['<p class="ps-consent" id="ps-consent"><a href="personal-data.html">', '選ぶボタンの下に「取り扱いの詳細」（英）がある'],
   ]],
   ['es/pay-report.html', [
-    ['id="ps-consent"', '選ぶボタンの下の説明と同意（西）がある'],
-    ['no forman parte de lo que se devuelve ni de lo que se guarda', '同意（西）：氏名などを回答・保存の対象にしない'],
-    ['PILOT VALUE nunca guarda la imagen', '同意（西）：画像を保存しない'],
+    ['<p class="ps-consent" id="ps-consent"><a href="personal-data.html">', '選ぶボタンの下に「取り扱いの詳細」（西）がある'],
   ]],
   ['personal-data.html', [
     ['回答・保存の対象にしません', '扱いのページ（日）：氏名などを回答・保存の対象にしない'],
@@ -166,6 +160,12 @@ const MUST_SAY = [
     ['we never write it to storage or to a database', '扱いのページ（英）：PILOT VALUE は保存しない'],
     ['deleted within 30 days', '扱いのページ（英）：Anthropic 側の保管の条件を分けて書いている'],
     ['We do not have a Zero Data Retention agreement', '扱いのページ（英）：保管ゼロの契約を結んでいない'],
+    ['My Number', '扱いのページ（英）：マイナンバー書類は送らない'],
+  ]],
+  ['es/personal-data.html', [
+    ['no forman parte de lo que se devuelve ni de lo que se guarda', '扱いのページ（西）：氏名などを回答・保存の対象にしない'],
+    ['nunca la guardamos en un almacenamiento ni en una base de datos', '扱いのページ（西）：PILOT VALUE は保存しない'],
+    ['My Number', '扱いのページ（西）：マイナンバー書類は送らない'],
   ]],
   ['index.html', [['氏名・社員番号・口座は回答・保存の対象にしません', 'トップ（日）：同じ約束の文']]],
   ['en/index.html', [['are not part of what is returned or stored', 'トップ（英）：同じ約束の文']]],

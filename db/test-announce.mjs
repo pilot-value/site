@@ -272,9 +272,9 @@ for (const w of LABELS_JA) ok(build(P.ja, O).text.includes(w), `日本語のメ�
 for (const w of LABELS_EN) ok(build(P.en, O).text.includes(w), `英語のメールに「${w}」がある`);
 
 /* 明細の扱いについての主張が、実際の画面の説明と食い違っていないこと。 */
-/* ★2026-11-04 から、明細の扱いの説明は選ぶボタンの下（pay-report.html の #ps-consent）にある。 */
-const PSC = (JP.match(/<p class="ps-consent"[\s\S]*?<\/p>/) || [''])[0];
-ok(/画像を保存しません/.test(PSC) && /回答・保存の対象にせず/.test(PSC), '「画像は保存しない・氏名などは回答・保存の対象にしない」は画面側（#ps-consent）にもある主張');
+/* ★2026-11-05 から、明細の扱いの説明は「取り扱いの詳細」（personal-data.html）に1か所（選ぶボタンの下はリンクだけ・オーナー指示）。 */
+const PSC = read('personal-data.html');
+ok(/保存せず/.test(PSC) && /回答・保存の対象にしません/.test(PSC), '「画像は保存しない・氏名などは回答・保存の対象にしない」は扱いのページ（personal-data.html）にもある主張');
 ok(build(P.ja, O).text.includes('保存しません') && build(P.ja, O).text.includes('回答・保存の対象にしません'), '日本語のメールにも同じ言い方で入っている');
 ok(!/塗りつぶし|枠内の情報だけ/.test(build(P.ja, O).text) && !/masked on your own device|inside the frame/.test(build(P.en, O).text), '★メールに「端末で塗る・枠の中だけ送る」（2026-11-04 にやめた）が残っていない');
 

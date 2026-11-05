@@ -1571,3 +1571,70 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 /* 段を進めたとき、カーソルは段の名前に置く（欄に置くと iPhone が選ぶ画面・キーボードを勝手に開く・2026-11-05）。
    名前は押せる物ではないので、枠は出さない。 */
 .step .sec-title:focus{outline:none}
+
+/* ════════════════════════════════════════════════════════════
+   明細の画面の形と間隔（2026-11-05 オーナー「ボックスの間とかが雑」「画面の上にぎゅっと詰まってる」「点線もいけてない」）
+   ★ここが最後に勝つ（#ps で始めて、前の規則より強くしてある）。前の規則を足し直さない。
+   ★間隔は2つだけ：囲みと囲みのあいだ 16px（--pv-s-2）／見出しとその1行 6px。margin で個別に足さない。
+   ★色はトークンだけ。動かすのは transform だけ。
+   ════════════════════════════════════════════════════════════ */
+/* ── 選ぶ画面：主役のボタンを画面の真ん中に大きく。下に「取り扱いの詳細」と「手動で入力」を1行 ── */
+#ps:not(.is-slim){display:flex;flex-wrap:wrap;align-content:center;justify-content:center;column-gap:var(--pv-s-3);row-gap:var(--pv-s-2);
+  min-height:max(340px,calc(100svh - 300px));padding-bottom:var(--pv-s-5);margin-bottom:var(--pv-s-3)}
+/* ★min-width:0 ── 並べた中身（読めた札の中の内訳の表など）の幅に引っぱられて、画面の外へはみ出さない */
+#ps>*{min-width:0}
+#ps:not(.is-slim)>*{flex:0 0 auto}
+#ps:not(.is-slim)>.ps-drop,#ps:not(.is-slim)>#ps-panel{flex-basis:100%}
+#ps:not(.is-slim) .ps-drop{position:relative;gap:14px;padding:var(--pv-s-5) var(--pv-s-3);border-radius:var(--pv-r-lg);
+  border:1px solid var(--pv-accent-line);
+  background:radial-gradient(120% 90% at 50% 0%,var(--pv-accent-soft),transparent 70%),var(--pv-surface);
+  box-shadow:0 1px 2px rgba(6,117,99,.08),0 12px 32px -18px rgba(6,117,99,.45),0 28px 60px -40px rgba(15,23,42,.35);
+  transition:transform .35s var(--pv-ease)}
+#ps:not(.is-slim) .ps-drop{min-height:min(340px,46svh);justify-content:center}
+#ps:not(.is-slim) .ps-drop:hover,#ps:not(.is-slim) .ps-drop.is-over{transform:translateY(-2px);border-color:var(--pv-accent)}
+#ps:not(.is-slim) .ps-drop:active{transform:translateY(1px)}
+#ps:not(.is-slim) .ps-drop:focus-visible{outline:2px solid var(--pv-accent);outline-offset:3px}
+#ps:not(.is-slim) .ps-ico{width:64px;height:64px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;
+  color:var(--pv-accent-ink);background:var(--pv-surface);border:1px solid var(--pv-accent-line);
+  box-shadow:0 8px 20px -12px rgba(6,117,99,.55)}
+#ps:not(.is-slim) .ps-ico svg{width:28px;height:28px}
+#ps:not(.is-slim) .ps-drop-txt{gap:6px}
+#ps:not(.is-slim) .ps-drop-txt b{font-size:1.2rem;font-weight:800;letter-spacing:-.03em;color:var(--pv-ink)}
+#ps:not(.is-slim) .ps-drop-txt small{font-size:.86rem;line-height:1.5;color:var(--pv-ink-2)}
+#ps .ps-consent{margin:0;font-size:.8rem;line-height:1.5}
+#ps .ps-consent a{color:var(--pv-ink-2);text-decoration:none;border-bottom:1px solid var(--pv-line)}
+#ps .ps-consent a:hover{color:var(--pv-accent-ink);border-bottom-color:var(--pv-accent-line)}
+#ps:not(.is-slim) .ps-skip{margin:0;padding:0 0 1px;font-size:.8rem;line-height:1.5;color:var(--pv-ink-2);border-bottom-color:var(--pv-line)}
+#ps:not(.is-slim) .ps-skip:hover{color:var(--pv-accent-ink);border-bottom-color:var(--pv-accent-line)}
+/* 帯に縮んだあと（手動で入力を選んだ人）：点線にしない。帯の横に「取り扱いの詳細」を小さく */
+#ps.is-slim{display:flex;flex-wrap:wrap;align-items:center;column-gap:var(--pv-s-2);row-gap:var(--pv-s-1)}
+#ps.is-slim>#ps-panel{flex-basis:100%}
+#ps.is-slim .ps-ico{color:var(--pv-accent-ink)}
+#ps.is-slim .ps-ico svg{width:14px;height:14px}
+#ps.is-slim .ps-consent{font-size:.74rem}
+/* ── 読めた札：囲みのあいだは全部 16px ── */
+/* ★外の囲みは置かない（囲みの中に囲み、にしない）。見出しとボタンはページの上に直に、数字は同じ形の囲みに */
+#ps .ps-res{display:flex;flex-direction:column;gap:var(--pv-s-2);margin-top:0;padding:0;border:0;border-radius:0;background:none;box-shadow:none}
+#ps .ps-res>*{margin-top:0;margin-bottom:0}
+#ps .ps-res>.ps-res-lead{margin-top:-10px}
+#ps .ps-res>:empty{display:none}
+#ps .ps-res .ps-bar{margin:0;gap:var(--pv-s-1)}
+/* 中の囲みは同じ形（面・線・角・影をそろえる）。数字の緑は中身の色に任せる */
+#ps .ps-rate,#ps .ps-aha,#ps .ps-extra{padding:var(--pv-s-2) 18px;border-radius:var(--pv-r);border:1px solid var(--pv-line);
+  background:var(--pv-surface);box-shadow:var(--pv-shadow)}
+/* 「明細にないお金」の欄は右端でそろえる（名前が長い行で欄が押し出されない） */
+#ps .ps-extra-k{flex:1 1 auto;min-width:0}
+#ps .ps-extra-v{flex:none}
+#ps .ps-rate-t,#ps .ps-aha-t,#ps .ps-extra-t{margin:0 0 var(--pv-s-1);color:var(--pv-ink-3)}
+#ps .ps-rate-row{padding:var(--pv-s-1) 0}
+#ps .ps-rate-row:last-of-type{padding-bottom:0}
+#ps .ps-extra-row:last-child{min-height:44px}
+#ps .ps-fold{border-top:0}
+#ps .ps-next{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:var(--pv-s-2) 18px;border-radius:var(--pv-r);
+  border:1px solid var(--pv-accent-line);background:var(--pv-accent-soft)}
+#ps .ps-next .btn-orange{margin:0}
+/* ★スマホでは、フォームの囲み（.card）と同じく左右 8px ずつ外へ出し、内側を 12px に（端の線を1本にそろえる） */
+@media (max-width:600px){
+  #ps .ps-rate,#ps .ps-aha,#ps .ps-extra,#ps .ps-next{margin-left:-8px;margin-right:-8px;padding-left:12px;padding-right:12px}
+  #ps:not(.is-slim)>.ps-drop{flex-basis:calc(100% + 16px);margin-left:-8px;margin-right:-8px;padding:var(--pv-s-4) 12px}
+  #ps-panel>.ps-res{margin-top:var(--pv-s-1)}}
