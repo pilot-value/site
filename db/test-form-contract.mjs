@@ -1898,6 +1898,13 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   bad.push(...await setF(pick('f-stay')));
   await goNext();
   ok(await vis('s3'), '★ステイ日数を入れたら 3/5 へ進む');
+  /* ★2026-11-06：端末の「戻る」（iPhone の端をなぞる・Android の戻る）で、ひとつ前の段へ。前はフォームごと出てしまった。 */
+  await page.evaluate(() => history.back());
+  await page.waitForFunction(() => !document.getElementById('s2').hidden, { timeout: 3000 }).catch(() => {});
+  ok((await cur()) === 's2', '★端末の「戻る」で、ひとつ前の段（2/5）へ戻る（ページからは出ない）', await cur());
+  await page.evaluate(() => history.forward());
+  await page.waitForFunction(() => !document.getElementById('s3').hidden, { timeout: 3000 }).catch(() => {});
+  ok((await cur()) === 's3', '★端末の「進む」で 3/5 へ戻ってくる', await cur());
   ok(!(await vis('s4')), 'まだ 4/5 と送信ボタンは出ない');
   /* ── 帯（2026-09-08 オーナー指示で作り替えた）────────────────
      2026-08-27 の「3.報酬から『匿名で提出』を常に下に出す」は、5ステップ化に
@@ -2003,6 +2010,14 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
      && revRows.some(([k, v]) => /^(変動給|Variable pay)$/.test(k) && /該当なし|None of this applies/.test(v)),
      '★「該当なし」と答えた変動給が、確認に「該当なし」の1行で出る', JSON.stringify(revRows.map((r) => r[0])));
 
+  /* ★2026-11-06：確認の「編集」で直したら、「確認に戻る」1回で確認へ（前は残りの段を全部「次へ」で通り直した）。 */
+  await page.evaluate(() => [...document.querySelectorAll('#wz-review .wz-rev-edit')][1].click());
+  await new Promise((r) => setTimeout(r, 300));
+  const backLab = await page.evaluate(() => { const b = [...document.querySelectorAll('.wz-next')].find((x) => x.offsetParent); return b ? b.textContent.trim() : ''; });
+  ok((await cur()) === 's2' && /^(確認に戻る|Back to review)$/.test(backLab), '★確認の「編集」で戻った段のボタンは「確認に戻る」', (await cur()) + ' / ' + backLab);
+  await goNext();
+  await new Promise((r) => setTimeout(r, 300));
+  ok((await cur()) === 's5', '★「確認に戻る」1回で確認の画面へ（間の段を通り直さない）', await cur());
   /* ★確認から戻っても、報酬の段は入れたままで出てくる。
      ここから下は「3. 報酬」の中身を見るので、そこまで帰ってから続ける。 */
   await goBack();

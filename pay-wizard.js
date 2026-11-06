@@ -35,6 +35,7 @@ var T = {
     next:      '次へ',
     back:      '戻る',
     toReview:  '入力内容を確認する',
+    backReview: '確認に戻る',
     edit:      '編集',
     draftNg:   'このブラウザには下書きを保存できませんでした（プライベートモードなどでは保存されません）',
     draftBack: 'このブラウザに保存した下書きから続けています。',
@@ -62,6 +63,7 @@ var T = {
     next:      'Next',
     back:      'Back',
     toReview:  'Review your entry',
+    backReview: 'Back to review',
     edit:      'Edit',
     draftNg:   'Could not save a draft in this browser (private mode blocks it)',
     draftBack: 'Continuing from a draft saved in this browser.',
@@ -85,6 +87,7 @@ var T = {
     next:      'Siguiente',
     back:      'Volver',
     toReview:  'Revisa tus datos',
+    backReview: 'Volver a la revisión',
     edit:      'Editar',
     draftNg:   'No se pudo guardar el borrador en este navegador (el modo privado lo impide)',
     draftBack: 'Continúas con un borrador guardado en este navegador.',
@@ -491,12 +494,18 @@ function buildNavs() {
     if (i > 0) {
       var b = el('button', 'wz-back', L.back);
       b.type = 'button';
-      b.addEventListener('click', function () { go(i - 1); });
+      /* ★ひとつ前の段が履歴のすぐ前にあれば、履歴ごと戻す（端末の「戻る」と同じ場所に着く・履歴が伸びない） */
+      b.addEventListener('click', function () {
+        var viaHist = pos > 0 && trail[pos - 1] === i - 1;
+        go(i - 1, viaHist ? { pop: true } : undefined);
+        if (viaHist) { pos--; selfPops++; try { history.back(); } catch (e) { selfPops--; } }
+      });
       nav.appendChild(b);
     }
     if (i < C.steps.length - 1) {
       var nx = el('button', 'wz-next', i === C.steps.length - 2 ? L.toReview : L.next);
       nx.type = 'button';
+      nx.dataset.step = String(i);
       nx.addEventListener('click', function () { forward(i); });
       nav.appendChild(nx);
     }
@@ -521,11 +530,41 @@ function scrollToTop() {
   try { window.scrollTo({ top: y, behavior: 'smooth' }); }
   catch (e) { window.scrollTo(0, y); }
 }
+/* ★確認の画面の「編集」で戻った人は、「確認に戻る」1回で確認へ（2026-11-06）。前は残りの段を全部「次へ」で通り直した。
+     途中の段に未入力が残っていれば、その段で止まる（forward）。確認に着いたら外す。 */
+var backTo = null;
+/* ★端末の「戻る」（iPhone の端をなぞる・Android の戻る）で、ひとつ前の段へ（2026-11-06）。前はフォームごと出てしまった。
+     段が変わるたびに履歴を1つ積む（住所は変えない）。trail[n] ＝ n 番目の履歴の段・pos ＝ いまの履歴の位置。 */
+var trail = [0], pos = 0, selfPops = 0;   // selfPops ＝ 画面の「戻る」が自分で戻した履歴の数（その合図では段を動かさない ── もう動かしてある）
+function histReset() {
+  trail = [cur]; pos = 0;
+  try { history.replaceState({ pvWz: cur, pvN: 0 }, ''); } catch (e) {}
+}
+function histPush(i) {
+  pos++; trail.length = pos; trail[pos] = i;
+  try { history.pushState({ pvWz: i, pvN: pos }, ''); } catch (e) {}
+}
+if (typeof window !== 'undefined') window.addEventListener('popstate', function (e) {
+  var st = e.state;
+  if (!st || typeof st.pvWz !== 'number') return;
+  /* ★開き直したあと、まだ入口の画面に居る人：フォームの段の履歴は飛ばして、ひとつ前のページへ（押しても何も起きない、を作らない） */
+  if (!C || !started) { if (typeof st.pvN === 'number') { try { history.go(-(st.pvN + 1)); } catch (e2) {} } return; }
+  if (typeof st.pvN === 'number') pos = st.pvN;
+  if (selfPops > 0) { selfPops--; return; }
+  if (st.pvWz !== cur && st.pvWz >= 0 && st.pvWz < C.steps.length) go(st.pvWz, { pop: true });
+});
 function show(i) {
   C.steps.forEach(function (s, k) {
     stepEls(k).forEach(function (e) { e.hidden = k !== i; });
   });
   cur = i;
+  var lastI = C.steps.length - 1;
+  if (i === lastI) backTo = null;
+  [].forEach.call(document.querySelectorAll('.wz-next'), function (b) {
+    if (b.dataset.step == null) return;
+    var k = +b.dataset.step;
+    b.textContent = (backTo != null && k < lastI) ? L.backReview : (k === lastI - 1 ? L.toReview : L.next);
+  });
   /* ★「下書きから続けています」は、戻した段の上でだけ言う（2026-11-06）。進んだら外す。
      保存できなかった知らせ（is-ng）は残す。 */
   var db = $('wz-draft');
@@ -552,6 +591,7 @@ function go(i, opt) {
   if (i < 0 || i >= C.steps.length) return;
   if (i === cur && started) return;
   show(i);
+  if (!opt || !opt.pop) histPush(i);
   /* ★控えるのは show() の**あと**。前に書くと「今いた段」が残り、
      再開したとき必ず1つ手前から始まる（値は全部あるのに、もう一度 Next を押す）。 */
   saveDraft();
@@ -580,6 +620,12 @@ function forward(i) {
      （出ている注意そのものが文言なので、ここで赤箱を足さない）。 */
   if (C.blocked && C.blocked(stepEls(i).map(function (e) { return e.id; }), i)) return;
   C.clearErr();
+  if (backTo != null) {
+    var all = C.missing(), lastI = C.steps.length - 1, k;
+    for (k = i + 1; k < lastI; k++) if (all.some(function (f) { return stepHolds(k, f); })) break;
+    go(k);                        // 途中に未入力が無ければ k は確認の段
+    return;
+  }
   go(i + 1);
 }
 /* その欄のあるステップへ運ぶ（送信で止まったときに使う）。 */
@@ -1098,6 +1144,7 @@ function renderReviewIn(pay) {
       /* ★明細を読んだあとの1枚では、直したい欄が隠れている。全部出してから、その節へ運ぶ。 */
       var was = qon;
       qOff();
+      backTo = C.steps.length - 1;
       go(i, was ? { quiet: true } : undefined);
       /* ★その節が畳まれているなら開いてから渡す。開けないと「編集」を押した人が
          要約1行の前に立たされ、もう一度「変更」を探すことになる。 */
@@ -1220,8 +1267,9 @@ var API = {
     var d = this._resume;
     this._resume = null;
     /* 戻せたら restoreDraft が段まで合わせる。戻せなければ 1/5 から。 */
-    if (d && restoreDraft(d)) return;
+    if (d && restoreDraft(d)) { histReset(); return; }
     show(0);
+    histReset();
   },
   /* ログインの結果が分かった時点で1回だけ呼ぶ。 */
   setUid: function (uid) {
@@ -1259,7 +1307,9 @@ var API = {
     C.steps = steps;
     buildNavs();
     started = true;
+    backTo = null;
     show(0);
+    histReset();
     saveDraft();
   },
   /* 明細を読んだあとの1枚：まだ答えていない欄だけを出す（3-b）。 */
