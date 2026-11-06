@@ -2112,14 +2112,19 @@ console.log('\n▼ 19. 全体の傾向の段落（overview・2026-10-30）──
   const sqlAll = read('db/review-summary.sql');
   const fa = sqlAll.indexOf('create or replace function public.pv_review_summary(p jsonb)');
   const fsrc = fa < 0 ? '' : sqlAll.slice(fa, sqlAll.indexOf('$fn$;', fa) + '$fn$;'.length);
+  /* ★2026-11-06 から、良い点を作る1行・段落・気になる点は pv_review_summary_core（照合の答えを置いておく側）に在る。
+       壊した版を入れたら、置いてある答えも作り直してから読む（作り直さないと、壊す前の答えを引いて空振りする）。 */
+  const ca = sqlAll.indexOf('create or replace function public.pv_review_summary_core(p_air text, p_lang text)');
+  const csrc = ca < 0 ? '' : sqlAll.slice(ca, sqlAll.indexOf('$fn$;', ca) + '$fn$;'.length);
   const LOCKED = `return jsonb_strip_nulls(jsonb_build_object('ok', true, 'state', 'locked', 'lead', v_lead, 'good', v_good));`;
   const GOODB = `jsonb_build_object('text', e.v ->> 'text', 'cat', e.v ->> 'cat') order by e.i)`;
-  ok(fsrc.split(LOCKED).length === 2 && fsrc.split(GOODB).length === 2, '（読む関数の locked の1行と、良い点を作る1行を見つけた）');
+  ok(fsrc.split(LOCKED).length === 2 && csrc.split(GOODB).length === 2, '（読む関数の locked の1行と、良い点を作る1行を見つけた）');
   const SHUT_NOW = { ok: true, state: 'locked', lead: LEAD60(OV), good: [LGP] };
   /* 壊した版を begin … rollback の中でだけ入れ、鍵の無い会員（と未ログイン）で読む。 */
   const tryBroken = async (src) => {
     await asOwner(); await db.exec(`begin`);
     await db.exec(src);
+    await db.exec(`select public.pv_review_summary_pub_rebuild()`);
     await as(NOKEY);
     const a = (await one(`select public.pv_review_summary($1::jsonb) r`, [J({ airline: LH, lang: 'ja' })])).r;
     await as('anon');
@@ -2127,11 +2132,11 @@ console.log('\n▼ 19. 全体の傾向の段落（overview・2026-10-30）──
     await db.exec(`rollback`); await asOwner();
     return [a, b];
   };
-  const [bo] = await tryBroken(fsrc.replace(LOCKED, () => `return jsonb_strip_nulls(jsonb_build_object('ok', true, 'state', 'locked', 'lead', v_lead, 'good', v_good, 'overview', coalesce(v_row.overview, '')));`));
+  const [bo] = await tryBroken(fsrc.replace(LOCKED, () => `return jsonb_strip_nulls(jsonb_build_object('ok', true, 'state', 'locked', 'lead', v_lead, 'good', v_good, 'overview', coalesce(v_core -> 'open' ->> 'overview', '')));`));
   ok(leaks(bo) && bo.overview === OV, '壊した読む関数（locked に段落の全文を足した版）なら、漏れの検査（leaks）が捕まえる', J(bo));
-  const [bc] = await tryBroken(fsrc.replace(LOCKED, () => `return jsonb_strip_nulls(jsonb_build_object('ok', true, 'state', 'locked', 'lead', v_lead, 'good', v_good, 'concern', public.pv_review_summary_out(v_row.concern)));`));
+  const [bc] = await tryBroken(fsrc.replace(LOCKED, () => `return jsonb_strip_nulls(jsonb_build_object('ok', true, 'state', 'locked', 'lead', v_lead, 'good', v_good, 'concern', v_core -> 'open' -> 'concern'));`));
   ok(leaks(bc) && J(bc).includes(LC.text), '壊した読む関数（locked に気になる点を足した版）なら、漏れの検査（leaks）が捕まえる', J(bc));
-  const [bi, bj] = await tryBroken(fsrc.replace(GOODB, () => `jsonb_build_object('text', e.v ->> 'text', 'cat', e.v ->> 'cat', 'ids', e.v -> 'ids') order by e.i)`));
+  const [bi, bj] = await tryBroken(csrc.replace(GOODB, () => `jsonb_build_object('text', e.v ->> 'text', 'cat', e.v ->> 'cat', 'ids', e.v -> 'ids') order by e.i)`));
   ok(leaks(bi) && leaks(bj) && bi.good?.[0]?.ids?.length === 2, '壊した読む関数（good に ids を残す版）なら、漏れの検査（leaks）が locked・login とも捕まえる', J([bi, bj]));
   ok(J(await getAs(NOKEY, LH)) === J(SHUT_NOW), '（巻き戻したあと: 本物の読む関数は locked の1語と段落の先頭・良い点の字だけ）');
 
@@ -2140,6 +2145,7 @@ console.log('\n▼ 19. 全体の傾向の段落（overview・2026-10-30）──
   await asOwner(); await db.exec(`begin`);
   await db.exec(`create or replace function public.pv_review_summary_lead(p_overview text, p_lang text)
                  returns text language sql immutable as $x$ select nullif(p_overview, '') $x$`);
+  await db.exec(`select public.pv_review_summary_pub_rebuild()`);
   await as(NOKEY);
   const bl = (await one(`select public.pv_review_summary($1::jsonb) r`, [J({ airline: LH, lang: 'ja' })])).r;
   await as('anon');
@@ -2148,6 +2154,64 @@ console.log('\n▼ 19. 全体の傾向の段落（overview・2026-10-30）──
   ok(leaks(bl) && leaks(bg) && bl.lead === OV, '壊した部品（段落を丸ごと lead にする版）なら、漏れの検査（leaks）が locked・login とも捕まえる', J([bl, bg]));
   ok(J(await getAs(NOKEY, LH)) === J(SHUT_NOW) && J(await getAs('anon', LH)) === J({ ...SHUT_NOW, state: 'login' }),
      '（巻き戻したあと: 本物の部品は段落の先頭60字だけ）');
+}
+
+
+/* ══ ★2026-11-06 照合の答えは書き込みのときに置いておく（Supabase の Disk IO 警告）══
+   読む関数の答えが、元の作り方（REF ＝ 2026-11-06 時点の pv_review_summary の写し）と1字も違わないこと。
+   全部の会社 × 3言語 × 未ログイン・鍵なし・鍵あり。口コミが入る・消える・訳が付く・要約が変わる、のあとも。
+   ⚠️ 要約の返事の形をわざと変えるときは、pv_review_summary_core とこの REF を一緒に直す。 */
+const SUM_REF = "create or replace function public.pv_review_summary_ref(p jsonb)\nreturns jsonb\nlanguage plpgsql\nstable\nsecurity definer\nset search_path = public, extensions\nas $fn$\ndeclare\n  v_air   text := lower(btrim(coalesce(p ->> 'airline', '')));\n  v_lang  text := coalesce(p ->> 'lang', '');\n  v_row   public.pv_review_summaries%rowtype;\n  v_codes text[];\n  v_lead  text;\n  v_good  jsonb;\nbegin\n  if not exists (select 1 from public.pv_airlines a\n                  where a.code = v_air and a.code <> 'other') then\n    return jsonb_build_object('ok', false, 'error', 'bad_airline');\n  end if;\n  if v_lang not in ('ja', 'en', 'es') then\n    return jsonb_build_object('ok', false, 'error', 'bad_lang');\n  end if;\n  v_codes := public.pv_review_summary_codes(v_air);\n  if public.pv_review_summary_count(v_codes, null) < 3 then\n    return jsonb_build_object('ok', true, 'state', 'few');\n  end if;\n  select * into v_row\n    from public.pv_review_summaries s\n   where s.airline = v_air and s.lang = v_lang;\n  if not found then\n    return jsonb_build_object('ok', true, 'state', 'none');\n  end if;\n  if public.pv_review_summary_sig(v_codes, v_row.newest_at, v_lang) is distinct from v_row.sig\n     or public.pv_review_summary_bad(v_row.good,    v_row.lang, v_row.n) is not null\n     or public.pv_review_summary_bad(v_row.concern, v_row.lang, v_row.n) is not null\n     or (v_row.good || v_row.concern) = '[]'::jsonb\n     or (v_row.overview is not null\n         and public.pv_review_summary_overview_bad(v_row.overview, v_row.lang) is not null)\n     or not public.pv_review_summary_backed(v_row.good,    v_codes, v_row.newest_at)\n     or not public.pv_review_summary_backed(v_row.concern, v_codes, v_row.newest_at) then\n    return jsonb_build_object('ok', true, 'state', 'none');\n  end if;\n  v_lead := public.pv_review_summary_lead(v_row.overview, v_row.lang);\n  v_good := (select jsonb_agg(jsonb_build_object('text', e.v ->> 'text', 'cat', e.v ->> 'cat') order by e.i)\n               from jsonb_array_elements(v_row.good) with ordinality e(v, i));\n  if auth.uid() is null then\n    return jsonb_strip_nulls(jsonb_build_object('ok', true, 'state', 'login', 'lead', v_lead, 'good', v_good));\n  end if;\n  if not public.pv_has_review_key() then\n    return jsonb_strip_nulls(jsonb_build_object('ok', true, 'state', 'locked', 'lead', v_lead, 'good', v_good));\n  end if;\n  return jsonb_build_object(\n    'ok', true, 'state', 'open',\n    'n', v_row.n,\n    'overview', coalesce(v_row.overview, ''),\n    'as_of', to_char(v_row.made_at at time zone 'utc', 'YYYY-MM-DD'),\n    'as_of_at', to_char(date_trunc('hour', v_row.made_at at time zone 'utc')\n                        + floor(extract(minute from v_row.made_at at time zone 'utc') / 15) * interval '15 minutes',\n                        'YYYY-MM-DD\"T\"HH24:MI\":00Z\"'),\n    'good',    public.pv_review_summary_out(v_row.good),\n    'concern', public.pv_review_summary_out(v_row.concern));\nend;\n$fn$;";
+console.log('\n▼ ★照合の答えを置いておいても、元の作り方と1字も違わない');
+{
+  await asOwner();
+  await db.exec(SUM_REF + '\ngrant execute on function public.pv_review_summary_ref(jsonb) to anon, authenticated;');
+  const airs = (await db.query(`select code from public.pv_airlines where code <> 'other' order by code`)).rows.map((r) => r.code);
+  const cmp = async () => {
+    const bad = [];
+    for (const who of ['anon', NOKEY, KEYED]) {
+      await as(who);
+      for (const air of airs) for (const lang of ['ja', 'en', 'es']) {
+        const p = JSON.stringify({ airline: air, lang });
+        const a = (await db.query(`select public.pv_review_summary($1::jsonb) r`, [p])).rows[0].r;
+        const b = (await db.query(`select public.pv_review_summary_ref($1::jsonb) r`, [p])).rows[0].r;
+        if (JSON.stringify(a) !== JSON.stringify(b)) bad.push(`${who} ${air} ${lang}`);
+      }
+      for (const p of [{ airline: 'nope', lang: 'ja' }, { airline: airs[0], lang: 'fr' }]) {
+        const a = (await db.query(`select public.pv_review_summary($1::jsonb) r`, [JSON.stringify(p)])).rows[0].r;
+        const b = (await db.query(`select public.pv_review_summary_ref($1::jsonb) r`, [JSON.stringify(p)])).rows[0].r;
+        if (JSON.stringify(a) !== JSON.stringify(b)) bad.push(`${who} ${JSON.stringify(p)}`);
+      }
+    }
+    await asOwner();
+    return bad;
+  };
+  const states = async () => { await as(KEYED); const r = (await db.query(`select count(*) filter (where public.pv_review_summary(jsonb_build_object('airline', code, 'lang', 'ja')) ->> 'state' = 'open')::int o from public.pv_airlines where code <> 'other'`)).rows[0].o; await asOwner(); return r; };
+  ok((await states()) > 0, '（要約の開いている会社が在る ── 突き合わせが空振りしていない）');
+  let bad = await cmp();
+  ok(!bad.length, `★全部の会社（${airs.length}社）× 3言語 × 未ログイン・鍵なし・鍵あり で、元の作り方と1字も違わない`, bad.slice(0, 6).join(' | '));
+  const someAir = (await one(`select airline from public.pv_review_summaries order by airline limit 1`))?.airline;
+  /* 口コミが入る → その会社は「元の口コミと食い違う」ので none になる（元の作り方も同じ） */
+  await db.query(`insert into public.reviews_v2(proof_hash, airline, culture_comment, created_at) values ('ph-sum-1', $1, $2, now())`,
+    [someAir, '新しく入った口コミの本文です。']);
+  bad = await cmp(); ok(!bad.length, '★口コミが入っても、元の作り方と同じ（置いてある答えが作り直されている）', bad.slice(0, 6).join(' | '));
+  await db.query(`update public.reviews_v2 set translations = $1::jsonb where proof_hash = 'ph-sum-1'`, [JSON.stringify({ en: { culture: 'A new review.' } })]);
+  bad = await cmp(); ok(!bad.length, '★訳が後から付いても、元の作り方と同じ', bad.slice(0, 6).join(' | '));
+  await db.query(`delete from public.reviews_v2 where proof_hash = 'ph-sum-1'`);
+  bad = await cmp(); ok(!bad.length, '★口コミが消えても、元の作り方と同じ（要約がまた出る）', bad.slice(0, 6).join(' | '));
+  await db.query(`update public.pv_review_summaries set overview = null where airline = $1`, [someAir]);
+  bad = await cmp(); ok(!bad.length, '★要約の行が変わっても、元の作り方と同じ', bad.slice(0, 6).join(' | '));
+  /* 壊す証明：口コミの表の引き金を外すと、口コミが入っても置いてある答えが古いまま ＝ 食い違う */
+  /* 口コミが入ると、ほかの引き金が要約の表にも書く（作り直しの合図）。そちらの引き金も外さないと、そちら経由で作り直されて空振りする。 */
+  await db.exec(`drop trigger if exists pv_review_summary_pub_sync on public.reviews_v2; drop trigger if exists pv_review_summary_pub_sync on public.pv_review_summaries`);
+  /* 要約の材料に入っている口コミを書き換える（要約より後に入った口コミは照合に入らない ＝ 自動の作り直しの側が拾う）。 */
+  await db.query(`update public.reviews_v2 set culture_comment = coalesce(culture_comment, '') || 'こわすしょうめい' where id = (select id from public.reviews_v2 where airline = $1 order by created_at limit 1)`, [someAir]);
+  bad = await cmp(); ok(bad.length > 0, '★壊す証明：引き金を外すと、元の作り方と食い違う（検査が空振りしていない）', String(bad.length));
+  await db.exec(read('db/review-summary.sql'));
+  bad = await cmp(); ok(!bad.length, '★このファイルを貼り直すと、全部置き直されて元の作り方と同じに戻る', bad.slice(0, 6).join(' | '));
+  await asAnon();
+  ok(!!(await db.query(`select * from public.pv_review_summary_pub limit 1`).then(() => null, (e) => String(e.message))), '置いてある答えの表は、鍵の無い人から直接は読めない');
+  await asOwner();
 }
 
 console.log(`\n══ ${pass} pass / ${fail} fail ══`);

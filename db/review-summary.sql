@@ -636,7 +636,12 @@ comment on function public.pv_review_summary_lead(text, text) is
 -- ★ few・none は {ok, state} の2つだけ。login・locked は ok・state・lead・good（lead と good は在るときだけ）。
 --   どちらにも overview・concern・n・as_of・as_of_at・ids の鍵は無い（段落の全文と気になる点を返すのは open だけ）。
 --   open で返すのは n・as_of・as_of_at・overview と、点の text・cat・ids。k・書いた人は1つも入らない。
-create or replace function public.pv_review_summary(p jsonb)
+/* ★見る人に左右されない部分（2026-11-06・Supabase の Disk IO 警告）。3件あるか・保存した要約が今の口コミと食い違っていないか・
+     段落の先頭と良い点・鍵のある人への返事、を作る。照合（sig・bad・backed）が重く、会社ページを開くたびに 0.26 秒かかっていた
+     （10-31〜11-06 で 9,294 回）。答えは書き込みのときに pv_review_summary_pub へ置き、pv_review_summary は引くだけ。
+     ⚠️ 中身は前の pv_review_summary の本文そのまま（移しただけ）。返すのは
+        {state:'few'} ／ {state:'none'} ／ {state:'ok', lead, good, open:<鍵のある人への返事>}。 */
+create or replace function public.pv_review_summary_core(p_air text, p_lang text)
 returns jsonb
 language plpgsql
 stable
@@ -644,32 +649,24 @@ security definer
 set search_path = public, extensions
 as $fn$
 declare
-  v_air   text := lower(btrim(coalesce(p ->> 'airline', '')));
-  v_lang  text := coalesce(p ->> 'lang', '');
+  v_air   text := p_air;
+  v_lang  text := p_lang;
   v_row   public.pv_review_summaries%rowtype;
   v_codes text[];
   v_lead  text;
   v_good  jsonb;
 begin
-  if not exists (select 1 from public.pv_airlines a
-                  where a.code = v_air and a.code <> 'other') then
-    return jsonb_build_object('ok', false, 'error', 'bad_airline');
-  end if;
-  if v_lang not in ('ja', 'en', 'es') then
-    return jsonb_build_object('ok', false, 'error', 'bad_lang');
-  end if;
-
   /* ★3件あるかを最初に見る（約束 3）。鍵より前・預かった行より前。 */
   v_codes := public.pv_review_summary_codes(v_air);
   if public.pv_review_summary_count(v_codes, null) < 3 then
-    return jsonb_build_object('ok', true, 'state', 'few');
+    return jsonb_build_object('state', 'few');
   end if;
 
   select * into v_row
     from public.pv_review_summaries s
    where s.airline = v_air and s.lang = v_lang;
   if not found then
-    return jsonb_build_object('ok', true, 'state', 'none');
+    return jsonb_build_object('state', 'none');
   end if;
 
   /* いまも出してよいか（約束 4・5・8）。集合か中身が変わった・形が合わない・
@@ -683,7 +680,7 @@ begin
          and public.pv_review_summary_overview_bad(v_row.overview, v_row.lang) is not null)
      or not public.pv_review_summary_backed(v_row.good,    v_codes, v_row.newest_at)
      or not public.pv_review_summary_backed(v_row.concern, v_codes, v_row.newest_at) then
-    return jsonb_build_object('ok', true, 'state', 'none');
+    return jsonb_build_object('state', 'none');
   end if;
 
   /* ★ここから下は「要約が在る」と分かっている人への返事。未ログインと鍵なしを分ける。
@@ -694,6 +691,148 @@ begin
   v_lead := public.pv_review_summary_lead(v_row.overview, v_row.lang);
   v_good := (select jsonb_agg(jsonb_build_object('text', e.v ->> 'text', 'cat', e.v ->> 'cat') order by e.i)
                from jsonb_array_elements(v_row.good) with ordinality e(v, i));
+  return jsonb_build_object('state', 'ok', 'lead', v_lead, 'good', v_good, 'open', jsonb_build_object(
+    'ok', true, 'state', 'open',
+    'n', v_row.n,
+    'overview', coalesce(v_row.overview, ''),
+    'as_of', to_char(v_row.made_at at time zone 'utc', 'YYYY-MM-DD'),
+    'as_of_at', to_char(date_trunc('hour', v_row.made_at at time zone 'utc')
+                        + floor(extract(minute from v_row.made_at at time zone 'utc') / 15) * interval '15 minutes',
+                        'YYYY-MM-DD"T"HH24:MI":00Z"'),
+    'good',    public.pv_review_summary_out(v_row.good),
+    'concern', public.pv_review_summary_out(v_row.concern)));
+end;
+$fn$;
+revoke all on function public.pv_review_summary_core(text, text) from public, anon, authenticated;
+
+/* 会社×言語ごとの置き場。誰にも読ませない（読むのは pv_review_summary だけ）。 */
+create table if not exists public.pv_review_summary_pub (
+  airline text not null,
+  lang    text not null,
+  core    jsonb not null,
+  primary key (airline, lang)
+);
+alter table public.pv_review_summary_pub enable row level security;
+revoke all on table public.pv_review_summary_pub from public, anon, authenticated;
+
+/* 1社ぶん（3言語）作り直す。一覧に無い会社・other は置かない（pv_review_summary が bad_airline を返す）。 */
+create or replace function public.pv_review_summary_pub_refresh(p_air text)
+returns void
+language plpgsql
+security definer
+set search_path = public, extensions
+as $fn$
+begin
+  delete from public.pv_review_summary_pub where airline = p_air;
+  if p_air is null or not exists (select 1 from public.pv_airlines a where a.code = p_air and a.code <> 'other') then return; end if;
+  insert into public.pv_review_summary_pub(airline, lang, core)
+  select p_air, l, public.pv_review_summary_core(p_air, l) from unnest(array['ja', 'en', 'es']) l;
+end
+$fn$;
+revoke all on function public.pv_review_summary_pub_refresh(text) from public, anon, authenticated;
+
+/* 口コミの会社コード（古い短いコードを含む）を材料にしている会社（pv_review_summary_codes の逆引き）。 */
+create or replace function public.pv_review_summary_owners(p_code text)
+returns setof text
+language sql
+stable
+security definer
+set search_path = public, extensions
+as $fn$
+  select a.code from public.pv_airlines a
+   where a.code <> 'other' and p_code = any (public.pv_review_summary_codes(a.code));
+$fn$;
+revoke all on function public.pv_review_summary_owners(text) from public, anon, authenticated;
+
+create or replace function public.pv_review_summary_pub_sync()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, extensions
+as $fn$
+declare
+  v_codes text[] := array[]::text[];
+  v_col   text   := case when tg_table_name = 'pv_airlines' then 'code' else 'airline' end;   -- 表ごとに会社の列の名前が違う（行を JSON にしてから名前で引く）
+  c text;
+begin
+  if tg_table_name = 'reviews_v2' then
+    if tg_op in ('UPDATE', 'DELETE') then v_codes := v_codes || array(select public.pv_review_summary_owners(old.airline)); end if;
+    if tg_op in ('INSERT', 'UPDATE') then v_codes := v_codes || array(select public.pv_review_summary_owners(new.airline)); end if;
+  else   -- pv_review_summaries ／ pv_airlines
+    if tg_op in ('UPDATE', 'DELETE') then
+      v_codes := v_codes || (to_jsonb(old) ->> v_col);
+    end if;
+    if tg_op in ('INSERT', 'UPDATE') then
+      v_codes := v_codes || (to_jsonb(new) ->> v_col);
+    end if;
+  end if;
+  for c in select distinct x from unnest(v_codes) x where x is not null loop
+    perform public.pv_review_summary_pub_refresh(c);
+  end loop;
+  return null;
+end
+$fn$;
+revoke all on function public.pv_review_summary_pub_sync() from public, anon, authenticated;
+
+drop trigger if exists pv_review_summary_pub_sync on public.reviews_v2;
+create trigger pv_review_summary_pub_sync after insert or update or delete on public.reviews_v2
+  for each row execute function public.pv_review_summary_pub_sync();
+drop trigger if exists pv_review_summary_pub_sync on public.pv_review_summaries;
+create trigger pv_review_summary_pub_sync after insert or update or delete on public.pv_review_summaries
+  for each row execute function public.pv_review_summary_pub_sync();
+drop trigger if exists pv_review_summary_pub_sync on public.pv_airlines;
+create trigger pv_review_summary_pub_sync after insert or update or delete on public.pv_airlines
+  for each row execute function public.pv_review_summary_pub_sync();
+
+/* 全部作り直す（このファイルを貼るたびに末尾で1回）。 */
+create or replace function public.pv_review_summary_pub_rebuild()
+returns void
+language plpgsql
+security definer
+set search_path = public, extensions
+as $fn$
+declare c text;
+begin
+  delete from public.pv_review_summary_pub where true;
+  for c in select a.code from public.pv_airlines a where a.code <> 'other' loop
+    perform public.pv_review_summary_pub_refresh(c);
+  end loop;
+end
+$fn$;
+revoke all on function public.pv_review_summary_pub_rebuild() from public, anon, authenticated;
+
+create or replace function public.pv_review_summary(p jsonb)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public, extensions
+as $fn$
+declare
+  v_air   text := lower(btrim(coalesce(p ->> 'airline', '')));
+  v_lang  text := coalesce(p ->> 'lang', '');
+  v_row   public.pv_review_summaries%rowtype;
+  v_codes text[];
+  v_lead  text;
+  v_core  jsonb;
+  v_good  jsonb;
+begin
+  if not exists (select 1 from public.pv_airlines a
+                  where a.code = v_air and a.code <> 'other') then
+    return jsonb_build_object('ok', false, 'error', 'bad_airline');
+  end if;
+  if v_lang not in ('ja', 'en', 'es') then
+    return jsonb_build_object('ok', false, 'error', 'bad_lang');
+  end if;
+
+  /* ★照合の答えは書き込みのときに置いてある（2026-11-06・上の pv_review_summary_core）。無いとき（貼った直後など）は、その場で作る。 */
+  select s.core into v_core from public.pv_review_summary_pub s where s.airline = v_air and s.lang = v_lang;
+  if v_core is null then v_core := public.pv_review_summary_core(v_air, v_lang); end if;
+  if v_core ->> 'state' in ('few', 'none') then
+    return jsonb_build_object('ok', true, 'state', v_core ->> 'state');
+  end if;
+  v_lead := v_core ->> 'lead';
+  v_good := nullif(v_core -> 'good', 'null'::jsonb);
   if auth.uid() is null then
     return jsonb_strip_nulls(jsonb_build_object('ok', true, 'state', 'login', 'lead', v_lead, 'good', v_good));
   end if;
@@ -708,16 +847,7 @@ begin
      15分刻みなのは、どの時間帯でも日付が正しく出るいちばん粗い刻みだから（時差はどれも15分の倍数）。それより細かい時刻は渡さない。
      ★overview（2026-10-30）── 段落を丸ごと返すのは**ここでだけ**（約束 8）。上の login・locked には段落の先頭（lead）と
        良い点の字（good）だけ・few・none には何も足さない。open には lead を足さない（段落そのものが在る）。 */
-  return jsonb_build_object(
-    'ok', true, 'state', 'open',
-    'n', v_row.n,
-    'overview', coalesce(v_row.overview, ''),
-    'as_of', to_char(v_row.made_at at time zone 'utc', 'YYYY-MM-DD'),
-    'as_of_at', to_char(date_trunc('hour', v_row.made_at at time zone 'utc')
-                        + floor(extract(minute from v_row.made_at at time zone 'utc') / 15) * interval '15 minutes',
-                        'YYYY-MM-DD"T"HH24:MI":00Z"'),
-    'good',    public.pv_review_summary_out(v_row.good),
-    'concern', public.pv_review_summary_out(v_row.concern));
+  return v_core -> 'open';
 end;
 $fn$;
 
@@ -1438,6 +1568,10 @@ end
 $grant$;
 
 
+
+/* ★照合の答えを全部置き直す（2026-11-06）。このファイルを貼るたびに1回。 */
+select public.pv_review_summary_pub_rebuild();
+
 -- ════════════════════════════════════════════════════════════════
 -- 検算（貼ったあと、9行とも ✅ になっていること）
 --   ⚠️ 6行目は service_role という役が在る DB でだけ ✅ になる（Supabase には必ず在る）。
@@ -1518,7 +1652,7 @@ select '全体の傾向の段落（overview）の口が入っている',
              and public.pv_review_summary_overview_bad('', 'ja') is null
              and public.pv_review_summary_overview_bad(repeat('あ', 39), 'ja') = 'text_too_short'
              and public.pv_review_summary_overview_bad(repeat('a', 441), 'en') = 'text_too_long'
-             and pg_get_functiondef('public.pv_review_summary(jsonb)'::regprocedure) like '%coalesce(v_row.overview%'
+             and pg_get_functiondef('public.pv_review_summary_core(text, text)'::regprocedure) like '%coalesce(v_row.overview%'
              and pg_get_functiondef('public.pv_review_summary_put(jsonb)'::regprocedure) like '%bad_overview%'
              and pg_get_functiondef('public.pv_review_summary_need(text, text)'::regprocedure) like '%v_old%'
             then '✅' else '❌' end
@@ -1531,7 +1665,7 @@ select '鍵の無い人へは、まとめの段落の先頭（lead）と良い�
              and public.pv_review_summary_lead(repeat('a', 130), 'en') = repeat('a', 120)
              and public.pv_review_summary_lead(null, 'ja') is null
              and public.pv_review_summary_lead('', 'en') is null
-             and pg_get_functiondef('public.pv_review_summary(jsonb)'::regprocedure) like '%pv_review_summary_lead(v_row.overview%'
+             and pg_get_functiondef('public.pv_review_summary_core(text, text)'::regprocedure) like '%pv_review_summary_lead(v_row.overview%'
              and pg_get_functiondef('public.pv_review_summary(jsonb)'::regprocedure) like '%''state'', ''login'', ''lead'', v_lead, ''good'', v_good)%'
              and pg_get_functiondef('public.pv_review_summary(jsonb)'::regprocedure) like '%''state'', ''locked'', ''lead'', v_lead, ''good'', v_good)%'
             then '✅' else '❌' end

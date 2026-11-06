@@ -637,7 +637,11 @@
       });
     }
     if (!c.workP) {
-      c.workP = (sb ? rpc('pv_work_view', { airline: slug }) : Promise.resolve({ error: {} })).then(function (res) {
+      /* ★ログインの鍵が端末に1つも無い人には、サーバーの答えは決まって「login」の1語（2026-11-06・Supabase の Disk IO 警告）。
+         聞かずに同じ答えを出す（10-31〜11-06 で補足 9,708 回・勤務 3,303 回、ほとんどがこれだった）。
+         鍵が在る人は、切れていそうでも今までどおりサーバーに聞く ── 誰に何を見せるかを決めるのはサーバー。 */
+      var anon = (function () { var P = w.PVSession; try { return !!P && typeof P.hasToken === 'function' && !P.hasToken(); } catch (e) { return false; } })();
+      c.workP = (sb ? (anon ? Promise.resolve({ data: { ok: true, state: 'login' } }) : rpc('pv_work_view', { airline: slug })) : Promise.resolve({ error: {} })).then(function (res) {
         var x = res && !res.error ? res.data : null;
         if (!x) c.work = { s: isOff(res && res.error) ? 'off' : 'error' };
         else if (x.ok === true && x.state === 'open' && x.by && typeof x.by === 'object') c.work = { s: 'open', by: x.by };
