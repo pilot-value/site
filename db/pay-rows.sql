@@ -2047,7 +2047,7 @@ begin
   --   ★v_uid が null でも v_until は null・pv_is_operator() は false なので、
   --     下の鍵の旗はそのまま「閉じている」に落ちる。分岐を増やさない。
   --   ⚠️ ここに鍵の旗の変数名を1文字も書かないこと（自己点検36 が出現数を
-  --      きっかり4と数えている ── 注意書きだけで赤くなる）。
+  --      きっかり5と数えている ── 注意書きだけで赤くなる）。
 
   select p.access_until into v_until from public.profiles p where p.id = v_uid;
 
@@ -2057,11 +2057,15 @@ begin
   --   本人が何を出したか（give）は鍵が無い人にも返すため。
   --   **行だけ**を下の listed で落とす。旗はここ1つで、
   --   分岐を2つに増やさない（増やすと片方だけ直して漏れる）。
+  --   ★2026-11-06、鍵の無い人の近道を1つだけ足した（下の「鍵の無い人の近道」）。
+  --     近道も stats と give を返す＝鍵が無い人に返るものは1バイトも変わらない。
+  --     片方だけ直して漏れる形は、db/test-pay-rows.mjs の ▼18 が突き合わせで捕まえる。
+  --     近道はこの1つだけ。これ以上分岐を増やさない。
   -- ★運営（pv_admins）は鍵が無くても開く（2026-09-03）。門が効いているかを
   --   目で検品するため。★偽の給与を1件出して開ける手は取らない ── その行が
   --   一覧にも DEEP PAY の集計にも混ざり、一次データが嘘で薄まる。
   -- ⚠️ 足すのはこの1行の中だけ。分岐を増やさない（自己点検36 が旗の出現数を
-  --    きっかり4と数えている＝宣言・ここ・state・rows）。
+  --    きっかり5と数えている＝宣言・ここ・近道・state・rows。近道は 2026-11-06）。
   -- ★パイロットであることの確認待ちで止まっている会員は、鍵を持っていても閉じる
   --   （2026-10-13・1-e2）。鍵そのものは書き換えない＝承認した瞬間に元どおり開く。
   --   閉じた人に返るのは、鍵の無い人・未ログインの人と同じ伏せた一覧。
@@ -2077,7 +2081,7 @@ begin
      ★これは課金の門ではない。access_until の鍵とは**別**の錠前で、
        両方そろって初めて他人の内訳が見える。
      ⚠️ この注意書きに鍵の旗の変数名を書かないこと ── 自己点検36 が
-        その名前の出現数をきっかり4と数えている（注意書きだけで赤くなる）。
+        その名前の出現数をきっかり5と数えている（注意書きだけで赤くなる）。
      ★判定はここ（サーバ）だけ。閉じている人のブラウザには
        **金額そのものを1つも返さない**。画面でぼかす作りにしない
        ── DevTools でぼかしを外せば見えてしまう。
@@ -2088,6 +2092,160 @@ begin
   --   ⚠️ 呼び出しは**この1か所のまま**にする（自己点検60 が字で1回と数えている）。
   v_give := case when v_uid is null then null else public.pv_my_give() end;
   v_comp := coalesce((v_give->>'full')::boolean, false);
+
+  /* ── 鍵の無い人の近道（2026-11-06・答えは1バイトも変えない）──────────────
+     ★なぜ ── Supabase（無料・Nano）から「ディスクの読み書きの予算を使い切りかけている」と
+       警告が来た（2026-10-31 には一度応答しなくなった）。この関数は引数を取らず、
+       会社ページと REAL PAY を開くたびに呼ばれ、呼ぶのは大半が未ログインの人と検索の巡回。
+       2026-10-31 からの 6,008 回で平均 474ms ＝ DB の時間の約2割を使っていた。
+       鍵の無い人に返すのは伏せた行（会社・出典・投稿時期）と数え上げと give だけなのに、
+       下の1本の文は本物の一覧を最後まで組んでから、最後の1行で捨てていた
+       ── 帯の材料（代表の月・刻み・10区分の帯）・勤務の帯・外れた印・確認中の会員の印
+       （止めた会員ごとに sha256 を作り直す）・預かりの内訳が、全部使われないまま走っていた。
+     ★ここで組むのは伏せた答えに要る8つだけ（shelf・src・sane・person・mask・tally・airs・contrib）。
+       どれも下の文の**写しから列を減らしただけ**。行の選び方・畳み方・並び・数え方は1文字も変えていない。
+       person は1文字も削っていない（中央値も残す ── 畳む形を下と同じにして、
+       同じ時刻の行の並びまで下と同じにするため）。
+     ★開いている人と運営は、ここを通らない（下の文がそのまま動く）。
+       止めた会員（1-e2）は鍵を持っていてもここを通る。止められた運営は下ろした行も載る（sane の1行が同じ）。
+     ⚠️ 写しが2つになった。下の shelf・src・sane・person・mask・tally・airs・contrib を直したら、
+        ここも同じに直す。ずれると鍵の無い人の答えだけが変わる（画面は普通に動く）。
+        db/test-pay-rows.mjs の ▼18 が、この節を外した関数と、鍵の無い人・開いている人の形ごとに
+        1バイトずつ突き合わせて捕まえる。
+     ⚠️ ここに本物の一覧や帯・印を書き足さない。答えは同じまま重さだけが戻る（自己点検72）。
+        この節の中の注意書きに、その材料の名前を書かないこと（自己点検72 が字で見ている）。 */
+  -- pv-fast-begin  ★この2つの印は自己点検37・72 と db/test-pay-rows.mjs の ▼18 が範囲を切り出すのに使う。消さない。
+  if not v_open then
+    with shelf as (
+      -- 下の shelf の頭の6列だけ。機材・年数・現金・内訳・勤務の列は読まない。
+      select 'r:' || r.proof_hash as pkey,
+             case when r.airline = 'other'
+                  then public.pv_airline_resolve(r.airline_other)
+                  else r.airline end as airline,
+             r."position"         as pos,
+             r.annual_total_usd   as usd,
+             (r.verify_level >= 1) as vf,
+             r.created_at         as cat
+        from public.pay_reports r
+       where r.annual_total_usd is not null
+         and r.created_at >= now() - interval '24 months'
+    ),
+    src as (
+      select * from shelf
+      union all
+      -- 預かり。年換算だけを1行に1回（offset 0 の理由は下と同じ）。内訳の材料は読まない。
+      select 'p:' || q.ip_day_hash,
+             case when q.airline = 'other'
+                  then public.pv_airline_resolve(q.payload->>'airline_other')
+                  else q.airline end,
+             q.payload->>'position',
+             d.usd,
+             false,
+             q.created_at
+        from public.pay_reports_pending q
+        cross join lateral (select public.pv_pending_usd(q.payload) as usd
+                            offset 0) d
+       where q.claimed_at is null
+         and q.ip_day_hash is not null
+         and q.created_at >= now() - interval '24 months'
+         and exists (select 1 from public.pv_airlines a where a.code = q.airline)
+      union all
+      -- 昔の口コミに書かれた給与。職位の寄せ方・合計の出し方・本棚との重複よけは下と1文字も違えない。
+      select l.pkey,
+             public.pv_airline_resolve(v.airline),
+             case v."position" when 'captain' then 'cap'
+                               when 'sfo'     then 'fo'
+                               when 'tri_tre' then 'cap'
+                               else v."position" end,
+             round(coalesce(
+                     nullif(v.annual_salary, 0),
+                     case when coalesce(nullif(v.base_annual, 0),
+                                        nullif(v.flight_allowance_annual, 0)) is not null
+                          then coalesce(v.base_annual, 0)
+                             + coalesce(v.flight_allowance_annual, 0)
+                             + coalesce(v.bonus, 0) end,
+                     case when nullif(v.monthly_salary, 0) is not null
+                          then v.monthly_salary * 12 + coalesce(v.bonus, 0) end
+                   )::numeric * 10000 * jpy.to_usd, 2),
+             false,
+             v.created_at
+        from public.reviews_v2 v
+        join public.pv_review_person l on l.review_id = v.id
+        join public.fx_rates jpy on jpy.code = 'JPY'
+       where v.created_at >= now() - interval '24 months'
+         and case v."position" when 'captain' then 'cap'
+                               when 'sfo'     then 'fo'
+                               when 'tri_tre' then 'cap'
+                               else v."position" end
+             in (select c.code from public.pv_positions c)
+         and not exists (select 1 from shelf s where s.pkey = l.pkey)
+    ),
+    sane as (
+      -- 常識の幅と、本人の依頼で下ろした人。下と同じ（運営には下ろした行も載る）。
+      select * from src
+       where usd is not null
+         and usd between 10000 and 700000
+         and (v_op or not exists (select 1 from public.pay_hidden h
+                                   where src.pkey = 'r:' || h.proof_hash))
+    ),
+    person as (
+      -- 下の person と1文字も違わない（列も削らない）。
+      select pkey, airline, pos,
+             (percentile_cont(0.5) within group (order by usd))::numeric as v,
+             bool_or(vf) as verified,
+             case when max(cat) >= now() - interval '3 days'    then 0
+                  when max(cat) >= now() - interval '7 days'    then 1
+                  when max(cat) >= now() - interval '14 days'   then 2
+                  when max(cat) >= now() - interval '1 month'   then 3
+                  when max(cat) >= now() - interval '3 months'  then 4
+                  when max(cat) >= now() - interval '6 months'  then 5
+                  when max(cat) >= now() - interval '12 months' then 6
+                  else 7 end as age,
+             max(cat) as last_at
+        from sane
+       group by pkey, airline, pos
+    ),
+    mask as (
+      -- pv-mask-begin  ★下の mask と同じ印。自己点検65・68 が印の組を1つずつ切り出して、両方を見る。
+      select coalesce(jsonb_agg(jsonb_strip_nulls(jsonb_build_object(
+               'airline',  p.airline,
+               'verified', p.verified,
+               'age',      p.age
+             )) order by p.last_at desc, md5(p.pkey)), '[]'::jsonb) as j
+        from person p
+      -- pv-mask-end
+    ),
+    tally as (
+      select count(*)::int as reports,
+             count(*) filter (where cat >= now() - interval '1 month')::int as mo
+        from sane
+    ),
+    airs as (
+      select count(distinct airline)::int as n from person
+    ),
+    contrib as (
+      select public.pv_deep_contributors() as n
+    )
+    select jsonb_build_object(
+             'ok',    true,
+             'state', 'locked',
+             'rows',  m.j,
+             'stats', jsonb_build_object('reports',      t.reports,
+                                         'month',        t.mo,
+                                         'airlines',     s.n,
+                                         'contributors', c.n),
+             -- 上（begin の直後）で1回だけ呼んだものをそのまま返す（下と同じ）。
+             'give',  v_give
+           )
+      into v_out
+      from mask m
+      cross join tally t
+      cross join airs s
+      cross join contrib c;
+
+    return v_out;
+  end if;
+  -- pv-fast-end
 
   with shelf as (
     -- ── ① 本棚（会員が出したぶん）──────────────────────────
@@ -2619,7 +2777,9 @@ begin
           2026-09-21 にオーナー指示で 80ff719 を revert してこの形へ戻した。
           書き戻すなら actual-pay.js の maskedList と assert-pay-rows.mjs も対で直す。
        ⚠️ この節に鍵の旗の変数名を1文字も書かないこと（自己点検36 がその名前の
-          出現数をきっかり4と数えている ── 注意書きだけで赤くなる）。 */
+          出現数をきっかり5と数えている ── 注意書きだけで赤くなる）。
+       ⚠️ 鍵の無い人に実際に返るのは、上の近道の中の同じ形の mask（2026-11-06）。
+          ここを直したら近道の mask も同じに直す（▼18 の突き合わせが見ている）。 */
     select coalesce(jsonb_agg(jsonb_strip_nulls(jsonb_build_object(
              'airline',  p.airline,
              'verified', p.verified,
@@ -2665,7 +2825,8 @@ begin
            -- ★行はここだけで落とす。鍵が無ければ mask の行（会社・出典・
            --   投稿時期の3つだけ）に差し替わる。金額・職位・機材は**渡さない**ので、
            --   ぼかした行でも伏せ字の行でもない（渡していないものは隠せない）。
-           -- ★2つの配列から選ぶが、旗の数はこれで今までどおり4つのまま。
+           -- ★2つの配列から選ぶが、旗の数はこれで今までどおり4つのまま
+           --   （2026-11-06 に上の近道の1つが増えて5つ）。
            'rows',  case when v_open then l.j else m.j end,
            'stats', jsonb_build_object('reports',      t.reports,
                                        'month',        t.mo,
@@ -2727,7 +2888,9 @@ comment on function public.pv_pay_rows() is
   '2026-09-16 から未ログイン（anon）でも呼べる。鍵の無い人に返る行は'
   '会社・出典・投稿時期の3つだけで、年収・職位・機材・勤務・内訳は1つも入らない。'
   '2026-09-19 から、公開年収（同じ会社・同じ職位）の上限の1.5倍超か下限の半分未満の'
-  '本人申告の人に far=true を付ける（数字は書き換えない）。伏せた行には far を入れない。';
+  '本人申告の人に far=true を付ける（数字は書き換えない）。伏せた行には far を入れない。'
+  '2026-11-06 から、鍵の無い人（未ログイン・鍵なし・鍵切れ・確認待ちで止めた会員）には、'
+  '伏せた答えに要る材料だけを組む近道で答える（答えは1バイトも変わらない。本物の一覧は組まない）。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -2789,13 +2952,14 @@ comment on function public.pv_give_progress() is
 --
 -- ★1本の SELECT にしてある。Supabase の SQL Editor は複数文を流すと
 --   最後の1本の結果しか出さないので、分けて書くと上から順に消えていく。
--- 期待：71行すべて ✅。1つでも ❌ なら、そこが効いていない。
+-- 期待：72行すべて ✅。1つでも ❌ なら、そこが効いていない。
 --
 -- 特に 4・8・12・13・14・16・22・23・30・31・36・37・40・41・42・44・45・46・47・
 --      50・51・52・53・54・55・56・67・68・69・70・71 は
 -- 「静かに壊れる」種類のもの ── 画面には何も出ないまま、他人の個票に届く経路が開く
 -- （16・30 は逆に、同じ人が二重に出る／41・45・47 は数だけが画面ごとに食い違う／
---   69 は新しい会社が黙って「その他」になる／71 は人数が古いまま残る）。
+--   69 は新しい会社が黙って「その他」になる／71 は人数が古いまま残る／
+--   72 は答えが同じまま重さだけが戻る）。
 -- ════════════════════════════════════════════════════════════════
 with f as (
   select to_regprocedure('public.pv_pay_rows()')       as f_rows,
@@ -3018,19 +3182,35 @@ from (
          --   何も見えなくなる。数で釘を打っておく。
          -- ★2026-09-16、rows は2つの配列から選ぶ形になったが、旗の数は4のまま
          --   （同じ1か所の中で行き先が変わっただけ）。ここは無傷で残す。
+         -- ★2026-11-06、鍵の無い人の近道（if not 〜 then）が1つ増えて**5か所**になった
+         --   ＝宣言・旗を立てる・近道・state・rows。近道も stats と give を返すので、
+         --   「鍵で落としているのは行だけ」はそのまま（近道の中身は 37・72、
+         --   答えが下の1本の文と1バイトも違わないことは db/test-pay-rows.mjs の ▼18）。
          case when f_rows is null then false
               else pg_get_functiondef(f_rows) like '%case when v_open then l.j else%'
                and pg_get_functiondef(f_rows) like '%when v_open then ''open'' else ''locked''%'
+               and pg_get_functiondef(f_rows) like '%if not v_open then%'
                and (length(pg_get_functiondef(f_rows))
-                    - length(replace(pg_get_functiondef(f_rows), 'v_open', ''))) / 6 = 4
+                    - length(replace(pg_get_functiondef(f_rows), 'v_open', ''))) / 6 = 5
          end from f
   union all
   -- ★2026-09-16、鍵が無い人にも行を返すようになった（オーナー判断）。返るのは
   --   mask が組んだ3つだけの行で、金額も職位も機材も入っていない（中身の検査は65）。
   --   ここは「行を選んでいるのが1か所だけ」を見張り続ける。
-  select 37, '★鍵の有無で行を選ぶのは1か所だけ（本物の行か、伏せた行か）',
+  select 37, '★鍵の有無で行を選ぶのは1か所だけ（本物の行か、伏せた行か）・近道が返すのは伏せた行だけ',
+         /* ★2026-11-06、鍵の無い人は近道で答えるようになった。近道が返す行は
+              伏せた配列（m.j）だけで、本物の行（l.j）を持たないことも見る。
+              ここが崩れると、鍵の無い人に本物の一覧が丸ごと渡る。 */
          case when f_rows is null then false
               else pg_get_functiondef(f_rows) like '%case when v_open then l.j else m.j end%'
+               and (with s as (
+                      select substring(pg_get_functiondef(f.f_rows)
+                                       from 'pv-fast-begin(.*)pv-fast-end') as x
+                    )
+                    select s.x is not null
+                       and s.x like '%''rows'',  m.j,%'
+                       and s.x not like '%l.j%'
+                      from s)
          end from f
   union all
   -- ── 報酬の内訳の門（Give & Get・2026-09-03）───────────────────
@@ -3390,13 +3570,19 @@ from (
          /* mask の節だけを印で切り出して見る。関数全体を見ると、本物の行を
             組む listed 側の語に当たって必ず緑になる＝何も守れない。
             ★材料も見る。person 以外から引いていないこと ── 引かなければ、
-              うっかり列を足しても出しようが無い。 */
+              うっかり列を足しても出しようが無い。
+            ★2026-11-06、鍵の無い人の近道にも同じ印の節が1つ増えた（**ちょうど2つ**）。
+              印の組を1つずつ切り出し、**どちらも**同じ約束を守っていることを見る。
+              ⚠️ 前の (.*) に戻さない ── 最初の印から最後の印まで一続きに切り出すので、
+                 2つになると近道の材料の列まで拾って必ず赤くなる（.*? は1組ずつ）。 */
          case when f_rows is null then false
               else (with s as (
-                      select substring(pg_get_functiondef(f.f_rows)
-                                       from 'pv-mask-begin(.*)pv-mask-end') as x
+                      select m.x[1] as x
+                        from regexp_matches(pg_get_functiondef(f.f_rows),
+                                            'pv-mask-begin(.*?)pv-mask-end', 'g') as m(x)
                     )
-                    select s.x is not null
+                    select count(*) = 2
+                       and coalesce(bool_and(s.x is not null
                        and s.x like '%''airline''%'
                        and s.x like '%''verified''%' and s.x like '%''age''%'
                        -- 職位は渡さない（2026-09-21 オーナー指示）
@@ -3413,7 +3599,7 @@ from (
                        and s.x not like '%join%'
                        and s.x not like '%from pick%' and s.x not like '%from paid%'
                        and s.x not like '%from worked%' and s.x not like '%from grid%'
-                       and s.x not like '%from sane%'
+                       and s.x not like '%from sane%'), false)
                       from s)
          end from f
   union all
@@ -3444,14 +3630,16 @@ from (
             ⚠️ 2026-09-19〜09-21 は、ここで「mask が fence を読んでいること」
                （上の8行から外すため）も見ていた。2026-09-21 に元の形へ戻した
                （80ff719 の revert）ので、mask は fence をもう読まない。
-               伏せた行に far が入らないことは自己点検65 が見ている。 */
+               伏せた行に far が入らないことは自己点検65 が見ている。
+            ★2026-11-06、印の節が2つになった（近道の mask）。65 と同じく1組ずつ切り出して両方を見る。 */
          case when f_rows is null then false
               else (with s as (
-                      select substring(pg_get_functiondef(f.f_rows)
-                                       from 'pv-mask-begin(.*)pv-mask-end') as x
+                      select m.x[1] as x
+                        from regexp_matches(pg_get_functiondef(f.f_rows),
+                                            'pv-mask-begin(.*?)pv-mask-end', 'g') as m(x)
                     )
-                    select s.x is not null
-                       and s.x !~ 'fence\M'
+                    select count(*) = 2
+                       and coalesce(bool_and(s.x !~ 'fence\M'), false)
                       from s)
                and pg_get_functiondef(f_rows) like '%''far'',%fe.far%'
          end from f
@@ -3507,6 +3695,29 @@ from (
                and pg_get_functiondef(f_dctb) like '%from public.pv_stats s where s.one%'
                and pg_get_functiondef(f_srefresh) like '%delete from public.pv_stats where one;%public.pv_deep_contributors()%'
                and exists (select 1 from public.pv_stats s where s.one and s.contributors is not null)
+         end from f
+  union all
+  -- ── 鍵の無い人の近道（2026-11-06）──────────────────────────────
+  select 72, '★鍵の無い人は近道で答える（本物の一覧・帯・勤務・印・預かりの内訳を組まない／数え上げと give は返す）',
+         /* 静かに壊れる。近道に本物の一覧の材料を書き足しても、近道を消しても、
+            答えは同じまま重さだけが戻る（画面は何も変わらない）。2026-10-31 に DB が止まった形。
+            ★近道の節だけを印の組で切り出して、字で見る。答えが下の1本の文と
+              1バイトも違わないことは db/test-pay-rows.mjs の ▼18 が見ている（ここは字だけ）。
+            ★開いている人と運営を近道に入れないこと（旗が立っていないときだけ入る）。 */
+         case when f_rows is null then false
+              else (with s as (
+                      select substring(pg_get_functiondef(f.f_rows)
+                                       from 'pv-fast-begin(.*)pv-fast-end') as x
+                    )
+                    select s.x is not null
+                       and s.x like '%if not v_open then%'
+                       and s.x like '%''state'', ''locked''%'
+                       and s.x like '%''stats''%'
+                       and s.x like '%''give'',  v_give%'
+                       and s.x like '%return v_out;%'
+                       and s.x !~ '\m(listed|pick|grid|paid|worked|fence|held)\M'
+                       and s.x !~ '(pv_band|pv_proof_held_keys|pv_pending_detail|pv_my_give|pv_sig2)'
+                      from s)
          end from f
 ) t
 order by n;

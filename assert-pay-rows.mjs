@@ -563,12 +563,14 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
         そのときは絞り込みだけ古い列を読む形になり、同じ会社が2つに割れる。 */
   /* ★2026-09-16、伏せた行（mask）が2つ目。どちらも同じ p.airline から出す
        ＝鍵の名前も中身も1本のまま。ここを3以上に増やすときは、増えた1つが
-       本当に同じ列を読んでいるかを見てから直す。 */
-  ok((FN.match(/'airline',/g) || []).length === 2,
+       本当に同じ列を読んでいるかを見てから直す。
+     ★2026-11-06、鍵の無い人の近道の mask が3つ目（近道の中の person は下の person の写しで、
+       同じ p.airline から出している。答えが1バイトも違わないことは db/test-pay-rows.mjs の ▼18）。 */
+  ok((FN.match(/'airline',/g) || []).length === 3,
      '★行が持つ会社の鍵は1つだけ（表示用の別名を足していない）',
      String((FN.match(/'airline',/g) || []).length));
-  ok((FN.match(/'airline',\s+p\.airline/g) || []).length === 2,
-     '★★どちらも解決済みの同じ列から出ている（伏せた行だけ別の材料にしない）');
+  ok((FN.match(/'airline',\s+p\.airline/g) || []).length === 3,
+     '★★どれも解決済みの同じ列から出ている（伏せた行だけ別の材料にしない）');
   ok(!/'airline_other',|'airline_raw',|'airline_name',|'air_name',/.test(FN),
      '★打ち込まれた社名を別の鍵で返していない');
   ok(/group by pkey, airline, pos/.test(FN), '★1行＝1人にまとめている');
@@ -692,20 +694,36 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
        '★鍵が無いときに返る行は、伏せた配列（mask）のほう',
        (FN.match(/'rows',[^\n]*/g) || []).join(' / '));
     {
-      const MK = (FN.match(/-- pv-mask-begin[\s\S]*?-- pv-mask-end/) || [''])[0];
-      ok(!!MK, '★伏せた行を作る節に印が付いている（pv-mask-begin / pv-mask-end）');
-      ok(/'airline'/.test(MK) && /'verified'/.test(MK) && /'age'/.test(MK),
+      /* ★2026-11-06、印の節が2つになった（鍵の無い人の近道の mask と、下の1本の文の mask）。
+           1組ずつ切り出して、**どちらも**同じ約束を守っていることを見る（db/pay-rows.sql の自己点検65 と対）。 */
+      const MKS = FN.match(/-- pv-mask-begin[\s\S]*?-- pv-mask-end/g) || [];
+      ok(MKS.length === 2, '★伏せた行を作る節に印が付いている（pv-mask-begin / pv-mask-end・近道と下の文の2つ）',
+         String(MKS.length));
+      ok(MKS.length > 0 && MKS.every((MK) => /'airline'/.test(MK) && /'verified'/.test(MK) && /'age'/.test(MK)),
          '★伏せた行に渡すのは 会社・出典・投稿時期 の3つ');
       /* ★2026-09-21 オーナー指示「職位ださなくていいや」。画面で描かないのではなく
            **サーバが送らない**（伏せる＝渡さない）。ここが1本目の鍵。 */
-      ok(!/annual|fleet|paylock|'pos'|'pay'|'work'|'ten'|'bh'|'dd'|'off'|'comp'/.test(MK),
+      const leak = MKS.find((MK) => /annual|fleet|paylock|'pos'|'pay'|'work'|'ten'|'bh'|'dd'|'off'|'comp'/.test(MK));
+      ok(MKS.length > 0 && !leak,
          '★★伏せた行に、年収・職位・機材・内訳・勤務の鍵が1つも無い',
-         MK.replace(/\s+/g, ' ').slice(0, 200));
-      ok(/from person p\b/.test(MK) && !/\bjoin\b/.test(MK),
+         (leak || '').replace(/\s+/g, ' ').slice(0, 200));
+      ok(MKS.length > 0 && MKS.every((MK) => /from person p\b/.test(MK) && !/\bjoin\b/.test(MK)),
          '★★材料は person だけ（別の表を継ぎ足して列を増やせない形にしてある）');
     }
-    ok(!/return v_out;/.test(FN.slice(0, FN.indexOf("'contributors'"))),
-       '★locked でも途中で return せず、最後の1つの select まで進む');
+    /* ★2026-11-06、鍵の無い人の近道ができた（db/pay-rows.sql の pv-fast の印の組）。近道は途中で
+         return するが、**数え上げと give まで組んでから**返す（鍵で落としているのは行だけ、のまま）。
+         近道の外（下の1本の文）は今までどおり、最後の1つの select まで進む。 */
+    {
+      const FAST = (FN.match(/-- pv-fast-begin[\s\S]*?-- pv-fast-end/) || [''])[0];
+      const REST = FAST ? FN.replace(FAST, () => '') : FN;
+      ok(!!FAST && /if not v_open then/.test(FAST)
+         && /'stats',\s*jsonb_build_object\('reports'/.test(FAST) && /'contributors'/.test(FAST)
+         && /'give',\s*v_give/.test(FAST) && /'rows',\s*m\.j,/.test(FAST) && !/\bl\.j\b/.test(FAST)
+         && FAST.indexOf('return v_out;') > FAST.indexOf("'give'"),
+         '★鍵の無い人の近道も、数え上げと give まで組んでから返す（行は伏せた配列だけ）');
+      ok(!/return v_out;/.test(REST.slice(0, REST.indexOf("'contributors'"))),
+         '★近道の外は、locked でも途中で return せず、最後の1つの select まで進む');
+    }
     ok(/'contributors'/.test(FN), '★給与を出したユニークな人数を返す（DEEP PAY の分母）');
     /* ★2026-09-03、報酬の内訳の門を入れたので pv_my_give() は**1回だけ**呼び、
          その値を v_give に持つ（総当たりでハッシュを作るので2度呼ぶと2度走る）。

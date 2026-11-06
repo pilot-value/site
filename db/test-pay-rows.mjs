@@ -164,6 +164,105 @@ const only = (rs, f) => rs.filter(f);
 // 画面に出るのと同じ丸め（有効数字2桁）。畳んだ額の検算に使う。
 const pv2 = (v) => Number(v.toPrecision(2));
 
+/* ── ▼18 の道具：鍵の無い人の近道（2026-11-06）を、近道を外した関数と突き合わせる ──
+   ★相手（pv_pay_rows_ref）は、今のファイルの pv_pay_rows から近道の節（pv-fast の印の組）を
+     切り取っただけのもの ＝ 下の1本の文だけで答える関数。2026-11-06 より前の pv_pay_rows と、
+     注釈を除いて1文字も違わない（近道を足したときに確かめた）。
+   ★ファイルから毎回作り直すので、下の1本の文を直して近道を直し忘れると、ここで食い違いが出る
+     （凍らせた写しと比べる形にしない ── 答えを正しく直した日に、写しのほうが古くなるだけ）。
+   ⚠️ 相手も security definer なので、誰にも execute を渡さない（▼14 の 8-20 が拾う）。 */
+const PAYROWS_FN = (() => {
+  const s = read('db/pay-rows.sql');
+  const a = s.indexOf('create or replace function public.pv_pay_rows()');
+  const b = s.indexOf('\n$$;', a);
+  return a > -1 && b > a ? s.slice(a, b + 4) : '';
+})();
+const FAST_RE = /\n[ \t]*-- pv-fast-begin[^\n]*\n[\s\S]*?\n[ \t]*-- pv-fast-end[^\n]*/;
+const FAST_TXT = (PAYROWS_FN.match(FAST_RE) || [''])[0];
+await db.exec(PAYROWS_FN.replace(FAST_RE, () => '')
+  .replace('function public.pv_pay_rows()', () => 'function public.pv_pay_rows_ref()'));
+await db.exec(`revoke all on function public.pv_pay_rows_ref() from public, anon, authenticated`);
+
+/* 呼び手の7つの形。open は「下の1本の文が答える側か」。
+   ★鍵の無い5つ（未ログイン・鍵なし・鍵切れ・止めた会員・止められた運営）が近道を通る。
+   ★止めた会員は鍵も給与も持っている人（鍵を持っていても閉じる・1-e2）。
+   ★止められた運営は、下ろした行（pay_hidden）が載る側で近道を通る唯一の形。
+   ★止めるのも運営にするのも、その場で入れてその場で戻す（取引を使わない ──
+     12-j のような取引の中から呼んでも、外の取引を巻き戻さないため）。 */
+const EQ_LOCKED = 9201, EQ_BLOCK_OP = 9203, EQ_OP = 9204;
+const EQ_BLOCK_MEM = 1001;      // ▼2 の最初の1人（A_ONE の機長）
+const setUid = (n) => db.query(`select set_config('pv.uid', $1, false)`, [n === null ? '' : uid(n)]);
+const adminsOn = async (n) => {
+  const had = (await one(`select to_regclass('public.pv_admins') is not null b`)).b;
+  await db.exec(`create table if not exists public.pv_admins (user_id uuid primary key)`);
+  await db.query(`insert into public.pv_admins(user_id) values($1) on conflict do nothing`, [uid(n)]);
+  return async () => {
+    await db.query(`delete from public.pv_admins where user_id = $1`, [uid(n)]);
+    if (!had) await db.exec(`drop table if exists public.pv_admins`);
+  };
+};
+const blockOn = async (n) => {
+  await db.query(`insert into public.pv_proof(user_id, state) values($1, 'required')
+                  on conflict (user_id) do update set state = 'required'`, [uid(n)]);
+  return () => db.query(`delete from public.pv_proof where user_id = $1`, [uid(n)]);
+};
+const EQ_KINDS = [
+  { name: '未ログイン', open: false, on: async () => { await setUid(null); } },
+  { name: '鍵の無い会員', open: false, on: async () => { await asUser(EQ_LOCKED); } },
+  { name: '鍵の切れた会員', open: false, on: async () => { await setUid(9001); } },
+  { name: '止めた会員（鍵あり・給与あり）', open: false, on: async () => {
+      const u = uid(EQ_BLOCK_MEM);
+      const was = (await one(`select access_until a from profiles where id = $1`, [u])).a;
+      await db.query(`update profiles set access_until = now() + interval '90 days' where id = $1`, [u]);
+      const unblock = await blockOn(EQ_BLOCK_MEM);
+      await setUid(EQ_BLOCK_MEM);
+      return async () => {
+        await unblock();
+        await db.query(`update profiles set access_until = $2 where id = $1`, [u, was]);
+      };
+    } },
+  { name: '止められた運営', open: false, on: async () => {
+      await asUser(EQ_BLOCK_OP);
+      const off1 = await adminsOn(EQ_BLOCK_OP), off2 = await blockOn(EQ_BLOCK_OP);
+      return async () => { await off2(); await off1(); };
+    } },
+  { name: '開いている会員', open: true, on: async () => { await asViewer(); } },
+  { name: '運営（鍵なし）', open: true, on: async () => { await asUser(EQ_OP); return adminsOn(EQ_OP); } },
+];
+const diffAt = (a, b) => {
+  let i = 0;
+  while (i < a.length && a[i] === b[i]) i++;
+  return `${i}文字目 …${a.slice(Math.max(0, i - 40), i + 40)} ／ …${b.slice(Math.max(0, i - 40), i + 40)}`;
+};
+/* 形ごとに、同じ1つの文の中で2つを呼んで字で比べる（同じ時刻・同じ見え方）。 */
+const eqEach = async () => {
+  const prev = (await one(`select current_setting('pv.uid', true) u`)).u || '';
+  const out = [];
+  try {
+    for (const k of EQ_KINDS) {
+      const off = await k.on();
+      try {
+        const z = await one(`select a = b same, a, b
+                               from (select pv_pay_rows()::text a, pv_pay_rows_ref()::text b offset 0) z`);
+        const j = JSON.parse(z.a);
+        out.push({ name: k.name, open: k.open, same: z.same, state: j.state,
+                   rows: (j.rows || []).length, why: z.same ? '' : diffAt(z.a, z.b) });
+      } finally { if (off) await off(); }
+    }
+  } finally {
+    await db.query(`select set_config('pv.uid', $1, false)`, [prev]);
+  }
+  return out;
+};
+const sameAsRef = async (label) => {
+  const res = await eqEach();
+  const bad = res.filter((x) => !x.same || x.state !== (x.open ? 'open' : 'locked'));
+  ok(bad.length === 0 && res.every((x) => x.rows > 0),
+     `★近道の答え ＝ 近道を外した関数の答え（1バイトも違わない・${res.length}つの形・${label}）`,
+     bad.map((x) => `${x.name}: state=${x.state} ${x.why}`).join(' / ')
+       || res.map((x) => `${x.name}=${x.rows}行`).join(', '));
+};
+
 // 会社コードは語彙から取る（このテストのために特定の社名を覚えない）
 const VOCAB = (await rows(
   `select code, name_ja, name_en from pv_airlines
@@ -462,6 +561,7 @@ await asViewer();
 r = await payRows();
 ok(r.ok === true && r.state === 'open', '鍵のある人には open が返る', JSON.stringify(r.state));
 const R = r.rows;
+await sameAsRef('データを作った直後');   // ▼18 の突き合わせ（鍵の無い人の近道）
 
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ 3. ★全員出る（門も遅延も無い）');
@@ -1328,6 +1428,7 @@ await asViewer();
      JSON.stringify(anon2.rows).slice(0, 120));
   await asViewer();
 }
+await sameAsRef('件数の窓・常識の幅・24ヶ月の窓を動かし、預かりを足したあと');   // ▼18
 
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ 12-c. ★昔の口コミに書かれた給与も一覧に混ざる');
@@ -1452,6 +1553,7 @@ ok(!(await one(`select has_table_privilege('anon','public.pv_review_person','sel
      `${h1} → ${await heads()}`);
   await asViewer();
 }
+await sameAsRef('口コミに書かれた給与を足したあと');   // ▼18
 
 // ════════════════════════════════════════════════════════════
 console.log('\n▼ 12-d. ★投稿の時期は8段の粗い区分だけ（2026-11-04 に 3日・7日・14日を足した）');
@@ -2192,6 +2294,8 @@ console.log('\n▼ 12-j. ★公開年収から大きく外れた本人申告の�
          '★伏せた行に入っているのは 会社・出典・投稿時期 の3つだけ（印で欄が増えない）',
          JSON.stringify(bad[0] || {}));
     }
+    // ▼18 ── 同じ時刻の行がたくさんある取引の中（並びの同着まで同じか）
+    await sameAsRef('取引の中：為替を動かし、外れた行・訓練生・自由入力の社名を足したあと');
   } finally {
     await db.exec('rollback');
   }
@@ -2206,7 +2310,8 @@ console.log('\n▼ 13. 自己点検 SQL（ファイル末尾のものをその�
   const q = src.slice(src.lastIndexOf('with f as ('));
   const res = await rows(q);
   // ★2026-10-31 に 69〜71 を足した（社名の索引・置いた人数）
-  ok(res.length === 71, `自己点検が71行ぜんぶ出る（= ${res.length}行）`);
+  // ★2026-11-06 に 72 を足した（鍵の無い人の近道）
+  ok(res.length === 72, `自己点検が72行ぜんぶ出る（= ${res.length}行）`);
   for (const row of res) {
     ok(row['結果'] === '✅', `${row['#']}. ${row['見るところ']}`);
   }
@@ -2269,6 +2374,7 @@ console.log('\n▼ 15. 本人の依頼で一覧から下ろす（pay_hidden・20
       where r.airline = $1 on conflict (proof_hash) do nothing`, [A_HIDE]);
 
   ok(!(await seen()), '★下ろすと一覧から消える（鍵を持っている人にも出ない）');
+  await sameAsRef('本人の依頼で1人下ろしたあと（止められた運営には載る側）');   // ▼18
 
   /* ★出した本人自身にも出ないこと。
      除外は運営（pv_is_operator）の1つだけで、本人もその中に入らない。
@@ -2581,6 +2687,136 @@ console.log('\n▼ 17. ★一覧を軽くした3つ（2026-10-31・答えは1文
      `★預かりの内訳と年換算は1行に1回だけ（預かり ${nPend}〜${nScan}行）`, JSON.stringify(calls));
   ok(R17.state === 'open' && calls.pv_band_grid > 0 && calls.pv_band_grid <= R17.rows.length,
      `★帯の刻みは1人に1回まで（一覧 ${R17.rows.length}人）`, JSON.stringify(calls));
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 18. ★鍵の無い人の近道（2026-11-06・答えは1バイトも変えない）');
+// ════════════════════════════════════════════════════════════
+/* なぜ ── Supabase（無料・Nano）から「ディスクの読み書きの予算を使い切りかけている」と警告が来た
+   （2026-10-31 には一度応答しなくなった）。pv_pay_rows は会社ページと REAL PAY を開くたびに呼ばれ、
+   呼ぶのは大半が未ログインの人と検索の巡回。2026-10-31 からの 6,008 回で平均 474ms・DB の時間の約2割。
+   鍵の無い人に返すのは伏せた行と数え上げと give だけなのに、本物の一覧を最後まで組んでから捨てていた。
+   そこで、鍵の無い人だけは伏せた答えに要る材料だけで答える近道を足した（db/pay-rows.sql の pv-fast の節）。
+   ここで見るのは4つ：
+     (a) 答え ── 近道を外した関数（pv_pay_rows_ref）と、7つの形の呼び手ごとに1バイトずつ同じ。
+         上の節の途中（▼2・12-b・12-c・12-j の取引の中・▼15）でも見ている。ここではさらにデータを動かす
+     (b) 道 ── 鍵の無い人は本物の一覧の材料（預かりの内訳・帯の刻み・確認中の会員の印）を1回も呼ばない。
+         開いている人と運営は今までどおり呼ぶ（＝近道に入っていない）
+     (c) 壊す証明 ── 近道の写しを1か所ずらすと、(a) の突き合わせが捕まえる
+     (d) 速さ（参考。合否には使わない ── 時間で決める検査は混んだ回に嘘の赤を出す） */
+{
+  ok(!!PAYROWS_FN && !!FAST_TXT && FAST_TXT.includes('if not v_open then'),
+     '近道の節が印の組で切り出せる（相手の関数は、ここを切り取って作っている）');
+  ok(!(await one(`select has_function_privilege('anon', 'public.pv_pay_rows_ref()', 'execute') b`)).b,
+     '　相手の関数は誰にも開いていない（検査のためだけの写し）');
+
+  // ── (a) データを動かしながら ──────────────────────────────
+  await sameAsRef('▼17 までの全部のあと');
+  await person(AIR[3], 'fo', [{ fleet: 'b777', month: 4, gross: 9000 },
+                              { fleet: 'b777', month: 5, gross: 9300 }]);
+  await sameAsRef('給与を2か月ぶん出した人を1人足したあと');
+  await db.query(`insert into public.pay_hidden(proof_hash, reason)
+                  select r.proof_hash, '本人の依頼' from public.pay_reports r
+                   where r.airline = $1 and r.annual_total_usd = 108000
+                  on conflict (proof_hash) do nothing`, [AIR[3]]);
+  ok((await one(`select count(*)::int n from public.pay_hidden`)).n === 1, '　（1人下ろした）');
+  await sameAsRef('1人下ろしたあと');
+  await pend(AIR[4], { month: 3, gross: 11000, iph: 'eq-iph-1', pos: 'fo' });
+  await pend(AIR[4], { month: 4, gross: 11500, iph: 'eq-iph-1', pos: 'fo' });
+  await sameAsRef('登録前の預かりを2件足したあと');
+  await db.query(`update fx_rates set to_usd = to_usd * 1.1 where code = 'JPY'`);
+  await sameAsRef('円の為替を動かしたあと（口コミの年収だけが動く）');
+  await db.query(`update fx_rates set to_usd = to_usd / 1.1 where code = 'JPY'`);
+  await db.query(`update pay_reports set created_at = now() - interval '40 days'
+                   where airline = $1 and annual_total_usd in (108000, 111600)`, [AIR[3]]);
+  await sameAsRef('投稿時刻を段と窓の境目の向こうへ動かしたあと');
+
+  // ── (b) 道（何回呼ばれたかを数える。字ではなく振る舞い）──────────
+  const callsAs = async (k) => {
+    const off = await k.on();
+    try {
+      await db.exec(`set track_functions = 'all'`);
+      await db.query(`select pg_stat_reset()`);
+      const st = (await one(`select pv_pay_rows() r`)).r.state;
+      await db.query(`select pg_stat_force_next_flush()`);
+      const c = Object.fromEntries((await rows(
+        `select funcname, calls::int c from pg_stat_user_functions
+          where funcname in ('pv_pending_detail', 'pv_pending_usd', 'pv_band_grid',
+                             'pv_proof_held_keys', 'pv_airline_resolve')`)).map((x) => [x.funcname, x.c]));
+      return { st, c };
+    } finally {
+      await db.exec(`set track_functions = 'none'`);
+      if (off) await off();
+    }
+  };
+  const n = (c, f) => c[f] || 0;
+  for (const k of EQ_KINDS) {
+    const { st, c } = await callsAs(k);
+    if (!k.open) {
+      ok(st === 'locked' && n(c, 'pv_pending_detail') === 0 && n(c, 'pv_band_grid') === 0
+         && n(c, 'pv_proof_held_keys') === 0
+         && n(c, 'pv_pending_usd') > 0 && n(c, 'pv_airline_resolve') > 0,
+         `★${k.name}は近道を通る（預かりの内訳・帯の刻み・確認中の会員の印を1回も呼ばない／預かりと口コミは読む）`,
+         JSON.stringify(c));
+    } else {
+      ok(st === 'open' && n(c, 'pv_pending_detail') > 0 && n(c, 'pv_band_grid') > 0
+         && n(c, 'pv_proof_held_keys') > 0,
+         `★${k.name}は近道を通らない（今までどおり本物の一覧を組む）`, JSON.stringify(c));
+    }
+  }
+  await asViewer();
+
+  // ── (c) 壊す証明 ─────────────────────────────────────────
+  /* 近道の写しを1か所だけずらした関数を取引の中で入れ、突き合わせが捕まえることを見る。
+     どれも「画面は普通に動いたまま、鍵の無い人の答えだけ変わる」形。 */
+  const breakFast = async (label, from, to, expect) => {
+    ok(FAST_TXT.includes(from) && FAST_TXT.indexOf(from) === FAST_TXT.lastIndexOf(from),
+       `　（壊す場所が近道の中に1か所だけある：${label}）`);
+    const broken = PAYROWS_FN.replace(FAST_TXT, () => FAST_TXT.replace(from, () => to));
+    await db.exec('begin');
+    try {
+      await db.exec(broken);
+      const res = await eqEach();
+      const caught = res.filter((x) => !x.same).map((x) => x.name);
+      ok(expect(res), `★壊す証明：${label} ── 突き合わせが捕まえる`,
+         `違いが出た形：${caught.join('・') || 'なし'}`);
+    } finally {
+      await db.exec('rollback');
+    }
+  };
+  const closedAll = (res) => res.every((x) => x.open ? x.same : !x.same);
+  await breakFast('伏せた行から出典（verified）を落とす',
+    `'verified', p.verified,\n`, '', closedAll);
+  await breakFast('口コミの重複よけ（本棚に同じ人が居れば落とす）を外す',
+    `and not exists (select 1 from shelf s where s.pkey = l.pkey)`, '', closedAll);
+  await breakFast('数え上げの「直近1ヶ月」の窓を2ヶ月にずらす',
+    `count(*) filter (where cat >= now() - interval '1 month')::int as mo`,
+    `count(*) filter (where cat >= now() - interval '2 months')::int as mo`, closedAll);
+  /* 下ろした行が載るのは運営だけ。近道を通る運営は「止められた運営」だけなので、
+     そこだけが食い違う ＝ この形を呼び手に入れていることが効いている。 */
+  await breakFast('下ろした行を運営にも載せない（運営の1語を落とす）',
+    `and (v_op or not exists (select 1 from public.pay_hidden h`,
+    `and (not exists (select 1 from public.pay_hidden h`,
+    (res) => res.every((x) => x.same === (x.name !== '止められた運営')));
+  await sameAsRef('壊した関数を巻き戻したあと');
+
+  // ── (d) 速さ（参考）────────────────────────────────────────
+  const timeIt = async (fn, times) => {
+    for (let i = 0; i < 2; i++) await db.query(`select ${fn}() r`);   // 温める
+    const t0 = performance.now();
+    for (let i = 0; i < times; i++) await db.query(`select ${fn}() r`);
+    return performance.now() - t0;
+  };
+  for (const k of [EQ_KINDS[0], EQ_KINDS[1], EQ_KINDS[5]]) {
+    const off = await k.on();
+    try {
+      const tNew = await timeIt('pv_pay_rows', 30), tRef = await timeIt('pv_pay_rows_ref', 30);
+      console.log(`  ⏱  ${k.name}：30回 近道あり ${tNew.toFixed(0)}ms ／ 近道なし ${tRef.toFixed(0)}ms`
+                  + ` ＝ ${(tNew / tRef).toFixed(2)} 倍（PGlite・参考）`);
+    } finally { if (off) await off(); }
+  }
+  await asViewer();
+  await db.query(`delete from public.pay_hidden`);
 }
 
 // ── まとめ ───────────────────────────────────────────────────

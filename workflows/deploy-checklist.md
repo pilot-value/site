@@ -302,7 +302,9 @@ CLAUDE.md 側にあり、ここにあるのは **各検査が何を約束して�
      「職位ださなくていいや」で**職位も渡すのをやめた**）。
      **画面で描かないのではなく、サーバが送らない。** 送っていないから隠せる
      ── 送ったうえで描かない、にすると DevTools で出てくる。直す所は対で3つ:
-     `db/pay-rows.sql` の `mask`（印 `pv-mask-begin` / `pv-mask-end` のあいだ・自己点検65 が中身を見る）／
+     `db/pay-rows.sql` の `mask`（印 `pv-mask-begin` / `pv-mask-end` のあいだ・自己点検65 が中身を見る。
+     ★2026-11-06 から**2か所** ── 鍵の無い人の近道（印 `pv-fast-begin` / `pv-fast-end`）の中と、下の1本の文。
+     片方だけ直すと鍵の無い人の答えだけ変わる。`db/test-pay-rows.mjs` の ▼18 が突き合わせで捕まえる）／
      `actual-pay.js` の `maskedList`・`visibleRows`・`renderFilters`・`openLabel`・押した先の面／
      `assert-pay-rows.mjs` と `db/test-pay-rows.mjs` の伏せた行の fixture。
      ⚠️ **欄（列）は6つのまま残す。** 職位の欄を1つ減らすと、狭い画面のカード組み
