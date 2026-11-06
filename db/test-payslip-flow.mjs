@@ -35,6 +35,7 @@ const TMP = mkdtempSync(path.join(tmpdir(), 'pv-payslip-'));
 const BASE = 'http://localhost:3000';
 const URL_JA = BASE + '/pay-report.html';
 const URL_EN = BASE + '/en/pay-report.html';
+const URL_ES = BASE + '/es/pay-report.html';
 const FN = '/functions/v1/parse-payslip';
 let pass = 0, fail = 0;
 const ok = (cond, label, extra) => {
@@ -503,6 +504,25 @@ console.log('\n══ 英語のページも同じ流れ');
   await page.waitForSelector('.ps-res', { timeout: 20000 });
   ok(seen.bodies[0] && seen.bodies[0].lang === 'en', '英語のページは lang=en で送る');
   ok(await page.$eval('#form-body', (n) => !n.hidden), '英語：読めたらフォームが開いている');
+  await page.close();
+}
+
+/* ★2026-11-06：会社と職位を選ぶと出る「公開平均」の札が、英語・スペイン語で帯の外へはみ出し、ページごと横に動いていた（本番で起きた・390px で 404px / 422px）。
+     目盛りが帯の左寄り（エミレーツの機長は平均が下から2割）でも、札が札の箱の中に収まり、ページが横に動かないこと。 */
+for (const [url, lang] of [[URL_EN, '英語'], [URL_ES, 'スペイン語']]) {
+  const { page } = await open(url, { body: FAKE });
+  await upload(page, 'payslip-jp-major.png');
+  await page.waitForSelector('.ps-res', { timeout: 20000 });
+  const w = await page.evaluate(async () => {
+    const set = (id, v) => { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('change', { bubbles: true })); e.dispatchEvent(new Event('input', { bubbles: true })); };
+    set('f-airline', 'emirates'); set('f-position', 'cap');
+    await new Promise((r) => setTimeout(r, 600));
+    const sp = document.querySelector('.ps-aha-avgl span'), card = sp && sp.closest('.ps-aha');
+    const a = sp && sp.getBoundingClientRect(), c = card && card.getBoundingClientRect();
+    return { has: !!sp, sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth,
+      inCard: !!(a && c && a.left >= c.left - 0.5 && a.right <= c.right + 0.5), t: sp ? sp.textContent : '' };
+  });
+  ok(w.has && w.inCard && w.sw <= w.cw, '★' + lang + '：公開平均の札が帯の箱の中に収まり、ページが横に動かない', JSON.stringify(w));
   await page.close();
 }
 

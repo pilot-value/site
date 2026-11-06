@@ -45,7 +45,7 @@ var T = {
     monthTake: '戻す',
     ymText:    function (y, m) { return y + '年' + m + '月'; },
     lblComp:    '支給の内訳（今月）',
-    lblExtras:  '明細から読み取った値（欄が無いもの）',
+    lblExtras:  '明細から読み取ったほかの値',
     /* ★確認画面の出どころの札（2026-09-12）。判定は fieldFrom() が DOM の class だけで行う。 */
     src: { carry: '前回から引き継ぎ' },
     /* ★2026-09-15、「固定・保証給」を基本給と保証手当に割った（オーナー指示）。
@@ -54,7 +54,7 @@ var T = {
     seg: { base: '基本給', guarantee: '保証手当・職務手当',
            variable: '変動給', command: '職位手当', role: '役割手当',
            perdiem: 'パーディアム', housing: '住宅手当', other: 'その他の現金',
-           rest: 'その他', bonus: '賞与・プロフィットシェア' },
+           rest: 'その他・未分類', bonus: '賞与・プロフィットシェア' },   // ★名前は REAL PAY（actual-pay.js）と同じ。「その他の現金」とまぎれない（2026-11-06）
     empty:     '（未入力）'
   },
   en: {
@@ -72,13 +72,13 @@ var T = {
     monthTake: 'Restore it',
     ymText:    function (y, m) { return MONTHS[m - 1] + ' ' + y; },
     lblComp:    'Pay composition (this month)',
-    lblExtras:  'Read from your payslip (no field on screen)',
+    lblExtras:  'Other values read from your payslip',
     /* ★Provenance chips on the review screen (2026-09-12). fieldFrom() decides from DOM classes alone. */
     src: { carry: 'carried over from last time' },
     seg: { base: 'Base pay', guarantee: 'Guarantee / duty pay',
-           variable: 'Variable', command: 'Command', role: 'Role',
-           perdiem: 'Per diem', housing: 'Housing', other: 'Other cash',
-           rest: 'Other', bonus: 'Bonus / profit share' },
+           variable: 'Variable (flying)', command: 'Rank pay', role: 'Role pay',
+           perdiem: 'Per diem', housing: 'Housing allowance', other: 'Other cash',
+           rest: 'Other / unclassified', bonus: 'Bonus / profit share' },   // same names as REAL PAY (actual-pay.js)
     empty:     '(blank)'
   }, /*PV-MSG:es*/ es: {
     stepOf:    function (i, n) { return 'Paso ' + i + ' de ' + n; },
@@ -95,13 +95,13 @@ var T = {
     monthTake: 'Restaurarlo',
     ymText:    function (y, m) { return MONTHS[m - 1] + ' ' + y; },
     lblComp:    'Desglose de la remuneración (este mes)',
-    lblExtras:  'Leído de tu recibo de nómina (sin campo en pantalla)',
+    lblExtras:  'Otros valores leídos de tu recibo de nómina',
     /* ★Provenance chips on the review screen (2026-09-12). fieldFrom() decides from DOM classes alone. */
     src: { carry: 'copiado de la vez anterior' },
-    seg: { base: 'Sueldo base', guarantee: 'Horas garantizadas / asignación por servicio',
-           variable: 'Variable', command: 'Asignación por categoría', role: 'Función',
-           perdiem: 'Viáticos', housing: 'Vivienda', other: 'Otras asignaciones en efectivo',
-           rest: 'Otros', bonus: 'Bono / participación en las utilidades' },
+    seg: { base: 'Sueldo base', guarantee: 'Pago por horas garantizadas / asignación por servicio',
+           variable: 'Variable (vuelo)', command: 'Asignación por categoría', role: 'Compensación por funciones',
+           perdiem: 'Viáticos', housing: 'Ayuda para vivienda', other: 'Otras asignaciones en efectivo',
+           rest: 'Otros / sin clasificar', bonus: 'Bono / participación en las utilidades' },   // same names as REAL PAY (actual-pay.js)
     empty:     '(sin completar)'
   } /*/PV-MSG:es*/
 };
@@ -472,12 +472,20 @@ function buildChrome() {
 }
 /* 各ステップの末尾に 戻る／次へ。日英で同じ形になるよう JS が組む。
    ★段を組み替える（reflow）ときは、前の段組みのボタンを全部外してから組み直す。 */
+/* ★戻る／次へと赤箱を置く箱 ＝ その段が出している箱のうち、ページの**いちばん下**のもの（2026-11-06）。
+     2回目からの2画面は1画面目に s1〜s4 を並べるが、前は s2 の中に置いていたので、
+     「入力内容を確認する」が2枚目の下に出て、報酬と契約と税のカードはその下に続いていた（2026-09-12 から）。 */
+function navBox(i) {
+  var els = stepEls(i), last = els[0] || null;
+  els.forEach(function (e) { if (last && (last.compareDocumentPosition(e) & 4)) last = e; });
+  return last;
+}
 function buildNavs() {
   [].forEach.call(document.querySelectorAll('.wz-nav'), function (n) {
     if (n.parentNode) n.parentNode.removeChild(n);
   });
   C.steps.forEach(function (s, i) {
-    var box = $(s.id);
+    var box = navBox(i);
     if (!box) return;
     var nav = el('div', 'wz-nav');
     if (i > 0) {
@@ -529,7 +537,7 @@ function show(i) {
      無ければ 戻る／次へ の直前（＝押したボタンの真上）。 */
   var err = C.errId ? $(C.errId) : null;
   if (err) {
-    var ebox = $(C.steps[i].id);
+    var ebox = navBox(i);
     var anchor = ebox.querySelector('.wz-err-here') || ebox.querySelector('.wz-nav');
     if (anchor) ebox.insertBefore(err, anchor); else ebox.appendChild(err);
   }
@@ -641,11 +649,14 @@ function ymLabel(ym) {
   var p = String(ym || '').split('-');
   var y = parseInt(p[0], 10), m = parseInt(p[1], 10);
   if (!y || !m || m < 1 || m > 12) return String(ym || '');
+  /* スペイン語は「octubre de 2026」（文の中の月は小文字・de でつなぐ・2026-11-06）。辞書の ymText は英語の写しのまま（gen-msg が作る） */
+  if (typeof window !== 'undefined' && window.PV_LANG === 'es') return MONTHS[m - 1].toLowerCase() + ' de ' + y;
   return L.ymText(y, m);
 }
 /* ★下書きの帯。文と、そのうしろに並ぶボタンを1か所で組む
      （saveDraft・restoreDraft・restoreMonth の3か所で同じ形になるように）。
    ⚠️ 「新しい月を入力する」は C.newMonth を渡した画面にだけ出す。 */
+function draftShown() { try { window.dispatchEvent(new CustomEvent('pv-pay-draft-shown')); } catch (e) {} }
 function draftBar(text, cls) {
   var box = $('wz-draft');
   if (!box) return null;
@@ -683,6 +694,7 @@ function restoreMonth(ym) {
   show(i > 0 ? i : 0);
   draftWrite(draftState());
   draftBar(L.draftBackYm(ymLabel(a.ym)));
+  draftShown();
   return true;
 }
 /* ★対象月を変えた人に、その月の控えがあることを知らせる。
@@ -733,6 +745,7 @@ function restoreDraft(d) {
   /* ★どの月を戻したのかを書く（月ごとの棚を持つようになったため）。
      古い下書き（ym を持たない）は今までどおりの文。 */
   draftBar(d.ym ? L.draftBackYm(ymLabel(d.ym)) : L.draftBack);
+  draftShown();
   return true;
 }
 
@@ -866,6 +879,8 @@ function pdRowReview(pr) {
   var amtEl = pr.querySelector('.pd-amt'), nmEl = pr.querySelector('.pd-label'), bsEl = pr.querySelector('.pd-basis');
   var amt = amtEl ? String(amtEl.value || '').trim() : '';
   if (!amt) return null;
+  /* ★触れなくした行（変動給の「該当なし」）は送らない（pdRead が読まない）。確認にも出さない（2026-11-06。前は「該当なし」と「¥180,000」が両方出ていた）。 */
+  if (amtEl.disabled) return null;
   var blk = pr.closest('.pd-block'), bl = blk ? blk.querySelector('.form-label') : null, kind = '';
   if (bl) {
     var c = bl.cloneNode(true);
@@ -958,6 +973,7 @@ function fieldValue(fld) {
   if (window.PV_LANG === 'es' && parts.length === 2 && fld.querySelector('#f-year') && fld.querySelector('#f-month')) return parts[1] + ' de ' + parts[0];
   /* 英語のページ：「October 2026」（2026-11-06。前は「2026 October」と出ていた）。スペイン語は上で返している */
   if (C.lang === 'en' && parts.length === 2 && fld.querySelector('#f-year') && fld.querySelector('#f-month')) return parts[1] + ' ' + parts[0];
+  if (C.lang === 'ja' && parts.length === 2 && fld.querySelector('#f-year') && fld.querySelector('#f-month')) return parts.join('');
   return parts.concat(boxed).join(' ');
 }
 /* ── 内訳の横棒 ────────────────────────────────────────────────
@@ -1090,7 +1106,16 @@ function renderReviewIn(pay) {
     });
     head.appendChild(ed);
     sec.appendChild(head);
-    var rows = 0, seenRows = [];
+    var rows = 0, seenRows = [], lastMod = null;
+    var put = function (fld, r) {
+      var mod = fld.closest('details.pay-detail:not(#pay-detail)');
+      if (mod !== lastMod) {
+        lastMod = mod;
+        var sm = mod && mod.querySelector(':scope > summary');
+        if (sm) sec.appendChild(el('div', 'wz-rev-group', sm.textContent.trim()));
+      }
+      sec.appendChild(r);
+    };
     box.querySelectorAll('.fld').forEach(function (fld) {
       /* ★繰り返し行（変動給・その他の手当）は、1行＝1つの支給として読み返す（2026-11-05）。
            前は「何に連動する支給か」「支給額」「明細上の名称」…と欄の名前が見出し無しで並び、何の行か分からなかった。 */
@@ -1100,7 +1125,7 @@ function renderReviewIn(pay) {
         seenRows.push(pr);
         if (!pr.offsetParent) return;
         var prr = pdRowReview(pr);
-        if (prr) { sec.appendChild(prr); rows++; }
+        if (prr) { put(fld, prr); rows++; }
         return;
       }
       if (!fld.offsetParent) return;                   // 条件で隠れている欄は出さない
@@ -1127,7 +1152,7 @@ function renderReviewIn(pay) {
         vEl.appendChild(el('small', 'wz-rev-sub', o ? o.textContent.trim() : String(e.value)));
       });
       r.append(k, vEl);
-      sec.appendChild(r);
+      put(fld, r);
       rows++;
     });
     if (rows) host.appendChild(sec);

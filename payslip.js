@@ -2447,7 +2447,8 @@
      ★ここに sfo / tri_tre を戻すなら、寄せたことを画面に書く注記も一緒に戻す
        （黙って寄せると「SFO の公開レンジ」を見たと誤読される）。 */
   var BAND = { fo: 'fo', cap: 'cap' };
-  var BAND_LABEL = { fo: { ja: '副操縦士', en: 'First Officer' }, cap: { ja: '機長', en: 'Captain' } };
+  var BAND_LABEL = { fo: { ja: '副操縦士', en: 'First Officer', es: 'primer oficial' }, cap: { ja: '機長', en: 'Captain', es: 'capitán' } };
+  var BAND_L = window.PV_LANG === 'es' ? 'es' : L;   // スペイン語のページは L が 'en'（動きは英語と同じ）。字だけスペイン語
 
   /* 円 → 表示。サイト全体の通貨切替に載せる（PVCurrency.fmt 経由）。
      カードは pv-no-cur で自動スキャンから外し、pv-currency-change で描き直す
@@ -2490,7 +2491,7 @@
       inp.autocomplete = 'off';
       inp.className = 'ps-extra-in';
       inp.id = 'ps-ex-' + id.slice(2);
-      inp.placeholder = '0';
+      inp.placeholder = '';   // ★「0」を置かない（答えた 0 に見える・2026-11-06）
       var cur0 = document.getElementById(id);
       if (cur0 && cur0.value) inp.value = cur0.value;
       inp.addEventListener('input', function () {
@@ -2617,7 +2618,7 @@
     var vsAvg = Math.abs(dAvg) / r.avg < 0.02 ? T.ahaSame
               : T.ahaDiff(money(Math.abs(dAvg) * 10000), dAvg > 0);
 
-    out += '<div class="ps-aha-sec">' + esc2(T.ahaRangeT(nameOf(me), BAND_LABEL[band][L])) + '</div>' +
+    out += '<div class="ps-aha-sec">' + esc2(T.ahaRangeT(nameOf(me), BAND_LABEL[band][BAND_L])) + '</div>' +
       '<div class="ps-aha-bar' + cls + '">' +
         '<i class="ps-aha-avg" style="left:' + avgX.toFixed(1) + '%" title="' + esc2(T.ahaAvgTick) + '"></i>' +
         '<i class="ps-aha-dot" style="left:' + dot.toFixed(1) + '%"></i></div>' +
@@ -2625,7 +2626,8 @@
          目盛りが 20% の位置なのにラベルが 50% に立っていて、どの線の説明か読めなかった
          （エミレーツ機長は lo 3,350／平均 3,700／hi 5,050＝平均が下から2割）。
          端まで行くと lo/hi と重なるので 9〜91% に収める。 */
-      '<div class="ps-aha-avgl"><span style="left:' + Math.max(9, Math.min(91, avgX)).toFixed(1) + '%">' +
+      /* ★札が帯の外へ出ない（2026-11-06。英語・スペイン語の長い札が左へはみ出し、ページごと横に動いた）。端に寄った目盛りでは札を内側へ寄せる。 */
+      '<div class="ps-aha-avgl"><span class="' + (avgX < 30 ? 'is-l' : avgX > 70 ? 'is-r' : '') + '" style="left:' + Math.max(0, Math.min(100, avgX)).toFixed(1) + '%">' +
         esc2(T.ahaAvgTick) + ' ' + esc2(money(r.avg * 10000)) + '</span></div>' +
       '<div class="ps-aha-ends"><span>' + esc2(money(r.lo * 10000)) + '</span>' +
         '<span>' + esc2(money(r.hi * 10000)) + '</span></div>' +

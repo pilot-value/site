@@ -245,7 +245,10 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
                  'f-guar': ['0', '200', false], 'f-stay': ['0', '31', true],
                  'f-duty': ['0', '31', true], 'f-pension': ['0', '100', false],
                  'f-seniority': ['0', '60', true], 'f-rankyears': ['0', '60', true],
-                 'f-tax': ['0', '100', false] };
+                 'f-tax': ['0', '100', false],
+                 /* ★2026-11-06：役職の回数・日数も数字の欄（前は abc・40日・1,5 を黙って受けていた） */
+                 'f-instr-qty': ['0', '400', false], 'f-exam-qty': ['0', '400', false],
+                 'f-union-days': ['0', '31', false], 'f-mgmt-days': ['0', '31', false], 'f-nonline-days': ['0', '31', false] };
   for (const f of ['pay-report.html', 'en/pay-report.html']) {
     const s = read(f);
     for (const [id, [lo, hi, int]] of Object.entries(NUMF)) {
@@ -261,7 +264,7 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
     }
     const nums = [...s.matchAll(/<input[^>]*id="([a-z0-9-]+)"[^>]*class="[^"]*\bnum\b/g)].map((m) => m[1]);
     ok(nums.filter((id) => !NUMF[id]).length === 0,
-       `${f}: num が付いているのはこの8つだけ`, nums.filter((id) => !NUMF[id]).join(','));
+       `${f}: num が付いているのはこの表の欄だけ`, nums.filter((id) => !NUMF[id]).join(','));
     /* ★本物の欄だけを見る（解説のコメントにも <input type="number"> と書いてある）。
        人が打つ欄は必ず id を持っているので、そこで絞る。 */
     const leftover = [...s.matchAll(/<input[^>]*type="number"[^>]*id="([a-z0-9-]+)"/g)].map((m) => m[1])
@@ -319,8 +322,8 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
     /* ★こちらが「書かなくていい」と言うと、書かれなくなる（オーナー指摘）。
        先頭の option と節の説明の両方から、その言い方を締め出す。 */
     const blank = ((tpl.match(/<option value="">([^<]*)</) || [])[1] || '').trim();
-    ok(/^(選んでください|Choose one)$/.test(blank),
-       `${f}: ★先頭は「選んでください」（選ばなくていいとは言わない）`, blank);
+    ok(/^(選択してください|Select…)$/.test(blank),
+       `${f}: ★先頭は「選択してください」（選ばなくていいとは言わない・2026-11-06 にほかの欄とそろえた）`, blank);
     const hint = ((s.match(/id="opt-pd-var"[\s\S]*?<p class="fld-hint"[^>]*>([\s\S]*?)<\/p>/) || [])[1] || '');
     ok(hint.length > 20, `${f}: 変動給の節に説明がある`, hint.slice(0, 40));
     ok(!/任意|書かなくて|なくても|optional|leave (this )?blank/i.test(hint + ' ' + blank),
@@ -467,7 +470,7 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
        `${f}: ★教官の支給単位の札が「${uLab}」`, uLab);
     for (const id of ['f-instr-extra', 'f-instr-method']) {
       const b = ((blk.match(new RegExp(`<select id="${id}"[\\s\\S]*?<option value=""[^>]*>([^<]*)<`)) || [])[1] || '').trim();
-      ok(/^(選んでください|Choose one)$/.test(b), `${f}: ★${id} の先頭は「選んでください」`, b);
+      ok(/^(選択してください|Select…)$/.test(b), `${f}: ★${id} の先頭は「選んでください」`, b);
     }
 
     /* ⑤ 数量のラベルは option 側が持つ。JS に文言を持たせると、
@@ -552,7 +555,7 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
        `${f}: ★審査の支給単位の札が「${uLab}」`, uLab);
     for (const id of ['f-exam-extra', 'f-exam-method']) {
       const b = ((blk.match(new RegExp(`<select id="${id}"[\\s\\S]*?<option value=""[^>]*>([^<]*)<`)) || [])[1] || '').trim();
-      ok(/^(選んでください|Choose one)$/.test(b), `${f}: ★${id} の先頭は「選んでください」`, b);
+      ok(/^(選択してください|Select…)$/.test(b), `${f}: ★${id} の先頭は「選んでください」`, b);
     }
 
     /* ④ 数量のラベルは option 側が持つ。★単価の欄は作らない（①のルール）。 */
@@ -626,7 +629,7 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
        `${f}: 支給元が4択で同じ並び`, optsIn('f-union-src').join(','));
     for (const id of ['f-union-extra', 'f-union-src']) {
       const b = ((blk.match(new RegExp(`<select id="${id}"[\\s\\S]*?<option value=""[^>]*>([^<]*)<`)) || [])[1] || '').trim();
-      ok(/^(選んでください|Choose one)$/.test(b), `${f}: ★${id} の先頭は「選んでください」`, b);
+      ok(/^(選択してください|Select…)$/.test(b), `${f}: ★${id} の先頭は「選んでください」`, b);
     }
 
     /* ④ 「なし」「わからない」ならすぐ終わる ── 金額と支給元はまとめて隠す。
@@ -766,7 +769,7 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
        `${f}: 支給単位が3択で同じ並び`, optsIn('f-mgmt-method').join(','));
     for (const id of ['f-mgmt-extra', 'f-mgmt-method']) {
       const b = ((blk.match(new RegExp(`<select id="${id}"[\\s\\S]*?<option value=""[^>]*>([^<]*)<`)) || [])[1] || '').trim();
-      ok(/^(選んでください|Choose one)$/.test(b), `${f}: ★${id} の先頭は「選んでください」`, b);
+      ok(/^(選択してください|Select…)$/.test(b), `${f}: ★${id} の先頭は「選んでください」`, b);
     }
     /* ★支給単位の言い方は教官・審査と同じ語（オーナー確認済み）。「支給方法」に戻さない。 */
     const mlab = ((blk.match(/<label class="form-label" for="f-mgmt-method">([^<]*)</) || [])[1] || '').trim();
@@ -867,7 +870,7 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
     ok(JSON.stringify(optsIn('f-nonline-extra')) === JSON.stringify(NOL_EXTRA),
        `${f}: 追加報酬が4択で同じ並び`, optsIn('f-nonline-extra').join(','));
     const b0 = ((blk.match(/<select id="f-nonline-extra"[\s\S]*?<option value=""[^>]*>([^<]*)</) || [])[1] || '').trim();
-    ok(/^(選んでください|Choose one)$/.test(b0), `${f}: ★f-nonline-extra の先頭は「選んでください」`, b0);
+    ok(/^(選択してください|Select…)$/.test(b0), `${f}: ★f-nonline-extra の先頭は「選んでください」`, b0);
 
     /* ④ 「含まれる」「なし」「わからない」ならすぐ終わる ── 金額の欄そのものを出さない。 */
     ok(/<div class="opt-fld" id="opt-nonline-pay" hidden>/.test(blk),
@@ -1133,18 +1136,20 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
        `${f}: ★ブランドの緑で、狭い画面でもはみ出さない`);
     /* ★ここに説明文を足さない。DEEP PAY のページはまだ無く「準備中」なので、
          「詳しく出すと開きます」と書くと嘘になる。 */
-    const sums = [...s.matchAll(/<summary[^>]*>([\s\S]*?)<\/summary>/g)]
-      .map((m) => m[1]).filter((t) => t.includes('class="p"'));
-    const sumTxt = sums.map((t) => t.replace(/<[^>]+>/g, '').replace(/[+＋]/g, '').trim());
-    ok(sums.length === 5 && sumTxt.every((t) => t.length < 60 && !/[。]|\.\s|DEEP PAY/i.test(t)),
-       `${f}: ★「＋…を追加」（役割の5つ）はボタンの名前だけ（説明文も DEEP PAY の約束も足さない）`,
+    /* ★2026-11-06（オーナー「本当に完璧？？」）── 役職の5つも畳めない見出しになった。開くと「＋」が回って「×」に見え、
+         押しても畳むだけで入れた額は数えられたまま残っていた（「×」は消すことだと読まれる）。役職を選ぶと出て、外すと中身ごと消える。 */
+    const sums = [...s.matchAll(/<details class="pay-detail" id="(?:instr|exam|union|mgmt|nonline)-detail">\s*<summary([^>]*)>([\s\S]*?)<\/summary>/g)];
+    const sumTxt = sums.map((m) => m[2].replace(/<[^>]+>/g, '').trim());
+    ok(sums.length === 5 && sums.every((m) => /tabindex="-1"/.test(m[1]) && !/[+＋]|class="p"/.test(m[2]))
+       && sumTxt.every((t) => t.length < 60 && !/[。]|\.\s|DEEP PAY|追加$|^Add /i.test(t)),
+       `${f}: ★役職の5つは「＋」も「追加」も無い見出しの名前だけ（説明文も DEEP PAY の約束も足さない）`,
        sumTxt.join(' / '));
     /* ★2026-11-06（オーナー「同じ物差しで」）── 「給与の内訳」は畳めない見出しになった（中に必須の基本給・変動給がある）。
          押せない形を当てるのは #pay-detail だけ。.pay-detail で書くと、役割の5つの「＋…を追加」まで押せなくなる（作っている途中で一度踏んだ）。 */
     ok(/<details class="pay-detail" id="pay-detail">\s*<summary tabindex="-1">[^<+＋]+<\/summary>/.test(s)
-       && /#pay-detail>summary,[^{]*\{[^}]*pointer-events:none/.test(s)
+       && /:is\(#pay-detail,#instr-detail,#exam-detail,#union-detail,#mgmt-detail,#nonline-detail\)>summary,[^{]*\{[^}]*pointer-events:none/.test(s)
        && !/(^|[,}\s])\.pay-detail(\[open\])?>summary[^{]*\{[^}]*pointer-events:none/.test(s),
-       `${f}: ★内訳は「＋」の無い見出しで、押せない形は #pay-detail だけに効く`);
+       `${f}: ★内訳と役職の5つは「＋」の無い見出しで、押せない形はその6つの id にだけ効く（.pay-detail で書かない）`);
 
     /* ── ★項目名（.form-label）が読める強さであること（2026-08-27 オーナー指摘
          「『対象月』『勤務時間（Duty time）』…が灰色の薄い文字で見えにくい」）。
@@ -1465,7 +1470,8 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html#pay-det
       } else el.value = '1';
       fire(el);
     }
-    for (const id of ['f-block', 'f-stay']) { const el = $(id); if (el) { el.value = '80'; fire(el); } }
+    /* ステイ日数は 0〜31（2026-11-06 から範囲の外では進めない。前はここで 80 を入れていた） */
+    for (const [id, v] of [['f-block', '80'], ['f-stay', '8']]) { const el = $(id); if (el) { el.value = v; fire(el); } }
   });
   await new Promise((r) => setTimeout(r, 300));
 
@@ -1858,6 +1864,10 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     if (window.PVPayWizard) window.PVPayWizard.go(2, { quiet: true });
   });
 
+  /* ★2026-11-06：開いただけ（通貨のほかに何も入れていない）なら「前回の内容」を書かない。前は最初から値のある通貨だけを書き、
+       開き直すと「前回の内容を復元しました」と出て、確認でも通貨が「前回から引き継ぎ」になっていた。 */
+  await page.evaluate(() => { try { localStorage.removeItem('pv_pay_last'); } catch (e) {} window.dispatchEvent(new Event('pagehide')); });
+  ok(await page.evaluate(() => !localStorage.getItem('pv_pay_last')), '★開いただけ（通貨のほかに何も入れていない）なら「前回の内容」を書かない');
   const bad = [];
   bad.push(...await setF(pick('f-airline', 'f-position', 'f-fleet', 'f-jobrole')));
   ok(await goNext(), '1/5 に「次へ」が在る');
@@ -1872,6 +1882,11 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   ok(!(await stickyOn()),
      '★帯（年換算の合計）を出すのは 3/5 だけ ── 2/5 では出さない');
 
+  /* ★2026-11-06：読めない数字のまま次の段へ進ませない（前は欄の下に理由が出ても「次へ」で進み、送る直前にやっと止まった）。 */
+  await setF({ 'f-block': 'abc', 'f-stay': '8' });
+  await goNext();
+  ok((await vis('s2')) && !(await vis('s3')), '★フライトタイムが「abc」のままでは 3/5 へ進めない');
+  await setF({ 'f-block': '', 'f-stay': '' });
   bad.push(...await setF(pick('f-block')));
   await goNext();
   /* ★2026-09-15（オーナー指示）ステイ日数を必須へ戻した。飛んだ時間だけでは進めない。
@@ -1972,7 +1987,7 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   /* ★5/5 に「明細から読み取った値」の節を足した（2026-09-11）。あれは明細から
      来た人だけのもの。**手で入れた人の画面には1行も増えない**ことを先に固定する
      （空の欄を出し始めると、確認画面が「（未入力）」の羅列になる）。 */
-  ok(await page.$eval('#wz-review', (el) => !/明細から読み取った値/.test(el.textContent)),
+  ok(await page.$eval('#wz-review', (el) => !/明細から読み取ったほかの値|Other values read from your payslip/.test(el.textContent)),   // 2026-11-06 に名前を変えた（古い名前のままだと空振りする）
      '★手で入力した人の 5/5 に「明細から読み取った値」の節は出ない');
   /* ★「該当なし」と答えた基本給は、確認でも「該当なし」と読める（空の行として落ちない）。
      ★変動給の見出し（入力を持たない .fld）は、確認に**行を増やさない**
@@ -2320,14 +2335,14 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   ok(folded.open && folded.seen,
      '★止めたときは内訳を開けて、空いている欄を見せる（閉じた箱の前に立たせない）',
      JSON.stringify(folded));
-  /* 答えが済んでいる人の内訳は、数えたあと**閉じたまま**（勝手に開けない）。 */
+  /* ★2026-11-06 から内訳は畳めない見出し（中に必須がある）。閉じようとしても開いたまま。 */
   bad.push(...await setF({ 'f-base': '20000' }));
   await tick('f-variable-none', true);
   await toggleDetail(false);
   const keptShut = await page.evaluate(() => ({
     miss: missingAll().length, open: document.getElementById('pay-detail').open }));
-  ok(keptShut.miss === 0 && !keptShut.open,
-     '★答えが済んでいれば、畳んだ内訳を数えるために開けっぱなしにしない', JSON.stringify(keptShut));
+  ok(keptShut.miss === 0 && keptShut.open,
+     '★内訳は畳めない（閉じようとしても開いたまま・答えが済んでいれば止まらない）', JSON.stringify(keptShut));
   await toggleDetail(true);
   await tick('f-variable-none', false);
   await page.evaluate(() => clearErr());
@@ -3244,21 +3259,21 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     ok(on.open && on.probeSeen,
        `★${role} を選んだら「追加手当」が最初から開いている`, JSON.stringify(on));
 
-    /* 本人が畳んだら、そのまま畳んだままにする（勝手に開き直さない）。 */
+    /* ★2026-11-06 から畳めない（見出し）。open を外しても、すぐ開き直す。 */
     await page.evaluate((d) => { document.getElementById(d).open = false; }, det);
     await page.evaluate(() => {
       const b = document.getElementById('f-block');
       b.dispatchEvent(new Event('input', { bubbles: true }));   // updateSteps() を1回まわす
     });
     await new Promise((r) => setTimeout(r, 180));
-    ok(!(await st()).open,
-       `★${role}：本人が畳んだら畳んだまま（こちらから開き直さない）`);
+    ok((await st()).open,
+       `★${role}：畳めない（中に入れた額が見えないまま数えられることが無い）`);
 
     await tick(false);
     await new Promise((r) => setTimeout(r, 180));
     const off = await st();
-    ok(!off.open && !off.probeSeen && off.probeVal === '',
-       `★${role} を外すと畳まれ、中の答えも消える`, JSON.stringify(off));
+    ok(!off.probeSeen && off.probeVal === '',
+       `★${role} を外すと欄ごと消え、中の答えも消える`, JSON.stringify(off));
   }
 
   /* 送信の payload まで見たいので、もう一度入れ直す。 */
@@ -3957,6 +3972,14 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   ok(nStep === 2, '★前回の内容がある人は2画面で終わる（今月の入力 → 確認）', String(nStep));
   ok((await page.evaluate(() => window.PVPayWizard.current())) === 's2',
      '★1画面目は「今月の入力」');
+  /* ★2026-11-06：「入力内容を確認する」は1画面目の**いちばん下**の箱（前は2枚目の下に出て、報酬と契約と税がその下に続いていた・09-12 から本番）。 */
+  const navAt = await page.evaluate(() => {
+    const n = [...document.querySelectorAll('.wz-nav')].find((x) => x.offsetParent);
+    const boxes = ['s1', 's2', 's3', 's4'].map((id) => document.getElementById(id)).filter((e) => e && e.offsetParent);
+    const last = boxes[boxes.length - 1];
+    return { inLast: !!(n && last && last.contains(n)), at: n && n.parentNode ? n.parentNode.id : '', last: last ? last.id : '' };
+  });
+  ok(navAt.inLast, '★2画面の道では「確認する」ボタンが1画面目のいちばん下の箱にある', JSON.stringify(navAt));
   for (const id of ['s1', 's2', 's3', 's4']) {
     ok(await vis(id), `★1画面目に会社・対象月・報酬・契約が同居している（#${id}）`);
   }
@@ -4659,11 +4682,11 @@ console.log('\n明細を落とし直す（前の値が残らない・5/5 に隠�
   await page.evaluate(() => { if (window.PVPayWizard) window.PVPayWizard.goLast(); });
   await page.waitForFunction(() => {
     const r = document.getElementById('wz-review');
-    return !!r && r.textContent.indexOf('明細から読み取った値') >= 0;
+    return !!r && r.textContent.indexOf('明細から読み取ったほかの値') >= 0;
   }, { timeout: 10000 }).catch(() => {});
   const rev = await page.$eval('#wz-review', (e) => e.textContent);
-  ok(rev.indexOf('明細から読み取った値') >= 0,
-     '★5/5 に「明細から読み取った値」の節が出る', rev.slice(0, 120));
+  ok(rev.indexOf('明細から読み取ったほかの値') >= 0,
+     '★5/5 に「明細から読み取ったほかの値」の節が出る', rev.slice(0, 120));
   ok(/控除の合計/.test(rev) && /121,600|JPY 121,600/.test(rev),
      '★控除の合計（隠し欄）が読み返せる', rev.slice(-260));
   ok(/年初来の課税支給額/.test(rev) && /4,200,000/.test(rev),

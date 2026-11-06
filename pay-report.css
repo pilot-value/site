@@ -911,7 +911,7 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 .ps-amt-in:hover{border-color:rgba(255,255,255,.3)}
 .ps-amt-in:focus{outline:none;border-color:color-mix(in srgb,var(--pv-accent) 70%,transparent);background:color-mix(in srgb,var(--pv-accent) 7%,transparent);color:#fff}
 .ps-amt-in:focus-visible{outline:2px solid color-mix(in srgb,var(--pv-accent) 60%,transparent);outline-offset:1px}
-.ps-ask{margin-top:12px;padding:12px 14px;border-radius:12px;border:1px dashed color-mix(in srgb,var(--pv-accent) 34%,transparent);background:color-mix(in srgb,var(--pv-accent) 5%,transparent)}
+.ps-ask{margin-top:12px;padding:12px 14px;border-radius:12px;border:1px solid color-mix(in srgb,var(--pv-accent) 34%,transparent);background:color-mix(in srgb,var(--pv-accent) 5%,transparent)}
 .ps-ask[hidden]{display:none}
 .ps-ask-t{font-size:.8rem;font-weight:700;color:var(--pv-accent-ink)}
 .ps-ask-l{font-size:.72rem;line-height:1.65;color:#a8b3c2;margin-top:3px}
@@ -1752,10 +1752,10 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 .is-rail:not(.is-miss)::before{display:none}
 .fld[hidden]{display:none!important}
 .chip{border-style:solid}
-#pay-detail>summary,#pay-detail[open]>summary,[data-theme="light"] #pay-detail>summary,[data-theme="light"] #pay-detail[open]>summary{
+:is(#pay-detail,#instr-detail,#exam-detail,#union-detail,#mgmt-detail,#nonline-detail)>summary,:is(#pay-detail,#instr-detail,#exam-detail,#union-detail,#mgmt-detail,#nonline-detail)[open]>summary,[data-theme="light"] :is(#pay-detail,#instr-detail,#exam-detail,#union-detail,#mgmt-detail,#nonline-detail)>summary,[data-theme="light"] :is(#pay-detail,#instr-detail,#exam-detail,#union-detail,#mgmt-detail,#nonline-detail)[open]>summary{
   display:block;width:auto;max-width:none;padding:0;margin:0 0 14px;border:0;border-radius:0;background:none;box-shadow:none;
   cursor:default;pointer-events:none;transform:none;font-size:.74rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#8a95a3}
-[data-theme="light"] #pay-detail>summary,[data-theme="light"] #pay-detail[open]>summary{color:#64748b}
+[data-theme="light"] :is(#pay-detail,#instr-detail,#exam-detail,#union-detail,#mgmt-detail,#nonline-detail)>summary,[data-theme="light"] :is(#pay-detail,#instr-detail,#exam-detail,#union-detail,#mgmt-detail,#nonline-detail)[open]>summary{color:#64748b}
 /* 書き始めたら、ページの頭の「1件出すと…」は出さない（入口で読んでいる・出す前の確認にも同じ約束がある） */
 body:has(#entry[hidden]) #pay-count{display:none}
 /* 上の進み具合の横の段の名前は出さない（カードの頭に同じ題がある）。数え方は「ステップ n/5」の1つ。 */
@@ -1793,3 +1793,46 @@ body:has(#entry[hidden]) #pay-count{display:none}
 /* ★年換算の帯は、数字が出るまで見せない（2026-11-06）。「年換算の総額 —」だけの帯は何も伝えない。
      出す段かどうかは今までどおり hidden（pay-wizard.js の totalBar）が決め、ここは「数字があるか」だけを見る。 */
 .sticky-cta.is-empty{display:none}
+
+/* ══ 2026-11-06「本当に完璧？？」の見直し（PC・ダーク・英西・320px・役職を全部・明細の画面まで撮って見つけたもの）══ */
+/* 確認の画面：役職の欄の行は、その欄の名前の下にまとめる（pay-wizard.js の put） */
+.wz-rev-group{margin:14px 0 2px;font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--pv-ink-3)}
+/* 明細の読み取り：公開平均の札は帯の外へ出さない（端に寄った目盛りでは内側へ寄せる・payslip.js） */
+.ps-aha-avgl span.is-l{transform:none}
+.ps-aha-avgl span.is-r{transform:translateX(-100%)}
+/* 内訳の帯の名前は切らずに折り返す（スペイン語で「Horas garantizadas / asignación por s…」と切れていた） */
+.wz-seg-k{white-space:normal;overflow:visible;text-overflow:clip}
+/* ダークで、選んでいない四角が白く抜けない */
+[data-theme="dark"] input[type="checkbox"],[data-theme="dark"] input[type="radio"]{color-scheme:dark}
+/* 文の終わりの1〜2文字だけが次の行に落ちない。日本語は語の途中で折らない（「合／計」「支／給」） */
+.fld-hint,.wz-rev-k,.wz-rev-v,.submit-note,.ps-q-t,.ps-extra-k{text-wrap:pretty}
+:lang(ja) .fld-hint,:lang(ja) .wz-rev-k,:lang(ja) .wz-rev-v,:lang(ja) .submit-note,:lang(ja) .form-label{word-break:auto-phrase}
+/* 年換算の額は1行（「US$ 180 / mil / año」と3行に割れていた） */
+.sal-total-val,.sticky-cta-val{white-space:nowrap}
+/* スマホ：カードは画面の端から 8px。貼り付く進み具合と、明細の読み取りの札・畳みも同じ端にそろえる
+   （前は進み具合が 16px で、スクロールするとその横からカードの端が 8px ずつ覗いていた） */
+@media (max-width:600px){
+  .wz-top{margin-left:-8px;margin-right:-8px;padding-left:8px;padding-right:8px}
+  #ps .ps-q,#ps .ps-fold{margin-left:-8px;margin-right:-8px;padding-left:12px;padding-right:12px}
+}
+/* 通貨の欄は、ほかの欄と同じ幅（前は 260px だけ狭かった）。住居は、額の欄が隠れているあいだは1列 */
+.cur-row{grid-template-columns:1fr}
+.grid2:has(>.fld[hidden]){grid-template-columns:1fr}
+/* 確認の画面の「明細から読み取ったほかの値」：明細の読み取りの畳み（.ps-fold-s）と同じ形・同じ字の大きさ。上の節と 24px あける */
+.wz-rev-more{margin-top:var(--pv-s-3)}
+.wz-rev-more>summary .wz-rev-t{font-size:.78rem;font-weight:700}
+.wz-rev-more>summary .wz-rev-t::before,.wz-rev-more[open]>summary .wz-rev-t::before{content:none}
+.wz-rev-more>summary::after{content:'';flex:none;width:7px;height:7px;margin-left:auto;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translateY(-2px);opacity:.7}
+.wz-rev-more[open]>summary::after{transform:rotate(-135deg) translateY(-1px)}
+/* 明細にないお金：名前は欄の下にもぐらせず折り返す（スペイン語の「Participación en las utilidades」） */
+.ps-extra-k{white-space:normal;min-width:0;flex:1 1 auto}
+.ps-extra-v{flex:none}
+/* 「前回の内容」の帯：サイトにない青をやめ、ブランドの緑の淡い面に */
+.restore-bar,[data-theme="light"] .restore-bar{background:var(--pv-accent-soft);border-color:var(--pv-accent-line);color:var(--pv-ink-2,var(--pv-ink))}
+/* 報酬の段：「給与の内訳」のあとに役職の欄が続くときも、ほかと同じ 24px（前はそこだけ 4px） */
+#pay-detail:has(~ :is(#s3-instr,#s3-exam,#s3-union,#s3-mgmt,#s3-nonline):not([hidden])){margin-bottom:var(--pv-s-3)}
+/* カードの中の「見えている最後の欄」は下の余白を持たない（後ろに隠れた欄 ── hidden・明細を読んだあとの q-off ── があっても）。
+   前は明細を読んだあとの「会社と職務」だけ、下が 41px（ほかは 17px）空いていた。 */
+.card.sec :is(.fld,.grid2,.grid3):not(:has(~ :not(.q-off,[hidden]))){margin-bottom:0}
+/* 未入力の役職の赤い枠は、ほかの欄の列からはみ出さない（前は 7px 外へ出て、左の赤い線と下の説明にくっついていた） */
+.fld.is-miss .roleboxes{outline-offset:3px}

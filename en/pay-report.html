@@ -48,7 +48,7 @@
 <script>
 tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#18212f',accent:'#3d9bff',gold:'#f5c842',orange:'#f97316',text:'#e8edf2',muted:'#6b7d93'},fontFamily:{sans:['Inter','Noto Sans JP','sans-serif']}}}};
 </script>
-<link rel="stylesheet" href="../pay-report.css?v=82be490c">
+<link rel="stylesheet" href="../pay-report.css?v=b8500ffb">
 <!--PV-3P-->
 <script>
 /* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
@@ -251,7 +251,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
              when last time's answers are there; "Change" opens it back up. -->
         <div class="sum-row" id="s1-sum" hidden>
           <span id="s1-sum-txt"></span>
-          <button type="button" id="s1-edit">Change</button>
+          <button type="button" id="s1-edit">Edit</button>
         </div>
 
         <div id="s1-body">
@@ -867,7 +867,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                conditions are untouched). -->
         <div id="s3-instr" hidden>
           <details class="pay-detail" id="instr-detail">
-            <summary><span class="p">+</span>Add instructor / training pay</summary>
+            <summary tabindex="-1">Instructor / training pay</summary>
             <div class="pay-detail-b">
               <p class="fld-hint" style="margin:0 0 16px">Tell us the <b>amount printed on your payslip</b> and <b>what it is paid by</b>.</p>
 
@@ -888,11 +888,11 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               </div>
 
               <div class="fld">
-                <label class="form-label" for="f-instr-extra">Extra pay for instructor duties</label>
+                <label class="form-label" for="f-instr-extra">Is there any extra pay for this role?</label>
                 <select id="f-instr-extra" class="form-input">
-                  <option value="">Choose one</option>
+                  <option value="">Select…</option>
                   <option value="separate">Paid separately</option>
-                  <option value="included">Included in normal pay</option>
+                  <option value="included">Included in normal pay, cannot be separated</option>
                   <option value="none">No extra pay</option>
                   <option value="unknown">Not sure</option>
                 </select>
@@ -909,7 +909,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                        ★We never ask for the rate (owner, 2026-08-26 #4): amount ÷ count
                          gives it to us, so nobody has to copy it across. -->
                   <select id="f-instr-method" class="form-input">
-                    <option value="" data-qty="">Choose one</option>
+                    <option value="" data-qty="">Select…</option>
                     <option value="monthly" data-qty="">Fixed monthly amount</option>
                     <option value="duty" data-qty="Days this month">Per duty / day</option>
                     <option value="session" data-qty="Sessions this month">Per session</option>
@@ -921,7 +921,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 </div>
 
                 <div class="fld">
-                  <label class="form-label" for="f-instructor">Instructor pay this month</label>
+                  <label class="form-label" for="f-instructor">Pay this month</label>
                   <input type="text" id="f-instructor" class="form-input money" inputmode="decimal" placeholder="e.g. 600"/>
                   <p class="fld-hint"><b>Do not enter it again under Rank / position allowance, Variable pay or Other cash allowances</b> &mdash; that would count the same money twice.</p>
                 </div>
@@ -932,9 +932,9 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <div id="instr-unit" hidden>
                   <div class="fld">
                     <label class="form-label" for="f-instr-qty" id="lab-instr-qty">Sessions</label>
-                    <input type="text" id="f-instr-qty" class="form-input" inputmode="decimal"/>
+                    <input type="text" id="f-instr-qty" class="form-input num" inputmode="decimal" data-min="0" data-max="400"/>
+                    <p class="fld-hint">We work out the rate.</p>
                   </div>
-                  <p class="fld-hint" style="margin-top:0"><b>We work out the amount per session.</b></p>
                 </div>
               </div>
             </div>
@@ -954,7 +954,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
              ★Gross pay is never rewritten. ★No required fields here (no req-tag). -->
         <div id="s3-exam" hidden>
           <details class="pay-detail" id="exam-detail">
-            <summary><span class="p">+</span>Add examiner / check pay</summary>
+            <summary tabindex="-1">Examiner / check pay</summary>
             <div class="pay-detail-b">
 
               <div class="fld">
@@ -974,12 +974,12 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               </div>
 
               <div class="fld">
-                <label class="form-label" for="f-exam-extra">Extra pay for check duties</label>
+                <label class="form-label" for="f-exam-extra">Is there any extra pay for this role?</label>
                 <select id="f-exam-extra" class="form-input">
-                  <option value="">Choose one</option>
-                  <option value="separate">Paid separately as an examiner</option>
+                  <option value="">Select…</option>
+                  <option value="separate">Paid separately</option>
                   <option value="with_instructor">Paid together with instructor / training pay</option>
-                  <option value="included">Included in normal pay, cannot be split out</option>
+                  <option value="included">Included in normal pay, cannot be separated</option>
                   <option value="none">No extra pay</option>
                   <option value="unknown">Not sure</option>
                 </select>
@@ -995,7 +995,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                        en run the same code. A fixed monthly amount has nothing to count.
                        ★We never ask for the rate: amount ÷ count gives it to us. -->
                   <select id="f-exam-method" class="form-input">
-                    <option value="" data-qty="">Choose one</option>
+                    <option value="" data-qty="">Select…</option>
                     <option value="monthly" data-qty="">Fixed monthly amount</option>
                     <option value="check" data-qty="Checks this month">Per check / event</option>
                     <option value="session" data-qty="Sessions this month">Per simulator session</option>
@@ -1011,7 +1011,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 </div>
 
                 <div class="fld">
-                  <label class="form-label" for="f-examiner">Examiner pay this month</label>
+                  <label class="form-label" for="f-examiner">Pay this month</label>
                   <input type="text" id="f-examiner" class="form-input money" inputmode="decimal" placeholder="e.g. 400"/>
                   <p class="fld-hint"><b>Do not enter it again under Instructor / training pay, Rank / position allowance, Variable pay or Other cash allowances</b> &mdash; that would count the same money twice.</p>
                 </div>
@@ -1021,8 +1021,8 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 
                 <div class="fld" id="exam-unit" hidden>
                   <label class="form-label" for="f-exam-qty" id="lab-exam-qty">Checks this month</label>
-                  <input type="text" id="f-exam-qty" class="form-input" inputmode="decimal"/>
-                  <p class="fld-hint"><b>We work out the amount per check.</b></p>
+                  <input type="text" id="f-exam-qty" class="form-input num" inputmode="decimal" data-min="0" data-max="400"/>
+                  <p class="fld-hint">We work out the rate.</p>
                 </div>
               </div>
             </div>
@@ -1045,21 +1045,21 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
              ★Gross pay is never rewritten. ★No required fields here (no req-tag). -->
         <div id="s3-union" hidden>
           <details class="pay-detail" id="union-detail">
-            <summary><span class="p">+</span>Add union / representative pay</summary>
+            <summary tabindex="-1">Union / representative pay</summary>
             <div class="pay-detail-b">
               <p class="fld-hint" style="margin:0 0 16px"><b>We do not ask what the work involved.</b></p>
 
               <div class="fld">
                 <label class="form-label" for="f-union-days">Days spent as a union / pilot representative this month</label>
-                <input type="text" id="f-union-days" class="form-input" inputmode="decimal" placeholder="e.g. 12"/>
+                <input type="text" id="f-union-days" class="form-input num" inputmode="decimal" data-min="0" data-max="31" placeholder="e.g. 12"/>
               </div>
 
               <div class="fld">
-                <label class="form-label" for="f-union-extra">Is there any extra pay tied to the union / representative role?</label>
+                <label class="form-label" for="f-union-extra">Is there any extra pay for this role?</label>
                 <select id="f-union-extra" class="form-input">
-                  <option value="">Choose one</option>
-                  <option value="yes">Yes</option>
-                  <option value="none">No</option>
+                  <option value="">Select…</option>
+                  <option value="yes">Paid separately</option>
+                  <option value="none">No extra pay</option>
                   <option value="unknown">Not sure</option>
                 </select>
               </div>
@@ -1067,7 +1067,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               <!-- ★Only "Yes" opens the rest. "No" and "Not sure" finish in two clicks. -->
               <div class="opt-fld" id="opt-union-pay" hidden>
                 <div class="fld">
-                  <label class="form-label" for="f-union-pay">Extra pay this month</label>
+                  <label class="form-label" for="f-union-pay">Pay this month</label>
                   <input type="text" id="f-union-pay" class="form-input money" inputmode="decimal" placeholder="e.g. 300"/>
                   <p class="fld-hint"><b>Do not enter it again under Rank / position allowance, Variable pay, Other cash allowances, Instructor / training pay or Examiner / check pay</b> &mdash; that would count the same money twice.</p>
                 </div>
@@ -1078,7 +1078,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <div class="fld">
                   <label class="form-label" for="f-union-src">Who pays it</label>
                   <select id="f-union-src" class="form-input">
-                    <option value="">Choose one</option>
+                    <option value="">Select…</option>
                     <option value="airline">Airline / company</option>
                     <option value="union">Union / association</option>
                     <option value="both">Both</option>
@@ -1108,20 +1108,20 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
              ★Gross pay is never rewritten. ★No required fields here (no req-tag). -->
         <div id="s3-mgmt" hidden>
           <details class="pay-detail" id="mgmt-detail">
-            <summary><span class="p">+</span>Add management / leadership pay</summary>
+            <summary tabindex="-1">Management / leadership pay</summary>
             <div class="pay-detail-b">
               <p class="fld-hint" style="margin:0 0 16px"><b>We do not ask which department, or what the work involved.</b></p>
 
               <div class="fld">
                 <label class="form-label" for="f-mgmt-days">Days spent on management / leadership work this month</label>
-                <input type="text" id="f-mgmt-days" class="form-input" inputmode="decimal" placeholder="e.g. 8"/>
+                <input type="text" id="f-mgmt-days" class="form-input num" inputmode="decimal" data-min="0" data-max="31" placeholder="e.g. 8"/>
               </div>
 
               <div class="fld">
-                <label class="form-label" for="f-mgmt-extra">Is there any extra pay for the management / leadership role?</label>
+                <label class="form-label" for="f-mgmt-extra">Is there any extra pay for this role?</label>
                 <select id="f-mgmt-extra" class="form-input">
-                  <option value="">Choose one</option>
-                  <option value="separate">Paid separately for management duties</option>
+                  <option value="">Select…</option>
+                  <option value="separate">Paid separately</option>
                   <option value="included">Included in normal pay, cannot be separated</option>
                   <option value="none">No extra pay</option>
                   <option value="unknown">Not sure</option>
@@ -1131,7 +1131,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               <!-- ★Only "Paid separately" opens the rest. The other three finish in two clicks. -->
               <div class="opt-fld" id="opt-mgmt-pay" hidden>
                 <div class="fld">
-                  <label class="form-label" for="f-mgmt-pay">Extra pay this month</label>
+                  <label class="form-label" for="f-mgmt-pay">Pay this month</label>
                   <input type="text" id="f-mgmt-pay" class="form-input money" inputmode="decimal" placeholder="e.g. 500"/>
                   <p class="fld-hint"><b>Do not enter it again under Rank / position allowance, Variable pay, Other cash allowances, Instructor / training pay, Examiner / check pay or Union / representative pay</b> &mdash; that would count the same money twice.</p>
                 </div>
@@ -1142,7 +1142,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <div class="fld">
                   <label class="form-label" for="f-mgmt-method">Pay unit</label>
                   <select id="f-mgmt-method" class="form-input">
-                    <option value="">Choose one</option>
+                    <option value="">Select…</option>
                     <option value="monthly">Fixed monthly amount</option>
                     <option value="duty">Per duty / day</option>
                     <option value="other">Other</option>
@@ -1161,7 +1161,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
              ★No pay unit and no quantity here (the owner's spec is the amount alone). -->
         <div id="s3-nonline" hidden>
           <details class="pay-detail" id="nonline-detail">
-            <summary><span class="p">+</span>Add other / non-line assignment pay</summary>
+            <summary tabindex="-1">Other / non-line assignment pay</summary>
             <div class="pay-detail-b">
               <p class="fld-hint" style="margin:0 0 16px">Only if you hold an ongoing assignment alongside line flying. <b>We do not ask which department, which company, or what the work involved.</b></p>
 
@@ -1179,13 +1179,13 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 
               <div class="fld">
                 <label class="form-label" for="f-nonline-days">Days spent on this assignment this month</label>
-                <input type="text" id="f-nonline-days" class="form-input" inputmode="decimal" placeholder="e.g. 8"/>
+                <input type="text" id="f-nonline-days" class="form-input num" inputmode="decimal" data-min="0" data-max="31" placeholder="e.g. 8"/>
               </div>
 
               <div class="fld">
                 <label class="form-label" for="f-nonline-extra">Is there any extra pay for this role?</label>
                 <select id="f-nonline-extra" class="form-input">
-                  <option value="">Choose one</option>
+                  <option value="">Select…</option>
                   <option value="separate">Paid separately</option>
                   <option value="included">Included in normal pay, cannot be separated</option>
                   <option value="none">No extra pay</option>
@@ -1196,7 +1196,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               <!-- ★Only "Paid separately" opens the rest. The other three finish in two clicks. -->
               <div class="opt-fld" id="opt-nonline-pay" hidden>
                 <div class="fld">
-                  <label class="form-label" for="f-nonline-pay">Extra pay this month</label>
+                  <label class="form-label" for="f-nonline-pay">Pay this month</label>
                   <input type="text" id="f-nonline-pay" class="form-input money" inputmode="decimal" placeholder="e.g. 500"/>
                   <p class="fld-hint"><b>Do not enter it again under Rank / position allowance, Variable pay, Other cash allowances, Instructor / training pay, Examiner / check pay, Union / representative pay or Management / leadership pay</b> &mdash; that would count the same money twice.</p>
                 </div>
@@ -1219,7 +1219,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
             <div class="fld">
               <label class="form-label">What it is paid on<span class="req-tag">Required</span></label>
               <select class="form-input pd-basis">
-                <option value="">Choose one</option>
+                <option value="">Select…</option>
                 <option value="block">Flight / Block / Credit Hours</option>
                 <option value="duty">Duty / Duty Hours</option>
                 <option value="sector">Sector / Landing</option>
@@ -1271,7 +1271,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
              it stays open (owner's rule: it has to be asked once, somewhere). -->
         <div class="sum-row" id="s4-sum" hidden>
           <span id="s4-sum-txt"></span>
-          <button type="button" id="s4-edit">Change</button>
+          <button type="button" id="s4-edit">Edit</button>
         </div>
 
         <div id="s4-body">
@@ -1766,7 +1766,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 <!-- ★5ステップの器（Phase 5・2026-09-08）。日英でこの1本を共有する。
      読み込みに失敗したら window.PVPayWizard が無いまま＝下のインラインは
      これまでどおり「埋めると下が生える」1枚の長いページとして動く。 -->
-<script src="../pay-wizard.js?v=fb957126"></script>
+<script src="../pay-wizard.js?v=bdbfd75f"></script>
 <script>
 // ── Supabase ──────────────────────────────────────────────────
 const _sb = supabase.createClient(
@@ -2425,7 +2425,7 @@ const INSTR_ALL_IDS = ['f-instr-label', 'f-instr-extra'].concat(INSTR_PAY_IDS);
 function instrRead() {
   if ($('s3-instr').hidden) return null;          // not an instructor: build nothing
   const t = (id) => $(id).value.trim();
-  const n = (id) => { const r = moneyRead($(id)); return r.state === 'ok' && r.n > 0 ? r.n : null; };
+  const n = (id) => { const e = $(id); const r = e.classList.contains('num') ? readNum(e) : moneyRead(e); return r.state === 'ok' && r.n > 0 ? r.n : null; };
   const trainings = INSTR_BOXES.filter((b) => b.checked).map((b) => b.value);
   const o = { trainings: trainings, label: t('f-instr-label') || null, extra: t('f-instr-extra') || null,
               method: null, amount: null, qty: null };
@@ -2498,7 +2498,7 @@ const EXAM_ALL_IDS = ['f-exam-label', 'f-exam-extra'].concat(EXAM_PAY_IDS);
 function examRead() {
   if ($('s3-exam').hidden) return null;           // not an examiner -> build nothing
   const t = (id) => $(id).value.trim();
-  const n = (id) => { const r = moneyRead($(id)); return r.state === 'ok' && r.n > 0 ? r.n : null; };
+  const n = (id) => { const e = $(id); const r = e.classList.contains('num') ? readNum(e) : moneyRead(e); return r.state === 'ok' && r.n > 0 ? r.n : null; };
   const checks = EXAM_BOXES.filter((b) => b.checked).map((b) => b.value);
   const o = { checks: checks, label: t('f-exam-label') || null, extra: t('f-exam-extra') || null,
               method: null, method_label: null, amount: null, qty: null };
@@ -2573,7 +2573,7 @@ const UNION_ALL_IDS = ['f-union-days', 'f-union-extra'].concat(UNION_PAY_IDS);
 function unionRead() {
   if ($('s3-union').hidden) return null;          // not a rep — do not build it
   const t = (id) => $(id).value.trim();
-  const n = (id) => { const r = moneyRead($(id)); return r.state === 'ok' && r.n > 0 ? r.n : null; };
+  const n = (id) => { const e = $(id); const r = e.classList.contains('num') ? readNum(e) : moneyRead(e); return r.state === 'ok' && r.n > 0 ? r.n : null; };
   const o = { days: n('f-union-days'), extra: t('f-union-extra') || null,
               source: null, amount: null };
   /* Anything but "Yes" and the amount fields are not on screen at all. */
@@ -2673,7 +2673,7 @@ const MGMT_ALL_IDS = ['f-mgmt-days', 'f-mgmt-extra'].concat(MGMT_PAY_IDS);
 function mgmtRead() {
   if ($('s3-mgmt').hidden) return null;           // not a manager — do not build it
   const t = (id) => $(id).value.trim();
-  const n = (id) => { const r = moneyRead($(id)); return r.state === 'ok' && r.n > 0 ? r.n : null; };
+  const n = (id) => { const e = $(id); const r = e.classList.contains('num') ? readNum(e) : moneyRead(e); return r.state === 'ok' && r.n > 0 ? r.n : null; };
   const o = { days: n('f-mgmt-days'), extra: t('f-mgmt-extra') || null,
               method: null, amount: null };
   /* Anything but "Paid separately" and the amount fields are not on screen. */
@@ -2734,7 +2734,7 @@ const NONLINE_ALL_IDS = ['f-nonline-days', 'f-nonline-extra'].concat(NONLINE_PAY
 function nonlineRead() {
   if ($('s3-nonline').hidden) return null;        // not on a non-line assignment — do not build it
   const t = (id) => $(id).value.trim();
-  const n = (id) => { const r = moneyRead($(id)); return r.state === 'ok' && r.n > 0 ? r.n : null; };
+  const n = (id) => { const e = $(id); const r = e.classList.contains('num') ? readNum(e) : moneyRead(e); return r.state === 'ok' && r.n > 0 ? r.n : null; };
   const areas = NONLINE_BOXES.filter((b) => b.checked).map((b) => b.value);
   const o = { areas: areas, days: n('f-nonline-days'), extra: t('f-nonline-extra') || null,
               amount: null };
@@ -2834,7 +2834,13 @@ $('pay-detail').addEventListener('toggle', updatePayMode);
       既存の流儀（restoreInto() / pdRestore() の `.open = true`）に合わせる。 */
 $('pay-detail').open = true;
 /* ★It does not fold (2026-11-06): two required fields (base and variable pay) live inside. A heading, not a button. */
-$('pay-detail').querySelector('summary').addEventListener('click', (e) => e.preventDefault());
+/* ★「給与の内訳」と役職の5つの欄は、畳めない見出し（2026-11-06）。開くと「＋」が回って「×」に見え、押しても畳むだけで入れた額は数えられたまま残っていた。
+     役職の欄は役職を選ぶと出て、外すと中身ごと消える（instrToggle ほか）── 出ているあいだは必ず開いている。 */
+for (const d of document.querySelectorAll('details.pay-detail')) {
+  const sm = d.querySelector(':scope > summary');
+  if (sm) sm.addEventListener('click', (e) => e.preventDefault());
+  d.addEventListener('toggle', () => { if (!d.open) d.open = true; });
+}
 
 /* ── Tax: estimated from residence + annual pay ────────────────
    ★We never decide it. We fill it only while you have not touched the field,
@@ -3310,7 +3316,7 @@ function readNum(el) {
   const lo = el.dataset.min === undefined ? null : parseFloat(el.dataset.min);
   const hi = el.dataset.max === undefined ? null : parseFloat(el.dataset.max);
   if ((lo != null && v < lo) || (hi != null && v > hi)) {
-    return bad('Please enter a value between ' + lo + ' and ' + hi + '.');
+    return bad('Please enter a value in the range ' + lo + '–' + hi + '.');   // ' and ' のような切れ端は訳の仕組みが拾わない（スペイン語で and が残った・2026-11-06）
   }
   return { n: v, canon: String(v), state: 'ok', msg: '' };
 }
@@ -4577,6 +4583,9 @@ function savePreset() {
   /* ★Stamp who it belongs to. The one place that decides is owns() in pv-session.js.
      ★Stamp this tab's password too (2026-09-11): however long signing up takes,
        the same tab gets it back and **another tab's person never does**. */
+  /* ★通貨のほかに何も入っていなければ書かない（2026-11-06）。通貨は最初から値が入っているので、開いて閉じただけの人の画面に
+       「前回の内容を復元しました」と出て、確認の画面でも通貨が「前回から引き継ぎ」になっていた。 */
+  if (!Object.keys(o).some((k) => k !== 'f-currency')) return;
   o._own = _payOwn;
   o._ts = Date.now();
   try { o._tab = PVPayLocal.markTab(); } catch (e) {}
@@ -4952,7 +4961,7 @@ function foldContract() {
     const o = Array.prototype.find.call(sel.options, (x) => x.value === sel.value);
     return o ? o.textContent : sel.value;
   };
-  const bits = [label(c), 'resident in ' + label(t)];
+  const bits = [label(c), 'Tax residence: ' + label(t)];   // 'resident in ' は切れ端で訳されなかった（2026-11-06）
   if ($('f-tax').value !== '') bits.push('income tax ' + $('f-tax').value + '%');
   if ($('f-seniority').value !== '') bits.push($('f-seniority').value + ' yrs at the airline');
   if ($('f-rankyears').value !== '') bits.push($('f-rankyears').value + ' yrs in rank');
@@ -5015,6 +5024,8 @@ function dropLocalPay(alsoDraft) {
 $('btn-forget').addEventListener('click', () => dropLocalPay(true));
 /* pay-wizard.js の「下書きを消す」（2つある）から届く。 */
 addEventListener('pv-pay-draft-drop', () => dropLocalPay(false));
+/* ★下書きから戻したときは、その帯1本だけ（2026-11-06。同じ戻し方を2本の帯が別の言葉で言い、消すボタンも2つあった）。 */
+addEventListener('pv-pay-draft-shown', () => { $('restore-bar').style.display = 'none'; });
 /* ★別タブで人が入れ替わったら、このタブは以後もう書き戻さない。
    開いたままの古いタブは前の人のセッションを握ったまま pagehide で
    pv_pay_last を書く。押印してあるので次の人の画面は読まないが、書くほうも止める。 */
@@ -5138,6 +5149,28 @@ document.addEventListener('change', () => {
 });
 /* ★If a notice blocks (breakdown over gross / net above gross), show everything, then go to it —
      on the after-payslip screen both the notice and the fields to fix are hidden. */
+function stepBadBlocked(ids) {
+  const boxes = ids.map((id) => $(id)).filter(Boolean);
+  const inStep = (el) => !el.disabled && el.offsetParent && boxes.some((b) => b.contains(el));
+  let hit = null;
+  for (const el of moneyEls()) {
+    if (!inStep(el)) continue;
+    const r = moneyRead(el);
+    if (r.state === 'ok' || r.state === 'empty') continue;
+    askMoney(el, r); hit = hit || el;
+  }
+  for (const el of numEls()) {
+    if (!inStep(el)) continue;
+    const r = readNum(el);
+    if (r.state !== 'bad') continue;
+    noteAt(el, r.msg); hit = hit || el;
+  }
+  if (!hit) return false;
+  if (WZ && WZ.focusing && WZ.focusing()) WZ.unfocus();
+  hit.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  try { hit.focus({ preventScroll: true }); } catch (e) {}
+  return true;
+}
 function quickBlocked() {
   const b = overBlocking() || netBlocking();
   if (b && WZ && WZ.focusing && WZ.focusing()) {
@@ -5181,7 +5214,8 @@ if (WZ) {
          would walk straight past it. */
     /* ★Same for a net figure above the gross (2026-10-05). The breakdown check
          goes first — when both are showing, scroll to one place only. */
-    blocked: (ids) => ids.indexOf('s3') >= 0 && quickBlocked(),
+    /* ★読めない数字（abc・範囲の外・読み方が決まっていない金額）が残る段からは進ませない（2026-11-06）。前は欄の下に理由が出ても「次へ」で進めて、送る直前にやっと止まった。 */
+    blocked: (ids) => stepBadBlocked(ids) || (ids.indexOf('s3') >= 0 && quickBlocked()),
     payload: () => buildPayload(),
     annualOrig: annualTotal,
     nameOf: optLabel,
@@ -5245,6 +5279,8 @@ if (WZ) {
       syncFolds();
       /* ★"Restored your last entries" is said on the first step only (2026-11-06). */
       if (i > 0) $('restore-bar').style.display = 'none';
+      /* ★Leaving a step clears its "missing fields" box (2026-11-06). The red marks on the fields stay. */
+      if ($('err').dataset.from === 'miss') { $('err').innerHTML = ''; delete $('err').dataset.from; }
       /* 段を出し直したので、印とゲージを引き直す（隠れている間は数えていない）。 */
       markRequired();
       markProgress();
@@ -6305,7 +6341,7 @@ addEventListener('scroll', () => {
   });
 })();
 </script>
-<script src="../payslip.js?v=91b6aa40"></script>
+<script src="../payslip.js?v=dcbc16d3"></script>
 <script src="../confetti.js"></script>
 <script src="../pay-login.js"></script>
 <!-- ★ヘッダーを畳むのは search.js。id="main-nav" を持つページは必ず読む。

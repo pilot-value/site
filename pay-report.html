@@ -48,7 +48,7 @@
 <script>
 tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#18212f',accent:'#3d9bff',gold:'#f5c842',orange:'#f97316',text:'#e8edf2',muted:'#6b7d93'},fontFamily:{sans:['Inter','Noto Sans JP','sans-serif']}}}};
 </script>
-<link rel="stylesheet" href="pay-report.css?v=82be490c">
+<link rel="stylesheet" href="pay-report.css?v=b8500ffb">
 <!--PV-3P-->
 <script>
 /* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
@@ -250,7 +250,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
              畳むのは前回の内容が入っているときだけ。変わった人は「変更する」で開く。 -->
         <div class="sum-row" id="s1-sum" hidden>
           <span id="s1-sum-txt"></span>
-          <button type="button" id="s1-edit">変更する</button>
+          <button type="button" id="s1-edit">編集</button>
         </div>
 
         <div id="s1-body">
@@ -851,7 +851,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
              ★必須は1つも置かない（req-tag を置かない＝段のゲートも送信の条件も動かない）。 -->
         <div id="s3-instr" hidden>
           <details class="pay-detail" id="instr-detail">
-            <summary><span class="p">+</span>教官・訓練の手当を追加</summary>
+            <summary tabindex="-1">教官・訓練の手当</summary>
             <div class="pay-detail-b">
               <p class="fld-hint" style="margin:0 0 16px"><b>明細に出ている金額</b>と、<b>何を単位に払われるか</b>を教えてください。</p>
 
@@ -872,11 +872,11 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               </div>
 
               <div class="fld">
-                <label class="form-label" for="f-instr-extra">教官業務に対する追加の支給</label>
+                <label class="form-label" for="f-instr-extra">この役割に対する追加の支給はありますか？</label>
                 <select id="f-instr-extra" class="form-input">
-                  <option value="">選んでください</option>
+                  <option value="">選択してください</option>
                   <option value="separate">別途支給されている</option>
-                  <option value="included">通常の給与に含まれている</option>
+                  <option value="included">通常の給与に含まれていて、金額を分けられない</option>
                   <option value="none">追加の支給はない</option>
                   <option value="unknown">わからない</option>
                 </select>
@@ -892,7 +892,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                        ★単価は聞かない（2026-08-26 その4 オーナー指示）。
                          今月の額 ÷ 数量でこちらが出せる数を、人に転記させない。 -->
                   <select id="f-instr-method" class="form-input">
-                    <option value="" data-qty="">選んでください</option>
+                    <option value="" data-qty="">選択してください</option>
                     <option value="monthly" data-qty="">月額で固定</option>
                     <option value="duty" data-qty="今月の日数">乗務日・勤務日ごと（Duty / Day）</option>
                     <option value="session" data-qty="今月の回数">セッションごと（Session）</option>
@@ -904,7 +904,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 </div>
 
                 <div class="fld">
-                  <label class="form-label" for="f-instructor">今月の教官・訓練の支給額</label>
+                  <label class="form-label" for="f-instructor">今月の支給額</label>
                   <input type="text" id="f-instructor" class="form-input money" inputmode="decimal" placeholder="例：60,000"/>
                   <p class="fld-hint">この額は<b>職位手当・変動給・その他の現金手当には入れないでください</b>（同じお金を2回数えることになります）。</p>
                 </div>
@@ -914,10 +914,10 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 
                 <div id="instr-unit" hidden>
                   <div class="fld">
-                    <label class="form-label" for="f-instr-qty" id="lab-instr-qty">回数</label>
-                    <input type="text" id="f-instr-qty" class="form-input" inputmode="decimal"/>
+                    <label class="form-label" for="f-instr-qty" id="lab-instr-qty">今月の回数</label>
+                    <input type="text" id="f-instr-qty" class="form-input num" inputmode="decimal" data-min="0" data-max="400"/>
+                    <p class="fld-hint">単価はこちらで計算します。</p>
                   </div>
-                  <p class="fld-hint" style="margin-top:0"><b>1回あたりの額はこちらで出します。</b></p>
                 </div>
               </div>
             </div>
@@ -935,11 +935,11 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
              ★総支給は書き換えない。★必須は1つも置かない（req-tag を置かない）。 -->
         <div id="s3-exam" hidden>
           <details class="pay-detail" id="exam-detail">
-            <summary><span class="p">+</span>審査・査察の手当を追加</summary>
+            <summary tabindex="-1">審査・査察の手当</summary>
             <div class="pay-detail-b">
 
               <div class="fld">
-                <div class="form-label">担当している Check</div>
+                <div class="form-label">担当している審査</div>
                 <div class="roleboxes">
                   <label class="rolebox"><input type="checkbox" name="f-exam-check" value="sim"><span>シミュレーターチェック</span></label>
                   <label class="rolebox"><input type="checkbox" name="f-exam-check" value="line"><span>ラインチェック</span></label>
@@ -955,10 +955,10 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
               </div>
 
               <div class="fld">
-                <label class="form-label" for="f-exam-extra">審査業務に対する追加の支給</label>
+                <label class="form-label" for="f-exam-extra">この役割に対する追加の支給はありますか？</label>
                 <select id="f-exam-extra" class="form-input">
-                  <option value="">選んでください</option>
-                  <option value="separate">審査・査察として別途支給されている</option>
+                  <option value="">選択してください</option>
+                  <option value="separate">別途支給されている</option>
                   <option value="with_instructor">教官・訓練の手当とまとめて支給されている</option>
                   <option value="included">通常の給与に含まれていて、金額を分けられない</option>
                   <option value="none">追加の支給はない</option>
@@ -976,7 +976,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                        ＝日英で同じコードが動く。月額固定は数える物が無いので空。
                        ★単価は聞かない。今月の額 ÷ 数量でこちらが出せる。 -->
                   <select id="f-exam-method" class="form-input">
-                    <option value="" data-qty="">選んでください</option>
+                    <option value="" data-qty="">選択してください</option>
                     <option value="monthly" data-qty="">月額で固定</option>
                     <option value="check" data-qty="今月の回数">Check・イベントごと</option>
                     <option value="session" data-qty="今月のセッション数">シミュレーターセッションごと</option>
@@ -992,7 +992,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 </div>
 
                 <div class="fld">
-                  <label class="form-label" for="f-examiner">今月の審査・査察の支給額</label>
+                  <label class="form-label" for="f-examiner">今月の支給額</label>
                   <input type="text" id="f-examiner" class="form-input money" inputmode="decimal" placeholder="例：40,000"/>
                   <p class="fld-hint">この額は<b>教官・訓練の手当・職位手当・変動給・その他の現金手当には入れないでください</b>（同じお金を2回数えることになります）。</p>
                 </div>
@@ -1002,8 +1002,8 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 
                 <div class="fld" id="exam-unit" hidden>
                   <label class="form-label" for="f-exam-qty" id="lab-exam-qty">今月の回数</label>
-                  <input type="text" id="f-exam-qty" class="form-input" inputmode="decimal"/>
-                  <p class="fld-hint"><b>1回あたりの額はこちらで出します。</b></p>
+                  <input type="text" id="f-exam-qty" class="form-input num" inputmode="decimal" data-min="0" data-max="400"/>
+                  <p class="fld-hint">単価はこちらで計算します。</p>
                 </div>
               </div>
             </div>
@@ -1024,21 +1024,21 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
              ★総支給は書き換えない。★必須は1つも置かない（req-tag を置かない）。 -->
         <div id="s3-union" hidden>
           <details class="pay-detail" id="union-detail">
-            <summary><span class="p">+</span>組合・乗員代表の手当を追加</summary>
+            <summary tabindex="-1">組合・乗員代表の手当</summary>
             <div class="pay-detail-b">
               <p class="fld-hint" style="margin:0 0 16px"><b>活動の中身は聞きません。</b></p>
 
               <div class="fld">
                 <label class="form-label" for="f-union-days">今月、組合・乗員代表として活動した日数</label>
-                <input type="text" id="f-union-days" class="form-input" inputmode="decimal" placeholder="例：12"/>
+                <input type="text" id="f-union-days" class="form-input num" inputmode="decimal" data-min="0" data-max="31" placeholder="例：12"/>
               </div>
 
               <div class="fld">
-                <label class="form-label" for="f-union-extra">組合・乗員代表の役割に関連する追加の支給はありますか？</label>
+                <label class="form-label" for="f-union-extra">この役割に対する追加の支給はありますか？</label>
                 <select id="f-union-extra" class="form-input">
-                  <option value="">選んでください</option>
-                  <option value="yes">あり</option>
-                  <option value="none">なし</option>
+                  <option value="">選択してください</option>
+                  <option value="yes">別途支給されている</option>
+                  <option value="none">追加の支給はない</option>
                   <option value="unknown">わからない</option>
                 </select>
               </div>
@@ -1047,7 +1047,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                    「なし」「わからない」の人は2クリックで終わる。 -->
               <div class="opt-fld" id="opt-union-pay" hidden>
                 <div class="fld">
-                  <label class="form-label" for="f-union-pay">今月の追加支給額</label>
+                  <label class="form-label" for="f-union-pay">今月の支給額</label>
                   <input type="text" id="f-union-pay" class="form-input money" inputmode="decimal" placeholder="例：30,000"/>
                   <p class="fld-hint">この額は<b>職位手当・変動給・その他の現金手当・教官・審査の手当には入れないでください</b>（同じお金を2回数えることになります）。</p>
                 </div>
@@ -1058,7 +1058,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <div class="fld">
                   <label class="form-label" for="f-union-src">支給元</label>
                   <select id="f-union-src" class="form-input">
-                    <option value="">選んでください</option>
+                    <option value="">選択してください</option>
                     <option value="airline">会社（Airline / Company）</option>
                     <option value="union">組合（Union / Association）</option>
                     <option value="both">両方</option>
@@ -1086,22 +1086,22 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
              ★総支給は書き換えない。★必須は1つも置かない（req-tag を置かない）。 -->
         <div id="s3-mgmt" hidden>
           <details class="pay-detail" id="mgmt-detail">
-            <summary><span class="p">+</span>管理・マネジメントの手当を追加</summary>
+            <summary tabindex="-1">管理・マネジメントの手当</summary>
             <div class="pay-detail-b">
               <p class="fld-hint" style="margin:0 0 16px"><b>担当部署や業務の中身は聞きません。</b></p>
 
               <div class="fld">
                 <label class="form-label" for="f-mgmt-days">今月、管理・マネジメント業務を行った日数</label>
-                <input type="text" id="f-mgmt-days" class="form-input" inputmode="decimal" placeholder="例：8"/>
+                <input type="text" id="f-mgmt-days" class="form-input num" inputmode="decimal" data-min="0" data-max="31" placeholder="例：8"/>
               </div>
 
               <div class="fld">
-                <label class="form-label" for="f-mgmt-extra">管理・マネジメントの役割に対する追加の支給はありますか？</label>
+                <label class="form-label" for="f-mgmt-extra">この役割に対する追加の支給はありますか？</label>
                 <select id="f-mgmt-extra" class="form-input">
-                  <option value="">選んでください</option>
-                  <option value="separate">管理・マネジメントとして別途支給されている</option>
+                  <option value="">選択してください</option>
+                  <option value="separate">別途支給されている</option>
                   <option value="included">通常の給与に含まれていて、金額を分けられない</option>
-                  <option value="none">追加報酬はない</option>
+                  <option value="none">追加の支給はない</option>
                   <option value="unknown">わからない</option>
                 </select>
               </div>
@@ -1110,7 +1110,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                    「含まれている」「なし」「わからない」の人は2クリックで終わる。 -->
               <div class="opt-fld" id="opt-mgmt-pay" hidden>
                 <div class="fld">
-                  <label class="form-label" for="f-mgmt-pay">今月の追加支給額</label>
+                  <label class="form-label" for="f-mgmt-pay">今月の支給額</label>
                   <input type="text" id="f-mgmt-pay" class="form-input money" inputmode="decimal" placeholder="例：50,000"/>
                   <p class="fld-hint">この額は<b>職位手当・変動給・その他の現金手当・教官・審査・組合の手当には入れないでください</b>（同じお金を2回数えることになります）。</p>
                 </div>
@@ -1121,7 +1121,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                 <div class="fld">
                   <label class="form-label" for="f-mgmt-method">支給単位</label>
                   <select id="f-mgmt-method" class="form-input">
-                    <option value="">選んでください</option>
+                    <option value="">選択してください</option>
                     <option value="monthly">月額で固定</option>
                     <option value="duty">乗務日・勤務日ごと（Duty / Day）</option>
                     <option value="other">その他</option>
@@ -1139,7 +1139,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
              ★支給単位も数量も置かない（オーナー仕様は金額だけ。教官・審査の形を写さない）。 -->
         <div id="s3-nonline" hidden>
           <details class="pay-detail" id="nonline-detail">
-            <summary><span class="p">+</span>その他の兼務・配属の手当を追加</summary>
+            <summary tabindex="-1">その他の兼務・配属の手当</summary>
             <div class="pay-detail-b">
               <p class="fld-hint" style="margin:0 0 16px">継続的な兼務・配属・出向がある場合だけ。<b>部署名や出向先、仕事の中身は聞きません。</b></p>
 
@@ -1157,16 +1157,16 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 
               <div class="fld">
                 <label class="form-label" for="f-nonline-days">今月、この兼務・配属に関連する業務を行った日数</label>
-                <input type="text" id="f-nonline-days" class="form-input" inputmode="decimal" placeholder="例：8"/>
+                <input type="text" id="f-nonline-days" class="form-input num" inputmode="decimal" data-min="0" data-max="31" placeholder="例：8"/>
               </div>
 
               <div class="fld">
-                <label class="form-label" for="f-nonline-extra">この役割に対する追加報酬はありますか？</label>
+                <label class="form-label" for="f-nonline-extra">この役割に対する追加の支給はありますか？</label>
                 <select id="f-nonline-extra" class="form-input">
-                  <option value="">選んでください</option>
-                  <option value="separate">別途支給される</option>
-                  <option value="included">追加分が通常給与に含まれていて、金額を分けられない</option>
-                  <option value="none">追加報酬はない</option>
+                  <option value="">選択してください</option>
+                  <option value="separate">別途支給されている</option>
+                  <option value="included">通常の給与に含まれていて、金額を分けられない</option>
+                  <option value="none">追加の支給はない</option>
                   <option value="unknown">わからない</option>
                 </select>
               </div>
@@ -1175,7 +1175,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
                    「含まれる」「なし」「わからない」の人は2クリックで終わる。 -->
               <div class="opt-fld" id="opt-nonline-pay" hidden>
                 <div class="fld">
-                  <label class="form-label" for="f-nonline-pay">今月の追加支給額</label>
+                  <label class="form-label" for="f-nonline-pay">今月の支給額</label>
                   <input type="text" id="f-nonline-pay" class="form-input money" inputmode="decimal" placeholder="例：50,000"/>
                   <p class="fld-hint">この額は<b>職位手当・変動給・その他の現金手当・教官・審査・組合・管理職の手当には入れないでください</b>（同じお金を2回数えることになります）。</p>
                 </div>
@@ -1198,7 +1198,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
             <div class="fld">
               <label class="form-label">何に連動する支給か<span class="req-tag">必須</span></label>
               <select class="form-input pd-basis">
-                <option value="">選んでください</option>
+                <option value="">選択してください</option>
                 <option value="block">飛行・クレジット時間（Flight / Block / Credit Hours）</option>
                 <option value="duty">勤務・勤務時間（Duty / Duty Hours）</option>
                 <option value="sector">便数・着陸回数（Sector / Landing）</option>
@@ -1248,7 +1248,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
              ＝2ヶ月目以降は「額面」と「飛んだ時間」だけで終わる。 -->
         <div class="sum-row" id="s4-sum" hidden>
           <span id="s4-sum-txt"></span>
-          <button type="button" id="s4-edit">変更する</button>
+          <button type="button" id="s4-edit">編集</button>
         </div>
 
         <div id="s4-body">
@@ -1732,7 +1732,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 <!-- ★5ステップの器（Phase 5・2026-09-08）。日英でこの1本を共有する。
      読み込みに失敗したら window.PVPayWizard が無いまま＝下のインラインは
      これまでどおり「埋めると下が生える」1枚の長いページとして動く。 -->
-<script src="pay-wizard.js?v=fb957126"></script>
+<script src="pay-wizard.js?v=bdbfd75f"></script>
 <script>
 // ── Supabase ──────────────────────────────────────────────────
 const _sb = supabase.createClient(
@@ -2370,7 +2370,7 @@ const INSTR_ALL_IDS = ['f-instr-label', 'f-instr-extra'].concat(INSTR_PAY_IDS);
 function instrRead() {
   if ($('s3-instr').hidden) return null;          // 教官でない人の分は組み立てない
   const t = (id) => $(id).value.trim();
-  const n = (id) => { const r = moneyRead($(id)); return r.state === 'ok' && r.n > 0 ? r.n : null; };
+  const n = (id) => { const e = $(id); const r = e.classList.contains('num') ? readNum(e) : moneyRead(e); return r.state === 'ok' && r.n > 0 ? r.n : null; };
   const trainings = INSTR_BOXES.filter((b) => b.checked).map((b) => b.value);
   const o = { trainings: trainings, label: t('f-instr-label') || null, extra: t('f-instr-extra') || null,
               method: null, amount: null, qty: null };
@@ -2440,7 +2440,7 @@ const EXAM_ALL_IDS = ['f-exam-label', 'f-exam-extra'].concat(EXAM_PAY_IDS);
 function examRead() {
   if ($('s3-exam').hidden) return null;           // 審査担当でない人の分は組み立てない
   const t = (id) => $(id).value.trim();
-  const n = (id) => { const r = moneyRead($(id)); return r.state === 'ok' && r.n > 0 ? r.n : null; };
+  const n = (id) => { const e = $(id); const r = e.classList.contains('num') ? readNum(e) : moneyRead(e); return r.state === 'ok' && r.n > 0 ? r.n : null; };
   const checks = EXAM_BOXES.filter((b) => b.checked).map((b) => b.value);
   const o = { checks: checks, label: t('f-exam-label') || null, extra: t('f-exam-extra') || null,
               method: null, method_label: null, amount: null, qty: null };
@@ -2513,7 +2513,7 @@ const UNION_ALL_IDS = ['f-union-days', 'f-union-extra'].concat(UNION_PAY_IDS);
 function unionRead() {
   if ($('s3-union').hidden) return null;          // 組合でない人の分は組み立てない
   const t = (id) => $(id).value.trim();
-  const n = (id) => { const r = moneyRead($(id)); return r.state === 'ok' && r.n > 0 ? r.n : null; };
+  const n = (id) => { const e = $(id); const r = e.classList.contains('num') ? readNum(e) : moneyRead(e); return r.state === 'ok' && r.n > 0 ? r.n : null; };
   const o = { days: n('f-union-days'), extra: t('f-union-extra') || null,
               source: null, amount: null };
   /* 「あり」以外は金額の欄そのものが出ていない。 */
@@ -2609,7 +2609,7 @@ const MGMT_ALL_IDS = ['f-mgmt-days', 'f-mgmt-extra'].concat(MGMT_PAY_IDS);
 function mgmtRead() {
   if ($('s3-mgmt').hidden) return null;           // 管理職でない人の分は組み立てない
   const t = (id) => $(id).value.trim();
-  const n = (id) => { const r = moneyRead($(id)); return r.state === 'ok' && r.n > 0 ? r.n : null; };
+  const n = (id) => { const e = $(id); const r = e.classList.contains('num') ? readNum(e) : moneyRead(e); return r.state === 'ok' && r.n > 0 ? r.n : null; };
   const o = { days: n('f-mgmt-days'), extra: t('f-mgmt-extra') || null,
               method: null, amount: null };
   /* 「別途支給されている」以外は金額の欄そのものが出ていない。 */
@@ -2669,7 +2669,7 @@ const NONLINE_ALL_IDS = ['f-nonline-days', 'f-nonline-extra'].concat(NONLINE_PAY
 function nonlineRead() {
   if ($('s3-nonline').hidden) return null;        // 兼務・配属でない人の分は組み立てない
   const t = (id) => $(id).value.trim();
-  const n = (id) => { const r = moneyRead($(id)); return r.state === 'ok' && r.n > 0 ? r.n : null; };
+  const n = (id) => { const e = $(id); const r = e.classList.contains('num') ? readNum(e) : moneyRead(e); return r.state === 'ok' && r.n > 0 ? r.n : null; };
   const areas = NONLINE_BOXES.filter((b) => b.checked).map((b) => b.value);
   const o = { areas: areas, days: n('f-nonline-days'), extra: t('f-nonline-extra') || null,
               amount: null };
@@ -2760,7 +2760,13 @@ $('pay-detail').addEventListener('toggle', updatePayMode);
       既存の流儀（restoreInto() / pdRestore() の `.open = true`）に合わせる。 */
 $('pay-detail').open = true;
 /* ★畳めない（2026-11-06）。中に必須の2つ（基本給・変動給）があるので、閉じる理由が無い。押せる形もやめて見出しにした。 */
-$('pay-detail').querySelector('summary').addEventListener('click', (e) => e.preventDefault());
+/* ★「給与の内訳」と役職の5つの欄は、畳めない見出し（2026-11-06）。開くと「＋」が回って「×」に見え、押しても畳むだけで入れた額は数えられたまま残っていた。
+     役職の欄は役職を選ぶと出て、外すと中身ごと消える（instrToggle ほか）── 出ているあいだは必ず開いている。 */
+for (const d of document.querySelectorAll('details.pay-detail')) {
+  const sm = d.querySelector(':scope > summary');
+  if (sm) sm.addEventListener('click', (e) => e.preventDefault());
+  d.addEventListener('toggle', () => { if (!d.open) d.open = true; });
+}
 
 /* ── 税：居住国と年収から概算して差し出す ─────────────────────
    ★決めつけない。入れるのは本人が触っていない間だけで、上書きは常にできる。
@@ -4405,6 +4411,9 @@ function savePreset() {
   /* ★誰のものかを一緒に書く。読むときの判定は pv-session.js の owns() 1か所。
      ★このタブの合言葉も一緒に書く（2026-09-11）。登録に何時間かかっても
        同じタブなら戻せて、**別のタブの人には戻らない**。 */
+  /* ★通貨のほかに何も入っていなければ書かない（2026-11-06）。通貨は最初から値が入っているので、開いて閉じただけの人の画面に
+       「前回の内容を復元しました」と出て、確認の画面でも通貨が「前回から引き継ぎ」になっていた。 */
+  if (!Object.keys(o).some((k) => k !== 'f-currency')) return;
   o._own = _payOwn;
   o._ts = Date.now();
   try { o._tab = PVPayLocal.markTab(); } catch (e) {}
@@ -4818,6 +4827,8 @@ function dropLocalPay(alsoDraft) {
 $('btn-forget').addEventListener('click', () => dropLocalPay(true));
 /* pay-wizard.js の「下書きを消す」（2つある）から届く。 */
 addEventListener('pv-pay-draft-drop', () => dropLocalPay(false));
+/* ★下書きから戻したときは、その帯1本だけ（2026-11-06。同じ戻し方を2本の帯が別の言葉で言い、消すボタンも2つあった）。 */
+addEventListener('pv-pay-draft-shown', () => { $('restore-bar').style.display = 'none'; });
 /* ★別タブで人が入れ替わったら、このタブは以後もう書き戻さない。
    開いたままの古いタブは前の人のセッションを握ったまま pagehide で
    pv_pay_last を書く。押印してあるので次の人の画面は読まないが、書くほうも止める。 */
@@ -4937,6 +4948,28 @@ document.addEventListener('change', () => {
 });
 /* ★注意（内訳の合計が総支給を超えた・手取りが多い）で止まったら、全部出してからその注意へ運ぶ。
      1枚の上では注意も直す欄も隠れている。 */
+function stepBadBlocked(ids) {
+  const boxes = ids.map((id) => $(id)).filter(Boolean);
+  const inStep = (el) => !el.disabled && el.offsetParent && boxes.some((b) => b.contains(el));
+  let hit = null;
+  for (const el of moneyEls()) {
+    if (!inStep(el)) continue;
+    const r = moneyRead(el);
+    if (r.state === 'ok' || r.state === 'empty') continue;
+    askMoney(el, r); hit = hit || el;
+  }
+  for (const el of numEls()) {
+    if (!inStep(el)) continue;
+    const r = readNum(el);
+    if (r.state !== 'bad') continue;
+    noteAt(el, r.msg); hit = hit || el;
+  }
+  if (!hit) return false;
+  if (WZ && WZ.focusing && WZ.focusing()) WZ.unfocus();
+  hit.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  try { hit.focus({ preventScroll: true }); } catch (e) {}
+  return true;
+}
 function quickBlocked() {
   const b = overBlocking() || netBlocking();
   if (b && WZ && WZ.focusing && WZ.focusing()) {
@@ -4979,7 +5012,8 @@ if (WZ) {
          1画面目の also に居るので、先頭の id だけを見ると素通りする。 */
     /* ★手取りが総支給より多いときも同じ（2026-10-05）。先に内訳の超過を見る ──
          両方出ているとき、寄せる先は1つにする。 */
-    blocked: (ids) => ids.indexOf('s3') >= 0 && quickBlocked(),
+    /* ★読めない数字（abc・範囲の外・読み方が決まっていない金額）が残る段からは進ませない（2026-11-06）。前は欄の下に理由が出ても「次へ」で進めて、送る直前にやっと止まった。 */
+    blocked: (ids) => stepBadBlocked(ids) || (ids.indexOf('s3') >= 0 && quickBlocked()),
     payload: () => buildPayload(),
     annualOrig: annualTotal,
     nameOf: optLabel,
@@ -5039,6 +5073,8 @@ if (WZ) {
       syncFolds();
       /* ★「前回の内容を復元しました」は最初の段の上でだけ言う（2026-11-06）。進んだら外す。 */
       if (i > 0) $('restore-bar').style.display = 'none';
+      /* ★段を移ったら「未入力があります」の赤箱を外す（2026-11-06。戻った先の、もう埋まっている段に残っていた）。欄の赤い印はそのまま。 */
+      if ($('err').dataset.from === 'miss') { $('err').innerHTML = ''; delete $('err').dataset.from; }
       /* 段を出し直したので、印とゲージを引き直す（隠れている間は数えていない）。 */
       markRequired();
       markProgress();
@@ -6054,7 +6090,7 @@ addEventListener('scroll', () => {
   });
 })();
 </script>
-<script src="payslip.js?v=91b6aa40"></script>
+<script src="payslip.js?v=dcbc16d3"></script>
 <script src="confetti.js"></script>
 <script src="pay-login.js"></script>
 <!-- ★ヘッダーを畳むのは search.js。id="main-nav" を持つページは必ず読む。

@@ -14,4 +14,5 @@ for (const d of [...Object.values(SALARY), ...Object.values(OPS)]) {
 }
 
 /* AI に訳させる文か（英字が2つ以上並び、残す名前そのものではない） */
-export const needsAI = (key) => /[A-Za-z]{2,}/.test(plain(key)) && !KEEP.has(plain(key));
+/* ★「e.g. 78.5」のように英字が1文字ずつの例も訳がいる（2026-11-06。2文字続く英字だけを見ていたので、数字の例21か所がスペイン語のページで英語のまま・数にも出なかった） */
+export const needsAI = (key) => (/[A-Za-z]{2,}/.test(plain(key)) || /^e\.g\./i.test(plain(key))) && !KEEP.has(plain(key));
