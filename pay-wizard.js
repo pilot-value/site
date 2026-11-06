@@ -879,7 +879,7 @@ function pdRowReview(pr) {
   var k = el('span', 'wz-rev-k', name || kind);
   var sub = [name ? kind : '', basis].filter(Boolean).join(' · ');
   if (sub) k.appendChild(el('small', 'wz-rev-sub', sub));
-  r.append(k, el('span', 'wz-rev-v', amt));
+  r.append(k, el('span', 'wz-rev-v', moneyPre() + amt));   // 打った額のまま、頭に通貨の記号
   return r;
 }
 function fieldLabel(fld) {
@@ -956,6 +956,8 @@ function fieldValue(fld) {
   if (!free) return boxed.join(C.lang === 'en' ? ', ' : '、');
   /* スペイン語のページ：対象月は「Octubre de 2026」（欄の並びのままだと「2026 Octubre」になる）。日英は今までどおり */
   if (window.PV_LANG === 'es' && parts.length === 2 && fld.querySelector('#f-year') && fld.querySelector('#f-month')) return parts[1] + ' de ' + parts[0];
+  /* 英語のページ：「October 2026」（2026-11-06。前は「2026 October」と出ていた）。スペイン語は上で返している */
+  if (C.lang === 'en' && parts.length === 2 && fld.querySelector('#f-year') && fld.querySelector('#f-month')) return parts[1] + ' ' + parts[0];
   return parts.concat(boxed).join(' ');
 }
 /* ── 内訳の横棒 ────────────────────────────────────────────────
@@ -1000,10 +1002,17 @@ function reviewComp(p) {
    ── サイトのほかの額と同じ書き方にそろえる（2026-11-05 オーナー「なんで JPY と ¥ の2通りがあるんだ」）。
    ★#wz-review は pv-no-cur（自動の換算で別の通貨に書き換えさせない ＝ 紙の明細と同じ数字のまま）。 */
 var SYM_ORIG = { JPY: '¥', USD: '$', EUR: '€', GBP: '£' };
-function moneyOrig(v) {
+/* ★スペイン語のページは currency.js の SYM_ES と同じ書き方（中南米で「$」は自国のペソ ── ドルは必ず US$・2026-11-06）。
+     前は内訳だけ「$700,000」で、同じ画面の年換算は「US$ 14.4 M」だった。 */
+var SYM_ORIG_ES = { JPY: '¥', USD: 'US$ ', EUR: '€ ', GBP: '£ ' };
+/* 額の頭（¥ / $ / US$ / AED …）。確認の画面の金額は全部これを頭に付ける ── 内訳の帯・欄の行・明細から読めた額で書き方を1つにする（2026-11-06）。 */
+function moneyPre() {
   var cur = C.read ? String(C.read('f-currency') || '').trim() : '';
-  var n = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(v));
-  return SYM_ORIG[cur] ? SYM_ORIG[cur] + n : (cur ? cur + ' ' + n : n);
+  var sym = (typeof window !== 'undefined' && window.PV_LANG === 'es') ? SYM_ORIG_ES : SYM_ORIG;
+  return sym[cur] || (cur ? cur + ' ' : '');
+}
+function moneyOrig(v) {
+  return moneyPre() + new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Math.round(v));
 }
 
 /* ★明細を読んだあとの1枚で隠した欄も、確認画面には全部出す（読むあいだだけ隠すのを外す）。 */
@@ -1097,6 +1106,10 @@ function renderReviewIn(pay) {
       if (!fld.offsetParent) return;                   // 条件で隠れている欄は出さない
       var v = fieldValue(fld);
       if (!v) return;
+      /* ★金額の欄は、内訳の帯と同じく頭に通貨の記号を付ける（2026-11-06。前は帯が「¥700,000」・行が「700,000」の2通りだった）。
+           打った数字はそのまま（丸めない・換算しない）。「該当なし」など、額でない答えには付けない。 */
+      var mi = fld.querySelector('input.money');
+      if (mi && v === String(mi.value || '').trim()) v = moneyPre() + v;
       var lab = fieldLabel(fld);
       if (!lab) return;
       var r = el('div', 'wz-rev-row');

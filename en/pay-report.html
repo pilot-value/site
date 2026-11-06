@@ -48,7 +48,7 @@
 <script>
 tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#18212f',accent:'#3d9bff',gold:'#f5c842',orange:'#f97316',text:'#e8edf2',muted:'#6b7d93'},fontFamily:{sans:['Inter','Noto Sans JP','sans-serif']}}}};
 </script>
-<link rel="stylesheet" href="../pay-report.css?v=7795e802">
+<link rel="stylesheet" href="../pay-report.css?v=82be490c">
 <!--PV-3P-->
 <script>
 /* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
@@ -1766,7 +1766,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 <!-- ★5ステップの器（Phase 5・2026-09-08）。日英でこの1本を共有する。
      読み込みに失敗したら window.PVPayWizard が無いまま＝下のインラインは
      これまでどおり「埋めると下が生える」1枚の長いページとして動く。 -->
-<script src="../pay-wizard.js?v=1de73646"></script>
+<script src="../pay-wizard.js?v=fb957126"></script>
 <script>
 // ── Supabase ──────────────────────────────────────────────────
 const _sb = supabase.createClient(
@@ -3555,7 +3555,8 @@ function fmtCur(v, code) {
   const meta = CUR_META[code] || [2, ''];
   const s = new Intl.NumberFormat('en-US', { minimumFractionDigits: 0, maximumFractionDigits: meta[0] }).format(Math.round(v));
   /* ★円・ドル・ユーロ・ポンドは記号（¥1,297,038）、ほかは略号（確認の画面の読み返しと同じ・2026-11-05） */
-  const SYM = { JPY: '¥', USD: '$', EUR: '€', GBP: '£' };
+  /* Spanish pages always write dollars as US$ (in Latin America "$" means the local peso; same as SYM_ES in currency.js, 2026-11-06) */
+  const SYM = window.PV_LANG === 'es' ? { JPY: '¥', USD: 'US$ ', EUR: '€ ', GBP: '£ ' } : { JPY: '¥', USD: '$', EUR: '€', GBP: '£' };
   return SYM[code] ? SYM[code] + s : (code ? code + ' ' : '') + s;
 }
 
@@ -3582,6 +3583,7 @@ function recalc() {
     : '—';
   $('live-total').innerHTML = totalHTML;
   $('sticky-total').innerHTML = totalHTML;
+  $('sticky-submit').classList.toggle('is-empty', !(t > 0));   // 数字が出るまで帯を見せない
   updateTax();   // the rate depends on annual pay, so redo it whenever a figure changes
   syncStickyBar();
 }
@@ -6303,7 +6305,7 @@ addEventListener('scroll', () => {
   });
 })();
 </script>
-<script src="../payslip.js?v=77b49a99"></script>
+<script src="../payslip.js?v=91b6aa40"></script>
 <script src="../confetti.js"></script>
 <script src="../pay-login.js"></script>
 <!-- ★ヘッダーを畳むのは search.js。id="main-nav" を持つページは必ず読む。

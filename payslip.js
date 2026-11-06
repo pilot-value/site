@@ -1887,7 +1887,8 @@
 
   /* 明細の通貨のまま書く額の頭（確認の画面と同じ決まり：円・ドル・ユーロ・ポンドは記号、ほかは略号＋空白）。 */
   function origPre(code) {
-    var S = { JPY: '¥', USD: '$', EUR: '€', GBP: '£' };
+    /* スペイン語のページはドルを必ず US$（中南米で「$」はペソ。currency.js の SYM_ES と同じ・2026-11-06） */
+    var S = window.PV_LANG === 'es' ? { JPY: '¥', USD: 'US$ ', EUR: '€ ', GBP: '£ ' } : { JPY: '¥', USD: '$', EUR: '€', GBP: '£' };
     code = String(code || '');
     return S[code] || (code ? esc2(code) + ' ' : '');
   }

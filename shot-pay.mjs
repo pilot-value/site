@@ -926,10 +926,10 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
         await goStep(page, i);
         if (i === 3) await unfoldContract(page);
         await shoot(page, `${tag}-${n}-${name}`);
-        const on = await page.evaluate(() => !document.getElementById('sticky-submit').hidden);
+        const on = await page.evaluate(() => { const e = document.getElementById('sticky-submit'); return !e.hidden && getComputedStyle(e).display !== 'none'; });
         barSeen.push(`${name}=${on ? '帯' : '—'}`);
       }
-      console.log(`     下端の帯: ${barSeen.join(' / ')}（s3-empty だけ「帯」が正しい）`);
+      console.log(`     下端の帯: ${barSeen.join(' / ')}（2026-11-06 から、金額が空のあいだはどの段も「—」が正しい）`);
 
       await fillSimple(page);
       await shoot(page, `${tag}-2-simple`);
@@ -1333,7 +1333,7 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
         return {
           step: window.PVPayWizard ? window.PVPayWizard.current() : '—',
           onLast: !document.getElementById('s5').hidden,
-          bar: !document.getElementById('sticky-submit').hidden,
+          bar: (() => { const e = document.getElementById('sticky-submit'); return !e.hidden && getComputedStyle(e).display !== 'none'; })(),
           total: document.getElementById('sticky-total').textContent.trim(),
           /* ★押す物が帯に戻っていないか（廃止した口が生き返っていないか）。 */
           btnInBar: !!document.querySelector('#sticky-submit button, #sticky-submit a'),

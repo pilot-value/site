@@ -1638,7 +1638,8 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   const visFold = (id) => page.$eval('#' + id, (el) => el.checkVisibility());
   /* ★常設バー（#sticky-submit）は position:fixed ＝ offsetParent が常に null なので
      vis() では測れない。出す・出さないは hidden ただ1つで決めている。 */
-  const stickyOn = () => page.$eval('#sticky-submit', (el) => !el.hidden);
+  /* ★2026-11-06 から、数字が出るまでは .is-empty で帯ごと見せない。hidden だけ見ると「出ている」と数えてしまう。 */
+  const stickyOn = () => page.$eval('#sticky-submit', (el) => !el.hidden && getComputedStyle(el).display !== 'none');
   const pick = (...ids) => Object.fromEntries(ids.map((k) => [k, SAMPLE[k]]));
   /* ★金額の欄は画面では '54,250' と桁区切りで出ている（2026-08-13）。
      入れた値と突き合わせるのが目的なので、読むときにカンマを落とす。
@@ -1869,7 +1870,7 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   ok(!(await vis('s1')), '★1画面1段（前の段は画面から下りる）');
   ok(!(await vis('s3')), 'まだ 3/5 は出ない');
   ok(!(await stickyOn()),
-     '★帯（年換算の合計）を出すのは 3/5 と 5/5 の2つだけ ── 2/5 では出さない');
+     '★帯（年換算の合計）を出すのは 3/5 だけ ── 2/5 では出さない');
 
   bad.push(...await setF(pick('f-block')));
   await goNext();
@@ -1887,13 +1888,12 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
      2026-08-27 の「3.報酬から『匿名で提出』を常に下に出す」は、5ステップ化に
      合わせて更新された ── **押す物は各段末尾の Next と 5/5 の提出だけ**。
      帯に残すのは年換算の合計だけで、途中の段から直接送れる口は作らない。 */
-  ok(await stickyOn(), '★帯は「3. 報酬」の段で出る');
+  /* ★2026-11-06：3/5 に来ても、金額を1つも入れていないあいだは帯を見せない（「—」だけの帯を置かない）。 */
+  ok(!(await stickyOn()), '★3/5 に来ても、数字が出るまでは帯を見せない');
   ok(await page.$eval('body', (el) => el.classList.contains('has-cta')),
      '★帯のぶんだけ本文に下余白を足している（最後の欄と「次へ」が隠れない）');
   ok(!(await page.$('#sticky-btn')),
      '★帯に押す物は無い（送信の入口は 5/5 のただ1つ）');
-  ok(await page.$eval('#sticky-total', (el) => el.textContent.trim().length > 0),
-     '★帯に出ているのは年換算の合計', await page.$eval('#sticky-total', (el) => el.textContent.trim()));
 
   /* ② 行き来しても値が消えない。戻って、入れたものがそのまま出ることを見る。 */
   await goBack();
@@ -1912,6 +1912,9 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   /* ★かんたん入力（既定）。2026-08-13 に、額面のほかに 手取り・今月出たボーナス・
      パーディアム・住居 が必須になった。1つずつ足して、揃うまで進めないことを見る。 */
   bad.push(...await setF({ 'f-currency': SAMPLE['f-currency'], 'f-gross': GROSS_M }));
+  ok(await stickyOn(), '★総支給を入れたら、3/5 の下に帯が出る');
+  ok(/\d/.test(await page.$eval('#sticky-total', (el) => el.textContent)),
+     '★帯に出ているのは年換算の合計（数字）', await page.$eval('#sticky-total', (el) => el.textContent.trim()));
   await goNext();
   ok(!(await vis('s4')),
      '★通貨と額面だけでは 4/5 へ進めない（手取り・パーディアム・住居が要る）');
@@ -6211,7 +6214,8 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
      m.secs.join(' | '));
   ok(m.missing.length === 0, `${T} ★12 基本給・保証給・職位手当・住宅手当が確認画面に出る`,
      m.missing.join(' / '));
-  ok(m.guar === '0', `${T} ★12 保証給の 0 が「回答済み」として1行出る（空欄として捨てない）`,
+  /* 2026-11-06 から確認の金額には頭に通貨の記号が付く（¥0 / AED 0）。見たいのは「0 が答えとして出る」こと */
+  ok(/^\D*0$/.test(m.guar), `${T} ★12 保証給の 0 が「回答済み」として1行出る（空欄として捨てない）`,
      String(m.guar));
   await page.close();
 }

@@ -48,7 +48,7 @@
 <script>
 tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#18212f',accent:'#3d9bff',gold:'#f5c842',orange:'#f97316',text:'#e8edf2',muted:'#6b7d93'},fontFamily:{sans:['Inter','Noto Sans JP','sans-serif']}}}};
 </script>
-<link rel="stylesheet" href="pay-report.css?v=7795e802">
+<link rel="stylesheet" href="pay-report.css?v=82be490c">
 <!--PV-3P-->
 <script>
 /* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
@@ -1732,7 +1732,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 <!-- ★5ステップの器（Phase 5・2026-09-08）。日英でこの1本を共有する。
      読み込みに失敗したら window.PVPayWizard が無いまま＝下のインラインは
      これまでどおり「埋めると下が生える」1枚の長いページとして動く。 -->
-<script src="pay-wizard.js?v=1de73646"></script>
+<script src="pay-wizard.js?v=fb957126"></script>
 <script>
 // ── Supabase ──────────────────────────────────────────────────
 const _sb = supabase.createClient(
@@ -3451,6 +3451,7 @@ function recalc() {
     : '—';
   $('live-total').innerHTML = totalHTML;
   $('sticky-total').innerHTML = totalHTML;
+  $('sticky-submit').classList.toggle('is-empty', !(t > 0));   // 数字が出るまで帯を見せない
   updateTax();   // 税率は年収で変わる。金額を触るたびに引き直す
   syncStickyBar();
 }
@@ -6053,7 +6054,7 @@ addEventListener('scroll', () => {
   });
 })();
 </script>
-<script src="payslip.js?v=77b49a99"></script>
+<script src="payslip.js?v=91b6aa40"></script>
 <script src="confetti.js"></script>
 <script src="pay-login.js"></script>
 <!-- ★ヘッダーを畳むのは search.js。id="main-nav" を持つページは必ず読む。

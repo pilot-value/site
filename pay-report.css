@@ -1777,5 +1777,19 @@ body:has(#entry[hidden]) #pay-count{display:none}
 /* 対象月の年と月は、狭い画面でも横に並べる（1つの答えを2段に割らない） */
 .grid2:has(>#f-year){grid-template-columns:1fr 1fr!important}
 /* 税率の説明は欄のすぐ下に（間を空けると、どの欄の話か分からない） */
-.card.sec .grid2.tax-row:has(+.tax-hint){margin-bottom:0}
+.card.sec .grid2.tax-row:has(~.tax-hint){margin-bottom:0} /* 間に見えない #tax-warn が挟まるので + ではなく ~ */
 .card.sec .tax-hint{margin:6px 0 0}
+
+/* ★2026-11-06（見直し）── 並びの中の「見えている最後の欄」で下の余白を切る。
+     住居の並びは、現金を選ぶまで額の欄が hidden。:last-child だと隠れた欄が最後と数えられ、
+     スマホで住居の下だけ1段ぶん広く空いていた。 */
+@media(max-width:600px){
+  .card.sec .grid2>.fld:not(:has(~.fld:not([hidden]))),.card.sec .grid3>.fld:not(:has(~.fld:not([hidden]))){margin-bottom:0}
+}
+/* ★確認の行：値の列が残りの幅を取り、その中で折り返す（2026-11-06）。
+     前は値の幅が足りないと行ごと折り返し、英語・スペイン語で「パーディアム」「通貨」の値が名前の下の行へ落ちて大きく空いていた。
+     欄名は今までどおり最大 52%（スマホ 46%）なので、名前が1文字ずつの縦書きに潰れることはない。 */
+.wz-rev-v{flex:1 1 0}
+/* ★年換算の帯は、数字が出るまで見せない（2026-11-06）。「年換算の総額 —」だけの帯は何も伝えない。
+     出す段かどうかは今までどおり hidden（pay-wizard.js の totalBar）が決め、ここは「数字があるか」だけを見る。 */
+.sticky-cta.is-empty{display:none}

@@ -769,8 +769,8 @@ console.log('\n══ ⑧ 明細を読んだあとは、明細にない項目だ
   await page.waitForFunction(() => PVPayWizard.current() === 's5', { timeout: 5000 }).catch(() => {});
   const rv = await page.evaluate(() => {
     const rows = [...document.querySelectorAll('#wz-review .wz-rev-row')].map((r) => r.textContent);
-    return { cur: PVPayWizard.current(), base: rows.some((t) => /^基本給700,000$/.test(t)),
-      gross: rows.some((t) => /^その月の総支給額1,169,867/.test(t)), pd: rows.some((t) => /^パーディアム.*45,000.*明細とは別に受け取っている/.test(t)),
+    return { cur: PVPayWizard.current(), base: rows.some((t) => /^基本給¥700,000$/.test(t)),
+      gross: rows.some((t) => /^その月の総支給額¥1,169,867/.test(t)), pd: rows.some((t) => /^パーディアム.*45,000.*明細とは別に受け取っている/.test(t)),
       ev: (window.dataLayer || []).filter((x) => x && x[0] === 'event' && /^pay_quick/.test(x[1])).map((x) => x[1]).join(',') };
   });
   ok(rv.cur === 's5', '★1枚を埋めたら、次は確認の画面（途中の段を通らない）', rv.cur);
@@ -784,7 +784,7 @@ console.log('\n══ ⑧ 明細を読んだあとは、明細にない項目だ
     window.PVCurrency.set('USD');
     await new Promise((r) => setTimeout(r, 400));
     const rows = [...document.querySelectorAll('#wz-review .wz-rev-row')].map((r) => r.textContent);
-    const o = { review: rows.some((t) => /^基本給700,000$/.test(t)), pace: document.querySelector('.ps-aha-pv').textContent.trim(),
+    const o = { review: rows.some((t) => /^基本給¥700,000$/.test(t)), pace: document.querySelector('.ps-aha-pv').textContent.trim(),
       rate: document.querySelector('.ps-rate-v').textContent.trim(), sticky: document.getElementById('sticky-total').textContent.trim() };
     window.PVCurrency.set('JPY');
     await new Promise((r) => setTimeout(r, 300));
