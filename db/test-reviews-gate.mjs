@@ -608,5 +608,73 @@ console.log('\n▼ 7. 口コミの番号（id）は、本文を読める人と�
      '★★鍵の無い人のトップの抜粋は、id が無いことのほかは鍵を持つ人の返事と1字も違わない');
 }
 
+
+/* ══ ★2026-11-06 鍵の無い人の一覧は「書き込みのときに作っておいた行」を引くだけ（Supabase の Disk IO 警告）══
+   答えが元の作り方と1字も違わないことを、元の関数の写し（REF）と突き合わせて確かめる。
+   ⚠️ REF は 2026-11-06 時点の pv_reviews の写し。鍵の無い人の行の形をわざと変えるときは、
+      db/reviews-gate.sql の pv_review_card_of() と else の式、そしてこの REF の3つを一緒に直す。 */
+const REF = "create or replace function public.pv_reviews_ref(p jsonb default '{}'::jsonb)\nreturns jsonb\nlanguage plpgsql\nsecurity definer\nstable\nset search_path = public, extensions\nas $fn$\ndeclare\n  v_uid   uuid    := auth.uid();\n  v_open  boolean := public.pv_has_review_key();\n  v_air   text    := nullif(btrim(p->>'airline'), '');\n  v_airs  text[]  := null;\n  v_mine  boolean := coalesce((p->>'mine')::boolean, false);\n  v_limit int     := least(greatest(coalesce((p->>'limit')::int, 200), 1), 500);\n  v_hide  text[]  := array['culture_comment', 'salary_comment', 'benefits_comment',\n                           'wlb_comment', 'ops_comment', 'training_comment',\n                           'mgmt_comment', 'translations'];\n  v_rows  jsonb;\nbegin\n  if jsonb_typeof(p->'airlines') = 'array' then\n    select array_agg(x) into v_airs from jsonb_array_elements_text(p->'airlines') x;\n    if v_airs is not null and cardinality(v_airs) = 0 then v_airs := null; end if;\n  end if;\n  if v_mine and v_uid is null then\n    raise exception 'ログインが必要です' using errcode = '42501';\n  end if;\n  with mine as (\n    select public.pv_review_hash(v_uid, c) as h\n      from public.pv_review_codes() c\n     where v_mine and v_uid is not null\n  ), src as (\n    select to_jsonb(r) as j, r.created_at as at, r.airline as air, r.proof_hash as ph\n      from public.reviews_v2 r\n    union all\n    select (to_jsonb(q) - 'claim_token' - 'claimed_at' - 'ip_day_hash')\n             || jsonb_build_object('pending', true),\n           q.created_at, q.airline, null::text\n      from public.pv_review_pending q\n     where q.claimed_at is null\n  ), pick as (\n    select s.*\n      from src s\n     where (v_air  is null or s.air = v_air)\n       and (v_airs is null or s.air = any (v_airs))\n       and (not v_mine or s.ph in (select h from mine))\n     order by s.at desc nulls last\n     limit v_limit\n  )\n  select coalesce(jsonb_agg(z.j order by z.ord), '[]'::jsonb)\n    into v_rows\n    from (\n      select row_number() over (order by pick.at desc nulls last) as ord,\n             (case when v_open then pick.j - 'proof_hash'\n                   when v_mine then pick.j - 'proof_hash' - v_hide\n                   else pick.j - 'proof_hash' - v_hide - 'id' end)\n             || jsonb_build_object('cats', to_jsonb(ck.a), 'n', ck.n)\n             || case when v_open or ck.a[1] is null then '{}'::jsonb\n                     else jsonb_build_object('clip', jsonb_build_object(\n                       'k', ck.a[1],\n                       'o', public.pv_review_clip(\n                              pick.j ->> (ck.a[1] || '_comment'), 81),\n                       't', coalesce((\n                              select jsonb_object_agg(l.key,\n                                       to_jsonb(public.pv_review_clip(\n                                         l.value ->> ck.a[1], 81)))\n                                from jsonb_each(case when jsonb_typeof(pick.j -> 'translations') = 'object'\n                                                     then pick.j -> 'translations'\n                                                     else '{}'::jsonb end) l\n                               where jsonb_typeof(l.value) = 'object'\n                                 and nullif(l.value ->> ck.a[1], '') is not null\n                            ), '{}'::jsonb)))\n                end as j\n        from pick,\n             lateral (select array_remove(array[\n                  case when btrim(coalesce(pick.j ->> 'culture_comment',  '')) <> '' then 'culture'  end,\n                  case when btrim(coalesce(pick.j ->> 'salary_comment',   '')) <> '' then 'salary'   end,\n                  case when btrim(coalesce(pick.j ->> 'benefits_comment', '')) <> '' then 'benefits' end,\n                  case when btrim(coalesce(pick.j ->> 'wlb_comment',      '')) <> '' then 'wlb'      end,\n                  case when btrim(coalesce(pick.j ->> 'ops_comment',      '')) <> '' then 'ops'      end,\n                  case when btrim(coalesce(pick.j ->> 'training_comment', '')) <> '' then 'training' end,\n                  case when btrim(coalesce(pick.j ->> 'mgmt_comment',     '')) <> '' then 'mgmt'     end\n                ], null) as a,\n                public.pv_review_len(pick.j) as n) ck\n    ) z;\n  return jsonb_build_object('ok', true, 'unlocked', v_open, 'rows', v_rows);\nend\n$fn$;";
+console.log('\n▼ ★鍵の無い人の一覧は作っておいた行を引くだけ ── 元の作り方と1字も違わない');
+{
+  await asOwner();
+  await db.exec(REF + '\ngrant execute on function public.pv_reviews_ref(jsonb) to anon, authenticated;');
+  const PS = [{}, { airline: 'ana' }, { airlines: ['ana', 'ana-wings'] }, { limit: 2 }, { airlines: [] },
+              { airline: 'nope' }, { limit: 600 }, { airline: ' jal ' }];
+  /* 同じ時刻の行どうしの並びは、元の作り方でも決まっていない（どちらも正しい）。それ以外は1字も違わない。 */
+  const sameRows = (a, b) => {
+    if (JSON.stringify(a) === JSON.stringify(b)) return true;
+    const ka = a.rows.map((r) => JSON.stringify(r)).sort(), kb = b.rows.map((r) => JSON.stringify(r)).sort();
+    return a.unlocked === b.unlocked && JSON.stringify(ka) === JSON.stringify(kb)
+      && JSON.stringify(a.rows.map((r) => r.created_at)) === JSON.stringify(b.rows.map((r) => r.created_at));
+  };
+  const check = async () => {
+    const bad = [];
+    for (const who of ['anon', 'user']) {
+      if (who === 'anon') await asAnon(); else { await asOwner(); await mkUser(901); await asUser(901); }
+      for (const p of PS) {
+        const a = (await one('select public.pv_reviews($1::jsonb) as v', [JSON.stringify(p)])).v;
+        const b = (await one('select public.pv_reviews_ref($1::jsonb) as v', [JSON.stringify(p)])).v;
+        if (!sameRows(a, b)) bad.push(`${who} ${JSON.stringify(p)} new=${a.rows.length} ref=${b.rows.length}`);
+      }
+    }
+    await asOwner();
+    return bad;
+  };
+  const n0 = (await one('select count(*)::int as n from public.reviews_v2')).n;
+  ok(n0 > 0 && (await one('select count(*)::int as n from public.pv_review_card')).n >= n0,
+     '作っておいた行が、口コミの数だけある', String(n0));
+  let bad = await check();
+  ok(!bad.length, '★はじめ：鍵の無い人・鍵の無い会員の一覧が、元の作り方と1字も違わない（8通りの絞り込み）', bad.join(' | '));
+  /* 入る（訳つき・長文・空白だけの欄）／直る／訳が後から付く／消える／預かりが入る／引き取られる、のどれでも作り直されている */
+  await db.query(`insert into public.reviews_v2(proof_hash, airline, created_at, culture_comment, wlb_comment, translations)
+     values ('ph-card-1', 'ana', '2026-11-06T00:00:01Z', '   ', $1, $2::jsonb),
+            ('ph-card-2', 'ana-wings', '2026-11-06T00:00:02Z', $3, null, null)`,
+    [LONG_A, JSON.stringify({ en: { wlb: 'W'.repeat(120) }, es: { wlb: 'x' } }), 'みじかい']);
+  bad = await check(); ok(!bad.length, '★口コミが入っても、元の作り方と同じ', bad.join(' | '));
+  await db.query(`update public.reviews_v2 set salary_comment = $1 where proof_hash = 'ph-card-2'`, [LONG_B]);
+  bad = await check(); ok(!bad.length, '★口コミが直っても、元の作り方と同じ', bad.join(' | '));
+  await db.query(`update public.reviews_v2 set translations = $1::jsonb where proof_hash = 'ph-card-2'`,
+    [JSON.stringify({ en: { culture: 'Short in English', salary: 'S'.repeat(90) } })]);
+  bad = await check(); ok(!bad.length, '★訳が後から付いても、元の作り方と同じ', bad.join(' | '));
+  await db.query(`delete from public.reviews_v2 where proof_hash = 'ph-card-1'`);
+  bad = await check(); ok(!bad.length, '★口コミが消えても、元の作り方と同じ（消えた行は一覧に残らない）', bad.join(' | '));
+  await db.query(`insert into public.pv_review_pending(claim_token, airline, created_at, ops_comment)
+     values ('tok-card-1', 'ana', '2026-11-06T00:00:03Z', $1)`, [LONG_B]);
+  bad = await check(); ok(!bad.length, '★預かりが入っても、元の作り方と同じ（pending の印つき）', bad.join(' | '));
+  await db.query(`update public.pv_review_pending set claimed_at = now() where claim_token = 'tok-card-1'`);
+  bad = await check(); ok(!bad.length, '★預かりが引き取られたら一覧から外れる（元の作り方と同じ）', bad.join(' | '));
+  /* 壊す証明：引き金を外すと、直したのに古い行のまま ＝ 元の作り方と食い違う（この検査は空振りしていない） */
+  await db.exec('drop trigger if exists pv_review_card_sync on public.reviews_v2');
+  await db.query(`update public.reviews_v2 set salary_comment = 'こわすしょうめい' where proof_hash = 'ph-card-2'`);
+  bad = await check();
+  ok(bad.length > 0, '★壊す証明：引き金を外すと、元の作り方と食い違う（検査が空振りしていない）', String(bad.length));
+  await db.exec(read('db/reviews-gate.sql'));
+  bad = await check(); ok(!bad.length, '★このファイルを貼り直すと、全部作り直されて元の作り方と同じに戻る', bad.join(' | '));
+  /* 作っておいた行の表そのものは誰にも読ませない */
+  await asAnon();
+  ok(!!(await boom('select * from public.pv_review_card limit 1')), '作っておいた行の表は、鍵の無い人から直接は読めない');
+  await asOwner();
+}
+
 console.log(`\n══ ${pass} pass / ${fail} fail ══`);
 process.exit(fail ? 1 : 0);

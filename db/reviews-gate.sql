@@ -275,6 +275,24 @@ begin
     raise exception 'ログインが必要です' using errcode = '42501';
   end if;
 
+  /* ★鍵の無い人の一覧は、書き込みのときに作っておいた行を引くだけ（2026-11-06）。
+       Supabase から「Disk IO の予算を使い切りそう」と警告が来た。10-31〜11-06 の6日半で 19,423 回・1回 0.3 秒
+       ＝ いちばん重い処理だった（呼ばれるたびに全部の口コミを to_jsonb にし、字数・項目・先頭80字・訳の先頭80字を作り直していた）。
+       行の形は 4-b の pv_review_card_of() が作る ── 下の else と同じ式。答えは1字も変わらない（db/test-reviews-gate.mjs が
+       元の作り方と突き合わせている）。鍵を持つ人・自分の口コミ（mine）は今までどおり下で作る。
+     ⚠️ ここに条件を足すときは、pv_review_card_of() と下の else の両方を直す（2つは同じでなければならない）。 */
+  if not v_open and not v_mine then
+    select coalesce(jsonb_agg(c.card order by c.at desc nulls last), '[]'::jsonb)
+      into v_rows
+      from (select k.card, k.at
+              from public.pv_review_card k
+             where (v_air  is null or k.air = v_air)
+               and (v_airs is null or k.air = any (v_airs))
+             order by k.at desc nulls last
+             limit v_limit) c;
+    return jsonb_build_object('ok', true, 'unlocked', false, 'rows', v_rows);
+  end if;
+
   with mine as (
     select public.pv_review_hash(v_uid, c) as h
       from public.pv_review_codes() c
@@ -396,6 +414,126 @@ as $fn$
 $fn$;
 
 revoke all on function public.pv_review_clip(text, int) from public, anon, authenticated;
+
+
+-- ════════════════════════════════════════════════════════════════
+-- 4-b. pv_review_card — 鍵の無い人へ返す口コミ1件の形を、書き込みのときに作って置いておく（2026-11-06）
+--
+-- なぜ：pv_reviews が呼ばれるたびに全部の口コミを組み立て直していた（1回 0.3 秒・1日 3,000 回）。
+--   中身は書き込みがあるまで変わらない。CLAUDE.md「呼ばれるたびに全員分を数え直す処理を新しく足さない。
+--   足すなら、書き込みのときに数えて保存し、読むときは引くだけにする」（2026-10-31 に本番が30分止まった）。
+-- 守ること
+--   ・行の形は pv_reviews の else（鍵の無い人）と1字も違わない。式を直すときは2か所とも直す。
+--   ・口コミ（reviews_v2）と、引き取っていない預かり（pv_review_pending）の、入る・直る・消える・引き取られる、のどれでも作り直す。
+--   ・表は誰にも読ませない（読むのは pv_reviews だけ）。本文そのものは持たない（先頭80字の抜粋と字数だけ ── 鍵の無い人に返す分と同じ）。
+--   ・列が増えたなどで形が変わったら、このファイルを貼り直せば末尾の pv_review_card_rebuild() が全部作り直す。
+-- ════════════════════════════════════════════════════════════════
+create or replace function public.pv_review_card_of(j jsonb)
+returns jsonb
+language sql
+immutable
+set search_path = public, extensions
+as $fn$
+  select (j - 'proof_hash'
+            - array['culture_comment', 'salary_comment', 'benefits_comment', 'wlb_comment',
+                    'ops_comment', 'training_comment', 'mgmt_comment', 'translations']
+            - 'id')
+         || jsonb_build_object('cats', to_jsonb(ck.a), 'n', ck.n)
+         || case when ck.a[1] is null then '{}'::jsonb
+                 else jsonb_build_object('clip', jsonb_build_object(
+                   'k', ck.a[1],
+                   'o', public.pv_review_clip(j ->> (ck.a[1] || '_comment'), 81),
+                   't', coalesce((
+                          select jsonb_object_agg(l.key,
+                                   to_jsonb(public.pv_review_clip(l.value ->> ck.a[1], 81)))
+                            from jsonb_each(case when jsonb_typeof(j -> 'translations') = 'object'
+                                                 then j -> 'translations'
+                                                 else '{}'::jsonb end) l
+                           where jsonb_typeof(l.value) = 'object'
+                             and nullif(l.value ->> ck.a[1], '') is not null
+                        ), '{}'::jsonb)))
+            end
+    from (select array_remove(array[
+                   case when btrim(coalesce(j ->> 'culture_comment',  '')) <> '' then 'culture'  end,
+                   case when btrim(coalesce(j ->> 'salary_comment',   '')) <> '' then 'salary'   end,
+                   case when btrim(coalesce(j ->> 'benefits_comment', '')) <> '' then 'benefits' end,
+                   case when btrim(coalesce(j ->> 'wlb_comment',      '')) <> '' then 'wlb'      end,
+                   case when btrim(coalesce(j ->> 'ops_comment',      '')) <> '' then 'ops'      end,
+                   case when btrim(coalesce(j ->> 'training_comment', '')) <> '' then 'training' end,
+                   case when btrim(coalesce(j ->> 'mgmt_comment',     '')) <> '' then 'mgmt'     end
+                 ], null) as a,
+                 public.pv_review_len(j) as n) ck
+$fn$;
+revoke all on function public.pv_review_card_of(jsonb) from public, anon, authenticated;
+
+create table if not exists public.pv_review_card (
+  k    text primary key,          -- 'r:' || reviews_v2.id ／ 'q:' || pv_review_pending.id
+  air  text,
+  at   timestamptz,
+  card jsonb not null
+);
+alter table public.pv_review_card enable row level security;
+revoke all on table public.pv_review_card from public, anon, authenticated;
+create index if not exists pv_review_card_at on public.pv_review_card (at desc nulls last);
+
+/* 1行ぶん作り直す（入る・直る・消える・引き取られる）。預かりは引き取られていないものだけ置く。 */
+create or replace function public.pv_review_card_sync()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, extensions
+as $fn$
+declare
+  v_pre text := case when tg_table_name = 'reviews_v2' then 'r:' else 'q:' end;
+  v_j   jsonb;
+begin
+  if tg_op in ('UPDATE', 'DELETE') then
+    delete from public.pv_review_card where k = v_pre || old.id::text;
+  end if;
+  if tg_op in ('INSERT', 'UPDATE') then
+    if tg_table_name = 'reviews_v2' then
+      v_j := to_jsonb(new);
+    elsif new.claimed_at is null then
+      v_j := (to_jsonb(new) - 'claim_token' - 'claimed_at' - 'ip_day_hash') || jsonb_build_object('pending', true);
+    end if;
+    if v_j is not null then
+      insert into public.pv_review_card(k, air, at, card)
+      values (v_pre || new.id::text, new.airline, new.created_at, public.pv_review_card_of(v_j));
+    end if;
+  end if;
+  return null;
+end
+$fn$;
+revoke all on function public.pv_review_card_sync() from public, anon, authenticated;
+
+drop trigger if exists pv_review_card_sync on public.reviews_v2;
+create trigger pv_review_card_sync after insert or update or delete on public.reviews_v2
+  for each row execute function public.pv_review_card_sync();
+drop trigger if exists pv_review_card_sync on public.pv_review_pending;
+create trigger pv_review_card_sync after insert or update or delete on public.pv_review_pending
+  for each row execute function public.pv_review_card_sync();
+
+/* 全部作り直す（このファイルを貼るたびに末尾で1回）。 */
+create or replace function public.pv_review_card_rebuild()
+returns void
+language plpgsql
+security definer
+set search_path = public, extensions
+as $fn$
+begin
+  delete from public.pv_review_card where true;
+  insert into public.pv_review_card(k, air, at, card)
+  select 'r:' || r.id::text, r.airline, r.created_at, public.pv_review_card_of(to_jsonb(r))
+    from public.reviews_v2 r
+  union all
+  select 'q:' || q.id::text, q.airline, q.created_at,
+         public.pv_review_card_of((to_jsonb(q) - 'claim_token' - 'claimed_at' - 'ip_day_hash') || jsonb_build_object('pending', true))
+    from public.pv_review_pending q
+   where q.claimed_at is null;
+end
+$fn$;
+revoke all on function public.pv_review_card_rebuild() from public, anon, authenticated;
+select public.pv_review_card_rebuild();
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -724,4 +862,12 @@ select '⑦ Vote の流れるカード（12件まで・1件80字まで）',
             then '❌ 訳文が1件で80字を超えている'
           when exists (select 1 from v where not jsonb_exists(v.x, 'n')) then '❌ 文字数（n）が無い行がある'
           else '✅ 12件まで・1件80字まで・文字数つき'
-        end);
+        end)
+union all
+/* ★⑧ 鍵の無い人の一覧の作り置き（2026-11-06・Supabase の Disk IO 警告）。口コミと、引き取っていない預かりの数だけ作ってあるか。 */
+select '⑧ 鍵の無い人の一覧の作り置き（pv_review_card）',
+       case when (select count(*) from public.pv_review_card)
+               = (select count(*) from public.reviews_v2)
+               + (select count(*) from public.pv_review_pending where claimed_at is null)
+            then '✅ 口コミと預かりの数だけある（' || (select count(*) from public.pv_review_card) || '件）'
+            else '❌ 数が合わない（このファイルをもう一度貼る）' end;
