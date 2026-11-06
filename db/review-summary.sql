@@ -723,6 +723,10 @@ security definer
 set search_path = public, extensions
 as $fn$
 begin
+  -- 同じキャッシュへの同時更新を直列化する。ロック待ち後の別文で読み直す。
+  -- refresh と rebuild は同じキーを使い、トランザクション終了時に自動解放する。
+  perform pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtext('public.pv_review_summary_pub'), 0);
   delete from public.pv_review_summary_pub where airline = p_air;
   if p_air is null or not exists (select 1 from public.pv_airlines a where a.code = p_air and a.code <> 'other') then return; end if;
   insert into public.pv_review_summary_pub(airline, lang, core)
@@ -793,6 +797,10 @@ set search_path = public, extensions
 as $fn$
 declare c text;
 begin
+  -- 同じキャッシュへの同時更新を直列化する。ロック待ち後の別文で読み直す。
+  -- refresh と rebuild は同じキーを使い、トランザクション終了時に自動解放する。
+  perform pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtext('public.pv_review_summary_pub'), 0);
   delete from public.pv_review_summary_pub where true;
   for c in select a.code from public.pv_airlines a where a.code <> 'other' loop
     perform public.pv_review_summary_pub_refresh(c);
