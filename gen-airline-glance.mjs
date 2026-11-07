@@ -55,7 +55,8 @@ let UP = '../';                                     // 会社ページ（airline
 let PUP = '../';
 let W;                                              // いまの言葉の字（WORDS[LANG]。下の WORDS のすぐ後ろで日本語にする）
 const CSS = ['career-live.css', 'pv-glance.css', 'pv-gg.css'];   // pv-gg.css ＝「Give & Get」のボタンの形（サイトに1つ）
-const JS = ['career-live.js', 'pv-glance.js'];
+/* pv-follow.js ＝ 社名の下の行の「＋ フォロー」（2026-11-07・書き込みは career-live.js ではなくこちら） */
+const JS = ['career-live.js', 'pv-glance.js', 'pv-follow.js'];
 export const ASSETS = [...CSS, ...JS];
 /* 「情報を追加」の面（pv-contrib.*）。タブを持つページだけが読む。 */
 export const CONTRIB = { css: 'pv-contrib.css', js: 'pv-contrib.js' };
@@ -324,6 +325,7 @@ ${logoHtml(v, { up: UP })}<h1>${keep.h1}</h1><span class="pvg-code">${esc(v.code
 </div>
 <div class="pvg-meta">
 ${where}${live('stars', { airline: v.slug })}
+<button type="button" class="pvg-follow" data-pv-follow="${esc(v.slug)}" aria-pressed="false"><span class="pvg-follow-ic" aria-hidden="true">＋</span><span class="pvg-follow-t">${W.follow}</span></button>
 </div>
 </div>${acts ? `
 <div class="pvg-acts">
@@ -1361,7 +1363,7 @@ export const WORDS = Object.freeze({
     whole: '会社全体の制度', agree: '労働協約', pubTerms: '会社が公表している条件', srcLabel: '出典', cite: '出典',
     answerAnon: '匿名で答える', answer: '答える', moreSrc: n => `ほか${n}件と出典`, seeSrc: '出典を見る',
     moreCite: n => `ほか${n}件と出典`, seeCite: '出典を見る', close: '閉じる',
-    saveCard: 'カードを保存', compare: '他社と比較', compareShort: '比較する', makeCard: 'カードにする',
+    saveCard: 'カードを保存', compare: '他社と比較', compareShort: '比較する', makeCard: 'カードにする', follow: 'フォロー',
     member: (a, x) => (x ? `${a}加盟（${x}）` : `${a}加盟`),
     pay: '給与', realPay: '提出された年収', estBy: '当サイトの推定', medBy: '会員が出した年収の中央値',
     tm: { pay: '給与と待遇の条件', work: '勤務の条件', life: '通勤の条件', stay: 'ステイの条件' }, tmRef: '参考',
@@ -1432,7 +1434,7 @@ export const WORDS = Object.freeze({
     whole: 'Company-wide policy', agree: 'Collective agreement', pubTerms: 'Terms published by the airline', srcLabel: 'Sources', cite: 'Sources',
     answerAnon: 'Answer anonymously', answer: 'Answer', moreSrc: n => `${n} more, with sources`, seeSrc: 'See sources',
     moreCite: n => `${n} more, with sources`, seeCite: 'See sources', close: 'Close',
-    saveCard: 'Save card', compare: 'Compare', compareShort: 'Compare', makeCard: 'Make a card',
+    saveCard: 'Save card', compare: 'Compare', compareShort: 'Compare', makeCard: 'Make a card', follow: 'Follow',
     member: (a, x) => (x ? `${a} member (${x})` : `${a} member`),
     pay: 'Pay', realPay: 'Submitted pay', estBy: 'Our estimate', medBy: 'Median of pay submitted by members',
     tm: { pay: 'Pay and benefit terms', work: 'Work rules', life: 'Getting to work', stay: 'Layover rules' }, tmRef: 'Reference',

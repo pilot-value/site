@@ -280,6 +280,9 @@ const STAMPS = [
   /* ★2026-11-07 ホーム画面に追加の案内（MY PAGE と給与を出し終えた画面）。直したら、出た値を日英の4枚に写す（西は gen-lang.mjs）。 */
   { pages: [['pay-report.html', ''], ['en/pay-report.html', '../'], ['profile.html', ''], ['en/profile.html', '../']],
     files: ['pv-app.js'] },
+  /* ★2026-11-07 フォロー中の会社の一覧（マイページ）。会社ページの読み込みは gen-airline-glance.mjs が付け直す */
+  { pages: [['profile.html', ''], ['en/profile.html', '../']],
+    files: ['pv-follow.js'] },
 ];
 const stampIssues = [];
 for (const { pages, files } of STAMPS) {

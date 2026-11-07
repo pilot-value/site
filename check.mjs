@@ -48,6 +48,8 @@ const SQL = [
   ['db/test-digest.mjs', 5],
   /* 2026-11-06 登録した会員への歓迎メール（db/welcome-mail.sql ＋ welcome-member）。誰に・1人1回・会員から触れない・文面がサイトの字と同じ・壊す証明 */
   ['db/test-welcome.mjs', 2], ['db/test-welcome-followup.mjs', 2],
+  /* 2026-11-07 気になる会社のフォロー（db/follow.sql ＋ follow-notify）。本人に知らせない・件数を返さない・24時間に1通・壊す証明 */
+  ['db/test-follow.mjs', 8],
   ['db/test-stays.mjs', 8],
   /* 2026-10-18（WP-close-a）：段階3の2本を足した。秒数は単独で流した実測 */
   ['db/test-towns.mjs', 6], ['db/test-proof-offer.mjs', 3],

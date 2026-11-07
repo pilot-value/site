@@ -510,6 +510,8 @@
         <div class="glass mp-remind" id="remind-card">
           <div id="mv-remind-slot" class="mp-remind-slot">Cargando…</div>
         </div>
+        <!-- ★フォロー中の会社（2026-11-07・pv-follow.js が描く。自分の会社は最初から入っている・外せる） -->
+        <div class="glass" data-pv-follow-list style="margin-top:20px;display:none"></div>
         <!-- ★ホーム画面に追加（2026-11-07・pv-app.js が描く。PC・アプリとして開いているときは出さない） -->
         <div class="glass" data-pv-app="mypage" style="margin-top:20px;display:none"></div>
     <!-- Password -->
@@ -1146,6 +1148,7 @@
      同じ my_pay_reports() を叩き、同じ pay-viz.js で図を描く実装が2つあった。 -->
 <script src="../my-value.js"></script>
 <script src="../pv-app.js?v=a95c64dd"></script>
+<script src="../pv-follow.js?v=1cc623fa"></script>
 <!-- "Please resubmit" notice. Shown **only to the member themselves** when one of
      their own pay reports has net pay above gross pay.
      ★Nothing is shown to signed-out visitors or to members with nothing to fix

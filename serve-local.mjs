@@ -74,6 +74,7 @@ export const SQL_FILES = [
   'db/contrib.sql',
   'db/ask-own-airline.sql', // 戻ってきた会員に「〇〇のこと、ひとつ教えて。」（2026-10-30）。contrib.sql・reviews-gate.sql・airline-conditions.sql のあと
   'db/hotel-suggest.sql',   // ホテルの名前の候補（Google）の月 10,000 回の数え札。ほかのファイルに頼らない（2026-10-19）
+  'db/follow.sql',          // 気になる会社のフォロー（2026-11-07）。member-median.sql（テスト用アカウント）・pilot-proof.sql・reviews-gate.sql・airline-conditions.sql のあと
 ];
 
 /* Supabase が最初から持っているもの（auth・役・既定の権限）と、

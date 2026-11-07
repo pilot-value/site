@@ -15838,4 +15838,13 @@ export const TM = {
   "js:'Add to Home Screen'": {"es": "js:'Agregar a la pantalla de inicio'", "st": "manual", "by": "claude-review", "at": "2026-11-07", "pages": ["pv-app.js"], "note": "ホーム画面に追加の案内（iPhone の Safari・Android の Chrome の中南米スペイン語の項目名に合わせた）"},
   "js:'Tap {share}, then “Add to Home Screen”'": {"es": "js:'Toca {share} y luego «Agregar a inicio»'", "st": "manual", "by": "claude-review", "at": "2026-11-07", "pages": ["pv-app.js"], "note": "ホーム画面に追加の案内（iPhone の Safari・Android の Chrome の中南米スペイン語の項目名に合わせた）"},
   "js:'Open the menu (⋮), then “Add to Home screen”'": {"es": "js:'Abre el menú (⋮) y luego «Agregar a la pantalla principal»'", "st": "manual", "by": "claude-review", "at": "2026-11-07", "pages": ["pv-app.js"], "note": "ホーム画面に追加の案内（iPhone の Safari・Android の Chrome の中南米スペイン語の項目名に合わせた）"},
+  "Follow": {"es": "Seguir", "st": "manual", "by": "claude-review", "at": "2026-11-07", "pages": ["en/airlines/*.html"], "note": "気になる会社のフォロー"},
+  "js:'Follow'": {"es": "js:'Seguir'", "st": "manual", "by": "claude-review", "at": "2026-11-07", "pages": ["pv-follow.js"], "note": "気になる会社のフォロー"},
+  "js:'Following'": {"es": "js:'Siguiendo'", "st": "manual", "by": "claude-review", "at": "2026-11-07", "pages": ["pv-follow.js"], "note": "気になる会社のフォロー"},
+  "js:'You can follow up to 10 airlines. Remove one on My Page.'": {"es": "js:'Puedes seguir hasta 10 aerolíneas. Quita una en Mi página.'", "st": "manual", "by": "claude-review", "at": "2026-11-07", "pages": ["pv-follow.js"], "note": "気になる会社のフォロー"},
+  "js:'Could not save. Please try again.'": {"es": "js:'No se pudo guardar. Inténtalo de nuevo.'", "st": "manual", "by": "claude-review", "at": "2026-11-07", "pages": ["pv-follow.js"], "note": "気になる会社のフォロー"},
+  "js:'Airlines you follow'": {"es": "js:'Aerolíneas que sigues'", "st": "manual", "by": "claude-review", "at": "2026-11-07", "pages": ["pv-follow.js"], "note": "気になる会社のフォロー"},
+  "js:'We email you when new pay, reviews or working conditions are added.'": {"es": "js:'Te avisamos por correo cuando se agregan remuneraciones, reseñas o condiciones de trabajo nuevas.'", "st": "manual", "by": "claude-review", "at": "2026-11-07", "pages": ["pv-follow.js"], "note": "気になる会社のフォロー"},
+  "js:'Your airline'": {"es": "js:'Tu aerolínea'", "st": "manual", "by": "claude-review", "at": "2026-11-07", "pages": ["pv-follow.js"], "note": "気になる会社のフォロー"},
+  "js:'Add airlines with “+ Follow” on an airline page.'": {"es": "js:'Agrega aerolíneas con «+ Seguir» en la página de una aerolínea.'", "st": "manual", "by": "claude-review", "at": "2026-11-07", "pages": ["pv-follow.js"], "note": "気になる会社のフォロー"},
 };
