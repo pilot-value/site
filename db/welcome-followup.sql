@@ -14,7 +14,7 @@
 --     pv_welcome_followup_mark(id,ok) … 送れた／送れなかったを記録する
 --
 --   誰に送るか（すべて満たす人だけ）
---     ・通知を希望している（email_opt_in）。登録時の同意は「有益な更新」。中身は本人の会社のページの案内＋お願い1つ
+--     ・通知を希望している（email_opt_in）
 --     ・歓迎メールを受け取った人で、それから2日以上たっている（2通が続けて届かない）
 --     ・登録から3日以上・10日以内（★今までの会員には送らない。歓迎メールを受け取った人だけなので、新しく登録した人だけ）
 --     ・給与をまだ1件も出していない（pay_report_count = 0）
@@ -22,7 +22,7 @@
 --     ・1人1回（送れたら二度と選ばない・3回失敗したら諦める）
 --
 --   ★誰にも grant しない。service_role だけが呼べる。security definer なので、下の revoke が命綱。
---   ★勤務先は自由入力。語彙に寄せた会社コード・会社名（表の名前）・地域だけを返す（打ち込まれた字は返さない）。
+--   ★文面は全員に同じ1通（オーナーの文・2026-11-07）。勤務先は言語の推測に使う地域だけを返す（打ち込まれた字も会社名も返さない）。
 --   ★何度貼っても同じ。
 -- ════════════════════════════════════════════════════════════════
 
@@ -60,11 +60,7 @@ returns table (
   country        text,
   airline_region text,
   lang           text,
-  unsub_token    text,
-  airline        text,      -- 会社コード（一覧に無い・語彙に当たらない会社は null）
-  airline_ja     text,
-  airline_en     text,
-  airline_page   boolean    -- 会社のページがある（年収を載せている会社）
+  unsub_token    text
 )
 language sql
 stable
@@ -72,16 +68,14 @@ security definer
 set search_path = public
 as $$
   select p.id, p.email, p.name, p.country,
-         coalesce(a.region, '') as airline_region,
+         -- ★言語が残っていない人の推測にだけ使う（歓迎メールと同じ）。打ち込まれた社名は渡さない。
+         coalesce((select a.region from public.pv_airlines a
+                    where a.code = public.pv_airline_resolve(p.company)), '') as airline_region,
          p.lang,
-         p.unsub_token::text,
-         a.code, a.name_ja, a.name_en,
-         (a.code is not null and a.cap_lo is not null) as airline_page
+         p.unsub_token::text
     from public.profiles p
     join public.pv_welcome_mail w on w.id = p.id and w.sent_at is not null
     left join public.pv_welcome_followup f on f.id = p.id
-    left join public.pv_airlines a
-      on a.code = public.pv_airline_resolve(p.company) and a.code <> 'other' and coalesce(a.active, true)
    where coalesce(p.email_opt_in, false)
      and p.email is not null
      and position('@' in p.email) > 1
@@ -107,7 +101,7 @@ grant execute on function public.pv_welcome_followup_due(integer) to service_rol
 
 comment on function public.pv_welcome_followup_due(integer) is
   '2通目を今送る相手。通知を希望・歓迎メールから2日以上・登録から3〜10日・給与を出していない・確認待ちで止めていない・まだ送っていない人。'
-  '勤務先は語彙の会社コードと表の名前だけを返す。service_role だけが呼べる。';
+  '勤務先は地域だけを返す。service_role だけが呼べる。';
 
 
 -- ── 3. 送れた／送れなかったを記録する ────────────────────────

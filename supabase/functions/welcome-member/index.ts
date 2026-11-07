@@ -338,90 +338,80 @@ export function buildWelcome(p: Person, o: { siteUrl?: string; supabaseUrl?: str
 
    誰に：SQL の pv_welcome_followup_due の1か所（db/welcome-followup.sql）。歓迎メールを受け取って2日以上・
          登録から3〜10日・給与をまだ出していない・確認待ちで止めていない・1人1回。
-   中身：本人の会社のページで見られるもの（ページへのリンク）＋給与を匿名で1件のお願い（ボタン1つ）。
-   ★登録時の同意は「有益な更新」。お願いだけのメールにしない（会社のページの案内が先）。
-   ★数字（社数・人数・件数）を書かない。「90日間」だけはサイトと同じ日数（歓迎メールと同じ字）。
-   ★会社名は表（pv_airlines）の名前だけ。打ち込まれた社名は受け取らない（SQL が渡さない）。
-   ★日本語は下書き（2026-11-07）。オーナーが直したら、その字に替える（書き直さない）。英語・スペイン語はその訳。
+   ★日本語の文はオーナーが書いたもの（2026-11-07）。1文字も変えない・足さない。
+     （オーナーの了承で誤字を2つだけ直した：「コックピッド」→「コックピット」・「OO万」→「〇〇万」）
+     件名もオーナーの字。英語・スペイン語はその訳（パイロットが使う言葉で）。
+   ★全員に同じ1通（会社ごとに文を変えない）。宛名も会社名も書かない。
+   ★「90日間」はサイトの登録完了画面・歓迎メールと同じ日数（db/test-welcome-followup.mjs が突き合わせる）。
    ════════════════════════════════════════════════════════════════ */
-export type FollowupPerson = Person & {
-  airline?: string | null; airline_ja?: string | null; airline_en?: string | null; airline_page?: boolean | null;
+export type FollowupCopy = {
+  subject: string;
+  lead: string;          // 1行目（太字）
+  quote: string;         // コックピットでの一言（引用の形で出す）
+  body: string[];        // 段落
+  ask: string;           // お願いの段落（ボタンと同じ囲みに入れる）
+  cta: Link;
+  sign: string;
+  foot: string;
+  unsub: string;
 };
-export function airlinePagePath(l: Lang, code: string) {
-  return l === 'ja' ? `airlines/${code}.html` : `${l}/airlines/${code}.html`;
-}
-export function followupCopy(l: Lang, p: FollowupPerson, site = SITE_URL): WelcomeCopy & { see: Link } {
+export function followupCopy(l: Lang, site = SITE_URL): FollowupCopy {
   const pay = `${site}/${pagePath(l, 'pay-report.html#ps')}`;
-  const code = p?.airline_page === true && p?.airline ? String(p.airline) : '';
-  const name = code ? String((l === 'ja' ? p.airline_ja : p.airline_en) || '') : '';
-  const has = !!(code && name);
-  const see: Link = has
-    ? { label: '', href: `${site}/${airlinePagePath(l, code)}` }
-    : { label: '', href: `${site}/${l === 'ja' ? '' : l + '/'}world-airlines.html` };
   if (l === 'ja') {
-    see.label = has ? `${name}のページを見る` : '航空会社の一覧を見る';
     return {
-      subject: has ? `${name}の給与を、匿名で1件教えてください` : 'あなたの給与を、匿名で1件教えてください',
-      lead: ['PILOT VALUEにご登録いただき、ありがとうございます。'],
-      body: [[has
-        ? `${name}のページでは、推定年収・口コミ・待遇（勤務や手当）を見られます。`
-        : 'PILOT VALUEでは、世界の航空会社の推定年収・口コミ・待遇（勤務や手当）を見られます。']],
-      see,
-      ask: {
-        lead: 'まだのようでしたら、あなたの給与を匿名で1件、共有してください。',
-        t: '投稿すると、他のパイロットから寄せられた給与データを90日間閲覧できます。明細の写真を選ぶと、項目は自動で入ります。',
-        cta: { label: '匿名で給与を追加する', href: pay },
-        note: '氏名・社員番号・口座情報など、個人を直接特定する情報は公開しません。',
-      },
-      close: ['気づいたことがあれば、このメールに返信してください。'],
-      sign: 'PILOT VALUE Team',
+      subject: '他社の給与、どう知っていますか',
+      lead: 'PILOT VALUEへようこそ。',
+      quote: '「あの会社、〇〇万くらいもらってるらしいよ」',
+      body: [
+        '他社の待遇の話になると、コックピットでよくこのような会話になります。',
+        '求人票で基本給は分かっても、乗務手当や賞与を含めて実際にいくらになるのか。そこまで聞けるかどうかは、その会社に誰を知っているかで変わります。',
+        '知り合いのいない会社も、同じように比べて、自分で選べるようにしたい。私たちがPILOT VALUEをつくった理由です。',
+        'ここでは、パイロットが自分の給与を匿名で持ち寄ります。あなたが知りたい他社の給与を、そこで飛んでいる誰かが共有してくれています。あなたにとってはいつもの給与明細も、あなたの会社を考えている人には、いちばん知りたかった情報かもしれません。',
+      ],
+      ask: 'ご自身の給与を1件共有すると、ほかのパイロットが投稿した給与を90日間ご覧いただけます。入力には給与明細の写真を使えます。氏名・社員番号・口座情報など、個人を直接特定する情報は公開しません。',
+      cta: { label: '自分の給与を匿名で共有する', href: pay },
+      sign: 'PILOT VALUE 運営 team',
       foot: 'このメールは、PILOT VALUE にご登録いただき、通知を希望された方にお送りしています。',
       unsub: '配信を停止する',
     };
   }
   if (l === 'es') {
-    see.label = has ? `Ver la página de ${name}` : 'Ver todas las aerolíneas';
     return {
-      subject: has ? `Comparte tu remuneración en ${name}, de forma anónima` : 'Comparte tu remuneración, de forma anónima',
-      lead: ['Gracias por registrarte en PILOT VALUE.'],
-      body: [[has
-        ? `En la página de ${name} puedes ver la remuneración estimada, las reseñas y las condiciones de trabajo (programación y viáticos).`
-        : 'En PILOT VALUE puedes ver la remuneración estimada, las reseñas y las condiciones de trabajo de aerolíneas de todo el mundo.']],
-      see,
-      ask: {
-        lead: 'Si aún no lo has hecho, comparte un registro de tu remuneración de forma anónima.',
-        t: 'Al hacerlo, podrás ver durante 90 días los datos de remuneración que han compartido otros pilotos. Elige una foto de tu recibo de nómina y los campos se completan solos.',
-        cta: { label: 'Agrega tu remuneración de forma anónima', href: pay },
-        note: 'Nunca publicamos tu nombre, tu número de empleado, tus datos bancarios ni ningún otro dato que te identifique directamente.',
-      },
-      close: ['Si notas algo, responde a este correo.'],
-      sign: 'PILOT VALUE Team',
+      subject: '¿Cómo te enteras de lo que pagan otras aerolíneas?',
+      lead: 'Te damos la bienvenida a PILOT VALUE.',
+      quote: '"Dicen que en esa aerolínea ganan unos ___ al año."',
+      body: [
+        'En la cabina, cuando se habla de las condiciones de otras aerolíneas, la conversación suele ir así.',
+        'Una oferta de trabajo te dice el sueldo base. Pero ¿cuánto es en realidad, con las primas de vuelo y los bonos? Poder averiguarlo depende de a quién conozcas en esa aerolínea.',
+        'Queremos que también puedas comparar de la misma manera las aerolíneas donde no conoces a nadie, y elegir por tu cuenta. Por eso creamos PILOT VALUE.',
+        'Aquí, los pilotos comparten su propia remuneración de forma anónima. La remuneración de la aerolínea que te interesa la ha compartido alguien que vuela allí. Tu recibo de nómina puede ser algo de todos los meses para ti, pero para alguien que está pensando en tu aerolínea puede ser justo lo que más quería saber.',
+      ],
+      ask: 'Si compartes un registro de tu remuneración, podrás ver durante 90 días la remuneración que han publicado otros pilotos. Puedes usar una foto de tu recibo de nómina para completarlo. Nunca publicamos tu nombre, tu número de empleado, tus datos bancarios ni ningún otro dato que te identifique directamente.',
+      cta: { label: 'Comparte tu remuneración de forma anónima', href: pay },
+      sign: 'El equipo de PILOT VALUE',
       foot: 'Recibes este correo porque te registraste en PILOT VALUE y pediste recibir notificaciones.',
       unsub: 'Cancelar la suscripción',
     };
   }
-  see.label = has ? `See the ${name} page` : 'See all airlines';
   return {
-    subject: has ? `Share your ${name} pay, anonymously` : 'Share your pay, anonymously',
-    lead: ['Thanks for joining PILOT VALUE.'],
-    body: [[has
-      ? `On the ${name} page you can see estimated pay, reviews and working conditions (rosters and allowances).`
-      : 'On PILOT VALUE you can see estimated pay, reviews and working conditions at airlines worldwide.']],
-    see,
-    ask: {
-      lead: "If you haven't yet, share one pay record, anonymously.",
-      t: 'Once you do, you can view the pay data other pilots have shared for 90 days. Choose a photo of your payslip and the fields fill in for you.',
-      cta: { label: 'Add your pay anonymously', href: pay },
-      note: 'We never publish your name, staff number, bank details or anything else that directly identifies you.',
-    },
-    close: ['If you notice anything, just reply to this email.'],
-    sign: 'PILOT VALUE Team',
+    subject: 'How do you find out what other airlines pay?',
+    lead: 'Welcome to PILOT VALUE.',
+    quote: '"I hear they make about ___ a year over there."',
+    body: [
+      'Talk about other airlines on the flight deck often goes like this.',
+      'A job posting tells you the base pay. But what does it really come to, with flight pay and bonuses? Whether you can find that out depends on who you know at that airline.',
+      "We want you to be able to compare airlines where you don't know anyone in the same way, and choose for yourself. That's why we built PILOT VALUE.",
+      "Here, pilots share their own pay anonymously. The pay at the airline you're curious about has been shared by someone flying there. Your payslip may be routine to you, but to someone considering your airline, it may be exactly what they most wanted to know.",
+    ],
+    ask: 'Share one record of your own pay and you can view the pay other pilots have posted for 90 days. You can use a photo of your payslip to fill it in. We never publish your name, staff number, bank details or anything else that directly identifies you.',
+    cta: { label: 'Share your pay anonymously', href: pay },
+    sign: 'The PILOT VALUE team',
     foot: 'You are receiving this because you signed up for PILOT VALUE and asked for notifications.',
     unsub: 'Unsubscribe',
   };
 }
 
-export function buildFollowup(p: FollowupPerson, o: { siteUrl?: string; supabaseUrl?: string; lang?: Lang | 'both' } = {}) {
+export function buildFollowup(p: Person, o: { siteUrl?: string; supabaseUrl?: string; lang?: Lang | 'both' } = {}) {
   const site = String(o.siteUrl ?? SITE_URL ?? 'https://pilot-value.com').replace(/\/+$/, '');
   const sb = String(o.supabaseUrl ?? SUPABASE_URL ?? '').replace(/\/+$/, '');
   const lang = o.lang || welcomeLangOf(p);
@@ -429,29 +419,23 @@ export function buildFollowup(p: FollowupPerson, o: { siteUrl?: string; supabase
   const tok = encodeURIComponent(p?.unsub_token || '');
   const unsubPage = (l: Lang) => `${site}/${pagePath(l, 'unsubscribe.html')}?token=${tok}`;
   const oneClickUrl = sb ? `${sb}/functions/v1/remind-payslip?u=${tok}` : '';
-  const parts = langs.map((l) => ({ l, t: followupCopy(l, p, site) }));
+  const parts = langs.map((l) => ({ l, t: followupCopy(l, site) }));
   const subject = parts.map((x) => x.t.subject).join(' / ');
   const P = (s: string, st = '') => `<p style="margin:0 0 14px;color:#333${st}">${esc(s)}</p>`;
-  const blockHtml = (t: ReturnType<typeof followupCopy>) => `
-    ${t.lead.map((s) => P(s, ';font-weight:800;color:#111;font-size:16px')).join('')}
-    ${t.body.map((g) => g.map((s) => P(s)).join('')).join('')}
-    <p style="margin:0 0 20px"><a href="${esc(t.see.href)}" style="color:#067563;font-weight:700">${esc(t.see.label)} →</a></p>
-    <div style="margin:0 0 14px;padding:16px 14px 14px;background:#f7f8fa;border-radius:12px">
-      <p style="margin:0 0 8px;color:#111;font-weight:800">${esc(t.ask.lead)}</p>
-      <p style="margin:0 0 14px;color:#333">${esc(t.ask.t)}</p>
-      <a href="${esc(t.ask.cta.href)}" style="display:inline-block;background:#f5c842;color:#111;text-decoration:none;font-weight:800;padding:12px 18px;border-radius:10px;line-height:1.4">${esc(t.ask.cta.label)}</a>
-      <p style="margin:14px 0 0;color:#6b7280;font-size:12px;line-height:1.7">${esc(t.ask.note)}</p>
+  const blockHtml = (t: FollowupCopy) => `
+    ${P(t.lead, ';font-weight:800;color:#111;font-size:16px')}
+    <p style="margin:18px 0 18px;padding:2px 0 2px 14px;border-left:3px solid #d6dbe3;color:#111;font-size:15px;font-weight:700">${esc(t.quote)}</p>
+    ${t.body.map((s) => P(s)).join('')}
+    <div style="margin:6px 0 14px;padding:16px 14px 14px;background:#f7f8fa;border-radius:12px">
+      <p style="margin:0 0 14px;color:#333">${esc(t.ask)}</p>
+      <a href="${esc(t.cta.href)}" style="display:inline-block;background:#f5c842;color:#111;text-decoration:none;font-weight:800;padding:12px 18px;border-radius:10px;line-height:1.4">${esc(t.cta.label)}</a>
     </div>
-    ${t.close.map((s) => P(s)).join('')}
     <p style="margin:18px 0 0;color:#333">${esc(t.sign)}</p>`;
-  const blockText = (t: ReturnType<typeof followupCopy>) => [
-    ...t.lead, '',
-    ...t.body.flatMap((g) => g.flatMap((s) => [s, ''])),
-    `${t.see.label}: ${t.see.href}`, '',
-    t.ask.lead, t.ask.t, '',
-    `▶ ${t.ask.cta.label}: ${t.ask.cta.href}`, '',
-    t.ask.note, '',
-    ...t.close.flatMap((s) => [s, '']),
+  const blockText = (t: FollowupCopy) => [
+    t.lead, '', t.quote, '',
+    ...t.body.flatMap((s) => [s, '']),
+    t.ask, '',
+    `▶ ${t.cta.label}: ${t.cta.href}`, '',
     t.sign,
   ].join('\n');
   const unsubLinks = parts
@@ -498,7 +482,7 @@ async function rpc(fn: string, args: Record<string, unknown> = {}) {
 
 async function send(p: Person, kind: 'welcome' | 'followup' = 'welcome') {
   const m = kind === 'followup'
-    ? buildFollowup(p as FollowupPerson, { siteUrl: SITE_URL, supabaseUrl: SUPABASE_URL })
+    ? buildFollowup(p, { siteUrl: SITE_URL, supabaseUrl: SUPABASE_URL })
     : buildWelcome(p, { siteUrl: SITE_URL, supabaseUrl: SUPABASE_URL });
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',

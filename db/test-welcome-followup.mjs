@@ -5,10 +5,10 @@
    見ていること（2026-11-07 オーナー採用「登録だけで止まっている人への2通目」・登録から3日後）
      A) 誰に送るか（SQL）── 通知を希望・歓迎メールを受け取って2日以上・登録から3〜10日・給与をまだ出していない・
         確認待ちで止めていない・1人1回（送れたら二度と選ばない・3回失敗したら諦める）。会員からは呼べない・表も読めない。
-        打ち込まれた社名は返さない（語彙の会社コードと表の名前だけ）。退会したら記録も消える。何度貼っても同じ。
+        打ち込まれた社名も会社名も返さない（言語の推測に使う地域だけ）。退会したら記録も消える。何度貼っても同じ。
         壊す証明：給与の条件を外すと、出した人が選ばれる＝この検査が赤くなる。
-     B) 文面（本物の index.ts を import）── 会社のページへのリンクの先が本当にある（日英西・年収を載せている全社）・
-        会社が分からない人は一覧へ・ボタンは給与の1つだけ・「匿名で」・「90日間」は歓迎メールと同じ日数・ほかの数字を書かない・解除の口。
+     B) 文面（本物の index.ts を import）── ★日本語はオーナーが書いた字と1文字も違わない（件名も）・全員に同じ1通（会社名も宛名も入らない）・
+        ボタンは給与の1つだけ（言語ごと）・「匿名」・「90日間」は歓迎メールと同じ日数・ボタンの先が在る・解除の口。
      C) 送る処理 ── 2通目は welcome2:<id> の鍵で1通・記録する・口がまだ無い（SQL を貼る前）なら飛ばして歓迎メールは今までどおり。 */
 import { PGlite } from '@electric-sql/pglite';
 import { readFileSync, existsSync } from 'fs';
@@ -96,15 +96,10 @@ const want = [1, 10, 11, 12, 13].map(uid);
 ok(JSON.stringify([...got].sort()) === JSON.stringify([...want].sort()), '送るのは 1・10・11・12・13 だけ（希望・歓迎メールから2日・登録3〜10日・給与なし・止めていない）',
    JSON.stringify(got));
 const rows = await due(db);
-const r1 = rows.find((r) => r.id === uid(1)), r11 = rows.find((r) => r.id === uid(11)), r12 = rows.find((r) => r.id === uid(12)), r13 = rows.find((r) => r.id === uid(13));
-ok(r1 && r1.airline === 'ana' && r1.airline_ja === '全日本空輸（ANA）' && r1.airline_en === 'All Nippon Airways (ANA)' && r1.airline_page === true,
-   '会社が分かる人：会社コード・表の名前（日英）・ページあり', JSON.stringify(r1));
-ok(r11 && r11.airline === null && r11.airline_page === false, '語彙に当たらない社名：会社なし・ページなし');
-ok(!JSON.stringify(rows).includes('Foo Air'), '打ち込まれた社名は1文字も返さない');
-ok(r12 && r12.airline === 'ops-co' && r12.airline_page === false, '年収を載せていない会社：ページなし（リンクを作らない）');
-ok(r13 && r13.airline === null, '今は無い会社（active でない）：会社なし');
-ok(Object.keys(rows[0]).join(',') === 'id,email,name,country,airline_region,lang,unsub_token,airline,airline_ja,airline_en,airline_page',
-   '返す欄はこれだけ（勤務先の打ち込みの字も、ほかの人の数も無い）', Object.keys(rows[0]).join(','));
+ok(!JSON.stringify(rows).includes('Foo Air') && !JSON.stringify(rows).includes('全日本空輸'), '打ち込まれた社名も、会社名も返さない');
+ok(rows.find((r) => r.id === uid(1)).airline_region === 'japan' && rows.find((r) => r.id === uid(11)).airline_region !== 'japan', '地域だけ返す（言語の推測用・歓迎メールと同じ決め方）');
+ok(Object.keys(rows[0]).join(',') === 'id,email,name,country,airline_region,lang,unsub_token',
+   '返す欄はこれだけ（勤務先の打ち込みの字も、会社名も、ほかの人の数も無い）', Object.keys(rows[0]).join(','));
 
 console.log('\n▼ A-3 1人1回');
 const mark = async (n, v) => (await db.query('select pv_welcome_followup_mark($1,$2) t', [uid(n), v])).rows[0].t;
@@ -147,38 +142,47 @@ const ENV = { SUPABASE_URL: SUPA, SUPABASE_SERVICE_ROLE_KEY: 'svc', RESEND_API_K
 globalThis.Deno = { env: { get: (k) => ENV[k] }, serve: () => {} };
 const M = await import('../supabase/functions/welcome-member/index.ts');
 const site = 'https://pilot-value.com';
-const ana = { lang: 'ja', airline: 'ana', airline_ja: '全日本空輸（ANA）', airline_en: 'All Nippon Airways (ANA)', airline_page: true, unsub_token: 'tok' };
-const none = { lang: 'ja', airline: null, airline_page: false, unsub_token: 'tok' };
+/* ★オーナーが書いた字（2026-11-07）。オーナーの了承で誤字を2つだけ直した（コックピッド→コックピット・OO万→〇〇万）。
+   ここが変わったら、オーナーが直したときだけ。勝手に直すとこの検査が落ちる。 */
+const OWNER_JA = {
+  subject: '他社の給与、どう知っていますか',
+  lines: [
+    'PILOT VALUEへようこそ。',
+    '「あの会社、〇〇万くらいもらってるらしいよ」',
+    '他社の待遇の話になると、コックピットでよくこのような会話になります。',
+    '求人票で基本給は分かっても、乗務手当や賞与を含めて実際にいくらになるのか。そこまで聞けるかどうかは、その会社に誰を知っているかで変わります。',
+    '知り合いのいない会社も、同じように比べて、自分で選べるようにしたい。私たちがPILOT VALUEをつくった理由です。',
+    'ここでは、パイロットが自分の給与を匿名で持ち寄ります。あなたが知りたい他社の給与を、そこで飛んでいる誰かが共有してくれています。あなたにとってはいつもの給与明細も、あなたの会社を考えている人には、いちばん知りたかった情報かもしれません。',
+    'ご自身の給与を1件共有すると、ほかのパイロットが投稿した給与を90日間ご覧いただけます。入力には給与明細の写真を使えます。氏名・社員番号・口座情報など、個人を直接特定する情報は公開しません。',
+    '自分の給与を匿名で共有する',
+    'PILOT VALUE 運営 team',
+  ],
+};
+const ja = M.followupCopy('ja', site);
+const jaLines = [ja.lead, ja.quote, ...ja.body, ja.ask, ja.cta.label, ja.sign];
+ok(ja.subject === OWNER_JA.subject, '件名はオーナーの字のまま（他社の給与、どう知っていますか）', ja.subject);
+ok(JSON.stringify(jaLines) === JSON.stringify(OWNER_JA.lines), '★本文はオーナーが書いた字と1文字も違わない（足しも削りもしない）',
+   jaLines.map((x, i) => (x === OWNER_JA.lines[i] ? '' : `#${i}: ${x}`)).filter(Boolean).join(' / '));
 const fileOf = (href) => href.replace(site + '/', '').split('#')[0].split('?')[0] || 'index.html';
 for (const l of ['ja', 'en', 'es']) {
-  const a = M.followupCopy(l, ana, site), n = M.followupCopy(l, none, site);
-  const name = l === 'ja' ? ana.airline_ja : ana.airline_en;
-  ok(a.subject.includes(name) && a.body[0][0].includes(name) && a.see.label.includes(name), `${l}：会社が分かる人は件名・本文・リンクに表の名前`);
-  ok(existsSync(new URL(fileOf(a.see.href), ROOT)) && /airlines\/ana\.html$/.test(a.see.href), `${l}：会社のページへのリンクの先が在る（${fileOf(a.see.href)}）`);
-  ok(existsSync(new URL(fileOf(n.see.href), ROOT)) && /world-airlines\.html$/.test(n.see.href) && !/ANA/.test(n.subject + n.body.flat().join('')),
-     `${l}：会社が分からない人は一覧へ（${fileOf(n.see.href)}）`);
-  ok(existsSync(new URL(fileOf(a.ask.cta.href), ROOT)) && /pay-report\.html#ps$/.test(a.ask.cta.href), `${l}：ボタンの先は給与フォーム（${fileOf(a.ask.cta.href)}）`);
-  ok((l === 'ja' ? /匿名/ : l === 'en' ? /anonymously/ : /anónima/).test(a.ask.cta.label), `${l}：ボタンに「匿名で」`);
-  const words = [a.subject, ...a.lead, ...a.body.flat(), a.see.label, a.ask.lead, a.ask.t, a.ask.cta.label, a.ask.note, ...a.close].join(' ');
-  const nums = (words.match(/\d+/g) || []);
-  const w90 = (M.welcomeCopy(l, site).ask.t.match(/\d+/g) || []);
-  /* 「1件」（匿名で1件）は日が経っても嘘にならない。それ以外は「90日間」だけ（歓迎メールと同じ日数） */
-  ok(nums.includes('90') && nums.every((x) => x === '90' || x === '1') && w90.includes('90'), `${l}：数字は「90日間」と「1件」だけ（社数・人数・件数を書かない）`, nums.join(','));
-  const mail = M.buildFollowup({ ...ana, lang: l }, { siteUrl: site, supabaseUrl: SUPA });
+  const t = M.followupCopy(l, site);
+  ok(existsSync(new URL(fileOf(t.cta.href), ROOT)) && /pay-report\.html#ps$/.test(t.cta.href), `${l}：ボタンの先は給与フォーム（${fileOf(t.cta.href)}）`);
+  ok((l === 'ja' ? /匿名/ : l === 'en' ? /anonymously/ : /anónima/).test(t.cta.label), `${l}：ボタンに「匿名」`);
+  const w = M.welcomeCopy(l, site).ask.t.match(/\d+/g) || [];
+  ok((t.ask.match(/\d+/g) || []).includes('90') && w.includes('90'), `${l}：「90日間」は歓迎メールと同じ日数`);
+  const all = [t.subject, t.lead, t.quote, ...t.body, t.ask, t.cta.label].join(' ');
+  ok(t.body.length === 4 && t.quote && !/ANA|JAL|Emirates|エミレーツ/.test(all), `${l}：全員に同じ1通（会社名も宛名も入らない）`);
+  const mail = M.buildFollowup({ lang: l, unsub_token: 'tok' }, { siteUrl: site, supabaseUrl: SUPA });
   const perLang = mail.lang === 'both' ? 2 : 1;   // 英語で登録した人は英語＋日本語の1通（言語ごとに1つ）
   ok((mail.html.match(/background:#f5c842;color:#111;text-decoration:none/g) || []).length === perLang, `${l}：押すボタンは言語ごとに1つだけ（給与）`);
-  ok(mail.oneClickUrl === `${SUPA}/functions/v1/remind-payslip?u=tok` && /unsubscribe\.html\?token=tok/.test(mail.unsubUrl) && mail.html.includes(a.unsub),
+  ok(mail.oneClickUrl === `${SUPA}/functions/v1/remind-payslip?u=tok` && /unsubscribe\.html\?token=tok/.test(mail.unsubUrl) && mail.html.includes(t.unsub),
      `${l}：解除の口（1クリック・解除の画面）`);
 }
-const both = M.buildFollowup({ ...ana, lang: 'en' }, { siteUrl: site, supabaseUrl: SUPA });
-ok(both.lang === 'both' && both.subject.startsWith('Share your All Nippon Airways (ANA) pay') && both.subject.includes('全日本空輸（ANA）'),
-   '英語で登録した人は、英語が上・日本語が下の1通（歓迎メールと同じ決まり）');
-/* 年収を載せている全社に、日英西のページが在る（airline_page が true になる会社＝cap_lo のある会社） */
-const gen = read('db/airlines.generated.sql');
-const withPay = [...gen.matchAll(/\('([a-z0-9-]+)', '[^']*', '[^']*', '[a-z_]+', (\d+|null),/g)].filter((m) => m[2] !== 'null').map((m) => m[1]);
-const missing = [];
-for (const c of withPay) for (const l of ['ja', 'en', 'es']) if (!existsSync(new URL(M.airlinePagePath(l, c), ROOT))) missing.push(M.airlinePagePath(l, c));
-ok(withPay.length >= 100 && missing.length === 0, `年収を載せている ${withPay.length} 社すべてに、日英西の会社のページが在る`, missing.slice(0, 6).join(' '));
+const both = M.buildFollowup({ lang: 'en', unsub_token: 'tok' }, { siteUrl: site, supabaseUrl: SUPA });
+ok(both.lang === 'both' && both.subject === 'How do you find out what other airlines pay? / 他社の給与、どう知っていますか',
+   '英語で登録した人は、英語が上・日本語が下の1通（歓迎メールと同じ決まり）', both.subject);
+const jaMail = M.buildFollowup({ lang: 'ja', unsub_token: 'tok' }, { siteUrl: site, supabaseUrl: SUPA });
+ok(OWNER_JA.lines.every((x) => jaMail.text.includes(x)), '送るメールの本文（文字だけの版）にも、オーナーの字がそのまま全部入る');
 
 /* ════════════════════ C) 送る処理 ════════════════════ */
 console.log('\n▼ C 送る処理');
@@ -190,7 +194,7 @@ globalThis.fetch = async (url, init = {}) => {
   if (url === `${SUPA}/rest/v1/rpc/pv_welcome_due`) return Response.json([]);
   if (url === `${SUPA}/rest/v1/rpc/pv_welcome_followup_due`) {
     if (followupRpc === 'missing') return new Response('{"message":"not found"}', { status: 404 });
-    return Response.json([{ id: uid(50), email: 'p50@example.com', lang: 'ja', unsub_token: 'tok', ...ana }]);
+    return Response.json([{ id: uid(50), email: 'p50@example.com', lang: 'ja', unsub_token: 'tok' }]);
   }
   if (url === `${SUPA}/rest/v1/rpc/pv_welcome_followup_mark`) { marks.push(b); return Response.json(1); }
   if (url === 'https://api.resend.com/emails') { sent.push({ h: init.headers, b }); return Response.json({ id: 'x' }); }
@@ -205,8 +209,8 @@ ok(out.ok && out.due2 === 1 && sent.length === 0 && marks.length === 0, '下見�
 out = await call();
 ok(out.ok && out.sent2 === 1 && sent.length === 1 && sent[0].h['Idempotency-Key'] === `welcome2:${uid(50)}`,
    '2通目は welcome2:<id> の鍵で1通（歓迎メールの鍵 welcome:<id> と別）', JSON.stringify(out));
-ok(sent[0].b.subject.includes('全日本空輸（ANA）') && sent[0].b.reply_to === 'info@pilot-value.com' && /List-Unsubscribe/.test(JSON.stringify(sent[0].b.headers)),
-   '件名に会社の名前・返信は info@・配信停止のヘッダつき');
+ok(sent[0].b.subject === '他社の給与、どう知っていますか' && sent[0].b.reply_to === 'info@pilot-value.com' && /List-Unsubscribe/.test(JSON.stringify(sent[0].b.headers)),
+   '件名はオーナーの字・返信は info@・配信停止のヘッダつき');
 ok(marks.length === 1 && marks[0].p_id === uid(50) && marks[0].p_ok === true, '送れたら記録する');
 followupRpc = 'missing'; sent.length = 0;
 out = await call();
