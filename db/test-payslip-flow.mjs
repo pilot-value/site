@@ -876,6 +876,73 @@ console.log('\n══ ⑨ 読み取り中は 0〜100% の輪（回る印は無�
   await page.close();
 }
 
+// ══ ⑩ 明細にないお金：打っている最中の桁区切り・欄の下の年間ペース（2026-11-07 オーナー指示）══════════
+/* 「ボーナスを入れても、年収の合計を見るのに上まで戻らないといけない」「入力中も , を入れて。1500000 じゃなくて 1,500,000」。
+   ★組み直すのは pay-report.html の委譲の1か所（fmtMoneyLive）。payslip.js は欄に印（money-live）を付けるだけ。
+   ★スペイン語のページは打っている最中は組み直さない（カンマを小数点に使う国がある・fmtMoneyLive がわざと止めている）。 */
+console.log('\n══ ⑩ 明細にないお金：打っている最中に桁区切り・欄の下に年間ペース（上まで戻らなくていい）');
+for (const [url, lang] of [[URL_JA, 'ja'], [URL_EN, 'en'], [URL_ES, 'es']]) {
+  const { page, errs } = await open(url, { body: FAKE });
+  await upload(page, 'payslip-jp-major.png');
+  await page.waitForSelector('.ps-res', { timeout: 20000 });
+  await page.waitForFunction(() => !document.querySelector('.ps-load'), { timeout: 8000 });
+  await page.waitForFunction(() => { const s = document.getElementById('ps-ex-sum'); return !!s && !!s.textContent; }, { timeout: 5000 }).catch(() => {});
+  const pace = () => page.evaluate(() => ({
+    sum: document.getElementById('ps-ex-sum').textContent, shown: !document.getElementById('ps-ex-sum').parentNode.hidden,
+    top: document.querySelector('.ps-aha-pv').textContent.trim(),
+    k: document.querySelector('.ps-extra-sk').textContent, kTop: document.querySelector('.ps-aha-pk').textContent }));
+  const s0 = await pace();
+  ok(s0.shown && !!s0.sum && s0.sum === s0.top && s0.k === s0.kTop,
+     `[${lang}] ★欄の下に年間ペース（上の大きな数字と同じ名前・同じ字）`, `${s0.k} ${s0.sum} / ${s0.top}`);
+
+  await page.click('#ps-ex-bonus');
+  const seq = [];
+  for (const ch of '1500000') { await page.keyboard.type(ch); seq.push(await page.$eval('#ps-ex-bonus', (e) => e.value)); }
+  const t1 = await page.evaluate(() => {
+    const e = document.getElementById('ps-ex-bonus');
+    return { v: e.value, caret: e.selectionStart, len: e.value.length, focus: document.activeElement === e,
+      f: moneyRead(document.getElementById('f-bonus')).n, notMoney: !moneyEls().includes(e) };
+  });
+  const s1 = await pace();
+  if (lang === 'es') {
+    ok(t1.v === '1500000', '[es] スペイン語のページは打っている最中は組み直さない（今までどおり）', seq.join(' → '));
+  } else {
+    ok(t1.focus && seq[3] === '1,500' && t1.v === '1,500,000', `[${lang}] ★ボーナスは打っている最中に桁区切り`, seq.join(' → '));
+    ok(t1.caret === t1.len, `[${lang}] カーソルは打った数字の直後のまま`, `${t1.caret}/${t1.len}`);
+  }
+  ok(t1.f === 1500000, `[${lang}] ★フォーム本体のボーナスの欄には 1500000 として入る`, String(t1.f));
+  ok(t1.notMoney, `[${lang}] 明細の画面の欄は送信の検品（input.money）に数えない（本体の欄と二重にしない）`);
+  ok(s1.shown && s1.sum === s1.top && s1.sum !== s0.sum, `[${lang}] ★欄の下の年間ペースが、打つたびに上の数字と同じに変わる`, `${s0.sum} → ${s1.sum}`);
+
+  if (lang !== 'es') {
+    /* カンマの直後で BackSpace：隣の数字ごと消える（消えないと、カンマがすぐ戻って永久に消せない欄になる） */
+    await page.evaluate(() => document.getElementById('ps-ex-bonus').setSelectionRange(2, 2));
+    await page.keyboard.press('Backspace');
+    const t2 = await page.evaluate(() => ({ v: document.getElementById('ps-ex-bonus').value, f: moneyRead(document.getElementById('f-bonus')).n }));
+    ok(t2.v === '500,000' && t2.f === 500000, `[${lang}] カンマの直後で BackSpace を押すと隣の数字ごと消える`, t2.v);
+
+    /* 読み取った明細の内訳を直す表：最初から桁区切り・打っている最中も組み直す・行へ書き戻す額も桁区切り */
+    const tb0 = await page.evaluate(() => { document.querySelector('.ps-fold').open = true;
+      return [...document.querySelectorAll('.ps-amt-in')].map((e) => e.value); });
+    ok(tb0.includes('420,000') && tb0.includes('148,200') && !tb0.some((v) => /^\d{4,}$/.test(v)),
+       `[${lang}] ★直す表の金額は最初から桁区切り`, tb0.slice(0, 5).join(' '));
+    await page.evaluate(() => { const e = [...document.querySelectorAll('.ps-amt-in')].find((x) => x.value === '148,200'); e.focus(); e.select(); });
+    const tseq = [];
+    for (const ch of '150000') { await page.keyboard.type(ch); tseq.push(await page.evaluate(() => document.activeElement.value)); }
+    const t3 = await page.evaluate(() => ({ rows: [...document.querySelectorAll('.pd-amt')].map((e) => e.value) }));
+    ok(tseq[3] === '1,500' && tseq[5] === '150,000', `[${lang}] ★直す表も打っている最中に桁区切り`, tseq.join(' → '));
+    ok(t3.rows.includes('150,000') && !t3.rows.includes('150000'), `[${lang}] 表で直した額は、フォームの行にも桁区切りで入る`, t3.rows.join(' '));
+
+    /* 壊す証明：印を外すと、打っている最中は組み直されない（＝組み直しているのはこの印） */
+    await page.evaluate(() => { const e = document.getElementById('ps-ex-profit'); e.classList.remove('money-live'); e.focus(); });
+    await page.keyboard.type('2000000');
+    const bv = await page.$eval('#ps-ex-profit', (e) => e.value);
+    ok(bv === '2000000', `[${lang}] 　壊す証明：印（money-live）を外すと打っている最中は組み直されない`, bv);
+  }
+  ok(errs.length === 0, `[${lang}] 画面のエラーなし`, errs.join(' | '));
+  await page.close();
+}
+
 // ── コード側の約束：画像・ラベルをログに出していないこと（db/test-payslip-redact.mjs から移した）──
 console.log('\n══ Edge Function のログ検査');
 const fn = readFileSync(path.join(DIR, '..', 'supabase', 'functions', 'parse-payslip', 'index.ts'), 'utf8');

@@ -1913,6 +1913,12 @@
     code = String(code || '');
     return S[code] || (code ? esc2(code) + ' ' : '');
   }
+  /* 欄に書く整数を、フォームと同じ桁区切りで（113398 → 113,398・2026-11-07）。
+     区切るのは 0 以上の整数だけ。負の数と、grp を持たない古い HTML ではそのまま。 */
+  function grpInt(n) {
+    var r = Math.round(n || 0);
+    return (r >= 0 && typeof window.grp === 'function') ? window.grp(String(r)) : String(r);
+  }
   function writeField(id, v) {
     var e2 = document.getElementById(id);
     if (!e2) return;
@@ -1929,7 +1935,7 @@
          ここを忘れると、表で直した額が行に反映されず、送られるのは古い額のままになる。 */
       if (t.row) {
         var a = t.row.querySelector('.pd-amt');
-        if (a) { a.value = String(Math.round(t.amount || 0)); a.classList.remove('ai-filled'); }
+        if (a) { a.value = grpInt(t.amount); a.classList.remove('ai-filled'); }
         touchedRow = true;
         return;
       }
@@ -2147,8 +2153,8 @@
         return '<tr><td>' + esc2(t.label) + '</td><td class="ps-to" data-to="' + i + '">' +
                esc2(lbl(t.field) + (t.unc && !t.asked && !t.hint ? T.uncTag : '')) +
                '</td><td class="ps-amt"><span class="ps-cur">' + cur.trim() + '</span>' +
-               '<input class="ps-amt-in" type="text" inputmode="decimal" data-i="' + i +
-               '" value="' + Math.round(t.amount) + '"></td></tr>';
+               '<input class="ps-amt-in money-live" type="text" inputmode="decimal" data-i="' + i +
+               '" value="' + grpInt(t.amount) + '"></td></tr>';
       }).join('');
       var tbl = el('table', 'ps-tbl ps-tbl-edit',
         '<thead><tr><th>' + esc2(T.col1) + '</th><th>' + esc2(T.col2) + '</th><th>' + esc2(T.col3) +
@@ -2170,7 +2176,7 @@
         var R = window.readMoney
           ? window.readMoney(t2.value, window.curDec ? window.curDec() : undefined)
           : null;
-        if (!R) { lastTrace[i].amount = Number(t2.value) || 0; pushTrace(); return; }
+        if (!R) { lastTrace[i].amount = Number(String(t2.value).replace(/,/g, '')) || 0; pushTrace(); return; }
         if (window.clearMoneyAsk) window.clearMoneyAsk(t2);
         if (R.state === 'empty') { lastTrace[i].amount = 0; pushTrace(); return; }
         if (R.state !== 'ok') { if (window.askMoney) window.askMoney(t2, R); return; }
@@ -2510,7 +2516,10 @@
       inp.type = 'text';
       inp.inputMode = 'decimal';
       inp.autocomplete = 'off';
-      inp.className = 'ps-extra-in';
+      /* ★money-live ＝ 打っている最中に桁区切りを組み直す（2026-11-07 オーナー「1500000 じゃなくて 1,500,000」）。
+         組み直すのは pay-report.html の委譲の1か所（fmtMoneyLive）。ここは印を付けるだけ。
+         ⚠️ money は付けない ── 送信の検品と読み方の二択に数えられ、本体の #f-bonus と二重になる。 */
+      inp.className = 'ps-extra-in money-live';
       inp.id = 'ps-ex-' + id.slice(2);
       inp.placeholder = '';   // ★「0」を置かない（答えた 0 に見える・2026-11-06）
       var cur0 = document.getElementById(id);
@@ -2532,6 +2541,16 @@
       lab.appendChild(v);
       card.appendChild(lab);
     });
+    /* ★欄の下に、年間ペースをもう1行（2026-11-07 オーナー選択「欄の下に合計をもう1つ」）。
+       上の大きな数字はカードの頭にあり、ここで打っているあいだは画面の外にある。
+       数字は renderAha() が上の数字と同じ瞬間・同じ値で書く（ここで計算しない＝2つが食い違わない）。 */
+    var sum = el('div', 'ps-extra-sum');
+    sum.hidden = true;
+    sum.appendChild(el('span', 'ps-extra-sk', esc2(T.ahaPace)));
+    var sv = el('span', 'ps-extra-sv', '');
+    sv.id = 'ps-ex-sum';
+    sum.appendChild(sv);
+    card.appendChild(sum);
     paintUnits(card);
     var curSel = document.getElementById('f-currency');
     if (curSel && !curSel.__psUnits) {
@@ -2567,19 +2586,28 @@
       (withBtn ? '<button type="button" class="btn-orange ps-aha-b" id="ps-aha-go">' + esc2(T.ahaPickB) + '</button>' : ''));
   }
 
+  /* 「明細にないお金」の下の年間ペース（#ps-ex-sum）。呼ぶのは renderAha だけ。空なら行ごと隠す。 */
+  function paintSum(text) {
+    var v = document.getElementById('ps-ex-sum');
+    if (!v) return;
+    v.textContent = text;
+    if (v.parentNode) v.parentNode.hidden = !text;
+  }
+
   function renderAha() {
     var host = document.getElementById('ps-aha');
     if (!host || typeof num !== 'function' || typeof annualTotal !== 'function') return;
 
     var yrOrig = annualTotal();                       // 原本通貨・年額（ボーナス／PS 込み）
-    if (!(yrOrig > 0)) { host.innerHTML = ''; return; }
+    if (!(yrOrig > 0)) { host.innerHTML = ''; paintSum(''); return; }
 
     var air = (document.getElementById('f-airline')  || {}).value || '';
     var pos = (document.getElementById('f-position') || {}).value || '';
     var cur = (document.getElementById('f-currency') || {}).value || 'JPY';
 
     var jpy = toJpy(yrOrig, cur);
-    if (jpy === null)     { host.innerHTML = ahaMsg(T.ahaNoFx(cur)); return; }
+    if (jpy === null)     { host.innerHTML = ahaMsg(T.ahaNoFx(cur)); paintSum(''); return; }
+    paintSum(money(jpy));
 
     /* ── ① 年間ペース ──────────────────────────────
        ★これは明細だけで出せる（会社も職位も要らない）。だから何より先に出す。
