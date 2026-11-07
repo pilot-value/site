@@ -145,7 +145,7 @@ const site = 'https://pilot-value.com';
 /* ★オーナーが書いた字（2026-11-07）。オーナーの了承で誤字を2つだけ直した（コックピッド→コックピット・OO万→〇〇万）。
    ここが変わったら、オーナーが直したときだけ。勝手に直すとこの検査が落ちる。 */
 const OWNER_JA = {
-  subject: '他社の給与、どう知っていますか',
+  subject: '他社の待遇、知っていますか？',
   lines: [
     'PILOT VALUEへようこそ。',
     '「あの会社、〇〇万くらいもらってるらしいよ」',
@@ -160,7 +160,7 @@ const OWNER_JA = {
 };
 const ja = M.followupCopy('ja', site);
 const jaLines = [ja.lead, ja.quote, ...ja.body, ja.ask, ja.cta.label, ja.sign];
-ok(ja.subject === OWNER_JA.subject, '件名はオーナーの字のまま（他社の給与、どう知っていますか）', ja.subject);
+ok(ja.subject === OWNER_JA.subject, '件名はオーナーの字のまま（他社の待遇、知っていますか？）', ja.subject);
 ok(JSON.stringify(jaLines) === JSON.stringify(OWNER_JA.lines), '★本文はオーナーが書いた字と1文字も違わない（足しも削りもしない）',
    jaLines.map((x, i) => (x === OWNER_JA.lines[i] ? '' : `#${i}: ${x}`)).filter(Boolean).join(' / '));
 const fileOf = (href) => href.replace(site + '/', '').split('#')[0].split('?')[0] || 'index.html';
@@ -179,7 +179,7 @@ for (const l of ['ja', 'en', 'es']) {
      `${l}：解除の口（1クリック・解除の画面）`);
 }
 const both = M.buildFollowup({ lang: 'en', unsub_token: 'tok' }, { siteUrl: site, supabaseUrl: SUPA });
-ok(both.lang === 'both' && both.subject === 'How do you find out what other airlines pay? / 他社の給与、どう知っていますか',
+ok(both.lang === 'both' && both.subject === 'Do you know the pay and conditions at other airlines? / 他社の待遇、知っていますか？',
    '英語で登録した人は、英語が上・日本語が下の1通（歓迎メールと同じ決まり）', both.subject);
 const jaMail = M.buildFollowup({ lang: 'ja', unsub_token: 'tok' }, { siteUrl: site, supabaseUrl: SUPA });
 ok(OWNER_JA.lines.every((x) => jaMail.text.includes(x)), '送るメールの本文（文字だけの版）にも、オーナーの字がそのまま全部入る');
@@ -209,7 +209,7 @@ ok(out.ok && out.due2 === 1 && sent.length === 0 && marks.length === 0, '下見�
 out = await call();
 ok(out.ok && out.sent2 === 1 && sent.length === 1 && sent[0].h['Idempotency-Key'] === `welcome2:${uid(50)}`,
    '2通目は welcome2:<id> の鍵で1通（歓迎メールの鍵 welcome:<id> と別）', JSON.stringify(out));
-ok(sent[0].b.subject === '他社の給与、どう知っていますか' && sent[0].b.reply_to === 'info@pilot-value.com' && /List-Unsubscribe/.test(JSON.stringify(sent[0].b.headers)),
+ok(sent[0].b.subject === '他社の待遇、知っていますか？' && sent[0].b.reply_to === 'info@pilot-value.com' && /List-Unsubscribe/.test(JSON.stringify(sent[0].b.headers)),
    '件名はオーナーの字・返信は info@・配信停止のヘッダつき');
 ok(marks.length === 1 && marks[0].p_id === uid(50) && marks[0].p_ok === true, '送れたら記録する');
 followupRpc = 'missing'; sent.length = 0;

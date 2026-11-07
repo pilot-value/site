@@ -359,7 +359,7 @@ export function followupCopy(l: Lang, site = SITE_URL): FollowupCopy {
   const pay = `${site}/${pagePath(l, 'pay-report.html#ps')}`;
   if (l === 'ja') {
     return {
-      subject: '他社の給与、どう知っていますか',
+      subject: '他社の待遇、知っていますか？',
       lead: 'PILOT VALUEへようこそ。',
       quote: '「あの会社、〇〇万くらいもらってるらしいよ」',
       body: [
@@ -377,7 +377,7 @@ export function followupCopy(l: Lang, site = SITE_URL): FollowupCopy {
   }
   if (l === 'es') {
     return {
-      subject: '¿Cómo te enteras de lo que pagan otras aerolíneas?',
+      subject: '¿Conoces las condiciones de otras aerolíneas?',
       lead: 'Te damos la bienvenida a PILOT VALUE.',
       quote: '"Dicen que en esa aerolínea ganan unos ___ al año."',
       body: [
@@ -394,7 +394,7 @@ export function followupCopy(l: Lang, site = SITE_URL): FollowupCopy {
     };
   }
   return {
-    subject: 'How do you find out what other airlines pay?',
+    subject: 'Do you know the pay and conditions at other airlines?',
     lead: 'Welcome to PILOT VALUE.',
     quote: '"I hear they make about ___ a year over there."',
     body: [
