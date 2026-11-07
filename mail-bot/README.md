@@ -4,7 +4,16 @@
 `tweet-bot/` と同型で、`.env` は手動読込・状態は json 保存・`.env` と状態ファイルは `.gitignore` 済み。
 
 - `admin-notify.mjs` … 新規登録・新規口コミを**管理者**（info@pilot-value.com）へ要約通知。**会員の同意不要**（自社アドレス宛＝特定電子メール法の対象外）。
-- `send.mjs` … **会員向け**配信。`welcome`（歓迎）／`digest`（新着ダイジェスト）。**オプトインした会員のみ**・全メールに解除リンク。
+- `send.mjs` … **会員向け**配信。`digest`（新着ダイジェスト）ほか。**オプトインした会員のみ**・全メールに解除リンク。
+  `welcome` は**自分宛ての下見だけ**（下の「歓迎メール」）。
+
+> ★**歓迎メール（登録のお礼・PILOT VALUE をつくる理由・給与を匿名で1件のお願い。日本語の文はオーナー作）は 2026-11-06 から自動。**
+> Supabase の時計（`pv-welcome-member`・10分おき）が Edge Function `welcome-member` を叩き、
+> 通知を希望して登録を終えた人に**登録から72時間以内に1人1回**送る。
+> 文面の正は `supabase/functions/welcome-member/index.ts`、誰に送るかは `db/welcome-mail.sql` の `pv_welcome_due`。
+> 言語は登録した画面の言語（日本語／英語が上・日本語が下／スペイン語）。
+> 下見：`node shot-remind.mjs --welcome`（絵）／`node mail-bot/send.mjs welcome --to=info@pilot-value.com --send`（受信箱）。
+> 止めるとき：`select cron.unschedule('pv-welcome-member');`
 
 > ⚠️ **管理者通知の主役は Edge Function に移りました。**
 > 日常の通知は `supabase/functions/notify-admin/index.ts` が Database Webhook から
@@ -271,12 +280,11 @@ node mail-bot/admin-notify.mjs --since=2026-07-01T00:00:00Z
 
 ### 会員配信（send.mjs）
 ```
-node mail-bot/send.mjs welcome            # 新規オプトイン会員へ歓迎メール
+node mail-bot/send.mjs welcome --to=info@pilot-value.com --send   # 歓迎メールを自分の受信箱で見る（会員へは送らない）
 node mail-bot/send.mjs digest             # オプトイン会員へ新着ダイジェスト
-node mail-bot/send.mjs welcome --dry-run  # 送らずプレビュー
 node mail-bot/send.mjs digest  --backfill # 初回：直近7日ぶんをまとめて
 ```
-- `welcome` も**初回は監視開始**（既存会員には送らない）。既存全員へ送るなら `--backfill`。
+- `welcome` は**会員へは送らない**（自動の歓迎メールと二重になるため）。`--to=` が無いと止まる。
 - `digest` は既定で**前回実行以降**（初回は直近7日）の新着口コミを、`email_opt_in=true` の全員へ。
 - 状態：`.send-state.json`（`lastWelcomeAt` / `lastDigestAt`）。
 
@@ -470,8 +478,8 @@ pg_cron（毎週月曜 00:00 UTC ＝ 日本時間 月曜 09:00）
 # 二重に届くため、下の行は入れないこと（残してあるのは手動実行の書式の参考）。
 #   0,15,30,45 * * * * cd /path/to/PILOT-VALUE && /usr/bin/node mail-bot/admin-notify.mjs >> mail-bot/admin.log 2>&1
 
-# 歓迎メール：10分毎に新規オプトイン会員へ
-*/10 * * * * cd /path/to/PILOT-VALUE && /usr/bin/node mail-bot/send.mjs welcome >> mail-bot/send.log 2>&1
+# 歓迎メールは Supabase の時計（pv-welcome-member）が送るので cron 不要（2026-11-06）。
+# send.mjs welcome は自分宛ての下見だけになった＝ここに入れても会員へは届かない。
 
 # 新着まとめ：毎週月曜 9:00。--send が要る（付けないと「送らない」側で止まる）
 # ⚠️ 今は cron に登録していない。この Mac が動いていないと飛ばないので、当面は手で流す。

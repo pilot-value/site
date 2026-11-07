@@ -16,12 +16,14 @@
          node shot-remind.mjs --update    … この1ヶ月のお知らせを撮る
          node shot-remind.mjs --renewal   … トップページ刷新のお知らせを撮る
          node shot-remind.mjs --digest    … 週に一度の新着まとめを撮る
+         node shot-remind.mjs --welcome   … 登録した会員への歓迎メールを撮る（日・英＋日・西）
 */
 import puppeteer from 'puppeteer';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { build } from './supabase/functions/remind-payslip/index.ts';
+import { buildWelcome } from './supabase/functions/welcome-member/index.ts';
 import { build as buildAnnounce, buildFounding, buildRealPay, buildUpdate, buildRenewal, buildDigest, digestStats } from './mail-bot/announce-mail.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -34,6 +36,7 @@ const REALPAY  = process.argv.includes('--realpay');
 const UPDATE   = process.argv.includes('--update');
 const RENEWAL  = process.argv.includes('--renewal');
 const DIGEST   = process.argv.includes('--digest');
+const WELCOME  = process.argv.includes('--welcome');
 const day = (n) => new Date(Date.now() + n * 86400000).toISOString();
 
 /* 受け取る人の状態は3つに分かれる。文面と色が変わるので全部見る。 */
@@ -130,11 +133,25 @@ const DIGEST_CASES = [
     st: wk(['ana', 'jal', 'delta', 'united-airlines'], []) },
 ];
 
-const CASES = DIGEST ? DIGEST_CASES : RENEWAL ? RENEWAL_CASES : UPDATE ? UPDATE_CASES : REALPAY ? REALPAY_CASES : FOUNDING ? FOUNDING_CASES : ANNOUNCE ? ANNOUNCE_CASES : REMIND_CASES;
+/* ★登録した会員への歓迎メール。言語は登録した画面の言語（profiles.lang）で決まる。
+   出来上がる版は3つ ── 日本語／英語が上・日本語が下／スペイン語。 */
+const WELCOME_CASES = [
+  { k: 'wc-ja',   p: { lang: 'ja', country: 'UAE' } },
+  { k: 'wc-en',   p: { lang: 'en', country: 'UAE' } },
+  { k: 'wc-es',   p: { lang: 'es', country: 'メキシコ' } },
+  // もう給与を出した人（給与フォームから入った人）＝お願いが口コミに替わる
+  { k: 'wc-ja-paid', p: { lang: 'ja', gave_pay: true } },
+  { k: 'wc-en-paid', p: { lang: 'en', gave_pay: true } },
+];
+
+const CASES = WELCOME ? WELCOME_CASES : DIGEST ? DIGEST_CASES : RENEWAL ? RENEWAL_CASES : UPDATE ? UPDATE_CASES : REALPAY ? REALPAY_CASES : FOUNDING ? FOUNDING_CASES : ANNOUNCE ? ANNOUNCE_CASES : REMIND_CASES;
 
 const files = [];
 for (const c of CASES) {
-  const m = DIGEST
+  const m = WELCOME
+    ? buildWelcome({ id: 'x', unsub_token: '0000-token', ...c.p },
+      { supabaseUrl: 'https://example.supabase.co', siteUrl: 'http://localhost:3000' })
+    : DIGEST
     ? buildDigest({ id: 'x', unsub_token: '0000-token', ...c.p },
       { stats: c.st, supabaseUrl: 'https://example.supabase.co', siteUrl: 'http://localhost:3000' })
     : RENEWAL
