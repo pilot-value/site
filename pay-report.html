@@ -4,6 +4,15 @@
 <meta charset="UTF-8"/>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png"/>
 <link rel="apple-touch-icon" href="assets/favicon-180.png"/>
+<!--PV-APP-->
+<link rel="manifest" href="manifest.webmanifest"/>
+<meta name="theme-color" content="#ffffff"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="PILOT VALUE"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<script>(function(){try{var d=document.documentElement,m=document.querySelector('meta[name="theme-color"]'),s=function(){m.setAttribute('content',d.getAttribute('data-theme')==='dark'?'#0a0c0f':'#ffffff')};s();new MutationObserver(s).observe(d,{attributes:true,attributeFilter:['data-theme']})}catch(e){}}());</script>
+<!--/PV-APP-->
 <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>給与レポートを出す｜明細から自動入力 | PILOT VALUE</title>
@@ -5999,10 +6008,13 @@ function renderResult(d, p) {
         '<a href="actual-pay.html" class="btn-ghost justify-center flex-1">' + (back ? 'REAL PAY に戻る →' : 'REAL PAY を見る →') + '</a>' +
         '<button type="button" class="btn-ghost justify-center" id="btn-again">別の月を出す</button>' +
       '</div>' +
+      /* ★ホーム画面に追加（2026-11-07・オーナー決定の2か所の1つ）。この端末で1回だけ・PC では出さない（pv-app.js） */
+      '<div data-pv-app="done" style="display:none"></div>' +
     '</div>';
 
   $('form-wrap').style.display = 'none';
   $('result-wrap').style.display = '';
+  if (window.PVApp) window.PVApp.mount($('result-wrap').querySelector('[data-pv-app]'), 'done');
   window.scrollTo({ top: 0, behavior: 'smooth' });
   /* 出し終わりを静かに終わらせない。ただし鳴らすのは新しい月のときだけ。
      同じ月の出し直し（is_new:false＝訂正）は上書きで件数が増えないので、
@@ -6091,6 +6103,7 @@ addEventListener('scroll', () => {
 })();
 </script>
 <script src="payslip.js?v=e191225a"></script>
+<script src="pv-app.js?v=a95c64dd"></script>
 <script src="confetti.js"></script>
 <script src="pay-login.js"></script>
 <!-- ★ヘッダーを畳むのは search.js。id="main-nav" を持つページは必ず読む。

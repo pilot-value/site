@@ -4,6 +4,15 @@
   <meta charset="UTF-8"/>
 <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png"/>
 <link rel="apple-touch-icon" href="../assets/favicon-180.png"/>
+<!--PV-APP-->
+<link rel="manifest" href="../manifest-en.webmanifest"/>
+<meta name="theme-color" content="#ffffff"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="PILOT VALUE"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<script>(function(){try{var d=document.documentElement,m=document.querySelector('meta[name="theme-color"]'),s=function(){m.setAttribute('content',d.getAttribute('data-theme')==='dark'?'#0a0c0f':'#ffffff')};s();new MutationObserver(s).observe(d,{attributes:true,attributeFilter:['data-theme']})}catch(e){}}());</script>
+<!--/PV-APP-->
   <link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/><noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet"/></noscript>
   <script>(function(){var t=localStorage.getItem('pv-theme')||'light';document.documentElement.setAttribute('data-theme',t);}());</script>
@@ -501,6 +510,8 @@
         <div class="glass mp-remind" id="remind-card">
           <div id="mv-remind-slot" class="mp-remind-slot">Loading…</div>
         </div>
+        <!-- ★ホーム画面に追加（2026-11-07・pv-app.js が描く。PC・アプリとして開いているときは出さない） -->
+        <div class="glass" data-pv-app="mypage" style="margin-top:20px;display:none"></div>
     <!-- Password -->
     <div class="glass" id="password-card" style="margin-top:20px">
       <div style="font-size:.92rem;font-weight:700;margin-bottom:4px">Password</div>
@@ -1135,6 +1146,7 @@
      2026-09-06、pay-tracker.js（462行）を廃止してこの1本に寄せた ──
      同じ my_pay_reports() を叩き、同じ pay-viz.js で図を描く実装が2つあった。 -->
 <script src="../my-value.js"></script>
+<script src="../pv-app.js?v=a95c64dd"></script>
 <!-- "Please resubmit" notice. Shown **only to the member themselves** when one of
      their own pay reports has net pay above gross pay.
      ★Nothing is shown to signed-out visitors or to members with nothing to fix

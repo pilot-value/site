@@ -24,7 +24,7 @@ const ROOT = fileURLToPath(new URL('.', import.meta.url));
 /* 対応表の形の名前（日本語の文 → 英語の文）。es は NAME_ES に書く */
 const MAP_NAMES = ['L10N', 'PV_SEARCH_L10N', 'EN_WORD'];   // EN_WORD はトップの見本（lp.js）
 
-export const MSG_FILES = ['pay-wizard.js', 'pay-login.js', 'payslip.js', 'pv-gates.js', 'pv-give-first.js', 'app-nav.js',
+export const MSG_FILES = ['pay-wizard.js', 'pay-login.js', 'payslip.js', 'pv-app.js', 'pv-gates.js', 'pv-give-first.js', 'app-nav.js',
   'pv-referral.js', 'pv-conditions.js', 'my-value.js', 'actual-pay.js', 'pv-proof-offer.js', 'ap-preview.js', 'review-i18n.js',
   /* 段3（2026-11-02）：会社ページ・トップ */
   'career-live.js', 'career-stay.js', 'pv-contrib.js', 'lp.js', 'airlines/airline-reviews-ui.js',

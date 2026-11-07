@@ -97,7 +97,7 @@ const SQL = [
 const WEB = [
   /* 2026-11-04：明細の黒塗りの検査（db/test-payslip-redact.mjs・203秒）は、黒塗りをやめたので外した。
      代わりに選んで読む流れの通し（db/test-payslip-flow.mjs）。秒数は単独で測った値。 */
-  ['db/test-payslip-flow.mjs', 70], ['assert-header.mjs', 279],
+  ['db/test-payslip-flow.mjs', 70], ['assert-header.mjs', 279], ['assert-app.mjs', 15],
   ['assert-pay-rows.mjs', 210], ['db/test-pay-gate.mjs', 194],
   ['db/test-form-contract.mjs', 179], ['assert-jp.mjs', 153],
   ['assert-referral.mjs', 126], ['assert-perf.mjs', 110],

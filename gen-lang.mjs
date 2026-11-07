@@ -275,6 +275,9 @@ for (const bare of L.pages) {
     return n ? open + JSON.stringify(o).replace(/</g, () => '\\u003c') + close : all;   // gen-career.mjs と同じ逃がし方
   });
 
+  /* 8) ホーム画面に置ける形（PV-APP・inject-app.mjs が日英に入れる塊）：manifest をその言語のものへ（start_url がその言語のトップ） */
+  html = html.replace(/(<!--PV-APP-->[\s\S]*?)manifest-en\.webmanifest([\s\S]*?<!--\/PV-APP-->)/, (all, a, b) => `${a}manifest-${code}.webmanifest${b}`);
+
   const abs = path.join(ROOT, outRel);
   const prev = fs.existsSync(abs) ? fs.readFileSync(abs, 'utf8') : null;
   report.push(`  ${outRel.padEnd(28)} 訳した ${String(done).padStart(4)} / 英語のまま ${String(missing).padStart(3)}${prev === html ? '' : prev === null ? '  （新しく作る）' : '  （変わる）'}`);

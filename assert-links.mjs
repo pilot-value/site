@@ -277,6 +277,9 @@ const STAMPS = [
      直したら、出た値を日英の2枚に写す（西は gen-lang.mjs が英語のページから写す。この表はスペイン語のページを読まない）。 */
   { pages: [['pay-report.html', ''], ['en/pay-report.html', '../']],
     files: ['payslip.js', 'pay-report.css'] },
+  /* ★2026-11-07 ホーム画面に追加の案内（MY PAGE と給与を出し終えた画面）。直したら、出た値を日英の4枚に写す（西は gen-lang.mjs）。 */
+  { pages: [['pay-report.html', ''], ['en/pay-report.html', '../'], ['profile.html', ''], ['en/profile.html', '../']],
+    files: ['pv-app.js'] },
 ];
 const stampIssues = [];
 for (const { pages, files } of STAMPS) {
