@@ -333,6 +333,155 @@ export function buildWelcome(p: Person, o: { siteUrl?: string; supabaseUrl?: str
   return { lang, subject, html, text, unsubUrl: unsubPage(langs[0]), oneClickUrl };
 }
 
+/* ════════════════════════════════════════════════════════════════
+   2通目（2026-11-07・オーナー採用「登録だけで止まっている人への2通目」・登録から3日後）
+
+   誰に：SQL の pv_welcome_followup_due の1か所（db/welcome-followup.sql）。歓迎メールを受け取って2日以上・
+         登録から3〜10日・給与をまだ出していない・確認待ちで止めていない・1人1回。
+   中身：本人の会社のページで見られるもの（ページへのリンク）＋給与を匿名で1件のお願い（ボタン1つ）。
+   ★登録時の同意は「有益な更新」。お願いだけのメールにしない（会社のページの案内が先）。
+   ★数字（社数・人数・件数）を書かない。「90日間」だけはサイトと同じ日数（歓迎メールと同じ字）。
+   ★会社名は表（pv_airlines）の名前だけ。打ち込まれた社名は受け取らない（SQL が渡さない）。
+   ★日本語は下書き（2026-11-07）。オーナーが直したら、その字に替える（書き直さない）。英語・スペイン語はその訳。
+   ════════════════════════════════════════════════════════════════ */
+export type FollowupPerson = Person & {
+  airline?: string | null; airline_ja?: string | null; airline_en?: string | null; airline_page?: boolean | null;
+};
+export function airlinePagePath(l: Lang, code: string) {
+  return l === 'ja' ? `airlines/${code}.html` : `${l}/airlines/${code}.html`;
+}
+export function followupCopy(l: Lang, p: FollowupPerson, site = SITE_URL): WelcomeCopy & { see: Link } {
+  const pay = `${site}/${pagePath(l, 'pay-report.html#ps')}`;
+  const code = p?.airline_page === true && p?.airline ? String(p.airline) : '';
+  const name = code ? String((l === 'ja' ? p.airline_ja : p.airline_en) || '') : '';
+  const has = !!(code && name);
+  const see: Link = has
+    ? { label: '', href: `${site}/${airlinePagePath(l, code)}` }
+    : { label: '', href: `${site}/${l === 'ja' ? '' : l + '/'}world-airlines.html` };
+  if (l === 'ja') {
+    see.label = has ? `${name}のページを見る` : '航空会社の一覧を見る';
+    return {
+      subject: has ? `${name}の給与を、匿名で1件教えてください` : 'あなたの給与を、匿名で1件教えてください',
+      lead: ['PILOT VALUEにご登録いただき、ありがとうございます。'],
+      body: [[has
+        ? `${name}のページでは、推定年収・口コミ・待遇（勤務や手当）を見られます。`
+        : 'PILOT VALUEでは、世界の航空会社の推定年収・口コミ・待遇（勤務や手当）を見られます。']],
+      see,
+      ask: {
+        lead: 'まだのようでしたら、あなたの給与を匿名で1件、共有してください。',
+        t: '投稿すると、他のパイロットから寄せられた給与データを90日間閲覧できます。明細の写真を選ぶと、項目は自動で入ります。',
+        cta: { label: '匿名で給与を追加する', href: pay },
+        note: '氏名・社員番号・口座情報など、個人を直接特定する情報は公開しません。',
+      },
+      close: ['気づいたことがあれば、このメールに返信してください。'],
+      sign: 'PILOT VALUE Team',
+      foot: 'このメールは、PILOT VALUE にご登録いただき、通知を希望された方にお送りしています。',
+      unsub: '配信を停止する',
+    };
+  }
+  if (l === 'es') {
+    see.label = has ? `Ver la página de ${name}` : 'Ver todas las aerolíneas';
+    return {
+      subject: has ? `Comparte tu remuneración en ${name}, de forma anónima` : 'Comparte tu remuneración, de forma anónima',
+      lead: ['Gracias por registrarte en PILOT VALUE.'],
+      body: [[has
+        ? `En la página de ${name} puedes ver la remuneración estimada, las reseñas y las condiciones de trabajo (programación y viáticos).`
+        : 'En PILOT VALUE puedes ver la remuneración estimada, las reseñas y las condiciones de trabajo de aerolíneas de todo el mundo.']],
+      see,
+      ask: {
+        lead: 'Si aún no lo has hecho, comparte un registro de tu remuneración de forma anónima.',
+        t: 'Al hacerlo, podrás ver durante 90 días los datos de remuneración que han compartido otros pilotos. Elige una foto de tu recibo de nómina y los campos se completan solos.',
+        cta: { label: 'Agrega tu remuneración de forma anónima', href: pay },
+        note: 'Nunca publicamos tu nombre, tu número de empleado, tus datos bancarios ni ningún otro dato que te identifique directamente.',
+      },
+      close: ['Si notas algo, responde a este correo.'],
+      sign: 'PILOT VALUE Team',
+      foot: 'Recibes este correo porque te registraste en PILOT VALUE y pediste recibir notificaciones.',
+      unsub: 'Cancelar la suscripción',
+    };
+  }
+  see.label = has ? `See the ${name} page` : 'See all airlines';
+  return {
+    subject: has ? `Share your ${name} pay, anonymously` : 'Share your pay, anonymously',
+    lead: ['Thanks for joining PILOT VALUE.'],
+    body: [[has
+      ? `On the ${name} page you can see estimated pay, reviews and working conditions (rosters and allowances).`
+      : 'On PILOT VALUE you can see estimated pay, reviews and working conditions at airlines worldwide.']],
+    see,
+    ask: {
+      lead: "If you haven't yet, share one pay record, anonymously.",
+      t: 'Once you do, you can view the pay data other pilots have shared for 90 days. Choose a photo of your payslip and the fields fill in for you.',
+      cta: { label: 'Add your pay anonymously', href: pay },
+      note: 'We never publish your name, staff number, bank details or anything else that directly identifies you.',
+    },
+    close: ['If you notice anything, just reply to this email.'],
+    sign: 'PILOT VALUE Team',
+    foot: 'You are receiving this because you signed up for PILOT VALUE and asked for notifications.',
+    unsub: 'Unsubscribe',
+  };
+}
+
+export function buildFollowup(p: FollowupPerson, o: { siteUrl?: string; supabaseUrl?: string; lang?: Lang | 'both' } = {}) {
+  const site = String(o.siteUrl ?? SITE_URL ?? 'https://pilot-value.com').replace(/\/+$/, '');
+  const sb = String(o.supabaseUrl ?? SUPABASE_URL ?? '').replace(/\/+$/, '');
+  const lang = o.lang || welcomeLangOf(p);
+  const langs: Lang[] = lang === 'both' ? BOTH_ORDER : [lang];
+  const tok = encodeURIComponent(p?.unsub_token || '');
+  const unsubPage = (l: Lang) => `${site}/${pagePath(l, 'unsubscribe.html')}?token=${tok}`;
+  const oneClickUrl = sb ? `${sb}/functions/v1/remind-payslip?u=${tok}` : '';
+  const parts = langs.map((l) => ({ l, t: followupCopy(l, p, site) }));
+  const subject = parts.map((x) => x.t.subject).join(' / ');
+  const P = (s: string, st = '') => `<p style="margin:0 0 14px;color:#333${st}">${esc(s)}</p>`;
+  const blockHtml = (t: ReturnType<typeof followupCopy>) => `
+    ${t.lead.map((s) => P(s, ';font-weight:800;color:#111;font-size:16px')).join('')}
+    ${t.body.map((g) => g.map((s) => P(s)).join('')).join('')}
+    <p style="margin:0 0 20px"><a href="${esc(t.see.href)}" style="color:#067563;font-weight:700">${esc(t.see.label)} →</a></p>
+    <div style="margin:0 0 14px;padding:16px 14px 14px;background:#f7f8fa;border-radius:12px">
+      <p style="margin:0 0 8px;color:#111;font-weight:800">${esc(t.ask.lead)}</p>
+      <p style="margin:0 0 14px;color:#333">${esc(t.ask.t)}</p>
+      <a href="${esc(t.ask.cta.href)}" style="display:inline-block;background:#f5c842;color:#111;text-decoration:none;font-weight:800;padding:12px 18px;border-radius:10px;line-height:1.4">${esc(t.ask.cta.label)}</a>
+      <p style="margin:14px 0 0;color:#6b7280;font-size:12px;line-height:1.7">${esc(t.ask.note)}</p>
+    </div>
+    ${t.close.map((s) => P(s)).join('')}
+    <p style="margin:18px 0 0;color:#333">${esc(t.sign)}</p>`;
+  const blockText = (t: ReturnType<typeof followupCopy>) => [
+    ...t.lead, '',
+    ...t.body.flatMap((g) => g.flatMap((s) => [s, ''])),
+    `${t.see.label}: ${t.see.href}`, '',
+    t.ask.lead, t.ask.t, '',
+    `▶ ${t.ask.cta.label}: ${t.ask.cta.href}`, '',
+    t.ask.note, '',
+    ...t.close.flatMap((s) => [s, '']),
+    t.sign,
+  ].join('\n');
+  const unsubLinks = parts
+    .map((x) => `<a href="${esc(unsubPage(x.l))}" style="color:#6b7280">${esc(x.t.unsub)}</a>`)
+    .join(' / ');
+  const html =
+    `<div style="background:#f3f5f8;padding:24px 12px;font-family:-apple-system,'Segoe UI','Noto Sans JP',sans-serif">
+      <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #e6e9ef">
+        <div style="background:#0a0c0f;padding:18px 24px">
+          <span style="color:#f5c842;font-weight:800;letter-spacing:.04em;font-size:15px">PILOT VALUE</span>
+        </div>
+        <div style="padding:26px 24px;color:#1f2937;font-size:14px;line-height:1.8">
+          ${parts.map((x) => blockHtml(x.t)).reduce((acc, b, i) => acc + dividerFor(langs[i]) + b)}
+        </div>
+        <div style="padding:16px 24px;border-top:1px solid #eef0f4;color:#9aa5b1;font-size:11px;line-height:1.7">
+          ${parts.map((x) => esc(x.t.foot)).join('<br>')}<br>
+          ${unsubLinks}
+          ・<a href="${esc(site)}" style="color:#6b7280">${esc(site.replace(/^https?:\/\//, ''))}</a>
+        </div>
+      </div>
+    </div>`;
+  const text = [
+    parts.map((x) => blockText(x.t)).join('\n\n— — —\n\n'),
+    '', '--',
+    ...parts.map((x) => x.t.foot),
+    ...parts.map((x) => `${x.t.unsub}: ${unsubPage(x.l)}`),
+  ].join('\n');
+  return { lang, subject, html, text, unsubUrl: unsubPage(langs[0]), oneClickUrl };
+}
+
 /* ── ここから下は本番（Deno）でだけ動く ──────────────────── */
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -347,15 +496,17 @@ async function rpc(fn: string, args: Record<string, unknown> = {}) {
   return await res.json();
 }
 
-async function send(p: Person) {
-  const m = buildWelcome(p, { siteUrl: SITE_URL, supabaseUrl: SUPABASE_URL });
+async function send(p: Person, kind: 'welcome' | 'followup' = 'welcome') {
+  const m = kind === 'followup'
+    ? buildFollowup(p as FollowupPerson, { siteUrl: SITE_URL, supabaseUrl: SUPABASE_URL })
+    : buildWelcome(p, { siteUrl: SITE_URL, supabaseUrl: SUPABASE_URL });
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${RESEND_KEY}`,
       'Content-Type': 'application/json',
       /* ★1人1通。記録が書けずに次の回でもう一度選ばれても、Resend 側で1通に畳まれる。 */
-      'Idempotency-Key': `welcome:${p.id}`,
+      'Idempotency-Key': `${kind === 'followup' ? 'welcome2' : 'welcome'}:${p.id}`,
     },
     body: JSON.stringify({
       from: FROM_EMAIL,
@@ -387,10 +538,16 @@ export async function handler(req: Request): Promise<Response> {
   const due = (await rpc('pv_welcome_due', { p_limit: MAX_PER_RUN })) as Person[];
   const tally: Record<string, number> = { ja: 0, en: 0, es: 0, both: 0 };
 
+  /* ★2通目の相手（2026-11-07）。口がまだ無い（db/welcome-followup.sql を貼る前）なら飛ばす＝歓迎メールは今までどおり。 */
+  let due2: Person[] = [];
+  let followup = 'ok';
+  try { due2 = ((await rpc('pv_welcome_followup_due', { p_limit: MAX_PER_RUN })) as Person[]) || []; }
+  catch (e) { followup = 'unavailable'; console.error('followup due failed', String(e).slice(0, 200)); }
+
   /* ★人数だけを返す。宛先も氏名もログに残さない。 */
   if (body?.dry === true) {
     for (const p of due || []) tally[welcomeLangOf(p)]++;
-    return json({ ok: true, dry: true, due: (due || []).length, ...tally });
+    return json({ ok: true, dry: true, due: (due || []).length, due2: due2.length, followup, ...tally });
   }
 
   let sent = 0, failed = 0;
@@ -409,7 +566,22 @@ export async function handler(req: Request): Promise<Response> {
     }
     await new Promise((r) => setTimeout(r, 260)); // Resend の秒間上限に当てない
   }
-  return json({ ok: true, due: (due || []).length, sent, failed, ...tally });
+
+  /* ── 2通目（歓迎メールと同じ決まりで送って記録する）── */
+  let sent2 = 0, failed2 = 0;
+  for (const p of due2) {
+    let ok = false;
+    try { await send(p, 'followup'); ok = true; sent2++; } catch (e) {
+      failed2++;
+      console.error('followup send failed', String(e).slice(0, 200));
+    }
+    try { await rpc('pv_welcome_followup_mark', { p_id: p.id, p_ok: ok }); } catch (e) {
+      console.error('followup mark failed', String(e).slice(0, 200));
+      return json({ ok: false, error: 'followup mark failed', sent, failed, sent2, failed2, ...tally }, 500);
+    }
+    await new Promise((r) => setTimeout(r, 260));
+  }
+  return json({ ok: true, due: (due || []).length, sent, failed, due2: due2.length, sent2, failed2, followup, ...tally });
 }
 
 if (DENO?.serve) DENO.serve(handler);

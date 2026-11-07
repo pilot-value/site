@@ -47,7 +47,7 @@ const SQL = [
   ['db/test-requests.mjs', 5], ['db/test-reviews-gate.mjs', 6],
   ['db/test-digest.mjs', 5],
   /* 2026-11-06 登録した会員への歓迎メール（db/welcome-mail.sql ＋ welcome-member）。誰に・1人1回・会員から触れない・文面がサイトの字と同じ・壊す証明 */
-  ['db/test-welcome.mjs', 2],
+  ['db/test-welcome.mjs', 2], ['db/test-welcome-followup.mjs', 2],
   ['db/test-stays.mjs', 8],
   /* 2026-10-18（WP-close-a）：段階3の2本を足した。秒数は単独で流した実測 */
   ['db/test-towns.mjs', 6], ['db/test-proof-offer.mjs', 3],
