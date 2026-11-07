@@ -96,7 +96,7 @@
     b.classList.toggle('is-on', on);
     b.setAttribute('aria-pressed', on ? 'true' : 'false');
     var ic = b.querySelector('.pvg-follow-ic'), t = b.querySelector('.pvg-follow-t');
-    if (ic) ic.textContent = on ? '✓' : '＋';
+    if (ic) ic.textContent = on ? '✓' : '+';   // ★半角（英語のページに全角の字を混ぜない）
     if (t) t.textContent = on ? T.following : T.follow;
   }
 

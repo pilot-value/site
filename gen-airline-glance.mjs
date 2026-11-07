@@ -316,7 +316,7 @@ function hero(v, keep) {
   /* ★2026-11-07「＋ フォロー」はボタンの列の先頭（オーナー「カードを保存とかと同じボタンの大きさにして」）。
      ★class は pvg-btn にしない（押せる2つの数を見ている検査と、行き先が career.html の2つの決まりを崩さない）。形は pv-glance.css の .pvg-follow。
      比較のボタンが無い会社でも、フォローだけは置く。 */
-  const follow = `<button type="button" class="pvg-follow" data-pv-follow="${esc(v.slug)}" aria-pressed="false"><span class="pvg-follow-ic" aria-hidden="true">＋</span><span class="pvg-follow-t">${W.follow}</span></button>`;
+  const follow = `<button type="button" class="pvg-follow" data-pv-follow="${esc(v.slug)}" aria-pressed="false"><span class="pvg-follow-ic" aria-hidden="true">+</span><span class="pvg-follow-t">${W.follow}</span></button>`;
   const where = v.base.city || v.base.iata.length ? `<span class="pvg-base">${IC.pin}${esc(v.base.city)}${iata}</span>\n` : '';
   /* 社名と拠点・星は1つの箱（.pvg-who）。ボタンはその右か、社名が細い列に押し込まれるなら下の行（pv-glance.css。★2026-10-26 P12.132） */
   return `<div class="hero-airline pvg-hero${t ? ' pvg-hero-t' : ''}" style="--pvg-c:${esc(v.color)}">
