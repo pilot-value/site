@@ -46,17 +46,6 @@
 .pvg-hero .pvg-base{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--pv-ink-2)}
 .pvg-hero .pvg-base b{font:700 12px/1 Inter,sans-serif;letter-spacing:.06em;color:var(--pv-ink)}
 .pvg-hero .pvg-base .pvg-ic{color:var(--pvg-c,var(--pv-accent))}
-/* ★2026-11-07 社名の下の行の「＋ フォロー」（pv-follow.js が押せるようにする）。小さな札で、上のボタンの列には入れない */
-.pvg-hero .pvg-follow{display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 11px;border-radius:999px;
-  border:1px solid var(--pv-line,#e3e9f0);background:var(--pv-surface,#fff);color:var(--pv-ink-2,#475569);
-  font-family:inherit;font-weight:700;font-size:12px;line-height:1;cursor:pointer;box-shadow:0 1px 2px rgba(15,23,42,.06);
-  transition:transform .18s cubic-bezier(.34,1.56,.64,1),opacity .18s}
-.pvg-hero .pvg-follow:hover{opacity:.8}
-.pvg-hero .pvg-follow:active{transform:scale(.95)}
-.pvg-hero .pvg-follow:focus-visible{outline:3px solid var(--pv-accent-line,#bfe6db);outline-offset:2px}
-.pvg-hero .pvg-follow-ic{font-size:13px;line-height:1}
-.pvg-hero .pvg-follow.is-on{background:var(--pv-accent-soft,#e7f5f1);border-color:var(--pv-accent-line,#bfe6db);color:var(--pv-accent-ink,#067563)}
-.pvg-hero .pvg-follow-note{font-size:12px;color:var(--pv-ink-3,#64748b)}
 /* 星と実件数。0件のときは言葉を畳み、「匿名で口コミを書く」だけを残す（見本の点数を混ぜない） */
 .pvg-hero .crl{display:flex;align-items:center;gap:10px;font-size:13px;line-height:1.4}
 .pvg-hero .crl[data-state="empty"] .crl-msg{display:none}
@@ -1410,3 +1399,37 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
 .pvg-lvt[data-more="l"]{-webkit-mask-image:linear-gradient(to left,black calc(100% - var(--lvt-fade)),transparent);mask-image:linear-gradient(to left,black calc(100% - var(--lvt-fade)),transparent)}
 .pvg-lvt[data-more="l r"]{-webkit-mask-image:linear-gradient(to right,transparent,black var(--lvt-fade),black calc(100% - var(--lvt-fade)),transparent);mask-image:linear-gradient(to right,transparent,black var(--lvt-fade),black calc(100% - var(--lvt-fade)),transparent)}
 @container pvg (min-width:700px){ .pvg-lvt{flex-wrap:wrap;overflow:visible} .pvg-lvt[data-more]{-webkit-mask-image:none;mask-image:none} }
+
+/* ★2026-11-07「＋ フォロー」── ボタンの列の先頭。形は .pvg-btn と同じ大きさ（オーナー「カードを保存とかと同じボタンの大きさにして」）。
+   class は pvg-btn にしない（押せる2つの数を見ている検査を崩さない）ので、形だけここで同じにする。押すのは pv-follow.js。 */
+.pvg-follow{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:0 18px;
+  border-radius:999px;border:1px solid var(--pv-line);font-family:inherit;
+  font-size:13px;font-weight:700;letter-spacing:.02em;white-space:nowrap;cursor:pointer;
+  color:var(--pv-ink);background:var(--pv-surface);
+  position:relative;transition:transform .25s var(--pv-ease);
+}
+.pvg-follow::after{content:"";position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;box-shadow:var(--pv-shadow-lift);opacity:0;transition:opacity .25s var(--pv-ease)}
+.pvg-follow:hover{transform:translateY(-1px)}
+.pvg-follow:hover::after{opacity:1}
+.pvg-follow:active{transform:translateY(0) scale(.98)}
+.pvg-follow:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.pvg-follow-ic{font-size:15px;line-height:1}
+.pvg-follow.is-on{color:var(--pv-accent-ink);border-color:var(--pv-accent)}
+.pvg-hero-t .pvg-follow{border-radius:var(--pv-r-sm)}
+.pvg-follow-note{grid-column:1/-1;font-size:12px;color:var(--pv-ink-3)}
+.pvg-hero .pvg-acts.pvg-acts-3{grid-template-columns:repeat(3,auto)}
+.pvg-hero .pvg-acts.pvg-acts-1{grid-template-columns:auto}
+@media (max-width:699.98px){
+  /* スマホ：3つを1行に3等分（今までの2つの半分ずつと同じ丈・同じ字の大きさ） */
+  .pvg-hero-t .pvg-acts.pvg-acts-3,.pvg-hero .pvg-acts.pvg-acts-3{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .pvg-hero-t .pvg-acts-3 .pvg-btn{padding:0 8px}
+  .pvg-follow{min-height:36px;padding:0 8px;font-size:12px}
+  .pvg-hero-t .pvg-follow{border-radius:var(--pv-r-sm)}
+  .pvg-follow::before{content:"";position:absolute;inset:-6px 0}
+  .pvg-hero .pvg-acts.pvg-acts-1{grid-template-columns:minmax(0,1fr)}
+}
+/* いちばん狭い画面：ボタンの中の小さな絵を外して、字を1行に残す */
+@media (max-width:399.98px){
+  .pvg-hero-t .pvg-acts-3 .pvg-btn > svg,.pvg-hero-t .pvg-acts-3 .pvg-btn > .pvg-ic{display:none}
+}

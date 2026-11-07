@@ -313,6 +313,10 @@ function hero(v, keep) {
 <a class="pvg-btn pvg-btn-cmp" href="${href.compare(v.slug)}"><span>${W.compare}</span>${IC.swap}</a>`
     : `<a class="pvg-btn" href="${href.compare(v.slug)}">${W.compareShort}</a>
 <a class="pvg-btn pvg-btn-ghost" href="${href.card(v.slug)}">${W.makeCard}</a>`;
+  /* ★2026-11-07「＋ フォロー」はボタンの列の先頭（オーナー「カードを保存とかと同じボタンの大きさにして」）。
+     ★class は pvg-btn にしない（押せる2つの数を見ている検査と、行き先が career.html の2つの決まりを崩さない）。形は pv-glance.css の .pvg-follow。
+     比較のボタンが無い会社でも、フォローだけは置く。 */
+  const follow = `<button type="button" class="pvg-follow" data-pv-follow="${esc(v.slug)}" aria-pressed="false"><span class="pvg-follow-ic" aria-hidden="true">＋</span><span class="pvg-follow-t">${W.follow}</span></button>`;
   const where = v.base.city || v.base.iata.length ? `<span class="pvg-base">${IC.pin}${esc(v.base.city)}${iata}</span>\n` : '';
   /* 社名と拠点・星は1つの箱（.pvg-who）。ボタンはその右か、社名が細い列に押し込まれるなら下の行（pv-glance.css。★2026-10-26 P12.132） */
   return `<div class="hero-airline pvg-hero${t ? ' pvg-hero-t' : ''}" style="--pvg-c:${esc(v.color)}">
@@ -325,13 +329,15 @@ ${logoHtml(v, { up: UP })}<h1>${keep.h1}</h1><span class="pvg-code">${esc(v.code
 </div>
 <div class="pvg-meta">
 ${where}${live('stars', { airline: v.slug })}
-<button type="button" class="pvg-follow" data-pv-follow="${esc(v.slug)}" aria-pressed="false"><span class="pvg-follow-ic" aria-hidden="true">＋</span><span class="pvg-follow-t">${W.follow}</span></button>
 </div>
 </div>${acts ? `
-<div class="pvg-acts">
+<div class="pvg-acts pvg-acts-3">
+${follow}
 ${acts}
 </div>` : `
-<div class="pvg-acts" aria-hidden="true"></div>`}
+<div class="pvg-acts pvg-acts-1">
+${follow}
+</div>`}
 </div>
 </div>
 </div>${t ? '\n' + tabBar(v) : ''}`;
