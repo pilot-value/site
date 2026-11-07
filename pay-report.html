@@ -57,7 +57,7 @@
 <script>
 tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#18212f',accent:'#3d9bff',gold:'#f5c842',orange:'#f97316',text:'#e8edf2',muted:'#6b7d93'},fontFamily:{sans:['Inter','Noto Sans JP','sans-serif']}}}};
 </script>
-<link rel="stylesheet" href="pay-report.css?v=b8500ffb">
+<link rel="stylesheet" href="pay-report.css?v=71ec39c1">
 <!--PV-3P-->
 <script>
 /* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
@@ -3037,7 +3037,7 @@ function fmtMoneyLive(el) {
    （消さないと fmtMoneyLive がカンマを即座に戻すので、永久に消えない欄になる） */
 document.addEventListener('keydown', (e) => {
   const el = e.target;
-  if (!el || !el.classList || !el.classList.contains('money')) return;
+  if (!el || !el.classList || !(el.classList.contains('money') || el.classList.contains('money-live'))) return;
   if (e.key !== 'Backspace' && e.key !== 'Delete') return;
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   const s = el.selectionStart, t = el.selectionEnd;
@@ -3135,7 +3135,11 @@ function moneySettle(el) {
 /* ★委譲で1本。あとから生える行にも、明細の読み取りが差し込む値にも同じ道を通す。 */
 document.addEventListener('input', (e) => {
   const el = e.target;
-  if (!el || !el.classList || !el.classList.contains('money')) return;
+  if (!el || !el.classList) return;
+  /* ★money-live ＝ フォームの本体ではない金額の欄（明細の画面の「明細にないお金」と直す表・payslip.js が付ける）。
+     打っている最中の桁区切りだけを当てる。読み方の確定と送信の検品は、行き先の本体の欄（money）が持つ（2026-11-07）。 */
+  if (el.classList.contains('money-live')) { fmtMoneyLive(el); return; }
+  if (!el.classList.contains('money')) return;
   if (el.dataset.moneyRaw !== String(el.value)) { delete el.dataset.moneyN; delete el.dataset.moneyRaw; clearMoneyAsk(el); }
   /* ★カンマの桁区切りだけ、その場で組み直す（ピリオドが入っていたら触らない）。
      読み方の確定（二択・赤）は今までどおり change（moneySettle）だけ。 */
@@ -6102,7 +6106,7 @@ addEventListener('scroll', () => {
   });
 })();
 </script>
-<script src="payslip.js?v=e191225a"></script>
+<script src="payslip.js?v=278dca9c"></script>
 <script src="pv-app.js?v=a95c64dd"></script>
 <script src="confetti.js"></script>
 <script src="pay-login.js"></script>

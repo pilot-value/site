@@ -712,6 +712,58 @@ for (const [dir, tag] of [['', '(日本語)'], ['/en', '/en']]) {
   ok(assigned.after === '350,050' && assigned.n === 350050,
     '★離れたときに整える（3500,50 → 350,050）', assigned);
 
+  /* ★2026-11-07 オーナー「ほかの金額を入力するところも同様」── 本体の金額の欄を全部、1文字ずつ打って見る。
+     ここまでは総支給の1欄しか打っていなかった（委譲の1本なので全部に効くはず、を確かめる口が無かった）。
+     隠れている欄（役職の節・畳んだ欄・住宅手当）はこの間だけ出し、打ったあと値も見た目も元に戻す（後ろの節を汚さない）。 */
+  const moneyIds = await p.evaluate(() => {
+    window.__pvUndo = [];
+    /* 役職の5つの手当は「別途支給されている」を選んだときだけ額の欄が生きる（ほかの答えでは額を空にする＝製品の決まり）。
+       人と同じく、先にそれを選んでから打つ。終わったら元の答えに戻す。 */
+    ['f-instr-extra', 'f-exam-extra', 'f-union-extra', 'f-mgmt-extra', 'f-nonline-extra'].forEach((id) => {
+      const s = document.getElementById(id);
+      const o = s && [...s.options].find((x) => /別途支給|paid separately/i.test(x.textContent));
+      if (!o) return;
+      const was = s.value;
+      s.value = o.value;
+      s.dispatchEvent(new Event('change', { bubbles: true }));
+      window.__pvUndo.push(() => { s.value = was; s.dispatchEvent(new Event('change', { bubbles: true })); });
+    });
+    const els = [...document.querySelectorAll('input.money')].filter((el) => !el.closest('template'));
+    els.forEach((el, i) => {
+      el.setAttribute('data-pvt', String(i));
+      el.setAttribute('data-pvt-v', el.value);
+      for (let n = el; n && n !== document.body; n = n.parentElement) {
+        if (n.hidden) { const m = n; m.hidden = false; window.__pvUndo.push(() => { m.hidden = true; }); }
+        if (n.tagName === 'DETAILS' && !n.open) { const m = n; m.open = true; window.__pvUndo.push(() => { m.open = false; }); }
+      }
+      if (el.disabled) { el.disabled = false; window.__pvUndo.push(() => { el.disabled = true; }); }
+    });
+    return els.map((el, i) => ({ i, name: el.id || ('行 ' + ((el.closest('[id]') || {}).id || '?')) }));
+  });
+  const notLive = [];
+  for (const { i, name } of moneyIds) {
+    const sel = `input.money[data-pvt="${i}"]`;
+    if (!(await p.$eval(sel, (el) => !!el.offsetParent))) { notLive.push(name + '（出せない）'); continue; }
+    await p.$eval(sel, (el) => { el.value = ''; el.dispatchEvent(new Event('input', { bubbles: true })); });
+    await p.focus(sel);
+    await p.keyboard.type('1500000');
+    const got = await p.$eval(sel, (el) => ({ v: el.value, n: window.moneyRead(el).n }));
+    if (got.v !== '1,500,000' || got.n !== 1500000) notLive.push(`${name}: ${got.v}`);
+  }
+  await p.evaluate(() => {
+    document.querySelectorAll('input.money[data-pvt]').forEach((el) => {
+      el.blur();
+      el.value = el.getAttribute('data-pvt-v');
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+      el.removeAttribute('data-pvt'); el.removeAttribute('data-pvt-v');
+    });
+    (window.__pvUndo || []).reverse().forEach((f) => f());
+    delete window.__pvUndo;
+  });
+  ok(moneyIds.length >= 14 && notLive.length === 0,
+    `★★本体の金額の欄すべて（${moneyIds.length}欄）が、打っている最中に 1500000 → 1,500,000`, notLive);
+
   /* ③ 曖昧なら欄の下で聞く。選ぶまで送信を止める。
      ⚠️ 2026-09-15 から「曖昧」は通貨で決まる。小数の無い通貨（JPY 等）に 1.0 という
         額は存在しないので聞かない。★日本語ページの既定が JPY なので、ここで通貨を

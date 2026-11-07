@@ -1630,7 +1630,7 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 #ps .ps-rate-t,#ps .ps-aha-t,#ps .ps-extra-t{margin:0 0 var(--pv-s-1);color:var(--pv-ink-3)}
 #ps .ps-rate-row{padding:var(--pv-s-1) 0}
 #ps .ps-rate-row:last-of-type{padding-bottom:0}
-#ps .ps-extra-row:last-child{min-height:44px}
+#ps .ps-extra-row:last-of-type{min-height:44px}
 #ps .ps-fold{border-top:0}
 #ps .ps-next{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:var(--pv-s-2) 18px;border-radius:var(--pv-r);
   border:1px solid var(--pv-accent-line);background:var(--pv-accent-soft)}
@@ -1672,6 +1672,12 @@ html.ps-view-lock,html.ps-view-lock body{overflow:hidden}
 #ps .ps-rate-t{margin-bottom:6px}
 /* 明細にないお金：見出しは同じ小さな字 */
 #ps .ps-extra-t{font-size:.78rem;font-weight:700;letter-spacing:.02em;text-transform:none;color:var(--pv-ink-2)}
+/* 欄の下の年間ペース（2026-11-07 オーナー「ボーナスを入れても、年収の合計を見に上まで戻らないといけない」）。
+   行の形は欄の行と同じ・数字は上の大きな数字と同じ緑で小さく。数字が無いあいだは行ごと出さない */
+#ps .ps-extra-sum{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;border-top:1px solid var(--pv-line)}
+#ps .ps-extra-sum[hidden]{display:none}
+#ps .ps-extra-sk{font-size:.88rem;font-weight:700;color:var(--pv-ink)}
+#ps .ps-extra-sv{font-size:1.25rem;font-weight:800;letter-spacing:-.03em;line-height:1;color:var(--pv-accent-ink);font-variant-numeric:tabular-nums;white-space:nowrap}
 /* 脇の操作は文字のリンク（主役のボタンと張り合わない） */
 #ps .ps-res>.ps-bar{gap:var(--pv-s-3)}
 #ps .ps-res>.ps-bar .ps-btn{padding:2px 0;border:0;border-radius:0;background:none;box-shadow:none;
