@@ -69,6 +69,8 @@ const SQL = [
   ['db/test-member-median.mjs', 6],
   /* 2026-11-04 航空会社の一覧の「新しい投稿順」（db/airline-activity.sql）。数えるもの・外すもの・引き金・順番だけを返す・壊す証明 */
   ['db/test-airline-activity.mjs', 5],
+  /* 2026-11-07 明細の読み取りが続けて失敗したら info@ へ（db/parse-outcome.sql ＋ parse-payslip の通し・壊す証明） */
+  ['db/test-parse-outcome.mjs', 2],
 ];
 
 // localhost:3000 が要るもの。長い順に並べてある。

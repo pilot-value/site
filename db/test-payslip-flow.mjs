@@ -106,15 +106,22 @@ async function open(url, reply, opts = {}) {
   const ctx = await browser.createBrowserContext();
   const page = await ctx.newPage();
   await page.setViewport({ width: opts.w || 390, height: 900, deviceScaleFactor: 1 });
-  const seen = { calls: 0, bodies: [], rpc: [], hold: null };
+  const seen = { calls: 0, bodies: [], rpc: [], hold: null, reports: [] };
   await page.setRequestInterception(true);
   page.on('request', async (req) => {
     const u = req.url();
     if (u.startsWith(BASE) || u.startsWith('data:') || u.startsWith('blob:')) return req.continue();
     if (u.includes(FN)) {
       if (req.method() === 'OPTIONS') return req.respond({ status: 204, headers: CORS, body: '' });
+      /* ★失敗の知らせ（2026-11-07・{ report }）は読み取りではない。数えずに控えて、すぐ返す。 */
+      let posted = null;
+      try { posted = JSON.parse(req.postData() || '{}'); } catch {}
+      if (posted && posted.report) {
+        seen.reports.push(posted);
+        return req.respond({ status: 200, headers: JSONH, body: '{"ok":true}' });
+      }
       seen.calls++;
-      try { seen.bodies.push(JSON.parse(req.postData() || '{}')); } catch { seen.bodies.push(null); }
+      seen.bodies.push(posted);
       const r = typeof reply === 'function' ? reply(seen.calls) : reply;
       if (r === 'hang') { seen.hold = req; return; }
       await new Promise((res) => setTimeout(res, r.delay || 400));
@@ -590,6 +597,12 @@ console.log('\n══ 開けない PDF（鍵付き・XFA・白紙）');
        `.ps-edit ${m.edit ? '有' : '無'} / #ps-confirm ${m.confirm ? '有' : '無'}`);
   }
   ok(seen.calls === 0, '★開けない PDF は1度も Edge Function へ送っていない', `${seen.calls} 回`);
+  /* ★開けなかったことは運営に知らせる（2026-11-07）。送るのは理由の語・段・大きさだけ（画像もファイル名も無い）。 */
+  for (let i = 0; i < 30 && !seen.reports.length; i++) await new Promise((r) => setTimeout(r, 100));   // 知らせは待たずに飛ぶので、届くまで少し待つ
+  const rk = seen.reports.map((b) => Object.keys(b.report).sort().join(',') + '|' + Object.keys(b).join(','));
+  ok(seen.reports.length >= 1 && rk.every((k) => k === 'kb,reason,stage|report')
+     && seen.reports.every((b) => b.report.stage === 'file' && /^pdf_/.test(b.report.reason)),
+     '★開けなかった PDF は運営に知らせる（理由の語・段・大きさだけ）', JSON.stringify(seen.reports).slice(0, 160));
 
   /* ★白紙の JPEG が送られる道（真因）を塞いだままか。
      裸の catch に戻すと、ここは全部緑のまま**本番だけ**が壊れる。 */

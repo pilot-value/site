@@ -434,6 +434,21 @@
     try { window.gtag('event', name, params || {}); } catch (e) {}
   }
 
+  /* ── 運営に知らせる（2026-11-07）──────────────────────────────
+     サーバーまで届かない失敗（ファイルが開けない・通信が切れた・入力欄に入れる所で落ちた）を、
+     parse-payslip へ { report } で知らせる。受け取った関数が info@ へメールを送る（1日30通まで）。
+     ★送るのは固定の理由の語・段・画像の大きさ（KB）だけ。画像も金額もファイル名も送らない。
+     ★届かなくても何もしない（返事を待たない・画面を変えない・もう一度送らない）。 */
+  function report(reason, stage, bytes) {
+    try {
+      if (typeof _sb === 'undefined' || !_sb || !_sb.functions) return;
+      var kb = (typeof bytes === 'number' && bytes > 0) ? Math.round(bytes / 1024) : 0;
+      Promise.resolve(_sb.functions.invoke('parse-payslip', {
+        body: { report: { reason: String(reason), stage: String(stage), kb: kb } },
+      })).catch(function () {});
+    } catch (e) {}
+  }
+
   /* 読み取った kind → 入れる欄。
      ★flight_variable はここに載っているが、行（tpl-pd-var）を作れたときは
        行のほうへ回して f-flightvar を空にする（apply の中。二重計上の境目はそこ1点だけ）。
@@ -647,10 +662,12 @@
        黙って戻ると、選びもしなかった人と同じ数に見えてしまう。 */
     if (file.size > (isPdf ? MAX_PDF_BYTES : MAX_BYTES)) {
       track('payslip_reject', { reason: 'too_large' });
+      report('too_large', 'file', file.size);
       return showFail('too_large');
     }
     if (!isPdf && !/^image\//.test(file.type)) {
       track('payslip_reject', { reason: 'bad_type' });
+      report('bad_type', 'file', file.size);
       return showFail('bad_type');
     }
     /* ★読み取りの途中で別の明細を選んだら、前の読み取りの返事は捨てる（番号を進める）。
@@ -706,6 +723,7 @@
          （止まったままの約束を持ち続けると、以後の PDF が全部止まる）。 */
       if (why === 'pdf_timeout') pdfLib = null;
       track('payslip_reject', { reason: why });
+      report(why, 'file', file.size);
       showFail(why);
     });
   }
@@ -770,7 +788,10 @@
         if (mine !== readToken) return;
         busy = false;
         var code = (e && e.pvCode) || 'network';
-        track('payslip_read_ng', { reason: code, stage: (e && e.pvStage) || 'network' });
+        var stage = (e && e.pvStage) || 'network';
+        track('payslip_read_ng', { reason: code, stage: stage });
+        /* サーバーで止まった失敗は、サーバーが自分で知らせている（ここからは送らない）。 */
+        if (stage !== 'server') report(code, stage, 0);
         showFail(code);
       });
   }

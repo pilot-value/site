@@ -63,7 +63,7 @@
       （上げ忘れると「貼り替えたのに古い日付」で、かえって判断を誤らせる）。
    ⚠️ この札そのものが貼り直しなので、**今ある本番の版の証拠にはならない**。
       次に貼った回から効く。 */
-const BUILD = '2026-11-04';
+const BUILD = '2026-11-07';
 
 const ANTHROPIC_API_KEY =
   Deno.env.get('ANTHROPIC_API_KEY_PAYSLIP') || Deno.env.get('ANTHROPIC_API_KEY') || '';
@@ -369,6 +369,199 @@ async function alertKeyDead(status: number, errType: string): Promise<void> {
       }),
     });
   } catch { /* 通知が落ちても読み取りの動作は変えない */ }
+}
+
+/* ────────────────────────────────────────────────────────────────
+   読み取りに失敗したら、運営にすぐ知らせる（2026-11-07・オーナー「失敗したらすぐにメール・原因も」）。
+
+   それまで成否は関数のログと GA にしか残らず、30日続けて失敗していても気づけなかった。
+   1回ごとに db/parse-outcome.sql の pv_parse_outcome_add で数え、失敗なら info@ へ1通（1日30通まで）。
+   ブラウザの中で止まった失敗（写真が開けない・通信が切れた）も、payslip.js が理由の語だけを
+   { report: { reason, stage, kb } } で送ってくる（受け口は Deno.serve の中・ping の次）。
+
+   ★メールに入れるのは固定の語と数だけ（理由のコード・段・秒・画像の大きさ・AI の止まり方・回数）。
+     人・画像・金額・明細の文字・AI の答えは1文字も入らない（入れる口が無い）。
+   ★回数制限で止めた呼び出しは数えない（読んでいない）。
+   ★知らせは返事を返したあとに送る（EdgeRuntime.waitUntil）。本人を待たせない。
+   ★数えられなくても（SQL がまだ無い・DB に届かない）、失敗は知らせる。読み取りの返事は変えない。
+   ──────────────────────────────────────────────────────────── */
+
+export type OutcomeKind = 'ok' | 'ng' | 'user_ng' | 'client_ng';
+
+/* 本人側の失敗（暗い写真・別の書類）。それ以外のサーバーの失敗は、こちら側の失敗として数える。 */
+const USER_SIDE_CODES = new Set(['not_a_payslip', 'read_refused']);
+export function outcomeKind(code: string): 'ok' | 'ng' | 'user_ng' {
+  if (code === 'ok') return 'ok';
+  return USER_SIDE_CODES.has(code) ? 'user_ng' : 'ng';
+}
+
+/* ブラウザから受け取ってよい理由の語と段。これ以外は 400 で捨てる（知らせも数えもしない）。
+   ★payslip.js の tag() が付ける語（stage は network / timeout / prep / apply、ファイルの失敗は file）。 */
+export const CLIENT_REASONS = new Set([
+  'network', 'timeout', 'prep_failed', 'apply_failed',
+  'too_large', 'bad_type', 'image_decode', 'image_blank', 'image_timeout',
+  'pdf_locked', 'pdf_xfa', 'pdf_blank', 'pdf_broken', 'pdf_timeout',
+]);
+export const CLIENT_STAGES = new Set(['network', 'timeout', 'prep', 'apply', 'file']);
+
+export const FAIL_MAIL_MAX = 30;   // 1日にこれより多くは送らない（誰かが連打しても受信箱が溢れない）
+
+/* 理由の語 → 運営が読む日本語。件名には「（」より前だけを使う。 */
+const WHY: Record<string, string> = {
+  upstream_timeout: 'AI の返事が時間内に来なかった（時間切れ）',
+  upstream_unreachable: 'AI のサーバーにつながらなかった',
+  upstream_fatal: 'API の鍵か残高の問題（直すまで全員が失敗します）',
+  upstream_body: 'AI の返事が途中で壊れていた',
+  read_truncated: 'AI の答えが長すぎて途中で切れた',
+  read_bad_format: 'AI の答えの形が崩れていた',
+  sanitize_threw: '答えを整える所で落ちた（こちらのコードの問題）',
+  read_refused: 'AI が読むのを断った（写っている物の問題のことが多い）',
+  not_a_payslip: '明細として読める所が無かった（暗い・ぼやけている・別の書類）',
+  quota_unavailable: '回数を数える DB に届かず、読み取りを止めている（DB の障害の可能性）',
+  network: '通信が切れた（サーバーから返事が無かった）',
+  timeout: 'ブラウザが返事を待ちきれなかった',
+  prep_failed: '送る画像を作れなかった',
+  apply_failed: '読めた数字を入力欄に入れる所で落ちた（こちらの画面の問題）',
+  too_large: 'ファイルが大きすぎた',
+  bad_type: '受け付けない種類のファイルだった',
+  image_decode: '写真を開けなかった（HEIC などの形式の可能性）',
+  image_blank: '画像が真っ白か真っ黒に見えた',
+  image_timeout: '画像の準備に時間がかかりすぎた',
+  pdf_locked: 'パスワード付きの PDF だった',
+  pdf_xfa: '開けない形式の PDF（XFA）だった',
+  pdf_blank: 'PDF の中身が空だった',
+  pdf_broken: 'PDF を開けなかった',
+  pdf_timeout: 'PDF の準備に時間がかかりすぎた',
+};
+export function whyText(code: string): string {
+  if (WHY[code]) return WHY[code];
+  const m = /^upstream_(\d{3})$/.exec(code);
+  if (m) {
+    const s = Number(m[1]);
+    if (s === 429 || s === 529) return 'AI 側が混雑している（時間で直ることが多い）';
+    if (s >= 500) return 'AI 側の障害（時間で直ることが多い）';
+    return 'AI に断られた（頼み方の問題）';
+  }
+  return '分類していない失敗';
+}
+
+export type FailInfo = {
+  code: string; where: 'server' | 'browser'; stage: string;
+  ms: number; kb: number; stop: string; status: number;
+};
+export type Tally = {
+  ok: number; ng: number; user_ng: number; client_ng: number; today: number; stalled: boolean;
+} | null;
+
+/* メール1通の件名と本文。★固定の語と数だけで組む（検査が中身を見る）。 */
+export function failMail(f: FailInfo, t: Tally, at: Date): { subject: string; text: string } {
+  const side = f.where === 'browser' ? 'ブラウザの中' : USER_SIDE_CODES.has(f.code) ? '本人側' : 'こちら側';
+  const jst = at.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', hour12: false });
+  const why = whyText(f.code);
+  const subject = `[PILOT VALUE] ${t && t.stalled ? '【24時間 成功0】' : ''}明細の読み取りに失敗：${why.replace(/（.*$/, '')}`;
+  const L: string[] = [
+    `明細の読み取りに失敗しました（${jst}）。`,
+    '',
+    `理由：${why}`,
+    `どこで：${side}（段 ${f.stage || '-'}・コード ${f.code}）`,
+  ];
+  if (f.where === 'server') {
+    L.push(`かかった時間：${(f.ms / 1000).toFixed(1)}秒／画像 ${f.kb}KB／AI の止まり方 ${f.stop || '-'}／HTTP ${f.status || '-'}`);
+  } else if (f.kb) {
+    L.push(`画像：${f.kb}KB`);
+  }
+  L.push('');
+  if (t) {
+    L.push(`直近24時間：成功 ${t.ok}／こちら側の失敗 ${t.ng}／本人側 ${t.user_ng}／ブラウザの中 ${t.client_ng}`);
+    L.push(`今日の失敗：${t.today} 回目（この知らせは1日 ${FAIL_MAIL_MAX} 通まで）`);
+  } else {
+    L.push('回数は数えられませんでした（DB に届かない、または db/parse-outcome.sql がまだ貼られていない）。');
+  }
+  L.push(
+    '',
+    '見るところ:',
+    '・回数：Supabase → SQL Editor で select * from pv_parse_outcome order by hr desc limit 48;',
+    '・ログ：Supabase → Edge Functions → parse-payslip → Logs の「pv-parse」の行',
+    '・直ったかの確認：node db/smoke-parse-payslip.mjs --live（実画像1枚 ≒ $0.02）',
+  );
+  return { subject, text: L.join('\n') };
+}
+
+/* 返事を返したあとも走らせる（Supabase の EdgeRuntime.waitUntil）。無い所（手元の検査）では待つ。 */
+function later(p: Promise<unknown>): Promise<void> {
+  // deno-lint-ignore no-explicit-any
+  const ER: any = (globalThis as any).EdgeRuntime;
+  const safe = p.then(() => {}, () => {});
+  if (ER && typeof ER.waitUntil === 'function') { ER.waitUntil(safe); return Promise.resolve(); }
+  return safe;
+}
+
+async function countOutcome(kind: OutcomeKind): Promise<Tally> {
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), 3000);
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/pv_parse_outcome_add`, {
+      method: 'POST',
+      headers: {
+        apikey: SERVICE_ROLE,
+        Authorization: `Bearer ${SERVICE_ROLE}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ p_kind: kind }),
+      signal: ac.signal,
+    });
+    if (!res.ok) return null;
+    const t = await res.json();
+    if (!t || typeof t !== 'object') return null;
+    const n = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
+    return { ok: n(t.ok), ng: n(t.ng), user_ng: n(t.user_ng), client_ng: n(t.client_ng),
+             today: n(t.today), stalled: t.stalled === true };
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/* DB に届かないときだけ使う、このインスタンスの中の数（洪水よけ）。 */
+let looseDay = '';
+let looseCount = 0;
+const looseKeys = new Set<string>();
+async function sendFailMail(f: FailInfo, t: Tally): Promise<void> {
+  if (!RESEND_KEY) return;
+  const at = new Date();
+  const day = at.toISOString().slice(0, 10);
+  let key: string;
+  if (t) {
+    if (t.today > FAIL_MAIL_MAX) return;
+    key = `parse-fail:${day}:${t.today}`;
+  } else {
+    if (looseDay !== day) { looseDay = day; looseCount = 0; looseKeys.clear(); }
+    key = `parse-fail:${day}:${f.code}:${at.toISOString().slice(11, 15)}`;   // 同じ理由は10分に1通
+    if (looseKeys.has(key)) return;              // インスタンスの中はここで止め、跨ぐぶんは Idempotency-Key が止める
+    if (++looseCount > FAIL_MAIL_MAX) return;
+    looseKeys.add(key);
+  }
+  const m = failMail(f, t, at);
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${RESEND_KEY}`,
+        'Content-Type': 'application/json',
+        'Idempotency-Key': key,
+      },
+      body: JSON.stringify({ from: FROM_EMAIL, to: [ADMIN_EMAIL], subject: m.subject, text: m.text }),
+    });
+  } catch { /* 通知が落ちても読み取りの動作は変えない */ }
+}
+
+/* 1回ぶん数え、失敗なら知らせる。成功は数えるだけ。 */
+function noteOutcome(kind: OutcomeKind, f: FailInfo | null): Promise<void> {
+  return later((async () => {
+    const t = await countOutcome(kind);
+    if (kind !== 'ok' && f) await sendFailMail(f, t);
+  })());
 }
 
 /* Authorization ヘッダのトークンが本物のユーザなら user.id を返す。
@@ -1227,6 +1420,17 @@ Deno.serve(async (req) => {
       has_salt: !!IP_SALT,
     });
   }
+  /* ★ブラウザの中で止まった失敗の知らせ（2026-11-07）。理由の語・段・画像の大きさ（KB）だけを受け取る。
+     白リストの外は捨てる。回数制限より手前（読んでいないので本人の回数を減らさない）。 */
+  if (body.report !== undefined) {
+    const rp = (body.report && typeof body.report === 'object') ? body.report as Record<string, unknown> : {};
+    const reason = typeof rp.reason === 'string' ? rp.reason : '';
+    const stage = typeof rp.stage === 'string' ? rp.stage : '';
+    if (!CLIENT_REASONS.has(reason) || !CLIENT_STAGES.has(stage)) return json({ ok: false, reason: 'bad_report' }, 400);
+    const kb = typeof rp.kb === 'number' && Number.isFinite(rp.kb) ? Math.max(0, Math.min(99999, Math.round(rp.kb))) : 0;
+    await noteOutcome('client_ng', { code: reason, where: 'browser', stage, ms: 0, kb, stop: '', status: 0 });
+    return json({ ok: true });
+  }
   /* ★ここから下、body の中身を console に出さない（画像も金額もラベルも）。 */
 
   const b64 = typeof body.image_b64 === 'string' ? body.image_b64 : '';
@@ -1261,7 +1465,11 @@ Deno.serve(async (req) => {
     }
     /* 数える所そのものが動いていない（RPC が無い・落ちている）。
        ★ここで「今日の上限に達しました」と言うと嘘になる。通さないのは同じだが、
-         正直に「いま使えない」と言う。SQL より先に関数を貼るとここに来る。 */
+         正直に「いま使えない」と言う。SQL より先に関数を貼るとここに来る。
+       ★読み取りが止まっている＝運営に知らせる（DB に届かないことが多いので、数えずに送る道もある）。 */
+    await noteOutcome('ng', {
+      code: 'quota_unavailable', where: 'server', stage: 'quota', ms: 0, kb: Math.round((b64.length * 3) / 4 / 1024), stop: '', status: 503,
+    });
     return json({ ok: false, reason: 'quota_unavailable' }, 503);
   }
 
@@ -1271,10 +1479,13 @@ Deno.serve(async (req) => {
      画像・明細の文字・金額・氏名・AI の生の答えは1文字も入らない（入れる口が無い）。 */
   const diag = readDiag(b64.length);
   const t0 = Date.now();
-  const finish = (reason: string, code: string) => {
+  const finish = async (reason: string, code: string) => {
     diag.code = code;
     diag.ms = Date.now() - t0;
     console.log('pv-parse', JSON.stringify(diag));
+    await noteOutcome(outcomeKind(code), {
+      code, where: 'server', stage: diag.stage, ms: diag.ms, kb: diag.kb, stop: diag.stop, status: diag.status,
+    });
     return json({ ok: false, reason, build: BUILD }, 200);
   };
 
@@ -1358,6 +1569,7 @@ Deno.serve(async (req) => {
   diag.code = 'ok';
   diag.ms = Date.now() - t0;
   console.log('pv-parse', JSON.stringify(diag));
+  await noteOutcome('ok', null);
   /* ★sanitize（形を整える）と reconcile（合っているか確かめる）は別の仕事。
      混ぜると「整えるついでに黙って直す」ようになり、間違いが見えなくなる。 */
   return json({ ok: true, result: applyChecks(parsed, reconcile(parsed)), build: BUILD });

@@ -172,7 +172,7 @@
 - 数え方：`node ga-usage.mjs --payslip`（公開サイトだけ・変えた日の前後を分けて出す）。
   理由ごとの数は、GA4 の管理画面でカスタムディメンション `reason` を登録してから（オーナー作業・登録した日より後だけ）。
 
-### サーバー（[supabase/functions/parse-payslip/index.ts](../supabase/functions/parse-payslip/index.ts)・`BUILD` 2026-11-04）
+### サーバー（[supabase/functions/parse-payslip/index.ts](../supabase/functions/parse-payslip/index.ts)・`BUILD` 2026-11-07）
 - 頼み方は `buildRequest` の1か所（`db/eval-payslip.mjs` も import して使う）：**考える処理なし**（`thinking: disabled`）・
   **構造化出力**（`output_config.format` の JSON Schema ＝ `OUT_SCHEMA`）・上限 `MAX_TOKENS` 8000・時間切れ 60秒。
 - 返事は `readReply` が分ける：`read_truncated`（上限で切れた）／`read_refused`（断り）／`read_bad_format`（形が違う）。
@@ -182,6 +182,20 @@
   「読めない値を 0 や推測で埋めない」と言っている。
 - 一部しか読めなくても捨てない：支給の行も時間の行も無くても、支給合計か手取りが読めていれば返す。
 - ログは1回の読み取りにつき1行（`pv-parse`）：版・段階・固定コード・上流ステータス・stop_reason・ミリ秒・トークン数・画像の KB だけ。
+- ★**失敗したら、すぐ info@ へ1通**（2026-11-07・オーナー「失敗したらすぐにメール・原因も」。`BUILD` 2026-11-07）。
+  それまで成否は関数のログと GA にしか残らず、30日続けて失敗しても気づけなかった。
+  - 1回ごとに [db/parse-outcome.sql](../db/parse-outcome.sql) の `pv_parse_outcome_add` で数える（1時間ごとの回数だけ・人も画像も持たない）。
+    種類は4つ：成功／こちら側の失敗（`ng`）／本人側の失敗（`not_a_payslip`・`read_refused` ＝ `user_ng`）／ブラウザの中で止まった失敗（`client_ng`）。
+  - メールは失敗のたびに1通（1日30通まで・`FAIL_MAIL_MAX`）。件名に理由の日本語（`whyText`）、成功0が続けば頭に【24時間 成功0】
+    （決まりは SQL の `pv_parse_outcome_stalled` の1か所）。本文は固定の語と数だけ（`failMail`）── **画像・金額・明細の文字を入れる口を作らない**。
+  - 返事を返したあとに送る（`EdgeRuntime.waitUntil`）＝本人を待たせない。回数制限で止めた呼び出しは数えない。
+    回数を数える DB に届かず読み取りを止めたとき（`quota_unavailable`）も送る。数える口が無くても送る（同じ理由は10分に1通）。
+  - **サーバーまで届かない失敗**（ファイルが開けない・通信が切れた・入力欄に入れる所で落ちた）は、[payslip.js](../payslip.js) の `report()` が
+    `{ report: { reason, stage, kb } }` で知らせる。関数は `CLIENT_REASONS` / `CLIENT_STAGES` の白リストだけ受け取る（回数制限より手前）。
+    サーバーで止まった失敗はサーバーが自分で送るので、ブラウザからは送らない（`stage !== 'server'`）。
+  - ⚠️ **payslip.js に失敗の語を足したら `CLIENT_REASONS` と `WHY` にも足す**（足さないと、その失敗だけ 400 で黙って捨てられる）。
+    `db/test-parse-outcome.mjs` が payslip.js の語を拾って突き合わせている。
+  - 中を見る：SQL Editor で `select * from pv_parse_outcome order by hr desc limit 48;`
 
 ### 測った結果（2026-11-04・正解つきの合成明細・実 AI・`db/eval-payslip.mjs`）
 - 旧い頼み方（11af0204 の index.ts そのまま）と新しい頼み方を、同じ6枚（jp-dense・jp-major・us-guarantee・eu-de・gulf-side・cn）で比べた：
