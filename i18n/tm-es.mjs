@@ -15847,4 +15847,7 @@ export const TM = {
   "js:'We email you when new pay, reviews or working conditions are added.'": {"es": "js:'Te avisamos por correo cuando se agregan remuneraciones, reseñas o condiciones de trabajo nuevas.'", "st": "manual", "by": "claude-review", "at": "2026-11-07", "pages": ["pv-follow.js"], "note": "気になる会社のフォロー"},
   "js:'Your airline'": {"es": "js:'Tu aerolínea'", "st": "manual", "by": "claude-review", "at": "2026-11-07", "pages": ["pv-follow.js"], "note": "気になる会社のフォロー"},
   "js:'Add airlines with “+ Follow” on an airline page.'": {"es": "js:'Agrega aerolíneas con «+ Seguir» en la página de una aerolínea.'", "st": "manual", "by": "claude-review", "at": "2026-11-07", "pages": ["pv-follow.js"], "note": "気になる会社のフォロー"},
+  "js:'Airlines you viewed recently'": {"es": "js:'Aerolíneas que viste hace poco'", "st": "manual", "by": "claude-review", "at": "2026-11-07", "pages": ["pv-follow.js"], "note": "最近見た会社"},
+  "js:'We also tell you about new information at these airlines for 30 days.'": {"es": "js:'También te avisamos de la información nueva de estas aerolíneas durante 30 días.'", "st": "manual", "by": "claude-review", "at": "2026-11-07", "pages": ["pv-follow.js"], "note": "最近見た会社"},
+  "js:'Clear'": {"es": "js:'Borrar'", "st": "manual", "by": "claude-review", "at": "2026-11-07", "pages": ["pv-follow.js"], "note": "最近見た会社"},
 };

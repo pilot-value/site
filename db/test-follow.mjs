@@ -226,8 +226,11 @@ const CD = await member({ company: 'jal' });
 await cond(CD, 'ana');
 ok(JSON.stringify(await kindsOf(R1, 'ana')) === '["pay","review","cond"]', '給与・口コミ・待遇の答えの3つとも「何が入ったか」だけ返す（給与→口コミ→待遇の順）');
 const row = (await due()).find((x) => x.id === R1);
-ok(Object.keys(row).join(',') === 'id,email,name,country,airline_region,lang,unsub_token,items'
-   && Object.keys(row.items[0]).sort().join(',') === 'code,en,ja,kinds,page', '★返すのは会社と「何が入ったか」だけ（件数・金額・誰が出したかは無い）', J(row.items));
+ok(Object.keys(row).join(',') === 'id,email,name,country,airline_region,lang,unsub_token,has_key,items'
+   && Object.keys(row.items[0]).sort().join(',') === 'code,conds,en,ja,kinds,page,reviews,why', '★返す欄は決まった形だけ（会社・何が入ったか・口コミの抜粋・待遇の質問名）', J(row.items));
+ok(!/"(annual|usd|gross|amount|net|salary|proof|hash|email|uid)[a-z_]*":/i.test(J(row.items)), '★給与の金額も、誰が出したかも返さない（そういう欄が1つも無い）', J(row.items));
+ok(row.items[0].conds.length === 1 && row.items[0].conds[0].ja === '年間の有給休暇は何日ですか？', '待遇は答えが入った質問の名前だけ（答えは返さない）', J(row.items[0].conds));
+ok(row.has_key === false, '給与の鍵が無い会員は has_key が偽');
 
 console.log('\n▼ B-2 数えないもの');
 await reset();
@@ -271,6 +274,53 @@ await db.query(`delete from public.profiles where id = $1`, [R2]);
 ok(!(await one(`select 1 x from public.pv_follow where uid = $1`, [R2])) && !(await one(`select 1 x from public.pv_follow_mail where uid = $1`, [R2])),
    '退会したら、フォローも送った記録も消える');
 
+console.log('\n▼ B-5 口コミの抜粋（サイトで見せている範囲だけ）');
+await reset();
+await db.query(`insert into public.reviews_v2 (proof_hash, airline, "position", tenure_bucket, culture_score, salary_score, wlb_score,
+                  culture_comment, salary_comment, created_at)
+                values ($1, 'ana', 'cap', '5-10', 4, 3, 5, $2, $3, now() - interval '5 minutes')`,
+  [reviewKey(RV, 'ana'), 'あ'.repeat(60), 'い'.repeat(200)]);
+const rvi = (await itemsOf(R1)).find((i) => i.code === 'ana').reviews[0];
+const ORDER = ['culture', 'salary', 'benefits', 'wlb', 'ops', 'training', 'mgmt'];
+const txt = ORDER.map((k) => rvi.text[k + '_comment'] || '').join('');
+ok(rvi.score === 4 && rvi.pos_ja && rvi.tenure === '5-10', '評価（3つの点の平均）・職位・在籍年数を返す', J(rvi));
+ok(txt.replace(/…$/, '').length <= 80 && txt.startsWith('あ'.repeat(60)) && !txt.includes('い'.repeat(30)),
+   '★本文は最初の80字まで（それより先は1文字も返さない）', txt.length + ' ' + txt.slice(0, 90));
+const site80 = (await one(`select public.pv_review_fill(to_jsonb(v), '_comment', 80) as j from public.reviews_v2 v where v.proof_hash = $1`, [reviewKey(RV, 'ana')])).j;
+ok(J(rvi.text) === J(site80), 'サイトの抜粋（pv_review_fill・80字）と1文字も違わない');
+await db.query(`update public.profiles set access_until = now() + interval '30 days' where id = $1`, [R1]);
+ok((await due()).find((x) => x.id === R1).has_key === true, '給与の鍵が生きている会員は has_key が真（メールで REAL PAY へ案内する）');
+await db.query(`update public.profiles set access_until = null where id = $1`, [R1]);
+
+console.log('\n▼ B-6 見た会社（フォローしていなくても）');
+await reset();
+const V = await member({ company: 'jal' });
+v = await call(ANON, `select public.pv_follow_seen('emirates') as v`);
+ok(v.err && /permission denied/.test(v.err), '未ログインは見た記録を書けない');
+let sv = (await call(V, `select public.pv_follow_seen('emirates') as v`)).rows[0].v;
+ok(sv.ok === true && JSON.stringify((await my(V)).seen.map((x) => x.code)) === '["emirates"]', '会社ページを見ると「最近見た会社」に入る', J(await my(V)));
+ok(JSON.stringify(codes(await my(V))) === '["jal"]', '見た会社はフォローの一覧（と10社の数）には入らない');
+await db.query(`update public.pv_follow_view set viewed_at = now() - interval '1 hour' where uid = $1`, [V]);
+await pay(RV, 'emirates', { at: '2 hours' });
+ok((await kindsOf(V, 'emirates')) === null, '見る前の新着では知らせない');
+await pay(CD, 'emirates', { at: '10 minutes' });
+const vi = (await itemsOf(V)) || [];
+ok(vi.length === 1 && vi[0].code === 'emirates' && vi[0].why === 'seen' && J(vi[0].kinds) === '["pay"]', '★見たあとに入った新着は知らせる（why は seen）', J(vi));
+await set(V, 'emirates', true);
+ok((await itemsOf(V)).filter((i) => i.code === 'emirates').length === 1 && (await my(V)).seen.length === 0, 'フォローしたら、見た会社と二重にならない');
+await set(V, 'emirates', false);
+await db.query(`update public.pv_follow_view set viewed_at = now() - interval '31 days' where uid = $1`, [V]);
+ok((await my(V)).seen.length === 0 && (await itemsOf(V)) === null, '30日たった見た記録は使わない（一覧にも知らせにも）');
+const many2 = (await db.query(`select code from public.pv_airlines where active and code not in ('other','jal') order by code limit 12`)).rows.map((r) => r.code);
+for (const c of many2) { await call(V, `select public.pv_follow_seen($1) as v`, [c]); await db.query(`update public.pv_follow_view set viewed_at = viewed_at - interval '1 second' where uid = $1`, [V]); }
+ok((await one(`select count(*)::int n from public.pv_follow_view where uid = $1`, [V])).n === 10, '見た記録は1人10社まで（古いものから消える）');
+v = await call(V, `select public.pv_follow_unsee($1) as v`, [many2[11]]);
+ok(!v.err && !(await my(V)).seen.some((x) => x.code === many2[11]), '「最近見た会社」から1社ずつ消せる');
+v = await call(V, `select public.pv_follow_unsee(null) as v`);
+ok(!v.err && (await my(V)).seen.length === 0, 'まとめて消せる');
+v = await call(V, `select * from public.pv_follow_view`);
+ok(v.err && /permission denied/.test(v.err), '会員でも、見た記録の表を直接は読めない（ほかの人が何を見たかは見えない）');
+
 // ════════════════ C) 壊す証明 ════════════════
 console.log('\n▼ C 壊す証明');
 {
@@ -293,20 +343,37 @@ const Wm = await import('../supabase/functions/welcome-member/index.ts');
 const site = 'https://pilot-value.com';
 const people = [{ lang: 'ja' }, { lang: 'en' }, { lang: 'es' }, { name: '山田' }, { country: '日本' }, { country: 'UAE' }, { airline_region: 'japan' }, {}];
 ok(people.every((p) => F.followLangOf(p) === Wm.welcomeLangOf(p)), '言語の決め方は歓迎メールと同じ（写しが1文字もずれていない）');
-const items = [{ code: 'ana', ja: '全日本空輸（ANA）', en: 'All Nippon Airways (ANA)', page: true, kinds: ['pay', 'review'] },
-               { code: 'ops-x', ja: '運航会社', en: 'Ops Co', page: false, kinds: ['cond'] }];
+const items = [{ code: 'ana', ja: '全日本空輸（ANA）', en: 'All Nippon Airways (ANA)', page: true, why: 'follow', kinds: ['pay', 'review', 'cond'],
+                 reviews: [{ score: 4, pos_ja: '機長（CAP）', pos_en: 'Captain (CAP)', tenure: '5-10', orig: 'ja',
+                             text: { culture_comment: '自由な社風で、若手でも意見が通りやすい。' }, tr: { en: { culture: 'Open culture; juniors get heard.' } } }],
+                 conds: [{ ja: '年間の有給休暇は何日ですか？', en: 'How many days of annual paid leave are there?' }] },
+               { code: 'ops-x', ja: '運航会社', en: 'Ops Co', page: false, why: 'seen', kinds: ['pay'] }];
 const fs = await import('fs');
+const exists = (href) => fs.existsSync(new URL('../' + href.replace(site + '/', '').split('#')[0], import.meta.url));
 for (const l of ['ja', 'en', 'es']) {
-  const c = F.followCopy(l, items, site);
-  ok(c.lines[0].href === `${site}/${F.airlinePath(l, 'ana')}` && fs.existsSync(new URL('../' + F.airlinePath(l, 'ana'), import.meta.url)) && c.lines[1].href === '',
-     `${l}：会社のページがある会社だけリンク（先が在る・${F.airlinePath(l, 'ana')}）`);
-  const all = [c.subject, c.lead, ...c.lines.flatMap((x) => [x.name, x.what]), c.note].join(' ');
-  ok(!/\d/.test(all.replace(/（ANA）|\(ANA\)/g, '')), `${l}：数字が1つも無い（件数・金額を書かない）`, all);
-  ok(fs.existsSync(new URL('../' + c.noteLink.href.replace(site + '/', ''), import.meta.url)), `${l}：マイページへのリンクの先が在る`);
+  for (const hasKey of [false, true]) {
+    const c = F.followCopy(l, items, hasKey, site);
+    const s0 = c.sections[0], s1 = c.sections[1];
+    const tag = `${l}${hasKey ? '・鍵あり' : '・鍵なし'}`;
+    ok(s0.page === `${site}/${F.airlinePath(l, 'ana')}` && exists(s0.page) && s1.page === '' && s0.reviews[0].more === s0.page + '#reviews',
+       `${tag}：会社のページがある会社だけリンク（先が在る）・口コミの「続きを見る」は口コミの欄へ`);
+    ok(s0.reviews[0].meta.startsWith('★4.0') && s0.reviews[0].meta.includes(l === 'ja' ? '機長（CAP）' : 'Captain (CAP)') && /5/.test(s0.reviews[0].meta),
+       `${tag}：口コミの見出しは評価・職位・在籍年数（サイトで見せている範囲）`, s0.reviews[0].meta);
+    ok(s0.reviews[0].text === (l === 'ja' ? '自由な社風で、若手でも意見が通りやすい。' : 'Open culture; juniors get heard.'),
+       `${tag}：口コミの抜粋は受け取る人の言語の訳（無ければ元の字）`, s0.reviews[0].text);
+    ok(hasKey ? (s0.pay.note === '' && exists(s0.pay.link) && c.all === null) : (s0.pay.note !== '' && s0.pay.link === '' && c.all && exists(c.all.cta.href)),
+       `${tag}：給与は「入った」だけ。鍵が無ければ「共有すると見られる」＋最後に共有のボタン／鍵があれば REAL PAY へ`);
+    const all = [c.subject, ...c.sections.flatMap((x) => [x.head, ...x.reviews.flatMap((r) => [r.meta, r.text]), x.pay ? x.pay.t + x.pay.note : '', ...x.conds])].join(' ');
+    ok(!/[¥$€£]|万円|USD|JPY|\d{3,}/.test(all), `${tag}：金額・件数を書かない`, all);
+    ok(s0.head !== s1.head && (l !== 'ja' || (s0.head.startsWith('フォロー中の') && s1.head.startsWith('あなたが見た'))), `${tag}：フォロー中の会社と見た会社で見出しを分ける`);
+    ok(exists(c.noteLink.href), `${tag}：マイページへのリンクの先が在る`);
+  }
 }
-ok(F.followCopy('ja', items.slice(0, 1), site).subject === '全日本空輸（ANA）に新しい情報が入りました'
-   && F.followCopy('ja', items, site).subject === 'フォロー中の会社に新しい情報が入りました', '件名：1社なら会社名・2社以上なら「フォロー中の会社」');
-ok(F.followCopy('ja', items, site).lines[0].what === '新しい給与・口コミ', '何が入ったかを日本語で（新しい給与・口コミ）');
+ok(F.followCopy('ja', items.slice(0, 1), false, site).subject === '全日本空輸（ANA）に新しい口コミが入りました'
+   && F.followCopy('ja', items, false, site).subject === '全日本空輸（ANA）など、気になる会社に新しい情報が入りました'
+   && F.followCopy('ja', items.slice(1), false, site).subject === '運航会社に新しい情報が入りました', '件名：口コミが入った1社／2社以上／口コミ以外');
+ok(F.followCopy('ja', items, false, site).all.cta.label === '自分の給与を匿名で共有する', '共有のボタンの字は2通目と同じオーナーの字');
+ok(F.tenureText('20+', 'ja') === '在籍20年以上' && F.tenureText('', 'ja') === '' && F.tenureText('1-5', 'en') === '1–5 yrs at airline', '在籍年数の書き方');
 const mailBoth = F.buildFollow({ lang: 'en', unsub_token: 'tok', items }, { siteUrl: site, supabaseUrl: SUPA });
 ok(mailBoth.lang === 'both' && mailBoth.oneClickUrl === `${SUPA}/functions/v1/remind-payslip?u=tok` && /unsubscribe\.html\?token=tok/.test(mailBoth.unsubUrl),
    '英語で登録した人は英語＋日本語の1通・解除の口がある');
@@ -332,7 +399,7 @@ const day = new Date().toISOString().slice(0, 10);
 ok(out.sent === 1 && sent[0].h['Idempotency-Key'] === `follow:${uid(900)}:${day}` && sent[0].b.reply_to === 'info@pilot-value.com',
    '1人1通（鍵は follow:<id>:<日付>＝同じ日に2通送らない）・返信は info@', J(out));
 ok(marks.length === 1 && marks[0].p_ok === true, '送れたら記録する');
-ok(!/\d{2,}/.test(sent[0].b.subject) && /全日本空輸（ANA）/.test(sent[0].b.html), '件名に数字が無い・本文に会社名');
+ok(!/\d{2,}/.test(sent[0].b.subject) && /全日本空輸（ANA）/.test(sent[0].b.html) && /自由な社風/.test(sent[0].b.html), '件名に数字が無い・本文に会社名と口コミの抜粋');
 
 console.log(`\n══ ${pass} pass / ${fail} fail ══`);
 process.exit(fail ? 1 : 0);

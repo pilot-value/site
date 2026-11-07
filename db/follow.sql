@@ -4,7 +4,11 @@
 --   オーナー採用（2026-11-07）：
 --     ・会社ページの「フォロー」で会社を足す（1人10社まで）。マイページで外せる。
 --     ・**自分の会社（登録の会社）は最初からフォロー済み**。外したときだけ外れる（外した記録だけを持つ＝全員分を書き込まない）。
---     ・**新着が入ったら、すぐ別のメール**（給与・口コミ・待遇の答え）。件数・金額・職位・本文は書かない（どれが入ったかだけ）。
+--     ・**新着が入ったら、すぐ別のメール**（給与・口コミ・待遇の答え）。
+--     ・**フォローしていなくても、見た会社にも知らせる**（2026-11-07 オーナー「OpenWork は閲覧だけで送っている」）。
+--       見た記録は1人10社まで・30日で消える。マイページに「最近見た会社」として出し、本人が消せる。
+--     ・メールに書くのは**サイトで誰にでも見せている範囲だけ**（2026-11-07 オーナー決定）：
+--       口コミ＝評価・職位・在籍年数・最初の80字／給与＝「入った」だけ（金額は書かない＝Give & Get）／待遇＝答えが入った質問の名前。
 --   推測されにくくする工夫（オーナーの決定の範囲で）：
 --     ・1時間ごとにまとめて送る（時計は1時間おき＝分単位で出した時刻が分からない）
 --     ・1人24時間に1通まで（続いた分は次の1通にまとまる。前に送った時刻から先の新着を数える）
@@ -18,8 +22,10 @@
 --     pv_follow                … フォローの記録（会員×会社。following=false は「自分の会社を外した」印）
 --     pv_my_follows()          … 本人のフォロー中の会社（会員が呼ぶ・自分の分だけ）
 --     pv_follow_set(code, on)  … フォローする／外す（会員が呼ぶ・自分の分だけ・10社まで）
+--     pv_follow_view           … 見た会社（会員×会社・最後に見た時刻。10社まで・30日で消える）
+--     pv_follow_seen(code)     … 会社ページを開いた会員が呼ぶ（自分の分だけ）／pv_follow_unsee(code) … 消す
 --     pv_follow_mail           … 知らせを送った時刻（1人1行）
---     pv_follow_due(limit)     … 今送る相手と、会社ごとの「何が入ったか」（★件数は返さない）
+--     pv_follow_due(limit)     … 今送る相手と、会社ごとの新着（★件数は返さない。口コミは公開の範囲の抜粋だけ）
 --     pv_follow_mark(id, ok)   … 送れた／送れなかったを記録する
 --     時計 pv-follow-notify    … 1時間おき（毎時7分）に Edge Function を叩く
 --
@@ -59,6 +65,15 @@ create table if not exists public.pv_follow (
 alter table public.pv_follow enable row level security;
 revoke all on table public.pv_follow from public, anon, authenticated;
 
+create table if not exists public.pv_follow_view (
+  uid       uuid not null references public.profiles(id) on delete cascade,
+  airline   text not null references public.pv_airlines(code) on delete cascade,
+  viewed_at timestamptz not null default now(),   -- 最後に見た時刻（ここより後の新着だけ知らせる）
+  primary key (uid, airline)
+);
+alter table public.pv_follow_view enable row level security;
+revoke all on table public.pv_follow_view from public, anon, authenticated;
+
 create table if not exists public.pv_follow_mail (
   uid      uuid primary key references public.profiles(id) on delete cascade,
   sent_at  timestamptz,                 -- 最後に送れた時刻（ここより後の新着を次に知らせる）
@@ -80,8 +95,9 @@ insert into public.pv_follow_launch(one) values (true) on conflict (one) do noth
 
 -- ── 2. 本人のフォロー中の会社（中で使う）─────────────────────
 --   自分の会社は、外した印が無い限りフォロー扱い。since ＝ その会社の新着を数え始める時刻。
+drop function if exists public.pv_follow_list(uuid);
 create or replace function public.pv_follow_list(p_uid uuid)
-returns table (airline text, own boolean, since timestamptz)
+returns table (airline text, own boolean, since timestamptz, why text)
 language sql
 stable
 security definer
@@ -93,19 +109,33 @@ as $$
       from public.profiles p where p.id = p_uid
   ),
   own as (
-    select m.own_code as airline, true as own, m.created_at as since
+    select m.own_code as airline, true as own, m.created_at as since, 'follow'::text as why
       from me m join public.pv_airlines a on a.code = m.own_code and a.code <> 'other' and coalesce(a.active, true)
      where not exists (select 1 from public.pv_follow f
                         where f.uid = m.id and f.airline = m.own_code and not f.following)
   ),
   picked as (
-    select f.airline, false as own, f.updated_at as since
+    -- ★見ていた会社をあとからフォローしたら、見た時刻から数える（見てからフォローするまでの新着を落とさない）
+    select f.airline, false as own,
+           least(f.updated_at, coalesce((select v.viewed_at from public.pv_follow_view v
+                                          where v.uid = p_uid and v.airline = f.airline
+                                            and v.viewed_at > now() - interval '30 days'), f.updated_at)) as since,
+           'follow'::text as why
       from public.pv_follow f
       join public.pv_airlines a on a.code = f.airline and a.code <> 'other' and coalesce(a.active, true)
      where f.uid = p_uid and f.following
        and f.airline is distinct from (select own_code from me)
+  ),
+  -- ★見た会社（フォローしていない会社だけ・30日以内）。自分の会社を外した人が、その会社のページを見たら、ここで拾う
+  seen as (
+    select v.airline, false as own, v.viewed_at as since, 'seen'::text as why
+      from public.pv_follow_view v
+      join public.pv_airlines a on a.code = v.airline and a.code <> 'other' and coalesce(a.active, true)
+     where v.uid = p_uid and v.viewed_at > now() - interval '30 days'
+       and not exists (select 1 from own o where o.airline = v.airline)
+       and not exists (select 1 from picked k where k.airline = v.airline)
   )
-  select * from own union all select * from picked;
+  select * from own union all select * from picked union all select * from seen;
 $$;
 revoke all on function public.pv_follow_list(uuid) from public, anon, authenticated;
 
@@ -128,7 +158,13 @@ begin
     -- 会社名と「会社のページがあるか」（年収を載せている会社だけページがある）も返す ── マイページの一覧に出すため
     'list', coalesce((select jsonb_agg(jsonb_build_object('code', l.airline, 'own', l.own, 'ja', a.name_ja, 'en', a.name_en,
                                                           'page', a.cap_lo is not null) order by l.own desc, l.since)
-                        from public.pv_follow_list(v_uid) l join public.pv_airlines a on a.code = l.airline), '[]'::jsonb));
+                        from public.pv_follow_list(v_uid) l join public.pv_airlines a on a.code = l.airline
+                       where l.why = 'follow'), '[]'::jsonb),
+    -- 最近見た会社（フォローしていない会社・新しい順）。消すのは pv_follow_unsee
+    'seen', coalesce((select jsonb_agg(jsonb_build_object('code', l.airline, 'ja', a.name_ja, 'en', a.name_en,
+                                                          'page', a.cap_lo is not null) order by l.since desc)
+                        from public.pv_follow_list(v_uid) l join public.pv_airlines a on a.code = l.airline
+                       where l.why = 'seen'), '[]'::jsonb));
 end
 $$;
 revoke all on function public.pv_my_follows() from public, anon;
@@ -167,7 +203,7 @@ begin
     end if;
   elsif p_on then
     if not exists (select 1 from public.pv_follow f where f.uid = v_uid and f.airline = p_airline and f.following) then
-      select count(*) into v_n from public.pv_follow_list(v_uid);
+      select count(*) into v_n from public.pv_follow_list(v_uid) l where l.why = 'follow';
       if v_n >= 10 then return jsonb_build_object('ok', false, 'reason', 'too_many', 'max', 10); end if;
       insert into public.pv_follow(uid, airline, following) values (v_uid, p_airline, true)
       on conflict (uid, airline) do update set following = true, updated_at = now();
@@ -182,12 +218,64 @@ revoke all on function public.pv_follow_set(text, boolean) from public, anon;
 grant execute on function public.pv_follow_set(text, boolean) to authenticated;
 
 
+/* 会社ページを開いた会員が呼ぶ。最後に見た時刻を更新し、30日より前と、新しい10社より外を消す。 */
+create or replace function public.pv_follow_seen(p_airline text)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+  v_uid uuid := auth.uid();
+begin
+  if v_uid is null then return jsonb_build_object('ok', false, 'reason', 'login'); end if;
+  if p_airline is null or not exists (select 1 from public.pv_airlines a
+                     where a.code = p_airline and a.code <> 'other' and coalesce(a.active, true))
+     or not exists (select 1 from public.profiles p where p.id = v_uid) then
+    return jsonb_build_object('ok', false, 'reason', 'bad_airline');
+  end if;
+  insert into public.pv_follow_view(uid, airline, viewed_at) values (v_uid, p_airline, now())
+  on conflict (uid, airline) do update set viewed_at = now();
+  delete from public.pv_follow_view v where v.uid = v_uid and v.viewed_at <= now() - interval '30 days';
+  delete from public.pv_follow_view v
+   where v.uid = v_uid
+     and v.airline not in (select x.airline from public.pv_follow_view x where x.uid = v_uid order by x.viewed_at desc limit 10);
+  return jsonb_build_object('ok', true);
+end
+$$;
+revoke all on function public.pv_follow_seen(text) from public, anon;
+grant execute on function public.pv_follow_seen(text) to authenticated;
+
+/* マイページの「最近見た会社」から消す。null なら全部消す。 */
+create or replace function public.pv_follow_unsee(p_airline text)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+  v_uid uuid := auth.uid();
+begin
+  if v_uid is null then return jsonb_build_object('ok', false, 'reason', 'login'); end if;
+  delete from public.pv_follow_view v where v.uid = v_uid and (p_airline is null or v.airline = p_airline);
+  return public.pv_my_follows();
+end
+$$;
+revoke all on function public.pv_follow_unsee(text) from public, anon;
+grant execute on function public.pv_follow_unsee(text) to authenticated;
+
+
 -- ── 4. 今送る相手 ───────────────────────────────────────────
 --   1人1行。items ＝ 新着があった会社ごとに {code, ja, en, page, kinds:['pay','review','cond']}（★件数は返さない）。page ＝ 会社のページがある。
 --   新着＝フォローを始めた時刻・前に送った時刻・数え始めのうち、いちばん遅い時刻より後に入ったもの。
+drop function if exists public.pv_follow_due(integer);
 create or replace function public.pv_follow_due(p_limit integer default 50)
 returns table (
-  id uuid, email text, name text, country text, airline_region text, lang text, unsub_token text, items jsonb
+  id uuid, email text, name text, country text, airline_region text, lang text, unsub_token text,
+  has_key boolean,   -- 給与の鍵が生きている（REAL PAY の金額が見られる）
+  items jsonb
 )
 language sql
 stable
@@ -199,7 +287,8 @@ as $$
   floor_at as (select greatest((select at from launch), now() - interval '8 days') as at),
   -- ★新着の候補（数える物だけ・テスト用アカウントを外す）。8日より前は見ない（重くしない）
   ev as (
-    select r.airline as code, 'pay'::text as kind, r.created_at as at, r.proof_hash as h, 'pay'::text as hk, null::text as raw
+    select r.airline as code, 'pay'::text as kind, r.created_at as at, r.proof_hash as h, 'pay'::text as hk, null::text as raw,
+           null::uuid as rid, null::text as qid
       from public.pay_reports r
      where r.created_at > (select at from floor_at)
        and r.airline <> 'other'
@@ -208,12 +297,12 @@ as $$
        and not exists (select 1 from public.pv_test_users t
                         where encode(digest(t.uid::text || '::pv_pay::' || r.airline, 'sha256'), 'hex') = r.proof_hash)
     union all
-    select public.pv_airline_resolve(v.airline), 'review', v.created_at, v.proof_hash, 'review', v.airline
+    select public.pv_airline_resolve(v.airline), 'review', v.created_at, v.proof_hash, 'review', v.airline, v.id, null
       from public.reviews_v2 v
      where v.created_at > (select at from floor_at)
        and not exists (select 1 from public.pv_test_users t where public.pv_review_hash(t.uid, v.airline) = v.proof_hash)
     union all
-    select c.airline, 'cond', c.created_at, c.proof_hash, 'cond', null
+    select c.airline, 'cond', c.created_at, c.proof_hash, 'cond', null, null, c.question_id
       from public.airline_conditions c
      where c.created_at > (select at from floor_at)
        and c.airline <> 'other'
@@ -224,6 +313,7 @@ as $$
   ),
   who as (
     select p.id, p.email, p.name, p.country, p.lang, p.unsub_token::text as unsub_token, p.created_at, p.company,
+           coalesce(p.access_until > now(), false) as has_key,
            greatest((select at from launch), coalesce(fm.sent_at, '-infinity'::timestamptz)) as since_p
       from public.profiles p
       left join public.pv_follow_mail fm on fm.uid = p.id
@@ -237,7 +327,7 @@ as $$
        and not exists (select 1 from public.pv_proof b where b.user_id = p.id and b.state in ('required', 'submitted'))
   ),
   hits as (
-    select w.id, l.airline as code, e.kind
+    select w.id, l.airline as code, l.why, e.kind, e.at, e.rid, e.qid
       from who w
       cross join lateral public.pv_follow_list(w.id) l
       join ev e on e.code = l.airline
@@ -248,19 +338,41 @@ as $$
              when 'pay'    then encode(digest(w.id::text || '::pv_pay::' || l.airline, 'sha256'), 'hex')
              when 'review' then public.pv_review_hash(w.id, e.raw)
              else               public.pv_condition_hash(w.id, l.airline, null) end)
-     group by w.id, l.airline, e.kind
   ),
   per as (
-    select h.id, h.code,
-           jsonb_build_object('code', h.code, 'ja', a.name_ja, 'en', a.name_en, 'page', a.cap_lo is not null,
-             'kinds', jsonb_agg(h.kind order by case h.kind when 'pay' then 1 when 'review' then 2 else 3 end)) as item
-      from hits h join public.pv_airlines a on a.code = h.code
-     group by h.id, h.code, a.name_ja, a.name_en, a.cap_lo
+    select g.id, g.code,
+           jsonb_build_object('code', g.code, 'ja', a.name_ja, 'en', a.name_en, 'page', a.cap_lo is not null, 'why', g.why,
+             'kinds', (select jsonb_agg(k order by case k when 'pay' then 1 when 'review' then 2 else 3 end)
+                         from (select distinct h.kind as k from hits h where h.id = g.id and h.code = g.code) kk),
+             -- ★口コミはサイトで誰にでも見せている範囲だけ（評価・職位・在籍年数・最初の80字。訳も80字）。新しい3件まで
+             'reviews', (select jsonb_agg(rv.j order by rv.at desc) from (
+                select h.at, jsonb_strip_nulls(jsonb_build_object(
+                         'score', (select round(avg(x)::numeric, 1) from unnest(array[v.culture_score, v.salary_score, v.benefits_score,
+                                     v.wlb_score, v.ops_score, v.training_score]) x where x is not null),
+                         'pos_ja', ps.name_ja, 'pos_en', ps.name_en,
+                         'tenure', v.tenure_bucket,
+                         'orig', v.orig_lang,
+                         'text', public.pv_review_fill(to_jsonb(v), '_comment', 80),
+                         'tr', case when jsonb_typeof(v.translations) = 'object' then (
+                                 select jsonb_object_agg(t.key, public.pv_review_fill(t.value, '', 80))
+                                   from jsonb_each(v.translations) t where jsonb_typeof(t.value) = 'object') end)) as j
+                  from hits h
+                  join public.reviews_v2 v on v.id = h.rid
+                  left join public.pv_positions ps on ps.code = v.position
+                 where h.id = g.id and h.code = g.code and h.kind = 'review'
+                 order by h.at desc limit 3) rv),
+             -- 待遇：答えが入った質問の名前（答えそのものは書かない）。5つまで
+             'conds', (select jsonb_agg(jsonb_build_object('ja', q.label_ja, 'en', q.label_en) order by q.id) from (
+                select distinct h.qid from hits h where h.id = g.id and h.code = g.code and h.kind = 'cond' limit 5) cq
+                join public.pv_condition_questions q on q.id = cq.qid)
+           ) as item
+      from (select distinct h.id, h.code, h.why from hits h) g
+      join public.pv_airlines a on a.code = g.code
   )
   select w.id, w.email, w.name, w.country,
          coalesce((select a.region from public.pv_airlines a where a.code = public.pv_airline_resolve(w.company)), '') as airline_region,
-         w.lang, w.unsub_token,
-         (select jsonb_agg(pr.item order by pr.code) from per pr where pr.id = w.id) as items
+         w.lang, w.unsub_token, w.has_key,
+         (select jsonb_agg(pr.item order by (pr.item ->> 'why') = 'seen', pr.code) from per pr where pr.id = w.id) as items
     from who w
    where exists (select 1 from per pr where pr.id = w.id)
    order by w.created_at asc
@@ -332,6 +444,8 @@ select case when not has_function_privilege('anon', 'public.pv_my_follows()', 'e
              and not has_function_privilege('anon', 'public.pv_follow_set(text, boolean)', 'execute')
              and has_function_privilege('authenticated', 'public.pv_my_follows()', 'execute')
              and has_function_privilege('authenticated', 'public.pv_follow_set(text, boolean)', 'execute')
+             and not has_function_privilege('anon', 'public.pv_follow_seen(text)', 'execute')
+             and has_function_privilege('authenticated', 'public.pv_follow_seen(text)', 'execute')
             then '✅ フォローの口は会員だけが呼べる（未ログインは呼べない）' else '❌ フォローの口の権限がおかしい' end
 union all
 select case when not has_function_privilege('authenticated', 'public.pv_follow_due(integer)', 'execute')
@@ -343,6 +457,7 @@ union all
 select case when not has_table_privilege('authenticated', 'public.pv_follow', 'select')
              and not has_table_privilege('authenticated', 'public.pv_follow_mail', 'select')
              and not has_table_privilege('anon', 'public.pv_follow', 'select')
+             and not has_table_privilege('authenticated', 'public.pv_follow_view', 'select')
             then '✅ 表は会員から直接読めない（ほかの人のフォローは見えない）' else '❌ 表が会員から読める' end
 union all
 select case when not exists (select 1 from pg_extension where extname = 'pg_cron')

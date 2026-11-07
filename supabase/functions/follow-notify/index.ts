@@ -41,10 +41,9 @@ const MAX_PER_RUN = Math.max(1, Math.min(Number(env('PV_FOLLOW_MAX', '100')) || 
 
 export type Lang = 'ja' | 'en' | 'es';
 export type Kind = 'pay' | 'review' | 'cond';
-export type Item = { code: string; ja?: string | null; en?: string | null; page?: boolean | null; kinds: Kind[] };
 export type Person = {
   id?: string; email?: string; name?: string | null; country?: string | null;
-  airline_region?: string | null; lang?: string | null; unsub_token?: string; items?: Item[] | null;
+  airline_region?: string | null; lang?: string | null; unsub_token?: string; has_key?: boolean | null; items?: Item[] | null;
 };
 
 /* ── 何語で（welcome-member の welcomeLangOf の写し）─────────── */
@@ -68,64 +67,117 @@ export function airlinePath(l: Lang, code: string) {
 const myPagePath = (l: Lang) => (l === 'ja' ? 'profile.html' : `${l}/profile.html`);
 const unsubPath = (l: Lang) => (l === 'ja' ? 'unsubscribe.html' : 'en/unsubscribe.html');   // 解除の画面はスペイン語版が無い
 
-/* ── 文面（下書き）──────────────────────────────────────────── */
-const KIND_WORD: Record<Lang, Record<Kind, string>> = {
-  ja: { pay: '給与', review: '口コミ', cond: '待遇の回答' },
-  en: { pay: 'pay', review: 'reviews', cond: 'working conditions' },
-  es: { pay: 'remuneración', review: 'reseñas', cond: 'condiciones de trabajo' },
+/* ── 文面（下書き・2026-11-07 オーナー「OpenWork のように中身を出して」）────────────────
+   会社ごとに：見出し（フォロー中の／あなたが見た ◯◯に、新しい情報が入りました）→ 新しい口コミ（評価・職位・在籍年数・最初の80字・続きを見る）
+   → 新しい給与（入ったことだけ。金額はサイトで）→ 待遇の回答が入った質問の名前。
+   給与の鍵が無い人には、最後に「すべての給与と口コミを見るには」＋ボタン（ボタンの字は2通目と同じオーナーの字）。
+   ★書くのはサイトで誰にでも見せている範囲だけ（SQL もそれ以上は返さない）。 */
+export type Review = {
+  score?: number | null; pos_ja?: string | null; pos_en?: string | null; tenure?: string | null; orig?: string | null;
+  text?: Record<string, string> | null; tr?: Record<string, Record<string, string>> | null;
+};
+export type Item = {
+  code: string; ja?: string | null; en?: string | null; page?: boolean | null; why?: 'follow' | 'seen' | string | null;
+  kinds: Kind[]; reviews?: Review[] | null; conds?: { ja?: string; en?: string }[] | null;
+};
+const ORDER = ['culture', 'salary', 'benefits', 'wlb', 'ops', 'training', 'mgmt'];
+/* 抜粋の本文：受け取る人の言語の訳があればそれ、無ければ元の字。欄の順に並べる（サイトと同じ）。 */
+export function excerptOf(r: Review, l: Lang): string {
+  const pick = (o: Record<string, string> | null | undefined, suffix: string) =>
+    o ? ORDER.map((k) => String(o[k + suffix] || '')).filter(Boolean).join(' ') : '';
+  const orig = String(r?.orig || '').toLowerCase();
+  if (orig === l || (!orig && l === 'ja')) return pick(r?.text, '_comment');
+  const tr = r?.tr && (r.tr[l] || (l === 'es' ? r.tr.en : null));
+  return (tr && pick(tr, '')) || pick(r?.text, '_comment');
+}
+export function tenureText(b: string | null | undefined, l: Lang): string {
+  const m = /^(\d+)-(\d+)$/.exec(String(b || '')), p = /^(\d+)\+$/.exec(String(b || ''));
+  if (m) return l === 'ja' ? `在籍${m[1]}〜${m[2]}年` : l === 'es' ? `${m[1]}–${m[2]} años en la aerolínea` : `${m[1]}–${m[2]} yrs at airline`;
+  if (p) return l === 'ja' ? `在籍${p[1]}年以上` : l === 'es' ? `${p[1]}+ años en la aerolínea` : `${p[1]}+ yrs at airline`;
+  return '';
+}
+const W = {
+  ja: {
+    follow: (n: string) => `フォロー中の${n}に、新しい情報が入りました`,
+    seen: (n: string) => `あなたが見た${n}に、新しい情報が入りました`,
+    subjOneRv: (n: string) => `${n}に新しい口コミが入りました`, subjOne: (n: string) => `${n}に新しい情報が入りました`,
+    subjMany: (n: string) => `${n}など、気になる会社に新しい情報が入りました`,
+    rv: '新しい口コミ', more: '続きを見る', pay: '新しい給与が入りました',
+    payLocked: '金額は、ご自身の給与を1件共有すると見られます。', payOpen: 'REAL PAY で見る',
+    cond: '待遇の回答が入った質問', see: 'ページを見る',
+    allT: 'すべての給与と口コミを見るには', allCta: '自分の給与を匿名で共有する',
+    note: 'フォローする会社はマイページで変えられます。見た会社には30日のあいだお知らせします。', my: 'マイページを開く',
+    sign: 'PILOT VALUE 運営 team',
+    foot: 'このメールは、PILOT VALUE にご登録いただき、通知を希望された方にお送りしています。', unsub: '配信を停止する',
+    sep: '・',
+  },
+  en: {
+    follow: (n: string) => `New information at ${n}, which you follow`,
+    seen: (n: string) => `New information at ${n}, which you viewed`,
+    subjOneRv: (n: string) => `New reviews at ${n}`, subjOne: (n: string) => `New information at ${n}`,
+    subjMany: (n: string) => `New information at ${n} and other airlines`,
+    rv: 'New reviews', more: 'Read more', pay: 'New pay has been added',
+    payLocked: 'Share one record of your own pay to see the amounts.', payOpen: 'See on REAL PAY',
+    cond: 'New answers on working conditions', see: 'See the page',
+    allT: 'To see all pay and reviews', allCta: 'Share your pay anonymously',
+    note: 'You can change the airlines you follow on My Page. We tell you about airlines you viewed for 30 days.', my: 'Open My Page',
+    sign: 'The PILOT VALUE team',
+    foot: 'You are receiving this because you signed up for PILOT VALUE and asked for notifications.', unsub: 'Unsubscribe',
+    sep: ' · ',
+  },
+  es: {
+    follow: (n: string) => `Nueva información sobre ${n}, que sigues`,
+    seen: (n: string) => `Nueva información sobre ${n}, que viste`,
+    subjOneRv: (n: string) => `Nuevas reseñas sobre ${n}`, subjOne: (n: string) => `Nueva información sobre ${n}`,
+    subjMany: (n: string) => `Nueva información sobre ${n} y otras aerolíneas`,
+    rv: 'Nuevas reseñas', more: 'Seguir leyendo', pay: 'Se agregó una nueva remuneración',
+    payLocked: 'Comparte un registro de tu remuneración para ver los montos.', payOpen: 'Ver en REAL PAY',
+    cond: 'Nuevas respuestas sobre condiciones de trabajo', see: 'Ver la página',
+    allT: 'Para ver toda la remuneración y las reseñas', allCta: 'Comparte tu remuneración de forma anónima',
+    note: 'Puedes cambiar las aerolíneas que sigues en Mi página. Te avisamos de las aerolíneas que viste durante 30 días.', my: 'Abrir Mi página',
+    sign: 'El equipo de PILOT VALUE',
+    foot: 'Recibes este correo porque te registraste en PILOT VALUE y pediste recibir notificaciones.', unsub: 'Cancelar la suscripción',
+    sep: ' · ',
+  },
+};
+const realPayPath = (l: Lang) => (l === 'ja' ? 'actual-pay.html' : `${l}/actual-pay.html`);
+const payPath = (l: Lang) => (l === 'ja' ? 'pay-report.html#ps' : `${l}/pay-report.html#ps`);
+
+export type Section = {
+  head: string; page: string;
+  reviews: { meta: string; text: string; more: string }[];
+  pay: null | { t: string; note: string; link: string };
+  conds: string[];
 };
 export type FollowCopy = {
-  subject: string; lead: string; lines: { name: string; what: string; href: string; see: string }[];
+  subject: string; sections: Section[]; all: null | { t: string; cta: { label: string; href: string } };
   note: string; noteLink: { label: string; href: string }; sign: string; foot: string; unsub: string;
+  w: typeof W.ja;
 };
-export function followCopy(l: Lang, items: Item[], site = SITE_URL): FollowCopy {
+export function followCopy(l: Lang, items: Item[], hasKey: boolean, site = SITE_URL): FollowCopy {
+  const w = W[l];
   const nameOf = (it: Item) => String((l === 'ja' ? it.ja : it.en) || it.en || it.ja || it.code);
-  const kinds = (it: Item) => {
-    const w = (it.kinds || []).map((k) => KIND_WORD[l][k]).filter(Boolean);
-    return l === 'ja' ? w.join('・') : w.join(', ');
-  };
-  const one = items.length === 1 ? nameOf(items[0]) : '';
-  const see = l === 'ja' ? 'ページを見る' : l === 'es' ? 'Ver la página' : 'See the page';
-  const lines = items.map((it) => ({
-    name: nameOf(it),
-    what: l === 'ja' ? `新しい${kinds(it)}` : l === 'es' ? `Nueva información: ${kinds(it)}` : `New ${kinds(it)}`,
-    href: it.page ? `${site}/${airlinePath(l, it.code)}` : '',
-    see,
-  }));
-  const my = `${site}/${myPagePath(l)}`;
-  if (l === 'ja') {
-    return {
-      subject: one ? `${one}に新しい情報が入りました` : 'フォロー中の会社に新しい情報が入りました',
-      lead: 'フォロー中の会社に、パイロットから新しい情報が届きました。',
-      lines,
-      note: 'フォローする会社は、マイページで変えられます。',
-      noteLink: { label: 'マイページを開く', href: my },
-      sign: 'PILOT VALUE 運営 team',
-      foot: 'このメールは、PILOT VALUE で会社をフォローし、通知を希望された方にお送りしています。',
-      unsub: '配信を停止する',
-    };
-  }
-  if (l === 'es') {
-    return {
-      subject: one ? `Nueva información sobre ${one}` : 'Nueva información sobre las aerolíneas que sigues',
-      lead: 'Hay nueva información de pilotos sobre las aerolíneas que sigues.',
-      lines,
-      note: 'Puedes cambiar las aerolíneas que sigues en Mi página.',
-      noteLink: { label: 'Abrir Mi página', href: my },
-      sign: 'El equipo de PILOT VALUE',
-      foot: 'Recibes este correo porque sigues aerolíneas en PILOT VALUE y pediste recibir notificaciones.',
-      unsub: 'Cancelar la suscripción',
-    };
-  }
+  const sections: Section[] = items.map((it) => {
+    const page = it.page ? `${site}/${airlinePath(l, it.code)}` : '';
+    const reviews = (it.reviews || []).map((r) => {
+      const pos = l === 'ja' ? r.pos_ja : r.pos_en;
+      const meta = [typeof r.score === 'number' ? `★${r.score.toFixed(1)}` : '', [pos, tenureText(r.tenure, l)].filter(Boolean).join(w.sep)]
+        .filter(Boolean).join('　');
+      return { meta, text: excerptOf(r, l), more: page ? `${page}#reviews` : '' };
+    }).filter((x) => x.text || x.meta);
+    const pay = (it.kinds || []).includes('pay')
+      ? { t: w.pay, note: hasKey ? '' : w.payLocked, link: hasKey ? `${site}/${realPayPath(l)}` : '' } : null;
+    const conds = (it.conds || []).map((c) => String((l === 'ja' ? c.ja : c.en) || c.en || c.ja || '')).filter(Boolean);
+    return { head: it.why === 'seen' ? w.seen(nameOf(it)) : w.follow(nameOf(it)), page, reviews, pay, conds };
+  });
+  const first = items[0] ? nameOf(items[0]) : '';
+  const subject = items.length > 1 ? w.subjMany(first)
+    : (sections[0] && sections[0].reviews.length ? w.subjOneRv(first) : w.subjOne(first));
   return {
-    subject: one ? `New on PILOT VALUE: ${one}` : 'New information on airlines you follow',
-    lead: 'Pilots have shared new information about airlines you follow.',
-    lines,
-    note: 'You can change the airlines you follow on My Page.',
-    noteLink: { label: 'Open My Page', href: my },
-    sign: 'The PILOT VALUE team',
-    foot: 'You are receiving this because you follow airlines on PILOT VALUE and asked for notifications.',
-    unsub: 'Unsubscribe',
+    subject, sections,
+    all: hasKey ? null : { t: w.allT, cta: { label: w.allCta, href: `${site}/${payPath(l)}` } },
+    note: w.note, noteLink: { label: w.my, href: `${site}/${myPagePath(l)}` },
+    sign: w.sign, foot: w.foot, unsub: w.unsub, w,
   };
 }
 
@@ -144,21 +196,52 @@ export function buildFollow(p: Person, o: { siteUrl?: string; supabaseUrl?: stri
   const tok = encodeURIComponent(p?.unsub_token || '');
   const unsubPage = (l: Lang) => `${site}/${unsubPath(l)}?token=${tok}`;
   const oneClickUrl = sb ? `${sb}/functions/v1/remind-payslip?u=${tok}` : '';
-  const parts = langs.map((l) => ({ l, t: followCopy(l, items, site) }));
+  const parts = langs.map((l) => ({ l, t: followCopy(l, items, p?.has_key === true, site) }));
   const subject = parts.map((x) => x.t.subject).join(' / ');
+  const A = (href: string, label: string) => `<a href="${esc(href)}" style="color:#067563;font-weight:700">${esc(label)}</a>`;
+  const sectionHtml = (s: Section, w: FollowCopy['w']) => `
+    <div style="margin:0 0 16px;border:1px solid #e6e9ef;border-radius:12px;overflow:hidden">
+      <p style="margin:0;padding:14px 16px;background:#f7f8fa;color:#111;font-weight:800">${esc(s.head)}</p>
+      <div style="padding:6px 16px 14px">
+      ${s.reviews.length ? `<p style="margin:10px 0 4px;color:#6b7280;font-size:12px;font-weight:700">${esc(w.rv)}</p>` : ''}
+      ${s.reviews.map((r) => `
+        <div style="padding:10px 0;border-top:1px solid #eef0f4">
+          ${r.meta ? `<p style="margin:0 0 4px;color:#111;font-weight:700;font-size:13px">${esc(r.meta)}</p>` : ''}
+          ${r.text ? `<p style="margin:0;color:#333">${esc(r.text)}${r.more ? ` ${A(r.more, w.more)}` : ''}</p>` : ''}
+        </div>`).join('')}
+      ${s.pay ? `
+        <div style="padding:10px 0;border-top:1px solid #eef0f4">
+          <p style="margin:0;color:#111;font-weight:700">${esc(s.pay.t)}</p>
+          ${s.pay.note ? `<p style="margin:2px 0 0;color:#6b7280;font-size:12px">${esc(s.pay.note)}</p>` : ''}
+          ${s.pay.link ? `<p style="margin:6px 0 0">${A(s.pay.link, w.payOpen)}</p>` : ''}
+        </div>` : ''}
+      ${s.conds.length ? `
+        <div style="padding:10px 0;border-top:1px solid #eef0f4">
+          <p style="margin:0 0 4px;color:#6b7280;font-size:12px;font-weight:700">${esc(w.cond)}</p>
+          ${s.conds.map((c) => `<p style="margin:0;color:#333">・${esc(c)}</p>`).join('')}
+        </div>` : ''}
+      ${s.page ? `<p style="margin:10px 0 0">${A(s.page, w.see + ' →')}</p>` : ''}
+      </div>
+    </div>`;
   const blockHtml = (t: FollowCopy) => `
-    <p style="margin:0 0 18px;color:#111;font-weight:800;font-size:16px">${esc(t.lead)}</p>
-    ${t.lines.map((x) => `
-    <div style="margin:0 0 10px;padding:14px;background:#f7f8fa;border-radius:12px">
-      <p style="margin:0;color:#111;font-weight:800">${esc(x.name)}</p>
-      <p style="margin:2px 0 0;color:#333">${esc(x.what)}</p>
-      ${x.href ? `<p style="margin:8px 0 0"><a href="${esc(x.href)}" style="color:#067563;font-weight:700">${esc(x.see)} →</a></p>` : ''}
-    </div>`).join('')}
+    ${t.sections.map((s) => sectionHtml(s, t.w)).join('')}
+    ${t.all ? `
+    <div style="margin:6px 0 14px;padding:16px 14px 14px;background:#f7f8fa;border-radius:12px">
+      <p style="margin:0 0 12px;color:#111;font-weight:800">${esc(t.all.t)}</p>
+      <a href="${esc(t.all.cta.href)}" style="display:inline-block;background:#f5c842;color:#111;text-decoration:none;font-weight:800;padding:12px 18px;border-radius:10px;line-height:1.4">${esc(t.all.cta.label)}</a>
+    </div>` : ''}
     <p style="margin:16px 0 0;color:#6b7280;font-size:12px">${esc(t.note)} <a href="${esc(t.noteLink.href)}" style="color:#6b7280">${esc(t.noteLink.label)}</a></p>
     <p style="margin:18px 0 0;color:#333">${esc(t.sign)}</p>`;
   const blockText = (t: FollowCopy) => [
-    t.lead, '',
-    ...t.lines.flatMap((x) => [x.name, x.what, ...(x.href ? [`${x.see}: ${x.href}`] : []), '']),
+    ...t.sections.flatMap((s) => [
+      `■ ${s.head}`,
+      ...(s.reviews.length ? [t.w.rv] : []),
+      ...s.reviews.flatMap((r) => [r.meta, r.text + (r.more ? ` ${t.w.more}: ${r.more}` : ''), '']),
+      ...(s.pay ? [s.pay.t, ...(s.pay.note ? [s.pay.note] : []), ...(s.pay.link ? [`${t.w.payOpen}: ${s.pay.link}`] : []), ''] : []),
+      ...(s.conds.length ? [t.w.cond, ...s.conds.map((c) => `・${c}`), ''] : []),
+      ...(s.page ? [`${t.w.see}: ${s.page}`, ''] : []),
+    ]),
+    ...(t.all ? [t.all.t, `▶ ${t.all.cta.label}: ${t.all.cta.href}`, ''] : []),
     `${t.note} ${t.noteLink.href}`, '',
     t.sign,
   ].join('\n');
