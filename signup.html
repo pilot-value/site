@@ -805,6 +805,11 @@
       }
       if(upsertErr){ console.warn('profiles upsert failed; handle_new_user trigger will populate:', upsertErr.message); }
 
+      /* ★登録した画面の言語を残す（db/profile-lang.sql）。歓迎メールなどの言語はこれで決まる
+           ── 残っていないと居住国から推測され、海外に住む人に英語が上のメールが届く。
+         upsert に混ぜない（関数が無い・失敗しても登録を止めない）。en/signup.html と同じ形。 */
+      try { await sb.rpc('pv_set_lang', { p_lang: 'ja' }); } catch (e) {}
+
       /* ★同意の旗は2つある。上の upsert が立てるのは親（email_opt_in）だけで、
          月次リマインドの子（mail_optin）は既定 false のまま残っていた。送信条件は
          pv_reminder_due で「両方 true」なので、これが原因で宛先が恒常的に0件だった

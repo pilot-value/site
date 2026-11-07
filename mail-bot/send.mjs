@@ -1,7 +1,7 @@
 /* ════════════════════════════════════════════════════════════════
    PILOT VALUE — mail-bot/send.mjs  v1.1
    会員向けメール配信（オプトインした会員のみ）。
-     welcome  … 新規オプトイン会員へ歓迎＋使い方
+     welcome  … 歓迎メールの自分宛ての下見だけ（会員へは Supabase の時計が自動で送る・2026-11-06）
      digest   … ★週に一度の新着まとめ（年収＋口コミの件数だけ。金額も口コミ本文も載せない）
      announce … 一度だけのお知らせ（給与レポート公開）。文面は announce-mail.mjs
 
@@ -13,8 +13,8 @@
    依存追加なし（Supabase REST ＋ Resend を fetch）。tweet-bot と同型。
 
    使い方:
-     node mail-bot/send.mjs welcome            # 新規オプトイン会員へ歓迎メール
-     node mail-bot/send.mjs welcome --dry-run  # 送らず対象と本文プレビュー
+     node mail-bot/send.mjs welcome --to=info@… --send               # ★歓迎メールを自分の受信箱で見る（日本語）
+     node mail-bot/send.mjs welcome --to=info@… --lang=both --send   # 英語が上・日本語が下（--lang=es でスペイン語）
 
      node mail-bot/send.mjs digest                          # 送らない。今週の件数と対象人数だけ出る
      node mail-bot/send.mjs digest --to=info@…     --send   # ★自分の受信箱で現物を見る
@@ -148,44 +148,26 @@ if (existsSync(stateFile)) { try { state = { ...state, ...JSON.parse(readFileSyn
 const saveState = () => writeFileSync(stateFile, JSON.stringify(state, null, 2));
 const nowIso = new Date().toISOString();
 
-/* ════════════════════ welcome ════════════════════ */
+/* ════════════════════ welcome ════════════════════
+   ★2026-11-06 から、歓迎メールは Supabase の時計が10分おきに自動で送る
+     （supabase/functions/welcome-member・db/welcome-mail.sql）。
+     ここから会員へ送ると二重になるので、この口は**自分宛ての下見だけ**にした。
+     文面は Edge Function の本物を import する（写しを作らない）。
+     --send を付けなければ件名だけ出して送らない。 */
 async function runWelcome() {
-  const since = BACKFILL ? null : (sinceArg || state.lastWelcomeAt || nowIso);
-  const firstRun = !state.lastWelcomeAt && !BACKFILL && !sinceArg;
-  const filters = [['email_opt_in', 'eq.true'], ['order', 'created_at.asc']];
-  if (since) filters.push(['created_at', 'gt.' + since]);
-  const members = await sbSelect('profiles', 'name,email,unsub_token,created_at,email_opt_in', filters);
-
-  console.log(`[welcome] 対象 ${members.length} 名${firstRun ? '（初回=監視開始。既存会員へは送りません。全員へ送るには --backfill）' : ''}`);
-  if (members.length === 0) {
-    if (firstRun) { state.lastWelcomeAt = nowIso; saveState(); console.log('✓ 監視開始（基準時刻を保存）'); }
-    return;
+  if (!toArg) {
+    console.error('歓迎メールは Supabase の時計が自動で送っています（supabase/functions/welcome-member）。');
+    console.error('ここから会員へは送りません（二重になるため）。自分宛ての下見だけ: --to=ADDR [--lang=ja|both|es] --send');
+    process.exit(1);
   }
-
-  let sent = 0, last = null;
-  for (const m of members) {
-    if (!m.email) continue;
-    /* ★氏名で呼びかけない。匿名で出してもらっている以上、
-         受信箱にも Resend の送信ログにも「このアドレス＝この氏名」を残さない。 */
-    const inner = `
-      <p style="margin:0 0 14px">PILOT VALUE へのご登録ありがとうございます ✈️</p>
-      <p style="margin:0 0 14px">当サイトは、日本のパイロットが<strong>世界のエアラインの年収・待遇・現場のリアル</strong>を、
-      忖度なく比較して次のキャリアを判断するためのプラットフォームです。</p>
-      <p style="margin:0 0 8px;font-weight:700">はじめの一歩</p>
-      <ol style="margin:0 0 16px;padding-left:1.2em">
-        <li>あなたの年収・待遇を<strong>1社ぶん匿名で投稿</strong>（所要3分・個人は特定されません）</li>
-        <li>その瞬間、<strong>全社の口コミが解放</strong>されます（年収データは給与明細を1枚出すと90日間）</li>
-      </ol>
-      <p style="margin:0 0 20px"><a href="${SITE_URL}/submit-review.html" style="display:inline-block;background:#f5c842;color:#000;font-weight:800;text-decoration:none;padding:11px 22px;border-radius:9px">口コミを投稿してデータを解放する →</a></p>
-      <p style="margin:0;color:#6b7280;font-size:13px">今後、年収データの更新や新着口コミ、新規エアライン情報を厳選してお届けします。不要になればいつでも下部から解除できます。</p>`;
-    try {
-      await sendEmail(m.email, 'PILOT VALUE へようこそ ✈️', layout(inner, m.unsub_token));
-      sent++; last = m.created_at;
-      console.log(`${DRY ? '  [dry]' : '  ✓'} welcome → ${m.email}`);
-    } catch (e) { console.error(`  ❌ ${m.email}: ${e.message}`); }
-  }
-  if (!DRY && last) { state.lastWelcomeAt = last; saveState(); }
-  console.log(`[welcome] ${DRY ? 'プレビュー' : '送信'} ${sent}/${members.length}`);
+  const { buildWelcome } = await import('../supabase/functions/welcome-member/index.ts');
+  const lang = ['ja', 'en', 'es', 'both'].includes(langArg) ? langArg : 'ja';
+  const m = buildWelcome({ id: 'preview', unsub_token: '00000000-0000-4000-8000-000000000000' },
+    { lang, siteUrl: SITE_URL, supabaseUrl: SUPABASE_URL });
+  console.log(`[welcome] 下見 → ${toArg}（lang=${m.lang}）\n  件名: ${m.subject}`);
+  if (!args.includes('--send')) { console.log('  （--send を付けると送ります）'); return; }
+  await sendEmail(toArg, m.subject, m.html, { text: m.text, replyTo: ADMIN_EMAIL });
+  console.log('  ✓ 送りました');
 }
 
 /* ════════════════════ digest ════════════════════
