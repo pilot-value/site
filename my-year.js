@@ -34,6 +34,8 @@
       yr: function (y) { return y + '年'; },
       mo: function (m) { return m + '月'; },
       tGross: '総支給の合計', tBlock: '乗務時間の合計', tDays: '勤務日数の合計', tNet: '手取りの合計',
+      tGrossB: '総支給の合計（ボーナス込み）', kBonus: 'ボーナス', kProfit: 'プロフィットシェア',
+      tYearly: function (k) { return k + '（年）'; },
       insH: 'あなたの記録からわかること',
       iSlopeK: '1時間多く飛ぶと',
       iSlopeP: function (n) { return n + 'か月の乗務時間と総支給から'; },
@@ -84,6 +86,8 @@
       yr: function (y) { return String(y); },
       mo: function (m) { return MON[m - 1]; },
       tGross: 'Total gross pay', tBlock: 'Total block hours', tDays: 'Total duty days', tNet: 'Total net pay',
+      tGrossB: 'Total gross pay incl. bonus', kBonus: 'Bonus', kProfit: 'Profit share',
+      tYearly: function (k) { return k + ' (yearly)'; },
       insH: 'What your records show',
       iSlopeK: 'One more block hour adds',
       iSlopeP: function (n) { return 'From ' + n + ' months of block hours and gross pay'; },
@@ -132,6 +136,8 @@
       yr: function (y) { return String(y); },
       mo: function (m) { return MON[m - 1]; },
       tGross: 'Sueldo bruto total', tBlock: 'Horas block totales', tDays: 'Días de servicio totales', tNet: 'Sueldo neto total',
+      tGrossB: 'Sueldo bruto total con bono', kBonus: 'Bono', kProfit: 'Participación en las utilidades',
+      tYearly: function (k) { return k + ' (anual)'; },
       insH: 'Lo que muestran tus registros',
       iSlopeK: 'Una hora block más suma',
       iSlopeP: function (n) { return 'A partir de ' + n + ' meses de horas block y sueldo bruto'; },
@@ -280,6 +286,18 @@
       days: all('days') ? tot('days') : null,
       net: all('net') ? tot('net') : null
     };
+    /* ボーナス・プロフィットシェア（年間の申告・2026-11-08 オーナー「ボーナスも合計に入れよう」）。
+       ★給与フォームは同じ年間の額を毎月の行に持ち越す＝月ごとに足さない。その年でいちばん新しい申告を1回だけ、
+         その行のレートで円にする。0 は「無い」と答えた＝出さない。空の月は飛ばして前の月の申告を見る。 */
+    var lastDecl = function (k) {
+      for (var i = list.length - 1; i >= 0; i--) {
+        var v = num(list[i][k]), fx = num(list[i].fx_to_jpy);
+        if (v != null && fx) return v > 0 ? v * fx : null;
+      }
+      return null;
+    };
+    tiles.bonus = lastDecl('bonus_annual');
+    tiles.profit = lastDecl('profit_share_annual');
 
     // わかること
     var ins = {};
@@ -703,9 +721,18 @@
     if (ys.indexOf(state.year) < 0) state.year = ys[0];
     var md = state.model = calc(rows, state.year);
     var W = Math.max(300, Math.round(box.clientWidth || 1000));
-    var tiles = [['gross', T.tGross, function (v) { return fmt(v); }, ''], ['bh', T.tBlock, hh, 'h'],
-                 ['days', T.tDays, function (v) { return Math.round(v); }, T.qDay], ['net', T.tNet, function (v) { return fmt(v); }, '']]
-      .filter(function (t) { return md.tiles[t[0]] != null; });
+    var tl = md.tiles, extra = (tl.bonus || 0) + (tl.profit || 0), tiles = [];
+    /* 総支給の合計に、年間のボーナス・プロフィットシェアを足して出す（中身は「うち…」の行で見せる）。
+       総支給が欠けた月がある年は合計を出さない（今までどおり）ので、そのときはボーナスだけを別に出す。 */
+    if (tl.gross != null) {
+      tiles.push({ k: extra ? T.tGrossB : T.tGross, v: fmt(tl.gross + extra),
+        sub: [[T.kBonus, tl.bonus], [T.kProfit, tl.profit]].filter(function (p) { return p[1]; }).map(function (p) { return [p[0], fmt(p[1])]; }) });
+    } else {
+      [[T.kBonus, tl.bonus], [T.kProfit, tl.profit]].forEach(function (p) { if (p[1]) tiles.push({ k: T.tYearly(p[0]), v: fmt(p[1]) }); });
+    }
+    if (tl.bh != null) tiles.push({ k: T.tBlock, v: hh(tl.bh), u: 'h' });
+    if (tl.days != null) tiles.push({ k: T.tDays, v: Math.round(tl.days), u: T.qDay });
+    if (tl.net != null) tiles.push({ k: T.tNet, v: fmt(tl.net) });
     box.innerHTML =
       '<section class="pt-sec mr-card yr" id="pv-year">' +
         '<div class="yr-top"><h2 class="mr-card-t">' + esc(T.title) + '<span class="yr-pyr">' + esc(L === 'ja' ? '（' + T.yr(state.year) + '）' : ' (' + T.yr(state.year) + ')') + '</span></h2>' +
@@ -714,7 +741,8 @@
           }).join('') + '</div>' : '<span class="yr-one">' + esc(T.yr(state.year)) + '</span>') +
           '<span class="yr-sp"></span><button type="button" class="yr-pdf">' + esc(T.pdf) + '</button></div>' +
         (tiles.length ? '<div class="yr-tiles">' + tiles.map(function (t) {
-          return '<div class="yr-tile"><span>' + esc(t[1]) + '</span><b>' + esc(String(t[2](md.tiles[t[0]]))) + (t[3] ? '<i>' + esc(t[3]) + '</i>' : '') + '</b></div>';
+          return '<div class="yr-tile"><span>' + esc(t.k) + '</span><b>' + esc(String(t.v)) + (t.u ? '<i>' + esc(t.u) + '</i>' : '') + '</b>' +
+            (t.sub || []).map(function (x) { return '<small><span>' + esc(x[0]) + '</span> <span>' + esc(x[1]) + '</span></small>'; }).join('') + '</div>';
         }).join('') + '</div>' : '') +
         insights(md) + kinkCard(md, W) + ratesTable(md) +
         hoursChart(md, W) + payChart(md, W, o.segName || {}) + smallsHTML(md) + monthTable(md) +

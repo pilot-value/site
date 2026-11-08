@@ -767,6 +767,8 @@
 #pv-value .yr-tile{border:1px solid var(--pv-line-soft);border-radius:14px;padding:14px 16px;background:var(--pv-surface)}
 #pv-value .yr-tile span{display:block;font-size:.74rem;color:var(--pv-ink-3);font-weight:700;margin-bottom:6px}
 #pv-value .yr-tile b{font-size:1.3rem;font-weight:800;letter-spacing:-.02em;color:var(--pv-ink)}
+#pv-value .yr-tile small{display:block;margin-top:6px;font-size:.74rem;font-weight:600;color:var(--pv-ink-3);line-height:1.5}
+#pv-value .yr-tile small span{display:inline-block;white-space:nowrap;margin:0;font-size:inherit;font-weight:inherit;color:inherit}
 #pv-value .yr-tile i,#pv-value .yr-in b i,#pv-value .yr-sm-h b i{font-style:normal;font-size:.78rem;color:var(--pv-ink-3);margin-left:3px;font-weight:700}
 #pv-value .yr-h{margin:0 0 10px;font-size:.9rem;font-weight:800;color:var(--pv-ink)}
 #pv-value .yr-ins{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:26px}

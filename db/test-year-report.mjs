@@ -6,7 +6,9 @@
    ② 「1時間多く飛ぶと」は4か月以上・相関がはっきりしているときだけ。3か月・ばらばらの記録では出さない。
    ③ 「単価が変わる点」は両側3か月以上・直線より誤差が半分以下のときだけ。まっすぐな記録・片側2か月では出さない。
    ④ 書いていない項目は 0 で埋めない（カード・行・小さなグラフ・合計ごと出さない）。
-   ⑤ 金額は各月のレートで円に直してから足す（累計と同じ）。 */
+   ⑤ 金額は各月のレートで円に直してから足す（累計と同じ）。
+   ⑥ 年間のボーナス・プロフィットシェアは毎月の行に同じ額が持ち越される＝足さない。その年のいちばん新しい申告を1回だけ
+      （その行のレートで円に）。0 は「無い」＝出さない。 */
 import fs from 'fs';
 import vm from 'vm';
 import path from 'path';
@@ -92,6 +94,14 @@ function checks(Y) {
   const fx = [row(1, { gross_monthly: 1000, fx_to_jpy: 100 }), row(2, { gross_monthly: 1000, fx_to_jpy: 200 })];
   ok(Y.calc(fx, 2026).tiles.gross === 300000, '⑤ 総支給の合計は各月のレートで円にしてから足す');
 
+  // ⑥ ボーナス（年間の申告）
+  const b3 = [1, 2, 3].map((m) => row(m, { bonus_annual: 50000 }));
+  ok(Y.calc(b3, 2026).tiles.bonus === 50000 * 40, '⑥ 3か月に同じ年間ボーナスがあっても1回だけ数える');
+  const bNew = [row(1, { bonus_annual: 30000 }), row(2, { bonus_annual: 60000, fx_to_jpy: 50 }), row(3, { bonus_annual: null, profit_share_annual: null })];
+  ok(Y.calc(bNew, 2026).tiles.bonus === 60000 * 50, '⑥ いちばん新しい申告を、その行のレートで（空の月は飛ばす）');
+  ok(Y.calc([row(1), row(2)], 2026).tiles.bonus == null && Y.calc([row(1), row(2)], 2026).tiles.profit == null, '⑥ 0 は出さない');
+  ok(Y.calc([row(1, { profit_share_annual: 42000 })], 2026).tiles.profit === 42000 * 40, '⑥ プロフィットシェアも同じ');
+
   return fails;
 }
 
@@ -112,7 +122,10 @@ const BREAK = [
   ['③ 片側の月数を見ない', 'if (nb < 3 || na < 3) continue;', 'if (nb < 1 || na < 1) continue;'],
   ['④ 欠けた月を 0 として合計する', "days: all('days') ? tot('days') : null", "days: tot('days')"],
   ['⑤ 最後の月のレートでまとめて換算する', 'gross: (g != null && fx) ? g * fx + V.unionOutsideJpy(r) + V.perdiemOutsideJpy(r) : null,',
-    'gross: (g != null && fx) ? g * num(list[list.length - 1].fx_to_jpy) + V.unionOutsideJpy(r) + V.perdiemOutsideJpy(r) : null,']
+    'gross: (g != null && fx) ? g * num(list[list.length - 1].fx_to_jpy) + V.unionOutsideJpy(r) + V.perdiemOutsideJpy(r) : null,'],
+  ['⑥ 毎月の年間ボーナスを足し上げる', "tiles.bonus = lastDecl('bonus_annual');",
+    "tiles.bonus = sum(list.map(function (r) { return (num(r.bonus_annual) || 0) * num(r.fx_to_jpy); })) || null;"],
+  ['⑥ 0 を出す', 'if (v != null && fx) return v > 0 ? v * fx : null;', 'if (v != null && fx) return v * fx;']
 ];
 for (const [name, from, to] of BREAK) {
   if (SRC.split(from).length !== 2) { say(false, `${name}：差し替える1行が my-year.js に1回だけ無い（検査が古い）`); continue; }

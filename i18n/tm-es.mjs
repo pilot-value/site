@@ -15933,4 +15933,6 @@ export const TM = {
   "js:{ block: 'Per block hour', duty: 'Per duty hour', night: 'Per night block hour', sector: 'Per sector' }": {"es":"js:{ block: 'Por hora block', duty: 'Por hora de servicio', night: 'Por hora block nocturna', sector: 'Por sector' }","st":"manual","by":"claude-review","at":"2026-11-08","pages":["my-year.js"],"note":"マイレポート 2026-11-08"},
   "js:'Across members at your airline'": {"es":"js:'Entre los miembros de tu aerolínea'","st":"manual","by":"claude-review","at":"2026-11-08","pages":["my-year.js"],"note":"マイレポート 2026-11-08"},
   "js:'Airline members'": {"es":"js:'Miembros de tu aerolínea'","st":"manual","by":"claude-review","at":"2026-11-08","pages":["my-year.js"],"note":"マイレポート 2026-11-08"},
+  "js:'Total gross pay incl. bonus'": {"es":"js:'Sueldo bruto total con bono'","st":"manual","by":"claude-review","at":"2026-11-08","pages":["my-year.js"],"note":"マイレポート 2026-11-08"},
+  "js:function (k) { return k + ' (yearly)'; }": {"es":"js:function (k) { return k + ' (anual)'; }","st":"manual","by":"claude-review","at":"2026-11-08","pages":["my-year.js"],"note":"マイレポート 2026-11-08"},
 };
