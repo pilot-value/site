@@ -280,6 +280,11 @@ const STAMPS = [
   /* ★2026-11-07 ホーム画面に追加の案内（MY PAGE と給与を出し終えた画面）。直したら、出た値を日英の4枚に写す（西は gen-lang.mjs）。 */
   { pages: [['pay-report.html', ''], ['en/pay-report.html', '../'], ['profile.html', ''], ['en/profile.html', '../']],
     files: ['pv-app.js'] },
+  /* ★2026-11-08 マイレポート（YOUR PAY）。my-value.js が組み、my-value.css と pay-viz.js が形と図を受け持つ（対で動く）。
+     指紋が無かった回、出した直後に本番のマイページが古い my-value.js のまま（「今月｜1年」が出ない）だった。
+     直したら、出た値を日英2枚に写す（西は gen-lang.mjs）。 */
+  { pages: [['profile.html', ''], ['en/profile.html', '../']],
+    files: ['my-value.css', 'pay-viz.js', 'my-value.js'] },
   /* ★2026-11-07 フォロー中の会社の一覧（マイページ）。会社ページの読み込みは gen-airline-glance.mjs が付け直す */
   { pages: [['profile.html', ''], ['en/profile.html', '../']],
     files: ['pv-follow.js'] },

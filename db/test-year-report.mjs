@@ -122,6 +122,18 @@ for (const [name, from, to] of BREAK) {
   say(f.length > 0, `${name} → 赤くなる（${f.length}件）`);
 }
 
+/* ▼ my-value.js が後から読む2本の指紋（YEAR_V / SAMPLE_V）が中身と一致する（.js は4時間覚えられる＝ずれると古い部品が残る） */
+console.log('▼ 後から読む部品の指紋');
+{
+  const { createHash } = await import('crypto');
+  const mv = fs.readFileSync(path.join(ROOT, 'my-value.js'), 'utf8');
+  for (const [name, file] of [['YEAR_V', 'my-year.js'], ['SAMPLE_V', 'my-value-sample.js']]) {
+    const want = createHash('sha256').update(fs.readFileSync(path.join(ROOT, file))).digest('hex').slice(0, 8);
+    const m = mv.match(new RegExp('var ' + name + " = '([0-9a-f]{8})';"));
+    say(m && m[1] === want, name + '（' + file + '）の指紋が中身と一致' + (m && m[1] !== want ? '：' + m[1] + ' → ' + want + ' に直す' : ''));
+  }
+}
+
 /* ▼ 給与フォームは、変動給の種類ごとの額（variable_by_basis）を読まない＝翌月の初期値に使わない（pv_pay_items_shape の決まり） */
 console.log('▼ 給与フォーム');
 for (const f of ['pay-report.html', 'en/pay-report.html', 'es/pay-report.html', 'pay-wizard.js', 'payslip.js']) {

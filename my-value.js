@@ -64,14 +64,19 @@
      ＝ salary-leveling.js と同じやり方。currentScript は同期実行中しか
      取れないので、ここ（IIFE の冒頭）で確定させる。 */
   var PUB_URL = 'salary-data.json';
-  var SAMPLE_URL = 'my-value-sample.js';     // 運営の見本（運営のときだけ読む）
-  var YEAR_URL = 'my-year.js';               // 「1年」の画面（押したときだけ読む）
+  /* ★後から読む2本にも中身の指紋を付ける（.js は配信で4時間覚えられる＝付けないと出した直後に古い部品が残る）。
+       my-year.js か my-value-sample.js を直したら、db/test-year-report.mjs が示す値に書き換える（中身と一致するかを見ている）。
+       そのあと profile.html（日英）の my-value.js の指紋も変わる（assert-links.mjs が示す値に写す・西は gen-lang.mjs）。 */
+  var YEAR_V = '5a4e5a62';
+  var SAMPLE_V = 'ed9d311c';
+  var SAMPLE_URL = 'my-value-sample.js?v=' + SAMPLE_V;     // 運営の見本（運営のときだけ読む）
+  var YEAR_URL = 'my-year.js?v=' + YEAR_V;                 // 「1年」の画面（押したときだけ読む）
   try {
     var _self = (d.currentScript && d.currentScript.src) || '';
     if (_self) {
       PUB_URL = new URL('salary-data.json', _self).href;
-      SAMPLE_URL = new URL('my-value-sample.js', _self).href;
-      YEAR_URL = new URL('my-year.js', _self).href;
+      SAMPLE_URL = new URL('my-value-sample.js?v=' + SAMPLE_V, _self).href;
+      YEAR_URL = new URL('my-year.js?v=' + YEAR_V, _self).href;
     }
   } catch (e) {}
 
