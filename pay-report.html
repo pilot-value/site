@@ -567,19 +567,19 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
         <div class="grid2">
           <div class="fld">
             <label class="form-label" for="f-block">フライトタイム<span class="req-tag">必須</span></label>
-            <input type="text" id="f-block" class="form-input num" inputmode="decimal" placeholder="例：78.5" data-min="0" data-max="200"/>
+            <input type="text" id="f-block" class="form-input num" inputmode="decimal" data-hm="1" placeholder="例：78.5" data-min="0" data-max="200"/>
             <p class="fld-hint">実際に飛んだ時間（block hours）。無ければ <b>0</b>。</p>
           </div>
           <div class="fld">
             <label class="form-label" for="f-duty-h">勤務時間（Duty time）<span class="opt-tag">任意</span></label>
-            <input type="text" id="f-duty-h" class="form-input num" inputmode="decimal" placeholder="例：160" data-min="0" data-max="400"/>
+            <input type="text" id="f-duty-h" class="form-input num" inputmode="decimal" data-hm="1" placeholder="例：160" data-min="0" data-max="400"/>
             <p class="fld-hint">出頭から解散までの、月の合計。</p>
           </div>
         </div>
         <div class="grid2">
           <div class="fld">
             <label class="form-label" for="f-guar">保証フライトタイム<span class="opt-tag">任意</span></label>
-            <input type="text" id="f-guar" class="form-input num" inputmode="decimal" placeholder="例：75" data-min="0" data-max="200"/>
+            <input type="text" id="f-guar" class="form-input num" inputmode="decimal" data-hm="1" placeholder="例：75" data-min="0" data-max="200"/>
             <p class="fld-hint">契約上の最低保証（Minimum Guarantee）。無ければ空欄。</p>
           </div>
           <div class="fld">
@@ -3237,16 +3237,35 @@ function readNum(el) {
     .replace(/[\s ]/g, '');
   const shape = '「' + raw + '」は数字として読めません。半角の数字で入れ直してください。';
   const bad = (m) => ({ n: null, canon: raw, state: 'bad', msg: m });
-  if (!/^\d*\.?\d*$/.test(t) || !/\d/.test(t)) return bad(shape);
-  if (t.indexOf('.') >= 0 && el.dataset.dec === '0') return bad('ここは整数で入れてください。');
-  const v = parseFloat(t);
-  if (!isFinite(v)) return bad(shape);
+  const hm = el.dataset.hm === '1' ? readHM(raw) : null;
+  let v;
+  if (hm === false) return bad(shape);
+  if (hm != null) v = hm;
+  else {
+    if (!/^\d*\.?\d*$/.test(t) || !/\d/.test(t)) return bad(shape);
+    if (t.indexOf('.') >= 0 && el.dataset.dec === '0') return bad('ここは整数で入れてください。');
+    v = parseFloat(t);
+    if (!isFinite(v)) return bad(shape);
+  }
   const lo = el.dataset.min === undefined ? null : parseFloat(el.dataset.min);
   const hi = el.dataset.max === undefined ? null : parseFloat(el.dataset.max);
   if ((lo != null && v < lo) || (hi != null && v > hi)) {
     return bad(lo + '〜' + hi + ' の範囲で入れてください。');
   }
   return { n: v, canon: String(v), state: 'ok', msg: '' };
+}
+/* ★時間の欄（data-hm="1"）だけ「時:分」も読む（2026-11-08）。パイロットは乗務時間を 85:30・85H30 と書く
+     （ログブックと明細の書き方）。前は「数字として読めません」で止めていた ── 海外の人が「月・乗務」の段で止まる候補。
+   ★決まりは明細を読むサーバーの parseHours()（supabase/functions/parse-payslip/index.ts）と同じ形。片方だけ直さない。
+   返すのは 時間（小数2けた・DB の列が numeric(6,2)）／false＝分が60以上（読み違い。黙って通さない）／null＝時:分の形ではない。
+   ⚠️ 85.30 は今までどおり 85.3 時間（10進の小数と区別が付かない）。 */
+function readHM(raw) {
+  const s = String(raw).trim().replace(/[！-～]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+  const m = s.match(/^(\d{1,3})\s*(?:時間|[Hh:])\s*(\d{1,2})?\s*(?:分|[Mm])?$/);
+  if (!m) return null;
+  const min = m[2] === undefined || m[2] === '' ? 0 : Number(m[2]);
+  if (min > 59) return false;
+  return Math.round((Number(m[1]) + min / 60) * 100) / 100;
 }
 function numEls() { return Array.prototype.slice.call(document.querySelectorAll('input.num')); }
 /* 値を代入で入れたあと（下書きの復元・先月の値・明細の読み取り）に呼ぶ。 */
@@ -4996,20 +5015,25 @@ document.addEventListener('change', () => {
 function stepBadBlocked(ids) {
   const boxes = ids.map((id) => $(id)).filter(Boolean);
   const inStep = (el) => !el.disabled && el.offsetParent && boxes.some((b) => b.contains(el));
-  let hit = null;
+  let hit = null, why = '';
   for (const el of moneyEls()) {
     if (!inStep(el)) continue;
     const r = moneyRead(el);
     if (r.state === 'ok' || r.state === 'empty') continue;
-    askMoney(el, r); hit = hit || el;
+    askMoney(el, r);
+    if (!hit) { hit = el; why = r.state === 'bad' ? 'money_bad' : 'money_pick'; }
   }
   for (const el of numEls()) {
     if (!inStep(el)) continue;
     const r = readNum(el);
     if (r.state !== 'bad') continue;
-    noteAt(el, r.msg); hit = hit || el;
+    noteAt(el, r.msg);
+    if (!hit) { hit = el; why = 'num'; }
   }
   if (!hit) return false;
+  /* ★ここで止めたことも数える（2026-11-08）。2026-11-06 にこの門を足したとき送るのを忘れていて、
+       「次へ」で止めた分が GA4 に1件も残っていなかった。符号は送信のときと同じ（money_bad / money_pick / num）。 */
+  trackBlocked(why, hit);
   if (WZ && WZ.focusing && WZ.focusing()) WZ.unfocus();
   hit.scrollIntoView({ block: 'center', behavior: 'smooth' });
   try { hit.focus({ preventScroll: true }); } catch (e) {}
