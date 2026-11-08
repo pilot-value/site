@@ -9,7 +9,7 @@
 
 > ★**歓迎メール（登録のお礼・PILOT VALUE をつくる理由・給与を匿名で1件のお願い。日本語の文はオーナー作）は 2026-11-06 から自動。**
 > Supabase の時計（`pv-welcome-member`・10分おき）が Edge Function `welcome-member` を叩き、
-> 通知を希望して登録を終えた人に**登録から72時間以内に1人1回**送る。
+> 会員になった人（登録画面を終えた か 給与を出した）に**登録から72時間以内に1人1回**送る。通知の希望は問わない（2026-11-08 オーナー指示）。
 > 文面の正は `supabase/functions/welcome-member/index.ts`、誰に送るかは `db/welcome-mail.sql` の `pv_welcome_due`。
 > 言語は登録した画面の言語（日本語／英語が上・日本語が下／スペイン語）。
 > 下見：`node shot-remind.mjs --welcome`（絵）／`node mail-bot/send.mjs welcome --to=info@pilot-value.com --send`（受信箱）。
