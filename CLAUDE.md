@@ -623,12 +623,26 @@ baland_ass/                            ブランド資産（※ brand_assets の
 - ⚠️ **`pay_benchmarks` に戻さない**（提出の件数で5を数えていた＝1人の5か月で区分が開いた）。いまは1人1件・5人で数え、未ログインにも会員にも読ませない（権限を外した）。
   `submit_pay_report` の `benchmark` もいつも null（5人ちょうどの区分は上下の幅が人の額そのものになるため）。
 - 招待カード（`my_cohort_gap`）も同じ2人の決まり。本人の行が会員の中央値に数えられない形（年 $1万〜70万の外・24か月より前・下ろした・テスト用）なら何も返さない（返すと他人が0人か1人かが読める）。
-- **貼る順** ── `db/pay-reports.sql` → `db/pay-reports.verify.sql`（21行）→ `db/member-median.sql`（14行）→ `db/referrals.sql`（15行）。SQL が先・push が後。
+- **貼る順** ── `db/pay-reports.sql` → `db/pay-reports.verify.sql`（23行）→ `db/pay-reports.roundtrip.sql`（20項目）→ `db/member-median.sql`（14行）→ `db/referrals.sql`（15行）。SQL が先・push が後。
 - 提出直後のカード（[pay-report.html](pay-report.html) の `renderResult`・日英）は「同じ会社・職位の中央値」の1行だけ。
   ⚠️ **上下25%・上位◯%・n=◯ を戻さない**（2人の組で出すと相手の年収が割り出せる）。
 - ⚠️ **説明の文を足し戻さない**（年換算の参考値・※・比較の範囲・前回との差の予防線・次の給与の説明の行・推定手取り・レートの日付）。
 - 運営（`pv_is_admin()`）が給与0件のときだけ、YOUR PAY の上に見本の切り替え（[my-value-sample.js](my-value-sample.js)・作り物の数字）。会員には読み込みもしない。
 - 推移のグラフは [pay-viz.js](pay-viz.js) の `chart` に `axis`・`minSpan` を渡したときだけ目盛と幅の下限が付く（6画面の共有部品＝既定は変えていない）。
+
+## マイレポートの「1年」（[my-year.js](my-year.js)・2026-11-08）
+
+★オーナー「1年分のまとめいいね」「乗務時間のグラフとか色々細かく」「カーソルで細かい数字」「深夜・変動の時給、分給、宿泊数も」
+「何時間を超えたら支給額が増えるルールも読み解けない？」。置き場所はオーナー決定＝YOUR PAY の上の「今月｜1年」の切り替え。
+
+- 「今月」は今までと1文字も変わらない。my-year.js は「1年」を押したときだけ読む（[my-value.js](my-value.js) の `loadYear`）。
+- 数字は本人の行の計算だけ（`PVYear.calc` は画面を持たない純粋な関数）。⚠️ **書いていない項目を 0 で埋めない**・
+  **単価は同じ月に額と数量の両方がある月だけ**・**「1時間多く飛ぶと」は4か月以上かつ相関 0.5 以上**・
+  **「単価が変わる点」は両側3か月以上かつ直線より誤差が半分以下**（「ルール」と言わない）。
+- 変動給の種類ごとの額は `my_pay_reports()` の `variable_by_basis`（`pv_variable_by_basis`・**本人の行だけ**）。
+  ⚠️ 給与フォームはこれを翌月の初期値に使わない（`db/test-year-report.mjs` が見ている）。
+- PDF はライブラリを使わず印刷から（`printYear` が「1年」の写しを body 直下の `#pv-print` に置く。見えなくするだけだと空白のページができる）。
+- 見るもの：`node db/test-year-report.mjs`（壊す証明つき）。絵は運営の見本（info@ の YOUR PAY で「12か月」→「1年」）。
 
 ## 給与一覧の処理を軽くした（2026-10-31）
 
@@ -922,12 +936,12 @@ baland_ass/                            ブランド資産（※ brand_assets の
 `node db/test-pay-preview.mjs`（確認画面の公開イメージ ⇄ SQL）。
 絵は `node shot-pay.mjs`（日英 × Desktop/Mobile × ライト/ダークで 198枚）と
 `node shot-value.mjs both ja`、はみ出しは `node measure-pay.mjs`（5段を歩く）。
-[db/pay-reports.verify.sql](db/pay-reports.verify.sql) は**オーナーが Supabase に貼る検算**（21行が ✅）。
+[db/pay-reports.verify.sql](db/pay-reports.verify.sql) は**オーナーが Supabase に貼る検算**（23行が ✅）。
 中身は `db/test-pay-reports.mjs` が毎回流している＝**検算だけ古い**にはならない。
 ★**列や鍵を足した回は [db/pay-reports.roundtrip.sql](db/pay-reports.roundtrip.sql) も貼る**（2026-09-12）。
 あちらは関数の計算しか見ていないので、「保存はされたが**その鍵だけ黙って消えている**」を捕まえられない
 （`pay_items` はサーバ側の白リストを通って作り直される）。こちらは**保存 → 再取得 → 表示**を実際に通して
-19項目を判定し、最後にわざと例外を投げて**巻き戻す**＝検証用の行が REAL PAY・DEEP PAY・公開集計に1件も混ざらない。
+20項目を判定し、最後にわざと例外を投げて**巻き戻す**＝検証用の行が REAL PAY・DEEP PAY・公開集計に1件も混ざらない。
 ⚠️ 赤い枠で出るのが正常（中に結果表が入っている）。これも `db/test-pay-reports.mjs` が毎回流している。
 
 **⚠️ 「,」の読みは、画面と明細でわざと違う**（2026-09-15）。

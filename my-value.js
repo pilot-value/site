@@ -65,11 +65,13 @@
      取れないので、ここ（IIFE の冒頭）で確定させる。 */
   var PUB_URL = 'salary-data.json';
   var SAMPLE_URL = 'my-value-sample.js';     // 運営の見本（運営のときだけ読む）
+  var YEAR_URL = 'my-year.js';               // 「1年」の画面（押したときだけ読む）
   try {
     var _self = (d.currentScript && d.currentScript.src) || '';
     if (_self) {
       PUB_URL = new URL('salary-data.json', _self).href;
       SAMPLE_URL = new URL('my-value-sample.js', _self).href;
+      YEAR_URL = new URL('my-year.js', _self).href;
     }
   } catch (e) {}
 
@@ -109,8 +111,10 @@
       kAnnualB: '今月ベースの年換算（賞与込み）',
       /* 運営の見本（運営にしか出ない）。数字が作り物だと見出しで言う。 */
       opH: '見本（運営だけ・数字は作り物）',
-      opS: { many: '6か月', one: '1か月', hand: '手入力だけ' },
+      opS: { many: '12か月', one: '1か月', hand: '手入力だけ' },
       opEmpty: '給与なしの画面',
+      /* 「今月｜1年」の切り替え（2026-11-08 オーナー決定の置き場所） */
+      vMonth: '今月', vYear: '1年',
       noGross: 'この月は手取りを書いていないので、控除合計が出せません。同じ月をもう一度出すと、ここがあなたの数字になります。',
       mGuar: function (g) { return '保証 ' + g + 'h との差'; },
       momOf: function (ym) { return ym + 'との差'; },
@@ -309,8 +313,9 @@
       kAnnual: 'This month, straight-annualised',
       kAnnualB: 'This month, annualised (incl. bonus)',
       opH: 'Sample (operators only, made-up numbers)',
-      opS: { many: '6 months', one: '1 month', hand: 'Typed in only' },
+      opS: { many: '12 months', one: '1 month', hand: 'Typed in only' },
       opEmpty: 'No-pay screen',
+      vMonth: 'This month', vYear: 'Year',
       noGross: 'You did not enter take-home pay for this month, so deductions cannot be worked out. File the same month again and these become your own figures.',
       mGuar: function (g) { return 'vs ' + g + 'h guaranteed'; },
       momOf: function (ym) { return 'vs ' + ym; },
@@ -479,8 +484,9 @@
       kAnnual: 'Este mes, anualizado de forma simple',
       kAnnualB: 'Este mes, anualizado (con bono)',
       opH: 'Muestra (solo operadores, cifras inventadas)',
-      opS: { many: '6 meses', one: '1 mes', hand: 'Solo ingreso manual' },
+      opS: { many: '12 meses', one: '1 mes', hand: 'Solo ingreso manual' },
       opEmpty: 'Pantalla sin remuneración',
+      vMonth: 'Este mes', vYear: 'Año',
       noGross: 'No ingresaste tu sueldo neto de este mes, así que no se pueden calcular las deducciones. Envía de nuevo el mismo mes y estas cifras serán las tuyas.',
       mGuar: function (g) { return 'vs. ' + g + ' h garantizadas'; },
       momOf: function (ym) { return 'vs. ' + ym; },
@@ -656,7 +662,8 @@
      meds   ＝ 会員の中央値（全社ぶん・2人以上の組だけ。pv_member_medians_all） */
   var state = { data: null, rows: [], series: [], metric: 'hourly', busy: false,
                pub: null, meds: null, name: '', pay: null,
-               op: false, sample: null };         // 運営か・見本の種類（運営だけ）
+               op: false, sample: null,           // 運営か・見本の種類（運営だけ）
+               view: 'month' };                   // 「今月」か「1年」か
 
   /* 見出しに出す呼び名。★ プロフィールの氏名を**そのまま**は出さない。
      ここは本人しか見ない画面だが、肩越しに覗かれる・スクリーンショットが
@@ -1651,6 +1658,50 @@
       '<button type="button" class="pt-tab' + (state.sample ? '' : ' on') + '" data-sample="">' + esc(T.opEmpty) + '</button>' +
       '</div>';
   }
+  /* ── 「今月｜1年」（2026-11-08）──────────────────────────────
+     開いたときは「今月」＝今までと1文字も変わらない画面。「1年」は my-year.js が描く。 */
+  function viewBar() {
+    return '<div class="pt-tabs mv-view" role="tablist">' +
+      ['month', 'year'].map(function (k) {
+        return '<button type="button" role="tab" aria-selected="' + (state.view === k) + '" class="pt-tab' + (state.view === k ? ' on' : '') +
+          '" data-view="' + k + '">' + esc(k === 'month' ? T.vMonth : T.vYear) + '</button>';
+      }).join('') + '</div>';
+  }
+  function bindView() {
+    root.querySelectorAll('[data-view]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var v = b.getAttribute('data-view');
+        if (v === state.view) return;
+        state.view = v;
+        render();
+      });
+    });
+  }
+  var yearLoading = null;
+  function loadYear() {
+    if (w.PVYear) return Promise.resolve(true);
+    if (!yearLoading) {
+      yearLoading = new Promise(function (ok) {
+        var el = d.createElement('script');
+        el.src = YEAR_URL; el.onload = function () { ok(!!w.PVYear); }; el.onerror = function () { ok(false); };
+        d.head.appendChild(el);
+      });
+    }
+    return yearLoading;
+  }
+  function renderYear(rows) {
+    state.rows = rows;
+    root.innerHTML = opBar() + viewBar() + '<div id="pv-year-box"></div>';
+    bindOp();
+    bindView();
+    if (!w.PVYear) {
+      loadYear().then(function (ok) { if (ok && state.view === 'year') render(); });
+      return;
+    }
+    /* 月をまたぐ比較と同じく、最新の会社の月だけ（会社が変われば契約が違う） */
+    w.PVYear.render(d.getElementById('pv-year-box'), sameAirline(rows, rows[rows.length - 1]), { segName: SEGNAME });
+  }
+
   function bindOp() {
     root.querySelectorAll('[data-sample]').forEach(function (b) {
       b.addEventListener('click', function () { state.sample = b.getAttribute('data-sample') || null; render(); });
@@ -1663,6 +1714,7 @@
     paintRemind(dat);                      // ★0 件で戻る前に描く（設定は件数と無関係）
     var rows = (state.sample && w.PV_VALUE_SAMPLE) ? w.PV_VALUE_SAMPLE(state.sample) : (dat.reports || []);
     if (!rows.length) return renderEmpty();
+    if (state.view === 'year') return renderYear(rows);
     var r = rows[rows.length - 1];
     state.series = sameAirline(rows, r);   // 月をまたぐ比較はこの会社の中だけ
     state.rows = rows;                     // 累計だけは全社ぶんを足す
@@ -1681,7 +1733,7 @@
        ★ どちらの段も、幅が足りない画面では自動で縦に落ちる
          （CSS 側。メディアクエリではなく flex-basis で決めている）。 */
     root.innerHTML =
-      opBar() +
+      opBar() + viewBar() +
       header(dat, r, rows) +
       '<div class="mr-stack">' +
         '<div class="mr-2col">' + lifetime(rows) + thisMonth(r, m) + '</div>' +
@@ -1695,6 +1747,7 @@
     drawCumChart();
     bind();
     bindOp();
+    bindView();
     if (state.sample) return;              // 見本のときは招待カードを出さない（運営の区分は無い）
 
     /* 招待（データ密度）カード。★ここが落ちてもレポートには一切触らない。
@@ -1882,7 +1935,10 @@
   w.addEventListener('resize', function () {
     if (!state.rows.length) return;
     clearTimeout(rt);
-    rt = setTimeout(function () { drawChart(); drawCumChart(); }, 160);
+    rt = setTimeout(function () {
+      if (state.view === 'year') { if (w.PVYear) w.PVYear.redraw(); return; }
+      drawChart(); drawCumChart();
+    }, 160);
   });
 
   load();

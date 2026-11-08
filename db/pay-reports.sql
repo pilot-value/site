@@ -560,6 +560,48 @@ comment on function public.pv_absence_total(jsonb) is
   '不就労減額の合計（絶対値）。印字の総支給は減額後なので、内訳と突き合わせる側だけがこれを足し戻す。年収・総支給には足さない';
 
 
+-- ── 変動給を種類（basis）ごとに足した額 ───────────────────────────
+-- 2026-11-08 追加。本人の年報（1年分のまとめ）のための材料。
+-- 返すのは {"block": 4500, "night": 800, …} の形 ＝ 種類ごとの合計だけ（項目名は返さない）。
+--
+-- ★なぜ要るか。年報では「種類ごとの単価」を出したい（例：Block Hour あたり・
+--   夜間1時間あたり・1セクターあたり）。単価は**今月の額 ÷ 数量**でこちらが出す
+--   （フォームでは聞かない ── 「割り算で出せる数は聞かない」）。
+--   数量は既存の列にある（block_hours / duty_hours / night_hours / sectors）。
+--   いっぽう額のほうは flight_variable_pay に**合計1本**しか無く、種類ごとの額は
+--   pay_items.variable の行の中にしか残っていない。ここでそれを種類ごとに足す。
+-- ★金額は**その行の原本通貨のまま**（換算しない）。円・ドルへは呼ぶ側が fx_to_jpy などで直す。
+-- ★種類の一覧（10択）は日英のフォームと同じ ── db/deep-pay.sql の vraw の許可リストの写し。
+--   空・一覧に無い種類の行は "unknown"（わからない）に寄せる。
+--   ⚠️ DEEP PAY（人どうしの集計）はその行を数えないが、ここは本人の年報なので捨てない
+--      ── 捨てると、種類ごとの合計を足しても本人が出した変動給の合計に届かなくなる。
+-- ★額が数として読めない行（空・文字・マイナス）は数えない（＋を押しただけの空の行も落ちる）。
+--   行の無い種類はキーごと出さない。行が1本も無ければ '{}'。
+-- ⚠️⚠️ **給与フォームはこの額を翌月の初期値に使わない**（pv_pay_items_shape と同じ約束）。
+--   先月の実績が今月の入力欄に入る道を作ると、本人に嘘をつく（それが 2026-09-12 の作り直しの発端）。
+--   翌月のひな型は pay_items_shape（項目名と種類と並び順だけ）を読む。
+-- ★本人の行しか返さない関数（my_pay_reports）からしか呼ばない。
+--   権限は pv_absence_total と同じ扱い（純粋な計算だけで、渡した jsonb 以外を読まない）。
+create or replace function public.pv_variable_by_basis(p_items jsonb)
+returns jsonb
+language sql immutable as $$
+  select coalesce((
+    select jsonb_object_agg(t.b, t.s)
+      from (select case when e->>'basis' in ('block','duty','sector','overtime','reserve',
+                                             'night','weekend','holiday','other','unknown')
+                        then e->>'basis' else 'unknown' end as b,
+                   sum((e->>'amount')::numeric) as s
+              from jsonb_array_elements(case when jsonb_typeof(p_items->'variable') = 'array'
+                                             then p_items->'variable' else '[]'::jsonb end) as e
+             where (e->>'amount') ~ '^[0-9]+(\.[0-9]+)?$'
+             group by 1) t
+  ), '{}'::jsonb);
+$$;
+
+comment on function public.pv_variable_by_basis(jsonb) is
+  '変動給を種類（basis）ごとに足した額（原本通貨のまま・項目名は返さない）。空・一覧外の種類は unknown。本人の年報の「種類ごとの単価」の材料。★翌月のフォームの初期値には使わない';
+
+
 -- ── 変動給・その他の「行の形」だけを返す ─────────────────────────
 -- 2026-09-12 追加。翌月のフォームを開いた人に、前回と同じ項目名・支給単位・
 -- 並び順の行を用意するためだけの関数。
@@ -1637,6 +1679,10 @@ begin
            --    変動給の項目名と支給単位を手で作り直すことになる。
            --    ⚠️ pay_items そのものは今までどおり返さない。
            public.pv_pay_items_shape(r.pay_items) as pay_items_shape,
+           -- ★ 2026-11-08。変動給を種類ごとに足した額だけ（年報の「種類ごとの単価」の材料。
+           --    額 ÷ 下の block_hours / duty_hours / night_hours / sectors）。原本通貨のまま・項目名は返さない。
+           --    ⚠️ 給与フォームは翌月の初期値に使わない（ひな型は上の形だけ）。
+           public.pv_variable_by_basis(r.pay_items) as variable_by_basis,
            r.flight_variable_pay,
            r.per_diem, r.transport, r.other_allowance,
            -- ★ 総支給と手取りは明細のとおり（ボーナス込み）。うち今月出たぶんを返さないと
@@ -2254,3 +2300,13 @@ select p.proname as 関数,
   join pg_namespace n on n.oid = p.pronamespace
  where n.nspname='public'
    and p.proname in ('submit_pay_report','pv_validate_pay_payload');
+
+-- 8-23. 本人の履歴が変動給の種類ごとの合計を返すこと（期待：1 行 true）
+--       ★2026-11-08。年報の「種類ごとの単価」（額 ÷ 時間・回数）の材料。
+--         false のままだと、年報の種類ごとの欄が全員ぶん黙って空になる（画面は普通に動いたまま）。
+--       ★関数を呼ぶ形と列の名前の**両方**を見る（名前だけだと、注記に書いただけでも true になる）。
+select 'variable_by_basis' as 必要な項目,
+       pg_get_functiondef(p.oid) ~ 'pv_variable_by_basis\(r\.pay_items\)\s+as\s+variable_by_basis' as 返している
+  from pg_proc p
+  join pg_namespace n on n.oid = p.pronamespace
+ where n.nspname='public' and p.proname='my_pay_reports';

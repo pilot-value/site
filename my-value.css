@@ -746,3 +746,118 @@
 /* 運営だけに出る見本の切り替え（my-value.js の opBar・2026-11-08） */
 #pv-value .mv-op{align-items:center;margin:0 0 18px}
 #pv-value .mv-op-h{font-size:.74rem;font-weight:700;color:var(--pv-ink-3);margin-right:4px}
+
+/* ── 1年のまとめ（my-year.js・2026-11-08）──────────────────────────
+   「今月｜1年」の切り替えで「1年」を選んだときだけ描かれる。色は pv-tokens の --pv-* だけ。
+   棒の色（乗務 #0a8f79・総勤務 #3d9bff）は SVG の中に直接（validate_palette.js で確認した値）。 */
+#pv-value .mv-view{margin:0 0 16px}
+#pv-value .yr{position:relative}
+#pv-value .yr-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+#pv-value .yr-top .mr-card-t{margin:0}
+#pv-value .yr-top .pt-tabs{margin:0}
+#pv-value .yr-one{font-size:.8rem;font-weight:700;color:var(--pv-ink-3)}
+#pv-value .yr-sp{flex:1}
+#pv-value .yr-pdf{display:inline-flex;align-items:center;padding:9px 16px;border-radius:12px;border:0;cursor:pointer;
+  background:var(--pv-accent);color:#fff;font-weight:800;font-size:.84rem;font-family:inherit;
+  transition:transform .18s var(--pv-ease),opacity .18s var(--pv-ease)}
+#pv-value .yr-pdf:hover{opacity:.92}
+#pv-value .yr-pdf:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+#pv-value .yr-pdf:active{transform:translateY(1px)}
+#pv-value .yr-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px}
+#pv-value .yr-tile{border:1px solid var(--pv-line-soft);border-radius:14px;padding:14px 16px;background:var(--pv-surface)}
+#pv-value .yr-tile span{display:block;font-size:.74rem;color:var(--pv-ink-3);font-weight:700;margin-bottom:6px}
+#pv-value .yr-tile b{font-size:1.3rem;font-weight:800;letter-spacing:-.02em;color:var(--pv-ink)}
+#pv-value .yr-tile i,#pv-value .yr-in b i,#pv-value .yr-sm-h b i{font-style:normal;font-size:.78rem;color:var(--pv-ink-3);margin-left:3px;font-weight:700}
+#pv-value .yr-h{margin:0 0 10px;font-size:.9rem;font-weight:800;color:var(--pv-ink)}
+#pv-value .yr-ins{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:26px}
+#pv-value .yr-in{border:1px solid var(--pv-line-soft);border-radius:14px;padding:16px 18px;background:var(--pv-surface);
+  display:grid;grid-template-columns:1fr minmax(120px,190px);gap:16px;align-items:center}
+#pv-value .yr-in span{display:block;font-size:.76rem;font-weight:700;color:var(--pv-ink-3)}
+#pv-value .yr-in b{display:block;font-size:1.55rem;font-weight:800;letter-spacing:-.02em;margin:4px 0;color:var(--pv-ink)}
+#pv-value .yr-in p{margin:0;font-size:.79rem;color:var(--pv-ink-2);line-height:1.6}
+#pv-value .yr-kink{display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:24px;align-items:center;margin-bottom:26px;
+  border:1px solid var(--pv-line-soft);border-radius:14px;padding:18px;background:var(--pv-surface)}
+#pv-value .yr-kink span{display:block;font-size:.76rem;font-weight:700;color:var(--pv-ink-3)}
+#pv-value .yr-kink b.big{display:block;font-size:1.7rem;font-weight:800;letter-spacing:-.02em;margin:6px 0 10px;color:var(--pv-ink)}
+#pv-value .yr-rate2{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+#pv-value .yr-rate2 div{display:flex;justify-content:space-between;gap:10px;padding:8px 12px;border-radius:10px;background:var(--pv-line-soft);font-size:.82rem}
+#pv-value .yr-rate2 div span{display:inline;font-size:.82rem}
+#pv-value .yr-rate2 div.up{background:var(--pv-accent-soft)}
+#pv-value .yr-rate2 b{font-weight:800;color:var(--pv-ink)}
+#pv-value .yr-kink p{margin:0;font-size:.76rem;color:var(--pv-ink-3);line-height:1.6}
+#pv-value .yr-kink-g svg{max-width:560px;margin-left:auto}
+#pv-value .yr-rt{width:100%;border-collapse:collapse;font-size:.84rem;margin-bottom:26px}
+#pv-value .yr-rt th{font-size:.72rem;color:var(--pv-ink-3);font-weight:700;text-align:right;padding:0 12px 8px;border-bottom:1px solid var(--pv-line-soft);white-space:nowrap}
+#pv-value .yr-rt th:first-child,#pv-value .yr-rt td:first-child{text-align:left;padding-left:0}
+#pv-value .yr-rt td{padding:12px;border-bottom:1px solid var(--pv-line-soft);text-align:right;white-space:nowrap;vertical-align:middle;color:var(--pv-ink)}
+#pv-value .yr-rt-n b{font-size:.86rem}
+#pv-value .yr-rt-n small{display:block;color:var(--pv-ink-3);font-size:.72rem;font-weight:600;margin-top:2px;white-space:normal}
+#pv-value .yr-rt-big b{font-size:1.02rem;font-weight:800}
+#pv-value .yr-rt i{font-style:normal;color:var(--pv-ink-3);font-size:.74rem;margin-left:2px;font-weight:600}
+#pv-value .yr-rt-q{color:var(--pv-ink-2);font-weight:600}
+#pv-value .yr-rt-sp{width:120px;padding-right:0}
+#pv-value .yr-ch{margin-bottom:26px}
+#pv-value .yr-ch-h{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:0 0 8px}
+#pv-value .yr-ch-h h3{margin:0;font-size:.9rem;font-weight:800;color:var(--pv-ink)}
+#pv-value .yr-lg{display:flex;gap:12px;flex-wrap:wrap;font-size:.75rem;color:var(--pv-ink-2);font-weight:600}
+#pv-value .yr-lg span{display:inline-flex;align-items:center;gap:6px}
+#pv-value .yr-lg em{width:10px;height:10px;border-radius:3px;display:inline-block}
+#pv-value .yr-lg em.dash{width:14px;height:0;border-radius:0;border-top:2px dashed var(--pv-ink-3)}
+#pv-value .yr-sm{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:18px}
+#pv-value .yr-sm-i{border:1px solid var(--pv-line-soft);border-radius:14px;padding:12px 14px 10px;background:var(--pv-surface);min-width:0}
+#pv-value .yr-sm-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+#pv-value .yr-sm-h span{font-size:.76rem;font-weight:700;color:var(--pv-ink-3)}
+#pv-value .yr-sm-h b{font-size:1.05rem;font-weight:800;color:var(--pv-ink)}
+#pv-value .yr-sm-i p{font-size:.74rem;color:var(--pv-ink-2);font-weight:600;margin:2px 0 6px}
+#pv-value .yr-tb summary{cursor:pointer;font-size:.84rem;font-weight:700;color:var(--pv-ink-2);padding:6px 0}
+#pv-value .yr-tb summary:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+#pv-value .yr-tb table{width:100%;border-collapse:collapse;font-size:.8rem;margin-top:8px}
+#pv-value .yr-tb th,#pv-value .yr-tb td{padding:7px 8px;text-align:right;border-bottom:1px solid var(--pv-line-soft);white-space:nowrap;color:var(--pv-ink)}
+#pv-value .yr-tb th{color:var(--pv-ink-3);font-weight:700;font-size:.72rem}
+#pv-value .yr-tb th:first-child,#pv-value .yr-tb td:first-child{text-align:left}
+#pv-value .yr-mo .yr-band{fill:transparent}
+#pv-value .yr-mo.on .yr-band{fill:var(--pv-ink);fill-opacity:.06}
+#pv-value .yr-mo .yr-hit{fill:transparent;cursor:pointer}
+#pv-value .yr-mo.on text{font-weight:800;fill:var(--pv-ink)}
+#pv-value .yr-tip{position:absolute;z-index:5;pointer-events:none;min-width:190px;max-width:260px;background:var(--pv-surface);border:1px solid var(--pv-line);
+  border-radius:12px;padding:10px 12px;font-size:.78rem;color:var(--pv-ink);
+  box-shadow:0 1px 2px rgba(16,24,40,.06),0 10px 24px -6px rgba(16,24,40,.18);
+  opacity:0;transform:translateY(4px);transition:opacity .14s var(--pv-ease),transform .14s var(--pv-ease)}
+#pv-value .yr-tip.show{opacity:1;transform:none}
+#pv-value .yr-tip h4{margin:0 0 6px;font-size:.84rem;font-weight:800}
+#pv-value .yr-tip p{display:flex;align-items:center;gap:6px;margin:0;padding:2px 0;color:var(--pv-ink-2);font-weight:600}
+#pv-value .yr-tip p b{margin-left:auto;padding-left:14px;color:var(--pv-ink);font-weight:800}
+#pv-value .yr-tip p em{width:8px;height:8px;border-radius:2px;display:inline-block}
+#pv-value .yr-tip .tot{border-top:1px solid var(--pv-line-soft);margin-top:4px;padding-top:6px}
+@media (max-width:640px){
+  #pv-value .yr-in{grid-template-columns:1fr}
+  #pv-value .yr-kink{grid-template-columns:1fr}
+  #pv-value .yr-ins{grid-template-columns:1fr}
+  #pv-value .yr-in-g svg{max-width:260px}
+  #pv-value .yr-tile b{font-size:1.1rem}
+  /* 単価の表は、狭い画面では1行を2段に組む（月ごとの線と数量は畳む） */
+  #pv-value .yr-rt thead{display:none}
+  #pv-value .yr-rt tr{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:10px 0;border-bottom:1px solid var(--pv-line-soft)}
+  #pv-value .yr-rt td{border:0;padding:0}
+  #pv-value .yr-rt-n{grid-row:span 2}
+  #pv-value .yr-rt td:nth-child(4),#pv-value .yr-rt td:nth-child(5),#pv-value .yr-rt-sp{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  #pv-value .yr-tip,#pv-value .yr-pdf{transition:none}
+}
+/* PDF（印刷）：my-year.js の printYear が「1年」の写しを body 直下の #pv-print に置き、html に .pv-printing を付ける。
+   印刷ではそれ以外を display:none にする（見えなくするだけだと高さが残って空白のページができる）。色は明るい面に固定する */
+#pv-print{display:none}
+#pv-value .yr-pyr{display:none}            /* 紙だけ見出しに年を付ける（年の切り替えは紙に載らない） */
+@media print{
+  @page{size:A4;margin:12mm}
+  html.pv-printing body > *:not(#pv-print){display:none !important}
+  html.pv-printing #pv-print{display:block}
+  html.pv-printing body{background:#fff !important}
+  #pv-print #pv-year{box-shadow:none;border:0;background:#fff;padding:0;margin:0;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;
+    --pv-surface:#fff;--pv-ink:#101828;--pv-ink-2:#344054;--pv-ink-3:#667085;--pv-line:#e4e7ec;--pv-line-soft:#eef1f4}
+  #pv-print .yr-pdf,#pv-print .yr-tip,#pv-print .yr-years{display:none}
+  #pv-print .yr-pyr{display:inline}
+  #pv-print .yr-ch,#pv-print .yr-kink,#pv-print .yr-in,#pv-print .yr-rt tr,#pv-print .yr-sm-i,#pv-print .yr-tiles{break-inside:avoid}
+}

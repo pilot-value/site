@@ -34,6 +34,7 @@ const FAST = [
   ['db/test-aha.mjs', 1], ['db/test-announce.mjs', 1],
   ['db/test-payslip-hours.mjs', 1], ['db/test-payslip-parse.mjs', 1],
   ['db/test-value-breakdown.mjs', 1], ['db/test-value-total.mjs', 1],
+  ['db/test-year-report.mjs', 0.3],   // 2026-11-08：マイレポートの「1年」の計算（単価・傾き・折れ目・0 で埋めない）
   ['assert-import-research.mjs', 4],   // 2026-10-20（WP-roll-a）：調査パックの取り込み。作り物のパック・使い捨ての台帳の写しだけ（本物の台帳は読むだけ）
   ['assert-rollout.mjs', 4.5],         // 2026-10-21（WP-roll-b）：会社ページを全社へ広げる生成器。切り替えは使い捨ての写しの中だけ（リポジトリには書かない）
 ];

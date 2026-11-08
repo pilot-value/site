@@ -1,7 +1,7 @@
 -- ════════════════════════════════════════════════════════════════
 -- db/pay-reports.roundtrip.sql — 貼ったあとに「本当に保存されるか」を1回で見る
 --
--- pay-reports.verify.sql（17行）は**関数の計算**しか見ていない。
+-- pay-reports.verify.sql（23行）は**関数の計算**しか見ていない。
 -- 列を1つ足したときに実際に起きるのは、そこではなく
 --   「保存はされたが、その鍵だけ黙って消えている」
 -- という壊れ方で、画面はどこも壊れない。pay_items はサーバ側で
@@ -179,6 +179,12 @@ begin
   n := n + 1; v_out := v_out || E'\n  ' || n || '  表示：ひな型に項目名は残る（次の月に手打ちさせない）  '
     || coalesce(v_shape->'variable'->0->>'label', 'null') || ' / Flying Pay   '
     || case when v_shape->'variable'->0->>'label' = 'Flying Pay' then '✅' else '❌' end;
+
+  -- ★2026-11-08。本人の年報の材料：変動給を種類ごとに足した額（原本通貨のまま）が戻ること。
+  --   書き忘れると、年報の種類ごとの単価（額 ÷ 時間・回数）が黙って空になる。
+  n := n + 1; v_out := v_out || E'\n  ' || n || '  表示：変動給を種類ごとに足して返す（年報の材料）     '
+    || coalesce((v_m->'variable_by_basis')::text, 'null') || ' / {"block": 3200}   '
+    || case when v_m->'variable_by_basis' = '{"block": 3200}'::jsonb then '✅' else '❌' end;
 
   v_out := v_out || E'\n  ─────────────────────────────────────────────────────────────────────';
   v_out := v_out || E'\n  ' || n || ' 項目。1つでも通っていない行があれば db/pay-reports.sql を貼り直す。';

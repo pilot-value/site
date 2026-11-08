@@ -3,10 +3,10 @@
 --
 -- pay-reports.sql の「8. 検算」は select が8本並んでいるが、Supabase の
 -- SQL Editor は最後の1文の結果しか表示しない。＝ 8-1〜8-7 が見えないまま
--- 「通った」と誤認できてしまう。ここでは21項目を1つの結果表にまとめ、
+-- 「通った」と誤認できてしまう。ここでは23項目を1つの結果表にまとめ、
 -- 期待値との一致を 判定 列で出す。スキーマを触るたびに流し直す。
 --
--- 期待：21行すべて 判定 = ✅
+-- 期待：23行すべて 判定 = ✅
 -- ════════════════════════════════════════════════════════════════
 
 with c as (
@@ -124,7 +124,22 @@ with c as (
       where (s.n_bh between 1 and 4 and b.median_usd_per_bh    is not null)
          or (s.n_do between 1 and 4 and b.median_days_off      is not null)
          or (s.n_se between 1 and 4 and b.median_sectors       is not null)
-         or (s.n_ho between 1 and 4 and b.housing_provided_pct is not null)) as c21
+         or (s.n_ho between 1 and 4 and b.housing_provided_pct is not null)) as c21,
+    -- ★ 2026-11-08。本人の年報の材料：変動給を種類ごとに足す（原本通貨のまま）。
+    --    Block の2行は足し合わせる・夜間は別・種類が空の行は unknown・額が数でない行は捨てる。
+    --    ⚠️ 「関数が無い」と怒られたら db/pay-reports.sql を貼り直すこと。
+    public.pv_variable_by_basis(jsonb_build_object('variable', jsonb_build_array(
+      jsonb_build_object('amount', 100, 'basis', 'block'),
+      jsonb_build_object('amount', 50,  'basis', 'block'),
+      jsonb_build_object('amount', 30,  'basis', 'night'),
+      jsonb_build_object('amount', 20,  'basis', ''),
+      jsonb_build_object('amount', 'x', 'basis', 'block'))))                    as c22,
+    -- ★ 同じ日。本人の履歴（my_pay_reports）がその額を返していること（1 ＝ 返している）。
+    --    0 と出たら、本番の my_pay_reports が古いまま ＝ 年報の種類ごとの欄が黙って空になる。
+    (select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+      where n.nspname = 'public' and p.proname = 'my_pay_reports'
+        and pg_get_functiondef(p.oid)
+            ~ 'pv_variable_by_basis\(r\.pay_items\)\s+as\s+variable_by_basis')  as c23
 )
 select * from (
   select 1 as "#", '8-1 user_id/uid/email 列が無い'          as 検査,
@@ -170,5 +185,10 @@ select * from (
          case when c20 = 0      then '✅' else '❌' end from c
   union all select 21, '8-14 書いた人が1〜4人の項目（時間あたりも）を出していない', c21::text, '0',
          case when c21 = 0      then '✅' else '❌' end from c
+  union all select 22, '8-15 変動給を種類ごとに足す（空は unknown・数でない額は捨てる）', c22::text,
+         '{"block": 150, "night": 30, "unknown": 20}',
+         case when c22 = '{"block": 150, "night": 30, "unknown": 20}'::jsonb then '✅' else '❌' end from c
+  union all select 23, '8-15 本人の履歴が変動給の種類ごとの合計を返す', c23::text, '1',
+         case when c23 = 1      then '✅' else '❌' end from c
 ) t
 order by "#";

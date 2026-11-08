@@ -1137,6 +1137,149 @@ ok(mrow && !/180000|12000/.test(JSON.stringify(mrow.pay_items_shape || {})),
 ok(mrow && mrow.pay_items === undefined,
   '★pay_items そのものは今までどおり返さない（形だけに限って広げた）');
 
+/* ── 変動給を種類ごとに足す（2026-11-08・本人の年報の材料）──────────
+   ★年報の「種類ごとの単価」は 額 ÷ 数量（block_hours / duty_hours / night_hours / sectors）。
+     額は pay_items.variable の行の中にしか無いので、pv_variable_by_basis が種類ごとに足し、
+     my_pay_reports() が本人の行にだけ添える。
+   ★見るのは4つ ── 種類ごとに足す／空・一覧に無い種類は unknown／数でない額は捨てる／
+     本人の行にしか出ない。最後に壊す証明（my_pay_reports から1行外すと赤くなる）。 */
+console.log('\n▼ 変動給を種類ごとに足す（本人の年報の材料）');
+const vbb = async (items) => (await one(`select public.pv_variable_by_basis($1::jsonb) v`,
+  [items === null ? null : JSON.stringify(items)])).v;
+const sameVB = (a, b) => !!a && typeof a === 'object'
+  && JSON.stringify(Object.keys(a).sort()) === JSON.stringify(Object.keys(b).sort())
+  && Object.keys(b).every((k) => Number(a[k]) === b[k]);
+{
+  const VB = await vbb({
+    v: 2,
+    variable: [
+      { amount: 3000,   basis: 'block',   label: 'Flight Pay' },
+      { amount: 1500.5, basis: 'block',   label: 'Flight Pay (extra)' },
+      { amount: 800,    basis: 'night',   label: 'Night Allowance' },
+      { amount: 400,    basis: 'sector',  label: 'Sector Pay' },
+      { amount: 200,    basis: '',        label: '種類が空' },
+      { amount: 100,                      label: '種類が無い' },
+      { amount: 50,     basis: 'flight',  label: '一覧に無い種類' },
+      { amount: 25,     basis: 'unknown', label: 'わからない' },
+      { amount: 'abc',  basis: 'block' },   // 数でない
+      { amount: '',     basis: 'night' },   // ＋を押しただけの空の行
+      { basis: 'sector' },                  // 額が無い
+      { amount: -300,   basis: 'duty' },    // マイナス（変動給の列は 0 以上）
+      'これは行ではない',
+    ],
+    other:   [{ amount: 99999, label: '通勤手当' }],
+    absence: [{ amount: -7777, label: 'Unpaid leave' }],
+  });
+  const VBJ = JSON.stringify(VB);
+  ok(VB && Number(VB.block) === 4500.5, `★Block の2行は足し合わせる → ${VB && VB.block}（期待 4500.5）`);
+  ok(VB && Number(VB.night) === 800 && Number(VB.sector) === 400,
+     `★夜間とセクターは別々に出る → night ${VB && VB.night} / sector ${VB && VB.sector}`);
+  ok(VB && Number(VB.unknown) === 375,
+     `★種類が空・無い・一覧に無い行は unknown に寄せる（明示の unknown と合わせて 200+100+50+25）→ ${VB && VB.unknown}`);
+  ok(sameVB(VB, { block: 4500.5, night: 800, sector: 400, unknown: 375 }),
+     `★行の無い種類はキーごと出さない・数でない額とマイナスは捨てる（duty も flight も出ない）→ ${VBJ}`);
+  ok(!/99999|7777/.test(VBJ), '★その他の現金手当・不就労減額は混ぜない（変動給の行だけ）');
+  ok(!/Flight Pay|Night Allowance|Sector Pay/.test(VBJ), '★項目名は返さない（種類ごとの額だけ）');
+
+  const empties = [
+    ['null（SQL）', null],
+    ['variable が無い', { v: 1, other: [{ amount: 500, label: 'x' }] }],
+    ['variable が配列でない', { v: 1, variable: { amount: 5, basis: 'block' } }],
+    ['variable が空の配列', { v: 1, variable: [] }],
+    ['数でない額の行だけ', { v: 1, variable: [{ amount: 'x', basis: 'block' }, { label: '空' }] }],
+    ['pay_items が配列', [{ amount: 5, basis: 'block' }]],
+    ['pay_items が文字', 'これは内訳ではない'],
+  ];
+  const notEmpty = [];
+  for (const [name, items] of empties) {
+    const v = await vbb(items);
+    if (JSON.stringify(v) !== '{}') notEmpty.push(`${name}: ${JSON.stringify(v)}`);
+  }
+  const vNullJson = (await one(`select public.pv_variable_by_basis('null'::jsonb) v`)).v;
+  if (JSON.stringify(vNullJson) !== '{}') notEmpty.push(`null（JSON）: ${JSON.stringify(vNullJson)}`);
+  ok(notEmpty.length === 0, `★変動給の行が無ければ {}（null にしない・壊れた形でも落ちない）→ ${empties.length + 1} 通り`,
+     notEmpty.join(' | '));
+
+  const vfn = await one(`select p.prosecdef d, p.provolatile v from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace where n.nspname='public' and p.proname='pv_variable_by_basis'`);
+  ok(vfn && vfn.d === false && vfn.v === 'i',
+     `★持ち主の権限で走らない・表を読まない（pv_absence_total と同じ扱い）→ secdef=${vfn && vfn.d} / ${vfn && vfn.v}`);
+}
+
+/* my_pay_reports() が本人の行にだけ添えること。
+   A は内訳つきの月と内訳の無い月を1つずつ。B は同じ会社・同じ月に別の内訳。 */
+const VROW = { ...BASE, gross_monthly: 54250, airline: 'finnair', period_year: 2019 };
+const VB_A = { block: 4500, night: 800, sector: 400, unknown: 200 };
+await asUser(70);
+r = (await submit({ ...VROW, period_month: 3, flight_variable_pay: 5900,
+  pay_items: { v: 2, variable: [
+    { amount: 3000, basis: 'block',  label: 'Flight Pay' },
+    { amount: 1500, basis: 'block',  label: 'Flight Pay (extra)' },
+    { amount: 800,  basis: 'night',  label: 'Night' },
+    { amount: 400,  basis: 'sector', label: 'Sector' },
+    { amount: 200,  basis: '',       label: '種類が空' },
+  ] } })).r;
+ok(r.ok === true, '（内訳つきの月を出せた）');
+await submit({ ...VROW, period_month: 4 });
+await asUser(71);
+await submit({ ...VROW, period_month: 3, flight_variable_pay: 999,
+  pay_items: { v: 2, variable: [{ amount: 999, basis: 'duty', label: 'Duty Pay' }] } });
+const vbMine = async (n) => {
+  await asUser(n);
+  return ((await one(`select my_pay_reports() j`)).j.reports || [])
+    .filter((x) => x.airline === 'finnair' && x.period_year === 2019);
+};
+{
+  const mA = await vbMine(70);
+  const a3 = mA.find((x) => x.period_month === 3), a4 = mA.find((x) => x.period_month === 4);
+  ok(a3 && sameVB(a3.variable_by_basis, VB_A),
+     `★my_pay_reports() が本人の行に種類ごとの額を返す（原本通貨のまま）→ ${JSON.stringify(a3 && a3.variable_by_basis)}`);
+  ok(a4 && JSON.stringify(a4.variable_by_basis) === '{}',
+     `★内訳の無い月は {} → ${JSON.stringify(a4 && a4.variable_by_basis)}`);
+  ok(a3 && a3.pay_items === undefined && Number(a3.flight_variable_pay) === 5900,
+     '　pay_items そのものは今までどおり返さない・合計の列もそのまま');
+  ok(mA.length === 2 && mA.every((x) => !('duty' in (x.variable_by_basis || {}))),
+     `★他人（B）の行は混ざらない → ${mA.length} 行`);
+  const mB = await vbMine(71);
+  ok(mB.length === 1 && sameVB(mB[0].variable_by_basis, { duty: 999 }),
+     `★B には B の行だけ（A の Block も夜間も見えない）→ ${JSON.stringify(mB.map((x) => x.variable_by_basis))}`);
+}
+
+/* ── 壊す証明 ──
+   my_pay_reports() から variable_by_basis の1行を外した版を begin … rollback の中でだけ入れる（ファイルは触らない）。
+   上と同じ確かめ方・オーナーの検算 8-23・verify.sql の23行目が、どれも赤くなること。 */
+{
+  const vbCheck = async () => {
+    const a3 = (await vbMine(70)).find((x) => x.period_month === 3);
+    return !!a3 && sameVB(a3.variable_by_basis, VB_A);
+  };
+  ok(await vbCheck(), '（本物）年報の材料の検査は緑');
+  const src = read('db/pay-reports.sql');
+  const a = src.indexOf('create or replace function public.my_pay_reports()');
+  const b = a < 0 ? -1 : src.indexOf('\n$$;', a);
+  const fn = (a < 0 || b < 0) ? '' : src.slice(a, b + '\n$$;'.length);
+  const LINE = '           public.pv_variable_by_basis(r.pay_items) as variable_by_basis,\n';
+  const broken = fn.split(LINE).length === 2 ? fn.split(LINE).join('') : '';
+  ok(broken && !/as variable_by_basis/.test(broken) && broken.includes('as pay_items_shape'),
+     '（my_pay_reports から1行だけ外した版を作れた）');
+  const i823 = src.indexOf('-- 8-23.'), j823 = i823 < 0 ? -1 : src.indexOf('\nselect ', i823);
+  const q823 = j823 < 0 ? '' : src.slice(j823 + 1, src.indexOf(';', j823));
+  const v23 = async () => (await rows(read('db/pay-reports.verify.sql')))
+    .find((x) => Number(x['#']) === 23)?.['判定'];
+  ok(q823.includes('my_pay_reports') && (await one(q823))['返している'] === true && (await v23()) === '✅',
+     '（本物）検算 8-23 は true・verify.sql の23行目は ✅');
+  await db.exec(`begin`);
+  await db.exec(broken);
+  const red = await vbCheck();
+  const red823 = (await one(q823))['返している'];
+  const red23 = await v23();
+  await db.exec(`rollback`);
+  ok(!red, '★壊した版では、本人の行に種類ごとの額が出ない（検査が赤くなる）');
+  ok(red823 === false && red23 === '❌',
+     `★壊した版では、オーナーの検算 8-23 も verify.sql の23行目も赤（${red823} / ${red23}）`);
+  ok(await vbCheck(), '（巻き戻したあと: 本物は緑）');
+}
+
 /* ── partial（内訳が一部未回答）────────────────────────────────
    ★これは「閲覧の資格」ではない。集計で「全額が揃った内訳」として
      足してよいかだけを決める印。pv_my_give の門はこれを読まない。 */
@@ -1677,8 +1820,8 @@ console.log('\n▼ db/pay-reports.verify.sql（オーナーが貼る検算）');
 {
   const vr = await rows(read('db/pay-reports.verify.sql'));
   const bad = vr.filter((x) => x['判定'] !== '✅');
-  ok(vr.length === 21, `検算は21行（増やしたら CLAUDE.md の行数も直す）→ ${vr.length}`);
-  ok(bad.length === 0, '★検算が21行すべて ✅',
+  ok(vr.length === 23, `検算は23行（増やしたら CLAUDE.md の行数も直す）→ ${vr.length}`);
+  ok(bad.length === 0, '★検算が23行すべて ✅',
      bad.map((x) => `${x['検査']}: 実際 ${x['実際']} / 期待 ${x['期待']}`).join(' | '));
 }
 
@@ -1711,7 +1854,7 @@ console.log('\n▼ db/pay-reports.roundtrip.sql（オーナーが貼る通し確
   ok(/これはエラーではありません/.test(msg),
      '★最後まで走って、わざと巻き戻している（途中で落ちていない）', msg.slice(0, 300));
   const marks = (msg.match(/[✅❌]/g) || []);
-  ok(marks.length === 19, `判定は19項目（増やしたら CLAUDE.md も直す）→ ${marks.length}`);
+  ok(marks.length === 20, `判定は20項目（増やしたら CLAUDE.md も直す）→ ${marks.length}`);
   ok(marks.length > 0 && marks.every((m) => m === '✅'),
      '★通し確認が全項目 ✅',
      msg.split('\n').filter((l) => l.indexOf('❌') >= 0).join(' | '));
