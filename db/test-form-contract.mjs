@@ -4601,6 +4601,57 @@ console.log('\n明細1枚が REAL PAY に出るまで（＋下書きが上書き
        `[${c.tag}] ★REAL PAY の一覧に自分の行が出る（鍵も開いている）`,
        `${pr.state} / ${JSON.stringify(seat)}`);
 
+    /* ★「別の月を出す」は読み込み直して空の入口から（2026-11-08 オーナー「別の月を出そうとしたら前の月が残っていて提出できなかった」）。
+         前は表示を切り替えるだけで、出したばかりの月の値・年月・明細の読み取りカードがそのまま残った。 */
+    const ym = (await db.query(
+      `select period_year y, period_month m from pay_reports where airline = $1 order by created_at desc limit 1`,
+      [c.db.airline])).rows[0] || {};
+    /* 読み込み直した先でもログインのまま（本物の会員と同じ）。この検査はふだん「開いたあとに」ログインのふりをするが、
+       読み込み直した先では開く前に効かせないと、ページが自分の提出（my_pay_reports）を読みに行かない。
+       答えは本物の DB の my_pay_reports（この人の行だけ）。 */
+    await page.exposeFunction('__pvMine', async () => {
+      await db.query(`select set_config('pv.uid', $1, false)`, [c.uid]);
+      return (await db.query(`select my_pay_reports() r`)).rows[0].r;
+    }).catch(() => {});
+    await page.evaluateOnNewDocument((uid) => {
+      let lib;
+      Object.defineProperty(window, 'supabase', { configurable: true, get() { return lib; }, set(v) {
+        lib = Object.assign({}, v, { createClient: (...a) => {
+          const cl = v.createClient(...a);
+          cl.auth.getSession = async () => ({ data: { session: { user: { id: uid } } } });
+          const rpc0 = cl.rpc.bind(cl);
+          cl.rpc = (fn, args) => fn === 'my_pay_reports'
+            ? window.__pvMine().then((d) => ({ data: d, error: null }))
+            : (fn === 'submit_pay_report' ? Promise.resolve({ data: null, error: { message: 'test: no submit here' } }) : rpc0(fn, args));
+          return cl;
+        } });
+      } });
+    }, c.uid);
+    await Promise.all([page.waitForNavigation({ timeout: 20000 }).catch(() => null), page.click('#btn-again')]);
+    await page.waitForFunction(() => document.getElementById('f-gross') && document.getElementById('f-year'), { timeout: 20000 }).catch(() => {});
+    const again = await page.evaluate(async () => {
+      /* 自分の提出（my_pay_reports）が届くまで待つ ── 届いてから「もう出した月」が引ける */
+      for (let i = 0; i < 60 && !(typeof SENT_MONTHS !== 'undefined' && Array.isArray(SENT_MONTHS)); i++) await new Promise((r) => setTimeout(r, 100));
+      const rw = document.getElementById('result-wrap');
+      return { url: location.href, result: !!(rw && rw.offsetParent !== null), gross: document.getElementById('f-gross').value,
+               sent: typeof SENT_MONTHS !== 'undefined' && Array.isArray(SENT_MONTHS) ? SENT_MONTHS.length : -1 };
+    });
+    ok(!again.result && again.gross === '' && !/[?&]again=/.test(again.url),
+       `[${c.tag}] ★「別の月を出す」は読み込み直す ── 結果カードも出した月の総支給も残らない（URL に again= も残さない）`,
+       JSON.stringify(again));
+    const dup = await page.evaluate((y, m) => {
+      const set = (id, v) => { const e = document.getElementById(id); e.value = String(v); e.dispatchEvent(new Event('change', { bubbles: true })); };
+      const read = () => { const e = document.getElementById('dup-month'); return { on: !!e && !e.hidden, t: e ? e.textContent : '' }; };
+      set('f-year', y); set('f-month', m);
+      const same = read();
+      set('f-month', m === 1 ? 2 : m - 1);
+      const other = read();
+      return { same, other };
+    }, Number(ym.y), Number(ym.m));
+    ok(again.sent >= 1 && dup.same.on && /もう出しています|already reported|Ya enviaste/.test(dup.same.t),
+       `[${c.tag}] ★出した月を選ぶと、送信ボタンの上に「もう出しています（送ると入れ替わる）」が出る`, JSON.stringify({ again, dup }));
+    ok(!dup.other.on, `[${c.tag}] 出していない月では出ない`, JSON.stringify(dup.other));
+
     await page.evaluate(() => localStorage.clear());
     await page.close();
   }

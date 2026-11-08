@@ -6,7 +6,7 @@
      ・1問ごとにその場で保存される。1問目で閉じても、答えた分は残る
      ・× で閉じたときは「見せていた1問」だけスキップとして残す（残りは記録しない）
      ・「今回はスキップ」はその1問だけ飛ばす＝閉じない
-     ・初回は3問・2回目以降は1問。その次の問は出ない
+     ・初回も2回目以降も3問（2026-11-08 に 2回目以降を 1問 → 3問）。2問答えた人も3問。その次の問は出ない
      ・モーダルに数値入力・プルダウンを出さない
      ・role=dialog / aria-modal / 開いた瞬間のフォーカス / 背後のスクロール停止と復帰
 
@@ -53,7 +53,8 @@ const only = process.argv[2];
 const CASES = only
   ? [{ lang: only, mine: Number(process.argv[3] || 0) }]
   : [{ lang: 'ja', mine: 0 }, { lang: 'en', mine: 0 },
-     { lang: 'ja', mine: 7 }, { lang: 'en', mine: 7 }];
+     { lang: 'ja', mine: 7 }, { lang: 'en', mine: 7 },
+     { lang: 'ja', mine: 2 }];   // ★残りが1問の人も3問（前は1問だった）
 
 /* 期待値は生成物から取る。固定値を書くと、質問を1つ足すたびにここが嘘になる */
 const BANK = JSON.parse(readFileSync(new URL('./pv-conditions.json', import.meta.url), 'utf8'));
@@ -105,8 +106,10 @@ const browser = await puppeteer.launch({ headless: 'shell', args: ['--no-sandbox
 
 for (const kase of CASES) {
   const { lang, mine } = kase;
-  /* 出す問数 ＝ mine_count < 3 ? 3 - mine_count : 1（画面が決める） */
-  const want = mine >= 3 ? 1 : 3 - mine;
+  /* 出す問数（画面が決める・数は設定から）＝ まだ initial 未満なら max(残り, recurring)・それ以上は recurring。
+     偽のサーバは3問しか返さないので、3問で頭打ち。 */
+  const INIT = BANK.settings.initial_limit, REC = BANK.settings.recurring_limit;
+  const want = Math.min(3, mine < INIT ? Math.max(INIT - mine, REC) : REC);
   const url = 'http://localhost:3000/' + (lang === 'en' ? 'en/' : '') + 'profile.html';
   console.log(`\n════ ${lang} / 既に答えている数 ${mine} → ${want}問出るはず ════`);
 
@@ -131,9 +134,9 @@ for (const kase of CASES) {
       annual_total_orig: 27000000, annual_total_jpy: 27000000, annual_total_usd: 180900,
       source: 'payslip', created_at: '2026-08-05T00:00:00Z' };
     const Q = (id, mineCode) => ({ id: id, mine_code: mineCode || null });
-    /* 2回目以降は1問。再確認の場合は前回の答え（mine_code）が付いて返る */
+    /* 2回目以降も3問。再確認の場合は前回の答え（mine_code）が付いて返る */
     const QS = mineCount >= 3
-      ? { questions: [Q('days_off_request', 'yes')], mine_count: mineCount }
+      ? { questions: [Q('days_off_request', 'yes'), Q('schedule_bidding'), Q('external_hiring')], mine_count: mineCount }
       : { questions: [Q('days_off_request'), Q('schedule_bidding'), Q('external_hiring')],
           mine_count: mineCount };
     const RPC = {

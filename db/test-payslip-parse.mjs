@@ -42,7 +42,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = readFileSync(path.join(ROOT, 'supabase/functions/parse-payslip/index.ts'), 'utf8');
 
 globalThis.Deno = { env: { get: () => '' }, serve: () => {} };
-const { sanitize, parseHours, reconcile, applyChecks, payTolerance, systemPrompt,
+const { sanitize, periodOf, yearFromRaw, parseHours, reconcile, applyChecks, payTolerance, systemPrompt,
         EARNING_KINDS, HOUR_KINDS, VARIABLE_BASIS, isCountRow, COUNT_MAX,
         readMoneyNum, isAmbiguousMoney, detectDecMark, CUR_DEC,
         buildRequest, readReply, readDiag, OUT_SCHEMA, MAX_TOKENS, READ_DEFAULT, READ_TIMEOUT_MS } =
@@ -198,6 +198,42 @@ eq(slip({ period: { year: 2014, month: 7 } }).period, null, '2015年より前は
 eq(slip({ period: { year: 2099, month: 7 } }).period, null, '未来の年は通さない');
 eq(slip({ period: { year: 2026, month: 13 } }).period, null, '13月は通さない');
 eq(slip({ period: null }).period, null, '読めなければ null（失敗ではない）');
+
+/* ★年はこちらが決める（2026-11-08）。本番で 2026年1月の明細が「2023年1月」になった＝モデルが年をこしらえた。
+   オーナー「わからなかったらとりあえず今の年に」。日付を 2026-11-08 に固定して回す（毎年答えが変わらないように）。 */
+{
+  const NOW = new Date('2026-11-08T03:00:00Z');
+  const n = (v) => (v == null || v === '' ? null : Number(v));
+  const P = (raw, year, month) => periodOf({ year, month, raw }, n, NOW);
+  eq(P('2026年1月分', 2023, 1), { year: 2026, month: 1 }, '★印字に4桁の年があれば、モデルが 2023 と言ってもそちら');
+  eq(P('令和8年1月分', 2023, 1), { year: 2026, month: 1 }, '★令和8年 → 2026');
+  eq(P('令和元年5月分', 0, 5), { year: 2019, month: 5 }, '令和元年 → 2019（元年は1として数える）');
+  eq(P('R08.01', 2023, 1), { year: 2026, month: 1 }, '★R08.01 → 2026');
+  eq(P('26年1月分', 0, 1), { year: 2026, month: 1 }, '2桁の「26年」→ 2026');
+  eq(P('08年01月分', 2008, 1), { year: 2026, month: 1 }, '★令和を省いた「08年01月分」→ 2026（2008 は 2015 より前＝令和として読む）');
+  eq(P('8年1月分', 0, 1), { year: 2026, month: 1 }, '1桁の「8年」も令和');
+  eq(P('R8.1', 0, 1), { year: 2026, month: 1 }, 'R8.1 → 2026');
+  eq(P('23年1月分', 0, 1), { year: 2023, month: 1 }, '2桁の「23年」は 2023（令和23年は未来）');
+  eq(P('01/26', 0, 1), { year: 2026, month: 1 }, '「01/26」（月が合う）→ 2026');
+  eq(P('Jan-26', 0, 1), { year: 2026, month: 1 }, '「Jan-26」→ 2026');
+  eq(P('January 2026', 2023, 1), { year: 2026, month: 1 }, '英語の4桁');
+  eq(P('1月分', 2023, 1), { year: 2026, month: 1 }, '★年が印字されていない → 今の年（モデルの 2023 は使わない）');
+  eq(P('', 0, 1), { year: 2026, month: 1 }, '★印字が空でも今の年');
+  eq(P('12月分', 2026, 12), { year: 2025, month: 12 }, '★今の年だと未来になる月は前の年');
+  eq(P('11月分', 0, 11), { year: 2026, month: 11 }, '今月は未来ではない');
+  eq(P('2026年12月分', 2026, 12), null, '印字の年で未来の月 → 通さない');
+  eq(P('2014年7月分', 2014, 7), null, '印字の年が 2015 より前 → 通さない');
+  eq(P('平成30年4月分', 0, 4), { year: 2018, month: 4 }, '平成30年 → 2018（1988 + N）');
+  eq(P('平成26年4月分', 0, 4), null, '平成26年（2014）は 2015 より前 → 通さない');
+  eq(P('1月分', 2023, 13), null, '13月は通さない（印字があっても）');
+  eq(periodOf({ year: 2026, month: 7 }, n, NOW), { year: 2026, month: 7 }, '印字を持たない古い形の答えは、今までどおりモデルの年');
+  ok(OUT_SCHEMA.properties.period.anyOf
+       ? JSON.stringify(OUT_SCHEMA.properties.period).includes('"raw"')
+       : JSON.stringify(OUT_SCHEMA.properties.period).includes('"raw"'),
+     '★答えの形に period.raw がある（無いとモデルが印字を返さず、年が全部「今の年」になる）');
+  ok(/period\.raw/.test(systemPrompt('ja')) && /Do not guess a year/.test(systemPrompt('ja')),
+     '★プロンプトが印字のまま写す・年を推測しないと言っている');
+}
 eq(slip({ currency: 'aed' }).currency, 'AED', '小文字は大文字に倒す');
 eq(slip({ currency: '¥' }).currency, null, '記号は通貨コードではない');
 eq(slip({ currency: 'JPYEN' }).currency, null, '3文字でないものは通さない');

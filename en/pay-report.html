@@ -1711,6 +1711,9 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
              and "Back" below are the way to change something.
              ⚠️ Do not delete #submit-actions itself — switching to the submitted
                 screen folds this id away (drop it and one target goes missing). -->
+        <!-- ★Already-sent month note (2026-11-08). Sending the same airline and month overwrites it (the server does not refuse: resending is how you correct a month).
+             Before, you only found out from "Correction applied" after sending. It does not block. Text comes from JS (dupNote). -->
+        <p class="sal-hint dup-month" id="dup-month" role="status" style="text-align:center;margin-top:16px;font-weight:700" hidden></p>
         <div class="mt-7 flex flex-col sm:flex-row gap-3" id="submit-actions">
           <button type="button" id="submit-btn" class="btn-orange justify-center flex-1">Submit and see the numbers →</button>
         </div>
@@ -2236,6 +2239,35 @@ function afterSaved(data, payload, airline) {
   if (!has(ys, String(y)) || !has(ms, String(mo))) return;
   ys.value = String(y);
   ms.value = String(mo);
+})();
+/* ── Already-sent month note (2026-11-08) ─────────────────────────────
+   If the member already sent this airline and month, one line above the send button. It does not block.
+   ★Rows come from my_pay_reports (the member's own rows), already loaded when the page opened: no extra request. */
+let SENT_MONTHS = null;
+function dupNote() {
+  const el = $('dup-month');
+  if (!el) return;
+  const air = $('f-airline').value, oth = ($('f-airline-other').value || '').trim().toLowerCase();
+  const y = Number($('f-year').value), m = Number($('f-month').value);
+  const hit = Array.isArray(SENT_MONTHS) && !!air && y > 0 && m > 0 && SENT_MONTHS.some((x) => x &&
+    x.airline === air && (air !== 'other' || String(x.airline_other || '').trim().toLowerCase() === oth) &&
+    Number(x.period_year) === y && Number(x.period_month) === m);
+  el.textContent = hit ? ('You already reported ' + (MONTH_NAMES[m - 1] || m) + ' ' + y + '.' + ' Sending this replaces it.') : '';
+  el.hidden = !hit;
+}
+for (const id of ['f-year', 'f-month', 'f-airline', 'f-airline-other']) {
+  const e = $(id);
+  if (e) e.addEventListener('change', dupNote);
+}
+/* The "report another month" marker (?again=) is removed from the URL on load (keep it out of bookmarks and shares). */
+(function () {
+  try {
+    const sp = new URLSearchParams(location.search);
+    if (!sp.has('again')) return;
+    sp.delete('again');
+    const qs = sp.toString();
+    history.replaceState(history.state, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
+  } catch (e) {}
 })();
 
 // ── Find the company by name (optional) ────────────────────────────────
@@ -5302,6 +5334,7 @@ if (WZ) {
          go() が段の頭まで運んで先頭の欄に入れているので、ここで寄せ直さない。 */
       if (id === 's3') PEND_DETAIL = false;
       if (id !== 's5') return;
+      dupNote();
       WZ.render();
     }
   });
@@ -5355,6 +5388,8 @@ if (WZ) {
     if (error) throw error;
     rows = data && data.reports;
   } catch (e) { return; }                 // it simply does not carry over; the form still works
+  /* ★Remember which months were sent (dupNote uses it), whatever happens to the carry-over below. */
+  if (Array.isArray(rows)) { SENT_MONTHS = rows; dupNote(); }
   if (stamp() !== before) return;         // ★A different screen by the time it landed. Throw it away.
   if (!Array.isArray(rows) || !rows.length) return;
   /* ★Only the newest row from the same airline. With no airline picked yet, use the newest row overall and carry its airline too. */
@@ -6281,11 +6316,13 @@ function renderResult(d, p) {
        only for people still holding a token stamped under the old behaviour. */
   if (d.is_new && !_gatePopped) popWhenReady(0);
 
+  /* ★A new month starts from a fresh load (2026-11-08, owner: "I tried to report another month, the previous one was still there and I could not submit").
+       This used to only swap what was shown, so the month just sent (its values, its month and the payslip card saying "not posted yet") stayed on screen.
+       What carries over is the same as the normal entry (airline, contract and fixed monthly amounts only, from my_pay_reports).
+     ★?again= is different every time, so this is never a hash-only move and always reloads (not a browser reload that restores inputs).
+       The page removes it from the URL on load (next to the ?ym= block). */
   $('btn-again').addEventListener('click', () => {
-    $('result-wrap').style.display = 'none';
-    $('form-wrap').style.display = '';
-    setSubmitBusy(false, _btnLabel);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    location.assign(location.pathname + '?again=' + Date.now() + '#ps');
   });
 
   profileNudge();

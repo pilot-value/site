@@ -15935,4 +15935,8 @@ export const TM = {
   "js:'Airline members'": {"es":"js:'Miembros de tu aerolínea'","st":"manual","by":"claude-review","at":"2026-11-08","pages":["my-year.js"],"note":"マイレポート 2026-11-08"},
   "js:'Total gross pay incl. bonus'": {"es":"js:'Sueldo bruto total con bono'","st":"manual","by":"claude-review","at":"2026-11-08","pages":["my-year.js"],"note":"マイレポート 2026-11-08"},
   "js:function (k) { return k + ' (yearly)'; }": {"es":"js:function (k) { return k + ' (anual)'; }","st":"manual","by":"claude-review","at":"2026-11-08","pages":["my-year.js"],"note":"マイレポート 2026-11-08"},
+  "jsl:'Edit'": {"es":"jsl:'Editar'","st":"manual","by":"claude-review","at":"2026-11-08","pages":["en/pay-report.html"],"note":"マイレポート 2026-11-08"},
+  "jsl:'You already reported '": {"es":"jsl:'Ya enviaste '","st":"manual","by":"claude-review","at":"2026-11-08","pages":["en/pay-report.html"],"note":"マイレポート 2026-11-08"},
+  "jsl:' Sending this replaces it.'": {"es":"jsl:' Si lo envías de nuevo, reemplaza al anterior.'","st":"manual","by":"claude-review","at":"2026-11-08","pages":["en/pay-report.html"],"note":"マイレポート 2026-11-08"},
+  "jsl:'Submitted for '": {"es":"jsl:'Enviado: '","st":"manual","by":"claude-review","at":"2026-11-08","pages":["en/profile.html"],"note":"マイレポート 2026-11-08"},
 };

@@ -1679,6 +1679,9 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
              離れる道はヘッダーと左の板に在る。直したいなら各節の「編集」か下の「戻る」。
              ⚠️ #submit-actions ごと消さない。提出が済んだ画面へ切り替えるときに
                 この id を畳んでいる（消すと配り先が1つ減って、畳み忘れになる）。 -->
+        <!-- ★もう出した月の一言（2026-11-08）。同じ会社・同じ月を送ると上書きされる（サーバーは弾かない＝出し直しが直し方）。
+             前は送ったあとの「訂正を反映しました」でしか分からなかった。止めはしない。中身は JS（dupNote）。 -->
+        <p class="sal-hint dup-month" id="dup-month" role="status" style="text-align:center;margin-top:16px;font-weight:700" hidden></p>
         <div class="mt-7 flex flex-col sm:flex-row gap-3" id="submit-actions">
           <button type="button" id="submit-btn" class="btn-orange justify-center flex-1">送信して結果を見る →</button>
         </div>
@@ -2185,6 +2188,35 @@ function afterSaved(data, payload, airline) {
   if (!has(ys, String(y)) || !has(ms, String(mo))) return;
   ys.value = String(y);
   ms.value = String(mo);
+})();
+/* ── もう出した月の一言（2026-11-08）──────────────────────────────
+   同じ会社・同じ年月の行が自分の提出に在れば、送信ボタンの上に1行だけ出す。止めはしない。
+   ★行は my_pay_reports（本人の行だけ）。ページを開いたときに読んだものを使い回す＝通信は増えない。 */
+let SENT_MONTHS = null;
+function dupNote() {
+  const el = $('dup-month');
+  if (!el) return;
+  const air = $('f-airline').value, oth = ($('f-airline-other').value || '').trim().toLowerCase();
+  const y = Number($('f-year').value), m = Number($('f-month').value);
+  const hit = Array.isArray(SENT_MONTHS) && !!air && y > 0 && m > 0 && SENT_MONTHS.some((x) => x &&
+    x.airline === air && (air !== 'other' || String(x.airline_other || '').trim().toLowerCase() === oth) &&
+    Number(x.period_year) === y && Number(x.period_month) === m);
+  el.textContent = hit ? y + '年' + m + '月はもう出しています。送ると、前の内容と入れ替わります。' : '';
+  el.hidden = !hit;
+}
+for (const id of ['f-year', 'f-month', 'f-airline', 'f-airline-other']) {
+  const e = $(id);
+  if (e) e.addEventListener('change', dupNote);
+}
+/* 「別の月を出す」から来た印（?again=）は、読み込んだら URL から消す（ブックマーク・共有に残さない）。 */
+(function () {
+  try {
+    const sp = new URLSearchParams(location.search);
+    if (!sp.has('again')) return;
+    sp.delete('again');
+    const qs = sp.toString();
+    history.replaceState(history.state, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
+  } catch (e) {}
 })();
 
 // ── 会社を名前で探す（検索は任意） ────────────────────────────────
@@ -5095,6 +5127,7 @@ if (WZ) {
          go() が段の頭まで運んで先頭の欄に入れているので、ここで寄せ直さない。 */
       if (id === 's3') PEND_DETAIL = false;
       if (id !== 's5') return;
+      dupNote();
       WZ.render();
     }
   });
@@ -5144,6 +5177,8 @@ if (WZ) {
     if (error) throw error;
     rows = data && data.reports;
   } catch (e) { return; }                 // 引き継げないだけ。フォームは普通に使える
+  /* ★出した年月を覚える（下の dupNote が使う）。引き継ぎの条件（画面が変わった・行が無い）とは関係なく覚える。 */
+  if (Array.isArray(rows)) { SENT_MONTHS = rows; dupNote(); }
   if (stamp() !== before) return;         // ★届いたときには別の画面になっていた。当てずに捨てる
   if (!Array.isArray(rows) || !rows.length) return;
   /* ★同じ会社の直近行だけ。会社が未選択のときだけ全体の直近行を使い、その会社も引き継ぐ。 */
@@ -6031,11 +6066,13 @@ function renderResult(d, p) {
        古い預かり証を持っている人のためだけに残してある。 */
   if (d.is_new && !_gatePopped) popWhenReady(0);
 
+  /* ★新しい月は、読み込み直して空の入口から（2026-11-08 オーナー「別の月を出そうとしたら、前の月のものが残っていて提出できなかった」）。
+       前は表示を切り替えるだけで、出したばかりの月の値・年月・明細の読み取りカード（「まだ投稿されていません」）がそのまま残った。
+       持ち越しはいつもの入口と同じ（会社・契約・毎月同じ額だけ。my_pay_reports から）。
+     ★?again= は毎回違う値 ＝ 「#だけの移動」にならず必ず読み込み直す（ブラウザが入力を戻す再読み込みも使わない）。
+       読み込んだ先で URL から消す（下の ?ym= の隣）。 */
   $('btn-again').addEventListener('click', () => {
-    $('result-wrap').style.display = 'none';
-    $('form-wrap').style.display = '';
-    setSubmitBusy(false, _btnLabel);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    location.assign(location.pathname + '?again=' + Date.now() + '#ps');
   });
 
   profileNudge();

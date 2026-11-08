@@ -190,7 +190,7 @@ insert into public.pv_condition_settings (key, value) values
   ('unknown_reask_days', 180),
   ('skip_reask_days', 90),
   ('initial_limit', 3),
-  ('recurring_limit', 1),
+  ('recurring_limit', 3),
   ('profile_limit', 1),
   ('modal_delay_ms', 700),
   ('ask_interval_hours', 48),

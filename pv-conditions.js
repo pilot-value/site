@@ -20,7 +20,7 @@
    ── 何問出すか ──────────────────────────────────────────────
    「初めての給与提出か」では分けない。**その会社でその人が何問答えたか**で分ける。
      まだ3問未満  → 残り（最大3問）  … 最初の3問で1社の骨格が立つ
-     3問以上      → 1問              … 毎月戻る理由を、負担にならない大きさで置き続ける
+     3問以上      → 3問              … 2026-11-08 オーナー「1問しか聞かれない。3問聞いてよ」（前は1問）
    会社を変えた人（ANA→Emirates）は proof_hash が別なので自動でまた3問に戻る。
    数字は pv-conditions.json の settings から読む（生成元は pv-conditions.mjs の SETTINGS）。
    ★言った問数で必ず終わる。3問と言ったら4問目を出さない。
@@ -69,7 +69,7 @@
   var DETAIL_READY = true;
 
   /* 設定が読めなかったときだけ使う控えの値。正は pv-conditions.json の settings。 */
-  var FALLBACK = { initial_limit: 3, recurring_limit: 1, profile_limit: 1, modal_delay_ms: 700 };
+  var FALLBACK = { initial_limit: 3, recurring_limit: 3, profile_limit: 1, modal_delay_ms: 700 };
 
   var UNKNOWN = 'unknown';
 
@@ -1003,11 +1003,13 @@
         var init = s.initial_limit || FALLBACK.initial_limit;
         return fetchItems(ctx, init).then(function (got) {
           if (!got) return;
-          /* まだ3問未満なら残りを埋める。3問以上答えている人には1問だけ。
+          /* まだ3問未満なら残りを埋める。3問以上答えている人には recurring_limit 問（2026-11-08 から3問）。
+             ★残りが少ない人（2問答えた人）も recurring_limit を下回らない（前は「残り1問」で1問だけだった）。
              「初めての給与提出か」では分けない（会社を変えた人がまた3問に戻る）。 */
+          var rec = s.recurring_limit || FALLBACK.recurring_limit;
           var want = got.mine_count < init
-            ? Math.max(init - got.mine_count, 1)
-            : (s.recurring_limit || FALLBACK.recurring_limit);
+            ? Math.max(init - got.mine_count, rec)
+            : rec;
           var items = got.items.slice(0, want);
           if (!items.length) return;
           var trigger = got.mine_count < init ? 'first_salary' : 'recurring_salary';
