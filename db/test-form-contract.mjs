@@ -34,6 +34,13 @@ const read = (f) => {
   if (!PAGE_CSS[f]) return html;
   return html + '\n<style>\n' + readFileSync(path.join(ROOT, PAGE_CSS[f]), 'utf8') + '\n</style>\n';
 };
+/* <script src="名前"> か <script src="名前?v=指紋"> の位置（無ければ -1）。
+   2026-11-08 にマイページの部品へ中身の指紋を付けたので、完全一致では探さない。
+   名前の直後は「"」か「?v=」だけ ＝ 本文のコメントに出てくる名前には当たらない。 */
+function scriptAt(s, name) {
+  const i = s.indexOf(`<script src="${name}"`);
+  return i >= 0 ? i : s.indexOf(`<script src="${name}?v=`);
+}
 
 /* pdSync() が f-payitems を出すかどうかを決めている式だけを切り出す。
    ⚠️ ここを「並びごと写して」見ない。実際に2度それで落ちている ──
@@ -105,8 +112,8 @@ console.log('\n式の置き場所（pay-viz.js に1つだけ）');
   for (const [f, up] of [['profile.html', ''], ['en/profile.html', '../']]) {
     const s = read(f);
     // ★ファイル名だけで探さない。どちらも本文のコメントに出てくる。
-    const viz = s.indexOf(`<script src="${up}pay-viz.js">`);
-    const mv  = s.indexOf(`<script src="${up}my-value.js">`);
+    const viz = scriptAt(s, `${up}pay-viz.js`);
+    const mv  = scriptAt(s, `${up}my-value.js`);
     ok(viz > 0 && mv > 0 && viz < mv,
        `${f}: pay-viz.js を my-value.js より先に読む`, `viz=${viz} mv=${mv}`);
     ok(!/<script src="(\.\.\/)?pay-tracker\.js">/.test(s),
@@ -135,8 +142,8 @@ console.log('\n市場価値レポート（my-value）');
        器を見るのは MY PAGE の側。 */
   for (const [f, up] of [['profile.html', ''], ['en/profile.html', '../']]) {
     const s = read(f);
-    const viz = s.indexOf(`<script src="${up}pay-viz.js">`);
-    const mv  = s.indexOf(`<script src="${up}my-value.js">`);
+    const viz = scriptAt(s, `${up}pay-viz.js`);
+    const mv  = scriptAt(s, `${up}my-value.js`);
     ok(viz > 0 && mv > 0 && viz < mv,
        `${f}: pay-viz.js を my-value.js より先に読む`, `viz=${viz} mv=${mv}`);
     ok(s.includes(`${up}pay-viz.css`) && s.includes(`${up}my-value.css`),
