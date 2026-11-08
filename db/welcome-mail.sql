@@ -75,9 +75,10 @@ as $$
          coalesce(p.pay_report_count, 0) > 0 as gave_pay
     from public.profiles p
     left join public.pv_welcome_mail w on w.id = p.id
-   -- ★通知を希望した人だけ。登録画面の既定はオン＝外した人にだけ届かない。
-   where coalesce(p.email_opt_in, false)
-     and p.email is not null
+   -- ★通知を希望しているかどうかは見ない（2026-11-08 オーナー指示「通知を希望しているかいないかに関わらず」）。
+   --   1人1回のお礼で、繰り返し届くメールではない＝登録者全員へ送るお知らせと同じ扱い。
+   --   そのぶん足元の文は「通知を希望された方に」と書かない（welcome-member の foot）。
+   where p.email is not null
      and position('@' in p.email) > 1
      -- ★会員になった人。どちらか一方で足りる。認証だけして途中でやめた人には送らない。
      --   ・登録画面を終えた（必須の3つ）
@@ -100,7 +101,7 @@ revoke all on function public.pv_welcome_due(integer) from public, anon, authent
 grant execute on function public.pv_welcome_due(integer) to service_role;
 
 comment on function public.pv_welcome_due(integer) is
-  '歓迎メールを今送る相手。通知を希望・会員になった（登録画面を終えた か 給与を出した）・登録から72時間以内・まだ送っていない人。'
+  '歓迎メールを今送る相手。会員になった（登録画面を終えた か 給与を出した）・登録から72時間以内・まだ送っていない人（通知の希望は問わない）。'
   '勤務先は地域だけを返す。service_role だけが呼べる。';
 
 

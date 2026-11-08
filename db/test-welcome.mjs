@@ -3,7 +3,8 @@
    実行: node db/test-welcome.mjs   ネットワーク不要・本番に一切触らない（PGlite = PG17 の WASM）。
 
    見ていること
-     A) 誰に送るか（SQL）── 通知を希望・会員になった（登録画面を終えた か 給与を出した）・72時間以内・まだ送っていない人だけ。
+     A) 誰に送るか（SQL）── 会員になった（登録画面を終えた か 給与を出した）・72時間以内・まだ送っていない人だけ。
+        通知の希望は問わない（2026-11-08 オーナー指示）。
         1人1回（送れたら二度と選ばない・3回失敗したら諦める）。会員からは呼べない・表も読めない。
         打ち込まれた社名を関数に渡さない。退会したら記録も消える。何度貼っても同じ。
         壊す証明：条件を1つ外すと、送ってはいけない人が選ばれる＝この検査が赤くなる。
@@ -103,12 +104,12 @@ await person(db, 12, { ...blank, pay: 1, opt: false });         // 同じだが�
 let due = await dueIds(db);
 const has = (n) => due.includes(uid(n));
 ok(has(1) && has(8) && has(9) && has(10), '希望・登録済み・72時間以内の人が選ばれる');
-ok(!has(2), '通知を外した人には送らない');
+ok(has(2), '通知を外した人にも送る（1人1回のお礼・2026-11-08 オーナー指示「通知を希望しているかいないかに関わらず」）');
 ok(!has(3) && !has(4) && !has(5), '登録を終えていない人には送らない（居住国・在籍企業・職位のどれかが空）');
 ok(!has(6), '72時間より前に登録した人には送らない（初めて動かした日に全員へ飛ばない）');
 ok(!has(7), 'アドレスの形でないものには送らない');
 ok(has(11), '給与フォームから入った人（居住国・在籍企業・職位が空でも、給与を出した）には送る');
-ok(!has(12), '給与を出していても、メールを受け取る印を外した人には送らない');
+ok(has(12), '給与を出して、メールを受け取る印を外した人にも送る');
 {
   const order = (await db.query('select id from pv_welcome_due(200)')).rows.map((r) => r.id);
   ok(order[0] === uid(8), 'いちばん先に登録した人が先頭', order.join(','));
@@ -174,7 +175,6 @@ ok((await db.query(`select count(*)::int n from pg_policies where tablename='pv_
 console.log('\n▼ A-6 壊す証明（条件を1つ外すと、送ってはいけない人が選ばれる）');
 const MUTANTS = [
   ['     and w.sent_at is null\n', '', '送った人を外す条件', (ids) => ids.includes(uid(1))],
-  ['   where coalesce(p.email_opt_in, false)\n', '   where true\n', '通知を外した人を外す条件', (ids) => ids.includes(uid(2))],
   ["     and p.created_at > now() - interval '72 hours'\n", '', '72時間の条件', (ids) => ids.includes(uid(6))],
   ['\n          or coalesce(p.pay_report_count, 0) > 0)', ')', '「給与を出した人も会員」の条件', (ids) => !ids.includes(uid(11))],
 ];
@@ -269,6 +269,8 @@ for (const l of ['ja', 'en', 'es']) for (const gp of [false, true]) {
   const nums = [...new Set(words.match(/\d+/g) || [])].sort();
   ok(nums.every((n) => n === '1' || n === '90'), `${l}: 日が経つと嘘になる数字を書いていない（あるのは「1件」と「90日」だけ）`, nums.join(','));
   ok(!/DEEP PAY|VERIFIED PAY/.test(words), `${l}: 閉じているものを約束しない`);
+  /* ★通知を外した人にも届く（2026-11-08）ので、足元で「希望された方に」と言わない。 */
+  ok(!/希望|notification|notificaci/i.test(t.foot), `${l}: 足元に「通知を希望された方に」と書かない（希望していない人にも届く）`, t.foot);
 }
 
 console.log(`\n${fail ? '❌' : '✅'} ${pass} 件 OK${fail ? ` / ${fail} 件 NG` : ''}`);

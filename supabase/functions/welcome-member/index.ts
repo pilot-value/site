@@ -6,8 +6,9 @@
 
    ── 誰に送るか（決めるのは SQL の pv_welcome_due の1か所）────────
      ・登録を終えた人（居住国・在籍企業・職位が入っている）
-     ・通知を希望した人（email_opt_in = true）。登録画面の既定はオンなので、ほとんどの人に届く。
-       ★外した人には送らない（届いて困るものを、断った人に送らない）
+     ・通知を希望しているかどうかは問わない（2026-11-08 オーナー指示）。1人1回のお礼で、
+       繰り返し届くメールではないから（登録者全員へ送るお知らせと同じ扱い）。
+       ★だから足元に「通知を希望された方に」と書かない（foot）。2通目は今までどおり希望した人だけ。
      ・登録から72時間以内。★古い会員には送らない（この関数を初めて動かした日に、
        今までの会員全員へ「ご登録ありがとうございます」が飛ばない）
      ・1人1回。送れたら pv_welcome_mail に記録し、二度と選ばれない。
@@ -179,7 +180,7 @@ export function welcomeCopy(l: Lang, site = SITE_URL, gavePay = false): WelcomeC
         'ご参加いただき、ありがとうございます。',
       ],
       sign: 'PILOT VALUE Team',
-      foot: 'このメールは、PILOT VALUE にご登録いただき、通知を希望された方にお送りしています。',
+      foot: 'このメールは、PILOT VALUE にご登録いただいた方へ、1度だけお送りしています。',
       unsub: '配信を停止する',
     };
   }
@@ -213,7 +214,7 @@ export function welcomeCopy(l: Lang, site = SITE_URL, gavePay = false): WelcomeC
         'Gracias por unirte.',
       ],
       sign: 'PILOT VALUE Team',
-      foot: 'Recibes este correo porque te registraste en PILOT VALUE y pediste recibir notificaciones.',
+      foot: 'Te enviamos este correo una sola vez porque te registraste en PILOT VALUE.',
       unsub: 'Cancelar la suscripción',
     };
   }
@@ -246,7 +247,7 @@ export function welcomeCopy(l: Lang, site = SITE_URL, gavePay = false): WelcomeC
       'Thank you for joining us.',
     ],
     sign: 'PILOT VALUE Team',
-    foot: 'You are receiving this because you signed up for PILOT VALUE and asked for notifications.',
+    foot: 'We send this email once, to everyone who signs up for PILOT VALUE.',
     unsub: 'Unsubscribe',
   };
 }

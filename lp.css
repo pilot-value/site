@@ -772,6 +772,33 @@
       #hero-section .hero-btn{ width:100%; min-height:48px; }
       #hero-section .hero-proof{ margin-top:8px; }
     }
+    /* ★2026-11-08 オーナー指示で、説明文を理念の3行に替えた（日本語だけ。HTML で3行に改行してある）。
+       「待遇の情報格差をなくし、閉鎖的な業界を変える。／パイロットを大切にする航空会社が、選ばれる世界へ。／この仕事がもっと好きになる。」
+       前の1文より行が増え、左の列が緑の面より高くなる（何もしないと 1440×780 で口コミの帯が・375×640 で緑の帯がはみ出す）。
+       なので、この文のときだけ文章の列を詰める（.hero-copy--mission。英語は文を替えていないので今のまま）。
+         説明文 18.5 → 17px・行の高さ 1.75 → 1.55・上 18 → 14 ／ ボタンの上 24 → 20・ボタンと添え書きのあいだ 10 → 8 ／ 人数の行の上 20 → 14
+         スマホ：説明文 16 → 15px・上 12 → 10 ／ ボタンの上 16 → 14 ／ 人数の行の上 8 → 6
+       ★狭い幅で1行に入らないときは「、」の後ろで折る（.hero-ph ＝ 句の塊。auto-phrase の効かない Safari でも同じ所で折れる）。
+         英語・スペイン語は単語の切れ目で折れるので、2語だけ次の行に落ちる所にだけ塊を置く（「and open up a closed industry.」）。
+         ⚠️ 英語で長い句を塊にしない（塊の中では折れないので、狭い画面で横にはみ出す）。
+       ⚠️ 見出し・上の余白・緑の面・帯は 1px も変えていない（オーナーが決めた所）。
+       ⚠️ 英語の文も替えるなら、en/index.html の .hero-copy にも hero-copy--mission を付けて assert-hero-fold.mjs を流す。 */
+    #hero-section .hero-copy--mission .hero-lede{ margin-top:14px; font-size:clamp(15px,1.2vw,17px); line-height:1.55; }
+    #hero-section .hero-copy--mission .hero-ph{ display:inline-block; }
+    #hero-section .hero-copy--mission .hero-ctas{ margin-top:20px; row-gap:8px; }
+    #hero-section .hero-copy--mission .hero-proof{ margin-top:14px; }
+    @media (max-width:639px){
+      #hero-section .hero-copy--mission .hero-lede{ margin-top:10px; font-size:15px; }
+      #hero-section .hero-copy--mission .hero-ctas{ margin-top:14px; }
+      #hero-section .hero-copy--mission .hero-proof{ margin-top:6px; }
+    }
+    /* 幅 379px 以下（375 の iPhone）は1行目「待遇の情報格差をなくし、閉鎖的な業界を変える。」（23字）が 15px だと 345px で入らず、5行になって緑の帯が 16px はみ出す。14px（322px）で1行に収める。 */
+    /* 英語は同じ幅で5行になり、口コミの帯の頭が 8px 隠れた（緑の帯は入っていた）。この幅だけ、文とボタンまわりをもう少し詰める。 */
+    @media (max-width:379px){
+      #hero-section .hero-copy--mission .hero-lede{ font-size:14px; line-height:1.5; margin-top:8px; }
+      #hero-section .hero-copy--mission .hero-ctas{ margin-top:12px; row-gap:6px; }
+      #hero-section .hero-copy--mission .hero-proof{ margin-top:4px; }
+    }
     /* ⚠️ 動きを減らす設定。ヒーローの定義より後に置く（同じ強さなら後が勝つ）。 */
     @media (prefers-reduced-motion:reduce){
       #hero-section .hero-btn, #hero-section .hero-btn svg,
