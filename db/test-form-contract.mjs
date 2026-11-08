@@ -272,6 +272,15 @@ for (const f of ['pay-report.html', 'en/pay-report.html']) {
       ok(!!m && !/\bclass="[^"]*\bmoney\b/.test(m[0]),
          `${f}: ${id} に money が付いていない（桁区切りの規則を持ち込まない）`);
     }
+    /* ★時:分（85:30）を読むのは時間の3欄だけ（2026-11-08）。日数・年数・％に付けると 1:30 が 1.5 日になる。
+       スペイン語のページは英語のページから作るので、作り直し忘れもここで分かる。 */
+    const HM = ['f-block', 'f-duty-h', 'f-guar'];
+    for (const g of [f].concat(f === 'en/pay-report.html' ? ['es/pay-report.html'] : [])) {
+      const sg = read(g);
+      const withHm = [...sg.matchAll(/<input[^>]*id="([a-z0-9-]+)"[^>]*\bdata-hm="1"/g)].map((x) => x[1]).sort();
+      ok(withHm.join(',') === HM.slice().sort().join(','),
+         `${g}: 時:分を読む印（data-hm）は時間の3欄だけ`, withHm.join(','));
+    }
     const nums = [...s.matchAll(/<input[^>]*id="([a-z0-9-]+)"[^>]*class="[^"]*\bnum\b/g)].map((m) => m[1]);
     ok(nums.filter((id) => !NUMF[id]).length === 0,
        `${f}: num が付いているのはこの表の欄だけ`, nums.filter((id) => !NUMF[id]).join(','));
@@ -3552,7 +3561,7 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   {
     const back = { 'f-block': SAMPLE['f-block'], 'f-tax': SAMPLE['f-tax'],
                    'f-stay': SAMPLE['f-stay'], 'f-seniority': SAMPLE['f-seniority'],
-                   'f-rankyears': SAMPLE['f-rankyears'] };
+                   'f-rankyears': SAMPLE['f-rankyears'], 'f-duty-h': SAMPLE['f-duty-h'] };
     const settle = (id) => page.evaluate((i) => {
       document.getElementById(i).dispatchEvent(new Event('change', { bubbles: true }));
     }, id);
@@ -3617,6 +3626,59 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     }));
     ok(zero.stay === '0' && zero.tax === '0' && zero.block === '0' && !zero.blocked,
        '★E: 0 は「空」ではなく 0 として送る', JSON.stringify(zero));
+
+    /* E-8 ★時:分（2026-11-08）。パイロットは乗務時間を 85:30・85H30 と書く。時間の欄だけ、
+           明細を読むサーバーの parseHours() と同じ決まりで読む（分が60以上は読み違い＝止める）。 */
+    for (const [raw, want, desc] of [
+      ['85:30', 85.5, '85:30 → 85.5'],
+      ['85H30', 85.5, '85H30 → 85.5'],
+      ['８５：３０', 85.5, '全角の ８５：３０ → 85.5'],
+      ['111:59', 111.98, '111:59 → 111.98（111.59 と読まない）'],
+    ]) {
+      await setF({ 'f-block': raw });
+      await settle('f-block');
+      const h = await readNumOf('f-block');
+      ok(h.shown === String(want) && h.sent === String(want) && h.n === want && !h.blocked,
+         `★★E: 飛行時間 ${desc}（表示・計算・送信が同じ）`, JSON.stringify(h));
+    }
+    await setF({ 'f-duty-h': '160:45' });
+    await settle('f-duty-h');
+    const dh = await readNumOf('f-duty-h');
+    ok(dh.shown === '160.75' && dh.sent === '160.75' && !dh.blocked, '★E: 勤務時間 160:45 → 160.75', JSON.stringify(dh));
+    for (const [raw, desc] of [['85:75', '分が60以上（85:75）'], ['230:00', '範囲の外（230:00）']]) {
+      await setF({ 'f-block': raw });
+      await settle('f-block');
+      const hb = await readNumOf('f-block');
+      ok(hb.sent === null && hb.blocked === 'f-block' && hb.note.length > 0, `★E: 飛行時間の ${desc} は止める`, JSON.stringify(hb));
+    }
+    await setF({ 'f-block': SAMPLE['f-block'], 'f-stay': '8:30' });
+    await settle('f-block'); await settle('f-stay');
+    const st = await readNumOf('f-stay');
+    ok(st.sent === null && st.blocked === 'f-stay', '★E: 日数の欄（ステイ）は時:分を読まない（8:30 を 8.5 泊にしない）', JSON.stringify(st));
+    await setF({ 'f-stay': SAMPLE['f-stay'] });
+    await settle('f-stay');
+
+    /* E-9 ★「次へ」で止めたことが GA4 に残る（2026-11-08）。2026-11-06 に足した門（stepBadBlocked）は
+           何も送っていなかった。送るのは符号・欄・段だけで、打った字は送らない。 */
+    await setF({ 'f-block': '85,,5' });
+    await settle('f-block');
+    const ev = await page.evaluate(async () => {
+      const real = window.gtag, got = [];
+      window.gtag = function () { got.push([].slice.call(arguments)); };
+      try {
+        window.PVPayWizard.goToField(document.getElementById('f-block'));
+        await new Promise((r) => setTimeout(r, 250));
+        const nx = [...document.querySelectorAll('.wz-next')].find((b) => b.offsetParent);
+        if (nx) nx.click();
+        await new Promise((r) => setTimeout(r, 250));
+        return { blocked: got.filter((a) => a[0] === 'event' && a[1] === 'pay_form_blocked').map((a) => a[2]),
+                 step: window.PVPayWizard.current(), clicked: !!nx };
+      } finally { window.gtag = real; }
+    });
+    const b0 = ev.blocked[0] || {};
+    ok(ev.clicked && ev.step === 's2' && ev.blocked.length === 1 && b0.reason === 'num' && b0.field === 'f-block' && b0.step === 's2',
+       '★★E: 読めない時間で「次へ」を止めたら pay_form_blocked（num・f-block・s2）が1件', JSON.stringify(ev));
+    ok(!/85/.test(JSON.stringify(ev.blocked)), '★E: 打った字（85,,5）は GA4 に送らない', JSON.stringify(ev.blocked));
 
     /* E-7 送信の直前でも止まる（画面を見ずに送られない）。 */
     await setF({ 'f-block': '85,,5' });
