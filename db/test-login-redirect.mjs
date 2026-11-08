@@ -214,6 +214,9 @@ for (const dir of ['', '/en']) {
   const FAILS = [
     ['?next=%2Fen%2Fpay-report.html',         '/en/login.html',   '/en/pay-report.html', '英語の next → 英語の login'],
     ['?next=%2Fpay-report.html',              '/login.html',      '/pay-report.html',    '日本語の next → 日本語の login'],
+    /* ★2026-11-08 まで、スペイン語の next は日本語の login に落ちていた（二択だった）。
+       日本語・英語どちらのコールバックに着いても、next の言語だけで決まること。 */
+    ['?next=%2Fes%2Fpay-report.html',         '/es/login.html',   '/es/pay-report.html', 'スペイン語の next → スペイン語の login'],
     ['?next=https%3A%2F%2Fevil.com%2Fx.html', `${dir}/login.html`, '',                   '外部URL → next を付けない'],
     ['',                                      `${dir}/login.html`, '',                   'next なし → 自分の言語の login'],
   ];
@@ -246,6 +249,23 @@ for (const dir of ['', '/en']) {
   ok((claim.stash || '').includes(TOK), '預かり証は端末に残っている（登録後に引き取れる）', claim.stash ?? claim.err);
   ok(claim.path === '/en/login.html', '預かり証つきでも英語のまま /en/login.html へ', claim.path ?? claim.err);
 
+  // ★スペイン語のフォームから預かり証つきで戻された場合も同じ（タイムアウトの理由で見る＝15秒は待たない）
+  await page.evaluate(() => { try { localStorage.clear(); } catch (e) {} });
+  await page.goto(`${BASE}${dir}/auth-callback.html?next=` +
+                  encodeURIComponent('/es/pay-report.html?claim=' + TOK), { waitUntil: 'domcontentloaded' });
+  const claimEs = await page.evaluate(() => {
+    if (typeof pvLoginUrl !== 'function') return { err: 'NOT_FOUND: pvLoginUrl が無い' };
+    const url = pvLoginUrl('timeout');
+    const u = new URL(url, location.href);
+    return { url, path: u.pathname, next: u.searchParams.get('next') || '', reason: u.searchParams.get('reason') || '',
+             stash: localStorage.getItem('pv_pay_claim') || '' };
+  });
+  ok(!(claimEs.url || '').includes(TOK), 'スペイン語：預かり証が行き先 URL に一度も現れない', claimEs.url ?? claimEs.err);
+  ok((claimEs.stash || '').includes(TOK), 'スペイン語：預かり証は端末に残っている', claimEs.stash ?? claimEs.err);
+  ok(claimEs.path === '/es/login.html', 'スペイン語：預かり証つきでも /es/login.html へ', claimEs.path ?? claimEs.err);
+  ok(claimEs.next === '/es/pay-report.html', 'スペイン語：next は預かり証を外して残る', claimEs.next ?? claimEs.err);
+  ok(claimEs.reason === 'timeout', 'スペイン語：タイムアウトの理由が載る', claimEs.reason ?? claimEs.err);
+
   /* ★この画面そのものの言語。英語の人もルート側の auth-callback.html に着地する
      （pay-login.js の callbackUrl() が pilot-value.com/auth-callback.html を固定で書く）。
      2026-09-02 まで、読み込み中の一行も失敗の詳細も日本語のままだった。
@@ -253,27 +273,42 @@ for (const dir of ['', '/en']) {
      ※ここに来た時点で認証コードが無いので、本体は既に失敗の表示に入っている。 */
   console.log(`\n${label} auth-callback.html の画面の言語\n`);
   const CJK = /[ぁ-んァ-ヶ一-龯]/;
-  for (const [next, wantEn, desc] of [
-    ['/en/pay-report.html', true,  '英語の next → 画面ぜんぶ英語'],
-    ['/pay-report.html',    false, '日本語の next → 画面ぜんぶ日本語'],
+  /* [next, 言語, 説明, 足すクエリ, 先に入っている pv-lang]
+     ★スペイン語（2026-11-08）：日本語の字が1つも無く、スペイン語の語がある。
+       ?error= で戻ってきた（Google 側のエラー）ときも、コードが無いときと同じ言語。
+       pv-lang は書かない（スペイン語のページは pv-lang を読んで飛ばない）・日本語を選んだ人の設定も上書きしない。 */
+  for (const [next, want, desc, extra, preset] of [
+    ['/en/pay-report.html', 'en', '英語の next → 画面ぜんぶ英語', '', null],
+    ['/pay-report.html',    'ja', '日本語の next → 画面ぜんぶ日本語', '', null],
+    ['/es/pay-report.html', 'es', 'スペイン語の next → 画面ぜんぶスペイン語', '', null],
+    ['/es/pay-report.html', 'es', 'スペイン語の next ＋ 認証エラー → スペイン語', '&error=access_denied&error_description=denied', null],
+    ['/es/pay-report.html', 'es', 'スペイン語の next（日本語を選んだ人）→ スペイン語・設定は ja のまま', '', 'ja'],
   ]) {
     await page.goto(`${BASE}${dir}/auth-callback.html`, { waitUntil: 'domcontentloaded' });
-    await page.evaluate(() => { try { localStorage.removeItem('pv-lang'); } catch (e) {} });
-    await page.goto(`${BASE}${dir}/auth-callback.html?next=${encodeURIComponent(next)}`,
+    await page.evaluate((p) => { try { if (p) localStorage.setItem('pv-lang', p); else localStorage.removeItem('pv-lang'); } catch (e) {} }, preset);
+    await page.goto(`${BASE}${dir}/auth-callback.html?next=${encodeURIComponent(next)}${extra}`,
                     { waitUntil: 'domcontentloaded' });
     const seen = await page.evaluate(() => ({
       title: document.title,
       msg:   (document.getElementById('msg') || {}).textContent || '',
       debug: (document.getElementById('debug') || {}).textContent || '',
+      html:  document.documentElement.lang,
       lang:  (() => { try { return localStorage.getItem('pv-lang'); } catch (e) { return null; } })(),
     }));
     const all = [seen.title, seen.msg, seen.debug].join(' | ');
     ok(seen.debug.length > 0, `${desc}  失敗の詳細が出ている`, all);
-    ok(CJK.test(all) !== wantEn, `${desc}  ${all}`, all);
+    ok(CJK.test(all) === (want === 'ja'), `${desc}  ${all}`, all);
+    if (want === 'es') {
+      ok(/sesión/.test(seen.title) && /sesión/.test(seen.msg), `${desc}  題と見出しがスペイン語`, all);
+      // 認証エラーの回は、詳細に Google が返した符号（英字）がそのまま入る＝そこは見ない
+      if (!extra) ok(/sesión/.test(seen.debug), `${desc}  失敗の詳細がスペイン語`, seen.debug);
+      ok(seen.html === 'es-419', `${desc}  <html lang> が es-419`, seen.html);
+      ok(seen.lang === preset, `${desc}  pv-lang を書かない／上書きしない（${preset || '空'}のまま）`, String(seen.lang));
+    }
     /* ★この先ずっと英語のままにする。lang-toggle.js はこの画面では読まない
        （?code= を持ったまま /en/ へ移そうとして認証が落ちるため）ので、
        pv-lang はここが自分で書く。書くのは 'en' だけ・まだ無印の人にだけ。 */
-    if (wantEn) ok(seen.lang === 'en', `${desc}  この先も英語のままにする（pv-lang=en）`, String(seen.lang));
+    if (want === 'en') ok(seen.lang === 'en', `${desc}  この先も英語のままにする（pv-lang=en）`, String(seen.lang));
   }
 
   /* ★着地側。login.html が ?error=1&reason= を読んで案内を出すこと。
@@ -309,6 +344,33 @@ for (const dir of ['', '/en']) {
     return { t, hit: btns.some((b) => b && t.includes(b)) };
   });
   ok(inapp.hit, 'アプリ内ブラウザの案内が、実在するボタンの文言をそのまま指している', inapp.t);
+}
+
+/* ★スペイン語の login.html が、コールバックから戻された人を受ける（2026-11-08）。
+   コールバックが /es/login.html へ戻すようになったので、その受け口も見る。
+   案内がスペイン語で出る・error/reason だけ消える・やり直したログインの後に /es/pay-report.html へ戻れる。 */
+console.log('\n/es login.html が失敗の理由を受ける\n');
+{
+  const CJK = /[ぁ-んァ-ヶ一-龯]/;
+  for (const reason of ['in_app_browser', 'oauth_error', 'no_code', 'set_session', 'timeout']) {
+    await page.goto(`${BASE}/es/login.html`, { waitUntil: 'domcontentloaded' });
+    await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
+    await page.goto(`${BASE}/es/login.html?error=1&reason=${reason}&next=` +
+                    encodeURIComponent('/es/pay-report.html'), { waitUntil: 'domcontentloaded' });
+    const got = await page.evaluate(() => {
+      const el = document.getElementById('auth-fail-notice');
+      const q = new URLSearchParams(location.search);
+      return {
+        shown: !!el && getComputedStyle(el).display !== 'none',
+        text: el ? (el.textContent || '').trim() : '',
+        left: [...q.keys()].sort().join(','),
+        redirect: typeof getRedirect === 'function' ? new URL(getRedirect(), location.href).pathname : 'NOT_FOUND',
+      };
+    });
+    ok(got.shown && got.text.length > 0 && !CJK.test(got.text), `es reason=${reason} → 案内がスペイン語で出る`, got);
+    ok(got.left === 'next', `es reason=${reason} → error/reason だけ URL から消える`, got.left);
+    ok(got.redirect === '/es/pay-report.html', `es reason=${reason} → 戻り先が /es/pay-report.html`, got.redirect);
+  }
 }
 
 /* ★リンク元とログイン画面の名前が合っていることも見る。

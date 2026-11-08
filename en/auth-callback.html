@@ -70,14 +70,16 @@ function pvSafeNext(raw) {
   } catch (e) { return ''; }
 }
 
-/* 戻り先が英語側か。★next があるときは next だけで決める。
+/* 戻り先の言語（'ja' / 'en' / 'es'）。★next があるときは next だけで決める。
    自分の位置を or で混ぜると、/en/auth-callback.html に日本語の next で来た人が
    英語の login に送られる（実際にそう書いていて検査で落ちた）。
-   next が無いときだけ自分の位置で決める。 */
-function pvInEn(next) {
-  if (next) return /^\/en\//.test(next);
-  return /^\/en\//.test(location.pathname);
+   next が無いときだけ自分の位置で決める。
+   ★2026-11-08 までは英語か日本語かの二択で、スペイン語の next は日本語に落ちていた。 */
+function pvLangOf(next) {
+  var p = next || location.pathname;
+  return /^\/es\//.test(p) ? 'es' : /^\/en\//.test(p) ? 'en' : 'ja';
 }
+var PV_LOGIN = { ja: '/login.html', en: '/en/login.html', es: '/es/login.html' };
 
 /* ── 失敗したときの行き先 ────────────────────────────────────────
    言語を保ち、next も保ち、預かり証だけは URL から外して端末へ移す
@@ -85,7 +87,7 @@ function pvInEn(next) {
    ルート側の auth-callback.html と同じ実体。片方だけ直さない。 */
 function pvLoginUrl(reason) {
   var next = pvSafeNext(new URLSearchParams(location.search).get('next'));
-  var inEn = pvInEn(next);
+  var lang = pvLangOf(next);
   if (next) {
     try {
       var u = new URL(next, location.origin);
@@ -95,7 +97,7 @@ function pvLoginUrl(reason) {
       next = u.pathname + u.search + u.hash;
     } catch (e) { next = ''; }
   }
-  return (inEn ? '/en/login.html' : '/login.html') +
+  return PV_LOGIN[lang] +
          '?error=1&reason=' + encodeURIComponent(String(reason || 'unknown')) +
          (next ? '&next=' + encodeURIComponent(next) : '');
 }
@@ -106,10 +108,14 @@ function pvLoginUrl(reason) {
    英語で出した人には「知らない言語のページに落ちた」に見える。
    静的な <title> は触らない（検索向けの正。assert-seo.mjs が見ているのはそちら）。 */
 (function () {
-  var en = pvInEn(pvSafeNext(new URLSearchParams(location.search).get('next')));
-  document.title = en ? 'Signing In | PILOT VALUE' : 'ログイン処理中｜PILOT VALUE';
+  var lang = pvLangOf(pvSafeNext(new URLSearchParams(location.search).get('next')));
+  var W = { ja: ['ログイン処理中｜PILOT VALUE', 'ログイン処理中…'],
+            en: ['Signing In | PILOT VALUE', 'Signing you in…'],
+            es: ['Iniciando sesión | PILOT VALUE', 'Iniciando sesión…'] }[lang];
+  document.title = W[0];
+  document.documentElement.lang = lang === 'es' ? 'es-419' : lang;
   var m = document.getElementById('msg');
-  if (m) m.textContent = en ? 'Signing you in…' : 'ログイン処理中…';
+  if (m) m.textContent = W[1];
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -122,19 +128,26 @@ function pvLoginUrl(reason) {
 
   /* 失敗の詳細も言語で出し分ける。見出しだけ英語にして下の一行が日本語のままだと、
      英語の人には読めない一行が4秒出るだけになる（実際そうなっていた）。
-     ルート側にも英語の人が着地するので、この表は日英どちらの画面にも要る。 */
-  const inEn = pvInEn(pvSafeNext(new URLSearchParams(location.search).get('next')));
-  const T = inEn
-    ? { failed:  'Sign-in failed',
-        err:     'Error: ',
-        noCode:  'No authorization code was found. Please sign in again.',
-        session: 'We could not start your session: ',
-        timeout: 'The request timed out. Please try signing in again.' }
-    : { failed:  'ログインに失敗しました',
-        err:     'エラー: ',
-        noCode:  '認証コードが見つかりません。もう一度ログインしてください。',
-        session: 'セッションを開始できませんでした: ',
-        timeout: 'タイムアウトしました。もう一度ログインを試してください。' };
+     ルート側には英語・スペイン語の人も着地するので、この表はどちらの画面にも3言語ぶん要る。 */
+  const lang = pvLangOf(pvSafeNext(new URLSearchParams(location.search).get('next')));
+  const inEn = lang === 'en';
+  const T = {
+    en: { failed:  'Sign-in failed',
+          err:     'Error: ',
+          noCode:  'No authorization code was found. Please sign in again.',
+          session: 'We could not start your session: ',
+          timeout: 'The request timed out. Please try signing in again.' },
+    es: { failed:  'No se pudo iniciar sesión',
+          err:     'Error: ',
+          noCode:  'No se encontró el código de autorización. Vuelve a iniciar sesión.',
+          session: 'No se pudo iniciar tu sesión: ',
+          timeout: 'Se agotó el tiempo de espera. Vuelve a intentar iniciar sesión.' },
+    ja: { failed:  'ログインに失敗しました',
+          err:     'エラー: ',
+          noCode:  '認証コードが見つかりません。もう一度ログインしてください。',
+          session: 'セッションを開始できませんでした: ',
+          timeout: 'タイムアウトしました。もう一度ログインを試してください。' }
+  }[lang];
 
   /* 英語で来た人を、この先ずっと英語のままにする。
      ★鍵（pv-lang）の持ち主は lang-toggle.js。この画面だけは自分で書く。
