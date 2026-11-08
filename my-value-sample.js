@@ -81,6 +81,14 @@
   }
 
   var BH = [68.2, 91.2, 72.5, 86.0, 88.6, 73.8, 90.1, 85.7, 92.4, 95.2, 70.4, 82.3];
+  /* 会社の会員の数字の作り物（pv_company_rates / pv_company_kink と同じ形・円）。本人より少し違う値にしてある */
+  w.PV_VALUE_SAMPLE_COMPANY = {
+    rates: [
+      { rank: 'cap', k: 'perBlock', rate_jpy: 30420 }, { rank: 'cap', k: 'block', rate_jpy: 3150 },
+      { rank: 'cap', k: 'night', rate_jpy: 1948 }, { rank: 'cap', k: 'sector', rate_jpy: 1405 }, { rank: 'cap', k: 'perdiem', rate_jpy: 19476 }
+    ],
+    kink: [{ rank: 'cap', t: 76, below: 2650, above: 6380 }]
+  };
   w.PV_VALUE_SAMPLE = function (key) {
     if (key === 'one') return [slipMonth(months(1)[0], 0, 86.5)];
     if (key === 'hand') return [handMonth(months(1)[0], 0)];

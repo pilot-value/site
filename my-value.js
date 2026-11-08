@@ -67,8 +67,8 @@
   /* ★後から読む2本にも中身の指紋を付ける（.js は配信で4時間覚えられる＝付けないと出した直後に古い部品が残る）。
        my-year.js か my-value-sample.js を直したら、db/test-year-report.mjs が示す値に書き換える（中身と一致するかを見ている）。
        そのあと profile.html（日英）の my-value.js の指紋も変わる（assert-links.mjs が示す値に写す・西は gen-lang.mjs）。 */
-  var YEAR_V = '5a4e5a62';
-  var SAMPLE_V = 'ed9d311c';
+  var YEAR_V = '0df02a1d';
+  var SAMPLE_V = '56f31187';
   var SAMPLE_URL = 'my-value-sample.js?v=' + SAMPLE_V;     // 運営の見本（運営のときだけ読む）
   var YEAR_URL = 'my-year.js?v=' + YEAR_V;                 // 「1年」の画面（押したときだけ読む）
   try {
@@ -1704,7 +1704,19 @@
       return;
     }
     /* 月をまたぐ比較と同じく、最新の会社の月だけ（会社が変われば契約が違う） */
-    w.PVYear.render(d.getElementById('pv-year-box'), sameAirline(rows, rows[rows.length - 1]), { segName: SEGNAME });
+    w.PVYear.render(d.getElementById('pv-year-box'), sameAirline(rows, rows[rows.length - 1]), {
+      segName: SEGNAME, sample: !!state.sample,
+      /* 会社の会員の単価と折れ目（db/company-rates.sql・2人以上の組だけ・人数は返らない）。
+         口がまだ無い（SQL を貼る前）・失敗したときは null ＝本人の数字だけで描く。見本のときは作り物を返す。 */
+      company: function (airline) {
+        if (state.sample) return Promise.resolve(w.PV_VALUE_SAMPLE_COMPANY || null);
+        return Promise.all([SB.rpc('pv_company_rates', { p_airline: airline }), SB.rpc('pv_company_kink', { p_airline: airline })])
+          .then(function (r) {
+            var ok = function (x) { return x && !x.error && Array.isArray(x.data) ? x.data : []; };
+            return { rates: ok(r[0]), kink: ok(r[1]) };
+          }, function () { return null; });
+      }
+    });
   }
 
   function bindOp() {

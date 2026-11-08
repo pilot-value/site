@@ -642,6 +642,12 @@ baland_ass/                            ブランド資産（※ brand_assets の
 - 変動給の種類ごとの額は `my_pay_reports()` の `variable_by_basis`（`pv_variable_by_basis`・**本人の行だけ**）。
   ⚠️ 給与フォームはこれを翌月の初期値に使わない（`db/test-year-report.mjs` が見ている）。
 - PDF はライブラリを使わず印刷から（`printYear` が「1年」の写しを body 直下の `#pv-print` に置く。見えなくするだけだと空白のページができる）。
+- ★**明細が集まるほど会社に賢くなる**（2026-11-08 オーナー「明細を読み込むたびにその会社についてどんどん賢くなる？」）──
+  [db/company-rates.sql](db/company-rates.sql) が会社 × 職位の単価（`pv_company_rate`）と折れ目（`pv_company_kink`）を**書き込みのときに**数え直して保存。
+  「1年」の単価の表に「会社の会員」の列・単価が変わる点に「この会社の会員の記録では」。読む口は `pv_company_rates` / `pv_company_kink`
+  （**2人以上・人数を返さない・月ごとの点を返さない・給与を出した会員だけ**＝`pv_work_level()='pay'`）。
+  ⚠️ 折れ目の条件と乗務時間あたりの式は JS（my-year.js の `findKink`・pay-viz.js の `calc`）の**写し**。片方だけ直さない（`db/test-company-rates.mjs` が突き合わせる）。
+  貼る順は `db/work-months.sql`・`db/member-median.sql` の後（末尾の検算14行）。
 - 見るもの：`node db/test-year-report.mjs`（壊す証明つき）。絵は運営の見本（info@ の YOUR PAY で「12か月」→「1年」）。
 
 ## 給与一覧の処理を軽くした（2026-10-31）

@@ -72,6 +72,8 @@ const SQL = [
   ['db/test-company-comp.mjs', 5],
   /* 2026-10-31 会社ページの「会員が出した年収の中央値」（db/member-median.sql）。道具の規則と同じか・引き金・人数を出さない・壊す証明 */
   ['db/test-member-median.mjs', 6],
+  /* 2026-11-08 会社 × 職位の単価と「単価が変わる点」（db/company-rates.sql）。my-year.js と同じ答えか・1人1票・2人の門・人数を出さない・壊す証明 */
+  ['db/test-company-rates.mjs', 6],
   /* 2026-11-04 航空会社の一覧の「新しい投稿順」（db/airline-activity.sql）。数えるもの・外すもの・引き金・順番だけを返す・壊す証明 */
   ['db/test-airline-activity.mjs', 5],
   /* 2026-11-07 明細の読み取りが続けて失敗したら info@ へ（db/parse-outcome.sql ＋ parse-payslip の通し・壊す証明） */

@@ -116,6 +116,7 @@
        あれは乗務の対価ではなく、むしろ組合活動で**飛べていない**月に出るので、
        抜かないと「時間あたりが倍」という嘘の数字になる。
        サーバ側の pv_block_hour_usd（db/pay-reports.sql）と同じ抜き方。 */
+  /* ⚠️ 乗務時間あたり（hourlyBlock）の式は、会社の会員の単価（db/company-rates.sql の perBlock）に写しがある。片方だけ直さない。 */
   function calc(r) {
     var fx = num(r.fx_to_jpy);
     var monthly = monthlyOrig(r);                                      // 原本通貨・月額

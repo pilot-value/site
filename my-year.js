@@ -53,6 +53,9 @@
       kinkSame: function (g) { return '保証 ' + g + 'h と同じ位置'; },
       kinkFrom: function (n, a, b) { return n + 'か月の記録から（超えた月 ' + a + '・超えない月 ' + b + '）'; },
       kinkAxis: '変動給（月）',
+      /* 会社の会員の数字（2人以上の組だけ・人数は出さない・db/company-rates.sql） */
+      coKinkH: 'この会社の会員の記録では',
+      cCompany: '会社の会員',
       ratesH: '時給・分給と単価',
       cItem: '項目', cRate: '時給・単価', cMin: '分給', cQty: '1年の数量', cAmt: '1年の額', cTrend: '月ごと',
       rBlock: '乗務1時間あたり', rDuty: '総勤務1時間あたり', rPayExPd: '総支給（パーディアムを除く）',
@@ -100,6 +103,8 @@
       kinkSame: function (g) { return 'Same point as your ' + g + 'h guarantee'; },
       kinkFrom: function (n, a, b) { return 'From ' + n + ' months of records (' + a + ' above, ' + b + ' below)'; },
       kinkAxis: 'Variable pay (month)',
+      coKinkH: 'Across members at your airline',
+      cCompany: 'Airline members',
       ratesH: 'Hourly, per-minute and unit rates',
       cItem: 'Item', cRate: 'Rate', cMin: 'Per minute', cQty: 'Quantity (year)', cAmt: 'Amount (year)', cTrend: 'By month',
       rBlock: 'Per block hour', rDuty: 'Per duty hour', rPayExPd: 'Gross pay, excluding per diem',
@@ -146,6 +151,8 @@
       kinkSame: function (g) { return 'El mismo punto que tu garantía de ' + g + ' h'; },
       kinkFrom: function (n, a, b) { return 'A partir de ' + n + ' meses de registros (' + a + ' por encima, ' + b + ' por debajo)'; },
       kinkAxis: 'Pago variable (mes)',
+      coKinkH: 'Entre los miembros de tu aerolínea',
+      cCompany: 'Miembros de tu aerolínea',
       ratesH: 'Tarifas por hora, por minuto y por unidad',
       cItem: 'Concepto', cRate: 'Tarifa', cMin: 'Por minuto', cQty: 'Cantidad (año)', cAmt: 'Monto (año)', cTrend: 'Por mes',
       rBlock: 'Por hora block', rDuty: 'Por hora de servicio', rPayExPd: 'Sueldo bruto, sin viáticos',
@@ -215,7 +222,9 @@
     return { a: B[0], b1: B[1], b2: B[2], e: e, t: t };
   }
 
-  /* 単価が変わる点。★出すのは両側3か月以上・直線より誤差が半分以下・超えた側の単価が上がるときだけ */
+  /* 単価が変わる点。★出すのは両側3か月以上・直線より誤差が半分以下・超えた側の単価が上がるときだけ
+     ⚠️ 会社の会員の折れ目（db/company-rates.sql の pv_company_kink_fit）に同じ条件の写しがある。片方だけ直さない
+        （db/test-company-rates.mjs がこのファイルを読んで突き合わせる）。 */
   function findKink(P) {
     if (P.length < 6) return null;
     var lin = fitLine(P);
@@ -370,7 +379,10 @@
   /* ══ 描画 ═══════════════════════════════════════════════════════ */
   var C_BLOCK = '#0a8f79', C_DUTY = '#3d9bff';
   var INK3 = 'var(--pv-ink-3)', LINE = 'var(--pv-line-soft)';
-  var state = { year: null, box: null, rows: null, o: null, model: null };
+  var state = { year: null, box: null, rows: null, o: null, model: null, company: null, coKey: null };
+  /* 本人の画面の行 → 会社の表（pv_company_rates）の k */
+  var CO_K = { block: 'perBlock', 'vb-block': 'block', 'vb-duty': 'duty', 'vb-night': 'night', 'vb-sector': 'sector', perdiem: 'perdiem' };
+  var RANK = { cap: 'cap', tri_tre: 'cap', captain: 'cap', fo: 'fo', sfo: 'fo' };
 
   function man(v) {                                  // 縦軸の目盛り用の短い額
     if (!v) return '0';
@@ -537,9 +549,16 @@
     return out ? '<h3 class="yr-h">' + esc(T.insH) + '</h3><div class="yr-ins">' + out + '</div>' : '';
   }
 
+  function coKinkBlock(co) {
+    var t = Math.round(co.t);
+    return '<div class="yr-co"><span>' + esc(T.coKinkH) + '</span><b class="big">' + esc(T.kinkBig(t)) + '</b>' +
+      '<div class="yr-rate2"><div><span>' + esc(T.kinkBelow(t)) + '</span><b>' + esc(T.kinkPer(fmt(co.below))) + '</b></div>' +
+      '<div class="up"><span>' + esc(T.kinkAbove(t)) + '</span><b>' + esc(T.kinkPer(fmt(co.above))) + '</b></div></div></div>';
+  }
   function kinkCard(md, boxW) {
-    var k = md.kink;
-    if (!k) return '';
+    var k = md.kink, co = state.company && state.company.kink;
+    if (!k && !co) return '';
+    if (!k) return '<h3 class="yr-h">' + esc(T.kinkH) + '</h3><div class="yr-kink is-co">' + coKinkBlock(co) + '</div>';
     /* 狭い画面では1列になる＝画面の幅で描く（縮めると字が読めない） */
     var t = Math.round(k.t), W = boxW < 680 ? Math.max(260, boxW - 40) : 520, H = 230, PL = 56, PB = 28, PT = 18;
     var xs = k.pts.map(function (p) { return p.x; }), ys = k.pts.map(function (p) { return p.y; });
@@ -563,7 +582,7 @@
       '<span>' + esc(T.kinkK) + '</span><b class="big">' + esc(T.kinkBig(t)) + '</b>' +
       '<div class="yr-rate2"><div><span>' + esc(T.kinkBelow(t)) + '</span><b>' + esc(T.kinkPer(fmt(k.below))) + '</b></div>' +
       '<div class="up"><span>' + esc(T.kinkAbove(t)) + '</span><b>' + esc(T.kinkPer(fmt(k.above))) + '</b></div></div>' +
-      '<p>' + esc((k.guar ? T.kinkSame(k.guar) + '・' : '') + T.kinkFrom(k.n, k.nAbove, k.nBelow)) + '</p></div>' +
+      '<p>' + esc((k.guar ? T.kinkSame(k.guar) + '・' : '') + T.kinkFrom(k.n, k.nAbove, k.nBelow)) + '</p>' + (co ? coKinkBlock(co) : '') + '</div>' +
       '<div class="yr-kink-g">' + svgOpen(W, H) + g + '</svg></div></div>';
   }
 
@@ -571,20 +590,30 @@
     if (!md.rates.length && !md.amtOnly.length) return '';
     var unit = function (x) { return x.perHour ? T.uH : x.q === 'sectors' ? T.uSector : T.uNight; };
     var qtyTx = function (x) { return x.q === 'sectors' ? Math.round(x.qty) + T.qSector : x.q === 'stay' ? Math.round(x.qty) + T.qNight : hh(x.qty) + T.qH; };
+    var CO = state.company && state.company.rates, hasCo = !!(CO && Object.keys(CO).length);
+    /* 会社の会員の中央値と、本人との差（本人 ÷ 会社 − 1）。無い種類は「—」（0 にしない） */
+    var coCell = function (x) {
+      var c = CO && CO[CO_K[x.k]];
+      if (!(c > 0)) return '<td class="yr-rt-co"><i>—</i></td>';
+      var d = Math.round((x.rate / c - 1) * 100);
+      return '<td class="yr-rt-co"><b>' + esc(fmtSmall(c)) + '</b><i>' + esc(unit(x)) + '</i>' +
+        '<span class="mr-d ' + (d > 0 ? 'up' : d < 0 ? 'dn' : 'fl') + '">' + (d > 0 ? '+' : d < 0 ? '−' : '±') + Math.abs(d) + '%</span></td>';
+    };
     var rows = md.rates.map(function (x) {
       return '<tr><td class="yr-rt-n"><b>' + esc(x.name) + '</b><small>' + esc(x.sub || '') + '</small></td>' +
         '<td class="yr-rt-big"><b>' + esc(fmtSmall(x.rate)) + '</b><i>' + esc(unit(x)) + '</i></td>' +
         '<td>' + (x.perHour ? '<b>' + esc(fmtSmall(x.rate / 60)) + '</b><i>' + esc(T.uMin) + '</i>' : '<i>—</i>') + '</td>' +
+        (hasCo ? coCell(x) : '') +
         '<td class="yr-rt-q">' + esc(qtyTx(x)) + '</td>' +
         '<td class="yr-rt-q">' + esc(fmt(x.amt)) + '</td>' +
         '<td class="yr-rt-sp">' + spark(x.months, 120, 28) + '</td></tr>';
     }).join('') + md.amtOnly.map(function (x) {
       return '<tr><td class="yr-rt-n"><b>' + esc(x.name) + '</b><small>' + esc(T.amtOnly) + '</small></td>' +
-        '<td class="yr-rt-big"><i>—</i></td><td><i>—</i></td><td class="yr-rt-q"><i>—</i></td>' +
+        '<td class="yr-rt-big"><i>—</i></td><td><i>—</i></td>' + (hasCo ? '<td class="yr-rt-co"><i>—</i></td>' : '') + '<td class="yr-rt-q"><i>—</i></td>' +
         '<td class="yr-rt-q">' + esc(fmt(x.amt)) + '</td><td class="yr-rt-sp"></td></tr>';
     }).join('');
     return '<h3 class="yr-h">' + esc(T.ratesH) + '</h3><table class="yr-rt"><thead><tr><th>' + esc(T.cItem) + '</th><th>' + esc(T.cRate) +
-      '</th><th>' + esc(T.cMin) + '</th><th>' + esc(T.cQty) + '</th><th>' + esc(T.cAmt) + '</th><th>' + esc(T.cTrend) + '</th></tr></thead><tbody>' +
+      '</th><th>' + esc(T.cMin) + '</th>' + (hasCo ? '<th>' + esc(T.cCompany) + '</th>' : '') + '<th>' + esc(T.cQty) + '</th><th>' + esc(T.cAmt) + '</th><th>' + esc(T.cTrend) + '</th></tr></thead><tbody>' +
       rows + '</tbody></table>';
   }
 
@@ -732,6 +761,19 @@
   function render(box, rows, o) {
     state.box = box; state.rows = rows || []; state.o = o || {};
     draw();
+    var last = state.rows[state.rows.length - 1], air = last && String(last.airline || '').toLowerCase(), rk = last && RANK[last.position];
+    if (!air || air === 'other' || !rk || typeof state.o.company !== 'function') return;
+    var key = air + '|' + rk + '|' + (state.o.sample ? 's' : '');
+    if (state.coKey === key) return;
+    state.coKey = key; state.company = null;
+    Promise.resolve(state.o.company(air)).then(function (got) {
+      if (state.coKey !== key || !got) return;
+      var rates = {}, kink = null;
+      (got.rates || []).forEach(function (x) { var v = num(x && x.rate_jpy); if (x && x.rank === rk && v > 0) rates[x.k] = v; });
+      (got.kink || []).forEach(function (x) { if (x && x.rank === rk && num(x.t) > 0 && num(x.above) > 0) kink = { t: num(x.t), below: num(x.below) || 0, above: num(x.above) }; });
+      state.company = { rates: rates, kink: kink };
+      draw();
+    }, function () {});
   }
 
   w.PVYear = { calc: calc, years: years, render: render, redraw: draw, findKink: findKink, print: printYear };

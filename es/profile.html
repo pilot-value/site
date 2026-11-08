@@ -195,7 +195,7 @@
        my-value / actual-pay / airline-conditions と共有する。
        ★ 2層目の #pv-value .pt-* は id で閉じているので、このページの図には効かない。 -->
   <link rel="stylesheet" href="../pv-give.css">
-  <link rel="stylesheet" href="../my-value.css?v=dd19b6c1">
+  <link rel="stylesheet" href="../my-value.css?v=faee18ae">
   <link rel="stylesheet" href="../app-nav.css">
   <!-- Payslip chart styling. Shared by my-value.js and the pay-form result card. -->
   <link rel="stylesheet" href="../pay-viz.css">
@@ -1142,11 +1142,11 @@
      ★データは1バイトも隠さない（実給与を止めているのは pv_pay_rows() ）。
      ⚠️ actual-pay.js より**前**に読む（PVGates.giveGetHTML() を使う）。 -->
 <script src="../pv-gates.js"></script>
-<script src="../pay-viz.js?v=56264dec"></script>
+<script src="../pay-viz.js?v=ea8ddd9a"></script>
 <!-- ③ YOUR PAY の中身（旧マイレポート）。★pay-viz.js の **後**に読む。
      2026-09-06、pay-tracker.js（462行）を廃止してこの1本に寄せた ──
      同じ my_pay_reports() を叩き、同じ pay-viz.js で図を描く実装が2つあった。 -->
-<script src="../my-value.js?v=3c855116"></script>
+<script src="../my-value.js?v=9676cf2b"></script>
 <script src="../pv-app.js?v=a95c64dd"></script>
 <script src="../pv-follow.js?v=054030f0"></script>
 <!-- "Please resubmit" notice. Shown **only to the member themselves** when one of

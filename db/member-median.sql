@@ -74,6 +74,7 @@
 --     年収の常識の幅（1万〜70万ドル）  … db/pay-rows.sql ・ db/deep-pay.sql ・ db/pay-median.sql と同じ
 --     数えられる給与の行の条件（幅・24か月・下ろした人・テスト用アカウント）
 --                                        … db/referrals.sql の my_cohort_gap（本人の行が数えられるか）と同じ
+--                                          db/company-rates.sql の pv_company_rate_refresh（会社の単価と折れ目・2026-11-08）も同じ
 --     給与の鍵の式                       … db/pay-reports.sql 5章（submit_pay_report の v_hash）
 --     口コミの鍵の式                     … db/pay-rows.sql 1-d（pv_review_person）
 --     職位の読み替え・年額の作り方       … 手元の道具 member-median.mjs（db/test-member-median.mjs が同じ規則の写しで突き合わせる）

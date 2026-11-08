@@ -796,6 +796,12 @@
 #pv-value .yr-rt i{font-style:normal;color:var(--pv-ink-3);font-size:.74rem;margin-left:2px;font-weight:600}
 #pv-value .yr-rt-q{color:var(--pv-ink-2);font-weight:600}
 #pv-value .yr-rt-sp{width:120px;padding-right:0}
+#pv-value .yr-rt-co b{font-weight:800}
+#pv-value .yr-rt-co .mr-d{margin-left:6px;font-size:.7rem;padding:2px 6px;border-radius:999px;font-weight:800}
+/* 会社の会員の折れ目（db/company-rates.sql）。本人の折れ目の下・本人の記録が足りないときは単独で */
+#pv-value .yr-co{margin-top:16px;padding-top:14px;border-top:1px solid var(--pv-line-soft)}
+#pv-value .yr-kink.is-co{grid-template-columns:minmax(0,420px)}
+#pv-value .yr-kink.is-co .yr-co{margin-top:0;padding-top:0;border-top:0}
 #pv-value .yr-ch{margin-bottom:26px}
 #pv-value .yr-ch-h{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:0 0 8px}
 #pv-value .yr-ch-h h3{margin:0;font-size:.9rem;font-weight:800;color:var(--pv-ink)}
@@ -840,7 +846,8 @@
   #pv-value .yr-rt tr{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:10px 0;border-bottom:1px solid var(--pv-line-soft)}
   #pv-value .yr-rt td{border:0;padding:0}
   #pv-value .yr-rt-n{grid-row:span 2}
-  #pv-value .yr-rt td:nth-child(4),#pv-value .yr-rt td:nth-child(5),#pv-value .yr-rt-sp{display:none}
+  #pv-value .yr-rt-q,#pv-value .yr-rt-sp{display:none}
+  #pv-value .yr-rt-co{grid-column:2}
 }
 @media (prefers-reduced-motion:reduce){
   #pv-value .yr-tip,#pv-value .yr-pdf{transition:none}
