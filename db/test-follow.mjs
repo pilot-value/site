@@ -7,8 +7,8 @@
         自分の分しか触れない（未ログインは呼べない・表は直接読めない・送る相手は呼べない）
      B) 知らせる相手 ── 給与・口コミ・待遇の答えのどれが入ったかだけを返す（件数・金額・誰が出したかは返さない）・
         ★出した本人には知らせない・通知を外した人／確認待ちで止めた会員には送らない・テスト用アカウント／幅の外の給与／
-        一覧から下ろした人／スキップ・「わからない」は数えない・フォローする前と数え始めより前は数えない・1人24時間に1通・
-        3回失敗でその日は諦める・退会で消える
+        一覧から下ろした人／スキップ・「わからない」は数えない・フォローする前と数え始めより前は数えない・
+        ★入った日の分は次の日の17時（受け取る人の国の時間）に1通・1人1日1通・国 → 時間帯・3回失敗でその日は諦める・退会で消える
      C) 壊す証明 ── 本人を外す数行を抜くと、本人に知らせが行く＝B が赤くなる
      D) メール ── 言語の決め方が歓迎メールと同じ・数字を書かない・ページのある会社だけリンク・1人1日1通の鍵・解除の口
 */
@@ -82,7 +82,7 @@ for (const f of SQL_FILES) {
 ok(true, `SQL を ${SQL_FILES.length} 本流した（最後が ${MINE}）`);
 const FOLLOW = read(MINE);
 const checks = (await db.query(FOLLOW.slice(FOLLOW.indexOf("select case when to_regclass('public.pv_follow')")))).rows.map((r) => r['検算']);
-ok(checks.filter((c) => c.startsWith('✅')).length === 4 && !checks.some((c) => c.startsWith('❌')), '末尾の検算が全部 ✅（時計の無い所は ℹ️）', checks.join(' / '));
+ok(checks.filter((c) => c.startsWith('✅')).length === 5 && !checks.some((c) => c.startsWith('❌')), '末尾の検算が全部 ✅（時計の無い所は ℹ️）', checks.join(' / '));
 try { await db.exec(FOLLOW); ok(true, 'もう一度貼っても同じ（冪等）'); } catch (e) { ok(false, '再適用で失敗', e.message); }
 
 // ── 道具 ─────────────────────────────────────────────────────
@@ -101,13 +101,13 @@ const call = async (who, sql, params = []) => {
 const one = async (sql, params = []) => (await db.query(sql, params)).rows[0];
 const uid = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 let seat = 0;
-const member = async ({ company = null, opt = true, lang = 'ja', name = null, ago = '2 hours' } = {}) => {
+const member = async ({ company = null, opt = true, lang = 'ja', name = null, ago = '2 hours', country = null } = {}) => {
   const id = uid(++seat), mail = `crew${seat}@example.com`;
   await db.query(`insert into auth.users (id, email) values ($1, $2)`, [id, mail]);
   await db.query(`insert into public.profiles (id, email, company, email_opt_in, name, created_at) values ($1,$2,$3,$4,$5, now() - $6::interval)
                   on conflict (id) do update set company = excluded.company, email_opt_in = excluded.email_opt_in, name = excluded.name, created_at = excluded.created_at`,
     [id, mail, company, opt, name, ago]);
-  await db.query(`update public.profiles set lang = $2 where id = $1`, [id, lang]);
+  await db.query(`update public.profiles set lang = $2, country = $3 where id = $1`, [id, lang, country]);
   return id;
 };
 const sha = (s) => createHash('sha256').update(s).digest('hex');
@@ -118,6 +118,8 @@ const NOW = await one(`select extract(year from current_date)::int as y, extract
 /* 新着を1件入れる（時刻を決められる）。給与は本物の submit_pay_report をその会員として通してから、時刻と年収だけ持ち主として書き換える。 */
 let seq = 0;
 const BASE = { currency: 'USD', lang: 'en', tax_rate_pct: 0, fleet: 'a320', gross_monthly: 9000 };
+/* at は「いまから何分前」（文字）か、決まった時刻（Date）。 */
+const when = (at, n) => (at instanceof Date ? `$${n}::timestamptz` : `now() - $${n}::interval`);
 const pay = async (who, airline, { at = '5 minutes', usd = 120000 } = {}) => {
   seq++;
   const t = (NOW.y * 12 + NOW.m - 1) - seq;   // 同じ人でも月を変えて別の行に
@@ -125,13 +127,13 @@ const pay = async (who, airline, { at = '5 minutes', usd = 120000 } = {}) => {
   const r = await call(who, `select public.submit_pay_report($1::jsonb) as v`, [J(body)]);
   await db.exec(`update public.profiles set pay_reports_today = 0`);
   must(!r.err && r.rows[0].v && r.rows[0].v.ok !== false, `給与を出せなかった（${airline}）`, r.err || J(r.rows && r.rows[0]));
-  const u = await db.query(`update public.pay_reports set annual_total_usd = $1, created_at = now() - $2::interval
+  const u = await db.query(`update public.pay_reports set annual_total_usd = $1, created_at = ${when(at, 2)}
                              where proof_hash = $3 and period_year = $4 and period_month = $5`,
     [usd, at, payKey(who, airline), body.period_year, body.period_month]);
   must(u.affectedRows === 1, `給与の行を見つけられない（${airline}）`);
 };
 const review = async (who, airline, at = '5 minutes') =>
-  db.query(`insert into public.reviews_v2 (proof_hash, airline, "position", created_at) values ($1, $2, 'fo', now() - $3::interval)`,
+  db.query(`insert into public.reviews_v2 (proof_hash, airline, "position", created_at) values ($1, $2, 'fo', ${when(at, 3)})`,
     [reviewKey(who, airline), airline, at]);
 const cond = async (who, airline, { at = '5 minutes', skip = false, unknown = false, q = 'annual_leave_days' } = {}) =>
   db.query(`insert into public.airline_conditions (proof_hash, airline, question_id, answer_num, answer_code, skipped_at, effective_year, effective_month, created_at)
@@ -140,10 +142,21 @@ const cond = async (who, airline, { at = '5 minutes', skip = false, unknown = fa
 const my = async (who) => { const r = await call(who, `select public.pv_my_follows() as v`); return r.err ? { err: r.err } : r.rows[0].v; };
 const set = async (who, code, on) => { const r = await call(who, `select public.pv_follow_set($1, $2) as v`, [code, on]); return r.err ? { err: r.err } : r.rows[0].v; };
 const codes = (v) => (v && v.list ? v.list.map((x) => x.code) : []);
-const due = async () => (await db.query(`select * from public.pv_follow_due(200)`)).rows;
-const itemsOf = async (who) => { const r = (await due()).find((x) => x.id === who); return r ? r.items : null; };
-const kindsOf = async (who, code) => { const it = await itemsOf(who); const x = it && it.find((i) => i.code === code); return x ? x.kinds : null; };
-const mark = (who, okv) => db.query(`select public.pv_follow_mark($1, $2)`, [who, okv]);
+/* ★送るのは「次の日の17時（受け取る人の国の時間）」なので、検査の時計を決めて呼ぶ。
+   wall(tz, d, 'hh:mm') ＝ その国で、今日から d 日後の hh:mm。nextDay17(tz, t) ＝ t の次の日の17時（その国で）。
+   CLOCK ＝ 明日の17時30分（日本）＝ いまより前に入った分は全部「前の日まで」になる時刻。 */
+const TOKYO = 'Asia/Tokyo';
+const wall = async (tz, d, hm) => (await one(`select (date_trunc('day', now() at time zone $1) + $2::interval) at time zone $1 as t`, [tz, `${d} days ${hm}`])).t;
+const nextDay17 = async (tz, t) => (await one(`select (date_trunc('day', $2::timestamptz at time zone $1) + interval '1 day 17 hours') at time zone $1 as t`, [tz, t])).t;
+const CLOCK = await wall(TOKYO, 1, '17:30');
+const due = async (at = CLOCK) => (await db.query(`select * from public.pv_follow_due(200, $1)`, [at])).rows;
+const itemsOf = async (who, at = CLOCK) => { const r = (await due(at)).find((x) => x.id === who); return r ? r.items : null; };
+const kindsOf = async (who, code, at = CLOCK) => { const it = await itemsOf(who, at); const x = it && it.find((i) => i.code === code); return x ? x.kinds : null; };
+/* 送れた／送れなかった。Edge Function と同じく、送る相手の行の upto（どこまでの新着か）を渡す。 */
+const mark = async (who, okv, at = CLOCK) => {
+  const r = (await due(at)).find((x) => x.id === who);
+  return db.query(`select public.pv_follow_mark($1, $2, $3)`, [who, okv, r ? r.upto : null]);
+};
 const reset = async () => {
   await db.exec(`delete from public.pay_reports; delete from public.reviews_v2; delete from public.airline_conditions; delete from public.pv_follow_mail;`);
   await db.exec(`update public.pv_follow_launch set at = now() - interval '1 day'`);
@@ -192,7 +205,7 @@ v = await my(ANON);
 ok(v.err && /permission denied/.test(v.err), '未ログイン（anon）は呼べない', J(v));
 v = await call(A, `select * from public.pv_follow`);
 ok(v.err && /permission denied/.test(v.err), '会員でも、フォローの表を直接は読めない');
-v = await call(A, `select * from public.pv_follow_due(5)`);
+v = await call(A, `select * from public.pv_follow_due(5, now())`);
 ok(v.err && /permission denied/.test(v.err), '会員は、送る相手を呼べない');
 v = await call(A, `insert into public.pv_follow(uid, airline, following) values ('${B}', 'jal', true)`);
 ok(v.err && /permission denied/.test(v.err), '会員は、ほかの人のフォローを書けない');
@@ -226,7 +239,7 @@ const CD = await member({ company: 'jal' });
 await cond(CD, 'ana');
 ok(JSON.stringify(await kindsOf(R1, 'ana')) === '["pay","review","cond"]', '給与・口コミ・待遇の答えの3つとも「何が入ったか」だけ返す（給与→口コミ→待遇の順）');
 const row = (await due()).find((x) => x.id === R1);
-ok(Object.keys(row).join(',') === 'id,email,name,country,airline_region,lang,unsub_token,has_key,items'
+ok(Object.keys(row).join(',') === 'id,email,name,country,airline_region,lang,unsub_token,has_key,items,upto'
    && Object.keys(row.items[0]).sort().join(',') === 'code,conds,en,ja,kinds,page,reviews,why', '★返す欄は決まった形だけ（会社・何が入ったか・口コミの抜粋・待遇の質問名）', J(row.items));
 ok(!/"(annual|usd|gross|amount|net|salary|proof|hash|email|uid)[a-z_]*":/i.test(J(row.items)), '★給与の金額も、誰が出したかも返さない（そういう欄が1つも無い）', J(row.items));
 ok(row.items[0].conds.length === 1 && row.items[0].conds[0].ja === '年間の有給休暇は何日ですか？', '待遇は答えが入った質問の名前だけ（答えは返さない）', J(row.items[0].conds));
@@ -256,20 +269,46 @@ await db.exec(`update public.pv_follow_launch set at = now()`);
 ok((await itemsOf(R1)) === null, '数え始め（ファイルを初めて貼った時刻）より前の新着では知らせない');
 await db.exec(`update public.pv_follow_launch set at = now() - interval '1 day'`);
 
-console.log('\n▼ B-4 1人24時間に1通');
+console.log('\n▼ B-4 次の日の17時（受け取る人の国の時間）に1通（2026-11-09 オーナー指示）');
+await reset();
+const T1 = await wall(TOKYO, 1, '10:00');                     // 明日の10時（日本）に給与が入る
+await pay(RV, 'ana', { at: T1 });
+ok((await itemsOf(R1, await wall(TOKYO, 1, '23:59'))) === null, '★入った日のうちは送らない（17時を過ぎても、その日の分は次の日に回す）');
+ok((await itemsOf(R1, await wall(TOKYO, 2, '16:59'))) === null, '★次の日も17時より前は送らない');
+const S2 = await wall(TOKYO, 2, '17:00');
+ok(J(await kindsOf(R1, 'ana', S2)) === '["pay"]', '★次の日の17時（日本時間）に送る');
+const r1 = (await due(S2)).find((x) => x.id === R1);
+ok(r1 && new Date(r1.upto).getTime() === (await wall(TOKYO, 2, '00:00')).getTime(), 'upto ＝ 受け取る人の国の、その日の0時（ここまでの新着を送った）', J(r1 && r1.upto));
+await mark(R1, true, S2);
+ok((await itemsOf(R1, await wall(TOKYO, 2, '18:00'))) === null && (await itemsOf(R1, await wall(TOKYO, 2, '23:59'))) === null,
+   '送ったら、その日はもう送らない（1日1通）');
+await review(RV, 'ana', await wall(TOKYO, 2, '12:00'));       // 送った日の昼に入った口コミ
+ok(J(await kindsOf(R1, 'ana', await wall(TOKYO, 3, '17:00'))) === '["review"]', '送った日に入った分は次の日の1通に（前の1通の給与は二度と入らない）');
+
+await reset();
+await db.query(`insert into public.pv_follow_mail (uid, sent_at, tries, tried_at) values ($1, $2, 0, $2)`, [R1, await wall(TOKYO, 1, '23:07')]);
+await review(RV, 'ana', await wall(TOKYO, 1, '23:02'));
+await pay(CD, 'ana', { at: await wall(TOKYO, 1, '23:30') });
+ok(J(await kindsOf(R1, 'ana', await wall(TOKYO, 2, '17:00'))) === '["pay"]',
+   '17時に変える前に送った人（upto が空）は、送った時刻より後の分だけ（同じ投稿を二度知らせない）');
+
+await reset();
+const US = await member({ company: 'ana', country: 'アメリカ' });
+await pay(RV, 'ana', { at: T1 });
+const usAt = await nextDay17('America/Chicago', T1);
+ok((await itemsOf(R1, await nextDay17(TOKYO, T1))) !== null && (await itemsOf(US, await nextDay17(TOKYO, T1))) === null,
+   '★日本の17時には、日本の会員に送り、アメリカの会員には送らない');
+ok((await itemsOf(US, new Date(usAt.getTime() - 60e3))) === null && J(await kindsOf(US, 'ana', usAt)) === '["pay"]',
+   '★アメリカの会員には、向こうの次の日の17時に送る（日の区切りも向こうの0時）');
+
 await reset();
 await pay(RV, 'ana', { at: '30 minutes' });
-ok((await itemsOf(R1)) !== null, '新着がある → 送る相手に入る');
-await mark(R1, true);
-ok((await itemsOf(R1)) === null, '送ったら、その時点までの新着では二度と送らない');
-await pay(CD, 'ana', { at: '1 minute' });
-ok((await itemsOf(R1)) === null, '★24時間たつまでは、次の新着があっても送らない');
-await db.query(`update public.pv_follow_mail set sent_at = now() - interval '25 hours' where uid = $1`, [R1]);
-ok(JSON.stringify(await kindsOf(R1, 'ana')) === '["pay"]', '24時間たったら、前に送った時刻より後の新着をまとめて送る');
 await mark(R2, false); await mark(R2, false);
 ok((await itemsOf(R2)) !== null, '2回失敗：まだ送る');
 await mark(R2, false);
+await db.query(`update public.pv_follow_mail set tried_at = $2 where uid = $1`, [R2, CLOCK]);   // 検査の時計に合わせる（今日の17時より後に3回失敗した）
 ok((await itemsOf(R2)) === null, '続けて3回失敗したら、その日は諦める');
+ok((await itemsOf(R2, await wall(TOKYO, 2, '17:00'))) !== null, '次の日の17時に、もう一度送る');
 await db.query(`delete from public.profiles where id = $1`, [R2]);
 ok(!(await one(`select 1 x from public.pv_follow where uid = $1`, [R2])) && !(await one(`select 1 x from public.pv_follow_mail where uid = $1`, [R2])),
    '退会したら、フォローも送った記録も消える');
@@ -321,6 +360,30 @@ ok(!v.err && (await my(V)).seen.length === 0, 'まとめて消せる');
 v = await call(V, `select * from public.pv_follow_view`);
 ok(v.err && /permission denied/.test(v.err), '会員でも、見た記録の表を直接は読めない（ほかの人が何を見たかは見えない）');
 
+console.log('\n▼ B-7 国 → 時間帯（pv_follow_tz）');
+{
+  const vals = new Set();
+  for (const f of ['signup.html', 'en/signup.html', 'es/signup.html', 'profile.html', 'en/profile.html', 'es/profile.html']) {
+    const sel = read(f).match(/<select[^>]*id="(?:s2|e)-country"[^>]*>([\s\S]*?)<\/select>/);
+    if (!must(sel, `${f} に国の選択肢が見つからない`)) continue;
+    for (const m of sel[1].matchAll(/<option(?:\s+value="([^"]*)")?[^>]*>([^<]*)/g)) vals.add(m[1] !== undefined ? m[1] : m[2].trim());
+  }
+  vals.delete('');
+  const bad = [];
+  for (const c of vals) {
+    let r;
+    try { r = await one(`select public.pv_follow_tz($1) as z, (now() at time zone public.pv_follow_tz($1)) is not null as valid`, [c]); }
+    catch (e) { bad.push(`${c}（時間帯の名前が無い: ${e.message}）`); continue; }
+    if (r.z === TOKYO && !['日本', 'その他'].includes(c)) bad.push(c);
+  }
+  ok(vals.size >= 20 && bad.length === 0,
+     `★登録・プロフィールの国の選択肢（日英西・${vals.size}）は全部、その国の時間帯に当たる（足した国を忘れると日本時間で届く）`, bad.join(', '));
+  ok((await one(`select public.pv_follow_tz(null) a, public.pv_follow_tz('その他') b, public.pv_follow_tz('アメリカ') c`)).a === TOKYO
+     && (await one(`select public.pv_follow_tz('その他') b`)).b === TOKYO
+     && (await one(`select public.pv_follow_tz('アメリカ') c`)).c === 'America/Chicago',
+     '国が空・「その他」は日本時間・アメリカは中部時間');
+}
+
 // ════════════════ C) 壊す証明 ════════════════
 console.log('\n▼ C 壊す証明');
 {
@@ -330,6 +393,15 @@ console.log('\n▼ C 壊す証明');
   await reset();
   await pay(AU, 'ana');
   ok((await itemsOf(AU)) !== null, '抜いた版では、出した本人にも知らせが行く＝B の「出した本人には知らせない」が赤くなる');
+  await db.exec(FOLLOW.slice(0, FOLLOW.indexOf('-- ── 6. 1時間おきの時計')));
+}
+{
+  const broken = FOLLOW.replace(/\n       and e\.at < w\.cut[^\n]*/, () => '');
+  ok(broken !== FOLLOW, '（準備）「今日入った分は次の日に回す」の1行を抜いた版を作れた');
+  await db.exec(broken.slice(0, broken.indexOf('-- ── 6. 1時間おきの時計')));
+  await reset();
+  await pay(RV, 'ana', { at: await wall(TOKYO, 1, '10:00') });
+  ok((await itemsOf(R1, await wall(TOKYO, 1, '17:30'))) !== null, '抜いた版では、入ったその日の17時に送ってしまう＝B-4 の「入った日のうちは送らない」が赤くなる');
   await db.exec(FOLLOW.slice(0, FOLLOW.indexOf('-- ── 6. 1時間おきの時計')));
 }
 
@@ -380,7 +452,8 @@ ok(mailBoth.lang === 'both' && mailBoth.oneClickUrl === `${SUPA}/functions/v1/re
 
 console.log('\n▼ D-2 送る処理');
 const sent = [], marks = [];
-let dueRows = [{ id: uid(900), email: 'x@example.com', lang: 'ja', unsub_token: 'tok', items }];
+const UPTO = '2026-11-09T15:00:00.000Z';   // 日本の 2026-11-10 0時
+let dueRows = [{ id: uid(900), email: 'x@example.com', lang: 'ja', unsub_token: 'tok', items, upto: UPTO }];
 globalThis.fetch = async (url, init = {}) => {
   url = String(url);
   const b = init.body ? JSON.parse(init.body) : {};
@@ -395,10 +468,10 @@ ok(out.ok === false && sent.length === 0, '合言葉が違えば送らない');
 out = await post({ dry: true });
 ok(out.ok && out.due === 1 && sent.length === 0 && marks.length === 0, '下見（dry）は人数だけ・送らない・記録しない');
 out = await post();
-const day = new Date().toISOString().slice(0, 10);
-ok(out.sent === 1 && sent[0].h['Idempotency-Key'] === `follow:${uid(900)}:${day}` && sent[0].b.reply_to === 'info@pilot-value.com',
-   '1人1通（鍵は follow:<id>:<日付>＝同じ日に2通送らない）・返信は info@', J(out));
-ok(marks.length === 1 && marks[0].p_ok === true, '送れたら記録する');
+ok(out.sent === 1 && sent[0].h['Idempotency-Key'] === `follow:${uid(900)}:2026-11-09` && sent[0].b.reply_to === 'info@pilot-value.com',
+   '1人1通（鍵は follow:<id>:<どこまでの新着かの日付>＝同じ日に2通送らない）・返信は info@', J(out));
+ok(marks.length === 1 && marks[0].p_ok === true && marks[0].p_upto === UPTO, '送れたら、どこまでの新着を送ったか（upto）と一緒に記録する', J(marks));
+ok(F.followKey({ id: 'a' }, new Date('2026-11-09T03:00:00Z')) === 'follow:a:2026-11-09', 'upto が無い行（古い SQL）の鍵は今日の日付');
 ok(!/\d{2,}/.test(sent[0].b.subject) && /全日本空輸（ANA）/.test(sent[0].b.html) && /自由な社風/.test(sent[0].b.html), '件名に数字が無い・本文に会社名と口コミの抜粋');
 
 console.log(`\n══ ${pass} pass / ${fail} fail ══`);
