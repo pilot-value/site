@@ -982,7 +982,7 @@
              同じ会社・同じ月を出し直すと上書きされる（サーバーの決まり）。その月を選んだ状態でフォームを開く
              （?airline= と ?ym= は出し直しのお願い pv-pay-fix.js と同じ入口）。開いた先の送信ボタンの上に「もう出しています」が出る。 */
         const fixHref = 'pay-report.html?airline=' + encodeURIComponent(r.airline || '') + '&ym=' + r.period_year + '-' + r.period_month + '#ps';
-        const fix = (r.airline && r.period_year && r.period_month) ? ' <a class="mine-fix" href="' + esc(fixHref) + '">直す</a>' : '';
+        const fix = (r.airline && r.period_year && r.period_month) ? ' <a class="mine-fix" href="' + esc(fixHref) + '">編集</a>' : '';
         return postRow(name, fmtDate(r.created_at), period ? esc(period) + 'を提出' + fix : '');
       }).join('');
     }

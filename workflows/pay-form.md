@@ -23,7 +23,7 @@
   ⚠️ 表示の切り替えに戻さない。⚠️ `?again=` を固定の値にしない（同じ URL への「#だけの移動」になって読み込み直さない）。
 - **もう出した月の一言**（`dupNote`・送信ボタンの上の `#dup-month`）── 同じ会社・同じ年月を出していれば「◯年◯月はもう出しています。送ると、前の内容と入れ替わります。」。
   止めない（同じ月の出し直し＝上書きが、今の正しい直し方）。行はページを開いたときの `my_pay_reports`（通信は増えない）。
-- **MY PAGE の「直す」**（profile.html の `renderMyPay`）── 各月から `pay-report.html?airline=…&ym=…#ps`（出し直しのお願いと同じ入口）。消すボタンは作らない（オーナー）。
+- **MY PAGE の「編集」**（profile.html の `renderMyPay`）── 各月から `pay-report.html?airline=…&ym=…#ps`（出し直しのお願いと同じ入口）。消すボタンは作らない（オーナー）。
 - **提出後の質問は2回目以降も3問**（`pv-conditions.mjs` の `recurring_limit: 3`。2問答えた人も3問）。1タップの質問だけなのは今までどおり。
 - 検査：`db/test-form-contract.mjs` の通しの最後（読み込み直す・一言が出る／出ない）・`assert-conditions.mjs`（mine=2 の回を足した）。
 
