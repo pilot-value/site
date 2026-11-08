@@ -9,14 +9,21 @@
    こそ referrals.sql の revoke が意味を持つ。無いと「元から権限が無いだけ」を
    「revoke が効いた」と誤読する。
 
-   ★ここでいちばん大事な1行は「n≦2 のとき返り値に数字が1文字も無い」。
-     5人未満の件数を出さない約束は3か所（pay-tracker.js / index.html / my-value.js）に
-     理由つきで書いてあり、今回そこに例外を1つだけ開けている。例外が「3・4のときの
-     2と1だけ」に留まっていることを、画面ではなくサーバの返り値で押さえる。
+   ★「あと○人」（my_cohort_gap）は 2026-11-08 から会社ページと同じ決まり（db/member-median.sql）。
+     区分は 本人のいちばん新しい給与の 会社 × 機長／副操縦士・2人以上で開く・人数は保存してある表を読むだけ。
+     ここでいちばん大事なのは「返り値の整数が remaining の 2 と 1（と、いつも 0 の gained）だけ」と
+     「1人が何か月出しても1人（行ではなく人を数える）」。画面ではなくサーバの返り値で押さえる。
+     ★壊す証明 ── 人数を表から読むのをやめて pay_reports の行を数える版にすると、
+       1人 × 2か月で「開いた」になり、検査が赤くなる。
+     ★本人の行が会員の中央値に数えられない（1 AED の基本給・24か月より古い・下ろした・テスト用アカウント）なら none。
+       ほかに1人の区分と0人の区分で答えが1文字も違わない。壊す証明 ── その判定を抜くと「あと1人／あと2人」で読めてしまう。
+   流す SQL は serve-local.mjs の SQL_FILES と同じ前後（referrals.sql は member-median.sql より先）。
+   member-median.sql を流す前に、表が無いあいだは 'none'（何も言わない）を返すことも見る。
 */
 import { PGlite } from '@electric-sql/pglite';
 import { pgcrypto } from '@electric-sql/pglite/contrib/pgcrypto';
 import { readFileSync } from 'fs';
+import { SQL_FILES } from '../serve-local.mjs';
 
 const read = (f) => readFileSync(new URL('../' + f, import.meta.url), 'utf8');
 
@@ -34,38 +41,64 @@ const boom = async (sql, params) => {
   try { await db.query(sql, params); return null; } catch (e) { return String(e.message || e); }
 };
 
-// ── 器 ───────────────────────────────────────────────────────
+// ── 器（serve-local.mjs の BOOT と同じ形。db/test-member-median.mjs と同じ）─────────────
 await db.exec(`
   create schema if not exists extensions;
   create schema if not exists auth;
   create role anon;
   create role authenticated;
-  grant usage on schema public, extensions to anon, authenticated;
+  grant usage on schema public, extensions, auth to anon, authenticated;
   alter default privileges in schema public grant all on tables to anon, authenticated;
+  alter default privileges in schema public grant execute on functions to anon, authenticated;
+
+  create table auth.users (
+    id uuid primary key, email text, raw_user_meta_data jsonb,
+    created_at timestamptz not null default now());
+  create unique index auth_users_email on auth.users (lower(email));
 
   create table public.profiles (
     id uuid primary key, email text, name text,
-    email_opt_in boolean not null default false
+    email_opt_in boolean not null default false,
+    gender text, birthdate date, country text, company text, "position" text,
+    created_at timestamptz not null default now()
   );
 
   create function auth.uid() returns uuid language sql stable as $$
     select nullif(current_setting('pv.uid', true), '')::uuid $$;
+
+  -- 口コミの表（db/pay-rows.sql などが参照する）。形は serve-local.mjs と同じ
+  create table public.reviews_v2 (
+    id uuid primary key default gen_random_uuid(),
+    proof_hash text not null, airline text not null, "position" text,
+    tenure_bucket text, age_bucket text, fleet text, job_role text,
+    monthly_salary integer, bonus integer, annual_salary integer, base_annual integer,
+    flight_allowance_annual integer,
+    culture_score integer, salary_score integer, benefits_score integer,
+    wlb_score integer, ops_score integer, training_score integer, mgmt_score integer,
+    culture_comment text, salary_comment text, benefits_comment text,
+    wlb_comment text, ops_comment text, training_comment text, mgmt_comment text,
+    orig_lang text, translations jsonb,
+    created_at timestamptz not null default now());
+  alter table public.reviews_v2 enable row level security;
+  revoke all on public.reviews_v2 from anon;
+  create policy reviews_v2_insert_member on public.reviews_v2
+    for insert to authenticated with check (true);
 `);
 
 // ── 適用（順番も含めて本番と同じ手順）────────────────────────
-const FILES = ['db/airlines.generated.sql', 'db/vocab.generated.sql',
-               'db/pay-reports.sql', 'db/pay-report-pending.sql', 'db/referrals.sql'];
+/* serve-local.mjs の SQL_FILES を referrals.sql まで（写さずに読む）。「あと○人」が読む表（member-median.sql）はあとで流す。
+   手元の器も同じ前後 ── 表がまだ無いあいだの答えを、ここで一度見る。
+   ★referrals.sql の前提（pay_hidden・pv_my_keys）は db/pay-rows.sql・db/deep-pay.sql が作る ＝ どちらも referrals.sql より前。 */
+const MM = 'db/member-median.sql';
+const FILES = SQL_FILES.slice(0, SQL_FILES.indexOf('db/referrals.sql') + 1);
+ok(FILES.length > 1 && FILES.includes('db/deep-pay.sql') && FILES.includes('db/pay-rows.sql')
+   && SQL_FILES.indexOf(MM) > SQL_FILES.indexOf('db/referrals.sql'),
+   `流す順が serve-local.mjs の SQL_FILES と同じ（referrals.sql は deep-pay.sql のあと・member-median.sql より先）→ ${FILES.length} 本`);
 
 console.log('\n▼ SQL の適用');
 for (const f of FILES) {
   try { await db.exec(read(f)); console.log(`  ✅ ${f}`); pass++; }
   catch (e) { console.log(`  ❌ ${f}\n     ${e.message}`); fail++; process.exit(1); }
-}
-
-console.log('\n▼ 冪等性（もう一度そのまま流す）');
-for (const f of FILES) {
-  try { await db.exec(read(f)); console.log(`  ✅ ${f} 再適用OK`); pass++; }
-  catch (e) { console.log(`  ❌ ${f} 再適用で失敗\n     ${e.message}`); fail++; }
 }
 
 // ── 道具 ─────────────────────────────────────────────────────
@@ -88,26 +121,71 @@ const BASE = {
   base_iata: 'DXB', seniority_years: 15, rank_years: 4, tax_rate_pct: 0, lang: 'en',
   age_bucket: '40-49',
 };
-/* 区分（会社・職位・機材・年）を丸ごと1つ占有して、n 人ぶんの行を作る。
+/* 区分（会社 × 職位）を丸ごと1つ占有して、n 人ぶんの行を作る（1人1行）。
+   ★区分は会社 × 機長／副操縦士（2026-11-08。機材と年は区分に入れない）。区分ごとに別の会社を使う。
    ★ユーザーは区分ごとに使い捨てにする。同じ人が2つの区分に出すと
      my_cohort_gap は「最新の1件」の区分を返すので、狙った区分を見なくなる。 */
 let seat = 1000;
-const fill = async (pos, fleet, year, n, monthFrom = 1) => {
+const fill = async (air, pos, n, month = 3) => {
   const users = [];
   for (let i = 0; i < n; i++) {
     const u = ++seat;
     await asUser(u);
-    await submit({ ...BASE, position: pos, fleet, period_year: year, period_month: monthFrom + i });
+    await submit({ ...BASE, airline: air, position: pos, fleet: 'b777', period_year: 2026, period_month: month });
     users.push(u);
   }
   return users;
 };
-/* その区分の「いま在る行」を過去へずらす。gained / crossed は created_at の
-   前後だけで決まるので、1トランザクション1タイムスタンプのゆらぎに
-   テストの合否を預けないためにこうする（本番の挙動は変えない）。 */
-const backdate = (pos, fleet, year, days = 1) =>
+/* その人の行を過去へずらす。crossed は created_at と「2人そろった時刻」の前後だけで決まるので、
+   1トランザクション1タイムスタンプのゆらぎにテストの合否を預けないためにこうする（本番の挙動は変えない）。
+   ★created_at の書き換えでも会員の中央値の数え直しは走る（引き金が列を名指ししている）。 */
+const backdate = (u, air, days = 1) =>
   db.query(`update pay_reports set created_at = created_at - ($1 || ' days')::interval
-             where "position"=$2 and fleet=$3 and period_year=$4`, [String(days), pos, fleet, year]);
+             where proof_hash = encode(extensions.digest($2 || '::pv_pay::' || $3, 'sha256'), 'hex')`,
+           [String(days), uid(u), air]);
+const keyOf = async (u, air) => (await one(
+  `select encode(extensions.digest($1 || '::pv_pay::' || $2, 'sha256'), 'hex') h`, [uid(u), air])).h;
+/* 返り値に出てよい整数は remaining の 2 と 1、gained の 0 だけ。ほかの数字が1つでも混ざったら赤。 */
+const smallOnly = (o) => Object.entries(o).every(([k, v]) => typeof v !== 'number'
+  || (k === 'remaining' && (v === 1 || v === 2)) || (k === 'gained' && v === 0));
+/* 区分ごとに別の会社（語彙から取る。このテストのために特定の社名を覚えない）。emirates は上の節が使う。 */
+const AIRS = (await rows(`select code, name_en from pv_airlines where active and code not in ('other', 'emirates')
+                           and name_en is not null order by code limit 60`));
+let airAt = 0;
+const nextAir = () => AIRS[airAt++].code;
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 「あと○人」が読む表（db/member-median.sql）がまだ無いあいだ');
+// ════════════════════════════════════════════════════════════
+{
+  const AIR0 = nextAir();
+  await asUser(980);
+  await submit({ ...BASE, airline: AIR0, position: 'cap', fleet: 'b777', period_year: 2026, period_month: 1 });
+  const r = await gap();
+  ok(r.state === 'none' && Object.keys(r).sort().join(',') === 'ok,state',
+     `★表が無いあいだは何も言わない（数えていないものについて「あと2人」と言わない）→ ${JSON.stringify(r)}`);
+
+  try { await db.exec(read(MM)); console.log(`  ✅ ${MM}`); pass++; }
+  catch (e) { console.log(`  ❌ ${MM}\n     ${e.message}`); fail++; process.exit(1); }
+  await asUser(980);
+  const r2 = await gap();
+  ok(r2.state === 'near' && r2.remaining === 1, `表を作った瞬間から読める（1人の区分 → あと1人）→ ${JSON.stringify(r2)}`);
+
+  // 古い member-median.sql（そろった時刻の列が無い）の上に referrals.sql を貼ろうとしたら、日本語で止める
+  await db.exec(`begin`);
+  await db.exec(`alter table public.pv_member_median drop column opened_at`);
+  const stop = await db.exec(read('db/referrals.sql')).then(() => null, (e) => String(e.message || e));
+  await db.exec(`rollback`);
+  ok(/先に db\/member-median\.sql を貼り直してください/.test(stop || ''),
+     `★古い表の上に貼ろうとしたら止まる（貼れたまま全員にエラーを返す、を作らない）→ ${String(stop).slice(0, 80)}`);
+}
+
+console.log('\n▼ 冪等性（もう一度そのまま流す）');
+for (const f of ['db/referrals.sql', MM]) {
+  try { await db.exec(read(f)); console.log(`  ✅ ${f} 再適用OK`); pass++; }
+  catch (e) { console.log(`  ❌ ${f} 再適用で失敗\n     ${e.message}`); fail++; }
+}
 
 
 // ════════════════════════════════════════════════════════════
@@ -290,102 +368,201 @@ ok((await claim(c400)).status === 'rate_limited', '未成立が200件たまっ�
 
 
 // ════════════════════════════════════════════════════════════
-console.log('\n▼ 「あと○人で詳細比較」— ここが本体');
+console.log('\n▼ 「あと○人で比較」— ここが本体（2人で開く・人数は会員の中央値の表を読むだけ）');
 // ════════════════════════════════════════════════════════════
-const numbersIn = (o) => JSON.stringify(o).replace(/"[^"]*"\s*:/g, '').match(/\d/g) || [];
-
 await asUser(700);
 ok((await gap()).state === 'none', '投稿が1件も無い人には何も出さない');
 
 await asUser(701);
 await submit({ ...BASE, airline: 'other', airline_other: 'Some Charter Co',
                position: 'cap', fleet: 'a320', period_year: 2025, period_month: 4 });
-ok((await gap()).state === 'none', '一覧にない会社（自由入力）だけの人には出さない（集計に入らないため）');
+ok((await gap()).state === 'none', '一覧にない会社（自由入力・どの会社にも当たらない）だけの人には出さない（集計に入らないため）');
 
-// ── n=1 と n=2：数字を1つも返さない ────────────────────────
-const g1 = await fill('fo', 'a320', 2025, 1);
+// ── 1人（自分だけ）：あと1人 ────────────────────────────────
+const AIR1 = nextAir();
+const g1 = await fill(AIR1, 'fo', 1);
 await asUser(g1[0]);
 const r1 = await gap();
-ok(r1.state === 'few', 'n=1 は few');
-ok(numbersIn(r1).length === 0, `★n=1 の返り値に数字が1文字も無い → ${JSON.stringify(r1)}`);
-ok(!('remaining' in r1) && !('n' in r1) && !('gained' in r1),
-   'n=1 では remaining も n も gained も返さない');
+ok(r1.state === 'near' && r1.remaining === 1, `★1人（自分だけ）→ あと1人 → ${JSON.stringify(r1)}`);
+ok(Object.keys(r1).sort().join(',') === 'crossed,gained,ok,remaining,state', `返るキーは今までと同じ形 → ${Object.keys(r1).sort().join(',')}`);
+ok(!('n' in r1) && smallOnly(r1) && r1.gained === 0 && r1.crossed === false, '生の n は返さない・整数は remaining の 1 と gained の 0 だけ');
 
-const g2 = await fill('fo', 'b737', 2025, 2);
-await asUser(g2[0]);
-const r2 = await gap();
-ok(r2.state === 'few', 'n=2 も few');
-ok(numbersIn(r2).length === 0, `★n=2 の返り値に数字が1文字も無い → ${JSON.stringify(r2)}`);
-ok(JSON.stringify(r1) === JSON.stringify(r2), 'n=1 と n=2 は見分けがつかない（人数が漏れない）');
+// ── 1人が何か月出しても1人（行ではなく人を数える）─────────────
+/* personCheck() を、本物と「pay_reports の行を数える」に戻した版の両方に当てる（壊す証明は下）。 */
+const AIRP = nextAir();
+const PP = 960;
+const personCheck = async () => {
+  await asUser(PP);
+  return (await gap());
+};
+await asUser(PP);
+await submit({ ...BASE, airline: AIRP, position: 'cap', fleet: 'b777', period_year: 2026, period_month: 1 });
+await submit({ ...BASE, airline: AIRP, position: 'cap', fleet: 'b777', period_year: 2026, period_month: 2 });
+ok(Number((await one(`select count(*) n from pay_reports where proof_hash = $1`, [await keyOf(PP, AIRP)])).n) === 2, '（準備）1人で2行（2か月）');
+const rpp = await personCheck();
+ok(rpp.state === 'near' && rpp.remaining === 1, `★1人 × 2か月は1人のまま（開かない・あと1人）→ ${JSON.stringify(rpp)}`);
 
-// ── n=3 / n=4：ここだけ数を出す ────────────────────────────
-const g3 = await fill('fo', 'a220', 2025, 3);
-await asUser(g3[2]);            // 最後に出した人が見る
-const r3 = await gap();
-ok(r3.state === 'near' && r3.remaining === 2, `n=3 → あと2人 → ${JSON.stringify(r3)}`);
-ok(!('n' in r3), 'n=3 でも生の n は返さない');
+// ── 本人の行が会員の中央値に数えられない ＝ 何も言わない（ほかに0人か1人かを読ませない）──────────
+/* 1 AED の基本給だけの行（年 $10,000 に届かない）で区分を決めると、表の n は「本人以外の人数」そのもの。
+   ほかに1人いる区分と0人の区分で答えが変わると、どの会社 × 職位でも試して読めてしまう。
+   leakCheck() を、本物と「本人の行の判定を抜いた版」の両方に当てる（壊す証明は下）。 */
+const TINY = { ...BASE, base_pay: 1, hourly_rate: null, guaranteed_hours: null, block_hours: null,
+               per_diem: null, housing_type: null, housing_amount: null };
+const AIRL1 = nextAir(), AIRL0 = nextAir();
+await fill(AIRL1, 'cap', 1);                                  // ほかに1人（ふつうの額）
+const LK1 = 950, LK0 = 951;
+await asUser(LK1); await submit({ ...TINY, airline: AIRL1, position: 'cap', fleet: 'b777', period_year: 2026, period_month: 3 });
+await asUser(LK0); await submit({ ...TINY, airline: AIRL0, position: 'cap', fleet: 'b777', period_year: 2026, period_month: 3 });
+ok(Number((await one(`select annual_total_usd v from pay_reports where proof_hash = $1`, [await keyOf(LK1, AIRL1)])).v) < 10000,
+   '（準備）1 AED の行は年 $10,000 に届かない（会員の中央値に数えられない）');
+const leakCheck = async () => {
+  await asUser(LK1); const a = await gap();
+  await asUser(LK0); const b = await gap();
+  return { a, b, good: a.state === 'none' && b.state === 'none' && JSON.stringify(a) === JSON.stringify(b) };
+};
+const lk = await leakCheck();
+ok(lk.a.state === 'none', `★数えられない本人 ＋ ほかに1人 → none（「あと1人」と言わない）→ ${JSON.stringify(lk.a)}`);
+ok(lk.b.state === 'none', `★数えられない本人 ＋ ほかに0人 → none（「あと2人」と言わない）→ ${JSON.stringify(lk.b)}`);
+ok(lk.good, '★ほかに1人の区分と0人の区分で、答えが1文字も違わない');
+// ほかの「数えられない」も同じ：24か月より古い・下ろした・テスト用アカウント
+{
+  const AIRO = nextAir(), AIRH = nextAir(), AIRU = nextAir();
+  const go = await fill(AIRO, 'fo', 1);
+  await backdate(go[0], AIRO, 800);                           // 24か月より古い
+  await asUser(go[0]);
+  ok((await gap()).state === 'none', '24か月より古い行の人 → none');
+  const gh = await fill(AIRH, 'cap', 1);
+  await db.query(`insert into public.pay_hidden (proof_hash, reason) values ($1, '検査')`, [await keyOf(gh[0], AIRH)]);
+  await asUser(gh[0]);
+  ok((await gap()).state === 'none', '一覧から下ろした人 → none');
+  const gu = await fill(AIRU, 'cap', 1);
+  await db.query(`insert into public.pv_test_users (uid) values ($1)`, [uid(gu[0])]);
+  await asUser(gu[0]);
+  ok((await gap()).state === 'none', 'テスト用アカウント → none');
+  // 数えられる本人は今までどおり（本人だけ ＝ あと1人）
+  const gk = await fill(nextAir(), 'cap', 1);
+  await asUser(gk[0]);
+  const rk = await gap();
+  ok(rk.state === 'near' && rk.remaining === 1 && smallOnly(rk), `数えられる本人だけの区分は今までどおり あと1人 → ${JSON.stringify(rk)}`);
+}
+// 壊す証明: 本人の行の判定（幅・24か月・下ろした・テスト用アカウント）を抜いた版
+{
+  const src = read('db/referrals.sql');
+  const a0 = src.indexOf('create or replace function public.my_cohort_gap()');
+  const fsrc = a0 < 0 ? '' : src.slice(a0, src.indexOf('\n$$;', a0) + '\n$$;'.length);
+  const i0 = fsrc.indexOf('  if v_usd is null or not (v_usd between 10000 and 700000)');
+  const i1 = i0 < 0 ? -1 : fsrc.indexOf('  end if;\n', i0);
+  const broken = (i0 < 0 || i1 < 0) ? '' : fsrc.slice(0, i0) + fsrc.slice(i1 + '  end if;\n'.length);
+  ok(broken && !broken.includes('v_usd between') && broken.includes('from public.pv_member_median m'), '（本人の行の判定を見つけて抜いた）');
+  await db.exec(`begin`);
+  await db.exec(broken);
+  const red = await leakCheck();
+  await db.exec(`rollback`);
+  ok(!red.good && red.a.remaining === 1 && red.b.remaining === 2,
+     `★抜いた版では「ほかに1人 → あと1人」「ほかに0人 → あと2人」と読めてしまう（検査が赤くなる）→ ${JSON.stringify({ a: red.a, b: red.b })}`);
+  ok((await leakCheck()).good, '（巻き戻したあと: 本物は緑）');
+}
 
-const g4 = await fill('fo', 'b757', 2025, 4);
-await asUser(g4[3]);
-const r4 = await gap();
-ok(r4.state === 'near' && r4.remaining === 1, `n=4 → あと1人 → ${JSON.stringify(r4)}`);
+// ── 2人：開く ────────────────────────────────────────────────
+/* 1人目を1日前へずらしてから2人目が出す ＝ 2人そろったのは1人目が記録したあと。 */
+const AIR2 = nextAir();
+const g2a = await fill(AIR2, 'fo', 1);
+await backdate(g2a[0], AIR2, 1);
+const g2b = await fill(AIR2, 'fo', 1);
+await asUser(g2b[0]);
+const r2b = await gap();
+ok(r2b.state === 'open', `★2人で open（普通の比較が出る）→ ${JSON.stringify(r2b)}`);
+ok(!('remaining' in r2b), 'open では remaining を返さない（「あと0人」と書かせない）');
+ok(r2b.crossed === false && r2b.gained === 0,
+   `★自分の提出でちょうど2人になった人には「そろいました」を言わない → ${JSON.stringify(r2b)}`);
+await asUser(g2a[0]);
+const r2a = await gap();
+ok(r2a.state === 'open' && r2a.crossed === true,
+   `★自分が記録したあとに2人そろった人には crossed → ${JSON.stringify(r2a)}`);
+ok(r2a.gained === 0,
+   '★gained はいつも 0（保存してある表に「前回の人数」が無い＝本当のことを安く言えないので、言わない）');
+const g2c = await fill(AIR2, 'fo', 1);
+await asUser(g2c[0]);
+ok((await gap()).crossed === false, 'もともと2人以上そろっていた区分に出した人には crossed を立てない');
 
-// ── n≧5：比較が出るので招待の導線は出さない ────────────────
-/* ★区分は（会社・職位・機材・年）の4つ。ここから下は「同じ区分を丸ごと1つ占有する」
-   ことだけが目的なので、職位は cap / fo のどちらでもよく、機材だけ他とぶつからない
-   ものを選んでいる。2026-09-02 まで訓練生を3本目の軸に使っていたが、訓練生は
-   選択肢から外した（＝ pv_validate_pay_payload が弾く）ので、
-   fo × 未使用の機材（b767 / b787 / b747）に置き換えてある。
-   ⚠️ 区分を足すときは、既にある (職位, 機材, 年) と重ならないものにする。
-      重なると2つのテストが同じ人数を数えて、どちらかが理由もなく落ちる。 */
-const g5 = await fill('fo', 'b767', 2025, 5);
-await asUser(g5[4]);            // 最後に出した人＝自分より後の行が無い
-const r5 = await gap();
-ok(r5.state === 'open', 'n=5 は open（普通の比較が出る）');
-ok(!('remaining' in r5), 'open では remaining を返さない（「あと0人」と書かせない）');
-ok(r5.crossed === false && r5.gained === 0, `最後に出した人には増分が無い → ${JSON.stringify(r5)}`);
-
-const g9 = await fill('fo', 'b787', 2025, 9);
+// ── 9人：生の n は絶対に返らない ────────────────────────────────
+const AIR9 = nextAir();
+const g9 = await fill(AIR9, 'fo', 9);
 await asUser(g9[8]);
 const r9 = await gap();
 ok(r9.state === 'open', 'n=9 も open');
-ok(!Object.values(r9).includes(9), `★値が 9 のキーが1つも無い（生の n は絶対に返らない）→ ${JSON.stringify(r9)}`);
+ok(!Object.values(r9).includes(9) && smallOnly(r9), `★値が 9 のキーが1つも無い（生の n は絶対に返らない）→ ${JSON.stringify(r9)}`);
+
+// ── 区分は「いちばん新しい給与の行」の 会社 × 職位 ─────────────
+/* 2人いる会社に先に出し、あとで1人の会社へ移った人 → 移った先（1人）の区分で答える */
+const AIRM = nextAir();
+const gm = await fill(AIRM, 'fo', 1, 1);
+await submit({ ...BASE, airline: AIR2, position: 'fo', fleet: 'b777', period_year: 2025, period_month: 12 });   // 同じ人・古い月・2人以上の会社
+await asUser(gm[0]);
+const rm = await gap();
+ok(rm.state === 'near' && rm.remaining === 1, `★区分はいちばん新しい給与の月の会社（古い月の会社では開いていても）→ ${JSON.stringify(rm)}`);
+// 職位は機長・副操縦士の2つだけ（昔の行に残る訓練生は 'none'）
+const AIRC = nextAir();
+const gc = await fill(AIRC, 'cap', 1);
+await db.query(`update pay_reports set "position" = 'cadet' where proof_hash = $1`, [await keyOf(gc[0], AIRC)]);
+await asUser(gc[0]);
+ok((await gap()).state === 'none', '職位が機長でも副操縦士でもない行（昔の訓練生）なら何も出さない');
+
+// ── 自由入力の社名が会社コードに直るなら、その会社の区分 ─────────
+let AIRT = null, TYPED = null;
+for (const r of AIRS.slice(airAt)) {
+  const typed = String(r.name_en).toUpperCase();
+  if ((await one(`select public.pv_airline_resolve($1) c`, [typed])).c === r.code) { AIRT = r.code; TYPED = typed; break; }
+}
+ok(AIRT, '（準備）自由入力の社名の見本', String(TYPED));
+const gt = await fill(AIRT, 'cap', 1);
+await asUser(970);
+await submit({ ...BASE, airline: 'other', airline_other: TYPED, position: 'cap', fleet: 'b777', period_year: 2026, period_month: 3 });
+const rt = await gap();
+ok(rt.state === 'open', `★打ち込んだ社名が会社コードに直る人は、その会社の区分（2人そろって open）→ ${JSON.stringify(rt)}`);
+
+// ── 人数は保存してある表から読む（読むたびに数えない）──────────────
+/* 表の n だけを持ち主として書き換えると、答えがその n に従う ＝ 数え直していない証拠。
+   次の書き込みで引き金が作り直すので、本番の数字は崩れない。 */
+await db.query(`update public.pv_member_median set n = 5 where airline = $1 and rank = 'fo'`, [AIR1]);
+await asUser(g1[0]);
+ok((await gap()).state === 'open', '★表の n を書き換えると答えがそれに従う（読むたびに pay_reports を数え直していない）');
+await db.exec(`select public.pv_member_median_refresh()`);
+await asUser(g1[0]);
+ok((await gap()).state === 'near', '（数え直すと元の 1人 に戻る）');
+await db.query(`delete from public.pv_member_median where airline = $1`, [AIR1]);
+await asUser(g1[0]);
+const rgone = await gap();
+ok(rgone.state === 'near' && rgone.remaining === 2, `表にその区分の行が無ければ 0人 ＝ あと2人 → ${JSON.stringify(rgone)}`);
+await db.exec(`select public.pv_member_median_refresh()`);
 
 // ── 他人の区分は引けない ────────────────────────────────────
-await asUser(g1[0]);
-ok((await gap()).state === 'few', '引数が無いので、自分の区分しか見られない（n=1 の人には few のまま）');
 ok(Number((await one(`select pronargs from pg_proc where proname='my_cohort_gap'`)).pronargs) === 0,
    'my_cohort_gap は引数を取らない（総当たりの対象が存在しない）');
 
-// ── 「良くなった」の判定 ────────────────────────────────────
-const gg = await fill('cap', 'a220', 2025, 1);
-await backdate('cap', 'a220', 2025, 1);          // 自分の行を1日前へ
-await fill('cap', 'a220', 2025, 2, 5);           // そのあと2件増える
-await asUser(gg[0]);
-const rg2 = await gap();
-ok(rg2.state === 'near' && rg2.remaining === 2 && rg2.gained === 2,
-   `前回自分が記録してから2件増えた → ${JSON.stringify(rg2)}`);
-
-// §25 — 自分より前の行しか無い区分では、どう呼んでも「増えました」にならない
-const gb = await fill('cap', 'b757', 2025, 2);
-await backdate('cap', 'b757', 2025, 1);
-const gb2 = await fill('cap', 'b757', 2025, 1, 5);
-await asUser(gb2[0]);
-const rb = await gap();
-ok(rb.gained === 0, `★全部が自分の投稿より前なら gained は0（嘘の「増えました」が表現できない）→ ${JSON.stringify(rb)}`);
-await asUser(gb2[0]);
-ok((await gap()).gained === 0, '何度呼んでも0のまま');
-
-// crossed — 4人から5人へ越えた瞬間だけ true
-const gc = await fill('fo', 'b747', 2025, 1);
-await backdate('fo', 'b747', 2025, 1);
-await fill('fo', 'b747', 2025, 4, 5);
-await asUser(gc[0]);
-const rc = await gap();
-ok(rc.state === 'open' && rc.crossed === true && rc.gained === 4,
-   `4人ぶん増えて5人になった → ${JSON.stringify(rc)}`);
-await asUser(g9[8]);
-ok((await gap()).crossed === false, 'もともと5人以上そろっていた人には crossed を立てない');
+// ── 壊す証明：人数を表から読むのをやめて、pay_reports の行を数える版 ──────────
+{
+  const src = read('db/referrals.sql');
+  const a0 = src.indexOf('create or replace function public.my_cohort_gap()');
+  const fsrc = a0 < 0 ? '' : src.slice(a0, src.indexOf('\n$$;', a0) + '\n$$;'.length);
+  const READ = `  select m.n, m.opened_at
+    into v_n, v_open
+    from public.pv_member_median m
+   where m.airline = v_air and m.rank = v_rank;`;
+  const ROWS = `  select count(*), null
+    into v_n, v_open
+    from public.pay_reports r
+   where r.airline = v_air and r."position" = v_pos and r.annual_total_usd is not null;`;
+  const broken = fsrc.replace(READ, () => ROWS);
+  ok(fsrc.split(READ).length === 2 && broken !== fsrc, '（表を読む1文を見つけて、行を数える1文に差し替えた）');
+  ok((await personCheck()).state === 'near', '（本物）1人 × 2か月の人は near');
+  await db.exec(`begin`);
+  await db.exec(broken);
+  const red = await personCheck();
+  await db.exec(`rollback`);
+  ok(red.state === 'open', `★壊した版では、1人 × 2か月で「開いた」になる（検査が赤くなる）→ ${JSON.stringify(red)}`);
+  ok((await personCheck()).state === 'near', '（巻き戻したあと: 本物は near）');
+}
 
 // ── 式ずれの警報 ────────────────────────────────────────────
 // pay_reports に user_id は無く、自分の行は sha256(uid || '::pv_pay::' || 会社コード)
@@ -423,7 +600,7 @@ console.log('\n▼ ファイル末尾の自己点検（オーナーが本番で�
   const head = sql.lastIndexOf('with f as (');
   ok(head > 0, '自己点検の SELECT がファイル末尾にある');
   const res = await rows(sql.slice(head));
-  ok(res.length === 12, `自己点検が12行ある → ${res.length} 行`);
+  ok(res.length === 15, `自己点検が15行ある → ${res.length} 行`);
   for (const r of res) ok(r['結果'] === '✅', `自己点検 ${r['#']}. ${r['見るところ']}`);
 }
 

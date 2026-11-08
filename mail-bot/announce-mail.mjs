@@ -22,7 +22,7 @@
      ・最後だけログイン …… pay-login.js（2026-08-14）
      ・解放90日 ……… db/pay-reports.sql:722（now() + interval '90 days'）
      ・出る数字4つ …… pay-report.html renderResult()
-                      年換算の総額／時間あたり報酬（$/block hour）／推定手取り（年）／解放
+                      年換算／換算／乗務時間あたり／解放（2026-11-08 に推定手取り・上位◯%を外した）
    ★同区分パーセンタイルは書かない。n≧5 でしか出ないので、
      いま受け取る人には出ない（＝書いたら嘘になる）。
    ════════════════════════════════════════════════════════════════ */
@@ -143,11 +143,10 @@ export const SAMPLE = {
     tag: '見本',
     eyebrow: '受け取りました',
     big: 'JPY 21,600,000',
-    sub: '年換算の総額（2026年7月の明細から）',
+    sub: '2026年7月の年換算',
     rows: [
       ['換算', '$135,000 ／ ¥2,160万'],
-      ['時間あたり報酬', '$169 / block hour'],
-      ['推定手取り（年）', '¥1,536万'],
+      ['乗務時間あたり', '$169'],
       ['REAL PAY の解放', '90日間'],
     ],
     note: '※ 上記はすべて架空の見本です。ご自身の数値は、ログイン後の画面にのみ表示されます。',
@@ -172,14 +171,13 @@ export const SAMPLE = {
     tag: 'Sample',
     eyebrow: 'Received',
     big: 'JPY 21,600,000',
-    sub: 'Annualised total (from your July 2026 payslip)',
+    sub: 'Annualised from July 2026',
     rows: [
       /* ★英語側は「万」を使わない。en/pay-report.html の jpyMan は桁を丸ごと出す
            （日本語版だけが /10000 して「万」を付ける）。ここを揃えないと、
            メールで見た形と画面で出る形が違う物に見える。 */
       ['Converted', '$135,000 / ¥21,600,000'],
-      ['Pay per block hour', '$169 / block hour'],
-      ['Estimated take-home (yr)', '¥15,360,000'],
+      ['Per block hour', '$169'],
       ['REAL PAY unlocked', '90 days'],
     ],
     note: 'All figures above are a made-up example. Your own numbers are shown only after you sign in.',

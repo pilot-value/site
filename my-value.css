@@ -742,3 +742,7 @@
   .mp-cta,.mp-set-lk a{transition-duration:.01ms}
   .mp-cta:hover{transform:none}
 }
+
+/* 運営だけに出る見本の切り替え（my-value.js の opBar・2026-11-08） */
+#pv-value .mv-op{align-items:center;margin:0 0 18px}
+#pv-value .mv-op-h{font-size:.74rem;font-weight:700;color:var(--pv-ink-3);margin-right:4px}

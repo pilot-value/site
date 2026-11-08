@@ -228,7 +228,7 @@ ok(r.ok === true, '投稿が通る');
 ok(Number(r.annual_total_orig) === 651000, `原本通貨の年換算 AED ${r.annual_total_orig}`);
 ok(r.annual_total_usd !== null && Number(r.annual_total_usd) > 0, `USD 換算 $${r.annual_total_usd}`);
 ok(Number(r.usd_per_block_hour) > 0, `$/block hour = ${r.usd_per_block_hour}`);
-ok(r.benchmark === null, 'n<5 なのでベンチマークを返さない（k≧5 は RPC でも同じ閾値）');
+ok('benchmark' in r && r.benchmark === null, '投稿の見返り（benchmark）はキーだけ残して null（2026-11-08 から、人数に関係なくいつも）');
 
 const stored = await one(`select * from pay_reports where period_month=6`);
 ok(stored.currency === 'AED', `原本通貨のまま保存 → ${stored.currency}`);
@@ -360,7 +360,9 @@ ok(!viewCols.includes('proof_hash'), '公開集計に proof_hash が無い');
 // 5人目の投稿にはベンチマークが返る
 await asUser(15);
 r = (await submit({ ...BASE, base_pay: 25000, period_year: 2026, period_month: 6 })).r;
-ok(r.benchmark !== null, `n≧5 になったら投稿の見返りが返る → n=${r.benchmark?.n} / 上位${100 - Number(r.benchmark?.percentile)}%`);
+/* ★2026-11-08 から見返りはいつも null。5人の区分の 25%・中央値・75% は2・3・4番目の人の額そのもので、
+   新しい月に極端な額を出し直せば他人の額を読み戻せた（画面ももう読んでいない）。 */
+ok('benchmark' in r && r.benchmark === null, `★5人そろっても投稿の見返りは返さない（他人の額を読み戻す道を作らない）→ ${JSON.stringify(r.benchmark)}`);
 
 // 自由入力の社名は集計から外れる
 console.log('\n▼ 自由入力の社名');
@@ -370,6 +372,131 @@ for (let i = 20; i <= 25; i++) {
 }
 bm = await rows(`select * from pay_benchmarks where airline='other'`);
 ok(bm.length === 0, `airline_other は6件あっても集計に出ない → ${bm.length} 行`);
+
+// ── 公開集計は「人」で数える（2026-11-08）────────────────────
+/* それまでは行のまま count(*) していたので、同じ人が同じ年に5か月出しただけでセルが開き、
+   その1人の中央値・25%・75%・時間あたりが未ログインの人にも読めていた。
+   いまは 1人（proof_hash）× セルで1行（その人のいちばん新しい月）に縮めてから数える。
+   時間あたりの中央値（median_usd_per_bh）も、乗務時間を書いた人が5人以上のときだけ出す。
+   投稿の見返り（submit_pay_report の 'benchmark'）は、2026-11-08 から人数に関係なくいつも null。
+   ★下の personCheck() を、本物のビューと「行のまま数える」に戻した版の両方に当てる（壊す証明）。 */
+console.log('\n▼ 公開集計は人で数える（1人が何か月出しても1人）');
+await db.exec(`delete from pay_reports`);
+const PP = { ...BASE, airline: 'emirates', position: 'cap', fleet: 'b777', period_year: 2025 };
+const cellOf = async () => (await rows(
+  `select * from pay_benchmarks where airline='emirates' and "position"='cap' and fleet='b777' and period_year=2025`));
+// A：1人で5か月。休日とセクターも毎月書く（ほかの4人は書かない）。年収は5か月とも高い。
+const PA = 700;
+await asUser(PA);
+let rA = null;
+for (let m = 1; m <= 5; m++) rA = (await submit({ ...PP, base_pay: 60000, days_off: 10 + m, sectors: 40 + m, period_month: m })).r;
+ok(Number((await one(`select count(*) n from pay_reports where airline='emirates'`)).n) === 5, '（準備）1人で5行（5か月）入った');
+ok((await cellOf()).length === 0, '★1人 × 5か月ではセルが開かない（5行あっても1人）');
+ok(rA.benchmark === null, '★1人 × 5か月では投稿の見返りも返らない（その人の数字が中央値として返らない）', JSON.stringify(rA.benchmark));
+// B〜D：1か月ずつ。4人（行は8）ではまだ開かない。B〜E は乗務時間を書かない（時間あたりを持つのは A だけ）
+const PB = [701, 702, 703, 704];
+const lowBase = [20000, 21000, 22000, 23000];
+const NOHOURS = { hourly_rate: null, guaranteed_hours: null, block_hours: null };
+for (let i = 0; i < 3; i++) { await asUser(PB[i]); await submit({ ...PP, ...NOHOURS, base_pay: lowBase[i], period_month: 3 }); }
+ok((await cellOf()).length === 0, '★4人（行は8）でもまだ開かない');
+// E：5人目
+await asUser(PB[3]);
+const rE = (await submit({ ...PP, ...NOHOURS, base_pay: lowBase[3], period_month: 3 })).r;
+ok(Number((await one(`select count(*) n from pay_reports where airline='emirates' and usd_per_block_hour is not null`)).n) === 5,
+   '（準備）時間あたりを持つのは A の5行だけ（B〜E は乗務時間を書いていない）');
+const cellP = (await cellOf())[0];
+ok(cellP && Number(cellP.n) === 5, `★5人そろうと開く・n は人数 → n=${cellP?.n}（行は9）`);
+/* 1人1値。5人の年収を小さい順に並べると [B, C, D, E, A]。
+   percentile_cont の 25% / 50% / 75% は、5つのうち2・3・4番目ちょうどになる。
+   行のまま数えると A の5行が上半分を占め、中央値は A の額になる。 */
+const usdOf = async (n) => Number((await one(
+  `select annual_total_usd v from pay_reports where proof_hash = encode(extensions.digest($1 || '::pv_pay::emirates','sha256'),'hex')
+   order by period_month desc limit 1`, [uid(n)])).v);
+const vals = [];
+for (const n of [...PB, PA]) vals.push(await usdOf(n));
+vals.sort((a, b) => a - b);
+const near = (a, b) => Math.abs(Number(a) - Number(b)) < 0.01;
+ok(cellP && near(cellP.median_usd, vals[2]) && near(cellP.p25_usd, vals[1]) && near(cellP.p75_usd, vals[3]),
+   `★1人が何か月出しても中央値を占めない（中央値 ${cellP?.median_usd} ＝ 3番目の人 ${vals[2]}・A の額 ${vals[4]} ではない）`,
+   JSON.stringify({ cell: cellP && { m: cellP.median_usd, p25: cellP.p25_usd, p75: cellP.p75_usd }, vals }));
+ok(cellP && cellP.median_days_off === null && cellP.median_sectors === null,
+   `★休日・セクターを書いたのは A 1人（5か月）＝ 1人なので出さない → ${cellP?.median_days_off} / ${cellP?.median_sectors}`);
+ok(cellP && Number(cellP.housing_provided_pct) === 0, `住居は5人とも答えている＝出る → ${cellP?.housing_provided_pct}`);
+ok(cellP && cellP.median_usd_per_bh === null,
+   `★時間あたりを持つのは A 1人（5か月）＝ 1人なので出さない（門は「書いた人が5人以上」）→ ${cellP?.median_usd_per_bh}`);
+ok('benchmark' in rE && rE.benchmark === null,
+   `★5人目が出しても投稿の見返りは返さない（2・3・4番目の人の額を返さない）→ ${JSON.stringify(rE.benchmark)}`);
+// 残す1行は、その人のいちばん新しい月。A が6か月目に額を下げると、A の値として6か月目が入る
+await asUser(PA);
+await submit({ ...PP, base_pay: 19000, period_month: 6 });
+const cellP6 = (await cellOf())[0];
+const vals6 = [await usdOf(PA), ...(await Promise.all(PB.map(usdOf)))].sort((a, b) => a - b);
+ok(cellP6 && Number(cellP6.n) === 5 && near(cellP6.median_usd, vals6[2]) && near(cellP6.p25_usd, vals6[1]),
+   `★残すのはその人のいちばん新しい月（A は6か月目の額で1人ぶん・n は5のまま）→ n=${cellP6?.n} 中央値 ${cellP6?.median_usd}`,
+   JSON.stringify({ vals6 }));
+
+/* ── 壊す証明 ──
+   同じ確かめ方（personCheck）を、ビューを「行のまま数える」昔の形に戻した版にも当てる。
+   壊した版は begin … rollback の中でだけ入れる（ファイルは触らない）。 */
+{
+  const personCheck = async () => {
+    // A だけが a380 に5か月（年は b777 と別にする ── 同じ年・同じ月は1人1行なので、b777 の行を上書きしてしまう）
+    await db.exec(`delete from pay_reports where airline = 'emirates' and fleet = 'a380'`);
+    await db.query(`update profiles set pay_reports_today = 0 where id = $1`, [uid(PA)]);   // 1日10件の上限はここの話ではない
+    await asUser(PA);
+    for (let m = 1; m <= 5; m++) await submit({ ...PP, fleet: 'a380', period_year: 2024, base_pay: 60000, days_off: 9, period_month: m });
+    const solo = await rows(`select * from pay_benchmarks where airline='emirates' and fleet='a380'`);
+    const c = (await cellOf())[0];
+    return solo.length === 0 && c && Number(c.n) === 5 && near(c.median_usd, vals6[2]) && c.median_days_off === null;
+  };
+  ok(await personCheck(), '（本物）人で数える検査は緑');
+
+  const src = read('db/pay-reports.sql');
+  const a = src.indexOf('drop view if exists public.pay_benchmarks;');
+  const b = src.indexOf('having count(*) >= 5;', a) + 'having count(*) >= 5;'.length;
+  const view = a < 0 ? '' : src.slice(a, b);
+  const s0 = view.indexOf('  from (\n'), s1 = view.indexOf('  ) one\n');
+  const rowsView = (s0 < 0 || s1 < 0) ? '' : view.slice(0, s0)
+    + `  from public.pay_reports\n where annual_total_usd is not null and airline_other is null\n`
+    + view.slice(s1 + '  ) one\n'.length);
+  ok(rowsView && !/distinct on/i.test(rowsView) && /having count\(\*\) >= 5/.test(rowsView),
+     '（ビューを「行のまま数える」形に戻した版を作れた）');
+  /* オーナーが本番で見る 8-16 と 8-16b（db/pay-reports.sql の検算）も、同じ2つに当てる。 */
+  const q = (tag) => { const i = src.indexOf(`-- ${tag}.`); const j = src.indexOf('\nselect ', i); return i < 0 || j < 0 ? '' : src.slice(j + 1, src.indexOf(';', j)); };
+  const q816 = q('8-16'), q816b = q('8-16b');
+  ok(q816.includes('pay_benchmarks') && q816b.includes('count(distinct proof_hash)'), '（検算 8-16 と 8-16b を見つけた）');
+  ok((await rows(q816)).length === 0 && (await rows(q816b)).length === 0, '（本物）検算 8-16・8-16b は 0 行');
+  await db.exec(`begin`);
+  await db.exec(rowsView);
+  const red = await personCheck();
+  const soloRed = await rows(`select n, median_usd, median_days_off from pay_benchmarks where airline='emirates' and fleet='a380'`);
+  const red816 = (await rows(q816)).length, red816b = (await rows(q816b)).length;
+  await db.exec(`rollback`);
+  ok(!red && soloRed.length === 1 && Number(soloRed[0].n) === 5 && Number(soloRed[0].median_days_off) === 9,
+     '★壊した版では、1人 × 5か月でセルが開き、その1人の休日数が「中央値」として出る（検査が赤くなる）', JSON.stringify(soloRed));
+  ok(red816 > 0 && red816b > 0, `★壊した版では、オーナーの検算 8-16・8-16b にも行が出る（${red816} 行・${red816b} 行）`);
+  ok(await personCheck(), '（巻き戻したあと: 本物は緑）');
+
+  /* 時間あたりの門（書いた人が5人以上）を外した版。b777 のセルで時間あたりを持つのは A 1人。 */
+  const GATE = '       case when count(usd_per_block_hour) >= 5\n'
+             + '            then percentile_cont(0.5) within group (order by usd_per_block_hour)\n'
+             + '       end ';
+  const gi = view.indexOf(GATE), ge = gi < 0 ? -1 : view.indexOf('as median_usd_per_bh,', gi);
+  const noGate = (gi < 0 || ge < 0) ? '' : view.slice(0, gi)
+    + '       percentile_cont(0.5) within group (order by usd_per_block_hour) ' + view.slice(ge);
+  ok(noGate && view.split(GATE).length === 2 && !noGate.includes('count(usd_per_block_hour)'), '（時間あたりの門を外した版を作れた）');
+  const bhCheck = async () => { const c = (await cellOf())[0]; return !!c && Number(c.n) === 5 && c.median_usd_per_bh === null; };
+  ok(await bhCheck(), '（本物）時間あたりの門の検査は緑');
+  await db.exec(`begin`);
+  await db.exec(noGate);
+  const bhRed = await bhCheck();
+  const bhVal = (await cellOf())[0]?.median_usd_per_bh;
+  const bh816 = (await rows(q816)).length;
+  await db.exec(`rollback`);
+  ok(!bhRed && bhVal != null && bh816 > 0,
+     `★門を外した版では、A 1人の時間あたりが「中央値」として出て（${bhVal}）、検算 8-16 にも行が出る（${bh816} 行）`);
+  ok(await bhCheck(), '（巻き戻したあと: 本物は緑）');
+}
 
 // ── 任意入力の項目は「その項目を書いた人数」で門番する ──────────
 // セルに6人いても、休日を書いたのが1人なら、その1人の実数が「中央値」の
@@ -1129,7 +1256,7 @@ await db.exec(`set role anon`);
 const denied = await boom(`select count(*) from public.pay_reports`);
 ok(denied !== null && /permission denied/i.test(denied), `anon は個票を読めない → ${denied?.slice(0, 50)}`);
 const readable = await boom(`select count(*) from public.pay_benchmarks`);
-ok(readable === null, 'anon は公開集計を読める');
+ok(/permission denied/i.test(readable || ''), `★anon は区分の集計を読めない（2026-11-08 から）→ ${readable?.slice(0, 50)}`);
 const rpcDenied = await boom(`select submit_pay_report('{}'::jsonb)`);
 ok(rpcDenied !== null && /permission denied/i.test(rpcDenied), 'anon は投稿 RPC を呼べない');
 await db.exec(`reset role`);
@@ -1138,6 +1265,11 @@ const vopt = await one(`select reloptions o from pg_class c join pg_namespace n 
   where n.nspname='public' and c.relname='pay_benchmarks'`);
 ok(!String(vopt.o || '').includes('security_invoker'),
   `ビューは所有者権限で走る（security_invoker を立てていない）→ ${vopt.o || 'なし'}`);
+await db.exec(`set role authenticated`);
+const readableAuth = await boom(`select count(*) from public.pay_benchmarks`);
+await db.exec(`reset role`);
+ok(/permission denied/i.test(readableAuth || ''), `★ログイン済みの会員も区分の集計を読めない → ${readableAuth?.slice(0, 50)}`);
+ok((await boom(`select count(*) from public.pay_benchmarks`)) === null, '持ち主（運営の道具）は今までどおり読める');
 
 // ── バッジの鮮度 ─────────────────────────────────────────────
 console.log('\n▼ バッジの鮮度（90日）');
@@ -1545,8 +1677,8 @@ console.log('\n▼ db/pay-reports.verify.sql（オーナーが貼る検算）');
 {
   const vr = await rows(read('db/pay-reports.verify.sql'));
   const bad = vr.filter((x) => x['判定'] !== '✅');
-  ok(vr.length === 17, `検算は17行（増やしたら CLAUDE.md の行数も直す）→ ${vr.length}`);
-  ok(bad.length === 0, '★検算が17行すべて ✅',
+  ok(vr.length === 21, `検算は21行（増やしたら CLAUDE.md の行数も直す）→ ${vr.length}`);
+  ok(bad.length === 0, '★検算が21行すべて ✅',
      bad.map((x) => `${x['検査']}: 実際 ${x['実際']} / 期待 ${x['期待']}`).join(' | '));
 }
 

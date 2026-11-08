@@ -230,10 +230,10 @@ ok(SAMPLE.ja.cum.cap.includes(`¥${(cumJpy / 10000).toLocaleString('en-US')}万`
    `日本語の要約の累計が SAMPLE_ROWS と一致（¥${(cumJpy / 10000).toLocaleString('en-US')}万）`, SAMPLE.ja.cum.cap);
 ok(SAMPLE.ja.cum.cap.includes(`¥${perBh.toLocaleString('en-US')}`),
    `日本語の要約の時間あたりが SAMPLE_ROWS と一致（¥${perBh.toLocaleString('en-US')}）`, SAMPLE.ja.cum.cap);
-ok(SAMPLE.ja.rows.some(([, v]) => v.includes(`$${r0.usd_per_block_hour} `)),
+ok(SAMPLE.ja.rows.some(([, v]) => v === `$${r0.usd_per_block_hour}`),
    `見本カードの時間あたり報酬が SAMPLE_ROWS と一致（$${r0.usd_per_block_hour}）`);
-ok(SAMPLE.en.rows.some(([, v]) => v.includes(`¥${r0.net_annual_jpy.toLocaleString('en-US')}`)),
-   '英語の見本カードの推定手取りが SAMPLE_ROWS と一致');
+ok(SAMPLE.en.rows.some(([, v]) => v === `$${r0.usd_per_block_hour}`),
+   '英語の見本カードの乗務時間あたりが SAMPLE_ROWS と一致');
 ok(!('gross_monthly' in r0),
    'SAMPLE_ROWS に gross_monthly が無い（あると支給構成のドーナツが描かれない）');
 ok(r0.flight_variable_pay < r0.other_allowance,
@@ -264,8 +264,9 @@ for (const [k, b] of ALL) {
 }
 
 /* レポート画面に出る見出しと、メールに並べた見出しが同じ言葉であること。 */
-const LABELS_JA = ['年換算の総額', '時間あたり報酬', '推定手取り（年）'];
-const LABELS_EN = ['Annualised total', 'Pay per block hour', 'Estimated take-home (yr)'];
+/* ★2026-11-08 推定手取り（年）を画面から外した（オーナー「不要な文言はカット」）。 */
+const LABELS_JA = ['月の年換算', '換算', '乗務時間あたり'];
+const LABELS_EN = ['Annualised from', 'Converted', 'Per block hour'];
 for (const w of LABELS_JA) ok(JP.includes(w), `pay-report.html に「${w}」がある`);
 for (const w of LABELS_EN) ok(EN.includes(w), `en/pay-report.html に「${w}」がある`);
 for (const w of LABELS_JA) ok(build(P.ja, O).text.includes(w), `日本語のメールに「${w}」がある`);

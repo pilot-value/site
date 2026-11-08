@@ -97,6 +97,11 @@ const tagAt = (s, name) =>
     const s = nohtml(read('./' + f));
     ok(s.includes('id="bench-gap"'), `${f} に受け皿（id="bench-gap"）がある`);
     ok(s.includes('mountAfterReport'), `${f} が mountAfterReport を呼ぶ`);
+    /* ★2026-11-08 オーナー決定「会社ページと同じ2人」。2人の組で上下の幅・順位・人数を出すと相手の年収が割り出せる。 */
+    const rr = (s.match(/function renderResult\(d, p\) \{[\s\S]*?\n\}\n/) || [''])[0];
+    ok(rr && !/b\.percentile|b\.p25_usd|b\.p75_usd|\(n=' \+|d\.benchmark/.test(rr),
+       `${f} の提出直後のカードが上下25%・上位◯%・n=◯ を出さない`);
+    ok(rr.includes("rpc('pv_member_medians'"), `${f} の提出直後のカードは会社ページと同じ中央値を引く`);
     ok(s.includes('PVReferral.settle'), `${f} が afterSaved で settle を呼ぶ`);
     ok((s.split('PVReferral.claim').length - 1) === 2,
        `${f} は claim を2経路（afterSignedIn と起動時）から呼ぶ`);
@@ -107,12 +112,18 @@ const tagAt = (s, name) =>
        `${f} は pv-referral.js を claim を呼ぶスクリプトより前に読む`);
   }
 
-  /* 差込口は3つ要る。★pubSection を忘れると、pay_benchmarks にセルが1つも
-     無い人＝いちばん区分が薄い人＝この機能の対象そのものが永久に見られない。 */
+  /* 「機会」の節の出口すべてに差込口が要る（区分が分からない mine == null の出口だけは除く）。
+     ★忘れると、いちばん区分が薄い人＝この機能の対象そのものが永久に見られない。
+     ★2026-11-08、pay_benchmarks の道（3つの出口）をやめて opportunity() 1本にした。
+       数を数えるのをやめ、opportunity() の中の return を1本ずつ見る形にした（出口が増えても効く）。 */
   const mv = nocomment(read('./my-value.js'));
-  ok((mv.split('refSlot()').length - 1) >= 4,
-     'my-value.js に差込口が3か所ある（機会・公開情報・機会の空）',
-     String(mv.split('refSlot()').length - 1));
+  const oppSrc = (mv.match(/function opportunity\(r\) \{[\s\S]*?\n  \}\n/) || [''])[0];
+  const exits = oppSrc.match(/return sec\(T\.oppQ[^;]*;/g) || [];
+  const noSlot = exits.filter((e) => !e.includes('T.oppNoPace') && !e.includes('refSlot()')
+    && !(/return sec\(T\.oppQ, body,/.test(e) && oppSrc.includes('body += refSlot();')));
+  ok(exits.length >= 2 && noSlot.length === 0,
+     'my-value.js の「機会」の出口すべてに差込口がある（区分の分からない出口を除く）',
+     `出口 ${exits.length}・差込口の無い出口 ${noSlot.length}`);
   ok(mv.includes('PVReferral.mountCohort'), 'my-value.js が mountCohort を呼ぶ');
   ok(mv.includes('PVReferral.claim'), 'my-value.js が load() で claim を呼ぶ');
   /* ★2026-09-06、レポートは MY PAGE の中の1節になった。器（profile.html）が

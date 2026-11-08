@@ -548,21 +548,41 @@
     var H = pts.length === 1 ? 104
           : (typeof o.h === 'number' && o.h >= 100) ? o.h : 168;
     var PL = 8, PR = 8, PT = 24, PB = 26;
-    var iw = W - PL - PR, ih = H - PT - PB;
 
     var vs = pts.map(function (p) { return p.v; });
     var lo = Math.min.apply(null, vs), hi = Math.max.apply(null, vs);
+    var vMax = hi, vMin = lo;
     // 平坦なときに線が枠の外へ張り付かないよう、上下に余白を作る
     if (hi === lo) { hi = lo * 1.12 || 1; lo = lo * 0.88; }
+    /* ★o.minSpan（2026-11-08・渡されたときだけ）。上下の幅を「真ん中の値のこの割合」より狭くしない。
+       最高と最低で枠を張ると、5% の上下でも枠いっぱいの山と谷に見える（マイレポートの推移で実際にそう見えた）。 */
+    if (typeof o.minSpan === 'number' && o.minSpan > 0 && pts.length > 1) {
+      var mid = (hi + lo) / 2, need = Math.abs(mid) * o.minSpan;
+      if (hi - lo < need) { hi = mid + need / 2; lo = mid - need / 2; }
+    }
+    /* ★o.axis（2026-11-08・渡されたときだけ）。最高と最低の値に点線を引き、左に額を書く＝目盛。
+       字の幅ぶん左を空ける（額の字数は通貨で変わるので、実際の字から決める）。 */
+    var axTx = null;
+    if (o.axis && pts.length > 1) {
+      axTx = vMax === vMin ? [lab(vMax)] : [lab(vMax), lab(vMin)];
+      var wMax = axTx.reduce(function (a, t) { return Math.max(a, String(t).length); }, 0);
+      PL = Math.round(14 + wMax * 6.2);
+    }
+    var iw = W - PL - PR, ih = H - PT - PB;
     var x = function (i) { return PL + (pts.length === 1 ? iw / 2 : iw * i / (pts.length - 1)); };
     var y = function (v) { return PT + ih - (v - lo) / (hi - lo) * ih; };
 
     var fid = 'pt-fill-' + (++gid);
     var g = '';
     // 目盛り（上下2本だけ。線が主役なので格子は敷かない）
-    [hi, lo].forEach(function (v) {
+    // ★o.axis のときは枠ではなく、最高と最低の値そのものに引いて額を添える
+    (axTx ? (vMax === vMin ? [vMax] : [vMax, vMin]) : [hi, lo]).forEach(function (v, i) {
       g += '<line x1="' + PL + '" y1="' + y(v).toFixed(1) + '" x2="' + (W - PR) + '" y2="' + y(v).toFixed(1) +
            '" stroke="currentColor" stroke-opacity=".12" stroke-dasharray="3 4"/>';
+      if (axTx) {
+        g += '<text x="' + (PL - 6) + '" y="' + (y(v) + 3.5).toFixed(1) + '" text-anchor="end" font-size="10.5" ' +
+             'fill="currentColor" fill-opacity=".55">' + esc(axTx[i]) + '</text>';
+      }
     });
 
     if (pts.length > 1) {

@@ -14,6 +14,8 @@
 -- ★ このファイルは自動では流れない。オーナーが SQL Editor で実行する。
 -- ★ 流す順番: db/pay-reports.sql → db/pay-rows.sql → db/reviews-gate.sql → このファイル
 --    前のどれかが抜けていたら、下の「0. 前提」が日本語で止める。
+--    ★ このファイルを貼り直したら、そのあと db/referrals.sql（招待のカードがこの表の人数とそろった時刻を読む・2026-11-08）。
+--       逆の順（referrals.sql を先）だと、referrals.sql の「前提」が日本語で止める。
 -- ★ 冪等（何度流しても同じ結果）。表を作るのは初回だけ・関数と引き金は作り直す・最後に1回数え直す。
 -- ★ 貼ったあと、テスト用アカウントの uid をオーナーが SQL Editor で入れる（リポジトリには書かない）:
 --      insert into public.pv_test_users (uid) values ('<uid>') on conflict do nothing;
@@ -41,18 +43,28 @@
 --      （道具は読んだ順の先頭＝決まっていなかった）。
 --
 -- ── 守っている約束 ────────────────────────────────────────
---  1. 数えるのは書き込みのときだけ。読む関数（pv_member_medians）は表を1行ずつ引くだけで、何も数えない。
+--  1. 数えるのは書き込みのときだけ。読む関数（pv_member_medians・pv_member_medians_all）は表を引くだけで、何も数えない。
 --  2. 人数を外へ出さない。表には n を持つが、表は誰にも読ませない（RLS 有効・ポリシー無し・grant 無し）。
 --     pv_member_medians は n ≥ 2 の区分だけを返し、返す列は rank と median_man の2つだけ。
+--     pv_member_medians_all（全社ぶん・2026-11-08）も同じ n ≥ 2 の区分だけで、返す列は airline・rank・median_man の3つだけ
+--     （会社ごとの口を全社ぶん呼んだのと1行も違わない）。
+--     ★例外は1つだけ ── 招待のカードの my_cohort_gap（db/referrals.sql 8章）。ログインした本人の区分だけ、
+--       2人に届いていないときに「あと1人／あと2人」を返す（n そのものは返さない・引数を取らない・未ログインは呼べない）。
+--       答えるのは、本人の行がこの表に数えられる行のときだけ（下の 3章と同じ条件 ── 幅・24か月・下ろした人・テスト用アカウント）。
+--       ⚠️ 3章の条件を変えたら、あちらの条件も一緒に（ずれると「ほかに0人か1人か」が読める穴が開き直る）。
 --  3. 数え直しが失敗しても、給与・口コミの書き込みは止めない（引き金が例外を握って warning にする。
 --     表は前の中身のまま残る＝ページは1つ前の数字を出し続ける）。
 --  4. 数え直しは1本ずつ（表を exclusive で握る）。同時に2件出ても、後の1本は前の結果を見てから作り直す
 --     （読む側は止まらない。exclusive は select を止めない）。
 --  5. 口コミの表の翻訳など、数字に関係しない列の update では数え直さない（引き金は列を名指しする）。
 --  6. 会員を名指しで書かない（uid・氏名・メールをこのファイルに書かない）。
+--  7. 区分に2人そろった時刻（opened_at）は、数え直しのたびに前の中身から運ぶ（2026-11-08）。
+--     招待のカードの「そろいました」（my_cohort_gap の crossed）の元。外へは出さない（どの読む口も返さない）。
+--     分からないときは null（下の 3章の注）── 分からない時刻を「いま」で埋めない（埋めると、とうにそろっていた区分まで
+--     「あなたが記録したあとにそろいました」になる）。
 --
 -- ★ CLAUDE.md の「会員だけが見られるものを返す関数を新しく作ったら pv_proof_blocked の1行を足す」は
---   **この関数は対象外**。pv_member_medians は誰でも見られる集計（会社ページに未ログインでも出る数字）で、
+--   **この関数は対象外**。pv_member_medians・pv_member_medians_all は誰でも見られる集計（会社ページに未ログインでも出る数字）で、
 --   1人ずつの値も人数も返さない。止めた会員にだけ閉じる意味が無い。
 --
 -- ⚠️ 直近24か月の窓は「数え直したとき」に動く。書き込みが何日も無ければ、24か月を過ぎた行が
@@ -60,6 +72,8 @@
 --    select public.pv_member_median_refresh(); を1回流す）。
 -- ⚠️ 同じ線の写し（直すときは一緒に）
 --     年収の常識の幅（1万〜70万ドル）  … db/pay-rows.sql ・ db/deep-pay.sql ・ db/pay-median.sql と同じ
+--     数えられる給与の行の条件（幅・24か月・下ろした人・テスト用アカウント）
+--                                        … db/referrals.sql の my_cohort_gap（本人の行が数えられるか）と同じ
 --     給与の鍵の式                       … db/pay-reports.sql 5章（submit_pay_report の v_hash）
 --     口コミの鍵の式                     … db/pay-rows.sql 1-d（pv_review_person）
 --     職位の読み替え・年額の作り方       … 手元の道具 member-median.mjs（db/test-member-median.mjs が同じ規則の写しで突き合わせる）
@@ -102,7 +116,8 @@ comment on table public.pv_test_users is
 
 -- ════════════════════════════════════════════════════════════════
 -- 2. pv_member_median — 会社 × 職位の中央値（万円）と人数
---    作るのは pv_member_median_refresh() だけ。読むのは pv_member_medians() だけ。
+--    作るのは pv_member_median_refresh() だけ。読むのは pv_member_medians()・pv_member_medians_all()（中央値だけ）と
+--    db/referrals.sql の my_cohort_gap()（本人の区分の人数と、そろった時刻だけ）。
 -- ════════════════════════════════════════════════════════════════
 create table if not exists public.pv_member_median (
   airline    text    not null,
@@ -114,14 +129,29 @@ create table if not exists public.pv_member_median (
 );
 alter table public.pv_member_median enable row level security;
 revoke all on table public.pv_member_median from public, anon, authenticated;
+-- 区分に2人そろった時刻（2026-11-08）。2人未満の区分と、そろった時刻が分からない区分は null。
+alter table public.pv_member_median add column if not exists opened_at timestamptz;
 comment on table public.pv_member_median is
   '会員が出した年収の中央値（会社 × 機長／副操縦士・万円）と人数。給与・口コミの書き込みの引き金が丸ごと作り直す。'
-  '誰にも読ませない（人数を外へ出さない）。外へ出すのは pv_member_medians() の n ≥ 2 の区分の中央値だけ。';
+  '誰にも読ませない（人数を外へ出さない）。外へ出すのは pv_member_medians()・pv_member_medians_all() の n ≥ 2 の区分の中央値だけ'
+  '（例外は招待のカードの my_cohort_gap ── 本人の区分だけ・2人未満のときの「あと1人／あと2人」）。';
+comment on column public.pv_member_median.opened_at is
+  'その区分が2人以上になった時刻（2人以上のあいだは数え直しても前の値を運ぶ）。2人未満・分からないときは null。'
+  '招待のカード（my_cohort_gap）の「そろいました」だけが読む。';
 
 
 -- ════════════════════════════════════════════════════════════════
 -- 3. pv_member_median_refresh() — 表の中身を丸ごと作り直す
 --    呼ぶのは下の引き金（と、ファイルの最後の1回）だけ。誰にも実行させない。
+--
+--    ★ そろった時刻（opened_at）の運び方（2026-11-08）
+--      前の中身で2人以上だった区分 … 前の opened_at をそのまま（null なら null のまま）
+--      前の中身で2人未満・無かった区分が2人以上になった … いま（now()）
+--      2人未満 … null
+--      表がまるごと空だった（初めて数える）… null（いつそろったのか分からない）
+--      ⚠️ 列を足した日に本番に在った区分は null から始まる ＝ その日より前にそろっていた区分には
+--         「そろいました」を出さない（少なく見る側に倒れる）。
+--      ⚠️ 前の中身は、作り直す前に1回だけ読む（区分は会社 × 2職位なので数百行）。給与・口コミの表は読まない。
 -- ════════════════════════════════════════════════════════════════
 create or replace function public.pv_member_median_refresh()
 returns void
@@ -131,13 +161,18 @@ set search_path = public, extensions
 as $fn$
 declare
   v_from timestamptz := now() - interval '24 months';
+  v_old  jsonb;   -- 作り直す前の中身（区分ごとの人数とそろった時刻）。そろった時刻を運ぶためだけに読む
 begin
   -- 1本ずつ（同時に来た後の1本は、前の1本が終わってから新しい中身を見て作り直す）。select は止めない。
   lock table public.pv_member_median in exclusive mode;
 
+  select coalesce(jsonb_object_agg(m.airline || ' ' || m.rank, jsonb_build_object('n', m.n, 'at', m.opened_at)), '{}'::jsonb)
+    into v_old
+    from public.pv_member_median m;
+
   delete from public.pv_member_median where true;
 
-  insert into public.pv_member_median (airline, rank, median_man, n, updated_at)
+  insert into public.pv_member_median (airline, rank, median_man, n, updated_at, opened_at)
   with
   fx as (
     select (select f.to_usd from public.fx_rates f where f.code = 'JPY') as jpy_usd,   -- 口コミの万円 → ドル
@@ -212,7 +247,11 @@ begin
            count(*)     over (partition by l.air, l.rank)                as n
       from latest l cross join fx f
   )
-  select v.air, v.rank, floor(avg(v.man) + 0.5)::int, v.n::int, now()
+  select v.air, v.rank, floor(avg(v.man) + 0.5)::int, v.n::int, now(),
+         case when v.n < 2 or v_old = '{}'::jsonb then null                         -- 2人未満・初めて数える
+              when coalesce((v_old -> (v.air || ' ' || v.rank) ->> 'n')::int, 0) >= 2
+                then (v_old -> (v.air || ' ' || v.rank) ->> 'at')::timestamptz      -- 前から2人以上 ＝ 前の時刻のまま
+              else now() end                                                       -- いま2人になった
     from vals v
    where v.i in ((v.n + 1) / 2, (v.n + 2) / 2)
    group by v.air, v.rank, v.n
@@ -249,6 +288,35 @@ grant execute on function public.pv_member_medians(text) to anon, authenticated;
 comment on function public.pv_member_medians(text) is
   '会社ページの「会員が出した年収の中央値」（万円）。2人以上の区分だけ・返すのは職位と中央値の2つだけ（人数は返さない）。'
   '表を引くだけで何も数えない（数えるのは書き込みの引き金）。誰でも見られる集計なので pv_proof_blocked は呼ばない。';
+
+
+-- ════════════════════════════════════════════════════════════════
+-- 4-b. pv_member_medians_all() — 全社ぶんを1回で（表を引くだけ・何も数えない）（2026-11-08）
+--    会員の市場価値レポート（my-value.js）と給与を出した直後のカード（pay-report.html）が、
+--    会社ページと同じ決まり（2人以上・1人1件・人数を返さない）で比べるための口。
+--    返すのは pv_member_medians(p_airline) を全社ぶん呼んだのと1行も違わない中身
+--    （n ≥ 2 の区分だけ・列は airline・rank・median_man の3つだけ・n は返さない）。
+--    会社ごとの口がすでに誰でも呼べるので、全社ぶんをまとめても見えるものは増えない。
+--    ⚠️ 2人の門（m.n >= 2）は会社ごとの口と同じ1行。片方だけ緩めない（db/test-member-median.mjs が壊す証明で見ている）。
+-- ════════════════════════════════════════════════════════════════
+create or replace function public.pv_member_medians_all()
+returns table (airline text, rank text, median_man integer)
+language sql
+stable
+security definer
+set search_path = public
+as $fn$
+  select m.airline, m.rank, m.median_man
+    from public.pv_member_median m
+   where m.n >= 2
+   order by m.airline, m.rank;
+$fn$;
+
+revoke all on function public.pv_member_medians_all() from public, anon, authenticated;
+grant execute on function public.pv_member_medians_all() to anon, authenticated;
+comment on function public.pv_member_medians_all() is
+  '全社の「会員が出した年収の中央値」（万円）。pv_member_medians(p_airline) を全社ぶん呼んだのと同じ中身'
+  '（2人以上の区分だけ・返すのは会社・職位・中央値の3つだけ・人数は返さない）。表を引くだけで何も数えない。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -315,10 +383,11 @@ create trigger trg_pv_member_median
 select public.pv_member_median_refresh();
 
 
--- 検算（貼ったあとに出る10行。全部 ✅ が正しい。★「貼れた」は証拠にならない。この10行を読む）
--- 10行目だけは ⚠️ がありうる（テスト用アカウントをまだ入れていない＝ 上の insert を流す）。
+-- 検算（貼ったあとに出る14行。全部 ✅ が正しい。★「貼れた」は証拠にならない。この14行を読む）
+-- 14行目だけは ⚠️ がありうる（テスト用アカウントをまだ入れていない＝ 上の insert を流す）。
 with d as (select pg_get_functiondef('public.pv_member_median_refresh()'::regprocedure) as s),
      r as (select pg_get_functiondef('public.pv_member_medians(text)'::regprocedure) as s),
+     a as (select pg_get_functiondef('public.pv_member_medians_all()'::regprocedure) as s),
      g as (select pg_get_functiondef('public.pv_member_median_trg()'::regprocedure) as s)
 select 1 as no, '2つの表は RLS 有効・ポリシー無し' as 検算,
        case when (select bool_and(c.relrowsecurity) from pg_class c
@@ -366,7 +435,25 @@ union all select 9, 'テスト用アカウントを給与・口コミの両方�
              and (select s from d) like '%pv_test_users t   -- ★テスト用アカウント（口コミ）%'
              and (select s from d) like '%''::pv_pay::''%' and (select s from d) like '%''::pv_anon::''%'
             then '✅' else '❌' end
-union all select 10, 'テスト用アカウントの名簿 ' || (select count(*) from public.pv_test_users) || ' 人'
+union all select 10, '全社の読む口（pv_member_medians_all）も未ログイン・ログイン済みとも呼べる',
+       case when has_function_privilege('anon', 'public.pv_member_medians_all()', 'execute')
+             and has_function_privilege('authenticated', 'public.pv_member_medians_all()', 'execute')
+            then '✅' else '❌' end
+union all select 11, '全社の読む口が返すのは会社・職位・中央値の3つだけ（人数を返さない）・2人以上だけ',
+       case when pg_get_function_result('public.pv_member_medians_all()'::regprocedure) = 'TABLE(airline text, rank text, median_man integer)'
+             and (select s from a) like '%m.n >= 2%'
+            then '✅' else '❌' end
+union all select 12, '全社の読む口も表を引くだけ（給与・口コミの表を読まない＝開くたびに数えない）',
+       case when (select s from a) not like '%pay_reports%' and (select s from a) not like '%reviews_v2%'
+             and (select s from a) not like '%refresh%' and (select s from a) not like '%opened_at%'
+            then '✅' else '❌' end
+union all select 13, '2人そろった時刻（opened_at）の列があり、数え直しが前の中身から運んでいる（読む口は返さない）',
+       case when exists (select 1 from information_schema.columns
+                          where table_schema = 'public' and table_name = 'pv_member_median' and column_name = 'opened_at')
+             and (select s from d) like '%v_old%opened_at%'
+             and (select s from r) not like '%opened_at%'
+            then '✅' else '❌' end
+union all select 14, 'テスト用アカウントの名簿 ' || (select count(*) from public.pv_test_users) || ' 人'
                      || '・中央値の表 ' || (select count(*) from public.pv_member_median) || ' 区分',
        case when (select count(*) from public.pv_test_users) > 0 then '✅'
             else '⚠️ 0人（テスト用アカウントの uid を pv_test_users に入れる）' end

@@ -613,6 +613,23 @@ baland_ass/                            ブランド資産（※ brand_assets の
 - 調べ直したら（新しい人数の調査パック）、pilot-counts.mjs を作り直す → `node gen-directory.mjs` → `node gen-countries.mjs` → `inject-session` → `patch-side-nav` →
   `bake-en-currency` → `gen-lang.mjs es`（訳の足りない文を足す）→ `seo-normalize` → `gen-datemod` → `gen-sitemap`。
 
+## マイレポートと提出直後のカードの比較は「会社ページと同じ2人」（2026-11-08）
+
+★オーナー決定「会社ページと同じ2人にそろえる」「不要な文言はカット」「info@ にも市場レポートを」。
+
+- **他社の額は会社ページに出ている額と同じ**（[my-value.js](my-value.js) の `figureOf`）── 推定年収（salary-data.json）か、
+  会員の中央値（`pv_member_medians_all()`＝2人以上・1人1件・人数を返さない）。どちらにするかの決まりは salary-data.json の `medRule`
+  （[salary-data.mjs](salary-data.mjs) の `medRuleJson` が台帳から書く・[pv-airline-view.mjs](pv-airline-view.mjs) の `payOf` の写し＝**片方だけ直さない**）。
+- ⚠️ **`pay_benchmarks` に戻さない**（提出の件数で5を数えていた＝1人の5か月で区分が開いた）。いまは1人1件・5人で数え、未ログインにも会員にも読ませない（権限を外した）。
+  `submit_pay_report` の `benchmark` もいつも null（5人ちょうどの区分は上下の幅が人の額そのものになるため）。
+- 招待カード（`my_cohort_gap`）も同じ2人の決まり。本人の行が会員の中央値に数えられない形（年 $1万〜70万の外・24か月より前・下ろした・テスト用）なら何も返さない（返すと他人が0人か1人かが読める）。
+- **貼る順** ── `db/pay-reports.sql` → `db/pay-reports.verify.sql`（21行）→ `db/member-median.sql`（14行）→ `db/referrals.sql`（15行）。SQL が先・push が後。
+- 提出直後のカード（[pay-report.html](pay-report.html) の `renderResult`・日英）は「同じ会社・職位の中央値」の1行だけ。
+  ⚠️ **上下25%・上位◯%・n=◯ を戻さない**（2人の組で出すと相手の年収が割り出せる）。
+- ⚠️ **説明の文を足し戻さない**（年換算の参考値・※・比較の範囲・前回との差の予防線・次の給与の説明の行・推定手取り・レートの日付）。
+- 運営（`pv_is_admin()`）が給与0件のときだけ、YOUR PAY の上に見本の切り替え（[my-value-sample.js](my-value-sample.js)・作り物の数字）。会員には読み込みもしない。
+- 推移のグラフは [pay-viz.js](pay-viz.js) の `chart` に `axis`・`minSpan` を渡したときだけ目盛と幅の下限が付く（6画面の共有部品＝既定は変えていない）。
+
 ## 給与一覧の処理を軽くした（2026-10-31）
 
 本番の DB（Supabase 無料・Nano）が 2026-10-31 12:55〜13:28 に止まった。会社ページを開くたびに走る `pv_pay_rows()` が、
@@ -905,7 +922,7 @@ baland_ass/                            ブランド資産（※ brand_assets の
 `node db/test-pay-preview.mjs`（確認画面の公開イメージ ⇄ SQL）。
 絵は `node shot-pay.mjs`（日英 × Desktop/Mobile × ライト/ダークで 198枚）と
 `node shot-value.mjs both ja`、はみ出しは `node measure-pay.mjs`（5段を歩く）。
-[db/pay-reports.verify.sql](db/pay-reports.verify.sql) は**オーナーが Supabase に貼る検算**（17行が ✅）。
+[db/pay-reports.verify.sql](db/pay-reports.verify.sql) は**オーナーが Supabase に貼る検算**（21行が ✅）。
 中身は `db/test-pay-reports.mjs` が毎回流している＝**検算だけ古い**にはならない。
 ★**列や鍵を足した回は [db/pay-reports.roundtrip.sql](db/pay-reports.roundtrip.sql) も貼る**（2026-09-12）。
 あちらは関数の計算しか見ていないので、「保存はされたが**その鍵だけ黙って消えている**」を捕まえられない

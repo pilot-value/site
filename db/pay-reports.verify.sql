@@ -3,10 +3,10 @@
 --
 -- pay-reports.sql の「8. 検算」は select が8本並んでいるが、Supabase の
 -- SQL Editor は最後の1文の結果しか表示しない。＝ 8-1〜8-7 が見えないまま
--- 「通った」と誤認できてしまう。ここでは17項目を1つの結果表にまとめ、
+-- 「通った」と誤認できてしまう。ここでは21項目を1つの結果表にまとめ、
 -- 期待値との一致を 判定 列で出す。スキーマを触るたびに流し直す。
 --
--- 期待：17行すべて 判定 = ✅
+-- 期待：21行すべて 判定 = ✅
 -- ════════════════════════════════════════════════════════════════
 
 with c as (
@@ -88,7 +88,43 @@ with c as (
     --    ⚠️ 「関数が無い」と怒られたら、本番にまだ古い21引数版しか無い。db/pay-reports.sql を貼り直すこと。
     public.pv_annual_total(54250, null, null, null, null, 5000, null, null,
                            null, null, null, null, null, null, null, null, null, null,
-                           null, null, false, true)                            as c17
+                           null, null, false, true)                            as c17,
+    -- ★ 2026-11-08。公開集計（pay_benchmarks）は1人 × セルで1行に縮めてから数える
+    --    （同じ人が同じ年に5か月出しても1人）。縮める仕掛けが定義に在るか（1 ＝ 在る）。
+    --    ⚠️ 0 と出たら、本番にまだ行の数を人数と呼ぶ古いビューが残っている。db/pay-reports.sql を貼り直すこと。
+    (select count(*) from pg_views v
+      where v.schemaname = 'public' and v.viewname = 'pay_benchmarks'
+        and v.definition ilike '%distinct on%proof_hash%')                     as c18,
+    -- ★ 同じことを実データで見る。セルの本当の人数（count(distinct proof_hash)）が5人未満なのに
+    --    出ているセル・n が人数と違うセルの数（0 ＝ 無い）。
+    (select count(*) from public.pay_benchmarks b
+      where coalesce((select count(distinct r.proof_hash) from public.pay_reports r
+                       where r.annual_total_usd is not null and r.airline_other is null
+                         and r.airline = b.airline and r."position" = b."position"
+                         and r.fleet = b.fleet and r.period_year = b.period_year), 0)
+            is distinct from b.n
+         or b.n < 5)                                                           as c19,
+    -- ★ 2026-11-08。区分の集計は未ログイン・会員には読ませない（5人のセルの 25%・中央値・75% は
+    --    2・3・4番目の人の額そのもの）。読めてしまうロールの数（0 ＝ 読めない）。
+    (select count(*) from unnest(array['anon', 'authenticated']) r
+      where has_table_privilege(r, 'public.pay_benchmarks', 'select'))         as c20,
+    -- ★ db/pay-reports.sql の 8-16 と同じことを1行で。その項目を書いた人（同じ人の何か月ぶんも1人）が
+    --    1〜4人なのに値が出ているセルの数（0 ＝ 無い）。時間あたり（median_usd_per_bh）も見る。
+    (select count(*) from public.pay_benchmarks b
+       join (select airline, "position", fleet, period_year,
+                    count(distinct proof_hash) filter (where usd_per_block_hour is not null) as n_bh,
+                    count(distinct proof_hash) filter (where days_off     is not null)       as n_do,
+                    count(distinct proof_hash) filter (where sectors      is not null)       as n_se,
+                    count(distinct proof_hash) filter (where housing_type is not null)       as n_ho
+               from public.pay_reports
+              where annual_total_usd is not null and airline_other is null
+              group by 1, 2, 3, 4) s
+         on (s.airline, s."position", s.fleet, s.period_year)
+          = (b.airline, b."position", b.fleet, b.period_year)
+      where (s.n_bh between 1 and 4 and b.median_usd_per_bh    is not null)
+         or (s.n_do between 1 and 4 and b.median_days_off      is not null)
+         or (s.n_se between 1 and 4 and b.median_sectors       is not null)
+         or (s.n_ho between 1 and 4 and b.housing_provided_pct is not null)) as c21
 )
 select * from (
   select 1 as "#", '8-1 user_id/uid/email 列が無い'          as 検査,
@@ -126,5 +162,13 @@ select * from (
          case when c16 = 1085   then '✅' else '❌' end from c
   union all select 17, '8-12 明細とは別のパーディアムは総支給に足す', c17::text, '711000',
          case when c17 = 711000 then '✅' else '❌' end from c
+  union all select 18, '8-13 公開集計は1人1件に縮めてから数える（定義）', c18::text, '1',
+         case when c18 = 1      then '✅' else '❌' end from c
+  union all select 19, '8-13 公開集計に5人未満のセル・n が人数と違うセルが無い', c19::text, '0',
+         case when c19 = 0      then '✅' else '❌' end from c
+  union all select 20, '8-14 区分の集計を未ログイン・会員が読めない',     c20::text, '0',
+         case when c20 = 0      then '✅' else '❌' end from c
+  union all select 21, '8-14 書いた人が1〜4人の項目（時間あたりも）を出していない', c21::text, '0',
+         case when c21 = 0      then '✅' else '❌' end from c
 ) t
 order by "#";

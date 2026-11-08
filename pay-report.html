@@ -5935,12 +5935,11 @@ function renderResult(d, p) {
     const parts = [];
     if (d.annual_total_usd != null) parts.push(usd(d.annual_total_usd));
     if (d.annual_total_jpy != null) parts.push(jpyMan(d.annual_total_jpy));
-    rows.push(['換算', parts.join(' ／ ') + (d.fx_at ? ' <span style="font-size:.72rem;color:#6b7d93">（' + esc(d.fx_at) + ' のレート）</span>' : ''), '']);
+    rows.push(['換算', parts.join(' ／ '), '']);
   }
   if (d.usd_per_block_hour != null) {
-    rows.push(['★ 時間あたり報酬', '$' + Number(d.usd_per_block_hour).toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' <span style="font-size:.75rem;font-weight:600;color:#6b7d93">/ block hour</span>', 'hi']);
+    rows.push(['乗務時間あたり', '$' + Number(d.usd_per_block_hour).toLocaleString('en-US', { maximumFractionDigits: 2 }), 'hi']);
   }
-  if (d.net_annual_jpy != null) rows.push(['推定手取り（年）', jpyMan(d.net_annual_jpy), '']);
   if (d.streak_months) rows.push(['連続更新', d.streak_months + 'ヶ月', '']);
   if (d.access_until) {
     /* ★「REAL PAY の解放」と書く。開くのは他のパイロットの実給与の一覧で、
@@ -5948,29 +5947,13 @@ function renderResult(d, p) {
     rows.push(['REAL PAY の解放', new Date(d.access_until).toLocaleDateString('ja-JP') + ' まで', '']);
   }
 
-  let bench = '';
-  if (d.benchmark) {
-    const b = d.benchmark;
-    const pct = Math.max(0, Math.min(100, Number(b.percentile)));
-    bench =
-      '<div class="bench">' +
-        '<div style="font-size:.78rem;font-weight:700;color:#9ca3af;margin-bottom:2px">同じ区分でのあなたの位置</div>' +
-        '<div style="font-size:.72rem;color:#6b7d93">' + esc(airlineName) + '・' + esc(optText('f-fleet', p.fleet)) + '・' + esc(optText('f-position', p.position)) + '（n=' + b.n + '）</div>' +
-        '<div class="bench-bar"><div class="bench-you" style="left:calc(' + pct + '% - 2px)"></div></div>' +
-        '<div class="bench-scale"><span>' + usd(b.p25_usd) + '<br>下位25%</span><span style="text-align:center">' + usd(b.median_usd) + '<br>中央値</span><span style="text-align:right">' + usd(b.p75_usd) + '<br>上位25%</span></div>' +
-        '<div style="margin-top:14px;font-size:.95rem;font-weight:800">上位 ' + Math.max(1, 100 - pct) + '%' +
-          (b.median_usd_per_bh != null ? '<span style="font-size:.78rem;font-weight:600;color:#9ca3af;margin-left:10px">同区分の時間あたり中央値 $' + Number(b.median_usd_per_bh).toLocaleString('en-US', { maximumFractionDigits: 2 }) + '</span>' : '') +
-        '</div>' +
-      '</div>';
-  } else {
-    /* ★空の受け皿。文は書かない（2026-09-10 オーナー指示。
-       「まだ5人に届いていません」の断り書きは、出した直後の人には要らない）。
-       ⚠️ **この div は消さないこと。** pv-referral.js の mountAfterReport が
-          この id を目印にして、招待カードをここへ置き換える。
-          消すと「あと2人／あと1人」の招待カードが**黙って出なくなる**
-          （画面は普通に動いたまま、招待の導線だけが1つ消える）。 */
-    bench = '<div id="bench-gap" hidden></div>';
-  }
+  /* ★2026-11-08 オーナー決定「会社ページと同じ2人にそろえる」。前の「同じ区分でのあなたの位置」
+       （上下25%・上位◯%・n=◯）は外した ── 2人の組で幅や人数を出すと、相手の年収が割り出せる。
+     ★空の受け皿。文は書かない（2026-09-10 オーナー指示）。
+     ⚠️ **この div は消さないこと。** pv-referral.js の mountAfterReport が
+        この id を目印にして、招待カードをここへ置き換える。
+        消すと「あと1人」の招待カードが**黙って出なくなる**（画面は普通に動いたまま）。 */
+  const bench = '<div id="bench-gap" hidden></div>';
 
   /* ★門から来た人には、押した行の面まで戻す。開き直しと鍵の後始末は
        actual-pay.js 側（sessionStorage を読んで、開いたらその場で消す）。
@@ -5991,21 +5974,23 @@ function renderResult(d, p) {
     ? '<div class="warn-row" style="margin-top:16px">' + esc(cur) + ' の換算レートがまだ入っていないため、USD／円の表示は出せません。<b>入力された金額は原本のまま保存されています</b>ので、レートを入れた時点でさかのぼって計算されます。</div>'
     : '';
 
+  const rowHtml = rows.map((r) => '<div class="res-row"><span class="res-k">' + esc(r[0]) + '</span><span class="res-v ' + r[2] + '">' + r[1] + '</span></div>');
+  rowHtml.splice((d.annual_total_usd != null || d.annual_total_jpy != null) ? 1 : 0, 0, '<div class="res-row" id="res-med" hidden></div>');
+
   $('result-wrap').innerHTML =
     '<div class="res">' +
       '<div class="res-pop">🎉</div>' +
       '<div class="res-eyebrow">' + (d.is_new ? '受け取りました' : '訂正を反映しました') + '</div>' +
       '<div class="res-big pv-no-cur">' + esc(fmtCur(d.annual_total_orig, cur)) + '</div>' +
-      '<div class="res-sub">年換算の総額（' + esc(p.period_year) + '年' + esc(p.period_month) + '月の明細から）</div>' +
+      '<div class="res-sub">' + esc(p.period_year) + '年' + esc(p.period_month) + '月の年換算</div>' +
       '<div style="margin-top:18px">' +
-        rows.map((r) => '<div class="res-row"><span class="res-k">' + esc(r[0]) + '</span><span class="res-v ' + r[2] + '">' + r[1] + '</span></div>').join('') +
+        rowHtml.join('') +
       '</div>' +
       bench + backNote + fxNote +
       /* ★「検証済みバッジは付きません」の一文は 2026-09-10 に落とした（オーナー指示）。
          出した直後の画面で、付かないものの話をしない。仕組みそのものの説明は
          index.html の「準備中」の板に残っている。 */
-      '<div class="res-note">この内容は<b>この端末にだけ</b>保存しました。来月は変わったところを直すだけで済みます。' +
-        '次の明細を出すと、その日から90日に伸びます。</div>' +
+      '<div class="res-note">来月は変わったところを直すだけで出せます。</div>' +
       '<div class="mt-6 flex flex-col sm:flex-row gap-3">' +
         '<a href="profile.html?new=1#your-pay" class="btn-orange justify-center flex-1">マイレポートを見る →</a>' +
         /* ★Give した瞬間に Get を見せる。ここを出したことで REAL PAY が開いている。 */
@@ -6018,6 +6003,24 @@ function renderResult(d, p) {
 
   $('form-wrap').style.display = 'none';
   $('result-wrap').style.display = '';
+  /* ★同じ会社・職位の会員の中央値（会社ページと同じ数字。2人以上の組だけ・人数は返らない）。
+       サーバーは書き込みのたびに数えて保存した表を引くだけ（db/member-median.sql）。返事が無ければ行ごと出さない。 */
+  (async () => {
+    const band = { cap: 'cap', tri_tre: 'cap', fo: 'fo', sfo: 'fo' }[p.position];
+    const slot = $('res-med');
+    if (!band || !slot || !p.airline || p.airline === 'other' || typeof _sb === 'undefined' || !_sb) return;
+    try {
+      const { data, error } = await _sb.rpc('pv_member_medians', { p_airline: p.airline });
+      if (error || !Array.isArray(data)) return;
+      const hit = data.find((x) => x && x.rank === band && Number(x.median_man) > 0);
+      if (!hit) return;
+      const jpy = Number(hit.median_man) * 10000;
+      const rate = (d.annual_total_usd != null && d.annual_total_jpy) ? d.annual_total_usd / d.annual_total_jpy : null;
+      slot.innerHTML = '<span class="res-k">同じ会社・職位の中央値</span><span class="res-v">' +
+        (rate ? usd(Math.round(jpy * rate / 1000) * 1000) + ' ／ ' : '') + jpyMan(jpy) + '</span>';
+      slot.hidden = false;
+    } catch (e) {}
+  })();
   if (window.PVApp) window.PVApp.mount($('result-wrap').querySelector('[data-pv-app]'), 'done');
   window.scrollTo({ top: 0, behavior: 'smooth' });
   /* 出し終わりを静かに終わらせない。ただし鳴らすのは新しい月のときだけ。

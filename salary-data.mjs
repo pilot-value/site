@@ -457,7 +457,27 @@ export function buildSalaryJson() {
     if (L) rec.ladder = L;
     airlines[slug] = rec;
   }
-  return { spine: SPINE, airlines };
+  return { spine: SPINE, airlines, medRule: medRuleJson() };
+}
+
+/* ★2026-11-08 会員の中央値に差し替える決まり（会社ページの data-rule / data-base / data-med と同じ値）。
+   マイレポートの他社比較が、会社ページと同じ額を出すために読む（my-value.js の figureOf）。
+   既定（higher・base＝推定・書き込みは推定）と違う職位だけを書く。
+   決め方は pv-airline-view.mjs の payOf と同じ ── 写しなので、あちらを変えたらここも直す。
+   どれも会社ページの HTML に既に載っている値で、新しく公開するものは無い。 */
+function medRuleJson() {
+  const out = {};
+  for (const slug of Object.keys(SALARY)) {
+    for (const rank of ['cap', 'fo']) {
+      const r = BASIS[slug]?.[rank], s = SALARY[slug]?.[rank];
+      if (!r || !s || !(s.avg > 0) || !canPublishNumber(slug, rank)) continue;
+      const med = r.from === 'members', always = r.median === 'always';
+      if (!med && !always) continue;
+      const base = med ? (always ? s.avg : r.base) : s.avg;
+      (out[slug] ||= {})[rank] = { r: always ? 'always' : 'higher', b: base, m: med ? 1 : 0 };
+    }
+  }
+  return out;
 }
 
 // 公開から外した職位の一覧（生成スクリプトが件数を出すのに使う）。

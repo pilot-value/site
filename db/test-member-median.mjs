@@ -15,6 +15,10 @@
        読む口が返す列は rank と median_man の2つだけ・1人の組は返らない
      ★ 数え直しの中で失敗が起きても、給与の書き込みは通る（表は前の中身のまま）
      ★ 壊す証明 ── テスト用アカウントを外す2行を抜いた版では、テスト用アカウントの検査が赤くなる
+     ★ 全社ぶんの読む口（pv_member_medians_all・2026-11-08）── 会社ごとの口を全社ぶん呼んだのと1行も違わない・
+       列は airline・rank・median_man の3つだけ・1人の組は出ない。壊す証明 ── 2人の門を1人に緩めた版では赤くなる
+     ★ 区分に2人そろった時刻（opened_at）── 2人以上のあいだは運ぶ・割ったら消える・分からない時刻を「いま」で埋めない
+       （招待のカードの「そろいました」の元。db/test-referrals.mjs が my_cohort_gap 側を見ている）
 
    器は db/test-company-comp.mjs と同じ（anon / authenticated ロール、既定の権限を全部付けた状態、auth.uid() の代役、
    profiles、auth.users、reviews_v2）。流す SQL の並びは serve-local.mjs の SQL_FILES をそのまま読む（写さない）。
@@ -380,6 +384,58 @@ console.log('\n▼ M5 人数を外へ出さない（表は読めない・読む�
 
 
 // ════════════════════════════════════════════════════════════
+console.log('\n▼ M5-b 全社ぶんの読む口（pv_member_medians_all）＝ 会社ごとの口を全社ぶん呼んだのと同じ');
+// ════════════════════════════════════════════════════════════
+/* allCheck() を、本物と「2人の門を1人に緩めた版」の両方に当てる（壊す証明）。 */
+const allCheck = async (who) => {
+  const r = await call(who, `select * from public.pv_member_medians_all()`);
+  if (r.err) return { good: false, why: r.err };
+  const cols = J(r.fields.map((x) => x.name));
+  // 会社ごとの口を、表に在る会社ぜんぶについて呼んで1つにまとめたもの
+  const airs = (await rows(`select distinct airline from public.pv_member_median order by airline`)).map((x) => x.airline);
+  const union = [];
+  for (const a of airs) {
+    const p = await call(who, `select * from public.pv_member_medians($1)`, [a]);
+    if (p.err) return { good: false, why: p.err };
+    for (const x of p.rows) union.push({ airline: a, rank: x.rank, median_man: x.median_man });
+  }
+  const key = (x) => `${x.airline} ${x.rank} ${x.median_man}`;
+  const got = r.rows.map(key).sort(), want = union.map(key).sort();
+  const tb = await table();
+  const solo = r.rows.filter((x) => (tb[`${x.airline} ${x.rank}`] || {}).n < 2);
+  return { good: cols === J(['airline', 'rank', 'median_man']) && J(got) === J(want) && solo.length === 0 && got.length >= 5,
+           cols, got, want, solo };
+};
+{
+  for (const [who, nm] of [[ANON, '未ログイン'], [await member(), 'ログイン済み']]) {
+    const c = await allCheck(who);
+    ok(c.good, `★${nm}: 全社の口は、会社ごとの口を全社ぶん呼んだのと1行も違わない（${(c.got || []).length} 区分）・列は airline・rank・median_man の3つだけ・1人の組は無い`, J(c));
+  }
+  const tb = await table();
+  ok(tb[`${A3} cap`]?.n === 1, '（準備）1人の組（A3 機長）が表に在る', J(tb[`${A3} cap`]));
+  const r = await call(ANON, `select * from public.pv_member_medians_all()`);
+  ok(!r.err && !r.rows.some((x) => x.airline === A3 && x.rank === 'cap'), '★1人の組（A3 機長）は全社の口にも出ない', J(r.rows));
+  ok(!r.err && r.rows.every((x) => Object.keys(x).length === 3 && !('n' in x)), '★人数（n）はどの行にも無い');
+  const defA = (await one(`select pg_get_functiondef('public.pv_member_medians_all()'::regprocedure) as s`)).s;
+  ok(!/pay_reports|reviews_v2|refresh|percentile|count\(|opened_at/.test(defA), '全社の口も表を引くだけ（給与・口コミの表を読まない・数えない・そろった時刻を返さない）');
+
+  // 壊す証明: 2人の門を1人に緩めた版（begin … rollback の中でだけ入れる。ファイルは触らない）
+  const src = read(MINE);
+  const a = src.indexOf('create or replace function public.pv_member_medians_all(');
+  const fsrc = a < 0 ? '' : src.slice(a, src.indexOf('$fn$;', a) + '$fn$;'.length);
+  const GATE = '   where m.n >= 2\n';
+  const broken = fsrc.replace(GATE, () => '   where m.n >= 1\n');
+  ok(fsrc.split(GATE).length === 2 && broken !== fsrc, '（全社の口の2人の門を見つけて1人に緩めた）');
+  await asOwner(); await db.exec(`begin`);
+  await db.exec(broken);
+  const red = await allCheck(ANON);
+  await asOwner(); await db.exec(`rollback`);
+  ok(!red.good && (red.solo || []).length > 0, `★緩めた版では1人の組が出て、検査が赤くなる（${(red.solo || []).length} 区分）`, J(red.solo));
+  ok((await allCheck(ANON)).good, '（巻き戻したあと: 本物は緑）');
+}
+
+
+// ════════════════════════════════════════════════════════════
 console.log('\n▼ M6 数え直しの中で失敗が起きても、給与の書き込みは通る');
 // ════════════════════════════════════════════════════════════
 {
@@ -414,8 +470,8 @@ console.log('\n▼ M7 冪等（db/member-median.sql をもう一度そのまま�
   const trg = (await one(`select count(*)::int as c from pg_trigger where tgname = 'trg_pv_member_median' and not tgisinternal`)).c;
   ok(trg === 5, '引き金は5つの表に1つずつ（流し直しても増えない）', String(trg));
   const check = res && res[res.length - 1] && res[res.length - 1].rows;
-  ok(Array.isArray(check) && check.length === 10 && check.every((x) => String(x.結果).startsWith('✅')),
-    'ファイル末尾の検算 10行が全部 ✅', J(check && check.filter((x) => !String(x.結果).startsWith('✅'))));
+  ok(Array.isArray(check) && check.length === 14 && check.every((x) => String(x.結果).startsWith('✅')),
+    'ファイル末尾の検算 14行が全部 ✅', J(check && check.filter((x) => !String(x.結果).startsWith('✅'))));
 }
 
 
@@ -453,6 +509,58 @@ console.log('\n▼ M8 壊す証明: テスト用アカウントを外す2行を�
   ok(!red && tb[`${A1} cap`]?.n === 5 && tb[`${A4} fo`]?.n === 5 && tb[`${A5} cap`]?.n === 3,
     '★壊した版では、テスト用アカウントの給与・自由入力の社名の給与・口コミが数えられ、検査が赤くなる', J({ A1: tb[`${A1} cap`], A4: tb[`${A4} fo`], A5: tb[`${A5} cap`] }));
   ok(await testerCheck(), '（巻き戻したあと: 本物は緑）');
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ M9 区分に2人そろった時刻（opened_at）── 招待のカードの「そろいました」の元（db/referrals.sql）');
+// ════════════════════════════════════════════════════════════
+{
+  const opened = async () => {
+    await asOwner();
+    return Object.fromEntries((await rows(`select airline, rank, n, opened_at from public.pv_member_median`))
+      .map((r) => [`${r.airline} ${r.rank}`, { n: Number(r.n), at: r.opened_at ? new Date(r.opened_at).getTime() : null }]));
+  };
+  let o = await opened();
+  ok(Object.values(o).every((x) => x.n >= 2 || x.at === null), '2人未満の区分は、そろった時刻を持たない（null）', J(o));
+  ok(o[`${A1} cap`]?.at != null && o[`${A6} cap`]?.at != null, '途中で2人になった区分は、そろった時刻を持つ', J({ A1: o[`${A1} cap`], A6: o[`${A6} cap`] }));
+
+  // 数え直しても、2人以上のあいだは前の時刻のまま（いまで上書きしない）
+  const t1 = o[`${A1} cap`].at;
+  const P5 = await member(); await pay(P5, A2, 'cap', 150000);       // 別の区分への書き込み ＝ 数え直しが走る
+  o = await opened();
+  ok(o[`${A1} cap`].at === t1, '★数え直しても、2人以上のあいだはそろった時刻を運ぶ（いまで上書きしない）', J({ t1, now: o[`${A1} cap`] }));
+
+  // 2人を割ったら null・また2人になったら、そのときの時刻
+  const t6 = o[`${A6} cap`].at;
+  const E1_KEY = payKey(E1, A6);
+  await db.query(`insert into public.pay_hidden (proof_hash, reason) values ($1, '検査')`, [E1_KEY]);
+  o = await opened();
+  ok(o[`${A6} cap`]?.n === 1 && o[`${A6} cap`].at === null, '2人を割ったら（下ろした）そろった時刻は消える', J(o[`${A6} cap`]));
+  await db.query(`delete from public.pay_hidden where proof_hash = $1`, [E1_KEY]);
+  o = await opened();
+  ok(o[`${A6} cap`]?.n === 2 && o[`${A6} cap`].at > t6, '★また2人になったら、そのときの時刻（前の時刻を生き返らせない）', J({ t6, now: o[`${A6} cap`] }));
+
+  // 列を足した日（本番に区分が在り、時刻だけ空）── 2人以上のあいだは null のまま（分からない時刻を「いま」で埋めない）
+  await db.query(`update public.pv_member_median set opened_at = null where airline = $1 and rank = 'cap'`, [A1]);
+  const P6 = await member(); await pay(P6, A2, 'cap', 160000);
+  o = await opened();
+  ok(o[`${A1} cap`].n >= 2 && o[`${A1} cap`].at === null, '★時刻が分からない区分（列を足した日に在った区分）は、数え直しても null のまま', J(o[`${A1} cap`]));
+
+  // 初めて数える（表がまるごと空）── どの区分も null（いつそろったか分からない）
+  await asOwner(); await db.exec(`begin`);
+  await db.exec(`delete from public.pv_member_median where true`);
+  await db.exec(`select public.pv_member_median_refresh()`);
+  const first = await opened();
+  await asOwner(); await db.exec(`rollback`);
+  ok(Object.keys(first).length >= 6 && Object.values(first).every((x) => x.at === null),
+     '★表がまるごと空のところから数えると、どの区分もそろった時刻は null（初めての数え直しで「いま」を付けない）', J(first));
+
+  // ファイルを流し直しても、そろった時刻は変わらない
+  const snap = sortKeys(await opened());
+  await db.exec(read(MINE));
+  ok(sortKeys(await opened()) === snap, 'db/member-median.sql を流し直しても、そろった時刻は変わらない');
+  ok((await samePort()).same, '（そのあとも道具の規則の写しと同じ）');
 }
 
 console.log(`\n${fail === 0 ? '✅' : '❌'} ${pass} passed, ${fail} failed\n`);

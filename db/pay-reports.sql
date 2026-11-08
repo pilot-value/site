@@ -14,8 +14,9 @@
 --     就業規則で報酬開示を禁じる会社の下で書いてもらうための前提。
 --  2. 原本（通貨と各金額）を絶対に失わない。換算は後から再計算できるが、
 --     原本は復元できない。だから正規化した値だけを保存する設計にはしない。
---  3. 集計は公開・個票は非公開を、UI ではなく DB の権限で担保する。
---     pay_reports に SELECT ポリシーを作らない。公開するのは pay_benchmarks だけ。
+--  3. 個票は非公開を、UI ではなく DB の権限で担保する。
+--     pay_reports に SELECT ポリシーを作らない。
+--     集計の pay_benchmarks も、2026-11-08 から未ログイン・会員には読ませない（6章。運営の道具だけが読む）。
 --  4. 派生値（年換算・$/block hour・手取り）は入力させない。人によって
 --     計算根拠が違うゴミが溜まる。サーバが計算して返す＝これが投稿の見返り。
 -- ════════════════════════════════════════════════════════════════
@@ -229,7 +230,7 @@ alter table public.pay_reports
   --    ★これを Verified の判定に使わない。source と同じでクライアント申告。
   --    ★公開面に出る道が無いことを設計で担保している：pay_reports はポリシーを
   --      1つも作らず revoke all（下部）＝ anon も authenticated も1行も読めない。
-  --      公開されるのは k≧5 の pay_benchmarks だけで、そのビューはこの列を触らない。
+  --      集計の pay_benchmarks（2026-11-08 から未ログイン・会員にも読ませない）も、この列を触らない。
   add column if not exists payslip_detail      jsonb,
   -- ★ 2026-08-18 追加。年代（10歳刻み）。外部キーは下の do ブロックで冪等に張る
   --    （add column if not exists は制約を後付けしない）。
@@ -1090,12 +1091,6 @@ declare
   v_streak    int;
   v_until     timestamptz;
   v_id        uuid;
-  v_n         int;
-  v_le        int;
-  v_med       numeric;
-  v_p25       numeric;
-  v_p75       numeric;
-  v_medbh     numeric;
 begin
   -- ── 入口の検品 ──────────────────────────────────────────
   if v_uid is null then
@@ -1511,18 +1506,15 @@ begin
     badge_state = 'active'
   where id = v_uid;
 
-  -- ── 投稿の見返り（同じ区分に5人以上いるときだけ返す）────────
-  -- k≧5 は公開ビューと同じ閾値。ここだけ緩めると裏口になる。
-  select count(*),
-         count(*) filter (where annual_total_usd <= v_usd),
-         percentile_cont(0.5)  within group (order by annual_total_usd),
-         percentile_cont(0.25) within group (order by annual_total_usd),
-         percentile_cont(0.75) within group (order by annual_total_usd),
-         percentile_cont(0.5)  within group (order by usd_per_block_hour)
-    into v_n, v_le, v_med, v_p25, v_p75, v_medbh
-    from public.pay_reports
-   where airline = v_airline and "position" = v_pos and fleet = v_fleet
-     and period_year = v_year and annual_total_usd is not null and airline_other is null;
+  -- ── 投稿の見返り（'benchmark'）は、いつも null（2026-11-08）────────
+  -- ★ それまでは、同じ区分（会社・職位・機材・年）に5人いると、その区分の
+  --   中央値・25%・75%・自分の位置（パーセンタイル）・時間あたりの中央値を返していた。
+  --   5人の区分の 25%・中央値・75% は、2・3・4番目の人の額**そのもの**になる。
+  --   しかも本人は新しい月に極端な額を出し直してから、もう一度ここを読める ＝ 他人の額を読み戻せる。
+  --   画面（給与を出した直後のカード）はもうこれを読んでいないので、計算ごと外した。
+  -- ★ キーは残す（null）。古い画面が端末に残っていても、今までの「比較なし」の枝に落ちるだけで壊れない。
+  -- ⚠️ ここに比較の数字を戻さない。比べるのは会社ページと同じ決まり
+  --    （db/member-median.sql の pv_member_medians_all ── 2人以上・1人1件・人数を返さない）。
 
   return jsonb_build_object(
     'ok', true,
@@ -1538,14 +1530,7 @@ begin
     'is_new',             v_inserted,
     'streak_months',      v_streak,
     'access_until',       v_until,
-    'benchmark', case when coalesce(v_n, 0) >= 5 then jsonb_build_object(
-        'n', v_n,
-        'percentile',        round(100.0 * v_le / v_n),
-        'median_usd',        round(v_med, 2),
-        'p25_usd',           round(v_p25, 2),
-        'p75_usd',           round(v_p75, 2),
-        'median_usd_per_bh', round(v_medbh, 2)
-      ) else null end
+    'benchmark',          null      -- ★いつも null（上の「投稿の見返り」の注）
   );
 end;
 $$;
@@ -1747,28 +1732,50 @@ grant execute on function public.set_mail_optin(boolean) to authenticated;
 
 
 -- ════════════════════════════════════════════════════════════════
--- 6. 公開する集計（k≧5 未満は構造的に出ない）
+-- 6. 区分の集計（k≧5 未満は構造的に出ない）── 2026-11-08 から未ログイン・会員には読ませない
 --
+-- ★ 読めるのは運営の道具（所有者・サービスの鍵）だけ（2026-11-08。下の revoke）。
+--    画面はもうこのビューを読んでいない（会員の比較は会社ページと同じ決まり ──
+--    db/member-median.sql の pv_member_medians_all。2人以上・1人1件・人数を返さない）。
+--    5人のセルの 25%・中央値・75% は、2・3・4番目の人の額そのものなので、開けておく理由が無い。
+--    ⚠️ grant を戻さない。戻すなら、先に「何に使うか」と「1人の額にならないか」を決めてから。
 -- ★ security_invoker を立てない＝所有者権限で走る。だから pay_reports に
---    RLS を張ったまま、集計だけを公開できる。ここを invoker にすると
+--    RLS を張ったまま、集計だけを（運営の道具に）出せる。ここを invoker にすると
 --    このビューは即座に0行になる。
 -- ★ base_iata を group by に入れない。「Emirates・A380・機長・DXB基地・在籍15年」
 --    まで絞れば n=5 でも1人に特定できる。件数の閾値だけでは匿名性は守れない。
 --    公開の粒度は 会社 × 職位 × 機材 × 年 まで。
--- ★ having count(*) >= 5 は「セルに何人いるか」しか見ていない。任意入力の項目は
---    5人のうち1人しか書いていないことがあるので、項目ごとに別の門番が要る
---    （下の case when count(列) >= 5）。詳細は PAY-EXTRAS.md 2章。
+-- ★ 数えるのは「人」（2026-11-08）。先に 1人 × セルで1行に縮めてから集計する（下の one）。
+--    それまでは行のまま count(*) していたので、同じ人が同じ年に5か月出すと
+--    その1人だけでセルが開き、その人の中央値・25%・75%・時間あたりが
+--    未ログインの人にも読めていた（中央値の名前のまま、1人の実数が出る。いまは revoke 済み）。
+--    1人は proof_hash（本人 × 会社。式は 5章の submit_pay_report の v_hash）で決まる。
+--    会社はセルの軸なので、セルの中では proof_hash ＝ 人。
+--    残す1行は、その人のそのセルでいちばん新しい給与の月（period_month）。
+--    同じ月は unique (proof_hash, 年, 月) で1行しか無いが、念のため
+--    created_at → id の順で必ず1つに決める（読むたびに違う行を選ばない）。
+-- ★ having count(*) >= 5 は、縮めたあとの行を数える ＝「セルに5人いるか」。
+--    任意入力の項目は5人のうち1人しか書いていないことがあるので、項目ごとに別の門番が要る
+--    （下の case when count(列) >= 5。これも縮めたあとの行＝人で数える）。
+--    項目の値も、その人の残した1行（いちばん新しい月）のもの。前の月に書いていて
+--    新しい月に書いていない人は「書いた人」に数えない（少なく見る側に倒れる）。
+--    詳細は PAY-EXTRAS.md 2章。
+-- ★ 時間あたりの中央値（median_usd_per_bh）も項目の1つ（2026-11-08）。乗務時間を書いた人が5人以上のときだけ出す。
+--    それまでは門が無く、5人のセルで乗務時間を書いたのが1人なら、その1人の時間あたりが「中央値」として出ていた。
 -- ════════════════════════════════════════════════════════════════
 drop view if exists public.pay_benchmarks;
 create view public.pay_benchmarks as
 select airline, "position", fleet, period_year,
-       count(*)                                                        as n,
+       count(*)                                                        as n,   -- ★人数（1人1行に縮めたあと）
        percentile_cont(0.5)  within group (order by annual_total_usd)   as median_usd,
        percentile_cont(0.25) within group (order by annual_total_usd)   as p25_usd,
        percentile_cont(0.75) within group (order by annual_total_usd)   as p75_usd,
-       percentile_cont(0.5)  within group (order by usd_per_block_hour) as median_usd_per_bh,
+       -- ★ 時間あたりは乗務時間を書いた人だけが持つ ＝ 下の項目と同じ門（書いた人が5人以上）。
+       case when count(usd_per_block_hour) >= 5
+            then percentile_cont(0.5) within group (order by usd_per_block_hour)
+       end                                                              as median_usd_per_bh,
 
-       -- ★ ここから下は「その項目を書いた人が5人以上いるとき」だけ値を出す。
+       -- ★ ここから下も「その項目を書いた人が5人以上いるとき」だけ値を出す。
        --    書いた人が1人のセルでそのまま percentile を取ると、「中央値」と
        --    名乗ったままその1人の実数が公開される。
        case when count(days_off) >= 5
@@ -1796,20 +1803,33 @@ select airline, "position", fleet, period_year,
                                  then housing_amount * fx_to_usd end))::numeric, 2)
        end                                                              as median_housing_usd_mo,
 
-       count(*) filter (where verify_level >= 1)                        as n_verified,
+       count(*) filter (where verify_level >= 1)                        as n_verified,   -- 残した1行が検証済みの人数
        max(period_month)                                                as latest_month
-  from public.pay_reports
- -- 自由入力の社名は集計から外す（社名そのものが識別子になりうる）
- where annual_total_usd is not null and airline_other is null
+  from (
+    -- ★ 1人 × セルで1行（その人のいちばん新しい月）。ここで縮めずに集計すると、行の数を人数と呼ぶことになる。
+    select distinct on (r.airline, r."position", r.fleet, r.period_year, r.proof_hash)
+           r.airline, r."position", r.fleet, r.period_year, r.period_month,
+           r.annual_total_usd, r.usd_per_block_hour,
+           r.days_off, r.sectors, r.housing_type, r.housing_amount, r.fx_to_usd,
+           r.verify_level
+      from public.pay_reports r
+     -- 自由入力の社名は集計から外す（社名そのものが識別子になりうる）
+     where r.annual_total_usd is not null and r.airline_other is null
+     order by r.airline, r."position", r.fleet, r.period_year, r.proof_hash,
+              r.period_month desc, r.created_at desc, r.id desc
+  ) one
  group by 1, 2, 3, 4
 having count(*) >= 5;
 
-grant select on public.pay_benchmarks to anon, authenticated;
+-- ★ 2026-11-08 から未ログイン・会員には読ませない（上の注）。作り直すたびに既定の権限が付くので、毎回はがす。
+revoke all on public.pay_benchmarks from public, anon, authenticated;
 
 comment on view public.pay_benchmarks is
-  '公開集計。k≧5 未満のセルは having で消える。base_iata・seniority_years・rank_years は'
+  '区分の集計（運営の道具だけが読む。2026-11-08 から未ログイン・会員には読ませない）。'
+  '1人 × セル（会社・職位・機材・年）で1行（その人のいちばん新しい月）に縮めてから数える＝n は人数。'
+  '5人未満のセルは having で消える（同じ人の何か月ぶんも1人）。base_iata・seniority_years・rank_years は'
   '準識別子なので列にも group by にも入れない。粒度をこれより細かくしないこと。'
-  '任意入力の項目（days_off/sectors/housing）は、セルの人数ではなく'
+  '任意入力の項目（usd_per_block_hour/days_off/sectors/housing）は、セルの人数ではなく'
   'その項目を書いた人数が5人以上のときだけ値を出す。';
 
 
@@ -1969,6 +1989,12 @@ select c.relname, c.reloptions
   from pg_class c join pg_namespace n on n.oid = c.relnamespace
  where n.nspname = 'public' and c.relname = 'pay_benchmarks';
 
+-- 8-4b. ★ 区分の集計（pay_benchmarks）を未ログイン・会員が読めないこと（2026-11-08。期待：0 行）
+--       1行でも出たら、5人のセルの 25%・中央値・75%（＝2・3・4番目の人の額）が誰にでも読める。
+select r as 読めてしまうロール
+  from unnest(array['anon','authenticated']) as r
+ where has_table_privilege(r, 'public.pay_benchmarks', 'select');
+
 -- 8-5. 公開集計に準識別子が出ていないこと（期待：0 行）
 --      days_off / sectors / housing_type は「生の値」が出ていないことを見る。
 --      集計した median_days_off / median_sectors / housing_provided_pct は別名なので
@@ -2118,23 +2144,46 @@ select column_name, data_type from information_schema.columns
 -- 8-16. ★ ここが今回いちばん大事な検算。
 --       「その項目を書いた人が1〜4人」なのに公開集計に値が出ている行を探す。
 --       1行でも出たら、その1人（〜4人）の実数が「中央値」の名前で公開されている。
+--       ★「書いた人」は人で数える（2026-11-08）。同じ人が何か月書いても1人
+--         （count(distinct proof_hash)。ビューとは別の数え方で突き合わせる＝ビューの写しにしない）。
+--         どれかの月に書いた人を全部数えるので、ビュー（いちばん新しい月だけを見る）より
+--         多めに出る ── それでも1〜4人なら、ビューは必ず値を伏せていないといけない。
 --       期待：0 行。
 select b.airline, b."position", b.fleet, b.period_year,
+       s.n_bh, b.median_usd_per_bh,
        s.n_days_off, b.median_days_off, s.n_sectors, b.median_sectors,
        s.n_housing, b.housing_provided_pct
   from public.pay_benchmarks b
   join (select airline, "position", fleet, period_year,
-               count(days_off)     as n_days_off,
-               count(sectors)      as n_sectors,
-               count(housing_type) as n_housing
+               count(distinct proof_hash) filter (where usd_per_block_hour is not null) as n_bh,
+               count(distinct proof_hash) filter (where days_off     is not null) as n_days_off,
+               count(distinct proof_hash) filter (where sectors      is not null) as n_sectors,
+               count(distinct proof_hash) filter (where housing_type is not null) as n_housing
           from public.pay_reports
          where annual_total_usd is not null and airline_other is null
          group by 1,2,3,4) s
     on (s.airline, s."position", s.fleet, s.period_year)
      = (b.airline, b."position", b.fleet, b.period_year)
- where (s.n_days_off between 1 and 4 and b.median_days_off     is not null)
+ where (s.n_bh       between 1 and 4 and b.median_usd_per_bh   is not null)   -- ★時間あたりも（2026-11-08）
+    or (s.n_days_off between 1 and 4 and b.median_days_off     is not null)
     or (s.n_sectors  between 1 and 4 and b.median_sectors      is not null)
     or (s.n_housing  between 1 and 4 and b.housing_provided_pct is not null);
+
+-- 8-16b. ★ 公開集計の n が「人数」になっていること（2026-11-08）。
+--        セルの本当の人数（count(distinct proof_hash)＝同じ人の何か月ぶんも1人）が5人未満なのに出ている行、
+--        または n が人数と違う行を探す。1行でも出たら、行の数を人数と呼んでいる
+--        （1人が5か月出しただけでセルが開き、その1人の年収が「中央値」として未ログインの人にも読める）。
+--        期待：0 行。
+select b.airline, b."position", b.fleet, b.period_year, b.n, s.people as 実人数
+  from public.pay_benchmarks b
+  left join (select airline, "position", fleet, period_year,
+                    count(distinct proof_hash) as people
+               from public.pay_reports
+              where annual_total_usd is not null and airline_other is null
+              group by 1,2,3,4) s
+    on (s.airline, s."position", s.fleet, s.period_year)
+     = (b.airline, b."position", b.fleet, b.period_year)
+ where s.people is null or s.people < 5 or b.n <> s.people;
 
 -- 8-17. 本人の履歴が新しい2列を返すこと（期待：2 行とも true）
 --       ここが false のままだと、フォームで集めても画面に一生出ない。
@@ -2164,7 +2213,7 @@ select distinct asked from public.pv_label_hints
 --       ★将来ここに関数を足した人も自動で引っかかる。これが狙い。
 --       ・pay_reports_pending は別の表なので単語境界（\M）で外す。
 --         あちらは「登録前の預かり」で、anon に開いているのが正しい。
---       ・pay_benchmarks（ビュー）は 1行＝区分・k≧5 なので anon に開いていてよい。
+--       ・pay_benchmarks（ビュー）は 2026-11-08 から anon にも会員にも開けていない（8-4b が見ている）。
 --         このクエリはビューを見ていない。関数だけを見る。
 --       ・pv_pay_rows だけは名指しで外す（2026-09-16 オーナー判断）。登録していない人にも
 --         **伏せた行**（会社・出典・投稿時期の3つだけ）を返すため anon に開けた。

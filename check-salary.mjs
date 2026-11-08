@@ -476,6 +476,32 @@ if (dead.length) {
 const js = checkSalaryJson();
 console.log(`\n${js.ok ? '✅' : '❌'} salary-data.json: ${js.msg}`);
 
+/* ★2026-11-08 マイレポートの他社比較は、会社ページと同じ決まりで中央値に差し替える（salary-data.json の medRule）。
+   medRule は pv-airline-view.mjs の payOf の写しなので、会社ページの HTML の data-rule / data-base と突き合わせる。
+   ずれると、同じ会社の同じ職位がマイレポートと会社ページで違う額になる（画面は普通に動いたまま）。 */
+let ruleBad = 0, ruleSeen = 0;
+{
+  const MR = buildSalaryJson().medRule || {};
+  for (const slug of Object.keys(SALARY)) {
+    const p = `airlines/${slug}.html`;
+    if (!existsSync(p)) continue;
+    const h = readFileSync(p, 'utf8');
+    for (const rk of ['cap', 'fo']) {
+      const m = new RegExp(`class="pvg-rank" data-rank="${rk}" data-med="(\\d)" data-rule="(\\w+)" data-base="(\\d+)"`).exec(h);
+      if (!m) continue;
+      ruleSeen++;
+      const r = MR[slug]?.[rk];
+      const want = { med: m[1] === '1', rule: m[2], base: Number(m[3]) };
+      const got = r ? { med: r.m === 1, rule: r.r, base: r.b } : { med: false, rule: 'higher', base: SALARY[slug]?.[rk]?.avg };
+      if (got.med !== want.med || got.rule !== want.rule || got.base !== want.base) {
+        ruleBad++;
+        console.log(`❌ medRule ${slug}.${rk}: 会社ページ ${JSON.stringify(want)} ／ salary-data.json ${JSON.stringify(got)}`);
+      }
+    }
+  }
+  console.log(`${ruleBad ? '❌' : '✅'} 中央値の決まり（medRule）が会社ページと同じ: ${ruleSeen}職位を照合・ずれ ${ruleBad}`);
+}
+
 // ★ 以前は salary-data.json の不一致でしか exit 1 にならず、ページ側の ❌ が
 //   出力に埋もれて本番まで抜けていた。ページの ❌ も落とす。
-if (!js.ok || fail || nBad) process.exitCode = 1;
+if (!js.ok || fail || nBad || ruleBad || !ruleSeen) process.exitCode = 1;

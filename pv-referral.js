@@ -98,7 +98,8 @@
   /* ── 計測 ────────────────────────────────────────────────────
      GA4 の gtag だけ。DB のテーブルは作らない（pv-conditions.js と同じ）。
      ★金額・会社名・会社コード・メール・自由記述・招待相手の識別子は1つも送らない。
-       remaining は 2 / 1 / 0 しか取らない（few は必ず 0）＝GA4 にも生の n は渡らない。
+       remaining は 2 / 1 / 0 しか取らない＝GA4 にも生の n は渡らない。
+       ★2026-11-08 から区分は会社 × 職位・2人で開く（会社ページの会員の中央値と同じ。サーバの my_cohort_gap）。few はもう返らない。
        pv-conditions.js が airline_code を送っているのとは意図的に変える。
        「この人は招待した」＋「この人は X 社」は、片方ずつより特定に近づく。 */
   function track(name, params) {
@@ -127,21 +128,17 @@
       /* ★順位の言い方をしない。「あなたの位置が数字で出ます」は
          ランキングに聞こえるので 2026-08-19 にやめた（オーナー指摘）。
          増えるのは順位ではなく、比べる相手が公開情報から本人の記録に変わること。 */
-      nearH: function (k) { return 'あと' + k + '人で、より詳しい比較'; },
-      nearS: function (k) {
-        return ['同じ会社・職位・機種・年で記録した人が',
-                'あと' + k + '人そろうと、実際に記録された数字で比べられます。'];
-      },
+      nearH: function (k) { return 'あと' + k + '人で、会員の中央値が出ます'; },
+      nearS: function () { return ['同じ会社・職位で数えます。']; },
       fewH: 'この区分はまだ記録が少ないです',
-      fewS: ['同じ会社・職位・機種・年で記録した人が5人そろうと、',
-             '実際に記録された数字で比べられます。'],
+      fewS: ['同じ会社・職位で2人そろうと、会員の中央値が出ます。'],
       cta: 'パイロット仲間を1人招待',
       copy: 'リンクをコピー',
       copied: 'コピーしました',
       privacy: ['招待した相手が誰かは、こちらでは分かりません。',
                 'あなたの給与も相手には見えません。'],
       gained: function (k) { return '前回あなたが記録してから、この区分に' + k + '件増えました。'; },
-      crossed: 'この区分に5人そろいました。詳細な比較が出ています。',
+      crossed: '同じ会社・職位に2人そろいました。会員の中央値が出ています。',
       close: '閉じる',
       /* ★送る文面。オーナーが書いた原文で、勝手に言い換えない。
          引数を取らない＝勤務先名を文面へ入れる経路が構造上ない。 */
@@ -175,16 +172,12 @@
       eyebrow: 'Improve your comparison',
       /* ★日本語と同じ。順位の言い方（your position appears as a number）はやめた。 */
       nearH: function (k) {
-        return (k === 1) ? 'One more pilot for a more detailed comparison'
-                         : k + ' more pilots for a more detailed comparison';
+        return (k === 1) ? 'One more pilot and the member median appears'
+                         : k + ' more pilots and the member median appears';
       },
-      nearS: function (k) {
-        return ['When ' + k + ' more pilot' + (k === 1 ? '' : 's') + ' on the same airline, rank, fleet',
-                'and year record their pay, you can compare against real recorded figures.'];
-      },
+      nearS: function () { return ['Counted at your airline and seat.']; },
       fewH: 'This segment has very few records yet',
-      fewS: ['When five pilots on the same airline, rank, fleet and year record their pay,',
-             'you can compare against real recorded figures.'],
+      fewS: ['Once two pilots at your airline and seat record their pay, the member median appears.'],
       cta: 'Invite one pilot',
       copy: 'Copy link',
       copied: 'Copied',
@@ -194,7 +187,7 @@
         return k + ' new record' + (k === 1 ? '' : 's') +
                ' have been added to this segment since you last recorded yours.';
       },
-      crossed: 'This segment has reached five pilots. Your detailed comparison is now showing.',
+      crossed: 'Two pilots at your airline and seat have now recorded their pay. The member median is showing.',
       close: 'Close',
       /* ★日本語版と同じことを英語で言うだけ。タグラインは訳さない。
          「完全匿名」はトップページと同じ Fully anonymous に揃える。 */
@@ -222,16 +215,12 @@
       eyebrow: 'Mejora tu comparación',
       /* ★日本語と同じ。順位の言い方（your position appears as a number）はやめた。 */
       nearH: function (k) {
-        return (k === 1) ? 'Un piloto más para una comparación más detallada'
-                         : k + ' pilotos más para una comparación más detallada';
+        return (k === 1) ? 'Un piloto más y aparece la mediana de los miembros'
+                         : k + ' pilotos más y aparece la mediana de los miembros';
       },
-      nearS: function (k) {
-        return ['Cuando haya ' + k + ' piloto' + (k === 1 ? '' : 's') + ' más de la misma aerolínea, categoría, flota',
-                'y año con su remuneración registrada, podrás comparar con cifras reales registradas.'];
-      },
+      nearS: function () { return ['Se cuenta en tu aerolínea y categoría.']; },
       fewH: 'Este segmento todavía tiene muy pocos registros',
-      fewS: ['Cuando cinco pilotos de la misma aerolínea, categoría, flota y año registren su remuneración,',
-             'podrás comparar con cifras reales registradas.'],
+      fewS: ['Cuando dos pilotos de tu aerolínea y categoría registren su remuneración, aparecerá la mediana de los miembros.'],
       cta: 'Invita a un piloto',
       copy: 'Copiar enlace',
       copied: 'Copiado',
@@ -241,7 +230,7 @@
         return k + ' registro' + (k === 1 ? '' : 's') +
                ' más en este segmento desde la última vez que registraste el tuyo.';
       },
-      crossed: 'Este segmento llegó a cinco pilotos. Tu comparación detallada ya está visible.',
+      crossed: 'Ya hay dos pilotos de tu aerolínea y categoría que registraron su remuneración. La mediana de los miembros ya aparece.',
       close: 'Cerrar',
       /* ★日本語版と同じことを英語で言うだけ。タグラインは訳さない。
          「完全匿名」はトップページと同じ Fully anonymous に揃える。 */

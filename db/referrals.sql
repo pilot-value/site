@@ -5,17 +5,22 @@
 --
 -- ★ このファイルは自動では流れない。オーナーの明示承認後に SQL Editor で実行する。
 -- ★ 先に db/pay-reports.sql を流すこと（my_pay_reports をこのファイルが呼ぶ）。
+-- ★ 先に db/member-median.sql を流すこと（2026-11-08。「あと○人」はその表の人数を読む）。
+--    本番に古い member-median.sql（そろった時刻の列が無い）しか無いと、下の前提が日本語で止める。
+--    手元の器（serve-local.mjs の SQL_FILES）はこのファイルを member-median.sql より先に流す ──
+--    表がまだ無いあいだ my_cohort_gap は 'none'（何も言わない）を返すだけで、止まらない。
 -- 冪等（何度流しても安全）。
 --
 -- ── なぜ要るのか ────────────────────────────────────────────
--- 給与レポートは「同じ会社・職位・機材・年で5人」そろわないと比較を出さない。
--- 5人未満の人には灰色の一文が出て、そこで終わる＝行き止まりだった。
--- ここを「あと2人で詳細比較 → パイロット仲間を1人招待」に変える。
+-- 比較は「同じ会社・同じ職位（機長／副操縦士）で2人」そろわないと出ない
+-- （2026-11-08 から会社ページの「会員が出した年収の中央値」と同じ決まり。db/member-median.sql）。
+-- 2人未満の人には灰色の一文が出て、そこで終わる＝行き止まりだった。
+-- ここを「あと1人で比較 → パイロット仲間を1人招待」に変える。
 -- 誘う理由は報酬ではなく、自分のデータが良くなること。
 --
 -- ── この設計が守っている約束 ────────────────────────────────
 --  1. 人数はサーバから出さない。my_cohort_gap が返すのは状態を表す言葉で、
---     整数は「あと2人／あと1人」の 2 と 1 しか外へ出ない（下の 4. を読むこと）。
+--     整数は「あと2人／あと1人」の 2 と 1（と、いつも 0 の gained）しか外へ出ない（下の 8. を読むこと）。
 --  2. 誰にも直接は読ませない。両テーブルとも RLS 有効・ポリシー0本。
 --     出入口は下の4つの関数だけ。このファイルは anon に何も渡さない。
 --  3. db/pay-reports.sql を1行も触らない。紹介の成立は「記録」ではなく
@@ -40,6 +45,24 @@ begin
   end if;
   if to_regclass('public.profiles') is null then
     raise exception 'profiles がありません。先に db/schema-additions.sql を実行してください';
+  end if;
+  -- ★「あと○人」は会員の中央値の表（db/member-median.sql）の人数とそろった時刻を読む（2026-11-08）。
+  --   表が在るのに、そろった時刻の列が無い ＝ 古い member-median.sql の上に貼ろうとしている。
+  --   そのまま通すと、貼れたまま my_cohort_gap が全員にエラーを返す（画面のカードが黙って消える）。
+  --   表がまだ無いとき（手元の器の順）は止めない ── 関数は表が無いあいだ 'none' を返す。
+  if to_regclass('public.pv_member_median') is not null
+     and not exists (select 1 from pg_attribute a
+                      where a.attrelid = to_regclass('public.pv_member_median')   -- ★::regclass にしない（表が無いと計画の時点で落ちる）
+                        and a.attname = 'opened_at' and not a.attisdropped) then
+    raise exception '先に db/member-median.sql を貼り直してください（会員の中央値の表に opened_at の列が無い）';
+  end if;
+  -- ★「あと○人」は、本人の行が会員の中央値に数えられるかを確かめるのに、下ろした人の表（db/pay-rows.sql）と
+  --   本人の鍵（pv_my_keys・db/deep-pay.sql）を使う（2026-11-08）。無いまま貼れると、呼ばれた瞬間にエラーになる。
+  if to_regclass('public.pay_hidden') is null then
+    raise exception '先に db/pay-rows.sql を実行してください（pay_hidden が無い）';
+  end if;
+  if to_regprocedure('public.pv_my_keys()') is null then
+    raise exception '先に db/deep-pay.sql を実行してください（pv_my_keys が無い）';
   end if;
 end $$;
 
@@ -410,31 +433,72 @@ comment on function public.pv_referral_settle() is
 
 
 -- ════════════════════════════════════════════════════════════════
--- 8. my_cohort_gap — 「あと○人で詳細比較」
+-- 8. my_cohort_gap — 「あと○人で比較」
 --
 -- ★★ この関数はプライバシーの例外そのものなので、変える前に必ずここを読む。
 --
--- 2026-08 オーナー判断で、本人がその区分に自分で記録している場合に限り、
--- n=3・4 のときだけ「あと2人／あと1人」を返す。n≦2 では数字を1つも返さない。
+-- ★ 2026-11-08 オーナー判断で、比較の決まりを会社ページと同じにした ──
+--   **2人以上・1人1件・人数を返さない**（db/member-median.sql の pv_member_median）。
+--   区分は「本人のいちばん新しい給与の行」の 会社 × 職位（機長／副操縦士）。
+--   機材と年は区分に入れない（会社ページの中央値に機材と年の段が無いため）。
+--   人数は**その表に保存してある n を読むだけ**（書き込みの引き金が数えて置いたもの）。
+--   読むたびに pay_reports を数え直さない（2026-10-31 と 2026-11-08 に本番が止まったのと同じ形を作らない）。
+--   表にその区分の行が無ければ n = 0。
 --
---   自分の区分の n | 返る中身                                  | 画面
---   0〜2           | {state:'few'}  ★整数はゼロ個              | この区分はまだ記録が少ないです
---   3              | {state:'near', remaining:2, gained:k}      | あと2人で詳細比較
---   4              | {state:'near', remaining:1, gained:k}      | あと1人で詳細比較
---   5以上          | {state:'open', gained:k, crossed:bool}     | 普通の比較（招待の導線なし）
---   自分の投稿が無い| {state:'none'}                            | 何も出さない
+-- ★★ 本人の行が、その表に数えられる行のときだけ答える（2026-11-08 の見直しで塞いだ穴）。
+--   数えられる行 ＝ db/member-median.sql 3章（pay と ok）と同じ条件 ──
+--     年 $10,000〜$700,000・created_at が直近24か月・本人が下ろした人（pay_hidden）でない・テスト用アカウントでない。
+--   数えられない行（たとえば 1 AED の基本給だけの行）で区分を決めると、表の n は「本人以外の人数」そのものになり、
+--   「あと2人／あと1人」で、どの会社 × 職位でも「ほかに0人か1人か」を試して読めてしまう。だから 'none'（何も言わない）。
+--   見るのは本人の行だけ（読む口を安く保つ。誰も数え直さない）。
+--   ⚠️ 下ろした人は「本人の鍵のどれかが pay_hidden に在れば」で見る（会社ごとに絞らない＝少なく言う側に倒れる）。
+--      鍵は pv_my_keys（db/deep-pay.sql）を呼ぶ ── 式をここへ書き写さない（写しはもう4つある）。
+--   ⚠️ 条件を db/member-median.sql の数え方と揃えたまま動かす。片方だけ直すと、この穴が開き直る。
+--
+--   本人の行                     | 自分の区分の n | 返る中身                                       | 画面
+--   数えられる                   | 1（本人だけ）  | {state:'near', remaining:1, gained:0, crossed:false} | あと1人で比較
+--   数えられる                   | 2以上          | {state:'open', gained:0, crossed:bool}         | 普通の比較（招待の導線なし）
+--   数えられる（表がまだ追いついていない） | 0     | {state:'near', remaining:2, gained:0, crossed:false} | あと2人で比較
+--   数えられない（幅の外・24か月より古い・下ろした・テスト用アカウント） | どれでも | {state:'none'} | 何も出さない
+--   自分の投稿が無い             |                | {state:'none'}                                 | 何も出さない
+--   職位が機長・副操縦士でない／会社がどこにも当たらない／表がまだ無い | | {state:'none'} | 何も出さない
+--   ★ 'few'（数字を1つも返さない段）は、もう返さない。答えるのは本人が数えられている区分だけなので、
+--     「あと1人」から分かるのは「本人のほかにもう1人いるかどうか」だけ
+--     （2人以上の区分の中央値は会社ページに誰でも見える）。
+--
+--   職位の読み替えは db/member-median.sql と同じ：captain・cap・tri_tre → 機長 ／ fo・sfo → 副操縦士。
+--   自由入力の社名の行は、会員の中央値と同じく pv_airline_resolve で会社コードに直す（どこにも当たらなければ 'none'）。
+--
+-- ── gained（「前回あなたが記録してから◯人増えました」）は、いつも 0 ──────────
+--   保存してある表には「いまの人数」しか無く、「あなたが前回記録したときの人数」が無い。
+--   人で数え直すには、給与・口コミ・下ろした人・24か月の窓まで全部やり直すことになる（＝読むたびに全員分）。
+--   安く・本当のことだけで出せないので、0 を返す。★増えてないのに増えたと言わない ── 0 は「言わない」で、嘘にならない。
+--   （キーは今までどおり残す。画面の pv-referral.js は 0 のとき何も出さない。）
+--
+-- ── crossed（「この区分に2人そろいました」）──────────────────────
+--   表の opened_at（その区分が2人以上になった時刻。db/member-median.sql 3章が数え直しのたびに運ぶ）が、
+--   本人が最後に給与を記録した時刻（本人の給与の行の created_at のいちばん新しいもの）より後のときだけ true。
+--   opened_at が分からない区分（列を足した日にもう2人いた区分・初めて数えた区分）は null ＝ false。
+--   本人の提出でちょうど2人になったときは、同じ時刻なので false（自分の提出を「そろいました」と言わない）。
+--   外れる向きは「少なく言う」側だけ（分からないときは false）。
 --
 -- ★まだ禁じていること：
---   ・生の n を返すこと
+--   ・生の n を返すこと（2人未満の「あと1人／あと2人」だけ。2人以上は1文字も返さない）
 --   ・他人の区分の n を引けること
 --   ・引数で区分を指定できるようにすること（この関数は引数を取らない）
 --   ・pay_benchmarks の having count(*) >= 5 を緩めること
 --   ・匿名クライアントにこの関数を開けること
+--   ・読むたびに pay_reports を数え直すこと（数えるのは書き込みの引き金だけ）
 --   pay-tracker.js:23-25 と index.html:652-654 の「件数を出さない」は据え置き。
 --   あちらは「他人の区分」の話で、こちらは「自分が記録した区分」の話。
 --
 -- ★引数を取らないので、総当たりで他人の区分を引く対象が存在しない。
 --   ＝「自分で投稿した人にだけ見せる」がチェックではなく設計の帰結になっている。
+--
+-- ★「比較が出るタイミング」の正は、いまは db/member-median.sql の pv_member_median（n ≥ 2 の区分）。
+--   それまでここの where 句は submit_pay_report のベンチマーク（会社・職位・機材・年で5人）と1文字同じにしてあったが、
+--   区分も門も変わったので、その対はもう無い。会社ページの中央値（pv_member_medians・pv_member_medians_all）が
+--   出る区分と、ここで 'open' になる区分が同じ ── 門（m.n >= 2）を変えるときは3つ一緒に。
 -- ════════════════════════════════════════════════════════════════
 create or replace function public.my_cohort_gap()
 returns jsonb
@@ -446,16 +510,23 @@ declare
   v_uid    uuid := auth.uid();
   v_mine   jsonb;
   v_air    text;
+  v_other  text;
   v_pos    text;
-  v_fleet  text;
-  v_year   int;
+  v_rank   text;
   v_since  timestamptz;
   v_n      int;
-  v_before int;
-  v_gained int;
+  v_open   timestamptz;
+  v_usd    numeric;
+  v_at     timestamptz;
 begin
   if v_uid is null then
     raise exception 'ログインが必要です' using errcode = '42501';
+  end if;
+
+  -- 会員の中央値の表がまだ無い（db/member-median.sql を貼る前）なら、何も言わない。
+  -- 数えていないものについて「あと2人」とは言えない。
+  if to_regclass('public.pv_member_median') is null then
+    return jsonb_build_object('ok', true, 'state', 'none');
   end if;
 
   -- ── 自分の区分を割り出す ────────────────────────────────
@@ -470,65 +541,69 @@ begin
   --     なって機能が黙って死ぬ（どこも赤くならない）。
   v_mine := public.my_pay_reports();
 
-  select e->>'airline', e->>'position', e->>'fleet',
-         (e->>'period_year')::int, (e->>'created_at')::timestamptz
-    into v_air, v_pos, v_fleet, v_year, v_since
+  select e->>'airline', e->>'airline_other', e->>'position',
+         (e->>'annual_total_usd')::numeric, (e->>'created_at')::timestamptz
+    into v_air, v_other, v_pos, v_usd, v_at
     from jsonb_array_elements(coalesce(v_mine->'reports', '[]'::jsonb)) e
-   where e->>'airline_other' is null
-     and e->>'annual_total_usd' is not null
+   where e->>'annual_total_usd' is not null
      and coalesce(btrim(e->>'airline'),  '') <> ''
      and coalesce(btrim(e->>'position'), '') <> ''
-     and coalesce(btrim(e->>'fleet'),    '') <> ''
-     and e->>'period_year' is not null
    order by (e->>'period_ym')::int desc, (e->>'created_at')::timestamptz desc
    limit 1;
+
+  -- 本人が最後に給与を記録した時刻（どの会社・どの月の行でも。いちばん新しいもの）
+  select max((e->>'created_at')::timestamptz)
+    into v_since
+    from jsonb_array_elements(coalesce(v_mine->'reports', '[]'::jsonb)) e;
 
   if v_air is null then
     return jsonb_build_object('ok', true, 'state', 'none');
   end if;
 
-  -- ── 人数を数える ────────────────────────────────────────
-  -- ★この where 句は db/pay-reports.sql:871-874（submit_pay_report が
-  --   ベンチマークを返すかどうかを決めている条件）と1文字同じにしてある。
-  --   ここがずれると「あと2人」と実際に比較が出るタイミングが食い違う。
-  select count(*), count(*) filter (where created_at <= v_since)
-    into v_n, v_before
-    from public.pay_reports
-   where airline = v_air and "position" = v_pos and fleet = v_fleet
-     and period_year = v_year
-     and annual_total_usd is not null and airline_other is null;
+  -- 自由入力の社名は、会員の中央値と同じく会社コードに直す（どこにも当たらない 'other' なら何も言わない）
+  if v_air = 'other' then
+    v_air := nullif(public.pv_airline_resolve(coalesce(v_other, '')), 'other');
+  end if;
+  v_rank := case v_pos when 'captain' then 'cap' when 'cap' then 'cap' when 'tri_tre' then 'cap'
+                       when 'fo' then 'fo' when 'sfo' then 'fo' end;
+  if v_air is null or v_rank is null then
+    return jsonb_build_object('ok', true, 'state', 'none');
+  end if;
 
-  -- ── 「前回あなたが記録してから増えた件数」──────────────
-  -- ★基準は「前回見てから」ではなく「前回あなたが記録してから」。
-  --   基準がユーザーの書けないテーブルの created_at なので、偽造する対象も
-  --   端末を替えて失う対象も無い。投稿直後の初回表示は必ず 0 になる
-  --   ＝ 嘘の「増えました」が表現できない。
-  --   既知のずれ：先に入っていた行の金額があとから埋まった場合、それは
-  --   v_before 側に入るので gained を少なく見せる。多く見せることはありえない。
-  --   この非対称性が「増えてないのに増えたと言わない」の保証そのもの。
-  v_gained := greatest(coalesce(v_n, 0) - coalesce(v_before, 0), 0);
+  -- ── 本人のこの行が、会員の中央値の表に数えられる行か（上の ★★）───────────
+  -- ★数えられない行で区分を決めると、n が「本人以外の人数」になり、0人か1人かが読める。何も言わない。
+  --   条件は db/member-median.sql 3章と同じ（幅・24か月・下ろした人・テスト用アカウント）。本人の行だけを見る。
+  if v_usd is null or not (v_usd between 10000 and 700000)
+     or v_at is null or v_at < now() - interval '24 months'
+     or exists (select 1 from public.pv_test_users t where t.uid = v_uid)
+     or exists (select 1 from public.pay_hidden h
+                 where h.proof_hash in (select k from public.pv_my_keys() k)) then
+    return jsonb_build_object('ok', true, 'state', 'none');
+  end if;
 
-  if coalesce(v_n, 0) >= 5 then
+  -- ── 人数を読む（数えない）────────────────────────────────
+  -- ★保存してある表の1行を引くだけ。行が無い区分は 0人。
+  select m.n, m.opened_at
+    into v_n, v_open
+    from public.pv_member_median m
+   where m.airline = v_air and m.rank = v_rank;
+  v_n := coalesce(v_n, 0);
+
+  if v_n >= 2 then
     return jsonb_build_object(
       'ok', true, 'state', 'open',
-      'gained',  v_gained,
-      'crossed', (coalesce(v_before, 0) < 5)
+      'gained',  0,      -- ★いつも 0（上の注。増えてないのに増えたと言わない）
+      'crossed', (v_open is not null and v_since is not null and v_open > v_since)
     );
   end if;
 
-  if coalesce(v_n, 0) in (3, 4) then
-    return jsonb_build_object(
-      'ok', true, 'state', 'near',
-      'remaining', 5 - v_n,     -- ★2 か 1 しか入らない
-      'gained',    v_gained,
-      'crossed',   false
-    );
-  end if;
-
-  -- ── n ≦ 2 ────────────────────────────────────────────────
-  -- ★整数を1つも返さない。gained も返さない
-  --   （state:'few' が n≦2 を意味するので、gained:2 は n を 2 に確定させてしまう）。
-  return jsonb_build_object('ok', true, 'state', 'few');
+  -- ── 2人未満（0人か1人）──────────────────────────────────
+  return jsonb_build_object(
+    'ok', true, 'state', 'near',
+    'remaining', 2 - v_n,     -- ★2 か 1 しか入らない
+    'gained',    0,
+    'crossed',   false
+  );
 end;
 $$;
 
@@ -536,8 +611,10 @@ revoke all on function public.my_cohort_gap() from public, anon;
 grant execute on function public.my_cohort_gap() to authenticated;
 
 comment on function public.my_cohort_gap() is
-  '本人が記録した区分（会社・職位・機材・年）に、あと何人で比較が出るか。'
-  '★n≦2 では整数を1つも返さない（state=few だけ）。n=3・4 のときだけ remaining を返す。'
+  '本人のいちばん新しい給与の区分（会社 × 機長／副操縦士）に、あと何人で比較が出るか。'
+  '人数は db/member-median.sql の表に保存してある n を読むだけ（読むたびに数えない）。2人以上で open。'
+  '★本人のその行が会員の中央値に数えられない行（幅の外・24か月より古い・下ろした・テスト用アカウント）なら none。'
+  '★2人未満のときだけ remaining（2 か 1）を返す。2人以上では remaining を返さない（gained はいつも 0）。'
   '★引数を取らない＝他人の区分は引けない。生の n はどの経路でも外へ出ない。';
 
 
@@ -546,7 +623,8 @@ comment on function public.my_cohort_gap() is
 --
 -- ★1本の SELECT にしてある。Supabase の SQL Editor は複数文を流すと
 --   最後の1本の結果しか出さないので、分けて書くと上から順に消えていく。
--- 期待：12行すべて ✅。1つでも ❌ なら、そこが効いていない。
+-- 期待：15行すべて ✅。1つでも ❌ なら、そこが効いていない。
+-- ★13 は db/member-median.sql を先に貼っていないと ❌ になる（「あと○人」が読む表が無い）。
 --
 -- 特に 2・5・11 は「静かに壊れる」種類のもの。ポリシーを1本足しただけで
 -- 誰が誰を招待したかが誰でも引けるようになり、画面には何も出ない。
@@ -558,7 +636,8 @@ with f as (
          to_regprocedure('public.my_referral_code()')        as f_code,
          to_regprocedure('public.claim_referral(text)')      as f_claim,
          to_regprocedure('public.pv_referral_settle()')      as f_settle,
-         to_regprocedure('public.my_cohort_gap()')           as f_gap
+         to_regprocedure('public.my_cohort_gap()')           as f_gap,
+         to_regclass('public.pv_member_median')              as t_mm
 )
 select n as "#", case when ok then '✅' else '❌' end as 結果, 見るところ
 from (
@@ -628,5 +707,24 @@ from (
                         and table_name in ('referral_codes','referrals')
                         and column_name in ('email','name','salary','amount',
                                             'annual_total_usd','airline')) from f
+  union all
+  select 13, '「あと○人」は会員の中央値の表（db/member-median.sql）の人数を読むだけ（読むたびに給与の表を数えない）',
+         case when f_gap is null or t_mm is null then false
+              else pg_get_functiondef(f.f_gap) like '%from public.pv_member_median m%'
+               and pg_get_functiondef(f.f_gap) not like '%from public.pay_reports%'
+               and exists (select 1 from pg_attribute a
+                            where a.attrelid = f.t_mm and a.attname = 'opened_at' and not a.attisdropped) end from f
+  union all
+  select 14, '「あと○人」は2人で開く（2人未満のときだけ 2 − n ＝ あと2人／あと1人）',
+         case when f_gap is null then false
+              else pg_get_functiondef(f.f_gap) like '%if v_n >= 2 then%'
+               and pg_get_functiondef(f.f_gap) like '%''remaining'', 2 - v_n%' end from f
+  union all
+  select 15, '「あと○人」は、本人の行が会員の中央値に数えられない行なら何も言わない（幅・24か月・下ろした・テスト用アカウント）',
+         case when f_gap is null then false
+              else pg_get_functiondef(f.f_gap) like '%not (v_usd between 10000 and 700000)%'
+               and pg_get_functiondef(f.f_gap) like '%v_at < now() - interval ''24 months''%'
+               and pg_get_functiondef(f.f_gap) like '%from public.pv_test_users t where t.uid = v_uid%'
+               and pg_get_functiondef(f.f_gap) like '%from public.pay_hidden h%pv_my_keys()%' end from f
 ) t
 order by n;

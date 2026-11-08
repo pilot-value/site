@@ -64,15 +64,12 @@
      ＝ salary-leveling.js と同じやり方。currentScript は同期実行中しか
      取れないので、ここ（IIFE の冒頭）で確定させる。 */
   var PUB_URL = 'salary-data.json';
-  /* 会社コード → 社名の辞書。★ salary-data.json ではない。あちらは
-     「年収の帯を持つ112社」で、小規模航空会社・チャーター会社・
-     ビジネスジェット運航会社が入っていない＝その社だけコードが生のまま出る。 */
-  var AIR_URL = 'pv-airlines.json';
+  var SAMPLE_URL = 'my-value-sample.js';     // 運営の見本（運営のときだけ読む）
   try {
     var _self = (d.currentScript && d.currentScript.src) || '';
     if (_self) {
       PUB_URL = new URL('salary-data.json', _self).href;
-      AIR_URL = new URL('pv-airlines.json', _self).href;
+      SAMPLE_URL = new URL('my-value-sample.js', _self).href;
     }
   } catch (e) {}
 
@@ -82,8 +79,6 @@
          名前が取れたら「◯◯さんの報酬レポート」。取れなければ「あなたの」に落とす
          （プロフィール未入力の人に空欄の「さん」を出さない）。 */
       titleOf: function (nm) { return (nm ? nm + 'さん' : 'あなた') + 'の報酬レポート'; },
-      leadNew: '出してもらった明細から作りました。記録した実データに基づく、あなた専用の報酬インサイトです。',
-      lead: '記録した実データに基づく、あなた専用の報酬インサイト。月を重ねるほど濃くなります。',
       unlockOn: function (n) { return '解放中 ' + n + '日'; },
       unlockOff: '未解放',
       kAirline: '会社', kFleet: '機種', kPos: '職位', kBase: 'ベース',
@@ -100,7 +95,6 @@
       mStay: 'ステイ日数',
       hDays: function (n) { return n + '日'; },
       hStay: function (n) { return n + '泊'; },
-      noDuty: '総勤務時間が明細から読み取れていません。乗務時間あたりだけ出しています。<b>乗務時間から推定はしません</b>（実際の拘束時間は人によって倍ちがうため）。',
       kDeduct: '控除合計', kYtd: '年初来の課税支給額',
       /* ★総支給の外で受け取った分（支給元＝組合）。会社の明細に印字されないので
          上の「総支給」には入っていない。出さないと年換算だけが大きくなり、
@@ -109,8 +103,14 @@
       /* ★明細とは別に受け取ったパーディアム（2026-11-04）。組合の分と同じ理由で出す。 */
       kPerdiemOut: '明細とは別に受け取ったパーディアム',
       kAnnual: '今月ベースの単純年換算',
-      annualFrom: '今月と同水準の給与が12ヶ月続いた場合の参考値',
-      annualWarn: '※ 賞与・変動手当・勤務時間によって、実際の年間報酬とは異なります。',
+      /* ★年間の賞与・利益配分を入れた人の年換算は、それも足してある（サーバの pv_annual_total）。
+         札を「単純年換算」のままにすると、12倍が合わない数字に嘘の名前が付く（2026-11-08）。
+         ★説明の2行（参考値・※）は 2026-11-08 オーナー「不要な文言はカット」で外した。 */
+      kAnnualB: '今月ベースの年換算（賞与込み）',
+      /* 運営の見本（運営にしか出ない）。数字が作り物だと見出しで言う。 */
+      opH: '見本（運営だけ・数字は作り物）',
+      opS: { many: '6か月', one: '1か月', hand: '手入力だけ' },
+      opEmpty: '給与なしの画面',
       noGross: 'この月は手取りを書いていないので、控除合計が出せません。同じ月をもう一度出すと、ここがあなたの数字になります。',
       mGuar: function (g) { return '保証 ' + g + 'h との差'; },
       momOf: function (ym) { return ym + 'との差'; },
@@ -142,35 +142,25 @@
       oppEyebrow: 'YOUR OPPORTUNITIES',
       oppCurTag: '現在',
       oppCurAnnual: '今月ベースの単純年換算',
+      oppCurAnnualB: '今月ベースの年換算（賞与込み）',
       oppUnit: '/ 年',
-      oppMed: '同条件の中央値との差',
-      oppScope: function (n, m) { return '同じ職位・同じ機種で記録された ' + n + '件（' + m + '社）から'; },
-      oppScopeWide: function (n, m) { return '同じ職位で記録された ' + n + '件（' + m + '社）から'; },
-      oppWide: '同じ機種では件数が足りないので、同じ職位の記録全体まで広げて見ています。',
-      oppThin: '会社ごとの内訳を出すには記録がまだ足りません。いまは中央値との差だけ出しています。',
-      oppNone: 'まだ比較に十分な実データがありません。同じ条件のパイロットが5人以上記録すると、ここが動き出します。',
+      oppNone: '比べられる会社がまだありません。',
       oppNoPace: 'あなたの年収（月額×12＋賞与）がまだ出ていないので、比較できません。明細をもう一度出すか、フォームで年収の欄まで入れてください。',
-      oppNoUp: '同じ条件で記録された実績の中に、いまのあなたを上回る中央値はまだありません。記録が増えると変わります。',
-      oppHidden: function (n) { return 'いまを下回る' + n + '社は出していません。'; },
-      oppMoreH: 'ほかにも上回る会社を見る',
-      oppMoreS: '上位3社に入らなかった会社です。ここに出ている会社も、年間報酬の中央値はすべていまのあなたを上回っています。',
-      oppN: function (n) { return '実績データ ' + n + '件'; },
-      oppAnnual: '年間報酬の中央値との差', oppHourly: '乗務時間あたりの差',
+      /* 自分の会社・職位の会員の中央値（会社ページと同じ数字。2人以上・1人1件）。 */
+      medOwn: '会員の中央値',
       /* スカウトは作らない。将来やる予定があることだけ示す。
          ★「受け取れる」と言い切らない（機能が無いので嘘になる）。 */
       scoutTag: 'COMING SOON',
       scoutH: '匿名スカウト',
-      scoutB: 'あなたの氏名や勤務先を公開せず、条件に合う航空会社・採用担当から機会を受け取れる仕組みを準備しています。参加するかどうかは、あとからあなたが選びます。',
+      scoutB: '氏名も勤務先も出さずに、航空会社から声がかかる仕組み。',
       scoutBtn: '準備中',
-      /* 会員の記録がまだ無いときに出す、公開情報にもとづく掲載額のほう。
-         「記録された実績」とは絶対に書かない（別のものなので）。 */
-      pubCap: '掲載の平均年収との差',
-      pubAvg: 'この会社の掲載平均',
-      pubFoot: '公開情報にもとづく掲載額',
-      pubScope: '会員の記録はまだ集まっていません。ここは PILOT VALUE が公開情報をもとに掲載している各社の平均年収と比べています。揃えているのは職位（機長／副操縦士）だけで、機種は問いません。同じ条件で5人が記録すると、実際に記録された数字に切り替わります。',
-      pubNoUp: '掲載している平均年収の中に、いまのあなたを上回る会社はありません。',
+      /* 他社の額は会社ページに出ている額と同じ（推定年収か会員の中央値）。
+         ★2026-11-08 オーナー決定「会社ページと同じ2人にそろえる」。どちらの額かは札に必ず書く。 */
+      pubCap: 'いまのあなたとの差',
+      pubEst: '推定年収',
+      pubMed: '会員の中央値',
+      pubNoUp: 'いまのあなたを上回る会社はありません。',
       pubMoreH: 'ほかにも上回る会社を見る',
-      pubMoreS: '上位3社に入らなかった会社です。ここに出ている会社も、掲載の平均年収はすべていまのあなたを上回っています。',
       pubRest: function (n) { return 'このほかに' + n + '社が上回っています。'; },
       pubAll: '全社の一覧を見る →',
 
@@ -188,7 +178,6 @@
         return '増減は原本通貨（' + c + '）で計算しています。表示額は、為替が動いただけの月を昇給に見せないよう、両方の月を最新月のレートで揃えました。';
       },
       cmpNoPair: '両方の月に揃っている数字がまだありません。',
-      cmpNote: '増減に良し悪しの判定はしていません。勤務時間が増えれば時間あたりの報酬は下がります。どちらが良いかは、あなたの契約と生活で決まります。',
 
       /* 支給構成 */
       breakdown: '支給構成',
@@ -240,11 +229,10 @@
       nextAdd: '匿名で給与を追加する →',
       nextWhat: function (ym) {
         return [
-          [ym + 'のレポートが増える', '記録が1ヶ月ぶん伸び、この画面がその月まで届きます。'],
-          ['前回との差が更新される', '総支給と時間あたりの動きが、今回の月と並べて出ます。'],
-          ['累計報酬が更新される', '記録した支給額に1ヶ月ぶんが積まれ、折れ線が1点伸びます。'],
-          ['報酬機会が計算し直される', '同じ職位・同じ機種の記録が5件に届くと、中央値との差が動き出します。'],
-          ['キャリアイベント前後が正確になる', '機種や職位が変わった月の前後を、実額で見比べられるようになります。']
+          ym + 'のレポートが増える',
+          '前回との差が更新される',
+          '累計報酬が更新される',
+          '他社との差が出し直される'
         ];
       },
       /* 記録月数。得点ではなく「何ヶ月ぶんのレポートになるか」を返す（§11）。 */
@@ -253,7 +241,6 @@
       mlNext: function (k, g) { return 'あと ' + k + 'ヶ月で、' + g + 'ヶ月ぶんのレポートになります'; },
       mlGoal: function (g) { return g + 'ヶ月'; },
       mlMax: '36ヶ月ぶんそろいました。ここから先は、記録するほど過去の自分との比較が効いてきます。',
-      mlNote: '点数は付けません。増えるのは、あなた自身の記録です。',
       remind: '明細のリマインドを受け取る',
       remindOn: 'あなたの給料日ごろに、月1回だけ届きます。',
       remindOff: '現在オフ。リマインドは届きません。',
@@ -273,11 +260,11 @@
       eRepC: '給与を追加してレポートを作成する →',
       eKnowT: 'レポートでわかること',
       eKnow: ['年収・月収・賞与の内訳',
-              '市場の中央値との差と、あなたの位置',
+              '会員の中央値・他社との差',
               '乗務時間あたりの報酬',
               'あなたが入れた手取りと控除の積み上げ',
               '月をまたいだ推移'],
-      eKnowN: '同じ条件で5人そろうと、実データとの比較に切り替わります。',
+      eKnowN: '同じ会社・職位で2人そろうと、会員の中央値と比べられます。',
       eBandT: '給与を共有すると、すべての価値が解放されます',
       /* ★数字はサーバーの数え上げから来る。読めなかったら、この行ごと出さない。 */
       eBand: function (n, a) {
@@ -303,8 +290,6 @@
     en: {
       /* ★ 日本語側と同じ考え方。名前が取れたら本人の名前を主語にする。 */
       titleOf: function (nm) { return nm ? nm + '’s pay report' : 'Your pay report'; },
-      leadNew: 'Built from the payslip you just filed. Your own pay insight, from the data you recorded.',
-      lead: 'Your own pay insight, built from the data you have recorded. It gets sharper every month you add.',
       unlockOn: function (n) { return 'Unlocked · ' + n + (n === 1 ? ' day' : ' days'); },
       unlockOff: 'Locked',
       kAirline: 'Airline', kFleet: 'Aircraft', kPos: 'Seat', kBase: 'Base',
@@ -318,13 +303,14 @@
       mStay: 'Layover nights',
       hDays: function (n) { return String(n); },
       hStay: function (n) { return String(n); },
-      noDuty: 'Duty hours were not readable from your payslip, so only the block-hour figure is shown. <b>We do not estimate duty hours from block hours</b> — the real ratio varies by up to 2× between operators.',
       kDeduct: 'Total deductions', kYtd: 'Taxable pay, year to date',
       kUnionOut: 'Paid separately by your union', kGrossAll: 'Received in total',
       kPerdiemOut: 'Per diem paid separately from the payslip',
       kAnnual: 'This month, straight-annualised',
-      annualFrom: 'what twelve months like this one would come to',
-      annualWarn: '※ Bonus, variable allowances and hours flown all move this. It is not your actual annual pay.',
+      kAnnualB: 'This month, annualised (incl. bonus)',
+      opH: 'Sample (operators only, made-up numbers)',
+      opS: { many: '6 months', one: '1 month', hand: 'Typed in only' },
+      opEmpty: 'No-pay screen',
       noGross: 'You did not enter take-home pay for this month, so deductions cannot be worked out. File the same month again and these become your own figures.',
       mGuar: function (g) { return 'vs ' + g + 'h guaranteed'; },
       momOf: function (ym) { return 'vs ' + ym; },
@@ -350,32 +336,21 @@
       oppEyebrow: 'YOUR OPPORTUNITIES',
       oppCurTag: 'Current',
       oppCurAnnual: 'This month, straight-annualised',
+      oppCurAnnualB: 'This month, annualised (incl. bonus)',
       oppUnit: '/ yr',
-      oppMed: 'vs the median on the same terms',
-      oppScope: function (n, m) { return 'from ' + n + ' records at the same seat and aircraft type, across ' + m + ' airlines'; },
-      oppScopeWide: function (n, m) { return 'from ' + n + ' records at the same seat, across ' + m + ' airlines'; },
-      oppWide: 'There are not enough records for your aircraft type, so this widens to every record at your seat.',
-      oppThin: 'Not enough records yet to break this down by airline. For now only the gap to the median is shown.',
-      oppNone: 'Not enough real data to compare yet. Once five or more pilots on the same terms have recorded their pay, this starts working.',
+      oppNone: 'No airlines to compare with yet.',
       oppNoPace: 'Your annual figure (monthly × 12 + bonus) is not available yet, so there is nothing to compare. File the payslip again, or fill in the annual fields on the form.',
-      oppNoUp: 'Nothing recorded on your terms sits above where you are now. That changes as more records come in.',
-      oppHidden: function (n) { return n + (n === 1 ? ' airline that sits' : ' airlines that sit') + ' below your current terms ' + (n === 1 ? 'is' : 'are') + ' not shown.'; },
-      oppMoreH: 'See the other airlines above you',
-      oppMoreS: 'Airlines that did not make the top three. Every one of these also has a higher annual median than you do now.',
-      oppN: function (n) { return n + ' records'; },
-      oppAnnual: 'Gap to median annual', oppHourly: 'Gap per block hour',
+      medOwn: 'Member median',
       /* スカウトは作らない。将来やる予定があることだけ示す。 */
       scoutTag: 'COMING SOON',
       scoutH: 'Anonymous scouting',
-      scoutB: 'We are building a way for airlines and recruiters to reach you without your name or your employer being shown. Whether you take part will be your choice, later.',
+      scoutB: 'Airlines reach you without seeing your name or employer.',
       scoutBtn: 'In preparation',
-      pubCap: 'vs our published average',
-      pubAvg: 'Published average there',
-      pubFoot: 'From published salary data',
-      pubScope: 'Member records have not built up yet, so this section compares against the average annual pay PILOT VALUE publishes for each airline, drawn from public information. It matches on seat (captain / first officer) only — not on aircraft type. Once five pilots on the same terms have recorded their pay, this switches to what they actually recorded.',
-      pubNoUp: 'None of the published averages sits above where you are now.',
+      pubCap: 'vs you now',
+      pubEst: 'Estimated annual pay',
+      pubMed: 'Member median',
+      pubNoUp: 'No airline sits above where you are now.',
       pubMoreH: 'See the other airlines above you',
-      pubMoreS: 'Airlines that did not make the top three. Every one of these also has a higher published average than you do now.',
       pubRest: function (n) { return n + (n === 1 ? ' more airline sits' : ' more airlines sit') + ' above you.'; },
       pubAll: 'See every airline →',
 
@@ -392,7 +367,6 @@
         return 'Changes are computed in your pay currency (' + c + '). Both months are shown at the latest month’s rate, so a currency move does not appear as a raise.';
       },
       cmpNoPair: 'No figure is readable in both months yet.',
-      cmpNote: 'No judgement is attached to these changes. More duty hours means a lower hourly rate — which one you want depends on your contract and your life.',
 
       breakdown: 'How your pay is made up',
       housingNote: '※ Company-provided housing is not cash, so it is left out of the breakdown.',
@@ -430,11 +404,10 @@
       nextAdd: 'Add pay anonymously →',
       nextWhat: function (ym) {
         return [
-          [ym + ' joins your report', 'One more month on record, and this page reaches that month.'],
-          ['The change is updated', 'Gross and hourly pay line up against the month you just filed.'],
-          ['Your total is updated', 'One more month goes on the pile and the line gains a point.'],
-          ['Opportunities recalculate', 'Once five records share your seat and aircraft type, the gap to the median starts working.'],
-          ['Career events sharpen', 'Months either side of a fleet or seat change become comparable in real amounts.']
+          ym + ' joins your report',
+          'The change is updated',
+          'Your total is updated',
+          'Other airlines are compared again'
         ];
       },
       mlH: 'Months on record',
@@ -442,7 +415,6 @@
       mlNext: function (k, g) { return k + ' more and this becomes a ' + g + '-month report'; },
       mlGoal: function (g) { return g + 'm'; },
       mlMax: '36 months on record. From here, every payslip you add deepens the comparison with your own past.',
-      mlNote: 'There are no points here. What grows is your own record.',
       remind: 'Remind me when my payslip lands',
       remindOn: 'Once a month, around your own payday.',
       remindOff: 'Off. No reminders will be sent.',
@@ -460,11 +432,11 @@
       eRepC: 'Add your pay and build the report →',
       eKnowT: 'What the report shows',
       eKnow: ['Your annual, monthly and bonus breakdown',
-              'How far you sit from the median, and where you land',
+              'How far you sit from the member median and other airlines',
               'What you earn per block hour',
               'The take-home and deductions you entered, stacked up',
               'How it moves from month to month'],
-      eKnowN: 'Once five pilots share your conditions, the comparison switches to real member data.',
+      eKnowN: 'Once two pilots at your airline and seat have shared their pay, you can compare against the member median.',
       eBandT: 'Share your pay and everything here opens',
       eBand: function (n, a) {
         return '<b>' + n + '</b> pay records have been shared so far, from <b>' + a + '</b> airlines';
@@ -488,8 +460,6 @@
     }, /*PV-MSG:es*/ es: {
       /* ★ 日本語側と同じ考え方。名前が取れたら本人の名前を主語にする。 */
       titleOf: function (nm) { return nm ? nm + ': informe de remuneración' : 'Tu informe de remuneración'; },
-      leadNew: 'Generado a partir del recibo de nómina que acabas de enviar. Tu propio análisis de remuneración, basado en los datos que registraste.',
-      lead: 'Tu propio análisis de remuneración, basado en los datos que registraste. Se vuelve más preciso con cada mes que agregas.',
       unlockOn: function (n) { return 'Desbloqueado · ' + n + (n === 1 ? ' día' : ' días'); },
       unlockOff: 'Bloqueado',
       kAirline: 'Aerolínea', kFleet: 'Tipo de aeronave', kPos: 'Categoría', kBase: 'Base',
@@ -503,13 +473,14 @@
       mStay: 'Noches de pernocta fuera de base',
       hDays: function (n) { return String(n); },
       hStay: function (n) { return String(n); },
-      noDuty: 'No se pudo leer el tiempo de servicio en tu recibo de nómina, así que solo se muestra la cifra por hora block (calzo a calzo). <b>No estimamos el tiempo de servicio a partir de las horas block</b>: la proporción real varía hasta 2× entre aerolíneas.',
       kDeduct: 'Total de deducciones', kYtd: 'Remuneración gravable acumulada en el año',
       kUnionOut: 'Pagado aparte por tu sindicato', kGrossAll: 'Total recibido',
       kPerdiemOut: 'Viáticos pagados aparte del recibo de nómina',
       kAnnual: 'Este mes, anualizado de forma simple',
-      annualFrom: 'lo que sumarían doce meses como este',
-      annualWarn: '※ El bono, las asignaciones variables y las horas voladas hacen variar esta cifra. No es tu remuneración anual real.',
+      kAnnualB: 'Este mes, anualizado (con bono)',
+      opH: 'Muestra (solo operadores, cifras inventadas)',
+      opS: { many: '6 meses', one: '1 mes', hand: 'Solo ingreso manual' },
+      opEmpty: 'Pantalla sin remuneración',
       noGross: 'No ingresaste tu sueldo neto de este mes, así que no se pueden calcular las deducciones. Envía de nuevo el mismo mes y estas cifras serán las tuyas.',
       mGuar: function (g) { return 'vs. ' + g + ' h garantizadas'; },
       momOf: function (ym) { return 'vs. ' + ym; },
@@ -535,32 +506,21 @@
       oppEyebrow: 'TUS OPORTUNIDADES',
       oppCurTag: 'Actual',
       oppCurAnnual: 'Este mes, anualizado de forma simple',
+      oppCurAnnualB: 'Este mes, anualizado (con bono)',
       oppUnit: '/ año',
-      oppMed: 'frente a la mediana en las mismas condiciones',
-      oppScope: function (n, m) { return 'a partir de ' + n + ' registros de la misma categoría y tipo de aeronave, en ' + m + ' aerolíneas'; },
-      oppScopeWide: function (n, m) { return 'a partir de ' + n + ' registros de la misma categoría, en ' + m + ' aerolíneas'; },
-      oppWide: 'No hay suficientes registros para tu tipo de aeronave, así que se amplía a todos los registros de tu categoría.',
-      oppThin: 'Todavía no hay suficientes registros para desglosarlo por aerolínea. Por ahora solo se muestra la diferencia con la mediana.',
-      oppNone: 'Todavía no hay suficientes datos reales para comparar. Cuando cinco o más pilotos en las mismas condiciones hayan registrado su remuneración, esto empezará a funcionar.',
+      oppNone: 'Todavía no hay aerolíneas para comparar.',
       oppNoPace: 'Tu cifra anual (mensual × 12 + bono) todavía no está disponible, así que no hay nada con qué comparar. Vuelve a enviar el recibo de nómina o llena los campos anuales del formulario.',
-      oppNoUp: 'Nada de lo registrado en tus condiciones está por encima de donde estás ahora. Eso cambiará a medida que lleguen más registros.',
-      oppHidden: function (n) { return n + (n === 1 ? ' aerolínea que está' : ' aerolíneas que están') + ' por debajo de tus condiciones actuales ' + (n === 1 ? 'no se muestra' : 'no se muestran') + '.'; },
-      oppMoreH: 'Ver las otras aerolíneas por encima de ti',
-      oppMoreS: 'Aerolíneas que no quedaron entre las tres primeras. Todas ellas también tienen una mediana anual más alta que tu remuneración anual actual.',
-      oppN: function (n) { return n + ' registros'; },
-      oppAnnual: 'Diferencia con la mediana anual', oppHourly: 'Diferencia por hora block',
+      medOwn: 'Mediana de los miembros',
       /* スカウトは作らない。将来やる予定があることだけ示す。 */
       scoutTag: 'PRÓXIMAMENTE',
       scoutH: 'Reclutamiento anónimo',
-      scoutB: 'Estamos creando una forma para que las aerolíneas y los reclutadores puedan contactarte sin que se muestre tu nombre ni tu empleador. Participar o no será tu decisión, más adelante.',
+      scoutB: 'Las aerolíneas te contactan sin ver tu nombre ni tu empleador.',
       scoutBtn: 'En preparación',
-      pubCap: 'frente a nuestro promedio publicado',
-      pubAvg: 'Promedio publicado en esa aerolínea',
-      pubFoot: 'Según datos de sueldos publicados',
-      pubScope: 'Todavía no hay suficientes registros de miembros, así que esta sección compara con el sueldo anual promedio que PILOT VALUE publica para cada aerolínea, a partir de información pública. Solo se compara por categoría (capitán / primer oficial), no por tipo de aeronave. Cuando cinco pilotos en las mismas condiciones hayan registrado su remuneración, se pasará a comparar con lo que realmente registraron.',
-      pubNoUp: 'Ninguno de los promedios publicados está por encima de donde estás ahora.',
+      pubCap: 'frente a tu situación actual',
+      pubEst: 'Sueldo anual estimado',
+      pubMed: 'Mediana de los miembros',
+      pubNoUp: 'Ninguna aerolínea está por encima de tu situación actual.',
       pubMoreH: 'Ver las otras aerolíneas por encima de ti',
-      pubMoreS: 'Aerolíneas que no quedaron entre las tres primeras. Todas ellas también tienen un promedio publicado más alto que tu remuneración anual actual.',
       pubRest: function (n) { return n + (n === 1 ? ' aerolínea más está' : ' aerolíneas más están') + ' por encima de ti.'; },
       pubAll: 'Ver todas las aerolíneas →',
 
@@ -577,7 +537,6 @@
         return 'Los cambios se calculan en la moneda en que te pagan (' + c + '). Ambos meses se muestran al tipo de cambio del mes más reciente, así que un movimiento de la moneda no aparece como un aumento.';
       },
       cmpNoPair: 'Todavía no hay ninguna cifra legible en ambos meses.',
-      cmpNote: 'Estos cambios no se califican como buenos ni malos. Más horas de servicio significan una menor remuneración por hora; qué prefieres depende de tu contrato y de tu vida.',
 
       breakdown: 'Cómo se compone tu remuneración',
       housingNote: '※ La vivienda proporcionada por la empresa no es efectivo, así que no se incluye en el desglose.',
@@ -615,11 +574,10 @@
       nextAdd: 'Agregar remuneración de forma anónima →',
       nextWhat: function (ym) {
         return [
-          [ym + ' se suma a tu informe', 'Tu registro suma un mes más y esta página llega hasta ese mes.'],
-          ['Se actualiza el cambio', 'El sueldo bruto y la remuneración por hora se comparan con el mes que acabas de registrar.'],
-          ['Se actualiza tu total', 'Un mes más se suma al acumulado y la línea gana un punto.'],
-          ['Se recalculan las oportunidades', 'Cuando haya cinco registros con tu misma categoría y tipo de aeronave, empieza a calcularse la diferencia con la mediana.'],
-          ['Los eventos de carrera ganan precisión', 'Los meses antes y después de un cambio de flota o de categoría se vuelven comparables en montos reales.']
+          ym + ' se suma a tu informe',
+          'Se actualiza el cambio',
+          'Se actualiza tu total',
+          'Se vuelve a comparar con otras aerolíneas'
         ];
       },
       mlH: 'Meses registrados',
@@ -627,7 +585,6 @@
       mlNext: function (k, g) { return k + ' más y este será un informe de ' + g + ' meses'; },
       mlGoal: function (g) { return g + 'm'; },
       mlMax: '36 meses registrados. A partir de aquí, cada recibo de nómina que agregues profundiza la comparación con tu propio historial.',
-      mlNote: 'Aquí no hay puntos. Lo que crece es tu propio registro.',
       remind: 'Avísame cuando llegue mi recibo de nómina',
       remindOn: 'Una vez al mes, cerca de tu día de pago.',
       remindOff: 'Desactivado. No se enviarán recordatorios.',
@@ -645,11 +602,11 @@
       eRepC: 'Agrega tu remuneración y genera el informe →',
       eKnowT: 'Lo que muestra el informe',
       eKnow: ['Tu desglose anual, mensual y de bonos',
-              'A qué distancia estás de la mediana y en qué posición quedas',
+              'A qué distancia estás de la mediana de los miembros y de otras aerolíneas',
               'Cuánto ganas por hora block (calzo a calzo)',
               'Tu sueldo neto y las deducciones que ingresaste, apilados',
               'Cómo cambia de un mes a otro'],
-      eKnowN: 'Cuando cinco pilotos compartan tus mismas condiciones, la comparación pasa a usar datos reales de los miembros.',
+      eKnowN: 'Cuando dos pilotos de tu aerolínea y categoría hayan compartido su remuneración, podrás compararte con la mediana de los miembros.',
       eBandT: 'Comparte tu remuneración y se desbloquea todo lo que hay aquí',
       eBand: function (n, a) {
         return '<b>' + n + '</b> registros de remuneración compartidos hasta ahora, de <b>' + a + '</b> aerolíneas';
@@ -692,13 +649,14 @@
     bonus:   T.segBonus,   rest:      T.segRest
   };
 
-  var isNew = /(?:^|[?&])new=1(?:&|$)/.test(w.location.search);
 
   /* series ＝ 最新の明細と同じ会社の月だけ（前回との差・推移の線が使う）
      rows   ＝ 全社ぶんそのまま（累計だけが使う。足し算に会社の壁は無い）
-     bench  ＝ pay_benchmarks から引いた同条件の集計（n≧5 のセルしか返らない） */
+     pub    ＝ 各社の推定年収と会社ページの決まり（salary-data.json）
+     meds   ＝ 会員の中央値（全社ぶん・2人以上の組だけ。pv_member_medians_all） */
   var state = { data: null, rows: [], series: [], metric: 'hourly', busy: false,
-               bench: null, pub: null, name: '', pay: null };
+               pub: null, meds: null, name: '', pay: null,
+               op: false, sample: null };         // 運営か・見本の種類（運営だけ）
 
   /* 見出しに出す呼び名。★ プロフィールの氏名を**そのまま**は出さない。
      ここは本人しか見ない画面だが、肩越しに覗かれる・スクリーンショットが
@@ -831,28 +789,11 @@
     var n = r.airline_other || r.airline;
     return n ? String(n).toUpperCase() : '—';
   }
-  /* 会社コード → 社名の辞書（pv-airlines.json）。gen-airline-codes.mjs が書く。
-     ★ここに社名を写さない。二重持ちになって必ずずれる。
-     ★読めなかった回は黙って落ちる（下の codeLabel が大文字の略号に戻る）。 */
-  var AIRN = null;
-  async function loadAirNames() {
-    if (AIRN) return AIRN;
-    try {
-      var res = await fetch(AIR_URL);
-      if (!res.ok) return (AIRN = {});
-      var j = await res.json();
-      AIRN = (j && j.airlines) || {};
-    } catch (e) { AIRN = {}; }
-    return AIRN;
-  }
-
   /* 一覧の会社コード（'singapore-airlines'）を読める形に。
      ★ 辞書が届いていれば正しい社名。届かなければ全部大文字に落とす
        （頭文字だけ大文字にすると 'ana' が「Ana」、'klm' が「Klm」になる。
         左端の「現在」の札が airlineName() で全部大文字なので、そちらに揃う）。 */
   function codeLabel(code) {
-    var a = AIRN && AIRN[code];
-    if (a) return (L === 'en' && a.en) ? a.en : (a.ja || a.en || code);
     return String(code || '').split('-').join(' ').toUpperCase();
   }
   function sameAirline(rows, r) {
@@ -979,7 +920,6 @@
     }
     if (cells) body += '<div class="mr-mini">' + cells + '</div>';
 
-    if (c.hourlyBlock != null && c.hourlyDuty == null) body += note(T.noDuty);
 
     /* ★総支給の外で受け取った分（支給元＝組合）。上の「総支給」は明細に印字された
        額そのもので、組合が直接払った分はそこに載っていない。ここに出さないと、
@@ -1011,11 +951,11 @@
        面も文字も一段沈めたまま置く（.mr-ann-s）。控除の行より目立たせない。 */
     var ann = num(r.annual_total_orig);
     if (ann != null) {
+      var withB = hasBonus(r);
       body += '<div class="mr-ann">' +
-        '<div class="mr-ann-s"><span class="k">' + esc(T.kAnnual) + '</span>' +
+        '<div class="mr-ann-s"><span class="k">' + esc(withB ? T.kAnnualB : T.kAnnual) + '</span>' +
         '<b class="v">' + esc(fmt(jpyOf(r, ann))) + '</b>' +
-        '<span class="s">' + esc(T.annualFrom) + '</span>' +
-        '<span class="w">' + esc(T.annualWarn) + '</span></div>' +
+        '</div>' +
       '</div>';
     }
     return sec(T.month, body, T.ym(r.period_year, r.period_month) +
@@ -1112,15 +1052,15 @@
   }
 
   /* ── 機会（YOUR OPPORTUNITIES）────────────────────────────────
-     ★ 主役は「いまの条件」と「同条件で記録された中央値」を横に並べた札。
-       大きなマイナス1つを Hero にしない。開いた瞬間に損が確定した画面になり、
-       しかもそれは「転職すれば取り戻せる額」ではない（比べているのは
-       他人が記録した実績の中央値であって、あなたへの提示額ではない）。
+     ★2026-11-08 オーナー決定「会社ページと同じ2人にそろえる」。
+       他社の額は**会社ページに出ている額と同じ**にする ── 推定年収（salary-data.json）か、
+       会員の中央値（pv_member_medians_all ＝ 2人以上・1人1件・人数は返らない）か。
+       どちらにするかの決まりも会社ページと同じ（salary-data.json の medRule ＝ 台帳 salary-basis.mjs の写し）：
+       always ＝ 中央値があればいつも中央値（ANA・JAL）／higher ＝ 中央値が推定（base）を超えたときだけ中央値。
+       ⚠️ 前は pay_benchmarks（提出の件数で5）を見ていた。件数で数えると1人の5か月で区分が開くので外した。
      ★ 順位を出さない。出すのは差だけ。「上位◯%」は本人を採点する言い方。
      ★ 「おすすめ転職先」「応募できます」とは書かない。採用の可否は測っていない。
-     ★ pay_benchmarks は n≧5 のセルしか返らない＝5人未満の条件は行そのものが
-       無い。だから「あと◯件」は数えられない（0件と4件の区別がつかない）。
-     ★ 会社ごとの札を出すのは合計15件以上のときだけ。5〜14件では中央値だけ。 */
+     ★ 出すのは「いまより上がる会社」だけ（オーナー判断・2026-08-12）。下回る会社は畳んだ先にも出さない。 */
 
   /* 札は1つの関数で作る。現在も候補も Scout も同じ骨格＝横に並べたとき
      数字の行の高さが揃う（別々に書くと必ずずれる）。 */
@@ -1141,8 +1081,6 @@
       (o.btn ? '<button class="mr-opp-btn" type="button" disabled>' + esc(o.btn) + '</button>' : '') +
       '</article>';
   }
-  /* 札の中の1行。第3引数は「休日・住居・税の差」が入るようになったときの
-     ただし書き用に空けてある（いまは比較用の中央値が無いので出さない）。 */
   function oppCell(k, v, sub) {
     return '<div><span class="k">' + esc(k) + '</span><span class="v">' + esc(v) + '</span>' +
       (sub ? '<span class="s">' + esc(sub) + '</span>' : '') + '</div>';
@@ -1152,6 +1090,28 @@
     return '<div class="mr-rail' + (mod ? ' ' + mod : '') + '">' + cards + '</div>';
   }
 
+  /* 年換算に年間の賞与・利益配分が入っているか（pay-viz.js の monthlyOrig が引く額と同じ2つ）。 */
+  function hasBonus(r) {
+    return ((num(r.bonus_annual) || 0) + (num(r.profit_share_annual) || 0)) > 0;
+  }
+
+  /* 職位の寄せ先（salary-data.json と会員の中央値の区分）。SFO は副操縦士、教官機長は機長へ。
+     訓練生は寄せ先が無いので比較そのものを出さない（別の階級の数字を黙って当てない）。 */
+  var PUB_BAND = { fo: 'fo', sfo: 'fo', cap: 'cap', tri_tre: 'cap' };
+
+  /* 自分の会社・職位の会員の中央値（円）。2人以上の組しかサーバは返さない。 */
+  function ownMedian(r) {
+    var band = PUB_BAND[r && r.position], k = airlineKey(r), m = state.meds && state.meds[k];
+    return (band && m && m[band] > 0) ? m[band] * 10000 : null;
+  }
+
+  /* 社名。salary-data.json に在れば読める名前、無ければ今までどおり略号の大文字。 */
+  function ownName(r) {
+    var A = state.pub && state.pub.A, a = A && r.airline !== 'other' && A[String(r.airline || '').toLowerCase()];
+    if (a) return (L === 'en' && a.en) ? a.en : (a.ja || a.en);
+    return airlineName(r);
+  }
+
   /* いまの条件。★ 良い・悪いを付けない。左端に置く「基準」でしかない。 */
   function curCard(r) {
     var c = V.calc(r);
@@ -1159,34 +1119,14 @@
     var meta = [fleetName(r), posName(r)]
       .concat(r.base_iata ? [String(r.base_iata).toUpperCase()] : []).join(SEP);
     var rows = '';
+    var om = ownMedian(r);
+    if (om != null) rows += oppCell(T.medOwn, fmt(om));
     if (c.hourlyDuty != null) rows += oppCell(T.perDuty, fmt(c.hourlyDuty));
     if (c.hourlyBlock != null) rows += oppCell(T.perBlock, fmt(c.hourlyBlock));
     return oppCard({
-      mod: 'is-cur', tag: T.oppCurTag, name: airlineName(r), meta: meta,
+      mod: 'is-cur', tag: T.oppCurTag, name: ownName(r), meta: meta,
       big: mine != null ? fmt(mine) : '—', unit: mine != null ? T.oppUnit : '',
-      cap: T.oppCurAnnual, rows: rows
-    });
-  }
-
-  function candCard(x, mine, mineHourly) {
-    var d = x.v - mine;
-    var meta = [x.c.fleet ? String(x.c.fleet).toUpperCase() : null, T[x.c.position] || x.c.position]
-      .filter(Boolean).join(SEP);
-    var rows = '';
-    var hb = num(x.c.median_usd_per_bh);
-    if (hb != null && mineHourly != null) rows += oppCell(T.oppHourly, signed(usdToJpy(hb) - mineHourly));
-    return oppCard({
-      name: codeLabel(x.c.airline), meta: meta,
-      big: signed(d), unit: T.oppUnit, up: d > 0,
-      cap: T.oppMed, rows: rows, foot: T.oppN(x.c.n)
-    });
-  }
-
-  // 5〜14件。会社名を出すと1社2〜3人になり個人が透けるので、中央値1枚だけ。
-  function medianCard(delta, n) {
-    return oppCard({
-      name: T.oppMed, big: signed(delta), unit: T.oppUnit, up: delta > 0,
-      cap: T.oppThin, foot: T.oppN(n)
+      cap: hasBonus(r) ? T.oppCurAnnualB : T.oppCurAnnual, rows: rows
     });
   }
 
@@ -1196,44 +1136,66 @@
     return oppCard({ mod: 'is-scout', tag: T.scoutTag, name: T.scoutH, cap: T.scoutB, btn: T.scoutBtn });
   }
 
-  /* ── 会員の記録がまだ無いときの中身（公開情報にもとづく掲載額）─────
-     ★ pay_benchmarks は n≧5 のセルしか行を持たない＝本番ではいま1行も返らない。
-       この節を空のまま置くと「明細を出しても何も返ってこない画面」になるので、
-       記録が集まるまではサイトが掲載している各社の平均年収と比べる
-       （オーナー判断・2026-08-12）。守るのは2つだけ:
-       ① 作り話の数字を置かない（出どころは salary-data.json ＝ SSOT の書き出し）
-       ② 会員が記録した実績だと言わない（文言を pub* に分けてある）
-     ★ 揃えるのは職位だけ。掲載側に機種の区別が無いので、機種で揃えたふりをしない。
-       そのことは画面（pubScope）に書く。 */
+  /* 1社1職位の額（円）と、それが会員の中央値か。会社ページの medianApply（career-live.js）と同じ決め方。
+     返事が無い（中央値の口が無い・失敗した）ときは、会社ページと同じく書き込んである額のまま。 */
+  function figureOf(slug, band) {
+    var p = state.pub, a = p && p.A && p.A[slug], s = a && a[band], avg = s && num(s.avg);
+    if (!(avg > 0)) return null;
+    var R = (p.R && p.R[slug] && p.R[slug][band]) || {};
+    var always = R.r === 'always', base = num(R.b) > 0 ? num(R.b) : avg;
+    var m = state.meds && state.meds[slug] && state.meds[slug][band];
+    if (m > 0) {
+      var isMed = always || m > base;
+      return { jpy: (isMed ? m : base) * 10000, med: isMed };
+    }
+    if (always) return { jpy: avg * 10000, med: R.m === 1 };     // 2人に届かない ＝ 書き込んである額のまま
+    return { jpy: base * 10000, med: false };
+  }
+
+  /* 比べる相手の一覧（自分の会社は外す・高い順）。 */
+  function pubList(r) {
+    var p = state.pub, band = PUB_BAND[r && r.position];
+    if (!p || !p.A || !band) return [];
+    var my = airlineKey(r), list = [];
+    Object.keys(p.A).forEach(function (k) {
+      if (k === my) return;
+      var f = figureOf(k, band), a = p.A[k];
+      if (!f) return;
+      list.push({ slug: k, band: band, jpy: f.jpy, med: f.med,
+                  name: (L === 'en' && a.en) ? a.en : (a.ja || codeLabel(k)) });
+    });
+    list.sort(function (x, y) { return y.jpy - x.jpy; });
+    return list;
+  }
+
   function pubCard(x, mine) {
-    /* 差だけでなく、その会社の掲載額そのものも1行出す。差だけだと
-       「何と比べて +2,700万 なのか」が札の中で閉じない（＋札の丈も揃う）。
-       ★ 差は万円の位で丸める。掲載額は元から万円単位なので、丸めないと
-         「+¥27,287,500 ／ 掲載平均 ¥6,320万」と1枚の札で桁の書き方が割れ、
-         読み手が引き算できない。末尾の ,500 は精度ではなく本人側の年換算の端数。 */
+    /* 差は万円の位で丸める。各社の額は万円単位なので、丸めないと
+       1枚の札の中で桁の書き方が割れ、読み手が引き算できない。 */
     var d = Math.round((x.jpy - mine) / 10000) * 10000;
     return oppCard({
       name: x.name, meta: T[x.band] || x.band, href: 'airlines/' + x.slug + '.html',
       big: signed(d), unit: T.oppUnit, up: true,
-      cap: T.pubCap, rows: oppCell(T.pubAvg, fmt(x.jpy)), foot: T.pubFoot
+      cap: T.pubCap, rows: oppCell(x.med ? T.pubMed : T.pubEst, fmt(x.jpy))
     });
   }
 
   /* 招待（データ密度）カードの差し込み口。中身は pv-referral.js が描く。
-     ★「機会」節の3つの出口すべてに置く。opportunity() は
-       pubSection() へ逃げる経路が2本あり（会員の記録が無い／畳んだら0社）、
-       そこを忘れると「いちばん区分が薄い人」＝この機能の対象そのものが
-       永久にカードを見られない。
-     ★mine == null の早期 return には置かない（区分が特定できない）。 */
+     ★区分が特定できる出口すべてに置く（mine == null の早期 return には置かない）。
+       忘れると「いちばん区分が薄い人」＝この機能の対象そのものが永久にカードを見られない。 */
   function refSlot() { return '<div id="mr-ref-slot"></div>'; }
 
-  function pubSection(r, mine) {
-    var p = state.pub;
-    if (!p || !p.list.length) {
+  function opportunity(r) {
+    var mine = annualJpy(r);
+    // 比較が引けないときも「いまの条件」と Scout は出す（節を空欄にしない）
+    if (mine == null) {
+      return sec(T.oppQ, rail(curCard(r) + scoutCard()) + empty(T.oppNoPace), T.oppEyebrow);
+    }
+    var list = pubList(r);
+    if (!list.length) {
       return sec(T.oppQ, rail(curCard(r) + scoutCard()) + empty(T.oppNone) + refSlot(), T.oppEyebrow);
     }
 
-    var up = p.list.filter(function (x) { return x.jpy - mine > 0; });
+    var up = list.filter(function (x) { return x.jpy - mine > 0; });
     var top = up.slice(0, 3);
     /* 畳んだ先に入れるのは9社まで。★ 黙って切らない。残りは社数を書いて
        全社の一覧へ送る（低い階級ほど「上回る会社」が90社以上になるため）。 */
@@ -1244,85 +1206,11 @@
     if (!up.length) body += note(esc(T.pubNoUp));
     if (rest.length) {
       body += '<details class="mr-more"><summary>' + esc(T.pubMoreH) + '</summary>' +
-        '<p class="mr-more-s">' + esc(T.pubMoreS) + '</p>' +
         rail(rest.map(function (x) { return pubCard(x, mine); }).join(''), 'is-more') +
         (over > 0 ? '<p class="mr-more-s">' + esc(T.pubRest(over)) +
           ' <a class="mr-opp-a" href="world-airlines.html">' + esc(T.pubAll) + '</a></p>' : '') +
         '</details>';
     }
-    body += note(esc(T.pubScope));
-    body += refSlot();
-    return sec(T.oppQ, body, T.oppEyebrow);
-  }
-
-  function opportunity(r) {
-    var b = state.bench;
-    var mine = annualJpy(r);
-
-    // 比較が引けないときも「いまの条件」と Scout は出す（節を空欄にしない）
-    if (mine == null) {
-      return sec(T.oppQ, rail(curCard(r) + scoutCard()) + empty(T.oppNoPace), T.oppEyebrow);
-    }
-    if (!b || !b.cells.length) return pubSection(r, mine);
-
-    /* 機種を外して広げると、1社が複数の機種セルで出てくる。そのまま数えると
-       「◯社」が水増しされ、中央値も記録の多い会社に引っ張られる。
-       先に会社ごとへ畳む（記録数の一番多いセルを、その会社の代表にする）。 */
-    var byAir = {};
-    b.cells.forEach(function (c) {
-      var k = String(c.airline || '').toLowerCase();
-      var v = usdToJpy(num(c.median_usd));
-      if (!k || !(v > 0)) return;
-      if (!byAir[k] || (num(c.n) || 0) > (num(byAir[k].n) || 0)) byAir[k] = c;
-    });
-    var airs = Object.keys(byAir).map(function (k) { return byAir[k]; });
-    if (!airs.length) return pubSection(r, mine);
-
-    var cohort = median(airs.map(function (c) { return usdToJpy(num(c.median_usd)); }));
-    var delta = cohort - mine;
-    var scope = (b.wide ? T.oppScopeWide : T.oppScope)(b.n, airs.length);
-    var myKey = airlineKey(r);
-    var mineHourly = V.calc(r).hourlyBlock;
-
-    var cards = curCard(r), more = '', up = [], rest = [], hidden = 0;
-
-    if (b.n >= 15) {
-      var list = airs
-        .filter(function (c) { return String(c.airline).toLowerCase() !== myKey; })
-        .map(function (c) { return { c: c, v: usdToJpy(num(c.median_usd)) }; })
-        .sort(function (x, y) { return y.v - x.v; });
-      /* ★ 出すのは「いまより上がる会社」だけ。下回る会社は畳んだ先にも出さない
-         （オーナー判断・2026-08-12）。「−¥311万」の札は行き先の候補ではないし、
-         並べた瞬間にこの節が「損の一覧」になる。
-         上位3社を主レールに、4社目以降（これも全部プラス）は畳んだ先へ。
-       ★ 「乗務時間あたりでは上がる」会社もここでは拾わない。年間がマイナスなら
-         札の主役の数字がマイナスになるため。 */
-      var upAll = list.filter(function (x) { return x.v - mine > 0; });
-      up = upAll.slice(0, 3);
-      rest = upAll.slice(3);
-      hidden = list.length - upAll.length;                 // 下回るので出さなかった社数
-      cards += up.map(function (x) { return candCard(x, mine, mineHourly); }).join('');
-      if (rest.length) {
-        more = '<details class="mr-more"><summary>' + esc(T.oppMoreH) + '</summary>' +
-          '<p class="mr-more-s">' + esc(T.oppMoreS) + '</p>' +
-          rail(rest.map(function (x) { return candCard(x, mine, mineHourly); }).join(''), 'is-more') +
-          '</details>';
-      }
-    } else if (delta > 0) {
-      /* 5〜14件。会社名は出せないので中央値1枚だけ。
-         ★ ここも上回るときだけ。下回るとマイナスの札が1枚だけ残り、
-           この節が「あなたは平均以下です」という採点画面になる。 */
-      cards += medianCard(delta, b.n);
-      up = [1];                                            // 上回る比較を1枚出した印
-    }
-    cards += scoutCard();
-
-    var body = rail(cards);
-    if (!up.length) body += note(esc(T.oppNoUp));
-    if (hidden > 0) body += note(esc(T.oppHidden(hidden)));
-    body += note(esc(scope));
-    if (b.wide) body += note(esc(T.oppWide));
-    body += more;
     body += refSlot();
     return sec(T.oppQ, body, T.oppEyebrow);
   }
@@ -1360,7 +1248,6 @@
     else if (m.pairs.some(function (x) { return x.money; }) && num(m.a.fx_to_jpy) !== m.fx) {
       body += note(esc(T.cmpFx(m.b.currency || '')));
     }
-    if (m.pairs.length) body += note(esc(T.cmpNote));
 
     return sec(T.cmp, body,
       T.ym(m.a.period_year, m.a.period_month) + ' → ' + T.ym(m.b.period_year, m.b.period_month));
@@ -1515,7 +1402,10 @@
       labelOf:  function (r) { return T.ymShort(r.period_year, r.period_month); },
       aria:     T.trend,
       onePoint: T.onePoint,
-      noMetric: T.noMetric
+      noMetric: T.noMetric,
+      /* ★2026-11-08 目盛を付ける（最高と最低の額）・数%の上下を枠いっぱいの山谷に描かない */
+      axis:     true,
+      minSpan:  0.3
     });
   }
 
@@ -1544,7 +1434,7 @@
       '<ol class="mr-ml-g">' + GOALS.map(function (g) {
         var cls = (n >= g) ? ' class="is-on"' : (g === goal ? ' class="is-next"' : '');
         return '<li' + cls + '><b>' + esc(T.mlGoal(g)) + '</b></li>';
-      }).join('') + '</ol>' + note(esc(T.mlNote)) + '</div>';
+      }).join('') + '</ol></div>';
   }
 
   // 次に出す月。12月の次は翌年1月（年をまたぐと「13月」になる）
@@ -1592,7 +1482,7 @@
     return sec(T.next,
       '<ul class="mr-next">' + T.nextWhat(nextYm(r)).map(function (x) {
         return '<li><span class="mr-next-i">' + PLUS + '</span>' +
-          '<div><b>' + esc(x[0]) + '</b><span>' + esc(x[1]) + '</span></div></li>';
+          '<div><b>' + esc(x) + '</b></div></li>';
       }).join('') + '</ul>' +
       mlStrip(rows.length) +
       '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
@@ -1620,7 +1510,6 @@
       (host ? '' : chip('', left > 0 ? T.unlockOn(left) : T.unlockOff));
     return '<div class="mr-hd">' +
       (host ? '' : '<h1 class="mr-hd-t">' + esc(T.titleOf(personName())) + '</h1>') +
-      '<p class="mr-hd-s">' + esc(isNew ? T.leadNew : T.lead) + '</p>' +
       '<div class="mr-chips">' + chips + '</div></div>';
   }
 
@@ -1730,14 +1619,49 @@
     var head = w.PV_MYPAGE_HOST ? ''       // MY PAGE では ③ の見出しが上に在る
       : '<div class="mr-hd"><h1 class="mr-hd-t">' + esc(T.eTitle) + '</h1></div>';
 
-    root.innerHTML = head + rep + band + give;
+    root.innerHTML = opBar() + head + rep + band + give;
+    bindOp();
+  }
+
+  /* ── 運営の見本（2026-11-08 オーナー「info@ にも市場レポート出せるようにして。みえないから」）──
+     運営（pv_admins）は給与を出していない＝レポートが空になる。偽の給与を本番に入れずに見られるよう、
+     作り物の行（my-value-sample.js）で同じ画面を描く。
+     ★会員には読み込みもしない（pv_is_admin が true のときだけ）。見出しで作り物だと言う。 */
+  async function loadOperator() {
+    try {
+      var res = await SB.rpc('pv_is_admin');
+      if (!res || res.error || res.data !== true) return false;
+    } catch (e) { return false; }
+    if (!w.PV_VALUE_SAMPLE) {
+      await new Promise(function (ok) {
+        var el = d.createElement('script');
+        el.src = SAMPLE_URL; el.onload = ok; el.onerror = ok;
+        d.head.appendChild(el);
+      });
+    }
+    return typeof w.PV_VALUE_SAMPLE === 'function';
+  }
+  function opBar() {
+    if (!state.op) return '';
+    return '<div class="pt-tabs mv-op" role="group" aria-label="' + esc(T.opH) + '">' +
+      '<b class="mv-op-h">' + esc(T.opH) + '</b>' +
+      ['many', 'one', 'hand'].map(function (k) {
+        return '<button type="button" class="pt-tab' + (state.sample === k ? ' on' : '') + '" data-sample="' + k + '">' + esc(T.opS[k]) + '</button>';
+      }).join('') +
+      '<button type="button" class="pt-tab' + (state.sample ? '' : ' on') + '" data-sample="">' + esc(T.opEmpty) + '</button>' +
+      '</div>';
+  }
+  function bindOp() {
+    root.querySelectorAll('[data-sample]').forEach(function (b) {
+      b.addEventListener('click', function () { state.sample = b.getAttribute('data-sample') || null; render(); });
+    });
   }
 
   function render() {
     var dat = state.data;
     if (!dat) return;
     paintRemind(dat);                      // ★0 件で戻る前に描く（設定は件数と無関係）
-    var rows = dat.reports || [];
+    var rows = (state.sample && w.PV_VALUE_SAMPLE) ? w.PV_VALUE_SAMPLE(state.sample) : (dat.reports || []);
     if (!rows.length) return renderEmpty();
     var r = rows[rows.length - 1];
     state.series = sameAirline(rows, r);   // 月をまたぐ比較はこの会社の中だけ
@@ -1757,6 +1681,7 @@
        ★ どちらの段も、幅が足りない画面では自動で縦に落ちる
          （CSS 側。メディアクエリではなく flex-basis で決めている）。 */
     root.innerHTML =
+      opBar() +
       header(dat, r, rows) +
       '<div class="mr-stack">' +
         '<div class="mr-2col">' + lifetime(rows) + thisMonth(r, m) + '</div>' +
@@ -1769,6 +1694,8 @@
     drawChart();                           // 実寸が要るので DOM に入れてから
     drawCumChart();
     bind();
+    bindOp();
+    if (state.sample) return;              // 見本のときは招待カードを出さない（運営の区分は無い）
 
     /* 招待（データ密度）カード。★ここが落ちてもレポートには一切触らない。
        中身を決めるのはサーバの my_cohort_gap() で、n≦2 のときは
@@ -1781,10 +1708,10 @@
   }
 
   function bind() {
-    root.querySelectorAll('.pt-tab').forEach(function (b) {
+    root.querySelectorAll('.pt-tab[data-m]').forEach(function (b) {
       b.addEventListener('click', function () {
         state.metric = b.getAttribute('data-m');
-        root.querySelectorAll('.pt-tab').forEach(function (o) {
+        root.querySelectorAll('.pt-tab[data-m]').forEach(function (o) {
           o.classList.toggle('on', o === b);
         });
         drawChart();                       // タブはグラフだけ差し替える（全部組み直さない）
@@ -1819,56 +1746,33 @@
     } finally { state.busy = false; }
   }
 
-  /* 同条件の集計を引く。n≧5 のセルしか行が無いビューなので、
-     ① 同じ職位 × 同じ機種 → ② 同じ職位だけ、の順に降りる。
-     どこまで広げたかは画面に必ず書く（広げたことを黙らない）。 */
-  async function loadBench(r) {
-    if (!r || !r.position || !r.period_year) return null;
-    var COLS = 'airline,position,fleet,period_year,n,median_usd,median_usd_per_bh';
-    async function q(withFleet) {
-      var sel = SB.from('pay_benchmarks').select(COLS)
-        .eq('position', r.position).eq('period_year', r.period_year);
-      if (withFleet) sel = sel.eq('fleet', r.fleet);
-      var res = await sel;
-      return (res && !res.error && Array.isArray(res.data)) ? res.data : [];
-    }
-    try {
-      var cells = r.fleet ? await q(true) : [];
-      var wide = false;
-      if (!cells.length) { cells = await q(false); wide = true; }
-      if (!cells.length) return null;
-      var n = cells.reduce(function (a, c) { return a + (num(c.n) || 0); }, 0);
-      return { cells: cells, n: n, wide: wide };
-    } catch (e) { return null; }          // 比較が引けなくてもレポート本体は出す
-  }
-
-  /* 掲載額のほうを読む（会員の記録が5人分たまるまでの中身）。
-     ★ 職位で寄せる。SFO は副操縦士、教官機長は機長へ。訓練生は寄せ先が無いので
-       比較そのものを出さない（別の階級の数字を黙って当てない）。
-     ★ 自分の会社は外す。「いまの条件」の札と同じ会社が候補として並ぶのを防ぐ。
+  /* 各社の額を読む（推定年収と、会社ページと同じ決まり medRule）。
      ★ salary-data.json は世界に公開しているファイルなので、読むだけで
        誰が読んだかは残らない（本人の記録は一切ここへ渡さない）。 */
-  var PUB_BAND = { fo: 'fo', sfo: 'fo', cap: 'cap', tri_tre: 'cap' };
-  async function loadPub(r) {
-    var band = PUB_BAND[r && r.position];
-    if (!band) return null;
+  async function loadPub() {
     try {
       var res = await fetch(PUB_URL);
       if (!res.ok) return null;
       var j = await res.json();
-      var A = j && j.airlines;
-      if (!A) return null;
-      var my = airlineKey(r), list = [];
-      Object.keys(A).forEach(function (k) {
-        if (k === my) return;
-        var a = A[k], v = a && a[band] && num(a[band].avg);
-        if (!(v > 0)) return;
-        list.push({ slug: k, band: band, jpy: v * 10000,       // 掲載の単位は万円
-                    name: (L === 'en' && a.en) ? a.en : (a.ja || codeLabel(k)) });
-      });
-      list.sort(function (x, y) { return y.jpy - x.jpy; });
-      return { band: band, list: list };
+      return (j && j.airlines) ? { A: j.airlines, R: j.medRule || {} } : null;
     } catch (e) { return null; }        // 読めなくてもレポート本体は出す
+  }
+
+  /* 会員の中央値（全社ぶん）。サーバーは書き込みのときに数えて保存した表を引くだけ
+     （db/member-median.sql）。2人以上の組だけ・人数は返さない。
+     ★口がまだ無い（SQL を貼る前）・失敗したときは null ＝ 書き込んである額のまま比べる。 */
+  async function loadMeds() {
+    try {
+      var res = await SB.rpc('pv_member_medians_all');
+      if (!res || res.error || !Array.isArray(res.data)) return null;
+      var out = {};
+      res.data.forEach(function (x) {
+        var m = x && num(x.median_man), k = x && String(x.airline || '').toLowerCase();
+        if (!k || !(m > 0) || (x.rank !== 'cap' && x.rank !== 'fo')) return;
+        (out[k] = out[k] || {})[x.rank] = m;
+      });
+      return out;
+    } catch (e) { return null; }
   }
 
   /* 見出しの呼び名だけを取りに行く。★ profiles を select('*') しない
@@ -1931,14 +1835,9 @@
     }
     var rows = state.data.reports || [];
     if (rows.length) {
-      var last = rows[rows.length - 1];
-      /* 会員の記録（pay_benchmarks）を先に見て、無いときだけ掲載額を読む。
-         いつも両方読むと、使わない 60KB を毎回落とすことになる。 */
-      state.bench = await loadBench(last);
-      /* 候補カードの社名の辞書は、会員の記録を使う回だけ読む。
-         掲載額に落ちた回（loadPub）は salary-data.json 側が社名を持っている。 */
-      if (state.bench && state.bench.cells.length) await loadAirNames();
-      else state.pub = await loadPub(last);
+      var got = await Promise.all([loadPub(), loadMeds()]);
+      state.pub = got[0];
+      state.meds = got[1];
     } else {
       /* ★まだ1件も出していない人のときだけ、数え上げを取りに行く。
            pv_pay_rows() は鍵が無くても stats（件数・社数・直近1ヶ月ぶん・出した人数）と
@@ -1946,6 +1845,12 @@
          ★出した人には引かない。この画面は行を必要としないのに、
            鍵を持つ人には全行が付いてくるため。 */
       state.pay = await loadPayStats();
+      state.op = await loadOperator();
+      if (state.op) {
+        var got0 = await Promise.all([loadPub(), loadMeds()]);
+        state.pub = got0[0];
+        state.meds = got0[1];
+      }
       if (w.PVGates && w.PVGates.setProgress && state.pay) {
         w.PVGates.setProgress({
           n: state.pay.stats ? state.pay.stats.contributors : null,

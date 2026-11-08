@@ -6186,39 +6186,24 @@ function renderResult(d, p) {
     const parts = [];
     if (d.annual_total_usd != null) parts.push(usd(d.annual_total_usd));
     if (d.annual_total_jpy != null) parts.push(jpyMan(d.annual_total_jpy));
-    rows.push(['Converted', parts.join(' / ') + (d.fx_at ? ' <span style="font-size:.72rem;color:#6b7d93">(rate of ' + esc(d.fx_at) + ')</span>' : ''), '']);
+    rows.push(['Converted', parts.join(' / '), '']);
   }
   if (d.usd_per_block_hour != null) {
-    rows.push(['★ Pay per block hour', '$' + Number(d.usd_per_block_hour).toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' <span style="font-size:.75rem;font-weight:600;color:#6b7d93">/ block hour</span>', 'hi']);
+    rows.push(['Per block hour', '$' + Number(d.usd_per_block_hour).toLocaleString('en-US', { maximumFractionDigits: 2 }), 'hi']);
   }
-  if (d.net_annual_jpy != null) rows.push(['Estimated take-home (yr)', jpyMan(d.net_annual_jpy), '']);
   if (d.streak_months) rows.push(['Consecutive months', String(d.streak_months), '']);
   if (d.access_until) {
     rows.push(['REAL PAY unlocked until', new Date(d.access_until).toLocaleDateString(window.PV_LANG === 'es' ? 'es-419' : 'en-GB', { year: 'numeric', month: 'short', day: 'numeric' }), '']);
   }
 
-  let bench = '';
-  if (d.benchmark) {
-    const b = d.benchmark;
-    const pct = Math.max(0, Math.min(100, Number(b.percentile)));
-    bench =
-      '<div class="bench">' +
-        '<div style="font-size:.78rem;font-weight:700;color:#9ca3af;margin-bottom:2px">Where you sit in this segment</div>' +
-        '<div style="font-size:.72rem;color:#6b7d93">' + esc(airlineName) + ' · ' + esc(optText('f-fleet', p.fleet)) + ' · ' + esc(optText('f-position', p.position)) + ' (n=' + b.n + ')</div>' +
-        '<div class="bench-bar"><div class="bench-you" style="left:calc(' + pct + '% - 2px)"></div></div>' +
-        '<div class="bench-scale"><span>' + usd(b.p25_usd) + '<br>25th</span><span style="text-align:center">' + usd(b.median_usd) + '<br>median</span><span style="text-align:right">' + usd(b.p75_usd) + '<br>75th</span></div>' +
-        '<div style="margin-top:14px;font-size:.95rem;font-weight:800">Top ' + Math.max(1, 100 - pct) + '%' +
-          (b.median_usd_per_bh != null ? '<span style="font-size:.78rem;font-weight:600;color:#9ca3af;margin-left:10px">segment median $' + Number(b.median_usd_per_bh).toLocaleString('en-US', { maximumFractionDigits: 2 }) + '</span>' : '') +
-        '</div>' +
-      '</div>';
-  } else {
-    /* ★An empty slot — no sentence (owner's call, 2026-09-10: someone who has
-       just filed does not need to be told what is missing).
-       ⚠️ **Do not delete this div.** pv-referral.js's mountAfterReport uses the id
-          as its anchor and replaces it with the invite card. Remove it and the
-          "two more pilots to go" card silently stops appearing. */
-    bench = '<div id="bench-gap" hidden></div>';
-  }
+  /* ★2026-11-08 owner's call: same 2-pilot rule as the airline pages. The old "Where you sit in
+       this segment" block (25th/75th, Top N%, n=) is gone — with two pilots, a range or a count
+       lets one of them work out the other's pay.
+     ★An empty slot — no sentence (owner's call, 2026-09-10).
+     ⚠️ **Do not delete this div.** pv-referral.js's mountAfterReport uses the id
+        as its anchor and replaces it with the invite card. Remove it and the
+        "one more pilot to go" card silently stops appearing. */
+  const bench = '<div id="bench-gap" hidden></div>';
 
   /* ★門から来た人には、押した行の面まで戻す。開き直しと鍵の後始末は
        actual-pay.js 側（sessionStorage を読んで、開いたらその場で消す）。
@@ -6239,21 +6224,23 @@ function renderResult(d, p) {
     ? '<div class="warn-row" style="margin-top:16px">We do not hold an exchange rate for ' + esc(cur) + ' yet, so USD and JPY cannot be shown. <b>Your figures are stored exactly as entered</b> and will be computed retroactively once the rate lands.</div>'
     : '';
 
+  const rowHtml = rows.map((r) => '<div class="res-row"><span class="res-k">' + esc(r[0]) + '</span><span class="res-v ' + r[2] + '">' + r[1] + '</span></div>');
+  rowHtml.splice((d.annual_total_usd != null || d.annual_total_jpy != null) ? 1 : 0, 0, '<div class="res-row" id="res-med" hidden></div>');
+
   $('result-wrap').innerHTML =
     '<div class="res">' +
       '<div class="res-pop">🎉</div>' +
       '<div class="res-eyebrow">' + (d.is_new ? 'Received' : 'Correction applied') + '</div>' +
       '<div class="res-big pv-no-cur">' + esc(fmtCur(d.annual_total_orig, cur)) + '</div>' +
-      '<div class="res-sub">Annualised total, from your ' + esc(MONTH_NAMES[Number(p.period_month) - 1]) + ' ' + esc(p.period_year) + ' payslip</div>' +
+      '<div class="res-sub">Annualised from ' + esc(MONTH_NAMES[Number(p.period_month) - 1]) + ' ' + esc(p.period_year) + '</div>' +
       '<div style="margin-top:18px">' +
-        rows.map((r) => '<div class="res-row"><span class="res-k">' + esc(r[0]) + '</span><span class="res-v ' + r[2] + '">' + r[1] + '</span></div>').join('') +
+        rowHtml.join('') +
       '</div>' +
       bench + backNote + fxNote +
       /* ★The "Verified badge" sentence was dropped 2026-09-10 (owner's call).
          Do not explain what someone will not get on the screen that celebrates
          what they just did. The mechanism is still described on index.html. */
-      '<div class="res-note">Saved <b>on this device only</b>. Next month you only update what has changed. ' +
-        'File your next slip and the unlock extends to 90 days from that date.</div>' +
+      '<div class="res-note">Next month, just update what has changed.</div>' +
       '<div class="mt-6 flex flex-col sm:flex-row gap-3">' +
         '<a href="profile.html?new=1#your-pay" class="btn-orange justify-center flex-1">See my report →</a>' +
         /* ★Show the Get at the moment of the Give — this submission is what opened REAL PAY. */
@@ -6266,6 +6253,24 @@ function renderResult(d, p) {
 
   $('form-wrap').style.display = 'none';
   $('result-wrap').style.display = '';
+  /* ★同じ会社・職位の会員の中央値（会社ページと同じ数字。2人以上の組だけ・人数は返らない）。
+       サーバーは書き込みのたびに数えて保存した表を引くだけ（db/member-median.sql）。返事が無ければ行ごと出さない。 */
+  (async () => {
+    const band = { cap: 'cap', tri_tre: 'cap', fo: 'fo', sfo: 'fo' }[p.position];
+    const slot = $('res-med');
+    if (!band || !slot || !p.airline || p.airline === 'other' || typeof _sb === 'undefined' || !_sb) return;
+    try {
+      const { data, error } = await _sb.rpc('pv_member_medians', { p_airline: p.airline });
+      if (error || !Array.isArray(data)) return;
+      const hit = data.find((x) => x && x.rank === band && Number(x.median_man) > 0);
+      if (!hit) return;
+      const jpy = Number(hit.median_man) * 10000;
+      const rate = (d.annual_total_usd != null && d.annual_total_jpy) ? d.annual_total_usd / d.annual_total_jpy : null;
+      slot.innerHTML = '<span class="res-k">Airline &amp; seat median</span><span class="res-v">' +
+        (rate ? usd(Math.round(jpy * rate / 1000) * 1000) + ' / ' : '') + jpyMan(jpy) + '</span>';
+      slot.hidden = false;
+    } catch (e) {}
+  })();
   if (window.PVApp) window.PVApp.mount($('result-wrap').querySelector('[data-pv-app]'), 'done');
   window.scrollTo({ top: 0, behavior: 'smooth' });
   /* Do not let the submission end in silence — but only for a new month. Re-sending the
