@@ -52,7 +52,9 @@ const READ_OK = ['next_condition_questions', 'submit_airline_conditions',
      my_cohort_gap      … 「あと N 人」を出すために自分の区分の人数を聞く（gap()）
      どちらも読むだけで、給与の payload には1バイトも関係しない。
      pay-report.html が pv-referral.js を読んでいる以上、この2つは必ず呼ばれる。 */
-  'pv_referral_settle', 'my_cohort_gap'];
+  'pv_referral_settle', 'my_cohort_gap',
+  /* ★2026-11-08 提出直後のカードの「同じ会社・職位の中央値」1行。会社ページと同じ公開の口（読むだけ・人数を返さない）。 */
+  'pv_member_medians'];
 /* ★偽の解析結果は、本物の parse-payslip の実装に通してから画面へ返す（写経しない）。
    Edge Function は Deno 向けなので、import する前に最小限の Deno を置く
    （db/test-payslip-parse.mjs と同じ手）。読むだけ＝ネットにも Anthropic にも触らない。
@@ -158,11 +160,12 @@ console.log('\n市場価値レポート（my-value）');
   ok(!/function calc\(|function donut\(|function segments\(/.test(MV),
      `my-value.js は calc()/donut()/segments() を写していない`);
 
-  /* ③ ?new=1 は文言だけ。数字に効かせない。
-     ここが増えると「出した直後」と「翌月の再訪」で違うページになり、
-     どちらが本当なのか本人にも分からなくなる。 */
+  /* ③ ?new=1 はレポートの中身に効かせない。
+     効かせると「出した直後」と「翌月の再訪」で違うページになり、
+     どちらが本当なのか本人にも分からなくなる。
+     ★2026-11-08 唯一の使い道だった見出しの下の一文を外した（オーナー「不要な文言はカット」）＝いまは0回。 */
   const newHits = (MV.match(/isNew/g) || []).length;
-  ok(newHits === 2, `?new=1 は文言1箇所にしか効いていない（宣言＋使用の2回）`, `isNew×${newHits}`);
+  ok(newHits === 0, `?new=1 はレポートの中身に効いていない`, `isNew×${newHits}`);
 
   /* ④ 検証していないものを Verified と表示しない（VISION）。
      付与は parse-payslip 側の仕事で、まだ動いていない。
@@ -3909,7 +3912,7 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
 
   // 画面に実際に描かれた文字で確かめる（キー名だけ合っていても描画で落ちる）
   const shown = await page.$eval('#result-wrap', (el) => el.innerText).catch(() => '');
-  ok(/block hour/i.test(shown), `結果パネルに $/block hour が描かれている`);
+  ok(/乗務時間あたり|Per block hour|Por hora block/.test(shown) && /\$\d/.test(shown), `結果パネルに乗務時間あたりの $ が描かれている`);
   ok(!/NaN|undefined|\[object/.test(shown), `結果パネルに NaN/undefined が無い`,
      shown.slice(0, 200));
 
@@ -3947,7 +3950,8 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
       const f = (v) => { const s = v / 255; return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4; };
       return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
     };
-    return [...document.querySelectorAll('#result-wrap b, #result-wrap strong')].map((el) => {
+    /* ★2026-11-08 文の中の太字（端末の断り書き）を外したので、数字の欄（.res-v）も強調語として測る。 */
+    return [...document.querySelectorAll('#result-wrap b, #result-wrap strong, #result-wrap .res-v')].map((el) => {
       const bg = flatten(el.parentElement);
       const fg0 = parse(getComputedStyle(el).color);
       const fg = { r: fg0.r * fg0.a + bg.r * (1 - fg0.a),

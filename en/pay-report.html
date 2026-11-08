@@ -6253,6 +6253,7 @@ function renderResult(d, p) {
 
   $('form-wrap').style.display = 'none';
   $('result-wrap').style.display = '';
+  if (window.PVApp) window.PVApp.mount($('result-wrap').querySelector('[data-pv-app]'), 'done');
   /* ★同じ会社・職位の会員の中央値（会社ページと同じ数字。2人以上の組だけ・人数は返らない）。
        サーバーは書き込みのたびに数えて保存した表を引くだけ（db/member-median.sql）。返事が無ければ行ごと出さない。 */
   (async () => {
@@ -6271,7 +6272,6 @@ function renderResult(d, p) {
       slot.hidden = false;
     } catch (e) {}
   })();
-  if (window.PVApp) window.PVApp.mount($('result-wrap').querySelector('[data-pv-app]'), 'done');
   window.scrollTo({ top: 0, behavior: 'smooth' });
   /* Do not let the submission end in silence — but only for a new month. Re-sending the
      same month (is_new:false = a correction) overwrites the row and adds no count, so

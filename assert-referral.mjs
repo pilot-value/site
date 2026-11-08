@@ -588,13 +588,13 @@ for (const lang of ['ja', 'en']) {
          n≦2 の区分では、人数を推測できる数字を1文字も出さない。 */
       /* ★禁じているのは「その区分に何人いるか」を推測できる数字。
          日本語に残る数字は2つだけで、どちらも payload と無関係の決め打ち：
-           ・「5人そろうと」＝解放のしきい値。サイト中どこにでも出ている定数
+           ・「2人そろうと」＝解放のしきい値（2026-11-08 から会社ページと同じ2人）。決め打ちの定数
            ・「1人招待」　　＝ CTA。招待する人数であって、記録の件数ではない
          state:'few' の payload には整数が1つも入っていない（GAP.few）ので、
          この2つを除いてなお数字が残ったら、それは n が漏れている。
-         （英語は "five pilots" / "one pilot" と綴るので、そもそも数字が無い） */
-      const leak = v.text.replace(/5人/g, '').replace(/1人/g, '')
-                         .replace(/five pilots/gi, '').replace(/one pilot/gi, '');
+         （英語は "two pilots" / "one pilot" と綴るので、そもそも数字が無い） */
+      const leak = v.text.replace(/2人そろう/g, '').replace(/1人/g, '')
+                         .replace(/two pilots/gi, '').replace(/one pilot/gi, '');
       ok(!/\d/.test(leak), '★n≦2 では人数を推測できる数字が1文字も出ない', JSON.stringify(v.text));
       ok(lang === 'ja' ? /まだ記録が少ない/.test(v.text) : /very few records/i.test(v.text),
          '「まだ記録が少ないです」とだけ言う', JSON.stringify(v.text).slice(0, 90));
@@ -605,21 +605,21 @@ for (const lang of ['ja', 'en']) {
     if (key === 'near2' || key === 'near1') {
       const k = key === 'near2' ? 2 : 1;
       ok(lang === 'ja'
-           ? v.text.includes('あと' + k + '人で、より詳しい比較')
+           ? v.text.includes('あと' + k + '人で、会員の中央値が出ます')
            : (k === 1 ? /One more pilot/.test(v.text) : /2 more pilots/.test(v.text)),
-         `n=${5 - k} では「あと${k}人」と出す`, JSON.stringify(v.text).slice(0, 90));
+         `n=${2 - k} では「あと${k}人」と出す`, JSON.stringify(v.text).slice(0, 90));
       /* 「誰か1人招待すれば埋まる」とは言えない。動くのは同じ区分の人だけ。 */
-      ok(lang === 'ja' ? /同じ会社・職位・機種・年/.test(v.text)
-                       : /same airline, rank/.test(v.text),
-         '★「同じ会社・職位・機種・年で記録した人が」と必ず添える');
+      ok(lang === 'ja' ? /同じ会社・職位/.test(v.text)
+                       : /airline and seat/.test(v.text),
+         '★「同じ会社・職位で数えます」と必ず添える（2026-11-08 から区分は会社 × 職位）');
       ok(shown.length === 1 && shown[0].p.remaining === k,
          `GA4 の remaining は ${k}`, JSON.stringify(shown));
       ok(!v.win, 'まだ増えていないので「良くなりました」は出さない', v.win);
     }
     if (key === 'open') {
-      ok(!v.go, '★n≧5（比較が出ている）では招待の導線を出さない');
-      ok(lang === 'ja' ? /5人そろいました/.test(v.win) : /reached five pilots/i.test(v.win),
-         '代わりに「5人そろいました」だけ出す', JSON.stringify(v.win));
+      ok(!v.go, '★n≧2（会員の中央値が出ている）では招待の導線を出さない');
+      ok(lang === 'ja' ? /2人そろいました/.test(v.win) : /Two pilots at your airline and seat/.test(v.win),
+         '代わりに「2人そろいました」だけ出す', JSON.stringify(v.win));
       ok(shown.length === 0, '勧誘していないので prompt_shown は撃たない');
       const g = ev.filter((e) => e.n === 'referral_cohort_open' || e.n === 'referral_cohort_gained');
       ok(g.length === 2, '「開いた」と「増えた」を1回ずつ撃つ', JSON.stringify(g));
@@ -796,8 +796,8 @@ for (const lang of ['ja', 'en']) {
   });
   let ev = await events(page);
   ok(v.card, 'マイページの「機会」の下にカードが出る', JSON.stringify(v).slice(0, 120));
-  ok(lang === 'ja' ? /あと2人で、より詳しい比較/.test(v.text) : /2 more pilots/.test(v.text),
-     '「あと2人で、より詳しい比較」が出る', JSON.stringify(v.text).slice(0, 90));
+  ok(lang === 'ja' ? /あと2人で、会員の中央値が出ます/.test(v.text) : /2 more pilots/.test(v.text),
+     '「あと2人で、会員の中央値が出ます」が出る', JSON.stringify(v.text).slice(0, 90));
   /* ★順位の言い方をしない。「あなたの位置が数字で出ます」は 2026-08-19 に
      オーナーがランキング表現として却下した。増えるのは順位ではない。 */
   ok(!/位置が数字|順位|ランキング|your position|your rank|ranking/i.test(v.text),
