@@ -313,7 +313,11 @@ button.rs-cell:active{transform:scale(.97)}
   .rs-ib,.rs-btn,.rs-link,.rs-entry,.rs-cell,.ru-radio span,.ru-bar i{transition:none}
   .ru-spin,.ru-pg.is-now{animation:none}
 }
+.rs-tool svg{flex:none}
 @media print{
   .rs-hd-r,.rs-resel,.rs-docs .rs-btn,.rs-tip{display:none !important}
   .rs-card,.rs-kpis{box-shadow:none}
+  /* 表示中のタブの印刷（#pv-print の写し）：明るい面の色に固定 */
+  #pv-print .rs{--rs-blk:#3d9bff;--rs-dh:rgba(61,155,255,.42);--rs-vac:#8b74e8;--rs-vac-soft:rgba(139,116,232,.10);--rs-vac-ink:#5b45c4}
+  #pv-print .rs-grid{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}
 }

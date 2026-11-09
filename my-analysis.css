@@ -23,7 +23,15 @@
 .an-ey{margin:0;font-size:.66rem;font-weight:800;letter-spacing:.14em;color:var(--pv-accent-ink)}
 .an-h{margin:4px 0 0;font-size:clamp(1.15rem,2.4vw,1.45rem);font-weight:800;letter-spacing:-.03em;line-height:1.3;color:var(--pv-ink)}
 .an-sub{margin:4px 0 0;font-size:.76rem;font-weight:700;color:var(--pv-ink-3)}
+.an-hd-r{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:flex-end;gap:8px 12px}
 .an-pick{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px}
+/* CSV・印刷：目立たせない小さい道具 */
+.an-tools{display:flex;gap:6px;padding-bottom:2px}
+.an-tool{display:inline-flex;align-items:center;gap:5px;min-height:32px;padding:5px 10px;border-radius:9px;border:1px solid var(--pv-line);
+  background:var(--pv-surface);color:var(--pv-ink-2);font:inherit;font-size:.72rem;font-weight:700;line-height:1;cursor:pointer;transition:transform .2s var(--pv-ease)}
+.an-tool:hover{color:var(--pv-ink);border-color:var(--pv-accent)}
+.an-tool:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.an-tool:active{transform:translateY(1px)}
 .an-pk{display:flex;flex-direction:column;gap:4px;min-width:0}
 .an-pk>span{font-size:.64rem;font-weight:800;letter-spacing:.04em;color:var(--pv-ink-3)}
 .an-pk-ar{padding-bottom:9px;font-weight:700;color:var(--pv-ink-3)}
@@ -266,6 +274,17 @@
   .an-skel{animation:none}
 }
 @media print{
-  .an-pick,.an-segs,.an-ctl,.an-thr input,.an-ask,.an-tip,.an-need .an-btn{display:none !important}
+  .an-tools,.an-segb[aria-pressed="false"],.an-thr input,.an-ask,.an-tip,.an-need .an-btn{display:none !important}
   .an-card{box-shadow:none;break-inside:avoid}
+  /* 表示中のタブの印刷（#pv-print の写し）：明るい面の色に固定・2列のまま */
+  #pv-print .an{--an-up:#e8742c;--an-dn:#3d7fe0;--an-a:#0a8f79;--an-b:#3d7fe0;--an-mute:#cbd5e1;
+    --an-fixed:#0a8f79;--an-role:#a8662b;--an-variable:#d9a21b;--an-allowance:#3d7fe0;--an-bonus:#d9578e;--an-noncash:#8b74e8;
+    --an-unexplained:#b8c2cf;--an-adjustment:#94a3b8}
+  #pv-print .an-ctl{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #pv-print .an-pk{flex-direction:row;align-items:baseline;gap:6px}
+  #pv-print .an-pick{align-items:baseline}
+  #pv-print .an-pk-ar{padding:0}
+  #pv-print .an-segs{margin:0 0 8px}
+  #pv-print .an-f{flex-direction:row;align-items:baseline;gap:6px}
 }
+@media (prefers-reduced-motion:reduce){ .an-tool{transition:none} }

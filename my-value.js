@@ -76,13 +76,13 @@
   var YEAR_URL = 'my-year.js?v=' + YEAR_V;                 // 「1年」の画面（押したときだけ読む）
   /* ★「勤務ロスター」のタブ（2026-11-09）。開いたときだけ読む4本。指紋は上の2本と同じ決まり
        （db/test-year-report.mjs が中身と突き合わせる）。計算の部品は分析のタブも使う。 */
-  var ROSTER_V = 'c71b8623';
-  var ROSTER_CSS_V = 'f89aed97';
+  var ROSTER_V = 'd4e2af25';
+  var ROSTER_CSS_V = '5d2f095e';
   var UPLOAD_V = 'ad34cd5f';
   var ENGINE_V = 'f5603644';
   /* ★「分析」のタブ（2026-11-09）。開いたときだけ読む2本（見た目 → 計算の部品 → 画面の順）。指紋の決まりは上と同じ */
-  var ANALYSIS_V = 'e3bcf442';
-  var ANALYSIS_CSS_V = 'd7743516';
+  var ANALYSIS_V = '92184573';
+  var ANALYSIS_CSS_V = '9934ef28';
   var LATE = {
     roster: 'my-roster.js?v=' + ROSTER_V, rosterCss: 'my-roster.css?v=' + ROSTER_CSS_V,
     upload: 'roster-upload.js?v=' + UPLOAD_V, engine: 'pv-report-engine.js?v=' + ENGINE_V,
@@ -145,6 +145,8 @@
       tabSum: '給与サマリー', tabRoster: '勤務ロスター', tabAna: '分析',
       tabSumS: '給与', tabRosterS: '勤務', tabAnaS: '分析',
       anaErr: '分析の画面を読み込めませんでした。時間をおいて開き直してください。',
+      /* 印刷（表示中のタブだけ）。紙の1行目は「YOUR PAY · タブ · 期間」 */
+      prPrint: '印刷', prPrintA: '表示中のタブを印刷', prMonth: '明細 {t}',
       rosterErr: '勤務ロスターの画面を読み込めませんでした。時間をおいて開き直してください。',
       /* 給与が変わった理由（2026-11-09・承認済みの見本）。数量の名前は表の行の見出し */
       why: '給与が変わった理由', whyTot: '支給合計の増減', whyDed: '控除合計の増減', whyNet: '手取りの増減',
@@ -362,6 +364,7 @@
       tabSum: 'Pay summary', tabRoster: "Roster", tabAna: 'Analysis',
       tabSumS: "Pay", tabRosterS: "Roster", tabAnaS: 'Analysis',
       anaErr: 'Could not load the analysis view. Please try again in a moment.',
+      prPrint: 'Print', prPrintA: 'Print this tab', prMonth: '{t} payslip',
       rosterErr: 'Could not load the roster view. Please try again in a moment.',
       why: 'What changed your pay', whyTot: 'Change in total earnings', whyDed: 'Change in total deductions', whyNet: 'Change in net pay',
       whyRest: '{n} other items', whyChart: 'Change by pay item',
@@ -548,6 +551,7 @@
       tabSum: 'Resumen de pago', tabRoster: "Programación", tabAna: 'Análisis',
       tabSumS: "Pago", tabRosterS: "Programación", tabAnaS: 'Análisis',
       anaErr: 'No se pudo cargar la vista de análisis. Inténtalo de nuevo en un momento.',
+      prPrint: 'Imprimir', prPrintA: 'Imprimir esta pestaña', prMonth: 'Recibo de {t}',
       rosterErr: 'No se pudo cargar la vista de programación. Inténtalo de nuevo en un momento.',
       why: 'Qué cambió en tu remuneración', whyTot: 'Variación del total devengado', whyDed: 'Variación del total de deducciones', whyNet: 'Variación del sueldo neto',
       whyRest: 'Otros {n} conceptos', whyChart: 'Variación por concepto de pago',
@@ -1877,13 +1881,92 @@
   /* ── 「今月｜1年」（2026-11-08）──────────────────────────────
      開いたときは「今月」＝今までと1文字も変わらない画面。「1年」は my-year.js が描く。 */
   function viewBar() {
-    return '<div class="pt-tabs mv-view" role="tablist">' +
+    return '<div class="mv-vrow"><div class="pt-tabs mv-view" role="tablist">' +
       ['month', 'year'].map(function (k) {
         return '<button type="button" role="tab" aria-selected="' + (state.view === k) + '" class="pt-tab' + (state.view === k ? ' on' : '') +
           '" data-view="' + k + '">' + esc(k === 'month' ? T.vMonth : T.vYear) + '</button>';
-      }).join('') + '</div>';
+      }).join('') + '</div>' +
+      /* 「今月」だけ印刷のボタン（「1年」には自分の PDF のボタンがある） */
+      (state.view === 'month' ? '<button type="button" class="mv-tool" data-print aria-label="' + esc(T.prPrintA) + '">' + PRINT_ICON + esc(T.prPrint) + '</button>' : '') +
+      '</div>';
+  }
+  var PRINT_ICON = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/></svg>';
+
+  /* ── CSV と印刷（2026-11-09・勤務ロスターと分析のタブから呼ぶ）──────────────
+     ★CSV は Excel でそのまま開ける形（UTF-8 の BOM・CRLF）。中身はタブが画面に出している数字だけで、行はタブが組む。
+       ここは字の包み方と保存だけ（db/test-analysis-ui.mjs がこの関数をそのまま切り出して確かめる）。
+       = + - @ で始まる字の欄は、表計算に式と読ませない（' を前に）。
+     ★印刷は「いま開いているタブ」の写しだけを body の直下の #pv-print に置いて紙にする（printYear と同じやり方。
+       隠れているタブ・タブの帯・操作の部品・サイトの枠は紙に出ない）。図は画面に描いたまま。 */
+  function csvText(rows) {
+    var cell = function (v) {
+      if (v == null) return '';
+      if (typeof v === 'number') return isFinite(v) ? String(v) : '';
+      var t = String(v);
+      if (/^[=+\-@\t\r]/.test(t) && !/^[+\-]?\d+(\.\d+)?$/.test(t)) t = "'" + t;
+      return /[",\r\n]/.test(t) ? '"' + t.replace(/"/g, function () { return '""'; }) + '"' : t;
+    };
+    return '\uFEFF' + rows.map(function (r) { return (r || []).map(cell).join(','); }).join('\r\n') + '\r\n';
+  }
+  function saveCsv(name, rows) {
+    var safe = String(name || 'pilot-value').replace(/[^A-Za-z0-9._-]/g, '_') + '.csv';
+    try {
+      var url = URL.createObjectURL(new Blob([csvText(rows)], { type: 'text/csv;charset=utf-8' }));
+      var a = d.createElement('a');
+      a.href = url; a.download = safe; a.rel = 'noopener'; a.style.display = 'none';
+      d.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(url); if (a.parentNode) a.parentNode.removeChild(a); }, 1000);
+    } catch (e) {}
+  }
+  /* 紙に出さない操作の部品（選ぶ欄は選んでいる字に置き換えてから外す） */
+  var PR_DROP = '.mv-vrow,.mv-op,.mv-remind,.an-tools,.an-btn,.an-link,.an-ask,.an-tip,.an-thr input,.an-thr-ax,.an-need,' +
+    '.rs-hd-r,.rs-resel,.rs-tip,.rs-docs,.rs-upbox,.rs-entry,.rs-flash,.rs-hint,.mv-wf-tip,.pt-btn,.mr-mask-over,#mr-ref-slot,input,textarea';
+  function printPane(period) {
+    var src = panes && panes[state.tab];
+    if (!src) return;
+    var old = d.getElementById('pv-print');
+    if (old) old.parentNode.removeChild(old);
+    var wrap = d.createElement('div');
+    wrap.id = 'pv-print';
+    var scope = d.createElement('div');
+    scope.id = 'pv-value';                         // 見た目の規則（#pv-value …）をそのまま効かせる
+    scope.className = 'pv-no-cur pv-pr';
+    var t = d.createElement('p');
+    t.className = 'pv-pr-t';
+    t.textContent = ['YOUR PAY', { summary: T.tabSum, roster: T.tabRoster, analysis: T.tabAna }[state.tab], period].filter(Boolean).join(' · ');
+    scope.appendChild(t);
+    var c = src.cloneNode(true);
+    c.hidden = false; c.removeAttribute('id');
+    var ss = src.querySelectorAll('select'), cs = c.querySelectorAll('select');
+    for (var i = 0; i < cs.length; i++) {
+      var o = ss[i] && ss[i].options[ss[i].selectedIndex];
+      var sp = d.createElement('span');
+      sp.className = 'pv-pr-sel';
+      sp.textContent = o ? o.text : '';
+      cs[i].parentNode.replaceChild(sp, cs[i]);
+    }
+    Array.prototype.forEach.call(c.querySelectorAll(PR_DROP), function (x) { if (x.parentNode) x.parentNode.removeChild(x); });
+    /* 切り替えは、選んでいるものだけを見出しの字として残す（何を見ている紙か分かるように） */
+    Array.prototype.forEach.call(c.querySelectorAll('.pt-tabs > :not(.on), .an-segs > :not([aria-pressed="true"])'), function (x) { x.parentNode.removeChild(x); });
+    scope.appendChild(c);
+    wrap.appendChild(scope);
+    d.body.appendChild(wrap);
+    d.documentElement.classList.add('pv-printing');
+    var done = function () {
+      d.documentElement.classList.remove('pv-printing');
+      if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
+      w.removeEventListener('afterprint', done);
+    };
+    w.addEventListener('afterprint', done);
+    w.print();
+    setTimeout(done, 1000);                        // afterprint を出さない端末でも写しを残さない
   }
   function bindView() {
+    var pb = root.querySelector('[data-print]');
+    if (pb) pb.addEventListener('click', function () {
+      var r = state.rows[state.rows.length - 1];
+      printPane(r ? T.prMonth.replace('{t}', function () { return T.ym(r.period_year, r.period_month); }) : '');
+    });
     root.querySelectorAll('[data-view]').forEach(function (b) {
       b.addEventListener('click', function () {
         var v = b.getAttribute('data-view');
@@ -2010,7 +2093,8 @@
         w.PVRoster.mount(panes.roster, {
           sb: SB,
           reports: (state.data && state.data.reports) || [],   // ★運営の見本は渡さない（会社を決めるのは本人の行だけ）
-          urls: { upload: LATE.upload, airlines: LATE.airlines }
+          urls: { upload: LATE.upload, airlines: LATE.airlines },
+          csv: saveCsv, print: printPane
         });
         if (state.tab === 'roster') w.PVRoster.show(); else w.PVRoster.hide();
         if (rosterWant) { w.PVRoster.open(rosterWant); rosterWant = null; }
@@ -2040,7 +2124,7 @@
         w.PVAnalysis.mount(box, {
           sb: SB,
           reports: (state.data && state.data.reports) || [],   // ★運営の見本は渡さない（本人の行だけ）
-          items: reportItems, segName: SEGNAME, goto: gotoRoster
+          items: reportItems, segName: SEGNAME, goto: gotoRoster, csv: saveCsv, print: printPane
         });
         if (state.tab === 'analysis') w.PVAnalysis.show(); else w.PVAnalysis.hide();
       });

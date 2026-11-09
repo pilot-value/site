@@ -750,7 +750,15 @@
 /* ── 1年のまとめ（my-year.js・2026-11-08）──────────────────────────
    「今月｜1年」の切り替えで「1年」を選んだときだけ描かれる。色は pv-tokens の --pv-* だけ。
    棒の色（乗務 #0a8f79・総勤務 #3d9bff）は SVG の中に直接（validate_palette.js で確認した値）。 */
-#pv-value .mv-view{margin:0 0 16px}
+#pv-value .mv-vrow{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin:0 0 16px}
+#pv-value .mv-vrow .mv-view{margin:0}
+/* 小さい道具のボタン（印刷）。目立たせない：枠だけ・字は薄い灰 */
+.mv-tool{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:5px 11px;border-radius:9px;border:1px solid var(--pv-line);
+  background:var(--pv-surface);color:var(--pv-ink-2);font:inherit;font-size:.74rem;font-weight:700;line-height:1;cursor:pointer;
+  transition:transform .2s var(--pv-ease)}
+.mv-tool:hover{color:var(--pv-ink);border-color:var(--pv-accent)}
+.mv-tool:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.mv-tool:active{transform:translateY(1px)}
 #pv-value .yr{position:relative}
 #pv-value .yr-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
 #pv-value .yr-top .mr-card-t{margin:0}
@@ -954,4 +962,19 @@
 @media (prefers-reduced-motion:reduce){
   #pv-value .mv-tab,#pv-value .mv-tab::after,.mv-wf-tip,.mv-why-bd>summary::after{transition:none}
 }
-@media print{ #pv-value .mv-tabs{display:none} }
+/* 印刷：隠れているタブとタブの帯は紙に出さない（ブラウザの印刷でも）。
+   表示中のタブの印刷（my-value.js の printPane）は、写しを #pv-print に置く＝ 1年の PDF と同じ仕組み・同じ規則（上の .pv-printing）。
+   紙は明るい面に固定し、1行目に「YOUR PAY · タブ · 期間」。操作の部品は写しから外してある（PR_DROP）。 */
+@media print{
+  #pv-value .mv-tabs,#pv-value .mv-pane[hidden],#pv-value .mv-vrow{display:none !important}
+  #pv-print .pv-pr{--pv-bg:#fff;--pv-bg-sub:#f7f9fc;--pv-surface:#fff;--pv-surface-2:#fbfcfe;--pv-line:#e3e9f0;--pv-line-soft:#eef2f7;
+    --pv-ink:#0f172a;--pv-ink-2:#475569;--pv-ink-3:#64748b;--pv-accent-soft:#e7f5f1;--pv-accent-line:#bfe6db;--pv-accent-ink:#067563;
+    background:#fff;color:#0f172a;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #pv-print .pv-pr-t{display:block;margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid #e3e9f0;font-size:10.5pt;font-weight:800;letter-spacing:.02em}
+  #pv-print .pv-pr-sel{display:inline-block;font-weight:800}
+  html.pv-printing body{padding:0 !important;margin:0 !important}
+  #pv-print .pt-tab,#pv-print .an-segb{border:0 !important;background:none !important;padding:0 !important;min-height:0 !important;color:#0f172a !important;font-weight:800}
+  #pv-print .pv-pr svg{height:auto;max-width:100%}       /* 表示中のタブの写しだけ（1年の PDF の小さい図は今までの大きさのまま） */
+  #pv-print .mr-card,#pv-print .an-card,#pv-print .rs-card,#pv-print .rs-kpis{box-shadow:none;break-inside:avoid}
+  #pv-print .mr-card.is-hero{--pv-surface:#fff;--pv-ink:#0f172a;--pv-ink-2:#475569;--pv-ink-3:#64748b;--pv-line:#e3e9f0;--pv-line-soft:#eef2f7;background:#fff;border-color:#e3e9f0}
+}

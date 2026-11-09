@@ -11,7 +11,10 @@
    ⑤ 「いつの勤務の分？」は候補に印を付けるだけで、描いただけでは保存しない（押したときだけ）。
    ⑥ 給与が変わった理由：検算（増減の合計 ＝ Δ総支給・内訳の合計 ＝ 総支給・同じ通貨・前の明細あり）が1つでも通らなければ描かない
       （＝前回の明細との差に戻す）。通るときは項目の増減の合計が Δ総支給にぴったり合う。
-   ⑦ 1か月なら比較を出さず、「2か月目から」を見出しで1回だけ言う。週末・祝日の手当を日数で割らない。 */
+   ⑦ 1か月なら比較を出さず、「2か月目から」を見出しで1回だけ言う。週末・祝日の手当を日数で割らない。
+   ⑧ CSV は選んでいる範囲だけ（ファイル名と1行目に範囲・ほかの月を1つも書かない・通貨の欄・時間は H:MM と分）。
+      字の包み方は my-value.js の csvText（BOM・CRLF・引用符・表計算の式にさせない）。
+   ⑨ 印刷は表示中のタブの写しだけ（隠れたタブ・タブの帯は紙に出さない・操作の部品は外す）。 */
 import fs from 'fs';
 import vm from 'vm';
 import path from 'path';
@@ -134,6 +137,25 @@ function suite(A, R, opts) {
   const rg = A.rangeD();
   ok(rg && rg.min < rg.max && rg.min !== 360 && rg.max !== 720, '④ 基準の時間の範囲はデータから（見本の 6:00〜12:00 ではない）');
 
+  /* ⑧ CSV：選んでいる範囲（2031-03 → 2031-05）だけ */
+  const cells = (rows) => rows.reduce((a, r) => a.concat(r || []), []).map(String);
+  A.set({ sel: { a: '2031-03', b: '2031-05' }, C: { item: 'flight pay', other: false, busy: false, msg: null, edit: false } });
+  const cv = A.csvOf();
+  ok(cv && cv.name === 'pilot-value-analysis_2031-03_2031-05', '⑧ ファイル名に範囲：' + (cv && cv.name));
+  ok(cv && cv.rows[0].join(' ').includes('2031-03→2031-05'), '⑧ 1行目に範囲');
+  const all8 = cv ? cells(cv.rows) : [];
+  const firsts = cv ? cv.rows.map((r) => String((r || [])[0] || '')).filter((c) => /^\d{4}-\d{2}$/.test(c)) : [];
+  ok(['2031-03', '2031-04', '2031-05'].every((m) => all8.includes(m)) && firsts.length && firsts.every((c) => c >= '2031-03' && c <= '2031-05'),
+     '⑧ 範囲の月の行だけを書く（行の月がほかに1つも無い。勤務月の欄は、その行の対応として出す）');
+  const hdr = cv ? cv.rows.find((r) => r && r[0] === 'pay_month') : null, r3 = cv ? cv.rows.find((r) => r && r[0] === '2031-03') : null;
+  ok(hdr && hdr[1] === 'currency' && r3 && r3[1] === 'JPY', '⑧ 通貨の欄（明細の通貨のまま）');
+  ok(r3 && /^\d+:\d{2}$/.test(r3[hdr.indexOf('block_hm')]) && r3[hdr.indexOf('block_min')] === 62 * 60, '⑧ 時間は H:MM と分の両方');
+  ok(cv && cv.rows.some((r) => r && r[0] === '2031-04' && r[1] === 'Flight Pay'), '⑧ 手当ごとの掘り下げで選んでいる項目の行');
+  ok(cv && !cv.rows.some((r) => r && r[0] === 'duty_month'), '⑧ 範囲にロスターの月が無ければロスターの節を書かない');
+  A.set({ sel: { a: '2031-10', b: '2031-12' } });
+  const cv2 = A.csvOf(), dm = cv2 ? cv2.rows.filter((r) => r && /^2031-1[01]$/.test(r[0]) && r.length === 14) : [];
+  ok(dm.length === 2, '⑧ 範囲の中のロスターの月（勤務月）だけ：' + dm.length);
+
   /* ⑦ 1か月 */
   A.set({ ctx: { reports: [F.reps[11]], segName: SEG }, items: { items: [F.items[11]], maps: [], ok: true }, roster: null, sel: { a: null, b: null } });
   A.build();
@@ -193,6 +215,47 @@ console.log('▼ 給与が変わった理由（my-value.js の whyModel）');
     '⑥ 描けないときは今までの compare（前回の明細との差）を出す');
 }
 
+/* ⑧ 字の包み方（my-value.js の csvText をそのまま） */
+function csvSuite(mvSrc) {
+  const fails = [];
+  const ok = (c, m) => { if (!c) fails.push(m); };
+  const src = cut(mvSrc, 'csvText');
+  if (!src) return ['my-value.js に csvText が無い'];
+  const csvText = vm.runInNewContext('(' + src + ')', {});
+  const t = csvText([['範囲', '支給月 2031-03→2031-05'], ['a,b', 'say "hi"', '=SUM(A1)', '-12.50', -3, null, '+81 x']]);
+  ok(t.charCodeAt(0) === 0xFEFF, '⑧ 先頭に BOM（Excel で文字化けしない）');
+  ok(t.includes('\r\n') && t.endsWith('\r\n'), '⑧ 行の区切りは CRLF');
+  ok(t.includes('"a,b"') && t.includes('"say ""hi"""'), '⑧ カンマ・引用符を包む');
+  ok(t.includes("'=SUM(A1)") && t.includes("'+81 x") && t.includes(',-12.50,') && t.includes(',-3,'), '⑧ 式に読める字は前に引用符（数は触らない）');
+  return fails;
+}
+
+console.log('▼ ⑧ CSV の字の包み方（my-value.js の csvText）');
+{
+  const f = csvSuite(MV);
+  say(f.length === 0, '約束⑧（BOM・CRLF・包み方）が守られている' + (f.length ? '：' + f.join(' / ') : ''));
+}
+
+console.log('▼ ⑨ 印刷（表示中のタブだけ）');
+const CSS = read('my-value.css');
+function printSuite(mv, css) {
+  const fails = [];
+  const ok = (c, m) => { if (!c) fails.push(m); };
+  const pp = cut(mv, 'printPane') || '';
+  ok(/var src = panes && panes\[state\.tab\];/.test(pp) && /src\.cloneNode\(true\)/.test(pp), '⑨ 写すのは表示中のタブの面だけ');
+  ok(/c\.querySelectorAll\(PR_DROP\)/.test(pp) && /\.an-tools/.test(mv) && /\.rs-hd-r/.test(mv), '⑨ 操作の部品（CSV・印刷・切り替え）は写しから外す');
+  ok(/pv-printing/.test(pp) && /afterprint/.test(pp), '⑨ 1年の PDF と同じ仕組み（.pv-printing・印刷が終われば写しを消す）');
+  const pr = (css.match(/@media print\{[\s\S]*?\n\}/g) || []).join('\n');
+  ok(/#pv-value \.mv-tabs,#pv-value \.mv-pane\[hidden\]/.test(pr), '⑨ ブラウザの印刷でも、隠れたタブとタブの帯は紙に出さない');
+  ok(/html\.pv-printing body > \*:not\(#pv-print\)\{display:none !important\}/.test(pr), '⑨ 写しのほか（サイトの枠・ほかの節）は紙に出さない');
+  return fails;
+}
+{
+  const f = printSuite(MV, CSS);
+  say(f.length === 0, '約束⑨が守られている' + (f.length ? '：' + f.join(' / ') : ''));
+  say(/data-act="print"/.test(ANA) && /S\.ctx\.print\(/.test(ANA) && /csv: saveCsv, print: printPane/.test(MV), '⑨ 分析のタブの印刷・CSV は my-value.js の1か所を呼ぶ');
+}
+
 console.log('▼ ① 後から読む部品');
 {
   for (const [name, file] of [['ANALYSIS_V', 'my-analysis.js'], ['ANALYSIS_CSS_V', 'my-analysis.css']]) {
@@ -227,7 +290,9 @@ const BREAK_A = [
   ['④ 計算候補に確度の％を出す', "esc(fill(T.dFitErr, { n: ev.fitMonths.length }))", "'確度 90% ' + esc(fill(T.dFitErr, { n: ev.fitMonths.length }))"],
   ['⑤ 候補を描いた時点で保存する', "var c = q.cand ? q.cand.offset : null;", "var c = q.cand ? q.cand.offset : null; if (c != null) saveAsk(String(c));"],
   ['② 最新の月を決め打ちする', "S.sel.b = ms[ms.length - 1].ym;", "S.sel.b = '2026-10';"],
-  ['⑦ 1か月でも増減率の切り替えを出す', "if (two()) h += seg('a-view'", "h += seg('a-view'"]
+  ['⑦ 1か月でも増減率の切り替えを出す', "if (two()) h += seg('a-view'", "h += seg('a-view'"],
+  ['⑧ CSV に範囲の外の月も書く', "var list = months().filter(function (m) { return m.ym >= r.a && m.ym <= r.b; });", "var list = months();"],
+  ['⑧ ファイル名に範囲を入れない', "return { name: 'pilot-value-analysis_' + (r.a === r.b ? r.b : r.a + '_' + r.b), rows: rows };", "return { name: 'pilot-value-analysis', rows: rows };"]
 ];
 for (const [name, from, to] of BREAK_A) {
   if (ANA.split(from).length !== 2) { say(false, `${name}：差し替える1行が my-analysis.js に1回だけ無い（検査が古い）`); continue; }
@@ -238,6 +303,19 @@ const BREAK_W = [
   ['⑥ 内訳の合計 ＝ 総支給 を見ない', 'if (!good(s.a) || !good(s.b)) return null;', ''],
   ['⑥ 増減の合計 ＝ Δ総支給 を見ない', "|| wf.ok !== true) return null;", ') return null;']
 ];
+for (const [name, from, to, which] of [
+  ['⑧ BOM を付けない', "return '\\uFEFF' + rows.map(", "return '' + rows.map(", 'csv'],
+  ['⑧ 式に読める字をそのまま書く', `if (/^[=+\\-@\\t\\r]/.test(t) && !/^[+\\-]?\\d+(\\.\\d+)?$/.test(t)) t = "'" + t;`, '', 'csv'],
+  ['⑨ 印刷で全部のタブを写す', 'var src = panes && panes[state.tab];', 'var src = host;', 'print'],
+  ['⑨ 隠れたタブを紙に出す（CSS）', '#pv-value .mv-tabs,#pv-value .mv-pane[hidden],#pv-value .mv-vrow{display:none !important}', '#pv-value .mv-vrow{display:none !important}', 'css']
+]) {
+  const src = which === 'css' ? CSS : MV;
+  if (src.split(from).length !== 2) { say(false, `${name}：差し替える1行が1回だけ無い（検査が古い）`); continue; }
+  const broken = src.replace(from, () => to);
+  let f;
+  try { f = which === 'csv' ? csvSuite(broken) : which === 'print' ? printSuite(broken, CSS) : printSuite(MV, broken); } catch (e) { f = ['読み込めない: ' + e.message]; }
+  say(f.length > 0, `${name} → 赤くなる（${f.length}件）`);
+}
 for (const [name, from, to] of BREAK_W) {
   if (MV.split(from).length !== 2) { say(false, `${name}：差し替える1行が my-value.js に1回だけ無い（検査が古い）`); continue; }
   let f;

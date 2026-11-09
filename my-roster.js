@@ -80,7 +80,9 @@
       notReady: '勤務ロスターはまだ使えません。準備ができしだい、ここから取り込めます。',
       err: '勤務ロスターを読み込めませんでした。時間をおいて開き直してください。',
       upErr: '取り込みの画面を読み込めませんでした。時間をおいてもう一度お試しください。',
-      noMonth: 'この月の記録はありません。'
+      noMonth: 'この月の記録はありません。',
+      /* CSV と印刷（表示中の月だけ） */
+      csvA: 'CSVで保存（{t}）', print: '印刷', printA: '{t}の勤務を印刷', csvRange: '範囲', csvRoster: 'ロスター {m}'
     },
     en: {
       eyebrow: 'YOUR ROSTER',
@@ -129,7 +131,8 @@
       notReady: 'Roster import is not available yet. Once it is ready, you can import from here.',
       err: 'Could not load your roster. Please try again in a moment.',
       upErr: 'Could not load the import screen. Please try again in a moment.',
-      noMonth: 'Nothing recorded for this month.'
+      noMonth: 'Nothing recorded for this month.',
+      csvA: 'Save {t} as CSV', print: 'Print', printA: 'Print duty in {t}', csvRange: 'Range', csvRoster: 'roster month {m}'
     }, /*PV-MSG:es*/ es: {
       eyebrow: 'TU PROGRAMACIÓN',
       monthT: '{M} {y}', monthDuty: 'Servicios · {t}',
@@ -177,7 +180,8 @@
       notReady: 'La importación de programaciones aún no está disponible. Cuando esté lista, podrás importar desde aquí.',
       err: 'No se pudo cargar tu programación. Inténtalo de nuevo en un momento.',
       upErr: 'No se pudo cargar la pantalla de importación. Inténtalo de nuevo en un momento.',
-      noMonth: 'No hay nada registrado para este mes.'
+      noMonth: 'No hay nada registrado para este mes.',
+      csvA: 'Guardar {t} como CSV', print: 'Imprimir', printA: 'Imprimir los servicios de {t}', csvRange: 'Rango', csvRoster: 'mes de programación {m}'
     } /*/PV-MSG:es*/
   };
   T = (w.PV_T && w.PV_T(T, L)) || T[L];
@@ -357,6 +361,8 @@
   /* ── 描く ───────────────────────────────────────────────── */
   var ICON_UP = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2.5"/><path d="M3 9h18"/><path d="M8 2.5v3"/><path d="M16 2.5v3"/><path d="M12 18v-6"/><path d="m9.5 14.5 2.5-2.5 2.5 2.5"/></svg>';
   var ICON_DOC = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>';
+  var ICON_DL = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>';
+  var ICON_PR = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/></svg>';
   var ICON_PLUS = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
 
   function entryHTML(disabled) {
@@ -404,6 +410,8 @@
           '<button type="button" class="rs-ib" data-act="next" aria-label="' + esc(T.next) + '"' + (i >= S.yms.length - 1 ? ' disabled' : '') + '><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>' +
         '</div>' +
         '<button type="button" class="rs-btn" data-act="upload">' + ICON_PLUS + esc(T.add) + '</button>' +
+        '<button type="button" class="rs-btn is-ghost is-sm rs-tool" data-act="csv" aria-label="' + esc(fill(T.csvA, { t: monthTitle(S.ym) })) + '">' + ICON_DL + 'CSV</button>' +
+        '<button type="button" class="rs-btn is-ghost is-sm rs-tool" data-act="print" aria-label="' + esc(fill(T.printA, { t: monthTitle(S.ym) })) + '">' + ICON_PR + esc(T.print) + '</button>' +
       '</div></div>';
   }
   /* その月の数字。月の全部がそろっていれば月の値、欠けていれば分かった分を「N日ぶん」と断って出す */
@@ -651,6 +659,8 @@
     if (act === 'prev') setMonth(S.yms[S.yms.indexOf(S.ym) - 1], 'prev');
     else if (act === 'next') setMonth(S.yms[S.yms.indexOf(S.ym) + 1], 'next');
     else if (act === 'upload') openUpload();
+    else if (act === 'csv') { var cv = csvOf(S.ym); if (cv && S.ctx && typeof S.ctx.csv === 'function') S.ctx.csv(cv.name, cv.rows); }
+    else if (act === 'print') { tipFor(null); if (S.ctx && typeof S.ctx.print === 'function') S.ctx.print(fill(T.monthDuty, { t: monthTitle(S.ym) })); }
     else if (act === 'change') { S.picking = true; render(); var s = S.el.querySelector('#rs-air'); if (s) s.focus(); }
     else if (act === 'reselect') {
       var c = S.el.querySelector('.rs-cell.is-sel') || S.el.querySelector('.rs-cell[data-date]');
@@ -774,6 +784,28 @@
     main.scrollIntoView({ behavior: 'auto', block: 'start' });
   }
 
+  /* ── CSV：表示中の月だけ（1日の行 ＋ その日の便・業務の行）──────────────
+     ★画面の日の板に出しているものだけ（日付・勤務コード・D-ON/OFF・勤務時間・便名・空港・場所・時刻・便の時間・区分）。名前・自由記述は持っていない。
+       空港は原本の表記のまま・地上の業務は場所だけ（空港の欄は空）。字の包み方と BOM は my-value.js の saveCsv。 */
+  function hmc(min) { return (min == null || !isFinite(min)) ? '' : hm(min); }
+  function csvOf(ym) {
+    var m = ym && S.byYm[ym];
+    if (!m) return null;
+    var rows = [[T.csvRange, fill(T.csvRoster, { m: ym })],
+      ['date', 'row', 'code', 'class', 'd_on', 'd_off', 'd_off_day', 'duty_hm', 'duty_min', 'seq', 'flight', 'from', 'to', 'loc', 'out', 'in', 'in_day', 'time_hm', 'time_min', 'role', 'kind']];
+    m.days.forEach(function (x) {
+      var on = x.dOn || x.dOff;
+      rows.push([x.date, 'day', x.code || '', x.cls || '', x.dOn || '', x.dOff || '', on ? x.dOffDay : '', hmc(x.dutyMin), x.dutyMin == null ? '' : x.dutyMin,
+        '', '', '', '', '', '', '', '', '', '', '', '']);              // 1日の行も見出しと同じ列の数（表計算で列がずれない）
+      (x.legs || []).forEach(function (l) {
+        var gnd = l.kind === 'ground';
+        rows.push([x.date, 'leg', '', '', '', '', '', '', '', l.seq, l.flight || '', gnd ? '' : (l.from || ''), gnd ? '' : (l.to || ''), l.loc || '',
+          l.out || '', l.in || '', (l.out || l.in) ? l.inDay : '', hmc(l.blockMin), l.blockMin == null ? '' : l.blockMin, l.role || '', l.kind]);
+      });
+    });
+    return { name: 'pilot-value-roster_' + ym, rows: rows };
+  }
+
   /* ── 外から呼ぶ口 ─────────────────────────────────────────── */
   function mount(el, ctx) {
     S.el = el; S.ctx = ctx || {}; S.sb = S.ctx.sb; S.mounted = true;
@@ -813,7 +845,7 @@
 
   w.PVRoster = {
     mount: mount, show: show, hide: hide, redraw: drawChart, open: open, current: current,
-    _: { T: T, L: L, esc: esc, fill: fill, hm: hm, pad2: pad2, monthTitle: monthTitle, dayTitle: dayTitle, ymAdd: ymAdd, nowYm: nowYm,
+    _: { T: T, L: L, S: S, csvOf: csvOf, compute: compute, esc: esc, fill: fill, hm: hm, pad2: pad2, monthTitle: monthTitle, dayTitle: dayTitle, ymAdd: ymAdd, nowYm: nowYm,
          calHTML: calHTML, timeLabel: timeLabel, entryIcon: ICON_UP, legHTML: legHTML, cellParts: cellParts }
   };
 }(window));

@@ -47,6 +47,9 @@
       err: '分析を読み込めませんでした。時間をおいて開き直してください。',
       emptyT: '給与明細を出すと、ここに分析が出ます。', emptyBtn: '匿名で給与を追加する →',
       noCo: 'この会社の明細はまだありません。',
+      /* CSV と印刷（選んでいる範囲をそのまま書く） */
+      csvA: 'CSVで保存（{r}）', print: '印刷', printA: '表示中の分析を印刷', prRange: '明細 {r}',
+      csvRange: '範囲', csvPay: '支給月 {r}', csvSecPay: '明細（支給月）', csvSecRoster: 'ロスター（勤務月）',
       // A
       aT: '収入と勤務量の変化', aBadge: '実績比較', aRate: '増減率', aComp: '収入の構成',
       mGross: '総支給', mNet: '手取り', mBlock: '明細の乗務時間', mDuty: '明細の勤務時間', mDays: '勤務日数', mSectors: '便数',
@@ -115,6 +118,8 @@
       err: 'Could not load your analysis. Please try again in a moment.',
       emptyT: 'Add a payslip and your analysis appears here.', emptyBtn: 'Add pay anonymously →',
       noCo: 'No payslips for this airline yet.',
+      csvA: 'Save as CSV ({r})', print: 'Print', printA: 'Print this analysis', prRange: 'Payslips {r}',
+      csvRange: 'Range', csvPay: 'pay months {r}', csvSecPay: 'Payslips (pay month)', csvSecRoster: 'Roster (duty month)',
       // A
       aT: 'Pay and workload change', aBadge: 'Actuals', aRate: 'Change', aComp: 'Pay mix',
       mGross: 'Gross pay', mNet: 'Net pay', mBlock: 'Block hours (payslip)', mDuty: 'Duty hours (payslip)', mDays: 'Duty days', mSectors: 'Sectors',
@@ -182,6 +187,8 @@
       err: 'No se pudo cargar tu análisis. Inténtalo de nuevo en un momento.',
       emptyT: 'Agrega un recibo de nómina y tu análisis aparecerá aquí.', emptyBtn: 'Agregar remuneración de forma anónima →',
       noCo: 'Todavía no hay recibos de nómina de esta aerolínea.',
+      csvA: 'Guardar como CSV ({r})', print: 'Imprimir', printA: 'Imprimir este análisis', prRange: 'Recibos de nómina {r}',
+      csvRange: 'Rango', csvPay: 'meses de pago {r}', csvSecPay: 'Recibos de nómina (mes de pago)', csvSecRoster: 'Programación (mes de servicio)',
       // A
       aT: 'Cambios en remuneración y carga de trabajo', aBadge: 'Datos reales', aRate: 'Variación', aComp: 'Composición',
       mGross: 'Sueldo bruto', mNet: 'Sueldo neto', mBlock: 'Horas block (recibo)', mDuty: 'Horas de servicio (recibo)', mDays: 'Días de servicio', mSectors: 'Sectores',
@@ -426,10 +433,58 @@
           '<span class="an-pk-ar" aria-hidden="true">→</span>' + selB;
       }
     }
+    var rg = rangeTx();
+    var tools = '<div class="an-tools">' +
+      '<button type="button" class="an-tool" data-act="csv" aria-label="' + esc(fill(T.csvA, { r: rg })) + '">' + ICON_DL + 'CSV</button>' +
+      '<button type="button" class="an-tool" data-act="print" aria-label="' + esc(T.printA) + '">' + ICON_PR + esc(T.print) + '</button></div>';
     return '<div class="an-hd"><div class="an-hd-l"><p class="an-ey">' + esc(T.ey) + '</p><h2 class="an-h">' + esc(T.h) + '</h2>' +
       '<p class="an-sub">' + esc(sub) + '</p></div>' +
-      '<div class="an-pick" role="group" aria-label="' + esc(T.pickAria) + '">' + pick + '</div></div>' +
+      '<div class="an-hd-r"><div class="an-pick" role="group" aria-label="' + esc(T.pickAria) + '">' + pick + '</div>' + tools + '</div></div>' +
       (line ? '<p class="an-line">' + esc(line) + '</p>' : '');
+  }
+
+  var ICON_DL = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>';
+  var ICON_PR = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/></svg>';
+
+  /* ── CSV と印刷：いま選んでいる範囲（比べる明細 〜 明細）だけ ─────────────
+     ★金額は明細の通貨のまま（通貨の欄つき・最小単位から小数に）。時間は H:MM と分の両方。名前・自由記述は書かない
+       （支給項目の名前は本人の明細の字＝画面に出しているもの）。字の包み方と BOM は my-value.js の saveCsv。 */
+  function selRange() { var b = S.sel.b, a = S.sel.a || b; return { a: a, b: b }; }
+  function rangeTx() { var r = selRange(); return r.a === r.b ? r.b : r.a + '→' + r.b; }
+  function amt(minor, cur) { var v = R.fromMinor(minor, cur); return v == null ? '' : v.toFixed(R.minorDigits(cur)); }
+  function hmc(min) { return isNum(min) ? hm(min) : ''; }
+  function csvOf() {
+    if (!S.model || !S.sel.b) return null;
+    var r = selRange(), rg = rangeTx();
+    var list = months().filter(function (m) { return m.ym >= r.a && m.ym <= r.b; });
+    var rows = [[T.csvRange, fill(T.csvPay, { r: rg })], [], [T.csvSecPay],
+      ['pay_month', 'currency', 'gross', 'net', 'deductions', 'block_hm', 'block_min', 'duty_hm', 'duty_min', 'duty_days', 'sectors']];
+    list.forEach(function (m) {
+      var q = m.qty;
+      rows.push([m.ym, m.currency, amt(m.gross, m.currency), amt(m.net, m.currency), amt(m.deductions, m.currency),
+        hmc(q.block), q.block, hmc(q.duty), q.duty, q.dutyDays, q.sectors]);
+    });
+    var rms = rosterMonths().filter(function (x) { return x.ym >= r.a && x.ym <= r.b; });
+    if (rms.length) {
+      rows.push([], [T.csvSecRoster], ['duty_month', 'days_covered', 'days_in_month', 'duty_hm', 'duty_min', 'block_hm', 'block_min', 'dh_hm', 'dh_min',
+        'duty_days', 'sectors', 'dh_legs', 'off_days', 'vac_days']);
+      rms.forEach(function (x) {
+        var P = x.complete ? x : x.partial, bm = x.complete ? x.blockMin : x.partial.blockMin;
+        rows.push([x.ym, x.coveredDays, x.daysInMonth, hmc(P.dutyMin), P.dutyMin, hmc(bm.operating), bm.operating, hmc(bm.deadhead), bm.deadhead,
+          P.dutyDays, P.sectors, P.dhLegs, P.offDays, P.vacDays]);
+      });
+    }
+    var opt0 = optionsC().filter(function (o) { return o.key === S.C.item; })[0];
+    if (opt0) {
+      var cc = R.cardC(S.model, { item: S.C.item, a: S.sel.a, b: S.sel.b });
+      rows.push([], [T.cItem, opt0.label], ['pay_month', 'item', 'currency', 'amount', 'duty_month', 'quantity', 'quantity_hm', 'quantity_value', 'amount_per_quantity', 'per']);
+      cc.series.filter(function (x) { return x.ym >= r.a && x.ym <= r.b && x.amount != null; }).forEach(function (x) {
+        rows.push([x.ym, opt0.label, x.currency, amt(x.amount, x.currency), x.workYms.filter(Boolean).join(' '),
+          x.qty ? qtyName(x.qty) : '', x.qty && x.qty.unit === 'min' ? hmc(x.qty.value) : '', x.qty ? x.qty.value : '',
+          isNum(x.ref) ? amt(Math.round(x.ref), x.currency) : '', isNum(x.ref) ? unitTx(x.refUnit) : '']);
+      });
+    }
+    return { name: 'pilot-value-analysis_' + (r.a === r.b ? r.b : r.a + '_' + r.b), rows: rows };
   }
 
   /* ── 部品 ───────────────────────────────────────────────── */
@@ -1103,6 +1158,11 @@
     else if (act === 'b-bin') { S.B.bin = S.B.bin === +v ? null : +v; paint('b'); }
     else if (act === 'day') { hideTip(); goto({ date: t.getAttribute('data-date') }); }
     else if (act === 'add-roster') goto({ upload: true });
+    else if (act === 'csv') { var cv = csvOf(); if (cv && S.ctx && typeof S.ctx.csv === 'function') S.ctx.csv(cv.name, cv.rows); }
+    else if (act === 'print') {
+      hideTip();
+      if (S.ctx && typeof S.ctx.print === 'function') S.ctx.print(fill(T.prRange, { r: S.sel.a ? ymL(S.sel.a) + ' → ' + ymL(S.sel.b) : ymL(S.sel.b) }));
+    }
     else if (act === 'wq') {
       if (v === 'other') { S.C.other = !S.C.other; paint('c'); var s = S.el.querySelector('[data-act="wq-off"]'); if (s) s.focus(); }
       else saveAsk(v);
@@ -1188,7 +1248,7 @@
   w.PVAnalysis = {
     mount: mount, show: show, hide: hide, redraw: drawAll,
     _: { T: T, L: L, S: S, fill: fill, hm: hm, pctS: pctS, fmtJ: fmtJ, money: money, build: build,
-         cardA: cardA, cardB: cardB, cardC: cardC, cardD: cardD, headHTML: headHTML, askOf: askOf, rangeD: rangeD, optionsC: optionsC,
+         cardA: cardA, cardB: cardB, cardC: cardC, cardD: cardD, headHTML: headHTML, askOf: askOf, rangeD: rangeD, optionsC: optionsC, csvOf: csvOf,
          set: function (o) { Object.keys(o || {}).forEach(function (k) { S[k] = o[k]; }); } }
   };
 }(window));
