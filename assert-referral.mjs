@@ -780,7 +780,8 @@ for (const lang of ['ja', 'en']) {
   const errs = [];
   page.on('pageerror', (e) => errs.push(String(e.message).slice(0, 140)));
   await page.evaluateOnNewDocument(FAKE, GAP.near2, CODE);
-  await page.goto(BASE + (lang === 'en' ? '/en/' : '/') + 'profile.html',
+  /* ★2026-11-09 から MY PAGE｜MY PAY のタブ。給与の中身（YOUR PAY）は MY PAY ＝ #your-pay で開く（無しだと MY PAGE が開き、MY PAY は描かない）。 */
+  await page.goto(BASE + (lang === 'en' ? '/en/' : '/') + 'profile.html#your-pay',
                   { waitUntil: 'domcontentloaded', timeout: 30000 });
   await sleep(2800);
   /* ★「機会」の節はページのずっと下。画面に入れないと交差監視が動かない
@@ -830,7 +831,7 @@ for (const lang of ['ja', 'en']) {
     JSON.stringify({ n: 1, last: Date.now() - 2 * 86400000, off: 0, dismiss: 0 })));
   await page.evaluateOnNewDocument(FAKE,
     { ok: true, state: 'near', remaining: 2, gained: 2, crossed: false }, CODE);
-  await page.goto(BASE + '/profile.html', { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await page.goto(BASE + '/profile.html#your-pay', { waitUntil: 'domcontentloaded', timeout: 30000 });   // MY PAY のタブ
   await sleep(2800);
   await page.evaluate(() => { const c = document.querySelector('.pvr'); if (c) c.scrollIntoView({ block: 'center' }); });
   await sleep(1000);
