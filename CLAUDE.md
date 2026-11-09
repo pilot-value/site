@@ -595,6 +595,12 @@ baland_ass/                            ブランド資産（※ brand_assets の
 - **複数のスクショ**は端末で `PVReport.mergePages` が1本につなぐ（同じ日は1つ・切れた日の便を合わせる・食い違いは本人に見せる）。
 - **計算**は `pv-report-engine.js` の1か所（金額は通貨の最小単位の整数・時間は分の整数・null と 0 を分ける・支給月と勤務月を混ぜない・検算3つ）。
 - 本人に聞くのは初回だけ・分からないものだけ（実績か予定か・時刻は現地か UTC か・TIME の意味・意味が決まっていない勤務コード）。
+- **分析タブ**は `my-analysis.js`（開いたときだけ・指紋 `ANALYSIS_V` / `ANALYSIS_CSS_V`）。4枚のカード（収入と勤務量・報酬効率・手当ごと・給与ルールの候補）。
+  ⚠️ 「残りの差」を単価の変化と呼ばない・確度の%を作らない・土日祝の手当を推測した日数で割らない・月を直書きしない（`db/test-analysis-ui.mjs`）。
+  「この手当はいつの勤務の分？」は本人が押したときだけ `set_line_map`（候補の印は付けても勝手に保存しない）。
+- **給与サマリーの「給与が変わった理由」**（my-value.js の `why()`）── 項目ごとの増減のグラフは、前の同じ通貨の月があり、
+  検算（項目の増減の合計＝総支給の差・両月の内訳の合計＝総支給）が通ったときだけ。通らなければ今までの `compare()` を出す（`whyModel()` が null）。
+- 勤務ロスターへ飛ぶ口は `PVRoster.open({date})` / `PVRoster.open({upload:true})`（分析タブの点・日付から使う）。
 - 見るもの：`node db/test-roster.mjs`（sql）／`node db/test-roster-parse.mjs`・`node db/test-report-engine.mjs`・`node db/test-roster-ui.mjs`（fast）。
   読み取りの精度は `node db/eval-roster.mjs`（**費用あり・手で流す**。作り物6形式＋`--dir` でネットの見本。check.mjs に入れない）。
 - **本番の作業（OK のあと）**：`db/roster.sql` を貼る → `parse-roster` を Deploy（secrets は parse-payslip と同じ・任意で `PV_ROSTER_DAILY` など）→ push。

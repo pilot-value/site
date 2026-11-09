@@ -18,8 +18,12 @@
    ・タブを移っても、選んだ月・日はそのまま。隠れているあいだは図を描かない（見えたときに描き直す）。
    ・取り込み（画像・PDF → 読み取り → 確かめる → 保存）は roster-upload.js（押したときだけ読む）。
 
-   window.PVRoster = { mount(el, ctx), show(), hide(), redraw(), _（取り込みの画面が借りる道具） }
+   window.PVRoster = { mount(el, ctx), show(), hide(), redraw(), open(o), current(), _（取り込みの画面が借りる道具） }
      ctx = { sb, reports（my_pay_reports の行）, urls: { upload, airlines } }
+     open({ date:'YYYY-MM-DD' }) … その日を選んだ画面にする（分析のタブの点から来る。読み込み中なら届いてから）
+     open({ upload:true })       … 取り込みの画面を開く（分析のタブの「ロスターを足す」から来る）
+     current() → { airline, other } いま見ている会社（分析のタブも同じ会社で数える）
+     会社を替えた・保存した・消したときは 'pv-roster-change'（detail = current()）を飛ばす
    ════════════════════════════════════════════════════════════════ */
 (function (w) {
   'use strict';
@@ -270,7 +274,8 @@
     el: null, sb: null, ctx: null, visible: false, mounted: false,
     airline: null, other: null, choices: [], names: null, picking: false,
     loading: false, err: null, days: [], profile: null, docs: [], months: [], byYm: {}, yms: [],
-    ym: null, date: null, view: 'roster', flash: null, confirmDel: null, busy: false
+    ym: null, date: null, view: 'roster', flash: null, confirmDel: null, busy: false,
+    want: null, wantUpload: false     // 分析のタブから頼まれた日・取り込み（読み込みが終わってから効かせる）
   };
   var AKEY = 'pv_roster_airline';   // 給与を出していない人が選んだ会社（この端末だけの便利・無くても動く）
 
@@ -325,7 +330,7 @@
       S.docs = Array.isArray(r[1].data.docs) ? r[1].data.docs : [];
       compute();
     }, function () { S.err = 'err'; })
-      .then(function () { S.loading = false; render(); });
+      .then(function () { S.loading = false; render(); useWant(); });
   }
   function compute() {
     S.months = R.rosterMonths(S.days, S.profile || {});
@@ -662,7 +667,7 @@
       var c = S.choices[+t.value];
       if (!c) return;
       S.airline = c.a; S.other = c.o; S.ym = null; S.date = null; S.days = []; S.docs = [];
-      load();
+      load().then(announce);
     }
   }
   /* カレンダーは矢印で日を動かす（左右 ±1日・上下 ±1週・Home/End で月の端） */
@@ -706,7 +711,7 @@
       .then(function () { S.busy = false; announce(); });
   }
   function announce() {
-    try { S.el.dispatchEvent(new CustomEvent('pv-roster-change', { bubbles: true })); } catch (e) {}
+    try { S.el.dispatchEvent(new CustomEvent('pv-roster-change', { bubbles: true, detail: { airline: S.airline, other: S.other } })); } catch (e) {}
   }
 
   /* ── 取り込み（roster-upload.js を押したときだけ読む）──────────── */
@@ -784,9 +789,30 @@
   }
   function show() { S.visible = true; drawChart(); }
   function hide() { S.visible = false; }
+  /* 分析のタブから「この日を見る」「ロスターを足す」（2026-11-09）。読み込み中なら load() の終わりで効かせる */
+  function open(o) {
+    o = o || {};
+    if (o.upload) S.wantUpload = true;
+    else if (typeof o.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(o.date)) S.want = o.date;
+    if (!S.loading && S.mounted) useWant();
+  }
+  function useWant() {
+    if (S.view === 'upload') { S.want = null; S.wantUpload = false; return; }
+    if (S.wantUpload) { S.wantUpload = false; S.want = null; openUpload(); return; }
+    var dt = S.want;
+    if (!dt) return;
+    S.want = null;
+    if (!S.byYm[dt.slice(0, 7)]) return;
+    S.ym = dt.slice(0, 7); S.date = dt;
+    render();
+    var p = S.el.querySelector('.rs-day'), c = S.el.querySelector('.rs-cell.is-sel');
+    if (c) c.focus({ preventScroll: true });
+    if (p) p.scrollIntoView({ behavior: 'auto', block: w.innerWidth < 760 ? 'start' : 'center' });
+  }
+  function current() { return { airline: S.airline, other: S.other }; }
 
   w.PVRoster = {
-    mount: mount, show: show, hide: hide, redraw: drawChart,
+    mount: mount, show: show, hide: hide, redraw: drawChart, open: open, current: current,
     _: { T: T, L: L, esc: esc, fill: fill, hm: hm, pad2: pad2, monthTitle: monthTitle, dayTitle: dayTitle, ymAdd: ymAdd, nowYm: nowYm,
          calHTML: calHTML, timeLabel: timeLabel, entryIcon: ICON_UP, legHTML: legHTML, cellParts: cellParts }
   };

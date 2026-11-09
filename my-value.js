@@ -76,13 +76,17 @@
   var YEAR_URL = 'my-year.js?v=' + YEAR_V;                 // 「1年」の画面（押したときだけ読む）
   /* ★「勤務ロスター」のタブ（2026-11-09）。開いたときだけ読む4本。指紋は上の2本と同じ決まり
        （db/test-year-report.mjs が中身と突き合わせる）。計算の部品は分析のタブも使う。 */
-  var ROSTER_V = '40c527fd';
+  var ROSTER_V = 'c71b8623';
   var ROSTER_CSS_V = 'f89aed97';
   var UPLOAD_V = 'ad34cd5f';
   var ENGINE_V = 'f5603644';
+  /* ★「分析」のタブ（2026-11-09）。開いたときだけ読む2本（見た目 → 計算の部品 → 画面の順）。指紋の決まりは上と同じ */
+  var ANALYSIS_V = 'e3bcf442';
+  var ANALYSIS_CSS_V = 'd7743516';
   var LATE = {
     roster: 'my-roster.js?v=' + ROSTER_V, rosterCss: 'my-roster.css?v=' + ROSTER_CSS_V,
     upload: 'roster-upload.js?v=' + UPLOAD_V, engine: 'pv-report-engine.js?v=' + ENGINE_V,
+    analysis: 'my-analysis.js?v=' + ANALYSIS_V, analysisCss: 'my-analysis.css?v=' + ANALYSIS_CSS_V,
     airlines: 'pv-airlines.json'
   };
   try {
@@ -140,8 +144,16 @@
       tabsAria: 'YOUR PAY の表示',
       tabSum: '給与サマリー', tabRoster: '勤務ロスター', tabAna: '分析',
       tabSumS: '給与', tabRosterS: '勤務', tabAnaS: '分析',
-      anaT: '分析はまもなくここに出ます',
+      anaErr: '分析の画面を読み込めませんでした。時間をおいて開き直してください。',
       rosterErr: '勤務ロスターの画面を読み込めませんでした。時間をおいて開き直してください。',
+      /* 給与が変わった理由（2026-11-09・承認済みの見本）。数量の名前は表の行の見出し */
+      why: '給与が変わった理由', whyTot: '支給合計の増減', whyDed: '控除合計の増減', whyNet: '手取りの増減',
+      whyRest: 'ほかの{n}項目', whyChart: '項目ごとの増減',
+      whyBd: '支給項目の内訳', whyBdS: '{a}・{b}の実額', whyItem: '項目', whyDiff: '差', whyOut: '総支給の外', whyGross: '総支給',
+      whyQty: '数量（明細に書かれたもの）',
+      kProfit: 'プロフィットシェア', kNotional: '現物給与の評価', kAbsence: '不就労減額',
+      qnBlock: '乗務時間', qnDuty: '勤務時間', qnNight: '深夜時間', qnCredit: 'クレジット時間', qnGuarantee: '保証時間',
+      qnSectors: '便数', qnDutyDays: '勤務日数', qnStay: '宿泊数', qnDaysOff: '休日数',
       noGross: 'この月は手取りを書いていないので、控除合計が出せません。同じ月をもう一度出すと、ここがあなたの数字になります。',
       mGuar: function (g) { return '保証 ' + g + 'h との差'; },
       momOf: function (ym) { return ym + 'との差'; },
@@ -349,8 +361,15 @@
            タブは短い字が要るので、別の鍵にしてある（gen-msg.mjs は値のソースそのものを鍵にする）。 */
       tabSum: 'Pay summary', tabRoster: "Roster", tabAna: 'Analysis',
       tabSumS: "Pay", tabRosterS: "Roster", tabAnaS: 'Analysis',
-      anaT: 'Your analysis will appear here soon',
+      anaErr: 'Could not load the analysis view. Please try again in a moment.',
       rosterErr: 'Could not load the roster view. Please try again in a moment.',
+      why: 'What changed your pay', whyTot: 'Change in total earnings', whyDed: 'Change in total deductions', whyNet: 'Change in net pay',
+      whyRest: '{n} other items', whyChart: 'Change by pay item',
+      whyBd: 'Pay items', whyBdS: '{a} and {b} amounts', whyItem: 'Item', whyDiff: 'Difference', whyOut: 'Outside gross pay', whyGross: 'Gross pay',
+      whyQty: 'Quantities (as printed on the payslip)',
+      kProfit: 'Profit share', kNotional: 'Benefit in kind', kAbsence: 'Absence deduction',
+      qnBlock: 'Block hours', qnDuty: 'Duty hours', qnNight: 'Night hours', qnCredit: 'Credit hours', qnGuarantee: 'Guaranteed hours',
+      qnSectors: 'Sectors', qnDutyDays: 'Duty days', qnStay: 'Night stops', qnDaysOff: 'Days off',
       noGross: 'You did not enter take-home pay for this month, so deductions cannot be worked out. File the same month again and these become your own figures.',
       mGuar: function (g) { return 'vs ' + g + 'h guaranteed'; },
       momOf: function (ym) { return 'vs ' + ym; },
@@ -521,15 +540,22 @@
       opH: 'Muestra (solo operadores, cifras inventadas)',
       opS: { many: '12 meses', one: '1 mes', hand: 'Solo ingreso manual' },
       opEmpty: 'Pantalla sin remuneración',
-      opMine: 'My numbers',
+      opMine: 'Mis cifras',
       vMonth: 'Este mes', vYear: 'Año',
       tabsAria: 'Vistas de YOUR PAY',
       /* ★"Roster" と "Pay" だけ二重引用符：訳の辞書の 'Roster'・'Pay' は別の部品のための長い訳（括弧の説明つき）を持つ。
            タブは短い字が要るので、別の鍵にしてある（gen-msg.mjs は値のソースそのものを鍵にする）。 */
       tabSum: 'Resumen de pago', tabRoster: "Programación", tabAna: 'Análisis',
       tabSumS: "Pago", tabRosterS: "Programación", tabAnaS: 'Análisis',
-      anaT: 'Tu análisis aparecerá aquí pronto',
+      anaErr: 'No se pudo cargar la vista de análisis. Inténtalo de nuevo en un momento.',
       rosterErr: 'No se pudo cargar la vista de programación. Inténtalo de nuevo en un momento.',
+      why: 'Qué cambió en tu remuneración', whyTot: 'Variación del total devengado', whyDed: 'Variación del total de deducciones', whyNet: 'Variación del sueldo neto',
+      whyRest: 'Otros {n} conceptos', whyChart: 'Variación por concepto de pago',
+      whyBd: 'Conceptos de pago', whyBdS: 'Montos de {a} y {b}', whyItem: 'Concepto', whyDiff: 'Diferencia', whyOut: 'Fuera del sueldo bruto', whyGross: 'Sueldo bruto',
+      whyQty: 'Cantidades (tal como aparecen en el recibo de nómina)',
+      kProfit: 'Participación en las utilidades', kNotional: 'Prestación en especie', kAbsence: 'Descuento por ausencia',
+      qnBlock: 'Horas block', qnDuty: 'Tiempo de servicio', qnNight: 'Horas nocturnas', qnCredit: 'Horas de crédito', qnGuarantee: 'Horas garantizadas',
+      qnSectors: 'Sectores', qnDutyDays: 'Días de servicio', qnStay: 'Pernoctas', qnDaysOff: 'Días libres',
       noGross: 'No ingresaste tu sueldo neto de este mes, así que no se pueden calcular las deducciones. Envía de nuevo el mismo mes y estas cifras serán las tuyas.',
       mGuar: function (g) { return 'vs. ' + g + ' h garantizadas'; },
       momOf: function (ym) { return 'vs. ' + ym; },
@@ -1304,6 +1330,151 @@
       T.ym(m.a.period_year, m.a.period_month) + ' → ' + T.ym(m.b.period_year, m.b.period_month));
   }
 
+  /* ── 給与が変わった理由（2026-11-09・承認済みの見本「WHAT CHANGED」）──────────
+     ★「前回の明細との差」（上の compare）の置き換え。項目ごとの増減（同じ会社・同じ通貨の1つ前の明細と）を滝の図に、
+       支給合計・控除合計・手取りの増減を横に、支給項目の内訳（金額だけ・数量は別の表）を開閉式で。
+     ★数字は pv-report-engine.js の summary() / checks() だけ（ここで足し引きを作り直さない）。
+     ★検算が1つでも通らなければ描かない＝ compare() に戻す（compare はそのために残してある）：
+         増減の合計 ＝ Δ総支給（waterfall.ok）・2つの月とも内訳の合計 ＝ 総支給（sumToGross）・同じ通貨。
+     ★計算の部品と明細の中身（my_report_items）は後から読む。届くまでは compare を出し、届いたら1回だけ描き直す。
+       2枚以上ある人にだけ読む（1枚の人・まだ出していない人の通信は増えない）。 */
+  var rep = { started: false, done: false, data: { items: [], maps: [], ok: false }, p: null };
+  function reportItems(force) {
+    if (force) rep.p = null;
+    if (!rep.p) {
+      rep.p = SB.rpc('my_report_items').then(function (r) {
+        if (!r || r.error || !r.data || r.data.ok !== true) { rep.p = null; return { items: [], maps: [], ok: false }; }
+        return { items: Array.isArray(r.data.items) ? r.data.items : [], maps: Array.isArray(r.data.maps) ? r.data.maps : [], ok: true };
+      }, function () { rep.p = null; return { items: [], maps: [], ok: false }; });
+    }
+    return rep.p.then(function (x) { rep.data = x; return x; });
+  }
+  function ensureRep() {
+    if (rep.started) return;
+    rep.started = true;
+    Promise.all([lateJs(LATE.engine, function () { return !!w.PVReport; }), reportItems()]).then(function (r) {
+      rep.done = !!r[0];
+      if (!rep.done) return;
+      if (state.tab !== 'summary') { state.sumDirty = true; return; }
+      if (state.view === 'month') render();
+    });
+  }
+  /* 描けるかどうか（画面を持たない。db/test-analysis-ui.mjs がこの関数をそのまま切り出して確かめる） */
+  function whyModel(R, rows, items, maps, r) {
+    if (!R || !R.build || !r) return null;
+    var model = R.build({ reports: rows, items: items || [], maps: maps || [], airline: r.airline, airlineOther: r.airline_other });
+    var s = R.summary(model, { b: R.helpers.ymOf(Number(r.period_year), Number(r.period_month)), by: (items && items.length) ? 'label' : 'kind' });
+    var wf = s.waterfall;
+    if (!s.a || !s.b || !wf || wf.sameCurrency !== true || wf.ok !== true) return null;     // ★増減の合計 ＝ Δ総支給 が確かめられないなら描かない
+    var ck = R.checks(model).months;
+    var good = function (ym) { return ck.some(function (c) { return c.ym === ym && c.sumToGross === true; }); };
+    if (!good(s.a) || !good(s.b)) return null;                                                // ★内訳の合計 ＝ 総支給 でない月があれば描かない
+    return { model: model, s: s };
+  }
+  function why(rows, m) {
+    var r = rows[rows.length - 1], W = null;
+    if (m && !rep.started) ensureRep();
+    if (m && rep.done && w.PVReport) {
+      try { W = whyModel(w.PVReport, rows, state.sample ? [] : rep.data.items, state.sample ? [] : rep.data.maps, r); } catch (e) { W = null; }
+    }
+    if (!W) return { card: compare(rows, m), table: '' };
+    return whyHTML(W);
+  }
+  function whyHTML(W) {
+    var R = w.PVReport, s = W.s, wf = s.waterfall;
+    var monthOf = function (ym) { return W.model.months.filter(function (x) { return x.ym === ym; })[0]; };
+    var ma = monthOf(s.a), mb = monthOf(s.b), cur = mb.currency, fx = num(mb.fx_to_jpy);   // ★2つの月とも新しい月のレート（compare と同じ）
+    var la = T.ymShort(ma.y, ma.m), lb = T.ymShort(mb.y, mb.m);
+    var mny = function (v, sign) {
+      var x = R.fromMinor(v, cur);
+      if (x == null || fx == null) return '—';
+      var j = x * fx, t = exact(Math.abs(j)), z = /^\D*0$/.test(t);
+      return sign ? (z ? '±' : j > 0 ? '+' : '−') + t : (j < 0 && !z ? '−' : '') + t;
+    };
+    var kindNm = function (k) {
+      if (k === 'profit') return T.kProfit;
+      if (k === 'notional') return T.kNotional;
+      if (k === 'absence') return T.kAbsence;
+      var kd = R.KINDS[k];
+      return (kd && kd.seg && SEGNAME[kd.seg]) || k;
+    };
+    var nm = function (it) { return it.label ? String(it.label) : kindNm(it.kind); };
+
+    /* 滝の図：動いた項目（多いときは大きい順に6つ ＋「ほかのN項目」）→ 支給合計の増減 */
+    var moved = wf.items.filter(function (x) { return x.delta !== 0; }), steps = moved;
+    if (moved.length > 7) {
+      var keep = moved.slice().sort(function (x, y) { return Math.abs(y.delta) - Math.abs(x.delta); }).slice(0, 6);
+      var others = moved.filter(function (x) { return keep.indexOf(x) < 0; });
+      steps = moved.filter(function (x) { return keep.indexOf(x) >= 0; });
+      steps = steps.concat([{ rest: others.length, delta: others.reduce(function (a, x) { return a + x.delta; }, 0) }]);
+    }
+    var cum = 0, lo = 0, hi = 0;
+    steps = steps.map(function (x) {
+      var o = { k: x.rest ? T.whyRest.replace('{n}', function () { return x.rest; }) : nm(x), d: x.delta, a: x.a, b: x.b, rest: !!x.rest, s: cum };
+      cum += x.delta; o.e = cum;
+      lo = Math.min(lo, o.s, o.e); hi = Math.max(hi, o.s, o.e);
+      return o;
+    });
+    var span = (hi - lo) || 1, P = function (v) { return (v - lo) / span * 100; };
+    var bar = function (from, to, cls) {
+      var x0 = P(Math.min(from, to)), x1 = P(Math.max(from, to));
+      return '<i class="mv-wf-0" style="left:' + P(0).toFixed(2) + '%"></i>' +
+        '<i class="mv-wf-b ' + cls + '" style="left:' + x0.toFixed(2) + '%;width:' + Math.max(0.8, x1 - x0).toFixed(2) + '%"></i>';
+    };
+    var rowsH = steps.map(function (x) {
+      var cls = x.d > 0 ? 'up' : 'dn';
+      var tip = x.rest ? '' : la + ' ' + (x.a == null ? '—' : mny(x.a)) + ' → ' + lb + ' ' + (x.b == null ? '—' : mny(x.b));
+      return '<div class="mv-wf-r" role="listitem" tabindex="0" aria-label="' + esc(x.k + ' ' + mny(x.d, true) + (tip ? ' · ' + tip : '')) + '">' +
+        '<span class="mv-wf-k">' + esc(x.k) + '</span><span class="mv-wf-t">' + bar(x.s, x.e, cls) + '</span>' +
+        '<b class="mv-wf-v">' + esc(mny(x.d, true)) + '</b>' + (tip ? '<span class="mv-wf-tip" aria-hidden="true">' + esc(tip) + '</span>' : '') + '</div>';
+    }).join('') +
+      '<div class="mv-wf-r is-tot" role="listitem" tabindex="0" aria-label="' + esc(T.whyTot + ' ' + mny(wf.deltaGross, true)) + '">' +
+        '<span class="mv-wf-k">' + esc(T.whyTot) + '</span><span class="mv-wf-t">' + bar(0, wf.deltaGross, 'tot') + '</span>' +
+        '<b class="mv-wf-v">' + esc(mny(wf.deltaGross, true)) + '</b>' +
+        '<span class="mv-wf-tip" aria-hidden="true">' + esc(la + ' ' + mny(ma.gross) + ' → ' + lb + ' ' + mny(mb.gross)) + '</span></div>';
+
+    /* 支給合計・控除合計・手取りの増減（書いていない月は「—」。0 で埋めない） */
+    var D = s.netChange && s.netChange.delta;
+    var net = D ? '<div class="mv-why-net">' +
+      '<div class="mv-why-nr"><span>' + esc(T.whyTot) + '</span><b>' + esc(mny(D.gross, true)) + '</b></div>' +
+      '<div class="mv-why-nr"><span>' + esc(T.whyDed) + '</span><b>' + esc(D.deductions == null ? '—' : mny(D.deductions, true)) + '</b></div>' +
+      '<div class="mv-why-nr is-net"><span>' + esc(T.whyNet) + '</span><b>' + esc(D.net == null ? '—' : mny(D.net, true)) + '</b></div></div>' : '';
+
+    var card = '<section class="pt-sec mr-card mv-why">' +
+      '<div class="mr-card-h"><h2 class="mr-card-t">' + esc(T.why) + '</h2><span class="mr-card-s">' +
+        esc(T.ym(ma.y, ma.m) + ' → ' + T.ym(mb.y, mb.m)) + '</span></div>' +
+      '<div class="mv-why-top"><b class="mv-why-big">' + esc(mny(wf.deltaGross, true)) + '</b><span>' + esc(T.whyTot) + '</span></div>' +
+      '<div class="mv-wf" role="list" aria-label="' + esc(T.whyChart) + '">' + rowsH + '</div>' + net + '</section>';
+
+    /* 支給項目の内訳（開閉式）：金額の表と数量の表を分ける（同じ列に混ぜない） */
+    var tr = function (k, a, b, dd, tag) {
+      return '<tr><th scope="row">' + esc(k) + (tag ? ' <small>' + esc(tag) + '</small>' : '') + '</th><td>' + esc(a == null ? '—' : mny(a)) + '</td><td>' +
+        esc(b == null ? '—' : mny(b)) + '</td><td>' + esc(dd == null ? '—' : mny(dd, true)) + '</td></tr>';
+    };
+    var body = wf.items.map(function (x) { return tr(nm(x), x.a, x.b, x.delta); }).join('') +
+      (wf.outside || []).map(function (x) { return tr(kindNm(x.kind), x.a, x.b, x.delta, T.whyOut); }).join('');
+    var QN = { block: T.qnBlock, duty: T.qnDuty, night: T.qnNight, credit: T.qnCredit, guarantee: T.qnGuarantee,
+               sectors: T.qnSectors, dutyDays: T.qnDutyDays, stay: T.qnStay, daysOff: T.qnDaysOff };
+    var qv = function (k, v) {
+      if (v == null) return '—';
+      return R.QTY_UNIT[k] === 'min' ? Math.floor(v / 60) + ':' + ('0' + (v % 60)).slice(-2) : String(v);
+    };
+    var qrows = Object.keys(QN).filter(function (k) { return ma.qty[k] != null || mb.qty[k] != null; }).map(function (k) {
+      return '<tr><th scope="row">' + esc(QN[k]) + '</th><td>' + esc(qv(k, ma.qty[k])) + '</td><td>' + esc(qv(k, mb.qty[k])) + '</td></tr>';
+    }).join('');
+    var head = function (third) {
+      return '<thead><tr><th scope="col">' + esc(T.whyItem) + '</th><th scope="col">' + esc(la) + '</th><th scope="col">' + esc(lb) + '</th>' +
+        (third ? '<th scope="col">' + esc(T.whyDiff) + '</th>' : '') + '</tr></thead>';
+    };
+    var table = '<details class="mr-card mv-why-bd"><summary><span class="mr-card-t">' + esc(T.whyBd) + '</span>' +
+      '<span class="mr-card-s">' + esc(T.whyBdS.replace('{a}', function () { return la; }).replace('{b}', function () { return lb; })) + '</span></summary>' +
+      '<div class="mv-why-tw"><table class="mv-why-tbl">' + head(true) + '<tbody>' + body + '</tbody>' +
+      '<tfoot>' + tr(T.whyGross, ma.gross, mb.gross, wf.deltaGross) + '</tfoot></table>' +
+      (qrows ? '<p class="mv-why-qh">' + esc(T.whyQty) + '</p><table class="mv-why-tbl is-qty">' + head(false) + '<tbody>' + qrows + '</tbody></table>' : '') +
+      '</div></details>';
+    return { card: card, table: table };
+  }
+
   /* ── 支給構成（ドーナツ ＋ 固定/変動）─────────────────────────
      ★ その他手当は固定とも変動とも決められないので3本目のバケツに置く。
        無理に2分割すると、どちらに寄せても嘘になる。 */
@@ -1760,10 +1931,8 @@
     panes = {};
     TABS.forEach(function (k) { panes[k] = d.getElementById('mv-pane-' + k); });
     root = panes.summary;
-    /* 分析は次の段が #pv-analysis を埋める。それまでは静かな空の板1枚 */
-    panes.analysis.innerHTML = '<div id="pv-analysis"><div class="mv-ana-empty">' +
-      '<span class="mv-ana-i" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16"/><path d="M7 15v-4"/><path d="M12 15V7"/><path d="M17 15v-6"/></svg></span>' +
-      '<p class="mv-ana-t">' + esc(T.anaT) + '</p></div></div>';
+    /* 分析は開いたときに my-analysis.js が #pv-analysis を埋める */
+    panes.analysis.innerHTML = '<div id="pv-analysis"></div>';
     var bar = host.querySelector('.mv-tabs');
     bar.addEventListener('click', function (e) {
       var b = e.target.closest ? e.target.closest('.mv-tab') : null;
@@ -1795,6 +1964,8 @@
     if (k === 'summary' && state.sumDirty) { state.sumDirty = false; render(); }
     if (k === 'roster') openRoster();
     else if (w.PVRoster && w.PVRoster.hide) w.PVRoster.hide();
+    if (k === 'analysis') openAnalysis();
+    else if (w.PVAnalysis && w.PVAnalysis.hide) w.PVAnalysis.hide();
     try { host.dispatchEvent(new CustomEvent('pv-myreport-tab', { bubbles: true, detail: { tab: k } })); } catch (e) {}
   }
 
@@ -1842,6 +2013,36 @@
           urls: { upload: LATE.upload, airlines: LATE.airlines }
         });
         if (state.tab === 'roster') w.PVRoster.show(); else w.PVRoster.hide();
+        if (rosterWant) { w.PVRoster.open(rosterWant); rosterWant = null; }
+      });
+  }
+  /* 分析のタブから勤務ロスターへ（点を押した日・「ロスターを足す」）。ロスターの部品が届いてから渡す */
+  var rosterWant = null;
+  function gotoRoster(o) {
+    setTab('roster');
+    if (rosterMounted && w.PVRoster && w.PVRoster.open) w.PVRoster.open(o);
+    else rosterWant = o;
+    try { host.scrollIntoView({ behavior: 'auto', block: 'start' }); } catch (e) {}
+  }
+
+  /* ── 「分析」のタブ（2026-11-09）── 開いたときだけ読む（見た目 → 計算の部品 → 画面） ── */
+  var anaMounted = false;
+  function openAnalysis() {
+    if (anaMounted) { w.PVAnalysis.show(); return; }
+    var box = d.getElementById('pv-analysis') || panes.analysis;
+    if (!box.firstChild) box.innerHTML = '<div class="mr-skel" style="height:220px"></div>';
+    Promise.all([lateCss(LATE.analysisCss), lateJs(LATE.engine, function () { return !!w.PVReport; })])
+      .then(function (r) { return r[0] && r[1] ? lateJs(LATE.analysis, function () { return !!w.PVAnalysis; }) : false; })
+      .then(function (ok) {
+        if (anaMounted) return;
+        if (!ok) { box.innerHTML = empty(T.anaErr); return; }
+        anaMounted = true;
+        w.PVAnalysis.mount(box, {
+          sb: SB,
+          reports: (state.data && state.data.reports) || [],   // ★運営の見本は渡さない（本人の行だけ）
+          items: reportItems, segName: SEGNAME, goto: gotoRoster
+        });
+        if (state.tab === 'analysis') w.PVAnalysis.show(); else w.PVAnalysis.hide();
       });
   }
 
@@ -1906,12 +2107,13 @@
          自分の明細を読み終えてから外（機会）を見る、という順にする。
        ★ どちらの段も、幅が足りない画面では自動で縦に落ちる
          （CSS 側。メディアクエリではなく flex-basis で決めている）。 */
+    var wy = why(rows, m);                 // 給与が変わった理由（検算が通らなければ前回の明細との差）
     root.innerHTML =
       opBar() + viewBar() +
       header(dat, r, rows) +
       '<div class="mr-stack">' +
         '<div class="mr-2col">' + lifetime(rows) + thisMonth(r, m) + '</div>' +
-        '<div class="mr-2col">' + breakdown(r) + compare(rows, m) + '</div>' +
+        '<div class="mr-2col">' + breakdown(r) + wy.card + '</div>' + wy.table +
         opportunity(r) +
         trend(state.series, rows.length - state.series.length, rows) +
         next(dat, rows, r) +

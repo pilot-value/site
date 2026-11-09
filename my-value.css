@@ -893,13 +893,65 @@
   #pv-value .mv-tab-s{display:inline}
 }
 #pv-value .mv-pane[hidden]{display:none}
-/* 分析（次の段が #pv-analysis を埋める）。それまでは静かな空の板 */
-#pv-value .mv-ana-empty{display:flex;flex-direction:column;align-items:center;gap:12px;padding:56px 16px;text-align:center;
-  border:1px dashed var(--pv-line);border-radius:var(--pv-r);background:var(--pv-surface)}
-#pv-value .mv-ana-i{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;
-  background:var(--pv-accent-soft);color:var(--pv-accent-ink)}
-#pv-value .mv-ana-t{margin:0;font-size:.88rem;font-weight:700;color:var(--pv-ink-2)}
+/* 分析のタブの中身は my-analysis.css（開いたときだけ読む） */
+
+/* ── 給与が変わった理由（2026-11-09）── 項目ごとの増減の滝・支給合計／控除合計／手取りの増減・開閉式の内訳
+   ★増えた＝橙・減った＝青（前回との差の札と同じ。色で良し悪しを言わない）。支給合計の増減だけ濃い灰。
+   ★小窓は CSS だけ（指を置く・キーで選ぶと出る）。棒は横向き＝項目名が長くても折り返せる。 */
+.mv-why-top{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;margin:-4px 0 14px}
+.mv-why-big{font-size:1.9rem;font-weight:800;letter-spacing:-.03em;line-height:1.1;font-variant-numeric:tabular-nums}
+.mv-why-top span{font-size:.74rem;font-weight:700;color:var(--pv-ink-3)}
+.mv-wf{display:flex;flex-direction:column;gap:2px}
+.mv-wf-r{position:relative;display:grid;grid-template-columns:minmax(88px,36%) minmax(0,1fr) auto;align-items:center;gap:10px;
+  min-height:30px;padding:2px 4px;border-radius:6px}
+.mv-wf-r:hover{background:var(--pv-bg-sub)}
+.mv-wf-r:focus-visible{outline:2px solid var(--pv-accent);outline-offset:1px}
+.mv-wf-k{font-size:.74rem;font-weight:700;line-height:1.3;color:var(--pv-ink-2);overflow-wrap:anywhere}
+.mv-wf-t{position:relative;height:20px}
+.mv-wf-0{position:absolute;top:-3px;bottom:-3px;width:1px;background:var(--pv-line)}
+.mv-wf-b{position:absolute;top:5px;height:10px;border-radius:3px}
+.mv-wf-b.up{background:var(--pv-orange)}
+.mv-wf-b.dn{background:var(--pv-blue)}
+.mv-wf-b.tot{background:var(--pv-ink-2)}
+.mv-wf-v{min-width:72px;font-size:.8rem;font-weight:800;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.mv-wf-r.is-tot{margin-top:4px;padding-top:6px;border-top:1px solid var(--pv-line-soft);border-radius:0 0 6px 6px}
+.mv-wf-r.is-tot .mv-wf-k{color:var(--pv-ink);font-weight:800}
+.mv-wf-tip{position:absolute;right:4px;bottom:calc(100% - 2px);z-index:3;padding:6px 9px;border-radius:8px;background:var(--pv-ink);color:var(--pv-bg);
+  font-size:.7rem;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums;pointer-events:none;opacity:0;transform:translateY(4px);
+  transition:opacity .15s var(--pv-ease),transform .2s var(--pv-ease);box-shadow:0 2px 4px rgba(15,23,42,.12),0 12px 26px -14px rgba(15,23,42,.45)}
+.mv-wf-r:hover .mv-wf-tip,.mv-wf-r:focus-visible .mv-wf-tip{opacity:1;transform:none}
+.mv-why-net{display:flex;flex-direction:column;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--pv-line-soft)}
+.mv-why-nr{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-size:.78rem;color:var(--pv-ink-2)}
+.mv-why-nr b{font-weight:800;color:var(--pv-ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.mv-why-nr.is-net{padding-top:8px;border-top:1px solid var(--pv-line-soft);font-weight:800;color:var(--pv-ink)}
+.mv-why-nr.is-net b{font-size:1.25rem;letter-spacing:-.02em;color:var(--pv-accent-ink)}
+.mv-why-bd{padding:0}
+.mv-why-bd>summary{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:18px 22px;list-style:none;cursor:pointer;border-radius:var(--pv-r-lg)}
+.mv-why-bd>summary::-webkit-details-marker{display:none}
+.mv-why-bd>summary::after{content:"";flex:none;align-self:center;width:8px;height:8px;border-right:2px solid var(--pv-ink-3);border-bottom:2px solid var(--pv-ink-3);
+  transform:rotate(45deg);transition:transform .25s var(--pv-ease)}
+.mv-why-bd[open]>summary::after{transform:rotate(-135deg)}
+.mv-why-bd>summary .mr-card-s{margin-left:auto}
+.mv-why-bd>summary:hover .mr-card-t{color:var(--pv-accent-ink)}
+.mv-why-bd>summary:focus-visible{outline:2px solid var(--pv-accent);outline-offset:-2px}
+.mv-why-tw{padding:0 22px 20px;overflow-x:auto}
+.mv-why-tbl{width:100%;max-width:760px;border-collapse:collapse;font-size:.78rem;font-variant-numeric:tabular-nums}
+.mv-why-tbl thead th:first-child{text-align:left}
+.mv-why-tbl th,.mv-why-tbl td{padding:8px 6px;border-top:1px solid var(--pv-line-soft);text-align:right;white-space:nowrap}
+.mv-why-tbl thead th{border-top:0;font-size:.66rem;font-weight:800;color:var(--pv-ink-3)}
+.mv-why-tbl th[scope="row"]{text-align:left;font-weight:700;color:var(--pv-ink-2);white-space:normal}
+.mv-why-tbl th[scope="row"] small{font-size:.64rem;font-weight:700;color:var(--pv-ink-3)}
+.mv-why-tbl tfoot th,.mv-why-tbl tfoot td{border-top:1px solid var(--pv-line);font-weight:800;color:var(--pv-ink)}
+.mv-why-tbl.is-qty{max-width:420px}
+@container (max-width:440px){
+  .mv-why-tbl{font-size:.72rem}
+  .mv-why-tbl th,.mv-why-tbl td{padding:7px 3px}
+  .mv-why-tbl th[scope="row"]{min-width:6.5em}
+  .mv-why-tw{padding:0 16px 18px}
+  .mv-why-bd>summary{padding:16px}
+}
+.mv-why-qh{margin:18px 0 4px;font-size:.7rem;font-weight:800;color:var(--pv-ink-3)}
 @media (prefers-reduced-motion:reduce){
-  #pv-value .mv-tab,#pv-value .mv-tab::after{transition:none}
+  #pv-value .mv-tab,#pv-value .mv-tab::after,.mv-wf-tip,.mv-why-bd>summary::after{transition:none}
 }
 @media print{ #pv-value .mv-tabs{display:none} }
