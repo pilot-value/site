@@ -4,14 +4,18 @@
 --   オーナー採用（2026-11-07）：
 --     ・会社ページの「フォロー」で会社を足す（1人10社まで）。マイページで外せる。
 --     ・**自分の会社（登録の会社）は最初からフォロー済み**。外したときだけ外れる（外した記録だけを持つ＝全員分を書き込まない）。
---     ・**新着が入ったら、すぐ別のメール**（給与・口コミ・待遇の答え）。
+--     ・新着（給与・口コミ・待遇の答え）を別のメールで知らせる。
+--       ★2026-11-09 オーナー指示「提出後すぐではなく、翌日の17時に」「受け取る人の国の17時」：
+--       **ある日に入った新着を、次の日の17時（受け取る人の国の時間）に1通にまとめて送る。**
+--       日の区切りも受け取る人の国の0時。国はプロフィールの国の欄（pv_follow_tz の1か所で時間帯に直す）。
+--       時刻が複数ある国（アメリカ・カナダ・オーストラリア）は代表の1つ・空と「その他」は日本時間。
 --     ・**フォローしていなくても、見た会社にも知らせる**（2026-11-07 オーナー「OpenWork は閲覧だけで送っている」）。
 --       見た記録は1人10社まで・30日で消える。マイページに「最近見た会社」として出し、本人が消せる。
 --     ・メールに書くのは**サイトで誰にでも見せている範囲だけ**（2026-11-07 オーナー決定）：
 --       口コミ＝評価・職位・在籍年数・最初の80字／給与＝「入った」だけ（金額は書かない＝Give & Get）／待遇＝答えが入った質問の名前。
 --   推測されにくくする工夫（オーナーの決定の範囲で）：
---     ・1時間ごとにまとめて送る（時計は1時間おき＝分単位で出した時刻が分からない）
---     ・1人24時間に1通まで（続いた分は次の1通にまとまる。前に送った時刻から先の新着を数える）
+--     ・次の日の17時にまとめて送る（＝届いた時刻から、出した時刻が分からない。2026-11-08 には出して数分後に届いていた）
+--     ・1人1日1通まで（前の日の0時までに入った分を1通に。送った日の分は次の日の1通に回る）
 --     ・**自分が出した分では知らせない**（受け取る人の印を作り直して、その人の投稿を外す）
 --
 --   貼る順: pay-reports.sql → pay-rows.sql → airline-conditions.sql → reviews-gate.sql → pilot-proof.sql
@@ -24,10 +28,11 @@
 --     pv_follow_set(code, on)  … フォローする／外す（会員が呼ぶ・自分の分だけ・10社まで）
 --     pv_follow_view           … 見た会社（会員×会社・最後に見た時刻。10社まで・30日で消える）
 --     pv_follow_seen(code)     … 会社ページを開いた会員が呼ぶ（自分の分だけ）／pv_follow_unsee(code) … 消す
---     pv_follow_mail           … 知らせを送った時刻（1人1行）
---     pv_follow_due(limit)     … 今送る相手と、会社ごとの新着（★件数は返さない。口コミは公開の範囲の抜粋だけ）
---     pv_follow_mark(id, ok)   … 送れた／送れなかったを記録する
---     時計 pv-follow-notify    … 1時間おき（毎時7分）に Edge Function を叩く
+--     pv_follow_mail           … 知らせを送った時刻と、どこまでの新着を送ったか（upto）（1人1行）
+--     pv_follow_tz(country)    … プロフィールの国 → 時間帯（受け取る人の国の17時と0時を決める1か所）
+--     pv_follow_due(limit, now) … 今送る相手と、会社ごとの新着（★件数は返さない。口コミは公開の範囲の抜粋だけ）
+--     pv_follow_mark(id, ok, upto) … 送れた／送れなかったを記録する
+--     時計 pv-follow-notify    … 1時間おき（毎時0分）に Edge Function を叩く（国ごとの17時を拾うため。送るのは各国の17時〜24時だけ）
 --
 --   ★数えるもの（ほかの画面と同じ外し方。db/airline-activity.sql と同じ）
 --     給与＝年 $10,000〜$700,000 の幅・一覧から下ろした人でない・テスト用アカウントでない
@@ -80,6 +85,9 @@ create table if not exists public.pv_follow_mail (
   tries    integer not null default 0,  -- 続けて失敗した回数（送れたら0に戻る）
   tried_at timestamptz
 );
+-- ★どこまでの新着を送ったか（受け取る人の国の0時）。次の1通はここから先を数える。
+--   2026-11-09 より前に送った行は空（＝送った時刻 sent_at までを送り済みとして扱う）。
+alter table public.pv_follow_mail add column if not exists upto timestamptz;
 alter table public.pv_follow_mail enable row level security;
 revoke all on table public.pv_follow_mail from public, anon, authenticated;
 
@@ -91,6 +99,40 @@ create table if not exists public.pv_follow_launch (
 alter table public.pv_follow_launch enable row level security;
 revoke all on table public.pv_follow_launch from public, anon, authenticated;
 insert into public.pv_follow_launch(one) values (true) on conflict (one) do nothing;
+
+-- 受け取る人の国 → 時間帯（2026-11-09 オーナー「受け取る人の国の17時」）。
+--   国の欄は登録・プロフィールの決まった20の選択肢（日英西とも値は日本語）。
+--   時刻が複数ある国は代表の1つ：アメリカ＝中部（シカゴ・東部と西部のあいだ）／カナダ＝トロント／オーストラリア＝シドニー。
+--   空・「その他」・選択肢に無い字は日本時間。夏時間は時間帯の名前が受け持つ。
+create or replace function public.pv_follow_tz(p_country text)
+returns text
+language sql
+immutable
+set search_path = public
+as $$
+  select case btrim(coalesce(p_country, ''))
+    when '日本'           then 'Asia/Tokyo'
+    when 'アメリカ'       then 'America/Chicago'
+    when 'UAE'            then 'Asia/Dubai'
+    when 'シンガポール'   then 'Asia/Singapore'
+    when '香港'           then 'Asia/Hong_Kong'
+    when 'イギリス'       then 'Europe/London'
+    when 'ドイツ'         then 'Europe/Berlin'
+    when 'フランス'       then 'Europe/Paris'
+    when 'オーストラリア' then 'Australia/Sydney'
+    when 'カナダ'         then 'America/Toronto'
+    when '韓国'           then 'Asia/Seoul'
+    when '中国'           then 'Asia/Shanghai'
+    when 'メキシコ'       then 'America/Mexico_City'
+    when 'スペイン'       then 'Europe/Madrid'
+    when 'コロンビア'     then 'America/Bogota'
+    when 'チリ'           then 'America/Santiago'
+    when 'ペルー'         then 'America/Lima'
+    when 'アルゼンチン'   then 'America/Argentina/Buenos_Aires'
+    when 'パナマ'         then 'America/Panama'
+    else 'Asia/Tokyo' end;
+$$;
+revoke all on function public.pv_follow_tz(text) from public, anon, authenticated;
 
 
 -- ── 2. 本人のフォロー中の会社（中で使う）─────────────────────
@@ -269,13 +311,19 @@ grant execute on function public.pv_follow_unsee(text) to authenticated;
 
 -- ── 4. 今送る相手 ───────────────────────────────────────────
 --   1人1行。items ＝ 新着があった会社ごとに {code, ja, en, page, kinds:['pay','review','cond']}（★件数は返さない）。page ＝ 会社のページがある。
---   新着＝フォローを始めた時刻・前に送った時刻・数え始めのうち、いちばん遅い時刻より後に入ったもの。
+--   新着＝フォローを始めた時刻・前に送った分の終わり（upto）・数え始めのうち、いちばん遅い時刻より後に入ったもので、
+--         ★受け取る人の国の今日の0時より前に入ったもの（今日入った分は、次の日の17時に回す）。
+--   送る相手に入るのは、受け取る人の国で17時を過ぎていて、今日の分をまだ送っていない人だけ（2026-11-09）。
+--   upto ＝ この1通がどこまでの新着か（受け取る人の国の今日の0時）。送れたら pv_follow_mark に渡して記録する。
+--   p_now ＝ 今の時刻（検査で時計を決めるためだけにある。本番は渡さない）。
 drop function if exists public.pv_follow_due(integer);
-create or replace function public.pv_follow_due(p_limit integer default 50)
+drop function if exists public.pv_follow_due(integer, timestamptz);
+create or replace function public.pv_follow_due(p_limit integer default 50, p_now timestamptz default now())
 returns table (
   id uuid, email text, name text, country text, airline_region text, lang text, unsub_token text,
   has_key boolean,   -- 給与の鍵が生きている（REAL PAY の金額が見られる）
-  items jsonb
+  items jsonb,
+  upto timestamptz   -- この1通がどこまでの新着か（受け取る人の国の今日の0時）
 )
 language sql
 stable
@@ -283,8 +331,8 @@ security definer
 set search_path = public, extensions
 as $$
   with
-  launch as (select coalesce((select l.at from public.pv_follow_launch l), now()) as at),
-  floor_at as (select greatest((select at from launch), now() - interval '8 days') as at),
+  launch as (select coalesce((select l.at from public.pv_follow_launch l), p_now) as at),
+  floor_at as (select greatest((select at from launch), p_now - interval '8 days') as at),
   -- ★新着の候補（数える物だけ・テスト用アカウントを外す）。8日より前は見ない（重くしない）
   ev as (
     select r.airline as code, 'pay'::text as kind, r.created_at as at, r.proof_hash as h, 'pay'::text as hk, null::text as raw,
@@ -313,16 +361,24 @@ as $$
   ),
   who as (
     select p.id, p.email, p.name, p.country, p.lang, p.unsub_token::text as unsub_token, p.created_at, p.company,
-           coalesce(p.access_until > now(), false) as has_key,
-           greatest((select at from launch), coalesce(fm.sent_at, '-infinity'::timestamptz)) as since_p
+           coalesce(p.access_until > p_now, false) as has_key,
+           -- 前に送った分の終わり（2026-11-09 より前に送った行は upto が空＝送った時刻まで送り済み）
+           greatest((select at from launch), coalesce(fm.upto, fm.sent_at, '-infinity'::timestamptz)) as since_p,
+           z.cut
       from public.profiles p
       left join public.pv_follow_mail fm on fm.uid = p.id
+      -- 受け取る人の国の、今日の0時（cut）と17時（send_at）。壁の時計で作る＝夏時間の日もずれない
+      cross join lateral (select public.pv_follow_tz(p.country) as tz) t
+      cross join lateral (select (date_trunc('day', p_now at time zone t.tz)) at time zone t.tz as cut,
+                                 (date_trunc('day', p_now at time zone t.tz) + interval '17 hours') at time zone t.tz as send_at) z
      where coalesce(p.email_opt_in, false)
        and p.email is not null and position('@' in p.email) > 1
-       -- ★24時間に1通まで
-       and (fm.sent_at is null or fm.sent_at <= now() - interval '24 hours')
+       -- ★受け取る人の国で17時を過ぎてから（17時〜24時。送れなかった分は次の1時間で送り直す）
+       and p_now >= z.send_at
+       -- ★1日1通まで（今日の0時までの分をもう送った人は、次の日まで待つ）
+       and coalesce(fm.upto, fm.sent_at, '-infinity'::timestamptz) < z.cut
        -- ★続けて3回失敗したら、その日は諦める
-       and not (coalesce(fm.tries, 0) >= 3 and fm.tried_at > now() - interval '24 hours')
+       and not (coalesce(fm.tries, 0) >= 3 and fm.tried_at >= z.send_at)
        -- ★確認待ちで止めた会員には送らない
        and not exists (select 1 from public.pv_proof b where b.user_id = p.id and b.state in ('required', 'submitted'))
   ),
@@ -332,7 +388,7 @@ as $$
       cross join lateral public.pv_follow_list(w.id) l
       join ev e on e.code = l.airline
      where e.at > greatest(w.since_p, l.since)
-       and e.at <= now()
+       and e.at < w.cut          -- ★今日入った分は、次の日の17時に回す
        -- ★自分が出した分では知らせない（受け取る人の印を作り直して外す）
        and e.h is distinct from (case e.hk
              when 'pay'    then encode(digest(w.id::text || '::pv_pay::' || l.airline, 'sha256'), 'hex')
@@ -372,33 +428,42 @@ as $$
   select w.id, w.email, w.name, w.country,
          coalesce((select a.region from public.pv_airlines a where a.code = public.pv_airline_resolve(w.company)), '') as airline_region,
          w.lang, w.unsub_token, w.has_key,
-         (select jsonb_agg(pr.item order by (pr.item ->> 'why') = 'seen', pr.code) from per pr where pr.id = w.id) as items
+         (select jsonb_agg(pr.item order by (pr.item ->> 'why') = 'seen', pr.code) from per pr where pr.id = w.id) as items,
+         w.cut as upto
     from who w
    where exists (select 1 from per pr where pr.id = w.id)
    order by w.created_at asc
    limit greatest(1, least(coalesce(p_limit, 50), 200));
 $$;
-revoke all on function public.pv_follow_due(integer) from public, anon, authenticated;
+revoke all on function public.pv_follow_due(integer, timestamptz) from public, anon, authenticated;
 
 
 -- ── 5. 送れた／送れなかったを記録する ────────────────────────
-create or replace function public.pv_follow_mark(p_id uuid, p_ok boolean default true)
+--   p_upto ＝ pv_follow_due が返した upto（この1通がどこまでの新着か）。
+--   渡されなければ（古い Edge Function）、受け取る人の国の今日の0時を記録する。
+drop function if exists public.pv_follow_mark(uuid, boolean);
+create or replace function public.pv_follow_mark(p_id uuid, p_ok boolean default true, p_upto timestamptz default null)
 returns integer
 language sql
 volatile
 security definer
 set search_path = public
 as $$
-  insert into public.pv_follow_mail as m (uid, sent_at, tries, tried_at)
-  select p_id, case when p_ok then now() end, case when p_ok then 0 else 1 end, now()
-   where exists (select 1 from public.profiles p where p.id = p_id)
+  insert into public.pv_follow_mail as m (uid, sent_at, upto, tries, tried_at)
+  select p.id,
+         case when p_ok then now() end,
+         case when p_ok then coalesce(p_upto, (date_trunc('day', now() at time zone public.pv_follow_tz(p.country)))
+                                              at time zone public.pv_follow_tz(p.country)) end,
+         case when p_ok then 0 else 1 end, now()
+    from public.profiles p where p.id = p_id
   on conflict (uid) do update
      set sent_at  = case when p_ok then now() else m.sent_at end,
+         upto     = case when p_ok then excluded.upto else m.upto end,
          tries    = case when p_ok then 0 else m.tries + 1 end,
          tried_at = now()
   returning tries;
 $$;
-revoke all on function public.pv_follow_mark(uuid, boolean) from public, anon, authenticated;
+revoke all on function public.pv_follow_mark(uuid, boolean, timestamptz) from public, anon, authenticated;
 
 
 -- ── service_role（Edge Function）に渡す。手元の検査の DB には service_role が無いので、在るときだけ ──
@@ -407,14 +472,15 @@ begin
   if exists (select 1 from pg_roles where rolname = 'service_role') then
     execute 'grant select, insert, update, delete on table public.pv_follow to service_role';
     execute 'grant select, insert, update on table public.pv_follow_mail to service_role';
-    execute 'grant execute on function public.pv_follow_due(integer) to service_role';
-    execute 'grant execute on function public.pv_follow_mark(uuid, boolean) to service_role';
+    execute 'grant execute on function public.pv_follow_due(integer, timestamptz) to service_role';
+    execute 'grant execute on function public.pv_follow_mark(uuid, boolean, timestamptz) to service_role';
   end if;
 end
 $grant$;
 
 -- ── 6. 1時間おきの時計 ──────────────────────────────────────
 --   ★週まとめの予約（pv-weekly-digest）の中身を写して、叩く先だけ follow-notify に替える（同じ合言葉）。
+--   ★毎時0分（2026-11-09 に7分から）。国ごとに17時が来る時刻が違うので1時間おきのまま叩き、送るかどうかは pv_follow_due が決める。
 --   止めるとき: select cron.unschedule('pv-follow-notify');
 do $cron$
 declare
@@ -428,7 +494,7 @@ begin
   if v_cmd is null or position('/functions/v1/weekly-digest' in v_cmd) = 0 then
     raise exception '週まとめの予約（pv-weekly-digest）が見つからないので、フォローの時計を入れられません';
   end if;
-  perform cron.schedule('pv-follow-notify', '7 * * * *',
+  perform cron.schedule('pv-follow-notify', '0 * * * *',
                         replace(v_cmd, '/functions/v1/weekly-digest', '/functions/v1/follow-notify'));
 end
 $cron$;
@@ -448,11 +514,18 @@ select case when not has_function_privilege('anon', 'public.pv_my_follows()', 'e
              and has_function_privilege('authenticated', 'public.pv_follow_seen(text)', 'execute')
             then '✅ フォローの口は会員だけが呼べる（未ログインは呼べない）' else '❌ フォローの口の権限がおかしい' end
 union all
-select case when not has_function_privilege('authenticated', 'public.pv_follow_due(integer)', 'execute')
-             and not has_function_privilege('authenticated', 'public.pv_follow_mark(uuid, boolean)', 'execute')
+select case when not has_function_privilege('authenticated', 'public.pv_follow_due(integer, timestamptz)', 'execute')
+             and not has_function_privilege('authenticated', 'public.pv_follow_mark(uuid, boolean, timestamptz)', 'execute')
              and not has_function_privilege('authenticated', 'public.pv_follow_list(uuid)', 'execute')
-             and not has_function_privilege('anon', 'public.pv_follow_due(integer)', 'execute')
+             and not has_function_privilege('anon', 'public.pv_follow_due(integer, timestamptz)', 'execute')
             then '✅ 送る相手と記録は会員からは呼べない' else '❌ 送る相手が会員から呼べてしまう' end
+union all
+select case when to_regprocedure('public.pv_follow_due(integer)') is null
+             and to_regprocedure('public.pv_follow_mark(uuid, boolean)') is null
+             and exists (select 1 from information_schema.columns
+                          where table_schema = 'public' and table_name = 'pv_follow_mail' and column_name = 'upto')
+            then '✅ 翌日の17時（受け取る人の国）に送る形になった（すぐ送る古い形は残っていない）'
+            else '❌ すぐ送る古い形が残っている' end
 union all
 select case when not has_table_privilege('authenticated', 'public.pv_follow', 'select')
              and not has_table_privilege('authenticated', 'public.pv_follow_mail', 'select')
@@ -462,6 +535,6 @@ select case when not has_table_privilege('authenticated', 'public.pv_follow', 's
 union all
 select case when not exists (select 1 from pg_extension where extname = 'pg_cron')
             then 'ℹ️ 時計が無い場所（手元の検査）'
-            else '✅ 時計の予約を入れた（毎時7分・名前 pv-follow-notify）' end
+            else '✅ 時計の予約を入れた（毎時0分・名前 pv-follow-notify）' end
 union all
-select 'ℹ️ 次の時計で知らせを送る人数：' || count(*)::text from public.pv_follow_due(200);
+select 'ℹ️ いま時計が動いたら知らせを送る人数（受け取る人の国で17時を過ぎた人だけ）：' || count(*)::text from public.pv_follow_due(200);

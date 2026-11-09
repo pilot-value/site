@@ -1,10 +1,12 @@
 /* ════════════════════════════════════════════════════════════════
    follow-notify — フォローしている会社に新着（給与・口コミ・待遇の答え）が入ったら知らせる（2026-11-07）
 
-   オーナー採用（2026-11-07）：自分の会社は最初からフォロー済み・新着が入ったらすぐ別のメール。
+   オーナー採用（2026-11-07）：自分の会社は最初からフォロー済み・新着を別のメールで知らせる。
+   ★2026-11-09 オーナー指示：提出後すぐではなく、**次の日の17時（受け取る人の国の時間）に**まとめて1通。
    ── 誰に・何を（決めるのは SQL の pv_follow_due の1か所：db/follow.sql）──────
-     ・1時間おき（毎時7分）に呼ばれ、前に送った時刻（またはフォローを始めた時刻）より後の新着をまとめて1通
-     ・1人24時間に1通まで・自分が出した分では知らせない・テスト用アカウントの投稿では知らせない
+     ・1時間おき（毎時0分）に呼ばれる。送る相手に入るのは、受け取る人の国で17時を過ぎていて今日の分をまだ送っていない人
+     ・中身は、前に送った分の終わり（またはフォローを始めた時刻）から、受け取る人の国の今日の0時までに入った新着
+     ・1人1日1通まで・自分が出した分では知らせない・テスト用アカウントの投稿では知らせない
      ・通知を希望した人だけ・確認待ちで止めた会員には送らない
    ── 文面のきまり ────────────────────────────────────────────
      ★件数・金額・職位・機材・本文を書かない。書くのは会社名と「何が入ったか」（給与・口コミ・待遇の回答）だけ
@@ -21,7 +23,7 @@
    secret は週まとめ・歓迎メールと同じ（RESEND_API_KEY・PV_CRON_SECRET）。新しく入れるものは無い。
 
    ── 入口 ───────────────────────────────────────────────────
-     POST / + header x-pv-cron-secret          … 送る（pg_cron が1時間おきに叩く）
+     POST / + header x-pv-cron-secret          … 送る（pg_cron が1時間おきに叩く。誰に送るかは SQL が国の17時で決める）
      POST / + header ... + {"dry":true}        … 送らずに、送る相手の人数だけ返す
    ★配信停止は remind-payslip が受け持つ（List-Unsubscribe もあちら）。
    ════════════════════════════════════════════════════════════════ */
@@ -44,7 +46,15 @@ export type Kind = 'pay' | 'review' | 'cond';
 export type Person = {
   id?: string; email?: string; name?: string | null; country?: string | null;
   airline_region?: string | null; lang?: string | null; unsub_token?: string; has_key?: boolean | null; items?: Item[] | null;
+  upto?: string | null;   // この1通がどこまでの新着か（受け取る人の国の今日の0時）。送れたら pv_follow_mark に返す
 };
+
+/* 1人1日1通の鍵。日付は「どこまでの新着か」の日（受け取る人の国の1日）。無ければ今日（UTC）。 */
+export function followKey(p: Person, now = new Date()) {
+  const t = p?.upto ? new Date(p.upto) : null;
+  const day = (t && !isNaN(t.getTime()) ? t : now).toISOString().slice(0, 10);
+  return `follow:${p.id}:${day}`;
+}
 
 /* ── 何語で（welcome-member の welcomeLangOf の写し）─────────── */
 export function followLangOf(p: Person): Lang | 'both' {
@@ -290,14 +300,13 @@ async function rpc(fn: string, args: Record<string, unknown> = {}) {
 async function send(p: Person) {
   const m = buildFollow(p, { siteUrl: SITE_URL, supabaseUrl: SUPABASE_URL });
   if (!m.items) return null;
-  const day = new Date().toISOString().slice(0, 10);
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${RESEND_KEY}`,
       'Content-Type': 'application/json',
       /* ★1人1日1通。記録が書けずに次の回でもう一度選ばれても、Resend 側で1通に畳まれる。 */
-      'Idempotency-Key': `follow:${p.id}:${day}`,
+      'Idempotency-Key': followKey(p),
     },
     body: JSON.stringify({
       from: FROM_EMAIL,
@@ -342,7 +351,7 @@ export async function handler(req: Request): Promise<Response> {
       failed++;
       console.error('send failed', String(e).slice(0, 200));
     }
-    try { await rpc('pv_follow_mark', { p_id: p.id, p_ok: ok }); } catch (e) {
+    try { await rpc('pv_follow_mark', { p_id: p.id, p_ok: ok, p_upto: p.upto ?? null }); } catch (e) {
       console.error('mark failed', String(e).slice(0, 200));
       return json({ ok: false, error: 'mark failed', sent, failed, ...tally }, 500);
     }
