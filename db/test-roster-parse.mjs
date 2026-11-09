@@ -9,6 +9,7 @@
      ③ 画像の端で切れた日（cut）・行（partial）は印だけ。見えない欄を埋めない
      ④ ログに画像・勤務表の文字・AI の答えを出さない（ソースを grep ＋ 実際に流して console を拾う）
      ⑤ ログインしていなければ 401 login_required（AI も回数も呼ばない）
+     ⑥ 日付の列に在る日は何も無くても返す・捨てた記号の日は unread:true（字は残さない）・TIME の列も block（2026-11-10）
    ★ここに出てくる名前・便・時刻は全部作り話。ネットワークも API キーも使わない。費用ゼロ。
    実行: node db/test-roster-parse.mjs
    ════════════════════════════════════════════════════════════════ */
@@ -112,7 +113,8 @@ console.log('\nC sanitize：残すもの・捨てるもの');
      [[1, 'NH101', 'HND', 'CTS', '1:35', 'CAP', 'operating'], [2, 'NH102', 'CTS', 'HND', '1:35', 'DH1', 'deadhead']],
      '区間：便名・空港・役割は大文字・乗務時間は H:MM・seq は印字の順');
   ok(r.days.every((d) => d.page === 2) && r.days[1].legs.every((l) => l.page === 2), 'page は呼んだ側の値（AI の言うページを使わない）');
-  eq(Object.keys(r.days[1]), ['date', 'code', 'd_on', 'd_off', 'd_off_day', 'cut', 'page', 'row', 'legs'], '日の欄は決めたものだけ');
+  eq(Object.keys(r.days[1]), ['date', 'code', 'unread', 'd_on', 'd_off', 'd_off_day', 'cut', 'page', 'row', 'legs'], '日の欄は決めたものだけ（unread はサーバーが決める印）');
+  eq(r.days.map((d) => d.unread), [false, false], '読めた記号・記号の無い日は unread:false');
   eq(Object.keys(r.days[1].legs[0]),
      ['seq', 'flight', 'from', 'to', 'loc', 'out', 'in', 'in_day', 'block', 'role', 'kind', 'partial', 'page', 'row'],
      '区間の欄は決めたものだけ');
@@ -133,6 +135,7 @@ console.log('\nC sanitize：残すもの・捨てるもの');
      '★氏名・ホテル・備考は答えのどこにも残らない', S);
   ok(!/"(name|crew|remarks|note|notes)"/.test(S), '決めていない鍵（name・crew・remarks・note）は運ばない');
   eq(r.days[0].code, null, '氏名の入った記号は捨てる（日の時刻は残る）');
+  eq(r.days.map((d) => d.unread), [true, true], '★捨てた記号の日は unread:true（字は残さない・印だけ）');
   eq(r.days[1].legs.map((l) => [l.flight, l.from, l.to, l.role]), [[null, null, 'HND', null], ['JL5', 'NRT', 'LAX', null]],
      '区間の中の氏名・ホテルは欄ごと捨てる（残りの欄は残す）');
   ok(c.dropped_fields >= 5, `捨てた欄の数を数える（${c.dropped_fields}）`);
@@ -177,12 +180,13 @@ console.log('\nC sanitize：残すもの・捨てるもの');
 }
 {
   const { roster: r, checks: c } = run([
-    D({ d: 11 }),                                   // 何も無い日 → 返さない（数えもしない）
+    D({ d: 11 }),                                   // 何も無い日 → 日付だけで返す（2026-11-10〜）
     D({ d: 12, legs: [L({ kind: 'operating' })] }),  // 中身の無い区間しか無い日
     D({ d: 13, code: 'SBY' }), D({ d: 13, code: 'OFF' }),
     D({ y: 2024, m: 1, d: 5, code: 'VAC' }),          // ±400日の外
   ]);
-  eq(r.days.map((d) => [d.date, d.code]), [['2026-10-13', 'SBY']], '空の日は返さない・同じ日は先のものだけ');
+  eq(r.days.map((d) => [d.date, d.code]), [['2026-10-11', null], ['2026-10-12', null], ['2026-10-13', 'SBY']],
+     '★何も無い日・中身の無い区間しか無い日も日付で返す・同じ日は先のものだけ');
   eq([c.dup_days, c.dropped_legs], [1, 1], '同じ日の重なりと中身の無い区間を数える');
   eq(c.undated, 1, '★日付が戻る行（2024年1月）は置かない＝undated に数える（読み違いを日付ごと捨てる）');
 }
@@ -193,7 +197,7 @@ console.log('\nC sanitize：残すもの・捨てるもの');
   eq(r.hints, { kind: 'planned', time_ref: 'utc' }, 'hints は印字されたときだけ（語彙の中だけ）');
   eq(c.outside_period, 1, '期間の外の日を数える（捨てない・次の月の持ち越し）');
   eq(run([D({ code: 'OFF' })], { period: { from: '2026-10-31', to: '2026-10-01' }, kind: 'actual!', time_ref: 'Z' }).roster,
-     { v: 1, period: null, hints: { kind: null, time_ref: null }, days: [{ date: '2026-10-01', code: 'OFF', d_on: null, d_off: null, d_off_day: 0, cut: null, page: 2, row: 1, legs: [] }] },
+     { v: 1, period: null, hints: { kind: null, time_ref: null }, days: [{ date: '2026-10-01', code: 'OFF', unread: false, d_on: null, d_off: null, d_off_day: 0, cut: null, page: 2, row: 1, legs: [] }] },
      '逆さまの期間・語彙外の hints は null');
 }
 
@@ -207,6 +211,7 @@ console.log('\nC-2 漢字・かなの日の記号（決まった言葉だけ英�
   eq(r.days.map((d) => d.code), ['OFF', 'VAC', 'SBY', 'TRN', 'GND', 'TRP', 'ABS', 'OFF'],
      '辞書の言葉は英字の記号へ（全角の空白・半角かなは NFKC で整えてから完全一致）');
   eq(c.code_mapped, 8, '置き換えた数を checks.code_mapped に数える');
+  ok(r.days.every((d) => d.unread === false) && c.unread_days === 0, '置き換えた記号の日は unread:false');
   ok(!/[぀-ヿ一-鿿]/.test(JSON.stringify(r)), '★答えに漢字・かなが1文字も残らない');
 }
 {
@@ -218,10 +223,16 @@ console.log('\nC-2 漢字・かなの日の記号（決まった言葉だけ英�
     D({ d: 13, code: '公休 佐藤', d_on: '09:00' }),
   ]);
   eq(r.days.map((d) => d.code), [null, null, null, null, null], '★辞書に無い漢字（研修）・苗字のような2字（佐藤・高橋）・部分一致は捨てる');
+  eq([r.days.map((d) => d.unread), c.unread_days], [[true, true, true, true, true], 5], '捨てた日は unread:true（日付と時刻は残る）');
   ok(!/研修|佐藤|高橋|公休/.test(JSON.stringify(r)), '捨てた字は答えのどこにも残らない');
   eq([c.code_mapped, c.dropped_fields], [0, 5], '置き換えは0・捨てた欄は5');
-  eq(sanitizeTail([{ date: '2026-10-20', code: '年休' }, { date: '2026-10-21', code: '鈴木' }], NOW).map((d) => d.code), ['VAC'],
-     '前の画像の日も同じ辞書（苗字は捨てる・中身の無い日は返さない）');
+  {
+    const t = sanitizeTail([{ date: '2026-10-20', code: '年休' }, { date: '2026-10-21', code: '鈴木' }], NOW);
+    eq(t.map((d) => [d.date, d.code, d.unread]), [['2026-10-20', 'VAC', false], ['2026-10-21', null, true]],
+       '前の画像の日も同じ辞書（苗字は捨てて unread・日付は続きの手がかりに残す）');
+    ok(!/鈴木/.test(JSON.stringify(t)) && !/鈴木/.test(buildRequest('QUJD', 'image/jpeg', { page: 2, pages: 2, tail: t }).messages[0].content[1].text),
+       '捨てた苗字は前の画像の日にも AI への文にも残らない');
+  }
   ok(/copied exactly as\s+printed, character for character/.test(systemPrompt()) && /公休, 有休/.test(systemPrompt()),
      'プロンプト：漢字の記号は印字のまま写させる（辞書が当たるように・自分で英訳させない）');
 }
@@ -252,8 +263,54 @@ console.log('\nC-3 語で印字された日の記号（決まった言い方だ�
     D({ d: 14, code: 'OFF', d_on: '09:00' }),             // もともと記号の形
   ]);
   eq(r.days.map((d) => d.code), [null, null, null, 'OFF'], '★辞書に無い言い方・名前の混ざった言い方は捨てる（部分一致はしない）');
+  eq(r.days.map((d) => d.unread), [true, true, true, false], '捨てた言い方の日は unread:true');
   ok(!/SMITH|JOHN|OFFICE/.test(JSON.stringify(r)), '捨てた語は答えのどこにも残らない');
   eq([c.code_mapped, c.dropped_fields], [0, 3], '置き換えは0・捨てた欄は3');
+}
+
+// ═══ C-5 日付の列に在る日は全部返す・読めなかった記号は unread（2026-11-10） ═══
+console.log('\nC-5 日付の列に在る日は全部返す・読めなかった記号は unread（2026-11-10）');
+{
+  /* 実際の日本の勤務表で、日がまるごと抜けた（何も無い日をモデルが飛ばし、辞書に無い漢字の記号の日を cleanDay が落としていた）。 */
+  const { roster: r, checks: c } = run([
+    D({ d: 1, code: 'OFF' }),
+    D({ d: 2 }),                                    // 何も印字されていない日
+    D({ d: 3, code: '研修' }),                       // 辞書に無い漢字だけ
+    D({ d: 4, code: '佐藤' }),                       // 苗字のような2字だけ
+    D({ d: 5, code: 'JOHN SMITH' }),                 // 名前の形だけ
+    D({ d: 6, legs: [L({ kind: 'operating' })] }),  // 中身の無い区間だけ
+  ]);
+  eq(r.days.map((d) => d.date), ['2026-10-01', '2026-10-02', '2026-10-03', '2026-10-04', '2026-10-05', '2026-10-06'],
+     '★日付の列に在る日は、何も載っていなくても・記号を捨てても返す（日を落とさない）');
+  eq(r.days.map((d) => [d.code, d.unread]), [['OFF', false], [null, false], [null, true], [null, true], [null, true], [null, false]],
+     '印字はあったが通らなかった記号は code:null・unread:true ／ 何も無い日は unread:false');
+  ok(!/研修|佐藤|JOHN|SMITH/.test(JSON.stringify(r)), '★捨てた字は答えのどこにも残らない（unread の印だけ）');
+  eq(r.days[1], { date: '2026-10-02', code: null, unread: false, d_on: null, d_off: null, d_off_day: 0, cut: null, page: 2, row: 1, legs: [] },
+     '何も無い日は日付だけ（ほかの欄は空）');
+  eq([c.days, c.unread_days, c.dropped_fields, c.dropped_legs, c.undated], [6, 3, 3, 1, 0], 'checks：6日・unread 3日・捨てた欄3・中身の無い区間1');
+}
+{
+  const { roster: r, checks: c } = run([D({ d: 7 }), D({ d: 7, code: 'SBY', d_on: '06:00' })]);
+  eq([r.days.map((d) => [d.date, d.code, d.d_on]), c.dup_days], [[['2026-10-07', 'SBY', '06:00']], 1],
+     '同じ日が2回（先が日付だけ・後に中身）→ 中身のほうを使う（日付だけの行で中身を消さない）');
+  const r2 = run([D({ d: 8, code: 'SBY' }), D({ d: 8 }), D({ d: 8, code: 'OFF' })]).roster;
+  eq(r2.days.map((d) => [d.date, d.code]), [['2026-10-08', 'SBY']], '先に中身があれば先のまま（後の日付だけ・後の中身では変えない）');
+}
+{
+  /* 区間ごとの時間の列が「TIME」と書かれた勤務表（実物）。block が全部 null になっていた。 */
+  const { roster: r, checks: c } = run([D({ d: 9, d_on: '06:10', d_off: '12:40', legs: [
+    L({ flight: 'ZJ301', from: 'HND', to: 'ITM', out: '07:00', in: '08:05', block: '01:05' }),
+    L({ flight: 'ZJ302', from: 'ITM', to: 'HND', out: '09:00', in: '10:10', block: '1:10' }),
+    L({ flight: 'ZJ303', from: 'HND', to: 'CTS', out: '11:00', in: '12:30', block: '' }),
+  ] })]);
+  eq(r.days[0].legs.map((l) => l.block), ['1:05', '1:10', null], 'TIME の列の値はそのまま block（H:MM にそろえるだけ・空は null で、発着から作らない）');
+  eq(c.dropped_fields, 0, '捨てた欄は0');
+  const P = systemPrompt();
+  ok(/labelled TIME, FLT TIME, BLK TIME, BLOCK, BLK, BLH, FLT, 時間, 乗務時間 or 飛行時間 — read it as\s+block/.test(P),
+     '★プロンプト：区間ごとの時間の列が TIME・FLT TIME・BLK TIME・BLOCK・BLK・BLH・FLT・時間・乗務時間・飛行時間 でも block として読ませる');
+  ok(/Do not compute it from out and in/.test(P), 'プロンプト：時間は印字のまま（発着から計算させない）のまま');
+  ok(/Return EVERY such date, even if nothing else is\s+printed for it/.test(P) && !/Skip dates with nothing on them/.test(P),
+     '★プロンプト：日付の列に在る日は全部返させる（「何も無い日は飛ばす」を消した）');
 }
 
 // ═══ C-4 場所と役割は5字まで（氏名・地名を通さない） ══════════════
@@ -412,6 +469,7 @@ console.log('\nG 頼み方（構造化出力・プロンプト）');
   ok(![...keys].some((k) => /name|crew|staff|employee|note|remark|comment|text|hotel|phone|mail|address/i.test(k)),
      `★人や自由な文を書ける欄が無い（欄：${[...keys].sort().join(',')}）`);
   ok(keys.has('cut') && keys.has('partial'), '切れた日（cut）・行（partial）の欄がある');
+  ok(!keys.has('unread'), '★unread は答えの形に無い（モデルに聞かない・sanitize が決める＝ヌル可の欄を増やさない）');
   ok(!/"(minimum|maximum|minLength|maxLength|multipleOf|pattern)"/.test(JSON.stringify(OUT_SCHEMA)), '構造化出力が受け付けない制約を使っていない');
   /* ★null と型の混ざる欄は API の上限（16）まで。超えると毎回 400 で断られる＝本番で1枚も読めない
      （2026-11-09 に 21 で全部断られた。db/eval-roster.mjs で発見）。区間の文字の欄は "" で「印字なし」。 */
@@ -553,6 +611,8 @@ console.log('\nJ 入口（ログイン・回数・読み取り）');
   eq(r.j.roster.days.map((d) => [d.date, d.code, d.legs.map((l) => [l.flight, l.role])]),
      [[`${ym}-01`, null, [['NH100', null]]], [`${ym}-02`, 'OFF', []]], '答え：日付は hint の月・氏名は欄ごと捨てる');
   ok(typeof r.j.checks.days === 'number' && r.j.checks.anchor === 'hint', 'checks を一緒に返す');
+  ok(r.j.roster.days[0].unread === true && r.j.roster.days[1].unread === false && r.j.checks.unread_days === 1,
+     '氏名の入った記号の日は unread:true（字は返さない）');
   ok(!/TANAKA|Smith/.test(JSON.stringify(r.j)), '★答えに氏名が残らない');
   ok(!JSON.stringify(r.j).includes(B64), '画像を返さない');
   ok(logs.length === 1 && logs[0].startsWith('pv-roster {') && !/TANAKA|Smith|SECRETIMAGE|NH100|HND/.test(logs.join('\n')),
@@ -587,6 +647,14 @@ console.log('\nJ 入口（ログイン・回数・読み取り）');
   ok(r.j.ok === false && r.j.reason === 'undated', '★月が決まらない行しか無い → undated（画面が「何月の勤務表ですか」と聞ける）');
   ai = answer([]); r = await post(req());
   ok(r.j.ok === false && r.j.reason === 'not_a_roster', '日が1つも無い → not_a_roster');
+  ai = answer([1, 2, 3].map((d) => ({ ...GOODDAYS[1], d, code: null, row: d })));
+  r = await post(req());
+  ok(r.j.ok === false && r.j.reason === 'not_a_roster',
+     '★日付だけの日しか無い画像 → not_a_roster（空の日で、保存済みの同じ日を入れ替えさせない）');
+  ai = answer([{ ...GOODDAYS[1], d: 1, code: null }, { ...GOODDAYS[1], d: 2, code: '研修' }]);
+  r = await post(req());
+  ok(r.j.ok === true && r.j.roster.days.length === 2 && r.j.roster.days[1].unread === true && !/研修/.test(JSON.stringify(r.j)),
+     '読めなかった記号の日が1つでもあれば読めたものとして返す（字は返さない）');
   ai = answer(GOODDAYS);
 
   r = await post({ report: { reason: 'image_decode', stage: 'file', kb: 512 } });

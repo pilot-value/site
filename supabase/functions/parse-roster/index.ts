@@ -19,6 +19,9 @@
       ★日付だけはこちらで決める：行に日しか無いとき、見出しの月・会員が選んだ月（hint）・
         前の画像の続き（prev_tail）・日の並び（…30, 31, 1 → 翌月）・曜日から1つに決まるときだけ置く。
         決まらない行は捨てて checks.undated に数える（AI に月を計算させない）。
+      ★日付の列に在る日は、何も載っていなくても返す（2026-11-10。日本の勤務表で日がまるごと抜けていた）。
+        記号が印字されていたが形・辞書に合わず捨てた日も、日付は残して unread:true を付ける（捨てた字はどこにも入れない）。
+        unread はモデルに聞かない（答えの形に欄を足さない）。sanitize が決める。
    5. 回数を数える所が動かないときは通さない（fail closed）。
 
    ── 費用（目安）──────────────────────────────────────────
@@ -47,7 +50,7 @@ const DENO = (globalThis as any).Deno;
 const env = (k: string, d = '') => (DENO?.env?.get(k) ?? d) as string;
 
 /* ★このファイルを直したら必ず上げる（貼った版を {ping:1} で読むための札）。 */
-export const BUILD = '2026-11-09';
+export const BUILD = '2026-11-10';
 
 const ANTHROPIC_API_KEY = env('ANTHROPIC_API_KEY');
 const SUPABASE_URL = env('SUPABASE_URL');
@@ -198,8 +201,10 @@ export type Leg = {
   out: string | null; in: string | null; in_day: number; block: string | null; role: string | null;
   kind: LegKind; partial: boolean; page: number; row: number | null;
 };
+/* unread … 記号が印字されていたが、形（RE.code）にも辞書（CJK_CODES・WORD_CODES）にも合わず捨てた日（既定 false）。
+   ★捨てた字はどこにも入れない（印だけ）。何も載っていない日は code:null・unread:false（日付だけ）。 */
 export type Day = {
-  date: string; code: string | null; d_on: string | null; d_off: string | null; d_off_day: number;
+  date: string; code: string | null; unread: boolean; d_on: string | null; d_off: string | null; d_off_day: number;
   cut: Cut | null; page: number; row: number | null; legs: Leg[];
 };
 export type Roster = {
@@ -212,9 +217,9 @@ export type Roster = {
 export type Checks = {
   days: number; legs: number; undated: number; dropped_days: number; dropped_legs: number; dropped_fields: number;
   dup_days: number; capped_days: number; capped_legs: number; crossing_fixed: number; outside_period: number;
-  code_mapped: number; cut_days: number; partial_legs: number; hint_mismatch: boolean; anchor: string | null;
+  code_mapped: number; cut_days: number; partial_legs: number; unread_days: number; hint_mismatch: boolean; anchor: string | null;
 };
-type Stats = Omit<Checks, 'days' | 'legs' | 'cut_days' | 'partial_legs' | 'hint_mismatch' | 'anchor'>;
+type Stats = Omit<Checks, 'days' | 'legs' | 'cut_days' | 'partial_legs' | 'unread_days' | 'hint_mismatch' | 'anchor'>;
 const newStats = (): Stats => ({
   undated: 0, dropped_days: 0, dropped_legs: 0, dropped_fields: 0, dup_days: 0,
   capped_days: 0, capped_legs: 0, crossing_fixed: 0, outside_period: 0, code_mapped: 0,
@@ -283,12 +288,14 @@ function cleanLeg(src: unknown, page: number, st: Stats): Leg | null {
   };
 }
 
-function cleanDay(src: Obj, date: string, page: number, st: Stats): Day | null {
+/* ★日は落とさない（2026-11-10）。何も載っていない日も日付だけで返す。記号を捨てた日は unread:true（字は残さない）。 */
+function cleanDay(src: Obj, date: string, page: number, st: Stats): Day {
   const cut = (CUTS as readonly string[]).includes(src.cut as string) ? src.cut as Cut : null;
   const dc = dayCodeOf(src.code);
   const code = dc.code;
   if (dc.mapped) st.code_mapped++;
-  if (code === null && given(src.code)) st.dropped_fields++;
+  const unread = code === null && given(src.code);
+  if (unread) st.dropped_fields++;
   const on = parseClock(src.d_on), off = parseClock(src.d_off);
   if (!on && given(src.d_on)) st.dropped_fields++;
   if (!off && given(src.d_off)) st.dropped_fields++;
@@ -302,13 +309,15 @@ function cleanDay(src: Obj, date: string, page: number, st: Stats): Day | null {
     leg.seq = legs.length + 1;          // 印字の順（答えの並び）で 1.. を振る
     legs.push(leg);
   }
-  /* 何も載っていない日は返さない（空の日で、前に読んだ同じ日を上書きさせない）。 */
-  if (!code && !on && !off && !legs.length) return null;
+  /* 何も載っていない日も返す（日付の列に在る＝その日は何も無い、という印字）。ページをつなぐとき、空の欄は
+     ほかの写りの値を消さない（pv-report-engine.js の mergePages は null の欄を選ばない）。 */
   return {
-    date, code, d_on: on ? on.t : null, d_off: off ? off.t : null, d_off_day: offDay,
+    date, code, unread, d_on: on ? on.t : null, d_off: off ? off.t : null, d_off_day: offDay,
     cut, page, row: intIn(src.row, 1, 999), legs,
   };
 }
+/* 日付だけの日（記号・時刻・区間が無く、捨てた記号も無い）。 */
+export const bareDay = (d: Day) => !d.code && !d.unread && !d.d_on && !d.d_off && !d.legs.length;
 
 /* 会員が選んだ月（hint）。変な値は無いものとして扱う（止めない）。 */
 export function hintOf(v: unknown, now: Date = new Date()): { year: number; month: number } | null {
@@ -326,10 +335,9 @@ export function sanitizeTail(v: unknown, now: Date = new Date()): Day[] {
     if (!isObj(src)) continue;
     const date = isoDate(src.date);
     if (!date || !inWindow(date, now)) continue;
-    const day = cleanDay(src, date, intIn(src.page, 1, MAX_PAGES) ?? 1, st);
-    if (day) out.push(day);
+    out.push(cleanDay(src, date, intIn(src.page, 1, MAX_PAGES) ?? 1, st));
   }
-  return out.slice(-MAX_TAIL);              // 検品を通った日のうち最後の2日
+  return out.slice(-MAX_TAIL);              // 日付の通った日のうち最後の2日（何も無い日も含む＝続きの日付の手がかり）
 }
 
 /* ────────────────────────────────────────────────────────────────
@@ -473,7 +481,9 @@ export type SanitizeCtx = {
   now?: Date;
 };
 
-/* モデルの答えは信用しない。決めた欄だけを、決めた形でだけ作り直す（ほかの鍵は1つも運ばない）。 */
+/* モデルの答えは信用しない。決めた欄だけを、決めた形でだけ作り直す（ほかの鍵は1つも運ばない）。
+   日の欄: date・code・unread（ここで決める。捨てた記号の印）・d_on・d_off・d_off_day・cut・page・row・legs。
+   日付が決まった日は、何も載っていなくても返す。 */
 export function sanitize(raw: Obj, ctx: SanitizeCtx): { roster: Roster; checks: Checks } {
   const now = ctx.now ?? new Date();
   const page = intIn(ctx.page, 1, MAX_PAGES) ?? 1;
@@ -507,9 +517,17 @@ export function sanitize(raw: Obj, ctx: SanitizeCtx): { roster: Roster; checks: 
     const has = given(d.code) || given(d.d_on) || given(d.d_off) || (Array.isArray(d.legs) && d.legs.length > 0);
     if (!date) { if (has) st.undated++; return; }
     if (!inWindow(date, now)) { if (has) st.dropped_days++; return; }
-    if (seen.has(date)) { if (has) st.dup_days++; return; }
+    if (seen.has(date)) {
+      if (has) st.dup_days++;
+      /* 先の写りが日付だけで、後の写りに中身があるときだけ後のものを使う（日付だけの行で中身を消さない）。 */
+      const at = days.findIndex((x) => x.date === date);
+      if (has && at >= 0 && bareDay(days[at])) {
+        const day = cleanDay(d, date, page, st);
+        if (!bareDay(day)) days[at] = day;
+      }
+      return;
+    }
     const day = cleanDay(d, date, page, st);
-    if (!day) return;
     if (days.length >= MAX_DAYS) { st.capped_days++; return; }
     seen.add(date);
     days.push(day);
@@ -525,6 +543,7 @@ export function sanitize(raw: Obj, ctx: SanitizeCtx): { roster: Roster; checks: 
     ...st,
     cut_days: days.filter((d) => d.cut !== null).length,
     partial_legs: days.reduce((a, d) => a + d.legs.filter((l) => l.partial).length, 0),
+    unread_days: days.filter((d) => d.unread).length,
     hint_mismatch: !!hintYm && days.length > 0 && !days.some((d) => d.date.slice(0, 7) === hintYm),
     anchor: res.anchor,
   };
@@ -628,8 +647,10 @@ export function systemPrompt(): string {
     '- time_ref: "utc" only if the times are explicitly labelled UTC / Z / GMT; "local" only if labelled',
     '  local / LT / LCL. Otherwise null. Never infer it from the airports.',
     '',
-    'Days — one entry per calendar date that is visible and has something on it (a duty code, duty times or',
-    'legs), in the order printed (for a calendar grid, read it row by row). Skip dates with nothing on them.',
+    'Days — one entry per calendar date that appears in the roster\'s date column or date grid for the period, in',
+    'the order printed (for a calendar grid, read it row by row). Return EVERY such date, even if nothing else is',
+    'printed for it: then code, d_on and d_off are null and legs is []. Never leave a date out because its code',
+    'is unfamiliar.',
     'Never output the same date twice; put all lines of a date into its one entry. Ignore totals rows,',
     'summaries, crew lists, hotel blocks, remarks and messages.',
     'Some reports print one COLUMN per date (the dates run across the top and each column is a vertical stack).',
@@ -674,8 +695,9 @@ export function systemPrompt(): string {
     '  A leg or activity that ends after midnight belongs to the date it starts: if its arrival / end is printed',
     '  on the next date\'s line, put the whole leg (that time, in_day 1) in the starting date\'s entry and do not',
     '  create a leg for it on the next date.',
-    '- block: the block / flight time printed for that leg (BLK, BLH, Block, FLT, 乗務時間) exactly as printed,',
-    '  e.g. "1:17". null if not printed. Do not compute it from out and in. If the block cell holds more than one',
+    '- block: the block / flight time printed for that leg, exactly as printed, e.g. "1:17". The per-leg time',
+    '  column may be labelled TIME, FLT TIME, BLK TIME, BLOCK, BLK, BLH, FLT, 時間, 乗務時間 or 飛行時間 — read it as',
+    '  block. null if not printed. Do not compute it from out and in. If the block cell holds more than one',
     '  value ("04:00 / 00:00" under "Block / CMT"), give only the block value.',
     '- role: the role / position / category code as printed (CAP, CPT, FO, F/O, SO, PIC, SIC, DH, DHD, DH1, POS,',
     '  EXT ...). null if none.',
@@ -990,7 +1012,8 @@ export async function handler(req: Request): Promise<Response> {
   }
   diag.days = out.checks.days;
   diag.legs = out.checks.legs;
-  if (!out.roster.days.length) {
+  /* 日付だけの日しか無い画像は勤務表として読めていない（保存すると、同じ日の中身を空の日で入れ替えてしまう）。 */
+  if (!out.roster.days.length || out.roster.days.every(bareDay)) {
     diag.stage = 'reply';
     /* 日はあったが月が決まらなかった → 画面は「何月の勤務表ですか」と聞き直せる。 */
     return out.checks.undated > 0 ? finish('undated', 'undated') : finish('not_a_roster', 'not_a_roster');

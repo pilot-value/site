@@ -269,52 +269,148 @@ button.rs-cell:active{transform:scale(.97)}
   border:1px solid var(--pv-green-line);font-size:.74rem;line-height:1.65;color:var(--pv-ink-2)}
 .ru-priv>span{flex:none;margin-top:2px;color:var(--pv-green-ink)}
 .ru-act{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
-.ru-prog{display:flex;align-items:center;gap:14px}
-.ru-prog-n{font-size:1.6rem;font-weight:800;letter-spacing:-.03em;color:var(--pv-ink);white-space:nowrap}
-.ru-bar{flex:1;height:8px;overflow:hidden;border-radius:999px;border:1px solid var(--pv-line);background:var(--pv-bg-sub)}
-.ru-bar i{display:block;height:100%;background:var(--pv-accent);transform-origin:left center;transition:transform .5s var(--pv-ease)}
-.ru-pgs{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0;padding:0;list-style:none}
-.ru-pg{position:relative;width:46px;height:60px;overflow:hidden;border-radius:7px;border:1px solid var(--pv-line);background:#fff;opacity:.5}
-.ru-pg img{display:block;width:100%;height:100%;object-fit:cover;object-position:top}
-.ru-pg span{position:absolute;right:3px;bottom:3px;display:flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 4px;
-  border-radius:8px;background:rgba(15,23,42,.72);color:#fff;font-size:.6rem;font-weight:800}
-.ru-pg.is-ok{opacity:1;border-color:var(--pv-accent)}
-.ru-pg.is-ok span{background:var(--pv-accent)}
-.ru-pg.is-now{opacity:1;border-color:var(--pv-accent);animation:ru-pulse 1.4s ease-in-out infinite}
-.ru-pg.is-ng{opacity:1;border-color:var(--rs-bad)}
-.ru-pg.is-ng span{background:var(--rs-bad)}
-@keyframes ru-pulse{50%{opacity:.6}}
-.ru-fail{margin-top:4px;padding:14px;border-radius:10px;background:var(--rs-bad-soft);border:1px solid var(--rs-bad-line)}
-.ru-fail b{font-size:.86rem;color:var(--pv-ink)}
-.ru-fail p{margin:4px 0 12px;font-size:.78rem;line-height:1.6;color:var(--pv-ink-2)}
 .ru-iss ul{margin:8px 0 12px;padding-left:18px;font-size:.78rem;line-height:1.7;color:var(--pv-ink-2)}
 .ru-iss li+li{margin-top:4px}
 .ru-more{list-style:none;margin-left:-18px;color:var(--pv-ink-3)}
 .ru-q{min-width:0;margin:18px 0 0;padding:0;border:0}
 .ru-q legend{margin-bottom:8px;padding:0;font-size:.82rem;font-weight:800;color:var(--pv-ink)}
-.ru-radios{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
-.ru-radio{position:relative;display:inline-flex}
-.ru-radio input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
-.ru-radio span{display:inline-flex;align-items:center;min-height:40px;padding:8px 14px;border-radius:10px;border:1px solid var(--pv-line);
-  background:var(--pv-surface);font-size:.8rem;font-weight:700;line-height:1.4;color:var(--pv-ink-2);transition:transform .2s var(--pv-ease)}
-.ru-radio:hover span{border-color:var(--pv-accent);color:var(--pv-ink)}
-.ru-radio input:focus-visible+span{outline:2px solid var(--pv-accent);outline-offset:2px}
-.ru-radio input:active+span{transform:translateY(1px)}
-.ru-radio input:checked+span{border-color:var(--pv-accent);background:var(--pv-accent-soft);color:var(--pv-accent-ink)}
-.ru-printed{font-size:.68rem;font-weight:700;color:var(--pv-ink-3)}
-.ru-codes{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr));gap:8px;margin-top:10px}
-.ru-code{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 6px 6px 8px;border-radius:10px;border:1px solid var(--pv-line-soft)}
-.ru-code .rs-sel{flex:1;min-width:0;max-width:200px;height:32px;font-size:.78rem}
-.ru-prev{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px;margin-top:14px;max-width:640px}
+.ru-printed{margin-left:6px;font-size:.68rem;font-weight:700;color:var(--pv-ink-3)}
+.ru-codes{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.ru-code{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:12px;border-radius:12px;border:1px solid var(--pv-line-soft)}
 .ru-prev-t{margin:0 0 6px;font-size:.74rem;font-weight:800;color:var(--pv-ink-2)}
 
+/* ── 押すだけのボタン（給与フォームの .qchip と同じ見た目・pay-report.css の写し）────────── */
+.ru-chips{display:flex;flex-wrap:wrap;gap:8px}
+.ru-chip{min-height:44px;padding:10px 16px;border-radius:999px;border:1px solid var(--pv-line);background:var(--pv-surface);
+  font:inherit;font-size:.9rem;font-weight:700;line-height:1.3;color:var(--pv-ink);cursor:pointer;box-shadow:var(--pv-shadow);
+  transition:transform .2s var(--pv-ease)}
+.ru-chip:hover{border-color:var(--pv-accent-line)}
+.ru-chip:active{transform:scale(.97)}
+.ru-chip:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.ru-chip.is-on{border-color:var(--pv-accent);background:var(--pv-accent-soft);color:var(--pv-accent-ink);box-shadow:none}
+.ru-chip:disabled{opacity:.45;cursor:default;transform:none}
+.ru-chips.is-sm{gap:6px}
+.ru-chips.is-sm .ru-chip{min-height:38px;padding:7px 13px;font-size:.8rem}
+
+/* ── 手順の番号・字のボタン ──────────────────────────────────── */
+.ru-stepn{display:block;margin:0 0 4px;font-size:.7rem;font-weight:800;letter-spacing:.08em;color:var(--pv-ink-3)}
+.ru-lead{margin:0 0 4px}
+.ru-tbtn{padding:6px 2px;border:0;border-radius:6px;background:none;color:var(--pv-ink-2);font:inherit;font-size:.8rem;font-weight:600;
+  cursor:pointer;transition:transform .2s var(--pv-ease)}
+.ru-tbtn:hover{color:var(--pv-accent-ink)}
+.ru-tbtn:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.ru-tbtn:active{transform:translateY(1px)}
+.ru-tbtn:disabled{opacity:.45;cursor:default;transform:none}
+
+/* ── 読み取りに失敗したページ（明細の失敗の札と同じ形・赤で叱らない。勧める道だけ緑）──────── */
+.ru-failc{padding:12px 14px;border-radius:14px;background:var(--pv-surface);border:1px solid var(--pv-line);color:var(--pv-ink);
+  box-shadow:0 1px 2px rgba(15,23,42,.04),0 10px 26px -18px rgba(6,117,99,.30);animation:psRise .32s var(--pv-ease) both}
+.ru-failc-row{display:flex;align-items:flex-start;gap:12px}
+.ru-failc-main{flex:1 1 auto;min-width:0}
+.ru-failc-th{flex:none;width:38px;height:48px;overflow:hidden;border-radius:7px;border:1px solid var(--pv-line);background:var(--pv-bg-sub)}
+.ru-failc-th img{display:block;width:100%;height:100%;object-fit:cover;object-position:top center}
+.ru-failc-t{display:block;padding-top:2px;font-size:.92rem;font-weight:600;letter-spacing:-.01em;line-height:1.4;color:var(--pv-ink)}
+.ru-failc-m{margin:3px 0 0;font-size:.78rem;line-height:1.6;color:var(--pv-ink-2)}
+.ru-failc-bar{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;margin:12px 0 2px}
+@media (min-width:481px){ .ru-failc.has-th .ru-failc-bar{padding-left:50px} }
+
+/* ── 確かめて直す ─────────────────────────────────────────── */
+.ru-sum{margin:0;display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:.88rem;font-weight:700;line-height:1.6;color:var(--pv-ink-2)}
+.ru-sum .is-miss{padding:1px 9px;border-radius:999px;border:1px solid var(--pv-gold-line);background:var(--pv-gold-soft);color:var(--pv-gold-ink)}
+.ru-cal+.ru-cal{margin-top:20px}
+.ru-cals .ru-lead{margin-bottom:12px}
+.rs-cell.is-ask{border-style:dashed;border-color:var(--pv-gold-line);background:var(--pv-gold-soft)}
+.rs-cell.is-ask .rs-c-m{color:var(--pv-gold-ink)}
+.rs-cell.has-iss::after{content:"";position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--pv-gold)}
+.rs-cell.is-sel.has-iss::after{background:var(--pv-surface)}
+.ru-miss-l{margin:0;padding:0;list-style:none}
+.ru-miss-r{display:flex;flex-direction:column;gap:8px;padding:12px 0;border-top:1px solid var(--pv-line-soft)}
+.ru-miss-r:first-child{padding-top:2px;border-top:0}
+.ru-miss-d{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px}
+.ru-miss-d b{font-size:.86rem;font-weight:800;color:var(--pv-ink)}
+.ru-miss-d span{font-size:.74rem;color:var(--pv-ink-3)}
+
+/* ── 1日を直す画面 ─────────────────────────────────────────── */
+.re-f{display:flex;flex-direction:column;gap:6px;min-width:0}
+.re-f>label{font-size:.74rem;font-weight:800;color:var(--pv-ink-2)}
+.re-in{width:100%;min-width:0;height:44px;font-variant-numeric:tabular-nums}
+.re-in.is-caps{text-transform:uppercase}
+.re-in::placeholder{color:var(--pv-ink-3);text-transform:none}
+.re-in:hover{border-color:var(--pv-ink-3)}
+.re-in.is-bad{border-color:var(--rs-bad);background:var(--rs-bad-soft)}
+.re-err{font-size:.72rem;font-weight:700;line-height:1.5;color:var(--rs-bad)}
+.re-codes{margin-top:10px}
+.re-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+.re-tm{display:flex;align-items:center;gap:6px}
+.re-tm .re-in{flex:1 1 auto}
+.re-tm .ru-chip.re-dt{flex:none;min-height:44px;padding:8px 12px;font-size:.78rem;box-shadow:none}
+.re-ll{margin:0;padding:0;list-style:none}
+.re-leg{padding:16px 0;border-top:1px solid var(--pv-line-soft)}
+.re-leg:first-child{padding-top:0;border-top:0}
+.re-leg-h{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.re-leg-h b{font-size:.84rem;font-weight:800;color:var(--pv-ink)}
+.re-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
+@container (min-width:600px){ .re-grid{grid-template-columns:repeat(4,minmax(0,1fr))} }
+.re-add{margin-top:14px}
+.re-del{align-self:flex-start;color:var(--rs-bad)}
+.re-del:hover{color:var(--rs-bad)}
+.re-delq{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px;border-radius:10px;background:var(--rs-bad-soft);border:1px solid var(--rs-bad-line)}
+.re-delq p{flex-basis:100%;margin:0;font-size:.78rem;line-height:1.6;color:var(--pv-ink-2)}
+.rs-edit{margin:14px 12px 0 0}
+.rs-kpi-s.is-miss{color:var(--pv-gold-ink)}
+
+/* ════ 読み取り中の画面（payslip.js と同じ形・pay-report.css の写し・2026-11-09）════
+   プロフィールの画面は pay-report.css を読まないので、同じ名前・同じトークンのままここに置く（片方だけ直さない）。
+   ★画面全体を面の色で覆い、0〜100% の輪と3つの段だけ。下に小さく「止める」（字のボタン）。 */
+.ps-state{display:block}
+html.ps-load-lock,html.ps-load-lock body{overflow:hidden}
+.ps-load{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;
+  padding:24px;background:var(--pv-surface);color:var(--pv-ink);
+  animation:psFadeIn .22s var(--pv-ease) both}
+.ps-load:focus{outline:none}
+.ps-load.is-out{pointer-events:none;animation:psFadeOut .24s var(--pv-ease) both}
+/* ↑ ここだけ写しに足した：消えていくあいだに押した字が覆いに吸われない／psFadeIn の both が opacity:1 を持ち続けて
+     .is-out の遷移が効かない（明細の画面も同じ）ので、消えるほうも keyframes で */
+@keyframes psFadeOut{from{opacity:1}to{opacity:0}}
+.ps-load.is-out{opacity:0;transition:opacity .24s var(--pv-ease)}
+@keyframes psFadeIn{from{opacity:0}to{opacity:1}}
+.ps-load-in{width:100%;max-width:300px;display:flex;flex-direction:column;align-items:center;text-align:center;
+  animation:psRise .4s var(--pv-ease) both}
+.ps-ring{position:relative;width:112px;height:112px;margin:0 0 20px}
+.ps-ring svg{display:block;width:100%;height:100%}
+.ps-ring-bg{fill:none;stroke:var(--pv-line);stroke-width:8}
+.ps-ring-fg{fill:none;stroke:var(--pv-accent);stroke-width:8;stroke-linecap:round}
+.ps-ring-n{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--pv-ink)}
+.ps-ring-n small{margin-left:1px;font-size:.55em;font-weight:700;color:var(--pv-ink-2)}
+@keyframes psRise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.ps-load-t{margin:0 0 20px;font-size:1.15rem;font-weight:700;letter-spacing:-.02em;line-height:1.4;color:var(--pv-ink)}
+.ps-load .ps-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px;text-align:left}
+.ps-load .ps-steps li{display:flex;align-items:center;gap:12px;font-size:.95rem;line-height:1.4;color:var(--pv-ink-3);
+  transition:color .25s var(--pv-ease)}
+.ps-load .ps-steps li[data-s="active"]{color:var(--pv-ink)}
+.ps-load .ps-steps li[data-s="done"]{color:var(--pv-ink-2)}
+.ps-step-dot{position:relative;flex:none;box-sizing:border-box;width:20px;height:20px;border-radius:999px;border:1.5px solid var(--pv-line)}
+li[data-s="active"] .ps-step-dot{border:2px solid var(--pv-accent)}
+li[data-s="done"] .ps-step-dot{border-color:var(--pv-accent);background:var(--pv-accent);animation:psPop .3s var(--pv-ease) both}
+li[data-s="done"] .ps-step-dot::after{content:"";position:absolute;left:6px;top:3px;width:5px;height:9px;
+  border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+@keyframes psPop{from{transform:scale(.6)}to{transform:none}}
+.ru-stop{margin-top:28px;padding:6px 4px;border:0;border-radius:6px;background:none;color:var(--pv-ink-3);font:inherit;font-size:.82rem;font-weight:600;
+  cursor:pointer;transition:transform .2s var(--pv-ease)}
+.ru-stop:hover{color:var(--pv-ink);text-decoration:underline;text-underline-offset:3px}
+.ru-stop:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.ru-stop:active{transform:translateY(1px)}
+
 @media (prefers-reduced-motion:reduce){
-  .rs-ib,.rs-btn,.rs-link,.rs-entry,.rs-cell,.ru-radio span,.ru-bar i{transition:none}
-  .ru-spin,.ru-pg.is-now{animation:none}
+  .rs-ib,.rs-btn,.rs-link,.rs-entry,.rs-cell,.ru-chip,.ru-tbtn,.ru-stop{transition:none}
+  .ru-spin{animation:none}
+  .ps-load,.ps-load.is-out,.ps-load-in,.ru-failc,li[data-s="done"] .ps-step-dot{animation:none}
+  .ps-load.is-out{transition:none}
 }
 .rs-tool svg{flex:none}
 @media print{
-  .rs-hd-r,.rs-resel,.rs-docs .rs-btn,.rs-tip{display:none !important}
+  .rs-hd-r,.rs-resel,.rs-edit,.rs-docs .rs-btn,.rs-tip{display:none !important}
   .rs-card,.rs-kpis{box-shadow:none}
   /* 表示中のタブの印刷（#pv-print の写し）：明るい面の色に固定 */
   #pv-print .rs{--rs-blk:#3d9bff;--rs-dh:rgba(61,155,255,.42);--rs-vac:#8b74e8;--rs-vac-soft:rgba(139,116,232,.10);--rs-vac-ink:#5b45c4}

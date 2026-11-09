@@ -17,6 +17,8 @@
    ・お金は1つも出さない（通貨の切り替えは関係しない）。
    ・タブを移っても、選んだ月・日はそのまま。隠れているあいだは図を描かない（見えたときに描き直す）。
    ・取り込み（画像・PDF → 読み取り → 確かめる → 保存）は roster-upload.js（押したときだけ読む）。
+   ・保存したあとに1日を直す・入れる・消す画面も roster-upload.js の editDay（日の板の「この日を直す」・保存は edit_roster_day）。
+   ・分からない値を 0 で出さない（便の時間が1つも分からない月は「—」と「便の時間が無い便 N」）。空欄の日は記録の無い日として出す。
 
    window.PVRoster = { mount(el, ctx), show(), hide(), redraw(), open(o), current(), _（取り込みの画面が借りる道具） }
      ctx = { sb, reports（my_pay_reports の行）, urls: { upload, airlines } }
@@ -34,15 +36,15 @@
 
   var T = {
     ja: {
-      eyebrow: 'YOUR ROSTER',
+      eyebrow: 'YOUR SCHEDULE',
       monthT: '{y}年{n}月', monthDuty: '{t}の勤務',
       mon: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
       monS: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
       wd: ['月', '火', '水', '木', '金', '土', '日'],
       dayT: '{n}月{d}日（{w}）',
       prev: '前の月', next: '次の月', monthSel: '表示する月',
-      add: 'ロスターを追加',
-      upT: 'ロスターをアップロード',
+      add: 'スケジュールを追加',
+      upT: 'スケジュールをアップロード',
       upS: 'スクリーンショット・PDF を何枚でも。重なっていても1日1回に数えます。',
       upF: 'PDF · PNG · JPG · WebP',
       emptyS: '勤務の時間と便が月ごとにまとまり、給与と並べて見られるようになります。',
@@ -70,19 +72,24 @@
       chartEy: 'DUTY & BLOCK TIME', chartH: '日別の勤務時間',
       chartS: '原本に書かれた時刻から',
       tipDuty: '勤務', tipDh: 'DH',
-      kindActual: '実績ロスター', kindPlanned: '予定ロスター',
+      kindActual: '実績のスケジュール', kindPlanned: '予定のスケジュール',
       docsH: '提出資料',
       docPages: '{n}ページ', docUse: 'いま使っている日 {o} / {n}日', docAdded: '{d} に追加',
       del: '削除', delQ: 'この資料と、この資料から入った {n}日ぶんの勤務を消します。', delYes: '消す', delNo: 'やめる',
       delDone: '消しました。', delErr: '消せませんでした。時間をおいてもう一度お試しください。',
       docsNote: '画像は保存していません。残っているのは読み取った日付・空港・時刻だけ（便名は残しません）で、見られるのはあなただけです。2年たった日は月の合計だけになります。',
       saved: '{n}日ぶんの勤務を保存しました。', savedDup: 'この資料はもう取り込み済みです。',
-      notReady: '勤務ロスターはまだ使えません。準備ができしだい、ここから取り込めます。',
-      err: '勤務ロスターを読み込めませんでした。時間をおいて開き直してください。',
+      notReady: 'スケジュールはまだ使えません。準備ができしだい、ここから取り込めます。',
+      err: 'スケジュールを読み込めませんでした。時間をおいて開き直してください。',
       upErr: '取り込みの画面を読み込めませんでした。時間をおいてもう一度お試しください。',
       noMonth: 'この月の記録はありません。',
       /* CSV と印刷（表示中の月だけ） */
-      csvA: 'CSVで保存（{t}）', print: '印刷', printA: '{t}の勤務を印刷', csvRange: '範囲', csvRoster: 'ロスター {m}'
+      csvA: 'CSVで保存（{t}）', print: '印刷', printA: '{t}の勤務を印刷', csvRange: '範囲', csvRoster: 'スケジュール {m}',
+      /* 保存したあとに直す（2026-11-09） */
+      editDay: 'この日を直す', addDay: 'この日を入れる', editLimit: '今日はこれ以上直せません。明日また続きをどうぞ。', editOld: '2年より前の日は直せません。', docManual: '手で入れた日', kNoTime: '便の時間が無い便 {n}',
+      editDone: 'この日を直しました。', delDayDone: 'この日を消しました。',
+      editLogin: 'ログインが切れました。ページを開き直してログインしてください。', editBad: '入力の形が正しくありません。',
+      editNotReady: 'まだ使えません。', editErr: '保存できませんでした。時間をおいてもう一度お試しください。'
     },
     en: {
       eyebrow: 'YOUR ROSTER',
@@ -132,7 +139,11 @@
       err: 'Could not load your roster. Please try again in a moment.',
       upErr: 'Could not load the import screen. Please try again in a moment.',
       noMonth: 'Nothing recorded for this month.',
-      csvA: 'Save {t} as CSV', print: 'Print', printA: 'Print duty in {t}', csvRange: 'Range', csvRoster: 'roster month {m}'
+      csvA: 'Save {t} as CSV', print: 'Print', printA: 'Print duty in {t}', csvRange: 'Range', csvRoster: 'roster month {m}',
+      editDay: 'Edit this day', addDay: 'Add this day', editLimit: 'You can’t make more edits today. Please continue tomorrow.', editOld: 'Days older than two years can’t be edited.', docManual: 'Days you entered', kNoTime: '{n} flights without a time',
+      editDone: 'Day updated.', delDayDone: 'Day deleted.',
+      editLogin: 'Your login has expired. Reload the page and log in again.', editBad: 'The entry is not in a valid shape.',
+      editNotReady: 'Not available yet.', editErr: 'Could not save. Please try again in a moment.'
     }, /*PV-MSG:es*/ es: {
       eyebrow: 'TU PROGRAMACIÓN',
       monthT: '{M} {y}', monthDuty: 'Servicios · {t}',
@@ -181,10 +192,17 @@
       err: 'No se pudo cargar tu programación. Inténtalo de nuevo en un momento.',
       upErr: 'No se pudo cargar la pantalla de importación. Inténtalo de nuevo en un momento.',
       noMonth: 'No hay nada registrado para este mes.',
-      csvA: 'Guardar {t} como CSV', print: 'Imprimir', printA: 'Imprimir los servicios de {t}', csvRange: 'Rango', csvRoster: 'mes de programación {m}'
+      csvA: 'Guardar {t} como CSV', print: 'Imprimir', printA: 'Imprimir los servicios de {t}', csvRange: 'Rango', csvRoster: 'mes de programación {m}',
+      editDay: 'Corregir este día', addDay: 'Agregar este día', editLimit: 'Hoy ya no puedes hacer más correcciones. Continúa mañana.', editOld: 'Los días de hace más de dos años no se pueden corregir.', docManual: 'Días que ingresaste', kNoTime: '{n} vuelos sin tiempo',
+      editDone: 'Día actualizado.', delDayDone: 'Día eliminado.',
+      editLogin: 'Tu sesión expiró. Vuelve a cargar la página e inicia sesión de nuevo.', editBad: 'Los datos no tienen un formato válido.',
+      editNotReady: 'Aún no está disponible.', editErr: 'No se pudo guardar. Inténtalo de nuevo en un momento.'
     } /*/PV-MSG:es*/
   };
+  var T_ALL = T;
   T = (w.PV_T && w.PV_T(T, L)) || T[L];
+  /* 足したばかりの文言が es の辞書にまだ無いあいだは英語で出す（gen-msg.mjs が埋めるまで） */
+  if (T === T_ALL.es) Object.keys(T_ALL.en).forEach(function (k) { if (T[k] == null) T[k] = T_ALL.en[k]; });
 
   /* ── 小道具 ─────────────────────────────────────────────── */
   function esc(s) {
@@ -235,7 +253,9 @@
   }
 
   /* ── カレンダー（取り込みの確認画面も借りる）──────────────────
-     byDate: 日付 → rosterMonths の日の記録。o = { sel, interactive, mini } */
+     byDate: 日付 → rosterMonths の日の記録。o = { sel, interactive, mini, edit, ask, flag, askLabel }
+       edit … 押すと直す画面へ（選ぶ札ではないので aria-pressed を付けない）
+       ask  … 日付 → 1：読めなかった日（点線に「?」）／flag … 日付 → 1：確かめてほしいところがある日（琥珀の点） */
   function cellParts(x) {
     if (!x) return { k: 'is-none', main: '', sub: '' };
     var c = x.cls, rt = routeOf(x);
@@ -258,16 +278,19 @@
     T.wd.forEach(function (x) { h += '<span class="rs-cal-w">' + esc(x) + '</span>'; });
     for (var i = 0; i < lead; i++) h += '<span class="rs-cell is-pad"></span>';
     for (var dd = 1; dd <= dim; dd++) {
-      var date = ym + '-' + pad2(dd), x = byDate[date], p = cellParts(x), sel = o.sel === date;
+      var date = ym + '-' + pad2(dd), x = byDate[date], p = cellParts(x), sel = o.sel === date, ask = !x && !!(o.ask && o.ask[date]);
+      if (ask) p = { k: 'is-none is-ask', main: '?', sub: '' };
+      var k = p.k + (o.flag && o.flag[date] ? ' has-iss' : '');
       var inner = '<span class="rs-c-d">' + dd + '</span>' +
         (p.main ? '<span class="rs-c-m">' + esc(p.main) + '</span>' : '') +
         (p.sub && !o.mini ? '<span class="rs-c-s">' + (p.subH || esc(p.sub)) + (p.more ? '<span class="rs-c-x"> +' + p.more + '</span>' : '') + '</span>' : '');
       if (o.interactive) {
-        var lab = dayTitle(date) + (p.main ? ' · ' + p.main : '') + (p.sub ? ' · ' + p.sub + (p.more ? ' +' + p.more : '') : '');
-        h += '<button type="button" class="rs-cell ' + p.k + (sel ? ' is-sel' : '') + '" data-date="' + date + '" aria-pressed="' + sel +
-          '" tabindex="' + (sel ? 0 : -1) + '" aria-label="' + esc(lab) + '">' + inner + '</button>';
+        var lab = ask ? dayTitle(date) + (o.askLabel ? ' · ' + o.askLabel : '')
+          : dayTitle(date) + (p.main ? ' · ' + p.main : '') + (p.sub ? ' · ' + p.sub + (p.more ? ' +' + p.more : '') : '');
+        h += '<button type="button" class="rs-cell ' + k + (sel ? ' is-sel' : '') + '" data-date="' + date + '"' + (o.edit ? '' : ' aria-pressed="' + sel + '"') +
+          ' tabindex="' + ((sel || (!o.sel && dd === 1)) ? 0 : -1) + '" aria-label="' + esc(lab) + '">' + inner + '</button>';
       } else {
-        h += '<span class="rs-cell ' + p.k + '">' + inner + '</span>';
+        h += '<span class="rs-cell ' + k + '">' + inner + '</span>';
       }
     }
     return h + '</div>';
@@ -363,6 +386,7 @@
   var ICON_DOC = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>';
   var ICON_DL = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>';
   var ICON_PR = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/></svg>';
+  var ICON_EDIT = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
   var ICON_PLUS = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
 
   function entryHTML(disabled) {
@@ -415,13 +439,20 @@
       '</div></div>';
   }
   /* その月の数字。月の全部がそろっていれば月の値、欠けていれば分かった分を「N日ぶん」と断って出す */
+  /* ★分からない値を 0:00 にしない（2026-11-09 オーナー「便の時間が 0:00」── 全部の便の時間が null だった）。
+       時間の分かる便が1つも無ければ「—」、一部だけなら分かった分の合計。どちらも「便の時間が無い便 N」を添える */
   function kpiHTML(m) {
     var P = m.partial, part = !m.complete;
     var v = function (full, known) { return full != null ? full : known; };
-    var op = v(m.blockMin.operating, P.blockMin.operating), dh = v(m.blockMin.deadhead, P.blockMin.deadhead);
+    var g = m.gaps || {}, gb = g.block || {};
+    var opN = P.sectors || 0, dhN = P.dhLegs || 0, opGap = gb.operating || 0, dhGap = gb.deadhead || 0;
+    var op = (opN && opGap >= opN) ? null : v(m.blockMin.operating, P.blockMin.operating);
+    var dh = (dhN && dhGap >= dhN) ? null : v(m.blockMin.deadhead, P.blockMin.deadhead);
+    var dutyN = P.dutyDays || 0, duty = (dutyN && (g.duty || 0) >= dutyN) ? null : v(m.dutyMin, P.dutyMin);
+    var noTime = opGap + dhGap;
     var tiles = [
-      { k: T.kDuty, b: hm(v(m.dutyMin, P.dutyMin)), main: true },
-      { k: timeLabel(S.profile), b: hm(op), s: dh ? T.kDh + ' ' + hm(dh) : '' },
+      { k: T.kDuty, b: hm(duty), main: true },
+      { k: timeLabel(S.profile), b: hm(op), s: dhN ? T.kDh + ' ' + hm(dh) : '', n: noTime ? fill(T.kNoTime, { n: noTime }) : '' },
       { k: T.kDays, b: String(v(m.dutyDays, P.dutyDays)), u: T.uDays },
       { k: T.kSectors, b: String(v(m.sectors, P.sectors)), u: T.uLegs, s: v(m.dhLegs, P.dhLegs) ? T.kDh + ' ' + v(m.dhLegs, P.dhLegs) : '' },
       { k: T.kOff + ' / ' + T.kVac, b: v(m.offDays, P.offDays) + ' / ' + v(m.vacDays, P.vacDays), u: T.uDays }
@@ -431,7 +462,8 @@
     return '<div class="rs-kpis">' + tiles.map(function (t) {
       return '<div class="rs-kpi' + (t.main ? ' is-main' : '') + '"><span class="rs-kpi-k">' + esc(t.k) + '</span>' +
         '<b class="rs-kpi-v">' + esc(t.b) + (t.u ? '<small>' + esc(t.u) + '</small>' : '') + '</b>' +
-        (t.s ? '<span class="rs-kpi-s">' + esc(t.s) + '</span>' : '') + '</div>';
+        (t.s ? '<span class="rs-kpi-s">' + esc(t.s) + '</span>' : '') +
+        (t.n ? '<span class="rs-kpi-s is-miss">' + esc(t.n) + '</span>' : '') + '</div>';
     }).join('') + (note ? '<p class="rs-kpi-n">' + esc(note) + '</p>' : '') + '</div>';
   }
   function legHTML(l) {
@@ -459,7 +491,7 @@
     var n = x ? (x.legs || []).length : 0;
     var h = '<div class="rs-day-hd"><div><h3 class="rs-day-t">' + esc(dayTitle(date)) + '</h3>' +
       (n ? '<p class="rs-day-s">' + esc(fill(T.nItems, { n: n }) + ' · ' + T.asPrinted) + '</p>' : '') + '</div>' + kindPill + '</div>';
-    if (!x) return h + '<p class="rs-muted">' + esc(T.noRec) + '</p>' + reselect();
+    if (!x) return h + '<p class="rs-muted">' + esc(T.noRec) + '</p>' + editBtn(date, false) + reselect();
     var codeLine = x.code ? '<p class="rs-day-code"><span class="rs-tag">' + esc(x.code) + '</span>' + (x.cls ? '<span>' + esc(T.cls[x.cls]) + '</span>' : '') + '</p>' : '';
     if (x.dOn || x.dOff) {
       h += '<div class="rs-don"><div><b class="rs-big">' + esc(x.dOn || '—') + '</b><span>' + esc(T.dOn) + '</span></div>' +
@@ -478,7 +510,11 @@
     } else if (!x.dOn && !x.dOff && !x.code) {
       h += '<p class="rs-muted">' + esc(T.noDuty) + '</p>';
     }
-    return h + reselect();
+    return h + editBtn(date, true) + reselect();
+  }
+  /* 読み取りは完璧にならない ── 保存したあとも1日ずつ直せる（記録の無い日は入れられる） */
+  function editBtn(date, has) {
+    return '<button type="button" class="rs-btn is-ghost is-sm rs-edit" data-act="edit" data-id="' + esc(date) + '">' + ICON_EDIT + esc(has ? T.editDay : T.addDay) + '</button>';
   }
   function reselect() { return '<button type="button" class="rs-link rs-resel" data-act="reselect">' + esc(T.reselect) + '</button>'; }
 
@@ -493,7 +529,7 @@
             '<button type="button" class="rs-btn is-ghost" data-act="del-no">' + esc(T.delNo) + '</button></div>'
         : '';
       return '<li class="rs-doc"><span class="rs-doc-i" aria-hidden="true">' + ICON_DOC + '</span>' +
-        '<div class="rs-doc-b"><b>' + range + '</b><span>' + esc(fill(T.docPages, { n: dc.pages }) + ' · ' +
+        '<div class="rs-doc-b"><b>' + range + '</b><span>' + esc((dc.manual ? T.docManual : fill(T.docPages, { n: dc.pages })) + ' · ' +
           fill(T.docUse, { o: dc.days_owned, n: dc.days }) + ' · ' + fill(T.docAdded, { d: String(dc.created_at || '').slice(0, 10) })) + '</span></div>' +
         (S.confirmDel === dc.id ? '' : '<button type="button" class="rs-btn is-ghost is-sm" data-act="del" data-id="' + esc(dc.id) + '">' + esc(T.del) + '</button>') +
         conf + '</li>';
@@ -505,7 +541,7 @@
 
   function render() {
     if (!S.el) return;
-    if (S.view === 'upload') return;            // 取り込みの画面のあいだは触らない
+    if (S.view !== 'roster') return;            // 取り込み・直す画面のあいだは触らない
     var main = S.el.querySelector('.rs-main');
     var h = '';
     if (S.loading && !S.days.length && !S.docs.length) {
@@ -669,6 +705,7 @@
     else if (act === 'del') { S.confirmDel = t.getAttribute('data-id'); render(); var y = S.el.querySelector('[data-act="del-no"]'); if (y) y.focus(); }
     else if (act === 'del-no') { var id0 = S.confirmDel; S.confirmDel = null; render(); var b = S.el.querySelector('[data-act="del"][data-id="' + id0 + '"]'); if (b) b.focus(); }
     else if (act === 'del-yes') delDoc(t.getAttribute('data-id'));
+    else if (act === 'edit') openEdit(t.getAttribute('data-id'));
   }
   function onChange(e) {
     var t = e.target, act = t.getAttribute && t.getAttribute('data-act');
@@ -775,13 +812,87 @@
       S.flash = { t: res.dup ? T.savedDup : fill(T.saved, { n: res.days }) };
       if (res.ym) { S.ym = res.ym; S.date = null; }
       load().then(function () {
-        if (res.ym && S.byYm[res.ym]) { S.ym = res.ym; S.date = defaultDate(res.ym); render(); }
+        /* ★もう一度描かない（load の終わりの描画で「保存しました」を出したところ。描き直すと知らせが消える）。
+             S.ym は load の前に入れてあり、その月があれば compute() が残す。日だけその月の既定の日にそろえる */
+        if (res.ym && S.byYm[res.ym] && S.ym === res.ym && !S.date) { S.date = defaultDate(res.ym); select(S.date); }
         announce();
       });
     } else {
       render();
     }
     main.scrollIntoView({ behavior: 'auto', block: 'start' });
+  }
+
+  /* ── 保存したあとに1日を直す（2026-11-09 オーナー「読み取りは完璧にならない。保存の前も後も直す画面を」）──
+     画面は roster-upload.js の editDay（押したときだけ読む・取り込みの確認と同じ部品）。保存は edit_roster_day の1本：
+       { p_airline, p_airline_other, p: { date, day: { code, d_on, d_off, d_off_day, legs:[{ seq, from, to, loc, out, in, in_day, block, role, kind }] } | null } }
+     day: null はその日を消す。うまくいったら読み直して 'pv-roster-change'（delDoc と同じ流れ）。 */
+  function rawDay(date) { return S.days.filter(function (x) { return x && x.date === date; })[0] || null; }
+  function rosterCodes() {
+    var n = {};
+    S.days.forEach(function (x) { if (x && x.code) n[x.code] = (n[x.code] || 0) + 1; });
+    return Object.keys(n).sort(function (a, b) { return (n[b] - n[a]) || (a < b ? -1 : 1); }).slice(0, 8);
+  }
+  function editErr(e) {
+    var c = e && e.code;
+    if (c === '42501') return T.editLogin;
+    if (c === '54000') return T.editLimit;                          // 1日200回まで
+    if (c === '22023' && /2年/.test(String((e && e.message) || ''))) return T.editOld;   // 2年より前の日（月の合計にまとめた後）
+    if (c === '22023') return T.editBad;
+    if (missingFn(e)) return T.editNotReady;
+    return T.editErr;
+  }
+  function editRpc(date, day) {
+    var p = { date: date, day: day ? {
+      code: day.code || null, d_on: day.d_on || null, d_off: day.d_off || null, d_off_day: day.d_off_day || 0,
+      legs: (day.legs || []).map(function (l) {
+        return { seq: l.seq, from: l.from || null, to: l.to || null, loc: l.loc || null, out: l.out || null, in: l.in || null,
+                 in_day: l.in_day || 0, block: l.block || null, role: l.role || null, kind: l.kind || 'unknown' };
+      }) } : null };
+    return new Promise(function (ok, ng) {
+      Promise.resolve(S.sb.rpc('edit_roster_day', { p_airline: S.airline, p_airline_other: S.other, p: p })).then(function (r) {
+        if (r && !r.error && r.data && r.data.ok) {
+          ok();
+          S.flash = { t: day ? T.editDone : T.delDayDone };
+          closeEdit(date, true);
+          return;
+        }
+        ng(editErr(r && r.error));
+      }, function (e) { ng(editErr(e)); });
+    });
+  }
+  function openEdit(date) {
+    if (S.busy || !S.airline || !date || S.view !== 'roster') return;
+    loadUpload().then(function (ok) {
+      if (!ok || !w.PVRosterUpload || !w.PVRosterUpload.editDay) { S.flash = { t: T.upErr, bad: true }; render(); return; }
+      if (S.view !== 'roster') return;
+      var raw = rawDay(date), main = S.el.querySelector('.rs-main'), box = S.el.querySelector('.rs-upbox');
+      S.view = 'edit';
+      main.hidden = true; box.hidden = false;
+      w.PVRosterUpload.editDay(box, raw ? JSON.parse(JSON.stringify(raw)) : { date: date, code: null, d_on: null, d_off: null, d_off_day: 0, legs: [] }, {
+        mode: 'saved', codes: rosterCodes(),
+        onSave: function (day) { return editRpc(date, day); },
+        onDelete: raw ? function () { return editRpc(date, null); } : null,
+        onCancel: function () { closeEdit(date, false); }
+      });
+      box.scrollIntoView({ behavior: 'auto', block: 'start' });
+    });
+  }
+  function closeEdit(date, saved) {
+    S.view = 'roster';
+    var main = S.el.querySelector('.rs-main'), box = S.el.querySelector('.rs-upbox'), ym = date.slice(0, 7);
+    box.hidden = true; box.innerHTML = '';
+    main.hidden = false;
+    var back = function () {
+      var b = S.el.querySelector('[data-act="edit"][data-id="' + date + '"]') || S.el.querySelector('.rs-day');
+      if (b) { if (b.classList.contains('rs-day')) b.tabIndex = -1; b.focus({ preventScroll: true }); b.scrollIntoView({ behavior: 'auto', block: 'center' }); }
+    };
+    if (!saved) { render(); back(); return; }
+    S.ym = ym; S.date = date;              // 読み直しの compute() はこの月・この日を残す（もう一度描くと、知らせの1行が消える）
+    load().then(function () {
+      announce();
+      back();
+    });
   }
 
   /* ── CSV：表示中の月だけ（1日の行 ＋ その日の便・業務の行）──────────────
@@ -829,7 +940,7 @@
     if (!S.loading && S.mounted) useWant();
   }
   function useWant() {
-    if (S.view === 'upload') { S.want = null; S.wantUpload = false; return; }
+    if (S.view !== 'roster') { S.want = null; S.wantUpload = false; return; }
     if (S.wantUpload) { S.wantUpload = false; S.want = null; openUpload(); return; }
     var dt = S.want;
     if (!dt) return;
@@ -846,6 +957,7 @@
   w.PVRoster = {
     mount: mount, show: show, hide: hide, redraw: drawChart, open: open, current: current,
     _: { T: T, L: L, S: S, csvOf: csvOf, compute: compute, esc: esc, fill: fill, hm: hm, pad2: pad2, monthTitle: monthTitle, dayTitle: dayTitle, ymAdd: ymAdd, nowYm: nowYm,
-         calHTML: calHTML, timeLabel: timeLabel, entryIcon: ICON_UP, legHTML: legHTML, cellParts: cellParts }
+         calHTML: calHTML, timeLabel: timeLabel, entryIcon: ICON_UP, legHTML: legHTML, cellParts: cellParts,
+         kpiHTML: kpiHTML, docsHTML: docsHTML, dayHTML: dayHTML }
   };
 }(window));

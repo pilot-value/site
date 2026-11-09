@@ -5,10 +5,13 @@
    流れ
      ① 選ぶ … スクリーンショット・PDF を何枚でも（並べ替え・外すができる）。PDF は全ページを端末の中で画像にする。
                 どれも長辺 2560px・JPEG（白で塗ってから描く ── payslip.js と同じ作り）。何月のロスターかを選ぶ（既定は先月）。
-     ② 読む … 1ページずつ parse-roster へ（「2 / 5」）。会員が選んだ月（hint）と、前のページの最後の2日（prev_tail）を添える。
-     ③ 確かめる … pv-report-engine.js の mergePages で重なり・切れ目を1日1回にまとめる。切れた日は「足すか、このまま進むか」。
-                   はじめての会社だけ、読み方を聞く（実績か予定か・時刻の基準・TIME の意味・知らない勤務コード）。
-     ④ 保存 … set_roster_profile（足りなかった答えだけ）→ submit_roster。
+     ② 読む … 1ページずつ parse-roster へ。会員が選んだ月（hint）と、前のページの最後の2日（prev_tail）を添える。
+                ★読んでいるあいだは明細と同じ白い覆いの画面（0〜100% の輪と3つの段・止める）。失敗したら覆いを外し、箱の中に選べる道。
+     ③ 聞く … はじめての会社だけ、読み方を別の画面で聞く（実績か予定か・時刻の基準・TIME の意味・知らない勤務コード）。聞くことが無ければ出さない。
+     ④ 確かめて直す … pv-report-engine.js の mergePages で重なり・切れ目を1日1回にまとめる。読めた日と便の時間の数、
+                      カレンダー（押すとその日を直す画面 editDay）、読めなかった日（コードを当てる・勤務を入力・空欄のまま）。
+                      ★空欄・読めなかった日は保存しない（本人が入れた日だけ送る）。
+     ⑤ 保存 … set_roster_profile（足りなかった答えだけ）→ submit_roster。
 
    守っていること
    ・画像は読み取りのために送るが、保存はしない（関数はメモリの中だけ）。保存するのは読み取った日付・便・時刻だけ。
@@ -18,8 +21,9 @@
    ・自動で送り直さない（向こうで処理が続いているかもしれない）。送り直すのは本人が「もう一度読む」を押したときだけ。
    ・payslip.js は直さない（PDF の部品の取り方だけ同じ形で写した）。
 
-   window.PVRosterUpload = { open(box, ctx) }
+   window.PVRosterUpload = { open(box, ctx), editDay(box, day, opts) }
      ctx = { sb, airline, other, airlineLabel, profile, done(res|null) }
+     editDay … 1日を直す画面（保存したあとも my-roster.js が借りる）。opts.onSave(day) / onCancel() / onDelete()
    ════════════════════════════════════════════════════════════════ */
 (function (w) {
   'use strict';
@@ -30,11 +34,11 @@
 
   var T = {
     ja: {
-      back: '勤務ロスターに戻る',
-      h: 'ロスターを取り込む',
+      back: 'スケジュールに戻る',
+      h: 'スケジュールを取り込む',
       air: '会社',
-      pickT: 'ロスターをアップロード',
-      pickS: 'スクリーンショット・PDF を何枚でも選べます。長いロスターは、重なっていても切れていても大丈夫です。',
+      pickT: 'スケジュールをアップロード',
+      pickS: 'スクリーンショット・PDF を何枚でも選べます。長いスケジュールは、重なっていても切れていても大丈夫です。',
       pickF: 'PDF · PNG · JPG · WebP',
       addT: '画像・PDF を足す',
       listH: '読む順番',
@@ -47,13 +51,14 @@
         pdf_blank: '白紙のページしかありません', pdf_timeout: 'PDF の準備に時間がかかりすぎました',
         image_timeout: '画像の準備に時間がかかりすぎました', prep_failed: '準備できませんでした'
       },
-      monthQ: '何月のロスターですか',
-      monthS: '月をまたぐロスターは、始まりの月を選んでください。',
+      monthQ: '何月のスケジュールですか',
+      monthS: '月をまたぐスケジュールは、始まりの月を選んでください。',
       priv: '画像は読み取りのために送りますが、保存しません。保存するのは読み取った日付・空港・時刻だけで、便名と氏名は保存しません。2年たった日は月の合計だけになります。見られるのはあなただけで、いつでも消せます。',
       read: '読み取る（{n}ページ）',
       tooMany: '一度に読めるのは{n}ページまでです。',
-      readH: '読み取っています',
+      readH: 'スケジュールを読み取っています',
       stop: '止める',
+      stepPrep: '画像を整える', stepRead: '日付と便を読む（{i}/{n}枚目）', stepCal: 'カレンダーにまとめる',
       failH: '{i}ページ目を読めませんでした',
       retry: 'もう一度読む', skip: 'このページを飛ばす', useSoFar: 'ここまでで確かめる',
       why: {
@@ -64,8 +69,8 @@
         read_busy: '読み取りが混み合っています。もう一度お試しください。',
         timeout: '時間内に返事がありませんでした。',
         network: '通信できませんでした。電波の良いところでもう一度お試しください。',
-        not_a_roster: 'ロスターに見えませんでした。',
-        undated: '日付が読めませんでした。何月のロスターかを確かめてください。',
+        not_a_roster: 'スケジュール（勤務表）に見えませんでした。',
+        undated: '日付が読めませんでした。何月のスケジュールかを確かめてください。',
         image_too_large: '画像が大きすぎます。',
         read_truncated: '1枚に情報が多すぎて読み切れませんでした。2枚に分けて撮ってみてください。',
         other: '読み取れませんでした。'
@@ -88,19 +93,31 @@
         'leg.kind': '便の種類', 'hints.kind': '実績か予定か', 'hints.time_ref': '時刻の基準'
       },
       addMore: 'スクリーンショットを足す',
-      qH: 'はじめに教えてください', qS: '同じ会社の次のロスターからは、新しいことだけ聞きます。',
-      qKind: 'このロスターは', qKindA: '実績（飛んだあと）', qKindP: '予定',
+      qH: 'はじめに教えてください', qS: '同じ会社の次のスケジュールからは、新しいことだけ聞きます。',
+      qKind: 'このスケジュールは', qKindA: '実績（飛んだあと）', qKindP: '予定',
       qRef: '時刻は', qRefL: '現地時刻', qRefU: 'UTC',
       qMean: '便の TIME の欄は', qMeanB: 'ブロック時間（チョック・オフ〜オン）', qMeanF: '飛行時間（離陸〜着陸）', qMeanO: 'ほかの意味・わからない',
       qCodes: '勤務コードの意味', qCodesS: '答えると、休日と勤務日を正しく数えます。',
-      codeOpt: { off: '休日', vac: '有給休暇', duty: '勤務', standby: 'スタンバイ', training: '訓練', ground: '地上業務', unknown: 'わからない' },
+      codeOpt: { off: '休日', vac: '有休', duty: '勤務', standby: 'スタンバイ', training: '訓練', ground: '地上業務', unknown: 'わからない' },
       codePick: '選ぶ',
       printed: '原本の表記から',
+      next: '次へ', prevStep: '戻る',
+      sumRead: '読めた日 {d}／{m}日', sumTime: '便の時間 {b}／{n}便',
+      calEdit: '日付を押すと、その日を直せます。',
+      missH: '読めなかった日', missS: '空欄のままの日は保存しません。',
+      missDuty: '勤務を入力', missBlank: '空欄のまま',
+      eEdit: 'この日を直す', eAdd: 'この日を入れる',
+      eKind: { operating: '乗務', deadhead: '便乗（DH）', ground: '地上', unknown: '不明' },
+      eNext: '翌日', eLegs: '便・業務', eLegN: '{n}件目', eAddLeg: '便・業務を足す', eMax: '1日16件までです。',
+      eRole: '区分（任意）',
+      eUse: 'この内容にする', eSave: '保存する', eDelDay: 'この日を消す', eDelQ: 'この日の勤務と便・業務を消します。', eDelYes: '消す',
+      errCode: '英数字12文字まで（/ + - も使えます）', errTime: '07:35 の形で入れてください', errApt: '英数字3〜4文字です', errLoc: '英数字2〜8文字です',
+      errRole: '英数字8文字までです', errBlock: '1:35 の形で、24時間までです', errEmpty: '勤務コードか時刻を入れてください。', errFix: '直すところがあります。',
       save: 'この内容で保存する（{n}日）',
       saving: '保存しています…',
       cancel: 'やめる',
       errSave: '保存できませんでした。時間をおいてもう一度お試しください。',
-      errLimit: '1日に取り込めるロスターの上限に達しました。明日また続きをどうぞ。',
+      errLimit: '1日に取り込めるスケジュールの上限に達しました。明日また続きをどうぞ。',
       errBad: '読み取った内容の形が正しくありませんでした。読み取りからやり直してください。',
       errLogin: 'ログインが切れました。ページを開き直してログインしてください。',
       errDays: '一度に保存できるのは62日までです。ひと月ずつ取り込んでください。'
@@ -130,6 +147,7 @@
       tooMany: 'Up to {n} pages can be read at once.',
       readH: 'Reading your roster',
       stop: 'Stop',
+      stepPrep: 'Preparing images', stepRead: 'Reading dates and flights ({i}/{n})', stepCal: 'Building the calendar',
       failH: 'Could not read page {i}',
       retry: 'Read again', skip: 'Skip this page', useSoFar: 'Review what was read',
       why: {
@@ -172,6 +190,18 @@
       codeOpt: { off: 'Day off', vac: 'Annual leave', duty: 'Duty', standby: 'Standby', training: 'Training', ground: 'Ground duty', unknown: 'Not sure' },
       codePick: 'Choose',
       printed: 'as printed',
+      next: 'Next', prevStep: 'Back',
+      sumRead: 'Days read {d}/{m}', sumTime: 'Flight times {b}/{n}',
+      calEdit: 'Tap a date to fix that day.',
+      missH: 'Days not read', missS: 'Days left blank are not saved.',
+      missDuty: 'Enter duty', missBlank: 'Leave blank',
+      eEdit: 'Edit this day', eAdd: 'Add this day',
+      eKind: { operating: 'Operating', deadhead: 'Deadhead (DH)', ground: 'Ground', unknown: 'Not sure' },
+      eNext: 'Next day', eLegs: 'Flights & duties', eLegN: 'Item {n}', eAddLeg: 'Add a flight or duty', eMax: 'Up to 16 per day.',
+      eRole: 'Crew position (optional)',
+      eUse: 'Use this', eSave: 'Save', eDelDay: 'Delete this day', eDelQ: 'This deletes the duty and all flights for this day.', eDelYes: 'Delete',
+      errCode: 'Up to 12 letters or digits (/ + - allowed)', errTime: 'Enter a time like 07:35', errApt: '3–4 letters or digits', errLoc: '2–8 letters or digits',
+      errRole: 'Up to 8 letters or digits', errBlock: 'Like 1:35, up to 24 hours', errEmpty: 'Enter a duty code or times.', errFix: 'Please fix the marked fields.',
       save: 'Save ({n} days)',
       saving: 'Saving…',
       cancel: 'Cancel',
@@ -205,6 +235,7 @@
       tooMany: 'Se pueden leer hasta {n} páginas a la vez.',
       readH: 'Leyendo tu programación',
       stop: 'Detener',
+      stepPrep: 'Preparando las imágenes', stepRead: 'Leyendo fechas y vuelos ({i}/{n})', stepCal: 'Armando el calendario',
       failH: 'No se pudo leer la página {i}',
       retry: 'Leer de nuevo', skip: 'Omitir esta página', useSoFar: 'Revisar lo leído',
       why: {
@@ -247,6 +278,18 @@
       codeOpt: { off: 'Día libre', vac: 'Vacaciones anuales', duty: 'Servicio', standby: 'Standby', training: 'Entrenamiento', ground: 'Actividad en tierra', unknown: 'No estoy seguro' },
       codePick: 'Elegir',
       printed: 'según lo impreso',
+      next: 'Siguiente', prevStep: 'Volver',
+      sumRead: 'Días leídos {d}/{m}', sumTime: 'Tiempos de vuelo {b}/{n}',
+      calEdit: 'Toca una fecha para corregir ese día.',
+      missH: 'Días no leídos', missS: 'Los días que quedan en blanco no se guardan.',
+      missDuty: 'Ingresar servicio', missBlank: 'Dejar en blanco',
+      eEdit: 'Corregir este día', eAdd: 'Agregar este día',
+      eKind: { operating: 'Operando', deadhead: 'Deadhead (DH)', ground: 'En tierra', unknown: 'No sé' },
+      eNext: 'Día siguiente', eLegs: 'Vuelos y servicios', eLegN: 'Elemento {n}', eAddLeg: 'Agregar un vuelo o servicio', eMax: 'Hasta 16 por día.',
+      eRole: 'Posición en la tripulación (opcional)',
+      eUse: 'Usar esto', eSave: 'Guardar', eDelDay: 'Eliminar este día', eDelQ: 'Esto elimina el servicio y todos los vuelos de este día.', eDelYes: 'Eliminar',
+      errCode: 'Hasta 12 letras o dígitos (se permiten / + -)', errTime: 'Ingresa una hora como 07:35', errApt: '3–4 letras o dígitos', errLoc: '2–8 letras o dígitos',
+      errRole: 'Hasta 8 letras o dígitos', errBlock: 'Como 1:35, hasta 24 horas', errEmpty: 'Ingresa un código de servicio o las horas.', errFix: 'Corrige los campos marcados.',
       save: 'Guardar ({n} días)',
       saving: 'Guardando…',
       cancel: 'Cancelar',
@@ -257,7 +300,10 @@
       errDays: 'Se pueden guardar hasta 62 días a la vez. Importa un mes a la vez.'
     } /*/PV-MSG:es*/
   };
+  var T_ALL = T;
   T = (w.PV_T && w.PV_T(T, L)) || T[L];
+  /* 足したばかりの文言が es の辞書にまだ無いあいだは英語で出す（gen-msg.mjs が埋めるまで） */
+  if (T === T_ALL.es) Object.keys(T_ALL.en).forEach(function (k) { if (T[k] == null) T[k] = T_ALL.en[k]; });
 
   /* ── 定数（payslip.js と同じ考え方）────────────────────────── */
   var MAX_EDGE = 2560, JPEG_Q = 0.86;
@@ -466,13 +512,157 @@
       fr.readAsDataURL(blob);
     });
   }
+  /* ── 読み取り中の画面（2026-11-09 オーナー「明細と同じように、別の画面で％を」）──────────────
+     payslip.js の loadOpen / ringEl / ringTick / loadStep / loadDone / loadClose と同じ形（見た目は my-roster.css の写し）。
+     画面全体を面の色で覆い、0〜100% の輪と3つの段（画像を整える・日付と便を読む・カレンダーにまとめる）だけ。下に小さく「止める」。
+     ★％＝（読み終えたページ ＋ いま読んでいるページの時間で伸ばした分）÷ ページ数。前より小さい値は出さない。
+       ページの中の進み具合はサーバーから返ってこないので時間で伸ばし、だんだん遅くなって次のページの手前で止まる。
+       100 は全部のページが終わったときだけ。
+     ★スクロールを止めるのは html の class（ps-load-lock）。body.style.overflow を直に書かない。 */
+  var LOAD = null, RING = null;
+  var PAGE_TAU = 12, PAGE_CAP = 0.95;          // 1ページの伸び方（秒）と、返事が来るまでの上限（1ページのうち）
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  function now() { return (w.performance && w.performance.now) ? w.performance.now() : Date.now(); }
+  function mk(tagName, cls, html) { var e = d.createElement(tagName); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+  function ringEl(start) {
+    var box = mk('div', 'ps-ring');
+    box.setAttribute('role', 'progressbar');
+    box.setAttribute('aria-valuemin', '0');
+    box.setAttribute('aria-valuemax', '100');
+    box.setAttribute('aria-valuenow', String(Math.floor(start)));
+    box.setAttribute('aria-label', T.readH);
+    var svg = d.createElementNS(SVGNS, 'svg');
+    svg.setAttribute('viewBox', '0 0 120 120');
+    svg.setAttribute('aria-hidden', 'true');
+    var bg = d.createElementNS(SVGNS, 'circle'), fg = d.createElementNS(SVGNS, 'circle');
+    [bg, fg].forEach(function (c) { c.setAttribute('cx', '60'); c.setAttribute('cy', '60'); c.setAttribute('r', '52'); });
+    bg.setAttribute('class', 'ps-ring-bg');
+    fg.setAttribute('class', 'ps-ring-fg');
+    fg.setAttribute('pathLength', '100');
+    fg.setAttribute('stroke-dasharray', '100');
+    fg.setAttribute('stroke-dashoffset', String(100 - start));
+    fg.setAttribute('transform', 'rotate(-90 60 60)');      // 12時から時計回り
+    svg.appendChild(bg);
+    svg.appendChild(fg);
+    box.appendChild(svg);
+    var n = mk('span', 'ps-ring-n', Math.floor(start) + '<small>%</small>');
+    n.setAttribute('aria-hidden', 'true');
+    box.appendChild(n);
+    RING = { tgt: start, d: start, raf: 0, fg: fg, n: n, box: box, shown: Math.floor(start), done: false };
+    return box;
+  }
+  function ringPaint() {
+    if (!RING) return;
+    var v = RING.d >= 99.95 ? 100 : Math.floor(RING.d);
+    RING.fg.setAttribute('stroke-dashoffset', String(100 - RING.d));
+    if (v !== RING.shown) {
+      RING.shown = v;
+      RING.n.innerHTML = v + '<small>%</small>';
+      RING.box.setAttribute('aria-valuenow', String(v));
+    }
+  }
+  /* 読み終えたページ ＋ いまのページの時間で伸ばした分（返事が来るまで 1ページぶんには届かない） */
+  function ringWant(run) {
+    if (!run || !run.n) return 0;
+    if (run.i >= run.n) return 100;
+    var t = Math.max(0, (now() - run.t0) / 1000);
+    return 100 * (run.i + PAGE_CAP * (1 - Math.exp(-t / PAGE_TAU))) / run.n;
+  }
+  function ringTick() {
+    if (!RING || !LOAD) return;
+    var run = LOAD.run;
+    RING.tgt = Math.max(RING.tgt, RING.done ? 100 : ringWant(run));
+    if (run) run.pct = RING.tgt;                             // 失敗の札から開き直しても下がらない
+    RING.d += (RING.tgt - RING.d) * 0.18;                   // ページが変わっても跳ばずに追いつく
+    if (RING.tgt - RING.d < 0.05) RING.d = RING.tgt;
+    ringPaint();
+    RING.raf = w.requestAnimationFrame ? w.requestAnimationFrame(ringTick) : setTimeout(ringTick, 50);
+  }
+  function ringStop() {
+    if (!RING) return;
+    if (w.cancelAnimationFrame) w.cancelAnimationFrame(RING.raf); else clearTimeout(RING.raf);
+    RING = null;
+  }
+  function loadOpen(run) {
+    if (LOAD) { LOAD.run = run; return; }
+    var el = mk('div', 'ps-load ps-state is-busy');
+    el.setAttribute('role', 'status');
+    el.setAttribute('aria-live', 'polite');
+    el.setAttribute('aria-busy', 'true');
+    el.tabIndex = -1;
+    var inner = mk('div', 'ps-load-in');
+    inner.appendChild(ringEl(run.pct || 0));
+    inner.appendChild(mk('p', 'ps-load-t', esc(T.readH)));
+    var ol = mk('ol', 'ps-steps');
+    [T.stepPrep, T.stepRead, T.stepCal].forEach(function (name) {
+      var li = mk('li', '');
+      li.appendChild(mk('i', 'ps-step-dot'));
+      li.appendChild(mk('span', '', esc(name)));
+      li.setAttribute('data-s', 'todo');
+      ol.appendChild(li);
+    });
+    inner.appendChild(ol);
+    var stop = mk('button', 'ru-stop', esc(T.stop));
+    stop.type = 'button';
+    stop.addEventListener('click', stopRead);
+    inner.appendChild(stop);
+    el.appendChild(inner);
+    d.body.appendChild(el);
+    d.documentElement.classList.add('ps-load-lock');
+    LOAD = { el: el, run: run };
+    loadStep(run.i > 0 || run.out.some(Boolean) ? 1 : 0);
+    loadLabel(run);
+    try { el.focus({ preventScroll: true }); } catch (e) {}  // 覆いの後ろにフォーカスを残さない
+    ringTick();
+  }
+  /* at: いま動いている段（0＝整える・1＝読む・2＝まとめる・3＝全部終わった） */
+  function loadStep(at) {
+    if (!LOAD) return;
+    LOAD.el.className = 'ps-load ps-state ' + (at === 0 ? 'is-busy' : at < 3 ? 'is-read' : 'is-done');
+    [].forEach.call(LOAD.el.querySelectorAll('.ps-steps li'), function (li, i) {
+      li.setAttribute('data-s', i < at ? 'done' : i === at ? 'active' : 'todo');
+    });
+  }
+  function loadLabel(run) {
+    if (!LOAD || !run) return;
+    var sp = LOAD.el.querySelectorAll('.ps-steps li span')[1];
+    if (sp) sp.textContent = fill(T.stepRead, { i: Math.min(run.i + 1, run.n), n: run.n });
+  }
+  function loadClose() {
+    if (!LOAD) return;
+    var n = LOAD.el;
+    LOAD = null;
+    ringStop();
+    d.documentElement.classList.remove('ps-load-lock');
+    n.classList.add('is-out');
+    setTimeout(function () { if (n.parentNode) n.parentNode.removeChild(n); }, 260);
+  }
+  /* 3つそろった ✓ を一拍（650ms）見せてから覆いを外し、次の画面へ。覆いが無ければすぐ。 */
+  function loadDone(go) {
+    if (!LOAD) { go(); return; }
+    loadStep(3);
+    if (RING) RING.done = true;
+    setTimeout(function () { go(); loadClose(); }, 650);
+  }
+  function stopRead() {
+    if (U && U.run) U.run.stop = true;
+    loadClose();
+    if (!U) return;
+    U.run = null; U.step = 'pick';
+    render();
+    var b = U.box.querySelector('[data-u="read"]');
+    if (b && !b.disabled) b.focus(); else focusHead();
+  }
+
+  /* ── 読む（1ページずつ）────────────────────────────────── */
   function startRead() {
     var pages = allPages();
     if (!pages.length || pages.length > MAX_PAGES) return;
     U.err = null;
     U.step = 'read';
-    U.run = { i: 0, n: pages.length, pages: pages, out: new Array(pages.length), fail: null, stop: false };
+    U.run = { i: 0, n: pages.length, pages: pages, out: new Array(pages.length), fail: null, stop: false, t0: now(), pct: 0 };
     render();
+    loadOpen(U.run);
     next(U.run);
   }
   function tailBefore(run, k) {
@@ -480,55 +670,78 @@
     return [];
   }
   function next(run) {
-    if (!U || run !== U.run) return;
-    if (run.stop) { U.step = 'pick'; render(); return; }
+    if (!U || run !== U.run || run.stop) return;
     if (run.i >= run.n) return finishRead(run);
     var k = run.i, pg = run.pages[k], prev = k ? run.pages[k - 1].sha : '';
     var key = pg.sha + '|' + U.month + '|' + prev;
+    run.t0 = now();
+    loadLabel(run);
     if (U.cache[key]) {                       // 同じページ・同じ月・同じ並びは読み直さない（足したときの二重の費用を避ける）
       run.out[k] = renumber(U.cache[key], k + 1);
       run.i++;
-      render();
+      loadStep(1);
       return next(run);
     }
     var tail = tailBefore(run, k);
-    b64Of(pg.blob).then(function (b64) { return invoke(b64, k + 1, run.n, tail); }, function () { return { ok: false, reason: 'prep_failed' }; })
+    b64Of(pg.blob).then(function (b64) {
+      if (U && run === U.run) loadStep(1);
+      return invoke(b64, k + 1, run.n, tail);
+    }, function () { return { ok: false, reason: 'prep_failed' }; })
       .then(function (res) {
         if (!U) return;
         if (res && res.ok && res.roster) U.cache[key] = res.roster;   // 止めたあとに届いた答えも取っておく（読み直しの費用を出さない）
-        if (run !== U.run) return;
+        if (run !== U.run || run.stop) return;
         if (res && res.ok && res.roster) {
           run.out[k] = res.roster;
           run.i++;
-          render();
           next(run);
         } else {
           var why = (res && res.reason) || 'other';
           if (why === 'network' || why === 'timeout') report(why, why === 'timeout' ? 'timeout' : 'network');
           run.fail = { k: k, why: why };
+          loadClose();                          // 覆いを外して、読み取りの箱の中に選べる道を出す
           render();
+          var b = U.box.querySelector('.ru-failc .is-primary');
+          if (b) b.focus();
         }
       });
   }
+  function clone(x) { return JSON.parse(JSON.stringify(x)); }
   function finishRead(run) {
     var got = run.out.filter(Boolean);
-    if (!got.length) { U.step = 'pick'; U.err = T.noneRead; render(); return; }
+    if (!got.length) { loadClose(); U.step = 'pick'; U.err = T.noneRead; render(); focusHead(); return; }
+    loadStep(2);
     U.merged = R.mergePages(got);
     U.pagesSent = run.n;
-    U.answers = {};
-    var h = U.merged.hints || {}, pr = U.ctx.profile || {};
-    if (!pr.kind && h.kind) U.answers.kind = h.kind;
-    if (!pr.time_ref && h.time_ref) U.answers.time_ref = h.time_ref;
-    U.printed = { kind: !!(!pr.kind && h.kind), time_ref: !!(!pr.time_ref && h.time_ref) };
-    /* ★意味が決まっている勤務コードは、選んだ状態で出す（本人は変えられる）。聞くのは分からないものだけにする
-         （指示書「必要なところだけ本人に確認」）。読み取りが漢字・言葉を英字にそろえた OFF・VAC・SBY・TRN・GND と、
-         航空の決まった略語（OFF1・RDO・SIM…）だけ。それ以外は今までどおり「選ぶ」。 */
+    /* 読めたまま（本人が直す前）を残す：「空欄のまま」で戻す先・読めなかった日の一覧の元 */
+    U.base = {};
+    U.merged.days.forEach(function (x) { U.base[x.date] = clone(x); });
+    U.baseIssues = clone(U.merged.issues);
+    /* スクリーンショットを足して読み直しても、本人が直した日はそのまま（本人が入れたものが勝つ） */
+    Object.keys(U.edits).forEach(function (dt) { applyEdit(dt, U.edits[dt]); });
+    U.range = rangeOf();
+    U.missing = missingDates();
+    prefill();
+    var to = needAsk() ? 'ask' : 'check';
+    loadDone(function () {
+      if (!U) return;
+      if (to === 'ask') markAsked();
+      U.step = to;
+      render();
+      focusHead(true);
+    });
+  }
+  /* 原本に印字があった「実績か予定か」「時刻の基準」と、意味の決まった勤務コードは、選んだ状態で出す（本人は変えられる）。
+     ★答えはスクリーンショットを足して読み直しても消さない（前は読み直すたびに空に戻っていた）。 */
+  function prefill() {
+    var h = U.merged.hints || {}, pr = U.ctx.profile || {}, a = U.answers;
+    if (!pr.kind && !a.kind && h.kind) { a.kind = h.kind; U.printed.kind = true; }
+    if (!pr.time_ref && !a.time_ref && h.time_ref) { a.time_ref = h.time_ref; U.printed.time_ref = true; }
     unknownCodes().forEach(function (c) {
       var k = STD_CODE(c);
-      if (k) { U.answers.codes = U.answers.codes || {}; U.answers.codes[c] = k; }
+      a.codes = a.codes || {};
+      if (k && !(c in a.codes)) a.codes[c] = k;
     });
-    U.step = 'confirm';
-    render();
   }
 
   /* 決まった勤務コード → 意味（あらかじめ選んでおくだけ・保存は本人が「保存する」を押したとき）。 */
@@ -570,7 +783,7 @@
   }
   function issuesHTML() {
     var M = U.merged, list = [], seen = {};
-    if (!M.days.some(function (x) { return x.date.slice(0, 7) === U.month; })) list.push(fill(T.iMonth, { m: P.monthTitle(U.month) }));
+    if (!M.days.some(function (x) { return !empty(x) && x.date.slice(0, 7) === U.month; })) list.push(fill(T.iMonth, { m: P.monthTitle(U.month) }));
     M.issues.forEach(function (it) {
       var k = [it.date, it.type, it.field, it.seq].join('|');
       if (seen[k]) return;
@@ -592,42 +805,219 @@
       (list.length > shown.length ? '<li class="ru-more">' + esc(fill(T.iMore, { n: list.length - shown.length })) + '</li>' : '') + '</ul>' +
       (cut ? '<button type="button" class="rs-btn is-ghost" data-u="more">' + esc(T.addMore) + '</button>' : '') + '</section>';
   }
-  function radios(name, cur, opts, printed) {
-    return '<div class="ru-radios" role="radiogroup">' + opts.map(function (o) {
-      return '<label class="ru-radio"><input type="radio" name="' + name + '" value="' + o[0] + '"' + (cur === o[0] ? ' checked' : '') + '><span>' + esc(o[1]) + '</span></label>';
-    }).join('') + (printed ? '<span class="ru-printed">' + esc(T.printed) + '</span>' : '') + '</div>';
+  function empty(x) { return !x || R.helpers.dayEmpty(x); }
+  function dayAt(date) { return U.merged ? U.merged.days.filter(function (x) { return x.date === date; })[0] || null : null; }
+  function addDays(date, k) {
+    var x = new Date(Date.UTC(+date.slice(0, 4), +date.slice(5, 7) - 1, +date.slice(8, 10) + k));
+    return x.getUTCFullYear() + '-' + P.pad2(x.getUTCMonth() + 1) + '-' + P.pad2(x.getUTCDate());
   }
-  function questionsHTML() {
-    var pr = U.ctx.profile || {}, a = U.answers, q = '';
-    if (!pr.kind) q += '<fieldset class="ru-q"><legend>' + esc(T.qKind) + '</legend>' + radios('ru-kind', a.kind, [['actual', T.qKindA], ['planned', T.qKindP]], U.printed.kind) + '</fieldset>';
-    if (!pr.time_ref) q += '<fieldset class="ru-q"><legend>' + esc(T.qRef) + '</legend>' + radios('ru-ref', a.time_ref, [['local', T.qRefL], ['utc', T.qRefU]], U.printed.time_ref) + '</fieldset>';
-    if (!pr.time_meaning) q += '<fieldset class="ru-q"><legend>' + esc(T.qMean) + '</legend>' + radios('ru-mean', a.time_meaning, [['block', T.qMeanB], ['flight', T.qMeanF], ['other', T.qMeanO]]) + '</fieldset>';
-    var codes = unknownCodes();
-    if (codes.length) {
-      var opts = ['off', 'vac', 'duty', 'standby', 'training', 'ground', 'unknown'];
-      q += '<fieldset class="ru-q"><legend>' + esc(T.qCodes) + '</legend><p class="ru-qs">' + esc(T.qCodesS) + '</p><div class="ru-codes">' +
-        codes.map(function (c) {
-          var cur = (a.codes || {})[c] || '';
-          return '<label class="ru-code"><span class="rs-tag">' + esc(c) + '</span><select class="rs-sel" data-code="' + esc(c) + '">' +
-            '<option value="">' + esc(T.codePick) + '</option>' +
-            opts.map(function (o) { return '<option value="' + o + '"' + (cur === o ? ' selected' : '') + '>' + esc(T.codeOpt[o]) + '</option>'; }).join('') +
-            '</select></label>';
+  function endOfMonth(ym) { return ym + '-' + P.pad2(new Date(Date.UTC(+ym.slice(0, 4), +ym.slice(5, 7), 0)).getUTCDate()); }
+  function eachDate(a, b, fn) { for (var x = a, k = 0; x <= b && k < 400; x = addDays(x, 1), k++) fn(x); }
+  /* このスケジュールが覆うはずの日：印字された期間 → 無ければ選んだ月（読めた日がその月にあるとき）と読めた日の端まで。62日まで */
+  function rangeOf() {
+    var ds = Object.keys(U.base).sort();
+    if (!ds.length) return null;
+    var a = ds[0], b = ds[ds.length - 1], p = periodOk(U.merged.period);
+    if (p) { a = p.from; b = p.to; }
+    else if (ds.some(function (x) { return x.slice(0, 7) === U.month; })) {
+      if (U.month + '-01' < a) a = U.month + '-01';
+      var e = endOfMonth(U.month);
+      if (e > b) b = e;
+    }
+    if (addDays(a, MAX_DAYS - 1) < b) b = addDays(a, MAX_DAYS - 1);
+    return { from: a, to: b };
+  }
+  /* 読めなかった日：期間の中で中身の無い日 ＋ 期間の外でも日付だけ印字されていた日（空欄・unread）。live でなければ読めたまま（base）を見る */
+  function missingDates(live) {
+    var at = live ? dayAt : function (dt) { return U.base[dt]; }, out = [], seen = {};
+    if (U.range) eachDate(U.range.from, U.range.to, function (dt) { if (empty(at(dt))) { out.push(dt); seen[dt] = 1; } });
+    (live ? U.merged.days.map(function (x) { return x.date; }) : Object.keys(U.base)).forEach(function (dt) {
+      if (!seen[dt] && empty(at(dt))) { out.push(dt); seen[dt] = 1; }
+    });
+    return out.sort();
+  }
+  /* このスケジュールに出てくる勤務コード（多い順）。codeOnly：時刻も便も無い日のコードだけ（空欄の日に当てはめる候補） */
+  function rosterCodes(codeOnly) {
+    var n = {};
+    Object.keys(U.base).forEach(function (dt) {
+      var x = U.base[dt], c = x && x.code;
+      if (!c || (codeOnly && (x.d_on || x.d_off || (x.legs || []).length))) return;
+      n[c] = (n[c] || 0) + 1;
+    });
+    return Object.keys(n).sort(function (a, b) { return (n[b] - n[a]) || (a < b ? -1 : 1); }).slice(0, 8);
+  }
+  /* 本人が直した日を入れる（day = null は「空欄のまま」＝読めたままに戻す）。その日の「確かめてほしいところ」は消す */
+  function applyEdit(date, day) {
+    var M = U.merged, i = M.days.map(function (x) { return x.date; }).indexOf(date), old = i >= 0 ? M.days[i] : null;
+    if (day) {
+      var nd = clone(day);
+      nd.date = date; nd.edited = true;
+      nd.page = (old && old.page) || null; nd.row = (old && old.row) || null;
+      delete nd.blank; delete nd.unread; delete nd.cut;
+      U.edits[date] = clone(nd);
+      if (i >= 0) M.days[i] = nd; else M.days.push(nd);
+      M.issues = M.issues.filter(function (x) { return x.date !== date; });
+    } else {
+      delete U.edits[date];
+      var b = U.base[date];
+      if (b) { if (i >= 0) M.days[i] = clone(b); else M.days.push(clone(b)); }
+      else if (i >= 0) M.days.splice(i, 1);
+      M.issues = M.issues.filter(function (x) { return x.date !== date; })
+        .concat(U.baseIssues.filter(function (x) { return x.date === date; }));
+    }
+    M.days.sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+  }
+
+  /* ── はじめに聞く（その会社で初めてのときだけ・分からないものだけ）──────── */
+  var CODE_OPTS = ['off', 'vac', 'standby', 'training', 'ground', 'duty', 'unknown'];
+  function asks() {
+    var pr = U.ctx.profile || {};
+    return { kind: !pr.kind, ref: !pr.time_ref, mean: !pr.time_meaning, codes: unknownCodes() };
+  }
+  function needAsk() {
+    var q = asks();
+    if (!q.kind && !q.ref && !q.mean && !q.codes.length) return false;
+    if (!U.asked) return true;
+    return q.codes.some(function (c) { return !U.seen[c]; });   // 足したスクリーンショットで新しいコードが出たときだけ聞き直す
+  }
+  function markAsked() { U.asked = true; asks().codes.forEach(function (c) { U.seen[c] = 1; }); }
+  function chipsHTML(q, cur, opts, c) {
+    return '<div class="ru-chips">' + opts.map(function (o) {
+      var on = cur === o[0];
+      return '<button type="button" class="ru-chip' + (on ? ' is-on' : '') + '" data-u="ans" data-q="' + q + '"' +
+        (c != null ? ' data-c="' + esc(c) + '"' : '') + ' data-v="' + o[0] + '" aria-pressed="' + on + '">' + esc(o[1]) + '</button>';
+    }).join('') + '</div>';
+  }
+  function qSet(label, body, printed) {
+    return '<fieldset class="ru-q"><legend>' + esc(label) + (printed ? ' <span class="ru-printed">' + esc(T.printed) + '</span>' : '') + '</legend>' + body + '</fieldset>';
+  }
+  function askHTML() {
+    var q = asks(), a = U.answers, h = '';
+    if (q.kind) h += qSet(T.qKind, chipsHTML('kind', a.kind, [['actual', T.qKindA], ['planned', T.qKindP]]), U.printed.kind);
+    if (q.ref) h += qSet(T.qRef, chipsHTML('ref', a.time_ref, [['local', T.qRefL], ['utc', T.qRefU]]), U.printed.time_ref);
+    if (q.mean) h += qSet(T.qMean, chipsHTML('mean', a.time_meaning, [['block', T.qMeanB], ['flight', T.qMeanF], ['other', T.qMeanO]]));
+    if (q.codes.length) {
+      var opts = CODE_OPTS.map(function (o) { return [o, T.codeOpt[o]]; });
+      h += '<fieldset class="ru-q"><legend>' + esc(T.qCodes) + '</legend><p class="ru-qs">' + esc(T.qCodesS) + '</p><div class="ru-codes">' +
+        q.codes.map(function (c) {
+          return '<div class="ru-code" role="group" aria-label="' + esc(c) + '"><span class="rs-tag">' + esc(c) + '</span>' +
+            chipsHTML('code', (a.codes || {})[c] || '', opts, c) + '</div>';
         }).join('') + '</div></fieldset>';
     }
-    if (!q) return '';
-    return '<section class="ru-card"><h3 class="ru-h3">' + esc(T.qH) + '</h3><p class="ru-qs">' + esc(T.qS) + '</p>' + q + '</section>';
+    return '<section class="ru-card ru-ask"><p class="ru-qs ru-lead">' + esc(T.qS) + '</p>' + h + '</section>' +
+      '<div class="ru-act"><button type="button" class="rs-btn is-primary is-lg" data-u="next">' + esc(T.next) + '</button>' +
+      '<button type="button" class="rs-btn is-ghost" data-u="cancel">' + esc(T.cancel) + '</button></div>';
   }
-  function previewHTML() {
-    var months = R.rosterMonths(U.merged.days, draftProfile()).slice(0, 3);
-    return '<div class="ru-prev">' + months.map(function (m) {
+  /* 答えた札だけ付け替える（画面は組み直さない＝押した場所から動かない） */
+  function answer(t) {
+    var q = t.getAttribute('data-q'), v = t.getAttribute('data-v'), a = U.answers;
+    if (q === 'kind') { a.kind = v; U.printed.kind = false; }
+    else if (q === 'ref') { a.time_ref = v; U.printed.time_ref = false; }
+    else if (q === 'mean') a.time_meaning = v;
+    else if (q === 'code') (a.codes = a.codes || {})[t.getAttribute('data-c')] = v;
+    [].forEach.call(t.parentNode.querySelectorAll('.ru-chip'), function (b) {
+      var on = b === t;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', String(on));
+    });
+    if (q === 'kind' || q === 'ref') {
+      var fs = t.closest('fieldset'), pn = fs && fs.querySelector('.ru-printed');
+      if (pn) pn.parentNode.removeChild(pn);
+    }
+  }
+
+  /* ── 確かめて直す ──────────────────────────────────────────── */
+  function sumHTML() {
+    var dn = 0, dm = 0, bn = 0, bm = 0;
+    if (U.range) eachDate(U.range.from, U.range.to, function (dt) { dm++; if (!empty(dayAt(dt))) dn++; });
+    R.rosterMonths(U.merged.days, draftProfile()).forEach(function (m) {
+      m.days.forEach(function (x) { x.legs.forEach(function (l) { if (l.kind !== 'ground') { bm++; if (l.blockMin != null) bn++; } }); });
+    });
+    var part = function (s, miss) { return '<span' + (miss ? ' class="is-miss"' : '') + '>' + esc(s) + '</span>'; };
+    return '<p class="ru-sum">' + part(fill(T.sumRead, { d: dn, m: dm }), dn < dm) +
+      (bm ? ' · ' + part(fill(T.sumTime, { b: bn, n: bm }), bn < bm) : '') + '</p>';
+  }
+  function calsHTML() {
+    var months = R.rosterMonths(U.merged.days, draftProfile()), byYm = {}, ask = {}, flag = {};
+    months.forEach(function (m) { byYm[m.ym] = m; });
+    missingDates(true).forEach(function (dt) { ask[dt] = 1; });
+    U.merged.issues.forEach(function (x) { if (x.date) flag[x.date] = 1; });
+    var ds = U.merged.days.map(function (x) { return x.date; }).sort();
+    var a = U.range ? U.range.from : ds[0], b = U.range ? U.range.to : ds[ds.length - 1];
+    if (ds.length && ds[0] < a) a = ds[0];
+    if (ds.length && ds[ds.length - 1] > b) b = ds[ds.length - 1];
+    var yms = a && b ? R.helpers.ymRange(a.slice(0, 7), b.slice(0, 7)).slice(0, 3) : [];
+    return '<section class="ru-card ru-cals"><p class="ru-qs ru-lead">' + esc(T.calEdit) + '</p>' + yms.map(function (ym) {
       var bd = {};
-      m.days.forEach(function (x) { bd[x.date] = x; });
-      return '<div class="ru-prev-m"><p class="ru-prev-t">' + esc(P.monthTitle(m.ym)) + '</p>' + P.calHTML(m.ym, bd, { mini: true }) + '</div>';
-    }).join('') + '</div>';
+      (byYm[ym] ? byYm[ym].days : []).forEach(function (x) { bd[x.date] = x; });
+      return '<div class="ru-cal"><p class="ru-prev-t">' + esc(P.monthTitle(ym)) + '</p>' +
+        P.calHTML(ym, bd, { interactive: true, edit: true, ask: ask, flag: flag, askLabel: T.missH }) + '</div>';
+    }).join('') + '</section>';
+  }
+  function daySum(x) {
+    var s = [];
+    if (x.d_on || x.d_off) s.push((x.d_on || '—') + '–' + (x.d_off || '—') + (x.d_off_day ? ' (+' + x.d_off_day + ')' : ''));
+    if ((x.legs || []).length) s.push(fill(T.legsN, { n: x.legs.length }));
+    return (x.code ? x.code + (s.length ? ' · ' : '') : '') + s.join(' · ');
+  }
+  function missHTML() {
+    if (!U.missing.length) return '';
+    var codes = rosterCodes(true);
+    var rows = U.missing.map(function (dt) {
+      var x = dayAt(dt), st = empty(x) ? 'blank' : (x.code && !x.d_on && !x.d_off && !(x.legs || []).length && codes.indexOf(x.code) >= 0) ? 'code' : 'duty';
+      var chip = function (u, label, on, c) {
+        return '<button type="button" class="ru-chip' + (on ? ' is-on' : '') + '" data-u="' + u + '" data-id="' + dt + '"' + (c ? ' data-c="' + esc(c) + '"' : '') +
+          ' aria-pressed="' + on + '">' + esc(label) + '</button>';
+      };
+      return '<li class="ru-miss-r"><div class="ru-miss-d"><b>' + esc(fmtDate(dt)) + '</b>' + (st === 'duty' ? '<span>' + esc(daySum(x)) + '</span>' : '') + '</div>' +
+        '<div class="ru-chips is-sm" role="group" aria-label="' + esc(fmtDate(dt)) + '">' +
+          codes.map(function (c) { return chip('fill', c, st === 'code' && x.code === c, c); }).join('') +
+          chip('fillduty', T.missDuty, st === 'duty') + chip('fillblank', T.missBlank, st === 'blank') +
+        '</div></li>';
+    }).join('');
+    return '<section class="ru-card ru-miss"><div class="ru-card-h"><h3 class="ru-h3">' + esc(T.missH) + '</h3><span class="ru-qs">' + esc(T.missS) + '</span></div>' +
+      '<ul class="ru-miss-l">' + rows + '</ul></section>';
+  }
+  function sendDays() { return U.merged.days.map(stripDay).filter(Boolean); }
+  function checkHTML() {
+    var M = U.merged, n = sendDays().length, tooMany = n > MAX_DAYS;
+    var cut = M.issues.some(function (x) { return x.type === 'incomplete'; }), dis = U.busy ? ' disabled' : '';
+    return sumHTML() + calsHTML() + missHTML() + issuesHTML() +
+      (tooMany ? '<p class="rs-flash is-bad" role="alert">' + esc(T.errDays) + '</p>' : '') +
+      (U.err ? '<p class="rs-flash is-bad" role="alert">' + esc(U.err) + '</p>' : '') +
+      '<div class="ru-act">' +
+        '<button type="button" class="rs-btn is-primary is-lg" data-u="save"' + (U.busy || tooMany || !n ? ' disabled' : '') + '>' +
+          esc(U.busy ? T.saving : fill(T.save, { n: n })) + '</button>' +
+        (cut ? '' : '<button type="button" class="rs-btn is-ghost" data-u="more"' + dis + '>' + esc(T.addMore) + '</button>') +   // 切れた日があれば、足すボタンはその説明の横だけ
+        '<button type="button" class="rs-btn is-ghost" data-u="cancel"' + dis + '>' + esc(T.cancel) + '</button>' +
+        (U.asked ? '<button type="button" class="ru-tbtn" data-u="prev"' + dis + '>' + esc(T.prevStep) + '</button>' : '') +
+      '</div>';
+  }
+  function openEditor(date, from) {
+    if (!date || !U.merged) return;
+    var x = dayAt(date);
+    U.step = 'edit';
+    editDay(U.box, x ? clone(x) : { date: date, legs: [] }, {
+      mode: 'draft', codes: rosterCodes(false),
+      onSave: function (day) { applyEdit(date, day); closeEditor(date, from); },
+      onCancel: function () { closeEditor(date, from); }
+    });
+    try { U.box.scrollIntoView({ block: 'start' }); } catch (e) {}
+  }
+  function closeEditor(date, from) {
+    if (!U) return;
+    U.step = 'check';
+    render();
+    var c = from ? U.box.querySelector('[data-u="' + from + '"][data-id="' + date + '"]') : U.box.querySelector('.rs-cell[data-date="' + date + '"]');
+    if (!c) return focusHead();
+    if (!from) [].forEach.call(c.parentNode.querySelectorAll('.rs-cell[data-date]'), function (b) { b.tabIndex = b === c ? 0 : -1; });
+    c.focus({ preventScroll: true });
+    try { c.scrollIntoView({ block: 'center' }); } catch (e) {}
   }
 
   /* ── 保存 ───────────────────────────────────────────────── */
   function stripDay(x) {
+    if (empty(x)) return null;   // ★空欄・読めなかった日は送らない（本人が入れた日は、入れたときに印が外れる）
     return {
       date: x.date, code: x.code || null, d_on: x.d_on || null, d_off: x.d_off || null, d_off_day: x.d_off_day || 0,
       page: x.page || null, row: x.row || null,
@@ -672,6 +1062,8 @@
   function save() {
     if (U.busy) return;
     var days = U.merged.days.map(stripDay);
+    days = days.filter(Boolean);
+    if (!days.length) return;
     if (days.length > MAX_DAYS) { U.err = T.errDays; render(); return; }
     U.busy = true; U.err = null;
     render();
@@ -752,63 +1144,55 @@
       '<div class="ru-act"><button type="button" class="rs-btn is-primary is-lg" data-u="read"' + (!n || prep || over ? ' disabled' : '') + '>' +
         esc(fill(T.read, { n: n })) + '</button></div>';
   }
-  function readHTML() {
-    var run = U.run, k = run.fail ? run.fail.k : run.i;
-    var pct = run.n ? Math.min(1, run.i / run.n) : 0;
-    var thumbs = run.pages.map(function (p, i) {
-      var st = run.out[i] ? 'is-ok' : (run.fail && run.fail.k === i) ? 'is-ng' : (i === run.i && !run.fail) ? 'is-now' : '';
-      return '<li class="ru-pg ' + st + '">' + (p.thumb ? '<img src="' + p.thumb + '" alt="">' : '') + '<span>' + (i + 1) + '</span></li>';
-    }).join('');
-    var fail = '';
-    if (run.fail) {
-      var fatal = !!FATAL[run.fail.why], some = run.out.some(Boolean);
-      fail = '<div class="ru-fail" role="alert"><b>' + esc(fill(T.failH, { i: run.fail.k + 1 })) + '</b><p>' + esc(T.why[run.fail.why] || T.why.other) + '</p><div class="ru-act">' +
-        (fatal ? '' : '<button type="button" class="rs-btn is-primary" data-u="retry">' + esc(T.retry) + '</button>' +
-                      '<button type="button" class="rs-btn is-ghost" data-u="skip">' + esc(T.skip) + '</button>') +
-        (some ? '<button type="button" class="rs-btn is-ghost" data-u="sofar">' + esc(T.useSoFar) + '</button>' : '') +
-        '<button type="button" class="rs-btn is-ghost" data-u="cancel">' + esc(T.cancel) + '</button></div></div>';
-    }
-    return '<section class="ru-card ru-read" aria-live="polite">' +
-      '<div class="ru-prog"><b class="ru-prog-n">' + Math.min(k + 1, run.n) + ' / ' + run.n + '</b>' +
-        '<div class="ru-bar"><i style="transform:scaleX(' + pct.toFixed(3) + ')"></i></div></div>' +
-      '<ol class="ru-pgs">' + thumbs + '</ol>' + fail +
-      (run.fail ? '' : '<div class="ru-act"><button type="button" class="rs-btn is-ghost" data-u="stop">' + esc(T.stop) + '</button></div>') +
-      '</section>';
+  var I_PLUS = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
+  /* 読み取りに失敗したページ（覆いを外して、箱の中に出す・payslip.js の失敗の札と同じ形）。
+     ★赤で叱らない。いちばん勧める道だけ緑のボタン、ほかは字のボタン。 */
+  var RETRY = { network: 1, timeout: 1, read_busy: 1, other: 1, prep_failed: 1 };
+  function failHTML(run) {
+    var f = run.fail, fatal = !!FATAL[f.why], some = run.out.some(Boolean);
+    var prim = (!fatal && RETRY[f.why]) ? 'retry' : (!fatal && run.n > 1) ? 'skip' : some ? 'sofar' : 'cancel';
+    var acts = (fatal ? [] : [['retry', T.retry], ['skip', T.skip]]).concat(some ? [['sofar', T.useSoFar]] : [], [['cancel', T.cancel]]);
+    acts.sort(function (a, b) { return (b[0] === prim ? 1 : 0) - (a[0] === prim ? 1 : 0); });
+    var th = run.pages[f.k] && run.pages[f.k].thumb;
+    return '<section class="ru-failc' + (th ? ' has-th' : '') + '" role="alert"><div class="ru-failc-row">' +
+      (th ? '<span class="ru-failc-th" aria-hidden="true"><img src="' + th + '" alt=""></span>' : '') +
+      '<div class="ru-failc-main"><b class="ru-failc-t">' + esc(fill(T.failH, { i: f.k + 1 })) + '</b>' +
+        '<p class="ru-failc-m">' + esc(T.why[f.why] || T.why.other) + '</p></div></div>' +
+      '<div class="ru-failc-bar">' + acts.map(function (a) {
+        return '<button type="button" class="' + (a[0] === prim ? 'rs-btn is-primary' : 'ru-tbtn') + '" data-u="' + a[0] + '">' + esc(a[1]) + '</button>';
+      }).join('') + '</div></section>';
   }
-  function confirmHTML() {
-    var M = U.merged, days = M.days, nLegs = 0;
-    days.forEach(function (x) { nLegs += (x.legs || []).length; });
-    var a = days.length ? days[0].date : null, b = days.length ? days[days.length - 1].date : null;
-    var tooMany = days.length > MAX_DAYS, cut = M.issues.some(function (x) { return x.type === 'incomplete'; });
-    return '<section class="ru-card"><h3 class="ru-h3">' + esc(fill(T.found, { n: days.length, a: fmtDate(a), b: fmtDate(b) })) + '</h3>' +
-        '<p class="ru-qs">' + esc(fill(T.legsN, { n: nLegs })) + '</p>' + previewHTML() + '</section>' +
-      issuesHTML() + questionsHTML() +
-      (tooMany ? '<p class="rs-flash is-bad" role="alert">' + esc(T.errDays) + '</p>' : '') +
-      (U.err ? '<p class="rs-flash is-bad" role="alert">' + esc(U.err) + '</p>' : '') +
-      '<div class="ru-act">' +
-        '<button type="button" class="rs-btn is-primary is-lg" data-u="save"' + (U.busy || tooMany ? ' disabled' : '') + '>' +
-          esc(U.busy ? T.saving : fill(T.save, { n: days.length })) + '</button>' +
-        (cut ? '' : '<button type="button" class="rs-btn is-ghost" data-u="more"' + (U.busy ? ' disabled' : '') + '>' + esc(T.addMore) + '</button>') +   // 切れた日があれば、足すボタンはその説明の横だけ
-        '<button type="button" class="rs-btn is-ghost" data-u="cancel"' + (U.busy ? ' disabled' : '') + '>' + esc(T.cancel) + '</button>' +
-      '</div>';
+  function readHTML() {
+    var run = U.run;
+    return run && run.fail ? failHTML(run) : '<div class="ru-wait" aria-hidden="true"></div>';   // 読んでいるあいだは覆いの画面だけ
+  }
+  function headHTML(title) {
+    var n = (U.step === 'ask' || U.step === 'check') && U.asked ? '<span class="ru-stepn">' + (U.step === 'ask' ? 1 : 2) + ' / 2</span>' : '';
+    return '<button type="button" class="rs-link ru-back" data-u="cancel">' + I_BACK + esc(T.back) + '</button>' +
+      '<div class="ru-hd">' + n + '<h2 class="rs-h">' + esc(title) + '</h2><p class="rs-ey">' + esc(T.air) + ' · <span class="rs-air">' + esc(U.ctx.airlineLabel) + '</span></p></div>';
+  }
+  function attrSel(k, v) { return v == null ? '' : '[' + k + '="' + String(v).replace(/["\\]/g, function (c) { return '\\' + c; }) + '"]'; }
+  function focusHead(scroll) {
+    if (!U) return;
+    var h = U.box.querySelector('.ru-hd h2');
+    if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); }
+    if (scroll) { try { U.box.scrollIntoView({ block: 'start' }); } catch (e) {} }
   }
   function render() {
-    if (!U) return;
-    var a = d.activeElement, keep = a && U.box.contains(a) ? (a.getAttribute('data-u') || '') + '|' + (a.getAttribute('data-id') || '') + '|' + (a.getAttribute('data-code') || '') + '|' + (a.name || '') + '|' + (a.value || '') : null;
-    var body = U.step === 'read' ? readHTML() : U.step === 'confirm' ? confirmHTML() : pickHTML();
-    var title = U.step === 'read' ? T.readH : U.step === 'confirm' ? T.confH : T.h;
-    U.box.innerHTML = '<div class="rs ru">' +
-      '<button type="button" class="rs-link ru-back" data-u="cancel">' + I_BACK + esc(T.back) + '</button>' +
-      '<div class="ru-hd"><h2 class="rs-h">' + esc(title) + '</h2><p class="rs-ey">' + esc(T.air) + ' · <span class="rs-air">' + esc(U.ctx.airlineLabel) + '</span></p></div>' +
-      body + '<input type="file" class="ru-file" multiple accept="image/png,image/jpeg,image/webp,image/heic,image/heif,application/pdf,.pdf" hidden></div>';
+    if (!U || U.step === 'edit') return;            // 直す画面のあいだは触らない（editDay が自分で描く）
+    var a = d.activeElement, keep = a && U.box.contains(a) && a.getAttribute ? {
+      u: a.getAttribute('data-u'), id: a.getAttribute('data-id'), c: a.getAttribute('data-c'), q: a.getAttribute('data-q'),
+      v: a.getAttribute('data-v'), date: a.getAttribute('data-date') } : null;
+    var body = U.step === 'read' ? readHTML() : U.step === 'ask' ? askHTML() : U.step === 'check' ? checkHTML() : pickHTML();
+    var title = U.step === 'read' ? T.readH : U.step === 'ask' ? T.qH : U.step === 'check' ? T.confH : T.h;
+    U.box.innerHTML = '<div class="rs ru">' + headHTML(title) + body +
+      '<input type="file" class="ru-file" multiple accept="image/png,image/jpeg,image/webp,image/heic,image/heif,application/pdf,.pdf" hidden></div>';
     if (keep) {
-      var parts = keep.split('|'), sel = null;
-      if (parts[0]) sel = '[data-u="' + parts[0] + '"]' + (parts[1] ? '[data-id="' + parts[1] + '"]' : '');
-      else if (parts[2]) sel = '[data-code="' + parts[2] + '"]';
-      else if (parts[3]) sel = 'input[name="' + parts[3] + '"][value="' + parts[4] + '"]';
-      var f = sel && U.box.querySelector(sel);
-      if (f && f.disabled && parts[1]) f = U.box.querySelector('[data-id="' + parts[1] + '"]:not([disabled])');   // 端まで動かしたら、同じ行の残りのボタンへ
-      if (f && !f.disabled) f.focus(); else { var h = U.box.querySelector('.ru-hd h2'); if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); } }
+      var f = null;
+      if (keep.u) f = U.box.querySelector('[data-u="' + keep.u + '"]' + attrSel('data-id', keep.id) + attrSel('data-c', keep.c) + attrSel('data-q', keep.q) + attrSel('data-v', keep.v));
+      else if (keep.date) f = U.box.querySelector('[data-date="' + keep.date + '"]');
+      if (f && f.disabled && keep.id) f = U.box.querySelector('[data-id="' + keep.id + '"]:not([disabled])');   // 端まで動かしたら、同じ行の残りのボタンへ
+      if (f && !f.disabled) f.focus(); else focusHead();
     }
   }
 
@@ -820,40 +1204,48 @@
     render();
   }
   function onClick(e) {
-    var t = e.target.closest ? e.target.closest('[data-u]') : null;
-    if (!U || !t || !U.box.contains(t) || t.disabled) return;
+    var t = e.target.closest ? e.target.closest('[data-u],[data-date]') : null;
+    if (!U || !t || !U.box.contains(t) || t.disabled || U.step === 'edit') return;
     var u = t.getAttribute('data-u'), id = t.getAttribute('data-id');
+    if (!u) { if (U.step === 'check') openEditor(t.getAttribute('data-date')); return; }   // カレンダーの日 → その日を直す
     if (u === 'pick') { var inp = U.box.querySelector('.ru-file'); if (inp) inp.click(); }
     else if (u === 'up') move(id, -1);
     else if (u === 'down') move(id, 1);
     else if (u === 'rm') { U.items = U.items.filter(function (x) { return x.id !== id; }); render(); var nb = U.box.querySelector('[data-u="pick"]'); if (nb) nb.focus(); }
     else if (u === 'read') startRead();
-    else if (u === 'stop') { U.run = null; U.step = 'pick'; render(); }
-    else if (u === 'retry') { U.run.fail = null; render(); next(U.run); }
-    else if (u === 'skip') { var r = U.run; r.fail = null; r.i++; render(); next(r); }
+    else if (u === 'stop') stopRead();
+    else if (u === 'retry') { var r0 = U.run; r0.fail = null; render(); loadOpen(r0); next(r0); }
+    else if (u === 'skip') { var r = U.run; r.fail = null; r.i++; render(); loadOpen(r); next(r); }
     else if (u === 'sofar') { var r2 = U.run; r2.fail = null; finishRead(r2); }
     else if (u === 'more') { U.step = 'pick'; U.err = null; render(); var p = U.box.querySelector('[data-u="pick"]'); if (p) { p.focus(); p.click(); } }
+    else if (u === 'ans') answer(t);
+    else if (u === 'next') { U.step = 'check'; render(); focusHead(true); }
+    else if (u === 'prev') { markAsked(); U.step = 'ask'; render(); focusHead(true); }
+    else if (u === 'fill') { applyEdit(id, { date: id, code: t.getAttribute('data-c'), d_on: null, d_off: null, d_off_day: 0, legs: [] }); render(); }
+    else if (u === 'fillblank') { applyEdit(id, null); render(); }
+    else if (u === 'fillduty') openEditor(id, 'fillduty');
     else if (u === 'save') save();
-    else if (u === 'cancel') { if (U.run) U.run.stop = true; var dn = U.ctx.done; U = null; dn(null); }
+    else if (u === 'cancel') { if (U.run) U.run.stop = true; loadClose(); var dn = U.ctx.done; U = null; dn(null); }
   }
   function onChange(e) {
     if (!U) return;
     var t = e.target;
     if (t.classList.contains('ru-file')) { addFiles(t.files); t.value = ''; return; }
-    if (t.getAttribute('data-u') === 'month') { U.month = t.value; return; }
-    if (t.name === 'ru-kind') U.answers.kind = t.value;
-    else if (t.name === 'ru-ref') U.answers.time_ref = t.value;
-    else if (t.name === 'ru-mean') U.answers.time_meaning = t.value;
-    else if (t.hasAttribute('data-code')) {
-      (U.answers.codes = U.answers.codes || {})[t.getAttribute('data-code')] = t.value;
-      var pv = U.box.querySelector('.ru-prev');          // 見本のカレンダーだけ描き直す（答えている途中の欄は触らない）
-      if (pv) pv.outerHTML = previewHTML();
-    }
-    if (/^ru-(kind|ref)$/.test(t.name)) {
-      U.printed[t.name === 'ru-kind' ? 'kind' : 'time_ref'] = false;
-      var fs = t.closest('fieldset'), pn = fs && fs.querySelector('.ru-printed');
-      if (pn) pn.parentNode.removeChild(pn);
-    }
+    if (t.getAttribute('data-u') === 'month') U.month = t.value;
+  }
+  /* 確かめる画面のカレンダーは矢印で日を動かす（左右 ±1日・上下 ±1週・Home/End で月の端） */
+  function onKey(e) {
+    var t = e.target;
+    if (!U || U.step !== 'check' || !t.classList || !t.classList.contains('rs-cell') || !t.hasAttribute('data-date')) return;
+    var cells = [].slice.call(t.parentNode.querySelectorAll('.rs-cell[data-date]')), i = cells.indexOf(t), j = null;
+    if (e.key === 'ArrowRight') j = i + 1; else if (e.key === 'ArrowLeft') j = i - 1;
+    else if (e.key === 'ArrowDown') j = i + 7; else if (e.key === 'ArrowUp') j = i - 7;
+    else if (e.key === 'Home') j = 0; else if (e.key === 'End') j = cells.length - 1;
+    if (j == null) return;
+    e.preventDefault();
+    j = Math.max(0, Math.min(cells.length - 1, j));
+    cells.forEach(function (c, k) { c.tabIndex = k === j ? 0 : -1; });
+    cells[j].focus();
   }
   function onDrag(e) {
     if (!U || U.step !== 'pick') return;
@@ -864,19 +1256,289 @@
     if (e.type === 'drop' && e.dataTransfer) addFiles(e.dataTransfer.files);
   }
 
+  /* ════ 1日を直す画面（取り込みの確認と、保存したあとの両方で使う・2026-11-09 オーナー「読み取りは完璧にならない。直す画面を」）
+     window.PVRosterUpload.editDay(box, day, opts)
+       day  … { date, code, d_on, d_off, d_off_day, legs:[{ seq, from, to, loc, out, in, in_day, block | block_min, role, kind }] }（my_roster の形）
+       opts … { codes:[このスケジュールに出てくる勤務コード], mode:'draft'|'saved',
+                onSave(day) → 約束（省略可・断られたら文言で reject）, onCancel(), onDelete() → 約束（省略可・無ければ消すボタンを出さない） }
+     ★検品はサーバー（db/roster.sql）と同じ形：勤務コード ^[A-Z0-9/+\-]{1,12}$・時刻 HH:MM（"7:05"・"705" は "07:05" に直してから見る）・
+       空港 ^[A-Z0-9]{3,4}$・場所 ^[A-Z0-9]{2,8}$・区分 ^[A-Z0-9/+\-]{1,8}$・便の時間 H:MM で 24時間まで・翌日は 0〜2。
+     ★地上の業務は空港を持たない（場所 loc だけ）。中身の無い行は落とす。順番は 1..n に振り直す（16件まで）。便名は持たない。 */
+  var RX_CODE = /^[A-Z0-9\/+\-]{1,12}$/, RX_HHMM = /^(([01][0-9]|2[0-3]):[0-5][0-9]|24:00)$/, RX_APT = /^[A-Z0-9]{3,4}$/,
+      RX_LOC = /^[A-Z0-9]{2,8}$/, RX_ROLE = /^[A-Z0-9\/+\-]{1,8}$/, RX_BLOCK = /^[0-9]{1,2}:[0-5][0-9]$/;
+  var KINDS = ['operating', 'deadhead', 'ground', 'unknown'], MAX_LEGS = 16;
+  function ascii(s) {   // 全角の英数字・記号は半角に（日本語の入力のまま打っても通る）
+    return String(s == null ? '' : s).replace(/[\uFF01-\uFF5E]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); }).trim();
+  }
+  function upT(s) { return ascii(s).toUpperCase(); }
+  function hmParts(s) { return /^(\d{1,2})[:.hH](\d{2})$/.exec(s) || /^(\d{1,2})(\d{2})$/.exec(s); }
+  /* 時刻："7:05"・"705"・"0705" → "07:05"。空は ''、形が合わなければ false */
+  function normTime(s) {
+    s = ascii(s);
+    if (!s) return '';
+    var m = hmParts(s);
+    if (!m) return false;
+    var v = P.pad2(+m[1]) + ':' + m[2];
+    return RX_HHMM.test(v) ? v : false;
+  }
+  /* 便の時間："1:35"・"135"・"01:35" → "1:35"（24時間まで） */
+  function normBlock(s) {
+    s = ascii(s);
+    if (!s) return '';
+    var m = hmParts(s);
+    if (!m) return false;
+    var v = (+m[1]) + ':' + m[2];
+    return (RX_BLOCK.test(v) && (+m[1]) * 60 + (+m[2]) <= 1440) ? v : false;
+  }
+  function day02(v) { v = Math.floor(+v || 0); return v < 0 ? 0 : v > 2 ? 2 : v; }
+  function hmOf(min) { return (min == null || !isFinite(min)) ? '' : Math.floor(min / 60) + ':' + P.pad2(min % 60); }
+  /* 下書き（入力欄の字のまま）→ 保存する形。{ day | null, errs: { 欄: 文言の鍵 } } */
+  function cleanDay(date, dr) {
+    dr = dr || {};
+    var errs = {}, code = upT(dr.code), on = normTime(dr.d_on), off = normTime(dr.d_off), legs = [];
+    if (code && !RX_CODE.test(code)) errs.code = 'errCode';
+    if (on === false) errs.d_on = 'errTime';
+    if (off === false) errs.d_off = 'errTime';
+    (dr.legs || []).forEach(function (l, i) {
+      l = l || {};
+      var kind = KINDS.indexOf(l.kind) >= 0 ? l.kind : 'unknown', gnd = kind === 'ground', p = 'leg' + i + '.';
+      var from = gnd ? '' : upT(l.from), to = gnd ? '' : upT(l.to), loc = upT(l.loc);
+      var out = normTime(l.out), inn = normTime(l.in), blk = normBlock(l.block), role = upT(l.role);
+      if (from && !RX_APT.test(from)) errs[p + 'from'] = 'errApt';
+      if (to && !RX_APT.test(to)) errs[p + 'to'] = 'errApt';
+      if (gnd && loc && !RX_LOC.test(loc)) errs[p + 'loc'] = 'errLoc';
+      if (!gnd && (from || to || !RX_LOC.test(loc))) loc = '';   // 地上でない便の場所は、空港が無いときだけ残す（欄を出していないので、形の合わない値は黙って落とす）
+      if (out === false) errs[p + 'out'] = 'errTime';
+      if (inn === false) errs[p + 'in'] = 'errTime';
+      if (blk === false) errs[p + 'block'] = 'errBlock';
+      if (role && !RX_ROLE.test(role)) errs[p + 'role'] = 'errRole';
+      var leg = { seq: 0, from: from || null, to: to || null, loc: loc || null, out: out || null, in: inn || null,
+                  in_day: inn ? day02(l.in_day) : 0, block: blk || null, role: role || null, kind: kind };
+      if (!leg.from && !leg.to && !leg.loc && !leg.out && !leg.in && !leg.block && out !== false && inn !== false && blk !== false) return;   // 中身の無い行は落とす
+      legs.push(leg);
+    });
+    if (legs.length > MAX_LEGS) errs.legs = 'eMax';
+    legs.forEach(function (l, k) { l.seq = k + 1; });
+    var day = { date: date, code: code || null, d_on: on || null, d_off: off || null, d_off_day: off ? day02(dr.d_off_day) : 0, legs: legs };
+    var bad = Object.keys(errs).length > 0;
+    if (!bad && !day.code && !day.d_on && !day.d_off && !legs.length) { errs.day = 'errEmpty'; bad = true; }
+    return { day: bad ? null : day, errs: errs };
+  }
+  function draftOf(day) {
+    day = day || {};
+    return {
+      code: day.code || '', d_on: day.d_on || '', d_off: day.d_off || '', d_off_day: day02(day.d_off_day),
+      legs: (day.legs || []).slice().sort(function (a, b) { return (a.seq || 0) - (b.seq || 0); }).map(function (l) {
+        return { kind: KINDS.indexOf(l.kind) >= 0 ? l.kind : 'unknown', from: l.from || '', to: l.to || '', loc: l.loc || '',
+                 out: l.out || '', in: l.in || '', in_day: day02(l.in_day), block: l.block || hmOf(l.block_min), role: l.role || '' };
+      })
+    };
+  }
+  function emptyLeg() { return { kind: 'operating', from: '', to: '', loc: '', out: '', in: '', in_day: 0, block: '', role: '' }; }
+  function edInp(name, label, val, o, err, i) {
+    var id = 're-' + name + (i != null ? '-' + i : ''), eid = id + '-e';
+    var a = ' id="' + id + '" class="rs-in re-in' + (o.caps ? ' is-caps' : '') + (err ? ' is-bad' : '') + '" type="text" data-e="' + name + '"' +
+      (i != null ? ' data-i="' + i + '"' : '') + ' value="' + esc(val) + '" autocomplete="off" spellcheck="false"' +
+      (o.time || o.block ? ' inputmode="numeric" maxlength="5" placeholder="' + (o.block ? '1:35' : '07:35') + '"'
+                         : ' maxlength="' + o.max + '" autocapitalize="characters"') +
+      (err ? ' aria-invalid="true" aria-describedby="' + eid + '"' : '');
+    var tog = o.dayE ? '<button type="button" class="ru-chip re-dt' + (o.day ? ' is-on' : '') + '" data-e="' + o.dayE + '"' + (i != null ? ' data-i="' + i + '"' : '') +
+      ' aria-pressed="' + !!o.day + '">' + esc(o.day === 2 ? T.eNext + ' +2' : T.eNext) + '</button>' : '';
+    return '<div class="re-f re-f-' + name + '"><label for="' + id + '">' + esc(label) + '</label>' +
+      (tog ? '<div class="re-tm"><input' + a + '>' + tog + '</div>' : '<input' + a + '>') +
+      (err ? '<span class="re-err" id="' + eid + '">' + esc(T[err]) + '</span>' : '') + '</div>';
+  }
+  function edLeg(l, i, er) {
+    var p = 'leg' + i + '.', gnd = l.kind === 'ground', nm = fill(T.eLegN, { n: i + 1 });
+    var kinds = '<div class="ru-chips is-sm" role="group" aria-label="' + esc(nm + ' · ' + T.f['leg.kind']) + '">' + KINDS.map(function (k) {
+      var on = l.kind === k;
+      return '<button type="button" class="ru-chip' + (on ? ' is-on' : '') + '" data-e="kind" data-i="' + i + '" data-v="' + k + '" aria-pressed="' + on + '">' + esc(T.eKind[k]) + '</button>';
+    }).join('') + '</div>';
+    var where = gnd ? edInp('loc', T.f['leg.loc'], l.loc, { max: 8, caps: true }, er[p + 'loc'], i)
+      : edInp('from', T.f['leg.from'], l.from, { max: 4, caps: true }, er[p + 'from'], i) + edInp('to', T.f['leg.to'], l.to, { max: 4, caps: true }, er[p + 'to'], i);
+    return '<li class="re-leg"><div class="re-leg-h"><b>' + esc(nm) + '</b>' +
+      '<button type="button" class="rs-ib" data-e="delleg" data-i="' + i + '" aria-label="' + esc(T.rm + ' · ' + nm) + '">' + I_X + '</button></div>' +
+      kinds + '<div class="re-grid">' + where +
+        edInp('out', T.f['leg.out'], l.out, { time: true }, er[p + 'out'], i) +
+        edInp('in', T.f['leg.in'], l.in, { time: true, day: l.in_day, dayE: 'in_day' }, er[p + 'in'], i) +
+        edInp('block', T.f['leg.block'], l.block, { block: true }, er[p + 'block'], i) +
+        edInp('role', T.eRole, l.role, { max: 8, caps: true }, er[p + 'role'], i) +
+      '</div></li>';
+  }
+  function edRender(E) {
+    var a = d.activeElement, keep = a && E.root.contains(a) && a.getAttribute ? { e: a.getAttribute('data-e'), i: a.getAttribute('data-i'), v: a.getAttribute('data-v'), c: a.getAttribute('data-c') } : null;
+    var dr = E.draft, er = E.errs, codes = E.opts.codes || [], dis = E.busy ? ' disabled' : '', cur = upT(dr.code);
+    var h = '<button type="button" class="rs-link ru-back" data-e="cancel"' + dis + '>' + I_BACK + esc(T.prevStep) + '</button>' +
+      '<div class="ru-hd"><p class="rs-ey">' + esc(E.isNew ? T.eAdd : T.eEdit) + '</p><h2 class="rs-h">' + esc(fmtDate(E.date)) + '</h2></div>';
+    h += '<section class="ru-card re-day">' + edInp('code', T.f.code, dr.code, { max: 12, caps: true }, er.code) +
+      (codes.length ? '<div class="ru-chips is-sm re-codes" role="group" aria-label="' + esc(T.f.code) + '">' + codes.map(function (c) {
+        var on = cur === c;
+        return '<button type="button" class="ru-chip' + (on ? ' is-on' : '') + '" data-e="codechip" data-c="' + esc(c) + '" aria-pressed="' + on + '">' + esc(c) + '</button>';
+      }).join('') + '</div>' : '') +
+      '<div class="re-row">' + edInp('d_on', T.f.d_on, dr.d_on, { time: true }, er.d_on) +
+        edInp('d_off', T.f.d_off, dr.d_off, { time: true, day: dr.d_off_day, dayE: 'd_off_day' }, er.d_off) + '</div></section>';
+    h += '<section class="ru-card re-legs"><div class="ru-card-h"><h3 class="ru-h3">' + esc(T.eLegs) + '</h3></div>' +
+      (dr.legs.length ? '<ol class="re-ll">' + dr.legs.map(function (l, i) { return edLeg(l, i, er); }).join('') + '</ol>' : '') +
+      '<button type="button" class="rs-btn is-ghost re-add" data-e="addleg"' + (dr.legs.length >= MAX_LEGS ? ' disabled' : dis) + '>' + I_PLUS + esc(T.eAddLeg) + '</button>' +
+      (dr.legs.length >= MAX_LEGS || er.legs ? '<p class="ru-qs">' + esc(T.eMax) + '</p>' : '') + '</section>';
+    if (E.msg) h += '<p class="rs-flash is-bad" role="alert">' + esc(E.msg) + '</p>';
+    h += '<div class="ru-act"><button type="button" class="rs-btn is-primary is-lg" data-e="save"' + dis + '>' +
+        esc(E.busy ? T.saving : E.opts.mode === 'saved' ? T.eSave : T.eUse) + '</button>' +
+      '<button type="button" class="rs-btn is-ghost" data-e="cancel"' + dis + '>' + esc(T.cancel) + '</button></div>';
+    if (E.opts.onDelete) {
+      h += E.ask
+        ? '<div class="re-delq" role="group"><p>' + esc(T.eDelQ) + '</p><button type="button" class="rs-btn is-bad" data-e="delyes"' + dis + '>' + esc(T.eDelYes) + '</button>' +
+          '<button type="button" class="rs-btn is-ghost" data-e="delno"' + dis + '>' + esc(T.cancel) + '</button></div>'
+        : '<button type="button" class="ru-tbtn re-del" data-e="del"' + dis + '>' + esc(T.eDelDay) + '</button>';
+    }
+    E.root.innerHTML = h;
+    var f = null;
+    if (E.focus) { f = E.root.querySelector(E.focus); E.focus = null; }
+    else if (keep && keep.e) f = E.root.querySelector('[data-e="' + keep.e + '"]' + attrSel('data-i', keep.i) + attrSel('data-v', keep.v) + attrSel('data-c', keep.c));
+    if (f && !f.disabled) f.focus();
+  }
+  function edSet(E, k, i, v) { if (i == null) E.draft[k] = v; else if (E.draft.legs[+i]) E.draft.legs[+i][k] = v; }
+  function edErrKey(k, i) { return i == null ? k : 'leg' + i + '.' + k; }
+  function edShowErr(t, key) {
+    var f = t.closest('.re-f');
+    if (!f) return;
+    var id = t.id + '-e', s = f.querySelector('.re-err');
+    t.classList.add('is-bad');
+    t.setAttribute('aria-invalid', 'true');
+    t.setAttribute('aria-describedby', id);
+    if (!s) { s = d.createElement('span'); s.className = 're-err'; s.id = id; f.appendChild(s); }
+    s.textContent = T[key];
+  }
+  function edClearErr(t) {
+    t.classList.remove('is-bad');
+    t.removeAttribute('aria-invalid');
+    t.removeAttribute('aria-describedby');
+    var f = t.closest('.re-f'), s = f && f.querySelector('.re-err');
+    if (s) s.parentNode.removeChild(s);
+  }
+  function edSyncCodes(E) {
+    var c = upT(E.draft.code);
+    [].forEach.call(E.root.querySelectorAll('[data-e="codechip"]'), function (b) {
+      var on = b.getAttribute('data-c') === c;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', String(on));
+    });
+  }
+  function edInput(E, e) {
+    var t = e.target, k = t.getAttribute && t.getAttribute('data-e');
+    if (!k || t.tagName !== 'INPUT') return;
+    var i = t.getAttribute('data-i'), ek = edErrKey(k, i);
+    edSet(E, k, i, t.value);
+    if (E.errs[ek]) { delete E.errs[ek]; edClearErr(t); }
+    if (k === 'code') edSyncCodes(E);
+  }
+  /* 欄を離れたら字を整える（"735" → "07:35"・小文字 → 大文字）。形が合わなければ、その欄の横に出す */
+  function edBlur(E, e) {
+    var t = e.target, k = t.getAttribute && t.getAttribute('data-e');
+    if (!k || t.tagName !== 'INPUT' || !t.value) return;
+    var i = t.getAttribute('data-i'), isT = /^(d_on|d_off|out|in)$/.test(k);
+    var v = isT ? normTime(t.value) : k === 'block' ? normBlock(t.value) : upT(t.value), bad = null;
+    if (v === false) bad = k === 'block' ? 'errBlock' : 'errTime';
+    else {
+      if (v !== t.value) { t.value = v; edSet(E, k, i, v); }
+      bad = k === 'code' ? (RX_CODE.test(v) ? null : 'errCode') : (k === 'from' || k === 'to') ? (RX_APT.test(v) ? null : 'errApt')
+        : k === 'loc' ? (RX_LOC.test(v) ? null : 'errLoc') : k === 'role' ? (RX_ROLE.test(v) ? null : 'errRole') : null;
+    }
+    if (bad) { E.errs[edErrKey(k, i)] = bad; edShowErr(t, bad); }
+  }
+  function edRun(E, fn) {
+    var p = fn ? fn() : null;
+    if (!p || typeof p.then !== 'function') return;       // その場で終わる（取り込みの確認）
+    E.busy = true; E.msg = null;
+    edRender(E);
+    p.then(function () { E.busy = false; }, function (msg) {
+      E.busy = false;
+      E.msg = typeof msg === 'string' && msg ? msg : T.errSave;
+      if (!E.root.parentNode) return;
+      edRender(E);
+      var f = E.root.querySelector('[data-e="save"]');
+      if (f) f.focus();
+    });
+  }
+  function edSave(E) {
+    var r = cleanDay(E.date, E.draft);
+    E.errs = r.errs;
+    if (!r.day) {
+      E.msg = r.errs.day ? T.errEmpty : T.errFix;
+      E.focus = r.errs.day ? '[data-e="code"]' : '.re-in.is-bad';
+      edRender(E);
+      return;
+    }
+    E.msg = null;
+    edRun(E, function () { return E.opts.onSave ? E.opts.onSave(r.day) : null; });
+  }
+  function edClick(E, e) {
+    var t = e.target.closest ? e.target.closest('[data-e]') : null;
+    if (!t || !E.root.contains(t) || t.disabled || t.tagName === 'INPUT') return;
+    var k = t.getAttribute('data-e'), i = t.getAttribute('data-i'), dr = E.draft, l = i != null ? dr.legs[+i] : null;
+    if (k === 'cancel') { if (E.opts.onCancel) E.opts.onCancel(); return; }
+    if (k === 'save') return edSave(E);
+    if (k === 'delyes') return edRun(E, E.opts.onDelete);
+    if (k === 'codechip') {
+      dr.code = t.getAttribute('data-c');
+      var inp = E.root.querySelector('[data-e="code"]');
+      if (inp) { inp.value = dr.code; if (E.errs.code) { delete E.errs.code; edClearErr(inp); } }
+      edSyncCodes(E);
+      return;
+    }
+    if (k === 'd_off_day') dr.d_off_day = dr.d_off_day ? 0 : 1;
+    else if (k === 'in_day' && l) l.in_day = l.in_day ? 0 : 1;
+    else if (k === 'kind' && l) l.kind = t.getAttribute('data-v');
+    else if (k === 'addleg') {
+      if (dr.legs.length >= MAX_LEGS) return;
+      dr.legs.push(emptyLeg());
+      E.focus = '[data-e="from"][data-i="' + (dr.legs.length - 1) + '"]';
+    }
+    else if (k === 'delleg' && l) {
+      dr.legs.splice(+i, 1);
+      Object.keys(E.errs).forEach(function (x) { if (/^leg\d+\./.test(x)) delete E.errs[x]; });   // 行の番号が動くので、便の欄の印はいったん外す
+      E.focus = '[data-e="addleg"]';
+    }
+    else if (k === 'del') { E.ask = true; E.focus = '[data-e="delno"]'; }
+    else if (k === 'delno') { E.ask = false; E.focus = '[data-e="del"]'; }
+    else return;
+    edRender(E);
+  }
+  function editDay(box, day, opts) {
+    opts = opts || {};
+    day = day || {};
+    var E = { opts: opts, date: day.date, draft: draftOf(day), errs: {}, msg: null, busy: false, ask: false, focus: null,
+              isNew: R.helpers.dayEmpty(day) };
+    var root = d.createElement('div');
+    root.className = 'rs ru re';
+    root.addEventListener('click', function (e) { edClick(E, e); });
+    root.addEventListener('input', function (e) { edInput(E, e); });
+    root.addEventListener('focusout', function (e) { edBlur(E, e); });
+    E.root = root;
+    box.innerHTML = '';
+    box.appendChild(root);
+    edRender(E);
+    var h = root.querySelector('.ru-hd h2');
+    if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); }
+    return { close: function () { if (root.parentNode) root.parentNode.removeChild(root); } };
+  }
+
   var bound = null;
   function open(box, ctx) {
-    U = { box: box, ctx: ctx, items: [], step: 'pick', month: lastMonth(), run: null, merged: null, answers: {}, printed: {}, cache: {}, err: null, busy: false, pagesSent: 0 };
+    loadClose();
+    U = { box: box, ctx: ctx, items: [], step: 'pick', month: lastMonth(), run: null, merged: null, answers: {}, printed: {}, cache: {}, err: null, busy: false, pagesSent: 0,
+          edits: {}, base: {}, baseIssues: [], range: null, missing: [], asked: false, seen: {} };
     if (bound !== box) {
       bound = box;
       box.addEventListener('click', onClick);
       box.addEventListener('change', onChange);
+      box.addEventListener('keydown', onKey);
       ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function (k) { box.addEventListener(k, onDrag); });
     }
     render();
-    var h = box.querySelector('.ru-hd h2');
-    if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); }
+    focusHead();
   }
 
-  w.PVRosterUpload = { open: open, _: { patchOf: patchOf, stripDay: stripDay } };   // _ は検査（db/test-roster-ui.mjs）が呼ぶ
+  /* _ は検査（db/test-roster-ui.mjs）が呼ぶ */
+  w.PVRosterUpload = { open: open, editDay: editDay, _: { patchOf: patchOf, stripDay: stripDay, cleanDay: cleanDay, normTime: normTime, normBlock: normBlock, draftOf: draftOf } };
 }(window));

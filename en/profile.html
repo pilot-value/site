@@ -199,7 +199,7 @@
        my-value / actual-pay / airline-conditions と共有する。
        ★ 2層目の #pv-value .pt-* は id で閉じているので、このページの図には効かない。 -->
   <link rel="stylesheet" href="../pv-give.css">
-  <link rel="stylesheet" href="../my-value.css?v=f2a5a31c">
+  <link rel="stylesheet" href="../my-value.css?v=8168f217">
   <link rel="stylesheet" href="../app-nav.css">
   <!-- Payslip chart styling. Shared by my-value.js and the pay-form result card. -->
   <link rel="stylesheet" href="../pay-viz.css">
@@ -770,7 +770,7 @@
 
       if (!dat) {                                   // 引けなかった＝勝手に決めつけない
         document.getElementById('na-title').textContent = 'We could not load what to do next';
-        document.getElementById('na-sub').textContent = 'Try opening the page again in a moment. YOUR PAY below still works.';
+        document.getElementById('na-sub').textContent = 'Try opening the page again in a moment. The MY PAY tab still works.';
         return;
       }
 
@@ -782,7 +782,7 @@
         if (nm > 12) { nm = 1; ny += 1; }
       } else { const t = new Date(); ny = t.getFullYear(); nm = t.getMonth() + 1; }
       setNext(5, 'Add your pay for ' + NEXT_YM(ny, nm),
-              "Add one each month and the trend and milestones appear in YOUR PAY below.", "Add this month’s pay", 'pay-report.html#ps');
+              "Add one each month and the trend and milestones appear in the MY PAY tab.", "Add this month’s pay", 'pay-report.html#ps');
 
       /* 順3 … 口コミの鍵。年収の鍵とは別物なので混ぜない。 */
       if (!reviewOn) setNext(3, "Reviews are still locked", "Post one review and you can read reviews from all 124 airlines.",
@@ -1157,7 +1157,7 @@
 <!-- ③ YOUR PAY の中身（旧マイレポート）。★pay-viz.js の **後**に読む。
      2026-09-06、pay-tracker.js（462行）を廃止してこの1本に寄せた ──
      同じ my_pay_reports() を叩き、同じ pay-viz.js で図を描く実装が2つあった。 -->
-<script src="../my-value.js?v=a4c8a4e8"></script>
+<script src="../my-value.js?v=ba14c2be"></script>
 <script src="../pv-app.js?v=a95c64dd"></script>
 <script src="../pv-follow.js?v=054030f0"></script>
 <!-- "Please resubmit" notice. Shown **only to the member themselves** when one of

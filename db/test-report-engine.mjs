@@ -435,6 +435,27 @@ function suite(R, V) {
        '月またぎ（8/31 → 9/1）：日付と「翌日」の印を保ち、0時過ぎの区間は後ろに');
     const back = R.rosterMonths(mr.days, PROFILE);
     ok(back[0].ym === '2026-08' && back[0].days.find((d) => d.date === '2026-08-31').dutyMin === 510, 'つないだ日はそのまま集計に渡せる');
+
+    /* ▼ 空欄の日・読めなかった日（2026-11-09 オーナー「何も無い日がある（OFF でもない）」） */
+    const E0 = { d_on: null, d_off: null, legs: [] };
+    const B1 = { days: [D('2026-08-16', E0), D('2026-08-17', { d_on: '06:00', d_off: null, legs: [], unread: true }), D('2026-08-18')] };
+    const B2 = { days: [D('2026-08-16', { page: 2 }), D('2026-08-17', Object.assign({ code: 'OFF1', page: 2 }, E0))] };
+    const mb = R.mergePages([B1, B2]), mb2 = R.mergePages([B2, B1]);
+    const d16 = mb.days.find((d) => d.date === '2026-08-16'), d17 = mb.days.find((d) => d.date === '2026-08-17');
+    ok(d16 && d16.d_on === '07:00' && d16.legs.length === 2 && !d16.blank && !d16.unread, '空欄の写りは中身のある写りに負ける');
+    ok(d17 && d17.code === 'OFF1' && d17.d_on === null && !d17.unread && !mb.issues.length,
+       '読めなかった写り（unread）の値は使わない・中身のある写りとぶつけない（食い違いにしない）');
+    ok(J(mb.days) === J(mb2.days), '空欄・読めなかった写りは、どちらの順でも同じ答え');
+    const lone = R.mergePages([{ days: [D('2026-08-20', E0), D('2026-08-21', Object.assign({ unread: true }, E0)), D('2026-08-22', { d_on: '07:00', d_off: null, legs: [], unread: true })] }]);
+    const L0 = lone.days;
+    ok(L0.length === 3 && L0[0].blank === true && !L0[0].unread && L0[1].blank === true && L0[1].unread === true && L0[1].legs.length === 0,
+       'どの写りにも中身の無い日は、日付だけ残して印を付ける（空欄 blank・読めなかった unread）');
+    ok(L0[2].unread === true && !L0[2].blank && L0[2].d_on === '07:00', '読めなかった日の読めた欄は残す（印つき）');
+    const rmB = R.rosterMonths(L0.concat([D('2026-08-23')]), PROFILE)[0];
+    ok(rmB && rmB.coveredDays === 1 && rmB.days.length === 1 && rmB.days[0].date === '2026-08-23', '空欄・読めなかった日は覆った日に数えない（データではない）');
+    const rmS = R.rosterMonths([{ date: '2026-08-24', code: null, d_on: null, d_off: null, d_off_day: 0, legs: [] }, D('2026-08-25')], PROFILE)[0];
+    ok(rmS && rmS.coveredDays === 1 && R.helpers.dayEmpty({ date: '2026-08-24', legs: [{ seq: 1, kind: 'ground' }] }) && !R.helpers.dayEmpty(D('2026-08-25')),
+       '前に保存された空の日（印なし）も数えない・中身の無い区間だけの日も空');
   }
 
   /* ▼ 決定的（同じ入力 → 同じ答え） */
@@ -476,6 +497,9 @@ const BREAK = [
   ['2進のまま丸める', "z = Number(m[2] + (frac + '000').slice(0, d));\n    if (frac.length > d && +frac.charAt(d) >= 5) z += 1;", 'z = Math.round(Number(s) * Math.pow(10, d));'],
   ['重なった日の区間を二重にする', 'if (best && tie)', 'best = null; if (best && tie)'],
   ['切れた日を黙って通す', "if (out.cut) issues.push({ date: date, type: 'incomplete', cut: out.cut });", ''],
+  ['読めなかった写りの値も使う', 'var os = real.length ? real : all;', 'var os = all;'],
+  ['空欄・読めなかった日も覆った日に数える', 'if (dayEmpty(D)) return; ', ''],
+  ['中身の無い日に印を付けない', 'if (!dayHas(out)) out.blank = true;', ''],
   ['分解の残りを丸めずに足す', 'out.qtyEffect = q < 0 ? -Math.round(-q) : Math.round(q);', 'out.qtyEffect = q;']
 ];
 for (const [name, from, to] of BREAK) {

@@ -57,15 +57,20 @@
       kinkAxis: '変動給（月）',
       /* 会社の会員の数字（2人以上の組だけ・人数は出さない・db/company-rates.sql） */
       coKinkH: 'この会社の会員の記録では',
-      cCompany: '会社の会員',
       ratesH: '時給・分給と単価',
-      cItem: '項目', cRate: '時給・単価', cMin: '分給', cQty: '1年の数量', cAmt: '1年の額', cTrend: '月ごと',
+      /* 会社の会員との差は文で言う（2026-11-09 オーナー「会社の会員がわからない」）。[前, 強める部分, 後] */
+      rk: { cap: '機長', fo: '副操縦士' },
+      coUp: function (r, m, p) { return ['同じ会社の' + r + 'の中央値 ' + m + ' より ', p + '% 高い', '']; },
+      coDn: function (r, m, p) { return ['同じ会社の' + r + 'の中央値 ' + m + ' より ', p + '% 低い', '']; },
+      coEq: function (r, m) { return ['同じ会社の' + r + 'の中央値 ' + m + ' とほぼ同じ', '', '']; },
+      qHrs: { bh: '時間', dh: '時間', night: '時間' },
+      rlYear: function (q, a) { return '1年で ' + q + '・' + a; },
+      noRate: function (s) { return '単価が出ない手当（1年）：' + s; },
       rBlock: '乗務1時間あたり', rDuty: '総勤務1時間あたり', rPayExPd: '総支給（パーディアムを除く）',
       b: { block: '乗務時間の変動給', duty: '勤務時間の変動給', night: '深夜手当', sector: '便数・着陸の手当',
            overtime: '時間外・追加勤務', reserve: '待機・スタンバイ', weekend: '週末・日曜勤務', holiday: '祝日勤務',
            other: 'その他の変動給', unknown: '種類の分からない変動給' },
       bSub: { block: '乗務1時間あたり', duty: '総勤務1時間あたり', night: '夜間の乗務1時間あたり', sector: '1回あたり' },
-      amtOnly: '数量が無いので額だけ',
       perDiem: 'パーディアム', perDiemSub: '1泊あたり',
       uH: '/時', uMin: '/分', uSector: '/回', uNight: '/泊',
       qH: 'h', qSector: '回', qNight: '泊', qDay: '日',
@@ -108,15 +113,19 @@
       kinkFrom: function (n, a, b) { return 'From ' + n + ' months of records (' + a + ' above, ' + b + ' below)'; },
       kinkAxis: 'Variable pay (month)',
       coKinkH: 'Across members at your airline',
-      cCompany: 'Airline members',
       ratesH: 'Hourly, per-minute and unit rates',
-      cItem: 'Item', cRate: 'Rate', cMin: 'Per minute', cQty: 'Quantity (year)', cAmt: 'Amount (year)', cTrend: 'By month',
+      rk: { cap: 'Captains', fo: 'First Officers' },
+      coUp: function (r, m, p) { return ['', p + '% above', ' the median for ' + r + ' at your airline (' + m + ')']; },
+      coDn: function (r, m, p) { return ['', p + '% below', ' the median for ' + r + ' at your airline (' + m + ')']; },
+      coEq: function (r, m) { return ['About the same as the median for ' + r + ' at your airline (' + m + ')', '', '']; },
+      qHrs: { bh: ' block hours', dh: ' duty hours', night: ' night hours' },
+      rlYear: function (q, a) { return q + ' · ' + a + ' in the year'; },
+      noRate: function (s) { return 'Pay without a rate (year): ' + s; },
       rBlock: 'Per block hour', rDuty: 'Per duty hour', rPayExPd: 'Gross pay, excluding per diem',
       b: { block: 'Variable pay on block hours', duty: 'Variable pay on duty hours', night: 'Night premium', sector: 'Sector / landing pay',
            overtime: 'Overtime / extra duty', reserve: 'Reserve / standby', weekend: 'Weekend / Sunday premium', holiday: 'Public holiday premium',
            other: 'Other variable pay', unknown: 'Variable pay, type not given' },
       bSub: { block: 'Per block hour', duty: 'Per duty hour', night: 'Per night block hour', sector: 'Per sector' },
-      amtOnly: 'Amount only (no quantity recorded)',
       perDiem: 'Per diem', perDiemSub: 'Per layover night',
       uH: '/h', uMin: '/min', uSector: '/sector', uNight: '/night',
       qH: 'h', qSector: ' sectors', qNight: ' nights', qDay: ' days',
@@ -158,14 +167,18 @@
       kinkFrom: function (n, a, b) { return 'A partir de ' + n + ' meses de registros (' + a + ' por encima, ' + b + ' por debajo)'; },
       kinkAxis: 'Pago variable (mes)',
       coKinkH: 'Entre los miembros de tu aerolínea',
-      cCompany: 'Miembros de tu aerolínea',
       ratesH: 'Tarifas por hora, por minuto y por unidad',
-      cItem: 'Concepto', cRate: 'Tarifa', cMin: 'Por minuto', cQty: 'Cantidad (año)', cAmt: 'Monto (año)', cTrend: 'Por mes',
+      rk: { cap: 'comandantes', fo: 'primeros oficiales' },
+      coUp: function (r, m, p) { return ['', p + '% por encima', ' de la mediana de los ' + r + ' de tu aerolínea (' + m + ')']; },
+      coDn: function (r, m, p) { return ['', p + '% por debajo', ' de la mediana de los ' + r + ' de tu aerolínea (' + m + ')']; },
+      coEq: function (r, m) { return ['Casi igual a la mediana de los ' + r + ' de tu aerolínea (' + m + ')', '', '']; },
+      qHrs: { bh: ' horas block', dh: ' horas de servicio', night: ' horas nocturnas' },
+      rlYear: function (q, a) { return q + ' · ' + a + ' en el año'; },
+      noRate: function (s) { return 'Pagos sin tarifa (año): ' + s; },
       rBlock: 'Por hora block', rDuty: 'Por hora de servicio', rPayExPd: 'Sueldo bruto, sin viáticos',
       b: { block: 'Pago variable por horas block', duty: 'Pago variable por horas de servicio', night: 'Prima nocturna', sector: 'Pago por sector / aterrizaje', overtime: 'Horas extra / servicio adicional', reserve: 'Reserva / guardia', weekend: 'Prima de fin de semana / domingo', holiday: 'Prima de día feriado',
            other: 'Otro pago variable', unknown: 'Pago variable sin tipo indicado' },
       bSub: { block: 'Por hora block', duty: 'Por hora de servicio', night: 'Por hora block nocturna', sector: 'Por sector' },
-      amtOnly: 'Solo el monto (sin cantidad registrada)',
       perDiem: 'Viáticos', perDiemSub: 'Por noche de pernocta',
       uH: '/h', uMin: '/min', uSector: '/sector', uNight: '/noche',
       qH: 'h', qSector: ' sectores', qNight: ' noches', qDay: ' días',
@@ -509,22 +522,10 @@
       '</div></div>' + svgOpen(W, H) + fr.g + '</svg></div>';
   }
 
-  function spark(months, W, H) {
-    if (months.length < 2) return '';
-    var vs = months.map(function (p) { return p.v; }), lo = Math.min.apply(null, vs), hi = Math.max.apply(null, vs);
-    var mid = (lo + hi) / 2, span = Math.max(hi - lo, Math.abs(mid) * 0.3);
-    lo = mid - span / 2; hi = mid + span / 2;
-    var X = function (m) { return 4 + (m - 1) * (W - 8) / 11; }, Y = function (v) { return H - 4 - (v - lo) / (hi - lo) * (H - 8); };
-    var last = months[months.length - 1];
-    return svgOpen(W, H) + '<polyline points="' + months.map(function (p) { return X(p.m).toFixed(1) + ' ' + Y(p.v).toFixed(1); }).join(' ') +
-      '" fill="none" stroke="' + C_BLOCK + '" stroke-width="2" stroke-linejoin="round"/>' +
-      '<circle cx="' + X(last.m) + '" cy="' + Y(last.v) + '" r="3.5" fill="' + C_BLOCK + '"/></svg>';
-  }
-
   function insights(md) {
     var I = md.ins, out = '';
     function card(k, v, u, p, svg) {
-      return '<div class="yr-in"><div><span>' + esc(k) + '</span><b>' + esc(v) + (u ? '<i>' + esc(u) + '</i>' : '') + '</b><p>' + esc(p) + '</p></div>' +
+      return '<div class="yr-in' + (svg ? '' : ' no-g') + '"><div><span>' + esc(k) + '</span><b>' + esc(v) + (u ? '<i>' + esc(u) + '</i>' : '') + '</b><p>' + esc(p) + '</p></div>' +
         (svg ? '<div class="yr-in-g">' + svg + '</div>' : '') + '</div>';
     }
     if (I.slope) {
@@ -540,11 +541,8 @@
       out += card(T.iSlopeK, '+' + fmt(I.slope.v), '', T.iSlopeP(I.slope.n), svgOpen(W, H) + sc + '</svg>');
     }
     if (I.fly) {
-      var W2 = 210, H2 = 64, ms = I.fly.months, lo = 0.3, hi = 0.8;
-      var X2 = function (m) { return 6 + (m - 1) * (W2 - 12) / 11; }, Y2 = function (v) { return H2 - 8 - (Math.min(hi, Math.max(lo, v)) - lo) / (hi - lo) * (H2 - 16); };
-      var ln = ms.length > 1 ? '<polyline points="' + ms.map(function (p) { return X2(p.m).toFixed(1) + ' ' + Y2(p.v).toFixed(1); }).join(' ') + '" fill="none" stroke="' + C_DUTY + '" stroke-width="2" stroke-linejoin="round"/>' : '';
-      ln += ms.map(function (p, i) { return '<circle cx="' + X2(p.m) + '" cy="' + Y2(p.v) + '" r="' + (i === ms.length - 1 ? 4 : 2.5) + '" fill="' + C_DUTY + '"/>'; }).join('');
-      out += card(T.iFlyK, Math.round(I.fly.ratio * 100) + '%', '', T.iFlyP(Math.round(I.fly.dh), Math.round(I.fly.bh), I.fly.perDay ? I.fly.perDay.toFixed(1) : null), svgOpen(W2, H2) + ln + '</svg>');
+      /* 月ごとの小さな線は置かない（2026-11-09 オーナー「おたまじゃくし」→ 消す）。数字と文だけ */
+      out += card(T.iFlyK, Math.round(I.fly.ratio * 100) + '%', '', T.iFlyP(Math.round(I.fly.dh), Math.round(I.fly.bh), I.fly.perDay ? I.fly.perDay.toFixed(1) : null));
     }
     if (I.vari) {
       var W3 = 210, fx3 = 1 - I.vari.share;
@@ -604,35 +602,33 @@
       '<div class="yr-kink-g">' + svgOpen(W, H) + g + '</svg></div></div>';
   }
 
-  function ratesTable(md) {
+  /* 時給・分給と単価（2026-11-09 オーナー「数字の格子で読みにくい」「会社の会員がわからない」）。
+     ★1行に大きい数字は1つだけ（その単価）。会社の会員との差と1年の量は、その下の1行の文で言う。
+       数量の無い手当は行にせず、一覧の下に1行で額だけ。 */
+  function ratesList(md) {
     if (!md.rates.length && !md.amtOnly.length) return '';
     var unit = function (x) { return x.perHour ? T.uH : x.q === 'sectors' ? T.uSector : T.uNight; };
-    var qtyTx = function (x) { return x.q === 'sectors' ? Math.round(x.qty) + T.qSector : x.q === 'stay' ? Math.round(x.qty) + T.qNight : hh(x.qty) + T.qH; };
-    var CO = state.company && state.company.rates, hasCo = !!(CO && Object.keys(CO).length);
-    /* 会社の会員の中央値と、本人との差（本人 ÷ 会社 − 1）。無い種類は「—」（0 にしない） */
-    var coCell = function (x) {
+    var qtyTx = function (x) { return x.q === 'sectors' ? Math.round(x.qty) + T.qSector : x.q === 'stay' ? Math.round(x.qty) + T.qNight : hh(x.qty) + T.qHrs[x.q]; };
+    var co = state.company, CO = co && co.rates, rk = co && T.rk[co.rank];
+    /* 会社の会員（同じ会社・同じ職位）の中央値と、本人との差（本人 ÷ 会社 − 1）。無い種類は言わない（0 にしない） */
+    var cmp = function (x) {
       var c = CO && CO[CO_K[x.k]];
-      if (!(c > 0)) return '<td class="yr-rt-co"><i>—</i></td>';
-      var d = Math.round((x.rate / c - 1) * 100);
-      return '<td class="yr-rt-co"><b>' + esc(fmtSmall(c)) + '</b><i>' + esc(unit(x)) + '</i>' +
-        '<span class="mr-d ' + (d > 0 ? 'up' : d < 0 ? 'dn' : 'fl') + '">' + (d > 0 ? '+' : d < 0 ? '−' : '±') + Math.abs(d) + '%</span></td>';
+      if (!(c > 0) || !rk) return '';
+      var p = Math.round((x.rate / c - 1) * 100), m = fmtSmall(c);
+      var s = p > 0 ? T.coUp(rk, m, p) : p < 0 ? T.coDn(rk, m, -p) : T.coEq(rk, m);
+      return '<span>' + esc(s[0]) + (s[1] ? '<em class="' + (p > 0 ? 'up' : 'dn') + '">' + esc(s[1]) + '</em>' : '') + esc(s[2]) + '</span> · ';
     };
     var rows = md.rates.map(function (x) {
-      return '<tr><td class="yr-rt-n"><b>' + esc(x.name) + '</b><small>' + esc(x.sub || '') + '</small></td>' +
-        '<td class="yr-rt-big"><b>' + esc(fmtSmall(x.rate)) + '</b><i>' + esc(unit(x)) + '</i></td>' +
-        '<td>' + (x.perHour ? '<b>' + esc(fmtSmall(x.rate / 60)) + '</b><i>' + esc(T.uMin) + '</i>' : '<i>—</i>') + '</td>' +
-        (hasCo ? coCell(x) : '') +
-        '<td class="yr-rt-q">' + esc(qtyTx(x)) + '</td>' +
-        '<td class="yr-rt-q">' + esc(fmt(x.amt)) + '</td>' +
-        '<td class="yr-rt-sp">' + spark(x.months, 120, 28) + '</td></tr>';
-    }).join('') + md.amtOnly.map(function (x) {
-      return '<tr><td class="yr-rt-n"><b>' + esc(x.name) + '</b><small>' + esc(T.amtOnly) + '</small></td>' +
-        '<td class="yr-rt-big"><i>—</i></td><td><i>—</i></td>' + (hasCo ? '<td class="yr-rt-co"><i>—</i></td>' : '') + '<td class="yr-rt-q"><i>—</i></td>' +
-        '<td class="yr-rt-q">' + esc(fmt(x.amt)) + '</td><td class="yr-rt-sp"></td></tr>';
+      return '<li class="yr-rl-i">' +
+        '<div class="yr-rl-n"><b>' + esc(x.name) + '</b>' + (x.sub ? '<small>' + esc(x.sub) + '</small>' : '') + '</div>' +
+        '<div class="yr-rl-v"><b>' + esc(fmtSmall(x.rate)) + '<i>' + esc(unit(x)) + '</i></b>' +
+          (x.perHour ? '<small>' + esc(fmtSmall(x.rate / 60)) + '<i>' + esc(T.uMin) + '</i></small>' : '') + '</div>' +
+        '<p class="yr-rl-c">' + cmp(x) + '<span>' + esc(T.rlYear(qtyTx(x), fmt(x.amt))) + '</span></p></li>';
     }).join('');
-    return '<h3 class="yr-h">' + esc(T.ratesH) + '</h3><table class="yr-rt"><thead><tr><th>' + esc(T.cItem) + '</th><th>' + esc(T.cRate) +
-      '</th><th>' + esc(T.cMin) + '</th>' + (hasCo ? '<th>' + esc(T.cCompany) + '</th>' : '') + '<th>' + esc(T.cQty) + '</th><th>' + esc(T.cAmt) + '</th><th>' + esc(T.cTrend) + '</th></tr></thead><tbody>' +
-      rows + '</tbody></table>';
+    var rest = md.amtOnly.length ? '<p class="yr-rl-x">' +
+      esc(T.noRate(md.amtOnly.map(function (x) { return x.name + ' ' + fmt(x.amt); }).join(' · '))) + '</p>' : '';
+    return '<h3 class="yr-h">' + esc(T.ratesH) + '</h3><div class="yr-rates">' +
+      (rows ? '<ul class="yr-rl" role="list">' + rows + '</ul>' : '') + rest + '</div>';
   }
 
   function smallsHTML(md) {
@@ -744,7 +740,7 @@
           return '<div class="yr-tile"><span>' + esc(t.k) + '</span><b>' + esc(String(t.v)) + (t.u ? '<i>' + esc(t.u) + '</i>' : '') + '</b>' +
             (t.sub || []).map(function (x) { return '<small><span>' + esc(x[0]) + '</span> <span>' + esc(x[1]) + '</span></small>'; }).join('') + '</div>';
         }).join('') + '</div>' : '') +
-        insights(md) + kinkCard(md, W) + ratesTable(md) +
+        insights(md) + kinkCard(md, W) + ratesList(md) +
         hoursChart(md, W) + payChart(md, W, o.segName || {}) + smallsHTML(md) + monthTable(md) +
         '<div class="yr-tip" role="status"></div>' +
       '</section>';
@@ -799,7 +795,7 @@
       var rates = {}, kink = null;
       (got.rates || []).forEach(function (x) { var v = num(x && x.rate_jpy); if (x && x.rank === rk && v > 0) rates[x.k] = v; });
       (got.kink || []).forEach(function (x) { if (x && x.rank === rk && num(x.t) > 0 && num(x.above) > 0) kink = { t: num(x.t), below: num(x.below) || 0, above: num(x.above) }; });
-      state.company = { rates: rates, kink: kink };
+      state.company = { rates: rates, kink: kink, rank: rk };   // rank は単価の文の「機長／副操縦士」
       draw();
     }, function () {});
   }
