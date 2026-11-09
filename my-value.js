@@ -78,7 +78,7 @@
        （db/test-year-report.mjs が中身と突き合わせる）。計算の部品は分析のタブも使う。 */
   var ROSTER_V = 'f824ac31';
   var ROSTER_CSS_V = '453b5889';
-  var UPLOAD_V = '11b00f9c';
+  var UPLOAD_V = 'b27f5ed9';
   var ENGINE_V = '7ab4bdaa';
   /* ★「分析」のタブ（2026-11-09）。開いたときだけ読む2本（見た目 → 計算の部品 → 画面の順）。指紋の決まりは上と同じ */
   var ANALYSIS_V = '6dbb1b98';

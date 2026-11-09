@@ -10,6 +10,7 @@
    ⑤ 画像の扱いの言い方が「送るが保存しない」（「画像は送りません」と書かない・CLAUDE.md の1つの言い方）。
    ⑥ CSV は表示中の月だけ（ファイル名と1行目にその月・ほかの月の日を書かない）・1日の行と便の行・地上の業務に空港の欄を書かない。
    ⑦ 空欄の日・読めなかった日（unread）は保存に送らない。本人が入れた日だけ送る（2026-11-09）。
+      「読めなかった日」は読み取りが覆った範囲（返ってきた日付の前〜後・印字の期間が狭ければそちら）の中だけ。月の残りを足さない。
    ⑧ 1日を直す画面の検品はサーバー（db/roster.sql）と同じ形：形の合わない時刻・空港は保存しない・"7:05" は "07:05" に・
       地上の業務は空港を落とす・中身の無い行は落として 1..n に振り直す・16件まで。
    ⑨ 月の数字で、分からない値を 0:00 にしない（便の時間が1つも分からなければ「—」と「便の時間が無い便 N」）。
@@ -96,6 +97,19 @@ function checks({ P, U }) {
   ok(U.stripDay(Object.assign({ date: '2026-10-18' }, E0)) === null, '⑦ 印が無くても中身の無い日は送らない');
   const filled = U.stripDay(Object.assign({ date: '2026-10-16' }, E0, { code: 'OFF1', edited: true }));
   ok(filled && filled.code === 'OFF1' && !('edited' in filled), '⑦ 本人が入れた日は送る（印は送らない）');
+
+  // ⑦ 読めなかった日は覆った範囲の中だけ（1〜21日の2枚で 22〜31日を並べない）
+  if (U.coverage && P.S) {
+    const dd = (n) => '2026-10-' + String(n).padStart(2, '0');
+    const day = (n, o) => Object.assign({ date: dd(n), code: null, d_on: '07:00', d_off: '15:00', d_off_day: 0, legs: [] }, o || {});
+    const days = [];
+    for (let n = 1; n <= 21; n++) days.push(n === 16 ? day(n, { d_on: null, d_off: null, blank: true }) : n === 17 ? day(n, { d_on: null, d_off: null, unread: true }) : day(n));
+    const cv = U.coverage(days, null);
+    ok(cv.range && cv.range.from === dd(1) && cv.range.to === dd(21) && cv.total === 21 && cv.read === 19, '⑦ 範囲は返ってきた日付の前〜後（m = 21・読めた日 19）：' + JSON.stringify(cv.range) + ' ' + cv.total);
+    ok(cv.missing.join() === [dd(16), dd(17)].join(), '⑦ 範囲の中の空欄・読めなかった日だけを並べ、22〜31日は並べない：' + cv.missing.join());
+    const cp = U.coverage(days, { from: dd(5), to: dd(31) });
+    ok(cp.range.from === dd(5) && cp.range.to === dd(21) && cp.total === 17, '⑦ 印字の期間が狭ければそちらに寄せる（広い側には広げない）');
+  } else ok(false, '⑦ 範囲の部品が無い');
 
   // ⑧ 1日を直す画面の検品
   if (U.cleanDay && U.normTime && U.normBlock) {
@@ -192,6 +206,7 @@ const BREAK = [
   ['⑥ 地上の業務に空港を書く', "gnd ? '' : (l.from || ''), gnd ? '' : (l.to || '')", "(l.from || ''), (l.to || '')", 'ros'],
   ['⑥ ファイル名に月を入れない', "return { name: 'pilot-value-roster_' + ym, rows: rows };", "return { name: 'pilot-value-roster', rows: rows };", 'ros'],
   ['⑦ 空欄・読めなかった日も送る', "    if (empty(x)) return null;   // ★空欄", "    // ★空欄", 'up'],
+  ['⑦ 読めなかった日を月の終わりまで数える', "var a = dates[0], b = dates[dates.length - 1], p = periodOk(period);", "var a = dates[0], b = dates[0].slice(0, 7) + '-31', p = periodOk(period);", 'up'],
   ['⑧ 地上の業務にも空港を残す', "var from = gnd ? '' : upT(l.from), to = gnd ? '' : upT(l.to)", "var from = upT(l.from), to = upT(l.to)", 'up'],
   ['⑧ 時刻を直さずに見る', "var v = P.pad2(+m[1]) + ':' + m[2];", 'var v = s;', 'up'],
   ['⑧ 空港の形を見ない', "if (from && !RX_APT.test(from)) errs[p + 'from'] = 'errApt';", '', 'up'],

@@ -719,8 +719,9 @@
     U.baseIssues = clone(U.merged.issues);
     /* スクリーンショットを足して読み直しても、本人が直した日はそのまま（本人が入れたものが勝つ） */
     Object.keys(U.edits).forEach(function (dt) { applyEdit(dt, U.edits[dt]); });
-    U.range = rangeOf();
-    U.missing = missingDates();
+    var cv = coverage(Object.keys(U.base).map(function (k) { return U.base[k]; }), U.merged.period);
+    U.range = cv.range;
+    U.missing = cv.missing;
     prefill();
     var to = needAsk() ? 'ask' : 'check';
     loadDone(function () {
@@ -811,30 +812,32 @@
     var x = new Date(Date.UTC(+date.slice(0, 4), +date.slice(5, 7) - 1, +date.slice(8, 10) + k));
     return x.getUTCFullYear() + '-' + P.pad2(x.getUTCMonth() + 1) + '-' + P.pad2(x.getUTCDate());
   }
-  function endOfMonth(ym) { return ym + '-' + P.pad2(new Date(Date.UTC(+ym.slice(0, 4), +ym.slice(5, 7), 0)).getUTCDate()); }
   function eachDate(a, b, fn) { for (var x = a, k = 0; x <= b && k < 400; x = addDays(x, 1), k++) fn(x); }
-  /* このスケジュールが覆うはずの日：印字された期間 → 無ければ選んだ月（読めた日がその月にあるとき）と読めた日の端まで。62日まで */
-  function rangeOf() {
-    var ds = Object.keys(U.base).sort();
-    if (!ds.length) return null;
-    var a = ds[0], b = ds[ds.length - 1], p = periodOk(U.merged.period);
-    if (p) { a = p.from; b = p.to; }
-    else if (ds.some(function (x) { return x.slice(0, 7) === U.month; })) {
-      if (U.month + '-01' < a) a = U.month + '-01';
-      var e = endOfMonth(U.month);
-      if (e > b) b = e;
-    }
+  /* 読み取りが覆った日：parse-roster が返した日付（日付だけ・空欄・unread の日も含む）のいちばん前〜いちばん後。
+     印字された期間があって、そちらが狭ければ期間に寄せる。62日まで。
+     ★選んだ月の残りまで広げない（2026-11-09：1〜21日の2枚で、22〜31日が全部「読めなかった日」に並んでいた）。
+       この外の日は「読めなかった日」ではない（そもそも撮っていない）＝「?」も付けず、一覧にも出さない。 */
+  function coverOf(dates, period) {
+    if (!dates.length) return null;
+    var a = dates[0], b = dates[dates.length - 1], p = periodOk(period);
+    if (p && p.from <= b && p.to >= a) { if (p.from > a) a = p.from; if (p.to < b) b = p.to; }
     if (addDays(a, MAX_DAYS - 1) < b) b = addDays(a, MAX_DAYS - 1);
     return { from: a, to: b };
   }
-  /* 読めなかった日：期間の中で中身の無い日 ＋ 期間の外でも日付だけ印字されていた日（空欄・unread）。live でなければ読めたまま（base）を見る */
-  function missingDates(live) {
-    var at = live ? dayAt : function (dt) { return U.base[dt]; }, out = [], seen = {};
-    if (U.range) eachDate(U.range.from, U.range.to, function (dt) { if (empty(at(dt))) { out.push(dt); seen[dt] = 1; } });
-    (live ? U.merged.days.map(function (x) { return x.date; }) : Object.keys(U.base)).forEach(function (dt) {
-      if (!seen[dt] && empty(at(dt))) { out.push(dt); seen[dt] = 1; }
-    });
-    return out.sort();
+  /* 覆った範囲の中で中身の無い日（読めなかった日）と、範囲の日数・読めた日数。days は日の並び（mergePages の days） */
+  function coverage(days, period) {
+    var by = {}, dates = [], missing = [], read = 0, total = 0;
+    (days || []).forEach(function (x) { if (x && x.date && !by[x.date]) { by[x.date] = x; dates.push(x.date); } });
+    dates.sort();
+    var range = coverOf(dates, period);
+    if (range) eachDate(range.from, range.to, function (dt) { total++; if (empty(by[dt])) missing.push(dt); else read++; });
+    return { range: range, missing: missing, read: read, total: total };
+  }
+  /* いま（本人が直したあと）の読めなかった日：読み取ったときの範囲の中だけ */
+  function missingNow() {
+    var out = [];
+    if (U.range) eachDate(U.range.from, U.range.to, function (dt) { if (empty(dayAt(dt))) out.push(dt); });
+    return out;
   }
   /* このスケジュールに出てくる勤務コード（多い順）。codeOnly：時刻も便も無い日のコードだけ（空欄の日に当てはめる候補） */
   function rosterCodes(codeOnly) {
@@ -940,7 +943,7 @@
   function calsHTML() {
     var months = R.rosterMonths(U.merged.days, draftProfile()), byYm = {}, ask = {}, flag = {};
     months.forEach(function (m) { byYm[m.ym] = m; });
-    missingDates(true).forEach(function (dt) { ask[dt] = 1; });
+    missingNow().forEach(function (dt) { ask[dt] = 1; });
     U.merged.issues.forEach(function (x) { if (x.date) flag[x.date] = 1; });
     var ds = U.merged.days.map(function (x) { return x.date; }).sort();
     var a = U.range ? U.range.from : ds[0], b = U.range ? U.range.to : ds[ds.length - 1];
@@ -1540,5 +1543,5 @@
   }
 
   /* _ は検査（db/test-roster-ui.mjs）が呼ぶ */
-  w.PVRosterUpload = { open: open, editDay: editDay, _: { patchOf: patchOf, stripDay: stripDay, cleanDay: cleanDay, normTime: normTime, normBlock: normBlock, draftOf: draftOf } };
+  w.PVRosterUpload = { open: open, editDay: editDay, _: { patchOf: patchOf, stripDay: stripDay, cleanDay: cleanDay, normTime: normTime, normBlock: normBlock, draftOf: draftOf, coverage: coverage } };
 }(window));
