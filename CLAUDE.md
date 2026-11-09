@@ -904,6 +904,9 @@ baland_ass/                            ブランド資産（※ brand_assets の
    （足し忘れると中身が黙って消える）／[db/pay-rows.sql](db/pay-rows.sql) の `pv_annual_total` の
    **引数の並び**（署名を書く場所が4つ。1つでも古いと**ファイルごと流れない**）／
    [pay-viz.js](pay-viz.js) の `SEG`／[my-value.js](my-value.js) の3本のバケツ
+   ★2026-11-09 からもう1か所 ── フォームの `editForm`（MY PAGE の「編集」で出した月を欄に戻す・buildPayload の逆）と
+   [db/pay-edit.sql](db/pay-edit.sql) の返す列。写し忘れると、編集して送り直した瞬間にその欄が黙って消える
+   （`db/test-form-contract.mjs` の「MY PAGE の「編集」」が捕まえる）
    ⚠️ **9区分に分ける「命綱の引き算」は2か所にある**（2026-09-03。2026-09-15 に
    `a_fixed` を `a_base`＝基本給 と `a_gtee`＝保証手当・職務手当 の2つへ割った）──
    [db/deep-pay.sql](db/deep-pay.sql) の `a_base / a_gtee / a_var / a_cmd / a_role / a_pd / a_house / a_other` と、

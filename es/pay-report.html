@@ -2270,6 +2270,27 @@ for (const id of ['f-year', 'f-month', 'f-airline', 'f-airline-other']) {
   } catch (e) {}
 })();
 
+/* ── MY PAGE "Edit" (2026-11-09) ─────────────────────────────────
+   ?edit=YYYY-M&airline=CODE (a company not on the list adds &other=name): fetch the row sent for that
+   month with my_pay_report_one (db/pay-edit.sql, the caller's own row only), put every field back and
+   start on the review step (loadEdit). Sending replaces the row for the same company and month.
+   ★Not while a held entry or a post-login resend is waiting (that flow goes first).
+   ★If it cannot be fetched (signed out, no row, SQL not pasted yet) the two-way entry shows, as before (editFail). */
+const EDIT = (function () {
+  try {
+    const sp = new URLSearchParams(location.search);
+    const q = /^(\d{4})-(\d{1,2})$/.exec(sp.get('edit') || '');
+    const air = (sp.get('airline') || '').trim();
+    if (!q || !air) return null;
+    if (localStorage.getItem(PENDING_KEY) || readClaims().length) return null;
+    return { air: air, other: air === 'other' ? (sp.get('other') || '').trim() : '', y: Number(q[1]), m: Number(q[2]) };
+  } catch (e) { return null; }
+})();
+if (EDIT) $('entry').hidden = true;     // no flash of the two-way entry while loading
+function editFail() {
+  if ($('ps').hidden && $('form-body').hidden) $('entry').hidden = false;   // nobody chose a screen yet: show the entry
+}
+
 // ── Find the company by name (optional) ────────────────────────────────
 /* ★Candidates come from the <option>s of the <select> below, so the company
    names are never held in two places. Short names come from two things we already have:
@@ -5061,7 +5082,7 @@ $('s4-edit').addEventListener('click', () => {
    ★押印が 'anon'（未ログインで書いた）ものは、同じタブの続きか60分以内なら戻す
      ── 匿名で書いて、その場で登録して受け取る、というこの画面の本筋を塞がない。 */
 function loadPreset(me) {
-  if (_presetIn) return;
+  if (_presetIn || EDIT) return;   // "Edit" puts that month back whole: no template mixed in
   let o = null;
   try { o = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch (e) {}
   if (!o) return;
@@ -5374,6 +5395,83 @@ if (WZ) {
   track('pay_form_plain');
 }
 
+/* ── "Edit": put that month's row back into the fields (2026-11-09) ────────────
+   ★The reverse of buildPayload. Add a column to both (db/test-form-contract.mjs checks that
+     sending it back unchanged is identical to what was sent).
+   ★The two totals (other_allowance, flight_variable_pay) get back only what is not in the rows:
+     after the rows are restored, subtract the row totals pdSync wrote (f-var-sum, f-oth-sum). */
+function editForm(r) {
+  const s = (v) => (v === null || v === undefined || v === '' ? '' : (typeof v === 'object' ? JSON.stringify(v) : String(v)));
+  const pi = (r.pay_items && typeof r.pay_items === 'object') ? r.pay_items : null;
+  const o = {
+    'f-airline': s(r.airline), 'f-airline-other': s(r.airline_other),
+    'f-position': s(r.position), 'f-fleet': s(r.fleet),
+    'f-jobrole': (Array.isArray(r.job_roles) && r.job_roles.length) ? r.job_roles.join(',') : s(r.job_role),
+    'f-age': s(r.age_bucket), 'f-base-iata': s(r.base_iata),
+    'f-year': s(r.period_year), 'f-month': s(r.period_month), 'f-currency': s(r.currency),
+    'f-gross': s(r.gross_monthly), 'f-base': s(r.base_pay), 'f-guarantee': s(r.guarantee_pay),
+    'f-hourly': s(r.hourly_rate), 'f-guar': s(r.guaranteed_hours), 'f-block': s(r.block_hours),
+    'f-duty': s(r.duty_days), 'f-stay': s(r.stay_nights), 'f-perdiem': s(r.per_diem),
+    'f-housing': s(r.housing_type), 'f-housing-amt': s(r.housing_amount),
+    'f-transport': s(r.transport), 'f-command': s(r.command_pay),
+    'f-instructor': s(r.instructor_pay), 'f-examiner': s(r.examiner_pay), 'f-union-pay': s(r.union_pay),
+    'f-mgmt-pay': s(r.management_pay), 'f-nonline-pay': s(r.nonline_pay),
+    'f-bonus': s(r.bonus_annual), 'f-profit': s(r.profit_share_annual), 'f-pension': s(r.pension_pct),
+    'f-contract': s(r.contract_type), 'f-taxcountry': s(r.tax_country), 'f-tax': s(r.tax_rate_pct),
+    'f-seniority': s(r.seniority_years), 'f-rankyears': s(r.rank_years),
+    'f-netpay': s(r.net_pay_actual), 'f-ytd': s(r.ytd_taxable), 'f-deduct': s(r.deduction_total),
+    'f-duty-h': s(r.duty_hours), 'f-night-h': s(r.night_hours), 'f-credit-h': s(r.credit_hours),
+    'f-psdetail': s(r.payslip_detail), 'f-payitems': pi ? JSON.stringify(pi) : '',
+    'f-absence': (pi && Array.isArray(pi.absence) && pi.absence.length) ? JSON.stringify(pi.absence) : '',
+    'f-perdiem-src': (pi && pi.per_diem_src === 'outside') ? 'outside' : '',
+    'f-source': s(r.source),
+  };
+  for (const k of Object.keys(o)) if (!o[k]) delete o[k];
+  return o;
+}
+async function loadEdit(uid) {
+  let r = null, sent = null;
+  if (uid) {
+    try {
+      const got = await Promise.all([
+        _sb.rpc('my_pay_report_one', { p_airline: EDIT.air, p_airline_other: EDIT.other || null, p_year: EDIT.y, p_month: EDIT.m }),
+        _sb.rpc('my_pay_reports'),
+      ]);
+      if (!got[0].error && got[0].data && typeof got[0].data === 'object') r = got[0].data;
+      if (!got[1].error && got[1].data && Array.isArray(got[1].data.reports)) sent = got[1].data.reports;
+    } catch (e) {}
+  }
+  if (!r || !restoreInto(editForm(r))) { editFail(); return; }
+  /* What is left of each total once the rows are counted. Empty when the rows cover it all. */
+  const rest = (tot, ids) => {
+    if (tot === null || tot === undefined || tot === '') return '';
+    let x = Number(tot);
+    if (!isFinite(x)) return '';
+    if (x === 0) return '0';
+    for (const id of ids) x -= num(id);
+    x = Math.round(x * 100) / 100;
+    return x > 0 ? String(x) : '';
+  };
+  $('f-flightvar').value = rest(r.flight_variable_pay, ['f-var-sum']);
+  $('f-other').value = rest(r.other_allowance, ['f-var-sum', 'f-oth-sum']);
+  fmtMoneyAll();
+  recalc();
+  SENT_MONTHS = sent || [r];
+  if (WZ) WZ.skipDraft();       // the row just fetched wins over the draft
+  enterMode('manual');
+  if (WZ) WZ.goLast();          // start on review; each "Edit" there goes back to its step
+  $('restore-bar').style.display = 'none';
+  dupNote();
+  /* Drop the markers from the URL (a reload must not overwrite the edit in progress; the draft resumes it). */
+  try {
+    const sp = new URLSearchParams(location.search);
+    sp.delete('edit'); sp.delete('other');
+    const qs = sp.toString();
+    history.replaceState(history.state, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
+  } catch (e) {}
+  track('pay_edit_open');
+}
+
 /* ── Carry the previous entry over from the server ──────────────────────
    ★localStorage alone reaches nobody who changed phone, changed browser, or
      arrived from a payslip. If they are signed in, carry from their own most
@@ -5398,6 +5496,7 @@ if (WZ) {
   try { if (localStorage.getItem(PENDING_KEY)) return; } catch (e) {}
   if (readClaims().length) return;   // a claim is about to draw the report; don't touch the form under it
   const uid = await sessionUserId();
+  if (EDIT) { await loadEdit(uid); return; }   // MY PAGE "Edit": put that month back whole instead of carrying over
   if (!uid) return;
   /* ★Apply the device's own "last entry" first (the PENDING branch below calls
      this too, but which await settles first is not defined). Device first, server

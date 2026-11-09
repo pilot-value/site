@@ -47,6 +47,7 @@ export const SQL_FILES = [
   'db/vocab.generated.sql',
   'db/schema-additions.sql',
   'db/pay-reports.sql',
+  'db/pay-edit.sql',          // MY PAGE の「編集」で出した月を戻す読む口（2026-11-09）。pay-reports.sql の後
   'db/pay-report-pending.sql',
   'db/pay-rows.sql',
   'db/admin.sql',

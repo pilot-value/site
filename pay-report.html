@@ -2219,6 +2219,28 @@ for (const id of ['f-year', 'f-month', 'f-airline', 'f-airline-other']) {
   } catch (e) {}
 })();
 
+/* ── MY PAGE の「編集」（2026-11-09）─────────────────────────────
+   オーナー「編集を押しても二択に行くから編集できない。最後のまとめの一覧に飛んで、そこから編集させればいい」。
+   ?edit=YYYY-M&airline=CODE（一覧にない会社は &other=社名）で来たら、その月に出した1行を
+   my_pay_report_one（db/pay-edit.sql・本人の行だけ）で引いて全部の欄に戻し、確認の段から始める（loadEdit）。
+   送ると同じ会社・同じ月の行が入れ替わる（submit_pay_report の決まり）。
+   ★預かり・ログイン後の再送が控えているときは編集しない（あちらの手順が先）。
+   ★引けない（未ログイン・行が無い・SQL を貼る前）ときは入口の2択を出す＝今までと同じ（editFail）。 */
+const EDIT = (function () {
+  try {
+    const sp = new URLSearchParams(location.search);
+    const q = /^(\d{4})-(\d{1,2})$/.exec(sp.get('edit') || '');
+    const air = (sp.get('airline') || '').trim();
+    if (!q || !air) return null;
+    if (localStorage.getItem(PENDING_KEY) || readClaims().length) return null;
+    return { air: air, other: air === 'other' ? (sp.get('other') || '').trim() : '', y: Number(q[1]), m: Number(q[2]) };
+  } catch (e) { return null; }
+})();
+if (EDIT) $('entry').hidden = true;     // 読み込みの間に2択をちらつかせない
+function editFail() {
+  if ($('ps').hidden && $('form-body').hidden) $('entry').hidden = false;   // まだ誰も画面を決めていなければ2択へ
+}
+
 // ── 会社を名前で探す（検索は任意） ────────────────────────────────
 /* ★候補の元は下の <select> の <option> そのもの。社名を2か所で持たない。
    略称は既にある2つの資産から引く ──
@@ -4862,7 +4884,7 @@ $('s4-edit').addEventListener('click', () => {
    ★押印が 'anon'（未ログインで書いた）ものは、同じタブの続きか60分以内なら戻す
      ── 匿名で書いて、その場で登録して受け取る、というこの画面の本筋を塞がない。 */
 function loadPreset(me) {
-  if (_presetIn) return;
+  if (_presetIn || EDIT) return;   // 「編集」の回は前回のひな型を混ぜない（その月の行を丸ごと戻す）
   let o = null;
   try { o = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch (e) {}
   if (!o) return;
@@ -5165,6 +5187,83 @@ if (WZ) {
   track('pay_form_plain');
 }
 
+/* ── 「編集」：その月の1行を欄に戻す（2026-11-09）──────────────────────
+   ★buildPayload の逆。列を足したら両方に写す（db/test-form-contract.mjs が
+     「戻してそのまま送ると、出したときと1つも違わない」を見ている）。
+   ★合計で送っている2つ（other_allowance・flight_variable_pay）は、行を戻したあと
+     pdSync が出した行の合計（f-var-sum・f-oth-sum）を引いて残りを戻す（同じ足し算を2つ作らない）。 */
+function editForm(r) {
+  const s = (v) => (v === null || v === undefined || v === '' ? '' : (typeof v === 'object' ? JSON.stringify(v) : String(v)));
+  const pi = (r.pay_items && typeof r.pay_items === 'object') ? r.pay_items : null;
+  const o = {
+    'f-airline': s(r.airline), 'f-airline-other': s(r.airline_other),
+    'f-position': s(r.position), 'f-fleet': s(r.fleet),
+    'f-jobrole': (Array.isArray(r.job_roles) && r.job_roles.length) ? r.job_roles.join(',') : s(r.job_role),
+    'f-age': s(r.age_bucket), 'f-base-iata': s(r.base_iata),
+    'f-year': s(r.period_year), 'f-month': s(r.period_month), 'f-currency': s(r.currency),
+    'f-gross': s(r.gross_monthly), 'f-base': s(r.base_pay), 'f-guarantee': s(r.guarantee_pay),
+    'f-hourly': s(r.hourly_rate), 'f-guar': s(r.guaranteed_hours), 'f-block': s(r.block_hours),
+    'f-duty': s(r.duty_days), 'f-stay': s(r.stay_nights), 'f-perdiem': s(r.per_diem),
+    'f-housing': s(r.housing_type), 'f-housing-amt': s(r.housing_amount),
+    'f-transport': s(r.transport), 'f-command': s(r.command_pay),
+    'f-instructor': s(r.instructor_pay), 'f-examiner': s(r.examiner_pay), 'f-union-pay': s(r.union_pay),
+    'f-mgmt-pay': s(r.management_pay), 'f-nonline-pay': s(r.nonline_pay),
+    'f-bonus': s(r.bonus_annual), 'f-profit': s(r.profit_share_annual), 'f-pension': s(r.pension_pct),
+    'f-contract': s(r.contract_type), 'f-taxcountry': s(r.tax_country), 'f-tax': s(r.tax_rate_pct),
+    'f-seniority': s(r.seniority_years), 'f-rankyears': s(r.rank_years),
+    'f-netpay': s(r.net_pay_actual), 'f-ytd': s(r.ytd_taxable), 'f-deduct': s(r.deduction_total),
+    'f-duty-h': s(r.duty_hours), 'f-night-h': s(r.night_hours), 'f-credit-h': s(r.credit_hours),
+    'f-psdetail': s(r.payslip_detail), 'f-payitems': pi ? JSON.stringify(pi) : '',
+    'f-absence': (pi && Array.isArray(pi.absence) && pi.absence.length) ? JSON.stringify(pi.absence) : '',
+    'f-perdiem-src': (pi && pi.per_diem_src === 'outside') ? 'outside' : '',
+    'f-source': s(r.source),
+  };
+  for (const k of Object.keys(o)) if (!o[k]) delete o[k];
+  return o;
+}
+async function loadEdit(uid) {
+  let r = null, sent = null;
+  if (uid) {
+    try {
+      const got = await Promise.all([
+        _sb.rpc('my_pay_report_one', { p_airline: EDIT.air, p_airline_other: EDIT.other || null, p_year: EDIT.y, p_month: EDIT.m }),
+        _sb.rpc('my_pay_reports'),
+      ]);
+      if (!got[0].error && got[0].data && typeof got[0].data === 'object') r = got[0].data;
+      if (!got[1].error && got[1].data && Array.isArray(got[1].data.reports)) sent = got[1].data.reports;
+    } catch (e) {}
+  }
+  if (!r || !restoreInto(editForm(r))) { editFail(); return; }
+  /* 合計の残り（行に入っていない分）を戻す。行が全部を占めていれば空。 */
+  const rest = (tot, ids) => {
+    if (tot === null || tot === undefined || tot === '') return '';
+    let x = Number(tot);
+    if (!isFinite(x)) return '';
+    if (x === 0) return '0';
+    for (const id of ids) x -= num(id);
+    x = Math.round(x * 100) / 100;
+    return x > 0 ? String(x) : '';
+  };
+  $('f-flightvar').value = rest(r.flight_variable_pay, ['f-var-sum']);
+  $('f-other').value = rest(r.other_allowance, ['f-var-sum', 'f-oth-sum']);
+  fmtMoneyAll();
+  recalc();
+  SENT_MONTHS = sent || [r];
+  if (WZ) WZ.skipDraft();       // 下書きより、いま引いた行が正
+  enterMode('manual');
+  if (WZ) WZ.goLast();          // 確認の段から。各「編集」で段へ戻れる
+  $('restore-bar').style.display = 'none';
+  dupNote();
+  /* 引けたら URL から外す（再読み込みで、直している途中の中身をサーバの値で上書きしない。続きは下書きが戻す）。 */
+  try {
+    const sp = new URLSearchParams(location.search);
+    sp.delete('edit'); sp.delete('other');
+    const qs = sp.toString();
+    history.replaceState(history.state, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
+  } catch (e) {}
+  track('pay_edit_open');
+}
+
 /* ── 前回の内容をサーバから引き継ぐ ──────────────────────────────
    ★端末の localStorage だけだと、機種変・別ブラウザ・明細から入った人に効かない。
      ログイン済みなら本人の直近の行から引き継ぐ（my_pay_reports は本人の行しか返さない）。
@@ -5185,6 +5284,7 @@ if (WZ) {
   try { if (localStorage.getItem(PENDING_KEY)) return; } catch (e) {}
   if (readClaims().length) return;   // 預かり分がレポートを描く直前。その下でフォームを書き換えない
   const uid = await sessionUserId();
+  if (EDIT) { await loadEdit(uid); return; }   // MY PAGE の「編集」：引き継ぎではなく、その月を丸ごと戻す
   if (!uid) return;
   /* ★端末に控えてある「前回の内容」を先に当てる（下の PENDING の枝でも呼ぶが、
      どちらの await が先に解けるかは決まっていない）。端末が先・サーバが後、を固定する。

@@ -118,6 +118,7 @@
       opH: '見本（運営だけ・数字は作り物）',
       opS: { many: '12か月', one: '1か月', hand: '手入力だけ' },
       opEmpty: '給与なしの画面',
+      opMine: '自分の数字',          // 運営が自分の明細も出しているとき、最後のボタンはこれ（2026-11-09）
       /* 「今月｜1年」の切り替え（2026-11-08 オーナー決定の置き場所） */
       vMonth: '今月', vYear: '1年',
       noGross: 'この月は手取りを書いていないので、控除合計が出せません。同じ月をもう一度出すと、ここがあなたの数字になります。',
@@ -320,6 +321,7 @@
       opH: 'Sample (operators only, made-up numbers)',
       opS: { many: '12 months', one: '1 month', hand: 'Typed in only' },
       opEmpty: 'No-pay screen',
+      opMine: 'My numbers',
       vMonth: 'This month', vYear: 'Year',
       noGross: 'You did not enter take-home pay for this month, so deductions cannot be worked out. File the same month again and these become your own figures.',
       mGuar: function (g) { return 'vs ' + g + 'h guaranteed'; },
@@ -491,6 +493,7 @@
       opH: 'Muestra (solo operadores, cifras inventadas)',
       opS: { many: '12 meses', one: '1 mes', hand: 'Solo ingreso manual' },
       opEmpty: 'Pantalla sin remuneración',
+      opMine: 'Mis cifras',
       vMonth: 'Este mes', vYear: 'Año',
       noGross: 'No ingresaste tu sueldo neto de este mes, así que no se pueden calcular las deducciones. Envía de nuevo el mismo mes y estas cifras serán las tuyas.',
       mGuar: function (g) { return 'vs. ' + g + ' h garantizadas'; },
@@ -1660,7 +1663,8 @@
       ['many', 'one', 'hand'].map(function (k) {
         return '<button type="button" class="pt-tab' + (state.sample === k ? ' on' : '') + '" data-sample="' + k + '">' + esc(T.opS[k]) + '</button>';
       }).join('') +
-      '<button type="button" class="pt-tab' + (state.sample ? '' : ' on') + '" data-sample="">' + esc(T.opEmpty) + '</button>' +
+      '<button type="button" class="pt-tab' + (state.sample ? '' : ' on') + '" data-sample="">' +
+        esc(state.data && (state.data.reports || []).length ? T.opMine : T.opEmpty) + '</button>' +
       '</div>';
   }
   /* ── 「今月｜1年」（2026-11-08）──────────────────────────────
@@ -1696,7 +1700,11 @@
   }
   function renderYear(rows) {
     state.rows = rows;
-    root.innerHTML = opBar() + viewBar() + '<div id="pv-year-box"></div>';
+    /* ★累計報酬（2026-11-09 オーナー「1年の累計報酬のカードとか消えてる」→「両方やる」）。
+         「今月」と同じカードを年のまとめの上に置く（全社ぶん・足し方は totals()）。PDF（#pv-year の写し）には入れない。 */
+    root.innerHTML = opBar() + viewBar() +
+      '<div class="mr-stack">' + lifetime(rows) + '<div id="pv-year-box"></div></div>';
+    drawCumChart();                        // 実寸が要るので DOM に入れてから
     bindOp();
     bindView();
     if (!w.PVYear) {
@@ -1905,9 +1913,12 @@
     }
     var rows = state.data.reports || [];
     if (rows.length) {
-      var got = await Promise.all([loadPub(), loadMeds()]);
+      /* ★運営かどうかも同時に聞く（2026-11-09）。前は「自分の行が0件」のときだけ聞いていたので、
+           運営が自分の明細を出した日から見本の切り替えが消えた。会員には pv_is_admin が false を返す1本だけ増える。 */
+      var got = await Promise.all([loadPub(), loadMeds(), loadOperator()]);
       state.pub = got[0];
       state.meds = got[1];
+      state.op = got[2];
     } else {
       /* ★まだ1件も出していない人のときだけ、数え上げを取りに行く。
            pv_pay_rows() は鍵が無くても stats（件数・社数・直近1ヶ月ぶん・出した人数）と
@@ -1953,7 +1964,7 @@
     if (!state.rows.length) return;
     clearTimeout(rt);
     rt = setTimeout(function () {
-      if (state.view === 'year') { if (w.PVYear) w.PVYear.redraw(); return; }
+      if (state.view === 'year') { if (w.PVYear) w.PVYear.redraw(); drawCumChart(); return; }
       drawChart(); drawCumChart();
     }, 160);
   });

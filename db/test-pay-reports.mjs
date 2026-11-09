@@ -59,7 +59,7 @@ await db.exec(`
 // ── 適用（順番も含めて本番と同じ手順）────────────────────────
 console.log('\n▼ SQL の適用');
 for (const f of ['db/airlines.generated.sql', 'db/vocab.generated.sql',
-                 'db/pay-reports.sql', 'db/pay-report-pending.sql']) {
+                 'db/pay-reports.sql', 'db/pay-edit.sql', 'db/pay-report-pending.sql']) {
   try { await db.exec(read(f)); console.log(`  ✅ ${f}`); pass++; }
   catch (e) { console.log(`  ❌ ${f}\n     ${e.message}`); fail++; process.exit(1); }
 }
@@ -67,7 +67,7 @@ for (const f of ['db/airlines.generated.sql', 'db/vocab.generated.sql',
 // 2回流しても壊れないこと（冪等）
 console.log('\n▼ 冪等性（もう一度そのまま流す）');
 for (const f of ['db/airlines.generated.sql', 'db/vocab.generated.sql',
-                 'db/pay-reports.sql', 'db/pay-report-pending.sql']) {
+                 'db/pay-reports.sql', 'db/pay-edit.sql', 'db/pay-report-pending.sql']) {
   try { await db.exec(read(f)); console.log(`  ✅ ${f} 再適用OK`); pass++; }
   catch (e) { console.log(`  ❌ ${f} 再適用で失敗\n     ${e.message}`); fail++; }
 }
@@ -1867,6 +1867,92 @@ console.log('\n▼ db/pay-reports.roundtrip.sql（オーナーが貼る通し確
   /* 後片付け：auth.uid() をこの検査の前の形（pv.uid を読む）に戻す。 */
   await db.exec(`create or replace function auth.uid() returns uuid language sql stable as $$
     select nullif(current_setting('pv.uid', true), '')::uuid $$;`);
+}
+
+// ── MY PAGE の「編集」── 出した月の1行を本人に返す（db/pay-edit.sql・2026-11-09）──
+/* オーナー「編集を押しても二択に行くから編集できない。最後のまとめの一覧に飛んで、そこから編集させればいい」。
+   給与フォームはこの1行を欄に戻して確認の段から始める。見るのは ──
+   本人には自分の行が内訳の行（pay_items）ごと返る／給与フォームが送る鍵が全部そろう（写し忘れると、編集して送り直した瞬間にその欄が消える）／
+   別の会員・違う月・違う会社には null／一覧にない会社も社名の大小・前後の空白をまたいで引ける／未ログインは止まる／
+   proof_hash を返さない／貼ったあとの検算が全部 ✅。最後に壊す証明（鍵の式を1文字変えると本人が引けない）。 */
+console.log('\n▼ MY PAGE の「編集」── 出した月の1行を本人に返す（db/pay-edit.sql）');
+{
+  const getOne = async (n, a, o, y, m) => {
+    if (n === null) await db.query(`select set_config('pv.uid', '', false)`);
+    else await asUser(n);
+    return (await one(`select my_pay_report_one($1, $2, $3, $4) j`, [a, o, y, m])).j;
+  };
+  const ED = { ...BASE, airline: 'finnair', period_year: 2021, period_month: 7, gross_monthly: 61000,
+    flight_variable_pay: 3000, other_allowance: 3500, net_pay_actual: 42000, deduction_total: 19000,
+    duty_hours: 120.5, night_hours: 14, credit_hours: 90, ytd_taxable: 400000, source: 'payslip',
+    pay_items: { v: 2, variable: [{ amount: 3000, basis: 'block', label: 'Flight Pay' }],
+                 other: [{ amount: 500, label: 'Meal' }], per_diem_src: 'outside' } };
+  await asUser(95);
+  ok((await submit(ED)).r.ok === true, '（編集する月を出せた）');
+  await asUser(95);
+  ok((await submit({ ...BASE, airline: 'other', airline_other: 'Foo Air', period_year: 2021, period_month: 7, gross_monthly: 30000 })).r.ok === true,
+     '（一覧にない会社の月も出せた）');
+
+  const mine = await getOne(95, 'finnair', null, 2021, 7);
+  const saved = await one(`select * from pay_reports where airline = 'finnair' and period_year = 2021 and period_month = 7`);
+  ok(mine && JSON.stringify(mine.pay_items) === JSON.stringify(saved.pay_items) && mine.pay_items.variable?.[0]?.amount === 3000,
+     `★本人には内訳の行（pay_items）ごと返る → ${JSON.stringify(mine && mine.pay_items)}`);
+  ok(mine && Number(mine.gross_monthly) === 61000 && Number(mine.hourly_rate) === 250 && Number(mine.duty_hours) === 120.5
+       && mine.source === 'payslip' && mine.airline === 'finnair' && mine.period_month === 7,
+     '　総支給・時給・勤務時間・出どころもそのまま');
+  /* 給与フォームが送る鍵（buildPayload）を pay-report.html から読んで突き合わせる（表を写さない）。lang は画面の言語なので外す。 */
+  const html = read('pay-report.html');
+  const a0 = html.indexOf('function buildPayload('), b0 = html.indexOf('return payload;', a0);
+  const sent = [...html.slice(a0, b0).matchAll(/^\s{4}([a-z_]+):/gm)].map((x) => x[1]).filter((k) => k !== 'lang');
+  const lack = sent.filter((k) => !(k in (mine || {})));
+  ok(sent.length >= 45 && lack.length === 0,
+     `★給与フォームが送る鍵 ${sent.length} 個が全部そろう（欠け: ${lack.join(', ') || 'なし'}）`);
+  const bad = ['proof_hash', 'id', 'created_at', 'ip_day_hash', 'user_id'].filter((k) => k in (mine || {}));
+  ok(mine && bad.length === 0, `★proof_hash・id・時刻を返さない（返していた鍵: ${bad.join(', ') || 'なし'}）`);
+
+  ok((await getOne(96, 'finnair', null, 2021, 7)) === null, '★別の会員が同じ会社・同じ月で呼んでも null（他人の行は返らない）');
+  ok((await getOne(95, 'finnair', null, 2021, 8)) === null, '　違う月は null');
+  ok((await getOne(95, 'emirates', null, 2021, 7)) === null, '　違う会社は null');
+  ok((await getOne(95, 'finnair', 'Foo Air', 2021, 7))?.airline === 'finnair', '　一覧の会社に自由入力が残っていても引ける（送るときと同じく捨てる）');
+  const oth = await getOne(95, 'other', '  foo AIR ', 2021, 7);
+  ok(oth && oth.airline_other === 'Foo Air' && Number(oth.gross_monthly) === 30000,
+     `★一覧にない会社も、社名の大小と前後の空白をまたいで引ける → ${oth && oth.airline_other}`);
+  ok((await getOne(95, 'other', 'Bar Air', 2021, 7)) === null, '　別の社名は null');
+  ok((await getOne(95, '', null, 2021, 7)) === null && (await getOne(95, 'finnair', null, null, 7)) === null, '　会社か年月が空なら null');
+
+  await db.query(`select set_config('pv.uid', '', false)`);
+  const anonMsg = await boom(`select my_pay_report_one('finnair', null, 2021, 7)`);
+  ok(anonMsg !== null && /ログインが必要/.test(anonMsg), `★ログインしていなければ止まる → ${anonMsg?.slice(0, 40)}`);
+  await db.exec(`set role anon`);
+  const anonRole = await boom(`select my_pay_report_one('finnair', null, 2021, 7)`);
+  await db.exec(`reset role`);
+  ok(anonRole !== null && /permission denied/i.test(anonRole), '★未ログインの役（anon）は関数そのものを呼べない');
+
+  /* 貼ったあとの検算（ファイルの最後の select）がここでも全部 ✅ */
+  const res = await db.exec(read('db/pay-edit.sql'));
+  const chk = res[res.length - 1].rows;
+  ok(chk.length === 5 && chk.every((x) => x['判定'] === '✅'),
+     `★db/pay-edit.sql の検算 ${chk.length} 行が全部 ✅`, chk.filter((x) => x['判定'] !== '✅').map((x) => x['#'] + ' ' + x['確かめること']).join(' | '));
+
+  /* ── 壊す証明 ── 鍵の式の「::pv_pay::」を1文字変えた版を begin … rollback の中でだけ入れる（ファイルは触らない）。
+     本人が自分の行を引けなくなり、検算5が ❌ になること。 */
+  {
+    const src = read('db/pay-edit.sql');
+    const a = src.indexOf('create or replace function public.my_pay_report_one(');
+    const b = a < 0 ? -1 : src.indexOf('\n$$;', a);
+    const fn = (a < 0 || b < 0) ? '' : src.slice(a, b + '\n$$;'.length);
+    const broken = fn.split(`'::pv_pay::'`).length === 2 ? fn.split(`'::pv_pay::'`).join(`'::pv_pay:'`) : '';
+    ok(!!broken, '（鍵の式だけ1文字変えた版を作れた）');
+    const tail = src.slice(src.indexOf('-- ── 2. 検算'));
+    await db.exec(`begin`);
+    await db.exec(broken);
+    const red = await getOne(95, 'finnair', null, 2021, 7);
+    const redChk = (await db.exec(tail)).pop().rows.find((x) => Number(x['#']) === 5)?.['判定'];
+    await db.exec(`rollback`);
+    ok(red === null && redChk === '❌', `★壊す証明：鍵の式を1文字変えると本人が引けず、検算5が ❌ → ${red === null ? 'null' : '引けた'} / ${redChk}`);
+    ok((await getOne(95, 'finnair', null, 2021, 7))?.period_month === 7, '（巻き戻したら元どおり引ける）');
+  }
+  await db.query(`select set_config('pv.uid', '', false)`);
 }
 
 console.log(`\n══ ${pass} pass / ${fail} fail ══`);

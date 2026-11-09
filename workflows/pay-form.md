@@ -23,7 +23,18 @@
   ⚠️ 表示の切り替えに戻さない。⚠️ `?again=` を固定の値にしない（同じ URL への「#だけの移動」になって読み込み直さない）。
 - **もう出した月の一言**（`dupNote`・送信ボタンの上の `#dup-month`）── 同じ会社・同じ年月を出していれば「◯年◯月はもう出しています。送ると、前の内容と入れ替わります。」。
   止めない（同じ月の出し直し＝上書きが、今の正しい直し方）。行はページを開いたときの `my_pay_reports`（通信は増えない）。
-- **MY PAGE の「編集」**（profile.html の `renderMyPay`）── 各月から `pay-report.html?airline=…&ym=…#ps`（出し直しのお願いと同じ入口）。消すボタンは作らない（オーナー）。
+- **MY PAGE の「編集」**（profile.html の `renderMyPay`）── 各月から `pay-report.html?edit=YYYY-M&airline=CODE`（一覧にない会社は `&other=社名`）。消すボタンは作らない（オーナー）。
+  ★2026-11-09 オーナー「二択に行くから編集できない。最後のまとめの一覧に飛んで、そこから編集させればいい」。
+  フォームは `my_pay_report_one`（**db/pay-edit.sql**・本人の行だけ・pay-reports.sql の後に貼る）でその月の1行を引き、
+  `editForm`（buildPayload の逆）→ `restoreInto`（上書きの形）で全部の欄に戻し、**確認の段から始める**（`loadEdit`。預かりを戻す手順と同じ
+  `skipDraft → enterMode('manual') → goLast`）。各段の「編集」で戻り、「確認に戻る」で戻ってくる。送ると同じ会社・同じ月の行が入れ替わる。
+  - ⚠️ **buildPayload に欄を足したら `editForm` にも写す。** 写し忘れると、編集して送り直した瞬間にその欄が黙って消える（画面は普通に動いたまま）。
+    `db/test-form-contract.mjs` の「MY PAGE の「編集」」が「戻してそのまま送ると、出したときと1つも違わない」で捕まえる。
+    サーバ側は `db/test-pay-reports.mjs` が「給与フォームが送る鍵が全部返る」を buildPayload の本文から読んで見ている。
+  - 合計で送る2つ（`other_allowance`・`flight_variable_pay`）は、行を戻したあと **pdSync が出した行の合計を引いて**残りを戻す（同じ足し算を写さない）。
+  - 編集の回は前回のひな型（`loadPreset`）とサーバの引き継ぎを混ぜない。引けたら `edit=` を URL から外す（再読み込みで直している途中を上書きしない）。
+  - 引けない（未ログイン・行が無い・SQL を貼る前）ときは今までどおり入口の2択（`editFail`）＝**SQL より先に push しても壊れない。**
+  - `my_pay_reports` には pay_items を足さない（毎回開く一覧に要らない物は出さない）。1か月ぶんだけ別の口で返す。
 - **提出後の質問は2回目以降も3問**（`pv-conditions.mjs` の `recurring_limit: 3`。2問答えた人も3問）。1タップの質問だけなのは今までどおり。
 - 検査：`db/test-form-contract.mjs` の通しの最後（読み込み直す・一言が出る／出ない）・`assert-conditions.mjs`（mine=2 の回を足した）。
 

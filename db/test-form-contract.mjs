@@ -1290,7 +1290,7 @@ await db.exec(`
    1本で通すため（下の「明細1枚が REAL PAY に出るまで」）。pay-reports.sql の
    あとに流すこと。 */
 for (const f of ['db/airlines.generated.sql', 'db/vocab.generated.sql',
-                 'db/pay-reports.sql', 'db/pay-report-pending.sql',
+                 'db/pay-reports.sql', 'db/pay-edit.sql', 'db/pay-report-pending.sql',
                  'db/pay-rows.sql']) {
   await db.exec(read(f));
 }
@@ -6984,6 +6984,156 @@ for (const [T, url] of [['ja', 'http://localhost:3000/pay-report.html'],
   await page.close();
 }
 
+
+/* ══ MY PAGE の「編集」（2026-11-09）════════════════════════════════
+   オーナー「編集を押しても二択（アップロードか手入力）に行くから編集できない。
+   最後のまとめの一覧に飛んで、そこから編集させればいい」。
+   MY PAGE の「編集」は pay-report.html?edit=YYYY-M&airline=CODE を開く。フォームは
+   my_pay_report_one（db/pay-edit.sql）でその月の1行を引き、全部の欄に戻して確認の段から始める。
+   見るのは ──
+     ① 確認の段に着地し、2択は出ない・URL から edit= が消える
+     ② **そのまま送ると、出したときと1つも違わない**（buildPayload の逆を写し忘れた欄は、ここで落ちる。
+        編集して送り直した瞬間にその欄が黙って消える形）── 内訳の行・教官の手当・不就労減額・明細と別のパーディアム・役職2つも
+     ③ 1つ変えて送ると、その月は1行のまま新しい額
+     ④ 行が無い月・関数が無い（SQL を貼る前）ときは今までどおり2択が出る
+   ★サーバの口は本物（PGlite の my_pay_report_one / my_pay_reports / submit_pay_report）。ログインは差し替え。 */
+console.log('\nMY PAGE の「編集」── 確認の段から始まり、そのまま送ると出したときと1つも違わない');
+{
+  const EUID = '00000000-0000-4000-8000-0000000000e1';
+  await db.query(`insert into profiles(id,email) values($1,$2) on conflict do nothing`, [EUID, 'edit@example.com']);
+  /* 1枚目に入れる欄。★内訳の行・教官の中身・不就労減額は f-payitems / f-absence の形で入れ、
+     本物の restoreInto → pdSync に組ませる（形を写さない）。 */
+  const O1 = {
+    'f-airline': 'emirates', 'f-position': 'cap', 'f-fleet': 'b777', 'f-jobrole': 'line,instructor', 'f-age': '40-49',
+    'f-year': '2026', 'f-month': '3', 'f-currency': 'AED', 'f-gross': '61000', 'f-base': '48500', 'f-guarantee': '2500',
+    'f-hourly': '210', 'f-guar': '80', 'f-block': '86.5', 'f-duty': '17', 'f-stay': '12',
+    'f-perdiem': '6200', 'f-perdiem-src': 'outside',
+    'f-housing': 'allowance', 'f-housing-amt': '17500', 'f-transport': '1500', 'f-command': '3200', 'f-instructor': '1800',
+    'f-bonus': '52000', 'f-profit': '18000', 'f-pension': '12', 'f-contract': 'direct', 'f-taxcountry': 'AE', 'f-tax': '0',
+    'f-seniority': '12', 'f-rankyears': '4', 'f-netpay': '41200', 'f-deduct': '19800', 'f-ytd': '120000',
+    'f-duty-h': '158.2', 'f-night-h': '14', 'f-credit-h': '90', 'f-other': '900', 'f-base-iata': 'DXB', 'f-source': 'payslip',
+    'f-absence': JSON.stringify([{ label: '欠勤控除', amount: -500 }]),
+    'f-payitems': JSON.stringify({ v: 2, fixed_none: false, guarantee_none: false, variable_none: false,
+      variable: [{ amount: 4200, basis: 'block', label: 'Flight Pay' }], other: [{ amount: 700, label: 'Meal' }],
+      instructor: { trainings: [], label: 'TRI', extra: 'separate', method: null, amount: 1800, qty: 6 } }),
+  };
+  /* 比べる形：空・null を落とし、数字の文字列は数に、JSON の文字列は中身に（鍵の順は見ない）。 */
+  const norm = (v) => {
+    if (v === null || v === undefined || v === '') return undefined;
+    if (Array.isArray(v)) return v.map(norm);
+    if (typeof v === 'object') {
+      const o = {};
+      for (const k of Object.keys(v).sort()) { const x = norm(v[k]); if (x !== undefined) o[k] = x; }
+      return Object.keys(o).length ? o : undefined;
+    }
+    if (typeof v === 'string') {
+      const t = v.trim();
+      if (/^-?\d+(\.\d+)?$/.test(t)) return Number(t);
+      if (/^[[{]/.test(t)) { try { return norm(JSON.parse(t)); } catch (e) {} }
+      return t;
+    }
+    return v;
+  };
+  const diff = (a, b) => [...new Set([...Object.keys(a), ...Object.keys(b)])].filter((k) => k !== 'lang'
+    && JSON.stringify(norm(a[k])) !== JSON.stringify(norm(b[k])))
+    .map((k) => `${k}: ${JSON.stringify(norm(a[k]))} → ${JSON.stringify(norm(b[k]))}`);
+
+  /* ログインした会員のふり。rpc は本物の DB の3つだけ通す（ほかは失敗を返す＝この検査に関係しない口）。 */
+  const signed = async (page, opts = {}) => {
+    const sent = [];
+    await page.exposeFunction('__pvEditRpc', async (fn, args) => {
+      const ALLOW = ['my_pay_report_one', 'my_pay_reports', 'submit_pay_report'];
+      if (!ALLOW.includes(fn) || (opts.noFn && fn === 'my_pay_report_one'))
+        return { data: null, error: { message: 'test: ' + fn } };
+      await db.query(`select set_config('pv.uid', $1, false)`, [EUID]);
+      const ks = Object.keys(args || {});
+      const vals = ks.map((k) => (args[k] !== null && typeof args[k] === 'object') ? JSON.stringify(args[k]) : args[k]);
+      try {
+        const r = (await db.query(`select public.${fn}(${ks.map((k, i) => `${k} => $${i + 1}`).join(', ')}) r`, vals)).rows[0].r;
+        if (fn === 'submit_pay_report') sent.push(args.p);
+        return { data: r, error: null };
+      } catch (e) { return { data: null, error: { message: String(e.message || e) } }; }
+    });
+    await page.evaluateOnNewDocument((uid) => {
+      let lib;
+      Object.defineProperty(window, 'supabase', { configurable: true, get() { return lib; }, set(v) {
+        lib = Object.assign({}, v, { createClient: (...a) => {
+          const cl = v.createClient(...a);
+          cl.auth.getSession = async () => ({ data: { session: { user: { id: uid }, access_token: 'test' } } });
+          cl.rpc = (fn, args) => window.__pvEditRpc(fn, args || {});
+          return cl;
+        } });
+      } });
+    }, EUID);
+    return sent;
+  };
+  const landed = (page) => page.waitForFunction(() => window.PVPayWizard && window.PVPayWizard.isLast()
+    && !document.getElementById('form-body').hidden, { timeout: 20000 }).then(() => true, () => false);
+
+  for (const [lang, base] of [['ja', 'http://localhost:3000/'], ['en', 'http://localhost:3000/en/']]) {
+    const T = `[編集 ${lang}]`;
+    await db.query(`select set_config('pv.uid', $1, false)`, [EUID]);
+    await db.query(`delete from pay_reports where airline = 'emirates' and period_year = 2026 and period_month = 3
+                     and proof_hash = encode(extensions.digest($1::text || '::pv_pay::emirates', 'sha256'), 'hex')`, [EUID]);
+
+    /* ── 1枚目：本物の欄に入れて buildPayload を作り、その人として本物の submit_pay_report へ ── */
+    let page = await newPage();
+    await signed(page);
+    await page.goto(base + 'pay-report.html', { waitUntil: 'networkidle0' });
+    const P1 = await page.evaluate((o) => { restoreInto(o); pdSync(); return buildPayload(); }, O1);
+    await page.close();
+    ok(P1 && P1.pay_items && P1.pay_items.instructor && P1.pay_items.absence && P1.pay_items.per_diem_src === 'outside'
+       && Array.isArray(P1.job_roles) && P1.job_roles.length === 2,
+       `${T} （1枚目：内訳の行・教官の中身・不就労減額・明細と別のパーディアム・役職2つまで入った）`, JSON.stringify(P1 && P1.pay_items));
+    await db.query(`select set_config('pv.uid', $1, false)`, [EUID]);
+    const r1 = (await db.query(`select submit_pay_report($1::jsonb) r`, [JSON.stringify(P1)])).rows[0].r;
+    ok(r1 && r1.ok === true, `${T} （1枚目を出せた）`, JSON.stringify(r1).slice(0, 200));
+
+    /* ── 2枚目：MY PAGE の「編集」と同じ住所で開く ── */
+    page = await newPage();
+    const sent = await signed(page);
+    await page.goto(base + 'pay-report.html?edit=2026-3&airline=emirates', { waitUntil: 'networkidle0' });
+    const on = await landed(page);
+    const st = await page.evaluate(() => ({
+      entry: !document.getElementById('entry').hidden, url: location.href,
+      dup: (document.getElementById('dup-month') || {}).hidden === false, P2: buildPayload() }));
+    ok(on && !st.entry, `${T} ★確認の段に着地する・入口の2択は出ない`, JSON.stringify({ on, entry: st.entry }));
+    ok(!/[?&](edit|other)=/.test(st.url), `${T} ★URL から edit= を外す（再読み込みで直している途中を上書きしない）`, st.url);
+    ok(st.dup, `${T} 送信の上に「もう出しています（送ると入れ替わる）」が出る`);
+    const d = diff(P1, st.P2);
+    ok(d.length === 0, `${T} ★★戻してそのまま送ると、出したときと1つも違わない（欠けた欄・変わった欄が無い）`, d.join(' | '));
+
+    /* ── 1つ変えて送る → その月は1行のまま新しい額 ── */
+    await page.evaluate(() => {
+      const e = document.getElementById('f-gross');
+      e.value = '62500'; e.dispatchEvent(new Event('input', { bubbles: true })); e.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    await page.click('#submit-btn');
+    await page.waitForFunction(() => document.getElementById('result-wrap') && document.getElementById('result-wrap').offsetParent !== null,
+      { timeout: 20000 }).catch(() => {});
+    await db.query(`select set_config('pv.uid', $1, false)`, [EUID]);
+    const rows3 = (await db.query(`select gross_monthly g from pay_reports where airline = 'emirates' and period_year = 2026 and period_month = 3
+      and proof_hash = encode(extensions.digest($1::text || '::pv_pay::emirates', 'sha256'), 'hex')`, [EUID])).rows;
+    ok(sent.length === 1 && rows3.length === 1 && Number(rows3[0].g) === 62500,
+       `${T} ★1つ変えて送ると、その月は1行のまま新しい額`, JSON.stringify({ sent: sent.length, rows: rows3 }));
+    await page.evaluate(() => localStorage.clear());
+    await page.close();
+
+    /* ── 出していない月・関数が無い（SQL を貼る前）── 今までどおり2択 ── */
+    for (const [label, url, opts] of [['出していない月', 'pay-report.html?edit=2025-1&airline=emirates', {}],
+                                      ['関数が無い（SQL を貼る前）', 'pay-report.html?edit=2026-3&airline=emirates', { noFn: true }]]) {
+      page = await newPage();
+      await signed(page, opts);
+      await page.goto(base + url, { waitUntil: 'networkidle0' });
+      await page.waitForFunction(() => !document.getElementById('entry').hidden, { timeout: 8000 }).catch(() => {});
+      const fb = await page.evaluate(() => ({ entry: !document.getElementById('entry').hidden,
+        body: !document.getElementById('form-body').hidden }));
+      ok(fb.entry && !fb.body, `${T} ${label}は今までどおり入口の2択が出る`, JSON.stringify(fb));
+      await page.evaluate(() => localStorage.clear());
+      await page.close();
+    }
+  }
+}
 
 await browser.close();
 await db.close();
