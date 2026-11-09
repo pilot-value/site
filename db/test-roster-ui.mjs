@@ -46,7 +46,7 @@ function checks({ P, U }) {
     legs: [{ seq: 1, flight: '1131', from: 'HND', to: 'KIX', loc: null, out: '09:00', in: null, in_day: 0, block: null, role: 'CAP', kind: 'operating', partial: true, page: 1, row: 4, note: 'x' }] };
   const s = U.stripDay(day);
   ok(!('cut' in s) && !('name' in s), '③ 1日から cut と知らない鍵を外す');
-  ok(s.legs.length === 1 && !('partial' in s.legs[0]) && !('note' in s.legs[0]) && s.legs[0].flight === '1131' && s.legs[0].from === 'HND', '③ 便から partial と知らない鍵を外し、決めた欄は残す');
+  ok(s.legs.length === 1 && !('partial' in s.legs[0]) && !('note' in s.legs[0]) && !('flight' in s.legs[0]) && s.legs[0].from === 'HND', '③ 便から partial・知らない鍵・★便名を外し、決めた欄は残す');
 
   // ④
   /* 空港が混ざって届いても（古い行・読み違い）、地上の業務は場所だけを出す */

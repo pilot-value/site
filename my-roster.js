@@ -75,7 +75,7 @@
       docPages: '{n}ページ', docUse: 'いま使っている日 {o} / {n}日', docAdded: '{d} に追加',
       del: '削除', delQ: 'この資料と、この資料から入った {n}日ぶんの勤務を消します。', delYes: '消す', delNo: 'やめる',
       delDone: '消しました。', delErr: '消せませんでした。時間をおいてもう一度お試しください。',
-      docsNote: '画像は保存していません。残っているのは読み取った日付・便・時刻だけで、見られるのはあなただけです。',
+      docsNote: '画像は保存していません。残っているのは読み取った日付・空港・時刻だけ（便名は残しません）で、見られるのはあなただけです。2年たった日は月の合計だけになります。',
       saved: '{n}日ぶんの勤務を保存しました。', savedDup: 'この資料はもう取り込み済みです。',
       notReady: '勤務ロスターはまだ使えません。準備ができしだい、ここから取り込めます。',
       err: '勤務ロスターを読み込めませんでした。時間をおいて開き直してください。',
@@ -126,7 +126,7 @@
       docPages: '{n} pages', docUse: 'Days in use {o} / {n}', docAdded: 'Added {d}',
       del: 'Delete', delQ: 'This removes the file record and the {n} days of duty that came from it.', delYes: 'Delete', delNo: 'Cancel',
       delDone: 'Deleted.', delErr: 'Could not delete. Please try again in a moment.',
-      docsNote: 'Images are not stored. Only the dates, flights and times read from them are kept, and only you can see them.',
+      docsNote: 'Images are not stored. Only the dates, airports and times read from them are kept (no flight numbers), and only you can see them. After two years, days are reduced to monthly totals.',
       saved: 'Saved {n} days of duty.', savedDup: 'This roster was already imported.',
       notReady: 'Roster import is not available yet. Once it is ready, you can import from here.',
       err: 'Could not load your roster. Please try again in a moment.',
@@ -175,7 +175,7 @@
       docPages: '{n} páginas', docUse: 'Días en uso {o} / {n}', docAdded: 'Agregada el {d}',
       del: 'Eliminar', delQ: 'Esto elimina el registro del archivo y los {n} días de servicio que provienen de él.', delYes: 'Eliminar', delNo: 'Cancelar',
       delDone: 'Eliminado.', delErr: 'No se pudo eliminar. Inténtalo de nuevo en un momento.',
-      docsNote: 'Las imágenes no se guardan. Solo se conservan las fechas, los vuelos y las horas leídas, y solo tú puedes verlos.',
+      docsNote: 'Las imágenes no se guardan. Solo se conservan las fechas, los aeropuertos y las horas leídas (sin números de vuelo), y solo tú puedes verlos. Después de dos años, los días quedan solo como totales mensuales.',
       saved: 'Se guardaron {n} días de servicio.', savedDup: 'Esta programación ya se había importado.',
       notReady: 'La importación de programaciones aún no está disponible. Cuando esté lista, podrás importar desde aquí.',
       err: 'No se pudo cargar tu programación. Inténtalo de nuevo en un momento.',
@@ -449,7 +449,7 @@
       ? esc(l.out || '—') + ' – ' + esc(l.in || '—') + (l.inDay ? '<sup>+' + l.inDay + '</sup>' : '') : '';
     return '<li class="rs-leg' + (l.kind === 'deadhead' ? ' is-dh' : l.kind === 'ground' ? ' is-gnd' : '') + '">' +
       '<div class="rs-leg-a"><span class="rs-leg-r">' + where + '</span><span class="rs-leg-tags">' + tag + '</span></div>' +
-      '<div class="rs-leg-b"><span class="rs-leg-f">' + esc(l.flight || '') + '</span><span class="rs-leg-t">' + tm + '</span>' +
+      '<div class="rs-leg-b"><span class="rs-leg-t">' + tm + '</span>' +
         '<b class="rs-leg-h">' + (l.kind === 'ground' ? '' : esc(hm(l.blockMin))) + '</b></div></li>';
   }
   function dayHTML(date) {
@@ -785,21 +785,21 @@
   }
 
   /* ── CSV：表示中の月だけ（1日の行 ＋ その日の便・業務の行）──────────────
-     ★画面の日の板に出しているものだけ（日付・勤務コード・D-ON/OFF・勤務時間・便名・空港・場所・時刻・便の時間・区分）。名前・自由記述は持っていない。
+     ★画面の日の板に出しているものだけ（日付・勤務コード・D-ON/OFF・勤務時間・空港・場所・時刻・便の時間・区分。便名は保存していないので無い）。名前・自由記述は持っていない。
        空港は原本の表記のまま・地上の業務は場所だけ（空港の欄は空）。字の包み方と BOM は my-value.js の saveCsv。 */
   function hmc(min) { return (min == null || !isFinite(min)) ? '' : hm(min); }
   function csvOf(ym) {
     var m = ym && S.byYm[ym];
     if (!m) return null;
     var rows = [[T.csvRange, fill(T.csvRoster, { m: ym })],
-      ['date', 'row', 'code', 'class', 'd_on', 'd_off', 'd_off_day', 'duty_hm', 'duty_min', 'seq', 'flight', 'from', 'to', 'loc', 'out', 'in', 'in_day', 'time_hm', 'time_min', 'role', 'kind']];
+      ['date', 'row', 'code', 'class', 'd_on', 'd_off', 'd_off_day', 'duty_hm', 'duty_min', 'seq', 'from', 'to', 'loc', 'out', 'in', 'in_day', 'time_hm', 'time_min', 'role', 'kind']];
     m.days.forEach(function (x) {
       var on = x.dOn || x.dOff;
       rows.push([x.date, 'day', x.code || '', x.cls || '', x.dOn || '', x.dOff || '', on ? x.dOffDay : '', hmc(x.dutyMin), x.dutyMin == null ? '' : x.dutyMin,
-        '', '', '', '', '', '', '', '', '', '', '', '']);              // 1日の行も見出しと同じ列の数（表計算で列がずれない）
+        '', '', '', '', '', '', '', '', '', '', '']);              // 1日の行も見出しと同じ列の数（表計算で列がずれない）
       (x.legs || []).forEach(function (l) {
         var gnd = l.kind === 'ground';
-        rows.push([x.date, 'leg', '', '', '', '', '', '', '', l.seq, l.flight || '', gnd ? '' : (l.from || ''), gnd ? '' : (l.to || ''), l.loc || '',
+        rows.push([x.date, 'leg', '', '', '', '', '', '', '', l.seq, gnd ? '' : (l.from || ''), gnd ? '' : (l.to || ''), l.loc || '',
           l.out || '', l.in || '', (l.out || l.in) ? l.inDay : '', hmc(l.blockMin), l.blockMin == null ? '' : l.blockMin, l.role || '', l.kind]);
       });
     });

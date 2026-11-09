@@ -9,12 +9,15 @@
      ・ほかの会員は読めない・消せない／anon は呼べない／未ログインは 42501
      ・不正なコード・氏名・自由記述は弾くか落とす／大きすぎ・多すぎは弾く／1日30本まで
      ・ファイルを消すと、まだそのファイルが持っている日だけ消える
+     ・★便名は保存しない（送っても落ちる・読む口も返さない）
+     ・★2年より前の日は月の合計にまとめて消す（合計は pv-report-engine.js の数え方と1分も違わない・境目は月の頭）
      ・読み方（profile）の検品・明細の行の答え（line map）と my_report_items の往復（「その他」の会社も）
      ・末尾の検算が全部 ✅ ／ 壊す証明（鍵の式を1文字変える・anon に呼ばせる → 検算が ❌）
 */
 import { PGlite } from '@electric-sql/pglite';
 import { pgcrypto } from '@electric-sql/pglite/contrib/pgcrypto';
 import { readFileSync } from 'fs';
+import vm from 'vm';
 
 const read = (f) => readFileSync(new URL('../' + f, import.meta.url), 'utf8');
 
@@ -173,6 +176,10 @@ ok(await cnt('pv_roster_days') === 10 && await cnt('pv_roster_legs') === 18, '�
      'ふつうの便：7:17 = 437分・DXB・CAP');
   ok(d5 && d5.doc_id === rA.doc_id && d5.page === 1 && d5.row === 6, '日がどのファイル・何ページ何行目かを持つ');
   ok(r.profile === null, 'まだ読み方を答えていない → profile は null');
+  ok(r.days.every((x) => x.legs.every((l) => !('flight' in l))), '★読む口は便名を返さない（鍵ごと無い）');
+  ok(!(await rows(`select 1 from pg_attribute where attrelid = 'public.pv_roster_legs'::regclass and attname = 'flight' and not attisdropped`)).length,
+     '★便の表に便名の列が無い（送った EK101 はどこにも残らない）');
+  ok(!JSON.stringify(await rows(`select to_jsonb(l) j from public.pv_roster_legs l`)).includes('EK'), '★表のどの欄にも便名の字が無い');
 }
 
 // ── 2. 同じファイルの二度目 ─────────────────────────────────────
@@ -196,7 +203,7 @@ ok(rB.ok && rB.days === 10 && rB.replaced === 5, `重なった5日だけ入れ�
   ok(r.days.length === 15, `日は 0〜14 の15日（二重に数えない）→ ${r.days.length}`);
   const over = r.days.filter((d) => d.date >= D(5) && d.date <= D(9));
   ok(over.every((d) => d.doc_id === rB.doc_id), '重なった日は新しいファイルのもの');
-  ok(over.every((d) => d.legs.length === 1 && d.legs[0].flight === 'EK999'),
+  ok(over.every((d) => d.legs.length === 1 && d.legs[0].block_min === 60),
      '★入れ替わった日に古い便が1本も残らない');
   ok(r.days.filter((d) => d.date < D(5)).every((d) => d.doc_id === rA.doc_id), '重ならない日は前のファイルのまま');
   const blk = Number((await one(`select sum(block_min) s from pv_roster_legs`)).s);
@@ -211,7 +218,7 @@ ok(rC.ok && rC.replaced === 10, `改訂版は10日とも入れ替わる → ${rC
 {
   const r = await myRoster();
   ok(r.days.length === 15, '日数は15のまま');
-  ok(r.days.filter((d) => d.date >= D(5)).every((d) => d.code === 'REV' && d.legs.map((l) => l.flight).join() === 'EK777,EK778'),
+  ok(r.days.filter((d) => d.date >= D(5)).every((d) => d.code === 'REV' && d.legs.map((l) => l.block_min).join() === '437,437'),
      '改訂版の中身だけが残る');
   const docs = (await myDocs()).docs;
   const own = Object.fromEntries(docs.map((d) => [d.id, d.days_owned]));
@@ -316,7 +323,6 @@ const bad = [
   ['勤務コードに空白（氏名の形）', withDay({ code: 'JOHN SMITH' })],
   ['勤務コードが13文字', withDay({ code: 'ABCDEFGHIJKLM' })],
   ['勤務コードが数値', withDay({ code: 123 })],
-  ['便名に空白', withLeg({ flight: 'EK 101' })],
   ['空港コードが5文字', withLeg({ from: 'TOKYO' })],
   ['空港コードが小文字', withLeg({ to: 'lhr' })],
   ['乗務の区分が文章', withLeg({ role: 'Captain Smith' })],
@@ -358,6 +364,14 @@ for (const [label, p] of bad) {
   ok(e && /^(22023|54000)$/.test(e.code) && /ロスター|会社|社名/.test(e.msg), `弾く：${label}${e ? ' → ' + e.msg.split(' / ')[0].slice(0, 36) : ''}`, e ? e.code : '通ってしまった');
 }
 ok(await cnt('pv_roster_docs') === before, `弾いた提出は1件も残っていない → ${await cnt('pv_roster_docs') - before}`);
+{
+  // 便名は検品もしない（保存しない欄で止めない）。空白入り・文章でも通り、どこにも残らない
+  await db.exec('begin');
+  const r = await submitR(withLeg({ flight: 'EK 101 Captain Smith' }));
+  const left = JSON.stringify(await rows(`select to_jsonb(l) j from public.pv_roster_legs l`));
+  await db.exec('rollback');
+  ok(r && r.ok === true && !left.includes('Smith') && !left.includes('EK 101'), '★便名の欄は何が来ても落とすだけ（通る・どこにも残らない）');
+}
 {
   // エラーの文に、送られてきた値を書かない
   const e = await trySubmit(withDay({ code: 'Jane Q Example' }));
@@ -552,6 +566,138 @@ await asUser(1);
   ok(e2 && e2.code === '22023', '逆さまの期間は弾く');
 }
 
+// ── 11-b. 2年より前の日は月の合計にまとめて消す ─────────────────────
+console.log('\n▼ 2年より前の日は月の合計にまとめて消す（取引の中で試して巻き戻す）');
+{
+  // 画面の数え方（pv-report-engine.js）を node の vm で読み、まとめた合計と1分も違わないかを見る
+  const win = { document: { documentElement: { getAttribute: () => 'ja' }, addEventListener() {} }, addEventListener() {} };
+  win.window = win;
+  const ctx = vm.createContext(win);
+  vm.runInContext(read('pay-viz.js'), ctx);
+  vm.runInContext(read('pv-report-engine.js'), ctx);
+  const R = win.PVReport;
+  const sumOf = (gs, f) => gs.reduce((a, g) => a + f(g), 0);
+  const KINDS = ['operating', 'deadhead', 'ground', 'unknown'];
+  const same = (E, row, codes) => {          // codes: 意味を当てたコード（{OFF1:'off'} など）
+    const e = E.find((x) => x.ym === row.ym.slice(0, 7));
+    if (!e) return 'engine に月が無い';
+    const cls = (g) => (g.code && codes[g.code]) || null;
+    const duty = row.groups.filter((g) => cls(g) !== 'off' && cls(g) !== 'vac');
+    const want = {
+      covered: e.coveredDays, dutyDays: e.partial.dutyDays, dutyMin: e.partial.dutyMin, dutyGaps: e.gaps.duty,
+      off: e.partial.offDays, vac: e.partial.vacDays,
+      sectors: e.partial.sectors, dh: e.partial.dhLegs, gnd: e.partial.groundLegs, unk: e.partial.unknownLegs,
+      ...Object.fromEntries(KINDS.flatMap((k) => [['b_' + k, e.partial.blockMin[k]], ['g_' + k, e.gaps.block[k]]])),
+    };
+    const got = {
+      covered: row.covered_days, dutyDays: sumOf(duty, (g) => g.duty_days), dutyMin: sumOf(duty, (g) => g.duty_min),
+      dutyGaps: sumOf(duty, (g) => g.duty_days - g.timed_days),
+      off: sumOf(row.groups.filter((g) => cls(g) === 'off'), (g) => g.days),
+      vac: sumOf(row.groups.filter((g) => cls(g) === 'vac'), (g) => g.days),
+      sectors: sumOf(row.groups, (g) => g.legs.operating.n), dh: sumOf(row.groups, (g) => g.legs.deadhead.n),
+      gnd: sumOf(row.groups, (g) => g.legs.ground.n), unk: sumOf(row.groups, (g) => g.legs.unknown.n),
+      ...Object.fromEntries(KINDS.flatMap((k) => [['b_' + k, sumOf(row.groups, (g) => g.legs[k].block_min)],
+                                                  ['g_' + k, sumOf(row.groups, (g) => g.legs[k].gaps)]])),
+    };
+    const diff = Object.keys(want).filter((k) => want[k] !== got[k]);
+    return diff.length ? diff.map((k) => `${k}: engine ${want[k]} / SQL ${got[k]}`).join(' · ') : '';
+  };
+  const monthsOf = async (n) => (await rows(
+    `select m.ym::text ym, m.covered_days, m.time_basis, m.groups from public.pv_roster_months m
+      where m.proof_hash = public.pv_roster_key($1::uuid, 'emirates', null) order by m.ym`, [uid(n)]));
+  const compact = async (today) => (await one(`select public.pv_roster_compact($1::date) r`, [today])).r;
+  const ymStart = (iso) => iso.slice(0, 7) + '-01';
+  const plus24m = (iso) => { const [y, m] = iso.split('-').map(Number); return `${y + 2}-${String(m).padStart(2, '0')}-01`; };
+
+  await db.exec('begin');
+  // 会員7：時刻の基準は UTC。休み・休暇・ふつう・日またぎ・時刻なしの便・時刻だけの地上・逆さまの時刻・スタンバイ・次の月
+  await asUser(7);
+  await setProfile({ time_ref: 'utc' });
+  const L = (seq, x = {}) => leg(seq, { flight: 'ZZ' + seq, ...x });
+  const days7 = [
+    day(2, { code: 'OFF1', d_on: null, d_off: null, legs: [] }),
+    day(3, { code: 'VAC', d_on: null, d_off: null, legs: [] }),
+    day(5, { legs: [L(1), L(2, { from: 'LHR', to: 'DXB', out: '16:00', in: '23:50', block: '7:50' })] }),
+    day(6, { d_on: '22:00', d_off: '06:30', d_off_day: 1,
+             legs: [L(1, { out: '23:00', in: '05:10', in_day: 1, block: null }), L(2, { kind: 'deadhead', role: 'DH1', block: '1:00' })] }),
+    day(7, { d_on: null, d_off: null, legs: [L(1, { out: null, in: null, block: null })] }),
+    day(8, { d_on: '09:00', d_off: '17:00', legs: [L(1, { from: null, to: null, loc: 'TRC', kind: 'ground', role: 'TRN', block: '4:00' })] }),
+    day(9, { d_on: '10:00', d_off: '09:00', legs: [] }),
+    day(10, { code: 'SBY', d_on: '06:00', d_off: '12:00', legs: [] }),
+    day(35, { legs: [L(1, { kind: 'unknown', role: null, block: null, out: '08:00', in: '07:00' })] }),
+    day(36, { legs: [L(1, { block: '0:00' })] }),
+  ];
+  const r7 = await submitR(roster(days7, { file_sha: sha(7001) }));
+  const before7 = (await myRoster()).days;
+  const P7 = { time_ref: 'utc', codes: {} }, C7 = { OFF1: 'off', VAC: 'vac', SBY: 'standby' };
+  const E7 = R.rosterMonths(before7, P7), E7c = R.rosterMonths(before7, { ...P7, codes: C7 });
+
+  // 会員8：ロンドンの現地時刻・夏時間が切り替わる夜をまたぐ勤務（engine は夏時間込みで数える）
+  const lastSun = (y, m) => { const t = new Date(Date.UTC(y, m, 0)); t.setUTCDate(t.getUTCDate() - t.getUTCDay()); return t.toISOString().slice(0, 10); };
+  const y0 = Number(TODAY.slice(0, 4));
+  const dst = [lastSun(y0, 10), lastSun(y0, 3), lastSun(y0 - 1, 10), lastSun(y0 - 1, 3)]
+    .map((d) => addDays(d, -1)).filter((d) => d >= addDays(TODAY, -390) && d <= addDays(TODAY, -1))[0];
+  await asUser(8);
+  await setProfile({ time_ref: 'local', tz: 'Europe/London' });
+  const r8 = await submitR(roster([{ ...day(0, { d_on: '20:00', d_off: '06:00', d_off_day: 1, legs: [] }), date: dst }], { file_sha: sha(8001) }));
+  const before8 = (await myRoster()).days;
+  const E8 = R.rosterMonths(before8, { time_ref: 'local', tz: 'Europe/London', codes: {} });
+  ok(r7 && r7.ok && r8 && r8.ok && dst && E8[0] && E8[0].partial.dutyMin !== 600,
+     `（作り物を入れた：会員7は${before7.length}日・会員8は夏時間の夜 ${dst} → engine ${E8[0] && E8[0].partial.dutyMin}分）`);
+
+  // ① 境目は月の頭：最後の月の頭から数えて24か月後に流すと、最後の月より前だけまとまる
+  await asUser(7);
+  const lastYm = ymStart(D(36));
+  const c1 = await compact(plus24m(lastYm));
+  const left1 = (await myRoster()).days.map((d) => d.date);
+  const m1 = await monthsOf(7);
+  ok(c1.ok && left1.length > 0 && left1.every((d) => d >= lastYm) && m1.length >= 1 && m1.every((m) => m.ym < lastYm),
+     `★境目は24か月前の月の頭（その月の日は残る・前の月だけ合計になる）→ 残り ${left1.length}日 / 合計 ${m1.map((m) => m.ym.slice(0, 7)).join(',')}`);
+
+  // ② 全部まとめる
+  const c2 = await compact(addDays(TODAY, 1000));
+  const m2 = await monthsOf(7);
+  ok(c2.ok && (await myRoster()).days.length === 0 && Number((await one(
+       `select count(*) n from public.pv_roster_legs where proof_hash = public.pv_roster_key($1::uuid, 'emirates', null)`, [uid(7)])).n) === 0,
+     '★まとめたあと日も便も残らない（読む口も0日）');
+  ok(m2.length === E7.length && m2.every((m) => m.time_basis === 'utc'),
+     `月の合計は月の数だけ（${m2.length}か月・数え方は utc）`);
+  for (const m of m2) {
+    const d0 = same(E7, m, {}), d1 = same(E7c, m, C7);
+    ok(!d0 && !d1, `★${m.ym.slice(0, 7)} の合計が画面の数え方と1分も違わない（コードの意味を当てる前も・当てた後も）`, d0 + ' ' + d1);
+  }
+  const txt = JSON.stringify(m2);
+  ok(!/\d{1,2}:\d{2}/.test(txt) && !/DXB|LHR|TRC|ZZ\d|EK/.test(txt) && !/\d{4}-\d{2}-(0[2-9]|[12]\d|3[01])/.test(txt),
+     '★月の合計に日付・空港・場所・時刻・便名が入らない（月の頭の日付だけ）');
+  ok(m2.flatMap((m) => m.groups.map((g) => g.code)).filter(Boolean).sort().join() === 'OFF1,SBY,VAC',
+     '勤務コードは印字のまま残る（意味は後から読み方で当てる）');
+
+  // ③ 夏時間をまたぐ夜（会員8）も画面と同じ分
+  await asUser(8);
+  const m8 = await monthsOf(8);
+  ok(m8.length === 1 && m8[0].time_basis === 'tz' && !same(E8, m8[0], {}),
+     `★夏時間の夜も画面と同じ分（${m8[0] && m8[0].groups[0].duty_min}分・数え方 ${m8[0] && m8[0].time_basis}）`, m8[0] ? same(E8, m8[0], {}) : '月が無い');
+
+  // ④ もう一度流しても何も変わらない
+  const c3 = await compact(addDays(TODAY, 1000));
+  ok(c3.ok && c3.months === 0 && c3.days === 0 && JSON.stringify(await monthsOf(8)) === JSON.stringify(m8), '二度流しても同じ（何も足さない・何も消さない）');
+
+  // ⑤ ファイルの記録は残る → 本人がそこから月の合計ごと消せる
+  await asUser(7);
+  const docs7 = (await myDocs()).docs;
+  ok(docs7.length === 1 && docs7[0].id === r7.doc_id && docs7[0].days_owned === 0, 'ファイルの記録（指紋・期間）は残る・持っている日は0');
+  const del7 = await delDoc(r7.doc_id, 'emirates');
+  ok(del7.deleted === true && (await monthsOf(7)).length === 0, '★ファイルを消すと、その期間の月の合計も消える');
+
+  // ⑥ ほかの会員は呼べない（片づけは毎日の時計だけ）
+  const e = await boom(`select has_function_privilege('authenticated', 'public.pv_roster_compact(date)', 'EXECUTE') a`);
+  const priv = await one(`select has_function_privilege('authenticated', 'public.pv_roster_compact(date)', 'EXECUTE') a,
+                                 has_function_privilege('anon', 'public.pv_roster_compact(date)', 'EXECUTE') b`);
+  ok(!e && priv.a === false && priv.b === false, '片づけの関数は会員からも未ログインからも呼べない');
+  await db.exec('rollback');
+  ok(await cnt('pv_roster_months') === 0, '（巻き戻した ── ほかの節の作り物は元どおり）');
+}
+
 // ── 12. 検算 ───────────────────────────────────────────────────
 console.log('\n▼ 貼ったあとの検算');
 const SRC = read('db/roster.sql');
@@ -560,7 +706,7 @@ const TAIL = SRC.slice(SRC.indexOf('-- ── 11. 検算'));
   const before = await cnt('pv_roster_days');
   const res = await db.exec(SRC);
   const chk = res[res.length - 1].rows;
-  ok(chk.length === 10 && chk.every((x) => x['判定'] === '✅'),
+  ok(chk.length === 12 && chk.every((x) => x['判定'] === '✅'),
      `★db/roster.sql の検算 ${chk.length} 行が全部 ✅`, chk.filter((x) => x['判定'] !== '✅').map((x) => x['#'] + ' ' + x['確かめること']).join(' | '));
   ok(await cnt('pv_roster_days') === before, 'もう一度流しても、入っている勤務表は消えない');
   ok(TAIL.length > 100, '（検算の部分だけを切り出せた）');
@@ -613,6 +759,28 @@ console.log('\n▼ 壊す証明');
   const e = await trySubmit(roster([day(10)], { file_sha: sha(9001) }));   // 失敗でこの取引は止まる → すぐ巻き戻す
   await db.exec('rollback');
   ok(e && redChk === '❌', `★入れ替えをやめると同じ日の提出が通らず、検算8が ❌ → ${e ? e.code : '通った'} / ${redChk}`);
+}
+{
+  // 便名の列を戻した版 → 検算11が ❌
+  await db.exec('begin');
+  await db.exec(`alter table public.pv_roster_legs add column flight text`);
+  const redChk = (await db.exec(TAIL)).pop().rows.find((x) => Number(x['#']) === 11)?.['判定'];
+  await db.exec('rollback');
+  ok(redChk === '❌', `★便名の列を戻すと検算11が ❌ → ${redChk}`);
+}
+{
+  // 日を消さない片づけ（合計を作るだけ）→ 検算12が ❌
+  const a = SRC.indexOf('create or replace function public.pv_roster_compact(');
+  const b = SRC.indexOf('\n$$;', a);
+  const fn = SRC.slice(a, b + '\n$$;'.length);
+  const DEL = '  delete from public.pv_roster_days x where x.duty_date < v_cut;\n  get diagnostics v_days = row_count;\n';
+  const broken = fn.includes(DEL) ? fn.replace(DEL, () => '  v_days := 0;\n') : '';
+  ok(!!broken, '（片づけから日を消す1文だけ外した版を作れた）');
+  await db.exec('begin');
+  await db.exec(broken);
+  const redChk = (await db.exec(TAIL)).pop().rows.find((x) => Number(x['#']) === 12)?.['判定'];
+  await db.exec('rollback');
+  ok(redChk === '❌', `★日を消さない片づけにすると検算12が ❌ → ${redChk}`);
 }
 await logout();
 

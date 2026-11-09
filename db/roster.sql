@@ -10,7 +10,8 @@
 --     pv_roster_profile … 本人のロスターの読み方（実績か予定か・時刻の基準・勤務コードの意味）
 --     pv_roster_docs    … 取り込んだ1ファイル（ファイルの指紋だけ。原本は持たない）
 --     pv_roster_days    … 1日1行（勤務コード・出頭／解散の時刻）
---     pv_roster_legs    … その日の便・地上業務（便名・空港コード・時刻・ブロック）
+--     pv_roster_legs    … その日の便・地上業務（空港コード・時刻・ブロック。★便名は持たない）
+--     pv_roster_months  … 2年より前の月の合計（日ごとの行はまとめたら消す）
 --     pv_line_map       … 明細の1行が「何か月前の勤務の分か」の本人の答え
 --   口（どれも security definer・本人の行だけ）
 --     submit_roster / my_roster / my_roster_docs / delete_roster_doc /
@@ -24,6 +25,10 @@
 --    エラーの文にも、送られてきた値は書かない（欄の名前だけ）。
 -- ★ 新しく出した勤務表は**日付で**入れ替わる（同じ日は1行だけ）。ページを分けて出しても・
 --    期間が重なっても・改訂版を出し直しても、同じ日が二重に数えられない。
+-- ★ 便名は保存しない（2026-11-09 オーナー了承）。日付と便名がそろうと、会社の側から本人に絞れるため。
+--    送られてきても組み直しで落ちる（検品もしない）。
+-- ★ 日ごとの行は2年で消す（同上）。月の頭から数えて24か月より前の月は、毎日の片づけ（pv_roster_compact）が
+--    月の合計（pv_roster_months）にまとめてから、日と便を消す。月の合計に日付・空港・時刻は入らない。
 -- ★ 本人はいつでも消せる（delete_roster_doc ／ set_line_map の status=null ／ set_roster_profile の p=null）。
 -- ★ my_pay_reports() は触らない。明細の中身（pay_items・payslip_detail）は my_report_items() が本人にだけ返す。
 --
@@ -94,7 +99,6 @@ create table if not exists public.pv_roster_legs (
   proof_hash text not null,
   duty_date  date not null,
   seq        smallint not null check (seq between 1 and 16),
-  flight     text check (flight is null or flight ~ '^[A-Z0-9]{1,8}$'),
   orig       text check (orig is null or orig ~ '^[A-Z0-9]{3,4}$'),
   dest       text check (dest is null or dest ~ '^[A-Z0-9]{3,4}$'),
   loc        text check (loc is null or loc ~ '^[A-Z0-9]{2,8}$'),
@@ -111,6 +115,24 @@ create table if not exists public.pv_roster_legs (
   primary key (proof_hash, duty_date, seq),
   foreign key (proof_hash, duty_date)
     references public.pv_roster_days(proof_hash, duty_date) on delete cascade
+);
+
+-- ★便名は持たない。前に貼った版に列が残っていれば外す（何度流しても同じ）。
+alter table public.pv_roster_legs drop column if exists flight;
+
+-- 2年より前の月の合計（pv_roster_compact が日ごとの行から作り、そのあと日と便を消す）。1人・1社・1か月に1行。
+-- ★日付・空港・時刻・便名は入らない。勤務コードごとに日数と時間を足しただけ。
+--   groups = [{code, days, duty_days, timed_days, duty_min,
+--              legs:{operating|deadhead|ground|unknown:{n, block_min, gaps}}}]（code は印字のまま・無ければ null）
+--   コードの意味（休み・休暇など）は後から読み方（codes）で当てる ＝ 本人が意味を直しても合計は作り直さずに済む。
+create table if not exists public.pv_roster_months (
+  proof_hash   text not null check (proof_hash ~ '^[0-9a-f]{64}$'),
+  ym           date not null check (extract(day from ym) = 1),
+  covered_days smallint not null check (covered_days between 1 and 31),
+  time_basis   text not null check (time_basis in ('utc', 'tz', 'clock')),
+  groups       jsonb not null check (jsonb_typeof(groups) = 'array'),
+  compacted_at timestamptz not null default now(),
+  primary key (proof_hash, ym)
 );
 
 -- 明細の1行（label_key）が何か月ずれた勤務の分か。month_offset: 0 = 明細と同じ月・-1 = 前の月。
@@ -131,11 +153,13 @@ alter table public.pv_roster_docs    enable row level security;
 alter table public.pv_roster_days    enable row level security;
 alter table public.pv_roster_legs    enable row level security;
 alter table public.pv_line_map       enable row level security;
+alter table public.pv_roster_months  enable row level security;
 revoke all on table public.pv_roster_profile from public, anon, authenticated;
 revoke all on table public.pv_roster_docs    from public, anon, authenticated;
 revoke all on table public.pv_roster_days    from public, anon, authenticated;
 revoke all on table public.pv_roster_legs    from public, anon, authenticated;
 revoke all on table public.pv_line_map       from public, anon, authenticated;
+revoke all on table public.pv_roster_months  from public, anon, authenticated;
 
 -- ── 2. 内部の道具（誰からも直接は呼べない）───────────────────────
 -- 本人の鍵。★submit_pay_report と1文字も違わない式（検算7が両方の本文を突き合わせる）。
@@ -410,9 +434,9 @@ begin
           raise exception 'ロスターのブロック時間が範囲の外です' using errcode = '22023';
         end if;
 
+        -- ★便名は組み直しに入れない（送られてきても落ちる・検品もしない）
         v_legs := v_legs || jsonb_build_object(
           'seq',       v_seq,
-          'flight',    public.pv_roster_txt(v_l, 'flight', '^[A-Z0-9]{1,8}$', '便名'),
           'from',      v_orig,
           'to',        v_dest,
           'loc',       public.pv_roster_txt(v_l, 'loc', '^[A-Z0-9]{2,8}$', '場所'),
@@ -473,9 +497,9 @@ begin
          (e->>'page')::smallint, (e->>'row')::smallint
     from jsonb_array_elements(v_clean) as t(e);
 
-  insert into public.pv_roster_legs (proof_hash, duty_date, seq, flight, orig, dest, loc,
+  insert into public.pv_roster_legs (proof_hash, duty_date, seq, orig, dest, loc,
                                      t_out, t_in, in_day, block_min, role_raw, kind, page, "row")
-  select v_key, (e->>'date')::date, (l->>'seq')::smallint, l->>'flight', l->>'from', l->>'to', l->>'loc',
+  select v_key, (e->>'date')::date, (l->>'seq')::smallint, l->>'from', l->>'to', l->>'loc',
          (l->>'out')::time, (l->>'in')::time, (l->>'in_day')::smallint, (l->>'block_min')::int,
          l->>'role', l->>'kind', (l->>'page')::smallint, (l->>'row')::smallint
     from jsonb_array_elements(v_clean) as t(e),
@@ -530,7 +554,6 @@ begin
            'legs', coalesce((
              select jsonb_agg(jsonb_build_object(
                       'seq',       l.seq,
-                      'flight',    l.flight,
                       'from',      l.orig,
                       'to',        l.dest,
                       'loc',       l.loc,
@@ -615,6 +638,8 @@ as $$
 declare
   v_uid  uuid := auth.uid();
   v_hash text;
+  v_from date;
+  v_to   date;
   v_own  boolean;
   v_n    int;
 begin
@@ -625,7 +650,8 @@ begin
     return jsonb_build_object('ok', true, 'deleted', false, 'days', 0);
   end if;
 
-  select d.proof_hash into v_hash from public.pv_roster_docs d where d.id = p_doc_id;
+  select d.proof_hash, d.date_from, d.date_to into v_hash, v_from, v_to
+    from public.pv_roster_docs d where d.id = p_doc_id;
   if not found then
     return jsonb_build_object('ok', true, 'deleted', false, 'days', 0);
   end if;
@@ -645,6 +671,12 @@ begin
 
   perform pg_advisory_xact_lock(20261109, hashtext(v_hash));
   select count(*) into v_n from public.pv_roster_days x where x.doc_id = p_doc_id;
+  -- 2年より前にまとめた月の合計も、このファイルの期間に掛かる月は消す（消したいと言った人の分を残さない）
+  if v_from is not null and v_to is not null then
+    delete from public.pv_roster_months m
+     where m.proof_hash = v_hash
+       and m.ym between date_trunc('month', v_from)::date and v_to;
+  end if;
   -- 日と便は外部キーの on delete cascade で一緒に消える
   delete from public.pv_roster_docs d where d.id = p_doc_id and d.proof_hash = v_hash;
   return jsonb_build_object('ok', true, 'deleted', true, 'days', v_n);
@@ -899,6 +931,140 @@ begin
 end;
 $$;
 
+-- ── 9-b. 2年より前の日を月の合計にまとめて消す（毎日の片づけ・誰からも直接は呼べない）──────────
+-- 境目は「今月の頭から24か月前」。それより前の月を**丸ごと**まとめる（月の途中で切らない）。
+-- submit_roster は今日から400日より前の日を受け付けない ＝ まとめた月に後から日が足されることは無い。
+-- 時間の数え方は pv-report-engine.js の dayOf / legOf / elapsed の写し（⚠️ 片方だけ直さない。db/test-roster.mjs が突き合わせる）:
+--   勤務時間 … 出頭と解散の両方がある日だけ。utc → 時計の差／local＋正しいタイムゾーン → 夏時間込み／それ以外 → 時計の差。
+--              0 分以下・3日を超えるものは数えない。
+--   便の時間 … 印字の時間。無いときだけ、時刻の基準が utc なら発着の差（0 分より長く1日より短いときだけ）。
+-- 返す: {ok, months, days}（まとめた月の数・消した日の数）
+create or replace function public.pv_roster_tz_ok(p_tz text)
+returns boolean
+language plpgsql
+stable
+set search_path = public, extensions
+as $$
+begin
+  -- IANA の名前だけ（'UTC+9' のような POSIX の書き方は符号が逆になるので通さない）
+  if p_tz is null or length(p_tz) > 40 or not (p_tz = 'UTC' or p_tz ~ '^[A-Za-z]+(/[A-Za-z0-9_+\-]+)+$') then
+    return false;
+  end if;
+  perform now() at time zone p_tz;
+  return true;
+exception when others then
+  return false;
+end;
+$$;
+
+create or replace function public.pv_roster_compact(p_today date default null)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  v_cut    date := (date_trunc('month', coalesce(p_today, current_date)) - interval '24 months')::date;
+  v_months int;
+  v_days   int;
+begin
+  with pr as (
+    select r.proof_hash,
+           case when r.time_ref = 'utc' then 'utc'
+                when r.time_ref = 'local' and public.pv_roster_tz_ok(r.tz) then 'tz'
+                else 'clock' end as basis,
+           r.tz, r.time_ref
+      from public.pv_roster_profile r
+  ),
+  d as (
+    select x.proof_hash, x.duty_date, date_trunc('month', x.duty_date)::date as ym, x.code,
+           x.d_on, x.d_off, coalesce(pr.basis, 'clock') as basis,
+           case when x.d_on is null or x.d_off is null then null
+                when pr.basis = 'tz' then
+                  round(extract(epoch from (((x.duty_date + x.d_off_day) + x.d_off) at time zone pr.tz)
+                                         - ((x.duty_date + x.d_on) at time zone pr.tz)) / 60)::int
+                else (x.d_off_day * 1440 + extract(epoch from x.d_off) / 60 - extract(epoch from x.d_on) / 60)::int
+           end as el
+      from public.pv_roster_days x
+      left join pr on pr.proof_hash = x.proof_hash
+     where x.duty_date < v_cut
+  ),
+  l2 as (
+    select lg.proof_hash, lg.duty_date, lg.kind,
+           case when lg.block_min is not null then lg.block_min
+                when pr.time_ref = 'utc' and t.v > 0 and t.v < 1440 then t.v
+           end as bmin
+      from public.pv_roster_legs lg
+      left join pr on pr.proof_hash = lg.proof_hash
+      cross join lateral (select (lg.in_day * 1440 + extract(epoch from lg.t_in) / 60
+                                  - extract(epoch from lg.t_out) / 60)::int as v) t
+     where lg.duty_date < v_cut
+  ),
+  dn as (select proof_hash, duty_date, count(*) as n from l2 group by 1, 2),
+  dd as (
+    select d.*, ((d.d_on is not null and d.d_off is not null) or coalesce(dn.n, 0) > 0) as has_duty,
+           case when d.el > 0 and d.el <= 3 * 1440 then d.el end as el_ok
+      from d left join dn using (proof_hash, duty_date)
+  ),
+  gk as (
+    select proof_hash, ym, code, max(basis) as basis,
+           count(*)::int as days,
+           (count(*) filter (where has_duty))::int as duty_days,
+           (count(*) filter (where has_duty and el_ok is not null))::int as timed_days,
+           coalesce(sum(el_ok) filter (where has_duty), 0)::int as duty_min
+      from dd group by proof_hash, ym, code
+  ),
+  gl as (
+    select l2.proof_hash, date_trunc('month', l2.duty_date)::date as ym, x.code, l2.kind,
+           count(*)::int as n, coalesce(sum(l2.bmin), 0)::int as bsum, (count(*) - count(l2.bmin))::int as gaps
+      from l2
+      join public.pv_roster_days x on x.proof_hash = l2.proof_hash and x.duty_date = l2.duty_date
+     group by 1, 2, 3, 4
+  ),
+  g as (
+    select gk.*,
+           (select jsonb_object_agg(k.kind, jsonb_build_object(
+                     'n', coalesce(gl.n, 0), 'block_min', coalesce(gl.bsum, 0), 'gaps', coalesce(gl.gaps, 0)))
+              from (values ('operating'), ('deadhead'), ('ground'), ('unknown')) as k(kind)
+              left join gl on gl.proof_hash = gk.proof_hash and gl.ym = gk.ym
+                          and gl.code is not distinct from gk.code and gl.kind = k.kind) as legs
+      from gk
+  ),
+  ins as (
+    insert into public.pv_roster_months (proof_hash, ym, covered_days, time_basis, groups)
+    select g.proof_hash, g.ym, sum(g.days)::smallint, max(g.basis),
+           jsonb_agg(jsonb_build_object(
+             'code', g.code, 'days', g.days, 'duty_days', g.duty_days,
+             'timed_days', g.timed_days, 'duty_min', g.duty_min, 'legs', g.legs) order by g.code nulls first)
+      from g
+     group by g.proof_hash, g.ym
+    on conflict (proof_hash, ym) do nothing
+    returning 1
+  )
+  select count(*) into v_months from ins;
+
+  -- 日を消す（便は外部キーで一緒に消える）。ファイルの記録（指紋・期間）は残す ＝ 本人がそこから月の合計ごと消せる。
+  delete from public.pv_roster_days x where x.duty_date < v_cut;
+  get diagnostics v_days = row_count;
+
+  return jsonb_build_object('ok', true, 'months', v_months, 'days', v_days);
+end;
+$$;
+
+revoke all on function public.pv_roster_tz_ok(text)    from public, anon, authenticated;
+revoke all on function public.pv_roster_compact(date)  from public, anon, authenticated;
+
+-- 毎日の片づけ（★pg_cron が在るときだけ登録する。手元の検査（PGlite）には無い ＝ ここは飛ばす）。
+-- 同じ名前で登録し直すだけなので、何度流しても1本のまま。止めるとき: select cron.unschedule('pv-roster-compact');
+do $cron$
+begin
+  if exists (select 1 from pg_extension where extname = 'pg_cron') then
+    execute format('select cron.schedule(%L, %L, %L)',
+                   'pv-roster-compact', '17 4 * * *', 'select public.pv_roster_compact()');
+  end if;
+end
+$cron$;
+
 -- ── 10. 呼べる人 ─────────────────────────────────────────────
 revoke all on function public.submit_roster(jsonb)                               from public, anon;
 revoke all on function public.my_roster(text, text, date, date)                  from public, anon;
@@ -936,14 +1102,17 @@ with fns(sig) as (values
        ('public.pv_roster_txt(jsonb, text, text, text)'),
        ('public.pv_roster_int(jsonb, text, integer, integer, text)'),
        ('public.pv_roster_date(jsonb, text, text)'),
-       ('public.pv_roster_profile_json(text)')),
+       ('public.pv_roster_profile_json(text)'),
+       ('public.pv_roster_tz_ok(text)'),
+       ('public.pv_roster_compact(date)')),
      hpo as (select sig, to_regprocedure(sig) as oid from hp),
      tb(t) as (values ('public.pv_roster_profile'), ('public.pv_roster_docs'), ('public.pv_roster_days'),
-                      ('public.pv_roster_legs'), ('public.pv_line_map')),
+                      ('public.pv_roster_legs'), ('public.pv_line_map'), ('public.pv_roster_months')),
      tbo as (select t, to_regclass(t) as oid from tb),
      ro as (select oid from pg_roles where rolname in ('anon', 'authenticated')),
      k as (select $k$v_uid::text || '::pv_pay::' || v_airline || coalesce('::' || lower(v_other), '')$k$ as s),
-     sr as (select coalesce((select s from fd where sig = 'public.submit_roster(jsonb)'), '') as s)
+     sr as (select coalesce((select s from fd where sig = 'public.submit_roster(jsonb)'), '') as s),
+     mr as (select coalesce((select s from fd where sig = 'public.my_roster(text, text, date, date)'), '') as s)
 select 1 as "#", '7つの口がある・どれも呼んだ本人の権限で動かない（security definer）' as "確かめること",
        case when (select count(*) from fn where oid is not null) = 7
              and (select bool_and(p.prosecdef) from fn join pg_proc p on p.oid = fn.oid)
@@ -956,8 +1125,8 @@ union all select 2, '未ログイン（anon）と PUBLIC は7つとも呼べな�
                                 and (a.grantee = 0 or a.grantee in (select oid from pg_roles where rolname = 'anon')))
              and (select bool_and(has_function_privilege('authenticated', fn.oid, 'EXECUTE')) from fn where oid is not null)
             then '✅' else '❌' end
-union all select 3, '内部の道具（鍵の式・検品・読み方の形）は誰からも直接呼べない',
-       case when (select count(*) from hpo where oid is not null) = 5
+union all select 3, '内部の道具（鍵の式・検品・読み方の形・月の合計へのまとめ）は誰からも直接呼べない',
+       case when (select count(*) from hpo where oid is not null) = 7
              and not exists (select 1 from hpo join pg_proc q on q.oid = hpo.oid,
                                     lateral aclexplode(coalesce(q.proacl, acldefault('f', q.proowner))) a
                               where a.privilege_type = 'EXECUTE'
@@ -967,13 +1136,13 @@ union all select 4, 'ログインしていなければ止める（7つとも aut
        case when (select count(*) from fd) = 7
              and (select bool_and(strpos(s, 'if v_uid is null then') > 0 and strpos(s, '42501') > 0) from fd)
             then '✅' else '❌' end
-union all select 5, '5つの表は RLS が有効・ポリシーが1つも無い（直接は誰も読めない）',
-       case when (select count(*) from tbo where oid is not null) = 5
+union all select 5, '6つの表は RLS が有効・ポリシーが1つも無い（直接は誰も読めない）',
+       case when (select count(*) from tbo where oid is not null) = 6
              and (select bool_and(c.relrowsecurity) from tbo join pg_class c on c.oid = tbo.oid)
              and not exists (select 1 from pg_policy pl where pl.polrelid in (select oid from tbo where oid is not null))
             then '✅' else '❌' end
-union all select 6, '5つの表に anon・authenticated・PUBLIC の権限が1つも無い',
-       case when (select count(*) from tbo where oid is not null) = 5
+union all select 6, '6つの表に anon・authenticated・PUBLIC の権限が1つも無い',
+       case when (select count(*) from tbo where oid is not null) = 6
              and not exists (select 1 from tbo join pg_class c on c.oid = tbo.oid,
                                     lateral aclexplode(coalesce(c.relacl, acldefault('r', c.relowner))) a
                               where a.grantee = 0 or a.grantee in (select oid from ro))
@@ -1001,7 +1170,7 @@ union all select 8, '新しい提出は日付で入れ替わる（日の主キ�
                             and c.confrelid = to_regclass('public.pv_roster_docs') and c.confdeltype = 'c')
             then '✅' else '❌' end
 union all select 9, '原本・氏名・自由記述を入れる列が無い（bytea も name・note・memo・image などの列も無い）',
-       case when (select count(*) from tbo where oid is not null) = 5
+       case when (select count(*) from tbo where oid is not null) = 6
              and not exists (select 1 from pg_attribute a
                               where a.attrelid in (select oid from tbo where oid is not null)
                                 and a.attnum > 0 and not a.attisdropped
@@ -1011,5 +1180,22 @@ union all select 9, '原本・氏名・自由記述を入れる列が無い（by
 union all select 10, 'my_pay_reports は今までどおり pay_items・payslip_detail をそのまま返さない',
        case when strpos(pg_get_functiondef('public.my_pay_reports()'::regprocedure), 'r.pay_items,') = 0
              and strpos(pg_get_functiondef('public.my_pay_reports()'::regprocedure), 'r.payslip_detail') = 0
+            then '✅' else '❌' end
+union all select 11, '便名を保存しない（便の表に列が無い・出す口は組み直しに入れない・読む口も返さない）',
+       case when not exists (select 1 from pg_attribute a
+                              where a.attrelid = to_regclass('public.pv_roster_legs')
+                                and a.attname = 'flight' and a.attnum > 0 and not a.attisdropped)
+             and strpos((select s from sr), $f$'flight'$f$) = 0
+             and strpos((select s from mr), $f$'flight'$f$) = 0
+             and length((select s from sr)) > 0 and length((select s from mr)) > 0
+            then '✅' else '❌' end
+union all select 12, '2年より前の日は月の合計にまとめて消す（境目は24か月前の月の頭・日を消す・時計が在れば毎日流れる）',
+       case when to_regprocedure('public.pv_roster_compact(date)') is not null
+             and strpos(pg_get_functiondef('public.pv_roster_compact(date)'::regprocedure), $c$interval '24 months'$c$) > 0
+             and strpos(pg_get_functiondef('public.pv_roster_compact(date)'::regprocedure), 'delete from public.pv_roster_days') > 0
+             and (not exists (select 1 from pg_extension where extname = 'pg_cron')
+                  or (xpath('/row/n/text()',
+                            query_to_xml($q$select count(*) as n from cron.job where jobname = 'pv-roster-compact'$q$,
+                                         false, true, '')))[1]::text = '1')
             then '✅' else '❌' end
 order by 1;

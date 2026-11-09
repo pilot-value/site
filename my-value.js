@@ -76,9 +76,9 @@
   var YEAR_URL = 'my-year.js?v=' + YEAR_V;                 // 「1年」の画面（押したときだけ読む）
   /* ★「勤務ロスター」のタブ（2026-11-09）。開いたときだけ読む4本。指紋は上の2本と同じ決まり
        （db/test-year-report.mjs が中身と突き合わせる）。計算の部品は分析のタブも使う。 */
-  var ROSTER_V = 'd4e2af25';
-  var ROSTER_CSS_V = '5d2f095e';
-  var UPLOAD_V = 'ad34cd5f';
+  var ROSTER_V = '2baf5b72';
+  var ROSTER_CSS_V = 'd13f6d93';
+  var UPLOAD_V = '37dd7bdb';
   var ENGINE_V = 'f5603644';
   /* ★「分析」のタブ（2026-11-09）。開いたときだけ読む2本（見た目 → 計算の部品 → 画面の順）。指紋の決まりは上と同じ */
   var ANALYSIS_V = '92184573';

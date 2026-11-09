@@ -49,7 +49,7 @@
       },
       monthQ: '何月のロスターですか',
       monthS: '月をまたぐロスターは、始まりの月を選んでください。',
-      priv: '画像は読み取りのために送りますが、保存しません。保存するのは読み取った日付・便名・時刻だけで、氏名は保存しません。見られるのはあなただけで、いつでも消せます。',
+      priv: '画像は読み取りのために送りますが、保存しません。保存するのは読み取った日付・空港・時刻だけで、便名と氏名は保存しません。2年たった日は月の合計だけになります。見られるのはあなただけで、いつでも消せます。',
       read: '読み取る（{n}ページ）',
       tooMany: '一度に読めるのは{n}ページまでです。',
       readH: '読み取っています',
@@ -125,7 +125,7 @@
       },
       monthQ: 'Which month is this roster?',
       monthS: 'If it spans two months, pick the month it starts in.',
-      priv: 'Images are sent to be read and are not stored. Only the dates, flight numbers and times read are saved, never names. Only you can see them, and you can delete them anytime.',
+      priv: 'Images are sent to be read and are not stored. Only the dates, airports and times are saved — never flight numbers or names. After two years, only monthly totals are kept. Only you can see them, and you can delete them anytime.',
       read: 'Read ({n} pages)',
       tooMany: 'Up to {n} pages can be read at once.',
       readH: 'Reading your roster',
@@ -200,7 +200,7 @@
       },
       monthQ: '¿De qué mes es esta programación?',
       monthS: 'Si abarca dos meses, elige el mes en que empieza.',
-      priv: 'Las imágenes se envían para leerlas y no se guardan. Solo se guardan las fechas, los números de vuelo y las horas leídas, nunca nombres. Solo tú puedes verlos y puedes eliminarlos cuando quieras.',
+      priv: 'Las imágenes se envían para leerlas y no se guardan. Solo se guardan las fechas, los aeropuertos y las horas, nunca números de vuelo ni nombres. Después de dos años solo se conservan los totales mensuales. Solo tú puedes verlos y puedes eliminarlos cuando quieras.',
       read: 'Leer ({n} páginas)',
       tooMany: 'Se pueden leer hasta {n} páginas a la vez.',
       readH: 'Leyendo tu programación',
@@ -632,7 +632,8 @@
       date: x.date, code: x.code || null, d_on: x.d_on || null, d_off: x.d_off || null, d_off_day: x.d_off_day || 0,
       page: x.page || null, row: x.row || null,
       legs: (x.legs || []).map(function (l) {
-        return { seq: l.seq, flight: l.flight || null, from: l.from || null, to: l.to || null, loc: l.loc || null,
+        // ★便名は送らない（サーバーも保存しない。日付と便名がそろうと本人に絞れるため）
+        return { seq: l.seq, from: l.from || null, to: l.to || null, loc: l.loc || null,
                  out: l.out || null, in: l.in || null, in_day: l.in_day || 0, block: l.block || null, role: l.role || null,
                  kind: l.kind || 'unknown', page: l.page || null, row: l.row || null };
       })

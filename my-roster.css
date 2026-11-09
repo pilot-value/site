@@ -201,8 +201,7 @@ button.rs-cell:active{transform:scale(.97)}
 .rs-tag.is-dh{border-color:var(--pv-blue-line);background:var(--pv-blue-soft);color:var(--pv-blue-ink)}
 .rs-tag.is-gnd{color:var(--pv-ink-2)}
 .rs-tag.is-unk{border-color:var(--pv-gold-line);background:var(--pv-gold-soft);color:var(--pv-gold-ink)}
-.rs-leg-b{display:grid;grid-template-columns:auto 1fr auto;align-items:baseline;gap:12px;margin-top:4px;font-size:.76rem;color:var(--pv-ink-3)}
-.rs-leg-f{font-weight:700}
+.rs-leg-b{display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:12px;margin-top:4px;font-size:.76rem;color:var(--pv-ink-3)}
 .rs-leg-t sup{font-size:.6rem;margin-left:1px}
 .rs-leg-h{font-weight:800;color:var(--pv-ink)}
 .rs-resel{display:none;margin-top:12px}
