@@ -44,8 +44,11 @@
 (function (w, d) {
   'use strict';
 
-  var root = d.getElementById('pv-value');
-  if (!root) return;
+  /* host ＝ #pv-value。root ＝ いま「給与サマリー」を描く箱（タブの骨組みを置いたあとは、その1枚目の面）。
+     ★下の描画はみな root に書く＝タブを足しても、給与サマリーの中身は1文字も変わらない。 */
+  var host = d.getElementById('pv-value');
+  if (!host) return;
+  var root = host;
 
   var SB = null;
   try { SB = sb; } catch (e) { SB = null; }
@@ -71,12 +74,24 @@
   var SAMPLE_V = '56f31187';
   var SAMPLE_URL = 'my-value-sample.js?v=' + SAMPLE_V;     // 運営の見本（運営のときだけ読む）
   var YEAR_URL = 'my-year.js?v=' + YEAR_V;                 // 「1年」の画面（押したときだけ読む）
+  /* ★「勤務ロスター」のタブ（2026-11-09）。開いたときだけ読む4本。指紋は上の2本と同じ決まり
+       （db/test-year-report.mjs が中身と突き合わせる）。計算の部品は分析のタブも使う。 */
+  var ROSTER_V = '40c527fd';
+  var ROSTER_CSS_V = 'f89aed97';
+  var UPLOAD_V = 'ad34cd5f';
+  var ENGINE_V = 'f5603644';
+  var LATE = {
+    roster: 'my-roster.js?v=' + ROSTER_V, rosterCss: 'my-roster.css?v=' + ROSTER_CSS_V,
+    upload: 'roster-upload.js?v=' + UPLOAD_V, engine: 'pv-report-engine.js?v=' + ENGINE_V,
+    airlines: 'pv-airlines.json'
+  };
   try {
     var _self = (d.currentScript && d.currentScript.src) || '';
     if (_self) {
       PUB_URL = new URL('salary-data.json', _self).href;
       SAMPLE_URL = new URL('my-value-sample.js?v=' + SAMPLE_V, _self).href;
       YEAR_URL = new URL('my-year.js?v=' + YEAR_V, _self).href;
+      Object.keys(LATE).forEach(function (k) { LATE[k] = new URL(LATE[k], _self).href; });
     }
   } catch (e) {}
 
@@ -121,6 +136,12 @@
       opMine: '自分の数字',          // 運営が自分の明細も出しているとき、最後のボタンはこれ（2026-11-09）
       /* 「今月｜1年」の切り替え（2026-11-08 オーナー決定の置き場所） */
       vMonth: '今月', vYear: '1年',
+      /* YOUR PAY の3つのタブ（2026-11-09）。期間の切り替え（今月｜1年）とは別物＝形も違える。短い字は狭い画面用。 */
+      tabsAria: 'YOUR PAY の表示',
+      tabSum: '給与サマリー', tabRoster: '勤務ロスター', tabAna: '分析',
+      tabSumS: '給与', tabRosterS: '勤務', tabAnaS: '分析',
+      anaT: '分析はまもなくここに出ます',
+      rosterErr: '勤務ロスターの画面を読み込めませんでした。時間をおいて開き直してください。',
       noGross: 'この月は手取りを書いていないので、控除合計が出せません。同じ月をもう一度出すと、ここがあなたの数字になります。',
       mGuar: function (g) { return '保証 ' + g + 'h との差'; },
       momOf: function (ym) { return ym + 'との差'; },
@@ -323,6 +344,13 @@
       opEmpty: 'No-pay screen',
       opMine: 'My numbers',
       vMonth: 'This month', vYear: 'Year',
+      tabsAria: 'YOUR PAY views',
+      /* ★"Roster" と "Pay" だけ二重引用符：訳の辞書の 'Roster'・'Pay' は別の部品のための長い訳（括弧の説明つき）を持つ。
+           タブは短い字が要るので、別の鍵にしてある（gen-msg.mjs は値のソースそのものを鍵にする）。 */
+      tabSum: 'Pay summary', tabRoster: "Roster", tabAna: 'Analysis',
+      tabSumS: "Pay", tabRosterS: "Roster", tabAnaS: 'Analysis',
+      anaT: 'Your analysis will appear here soon',
+      rosterErr: 'Could not load the roster view. Please try again in a moment.',
       noGross: 'You did not enter take-home pay for this month, so deductions cannot be worked out. File the same month again and these become your own figures.',
       mGuar: function (g) { return 'vs ' + g + 'h guaranteed'; },
       momOf: function (ym) { return 'vs ' + ym; },
@@ -493,8 +521,15 @@
       opH: 'Muestra (solo operadores, cifras inventadas)',
       opS: { many: '12 meses', one: '1 mes', hand: 'Solo ingreso manual' },
       opEmpty: 'Pantalla sin remuneración',
-      opMine: 'Mis cifras',
+      opMine: 'My numbers',
       vMonth: 'Este mes', vYear: 'Año',
+      tabsAria: 'Vistas de YOUR PAY',
+      /* ★"Roster" と "Pay" だけ二重引用符：訳の辞書の 'Roster'・'Pay' は別の部品のための長い訳（括弧の説明つき）を持つ。
+           タブは短い字が要るので、別の鍵にしてある（gen-msg.mjs は値のソースそのものを鍵にする）。 */
+      tabSum: 'Resumen de pago', tabRoster: "Programación", tabAna: 'Análisis',
+      tabSumS: "Pago", tabRosterS: "Programación", tabAnaS: 'Análisis',
+      anaT: 'Tu análisis aparecerá aquí pronto',
+      rosterErr: 'No se pudo cargar la vista de programación. Inténtalo de nuevo en un momento.',
       noGross: 'No ingresaste tu sueldo neto de este mes, así que no se pueden calcular las deducciones. Envía de nuevo el mismo mes y estas cifras serán las tuyas.',
       mGuar: function (g) { return 'vs. ' + g + ' h garantizadas'; },
       momOf: function (ym) { return 'vs. ' + ym; },
@@ -671,7 +706,8 @@
   var state = { data: null, rows: [], series: [], metric: 'hourly', busy: false,
                pub: null, meds: null, name: '', pay: null,
                op: false, sample: null,           // 運営か・見本の種類（運営だけ）
-               view: 'month' };                   // 「今月」か「1年」か
+               view: 'month',                     // 「今月」か「1年」か
+               tab: 'summary', sumDirty: false };  // YOUR PAY のタブ・給与サマリーを隠れている間に描き直しそびれたか
 
   /* 見出しに出す呼び名。★ プロフィールの氏名を**そのまま**は出さない。
      ここは本人しか見ない画面だが、肩越しに覗かれる・スクリーンショットが
@@ -1698,6 +1734,117 @@
     }
     return yearLoading;
   }
+  /* ── YOUR PAY の3つのタブ（2026-11-09 オーナー「給与サマリー｜勤務ロスター｜分析」）──────────
+     ★期間の切り替え（今月｜1年）は給与サマリーの中に残す。用途のタブと混ぜない（形も違える）。
+     ★面は消さずに隠すだけ＝タブを移っても、選んだ月・日はそのまま。
+       隠れた面には図を描かない（幅0で描くと崩れたまま残る）。見えたときに描き直す。
+     ★勤務ロスターの部品は、そのタブを開いたときだけ読む（会員の大多数は通信が増えない）。 */
+  var TABS = ['summary', 'roster', 'analysis'];
+  var panes = null;
+  function tabText(k) {
+    var full = { summary: T.tabSum, roster: T.tabRoster, analysis: T.tabAna }[k];
+    var short = { summary: T.tabSumS, roster: T.tabRosterS, analysis: T.tabAnaS }[k];
+    return '<span class="mv-tab-l">' + esc(full) + '</span><span class="mv-tab-s" aria-hidden="true">' + esc(short) + '</span>';
+  }
+  function shell() {
+    if (panes) return;
+    host.innerHTML = '<div class="mv-tabs" role="tablist" aria-label="' + esc(T.tabsAria) + '">' +
+        TABS.map(function (k) {
+          var on = k === state.tab;
+          return '<button type="button" role="tab" class="mv-tab' + (on ? ' on' : '') + '" id="mv-tab-' + k + '" data-tab="' + k +
+            '" aria-controls="mv-pane-' + k + '" aria-selected="' + on + '" tabindex="' + (on ? 0 : -1) + '">' + tabText(k) + '</button>';
+        }).join('') + '</div>' +
+      TABS.map(function (k) {
+        return '<div class="mv-pane" id="mv-pane-' + k + '" role="tabpanel" aria-labelledby="mv-tab-' + k + '"' + (k === state.tab ? '' : ' hidden') + '></div>';
+      }).join('');
+    panes = {};
+    TABS.forEach(function (k) { panes[k] = d.getElementById('mv-pane-' + k); });
+    root = panes.summary;
+    /* 分析は次の段が #pv-analysis を埋める。それまでは静かな空の板1枚 */
+    panes.analysis.innerHTML = '<div id="pv-analysis"><div class="mv-ana-empty">' +
+      '<span class="mv-ana-i" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16"/><path d="M7 15v-4"/><path d="M12 15V7"/><path d="M17 15v-6"/></svg></span>' +
+      '<p class="mv-ana-t">' + esc(T.anaT) + '</p></div></div>';
+    var bar = host.querySelector('.mv-tabs');
+    bar.addEventListener('click', function (e) {
+      var b = e.target.closest ? e.target.closest('.mv-tab') : null;
+      if (b) setTab(b.getAttribute('data-tab'));
+    });
+    /* キーボード：左右で隣のタブへ・Home/End で端へ（WAI-ARIA のタブの決まり） */
+    bar.addEventListener('keydown', function (e) {
+      var i = TABS.indexOf(state.tab), j = null;
+      if (e.key === 'ArrowRight') j = (i + 1) % TABS.length;
+      else if (e.key === 'ArrowLeft') j = (i + TABS.length - 1) % TABS.length;
+      else if (e.key === 'Home') j = 0;
+      else if (e.key === 'End') j = TABS.length - 1;
+      if (j == null) return;
+      e.preventDefault();
+      setTab(TABS[j], true);
+    });
+  }
+  function setTab(k, focus) {
+    if (!panes || TABS.indexOf(k) < 0) return;
+    state.tab = k;
+    host.querySelectorAll('.mv-tab').forEach(function (b) {
+      var on = b.getAttribute('data-tab') === k;
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-selected', String(on));
+      b.tabIndex = on ? 0 : -1;
+      if (on && focus) b.focus();
+    });
+    TABS.forEach(function (t) { panes[t].hidden = t !== k; });
+    if (k === 'summary' && state.sumDirty) { state.sumDirty = false; render(); }
+    if (k === 'roster') openRoster();
+    else if (w.PVRoster && w.PVRoster.hide) w.PVRoster.hide();
+    try { host.dispatchEvent(new CustomEvent('pv-myreport-tab', { bubbles: true, detail: { tab: k } })); } catch (e) {}
+  }
+
+  /* 後から読む部品（同じものを2回読まない） */
+  var late = {};
+  function lateJs(src, ready) {
+    if (ready()) return Promise.resolve(true);
+    if (!late[src]) {
+      late[src] = new Promise(function (ok) {
+        var el = d.createElement('script');
+        el.src = src;
+        el.onload = function () { ok(!!ready()); };
+        el.onerror = function () { delete late[src]; ok(false); };
+        d.head.appendChild(el);
+      });
+    }
+    return late[src];
+  }
+  function lateCss(href) {
+    if (!late[href]) {
+      late[href] = new Promise(function (ok) {
+        var el = d.createElement('link');
+        el.rel = 'stylesheet'; el.href = href;
+        el.onload = function () { ok(true); };
+        el.onerror = function () { delete late[href]; ok(false); };
+        d.head.appendChild(el);
+      });
+    }
+    return late[href];
+  }
+  var rosterMounted = false;
+  function openRoster() {
+    if (rosterMounted) { w.PVRoster.show(); return; }
+    if (!panes.roster.firstChild) panes.roster.innerHTML = '<div class="mr-skel" style="height:220px"></div>';
+    /* 見た目が届いてから描く（素の字が一瞬覆わない）。計算の部品 → 画面の部品の順 */
+    Promise.all([lateCss(LATE.rosterCss), lateJs(LATE.engine, function () { return !!w.PVReport; })])
+      .then(function (r) { return r[0] && r[1] ? lateJs(LATE.roster, function () { return !!w.PVRoster; }) : false; })
+      .then(function (ok) {
+        if (rosterMounted) return;
+        if (!ok) { panes.roster.innerHTML = empty(T.rosterErr); return; }
+        rosterMounted = true;
+        w.PVRoster.mount(panes.roster, {
+          sb: SB,
+          reports: (state.data && state.data.reports) || [],   // ★運営の見本は渡さない（会社を決めるのは本人の行だけ）
+          urls: { upload: LATE.upload, airlines: LATE.airlines }
+        });
+        if (state.tab === 'roster') w.PVRoster.show(); else w.PVRoster.hide();
+      });
+  }
+
   function renderYear(rows) {
     state.rows = rows;
     /* ★累計報酬（2026-11-09 オーナー「1年の累計報酬のカードとか消えてる」→「両方やる」）。
@@ -1737,6 +1884,8 @@
     var dat = state.data;
     if (!dat) return;
     paintRemind(dat);                      // ★0 件で戻る前に描く（設定は件数と無関係）
+    shell();                               // タブの骨組み（1回だけ）。ここから root は給与サマリーの面
+    if (state.tab !== 'summary') { state.sumDirty = true; return; }   // 隠れた面に図を描かない
     var rows = (state.sample && w.PV_VALUE_SAMPLE) ? w.PV_VALUE_SAMPLE(state.sample) : (dat.reports || []);
     if (!rows.length) return renderEmpty();
     if (state.view === 'year') return renderYear(rows);
@@ -1961,9 +2110,11 @@
   // 幅が変わったら折れ線を組み直す（viewBox を伸ばさない代わり）
   var rt = null;
   w.addEventListener('resize', function () {
-    if (!state.rows.length) return;
     clearTimeout(rt);
     rt = setTimeout(function () {
+      if (state.tab === 'roster') { if (w.PVRoster && w.PVRoster.redraw) w.PVRoster.redraw(); }
+      if (!state.rows.length) return;
+      if (state.tab !== 'summary') { state.sumDirty = true; return; }   // 見えたときに描き直す
       if (state.view === 'year') { if (w.PVYear) w.PVYear.redraw(); drawCumChart(); return; }
       drawChart(); drawCumChart();
     }, 160);

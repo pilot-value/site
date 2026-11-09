@@ -135,12 +135,14 @@ for (const [name, from, to] of BREAK) {
   say(f.length > 0, `${name} → 赤くなる（${f.length}件）`);
 }
 
-/* ▼ my-value.js が後から読む2本の指紋（YEAR_V / SAMPLE_V）が中身と一致する（.js は4時間覚えられる＝ずれると古い部品が残る） */
+/* ▼ my-value.js が後から読む部品の指紋（YEAR_V / SAMPLE_V / 勤務ロスターの4本）が中身と一致する（.js は4時間覚えられる＝ずれると古い部品が残る） */
 console.log('▼ 後から読む部品の指紋');
 {
   const { createHash } = await import('crypto');
   const mv = fs.readFileSync(path.join(ROOT, 'my-value.js'), 'utf8');
-  for (const [name, file] of [['YEAR_V', 'my-year.js'], ['SAMPLE_V', 'my-value-sample.js']]) {
+  /* ★2026-11-09 勤務ロスターのタブが後から読む4本も同じ決まり（タブを開いたときだけ読む） */
+  for (const [name, file] of [['YEAR_V', 'my-year.js'], ['SAMPLE_V', 'my-value-sample.js'],
+    ['ROSTER_V', 'my-roster.js'], ['ROSTER_CSS_V', 'my-roster.css'], ['UPLOAD_V', 'roster-upload.js'], ['ENGINE_V', 'pv-report-engine.js']]) {
     const want = createHash('sha256').update(fs.readFileSync(path.join(ROOT, file))).digest('hex').slice(0, 8);
     const m = mv.match(new RegExp('var ' + name + " = '([0-9a-f]{8})';"));
     say(m && m[1] === want, name + '（' + file + '）の指紋が中身と一致' + (m && m[1] !== want ? '：' + m[1] + ' → ' + want + ' に直す' : ''));

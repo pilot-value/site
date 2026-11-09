@@ -576,6 +576,29 @@ baland_ass/                            ブランド資産（※ brand_assets の
 見るもの: `node db/test-review-summary.mjs`／`node db/test-pay-compare.mjs`／`node db/test-company-comp.mjs`／
 `node assert-airline-glance.mjs`／`node assert-career-live.mjs`（落ちたときの「なぜ」は [workflows/deploy-checklist.md](workflows/deploy-checklist.md) の 29 番）。
 
+## マイレポートの作り直しと勤務ロスターの取り込み（2026-11-09〜・手元のみ・本番は段ごとにオーナーの OK）
+
+★オーナー「（ChatGPT と作った指示書を）読んで、もっと正確で精密な分析ができるようにして」「ロスターを取り入れる仕組みを作ろう」
+「複数のスクショで、同じ日が被ったり切れたりしても読めるように」「給与サマリー｜勤務ロスター｜分析 にして」。
+指示書はリポジトリの外（Codex の handoff）。計画は手元の plans。
+
+- **YOUR PAY は3つのタブ**（my-value.js の `shell()`）。今の今月｜1年は「給与サマリー」の中のまま。勤務ロスターと分析は**開いたときだけ読む**
+  （`my-roster.css` → `pv-report-engine.js` → `my-roster.js`・アップロードを押すと `roster-upload.js`）。
+  ⚠️ この4つを直したら my-value.js の指紋（`ROSTER_V` / `ROSTER_CSS_V` / `UPLOAD_V` / `ENGINE_V`）を `node db/test-year-report.mjs` が言う値に
+  → profile.html 日英の `my-value.js?v=` → `node gen-lang.mjs es` → `node gen-datemod.mjs`。
+- **ロスターの読み取り**は Edge Function `parse-roster`（ログイン必須・1ページずつ・**原本はどこにも保存しない**・名前と自由文は返させない）。
+  日付は**サーバーが決める**（モデルには月を渡さない＝31→1 を同じ月にしないため）。勤務コードは英字の決まった形だけ・
+  漢字（公休・有休…）と言葉（Day Off・Standby Airport…）は**決まった表**でだけ英字にそろえる（表に無い漢字は落とす＝名字が紛れない）。
+  ⚠️ 答えの形のヌル可の欄は API の上限 16 まで（超えると**全部の読み取りが 400 で失敗**する。`MAX_UNION_PARAMS`）。
+- **保存**は `db/roster.sql`（pay-edit.sql の後）── 日と便を給与と同じ匿名の鍵（`pv_roster_key` が式の唯一の写し）で。
+  **日単位で新しい提出が古いものを置き換える**＝分割・重なり・改訂版・同じ資料の再提出で二重に数えない。本人が消せる。氏名・画像・自由文の列は持たない（検算9）。
+- **複数のスクショ**は端末で `PVReport.mergePages` が1本につなぐ（同じ日は1つ・切れた日の便を合わせる・食い違いは本人に見せる）。
+- **計算**は `pv-report-engine.js` の1か所（金額は通貨の最小単位の整数・時間は分の整数・null と 0 を分ける・支給月と勤務月を混ぜない・検算3つ）。
+- 本人に聞くのは初回だけ・分からないものだけ（実績か予定か・時刻は現地か UTC か・TIME の意味・意味が決まっていない勤務コード）。
+- 見るもの：`node db/test-roster.mjs`（sql）／`node db/test-roster-parse.mjs`・`node db/test-report-engine.mjs`・`node db/test-roster-ui.mjs`（fast）。
+  読み取りの精度は `node db/eval-roster.mjs`（**費用あり・手で流す**。作り物6形式＋`--dir` でネットの見本。check.mjs に入れない）。
+- **本番の作業（OK のあと）**：`db/roster.sql` を貼る → `parse-roster` を Deploy（secrets は parse-payslip と同じ・任意で `PV_ROSTER_DAILY` など）→ push。
+
 ## 会員の中央値を、提出のたびに会社ページへ（2026-10-31）
 
 ★オーナー指示「ANA・JAL は中央値（低くなっても）」「給与提出が2人以上で、推定より高い会社は中央値」「提出のたびにすぐ変える」

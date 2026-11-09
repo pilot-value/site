@@ -48,6 +48,7 @@ export const SQL_FILES = [
   'db/schema-additions.sql',
   'db/pay-reports.sql',
   'db/pay-edit.sql',          // MY PAGE の「編集」で出した月を戻す読む口（2026-11-09）。pay-reports.sql の後
+  'db/roster.sql',            // ロスターの取り込みとマイレポートの読む口（2026-11-09）。pay-edit.sql の後
   'db/pay-report-pending.sql',
   'db/pay-rows.sql',
   'db/admin.sql',
@@ -295,6 +296,70 @@ function client(cfg) {
     document.body.appendChild(box);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ui); else ui();
+}
+
+/* ── 作り物の勤務表（/functions/v1/parse-roster の手元の答え・2026-11-09）───────────────
+   AI が返す形（OUT_SCHEMA）の答えを、月とページから決まった形で作る。人の名前も実在の勤務も入れない。
+   1日ずつの型：3便／DH から始まる3便／2便／夜の2便（日付をまたぐ）／地上の業務／シミュレーター／スタンバイ／
+   休日／有休／知らない記号（RDO）／区分の分からない便。page が 4 以上なら null（ロスターに見えない）。 */
+const ROSTER_PLAN = ['F3', 'F2', 'VAC', 'F2N', 'OFF', 'OFF', 'F3', 'F3D', 'OFF', 'OFF', 'F2', 'GND', 'F1U', 'OFF', 'OFF', 'SBY',
+  'F2', 'F3', 'OFF', 'OFF', 'F2N', 'F3', 'F3D', 'OFF', 'OFF', 'SIM', 'F2', 'RDO', 'OFF', 'F3', 'OFF'];
+export function rosterFixture(y, m, page) {
+  if (page > 3) return null;
+  const p2 = (n) => String(n).padStart(2, '0');
+  const t = (min) => p2(Math.floor(min / 60) % 24) + ':' + p2(min % 60);
+  const dur = (min) => Math.floor(min / 60) + ':' + p2(min % 60);
+  const last = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  const [a, z] = page === 1 ? [1, 11] : page === 2 ? [10, 21] : [20, last];
+  const leg = (flight, from, to, out, blk, kind = 'operating', role = 'CAP') => ({
+    flight, from, to, loc: null, out: t(out), in: t(out + blk), in_day: out + blk >= 1440 ? 1 : 0, block: dur(blk), role, kind, partial: false, row: 0 });
+  const gnd = (loc, out, len, role) => ({ flight: null, from: null, to: null, loc, out: t(out), in: t(out + len), in_day: 0, block: null, role, kind: 'ground', partial: false, row: 0 });
+  const days = [];
+  let row = 1;
+  for (let dd = a; dd <= Math.min(z, last); dd++) {
+    const k = ROSTER_PLAN[dd - 1] || 'OFF', s = (dd * 7) % 40;           // 日ごとに少しずらす
+    const day = { y: null, m: null, d: dd, wd: new Date(Date.UTC(y, m - 1, dd)).getUTCDay(), cut: null, code: null,
+      d_on: null, d_off: null, d_off_day: 0, row: row++, legs: [] };
+    const on = 7 * 60 + 45 + s;
+    if (k === 'F3' || k === 'F3D') {
+      day.legs = [leg(k === 'F3D' ? '1121' : '1131', 'HND', 'KIX', on + 60, 77 + (dd % 5), 'operating', 'CAP'),
+        leg('1122', 'KIX', 'HIJ', on + 162, 84, 'operating', 'CAP'), leg('1123', 'HIJ', 'HND', on + 271, 75, 'operating', 'CAP')];
+      if (k === 'F3D') { day.legs[0].kind = 'deadhead'; day.legs[0].role = 'DH1'; }
+      day.d_on = t(on); day.d_off = t(on + 376);
+    } else if (k === 'F2') {
+      day.legs = [leg('1205', 'HND', 'CTS', on + 60, 95), leg('1210', 'CTS', 'HND', on + 205, 100)];
+      day.d_on = t(on); day.d_off = t(on + 335);
+    } else if (k === 'F2N') {
+      const n0 = 20 * 60 + 10 + s;
+      day.legs = [leg('1471', 'HND', 'OKA', n0 + 60, 165), leg('1472', 'OKA', 'NRT', n0 + 270, 150)];
+      day.legs[1].in_day = 1; day.legs[1].out = t(n0 + 270); day.legs[1].in = t(n0 + 420);
+      day.d_on = t(n0); day.d_off = t(n0 + 450); day.d_off_day = 1;
+    } else if (k === 'F1U') {
+      day.legs = [leg('1301', 'HND', 'ITM', on + 60, 70, 'unknown', 'X')];
+      day.d_on = t(on); day.d_off = t(on + 160);
+    } else if (k === 'GND') {
+      day.code = 'GND'; day.legs = [gnd('TRC', 9 * 60, 420, 'GT')]; day.d_on = '09:00'; day.d_off = '16:00';
+    } else if (k === 'SIM') {
+      day.code = 'SIM'; day.legs = [gnd('SIMC', 13 * 60, 240, 'SIM')]; day.d_on = '12:30'; day.d_off = '17:30';
+    } else if (k === 'SBY') {
+      day.code = 'SBY'; day.d_on = '05:00'; day.d_off = '13:00';
+    } else if (k === 'VAC') day.code = 'VAC';
+    else if (k === 'RDO') day.code = 'RDO';
+    else day.code = dd % 2 ? 'OFF1' : 'OFF2';
+    day.legs.forEach((l) => { l.row = row++; });
+    /* ページの下で切れる日（1枚目の11日・2枚目の21日）：最初の便の途中まで */
+    if (dd === z && page < 3) {
+      day.cut = 'bottom'; day.d_off = null; day.d_off_day = 0;
+      if (day.legs.length) day.legs = [{ ...day.legs[0], in: null, in_day: 0, block: null, partial: true }];
+    }
+    days.push(day);
+  }
+  return {
+    month: page === 1 ? { y, m } : null,
+    period: page === 1 ? { from: `${y}-${p2(m)}-01`, to: `${y}-${p2(m)}-${p2(last)}` } : null,
+    kind: page === 1 ? 'actual' : null, time_ref: page === 1 ? 'local' : null,
+    days,
+  };
 }
 
 /* ── 立ち上げ ───────────────────────────────────────────── */
@@ -660,8 +725,38 @@ export async function start(opt = {}) {
      ★Google の代わりは opt.places.endpoint ── この Mac の 127.0.0.1／localhost の住所（検査が立てた模擬の Google）だけ。
        ほかの住所なら鍵を渡さない（＝ not_configured。本物の Google へは、どの道でも1本も出ない）。
      ★鍵は opt.places.key（作り物の字）。本物の鍵はどこにも置かない。値は呼ばれるたびに opt.places から読む（検査が途中で替えられる）。 */
+  /* ── /functions/v1/parse-roster（勤務表の読み取り・2026-11-09）── 手元だけの作り物 ──────────────
+     ★Anthropic は呼ばない。画像の中身は見ない（何を送っても、選んだ月の作り物の勤務表を返す）。
+     ★答えは本物の関数の sanitize() を通す＝日付の決め方（選んだ月・前のページの続き）と欄の検品は本番と同じ。
+     ★ページの割り振り（重なりと切れ目を手元で確かめるため）：1枚目＝1〜11日（11日は下で切れる）、
+       2枚目＝10〜21日（21日は下で切れる）、3枚目＝20日〜月末。4枚目からは「ロスターに見えない」。
+       2枚だけ読ませると、21日が切れたまま残る（「続きを足すか、このまま進むか」の形）。 */
+  let rosterMod = null;
+  async function rosterStub(req, bodyText) {
+    const H = { 'Content-Type': 'application/json' };
+    const out = (status, b) => ({ status, text: JSON.stringify(b), headers: H });
+    let b;
+    try { b = JSON.parse(bodyText || '{}'); } catch { return out(400, { ok: false, reason: 'bad_request' }); }
+    if (b && b.ping) return out(200, { ok: true, build: 'local-stub' });
+    if (whoOf(req).role !== 'authenticated') return out(401, { ok: false, reason: 'login_required' });
+    if (b.report !== undefined) return out(200, { ok: true });
+    if (typeof b.image_b64 !== 'string' || !b.image_b64) return out(400, { ok: false, reason: 'no_image' });
+    if (!rosterMod) rosterMod = await import(pathToFileURL(path.join(ROOT, 'supabase/functions/parse-roster/index.ts')).href);
+    const now = new Date();
+    const page = Number.isInteger(b.page) && b.page > 0 ? b.page : 1;
+    const hint = rosterMod.hintOf(b.hint, now) || { year: now.getUTCFullYear(), month: now.getUTCMonth() + 1 };
+    const raw = rosterFixture(hint.year, hint.month, page);
+    const wait = opt.rosterDelay ?? (opt.quiet ? 0 : 400);          // 進み具合の表示を目で確かめられるように
+    if (wait) await new Promise((r) => setTimeout(r, wait));
+    if (!raw) return out(200, { ok: false, reason: 'not_a_roster', build: 'local-stub' });
+    const res = rosterMod.sanitize(raw, { page, hint, tail: rosterMod.sanitizeTail(b.prev_tail, now), now });
+    if (!res.roster.days.length) return out(200, { ok: false, reason: 'undated', build: 'local-stub' });
+    return out(200, { ok: true, roster: res.roster, checks: res.checks, build: 'local-stub' });
+  }
+
   let suggestMod = null;
   async function fnCall(req, url, bodyText) {
+    if (url.pathname === '/functions/v1/parse-roster') return rosterStub(req, bodyText);
     const P = opt.places;
     if (url.pathname !== '/functions/v1/hotel-suggest' || !P || typeof P !== 'object') {
       throw bad('LOCAL404', '手元のサーバーには無い口: ' + url.pathname, 404);
