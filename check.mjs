@@ -35,12 +35,14 @@ const FAST = [
   ['db/test-payslip-hours.mjs', 1], ['db/test-payslip-parse.mjs', 1],
   ['db/test-value-breakdown.mjs', 1], ['db/test-value-total.mjs', 1],
   ['db/test-year-report.mjs', 0.3],   // 2026-11-08：マイレポートの「1年」の計算（単価・傾き・折れ目・0 で埋めない）
+  ['db/test-roster-parse.mjs', 0.3],  // 2026-11-09：ロスターの読み取り（名前・自由文を持たない・日付の決め方・切れた日の印）
+  ['db/test-report-engine.mjs', 0.5], // 2026-11-09：マイレポートの計算（勤務月と支給月・検算3つ・スクショのつなぎ・0 と null）
   ['assert-import-research.mjs', 4],   // 2026-10-20（WP-roll-a）：調査パックの取り込み。作り物のパック・使い捨ての台帳の写しだけ（本物の台帳は読むだけ）
   ['assert-rollout.mjs', 4.5],         // 2026-10-21（WP-roll-b）：会社ページを全社へ広げる生成器。切り替えは使い捨ての写しの中だけ（リポジトリには書かない）
 ];
 
 const SQL = [
-  ['db/test-pay-reports.mjs', 15], ['db/test-pay-rows.mjs', 15],
+  ['db/test-pay-reports.mjs', 15], ['db/test-pay-rows.mjs', 15], ['db/test-roster.mjs', 6],
   ['db/test-conditions.mjs', 12], ['db/test-referrals.mjs', 10],
   ['db/test-founding.mjs', 10], ['db/test-admin-grants.mjs', 10], ['db/test-profile-lang.mjs', 5],
   ['db/test-payslip-extras.mjs', 10], ['db/test-unlock-rule.mjs', 10],

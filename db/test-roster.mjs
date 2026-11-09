@@ -1,0 +1,620 @@
+/* db/roster.sql（勤務表の取り込み・マイレポートの読む口）を本物の Postgres（PGlite）に流して確かめる。
+
+   実行: node db/test-roster.mjs
+   ネットワーク不要・本番に一切触らない。中身は作り物だけ（実在の勤務表・氏名は使わない）。
+
+   見ているもの
+     ・出した日と便が入る／同じファイルの二度目は何もしない
+     ・重なった日・改訂版は**日付で**入れ替わる（二重に数えない・入れ替わった日の便は残らない）
+     ・ほかの会員は読めない・消せない／anon は呼べない／未ログインは 42501
+     ・不正なコード・氏名・自由記述は弾くか落とす／大きすぎ・多すぎは弾く／1日30本まで
+     ・ファイルを消すと、まだそのファイルが持っている日だけ消える
+     ・読み方（profile）の検品・明細の行の答え（line map）と my_report_items の往復（「その他」の会社も）
+     ・末尾の検算が全部 ✅ ／ 壊す証明（鍵の式を1文字変える・anon に呼ばせる → 検算が ❌）
+*/
+import { PGlite } from '@electric-sql/pglite';
+import { pgcrypto } from '@electric-sql/pglite/contrib/pgcrypto';
+import { readFileSync } from 'fs';
+
+const read = (f) => readFileSync(new URL('../' + f, import.meta.url), 'utf8');
+
+const db = new PGlite({ extensions: { pgcrypto } });
+await db.waitReady;
+
+let pass = 0, fail = 0;
+const ok = (cond, label, extra = '') => {
+  if (cond) { pass++; console.log(`  ✅ ${label}`); }
+  else { fail++; console.log(`  ❌ ${label} ${extra}`); }
+};
+const one = async (sql, params) => (await db.query(sql, params)).rows[0];
+const rows = async (sql, params) => (await db.query(sql, params)).rows;
+// 失敗したら { msg, code }、通ったら null
+const boom = async (sql, params) => {
+  try { await db.query(sql, params); return null; }
+  catch (e) { return { msg: String(e.message || e), code: e.code || '' }; }
+};
+
+// ── 器（Supabase の初期状態と同じ形）──────────────────────────
+await db.exec(`
+  create schema if not exists extensions;
+  create schema if not exists auth;
+  create role anon;
+  create role authenticated;
+  grant usage on schema public, extensions to anon, authenticated;
+  alter default privileges in schema public grant all on tables to anon, authenticated;
+  -- ★Supabase は関数にも既定で anon/authenticated の実行権を付ける。これが無いと revoke が効いたかを誤読する。
+  alter default privileges in schema public grant all on functions to anon, authenticated;
+
+  create table public.profiles (
+    id uuid primary key, email text, name text,
+    email_opt_in boolean not null default false
+  );
+
+  create function auth.uid() returns uuid language sql stable as $$
+    select nullif(current_setting('pv.uid', true), '')::uuid $$;
+`);
+
+// 前提の関所：pay-reports.sql より先に貼ると、何も作らずに止まる
+{
+  const bare = new PGlite({ extensions: { pgcrypto } });
+  await bare.waitReady;
+  await bare.exec(`create schema if not exists extensions; create schema if not exists auth;
+                   create role anon; create role authenticated;`);
+  let msg = '';
+  try { await bare.exec(read('db/roster.sql')); } catch (e) { msg = String(e.message || e); }
+  const made = (await bare.query(`select to_regclass('public.pv_roster_days') t`)).rows[0].t;
+  ok(msg.includes('先に db/pay-reports.sql') && made === null,
+     '★前提の関所：pay-reports.sql より先に貼ると止まり、表を1つも作らない', msg.slice(0, 60));
+  await bare.close();
+}
+
+const FILES = ['db/airlines.generated.sql', 'db/vocab.generated.sql',
+               'db/pay-reports.sql', 'db/pay-edit.sql', 'db/roster.sql'];
+
+console.log('\n▼ SQL の適用');
+for (const f of FILES) {
+  try { await db.exec(read(f)); ok(true, f); }
+  catch (e) { ok(false, f, '\n     ' + e.message); process.exit(1); }
+}
+console.log('\n▼ 冪等性（もう一度そのまま流す）');
+for (const f of FILES) {
+  try { await db.exec(read(f)); ok(true, `${f} 再適用OK`); }
+  catch (e) { ok(false, `${f} 再適用で失敗`, '\n     ' + e.message); }
+}
+
+// ── 道具 ─────────────────────────────────────────────────────
+const uid = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+const asUser = async (n) => {
+  await db.query(`insert into profiles(id,email) values($1,$2) on conflict do nothing`, [uid(n), `p${n}@example.com`]);
+  await db.query(`select set_config('pv.uid', $1, false)`, [uid(n)]);
+};
+const logout = () => db.query(`select set_config('pv.uid', '', false)`);
+
+const TODAY = (await one(`select current_date::text d`)).d;
+const addDays = (iso, n) => {
+  const t = new Date(iso + 'T00:00:00Z');
+  t.setUTCDate(t.getUTCDate() + n);
+  return t.toISOString().slice(0, 10);
+};
+const D = (n) => addDays(TODAY, n - 40);             // 40日前を起点にした作り物の日付
+const sha = (n) => n.toString(16).padStart(64, '0');
+
+const leg = (seq, x = {}) => ({
+  seq, flight: 'EK101', from: 'DXB', to: 'LHR', loc: null, out: '07:00', in: '14:17', in_day: 0,
+  block: '7:17', role: 'CAP', kind: 'operating', page: 1, row: 1, ...x,
+});
+const day = (n, x = {}) => ({
+  date: D(n), code: null, d_on: '05:40', d_off: '15:00', d_off_day: 0, page: 1, row: n + 1,
+  legs: [leg(1), leg(2, { flight: 'EK102', from: 'LHR', to: 'DXB', out: '16:00', in: '23:50', block: '7:50' })],
+  ...x,
+});
+const roster = (days, x = {}) => ({ airline: 'emirates', file_sha: sha(1), pages: 2, period: null, days, ...x });
+
+const submitR = async (p) => (await one(`select submit_roster($1::jsonb) r`, [JSON.stringify(p)])).r;
+const trySubmit = (p) => boom(`select submit_roster($1::jsonb)`, [JSON.stringify(p)]);
+const myRoster = async (a = 'emirates', o = null, f = null, t = null) =>
+  (await one(`select my_roster($1, $2, $3::date, $4::date) r`, [a, o, f, t])).r;
+const myDocs = async (a = 'emirates', o = null) => (await one(`select my_roster_docs($1, $2) r`, [a, o])).r;
+const delDoc = async (id, a = null, o = null) => (await one(`select delete_roster_doc($1::uuid, $2, $3) r`, [id, a, o])).r;
+const setProfile = async (p, a = 'emirates', o = null) =>
+  (await one(`select set_roster_profile($1, $2, $3::jsonb) r`, [a, o, p === null ? null : JSON.stringify(p)])).r;
+const setMap = async (label, off, status, qty = null, a = 'emirates', o = null) =>
+  (await one(`select set_line_map($1, $2, $3, $4, $5, $6) r`, [a, o, label, off, status, qty])).r;
+const trySetMap = (label, off, status, qty = null, a = 'emirates', o = null) =>
+  boom(`select set_line_map($1, $2, $3, $4, $5, $6)`, [a, o, label, off, status, qty]);
+const items = async () => (await one(`select my_report_items() r`)).r;
+const cnt = async (t) => Number((await one(`select count(*) n from public.${t}`)).n);
+const dump = async () => JSON.stringify(await rows(`
+  select (select coalesce(jsonb_agg(to_jsonb(x)), '[]') from public.pv_roster_days x) d,
+         (select coalesce(jsonb_agg(to_jsonb(x)), '[]') from public.pv_roster_legs x) l,
+         (select coalesce(jsonb_agg(to_jsonb(x)), '[]') from public.pv_roster_docs x) f,
+         (select coalesce(jsonb_agg(to_jsonb(x)), '[]') from public.pv_roster_profile x) p`));
+
+// ── 1. 出す ──────────────────────────────────────────────────
+console.log('\n▼ 勤務表を出す（10日）');
+await asUser(1);
+const daysA = [];
+for (let n = 0; n < 10; n++) daysA.push(day(n));
+// 3日目：日をまたぐ（解散が翌日・最後の便の到着も翌日）＋回送＋地上業務（空港を入れてきても落とす）＋不明
+daysA[3] = day(3, {
+  d_on: '18:00', d_off: '02:10', d_off_day: 1,
+  legs: [
+    leg(1, { flight: 'EK201', from: 'DXB', to: 'BKK', out: '19:00', in: '01:50', in_day: 1, block: '6:50' }),
+    leg(2, { flight: 'EK9', from: 'BKK', to: 'DXB', kind: 'deadhead', role: 'DH1', block: '6:05' }),
+    leg(3, { flight: null, from: 'DXB', to: 'DXB', loc: 'TRC', kind: 'ground', role: 'TRN', block: '4:00' }),
+    leg(4, { flight: null, from: null, to: null, loc: null, kind: 'unknown', role: null, block: null, out: null, in: null }),
+  ],
+});
+daysA[0] = day(0, { code: 'OFF1', d_on: null, d_off: null, legs: [] });
+daysA[1] = day(1, { code: 'VAC', d_on: null, d_off: null, legs: undefined });
+const rA = await submitR(roster(daysA));
+ok(rA.ok === true && rA.dup === false && rA.days === 10 && rA.replaced === 0,
+   `通る → days ${rA.days} / replaced ${rA.replaced}`, JSON.stringify(rA));
+ok(rA.legs === 7 * 2 + 4, `便は 7日×2 ＋ 4 = 18 本 → ${rA.legs}`);
+ok(await cnt('pv_roster_days') === 10 && await cnt('pv_roster_legs') === 18, '表に 10日・18便');
+{
+  const r = await myRoster();
+  ok(r.ok === true && r.days.length === 10, `my_roster が10日を返す → ${r.days.length}`);
+  ok(r.days.every((x, i, a) => i === 0 || a[i - 1].date < x.date), '日付の順に並ぶ');
+  const d3 = r.days.find((x) => x.date === D(3));
+  ok(d3 && d3.d_on === '18:00' && d3.d_off === '02:10' && d3.d_off_day === 1, '日をまたぐ解散（02:10・翌日）がそのまま返る', JSON.stringify(d3 && { on: d3.d_on, off: d3.d_off, k: d3.d_off_day }));
+  ok(d3 && d3.legs.map((l) => l.seq).join() === '1,2,3,4', '便は順番どおり');
+  const [l1, l2, l3, l4] = d3 ? d3.legs : [];
+  ok(l1 && l1.in === '01:50' && l1.in_day === 1 && l1.block === '6:50' && l1.block_min === 410,
+     `到着が翌日の便・ブロック 6:50 = 410分 → ${l1 && l1.block_min}`);
+  ok(l2 && l2.kind === 'deadhead' && l2.role === 'DH1', '回送は deadhead・区分は印字どおり（DH1）');
+  ok(l3 && l3.kind === 'ground' && l3.from === null && l3.to === null && l3.loc === 'TRC',
+     '★地上業務に空港を作らない（送られてきた DXB→DXB を落とし、場所は loc だけ）');
+  ok(l4 && l4.kind === 'unknown' && l4.block === null && l4.block_min === null, '分からない便は unknown・ブロック null（0 にしない）');
+  const d0 = r.days.find((x) => x.date === D(0));
+  ok(d0 && d0.code === 'OFF1' && d0.d_on === null && d0.legs.length === 0, '休みの日（OFF1・時刻なし・便なし）');
+  const d5 = r.days.find((x) => x.date === D(5));
+  ok(d5 && d5.legs[0].block === '7:17' && d5.legs[0].block_min === 437 && d5.legs[0].from === 'DXB' && d5.legs[0].role === 'CAP',
+     'ふつうの便：7:17 = 437分・DXB・CAP');
+  ok(d5 && d5.doc_id === rA.doc_id && d5.page === 1 && d5.row === 6, '日がどのファイル・何ページ何行目かを持つ');
+  ok(r.profile === null, 'まだ読み方を答えていない → profile は null');
+}
+
+// ── 2. 同じファイルの二度目 ─────────────────────────────────────
+console.log('\n▼ 同じファイルをもう一度');
+{
+  const again = await submitR(roster(daysA.map((d) => ({ ...d, code: 'XX' }))));
+  ok(again.ok === true && again.dup === true && again.doc_id === rA.doc_id, '同じ指紋 → dup:true・何もしない');
+  ok(await cnt('pv_roster_docs') === 1 && await cnt('pv_roster_days') === 10 && await cnt('pv_roster_legs') === 18,
+     '表は1文字も変わらない');
+  ok((await myRoster()).days.every((d) => d.code !== 'XX'), '中身も前のまま');
+}
+
+// ── 3. 重なる2本目（5〜14日目）─────────────────────────────────
+console.log('\n▼ 期間が重なる2本目（日付で入れ替わる）');
+const daysB = [];
+for (let n = 5; n < 15; n++) daysB.push(day(n, { legs: [leg(1, { flight: 'EK999', block: '1:00' })] }));
+const rB = await submitR(roster(daysB, { file_sha: sha(2) }));
+ok(rB.ok && rB.days === 10 && rB.replaced === 5, `重なった5日だけ入れ替わる → replaced ${rB.replaced}`);
+{
+  const r = await myRoster();
+  ok(r.days.length === 15, `日は 0〜14 の15日（二重に数えない）→ ${r.days.length}`);
+  const over = r.days.filter((d) => d.date >= D(5) && d.date <= D(9));
+  ok(over.every((d) => d.doc_id === rB.doc_id), '重なった日は新しいファイルのもの');
+  ok(over.every((d) => d.legs.length === 1 && d.legs[0].flight === 'EK999'),
+     '★入れ替わった日に古い便が1本も残らない');
+  ok(r.days.filter((d) => d.date < D(5)).every((d) => d.doc_id === rA.doc_id), '重ならない日は前のファイルのまま');
+  const blk = Number((await one(`select sum(block_min) s from pv_roster_legs`)).s);
+  ok(blk === 2 * (437 + 470) + (410 + 365 + 240) + 10 * 60, `ブロックの合計が二重に数えられていない → ${blk}`);
+}
+
+// ── 4. 改訂版（同じ期間・中身が違う）───────────────────────────
+console.log('\n▼ 改訂版を出し直す');
+const daysC = daysB.map((d) => ({ ...d, code: 'REV', legs: [leg(1, { flight: 'EK777' }), leg(2, { flight: 'EK778' })] }));
+const rC = await submitR(roster(daysC, { file_sha: sha(3) }));
+ok(rC.ok && rC.replaced === 10, `改訂版は10日とも入れ替わる → ${rC.replaced}`);
+{
+  const r = await myRoster();
+  ok(r.days.length === 15, '日数は15のまま');
+  ok(r.days.filter((d) => d.date >= D(5)).every((d) => d.code === 'REV' && d.legs.map((l) => l.flight).join() === 'EK777,EK778'),
+     '改訂版の中身だけが残る');
+  const docs = (await myDocs()).docs;
+  const own = Object.fromEntries(docs.map((d) => [d.id, d.days_owned]));
+  ok(docs.length === 3 && own[rA.doc_id] === 5 && own[rB.doc_id] === 0 && own[rC.doc_id] === 10,
+     `ファイル一覧：まだ持っている日 A=5・B=0・C=10 → ${JSON.stringify(Object.values(own))}`);
+  const a = docs.find((d) => d.id === rA.doc_id);
+  ok(a && a.days === 10 && a.date_from === D(0) && a.date_to === D(9) && a.pages === 2 && a.file_sha === sha(1),
+     '一覧に取り込んだときの日数・日付の幅・ページ数・指紋', JSON.stringify(a));
+  ok(docs[0].id === rC.doc_id, '新しい順');
+  ok(!JSON.stringify(docs).includes('proof_hash'), '一覧に鍵（proof_hash）を出さない');
+}
+
+// ── 5. ほかの会員 ──────────────────────────────────────────────
+console.log('\n▼ ほかの会員は読めない・消せない');
+await asUser(2);
+{
+  const r = await myRoster();
+  ok(r.ok && r.days.length === 0 && r.profile === null, '同じ会社でも、ほかの人の日は1日も返らない');
+  ok((await myDocs()).docs.length === 0, 'ほかの人のファイル一覧も返らない');
+  const d = await delDoc(rC.doc_id, 'emirates');
+  ok(d.ok && d.deleted === false, 'ほかの人のファイルは消せない（deleted:false）');
+  ok(await cnt('pv_roster_docs') === 3 && await cnt('pv_roster_days') === 15, '何も消えていない');
+  const r2 = await submitR(roster([day(5), day(6)], { file_sha: sha(1) }));
+  ok(r2.ok && r2.dup === false && r2.replaced === 0, '同じ指紋・同じ日付でも、ほかの人の提出は別もの（dup にも入れ替えにもならない）');
+}
+await asUser(1);
+ok((await myRoster()).days.length === 15, '本人の日はそのまま15日');
+
+// ── 6. 消す ───────────────────────────────────────────────────
+console.log('\n▼ ファイルを消す');
+{
+  const d = await delDoc(rA.doc_id);
+  ok(d.ok && d.deleted === true && d.days === 5, `A を消すと、まだ A が持っていた5日だけ消える → ${d.days}`);
+  const r = await myRoster();
+  ok(r.days.length === 10 && r.days.every((x) => x.date >= D(5)), '5〜14日目（C のもの）は残る');
+  ok(Number((await one(`select count(*) n from pv_roster_legs l join pv_roster_days d using (proof_hash, duty_date) where d.duty_date < $1::date`, [D(5)])).n) === 0
+     && Number((await one(`select count(*) n from pv_roster_legs where duty_date < $1::date`, [D(5)])).n) === 0,
+     '消した日の便も残らない');
+  const again = await delDoc(rA.doc_id);
+  ok(again.deleted === false, 'もう無いファイルは deleted:false');
+  const b = await delDoc(rB.doc_id, 'emirates');
+  ok(b.deleted === true && b.days === 0 && (await myRoster()).days.length === 10, '持っている日が0のファイルを消しても、日は減らない');
+}
+
+// ── 7. 呼べる人 ────────────────────────────────────────────────
+console.log('\n▼ anon・直接の読み書き');
+await db.exec(`set role anon`);
+for (const [sql, label] of [
+  [`select submit_roster('{}'::jsonb)`, 'submit_roster'],
+  [`select my_roster('emirates', null, null, null)`, 'my_roster'],
+  [`select my_roster_docs('emirates', null)`, 'my_roster_docs'],
+  [`select delete_roster_doc(gen_random_uuid())`, 'delete_roster_doc'],
+  [`select set_roster_profile('emirates', null, '{}'::jsonb)`, 'set_roster_profile'],
+  [`select set_line_map('emirates', null, 'k:base_pay', 0, 'confirmed', null)`, 'set_line_map'],
+  [`select my_report_items()`, 'my_report_items'],
+  [`select count(*) from public.pv_roster_days`, '表 pv_roster_days'],
+  [`select count(*) from public.pv_roster_legs`, '表 pv_roster_legs'],
+  [`select count(*) from public.pv_line_map`, '表 pv_line_map'],
+]) {
+  const e = await boom(sql);
+  ok(e && /permission denied/i.test(e.msg), `anon は ${label} を使えない`, e ? e.msg.slice(0, 60) : '通ってしまった');
+}
+await db.exec(`reset role`);
+await db.exec(`set role authenticated`);
+for (const t of ['pv_roster_profile', 'pv_roster_docs', 'pv_roster_days', 'pv_roster_legs', 'pv_line_map']) {
+  const e = await boom(`select count(*) from public.${t}`);
+  ok(e && /permission denied/i.test(e.msg), `ログイン済みでも表 ${t} は直接読めない`);
+}
+{
+  const e = await boom(`delete from public.pv_roster_days`);
+  ok(e && /permission denied/i.test(e.msg), 'ログイン済みでも表を直接消せない');
+  const k = await boom(`select pv_roster_key($1::uuid, 'emirates', null)`, [uid(1)]);
+  ok(k && /permission denied/i.test(k.msg), '★鍵の式（pv_roster_key）を直接呼べない（他人の鍵を作れない）');
+}
+await db.exec(`reset role`);
+
+console.log('\n▼ 未ログイン');
+await logout();
+for (const [sql, label, params] of [
+  [`select submit_roster($1::jsonb)`, 'submit_roster', [JSON.stringify(roster([day(1)], { file_sha: sha(90) }))]],
+  [`select my_roster('emirates', null, null, null)`, 'my_roster'],
+  [`select my_roster_docs('emirates', null)`, 'my_roster_docs'],
+  [`select delete_roster_doc($1::uuid)`, 'delete_roster_doc', [rC.doc_id]],
+  [`select set_roster_profile('emirates', null, '{}'::jsonb)`, 'set_roster_profile'],
+  [`select set_line_map('emirates', null, 'k:base_pay', 0, 'confirmed', null)`, 'set_line_map'],
+  [`select my_report_items()`, 'my_report_items'],
+]) {
+  const e = await boom(sql, params);
+  ok(e && e.code === '42501' && e.msg.includes('ログイン'), `未ログインの ${label} は 42501`, e ? `${e.code} ${e.msg.slice(0, 40)}` : '通ってしまった');
+}
+ok(await cnt('pv_roster_docs') === 2, '（未ログインの呼び出しで何も変わっていない）');
+
+// ── 8. 検品 ───────────────────────────────────────────────────
+console.log('\n▼ 不正な中身は弾く（何も書かない）');
+await asUser(4);
+const base = () => roster([day(20), day(21)], { file_sha: sha(400) });
+const withDay = (patch) => { const p = base(); p.days[0] = { ...p.days[0], ...patch }; return p; };
+const withLeg = (patch) => { const p = base(); p.days[0] = { ...p.days[0], legs: [{ ...leg(1), ...patch }] }; return p; };
+const before = await cnt('pv_roster_docs');
+const bad = [
+  ['勤務コードが小文字（off1）', withDay({ code: 'off1' })],
+  ['勤務コードに空白（氏名の形）', withDay({ code: 'JOHN SMITH' })],
+  ['勤務コードが13文字', withDay({ code: 'ABCDEFGHIJKLM' })],
+  ['勤務コードが数値', withDay({ code: 123 })],
+  ['便名に空白', withLeg({ flight: 'EK 101' })],
+  ['空港コードが5文字', withLeg({ from: 'TOKYO' })],
+  ['空港コードが小文字', withLeg({ to: 'lhr' })],
+  ['乗務の区分が文章', withLeg({ role: 'Captain Smith' })],
+  ['場所が文章', withLeg({ loc: 'Training Center' })],
+  ['時刻の頭の0が無い（7:05）', withLeg({ out: '7:05' })],
+  ['時刻が25:00', withDay({ d_on: '25:00' })],
+  ['ブロックが24時間を超える', withLeg({ block: '25:01' })],
+  ['ブロックの分が1桁', withLeg({ block: '1:7' })],
+  ['解散の日が3', withDay({ d_off_day: 3 })],
+  ['到着の日がマイナス', withLeg({ in_day: -1 })],
+  ['在り得ない日付（2月30日）', withDay({ date: '2026-02-30' })],
+  ['日付が401日先', withDay({ date: addDays(TODAY, 401) })],
+  ['日付が401日前', withDay({ date: addDays(TODAY, -401) })],
+  ['日付の形が違う', withDay({ date: '2026/01/05' })],
+  ['日付が無い', withDay({ date: null })],
+  ['同じ日付が2回', (() => { const p = base(); p.days[1] = { ...p.days[1], date: p.days[0].date }; return p; })()],
+  ['便の順番が重なる', (() => { const p = base(); p.days[0].legs = [leg(1), leg(1)]; return p; })()],
+  ['便の順番が0', withLeg({ seq: 0 })],
+  ['便の順番が無い', withLeg({ seq: null })],
+  ['便の種類が知らない言葉', withLeg({ kind: 'flying' })],
+  ['ページがページ数より大きい', withDay({ page: 3 })],
+  ['ファイルの指紋が大文字', { ...base(), file_sha: sha(400).toUpperCase().replace(/^0/, () => 'A') }],
+  ['ファイルの指紋が短い', { ...base(), file_sha: 'abc123' }],
+  ['ページ数が0', { ...base(), pages: 0 }],
+  ['ページ数が61', { ...base(), pages: 61 }],
+  ['日が0日', { ...base(), days: [] }],
+  ['日が配列でない', { ...base(), days: { a: 1 } }],
+  ['日が63日', { ...base(), days: Array.from({ length: 63 }, (_, i) => day(i, { legs: [] })) }],
+  ['1日の便が17本', (() => { const p = base(); p.days[0].legs = Array.from({ length: 17 }, (_, i) => leg(i + 1)); return p; })()],
+  ['400KB を超える', { ...base(), junk: 'x'.repeat(410 * 1024) }],
+  ['会社コードが不正', { ...base(), airline: 'nope-air' }],
+  ['会社が空', { ...base(), airline: '' }],
+  ['「その他」なのに社名が無い', { ...base(), airline: 'other', airline_other: '  ' }],
+  ['期間が逆さま', { ...base(), period: { from: D(30), to: D(1) } }],
+  ['期間の形が違う', { ...base(), period: '2026-01' }],
+];
+for (const [label, p] of bad) {
+  const e = await trySubmit(p);
+  ok(e && /^(22023|54000)$/.test(e.code) && /ロスター|会社|社名/.test(e.msg), `弾く：${label}${e ? ' → ' + e.msg.split(' / ')[0].slice(0, 36) : ''}`, e ? e.code : '通ってしまった');
+}
+ok(await cnt('pv_roster_docs') === before, `弾いた提出は1件も残っていない → ${await cnt('pv_roster_docs') - before}`);
+{
+  // エラーの文に、送られてきた値を書かない
+  const e = await trySubmit(withDay({ code: 'Jane Q Example' }));
+  ok(e && !e.msg.includes('Jane'), 'エラーの文に送られてきた値（名前の形）を書かない');
+}
+
+console.log('\n▼ 知らないキー（氏名・自由記述）は落とす');
+{
+  const p = base();
+  p.note = 'Captain Alex Mercer swapped with FO Kai Example';
+  p.crew = ['Alex Mercer', 'Kai Example'];
+  p.days[0].name = 'Alex Mercer';
+  p.days[0].remarks = 'hotel shuttle 18:00';
+  p.days[0].legs[0].crew = 'Kai Example';
+  p.days[0].legs[0].text = 'free text';
+  const r = await submitR(p);
+  ok(r.ok && r.days === 2, '知らないキーがあっても提出は通る');
+  const all = await dump();
+  ok(!/Mercer|Kai Example|shuttle|free text|remarks|crew|"note"|"name"/.test(all),
+     '★表のどこにも名前・自由記述・知らないキーが残っていない');
+  const back = JSON.stringify(await myRoster());
+  ok(!/Mercer|Example|shuttle|free text/.test(back), '読み返しても出てこない');
+}
+
+// ── 9. 1日30本まで ─────────────────────────────────────────────
+console.log('\n▼ 1日に取り込めるのは30本まで');
+await asUser(3);
+{
+  let first = null, okN = 0;
+  for (let i = 0; i < 30; i++) {
+    const r = await submitR(roster([day(1)], { file_sha: sha(1000 + i) }));
+    if (r.ok && !r.dup) okN++;
+    if (i === 0) first = r;
+  }
+  ok(okN === 30, `30本までは通る → ${okN}`);
+  const e = await trySubmit(roster([day(1)], { file_sha: sha(2000) }));
+  ok(e && e.code === '54000' && e.msg.includes('上限'), `31本目は止まる → ${e ? e.code : '通った'}`);
+  const dup = await submitR(roster([day(1)], { file_sha: sha(1000) }));
+  ok(dup.ok && dup.dup === true && dup.doc_id === first.doc_id, '上限のあとでも、同じファイルの二度目は dup で返る（エラーにしない）');
+  ok((await myRoster()).days.length === 1, '同じ日を30回出しても日は1日のまま');
+  await asUser(5);
+  ok((await submitR(roster([day(1)], { file_sha: sha(2000) }))).ok, 'ほかの人は数に入らない');
+}
+
+// ── 10. 読み方 ─────────────────────────────────────────────────
+console.log('\n▼ 読み方（profile）');
+await asUser(1);
+{
+  const r = await setProfile({ kind: 'actual', time_ref: 'utc', tz: 'Asia/Dubai', time_meaning: 'block',
+                               codes: { OFF1: 'off', VAC: 'vac', SBY: 'standby', TRN: 'training' },
+                               share_company: true, name: 'Alex Mercer' });
+  ok(r.ok && r.profile.kind === 'actual' && r.profile.time_ref === 'utc' && r.profile.tz === 'Asia/Dubai'
+     && r.profile.time_meaning === 'block' && r.profile.share_company === true && r.profile.codes.SBY === 'standby',
+     '保存できる', JSON.stringify(r));
+  ok(!JSON.stringify(r).includes('Mercer') && !(await dump()).includes('Mercer'), '知らないキー（name）は落ちる');
+  const r2 = await setProfile({ kind: 'planned' });
+  ok(r2.profile.kind === 'planned' && r2.profile.tz === 'Asia/Dubai' && r2.profile.codes.OFF1 === 'off',
+     '在るキーだけ書き換わる（ほかは前のまま）');
+  const r3 = await setProfile({ tz: null, codes: { OFF: 'off' } });
+  ok(r3.profile.tz === null && JSON.stringify(r3.profile.codes) === '{"OFF":"off"}', 'null で消せる・codes は丸ごと置き換え');
+  ok((await myRoster()).profile.kind === 'planned', 'my_roster が読み方を一緒に返す');
+  const badP = [
+    ['知らないタイムゾーン', { tz: 'Mars/Olympus' }],
+    ['タイムゾーンが41文字', { tz: 'A'.repeat(41) }],
+    ['実績・予定以外', { kind: 'maybe' }],
+    ['時刻の基準が知らない言葉', { time_ref: 'gmt' }],
+    ['時間の意味が知らない言葉', { time_meaning: 'credit' }],
+    ['共有の答えが文字列', { share_company: 'yes' }],
+    ['勤務コードが小文字', { codes: { off1: 'off' } }],
+    ['勤務コードの意味が知らない言葉', { codes: { OFF1: 'party' } }],
+    ['勤務コードが配列', { codes: ['OFF1'] }],
+    ['勤務コードが201個', { codes: Object.fromEntries(Array.from({ length: 201 }, (_, i) => ['C' + i, 'off'])) }],
+  ];
+  for (const [label, p] of badP) {
+    const e = await boom(`select set_roster_profile('emirates', null, $1::jsonb)`, [JSON.stringify(p)]);
+    ok(e && /^(22023|54000)$/.test(e.code) && e.msg.includes('ロスター'), `弾く：${label}${e ? ' → ' + e.msg.slice(0, 36) : ''}`, e ? e.code : '通ってしまった');
+  }
+  ok((await myRoster()).profile.kind === 'planned', '弾いたあとも前の読み方のまま');
+  await asUser(2);
+  ok((await myRoster()).profile === null, 'ほかの人の読み方は見えない');
+  await asUser(1);
+  const del = await setProfile(null);
+  ok(del.ok && del.deleted === true && (await myRoster()).profile === null, 'p = null で読み方を消せる');
+  await setProfile({ kind: 'actual', codes: { OFF1: 'off' } });
+}
+
+// ── 11. 明細の行の答えと my_report_items ─────────────────────────
+console.log('\n▼ 明細の行の答え（line map）と my_report_items');
+const LAST = (await one(`select extract(year from current_date - 31)::int y, extract(month from current_date - 31)::int m`));
+const PAY = {
+  airline: 'emirates', position: 'cap', fleet: 'b777', currency: 'AED',
+  gross_monthly: 52000, base_pay: 20000, block_hours: 85, net_pay_actual: 51000, deduction_total: 1000,
+  hourly_rate: 250, period_year: LAST.y, period_month: LAST.m, lang: 'en',
+  pay_items: { v: 1, variable: [{ label: 'Flying Pay', amount: 21250, basis: 'block' }], other: [{ label: 'Layover Allowance', amount: 800 }] },
+  payslip_detail: { v: 1, earnings: [{ label: 'Basic Salary', amount: 20000 }], hours: [{ label: 'Block Hours', value: 85 }] },
+};
+await asUser(1);
+{
+  const s = await one(`select submit_pay_report($1::jsonb) r`, [JSON.stringify(PAY)]);
+  ok(s.r.ok, '（本人が給与を出す：エミレーツ）');
+  const s2 = await one(`select submit_pay_report($1::jsonb) r`, [JSON.stringify({ ...PAY, airline: 'other', airline_other: 'Sky Example Air', gross_monthly: 9000, base_pay: 4000, net_pay_actual: 8500, deduction_total: 500, currency: 'USD', pay_items: null, payslip_detail: null })]);
+  ok(s2.r.ok, '（本人が給与を出す：一覧にない会社）');
+  await asUser(2);
+  await one(`select submit_pay_report($1::jsonb) r`, [JSON.stringify({ ...PAY, gross_monthly: 61000, net_pay_actual: 60000 })]);
+  await one(`select submit_pay_report($1::jsonb) r`, [JSON.stringify({ ...PAY, airline: 'other', airline_other: 'SKY EXAMPLE AIR', gross_monthly: 7000, base_pay: 3000, net_pay_actual: 6500, deduction_total: 500, currency: 'USD', pay_items: null, payslip_detail: null })]);
+  await asUser(1);
+
+  const m1 = await setMap('k:flight_variable_pay', -1, 'confirmed', 'block');
+  ok(m1.ok && m1.map.offset === -1 && m1.map.status === 'confirmed' && m1.map.qty_kind === 'block', '答えを保存できる');
+  const m2 = await setMap('flying pay', 0, 'confirmed', null, 'other', 'sky example air');
+  ok(m2.ok, '「一覧にない会社」の行にも答えられる（社名の大文字小文字は問わない）');
+  await setMap('layover allowance', null, 'unknown');
+  await setMap('k:base_pay', 0, 'confirmed');
+
+  const it = await items();
+  ok(it.ok && it.items.length === 2, `本人の明細だけ（2件・ほかの人の同じ会社・同じ社名は入らない）→ ${it.items.length}`);
+  const ek = it.items.find((x) => x.airline === 'emirates');
+  ok(ek && Number(ek.gross_monthly) === 52000 && Number(ek.net_pay_actual) === 51000 && Number(ek.deduction_total) === 1000
+     && ek.currency === 'AED' && Number(ek.fx_to_jpy) > 0 && Number(ek.hourly_rate) === 250
+     && ek.period_year === LAST.y && ek.period_month === LAST.m,
+     '明細の数字が返る（総支給・手取り・控除・通貨・レート・時間単価・対象月）', JSON.stringify(ek && { g: ek.gross_monthly, n: ek.net_pay_actual }));
+  ok(ek && ek.pay_items && ek.pay_items.variable[0].label === 'Flying Pay' && ek.payslip_detail && ek.payslip_detail.earnings[0].label === 'Basic Salary',
+     'pay_items と payslip_detail が本人にだけ返る');
+  ok(ek && Object.keys(ek).sort().join() === ['airline', 'airline_other', 'currency', 'deduction_total', 'fx_to_jpy', 'gross_monthly',
+     'hourly_rate', 'job_roles', 'net_pay_actual', 'pay_items', 'payslip_detail', 'period_month', 'period_year'].sort().join(),
+     '返すキーは約束の13個だけ（鍵・id・回線のハッシュを返さない）', ek ? Object.keys(ek).join() : '');
+  const ot = it.items.find((x) => x.airline === 'other');
+  ok(ot && ot.airline_other === 'Sky Example Air' && Number(ot.gross_monthly) === 9000, '「一覧にない会社」の明細も本人の書き方で返る');
+
+  ok(it.maps.length === 4, `答えは4つ → ${it.maps.length}`);
+  const mm = Object.fromEntries(it.maps.map((m) => [m.label_key, m]));
+  ok(mm['k:flight_variable_pay'] && mm['k:flight_variable_pay'].airline === 'emirates' && mm['k:flight_variable_pay'].airline_other === null
+     && mm['k:flight_variable_pay'].offset === -1 && mm['k:flight_variable_pay'].qty_kind === 'block', '答えが会社つきで返る');
+  ok(mm['flying pay'] && mm['flying pay'].airline === 'other' && mm['flying pay'].airline_other === 'Sky Example Air' && mm['flying pay'].offset === 0,
+     '★「一覧にない会社」の答えは本人の社名の書き方で返る（ほかの人の SKY EXAMPLE AIR を混ぜない）');
+  ok(mm['layover allowance'] && mm['layover allowance'].status === 'unknown' && mm['layover allowance'].offset === null, 'unknown は offset を持たない');
+
+  const up = await setMap('k:flight_variable_pay', 0, 'confirmed', 'block');
+  ok(up.map.offset === 0 && (await items()).maps.find((m) => m.label_key === 'k:flight_variable_pay').offset === 0, '同じ行は上書き');
+  const u2 = await setMap('layover allowance', -3, 'unknown');
+  ok(u2.map.offset === null, 'unknown に offset を送っても持たない');
+  const dl = await setMap('k:base_pay', null, null);
+  ok(dl.ok && dl.deleted === true && (await items()).maps.length === 3, 'status = null で答えを消せる');
+  const ot2 = await setMap('own period line', null, 'other');
+  ok(ot2.ok && ot2.map.status === 'other' && ot2.map.offset === null, '自分の期間を持つ行（other）は offset なしで保存できる');
+
+  const badM = [
+    ['offset が 2', ['k:x', 2, 'confirmed']],
+    ['offset が -13', ['k:x', -13, 'confirmed']],
+    ['confirmed なのに offset が無い', ['k:x', null, 'confirmed']],
+    ['status が知らない言葉', ['k:x', 0, 'maybe']],
+    ['名前が空', ['', 0, 'confirmed']],
+    ['名前が81字', ['a'.repeat(81), 0, 'confirmed']],
+    ['名前に制御文字', ['a\u0001b', 0, 'confirmed']],
+    ['数量の種類が大文字・記号', ['k:x', 0, 'confirmed', 'Block!']],
+    ['会社が不正', ['k:x', 0, 'confirmed', null, 'nope-air']],
+  ];
+  for (const [label, args] of badM) {
+    const e = await trySetMap(...args);
+    ok(e && e.code === '22023' && /明細|会社/.test(e.msg), `弾く：${label}${e ? ' → ' + e.msg.slice(0, 36) : ''}`, e ? e.code : '通ってしまった');
+  }
+
+  await asUser(2);
+  const it2 = await items();
+  ok(it2.items.length === 2 && it2.items.every((x) => Number(x.gross_monthly) !== 52000) && it2.maps.length === 0,
+     'ほかの人には本人の明細も答えも1件も返らない');
+  await asUser(6);
+  const it3 = await items();
+  ok(it3.ok && it3.items.length === 0 && it3.maps.length === 0, '何も出していない人には空の一覧');
+  await asUser(1);
+}
+
+// 「一覧にない会社」の勤務表：社名を渡せば読める・消せる（ロスターの表は社名を持たない）
+console.log('\n▼ 「一覧にない会社」の勤務表');
+await asUser(7);
+{
+  const r = await submitR(roster([day(2)], { airline: 'other', airline_other: 'Example Charter Co', file_sha: sha(700) }));
+  ok(r.ok && r.days === 1, '出せる');
+  ok((await myRoster('other', 'EXAMPLE CHARTER CO')).days.length === 1, '社名の大文字小文字を問わず読める');
+  ok((await myRoster('emirates')).days.length === 0, 'ほかの会社の勤務表とは混ざらない');
+  ok((await delDoc(r.doc_id)).deleted === false, '社名を渡さないと（給与も無い会社なので）見つからない');
+  ok((await delDoc(r.doc_id, 'other', 'example charter co')).deleted === true, '社名を渡せば消せる');
+}
+
+console.log('\n▼ 期間');
+await asUser(1);
+{
+  ok((await myRoster('emirates', null, D(5), D(6))).days.length === 2, '期間で絞れる');
+  const e = await boom(`select my_roster('emirates', null, $1::date, $2::date)`, [D(0), addDays(D(0), 401)]);
+  ok(e && e.code === '22023', '401日の幅は弾く（400日まで）');
+  const e2 = await boom(`select my_roster('emirates', null, $1::date, $2::date)`, [D(9), D(1)]);
+  ok(e2 && e2.code === '22023', '逆さまの期間は弾く');
+}
+
+// ── 12. 検算 ───────────────────────────────────────────────────
+console.log('\n▼ 貼ったあとの検算');
+const SRC = read('db/roster.sql');
+const TAIL = SRC.slice(SRC.indexOf('-- ── 11. 検算'));
+{
+  const before = await cnt('pv_roster_days');
+  const res = await db.exec(SRC);
+  const chk = res[res.length - 1].rows;
+  ok(chk.length === 10 && chk.every((x) => x['判定'] === '✅'),
+     `★db/roster.sql の検算 ${chk.length} 行が全部 ✅`, chk.filter((x) => x['判定'] !== '✅').map((x) => x['#'] + ' ' + x['確かめること']).join(' | '));
+  ok(await cnt('pv_roster_days') === before, 'もう一度流しても、入っている勤務表は消えない');
+  ok(TAIL.length > 100, '（検算の部分だけを切り出せた）');
+}
+
+// ── 13. 壊す証明 ─────────────────────────────────────────────────
+console.log('\n▼ 壊す証明');
+{
+  // 鍵の式の「::pv_pay::」を1文字変えた版を begin … rollback の中でだけ入れる（ファイルは触らない）
+  const a = SRC.indexOf('create or replace function public.pv_roster_key(');
+  const b = a < 0 ? -1 : SRC.indexOf('\n$$;', a);
+  const fn = (a < 0 || b < 0) ? '' : SRC.slice(a, b + '\n$$;'.length);
+  const broken = fn.split(`'::pv_pay::'`).length === 2 ? fn.split(`'::pv_pay::'`).join(`'::pv_pay:'`) : '';
+  ok(!!broken, '（鍵の式だけ1文字変えた版を作れた）');
+  const okBefore = (await myRoster()).days.length;
+  await db.exec('begin');
+  await db.exec(broken);
+  const red = (await myRoster()).days.length;
+  const redChk = (await db.exec(TAIL)).pop().rows.find((x) => Number(x['#']) === 7)?.['判定'];
+  await db.exec('rollback');
+  ok(okBefore > 0 && red === 0 && redChk === '❌',
+     `★鍵の式を1文字変えると本人が自分の勤務表を読めず、検算7が ❌ → ${okBefore}日 → ${red}日 / ${redChk}`);
+  ok((await myRoster()).days.length === okBefore, '（巻き戻したら元どおり読める）');
+}
+{
+  await db.exec('begin');
+  await db.exec(`grant execute on function public.submit_roster(jsonb) to anon`);
+  const redChk = (await db.exec(TAIL)).pop().rows.find((x) => Number(x['#']) === 2)?.['判定'];
+  await db.exec('rollback');
+  ok(redChk === '❌', `★anon に呼ばせると検算2が ❌ → ${redChk}`);
+}
+{
+  await db.exec('begin');
+  await db.exec(`grant select on public.pv_roster_days to authenticated`);
+  const redChk = (await db.exec(TAIL)).pop().rows.find((x) => Number(x['#']) === 6)?.['判定'];
+  await db.exec('rollback');
+  ok(redChk === '❌', `★表を authenticated に開けると検算6が ❌ → ${redChk}`);
+}
+{
+  // 日付で入れ替えるのをやめた版（先に消す1文を外す）→ 重なった提出が主キーで止まり、検算8が ❌
+  const a = SRC.indexOf('create or replace function public.submit_roster(');
+  const b = SRC.indexOf('\n$$;', a);
+  const fn = SRC.slice(a, b + '\n$$;'.length);
+  const DEL = `  delete from public.pv_roster_days t\n   where t.proof_hash = v_key and t.duty_date = any (v_dates);\n  get diagnostics v_replaced = row_count;\n`;
+  const broken = fn.includes(DEL) ? fn.replace(DEL, () => '  v_replaced := 0;\n') : '';
+  ok(!!broken, '（入れ替えの1文だけ外した版を作れた）');
+  await db.exec('begin');
+  await db.exec(broken);
+  const redChk = (await db.exec(TAIL)).pop().rows.find((x) => Number(x['#']) === 8)?.['判定'];
+  const e = await trySubmit(roster([day(10)], { file_sha: sha(9001) }));   // 失敗でこの取引は止まる → すぐ巻き戻す
+  await db.exec('rollback');
+  ok(e && redChk === '❌', `★入れ替えをやめると同じ日の提出が通らず、検算8が ❌ → ${e ? e.code : '通った'} / ${redChk}`);
+}
+await logout();
+
+console.log(`\n══ ${pass} pass / ${fail} fail ══`);
+process.exit(fail ? 1 : 0);

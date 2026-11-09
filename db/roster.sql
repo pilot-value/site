@@ -1,0 +1,1015 @@
+-- ════════════════════════════════════════════════════════════════
+-- PILOT VALUE — db/roster.sql（2026-11-09）
+--
+-- マイレポートの作り直し（段1）。勤務表（ロスター）を取り込み、
+-- 「働いた月」と「給与が出た月」を本人の画面でつなぐための置き場と口。
+-- オーナー「働いた月（ロスター）と給与の月（明細）をつなげて、自分の給与を精密に見たい」
+--         「ロスターの PDF・画像を上げられるようにする」。
+--
+--   表（どれも proof_hash で引く。user_id は持たない）
+--     pv_roster_profile … 本人のロスターの読み方（実績か予定か・時刻の基準・勤務コードの意味）
+--     pv_roster_docs    … 取り込んだ1ファイル（ファイルの指紋だけ。原本は持たない）
+--     pv_roster_days    … 1日1行（勤務コード・出頭／解散の時刻）
+--     pv_roster_legs    … その日の便・地上業務（便名・空港コード・時刻・ブロック）
+--     pv_line_map       … 明細の1行が「何か月前の勤務の分か」の本人の答え
+--   口（どれも security definer・本人の行だけ）
+--     submit_roster / my_roster / my_roster_docs / delete_roster_doc /
+--     set_roster_profile / set_line_map / my_report_items
+--
+-- ★ 鍵は submit_pay_report と同じ式の proof_hash（同じ人・同じ会社なら明細の行と同じ鍵）。
+--    式は pv_roster_key の1か所だけ。⚠️ submit_pay_report の式を変えたら、ここも直す（検算7が見つける）。
+-- ★ 原本（画像・PDF）は保存しない。持つのはファイルの SHA-256 だけ（同じファイルの二度押しを見分ける）。
+-- ★ 氏名・自由記述は1文字も入らない。どの欄も短いコードの形（英大文字・数字・記号少し）しか通さず、
+--    知らないキーは組み直しで落とす。乗員の名前が載った勤務表でも、名前の入る欄が無い。
+--    エラーの文にも、送られてきた値は書かない（欄の名前だけ）。
+-- ★ 新しく出した勤務表は**日付で**入れ替わる（同じ日は1行だけ）。ページを分けて出しても・
+--    期間が重なっても・改訂版を出し直しても、同じ日が二重に数えられない。
+-- ★ 本人はいつでも消せる（delete_roster_doc ／ set_line_map の status=null ／ set_roster_profile の p=null）。
+-- ★ my_pay_reports() は触らない。明細の中身（pay_items・payslip_detail）は my_report_items() が本人にだけ返す。
+--
+-- ★ このファイルは自動では流れない。オーナーが SQL Editor で実行する。
+-- ★ 流す順番: db/pay-reports.sql → db/pay-edit.sql → このファイル。冪等（何度流しても同じ）。
+-- ★ SQL を貼るのが先・push が後。末尾の検算が全部 ✅ になること。
+-- ════════════════════════════════════════════════════════════════
+
+-- ── 0. 前提 ─────────────────────────────────────────────────
+do $$
+begin
+  if to_regclass('public.pay_reports') is null then
+    raise exception '先に db/pay-reports.sql を実行してください（pay_reports の表が無い）';
+  end if;
+  if to_regprocedure('public.submit_pay_report(jsonb)') is null then
+    raise exception '先に db/pay-reports.sql を実行してください（submit_pay_report が無い）';
+  end if;
+  if to_regclass('public.pv_airlines') is null then
+    raise exception '先に db/airlines.generated.sql を実行してください（pv_airlines の表が無い）';
+  end if;
+end $$;
+
+-- ── 1. 表 ───────────────────────────────────────────────────
+-- 読み方（本人が答える。勤務表に印字があればその通り）。1人・1社に1行。
+create table if not exists public.pv_roster_profile (
+  proof_hash    text primary key check (proof_hash ~ '^[0-9a-f]{64}$'),
+  kind          text check (kind in ('actual', 'planned')),
+  time_ref      text check (time_ref in ('local', 'utc')),
+  tz            text check (tz is null or length(tz) between 1 and 40),
+  time_meaning  text check (time_meaning in ('block', 'flight', 'other')),
+  -- 勤務コード → 意味（'OFF1' → 'off' など）。形は set_roster_profile が検品する。
+  codes         jsonb not null default '{}'::jsonb check (jsonb_typeof(codes) = 'object'),
+  share_company boolean not null default false,
+  updated_at    timestamptz not null default now()
+);
+
+-- 取り込んだ1ファイル。★原本は持たない（指紋・ページ数・日付の幅・日数だけ）。
+create table if not exists public.pv_roster_docs (
+  id         uuid primary key default gen_random_uuid(),
+  proof_hash text not null check (proof_hash ~ '^[0-9a-f]{64}$'),
+  file_sha   text not null check (file_sha ~ '^[0-9a-f]{64}$'),
+  pages      int  not null check (pages between 1 and 60),
+  date_from  date,
+  date_to    date,
+  days       int  not null default 0 check (days between 0 and 62),
+  created_at timestamptz not null default now(),
+  unique (proof_hash, file_sha)
+);
+create index if not exists pv_roster_docs_hash_created on public.pv_roster_docs (proof_hash, created_at);
+
+-- 1日1行。★主キーが (proof_hash, duty_date) ＝ 同じ人・同じ日は1行しか在り得ない（二重に数えない）。
+create table if not exists public.pv_roster_days (
+  proof_hash text not null,
+  duty_date  date not null,
+  doc_id     uuid not null references public.pv_roster_docs(id) on delete cascade,
+  code       text check (code is null or code ~ '^[A-Z0-9/+\-]{1,12}$'),
+  d_on       time,
+  d_off      time,
+  d_off_day  smallint not null default 0 check (d_off_day between 0 and 2),
+  page       smallint check (page between 1 and 60),
+  "row"      smallint check ("row" between 1 and 999),
+  primary key (proof_hash, duty_date)
+);
+create index if not exists pv_roster_days_doc on public.pv_roster_days (doc_id);
+
+-- その日の便・地上業務。日が消えれば一緒に消える。
+create table if not exists public.pv_roster_legs (
+  proof_hash text not null,
+  duty_date  date not null,
+  seq        smallint not null check (seq between 1 and 16),
+  flight     text check (flight is null or flight ~ '^[A-Z0-9]{1,8}$'),
+  orig       text check (orig is null or orig ~ '^[A-Z0-9]{3,4}$'),
+  dest       text check (dest is null or dest ~ '^[A-Z0-9]{3,4}$'),
+  loc        text check (loc is null or loc ~ '^[A-Z0-9]{2,8}$'),
+  t_out      time,
+  t_in       time,
+  in_day     smallint not null default 0 check (in_day between 0 and 2),
+  block_min  int check (block_min between 0 and 1440),
+  role_raw   text check (role_raw is null or role_raw ~ '^[A-Z0-9/+\-]{1,8}$'),
+  kind       text not null default 'unknown' check (kind in ('operating', 'deadhead', 'ground', 'unknown')),
+  page       smallint check (page between 1 and 60),
+  "row"      smallint check ("row" between 1 and 999),
+  -- ★地上業務に空港を入れない（場所は loc）。
+  check (kind <> 'ground' or (orig is null and dest is null)),
+  primary key (proof_hash, duty_date, seq),
+  foreign key (proof_hash, duty_date)
+    references public.pv_roster_days(proof_hash, duty_date) on delete cascade
+);
+
+-- 明細の1行（label_key）が何か月ずれた勤務の分か。month_offset: 0 = 明細と同じ月・-1 = 前の月。
+-- ★列の名前は month_offset（offset は予約語）。画面へは 'offset' のキーで返す。
+create table if not exists public.pv_line_map (
+  proof_hash   text not null check (proof_hash ~ '^[0-9a-f]{64}$'),
+  label_key    text not null check (length(label_key) between 1 and 80),
+  month_offset smallint check (month_offset between -12 and 1),
+  status       text not null check (status in ('confirmed', 'unknown', 'other')),
+  qty_kind     text check (qty_kind is null or qty_kind ~ '^[a-z][a-z0-9_]{0,23}$'),
+  updated_at   timestamptz not null default now(),
+  primary key (proof_hash, label_key)
+);
+
+-- ★誰も直接は読めない・書けない。本人の口（下の security definer）からだけ。
+alter table public.pv_roster_profile enable row level security;
+alter table public.pv_roster_docs    enable row level security;
+alter table public.pv_roster_days    enable row level security;
+alter table public.pv_roster_legs    enable row level security;
+alter table public.pv_line_map       enable row level security;
+revoke all on table public.pv_roster_profile from public, anon, authenticated;
+revoke all on table public.pv_roster_docs    from public, anon, authenticated;
+revoke all on table public.pv_roster_days    from public, anon, authenticated;
+revoke all on table public.pv_roster_legs    from public, anon, authenticated;
+revoke all on table public.pv_line_map       from public, anon, authenticated;
+
+-- ── 2. 内部の道具（誰からも直接は呼べない）───────────────────────
+-- 本人の鍵。★submit_pay_report と1文字も違わない式（検算7が両方の本文を突き合わせる）。
+-- 会社が不正なら null（呼ぶ側が止める）。名簿から外した会社も、読むためには通す。
+create or replace function public.pv_roster_key(p_uid uuid, p_airline text, p_airline_other text)
+returns text
+language plpgsql
+stable
+set search_path = public, extensions
+as $$
+declare
+  v_uid     uuid := p_uid;
+  v_airline text := nullif(btrim(p_airline), '');
+  v_other   text := nullif(btrim(p_airline_other), '');
+begin
+  if v_uid is null or v_airline is null then
+    return null;
+  end if;
+  if v_airline = 'other' then
+    if v_other is null or length(v_other) > 80 then
+      return null;
+    end if;
+  else
+    v_other := null;   -- 一覧から選んだのに自由入力が残っていたら捨てる（submit_pay_report と同じ）
+    if not exists (select 1 from public.pv_airlines where code = v_airline) then
+      return null;
+    end if;
+  end if;
+  return encode(
+    extensions.digest(
+      v_uid::text || '::pv_pay::' || v_airline || coalesce('::' || lower(v_other), ''),
+      'sha256'),
+    'hex');
+end;
+$$;
+
+-- 文字列の欄を1つ読む。無い・null・'' は null。文字列でない／形が合わない → 止める（値は文に書かない）。
+create or replace function public.pv_roster_txt(j jsonb, k text, re text, what text)
+returns text
+language plpgsql
+immutable
+set search_path = public, extensions
+as $$
+declare
+  v jsonb := j -> k;
+  s text;
+begin
+  if v is null or jsonb_typeof(v) = 'null' then
+    return null;
+  end if;
+  if jsonb_typeof(v) <> 'string' then
+    raise exception 'ロスターの%が不正です', what using errcode = '22023';
+  end if;
+  s := v #>> '{}';
+  if s = '' then
+    return null;
+  end if;
+  if s !~ re then
+    raise exception 'ロスターの%が不正です', what using errcode = '22023';
+  end if;
+  return s;
+end;
+$$;
+
+-- 整数の欄を1つ読む。無い・null は null。整数でない／範囲の外 → 止める。
+create or replace function public.pv_roster_int(j jsonb, k text, lo int, hi int, what text)
+returns int
+language plpgsql
+immutable
+set search_path = public, extensions
+as $$
+declare
+  v jsonb := j -> k;
+  n int;
+begin
+  if v is null or jsonb_typeof(v) = 'null' then
+    return null;
+  end if;
+  if jsonb_typeof(v) <> 'number' or v::text !~ '^[0-9]{1,4}$' then
+    raise exception 'ロスターの%が不正です', what using errcode = '22023';
+  end if;
+  n := v::text::int;
+  if n < lo or n > hi then
+    raise exception 'ロスターの%が範囲の外です', what using errcode = '22023';
+  end if;
+  return n;
+end;
+$$;
+
+-- 日付の欄を1つ読む（'YYYY-MM-DD'）。在り得ない日（2月30日など）も止める。
+create or replace function public.pv_roster_date(j jsonb, k text, what text)
+returns date
+language plpgsql
+immutable
+set search_path = public, extensions
+as $$
+declare
+  s text := public.pv_roster_txt(j, k, '^[0-9]{4}-[0-9]{2}-[0-9]{2}$', what);
+begin
+  if s is null then
+    return null;
+  end if;
+  begin
+    return s::date;
+  exception when others then
+    raise exception 'ロスターの%が不正です', what using errcode = '22023';
+  end;
+end;
+$$;
+
+-- 本人の読み方を画面へ返す形（無ければ null）。
+create or replace function public.pv_roster_profile_json(p_hash text)
+returns jsonb
+language sql
+stable
+set search_path = public, extensions
+as $$
+  select jsonb_build_object(
+           'kind', r.kind, 'time_ref', r.time_ref, 'tz', r.tz,
+           'time_meaning', r.time_meaning, 'codes', r.codes,
+           'share_company', r.share_company, 'updated_at', r.updated_at)
+    from public.pv_roster_profile r
+   where r.proof_hash = p_hash
+$$;
+
+revoke all on function public.pv_roster_key(uuid, text, text)                    from public, anon, authenticated;
+revoke all on function public.pv_roster_txt(jsonb, text, text, text)             from public, anon, authenticated;
+revoke all on function public.pv_roster_int(jsonb, text, int, int, text)         from public, anon, authenticated;
+revoke all on function public.pv_roster_date(jsonb, text, text)                  from public, anon, authenticated;
+revoke all on function public.pv_roster_profile_json(text)                       from public, anon, authenticated;
+
+-- ── 3. 勤務表を出す ───────────────────────────────────────────
+-- p = { airline, airline_other, file_sha, pages, period:{from,to}|null, days:[...] }
+-- 返す: {ok, dup:false, doc_id, days, legs, replaced} ／ 同じファイルの二度目は {ok, dup:true, doc_id}
+create or replace function public.submit_roster(p jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  v_uid      uuid := auth.uid();
+  v_airline  text;
+  v_other    text;
+  v_key      text;
+  v_sha      text;
+  v_pages    int;
+  v_pfrom    date;
+  v_pto      date;
+  v_doc      uuid;
+  v_d        jsonb;
+  v_l        jsonb;
+  v_date     date;
+  v_dates    date[] := '{}';
+  v_seqs     int[];
+  v_seq      int;
+  v_kind     text;
+  v_orig     text;
+  v_dest     text;
+  v_blk      text;
+  v_bmin     int;
+  v_legs     jsonb;
+  v_clean    jsonb := '[]'::jsonb;
+  v_today    int;
+  v_replaced int;
+  v_nlegs    int;
+  c_code     constant text := '^[A-Z0-9/+\-]{1,12}$';
+  c_hhmm     constant text := '^(([01][0-9]|2[0-3]):[0-5][0-9]|24:00)$';
+begin
+  if v_uid is null then
+    raise exception 'ログインが必要です' using errcode = '42501';
+  end if;
+  if p is null or jsonb_typeof(p) <> 'object' then
+    raise exception 'ロスターの形が不正です' using errcode = '22023';
+  end if;
+  if octet_length(p::text) > 400 * 1024 then
+    raise exception 'ロスターが大きすぎます' using errcode = '54000';
+  end if;
+
+  -- 会社（submit_pay_report と同じ決まり）
+  v_airline := nullif(btrim(p->>'airline'), '');
+  v_other   := nullif(btrim(p->>'airline_other'), '');
+  if v_airline is null then
+    raise exception '会社が選ばれていません' using errcode = '22023';
+  end if;
+  if v_airline = 'other' then
+    if v_other is null or length(v_other) > 80 then
+      raise exception '「一覧にない会社」を選んだ場合は社名の入力が必要です' using errcode = '22023';
+    end if;
+  elsif not exists (select 1 from public.pv_airlines where code = v_airline and active) then
+    raise exception '会社コードが不正です' using errcode = '22023';
+  end if;
+  v_key := public.pv_roster_key(v_uid, v_airline, v_other);
+  if v_key is null then
+    raise exception '会社コードが不正です' using errcode = '22023';
+  end if;
+
+  v_sha   := public.pv_roster_txt(p, 'file_sha', '^[0-9a-f]{64}$', 'ファイルの指紋');
+  v_pages := public.pv_roster_int(p, 'pages', 1, 60, 'ページ数');
+  if v_sha is null or v_pages is null then
+    raise exception 'ロスターのファイルの指紋かページ数がありません' using errcode = '22023';
+  end if;
+
+  -- 勤務表の見出しの期間（印字があれば）。形と幅だけ見る（保存はしない ── 日付の幅は実際の日から取る）。
+  if p ? 'period' and jsonb_typeof(p->'period') <> 'null' then
+    if jsonb_typeof(p->'period') <> 'object' then
+      raise exception 'ロスターの期間が不正です' using errcode = '22023';
+    end if;
+    v_pfrom := public.pv_roster_date(p->'period', 'from', '期間');
+    v_pto   := public.pv_roster_date(p->'period', 'to', '期間');
+    if v_pfrom is null or v_pto is null or v_pto < v_pfrom or v_pto - v_pfrom > 62
+       or v_pfrom < current_date - 400 or v_pto > current_date + 400 then
+      raise exception 'ロスターの期間が不正です' using errcode = '22023';
+    end if;
+  end if;
+
+  if jsonb_typeof(p->'days') is distinct from 'array'
+     or jsonb_array_length(p->'days') = 0 then
+    raise exception 'ロスターに日が1日もありません' using errcode = '22023';
+  end if;
+  if jsonb_array_length(p->'days') > 62 then
+    raise exception 'ロスターの日数が多すぎます（1回62日まで）' using errcode = '54000';
+  end if;
+
+  -- ── 1日ずつ検品して組み直す（知らないキーはここで落ちる）──
+  for v_d in select e from jsonb_array_elements(p->'days') as t(e) loop
+    if jsonb_typeof(v_d) <> 'object' then
+      raise exception 'ロスターの日の形が不正です' using errcode = '22023';
+    end if;
+    v_date := public.pv_roster_date(v_d, 'date', '日付');
+    if v_date is null then
+      raise exception 'ロスターの日付がありません' using errcode = '22023';
+    end if;
+    if v_date < current_date - 400 or v_date > current_date + 400 then
+      raise exception 'ロスターの日付が範囲の外です' using errcode = '22023';
+    end if;
+    if v_date = any (v_dates) then
+      raise exception 'ロスターに同じ日付が2回あります' using errcode = '22023';
+    end if;
+    v_dates := v_dates || v_date;
+
+    v_legs := '[]'::jsonb;
+    v_seqs := '{}';
+    if jsonb_typeof(v_d->'legs') is not null and jsonb_typeof(v_d->'legs') <> 'null' then
+      if jsonb_typeof(v_d->'legs') <> 'array' then
+        raise exception 'ロスターの便の形が不正です' using errcode = '22023';
+      end if;
+      if jsonb_array_length(v_d->'legs') > 16 then
+        raise exception 'ロスターの1日の便が多すぎます（16まで）' using errcode = '54000';
+      end if;
+      for v_l in select e from jsonb_array_elements(v_d->'legs') as t(e) loop
+        if jsonb_typeof(v_l) <> 'object' then
+          raise exception 'ロスターの便の形が不正です' using errcode = '22023';
+        end if;
+        v_seq := public.pv_roster_int(v_l, 'seq', 1, 16, '便の順番');
+        if v_seq is null or v_seq = any (v_seqs) then
+          raise exception 'ロスターの便の順番が不正です' using errcode = '22023';
+        end if;
+        v_seqs := v_seqs || v_seq;
+
+        v_kind := coalesce(public.pv_roster_txt(v_l, 'kind', '^(operating|deadhead|ground|unknown)$', '便の種類'), 'unknown');
+        v_orig := public.pv_roster_txt(v_l, 'from', '^[A-Z0-9]{3,4}$', '出発地');
+        v_dest := public.pv_roster_txt(v_l, 'to',   '^[A-Z0-9]{3,4}$', '到着地');
+        if v_kind = 'ground' then
+          v_orig := null;   -- ★地上業務に空港を作らない（場所は loc だけ）
+          v_dest := null;
+        end if;
+        v_blk := public.pv_roster_txt(v_l, 'block', '^[0-9]{1,2}:[0-5][0-9]$', 'ブロック時間');
+        v_bmin := case when v_blk is null then null
+                       else split_part(v_blk, ':', 1)::int * 60 + split_part(v_blk, ':', 2)::int end;
+        if v_bmin > 1440 then
+          raise exception 'ロスターのブロック時間が範囲の外です' using errcode = '22023';
+        end if;
+
+        v_legs := v_legs || jsonb_build_object(
+          'seq',       v_seq,
+          'flight',    public.pv_roster_txt(v_l, 'flight', '^[A-Z0-9]{1,8}$', '便名'),
+          'from',      v_orig,
+          'to',        v_dest,
+          'loc',       public.pv_roster_txt(v_l, 'loc', '^[A-Z0-9]{2,8}$', '場所'),
+          'out',       public.pv_roster_txt(v_l, 'out', c_hhmm, '出発時刻'),
+          'in',        public.pv_roster_txt(v_l, 'in',  c_hhmm, '到着時刻'),
+          'in_day',    coalesce(public.pv_roster_int(v_l, 'in_day', 0, 2, '到着の日'), 0),
+          'block_min', v_bmin,
+          'role',      public.pv_roster_txt(v_l, 'role', '^[A-Z0-9/+\-]{1,8}$', '乗務の区分'),
+          'kind',      v_kind,
+          'page',      public.pv_roster_int(v_l, 'page', 1, v_pages, 'ページ'),
+          'row',       public.pv_roster_int(v_l, 'row', 1, 999, '行'));
+      end loop;
+    end if;
+
+    v_clean := v_clean || jsonb_build_object(
+      'date',      v_date,
+      'code',      public.pv_roster_txt(v_d, 'code',  c_code, '勤務コード'),
+      'd_on',      public.pv_roster_txt(v_d, 'd_on',  c_hhmm, '出頭時刻'),
+      'd_off',     public.pv_roster_txt(v_d, 'd_off', c_hhmm, '解散時刻'),
+      'd_off_day', coalesce(public.pv_roster_int(v_d, 'd_off_day', 0, 2, '解散の日'), 0),
+      'page',      public.pv_roster_int(v_d, 'page', 1, v_pages, 'ページ'),
+      'row',       public.pv_roster_int(v_d, 'row', 1, 999, '行'),
+      'legs',      v_legs);
+  end loop;
+
+  -- ── 書く（同じ人の提出は1本ずつ順番に）──
+  perform pg_advisory_xact_lock(20261109, hashtext(v_key));
+
+  -- 同じファイルの二度目は何もしない
+  select d.id into v_doc
+    from public.pv_roster_docs d
+   where d.proof_hash = v_key and d.file_sha = v_sha;
+  if found then
+    return jsonb_build_object('ok', true, 'dup', true, 'doc_id', v_doc);
+  end if;
+
+  select count(*) into v_today
+    from public.pv_roster_docs d
+   where d.proof_hash = v_key and d.created_at >= date_trunc('day', now());
+  if v_today >= 30 then
+    raise exception '1日に取り込める勤務表の上限に達しました。明日また続きをどうぞ。' using errcode = '54000';
+  end if;
+
+  insert into public.pv_roster_docs (proof_hash, file_sha, pages, date_from, date_to, days)
+  values (v_key, v_sha, v_pages,
+          (select min(x) from unnest(v_dates) x), (select max(x) from unnest(v_dates) x),
+          cardinality(v_dates))
+  returning id into v_doc;
+
+  -- ★日付で入れ替える。同じ日の古い行（とその便）を消してから入れる＝二重に数えない。
+  delete from public.pv_roster_days t
+   where t.proof_hash = v_key and t.duty_date = any (v_dates);
+  get diagnostics v_replaced = row_count;
+
+  insert into public.pv_roster_days (proof_hash, duty_date, doc_id, code, d_on, d_off, d_off_day, page, "row")
+  select v_key, (e->>'date')::date, v_doc, e->>'code',
+         (e->>'d_on')::time, (e->>'d_off')::time, (e->>'d_off_day')::smallint,
+         (e->>'page')::smallint, (e->>'row')::smallint
+    from jsonb_array_elements(v_clean) as t(e);
+
+  insert into public.pv_roster_legs (proof_hash, duty_date, seq, flight, orig, dest, loc,
+                                     t_out, t_in, in_day, block_min, role_raw, kind, page, "row")
+  select v_key, (e->>'date')::date, (l->>'seq')::smallint, l->>'flight', l->>'from', l->>'to', l->>'loc',
+         (l->>'out')::time, (l->>'in')::time, (l->>'in_day')::smallint, (l->>'block_min')::int,
+         l->>'role', l->>'kind', (l->>'page')::smallint, (l->>'row')::smallint
+    from jsonb_array_elements(v_clean) as t(e),
+         jsonb_array_elements(e->'legs') as u(l);
+  get diagnostics v_nlegs = row_count;
+
+  return jsonb_build_object('ok', true, 'dup', false, 'doc_id', v_doc,
+                            'days', cardinality(v_dates), 'legs', v_nlegs, 'replaced', v_replaced);
+end;
+$$;
+
+-- ── 4. 本人の勤務表を読む ───────────────────────────────────────
+-- 返す: {ok, profile:{...}|null, days:[{date, code, d_on, d_off, d_off_day, doc_id, page, row, legs:[...]}]}
+-- 期間は最大400日。空なら p_to = 今日＋62日・p_from = p_to − 399日。
+create or replace function public.my_roster(
+  p_airline text, p_airline_other text, p_from date, p_to date)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public, extensions
+as $$
+declare
+  v_uid  uuid := auth.uid();
+  v_key  text;
+  v_to   date;
+  v_from date;
+  v_days jsonb;
+begin
+  if v_uid is null then
+    raise exception 'ログインが必要です' using errcode = '42501';
+  end if;
+  v_key := public.pv_roster_key(v_uid, p_airline, p_airline_other);
+  if v_key is null then
+    raise exception '会社コードが不正です' using errcode = '22023';
+  end if;
+  v_to   := coalesce(p_to, current_date + 62);
+  v_from := coalesce(p_from, v_to - 399);
+  if v_to < v_from or v_to - v_from > 400 then
+    raise exception '期間が不正です（400日まで）' using errcode = '22023';
+  end if;
+
+  select coalesce(jsonb_agg(jsonb_build_object(
+           'date',      d.duty_date,
+           'code',      d.code,
+           'd_on',      to_char(d.d_on, 'HH24:MI'),
+           'd_off',     to_char(d.d_off, 'HH24:MI'),
+           'd_off_day', d.d_off_day,
+           'doc_id',    d.doc_id,
+           'page',      d.page,
+           'row',       d."row",
+           'legs', coalesce((
+             select jsonb_agg(jsonb_build_object(
+                      'seq',       l.seq,
+                      'flight',    l.flight,
+                      'from',      l.orig,
+                      'to',        l.dest,
+                      'loc',       l.loc,
+                      'out',       to_char(l.t_out, 'HH24:MI'),
+                      'in',        to_char(l.t_in, 'HH24:MI'),
+                      'in_day',    l.in_day,
+                      'block',     case when l.block_min is null then null
+                                        else (l.block_min / 60)::text || ':' || lpad((l.block_min % 60)::text, 2, '0') end,
+                      'block_min', l.block_min,
+                      'role',      l.role_raw,
+                      'kind',      l.kind,
+                      'page',      l.page,
+                      'row',       l."row") order by l.seq)
+               from public.pv_roster_legs l
+              where l.proof_hash = d.proof_hash and l.duty_date = d.duty_date), '[]'::jsonb)
+         ) order by d.duty_date), '[]'::jsonb)
+    into v_days
+    from public.pv_roster_days d
+   where d.proof_hash = v_key
+     and d.duty_date between v_from and v_to;
+
+  return jsonb_build_object('ok', true,
+                            'profile', public.pv_roster_profile_json(v_key),
+                            'days', v_days);
+end;
+$$;
+
+-- ── 5. 本人が取り込んだファイルの一覧 ─────────────────────────────
+-- 返す: {ok, docs:[{id, file_sha, pages, date_from, date_to, days, days_owned, created_at}]}（新しい順）
+--   days = 取り込んだときの日数 ／ days_owned = いまもこのファイルが持っている日数（後の提出に入れ替わった日は数えない）
+create or replace function public.my_roster_docs(p_airline text, p_airline_other text)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public, extensions
+as $$
+declare
+  v_uid  uuid := auth.uid();
+  v_key  text;
+  v_docs jsonb;
+begin
+  if v_uid is null then
+    raise exception 'ログインが必要です' using errcode = '42501';
+  end if;
+  v_key := public.pv_roster_key(v_uid, p_airline, p_airline_other);
+  if v_key is null then
+    raise exception '会社コードが不正です' using errcode = '22023';
+  end if;
+
+  select coalesce(jsonb_agg(jsonb_build_object(
+           'id',         d.id,
+           'file_sha',   d.file_sha,
+           'pages',      d.pages,
+           'date_from',  d.date_from,
+           'date_to',    d.date_to,
+           'days',       d.days,
+           'days_owned', (select count(*) from public.pv_roster_days x where x.doc_id = d.id),
+           'created_at', d.created_at
+         ) order by d.created_at desc, d.id), '[]'::jsonb)
+    into v_docs
+    from public.pv_roster_docs d
+   where d.proof_hash = v_key;
+
+  return jsonb_build_object('ok', true, 'docs', v_docs);
+end;
+$$;
+
+-- ── 6. 取り込んだファイルを消す ─────────────────────────────────
+-- そのファイルと、いまもそのファイルが持っている日（と便）を消す。後の提出に入れ替わった日は残る。
+-- 本人のファイルでなければ何もしない（在る・無いも言わない）。
+-- p_airline は省略できるが、「一覧にない会社」の勤務表は p_airline='other' と社名を渡さないと見つからない
+-- （ロスターの表は社名を持たないため。給与を出している「その他」の会社なら省略しても見つかる）。
+-- 返す: {ok, deleted, days}
+create or replace function public.delete_roster_doc(
+  p_doc_id uuid, p_airline text default null, p_airline_other text default null)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  v_uid  uuid := auth.uid();
+  v_hash text;
+  v_own  boolean;
+  v_n    int;
+begin
+  if v_uid is null then
+    raise exception 'ログインが必要です' using errcode = '42501';
+  end if;
+  if p_doc_id is null then
+    return jsonb_build_object('ok', true, 'deleted', false, 'days', 0);
+  end if;
+
+  select d.proof_hash into v_hash from public.pv_roster_docs d where d.id = p_doc_id;
+  if not found then
+    return jsonb_build_object('ok', true, 'deleted', false, 'days', 0);
+  end if;
+
+  -- 本人の鍵か（渡された会社 → 一覧の全社 → 給与に出ている「その他」の社名、の順に作り直して比べる）
+  v_own := v_hash is not distinct from public.pv_roster_key(v_uid, p_airline, p_airline_other)
+        or exists (select 1 from public.pv_airlines a
+                    where public.pv_roster_key(v_uid, a.code, null) = v_hash)
+        or exists (select 1
+                     from (select distinct lower(r.airline_other) as nm
+                             from public.pay_reports r
+                            where r.airline = 'other' and r.airline_other is not null) o
+                    where public.pv_roster_key(v_uid, 'other', o.nm) = v_hash);
+  if not v_own then
+    return jsonb_build_object('ok', true, 'deleted', false, 'days', 0);
+  end if;
+
+  perform pg_advisory_xact_lock(20261109, hashtext(v_hash));
+  select count(*) into v_n from public.pv_roster_days x where x.doc_id = p_doc_id;
+  -- 日と便は外部キーの on delete cascade で一緒に消える
+  delete from public.pv_roster_docs d where d.id = p_doc_id and d.proof_hash = v_hash;
+  return jsonb_build_object('ok', true, 'deleted', true, 'days', v_n);
+end;
+$$;
+
+-- ── 7. 読み方を保存する ─────────────────────────────────────────
+-- p に在るキーだけを書き換える（無いキーは前のまま）。知らないキーは無視。p = null は消す。
+--   kind 'actual'|'planned'|null ／ time_ref 'local'|'utc'|null ／ tz IANA の名前（40字まで）|null
+--   time_meaning 'block'|'flight'|'other'|null ／ share_company true|false
+--   codes { 'OFF1':'off', ... }（丸ごと置き換え・200個まで。意味は off/vac/duty/standby/training/ground/unknown）
+-- 返す: {ok, profile} ／ p=null のとき {ok, deleted}
+create or replace function public.set_roster_profile(p_airline text, p_airline_other text, p jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  v_uid   uuid := auth.uid();
+  v_key   text;
+  v_old   public.pv_roster_profile%rowtype;
+  v_kind  text;
+  v_ref   text;
+  v_tz    text;
+  v_mean  text;
+  v_codes jsonb;
+  v_share boolean;
+  v_n     int;
+begin
+  if v_uid is null then
+    raise exception 'ログインが必要です' using errcode = '42501';
+  end if;
+  v_key := public.pv_roster_key(v_uid, p_airline, p_airline_other);
+  if v_key is null then
+    raise exception '会社コードが不正です' using errcode = '22023';
+  end if;
+
+  if p is null or jsonb_typeof(p) = 'null' then
+    delete from public.pv_roster_profile where proof_hash = v_key;
+    get diagnostics v_n = row_count;
+    return jsonb_build_object('ok', true, 'deleted', v_n > 0);
+  end if;
+  if jsonb_typeof(p) <> 'object' then
+    raise exception 'ロスターの読み方の形が不正です' using errcode = '22023';
+  end if;
+  if octet_length(p::text) > 16384 then
+    raise exception 'ロスターの読み方が大きすぎます' using errcode = '54000';
+  end if;
+
+  select * into v_old from public.pv_roster_profile where proof_hash = v_key;
+  v_kind  := v_old.kind;
+  v_ref   := v_old.time_ref;
+  v_tz    := v_old.tz;
+  v_mean  := v_old.time_meaning;
+  v_codes := coalesce(v_old.codes, '{}'::jsonb);
+  v_share := coalesce(v_old.share_company, false);
+
+  if p ? 'kind' then
+    v_kind := public.pv_roster_txt(p, 'kind', '^(actual|planned)$', '実績か予定か');
+  end if;
+  if p ? 'time_ref' then
+    v_ref := public.pv_roster_txt(p, 'time_ref', '^(local|utc)$', '時刻の基準');
+  end if;
+  if p ? 'tz' then
+    v_tz := public.pv_roster_txt(p, 'tz', '^[A-Za-z0-9_+/\-]{1,40}$', 'タイムゾーン');
+    if v_tz is not null and not exists (select 1 from pg_timezone_names z where z.name = v_tz) then
+      raise exception 'ロスターのタイムゾーンが不正です' using errcode = '22023';
+    end if;
+  end if;
+  if p ? 'time_meaning' then
+    v_mean := public.pv_roster_txt(p, 'time_meaning', '^(block|flight|other)$', '時間の意味');
+  end if;
+  if p ? 'share_company' then
+    if jsonb_typeof(p->'share_company') = 'null' then
+      v_share := false;
+    elsif jsonb_typeof(p->'share_company') = 'boolean' then
+      v_share := (p->>'share_company')::boolean;
+    else
+      raise exception 'ロスターの共有の答えが不正です' using errcode = '22023';
+    end if;
+  end if;
+  if p ? 'codes' then
+    if jsonb_typeof(p->'codes') = 'null' then
+      v_codes := '{}'::jsonb;
+    elsif jsonb_typeof(p->'codes') <> 'object' then
+      raise exception 'ロスターの勤務コードの形が不正です' using errcode = '22023';
+    elsif (select count(*) from jsonb_object_keys(p->'codes')) > 200 then
+      raise exception 'ロスターの勤務コードが多すぎます（200まで）' using errcode = '54000';
+    elsif exists (select 1 from jsonb_each(p->'codes') e
+                   where e.key !~ '^[A-Z0-9/+\-]{1,12}$'
+                      or jsonb_typeof(e.value) <> 'string'
+                      or (e.value #>> '{}') not in ('off', 'vac', 'duty', 'standby', 'training', 'ground', 'unknown')) then
+      raise exception 'ロスターの勤務コードが不正です' using errcode = '22023';
+    else
+      v_codes := p->'codes';
+    end if;
+  end if;
+
+  insert into public.pv_roster_profile as t
+         (proof_hash, kind, time_ref, tz, time_meaning, codes, share_company, updated_at)
+  values (v_key, v_kind, v_ref, v_tz, v_mean, v_codes, v_share, now())
+  on conflict (proof_hash) do update
+     set kind = excluded.kind, time_ref = excluded.time_ref, tz = excluded.tz,
+         time_meaning = excluded.time_meaning, codes = excluded.codes,
+         share_company = excluded.share_company, updated_at = now();
+
+  return jsonb_build_object('ok', true, 'profile', public.pv_roster_profile_json(v_key));
+end;
+$$;
+
+-- ── 8. 明細の1行が何か月前の勤務の分か ─────────────────────────────
+-- p_status null → その行の答えを消す。'confirmed' は p_offset が要る（-12〜1）。'unknown' は offset を持たない。
+-- label_key は画面（pv-report-engine.js）が正規化した名前をそのまま持つ（80字まで・制御文字なし）。
+-- 返す: {ok, map:{label_key, offset, status, qty_kind}} ／ 消したとき {ok, deleted}
+create or replace function public.set_line_map(
+  p_airline text, p_airline_other text, p_label_key text,
+  p_offset int, p_status text, p_qty_kind text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  v_uid    uuid := auth.uid();
+  v_key    text;
+  v_label  text := p_label_key;
+  v_status text := nullif(btrim(p_status), '');
+  v_off    int  := p_offset;
+  v_qty    text := nullif(btrim(p_qty_kind), '');
+  v_n      int;
+begin
+  if v_uid is null then
+    raise exception 'ログインが必要です' using errcode = '42501';
+  end if;
+  v_key := public.pv_roster_key(v_uid, p_airline, p_airline_other);
+  if v_key is null then
+    raise exception '会社コードが不正です' using errcode = '22023';
+  end if;
+  if v_label is null or length(v_label) not between 1 and 80 or v_label ~ '[[:cntrl:]]' then
+    raise exception '明細の行の名前が不正です' using errcode = '22023';
+  end if;
+
+  if v_status is null then
+    delete from public.pv_line_map where proof_hash = v_key and label_key = v_label;
+    get diagnostics v_n = row_count;
+    return jsonb_build_object('ok', true, 'deleted', v_n > 0);
+  end if;
+  if v_status not in ('confirmed', 'unknown', 'other') then
+    raise exception '明細の行の答えが不正です' using errcode = '22023';
+  end if;
+  if v_off is not null and (v_off < -12 or v_off > 1) then
+    raise exception '明細の行のずれが範囲の外です（-12〜1）' using errcode = '22023';
+  end if;
+  if v_status = 'confirmed' and v_off is null then
+    raise exception '明細の行のずれがありません' using errcode = '22023';
+  end if;
+  if v_status = 'unknown' then
+    v_off := null;
+  end if;
+  if v_qty is not null and v_qty !~ '^[a-z][a-z0-9_]{0,23}$' then
+    raise exception '明細の行の数量の種類が不正です' using errcode = '22023';
+  end if;
+  if (select count(*) from public.pv_line_map m where m.proof_hash = v_key and m.label_key <> v_label) >= 400 then
+    raise exception '明細の行の答えが多すぎます' using errcode = '54000';
+  end if;
+
+  insert into public.pv_line_map as t (proof_hash, label_key, month_offset, status, qty_kind, updated_at)
+  values (v_key, v_label, v_off, v_status, v_qty, now())
+  on conflict (proof_hash, label_key) do update
+     set month_offset = excluded.month_offset, status = excluded.status,
+         qty_kind = excluded.qty_kind, updated_at = now();
+
+  return jsonb_build_object('ok', true,
+    'map', jsonb_build_object('label_key', v_label, 'offset', v_off, 'status', v_status, 'qty_kind', v_qty));
+end;
+$$;
+
+-- ── 9. レポート用に、本人の明細の中身と行の答えを返す ─────────────────
+-- my_pay_reports() と同じやり方（本人の鍵を全社ぶん作り直して引く）。my_pay_reports() そのものは変えない。
+-- 返す: {ok, items:[{airline, airline_other, period_year, period_month, currency, fx_to_jpy, gross_monthly,
+--                    net_pay_actual, deduction_total, hourly_rate, job_roles, pay_items, payslip_detail}],
+--        maps:[{airline, airline_other, label_key, offset, status, qty_kind}]}
+create or replace function public.my_report_items()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public, extensions
+as $$
+declare
+  v_uid   uuid := auth.uid();
+  v_items jsonb;
+  v_maps  jsonb;
+begin
+  if v_uid is null then
+    raise exception 'ログインが必要です' using errcode = '42501';
+  end if;
+
+  with mine as (
+    -- 一覧から選んだ会社：コードは有限なので総当たりで鍵を作れる
+    select public.pv_roster_key(v_uid, a.code, null) as h, a.code as airline
+      from public.pv_airlines a
+     where a.code <> 'other'
+    union all
+    -- 「一覧にない会社」：実在する社名だけを候補にして作り直す（他人の行は鍵の材料にしか使わない）
+    select public.pv_roster_key(v_uid, 'other', o.nm), 'other'
+      from (select distinct lower(airline_other) as nm
+              from public.pay_reports
+             where airline = 'other' and airline_other is not null) o
+  ),
+  own as (
+    select r.* from public.pay_reports r join mine m on m.h = r.proof_hash
+  ),
+  -- 社名は本人の行の書き方で返す（他人の書き方を混ぜない）
+  names as (
+    select distinct on (o.proof_hash) o.proof_hash, o.airline_other
+      from own o
+     order by o.proof_hash, o.created_at desc
+  )
+  select
+    (select coalesce(jsonb_agg(jsonb_build_object(
+              'airline',         o.airline,
+              'airline_other',   o.airline_other,
+              'period_year',     o.period_year,
+              'period_month',    o.period_month,
+              'currency',        o.currency,
+              'fx_to_jpy',       o.fx_to_jpy,
+              'gross_monthly',   o.gross_monthly,
+              'net_pay_actual',  o.net_pay_actual,
+              'deduction_total', o.deduction_total,
+              'hourly_rate',     o.hourly_rate,
+              'job_roles',       o.job_roles,
+              'pay_items',       o.pay_items,
+              'payslip_detail',  o.payslip_detail
+            ) order by o.period_year, o.period_month, o.airline, o.airline_other), '[]'::jsonb)
+       from own o),
+    (select coalesce(jsonb_agg(jsonb_build_object(
+              'airline',       m.airline,
+              'airline_other', case when m.airline = 'other' then n.airline_other end,
+              'label_key',     l.label_key,
+              'offset',        l.month_offset,
+              'status',        l.status,
+              'qty_kind',      l.qty_kind
+            ) order by m.airline, l.label_key), '[]'::jsonb)
+       from public.pv_line_map l
+       join mine m on m.h = l.proof_hash
+       left join names n on n.proof_hash = l.proof_hash)
+    into v_items, v_maps;
+
+  return jsonb_build_object('ok', true, 'items', v_items, 'maps', v_maps);
+end;
+$$;
+
+-- ── 10. 呼べる人 ─────────────────────────────────────────────
+revoke all on function public.submit_roster(jsonb)                               from public, anon;
+revoke all on function public.my_roster(text, text, date, date)                  from public, anon;
+revoke all on function public.my_roster_docs(text, text)                         from public, anon;
+revoke all on function public.delete_roster_doc(uuid, text, text)                from public, anon;
+revoke all on function public.set_roster_profile(text, text, jsonb)              from public, anon;
+revoke all on function public.set_line_map(text, text, text, int, text, text)    from public, anon;
+revoke all on function public.my_report_items()                                  from public, anon;
+grant execute on function public.submit_roster(jsonb)                            to authenticated;
+grant execute on function public.my_roster(text, text, date, date)               to authenticated;
+grant execute on function public.my_roster_docs(text, text)                      to authenticated;
+grant execute on function public.delete_roster_doc(uuid, text, text)             to authenticated;
+grant execute on function public.set_roster_profile(text, text, jsonb)           to authenticated;
+grant execute on function public.set_line_map(text, text, text, int, text, text) to authenticated;
+grant execute on function public.my_report_items()                               to authenticated;
+
+comment on function public.submit_roster(jsonb) is
+  '勤務表を取り込む（本人の鍵で・日付で入れ替え・原本は持たない・氏名や自由記述の入る欄が無い）。';
+comment on function public.my_report_items() is
+  'マイレポート用。本人の明細の中身（pay_items・payslip_detail）と行の答え。my_pay_reports と同じく本人の鍵を作り直して引く。';
+
+-- ── 11. 検算（貼ったあと、全部 ✅ になること）──────────────────────────
+with fns(sig) as (values
+       ('public.submit_roster(jsonb)'),
+       ('public.my_roster(text, text, date, date)'),
+       ('public.my_roster_docs(text, text)'),
+       ('public.delete_roster_doc(uuid, text, text)'),
+       ('public.set_roster_profile(text, text, jsonb)'),
+       ('public.set_line_map(text, text, text, integer, text, text)'),
+       ('public.my_report_items()')),
+     fn as (select sig, to_regprocedure(sig) as oid from fns),
+     fd as (select sig, pg_get_functiondef(oid) as s from fn where oid is not null),
+     hp(sig) as (values
+       ('public.pv_roster_key(uuid, text, text)'),
+       ('public.pv_roster_txt(jsonb, text, text, text)'),
+       ('public.pv_roster_int(jsonb, text, integer, integer, text)'),
+       ('public.pv_roster_date(jsonb, text, text)'),
+       ('public.pv_roster_profile_json(text)')),
+     hpo as (select sig, to_regprocedure(sig) as oid from hp),
+     tb(t) as (values ('public.pv_roster_profile'), ('public.pv_roster_docs'), ('public.pv_roster_days'),
+                      ('public.pv_roster_legs'), ('public.pv_line_map')),
+     tbo as (select t, to_regclass(t) as oid from tb),
+     ro as (select oid from pg_roles where rolname in ('anon', 'authenticated')),
+     k as (select $k$v_uid::text || '::pv_pay::' || v_airline || coalesce('::' || lower(v_other), '')$k$ as s),
+     sr as (select coalesce((select s from fd where sig = 'public.submit_roster(jsonb)'), '') as s)
+select 1 as "#", '7つの口がある・どれも呼んだ本人の権限で動かない（security definer）' as "確かめること",
+       case when (select count(*) from fn where oid is not null) = 7
+             and (select bool_and(p.prosecdef) from fn join pg_proc p on p.oid = fn.oid)
+            then '✅' else '❌' end as "判定"
+union all select 2, '未ログイン（anon）と PUBLIC は7つとも呼べない・ログイン済みは呼べる',
+       case when (select count(*) from fn where oid is not null) = 7
+             and not exists (select 1 from fn join pg_proc q on q.oid = fn.oid,
+                                    lateral aclexplode(coalesce(q.proacl, acldefault('f', q.proowner))) a
+                              where a.privilege_type = 'EXECUTE'
+                                and (a.grantee = 0 or a.grantee in (select oid from pg_roles where rolname = 'anon')))
+             and (select bool_and(has_function_privilege('authenticated', fn.oid, 'EXECUTE')) from fn where oid is not null)
+            then '✅' else '❌' end
+union all select 3, '内部の道具（鍵の式・検品・読み方の形）は誰からも直接呼べない',
+       case when (select count(*) from hpo where oid is not null) = 5
+             and not exists (select 1 from hpo join pg_proc q on q.oid = hpo.oid,
+                                    lateral aclexplode(coalesce(q.proacl, acldefault('f', q.proowner))) a
+                              where a.privilege_type = 'EXECUTE'
+                                and (a.grantee = 0 or a.grantee in (select oid from ro)))
+            then '✅' else '❌' end
+union all select 4, 'ログインしていなければ止める（7つとも auth.uid() が無ければ 42501）',
+       case when (select count(*) from fd) = 7
+             and (select bool_and(strpos(s, 'if v_uid is null then') > 0 and strpos(s, '42501') > 0) from fd)
+            then '✅' else '❌' end
+union all select 5, '5つの表は RLS が有効・ポリシーが1つも無い（直接は誰も読めない）',
+       case when (select count(*) from tbo where oid is not null) = 5
+             and (select bool_and(c.relrowsecurity) from tbo join pg_class c on c.oid = tbo.oid)
+             and not exists (select 1 from pg_policy pl where pl.polrelid in (select oid from tbo where oid is not null))
+            then '✅' else '❌' end
+union all select 6, '5つの表に anon・authenticated・PUBLIC の権限が1つも無い',
+       case when (select count(*) from tbo where oid is not null) = 5
+             and not exists (select 1 from tbo join pg_class c on c.oid = tbo.oid,
+                                    lateral aclexplode(coalesce(c.relacl, acldefault('r', c.relowner))) a
+                              where a.grantee = 0 or a.grantee in (select oid from ro))
+            then '✅' else '❌' end
+union all select 7, '本人の鍵の式が submit_pay_report と1文字も違わない（7つとも pv_roster_key で作る）',
+       case when strpos(coalesce(pg_get_functiondef(to_regprocedure('public.pv_roster_key(uuid, text, text)')), ''), (select s from k)) > 0
+             and strpos(pg_get_functiondef('public.submit_pay_report(jsonb)'::regprocedure), (select s from k)) > 0
+             and (select count(*) from fd) = 7
+             and (select bool_and(strpos(s, 'public.pv_roster_key(v_uid') > 0) from fd)
+            then '✅' else '❌' end
+union all select 8, '新しい提出は日付で入れ替わる（日の主キーが本人×日付・先に同じ日を消してから入れる・便は日と一緒に消える）',
+       case when (select array_agg(a.attname::text order by a.attname)
+                    from pg_constraint c
+                    join pg_attribute a on a.attrelid = c.conrelid and a.attnum = any (c.conkey)
+                   where c.conrelid = to_regclass('public.pv_roster_days') and c.contype = 'p')
+                 = array['duty_date', 'proof_hash']
+             and strpos((select s from sr), 'delete from public.pv_roster_days') > 0
+             and strpos((select s from sr), 'delete from public.pv_roster_days')
+                 < strpos((select s from sr), 'insert into public.pv_roster_days')
+             and exists (select 1 from pg_constraint c
+                          where c.conrelid = to_regclass('public.pv_roster_legs') and c.contype = 'f'
+                            and c.confrelid = to_regclass('public.pv_roster_days') and c.confdeltype = 'c')
+             and exists (select 1 from pg_constraint c
+                          where c.conrelid = to_regclass('public.pv_roster_days') and c.contype = 'f'
+                            and c.confrelid = to_regclass('public.pv_roster_docs') and c.confdeltype = 'c')
+            then '✅' else '❌' end
+union all select 9, '原本・氏名・自由記述を入れる列が無い（bytea も name・note・memo・image などの列も無い）',
+       case when (select count(*) from tbo where oid is not null) = 5
+             and not exists (select 1 from pg_attribute a
+                              where a.attrelid in (select oid from tbo where oid is not null)
+                                and a.attnum > 0 and not a.attisdropped
+                                and (a.atttypid = 'bytea'::regtype
+                                     or a.attname ~ '(name|note|memo|comment|remark|image|photo|crew|free|text)'))
+            then '✅' else '❌' end
+union all select 10, 'my_pay_reports は今までどおり pay_items・payslip_detail をそのまま返さない',
+       case when strpos(pg_get_functiondef('public.my_pay_reports()'::regprocedure), 'r.pay_items,') = 0
+             and strpos(pg_get_functiondef('public.my_pay_reports()'::regprocedure), 'r.payslip_detail') = 0
+            then '✅' else '❌' end
+order by 1;
