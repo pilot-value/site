@@ -117,8 +117,10 @@ export const RE = {
   code: /^[A-Z0-9/+\-]{1,12}$/,    // 日の記号（OFF1・VAC・SBY・TRN …）
   flight: /^[A-Z0-9]{1,8}$/,       // 便名・勤務番号
   apt: /^[A-Z0-9]{3,4}$/,          // 空港（IATA 3字・ICAO 4字）
-  loc: /^[A-Z0-9]{2,8}$/,          // 地上の業務の場所（訓練所など）
-  role: /^[A-Z0-9/+\-]{1,8}$/,     // 役割（CAP・FO・DH1・DHD …）
+  /* ★場所と役割は5字まで（関数の側だけ。SQL は 8 字のまま広い）。6字以上の語（LONDON・TANAKA）は人や地名の
+     言葉で、記号ではない＝捨てる。⚠️ 5字以下の苗字（SATOH など）は形では見分けられない（HNDTC と同じ形）。 */
+  loc: /^[A-Z0-9]{2,5}$/,          // 地上の業務の場所（訓練所など）
+  role: /^[A-Z0-9/+\-]{1,5}$/,     // 役割（CAP・FO・DH1・DHD …）
 };
 
 export function tok(v: unknown, re: RegExp): string | null {
@@ -139,8 +141,11 @@ export function parseClock(v: unknown): { t: string; plus: number } | null {
   let s = up(v);
   if (!s || s.length > 16) return null;
   let plus = 0;
+  /* 日本の勤務表の「翌06:20」「翌々01:10」（翌日・翌々日の印。印字のまま返ってくる＝2026-11-09 eval で発見） */
+  const jp = s.match(/^(翌々|翌翌|翌)\s*/);
+  if (jp) { plus = jp[1] === '翌' ? 1 : 2; s = s.slice(jp[0].length); }
   const pm = s.match(/\(?\s*\+\s*([12])\s*\)?$/);
-  if (pm && pm.index !== undefined) { plus = Number(pm[1]); s = s.slice(0, pm.index).trim(); }
+  if (pm && pm.index !== undefined) { plus = Math.max(plus, Number(pm[1])); s = s.slice(0, pm.index).trim(); }
   s = s.replace(/\s*(?:UTC|GMT|LCL|LOC|LT|Z|L)$/, () => '').trim();
   const m = s.match(/^(\d{1,2})[:.H](\d{2})$/) || s.match(/^(\d{2})(\d{2})$/);
   if (!m) return null;
@@ -224,11 +229,26 @@ export const CJK_CODES: Record<string, string> = {
   '有休': 'VAC', '有給': 'VAC', '年休': 'VAC', '特休': 'VAC',
   '待機': 'SBY', 'スタンバイ': 'SBY', '予備': 'SBY',
   '訓練': 'TRN', '地上': 'GND', '出張': 'TRP', '欠勤': 'ABS',
+  '自宅スタンバイ': 'SBY', '空港スタンバイ': 'SBY', 'リザーブ': 'SBY',
+};
+/* 語で印字された日の記号（「Day Off」「RIPOSO MENSILE」「Home standby」）。空白を含むと記号の形に合わず、
+   休みの日がまるごと消えていた（2026-11-09 公開の見本で確認）。★決まった言い方だけを置き換える
+   （NFKC・前後の空白・大文字・中の空白を1つに、で完全一致）。辞書に無い語は今までどおり捨てる（氏名の道を作らない）。 */
+export const WORD_CODES: Record<string, string> = {
+  'DAY OFF': 'OFF', 'DAYOFF': 'OFF', 'OFF DAY': 'OFF', 'REST': 'OFF', 'REST DAY': 'OFF',
+  'RIPOSO': 'OFF', 'RIPOSO MENSILE': 'OFF', 'RIPOSO SETTIMANALE': 'OFF', 'LIBRE': 'OFF', 'DESCANSO': 'OFF', 'FREI': 'OFF',
+  'VACATION': 'VAC', 'ANNUAL LEAVE': 'VAC', 'LEAVE': 'VAC', 'HOLIDAY': 'VAC', 'FERIE': 'VAC', 'VACACIONES': 'VAC', 'URLAUB': 'VAC',
+  'STANDBY': 'SBY', 'STAND BY': 'SBY', 'STANDBY HOME': 'SBY', 'HOME STANDBY': 'SBY', 'STANDBY AIRPORT': 'SBY',
+  'AIRPORT STANDBY': 'SBY', 'RESERVE': 'SBY', 'RISERVA': 'SBY', 'RESERVA': 'SBY',
+  'TRAINING': 'TRN', 'SIMULATOR': 'TRN', 'SIM': 'TRN', 'GROUND SCHOOL': 'TRN',
+  'SICK': 'SCK', 'SICK LEAVE': 'SCK',
 };
 export function dayCodeOf(v: unknown): { code: string | null; mapped: boolean } {
   if (typeof v === 'string') {
     const s = v.normalize('NFKC').trim();
     if (Object.prototype.hasOwnProperty.call(CJK_CODES, s)) return { code: CJK_CODES[s], mapped: true };
+    const w = s.toUpperCase().replace(/\s+/g, () => ' ');
+    if (Object.prototype.hasOwnProperty.call(WORD_CODES, w)) return { code: WORD_CODES[w], mapped: true };
   }
   return { code: tok(v, RE.code), mapped: false };
 }
@@ -517,7 +537,13 @@ export function sanitize(raw: Obj, ctx: SanitizeCtx): { roster: Roster; checks: 
    ════════════════════════════════════════════════════════════════ */
 const orNull = (t: Record<string, unknown>) => ({ anyOf: [t, { type: 'null' }] });
 const STR = orNull({ type: 'string' });
+/* ★区間の文字の欄は null を使わず ""（空）で「印字なし」。構造化出力は null と型の混ざる欄が
+   16 までで、全部 null 可にすると 21 になり、毎回 400（invalid_request_error）で断られる
+   （2026-11-09 db/eval-roster.mjs で発見）。"" は sanitize が「書いていない」と読む（given・tok が null にする）。 */
+const LSTR = { type: 'string' };
 const INT = { type: 'integer' };
+/* 構造化出力が受け付ける「null や型の混ざる欄」の数の上限（API の制限）。 */
+export const MAX_UNION_PARAMS = 16;
 
 /* ★答えの形。ここに無い欄は返ってこない＝氏名・社員番号・備考を書く欄は1つも無い。
    ⚠️ 欄を足すときは、それが人や自由な文を運べないかを先に考える。 */
@@ -551,8 +577,8 @@ export const OUT_SCHEMA = {
               type: 'object', additionalProperties: false,
               required: ['flight', 'from', 'to', 'loc', 'out', 'in', 'in_day', 'block', 'role', 'kind', 'partial', 'row'],
               properties: {
-                flight: STR, from: STR, to: STR, loc: STR, out: STR, in: STR, in_day: INT,
-                block: STR, role: STR,
+                flight: LSTR, from: LSTR, to: LSTR, loc: LSTR, out: LSTR, in: LSTR, in_day: INT,
+                block: LSTR, role: LSTR,
                 kind: { type: 'string', enum: [...LEG_KINDS] },
                 partial: { type: 'boolean' },
                 row: INT,
@@ -584,11 +610,12 @@ export function systemPrompt(): string {
     ' "kind":"actual"|"planned"|null,"time_ref":"local"|"utc"|null,',
     ' "days":[{"y":int|null,"m":int|null,"d":int|null,"wd":int|null,"cut":"top"|"bottom"|"both"|null,',
     '   "code":string|null,"d_on":string|null,"d_off":string|null,"d_off_day":int,"row":int,',
-    '   "legs":[{"flight":string|null,"from":string|null,"to":string|null,"loc":string|null,',
-    '     "out":string|null,"in":string|null,"in_day":int,"block":string|null,"role":string|null,',
+    '   "legs":[{"flight":string,"from":string,"to":string,"loc":string,',
+    '     "out":string,"in":string,"in_day":int,"block":string,"role":string,',
     '     "kind":"operating"|"deadhead"|"ground"|"unknown","partial":boolean,"row":int}]}]}',
     'Use null for anything you cannot read or cannot see. Never fill a gap with a guess, and never calculate a',
-    'value that is not printed.',
+    'value that is not printed. Inside a leg the text fields are strings: write "" (an empty string) wherever',
+    'this prompt says null for a leg field.',
     '',
     'Header:',
     '- month: the roster month printed in the page header or title ("October 2026", "2026年10月", "OCT 26").',
@@ -605,6 +632,12 @@ export function systemPrompt(): string {
     'legs), in the order printed (for a calendar grid, read it row by row). Skip dates with nothing on them.',
     'Never output the same date twice; put all lines of a date into its one entry. Ignore totals rows,',
     'summaries, crew lists, hotel blocks, remarks and messages.',
+    'Some reports print one COLUMN per date (the dates run across the top and each column is a vertical stack).',
+    'Read each column top to bottom as that date\'s block. A departure time is the time printed right before',
+    'its departure station, and an arrival time the time printed right after its arrival station. A time printed',
+    'before the first departure time of the date is the report / check-in (d_on); a time printed after the last',
+    'arrival time is the release / check-out (d_off). Values in indicator or totals rows under the columns',
+    'are not duty times.',
     '- y, m, d: the parts of that date AS PRINTED on its own row. d = day of month. m = the month number ONLY if',
     '  the row itself prints the month ("01OCT26" -> m 10). y = the 4-digit year ONLY if the row prints a year',
     '  ("01OCT26" -> 2026). When a row prints only a day number and/or weekday ("1", "Thu 01", "01 木"), give d',
@@ -617,6 +650,8 @@ export function systemPrompt(): string {
     '  from the previous-screenshot context). Never invent the lines that are not visible.',
     '- code: the day or duty code exactly as printed for that date (OFF, OFF1, DO, VAC, AL, SBY, RES, SIM, TRN,',
     '  GRD, SICK, a trip / pairing number ...). Copy the characters; do not translate or explain. null if none.',
+    '  When a short code is printed together with its description ("OFF - Day off", "AL Annual leave"), give only',
+    '  the code ("OFF", "AL").',
     '  A code printed in Japanese (公休, 有休, 年休, 待機, スタンバイ, 訓練, 地上, 出張 ...) is copied exactly as',
     '  printed, character for character — never translate it into an English code yourself.',
     '- d_on: duty start (report, check-in, sign-on, C/I, D-ON, RPT) as printed. d_off: duty end (release,',
@@ -636,13 +671,17 @@ export function systemPrompt(): string {
     '  location code as printed ("HND", "TRC1"). null for flights. Never invent an airport.',
     '- out, in: off-block and on-block (or start and end) times as printed, "HH:MM". in_day: 0, 1 or 2 days',
     '  after the date of the entry (a leg landing after midnight = 1).',
+    '  A leg or activity that ends after midnight belongs to the date it starts: if its arrival / end is printed',
+    '  on the next date\'s line, put the whole leg (that time, in_day 1) in the starting date\'s entry and do not',
+    '  create a leg for it on the next date.',
     '- block: the block / flight time printed for that leg (BLK, BLH, Block, FLT, 乗務時間) exactly as printed,',
-    '  e.g. "1:17". null if not printed. Do not compute it from out and in.',
+    '  e.g. "1:17". null if not printed. Do not compute it from out and in. If the block cell holds more than one',
+    '  value ("04:00 / 00:00" under "Block / CMT"), give only the block value.',
     '- role: the role / position / category code as printed (CAP, CPT, FO, F/O, SO, PIC, SIC, DH, DHD, DH1, POS,',
     '  EXT ...). null if none.',
     '- kind: "operating" when the pilot operates the flight; "deadhead" when the line is marked as positioning /',
-    '  deadhead as printed (DH, DHD, DH1, POS, PAX, *, 便乗); "ground" for a non-flying activity; "unknown" when',
-    '  unsure. Do not default to "operating".',
+    '  deadhead as printed (DH, DHD, DH1, POS, PAX, *, 便乗) or by a bus, car, train or passenger-seat icon;',
+    '  "ground" for a non-flying activity; "unknown" when unsure. Do not default to "operating".',
     '- partial: true when this line itself is sliced by the top or bottom edge of the image so that some of its',
     '  fields cannot be read. Leave those fields null — never guess them. false otherwise.',
     '- row: 1-based line number of this leg on the image.',

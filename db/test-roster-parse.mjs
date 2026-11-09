@@ -28,7 +28,7 @@ globalThis.Deno = { env: { get: (k) => ENV[k] }, serve: () => {} };
 const R = await import('../supabase/functions/parse-roster/index.ts');
 const { sanitize, sanitizeTail, resolveDates, parseClock, parseBlock, flightOf, tok, RE, hintOf,
         buildRequest, readReply, readDiag, systemPrompt, OUT_SCHEMA, MAX_TOKENS, READ_TIMEOUT_MS,
-        MAX_DAYS, MAX_LEGS, REASONS, handler, DAILY_LIMIT, GLOBAL_LIMIT, MONTH_LIMIT, QUOTA_BUCKET } = R;
+        MAX_DAYS, MAX_LEGS, REASONS, handler, DAILY_LIMIT, GLOBAL_LIMIT, MONTH_LIMIT, QUOTA_BUCKET, MAX_UNION_PARAMS } = R;
 
 let pass = 0, fail = 0;
 const ok = (c, m, extra) => {
@@ -82,6 +82,14 @@ for (const [raw, want] of [['07:15', '07:15'], ['7:15', '07:15'], ['0715', '07:1
 eq(parseClock('06:10+1'), { t: '06:10', plus: 1 }, '「+1」は翌日の印として読む');
 eq(parseClock('06:10⁺¹'), { t: '06:10', plus: 1 }, '上付きの ⁺¹ も');
 eq(parseClock('06:10 (+2)'), { t: '06:10', plus: 2 }, '(+2)');
+eq([parseClock('翌06:20'), parseClock('翌々01:10'), parseClock('翌 6:05')],
+   [{ t: '06:20', plus: 1 }, { t: '01:10', plus: 2 }, { t: '06:05', plus: 1 }], '日本の勤務表の「翌」「翌々」も翌日の印として読む');
+{
+  const { roster: rj, checks: cj } = run([D({ d: 8, d_on: '22:45', d_off: '翌06:50', legs: [L({ flight: 'ZJ841', from: 'HND', to: 'SIN', out: '23:55', in: '翌06:20' })] })]);
+  const dj = rj.days[0];
+  ok(!!dj && dj.d_off === '06:50' && dj.d_off_day === 1 && dj.legs[0].in === '06:20' && dj.legs[0].in_day === 1 && cj.dropped_fields === 0,
+     '「翌06:20」の到着・「翌06:50」の退勤が翌日として入る（捨てない）');
+}
 for (const [raw, want] of [['1:17', '1:17'], ['01:17', '1:17'], ['1h17', '1:17'], ['0117', '1:17'], ['12:05', '12:05'],
                            ['1時間17分', '1:17'], ['24:00', '24:00'], ['1.17', null], ['1:7', null], ['1:75', null],
                            ['25:00', null], ['117', null]]) {
@@ -216,6 +224,52 @@ console.log('\nC-2 漢字・かなの日の記号（決まった言葉だけ英�
      '前の画像の日も同じ辞書（苗字は捨てる・中身の無い日は返さない）');
   ok(/copied exactly as\s+printed, character for character/.test(systemPrompt()) && /公休, 有休/.test(systemPrompt()),
      'プロンプト：漢字の記号は印字のまま写させる（辞書が当たるように・自分で英訳させない）');
+}
+{
+  /* 実際のアプリにあった かなの記号（自宅スタンバイ・空港スタンバイ・リザーブ） */
+  const { roster: r, checks: c } = run([D({ d: 14, code: '自宅スタンバイ' }), D({ d: 15, code: '空港スタンバイ' }), D({ d: 16, code: 'ﾘｻﾞｰﾌﾞ' })]);
+  eq([r.days.map((d) => d.code), c.code_mapped], [['SBY', 'SBY', 'SBY'], 3], 'かなのスタンバイ・リザーブは SBY');
+}
+
+// ═══ C-3 語で印字された日の記号（決まった言い方だけ） ══════════
+console.log('\nC-3 語で印字された日の記号（決まった言い方だけ）');
+{
+  const { roster: r, checks: c } = run([
+    D({ d: 1, code: 'Day Off' }), D({ d: 2, code: '  RIPOSO   MENSILE ' }), D({ d: 3, code: 'Home standby' }),
+    D({ d: 4, code: 'Annual Leave' }), D({ d: 5, code: 'Ground School' }), D({ d: 6, code: 'Sick Leave' }),
+    D({ d: 7, code: 'Descanso' }), D({ d: 8, code: 'Urlaub' }), D({ d: 9, code: 'SIM' }), D({ d: 10, code: 'Stand  by' }),
+  ]);
+  eq(r.days.map((d) => d.code), ['OFF', 'OFF', 'SBY', 'VAC', 'TRN', 'SCK', 'OFF', 'VAC', 'TRN', 'SBY'],
+     '語の記号は英字の記号へ（大文字・中の空白を1つにしてから完全一致）');
+  eq(c.code_mapped, 10, '置き換えた数を checks.code_mapped に数える');
+  ok(r.days.every((d) => RE.code.test(d.code)), '置き換えた記号はどれも日の記号の形に合う');
+}
+{
+  const { roster: r, checks: c } = run([
+    D({ d: 11, code: 'Day Off Smith', d_on: '09:00' }),   // 辞書の言い方＋名前
+    D({ d: 12, code: 'John Smith', d_on: '09:00' }),      // 名前
+    D({ d: 13, code: 'Office Day', d_on: '09:00' }),      // 辞書に無い言い方
+    D({ d: 14, code: 'OFF', d_on: '09:00' }),             // もともと記号の形
+  ]);
+  eq(r.days.map((d) => d.code), [null, null, null, 'OFF'], '★辞書に無い言い方・名前の混ざった言い方は捨てる（部分一致はしない）');
+  ok(!/SMITH|JOHN|OFFICE/.test(JSON.stringify(r)), '捨てた語は答えのどこにも残らない');
+  eq([c.code_mapped, c.dropped_fields], [0, 3], '置き換えは0・捨てた欄は3');
+}
+
+// ═══ C-4 場所と役割は5字まで（氏名・地名を通さない） ══════════════
+console.log('\nC-4 場所と役割は5字まで（氏名・地名を通さない）');
+{
+  const g = (loc) => L({ kind: 'ground', loc, out: '09:00', in: '17:00' });
+  const op = (role) => L({ flight: 'NH5', from: 'HND', to: 'CTS', out: '07:00', role });
+  const { roster: r, checks: c } = run([
+    D({ d: 1, legs: [g('LONDON'), g('TANAKA'), g('TAB'), g('SIM1'), g('HNDTC')] }),
+    D({ d: 2, legs: [op('LONDON'), op('TANAKA'), op('CAP'), op('DH1'), op('F/O')] }),
+  ]);
+  eq(r.days[0].legs.map((l) => l.loc), [null, null, 'TAB', 'SIM1', 'HNDTC'], '★場所：LONDON・TANAKA（6字）は捨て、TAB・SIM1・HNDTC は残す');
+  eq(r.days[1].legs.map((l) => l.role), [null, null, 'CAP', 'DH1', 'F/O'], '★役割：LONDON・TANAKA は捨て、CAP・DH1・F/O は残す');
+  ok(!/LONDON|TANAKA/.test(JSON.stringify(r)), '捨てた語は答えのどこにも残らない');
+  eq(c.dropped_fields, 4, '捨てた欄の数（場所2・役割2）');
+  ok(RE.loc.source === '^[A-Z0-9]{2,5}$' && RE.role.source === '^[A-Z0-9/+\\-]{1,5}$', '形は loc {2,5}・role {1,5}（SQL は広いまま）');
 }
 
 // ═══ D 画像の端で切れた日・行 ══════════════════════════════════
@@ -359,6 +413,21 @@ console.log('\nG 頼み方（構造化出力・プロンプト）');
      `★人や自由な文を書ける欄が無い（欄：${[...keys].sort().join(',')}）`);
   ok(keys.has('cut') && keys.has('partial'), '切れた日（cut）・行（partial）の欄がある');
   ok(!/"(minimum|maximum|minLength|maxLength|multipleOf|pattern)"/.test(JSON.stringify(OUT_SCHEMA)), '構造化出力が受け付けない制約を使っていない');
+  /* ★null と型の混ざる欄は API の上限（16）まで。超えると毎回 400 で断られる＝本番で1枚も読めない
+     （2026-11-09 に 21 で全部断られた。db/eval-roster.mjs で発見）。区間の文字の欄は "" で「印字なし」。 */
+  let unions = 0;
+  const wu = (n) => { if (!n || typeof n !== 'object') return;
+    if (n.properties) for (const v of Object.values(n.properties)) if (v && (v.anyOf || Array.isArray(v.type))) unions++;
+    for (const v of Object.values(n)) if (v && typeof v === 'object') wu(v); };
+  wu(OUT_SCHEMA);
+  ok(MAX_UNION_PARAMS === 16 && unions <= MAX_UNION_PARAMS, `★null や型の混ざる欄が API の上限以内（${unions} ≦ ${MAX_UNION_PARAMS}）`);
+  {
+    const { roster: r0, checks: c0 } = run([D({ d: 5, code: 'P123', legs: [L({ flight: 'ZK101', from: 'BCN', to: '', loc: '', out: '06:40', in: '', block: '', role: '' })] })]);
+    const l0 = r0.days[0] && r0.days[0].legs[0];
+    ok(!!l0 && l0.flight === 'ZK101' && l0.to === null && l0.in === null && l0.block === null && l0.role === null && c0.dropped_fields === 0,
+       '区間の "" は「印字なし」＝ null（捨てた欄に数えない）');
+  }
+  ok(/write "" \(an empty string\) wherever/.test(systemPrompt()), 'プロンプト：区間の文字の欄は "" で「印字なし」');
 
   const P = systemPrompt();
   ok(/NEVER output any person's name/.test(P) && /OTHER crew members/.test(P), '★プロンプト：ほかの乗員の氏名を出させない');
