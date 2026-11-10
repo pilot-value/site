@@ -177,6 +177,10 @@
       cbMore: 'ほか{n}区分',
       /* 面のボタン ── 出す側へ戻す。★2026-10-29 に DEEP PAY を閉じて、副から主に上がった。 */
       dwCta: 'あなたの給与情報を匿名で追加',
+      /* 面の社名の下の2つ（2026-11-10・オーナー指示「航空会社に移動する手段がない」「比較のボタンも」）。
+           字は既にある言い回しのまま ── 会社ページを開く＝Vote、他社と比較＝会社ページのボタン。 */
+      dwAir: '会社ページを開く',
+      dwCmp: '他社と比較',
       /* ★報酬の内訳の門（2026-09-03・オーナー指示）。
            自分の内訳を出した人だけが、他人の内訳を見られる（Give & Get）。
          ⚠️ ここは「ぼかし」ではない。閉じている行には金額そのものが**届いていない**
@@ -291,6 +295,8 @@
       cBh: 'Block',
       cbMore: '+{n} more',
       dwCta: 'Add your pay anonymously',
+      dwAir: 'Airline page',
+      dwCmp: 'Compare airlines',
       lockPT: 'Pay breakdowns are shared between the pilots who share their own',
       lockPS: 'Answer three things — base pay, flight time guarantee / duty allowance, '
             + 'and variable pay — and this opens. '
@@ -379,6 +385,8 @@
       cBh: 'Horas block',
       cbMore: '+{n} más',
       dwCta: 'Agregar tu remuneración de forma anónima',
+      dwAir: 'Página de la aerolínea',
+      dwCmp: 'Comparar aerolíneas',
       lockPT: 'Los desgloses de remuneración se comparten entre los pilotos que comparten el suyo',
       lockPS: 'Responde tres cosas —sueldo base, horas garantizadas / asignación por servicio '
             + 'y remuneración variable— y esto se desbloquea. '
@@ -463,6 +471,10 @@
     /* 名簿から外した会社（pv-airlines.json の kind:'retired' ── 2026-11-02 スピリット航空）。社名は air で引けるが、
        プレビューの会社プルダウン（公開している会社マスタ）には並べない。 */
     airGone: {},
+    /* 会社ページの在る会社（pv-airlines.json の kind:'airline'。vote.js の hasPage と同じ決まり）。
+       面の「会社ページを開く」「他社と比較」はここに在る会社にだけ出す ── 投稿先だけの会社・
+       名簿から外した会社・「一覧にない航空会社」には会社ページも比較の札も無い（404 を作らない）。 */
+    airPage: {},
     pos: {},          // 職位コード → 表示名
     flt: {},          // 機材コード → 表示名（2026-09-03）
     rows: null,       // pv_pay_rows() の行（そのまま持つ）
@@ -1450,6 +1462,25 @@
          + esc(month ? moneyMonth(r.annual_usd) : money(r.annual_usd)) + '</span>';
   }
 
+  /* 面の社名の下に置く2つ（2026-11-10・オーナー指示）── その会社のページと、2社比較。
+     ★住所はどちらも既に在るもの。比較は会社ページの「他社と比較」と同じ住所（相手は比較の画面の既定）。
+       相対で書く ── /en/・/es/ から踏めば、その言語の会社ページと比較に解ける（PAY_URL と同じ）。
+     ★会社ページの在る会社（S.airPage）にだけ出す。辞書がまだ届いていないときも出さない
+       （届いたら render() のあと面を開くので、そのとき出る）。
+     ★伏せた面・見本の行でも出す。社名はどちらにも元から出ていて、新しく渡すものは無い。
+     ⚠️ クラスに ap-dw-cta / ap-dw-cta2 を使わない（主のボタンは「匿名で追加」の1つだけ、を検査が見ている）。
+     ⚠️ svg を足さない（矢印は CSS が描く）。 */
+  function navHTML(r) {
+    var c = r && r.airline;
+    if (!c || !S.airPage[c]) return '';
+    return '<div class="ap-dw-nav">'
+      + '<a class="ap-dw-nv ap-dw-nv--air" data-ap-nav="airline" href="'
+      +   esc('airlines/' + c + '.html') + '">' + esc(T.dwAir) + '</a>'
+      + '<a class="ap-dw-nv ap-dw-nv--cmp" data-ap-nav="compare" href="'
+      +   esc('career.html?view=compare&a=' + encodeURIComponent(c)) + '">' + esc(T.dwCmp) + '</a>'
+      + '</div>';
+  }
+
   function dwHTML(r) {
     /* ★プレビューの行（ap-preview.js）。ここだけは「誰かが実際に出した」と
          読める表示を**1つも出さない** ── 出典（✓ Verified / 本人申告）も
@@ -1492,6 +1523,7 @@
             + '<span class="ap-flt-lk" aria-hidden="true"></span>'
             + '<span class="ap-pv-sr">' + esc(T.mkF) + '</span></span>' : '')
       + '</p>'
+      + navHTML(r)
       + '<div class="ap-dw-amt">'
       +   '<div class="ap-dw-a"><span class="ap-dw-al">' + esc(T.dwYear) + '</span>'
       +     dwAmt(r, 0) + '</div>'
@@ -1615,6 +1647,13 @@
         return;
       }
       if (t.closest('[data-ap-cta]')) { track('realpay_cta_click', { place: 'detail' }); return; }
+      /* 会社ページ・2社比較（navHTML）。★止めない（ただのリンク・新しいタブも効く）。
+         ★送るのは「どちらへ行ったか」だけ。社名は GA4 に送らない。 */
+      var nv = t.closest('[data-ap-nav]');
+      if (nv) {
+        track('realpay_detail_nav', { to: nv.getAttribute('data-ap-nav') === 'compare' ? 'compare' : 'airline' });
+        return;
+      }
       var sm = t.closest('[data-ap-row]');
       if (sm) { DW.i = Number(sm.getAttribute('data-ap-row')); paintDrawer(); }
       return;
@@ -2447,10 +2486,13 @@
       Object.keys(a).forEach(function (c) {
         S.air[c] = a[c][L] || a[c].ja || c;
         if (a[c].kind === 'retired') S.airGone[c] = 1;
+        /* 住所に入れる字は英小文字・数字・ハイフンだけ（会社のコードの形）。 */
+        if (a[c].kind === 'airline' && /^[a-z0-9-]+$/.test(c)) S.airPage[c] = 1;
       });
       /* ★辞書が後から届いても描き直す。RPC のほうが先に返ると、
            行はコードのまま（ana / cap）で固まる。 */
       render();
+      paintDrawer(true);   // 面が先に開いていたら、会社ページ・比較のボタンをいま出す
     }).catch(function () { render(); });
 
     load();
