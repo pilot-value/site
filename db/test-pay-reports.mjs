@@ -1931,7 +1931,7 @@ console.log('\n▼ MY PAGE の「編集」── 出した月の1行を本人に
   /* 貼ったあとの検算（ファイルの最後の select）がここでも全部 ✅ */
   const res = await db.exec(read('db/pay-edit.sql'));
   const chk = res[res.length - 1].rows;
-  ok(chk.length === 5 && chk.every((x) => x['判定'] === '✅'),
+  ok(chk.length === 12 && chk.every((x) => x['判定'] === '✅'),
      `★db/pay-edit.sql の検算 ${chk.length} 行が全部 ✅`, chk.filter((x) => x['判定'] !== '✅').map((x) => x['#'] + ' ' + x['確かめること']).join(' | '));
 
   /* ── 壊す証明 ── 鍵の式の「::pv_pay::」を1文字変えた版を begin … rollback の中でだけ入れる（ファイルは触らない）。
@@ -1943,7 +1943,7 @@ console.log('\n▼ MY PAGE の「編集」── 出した月の1行を本人に
     const fn = (a < 0 || b < 0) ? '' : src.slice(a, b + '\n$$;'.length);
     const broken = fn.split(`'::pv_pay::'`).length === 2 ? fn.split(`'::pv_pay::'`).join(`'::pv_pay:'`) : '';
     ok(!!broken, '（鍵の式だけ1文字変えた版を作れた）');
-    const tail = src.slice(src.indexOf('-- ── 2. 検算'));
+    const tail = src.slice(src.indexOf('-- ── 3. 検算'));
     await db.exec(`begin`);
     await db.exec(broken);
     const red = await getOne(95, 'finnair', null, 2021, 7);
@@ -1952,6 +1952,176 @@ console.log('\n▼ MY PAGE の「編集」── 出した月の1行を本人に
     ok(red === null && redChk === '❌', `★壊す証明：鍵の式を1文字変えると本人が引けず、検算5が ❌ → ${red === null ? 'null' : '引けた'} / ${redChk}`);
     ok((await getOne(95, 'finnair', null, 2021, 7))?.period_month === 7, '（巻き戻したら元どおり引ける）');
   }
+  await db.query(`select set_config('pv.uid', '', false)`);
+}
+
+// ── MY PAGE の「削除」── 本人がその月の1行を消す（db/pay-edit.sql・2026-11-10）──
+/* オーナー「自分の給与レポートを削除するところも作って」。オーナー決定：最後の1件を消したら REAL PAY は閉じる。
+   見るのは ── 本人の行だけ消える（別の会員の同じ会社・同じ月は残る・別の会員からは消せない）／未ログインは止まる／
+   無い月は deleted:false で profiles が1文字も変わらない／残りがあれば鍵と札はそのまま・件数・最新の対象月・継続を残りから作り直す
+   （会社をまたいで数える）／最後の1件で鍵を閉じて提出前の形に戻す／返す鍵は4つだけ／検算12行。
+   最後に壊す証明 ── 鍵の式を1文字変えると本人の行が消えない／数え直しを外すと、最後の1件を消しても REAL PAY が開いたまま。 */
+console.log('\n▼ MY PAGE の「削除」── 本人がその月の1行を消す（db/pay-edit.sql）');
+{
+  const A = 310, B = 311, V = 312;
+  const del = async (n, a, o, y, m) => {
+    if (n === null) await db.query(`select set_config('pv.uid', '', false)`);
+    else await asUser(n);
+    return (await one(`select delete_my_pay_report($1, $2, $3, $4) j`, [a, o, y, m])).j;
+  };
+  const prof = async (n) => (await one(
+    `select to_jsonb(p) - 'email' - 'name' as j from profiles p where id = $1`, [uid(n)])).j;
+  const hashOf = (n, a, o) => one(
+    `select encode(extensions.digest($1::text || '::pv_pay::' || $2 || coalesce('::' || lower($3), ''), 'sha256'), 'hex') h`,
+    [uid(n), a, o || null]).then((x) => x.h);
+  const rowsOf = async (n) => {
+    const hs = [await hashOf(n, 'finnair'), await hashOf(n, 'other', 'Foo Air')];
+    return (await rows(`select airline, period_year * 12 + period_month ym from pay_reports
+                         where proof_hash = any($1::text[]) order by 2`, [hs])).map((x) => x.airline + ':' + x.ym);
+  };
+  const ym = (y, m) => y * 12 + m;
+  const D = { ...BASE, airline: 'finnair', gross_monthly: 50000, period_year: 2022 };
+
+  await asUser(A);
+  for (const m of [1, 2, 3, 4]) ok((await submit({ ...D, period_month: m })).r.ok === true, `（会員Aが 2022年${m}月を出した）`);
+  await asUser(B);
+  ok((await submit({ ...D, period_month: 4 })).r.ok === true, '（会員Bも同じ会社・同じ 2022年4月を出した）');
+  const pA0 = await prof(A), pB0 = await prof(B);
+  ok(pA0.pay_report_count === 4 && pA0.pay_streak_months === 4 && pA0.access_until && pA0.badge === 'contributor',
+     `（前提）会員Aは4件・4か月連続・鍵あり → ${pA0.pay_report_count} / ${pA0.pay_streak_months}`);
+  /* 数え直しの写し（pv_pay_streak_of）が、submit が順に出したときの数と同じ */
+  const st = async (arr) => (await one(`select pv_pay_streak_of($1::int[]) n`, [arr])).n;
+  ok((await st([ym(2022, 1), ym(2022, 2), ym(2022, 3), ym(2022, 4)])) === pA0.pay_streak_months,
+     '★継続の数え直しは、submit が順に数えた数と同じ（4）');
+  ok((await st([ym(2022, 1), ym(2022, 3)])) === 1 && (await st([ym(2022, 3), ym(2022, 1), ym(2022, 2), ym(2022, 2)])) === 3
+       && (await st([])) === 0 && (await st(null)) === 0,
+     '　間が空けば1・順不同と重複はまとめる・何も無ければ0');
+
+  // 未ログインは止まる
+  const anonMsg = await (async () => { await db.query(`select set_config('pv.uid', '', false)`);
+    return boom(`select delete_my_pay_report('finnair', null, 2022, 4)`); })();
+  ok(anonMsg !== null && /ログインが必要/.test(anonMsg), `★ログインしていなければ止まる → ${anonMsg?.slice(0, 40)}`);
+  await db.exec(`set role anon`);
+  const anonRole = await boom(`select delete_my_pay_report('finnair', null, 2022, 4)`);
+  await db.exec(`reset role`);
+  ok(anonRole !== null && /permission denied/i.test(anonRole), '★未ログインの役（anon）は関数そのものを呼べない');
+  await db.exec(`set role authenticated`);
+  const streakRole = await boom(`select pv_pay_streak_of(array[1,2])`);
+  await db.exec(`reset role`);
+  ok(streakRole !== null && /permission denied/i.test(streakRole), '　数え直しの道具（pv_pay_streak_of）は会員からも呼べない');
+
+  // 無い月・他人の月 → 何も起きない
+  const n0 = await del(A, 'finnair', null, 2022, 9);
+  ok(n0 && n0.ok === true && n0.deleted === false && n0.remaining === 4 && n0.closed === false,
+     `★無い月は deleted:false → ${JSON.stringify(n0)}`);
+  ok(JSON.stringify(await prof(A)) === JSON.stringify(pA0), '　profiles は1文字も変わらない');
+  const v1 = await del(V, 'finnair', null, 2022, 1);
+  ok(v1.deleted === false && v1.remaining === 0, '★別の会員が会員Aの月を指しても消えない（自分の行が無いので deleted:false）');
+  ok((await rowsOf(A)).length === 4, '　会員Aの4件はそのまま');
+  ok((await del(A, '', null, 2022, 4)).deleted === false && (await del(A, 'finnair', null, null, 4)).deleted === false,
+     '　会社か年月が空なら消さない');
+
+  // 4件のうち最新を消す → 残り3件。鍵と札はそのまま
+  const r4 = await del(A, 'finnair', null, 2022, 4);
+  ok(r4.deleted === true && r4.remaining === 3 && r4.closed === false, `★本人の行を消せる → ${JSON.stringify(r4)}`);
+  ok(JSON.stringify(Object.keys(r4).sort()) === JSON.stringify(['closed', 'deleted', 'ok', 'remaining']),
+     `★返す鍵は4つだけ（id・proof_hash を返さない）→ ${Object.keys(r4).join(',')}`);
+  ok(JSON.stringify(await rowsOf(A)) === JSON.stringify(['finnair:' + ym(2022, 1), 'finnair:' + ym(2022, 2), 'finnair:' + ym(2022, 3)]),
+     '　消えたのはその月の1行だけ');
+  ok((await rowsOf(B)).length === 1 && JSON.stringify(await prof(B)) === JSON.stringify(pB0),
+     '★別の会員の同じ会社・同じ月の行は残り、その人の profiles も変わらない');
+  let pA = await prof(A);
+  ok(pA.pay_report_count === 3 && pA.last_pay_period_ym === ym(2022, 3) && pA.pay_streak_months === 3,
+     `★件数・最新の対象月・継続を残りから作り直す → ${pA.pay_report_count} / ${pA.last_pay_period_ym} / ${pA.pay_streak_months}`);
+  ok(pA.access_until === pA0.access_until && pA.badge === 'contributor' && pA.badge_state === pA0.badge_state
+       && pA.pay_day_of_month === pA0.pay_day_of_month && pA.last_pay_report_at === pA0.last_pay_report_at,
+     '★残りがあれば鍵（access_until）・札・給料日はそのまま');
+  ok(pA.pay_reports_today === pA0.pay_reports_today && pA.pay_reports_day === pA0.pay_reports_day,
+     '　1日の上限の数えは触らない（消して出し直すで上限を抜けない）');
+
+  // 真ん中を消す → 間が空いて継続は1
+  await del(A, 'finnair', null, 2022, 2);
+  pA = await prof(A);
+  ok(pA.pay_report_count === 2 && pA.last_pay_period_ym === ym(2022, 3) && pA.pay_streak_months === 1,
+     `　真ん中の月を消すと継続は1（1月と3月）→ ${pA.pay_streak_months}`);
+
+  // 別の会社（一覧にない会社）の給与も「残り」に数える
+  await asUser(A);
+  ok((await submit({ ...D, airline: 'other', airline_other: 'Foo Air', period_month: 6 })).r.ok === true, '（会員Aが一覧にない会社の 2022年6月も出した）');
+  const keyNow = (await prof(A)).access_until;   // 出し直すと鍵は「今から90日」へ延びる
+  await del(A, 'finnair', null, 2022, 3);
+  const r1 = await del(A, 'finnair', null, 2022, 1);
+  pA = await prof(A);
+  ok(r1.deleted === true && r1.remaining === 1 && r1.closed === false && keyNow && pA.access_until === keyNow,
+     `★同じ人のほかの会社の給与が残っていれば閉じない → ${JSON.stringify(r1)}`);
+  ok(pA.pay_report_count === 1 && pA.last_pay_period_ym === ym(2022, 6) && pA.pay_streak_months === 1,
+     `　件数1・最新の対象月はほかの会社の月 → ${pA.pay_report_count} / ${pA.last_pay_period_ym}`);
+
+  // 最後の1件 → REAL PAY を閉じる（社名の大小・前後の空白をまたいで引ける）
+  const rl = await del(A, 'other', '  foo AIR ', 2022, 6);
+  pA = await prof(A);
+  ok(rl.deleted === true && rl.remaining === 0 && rl.closed === true, `★最後の1件を消すと closed:true → ${JSON.stringify(rl)}`);
+  ok(pA.access_until === null, '★★最後の1件を消すと REAL PAY が閉じる（access_until が空）');
+  ok(pA.pay_report_count === 0 && pA.pay_streak_months === 0 && pA.last_pay_period_ym === null
+       && pA.last_pay_report_at === null && pA.pay_day_of_month === null && pA.badge === 'none' && pA.badge_state === 'none',
+     '　件数・継続・最新の対象月・最後に出した日時・給料日・札が提出前の形に戻る', JSON.stringify(pA));
+  ok(pA.pay_reports_today === pA0.pay_reports_today + 1, '　1日の上限の数えはそのまま（出した5件ぶん）');
+  ok((await rowsOf(A)).length === 0 && (await rowsOf(B)).length === 1, '　会員Aの行は0件・会員Bの行は残る');
+  const again = await del(A, 'other', 'Foo Air', 2022, 6);
+  ok(again.deleted === false && again.remaining === 0 && again.closed === false, '　もう一度押しても何も起きない（closed は消したときだけ）');
+
+  // verified 以上の札は検証で付いたもの ── 最後の1件を消しても残す
+  await asUser(V);
+  ok((await submit({ ...D, period_month: 5 })).r.ok === true, '（検証済みの会員が1件出した）');
+  await db.query(`update profiles set badge = 'verified' where id = $1`, [uid(V)]);
+  const rv = await del(V, 'finnair', null, 2022, 5);
+  const pV = await prof(V);
+  ok(rv.closed === true && pV.access_until === null && pV.badge === 'verified',
+     `★verified の札は残す（給与を出しただけでは付かない札）→ ${pV.badge}`);
+
+  /* 貼ったあとの検算（ファイルの最後の select）── 削除の5行も入って12行が全部 ✅ */
+  const src = read('db/pay-edit.sql');
+  const tail = src.slice(src.indexOf('-- ── 3. 検算'));
+  const chk = (await db.exec(tail)).pop().rows;
+  ok(chk.length === 12 && chk.slice(5).every((x) => x['判定'] === '✅'), `★削除の検算（6〜12）が全部 ✅`,
+     chk.filter((x) => x['判定'] !== '✅').map((x) => x['#'] + ' ' + x['確かめること']).join(' | '));
+
+  /* ── 壊す証明 ── begin … rollback の中でだけ壊した版を入れる（ファイルは触らない）。 */
+  const fnSrc = (() => {
+    const a = src.indexOf('create or replace function public.delete_my_pay_report(');
+    const b = a < 0 ? -1 : src.indexOf('\n$$;', a);
+    return (a < 0 || b < 0) ? '' : src.slice(a, b + '\n$$;'.length);
+  })();
+  await asUser(A);
+  ok((await submit({ ...D, period_month: 8 })).r.ok === true, '（壊す証明のために会員Aがもう1件出した）');
+  {
+    // (1) 消す行の鍵の式を1文字変える → 本人の行が消えず、検算9が ❌
+    const k = `v_uid::text || '::pv_pay::' || v_airline`;
+    const broken = fnSrc.split(k).length === 2 ? fnSrc.split(k).join(`v_uid::text || '::pv_pay:' || v_airline`) : '';
+    ok(!!broken, '（消す行の鍵の式だけ1文字変えた版を作れた）');
+    await db.exec(`begin`);
+    await db.exec(broken);
+    const red = await del(A, 'finnair', null, 2022, 8);
+    const redChk = (await db.exec(tail)).pop().rows.find((x) => Number(x['#']) === 9)?.['判定'];
+    const left = (await rowsOf(A)).length;
+    await db.exec(`rollback`);
+    ok(red.deleted === false && left === 1 && redChk === '❌',
+       `★壊す証明：鍵の式を1文字変えると本人の行が消えず、検算9が ❌ → deleted ${red.deleted} / 残り ${left} / ${redChk}`);
+  }
+  {
+    // (2) 数え直しを外す → 最後の1件を消しても REAL PAY が開いたまま（＝閉じているのは数え直し）
+    const broken = fnSrc.split('if v_n > 0 then').length === 2 ? fnSrc.split('if v_n > 0 then').join('if false then') : '';
+    ok(!!broken, '（数え直しだけ外した版を作れた）');
+    await db.exec(`begin`);
+    await db.exec(broken);
+    const red = await del(A, 'finnair', null, 2022, 8);
+    const p = await prof(A);
+    await db.exec(`rollback`);
+    ok(red.deleted === true && red.remaining === 0 && p.access_until !== null && p.pay_report_count === 1,
+       `★壊す証明：数え直しを外すと、最後の1件を消しても REAL PAY が開いたまま（鍵 ${p.access_until ? 'あり' : '空'}・件数 ${p.pay_report_count}）`);
+  }
+  const fin = await del(A, 'finnair', null, 2022, 8);
+  ok(fin.closed === true && (await prof(A)).access_until === null, '（巻き戻したら元どおり、最後の1件で閉じる）');
   await db.query(`select set_config('pv.uid', '', false)`);
 }
 

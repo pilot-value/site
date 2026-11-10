@@ -16394,4 +16394,11 @@ export const TM = {
   "Crew bus: who pays": {"es":"Bus de tripulación: quién paga","st":"manual","by":"claude-review","at":"2026-11-09","pages":["pv-conditions.json"],"note":"質問の短い名前（会社ページのタイル）"},
   "Domestic per diem": {"es":"Viáticos nacionales","st":"manual","by":"claude-review","at":"2026-11-09","pages":["pv-conditions.json"],"note":"質問の短い名前（会社ページのタイル）"},
   "International per diem": {"es":"Viáticos internacionales","st":"manual","by":"claude-review","at":"2026-11-09","pages":["pv-conditions.json"],"note":"質問の短い名前（会社ページのタイル）"},
+  "jsl:'Delete'": {"es":"jsl:'Eliminar'","st":"manual","by":"claude-review","at":"2026-11-10","pages":["en/profile.html"],"note":"給与レポートの削除 2026-11-10"},
+  "jsl:'Delete pay report'": {"es":"jsl:'Eliminar reporte de remuneración'","st":"manual","by":"claude-review","at":"2026-11-10","pages":["en/profile.html"],"note":"給与レポートの削除 2026-11-10"},
+  "jsl:'This will delete your pay report for {p}. This can’t be undone.'": {"es":"jsl:'Se eliminará tu reporte de remuneración de {p}. No se puede deshacer.'","st":"manual","by":"claude-review","at":"2026-11-10","pages":["en/profile.html"],"note":"給与レポートの削除 2026-11-10"},
+  "jsl:'REAL PAY will close.'": {"es":"jsl:'REAL PAY se cerrará.'","st":"manual","by":"claude-review","at":"2026-11-10","pages":["en/profile.html"],"note":"給与レポートの削除 2026-11-10"},
+  "jsl:'Could not delete. Please try again in a moment.'": {"es":"jsl:'No se pudo eliminar. Inténtalo de nuevo en un momento.'","st":"manual","by":"claude-review","at":"2026-11-10","pages":["en/profile.html"],"note":"給与レポートの削除 2026-11-10"},
+  "jsl:'Deleting…'": {"es":"jsl:'Eliminando…'","st":"manual","by":"claude-review","at":"2026-11-10","pages":["en/profile.html"],"note":"給与レポートの削除 2026-11-10"},
+  "jsl:'Cancel'": {"es":"jsl:'Cancelar'","st":"manual","by":"claude-review","at":"2026-11-10","pages":["en/profile.html"],"note":"給与レポートの削除 2026-11-10"},
 };

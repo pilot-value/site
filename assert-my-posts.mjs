@@ -93,6 +93,32 @@ console.log('\n════ ソース ════');
     /* ★引けなかったときの言い方が別にある（0件と混ぜない）。 */
     ok((block.match(/if \(!reports\)/g) || []).length === 1,
        `${f} が「引けなかった」と「0件」を分けている`);
+
+    /* ★削除（2026-11-10 オーナー「自分の給与レポートを削除するところも作って。あなたが出したものの中の編集の隣あたりに」）。
+       ボタンは「編集」のすぐ隣・サーバーを呼ぶのは行の中の確かめで「消す」を押したときだけ（window.confirm は使わない）。 */
+    const code = nocomment(block);
+    ok(/const del = can \? ' <button type="button" class="mine-del" data-pay-del="/.test(code) && /\+ fix \+ del :/.test(code),
+       `★${f} の各月に「削除」のボタンがあり、「編集」のすぐ隣に並ぶ`);
+    const rpcAt = code.indexOf("sb.rpc('delete_my_pay_report'"), fnAt = code.indexOf('async function payDelete(');
+    ok((code.match(/delete_my_pay_report/g) || []).length === 1 && fnAt >= 0 && rpcAt > fnAt
+         && rpcAt < code.indexOf('\n    }', fnAt),
+       `★${f} が削除の関数を呼ぶのは payDelete の中の1か所だけ`);
+    ok((code.match(/payDelete\(/g) || []).length === 2 && /hasAttribute\('data-pay-yes'\)\) payDelete\(/.test(code),
+       `★${f} の payDelete を呼ぶのは確かめの「消す」（data-pay-yes）だけ`);
+    const delBranch = (code.match(/if \(t\.hasAttribute\('data-pay-del'\)\) \{[\s\S]*?\}/) || [''])[0];
+    ok(delBranch && !/rpc|payDelete/.test(delBranch) && /payAsk = /.test(delBranch),
+       `★${f} の「削除」は行の中に確かめを開くだけ（押しただけでは消さない）`);
+    ok(!/\bconfirm\(/.test(code), `${f} は window.confirm を使わない（行の中で確かめる）`);
+    ok(/if \(res\.closed\) \{ try \{ localStorage\.removeItem\('pv_salary_unlock_expiry'\)/.test(code) && /location\.reload\(\)/.test(code),
+       `${f} は最後の1件を消したら端末の年収の鍵を消して読み込み直す`);
+    ok(/e\.key === 'Escape'/.test(code) && /payFocus\('\[data-pay-no="'/.test(code),
+       `${f} の確かめは「やめる」にフォーカス・Esc でやめられる`);
+  }
+  {
+    /* スペイン語のページ（gen-lang.mjs が英語のページから作る）にも同じボタンが入っている＝流し忘れていない */
+    const es = nocomment(nohtml(read('./es/profile.html')));
+    ok(es.includes('class="mine-del"') && es.includes("sb.rpc('delete_my_pay_report'") && es.includes("esc('Eliminar')"),
+       '★es/profile.html にも削除のボタンが入っている（node gen-lang.mjs es を流した）');
   }
 
   /* ★口コミの投稿側。持ち主が居ないまま投稿が通ると、全員が同じ

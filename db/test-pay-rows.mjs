@@ -88,7 +88,7 @@ await db.exec(`
 
 // ── 適用（順番も含めて本番と同じ手順）────────────────────────
 const FILES = ['db/airlines.generated.sql', 'db/vocab.generated.sql',
-               'db/pay-reports.sql', 'db/pay-report-pending.sql', 'db/pay-rows.sql'];
+               'db/pay-reports.sql', 'db/pay-edit.sql', 'db/pay-report-pending.sql', 'db/pay-rows.sql'];
 
 console.log('\n▼ SQL の適用');
 for (const f of FILES) {
@@ -2616,6 +2616,16 @@ console.log('\n▼ 17. ★一覧を軽くした3つ（2026-10-31・答えは1文
                  period_year: YEAR, period_month: 2, gross_monthly: 15000 });
   const n1 = await same('給与を出したあと');
   ok(n1 === n0 + 1, '　給与を出した人が1人増えた', `${n0} → ${n1}`);
+
+  // MY PAGE の「削除」（db/pay-edit.sql・2026-11-10）でただ1件の給与を消す → 1人減る。出し直して元へ
+  await asUser(uS);
+  const rD = (await one(`select delete_my_pay_report($1, null, $2, 2) j`, [AIR[0], YEAR])).j;
+  const nD = await same('本人がただ1件の給与を消したあと');
+  ok(rD && rD.deleted === true && nD === n0, '★ただ1件の給与を消した人は人数から外れる（引き金が削除を拾った）', `${n1} → ${nD}`);
+  await asUser(uS);
+  await submit({ ...BASE, airline: AIR[0], position: 'cap', fleet: 'b777',
+                 period_year: YEAR, period_month: 2, gross_monthly: 15000 });
+  ok((await same('出し直したあと')) === n1, '　出し直せば元の人数');
 
   // 口コミに給与を書いた人（対応表に入る）→ 1人増える
   const uR = await review(AIR[1], 'captain', { ann: 1800 });

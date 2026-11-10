@@ -23,7 +23,13 @@
   ⚠️ 表示の切り替えに戻さない。⚠️ `?again=` を固定の値にしない（同じ URL への「#だけの移動」になって読み込み直さない）。
 - **もう出した月の一言**（`dupNote`・送信ボタンの上の `#dup-month`）── 同じ会社・同じ年月を出していれば「◯年◯月はもう出しています。送ると、前の内容と入れ替わります。」。
   止めない（同じ月の出し直し＝上書きが、今の正しい直し方）。行はページを開いたときの `my_pay_reports`（通信は増えない）。
-- **MY PAGE の「編集」**（profile.html の `renderMyPay`）── 各月から `pay-report.html?edit=YYYY-M&airline=CODE`（一覧にない会社は `&other=社名`）。消すボタンは作らない（オーナー）。
+- **MY PAGE の「編集」**（profile.html の `renderMyPay`）── 各月から `pay-report.html?edit=YYYY-M&airline=CODE`（一覧にない会社は `&other=社名`）。
+  ★**「削除」も隣にある**（2026-11-10 オーナー「自分の給与レポートを削除するところも作って。編集の隣あたりに」）。押すと行の中で確かめ（window.confirm は使わない）、
+  「消す」で `delete_my_pay_report`（**db/pay-edit.sql** の2章）→ 読み込み直す。サーバーが本人の鍵で引くので本人の行しか消えず、
+  消したあと profiles の件数・最新の対象月・継続を**残りの本人の行（会社をまたいで全部）**から作り直す。
+  **最後の1件を消したら REAL PAY を閉じる**（access_until → null・オーナー決定）＝画面は端末の `pv_salary_unlock_expiry` も消す。残りがあれば鍵はそのまま。
+  ⚠️ 1日の上限の数え（`pay_reports_today`）は戻さない（消して出し直すで上限を抜けさせない）。⚠️ 継続の数え方は submit の4つの枝の写し（`pv_pay_streak_of`・検算10）。
+  ⚠️ 匿名で預かってから引き取った給与は、預かりの表（`pay_reports_pending`）に引き取り済みの写しが残る（持ち主の印が無いので、本人の削除では辿れない）。
   ★2026-11-09 オーナー「二択に行くから編集できない。最後のまとめの一覧に飛んで、そこから編集させればいい」。
   フォームは `my_pay_report_one`（**db/pay-edit.sql**・本人の行だけ・pay-reports.sql の後に貼る）でその月の1行を引き、
   `editForm`（buildPayload の逆）→ `restoreInto`（上書きの形）で全部の欄に戻し、**確認の段から始める**（`loadEdit`。預かりを戻す手順と同じ

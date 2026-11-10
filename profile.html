@@ -130,6 +130,31 @@
     .mine-fix:hover{text-decoration:underline}
     .mine-fix:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px;border-radius:4px}
     .mine-fix:active{opacity:.7}
+    /* 削除（2026-11-10）── 「編集」と同じ静かな字のボタン。色だけ危ない方の赤（my-roster.css の --rs-bad と同じ値）。
+       押すとその行の中で確かめる（.mine-ask）。動かすのは transform と opacity だけ。 */
+    .mine-del{margin-left:8px;padding:0;border:0;background:none;font:inherit;font-weight:700;color:#fda29b;cursor:pointer;white-space:nowrap}
+    [data-theme="light"] .mine-del{color:#b42318}
+    .mine-del:hover{text-decoration:underline}
+    .mine-del:focus-visible{outline:2px solid currentColor;outline-offset:2px;border-radius:4px}
+    .mine-del:active{opacity:.7}
+    .mine-ask{margin-top:10px;padding:12px;border-radius:10px;background:rgba(253,162,155,.08);border:1px solid rgba(253,162,155,.28)}
+    [data-theme="light"] .mine-ask{background:rgba(180,35,24,.06);border-color:rgba(180,35,24,.24)}
+    .mine-ask p{margin:0 0 10px;font-size:.82rem;line-height:1.6;color:#c9d4e0}
+    [data-theme="light"] .mine-ask p{color:#334155}
+    .mine-ask .mine-ask-err{font-weight:700;color:#fda29b}
+    [data-theme="light"] .mine-ask .mine-ask-err{color:#b42318}
+    .mine-ask-b{display:flex;flex-wrap:wrap;gap:8px}
+    .mine-ask-b button{min-height:36px;padding:6px 16px;border-radius:9px;font:inherit;font-size:.8rem;font-weight:800;cursor:pointer;
+      transition:transform .15s cubic-bezier(.16,1,.3,1),opacity .15s}
+    .mine-ask-b button:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+    .mine-ask-b button:active{transform:translateY(1px)}
+    .mine-ask-b button:disabled{opacity:.5;cursor:default;transform:none}
+    .mine-ask-yes{background:#fda29b;border:1px solid #fda29b;color:#2a0b08}
+    [data-theme="light"] .mine-ask-yes{background:#b42318;border-color:#b42318;color:#fff}
+    .mine-ask-yes:hover{opacity:.88}
+    .mine-ask-no{background:transparent;border:1px solid rgba(255,255,255,.18);color:#c9d4e0}
+    [data-theme="light"] .mine-ask-no{border-color:rgba(0,0,0,.16);color:#334155}
+    .mine-ask-no:hover{opacity:.75}
     [data-theme="light"] .mine-body{color:#334155}
     .mine-empty{font-size:.84rem;color:#6b7d93}
     /* 匿名で出した給与レポートを拾えたときだけ出す1行（pv-claim-pending.js）。
@@ -943,13 +968,13 @@
       return s ? esc(s.slice(0, 80)) + (s.length > 80 ? '…' : '') : '';
     };
 
-    const postRow = (label, date, body) => `
+    const postRow = (label, date, body, extra) => `
         <div class="mine-row">
           <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
             <span class="mine-tag">${esc(label)}</span>
             <span class="mine-when">${esc(date)}</span>
           </div>${body ? `
-          <div class="mine-body">${body}</div>` : ''}
+          <div class="mine-body">${body}</div>` : ''}${extra || ''}
         </div>`;
 
     /* ★ null ＝引けなかった、[] ＝本当にゼロ件。ここを一緒にすると、通信や権限で
@@ -973,9 +998,23 @@
       if (!el) return;
       if (!reports) { el.textContent = '読み込めませんでした。時間をおいて開き直してください'; return; }
       if (!reports.length) { el.textContent = 'まだ出していません'; return; }
+      myPay = reports;
+      paintMyPay();
+    }
+
+    /* ★削除（2026-11-10 オーナー「自分の給与レポートを削除するところも作って。あなたが出したものの中の編集の隣あたりに」）。
+         押すとその行の中で確かめる（window.confirm は使わない）。消すのはサーバーの delete_my_pay_report（db/pay-edit.sql）だけで、
+         サーバーが本人の鍵を作り直して引くので本人の行しか消えない。
+         ★最後の1件を消すと REAL PAY は閉じる（オーナー決定）── 鍵を外すのはサーバー。ここは端末の写し（年収の鍵）を消すだけ。
+         消せたら読み込み直す（YOUR PAY・上の数字・バッジが全部いまの行から作り直される）。 */
+    let myPay = [], payAsk = -1, payBusy = false, payErr = -1, payOpen = false;
+
+    function paintMyPay() {
+      const el = document.getElementById('my-pay-list');
+      if (!el) return;
       // ★④ の一覧は金額を出さない（人に見せる場面がある）。実額は ③ YOUR PAY の中だけ。
       //   将来「金額を隠す」を入れるときは、あの1箱に hidden を掛ければ全部隠れる。
-      el.innerHTML = reports.map(r => {
+      el.innerHTML = myPay.map((r, i) => {
         const name = (r.airline === 'other' && r.airline_other) ? r.airline_other : airlineLabel(r.airline);
         const period = (r.period_year && r.period_month) ? `${r.period_year}年${r.period_month}月分` : '';
         /* ★編集の入口（2026-11-08 オーナー「提出済みの給与明細の編集のやり方がわかりづらい」）。
@@ -984,10 +1023,66 @@
              送ると同じ会社・同じ月の行が入れ替わる（サーバーの決まり）。 */
         const fixHref = 'pay-report.html?edit=' + r.period_year + '-' + r.period_month + '&airline=' + encodeURIComponent(r.airline || '') +
           ((r.airline === 'other' && r.airline_other) ? '&other=' + encodeURIComponent(r.airline_other) : '');
-        const fix = (r.airline && r.period_year && r.period_month) ? ' <a class="mine-fix" href="' + esc(fixHref) + '">編集</a>' : '';
-        return postRow(name, fmtDate(r.created_at), period ? esc(period) + 'を提出' + fix : '');
+        const can = !!(r.airline && r.period_year && r.period_month);
+        const fix = can ? ' <a class="mine-fix" href="' + esc(fixHref) + '">編集</a>' : '';
+        const del = can ? ' <button type="button" class="mine-del" data-pay-del="' + i + '"' + (payAsk === i ? ' hidden' : '') + '>削除</button>' : '';
+        return postRow(name, fmtDate(r.created_at), period ? esc(period) + 'を提出' + fix + del : '', payAsk === i ? payAskHTML(r, i) : '');
       }).join('');
     }
+
+    function payAskHTML(r, i) {
+      // ★この1件で最後・いま REAL PAY が開いている人にだけ「閉じます」と言う（言うことが本当のときだけ）
+      const last = myPay.length === 1 && payOpen;
+      return '<div class="mine-ask" role="group" aria-label="給与レポートの削除">' +
+        '<p>' + esc(r.period_year + '年' + r.period_month + '月分の給与を消します。元に戻せません。') + (last ? esc('REAL PAY は閉じます。') : '') + '</p>' +
+        (payErr === i ? '<p class="mine-ask-err" role="alert">消せませんでした。時間をおいてもう一度お試しください。</p>' : '') +
+        '<div class="mine-ask-b">' +
+          '<button type="button" class="mine-ask-yes" data-pay-yes="' + i + '"' + (payBusy ? ' disabled' : '') + '>' + (payBusy ? '消しています…' : '消す') + '</button>' +
+          '<button type="button" class="mine-ask-no" data-pay-no="' + i + '"' + (payBusy ? ' disabled' : '') + '>やめる</button>' +
+        '</div></div>';
+    }
+
+    function payFocus(sel) { const b = document.querySelector('#my-pay-list ' + sel); if (b) b.focus(); }
+    function payCancel() {
+      if (payAsk < 0 || payBusy) return;
+      const i = payAsk; payAsk = -1; payErr = -1; paintMyPay();
+      payFocus('[data-pay-del="' + i + '"]');
+    }
+    async function payDelete(i) {
+      const r = myPay[i];
+      if (!r || payBusy) return;
+      payBusy = true; payErr = -1; paintMyPay();
+      let res = null;
+      try {
+        const { data, error } = await sb.rpc('delete_my_pay_report', {
+          p_airline: r.airline, p_airline_other: r.airline === 'other' ? (r.airline_other || null) : null,
+          p_year: r.period_year, p_month: r.period_month });
+        if (!error) res = data;
+      } catch (e) {}
+      if (res && res.ok) {
+        // 最後の1件だった ＝ サーバーが REAL PAY を閉じた。端末に残る年収の鍵の写しも消す（残すと「解放中」が出続ける）
+        if (res.closed) { try { localStorage.removeItem('pv_salary_unlock_expiry'); } catch (e) {} }
+        location.reload();
+        return;
+      }
+      payBusy = false; payErr = i; paintMyPay();
+      payFocus('[data-pay-no="' + i + '"]');
+    }
+    (function () {
+      const el = document.getElementById('my-pay-list');
+      if (!el) return;
+      el.addEventListener('click', (e) => {
+        const t = e.target.closest && e.target.closest('button');
+        if (!t || !el.contains(t)) return;
+        if (t.hasAttribute('data-pay-del')) {
+          if (payBusy) return;
+          payAsk = Number(t.getAttribute('data-pay-del')); payErr = -1; paintMyPay();
+          payFocus('[data-pay-no="' + payAsk + '"]');
+        } else if (t.hasAttribute('data-pay-no')) payCancel();
+        else if (t.hasAttribute('data-pay-yes')) payDelete(Number(t.getAttribute('data-pay-yes')));
+      });
+      el.addEventListener('keydown', (e) => { if (e.key === 'Escape' && payAsk >= 0) { e.preventDefault(); payCancel(); } });
+    }());
 
     // 上の pvCheckReunlock と同じ照合結果を使う（pv-reunlock.js がキャッシュ
     // するので通信は増えない）。await しないのは、ここで詰まってもバッジや
@@ -1002,6 +1097,7 @@
         const d = window.pvMyPayReports ? await pvMyPayReports(sb, currentUser.id) : null;
         // my_pay_reports は古い順。ゼロ件でも reports は [] で返る（＝無いのは失敗のときだけ）
         if (d && Array.isArray(d.reports)) reports = d.reports.slice().reverse();
+        payOpen = !!(d && d.access_until && Date.parse(d.access_until) > Date.now());   // 削除の確かめで「閉じます」と言うかどうか
       } catch (e) {}
       await loadAirlineNames([...(revs || []).map(r => r.airline),
                               ...(reports || []).map(r => r.airline)]);
