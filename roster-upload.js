@@ -7,10 +7,15 @@
                 どれも長辺 2560px・JPEG（白で塗ってから描く ── payslip.js と同じ作り）。何月のロスターかを選ぶ（既定は先月）。
      ② 読む … 1ページずつ parse-roster へ。会員が選んだ月（hint）と、前のページの最後の2日（prev_tail）を添える。
                 ★読んでいるあいだは明細と同じ白い覆いの画面（0〜100% の輪と3つの段・止める）。失敗したら覆いを外し、箱の中に選べる道。
-     ③ 聞く … はじめての会社だけ、読み方を別の画面で聞く（実績か予定か・時刻の基準・TIME の意味・知らない勤務コード）。聞くことが無ければ出さない。
+     ③ 聞く … はじめての会社だけ、読み方を別の画面で聞く（実績か予定か・時刻の基準・TIME の意味・知らない勤務コード・
+                何も書いていない日）。★本人の答え → 会社の辞書（同じ会社の3人以上がそろえた答え・my_roster_airline_codes）の順で埋め、
+                どちらにも無いものだけ聞く。会社の辞書で埋めたものは保存のときに本人の読み方へ入る。
+                知らない言葉（'#'＋16進の印）は「勤務表の言葉 A」と出る日付で聞き、その日の見た目（cat）の多い方を選んでおく。
      ④ 確かめて直す … pv-report-engine.js の mergePages で重なり・切れ目を1日1回にまとめる。読めた日と便の時間の数、
-                      カレンダー（押すとその日を直す画面 editDay）、読めなかった日（コードを当てる・勤務を入力・空欄のまま）。
-                      ★空欄・読めなかった日は保存しない（本人が入れた日だけ送る）。
+                      カレンダー（押すとその日を直す画面 editDay）、読めなかった日（決まった5つ＋このスケジュールのコード・勤務を入力・空欄のまま）。
+                      見た目から候補があれば点線で示すだけ（押すか「この内容で決める」まで入れない）。
+                      ★空欄・読めなかった日は保存しない（本人が入れた日だけ送る）。便や時刻が読めた日は、コードが無くても送る。
+                      いちばん下に「読み取りの間違いを運営に知らせる」（直した所の種類と数だけ・日付も時刻も空港も書かない）。
      ⑤ 保存 … set_roster_profile（足りなかった答えだけ）→ submit_roster。
 
    守っていること
@@ -22,8 +27,9 @@
    ・payslip.js は直さない（PDF の部品の取り方だけ同じ形で写した）。
 
    window.PVRosterUpload = { open(box, ctx), editDay(box, day, opts) }
-     ctx = { sb, airline, other, airlineLabel, profile, done(res|null) }
-     editDay … 1日を直す画面（保存したあとも my-roster.js が借りる）。opts.onSave(day) / onCancel() / onDelete()
+     ctx = { sb, airline, other, airlineLabel, profile, learned（my_roster_airline_codes の答え・無ければ null）, done(res|null) }
+     editDay … 1日を直す画面（保存したあとも my-roster.js が借りる）。opts.onSave(day) / onCancel() / onDelete() /
+               codeLabel(c) / report:{ sb, airline, pairs(draftDay|undefined) }（運営に知らせる口・保存したあとの画面だけ）
    ════════════════════════════════════════════════════════════════ */
 (function (w) {
   'use strict';
@@ -89,7 +95,7 @@
       iMore: 'ほか {n}件',
       f: {
         code: '勤務コード', d_on: 'D-ON', d_off: 'D-OFF', 'leg.flight': '便名', 'leg.from': '出発地', 'leg.to': '到着地',
-        'leg.loc': '場所', 'leg.out': '出発時刻', 'leg.in': '到着時刻', 'leg.block': '便の時間', 'leg.role': '区分',
+        'leg.loc': '場所', 'leg.out': '出発時刻', 'leg.in': '到着時刻', 'leg.block': '便の時間',
         'leg.kind': '便の種類', 'hints.kind': '実績か予定か', 'hints.time_ref': '時刻の基準'
       },
       addMore: 'スクリーンショットを足す',
@@ -109,10 +115,9 @@
       eEdit: 'この日を直す', eAdd: 'この日を入れる',
       eKind: { operating: '乗務', deadhead: '便乗（DH）', ground: '地上', unknown: '不明' },
       eNext: '翌日', eLegs: '便・業務', eLegN: '{n}件目', eAddLeg: '便・業務を足す', eMax: '1日16件までです。',
-      eRole: '区分（任意）',
       eUse: 'この内容にする', eSave: '保存する', eDelDay: 'この日を消す', eDelQ: 'この日の勤務と便・業務を消します。', eDelYes: '消す',
       errCode: '英数字12文字まで（/ + - も使えます）', errTime: '07:35 の形で入れてください', errApt: '英数字3〜4文字です', errLoc: '英数字2〜8文字です',
-      errRole: '英数字8文字までです', errBlock: '1:35 の形で、24時間までです', errEmpty: '勤務コードか時刻を入れてください。', errFix: '直すところがあります。',
+      errBlock: '1:35 の形で、24時間までです', errEmpty: '勤務コードか時刻を入れてください。', errFix: '直すところがあります。',
       save: 'この内容で保存する（{n}日）',
       saving: '保存しています…',
       cancel: 'やめる',
@@ -120,7 +125,23 @@
       errLimit: '1日に取り込めるスケジュールの上限に達しました。明日また続きをどうぞ。',
       errBad: '読み取った内容の形が正しくありませんでした。読み取りからやり直してください。',
       errLogin: 'ログインが切れました。ページを開き直してログインしてください。',
-      errDays: '一度に保存できるのは62日までです。ひと月ずつ取り込んでください。'
+      errDays: '一度に保存できるのは62日までです。ひと月ずつ取り込んでください。',
+      /* 2026-11-10：何も書いていない日・知らない言葉・読めなかった日の候補・運営に知らせる */
+      qBlank: '勤務表で何も書いていない日は？', qBlankOff: '休み', qBlankNone: '何も無い日',
+      dlD: '{list}日', dlM: '{n}月{list}日', dlSep: '・', dlGrp: '・',
+      chipStd: { OFF: '休み', VAC: '休暇', SBY: '待機', TRN: '訓練', GND: '地上' },
+      sugApply: 'この内容で決める（{n}日）', sugA: '候補',
+      fixLink: '読み取りの間違いを運営に知らせる',
+      fixHead: '【スケジュールの読み取り】', fixAir: '会社：{a}', fixBuild: '読み取りの版：{b}', fixPages: '{n}枚',
+      fixDid: '直した所：{l}', fixNone: '直した所：なし', fixSep: '／', fixJoin: '・',
+      fixItem: '{f} {n}{u}（{s}）', fixItem2: '{f} {n}{u}', fixLegU: '便', fixDayU: '日',
+      fixEmpty: '空だった', fixWrong: '違っていた',
+      fixAddDay: '入れた日', fixDelDay: '消した日', fixAddLeg: '足した便・業務', fixDelLeg: '消した便・業務',
+      fixNote: '一言（任意・200字まで）', fixNoteReq: '何が違っていたか（200字まで）',
+      fixSend: '運営に送る', fixThanks: '運営に送りました。ありがとうございます。',
+      fixShort: '何が違っていたかを4文字以上で書いてください。', fixFast: '少し時間をおいてから、もう一度お願いします。',
+      fixLimit: '今日はここまでにしてください（1日5件まで）。', fixDup: '同じ内容を、すでに受け取っています。',
+      fixErr: '送れませんでした。時間をおいてもう一度お試しください。'
     },
     en: {
       back: 'Back to roster',
@@ -178,7 +199,7 @@
       iMore: '{n} more',
       f: {
         code: 'Duty code', d_on: 'D-ON', d_off: 'D-OFF', 'leg.flight': 'Flight number', 'leg.from': 'Origin', 'leg.to': 'Destination',
-        'leg.loc': 'Location', 'leg.out': 'Off-block time', 'leg.in': 'On-block time', 'leg.block': 'Leg time', 'leg.role': 'Duty type',
+        'leg.loc': 'Location', 'leg.out': 'Off-block time', 'leg.in': 'On-block time', 'leg.block': 'Leg time',
         'leg.kind': 'Leg type', 'hints.kind': 'Actual or planned', 'hints.time_ref': 'Time reference'
       },
       addMore: 'Add screenshots',
@@ -198,10 +219,9 @@
       eEdit: 'Edit this day', eAdd: 'Add this day',
       eKind: { operating: 'Operating', deadhead: 'Deadhead (DH)', ground: 'Ground', unknown: 'Not sure' },
       eNext: 'Next day', eLegs: 'Flights & duties', eLegN: 'Item {n}', eAddLeg: 'Add a flight or duty', eMax: 'Up to 16 per day.',
-      eRole: 'Crew position (optional)',
       eUse: 'Use this', eSave: 'Save', eDelDay: 'Delete this day', eDelQ: 'This deletes the duty and all flights for this day.', eDelYes: 'Delete',
       errCode: 'Up to 12 letters or digits (/ + - allowed)', errTime: 'Enter a time like 07:35', errApt: '3–4 letters or digits', errLoc: '2–8 letters or digits',
-      errRole: 'Up to 8 letters or digits', errBlock: 'Like 1:35, up to 24 hours', errEmpty: 'Enter a duty code or times.', errFix: 'Please fix the marked fields.',
+      errBlock: 'Like 1:35, up to 24 hours', errEmpty: 'Enter a duty code or times.', errFix: 'Please fix the marked fields.',
       save: 'Save ({n} days)',
       saving: 'Saving…',
       cancel: 'Cancel',
@@ -209,7 +229,22 @@
       errLimit: 'You have reached today’s roster import limit. Please continue tomorrow.',
       errBad: 'What was read was not in a valid shape. Please read the roster again.',
       errLogin: 'Your login has expired. Reload the page and log in again.',
-      errDays: 'Up to 62 days can be saved at once. Please import one month at a time.'
+      errDays: 'Up to 62 days can be saved at once. Please import one month at a time.',
+      qBlank: 'Days with nothing printed are…', qBlankOff: 'Day off', qBlankNone: 'Nothing (don’t save)',
+      dlD: '{s} {list}', dlM: '{s} {list}', dlSep: ', ', dlGrp: '; ',
+      chipStd: { OFF: 'Off', VAC: 'Leave', SBY: 'Standby', TRN: 'Training', GND: 'Ground' },
+      sugApply: 'Apply these ({n} days)', sugA: 'suggested',
+      fixLink: 'Report a reading mistake',
+      fixHead: '[Roster reading] ', fixAir: 'Airline: {a}', fixBuild: 'Reader build: {b}', fixPages: 'Pages: {n}',
+      fixDid: 'Corrected: {l}', fixNone: 'Corrected: nothing', fixSep: ' / ', fixJoin: ', ',
+      fixItem: '{f}: {n} ({s})', fixItem2: '{f}: {n}', fixLegU: '', fixDayU: '',
+      fixEmpty: 'was blank', fixWrong: 'was wrong',
+      fixAddDay: 'Days added', fixDelDay: 'Days deleted', fixAddLeg: 'Legs & duties added', fixDelLeg: 'Legs & duties removed',
+      fixNote: 'Comment (optional, up to 200 characters)', fixNoteReq: 'What was wrong (up to 200 characters)',
+      fixSend: 'Send to the team', fixThanks: 'Sent to the team. Thank you.',
+      fixShort: 'Please describe what was wrong (at least 4 characters).', fixFast: 'Please wait a moment and try again.',
+      fixLimit: 'That is enough for today (5 per day).', fixDup: 'We have already received the same report.',
+      fixErr: 'Could not send. Please try again in a moment.'
     }, /*PV-MSG:es*/ es: {
       back: 'Volver a la programación',
       h: 'Importa tu programación',
@@ -266,7 +301,7 @@
       iMore: '{n} más',
       f: {
         code: 'Código de servicio', d_on: 'D-ON', d_off: 'D-OFF', 'leg.flight': 'Número de vuelo', 'leg.from': 'Origen', 'leg.to': 'Destino',
-        'leg.loc': 'Lugar', 'leg.out': 'Hora off-block', 'leg.in': 'Hora on-block', 'leg.block': 'Tiempo del tramo', 'leg.role': 'Tipo de actividad',
+        'leg.loc': 'Lugar', 'leg.out': 'Hora off-block', 'leg.in': 'Hora on-block', 'leg.block': 'Tiempo del tramo',
         'leg.kind': 'Tipo de tramo', 'hints.kind': 'Real o planificada', 'hints.time_ref': 'Referencia horaria'
       },
       addMore: 'Agregar capturas',
@@ -286,10 +321,9 @@
       eEdit: 'Corregir este día', eAdd: 'Agregar este día',
       eKind: { operating: 'Operando', deadhead: 'Deadhead (DH)', ground: 'En tierra', unknown: 'No sé' },
       eNext: 'Día siguiente', eLegs: 'Vuelos y servicios', eLegN: 'Elemento {n}', eAddLeg: 'Agregar un vuelo o servicio', eMax: 'Hasta 16 por día.',
-      eRole: 'Posición en la tripulación (opcional)',
       eUse: 'Usar esto', eSave: 'Guardar', eDelDay: 'Eliminar este día', eDelQ: 'Esto elimina el servicio y todos los vuelos de este día.', eDelYes: 'Eliminar',
       errCode: 'Hasta 12 letras o dígitos (se permiten / + -)', errTime: 'Ingresa una hora como 07:35', errApt: '3–4 letras o dígitos', errLoc: '2–8 letras o dígitos',
-      errRole: 'Hasta 8 letras o dígitos', errBlock: 'Como 1:35, hasta 24 horas', errEmpty: 'Ingresa un código de servicio o las horas.', errFix: 'Corrige los campos marcados.',
+      errBlock: 'Como 1:35, hasta 24 horas', errEmpty: 'Ingresa un código de servicio o las horas.', errFix: 'Corrige los campos marcados.',
       save: 'Guardar ({n} días)',
       saving: 'Guardando…',
       cancel: 'Cancelar',
@@ -297,7 +331,22 @@
       errLimit: 'Alcanzaste el límite de importaciones de hoy. Continúa mañana.',
       errBad: 'Lo leído no tiene un formato válido. Vuelve a leer la programación.',
       errLogin: 'Tu sesión expiró. Vuelve a cargar la página e inicia sesión de nuevo.',
-      errDays: 'Se pueden guardar hasta 62 días a la vez. Importa un mes a la vez.'
+      errDays: 'Se pueden guardar hasta 62 días a la vez. Importa un mes a la vez.',
+      qBlank: 'Los días sin nada impreso son…', qBlankOff: 'Día libre', qBlankNone: 'Nada (no se guardan)',
+      dlD: '{list} {s}', dlM: '{list} {s}', dlSep: ', ', dlGrp: '; ',
+      chipStd: { OFF: 'Libre', VAC: 'Vacaciones', SBY: 'Standby', TRN: 'Entrenamiento', GND: 'Tierra' },
+      sugApply: 'Aplicar estos ({n} días)', sugA: 'sugerido',
+      fixLink: 'Informar un error de lectura',
+      fixHead: '[Lectura de la programación] ', fixAir: 'Aerolínea: {a}', fixBuild: 'Versión del lector: {b}', fixPages: 'Páginas: {n}',
+      fixDid: 'Corregido: {l}', fixNone: 'Corregido: nada', fixSep: ' / ', fixJoin: ', ',
+      fixItem: '{f}: {n} ({s})', fixItem2: '{f}: {n}', fixLegU: '', fixDayU: '',
+      fixEmpty: 'estaba vacío', fixWrong: 'estaba mal',
+      fixAddDay: 'Días agregados', fixDelDay: 'Días eliminados', fixAddLeg: 'Tramos y actividades agregados', fixDelLeg: 'Tramos y actividades eliminados',
+      fixNote: 'Comentario (opcional, hasta 200 caracteres)', fixNoteReq: 'Qué estaba mal (hasta 200 caracteres)',
+      fixSend: 'Enviar al equipo', fixThanks: 'Enviado al equipo. Gracias.',
+      fixShort: 'Describe qué estaba mal (al menos 4 caracteres).', fixFast: 'Espera un momento e inténtalo de nuevo.',
+      fixLimit: 'Es suficiente por hoy (5 por día).', fixDup: 'Ya recibimos el mismo reporte.',
+      fixErr: 'No se pudo enviar. Inténtalo de nuevo en un momento.'
     } /*/PV-MSG:es*/
   };
   var T_ALL = T;
@@ -690,6 +739,7 @@
       .then(function (res) {
         if (!U) return;
         if (res && res.ok && res.roster) U.cache[key] = res.roster;   // 止めたあとに届いた答えも取っておく（読み直しの費用を出さない）
+        if (res && typeof res.build === 'string' && /^[0-9A-Za-z.\-]{1,20}$/.test(res.build)) U.build = res.build;   // 運営に知らせるときの「読み取りの版」
         if (run !== U.run || run.stop) return;
         if (res && res.ok && res.roster) {
           run.out[k] = res.roster;
@@ -711,18 +761,7 @@
     var got = run.out.filter(Boolean);
     if (!got.length) { loadClose(); U.step = 'pick'; U.err = T.noneRead; render(); focusHead(); return; }
     loadStep(2);
-    U.merged = R.mergePages(got);
-    U.pagesSent = run.n;
-    /* 読めたまま（本人が直す前）を残す：「空欄のまま」で戻す先・読めなかった日の一覧の元 */
-    U.base = {};
-    U.merged.days.forEach(function (x) { U.base[x.date] = clone(x); });
-    U.baseIssues = clone(U.merged.issues);
-    /* スクリーンショットを足して読み直しても、本人が直した日はそのまま（本人が入れたものが勝つ） */
-    Object.keys(U.edits).forEach(function (dt) { applyEdit(dt, U.edits[dt]); });
-    var cv = coverage(Object.keys(U.base).map(function (k) { return U.base[k]; }), U.merged.period);
-    U.range = cv.range;
-    U.missing = cv.missing;
-    prefill();
+    prepare(R.mergePages(got), run.n);
     var to = needAsk() ? 'ask' : 'check';
     loadDone(function () {
       if (!U) return;
@@ -732,17 +771,71 @@
       focusHead(true);
     });
   }
+  /* 読み取ってまとめた1本（mergePages の答え）を、確かめる画面の状態にする（検査 db/test-roster-ui.mjs もここを通す） */
+  function prepare(M, pages) {
+    U.merged = M;
+    U.pagesSent = pages;
+    /* 読めたまま（本人が直す前）を残す：「空欄のまま」で戻す先・読めなかった日の一覧の元・運営に知らせるときの比べる元 */
+    U.base = {};
+    U.merged.days.forEach(function (x) { U.base[x.date] = clone(x); });
+    U.baseIssues = clone(U.merged.issues || []);
+    U.merged.issues = U.merged.issues || [];
+    /* スクリーンショットを足して読み直しても、本人が直した日はそのまま（本人が入れたものが勝つ） */
+    Object.keys(U.edits).forEach(function (dt) { applyEdit(dt, U.edits[dt]); });
+    var cv = coverage(Object.keys(U.base).map(function (k) { return U.base[k]; }), U.merged.period);
+    U.range = cv.range;
+    U.missing = cv.missing;
+    /* 知らない言葉の印に A・B…（読み直しても同じ印は同じ字のまま） */
+    U.merged.days.forEach(function (x) { if (x && P.isTok(x.code)) tokName(x.code); });
+    prefill();
+    applyBlank();
+  }
+  /* 会社の辞書（同じ会社の3人以上がそろえた答え）。形の合わないものは捨てる。届かなければ空（読み取りの途中で届けば、その答えから使う） */
+  function learned() {
+    var j = U.ctx.learned, o = { codes: {} };
+    if (j && typeof j === 'object' && j.ok !== false) {
+      if (/^(actual|planned)$/.test(j.kind)) o.kind = j.kind;
+      if (/^(local|utc)$/.test(j.time_ref)) o.time_ref = j.time_ref;
+      if (/^(block|flight|other)$/.test(j.time_meaning)) o.time_meaning = j.time_meaning;
+      if (/^(off|none)$/.test(j.blank)) o.blank = j.blank;
+      var c = j.codes && typeof j.codes === 'object' ? j.codes : {};
+      Object.keys(c).slice(0, 200).forEach(function (k) {
+        var kk = P.canon(k);
+        if ((RX_CODE.test(kk) || P.isTok(kk)) && CODE_OPTS.indexOf(c[k]) >= 0 && c[k] !== 'unknown') o.codes[kk] = c[k];
+      });
+    }
+    return o;
+  }
   /* 原本に印字があった「実績か予定か」「時刻の基準」と、意味の決まった勤務コードは、選んだ状態で出す（本人は変えられる）。
+     ★会社の辞書にある答えは、聞かずにそのまま入れる（保存のときに本人の読み方へ）。
+     ★知らないコードは、決まった形（OFF・VAC…）→ その日の見た目（cat）の多い方の順で選んでおく（聞く画面で本人が見る）。
      ★答えはスクリーンショットを足して読み直しても消さない（前は読み直すたびに空に戻っていた）。 */
   function prefill() {
-    var h = U.merged.hints || {}, pr = U.ctx.profile || {}, a = U.answers;
+    var h = U.merged.hints || {}, pr = U.ctx.profile || {}, lr = learned(), a = U.answers;
+    ['kind', 'time_ref', 'time_meaning', 'blank'].forEach(function (k) { if (!pr[k] && !a[k] && lr[k]) a[k] = lr[k]; });
     if (!pr.kind && !a.kind && h.kind) { a.kind = h.kind; U.printed.kind = true; }
     if (!pr.time_ref && !a.time_ref && h.time_ref) { a.time_ref = h.time_ref; U.printed.time_ref = true; }
+    a.codes = a.codes || {};
     unknownCodes().forEach(function (c) {
-      var k = STD_CODE(c);
-      a.codes = a.codes || {};
-      if (k && !(c in a.codes)) a.codes[c] = k;
+      if (c in a.codes) return;
+      var k = lr.codes[c] || STD_CODE(c) || catGuess(c);
+      if (k) a.codes[c] = k;
     });
+  }
+  /* その日の見た目（parse-roster の cat）→ 勤務コードの意味／読めなかった日に当てる決まったコード */
+  var CAT_MEAN = { off: 'off', leave: 'vac', standby: 'standby', training: 'training', ground: 'ground', duty: 'duty' };
+  var CAT_CHIP = { off: 'OFF', leave: 'VAC', standby: 'SBY', training: 'TRN', ground: 'GND' };
+  var STD_CHIPS = ['OFF', 'VAC', 'SBY', 'TRN', 'GND'];
+  /* そのコードの日の見た目でいちばん多いもの（同数なら選ばない）。病欠・その他・空欄・不明は選ばない */
+  function catGuess(c) {
+    var n = {};
+    Object.keys(U.base).forEach(function (dt) {
+      var x = U.base[dt];
+      if (x && x.code && P.canon(x.code) === c && typeof x.cat === 'string') n[x.cat] = (n[x.cat] || 0) + 1;
+    });
+    var ks = Object.keys(n).sort(function (a, b) { return n[b] - n[a]; });
+    if (!ks.length || (ks.length > 1 && n[ks[0]] === n[ks[1]])) return null;
+    return CAT_MEAN[ks[0]] || null;
   }
 
   /* 決まった勤務コード → 意味（あらかじめ選んでおくだけ・保存は本人が「保存する」を押したとき）。 */
@@ -756,24 +849,80 @@
     return null;
   }
 
+  /* ── 何も書いていない日（日付だけ印字されていた日）────────────────
+     本人の読み方の blank（無ければ会社の辞書・この取り込みの答え）が 'off' なら OFF の日として送る。'none' は送らない（今まで通り）。
+     ★本人が直した日はそのまま。自動で入れた日には filled の印（直した数にも、知らないコードにも数えない）。 */
+  function blankMode() { var pr = U.ctx.profile || {}; return pr.blank || U.answers.blank || null; }
+  function isBlankDay(dt) { var b = U.base[dt]; return !!(b && b.cat === 'blank' && empty(b)); }
+  function blankDates() {
+    return Object.keys(U.base).filter(function (dt) {
+      return isBlankDay(dt) && (!U.range || (dt >= U.range.from && dt <= U.range.to));
+    }).sort();
+  }
+  function applyBlank() {
+    var M = U.merged, mode = blankMode(), any = false;
+    blankDates().forEach(function (dt) {
+      if (U.edits[dt]) return;
+      var i = M.days.map(function (x) { return x.date; }).indexOf(dt), b = U.base[dt];
+      if (mode === 'off') {
+        var nd = { date: dt, code: 'OFF', d_on: null, d_off: null, d_off_day: 0, legs: [], cat: 'blank', filled: 'blank', page: b.page || null, row: b.row || null };
+        if (i >= 0) M.days[i] = nd; else M.days.push(nd);
+        any = true;
+      } else if (i >= 0 && M.days[i].filled) M.days[i] = clone(b);
+    });
+    if (any) {
+      var pr = U.ctx.profile || {}, a = U.answers;
+      a.codes = a.codes || {};
+      if (!(pr.codes || {}).OFF && !a.codes.OFF) a.codes.OFF = 'off';   // 自分で入れた OFF の意味（保存のときに本人の読み方へ）
+      M.days.sort(function (x, y) { return x.date < y.date ? -1 : x.date > y.date ? 1 : 0; });
+    }
+  }
+
   /* ── 確かめる ─────────────────────────────────────────────── */
   function draftProfile() {
     var pr = U.ctx.profile || {}, a = U.answers, codes = {};
     Object.keys(pr.codes || {}).forEach(function (k) { codes[k] = pr.codes[k]; });
     Object.keys(a.codes || {}).forEach(function (k) { if (a.codes[k]) codes[k] = a.codes[k]; });
     return { kind: pr.kind || a.kind || null, time_ref: pr.time_ref || a.time_ref || null, tz: pr.tz || null,
-             time_meaning: pr.time_meaning || a.time_meaning || null, codes: codes };
+             time_meaning: pr.time_meaning || a.time_meaning || null, blank: blankMode(), codes: codes };
   }
+  /* 本人の読み方で意味の決まっていないコード（会社の辞書で埋まるものも含む・印は小文字にそろえる）。
+     自動で入れた OFF（何も書いていない日）は数えない */
   function unknownCodes() {
-    var pr = U.ctx.profile || {}, months = R.rosterMonths(U.merged.days, { codes: pr.codes || {} }), seen = {}, out = [];
-    months.forEach(function (m) { (m.unclassifiedCodes || []).forEach(function (c) { if (!seen[c]) { seen[c] = 1; out.push(c); } }); });
+    var pr = U.ctx.profile || {}, days = U.merged.days.filter(function (x) { return !x.filled; });
+    var months = R.rosterMonths(days, { codes: pr.codes || {} }), seen = {}, out = [];
+    months.forEach(function (m) { (m.unclassifiedCodes || []).forEach(function (c) { c = P.canon(c); if (!seen[c]) { seen[c] = 1; out.push(c); } }); });
     return out.slice(0, 40);
+  }
+  /* 知らない言葉の印 → 「勤務表の言葉 A」。字は出てきた順に A・B…（印そのもの '#…' は画面に出さない） */
+  function tokName(c) {
+    var k = P.canon(c);
+    if (!(k in U.tok)) U.tok[k] = P.letter(Object.keys(U.tok).length);
+    return P.tokName(k, U.tok);
+  }
+  function codeShow(c) { return P.isTok(c) ? tokName(c) : c; }
+  /* 日付の並び（「16・17・24日」・月をまたげば「10月31日・11月1日」）。8日を超えたら … */
+  function datesLabel(dates) {
+    var ds = dates.slice().sort(), more = ds.length > 8, groups = [], by = {};
+    ds.slice(0, 8).forEach(function (dt) {
+      var ym = dt.slice(0, 7);
+      if (!by[ym]) { by[ym] = []; groups.push(ym); }
+      by[ym].push(+dt.slice(8, 10));
+    });
+    return groups.map(function (ym) {
+      var m = +ym.slice(5, 7);
+      return fill(groups.length > 1 ? T.dlM : T.dlD, { n: m, s: P.T.monS[m - 1], list: by[ym].join(T.dlSep) });
+    }).join(T.dlGrp) + (more ? '…' : '');
+  }
+  function codeDates(c) {
+    return U.merged.days.filter(function (x) { return x.code && !x.filled && P.canon(x.code) === c; }).map(function (x) { return x.date; });
   }
   function showVal(v) { return String(v).replace(/\+0$/, function () { return ''; }).replace(/\+(\d)$/, function (m, n) { return ' (+' + n + ')'; }); }
   function chosenOf(it) {
     var dy = U.merged.days.filter(function (x) { return x.date === it.date; })[0];
     if (!dy || !it.field) return null;
-    if (it.field === 'code' || it.field === 'd_on') return dy[it.field];
+    if (it.field === 'code') return dy.code ? codeShow(dy.code) : null;
+    if (it.field === 'd_on') return dy.d_on;
     if (it.field === 'd_off') return dy.d_off ? dy.d_off + (dy.d_off_day ? ' (+' + dy.d_off_day + ')' : '') : null;
     if (it.field.indexOf('leg.') === 0 && it.leg) {
       var f = it.field.slice(4), lg = (dy.legs || []).filter(function (l) { return l.flight === it.leg.flight && l.out === it.leg.out; })[0];
@@ -793,7 +942,8 @@
       if (it.type === 'incomplete') list.push(fill(T.iCut, { d: dt }));
       else if (it.type === 'conflict') {
         var u = chosenOf(it);
-        list.push(fill(T.iConf, { d: dt, f: T.f[it.field] || it.field, v: (it.values || []).map(showVal).join(' / ') }) + (u ? ' ' + fill(T.iUse, { u: u }) : ''));
+        var vs = (it.values || []).map(function (v) { return it.field === 'code' && v != null ? codeShow(String(v)) : showVal(v); });
+        list.push(fill(T.iConf, { d: dt, f: T.f[it.field] || it.field, v: vs.join(' / ') }) + (u ? ' ' + fill(T.iUse, { u: u }) : ''));
       }
       else if (it.type === 'partial_leg') list.push(fill(T.iPart, { d: dt, n: it.seq }));
       else if (it.type === 'ambiguous_leg') list.push(fill(T.iAmb, { d: dt }));
@@ -806,7 +956,13 @@
       (list.length > shown.length ? '<li class="ru-more">' + esc(fill(T.iMore, { n: list.length - shown.length })) + '</li>' : '') + '</ul>' +
       (cut ? '<button type="button" class="rs-btn is-ghost" data-u="more">' + esc(T.addMore) + '</button>' : '') + '</section>';
   }
-  function empty(x) { return !x || R.helpers.dayEmpty(x); }
+  /* 中身の無い日。★読めなかった印（unread）・空欄の印（blank）が付いていても、便や時刻が読めていれば中身がある日（コードが無いだけ）。
+     中身の決め方は pv-report-engine.js の dayEmpty（印を外して聞く） */
+  function empty(x) {
+    if (!x) return true;
+    if (x.unread || x.blank) { var y = {}; Object.keys(x).forEach(function (k) { if (k !== 'unread' && k !== 'blank') y[k] = x[k]; }); x = y; }
+    return R.helpers.dayEmpty(x);
+  }
   function dayAt(date) { return U.merged ? U.merged.days.filter(function (x) { return x.date === date; })[0] || null : null; }
   function addDays(date, k) {
     var x = new Date(Date.UTC(+date.slice(0, 4), +date.slice(5, 7) - 1, +date.slice(8, 10) + k));
@@ -835,9 +991,37 @@
   }
   /* いま（本人が直したあと）の読めなかった日：読み取ったときの範囲の中だけ */
   function missingNow() {
-    var out = [];
-    if (U.range) eachDate(U.range.from, U.range.to, function (dt) { if (empty(dayAt(dt))) out.push(dt); });
+    var out = [], m = blankMode();
+    if (U.range) eachDate(U.range.from, U.range.to, function (dt) { if (empty(dayAt(dt)) && !(m && isBlankDay(dt))) out.push(dt); });
     return out;
+  }
+  /* 「読めなかった日」の一覧に並べる日：読み取ったときに中身の無かった日（何も書いていない日は、答えがあれば並べない） */
+  function missRows() {
+    var m = blankMode();
+    return U.missing.filter(function (dt) { return !(m && isBlankDay(dt)); });
+  }
+  /* 当てはめる札：決まった5つ（OFF・VAC・SBY・TRN・GND）＋ このスケジュールのコード（同じものは1つ） */
+  function fillChips() {
+    var out = STD_CHIPS.slice();
+    rosterCodes(true).forEach(function (c) { if (out.indexOf(c) < 0) out.push(c); });
+    return out;
+  }
+  function chipLabel(c) { return STD_CHIPS.indexOf(c) >= 0 ? T.chipStd[c] : codeShow(c); }
+  /* その日の見た目からの候補（まだ空の日だけ）。入れるのは本人が押したときだけ */
+  function sugOf(dt) {
+    var b = U.base[dt];
+    return b && empty(dayAt(dt)) && typeof b.cat === 'string' ? (CAT_CHIP[b.cat] || null) : null;
+  }
+  function sugRows() { return missRows().filter(function (dt) { return !!sugOf(dt); }); }
+  /* 札で1日を入れる（決まった5つは意味も分かる＝本人の読み方に足す） */
+  function fillCode(dt, c) {
+    applyEdit(dt, { date: dt, code: c, d_on: null, d_off: null, d_off_day: 0, legs: [] });
+    var std = STD_CHIPS.indexOf(c) >= 0 ? STD_CODE(c) : null, pr = U.ctx.profile || {}, a = U.answers;
+    if (std && !(pr.codes || {})[c]) {
+      a.codes = a.codes || {};
+      if (!a.codes[c]) a.codes[c] = std;
+      U.seen[c] = 1;                 // 自分で選んだ札のコードで、聞く画面に戻さない
+    }
   }
   /* このスケジュールに出てくる勤務コード（多い順）。codeOnly：時刻も便も無い日のコードだけ（空欄の日に当てはめる候補） */
   function rosterCodes(codeOnly) {
@@ -856,7 +1040,7 @@
       var nd = clone(day);
       nd.date = date; nd.edited = true;
       nd.page = (old && old.page) || null; nd.row = (old && old.row) || null;
-      delete nd.blank; delete nd.unread; delete nd.cut;
+      delete nd.blank; delete nd.unread; delete nd.cut; delete nd.filled;
       U.edits[date] = clone(nd);
       if (i >= 0) M.days[i] = nd; else M.days.push(nd);
       M.issues = M.issues.filter(function (x) { return x.date !== date; });
@@ -869,21 +1053,30 @@
         .concat(U.baseIssues.filter(function (x) { return x.date === date; }));
     }
     M.days.sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+    if (!day && isBlankDay(date)) applyBlank();
   }
 
   /* ── はじめに聞く（その会社で初めてのときだけ・分からないものだけ）──────── */
   var CODE_OPTS = ['off', 'vac', 'standby', 'training', 'ground', 'duty', 'unknown'];
   function asks() {
-    var pr = U.ctx.profile || {};
-    return { kind: !pr.kind, ref: !pr.time_ref, mean: !pr.time_meaning, codes: unknownCodes() };
+    var pr = U.ctx.profile || {}, lr = learned();
+    return { kind: !pr.kind && !lr.kind, ref: !pr.time_ref && !lr.time_ref, mean: !pr.time_meaning && !lr.time_meaning,
+             blank: !pr.blank && !lr.blank && blankDates().length > 0,
+             codes: unknownCodes().filter(function (c) { return !lr.codes[c]; }) };
   }
   function needAsk() {
     var q = asks();
-    if (!q.kind && !q.ref && !q.mean && !q.codes.length) return false;
+    if (!q.kind && !q.ref && !q.mean && !q.blank && !q.codes.length) return false;
     if (!U.asked) return true;
+    if (q.blank && !U.seen['@blank']) return true;               // 足したスクリーンショットで、何も書いていない日が初めて出たとき
     return q.codes.some(function (c) { return !U.seen[c]; });   // 足したスクリーンショットで新しいコードが出たときだけ聞き直す
   }
-  function markAsked() { U.asked = true; asks().codes.forEach(function (c) { U.seen[c] = 1; }); }
+  function markAsked() {
+    var q = asks();
+    U.asked = true;
+    q.codes.forEach(function (c) { U.seen[c] = 1; });
+    if (q.blank) U.seen['@blank'] = 1;
+  }
   function chipsHTML(q, cur, opts, c) {
     return '<div class="ru-chips">' + opts.map(function (o) {
       var on = cur === o[0];
@@ -899,11 +1092,15 @@
     if (q.kind) h += qSet(T.qKind, chipsHTML('kind', a.kind, [['actual', T.qKindA], ['planned', T.qKindP]]), U.printed.kind);
     if (q.ref) h += qSet(T.qRef, chipsHTML('ref', a.time_ref, [['local', T.qRefL], ['utc', T.qRefU]]), U.printed.time_ref);
     if (q.mean) h += qSet(T.qMean, chipsHTML('mean', a.time_meaning, [['block', T.qMeanB], ['flight', T.qMeanF], ['other', T.qMeanO]]));
+    if (q.blank) h += qSet(T.qBlank, '<p class="ru-qs ru-dl">' + esc(datesLabel(blankDates())) + '</p>' +
+      chipsHTML('blank', a.blank, [['off', T.qBlankOff], ['none', T.qBlankNone]]));
     if (q.codes.length) {
       var opts = CODE_OPTS.map(function (o) { return [o, T.codeOpt[o]]; });
       h += '<fieldset class="ru-q"><legend>' + esc(T.qCodes) + '</legend><p class="ru-qs">' + esc(T.qCodesS) + '</p><div class="ru-codes">' +
         q.codes.map(function (c) {
-          return '<div class="ru-code" role="group" aria-label="' + esc(c) + '"><span class="rs-tag">' + esc(c) + '</span>' +
+          var tok = P.isTok(c), nm = codeShow(c);
+          return '<div class="ru-code" role="group" aria-label="' + esc(nm) + '"><div class="ru-code-h"><span class="rs-tag">' + esc(nm) + '</span>' +
+            (tok ? '<span class="ru-qs">' + esc(datesLabel(codeDates(c))) + '</span>' : '') + '</div>' +
             chipsHTML('code', (a.codes || {})[c] || '', opts, c) + '</div>';
         }).join('') + '</div></fieldset>';
     }
@@ -917,7 +1114,8 @@
     if (q === 'kind') { a.kind = v; U.printed.kind = false; }
     else if (q === 'ref') { a.time_ref = v; U.printed.time_ref = false; }
     else if (q === 'mean') a.time_meaning = v;
-    else if (q === 'code') (a.codes = a.codes || {})[t.getAttribute('data-c')] = v;
+    else if (q === 'blank') { a.blank = v; applyBlank(); }
+    else if (q === 'code') (a.codes = a.codes || {})[P.canon(t.getAttribute('data-c'))] = v;
     [].forEach.call(t.parentNode.querySelectorAll('.ru-chip'), function (b) {
       var on = b === t;
       b.classList.toggle('is-on', on);
@@ -931,8 +1129,8 @@
 
   /* ── 確かめて直す ──────────────────────────────────────────── */
   function sumHTML() {
-    var dn = 0, dm = 0, bn = 0, bm = 0;
-    if (U.range) eachDate(U.range.from, U.range.to, function (dt) { dm++; if (!empty(dayAt(dt))) dn++; });
+    var dn = 0, dm = 0, bn = 0, bm = 0, bk = blankMode();
+    if (U.range) eachDate(U.range.from, U.range.to, function (dt) { dm++; if (!empty(dayAt(dt)) || (bk && isBlankDay(dt))) dn++; });
     R.rosterMonths(U.merged.days, draftProfile()).forEach(function (m) {
       m.days.forEach(function (x) { x.legs.forEach(function (l) { if (l.kind !== 'ground') { bm++; if (l.blockMin != null) bn++; } }); });
     });
@@ -961,24 +1159,28 @@
     var s = [];
     if (x.d_on || x.d_off) s.push((x.d_on || '—') + '–' + (x.d_off || '—') + (x.d_off_day ? ' (+' + x.d_off_day + ')' : ''));
     if ((x.legs || []).length) s.push(fill(T.legsN, { n: x.legs.length }));
-    return (x.code ? x.code + (s.length ? ' · ' : '') : '') + s.join(' · ');
+    return (x.code ? codeShow(x.code) + (s.length ? ' · ' : '') : '') + s.join(' · ');
   }
   function missHTML() {
-    if (!U.missing.length) return '';
-    var codes = rosterCodes(true);
-    var rows = U.missing.map(function (dt) {
+    var list = missRows();
+    if (!list.length) return '';
+    var codes = fillChips(), nSug = sugRows().length;
+    var rows = list.map(function (dt) {
       var x = dayAt(dt), st = empty(x) ? 'blank' : (x.code && !x.d_on && !x.d_off && !(x.legs || []).length && codes.indexOf(x.code) >= 0) ? 'code' : 'duty';
+      var sug = st === 'blank' ? sugOf(dt) : null;
       var chip = function (u, label, on, c) {
-        return '<button type="button" class="ru-chip' + (on ? ' is-on' : '') + '" data-u="' + u + '" data-id="' + dt + '"' + (c ? ' data-c="' + esc(c) + '"' : '') +
-          ' aria-pressed="' + on + '">' + esc(label) + '</button>';
+        var sg = !on && c != null && c === sug;     // 候補：点線で示すだけ（押すまで入れない）
+        return '<button type="button" class="ru-chip' + (on ? ' is-on' : sg ? ' is-sug' : '') + '" data-u="' + u + '" data-id="' + dt + '"' + (c ? ' data-c="' + esc(c) + '"' : '') +
+          ' aria-pressed="' + on + '"' + (sg ? ' aria-label="' + esc(label + ' · ' + T.sugA) + '"' : '') + '>' + esc(label) + '</button>';
       };
       return '<li class="ru-miss-r"><div class="ru-miss-d"><b>' + esc(fmtDate(dt)) + '</b>' + (st === 'duty' ? '<span>' + esc(daySum(x)) + '</span>' : '') + '</div>' +
         '<div class="ru-chips is-sm" role="group" aria-label="' + esc(fmtDate(dt)) + '">' +
-          codes.map(function (c) { return chip('fill', c, st === 'code' && x.code === c, c); }).join('') +
+          codes.map(function (c) { return chip('fill', chipLabel(c), st === 'code' && x.code === c, c); }).join('') +
           chip('fillduty', T.missDuty, st === 'duty') + chip('fillblank', T.missBlank, st === 'blank') +
         '</div></li>';
     }).join('');
     return '<section class="ru-card ru-miss"><div class="ru-card-h"><h3 class="ru-h3">' + esc(T.missH) + '</h3><span class="ru-qs">' + esc(T.missS) + '</span></div>' +
+      (nSug ? '<button type="button" class="rs-btn ru-sugall" data-u="sugall">' + esc(fill(T.sugApply, { n: nSug })) + '</button>' : '') +
       '<ul class="ru-miss-l">' + rows + '</ul></section>';
   }
   function sendDays() { return U.merged.days.map(stripDay).filter(Boolean); }
@@ -994,14 +1196,19 @@
         (cut ? '' : '<button type="button" class="rs-btn is-ghost" data-u="more"' + dis + '>' + esc(T.addMore) + '</button>') +   // 切れた日があれば、足すボタンはその説明の横だけ
         '<button type="button" class="rs-btn is-ghost" data-u="cancel"' + dis + '>' + esc(T.cancel) + '</button>' +
         (U.asked ? '<button type="button" class="ru-tbtn" data-u="prev"' + dis + '>' + esc(T.prevStep) + '</button>' : '') +
-      '</div>';
+      '</div>' + fixHTML(U.fix, 'data-u', checkFix());
+  }
+  /* 運営に知らせる：読めたまま（U.base）と本人が直した日（U.edits）を比べる */
+  function checkFix() {
+    return fixSummary(Object.keys(U.edits).sort().map(function (dt) { return { b: U.base[dt] || null, a: dayAt(dt) }; }),
+      { airline: U.ctx.airlineLabel, build: U.build, pages: U.pagesSent });
   }
   function openEditor(date, from) {
     if (!date || !U.merged) return;
     var x = dayAt(date);
     U.step = 'edit';
     editDay(U.box, x ? clone(x) : { date: date, legs: [] }, {
-      mode: 'draft', codes: rosterCodes(false),
+      mode: 'draft', codes: rosterCodes(false), codeLabel: codeShow,
       onSave: function (day) { applyEdit(date, day); closeEditor(date, from); },
       onCancel: function () { closeEditor(date, from); }
     });
@@ -1018,16 +1225,141 @@
     try { c.scrollIntoView({ block: 'center' }); } catch (e) {}
   }
 
+  /* ── 読み取りの間違いを運営に知らせる（2026-11-10 オーナー「会員が直してほしいと送れるように」）──────────
+     ★送るのは「どの種類を何件直したか」の数だけ＋本人の一言（任意・200字）。日付・時刻・空港・便名・勤務コードの字・
+       読み取りの印は1文字も入れない（読み取りの版・会社・ページ数は入れる）。要望の口 pv_request_submit に、運営だけが見る形（p_private）で。
+     比べる元は「読み取ったまま」（確認の画面は U.base・保存したあとはこの回で直す前の行）と、本人が直したあと。 */
+  var FIX_LEG = ['block', 'out', 'in', 'from', 'to', 'loc', 'kind'];
+  var FIX_ORDER = ['day|add', 'day|del', 'code|empty', 'code|wrong', 'd_on|empty', 'd_on|wrong', 'd_off|empty', 'd_off|wrong']
+    .concat(FIX_LEG.reduce(function (a, f) { return a.concat(['leg.' + f + '|empty', 'leg.' + f + '|wrong']); }, []), ['leg|add', 'leg|del']);
+  function cmpT(v) { if (v == null || v === '') return ''; var n = normTime(String(v)); return n === false ? String(v) : n; }
+  function cmpBlk(l) {
+    if (l.block_min != null && isFinite(+l.block_min)) return String(+l.block_min);
+    var n = normBlock(l.block == null ? '' : String(l.block)), m = n ? /^(\d+):(\d\d)$/.exec(n) : null;
+    return n === false ? String(l.block) : m ? String(+m[1] * 60 + +m[2]) : '';
+  }
+  function cmpLeg(l) {
+    l = l || {};
+    var gnd = l.kind === 'ground', from = gnd ? '' : upT(l.from), to = gnd ? '' : upT(l.to), inn = cmpT(l.in);
+    return { from: from, to: to, loc: (!gnd && (from || to)) ? '' : upT(l.loc), out: cmpT(l.out), in: inn ? inn + (l.in_day ? '+' + l.in_day : '') : '',
+             block: cmpBlk(l), kind: KINDS.indexOf(l.kind) >= 0 ? l.kind : 'unknown' };
+  }
+  function cmpDay(x) {
+    if (!x) return null;
+    var off = cmpT(x.d_off);
+    return { code: x.code ? codeT(x.code) : '', d_on: cmpT(x.d_on), d_off: off ? off + (x.d_off_day ? '+' + x.d_off_day : '') : '',
+             legs: (x.legs || []).slice().sort(function (a, b) { return (a.seq || 0) - (b.seq || 0); }).map(cmpLeg)
+               .filter(function (l) { return l.from || l.to || l.loc || l.out || l.in || l.block; }) };
+  }
+  /* 直した前と後の便を突き合わせる：同じ区間 → 同じ出発時刻 → 同じ並び */
+  function matchLegs(B, A) {
+    var used = [], pairs = [], add = 0;
+    var find = function (f) { for (var k = 0; k < B.length; k++) if (!used[k] && f(B[k])) return k; return -1; };
+    A.forEach(function (a, i) {
+      var j = -1;
+      if (a.from && a.to) j = find(function (b) { return b.from === a.from && b.to === a.to; });
+      if (j < 0 && a.out) j = find(function (b) { return b.out === a.out; });
+      if (j < 0 && i < B.length && !used[i]) j = i;
+      if (j < 0) { add++; return; }
+      used[j] = true;
+      pairs.push([B[j], a]);
+    });
+    return { pairs: pairs, add: add, del: B.length - pairs.length };
+  }
+  function fixCounts(pairs) {
+    var c = {}, bump = function (k, n) { c[k] = (c[k] || 0) + (n == null ? 1 : n); };
+    var has = function (x) { return !!(x && (x.code || x.d_on || x.d_off || x.legs.length)); };
+    (pairs || []).forEach(function (p) {
+      if (!p) return;
+      var B = cmpDay(p.b), A = cmpDay(p.a), hb = has(B), ha = has(A);
+      if (!hb && !ha) return;
+      if (!p.b) { bump('day|add'); return; }          // 読み取りに無かった日を入れた
+      if (!ha) { bump('day|del'); return; }           // 読めた日を消した
+      ['code', 'd_on', 'd_off'].forEach(function (f) { if (B[f] !== A[f]) bump(f + '|' + (B[f] ? 'wrong' : 'empty')); });
+      var m = matchLegs(B.legs, A.legs);
+      m.pairs.forEach(function (pr) {
+        FIX_LEG.forEach(function (f) {
+          var b = pr[0][f];
+          if (b !== pr[1][f]) bump('leg.' + f + '|' + ((b === '' || (f === 'kind' && b === 'unknown')) ? 'empty' : 'wrong'));
+        });
+      });
+      if (m.add) bump('leg|add', m.add);
+      if (m.del) bump('leg|del', m.del);
+    });
+    return c;
+  }
+  /* → { text（送る要約・280字まで）, n（直した数） } */
+  function fixSummary(pairs, meta) {
+    meta = meta || {};
+    var c = fixCounts(pairs), items = [], n = 0;
+    FIX_ORDER.forEach(function (k) {
+      if (!c[k]) return;
+      n += c[k];
+      var f = k.split('|')[0], st = k.split('|')[1], u = f.indexOf('leg') === 0 ? T.fixLegU : T.fixDayU;
+      if (f === 'day' || f === 'leg') {
+        var nm = f === 'day' ? (st === 'add' ? T.fixAddDay : T.fixDelDay) : (st === 'add' ? T.fixAddLeg : T.fixDelLeg);
+        items.push(fill(T.fixItem2, { f: nm, n: c[k], u: u }));
+      } else items.push(fill(T.fixItem, { f: T.f[f] || f, n: c[k], u: u, s: st === 'empty' ? T.fixEmpty : T.fixWrong }));
+    });
+    var head = [fill(T.fixAir, { a: String(meta.airline || '—').replace(/\s+/g, ' ').trim().slice(0, 40) })];
+    if (meta.build && /^[0-9A-Za-z.\-]{1,20}$/.test(meta.build)) head.push(fill(T.fixBuild, { b: meta.build }));
+    if (meta.pages > 0) head.push(fill(T.fixPages, { n: Math.floor(meta.pages) }));
+    var make = function (more) { return T.fixHead + head.concat([items.length ? fill(T.fixDid, { l: items.join(T.fixJoin) + (more ? '…' : '') }) : T.fixNone]).join(T.fixSep); };
+    var text = make(false);
+    while (text.length > 280 && items.length > 1) { items.pop(); text = make(true); }
+    return { text: text.slice(0, 280), n: n };
+  }
+  function fixBody(sum, comment) {
+    var note = String(comment || '').replace(/^\s+|\s+$/g, '').slice(0, 200);
+    return (sum.text + (note ? '\n' + note : '')).slice(0, 500);
+  }
+  /* attr：確認の画面は data-u・直す画面は data-e */
+  function fixHTML(F, attr, sum) {
+    if (!F) return '';
+    if (F.sent) return '<p class="ru-fix-ok" role="status" tabindex="-1" ' + attr + '="fixok">' + esc(T.fixThanks) + '</p>';
+    var A = function (v) { return ' ' + attr + '="' + v + '"'; };
+    var h = '<div class="ru-fix"><button type="button" class="ru-tbtn ru-fix-l"' + A('fix') + ' aria-expanded="' + !!F.open + '"' +
+      (F.open ? ' aria-controls="' + F.id + '"' : '') + '>' + esc(T.fixLink) + '</button>';
+    if (F.open) {
+      h += '<div class="ru-fix-p" id="' + F.id + '"><p class="ru-fix-s">' + esc(sum.text) + '</p>' +
+        '<label class="ru-fix-lab" for="' + F.id + '-c">' + esc(sum.n ? T.fixNote : T.fixNoteReq) + '</label>' +
+        '<textarea id="' + F.id + '-c" class="rs-in ru-fix-c"' + A('fixc') + ' maxlength="200" rows="3">' + esc(F.comment || '') + '</textarea>' +
+        (F.msg ? '<p class="ru-fix-m" role="alert">' + esc(F.msg) + '</p>' : '') +
+        '<button type="button" class="rs-btn ru-fix-b"' + A('fixsend') + (F.busy ? ' disabled' : '') + '>' + esc(T.fixSend) + '</button></div>';
+    }
+    return h + '</div>';
+  }
+  /* 送る（運営だけが見る要望・区分 bug）。done(r)：'ok' か 'err' */
+  function sendFix(F, sb, sum, redraw) {
+    if (F.busy || F.sent) return;
+    var note = String(F.comment || '').replace(/^\s+|\s+$/g, '');
+    if (!sum.n && note.length < 4) { F.msg = T.fixShort; redraw('err'); return; }
+    F.busy = true; F.msg = null;
+    var done = function (msg) {
+      F.busy = false;
+      if (msg) F.msg = msg; else { F.sent = true; F.open = false; }
+      redraw(msg ? 'err' : 'ok');
+    };
+    var p;
+    try { p = sb.rpc('pv_request_submit', { p_body: fixBody(sum, note), p_category: 'bug', p_private: true }); } catch (e) { done(T.fixErr); return; }
+    Promise.resolve(p).then(function (r) {
+      var v = r && !r.error ? r.data : null, code = r && r.error && r.error.code;
+      if (v && v.ok === true) return done(null);
+      done(code === '42501' ? T.errLogin : !v ? T.fixErr : v.status === 'too_fast' ? T.fixFast
+        : v.status === 'rate_limited' ? T.fixLimit : v.status === 'duplicate' ? T.fixDup : T.fixErr);
+    }, function () { done(T.fixErr); });
+  }
+
   /* ── 保存 ───────────────────────────────────────────────── */
   function stripDay(x) {
-    if (empty(x)) return null;   // ★空欄・読めなかった日は送らない（本人が入れた日は、入れたときに印が外れる）
+    if (empty(x)) return null;   // ★空欄・読めなかった日は送らない（本人が入れた日は、入れたときに印が外れる）。便や時刻が読めた日はコードが無くても送る
     return {
       date: x.date, code: x.code || null, d_on: x.d_on || null, d_off: x.d_off || null, d_off_day: x.d_off_day || 0,
       page: x.page || null, row: x.row || null,
       legs: (x.legs || []).map(function (l) {
         // ★便名は送らない（サーバーも保存しない。日付と便名がそろうと本人に絞れるため）
         return { seq: l.seq, from: l.from || null, to: l.to || null, loc: l.loc || null,
-                 out: l.out || null, in: l.in || null, in_day: l.in_day || 0, block: l.block || null, role: l.role || null,
+                 out: l.out || null, in: l.in || null, in_day: l.in_day || 0, block: l.block || null,
                  kind: l.kind || 'unknown', page: l.page || null, row: l.row || null };
       })
     };
@@ -1051,7 +1383,7 @@
   function patchOf(pr, a) {
     pr = pr || {}; a = a || {};
     var p = {}, any = false;
-    ['kind', 'time_ref', 'time_meaning'].forEach(function (k) { if (!pr[k] && a[k]) { p[k] = a[k]; any = true; } });
+    ['kind', 'time_ref', 'time_meaning', 'blank'].forEach(function (k) { if (!pr[k] && a[k]) { p[k] = a[k]; any = true; } });
     var add = {};
     Object.keys(a.codes || {}).forEach(function (k) { if (a.codes[k]) add[k] = a.codes[k]; });
     if (Object.keys(add).length) {
@@ -1224,11 +1556,29 @@
     else if (u === 'ans') answer(t);
     else if (u === 'next') { U.step = 'check'; render(); focusHead(true); }
     else if (u === 'prev') { markAsked(); U.step = 'ask'; render(); focusHead(true); }
-    else if (u === 'fill') { applyEdit(id, { date: id, code: t.getAttribute('data-c'), d_on: null, d_off: null, d_off_day: 0, legs: [] }); render(); }
+    else if (u === 'fill') { fillCode(id, t.getAttribute('data-c')); render(); }
+    else if (u === 'sugall') {                     // 候補をまとめて入れる（本人が押したときだけ）
+      var sg = sugRows();
+      sg.forEach(function (dt) { fillCode(dt, sugOf(dt)); });
+      render();
+      var f0 = sg.length ? U.box.querySelector('[data-u="fill"][data-id="' + sg[0] + '"].is-on') : null;
+      if (f0) f0.focus(); else focusHead();
+    }
+    else if (u === 'fix') { U.fix.open = !U.fix.open; U.fix.msg = null; render(); var fc = U.box.querySelector(U.fix.open ? '[data-u="fixc"]' : '[data-u="fix"]'); if (fc) fc.focus(); }
+    else if (u === 'fixsend') sendFix(U.fix, U.ctx.sb, checkFix(), function (r) {
+      if (!U) return;
+      render();
+      var fe = U.box.querySelector(r === 'ok' ? '[data-u="fixok"]' : '[data-u="fixc"]');
+      if (fe) fe.focus();
+    });
     else if (u === 'fillblank') { applyEdit(id, null); render(); }
     else if (u === 'fillduty') openEditor(id, 'fillduty');
     else if (u === 'save') save();
     else if (u === 'cancel') { if (U.run) U.run.stop = true; loadClose(); var dn = U.ctx.done; U = null; dn(null); }
+  }
+  function onInput(e) {
+    var t = e.target;
+    if (U && t && t.getAttribute && t.getAttribute('data-u') === 'fixc') U.fix.comment = t.value;
   }
   function onChange(e) {
     if (!U) return;
@@ -1261,19 +1611,23 @@
 
   /* ════ 1日を直す画面（取り込みの確認と、保存したあとの両方で使う・2026-11-09 オーナー「読み取りは完璧にならない。直す画面を」）
      window.PVRosterUpload.editDay(box, day, opts)
-       day  … { date, code, d_on, d_off, d_off_day, legs:[{ seq, from, to, loc, out, in, in_day, block | block_min, role, kind }] }（my_roster の形）
-       opts … { codes:[このスケジュールに出てくる勤務コード], mode:'draft'|'saved',
-                onSave(day) → 約束（省略可・断られたら文言で reject）, onCancel(), onDelete() → 約束（省略可・無ければ消すボタンを出さない） }
-     ★検品はサーバー（db/roster.sql）と同じ形：勤務コード ^[A-Z0-9/+\-]{1,12}$・時刻 HH:MM（"7:05"・"705" は "07:05" に直してから見る）・
-       空港 ^[A-Z0-9]{3,4}$・場所 ^[A-Z0-9]{2,8}$・区分 ^[A-Z0-9/+\-]{1,8}$・便の時間 H:MM で 24時間まで・翌日は 0〜2。
+       day  … { date, code, d_on, d_off, d_off_day, legs:[{ seq, from, to, loc, out, in, in_day, block | block_min, kind }] }（my_roster の形）
+       opts … { codes:[このスケジュールに出てくる勤務コード], codeLabel(c), mode:'draft'|'saved',
+                onSave(day) → 約束（省略可・断られたら文言で reject）, onCancel(), onDelete() → 約束（省略可・無ければ消すボタンを出さない）,
+                report:{ sb, airline, pairs(draftDay|undefined) } → 下に「読み取りの間違いを運営に知らせる」（保存したあとの画面だけ） }
+     ★検品はサーバー（db/roster.sql）と同じ形：勤務コード ^[A-Z0-9/+\-]{1,12}$（読み取りの印 '#'＋小文字16進16字はそのまま）・
+       時刻 HH:MM（"7:05"・"705" は "07:05" に直してから見る）・空港 ^[A-Z0-9]{3,4}$・場所 ^[A-Z0-9]{2,8}$・便の時間 H:MM で 24時間まで・翌日は 0〜2。
+     ★便の乗務の区分（CAP など）は持たない（2026-11-10・勤務表に並ぶのはほかの乗員の区分だった）。
      ★地上の業務は空港を持たない（場所 loc だけ）。中身の無い行は落とす。順番は 1..n に振り直す（16件まで）。便名は持たない。 */
   var RX_CODE = /^[A-Z0-9\/+\-]{1,12}$/, RX_HHMM = /^(([01][0-9]|2[0-3]):[0-5][0-9]|24:00)$/, RX_APT = /^[A-Z0-9]{3,4}$/,
-      RX_LOC = /^[A-Z0-9]{2,8}$/, RX_ROLE = /^[A-Z0-9\/+\-]{1,8}$/, RX_BLOCK = /^[0-9]{1,2}:[0-5][0-9]$/;
+      RX_LOC = /^[A-Z0-9]{2,8}$/, RX_BLOCK = /^[0-9]{1,2}:[0-5][0-9]$/;
   var KINDS = ['operating', 'deadhead', 'ground', 'unknown'], MAX_LEGS = 16;
   function ascii(s) {   // 全角の英数字・記号は半角に（日本語の入力のまま打っても通る）
     return String(s == null ? '' : s).replace(/[\uFF01-\uFF5E]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); }).trim();
   }
   function upT(s) { return ascii(s).toUpperCase(); }
+  /* 勤務コードの欄：読み取りの印（'#'＋小文字16進）は大文字にしない（大文字にすると別の印＝本人の答えと結べない） */
+  function codeT(s) { return P.isTok(s) ? P.canon(s) : upT(s); }
   function hmParts(s) { return /^(\d{1,2})[:.hH](\d{2})$/.exec(s) || /^(\d{1,2})(\d{2})$/.exec(s); }
   /* 時刻："7:05"・"705"・"0705" → "07:05"。空は ''、形が合わなければ false */
   function normTime(s) {
@@ -1298,15 +1652,15 @@
   /* 下書き（入力欄の字のまま）→ 保存する形。{ day | null, errs: { 欄: 文言の鍵 } } */
   function cleanDay(date, dr) {
     dr = dr || {};
-    var errs = {}, code = upT(dr.code), on = normTime(dr.d_on), off = normTime(dr.d_off), legs = [];
-    if (code && !RX_CODE.test(code)) errs.code = 'errCode';
+    var errs = {}, code = codeT(dr.code), on = normTime(dr.d_on), off = normTime(dr.d_off), legs = [];
+    if (code && !RX_CODE.test(code) && !P.isTok(code)) errs.code = 'errCode';
     if (on === false) errs.d_on = 'errTime';
     if (off === false) errs.d_off = 'errTime';
     (dr.legs || []).forEach(function (l, i) {
       l = l || {};
       var kind = KINDS.indexOf(l.kind) >= 0 ? l.kind : 'unknown', gnd = kind === 'ground', p = 'leg' + i + '.';
       var from = gnd ? '' : upT(l.from), to = gnd ? '' : upT(l.to), loc = upT(l.loc);
-      var out = normTime(l.out), inn = normTime(l.in), blk = normBlock(l.block), role = upT(l.role);
+      var out = normTime(l.out), inn = normTime(l.in), blk = normBlock(l.block);
       if (from && !RX_APT.test(from)) errs[p + 'from'] = 'errApt';
       if (to && !RX_APT.test(to)) errs[p + 'to'] = 'errApt';
       if (gnd && loc && !RX_LOC.test(loc)) errs[p + 'loc'] = 'errLoc';
@@ -1314,9 +1668,8 @@
       if (out === false) errs[p + 'out'] = 'errTime';
       if (inn === false) errs[p + 'in'] = 'errTime';
       if (blk === false) errs[p + 'block'] = 'errBlock';
-      if (role && !RX_ROLE.test(role)) errs[p + 'role'] = 'errRole';
       var leg = { seq: 0, from: from || null, to: to || null, loc: loc || null, out: out || null, in: inn || null,
-                  in_day: inn ? day02(l.in_day) : 0, block: blk || null, role: role || null, kind: kind };
+                  in_day: inn ? day02(l.in_day) : 0, block: blk || null, kind: kind };
       if (!leg.from && !leg.to && !leg.loc && !leg.out && !leg.in && !leg.block && out !== false && inn !== false && blk !== false) return;   // 中身の無い行は落とす
       legs.push(leg);
     });
@@ -1333,11 +1686,11 @@
       code: day.code || '', d_on: day.d_on || '', d_off: day.d_off || '', d_off_day: day02(day.d_off_day),
       legs: (day.legs || []).slice().sort(function (a, b) { return (a.seq || 0) - (b.seq || 0); }).map(function (l) {
         return { kind: KINDS.indexOf(l.kind) >= 0 ? l.kind : 'unknown', from: l.from || '', to: l.to || '', loc: l.loc || '',
-                 out: l.out || '', in: l.in || '', in_day: day02(l.in_day), block: l.block || hmOf(l.block_min), role: l.role || '' };
+                 out: l.out || '', in: l.in || '', in_day: day02(l.in_day), block: l.block || hmOf(l.block_min) };
       })
     };
   }
-  function emptyLeg() { return { kind: 'operating', from: '', to: '', loc: '', out: '', in: '', in_day: 0, block: '', role: '' }; }
+  function emptyLeg() { return { kind: 'operating', from: '', to: '', loc: '', out: '', in: '', in_day: 0, block: '' }; }
   function edInp(name, label, val, o, err, i) {
     var id = 're-' + name + (i != null ? '-' + i : ''), eid = id + '-e';
     var a = ' id="' + id + '" class="rs-in re-in' + (o.caps ? ' is-caps' : '') + (err ? ' is-bad' : '') + '" type="text" data-e="' + name + '"' +
@@ -1365,18 +1718,18 @@
         edInp('out', T.f['leg.out'], l.out, { time: true }, er[p + 'out'], i) +
         edInp('in', T.f['leg.in'], l.in, { time: true, day: l.in_day, dayE: 'in_day' }, er[p + 'in'], i) +
         edInp('block', T.f['leg.block'], l.block, { block: true }, er[p + 'block'], i) +
-        edInp('role', T.eRole, l.role, { max: 8, caps: true }, er[p + 'role'], i) +
       '</div></li>';
   }
   function edRender(E) {
     var a = d.activeElement, keep = a && E.root.contains(a) && a.getAttribute ? { e: a.getAttribute('data-e'), i: a.getAttribute('data-i'), v: a.getAttribute('data-v'), c: a.getAttribute('data-c') } : null;
-    var dr = E.draft, er = E.errs, codes = E.opts.codes || [], dis = E.busy ? ' disabled' : '', cur = upT(dr.code);
+    var dr = E.draft, er = E.errs, codes = E.codes, dis = E.busy ? ' disabled' : '', cur = codeT(dr.code);
+    var lab = E.opts.codeLabel || function (c) { return c; };
     var h = '<button type="button" class="rs-link ru-back" data-e="cancel"' + dis + '>' + I_BACK + esc(T.prevStep) + '</button>' +
       '<div class="ru-hd"><p class="rs-ey">' + esc(E.isNew ? T.eAdd : T.eEdit) + '</p><h2 class="rs-h">' + esc(fmtDate(E.date)) + '</h2></div>';
-    h += '<section class="ru-card re-day">' + edInp('code', T.f.code, dr.code, { max: 12, caps: true }, er.code) +
+    h += '<section class="ru-card re-day">' + edInp('code', T.f.code, P.isTok(dr.code) ? '' : dr.code, { max: 12, caps: true }, er.code) +
       (codes.length ? '<div class="ru-chips is-sm re-codes" role="group" aria-label="' + esc(T.f.code) + '">' + codes.map(function (c) {
-        var on = cur === c;
-        return '<button type="button" class="ru-chip' + (on ? ' is-on' : '') + '" data-e="codechip" data-c="' + esc(c) + '" aria-pressed="' + on + '">' + esc(c) + '</button>';
+        var on = cur === codeT(c);
+        return '<button type="button" class="ru-chip' + (on ? ' is-on' : '') + '" data-e="codechip" data-c="' + esc(c) + '" aria-pressed="' + on + '">' + esc(lab(c)) + '</button>';
       }).join('') + '</div>' : '') +
       '<div class="re-row">' + edInp('d_on', T.f.d_on, dr.d_on, { time: true }, er.d_on) +
         edInp('d_off', T.f.d_off, dr.d_off, { time: true, day: dr.d_off_day, dayE: 'd_off_day' }, er.d_off) + '</div></section>';
@@ -1394,6 +1747,7 @@
           '<button type="button" class="rs-btn is-ghost" data-e="delno"' + dis + '>' + esc(T.cancel) + '</button></div>'
         : '<button type="button" class="ru-tbtn re-del" data-e="del"' + dis + '>' + esc(T.eDelDay) + '</button>';
     }
+    if (E.opts.report) h += fixHTML(E.fix, 'data-e', edFix(E));
     E.root.innerHTML = h;
     var f = null;
     if (E.focus) { f = E.root.querySelector(E.focus); E.focus = null; }
@@ -1420,15 +1774,16 @@
     if (s) s.parentNode.removeChild(s);
   }
   function edSyncCodes(E) {
-    var c = upT(E.draft.code);
+    var c = codeT(E.draft.code);
     [].forEach.call(E.root.querySelectorAll('[data-e="codechip"]'), function (b) {
-      var on = b.getAttribute('data-c') === c;
+      var on = codeT(b.getAttribute('data-c')) === c;
       b.classList.toggle('is-on', on);
       b.setAttribute('aria-pressed', String(on));
     });
   }
   function edInput(E, e) {
     var t = e.target, k = t.getAttribute && t.getAttribute('data-e');
+    if (k === 'fixc') { E.fix.comment = t.value; return; }
     if (!k || t.tagName !== 'INPUT') return;
     var i = t.getAttribute('data-i'), ek = edErrKey(k, i);
     edSet(E, k, i, t.value);
@@ -1445,7 +1800,7 @@
     else {
       if (v !== t.value) { t.value = v; edSet(E, k, i, v); }
       bad = k === 'code' ? (RX_CODE.test(v) ? null : 'errCode') : (k === 'from' || k === 'to') ? (RX_APT.test(v) ? null : 'errApt')
-        : k === 'loc' ? (RX_LOC.test(v) ? null : 'errLoc') : k === 'role' ? (RX_ROLE.test(v) ? null : 'errRole') : null;
+        : k === 'loc' ? (RX_LOC.test(v) ? null : 'errLoc') : null;
     }
     if (bad) { E.errs[edErrKey(k, i)] = bad; edShowErr(t, bad); }
   }
@@ -1485,9 +1840,21 @@
     if (k === 'codechip') {
       dr.code = t.getAttribute('data-c');
       var inp = E.root.querySelector('[data-e="code"]');
-      if (inp) { inp.value = dr.code; if (E.errs.code) { delete E.errs.code; edClearErr(inp); } }
+      if (inp) { inp.value = P.isTok(dr.code) ? '' : dr.code; if (E.errs.code) { delete E.errs.code; edClearErr(inp); } }
       edSyncCodes(E);
       return;
+    }
+    if (k === 'fix') {
+      E.fix.open = !E.fix.open; E.fix.msg = null;
+      E.focus = E.fix.open ? '[data-e="fixc"]' : '[data-e="fix"]';
+      return edRender(E);
+    }
+    if (k === 'fixsend') {
+      return sendFix(E.fix, E.opts.report.sb, edFix(E), function (r) {
+        if (!E.root.parentNode) return;
+        E.focus = r === 'ok' ? '[data-e="fixok"]' : '[data-e="fixc"]';
+        edRender(E);
+      });
     }
     if (k === 'd_off_day') dr.d_off_day = dr.d_off_day ? 0 : 1;
     else if (k === 'in_day' && l) l.in_day = l.in_day ? 0 : 1;
@@ -1507,11 +1874,19 @@
     else return;
     edRender(E);
   }
+  /* 直す画面の「運営に知らせる」：保存したこの回の直し（my-roster.js が覚えている）＋いま直している内容 */
+  function edFix(E) {
+    var rp = E.opts.report, r = cleanDay(E.date, E.draft);
+    return fixSummary(rp.pairs ? rp.pairs(r.day || undefined) : [], { airline: rp.airline });
+  }
   function editDay(box, day, opts) {
     opts = opts || {};
     day = day || {};
+    var codes = (opts.codes || []).slice();
+    if (day.code && codes.indexOf(day.code) < 0) codes.unshift(day.code);   // その日のコード（読み取りの印も）は必ず札に出す
     var E = { opts: opts, date: day.date, draft: draftOf(day), errs: {}, msg: null, busy: false, ask: false, focus: null,
-              isNew: R.helpers.dayEmpty(day) };
+              isNew: R.helpers.dayEmpty(day), codes: codes,
+              fix: { id: 're-fix-p', open: false, comment: '', msg: null, busy: false, sent: false } };
     var root = d.createElement('div');
     root.className = 'rs ru re';
     root.addEventListener('click', function (e) { edClick(E, e); });
@@ -1530,11 +1905,13 @@
   function open(box, ctx) {
     loadClose();
     U = { box: box, ctx: ctx, items: [], step: 'pick', month: lastMonth(), run: null, merged: null, answers: {}, printed: {}, cache: {}, err: null, busy: false, pagesSent: 0,
-          edits: {}, base: {}, baseIssues: [], range: null, missing: [], asked: false, seen: {} };
+          edits: {}, base: {}, baseIssues: [], range: null, missing: [], asked: false, seen: {}, tok: {}, build: null,
+          fix: { id: 'ru-fix-p', open: false, comment: '', msg: null, busy: false, sent: false } };
     if (bound !== box) {
       bound = box;
       box.addEventListener('click', onClick);
       box.addEventListener('change', onChange);
+      box.addEventListener('input', onInput);
       box.addEventListener('keydown', onKey);
       ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function (k) { box.addEventListener(k, onDrag); });
     }
@@ -1542,6 +1919,12 @@
     focusHead();
   }
 
-  /* _ は検査（db/test-roster-ui.mjs）が呼ぶ */
-  w.PVRosterUpload = { open: open, editDay: editDay, _: { patchOf: patchOf, stripDay: stripDay, cleanDay: cleanDay, normTime: normTime, normBlock: normBlock, draftOf: draftOf, coverage: coverage } };
+  /* _ は検査（db/test-roster-ui.mjs）が呼ぶ。U を通す口は open() のあとだけ効く */
+  w.PVRosterUpload = { open: open, editDay: editDay, _: {
+    patchOf: patchOf, stripDay: stripDay, cleanDay: cleanDay, normTime: normTime, normBlock: normBlock, draftOf: draftOf, coverage: coverage,
+    fixSummary: fixSummary, fixBody: fixBody, sendFix: sendFix, fixHTML: fixHTML,
+    prepare: function (M, pages) { prepare(M, pages); }, asks: function () { return asks(); }, answers: function () { return U && U.answers; },
+    needAsk: function () { return needAsk(); }, missHTML: function () { return missHTML(); }, askHTML: function () { return askHTML(); },
+    sendDays: function () { return sendDays(); }, profilePatch: function () { return profilePatch(); }, checkFix: function () { return checkFix(); },
+    setStep: function (s) { if (U) { if (s === 'ask') markAsked(); U.step = s; } }, click: onClick } };
 }(window));

@@ -14,6 +14,8 @@
    ・手当の増減の分解（数量の差 ＋ 残り ＝ 実際の差）・週末手当を日数で割らない
    ・日ごとの超過と月の超過は別の式・当てはめた月と検証の月を分ける・確度％を出さない
    ・分割スクショのつなぎ（重なり・切れ・欠けた区間・食い違い・同じ写り・月またぎ）
+   ・記号だけ読めなかった日（unread）も時刻・区間があれば数える／日の種類 cat を運ぶ／札（#＋16桁）は記号と同じ扱い／
+     区間に role を持たない（2026-11-11）
    最後に「壊す証明」：守りの1行を外すと赤くなること。 */
 import fs from 'fs';
 import vm from 'vm';
@@ -443,19 +445,62 @@ function suite(R, V) {
     const mb = R.mergePages([B1, B2]), mb2 = R.mergePages([B2, B1]);
     const d16 = mb.days.find((d) => d.date === '2026-08-16'), d17 = mb.days.find((d) => d.date === '2026-08-17');
     ok(d16 && d16.d_on === '07:00' && d16.legs.length === 2 && !d16.blank && !d16.unread, '空欄の写りは中身のある写りに負ける');
-    ok(d17 && d17.code === 'OFF1' && d17.d_on === null && !d17.unread && !mb.issues.length,
-       '読めなかった写り（unread）の値は使わない・中身のある写りとぶつけない（食い違いにしない）');
-    ok(J(mb.days) === J(mb2.days), '空欄・読めなかった写りは、どちらの順でも同じ答え');
+    ok(d17 && d17.code === 'OFF1' && d17.d_on === '06:00' && !d17.unread && !d17.blank && !mb.issues.length,
+       '★記号だけ読めなかった写り（unread）の時刻も使う・記号はもう1枚から（食い違いにしない・2026-11-11）');
+    const pick = (m, ds) => J(m.days.filter((d) => ds.includes(d.date)));
+    ok(pick(mb, ['2026-08-16', '2026-08-18']) === pick(mb2, ['2026-08-16', '2026-08-18']), '空欄の写りは、どちらの順でも同じ答え');
     const lone = R.mergePages([{ days: [D('2026-08-20', E0), D('2026-08-21', Object.assign({ unread: true }, E0)), D('2026-08-22', { d_on: '07:00', d_off: null, legs: [], unread: true })] }]);
     const L0 = lone.days;
     ok(L0.length === 3 && L0[0].blank === true && !L0[0].unread && L0[1].blank === true && L0[1].unread === true && L0[1].legs.length === 0,
        'どの写りにも中身の無い日は、日付だけ残して印を付ける（空欄 blank・読めなかった unread）');
     ok(L0[2].unread === true && !L0[2].blank && L0[2].d_on === '07:00', '読めなかった日の読めた欄は残す（印つき）');
     const rmB = R.rosterMonths(L0.concat([D('2026-08-23')]), PROFILE)[0];
-    ok(rmB && rmB.coveredDays === 1 && rmB.days.length === 1 && rmB.days[0].date === '2026-08-23', '空欄・読めなかった日は覆った日に数えない（データではない）');
+    ok(rmB && rmB.coveredDays === 2 && J(rmB.days.map((d) => d.date)) === J(['2026-08-22', '2026-08-23']) && rmB.days[0].code === null,
+       '★空欄の日は覆った日に数えない・記号だけ読めなかった日は時刻があれば数える（2026-11-11）');
     const rmS = R.rosterMonths([{ date: '2026-08-24', code: null, d_on: null, d_off: null, d_off_day: 0, legs: [] }, D('2026-08-25')], PROFILE)[0];
     ok(rmS && rmS.coveredDays === 1 && R.helpers.dayEmpty({ date: '2026-08-24', legs: [{ seq: 1, kind: 'ground' }] }) && !R.helpers.dayEmpty(D('2026-08-25')),
        '前に保存された空の日（印なし）も数えない・中身の無い区間だけの日も空');
+
+    /* ▼ dayEmpty の線（2026-11-11）：記号だけ読めなかった日でも、区間か D-ON/OFF があれば空ではない */
+    const E = R.helpers.dayEmpty;
+    const U0 = { date: '2026-08-26', code: null, unread: true, d_on: null, d_off: null, d_off_day: 0, legs: [] };
+    ok(!E(Object.assign({}, U0, { legs: [LEGS2()[0]] })) && !E(Object.assign({}, U0, { d_on: '07:00' })) && !E(Object.assign({}, U0, { d_off: '15:00' })),
+       '★unread でも、区間・D-ON・D-OFF のどれかがあれば空ではない（保存する・数える）');
+    ok(E(U0) && E(Object.assign({}, U0, { unread: false })) && E(Object.assign({}, U0, { blank: true, legs: [LEGS2()[0]] })) && E(null),
+       '記号も時刻も区間も無い日（unread でも）・空欄の印の日は空');
+    ok(E(Object.assign({}, U0, { cat: 'off' })), '日の種類（cat）だけの日は空（記号は本人が入れる）');
+
+    /* ▼ 日の種類（cat）を運ぶ */
+    const K = (date, o) => D(date, Object.assign({ legs: [], d_on: null, d_off: null }, o));
+    const c1 = R.mergePages([{ days: [K('2026-08-27', { code: 'TRN', cat: 'training' })] },
+                             { days: [D('2026-08-27', { cat: 'duty', page: 2 })] }]).days[0];
+    ok(c1.code === 'TRN' && c1.cat === 'training' && c1.legs.length === 2, '★cat は記号を採った写りの種類（区間の多い写りの種類より先）');
+    const c2 = R.mergePages([{ days: [K('2026-08-28', { code: 'OFF1', cat: 'unclear' })] }, { days: [K('2026-08-28', { code: 'OFF1', cat: 'off', page: 2 })] }]).days[0];
+    ok(c2.cat === 'off', '記号を採った写りが unclear なら、ほかの写りの読めた種類');
+    const c3 = R.mergePages([{ days: [K('2026-08-29', { cat: 'blank' }), K('2026-08-30', { cat: 'unclear' }), K('2026-08-31', {}), K('2026-09-01', { cat: 'off' })] }]).days;
+    ok(J(c3.map((d) => [d.cat, !!d.blank])) === J([['blank', true], ['unclear', true], [null, true], ['off', true]]),
+       '中身の無い日も cat を残す（blank・unclear・無ければ null・読めた種類は本人に聞くときの手がかり）');
+    ok(R.mergePages([{ days: [K('2026-09-02', { cat: 'Off' }), K('2026-09-03', { cat: 'TANAKA' })] }]).days.every((d) => d.cat === null),
+       '10語の外の cat は運ばない');
+    const c4 = R.mergePages([{ days: [K('2026-09-04', { cat: 'off' })] }, { days: [K('2026-09-04', { cat: 'unclear', code: 'OFF1', page: 2 })] }]).days[0];
+    ok(c4.code === 'OFF1' && c4.cat === 'off', '空欄の写りの読めた種類も拾う（中身のある写りが unclear のとき）');
+
+    /* ▼ 札（'#'＋16桁）は記号と同じ扱い（小文字のまま） */
+    const TK = '#0123456789abcdef', TK2 = '#fedcba9876543210';
+    const mt = R.mergePages([{ days: [K('2026-09-05', { code: TK, cat: 'training' }), K('2026-09-06', { code: TK2.toUpperCase(), cat: 'other' })] },
+                             { days: [K('2026-09-05', { code: TK, cat: 'training', page: 2 })] }]);
+    ok(mt.days[0].code === TK && mt.days[1].code === TK2 && !mt.issues.length && !mt.days[0].unread, '★札は小文字のまま（大文字で来ても小文字に）・同じ札どうしは食い違いにしない');
+    const tm = R.rosterMonths([K('2026-09-05', { code: TK }), K('2026-09-06', { code: TK }), K('2026-09-07', { code: TK2.toUpperCase() }), K('2026-09-08', { code: 'OFF1' })], PROFILE)[0];
+    ok(J(tm.unclassifiedCodes) === J([TK, TK2]) && tm.classCounts.unclassified === 3 && tm.coveredDays === 4,
+       '★意味の分からない札は unclassifiedCodes に1回ずつ（画面が1回だけ聞く）・札の日は覆った日に数える');
+    const tm2 = R.rosterMonths([K('2026-09-05', { code: TK }), K('2026-09-06', { code: TK2 })], Object.assign({}, PROFILE, { codes: { [TK]: 'training', [TK2.toUpperCase()]: 'off' } }))[0];
+    ok(J(tm2.unclassifiedCodes) === J([]) && tm2.days[0].cls === 'training' && tm2.days[1].cls === 'off', '本人が教えた札の意味は profile.codes で引く（鍵の大文字小文字は問わない）');
+
+    /* ▼ 区間に role を持たない */
+    const rl = R.mergePages([{ days: [D('2026-09-09')] }, { days: [D('2026-09-09', { page: 2 })] }]).days[0];
+    const rr = R.rosterMonths([D('2026-09-09')], PROFILE)[0].days[0];
+    ok(rl.legs.length === 2 && rl.legs.every((l) => !('role' in l)) && rr.legs.every((l) => !('role' in l)) && !/CAP/.test(J(rl)) && !/CAP/.test(J(rr)),
+       '★区間に role（ほかの乗員の役職）を持たない（入力に CAP があっても運ばない）');
   }
 
   /* ▼ 決定的（同じ入力 → 同じ答え） */
@@ -497,9 +542,13 @@ const BREAK = [
   ['2進のまま丸める', "z = Number(m[2] + (frac + '000').slice(0, d));\n    if (frac.length > d && +frac.charAt(d) >= 5) z += 1;", 'z = Math.round(Number(s) * Math.pow(10, d));'],
   ['重なった日の区間を二重にする', 'if (best && tie)', 'best = null; if (best && tie)'],
   ['切れた日を黙って通す', "if (out.cut) issues.push({ date: date, type: 'incomplete', cut: out.cut });", ''],
-  ['読めなかった写りの値も使う', 'var os = real.length ? real : all;', 'var os = all;'],
-  ['空欄・読めなかった日も覆った日に数える', 'if (dayEmpty(D)) return; ', ''],
+  ['空欄の写りの値も使う', 'var os = real.length ? real : all;', 'var os = all;'],
+  ['空欄の日も覆った日に数える', 'if (dayEmpty(D)) return; ', ''],
   ['中身の無い日に印を付けない', 'if (!dayHas(out)) out.blank = true;', ''],
+  ['記号だけ読めなかった日を空にする', 'function dayEmpty(D) { return !D || D.blank === true || !dayHas(D); }', 'function dayEmpty(D) { return !D || D.blank === true || D.unread === true || !dayHas(D); }'],
+  ['札を大文字にする', 'return TOKEN_RX.test(t) ? t.toLowerCase() : (t.toUpperCase() || null);', 'return t.toUpperCase() || null;'],
+  ['記号を採った写りの種類を優先しない', 'if (catSrc && catKnown(catSrc.d.cat)) cat = catSrc.d.cat;', ''],
+  ['区間の role を運ぶ', 'block: l.block, kind: l.kind, partial: partial, page: l.page, row: l.row };', 'block: l.block, role: (L0 => L0)(l.role), kind: l.kind, partial: partial, page: l.page, row: l.row };'],
   ['分解の残りを丸めずに足す', 'out.qtyEffect = q < 0 ? -Math.round(-q) : Math.round(q);', 'out.qtyEffect = q;']
 ];
 for (const [name, from, to] of BREAK) {

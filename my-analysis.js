@@ -7,12 +7,14 @@
      見出し（いちばん新しい明細と、その前の同じ通貨の明細を比べる・期間 3か月｜6か月｜1年｜全部） → 4枚のカード（PC 2列・狭い画面 1列）。
        ★2026-11-09 オーナー「比べる明細を選ばせない」「期間を選べるなら 3か月・6か月・1年・全部」「収入の構成を先に」。
        期間が効くのは図の月（A の構成の縦の棒・B の棒・C の推移）と CSV・印刷だけ。見出しの数字と分け方は、いつも b と a。
-       A 収入と勤務量の変化   … 収入の構成（期間に3か月以上なら月ごとの積み上げ・何が動いたか） ／ 増減率の棒
-       B 働き方と報酬効率     … 分子（総支給・手取り）÷ 分母（勤務1時間・乗務1時間・1勤務日・1便）、明細かロスターか
+       ★2026-11-10 オーナー「不要な文言はいらない」「カードの題名がいちいち AI っぽい」：見出し（LOOK DEEPER・題・比べている月）と
+         右上の札を外し、題名を中身そのままに。B の題名は「数量の基準」で選んだものに合わせて変わる。
+       A 収入の内訳           … 収入の構成（期間に3か月以上なら月ごとの積み上げ・何が動いたか） ／ 増減率の棒
+       B ◯◯あたりの収入     … 分子（総支給・手取り）÷ 分母（勤務1時間・乗務1時間・1勤務日・1便）、明細かロスターか
                                ／ 日別の散布図（点を押すとその日の勤務ロスターへ）／ 勤務時間の分布
-       C 手当ごとの掘り下げ   … 実額の推移・対象の数量・数量で割った参考値・増減の分け方（数量の差による分と残り）
-                               ＋ 勤務月が分からない手当には「この手当はいつの勤務の分？」（答えは本人が押したときだけ保存）
-       D 給与ルールの計算候補 … 日ごとの超過／月合計の超過／保証。基準の時間を動かし、当てはめた月と検証の月の差を分けて出す
+       C 手当ごとの推移       … 実額の推移・対象の数量・数量で割った参考値・増減の分け方（数量の差による分と残り）
+                               ＋ 勤務月が分からない手当には「{手当の名前}は、いつの勤務の分？」（答えは本人が押したときだけ保存）
+       D 手当の計算ルール（推定） … 日ごとの超過／月合計の超過／保証。基準の時間を動かし、当てはめた月と検証の月の差を分けて出す
 
    守っていること
    ・数字は pv-report-engine.js（window.PVReport）の答えだけ。ここで数え直さない・式を写さない。
@@ -21,7 +23,7 @@
    ・月は全部データから（年月も、閾値の範囲も、決め打ちしない）。1か月なら構成と額だけ・比較は2か月目から（1行だけ言う）。
    ・参考値（額 ÷ 数量）を契約の単価と呼ばない。増減の「残り」を単価の変更と呼ばない。
      週末・祝日の手当を、勝手に日数で割らない（数量はエンジンが決めたものだけ）。
-   ・計算候補は「未確定の候補（探索）」。確度の％は作らない。当てはめた月と検証の月の差を分けて出す。
+   ・計算ルールは推定（題名の「（推定）」で言う）。確度の％は作らない。当てはめた月と検証の月の差を分けて出す。
    ・同じ注意書きを2か所に置かない（参考値の断りは B だけ・候補の断りは D だけ・「2か月目から」は見出しだけ）。
    ・隠れているあいだは図を描かない（幅0の SVG を残さない）。見えたとき・幅が変わったとき・通貨を替えたときに描き直す。
    ・選んだ期間・項目・基準の時間は、タブを移っても残る（このファイルの S に持つ）。
@@ -40,8 +42,6 @@
 
   var T = {
     ja: {
-      ey: 'LOOK DEEPER', h: '収入の構造と、働き方への対価。',
-      subCmp: '{b}を{a}と比べています', subOne: '{b}の明細', subP: '明細 {p}か月', subP1: '明細 {p}か月', subR: 'スケジュール {r}か月', subR1: 'スケジュール {r}か月',
       perAria: '期間', per3: '3か月', per6: '6か月', per12: '1年', perAll: '全部',
       one: '比較は2か月目の明細から出ます。', noPrev: '同じ通貨の前の明細がないので、比較は出ません。',
       ymT: '{y}年{n}月', ymS: '{n}月', payOf: '{t}明細', workOf: '{t}勤務',
@@ -53,35 +53,34 @@
       csvA: 'CSVで保存（{r}）', print: '印刷', printA: '表示中の分析を印刷', prRange: '明細 {r}',
       csvRange: '範囲', csvPay: '支給月 {r}', csvSecPay: '明細（支給月）', csvSecRoster: 'スケジュール（勤務月）',
       // A
-      aT: '収入と勤務量の変化', aBadge: '実績比較', aRate: '増減率', aComp: '収入の構成',
+      aT: '収入の内訳', aRate: '増減率', aComp: '収入の構成',
+      from: '{a}から',
       mGross: '総支給', mNet: '手取り', mBlock: '明細の乗務時間', mDuty: '明細の勤務時間', mDays: '勤務日数', mSectors: '便数',
-      aStat: '{m} · {a}→{b}', aNone: '比べられる数字がまだありません。', aShare: '固定給の割合 · {t}',
+      aStat: '{m} · {a}から', aNone: '比べられる数字がまだありません。', aShare: '固定給の割合 · {t}',
       aMoved: '動いた区分', curDiff: '通貨が違う月どうしの金額は比べていません。',
       aTot: '合計', aCurEx: '通貨が違う{n}か月は入れていません。',
       cFixed: '固定給', cRole: '役割手当', cVariable: '変動給', cAllowance: '手当', cBonus: '賞与・利益配分',
       cNoncash: '現物給与の評価', cAdjustment: '不就労減額', cUnexplained: '内訳なし',
       // B
-      bT: '働き方と報酬効率', bBadge: '参考値',
+      bTDuty: '勤務1時間あたりの収入', bTBlock: '乗務1時間あたりの収入', bTDays: '1勤務日あたりの収入', bTSectors: '1便あたりの収入',
       bNum: '収入の基準', nGross: '総支給', nNet: '手取り',
       bDen: '数量の基準', dDuty: '勤務1時間', dBlock: '乗務1時間', dDays: '1勤務日', dSectors: '1便',
       bBasis: '数量の出どころ', bsSlip: '明細', bsRoster: 'スケジュール',
       vEff: '報酬効率', vDay: '日別', vDist: '分布', bViews: '見方',
-      bStat: '{d}あたりの参考報酬', bStatOne: '{d}あたりの参考報酬 · {t}',
-      bNote: '参考報酬＝支給額 ÷ 数量。追加で働いた分の単価ではありません。',
+      bNote: '支給額 ÷ 数量。追加で飛んだ分の単価ではありません。',
       bNoDen: 'この基準の数量が明細にありません。数量の基準を変えてください。',
-      bCapSlip: '数量は明細に書かれたもの', bCapRoster: '勤務月を確かめた手当 ÷ その月のスケジュール',
       rNoRoster: 'この勤務月のスケジュールがありません', rIncomplete: 'スケジュールが月の一部だけです', rGaps: '時刻が読めない日があります',
       rMixed: '通貨が混ざっています', rNoQty: '明細にこの数量がありません',
-      bNoLinked: '勤務月を確かめた明細の行がまだありません。手当ごとの掘り下げで答えると出ます。',
+      bNoLinked: '勤務月を確かめた明細の行がまだありません。手当ごとの推移で答えると出ます。',
       bMonth: '勤務月', dayX: '勤務時間（D-ON〜D-OFF）', dayY: '便の時間（DH を除く）',
       dayNoTimes: '時刻が読めない{n}日は除いています', dayNone: 'この月の勤務はありません。',
       dayTip: '{d}', dayOpen: '押すとスケジュールで開きます',
       distY: '勤務の回数', distBin: '{a}〜{b}時間', distN: '{n}勤務', distPick: '{b} · {n}勤務',
       needRoster: 'スケジュールを足すと出ます', addRoster: 'スケジュールを足す',
       // C
-      cT: '手当ごとの掘り下げ', cBadge: '支給実額', cItem: '支給項目', cTotal: '（合計）',
-      cStat: '支給額の変化 · {p}', cStatNoPct: '支給額の変化', cStatOne: '{t}の支給額',
-      cCap: '支給明細の実額', cQty: '対象の数量', cRef: '数量で割った参考値',
+      cT: '手当ごとの推移', cItem: '支給項目', cTotal: '（合計）',
+      cStat: '（{p}）{a}から',
+      cQty: '対象の数量', cRef: '数量で割った参考値',
       cDec: '増減の分け方', cQtyEff: '数量の差による分', cResid: '残りの差',
       cDecNote: '前の明細の参考値 × 数量の差と、その残り。',
       cNoQty: '対象の数量が分からないので、実額だけで比べています。',
@@ -92,13 +91,13 @@
       qRDutyDays: 'スケジュールの勤務日数', qRSectors: 'スケジュールの便数', qROther: 'スケジュールの数量',
       uH: '/h', uDay: '/日', uCount: '/回', uNight: '/泊',
       kProfit: 'プロフィットシェア', kNotional: '現物給与の評価', kAbsence: '不就労減額',
-      wq: 'この手当はいつの勤務の分？', wSame: '当月', wPrev: '前月', wOther: 'その他', wUnknown: 'わからない',
+      wq: '{item}は、いつの勤務の分？', wSame: '当月', wPrev: '前月', wOther: 'その他', wUnknown: 'わからない',
       wHint: 'この明細の乗務時間は、スケジュールの{t}と一致（{h}）', wCand: '候補',
       wSaved: '{t}の勤務として数えています', wUnknownSaved: '勤務月は未確定', wOwn: '月ごとに別の期間',
       wChange: '変更', wSave: '保存', wErr: '保存できませんでした。時間をおいてもう一度お試しください。',
       wOffN: '{n}か月前の勤務', wNext: '翌月の勤務', wOwnOpt: '月ごとに違う',
       // D
-      dT: '給与ルールの計算候補', dBadge: '未確定の候補（探索）',
+      dT: '手当の計算ルール（推定）',
       dKind: '式', kDaily: '日ごとの超過', kMonthly: '月合計の超過', kGuar: '保証',
       dQty: '数える時間', qDutyR: '勤務時間', qBlockR: '乗務時間',
       dThr: '基準の時間', dThrDay: '1日あたり', dThrMonth: '1か月あたり', dGuar: '保証の時間',
@@ -108,13 +107,11 @@
       dRowM: '勤務 → 明細', dActual: '実額', dPred: '候補式', dGap: '差', roleFit: '当てはめ', roleVal: '検証', roleUnused: '—',
       dDays: '基準を超えた勤務 · {n}件', dDayTip: '{d} · 超えた時間 {h}',
       dSkip: '使っていない月 {n}（勤務月が未確定 {u}・スケジュール不足 {r}・数量なし {q}）',
-      dNone: '勤務月が分かる月がまだありません。手当ごとの掘り下げで「いつの勤務の分？」に答えると使えます。',
+      dNone: '勤務月が分かる月がまだありません。手当ごとの推移で「いつの勤務の分？」に答えると使えます。',
       dNote: '原点を通る直線で当てはめています。合う月があっても、会社の規程の確認ではありません。',
       dNoItem: '勤務に結びつく支給項目がまだありません。', dNoRange: '月の全部がそろったスケジュールがまだありません。'
     },
     en: {
-      ey: 'LOOK DEEPER', h: 'How your pay is built, and what your flying earns.',
-      subCmp: 'Comparing {b} with {a}', subOne: '{b}', subP: '{p} payslips', subP1: '1 payslip', subR: '{r} roster months', subR1: '1 roster month',
       perAria: 'Period', per3: '3 months', per6: '6 months', per12: '1 year', perAll: 'All',
       one: 'Comparisons appear from your second payslip.', noPrev: 'No earlier payslip in the same currency, so there is nothing to compare.',
       ymT: '{M} {y}', ymS: '{M}', payOf: '{t} payslip', workOf: '{t} duty',
@@ -125,35 +122,34 @@
       csvA: 'Save as CSV ({r})', print: 'Print', printA: 'Print this analysis', prRange: 'Payslips {r}',
       csvRange: 'Range', csvPay: 'pay months {r}', csvSecPay: 'Payslips (pay month)', csvSecRoster: 'Roster (duty month)',
       // A
-      aT: 'Pay and workload change', aBadge: 'Actuals', aRate: 'Change', aComp: 'Pay mix',
+      aT: 'Pay breakdown', aRate: 'Change', aComp: 'Pay mix',
+      from: 'from {a}',
       mGross: 'Gross pay', mNet: 'Net pay', mBlock: 'Block hours (payslip)', mDuty: 'Duty hours (payslip)', mDays: 'Duty days', mSectors: 'Sectors',
-      aStat: '{m} · {a}→{b}', aNone: 'Nothing to compare yet.', aShare: 'Fixed pay share · {t}',
+      aStat: '{m} · from {a}', aNone: 'Nothing to compare yet.', aShare: 'Fixed pay share · {t}',
       aMoved: 'What moved', curDiff: 'Amounts in different currencies are not compared.',
       aTot: 'Total', aCurEx: 'Months in another currency left out: {n}',
       cFixed: 'Fixed pay', cRole: 'Role pay', cVariable: 'Variable pay', cAllowance: 'Allowances', cBonus: 'Bonus & profit share',
       cNoncash: 'Benefits in kind', cAdjustment: 'Absence deductions', cUnexplained: 'Not itemised',
       // B
-      bT: 'Pay per unit of work', bBadge: 'Reference',
+      bTDuty: 'Pay per duty hour', bTBlock: 'Pay per block hour', bTDays: 'Pay per duty day', bTSectors: 'Pay per sector',
       bNum: 'Pay', nGross: 'Gross pay', nNet: 'Net pay',
       bDen: 'Per', dDuty: 'duty hour', dBlock: 'block hour', dDays: 'duty day', dSectors: 'sector',
       bBasis: 'Quantities from', bsSlip: 'Payslip', bsRoster: "Roster",
       vEff: 'Per unit', vDay: 'By day', vDist: 'Distribution', bViews: 'View',
-      bStat: 'reference pay per {d}', bStatOne: 'reference pay per {d} · {t}',
-      bNote: 'Reference pay = amount ÷ quantity. It is not the rate for extra work.',
+      bNote: 'Amount paid ÷ quantity. Not the rate for extra flying.',
       bNoDen: "Your payslips don't have this quantity. Choose another basis.",
-      bCapSlip: 'Quantities as printed on your payslips', bCapRoster: 'Items matched to a duty month ÷ that month on your roster',
       rNoRoster: 'No roster for this duty month', rIncomplete: 'Roster covers only part of the month', rGaps: 'Some days have unreadable times',
       rMixed: 'Mixed currencies', rNoQty: 'Not printed on this payslip',
-      bNoLinked: 'No payslip lines are matched to a duty month yet. Answer in Allowance by allowance.',
+      bNoLinked: 'No payslip lines are matched to a duty month yet. Answer in Allowances over time.',
       bMonth: 'Duty month', dayX: 'Duty time (D-ON to D-OFF)', dayY: 'Leg time (excl. DH)',
       dayNoTimes: 'Days without readable times left out: {n}', dayNone: 'No duties this month.',
       dayTip: '{d}', dayOpen: 'Opens this day in your roster',
       distY: 'Duties', distBin: '{a}–{b} h', distN: 'Duties: {n}', distPick: '{b} · Duties: {n}',
       needRoster: 'Add your roster to see this', addRoster: 'Add roster',
       // C
-      cT: 'Allowance by allowance', cBadge: 'Paid amounts', cItem: 'Pay item', cTotal: ' (total)',
-      cStat: 'change in amount paid · {p}', cStatNoPct: 'change in amount paid', cStatOne: 'paid in {t}',
-      cCap: 'Amounts on your payslips', cQty: 'Quantity', cRef: 'Amount ÷ quantity',
+      cT: 'Allowances over time', cItem: 'Pay item', cTotal: ' (total)',
+      cStat: '({p}) from {a}',
+      cQty: 'Quantity', cRef: 'Amount ÷ quantity',
       cDec: 'Splitting the change', cQtyEff: 'From the change in quantity', cResid: 'Remainder',
       cDecNote: 'Previous reference value × change in quantity, and what is left over.',
       cNoQty: 'The quantity is unknown, so only the amounts are compared.',
@@ -164,13 +160,13 @@
       qRDutyDays: 'Duty days (roster)', qRSectors: 'Sectors (roster)', qROther: 'Roster quantity',
       uH: '/h', uDay: '/day', uCount: '/each', uNight: '/night',
       kProfit: 'Profit share', kNotional: 'Benefit in kind', kAbsence: 'Absence deduction',
-      wq: 'Which month of duty is this for?', wSame: 'Same month', wPrev: 'Previous month', wOther: 'Other', wUnknown: 'Not sure',
+      wq: 'Which duty month is {item} for?', wSame: 'Same month', wPrev: 'Previous month', wOther: 'Other', wUnknown: 'Not sure',
       wHint: 'The block hours on this payslip match {t} on your roster ({h})', wCand: 'Suggested',
       wSaved: 'Counted as {t} duty', wUnknownSaved: 'Duty month not set', wOwn: 'Its own period each month',
       wChange: 'Edit', wSave: 'Save', wErr: 'Could not save. Please try again in a moment.',
       wOffN: 'Duty {n} months earlier', wNext: 'Duty in the following month', wOwnOpt: 'Varies by month',
       // D
-      dT: 'Pay rule candidates', dBadge: 'Unconfirmed candidate (exploring)',
+      dT: 'Allowance pay rule (estimated)',
       dKind: 'Rule', kDaily: 'Daily excess', kMonthly: 'Monthly excess', kGuar: 'Guarantee',
       dQty: 'Hours counted', qDutyR: 'Duty time', qBlockR: 'Block time',
       dThr: 'Threshold', dThrDay: 'per day', dThrMonth: 'per month', dGuar: 'Guaranteed time',
@@ -180,12 +176,10 @@
       dRowM: 'Duty → payslip', dActual: 'Paid', dPred: 'Candidate', dGap: 'Gap', roleFit: 'fit', roleVal: 'check', roleUnused: '—',
       dDays: 'Duties over the threshold · {n}', dDayTip: '{d} · over by {h}',
       dSkip: 'Months not used: {n} (duty month not set {u} · roster incomplete {r} · no quantity {q})',
-      dNone: 'No months with a known duty month yet. Answer "Which month of duty is this for?" in Allowance by allowance.',
+      dNone: 'No months with a known duty month yet. Answer the duty month question in Allowances over time.',
       dNote: 'Fitted as a straight line through zero. A close fit does not confirm a company rule.',
       dNoItem: 'No pay item linked to duty yet.', dNoRange: 'No roster covers a full month yet.'
     }, /*PV-MSG:es*/ es: {
-      ey: 'ANÁLISIS DETALLADO', h: 'Cómo se compone tu remuneración y qué rinde tu trabajo de vuelo.',
-      subCmp: 'Comparando {b} con {a}', subOne: '{b}', subP: '{p} recibos de nómina', subP1: '1 recibo de nómina', subR: '{r} meses de programación', subR1: '1 mes de programación',
       perAria: 'Período', per3: '3 meses', per6: '6 meses', per12: '1 año', perAll: 'Todas',
       one: 'Las comparaciones aparecen a partir de tu segundo recibo de nómina.', noPrev: 'No hay un recibo de nómina anterior en la misma moneda, así que no hay nada que comparar.',
       ymT: '{M} {y}', ymS: '{M}', payOf: 'Recibo de {t}', workOf: 'Servicio de {t}',
@@ -196,35 +190,34 @@
       csvA: 'Guardar como CSV ({r})', print: 'Imprimir', printA: 'Imprimir este análisis', prRange: 'Recibos de nómina {r}',
       csvRange: 'Rango', csvPay: 'meses de pago {r}', csvSecPay: 'Recibos de nómina (mes de pago)', csvSecRoster: 'Programación (mes de servicio)',
       // A
-      aT: 'Cambios en remuneración y carga de trabajo', aBadge: 'Datos reales', aRate: 'Variación', aComp: 'Composición',
+      aT: 'Desglose de la remuneración', aRate: 'Variación', aComp: 'Composición',
+      from: 'desde {a}',
       mGross: 'Sueldo bruto', mNet: 'Sueldo neto', mBlock: 'Horas block (recibo)', mDuty: 'Horas de servicio (recibo)', mDays: 'Días de servicio', mSectors: 'Sectores',
-      aStat: '{m} · {a}→{b}', aNone: 'Todavía no hay nada que comparar.', aShare: 'Proporción de remuneración fija · {t}',
+      aStat: '{m} · desde {a}', aNone: 'Todavía no hay nada que comparar.', aShare: 'Proporción de remuneración fija · {t}',
       aMoved: 'Qué cambió', curDiff: 'No se comparan montos en monedas distintas.',
       aTot: 'Total', aCurEx: 'Meses en otra moneda que no se incluyen: {n}',
       cFixed: 'Remuneración fija', cRole: 'Asignaciones por función', cVariable: 'Remuneración variable', cAllowance: 'Asignaciones', cBonus: 'Bono y participación en las utilidades',
       cNoncash: 'Prestaciones en especie', cAdjustment: 'Descuentos por ausencia', cUnexplained: 'Sin desglosar',
       // B
-      bT: 'Remuneración por unidad de trabajo', bBadge: 'Referencia',
+      bTDuty: 'Remuneración por hora de servicio', bTBlock: 'Remuneración por hora block', bTDays: 'Remuneración por día de servicio', bTSectors: 'Remuneración por sector',
       bNum: 'Remuneración', nGross: 'Sueldo bruto', nNet: 'Sueldo neto',
       bDen: 'Por', dDuty: 'hora de servicio', dBlock: 'hora block', dDays: 'día de servicio', dSectors: 'sector',
       bBasis: 'Cantidades según', bsSlip: 'Recibo de nómina', bsRoster: "Programación",
       vEff: 'Por unidad', vDay: 'Por día', vDist: 'Distribución', bViews: 'Vista',
-      bStat: 'remuneración de referencia por {d}', bStatOne: 'remuneración de referencia por {d} · {t}',
-      bNote: 'Remuneración de referencia = monto ÷ cantidad. No es lo que se paga por trabajo adicional.',
+      bNote: 'Monto pagado ÷ cantidad. No es la tarifa por volar horas adicionales.',
       bNoDen: "Tus recibos de nómina no tienen esta cantidad. Elige otra base.",
-      bCapSlip: 'Cantidades tal como aparecen en tus recibos de nómina', bCapRoster: 'Conceptos asociados a un mes de servicio ÷ ese mes en tu programación',
       rNoRoster: 'No hay programación para este mes de servicio', rIncomplete: 'La programación cubre solo parte del mes', rGaps: 'Algunos días tienen horas ilegibles',
       rMixed: 'Monedas mezcladas', rNoQty: 'No aparece en este recibo de nómina',
-      bNoLinked: 'Todavía no hay conceptos del recibo asociados a un mes de servicio. Respóndelo en Concepto por concepto.',
+      bNoLinked: 'Todavía no hay conceptos del recibo asociados a un mes de servicio. Respóndelo en Evolución por concepto.',
       bMonth: 'Mes de servicio', dayX: 'Tiempo de servicio (D-ON a D-OFF)', dayY: 'Tiempo de tramos (sin DH)',
       dayNoTimes: 'Días sin horas legibles excluidos: {n}', dayNone: 'No hay servicios este mes.',
       dayTip: '{d}', dayOpen: 'Abre este día en tu programación',
       distY: 'Servicios', distBin: '{a}–{b} h', distN: 'Servicios: {n}', distPick: '{b} · Servicios: {n}',
       needRoster: 'Agrega tu programación para ver esto', addRoster: 'Agregar programación',
       // C
-      cT: 'Concepto por concepto', cBadge: 'Montos pagados', cItem: 'Concepto de pago', cTotal: ' (total)',
-      cStat: 'variación del monto pagado · {p}', cStatNoPct: 'variación del monto pagado', cStatOne: 'pagado en {t}',
-      cCap: 'Montos en tus recibos de nómina', cQty: 'Cantidad', cRef: 'Monto ÷ cantidad',
+      cT: 'Evolución por concepto', cItem: 'Concepto de pago', cTotal: ' (total)',
+      cStat: '({p}) desde {a}',
+      cQty: 'Cantidad', cRef: 'Monto ÷ cantidad',
       cDec: 'Cómo se divide la variación', cQtyEff: 'Por la variación de la cantidad', cResid: 'Resto',
       cDecNote: 'Valor de referencia anterior × variación de la cantidad, y lo que queda.',
       cNoQty: 'No se conoce la cantidad, así que solo se comparan los montos.',
@@ -235,13 +228,13 @@
       qRDutyDays: 'Días de servicio (programación)', qRSectors: 'Sectores (programación)', qROther: 'Cantidad de la programación',
       uH: '/h', uDay: '/día', uCount: '/unidad', uNight: '/noche',
       kProfit: 'Participación en las utilidades', kNotional: 'Prestación en especie', kAbsence: 'Descuento por ausencia',
-      wq: '¿A qué mes de servicio corresponde?', wSame: 'Mismo mes', wPrev: 'Mes anterior', wOther: 'Otro', wUnknown: 'No lo sé',
+      wq: '¿A qué mes de servicio corresponde {item}?', wSame: 'Mismo mes', wPrev: 'Mes anterior', wOther: 'Otro', wUnknown: 'No lo sé',
       wHint: 'Las horas block de este recibo coinciden con {t} en tu programación ({h})', wCand: 'Sugerido',
       wSaved: 'Se cuenta como servicio de {t}', wUnknownSaved: 'Mes de servicio sin definir', wOwn: 'Un periodo propio cada mes',
       wChange: 'Editar', wSave: 'Guardar', wErr: 'No se pudo guardar. Inténtalo de nuevo en un momento.',
       wOffN: 'Servicio de {n} meses antes', wNext: 'Servicio del mes siguiente', wOwnOpt: 'Varía según el mes',
       // D
-      dT: 'Reglas de pago candidatas', dBadge: 'Candidato sin confirmar (exploración)',
+      dT: 'Regla de pago de la asignación (estimada)',
       dKind: 'Regla', kDaily: 'Exceso diario', kMonthly: 'Exceso mensual', kGuar: 'Garantía',
       dQty: 'Horas que se cuentan', qDutyR: 'Tiempo de servicio', qBlockR: 'Tiempo block',
       dThr: 'Umbral', dThrDay: 'por día', dThrMonth: 'por mes', dGuar: 'Tiempo garantizado',
@@ -251,7 +244,7 @@
       dRowM: 'Servicio → recibo', dActual: 'Pagado', dPred: 'Candidato', dGap: 'Diferencia', roleFit: 'ajuste', roleVal: 'verificación', roleUnused: '—',
       dDays: 'Servicios por encima del umbral · {n}', dDayTip: '{d} · exceso de {h}',
       dSkip: 'Meses sin usar: {n} (mes de servicio sin definir {u} · programación incompleta {r} · sin cantidad {q})',
-      dNone: 'Todavía no hay meses con un mes de servicio conocido. Responde "¿A qué mes de servicio corresponde?" en Concepto por concepto.',
+      dNone: 'Todavía no hay meses con un mes de servicio conocido. Responde la pregunta del mes de servicio en Evolución por concepto.',
       dNote: 'Ajustado como una recta que pasa por cero. Un buen ajuste no confirma una regla de la empresa.',
       dNoItem: 'Todavía no hay conceptos de pago vinculados al servicio.', dNoRange: 'Ninguna programación cubre todavía un mes completo.'
     } /*/PV-MSG:es*/
@@ -444,13 +437,8 @@
 
   /* ── 見出しと期間 ─────────────────────────────────────────── */
   function opt(v, label, sel) { return '<option value="' + esc(v) + '"' + (sel ? ' selected' : '') + '>' + esc(label) + '</option>'; }
-  function subTx() {
-    var p = months().length, rn = rosterMonths().length;
-    var out = [S.sel.a ? fill(T.subCmp, { b: ymL(S.sel.b), a: ymL(S.sel.a) }) : fill(T.subOne, { b: ymL(S.sel.b) }),
-               fill(p === 1 ? T.subP1 : T.subP, { p: p })];
-    if (rn) out.push(fill(rn === 1 ? T.subR1 : T.subR, { r: rn }));
-    return out.join(' · ');
-  }
+  /* ★2026-11-10 オーナー「不要な文言はいらない」：LOOK DEEPER・題・「◯月を◯月と比べています · 明細 ◯か月 …」は外した。
+     残すのは期間の切り替え（左）と CSV・印刷（右）だけ。比べている月は各カードの大きい数字の横（「1月から」）で言う。 */
   function headHTML() {
     var ms = months(), line = '';
     if (ms.length < 2) line = T.one;
@@ -461,9 +449,7 @@
     var tools = '<div class="an-tools">' +
       '<button type="button" class="an-tool" data-act="csv" aria-label="' + esc(fill(T.csvA, { r: rg })) + '">' + ICON_DL + 'CSV</button>' +
       '<button type="button" class="an-tool" data-act="print" aria-label="' + esc(T.printA) + '">' + ICON_PR + esc(T.print) + '</button></div>';
-    return '<div class="an-hd"><div class="an-hd-l"><p class="an-ey">' + esc(T.ey) + '</p><h2 class="an-h">' + esc(T.h) + '</h2>' +
-      '<p class="an-sub">' + esc(subTx()) + '</p></div>' +
-      '<div class="an-hd-r">' + per + tools + '</div></div>' +
+    return '<div class="an-hd">' + per + tools + '</div>' +
       (line ? '<p class="an-line">' + esc(line) + '</p>' : '');
   }
 
@@ -515,10 +501,10 @@
   }
 
   /* ── 部品 ───────────────────────────────────────────────── */
-  function cardOpen(id, title, badge, mod) {
+  /* 題名だけ（右上の札は 2026-11-10 に外した。推定であることは D の題名の「（推定）」で言う） */
+  function cardOpen(id, title, mod) {
     return '<section class="an-card' + (mod ? ' ' + mod : '') + '" id="an-' + id + '" aria-labelledby="an-' + id + '-t">' +
-      '<div class="an-card-h"><h3 class="an-card-t" id="an-' + id + '-t">' + esc(title) + '</h3>' +
-      (badge ? '<span class="an-badge' + (id === 'd' ? ' is-warn' : '') + '">' + esc(badge) + '</span>' : '') + '</div>';
+      '<div class="an-card-h"><h3 class="an-card-t" id="an-' + id + '-t">' + esc(title) + '</h3></div>';
   }
   function seg(act, list, cur, aria) {
     return '<div class="an-segs" role="group" aria-label="' + esc(aria || '') + '">' + list.map(function (x) {
@@ -550,17 +536,17 @@
     return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p;
   }
 
-  /* ════ A. 収入と勤務量の変化 ═══════════════════════════════════ */
+  /* ════ A. 収入の内訳 ═══════════════════════════════════ */
   var MET = { gross: 'mGross', net: 'mNet', block: 'mBlock', duty: 'mDuty', dutyDays: 'mDays', sectors: 'mSectors' };
   function metVal(x, v, cur) { return x.unit === 'money' ? money(v, cur) : x.unit === 'min' ? hm(v) : qtyTx(v, x.unit); }
   function cardA() {
     var ca = R.cardA(S.model, { a: S.sel.a, b: S.sel.b }), cur = ca.currency;
     var view = two() ? S.A.view : 'comp';
-    var h = cardOpen('a', T.aT, T.aBadge);
+    var h = cardOpen('a', T.aT);
     if (view === 'change') {
       var rows = ca.metrics.filter(function (x) { return x.rate != null; });
       var lead = rows.filter(function (x) { return x.k === 'gross'; })[0] || rows[0];
-      h += lead ? stat(pctS(lead.rate), fill(T.aStat, { m: T[MET[lead.k]], a: ymS(ca.a), b: ymS(ca.b) })) : stat('—', T.aNone);
+      h += lead ? stat(pctS(lead.rate), fill(T.aStat, { m: T[MET[lead.k]], a: ymS(ca.a) })) : stat('—', T.aNone);
     } else {
       var cb = ca.composition.b, fx = cb ? cb.filter(function (x) { return x.cat === 'fixed'; })[0] : null;
       h += stat(fx && fx.share != null ? (fx.share * 100).toFixed(1) + '%' : '—', fill(T.aShare, { t: ymS(ca.b) }));
@@ -649,10 +635,11 @@
     return h;
   }
 
-  /* ════ B. 働き方と報酬効率 ═════════════════════════════════════ */
+  /* ════ B. ◯◯あたりの収入（題名は数量の基準に合わせて変わる）═════════════════════════════════════ */
   var DENS = [{ v: 'duty', t: 'dDuty' }, { v: 'block', t: 'dBlock' }, { v: 'dutyDays', t: 'dDays' }, { v: 'sectors', t: 'dSectors' }];
   var REASON = { no_roster: 'rNoRoster', roster_incomplete: 'rIncomplete', roster_gaps: 'rGaps', mixed_currency: 'rMixed' };
   function denName(k) { var x = DENS.filter(function (y) { return y.v === k; })[0]; return x ? T[x.t] : k; }
+  var BTITLE = { duty: 'bTDuty', block: 'bTBlock', dutyDays: 'bTDays', sectors: 'bTSectors' };
   function rosterYms() { return rosterMonths().map(function (m) { return m.ym; }); }
   function fixWork() {
     var ys = rosterYms();
@@ -692,16 +679,16 @@
     if (!hasR) S.B.basis = 'payslip';
     if (S.B.basis === 'roster') S.B.num = 'gross';
     fixDen();
-    var h = cardOpen('b', T.bT, T.bBadge);
+    var h = cardOpen('b', T[BTITLE[S.B.den]] || T.bTDuty);
     var eff = S.B.view === 'eff';
     var noDen = eff && S.B.basis === 'payslip' && !denHas(S.B.den);   // 明細にこの数量が無い：空の図を描かず1行で言う
     if (eff && !noDen) {
-      var e = effOf(), u = denName(S.B.den);
+      var e = effOf();
       if (e.pa && e.pb && isNum(e.pa.value) && isNum(e.pb.value) && e.pa.currency === e.pb.currency && e.pa.value > 0) {
-        h += stat(pctS(e.pb.value / e.pa.value - 1), fill(T.bStat, { d: u }));
+        h += stat(pctS(e.pb.value / e.pa.value - 1), fill(T.from, { a: ymS(e.pa.ym) }));
       } else if (e.pb && isNum(e.pb.value)) {
-        h += stat(money(e.pb.value, e.pb.currency), fill(T.bStatOne, { d: u, t: ymS(e.pb.ym) }));
-      } else h += stat('—', fill(T.bStat, { d: u }));
+        h += stat(money(e.pb.value, e.pb.currency), ymS(e.pb.ym));
+      } else h += stat('—');
     }
     h += '<div class="an-ctl">' +
       field(T.bNum, '<select class="an-sel" data-act="b-num">' + opt('gross', T.nGross, S.B.num === 'gross') +
@@ -717,7 +704,7 @@
     } else if (eff) {
       var e2 = effOf();
       if (S.B.basis === 'roster' && !e2.cb.points.length) h += '<p class="an-muted">' + esc(T.bNoLinked) + '</p>';
-      else h += '<div class="an-ch" data-ch="b-eff"></div>' + '<p class="an-cap2">' + esc(S.B.basis === 'roster' ? T.bCapRoster : T.bCapSlip) + '</p>';
+      else h += '<div class="an-ch" data-ch="b-eff"></div>';
       h += '<p class="an-note">' + esc(T.bNote) + '</p>';
     } else if (!hasR) {
       h += entryHTML();
@@ -748,7 +735,7 @@
     }).join('') + '</div></div>';
   }
 
-  /* ════ C. 手当ごとの掘り下げ ═════════════════════════════════ */
+  /* ════ C. 手当ごとの推移 ═════════════════════════════════ */
   var ASK_CAT = { variable: 1, role: 1, allowance: 1 };
   function optionsC() {
     var base = R.cardC(S.model, {});
@@ -779,19 +766,20 @@
     }).join('') + '</select>';
   }
   function cardC() {
-    var opts = optionsC(), h = cardOpen('c', T.cT, T.cBadge);
+    var opts = optionsC(), h = cardOpen('c', T.cT);
     if (!opts.length) return h + '<p class="an-muted">' + esc(T.cNone) + '</p></section>';
     if (!opts.some(function (o) { return o.key === S.C.item; })) S.C.item = defaultItem(opts);
     var cc = R.cardC(S.model, { item: S.C.item, a: S.sel.a, b: S.sel.b }), dc = cc.decomposition;
     var sB = cc.series.filter(function (s) { return s.ym === cc.b; })[0], sA = cc.series.filter(function (s) { return s.ym === cc.a; })[0];
     if (dc && isNum(dc.delta)) {
       var rt = sA && isNum(sA.amount) && sA.amount > 0 ? dc.delta / sA.amount : null;
-      h += stat(money(dc.delta, sB.currency, true), rt != null ? fill(T.cStat, { p: pctS(rt) }) : T.cStatNoPct, dc.delta > 0 ? 'up' : dc.delta < 0 ? 'dn' : '');
+      var fa = ymS(cc.a);
+      h += stat(money(dc.delta, sB.currency, true), rt != null ? fill(T.cStat, { p: pctS(rt), a: fa }) : fill(T.from, { a: fa }), dc.delta > 0 ? 'up' : dc.delta < 0 ? 'dn' : '');
     } else if (sB) {
-      h += stat(money(sB.amount, sB.currency), fill(T.cStatOne, { t: ymS(sB.ym) }));
+      h += stat(money(sB.amount, sB.currency), ymS(sB.ym));
     }
     h += '<div class="an-ctl">' + field(T.cItem, itemSelect('c-item', opts, S.C.item)) + '</div>';
-    h += '<div class="an-ch" data-ch="c-amt"></div><p class="an-cap2">' + esc(T.cCap) + '</p>';
+    h += '<div class="an-ch" data-ch="c-amt"></div>';
     if (dc && dc.qtyEffect != null && sA && sB) {
       h += '<div class="an-pair">' +
         '<div><span>' + esc(T.cQty) + ' · ' + esc(qtyName(sB.qty)) + '</span><b>' + esc(qtyTx(sA.qty.value, sA.qty.unit)) + ' <i>→</i> ' + esc(qtyTx(sB.qty.value, sB.qty.unit)) + '</b></div>' +
@@ -803,7 +791,7 @@
     } else if (dc && dc.reason === 'no_quantity') {
       h += '<p class="an-note">' + esc(T.cNoQty) + '</p>';
     }
-    h += askHTML(cc);
+    h += askHTML(cc, (opts.filter(function (o) { return o.key === S.C.item; })[0] || {}).label);
     return h + '</section>';
   }
   function decRows(dc, cur) {
@@ -832,10 +820,12 @@
     return { key: keys[0], line: l, m: m, cand: cand };
   }
   function offLabel(o) { return o === 0 ? T.wSame : o === -1 ? T.wPrev : o === 1 ? T.wNext : fill(T.wOffN, { n: -o }); }
-  function askHTML(cc) {
+  /* ★2026-11-10 オーナー「どの手当か書いていない」：問いに、選んでいる項目の名前（選ぶ欄に出ている字）を入れる */
+  function askHTML(cc, name) {
     var q = askOf(cc);
     if (!q) return '';
     var l = q.line;
+    var nm = l.label || name || kindName(l.kind);      // 明細の行の名前（無ければ選ぶ欄の字）
     if (l.mapStatus && !S.C.edit) {
       var tx = l.mapStatus === 'unknown' ? T.wUnknownSaved : l.workYm ? fill(T.wSaved, { t: ymS(l.workYm) }) : T.wOwn;
       return '<div class="an-ask is-done"><span>' + esc(tx) + '</span><button type="button" class="an-link" data-act="wq-change">' + esc(T.wChange) + '</button></div>';
@@ -845,7 +835,7 @@
       return '<button type="button" class="an-segb' + (isC ? ' is-cand' : '') + '" data-act="wq" data-v="' + v + '"' + (S.C.busy ? ' disabled' : '') + '>' + esc(t) +
         (isC ? '<small>' + esc(T.wCand) + '</small>' : '') + '</button>';
     };
-    var h = '<div class="an-ask" role="group" aria-labelledby="an-ask-t"><p class="an-ask-t" id="an-ask-t">' + esc(T.wq) + '</p>' +
+    var h = '<div class="an-ask" role="group" aria-labelledby="an-ask-t"><p class="an-ask-t" id="an-ask-t">' + esc(fill(T.wq, { item: nm })) + '</p>' +
       (q.cand ? '<p class="an-ask-h">' + esc(fill(T.wHint, { t: ymS(q.cand.ym), h: hm(q.cand.rosterBlockMin) })) + '</p>' : '') +
       '<div class="an-segs is-wrap">' + btn('0', T.wSame, c === 0) + btn('-1', T.wPrev, c === -1) + btn('other', T.wOther, false) + btn('unknown', T.wUnknown, false) + '</div>';
     if (S.C.other) {
@@ -876,7 +866,7 @@
       .then(function () { S.C.busy = false; renderCards(); }, function () { S.C.busy = false; S.C.msg = T.wErr; paint('c'); });
   }
 
-  /* ════ D. 給与ルールの計算候補 ════════════════════════════════ */
+  /* ════ D. 手当の計算ルール（推定）════════════════════════════════ */
   function optionsD() { return optionsC().filter(function (o) { return ASK_CAT[o.cat]; }); }
   function dayQty(x) { return S.D.qty === 'block' ? (x.blockMin ? x.blockMin.operating : null) : x.dutyMin; }
   function rangeD() {
@@ -921,12 +911,12 @@
     return cs.length === 1 ? cs[0] : null;
   }
   function cardD() {
-    var h = cardOpen('d', T.dT, T.dBadge);
+    var h = cardOpen('d', T.dT);
     if (!rosterMonths().length) return h + entryHTML() + '</section>';
     var opts = optionsD();
     if (!opts.length) return h + '<p class="an-muted">' + esc(T.dNoItem) + '</p></section>';
     if (!opts.some(function (o) { return o.key === S.D.item; })) {
-      /* 既定：勤務月が分かっている月がいちばん多い項目（同じなら手当ごとの掘り下げで選んでいる項目） */
+      /* 既定：勤務月が分かっている月がいちばん多い項目（同じなら手当ごとの推移で選んでいる項目） */
       var score = function (o) { return R.ruleFit.candidate(S.model, { item: o.key, kind: 'monthly', qty: S.D.qty, thresholdMin: 0 }).rows.length * 2 + (o.key === S.C.item ? 1 : 0) + (o.byKind ? 0 : 0.5); };
       var bestD = opts[0], bs = -1;
       opts.forEach(function (o) { var v = score(o); if (v > bs) { bs = v; bestD = o; } });
@@ -1220,7 +1210,7 @@
                  tip: [fill(T.payOf, { t: ymL(s.ym) }), j != null ? fmtJ(j) : '—',
                    s.qty ? qtyName(s.qty) + ' ' + qtyTx(s.qty.value, s.qty.unit) : '',
                    isNum(s.ref) ? T.cRef + ' ' + money(s.ref, s.currency) + unitTx(s.refUnit) : ''] };
-      }), { aria: T.cCap, h: 190 });
+      }), { aria: T.cT, h: 190 });
     } else if (k === 'd-curve') {
       var rg = rangeD();
       if (!rg) return;

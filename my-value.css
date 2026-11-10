@@ -130,7 +130,7 @@
 .mr-card-s{font-size:.72rem;color:var(--pv-ink-3);font-weight:600;line-height:1.5}
 
 /* 累計＝毎月戻ってくる理由。ページで唯一の暗い面にして一番上に置く。
-   ★ 色は「中でトークンを差し替える」だけにする。この中の部品（.mr-mini /
+   ★ 色は「中でトークンを差し替える」だけにする。この中の部品（.mr-rl /
      .pt-note / .pt-empty / .pt-svg）は全部すでに --pv-* を読んでいるので、
      ここを塗り替えれば丸ごと追随する。子ごとに色を書くと、あとで部品を
      1つ足したときに必ず1つ塗り忘れて、紺の上に黒い字が残る。
@@ -154,77 +154,53 @@
   box-shadow:0 1px 2px rgba(10,22,40,.32),
              0 24px 52px -22px rgba(10,22,40,.60),
              0 6px 16px -6px rgba(245,200,66,.12)}
-.mr-total-k{display:block;font-size:.73rem;font-weight:700;color:var(--pv-ink-3);
-            letter-spacing:.06em;text-transform:uppercase}
+.mr-total{margin-top:2px}
 /* 累計の額だけ金。ページ内で金を使うのはここ1か所（多用すると意味が消える）。
    紺の上なので #f5c842 をそのまま置ける（コントラスト約 10:1）。 */
-.mr-total-v{display:block;margin-top:10px;font-size:clamp(2.1rem,6.4vw,3.1rem);font-weight:900;
+.mr-total-v{display:block;font-size:clamp(2.1rem,6.4vw,3.1rem);font-weight:900;
             letter-spacing:-.035em;line-height:1;font-variant-numeric:tabular-nums;
             color:var(--pv-gold);text-shadow:0 0 30px rgba(245,200,66,.20)}
-.mr-total-n{display:block;margin-top:10px;font-size:.76rem;color:var(--pv-ink-2);line-height:1.6}
 
-/* KPI。総支給だけ2枠ぶん取って、残りを同じ大きさで並べる。
-   全部を同じ強さにしない（§23）。 */
-.mr-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
-.mr-kpi{background:var(--pv-surface-2);border:1px solid var(--pv-line-soft);
-        border-radius:var(--pv-r);padding:14px;min-width:0}
-.mr-kpi.is-lead{grid-column:span 2;background:var(--pv-surface-2);border-color:var(--pv-line)}
-.mr-kpi-k{display:block;font-size:.7rem;font-weight:600;color:var(--pv-ink-3);line-height:1.4}
-.mr-kpi-v{display:block;margin-top:7px;font-size:1.12rem;font-weight:800;letter-spacing:-.025em;
-          line-height:1.15;font-variant-numeric:tabular-nums;word-break:break-word}
-.mr-kpi.is-lead .mr-kpi-v{font-size:1.6rem}
-.mr-kpi-n{display:block;margin-top:6px;font-size:.66rem;color:var(--pv-ink-3);line-height:1.5}
+/* 今月の主役（総支給）。★2026-11-10 オーナー「何の数字か・どれが大切か分かりにくい」：
+   大きい数字はカードに1つだけ。増減のピルは数字の右。 */
+.mr-hero{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 12px}
+.mr-hero-k{font-size:.8rem;font-weight:700;color:var(--pv-ink-2)}
+.mr-hero-v{font-size:clamp(1.7rem,5vw,2.2rem);font-weight:900;letter-spacing:-.03em;line-height:1.05;
+           font-variant-numeric:tabular-nums;color:var(--pv-ink)}
 
 /* 増減の丸ピル。色は「向き」であって「良し悪し」ではない。 */
-.mr-d{display:inline-flex;align-items:center;margin-top:8px;padding:2px 8px;border-radius:999px;
+.mr-d{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;
       font-size:.68rem;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
 .mr-d.up{color:var(--pv-orange-ink);background:var(--pv-orange-soft)}
 .mr-d.dn{color:var(--pv-blue-ink);background:var(--pv-blue-soft)}
 .mr-d.fl{color:var(--pv-ink-3);background:var(--pv-line-soft)}
 
-/* 補助の数字（勤務時間・枚数など）。KPI より一段弱く、罫線だけで区切る。
-   ★ grid ではなく flex。累計の7枠は 4列にすると必ず1つ余り、その穴が
-     罫線の色のまま残って「読み取れなかった枠」に見える。flex なら
-     最終行が伸びて埋まる＝枚数が何個でも穴が空かない。 */
-.mr-mini{display:flex;flex-wrap:wrap;gap:1px;
-         margin-top:12px;background:var(--pv-line-soft);
-         border:1px solid var(--pv-line-soft);border-radius:var(--pv-r);overflow:hidden}
-.mr-mini-i{flex:1 1 104px;background:var(--pv-surface);padding:12px 10px;text-align:center;min-width:0}
-.mr-mini-i b{display:block;font-size:1.05rem;font-weight:800;letter-spacing:-.02em;line-height:1.2;
-             font-variant-numeric:tabular-nums}
-.mr-mini-i b i{font-style:normal;font-size:.7rem;font-weight:700;margin-left:2px;opacity:.55}
-.mr-mini-i span{display:block;margin-top:5px;font-size:.66rem;color:var(--pv-ink-3);font-weight:600;line-height:1.4}
+/* 1行1数字（名前が左・数字が右）。1年の時給の一覧（.yr-rl）と同じ読み方。
+   ★升目に並べない（2026-11-10）。値が入らない幅では、値だけ次の行の右へ落ちる＝桁が欠けない。 */
+.mr-rl{list-style:none;margin:16px 0 0;padding:0;border-top:1px solid var(--pv-line-soft)}
+.mr-rl-i{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:2px 16px;
+         padding:11px 0;border-bottom:1px solid var(--pv-line-soft)}
+.mr-rl-k{flex:1 1 9em;min-width:0;font-size:.8rem;font-weight:600;line-height:1.45;color:var(--pv-ink-2)}
+.mr-rl-v{flex:none;margin-left:auto;display:inline-flex;align-items:baseline;gap:8px;white-space:nowrap;
+         font-variant-numeric:tabular-nums}
+.mr-rl-v b{font-size:.98rem;font-weight:800;letter-spacing:-.015em;color:var(--pv-ink)}
+/* 数量の1行（乗務 57.1h · 総勤務 139.6h · ステイ 7泊） */
+.mr-qty{margin:12px 0 0;font-size:.76rem;line-height:1.65;color:var(--pv-ink-3);font-variant-numeric:tabular-nums}
+/* 「ほかの数字」。最初は閉じている（細かい数字を主役と同じ強さで並べない） */
+.mr-more{margin-top:10px}
+.mr-more>summary{display:inline-flex;align-items:center;gap:8px;min-height:32px;padding:0 2px;cursor:pointer;
+                 list-style:none;font-size:.78rem;font-weight:700;color:var(--pv-ink-2);border-radius:8px}
+.mr-more>summary::-webkit-details-marker{display:none}
+.mr-more>summary::before{content:"";flex:none;width:6px;height:6px;border-right:2px solid currentColor;
+                         border-bottom:2px solid currentColor;transform:rotate(-45deg);
+                         transition:transform .25s var(--pv-ease)}
+.mr-more[open]>summary::before{transform:rotate(45deg)}
+.mr-more>summary:hover{color:var(--pv-ink)}
+.mr-more>summary:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.mr-more>summary:active{opacity:.75}
+.mr-more .mr-rl{margin-top:4px}
+@media (prefers-reduced-motion:reduce){.mr-more>summary::before{transition:none}}
 
-/* 累計の折れ線の枠。
-   ★ .pt-chart を付けない。my-value.js の drawChart() が .pt-chart を探して
-     推移の線を描くので、同じ名前にすると累計の枠に推移の線が入る。 */
-.mr-cum{width:100%;margin-top:18px}
-
-/* ── 単純年換算（今月を12倍しただけの参考値）────────────────────
-   ★ 面も文字も一段沈めたままにする。控除の行と同じ大きさで置くと、
-     賞与の出た月にこれが「年収」に見える。 */
-.mr-ann{margin-top:14px;border:1px solid var(--pv-line-soft);
-        border-radius:var(--pv-r);overflow:hidden}
-.mr-ann>div{background:var(--pv-surface);padding:14px 16px;min-width:0}
-.mr-ann .k{display:block;font-size:.7rem;font-weight:700;color:var(--pv-ink-3);line-height:1.4}
-.mr-ann .v{display:block;margin-top:8px;font-weight:900;letter-spacing:-.03em;line-height:1.1;
-           font-variant-numeric:tabular-nums;word-break:break-word}
-.mr-ann .s{display:block;margin-top:6px;font-size:.66rem;color:var(--pv-ink-3);line-height:1.55}
-/* 面も文字も一段下げる（詳細度 0,2,0 で上の .mr-ann>div に勝たせる）。 */
-.mr-ann>.mr-ann-s{background:var(--pv-surface-2)}
-.mr-ann-s .v{font-size:1.02rem;font-weight:800;color:var(--pv-ink-2)}
-.mr-ann-s .w{display:block;margin-top:6px;font-size:.63rem;color:var(--pv-ink-3);line-height:1.55}
-
-/* ★ 上段に2枚並べるとカードは約 486px になる。5列のままだと1枠 90px で
-     「総勤務時間あたり」が3行に折れるので、2×2 に畳む。
-     総支給は枠を1つに戻して字の大きさ（1.6rem）で主役を保つ＝穴が空かない。
-     ここを画面幅で書けない理由は .mr-2col の注記と同じ。
-   ★ 本当のモバイル（下の 760px）はこの後ろに書いてあるので、そちらが勝つ。
-     375px では枠が 145px しか無く、総支給は横1本ぶん使ったほうが読める。 */
-@container (max-width:600px){
-  .mr-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .mr-kpi.is-lead{grid-column:span 1}
-}
 
 /* ── 機会（Opportunity）──────────────────────────────────────
    ★ 大きなマイナス1つを Hero にしない。左端に「いまの条件」を置き、
@@ -591,8 +567,6 @@
   .mr-top-in,.mr-shell{padding-left:16px;padding-right:16px}
   .mr-card{padding:18px 16px;border-radius:var(--pv-r)}
   .mr-card.is-hero{padding:22px 16px}
-  .mr-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .mr-kpi.is-lead{grid-column:1/-1}
   .mv-grid{grid-template-columns:1fr}
   /* 機会の札は縦積み。横スクロールを作らない（§24）。
      ★ PC で 1 行に 5 枚収めるために付けた max-width をここで戻す。

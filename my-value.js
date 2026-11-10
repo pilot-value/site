@@ -76,13 +76,13 @@
   var YEAR_URL = 'my-year.js?v=' + YEAR_V;                 // 「1年」の画面（押したときだけ読む）
   /* ★「勤務ロスター」のタブ（2026-11-09）。開いたときだけ読む4本。指紋は上の2本と同じ決まり
        （db/test-year-report.mjs が中身と突き合わせる）。計算の部品は分析のタブも使う。 */
-  var ROSTER_V = 'f824ac31';
-  var ROSTER_CSS_V = '453b5889';
-  var UPLOAD_V = 'b27f5ed9';
-  var ENGINE_V = '7ab4bdaa';
+  var ROSTER_V = '00a82ad9';
+  var ROSTER_CSS_V = '43af6b46';
+  var UPLOAD_V = 'ba0ba6df';
+  var ENGINE_V = '53f7188b';
   /* ★「分析」のタブ（2026-11-09）。開いたときだけ読む2本（見た目 → 計算の部品 → 画面の順）。指紋の決まりは上と同じ */
-  var ANALYSIS_V = '6dbb1b98';
-  var ANALYSIS_CSS_V = 'b2f00eb7';
+  var ANALYSIS_V = '3aca7c50';
+  var ANALYSIS_CSS_V = '71c92b78';
   var LATE = {
     roster: 'my-roster.js?v=' + ROSTER_V, rosterCss: 'my-roster.css?v=' + ROSTER_CSS_V,
     upload: 'roster-upload.js?v=' + UPLOAD_V, engine: 'pv-report-engine.js?v=' + ENGINE_V,
@@ -116,9 +116,12 @@
       /* 今月の実績 */
       month: '今月の実績',
       kGross: '総支給', kNet: '差引支給額',
-      perBlock: '乗務時間あたり', perDuty: '総勤務時間あたり',
-      mBlockH: '乗務時間', mDutyH: '総勤務時間', mDays: '稼働日数',
-      mStay: 'ステイ日数',
+      perBlock: '乗務1時間あたり', perDuty: '勤務1時間あたり',
+      /* 数量の1行（「乗務 57.1h · 総勤務 139.6h · ステイ 7泊」）の短い名前 */
+      mBlockH: '乗務', mDutyH: '総勤務', mDays: '稼働',
+      mStay: 'ステイ',
+      /* 細かい数字を畳む札（最初は閉じている）。2026-11-10 オーナー「何の数字か・どれが大切か分かりにくい」 */
+      more: 'ほかの数字',
       hDays: function (n) { return n + '日'; },
       hStay: function (n) { return n + '泊'; },
       kDeduct: '控除合計', kYtd: '年初来の課税支給額',
@@ -164,9 +167,8 @@
 
       /* 累計 ── 「生涯年収」「総収入」とは書かない */
       total: '累計報酬',
-      tHead: 'これまでに記録した支給額',
-      tGross: '額面の合計', tNet: '手取りの合計', tDeduct: '控除の合計',
-      tMonths: '記録月数', tAvg: '月平均の額面', tHourly: '通算の乗務時間あたり',
+      tNet: '手取りの合計', tDeduct: '控除の合計',
+      tAvg: '月平均の総支給', tHourly: '乗務1時間あたり（通算）',
       /* 上の合計の**内数**。組合が総支給の外で払った分は会社の明細に印字されない＝
          「額面 − 手取り ＝ 控除」の外側にある。出さないと、控除と手取りを足しても
          上の合計に届かない理由が画面のどこにも書いていないことになる（2026-09-02）。 */
@@ -174,8 +176,8 @@
       tPerdiemOut: 'うち明細とは別に受け取ったパーディアム',
       tBlockH: '累計の乗務時間', tDutyH: '累計の総勤務時間',
       tSpanOf: function (a, b) { return a === b ? a : a + '〜' + b; },
-      tCountOf: function (m, n) { return m === n ? m + '件' : n + '件中 ' + m + '件'; },
-      tOf: function (span, cnt) { return span + '・' + cnt; },
+      /* 累計の図に指を置いたときの吹き出し（2026-11-10）。1行目は月 */
+      tipCum: function (a, b) { return '累計 ' + a + '（この月 ' + b + '）'; },
       tOnly: function (m, n) {
         return '※ 総支給が分かる月だけを足しています（' + n + '件中 ' + m + '件）。';
       },
@@ -346,8 +348,9 @@
       month: 'This month',
       kGross: 'Gross pay', kNet: 'Net pay',
       perBlock: 'Per block hour', perDuty: 'Per duty hour',
-      mBlockH: 'Block hours', mDutyH: 'Duty hours', mDays: 'Duty days',
-      mStay: 'Layover nights',
+      mBlockH: 'Block', mDutyH: 'Duty', mDays: 'Duty days',
+      mStay: 'Layovers',
+      more: 'More figures',
       hDays: function (n) { return String(n); },
       hStay: function (n) { return String(n); },
       kDeduct: 'Total deductions', kYtd: 'Taxable pay, year to date',
@@ -381,15 +384,13 @@
       momOf: function (ym) { return 'vs ' + ym; },
 
       total: 'Total pay recorded',
-      tHead: 'Everything you have on record',
-      tGross: 'Gross, total', tNet: 'Take-home, total', tDeduct: 'Deductions, total',
-      tMonths: 'Months recorded', tAvg: 'Average gross / month', tHourly: 'Career per block hour',
+      tNet: 'Take-home, total', tDeduct: 'Deductions, total',
+      tAvg: 'Average gross / month', tHourly: 'Career per block hour',
       tUnionOut: 'of which, paid by your union',
       tPerdiemOut: 'of which, per diem paid separately from the payslip',
       tBlockH: 'Block hours, total', tDutyH: 'Duty hours, total',
       tSpanOf: function (a, b) { return a === b ? a : a + ' – ' + b; },
-      tCountOf: function (m, n) { return m === n ? m + (m === 1 ? ' record' : ' records') : m + ' of ' + n + ' records'; },
-      tOf: function (span, cnt) { return span + ' · ' + cnt; },
+      tipCum: function (a, b) { return 'Total ' + a + ' (this month ' + b + ')'; },
       tOnly: function (m, n) {
         return '※ Only months with a readable gross figure are added up (' + m + ' of ' + n + ').';
       },
@@ -534,8 +535,9 @@
       month: 'Este mes',
       kGross: 'Sueldo bruto', kNet: 'Sueldo neto',
       perBlock: 'Por hora block', perDuty: 'Por hora de servicio',
-      mBlockH: 'Horas block', mDutyH: 'Tiempo de servicio', mDays: 'Días de servicio',
-      mStay: 'Noches de pernocta fuera de base',
+      mBlockH: 'Horas block', mDutyH: 'Servicio', mDays: 'Días de servicio',
+      mStay: 'Pernoctas',
+      more: 'Más cifras',
       hDays: function (n) { return String(n); },
       hStay: function (n) { return String(n); },
       kDeduct: 'Total de deducciones', kYtd: 'Remuneración gravable acumulada en el año',
@@ -569,15 +571,13 @@
       momOf: function (ym) { return 'vs. ' + ym; },
 
       total: 'Remuneración total registrada',
-      tHead: 'Todo lo que tienes registrado',
-      tGross: 'Total bruto', tNet: 'Total neto', tDeduct: 'Total de deducciones',
-      tMonths: 'Meses registrados', tAvg: 'Bruto promedio / mes', tHourly: 'Por hora block, en toda tu carrera',
+      tNet: 'Total neto', tDeduct: 'Total de deducciones',
+      tAvg: 'Bruto promedio / mes', tHourly: 'Por hora block, en toda tu carrera',
       tUnionOut: 'de lo cual, pagado por tu sindicato',
       tPerdiemOut: 'de lo cual, viáticos pagados aparte del recibo de nómina',
       tBlockH: 'Total de horas block', tDutyH: 'Total de horas de servicio',
       tSpanOf: function (a, b) { return a === b ? a : a + ' – ' + b; },
-      tCountOf: function (m, n) { return m === n ? m + (m === 1 ? ' registro' : ' registros') : m + ' de ' + n + ' registros'; },
-      tOf: function (span, cnt) { return span + ' · ' + cnt; },
+      tipCum: function (a, b) { return 'Acumulado ' + a + ' (este mes ' + b + ')'; },
       tOnly: function (m, n) {
         return '※ Solo se suman los meses con un sueldo bruto legible (' + m + ' de ' + n + ').';
       },
@@ -775,9 +775,6 @@
     return '<span class="mr-chip">' + (k ? esc(k) + ' ' : '') + '<b>' + esc(v) + '</b></span>';
   }
   var SEP = (L === 'ja') ? '・' : ' · ';
-  function mini(v, lab) {
-    return '<div class="mr-mini-i"><b>' + v + '</b><span>' + esc(lab) + '</span></div>';
-  }
   var jpyOf = function (r, v) {                 // 原本通貨 → 表示用（fx は行が持っている）
     var fx = num(r.fx_to_jpy), n = num(v);
     return (n != null && fx != null) ? n * fx : null;
@@ -957,16 +954,24 @@
   }
 
   /* ── 今月の実績 ────────────────────────────────────────────
-     総支給を2枠ぶん取って、残りを同じ大きさで並べる。全部を同じ強さにしない。
+     ★2026-11-10 オーナー「数字がたくさん並んでいるが、何の数字か・どれが大切か分かりにくい」。
+       大きいのは総支給の1つだけ。ほかは「名前が左・数字が右」の1行1数字（1年の .yr-rl と同じ読み方）。
+       明細の外の分・控除・年初来は「ほかの数字」に畳む（最初は閉じている）。数え方は1文字も変えていない。
      ★ duty が無いときに block から推定しない。実際の block:duty は
-       会社と路線で倍ちがうので、推定した瞬間に数字が嘘になる。 */
-  function kpi(k, v, delta, sub, lead) {
-    return '<div class="mr-kpi' + (lead ? ' is-lead' : '') + '">' +
-      '<span class="mr-kpi-k">' + esc(k) + '</span>' +
-      '<b class="mr-kpi-v">' + esc(v) + '</b>' +
-      (delta ? '<span class="mr-d ' + delta.cls + '">' + esc(delta.tx) + '</span>' : '') +
-      (sub ? '<span class="mr-kpi-n">' + esc(sub) + '</span>' : '') +
-      '</div>';
+       会社と路線で倍ちがうので、推定した瞬間に数字が嘘になる。
+     ★ 読めた数字だけ並べる。無い行は 0 でも「—」でも埋めない（0時間と未読取は別のこと）。 */
+  function pill(delta) {
+    return delta ? '<span class="mr-d ' + delta.cls + '">' + esc(delta.tx) + '</span>' : '';
+  }
+  // 名前が左・数字が右の1行（v はもう作った字。esc はここでする）
+  function rl(k, v, delta) {
+    return '<li class="mr-rl-i"><span class="mr-rl-k">' + esc(k) + '</span>' +
+      '<span class="mr-rl-v"><b>' + esc(v) + '</b>' + pill(delta) + '</span></li>';
+  }
+  function rlList(items) { return items ? '<ul class="mr-rl" role="list">' + items + '</ul>' : ''; }
+  // 細かい数字は畳む（最初は閉じている）。中身が無ければ札ごと出さない
+  function moreBox(items) {
+    return items ? '<details class="mr-more"><summary>' + esc(T.more) + '</summary>' + rlList(items) + '</details>' : '';
   }
 
   function thisMonth(r, m) {
@@ -980,20 +985,39 @@
          （＝ gross が総支給の実額であるとき）。 */
     if (ded == null && gross != null && net != null) ded = gross - net;
 
-    var body = '<div class="mr-kpis">' +
-      kpi(T.kGross, gross != null ? fmt(jpyOf(r, gross)) : '—', pctOf(m, 'gross'), null, true) +
-      kpi(T.kNet, net != null ? fmt(jpyOf(r, net)) : '—') +
-      kpi(T.perDuty, c.hourlyDuty != null ? fmt(c.hourlyDuty) : '—', pctOf(m, 'duty')) +
-      kpi(T.perBlock, c.hourlyBlock != null ? fmt(c.hourlyBlock) : '—', pctOf(m, 'block')) +
-      '</div>';
+    // 大きい数字は総支給の1つだけ
+    var body = '<div class="mr-hero"><span class="mr-hero-k">' + esc(T.kGross) + '</span>' +
+      '<b class="mr-hero-v">' + esc(gross != null ? fmt(jpyOf(r, gross)) : '—') + '</b>' +
+      pill(pctOf(m, 'gross')) + '</div>';
 
-    // 読めた数字だけ並べる。無い枠は 0 で埋めない（0時間と未読取は別のこと）
-    var cells = '';
-    if (c.blockH != null) cells += mini(c.blockH + '<i>h</i>', T.mBlockH);
-    if (c.dutyH != null) cells += mini(c.dutyH + '<i>h</i>', T.mDutyH);
-    if (days != null) cells += mini(T.hDays(days), T.mDays);
+    /* ★総支給の外で受け取った分（支給元＝組合）。上の「総支給」は明細に印字された
+       額そのもので、組合が直接払った分はそこに載っていない。ここに出さないと、
+       下の年換算だけが大きくなって「12倍が合わない」画面になる（2026-09-02）。
+       ★足し算をそのまま見せる。合計は年換算の分子と同じ額＝画面の中で追える。
+       ★組合の分は畳まない（年換算と並べて見えていないと、掛け算が合わない理由が隠れる）。 */
+    var uo = V.unionOutsideJpy(r);
+    /* ★明細とは別に受け取ったパーディアム（2026-11-04）も足し算に入る。こちらは「ほかの数字」へ。
+       古い pay-viz.js が残っている端末でも落ちないように、関数があるときだけ読む。 */
+    var po = typeof V.perdiemOutsideJpy === 'function' ? V.perdiemOutsideJpy(r) : 0;
+    var all = gross != null ? rl(T.kGrossAll, fmt(jpyOf(r, gross) + uo + po)) : '';
+
+    /* ★年換算は「今月を12倍した」参考値であって、年収の実績ではない。名前（今月ベースの…）で言う。 */
+    var ann = num(r.annual_total_orig);
+    var rows =
+      (net != null ? rl(T.kNet, fmt(jpyOf(r, net))) : '') +
+      (uo > 0 && gross != null ? rl(T.kUnionOut, fmt(uo)) + all : '') +
+      (ann != null ? rl(hasBonus(r) ? T.kAnnualB : T.kAnnual, fmt(jpyOf(r, ann))) : '') +
+      (c.hourlyBlock != null ? rl(T.perBlock, fmt(c.hourlyBlock), pctOf(m, 'block')) : '') +
+      (c.hourlyDuty != null ? rl(T.perDuty, fmt(c.hourlyDuty), pctOf(m, 'duty')) : '');
+    body += rlList(rows);
+
+    // 数量は1行の文で（乗務 57.1h · 総勤務 139.6h · ステイ 7泊）
+    var q = [];
+    if (c.blockH != null) q.push(T.mBlockH + ' ' + hh(c.blockH));
+    if (c.dutyH != null) q.push(T.mDutyH + ' ' + hh(c.dutyH));
+    if (days != null) q.push(T.mDays + ' ' + T.hDays(days));
     /* 0泊（日帰りだけの月）も出す。「書かなかった」と「泊まらなかった」は別のこと。 */
-    if (stay != null) cells += mini(T.hStay(stay), T.mStay);
+    if (stay != null) q.push(T.mStay + ' ' + T.hStay(stay));
     /* 保証時間との差。★ 明細は要らない。フォームで保証時間を書いた人にだけ出る。
        中東の 75〜80h 保証と日本の無保証を並べられるのは、この欄があるからこそ。
        ★ 保証が無い（空欄・0）人には出さない。0h との差を出すと、あたかも
@@ -1001,50 +1025,22 @@
     var guar = num(r.guaranteed_hours);
     if (guar > 0 && c.blockH != null) {
       var over = c.blockH - guar;
-      cells += mini((over >= 0 ? '+' : '−') + Math.abs(over).toFixed(1) + '<i>h</i>', T.mGuar(guar));
+      q.push(T.mGuar(guar) + ' ' + (over >= 0 ? '+' : '−') + Math.abs(over).toFixed(1) + 'h');
     }
-    if (cells) body += '<div class="mr-mini">' + cells + '</div>';
-
-
-    /* ★総支給の外で受け取った分（支給元＝組合）。上の「総支給」は明細に印字された
-       額そのもので、組合が直接払った分はそこに載っていない。ここに出さないと、
-       下の年換算だけが大きくなって「12倍が合わない」画面になる（2026-09-02）。
-       ★足し算をそのまま見せる。合計は年換算の分子と同じ額＝画面の中で追える。 */
-    var uo = V.unionOutsideJpy(r);
-    /* ★明細とは別に受け取ったパーディアム（2026-11-04）も同じ理由で、同じ枠に出す。
-       古い pay-viz.js が残っている端末でも落ちないように、関数があるときだけ読む。 */
-    var po = typeof V.perdiemOutsideJpy === 'function' ? V.perdiemOutsideJpy(r) : 0;
-    if ((uo > 0 || po > 0) && gross != null) {
-      body += '<div class="mv-grid" style="margin-top:14px">' +
-        (uo > 0 ? row(T.kUnionOut, fmt(uo)) : '') +
-        (po > 0 ? row(T.kPerdiemOut, fmt(po)) : '') +
-        row(T.kGrossAll, fmt(jpyOf(r, gross) + uo + po)) + '</div>';
-    }
+    if (q.length) body += '<p class="mr-qty">' + esc(q.join(' · ')) + '</p>';
 
     /* 控除は「総支給 − 手取り」でしか作れないので、手取りを書いた月にだけ出る。
-       年初来の課税額は明細からしか読めない。★ 空の枠を置かない。 */
-    var extra = (ded != null ? row(T.kDeduct, fmt(jpyOf(r, ded))) : '') +
-                (ytd != null ? row(T.kYtd, fmt(jpyOf(r, ytd))) : '');
-    if (extra) {
-      body += '<div class="mv-grid" style="margin-top:14px">' + extra + '</div>';
-    } else {
-      /* 手取りを書かなかった月。空欄ではなく見本を置く（同じ月を出し直せば埋まる）。 */
-      body += maskSample(sampleNet(), T.noGross);
-    }
+       年初来の課税額は明細からしか読めない。★ 空の行を置かない。 */
+    var extra = (ded != null ? rl(T.kDeduct, fmt(jpyOf(r, ded))) : '') +
+                (ytd != null ? rl(T.kYtd, fmt(jpyOf(r, ytd))) : '');
+    body += moreBox((po > 0 && gross != null ? rl(T.kPerdiemOut, fmt(po)) + (uo > 0 ? '' : all) : '') + extra);
+    /* 手取りを書かなかった月。空欄ではなく見本を置く（同じ月を出し直せば埋まる）。 */
+    if (!extra) body += maskSample(sampleNet(), T.noGross);
 
-    /* ★ これは「今月を12倍しただけ」の参考値であって、年収の実績ではない。
-       面も文字も一段沈めたまま置く（.mr-ann-s）。控除の行より目立たせない。 */
-    var ann = num(r.annual_total_orig);
-    if (ann != null) {
-      var withB = hasBonus(r);
-      body += '<div class="mr-ann">' +
-        '<div class="mr-ann-s"><span class="k">' + esc(withB ? T.kAnnualB : T.kAnnual) + '</span>' +
-        '<b class="v">' + esc(fmt(jpyOf(r, ann))) + '</b>' +
-        '</div>' +
-      '</div>';
-    }
-    return sec(T.month, body, T.ym(r.period_year, r.period_month) +
-      (m ? SEP + T.momOf(T.ym(m.a.period_year, m.a.period_month)) : ''));
+    // 見出しの右：対象月と、比べた前の月（同じ年なら月だけ）
+    var prev = m ? (m.a.period_year === r.period_year ? T.ymShort(m.a.period_year, m.a.period_month)
+                                                       : T.ym(m.a.period_year, m.a.period_month)) : null;
+    return sec(T.month, body, T.ym(r.period_year, r.period_month) + (prev ? SEP + T.momOf(prev) : ''));
   }
 
   /* ── 累計報酬 ──────────────────────────────────────────────
@@ -1054,7 +1050,9 @@
        中に閉じるが、これは「受け取った額の足し算」で、転職しても受け取った
        事実は消えない。足し方（各月をその月のレートで円に直す）は totals()。
      ★ 「生涯年収」「総収入」とは書かない。出していない月は入っていないので、
-       そう名乗った瞬間に嘘になる。対象期間と枚数を必ず同じ枠に出す。
+       そう名乗った瞬間に嘘になる。対象期間と月数を必ず見出しの右に出す。
+     ★2026-11-10 オーナー「数字がたくさん並んでいるが、何の数字か・どれが大切か分かりにくい」。
+       大きい数字は累計の1つだけ。ほかは「名前が左・数字が右」の行、細かい数字は「ほかの数字」に畳む。
      ★ 額面は総支給が分かる月ぜんぶ、手取り・控除は手取りを書いた月だけ
        （totals() がそう作っている）。控除は同じ部分集合の額面から引いているので、
        画面の「額面 − 手取り」は必ず「控除の合計」と一致する。額面と枚数が
@@ -1062,7 +1060,7 @@
      ★ 一番上の合計には**組合が総支給の外で払った分も入っている**（2026-09-02）。
        受け取った額の足し算なので入れないと嘘になるが、あの分は会社の明細の外＝
        控除が1円も引かれていない。だから「手取り＋控除」は上の合計より小さくなる。
-       その差が何なのかを、内数の札（tUnionOut）1つで必ず出す。 */
+       その差が何なのかを、内数の行（tUnionOut）1つで必ず出す（畳まない）。 */
   function lifetime(rows) {
     var t = V.totals(rows);
     if (!t.months) {
@@ -1074,11 +1072,9 @@
       T.ym(t.from.period_year, t.from.period_month),
       T.ym(t.to.period_year, t.to.period_month));
 
-    var body = '<div class="mr-total">' +
-        '<span class="mr-total-k">' + esc(T.tHead) + '</span>' +
-        '<b class="mr-total-v">' + esc(fmt(t.gross)) + '</b>' +
-        '<span class="mr-total-n">' + esc(T.tOf(span, T.tCountOf(t.months, t.total))) + '</span>' +
-      '</div>';
+    var body = '<div class="mr-total"><b class="mr-total-v">' + esc(fmt(t.gross)) + '</b></div>';
+    // 積み上がりの折れ線（指を置くとその月の累計とその月の額）。点は「足せた月」だけ＝見出しの月数と数が合う
+    body += '<div class="mr-cum"></div>';
 
     /* 通算の時間あたり報酬。
        ★ 累計の額面 ÷ 累計の乗務時間 では出さない。上の「乗務時間あたり」は
@@ -1093,35 +1089,33 @@
       if (c.hourlyBlock != null && c.blockH > 0) { hNum += c.hourlyBlock * c.blockH; hDen += c.blockH; }
     });
     /* 手取り・控除は「手取りを書いた月」だけの合計（totals() がそう作る）。
-       札の見出しには足さない（この幅では必ず「3」と「ヶ月」で改行する）。
        枚数が違うときは下に1行で断る。 */
-    var cells =
-      (t.monthsNet ? mini(esc(fmt(t.net)), T.tNet) +
-                     mini(esc(fmt(t.deduct)), T.tDeduct) : '') +
+    body += rlList(
+      (t.monthsNet ? rl(T.tNet, fmt(t.net)) + rl(T.tDeduct, fmt(t.deduct)) : '') +
       /* 組合が総支給の外で払った分（内数）。0 の人には出さない。 */
-      (t.unionOut > 0 ? mini(esc(fmt(t.unionOut)), T.tUnionOut) : '') +
-      /* 明細とは別に受け取ったパーディアム（内数・2026-11-04）。理由は組合と同じ。 */
-      (t.perdiemOut > 0 ? mini(esc(fmt(t.perdiemOut)), T.tPerdiemOut) : '') +
-      mini(T.months(t.months), T.tMonths) +
-      mini(esc(fmt(t.gross / t.months)), T.tAvg) +
-      (hDen > 0 ? mini(esc(fmt(hNum / hDen)), T.tHourly) : '') +
-      (bh > 0 ? mini(bh.toFixed(1) + '<i>h</i>', T.tBlockH) : '') +
-      (dh > 0 ? mini(dh.toFixed(1) + '<i>h</i>', T.tDutyH) : '');
-    body += '<div class="mr-mini">' + cells + '</div>';
-
-    // 積み上がりの折れ線。点は「足せた月」だけ＝上の枚数と数が合う
-    body += '<div class="mr-cum"></div>';
+      (t.unionOut > 0 ? rl(T.tUnionOut, fmt(t.unionOut)) : '') +
+      rl(T.tAvg, fmt(t.gross / t.months)));
+    body += moreBox(
+      (bh > 0 ? rl(T.tBlockH, bh.toFixed(1) + 'h') : '') +
+      (dh > 0 ? rl(T.tDutyH, dh.toFixed(1) + 'h') : '') +
+      (hDen > 0 ? rl(T.tHourly, fmt(hNum / hDen)) : '') +
+      /* 明細とは別に受け取ったパーディアム（内数・2026-11-04）。 */
+      (t.perdiemOut > 0 ? rl(T.tPerdiemOut, fmt(t.perdiemOut)) : ''));
 
     if (t.skipped > 0) body += note(esc(T.tOnly(t.months, t.total)));
     if (t.monthsNet && t.monthsNet < t.months) body += note(esc(T.tNetOnly(t.monthsNet)));
-    return sec(T.total, body, null, 'is-hero');
+    return sec(T.total, body, span + SEP + T.months(t.months), 'is-hero');
   }
 
   /* 累計の折れ線は running total なので、1行だけでは値が決まらない。
      chart() の valueAt に渡す（key は使われない）。
      ★ valueOf という名前にはできない。Object.prototype.valueOf が継承されていて
        常に function になり、他の呼び出しまで巻き込む（pay-viz.js の注記を参照）。
-     ★ 枠は .mr-cum。.pt-chart にすると drawChart() の探し先とぶつかる。 */
+     ★ 枠は .mr-cum。.pt-chart にすると drawChart() の探し先とぶつかる。
+     ★2026-11-10 オーナー「指を置いたらその月の金額が出るべき。なぜ最後の点にだけ数字が？」
+       ── 吹き出し（tipOf）に月・累計・その月の額。最後の点の数字は描かない（真上の大きい数字と同じ）。
+       「この月」は累計の差＝その月に足した額（組合・明細の外のパーディアムも込み。totals() の足し方のまま）。
+       年をまたぐときは横軸の月の下に年（yearOf）。 */
   function drawCumChart() {
     var box = root.querySelector('.mr-cum');
     if (!box) return;
@@ -1131,6 +1125,12 @@
       width:    V.widthOf(box, root),
       valueAt:  function (r, i) { return t.series[i].gross; },
       labelOf:  function (r) { return T.ymShort(r.period_year, r.period_month); },
+      yearOf:   function (r) { return r.period_year; },
+      tipOf:    function (r, i) {
+        var s = t.series[i], before = i ? t.series[i - 1].gross : 0;
+        return [T.ym(r.period_year, r.period_month), T.tipCum(fmt(s.gross), fmt(s.gross - before))];
+      },
+      endLabel: false,
       aria:     T.total,
       noMetric: T.tNone
     });
@@ -1635,7 +1635,10 @@
       noMetric: T.noMetric,
       /* ★2026-11-08 目盛を付ける（最高と最低の額）・数%の上下を枠いっぱいの山谷に描かない */
       axis:     true,
-      minSpan:  0.3
+      minSpan:  0.3,
+      /* ★2026-11-10 指を置くとその月の額（最後の点の数字は残す）・年をまたぐときは月の下に年 */
+      yearOf:   function (r) { return r.period_year; },
+      tipOf:    function (r, i, v) { return [T.ym(r.period_year, r.period_month), fmt(v)]; }
     });
   }
 

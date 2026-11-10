@@ -18,16 +18,11 @@
 .an [hidden]{display:none !important}
 
 /* ── 見出しと期間 ───────────────────────────────────────── */
-.an-hd{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 16px}
-.an-hd-l{min-width:0}
-.an-ey{margin:0;font-size:.66rem;font-weight:800;letter-spacing:.14em;color:var(--pv-accent-ink)}
-.an-h{margin:4px 0 0;font-size:clamp(1.15rem,2.4vw,1.45rem);font-weight:800;letter-spacing:-.03em;line-height:1.3;color:var(--pv-ink)}
-.an-sub{margin:4px 0 0;font-size:.76rem;font-weight:700;color:var(--pv-ink-3)}
-.an-hd-r{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:flex-end;gap:8px 12px}
+.an-hd{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px}
 /* 期間（3か月｜6か月｜1年｜全部）：カードの切り替えと同じ部品・見出しの右で余白を持たない */
 .an-per .an-segs{margin:0;padding-bottom:2px}
 /* CSV・印刷：目立たせない小さい道具 */
-.an-tools{display:flex;gap:6px;padding-bottom:2px}
+.an-tools{display:flex;gap:6px;padding-bottom:2px;margin-left:auto}   /* 期間が無い（明細3か月まで）ときも右に */
 .an-tool{display:inline-flex;align-items:center;gap:5px;min-height:32px;padding:5px 10px;border-radius:9px;border:1px solid var(--pv-line);
   background:var(--pv-surface);color:var(--pv-ink-2);font:inherit;font-size:.72rem;font-weight:700;line-height:1;cursor:pointer;transition:transform .2s var(--pv-ease)}
 .an-tool:hover{color:var(--pv-ink);border-color:var(--pv-accent)}
@@ -42,9 +37,6 @@
   box-shadow:var(--pv-shadow);container-type:inline-size}
 .an-card-h{display:flex;align-items:flex-start;justify-content:space-between;gap:8px 12px;margin-bottom:12px}
 .an-card-t{margin:0;font-size:.98rem;font-weight:800;letter-spacing:-.01em;line-height:1.35;color:var(--pv-ink)}
-.an-badge{flex:none;padding:3px 8px;border-radius:6px;border:1px solid var(--pv-accent-line);background:var(--pv-accent-soft);
-  color:var(--pv-accent-ink);font-size:.64rem;font-weight:800;line-height:1.5;white-space:nowrap}
-.an-badge.is-warn{border-color:var(--pv-gold-line);background:var(--pv-gold-soft);color:var(--pv-gold-ink)}
 .an-msg{display:flex;flex-direction:column;align-items:flex-start;gap:12px}
 .an-msg p{margin:0;font-size:.86rem;line-height:1.7;color:var(--pv-ink-2)}
 

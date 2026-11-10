@@ -10,6 +10,8 @@
      ④ ログに画像・勤務表の文字・AI の答えを出さない（ソースを grep ＋ 実際に流して console を拾う）
      ⑤ ログインしていなければ 401 login_required（AI も回数も呼ばない）
      ⑥ 日付の列に在る日は何も無くても返す・捨てた記号の日は unread:true（字は残さない）・TIME の列も block（2026-11-10）
+     ⑦ 日の種類 cat は毎日・決まった10語だけ／区間に role は無い（ほかの乗員の役職）／辞書に無い言葉は鍵があれば札
+        '#'＋16桁（言葉はどこにも残らない）／1枚につきモデルへの頼みは1回だけ（2026-11-11）
    ★ここに出てくる名前・便・時刻は全部作り話。ネットワークも API キーも使わない。費用ゼロ。
    実行: node db/test-roster-parse.mjs
    ════════════════════════════════════════════════════════════════ */
@@ -29,7 +31,9 @@ globalThis.Deno = { env: { get: (k) => ENV[k] }, serve: () => {} };
 const R = await import('../supabase/functions/parse-roster/index.ts');
 const { sanitize, sanitizeTail, resolveDates, parseClock, parseBlock, flightOf, tok, RE, hintOf,
         buildRequest, readReply, readDiag, systemPrompt, OUT_SCHEMA, MAX_TOKENS, READ_TIMEOUT_MS,
-        MAX_DAYS, MAX_LEGS, REASONS, handler, DAILY_LIMIT, GLOBAL_LIMIT, MONTH_LIMIT, QUOTA_BUCKET, MAX_UNION_PARAMS } = R;
+        MAX_DAYS, MAX_LEGS, REASONS, handler, DAILY_LIMIT, GLOBAL_LIMIT, MONTH_LIMIT, QUOTA_BUCKET, MAX_UNION_PARAMS,
+        DAY_CATS, TOKEN_RE, WORD_MAX, wordNorm, wordToken, wordTokens, sanitizeRead, bareDay } = R;
+import { createHmac } from 'crypto';
 
 let pass = 0, fail = 0;
 const ok = (c, m, extra) => {
@@ -40,7 +44,7 @@ const eq = (got, want, m) => ok(JSON.stringify(got) === JSON.stringify(want), m,
 
 const NOW = new Date('2026-11-09T03:00:00Z');
 const L = (o = {}) => ({ flight: null, from: null, to: null, loc: null, out: null, in: null, in_day: 0, block: null,
-                         role: null, kind: 'operating', partial: false, row: 1, ...o });
+                         kind: 'operating', partial: false, row: 1, ...o });
 const D = (o = {}) => ({ y: 2026, m: 10, d: 1, wd: null, cut: null, code: null, d_on: null, d_off: null,
                          d_off_day: 0, row: 1, legs: [], ...o });
 const run = (days, extra = {}, ctx = {}) =>
@@ -53,6 +57,7 @@ console.log('\nA 決まりごと');
   ok(mine && theirs && mine[1] === theirs[1], `モデルは parse-payslip と同じ（${mine && mine[1]}）`);
   ok((SRC.match(/claude-[a-z0-9-]+/g) || []).length === 1, 'モデル名は定数1か所だけ');
   ok(/export const BUILD = '\d{4}-\d{2}-\d{2}';/.test(SRC), '版の札（BUILD）がある');
+  ok(R.BUILD >= '2026-11-11', `版の札は cat・札・role 外しの版以降（${R.BUILD}）`);
   ok(DAILY_LIMIT === 60 && GLOBAL_LIMIT === 100 && MONTH_LIMIT === 1000 && QUOTA_BUCKET === 'roster',
      `回数の既定：本人60・全体100/日・1000/月・箱は明細と別（${QUOTA_BUCKET}）`);
   ok(DAILY_LIMIT <= 100, '本人の上限は pv_parse_quota_take_v2 が受ける 100 以下');
@@ -109,15 +114,17 @@ console.log('\nC sanitize：残すもの・捨てるもの');
   ]);
   eq(r.v, 1, '形の版 v:1');
   eq(r.days.map((d) => [d.date, d.code]), [['2026-10-01', 'OFF1'], ['2026-10-02', null]], '日付と記号（大文字）');
-  eq(r.days[1].legs.map((l) => [l.seq, l.flight, l.from, l.to, l.block, l.role, l.kind]),
-     [[1, 'NH101', 'HND', 'CTS', '1:35', 'CAP', 'operating'], [2, 'NH102', 'CTS', 'HND', '1:35', 'DH1', 'deadhead']],
-     '区間：便名・空港・役割は大文字・乗務時間は H:MM・seq は印字の順');
+  eq(r.days[1].legs.map((l) => [l.seq, l.flight, l.from, l.to, l.block, l.kind]),
+     [[1, 'NH101', 'HND', 'CTS', '1:35', 'operating'], [2, 'NH102', 'CTS', 'HND', '1:35', 'deadhead']],
+     '区間：便名・空港は大文字・乗務時間は H:MM・seq は印字の順');
+  ok(r.days[1].legs.every((l) => !('role' in l)) && !/"role"|CAP|DH1/.test(JSON.stringify(r)),
+     '★モデルが role（CAP・DH1）を返しても、区間に role の鍵は無い（ほかの乗員の役職を運ばない）');
   ok(r.days.every((d) => d.page === 2) && r.days[1].legs.every((l) => l.page === 2), 'page は呼んだ側の値（AI の言うページを使わない）');
-  eq(Object.keys(r.days[1]), ['date', 'code', 'unread', 'd_on', 'd_off', 'd_off_day', 'cut', 'page', 'row', 'legs'], '日の欄は決めたものだけ（unread はサーバーが決める印）');
+  eq(Object.keys(r.days[1]), ['date', 'code', 'unread', 'cat', 'd_on', 'd_off', 'd_off_day', 'cut', 'page', 'row', 'legs'], '日の欄は決めたものだけ（unread はサーバーが決める印・cat は日の種類）');
   eq(r.days.map((d) => d.unread), [false, false], '読めた記号・記号の無い日は unread:false');
   eq(Object.keys(r.days[1].legs[0]),
-     ['seq', 'flight', 'from', 'to', 'loc', 'out', 'in', 'in_day', 'block', 'role', 'kind', 'partial', 'page', 'row'],
-     '区間の欄は決めたものだけ');
+     ['seq', 'flight', 'from', 'to', 'loc', 'out', 'in', 'in_day', 'block', 'kind', 'partial', 'page', 'row'],
+     '区間の欄は決めたものだけ（role は無い）');
   eq([c.days, c.legs], [2, 2], 'checks は数だけ');
 }
 {
@@ -136,9 +143,9 @@ console.log('\nC sanitize：残すもの・捨てるもの');
   ok(!/"(name|crew|remarks|note|notes)"/.test(S), '決めていない鍵（name・crew・remarks・note）は運ばない');
   eq(r.days[0].code, null, '氏名の入った記号は捨てる（日の時刻は残る）');
   eq(r.days.map((d) => d.unread), [true, true], '★捨てた記号の日は unread:true（字は残さない・印だけ）');
-  eq(r.days[1].legs.map((l) => [l.flight, l.from, l.to, l.role]), [[null, null, 'HND', null], ['JL5', 'NRT', 'LAX', null]],
-     '区間の中の氏名・ホテルは欄ごと捨てる（残りの欄は残す）');
-  ok(c.dropped_fields >= 5, `捨てた欄の数を数える（${c.dropped_fields}）`);
+  eq(r.days[1].legs.map((l) => [l.flight, l.from, l.to, 'role' in l]), [[null, null, 'HND', false], ['JL5', 'NRT', 'LAX', false]],
+     '区間の中の氏名・ホテルは欄ごと捨てる（残りの欄は残す・role の欄そのものが無い）');
+  ok(c.dropped_fields >= 4, `捨てた欄の数を数える（${c.dropped_fields}）`);
 }
 {
   const { roster: r, checks: c } = run([
@@ -197,7 +204,7 @@ console.log('\nC sanitize：残すもの・捨てるもの');
   eq(r.hints, { kind: 'planned', time_ref: 'utc' }, 'hints は印字されたときだけ（語彙の中だけ）');
   eq(c.outside_period, 1, '期間の外の日を数える（捨てない・次の月の持ち越し）');
   eq(run([D({ code: 'OFF' })], { period: { from: '2026-10-31', to: '2026-10-01' }, kind: 'actual!', time_ref: 'Z' }).roster,
-     { v: 1, period: null, hints: { kind: null, time_ref: null }, days: [{ date: '2026-10-01', code: 'OFF', unread: false, d_on: null, d_off: null, d_off_day: 0, cut: null, page: 2, row: 1, legs: [] }] },
+     { v: 1, period: null, hints: { kind: null, time_ref: null }, days: [{ date: '2026-10-01', code: 'OFF', unread: false, cat: 'unclear', d_on: null, d_off: null, d_off_day: 0, cut: null, page: 2, row: 1, legs: [] }] },
      '逆さまの期間・語彙外の hints は null');
 }
 
@@ -285,8 +292,8 @@ console.log('\nC-5 日付の列に在る日は全部返す・読めなかった�
   eq(r.days.map((d) => [d.code, d.unread]), [['OFF', false], [null, false], [null, true], [null, true], [null, true], [null, false]],
      '印字はあったが通らなかった記号は code:null・unread:true ／ 何も無い日は unread:false');
   ok(!/研修|佐藤|JOHN|SMITH/.test(JSON.stringify(r)), '★捨てた字は答えのどこにも残らない（unread の印だけ）');
-  eq(r.days[1], { date: '2026-10-02', code: null, unread: false, d_on: null, d_off: null, d_off_day: 0, cut: null, page: 2, row: 1, legs: [] },
-     '何も無い日は日付だけ（ほかの欄は空）');
+  eq(r.days[1], { date: '2026-10-02', code: null, unread: false, cat: 'unclear', d_on: null, d_off: null, d_off_day: 0, cut: null, page: 2, row: 1, legs: [] },
+     '何も無い日は日付だけ（ほかの欄は空・cat を返さないモデルの答えは unclear）');
   eq([c.days, c.unread_days, c.dropped_fields, c.dropped_legs, c.undated], [6, 3, 3, 1, 0], 'checks：6日・unread 3日・捨てた欄3・中身の無い区間1');
 }
 {
@@ -313,8 +320,8 @@ console.log('\nC-5 日付の列に在る日は全部返す・読めなかった�
      '★プロンプト：日付の列に在る日は全部返させる（「何も無い日は飛ばす」を消した）');
 }
 
-// ═══ C-4 場所と役割は5字まで（氏名・地名を通さない） ══════════════
-console.log('\nC-4 場所と役割は5字まで（氏名・地名を通さない）');
+// ═══ C-4 場所は5字まで・役割は読まない（氏名・地名・ほかの乗員の役職を通さない） ══════════════
+console.log('\nC-4 場所は5字まで・役割は読まない（氏名・地名・ほかの乗員の役職を通さない）');
 {
   const g = (loc) => L({ kind: 'ground', loc, out: '09:00', in: '17:00' });
   const op = (role) => L({ flight: 'NH5', from: 'HND', to: 'CTS', out: '07:00', role });
@@ -323,10 +330,121 @@ console.log('\nC-4 場所と役割は5字まで（氏名・地名を通さない
     D({ d: 2, legs: [op('LONDON'), op('TANAKA'), op('CAP'), op('DH1'), op('F/O')] }),
   ]);
   eq(r.days[0].legs.map((l) => l.loc), [null, null, 'TAB', 'SIM1', 'HNDTC'], '★場所：LONDON・TANAKA（6字）は捨て、TAB・SIM1・HNDTC は残す');
-  eq(r.days[1].legs.map((l) => l.role), [null, null, 'CAP', 'DH1', 'F/O'], '★役割：LONDON・TANAKA は捨て、CAP・DH1・F/O は残す');
-  ok(!/LONDON|TANAKA/.test(JSON.stringify(r)), '捨てた語は答えのどこにも残らない');
-  eq(c.dropped_fields, 4, '捨てた欄の数（場所2・役割2）');
-  ok(RE.loc.source === '^[A-Z0-9]{2,5}$' && RE.role.source === '^[A-Z0-9/+\\-]{1,5}$', '形は loc {2,5}・role {1,5}（SQL は広いまま）');
+  eq([r.days[1].legs.length, r.days[1].legs.some((l) => 'role' in l)], [5, false], '★役割（CAP・DH1・F/O・名前）は区間に入らない（区間そのものは残る）');
+  ok(!/LONDON|TANAKA|CAP|DH1|F\/O/.test(JSON.stringify(r)), '捨てた語・役職は答えのどこにも残らない');
+  eq(c.dropped_fields, 2, '捨てた欄の数（場所2・役割は欄が無いので数えない）');
+  ok(RE.loc.source === '^[A-Z0-9]{2,5}$' && !('role' in RE), '形は loc {2,5}・role の形はもう無い（SQL は広いまま）');
+  ok(!/\brole\b/.test(JSON.stringify(OUT_SCHEMA)) && !/"role"/.test(systemPrompt()) && !/^- role:/m.test(systemPrompt().replace(/'/g, '')),
+     '★答えの形にもプロンプトの欄の説明にも role が無い');
+  ok(/Do not read crew positions or ranks \(CAP, CPT, FO, F\/O, SO, PIC, SIC/.test(systemPrompt()) && /OTHER crew members listed on the same line/.test(systemPrompt()),
+     '★プロンプト：乗員の役職（CAP・FO・F/O・SO・PIC・SIC …）は読ませない（同じ行のほかの乗員のもの）');
+  ok(/Deadhead \/ positioning marks only decide kind/.test(systemPrompt()), 'プロンプト：便乗の印は kind を決めるだけ');
+  const t = sanitizeTail([{ date: '2026-10-12', code: 'SBY', legs: [{ flight: 'NH7', from: 'HND', to: 'SIN', out: '21:00', kind: 'deadhead', role: 'DHD' }] }], NOW);
+  const tx = buildRequest('QUJD', 'image/jpeg', { page: 2, pages: 2, tail: t }).messages[0].content[1].text;
+  ok(!/role|DHD/.test(JSON.stringify(t)) && !/role|DHD/.test(tx), '前の画像の日にも・AI への文にも role は載らない');
+}
+
+// ═══ C-6 日の種類（cat）・辞書に無い言葉の札（2026-11-11） ═════════════
+console.log('\nC-6 日の種類（cat）・辞書に無い言葉の札（2026-11-11）');
+{
+  eq([...DAY_CATS], ['off', 'leave', 'standby', 'training', 'ground', 'sick', 'duty', 'other', 'blank', 'unclear'], '日の種類は決まった10語');
+  const dayS = OUT_SCHEMA.properties.days.items;
+  ok(dayS.required.includes('cat') && dayS.properties.cat.type === 'string' && !dayS.properties.cat.anyOf
+     && JSON.stringify(dayS.properties.cat.enum) === JSON.stringify([...DAY_CATS]),
+     '★答えの形：cat は必須・null 不可・10語の enum（ヌル可の欄を増やさない・字を書ける欄にしない）');
+  const P = systemPrompt();
+  ok(/"cat":"off"\|"leave"\|"standby"\|"training"\|"ground"\|"sick"\|"duty"\|"other"\|"blank"\|"unclear"/.test(P)
+     && /Always choose one for EVERY date/.test(P) && /even when it is faint or small/.test(P),
+     '★プロンプト：日付の列に在る日は全部、薄い・小さい字でも日の種類を選ばせる');
+  ok(/"blank" = nothing at all is printed for this date/.test(P) && /"unclear" only\s+as a last resort/.test(P.replace(/'/g, ''))
+     && /never write the printed text into it/.test(P),
+     'プロンプト：blank は何も印字が無い日だけ・unclear は最後の手段・印字の字を書かせない');
+
+  /* 10語はそのまま運ぶ（blank は何も無い日だけ）。 */
+  const ten = DAY_CATS.map((cat, i) => D({ d: i + 1, cat, code: cat === 'blank' || cat === 'unclear' ? null : 'X' + i }));
+  const { roster: r } = run(ten);
+  eq(r.days.map((d) => d.cat), [...DAY_CATS], '10語はそのまま運ぶ');
+  ok(r.days.every((d) => DAY_CATS.includes(d.cat)), '★どの日にも cat があり、10語のどれか');
+  /* 外れた語・形の違う値は unclear。 */
+  const junk = ['OFF', 'Off', 'holiday', '公休', 'TANAKA TARO', null, 5, true, { v: 'off' }, ['off'], ''];
+  const { roster: rj } = run(junk.map((cat, i) => D({ d: i + 1, cat, code: 'OFF' })));
+  eq(rj.days.map((d) => d.cat), junk.map(() => 'unclear'), '★10語の外（大文字・訳語・漢字・名前・null・数・物）は unclear');
+  ok(!/TANAKA|holiday|公休/.test(JSON.stringify(rj)), 'cat に書かれた字は答えのどこにも残らない');
+  /* 何か印字されている日を blank と言ったら unclear。 */
+  const { roster: rb } = run([D({ d: 1, cat: 'blank', code: 'OFF' }), D({ d: 2, cat: 'blank', d_on: '07:00' }),
+    D({ d: 3, cat: 'blank', legs: [L({ flight: 'NH1', from: 'HND', to: 'ITM', out: '08:00' })] }), D({ d: 4, cat: 'blank' }),
+    D({ d: 5, cat: 'blank', code: '研修' })]);
+  eq(rb.days.map((d) => d.cat), ['unclear', 'unclear', 'unclear', 'blank', 'unclear'], '記号・時刻・区間のある日は blank にしない（unclear）');
+  ok(bareDay(rb.days[3]) && !bareDay(run([D({ d: 1, cat: 'off' })]).roster.days[0]), '日付だけの日＝中身が無く cat も blank / unclear（種類が読めた日は日付だけではない）');
+}
+{
+  /* 札：'#' ＋ HMAC-SHA256(鍵, 整えた言葉) の先頭16桁。 */
+  const KEY = 'word-key-for-tests';
+  const ref = (w) => '#' + createHmac('sha256', KEY).update(w).digest('hex').slice(0, 16);
+  const t1 = await wordToken(KEY, '研修');
+  ok(TOKEN_RE.test(t1) && t1 === ref('研修'), `★札の形 '#'＋小文字16桁・HMAC-SHA256 の先頭（${t1}）`);
+  eq(await wordToken(KEY, '　研修 '), t1, '全角の空白・前後の空白は整えてから（同じ言葉 → 同じ札）');
+  ok((await wordToken(KEY, 'office  day')) === (await wordToken(KEY, 'OFFICE DAY')) && (await wordToken(KEY, 'OFFICE DAY')) === ref('OFFICE DAY'),
+     '中の空白は1つに・大文字にそろえてから');
+  ok((await wordToken(KEY, 'ｹﾝｼｭｳ')) === ref('ケンシュウ'), '半角かなは NFKC で全角に');
+  ok(t1 !== (await wordToken(KEY, '研修2')) && t1 !== (await wordToken(KEY, '佐藤')), '違う言葉 → 違う札');
+  ok(t1 !== (await wordToken('another-key', '研修')), '鍵が違えば札も違う（鍵を知らなければ言葉を当てられない）');
+  eq([await wordToken('', '研修'), await wordToken(KEY, ''), await wordToken(KEY, '   '), await wordToken(KEY, null), await wordToken(KEY, 12)],
+     [null, null, null, null, null], '鍵が無い・空・文字でない → 札にしない');
+  eq([wordNorm('あ'.repeat(WORD_MAX)) !== null, wordNorm('あ'.repeat(WORD_MAX + 1)), await wordToken(KEY, 'call ops 0312345678')],
+     [true, null, null], `★${WORD_MAX}字まで。それより長いもの（自由な文）は札にしない`);
+
+  /* sanitize：鍵があれば札・無ければ今までどおり。 */
+  const days = [
+    D({ d: 1, code: '研修', cat: 'training', d_on: '09:00', d_off: '17:00' }),
+    D({ d: 2, code: '研修', cat: 'training' }),
+    D({ d: 3, code: '佐藤', cat: 'unclear' }),
+    D({ d: 4, code: 'JOHN SMITH', cat: 'other' }),
+    D({ d: 5, code: '公休', cat: 'off' }),
+    D({ d: 6, code: 'OFF1', cat: 'off' }),
+    D({ d: 7, code: 'call ops 0312345678 now', cat: 'other' }),
+    D({ d: 8, code: '要調整', cat: 'duty', d_on: '06:30', d_off: '15:00', legs: [
+      L({ flight: 'ZJ301', from: 'HND', to: 'ITM', out: '07:00', in: '08:05', block: '1:05' }),
+      L({ flight: 'ZJ302', from: 'ITM', to: 'HND', out: '09:00', in: '10:10', block: '1:10' })] }),
+    D({ d: 9, code: '#0123456789abcdef', cat: 'off' }),
+  ];
+  const raw = { month: null, period: null, kind: null, time_ref: null, days };
+  const WORDS = /研修|佐藤|JOHN|SMITH|公休|call ops|0312345678|要調整/i;
+
+  const map = await wordTokens(raw, KEY);
+  eq([...map.keys()].sort(), ['JOHN SMITH', '佐藤', '研修', '要調整'].sort(),
+     '札にする言葉は、辞書にも記号の形にも合わなかった16字までの言葉だけ（公休・OFF1・長い文・#… は入らない）');
+
+  const { roster: rk, checks: ck } = await sanitizeRead(raw, { page: 2, now: NOW }, KEY);
+  const S = JSON.stringify(rk);
+  const k = rk.days.map((d) => [d.code, d.unread]);
+  ok(TOKEN_RE.test(k[0][0]) && k[0][0] === ref('研修') && k[0][1] === false, '★辞書に無い漢字の記号は札（unread にしない）');
+  ok(k[1][0] === k[0][0], '★同じ言葉は同じ札（1日と2日）');
+  ok(TOKEN_RE.test(k[2][0]) && TOKEN_RE.test(k[3][0]) && new Set([k[0][0], k[2][0], k[3][0]]).size === 3, '違う言葉は違う札（研修・佐藤・名前の形）');
+  eq([k[4], k[5]], [['OFF', false], ['OFF1', false]], '辞書の言葉・記号の形はいままでどおり（札にしない）');
+  eq(k[6], [null, true], '★長い自由な文は札にしない（今までどおり捨てて unread）');
+  ok(TOKEN_RE.test(k[7][0]) && rk.days[7].d_on === '06:30' && rk.days[7].d_off === '15:00' && rk.days[7].legs.length === 2
+     && rk.days[7].legs.map((l) => l.block).join() === '1:05,1:10', '★札にした日も時刻・区間はそのまま');
+  eq(k[8], [null, true], '★モデルが札の形（#…）を書いてきても札として通さない（札はこちらが作るものだけ）');
+  ok(!WORDS.test(S), '★言葉そのものは答えのどこにも残らない（札だけ）', S);
+  eq([ck.code_tokens, ck.unread_days, ck.code_mapped], [5, 2, 1], 'checks：札5・unread 2・辞書1（数だけ）');
+  eq(rk.days.map((d) => d.cat), ['training', 'training', 'unclear', 'other', 'off', 'off', 'other', 'duty', 'off'], 'cat はそのまま運ぶ');
+
+  /* 鍵が無いとき（今までどおり）。 */
+  const { roster: rn, checks: cn } = await sanitizeRead(raw, { page: 2, now: NOW }, '');
+  eq(rn.days.map((d) => [d.code, d.unread]), [[null, true], [null, true], [null, true], [null, true], ['OFF', false], ['OFF1', false], [null, true], [null, true], [null, true]],
+     '★鍵が無ければ札にしない＝ code:null・unread:true（今までどおり）');
+  ok(rn.days[7].d_on === '06:30' && rn.days[7].legs.length === 2 && rn.days[7].legs[0].flight === 'ZJ301',
+     '★記号を捨てた日も、時刻と区間は残る（日を空にしない）');
+  ok(!WORDS.test(JSON.stringify(rn)) && cn.code_tokens === 0, '鍵が無くても言葉は残らない・札0');
+  eq(JSON.stringify(sanitize(raw, { page: 2, now: NOW })), JSON.stringify({ roster: rn, checks: cn }), 'sanitize だけ（札の表なし）は鍵なしと同じ答え');
+
+  /* 前の画像の日（こちらが前に返した札）はそのまま通す。モデルには札を見せない。 */
+  const tail = sanitizeTail([{ date: '2026-10-11', code: k[0][0], cat: 'training' }, { date: '2026-10-12', code: '研修', cat: 'training' }], NOW);
+  eq(tail.map((d) => [d.code, d.unread, d.cat]), [[k[0][0], false, 'training'], [null, true, 'training']], '前の画像の日：こちらの札は通す・生の言葉は捨てる');
+  const tx = buildRequest('QUJD', 'image/jpeg', { page: 2, pages: 2, tail }).messages[0].content[1].text;
+  ok(!tx.includes(k[0][0]) && !/研修/.test(tx) && tx.includes('2026-10-11'), '札も言葉も AI への文には載せない（日付と時刻だけ）');
+  ok(!/\bcat\b/.test(tx), '前の画像の日の cat は AI に渡さない（見えているものだけを読ませる）');
 }
 
 // ═══ D 画像の端で切れた日・行 ══════════════════════════════════
@@ -480,9 +598,9 @@ console.log('\nG 頼み方（構造化出力・プロンプト）');
   wu(OUT_SCHEMA);
   ok(MAX_UNION_PARAMS === 16 && unions <= MAX_UNION_PARAMS, `★null や型の混ざる欄が API の上限以内（${unions} ≦ ${MAX_UNION_PARAMS}）`);
   {
-    const { roster: r0, checks: c0 } = run([D({ d: 5, code: 'P123', legs: [L({ flight: 'ZK101', from: 'BCN', to: '', loc: '', out: '06:40', in: '', block: '', role: '' })] })]);
+    const { roster: r0, checks: c0 } = run([D({ d: 5, code: 'P123', legs: [L({ flight: 'ZK101', from: 'BCN', to: '', loc: '', out: '06:40', in: '', block: '' })] })]);
     const l0 = r0.days[0] && r0.days[0].legs[0];
-    ok(!!l0 && l0.flight === 'ZK101' && l0.to === null && l0.in === null && l0.block === null && l0.role === null && c0.dropped_fields === 0,
+    ok(!!l0 && l0.flight === 'ZK101' && l0.to === null && l0.in === null && l0.block === null && !('role' in l0) && c0.dropped_fields === 0,
        '区間の "" は「印字なし」＝ null（捨てた欄に数えない）');
   }
   ok(/write "" \(an empty string\) wherever/.test(systemPrompt()), 'プロンプト：区間の文字の欄は "" で「印字なし」');
@@ -545,9 +663,10 @@ console.log('\nJ 入口（ログイン・回数・読み取り）');
   });
   const GOODDAYS = [
     { y: null, m: null, d: 1, wd: null, cut: null, code: 'TANAKA TARO', d_on: '06:00', d_off: '14:00', d_off_day: 0, row: 1,
+      cat: 'duty',
       legs: [{ flight: 'NH100', from: 'HND', to: 'CTS', loc: null, out: '07:00', in: '08:35', in_day: 0, block: '1:35',
                role: 'Smith, John', kind: 'operating', partial: false, row: 2 }] },
-    { y: null, m: null, d: 2, wd: null, cut: null, code: 'OFF', d_on: null, d_off: null, d_off_day: 0, row: 3, legs: [] },
+    { y: null, m: null, d: 2, wd: null, cut: null, code: 'OFF', cat: 'off', d_on: null, d_off: null, d_off_day: 0, row: 3, legs: [] },
   ];
   let calls = [], quota = { ok: true, n: 1, g: 1 }, quotaStatus = 200, ai = answer(GOODDAYS), aiStatus = 200;
   globalThis.fetch = async (url, init = {}) => {
@@ -608,8 +727,9 @@ console.log('\nJ 入口（ログイン・回数・読み取り）');
   const ac = calls.find((c) => c.url.includes('anthropic'));
   ok(ac && ac.body.thinking.type === 'disabled' && ac.body.output_config.format.type === 'json_schema'
      && ac.init.headers['x-api-key'] === 'test-key', 'AI への要求は buildRequest の形');
-  eq(r.j.roster.days.map((d) => [d.date, d.code, d.legs.map((l) => [l.flight, l.role])]),
-     [[`${ym}-01`, null, [['NH100', null]]], [`${ym}-02`, 'OFF', []]], '答え：日付は hint の月・氏名は欄ごと捨てる');
+  eq(r.j.roster.days.map((d) => [d.date, d.code, d.cat, d.legs.map((l) => [l.flight, 'role' in l])]),
+     [[`${ym}-01`, null, 'duty', [['NH100', false]]], [`${ym}-02`, 'OFF', 'off', []]], '答え：日付は hint の月・氏名は欄ごと捨てる・cat は運ぶ・role は無い');
+  ok(calls.filter((c) => c.url.includes('anthropic')).length === 1, '★1枚につきモデルへの頼みは1回だけ');
   ok(typeof r.j.checks.days === 'number' && r.j.checks.anchor === 'hint', 'checks を一緒に返す');
   ok(r.j.roster.days[0].unread === true && r.j.roster.days[1].unread === false && r.j.checks.unread_days === 1,
      '氏名の入った記号の日は unread:true（字は返さない）');
@@ -647,14 +767,44 @@ console.log('\nJ 入口（ログイン・回数・読み取り）');
   ok(r.j.ok === false && r.j.reason === 'undated', '★月が決まらない行しか無い → undated（画面が「何月の勤務表ですか」と聞ける）');
   ai = answer([]); r = await post(req());
   ok(r.j.ok === false && r.j.reason === 'not_a_roster', '日が1つも無い → not_a_roster');
-  ai = answer([1, 2, 3].map((d) => ({ ...GOODDAYS[1], d, code: null, row: d })));
+  ai = answer([1, 2, 3].map((d) => ({ ...GOODDAYS[1], d, code: null, cat: d === 2 ? 'unclear' : 'blank', row: d })));
   r = await post(req());
   ok(r.j.ok === false && r.j.reason === 'not_a_roster',
-     '★日付だけの日しか無い画像 → not_a_roster（空の日で、保存済みの同じ日を入れ替えさせない）');
+     '★日付だけの日しか無い画像（cat も blank / unclear）→ not_a_roster（空の日で、保存済みの同じ日を入れ替えさせない）');
+  ai = answer([1, 2, 3].map((d) => ({ ...GOODDAYS[1], d, code: null, cat: 'off', row: d })));
+  r = await post(req());
+  ok(r.j.ok === true && r.j.roster.days.every((d) => d.cat === 'off' && d.code === null),
+     '記号は写せなかったが日の種類は読めた日だけの画像は、読めたものとして返す（画面が本人に聞ける）');
   ai = answer([{ ...GOODDAYS[1], d: 1, code: null }, { ...GOODDAYS[1], d: 2, code: '研修' }]);
   r = await post(req());
   ok(r.j.ok === true && r.j.roster.days.length === 2 && r.j.roster.days[1].unread === true && !/研修/.test(JSON.stringify(r.j)),
      '読めなかった記号の日が1つでもあれば読めたものとして返す（字は返さない）');
+  ai = answer(GOODDAYS);
+
+  /* ★辞書に無い言葉の札（secret ROSTER_WORD_KEY があるときだけ）。モデルへの頼みは1回のまま。 */
+  r = await post({ ping: 1 }, null);
+  ok(r.j.has_word_key === false, 'ping：札の鍵の有無（無い）');
+  ENV.ROSTER_WORD_KEY = 'word-key-for-tests';
+  r = await post({ ping: 1 }, null);
+  ok(r.j.has_word_key === true && !JSON.stringify(r.j).includes('word-key-for-tests'), 'ping：札の鍵の有無（有る・値は返さない）');
+  ai = answer([
+    { ...GOODDAYS[1], d: 1, code: '研修', cat: 'training', d_on: '09:00', d_off: '17:00' },
+    { ...GOODDAYS[1], d: 2, code: '研修', cat: 'training' },
+    { ...GOODDAYS[0], d: 3, code: '要調整' },
+  ]);
+  r = await post(req());
+  const tks = r.j.roster && r.j.roster.days.map((d) => d.code);
+  ok(r.j.ok === true && tks.every((c) => R.TOKEN_RE.test(c)) && tks[0] === tks[1] && tks[0] !== tks[2]
+     && r.j.roster.days.every((d) => d.unread === false) && r.j.checks.code_tokens === 3,
+     '★入口：辞書に無い言葉は札（同じ言葉は同じ札）・unread にしない', r.j.roster && r.j.roster.days);
+  ok(r.j.roster.days[2].legs.length === 1 && r.j.roster.days[2].d_on === '06:00', '札にした日も時刻・区間はそのまま');
+  ok(!/研修|要調整|TANAKA|Smith/.test(JSON.stringify(r.j)) && !/研修|要調整|word-key/.test(logs.join('\n')),
+     '★言葉は答えにもログにも出ない（鍵も）', logs);
+  ok(calls.filter((c) => c.url.includes('anthropic')).length === 1, '★札を作っても、モデルへの頼みは1枚につき1回');
+  delete ENV.ROSTER_WORD_KEY;
+  r = await post(req());
+  ok(r.j.ok === true && r.j.roster.days.every((d) => d.code === null && d.unread === true) && r.j.checks.code_tokens === 0,
+     '鍵を外せば、次の1枚から今までどおり（code:null・unread:true）');
   ai = answer(GOODDAYS);
 
   r = await post({ report: { reason: 'image_decode', stage: 'file', kb: 512 } });

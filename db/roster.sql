@@ -14,9 +14,10 @@
 --     pv_roster_months  … 2年より前の月の合計（日ごとの行はまとめたら消す）
 --     pv_line_map       … 明細の1行が「何か月前の勤務の分か」の本人の答え
 --     pv_roster_edit_quota … 手で直した回数（人×日の数だけ。1人1日200回まで）
---   口（どれも security definer・本人の行だけ）
+--     pv_roster_airline_codes … 会社ごとの勤務コードの意味（3人以上が同じ答え かつ 答えた人の過半数のものだけ・人数は持たない）
+--   口（どれも security definer・本人の行だけ。my_roster_airline_codes だけは会社の辞書＝そろった答えだけ）
 --     submit_roster / edit_roster_day / my_roster / my_roster_docs / delete_roster_doc /
---     set_roster_profile / set_line_map / my_report_items
+--     set_roster_profile / set_line_map / my_report_items / my_roster_airline_codes
 --
 -- ★ 鍵は submit_pay_report と同じ式の proof_hash（同じ人・同じ会社なら明細の行と同じ鍵）。
 --    式は pv_roster_key の1か所だけ。⚠️ submit_pay_report の式を変えたら、ここも直す（検算7が見つける）。
@@ -33,6 +34,12 @@
 -- ★ 本人は1日ずつ手で直せる・消せる（edit_roster_day・2026-11-10）。検品は submit_roster と同じ1つ（pv_roster_clean_day）。
 --    在る日はその日のファイルのまま入れ替え、無い日は本人の「手で直した日」の置き場（manual = true・1人1つ）に入れる。
 -- ★ 本人はいつでも消せる（delete_roster_doc ／ edit_roster_day の day=null ／ set_line_map の status=null ／ set_roster_profile の p=null）。
+-- ★ 便の乗務の区分（CAP／FO など）は保存しない（2026-11-10）。勤務表に並ぶのはほかの乗員の区分だったため。
+--    古い画面が送ってきても組み直しで黙って落ちる（止めない・検品もしない）。
+-- ★ 勤務コードは英字の形（'^[A-Z0-9/+\-]{1,12}$'）か、読み取りが返す印（'#' ＋ 小文字の16進16字）。
+--    印は印字の言葉（漢字など）の HMAC で、言葉そのものではない（このファイルは言葉を1文字も受け取らない）。
+-- ★ 会社の辞書（pv_roster_airline_codes）は書き込みのときに数える（読み方の表の引き金・その会社の分だけ）。
+--    読む口（my_roster_airline_codes）は表を引くだけ。⚠️ 読むたびに全員分を数え直す形にしない。
 -- ★ my_pay_reports() は触らない。明細の中身（pay_items・payslip_detail）は my_report_items() が本人にだけ返す。
 --
 -- ★ このファイルは自動では流れない。オーナーが SQL Editor で実行する。
@@ -68,6 +75,26 @@ create table if not exists public.pv_roster_profile (
   updated_at    timestamptz not null default now()
 );
 
+-- 何も書いていない日の意味（2026-11-10）。'off' = 休み ／ 'none' = 何も決まっていない ／ null = まだ答えていない。
+alter table public.pv_roster_profile add column if not exists blank text;
+alter table public.pv_roster_profile drop constraint if exists pv_roster_profile_blank_check;
+alter table public.pv_roster_profile add constraint pv_roster_profile_blank_check
+  check (blank is null or blank in ('off', 'none'));
+-- この読み方がどの会社のものか（一覧の会社コード。「一覧にない会社」は null）。会社の辞書を会社ごとに数えるためだけに持つ。
+-- set_roster_profile が書くたびに入れる。前に貼った版の行は、下の「9-c」で鍵から当て直す。
+-- ★会員 × 一覧の全社の鍵を作って当てる重い当て直しは、この列を初めて足す貼り付けの1回だけ（印を立てて 9-c が見る）。
+do $mark$
+begin
+  if not exists (select 1 from pg_attribute a
+                  where a.attrelid = 'public.pv_roster_profile'::regclass and a.attname = 'airline'
+                    and a.attnum > 0 and not a.attisdropped) then
+    perform set_config('pv.roster_airline_fill', '1', false);
+  end if;
+end
+$mark$;
+alter table public.pv_roster_profile add column if not exists airline text;
+create index if not exists pv_roster_profile_airline on public.pv_roster_profile (airline);
+
 -- 取り込んだ1ファイル。★原本は持たない（指紋・ページ数・日付の幅・日数だけ）。
 create table if not exists public.pv_roster_docs (
   id         uuid primary key default gen_random_uuid(),
@@ -94,7 +121,7 @@ create table if not exists public.pv_roster_days (
   proof_hash text not null,
   duty_date  date not null,
   doc_id     uuid not null references public.pv_roster_docs(id) on delete cascade,
-  code       text check (code is null or code ~ '^[A-Z0-9/+\-]{1,12}$'),
+  code       text check (code is null or code ~ '^([A-Z0-9/+\-]{1,12}|#[0-9a-f]{16})$'),
   d_on       time,
   d_off      time,
   d_off_day  smallint not null default 0 check (d_off_day between 0 and 2),
@@ -103,6 +130,10 @@ create table if not exists public.pv_roster_days (
   primary key (proof_hash, duty_date)
 );
 create index if not exists pv_roster_days_doc on public.pv_roster_days (doc_id);
+-- 勤務コードは英字の形か、読み取りの印（'#' ＋ 小文字の16進16字）。前に貼った版の決まり（英字だけ）を置き換える。
+alter table public.pv_roster_days drop constraint if exists pv_roster_days_code_check;
+alter table public.pv_roster_days add constraint pv_roster_days_code_check
+  check (code is null or code ~ '^([A-Z0-9/+\-]{1,12}|#[0-9a-f]{16})$');
 
 -- その日の便・地上業務。日が消えれば一緒に消える。
 create table if not exists public.pv_roster_legs (
@@ -116,7 +147,6 @@ create table if not exists public.pv_roster_legs (
   t_in       time,
   in_day     smallint not null default 0 check (in_day between 0 and 2),
   block_min  int check (block_min between 0 and 1440),
-  role_raw   text check (role_raw is null or role_raw ~ '^[A-Z0-9/+\-]{1,8}$'),
   kind       text not null default 'unknown' check (kind in ('operating', 'deadhead', 'ground', 'unknown')),
   page       smallint check (page between 1 and 60),
   "row"      smallint check ("row" between 1 and 999),
@@ -129,6 +159,9 @@ create table if not exists public.pv_roster_legs (
 
 -- ★便名は持たない。前に貼った版に列が残っていれば外す（何度流しても同じ）。
 alter table public.pv_roster_legs drop column if exists flight;
+-- ★乗務の区分（CAP／FO など）も持たない（2026-11-10）。勤務表の区分は、ほかの乗員のものだった。前の版の列を外す。
+alter table public.pv_roster_legs drop column if exists role_raw;
+alter table public.pv_roster_legs drop column if exists role;
 
 -- 2年より前の月の合計（pv_roster_compact が日ごとの行から作り、そのあと日と便を消す）。1人・1社・1か月に1行。
 -- ★日付・空港・時刻・便名は入らない。勤務コードごとに日数と時間を足しただけ。
@@ -166,6 +199,26 @@ create table if not exists public.pv_roster_edit_quota (
   primary key (proof_hash, day)
 );
 
+-- 会社の辞書（2026-11-10）。同じ会社の会員の読み方から、そろった答えだけを置く（作るのは pv_roster_airline_recount だけ）。
+--   key … 勤務コード（英字の形）か読み取りの印（'#'＋16進16字）か、特別なキー '@kind' / '@time_ref' / '@time_meaning' / '@blank'
+--   ★人数・誰が答えたかは持たない。そろわなくなった答えは数え直しで消える。
+create table if not exists public.pv_roster_airline_codes (
+  airline    text not null check (length(airline) between 1 and 80),
+  key        text not null check (key ~ '^([A-Z0-9/+\-]{1,12}|#[0-9a-f]{16})$'
+                                  or key in ('@kind', '@time_ref', '@time_meaning', '@blank')),
+  meaning    text not null check (length(meaning) between 1 and 16),
+  updated_at timestamptz not null default now(),
+  primary key (airline, key)
+);
+
+-- 動作確認用のテストアカウント（db/member-median.sql と同じ表・同じ形）。会社の辞書から外すために読む。
+-- 中身はオーナーが SQL Editor で入れる（リポジトリに uid を書かない）。このファイルが先に流れても困らないよう、ここでも作る。
+create table if not exists public.pv_test_users (
+  uid uuid primary key
+);
+alter table public.pv_test_users enable row level security;
+revoke all on table public.pv_test_users from public, anon, authenticated;
+
 -- ★誰も直接は読めない・書けない。本人の口（下の security definer）からだけ。
 alter table public.pv_roster_profile enable row level security;
 alter table public.pv_roster_docs    enable row level security;
@@ -174,6 +227,7 @@ alter table public.pv_roster_legs    enable row level security;
 alter table public.pv_line_map       enable row level security;
 alter table public.pv_roster_months  enable row level security;
 alter table public.pv_roster_edit_quota enable row level security;
+alter table public.pv_roster_airline_codes enable row level security;
 revoke all on table public.pv_roster_profile from public, anon, authenticated;
 revoke all on table public.pv_roster_docs    from public, anon, authenticated;
 revoke all on table public.pv_roster_days    from public, anon, authenticated;
@@ -181,6 +235,7 @@ revoke all on table public.pv_roster_legs    from public, anon, authenticated;
 revoke all on table public.pv_line_map       from public, anon, authenticated;
 revoke all on table public.pv_roster_months  from public, anon, authenticated;
 revoke all on table public.pv_roster_edit_quota from public, anon, authenticated;
+revoke all on table public.pv_roster_airline_codes from public, anon, authenticated;
 
 -- ── 2. 内部の道具（誰からも直接は呼べない）───────────────────────
 -- 本人の鍵。★submit_pay_report と1文字も違わない式（検算7が両方の本文を突き合わせる）。
@@ -300,7 +355,7 @@ set search_path = public, extensions
 as $$
   select jsonb_build_object(
            'kind', r.kind, 'time_ref', r.time_ref, 'tz', r.tz,
-           'time_meaning', r.time_meaning, 'codes', r.codes,
+           'time_meaning', r.time_meaning, 'codes', r.codes, 'blank', r.blank,
            'share_company', r.share_company, 'updated_at', r.updated_at)
     from public.pv_roster_profile r
    where r.proof_hash = p_hash
@@ -309,7 +364,8 @@ $$;
 -- 1日を検品して組み直す。★submit_roster と edit_roster_day が同じこれを呼ぶ（決まりは1か所・検算14）。
 -- 日付は見ない（呼ぶ側が決める）。知らないキーはここで落ちる。
 -- p_pages が null（手で直した日）のときは page・row を読まずに null にする（どのページの何行目でもないため）。
--- 返す: {code, d_on, d_off, d_off_day, page, row, legs:[{seq, from, to, loc, out, in, in_day, block_min, role, kind, page, row}]}
+-- 勤務コードは英字の形か読み取りの印（'#'＋小文字の16進16字）。★便の乗務の区分（role）は読まない（送られてきても黙って落ちる）。
+-- 返す: {code, d_on, d_off, d_off_day, page, row, legs:[{seq, from, to, loc, out, in, in_day, block_min, kind, page, row}]}
 create or replace function public.pv_roster_clean_day(p_d jsonb, p_pages int)
 returns jsonb
 language plpgsql
@@ -326,7 +382,7 @@ declare
   v_blk  text;
   v_bmin int;
   v_legs jsonb := '[]'::jsonb;
-  c_code constant text := '^[A-Z0-9/+\-]{1,12}$';
+  c_code constant text := '^([A-Z0-9/+\-]{1,12}|#[0-9a-f]{16})$';
   c_hhmm constant text := '^(([01][0-9]|2[0-3]):[0-5][0-9]|24:00)$';
 begin
   if p_d is null or jsonb_typeof(p_d) <> 'object' then
@@ -364,7 +420,7 @@ begin
         raise exception 'ロスターのブロック時間が範囲の外です' using errcode = '22023';
       end if;
 
-      -- ★便名は組み直しに入れない（送られてきても落ちる・検品もしない）
+      -- ★便名と乗務の区分は組み直しに入れない（送られてきても落ちる・検品もしない）
       v_legs := v_legs || jsonb_build_object(
         'seq',       v_seq,
         'from',      v_orig,
@@ -374,7 +430,6 @@ begin
         'in',        public.pv_roster_txt(v_l, 'in',  c_hhmm, '到着時刻'),
         'in_day',    coalesce(public.pv_roster_int(v_l, 'in_day', 0, 2, '到着の日'), 0),
         'block_min', v_bmin,
-        'role',      public.pv_roster_txt(v_l, 'role', '^[A-Z0-9/+\-]{1,8}$', '乗務の区分'),
         'kind',      v_kind,
         'page',      case when p_pages is null then null else public.pv_roster_int(v_l, 'page', 1, p_pages, 'ページ') end,
         'row',       case when p_pages is null then null else public.pv_roster_int(v_l, 'row', 1, 999, '行') end);
@@ -538,10 +593,10 @@ begin
     from jsonb_array_elements(v_clean) as t(e);
 
   insert into public.pv_roster_legs (proof_hash, duty_date, seq, orig, dest, loc,
-                                     t_out, t_in, in_day, block_min, role_raw, kind, page, "row")
+                                     t_out, t_in, in_day, block_min, kind, page, "row")
   select v_key, (e->>'date')::date, (l->>'seq')::smallint, l->>'from', l->>'to', l->>'loc',
          (l->>'out')::time, (l->>'in')::time, (l->>'in_day')::smallint, (l->>'block_min')::int,
-         l->>'role', l->>'kind', (l->>'page')::smallint, (l->>'row')::smallint
+         l->>'kind', (l->>'page')::smallint, (l->>'row')::smallint
     from jsonb_array_elements(v_clean) as t(e),
          jsonb_array_elements(e->'legs') as u(l);
   get diagnostics v_nlegs = row_count;
@@ -554,8 +609,8 @@ $$;
 -- ── 3-b. 1日を手で直す・消す（2026-11-10）──────────────────────────
 -- 確かめの画面・勤務ロスターのタブで、本人が1日だけ直す（読み違い・載っていなかった日・読めなかった記号の日）。
 -- p = { date:'YYYY-MM-DD',
---       day:{code, d_on, d_off, d_off_day, legs:[{seq, from, to, loc, out, in, in_day, block, role, kind}]} | null }
---   ・検品は submit_roster と同じ1つ（pv_roster_clean_day）。便名・知らないキーは落ちる。page・row は持たない（null）。
+--       day:{code, d_on, d_off, d_off_day, legs:[{seq, from, to, loc, out, in, in_day, block, kind}]} | null }
+--   ・検品は submit_roster と同じ1つ（pv_roster_clean_day）。便名・乗務の区分・知らないキーは落ちる。page・row は持たない（null）。
 --   ・日付は今日から ±400日の中で、かつ月の合計にまとめた期間（24か月前の月の頭より前）でないこと。
 --     ★まとめた月に日の行を足すと、月の合計と日の行で二重に数える。今は ±400日 のほうが狭いが、
 --       窓を広げたときにも破れないよう、境目は pv_roster_compact と同じ式で別に見る（検算15）。
@@ -660,10 +715,10 @@ begin
           null, null);
 
   insert into public.pv_roster_legs (proof_hash, duty_date, seq, orig, dest, loc,
-                                     t_out, t_in, in_day, block_min, role_raw, kind, page, "row")
+                                     t_out, t_in, in_day, block_min, kind, page, "row")
   select v_key, v_date, (l->>'seq')::smallint, l->>'from', l->>'to', l->>'loc',
          (l->>'out')::time, (l->>'in')::time, (l->>'in_day')::smallint, (l->>'block_min')::int,
-         l->>'role', l->>'kind', null, null
+         l->>'kind', null, null
     from jsonb_array_elements(v_clean->'legs') as u(l);
   get diagnostics v_nlegs = row_count;
 
@@ -679,7 +734,9 @@ end;
 $$;
 
 -- ── 4. 本人の勤務表を読む ───────────────────────────────────────
--- 返す: {ok, profile:{...}|null, days:[{date, code, d_on, d_off, d_off_day, doc_id, page, row, legs:[...]}]}
+-- 返す: {ok, profile:{...}|null, days:[{date, code, d_on, d_off, d_off_day, doc_id, page, row,
+--                                    legs:[{seq, from, to, loc, out, in, in_day, block, block_min, kind, page, row}]}]}
+--   ★便の乗務の区分（role）は返さない（持っていない）。
 -- 期間は最大400日。空なら p_to = 今日＋62日・p_from = p_to − 399日。
 create or replace function public.my_roster(
   p_airline text, p_airline_other text, p_from date, p_to date)
@@ -730,7 +787,6 @@ begin
                       'block',     case when l.block_min is null then null
                                         else (l.block_min / 60)::text || ':' || lpad((l.block_min % 60)::text, 2, '0') end,
                       'block_min', l.block_min,
-                      'role',      l.role_raw,
                       'kind',      l.kind,
                       'page',      l.page,
                       'row',       l."row") order by l.seq)
@@ -857,7 +913,11 @@ $$;
 -- p に在るキーだけを書き換える（無いキーは前のまま）。知らないキーは無視。p = null は消す。
 --   kind 'actual'|'planned'|null ／ time_ref 'local'|'utc'|null ／ tz IANA の名前（40字まで）|null
 --   time_meaning 'block'|'flight'|'other'|null ／ share_company true|false
---   codes { 'OFF1':'off', ... }（丸ごと置き換え・200個まで。意味は off/vac/duty/standby/training/ground/unknown）
+--   blank 'off'|'none'|null（何も書いていない日 ＝ 休み／何も決まっていない／まだ答えていない）
+--   codes { 'OFF1':'off', '#0123456789abcdef':'vac', ... }（丸ごと置き換え・200個まで。キーは英字の形か読み取りの印・
+--         意味は off/vac/duty/standby/training/ground/unknown）
+--   ★どの会社の読み方かを毎回書く（airline。一覧の会社コード・「一覧にない会社」は null）＝ 会社の辞書を数える単位。
+--     書くと引き金がその会社の辞書を数え直す（pv_roster_airline_recount）。
 -- 返す: {ok, profile} ／ p=null のとき {ok, deleted}
 create or replace function public.set_roster_profile(p_airline text, p_airline_other text, p jsonb)
 returns jsonb
@@ -875,6 +935,8 @@ declare
   v_mean  text;
   v_codes jsonb;
   v_share boolean;
+  v_blank text;
+  v_air   text;
   v_n     int;
 begin
   if v_uid is null then
@@ -883,6 +945,11 @@ begin
   v_key := public.pv_roster_key(v_uid, p_airline, p_airline_other);
   if v_key is null then
     raise exception '会社コードが不正です' using errcode = '22023';
+  end if;
+  -- 会社の辞書の単位（鍵と同じ決まりで読む。「一覧にない会社」は辞書を持たない ＝ null）
+  v_air := nullif(btrim(p_airline), '');
+  if v_air = 'other' then
+    v_air := null;
   end if;
 
   if p is null or jsonb_typeof(p) = 'null' then
@@ -904,6 +971,7 @@ begin
   v_mean  := v_old.time_meaning;
   v_codes := coalesce(v_old.codes, '{}'::jsonb);
   v_share := coalesce(v_old.share_company, false);
+  v_blank := v_old.blank;
 
   if p ? 'kind' then
     v_kind := public.pv_roster_txt(p, 'kind', '^(actual|planned)$', '実績か予定か');
@@ -929,6 +997,9 @@ begin
       raise exception 'ロスターの共有の答えが不正です' using errcode = '22023';
     end if;
   end if;
+  if p ? 'blank' then
+    v_blank := public.pv_roster_txt(p, 'blank', '^(off|none)$', '空欄の日の意味');
+  end if;
   if p ? 'codes' then
     if jsonb_typeof(p->'codes') = 'null' then
       v_codes := '{}'::jsonb;
@@ -937,7 +1008,7 @@ begin
     elsif (select count(*) from jsonb_object_keys(p->'codes')) > 200 then
       raise exception 'ロスターの勤務コードが多すぎます（200まで）' using errcode = '54000';
     elsif exists (select 1 from jsonb_each(p->'codes') e
-                   where e.key !~ '^[A-Z0-9/+\-]{1,12}$'
+                   where e.key !~ '^([A-Z0-9/+\-]{1,12}|#[0-9a-f]{16})$'
                       or jsonb_typeof(e.value) <> 'string'
                       or (e.value #>> '{}') not in ('off', 'vac', 'duty', 'standby', 'training', 'ground', 'unknown')) then
       raise exception 'ロスターの勤務コードが不正です' using errcode = '22023';
@@ -947,12 +1018,13 @@ begin
   end if;
 
   insert into public.pv_roster_profile as t
-         (proof_hash, kind, time_ref, tz, time_meaning, codes, share_company, updated_at)
-  values (v_key, v_kind, v_ref, v_tz, v_mean, v_codes, v_share, now())
+         (proof_hash, kind, time_ref, tz, time_meaning, codes, share_company, blank, airline, updated_at)
+  values (v_key, v_kind, v_ref, v_tz, v_mean, v_codes, v_share, v_blank, v_air, now())
   on conflict (proof_hash) do update
      set kind = excluded.kind, time_ref = excluded.time_ref, tz = excluded.tz,
          time_meaning = excluded.time_meaning, codes = excluded.codes,
-         share_company = excluded.share_company, updated_at = now();
+         share_company = excluded.share_company, blank = excluded.blank,
+         airline = excluded.airline, updated_at = now();
 
   return jsonb_build_object('ok', true, 'profile', public.pv_roster_profile_json(v_key));
 end;
@@ -1235,6 +1307,229 @@ begin
 end
 $cron$;
 
+-- ── 9-c. 会社の辞書（2026-11-10）────────────────────────────────────
+-- オーナー「勤務表を読んだあとに読めない日が残り、会員が打つことが多い」。勤務コードの意味などを、同じ会社の会員の答えから覚える。
+--   数える単位 … 読み方（pv_roster_profile）の1行 ＝ 1人・1社。codes の 'unknown' は答えに数えない（kind などの null も）。
+--   そろった線 … いちばん多い答えが3人以上 かつ 答えた人の過半数（db/ask-own-airline.sql の pv_ask_filled と同じ考え。
+--                3対3 は割れている ＝ 置かない）。★線は pv_roster_airline_recount の定数の1か所だけ。
+--   数えるとき … 読み方の表に書いたとき（引き金）。その会社の分だけを作り直す。⚠️ 読むたびに数えない。
+--   外す人     … テスト用アカウント（pv_test_users）。鍵は pv_roster_key で作り直して比べる（式の写しを作らない）。
+--   ★表に持つのは会社・キー・意味だけ。人数も、誰が答えたかも持たない。読む口も返さない。
+create or replace function public.pv_roster_airline_recount(p_airline text)
+returns int
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  c_min_agree constant int := 3;   -- ★いちばん多い答えがこの人数以上（かつ、下の「答えた人の過半数」）
+  v_n int;
+begin
+  if p_airline is null then
+    return 0;
+  end if;
+  -- 同じ会社の数え直しは1本ずつ（後の1本は、前の1本が書き終えてから新しい中身を見て数える）
+  perform pg_advisory_xact_lock(20261110, hashtext('pv_roster_airline:' || p_airline));
+
+  -- ★その会社の分だけ作り直す（ほかの会社の行には触れない）
+  delete from public.pv_roster_airline_codes c where c.airline = p_airline;
+
+  with tk as (
+    select public.pv_roster_key(t.uid, p_airline, null) as h
+      from public.pv_test_users t
+  ),
+  pr as (
+    select r.*
+      from public.pv_roster_profile r
+     where r.airline = p_airline
+       and not exists (select 1 from tk where tk.h = r.proof_hash)
+  ),
+  ans as (
+    select r.proof_hash, e.key, e.value #>> '{}' as v
+      from pr r cross join lateral jsonb_each(r.codes) e
+     where jsonb_typeof(e.value) = 'string' and (e.value #>> '{}') <> 'unknown'
+    union all select r.proof_hash, '@kind', r.kind from pr r where r.kind is not null
+    union all select r.proof_hash, '@time_ref', r.time_ref from pr r where r.time_ref is not null
+    union all select r.proof_hash, '@time_meaning', r.time_meaning from pr r where r.time_meaning is not null
+    union all select r.proof_hash, '@blank', r.blank from pr r where r.blank is not null
+  ),
+  per as (select a.key, a.v, count(*)::int as c from ans a group by a.key, a.v),
+  tot as (select p.key, sum(p.c)::int as n from per p group by p.key),
+  best as (select distinct on (p.key) p.key, p.v, p.c from per p order by p.key, p.c desc, p.v)
+  insert into public.pv_roster_airline_codes (airline, key, meaning, updated_at)
+  select p_airline, b.key, b.v, now()
+    from best b join tot t on t.key = b.key
+   where b.c >= c_min_agree      -- 3人以上
+     and b.c * 2 > t.n;          -- かつ、答えた人の過半数
+  get diagnostics v_n = row_count;
+  return v_n;
+end;
+$$;
+
+-- 全部の会社を数え直す（テスト用アカウントの名簿が変わったとき・このファイルを貼ったときの1回だけ）。
+create or replace function public.pv_roster_airline_recount_all()
+returns int
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  v_a text;
+  v_n int := 0;
+begin
+  -- 読み方がもう1行も無い会社の辞書は消す
+  delete from public.pv_roster_airline_codes c
+   where not exists (select 1 from public.pv_roster_profile r where r.airline = c.airline);
+  for v_a in select distinct r.airline from public.pv_roster_profile r where r.airline is not null loop
+    v_n := v_n + public.pv_roster_airline_recount(v_a);
+  end loop;
+  return v_n;
+end;
+$$;
+
+-- 引き金。読み方の1行が変わったら、前の会社と新しい会社を数え直す（同じなら1回）。
+-- テスト用アカウントの名簿が変わったら（1文に1回）全部の会社を数え直す。
+-- 数え直しが失敗しても書き込みは止めない（辞書は前の中身のまま。db/member-median.sql と同じ）。
+create or replace function public.pv_roster_airline_codes_trg()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  v_old text;
+  v_new text;
+begin
+  begin
+    if tg_level = 'STATEMENT' then
+      perform public.pv_roster_airline_recount_all();
+      return null;
+    end if;
+    if tg_op = 'UPDATE' then
+      -- 答えに関わる欄が1つも変わっていない書き換え（タイムゾーン・共有・時刻だけ）は数え直さない
+      if (old.airline, old.proof_hash, old.kind, old.time_ref, old.time_meaning, old.blank, old.codes)
+         is not distinct from
+         (new.airline, new.proof_hash, new.kind, new.time_ref, new.time_meaning, new.blank, new.codes) then
+        return null;
+      end if;
+    end if;
+    if tg_op in ('UPDATE', 'DELETE') then
+      v_old := old.airline;
+    end if;
+    if tg_op in ('UPDATE', 'INSERT') then
+      v_new := new.airline;
+    end if;
+    if v_old is not null then
+      perform public.pv_roster_airline_recount(v_old);
+    end if;
+    if v_new is not null and v_new is distinct from v_old then
+      perform public.pv_roster_airline_recount(v_new);
+    end if;
+  exception when others then
+    raise warning 'pv_roster_airline_recount に失敗しました（書き込みはそのまま通します）: % (%)', sqlerrm, sqlstate;
+  end;
+  return null;
+end;
+$$;
+
+drop trigger if exists trg_pv_roster_airline_codes on public.pv_roster_profile;
+create trigger trg_pv_roster_airline_codes
+  after insert or update or delete on public.pv_roster_profile
+  for each row execute function public.pv_roster_airline_codes_trg();
+
+drop trigger if exists trg_pv_roster_airline_codes on public.pv_test_users;
+create trigger trg_pv_roster_airline_codes
+  after insert or update or delete on public.pv_test_users
+  for each statement execute function public.pv_roster_airline_codes_trg();
+
+revoke all on function public.pv_roster_airline_recount(text)  from public, anon, authenticated;
+revoke all on function public.pv_roster_airline_recount_all()  from public, anon, authenticated;
+revoke all on function public.pv_roster_airline_codes_trg()    from public, anon, authenticated;
+
+-- 会社の辞書を読む口。表を引くだけ（何も数えない）。人数も、誰が答えたかも返さない。
+-- 返す: {ok:true, codes:{KEY:meaning, …}, kind?, time_ref?, time_meaning?, blank?}
+--   codes の KEY は勤務コード（英字の形）か読み取りの印（'#'＋16進16字）。意味は off/vac/duty/standby/training/ground。
+--   kind・time_ref・time_meaning・blank は、そろっているときだけキーが在る（無ければキーごと無い）。
+--   「一覧にない会社」は辞書を持たない → {ok:true, codes:{}}。
+create or replace function public.my_roster_airline_codes(p_airline text, p_airline_other text)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public, extensions
+as $$
+declare
+  v_uid   uuid := auth.uid();
+  v_key   text;
+  v_air   text := nullif(btrim(p_airline), '');
+  v_codes jsonb;
+  v_kind  text;
+  v_ref   text;
+  v_mean  text;
+  v_blank text;
+begin
+  if v_uid is null then
+    raise exception 'ログインが必要です' using errcode = '42501';
+  end if;
+  -- 会社の決まりは本人の鍵と同じ（作れなければ不正な会社）
+  v_key := public.pv_roster_key(v_uid, p_airline, p_airline_other);
+  if v_key is null then
+    raise exception '会社コードが不正です' using errcode = '22023';
+  end if;
+  if v_air = 'other' then
+    return jsonb_build_object('ok', true, 'codes', '{}'::jsonb);
+  end if;
+
+  select coalesce(jsonb_object_agg(c.key, c.meaning) filter (where left(c.key, 1) <> '@'), '{}'::jsonb),
+         max(c.meaning) filter (where c.key = '@kind'),
+         max(c.meaning) filter (where c.key = '@time_ref'),
+         max(c.meaning) filter (where c.key = '@time_meaning'),
+         max(c.meaning) filter (where c.key = '@blank')
+    into v_codes, v_kind, v_ref, v_mean, v_blank
+    from public.pv_roster_airline_codes c
+   where c.airline = v_air;
+
+  return jsonb_build_object('ok', true, 'codes', v_codes)
+      || jsonb_strip_nulls(jsonb_build_object('kind', v_kind, 'time_ref', v_ref,
+                                              'time_meaning', v_mean, 'blank', v_blank));
+end;
+$$;
+
+-- 前に貼った版の読み方には会社（airline）が入っていない。本人の鍵から当て直す（貼るときだけ・決まらない行は null のまま）。
+--   ① 同じ鍵の給与の行がある人は、その行の会社（鍵の式が同じ ＝ 検算7）。軽いので毎回。
+--   ② 残りは、会員 × 一覧の会社 の鍵を作って突き合わせる。★重い（会員数 × 約140社の鍵）ので、
+--      会社の列を初めて足した貼り付けの1回だけ（1 の印）。「一覧にない会社」の行は null のまま
+--      （null が正しい行なので、毎回やると貼るたびに全員ぶん作り直してしまう）。
+--      その後に会社の欄が空のまま残った行は、本人が次に読み方を保存したときに入る。
+--   当てた行は引き金がその会社の辞書を数え直す。
+do $fill$
+begin
+  update public.pv_roster_profile r
+     set airline = p.airline
+    from (select distinct x.proof_hash, x.airline
+            from public.pay_reports x
+           where x.airline <> 'other') p
+   where r.airline is null and p.proof_hash = r.proof_hash;
+  if current_setting('pv.roster_airline_fill', true) = '1' then
+    perform set_config('pv.roster_airline_fill', '', false);
+    if exists (select 1 from public.pv_roster_profile where airline is null)
+       and to_regclass('public.profiles') is not null then
+      execute $q$
+        update public.pv_roster_profile r
+           set airline = m.code
+          from (select public.pv_roster_key(u.id, a.code, null) as h, a.code
+                  from public.profiles u cross join public.pv_airlines a
+                 where a.code <> 'other') m
+         where r.airline is null and r.proof_hash = m.h
+      $q$;
+    end if;
+  end if;
+end
+$fill$;
+
+-- 貼ったときに1回だけ全部の会社を数え直す（線を変えて貼り直したときも、ここで新しい線になる）
+select public.pv_roster_airline_recount_all();
+
 -- ── 10. 呼べる人 ─────────────────────────────────────────────
 revoke all on function public.submit_roster(jsonb)                               from public, anon;
 revoke all on function public.edit_roster_day(text, text, jsonb)                 from public, anon;
@@ -1244,6 +1539,7 @@ revoke all on function public.delete_roster_doc(uuid, text, text)               
 revoke all on function public.set_roster_profile(text, text, jsonb)              from public, anon;
 revoke all on function public.set_line_map(text, text, text, int, text, text)    from public, anon;
 revoke all on function public.my_report_items()                                  from public, anon;
+revoke all on function public.my_roster_airline_codes(text, text)                 from public, anon;
 grant execute on function public.submit_roster(jsonb)                            to authenticated;
 grant execute on function public.edit_roster_day(text, text, jsonb)              to authenticated;
 grant execute on function public.my_roster(text, text, date, date)               to authenticated;
@@ -1252,11 +1548,14 @@ grant execute on function public.delete_roster_doc(uuid, text, text)            
 grant execute on function public.set_roster_profile(text, text, jsonb)           to authenticated;
 grant execute on function public.set_line_map(text, text, text, int, text, text) to authenticated;
 grant execute on function public.my_report_items()                               to authenticated;
+grant execute on function public.my_roster_airline_codes(text, text)              to authenticated;
 
 comment on function public.submit_roster(jsonb) is
   '勤務表を取り込む（本人の鍵で・日付で入れ替え・原本は持たない・氏名や自由記述の入る欄が無い）。';
 comment on function public.edit_roster_day(text, text, jsonb) is
   '勤務表の1日を手で直す・消す（本人の鍵で・検品は submit_roster と同じ pv_roster_clean_day・便名は持たない・2年より前の日は受け付けない・1人1日200回まで）。';
+comment on function public.my_roster_airline_codes(text, text) is
+  '会社の辞書（勤務コードの意味など・3人以上が同じ答え かつ 答えた人の過半数のものだけ）。表を引くだけ・人数は返さない。';
 comment on function public.my_report_items() is
   'マイレポート用。本人の明細の中身（pay_items・payslip_detail）と行の答え。my_pay_reports と同じく本人の鍵を作り直して引く。';
 
@@ -1269,7 +1568,8 @@ with fns(sig) as (values
        ('public.delete_roster_doc(uuid, text, text)'),
        ('public.set_roster_profile(text, text, jsonb)'),
        ('public.set_line_map(text, text, text, integer, text, text)'),
-       ('public.my_report_items()')),
+       ('public.my_report_items()'),
+       ('public.my_roster_airline_codes(text, text)')),
      fn as (select sig, to_regprocedure(sig) as oid from fns),
      fd as (select sig, pg_get_functiondef(oid) as s from fn where oid is not null),
      hp(sig) as (values
@@ -1280,11 +1580,14 @@ with fns(sig) as (values
        ('public.pv_roster_clean_day(jsonb, integer)'),
        ('public.pv_roster_profile_json(text)'),
        ('public.pv_roster_tz_ok(text)'),
-       ('public.pv_roster_compact(date)')),
+       ('public.pv_roster_compact(date)'),
+       ('public.pv_roster_airline_recount(text)'),
+       ('public.pv_roster_airline_recount_all()'),
+       ('public.pv_roster_airline_codes_trg()')),
      hpo as (select sig, to_regprocedure(sig) as oid from hp),
      tb(t) as (values ('public.pv_roster_profile'), ('public.pv_roster_docs'), ('public.pv_roster_days'),
                       ('public.pv_roster_legs'), ('public.pv_line_map'), ('public.pv_roster_months'),
-                      ('public.pv_roster_edit_quota')),
+                      ('public.pv_roster_edit_quota'), ('public.pv_roster_airline_codes')),
      tbo as (select t, to_regclass(t) as oid from tb),
      ro as (select oid from pg_roles where rolname in ('anon', 'authenticated')),
      k as (select $k$v_uid::text || '::pv_pay::' || v_airline || coalesce('::' || lower(v_other), '')$k$ as s),
@@ -1292,45 +1595,49 @@ with fns(sig) as (values
      ed as (select coalesce((select s from fd where sig = 'public.edit_roster_day(text, text, jsonb)'), '') as s),
      mr as (select coalesce((select s from fd where sig = 'public.my_roster(text, text, date, date)'), '') as s),
      md as (select coalesce((select s from fd where sig = 'public.my_roster_docs(text, text)'), '') as s),
-     cd as (select coalesce(pg_get_functiondef(to_regprocedure('public.pv_roster_clean_day(jsonb, integer)')), '') as s)
-select 1 as "#", '8つの口がある・どれも呼んだ本人の権限で動かない（security definer）' as "確かめること",
-       case when (select count(*) from fn where oid is not null) = 8
+     cd as (select coalesce(pg_get_functiondef(to_regprocedure('public.pv_roster_clean_day(jsonb, integer)')), '') as s),
+     sp as (select coalesce((select s from fd where sig = 'public.set_roster_profile(text, text, jsonb)'), '') as s),
+     ac as (select coalesce((select s from fd where sig = 'public.my_roster_airline_codes(text, text)'), '') as s),
+     rc as (select coalesce(pg_get_functiondef(to_regprocedure('public.pv_roster_airline_recount(text)')), '') as s),
+     tg as (select coalesce(pg_get_functiondef(to_regprocedure('public.pv_roster_airline_codes_trg()')), '') as s)
+select 1 as "#", '9つの口がある・どれも呼んだ本人の権限で動かない（security definer）' as "確かめること",
+       case when (select count(*) from fn where oid is not null) = 9
              and (select bool_and(p.prosecdef) from fn join pg_proc p on p.oid = fn.oid)
             then '✅' else '❌' end as "判定"
-union all select 2, '未ログイン（anon）と PUBLIC は8つとも呼べない・ログイン済みは呼べる',
-       case when (select count(*) from fn where oid is not null) = 8
+union all select 2, '未ログイン（anon）と PUBLIC は9つとも呼べない・ログイン済みは呼べる',
+       case when (select count(*) from fn where oid is not null) = 9
              and not exists (select 1 from fn join pg_proc q on q.oid = fn.oid,
                                     lateral aclexplode(coalesce(q.proacl, acldefault('f', q.proowner))) a
                               where a.privilege_type = 'EXECUTE'
                                 and (a.grantee = 0 or a.grantee in (select oid from pg_roles where rolname = 'anon')))
              and (select bool_and(has_function_privilege('authenticated', fn.oid, 'EXECUTE')) from fn where oid is not null)
             then '✅' else '❌' end
-union all select 3, '内部の道具（鍵の式・検品・1日の組み直し・読み方の形・月の合計へのまとめ）は誰からも直接呼べない',
-       case when (select count(*) from hpo where oid is not null) = 8
+union all select 3, '内部の道具（鍵の式・検品・1日の組み直し・読み方の形・月の合計へのまとめ・会社の辞書の数え直し）は誰からも直接呼べない',
+       case when (select count(*) from hpo where oid is not null) = 11
              and not exists (select 1 from hpo join pg_proc q on q.oid = hpo.oid,
                                     lateral aclexplode(coalesce(q.proacl, acldefault('f', q.proowner))) a
                               where a.privilege_type = 'EXECUTE'
                                 and (a.grantee = 0 or a.grantee in (select oid from ro)))
             then '✅' else '❌' end
-union all select 4, 'ログインしていなければ止める（8つとも auth.uid() が無ければ 42501）',
-       case when (select count(*) from fd) = 8
+union all select 4, 'ログインしていなければ止める（9つとも auth.uid() が無ければ 42501）',
+       case when (select count(*) from fd) = 9
              and (select bool_and(strpos(s, 'if v_uid is null then') > 0 and strpos(s, '42501') > 0) from fd)
             then '✅' else '❌' end
-union all select 5, '7つの表は RLS が有効・ポリシーが1つも無い（直接は誰も読めない）',
-       case when (select count(*) from tbo where oid is not null) = 7
+union all select 5, '8つの表は RLS が有効・ポリシーが1つも無い（直接は誰も読めない）',
+       case when (select count(*) from tbo where oid is not null) = 8
              and (select bool_and(c.relrowsecurity) from tbo join pg_class c on c.oid = tbo.oid)
              and not exists (select 1 from pg_policy pl where pl.polrelid in (select oid from tbo where oid is not null))
             then '✅' else '❌' end
-union all select 6, '7つの表に anon・authenticated・PUBLIC の権限が1つも無い',
-       case when (select count(*) from tbo where oid is not null) = 7
+union all select 6, '8つの表に anon・authenticated・PUBLIC の権限が1つも無い',
+       case when (select count(*) from tbo where oid is not null) = 8
              and not exists (select 1 from tbo join pg_class c on c.oid = tbo.oid,
                                     lateral aclexplode(coalesce(c.relacl, acldefault('r', c.relowner))) a
                               where a.grantee = 0 or a.grantee in (select oid from ro))
             then '✅' else '❌' end
-union all select 7, '本人の鍵の式が submit_pay_report と1文字も違わない（8つとも pv_roster_key で作る）',
+union all select 7, '本人の鍵の式が submit_pay_report と1文字も違わない（9つとも pv_roster_key で作る）',
        case when strpos(coalesce(pg_get_functiondef(to_regprocedure('public.pv_roster_key(uuid, text, text)')), ''), (select s from k)) > 0
              and strpos(pg_get_functiondef('public.submit_pay_report(jsonb)'::regprocedure), (select s from k)) > 0
-             and (select count(*) from fd) = 8
+             and (select count(*) from fd) = 9
              and (select bool_and(strpos(s, 'public.pv_roster_key(v_uid') > 0) from fd)
             then '✅' else '❌' end
 union all select 8, '新しい提出は日付で入れ替わる（日の主キーが本人×日付・先に同じ日を消してから入れる・便は日と一緒に消える）',
@@ -1350,7 +1657,7 @@ union all select 8, '新しい提出は日付で入れ替わる（日の主キ�
                             and c.confrelid = to_regclass('public.pv_roster_docs') and c.confdeltype = 'c')
             then '✅' else '❌' end
 union all select 9, '原本・氏名・自由記述を入れる列が無い（bytea も name・note・memo・image などの列も無い）',
-       case when (select count(*) from tbo where oid is not null) = 7
+       case when (select count(*) from tbo where oid is not null) = 8
              and not exists (select 1 from pg_attribute a
                               where a.attrelid in (select oid from tbo where oid is not null)
                                 and a.attnum > 0 and not a.attisdropped
@@ -1409,5 +1716,65 @@ union all select 16, 'ファイルの表に manual の列がある（手で直�
                                   where a.attrelid = c.conrelid and a.attnum = any (c.conkey)) = array['file_sha', 'proof_hash'])
              and strpos((select s from ed), $m$'manual::' || v_key$m$) > 0
              and strpos((select s from md), $m$'manual'$m$) > 0
+            then '✅' else '❌' end
+union all select 17, '便の乗務の区分（CAP／FO など）を保存しない（便の表に列が無い・出す口・直す口・1日の組み直し・読む口のどれにも無い）',
+       case when not exists (select 1 from pg_attribute a
+                              where a.attrelid = to_regclass('public.pv_roster_legs')
+                                and a.attname in ('role', 'role_raw') and a.attnum > 0 and not a.attisdropped)
+             and strpos((select s from sr), $r$'role'$r$) = 0 and strpos((select s from sr), 'role_raw') = 0
+             and strpos((select s from ed), $r$'role'$r$) = 0 and strpos((select s from ed), 'role_raw') = 0
+             and strpos((select s from cd), $r$'role'$r$) = 0 and strpos((select s from cd), 'role_raw') = 0
+             and strpos((select s from mr), $r$'role'$r$) = 0 and strpos((select s from mr), 'role_raw') = 0
+             and length((select s from sr)) > 0 and length((select s from ed)) > 0
+             and length((select s from cd)) > 0 and length((select s from mr)) > 0
+            then '✅' else '❌' end
+union all select 18, '勤務コードは英字の形か読み取りの印（#＋小文字の16進16字）だけ（日の表・1日の組み直し・読み方の codes・会社の辞書が同じ形）',
+       case when strpos(coalesce((select pg_get_constraintdef(c.oid) from pg_constraint c
+                                   where c.conrelid = to_regclass('public.pv_roster_days')
+                                     and c.conname = 'pv_roster_days_code_check'), ''), '|#[0-9a-f]{16})$') > 0
+             and strpos((select s from cd), '|#[0-9a-f]{16})$') > 0
+             and strpos((select s from sp), '|#[0-9a-f]{16})$') > 0
+             and exists (select 1 from pg_constraint c
+                          where c.conrelid = to_regclass('public.pv_roster_airline_codes') and c.contype = 'c'
+                            and strpos(pg_get_constraintdef(c.oid), '|#[0-9a-f]{16})$') > 0)
+            then '✅' else '❌' end
+union all select 19, '読み方に「空欄の日の意味」（blank：off／none／null）と会社（airline）の列・会社で引く索引がある・保存の口が毎回会社を書く',
+       case when exists (select 1 from pg_attribute a
+                          where a.attrelid = to_regclass('public.pv_roster_profile') and a.attname = 'blank'
+                            and a.atttypid = 'text'::regtype and a.attnum > 0 and not a.attisdropped)
+             and exists (select 1 from pg_constraint c
+                          where c.conrelid = to_regclass('public.pv_roster_profile')
+                            and c.conname = 'pv_roster_profile_blank_check')
+             and exists (select 1 from pg_attribute a
+                          where a.attrelid = to_regclass('public.pv_roster_profile') and a.attname = 'airline'
+                            and a.atttypid = 'text'::regtype and a.attnum > 0 and not a.attisdropped)
+             and exists (select 1 from pg_indexes i
+                          where i.schemaname = 'public' and i.tablename = 'pv_roster_profile'
+                            and i.indexdef like '%(airline)%')
+             and strpos((select s from sp), 'airline = excluded.airline') > 0
+             and strpos((select s from sp), 'blank = excluded.blank') > 0
+            then '✅' else '❌' end
+union all select 20, '会社の辞書は書き込みのときに数える（読み方の表の引き金・その会社の分だけ・線は「3人以上 かつ 過半数」の1か所・テスト用アカウントを外す・失敗しても書き込みは止めない）',
+       case when exists (select 1 from pg_trigger t
+                          where t.tgrelid = to_regclass('public.pv_roster_profile')
+                            and t.tgname = 'trg_pv_roster_airline_codes' and not t.tgisinternal
+                            and (t.tgtype::int & 29) = 29 and (t.tgtype::int & 2) = 0)
+             and exists (select 1 from pg_trigger t
+                          where t.tgrelid = to_regclass('public.pv_test_users')
+                            and t.tgname = 'trg_pv_roster_airline_codes' and not t.tgisinternal)
+             and strpos((select s from rc), 'c_min_agree constant int := 3;') > 0
+             and strpos((select s from rc), 'b.c >= c_min_agree') > 0
+             and strpos((select s from rc), 'b.c * 2 > t.n') > 0
+             and strpos((select s from rc), 'delete from public.pv_roster_airline_codes c where c.airline = p_airline;') > 0
+             and strpos((select s from rc), 'public.pv_test_users') > 0
+             and strpos((select s from rc), 'public.pv_roster_key(t.uid, p_airline, null)') > 0
+             and strpos((select s from tg), 'exception when others then') > 0
+            then '✅' else '❌' end
+union all select 21, '会社の辞書を読む口は表を引くだけ（数えない・人数を返さない・読み方の表に触れない・一覧にない会社は空）',
+       case when strpos((select s from ac), 'from public.pv_roster_airline_codes c') > 0
+             and strpos((select s from ac), 'count(') = 0
+             and strpos((select s from ac), 'pv_roster_profile') = 0
+             and strpos((select s from ac), $o$v_air = 'other'$o$) > 0
+             and length((select s from ac)) > 0
             then '✅' else '❌' end
 order by 1;

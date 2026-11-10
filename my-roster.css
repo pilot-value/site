@@ -329,6 +329,25 @@ button.rs-cell:active{transform:scale(.97)}
 .ru-miss-d{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px}
 .ru-miss-d b{font-size:.86rem;font-weight:800;color:var(--pv-ink)}
 .ru-miss-d span{font-size:.74rem;color:var(--pv-ink-3)}
+/* 見た目からの候補：点線で示すだけ（押すまで入らない） */
+.ru-chip.is-sug{border-style:dashed;border-color:var(--pv-accent);background:transparent;color:var(--pv-accent-ink);box-shadow:none}
+.ru-sugall{align-self:flex-start;margin:2px 0 6px}
+.ru-code-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px}
+.ru-code-h .ru-qs{margin:0}
+.ru-dl{margin:0 0 10px}
+
+/* ── 読み取りの間違いを運営に知らせる（いちばん下の小さな字のボタン → 小さな板）──────── */
+.ru-fix{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+.ru-fix-l{font-size:.76rem;color:var(--pv-ink-3);text-decoration:underline;text-underline-offset:3px}
+.ru-fix-p{display:flex;flex-direction:column;gap:8px;width:100%;padding:14px;border-radius:12px;border:1px solid var(--pv-line-soft);background:var(--pv-bg-sub)}
+.ru-fix-s{margin:0;font-size:.74rem;line-height:1.7;color:var(--pv-ink-2);overflow-wrap:anywhere}
+.ru-fix-lab{font-size:.74rem;font-weight:800;color:var(--pv-ink-2)}
+.ru-fix-c{width:100%;height:auto;min-height:76px;padding:10px 12px;line-height:1.6;resize:vertical}
+.ru-fix-c:hover{border-color:var(--pv-ink-3)}
+.ru-fix-m{margin:0;font-size:.74rem;font-weight:700;line-height:1.5;color:var(--rs-bad)}
+.ru-fix-b{align-self:flex-start}
+.ru-fix-ok{margin:0;font-size:.78rem;font-weight:700;color:var(--pv-accent-ink)}
+.ru-fix-ok:focus{outline:none}
 
 /* ── 1日を直す画面 ─────────────────────────────────────────── */
 .re-f{display:flex;flex-direction:column;gap:6px;min-width:0}

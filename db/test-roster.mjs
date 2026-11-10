@@ -14,7 +14,13 @@
      ・読み方（profile）の検品・明細の行の答え（line map）と my_report_items の往復（「その他」の会社も）
      ・★1日を手で直す・消す（edit_roster_day）：検品は submit_roster と同じ・在る日はそのファイルのまま・
        無い日は本人の置き場（manual）1つへ・2年の境目より前は受け付けない・1人1日200回まで・ほかの会員の日に触れない
-     ・末尾の検算が全部 ✅ ／ 壊す証明（鍵の式を1文字変える・anon に呼ばせる・手で直す口のログイン確認や2年の境目を外す → 検算が ❌）
+     ・★便の乗務の区分（CAP／FO）は保存しない（列が無い・送っても黙って落ちる＝古い画面でも止めない）
+     ・★勤務コードは英字の形か読み取りの印（'#'＋小文字の16進16字）。#xyz・大文字の16進・漢字は弾く
+     ・読み方の空欄の意味（blank：off／none／null）・会社（airline）・codes のキーの印
+     ・★会社の辞書：3人以上が同じ答え かつ 過半数だけ置く（2人・3対3・unknown は置かない）・消すと数え直す・
+       ほかの会社に触れない・テスト用アカウントを外す・人数を返さない・「一覧にない会社」は空・前の版の行を当て直す
+     ・末尾の検算が全部 ✅ ／ 壊す証明（鍵の式を1文字変える・anon に呼ばせる・手で直す口のログイン確認や2年の境目を外す・
+       辞書の線を2人に下げる・区分の列を戻す → 検算が ❌）
 */
 import { PGlite } from '@electric-sql/pglite';
 import { pgcrypto } from '@electric-sql/pglite/contrib/pgcrypto';
@@ -167,15 +173,19 @@ ok(await cnt('pv_roster_days') === 10 && await cnt('pv_roster_legs') === 18, '�
   const [l1, l2, l3, l4] = d3 ? d3.legs : [];
   ok(l1 && l1.in === '01:50' && l1.in_day === 1 && l1.block === '6:50' && l1.block_min === 410,
      `到着が翌日の便・ブロック 6:50 = 410分 → ${l1 && l1.block_min}`);
-  ok(l2 && l2.kind === 'deadhead' && l2.role === 'DH1', '回送は deadhead・区分は印字どおり（DH1）');
+  ok(l2 && l2.kind === 'deadhead' && !('role' in l2), '回送は deadhead・★乗務の区分（送った DH1）は持たない（鍵ごと無い）');
   ok(l3 && l3.kind === 'ground' && l3.from === null && l3.to === null && l3.loc === 'TRC',
      '★地上業務に空港を作らない（送られてきた DXB→DXB を落とし、場所は loc だけ）');
   ok(l4 && l4.kind === 'unknown' && l4.block === null && l4.block_min === null, '分からない便は unknown・ブロック null（0 にしない）');
   const d0 = r.days.find((x) => x.date === D(0));
   ok(d0 && d0.code === 'OFF1' && d0.d_on === null && d0.legs.length === 0, '休みの日（OFF1・時刻なし・便なし）');
   const d5 = r.days.find((x) => x.date === D(5));
-  ok(d5 && d5.legs[0].block === '7:17' && d5.legs[0].block_min === 437 && d5.legs[0].from === 'DXB' && d5.legs[0].role === 'CAP',
-     'ふつうの便：7:17 = 437分・DXB・CAP');
+  ok(d5 && d5.legs[0].block === '7:17' && d5.legs[0].block_min === 437 && d5.legs[0].from === 'DXB' && !('role' in d5.legs[0]),
+     'ふつうの便：7:17 = 437分・DXB（送った CAP は返らない）');
+  ok(r.days.every((x) => x.legs.every((l) => !('role' in l))), '★読む口は乗務の区分を返さない（鍵ごと無い）');
+  ok(!(await rows(`select 1 from pg_attribute where attrelid = 'public.pv_roster_legs'::regclass and attname in ('role', 'role_raw') and not attisdropped`)).length,
+     '★便の表に乗務の区分の列が無い（ほかの乗員の CAP／FO だったため）');
+  ok(!/"(CAP|DH1|TRN)"/.test(JSON.stringify(await rows(`select to_jsonb(l) j from public.pv_roster_legs l`))), '★表のどの欄にも送った区分（CAP・DH1・TRN）が無い');
   ok(d5 && d5.doc_id === rA.doc_id && d5.page === 1 && d5.row === 6, '日がどのファイル・何ページ何行目かを持つ');
   ok(r.profile === null, 'まだ読み方を答えていない → profile は null');
   ok(r.days.every((x) => x.legs.every((l) => !('flight' in l))), '★読む口は便名を返さない（鍵ごと無い）');
@@ -277,17 +287,20 @@ for (const [sql, label] of [
   [`select set_roster_profile('emirates', null, '{}'::jsonb)`, 'set_roster_profile'],
   [`select set_line_map('emirates', null, 'k:base_pay', 0, 'confirmed', null)`, 'set_line_map'],
   [`select my_report_items()`, 'my_report_items'],
+  [`select my_roster_airline_codes('emirates', null)`, 'my_roster_airline_codes'],
   [`select count(*) from public.pv_roster_days`, '表 pv_roster_days'],
   [`select count(*) from public.pv_roster_legs`, '表 pv_roster_legs'],
   [`select count(*) from public.pv_line_map`, '表 pv_line_map'],
   [`select count(*) from public.pv_roster_edit_quota`, '表 pv_roster_edit_quota'],
+  [`select count(*) from public.pv_roster_airline_codes`, '表 pv_roster_airline_codes'],
 ]) {
   const e = await boom(sql);
   ok(e && /permission denied/i.test(e.msg), `anon は ${label} を使えない`, e ? e.msg.slice(0, 60) : '通ってしまった');
 }
 await db.exec(`reset role`);
 await db.exec(`set role authenticated`);
-for (const t of ['pv_roster_profile', 'pv_roster_docs', 'pv_roster_days', 'pv_roster_legs', 'pv_line_map', 'pv_roster_edit_quota']) {
+for (const t of ['pv_roster_profile', 'pv_roster_docs', 'pv_roster_days', 'pv_roster_legs', 'pv_line_map', 'pv_roster_edit_quota',
+                 'pv_roster_airline_codes', 'pv_test_users']) {
   const e = await boom(`select count(*) from public.${t}`);
   ok(e && /permission denied/i.test(e.msg), `ログイン済みでも表 ${t} は直接読めない`);
 }
@@ -298,6 +311,9 @@ for (const t of ['pv_roster_profile', 'pv_roster_docs', 'pv_roster_days', 'pv_ro
   ok(k && /permission denied/i.test(k.msg), '★鍵の式（pv_roster_key）を直接呼べない（他人の鍵を作れない）');
   const c = await boom(`select pv_roster_clean_day('{}'::jsonb, 1)`);
   ok(c && /permission denied/i.test(c.msg), '1日の組み直し（pv_roster_clean_day）も直接は呼べない');
+  const rc = await boom(`select pv_roster_airline_recount('emirates')`);
+  const ra = await boom(`select pv_roster_airline_recount_all()`);
+  ok(rc && /permission denied/i.test(rc.msg) && ra && /permission denied/i.test(ra.msg), '会社の辞書の数え直しも直接は呼べない');
 }
 await db.exec(`reset role`);
 
@@ -312,6 +328,7 @@ for (const [sql, label, params] of [
   [`select set_roster_profile('emirates', null, '{}'::jsonb)`, 'set_roster_profile'],
   [`select set_line_map('emirates', null, 'k:base_pay', 0, 'confirmed', null)`, 'set_line_map'],
   [`select my_report_items()`, 'my_report_items'],
+  [`select my_roster_airline_codes('emirates', null)`, 'my_roster_airline_codes'],
 ]) {
   const e = await boom(sql, params);
   ok(e && e.code === '42501' && e.msg.includes('ログイン'), `未ログインの ${label} は 42501`, e ? `${e.code} ${e.msg.slice(0, 40)}` : '通ってしまった');
@@ -332,7 +349,11 @@ const bad = [
   ['勤務コードが数値', withDay({ code: 123 })],
   ['空港コードが5文字', withLeg({ from: 'TOKYO' })],
   ['空港コードが小文字', withLeg({ to: 'lhr' })],
-  ['乗務の区分が文章', withLeg({ role: 'Captain Smith' })],
+  ['勤務コードが印の形でない（#xyz）', withDay({ code: '#xyz' })],
+  ['勤務コードの印が大文字の16進', withDay({ code: '#0123456789ABCDEF' })],
+  ['勤務コードの印が17字', withDay({ code: '#0123456789abcdef0' })],
+  ['勤務コードの印に # が無い', withDay({ code: '0123456789abcdef' })],
+  ['勤務コードが漢字（公休）', withDay({ code: '公休' })],
   ['場所が文章', withLeg({ loc: 'Training Center' })],
   ['時刻の頭の0が無い（7:05）', withLeg({ out: '7:05' })],
   ['時刻が25:00', withDay({ d_on: '25:00' })],
@@ -403,6 +424,48 @@ console.log('\n▼ 知らないキー（氏名・自由記述）は落とす');
   ok(!/Mercer|Example|shuttle|free text/.test(back), '読み返しても出てこない');
 }
 
+console.log('\n▼ 乗務の区分は黙って落とす・勤務コードの印（#＋16進16字）は通る');
+// （手で直す口の道具は下の 11-c で定義する。ここでは同じ形をその場で作る）
+const editNow = async (date, d) =>
+  (await one(`select edit_roster_day('emirates', null, $1::jsonb) r`, [JSON.stringify({ date, day: d })])).r;
+const eday0 = (x = {}) => ({ code: null, d_on: '06:00', d_off: '15:00', d_off_day: 0, legs: [leg(1)], ...x });
+{
+  // 古い画面（キャッシュの JS）が区分を送ってきても止めない。どんな形でも落とすだけ。
+  await db.exec('begin');
+  const p = roster([day(22, { legs: [leg(1, { role: 'Captain Smith' }), leg(2, { role: 'FO', from: 'LHR', to: 'DXB' }), leg(3, { role: 12 })] })],
+                   { file_sha: sha(410) });
+  const r = await submitR(p);
+  const left = JSON.stringify(await rows(`select to_jsonb(l) j from public.pv_roster_legs l`));
+  await db.exec('rollback');
+  ok(r && r.ok === true && r.legs === 3 && !/Smith|"FO"|Captain/.test(left),
+     '★便に乗務の区分（文章・FO・数）が付いていても提出は通り、どこにも残らない', JSON.stringify(r));
+  const e = await editNow(D(23), eday0({ cat: 'off', legs: [leg(1, { role: 'Captain Smith' })] }));
+  const left2 = JSON.stringify(await rows(`select to_jsonb(l) j from public.pv_roster_legs l`));
+  ok(e.ok && e.legs === 1 && !/Smith|Captain/.test(left2), '★手で直す口も同じ（区分は黙って落ちる）');
+  {
+    // 読み取りが日に付ける分類（cat）は保存しない（知らないキーとして落ちる・止めない）
+    const r2 = await submitR(roster([day(27, { cat: 'leave', code: 'VAC', d_on: null, d_off: null, legs: [] }),
+                                     day(28, { cat: 'unclear' })], { file_sha: sha(430) }));
+    const back = (await myRoster()).days.filter((d) => [D(23), D(27), D(28)].includes(d.date));
+    ok(r2.ok && r2.days === 2 && back.length === 3 && back.every((d) => !('cat' in d))
+       && !/"cat"|leave|unclear/.test(await dump()),
+       '★日の分類（cat）は出す口・手で直す口とも黙って落ちる（どこにも残らない・読む口も返さない）');
+  }
+  await editNow(D(23), null);
+  await db.query(`delete from public.pv_roster_docs where manual and proof_hash = public.pv_roster_key($1::uuid, 'emirates', null)`, [uid(4)]);
+}
+{
+  const TOK = '#0123456789abcdef', TOK2 = '#fedcba9876543210';
+  const r = await submitR(roster([day(24, { code: TOK, d_on: null, d_off: null, legs: [] }), day(25, { code: 'SBY' })], { file_sha: sha(420) }));
+  ok(r.ok && r.days === 2, '勤務コードが印（#＋小文字の16進16字）の日を出せる');
+  const back = (await myRoster()).days;
+  ok(back.find((d) => d.date === D(24))?.code === TOK && back.find((d) => d.date === D(25))?.code === 'SBY',
+     '★印はそのまま保存され、読む口がそのまま返す（英字のコードも今までどおり）');
+  const e = await editNow(D(26), eday0({ code: TOK2, d_on: null, d_off: null, legs: [] }));
+  ok(e.ok && (await myRoster()).days.find((d) => d.date === D(26))?.code === TOK2, '手で直す口も印を受け付ける');
+  await editNow(D(26), null);
+}
+
 // ── 9. 1日30本まで ─────────────────────────────────────────────
 console.log('\n▼ 1日に取り込めるのは30本まで');
 await asUser(3);
@@ -440,6 +503,24 @@ await asUser(1);
   const r3 = await setProfile({ tz: null, codes: { OFF: 'off' } });
   ok(r3.profile.tz === null && JSON.stringify(r3.profile.codes) === '{"OFF":"off"}', 'null で消せる・codes は丸ごと置き換え');
   ok((await myRoster()).profile.kind === 'planned', 'my_roster が読み方を一緒に返す');
+  // 空欄の日の意味（blank）：off / none / null（まだ答えていない）
+  ok(r3.profile.blank === null && 'blank' in r3.profile, 'まだ答えていない空欄の意味は null（キーは在る）');
+  const b1 = await setProfile({ blank: 'off' });
+  const b2 = await setProfile({ kind: 'planned' });
+  ok(b1.profile.blank === 'off' && b2.profile.blank === 'off', '空欄の意味 off を保存できる・ほかのキーだけ書いても前のまま');
+  const b3 = await setProfile({ blank: 'none' });
+  ok(b3.profile.blank === 'none' && (await myRoster()).profile.blank === 'none', '空欄の意味 none を保存できる・my_roster も返す');
+  const b4 = await setProfile({ blank: null });
+  ok(b4.profile.blank === null, '空欄の意味は null で「まだ答えていない」に戻せる');
+  // 勤務コードのキーに読み取りの印（#＋小文字の16進16字）
+  const tk = await setProfile({ codes: { OFF: 'off', '#0123456789abcdef': 'vac', '#a0b1c2d3e4f5a6b7': 'unknown' } });
+  ok(tk.ok && tk.profile.codes['#0123456789abcdef'] === 'vac' && tk.profile.codes['#a0b1c2d3e4f5a6b7'] === 'unknown',
+     '★読み方の codes のキーに読み取りの印を使える', JSON.stringify(tk.profile.codes));
+  {
+    const air = (await one(`select airline from public.pv_roster_profile where proof_hash = public.pv_roster_key($1::uuid, 'emirates', null)`, [uid(1)])).airline;
+    ok(air === 'emirates', `★読み方の行に会社（一覧の会社コード）が入る → ${air}`);
+  }
+  await setProfile({ codes: { OFF: 'off' } });
   const badP = [
     ['知らないタイムゾーン', { tz: 'Mars/Olympus' }],
     ['タイムゾーンが41文字', { tz: 'A'.repeat(41) }],
@@ -451,6 +532,13 @@ await asUser(1);
     ['勤務コードの意味が知らない言葉', { codes: { OFF1: 'party' } }],
     ['勤務コードが配列', { codes: ['OFF1'] }],
     ['勤務コードが201個', { codes: Object.fromEntries(Array.from({ length: 201 }, (_, i) => ['C' + i, 'off'])) }],
+    ['勤務コードのキーが印の形でない（#xyz）', { codes: { '#xyz': 'off' } }],
+    ['勤務コードのキーの印が大文字の16進', { codes: { '#0123456789ABCDEF': 'off' } }],
+    ['勤務コードのキーが漢字（公休）', { codes: { '公休': 'off' } }],
+    ['空欄の意味が知らない言葉', { blank: 'maybe' }],
+    ['空欄の意味が大文字', { blank: 'OFF' }],
+    ['空欄の意味が数', { blank: 1 }],
+    ['空欄の意味が真偽', { blank: true }],
   ];
   for (const [label, p] of badP) {
     const e = await boom(`select set_roster_profile('emirates', null, $1::jsonb)`, [JSON.stringify(p)]);
@@ -809,7 +897,8 @@ console.log('\n▼ edit_roster_day：不正な中身は弾く（何も書かな�
     ['勤務コードが数値', wDay({ code: 123 })],
     ['空港コードが5文字', wLeg({ from: 'TOKYO' })],
     ['空港コードが小文字', wLeg({ to: 'lhr' })],
-    ['乗務の区分が文章', wLeg({ role: 'Captain Smith' })],
+    ['勤務コードが印の形でない（#xyz）', wDay({ code: '#xyz' })],
+    ['勤務コードが漢字（公休）', wDay({ code: '公休' })],
     ['場所が文章', wLeg({ loc: 'Training Center' })],
     ['時刻の頭の0が無い（7:05）', wLeg({ out: '7:05' })],
     ['時刻が25:00', wDay({ d_on: '25:00' })],
@@ -893,6 +982,120 @@ await asUser(1);
 }
 await asUser(1);
 
+// ── 11-d. 会社の辞書（3人以上が同じ答え かつ 答えた人の過半数）──────────────
+console.log('\n▼ 会社の辞書（書き込みのときに数える・3人以上 かつ 過半数・人数は返さない）');
+const QA = 'qatar-airways', SQ = 'singapore-airlines';
+const TOKD = '#0123456789abcdef';
+const dict = async (a = QA, o = null) => (await one(`select my_roster_airline_codes($1, $2) r`, [a, o])).r;
+const rawDict = async (a = QA) => rows(`select key, meaning, updated_at::text t from public.pv_roster_airline_codes where airline = $1 order by key`, [a]);
+const profAs = async (n, p, a = QA, o = null) => { await asUser(n); return setProfile(p, a, o); };
+{
+  const P1 = { kind: 'actual', time_ref: 'utc', blank: 'off', codes: { OFF1: 'off', SBY: 'standby', [TOKD]: 'vac' } };
+  await profAs(21, P1);
+  await profAs(22, P1);
+  const d2 = await dict();
+  ok(d2.ok === true && Object.keys(d2).sort().join() === 'codes,ok' && Object.keys(d2.codes).length === 0,
+     '★2人がそろっても辞書には置かない（codes は空・kind なども無い）', JSON.stringify(d2));
+  await profAs(23, P1);
+  const d3 = await dict();
+  ok(d3.codes.OFF1 === 'off' && d3.codes.SBY === 'standby' && d3.codes[TOKD] === 'vac'
+     && d3.kind === 'actual' && d3.time_ref === 'utc' && d3.blank === 'off' && !('time_meaning' in d3),
+     '★3人がそろうと置く（勤務コード・読み取りの印・実績か予定か・時刻の基準・空欄の意味。答えの無い time_meaning はキーごと無い）', JSON.stringify(d3));
+
+  // 3対3 は割れている。'unknown' は答えに数えない。
+  const P2 = { kind: 'actual', codes: { SBY: 'duty', [TOKD]: 'unknown' } };
+  for (const n of [24, 25, 26]) await profAs(n, P2);
+  const d6 = await dict();
+  ok(!('SBY' in d6.codes), '★3対3 に割れたコード（SBY）は置かない', JSON.stringify(d6.codes));
+  ok(d6.codes[TOKD] === 'vac', '★「わからない（unknown）」は答えに数えない（vac 3人 ＋ unknown 3人 → vac のまま）');
+  ok(d6.codes.OFF1 === 'off' && d6.kind === 'actual' && d6.time_ref === 'utc',
+     '答えていない人は分母に入らない（OFF1 は3人中3人・時刻の基準は3人中3人）');
+  await profAs(27, { codes: { SBY: 'standby' } });
+  ok((await dict()).codes.SBY === 'standby', '4対3 になれば過半数 → 置く');
+
+  // テスト用アカウントは外す（名簿が変わったら全部の会社を数え直す）
+  await db.query(`insert into public.pv_test_users (uid) values ($1)`, [uid(27)]);
+  ok(!('SBY' in (await dict()).codes), '★テスト用アカウントを名簿に入れると、その人の答えは数えない（3対3 に戻る）');
+  await db.query(`delete from public.pv_test_users where uid = $1`, [uid(27)]);
+  ok((await dict()).codes.SBY === 'standby', '名簿から外すと、また数える');
+
+  // 読み方を消すと数え直す
+  await asUser(23);
+  await setProfile(null, QA);
+  const dd = await dict();
+  ok(!('OFF1' in dd.codes) && !(TOKD in dd.codes) && !('blank' in dd) && !('time_ref' in dd) && dd.kind === 'actual',
+     '★読み方を消すと数え直す（2人に減った OFF1・印・空欄の意味・時刻の基準は消え、5人の kind は残る）', JSON.stringify(dd));
+
+  // 答えに関わらない書き換え（タイムゾーンだけ）は数え直さない
+  const snapQA = JSON.stringify(await rawDict(QA));
+  await profAs(21, { tz: 'Asia/Qatar' }, QA);
+  ok(JSON.stringify(await rawDict(QA)) === snapQA, '答えに関わらない書き換え（タイムゾーンだけ）では辞書を作り直さない（時刻も変わらない）');
+
+  // ほかの会社には触れない
+  await profAs(30, { codes: { SBY: 'standby' } }, SQ);
+  await profAs(31, { codes: { SBY: 'standby' } }, SQ);
+  ok(Object.keys((await dict(SQ)).codes).length === 0, '別の会社で2人がそろっても置かない');
+  ok(JSON.stringify(await rawDict(QA)) === snapQA, '★別の会社の書き込みは、この会社の辞書に1行も触れない（時刻も変わらない）');
+  const n1 = Number((await one(`select public.pv_roster_airline_recount($1) n`, [SQ])).n);
+  ok(n1 === 0 && JSON.stringify(await rawDict(QA)) === snapQA, '★数え直しはその会社の分だけ（ほかの会社の行は消しも書きもしない）');
+  ok((await dict()).kind === 'actual' && !('kind' in (await dict(SQ))), '辞書は会社ごとに別もの（カタールでそろった答えはシンガポールに出ない）');
+
+  // 返す形：人数・誰が答えたかを返さない
+  const shape = await dict();
+  const allowed = new Set(['ok', 'codes', 'kind', 'time_ref', 'time_meaning', 'blank']);
+  ok(Object.keys(shape).every((k) => allowed.has(k))
+     && Object.values(shape.codes).every((v) => typeof v === 'string')
+     && ['kind', 'time_ref', 'time_meaning', 'blank'].every((k) => !(k in shape) || typeof shape[k] === 'string')
+     && !/proof_hash|"n"|count|people|updated/.test(JSON.stringify(shape)),
+     '★返すのは ok・codes・そろった4つの答えだけ（人数・鍵・時刻は返さない）', JSON.stringify(shape));
+  ok(JSON.stringify(await dict('ana')) === JSON.stringify({ ok: true, codes: {} }), '答えが無い会社は {ok:true, codes:{}}');
+
+  // 「一覧にない会社」は辞書を持たない
+  for (const n of [21, 22, 23]) await profAs(n, P1, 'other', 'Example Charter Co');
+  const ot = await dict('other', 'EXAMPLE CHARTER CO');
+  ok(JSON.stringify(ot) === JSON.stringify({ ok: true, codes: {} }), '★「一覧にない会社」は3人そろっても {ok:true, codes:{}}', JSON.stringify(ot));
+  ok(Number((await one(`select count(*) n from public.pv_roster_profile
+                         where proof_hash = public.pv_roster_key($1::uuid, 'other', 'example charter co') and airline is null`, [uid(21)])).n) === 1
+     && Number((await one(`select count(*) n from public.pv_roster_airline_codes where airline not in ($1, $2)`, [QA, SQ])).n) === 0,
+     '「一覧にない会社」の読み方は会社を持たない（airline = null）・辞書に行を作らない');
+  const eBad = await boom(`select my_roster_airline_codes('nope-air', null)`);
+  ok(eBad && eBad.code === '22023' && eBad.msg.includes('会社'), '不正な会社は 22023');
+  await logout();
+  const eOut = await boom(`select my_roster_airline_codes($1, null)`, [QA]);
+  ok(eOut && eOut.code === '42501', '★ログインしていなければ 42501（辞書も読めない）');
+
+  // 前に貼った版の読み方（会社の欄が無い）は、会社の列を初めて足す貼り付けで鍵から当て直す
+  await asUser(33);
+  await db.exec(`alter table public.pv_roster_profile drop column airline`);   // 前の版の形に戻す
+  await db.query(`insert into public.pv_roster_profile (proof_hash, kind, codes)
+                  values (public.pv_roster_key($1::uuid, $2, null), 'actual', '{"OFF1":"off"}')`, [uid(33), QA]);
+  const airOf = async (n, a = QA) => (await one(`select airline from public.pv_roster_profile where proof_hash = public.pv_roster_key($1::uuid, $2, null)`, [uid(n), a])).airline;
+  await db.exec(read('db/roster.sql'));
+  const after33 = await airOf(33), after21 = await airOf(21), after30 = await airOf(30, SQ);
+  ok(after33 === QA && after21 === QA && after30 === SQ,
+     `★会社の列が無い前の版から貼ると、全員の読み方に鍵から会社が入る（${after33}・${after21}・${after30}）`);
+  ok(Number((await one(`select count(*) n from public.pv_roster_profile
+                         where proof_hash = public.pv_roster_key($1::uuid, 'other', 'example charter co')`, [uid(21)])).n) === 1
+     && (await one(`select airline from public.pv_roster_profile
+                    where proof_hash = public.pv_roster_key($1::uuid, 'other', 'example charter co')`, [uid(21)])).airline === null,
+     '「一覧にない会社」の行は null のまま');
+  // 2回目からの貼り付けは重い当て直しをしない（給与の行と同じ鍵の行だけ、軽い道で当てる）
+  await asUser(35);
+  await asUser(2);
+  await db.query(`insert into public.pv_roster_profile (proof_hash, kind, codes)
+                  values (public.pv_roster_key($1::uuid, $2, null), 'actual', '{}'),
+                         (public.pv_roster_key($3::uuid, 'emirates', null), 'actual', '{}')`, [uid(35), QA, uid(2)]);
+  await db.exec(read('db/roster.sql'));
+  ok(await airOf(35) === null && await airOf(2, 'emirates') === 'emirates',
+     '★2回目からの貼り付けは「会員 × 全社」の当て直しをしない（給与の行がある人だけ軽い道で入る）');
+  await db.query(`delete from public.pv_roster_profile where proof_hash in
+                  (public.pv_roster_key($1::uuid, $2, null), public.pv_roster_key($3::uuid, 'emirates', null))`, [uid(35), QA, uid(2)]);
+  await asUser(33);
+  ok((await dict()).codes.OFF1 === 'off', '当て直した行も数に入る（21・22・33 の3人で OFF1 がまたそろう）');
+  ok(Object.keys((await dict(SQ)).codes).length === 0, '（シンガポールは2人のまま置かない）');
+}
+await asUser(1);
+
 // ── 12. 検算 ───────────────────────────────────────────────────
 console.log('\n▼ 貼ったあとの検算');
 const SRC = read('db/roster.sql');
@@ -901,7 +1104,7 @@ const TAIL = SRC.slice(SRC.indexOf('-- ── 11. 検算'));
   const before = await cnt('pv_roster_days');
   const res = await db.exec(SRC);
   const chk = res[res.length - 1].rows;
-  ok(chk.length === 16 && chk.every((x) => x['判定'] === '✅'),
+  ok(chk.length === 21 && chk.every((x) => x['判定'] === '✅'),
      `★db/roster.sql の検算 ${chk.length} 行が全部 ✅`, chk.filter((x) => x['判定'] !== '✅').map((x) => x['#'] + ' ' + x['確かめること']).join(' | '));
   ok(await cnt('pv_roster_days') === before, 'もう一度流しても、入っている勤務表は消えない');
   ok(TAIL.length > 100, '（検算の部分だけを切り出せた）');
@@ -1026,6 +1229,34 @@ console.log('\n▼ 壊す証明');
   const redChk = (await db.exec(TAIL)).pop().rows.find((x) => Number(x['#']) === 14)?.['判定'];
   await db.exec('rollback');
   ok(redChk === '❌', `★submit_roster が1日の組み直しを呼ばず自前の検品を持つと検算14が ❌ → ${redChk}`);
+}
+{
+  // 会社の辞書の線を2人に下げた版 → 2人がそろった会社（シンガポール）に置いてしまい、検算20が ❌
+  const a = SRC.indexOf('create or replace function public.pv_roster_airline_recount(');
+  const b = a < 0 ? -1 : SRC.indexOf('\n$$;', a);
+  const fn = (a < 0 || b < 0) ? '' : SRC.slice(a, b + '\n$$;'.length);
+  const C3 = 'c_min_agree constant int := 3;';
+  const broken = fn.split(C3).length === 2 ? fn.replace(C3, () => 'c_min_agree constant int := 2;') : '';
+  ok(!!broken, '（会社の辞書の線だけ2人に下げた版を作れた）');
+  await asUser(1);
+  const okBefore = (await dict(SQ)).codes.SBY;
+  await db.exec('begin');
+  await db.exec(broken);
+  await db.query(`select public.pv_roster_airline_recount($1)`, [SQ]);
+  const red = (await dict(SQ)).codes.SBY;
+  const redChk = (await db.exec(TAIL)).pop().rows.find((x) => Number(x['#']) === 20)?.['判定'];
+  await db.exec('rollback');
+  ok(okBefore === undefined && red === 'standby' && redChk === '❌',
+     `★線を2人に下げると2人の会社に置いてしまい、検算20が ❌ → ${okBefore} → ${red} / ${redChk}`);
+  ok((await dict(SQ)).codes.SBY === undefined, '（巻き戻したら元どおり置かない）');
+}
+{
+  // 乗務の区分の列を戻した版 → 検算17が ❌
+  await db.exec('begin');
+  await db.exec(`alter table public.pv_roster_legs add column role_raw text`);
+  const redChk = (await db.exec(TAIL)).pop().rows.find((x) => Number(x['#']) === 17)?.['判定'];
+  await db.exec('rollback');
+  ok(redChk === '❌', `★乗務の区分の列を戻すと検算17が ❌ → ${redChk}`);
 }
 await logout();
 

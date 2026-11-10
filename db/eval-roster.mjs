@@ -728,7 +728,8 @@ async function readOne(key, body) {
    日: 正解に無い日を出した → 余分な日（cut が無ければ silent）。見えている日を出さなかった → 抜けた日。
    区間: 便名・区間・時刻で正解の区間と組み合わせる。組めない答えの区間 → 余分（partial が無ければ silent）。
    ════════════════════════════════════════════════════════════════ */
-const LEG_F = ['flight', 'from', 'to', 'loc', 'out', 'in', 'block', 'role'];
+/* ★role は採点しない（2026-11-11 から読まない＝ほかの乗員の役職。正解の role は画像に印字するためだけ）。 */
+const LEG_F = ['flight', 'from', 'to', 'loc', 'out', 'in', 'block'];
 function scorePage(TR, R, o = {}) {
   const vis = o.vis || null, complete = o.complete !== false;
   const m = { dExp: 0, dHit: 0, dMiss: 0, dExtra: 0, dCtx: 0, lExp: 0, lHit: 0, lMiss: 0, lExtra: 0,
@@ -969,7 +970,6 @@ function normAnswer(a) {
     if ('in' in l) o.in = nc(l.in);
     if ('in_day' in l) o.in_day = l.in_day;
     if ('block' in l) o.block = l.block == null ? null : parseBlock(l.block);
-    if ('role' in l) o.role = l.role == null ? null : tok(l.role, RE.role);
     if ('kind' in l) o.kind = l.kind;
     return o;
   };
@@ -1039,7 +1039,7 @@ async function runDir(browser, dir) {
       if (!p.out) { console.log(`  ${p.f}  💥 ${p.err} (${p.px})`); rowsOut.push({ tag: key, err: p.err }); continue; }
       const r = p.out.roster, ch = p.out.checks;
       const codes = [...new Set(r.days.map((d) => d.code).filter(Boolean))];
-      const toks = [...new Set(r.days.flatMap((d) => d.legs.flatMap((l) => [l.flight, l.role, l.loc].filter(Boolean))))];
+      const toks = [...new Set(r.days.flatMap((d) => d.legs.flatMap((l) => [l.flight, l.loc].filter(Boolean))))];
       const span = r.days.length ? `${r.days[0].date}〜${r.days[r.days.length - 1].date}` : '—';
       console.log(`  ${p.f} (${p.px}) 日 ${r.days.length}（${span}）区間 ${ch.legs} ／ 日付なし ${ch.undated} 捨てた日/区間/欄 ${ch.dropped_days}/${ch.dropped_legs}/${ch.dropped_fields}`
         + ` cut ${ch.cut_days} partial ${ch.partial_legs} 記号の置き換え ${ch.code_mapped} anchor=${ch.anchor} hints=${JSON.stringify(r.hints)}${p.shifted ? '（窓を印字の年へ）' : ''}  $${(p.rep.usd || 0).toFixed(4)} ${((p.rep.ms || 0) / 1000).toFixed(0)}s`);

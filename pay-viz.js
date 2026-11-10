@@ -14,6 +14,9 @@
    ── 持たないもの ──────────────────────────────────────────────
    ・文言：呼ぶ側が渡す（JA/EN の2言語ぶんは各ページの T が持っている）
    ・DOM ：root も document も見ない。文字列を返すだけ
+     ★例外は1つ（2026-11-10）：折れ線に指を置いたときの吹き出し。受け付けはページ全体で1回だけ
+       document に付ける（このファイルの最後）＝図を描き直しても付け直さない。
+       吹き出しの字と位置は、chart() が描いた当たりの帯（.pt-hit）の data-* に全部入っている。
    ・幅   ：chart() は実測しない。呼ぶ側が widthOf() で測って渡す
      （viewBox を伸縮させると文字まで拡大縮小されてスマホで読めなくなるので、
        コンテナの実寸で組む。だから測る主体は DOM を持っている側）
@@ -523,6 +526,16 @@
                    線が黒か透明になる。getComputedStyle で解いた実際の値を渡すこと。
      o.fmtVal    function(v) → 最新値のラベル。既定は fmt（金額）。
                  金額でないもの（人数など）を描くときに渡す
+     ── 2026-11-10 オーナー「指を置いたらその月の金額が出るべき」────────────
+     o.tipOf     function(row, i) → 吹き出しの字（文字列か、行の配列。1つ目が太字）。
+                 渡すと、点ごとに縦いっぱいの当たりの帯を置き、指を置く・押す・キーで選ぶと
+                 縦の線と吹き出しを出す（離すと消える）。i は valueAt と同じ rows の番号。
+                 ★金額は呼ぶ側が fmt で作る（通貨切替に付いてくる）。
+     o.hover     true なら tipOf が無くても吹き出しを出す（字は「横軸のラベル ＋ 値」）。
+                 どちらも無ければ今までどおり（帯も吹き出しも描かない＝ほかのページの絵は変わらない）。
+     o.endLabel  false なら最新値の数字を描かない（累計の図：真上に同じ大きい数字があるため）。
+     o.yearOf    function(row) → その点の年。点の年が2つ以上にまたがるときだけ、
+                 最初の点と年が変わる点の月の下に年を小さく出す（2023年1月と2026年1月が同じ字にならない）。
 
      ★ この引数を valueOf という名前にしてはいけない。オブジェクトリテラルに
        valueOf を書かなくても Object.prototype.valueOf が継承されるので
@@ -537,7 +550,7 @@
     var lab = (typeof o.fmtVal === 'function') ? o.fmtVal : fmt;
     var pick = (typeof o.valueAt === 'function') ? o.valueAt
                                                  : function (r) { return metricOf(r, key); };
-    var pts = (rows || []).map(function (r, i) { return { r: r, v: pick(r, i) }; })
+    var pts = (rows || []).map(function (r, i) { return { r: r, v: pick(r, i), i: i }; })
                           .filter(function (p) { return p.v != null && p.v > 0; });
     if (!pts.length) return '<div class="pt-empty">' + esc(o.noMetric) + '</div>';
 
@@ -549,6 +562,11 @@
     var H = pts.length === 1 ? 104
           : (typeof o.h === 'number' && o.h >= 100) ? o.h : 168;
     var PL = 8, PR = 8, PT = 24, PB = 26;
+    /* 年をまたぐときだけ、月の下に年の段を1つ足す（線の高さは削らない＝下に伸ばす） */
+    var yrs = (typeof o.yearOf === 'function') ? pts.map(function (p) { return o.yearOf(p.r); }) : null;
+    var multiY = !!(yrs && yrs.some(function (y) { return y !== yrs[0]; }));
+    if (multiY) { H += 13; PB += 13; }
+    var hov = (typeof o.tipOf === 'function') || o.hover === true;
 
     var vs = pts.map(function (p) { return p.v; });
     var lo = Math.min.apply(null, vs), hi = Math.max.apply(null, vs);
@@ -592,6 +610,28 @@
       g += '<path d="' + area + '" fill="url(#' + fid + ')"/>';
       g += '<path d="' + dPath + '" fill="none" stroke="' + COL + '" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
     }
+    /* 横軸の字が隣と重なる点だけ字を飛ばす（最初・最後・年が変わる点は必ず出す。重ならない図は今までと同じ）。
+       ★2026-11-10 14か月を並べると右端が「9月10月」とくっついて1つの字に見えた。月は吹き出しで読める。 */
+    var labs = pts.map(function (p) { var s = label(p.r); return s == null ? '' : String(s); });
+    var ancOf = function (i) { return (pts.length > 1 && i === 0) ? 'start' : (pts.length > 1 && i === pts.length - 1) ? 'end' : 'middle'; };
+    var spanOf = function (i) {
+      var s = labs[i], w0 = 0, cx = x(i), a = ancOf(i);
+      for (var k = 0; k < s.length; k++) w0 += s.charCodeAt(k) > 255 ? 10.5 : 6.2;
+      return a === 'start' ? [cx, cx + w0] : a === 'end' ? [cx - w0, cx] : [cx - w0 / 2, cx + w0 / 2];
+    };
+    var must = pts.map(function (p, i) { return i === 0 || i === pts.length - 1 || (multiY && yrs[i] !== yrs[i - 1]); });
+    var showLab = [], lastR = -Infinity;
+    pts.forEach(function (p, i) {
+      if (!labs[i]) { showLab.push(false); return; }
+      var sp = spanOf(i), on = must[i];
+      if (!on) {
+        var nx = null;
+        for (var j = i + 1; j < pts.length; j++) if (must[j] && labs[j]) { nx = spanOf(j)[0]; break; }
+        on = sp[0] >= lastR + 4 && (nx == null || sp[1] + 4 <= nx);
+      }
+      showLab.push(on);
+      if (on) lastR = sp[1];
+    });
     pts.forEach(function (p, i) {
       var last = i === pts.length - 1;
       // 未選択の点は背景色で抜く。ライト/ダークで色が違うので CSS 変数を使う
@@ -599,20 +639,55 @@
       g += '<circle cx="' + x(i).toFixed(1) + '" cy="' + y(p.v).toFixed(1) + '" r="' + (last ? 5 : 3.5) +
            '" style="fill:' + (last ? COL : 'var(--pt-dot)') + '" stroke="' + COL + '" stroke-width="2"/>';
       // 両端のラベルは middle だと枠の外へはみ出す（EN の "Jun" が切れていた）
-      var ta = (pts.length > 1 && i === 0) ? 'start'
-             : (pts.length > 1 && last) ? 'end' : 'middle';
-      g += '<text x="' + x(i).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="' + ta + '" font-size="10.5" ' +
-           'fill="currentColor" fill-opacity=".55">' + esc(label(p.r)) + '</text>';
+      var ta = ancOf(i);
+      if (showLab[i]) {
+        g += '<text x="' + x(i).toFixed(1) + '" y="' + (H - (multiY ? 21 : 8)) + '" text-anchor="' + ta + '" font-size="10.5" ' +
+             'fill="currentColor" fill-opacity=".55">' + esc(labs[i]) + '</text>';
+      }
+      // 年は最初の点と、年が変わる点だけ（月の下に小さく）
+      if (multiY && (i === 0 || yrs[i] !== yrs[i - 1])) {
+        g += '<text x="' + x(i).toFixed(1) + '" y="' + (H - 7) + '" text-anchor="' + ta + '" font-size="9.5" ' +
+             'fill="currentColor" fill-opacity=".42">' + esc(yrs[i]) + '</text>';
+      }
     });
-    // 最新値だけ数字を出す（全部出すと重なる）
+    // 最新値だけ数字を出す（全部出すと重なる）。★o.endLabel === false なら出さない
     var lastP = pts[pts.length - 1];
-    var lx = x(pts.length - 1), anchor = 'end', dx = -8;
-    if (pts.length === 1) { anchor = 'middle'; dx = 0; }
-    g += '<text x="' + (lx + dx).toFixed(1) + '" y="' + Math.max(14, y(lastP.v) - 12).toFixed(1) + '" text-anchor="' + anchor +
-         '" font-size="13" font-weight="800" fill="' + COL + '">' + esc(lab(lastP.v)) + '</text>';
+    if (o.endLabel !== false) {
+      var lx = x(pts.length - 1), anchor = 'end', dx = -8;
+      if (pts.length === 1) { anchor = 'middle'; dx = 0; }
+      g += '<text x="' + (lx + dx).toFixed(1) + '" y="' + Math.max(14, y(lastP.v) - 12).toFixed(1) + '" text-anchor="' + anchor +
+           '" font-size="13" font-weight="800" fill="' + COL + '">' + esc(lab(lastP.v)) + '</text>';
+    }
+
+    /* ── 当たりの帯と吹き出し（o.tipOf / o.hover のときだけ）──────────────
+       ★帯は点より広く、縦いっぱい（隣の点との真ん中で区切る）＝指の先でも当たる。
+       ★キーは1本だけ tabindex=0（最新の点）。← → で隣へ（下の受け付けが tabindex を付け替える）。
+       ★吹き出しの字は SVG の文字色（currentColor）。線の色は使わない（金の上に白い字にしない）。
+         面は --pt-dot（図の背景と同じ色の約束）＝ライト・ダーク・累計の紺のどれでも地に溶けない。 */
+    if (hov) {
+      var tipOf = (typeof o.tipOf === 'function') ? o.tipOf
+                : function (r, i, v) { return [label(r), lab(v)]; };
+      pts.forEach(function (p, k) {
+        var cx = x(k), x0 = k ? (x(k - 1) + cx) / 2 : 0, x1 = k < pts.length - 1 ? (cx + x(k + 1)) / 2 : W;
+        var t = tipOf(p.r, p.i, p.v);
+        var lines = (Array.isArray(t) ? t : [t]).filter(function (s) { return s != null && s !== ''; }).map(String);
+        g += '<rect class="pt-hit" x="' + x0.toFixed(1) + '" y="0" width="' + Math.max(1, x1 - x0).toFixed(1) + '" height="' + H + '"' +
+             ' fill="transparent" style="outline:none;cursor:default" tabindex="' + (k === pts.length - 1 ? 0 : -1) + '"' +
+             ' data-k="' + k + '" data-x="' + cx.toFixed(1) + '" data-y="' + y(p.v).toFixed(1) + '"' +
+             ' data-tip="' + esc(lines.join('\n')) + '" aria-label="' + esc(lines.join(' ')) + '"/>';
+      });
+      g += '<g class="pt-tip" visibility="hidden" pointer-events="none" aria-hidden="true">' +
+           '<line class="pt-tip-x" x1="0" x2="0" y1="' + PT + '" y2="' + (PT + ih) + '" stroke="currentColor" stroke-opacity=".32" stroke-dasharray="3 3"/>' +
+           '<circle class="pt-tip-o" cx="0" cy="0" r="7" fill="none" stroke="currentColor" stroke-opacity=".5" stroke-width="1.5"/>' +
+           '<g class="pt-tip-c"><rect class="pt-tip-b" x="0" y="0" width="10" height="10" rx="7" style="fill:var(--pt-dot)"' +
+             ' stroke="currentColor" stroke-opacity=".2"/>' +
+             '<text class="pt-tip-t" x="9" y="16" font-size="11.5" fill="currentColor"></text></g>' +
+         '</g>';
+    }
 
     var note = (pts.length === 1 && o.onePoint) ? '<div class="pt-note">' + esc(o.onePoint) + '</div>' : '';
-    return '<svg class="pt-svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="img" ' +
+    // ★帯にキーで入れるときは group（img の中は読み上げに出ない）
+    return '<svg class="pt-svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="' + (hov ? 'group' : 'img') + '" ' +
       'aria-label="' + esc(o.aria) + '">' +
       '<defs><linearGradient id="' + fid + '" x1="0" y1="0" x2="0" y2="1">' +
         '<stop offset="0%" stop-color="' + COL + '" stop-opacity=".22"/>' +
@@ -629,4 +704,101 @@
     donut: donut, donutFromSegs: donutFromSegs, compSegs: compSegs,
     chart: chart, widthOf: widthOf
   };
+
+  /* ── 折れ線の吹き出し（2026-11-10）──────────────────────────────
+     受け付けはページ全体で1回だけ（document に任せる）＝図を何度描き直しても付け直さない。
+     ・マウス：帯に入ると出る・出ると消える
+     ・指：押すと出る（離しても残る）・ほかを押すと消える
+     ・キー：帯に焦点が来ると出る・← → Home End で隣の点へ・Esc で消える
+     ★吹き出しは SVG の中で組む（カードの外へはみ出さない＝SVG の幅の中に寄せる）。
+       字が1行に入らない幅（スマホ）では行ごとに折る。 */
+  var doc = w.document;
+  if (doc && typeof doc.addEventListener === 'function' && !w.__pvVizTip) {
+    w.__pvVizTip = true;
+    var SVGNS = 'http://www.w3.org/2000/svg', LH = 15, cur = null;
+    var hitOf = function (t) { return (t && t.closest) ? t.closest('.pt-hit') : null; };
+    var tipIn = function (b) { var s = b && b.ownerSVGElement; return s ? s.querySelector('.pt-tip') : null; };
+    var hide = function () {
+      if (cur) cur.setAttribute('visibility', 'hidden');
+      cur = null;
+    };
+    var lay = function (tx, lines, stack) {
+      while (tx.firstChild) tx.removeChild(tx.firstChild);
+      lines.forEach(function (s, i) {
+        var ts = doc.createElementNS(SVGNS, 'tspan');
+        ts.textContent = s;
+        if (i === 0) ts.setAttribute('font-weight', '800');
+        else if (stack) { ts.setAttribute('x', '9'); ts.setAttribute('dy', String(LH)); }
+        else ts.setAttribute('dx', '8');
+        if (i) ts.setAttribute('fill-opacity', '.82');
+        tx.appendChild(ts);
+      });
+      var w0 = 0;
+      try { w0 = tx.getBBox().width; } catch (e) { w0 = lines.join('  ').length * 6.6; }
+      return w0;
+    };
+    var show = function (b) {
+      var tip = tipIn(b);
+      if (!tip) return;
+      if (cur && cur !== tip) hide();
+      var svg = b.ownerSVGElement;
+      var W = +svg.getAttribute('width') || 300, H = +svg.getAttribute('height') || 160;
+      var px = +b.getAttribute('data-x'), py = +b.getAttribute('data-y');
+      var lines = String(b.getAttribute('data-tip') || '').split('\n').filter(Boolean);
+      if (!lines.length) return;
+      tip.setAttribute('visibility', 'visible');     // 測る前に出す（同じ処理の中なので、ちらつかない）
+      cur = tip;
+      var ln = tip.querySelector('.pt-tip-x'), ring = tip.querySelector('.pt-tip-o');
+      var box = tip.querySelector('.pt-tip-c'), rect = tip.querySelector('.pt-tip-b'), tx = tip.querySelector('.pt-tip-t');
+      ln.setAttribute('x1', px); ln.setAttribute('x2', px);
+      ring.setAttribute('cx', px); ring.setAttribute('cy', py);
+      var room = W - 4, stack = false, tw = lay(tx, lines, false);
+      if (tw + 18 > room && lines.length > 1) { stack = true; tw = lay(tx, lines, true); }
+      var bw = Math.min(room, tw + 18), bh = 23 + (stack ? LH * (lines.length - 1) : 0);
+      // 点の横に置く（左半分なら右・右半分なら左）。入らなければ点の上か下に、幅の中へ寄せる
+      var bx, by, side = true;
+      if (px <= W / 2 && px + 12 + bw <= W - 2) bx = px + 12;
+      else if (px > W / 2 && px - 12 - bw >= 2) bx = px - 12 - bw;
+      else if (px + 12 + bw <= W - 2) bx = px + 12;
+      else if (px - 12 - bw >= 2) bx = px - 12 - bw;
+      else { side = false; bx = Math.max(2, Math.min(W - 2 - bw, px - bw / 2)); }
+      if (side) by = Math.max(2, Math.min(H - 2 - bh, py - bh / 2));
+      else by = (py - 12 - bh >= 2) ? py - 12 - bh : Math.min(H - 2 - bh, py + 12);
+      rect.setAttribute('width', bw.toFixed(1)); rect.setAttribute('height', bh);
+      box.setAttribute('transform', 'translate(' + bx.toFixed(1) + ' ' + by.toFixed(1) + ')');
+    };
+    var move = function (b, to) {
+      var all = b.ownerSVGElement ? b.ownerSVGElement.querySelectorAll('.pt-hit') : [];
+      var n = all.length, k = +b.getAttribute('data-k');
+      var j = to === 'home' ? 0 : to === 'end' ? n - 1 : Math.max(0, Math.min(n - 1, k + to));
+      if (!n || j === k) return;
+      for (var i = 0; i < n; i++) all[i].setAttribute('tabindex', i === j ? '0' : '-1');
+      if (all[j].focus) all[j].focus();
+    };
+    doc.addEventListener('pointerover', function (e) {
+      var b = hitOf(e.target);
+      if (b && e.pointerType !== 'touch') show(b);
+    });
+    doc.addEventListener('pointerout', function (e) {
+      if (e.pointerType === 'touch' || !hitOf(e.target)) return;
+      if (!hitOf(e.relatedTarget)) hide();            // 隣の帯へ移るときは pointerover が描き直す
+    });
+    doc.addEventListener('pointerdown', function (e) {
+      var b = hitOf(e.target);
+      if (b) show(b); else hide();
+    });
+    doc.addEventListener('focusin', function (e) { var b = hitOf(e.target); if (b) show(b); });
+    doc.addEventListener('focusout', function (e) { if (hitOf(e.target) && !hitOf(e.relatedTarget)) hide(); });
+    doc.addEventListener('keydown', function (e) {
+      var b = hitOf(e.target);
+      if (!b) return;
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'ArrowDown') { e.preventDefault(); move(b, 1); }
+      else if (k === 'ArrowLeft' || k === 'ArrowUp') { e.preventDefault(); move(b, -1); }
+      else if (k === 'Home') { e.preventDefault(); move(b, 'home'); }
+      else if (k === 'End') { e.preventDefault(); move(b, 'end'); }
+      else if (k === 'Enter' || k === ' ') { e.preventDefault(); show(b); }
+      else if (k === 'Escape') hide();
+    });
+  }
 }(window));

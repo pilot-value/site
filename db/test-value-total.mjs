@@ -298,6 +298,37 @@ console.log('\n⑧ chart() の valueAt フック');
   // valueAt が null を返す点は落ちる（＝「使える月が無い」の文言に落ちる）
   const none = V.chart(rows, 'cum', { width: 500, valueAt: () => null, noMetric: 'なし' });
   ok(/なし/.test(none) && !/<svg/.test(none), 'valueAt が全部 null なら noMetric の文言を返す');
+
+  /* ★2026-11-10 オーナー「指を置いたらその月の金額が出るべき」「なぜ最後の点にだけ数字が？」
+     tipOf を渡したときだけ当たりの帯と吹き出しを描く（渡さない呼び出しの絵は今までと同じ）。 */
+  const rows3 = [
+    { period_year: 2023, period_month: 1, fx_to_jpy: 1, annual_total_jpy: 12000000 },
+    { period_year: 2026, period_month: 1, fx_to_jpy: 1, annual_total_jpy: 13000000 },
+    { period_year: 2026, period_month: 2, fx_to_jpy: 1, annual_total_jpy: 15000000 }
+  ];
+  const W3 = 390;
+  const tip = V.chart(rows3, 'annual', {
+    width: W3, labelOf: (r) => r.period_month + '月', yearOf: (r) => r.period_year, endLabel: false,
+    tipOf: (r, i) => [r.period_year + '年' + r.period_month + '月', '累計 ' + i]
+  });
+  const hits = [...tip.matchAll(/<rect class="pt-hit" x="([\d.]+)" y="0" width="([\d.]+)" height="(\d+)"[^>]*data-tip="([^"]*)"/g)];
+  const H3 = +(tip.match(/<svg[^>]* height="(\d+)"/) || [])[1];
+  ok(hits.length === 3, '★ tipOf を渡すと、点ごとに当たりの帯が1本ずつ', hits.length);
+  ok(hits.length === 3 && +hits[0][1] === 0 && Math.abs(+hits[2][1] + +hits[2][2] - W3) < 0.2 &&
+     hits.every((h) => +h[3] === H3) &&
+     Math.abs(+hits[0][1] + +hits[0][2] - +hits[1][1]) < 0.2 && Math.abs(+hits[1][1] + +hits[1][2] - +hits[2][1]) < 0.2,
+     '帯は縦いっぱい・隙間なく横幅ぜんぶ（点より広い＝指の先でも当たる）');
+  ok(hits.length === 3 && hits[2][4] === '2026年2月\n累計 2' && hits[0][4] === '2023年1月\n累計 0',
+     '吹き出しの字は tipOf の答え（i は valueAt と同じ rows の番号）');
+  ok((tip.match(/class="pt-tip"/g) || []).length === 1 && /role="group"/.test(tip) && (tip.match(/tabindex="0"/g) || []).length === 1,
+     '吹き出しは図に1つ・キーで入れるのは1本だけ（← → で隣へ）');
+  ok(!/font-size="13" font-weight="800"/.test(tip), 'endLabel: false なら最後の点の数字を描かない');
+  const yearsDrawn = [...tip.matchAll(/font-size="9.5"[^>]*>(\d{4})</g)].map((m) => m[1]);
+  ok(yearsDrawn.join() === '2023,2026', '年をまたぐときは、最初の点と年が変わる点の月の下に年', yearsDrawn.join());
+  const oneYear = V.chart(rows, 'annual', { width: 500, labelOf: (r) => String(r.period_month), yearOf: (r) => r.period_year });
+  ok(!/font-size="9.5"/.test(oneYear), '同じ年だけなら年を出さない');
+  ok(!/pt-hit|pt-tip/.test(plain) && /role="img"/.test(plain) && /font-size="13" font-weight="800"/.test(plain),
+     '★ tipOf を渡さない呼び出しは今までどおり（帯も吹き出しも無い・最後の点の数字はある）');
 }
 
 console.log(`\n${fail === 0 ? '✅' : '❌'} ${pass} pass / ${fail} fail`);

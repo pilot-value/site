@@ -11,7 +11,9 @@
      rosterMonths(days, profile) → [{ ym, dutyMin, blockMin{operating,deadhead,ground,unknown}, sectors, dhLegs,
                                      dutyDays, vacDays, offDays, complete, partial{…}, gaps{…}, days[] }]
      mergePages(pages) → { days[], issues[], period, hints }   分割スクショの重なり・切れを1日1回に
-                         空欄・読めなかった日は { date, blank|unread: true } で残す（中身のある写りがあれば負ける・月の集計に数えない）
+                         空欄の日は { date, blank: true } で残す（中身のある写りがあれば負ける・月の集計に数えない）。
+                         記号を読めなかった日は unread: true（時刻・区間があれば、それは使う・数える）。
+                         日の種類 cat（parse-roster の10語）は、記号を採った写りの読めた種類を優先して運ぶ（無ければ null）
      alignCandidates(months|rows, rosterMonths, {tolerance, kinds}) → [{ ym, slipBlockMin, compare[], candidate, ambiguous, reason }]
      build({ reports, items, maps, roster, airline, airlineOther }) → model
      summary(model, sel) / cardA / cardB / cardC / checks(model)
@@ -361,12 +363,24 @@
   /* ════ ロスター ════════════════════════════════════════════ */
   var LEG_KINDS = ['operating', 'deadhead', 'ground', 'unknown'];
   var CLASSES = { off: 1, vac: 1, duty: 1, standby: 1, training: 1, ground: 1, unknown: 1 };
+  /* parse-roster の日の種類（DAY_CATS の写し）。'blank'・'unclear' は「分からない」。 */
+  var DAY_CATS = ['off', 'leave', 'standby', 'training', 'ground', 'sick', 'duty', 'other', 'blank', 'unclear'];
+  function catKnown(c) { return DAY_CATS.indexOf(c) >= 0 && c !== 'blank' && c !== 'unclear'; }
+  function up(s) { return (s == null || s === '') ? null : String(s).trim().toUpperCase() || null; }
+  /* 勤務コード。英字の記号は大文字に。辞書に無い言葉の札（'#'＋小文字16桁・parse-roster の TOKEN_RE）は小文字のまま
+     （大文字にすると別の札になる＝本人が教えた意味と結べない）。ほかの記号と同じに扱う（profile.codes で意味を引く・
+     意味が無ければ unclassifiedCodes に出して1回だけ聞く）。 */
+  var TOKEN_RX = /^#[0-9a-f]{16}$/i;
+  function codeUp(s) {
+    if (s == null || s === '') return null;
+    var t = String(s).trim();
+    return TOKEN_RX.test(t) ? t.toLowerCase() : (t.toUpperCase() || null);
+  }
   function normCodes(c) {
     var o = obj(c) || {}, out = {};
-    Object.keys(o).forEach(function (k) { if (CLASSES[o[k]]) out[String(k).toUpperCase()] = o[k]; });
+    Object.keys(o).forEach(function (k) { var kk = codeUp(k); if (kk && CLASSES[o[k]]) out[kk] = o[k]; });
     return out;
   }
-  function up(s) { return (s == null || s === '') ? null : String(s).trim().toUpperCase() || null; }
   function legOf(L, profile) {
     var out = L.out != null ? L.out : L.t_out, inn = L.in != null ? L.in : L.t_in;
     var o = clockMin(out), i = clockMin(inn), inDay = num(L.in_day) || 0;
@@ -381,13 +395,13 @@
     return {
       seq: num(L.seq), flight: up(L.flight), from: up(L.from != null ? L.from : L.orig), to: up(L.to != null ? L.to : L.dest),
       loc: up(L.loc), out: o == null ? null : hhmm(o), in: i == null ? null : hhmm(i), inDay: inDay,
-      blockMin: b, blockSrc: src, role: up(L.role != null ? L.role : L.role_raw), kind: kind,
+      blockMin: b, blockSrc: src, kind: kind,
       page: num(L.page), row: num(L.row)
     };
   }
   function dayOf(D, profile, codes) {
     if (!D || !isDate(D.date)) return null;
-    var code = up(D.code), cls = code ? (codes[code] || null) : null;
+    var code = codeUp(D.code), cls = code ? (codes[code] || null) : null;
     var on = clockMin(D.d_on), off = clockMin(D.d_off), offDay = num(D.d_off_day) || 0;
     var el = elapsed(D.date, on, off == null ? null : offDay * 1440 + off, profile);
     var legs = arr(D.legs).map(function (L) { return legOf(L || {}, profile); })
@@ -420,10 +434,12 @@
     return false;
   }
   function dayHas(D) {
-    return !!(D && (up(D.code) || clockMin(D.d_on) != null || clockMin(D.d_off) != null || arr(D.legs).some(legHas)));
+    return !!(D && (codeUp(D.code) || clockMin(D.d_on) != null || clockMin(D.d_off) != null || arr(D.legs).some(legHas)));
   }
-  /* 空欄（blank）・読めなかった日（unread：日付はあるが勤務コードを残せなかった）は数えない */
-  function dayEmpty(D) { return !D || D.blank === true || D.unread === true || !dayHas(D); }
+  /* 空欄（blank）・中身の無い日は数えない（保存もしない）。
+     ★読めなかった日（unread＝勤務コードだけ読めなかった）でも、区間か D-ON/OFF があれば空ではない（2026-11-11。
+       読めなかった日がまるごと空欄で残っていた）。記号が無いことは、日の時刻・区間を捨てる理由にならない。 */
+  function dayEmpty(D) { return !D || D.blank === true || !dayHas(D); }
 
   /* 暦の月ごと。勤務は D-ON の日（勤務日）の月に数える（日付をまたいでも分けない）。
      値は「その月を全部覆い、欠けも無い」ときだけ出す。欠けがあれば null、分かった分は partial に */
@@ -484,7 +500,7 @@
       seq: num(L.seq), flight: up(L.flight), from: up(L.from), to: up(L.to), loc: up(L.loc),
       out: o == null ? null : hhmm(o), in: i == null ? null : hhmm(i), in_day: num(L.in_day) || 0,
       block: b == null ? null : Math.floor(b / 60) + ':' + pad2(b % 60),
-      role: up(L.role), kind: LEG_KINDS.indexOf(L.kind) >= 0 ? L.kind : 'unknown',
+      kind: LEG_KINDS.indexOf(L.kind) >= 0 ? L.kind : 'unknown',
       partial: L.partial === true, page: num(L.page), row: num(L.row)
     };
   }
@@ -505,8 +521,9 @@
       arr(p && p.days).forEach(function (d, di) {
         if (!d || !isDate(d.date)) return;
         if (!occ[d.date]) { occ[d.date] = []; dates.push(d.date); }
-        /* empty：空欄の写り・読めなかった写り（unread）。中身のある写りがあれば、そちらだけでつなぐ（「何も無い」と値はぶつけない） */
-        occ[d.date].push({ pi: pi, di: di, d: d, empty: d.unread === true || !dayHas(d) });
+        /* empty：空欄の写り（記号・時刻・区間のどれも無い）。中身のある写りがあれば、そちらだけでつなぐ（「何も無い」と値はぶつけない）。
+           ★記号だけ読めなかった写り（unread）でも、時刻・区間があれば中身のある写り（2026-11-11） */
+        occ[d.date].push({ pi: pi, di: di, d: d, empty: !dayHas(d) });
       });
     });
     dates.sort();
@@ -525,7 +542,14 @@
         if (seen.length > 1) issues.push({ date: date, type: 'conflict', field: name, values: seen });
         return chosen;
       }
-      out.code = field('code', function (d) { return up(d.code); });
+      out.code = field('code', function (d) { return codeUp(d.code); });
+      /* 日の種類：記号を採った写りの読めた種類 → つなぐ写りの読めた種類（採る順）→ ほかの写り → unclear → blank → null */
+      var catSrc = null, cat = null;
+      if (out.code) for (var ci = 0; ci < pref.length; ci++) if (codeUp(pref[ci].d.code) === out.code) { catSrc = pref[ci]; break; }
+      if (catSrc && catKnown(catSrc.d.cat)) cat = catSrc.d.cat;
+      [pref, all].forEach(function (list) { list.forEach(function (o) { if (!cat && catKnown(o.d.cat)) cat = o.d.cat; }); });
+      if (!cat) cat = all.some(function (o) { return o.d.cat === 'unclear'; }) ? 'unclear' : all.some(function (o) { return o.d.cat === 'blank'; }) ? 'blank' : null;
+      out.cat = cat;
       var on = field('d_on', function (d) { var m = clockMin(d.d_on); return m == null ? null : hhmm(m); });
       var offK = field('d_off', function (d) { var m = clockMin(d.d_off); return m == null ? null : hhmm(m) + '+' + (num(d.d_off_day) || 0); });
       out.d_on = on;
@@ -554,7 +578,7 @@
           if (best && tie) issues.push({ date: date, type: 'ambiguous_leg', flight: nl.flight, out: nl.out });
           if (best) {
             var m = best.leg;
-            ['flight', 'from', 'to', 'loc', 'out', 'block', 'role'].forEach(function (f) {
+            ['flight', 'from', 'to', 'loc', 'out', 'block'].forEach(function (f) {
               if (m[f] == null && nl[f] != null) m[f] = nl[f];
               else if (m[f] != null && nl[f] != null && m[f] !== nl[f]) issues.push({ date: date, type: 'conflict', field: 'leg.' + f, leg: { flight: m.flight, out: m.out }, values: [m[f], nl[f]] });
             });
@@ -591,13 +615,12 @@
         var partial = e.allPartial && !whole;
         if (partial) issues.push({ date: date, type: 'partial_leg', seq: i + 1 });
         return { seq: i + 1, flight: l.flight, from: l.from, to: l.to, loc: l.loc, out: l.out, in: l.in, in_day: l.in_day,
-                 block: l.block, role: l.role, kind: l.kind, partial: partial, page: l.page, row: l.row };
+                 block: l.block, kind: l.kind, partial: partial, page: l.page, row: l.row };
       });
-      /* どの写りにも中身が無い日は、日付だけ残して印を付ける（データではない・保存しない・本人に聞く） */
-      if (!real.length) {
-        if (all.some(function (o) { return o.d.unread === true; })) out.unread = true;
-        if (!dayHas(out)) out.blank = true;
-      }
+      /* 記号を読めなかった日（どれかの写りが unread と言い、どの写りからも記号が採れなかった）：時刻・区間は残して印を付ける。
+         どの写りにも中身が無い日は、日付だけ残して印を付ける（データではない・保存しない・本人に聞く） */
+      if (!out.code && all.some(function (o) { return o.d.unread === true; })) out.unread = true;
+      if (!dayHas(out)) out.blank = true;
       return out;
     });
     /* 期間と印（全部の写りで同じときだけ） */

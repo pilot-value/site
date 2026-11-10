@@ -301,9 +301,13 @@ function client(cfg) {
 /* ── 作り物の勤務表（/functions/v1/parse-roster の手元の答え・2026-11-09）───────────────
    AI が返す形（OUT_SCHEMA）の答えを、月とページから決まった形で作る。人の名前も実在の勤務も入れない。
    1日ずつの型：3便／DH から始まる3便／2便／夜の2便（日付をまたぐ）／地上の業務／シミュレーター／スタンバイ／
-   休日／有休／知らない記号（RDO）／区分の分からない便。page が 4 以上なら null（ロスターに見えない）。 */
-const ROSTER_PLAN = ['F3', 'F2', 'VAC', 'F2N', 'OFF', 'OFF', 'F3', 'F3D', 'OFF', 'OFF', 'F2', 'GND', 'F1U', 'OFF', 'OFF', 'SBY',
-  'F2', 'F3', 'OFF', 'OFF', 'F2N', 'F3', 'F3D', 'OFF', 'OFF', 'SIM', 'F2', 'RDO', 'OFF', 'F3', 'OFF'];
+   休日／有休／知らない記号（RDO）／区分の分からない便／辞書に無い漢字の記号（WRD・時刻つき＝札になる）／
+   何も印字の無い日（BLK）。page が 4 以上なら null（ロスターに見えない）。
+   ★2026-11-11：日ごとに cat（日の種類）を返す・区間に role は無い。 */
+const ROSTER_PLAN = ['F3', 'F2', 'VAC', 'F2N', 'OFF', 'OFF', 'F3', 'F3D', 'OFF', 'OFF', 'F2', 'GND', 'F1U', 'OFF', 'WRD', 'SBY',
+  'F2', 'F3', 'BLK', 'OFF', 'F2N', 'F3', 'F3D', 'OFF', 'OFF', 'SIM', 'F2', 'RDO', 'OFF', 'F3', 'OFF'];
+const ROSTER_CAT = { F3: 'duty', F3D: 'duty', F2: 'duty', F2N: 'duty', F1U: 'duty', GND: 'ground', SIM: 'training',
+  SBY: 'standby', VAC: 'leave', RDO: 'off', OFF: 'off', WRD: 'training', BLK: 'blank' };
 export function rosterFixture(y, m, page) {
   if (page > 3) return null;
   const p2 = (n) => String(n).padStart(2, '0');
@@ -311,20 +315,20 @@ export function rosterFixture(y, m, page) {
   const dur = (min) => Math.floor(min / 60) + ':' + p2(min % 60);
   const last = new Date(Date.UTC(y, m, 0)).getUTCDate();
   const [a, z] = page === 1 ? [1, 11] : page === 2 ? [10, 21] : [20, last];
-  const leg = (flight, from, to, out, blk, kind = 'operating', role = 'CAP') => ({
-    flight, from, to, loc: null, out: t(out), in: t(out + blk), in_day: out + blk >= 1440 ? 1 : 0, block: dur(blk), role, kind, partial: false, row: 0 });
-  const gnd = (loc, out, len, role) => ({ flight: null, from: null, to: null, loc, out: t(out), in: t(out + len), in_day: 0, block: null, role, kind: 'ground', partial: false, row: 0 });
+  const leg = (flight, from, to, out, blk, kind = 'operating') => ({
+    flight, from, to, loc: null, out: t(out), in: t(out + blk), in_day: out + blk >= 1440 ? 1 : 0, block: dur(blk), kind, partial: false, row: 0 });
+  const gnd = (loc, out, len) => ({ flight: null, from: null, to: null, loc, out: t(out), in: t(out + len), in_day: 0, block: null, kind: 'ground', partial: false, row: 0 });
   const days = [];
   let row = 1;
   for (let dd = a; dd <= Math.min(z, last); dd++) {
     const k = ROSTER_PLAN[dd - 1] || 'OFF', s = (dd * 7) % 40;           // 日ごとに少しずらす
     const day = { y: null, m: null, d: dd, wd: new Date(Date.UTC(y, m - 1, dd)).getUTCDay(), cut: null, code: null,
-      d_on: null, d_off: null, d_off_day: 0, row: row++, legs: [] };
+      cat: ROSTER_CAT[k] || 'off', d_on: null, d_off: null, d_off_day: 0, row: row++, legs: [] };
     const on = 7 * 60 + 45 + s;
     if (k === 'F3' || k === 'F3D') {
-      day.legs = [leg(k === 'F3D' ? '1121' : '1131', 'HND', 'KIX', on + 60, 77 + (dd % 5), 'operating', 'CAP'),
-        leg('1122', 'KIX', 'HIJ', on + 162, 84, 'operating', 'CAP'), leg('1123', 'HIJ', 'HND', on + 271, 75, 'operating', 'CAP')];
-      if (k === 'F3D') { day.legs[0].kind = 'deadhead'; day.legs[0].role = 'DH1'; }
+      day.legs = [leg(k === 'F3D' ? '1121' : '1131', 'HND', 'KIX', on + 60, 77 + (dd % 5)),
+        leg('1122', 'KIX', 'HIJ', on + 162, 84), leg('1123', 'HIJ', 'HND', on + 271, 75)];
+      if (k === 'F3D') day.legs[0].kind = 'deadhead';
       day.d_on = t(on); day.d_off = t(on + 376);
     } else if (k === 'F2') {
       day.legs = [leg('1205', 'HND', 'CTS', on + 60, 95), leg('1210', 'CTS', 'HND', on + 205, 100)];
@@ -335,12 +339,16 @@ export function rosterFixture(y, m, page) {
       day.legs[1].in_day = 1; day.legs[1].out = t(n0 + 270); day.legs[1].in = t(n0 + 420);
       day.d_on = t(n0); day.d_off = t(n0 + 450); day.d_off_day = 1;
     } else if (k === 'F1U') {
-      day.legs = [leg('1301', 'HND', 'ITM', on + 60, 70, 'unknown', 'X')];
+      day.legs = [leg('1301', 'HND', 'ITM', on + 60, 70, 'unknown')];
       day.d_on = t(on); day.d_off = t(on + 160);
     } else if (k === 'GND') {
-      day.code = 'GND'; day.legs = [gnd('TRC', 9 * 60, 420, 'GT')]; day.d_on = '09:00'; day.d_off = '16:00';
+      day.code = 'GND'; day.legs = [gnd('TRC', 9 * 60, 420)]; day.d_on = '09:00'; day.d_off = '16:00';
     } else if (k === 'SIM') {
-      day.code = 'SIM'; day.legs = [gnd('SIMC', 13 * 60, 240, 'SIM')]; day.d_on = '12:30'; day.d_off = '17:30';
+      day.code = 'SIM'; day.legs = [gnd('SIMC', 13 * 60, 240)]; day.d_on = '12:30'; day.d_off = '17:30';
+    } else if (k === 'WRD') {
+      day.code = '研修'; day.d_on = '09:30'; day.d_off = '16:30';      // 辞書に無い漢字＝札（鍵が無ければ unread）
+    } else if (k === 'BLK') {
+      /* 何も印字されていない日（cat:'blank'） */
     } else if (k === 'SBY') {
       day.code = 'SBY'; day.d_on = '05:00'; day.d_off = '13:00';
     } else if (k === 'VAC') day.code = 'VAC';
@@ -730,7 +738,9 @@ export async function start(opt = {}) {
      ★答えは本物の関数の sanitize() を通す＝日付の決め方（選んだ月・前のページの続き）と欄の検品は本番と同じ。
      ★ページの割り振り（重なりと切れ目を手元で確かめるため）：1枚目＝1〜11日（11日は下で切れる）、
        2枚目＝10〜21日（21日は下で切れる）、3枚目＝20日〜月末。4枚目からは「ロスターに見えない」。
-       2枚だけ読ませると、21日が切れたまま残る（「続きを足すか、このまま進むか」の形）。 */
+       2枚だけ読ませると、21日が切れたまま残る（「続きを足すか、このまま進むか」の形）。
+     ★辞書に無い言葉の札（2026-11-11）：本番と同じ sanitizeRead に手元だけの作り物の鍵を渡す（15日の「研修」が札になる）。
+       start({ rosterWordKey: '' }) なら鍵なし＝本番で secret を入れていないときの形（15日は unread）。 */
   let rosterMod = null;
   async function rosterStub(req, bodyText) {
     const H = { 'Content-Type': 'application/json' };
@@ -749,7 +759,8 @@ export async function start(opt = {}) {
     const wait = opt.rosterDelay ?? (opt.quiet ? 0 : 400);          // 進み具合の表示を目で確かめられるように
     if (wait) await new Promise((r) => setTimeout(r, wait));
     if (!raw) return out(200, { ok: false, reason: 'not_a_roster', build: 'local-stub' });
-    const res = rosterMod.sanitize(raw, { page, hint, tail: rosterMod.sanitizeTail(b.prev_tail, now), now });
+    const res = await rosterMod.sanitizeRead(raw, { page, hint, tail: rosterMod.sanitizeTail(b.prev_tail, now), now },
+      opt.rosterWordKey ?? 'local-stub-word-key');
     if (!res.roster.days.length) return out(200, { ok: false, reason: 'undated', build: 'local-stub' });
     return out(200, { ok: true, roster: res.roster, checks: res.checks, build: 'local-stub' });
   }

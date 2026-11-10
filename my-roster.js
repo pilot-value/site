@@ -12,8 +12,9 @@
    ・数字は本人の勤務表の行だけ（my_roster / my_roster_docs。どちらも本人の鍵の行しか返さない）。
      時間・日数の数え方は pv-report-engine.js の rosterMonths だけ（ここで数え直さない）。
      月の値が出ない（月の一部しか取り込んでいない）ときは、分かった分を「N日ぶん」と断って出す。0 で埋めない。
-   ・空港・便名・区分は原本の表記のまま（HND→KIX・CAP・DH1）。地上の業務に空港を作らない（場所 loc だけ）。
-     区分の分からない便は「区分確認中」。
+   ・空港は原本の表記のまま（HND→KIX）。地上の業務に空港を作らない（場所 loc だけ）。便の種類の分からない便は「区分確認中」。
+     便の乗務の区分（CAP など）は持たない（2026-11-10・勤務表に並ぶのはほかの乗員の区分だった）。
+   ・読み取りの印（'#'＋小文字16進16字＝辞書に無い言葉）は画面に出さない。「勤務表の言葉 A」か、意味が分かればその意味で出す。
    ・お金は1つも出さない（通貨の切り替えは関係しない）。
    ・タブを移っても、選んだ月・日はそのまま。隠れているあいだは図を描かない（見えたときに描き直す）。
    ・取り込み（画像・PDF → 読み取り → 確かめる → 保存）は roster-upload.js（押したときだけ読む）。
@@ -89,7 +90,8 @@
       editDay: 'この日を直す', addDay: 'この日を入れる', editLimit: '今日はこれ以上直せません。明日また続きをどうぞ。', editOld: '2年より前の日は直せません。', docManual: '手で入れた日', kNoTime: '便の時間が無い便 {n}',
       editDone: 'この日を直しました。', delDayDone: 'この日を消しました。',
       editLogin: 'ログインが切れました。ページを開き直してログインしてください。', editBad: '入力の形が正しくありません。',
-      editNotReady: 'まだ使えません。', editErr: '保存できませんでした。時間をおいてもう一度お試しください。'
+      editNotReady: 'まだ使えません。', editErr: '保存できませんでした。時間をおいてもう一度お試しください。',
+      tokL: '勤務表の言葉 {k}'
     },
     en: {
       eyebrow: 'YOUR ROSTER',
@@ -143,7 +145,8 @@
       editDay: 'Edit this day', addDay: 'Add this day', editLimit: 'You can’t make more edits today. Please continue tomorrow.', editOld: 'Days older than two years can’t be edited.', docManual: 'Days you entered', kNoTime: '{n} flights without a time',
       editDone: 'Day updated.', delDayDone: 'Day deleted.',
       editLogin: 'Your login has expired. Reload the page and log in again.', editBad: 'The entry is not in a valid shape.',
-      editNotReady: 'Not available yet.', editErr: 'Could not save. Please try again in a moment.'
+      editNotReady: 'Not available yet.', editErr: 'Could not save. Please try again in a moment.',
+      tokL: 'Roster word {k}'
     }, /*PV-MSG:es*/ es: {
       eyebrow: 'TU PROGRAMACIÓN',
       monthT: '{M} {y}', monthDuty: 'Servicios · {t}',
@@ -196,7 +199,8 @@
       editDay: 'Corregir este día', addDay: 'Agregar este día', editLimit: 'Hoy ya no puedes hacer más correcciones. Continúa mañana.', editOld: 'Los días de hace más de dos años no se pueden corregir.', docManual: 'Días que ingresaste', kNoTime: '{n} vuelos sin tiempo',
       editDone: 'Día actualizado.', delDayDone: 'Día eliminado.',
       editLogin: 'Tu sesión expiró. Vuelve a cargar la página e inicia sesión de nuevo.', editBad: 'Los datos no tienen un formato válido.',
-      editNotReady: 'Aún no está disponible.', editErr: 'No se pudo guardar. Inténtalo de nuevo en un momento.'
+      editNotReady: 'Aún no está disponible.', editErr: 'No se pudo guardar. Inténtalo de nuevo en un momento.',
+      tokL: 'Palabra de la programación {k}'
     } /*/PV-MSG:es*/
   };
   var T_ALL = T;
@@ -233,6 +237,15 @@
   function stored(k) { try { return w.localStorage.getItem(k); } catch (e) { return null; } }
   function reduced() { try { return w.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } }
 
+  /* 読み取りの印（辞書に無い言葉・'#'＋小文字16進16字）。★大文字にしない（大文字にすると別の印になり、本人の答えと結べない） */
+  var TOK = /^#[0-9a-f]{16}$/i;
+  function isTok(c) { return TOK.test(String(c == null ? '' : c).trim()); }
+  function canon(c) { var t = String(c == null ? '' : c).trim(); return TOK.test(t) ? t.toLowerCase() : t.toUpperCase(); }
+  function letter(i) { var a = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'; return i < 26 ? a[i] : a[(Math.floor(i / 26) - 1) % 26] + a[i % 26]; }
+  /* 印 → 「勤務表の言葉 A」（map：印 → 字。無ければ字なし） */
+  function tokName(c, map) { return fill(T.tokL, { k: (map && map[canon(c)]) || '' }).trim(); }
+  function codeText(c) { return isTok(c) ? tokName(c, S.tok) : (c || ''); }
+
   /* 便の時間の呼び名（本人が答えた TIME の意味） */
   function timeLabel(p) {
     var m = p && p.time_meaning;
@@ -258,18 +271,18 @@
        ask  … 日付 → 1：読めなかった日（点線に「?」）／flag … 日付 → 1：確かめてほしいところがある日（琥珀の点） */
   function cellParts(x) {
     if (!x) return { k: 'is-none', main: '', sub: '' };
-    var c = x.cls, rt = routeOf(x);
+    var c = x.cls, rt = routeOf(x), tok = isTok(x.code), cd = tok ? '' : (x.code || '');   // 升は狭いので、印は意味（無ければ •）で出す
     if (x.isDuty) {
       return {
         k: 'is-duty' + (c === 'standby' ? ' is-sby' : '') + ((c === 'training' || c === 'ground') ? ' is-gnd' : ''),
-        main: x.dOn || x.code || '•',
-        sub: rt ? rt.r : (x.dOn && x.code ? x.code : (c ? T.clsS[c] : '')), more: rt && rt.more > 0 ? rt.more : 0,
+        main: x.dOn || cd || '•',
+        sub: rt ? rt.r : (x.dOn && cd ? cd : (c ? T.clsS[c] : '')), more: rt && rt.more > 0 ? rt.more : 0,
         subH: rt && rt.from ? esc(rt.from) + '<i class="rs-c-ar">→</i>' + esc(rt.to) : null
       };
     }
-    if (c === 'vac') return { k: 'is-vac', main: x.code || '', sub: T.clsS.vac };
-    if (c === 'off') return { k: 'is-off', main: x.code || '', sub: '' };
-    return { k: 'is-code', main: x.code || '', sub: c ? T.clsS[c] : '' };
+    if (c === 'vac') return { k: 'is-vac', main: cd, sub: T.clsS.vac };
+    if (c === 'off') return { k: 'is-off', main: cd || (tok ? T.clsS.off : ''), sub: '' };
+    return { k: 'is-code', main: cd || (tok ? '•' : ''), sub: c ? T.clsS[c] : '' };
   }
   function calHTML(ym, byDate, o) {
     o = o || {};
@@ -302,7 +315,8 @@
     airline: null, other: null, choices: [], names: null, picking: false,
     loading: false, err: null, days: [], profile: null, docs: [], months: [], byYm: {}, yms: [],
     ym: null, date: null, view: 'roster', flash: null, confirmDel: null, busy: false,
-    want: null, wantUpload: false     // 分析のタブから頼まれた日・取り込み（読み込みが終わってから効かせる）
+    want: null, wantUpload: false,    // 分析のタブから頼まれた日・取り込み（読み込みが終わってから効かせる）
+    tok: {}, fixes: {}                // 印の字（A・B…）／この回に直した日（運営に知らせる要約の元：日付 → { b: 直す前, a: 直した後 }）
   };
   var AKEY = 'pv_roster_airline';   // 給与を出していない人が選んだ会社（この端末だけの便利・無くても動く）
 
@@ -360,6 +374,10 @@
       .then(function () { S.loading = false; render(); useWant(); });
   }
   function compute() {
+    S.tok = {};
+    S.days.slice().sort(function (a, b) { return a && b && a.date < b.date ? -1 : 1; }).forEach(function (x) {
+      if (x && isTok(x.code) && !(canon(x.code) in S.tok)) S.tok[canon(x.code)] = letter(Object.keys(S.tok).length);
+    });
     S.months = R.rosterMonths(S.days, S.profile || {});
     S.byYm = {}; S.yms = [];
     S.months.forEach(function (m) { S.byYm[m.ym] = m; S.yms.push(m.ym); });
@@ -469,8 +487,7 @@
   function legHTML(l) {
     var tag = '';
     if (l.kind === 'ground') tag = '<span class="rs-tag is-gnd">' + esc(T.kindGround) + '</span>';
-    else if (l.kind === 'deadhead') tag = '<span class="rs-tag is-dh">' + esc(l.role || T.kindDh) + '</span>';
-    else if (l.role) tag = '<span class="rs-tag">' + esc(l.role) + '</span>';
+    else if (l.kind === 'deadhead') tag = '<span class="rs-tag is-dh">' + esc(T.kindDh) + '</span>';
     if (l.kind === 'unknown') tag += '<span class="rs-tag is-unk">' + esc(T.kindUnknown) + '</span>';
     var where = l.kind === 'ground'
       ? '<b>' + esc(l.loc || '—') + '</b>'
@@ -492,7 +509,7 @@
     var h = '<div class="rs-day-hd"><div><h3 class="rs-day-t">' + esc(dayTitle(date)) + '</h3>' +
       (n ? '<p class="rs-day-s">' + esc(fill(T.nItems, { n: n }) + ' · ' + T.asPrinted) + '</p>' : '') + '</div>' + kindPill + '</div>';
     if (!x) return h + '<p class="rs-muted">' + esc(T.noRec) + '</p>' + editBtn(date, false) + reselect();
-    var codeLine = x.code ? '<p class="rs-day-code"><span class="rs-tag">' + esc(x.code) + '</span>' + (x.cls ? '<span>' + esc(T.cls[x.cls]) + '</span>' : '') + '</p>' : '';
+    var codeLine = x.code ? '<p class="rs-day-code"><span class="rs-tag">' + esc(codeText(x.code)) + '</span>' + (x.cls ? '<span>' + esc(T.cls[x.cls]) + '</span>' : '') + '</p>' : '';
     if (x.dOn || x.dOff) {
       h += '<div class="rs-don"><div><b class="rs-big">' + esc(x.dOn || '—') + '</b><span>' + esc(T.dOn) + '</span></div>' +
         '<i class="rs-don-l" aria-hidden="true"></i>' +
@@ -676,7 +693,7 @@
       if (x.dutyMin != null) rows += '<span>' + esc(T.tipDuty) + ' <b>' + hm(x.dutyMin) + '</b></span>';
       if (x.blockKnown.operating) rows += '<span>' + esc(timeLabel(S.profile)) + ' <b>' + hm(x.blockKnown.operating) + '</b></span>';
       if (x.blockKnown.deadhead) rows += '<span>' + esc(T.tipDh) + ' <b>' + hm(x.blockKnown.deadhead) + '</b></span>';
-      if (x.code) rows += '<span>' + esc(x.code + (x.cls ? ' · ' + T.cls[x.cls] : '')) + '</span>';
+      if (x.code) rows += '<span>' + esc(codeText(x.code) + (x.cls ? ' · ' + T.cls[x.cls] : '')) + '</span>';
     }
     tip.innerHTML = rows;
     tip.hidden = false;
@@ -713,7 +730,7 @@
     else if (act === 'switch') {
       var c = S.choices[+t.value];
       if (!c) return;
-      S.airline = c.a; S.other = c.o; S.ym = null; S.date = null; S.days = []; S.docs = [];
+      S.airline = c.a; S.other = c.o; S.ym = null; S.date = null; S.days = []; S.docs = []; S.fixes = {};
       load().then(announce);
     }
   }
@@ -785,21 +802,32 @@
       if (sel.value === 'other' && !o) return;
       S.airline = sel.value; S.other = o; S.picking = false;
       store(AKEY, JSON.stringify({ a: S.airline, o: S.other }));
-      S.days = []; S.docs = []; S.ym = null;
+      S.days = []; S.docs = []; S.ym = null; S.fixes = {};
       pre = load();                     // その会社の読み方（profile）が届いてから開く＝聞き直さない
     }
+    var learned = learnedCodes();         // 読み取りが終わるまでに届けばよい（待たずに開く）
     Promise.all([pre, loadUpload()]).then(function (r) { return r[1]; }).then(function (ok) {
       if (S.err) return;
       if (!ok) { S.flash = { t: T.upErr, bad: true }; render(); return; }
       S.view = 'upload';
       var main = S.el.querySelector('.rs-main'), box = S.el.querySelector('.rs-upbox');
       main.hidden = true; box.hidden = false;
-      w.PVRosterUpload.open(box, {
-        sb: S.sb, airline: S.airline, other: S.other, airlineLabel: airlineName(S.airline, S.other),
-        profile: S.profile, done: closeUpload
-      });
+      var ctx = { sb: S.sb, airline: S.airline, other: S.other, airlineLabel: airlineName(S.airline, S.other),
+                  profile: S.profile, learned: null, done: closeUpload };
+      learned.then(function (j) { ctx.learned = j; });
+      w.PVRosterUpload.open(box, ctx);
       var f = box.querySelector('h2, button');
       if (f) { box.scrollIntoView({ behavior: 'auto', block: 'start' }); }
+    });
+  }
+  /* 会社の辞書（同じ会社の3人以上がそろえた答え）。関数がまだ無い・失敗・6秒で返らない → null（黙って聞く側に回す） */
+  function learnedCodes() {
+    var p;
+    try { p = S.sb.rpc('my_roster_airline_codes', { p_airline: S.airline, p_airline_other: S.other }); } catch (e) { return Promise.resolve(null); }
+    return new Promise(function (ok) {
+      var t = setTimeout(function () { ok(null); }, 6000);
+      Promise.resolve(p).then(function (r) { clearTimeout(t); ok(r && !r.error && r.data && r.data.ok === true ? r.data : null); },
+        function () { clearTimeout(t); ok(null); });
     });
   }
   /* res = { saved, dup, days, ym } ／ null（やめた） */
@@ -825,9 +853,19 @@
 
   /* ── 保存したあとに1日を直す（2026-11-09 オーナー「読み取りは完璧にならない。保存の前も後も直す画面を」）──
      画面は roster-upload.js の editDay（押したときだけ読む・取り込みの確認と同じ部品）。保存は edit_roster_day の1本：
-       { p_airline, p_airline_other, p: { date, day: { code, d_on, d_off, d_off_day, legs:[{ seq, from, to, loc, out, in, in_day, block, role, kind }] } | null } }
-     day: null はその日を消す。うまくいったら読み直して 'pv-roster-change'（delDoc と同じ流れ）。 */
+       { p_airline, p_airline_other, p: { date, day: { code, d_on, d_off, d_off_day, legs:[{ seq, from, to, loc, out, in, in_day, block, kind }] } | null } }
+     day: null はその日を消す。うまくいったら読み直して 'pv-roster-change'（delDoc と同じ流れ）。
+     ★直した日は S.fixes に覚える（直す前は、この回で最初に直す前の行）── 直す画面の「読み取りの間違いを運営に知らせる」の要約の元。 */
   function rawDay(date) { return S.days.filter(function (x) { return x && x.date === date; })[0] || null; }
+  function clone(x) { return x == null ? null : JSON.parse(JSON.stringify(x)); }
+  /* 運営に知らせる要約の元：この回に直した日（いま開いている日は、直している最中の内容 cur で） */
+  function fixPairs(date, cur) {
+    var out = [];
+    Object.keys(S.fixes).forEach(function (dt) { if (dt !== date) out.push(S.fixes[dt]); });
+    var f = S.fixes[date];
+    if (f || cur !== undefined) out.push({ b: f ? f.b : rawDay(date), a: cur !== undefined ? cur : f.a });
+    return out;
+  }
   function rosterCodes() {
     var n = {};
     S.days.forEach(function (x) { if (x && x.code) n[x.code] = (n[x.code] || 0) + 1; });
@@ -847,11 +885,13 @@
       code: day.code || null, d_on: day.d_on || null, d_off: day.d_off || null, d_off_day: day.d_off_day || 0,
       legs: (day.legs || []).map(function (l) {
         return { seq: l.seq, from: l.from || null, to: l.to || null, loc: l.loc || null, out: l.out || null, in: l.in || null,
-                 in_day: l.in_day || 0, block: l.block || null, role: l.role || null, kind: l.kind || 'unknown' };
+                 in_day: l.in_day || 0, block: l.block || null, kind: l.kind || 'unknown' };
       }) } : null };
     return new Promise(function (ok, ng) {
       Promise.resolve(S.sb.rpc('edit_roster_day', { p_airline: S.airline, p_airline_other: S.other, p: p })).then(function (r) {
         if (r && !r.error && r.data && r.data.ok) {
+          var f = S.fixes[date];
+          S.fixes[date] = { b: f ? f.b : clone(rawDay(date)), a: day ? clone(day) : null };
           ok();
           S.flash = { t: day ? T.editDone : T.delDayDone };
           closeEdit(date, true);
@@ -870,7 +910,8 @@
       S.view = 'edit';
       main.hidden = true; box.hidden = false;
       w.PVRosterUpload.editDay(box, raw ? JSON.parse(JSON.stringify(raw)) : { date: date, code: null, d_on: null, d_off: null, d_off_day: 0, legs: [] }, {
-        mode: 'saved', codes: rosterCodes(),
+        mode: 'saved', codes: rosterCodes(), codeLabel: codeText,
+        report: { sb: S.sb, airline: airlineName(S.airline, S.other), pairs: function (cur) { return fixPairs(date, cur); } },
         onSave: function (day) { return editRpc(date, day); },
         onDelete: raw ? function () { return editRpc(date, null); } : null,
         onCancel: function () { closeEdit(date, false); }
@@ -896,22 +937,23 @@
   }
 
   /* ── CSV：表示中の月だけ（1日の行 ＋ その日の便・業務の行）──────────────
-     ★画面の日の板に出しているものだけ（日付・勤務コード・D-ON/OFF・勤務時間・空港・場所・時刻・便の時間・区分。便名は保存していないので無い）。名前・自由記述は持っていない。
+     ★画面の日の板に出しているものだけ（日付・勤務コード・D-ON/OFF・勤務時間・空港・場所・時刻・便の時間・便の種類。便名は保存していないので無い）。名前・自由記述は持っていない。
+       読み取りの印は「勤務表の言葉 A」で書く（印そのものは書かない）。
        空港は原本の表記のまま・地上の業務は場所だけ（空港の欄は空）。字の包み方と BOM は my-value.js の saveCsv。 */
   function hmc(min) { return (min == null || !isFinite(min)) ? '' : hm(min); }
   function csvOf(ym) {
     var m = ym && S.byYm[ym];
     if (!m) return null;
     var rows = [[T.csvRange, fill(T.csvRoster, { m: ym })],
-      ['date', 'row', 'code', 'class', 'd_on', 'd_off', 'd_off_day', 'duty_hm', 'duty_min', 'seq', 'from', 'to', 'loc', 'out', 'in', 'in_day', 'time_hm', 'time_min', 'role', 'kind']];
+      ['date', 'row', 'code', 'class', 'd_on', 'd_off', 'd_off_day', 'duty_hm', 'duty_min', 'seq', 'from', 'to', 'loc', 'out', 'in', 'in_day', 'time_hm', 'time_min', 'kind']];
     m.days.forEach(function (x) {
       var on = x.dOn || x.dOff;
-      rows.push([x.date, 'day', x.code || '', x.cls || '', x.dOn || '', x.dOff || '', on ? x.dOffDay : '', hmc(x.dutyMin), x.dutyMin == null ? '' : x.dutyMin,
-        '', '', '', '', '', '', '', '', '', '', '']);              // 1日の行も見出しと同じ列の数（表計算で列がずれない）
+      rows.push([x.date, 'day', codeText(x.code), x.cls || '', x.dOn || '', x.dOff || '', on ? x.dOffDay : '', hmc(x.dutyMin), x.dutyMin == null ? '' : x.dutyMin,
+        '', '', '', '', '', '', '', '', '', '']);              // 1日の行も見出しと同じ列の数（表計算で列がずれない）
       (x.legs || []).forEach(function (l) {
         var gnd = l.kind === 'ground';
         rows.push([x.date, 'leg', '', '', '', '', '', '', '', l.seq, gnd ? '' : (l.from || ''), gnd ? '' : (l.to || ''), l.loc || '',
-          l.out || '', l.in || '', (l.out || l.in) ? l.inDay : '', hmc(l.blockMin), l.blockMin == null ? '' : l.blockMin, l.role || '', l.kind]);
+          l.out || '', l.in || '', (l.out || l.in) ? l.inDay : '', hmc(l.blockMin), l.blockMin == null ? '' : l.blockMin, l.kind]);
       });
     });
     return { name: 'pilot-value-roster_' + ym, rows: rows };
@@ -958,6 +1000,6 @@
     mount: mount, show: show, hide: hide, redraw: drawChart, open: open, current: current,
     _: { T: T, L: L, S: S, csvOf: csvOf, compute: compute, esc: esc, fill: fill, hm: hm, pad2: pad2, monthTitle: monthTitle, dayTitle: dayTitle, ymAdd: ymAdd, nowYm: nowYm,
          calHTML: calHTML, timeLabel: timeLabel, entryIcon: ICON_UP, legHTML: legHTML, cellParts: cellParts,
-         kpiHTML: kpiHTML, docsHTML: docsHTML, dayHTML: dayHTML }
+         kpiHTML: kpiHTML, docsHTML: docsHTML, dayHTML: dayHTML, isTok: isTok, canon: canon, letter: letter, tokName: tokName, codeText: codeText, fixPairs: fixPairs }
   };
 }(window));
