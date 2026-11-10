@@ -19,28 +19,28 @@
      スクロールも止まらない。閉じ方は × ／ 外を押す ／ ESC の3つ。 */
 .mr-gate{position:relative;margin:0 0 var(--pv-s-3);padding:20px 22px 22px;
          background:var(--pv-surface);border:1px solid var(--pv-line);
-         border-left:3px solid var(--pv-orange);border-radius:var(--pv-r);
+         border-left:3px solid var(--pv-accent);border-radius:var(--pv-r);
          box-shadow:var(--pv-shadow-lift)}
 .mr-gate:focus{outline:none}
-.mr-gate:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}
+.mr-gate:focus-visible{outline:2px solid var(--pv-accent);outline-offset:3px}
 .mr-gate-x{position:absolute;top:10px;right:10px;display:flex;align-items:center;
            justify-content:center;width:30px;height:30px;border:0;border-radius:999px;
            background:none;color:var(--pv-ink-3);cursor:pointer;
            transition:background-color .18s var(--pv-ease),color .18s var(--pv-ease)}
 .mr-gate-x:hover{background:var(--pv-line-soft);color:var(--pv-ink)}
-.mr-gate-x:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
+.mr-gate-x:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
 .mr-gate-x:active{transform:scale(.94)}
 .mr-gate-t{padding-right:34px;font-size:1rem;font-weight:800;letter-spacing:-.02em;
            line-height:1.4;color:var(--pv-ink)}
 .mr-gate-s{margin-top:8px;font-size:.81rem;line-height:1.75;color:var(--pv-ink-2);max-width:62ch}
 .mr-gate-cta{display:inline-flex;align-items:center;margin-top:18px;padding:11px 20px;
-             border-radius:999px;background:var(--pv-orange);color:#fff;
+             border-radius:999px;background:var(--pv-accent-dark);color:#fff;
              text-decoration:none;font-size:.83rem;font-weight:700;
-             box-shadow:0 8px 20px -12px rgba(249,115,22,.9);
+             box-shadow:0 8px 20px -12px rgba(6,117,99,.9);
              transition:opacity .18s var(--pv-ease),box-shadow .18s var(--pv-ease),
                         transform .18s var(--pv-ease)}
-.mr-gate-cta:hover{opacity:.92;box-shadow:0 10px 24px -12px rgba(249,115,22,.85)}
-.mr-gate-cta:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}
+.mr-gate-cta:hover{opacity:.92;box-shadow:0 10px 24px -12px rgba(6,117,99,.85)}
+.mr-gate-cta:focus-visible{outline:2px solid var(--pv-accent);outline-offset:3px}
 .mr-gate-cta:active{transform:scale(.98)}
 
 /* ── DEEP PAY の進み具合（パネルの中だけ）────────────────────
@@ -49,9 +49,9 @@
    ★数はサーバから来たときだけ描く。0 を置いて埋めない。 */
 .mr-gate-goal{display:flex;align-items:baseline;gap:10px;margin-top:18px;
               padding:14px 16px;border-radius:var(--pv-r-sm);
-              background:var(--pv-orange-soft)}
+              background:var(--pv-accent-soft)}
 .mr-gate-goal-k{font-size:.68rem;font-weight:800;letter-spacing:.08em;
-                text-transform:uppercase;color:var(--pv-orange-ink)}
+                text-transform:uppercase;color:var(--pv-accent-ink)}
 .mr-gate-goal-n{margin-left:auto;font-size:1.45rem;font-weight:800;
                 letter-spacing:-.03em;line-height:1;color:var(--pv-ink);
                 font-variant-numeric:tabular-nums}
@@ -64,18 +64,18 @@
             border:1px solid var(--pv-green-line);
             font-size:.76rem;font-weight:700;color:var(--pv-green-ink)}
 .mr-gate-need{margin-top:10px;font-size:.79rem;line-height:1.7;color:var(--pv-ink-2)}
-/* 招待は二番手の押しどころ（枠だけ）。橙の実塗りは1画面に1つに保つ。 */
+/* 招待は二番手の押しどころ（枠だけ）。緑の実塗り（主のボタン）は1画面に1つに保つ。 */
 .mr-gate-inv{display:inline-flex;align-items:center;margin-top:12px;margin-left:10px;
              padding:10px 18px;border-radius:999px;background:none;
              border:1px solid var(--pv-line);color:var(--pv-ink-2);
              text-decoration:none;font-size:.8rem;font-weight:700;
              transition:border-color .18s var(--pv-ease),color .18s var(--pv-ease),
                         transform .18s var(--pv-ease)}
-.mr-gate-inv:hover{border-color:var(--pv-orange);color:var(--pv-orange-ink)}
-.mr-gate-inv:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}
+.mr-gate-inv:hover{border-color:var(--pv-accent);color:var(--pv-accent-ink)}
+.mr-gate-inv:focus-visible{outline:2px solid var(--pv-accent);outline-offset:3px}
 .mr-gate-inv:active{transform:scale(.98)}
 /* 「あと何人」の段だけ、札を数字として読ませる（準備中のグレーより一段はっきり） */
-.pv-give-r.is-goal .pv-give-p{background:var(--pv-orange-soft);color:var(--pv-orange-ink);
+.pv-give-r.is-goal .pv-give-p{background:var(--pv-accent-soft);color:var(--pv-accent-ink);
                               font-variant-numeric:tabular-nums}
 
 /* Give → Get の3段。ロック画面（actual-pay.js）とパネルで同じ部品を使う。 */
@@ -120,7 +120,7 @@
            background:var(--pv-line-soft);color:var(--pv-ink-3)}
 /* いま開く段だけが色を持つ。「準備中」を色で強調しない（開くと読める）。 */
 .pv-give-r.is-live .pv-give-t{color:var(--pv-ink)}
-.pv-give-r.is-live .pv-give-p{background:var(--pv-orange-soft);color:var(--pv-orange-ink)}
+.pv-give-r.is-live .pv-give-p{background:var(--pv-accent-soft);color:var(--pv-accent-ink)}
 /* **DEEP PAY の札だけ**が押せる（2026-09-06 オーナー確定）── 押すと解放条件の説明が開く。
    ★もとは左メニューの DEEP PAY / VERIFIED PAY が入口だった。ナビを7項目へ畳んだ回に
      その2段を撤去したので、DEEP PAY の説明への道だけをここへ移した。
@@ -136,7 +136,7 @@ button.pv-give-p{appearance:none;-webkit-appearance:none;font:inherit;font-size:
                  transition:border-color .18s var(--pv-ease),color .18s var(--pv-ease),
                             transform .18s var(--pv-ease)}
 button.pv-give-p:hover{border-color:var(--pv-line);color:var(--pv-ink-2)}
-button.pv-give-p:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}
+button.pv-give-p:focus-visible{outline:2px solid var(--pv-accent);outline-offset:3px}
 button.pv-give-p:active{transform:scale(.96)}
 
 @media (max-width:520px){

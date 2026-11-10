@@ -66,9 +66,11 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;transition:background .4s ea
 nav.scrolled{background:rgba(10,12,15,.92);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.06)}
 .nav-link{color:rgba(255,255,255,.6);font-size:.85rem;font-weight:500;letter-spacing:.04em;transition:color .2s;text-decoration:none}
 .nav-link:hover{color:#fff}
-.logo-img{height:40px;width:auto;filter:brightness(1.15) drop-shadow(0 0 8px rgba(249,115,22,.5));transition:filter .3s}
-.btn-orange{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:10px;font-weight:700;font-size:.9rem;background:linear-gradient(135deg,#f97316,#f5c842);color:#000;border:none;cursor:pointer;transition:opacity .2s,transform .2s cubic-bezier(.16,1,.3,1);text-decoration:none}
+.logo-img{height:40px;width:auto;filter:brightness(1.15) drop-shadow(0 0 8px color-mix(in srgb,var(--pv-accent) 50%,transparent));transition:filter .3s}
+.btn-orange{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:10px;font-weight:700;font-size:.9rem;background:var(--pv-accent-dark);color:#fff;border:none;box-shadow:0 1px 2px rgba(6,117,99,.24),0 10px 24px -12px rgba(6,117,99,.62);cursor:pointer;transition:opacity .2s,transform .2s cubic-bezier(.16,1,.3,1);text-decoration:none}
 .btn-orange:hover{opacity:.9;transform:translateY(-1px)}
+.btn-orange:focus-visible{outline:2px solid var(--pv-accent);outline-offset:3px}
+.btn-orange:active{transform:translateY(1px)}
 .btn-orange:disabled{opacity:.4;cursor:not-allowed;transform:none}
 .btn-ghost{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:10px;font-weight:600;font-size:.9rem;color:#e8edf2;border:1px solid rgba(255,255,255,.15);background:transparent;cursor:pointer;transition:border-color .2s,background .2s;text-decoration:none}
 .btn-ghost:hover{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.05)}
@@ -89,7 +91,7 @@ textarea.form-input{resize:vertical;min-height:110px}
 .step-item{display:flex;align-items:center;gap:10px;flex:1}
 .step-circle{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0;transition:all .3s}
 .step-circle.done{background:#34d399;color:#000}
-.step-circle.active{background:linear-gradient(135deg,#f97316,#f5c842);color:#000}
+.step-circle.active{background:var(--pv-accent-dark);color:#fff}
 .step-circle.pending{background:rgba(255,255,255,.08);color:#6b7d93;border:1px solid rgba(255,255,255,.12)}
 .step-label{font-size:.75rem;font-weight:600;color:#6b7d93;white-space:nowrap}
 .step-label.active{color:#e8edf2}
@@ -314,7 +316,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
         <div class="space-y-5">
           <div>
-            <label class="form-label">航空会社 <span style="color:#f97316">必須</span></label>
+            <label class="form-label">航空会社 <span style="color:var(--pv-ink-3)">必須</span></label>
             <select class="form-input" id="f-airline" onchange="toggleOtherAirline()">
               <option value="">選択してください</option>
               <optgroup label="日本">
@@ -502,7 +504,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
           </div>
 
           <div>
-            <label class="form-label">職位 <span style="color:#f97316">必須</span></label>
+            <label class="form-label">職位 <span style="color:var(--pv-ink-3)">必須</span></label>
             <div class="flex flex-wrap gap-2">
               <label class="chip" id="chip-captain"><input type="radio" name="f-pos" value="captain" style="display:none" onchange="pickChip(this,'pos')">機長</label>
               <label class="chip" id="chip-fo"><input type="radio" name="f-pos" value="fo" style="display:none" onchange="pickChip(this,'pos')">副操縦士</label>
@@ -511,7 +513,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
           <div class="grid sm:grid-cols-2 gap-4">
             <div>
-              <label class="form-label">勤務年数 <span style="color:#f97316">必須</span></label>
+              <label class="form-label">勤務年数 <span style="color:var(--pv-ink-3)">必須</span></label>
               <select class="form-input" id="f-tenure">
                 <option value="">選択してください</option>
                 <option value="1-5">1〜5年</option>
@@ -522,7 +524,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
               </select>
             </div>
             <div>
-              <label class="form-label">年代 <span style="color:#f97316">必須</span></label>
+              <label class="form-label">年代 <span style="color:var(--pv-ink-3)">必須</span></label>
               <select class="form-input" id="f-age">
                 <option value="">選択してください</option>
                 <option value="20-24">20〜24歳</option>
@@ -623,7 +625,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 
         <!-- 7カテゴリ口コミ -->
         <div class="mb-2">
-          <div class="form-label mb-1" style="font-size:.85rem">カテゴリ別評価・口コミ <span style="color:#f97316">必須</span></div>
+          <div class="form-label mb-1" style="font-size:.85rem">カテゴリ別評価・口コミ <span style="color:var(--pv-ink-3)">必須</span></div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
             <p class="text-xs text-muted">各カテゴリに星評価を入力。コメントは合計300文字以上で送信できます。</p>
             <div class="char-total" id="char-total-display" style="color:#6b7d93">0 / 300文字</div>

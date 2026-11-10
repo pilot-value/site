@@ -322,7 +322,7 @@
     var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso == null ? '' : iso));
     return m ? T.md(Number(m[2]), Number(m[3])) : '';
   }
-  /* 図の線に渡す色。★'var(--pv-orange)' を文字列のまま渡さない
+  /* 図の線に渡す色。★'var(--pv-accent)' を文字列のまま渡さない
      （SVG の stroke="…" では var() が効かず、線が黒か透明になる）。 */
   function ink(name) {
     try {
@@ -381,7 +381,7 @@
     '.rm-ring-p{font-size:10px;font-weight:800;letter-spacing:.04em;fill:var(--pv-ink-3)}',
     '.rm-next{margin-top:12px;font-size:.72rem;font-weight:700;line-height:1.6;',
     '  color:var(--pv-ink-2)}',
-    '.rm-next b{display:block;margin-top:3px;font-weight:800;color:var(--pv-orange-ink);',
+    '.rm-next b{display:block;margin-top:3px;font-weight:800;color:var(--pv-accent-ink);',
     '  font-variant-numeric:tabular-nums}',
     '.rm-cnt-n{display:block;margin-top:9px;font-size:.65rem;line-height:1.6;color:var(--pv-ink-3)}',
 
@@ -398,11 +398,11 @@
     '.rm-wr{display:flex;align-items:baseline;gap:8px}',
     '.rm-wt{flex:1 1 auto;min-width:0;font-size:.73rem;font-weight:600;line-height:1.5;',
     '  color:var(--pv-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
-    '.rm-wn{flex:none;font-size:.72rem;font-weight:800;color:var(--pv-orange-ink);',
+    '.rm-wn{flex:none;font-size:.72rem;font-weight:800;color:var(--pv-accent-ink);',
     '  font-variant-numeric:tabular-nums}',
     '.rm-wb{display:block;height:6px;margin-top:5px;border-radius:999px;',
     '  background:var(--pv-line-soft);overflow:hidden}',
-    '.rm-wb i{display:block;height:100%;border-radius:999px;background:var(--pv-orange)}',
+    '.rm-wb i{display:block;height:100%;border-radius:999px;background:var(--pv-accent)}',
 
     /* ── 目標の段（横一列のレール）───────────────────────
        ★到達は色だけで伝えない。丸の塗り＋数字の前の ✓ ＋色の3つで示す。 */
@@ -412,14 +412,14 @@
     '  background:var(--pv-line)}',
     '.rm-rail li:first-child::before{left:50%}',
     '.rm-rail li:last-child::before{right:50%}',
-    '.rm-rail li.is-on::before{background:var(--pv-orange)}',
+    '.rm-rail li.is-on::before{background:var(--pv-accent)}',
     '.rm-rail .rm-dot{position:absolute;left:50%;top:0;width:16px;height:16px;margin-left:-8px;',
     '  border-radius:999px;border:2px solid var(--pv-line);background:var(--pv-surface)}',
-    '.rm-rail li.is-on .rm-dot{border-color:var(--pv-orange);background:var(--pv-orange)}',
-    '.rm-rail li.is-next .rm-dot{border-color:var(--pv-orange);border-width:3px}',
+    '.rm-rail li.is-on .rm-dot{border-color:var(--pv-accent);background:var(--pv-accent)}',
+    '.rm-rail li.is-next .rm-dot{border-color:var(--pv-accent);border-width:3px}',
     '.rm-rail li b{display:block;font-size:.72rem;font-weight:800;line-height:1.4;',
     '  color:var(--pv-ink-3);font-variant-numeric:tabular-nums}',
-    '.rm-rail li.is-on b{color:var(--pv-orange-ink)}',
+    '.rm-rail li.is-on b{color:var(--pv-accent-ink)}',
     '.rm-rail li.is-next b{color:var(--pv-ink)}',
     '.rm-rail li span{display:block;margin-top:3px;font-size:.62rem;font-weight:600;',
     '  line-height:1.45;color:var(--pv-ink-3)}',
@@ -483,14 +483,14 @@
     '  transition:background-color .18s var(--pv-ease),color .18s var(--pv-ease),',
     '             border-color .18s var(--pv-ease)}',
     '.rm-tab:hover{background:var(--pv-line-soft);color:var(--pv-ink)}',
-    '.rm-tab:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    '.rm-tab:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}',
     '.rm-tab:active{background:var(--pv-line)}',
-    '.rm-tab[aria-pressed="true"]{background:var(--pv-orange-soft);color:var(--pv-orange-ink);',
-    '  border-color:var(--pv-orange)}',
+    '.rm-tab[aria-pressed="true"]{background:var(--pv-accent-soft);color:var(--pv-accent-ink);',
+    '  border-color:var(--pv-accent)}',
 
     '.rm-req{display:flex;gap:11px;padding:11px 12px;border-radius:var(--pv-r);',
     '  background:var(--pv-surface-2);border:1px solid var(--pv-line-soft)}',
-    '.rm-req.is-new{border-color:var(--pv-orange);background:var(--pv-orange-soft)}',
+    '.rm-req.is-new{border-color:var(--pv-accent);background:var(--pv-accent-soft)}',
     '.rm-req.is-hidden{opacity:.55}',
     /* ★align-self を止めないと、行の高さいっぱいに縦長の ♡ が伸びる
        （コメントを開いた行で700pxの帯になった）。 */
@@ -500,11 +500,11 @@
     '  color:var(--pv-ink-3);font:inherit;cursor:pointer;',
     '  transition:background-color .18s var(--pv-ease),color .18s var(--pv-ease),',
     '             border-color .18s var(--pv-ease),transform .18s var(--pv-ease)}',
-    '.rm-like:hover{border-color:var(--pv-orange);color:var(--pv-orange-ink)}',
-    '.rm-like:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    '.rm-like:hover{border-color:var(--pv-accent);color:var(--pv-accent-ink)}',
+    '.rm-like:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}',
     '.rm-like:active{transform:scale(.94)}',
-    '.rm-like[aria-pressed="true"]{background:var(--pv-orange-soft);color:var(--pv-orange-ink);',
-    '  border-color:var(--pv-orange)}',
+    '.rm-like[aria-pressed="true"]{background:var(--pv-accent-soft);color:var(--pv-accent-ink);',
+    '  border-color:var(--pv-accent)}',
     '.rm-like svg{flex:none}',
     '.rm-like b{font-size:.72rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}',
     '.rm-req-b{flex:1 1 auto;min-width:0}',
@@ -515,10 +515,10 @@
     '  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}',
     '.rm-req-t.is-open{display:block;overflow:visible}',
     '.rm-open{margin-top:5px;padding:2px 0;border:0;background:none;font:inherit;',
-    '  font-size:.67rem;font-weight:700;color:var(--pv-orange-ink);cursor:pointer;',
+    '  font-size:.67rem;font-weight:700;color:var(--pv-accent-ink);cursor:pointer;',
     '  text-decoration:underline;text-underline-offset:3px}',
     '.rm-open:hover{color:var(--pv-ink)}',
-    '.rm-open:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    '.rm-open:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}',
     '.rm-open:active{opacity:.7}',
     '.rm-req-m{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:7px}',
     '.rm-req-m .ymd{font-size:.65rem;font-weight:600;color:var(--pv-ink-3)}',
@@ -533,25 +533,25 @@
     '  border:1px solid var(--pv-line);background:var(--pv-surface);color:var(--pv-ink-2);',
     '  font:inherit;font-size:.72rem;font-weight:700;cursor:pointer}',
     '.rm-admin button:hover{background:var(--pv-line-soft);color:var(--pv-ink)}',
-    '.rm-admin button:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
-    '.rm-admin select:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    '.rm-admin button:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}',
+    '.rm-admin select:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}',
 
     '.rm-empty{padding:18px 14px;border-radius:var(--pv-r);background:var(--pv-surface-2);',
     '  border:1px dashed var(--pv-line);font-size:.74rem;line-height:1.75;color:var(--pv-ink-2);',
     '  text-align:center}',
     /* 取れなかったときの読み直し。★ここに 0 を書かない（本当に0件だと読める）。 */
     '.rm-retry{display:inline-block;margin-top:6px;padding:0;border:0;background:none;',
-    '  font:inherit;font-size:.68rem;font-weight:700;color:var(--pv-orange-ink);',
+    '  font:inherit;font-size:.68rem;font-weight:700;color:var(--pv-accent-ink);',
     '  cursor:pointer;text-decoration:underline;text-underline-offset:3px}',
     '.rm-retry:hover{color:var(--pv-ink)}',
-    '.rm-retry:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    '.rm-retry:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}',
     '.rm-retry:active{opacity:.7}',
     '.rm-more-btn{display:block;width:100%;min-height:44px;margin-top:12px;padding:11px 16px;',
     '  border-radius:var(--pv-r-sm);border:1px solid var(--pv-line);background:var(--pv-surface);',
     '  color:var(--pv-ink-2);font:inherit;font-size:.76rem;font-weight:700;cursor:pointer;',
     '  transition:background-color .18s var(--pv-ease),color .18s var(--pv-ease)}',
     '.rm-more-btn:hover{background:var(--pv-line-soft);color:var(--pv-ink)}',
-    '.rm-more-btn:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    '.rm-more-btn:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}',
     '.rm-more-btn:active{background:var(--pv-line)}',
 
     '.rm-live{margin-top:16px;font-size:.75rem;line-height:1.7;color:var(--pv-orange-ink);',
@@ -567,11 +567,11 @@
     '  border:1px solid var(--pv-line);background:var(--pv-surface-2);color:var(--pv-ink);',
     '  font:inherit;font-size:16px;line-height:1.7;min-height:84px;',
     '  resize:none;overflow-y:hidden}',
-    '.rm-f-t:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    '.rm-f-t:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}',
     '.rm-f-s{display:block;width:100%;margin-top:8px;padding:10px 12px;border-radius:var(--pv-r-sm);',
     '  border:1px solid var(--pv-line);background:var(--pv-surface-2);color:var(--pv-ink);',
     '  font:inherit;font-size:16px}',
-    '.rm-f-s:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    '.rm-f-s:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}',
     /* 添付の絵。★押せる所はボタン側で作る（file 入力そのものは見せない）。 */
     '.rm-f-img{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:13px}',
     '.rm-f-att{flex:none;min-height:40px;padding:9px 14px;border-radius:var(--pv-r-sm);',
@@ -580,7 +580,7 @@
     '  transition:background-color .18s var(--pv-ease),border-color .18s var(--pv-ease),',
     '  color .18s var(--pv-ease)}',
     '.rm-f-att:hover{background:var(--pv-line-soft);border-color:var(--pv-ink-3);color:var(--pv-ink)}',
-    '.rm-f-att:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    '.rm-f-att:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}',
     '.rm-f-att:active{background:var(--pv-line-soft);border-style:solid}',
     '.rm-f-att-n{font-size:.7rem;font-weight:600;color:var(--pv-ink-3);line-height:1.6}',
     /* 選んだ絵の下見。★高さを先に取らないと、読み終わった瞬間に下が飛び跳ねる。 */
@@ -593,7 +593,7 @@
     '  color:var(--pv-ink-2);font:inherit;font-size:.7rem;font-weight:700;cursor:pointer;',
     '  transition:background-color .18s var(--pv-ease),color .18s var(--pv-ease)}',
     '.rm-f-x:hover{background:var(--pv-ink);color:var(--pv-surface)}',
-    '.rm-f-x:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    '.rm-f-x:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}',
     '.rm-f-x:active{background:var(--pv-ink-2);color:var(--pv-surface)}',
     /* 一覧の行に出る絵。★幅は行に合わせる。横スクロールを作らない。 */
     '.rm-req-img{margin-top:9px}',
@@ -608,21 +608,23 @@
     '  font-size:.72rem;font-weight:700;color:var(--pv-ink-2);line-height:1.6;cursor:pointer}',
     '.rm-f-p b{display:block;font-size:.66rem;font-weight:600;color:var(--pv-ink-3);',
     '  line-height:1.7;margin-top:2px}',
-    '.rm-f-p input{flex:none;width:18px;height:18px;margin-top:2px;accent-color:var(--pv-orange)}',
+    '.rm-f-p input{flex:none;width:18px;height:18px;margin-top:2px;accent-color:var(--pv-accent)}',
     '.rm-f-p:hover{background:var(--pv-line-soft);border-color:var(--pv-line)}',
     '.rm-f-p:active{background:var(--pv-line-soft);border-color:var(--pv-ink-3)}',
     '.rm-f-p:focus-within{background:var(--pv-line-soft);border-color:var(--pv-line)}',
-    '.rm-f-p input:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    '.rm-f-p input:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}',
     '.rm-f-r{display:flex;align-items:center;justify-content:space-between;gap:10px;',
     '  flex-wrap:wrap;margin-top:13px}',
     '.rm-f-c{font-size:.7rem;font-weight:700;color:var(--pv-ink-3);font-variant-numeric:tabular-nums}',
     '.rm-f-c.is-over{color:var(--pv-orange-ink)}',
+    /* 送るボタン（2026-11-10 にオレンジから緑へ）。地は --pv-accent-dark（暗い画面でも同じ色）なので、
+       字は両方の画面で白のまま（white）。--pv-bg を字にすると、暗い画面で黒い字が濃い緑に沈む。 */
     '.rm-f-b{min-height:44px;padding:12px 20px;border-radius:999px;border:0;',
-    '  background:var(--pv-orange);color:var(--pv-bg);font:inherit;font-size:.78rem;',
+    '  background:var(--pv-accent-dark);color:white;font:inherit;font-size:.78rem;',
     '  font-weight:800;letter-spacing:-.01em;cursor:pointer;',
     '  transition:opacity .18s var(--pv-ease),transform .18s var(--pv-ease)}',
     '.rm-f-b:hover{opacity:.9}',
-    '.rm-f-b:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}',
+    '.rm-f-b:focus-visible{outline:2px solid var(--pv-accent);outline-offset:3px}',
     '.rm-f-b:active{transform:scale(.97)}',
     '.rm-f-b[disabled]{opacity:.55;cursor:default;transform:none}',
     '.rm-f-msg{margin-top:11px;font-size:.74rem;line-height:1.75;color:var(--pv-orange-ink)}',
@@ -638,10 +640,10 @@
     '.rm-cbtn svg{flex:none}',
     '.rm-cbtn b{font-weight:800;font-variant-numeric:tabular-nums}',
     '.rm-cbtn:hover{border-color:var(--pv-ink-3);color:var(--pv-ink)}',
-    '.rm-cbtn:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    '.rm-cbtn:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}',
     '.rm-cbtn:active{background:var(--pv-line-soft)}',
-    '.rm-cbtn[aria-expanded="true"]{border-color:var(--pv-orange);color:var(--pv-orange-ink);',
-    '  background:var(--pv-orange-soft)}',
+    '.rm-cbtn[aria-expanded="true"]{border-color:var(--pv-accent);color:var(--pv-accent-ink);',
+    '  background:var(--pv-accent-soft)}',
     '.rm-c{margin-top:11px;padding-top:10px;border-top:1px dashed var(--pv-line)}',
     '.rm-c-note{font-size:.68rem;line-height:1.7;color:var(--pv-ink-3)}',
     '.rm-c-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}',
@@ -652,7 +654,7 @@
     /* 名乗り。★出るのは 投稿者 / 運営 / 匿名N だけ。誰かに辿れる語を足さない。 */
     '.rm-c-w{font-size:.63rem;font-weight:800;letter-spacing:.01em;padding:2px 8px;',
     '  border-radius:999px;background:var(--pv-line-soft);color:var(--pv-ink-2)}',
-    '.rm-c-w.is-author{background:var(--pv-orange-soft);color:var(--pv-orange-ink)}',
+    '.rm-c-w.is-author{background:var(--pv-accent-soft);color:var(--pv-accent-ink)}',
     '.rm-c-w.is-staff{background:var(--pv-ink);color:var(--pv-surface)}',
     '.rm-c-me{font-size:.62rem;font-weight:700;color:var(--pv-ink-3)}',
     '.rm-c-h .ymd{font-size:.63rem;font-weight:600;color:var(--pv-ink-3)}',
@@ -663,7 +665,7 @@
     '  text-decoration:underline;text-underline-offset:3px;',
     '  transition:color .18s var(--pv-ease)}',
     '.rm-c-x:hover{color:var(--pv-ink)}',
-    '.rm-c-x:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    '.rm-c-x:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}',
     '.rm-c-x:active{opacity:.7}',
     /* 書く欄。★16px を手で書く。この欄は開いたときに作るので、読み込み時の DOM しか
        見ない assert-header.mjs の目に入らない＝検査の穴。下げると iOS が触った瞬間に
@@ -673,13 +675,13 @@
     '  border:1px solid var(--pv-line);background:var(--pv-surface-2);color:var(--pv-ink);',
     '  font:inherit;font-size:16px;line-height:1.7;min-height:52px;',
     '  resize:none;overflow-y:hidden}',
-    '.rm-c-ta:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    '.rm-c-ta:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}',
     '.rm-c-b{margin-top:8px;min-height:40px;padding:10px 18px;border-radius:999px;border:0;',
-    '  background:var(--pv-orange);color:var(--pv-bg);font:inherit;font-size:.74rem;',
+    '  background:var(--pv-accent-dark);color:white;font:inherit;font-size:.74rem;',
     '  font-weight:800;letter-spacing:-.01em;cursor:pointer;',
     '  transition:opacity .18s var(--pv-ease),transform .18s var(--pv-ease)}',
     '.rm-c-b:hover{opacity:.9}',
-    '.rm-c-b:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}',
+    '.rm-c-b:focus-visible{outline:2px solid var(--pv-accent);outline-offset:3px}',
     '.rm-c-b:active{transform:scale(.97)}',
     '.rm-c-b[disabled]{opacity:.55;cursor:default;transform:none}',
     '.rm-c-msg{margin-top:7px;font-size:.68rem;line-height:1.75;color:var(--pv-orange-ink)}',
@@ -689,10 +691,10 @@
     '  background:var(--pv-surface);border:1px dashed var(--pv-line);',
     '  font-size:.68rem;line-height:1.75;color:var(--pv-ink-2)}',
     '.rm-c-cta{display:inline-block;margin-top:3px;font-weight:800;',
-    '  color:var(--pv-orange-ink);text-decoration:underline;text-underline-offset:3px;',
+    '  color:var(--pv-accent-ink);text-decoration:underline;text-underline-offset:3px;',
     '  transition:color .18s var(--pv-ease)}',
     '.rm-c-cta:hover{color:var(--pv-ink)}',
-    '.rm-c-cta:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    '.rm-c-cta:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}',
     '.rm-c-cta:active{opacity:.7}',
 
     '@media(prefers-reduced-motion:reduce){',
@@ -736,7 +738,7 @@
       (has ? '<circle cx="43" cy="43" r="' + R + '" fill="none" stroke-width="8" ' +
         'stroke-linecap="round" transform="rotate(-90 43 43)" ' +
         'stroke-dasharray="' + on.toFixed(1) + ' ' + (C - on).toFixed(1) + '" ' +
-        'style="stroke:var(--pv-orange)"/>' : '') +
+        'style="stroke:var(--pv-accent)"/>' : '') +
       '<text class="rm-ring-v" x="43" y="' + (has ? 40 : 43) + '" text-anchor="middle" ' +
         'dominant-baseline="central">' + esc(mid) + '</text>' +
       (has ? '<text class="rm-ring-p" x="43" y="56" text-anchor="middle" ' +
@@ -914,7 +916,7 @@
       valueAt: function (r) { return r.n; },
       labelOf: function (r) { return r.lab || ''; },
       h: 134,
-      color: ink('--pv-orange'),
+      color: ink('--pv-accent'),
       fmtVal: function (x) { return T.countUnit(fmt(x)); },
       aria: T.growthAria,
       onePoint: T.growthOne,

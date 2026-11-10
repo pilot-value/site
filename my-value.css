@@ -49,7 +49,7 @@
            display:flex;align-items:center;justify-content:space-between;gap:16px}
 .mr-brand{display:inline-flex;align-items:center;border-radius:var(--pv-r-sm)}
 .mr-brand img{display:block;height:28px;width:auto}
-.mr-brand:focus-visible{outline:2px solid var(--pv-orange);outline-offset:4px}
+.mr-brand:focus-visible{outline:2px solid var(--pv-accent);outline-offset:4px}
 /* lang-toggle.js と currency.js が #theme-toggle の隣に自分のボタンを差し込む。
    3つ並んでも 375px で溢れないよう、ここでは他のボタンを置かない。 */
 .mr-top-r{display:flex;align-items:center;gap:8px;flex-shrink:0}
@@ -69,7 +69,7 @@
 .mr-col .mr-side{position:static;top:auto}
 .mv-priv{padding:16px;border-radius:var(--pv-r);background:var(--pv-surface);
          border:1px solid var(--pv-line);box-shadow:var(--pv-shadow)}
-/* 緑＝信頼（ブランドの決まり）。押せるものだけを橙にする。 */
+/* 緑＝信頼（ブランドの決まり）。押せるものも緑（--pv-accent*・2026-11-10 まで橙）。橙は増減などデータの色だけ。 */
 .mv-priv-i{display:inline-flex;align-items:center;justify-content:center;
            width:34px;height:34px;border-radius:50%;
            background:var(--pv-green-soft);color:var(--pv-green-ink)}
@@ -77,11 +77,11 @@
            line-height:1.5;color:var(--pv-ink)}
 .mv-priv-s{margin:6px 0 0;font-size:.72rem;line-height:1.75;color:var(--pv-ink-3)}
 .mv-priv-a{display:inline-block;margin-top:10px;font-size:.74rem;font-weight:800;
-           color:var(--pv-orange-ink);text-decoration:none;
+           color:var(--pv-accent-ink);text-decoration:none;
            border-bottom:1px solid transparent;
            transition:border-color .18s var(--pv-ease),color .18s var(--pv-ease)}
 .mv-priv-a:hover{border-bottom-color:currentColor}
-.mv-priv-a:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px;border-radius:4px}
+.mv-priv-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:3px;border-radius:4px}
 
 /* ── Give → Get の説明パネル ────────────────────────────────
    ★規則は [pv-give.css](pv-give.css) へ出した（2026-09-15）。
@@ -143,11 +143,13 @@
   --pv-line-soft:rgba(255,255,255,.07);
   --pv-ink:#eaf1f8;   --pv-ink-2:#adbfd4;   --pv-ink-3:#8ea3bd;
   --pv-orange-ink:#fdba74;
+  /* 紺の地の上の緑は、暗い画面と同じ明るい緑（pv-tokens.css の [data-theme="dark"] と同じ値）。 */
+  --pv-accent-ink:#2bb59a;  --pv-accent-soft:rgba(43,181,154,.14);  --pv-accent-line:rgba(43,181,154,.30);
   --pt-dot:#0f2038;
   padding:28px 24px;color:var(--pv-ink);border-color:rgba(255,255,255,.11);
   background:
     radial-gradient(118% 132% at 86% -12%,rgba(245,200,66,.17) 0%,transparent 54%),
-    radial-gradient(96% 128% at 4% 112%,rgba(249,115,22,.15) 0%,transparent 48%),
+    radial-gradient(96% 128% at 4% 112%,rgba(6,117,99,.15) 0%,transparent 48%),
     var(--pv-navy);
   box-shadow:0 1px 2px rgba(10,22,40,.32),
              0 24px 52px -22px rgba(10,22,40,.60),
@@ -311,12 +313,12 @@
   align-items:center;justify-content:center;gap:8px;text-align:center;padding:20px 16px}
 .mr-mask-over::before{content:'';position:absolute;inset:0;background:var(--pv-surface);opacity:.7}
 .mr-mask-over::after{content:'';position:absolute;inset:0;
-  background:radial-gradient(84% 68% at 50% 38%,var(--pv-orange-soft) 0%,transparent 72%)}
+  background:radial-gradient(84% 68% at 50% 38%,var(--pv-accent-soft) 0%,transparent 72%)}
 .mr-mask-tag,.mr-mask-t,.mr-mask-over .pt-btn{position:relative;z-index:1}
 .mr-mask-tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;
-  background:var(--pv-orange-soft);border:1px solid rgba(249,115,22,.32);
-  color:var(--pv-orange-ink);font-size:.62rem;font-weight:700;letter-spacing:.12em;
-  box-shadow:0 1px 2px rgba(120,45,10,.10),0 6px 16px -10px rgba(249,115,22,.45)}
+  background:var(--pv-accent-soft);border:1px solid var(--pv-accent-line);
+  color:var(--pv-accent-ink);font-size:.62rem;font-weight:700;letter-spacing:.12em;
+  box-shadow:0 1px 2px rgba(6,117,99,.10),0 6px 16px -10px rgba(6,117,99,.45)}
 .mr-mask-t{max-width:34em;margin:0;font-size:.79rem;line-height:1.7;color:var(--pv-ink-2);font-weight:600}
 /* ★ #pv-value .pt-btn が margin-top:18px を持っている。id に勝つ形で書く
    （クラス2つでは負けて、ボタンだけが下にずれる）。 */
@@ -371,7 +373,7 @@
 #pv-value .pt-btn.ghost:hover{background:var(--pv-line-soft);color:var(--pv-ink);
   box-shadow:var(--pv-shadow)}
 
-#pv-value .pt-first{background:linear-gradient(152deg,var(--pv-orange-soft) 0%,transparent 62%),var(--pv-surface);
+#pv-value .pt-first{background:linear-gradient(152deg,var(--pv-accent-soft) 0%,transparent 62%),var(--pv-surface);
   border:1px solid var(--pv-line);border-radius:var(--pv-r-lg);padding:24px;box-shadow:var(--pv-shadow-lift)}
 #pv-value .pt-first-h{font-size:1.05rem;font-weight:700;letter-spacing:-.02em;line-height:1.5;margin-bottom:8px}
 #pv-value .pt-first-s{font-size:.8rem;color:var(--pv-ink-2);line-height:1.75}
@@ -395,12 +397,12 @@
 /* ① あなたの給与レポート ─────────────────────────────────── */
 #pv-value .mv-e-rep{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);
   gap:22px;align-items:start;
-  background:linear-gradient(148deg,var(--pv-orange-soft) 0%,transparent 58%),var(--pv-surface)}
+  background:linear-gradient(148deg,var(--pv-accent-soft) 0%,transparent 58%),var(--pv-surface)}
 #pv-value .mv-e-rep-b{min-width:0}
 #pv-value .mv-e-rep-hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 #pv-value .mv-e-ic{flex:0 0 auto;width:42px;height:42px;border-radius:50%;
   display:inline-flex;align-items:center;justify-content:center;
-  background:var(--pv-orange-soft);color:var(--pv-orange-ink)}
+  background:var(--pv-accent-soft);color:var(--pv-accent-ink)}
 #pv-value .mv-e-badge{display:inline-flex;align-items:center;padding:3px 9px;
   border-radius:999px;font-size:.68rem;font-weight:700;letter-spacing:.03em;
   background:var(--pv-line-soft);color:var(--pv-ink-3);border:1px solid var(--pv-line)}
@@ -417,27 +419,27 @@
   line-height:1.65;color:var(--pv-ink)}
 /* ✓ は文字ではなく罫線を回して作る（フォントに依存しない） */
 #pv-value .mv-e-know-l li::before{content:'';position:absolute;left:3px;top:.42em;
-  width:9px;height:5px;border-left:2px solid var(--pv-orange);
-  border-bottom:2px solid var(--pv-orange);transform:rotate(-45deg)}
+  width:9px;height:5px;border-left:2px solid var(--pv-accent);
+  border-bottom:2px solid var(--pv-accent);transform:rotate(-45deg)}
 #pv-value .mv-e-know-n{margin:14px 0 0;padding-top:12px;border-top:1px solid var(--pv-line);
   font-size:.72rem;line-height:1.7;color:var(--pv-ink-3)}
 
 /* ② 解放の帯と数字カード ─────────────────────────────────── */
 #pv-value .mv-e-band{margin-top:var(--pv-s-3);
-  background:linear-gradient(140deg,var(--pv-orange-soft) 0%,transparent 70%),var(--pv-surface);
-  border-color:rgba(249,115,22,.3)}
+  background:linear-gradient(140deg,var(--pv-accent-soft) 0%,transparent 70%),var(--pv-surface);
+  border-color:var(--pv-accent-line)}
 #pv-value .mv-e-band-hd{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 #pv-value .mv-e-band-b{flex:1 1 260px;min-width:0}
 #pv-value .mv-e-lk{flex:0 0 auto;width:34px;height:34px;border-radius:50%;
   display:inline-flex;align-items:center;justify-content:center;
-  background:var(--pv-orange);color:#fff}
+  background:var(--pv-accent-dark);color:#fff}
 #pv-value .mv-e-band-s{margin:6px 0 0;font-size:.82rem;color:var(--pv-ink-2);line-height:1.7}
-#pv-value .mv-e-band-s b{font-weight:700;color:var(--pv-orange-ink)}
-#pv-value .mv-e-link{flex:0 0 auto;font-size:.8rem;font-weight:700;color:var(--pv-orange-ink);
+#pv-value .mv-e-band-s b{font-weight:700;color:var(--pv-accent-ink)}
+#pv-value .mv-e-link{flex:0 0 auto;font-size:.8rem;font-weight:700;color:var(--pv-accent-ink);
   text-decoration:none;border-bottom:1px solid transparent;
   transition:border-color .18s var(--pv-ease),color .18s var(--pv-ease)}
 #pv-value .mv-e-link:hover{border-bottom-color:currentColor}
-#pv-value .mv-e-link:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px;border-radius:4px}
+#pv-value .mv-e-link:focus-visible{outline:2px solid var(--pv-accent);outline-offset:3px;border-radius:4px}
 
 #pv-value .mv-e-stats{margin-top:18px;display:grid;
   grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:12px}
@@ -445,7 +447,7 @@
   border:1px solid var(--pv-line);border-radius:var(--pv-r);background:var(--pv-surface)}
 #pv-value .mv-e-st-i{flex:0 0 auto;width:38px;height:38px;border-radius:50%;
   display:inline-flex;align-items:center;justify-content:center;
-  background:var(--pv-orange-soft);color:var(--pv-orange-ink)}
+  background:var(--pv-accent-soft);color:var(--pv-accent-ink)}
 #pv-value .mv-e-st-b{min-width:0}
 #pv-value .mv-e-st-n{font-size:1.4rem;font-weight:700;letter-spacing:-.03em;line-height:1.15;
   color:var(--pv-ink)}
@@ -541,8 +543,8 @@
    ⚠️ 読み込みの並びは pv-tokens → **my-value** → app-nav → pay-viz。
       ＝ pay-viz.css のほうが後に来る。同じ強さで書くとあちらが勝つので、
       .pt-* を上書きする2つ（.mp-stats の列数）は属性まで付けて1段強くする。
-   ⚠️ 塗りに --pv-orange-ink を使わない ── ダークで明るいオレンジになり、
-      白字が読めなくなる。#c2410c は白字と 4.9:1 で両モード成立（上の .pt-btn と同じ）。 */
+   ⚠️ 塗りに --pv-accent-ink を使わない ── 暗い画面で明るい緑になり、
+      白字が読めなくなる。地は --pv-accent-dark（白字と 5.6:1・上の .pt-btn と同じ）。 */
 
 .mp-sec{margin-bottom:var(--pv-s-4)}
 .mp-sec:last-of-type{margin-bottom:var(--pv-s-3)}
@@ -583,17 +585,17 @@
 
 /* ── CTA。この層で色が付くのはここだけ（同じ強さの口を並べない）。 */
 .mp-cta{display:inline-flex;align-items:center;justify-content:center;gap:7px;
-  min-height:44px;padding:12px 22px;background:#c2410c;color:#fff;border:none;
+  min-height:44px;padding:12px 22px;background:var(--pv-accent-dark);color:#fff;border:none;
   border-radius:var(--pv-r-sm);font-size:.85rem;font-weight:800;letter-spacing:-.01em;
   text-decoration:none;cursor:pointer;
-  box-shadow:0 1px 2px rgba(120,45,10,.25),0 10px 24px -12px rgba(194,65,12,.7),
-             0 3px 8px -3px rgba(249,115,22,.28);
+  box-shadow:0 1px 2px rgba(6,117,99,.25),0 10px 24px -12px rgba(6,117,99,.7),
+             0 3px 8px -3px rgba(6,117,99,.28);
   transition:background-color .18s var(--pv-ease),transform .18s var(--pv-ease),
              box-shadow .18s var(--pv-ease)}
-.mp-cta:hover{background:#9a3412;transform:translateY(-1px);
-  box-shadow:0 2px 4px rgba(120,45,10,.28),0 16px 32px -14px rgba(194,65,12,.8),
-             0 5px 12px -4px rgba(249,115,22,.34)}
-.mp-cta:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}
+.mp-cta:hover{transform:translateY(-1px);
+  box-shadow:0 2px 4px rgba(6,117,99,.28),0 16px 32px -14px rgba(6,117,99,.8),
+             0 5px 12px -4px rgba(6,117,99,.34)}
+.mp-cta:focus-visible{outline:2px solid var(--pv-accent);outline-offset:3px}
 .mp-cta:active{transform:translateY(0)}
 .mp-cta.ghost{background:var(--pv-surface);color:var(--pv-ink);
   border:1px solid var(--pv-line);box-shadow:none}
@@ -601,7 +603,7 @@
   box-shadow:var(--pv-shadow)}
 
 /* ── ② NEXT ACTION ── 1枚だけ強い面にする（base → elevated）。 */
-.mp-next{background:linear-gradient(152deg,var(--pv-orange-soft) 0%,transparent 62%),var(--pv-surface);
+.mp-next{background:linear-gradient(152deg,var(--pv-accent-soft) 0%,transparent 62%),var(--pv-surface);
   box-shadow:var(--pv-shadow-lift)}
 .mp-next-t{font-size:1.05rem;font-weight:800;letter-spacing:-.02em;line-height:1.5;
   color:var(--pv-ink);margin-bottom:8px}
@@ -633,7 +635,7 @@
   min-height:44px;display:inline-flex;align-items:center;
   transition:color .18s var(--pv-ease)}
 .mp-set-lk a:hover{color:var(--pv-ink);text-decoration:underline}
-.mp-set-lk a:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px;border-radius:6px}
+.mp-set-lk a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:3px;border-radius:6px}
 
 /* 設定の1行（左に見出し＋説明、右に口）。 */
 .mp-row{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}

@@ -93,7 +93,7 @@
     [data-theme="light"] .optin-note{color:#4a5768}
     .optin-hint{font-size:.72rem;color:#9aa9bd;margin-top:10px}
     [data-theme="light"] .optin-hint{color:#4a5768}
-    .avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#f5c842,#f97316);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:800;color:#000;flex-shrink:0}
+    .avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--pv-accent),var(--pv-accent-dark));display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:800;color:#fff;flex-shrink:0}
     .info-row{display:grid;grid-template-columns:120px 1fr;gap:8px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06);align-items:center}
     .info-row:last-child{border-bottom:none}
     [data-theme="light"] .info-row{border-bottom-color:rgba(0,0,0,.06)}
@@ -190,8 +190,10 @@
     [data-theme="light"] .radio-chip input:checked+label{border-color:rgba(161,114,0,.4);background:rgba(161,114,0,.07);color:#a07200}
     .field-label{font-size:.74rem;color:#9ca3af;margin-bottom:4px;font-weight:600;letter-spacing:.03em}
     [data-theme="light"] .field-label{color:#64748b}
-    .btn-save{padding:10px 24px;background:linear-gradient(135deg,#f5c842,#f97316);color:#000;border:none;border-radius:10px;font-weight:700;font-size:.88rem;cursor:pointer;transition:opacity .2s;font-family:inherit}
+    .btn-save{padding:10px 24px;background:var(--pv-accent-dark);color:#fff;border:none;border-radius:10px;font-weight:700;font-size:.88rem;cursor:pointer;transition:opacity .2s;font-family:inherit}
     .btn-save:hover{opacity:.88}
+    .btn-save:focus-visible{outline:2px solid var(--pv-accent);outline-offset:3px}
+    .btn-save:active{transform:translateY(1px)}
     .btn-cancel{padding:10px 20px;background:rgba(255,255,255,.06);color:#9ca3af;border:1px solid rgba(255,255,255,.1);border-radius:10px;font-weight:600;font-size:.88rem;cursor:pointer;transition:background .2s;font-family:inherit}
     .btn-cancel:hover{background:rgba(255,255,255,.1);color:#e8edf2}
     .btn-logout{padding:9px 20px;background:rgba(248,113,113,.08);color:#f87171;border:1px solid rgba(248,113,113,.2);border-radius:10px;font-weight:600;font-size:.84rem;cursor:pointer;transition:background .2s;font-family:inherit}
@@ -210,7 +212,7 @@
        動かすのは opacity だけ。リングは ::after の別レイヤーなので中身のレイアウトに触らない。 */
     #password-card{position:relative}
     #password-card::after{content:'';position:absolute;inset:-3px;border-radius:19px;pointer-events:none;opacity:0;
-      border:2px solid rgba(245,200,66,.85);box-shadow:0 0 0 6px rgba(245,200,66,.10),0 14px 34px -10px rgba(249,115,22,.45)}
+      border:2px solid rgba(245,200,66,.85);box-shadow:0 0 0 6px rgba(245,200,66,.10),0 14px 34px -10px rgba(245,200,66,.35)}
     #password-card.is-flash::after{animation:pw-ring 2.8s cubic-bezier(.16,1,.3,1) forwards}
     @keyframes pw-ring{0%{opacity:0}10%{opacity:1}60%{opacity:1}100%{opacity:0}}
     @media (prefers-reduced-motion:reduce){#password-card.is-flash::after{animation:none;opacity:1}}
@@ -224,7 +226,7 @@
        my-value / actual-pay / airline-conditions と共有する。
        ★ 2層目の #pv-value .pt-* は id で閉じているので、このページの図には効かない。 -->
   <link rel="stylesheet" href="../pv-give.css">
-  <link rel="stylesheet" href="../my-value.css?v=227e08b9">
+  <link rel="stylesheet" href="../my-value.css?v=cbb2651b">
   <link rel="stylesheet" href="../app-nav.css">
   <!-- Payslip chart styling. Shared by my-value.js and the pay-form result card. -->
   <link rel="stylesheet" href="../pay-viz.css">
@@ -389,7 +391,7 @@
     <!-- パイロットであることの確認（申請）の入口。中身は pv-proof-offer.js が描く（返事が none / offered / approved のときだけ）。
          ★何も止めない。オーナーが verified を押すまで、確認済みのパイロットだけが見られるものは閉じたまま。 -->
     <div id="pv-proof-slot"></div>
-    <script src="../pv-proof-offer.js?v=436fb390" defer></script>
+    <script src="../pv-proof-offer.js?v=04fbd7fc" defer></script>
     </section>
 
     <!-- ② NEXT ACTION ─ ★強いものは常に1つだけ。同じ強さの CTA を並べない。

@@ -631,9 +631,9 @@
   font-size:clamp(1.25rem,6.4vw,1.5rem);font-weight:800;letter-spacing:-.03em;
   line-height:1.2;white-space:nowrap;text-decoration:none;color:var(--pv-ink-3);
   transition:transform .18s var(--pv-ease),opacity .18s var(--pv-ease)}
-/* 下線 ── いま居る側は橙の実線。もう片方は畳んであって、指を乗せると伸びる。 */
+/* 下線 ── いま居る側は緑の実線。もう片方は畳んであって、指を乗せると伸びる。 */
 .pv-paytab::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;
-  border-radius:3px 3px 0 0;background:var(--pv-orange);
+  border-radius:3px 3px 0 0;background:var(--pv-accent);
   transform:scaleX(0);transform-origin:0 50%;
   transition:transform .22s var(--pv-ease),opacity .18s var(--pv-ease)}
 .pv-paytab.is-on{color:var(--pv-ink)}
@@ -644,7 +644,7 @@ a.pv-paytab::before{content:"";position:absolute;left:-7px;right:-7px;top:50%;
   height:46px;margin-top:-23px}
 a.pv-paytab:hover{color:var(--pv-ink)}
 a.pv-paytab:hover::after{transform:none;opacity:.45}
-a.pv-paytab:focus-visible{outline:2px solid var(--pv-orange);outline-offset:4px;border-radius:6px}
+a.pv-paytab:focus-visible{outline:2px solid var(--pv-accent);outline-offset:4px;border-radius:6px}
 a.pv-paytab:active{transform:translateY(1px);opacity:.78}
 @media (prefers-reduced-motion:reduce){
   .pv-paytab,.pv-paytab::after{transition:none}
