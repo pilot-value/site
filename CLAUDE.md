@@ -500,6 +500,10 @@ baland_ass/                            ブランド資産（※ brand_assets の
 - **預かっただけでは何も開かない**。同じタブの続きでログインして戻ると、[submit-review.html](submit-review.html) の `claimReviews()` が
   `claim_review_pending` を呼び、本人の口コミ（`reviews_v2`・`proof_hash` はサーバーの式）になって鍵が開く。預かり証は端末の `pv_review_claim`（URL に載せない）。
   同じ会社の口コミがもうある人は入れずに引き取り済み（1社1件）。
+- ★**引き取った預かりは控えしか残さない**（2026-11-10 オーナー決定・給与の `pay_reports_pending` も同じ）。引き取ったその場で中身を消す
+  （口コミ＝職位〜点〜本文を null・dup も／給与＝`payload` を `'{}'`）。行・預かり証・時刻・航空会社・言語・回線の控えは残す ──
+  `db/usage.mjs` の「出したのに会員にならなかった」の分母と、再試行に `already_claimed` と答えるため（行を消すと not_found ＝ 2重の行の事故）。
+  引き取っていない行（30日切れも）は触らない。既に引き取ってあった行は両ファイルの1回きりの掃除が消す。
 - 管理者通知：`notify-admin` の `pv_review_pending`（品質の判定と抜粋つき）。**Edge Function の Deploy と webhook の SQL はオーナー作業。**
 - 見るもの：`node db/test-review-pending.mjs`（SQL）／`node assert-vote.mjs` の 2-D（画面の通し）／`node assert-my-posts.mjs`（フォームの形）。
 

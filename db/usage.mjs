@@ -936,6 +936,8 @@ async function foundingReport(users, testIds, real) {
                     at: day(r.created_at), from: '本編' });
     }
     for (const q of pdS) {
+      /* ★引き取った預かりは中身が '{}'（2026-11-10・db/pay-report-pending.sql の約束 5）。
+         金額が無いので下の判定で自然に外れる（同じ月は本編の行として上で見ている）。 */
       const pl = q.payload || {};
       const g = Number(pl.gross_monthly);
       if (Number.isFinite(g) && g > 0)

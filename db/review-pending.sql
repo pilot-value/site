@@ -21,6 +21,14 @@
 --     （鍵の無い人には本文を返さない）。⚠️ ログインせずに書けて、すぐ人目に触れる口なので、
 --     受け取れる形をサーバーでも確かめ、同じ回線からは1日5件まで（給与は20件）にしてある。
 --  4. 返すのは預かり証だけ。
+--  5. ★引き取ったら、預かりの中身はその場で消す（2026-11-10 オーナー決定・給与の預かりと同じ）。
+--     消すのは職位・勤務年数・年代・機材・役割・7項目の点・7項目の本文（＝ 下の7つ以外の全部の列）。
+--     残すのは行・預かり証・時刻（created_at / claimed_at）・回線の控え・航空会社・書いた言語の7つ
+--     （id / claim_token / created_at / claimed_at / ip_day_hash / airline / orig_lang）──
+--     「出したのに登録しなかった人」を数えるためと、同じ預かり証の再試行に already_claimed と答えるため。
+--     同じ会社の口コミがもうあって入れなかった（dup）行も、引き取り済みなので消す。
+--     ⚠️ 引き取っていない行（30日を過ぎたものも）は消さない。
+--     既に引き取ってあった行は、このファイルの 3-b が1回で消す（何度流しても同じ）。
 -- ════════════════════════════════════════════════════════════════
 
 do $$
@@ -207,6 +215,10 @@ grant execute on function public.submit_review_pending(jsonb) to anon, authentic
 -- ★トークンだけで引く。「無い」「もう済んでいる」「切れた」を分けて返す
 --   （給与の預かりで、応答が届かなかった再試行が「無い」に見えて2重になった教訓）。
 -- ★1トランザクション。口コミへの書き込みが落ちれば claimed_at も戻る。
+-- ★引き取り済みにする1回の更新で、中身も消す（2026-11-10・上の約束 5）。
+--   口コミへの書き込みが落ちれば例外でそこまで来ない＝中身は消えずに残る。
+--   ⚠️ 消す列を足し引きしたら、3-b の1回きりの掃除も同じに直す（自己点検 6 と
+--      db/test-review-pending.mjs が「残す7列以外が全部空」を見ているので、漏れると赤くなる）。
 -- ════════════════════════════════════════════════════════════════
 create or replace function public.claim_review_pending(p_token text)
 returns jsonb
@@ -218,6 +230,7 @@ declare
   v_uid  uuid := auth.uid();
   v_row  public.pv_review_pending%rowtype;
   v_hash text;
+  v_dup  boolean;
 begin
   if v_uid is null then
     raise exception 'ログインが必要です' using errcode = '42501';
@@ -241,24 +254,38 @@ begin
   end if;
 
   v_hash := public.pv_review_hash(v_uid, v_row.airline);
-  if exists (select 1 from public.reviews_v2 where proof_hash = v_hash) then
-    update public.pv_review_pending set claimed_at = now() where id = v_row.id;
-    return jsonb_build_object('ok', true, 'dup', true, 'airline', v_row.airline);
+  v_dup  := exists (select 1 from public.reviews_v2 where proof_hash = v_hash);
+
+  if not v_dup then
+    insert into public.reviews_v2
+      (proof_hash, airline, "position", tenure_bucket, age_bucket, fleet, job_role,
+       culture_score, culture_comment, salary_score, salary_comment, benefits_score, benefits_comment,
+       wlb_score, wlb_comment, ops_score, ops_comment, training_score, training_comment,
+       mgmt_score, mgmt_comment)
+    values
+      (v_hash, v_row.airline, v_row."position", v_row.tenure_bucket, v_row.age_bucket, v_row.fleet, v_row.job_role,
+       v_row.culture_score, v_row.culture_comment, v_row.salary_score, v_row.salary_comment,
+       v_row.benefits_score, v_row.benefits_comment, v_row.wlb_score, v_row.wlb_comment,
+       v_row.ops_score, v_row.ops_comment, v_row.training_score, v_row.training_comment,
+       v_row.mgmt_score, v_row.mgmt_comment);
   end if;
 
-  insert into public.reviews_v2
-    (proof_hash, airline, "position", tenure_bucket, age_bucket, fleet, job_role,
-     culture_score, culture_comment, salary_score, salary_comment, benefits_score, benefits_comment,
-     wlb_score, wlb_comment, ops_score, ops_comment, training_score, training_comment,
-     mgmt_score, mgmt_comment)
-  values
-    (v_hash, v_row.airline, v_row."position", v_row.tenure_bucket, v_row.age_bucket, v_row.fleet, v_row.job_role,
-     v_row.culture_score, v_row.culture_comment, v_row.salary_score, v_row.salary_comment,
-     v_row.benefits_score, v_row.benefits_comment, v_row.wlb_score, v_row.wlb_comment,
-     v_row.ops_score, v_row.ops_comment, v_row.training_score, v_row.training_comment,
-     v_row.mgmt_score, v_row.mgmt_comment);
+  /* ★引き取り済みにして、同じ1回の更新で中身を消す（2026-11-10）。dup も同じ（引き取り済み）。
+       残すのは id / claim_token / created_at / claimed_at / ip_day_hash / airline / orig_lang の7つ。 */
+  update public.pv_review_pending
+     set claimed_at       = now(),
+         "position"       = null, tenure_bucket  = null, age_bucket     = null,
+         fleet            = null, job_role       = null,
+         culture_score    = null, salary_score   = null, benefits_score = null,
+         wlb_score        = null, ops_score      = null, training_score = null, mgmt_score = null,
+         culture_comment  = null, salary_comment = null, benefits_comment = null,
+         wlb_comment      = null, ops_comment    = null, training_comment = null, mgmt_comment = null
+   where id = v_row.id;
 
-  update public.pv_review_pending set claimed_at = now() where id = v_row.id;
+  -- ★返すのは消す前に読んだ写し（v_row）から。表の中身はもう空。
+  if v_dup then
+    return jsonb_build_object('ok', true, 'dup', true, 'airline', v_row.airline);
+  end if;
   return jsonb_build_object('ok', true, 'airline', v_row.airline, 'position', v_row."position");
 end;
 $$;
@@ -267,7 +294,29 @@ grant execute on function public.claim_review_pending(text) to authenticated;
 
 
 -- ════════════════════════════════════════════════════════════════
--- 4. 自己点検（読むだけ。1本の SELECT。期待：5行すべて ✅）
+-- 3-b. 既に引き取ってあった行の中身を消す（2026-11-10 オーナー決定・1回きり）
+--
+-- 上の claim_review_pending は、これから引き取る行の中身を消す。
+-- それより前に引き取られた行（dup も）は中身を持ったままなので、ここで1回だけ消す。
+-- ★何度流しても同じ（残す7列のほかに何か入っている、引き取り済みの行にしか当たらない）。
+-- ⚠️ 引き取っていない行には触らない（30日を過ぎたものも）。
+-- ★引き取り済みの行は一覧の作り置き（pv_review_card）にも Vote にも入っていないので、
+--   ここで消しても画面は1文字も変わらない（作り置きの引き金は走るが、引き取り済みの行は置かない）。
+-- ════════════════════════════════════════════════════════════════
+update public.pv_review_pending q
+   set "position"       = null, tenure_bucket  = null, age_bucket     = null,
+       fleet            = null, job_role       = null,
+       culture_score    = null, salary_score   = null, benefits_score = null,
+       wlb_score        = null, ops_score      = null, training_score = null, mgmt_score = null,
+       culture_comment  = null, salary_comment = null, benefits_comment = null,
+       wlb_comment      = null, ops_comment    = null, training_comment = null, mgmt_comment = null
+ where q.claimed_at is not null
+   and jsonb_strip_nulls(to_jsonb(q) - array['id', 'claim_token', 'created_at', 'claimed_at',
+                                             'ip_day_hash', 'airline', 'orig_lang']) <> '{}'::jsonb;
+
+
+-- ════════════════════════════════════════════════════════════════
+-- 4. 自己点検（読むだけ。1本の SELECT。期待：7行すべて ✅）
 -- ════════════════════════════════════════════════════════════════
 select n as "#", case when ok then '✅' else '❌' end as 結果, 見るところ
   from (values
@@ -284,6 +333,15 @@ select n as "#", case when ok then '✅' else '❌' end as 結果, 見るとこ�
         and not has_table_privilege('authenticated', 'public.pv_review_pending', 'select'),
         '預かりの表を直接読めない'),
     (5, not has_function_privilege('anon', 'public.pv_validate_review_payload(jsonb)', 'execute'),
-        '判定の関数は外から呼べない')
+        '判定の関数は外から呼べない'),
+    -- 2026-11-10。表に列が増えて消し忘れても、ここが ❌ になる（残す7列のほかを全部見る）。
+    (6, not exists (select 1 from public.pv_review_pending q
+                     where q.claimed_at is not null
+                       and jsonb_strip_nulls(to_jsonb(q) - array['id', 'claim_token', 'created_at', 'claimed_at',
+                                                                 'ip_day_hash', 'airline', 'orig_lang']) <> '{}'::jsonb),
+        '引き取った行に中身が残っていない（残るのは行・預かり証・時刻・回線の控え・航空会社・言語だけ）'),
+    (7, to_regprocedure('public.claim_review_pending(text)') is not null
+        and pg_get_functiondef('public.claim_review_pending(text)'::regprocedure) ~ 'mgmt_comment\s*=\s*null',
+        '引き取りの口が、引き取ったその場で中身を消す（新しい claim_review_pending）')
   ) t(n, ok, 見るところ)
  order by n;

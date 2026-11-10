@@ -1622,6 +1622,23 @@ ok(moved && moved.proof_hash ===
 ok(new Date((await one(`select access_until a from profiles where id=$1`, [uid(90)])).a) > new Date(),
    '解放は紐付けた時点で付く');
 
+/* ★2026-11-10 オーナー決定：引き取ったら預かりの中身（payload）はその場で消す。
+   行・預かり証・時刻・控えの列は残す ── 分母（db/usage.mjs が created_at / claimed_at / airline / lang で数える）と、
+   同じ預かり証の再試行に already_claimed と答えるため（下の 4) がそれを見ている）。 */
+{
+  const q = await one(`select payload, claim_token, created_at, claimed_at, airline, period_year, period_month, lang
+                         from pay_reports_pending where claim_token=$1`, [held.claim_token]);
+  ok(q && JSON.stringify(q.payload) === '{}',
+     '★引き取ったら、置き場の中身（payload）は空（{}）になる', JSON.stringify(q && q.payload).slice(0, 120));
+  ok(q && q.claim_token === held.claim_token && q.created_at && q.claimed_at
+       && q.airline === 'jal' && Number(q.period_year) === 2026 && Number(q.period_month) === 4 && q.lang === 'en',
+     '★行・預かり証・時刻・控えの列（airline / period_* / lang）は残る（分母を数えるため）', JSON.stringify(q && { ...q, payload: undefined }));
+  ok(moved && Number(moved.gross_monthly) === 54250 && moved.currency === 'JPY',
+     '★本人の行（本棚）は中身ごと入ったまま（消したのは置き場の写しだけ）');
+  ok(claimed.payload && Number(claimed.payload.gross_monthly) === 54250,
+     '★紐付けの返りの payload は消す前の中身のまま（ログインから戻った直後のレポートが描ける）');
+}
+
 /* 4) 二度押し・再読み込みでも二重に入らない
    ★2026-09-11 から「無い」ではなく「もう移してある」と答える。
      これが not_found だった間、給与フォームは
@@ -1723,6 +1740,70 @@ ok(tooOld.reason === 'expired', '★30日を過ぎた預かりは expired と答
    JSON.stringify(tooOld));
 ok(Number((await one(`select count(*) n from pay_reports_pending where claim_token=$1`,
   [old.claim_token])).n) === 1, '移さなくても行は消さない（データとしては数える）');
+ok(Number((await one(`select payload->>'gross_monthly' g from pay_reports_pending where claim_token=$1`,
+  [old.claim_token])).g) === 54250,
+   '★30日を過ぎて移さなかった預かりは、中身も消さない（消すのは引き取った行だけ・2026-11-10）');
+
+/* 10-b) ★既に引き取ってあった行の中身を1回で消す（2026-11-10 オーナー決定）。
+   このファイルを貼ると 4-b が、中身の残っている引き取り済みの行だけを空にする。
+   引き取っていない行（30日を過ぎたものも）には触らない。最後に壊す証明。 */
+console.log('\n▼ 引き取った預かりの中身を消す（1回きりの掃除・壊す証明）');
+{
+  const SRC = read('db/pay-report-pending.sql');
+  const selfCheck = async () => rows(SRC.slice(SRC.indexOf('with f as (')));
+  const mark = async (n) => ((await selfCheck()).find((x) => Number(x['#']) === n) || {})['結果'];
+  const pl = async (t) => (await one(`select payload from pay_reports_pending where claim_token=$1`, [t])).payload;
+  const T = { oldA: 'cleanup-old-claimed-a-0000', oldB: 'cleanup-old-claimed-b-0000',
+              open: 'cleanup-unclaimed-00000000', stale: 'cleanup-expired-0000000000' };
+  // 変更より前に引き取られた行（中身つき）＝ 本番に今ある形。引き取っていない行・切れた行も並べる
+  await db.query(
+    `insert into pay_reports_pending (claim_token, payload, airline, period_year, period_month, lang, created_at, claimed_at)
+     values ($1, $5::jsonb, 'jal', 2026, 1, 'ja', now() - interval '60 days', now() - interval '59 days'),
+            ($2, $5::jsonb, 'ana', 2026, 2, 'en', now() - interval '10 days', now() - interval '9 days'),
+            ($3, $5::jsonb, 'jal', 2026, 3, 'ja', now() - interval '2 days',  null),
+            ($4, $5::jsonb, 'jal', 2025, 12, 'ja', now() - interval '45 days', null)`,
+    [T.oldA, T.oldB, T.open, T.stale, JSON.stringify(PEND)]);
+  ok((await mark(10)) === '❌', '（前提）中身の残った引き取り済みの行があると、自己点検 10 が ❌ になる');
+
+  await db.exec(SRC);                                   // オーナーが貼るのと同じ
+  ok(JSON.stringify(await pl(T.oldA)) === '{}' && JSON.stringify(await pl(T.oldB)) === '{}',
+     '★貼ると、前に引き取ってあった行の中身が空になる');
+  const kept = await rows(`select claim_token, airline, period_year, period_month, lang, created_at, claimed_at
+                             from pay_reports_pending where claim_token in ($1, $2) order by claim_token`, [T.oldA, T.oldB]);
+  ok(kept.length === 2 && kept.every((k) => k.claimed_at && k.created_at && k.airline && k.period_year && k.period_month && k.lang),
+     '★行・時刻・控えの列は残る（分母が数えられる）', JSON.stringify(kept));
+  ok(Number((await pl(T.open)).gross_monthly) === 54250 && Number((await pl(T.stale)).gross_monthly) === 54250,
+     '★引き取っていない行には触らない（30日を過ぎたものも）');
+  const res = await selfCheck();
+  ok(res.length === 11 && res.every((x) => x['結果'] === '✅'), '★自己点検が11行すべて ✅',
+     res.filter((x) => x['結果'] !== '✅').map((x) => x['見るところ']).join(' | '));
+  await db.exec(SRC);
+  ok(Number((await pl(T.open)).gross_monthly) === 54250 && JSON.stringify(await pl(T.oldA)) === '{}',
+     'もう一度貼っても同じ（冪等）');
+
+  /* 壊す証明：引き取りの口から「中身を消す」1行を外すと、引き取った行に中身が残る
+     ＝ 上の検査（payload が {} になる）と自己点検 10・11 はそれを捕まえる（空振りしていない）。 */
+  const fnStart = SRC.indexOf('create or replace function public.claim_pending_report');
+  const fnEnd = SRC.indexOf('$$;', SRC.indexOf('as $$', fnStart)) + 3;
+  const FN = SRC.slice(fnStart, fnEnd);
+  const BROKEN = FN.replace(/,\s*payload\s*=\s*'\{\}'::jsonb/, () => '');
+  ok(fnStart > 0 && BROKEN !== FN, '（壊す証明の前提）引き取りの口から消す1行を外せた');
+  await db.exec(BROKEN);
+  await db.exec(`set role anon`);
+  const bt = (await pend({ ...PEND, period_month: 6 })).r.claim_token;
+  await db.exec(`reset role`);
+  await asUser(93);
+  const br = (await one(`select claim_pending_report($1) r`, [bt])).r;
+  ok(br.ok === true && JSON.stringify(await pl(bt)) !== '{}',
+     '★壊す証明：消す1行を外すと、引き取った行に中身が残る（上の検査はこれを赤にする）');
+  ok((await mark(10)) === '❌' && (await mark(11)) === '❌',
+     '★壊す証明：自己点検 10（中身が残っている）と 11（古い引き取りの口）も ❌ になる');
+  await db.exec(SRC);                                   // 元に戻す（4-b がこの行の中身も消す）
+  ok(JSON.stringify(await pl(bt)) === '{}' && (await selfCheck()).every((x) => x['結果'] === '✅'),
+     '元のファイルを貼り直すと、その行の中身も消えて自己点検は全部 ✅ に戻る');
+  await db.query(`delete from pay_reports_pending where claim_token in ($1, $2, $3, $4)`, Object.values(T));
+  await db.query(`select set_config('pv.uid', '', false)`);
+}
 
 /* 11) 同じ回線から「同じ会社・同じ月」をもう一度出したら、弾かずに畳む
    2026-09-01、英語版の給与フォームからカンタスのパイロットが12秒差で同じ月を2回出し、

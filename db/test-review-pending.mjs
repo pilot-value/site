@@ -216,6 +216,12 @@ console.log('\n▼ 3. 流れるカード（pv_vote_latest）は12件・80字・�
 console.log('\n▼ 4. 引き取る（ログインした人）');
 // ════════════════════════════════════════════════════════════
 const claim = async (t) => (await one(`select public.claim_review_pending($1) r`, [t])).r;
+/* 預かり1行のうち、残す7列（行・預かり証・時刻・回線の控え・航空会社・言語）以外で値の入っているもの。
+   列を名指しせず「残す7列のほか全部」を見る ── 表に列が増えて消し忘れても、ここが {} でなくなる。 */
+const KEEP = ['id', 'claim_token', 'created_at', 'claimed_at', 'ip_day_hash', 'airline', 'orig_lang'];
+const leftover = async (t) => (await one(
+  `select jsonb_strip_nulls(to_jsonb(q) - array[${KEEP.map((k) => `'${k}'`).join(', ')}]) j
+     from public.pv_review_pending q where claim_token = $1`, [t])).j;
 {
   await asAnon();
   ok((await boom(`select public.claim_review_pending($1)`, [T1])) !== null, '未ログインは引き取れない');
@@ -233,8 +239,19 @@ const claim = async (t) => (await one(`select public.claim_review_pending($1) r`
   const WANT = ['預かりの口コミです。', '給与の話です。', '勤務の話です。'].reduce((t, hd) => t + body(hd).length, 0);
   ok(L.filter((x) => x.pending === true && x.airline === 'ana').length === 0 && L.filter((x) => x.airline === 'ana' && x.n === WANT).length === 1,
      '★引き取ったあと、一覧に2回出ない（預かりの行は消え、口コミの行が1つ）');
+  /* ★2026-11-10 オーナー決定：引き取ったら預かりの中身はその場で消す。行と控えは残す。 */
+  await asOwner();
+  ok(r.position === 'fo', '引き取りの返りの職位は、消す前の中身から（今までどおり）', J(r));
+  ok(J(await leftover(T1)) === '{}', '★引き取ったら、預かりの中身（職位〜点〜本文）は全部空になる', J(await leftover(T1)).slice(0, 160));
+  const kept = await one(`select id, claim_token, created_at, claimed_at, airline, orig_lang from public.pv_review_pending where claim_token = $1`, [T1]);
+  ok(kept && kept.id && kept.claim_token === T1 && kept.created_at && kept.claimed_at && kept.airline === 'ana' && kept.orig_lang === 'ja',
+     '★行・預かり証・時刻・航空会社・言語は残る（出したのに登録しなかった人を数えるため）', J(kept));
+  const mine = await one(`select * from public.reviews_v2 where proof_hash = $1`, [h]);
+  ok(mine && String(mine.culture_comment).includes(MARK) && String(mine.wlb_comment).includes(MARK)
+       && mine.culture_score === 4 && mine.training_score === 5 && mine.position === 'fo' && mine.fleet === 'a320',
+     '★本人の口コミ（reviews_v2）は中身ごと入ったまま（消したのは預かりの写しだけ）');
   await asUser(2);
-  ok((await claim(T1)).reason === 'already_claimed', 'もう一度引き取ろうとすると「済み」');
+  ok((await claim(T1)).reason === 'already_claimed', '★中身を消したあとも、もう一度引き取ろうとすると「済み」（「無い」にならない）');
   ok((await claim('0'.repeat(48))).reason === 'not_found', '知らない預かり証は「無い」');
   // 30日を過ぎた預かり
   await asAnon();
@@ -242,6 +259,9 @@ const claim = async (t) => (await one(`select public.claim_review_pending($1) r`
   await asOwner(); await db.query(`update public.pv_review_pending set created_at = now() - interval '31 days' where claim_token = $1`, [old.claim_token]);
   await asUser(2);
   ok((await claim(old.claim_token)).reason === 'expired', '30日を過ぎた預かりは「切れた」');
+  await asOwner();
+  ok(J(await leftover(old.claim_token)) !== '{}' && String((await leftover(old.claim_token)).culture_comment).includes(MARK),
+     '★30日を過ぎて引き取れなかった預かりは、中身も消さない（消すのは引き取った行だけ）');
   // 同じ会社の口コミがもうある人（1 さん は ana に出している）
   await asOwner();
   const h1 = (await one(`select public.pv_review_hash($1::uuid,'ana') h`, [uid(1)])).h;
@@ -253,6 +273,10 @@ const claim = async (t) => (await one(`select public.claim_review_pending($1) r`
   await asOwner();
   const n1 = (await one(`select count(*)::int n from public.reviews_v2 where proof_hash = $1`, [h1])).n;
   ok(d.ok === true && d.dup === true && n1 === 1, '★同じ会社の口コミがもうある人は、入れずに「引き取り済み」（1社1件）', J(d));
+  ok(J(await leftover(dupT)) === '{}' && (await one(`select claimed_at from public.pv_review_pending where claim_token = $1`, [dupT])).claimed_at,
+     '★入れなかった（dup）預かりも引き取り済み ＝ 中身は消える');
+  ok(String((await one(`select culture_comment from public.reviews_v2 where proof_hash = $1`, [h1])).culture_comment).includes('1さんの口コミ。'),
+     '先に出してあった本人の口コミはそのまま（dup で上書きしない）');
 }
 
 // ════════════════════════════════════════════════════════════
@@ -269,6 +293,72 @@ console.log('\n▼ 5. 同じ回線から1日5件まで・同じ会社は畳む')
   const c = await submit(good('skymark', { wlb_comment: body('もう一度。') }));
   ok(c.claim_token === a.claim_token, '上限に達していても、同じ会社の書き直しは畳んで受ける');
   await ip('');
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 6. 既に引き取ってあった行の中身を1回で消す（2026-11-10）・壊す証明');
+// ════════════════════════════════════════════════════════════
+{
+  const SRC = read('db/review-pending.sql');
+  const selfCheck = async () => (await db.query(SRC.slice(SRC.lastIndexOf('select n as "#"')))).rows;
+  const mark = async (n) => ((await selfCheck()).find((x) => Number(x['#']) === n) || {})['結果'];
+  await asOwner();
+  // 変更より前に引き取られた行（中身つき）＝ 本番に今ある形
+  const OLD = ['cleanup-old-claimed-a-00000', 'cleanup-old-claimed-b-00000'];
+  for (const [i, t] of OLD.entries()) {
+    await db.query(`insert into public.pv_review_pending(claim_token, airline, "position", tenure_bucket, age_bucket, fleet,
+                      culture_score, wlb_score, culture_comment, wlb_comment, orig_lang, created_at, claimed_at)
+                    values($1, 'jal', 'cap', '10-15', '40-44', 'b787', 3, 2, $2, $3, 'en',
+                           now() - interval '40 days', now() - interval '39 days')`,
+      [t, body('前に引き取られた口コミ' + i + '。'), body('勤務。')]);
+  }
+  const openToks = (await db.query(`select claim_token from public.pv_review_pending where claimed_at is null`)).rows.map((x) => x.claim_token);
+  const openBefore = await Promise.all(openToks.map(leftover));
+  ok(openToks.length > 0, `（前提）引き取っていない預かりが ${openToks.length} 件ある`);
+  ok((await mark(6)) === '❌', '（前提）中身の残った引き取り済みの行があると、自己点検 6 が ❌ になる');
+  await asAnon(); const listBefore = await list(); const latestBefore = await latest();
+
+  await asOwner(); await db.exec(SRC);                  // オーナーが貼るのと同じ
+  ok(OLD.every(Boolean) && J(await leftover(OLD[0])) === '{}' && J(await leftover(OLD[1])) === '{}',
+     '★貼ると、前に引き取ってあった行の中身が空になる');
+  const kept = (await db.query(`select claimed_at, created_at, airline, orig_lang from public.pv_review_pending
+                                 where claim_token in ($1, $2)`, OLD)).rows;
+  ok(kept.length === 2 && kept.every((k) => k.claimed_at && k.created_at && k.airline === 'jal' && k.orig_lang === 'en'),
+     '★行・時刻・航空会社・言語は残る', J(kept));
+  ok(J(await Promise.all(openToks.map(leftover))) === J(openBefore),
+     '★引き取っていない預かりには1文字も触らない（30日を過ぎたものも）');
+  await asAnon();
+  ok(J(await list()) === J(listBefore) && J(await latest()) === J(latestBefore),
+     '★一覧と Vote の流れるカードは1文字も変わらない（引き取り済みの行はもともと出ていない）');
+  await asOwner();
+  const res = await selfCheck();
+  ok(res.length === 7 && res.every((x) => x['結果'] === '✅'), '★自己点検が7行すべて ✅',
+     res.filter((x) => x['結果'] !== '✅').map((x) => x['見るところ']).join(' | '));
+  await db.exec(SRC);
+  ok(J(await Promise.all(openToks.map(leftover))) === J(openBefore) && J(await leftover(OLD[0])) === '{}',
+     'もう一度貼っても同じ（冪等）');
+
+  /* 壊す証明：引き取りの口から「中身を消す」列を外すと、引き取った行に中身が残る
+     ＝ 上の検査（leftover が {}）と自己点検 6・7 はそれを捕まえる（空振りしていない）。 */
+  const fnStart = SRC.indexOf('create or replace function public.claim_review_pending');
+  const fnEnd = SRC.indexOf('$$;', SRC.indexOf('as $$', fnStart)) + 3;
+  const FN = SRC.slice(fnStart, fnEnd);
+  const BROKEN = FN.replace(/(set claimed_at\s*=\s*now\(\)),[\s\S]*?mgmt_comment\s*=\s*null/, (m, keep) => keep);
+  ok(fnStart > 0 && BROKEN !== FN, '（壊す証明の前提）引き取りの口から中身を消す列を外せた');
+  await db.exec(BROKEN);
+  await mkUser(3);
+  await asAnon();
+  const bt = (await submit(good('zipair', { culture_comment: body('壊す証明の口コミ。') }))).claim_token;
+  await asUser(3);
+  const br = await claim(bt);
+  await asOwner();
+  ok(br.ok === true && !br.dup && String((await leftover(bt)).culture_comment || '').includes('壊す証明の口コミ。'),
+     '★壊す証明：消す列を外すと、引き取った行に中身が残る（上の検査はこれを赤にする）', J(br));
+  ok((await mark(6)) === '❌' && (await mark(7)) === '❌',
+     '★壊す証明：自己点検 6（中身が残っている）と 7（古い引き取りの口）も ❌ になる');
+  await db.exec(SRC);                                   // 元に戻す（3-b がこの行の中身も消す）
+  ok(J(await leftover(bt)) === '{}' && (await selfCheck()).every((x) => x['結果'] === '✅'),
+     '元のファイルを貼り直すと、その行の中身も消えて自己点検は全部 ✅ に戻る');
 }
 
 await asOwner();

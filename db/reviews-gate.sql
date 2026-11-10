@@ -170,6 +170,7 @@ create table if not exists public.pv_review_pending (
   -- 預かり証（サーバが作る）。これを持つ人だけが、あとで自分の口コミにできる。
   claim_token      text not null unique,
   -- 本人の口コミへ移した時刻。移したあとも行は残す（出したのに登録しなかった人を数えるため）。
+  -- ★ただし中身（職位〜本文）は移したときに消す（2026-11-10・db/review-pending.sql の claim_review_pending）。
   claimed_at       timestamptz,
   -- 荒らし避けの計数用。IP そのものは持たない（db/pay-report-pending.sql の説明と同じ）。
   ip_day_hash      text,

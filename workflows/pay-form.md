@@ -29,7 +29,10 @@
   消したあと profiles の件数・最新の対象月・継続を**残りの本人の行（会社をまたいで全部）**から作り直す。
   **最後の1件を消したら REAL PAY を閉じる**（access_until → null・オーナー決定）＝画面は端末の `pv_salary_unlock_expiry` も消す。残りがあれば鍵はそのまま。
   ⚠️ 1日の上限の数え（`pay_reports_today`）は戻さない（消して出し直すで上限を抜けさせない）。⚠️ 継続の数え方は submit の4つの枝の写し（`pv_pay_streak_of`・検算10）。
-  ⚠️ 匿名で預かってから引き取った給与は、預かりの表（`pay_reports_pending`）に引き取り済みの写しが残る（持ち主の印が無いので、本人の削除では辿れない）。
+  ★匿名で預かってから引き取った給与は、引き取ったその場で預かりの表（`pay_reports_pending`）の中身（`payload`）を `'{}'` にする（2026-11-10 オーナー決定）。
+  残るのは行・預かり証・時刻・控えの列（airline / period_* / lang / ip_day_hash）だけ＝本人の削除で辿れない金額の写しを DB に残さない
+  （⚠️ 毎日の書き出しの古い版には、消す前の中身が残っている）。
+  行を残すのは `db/usage.mjs` の分母と、再試行への `already_claimed` のため。既に引き取ってあった行は `db/pay-report-pending.sql` の 4-b が1回で消す。
   ★2026-11-09 オーナー「二択に行くから編集できない。最後のまとめの一覧に飛んで、そこから編集させればいい」。
   フォームは `my_pay_report_one`（**db/pay-edit.sql**・本人の行だけ・pay-reports.sql の後に貼る）でその月の1行を引き、
   `editForm`（buildPayload の逆）→ `restoreInto`（上書きの形）で全部の欄に戻し、**確認の段から始める**（`loadEdit`。預かりを戻す手順と同じ

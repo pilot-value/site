@@ -30,6 +30,13 @@
 --     （通らないと「受け取りました → 登録した → 入っていない」になる）
 --  4. 預かった時点では何も返さない（金額も統計も）。
 --     返してしまうと、登録せずに比較結果だけ持ち帰れて、登録する理由が消える。
+--  5. ★引き取ったら、預かりの中身（payload）はその場で消す（2026-11-10 オーナー決定）。
+--     中身は本棚（会員の行）へ移ったので、ここに写しを残す理由が無い。
+--     行そのもの・預かり証・時刻・控えの列（airline / period_* / lang / ip_day_hash）は残す ──
+--       ・「出したのに会員にならなかった人」の分母（db/usage.mjs）が created_at / claimed_at から数える
+--       ・同じ預かり証の再試行に already_claimed と答えるため（行が無いと not_found ＝ 2重の行の事故）
+--     ⚠️ 引き取っていない行（30日を過ぎたものも）は消さない。消すのは引き取った行だけ。
+--     既に引き取ってあった行は、このファイルの 4-b が1回で消す（何度流しても同じ）。
 -- ════════════════════════════════════════════════════════════════
 
 do $$
@@ -71,6 +78,7 @@ create table if not exists public.pay_reports_pending (
   -- 本棚（pay_reports）へ移した時刻。移したあとも行は残す
   -- ＝「出したのに会員にならなかった人が何人いるか」がこの事業の要の数字なので、
   --   移した瞬間に消すと、その分母が永久に分からなくなる。
+  -- ★ただし中身（payload）は移した瞬間に '{}' にする（2026-11-10・上の約束 5）。
   claimed_at  timestamptz,
 
   -- 荒らし避けの計数用。IP そのものは持たない（下の comment を読むこと）。
@@ -87,7 +95,8 @@ comment on column public.pay_reports_pending.ip_day_hash is
   '訪問者の一覧にはならない」ことだけで、それ以上を主張しない。'
   '日付を混ぜてあるので、日をまたぐと同じ人でも別の値になる（追跡には使えない）。';
 comment on column public.pay_reports_pending.claimed_at is
-  '本棚へ移した時刻。移した行も消さない（出したのに会員にならなかった人を数えるため）。';
+  '本棚へ移した時刻。移した行も消さない（出したのに会員にならなかった人を数えるため）。'
+  '中身（payload）は移したときに ''{}'' にする（2026-11-10）。';
 
 create index if not exists pay_reports_pending_unclaimed_idx
   on public.pay_reports_pending (created_at) where claimed_at is null;
@@ -304,12 +313,17 @@ begin
 
   v_res := public.submit_pay_report(v_row.payload);
 
+  /* ★移せたら、同じ1回の更新で中身を消す（2026-11-10 オーナー決定）。
+       本棚入れが落ちれば例外でここまで来ない＝中身は消えずに残る（1トランザクション）。
+       行・預かり証・時刻・控えの列は残す（分母と already_claimed のため。上の約束 5）。 */
   update public.pay_reports_pending
-     set claimed_at = now()
+     set claimed_at = now(),
+         payload    = '{}'::jsonb
    where id = v_row.id;
 
   -- payload も返す。Google から戻った直後はフォームが空なので、
   -- これが無いと「保存はされたのにレポートが描けない」になる。
+  -- ★v_row は消す前に読んだ写し（表の中身はもう '{}'）。
   return v_res || jsonb_build_object('payload', v_row.payload);
 end;
 $$;
@@ -319,11 +333,25 @@ grant execute on function public.claim_pending_report(text) to authenticated;
 
 
 -- ════════════════════════════════════════════════════════════════
+-- 4-b. 既に引き取ってあった行の中身を消す（2026-11-10 オーナー決定・1回きり）
+--
+-- 上の claim_pending_report は、これから引き取る行の中身を消す。
+-- それより前に引き取られた行は中身を持ったままなので、ここで1回だけ消す。
+-- ★何度流しても同じ（中身の残っている引き取り済みの行にしか当たらない）。
+-- ⚠️ 引き取っていない行には触らない（30日を過ぎたものも）。
+-- ════════════════════════════════════════════════════════════════
+update public.pay_reports_pending
+   set payload = '{}'::jsonb
+ where claimed_at is not null
+   and payload <> '{}'::jsonb;
+
+
+-- ════════════════════════════════════════════════════════════════
 -- 5. 自己点検（読むだけ。何も書き換えない）
 --
 -- ★1本の SELECT にしてある。Supabase の SQL Editor は複数文を流すと
 --   最後の1本の結果しか出さないので、分けて書くと上から順に消えていく。
--- 期待：9行すべて ✅。1つでも ❌ なら、そこが効いていない。
+-- 期待：11行すべて ✅。1つでも ❌ なら、そこが効いていない。
 --
 -- 特に 2 と 9 は「静かに壊れる」種類のもの。ポリシーを1本足しただけで
 -- 未確定の給与データが誰でも読めるようになり、置き場が公開の中央値に
@@ -373,5 +401,15 @@ from (
   select 9, '公開する中央値は置き場を1行も見ていない',
          case when bench is null then false
               else pg_get_viewdef(bench) not like '%pay_reports_pending%' end from f
+  union all
+  -- 2026-11-10。引き取った行は中身を持たない（行と控えの列は残る）。
+  select 10, '引き取った行に中身（payload）が残っていない',
+         case when tbl is null then false
+              else not exists (select 1 from public.pay_reports_pending q
+                                where q.claimed_at is not null and q.payload <> '{}'::jsonb) end from f
+  union all
+  select 11, '引き取りの口が、移したその場で中身を消す（新しい claim_pending_report）',
+         case when claim is null then false
+              else pg_get_functiondef(claim) ~ 'payload\s*=\s*''\{\}''::jsonb' end from f
 ) t
 order by n;
