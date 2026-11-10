@@ -249,8 +249,8 @@ console.log('\n▼ 1. 権限（誰が何をできるか）');
 
   const chk = (await db.query(CONTRIB_SQL.slice(CONTRIB_SQL.lastIndexOf('\nselect (select count(*) from pg_policies')))).rows[0];
   const vals = Object.entries(chk);
-  ok(vals.length === 10 && Number(vals[0][1]) === 0 && vals.slice(1).every(([, v]) => v === true),
-    '末尾の検算：ポリシー数 0・残り9つが全部 true', J(chk));
+  ok(vals.length === 11 && Number(vals[0][1]) === 0 && vals.slice(1).every(([, v]) => v === true),
+    '末尾の検算：ポリシー数 0・残り10個が全部 true', J(chk));
 }
 
 
@@ -2142,6 +2142,10 @@ console.log('\n▼ 8-3. 他人の回答の集計（立場ごとに何が返る�
   const truth = await many(`select question_id, n from public.airline_condition_facts where airline = $1`, [A_FACT]);
   const nOf = Object.fromEntries(truth.map((t) => [t.question_id, Number(t.n)]));
   const ids = (r) => (Array.isArray(r && r.facts) ? r.facts.map((f) => f.question_id).sort().join(',') : '（facts が無い）');
+  /* 開いていない人への返事（2026-11-09 から）＝ ok・state と、3人そろった親の無い質問の id（has）だけ。
+     答え・人数・最多・年月は入らない。会社が無い・質問の指定が変なときは、has は空の並び。 */
+  const shutAs = (state, has) => J({ ok: true, has, state });
+  const S0 = shutAs('login', OPEN4), S1 = shutAs('locked', OPEN4), S0e = shutAs('login', []), S1e = shutAs('locked', []), S2e = shutAs('give', []);
   const fact = (r, id) => (Array.isArray(r && r.facts) ? r.facts : []).find((f) => f.question_id === id);
 
   /* T13（この節のいちばん最後）が比べる「読む前」の姿。読み口を1度も呼ばないうちに取っておく。
@@ -2157,25 +2161,25 @@ console.log('\n▼ 8-3. 他人の回答の集計（立場ごとに何が返る�
 
   // ── T1 未ログイン ──
   const t1 = [J(await facts(ANON, A_FACT, KEYS)), J(await facts(ANON, 'no-such-airline', KEYS)), J(await facts(ANON, 'other', KEYS)), J(await facts(ANON, null, KEYS))];
-  ok(t1.every((x) => x === L0),
-    '★T1 未ログインには、集計は1文字も返らない（在る会社・知らない会社・自由入力の会社・会社なしで、同じ返事。中身は ok と state だけ）', t1.join(' ｜ '));
+  ok(t1[0] === S0 && t1.slice(1).every((x) => x === S0e),
+    '★T1 未ログインには、3人そろった質問の id だけが返る（答え・人数・最多・年月は無い）。知らない会社・自由入力の会社・会社なしでは空の並び', t1.join(' ｜ '));
   const t1x = [J(await facts(ANON)), J(await facts(ANON, A_FACT, 'reserve_duty')), J(await facts(ANON, A_FACT, [])),
                J(await facts(ANON, A_FACT, Array.from({ length: 121 }, (_, i) => 'q' + i)))];
-  ok(t1x.every((x) => x === L0),
-    '   T1 未ログインが、引数なし・質問の指定が字・空の並び・121件 で呼んでも、同じ返事（断りもしない）', t1x.join(' ｜ '));
+  ok(t1x.every((x) => x === S0e),
+    '   T1 未ログインが、引数なし・質問の指定が字・空の並び・121件 で呼んでも、断らずに空の並び', t1x.join(' ｜ '));
 
   // ── T1b ログインが死んでいる人 ──
   const t1b = J(await facts(DEAD, A_FACT, KEYS));
-  ok(t1b === L0, '★T1b ログインが死んでいる人には、未ログインと同じ返事', t1b);
+  ok(t1b === S0, '★T1b ログインが死んでいる人には、未ログインと同じ返事', t1b);
 
   // ── T2 ログインしただけの会員 ──
   const t2 = J(await facts(MEM, A_FACT, KEYS));
-  ok(t2 === L1, '★T2 ログインしただけの会員には、集計は1文字も返らない（集計の一覧そのものが、返事に無い）', t2);
+  ok(t2 === S1, '★T2 ログインしただけの会員には、集計は1文字も返らない（質問の id だけ。集計の一覧そのものが、返事に無い）', t2);
 
   // ── T3 確認済みの印・答えた本人・手で立てた鍵 ──
   const t3 = [J(await facts(PIL, A_FACT, KEYS)), J(await facts(F1, A_FACT, KEYS)), J(await facts(HAND, A_FACT, KEYS))];
   const f1own = ((await mineC(F1, { airline: A_FACT })).answers || []).filter((x) => x.question_id === 'reserve_duty').map((x) => x.code).join(',');
-  ok(t3.every((x) => x === L1) && f1own === 'yes',
+  ok(t3.every((x) => x === S1) && f1own === 'yes',
     `★T3 確認済みパイロットの印の人・答えた本人・鍵を手で立てただけの人（給与の行が無い）も、会員と同じ返事（本人の答えは「自分の回答」の読み口に残っている${hasVL ? '' : '・この器に印の列は無い'}）`,
     t3.join(' ｜ ') + ' ｜ 本人の reserve_duty: ' + f1own);
 
@@ -2197,7 +2201,7 @@ console.log('\n▼ 8-3. 他人の回答の集計（立場ごとに何が返る�
   // ── T5 鍵が切れた → 出し直す ──
   await db.query(`update public.profiles set access_until = now() - interval '1 minute' where id = $1`, [PAYER]);
   const expired = J(await facts(PAYER, A_FACT, KEYS));
-  ok(expired === L1, '★T5 給与の鍵が切れたら、1文字も返らない（鍵の無い会員と同じ返事）', expired);
+  ok(expired === S1, '★T5 給与の鍵が切れたら、集計は1文字も返らない（鍵の無い会員と同じ返事）', expired);
   await paid(PAYER, A_FACT);
   const again = await facts(PAYER, A_FACT, KEYS);
   ok(again.state === 'open' && J(again) === J(payer), '   T5 同じ会社・同じ月の給与を出し直すと、また開く（切れる前と同じ返事）', J(again));
@@ -2210,7 +2214,7 @@ console.log('\n▼ 8-3. 他人の回答の集計（立場ごとに何が返る�
     await db.query(`delete from public.pv_admins where user_id = $1`, [OP]);
     const off = J(await facts(OP, A_FACT, KEYS));
     opIds = ids(op);
-    ok(op.state === 'open' && J(op.facts) === J(payer.facts) && off === L1,
+    ok(op.state === 'open' && J(op.facts) === J(payer.facts) && off === S1,
       '★T6 運営には開く（この会社に給与を出した人と同じ集計）。運営の名簿から外したあとは、会員と同じ返事', J(op) + ' ｜ 名簿から外したあと ' + off);
   } else {
     console.log('  （pv_admins が無い DB：運営の行は見ていない）');
@@ -2226,12 +2230,15 @@ console.log('\n▼ 8-3. 他人の回答の集計（立場ごとに何が返る�
   const three = [fact(await facts(PAYER, A_FACT, KEYS), 'sick_leave'), fact(await facts(GIVE5, A_FACT, KEYS), 'sick_leave')];
   ok(f4.saved === 1 && three.every((f) => f && f.n === 3 && J(f.lead) === J(['days'])),
     '   T7 3人めが答えると、この会社に給与を出した人にも、どの会社も開いている人にも、3人として返る', J(three));
+  const anon5 = J(await facts(ANON, A_FACT, KEYS));
+  ok(anon5 === shutAs('login', KEYS),
+    '★T7 3人めが答えたその場で、未ログインの has にもその質問が入る（書き込みのときに作って置く表が、引き金で作り直される）', anon5);
 
   // ── T7b あと1つの人（give）／ 5つ答えた人 ──
   const g4 = [J(await facts(GIVE4, A_FACT, KEYS)), J(await facts(GIVE4, A_BARE, KEYS)), J(await facts(GIVE4, 'no-such-airline', KEYS)),
               J(await facts(GIVE4, 'other', KEYS)), J(await facts(GIVE4, null, KEYS))];
-  ok(g4.every((x) => x === L2),
-    '★T7b 自分の会社にまだ4つの人には、ほかの会社の集計は1文字も返らない（回答が在る会社・無い会社・知らない会社・自由入力の会社・会社なしで、同じ返事）', g4.join(' ｜ '));
+  ok(g4[0] === shutAs('give', KEYS) && g4.slice(1).every((x) => x === S2e),
+    '★T7b 自分の会社にまだ4つの人には、ほかの会社の集計は1文字も返らない（質問の id だけ。回答が無い会社・知らない会社・自由入力の会社・会社なしでは空の並び）', g4.join(' ｜ '));
   const g5 = J(await facts(GIVE5, A_FACT, KEYS)), own = J(await facts(PAYER, A_FACT, KEYS));
   ok(g5 === own && JSON.parse(g5).state === 'open' && ids(JSON.parse(g5)) === KEYS.join(','),
     '★T7b 自分の会社に5つ答えた人には、ほかの会社の集計が開く（その会社に給与を出した人と、1文字も違わない返事）', g5 + ' ｜ ' + own);
@@ -2365,8 +2372,13 @@ console.log('\n▼ 8-3. 他人の回答の集計（立場ごとに何が返る�
     ok(rows.every(leadOk) && forms.every(Boolean),
       '★T8 lead は null か、字だけの並び（数も、入れ子も入らない ＝ 人数を運べない）。null・空・1つ・2つ の4つの形とも見ている', J({ off: rows.find((f) => !leadOk(f)), forms }));
     ok(rows.length > 0 && rows.every((f) => f && /^\d{4}-\d{2}$/.test(f.ym)), '   T8 ym は YYYY-MM（日も時刻も無い）', J(rows.find((f) => !f || !/^\d{4}-\d{2}$/.test(f.ym))));
-    ok(opens.length > 0 && opens.every((r) => keys(r) === 'facts,ok,state') && shut.length > 0 && shut.every((r) => keys(r) === 'ok,state'),
-      '★T8 開いている人への返事は facts・ok・state だけ。それ以外の返事は ok・state だけ', J([...opens.filter((r) => keys(r) !== 'facts,ok,state'), ...shut.filter((r) => keys(r) !== 'ok,state')].slice(0, 2)));
+    const QID = /^[a-z][a-z0-9_]{0,63}$/;
+    const hasOk = (r) => keys(r) === 'has,ok,state' && Array.isArray(r.has) && r.has.every((x) => typeof x === 'string' && QID.test(x))
+      && J(r.has) === J([...r.has].sort());
+    ok(opens.length > 0 && opens.every((r) => keys(r) === 'facts,ok,state') && shut.length > 0 && shut.every(hasOk)
+       && shut.some((r) => r.has.length > 0),
+      '★T8 開いている人への返事は facts・ok・state だけ。それ以外の返事は has・ok・state だけで、has は質問の id（字）の並びだけ（数も、入れ子も入らない）',
+      J([...opens.filter((r) => keys(r) !== 'facts,ok,state'), ...shut.filter((r) => !hasOk(r))].slice(0, 2)));
   }
 
   // ── T9 引数 ──（開いている人は GIVE5 ＝ どの会社も開く人。PAYER は自分の会社しか開かないので、ここには使えない）
@@ -2389,8 +2401,8 @@ console.log('\n▼ 8-3. 他人の回答の集計（立場ごとに何が返る�
     return out;
   };
   const memArgs = await shutArgs(MEM), giveArgs = await shutArgs(GIVE4);
-  ok(memArgs.length === 8 && memArgs.every((x) => x === L1) && giveArgs.length === 8 && giveArgs.every((x) => x === L2),
-    '★T9 開いていない人（会員・あと1つの人）は、同じ8通りのどれで聞いても、断られずに、いつもの1語だけが返る', J({ 会員: [...new Set(memArgs)], あと1つの人: [...new Set(giveArgs)] }));
+  ok(memArgs.length === 8 && memArgs.every((x) => x === S1e) && giveArgs.length === 8 && giveArgs.every((x) => x === S2e),
+    '★T9 開いていない人（会員・あと1つの人）は、同じ8通りのどれで聞いても、断られずに、いつもの1語と空の並びだけが返る', J({ 会員: [...new Set(memArgs)], あと1つの人: [...new Set(giveArgs)] }));
 
   // ── T10 ビューは直接読めない ──
   const direct = [await call(ANON, 'select * from public.airline_condition_facts limit 1'),
@@ -2439,6 +2451,30 @@ console.log('\n▼ 8-3. 他人の回答の集計（立場ごとに何が返る�
   ok(moved.length === 0 && cards.join(' ') === 'locked locked give open',
     `★T13 集計（pv_contrib_facts）とカードの材料（pv_contrib_give）を何度読んでも、給与の門（pv_my_give）・給与の一覧・給与の鍵の期限${hasVL ? '・確認済みの印' : ''}は1文字も変わらない（答えた人・会員・あと1つの人・開いている人）`,
     J({ 変わった人: moved, カードの材料: cards.join(' ') }));
+
+  /* ── TH 鍵の無い人に返す質問の id（has）── 子の質問は入れない・新しさは書き込みの引き金が守る
+     （T13 のあと：ここで答えを足しても、T13 の「読む前」の姿には触れない） */
+  {
+    const kids = ['reserve_duty', 'reserve_location'];
+    let put2 = (await condM(F4, { airline: A_FACT, answers: [{ question_id: 'reserve_duty', code: 'yes' }] })).saved || 0;
+    for (const who of [F1, F2, F4]) put2 += (await condM(who, { airline: A_FACT, answers: [{ question_id: 'reserve_location', code: 'home' }] })).saved || 0;
+    const openKid = await facts(GIVE5, A_FACT, kids);
+    const shutKid = [await facts(ANON, A_FACT, kids), await facts(MEM, A_FACT, kids), await facts(GIVE4, A_FACT, kids)];
+    ok(put2 === 4 && ids(openKid) === 'reserve_duty,reserve_location' && shutKid.every((r) => J(r.has) === J(['reserve_duty'])),
+      '★TH 子の質問（reserve_location）は、開いている人には返るが、鍵の無い人の has には入らない（子の id を出す ＝ 親に「ある」と答えた人がいると分かる）',
+      J({ put2, 開いている人: ids(openKid), 鍵の無い人: shutKid.map((r) => r.has) }));
+
+    await db.query(`alter table public.airline_conditions disable trigger pv_condition_has_sync`);
+    let put3 = 0;
+    for (const who of [F1, F2, F3]) put3 += (await condM(who, { airline: A_FACT, answers: [{ question_id: 'per_diem', code: 'both' }] })).saved || 0;
+    const stale = await facts(ANON, A_FACT, ['per_diem']);
+    await db.query(`alter table public.airline_conditions enable trigger pv_condition_has_sync`);
+    await db.query(`select public.pv_condition_has_refresh()`);
+    const fresh = await facts(ANON, A_FACT, ['per_diem']);
+    ok(put3 === 3 && J(stale.has) === '[]' && J(fresh.has) === J(['per_diem']),
+      '   TH 壊す証明：書き込みの引き金を外すと、3人そろっても has は古いまま（空）。戻して作り直すと入る ＝ 新しさを守っているのは引き金',
+      J({ put3, 外したとき: stale.has, 戻したあと: fresh.has }));
+  }
 }
 
 

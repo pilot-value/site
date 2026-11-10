@@ -49,6 +49,8 @@
      ・英語は T_EN。鍵も形も T と同じ（assert-career-live.mjs の en-words が見る）。英語のページでだけ、T_EN の下の1行で表を入れ替える。
      ・サーバーへ渡す言葉（口コミの要約の lang）・答えの名前（質問の台帳・職位と機材・会社の名前）も同じ LANG で選ぶ。 */
   var LANG = (window.PV_BASE === 'en' || /^en(-|$)/i.test(d.documentElement.getAttribute('lang') || '')) ? 'en' : 'ja';   // スペイン語のページは英語と同じ動き（pv-session.js）
+  /* 質問の台帳（pv-conditions.json）の字だけは、スペイン語のページで西語を読む（2026-11-09。台帳は3つの言葉を持っている） */
+  var VL = /^es(-|$)/i.test(d.documentElement.getAttribute('lang') || '') ? 'es' : LANG;
 
   var T = {
     loading: '読み込み中',
@@ -757,13 +759,18 @@
         /* 状態の語は4つ。知らない語は、開いているとも0件とも読まない */
         if (x.state !== 'login' && x.state !== 'locked' && x.state !== 'give' && x.state !== 'open') throw fail('error');
         /* 行を持つのは、開いている時の、聞いた質問の分だけ（ほかの状態に行が付いてきても捨てる） */
-        var m = {};
+        var m = {}, has = null;
         if (x.state === 'open') {
           (isArr(x.facts) ? x.facts : []).forEach(function (r) {
             if (r && typeof r.question_id === 'string' && asked[r.question_id] === 1) m[r.question_id] = r;
           });
+        } else if (isArr(x.has)) {
+          /* 開いていない人には、回答が集まった親の無い質問の id だけが来る（2026-11-09。答え・人数・年月は来ない）。
+             聞いた質問の分だけ受け取る。古いサーバーは has を返さない ＝ null のまま（今までの絵） */
+          has = {};
+          x.has.forEach(function (q) { if (typeof q === 'string' && asked[q] === 1) has[q] = 1; });
         }
-        return { state: x.state, map: m, asked: asked };
+        return { state: x.state, map: m, asked: asked, has: has };
       });
     });
   }
@@ -778,16 +785,19 @@
           if (v && typeof v === 'object') return v;
         } catch (e) { /* 下へ */ }
       }
-      /* 名前の鍵は島と同じ ja のまま（中の字はページの言葉 LANG のもの。英語の単位は数と1字あける ── T.unitSp） */
+      /* 名前の鍵は島と同じ ja のまま（中の字はページの言葉 LANG のもの。英語の単位は数と1字あける ── T.unitSp）。
+         short ＝ タイルの見出しの短い名前（2026-11-09。無い台帳では元の疑問文）。
+         スペイン語のページ（VL 'es'）は、台帳の西語（gen-conditions.mjs が訳の辞書から入れる）。無い字は英語のまま */
       return json('pv-conditions.json').then(function (c) {
         var out = {};
+        function tr(o) { return o ? (o[VL] || o[LANG]) : null; }
         ((c && c.questions) || []).forEach(function (q) {
           if (!q || !q.id) return;
-          var o = {};
-          (q.choices || []).forEach(function (ch) { if (ch && ch.code) o[ch.code] = ch[LANG]; });
+          var o = {}, L = (q[VL] && q[VL].label) ? q[VL] : (q[LANG] || {}), u = tr(q.num);
+          (q.choices || []).forEach(function (ch) { if (ch && ch.code) o[ch.code] = tr(ch); });
           out[q.id] = {
-            ja: (q[LANG] && q[LANG].label) || '', kind: q.kind || '',
-            options: o, unit: (q.num && q.num[LANG]) ? T.unitSp + q.num[LANG] : ''
+            ja: L.label || '', short: L.short || L.label || '', kind: q.kind || '',
+            options: o, unit: u ? T.unitSp + u : ''
           };
         });
         return out;
@@ -2774,43 +2784,128 @@
     return w0;
   }
 
+  /* ── 回答のタイル（2026-11-09 オーナー「非常に見づらい」「質問が文字薄い」「AIで作った感・文字の羅列」→ タイル）──
+     1問＝1枚のカード（career-live.css）。上に質問の短い名前（pv-conditions.mjs の short）、下に答え・補足。
+     元の疑問文はカードを押すと開く（details）。子の質問は、いちばん上の親のカードの中に「名前：答え」で1行ずつ。
+     親が出ていない子は「親 › 子」のカード。比較の画面（cmp-facts）は answerNode のまま（このカードを使わない）。 */
+  /* 答えの印（Levels.fyi の福利厚生の一覧と同じ、細い線の ✓）。意味は「ある・ない・一部」だけ（良し悪しではない ──
+     訓練費の Bond が「ある」にも ✓）。数・段階の答え（「4日前」「強く変わる」）には付けない */
+  var MARK = { yes: 'y', always: 'y', regular: 'y', no: 'n', none: 'n', partial: 'p', some_pilots: 'p', conditional: 'p', irregular: 'p' };
+  ICON.no = ['M17 7 7 17', 'M7 7l10 10'];
+  ICON.part = ['M6 12h12'];
+  function markOf(row, voc) {
+    if (!row || !voc || voc.kind !== 'choice' || !isArr(row.lead) || row.lead.length !== 1) return '';
+    return MARK[row.lead[0]] || '';
+  }
+  function subMap(box) {
+    var sub = {};
+    (box.getAttribute('data-sub') || '').split(',').forEach(function (s) {
+      var c = s.split(':');
+      if (c.length === 2 && c[0] && c[1]) sub[c[0]] = c[1];
+    });
+    return sub;
+  }
+  function topOf(k, sub) {
+    var seen = {};
+    while (sub[k] && !seen[k]) { seen[k] = 1; k = sub[k]; }
+    return k;
+  }
+  function tileMeta(ans) {
+    var bits = [];
+    if (!ans.split && ans.how) bits.push(ans.how);
+    if (ans.n) bits.push(T.answered(ans.n));
+    if (ans.when) bits.push(ans.when);
+    return el('span', 'crl-tile-m', bits.join(' · '));
+  }
+  /* 答え。印のある答えは、細い線の印と答えを同じ色で並べる（Flighty の「On Time」のように、色で一目で分かる） */
+  function tileValue(r, mk) {
+    var v = el('span', 'crl-tile-v');
+    if (r.ans.split) v.setAttribute('data-split', '1');
+    if (mk) v.appendChild(icon(mk === 'y' ? 'check' : mk === 'n' ? 'no' : 'part', 20));
+    v.appendChild(el('span', '', r.ans.text));
+    return v;
+  }
+  function tileShell(label, mk) {
+    var t = el('details', 'crl-tile'), s = el('summary', 'crl-tile-sum');
+    if (mk) t.setAttribute('data-mark', mk);
+    s.appendChild(el('span', 'crl-tile-k', label));
+    t.appendChild(s);
+    return { t: t, s: s, q: el('div', 'crl-tile-q') };
+  }
+  /* 開いている人のタイル（g ＝ いちばん上の親ごとの、答えのある質問の並び） */
+  function openTile(g, V) {
+    var head = g.rows[0].k === g.top ? g.rows[0] : g.rows[0];
+    var label = head.k === g.top ? V[g.top].short : ((V[g.top] && V[g.top].short) ? V[g.top].short + ' › ' : '') + V[head.k].short;
+    var mk = head.ans.split ? '' : markOf(head.row, V[head.k]);
+    var x = tileShell(label, mk);
+    x.s.appendChild(tileValue(head, mk));
+    x.s.appendChild(tileMeta(head.ans));
+    x.q.appendChild(el('p', 'crl-tile-qt', V[head.k].ja));
+    g.rows.forEach(function (r) {
+      if (r === head) return;
+      var line = el('span', 'crl-tile-s');
+      line.appendChild(el('b', '', V[r.k].short));
+      line.appendChild(el('span', '', r.ans.text));
+      x.s.appendChild(line);
+      var p = el('p', 'crl-tile-qt', V[r.k].ja);
+      p.appendChild(el('span', 'crl-tile-qa', r.ans.text + ' · ' + tileMeta(r.ans).textContent));
+      x.q.appendChild(p);
+    });
+    x.t.appendChild(x.q);
+    return x.t;
+  }
+  /* 鍵の無い人のタイル：見出しと元の疑問文は本物の字、答えの所は字の無い影絵（何も届いていない） */
+  function maskTile(voc) {
+    var x = tileShell(voc.short);
+    var g = ghost('ans');
+    g.appendChild(el('i', 'crl-gh-a'));
+    g.appendChild(el('i', 'crl-gh-m'));
+    x.s.appendChild(g);
+    x.q.appendChild(el('p', 'crl-tile-qt', voc.ja));
+    x.t.appendChild(x.q);
+    return x.t;
+  }
+  /* 勤務・訓練の4枚のカードの入口：ログイン → 給与の提出 の2つだけ（答えるカードは月の勤務の欄の1枚だけ） */
+  var SF_ENTRY = { getAttribute: function (n) { return n === 'data-entry' ? 'login pay' : null; } };
+
   KIND.fact = function (box, ids) {
     var keys = keysOf(box), slug = ids[0];
     if (!keys.length) return Promise.reject(fail('error'));
     return Promise.all([facts(slug), vocab()]).then(function (a) {
-      var F = a[0], V = a[1], list = el('div', 'crl-facts'), n = 0, sub = {}, shown = {};
-      (box.getAttribute('data-sub') || '').split(',').forEach(function (s) {
-        var c = s.split(':');
-        if (c.length === 2 && c[0] && c[1]) sub[c[0]] = c[1];
-      });
-      /* 親の行が出ていない子には、親の質問の字だけを上に置く（値は書かない。子の字だけでは何の話か分からない） */
-      function ctx(k) {
-        var p = sub[k];
-        if (!p || shown[p] === 1 || !V[p] || !V[p].ja) return;
-        ctx(p);
-        var c = el('div', sub[p] ? 'crl-fact is-sub is-ctx' : 'crl-fact is-ctx');
-        c.appendChild(el('span', 'crl-fact-k', V[p].ja));
-        list.appendChild(c);
-        shown[p] = 1;
-      }
+      var F = a[0], V = a[1], sub = subMap(box);
       /* この欄の質問を聞いていない答えでは描かない（0件とも鍵とも言えない） */
       if (keys.some(function (k) { return F.asked[k] !== 1; })) throw fail('error');
-      /* 鍵の文を繰り返さない欄（data-quiet）。開いていないとサーバーが言ったとき（未ログイン・給与の鍵が無い・
-         自分の会社への回答がまだ足りない）は、何も描かない。同じ文は、同じ板の月の勤務の欄が1回だけ言う
-         （入口もカードもそこに1つ）。読めない・準備中の時はここを通らない */
-      if (F.state !== 'open' && box.getAttribute('data-quiet') === '1') return view('locked', []);
-      if (F.state !== 'open') return lockView(F.state, slug, box, null);
+      if (F.state !== 'open') {
+        /* 古いサーバー（has を返さない）：今までの絵 ── 鍵の文を繰り返さない欄（data-quiet）は何も描かない
+           （同じ文は月の勤務の欄が1回だけ言う）。ほかは鍵の1行と入口 */
+        if (!F.has) {
+          if (box.getAttribute('data-quiet') === '1') return view('locked', []);
+          return lockView(F.state, slug, box, null);
+        }
+        /* 回答が集まった質問の字だけをタイルにし、答えの所は影絵（2026-11-09 オーナー「質問をみせて、回答はぼかす」）。
+           子の質問は出さない（サーバーも返さない）。集まった質問が無ければ、開いている人と同じ「まだ集計がありません」 */
+        var shown = keys.filter(function (k) { return F.has[k] === 1 && !sub[k] && V[k] && V[k].short; });
+        if (!shown.length) return view('empty', [msg(T.factEmpty)]);
+        var grid = el('div', 'crl-tiles');
+        shown.forEach(function (k) { grid.appendChild(maskTile(V[k])); });
+        return Promise.resolve(lockView(F.state, slug, box.getAttribute('data-sf') ? SF_ENTRY : box, grid))
+          .then(function (v) { v.state = 'masked'; return v; });
+      }
+      var groups = [], byTop = {};
       keys.forEach(function (k) {
         var ans = answer(F.map[k], V[k]);
         if (!ans) return;
-        ctx(k);
-        var r = el('div', sub[k] ? 'crl-fact is-sub' : 'crl-fact');
-        r.appendChild(el('span', 'crl-fact-k', V[k].ja || ''));
-        r.appendChild(answerNode(ans));
-        list.appendChild(r);
-        shown[k] = 1; n++;
+        var top = topOf(k, sub), g = byTop[top];
+        if (!g) { g = byTop[top] = { top: top, rows: [] }; groups.push(g); }
+        g.rows.push({ k: k, ans: ans, row: F.map[k] });
       });
-      return n ? view('open', [list]) : view('empty', [msg(T.factEmpty)]);
+      if (!groups.length) return view('empty', [msg(T.factEmpty)]);
+      groups.forEach(function (g) {   // 親の行を先頭に（台帳の順は親が先だが、念のため）
+        g.rows.sort(function (x, y) { return (x.k === g.top ? 0 : 1) - (y.k === g.top ? 0 : 1); });
+      });
+      var grid = el('div', 'crl-tiles');
+      groups.forEach(function (g) { grid.appendChild(openTile(g, V)); });
+      return view('open', [grid]);
     });
   };
 

@@ -337,13 +337,40 @@
 /* 「同じ条件で開きます」は、月の勤務の欄が鍵の文を出しているあいだだけ */
 .crl[data-live="work"]:not([data-state="locked"]) + .pvg-sf-scope{display:none}
 .pvg-sfs:has(.crl[data-live="fact"][data-quiet="1"][data-state="off"]) .pvg-sf-scope{display:none}   /* 集計の欄が「準備中」のあいだも出さない（開くものがまだ無い） */
+/* 2026-11-09：各カードが回答のタイルの下で自分で鍵の1行を言うようになった。この1行は、古いサーバー（質問の id を返さない）で
+   カードが何も描かない（locked）あいだだけ出す */
+.pvg-sfs:not(:has(.crl[data-live="fact"][data-quiet="1"][data-state="locked"])) .pvg-sf-scope{display:none}
+/* ── 勤務・訓練のカードと待遇の欄（2026-11-09 オーナー「文字の羅列」「AI感」→「カード式は良かった。文字の大きさとか微妙。高級感ほしい」）──
+   「会社が公表している条件」も、回答と同じ白いカード（career-live.css の .crl-tile と同じ物差し）。
+   字は3段（名前 14px・中身 18px 太字・前提 13px）。
+   2026-11-10 オーナー：面の灰色の段は「いまいち」→ 面は白のまま、カードを「すごく薄い緑の線」で囲う（明細アップロードの枠を控えめにした形）。
+   線は灰に緑がわずかに混ざる程度・上の端だけごく淡い緑・影なし（オーナー「緑OK」）。PC でも1枚ずつ横いっぱいに積む。
+   一覧は「会社が公表している条件」（.pvg-sf-pub）と待遇の欄（#pvg-p-benefits）だけ。募集・給与の明細の一覧（同じ .pvg-dl）は今のまま。 */
+.pvg-sf{container:pvgsf / inline-size;padding:22px 22px 18px;background:var(--pv-surface)}
+@media (max-width:480px){.pvg-sf{padding:16px 14px 14px}}   /* 狭い画面は横の余白を元の 14px に（月の勤務の数字「200〜300」が幅 320 で切れないように） */
+.pvg-sf .pvg-sf-h{gap:10px;margin-bottom:4px}
+.pvg-sf .pvg-sf-i svg{width:20px;height:20px}
+.pvg-sf .pvg-sf-t{font-size:19px;font-weight:600}
+.pvg-sf-pub > .pvg-askh,.pvg-sf-got > .pvg-askh{margin:20px 0 10px!important;font-size:14px;font-weight:600;letter-spacing:.02em;color:var(--pv-ink-2)}
+#pvg-p-benefits[data-pvg-pane]{container:pvgben / inline-size}
+.pvg-sf-pub > .pvg-dl,#pvg-p-benefits .pvg-dl{grid-template-columns:minmax(0,1fr);gap:12px}
+@container pvgsf (min-width:460px){.pvg-sf-pub > .pvg-dl{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@container pvgsf (min-width:780px){.pvg-sf-pub > .pvg-dl{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@container pvgben (min-width:460px){#pvg-p-benefits .pvg-dl{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@container pvgben (min-width:780px){#pvg-p-benefits .pvg-dl{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.pvg-sf-pub > .pvg-dl > div,#pvg-p-benefits .pvg-dl > div{display:flex;flex-direction:column;gap:6px;padding:18px 20px;
+  border:1px solid color-mix(in srgb,var(--pv-accent-line) 50%,var(--pv-line-soft));border-radius:14px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--pv-accent-soft) 28%,var(--pv-surface)) 0,var(--pv-surface) 64px)}
+.pvg-sf-pub .pvg-dl dt,#pvg-p-benefits .pvg-dl dt{font-size:14px;font-weight:600;line-height:1.5;letter-spacing:.01em;color:var(--pv-ink-2)}
+.pvg-sf-pub .pvg-dl dd,#pvg-p-benefits .pvg-dl dd{margin:0}
+.pvg-sf-pub .pvg-dl dd b,#pvg-p-benefits .pvg-dl dd b{font-size:18px;font-weight:700;line-height:1.45;letter-spacing:-.005em;color:var(--pv-ink)}
+.pvg-sf-pub .pvg-dl dd small:not(.pvg-yen),#pvg-p-benefits .pvg-dl dd small:not(.pvg-yen){margin-top:6px;font-size:13px;line-height:1.5}
+.pvg-sf-add{margin:18px 0 0!important;font-size:14px}
 /* 集計の欄が黙っているあいだは、その見出しも出さない（空の見出しを残さない） */
 .pvg-sf-got:has(> .crl[data-live="fact"][data-quiet="1"][data-state="locked"]) > .pvg-askh{display:none}
 .pvg-moved{display:flex;flex-wrap:wrap;align-items:center;gap:0 12px;margin:0 0 10px!important}
-@container pvg (min-width:860px){
-  .pvg-sfs{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
-  .pvg-sf[data-sf="month"]{grid-column:1 / -1}
-}
+/* 2026-11-09：PC でも2列に並べない（カードの高さがそろわず空白ができ、読む順も分かりにくかった）。1枚ずつ横いっぱいに積み、
+   中の一覧を2〜3列にする（Levels.fyi の福利厚生の一覧と同じ組み方） */
 
 /* ── 暮らし：街の写真カード（写真 → 街の名前 → 家賃 → 空港 → 詳細）──
    ・段の数はカードの数に合わせる（箱の幅が許すのは 2／3／4／5 段まで。数は生成側が --tg-a〜d に書く）。
@@ -874,6 +901,17 @@
 .pvg-got{margin-top:12px}
 .pvg-got > .pvg-askh{margin:0 0 6px!important}
 .pvg-got .crl{font-size:13px}
+/* 概要の「集まった回答」は、ひとつ教えての札の中の一覧 ── 勤務・訓練タブと同じカードを、字を一段小さくして詰めて並べる（スマホでも2列） */
+.pvg-got .crl-tiles{gap:8px}
+@container crlfact (min-width:300px){.pvg-got .crl-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@container crlfact (min-width:620px){.pvg-got .crl-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@container crlfact (min-width:880px){.pvg-got .crl-tiles{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.pvg-got .crl-tile-sum{row-gap:4px;padding:12px 14px}
+.pvg-got .crl-tile-k{font-size:13px}
+.pvg-got .crl-tile-v{gap:5px;font-size:16px}
+.pvg-got .crl-tile-m{font-size:12px}
+.pvg-got .crl-tile-s{font-size:13px}
+.pvg-got .crl-tile-q{padding:0 14px 12px}
 .pvg-got .crl-fact:last-child{border-bottom:0}
 /* 質問の行は、話題の札より一段軽く（枠なし・細い字・行のあいだに細い線）。話題の名前が先に目に入るように。
    ⚠️ 触れた時の地と枠は、ここで言い直す（上の行が .pvg-ask a:hover と同じ強さで後ろに在るので、言い直さないと黙って消える）。

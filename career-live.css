@@ -488,6 +488,53 @@ a.crl-sum-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:-4px
 .crl-ans-v{font-size:15px;font-weight:700;color:var(--pv-ink);overflow-wrap:anywhere}
 .crl-ans-m{display:inline-flex;flex-wrap:wrap;gap:0 8px;font-size:12px;color:var(--pv-ink-3)}
 .crl-how{font-weight:700;color:var(--pv-ink-2)}
+/* ── 回答のカード（2026-11-09 オーナー「非常に見づらい」「文字の羅列」「AI感」→「カード式は良かった。文字の大きさとか微妙。
+   チェックも Levels.fyi を真似して高級感ほしい」→「カードが単一の白だから？ 文字の大きさや色でどうにかならない？ 給与サイト以外も参考に」）──
+   ・面に段をつける（Stripe）：カードの面（.pvg-sf）は薄い灰、その上に白いカードを浮かせる。白の上に白を置かない。
+   ・答えは色で読ませる（Flighty の「On Time」が緑・「late」が赤）：ある＝緑・ない＝灰・一部＝金。細い線の印（Levels.fyi の ✓）を答えの左に同じ色で。
+     意味は「ある・ない・一部」だけ（良し悪しではない ── 訓練費の Bond が「ある」にも ✓）。数・段階の答え（「4日前」）は色も印も付けない。
+   ・字は3段：名前 14px（灰の濃いめ・やや太い）→ 答え 20px（太め）→ 補足 13px（灰）。太すぎる字（800）は使わない。
+   ・列は欄の幅で決める：1列（iPhone）→ 2列 → 3列（PC）。会社が公表している条件のカード（pv-glance.css）と同じ物差し。 */
+.crl[data-live="fact"]{container:crlfact / inline-size}
+.crl-tiles{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+@container crlfact (min-width:460px){.crl-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@container crlfact (min-width:780px){.crl-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
+/* 薄い緑の線で囲う・上の端だけごく淡い緑・影なし（pv-glance.css の「会社が公表している条件」のカードと同じ物差し） */
+.crl-tile{min-width:0;border:1px solid color-mix(in srgb,var(--pv-accent-line) 50%,var(--pv-line-soft));border-radius:14px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--pv-accent-soft) 28%,var(--pv-surface)) 0,var(--pv-surface) 64px)}
+.crl-tile-sum{display:grid;grid-template-columns:minmax(0,1fr);align-content:start;row-gap:6px;height:100%;padding:18px 20px;border-radius:14px;cursor:pointer;list-style:none}
+.crl-tile-sum::-webkit-details-marker{display:none}
+.crl-tile-sum:hover{background:color-mix(in srgb,var(--pv-accent-soft) 35%,transparent)}
+.crl-tile-sum:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.crl-tile-sum:active{background:color-mix(in srgb,var(--pv-accent-soft) 60%,transparent)}
+.crl-tile[open] .crl-tile-sum{border-radius:14px 14px 0 0}
+.crl-tile-k{font-size:14px;font-weight:600;line-height:1.5;letter-spacing:.01em;color:var(--pv-ink-2);overflow-wrap:anywhere}
+.crl-tile-v{display:flex;align-items:flex-start;gap:7px;min-width:0;font-size:20px;font-weight:700;line-height:1.35;letter-spacing:-.01em;color:var(--pv-ink);overflow-wrap:anywhere}
+.crl-tile-v .crl-ic{flex:none;width:1em;height:1em;margin-top:.175em;stroke-width:2.4}   /* 印は字と同じ大きさで、答えの1行目の真ん中（2行に折れた答えでも下へずれない） */
+/* 答えは全部同じ緑（2026-11-10 オーナー「はいとかに緑の文字なら他の回答もそうしたら？」）。ある・ない・一部は印の形で分かる */
+.crl-tile-v,.crl-tile-s span,.crl-tile-qa{color:var(--pv-accent-ink)}
+.crl-tile-v[data-split="1"]{font-size:16px;font-weight:600}
+.crl-tile-m{font-size:13px;line-height:1.5;color:var(--pv-ink-3)}
+.crl-tile-s{margin-top:6px;padding-top:10px;border-top:1px solid var(--pv-line-soft);font-size:14px;line-height:1.55;color:var(--pv-ink-2)}
+.crl-tile-s + .crl-tile-s{margin-top:0;padding-top:0;border-top:0}
+.crl-tile-s b{font-weight:400;color:var(--pv-ink-3)}
+.crl-tile-s b::after{content:'：'}
+.crl-tile-s span{font-weight:600}
+.crl-tile-q{display:grid;gap:8px;padding:0 20px 18px}
+.crl-tile-qt{margin:0;padding-top:12px;border-top:1px solid var(--pv-line-soft);font-size:14px;line-height:1.65;color:var(--pv-ink-2)}
+.crl-tile-qa{display:block;margin-top:2px;font-weight:600}
+.crl-tiles + .crl-lock{margin-top:12px}
+/* 鍵の無い人：名前は本物の字・答えの所は字の無い影絵（ぼかしの規則は .crl .crl-ghost の1つだけ ── ここでは形と色だけ）。
+   カードの下に、鍵の1行と入口を1行に並べる（狭ければ折り返す） */
+.crl-ghost-ans{display:grid;gap:9px;padding:6px 0 2px}
+.crl-ghost-ans .crl-gh-a{height:16px;width:min(46%,130px);background:color-mix(in srgb,var(--pv-accent) 40%,transparent)}
+.crl-ghost-ans .crl-gh-m{height:9px;width:min(72%,200px);background:color-mix(in srgb,var(--pv-ink) 13%,transparent)}
+.crl-tile:nth-child(3n+2) .crl-ghost-ans .crl-gh-a{width:min(32%,90px)}
+.crl-tile:nth-child(3n) .crl-ghost-ans .crl-gh-a{width:min(60%,170px)}
+.crl[data-state="masked"]{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px}
+.crl[data-state="masked"] > .crl-tiles{flex:1 1 100%}
+.crl[data-state="masked"] > .crl-lock{flex:1 1 auto;margin:0;font-size:14px}
+.crl[data-state="masked"] > .crl-foot{margin:0;font-size:14px}
 
 /* ── 比較：提出された年収（会社ごとの件数。★2026-10-31 中央値と1件ずつの行は外した ── 残るのは件数と図）── */
 .crl-pc{display:flex;flex-direction:column;min-width:0}

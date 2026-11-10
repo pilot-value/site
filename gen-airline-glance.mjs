@@ -282,7 +282,7 @@ function sources(items, fold = false, dated = false, label = W.srcLabel) {
     ? `<details class="pvg-dt pvg-srcd"><summary>${esc(label)}<small>${W.count(seen.size)}</small>${IC.down}</summary><p class="pvg-srcs">${links}</p></details>`
     : `<p class="pvg-srcs"><span>${esc(label)}</span>${links}</p>`;
 }
-/* 会社が公表している条件の一覧 */
+/* 会社が公表している条件の一覧。勤務・訓練の4枚のカードと待遇の欄では「募集要項」の表の形になる（pv-glance.css・2026-11-09） */
 const factList = items => `<dl class="pvg-dl">${items.map(f =>
   `<div><dt>${esc(f.label)}${whole(f)}</dt><dd><b>${val(f)}</b>${premise(f) ? `<small>${esc(premise(f))}</small>` : ''}</dd></div>`).join('')}</dl>`;
 /* 質問の名前。日本語は表に書いた短い名前・英語は質問の台帳の英語の問い（pv-conditions.mjs の QUESTIONS の en ── 面で開く問いと同じ字） */
@@ -645,7 +645,8 @@ function workCell(v) {
 function benCell(v) {
   const card = v.benefits, items = card.filter(f => !MOVED.has(f.key)), gone = card.filter(f => MOVED.has(f.key));
   const moved = gone.length ? `<p class="pvg-quiet pvg-moved">${W.moved(esc(gone.map(f => f.label).join(W.sep)), gone.length)}<a class="pvg-link" href="#work">${W.seeWork}${IC.go}</a></p>` : '';
-  const answers = `<div class="pvg-ans"><p class="pvg-askh">${W.pilotAns3}</p>${live('fact', { airline: v.slug, keys: [...BEN_ASK.map(a => a[0]), ...BEN_SHOW].join(',') })}</div>${live('notes', { airline: v.slug, keys: noteKeys(['benefits']).join(',') })}`;
+  const benKeys = [...BEN_ASK.map(a => a[0]), ...BEN_SHOW], benSub = subOf(benKeys);   // 子の質問は親のカードの中に1行（勤務・訓練の面と同じ）
+  const answers = `<div class="pvg-ans"><p class="pvg-askh">${W.pilotAns3}</p>${live('fact', { airline: v.slug, keys: benKeys.join(','), ...(benSub ? { sub: benSub } : {}) })}</div>${live('notes', { airline: v.slug, keys: noteKeys(['benefits']).join(',') })}`;
   const lead = card.find(f => f.lead) || (v.rollout ? null : card[0]);
   /* 今の公表が無い会社（先行5社ではない会社で、過去・参考の行だけ）：カードは今までの「確認できていません」。開く板には、その行を札つきで並べる */
   const past = v.rollout && items.length ? `${moved}${pubLists(items)}${sources(items)}` : '';
@@ -1280,7 +1281,7 @@ function askCard(v) {
   return `<article class="pvg-card pvg-askc"${pane(v.slug, 'overview')}>
 ${head(IC.ask, W.askHead(esc(v.name)), add)}
 <p class="pvg-quiet">${W.askNote}</p>
-<div class="pvg-got"><p class="pvg-askh">${W.gotAns}</p>${live('fact', { airline: v.slug, keys: keys.join(','), entry: 'give' })}</div>
+<div class="pvg-got"><p class="pvg-askh">${W.gotAns}</p>${live('fact', { airline: v.slug, keys: keys.join(','), ...(subOf(keys) ? { sub: subOf(keys) } : {}), entry: 'give' })}</div>
 <div class="pvg-topics">
 ${groups.map(([id, name, gloss, list]) => `<details class="pvg-topic" data-topic="${id}">
 <summary>${topicHead(TOPIC_IC[id], name, `${gloss ? `<span class="pvg-tp-g">${esc(gloss)}</span>` : ''}<span class="pvg-tp-q">${W.qCount(list.length)}</span>`)}${IC.down}</summary>
