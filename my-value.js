@@ -77,12 +77,12 @@
   /* ★「勤務ロスター」のタブ（2026-11-09）。開いたときだけ読む4本。指紋は上の2本と同じ決まり
        （db/test-year-report.mjs が中身と突き合わせる）。計算の部品は分析のタブも使う。 */
   var ROSTER_V = '00a82ad9';
-  var ROSTER_CSS_V = '43af6b46';
+  var ROSTER_CSS_V = '52bb67d6';
   var UPLOAD_V = 'ba0ba6df';
   var ENGINE_V = '53f7188b';
   /* ★「分析」のタブ（2026-11-09）。開いたときだけ読む2本（見た目 → 計算の部品 → 画面の順）。指紋の決まりは上と同じ */
   var ANALYSIS_V = '3aca7c50';
-  var ANALYSIS_CSS_V = '71c92b78';
+  var ANALYSIS_CSS_V = '4608e53a';
   var LATE = {
     roster: 'my-roster.js?v=' + ROSTER_V, rosterCss: 'my-roster.css?v=' + ROSTER_CSS_V,
     upload: 'roster-upload.js?v=' + UPLOAD_V, engine: 'pv-report-engine.js?v=' + ENGINE_V,
@@ -114,7 +114,8 @@
       sheets: function (n) { return n + '枚'; },
 
       /* 今月の実績 */
-      month: '今月の実績',
+      monthOf: function (t) { return '{t}の給与'.replace('{t}', function () { return t; }); },
+      noNet: 'この月は手取りを書いていません。書くと控除の合計も出ます。', noNetA: '手取りを書く',
       kGross: '総支給', kNet: '差引支給額',
       perBlock: '乗務1時間あたり', perDuty: '勤務1時間あたり',
       /* 数量の1行（「乗務 57.1h · 総勤務 139.6h · ステイ 7泊」）の短い名前 */
@@ -161,7 +162,6 @@
       kProfit: 'プロフィットシェア', kNotional: '現物給与の評価', kAbsence: '不就労減額',
       qnBlock: '乗務時間', qnDuty: '勤務時間', qnNight: '深夜時間', qnCredit: 'クレジット時間', qnGuarantee: '保証時間',
       qnSectors: '便数', qnDutyDays: '勤務日数', qnStay: '宿泊数', qnDaysOff: '休日数',
-      noGross: 'この月は手取りを書いていないので、控除合計が出せません。同じ月をもう一度出すと、ここがあなたの数字になります。',
       mGuar: function (g) { return '保証 ' + g + 'h との差'; },
       momOf: function (ym) { return ym + 'との差'; },
 
@@ -187,27 +187,19 @@
 
       /* 機会。★ ここに出すのは「いまより上がる選択肢」だけ。
          下回る会社は畳んだ先にも出さない（オーナー判断・2026-08-12）。 */
-      oppQ: '同じ資格・経験を活かすと、どんな報酬機会がある？',
-      oppEyebrow: 'YOUR OPPORTUNITIES',
-      oppCurTag: '現在',
+      oppQ: function (p) { return '他社の{p}の年収'.replace('{p}', function () { return p; }); },
+      oppSub: 'あなたの年換算より高い会社',
+      oppMe: 'あなた',
+      tagEst: '推定', tagMed: '中央値',
       oppCurAnnual: '今月ベースの単純年換算',
       oppCurAnnualB: '今月ベースの年換算（賞与込み）',
-      oppUnit: '/ 年',
       oppNone: '比べられる会社がまだありません。',
       oppNoPace: 'あなたの年収（月額×12＋賞与）がまだ出ていないので、比較できません。明細をもう一度出すか、フォームで年収の欄まで入れてください。',
       /* 自分の会社・職位の会員の中央値（会社ページと同じ数字。2人以上・1人1件）。 */
-      medOwn: '会員の中央値',
       /* スカウトは作らない。将来やる予定があることだけ示す。
          ★「受け取れる」と言い切らない（機能が無いので嘘になる）。 */
-      scoutTag: 'COMING SOON',
-      scoutH: '匿名スカウト',
-      scoutB: '氏名も勤務先も出さずに、航空会社から声がかかる仕組み。',
-      scoutBtn: '準備中',
       /* 他社の額は会社ページに出ている額と同じ（推定年収か会員の中央値）。
          ★2026-11-08 オーナー決定「会社ページと同じ2人にそろえる」。どちらの額かは札に必ず書く。 */
-      pubCap: 'いまのあなたとの差',
-      pubEst: '推定年収',
-      pubMed: '会員の中央値',
       pubNoUp: 'いまのあなたを上回る会社はありません。',
       pubMoreH: 'ほかにも上回る会社を見る',
       pubRest: function (n) { return 'このほかに' + n + '社が上回っています。'; },
@@ -258,32 +250,12 @@
       absenceNote: '※ 不就労の減額（欠勤控除など）は、明細では総支給から引かれています。この円は引く前の内訳なので、合計は明細の総支給より減額のぶんだけ大きくなります。',
 
       /* 推移と節目 */
-      trend: '月ごとの推移',
-      mHourly: '時間あたり（乗務）', mAnnual: '年収（12ヶ月換算）', mNet: '差引支給額（月）',
-      onePoint: '点が1つだけです。来月の明細を1枚落とすと、ここに線が引けます。',
-      noMetric: 'この指標に使える月がまだありません。',
-      trendScoped: '別の会社の明細は、この線には入れていません。会社をまたぐと通貨も契約も変わるので、つないでも読めません。',
-      msH: '記録の節目',
-      msSub: '記録した明細の並びから、変わった月を拾っています',
-      msPos: function (a, b) { return '職位が ' + a + ' → ' + b; },
-      msFleet: function (a, b) { return '機種が ' + a + ' → ' + b; },
-      msAir: function (a, b) { return '会社が ' + a + ' → ' + b; },
-      msBase: function (a, b) { return 'ベースが ' + a + ' → ' + b; },
       /* ★ データだけで「転職した」「昇格した」と断定しない（§9）。
          明細の並びが変わっただけかもしれない（出向・期間限定の派遣など）。 */
-      msCand: '※ これは記録の並びから拾った候補です。転職・昇格として確定させてはいません。前後の月を実額で見比べるための目印です。',
 
       /* 次の給与。★ ポイント制にしない（§11）。返すのは「自分の分析が伸びること」そのもの。 */
-      next: '次の給与を追加すると',
       nextAdd: '匿名で給与を追加する →',
-      nextWhat: function (ym) {
-        return [
-          ym + 'のレポートが増える',
-          '前回との差が更新される',
-          '累計報酬が更新される',
-          '他社との差が出し直される'
-        ];
-      },
+      nextAddYm: function (t) { return '{t}の給与を匿名で追加'.replace('{t}', function () { return t; }); },
       /* 記録月数。得点ではなく「何ヶ月ぶんのレポートになるか」を返す（§11）。 */
       mlH: '記録した月数',
       mlDone: function (n) { return n + 'ヶ月記録済み'; },
@@ -345,7 +317,8 @@
       kMonth: 'Pay month', kUpdated: 'Built on', kSheets: 'Payslips on record',
       sheets: function (n) { return String(n); },
 
-      month: 'This month',
+      monthOf: function (t) { return '{t} pay'.replace('{t}', function () { return t; }); },
+      noNet: 'Net pay isn’t entered for this month. Add it and your deductions show too.', noNetA: 'Add net pay',
       kGross: 'Gross pay', kNet: 'Net pay',
       perBlock: 'Per block hour', perDuty: 'Per duty hour',
       mBlockH: 'Block', mDutyH: 'Duty', mDays: 'Duty days',
@@ -379,7 +352,6 @@
       kProfit: 'Profit share', kNotional: 'Benefit in kind', kAbsence: 'Absence deduction',
       qnBlock: 'Block hours', qnDuty: 'Duty hours', qnNight: 'Night hours', qnCredit: 'Credit hours', qnGuarantee: 'Guaranteed hours',
       qnSectors: 'Sectors', qnDutyDays: 'Duty days', qnStay: 'Night stops', qnDaysOff: 'Days off',
-      noGross: 'You did not enter take-home pay for this month, so deductions cannot be worked out. File the same month again and these become your own figures.',
       mGuar: function (g) { return 'vs ' + g + 'h guaranteed'; },
       momOf: function (ym) { return 'vs ' + ym; },
 
@@ -398,23 +370,15 @@
       tNone: 'Nothing on record yet. Add your pay and the pile starts here.',
       months: function (n) { return n + (n === 1 ? ' month' : ' months'); },
 
-      oppQ: 'What does your licence and experience open up?',
-      oppEyebrow: 'YOUR OPPORTUNITIES',
-      oppCurTag: 'Current',
+      oppQ: function (p) { return '{p} pay at other airlines'.replace('{p}', function () { return p; }); },
+      oppSub: 'Airlines above your annualised pay',
+      oppMe: 'You',
+      tagEst: 'est.', tagMed: 'median',
       oppCurAnnual: 'This month, straight-annualised',
       oppCurAnnualB: 'This month, annualised (incl. bonus)',
-      oppUnit: '/ yr',
       oppNone: 'No airlines to compare with yet.',
       oppNoPace: 'Your annual figure (monthly × 12 + bonus) is not available yet, so there is nothing to compare. File the payslip again, or fill in the annual fields on the form.',
-      medOwn: 'Member median',
       /* スカウトは作らない。将来やる予定があることだけ示す。 */
-      scoutTag: 'COMING SOON',
-      scoutH: 'Anonymous scouting',
-      scoutB: 'Airlines reach you without seeing your name or employer.',
-      scoutBtn: 'In preparation',
-      pubCap: 'vs you now',
-      pubEst: 'Estimated annual pay',
-      pubMed: 'Member median',
       pubNoUp: 'No airline sits above where you are now.',
       pubMoreH: 'See the other airlines above you',
       pubRest: function (n) { return n + (n === 1 ? ' more airline sits' : ' more airlines sit') + ' above you.'; },
@@ -451,31 +415,11 @@
       fixed: 'Fixed', variable: 'Variable', unknown: 'Cannot tell',
       baseRatio: 'Base pay as a share of gross',
 
-      trend: 'Month by month',
-      mHourly: 'Hourly (block)', mAnnual: 'Annual (×12)', mNet: 'Net pay (month)',
-      onePoint: 'Only one point so far. Drop next month’s payslip and this becomes a line.',
-      noMetric: 'No month has the data this metric needs yet.',
-      trendScoped: 'Payslips from your other airline are not on this line. Across an airline change both the currency and the contract change, so joining them would not mean anything.',
       unionOutNote: '※ Money your union pays you directly is not printed on the company payslip. It is included here as pay you received.',
       absenceNote: '※ Unpaid-absence deductions are taken off the gross on your payslip. This circle shows the items before that deduction, so the total here is larger than the printed gross by that amount.',
-      msH: 'Milestones',
-      msSub: 'Picked up from where your own records change',
-      msPos: function (a, b) { return 'Seat: ' + a + ' → ' + b; },
-      msFleet: function (a, b) { return 'Aircraft: ' + a + ' → ' + b; },
-      msAir: function (a, b) { return 'Airline: ' + a + ' → ' + b; },
-      msBase: function (a, b) { return 'Base: ' + a + ' → ' + b; },
-      msCand: '※ These are picked up from the order of your own records. Nothing here is confirmed as a move or a promotion — they are markers, so you can compare the real amounts either side.',
 
-      next: 'When you add your next payslip',
       nextAdd: 'Add pay anonymously →',
-      nextWhat: function (ym) {
-        return [
-          ym + ' joins your report',
-          'The change is updated',
-          'Your total is updated',
-          'Other airlines are compared again'
-        ];
-      },
+      nextAddYm: function (t) { return 'Add {t} pay anonymously'.replace('{t}', function () { return t; }); },
       mlH: 'Months on record',
       mlDone: function (n) { return n + (n === 1 ? ' month recorded' : ' months recorded'); },
       mlNext: function (k, g) { return k + ' more and this becomes a ' + g + '-month report'; },
@@ -532,7 +476,8 @@
       kMonth: 'Mes de pago', kUpdated: 'Creado el', kSheets: 'Recibos de nómina registrados',
       sheets: function (n) { return String(n); },
 
-      month: 'Este mes',
+      monthOf: function (t) { return 'Remuneración de {t}'.replace('{t}', function () { return t; }); },
+      noNet: 'No ingresaste tu sueldo neto de este mes. Si lo agregas, también verás tus deducciones.', noNetA: 'Agregar sueldo neto',
       kGross: 'Sueldo bruto', kNet: 'Sueldo neto',
       perBlock: 'Por hora block', perDuty: 'Por hora de servicio',
       mBlockH: 'Horas block', mDutyH: 'Servicio', mDays: 'Días de servicio',
@@ -566,7 +511,6 @@
       kProfit: 'Participación en las utilidades', kNotional: 'Prestación en especie', kAbsence: 'Descuento por ausencia',
       qnBlock: 'Horas block', qnDuty: 'Tiempo de servicio', qnNight: 'Horas nocturnas', qnCredit: 'Horas de crédito', qnGuarantee: 'Horas garantizadas',
       qnSectors: 'Sectores', qnDutyDays: 'Días de servicio', qnStay: 'Pernoctas', qnDaysOff: 'Días libres',
-      noGross: 'No ingresaste tu sueldo neto de este mes, así que no se pueden calcular las deducciones. Envía de nuevo el mismo mes y estas cifras serán las tuyas.',
       mGuar: function (g) { return 'vs. ' + g + ' h garantizadas'; },
       momOf: function (ym) { return 'vs. ' + ym; },
 
@@ -585,23 +529,15 @@
       tNone: 'Aún no hay nada registrado. Agrega tu remuneración y aquí empezará a acumularse.',
       months: function (n) { return n + (n === 1 ? ' mes' : ' meses'); },
 
-      oppQ: '¿Qué te abren tu licencia y tu experiencia?',
-      oppEyebrow: 'TUS OPORTUNIDADES',
-      oppCurTag: 'Actual',
+      oppQ: function (p) { return '{p}: remuneración en otras aerolíneas'.replace('{p}', function () { return p; }); },
+      oppSub: 'Aerolíneas por encima de tu remuneración anualizada',
+      oppMe: 'Tú',
+      tagEst: 'estimado', tagMed: 'mediana',
       oppCurAnnual: 'Este mes, anualizado de forma simple',
       oppCurAnnualB: 'Este mes, anualizado (con bono)',
-      oppUnit: '/ año',
       oppNone: 'Todavía no hay aerolíneas para comparar.',
       oppNoPace: 'Tu cifra anual (mensual × 12 + bono) todavía no está disponible, así que no hay nada con qué comparar. Vuelve a enviar el recibo de nómina o llena los campos anuales del formulario.',
-      medOwn: 'Mediana de los miembros',
       /* スカウトは作らない。将来やる予定があることだけ示す。 */
-      scoutTag: 'PRÓXIMAMENTE',
-      scoutH: 'Reclutamiento anónimo',
-      scoutB: 'Las aerolíneas te contactan sin ver tu nombre ni tu empleador.',
-      scoutBtn: 'En preparación',
-      pubCap: 'frente a tu situación actual',
-      pubEst: 'Sueldo anual estimado',
-      pubMed: 'Mediana de los miembros',
       pubNoUp: 'Ninguna aerolínea está por encima de tu situación actual.',
       pubMoreH: 'Ver las otras aerolíneas por encima de ti',
       pubRest: function (n) { return n + (n === 1 ? ' aerolínea más está' : ' aerolíneas más están') + ' por encima de ti.'; },
@@ -638,31 +574,11 @@
       fixed: 'Fijo', variable: 'Variable', unknown: 'No se puede determinar',
       baseRatio: 'Proporción del sueldo base en el sueldo bruto',
 
-      trend: 'Mes a mes',
-      mHourly: 'Por hora (block)', mAnnual: 'Anual (×12)', mNet: 'Sueldo neto (mes)',
-      onePoint: 'Por ahora solo hay un punto. Sube el recibo de nómina del próximo mes y esto se convertirá en una línea.',
-      noMetric: 'Todavía no hay ningún mes con los datos que necesita este indicador.',
-      trendScoped: 'Los recibos de nómina de tu otra aerolínea no están en esta línea. Al cambiar de aerolínea cambian tanto la moneda como el contrato, así que unirlos no tendría sentido.',
       unionOutNote: '※ El dinero que te paga directamente tu sindicato no aparece en el recibo de nómina de la empresa. Aquí se incluye como remuneración que recibiste.',
       absenceNote: '※ Los descuentos por ausencias sin goce de sueldo se restan del sueldo bruto en tu recibo de nómina. Este círculo muestra los conceptos antes de ese descuento, así que el total aquí supera en ese monto al sueldo bruto impreso.',
-      msH: 'Hitos',
-      msSub: 'Detectados a partir de los cambios en tus propios registros',
-      msPos: function (a, b) { return 'Categoría: ' + a + ' → ' + b; },
-      msFleet: function (a, b) { return 'Tipo de aeronave: ' + a + ' → ' + b; },
-      msAir: function (a, b) { return 'Aerolínea: ' + a + ' → ' + b; },
-      msBase: function (a, b) { return 'Base: ' + a + ' → ' + b; },
-      msCand: '※ Se detectan a partir del orden de tus propios registros. Nada de esto está confirmado como un cambio o un ascenso: son marcadores para que puedas comparar los montos reales antes y después.',
 
-      next: 'Cuando agregues tu próximo recibo de nómina',
       nextAdd: 'Agregar remuneración de forma anónima →',
-      nextWhat: function (ym) {
-        return [
-          ym + ' se suma a tu informe',
-          'Se actualiza el cambio',
-          'Se actualiza tu total',
-          'Se vuelve a comparar con otras aerolíneas'
-        ];
-      },
+      nextAddYm: function (t) { return 'Agregar la remuneración de {t} de forma anónima'.replace('{t}', function () { return t; }); },
       mlH: 'Meses registrados',
       mlDone: function (n) { return n + (n === 1 ? ' mes registrado' : ' meses registrados'); },
       mlNext: function (k, g) { return k + ' más y este será un informe de ' + g + ' meses'; },
@@ -737,7 +653,7 @@
      rows   ＝ 全社ぶんそのまま（累計だけが使う。足し算に会社の壁は無い）
      pub    ＝ 各社の推定年収と会社ページの決まり（salary-data.json）
      meds   ＝ 会員の中央値（全社ぶん・2人以上の組だけ。pv_member_medians_all） */
-  var state = { data: null, rows: [], series: [], metric: 'hourly', busy: false,
+  var state = { data: null, rows: [], series: [], busy: false,
                pub: null, meds: null, name: '', pay: null,
                op: false, sample: null,           // 運営か・見本の種類（運営だけ）
                view: 'month',                     // 「今月」か「1年」か
@@ -769,10 +685,6 @@
     return '<div class="mv-row"><span class="k">' + esc(k) + '</span>' +
       '<span class="v">' + esc(v) + '</span>' +
       (sub ? '<span class="s">' + esc(sub) + '</span>' : '') + '</div>';
-  }
-  // 解放期限のように「項目名の要らないチップ」があるので、空ラベルは詰める
-  function chip(k, v) {
-    return '<span class="mr-chip">' + (k ? esc(k) + ' ' : '') + '<b>' + esc(v) + '</b></span>';
   }
   var SEP = (L === 'ja') ? '・' : ' · ';
   var jpyOf = function (r, v) {                 // 原本通貨 → 表示用（fx は行が持っている）
@@ -836,16 +748,6 @@
         '<i style="width:63%;background:#34d399"></i>' +
         '<i style="width:30%;background:#f5c842"></i>' +
         '<i style="width:7%;background:#94a3b8"></i>' +
-      '</div>';
-  }
-
-  /* 見本の手取り。★ 額面に対する割合だけ。国によって控除は倍ちがうので、
-     ここに置いた割合は「そういう形の数字が返る」以上のことを言っていない。 */
-  function sampleNet() {
-    return '<div class="mv-grid">' + row(T.kNet, '78%') + row(T.kDeduct, '22%') + '</div>' +
-      '<div class="mv-bar">' +
-        '<i style="width:78%;background:#34d399"></i>' +
-        '<i style="width:22%;background:#94a3b8"></i>' +
       '</div>';
   }
 
@@ -1034,13 +936,19 @@
     var extra = (ded != null ? rl(T.kDeduct, fmt(jpyOf(r, ded))) : '') +
                 (ytd != null ? rl(T.kYtd, fmt(jpyOf(r, ytd))) : '');
     body += moreBox((po > 0 && gross != null ? rl(T.kPerdiemOut, fmt(po)) + (uo > 0 ? '' : all) : '') + extra);
-    /* 手取りを書かなかった月。空欄ではなく見本を置く（同じ月を出し直せば埋まる）。 */
-    if (!extra) body += maskSample(sampleNet(), T.noGross);
+    /* 手取りを書かなかった月。★2026-11-11 オーナー「緑のカード・白い字に」── 緑の上にぼかした見本と橙のボタンを
+       置かない。1行の文と、その月を直す画面（MY PAGE の「編集」と同じ入口）へのリンクだけ。 */
+    if (!extra && net == null && r.airline && r.period_year && r.period_month) {
+      var fix = 'pay-report.html?edit=' + r.period_year + '-' + r.period_month + '&airline=' + encodeURIComponent(r.airline) +
+        ((r.airline === 'other' && r.airline_other) ? '&other=' + encodeURIComponent(r.airline_other) : '');
+      body += '<p class="mr-gn">' + esc(T.noNet) + ' <a href="' + esc(fix) + '">' + esc(T.noNetA) + '</a></p>';
+    }
 
-    // 見出しの右：対象月と、比べた前の月（同じ年なら月だけ）
+    /* 見出しは「2026年2月の給与」（最新の月が今月とは限らない）。右は比べた前の月（同じ年なら月だけ）。
+       ★2026-11-11 ページで色のついたカードはこの1枚だけ（is-green）。 */
     var prev = m ? (m.a.period_year === r.period_year ? T.ymShort(m.a.period_year, m.a.period_month)
                                                        : T.ym(m.a.period_year, m.a.period_month)) : null;
-    return sec(T.month, body, T.ym(r.period_year, r.period_month) + (prev ? SEP + T.momOf(prev) : ''));
+    return sec(T.monthOf(T.ym(r.period_year, r.period_month)), body, prev ? T.momOf(prev) : '', 'is-green');
   }
 
   /* ── 累計報酬 ──────────────────────────────────────────────
@@ -1065,7 +973,7 @@
     var t = V.totals(rows);
     if (!t.months) {
       return sec(T.total, empty(T.tNone) +
-        '<a class="pt-btn" href="' + payHref() + '">' + esc(T.nextAdd) + '</a>', null, 'is-hero');
+        '<a class="pt-btn" href="' + payHref() + '">' + esc(T.nextAdd) + '</a>', null, 'is-total');
     }
 
     var span = T.tSpanOf(
@@ -1104,14 +1012,15 @@
 
     if (t.skipped > 0) body += note(esc(T.tOnly(t.months, t.total)));
     if (t.monthsNet && t.monthsNet < t.months) body += note(esc(T.tNetOnly(t.monthsNet)));
-    return sec(T.total, body, span + SEP + T.months(t.months), 'is-hero');
+    /* ★2026-11-11 紺と金をやめて白いカードに（色のついたカードは今月の緑1枚だけ）。is-hero はロードマップが使うので残す */
+    return sec(T.total, body, span + SEP + T.months(t.months), 'is-total');
   }
 
   /* 累計の折れ線は running total なので、1行だけでは値が決まらない。
      chart() の valueAt に渡す（key は使われない）。
      ★ valueOf という名前にはできない。Object.prototype.valueOf が継承されていて
        常に function になり、他の呼び出しまで巻き込む（pay-viz.js の注記を参照）。
-     ★ 枠は .mr-cum。.pt-chart にすると drawChart() の探し先とぶつかる。
+     ★ 枠は .mr-cum。
      ★2026-11-10 オーナー「指を置いたらその月の金額が出るべき。なぜ最後の点にだけ数字が？」
        ── 吹き出し（tipOf）に月・累計・その月の額。最後の点の数字は描かない（真上の大きい数字と同じ）。
        「この月」は累計の差＝その月に足した額（組合・明細の外のパーディアムも込み。totals() の足し方のまま）。
@@ -1131,12 +1040,14 @@
         return [T.ym(r.period_year, r.period_month), T.tipCum(fmt(s.gross), fmt(s.gross - before))];
       },
       endLabel: false,
+      /* ★2026-11-11 白いカードの上なので金をやめてブランドの緑（--pv-accent と同じ値。SVG の属性は var() を読まない） */
+      color:    '#0a8f79',
       aria:     T.total,
       noMetric: T.tNone
     });
   }
 
-  /* ── 機会（YOUR OPPORTUNITIES）────────────────────────────────
+  /* ── 他社の年収（旧「機会」）────────────────────────────────
      ★2026-11-08 オーナー決定「会社ページと同じ2人にそろえる」。
        他社の額は**会社ページに出ている額と同じ**にする ── 推定年収（salary-data.json）か、
        会員の中央値（pv_member_medians_all ＝ 2人以上・1人1件・人数は返らない）か。
@@ -1147,32 +1058,28 @@
      ★ 「おすすめ転職先」「応募できます」とは書かない。採用の可否は測っていない。
      ★ 出すのは「いまより上がる会社」だけ（オーナー判断・2026-08-12）。下回る会社は畳んだ先にも出さない。 */
 
-  /* 札は1つの関数で作る。現在も候補も Scout も同じ骨格＝横に並べたとき
-     数字の行の高さが揃う（別々に書くと必ずずれる）。 */
-  function oppCard(o) {
-    return '<article class="mr-opp' + (o.mod ? ' ' + o.mod : '') + '">' +
-      (o.tag ? '<span class="mr-opp-tag">' + esc(o.tag) + '</span>' : '') +
-      /* href があるときだけ社名をリンクにする。★ 相対で書く＝英語ページからは
-         en/airlines/… を指す（両方に112社ぶん揃っているのを確認済み）。 */
-      '<div class="mr-opp-n">' + (o.href
-        ? '<a class="mr-opp-a" href="' + esc(o.href) + '">' + esc(o.name) + '</a>'
-        : esc(o.name)) + '</div>' +
-      (o.meta ? '<div class="mr-opp-m">' + esc(o.meta) + '</div>' : '') +
-      (o.big ? '<div class="mr-opp-big"><b' + (o.up ? ' class="is-up"' : '') + '>' + esc(o.big) + '</b>' +
-        (o.unit ? '<span>' + esc(o.unit) + '</span>' : '') + '</div>' : '') +
-      (o.cap ? '<p class="mr-opp-cap">' + esc(o.cap) + '</p>' : '') +
-      (o.rows ? '<div class="mr-opp-r">' + o.rows + '</div>' : '') +
-      (o.foot ? '<div class="mr-opp-f">' + esc(o.foot) + '</div>' : '') +
-      (o.btn ? '<button class="mr-opp-btn" type="button" disabled>' + esc(o.btn) + '</button>' : '') +
-      '</article>';
+  /* ★2026-11-11 オーナー「グラフとか使えば？」── 札を横に並べるのをやめて、横に並ぶ棒（Levels.fyi の形）。
+     目盛は 0 から・全部の棒で同じ（畳んだ先の棒も同じ目盛）。1本目はあなた（緑）、2本目は自社の会員の中央値
+     （ある時だけ・薄い緑）、ほかの会社は灰色。どちらの額か（推定／中央値）は全部の行に書く。
+     全部の棒に額が書いてあるので、指を置いたときの吹き出しは作らない。
+     額は万の位で丸める（¥7,290万。円以外は currency.js の縮め方＝$46K）。各社の額が万円単位なので、
+     丸めないと1つの図の中で桁の書き方が割れて、読み手が引き算できない。 */
+  function bigOf(jpy) { return fmt(Math.round(jpy / 10000) * 10000); }
+  function barRow(o, max) {
+    var pc = max > 0 ? Math.max(1.5, Math.min(100, o.jpy / max * 100)) : 0;
+    return '<li class="mr-cmp-r' + (o.mod ? ' ' + o.mod : '') + '">' +
+      /* href があるときだけ社名をリンクにする。★ 相対で書く＝英語ページからは en/airlines/… を指す */
+      '<span class="mr-cmp-n">' + (o.href ? '<a href="' + esc(o.href) + '">' + esc(o.name) + '</a>' : esc(o.name)) +
+        (o.sub ? '<small>' + esc(o.sub) + '</small>' : '') + '</span>' +
+      '<span class="mr-cmp-t" aria-hidden="true"><i style="width:' + pc.toFixed(1) + '%"></i></span>' +
+      '<span class="mr-cmp-v"><b>' + esc(bigOf(o.jpy)) + '</b>' +
+        '<em>' + esc(o.tag || '') + '</em></span>' +    // 札の無い行も空の札＝額の位置がそろう
+      // 差は別の列（無い行も空の列を置く＝どの行も額の位置がそろう）
+      '<span class="mr-cmp-d">' + esc(o.diff || '') + '</span></li>';
   }
-  function oppCell(k, v, sub) {
-    return '<div><span class="k">' + esc(k) + '</span><span class="v">' + esc(v) + '</span>' +
-      (sub ? '<span class="s">' + esc(sub) + '</span>' : '') + '</div>';
-  }
-  function signed(jpy) { return (jpy >= 0 ? '+' : '−') + fmt(Math.abs(jpy)); }
-  function rail(cards, mod) {
-    return '<div class="mr-rail' + (mod ? ' ' + mod : '') + '">' + cards + '</div>';
+  function barList(rows, max, mod) {
+    return '<ol class="mr-cmp' + (mod ? ' ' + mod : '') + '" role="list">' +
+      rows.map(function (o) { return barRow(o, max); }).join('') + '</ol>';
   }
 
   /* 年換算に年間の賞与・利益配分が入っているか（pay-viz.js の monthlyOrig が引く額と同じ2つ）。 */
@@ -1197,28 +1104,10 @@
     return airlineName(r);
   }
 
-  /* いまの条件。★ 良い・悪いを付けない。左端に置く「基準」でしかない。 */
-  function curCard(r) {
-    var c = V.calc(r);
-    var mine = annualJpy(r);
-    var meta = [fleetName(r), posName(r)]
-      .concat(r.base_iata ? [String(r.base_iata).toUpperCase()] : []).join(SEP);
-    var rows = '';
-    var om = ownMedian(r);
-    if (om != null) rows += oppCell(T.medOwn, fmt(om));
-    if (c.hourlyDuty != null) rows += oppCell(T.perDuty, fmt(c.hourlyDuty));
-    if (c.hourlyBlock != null) rows += oppCell(T.perBlock, fmt(c.hourlyBlock));
-    return oppCard({
-      mod: 'is-cur', tag: T.oppCurTag, name: ownName(r), meta: meta,
-      big: mine != null ? fmt(mine) : '—', unit: mine != null ? T.oppUnit : '',
-      cap: hasBonus(r) ? T.oppCurAnnualB : T.oppCurAnnual, rows: rows
-    });
-  }
-
-  /* ★ スカウトは作っていない。場所と予定だけ置く。
-     押せるボタンにしない・主役の色を使わない・「受け取れます」と言い切らない。 */
-  function scoutCard() {
-    return oppCard({ mod: 'is-scout', tag: T.scoutTag, name: T.scoutH, cap: T.scoutB, btn: T.scoutBtn });
+  /* 自社の会社ページ（一覧に在る会社だけ）。 */
+  function ownHref(r) {
+    var A = state.pub && state.pub.A, k = airlineKey(r);
+    return (r && r.airline !== 'other' && A && A[k]) ? 'airlines/' + k + '.html' : '';
   }
 
   /* 1社1職位の額（円）と、それが会員の中央値か。会社ページの medianApply（career-live.js）と同じ決め方。
@@ -1253,15 +1142,10 @@
     return list;
   }
 
-  function pubCard(x, mine) {
-    /* 差は万円の位で丸める。各社の額は万円単位なので、丸めないと
-       1枚の札の中で桁の書き方が割れ、読み手が引き算できない。 */
-    var d = Math.round((x.jpy - mine) / 10000) * 10000;
-    return oppCard({
-      name: x.name, meta: T[x.band] || x.band, href: 'airlines/' + x.slug + '.html',
-      big: signed(d), unit: T.oppUnit, up: true,
-      cap: T.pubCap, rows: oppCell(x.med ? T.pubMed : T.pubEst, fmt(x.jpy))
-    });
+  function pubRow(x, mine) {
+    var dd = Math.round((x.jpy - mine) / 10000) * 10000;
+    return { name: x.name, href: 'airlines/' + x.slug + '.html', jpy: x.jpy,
+             tag: x.med ? T.tagMed : T.tagEst, diff: dd > 0 ? '+' + fmt(dd) : '' };
   }
 
   /* 招待（データ密度）カードの差し込み口。中身は pv-referral.js が描く。
@@ -1270,34 +1154,37 @@
   function refSlot() { return '<div id="mr-ref-slot"></div>'; }
 
   function opportunity(r) {
-    var mine = annualJpy(r);
-    // 比較が引けないときも「いまの条件」と Scout は出す（節を空欄にしない）
+    var mine = annualJpy(r), band = PUB_BAND[r && r.position];
+    var title = band ? T[band] : posName(r);
+    // 比べられないときは1行の文だけ（区分が分からない出口なので、招待の差込口は置かない）
     if (mine == null) {
-      return sec(T.oppQ, rail(curCard(r) + scoutCard()) + empty(T.oppNoPace), T.oppEyebrow);
+      return sec(T.oppQ(title), empty(T.oppNoPace));
     }
     var list = pubList(r);
     if (!list.length) {
-      return sec(T.oppQ, rail(curCard(r) + scoutCard()) + empty(T.oppNone) + refSlot(), T.oppEyebrow);
+      return sec(T.oppQ(title), empty(T.oppNone) + refSlot());
     }
 
     var up = list.filter(function (x) { return x.jpy - mine > 0; });
-    var top = up.slice(0, 3);
+    var top = up.slice(0, 5);
     /* 畳んだ先に入れるのは9社まで。★ 黙って切らない。残りは社数を書いて
        全社の一覧へ送る（低い階級ほど「上回る会社」が90社以上になるため）。 */
-    var rest = up.slice(3, 12), over = up.length - 3 - rest.length;
-
-    var cards = curCard(r) + top.map(function (x) { return pubCard(x, mine); }).join('') + scoutCard();
-    var body = rail(cards);
+    var rest = up.slice(5, 14), over = up.length - 5 - rest.length;
+    var om = ownMedian(r);
+    var max = Math.max(mine, om || 0, up.length ? up[0].jpy : 0);
+    var head = [{ mod: 'is-me', name: T.oppMe, sub: hasBonus(r) ? T.oppCurAnnualB : T.oppCurAnnual, jpy: mine }];
+    if (om != null) head.push({ mod: 'is-own', name: ownName(r), href: ownHref(r), tag: T.tagMed, jpy: om });
+    var body = barList(head.concat(top.map(function (x) { return pubRow(x, mine); })), max);
     if (!up.length) body += note(esc(T.pubNoUp));
     if (rest.length) {
       body += '<details class="mr-more"><summary>' + esc(T.pubMoreH) + '</summary>' +
-        rail(rest.map(function (x) { return pubCard(x, mine); }).join(''), 'is-more') +
+        barList(rest.map(function (x) { return pubRow(x, mine); }), max, 'is-more') +
         (over > 0 ? '<p class="mr-more-s">' + esc(T.pubRest(over)) +
-          ' <a class="mr-opp-a" href="world-airlines.html">' + esc(T.pubAll) + '</a></p>' : '') +
+          ' <a class="mr-cmp-all" href="world-airlines.html">' + esc(T.pubAll) + '</a></p>' : '') +
         '</details>';
     }
     body += refSlot();
-    return sec(T.oppQ, body, T.oppEyebrow);
+    return sec(T.oppQ(title), body, up.length ? T.oppSub : '');
   }
 
   /* ── 前回の明細との差 ──────────────────────────────────────
@@ -1558,89 +1445,9 @@
     return sec(T.breakdown, body);
   }
 
-  /* ── 月ごとの推移 ＋ 記録の節目（キャリアイベントの候補）──────────
-     ★ 新しいテーブルは作らない。隣り合う明細で職位・機種・会社・ベースが
-       変わった所を拾うだけ。予測はしない（何が起きたかだけ書く）。
-     ★ ここで返す形は、あとで「機種移行として記録しますか？」と本人に確かめて
-       before/after を並べるところまで持っていける形にしてある
-       （event_type / event_date / old_* / new_* ＋ 前後の行そのもの）。
-     ★ データだけで「転職した」「昇格した」と確定させない。出向・期間限定の
-       派遣・記録の抜けでも同じ見え方をするので、確定させた瞬間に嘘になりうる。
-       だから confirmed は必ず false で作る（立てるのは本人だけ）。 */
-  function milestones(rows) {
-    var out = [];
-    for (var i = 1; i < rows.length; i++) {
-      var a = rows[i - 1], b = rows[i], ev = [];
-      if (String(a.position || '') !== String(b.position || '')) {
-        ev.push({ event_type: 'rank_change', old_rank: a.position || null, new_rank: b.position || null,
-                  tx: T.msPos(posName(a), posName(b)) });
-      }
-      if (String(a.fleet || '') !== String(b.fleet || '')) {
-        ev.push({ event_type: 'fleet_change', old_fleet: a.fleet || null, new_fleet: b.fleet || null,
-                  tx: T.msFleet(fleetName(a), fleetName(b)) });
-      }
-      if (airlineKey(a) !== airlineKey(b)) {
-        ev.push({ event_type: 'airline_change', old_airline: airlineKey(a), new_airline: airlineKey(b),
-                  tx: T.msAir(airlineName(a), airlineName(b)) });
-      }
-      if (String(a.base_iata || '') !== String(b.base_iata || '')) {
-        ev.push({ event_type: 'base_change', old_base: a.base_iata || null, new_base: b.base_iata || null,
-                  tx: T.msBase(String(a.base_iata || '—').toUpperCase(), String(b.base_iata || '—').toUpperCase()) });
-      }
-      if (!ev.length) continue;
-      var when = { year: b.period_year, month: b.period_month };
-      ev.forEach(function (e) { e.event_date = when; e.confirmed = false; });
-      // 同じ月に複数（機種と職位が同時に変わる等）起きるので、月でまとめて返す
-      out.push({ r: b, prev: a, events: ev, tx: ev.map(function (e) { return e.tx; }) });
-    }
-    return out;
-  }
-
-  function trend(series, dropped, rows) {
-    var METRICS = [
-      { k: 'hourly', nm: T.mHourly }, { k: 'annual', nm: T.mAnnual }, { k: 'net', nm: T.mNet }
-    ].filter(function (m) {
-      return series.some(function (r) { var x = V.metricOf(r, m.k); return x != null && x > 0; });
-    });
-    if (!METRICS.some(function (m) { return m.k === state.metric; })) {
-      state.metric = METRICS.length ? METRICS[0].k : 'hourly';
-    }
-    var tabs = '<div class="pt-tabs">' + METRICS.map(function (m) {
-      return '<button class="pt-tab' + (m.k === state.metric ? ' on' : '') + '" data-m="' + m.k + '">' +
-             esc(m.nm) + '</button>';
-    }).join('') + '</div>';
-    // 会社で絞って落ちた月がある＝チップの枚数と点の数が合わない。理由を書く
-    var body = tabs + '<div class="pt-chart"></div>' + ((dropped > 0) ? note(esc(T.trendScoped)) : '');
-
-    var ms = milestones(rows);
-    if (ms.length) {
-      body += '<div class="pt-sec" style="margin-top:20px"><div class="pt-h">' + esc(T.msH) +
-        '<span class="pt-sub">' + esc(T.msSub) + '</span></div>' +
-        '<ul class="mr-ms">' + ms.map(function (x) {
-          return '<li><span class="ym">' + esc(T.ym(x.r.period_year, x.r.period_month)) + '</span>' +
-            '<span class="tx">' + x.tx.map(esc).join('<br>') + '</span></li>';
-        }).join('') + '</ul>' + note(esc(T.msCand)) + '</div>';
-    }
-    return sec(T.trend, body);
-  }
-
-  function drawChart() {
-    var box = root.querySelector('.pt-chart');
-    if (!box) return;
-    box.innerHTML = V.chart(state.series, state.metric, {
-      width:    V.widthOf(box, root),
-      labelOf:  function (r) { return T.ymShort(r.period_year, r.period_month); },
-      aria:     T.trend,
-      onePoint: T.onePoint,
-      noMetric: T.noMetric,
-      /* ★2026-11-08 目盛を付ける（最高と最低の額）・数%の上下を枠いっぱいの山谷に描かない */
-      axis:     true,
-      minSpan:  0.3,
-      /* ★2026-11-10 指を置くとその月の額（最後の点の数字は残す）・年をまたぐときは月の下に年 */
-      yearOf:   function (r) { return r.period_year; },
-      tipOf:    function (r, i, v) { return [T.ym(r.period_year, r.period_month), fmt(v)]; }
-    });
-  }
+  /* ★2026-11-11 オーナー「このグラフいる？」── 「月ごとの推移」（と一緒に出していた「記録の節目」）は外した。
+       2か月では「前回との差」と同じことしか言っておらず、月が増えても、時間あたりの推移は分析タブ
+       （〇〇あたりの収入）に、月ごとの額は「1年」に、もう在る。 */
 
   /* ── 次の1枚で増えるもの ──────────────────────────────────
      ★ ポイントを配らない。返すのは「自分の分析が伸びること」そのもの。 */
@@ -1651,25 +1458,9 @@
      「オンなのに届かない」画面を出すことになる。 */
   function remindOn(dat) { return !!(dat && dat.mail_optin && dat.email_opt_in); }
 
-  var PLUS = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
-    'stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>';
-
   /* 記録月数の節目。★ 点数を配らない（§11）。返すのは
-     「何ヶ月ぶんのレポートになるか」だけ。目盛りは等間隔に並べて、
-     それぞれに月数を書く（6→12→24→36 を比例した軸に見せない）。 */
+     「何ヶ月ぶんのレポートになるか」だけ（次の節目までの細い線1本）。 */
   var GOALS = [6, 12, 24, 36];
-  function mlStrip(n) {
-    var goal = null;
-    for (var i = 0; i < GOALS.length; i++) { if (n < GOALS[i]) { goal = GOALS[i]; break; } }
-    return '<div class="mr-ml">' +
-      '<div class="mr-ml-h"><b>' + esc(T.mlDone(n)) + '</b>' +
-        '<span>' + esc(goal ? T.mlNext(goal - n, goal) : T.mlMax) + '</span></div>' +
-      '<ol class="mr-ml-g">' + GOALS.map(function (g) {
-        var cls = (n >= g) ? ' class="is-on"' : (g === goal ? ' class="is-next"' : '');
-        return '<li' + cls + '><b>' + esc(T.mlGoal(g)) + '</b></li>';
-      }).join('') + '</ol></div>';
-  }
-
   // 次に出す月。12月の次は翌年1月（年をまたぐと「13月」になる）
   function nextYm(r) {
     var y = Number(r.period_year), m = Number(r.period_month) + 1;
@@ -1710,18 +1501,20 @@
     bindRemind(slot);
   }
 
+  /* ★2026-11-11 「次の給与を追加すると」の「＋」の4行と見出しを外した。残すのは、記録した月数と次の節目までの
+       細い線1本と、次の月を出すボタンだけ（通知の切り替えは、差込口が無いページだけ今までどおりここに）。 */
   function next(dat, rows, r) {
     var here = !d.getElementById('mv-remind-slot');   // 差込口が無いページだけ、ここに出す
-    return sec(T.next,
-      '<ul class="mr-next">' + T.nextWhat(nextYm(r)).map(function (x) {
-        return '<li><span class="mr-next-i">' + PLUS + '</span>' +
-          '<div><b>' + esc(x) + '</b></div></li>';
-      }).join('') + '</ul>' +
-      mlStrip(rows.length) +
-      '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
-        '<a class="pt-btn" href="' + payHref() + '">' + esc(T.nextAdd) + '</a>' +
-      '</div>' +
-      (here ? '<div style="margin-top:22px">' + remindBlock(dat) + '</div>' : ''));
+    var n = rows.length, goal = null;
+    for (var i = 0; i < GOALS.length; i++) { if (n < GOALS[i]) { goal = GOALS[i]; break; } }
+    var pc = goal ? Math.max(4, Math.round(n / goal * 100)) : 100;
+    return '<section class="pt-sec mr-card mv-next">' +
+      '<div class="mv-next-l"><b>' + esc(T.mlDone(n)) + '</b>' +
+        '<span>' + esc(goal ? T.mlNext(goal - n, goal) : T.mlMax) + '</span>' +
+        '<span class="mv-next-bar" aria-hidden="true"><i style="width:' + pc + '%"></i></span></div>' +
+      '<a class="pt-btn" href="' + payHref() + '">' + esc(T.nextAddYm(nextYm(r))) + '</a>' +
+      (here ? '<div class="mv-next-rm">' + remindBlock(dat) + '</div>' : '') +
+      '</section>';
   }
 
   /* ── 描画 ────────────────────────────────────────────────── */
@@ -1729,21 +1522,19 @@
        ① YOUR STATUS がもう出している。同じ数字を1画面に2回書くと、
        食い違ったときにどちらが本物か分からなくなる。ここでは
        会社・機材・職位・基地・更新日だけにする（見出しは節の h2 が持つ）。 */
+  /* ★2026-11-11 オーナー「会社・機種・職位・作成日が丸いボタンのようなのはなぜ？そもそもいる？」
+       ── 押せないのに押せそうな形をしていただけだった。灰色の字1行にして、同じ行の右に「今月｜1年」と印刷。
+       作成日は画面から外し、印刷の見出しにだけ載せる（bindView → printPane）。 */
   function header(dat, r, rows) {
     var host = !!w.PV_MYPAGE_HOST;
     var until = dat.access_until ? new Date(dat.access_until) : null;
     var left = until ? Math.max(0, Math.ceil((until - Date.now()) / 86400000)) : 0;
-    var chips =
-      chip(T.kAirline, airlineName(r)) +
-      chip(T.kFleet, fleetName(r)) +
-      chip(T.kPos, posName(r)) +
-      (r.base_iata ? chip(T.kBase, String(r.base_iata).toUpperCase()) : '') +
-      (host ? '' : chip(T.kSheets, T.sheets(rows.length))) +
-      chip(T.kUpdated, r.created_at ? T.date(r.created_at) : '—') +
-      (host ? '' : chip('', left > 0 ? T.unlockOn(left) : T.unlockOff));
-    return '<div class="mr-hd">' +
+    var meta = [ownName(r), fleetName(r), posName(r)]
+      .concat(r.base_iata ? [T.kBase + ' ' + String(r.base_iata).toUpperCase()] : [])
+      .concat(host ? [] : [T.sheets(rows.length), left > 0 ? T.unlockOn(left) : T.unlockOff]);
+    return '<div class="mr-hd mv-meta">' +
       (host ? '' : '<h1 class="mr-hd-t">' + esc(T.titleOf(personName())) + '</h1>') +
-      '<div class="mr-chips">' + chips + '</div></div>';
+      '<p class="mv-meta-t">' + esc(meta.join(' · ')) + '</p>' + viewBar() + '</div>';
   }
 
   /* ══ まだ給与を1件も出していない人の画面 ═══════════════════════
@@ -1972,7 +1763,10 @@
     var pb = root.querySelector('[data-print]');
     if (pb) pb.addEventListener('click', function () {
       var r = state.rows[state.rows.length - 1];
-      printPane(r ? T.prMonth.replace('{t}', function () { return T.ym(r.period_year, r.period_month); }) : '');
+      var p = r ? T.prMonth.replace('{t}', function () { return T.ym(r.period_year, r.period_month); }) : '';
+      // 作成日は画面から外した（2026-11-11）。紙の見出しにだけ載せる
+      if (r && r.created_at) p += ' · ' + T.kUpdated + ' ' + T.date(r.created_at);
+      printPane(p);
     });
     root.querySelectorAll('[data-view]').forEach(function (b) {
       b.addEventListener('click', function () {
@@ -2224,7 +2018,8 @@
     state.rows = rows;
     /* ★累計報酬（2026-11-09 オーナー「1年の累計報酬のカードとか消えてる」→「両方やる」）。
          「今月」と同じカードを年のまとめの上に置く（全社ぶん・足し方は totals()）。PDF（#pv-year の写し）には入れない。 */
-    root.innerHTML = opBar() + viewBar() +
+    /* 見出しの行（会社・機種・職位＋「今月｜1年」）は「今月」と同じ＝切り替えても同じ場所に居る */
+    root.innerHTML = opBar() + header(state.data || {}, rows[rows.length - 1], rows) +
       '<div class="mr-stack">' + lifetime(rows) + '<div id="pv-year-box"></div></div>';
     drawCumChart();                        // 実寸が要るので DOM に入れてから
     bindOp();
@@ -2269,32 +2064,30 @@
     state.rows = rows;                     // 累計だけは全社ぶんを足す
     var m = mom(rows);
 
-    /* ★ 並びは「累計｜今月 → 構成｜前回との差 → 機会 → 推移 → 次」。
-         累計を一番上に置くのは、毎月戻ってくる理由がここにしか無いため。
-         今月の額は明細を見れば分かるが、積み上がりはこの画面にしか無い。
-       ★ 上段は「累計」と「今月」を横に並べる（.mr-2col）。
+    /* ★ 並びは「今月（緑）｜累計 → 構成｜前回との差 → 他社 → 次」。
+       ★2026-11-11 オーナー「今月の実績を緑のカード・白い字に」── 色のついたカードは今月の1枚だけにして先頭へ
+         （PC は左上、スマホは一番上）。累計は白いカードでその右。
+       ★ 上段は「今月」と「累計」を横に並べる（.mr-2col）。
          縦に積むと2枚で 1,072px＝最初の画面が累計だけで終わる。横に置くと
          実測でどちらも同じくらいの高さになり、開いた瞬間に
          「これまで」と「今月」が同時に目に入る。
-       ★ 2段目は「支給構成」を累計の真下（左）に、「前回の明細との差」をその右に。
+       ★ 2段目は「支給構成」を今月の真下（左）に、「前回の明細との差」をその右に。
          どちらも今月1枚の中を見る話なので、縦に離すと関係が切れる。
          自分の明細を読み終えてから外（機会）を見る、という順にする。
        ★ どちらの段も、幅が足りない画面では自動で縦に落ちる
          （CSS 側。メディアクエリではなく flex-basis で決めている）。 */
     var wy = why(rows, m);                 // 給与が変わった理由（検算が通らなければ前回の明細との差）
     root.innerHTML =
-      opBar() + viewBar() +
+      opBar() +
       header(dat, r, rows) +
       '<div class="mr-stack">' +
-        '<div class="mr-2col">' + lifetime(rows) + thisMonth(r, m) + '</div>' +
+        '<div class="mr-2col">' + thisMonth(r, m) + lifetime(rows) + '</div>' +
         '<div class="mr-2col">' + breakdown(r) + wy.card + '</div>' + wy.table +
         opportunity(r) +
-        trend(state.series, rows.length - state.series.length, rows) +
         next(dat, rows, r) +
       '</div>';
 
-    drawChart();                           // 実寸が要るので DOM に入れてから
-    drawCumChart();
+    drawCumChart();                        // 実寸が要るので DOM に入れてから
     bind();
     bindOp();
     bindView();
@@ -2311,15 +2104,6 @@
   }
 
   function bind() {
-    root.querySelectorAll('.pt-tab[data-m]').forEach(function (b) {
-      b.addEventListener('click', function () {
-        state.metric = b.getAttribute('data-m');
-        root.querySelectorAll('.pt-tab[data-m]').forEach(function (o) {
-          o.classList.toggle('on', o === b);
-        });
-        drawChart();                       // タブはグラフだけ差し替える（全部組み直さない）
-      });
-    });
     bindRemind(root);                      // ★差込口の側は paintRemind が繋いでいる
   }
 
@@ -2492,7 +2276,7 @@
       if (!state.rows.length) return;
       if (!sumShown()) { state.sumDirty = true; return; }   // 見えたときに描き直す
       if (state.view === 'year') { if (w.PVYear) w.PVYear.redraw(); drawCumChart(); return; }
-      drawChart(); drawCumChart();
+      drawCumChart();
     }, 160);
   });
 

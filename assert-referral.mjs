@@ -120,7 +120,7 @@ const tagAt = (s, name) =>
   const oppSrc = (mv.match(/function opportunity\(r\) \{[\s\S]*?\n  \}\n/) || [''])[0];
   const exits = oppSrc.match(/return sec\(T\.oppQ[^;]*;/g) || [];
   const noSlot = exits.filter((e) => !e.includes('T.oppNoPace') && !e.includes('refSlot()')
-    && !(/return sec\(T\.oppQ, body,/.test(e) && oppSrc.includes('body += refSlot();')));
+    && !(/return sec\(T\.oppQ(\([^)]*\))?, body,/.test(e) && oppSrc.includes('body += refSlot();')));
   ok(exits.length >= 2 && noSlot.length === 0,
      'my-value.js の「機会」の出口すべてに差込口がある（区分の分からない出口を除く）',
      `出口 ${exits.length}・差込口の無い出口 ${noSlot.length}`);

@@ -104,14 +104,15 @@ for (const c of CASES) {
      メールでは 512px で出すので、実画素は 600×2＝1200px あれば足りる。 */
   await page.setViewport({ width: 632, height: 2000, deviceScaleFactor: 2 });
   await page.goto(c.url, { waitUntil: 'networkidle2', timeout: 45000 });
-  await page.waitForSelector('.mr-card.is-hero .mr-cum svg', { timeout: 20000 });
+  /* ★2026-11-11 累計のカードは紺（is-hero）をやめて白（is-total）になった */
+  await page.waitForSelector('.mr-card.is-total .mr-cum svg', { timeout: 20000 });
   await new Promise((r) => setTimeout(r, 600));   // Webフォントの入れ替わり待ち
 
   /* ③ 「見本」の札を焼き込む。画像だけ切り取られて出回っても、
         本人の数字と取り違えられないようにする（.mr-mask-tag と同じ形）。 */
   const shot = await page.evaluate((tag, bdTitle) => {
     const cards = [...document.querySelectorAll('.mr-card')];
-    const cum = cards.find((el) => el.classList.contains('is-hero'));
+    const cum = cards.find((el) => el.classList.contains('is-total'));
     const bd = cards.find((el) => (el.querySelector('.mr-card-t') || {}).textContent === bdTitle);
     [cum, bd].forEach((el, i) => {
       if (!el) return;

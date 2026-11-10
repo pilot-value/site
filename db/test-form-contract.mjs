@@ -5649,25 +5649,26 @@ console.log('\n市場価値レポート（§6 の差・§7 の線は同一会社
                                    /前回の明細との差/.test(s.textContent));
       return {
         rows:   root.querySelectorAll('.mv-c').length,
-        pts:    root.querySelectorAll('.pt-chart circle:not(.pt-tip-o)').length,   // 吹き出しの輪（pt-tip-o）は点ではない
+        /* ★2026-11-11 「月ごとの推移」は外した（オーナー「このグラフいる？」）。線は累計の1本だけ */
+        trend:  !!root.querySelector('.pt-chart'),
         first:  (root.querySelector('.mv-c .d') || {}).textContent || '',
         money:  [...root.querySelectorAll('.mv-c')]
                   .filter((e) => /[¥$€£]/.test(e.textContent)).length,
         why:    cmp ? cmp.querySelectorAll('.pt-note').length : -1,
-        sheets: root.textContent.includes('記録した明細')
+        /* 記録の月数は累計のカードの見出しの右（全社ぶん＝前職の月も数える） */
+        sheets: ((root.querySelector('.mr-card.is-total .mr-card-s') || {}).textContent || '')
       };
     });
 
     if (name === 'same') {
       ok(got.rows === 5, `同社の連続2ヶ月：金額3本＋時間2本の5行`, `rows=${got.rows}`);
       ok(got.first === '−3.3%', `総支給の増減が原本通貨で合っている`, got.first);
-      ok(got.pts === 2, `折れ線は2点`, `pts=${got.pts}`);
+      ok(got.trend === false, `月ごとの推移の図は出ない（2026-11-11 に外した）`);
     }
     if (name === 'job') {
       ok(got.rows === 0, `転職直後は差を出さない（前職と引き算しない）`, `rows=${got.rows}`);
-      ok(got.pts === 1, `折れ線に前職の月が乗らない（この会社の1点だけ）`, `pts=${got.pts}`);
       ok(got.why >= 1, `なぜ差が出ないのかを書いている`, `note=${got.why}`);
-      ok(got.sheets, `枚数の行は残っている（前職ぶんも記録は記録）`);
+      ok(/3ヶ月/.test(got.sheets), `累計は前職の月も数える（記録は記録）`, got.sheets);
     }
     if (name === 'cur') {
       ok(got.rows === 2, `通貨が変わった月とは時間だけ比べる`, `rows=${got.rows}`);
