@@ -281,7 +281,13 @@ localhost でスクリーンショットを撮って目視する。**1回撮っ�
 
 ```bash
 node gen-airline-codes.mjs
+# ★2026-11-10（エアプサン）：スペイン語のフォーム（es/pay-report.html・es/submit-review.html）は英語のフォームから作る
+node gen-lang.mjs es && node inject-session.mjs && node seo-normalize.mjs && node gen-sitemap.mjs && node gen-datemod.mjs
 ```
+
+⚠️ `gen-lang.mjs es` だけで止めると、es の約120枚が差分に見える（構造化データの公開日を一度落とし、
+`gen-datemod.mjs` が戻す）。最後まで流すと、残る差分はフォーム（日英西）と名簿の生成物だけになる。
+流し忘れは `assert-generated.mjs` が捕まえる。
 
 出力に `年収あり 112 ＋ 投稿先のみ N` が出る。ここで落ちる3つの検査：
 
