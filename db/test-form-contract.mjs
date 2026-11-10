@@ -5637,7 +5637,8 @@ console.log('\n市場価値レポート（§6 の差・§7 の線は同一会社
         value: { createClient: () => FAKE }, writable: false, configurable: false
       });
     }, reports);
-    await page.goto('http://localhost:3000/profile.html',
+    /* ★2026-11-09 から MY PAGE｜MY PAY のタブ。給与の中身は #your-pay（MY PAY）で開く */
+    await page.goto('http://localhost:3000/profile.html#your-pay',
       { waitUntil: 'domcontentloaded', timeout: 30000 });
     await new Promise((r) => setTimeout(r, 1200));
 

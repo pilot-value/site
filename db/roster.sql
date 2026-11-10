@@ -13,8 +13,9 @@
 --     pv_roster_legs    … その日の便・地上業務（空港コード・時刻・ブロック。★便名は持たない）
 --     pv_roster_months  … 2年より前の月の合計（日ごとの行はまとめたら消す）
 --     pv_line_map       … 明細の1行が「何か月前の勤務の分か」の本人の答え
+--     pv_roster_edit_quota … 手で直した回数（人×日の数だけ。1人1日200回まで）
 --   口（どれも security definer・本人の行だけ）
---     submit_roster / my_roster / my_roster_docs / delete_roster_doc /
+--     submit_roster / edit_roster_day / my_roster / my_roster_docs / delete_roster_doc /
 --     set_roster_profile / set_line_map / my_report_items
 --
 -- ★ 鍵は submit_pay_report と同じ式の proof_hash（同じ人・同じ会社なら明細の行と同じ鍵）。
@@ -29,7 +30,9 @@
 --    送られてきても組み直しで落ちる（検品もしない）。
 -- ★ 日ごとの行は2年で消す（同上）。月の頭から数えて24か月より前の月は、毎日の片づけ（pv_roster_compact）が
 --    月の合計（pv_roster_months）にまとめてから、日と便を消す。月の合計に日付・空港・時刻は入らない。
--- ★ 本人はいつでも消せる（delete_roster_doc ／ set_line_map の status=null ／ set_roster_profile の p=null）。
+-- ★ 本人は1日ずつ手で直せる・消せる（edit_roster_day・2026-11-10）。検品は submit_roster と同じ1つ（pv_roster_clean_day）。
+--    在る日はその日のファイルのまま入れ替え、無い日は本人の「手で直した日」の置き場（manual = true・1人1つ）に入れる。
+-- ★ 本人はいつでも消せる（delete_roster_doc ／ edit_roster_day の day=null ／ set_line_map の status=null ／ set_roster_profile の p=null）。
 -- ★ my_pay_reports() は触らない。明細の中身（pay_items・payslip_detail）は my_report_items() が本人にだけ返す。
 --
 -- ★ このファイルは自動では流れない。オーナーが SQL Editor で実行する。
@@ -78,6 +81,13 @@ create table if not exists public.pv_roster_docs (
   unique (proof_hash, file_sha)
 );
 create index if not exists pv_roster_docs_hash_created on public.pv_roster_docs (proof_hash, created_at);
+
+-- 手で直した日の置き場（edit_roster_day が作る・1人1社に1つ）。指紋は 'manual::' ＋ 鍵 の SHA-256（同じ人なら必ず同じ＝1つ）。
+alter table public.pv_roster_docs add column if not exists manual boolean not null default false;
+-- 置き場の日数は「いま持っている日数」で、窓（±400日）と2年の片づけの間に 62 を超えうる。置き場だけ上を外す。
+alter table public.pv_roster_docs drop constraint if exists pv_roster_docs_days_check;
+alter table public.pv_roster_docs add constraint pv_roster_docs_days_check
+  check (days >= 0 and (days <= 62 or manual));
 
 -- 1日1行。★主キーが (proof_hash, duty_date) ＝ 同じ人・同じ日は1行しか在り得ない（二重に数えない）。
 create table if not exists public.pv_roster_days (
@@ -147,6 +157,15 @@ create table if not exists public.pv_line_map (
   primary key (proof_hash, label_key)
 );
 
+-- 手で直した回数（edit_roster_day の1人1日200回まで）。★人×日の数だけ。どの日をどう直したかは持たない。
+-- 前の日の行は、その人が次に直すときに消す（1人1行より増えない）。
+create table if not exists public.pv_roster_edit_quota (
+  proof_hash text not null check (proof_hash ~ '^[0-9a-f]{64}$'),
+  day        date not null,
+  n          int  not null default 0 check (n between 0 and 100000),
+  primary key (proof_hash, day)
+);
+
 -- ★誰も直接は読めない・書けない。本人の口（下の security definer）からだけ。
 alter table public.pv_roster_profile enable row level security;
 alter table public.pv_roster_docs    enable row level security;
@@ -154,12 +173,14 @@ alter table public.pv_roster_days    enable row level security;
 alter table public.pv_roster_legs    enable row level security;
 alter table public.pv_line_map       enable row level security;
 alter table public.pv_roster_months  enable row level security;
+alter table public.pv_roster_edit_quota enable row level security;
 revoke all on table public.pv_roster_profile from public, anon, authenticated;
 revoke all on table public.pv_roster_docs    from public, anon, authenticated;
 revoke all on table public.pv_roster_days    from public, anon, authenticated;
 revoke all on table public.pv_roster_legs    from public, anon, authenticated;
 revoke all on table public.pv_line_map       from public, anon, authenticated;
 revoke all on table public.pv_roster_months  from public, anon, authenticated;
+revoke all on table public.pv_roster_edit_quota from public, anon, authenticated;
 
 -- ── 2. 内部の道具（誰からも直接は呼べない）───────────────────────
 -- 本人の鍵。★submit_pay_report と1文字も違わない式（検算7が両方の本文を突き合わせる）。
@@ -285,7 +306,94 @@ as $$
    where r.proof_hash = p_hash
 $$;
 
+-- 1日を検品して組み直す。★submit_roster と edit_roster_day が同じこれを呼ぶ（決まりは1か所・検算14）。
+-- 日付は見ない（呼ぶ側が決める）。知らないキーはここで落ちる。
+-- p_pages が null（手で直した日）のときは page・row を読まずに null にする（どのページの何行目でもないため）。
+-- 返す: {code, d_on, d_off, d_off_day, page, row, legs:[{seq, from, to, loc, out, in, in_day, block_min, role, kind, page, row}]}
+create or replace function public.pv_roster_clean_day(p_d jsonb, p_pages int)
+returns jsonb
+language plpgsql
+immutable
+set search_path = public, extensions
+as $$
+declare
+  v_l    jsonb;
+  v_seqs int[] := '{}';
+  v_seq  int;
+  v_kind text;
+  v_orig text;
+  v_dest text;
+  v_blk  text;
+  v_bmin int;
+  v_legs jsonb := '[]'::jsonb;
+  c_code constant text := '^[A-Z0-9/+\-]{1,12}$';
+  c_hhmm constant text := '^(([01][0-9]|2[0-3]):[0-5][0-9]|24:00)$';
+begin
+  if p_d is null or jsonb_typeof(p_d) <> 'object' then
+    raise exception 'ロスターの日の形が不正です' using errcode = '22023';
+  end if;
+
+  if jsonb_typeof(p_d->'legs') is not null and jsonb_typeof(p_d->'legs') <> 'null' then
+    if jsonb_typeof(p_d->'legs') <> 'array' then
+      raise exception 'ロスターの便の形が不正です' using errcode = '22023';
+    end if;
+    if jsonb_array_length(p_d->'legs') > 16 then
+      raise exception 'ロスターの1日の便が多すぎます（16まで）' using errcode = '54000';
+    end if;
+    for v_l in select e from jsonb_array_elements(p_d->'legs') as t(e) loop
+      if jsonb_typeof(v_l) <> 'object' then
+        raise exception 'ロスターの便の形が不正です' using errcode = '22023';
+      end if;
+      v_seq := public.pv_roster_int(v_l, 'seq', 1, 16, '便の順番');
+      if v_seq is null or v_seq = any (v_seqs) then
+        raise exception 'ロスターの便の順番が不正です' using errcode = '22023';
+      end if;
+      v_seqs := v_seqs || v_seq;
+
+      v_kind := coalesce(public.pv_roster_txt(v_l, 'kind', '^(operating|deadhead|ground|unknown)$', '便の種類'), 'unknown');
+      v_orig := public.pv_roster_txt(v_l, 'from', '^[A-Z0-9]{3,4}$', '出発地');
+      v_dest := public.pv_roster_txt(v_l, 'to',   '^[A-Z0-9]{3,4}$', '到着地');
+      if v_kind = 'ground' then
+        v_orig := null;   -- ★地上業務に空港を作らない（場所は loc だけ）
+        v_dest := null;
+      end if;
+      v_blk := public.pv_roster_txt(v_l, 'block', '^[0-9]{1,2}:[0-5][0-9]$', 'ブロック時間');
+      v_bmin := case when v_blk is null then null
+                     else split_part(v_blk, ':', 1)::int * 60 + split_part(v_blk, ':', 2)::int end;
+      if v_bmin > 1440 then
+        raise exception 'ロスターのブロック時間が範囲の外です' using errcode = '22023';
+      end if;
+
+      -- ★便名は組み直しに入れない（送られてきても落ちる・検品もしない）
+      v_legs := v_legs || jsonb_build_object(
+        'seq',       v_seq,
+        'from',      v_orig,
+        'to',        v_dest,
+        'loc',       public.pv_roster_txt(v_l, 'loc', '^[A-Z0-9]{2,8}$', '場所'),
+        'out',       public.pv_roster_txt(v_l, 'out', c_hhmm, '出発時刻'),
+        'in',        public.pv_roster_txt(v_l, 'in',  c_hhmm, '到着時刻'),
+        'in_day',    coalesce(public.pv_roster_int(v_l, 'in_day', 0, 2, '到着の日'), 0),
+        'block_min', v_bmin,
+        'role',      public.pv_roster_txt(v_l, 'role', '^[A-Z0-9/+\-]{1,8}$', '乗務の区分'),
+        'kind',      v_kind,
+        'page',      case when p_pages is null then null else public.pv_roster_int(v_l, 'page', 1, p_pages, 'ページ') end,
+        'row',       case when p_pages is null then null else public.pv_roster_int(v_l, 'row', 1, 999, '行') end);
+    end loop;
+  end if;
+
+  return jsonb_build_object(
+    'code',      public.pv_roster_txt(p_d, 'code',  c_code, '勤務コード'),
+    'd_on',      public.pv_roster_txt(p_d, 'd_on',  c_hhmm, '出頭時刻'),
+    'd_off',     public.pv_roster_txt(p_d, 'd_off', c_hhmm, '解散時刻'),
+    'd_off_day', coalesce(public.pv_roster_int(p_d, 'd_off_day', 0, 2, '解散の日'), 0),
+    'page',      case when p_pages is null then null else public.pv_roster_int(p_d, 'page', 1, p_pages, 'ページ') end,
+    'row',       case when p_pages is null then null else public.pv_roster_int(p_d, 'row', 1, 999, '行') end,
+    'legs',      v_legs);
+end;
+$$;
+
 revoke all on function public.pv_roster_key(uuid, text, text)                    from public, anon, authenticated;
+revoke all on function public.pv_roster_clean_day(jsonb, int)                    from public, anon, authenticated;
 revoke all on function public.pv_roster_txt(jsonb, text, text, text)             from public, anon, authenticated;
 revoke all on function public.pv_roster_int(jsonb, text, int, int, text)         from public, anon, authenticated;
 revoke all on function public.pv_roster_date(jsonb, text, text)                  from public, anon, authenticated;
@@ -311,23 +419,12 @@ declare
   v_pto      date;
   v_doc      uuid;
   v_d        jsonb;
-  v_l        jsonb;
   v_date     date;
   v_dates    date[] := '{}';
-  v_seqs     int[];
-  v_seq      int;
-  v_kind     text;
-  v_orig     text;
-  v_dest     text;
-  v_blk      text;
-  v_bmin     int;
-  v_legs     jsonb;
   v_clean    jsonb := '[]'::jsonb;
   v_today    int;
   v_replaced int;
   v_nlegs    int;
-  c_code     constant text := '^[A-Z0-9/+\-]{1,12}$';
-  c_hhmm     constant text := '^(([01][0-9]|2[0-3]):[0-5][0-9]|24:00)$';
 begin
   if v_uid is null then
     raise exception 'ログインが必要です' using errcode = '42501';
@@ -384,7 +481,7 @@ begin
     raise exception 'ロスターの日数が多すぎます（1回62日まで）' using errcode = '54000';
   end if;
 
-  -- ── 1日ずつ検品して組み直す（知らないキーはここで落ちる）──
+  -- ── 1日ずつ検品して組み直す（知らないキーはここで落ちる・決まりは pv_roster_clean_day の1か所）──
   for v_d in select e from jsonb_array_elements(p->'days') as t(e) loop
     if jsonb_typeof(v_d) <> 'object' then
       raise exception 'ロスターの日の形が不正です' using errcode = '22023';
@@ -401,65 +498,8 @@ begin
     end if;
     v_dates := v_dates || v_date;
 
-    v_legs := '[]'::jsonb;
-    v_seqs := '{}';
-    if jsonb_typeof(v_d->'legs') is not null and jsonb_typeof(v_d->'legs') <> 'null' then
-      if jsonb_typeof(v_d->'legs') <> 'array' then
-        raise exception 'ロスターの便の形が不正です' using errcode = '22023';
-      end if;
-      if jsonb_array_length(v_d->'legs') > 16 then
-        raise exception 'ロスターの1日の便が多すぎます（16まで）' using errcode = '54000';
-      end if;
-      for v_l in select e from jsonb_array_elements(v_d->'legs') as t(e) loop
-        if jsonb_typeof(v_l) <> 'object' then
-          raise exception 'ロスターの便の形が不正です' using errcode = '22023';
-        end if;
-        v_seq := public.pv_roster_int(v_l, 'seq', 1, 16, '便の順番');
-        if v_seq is null or v_seq = any (v_seqs) then
-          raise exception 'ロスターの便の順番が不正です' using errcode = '22023';
-        end if;
-        v_seqs := v_seqs || v_seq;
-
-        v_kind := coalesce(public.pv_roster_txt(v_l, 'kind', '^(operating|deadhead|ground|unknown)$', '便の種類'), 'unknown');
-        v_orig := public.pv_roster_txt(v_l, 'from', '^[A-Z0-9]{3,4}$', '出発地');
-        v_dest := public.pv_roster_txt(v_l, 'to',   '^[A-Z0-9]{3,4}$', '到着地');
-        if v_kind = 'ground' then
-          v_orig := null;   -- ★地上業務に空港を作らない（場所は loc だけ）
-          v_dest := null;
-        end if;
-        v_blk := public.pv_roster_txt(v_l, 'block', '^[0-9]{1,2}:[0-5][0-9]$', 'ブロック時間');
-        v_bmin := case when v_blk is null then null
-                       else split_part(v_blk, ':', 1)::int * 60 + split_part(v_blk, ':', 2)::int end;
-        if v_bmin > 1440 then
-          raise exception 'ロスターのブロック時間が範囲の外です' using errcode = '22023';
-        end if;
-
-        -- ★便名は組み直しに入れない（送られてきても落ちる・検品もしない）
-        v_legs := v_legs || jsonb_build_object(
-          'seq',       v_seq,
-          'from',      v_orig,
-          'to',        v_dest,
-          'loc',       public.pv_roster_txt(v_l, 'loc', '^[A-Z0-9]{2,8}$', '場所'),
-          'out',       public.pv_roster_txt(v_l, 'out', c_hhmm, '出発時刻'),
-          'in',        public.pv_roster_txt(v_l, 'in',  c_hhmm, '到着時刻'),
-          'in_day',    coalesce(public.pv_roster_int(v_l, 'in_day', 0, 2, '到着の日'), 0),
-          'block_min', v_bmin,
-          'role',      public.pv_roster_txt(v_l, 'role', '^[A-Z0-9/+\-]{1,8}$', '乗務の区分'),
-          'kind',      v_kind,
-          'page',      public.pv_roster_int(v_l, 'page', 1, v_pages, 'ページ'),
-          'row',       public.pv_roster_int(v_l, 'row', 1, 999, '行'));
-      end loop;
-    end if;
-
-    v_clean := v_clean || jsonb_build_object(
-      'date',      v_date,
-      'code',      public.pv_roster_txt(v_d, 'code',  c_code, '勤務コード'),
-      'd_on',      public.pv_roster_txt(v_d, 'd_on',  c_hhmm, '出頭時刻'),
-      'd_off',     public.pv_roster_txt(v_d, 'd_off', c_hhmm, '解散時刻'),
-      'd_off_day', coalesce(public.pv_roster_int(v_d, 'd_off_day', 0, 2, '解散の日'), 0),
-      'page',      public.pv_roster_int(v_d, 'page', 1, v_pages, 'ページ'),
-      'row',       public.pv_roster_int(v_d, 'row', 1, 999, '行'),
-      'legs',      v_legs);
+    -- 便と日の欄は pv_roster_clean_day（edit_roster_day と同じ1つ）。日付は上で決めたもの。
+    v_clean := v_clean || (jsonb_build_object('date', v_date) || public.pv_roster_clean_day(v_d, v_pages));
   end loop;
 
   -- ── 書く（同じ人の提出は1本ずつ順番に）──
@@ -475,7 +515,7 @@ begin
 
   select count(*) into v_today
     from public.pv_roster_docs d
-   where d.proof_hash = v_key and d.created_at >= date_trunc('day', now());
+   where d.proof_hash = v_key and d.created_at >= date_trunc('day', now()) and not d.manual;
   if v_today >= 30 then
     raise exception '1日に取り込める勤務表の上限に達しました。明日また続きをどうぞ。' using errcode = '54000';
   end if;
@@ -508,6 +548,133 @@ begin
 
   return jsonb_build_object('ok', true, 'dup', false, 'doc_id', v_doc,
                             'days', cardinality(v_dates), 'legs', v_nlegs, 'replaced', v_replaced);
+end;
+$$;
+
+-- ── 3-b. 1日を手で直す・消す（2026-11-10）──────────────────────────
+-- 確かめの画面・勤務ロスターのタブで、本人が1日だけ直す（読み違い・載っていなかった日・読めなかった記号の日）。
+-- p = { date:'YYYY-MM-DD',
+--       day:{code, d_on, d_off, d_off_day, legs:[{seq, from, to, loc, out, in, in_day, block, role, kind}]} | null }
+--   ・検品は submit_roster と同じ1つ（pv_roster_clean_day）。便名・知らないキーは落ちる。page・row は持たない（null）。
+--   ・日付は今日から ±400日の中で、かつ月の合計にまとめた期間（24か月前の月の頭より前）でないこと。
+--     ★まとめた月に日の行を足すと、月の合計と日の行で二重に数える。今は ±400日 のほうが狭いが、
+--       窓を広げたときにも破れないよう、境目は pv_roster_compact と同じ式で別に見る（検算15）。
+--   ・day = null → その日を消す（便も一緒に）。
+--   ・その日が在れば、その日のファイル（doc_id）のまま入れ替える。無ければ本人の「手で直した日」の置き場
+--     （manual = true の1つ。無ければ作る）に入れ、置き場の日付の幅を広げ、日数を数え直す。
+--   ・1人1日200回まで（消すのも1回。検品で止まった呼び出しは数えない）。数えるのは pv_roster_edit_quota の 人×日 の1行だけ。
+-- 返す: {ok, date, legs}（入れた便の数） ／ 消したとき {ok, date, deleted:true}（もともと無い日でも true ＝ その日はもう無い）
+create or replace function public.edit_roster_day(p_airline text, p_airline_other text, p jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  v_uid   uuid := auth.uid();
+  v_key   text;
+  v_cut   date := (date_trunc('month', current_date) - interval '24 months')::date;
+  v_date  date;
+  v_clean jsonb;
+  v_doc   uuid;
+  v_msha  text;
+  v_used  int;
+  v_nlegs int;
+begin
+  if v_uid is null then
+    raise exception 'ログインが必要です' using errcode = '42501';
+  end if;
+  v_key := public.pv_roster_key(v_uid, p_airline, p_airline_other);
+  if v_key is null then
+    raise exception '会社コードが不正です' using errcode = '22023';
+  end if;
+  if p is null or jsonb_typeof(p) <> 'object' or not (p ? 'day') then
+    raise exception 'ロスターの形が不正です' using errcode = '22023';
+  end if;
+  if octet_length(p::text) > 32 * 1024 then
+    raise exception 'ロスターが大きすぎます' using errcode = '54000';
+  end if;
+
+  v_date := public.pv_roster_date(p, 'date', '日付');
+  if v_date is null then
+    raise exception 'ロスターの日付がありません' using errcode = '22023';
+  end if;
+  -- ★月の合計にまとめた期間の日は受け付けない（境目は pv_roster_compact と同じ「24か月前の月の頭」）
+  if v_date < v_cut then
+    raise exception 'ロスターの日付が2年より前です（月の合計にまとめた期間は直せません）' using errcode = '22023';
+  end if;
+  if v_date < current_date - 400 or v_date > current_date + 400 then
+    raise exception 'ロスターの日付が範囲の外です' using errcode = '22023';
+  end if;
+  -- 1日の中身は submit_roster と同じ検品（日付は上で決めたもの・page と row は読まない）
+  if jsonb_typeof(p->'day') <> 'null' then
+    v_clean := public.pv_roster_clean_day(p->'day', null);
+  end if;
+
+  -- ── 書く（同じ人の書き込みは1本ずつ順番に。submit_roster と同じ錠）──
+  perform pg_advisory_xact_lock(20261109, hashtext(v_key));
+
+  -- 1人1日200回まで（前の日の行は消す＝1人1行より増えない）
+  delete from public.pv_roster_edit_quota q where q.proof_hash = v_key and q.day < current_date;
+  select q.n into v_used from public.pv_roster_edit_quota q where q.proof_hash = v_key and q.day = current_date;
+  if coalesce(v_used, 0) >= 200 then
+    raise exception '1日に手で直せる回数の上限に達しました。明日また続きをどうぞ。' using errcode = '54000';
+  end if;
+  insert into public.pv_roster_edit_quota as q (proof_hash, day, n)
+  values (v_key, current_date, 1)
+  on conflict (proof_hash, day) do update set n = q.n + 1;
+
+  -- その日をいま持っているファイル（無ければ null）
+  select d.doc_id into v_doc
+    from public.pv_roster_days d
+   where d.proof_hash = v_key and d.duty_date = v_date;
+
+  if v_clean is null then
+    -- 消す（便は外部キーで一緒に消える）。手で直した日の置き場の日数は数え直す。
+    delete from public.pv_roster_days t where t.proof_hash = v_key and t.duty_date = v_date;
+    update public.pv_roster_docs f
+       set days = (select count(*) from public.pv_roster_days x where x.doc_id = f.id)
+     where f.id = v_doc and f.manual;
+    return jsonb_build_object('ok', true, 'date', v_date, 'deleted', true);
+  end if;
+
+  if v_doc is null then
+    -- 無い日は本人の「手で直した日」の置き場へ（1人1社に1つ。無ければ作る）
+    v_msha := encode(extensions.digest('manual::' || v_key, 'sha256'), 'hex');
+    select f.id into v_doc
+      from public.pv_roster_docs f
+     where f.proof_hash = v_key and f.file_sha = v_msha;
+    if v_doc is null then
+      insert into public.pv_roster_docs (proof_hash, file_sha, pages, date_from, date_to, days, manual)
+      values (v_key, v_msha, 1, v_date, v_date, 0, true)
+      returning id into v_doc;
+    end if;
+  end if;
+
+  -- ★その日だけ入れ替える（古い行と便を消してから入れる）
+  delete from public.pv_roster_days t where t.proof_hash = v_key and t.duty_date = v_date;
+
+  insert into public.pv_roster_days (proof_hash, duty_date, doc_id, code, d_on, d_off, d_off_day, page, "row")
+  values (v_key, v_date, v_doc, v_clean->>'code',
+          (v_clean->>'d_on')::time, (v_clean->>'d_off')::time, (v_clean->>'d_off_day')::smallint,
+          null, null);
+
+  insert into public.pv_roster_legs (proof_hash, duty_date, seq, orig, dest, loc,
+                                     t_out, t_in, in_day, block_min, role_raw, kind, page, "row")
+  select v_key, v_date, (l->>'seq')::smallint, l->>'from', l->>'to', l->>'loc',
+         (l->>'out')::time, (l->>'in')::time, (l->>'in_day')::smallint, (l->>'block_min')::int,
+         l->>'role', l->>'kind', null, null
+    from jsonb_array_elements(v_clean->'legs') as u(l);
+  get diagnostics v_nlegs = row_count;
+
+  -- 手で直した日の置き場なら、日付の幅を広げて日数を数え直す（取り込んだファイルの記録は変えない）
+  update public.pv_roster_docs f
+     set date_from = least(f.date_from, v_date),
+         date_to   = greatest(f.date_to, v_date),
+         days      = (select count(*) from public.pv_roster_days x where x.doc_id = f.id)
+   where f.id = v_doc and f.manual;
+
+  return jsonb_build_object('ok', true, 'date', v_date, 'legs', v_nlegs);
 end;
 $$;
 
@@ -582,8 +749,10 @@ end;
 $$;
 
 -- ── 5. 本人が取り込んだファイルの一覧 ─────────────────────────────
--- 返す: {ok, docs:[{id, file_sha, pages, date_from, date_to, days, days_owned, created_at}]}（新しい順）
+-- 返す: {ok, docs:[{id, file_sha, pages, date_from, date_to, days, days_owned, manual, created_at}]}（新しい順）
 --   days = 取り込んだときの日数 ／ days_owned = いまもこのファイルが持っている日数（後の提出に入れ替わった日は数えない）
+--   manual = true は「手で直した日」の置き場（edit_roster_day が作る・1人1社に1つ。days は最後に直したときの日数・
+--            date_from〜date_to は直した日の幅）。delete_roster_doc でほかのファイルと同じように消せる。
 create or replace function public.my_roster_docs(p_airline text, p_airline_other text)
 returns jsonb
 language plpgsql
@@ -612,6 +781,7 @@ begin
            'date_to',    d.date_to,
            'days',       d.days,
            'days_owned', (select count(*) from public.pv_roster_days x where x.doc_id = d.id),
+           'manual',     d.manual,
            'created_at', d.created_at
          ) order by d.created_at desc, d.id), '[]'::jsonb)
     into v_docs
@@ -1067,6 +1237,7 @@ $cron$;
 
 -- ── 10. 呼べる人 ─────────────────────────────────────────────
 revoke all on function public.submit_roster(jsonb)                               from public, anon;
+revoke all on function public.edit_roster_day(text, text, jsonb)                 from public, anon;
 revoke all on function public.my_roster(text, text, date, date)                  from public, anon;
 revoke all on function public.my_roster_docs(text, text)                         from public, anon;
 revoke all on function public.delete_roster_doc(uuid, text, text)                from public, anon;
@@ -1074,6 +1245,7 @@ revoke all on function public.set_roster_profile(text, text, jsonb)             
 revoke all on function public.set_line_map(text, text, text, int, text, text)    from public, anon;
 revoke all on function public.my_report_items()                                  from public, anon;
 grant execute on function public.submit_roster(jsonb)                            to authenticated;
+grant execute on function public.edit_roster_day(text, text, jsonb)              to authenticated;
 grant execute on function public.my_roster(text, text, date, date)               to authenticated;
 grant execute on function public.my_roster_docs(text, text)                      to authenticated;
 grant execute on function public.delete_roster_doc(uuid, text, text)             to authenticated;
@@ -1083,12 +1255,15 @@ grant execute on function public.my_report_items()                              
 
 comment on function public.submit_roster(jsonb) is
   '勤務表を取り込む（本人の鍵で・日付で入れ替え・原本は持たない・氏名や自由記述の入る欄が無い）。';
+comment on function public.edit_roster_day(text, text, jsonb) is
+  '勤務表の1日を手で直す・消す（本人の鍵で・検品は submit_roster と同じ pv_roster_clean_day・便名は持たない・2年より前の日は受け付けない・1人1日200回まで）。';
 comment on function public.my_report_items() is
   'マイレポート用。本人の明細の中身（pay_items・payslip_detail）と行の答え。my_pay_reports と同じく本人の鍵を作り直して引く。';
 
 -- ── 11. 検算（貼ったあと、全部 ✅ になること）──────────────────────────
 with fns(sig) as (values
        ('public.submit_roster(jsonb)'),
+       ('public.edit_roster_day(text, text, jsonb)'),
        ('public.my_roster(text, text, date, date)'),
        ('public.my_roster_docs(text, text)'),
        ('public.delete_roster_doc(uuid, text, text)'),
@@ -1102,55 +1277,60 @@ with fns(sig) as (values
        ('public.pv_roster_txt(jsonb, text, text, text)'),
        ('public.pv_roster_int(jsonb, text, integer, integer, text)'),
        ('public.pv_roster_date(jsonb, text, text)'),
+       ('public.pv_roster_clean_day(jsonb, integer)'),
        ('public.pv_roster_profile_json(text)'),
        ('public.pv_roster_tz_ok(text)'),
        ('public.pv_roster_compact(date)')),
      hpo as (select sig, to_regprocedure(sig) as oid from hp),
      tb(t) as (values ('public.pv_roster_profile'), ('public.pv_roster_docs'), ('public.pv_roster_days'),
-                      ('public.pv_roster_legs'), ('public.pv_line_map'), ('public.pv_roster_months')),
+                      ('public.pv_roster_legs'), ('public.pv_line_map'), ('public.pv_roster_months'),
+                      ('public.pv_roster_edit_quota')),
      tbo as (select t, to_regclass(t) as oid from tb),
      ro as (select oid from pg_roles where rolname in ('anon', 'authenticated')),
      k as (select $k$v_uid::text || '::pv_pay::' || v_airline || coalesce('::' || lower(v_other), '')$k$ as s),
      sr as (select coalesce((select s from fd where sig = 'public.submit_roster(jsonb)'), '') as s),
-     mr as (select coalesce((select s from fd where sig = 'public.my_roster(text, text, date, date)'), '') as s)
-select 1 as "#", '7つの口がある・どれも呼んだ本人の権限で動かない（security definer）' as "確かめること",
-       case when (select count(*) from fn where oid is not null) = 7
+     ed as (select coalesce((select s from fd where sig = 'public.edit_roster_day(text, text, jsonb)'), '') as s),
+     mr as (select coalesce((select s from fd where sig = 'public.my_roster(text, text, date, date)'), '') as s),
+     md as (select coalesce((select s from fd where sig = 'public.my_roster_docs(text, text)'), '') as s),
+     cd as (select coalesce(pg_get_functiondef(to_regprocedure('public.pv_roster_clean_day(jsonb, integer)')), '') as s)
+select 1 as "#", '8つの口がある・どれも呼んだ本人の権限で動かない（security definer）' as "確かめること",
+       case when (select count(*) from fn where oid is not null) = 8
              and (select bool_and(p.prosecdef) from fn join pg_proc p on p.oid = fn.oid)
             then '✅' else '❌' end as "判定"
-union all select 2, '未ログイン（anon）と PUBLIC は7つとも呼べない・ログイン済みは呼べる',
-       case when (select count(*) from fn where oid is not null) = 7
+union all select 2, '未ログイン（anon）と PUBLIC は8つとも呼べない・ログイン済みは呼べる',
+       case when (select count(*) from fn where oid is not null) = 8
              and not exists (select 1 from fn join pg_proc q on q.oid = fn.oid,
                                     lateral aclexplode(coalesce(q.proacl, acldefault('f', q.proowner))) a
                               where a.privilege_type = 'EXECUTE'
                                 and (a.grantee = 0 or a.grantee in (select oid from pg_roles where rolname = 'anon')))
              and (select bool_and(has_function_privilege('authenticated', fn.oid, 'EXECUTE')) from fn where oid is not null)
             then '✅' else '❌' end
-union all select 3, '内部の道具（鍵の式・検品・読み方の形・月の合計へのまとめ）は誰からも直接呼べない',
-       case when (select count(*) from hpo where oid is not null) = 7
+union all select 3, '内部の道具（鍵の式・検品・1日の組み直し・読み方の形・月の合計へのまとめ）は誰からも直接呼べない',
+       case when (select count(*) from hpo where oid is not null) = 8
              and not exists (select 1 from hpo join pg_proc q on q.oid = hpo.oid,
                                     lateral aclexplode(coalesce(q.proacl, acldefault('f', q.proowner))) a
                               where a.privilege_type = 'EXECUTE'
                                 and (a.grantee = 0 or a.grantee in (select oid from ro)))
             then '✅' else '❌' end
-union all select 4, 'ログインしていなければ止める（7つとも auth.uid() が無ければ 42501）',
-       case when (select count(*) from fd) = 7
+union all select 4, 'ログインしていなければ止める（8つとも auth.uid() が無ければ 42501）',
+       case when (select count(*) from fd) = 8
              and (select bool_and(strpos(s, 'if v_uid is null then') > 0 and strpos(s, '42501') > 0) from fd)
             then '✅' else '❌' end
-union all select 5, '6つの表は RLS が有効・ポリシーが1つも無い（直接は誰も読めない）',
-       case when (select count(*) from tbo where oid is not null) = 6
+union all select 5, '7つの表は RLS が有効・ポリシーが1つも無い（直接は誰も読めない）',
+       case when (select count(*) from tbo where oid is not null) = 7
              and (select bool_and(c.relrowsecurity) from tbo join pg_class c on c.oid = tbo.oid)
              and not exists (select 1 from pg_policy pl where pl.polrelid in (select oid from tbo where oid is not null))
             then '✅' else '❌' end
-union all select 6, '6つの表に anon・authenticated・PUBLIC の権限が1つも無い',
-       case when (select count(*) from tbo where oid is not null) = 6
+union all select 6, '7つの表に anon・authenticated・PUBLIC の権限が1つも無い',
+       case when (select count(*) from tbo where oid is not null) = 7
              and not exists (select 1 from tbo join pg_class c on c.oid = tbo.oid,
                                     lateral aclexplode(coalesce(c.relacl, acldefault('r', c.relowner))) a
                               where a.grantee = 0 or a.grantee in (select oid from ro))
             then '✅' else '❌' end
-union all select 7, '本人の鍵の式が submit_pay_report と1文字も違わない（7つとも pv_roster_key で作る）',
+union all select 7, '本人の鍵の式が submit_pay_report と1文字も違わない（8つとも pv_roster_key で作る）',
        case when strpos(coalesce(pg_get_functiondef(to_regprocedure('public.pv_roster_key(uuid, text, text)')), ''), (select s from k)) > 0
              and strpos(pg_get_functiondef('public.submit_pay_report(jsonb)'::regprocedure), (select s from k)) > 0
-             and (select count(*) from fd) = 7
+             and (select count(*) from fd) = 8
              and (select bool_and(strpos(s, 'public.pv_roster_key(v_uid') > 0) from fd)
             then '✅' else '❌' end
 union all select 8, '新しい提出は日付で入れ替わる（日の主キーが本人×日付・先に同じ日を消してから入れる・便は日と一緒に消える）',
@@ -1170,7 +1350,7 @@ union all select 8, '新しい提出は日付で入れ替わる（日の主キ�
                             and c.confrelid = to_regclass('public.pv_roster_docs') and c.confdeltype = 'c')
             then '✅' else '❌' end
 union all select 9, '原本・氏名・自由記述を入れる列が無い（bytea も name・note・memo・image などの列も無い）',
-       case when (select count(*) from tbo where oid is not null) = 6
+       case when (select count(*) from tbo where oid is not null) = 7
              and not exists (select 1 from pg_attribute a
                               where a.attrelid in (select oid from tbo where oid is not null)
                                 and a.attnum > 0 and not a.attisdropped
@@ -1181,13 +1361,16 @@ union all select 10, 'my_pay_reports は今までどおり pay_items・payslip_d
        case when strpos(pg_get_functiondef('public.my_pay_reports()'::regprocedure), 'r.pay_items,') = 0
              and strpos(pg_get_functiondef('public.my_pay_reports()'::regprocedure), 'r.payslip_detail') = 0
             then '✅' else '❌' end
-union all select 11, '便名を保存しない（便の表に列が無い・出す口は組み直しに入れない・読む口も返さない）',
+union all select 11, '便名を保存しない（便の表に列が無い・出す口・直す口・1日の組み直しは入れない・読む口も返さない）',
        case when not exists (select 1 from pg_attribute a
                               where a.attrelid = to_regclass('public.pv_roster_legs')
                                 and a.attname = 'flight' and a.attnum > 0 and not a.attisdropped)
              and strpos((select s from sr), $f$'flight'$f$) = 0
+             and strpos((select s from ed), $f$'flight'$f$) = 0
+             and strpos((select s from cd), $f$'flight'$f$) = 0
              and strpos((select s from mr), $f$'flight'$f$) = 0
-             and length((select s from sr)) > 0 and length((select s from mr)) > 0
+             and length((select s from sr)) > 0 and length((select s from ed)) > 0
+             and length((select s from cd)) > 0 and length((select s from mr)) > 0
             then '✅' else '❌' end
 union all select 12, '2年より前の日は月の合計にまとめて消す（境目は24か月前の月の頭・日を消す・時計が在れば毎日流れる）',
        case when to_regprocedure('public.pv_roster_compact(date)') is not null
@@ -1197,5 +1380,34 @@ union all select 12, '2年より前の日は月の合計にまとめて消す（
                   or (xpath('/row/n/text()',
                             query_to_xml($q$select count(*) as n from cron.job where jobname = 'pv-roster-compact'$q$,
                                          false, true, '')))[1]::text = '1')
+            then '✅' else '❌' end
+union all select 13, '手で直す口（edit_roster_day）はログインしていなければ 42501・本人の鍵（pv_roster_key）で書く',
+       case when strpos((select s from ed), 'if v_uid is null then') > 0
+             and strpos((select s from ed), '42501') > 0
+             and strpos((select s from ed), 'public.pv_roster_key(v_uid, p_airline, p_airline_other)') > 0
+            then '✅' else '❌' end
+union all select 14, '1日の検品は1か所（submit_roster と edit_roster_day がどちらも pv_roster_clean_day を呼び、自前の検品を持たない）',
+       case when strpos((select s from sr), 'public.pv_roster_clean_day(') > 0
+             and strpos((select s from ed), 'public.pv_roster_clean_day(') > 0
+             and strpos((select s from cd), '^[A-Z0-9]{3,4}$') > 0
+             and strpos((select s from cd), 'ブロック時間') > 0
+             and strpos((select s from sr), '^[A-Z0-9]{3,4}$') = 0 and strpos((select s from sr), 'ブロック時間') = 0
+             and strpos((select s from ed), '^[A-Z0-9]{3,4}$') = 0 and strpos((select s from ed), 'ブロック時間') = 0
+            then '✅' else '❌' end
+union all select 15, '手で直す口は月の合計にまとめた期間（24か月前の月の頭より前）の日を受け付けない',
+       case when strpos((select s from ed), $c$date_trunc('month', current_date) - interval '24 months'$c$) > 0
+             and strpos((select s from ed), 'if v_date < v_cut then') > 0
+            then '✅' else '❌' end
+union all select 16, 'ファイルの表に manual の列がある（手で直した日の置き場は1人1社に1つ・my_roster_docs が返す）',
+       case when exists (select 1 from pg_attribute a
+                          where a.attrelid = to_regclass('public.pv_roster_docs') and a.attname = 'manual'
+                            and a.atttypid = 'boolean'::regtype and a.attnotnull and a.attnum > 0 and not a.attisdropped)
+             and exists (select 1 from pg_constraint c
+                          where c.conrelid = to_regclass('public.pv_roster_docs') and c.contype = 'u'
+                            and (select array_agg(a.attname::text order by a.attname)
+                                   from pg_attribute a
+                                  where a.attrelid = c.conrelid and a.attnum = any (c.conkey)) = array['file_sha', 'proof_hash'])
+             and strpos((select s from ed), $m$'manual::' || v_key$m$) > 0
+             and strpos((select s from md), $m$'manual'$m$) > 0
             then '✅' else '❌' end
 order by 1;

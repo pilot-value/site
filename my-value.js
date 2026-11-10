@@ -70,19 +70,19 @@
   /* ★後から読む2本にも中身の指紋を付ける（.js は配信で4時間覚えられる＝付けないと出した直後に古い部品が残る）。
        my-year.js か my-value-sample.js を直したら、db/test-year-report.mjs が示す値に書き換える（中身と一致するかを見ている）。
        そのあと profile.html（日英）の my-value.js の指紋も変わる（assert-links.mjs が示す値に写す・西は gen-lang.mjs）。 */
-  var YEAR_V = 'e8555ffd';
+  var YEAR_V = 'ed3b7dca';
   var SAMPLE_V = '56f31187';
   var SAMPLE_URL = 'my-value-sample.js?v=' + SAMPLE_V;     // 運営の見本（運営のときだけ読む）
   var YEAR_URL = 'my-year.js?v=' + YEAR_V;                 // 「1年」の画面（押したときだけ読む）
   /* ★「勤務ロスター」のタブ（2026-11-09）。開いたときだけ読む4本。指紋は上の2本と同じ決まり
        （db/test-year-report.mjs が中身と突き合わせる）。計算の部品は分析のタブも使う。 */
-  var ROSTER_V = '2baf5b72';
-  var ROSTER_CSS_V = 'd13f6d93';
-  var UPLOAD_V = '37dd7bdb';
-  var ENGINE_V = 'f5603644';
+  var ROSTER_V = 'f824ac31';
+  var ROSTER_CSS_V = '453b5889';
+  var UPLOAD_V = 'b27f5ed9';
+  var ENGINE_V = '7ab4bdaa';
   /* ★「分析」のタブ（2026-11-09）。開いたときだけ読む2本（見た目 → 計算の部品 → 画面の順）。指紋の決まりは上と同じ */
-  var ANALYSIS_V = '92184573';
-  var ANALYSIS_CSS_V = '9934ef28';
+  var ANALYSIS_V = '6dbb1b98';
+  var ANALYSIS_CSS_V = 'b2f00eb7';
   var LATE = {
     roster: 'my-roster.js?v=' + ROSTER_V, rosterCss: 'my-roster.css?v=' + ROSTER_CSS_V,
     upload: 'roster-upload.js?v=' + UPLOAD_V, engine: 'pv-report-engine.js?v=' + ENGINE_V,
@@ -142,12 +142,14 @@
       vMonth: '今月', vYear: '1年',
       /* YOUR PAY の3つのタブ（2026-11-09）。期間の切り替え（今月｜1年）とは別物＝形も違える。短い字は狭い画面用。 */
       tabsAria: 'YOUR PAY の表示',
-      tabSum: '給与サマリー', tabRoster: '勤務ロスター', tabAna: '分析',
+      tabSum: '給与サマリー', tabRoster: 'スケジュール', tabAna: '分析',
       tabSumS: '給与', tabRosterS: '勤務', tabAnaS: '分析',
+      /* MY PAGE｜MY PAY のタブ（2026-11-09 オーナー「mypage と my pay でタブ分けない？」）。字はオーナーの呼び方のまま */
+      pgAria: 'マイページの表示', pgPage: 'MY PAGE', pgPay: 'MY PAY',
       anaErr: '分析の画面を読み込めませんでした。時間をおいて開き直してください。',
       /* 印刷（表示中のタブだけ）。紙の1行目は「YOUR PAY · タブ · 期間」 */
       prPrint: '印刷', prPrintA: '表示中のタブを印刷', prMonth: '明細 {t}',
-      rosterErr: '勤務ロスターの画面を読み込めませんでした。時間をおいて開き直してください。',
+      rosterErr: 'スケジュールの画面を読み込めませんでした。時間をおいて開き直してください。',
       /* 給与が変わった理由（2026-11-09・承認済みの見本）。数量の名前は表の行の見出し */
       why: '給与が変わった理由', whyTot: '支給合計の増減', whyDed: '控除合計の増減', whyNet: '手取りの増減',
       whyRest: 'ほかの{n}項目', whyChart: '項目ごとの増減',
@@ -362,6 +364,7 @@
       /* ★"Roster" と "Pay" だけ二重引用符：訳の辞書の 'Roster'・'Pay' は別の部品のための長い訳（括弧の説明つき）を持つ。
            タブは短い字が要るので、別の鍵にしてある（gen-msg.mjs は値のソースそのものを鍵にする）。 */
       tabSum: 'Pay summary', tabRoster: "Roster", tabAna: 'Analysis',
+      pgAria: 'My page views', pgPage: 'MY PAGE', pgPay: 'MY PAY',
       tabSumS: "Pay", tabRosterS: "Roster", tabAnaS: 'Analysis',
       anaErr: 'Could not load the analysis view. Please try again in a moment.',
       prPrint: 'Print', prPrintA: 'Print this tab', prMonth: '{t} payslip',
@@ -549,6 +552,7 @@
       /* ★"Roster" と "Pay" だけ二重引用符：訳の辞書の 'Roster'・'Pay' は別の部品のための長い訳（括弧の説明つき）を持つ。
            タブは短い字が要るので、別の鍵にしてある（gen-msg.mjs は値のソースそのものを鍵にする）。 */
       tabSum: 'Resumen de pago', tabRoster: "Programación", tabAna: 'Análisis',
+      pgAria: 'Vistas de mi página', pgPage: 'MI PÁGINA', pgPay: 'MI REMUNERACIÓN',
       tabSumS: "Pago", tabRosterS: "Programación", tabAnaS: 'Análisis',
       anaErr: 'No se pudo cargar la vista de análisis. Inténtalo de nuevo en un momento.',
       prPrint: 'Imprimir', prPrintA: 'Imprimir esta pestaña', prMonth: 'Recibo de {t}',
@@ -1359,7 +1363,7 @@
     Promise.all([lateJs(LATE.engine, function () { return !!w.PVReport; }), reportItems()]).then(function (r) {
       rep.done = !!r[0];
       if (!rep.done) return;
-      if (state.tab !== 'summary') { state.sumDirty = true; return; }
+      if (!sumShown()) { state.sumDirty = true; return; }
       if (state.view === 'month') render();
     });
   }
@@ -1988,6 +1992,88 @@
     }
     return yearLoading;
   }
+  /* ── MY PAGE｜MY PAY のタブ（2026-11-09 オーナー「mypage と my pay でタブ分けない？」）──────────
+     ★作るのはこの JS（日英西で1本）。HTML の骨組みはそのまま＝この JS が落ちても今までの縦並びで全部見える。
+     ★#your-pay で来た人（給与を出した直後・古いメール・my-value.html の転送）は MY PAY で開く。ほかは MY PAGE。
+       押したら住所の #your-pay を付け外し（履歴は積まない）。ページの中の #your-pay へのリンクも切り替える。
+     ★MY PAY が閉じている間は図を描かない（幅0で描くと崩れたまま残る）。開いたときに今の小タブを描き直す。 */
+  var PAGES = ['page', 'pay'];
+  var pg = { on: false, cur: 'page', panes: null };
+  function payShown() { return !pg.on || pg.cur === 'pay'; }
+  function sumShown() { return state.tab === 'summary' && payShown(); }
+  function pageTabs() {
+    var main = w.PV_MYPAGE_HOST ? host.closest('main') : null;
+    var pay = d.getElementById('your-pay');
+    if (!main || !pay || pay.parentNode !== main || main.querySelector('.mp-tabs')) return;
+    var bar = d.createElement('div');
+    bar.className = 'mp-tabs';
+    bar.setAttribute('role', 'tablist');
+    bar.setAttribute('aria-label', T.pgAria);
+    bar.innerHTML = PAGES.map(function (k) {
+      return '<button type="button" role="tab" class="mp-tab" id="mp-tab-' + k + '" data-pg="' + k +
+        '" aria-controls="mp-pane-' + k + '" aria-selected="false" tabindex="-1">' + esc(k === 'pay' ? T.pgPay : T.pgPage) + '</button>';
+    }).join('');
+    pg.panes = {};
+    PAGES.forEach(function (k) {
+      var p = d.createElement('div');
+      p.className = 'mp-pane';
+      p.id = 'mp-pane-' + k;
+      p.setAttribute('role', 'tabpanel');
+      p.setAttribute('aria-labelledby', 'mp-tab-' + k);
+      pg.panes[k] = p;
+    });
+    /* main の子を順番のまま2つの面へ移す（#your-pay だけ MY PAY・ほかは MY PAGE） */
+    Array.prototype.slice.call(main.children).forEach(function (el) {
+      (el === pay ? pg.panes.pay : pg.panes.page).appendChild(el);
+    });
+    main.appendChild(bar);
+    main.appendChild(pg.panes.page);
+    main.appendChild(pg.panes.pay);
+    main.classList.add('mp-tabbed');
+    pg.on = true;
+    bar.addEventListener('click', function (e) {
+      var b = e.target.closest ? e.target.closest('.mp-tab') : null;
+      if (b) setPage(b.getAttribute('data-pg'), false, true);
+    });
+    bar.addEventListener('keydown', function (e) {
+      var i = PAGES.indexOf(pg.cur), j = null;
+      if (e.key === 'ArrowRight') j = (i + 1) % PAGES.length;
+      else if (e.key === 'ArrowLeft') j = (i + PAGES.length - 1) % PAGES.length;
+      else if (e.key === 'Home') j = 0;
+      else if (e.key === 'End') j = PAGES.length - 1;
+      if (j == null) return;
+      e.preventDefault();
+      setPage(PAGES[j], true, true);
+    });
+    w.addEventListener('hashchange', function () { if (location.hash === '#your-pay') setPage('pay'); });
+    setPage(location.hash === '#your-pay' ? 'pay' : 'page');
+  }
+  function setPage(k, focus, byUser) {
+    if (!pg.on || PAGES.indexOf(k) < 0) return;
+    pg.cur = k;
+    d.querySelectorAll('.mp-tab').forEach(function (b) {
+      var on = b.getAttribute('data-pg') === k;
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-selected', String(on));
+      b.tabIndex = on ? 0 : -1;
+      if (on && focus) b.focus();
+    });
+    PAGES.forEach(function (t) { pg.panes[t].hidden = t !== k; });
+    if (byUser) {
+      try {
+        var want = k === 'pay' ? '#your-pay' : '';
+        if (location.hash !== want && (k === 'pay' || location.hash === '#your-pay')) {
+          history.replaceState(history.state, '', location.pathname + location.search + want);
+        }
+      } catch (e) {}
+    }
+    if (k !== 'pay') return;
+    /* 開いたとき：隠れている間に描きそびれた面を描き直す */
+    if (state.tab === 'summary' && state.sumDirty) { state.sumDirty = false; render(); }
+    else if (state.tab === 'roster' && w.PVRoster && w.PVRoster.redraw) w.PVRoster.redraw();
+    else if (state.tab === 'analysis' && w.PVAnalysis && w.PVAnalysis.redraw) w.PVAnalysis.redraw();
+  }
+
   /* ── YOUR PAY の3つのタブ（2026-11-09 オーナー「給与サマリー｜勤務ロスター｜分析」）──────────
      ★期間の切り替え（今月｜1年）は給与サマリーの中に残す。用途のタブと混ぜない（形も違える）。
      ★面は消さずに隠すだけ＝タブを移っても、選んだ月・日はそのまま。
@@ -2044,7 +2130,7 @@
       if (on && focus) b.focus();
     });
     TABS.forEach(function (t) { panes[t].hidden = t !== k; });
-    if (k === 'summary' && state.sumDirty) { state.sumDirty = false; render(); }
+    if (k === 'summary' && state.sumDirty && payShown()) { state.sumDirty = false; render(); }
     if (k === 'roster') openRoster();
     else if (w.PVRoster && w.PVRoster.hide) w.PVRoster.hide();
     if (k === 'analysis') openAnalysis();
@@ -2103,6 +2189,7 @@
   /* 分析のタブから勤務ロスターへ（点を押した日・「ロスターを足す」）。ロスターの部品が届いてから渡す */
   var rosterWant = null;
   function gotoRoster(o) {
+    setPage('pay');
     setTab('roster');
     if (rosterMounted && w.PVRoster && w.PVRoster.open) w.PVRoster.open(o);
     else rosterWant = o;
@@ -2170,7 +2257,7 @@
     if (!dat) return;
     paintRemind(dat);                      // ★0 件で戻る前に描く（設定は件数と無関係）
     shell();                               // タブの骨組み（1回だけ）。ここから root は給与サマリーの面
-    if (state.tab !== 'summary') { state.sumDirty = true; return; }   // 隠れた面に図を描かない
+    if (!sumShown()) { state.sumDirty = true; return; }   // 隠れた面に図を描かない（MY PAY が閉じているときも）
     var rows = (state.sample && w.PV_VALUE_SAMPLE) ? w.PV_VALUE_SAMPLE(state.sample) : (dat.reports || []);
     if (!rows.length) return renderEmpty();
     if (state.view === 'year') return renderYear(rows);
@@ -2398,13 +2485,14 @@
   w.addEventListener('resize', function () {
     clearTimeout(rt);
     rt = setTimeout(function () {
-      if (state.tab === 'roster') { if (w.PVRoster && w.PVRoster.redraw) w.PVRoster.redraw(); }
+      if (state.tab === 'roster' && payShown()) { if (w.PVRoster && w.PVRoster.redraw) w.PVRoster.redraw(); }
       if (!state.rows.length) return;
-      if (state.tab !== 'summary') { state.sumDirty = true; return; }   // 見えたときに描き直す
+      if (!sumShown()) { state.sumDirty = true; return; }   // 見えたときに描き直す
       if (state.view === 'year') { if (w.PVYear) w.PVYear.redraw(); drawCumChart(); return; }
       drawChart(); drawCumChart();
     }, 160);
   });
 
+  pageTabs();
   load();
 }(window, document));

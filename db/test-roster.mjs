@@ -12,7 +12,9 @@
      ・★便名は保存しない（送っても落ちる・読む口も返さない）
      ・★2年より前の日は月の合計にまとめて消す（合計は pv-report-engine.js の数え方と1分も違わない・境目は月の頭）
      ・読み方（profile）の検品・明細の行の答え（line map）と my_report_items の往復（「その他」の会社も）
-     ・末尾の検算が全部 ✅ ／ 壊す証明（鍵の式を1文字変える・anon に呼ばせる → 検算が ❌）
+     ・★1日を手で直す・消す（edit_roster_day）：検品は submit_roster と同じ・在る日はそのファイルのまま・
+       無い日は本人の置き場（manual）1つへ・2年の境目より前は受け付けない・1人1日200回まで・ほかの会員の日に触れない
+     ・末尾の検算が全部 ✅ ／ 壊す証明（鍵の式を1文字変える・anon に呼ばせる・手で直す口のログイン確認や2年の境目を外す → 検算が ❌）
 */
 import { PGlite } from '@electric-sql/pglite';
 import { pgcrypto } from '@electric-sql/pglite/contrib/pgcrypto';
@@ -268,6 +270,7 @@ console.log('\n▼ anon・直接の読み書き');
 await db.exec(`set role anon`);
 for (const [sql, label] of [
   [`select submit_roster('{}'::jsonb)`, 'submit_roster'],
+  [`select edit_roster_day('emirates', null, '{}'::jsonb)`, 'edit_roster_day'],
   [`select my_roster('emirates', null, null, null)`, 'my_roster'],
   [`select my_roster_docs('emirates', null)`, 'my_roster_docs'],
   [`select delete_roster_doc(gen_random_uuid())`, 'delete_roster_doc'],
@@ -277,13 +280,14 @@ for (const [sql, label] of [
   [`select count(*) from public.pv_roster_days`, '表 pv_roster_days'],
   [`select count(*) from public.pv_roster_legs`, '表 pv_roster_legs'],
   [`select count(*) from public.pv_line_map`, '表 pv_line_map'],
+  [`select count(*) from public.pv_roster_edit_quota`, '表 pv_roster_edit_quota'],
 ]) {
   const e = await boom(sql);
   ok(e && /permission denied/i.test(e.msg), `anon は ${label} を使えない`, e ? e.msg.slice(0, 60) : '通ってしまった');
 }
 await db.exec(`reset role`);
 await db.exec(`set role authenticated`);
-for (const t of ['pv_roster_profile', 'pv_roster_docs', 'pv_roster_days', 'pv_roster_legs', 'pv_line_map']) {
+for (const t of ['pv_roster_profile', 'pv_roster_docs', 'pv_roster_days', 'pv_roster_legs', 'pv_line_map', 'pv_roster_edit_quota']) {
   const e = await boom(`select count(*) from public.${t}`);
   ok(e && /permission denied/i.test(e.msg), `ログイン済みでも表 ${t} は直接読めない`);
 }
@@ -292,6 +296,8 @@ for (const t of ['pv_roster_profile', 'pv_roster_docs', 'pv_roster_days', 'pv_ro
   ok(e && /permission denied/i.test(e.msg), 'ログイン済みでも表を直接消せない');
   const k = await boom(`select pv_roster_key($1::uuid, 'emirates', null)`, [uid(1)]);
   ok(k && /permission denied/i.test(k.msg), '★鍵の式（pv_roster_key）を直接呼べない（他人の鍵を作れない）');
+  const c = await boom(`select pv_roster_clean_day('{}'::jsonb, 1)`);
+  ok(c && /permission denied/i.test(c.msg), '1日の組み直し（pv_roster_clean_day）も直接は呼べない');
 }
 await db.exec(`reset role`);
 
@@ -299,6 +305,7 @@ console.log('\n▼ 未ログイン');
 await logout();
 for (const [sql, label, params] of [
   [`select submit_roster($1::jsonb)`, 'submit_roster', [JSON.stringify(roster([day(1)], { file_sha: sha(90) }))]],
+  [`select edit_roster_day('emirates', null, $1::jsonb)`, 'edit_roster_day', [JSON.stringify({ date: D(5), day: null })]],
   [`select my_roster('emirates', null, null, null)`, 'my_roster'],
   [`select my_roster_docs('emirates', null)`, 'my_roster_docs'],
   [`select delete_roster_doc($1::uuid)`, 'delete_roster_doc', [rC.doc_id]],
@@ -698,6 +705,194 @@ console.log('\n▼ 2年より前の日は月の合計にまとめて消す（取
   ok(await cnt('pv_roster_months') === 0, '（巻き戻した ── ほかの節の作り物は元どおり）');
 }
 
+// ── 11-c. 1日を手で直す・消す（edit_roster_day）─────────────────────
+console.log('\n▼ 1日を手で直す・消す（edit_roster_day）');
+const editR = async (date, d, a = 'emirates', o = null) =>
+  (await one(`select edit_roster_day($1, $2, $3::jsonb) r`, [a, o, JSON.stringify({ date, day: d })])).r;
+const tryEdit = (p, a = 'emirates', o = null) =>
+  boom(`select edit_roster_day($1, $2, $3::jsonb)`, [a, o, p === null ? null : JSON.stringify(p)]);
+const eday = (x = {}) => ({ code: null, d_on: '06:00', d_off: '15:00', d_off_day: 0, page: 9, row: 99,
+                            legs: [leg(1, { page: 7, row: 33 })], ...x });
+// 月の合計にまとめる境目（今月の頭から24か月前）
+const CUT = (() => { const [y, m] = TODAY.split('-').map(Number); return `${y - 2}-${String(m).padStart(2, '0')}-01`; })();
+await asUser(1);
+let MAN = null;
+{
+  const docs0 = (await myDocs()).docs;
+  ok(docs0.length === 1 && docs0[0].id === rC.doc_id && docs0[0].manual === false,
+     'my_roster_docs が manual を返す（取り込んだファイルは false）', JSON.stringify(docs0.map((d) => d.manual)));
+
+  // ① 在る日（C が持つ日）を直す → C のまま入れ替わる
+  const e1 = await editR(D(5), eday({ code: 'SBY', legs: [
+    leg(1, { page: 7, row: 33, block: '2:05' }),
+    leg(2, { flight: 'EK 9 Captain Smith', kind: 'ground', from: 'DXB', to: 'DXB', loc: 'TRC', role: 'TRN', block: '1:00' }),
+  ] }));
+  ok(e1.ok === true && e1.date === D(5) && e1.legs === 2 && Object.keys(e1).sort().join() === 'date,legs,ok',
+     `在る日を直す → {ok, date, legs} → ${JSON.stringify(e1)}`);
+  const r = await myRoster();
+  const d5 = r.days.find((x) => x.date === D(5));
+  ok(d5 && d5.doc_id === rC.doc_id, '★在る日は、その日のファイル（C）のまま入れ替わる');
+  ok(d5 && d5.code === 'SBY' && d5.d_on === '06:00' && d5.legs.length === 2 && d5.legs[0].block_min === 125,
+     '中身が入れ替わる（前の2便は残らない・2:05 = 125分）');
+  ok(d5 && d5.page === null && d5.row === null && d5.legs.every((l) => l.page === null && l.row === null),
+     '手で直した日は page・row を持たない（送っても入れない・ページ数で弾きもしない）');
+  ok(d5 && d5.legs[1].kind === 'ground' && d5.legs[1].from === null && d5.legs[1].to === null && d5.legs[1].loc === 'TRC',
+     '★地上業務に空港を作らない（submit_roster と同じ）');
+  ok(!/EK|Smith/.test(JSON.stringify(await rows(`select to_jsonb(l) j from public.pv_roster_legs l`))), '★便名は保存しない（送っても落ちる）');
+  ok(r.days.length === 10 && (await myDocs()).docs.length === 1, '在る日を直しても日数は同じ・置き場は作らない');
+
+  // ② 無い日 → 本人の「手で直した日」の置き場（manual）へ
+  const e2 = await editR(D(30), eday({ code: 'OFF1', d_on: null, d_off: null, legs: [] }));
+  ok(e2.ok && e2.date === D(30) && e2.legs === 0, '無い日を足せる（便なし）');
+  const man = (await myDocs()).docs.filter((d) => d.manual);
+  MAN = man[0];
+  ok(man.length === 1 && MAN.date_from === D(30) && MAN.date_to === D(30) && MAN.days === 1 && MAN.days_owned === 1
+     && MAN.pages === 1 && /^[0-9a-f]{64}$/.test(MAN.file_sha),
+     '★無い日は置き場（manual:true・1ページ）に入る・幅はその1日', JSON.stringify(man));
+  await editR(D(28), eday());
+  await editR(D(33), eday({ legs: [] }));
+  const man2 = (await myDocs()).docs.filter((d) => d.manual);
+  ok(man2.length === 1 && man2[0].id === MAN.id && man2[0].date_from === D(28) && man2[0].date_to === D(33)
+     && man2[0].days === 3 && man2[0].days_owned === 3,
+     '★新しい日が増えても置き場は1つのまま・日付の幅が広がる', JSON.stringify(man2));
+  ok((await myRoster()).days.filter((d) => [D(28), D(30), D(33)].includes(d.date)).every((d) => d.doc_id === MAN.id),
+     '足した日は置き場のもの');
+  await editR(D(30), eday({ code: 'VAC', d_on: null, d_off: null, legs: [] }));
+  const d30 = (await myRoster()).days.find((d) => d.date === D(30));
+  ok(d30 && d30.doc_id === MAN.id && d30.code === 'VAC' && (await myDocs()).docs.filter((d) => d.manual).length === 1,
+     '置き場の日をもう一度直しても置き場のまま（2つ目を作らない）');
+
+  // ③ day:null で消す
+  const x1 = await editR(D(33), null);
+  ok(x1.ok && x1.deleted === true && x1.date === D(33) && Object.keys(x1).sort().join() === 'date,deleted,ok', 'day:null でその日を消す → {ok, date, deleted}');
+  const man3 = (await myDocs()).docs.find((d) => d.manual);
+  ok(!(await myRoster()).days.some((d) => d.date === D(33)) && man3.days === 2 && man3.days_owned === 2 && man3.date_to === D(33),
+     '消すと置き場の日数を数え直す（日付の幅は狭めない）');
+  const x2 = await editR(D(6), null);
+  ok(x2.ok && x2.deleted === true && !(await myRoster()).days.some((d) => d.date === D(6))
+     && Number((await one(`select count(*) n from pv_roster_legs where duty_date = $1::date and proof_hash = public.pv_roster_key($2::uuid, 'emirates', null)`, [D(6), uid(1)])).n) === 0
+     && (await myDocs()).docs.find((d) => d.id === rC.doc_id).days_owned === 9,
+     '取り込んだファイルの日も消せる（便も一緒に・C が持つ日は9に）');
+  const x3 = await editR(D(34), null);
+  ok(x3.ok && x3.deleted === true, 'もともと無い日を消しても止まらない（その日はもう無い）');
+
+  // ④ 知らないキー・便名は落ちる
+  const kx = await editR(D(41), { ...eday(), name: 'Alex Mercer', remarks: 'hotel shuttle',
+    legs: [{ ...leg(1), crew: 'Kai Example', text: 'free text', flight: 'EK 77 Mercer' }] });
+  ok(kx.ok && kx.legs === 1 && !/Mercer|Kai Example|shuttle|free text|EK 77|remarks|crew/.test(await dump()),
+     '★知らないキー（氏名・備考）と便名は落ちる（表のどこにも残らない）');
+}
+
+console.log('\n▼ edit_roster_day：ほかの会員の日に触れない');
+{
+  const mine = JSON.stringify((await myRoster()).days);
+  await asUser(2);
+  const o1 = await editR(D(30), null);
+  const o2 = await editR(D(28), eday({ code: 'HACK1' }));
+  ok(o1.ok && o2.ok, '（ほかの会員も、自分の鍵でなら呼べる）');
+  const docs2 = (await myDocs()).docs;
+  ok(docs2.filter((d) => d.manual).length === 1 && !docs2.some((d) => d.id === MAN.id), 'ほかの会員は自分の置き場を持つ（本人の置き場に入らない）');
+  ok((await delDoc(MAN.id, 'emirates')).deleted === false, 'ほかの会員は本人の置き場を消せない');
+  await asUser(1);
+  ok(JSON.stringify((await myRoster()).days) === mine, '★ほかの会員が同じ日付を直しても消しても、本人の日は1文字も変わらない');
+}
+
+console.log('\n▼ edit_roster_day：不正な中身は弾く（何も書かない）');
+{
+  const snap = await dump();
+  const wDay = (patch) => ({ date: D(40), day: { ...eday(), ...patch } });
+  const wLeg = (patch) => ({ date: D(40), day: { ...eday(), legs: [{ ...leg(1), ...patch }] } });
+  const badE = [
+    ['勤務コードが小文字（off1）', wDay({ code: 'off1' })],
+    ['勤務コードに空白（氏名の形）', wDay({ code: 'JOHN SMITH' })],
+    ['勤務コードが13文字', wDay({ code: 'ABCDEFGHIJKLM' })],
+    ['勤務コードが数値', wDay({ code: 123 })],
+    ['空港コードが5文字', wLeg({ from: 'TOKYO' })],
+    ['空港コードが小文字', wLeg({ to: 'lhr' })],
+    ['乗務の区分が文章', wLeg({ role: 'Captain Smith' })],
+    ['場所が文章', wLeg({ loc: 'Training Center' })],
+    ['時刻の頭の0が無い（7:05）', wLeg({ out: '7:05' })],
+    ['時刻が25:00', wDay({ d_on: '25:00' })],
+    ['ブロックが24時間を超える', wLeg({ block: '25:01' })],
+    ['ブロックの分が1桁', wLeg({ block: '1:7' })],
+    ['解散の日が3', wDay({ d_off_day: 3 })],
+    ['到着の日がマイナス', wLeg({ in_day: -1 })],
+    ['便の順番が重なる', wDay({ legs: [leg(1), leg(1)] })],
+    ['便の順番が0', wLeg({ seq: 0 })],
+    ['便の順番が無い', wLeg({ seq: null })],
+    ['便の種類が知らない言葉', wLeg({ kind: 'flying' })],
+    ['1日の便が17本', wDay({ legs: Array.from({ length: 17 }, (_, i) => leg(i + 1)) })],
+    ['便が配列でない', wDay({ legs: { a: 1 } })],
+    ['日が文字列', { date: D(40), day: 'OFF' }],
+    ['day の鍵が無い（消すつもりでない呼び出しで消さない）', { date: D(40) }],
+    ['在り得ない日付（2月30日）', { date: '2026-02-30', day: eday() }],
+    ['日付の形が違う', { date: '2026/01/05', day: eday() }],
+    ['日付が無い', { day: eday() }],
+    ['日付が401日先', { date: addDays(TODAY, 401), day: eday() }],
+    ['日付が401日前', { date: addDays(TODAY, -401), day: eday() }],
+    ['日付が2年の境目より前（まとめた月）', { date: addDays(CUT, -1), day: eday() }],
+    ['形が配列', [1, 2]],
+    ['形が null', null],
+    ['32KB を超える', { date: D(40), day: eday(), junk: 'x'.repeat(33 * 1024) }],
+  ];
+  for (const [label, p] of badE) {
+    const e = await tryEdit(p);
+    ok(e && /^(22023|54000)$/.test(e.code) && /ロスター/.test(e.msg), `弾く：${label}${e ? ' → ' + e.msg.slice(0, 36) : ''}`, e ? e.code : '通ってしまった');
+  }
+  for (const [label, a, o] of [['会社コードが不正', 'nope-air', null], ['「その他」なのに社名が無い', 'other', '  ']]) {
+    const e = await tryEdit({ date: D(40), day: eday() }, a, o);
+    ok(e && e.code === '22023' && e.msg.includes('会社'), `弾く：${label}`, e ? e.msg : '通ってしまった');
+  }
+  const ec = await tryEdit({ date: addDays(CUT, -1), day: null });
+  ok(ec && ec.code === '22023' && ec.msg.includes('2年'), '★2年の境目より前の日は「2年より前」で止める（消すのも・まとめた月に日の行を作らない）', ec ? ec.msg : '通ってしまった');
+  const en = await tryEdit(wDay({ code: 'Jane Q Example' }));
+  ok(en && !en.msg.includes('Jane'), 'エラーの文に送られてきた値（名前の形）を書かない');
+  ok(await dump() === snap, '弾いた呼び出しは1文字も書いていない');
+}
+
+console.log('\n▼ edit_roster_day：1人1日200回まで');
+await asUser(11);
+{
+  const qOf = async (n) => rows(`select day::text d, n from public.pv_roster_edit_quota where proof_hash = public.pv_roster_key($1::uuid, 'emirates', null)`, [uid(n)]);
+  let n200 = 0;
+  for (let i = 0; i < 200; i++) {
+    const r = await editR(D(50 + (i % 3)), i % 2 ? null : eday({ legs: [] }));
+    if (r.ok) n200++;
+  }
+  ok(n200 === 200, `200回までは通る（消すのも1回）→ ${n200}`);
+  const e = await tryEdit({ date: D(50), day: eday() });
+  ok(e && e.code === '54000' && e.msg.includes('上限'), `201回目は止まる → ${e ? e.code : '通った'}`);
+  const q = await qOf(11);
+  ok(q.length === 1 && q[0].d === TODAY && q[0].n === 200, '数える表は 人×日 の1行だけ（どの日を直したかは持たない）', JSON.stringify(q));
+  await db.query(`update public.pv_roster_edit_quota set day = day - 1 where proof_hash = public.pv_roster_key($1::uuid, 'emirates', null)`, [uid(11)]);
+  ok((await editR(D(50), null)).ok, '日が変われば、また直せる');
+  const q2 = await qOf(11);
+  ok(q2.length === 1 && q2[0].d === TODAY && q2[0].n === 1, '前の日の行は消える（1人1行より増えない）', JSON.stringify(q2));
+  await asUser(12);
+  ok((await editR(D(50), eday())).ok, 'ほかの人は数に入らない');
+}
+
+console.log('\n▼ edit_roster_day：置き場を消す・取り込みとの関係');
+await asUser(1);
+{
+  const man = (await myDocs()).docs.find((d) => d.manual);
+  const dd = await delDoc(man.id);
+  ok(dd.deleted === true && dd.days === man.days_owned && !(await myDocs()).docs.some((d) => d.manual),
+     `★置き場もほかのファイルと同じように消せる（持っていた${dd.days}日ごと）`);
+  const left = (await myRoster()).days.map((d) => d.date);
+  ok(![D(28), D(30), D(41)].some((x) => left.includes(x)) && left.includes(D(5)),
+     '置き場の日だけ消え、取り込んだファイルの日（直した D(5) も）は残る');
+  const again = await editR(D(30), eday());
+  const m4 = (await myDocs()).docs.filter((d) => d.manual);
+  ok(again.ok && m4.length === 1 && m4[0].id !== man.id && m4[0].date_from === D(30) && m4[0].days === 1,
+     '消したあとに直すと、新しい置き場が1つできる');
+  const rs = await submitR(roster([day(30)], { file_sha: sha(5000) }));
+  const m5 = (await myDocs()).docs.find((d) => d.manual);
+  ok(rs.ok && rs.replaced === 1 && m5.days_owned === 0 && (await myRoster()).days.find((d) => d.date === D(30)).doc_id === rs.doc_id,
+     '後から取り込んだ勤務表は、手で直した日も日付で入れ替える（いつも新しいほうが残る）');
+}
+await asUser(1);
+
 // ── 12. 検算 ───────────────────────────────────────────────────
 console.log('\n▼ 貼ったあとの検算');
 const SRC = read('db/roster.sql');
@@ -706,7 +901,7 @@ const TAIL = SRC.slice(SRC.indexOf('-- ── 11. 検算'));
   const before = await cnt('pv_roster_days');
   const res = await db.exec(SRC);
   const chk = res[res.length - 1].rows;
-  ok(chk.length === 12 && chk.every((x) => x['判定'] === '✅'),
+  ok(chk.length === 16 && chk.every((x) => x['判定'] === '✅'),
      `★db/roster.sql の検算 ${chk.length} 行が全部 ✅`, chk.filter((x) => x['判定'] !== '✅').map((x) => x['#'] + ' ' + x['確かめること']).join(' | '));
   ok(await cnt('pv_roster_days') === before, 'もう一度流しても、入っている勤務表は消えない');
   ok(TAIL.length > 100, '（検算の部分だけを切り出せた）');
@@ -781,6 +976,56 @@ console.log('\n▼ 壊す証明');
   const redChk = (await db.exec(TAIL)).pop().rows.find((x) => Number(x['#']) === 12)?.['判定'];
   await db.exec('rollback');
   ok(redChk === '❌', `★日を消さない片づけにすると検算12が ❌ → ${redChk}`);
+}
+{
+  // 手で直す口からログインの確認を外した版 → 検算13（と4）が ❌・未ログインでも 42501 で止まらなくなる
+  const a = SRC.indexOf('create or replace function public.edit_roster_day(');
+  const b = a < 0 ? -1 : SRC.indexOf('\n$$;', a);
+  const fn = (a < 0 || b < 0) ? '' : SRC.slice(a, b + '\n$$;'.length);
+  const LOGIN = `  if v_uid is null then\n    raise exception 'ログインが必要です' using errcode = '42501';\n  end if;\n`;
+  const broken = fn.split(LOGIN).length === 2 ? fn.replace(LOGIN, () => '') : '';
+  ok(!!broken, '（手で直す口からログインの確認だけ外した版を作れた）');
+  await db.exec('begin');
+  await db.exec(broken);
+  const chk = (await db.exec(TAIL)).pop().rows;
+  await logout();
+  const e = await tryEdit({ date: D(5), day: null });
+  await db.exec('rollback');
+  await asUser(1);
+  const at = (n) => chk.find((x) => Number(x['#']) === n)?.['判定'];
+  ok(at(13) === '❌' && at(4) === '❌' && e && e.code !== '42501',
+     `★手で直す口からログインの確認を外すと検算13・4が ❌（未ログインが 42501 で止まらない → ${e ? e.code : '通った'}）`);
+}
+{
+  // 2年の境目を外した版 → 境目より前の日が「2年より前」で止まらなくなり、検算15が ❌
+  const a = SRC.indexOf('create or replace function public.edit_roster_day(');
+  const b = a < 0 ? -1 : SRC.indexOf('\n$$;', a);
+  const fn = (a < 0 || b < 0) ? '' : SRC.slice(a, b + '\n$$;'.length);
+  const CUTCHK = `  if v_date < v_cut then\n    raise exception 'ロスターの日付が2年より前です（月の合計にまとめた期間は直せません）' using errcode = '22023';\n  end if;\n`;
+  const broken = fn.split(CUTCHK).length === 2 ? fn.replace(CUTCHK, () => '') : '';
+  ok(!!broken, '（手で直す口から2年の境目だけ外した版を作れた）');
+  await db.exec('begin');
+  await db.exec(broken);
+  const redChk = (await db.exec(TAIL)).pop().rows.find((x) => Number(x['#']) === 15)?.['判定'];
+  const e = await tryEdit({ date: addDays(CUT, -1), day: eday() });   // 失敗でこの取引は止まる → すぐ巻き戻す
+  await db.exec('rollback');
+  ok(redChk === '❌' && e && !e.msg.includes('2年'),
+     `★2年の境目を外すと検算15が ❌（境目より前の日を「2年より前」で止めなくなる → ${e ? e.msg.slice(0, 24) : '通った'}）`);
+}
+{
+  // submit_roster が1日の組み直しを呼ばない版（自前の検品に戻した形）→ 検算14が ❌
+  const a = SRC.indexOf('create or replace function public.submit_roster(');
+  const b = SRC.indexOf('\n$$;', a);
+  const fn = SRC.slice(a, b + '\n$$;'.length);
+  const CALL = `public.pv_roster_clean_day(v_d, v_pages)`;
+  const broken = fn.split(CALL).length === 2
+    ? fn.replace(CALL, () => `jsonb_build_object('legs', '[]'::jsonb, 'x', public.pv_roster_txt(v_d, 'x', '^[A-Z0-9]{3,4}$', '出発地'))`) : '';
+  ok(!!broken, '（submit_roster が自前で検品する版を作れた）');
+  await db.exec('begin');
+  await db.exec(broken);
+  const redChk = (await db.exec(TAIL)).pop().rows.find((x) => Number(x['#']) === 14)?.['判定'];
+  await db.exec('rollback');
+  ok(redChk === '❌', `★submit_roster が1日の組み直しを呼ばず自前の検品を持つと検算14が ❌ → ${redChk}`);
 }
 await logout();
 

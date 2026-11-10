@@ -4,8 +4,10 @@
      （my-analysis.css と pv-report-engine.js が先に届いてから）。
 
    画面の並び（承認済みの見本 pc-analysis / mobile-analysis の構造）
-     見出し（比べる2つの明細） → 4枚のカード（PC 2列・狭い画面 1列）。4枚とも図はいつも出ている。
-       A 収入と勤務量の変化   … 増減率の棒 ／ 収入の構成（何が動いたか）
+     見出し（いちばん新しい明細と、その前の同じ通貨の明細を比べる・期間 3か月｜6か月｜1年｜全部） → 4枚のカード（PC 2列・狭い画面 1列）。
+       ★2026-11-09 オーナー「比べる明細を選ばせない」「期間を選べるなら 3か月・6か月・1年・全部」「収入の構成を先に」。
+       期間が効くのは図の月（A の構成の縦の棒・B の棒・C の推移）と CSV・印刷だけ。見出しの数字と分け方は、いつも b と a。
+       A 収入と勤務量の変化   … 収入の構成（期間に3か月以上なら月ごとの積み上げ・何が動いたか） ／ 増減率の棒
        B 働き方と報酬効率     … 分子（総支給・手取り）÷ 分母（勤務1時間・乗務1時間・1勤務日・1便）、明細かロスターか
                                ／ 日別の散布図（点を押すとその日の勤務ロスターへ）／ 勤務時間の分布
        C 手当ごとの掘り下げ   … 実額の推移・対象の数量・数量で割った参考値・増減の分け方（数量の差による分と残り）
@@ -22,7 +24,7 @@
    ・計算候補は「未確定の候補（探索）」。確度の％は作らない。当てはめた月と検証の月の差を分けて出す。
    ・同じ注意書きを2か所に置かない（参考値の断りは B だけ・候補の断りは D だけ・「2か月目から」は見出しだけ）。
    ・隠れているあいだは図を描かない（幅0の SVG を残さない）。見えたとき・幅が変わったとき・通貨を替えたときに描き直す。
-   ・選んだ月・項目・基準の時間は、タブを移っても残る（このファイルの S に持つ）。
+   ・選んだ期間・項目・基準の時間は、タブを移っても残る（このファイルの S に持つ）。
 
    window.PVAnalysis = { mount(el, ctx), show(), hide(), redraw(), _（検査が借りる部品） }
      ctx = { sb, reports（my_pay_reports の行）, items(force) → Promise<{items, maps, ok}>（my_report_items の写し・給与サマリーと共有）,
@@ -39,8 +41,8 @@
   var T = {
     ja: {
       ey: 'LOOK DEEPER', h: '収入の構造と、働き方への対価。',
-      sub: '明細 {p}か月 · ロスター {r}か月', subNoRoster: '明細 {p}か月',
-      pickA: '比べる明細', pickB: '明細', pickAria: '比べる2つの明細',
+      subCmp: '{b}を{a}と比べています', subOne: '{b}の明細', subP: '明細 {p}か月', subP1: '明細 {p}か月', subR: 'スケジュール {r}か月', subR1: 'スケジュール {r}か月',
+      perAria: '期間', per3: '3か月', per6: '6か月', per12: '1年', perAll: '全部',
       one: '比較は2か月目の明細から出ます。', noPrev: '同じ通貨の前の明細がないので、比較は出ません。',
       ymT: '{y}年{n}月', ymS: '{n}月', payOf: '{t}明細', workOf: '{t}勤務',
       mon: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
@@ -49,31 +51,33 @@
       noCo: 'この会社の明細はまだありません。',
       /* CSV と印刷（選んでいる範囲をそのまま書く） */
       csvA: 'CSVで保存（{r}）', print: '印刷', printA: '表示中の分析を印刷', prRange: '明細 {r}',
-      csvRange: '範囲', csvPay: '支給月 {r}', csvSecPay: '明細（支給月）', csvSecRoster: 'ロスター（勤務月）',
+      csvRange: '範囲', csvPay: '支給月 {r}', csvSecPay: '明細（支給月）', csvSecRoster: 'スケジュール（勤務月）',
       // A
       aT: '収入と勤務量の変化', aBadge: '実績比較', aRate: '増減率', aComp: '収入の構成',
       mGross: '総支給', mNet: '手取り', mBlock: '明細の乗務時間', mDuty: '明細の勤務時間', mDays: '勤務日数', mSectors: '便数',
       aStat: '{m} · {a}→{b}', aNone: '比べられる数字がまだありません。', aShare: '固定給の割合 · {t}',
       aMoved: '動いた区分', curDiff: '通貨が違う月どうしの金額は比べていません。',
+      aTot: '合計', aCurEx: '通貨が違う{n}か月は入れていません。',
       cFixed: '固定給', cRole: '役割手当', cVariable: '変動給', cAllowance: '手当', cBonus: '賞与・利益配分',
       cNoncash: '現物給与の評価', cAdjustment: '不就労減額', cUnexplained: '内訳なし',
       // B
       bT: '働き方と報酬効率', bBadge: '参考値',
       bNum: '収入の基準', nGross: '総支給', nNet: '手取り',
       bDen: '数量の基準', dDuty: '勤務1時間', dBlock: '乗務1時間', dDays: '1勤務日', dSectors: '1便',
-      bBasis: '数量の出どころ', bsSlip: '明細', bsRoster: 'ロスター',
+      bBasis: '数量の出どころ', bsSlip: '明細', bsRoster: 'スケジュール',
       vEff: '報酬効率', vDay: '日別', vDist: '分布', bViews: '見方',
       bStat: '{d}あたりの参考報酬', bStatOne: '{d}あたりの参考報酬 · {t}',
       bNote: '参考報酬＝支給額 ÷ 数量。追加で働いた分の単価ではありません。',
-      bCapSlip: '数量は明細に書かれたもの', bCapRoster: '勤務月を確かめた手当 ÷ その月のロスター',
-      rNoRoster: 'この勤務月のロスターがありません', rIncomplete: 'ロスターが月の一部だけです', rGaps: '時刻が読めない日があります',
+      bNoDen: 'この基準の数量が明細にありません。数量の基準を変えてください。',
+      bCapSlip: '数量は明細に書かれたもの', bCapRoster: '勤務月を確かめた手当 ÷ その月のスケジュール',
+      rNoRoster: 'この勤務月のスケジュールがありません', rIncomplete: 'スケジュールが月の一部だけです', rGaps: '時刻が読めない日があります',
       rMixed: '通貨が混ざっています', rNoQty: '明細にこの数量がありません',
       bNoLinked: '勤務月を確かめた明細の行がまだありません。手当ごとの掘り下げで答えると出ます。',
       bMonth: '勤務月', dayX: '勤務時間（D-ON〜D-OFF）', dayY: '便の時間（DH を除く）',
       dayNoTimes: '時刻が読めない{n}日は除いています', dayNone: 'この月の勤務はありません。',
-      dayTip: '{d}', dayOpen: '押すと勤務ロスターで開きます',
+      dayTip: '{d}', dayOpen: '押すとスケジュールで開きます',
       distY: '勤務の回数', distBin: '{a}〜{b}時間', distN: '{n}勤務', distPick: '{b} · {n}勤務',
-      needRoster: 'ロスターを足すと出ます', addRoster: 'ロスターを足す',
+      needRoster: 'スケジュールを足すと出ます', addRoster: 'スケジュールを足す',
       // C
       cT: '手当ごとの掘り下げ', cBadge: '支給実額', cItem: '支給項目', cTotal: '（合計）',
       cStat: '支給額の変化 · {p}', cStatNoPct: '支給額の変化', cStatOne: '{t}の支給額',
@@ -84,12 +88,12 @@
       cNone: '比べられる支給項目がありません。',
       qBlock: '明細の乗務時間', qDuty: '明細の勤務時間', qNight: '明細の深夜時間', qCredit: '明細のクレジット時間', qGuarantee: '保証時間',
       qSectors: '明細の便数', qDutyDays: '明細の勤務日数', qStay: '明細の宿泊数', qDaysOff: '明細の休日数', qRole: '記入した回数・日数',
-      qROperating: 'ロスターの乗務時間', qRDeadhead: 'ロスターの DH 時間', qRGround: 'ロスターの地上業務', qRDuty: 'ロスターの勤務時間',
-      qRDutyDays: 'ロスターの勤務日数', qRSectors: 'ロスターの便数', qROther: 'ロスターの数量',
+      qROperating: 'スケジュールの乗務時間', qRDeadhead: 'スケジュールの DH 時間', qRGround: 'スケジュールの地上業務', qRDuty: 'スケジュールの勤務時間',
+      qRDutyDays: 'スケジュールの勤務日数', qRSectors: 'スケジュールの便数', qROther: 'スケジュールの数量',
       uH: '/h', uDay: '/日', uCount: '/回', uNight: '/泊',
       kProfit: 'プロフィットシェア', kNotional: '現物給与の評価', kAbsence: '不就労減額',
       wq: 'この手当はいつの勤務の分？', wSame: '当月', wPrev: '前月', wOther: 'その他', wUnknown: 'わからない',
-      wHint: 'この明細の乗務時間は、ロスターの{t}と一致（{h}）', wCand: '候補',
+      wHint: 'この明細の乗務時間は、スケジュールの{t}と一致（{h}）', wCand: '候補',
       wSaved: '{t}の勤務として数えています', wUnknownSaved: '勤務月は未確定', wOwn: '月ごとに別の期間',
       wChange: '変更', wSave: '保存', wErr: '保存できませんでした。時間をおいてもう一度お試しください。',
       wOffN: '{n}か月前の勤務', wNext: '翌月の勤務', wOwnOpt: '月ごとに違う',
@@ -103,15 +107,15 @@
       dCurve: '明細との最大差（低いほど近い）', dCurveFit: '当てはめた月', dCurveVal: '検証の月',
       dRowM: '勤務 → 明細', dActual: '実額', dPred: '候補式', dGap: '差', roleFit: '当てはめ', roleVal: '検証', roleUnused: '—',
       dDays: '基準を超えた勤務 · {n}件', dDayTip: '{d} · 超えた時間 {h}',
-      dSkip: '使っていない月 {n}（勤務月が未確定 {u}・ロスター不足 {r}・数量なし {q}）',
+      dSkip: '使っていない月 {n}（勤務月が未確定 {u}・スケジュール不足 {r}・数量なし {q}）',
       dNone: '勤務月が分かる月がまだありません。手当ごとの掘り下げで「いつの勤務の分？」に答えると使えます。',
       dNote: '原点を通る直線で当てはめています。合う月があっても、会社の規程の確認ではありません。',
-      dNoItem: '勤務に結びつく支給項目がまだありません。', dNoRange: '月の全部がそろったロスターがまだありません。'
+      dNoItem: '勤務に結びつく支給項目がまだありません。', dNoRange: '月の全部がそろったスケジュールがまだありません。'
     },
     en: {
       ey: 'LOOK DEEPER', h: 'How your pay is built, and what your flying earns.',
-      sub: 'Payslips: {p} · Roster months: {r}', subNoRoster: 'Payslips: {p}',
-      pickA: 'Compare', pickB: 'Payslip', pickAria: 'Two payslips to compare',
+      subCmp: 'Comparing {b} with {a}', subOne: '{b}', subP: '{p} payslips', subP1: '1 payslip', subR: '{r} roster months', subR1: '1 roster month',
+      perAria: 'Period', per3: '3 months', per6: '6 months', per12: '1 year', perAll: 'All',
       one: 'Comparisons appear from your second payslip.', noPrev: 'No earlier payslip in the same currency, so there is nothing to compare.',
       ymT: '{M} {y}', ymS: '{M}', payOf: '{t} payslip', workOf: '{t} duty',
       mon: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],   // 二重引用符＝訳の辞書の鍵を勤務ロスターの月名と分ける（西の5月を小文字に）
@@ -125,6 +129,7 @@
       mGross: 'Gross pay', mNet: 'Net pay', mBlock: 'Block hours (payslip)', mDuty: 'Duty hours (payslip)', mDays: 'Duty days', mSectors: 'Sectors',
       aStat: '{m} · {a}→{b}', aNone: 'Nothing to compare yet.', aShare: 'Fixed pay share · {t}',
       aMoved: 'What moved', curDiff: 'Amounts in different currencies are not compared.',
+      aTot: 'Total', aCurEx: 'Months in another currency left out: {n}',
       cFixed: 'Fixed pay', cRole: 'Role pay', cVariable: 'Variable pay', cAllowance: 'Allowances', cBonus: 'Bonus & profit share',
       cNoncash: 'Benefits in kind', cAdjustment: 'Absence deductions', cUnexplained: 'Not itemised',
       // B
@@ -135,6 +140,7 @@
       vEff: 'Per unit', vDay: 'By day', vDist: 'Distribution', bViews: 'View',
       bStat: 'reference pay per {d}', bStatOne: 'reference pay per {d} · {t}',
       bNote: 'Reference pay = amount ÷ quantity. It is not the rate for extra work.',
+      bNoDen: "Your payslips don't have this quantity. Choose another basis.",
       bCapSlip: 'Quantities as printed on your payslips', bCapRoster: 'Items matched to a duty month ÷ that month on your roster',
       rNoRoster: 'No roster for this duty month', rIncomplete: 'Roster covers only part of the month', rGaps: 'Some days have unreadable times',
       rMixed: 'Mixed currencies', rNoQty: 'Not printed on this payslip',
@@ -179,8 +185,8 @@
       dNoItem: 'No pay item linked to duty yet.', dNoRange: 'No roster covers a full month yet.'
     }, /*PV-MSG:es*/ es: {
       ey: 'ANÁLISIS DETALLADO', h: 'Cómo se compone tu remuneración y qué rinde tu trabajo de vuelo.',
-      sub: 'Recibos de nómina: {p} · Meses de programación: {r}', subNoRoster: 'Recibos de nómina: {p}',
-      pickA: 'Comparar con', pickB: 'Recibo de nómina', pickAria: 'Dos recibos de nómina para comparar',
+      subCmp: 'Comparando {b} con {a}', subOne: '{b}', subP: '{p} recibos de nómina', subP1: '1 recibo de nómina', subR: '{r} meses de programación', subR1: '1 mes de programación',
+      perAria: 'Período', per3: '3 meses', per6: '6 meses', per12: '1 año', perAll: 'Todas',
       one: 'Las comparaciones aparecen a partir de tu segundo recibo de nómina.', noPrev: 'No hay un recibo de nómina anterior en la misma moneda, así que no hay nada que comparar.',
       ymT: '{M} {y}', ymS: '{M}', payOf: 'Recibo de {t}', workOf: 'Servicio de {t}',
       mon: ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],   // 二重引用符＝訳の辞書の鍵を勤務ロスターの月名と分ける（西の5月を小文字に）
@@ -194,6 +200,7 @@
       mGross: 'Sueldo bruto', mNet: 'Sueldo neto', mBlock: 'Horas block (recibo)', mDuty: 'Horas de servicio (recibo)', mDays: 'Días de servicio', mSectors: 'Sectores',
       aStat: '{m} · {a}→{b}', aNone: 'Todavía no hay nada que comparar.', aShare: 'Proporción de remuneración fija · {t}',
       aMoved: 'Qué cambió', curDiff: 'No se comparan montos en monedas distintas.',
+      aTot: 'Total', aCurEx: 'Meses en otra moneda que no se incluyen: {n}',
       cFixed: 'Remuneración fija', cRole: 'Asignaciones por función', cVariable: 'Remuneración variable', cAllowance: 'Asignaciones', cBonus: 'Bono y participación en las utilidades',
       cNoncash: 'Prestaciones en especie', cAdjustment: 'Descuentos por ausencia', cUnexplained: 'Sin desglosar',
       // B
@@ -204,6 +211,7 @@
       vEff: 'Por unidad', vDay: 'Por día', vDist: 'Distribución', bViews: 'Vista',
       bStat: 'remuneración de referencia por {d}', bStatOne: 'remuneración de referencia por {d} · {t}',
       bNote: 'Remuneración de referencia = monto ÷ cantidad. No es lo que se paga por trabajo adicional.',
+      bNoDen: "Tus recibos de nómina no tienen esta cantidad. Elige otra base.",
       bCapSlip: 'Cantidades tal como aparecen en tus recibos de nómina', bCapRoster: 'Conceptos asociados a un mes de servicio ÷ ese mes en tu programación',
       rNoRoster: 'No hay programación para este mes de servicio', rIncomplete: 'La programación cubre solo parte del mes', rGaps: 'Algunos días tienen horas ilegibles',
       rMixed: 'Monedas mezcladas', rNoQty: 'No aparece en este recibo de nómina',
@@ -343,8 +351,9 @@
     loading: false, err: false, airline: null, other: null,
     items: { items: [], maps: [], ok: false }, roster: null, model: null,
     sel: { a: null, b: null },
-    A: { view: 'change' },
-    B: { num: 'gross', den: 'duty', basis: 'payslip', view: 'eff', work: null, bin: null },
+    per: '1y',
+    A: { view: 'comp' },
+    B: { num: 'gross', den: 'duty', denSet: false, basis: 'payslip', view: 'eff', work: null, bin: null },
     C: { item: null, other: false, busy: false, msg: null, edit: false },
     D: { item: null, kind: 'daily', qty: 'duty', thr: {}, grid: {} }
   };
@@ -359,14 +368,34 @@
     for (var i = ms.length - 1; i >= 0; i--) if (ms[i].ym < ym && ms[i].currency === b.currency) return ms[i].ym;
     return null;
   }
+  /* 比べるのはいつも「いちばん新しい明細」と「その前の同じ通貨の明細」（選ばせない・月が飛んでいても実際の月の名前で出す） */
   function fixSel() {
     var ms = months();
     if (!ms.length) { S.sel.a = S.sel.b = null; return; }
-    if (!monthAt(S.sel.b)) { S.sel.b = ms[ms.length - 1].ym; S.sel.a = null; }
-    var a = monthAt(S.sel.a), b = monthAt(S.sel.b);
-    if (!a || a.ym >= b.ym || a.currency !== b.currency) S.sel.a = prevSame(S.sel.b);
+    S.sel.b = ms[ms.length - 1].ym;
+    S.sel.a = prevSame(S.sel.b);
   }
   function two() { return !!(S.sel.a && S.sel.b); }
+
+  /* 期間：いちばん新しい明細の月から暦で数えて戻る（3か月＝b-2〜b）。選べるのは明細が4か月以上のときだけ。
+     中身が前の候補と同じになる候補は出さない（3か月はいつも出す）。選べないときは全部（隠れて見えない月を作らない） */
+  var PER = { '3m': 3, '6m': 6, '1y': 12, all: 0 }, PER_ORDER = ['3m', '6m', '1y', 'all'];
+  var PER_T = { '3m': 'per3', '6m': 'per6', '1y': 'per12', all: 'perAll' };
+  function perOn() { return months().length > 3; }
+  function perFrom(k) {
+    if (k == null) k = perOn() ? S.per : 'all';
+    var n = PER[k];
+    return n && S.sel.b ? R.helpers.ymAdd(S.sel.b, 1 - n) : null;
+  }
+  function inPer(ym, k) { var f = perFrom(k); return !!ym && (!f || ym >= f) && (!S.sel.b || ym <= S.sel.b); }
+  function perCount(k) { return months().filter(function (m) { return inPer(m.ym, k); }).length; }
+  function perList() {
+    if (!perOn()) return [];
+    var out = [], last = -1;
+    PER_ORDER.forEach(function (k) { var c = perCount(k); if (c > last) { out.push({ v: k, c: c }); last = c; } });
+    return out;
+  }
+  function perPressed(list) { var c = perCount(S.per), x = list.filter(function (o) { return o.c === c; })[0]; return x ? x.v : null; }
 
   /* ── 読む ───────────────────────────────────────────────── */
   function stored(k) { try { return w.localStorage.getItem(k); } catch (e) { return null; } }
@@ -415,47 +444,45 @@
 
   /* ── 見出しと期間 ─────────────────────────────────────────── */
   function opt(v, label, sel) { return '<option value="' + esc(v) + '"' + (sel ? ' selected' : '') + '>' + esc(label) + '</option>'; }
+  function subTx() {
+    var p = months().length, rn = rosterMonths().length;
+    var out = [S.sel.a ? fill(T.subCmp, { b: ymL(S.sel.b), a: ymL(S.sel.a) }) : fill(T.subOne, { b: ymL(S.sel.b) }),
+               fill(p === 1 ? T.subP1 : T.subP, { p: p })];
+    if (rn) out.push(fill(rn === 1 ? T.subR1 : T.subR, { r: rn }));
+    return out.join(' · ');
+  }
   function headHTML() {
-    var ms = months(), rn = rosterMonths().length;
-    var sub = rn ? fill(T.sub, { p: ms.length, r: rn }) : fill(T.subNoRoster, { p: ms.length });
-    var b = monthAt(S.sel.b), pick, line = '';
-    var aOpts = ms.filter(function (m) { return m.ym < S.sel.b && m.currency === b.currency; });
-    if (ms.length < 2) {
-      pick = '<span class="an-one">' + esc(fill(T.payOf, { t: ymL(S.sel.b) })) + '</span>';
-      line = T.one;
-    } else {
-      var selB = '<label class="an-pk"><span>' + esc(T.pickB) + '</span><select class="an-sel" data-act="pb">' +
-        ms.slice().reverse().map(function (m) { return opt(m.ym, ymL(m.ym), m.ym === S.sel.b); }).join('') + '</select></label>';
-      if (!aOpts.length) { pick = selB; line = T.noPrev; }
-      else {
-        pick = '<label class="an-pk"><span>' + esc(T.pickA) + '</span><select class="an-sel" data-act="pa">' +
-          aOpts.slice().reverse().map(function (m) { return opt(m.ym, ymL(m.ym), m.ym === S.sel.a); }).join('') + '</select></label>' +
-          '<span class="an-pk-ar" aria-hidden="true">→</span>' + selB;
-      }
-    }
+    var ms = months(), line = '';
+    if (ms.length < 2) line = T.one;
+    else if (!S.sel.a) line = T.noPrev;
+    var pl = perList();
+    var per = pl.length ? '<div class="an-per">' + seg('per', pl.map(function (o) { return { v: o.v, t: T[PER_T[o.v]] }; }), perPressed(pl), T.perAria) + '</div>' : '';
     var rg = rangeTx();
     var tools = '<div class="an-tools">' +
       '<button type="button" class="an-tool" data-act="csv" aria-label="' + esc(fill(T.csvA, { r: rg })) + '">' + ICON_DL + 'CSV</button>' +
       '<button type="button" class="an-tool" data-act="print" aria-label="' + esc(T.printA) + '">' + ICON_PR + esc(T.print) + '</button></div>';
     return '<div class="an-hd"><div class="an-hd-l"><p class="an-ey">' + esc(T.ey) + '</p><h2 class="an-h">' + esc(T.h) + '</h2>' +
-      '<p class="an-sub">' + esc(sub) + '</p></div>' +
-      '<div class="an-hd-r"><div class="an-pick" role="group" aria-label="' + esc(T.pickAria) + '">' + pick + '</div>' + tools + '</div></div>' +
+      '<p class="an-sub">' + esc(subTx()) + '</p></div>' +
+      '<div class="an-hd-r">' + per + tools + '</div></div>' +
       (line ? '<p class="an-line">' + esc(line) + '</p>' : '');
   }
 
   var ICON_DL = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>';
   var ICON_PR = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/></svg>';
 
-  /* ── CSV と印刷：いま選んでいる範囲（比べる明細 〜 明細）だけ ─────────────
+  /* ── CSV と印刷：いま選んでいる期間の明細の月だけ（期間の中の最初の明細 〜 いちばん新しい明細）─────────────
      ★金額は明細の通貨のまま（通貨の欄つき・最小単位から小数に）。時間は H:MM と分の両方。名前・自由記述は書かない
        （支給項目の名前は本人の明細の字＝画面に出しているもの）。字の包み方と BOM は my-value.js の saveCsv。 */
-  function selRange() { var b = S.sel.b, a = S.sel.a || b; return { a: a, b: b }; }
-  function rangeTx() { var r = selRange(); return r.a === r.b ? r.b : r.a + '→' + r.b; }
+  function perRange() {
+    var b = S.sel.b, list = months().filter(function (m) { return inPer(m.ym); });
+    return { a: list.length ? list[0].ym : b, b: b };
+  }
+  function rangeTx() { var r = perRange(); return r.a === r.b ? r.b : r.a + '→' + r.b; }
   function amt(minor, cur) { var v = R.fromMinor(minor, cur); return v == null ? '' : v.toFixed(R.minorDigits(cur)); }
   function hmc(min) { return isNum(min) ? hm(min) : ''; }
   function csvOf() {
     if (!S.model || !S.sel.b) return null;
-    var r = selRange(), rg = rangeTx();
+    var r = perRange(), rg = rangeTx();
     var list = months().filter(function (m) { return m.ym >= r.a && m.ym <= r.b; });
     var rows = [[T.csvRange, fill(T.csvPay, { r: rg })], [], [T.csvSecPay],
       ['pay_month', 'currency', 'gross', 'net', 'deductions', 'block_hm', 'block_min', 'duty_hm', 'duty_min', 'duty_days', 'sectors']];
@@ -538,8 +565,12 @@
       var cb = ca.composition.b, fx = cb ? cb.filter(function (x) { return x.cat === 'fixed'; })[0] : null;
       h += stat(fx && fx.share != null ? (fx.share * 100).toFixed(1) + '%' : '—', fill(T.aShare, { t: ymS(ca.b) }));
     }
-    if (two()) h += seg('a-view', [{ v: 'change', t: T.aRate }, { v: 'comp', t: T.aComp }], view, T.bViews);
-    h += view === 'change' ? rateRows(ca) : compBars(ca);
+    if (two()) h += seg('a-view', [{ v: 'comp', t: T.aComp }, { v: 'change', t: T.aRate }], view, T.bViews);
+    if (view === 'change') h += rateRows(ca);
+    else {
+      var cc = compCols();
+      h += cc.cols.length >= 3 ? compStack(cc) + movedHTML(ca) : compBars(ca);   // 期間に3か月以上なら月ごとの縦の棒・2か月までは今までの2本
+    }
     if (!ca.sameCurrency && two()) h += '<p class="an-note">' + esc(T.curDiff) + '</p>';
     return h + '</section>';
   }
@@ -586,11 +617,35 @@
             (pc >= 14 ? '<em>' + Math.round(pc) + '%</em>' : '') + '</i>';
         }).join('') + '</span><b class="an-cb-v">' + esc(money(tot, mcur)) + '</b></div>';
     }).join('') + '</div>';
-    if (ca.moved && ca.moved.length) {
-      h += '<div class="an-moved"><p class="an-sm-h">' + esc(T.aMoved) + '</p><ul>' + ca.moved.slice(0, 4).map(function (x) {
-        return '<li><i class="c-' + x.cat + '"></i><span>' + esc(catName(x.cat)) + '</span><b class="' + (x.delta > 0 ? 'up' : 'dn') + '">' + esc(money(x.delta, mcur, true)) + '</b></li>';
-      }).join('') + '</ul></div>';
-    }
+    return h + movedHTML(ca);
+  }
+  /* 動いた区分（いつも b と a） */
+  function movedHTML(ca) {
+    if (!ca.moved || !ca.moved.length) return '';
+    return '<div class="an-moved"><p class="an-sm-h">' + esc(T.aMoved) + '</p><ul>' + ca.moved.slice(0, 4).map(function (x) {
+      return '<li><i class="c-' + x.cat + '"></i><span>' + esc(catName(x.cat)) + '</span><b class="' + (x.delta > 0 ? 'up' : 'dn') + '">' + esc(money(x.delta, ca.currency, true)) + '</b></li>';
+    }).join('') + '</ul></div>';
+  }
+  /* 期間の中の明細の月ごとの構成（b と同じ通貨の月だけ）。区分の額と割合はエンジンの答え（その月だけの cardA）のまま */
+  function compCols() {
+    var b = monthAt(S.sel.b), out = { cols: [], excluded: 0 };
+    if (!b) return out;
+    months().forEach(function (m) {
+      if (!inPer(m.ym)) return;
+      if (m.currency !== b.currency) { out.excluded++; return; }
+      var cb = R.cardA(S.model, { b: m.ym }).composition.b || [];
+      out.cols.push({ ym: m.ym, cur: m.currency, segs: cb.filter(function (s) { return s.share > 0; }) });
+    });
+    return out;
+  }
+  function compStack(cc) {
+    var used = {};
+    cc.cols.forEach(function (x) { x.segs.forEach(function (s) { used[s.cat] = 1; }); });
+    var h = '<ul class="an-lg">' + CAT_ORDER.filter(function (c) { return used[c]; }).map(function (c) {
+      return '<li><i class="c-' + c + '"></i>' + esc(catName(c)) + '</li>';
+    }).join('') + '</ul>';
+    h += '<div class="an-ch" data-ch="a-comp"></div>';
+    if (cc.excluded) h += '<p class="an-cap2">' + esc(fill(T.aCurEx, { n: cc.excluded })) + '</p>';
     return h;
   }
 
@@ -618,13 +673,29 @@
     });
     return { cb: cb, pa: pa, pb: pb };
   }
+  /* 図の棒は期間の中だけ（エンジンの from/to＝ロスターの側は期間の中の明細に対応づけた勤務月）。見出しの％は effOf の b と a のまま */
+  function effBars() {
+    return R.cardB(S.model, { num: S.B.num, den: S.B.den, basis: S.B.basis, from: perFrom(), to: S.sel.b }).points;
+  }
+  /* その数量の基準で、期間の中に数が1つでもあるか（エンジンの答えを見るだけ） */
+  function denHas(d) {
+    return R.cardB(S.model, { num: S.B.num, den: d, basis: S.B.basis, from: perFrom(), to: S.sel.b }).points.some(function (p) { return isNum(p.value); });
+  }
+  /* 既定の数量の基準：勤務1時間 → 乗務1時間 → 1勤務日 → 1便 のうち、期間に数がある最初のもの。本人が選んだらそのまま */
+  function fixDen() {
+    if (S.B.denSet) return;
+    var d = DENS.map(function (x) { return x.v; }).filter(denHas)[0];
+    S.B.den = d || DENS[0].v;
+  }
   function cardB() {
     var hasR = rosterMonths().length > 0;
     if (!hasR) S.B.basis = 'payslip';
     if (S.B.basis === 'roster') S.B.num = 'gross';
+    fixDen();
     var h = cardOpen('b', T.bT, T.bBadge);
     var eff = S.B.view === 'eff';
-    if (eff) {
+    var noDen = eff && S.B.basis === 'payslip' && !denHas(S.B.den);   // 明細にこの数量が無い：空の図を描かず1行で言う
+    if (eff && !noDen) {
       var e = effOf(), u = denName(S.B.den);
       if (e.pa && e.pb && isNum(e.pa.value) && isNum(e.pb.value) && e.pa.currency === e.pb.currency && e.pa.value > 0) {
         h += stat(pctS(e.pb.value / e.pa.value - 1), fill(T.bStat, { d: u }));
@@ -637,9 +708,13 @@
         (S.B.basis === 'roster' ? '' : opt('net', T.nNet, S.B.num === 'net')) + '</select>') +
       field(T.bDen, '<select class="an-sel" data-act="b-den">' + DENS.map(function (x) { return opt(x.v, T[x.t], x.v === S.B.den); }).join('') + '</select>') +
       '</div>';
-    h += '<div class="an-row2">' + seg('b-view', [{ v: 'eff', t: T.vEff }, { v: 'day', t: T.vDay }, { v: 'dist', t: T.vDist }], S.B.view, T.bViews) +
-      (eff && hasR ? seg('b-basis', [{ v: 'payslip', t: T.bsSlip }, { v: 'roster', t: T.bsRoster }], S.B.basis, T.bBasis) : '') + '</div>';
-    if (eff) {
+    var basisSeg = eff && hasR ? seg('b-basis', [{ v: 'payslip', t: T.bsSlip }, { v: 'roster', t: T.bsRoster }], S.B.basis, T.bBasis) : '';
+    /* 数の無い基準のときは、見方の切り替え（報酬効率・日別・分布）を出さない。ロスターがあれば明細／ロスターの切り替えは残す（抜け道） */
+    if (!noDen) h += '<div class="an-row2">' + seg('b-view', [{ v: 'eff', t: T.vEff }, { v: 'day', t: T.vDay }, { v: 'dist', t: T.vDist }], S.B.view, T.bViews) + basisSeg + '</div>';
+    else if (basisSeg) h += '<div class="an-row2">' + basisSeg + '</div>';
+    if (noDen) {
+      h += '<p class="an-muted">' + esc(T.bNoDen) + '</p>';
+    } else if (eff) {
       var e2 = effOf();
       if (S.B.basis === 'roster' && !e2.cb.points.length) h += '<p class="an-muted">' + esc(T.bNoLinked) + '</p>';
       else h += '<div class="an-ch" data-ch="b-eff"></div>' + '<p class="an-cap2">' + esc(S.B.basis === 'roster' ? T.bCapRoster : T.bCapSlip) + '</p>';
@@ -916,6 +991,28 @@
     if (up) return 'M' + x + ' ' + y0 + 'V' + (y1 + r) + 'Q' + x + ' ' + y1 + ' ' + (x + r) + ' ' + y1 + 'H' + (x + bw - r) + 'Q' + (x + bw) + ' ' + y1 + ' ' + (x + bw) + ' ' + (y1 + r) + 'V' + y0 + 'Z';
     return 'M' + x + ' ' + y0 + 'V' + (y1 - r) + 'Q' + x + ' ' + y1 + ' ' + (x + r) + ' ' + y1 + 'H' + (x + bw - r) + 'Q' + (x + bw) + ' ' + y1 + ' ' + (x + bw) + ' ' + (y1 - r) + 'V' + y0 + 'Z';
   }
+  /* 目盛：字が同じになる目盛を描かない（小さい額で ¥1・¥1・¥0 にしない）。数が無い・幅が無いときは目盛を描かない（底の線だけ） */
+  function yTicks(lo, hi) {
+    if (!(hi > lo)) return { top: lo + 1, bot: lo, ticks: [] };
+    var st = niceStep(hi - lo, 3), top = hi, bot = lo;
+    for (var k = 0; k < 8; k++) {
+      var ticks = [];
+      top = Math.ceil(hi / st) * st; bot = Math.floor(lo / st) * st;
+      for (var t = bot; t <= top + st / 2; t += st) ticks.push(t);
+      var labs = ticks.map(fmtAxis);
+      if (ticks.length > 1 && labs.every(function (x, i) { return labs.indexOf(x) === i; })) return { top: top, bot: bot, ticks: ticks };
+      st = niceStep(st * 1.01, 1);
+    }
+    return { top: top, bot: bot, ticks: [] };
+  }
+  function yGrid(ticks, y, pl, x2) {
+    if (!ticks.length) return '<line class="an-g is-0" x1="' + pl + '" x2="' + x2 + '" y1="' + y(0).toFixed(1) + '" y2="' + y(0).toFixed(1) + '"/>';
+    return ticks.map(function (tv) {
+      return '<line class="an-g' + (tv === 0 ? ' is-0' : '') + '" x1="' + pl + '" x2="' + x2 + '" y1="' + y(tv).toFixed(1) + '" y2="' + y(tv).toFixed(1) + '"/>' +
+        '<text class="an-ax" x="' + (pl - 6) + '" y="' + (y(tv) + 3.5).toFixed(1) + '" text-anchor="end">' + esc(fmtAxis(tv)) + '</text>';
+    }).join('');
+  }
+  function yPad(ticks) { return (ticks.length ? Math.max.apply(null, ticks.map(function (x) { return txW(fmtAxis(x)); })) : 0) + 10; }
   /* 縦の棒：pts = [{ym, v（円）|null, tip[], cls:'a'|'b'|'', lab}]。高さと目盛は表示する通貨の数で（切りのよい目盛にするため） */
   function columns(box, pts0, o) {
     var W = box.clientWidth;
@@ -924,18 +1021,12 @@
     var pts = pts0.map(function (p) { var q = Object.assign({}, p); q.v = dispOf(p.v); return q; });
     var H = o.h || 200, vals = pts.filter(function (p) { return isNum(p.v); }).map(function (p) { return p.v; });
     var lo = Math.min(0, Math.min.apply(null, vals.concat([0]))), hi = Math.max(0, Math.max.apply(null, vals.concat([0])));
-    if (hi === lo) hi = lo + 1;
-    var st = niceStep(hi - lo, 3), top = Math.ceil(hi / st) * st, bot = Math.floor(lo / st) * st;
-    var ticks = []; for (var t = bot; t <= top + st / 2; t += st) ticks.push(t);
-    var pl = Math.max.apply(null, ticks.map(function (x) { return txW(fmtAxis(x)); })) + 10, pr = 6, pt = 20, pb = 34;
+    var ax = yTicks(lo, hi), top = ax.top, bot = ax.bot, ticks = ax.ticks;
+    var pl = yPad(ticks), pr = 6, pt = 20, pb = 34;
     var iw = W - pl - pr, ih = H - pt - pb, n = pts.length, slot = iw / Math.max(1, n);
     var bw = Math.max(4, Math.min(24, slot * 0.56));
     var y = function (v) { return pt + ih * (top - v) / (top - bot); };
-    var g = '';
-    ticks.forEach(function (tv) {
-      g += '<line class="an-g' + (tv === 0 ? ' is-0' : '') + '" x1="' + pl + '" x2="' + (W - pr) + '" y1="' + y(tv).toFixed(1) + '" y2="' + y(tv).toFixed(1) + '"/>' +
-        '<text class="an-ax" x="' + (pl - 6) + '" y="' + (y(tv) + 3.5).toFixed(1) + '" text-anchor="end">' + esc(fmtAxis(tv)) + '</text>';
-    });
+    var g = yGrid(ticks, y, pl, W - pr);
     var every = Math.max(1, Math.ceil(40 / slot));
     var ia = -9, ib = -9;
     pts.forEach(function (p, i) { if (p.cls === 'a') ia = i; if (p.cls === 'b') ib = i; });
@@ -958,6 +1049,58 @@
       }
       if (i === 0 || mo === 1) g += '<text class="an-ax is-y" x="' + cx.toFixed(1) + '" y="' + (H - 4) + '" text-anchor="middle">' + p.ym.slice(0, 4) + '</text>';
       g += '<rect class="an-hit" x="' + (cx - slot / 2).toFixed(1) + '" y="' + pt + '" width="' + slot.toFixed(1) + '" height="' + ih + '" tabindex="0" role="img"' + tipAttr(p.tip) + '/>';
+    });
+    box.innerHTML = '<svg class="an-svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="group" aria-label="' + esc(o.aria || '') + '">' + g + '</svg>';
+  }
+  /* 積み上げの縦の棒（A の収入の構成）：cols = compCols().cols。区分の間は 2px あけて面の色を見せる・いちばん上の区分だけ角を丸める。
+     高さと目盛は表示する通貨の数（columns と同じ組み方）。小窓は月・合計・区分ごとの額と割合 */
+  function stack(box, cols, o) {
+    var W = box.clientWidth;
+    if (W < 60) return;
+    o = o || {};
+    var H = o.h || 210;
+    var data = cols.map(function (c) {
+      var tot = 0;
+      c.segs.forEach(function (s) { tot += s.amount; });
+      return { ym: c.ym, cur: c.cur, tot: tot, tv: dispOf(jpyOf(tot, c.cur)),
+               segs: c.segs.map(function (s) { return { cat: s.cat, amount: s.amount, share: s.share, v: dispOf(jpyOf(s.amount, c.cur)) }; }) };
+    });
+    var hi = Math.max.apply(null, data.map(function (c) { return isNum(c.tv) ? c.tv : 0; }).concat([0]));
+    var ax = yTicks(0, hi), top = ax.top, ticks = ax.ticks;
+    var pl = yPad(ticks), pr = 6, pt = 20, pb = 34;
+    var iw = W - pl - pr, ih = H - pt - pb, n = data.length, slot = iw / Math.max(1, n);
+    var bw = Math.max(4, Math.min(28, slot * 0.6));
+    var y = function (v) { return pt + ih * (top - v) / top; };
+    var g = yGrid(ticks, y, pl, W - pr);
+    var every = Math.max(1, Math.ceil(40 / slot));
+    data.forEach(function (c, i) {
+      var cx = pl + slot * (i + 0.5), x = +(cx - bw / 2).toFixed(1), w0 = +bw.toFixed(1), on = c.ym === S.sel.b ? 'b' : c.ym === S.sel.a ? 'a' : '';
+      var segs = c.segs.filter(function (s) { return isNum(s.v) && s.v > 0; }), last = segs.length - 1, cum = 0;
+      if (!segs.length) g += '<rect class="an-col-na" x="' + x + '" y="' + (y(0) - 4).toFixed(1) + '" width="' + w0 + '" height="4" rx="2"/>';
+      segs.forEach(function (s, j) {
+        var y0 = y(cum), y1 = y(cum + s.v);
+        cum += s.v;
+        if (j > 0) y0 -= 1;                    // 区分の間に 2px（下の区分の上 1px ＋ 上の区分の下 1px）
+        if (j < last) y1 += 1;
+        if (y0 - y1 < 0.5) return;
+        y0 = +y0.toFixed(1); y1 = +y1.toFixed(1);
+        var d = j === last ? barPath(x, y0, y1, w0) : 'M' + x + ' ' + y0 + 'V' + y1 + 'H' + (x + w0) + 'V' + y0 + 'Z';
+        g += '<path class="an-stk c-' + s.cat + '" d="' + d + '"/>';
+      });
+      if (on === 'b' && isNum(c.tv)) {
+        var lab = money(c.tot, c.cur), lw = txW(lab) * 1.05, lx = Math.min(cx, W - pr - lw / 2), anc = 'middle';
+        if (cx - lw / 2 < pl) { lx = pl; anc = 'start'; }
+        g += '<text class="an-val" x="' + lx.toFixed(1) + '" y="' + (y(c.tv) - 6).toFixed(1) + '" text-anchor="' + anc + '">' + esc(lab) + '</text>';
+      }
+      var mo = +c.ym.slice(5, 7);
+      if (i % every === 0 || i === n - 1 || on) {
+        g += '<text class="an-ax' + (on ? ' is-on' : '') + '" x="' + cx.toFixed(1) + '" y="' + (H - 18) + '" text-anchor="middle">' + esc(ymS(c.ym)) + '</text>';
+      }
+      if (i === 0 || mo === 1) g += '<text class="an-ax is-y" x="' + cx.toFixed(1) + '" y="' + (H - 4) + '" text-anchor="middle">' + c.ym.slice(0, 4) + '</text>';
+      var tip = [fill(T.payOf, { t: ymL(c.ym) }), T.aTot + ' ' + money(c.tot, c.cur)].concat(segs.map(function (s) {
+        return catName(s.cat) + ' ' + money(s.amount, c.cur) + ' · ' + (s.share * 100).toFixed(1) + '%';
+      }));
+      g += '<rect class="an-hit" x="' + (cx - slot / 2).toFixed(1) + '" y="' + pt + '" width="' + slot.toFixed(1) + '" height="' + ih + '" tabindex="0" role="img"' + tipAttr(tip) + '/>';
     });
     box.innerHTML = '<svg class="an-svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="group" aria-label="' + esc(o.aria || '') + '">' + g + '</svg>';
   }
@@ -1017,12 +1160,11 @@
     if (!pts.length) { box.innerHTML = ''; return; }
     var J = function (v) { return dispOf(jpyOf(v, cur)); };
     var ys = []; pts.forEach(function (p) { ys.push(J(p.fit)); if (isNum(p.val)) ys.push(J(p.val)); });
-    var mx = Math.max.apply(null, ys.concat([1])), st = niceStep(mx, 3), top = Math.ceil(mx / st) * st || 1;
+    var mx = Math.max.apply(null, ys.concat([1])), ax = yTicks(0, mx), top = ax.top;
     var t0 = grid[0].t, t1 = grid[grid.length - 1].t;
-    var pl = Math.max(txW(fmtAxis(top)), txW(fmtAxis(0))) + 10, pr = 10, pt = 14, pb = 26, iw = W - pl - pr, ih = H - pt - pb;
+    var pl = yPad(ax.ticks), pr = 10, pt = 14, pb = 26, iw = W - pl - pr, ih = H - pt - pb;
     var X = function (t) { return pl + iw * (t - t0) / Math.max(1, t1 - t0); }, Y = function (v) { return pt + ih * (1 - v / top); };
-    var g = '';
-    for (var a = 0; a <= top + st / 2; a += st) g += '<line class="an-g' + (a === 0 ? ' is-0' : '') + '" x1="' + pl + '" x2="' + (W - pr) + '" y1="' + Y(a).toFixed(1) + '" y2="' + Y(a).toFixed(1) + '"/><text class="an-ax" x="' + (pl - 6) + '" y="' + (Y(a) + 3.5).toFixed(1) + '" text-anchor="end">' + esc(fmtAxis(a)) + '</text>';
+    var g = yGrid(ax.ticks, Y, pl, W - pr);
     var xs = [t0, Math.round((t0 + t1) / 2 / 15) * 15, t1];
     xs.forEach(function (t, i) { g += '<text class="an-ax" x="' + X(t).toFixed(1) + '" y="' + (H - 6) + '" text-anchor="' + (i === 0 ? 'start' : i === 2 ? 'end' : 'middle') + '">' + hm(t) + '</text>'; });
     g += '<line class="an-now" x1="' + X(now).toFixed(1) + '" x2="' + X(now).toFixed(1) + '" y1="' + pt + '" y2="' + (pt + ih) + '"/>';
@@ -1049,38 +1191,42 @@
     if (!S.visible || !S.el || !S.model) return;
     var root = S.el.querySelector('#an-' + id);
     if (!root) return;
-    root.querySelectorAll('.an-ch').forEach(function (box) {
-      var k = box.getAttribute('data-ch');
-      if (k === 'b-eff') {
-        var e = effOf(), u = denName(S.B.den);
-        columns(box, e.cb.points.map(function (p) {
-          var j = isNum(p.value) ? jpyOf(p.value, p.currency) : null, on = p === e.pb ? 'b' : p === e.pa ? 'a' : '';
-          var lbl = p.basis === 'roster' ? fill(T.workOf, { t: ymL(p.ym) }) : fill(T.payOf, { t: ymL(p.ym) });
-          var why = p.reason ? T[REASON[p.reason]] : (p.value == null ? T.rNoQty : '');
-          return { ym: p.ym, v: j, cls: on, lab: on && j != null ? fmtJ(j) : null,
-                   tip: [lbl, j != null ? fmtJ(j) + ' / ' + u : why,
-                     p.numerator != null && p.denominator != null ? money(p.numerator, p.currency) + ' ÷ ' + (p.unit === 'min' ? hm(p.denominator) : p.denominator) : ''] };
-        }), { aria: T.vEff });
-      } else if (k === 'b-day') {
-        scatter(box, R.cardB(S.model, { work: [S.B.work] }).days);
-      } else if (k === 'b-dist') {
-        hist(box, R.cardB(S.model, { work: [S.B.work] }).dist);
-      } else if (k === 'c-amt') {
-        var cc = R.cardC(S.model, { item: S.C.item, a: S.sel.a, b: S.sel.b });
-        columns(box, cc.series.map(function (s) {
-          var j = isNum(s.amount) ? jpyOf(s.amount, s.currency) : null, on = s.ym === cc.b ? 'b' : s.ym === cc.a ? 'a' : '';
-          return { ym: s.ym, v: j, cls: on, lab: on && j != null ? fmtJ(j) : null,
-                   tip: [fill(T.payOf, { t: ymL(s.ym) }), j != null ? fmtJ(j) : '—',
-                     s.qty ? qtyName(s.qty) + ' ' + qtyTx(s.qty.value, s.qty.unit) : '',
-                     isNum(s.ref) ? T.cRef + ' ' + money(s.ref, s.currency) + unitTx(s.refUnit) : ''] };
-        }), { aria: T.cCap, h: 190 });
-      } else if (k === 'd-curve') {
-        var rg = rangeD();
-        if (!rg) return;
-        var ev = R.ruleFit.candidate(S.model, specOf(thrNow(rg)));
-        curve(box, gridOf(rg), curOfRows(ev.rows), thrNow(rg));
-      }
-    });
+    root.querySelectorAll('.an-ch').forEach(function (box) { drawBox(box, box.getAttribute('data-ch')); });
+  }
+  /* 1つの図を箱に描く（箱は clientWidth と innerHTML だけを使う） */
+  function drawBox(box, k) {
+    if (!S.model) return;
+    if (k === 'a-comp') {
+      stack(box, compCols().cols, { aria: T.aComp });
+    } else if (k === 'b-eff') {
+      var e = effOf(), u = denName(S.B.den);
+      columns(box, effBars().map(function (p) {
+        var j = isNum(p.value) ? jpyOf(p.value, p.currency) : null, on = e.pb && p.ym === e.pb.ym ? 'b' : e.pa && p.ym === e.pa.ym ? 'a' : '';
+        var lbl = p.basis === 'roster' ? fill(T.workOf, { t: ymL(p.ym) }) : fill(T.payOf, { t: ymL(p.ym) });
+        var why = p.reason ? T[REASON[p.reason]] : (p.value == null ? T.rNoQty : '');
+        return { ym: p.ym, v: j, cls: on, lab: on && j != null ? fmtJ(j) : null,
+                 tip: [lbl, j != null ? fmtJ(j) + ' / ' + u : why,
+                   p.numerator != null && p.denominator != null ? money(p.numerator, p.currency) + ' ÷ ' + (p.unit === 'min' ? hm(p.denominator) : p.denominator) : ''] };
+      }), { aria: T.vEff });
+    } else if (k === 'b-day') {
+      scatter(box, R.cardB(S.model, { work: [S.B.work] }).days);
+    } else if (k === 'b-dist') {
+      hist(box, R.cardB(S.model, { work: [S.B.work] }).dist);
+    } else if (k === 'c-amt') {
+      var cc = R.cardC(S.model, { item: S.C.item, a: S.sel.a, b: S.sel.b });
+      columns(box, cc.series.filter(function (s) { return inPer(s.ym); }).map(function (s) {      // 図は期間の中だけ・分け方は b と a のまま
+        var j = isNum(s.amount) ? jpyOf(s.amount, s.currency) : null, on = s.ym === cc.b ? 'b' : s.ym === cc.a ? 'a' : '';
+        return { ym: s.ym, v: j, cls: on, lab: on && j != null ? fmtJ(j) : null,
+                 tip: [fill(T.payOf, { t: ymL(s.ym) }), j != null ? fmtJ(j) : '—',
+                   s.qty ? qtyName(s.qty) + ' ' + qtyTx(s.qty.value, s.qty.unit) : '',
+                   isNum(s.ref) ? T.cRef + ' ' + money(s.ref, s.currency) + unitTx(s.refUnit) : ''] };
+      }), { aria: T.cCap, h: 190 });
+    } else if (k === 'd-curve') {
+      var rg = rangeD();
+      if (!rg) return;
+      var ev = R.ruleFit.candidate(S.model, specOf(thrNow(rg)));
+      curve(box, gridOf(rg), curOfRows(ev.rows), thrNow(rg));
+    }
   }
   function drawAll() { ['a', 'b', 'c', 'd'].forEach(draw); }
 
@@ -1152,7 +1298,8 @@
     var t = e.target.closest ? e.target.closest('[data-act]') : null;
     if (!t || !S.el.contains(t) || t.disabled) return;
     var act = t.getAttribute('data-act'), v = t.getAttribute('data-v');
-    if (act === 'a-view') { S.A.view = v; paint('a'); }
+    if (act === 'per') { S.per = v; hideTip(); renderCards(); focusSel('.an-per [aria-pressed="true"]'); }
+    else if (act === 'a-view') { S.A.view = v; paint('a'); }
     else if (act === 'b-view') { S.B.view = v; S.B.bin = null; paint('b'); }
     else if (act === 'b-basis') { S.B.basis = v; paint('b'); }
     else if (act === 'b-bin') { S.B.bin = S.B.bin === +v ? null : +v; paint('b'); }
@@ -1161,7 +1308,7 @@
     else if (act === 'csv') { var cv = csvOf(); if (cv && S.ctx && typeof S.ctx.csv === 'function') S.ctx.csv(cv.name, cv.rows); }
     else if (act === 'print') {
       hideTip();
-      if (S.ctx && typeof S.ctx.print === 'function') S.ctx.print(fill(T.prRange, { r: S.sel.a ? ymL(S.sel.a) + ' → ' + ymL(S.sel.b) : ymL(S.sel.b) }));
+      if (S.ctx && typeof S.ctx.print === 'function') { var pr = perRange(); S.ctx.print(fill(T.prRange, { r: pr.a === pr.b ? ymL(pr.b) : ymL(pr.a) + ' → ' + ymL(pr.b) })); }
     }
     else if (act === 'wq') {
       if (v === 'other') { S.C.other = !S.C.other; paint('c'); var s = S.el.querySelector('[data-act="wq-off"]'); if (s) s.focus(); }
@@ -1175,10 +1322,8 @@
   function onChange(e) {
     var t = e.target, act = t.getAttribute && t.getAttribute('data-act');
     if (!act) return;
-    if (act === 'pb') { S.sel.b = t.value; S.sel.a = null; fixSel(); renderCards(); focusAct('pb'); }
-    else if (act === 'pa') { S.sel.a = t.value; fixSel(); renderCards(); focusAct('pa'); }
-    else if (act === 'b-num') { S.B.num = t.value; paint('b'); }
-    else if (act === 'b-den') { S.B.den = t.value; paint('b'); }
+    if (act === 'b-num') { S.B.num = t.value; paint('b'); }
+    else if (act === 'b-den') { S.B.den = t.value; S.B.denSet = true; paint('b'); }
     else if (act === 'b-work') { S.B.work = t.value; S.B.bin = null; paint('b'); }
     else if (act === 'c-item') { S.C.item = t.value; S.C.other = false; S.C.edit = false; S.C.msg = null; paint('c'); }
     else if (act === 'd-item') { S.D.item = t.value; paint('d'); }
@@ -1202,7 +1347,7 @@
       if (box) { box.innerHTML = resultsD(ev); draw('d'); }
     });
   }
-  function focusAct(a) { var f = S.el.querySelector('[data-act="' + a + '"]'); if (f) f.focus({ preventScroll: true }); }
+  function focusSel(q) { var f = S.el.querySelector(q); if (f) f.focus({ preventScroll: true }); }
   function onKey(e) {
     var t = e.target;
     if ((e.key === 'Enter' || e.key === ' ') && t && t.getAttribute && t.getAttribute('role') === 'button' && t.namespaceURI === 'http://www.w3.org/2000/svg') {
@@ -1249,6 +1394,8 @@
     mount: mount, show: show, hide: hide, redraw: drawAll,
     _: { T: T, L: L, S: S, fill: fill, hm: hm, pctS: pctS, fmtJ: fmtJ, money: money, build: build,
          cardA: cardA, cardB: cardB, cardC: cardC, cardD: cardD, headHTML: headHTML, askOf: askOf, rangeD: rangeD, optionsC: optionsC, csvOf: csvOf,
+         ymL: ymL, ymS: ymS, perList: perList, compCols: compCols, drawBox: drawBox,
+         yTicks: yTicks, fmtAxis: fmtAxis,
          set: function (o) { Object.keys(o || {}).forEach(function (k) { S[k] = o[k]; }); } }
   };
 }(window));

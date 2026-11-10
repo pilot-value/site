@@ -609,6 +609,18 @@ baland_ass/                            ブランド資産（※ brand_assets の
 - 見るもの：`node db/test-roster.mjs`（sql）／`node db/test-roster-parse.mjs`・`node db/test-report-engine.mjs`・`node db/test-roster-ui.mjs`（fast）。
   読み取りの精度は `node db/eval-roster.mjs`（**費用あり・手で流す**。作り物6形式＋`--dir` でネットの見本。check.mjs に入れない）。
 - **本番の作業（OK のあと）**：`db/roster.sql` を貼る → `parse-roster` を Deploy（secrets は parse-payslip と同じ・任意で `PV_ROSTER_DAILY` など）→ push。
+- ★2026-11-09 夜（オーナーが本番で見た・取り込んだあとの直し）
+  - **MY PAGE｜MY PAY のタブ**は my-value.js の `pageTabs()`（main の子を2つの面へ移す・JS が落ちれば今までの縦並び）。`#your-pay` で来たら MY PAY・押したら replaceState。
+    ⚠️ MY PAY が閉じている間は図を描かない（`payShown()`／`sumShown()`）── 開いたときに今の小タブを描き直す。幅はマイページだけ `.mr-shell:has(#pv-value){max-width:972px}`。
+  - **日本語の画面では「ロスター」と言わない ＝「スケジュール」**（オーナー「日本語でロスターって言っても通じない」）。英語は Roster・スペイン語は Programación のまま。
+  - 分析タブは**最新の月とその前の月を比べる**（選ぶ欄は無い）。上に期間「3か月｜6か月｜1年｜全部」（明細が3か月以下なら出さない）。「収入の構成」が先。
+  - 1年の「時給・分給と単価」は1行に大きい数字1つ・会社との比べは文（「同じ会社の機長の中央値 ¥… より 20% 高い」）。小さな線（月ごと）は無い。
+  - **取り込みの画面**：読み取り中は明細と同じ白い全画面（緑の輪の %・3段の ✓・payslip.js の写し）→ 質問は別の画面（丸いボタン）→「読み取った内容を確かめる」（読めた日／便の時間の数・押せるカレンダー・読めなかった日を埋める）→ 日の編集（`PVRosterUpload.editDay`）。
+    保存したあとも、スケジュールのタブの日の板の「この日を直す」から同じ編集 → `edit_roster_day`（その日のファイルの紐づけはそのまま・新しい日は本人ごとの「手で入れた日」1件にまとめる・1日200回まで・2年より前は直せない）。
+    1日の検品は `pv_roster_clean_day` の1か所（submit_roster と edit_roster_day の両方が呼ぶ・検算14）。
+  - 読み取り（parse-roster BUILD 2026-11-10）：便の時間の欄が TIME などでも読む・**勤務表に出ている日は何も書いていなくても日付ごと返す**・名前よけで落としたコードの日は `unread: true`（字は残さない）。
+    空の日・読めなかった日は**保存しない**（`stripDay` が外す・engine の `dayEmpty`）＝ 新しい取り込みで前の日を空で上書きしない。全部の日が空のページは not_a_roster。
+  - 月の札は分からない値を 0 にしない（便の時間が1つも無ければ「—」と「便の時間が無い便 N」）。
 
 ## 会社ページの「パイロットの回答」をカードに・鍵の無い人には質問だけ（2026-11-10）
 

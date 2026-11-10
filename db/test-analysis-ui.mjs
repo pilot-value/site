@@ -12,9 +12,14 @@
    ⑥ 給与が変わった理由：検算（増減の合計 ＝ Δ総支給・内訳の合計 ＝ 総支給・同じ通貨・前の明細あり）が1つでも通らなければ描かない
       （＝前回の明細との差に戻す）。通るときは項目の増減の合計が Δ総支給にぴったり合う。
    ⑦ 1か月なら比較を出さず、「2か月目から」を見出しで1回だけ言う。週末・祝日の手当を日数で割らない。
-   ⑧ CSV は選んでいる範囲だけ（ファイル名と1行目に範囲・ほかの月を1つも書かない・通貨の欄・時間は H:MM と分）。
+   ⑧ CSV は選んでいる期間だけ（ファイル名と1行目に範囲・ほかの月を1つも書かない・通貨の欄・時間は H:MM と分）。
       字の包み方は my-value.js の csvText（BOM・CRLF・引用符・表計算の式にさせない）。
-   ⑨ 印刷は表示中のタブの写しだけ（隠れたタブ・タブの帯は紙に出さない・操作の部品は外す）。 */
+   ⑨ 印刷は表示中のタブの写しだけ（隠れたタブ・タブの帯は紙に出さない・操作の部品は外す）。
+   ⑩ 比べる明細は選ばせない（いちばん新しい明細 ⇄ その前の同じ通貨の明細・月が飛んでも実際の月の名前）。期間は 3か月｜6か月｜1年｜全部
+      （既定 1年・明細が3か月以下なら出さない・中身が同じ候補は出さない）。期間の外の月は B の棒・A の積み上げ・C の推移・CSV に出ない。
+      A は「収入の構成」が先で既定。期間に3か月以上なら月ごとの積み上げ・2か月までは今までの2本。
+   ⑪ B の数量の基準の既定は「勤務1時間 → 乗務1時間 → 1勤務日 → 1便」で期間に数がある最初のもの（本人が選んだらそのまま）。
+      数が無い基準は空の図・見方の切り替え・「—」を出さず1行だけ。目盛は同じ字を2本描かない・数が無ければ描かない。 */
 import fs from 'fs';
 import vm from 'vm';
 import path from 'path';
@@ -107,8 +112,40 @@ function suite(A, R, opts) {
   let all = '';
   try { all = A.headHTML() + A.cardA() + A.cardB() + A.cardC() + A.cardD(); } catch (e) { fails.push('カードが組めない: ' + e.message); }
   ok(/2031/.test(A.headHTML()) && !/20(2\d|30)/.test(all), '② 見出しはデータの年（2031）だけ・ほかの年を出さない');
-  ok(A.headHTML().split('<option').length - 1 === 12 + 11, '② 選べる月はデータの月だけ（明細12・比べる相手11）');
   ok(!all.includes(T.one), '⑦ 2か月以上では「2か月目から」を言わない');
+
+  /* ⑩ 比べる明細は選ばせない・期間 */
+  const box = () => ({ clientWidth: 640, innerHTML: '' });
+  const drawn = (k) => { const b = box(); A.drawBox(b, k); return b.innerHTML; };
+  const pressed = (h, act) => { const m = h.match(new RegExp('data-act="' + act + '" data-v="([^"]+)" aria-pressed="true"')); return m && m[1]; };
+  const pers = (h) => [...h.matchAll(/data-act="per" data-v="([^"]+)"/g)].map((m) => m[1]);
+  const has = (h, yms) => yms.every((y) => h.includes(A.ymL(y)));
+  const hasNone = (h, yms) => yms.every((y) => !h.includes(A.ymL(y)));
+  const head = A.headHTML();
+  ok(!/<select/.test(head), '⑩ 見出しに月を選ぶ欄が無い');
+  ok(head.includes(A.fill(T.subCmp, { b: A.ymL('2031-12'), a: A.ymL('2031-11') })), '⑩ 見出しの下に「12月を11月と比べています」（実際の月の名前）');
+  ok(S.per === '1y' && pressed(head, 'per') === '1y', '⑩ 期間の既定は1年：' + S.per + ' / ' + pressed(head, 'per'));
+  ok(pers(head).join() === '3m,6m,1y', '⑩ 12か月：中身が1年と同じ「全部」は出さない：' + pers(head).join());
+  A.set({ per: 'all' });
+  ok(pressed(A.headHTML(), 'per') === '1y', '⑩ 「全部」を選んでいても、同じ中身の「1年」が押されて見える');
+  A.set({ per: '1y' });
+  const a12 = A.cardA();
+  ok(a12.indexOf('data-v="comp"') >= 0 && a12.indexOf('data-v="comp"') < a12.indexOf('data-v="change"') && pressed(a12, 'a-view') === 'comp',
+     '⑩ A は「収入の構成」が先で既定');
+  ok(a12.includes('data-ch="a-comp"') && !a12.includes('class="an-cb"') && a12.includes(T.aMoved), '⑩ 期間に3か月以上：月ごとの積み上げ（2本の横の棒ではない）と「動いた区分」');
+  ok(has(drawn('a-comp'), ['2031-01', '2031-06', '2031-12']), '⑩ 1年：積み上げは12か月ぶん');
+  A.set({ per: '3m' });
+  const in3 = ['2031-10', '2031-11', '2031-12'], out3 = ['2031-01', '2031-05', '2031-09'];
+  const ac = drawn('a-comp'), be = drawn('b-eff');
+  ok(has(ac, in3) && hasNone(ac, out3) && (ac.match(/class="an-hit"/g) || []).length === 3, '⑩ 3か月：A の積み上げは期間の中の3か月だけ');
+  ok(/class="an-stk c-fixed"/.test(ac) && ac.includes(T.aTot), '⑩ 積み上げは区分の色と、小窓に合計');
+  ok(has(be, in3) && hasNone(be, out3), '⑩ 3か月：B の棒は期間の中の月だけ');
+  A.set({ C: { item: 'flight pay', other: false, busy: false, msg: null, edit: false } });
+  const ca = drawn('c-amt');
+  ok(has(ca, in3) && hasNone(ca, out3), '⑩ 3か月：C の推移は期間の中の月だけ');
+  A.set({ per: '1y', sel: { a: '2031-03', b: '2031-05' } });
+  A.build();
+  ok(S.sel.b === '2031-12' && S.sel.a === '2031-11', '⑩ 前に持っていた月を持ち越さない（いつも最新とその前）：' + S.sel.a + ' → ' + S.sel.b);
 
   /* ③ 増減の「残り」の呼び名 */
   const BAD = /単価|料率|契約|rate|tarifa|tasa|precio|unit price/i;
@@ -137,24 +174,30 @@ function suite(A, R, opts) {
   const rg = A.rangeD();
   ok(rg && rg.min < rg.max && rg.min !== 360 && rg.max !== 720, '④ 基準の時間の範囲はデータから（見本の 6:00〜12:00 ではない）');
 
-  /* ⑧ CSV：選んでいる範囲（2031-03 → 2031-05）だけ */
+  /* ⑧ CSV：選んでいる期間（3か月 ＝ 2031-10 → 2031-12）だけ */
   const cells = (rows) => rows.reduce((a, r) => a.concat(r || []), []).map(String);
-  A.set({ sel: { a: '2031-03', b: '2031-05' }, C: { item: 'flight pay', other: false, busy: false, msg: null, edit: false } });
+  A.set({ per: '3m', C: { item: 'flight pay', other: false, busy: false, msg: null, edit: false } });
   const cv = A.csvOf();
-  ok(cv && cv.name === 'pilot-value-analysis_2031-03_2031-05', '⑧ ファイル名に範囲：' + (cv && cv.name));
-  ok(cv && cv.rows[0].join(' ').includes('2031-03→2031-05'), '⑧ 1行目に範囲');
+  ok(cv && cv.name === 'pilot-value-analysis_2031-10_2031-12', '⑧ ファイル名に範囲：' + (cv && cv.name));
+  ok(cv && cv.rows[0].join(' ').includes('2031-10→2031-12'), '⑧ 1行目に範囲');
   const all8 = cv ? cells(cv.rows) : [];
   const firsts = cv ? cv.rows.map((r) => String((r || [])[0] || '')).filter((c) => /^\d{4}-\d{2}$/.test(c)) : [];
-  ok(['2031-03', '2031-04', '2031-05'].every((m) => all8.includes(m)) && firsts.length && firsts.every((c) => c >= '2031-03' && c <= '2031-05'),
-     '⑧ 範囲の月の行だけを書く（行の月がほかに1つも無い。勤務月の欄は、その行の対応として出す）');
-  const hdr = cv ? cv.rows.find((r) => r && r[0] === 'pay_month') : null, r3 = cv ? cv.rows.find((r) => r && r[0] === '2031-03') : null;
-  ok(hdr && hdr[1] === 'currency' && r3 && r3[1] === 'JPY', '⑧ 通貨の欄（明細の通貨のまま）');
-  ok(r3 && /^\d+:\d{2}$/.test(r3[hdr.indexOf('block_hm')]) && r3[hdr.indexOf('block_min')] === 62 * 60, '⑧ 時間は H:MM と分の両方');
-  ok(cv && cv.rows.some((r) => r && r[0] === '2031-04' && r[1] === 'Flight Pay'), '⑧ 手当ごとの掘り下げで選んでいる項目の行');
-  ok(cv && !cv.rows.some((r) => r && r[0] === 'duty_month'), '⑧ 範囲にロスターの月が無ければロスターの節を書かない');
-  A.set({ sel: { a: '2031-10', b: '2031-12' } });
-  const cv2 = A.csvOf(), dm = cv2 ? cv2.rows.filter((r) => r && /^2031-1[01]$/.test(r[0]) && r.length === 14) : [];
-  ok(dm.length === 2, '⑧ 範囲の中のロスターの月（勤務月）だけ：' + dm.length);
+  ok(['2031-10', '2031-11', '2031-12'].every((m) => all8.includes(m)) && firsts.length && firsts.every((c) => c >= '2031-10' && c <= '2031-12'),
+     '⑧ 期間の月の行だけを書く（行の月がほかに1つも無い。勤務月の欄は、その行の対応として出す）');
+  const hdr = cv ? cv.rows.find((r) => r && r[0] === 'pay_month') : null, r10 = cv ? cv.rows.find((r) => r && r[0] === '2031-10' && r[1] === 'JPY') : null;
+  ok(hdr && hdr[1] === 'currency' && r10 && r10[1] === 'JPY', '⑧ 通貨の欄（明細の通貨のまま）');
+  ok(r10 && /^\d+:\d{2}$/.test(r10[hdr.indexOf('block_hm')]) && r10[hdr.indexOf('block_min')] === 69 * 60, '⑧ 時間は H:MM と分の両方');
+  ok(cv && cv.rows.some((r) => r && r[0] === '2031-11' && r[1] === 'Flight Pay'), '⑧ 手当ごとの掘り下げで選んでいる項目の行');
+  const dm = cv ? cv.rows.filter((r) => r && /^2031-1[01]$/.test(r[0]) && r.length === 14) : [];
+  ok(dm.length === 2, '⑧ 期間の中のロスターの月（勤務月）だけ：' + dm.length);
+  A.set({ per: '1y' });
+  ok((A.csvOf() || {}).name === 'pilot-value-analysis_2031-01_2031-12', '⑧ 1年：ファイル名は期間の中の最初の明細から');
+  /* ロスターが期間の外（2031-06）だけ：3か月なら節を書かない・1年なら書く */
+  A.set({ roster: { days: days('2031-06', 140, 30), profile: PROFILE }, per: '3m' });
+  A.build();
+  ok(!(A.csvOf() || { rows: [] }).rows.some((r) => r && r[0] === 'duty_month'), '⑧ 期間にロスターの月が無ければロスターの節を書かない');
+  A.set({ per: '1y' });
+  ok((A.csvOf() || { rows: [] }).rows.some((r) => r && r[0] === 'duty_month'), '⑧ 期間を広げればロスターの節が出る');
 
   /* ⑦ 1か月 */
   A.set({ ctx: { reports: [F.reps[11]], segName: SEG }, items: { items: [F.items[11]], maps: [], ok: true }, roster: null, sel: { a: null, b: null } });
@@ -163,6 +206,67 @@ function suite(A, R, opts) {
   ok(h1.includes(T.one) && !a1.includes(T.one) && !A.cardC().includes(T.one), '⑦ 1か月：「2か月目から」は見出しで1回だけ');
   ok(!a1.includes('data-act="a-view"') && a1.includes('an-cb'), '⑦ 1か月：収入の構成だけ（増減率の切り替えを出さない）');
   ok(A.cardD().includes('data-act="add-roster"'), '④ ロスターが無ければ「ロスターを足す」の入口');
+
+  /* ⑩ 明細の月の並びごとの期間 */
+  const use = (ms) => {
+    A.set({ ctx: { reports: ms.map((m) => m.r), segName: SEG }, items: { items: ms.map((m) => m.items), maps: [], ok: true }, roster: null,
+            sel: { a: null, b: null }, per: '1y', A: { view: 'comp' }, C: { item: 'flight pay', other: false, busy: false, msg: null, edit: false } });
+    A.build();
+  };
+  const mk = (yms, o) => yms.map((ym, i) => month(ym, (60 + i) * 4000, 18000, 60 + i, o ? o(ym) : null));
+  use(mk(['2031-10', '2031-11', '2031-12']));
+  ok(!A.headHTML().includes('data-act="per"'), '⑩ 明細が3か月なら期間を出さない');
+  use(mk(['2030-01', '2031-10', '2031-11', '2031-12']));
+  const h4 = A.headHTML();
+  ok(pers(h4).join() === '3m,all' && pressed(h4, 'per') === '3m',
+     '⑩ 4か月（1年より前に1つ）：3か月｜全部だけ・既定の1年は同じ中身の3か月が押されて見える：' + pers(h4).join() + ' / ' + pressed(h4, 'per'));
+  /* 月が飛ぶ（11月 → 2月）。1年より前にも1つ */
+  use(mk(['2029-05', '2030-08', '2030-09', '2030-10', '2030-11', '2031-02']));
+  ok(S.sel.b === '2031-02' && S.sel.a === '2030-11', '⑩ 月が飛んでも、いちばん新しい明細とその前の明細を比べる：' + S.sel.a + ' → ' + S.sel.b);
+  const hg = A.headHTML();
+  ok(hg.includes(A.fill(T.subCmp, { b: A.ymL('2031-02'), a: A.ymL('2030-11') })), '⑩ 見出しは実際の月の名前（2月を11月と）');
+  ok(pers(hg).join() === '3m,6m,1y,all', '⑩ 中身が違う候補はすべて出す：' + pers(hg).join());
+  A.set({ per: '3m' });
+  const ag = A.cardA();
+  ok((ag.match(/class="an-cb"/g) || []).length === 2 && !ag.includes('data-ch="a-comp"') && ag.includes(A.fill(T.payOf, { t: A.ymS('2030-11') })),
+     '⑩ 期間に明細が2か月まで：今までの2本（前の明細は実際の月の名前）');
+  ok(/class="an-big">[+−±][\d.]+%/.test(A.cardB()), '⑩ B の見出しの％は期間に関係なく b と a');
+  ok(A.cardC().includes(T.cResid), '⑩ C の分け方は期間に関係なく b と a');
+  A.set({ per: '6m' });
+  const g6 = drawn('a-comp');
+  ok(A.cardA().includes('data-ch="a-comp"') && has(g6, ['2030-09', '2031-02']) && hasNone(g6, ['2030-08', '2029-05']), '⑩ 6か月：積み上げは期間の中の4か月');
+  A.set({ per: '1y' });
+  const cg = cells((A.csvOf() || { rows: [] }).rows);
+  ok(!cg.includes('2029-05') && cg.includes('2030-08'), '⑩ 1年：期間の外の月は CSV に書かない');
+  A.set({ per: 'all' });
+  ok(cells((A.csvOf() || { rows: [] }).rows).includes('2029-05'), '⑩ 全部：いちばん古い明細まで');
+  /* 期間の中に別の通貨の月（1〜3月がドル） */
+  use(mk(['2031-01', '2031-02', '2031-03', '2031-04', '2031-05', '2031-06', '2031-07', '2031-08', '2031-09', '2031-10', '2031-11', '2031-12'],
+         (ym) => (ym <= '2031-03' ? { currency: 'USD', fx_to_jpy: 150 } : null)));
+  const ax = A.cardA(), gx = drawn('a-comp');
+  ok(ax.includes(A.fill(T.aCurEx, { n: 3 })) && has(gx, ['2031-04', '2031-12']) && hasNone(gx, ['2031-01', '2031-03']), '⑩ 別の通貨の月は積まずに1行で言う');
+
+  /* ⑪ B の数量の基準：既定は「勤務1時間 → 乗務1時間 → 1勤務日 → 1便」で数がある最初のもの。数が無い基準は空の図を描かず1行だけ */
+  const yms4 = ['2031-09', '2031-10', '2031-11', '2031-12'];
+  const B0 = { num: 'gross', den: 'duty', denSet: false, basis: 'payslip', view: 'eff', work: null, bin: null };
+  const noDenLine = '<p class="an-muted">' + String(T.bNoDen || '').replace(/'/g, '&#39;') + '</p>';
+  const yLabs = (svg) => [...svg.matchAll(/text-anchor="end">([^<]*)</g)].map((m) => m[1]);
+  use(mk(yms4, () => ({ duty_hours: null })));
+  A.set({ B: Object.assign({}, B0) });
+  const bd = A.cardB(), bdSvg = drawn('b-eff'), bdLabs = yLabs(bdSvg);
+  ok(S.B.den === 'block' && bd.includes('data-ch="b-eff"') && !bd.includes(noDenLine), '⑪ 明細に勤務時間が無ければ、既定は乗務1時間：' + S.B.den);
+  ok(bdLabs.length >= 2 && new Set(bdLabs).size === bdLabs.length, '⑪ 目盛の字はどれも違う：' + bdLabs.join(' '));
+  A.set({ B: Object.assign({}, B0, { den: 'duty', denSet: true }) });
+  const bx = A.cardB();
+  ok(S.B.den === 'duty' && bx.includes(noDenLine) && !bx.includes('data-ch="b-eff"') && !bx.includes('data-act="b-view"') && !bx.includes('class="an-big"'),
+     '⑪ 本人が選んだ基準は替えない・数が無ければ1行だけ（空の図・見方の切り替え・「—」の見出しを出さない）');
+  ok(yLabs(drawn('b-eff')).length === 0, '⑪ 数が1つも無い図に目盛の字を描かない（¥1・¥1・¥0 にしない）');
+  const tiny = [1.4, 3, 0.6].map((v) => A.yTicks(0, v).ticks.map(A.fmtAxis));
+  ok(tiny.every((l) => l.length >= 2 && new Set(l).size === l.length), '⑪ 小さい額でも同じ字の目盛を2本描かない：' + tiny.map((l) => l.join('/')).join(' '));
+  use(mk(yms4, () => ({ duty_hours: null, block_hours: null, duty_days: null, sectors: null })));
+  A.set({ B: Object.assign({}, B0) });
+  const b0 = A.cardB();
+  ok(S.B.den === 'duty' && b0.includes(noDenLine) && !b0.includes('data-ch="b-eff"'), '⑪ どの基準にも数が無ければ1行だけ（既定は勤務1時間のまま）');
   return fails;
 }
 
@@ -204,7 +308,7 @@ const run = (ana, lang) => { try { const x = load(ana, lang); return suite(x.A, 
 console.log('▼ 分析のタブ（my-analysis.js）');
 for (const lang of ['ja', 'en', 'es']) {
   const f = run(ANA, lang);
-  say(f.length === 0, lang + '：約束②〜⑤⑦がすべて守られている' + (f.length ? '：' + f.join(' / ') : ''));
+  say(f.length === 0, lang + '：約束②〜⑤⑦⑧⑩⑪がすべて守られている' + (f.length ? '：' + f.join(' / ') : ''));
 }
 console.log('▼ 給与が変わった理由（my-value.js の whyModel）');
 {
@@ -292,6 +396,17 @@ const BREAK_A = [
   ['② 最新の月を決め打ちする', "S.sel.b = ms[ms.length - 1].ym;", "S.sel.b = '2026-10';"],
   ['⑦ 1か月でも増減率の切り替えを出す', "if (two()) h += seg('a-view'", "h += seg('a-view'"],
   ['⑧ CSV に範囲の外の月も書く', "var list = months().filter(function (m) { return m.ym >= r.a && m.ym <= r.b; });", "var list = months();"],
+  ['⑩ A の既定を増減率に戻す', "A: { view: 'comp' },", "A: { view: 'change' },"],
+  ['⑩ 比べる明細を前の選び方に戻す（持っていた月を残す）', "    S.sel.a = prevSame(S.sel.b);\n  }",
+   "    if (monthAt(S.sel.a) && S.sel.a < S.sel.b) return;\n    S.sel.a = prevSame(S.sel.b);\n  }"],
+  ['⑩ 中身が同じ期間の候補も出す', "if (c > last) { out.push", "if (c >= last) { out.push"],
+  ['⑩ B の棒を期間で絞らない', "from: perFrom(), to: S.sel.b }).points;", "}).points;"],
+  ['⑩ C の推移を期間で絞らない', "cc.series.filter(function (s) { return inPer(s.ym); }).map(", "cc.series.map("],
+  ['⑩ 別の通貨の月も積む', "if (m.currency !== b.currency) { out.excluded++; return; }", ""],
+  ['⑪ 既定の数量の基準を勤務1時間に決め打ち', "    if (S.B.denSet) return;\n    var d", "    return;\n    var d"],
+  ['⑪ 数の無い基準でも空の図を描く', "var noDen = eff && S.B.basis === 'payslip' && !denHas(S.B.den);", "var noDen = false;"],
+  ['⑪ 数が無い図にも目盛を描く', "if (!(hi > lo)) return { top: lo + 1, bot: lo, ticks: [] };", "if (!(hi > lo)) hi = lo + 1;"],
+  ['⑪ 同じ字の目盛を描く', "if (ticks.length > 1 && labs.every(function (x, i) { return labs.indexOf(x) === i; }))", "if (ticks.length > 1)"],
   ['⑧ ファイル名に範囲を入れない', "return { name: 'pilot-value-analysis_' + (r.a === r.b ? r.b : r.a + '_' + r.b), rows: rows };", "return { name: 'pilot-value-analysis', rows: rows };"]
 ];
 for (const [name, from, to] of BREAK_A) {

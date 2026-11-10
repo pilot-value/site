@@ -657,6 +657,25 @@
 .mp-h1{font-size:1.62rem;font-weight:800;letter-spacing:-.03em;line-height:1.2;
   color:var(--pv-ink);margin:0 0 6px}
 .mp-lead{font-size:.82rem;color:var(--pv-ink-2);line-height:1.7;margin:0;max-width:52ch}
+/* ── MY PAGE｜MY PAY のタブ（2026-11-09 オーナー「mypage と my pay でタブ分けない？」）──
+   my-value.js の pageTabs() が main の一番上に置く。2語の大きな見出しがそのままタブ（選んだ方に緑の下線）。
+   見出し「MY PAGE」（h1）は読み上げ用に残し、見た目だけ隠す。MY PAY の中の「YOUR PAY」はタブと重なるので出さない。 */
+.mp-tabs{display:flex;gap:28px;margin:0 0 var(--pv-s-4);border-bottom:1px solid var(--pv-line)}
+.mp-tab{appearance:none;background:none;border:0;border-bottom:3px solid transparent;margin:0 0 -1px;padding:4px 2px 12px;
+  font:inherit;font-size:1.62rem;font-weight:800;letter-spacing:-.03em;line-height:1.2;color:var(--pv-ink-3);cursor:pointer;
+  transition:color .18s var(--pv-ease),border-color .18s var(--pv-ease),transform .12s var(--pv-ease)}
+.mp-tab:hover{color:var(--pv-ink-2)}
+.mp-tab:focus-visible{outline:2px solid var(--pv-accent);outline-offset:4px;border-radius:6px}
+.mp-tab:active{transform:translateY(1px)}
+.mp-tab.on{color:var(--pv-ink);border-bottom-color:var(--pv-accent)}
+.mp-tabbed .mp-hd .mp-h1{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.mp-tabbed .mp-hd{margin-bottom:0}
+.mp-tabbed .mp-lead:not([hidden]){margin-bottom:var(--pv-s-3)}
+.mp-tabbed #your-pay > .mp-h2{display:none}
+#your-pay{scroll-margin-top:140px}
+/* PC で横に長すぎる（2026-11-09 オーナー「いまの3/4でよくない？」）── マイページだけ中身を約924px（1232px の 3/4）に。
+   .mr-shell はほかの19枚も使う＝ #pv-value を持つ枠（マイページ）だけを狭める */
+.mr-shell:has(#pv-value){max-width:972px}
 
 /* 節の見出し。日英とも英語（左のレールと同じ言い方）。 */
 .mp-h2{display:block;font-size:.7rem;font-weight:800;letter-spacing:.14em;
@@ -796,18 +815,24 @@
 #pv-value .yr-rate2 b{font-weight:800;color:var(--pv-ink)}
 #pv-value .yr-kink p{margin:0;font-size:.76rem;color:var(--pv-ink-3);line-height:1.6}
 #pv-value .yr-kink-g svg{max-width:560px;margin-left:auto}
-#pv-value .yr-rt{width:100%;border-collapse:collapse;font-size:.84rem;margin-bottom:26px}
-#pv-value .yr-rt th{font-size:.72rem;color:var(--pv-ink-3);font-weight:700;text-align:right;padding:0 12px 8px;border-bottom:1px solid var(--pv-line-soft);white-space:nowrap}
-#pv-value .yr-rt th:first-child,#pv-value .yr-rt td:first-child{text-align:left;padding-left:0}
-#pv-value .yr-rt td{padding:12px;border-bottom:1px solid var(--pv-line-soft);text-align:right;white-space:nowrap;vertical-align:middle;color:var(--pv-ink)}
-#pv-value .yr-rt-n b{font-size:.86rem}
-#pv-value .yr-rt-n small{display:block;color:var(--pv-ink-3);font-size:.72rem;font-weight:600;margin-top:2px;white-space:normal}
-#pv-value .yr-rt-big b{font-size:1.02rem;font-weight:800}
-#pv-value .yr-rt i{font-style:normal;color:var(--pv-ink-3);font-size:.74rem;margin-left:2px;font-weight:600}
-#pv-value .yr-rt-q{color:var(--pv-ink-2);font-weight:600}
-#pv-value .yr-rt-sp{width:120px;padding-right:0}
-#pv-value .yr-rt-co b{font-weight:800}
-#pv-value .yr-rt-co .mr-d{margin-left:6px;font-size:.7rem;padding:2px 6px;border-radius:999px;font-weight:800}
+/* 時給・分給と単価（2026-11-09 オーナー「数字の格子で読みにくい」）：1行に大きい数字は1つ（その単価）。
+   左に名前と何で割ったか・右に単価（下に分給）・下の1行の文に会社の会員との差と1年の量 */
+#pv-value .yr-rates{margin-bottom:26px}
+#pv-value .yr-rl{list-style:none;margin:0;padding:0;border-top:1px solid var(--pv-line-soft)}
+#pv-value .yr-rl-i{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:4px 20px;padding:16px 0;border-bottom:1px solid var(--pv-line-soft)}
+#pv-value .yr-rl-n{min-width:0}
+#pv-value .yr-rl-n b{display:block;font-size:.9rem;font-weight:800;line-height:1.4;color:var(--pv-ink)}
+#pv-value .yr-rl-n small{display:block;margin-top:2px;font-size:.74rem;font-weight:600;line-height:1.5;color:var(--pv-ink-3)}
+#pv-value .yr-rl-v{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+#pv-value .yr-rl-v b{display:block;font-size:1.35rem;font-weight:800;letter-spacing:-.02em;line-height:1.2;color:var(--pv-ink)}
+#pv-value .yr-rl-v small{display:block;margin-top:3px;font-size:.76rem;font-weight:600;color:var(--pv-ink-3)}
+#pv-value .yr-rl-v i{font-style:normal;font-size:.74rem;font-weight:700;letter-spacing:0;margin-left:2px;color:var(--pv-ink-3)}
+#pv-value .yr-rl-v small i{font-size:inherit;font-weight:inherit;margin-left:1px}
+#pv-value .yr-rl-c{grid-column:1 / -1;margin:6px 0 0;font-size:.78rem;line-height:1.6;color:var(--pv-ink-3);font-variant-numeric:tabular-nums}
+#pv-value .yr-rl-c em{font-style:normal;font-weight:600;color:var(--pv-ink)}
+#pv-value .yr-rl-c em.up{color:var(--pv-accent-ink)}
+#pv-value .yr-rl-x{margin:12px 0 0;font-size:.76rem;line-height:1.6;color:var(--pv-ink-3)}
+#pv-value .yr-in.no-g{grid-template-columns:1fr}
 /* 会社の会員の折れ目（db/company-rates.sql）。本人の折れ目の下・本人の記録が足りないときは単独で */
 #pv-value .yr-co{margin-top:16px;padding-top:14px;border-top:1px solid var(--pv-line-soft)}
 #pv-value .yr-kink.is-co{grid-template-columns:minmax(0,420px)}
@@ -846,18 +871,15 @@
 #pv-value .yr-tip p em{width:8px;height:8px;border-radius:2px;display:inline-block}
 #pv-value .yr-tip .tot{border-top:1px solid var(--pv-line-soft);margin-top:4px;padding-top:6px}
 @media (max-width:640px){
+  .mp-tab{font-size:1.32rem}
+  .mp-tabs{gap:20px}
   #pv-value .yr-in{grid-template-columns:1fr}
   #pv-value .yr-kink{grid-template-columns:1fr}
   #pv-value .yr-ins{grid-template-columns:1fr}
   #pv-value .yr-in-g svg{max-width:260px}
   #pv-value .yr-tile b{font-size:1.1rem}
-  /* 単価の表は、狭い画面では1行を2段に組む（月ごとの線と数量は畳む） */
-  #pv-value .yr-rt thead{display:none}
-  #pv-value .yr-rt tr{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:10px 0;border-bottom:1px solid var(--pv-line-soft)}
-  #pv-value .yr-rt td{border:0;padding:0}
-  #pv-value .yr-rt-n{grid-row:span 2}
-  #pv-value .yr-rt-q,#pv-value .yr-rt-sp{display:none}
-  #pv-value .yr-rt-co{grid-column:2}
+  #pv-value .yr-rl-i{gap:4px 14px}
+  #pv-value .yr-rl-v b{font-size:1.2rem}
 }
 @media (prefers-reduced-motion:reduce){
   #pv-value .yr-tip,#pv-value .yr-pdf{transition:none}
@@ -867,6 +889,7 @@
 #pv-print{display:none}
 #pv-value .yr-pyr{display:none}            /* 紙だけ見出しに年を付ける（年の切り替えは紙に載らない） */
 @media print{
+  .mp-tabs{display:none}
   @page{size:A4;margin:12mm}
   html.pv-printing body > *:not(#pv-print){display:none !important}
   html.pv-printing #pv-print{display:block}
@@ -876,7 +899,8 @@
     --pv-surface:#fff;--pv-ink:#101828;--pv-ink-2:#344054;--pv-ink-3:#667085;--pv-line:#e4e7ec;--pv-line-soft:#eef1f4}
   #pv-print .yr-pdf,#pv-print .yr-tip,#pv-print .yr-years{display:none}
   #pv-print .yr-pyr{display:inline}
-  #pv-print .yr-ch,#pv-print .yr-kink,#pv-print .yr-in,#pv-print .yr-rt tr,#pv-print .yr-sm-i,#pv-print .yr-tiles{break-inside:avoid}
+  #pv-print .yr-ch,#pv-print .yr-kink,#pv-print .yr-in,#pv-print .yr-rl-i,#pv-print .yr-sm-i,#pv-print .yr-tiles{break-inside:avoid}
+  #pv-print .yr-rl-c em.up{color:var(--pv-accent-dark)}   /* ダークの accent-ink は明るい緑＝白い紙で薄い */
 }
 
 /* ── YOUR PAY の3つのタブ（2026-11-09）── 給与サマリー｜勤務ロスター｜分析

@@ -24,7 +24,8 @@
 .an-h{margin:4px 0 0;font-size:clamp(1.15rem,2.4vw,1.45rem);font-weight:800;letter-spacing:-.03em;line-height:1.3;color:var(--pv-ink)}
 .an-sub{margin:4px 0 0;font-size:.76rem;font-weight:700;color:var(--pv-ink-3)}
 .an-hd-r{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:flex-end;gap:8px 12px}
-.an-pick{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px}
+/* 期間（3か月｜6か月｜1年｜全部）：カードの切り替えと同じ部品・見出しの右で余白を持たない */
+.an-per .an-segs{margin:0;padding-bottom:2px}
 /* CSV・印刷：目立たせない小さい道具 */
 .an-tools{display:flex;gap:6px;padding-bottom:2px}
 .an-tool{display:inline-flex;align-items:center;gap:5px;min-height:32px;padding:5px 10px;border-radius:9px;border:1px solid var(--pv-line);
@@ -32,11 +33,6 @@
 .an-tool:hover{color:var(--pv-ink);border-color:var(--pv-accent)}
 .an-tool:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
 .an-tool:active{transform:translateY(1px)}
-.an-pk{display:flex;flex-direction:column;gap:4px;min-width:0}
-.an-pk>span{font-size:.64rem;font-weight:800;letter-spacing:.04em;color:var(--pv-ink-3)}
-.an-pk-ar{padding-bottom:9px;font-weight:700;color:var(--pv-ink-3)}
-.an-one{display:inline-flex;align-items:center;min-height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--pv-line);
-  background:var(--pv-surface);font-size:.84rem;font-weight:800}
 .an-line{margin:-6px 0 0;font-size:.76rem;line-height:1.6;color:var(--pv-ink-3)}
 
 /* ── 4枚の並び（PC 2列・狭い面 1列）──────────────────────── */
@@ -76,7 +72,6 @@
 .an-sel{width:100%;height:38px;max-width:100%;padding:0 32px 0 12px;border-radius:10px;border:1px solid var(--pv-line);color:var(--pv-ink);
   background:var(--pv-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238496ad' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center;
   -webkit-appearance:none;appearance:none;font:inherit;font-size:.84rem;font-weight:700;text-overflow:ellipsis;cursor:pointer}
-.an-pk .an-sel{width:auto;min-width:138px}
 .an-sel:hover{border-color:var(--pv-accent)}
 .an-sel:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
 .an-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:8px 14px;border-radius:10px;
@@ -151,6 +146,15 @@
 .an .c-noncash{background:var(--an-noncash)}
 .an .c-unexplained{background:var(--an-unexplained)}
 .an .c-adjustment{background:var(--an-adjustment)}
+/* 月ごとの積み上げ（A）：区分の色は横の棒と同じ。区分の間の 2px は JS が形であける（面の色が見える） */
+.an-stk.c-fixed{fill:var(--an-fixed)}
+.an-stk.c-role{fill:var(--an-role)}
+.an-stk.c-variable{fill:var(--an-variable)}
+.an-stk.c-allowance{fill:var(--an-allowance)}
+.an-stk.c-bonus{fill:var(--an-bonus)}
+.an-stk.c-noncash{fill:var(--an-noncash)}
+.an-stk.c-unexplained{fill:var(--an-unexplained)}
+.an-stk.c-adjustment{fill:var(--an-adjustment)}
 .an-moved ul{display:grid;gap:6px;margin:0;padding:0;list-style:none}
 .an-moved li{display:flex;align-items:center;gap:8px;font-size:.78rem}
 .an-moved li i{flex:none;width:9px;height:9px;border-radius:2px}
@@ -281,9 +285,6 @@
     --an-fixed:#0a8f79;--an-role:#a8662b;--an-variable:#d9a21b;--an-allowance:#3d7fe0;--an-bonus:#d9578e;--an-noncash:#8b74e8;
     --an-unexplained:#b8c2cf;--an-adjustment:#94a3b8}
   #pv-print .an-ctl{grid-template-columns:repeat(2,minmax(0,1fr))}
-  #pv-print .an-pk{flex-direction:row;align-items:baseline;gap:6px}
-  #pv-print .an-pick{align-items:baseline}
-  #pv-print .an-pk-ar{padding:0}
   #pv-print .an-segs{margin:0 0 8px}
   #pv-print .an-f{flex-direction:row;align-items:baseline;gap:6px}
 }

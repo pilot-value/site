@@ -11,6 +11,7 @@
      rosterMonths(days, profile) → [{ ym, dutyMin, blockMin{operating,deadhead,ground,unknown}, sectors, dhLegs,
                                      dutyDays, vacDays, offDays, complete, partial{…}, gaps{…}, days[] }]
      mergePages(pages) → { days[], issues[], period, hints }   分割スクショの重なり・切れを1日1回に
+                         空欄・読めなかった日は { date, blank|unread: true } で残す（中身のある写りがあれば負ける・月の集計に数えない）
      alignCandidates(months|rows, rosterMonths, {tolerance, kinds}) → [{ ym, slipBlockMin, compare[], candidate, ambiguous, reason }]
      build({ reports, items, maps, roster, airline, airlineOther }) → model
      summary(model, sel) / cardA / cardB / cardC / checks(model)
@@ -410,12 +411,26 @@
       isDuty: isDuty, hasDh: n.deadhead > 0, docId: D.doc_id || null, page: num(D.page), row: num(D.row)
     };
   }
+  /* その日（その写り）に中身があるか ── 勤務コード・D-ON/OFF・中身のある区間のどれか（2026-11-09）。
+     日付だけが印字されていて何も読めなかった日（空欄）は、データではない＝覆った日に数えない */
+  var LEG_HAS = ['flight', 'from', 'to', 'orig', 'dest', 'loc', 'out', 'in', 't_out', 't_in', 'block', 'block_min'];
+  function legHas(L) {
+    L = L || {};
+    for (var i = 0; i < LEG_HAS.length; i++) { var v = L[LEG_HAS[i]]; if (v != null && v !== '') return true; }
+    return false;
+  }
+  function dayHas(D) {
+    return !!(D && (up(D.code) || clockMin(D.d_on) != null || clockMin(D.d_off) != null || arr(D.legs).some(legHas)));
+  }
+  /* 空欄（blank）・読めなかった日（unread：日付はあるが勤務コードを残せなかった）は数えない */
+  function dayEmpty(D) { return !D || D.blank === true || D.unread === true || !dayHas(D); }
+
   /* 暦の月ごと。勤務は D-ON の日（勤務日）の月に数える（日付をまたいでも分けない）。
      値は「その月を全部覆い、欠けも無い」ときだけ出す。欠けがあれば null、分かった分は partial に */
   function rosterMonths(days, profile) {
     profile = profile || {};
     var codes = normCodes(profile.codes), byDate = {};
-    arr(days).forEach(function (D) { var x = dayOf(D, profile, codes); if (x) byDate[x.date] = x; });
+    arr(days).forEach(function (D) { if (dayEmpty(D)) return; var x = dayOf(D, profile, codes); if (x) byDate[x.date] = x; });
     var dates = Object.keys(byDate).sort(), byYm = {}, order = [];
     dates.forEach(function (dt) { var x = byDate[dt]; if (!byYm[x.ym]) { byYm[x.ym] = []; order.push(x.ym); } byYm[x.ym].push(x); });
     return order.map(function (ym) {
@@ -490,13 +505,15 @@
       arr(p && p.days).forEach(function (d, di) {
         if (!d || !isDate(d.date)) return;
         if (!occ[d.date]) { occ[d.date] = []; dates.push(d.date); }
-        occ[d.date].push({ pi: pi, di: di, d: d });
+        /* empty：空欄の写り・読めなかった写り（unread）。中身のある写りがあれば、そちらだけでつなぐ（「何も無い」と値はぶつけない） */
+        occ[d.date].push({ pi: pi, di: di, d: d, empty: d.unread === true || !dayHas(d) });
       });
     });
     dates.sort();
     var cutOf = function (o) { var c = o.d.cut; return (c === 'top' || c === 'bottom' || c === 'both') ? c : null; };
     var days = dates.map(function (date) {
-      var os = occ[date];
+      var all = occ[date], real = all.filter(function (o) { return !o.empty; });
+      var os = real.length ? real : all;
       var pref = os.slice().sort(function (x, y) {
         return ((cutOf(x) ? 1 : 0) - (cutOf(y) ? 1 : 0)) || (arr(y.d.legs).length - arr(x.d.legs).length) || (x.pi - y.pi) || (x.di - y.di);
       });
@@ -576,6 +593,11 @@
         return { seq: i + 1, flight: l.flight, from: l.from, to: l.to, loc: l.loc, out: l.out, in: l.in, in_day: l.in_day,
                  block: l.block, role: l.role, kind: l.kind, partial: partial, page: l.page, row: l.row };
       });
+      /* どの写りにも中身が無い日は、日付だけ残して印を付ける（データではない・保存しない・本人に聞く） */
+      if (!real.length) {
+        if (all.some(function (o) { return o.d.unread === true; })) out.unread = true;
+        if (!dayHas(out)) out.blank = true;
+      }
       return out;
     });
     /* 期間と印（全部の写りで同じときだけ） */
@@ -1176,6 +1198,6 @@
     linesOf: linesOf, rosterMonths: rosterMonths, mergePages: mergePages, alignCandidates: alignCandidates,
     build: build, summary: summary, cardA: cardA, cardB: cardB, cardC: cardC, checks: checks, waterfall: waterfall,
     ruleFit: ruleFit,
-    helpers: { ymOf: ymOf, ymAdd: ymAdd, ymIdx: ymIdx, ymRange: ymRange, clockMin: clockMin, durMin: durMin, hoursToMin: hoursToMin, labelKey: labelKey, mapKey: mapKey, elapsed: elapsed }
+    helpers: { ymOf: ymOf, ymAdd: ymAdd, ymIdx: ymIdx, ymRange: ymRange, clockMin: clockMin, durMin: durMin, hoursToMin: hoursToMin, labelKey: labelKey, mapKey: mapKey, elapsed: elapsed, dayEmpty: dayEmpty }
   };
 }(window));
