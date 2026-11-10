@@ -5649,7 +5649,7 @@ console.log('\n市場価値レポート（§6 の差・§7 の線は同一会社
                                    /前回の明細との差/.test(s.textContent));
       return {
         rows:   root.querySelectorAll('.mv-c').length,
-        pts:    root.querySelectorAll('.pt-chart circle').length,
+        pts:    root.querySelectorAll('.pt-chart circle:not(.pt-tip-o)').length,   // 吹き出しの輪（pt-tip-o）は点ではない
         first:  (root.querySelector('.mv-c .d') || {}).textContent || '',
         money:  [...root.querySelectorAll('.mv-c')]
                   .filter((e) => /[¥$€£]/.test(e.textContent)).length,
