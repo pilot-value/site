@@ -1450,18 +1450,97 @@ comment on function public.pv_contrib_notes(jsonb) is
 
 
 -- ════════════════════════════════════════════════════════════════
+-- 7-a2. 鍵の無い人にも見せる「回答が集まった質問」の id（2026-11-09）
+-- ════════════════════════════════════════════════════════════════
+-- ★オーナー指示「ログインしていない・給与を提出していない人にも質問を見せて、回答はぼかして」。
+--   会社ページは、開いていない人にも質問の字だけを並べ、答えの所には字の無い影絵を置く。
+--   そのために返すのは「その会社で3人以上が答えた・親の無い質問」の id だけ。答え・人数・最多の印・年月は返さない。
+-- ★子の質問（親に「ある」と答えた人だけを数える質問）は入れない。子が在る ＝ 親の答えが分かってしまう。
+-- ★数え方はビュー（airline_condition_facts）のまま。ここで数え直さない・写しを作らない。
+-- ★書き込みのときに作って置き、読むときは引くだけ。会社ページは未ログインの訪問のたびに読むので、
+--   読むたびにビューを数えると DB が重くなる（2026-10-31 と 11-06 の教訓）。
+-- ★誰にも grant しない。読む口は pv_contrib_facts だけ。
+create table if not exists public.pv_condition_has (
+  airline     text not null,
+  question_id text not null,
+  primary key (airline, question_id)
+);
+alter table public.pv_condition_has enable row level security;
+revoke all on public.pv_condition_has from public, anon, authenticated;
+
+-- 作り直す（全社まとめて）。消すのは「もう当たらない行」だけ・足すのは無い行だけ
+-- ＝ 2つの書き込みが同時に走っても、同じ行を2回入れようとして止まらない。
+create or replace function public.pv_condition_has_refresh()
+returns void
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+begin
+  with fresh as (
+    select f.airline, f.question_id
+      from public.airline_condition_facts f
+     where not exists (select 1 from public.pv_condition_links k where k.question_id = f.question_id)
+  ), gone as (
+    delete from public.pv_condition_has h
+     where not exists (select 1 from fresh x where x.airline = h.airline and x.question_id = h.question_id)
+  )
+  insert into public.pv_condition_has (airline, question_id)
+  select airline, question_id from fresh
+  on conflict do nothing;
+end;
+$$;
+revoke all on function public.pv_condition_has_refresh() from public, anon, authenticated;
+
+-- 引き金。回答・質問の表が変わった文のあとに1回作り直す（行ごとではない。親子は質問の表の parent から作るビュー）。
+-- ★作り直しに失敗しても、回答の保存は止めない（古い一覧が残るだけ。次の書き込みで直る）。
+create or replace function public.pv_condition_has_sync()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+begin
+  begin
+    perform public.pv_condition_has_refresh();
+  exception when others then
+    raise warning 'pv_condition_has の作り直しに失敗: %', sqlerrm;
+  end;
+  return null;
+end;
+$$;
+revoke all on function public.pv_condition_has_sync() from public, anon, authenticated;
+
+drop trigger if exists pv_condition_has_sync on public.airline_conditions;
+create trigger pv_condition_has_sync
+  after insert or update or delete on public.airline_conditions
+  for each statement execute function public.pv_condition_has_sync();
+drop trigger if exists pv_condition_has_sync on public.pv_condition_questions;
+create trigger pv_condition_has_sync
+  after insert or update or delete on public.pv_condition_questions
+  for each statement execute function public.pv_condition_has_sync();
+
+-- 貼ったときに1回作る
+select public.pv_condition_has_refresh();
+
+
+-- ════════════════════════════════════════════════════════════════
 -- 7-b. 他人の回答の集計（立場をサーバが見てから返す）
 -- ════════════════════════════════════════════════════════════════
 -- 受け取る形: { airline: 'jal', keys: ['reserve_duty', 'staff_travel', …] }   keys は 1〜120
 -- 返す形:
---   開いていない人 … { ok, state:'login' | 'locked' | 'give' }   ← 状態の1語だけ。facts は鍵ごと無い
+--   開いていない人 … { ok, state:'login' | 'locked' | 'give', has:[question_id…] }   ← facts は鍵ごと無い
+--     has … 頼まれた keys のうち、その会社で3人以上が答えた・親の無い質問の id（7-a2 の表を引くだけ・id の順）。
+--           画面は質問の字だけを並べ、答えの所に字の無い影絵を置く（2026-11-09 オーナー指示）。
+--           答え・人数・最多の印・年月は返さない。会社や keys が変なときは空の並び（止めない）。
 --   開いている人   … { ok, state:'open', facts:[…] }
 --   facts の1件 … { question_id, kind, n, lead, median_num, ym }
 --     lead … 「最多」と書いてよい答えの符号の並び（決め方は、関数の中の説明の1か所）。null ＝ 数の質問など／空 ＝ 回答が分かれている
 --     ym … 最後に確かめられた月（'YYYY-MM'）。日時は返さない（「さっき出した人」が分かる）
 -- ★見せてよいかは pv_contrib_sees が決める。ここは、その1語を聞いてから先へ進むだけ。
--- ★開いていない人には、会社が在るか・質問の指定が正しいかにも答えない・止めない
---   ＝ 在る会社・無い会社・引数なしで、返事が1文字も違わない。
+-- ★開いていない人には、会社が在るか・質問の指定が正しいかにも答えない・止めない。
+--   ★2026-11-09 から、回答が集まった質問の id（has）だけは返す ＝「在る会社と無い会社で返事が1文字も違わない」は
+--     オーナーの指示（質問を見せて答えをぼかす）で外れた。それ以外（会社が無い・keys が変・引数なし）は今までどおり同じ返事。
 -- ★3人そろっていない質問は、開いている人にも返さない（行が無い ＝ 誰も答えていないのと同じ返事）。
 --   3人の壁・親の条件・通貨つきの額の扱いは、ビュー（db/airline-conditions.sql の 9）が決めたまま。
 --   ここは回答の表を直接読まない。
@@ -1480,10 +1559,20 @@ declare
   v_keys_ok boolean;
   v_keys    text[] := '{}'::text[];
   v_facts   jsonb;
+  v_has     jsonb := '[]'::jsonb;
 begin
-  -- 開いていない人には、ここまで（会社が在るか・質問の指定が正しいかにも答えない・止めない）
+  -- 開いていない人には、ここまで（会社が在るか・質問の指定が正しいかにも答えない・止めない）。
+  -- 返すのは、回答が集まった親の無い質問の id だけ（7-a2 の表を引くだけ。答え・人数・年月は無い）
   if v_sees is distinct from 'open' then
-    return jsonb_build_object('ok', true, 'state', coalesce(v_sees, 'login'));
+    if v_airline is not null and jsonb_typeof(p->'keys') = 'array'
+       and jsonb_array_length(p->'keys') between 1 and 120 then
+      select coalesce(jsonb_agg(h.question_id order by h.question_id collate "C"), '[]'::jsonb)
+        into v_has
+        from public.pv_condition_has h
+       where h.airline = v_airline
+         and h.question_id in (select k.v from jsonb_array_elements_text(p->'keys') as k(v));
+    end if;
+    return jsonb_build_object('ok', true, 'state', coalesce(v_sees, 'login'), 'has', v_has);
   end if;
 
   v_keys_ok := case when jsonb_typeof(p->'keys') = 'array'
@@ -1549,7 +1638,7 @@ revoke all on function public.pv_contrib_facts(jsonb) from public;
 grant execute on function public.pv_contrib_facts(jsonb) to anon, authenticated;
 
 comment on function public.pv_contrib_facts(jsonb) is
-  '他人の回答の集計。見せてよいかは pv_contrib_sees が決める（開いていない人には状態の1語だけ）。3人そろった質問だけ。';
+  '他人の回答の集計。見せてよいかは pv_contrib_sees が決める（開いていない人には状態の1語と、回答が集まった親の無い質問の id だけ）。3人そろった質問だけ。';
 
 -- ★集計のビューは、誰にも直接読ませない（db/airline-conditions.sql でも閉じている。
 --   あちらを古い版で貼り直した直後でも、このファイルを貼れば閉じる）。
@@ -1603,4 +1692,13 @@ select (select count(*) from pg_policies
                              'public.pv_contrib_give(jsonb)'::regprocedure,
                              'public.pv_contrib_sees(text)'::regprocedure,
                              'public.pv_contrib_own(uuid)'::regprocedure))
-                                                                                  as 集計の口は読むだけ;
+                                                                                  as 集計の口は読むだけ,
+       not has_table_privilege('anon', 'public.pv_condition_has', 'select')
+         and not has_table_privilege('authenticated', 'public.pv_condition_has', 'select')
+         and exists (select 1 from pg_trigger where tgname = 'pv_condition_has_sync'
+                        and tgrelid = 'public.airline_conditions'::regclass)
+         and pg_get_functiondef('public.pv_contrib_facts(jsonb)'::regprocedure) like '%pv_condition_has%'
+         and (select count(*) from public.pv_condition_has) =
+             (select count(*) from public.airline_condition_facts f
+               where not exists (select 1 from public.pv_condition_links k where k.question_id = f.question_id))
+                                                                                  as 鍵の無い人には質問のidだけ;

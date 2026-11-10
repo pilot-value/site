@@ -2726,6 +2726,10 @@ const sameJ = (text, want) => { try { return JSON.stringify(canon(JSON.parse(tex
 /* 鍵の無い人の比較の顔：JAL の列（社名の札・良い点2つ）＋「気になる点」と板。ANA は少ない ＝ 列を置かない */
 const LSEEN = (F, tail) => !!F && F.leads.length === 1 && JSON.stringify(F.seen) === JSON.stringify([F.leads[0].tag, SUMW.good, ...GATES.good.slice(0, 2), ...tail]);
 const C_LOCKED = '{"ok":true,"state":"locked"}', C_GIVE = '{"ok":true,"state":"give"}';
+/* ★2026-11-09 待遇の答え（pv_contrib_facts）だけは、開いていない人にも、3人そろった親の無い質問の id（has）が付く（答え・人数・年月は無い） */
+const shutIs = (text, state) => { try { const o = JSON.parse(text); return Object.keys(o).sort().join(',') === 'has,ok,state' && o.ok === true && o.state === state
+  && Array.isArray(o.has) && o.has.every((id) => typeof id === 'string' && /^[a-z][a-z_]*$/.test(id)); } catch { return false; } };
+const shutOf = (key, text, state) => (key.startsWith('pv_contrib_facts') ? shutIs(text, state) : exact(text, state === 'give' ? C_GIVE : C_LOCKED));
 /* 出たら漏れ ＝ 預けた要約の気になる点（良い点は鍵の無い人にも出してよい ── 2026-10-30） */
 const noGates = (F) => !!F && !GATES.concern.some((t) => F.html.includes(t) || F.store.includes(t));
 /* 比較を1人として開き、要約・評価の欄が読み終わるまで待つ */
@@ -2766,8 +2770,8 @@ localScene('local-sum', '要約の門を返事の字で：ゲスト・会員（�
     J(F && { state: F.state, cells: F.cells.map((c) => ({ tag: c.tag, good: c.good, concern: c.concern, foot: c.foot, seen: c.seen })), store: F.store.includes('GATES') }));
     const W = {};
     for (const fn of ['pv_work_view', 'pv_contrib_facts']) for (const air of ['jal', 'ana']) W[`${fn}:${air}`] = await reply(o, fn, air);
-    okSql(settledW && Object.values(W).every((t) => exact(t, C_LOCKED)),
-      `★L3 a：月の働き方（pv_work_view）と待遇の答え（pv_contrib_facts）の返事は2社とも ${C_LOCKED} ちょうど（口コミの鍵では開かない）`, J(W));
+    okSql(settledW && Object.entries(W).every(([k, t]) => shutOf(k, t, 'locked')),
+      `★L3 a：月の働き方（pv_work_view）の返事は2社とも ${C_LOCKED} ちょうど・待遇の答え（pv_contrib_facts）は ok・has・state だけ（口コミの鍵では開かない）`, J(W));
     const co = await lopen('pc', 'a', '/airlines/jal.html');
     const done = await coDone(co.page, 'jal');
     const C = await coFace(co.page);
@@ -2876,7 +2880,7 @@ localScene('local-mix', '会社ごとの答え（サーバーが決める）：�
   ok(!!pj && !!pa && pj.text.includes('まだ集計がありません') && pj.locks.length === 0 && J(pa.locks) === J([LINE.give]) && pa.give === 0,
     `★L6 pay：待遇 ── JAL の札の下に「まだ集計がありません」・ANA の札の下に「${LINE.give}」の1行`, J(F.P && F.P.cols));
   const ra = { work: await reply(o, 'pv_work_view', 'ana'), facts: await reply(o, 'pv_contrib_facts', 'ana') };
-  okSql(exact(ra.work, C_GIVE) && exact(ra.facts, C_GIVE), `★L6 pay：ANA についての返事は2つとも ${C_GIVE} ちょうど（値は1つも来ない）`, J(ra));
+  okSql(exact(ra.work, C_GIVE) && shutIs(ra.facts, 'give'), `★L6 pay：ANA についての返事は、月の働き方が ${C_GIVE} ちょうど・待遇の答えは ok・has・state だけ（値は1つも来ない）`, J(ra));
   /* 期限切れ（pay の access_until を過去へ）→ 読み直す */
   await expire('pay');
   await reload(o);
@@ -2886,7 +2890,7 @@ localScene('local-mix', '会社ごとの答え（サーバーが決める）：�
     `★L6 期限切れの pay：月の働き方と待遇は「${LINE.locked}」・すぐ下の回答は畳む（高さ 0）`, J({ W: G.W && G.W.text, P: G.P && G.P.text, Q: G.Q && [G.Q.text, G.Q.h] }));
   const R4 = {};
   for (const fn of ['pv_work_view', 'pv_contrib_facts']) for (const air of ['jal', 'ana']) R4[`${fn}:${air}`] = await reply(o, fn, air);
-  okSql(Object.values(R4).every((t) => exact(t, C_LOCKED)), `★L6 期限切れの pay：4つの返事（2つの口 × 2社）が全部 ${C_LOCKED} ちょうど`, J(R4));
+  okSql(Object.entries(R4).every(([k, t]) => shutOf(k, t, 'locked')), `★L6 期限切れの pay：4つの返事（2つの口 × 2社）が、月の働き方は ${C_LOCKED} ちょうど・待遇の答えは ok・has・state だけ`, J(R4));
 });
 
 /* ── L8 ───────────────────────────────────────────────────── */

@@ -83,6 +83,11 @@ for (const q of QUESTIONS) {
     if (typeof q[l].help !== 'string') throw new Error(`${at}: ${l}.help は文字列（不要なら ''）`);
     if (q[l].askHelp != null && (typeof q[l].askHelp !== 'string' || !q[l].askHelp))
       throw new Error(`${at}: ${l}.askHelp は空でない文字列（戻ってきた会員に聞く板だけが使う説明）`);
+    /* 短い名前（会社ページの回答のタイルの見出し・2026-11-09）。長い疑問文は押すと開く側にだけ出す。
+       タイルは iPhone で2列なので、2行に収まる長さまで。英語の字はパイロットの用語で書く（西語は i18n/tm-es.mjs の訳）。 */
+    const sh = q[l].short;
+    if (typeof sh !== 'string' || !sh.trim()) throw new Error(`${at}: ${l}.short が無い（会社ページのタイルの見出し）`);
+    if ([...sh].length > (l === 'ja' ? 12 : 32)) throw new Error(`${at}: ${l}.short が長い（${l === 'ja' ? '12字' : '32字'}まで）→ ${sh}`);
   }
   if (!Number.isInteger(q.priority)) throw new Error(`${at}: priority が整数でない`);
   /* 優先順位を重複させない。同点だと DB 側の order by が不定になり、
@@ -302,8 +307,8 @@ const askRank = new Map();   // id → 1, 2, …（DB の ask_rank）
         id: q.id, version: q.version, section: q.section, kind: q.kind,
         tier: q.tier, micro: !!q.micro, priority: q.priority, boost: q.boost || 0,
         isOpinion: !!q.isOpinion,
-        ja: { label: q.ja.label, help: q.ja.help || '' },
-        en: { label: q.en.label, help: q.en.help || '' },
+        ja: { label: q.ja.label, help: q.ja.help || '', short: q.ja.short },
+        en: { label: q.en.label, help: q.en.help || '', short: q.en.short },
       };
       /* 戻ってきた会員に聞く板だけが使う説明（その板に無い欄のことを言わないため） */
       for (const l of ['ja', 'en']) if (q[l].askHelp) o[l].askHelp = q[l].askHelp;

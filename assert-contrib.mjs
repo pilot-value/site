@@ -6415,6 +6415,14 @@ async function main() {
     /* 置く回答：2問とも、台帳のいちばん上の選択肢（符号は台帳から読む。打ち込まない） */
     const SEED = ['reserve_duty', 'staff_travel'].map((id) => ({ question_id: id, code: asked(id).choices[0].code }));
     const DUTY = asked('reserve_duty').ja.label, TRAVEL = asked('staff_travel').ja.label;
+    const DUTY_SHORT = asked('reserve_duty').ja.short;
+    /* ★2026-11-09 オーナー「ログインしていない・給与を提出していない人にも質問を見せて、回答はぼかして」。
+       開いていない人への集計の返事 ＝ ok・has・state だけ（has ＝ 3人そろった親の無い質問の id。この会社では SEED の2問）。
+       集計の欄は、has に欄の質問があれば「質問だけのカード」（masked：短い名前・元の疑問文・字の無い影絵・鍵の1行と入口）、
+       無ければ「まだ集計がありません」（empty）。黙る2つの欄も、もう隠れない（各カードが自分で鍵の1行を言う ＝ 板の添え書きは出ない）。 */
+    const HAS_CX = SEED.map((x) => x.question_id).sort(), FACT_NONE = 'まだ集計がありません';
+    /* この会社で質問だけのカードになる面（has の2問を持つ面）と、そこに出る入口 */
+    const MASKED_SF = ['roster', 'travel'];
     /* 画面に出るはずの字。検査が自分で持つ（career-live.js から読み込まない ＝ あちらを変えたら、ここで赤くなる） */
     const LOGIN_LINE = 'ログインと給与の提出で開きます', LOGIN_GO = 'ログイン', PAY_LINE = '給与の提出で開きます', PAY_GO = '匿名で給与を提出する';
     const TABS = ['work', 'pay', 'life', 'overview'];          // 集計の欄か月の勤務の欄を持つタブ（歩く順）
@@ -6426,7 +6434,7 @@ async function main() {
     const GATED = (x) => x.live === 'fact' || x.live === 'work';
     const slotName = (x) => (x.live === 'work' ? '月の勤務' : x.at === 'pvg-p-work' ? (SF_SLOT[x.sf] || `勤務・訓練の板の欄（面 ${x.sf || 'なし'}）`) : (SLOT_AT[x.at] || x.at || '?'));
     /* 開いていない人に見える欄（黙る2つは見えない）・開いている人に見える欄 */
-    const ALL_SLOTS = ['月の勤務', ...Object.values(SLOT_AT), SF_SLOT.commute, SF_SLOT.travel].sort();
+    const ALL_SLOTS = ['月の勤務', ...Object.values(SLOT_AT), ...Object.values(SF_SLOT)].sort();   // ★2026-11-09 から黙る2つも見える
     const OPEN_SLOTS = ['月の勤務', ...Object.values(SLOT_AT), ...Object.values(SF_SLOT)].sort();
 
     /* 集計が数えた人数（運営の読み口で、ビューから直接）。画面の人数は、必ずこれと比べる（数字を打ち込まない） */
@@ -6453,6 +6461,14 @@ async function main() {
       ? Object.keys(x).sort().reduce((o, key) => { o[key] = x[key]; return o; }, {}) : x));
     /* 通信の上の返事が、その字だけか（読めた形の全文と、空白を除いた生の字の両方） */
     const only = (r, text) => !!r && r.status === 200 && full(r.body) === text && String(r.text).replace(/\s+/g, '') === text;
+    /* 返事の組を、空白を除いた生の字の、重ならない並びにする（欄ごとに聞く質問が違う ＝ has が違うので、1本ずつではなく組で比べる） */
+    const textSet = (rs) => JSON.stringify([...new Set(rs.map((r) => String(r.text).replace(/\s+/g, '')))].sort());
+    /* 開いていない人への集計の返事か：鍵は has・ok・state の3つだけ・has は親の無い質問の id（字）の並び（id の順）だけ。
+       allowed ＝ has に在ってよい id（null ＝ 台帳に在る親の無い質問なら何でも）。数字・行・人数は入らない */
+    const shutLike = (r, state, allowed) => !!r && r.status === 200 && !!r.body && Object.keys(r.body).sort().join(',') === 'has,ok,state'
+      && r.body.ok === true && r.body.state === state && Array.isArray(r.body.has)
+      && r.body.has.every((id) => typeof id === 'string' && (allowed ? allowed.includes(id) : !!asked(id) && !asked(id).parent))
+      && J(r.body.has) === J([...r.body.has].sort()) && String(r.text).replace(/\s+/g, '') === JSON.stringify({ ok: true, has: r.body.has, state });
     /* この場面の1区切り。途中で止まっても、あとの区切りは見る（止まった区切りは、その名前で赤くなる） */
     const part = async (name, fn) => {
       try { await fn(); } catch (e) { ok(false, `${name} が最後まで進んだ`, String(e && e.message || e).split('\n')[0].slice(0, 220)); }
@@ -6501,7 +6517,9 @@ async function main() {
         at: e.closest('.pvg-got') ? 'got' : ((e.closest('.pvg-panel') || {}).id || ''),
         sf: e.getAttribute('data-sf') || '', keys: (e.getAttribute('data-keys') || '').split(',').filter(Boolean),
         text: tx(e), lock: [...e.querySelectorAll('.crl-lock')].map(tx),
-        rows: [...e.querySelectorAll('.crl-fact')].map((r) => ({ k: tx(r.querySelector('.crl-fact-k')), meta: [...r.querySelectorAll('.crl-ans-m > span')].map(tx) })),
+        /* ★2026-11-10 カードの形：答えのあるカードを、質問ごと（頭の質問・中の子の質問）に読み直す。k ＝ 元の疑問文 */
+        rows: [...e.querySelectorAll('.crl-tile')].filter((t) => t.querySelector('.crl-tile-v')).flatMap((t) => { const own = (q) => { const c = q.cloneNode(true); c.querySelectorAll('.crl-tile-qa').forEach((x) => x.remove()); return c.textContent.trim(); }, qts = [...t.querySelectorAll('.crl-tile-qt')]; return [{ k: qts[0] ? own(qts[0]) : '', meta: tx(t.querySelector('.crl-tile-m')).split(' · ').filter(Boolean) }, ...[...t.querySelectorAll('.crl-tile-s')].map((ln, i) => ({ k: qts[i + 1] ? own(qts[i + 1]) : '', meta: (qts[i + 1] ? tx(qts[i + 1].querySelector('.crl-tile-qa')) : '').split(' · ').slice(1) }))]; }),
+        bare: ((c) => { c.querySelectorAll('.crl-tile-k, .crl-tile-qt').forEach((x) => x.remove()); return c.textContent.trim(); })(e.cloneNode(true)),
         links: [...e.querySelectorAll('a')].filter(vis).map((a) => ({ text: tx(a), href: a.getAttribute('href') || '', login: a.hasAttribute('data-crl-login') })),
         retry: [...e.querySelectorAll('.crl-retry')].filter(vis).map(tx),
         /* 答えるカード（見出し・答えた数の行・入口の字） */
@@ -6519,7 +6537,7 @@ async function main() {
           const s = n.getAttribute('data-state') || '', t = (n.textContent || '').trim(), key = s + '\n' + t;
           if (last.get(n) === key || log.length >= 800) continue;
           last.set(n, key);
-          log.push({ at: (n.closest('.pvg-got') ? 'got' : ((n.closest('.pvg-panel') || {}).id || '')) + ':' + n.getAttribute('data-live'), s, t, rows: n.querySelectorAll('.crl-fact').length });
+          log.push({ at: (n.closest('.pvg-got') ? 'got' : ((n.closest('.pvg-panel') || {}).id || '')) + ':' + n.getAttribute('data-live'), s, t, rows: n.querySelectorAll('.crl-tile-v, .crl-tile-s').length });
         }
       }).observe(document, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['data-state'] });
     };
@@ -6539,7 +6557,7 @@ async function main() {
     /* 黙る集計の欄（data-quiet="1"）を、見えているかどうかに関わらず全部読む（ページの中で動く）。sf ＝ 面・on ＝ 見えている・text ＝ 字 */
     const quietNow = () => [...document.querySelectorAll('.crl[data-live="fact"][data-quiet="1"]')].map((e) => ({
       sf: e.getAttribute('data-sf') || '', at: (e.closest('.pvg-panel') || {}).id || '', state: e.getAttribute('data-state'),
-      on: e.getClientRects().length > 0, text: (e.textContent || '').replace(/\s+/g, ''),
+      on: e.getClientRects().length > 0, text: (e.textContent || '').replace(/\s+/g, ''), answers: e.querySelectorAll('.crl-tile-v, .crl-tile-s').length,
     }));
     /* 集計と月の勤務の欄を持たないタブ（暮らし・家族。街の一覧の欄だけが在る）。そこでは「そのタブになった・暮らしの板が見えている・板の中に実データの欄が無い・
        鍵の掛かる欄が1つも見えていない」で落ち着いたとする（待つ欄が無いので、欄が落ち着くのを待たない） */
@@ -6571,7 +6589,7 @@ async function main() {
     const quietBad = (w) => {
       const bad = [], q = w.quiet;
       if (!q || J(q.map((x) => x.sf).sort()) !== J(QUIET_SF) || q.some((x) => x.at !== 'pvg-p-work')) bad.push(`黙る集計の欄：${q ? q.map((x) => x.sf + '@' + x.at).join('・') || '無し' : '読めていない'}（あるべき 勤務・訓練の板に 勤務予定・休日と昇格・訓練の2つ）`);
-      for (const x of q || []) if (x.state !== 'locked' || x.on || x.text) bad.push(`${SF_SLOT[x.sf] || x.sf}（黙る欄）：${x.state}・${x.on ? '見えている' : '見えない'}・字「${x.text.slice(0, 40)}」（あるべき 鍵の形・見えない・字なし）`);
+      for (const x of q || []) if (!x.on || !/^(masked|empty)$/.test(x.state) || x.answers) bad.push(`${SF_SLOT[x.sf] || x.sf}（黙る欄）：${x.state}・${x.on ? '見えている' : '見えない'}・答え ${x.answers}（あるべき 見えている・質問だけのカードか「${FACT_NONE}」・答えは無い）`);
       for (const id of BARE_TABS) if ((w[id] || []).filter(GATED).length) bad.push(`${TAB_NAME[id]}：鍵の掛かる欄が ${w[id].filter(GATED).length}つ在る（欄を持たないタブのはず）`);
       return bad;
     };
@@ -6582,14 +6600,36 @@ async function main() {
       for (const id of TABS) for (const x of w[id].filter(GATED)) {
         const at = `${TAB_NAME[id]}・${slotName(x)}`;
         saw.add(slotName(x));
-        if (x.state !== 'locked') bad.push(`${at}：欄が ${x.state}（鍵の形のはず）`);
+        /* 集計の欄は、質問だけのカード（masked）か「まだ集計がありません」（empty）。月の勤務は今までどおり鍵の形 */
+        if (x.live === 'fact' && x.state === 'empty') {
+          if (x.text !== FACT_NONE || x.links.length || x.rows.length || x.lock.length) bad.push(`${at}：「${FACT_NONE}」のほかの字か入口が在る「${x.text.slice(0, 50)}」`);
+          continue;
+        }
+        if (x.state !== (x.live === 'fact' ? 'masked' : 'locked')) bad.push(`${at}：欄が ${x.state}（${x.live === 'fact' ? '質問だけのカード' : '鍵の形'}のはず）`);
         if (x.lock.length !== 1 || x.lock[0] !== line) bad.push(`${at}：1行「${x.lock.join('｜')}」（あるべき「${line}」）`);
         if (x.rows.length) bad.push(`${at}：回答の行が ${x.rows.length}つ`);
-        if (x.text !== line + x.links.map((a) => a.text).join('')) bad.push(`${at}：1行と入口のほかの字が在る「${x.text.slice(0, 50)}」`);
-        if (/[0-9０-９]/.test(x.text)) bad.push(`${at}：数字が在る「${x.text.slice(0, 50)}」`);
+        const face = x.live === 'fact' ? x.bare : x.text;   // カードの名前と元の疑問文を除いた字
+        if (face !== line + x.links.map((a) => a.text).join('')) bad.push(`${at}：1行と入口のほかの字が在る「${face.slice(0, 50)}」`);
+        if (/[0-9０-９]/.test(face)) bad.push(`${at}：数字が在る「${face.slice(0, 50)}」`);
       }
       bad.push(...quietBad(w));
       return { bad, saw: [...saw].sort() };
+    };
+    /* 給与の鍵の無い会員の「匿名で給与を提出する」：欄ごとに多くて1つ。出すのは月の勤務・街の一覧・質問だけのカードの欄だけ。
+       勤務・訓練では、月の勤務と、質問だけのカードの面（この会社では勤務予定・休日・Staff Travel）。概要では多くて1つ。行き先はこのページの会社 */
+    const goesBad = (w) => {
+      const bad = [];
+      for (const id of TABS) for (const x of w[id]) {
+        const g = x.links.filter((a) => a.text === PAY_GO);
+        if (!g.length) continue;
+        if (g.length > 1) bad.push(`${TAB_NAME[id]}・${slotName(x)}：「${PAY_GO}」が ${g.length}つ`);
+        if (!(x.live === 'work' || x.live === 'towns' || (x.live === 'fact' && x.state === 'masked'))) bad.push(`${TAB_NAME[id]}・${slotName(x)}（${x.state}）が「${PAY_GO}」を出している`);
+        for (const a of g) if (!a.href.endsWith('pay-report.html?airline=' + SLUG)) bad.push(`${TAB_NAME[id]}・${slotName(x)}：行き先 ${a.href}`);
+      }
+      const owners = w.work.filter((x) => x.links.some((a) => a.text === PAY_GO)).map(slotName).sort(), WANT = ['月の勤務', ...MASKED_SF.map((sf) => SF_SLOT[sf])].sort();
+      if (J(owners) !== J(WANT)) bad.push(`勤務・訓練で「${PAY_GO}」を出す欄「${owners.join('｜')}」（あるべき「${WANT.join('｜')}」）`);
+      if (w.overview.flatMap((x) => x.links).filter((a) => a.text === PAY_GO).length > 1) bad.push(`概要に「${PAY_GO}」が2つ以上`);
+      return bad;
     };
     const factRows = (w) => TABS.flatMap((id) => w[id].flatMap((x) => x.rows.map((r) => `${TAB_NAME[id]}・${slotName(x)}・${r.k}`)));
     /* ── work-pane（X1-X4・X6）：勤務・訓練の板を、面（data-sf）ごとに読む。字は画面に見えている字（innerText）だけ。
@@ -6606,13 +6646,15 @@ async function main() {
     /* 勤務・訓練のタブへ移って（欄が落ち着くまで待つ）、板を読む。移れなければ null */
     const atWork = async (p) => ((await toTab(p, 'work')) ? p.page.evaluate(sfNow) : null);
     /* 黙る2つの面（勤務予定・休日・昇格・訓練）に、見出し「パイロットの回答」が見えていない（面そのものは見えていて、字を持つ） */
-    const askhHidden = (x) => QUIET_SF.every((s) => !!x.sf[s] && x.sf[s].text.length > 0 && !x.sf[s].text.includes(ASKH));
+    const askhShown = (x) => QUIET_SF.every((s) => !!x.sf[s] && x.sf[s].text.includes(ASKH));
+    /* 給与の鍵の無い会員の、勤務・訓練の板の面ごとの入口：月の勤務と、質問だけのカードの面に「匿名で給与を提出する」が1つずつ */
+    const GO_LOCKED = ['career', 'commute', 'month', 'roster', 'travel'].map((s) => [s, s === 'month' || MASKED_SF.includes(s) ? [PAY_GO] : []]);
     /* X4：期限の切れた人の、勤務・訓練の板（C5a と、C5b の読み直しのあとで、同じ3つを見る。黙る2つの欄・月の勤務の1行・数字は expiredFace が見る） */
     const x4Face = async (tag, p) => {
-      const x = await atWork(p), goes = x ? x.links.filter((a) => a.text === PAY_GO).length : -1;
-      ok(!!x && x.on && !!x.scope && x.scope.on && x.scope.text === SCOPE && goes === 1 && !!x.sf.month && J(x.sf.month.links) === J([PAY_GO]) && x.wb === 0,
-        `★X4 ${tag}：勤務・訓練の板に「${SCOPE}」が見えている。見えている「${PAY_GO}」は板に1つだけ（月の勤務の欄の）。月の勤務の帯（.crl-wb）は、ページのどこにも無い`,
-        J(x && { scope: x.scope, goes, month: x.sf.month && x.sf.month.links, wb: x.wb }));
+      const x = await atWork(p), xgo = x ? Object.keys(x.sf).sort().map((s) => [s, x.sf[s].links]) : null;
+      ok(!!x && x.on && !!x.scope && !x.scope.on && J(xgo) === J(GO_LOCKED) && x.wb === 0,
+        `★X4 ${tag}：勤務・訓練の板に「${SCOPE}」は出ない（各カードが自分で言う）。「${PAY_GO}」は、月の勤務の欄と、質問だけのカードの面（勤務予定・休日・Staff Travel）に1つずつ。月の勤務の帯（.crl-wb）は、ページのどこにも無い`,
+        J(x && { scope: x.scope, links: xgo, wb: x.wb }));
     };
     /* 読み直したページが、タブを押せる形になるまで待つ（go が待つのと同じ条件） */
     const ready = (p) => p.page.waitForFunction(() => !!window.PVContrib
@@ -6847,34 +6889,34 @@ async function main() {
           const w = await walk(p), replies = await ear.all(), L = lockedBad(w, LOGIN_LINE), sawOut = await sawLogin(p);
           outWalk = w;
           ok(L.bad.length === 0 && J(L.saw) === J(ALL_SLOTS),
-            `★C2 未ログイン：どのタブでも、見えている集計の欄（4つ：集まった回答・待遇・通勤・Staff Travel）と月の勤務の欄は、鍵の形で「${LOGIN_LINE}」の1行だけ（回答の行も数字も無い）。黙る2つの集計の欄（勤務予定・休日・昇格・訓練）は鍵の形で隠れ、字が無い・暮らし・家族には集計と月の勤務の欄が無い（街の一覧の欄だけ）`, J({ bad: L.bad.slice(0, 4), saw: L.saw }));
+            `★C2 未ログイン：どのタブでも、見えている集計の欄（6つ）は質問だけのカード（答えは字の無い影絵）か「${FACT_NONE}」・月の勤務の欄は鍵の形で、どれも「${LOGIN_LINE}」の1行（回答の行も数字も無い）・暮らし・家族には集計と月の勤務の欄が無い（街の一覧の欄だけ）`, J({ bad: L.bad.slice(0, 4), saw: L.saw }));
           const got = w.overview.filter((x) => x.at === 'got');
           ok(got.length === 1 && got[0].lock.length === 1 && got[0].lock[0] === LOGIN_LINE && got[0].links.length === 0,
             '★C2 未ログイン：概要の「集まった回答」も同じ1行で、リンクを1つも持たない', J(got.map((x) => ({ lock: x.lock, links: x.links }))));
-          ok(replies.length >= 1 && replies.every((r) => only(r, '{"ok":true,"state":"login"}')),
-            '★C2 未ログイン：集計の読み口の返事は、字として {"ok":true,"state":"login"} だけ（ほかの鍵も、行も、数字も付いていない）', J(replies.map((r) => [r.status, r.text])));
+          ok(replies.length >= 1 && replies.every((r) => shutLike(r, 'login', HAS_CX)) && replies.some((r) => J(r.body.has) === J(HAS_CX)),
+            '★C2 未ログイン：集計の読み口の返事は ok・has・state だけ（has は3人そろった質問の id だけ ── 答えも、人数も、年月も付いていない）', J(replies.map((r) => [r.status, r.text])));
           ok(ear.urls.length > 0 && !ear.urls.some((u) => u.includes('airline_condition_facts')),
             '★C2 未ログイン：集計のビューへは、1本も聞きに行っていない（出ていった通信の行き先に airline_condition_facts が無い）', J(ear.urls.filter((u) => u.includes('airline_condition_facts')).slice(0, 3)));
           /* X1（work-pane）：黙る2つの欄が鍵の形で隠れ字が無いこと・通勤／Staff Travel の1行と「ログイン」1つずつは、上の C2 の行が見ている */
           const x1 = await atWork(p);
-          ok(!!x1 && x1.on && askhHidden(x1) && !!x1.scope && x1.scope.on && x1.scope.text === SCOPE,
-            `★X1 未ログイン：勤務・訓練の板の、黙る2つの面（勤務予定・休日・昇格・訓練）に、見出し「${ASKH}」が見えていない。月の勤務の欄の下に「${SCOPE}」が、その字のまま見えている`,
+          ok(!!x1 && x1.on && askhShown(x1) && !!x1.scope && !x1.scope.on && !!x1.sf.roster && x1.sf.roster.text.includes(DUTY_SHORT),
+            `★X1 未ログイン：勤務・訓練の板の、黙る2つの面（勤務予定・休日・昇格・訓練）にも、見出し「${ASKH}」が見えている（勤務予定・休日の面には質問「${DUTY_SHORT}」のカード）。「${SCOPE}」は出ない`,
             J(x1 && { scope: x1.scope, askh: QUIET_SF.map((s) => [s, !!x1.sf[s] && x1.sf[s].text.includes(ASKH)]) }));
           /* 押すのは最後（ここから先はログインの画面）。ほかは全部、押す前に読んである */
           const logins = w.work.flatMap((x) => x.links).filter((a) => a.login);
           const loginAt = w.work.filter((x) => x.links.some((a) => a.login)).map((x) => [slotName(x), x.links.filter((a) => a.login).length]);
-          const LOGIN_AT = [['月の勤務', 1], [SF_SLOT.commute, 1], [SF_SLOT.travel, 1]];
+          const LOGIN_AT = [['月の勤務', 1], ...MASKED_SF.map((sf) => [SF_SLOT[sf], 1])];   // 月の勤務と、質問だけのカードの面に1つずつ
           let landed = null;
-          if ((await toTab(p, 'work')) && logins.length === 3) {
+          if ((await toTab(p, 'work')) && logins.length === LOGIN_AT.length) {
             await Promise.all([
               p.page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 20000 }),
               p.page.evaluate(() => { [...document.querySelectorAll('.crl[data-live="work"] a[data-crl-login]')].find((n) => n.getClientRects().length > 0).click(); }),
             ]);
             landed = await p.page.evaluate(() => ({ path: location.pathname, redirect: new URLSearchParams(location.search).get('redirect') }));
           }
-          ok(logins.length === 3 && logins.every((a) => a.text === LOGIN_GO && a.href.endsWith('%23work')) && J([...loginAt].sort()) === J([...LOGIN_AT].sort())
+          ok(logins.length === LOGIN_AT.length && logins.every((a) => a.text === LOGIN_GO && a.href.endsWith('%23work')) && J([...loginAt].sort()) === J([...LOGIN_AT].sort())
             && !!landed && landed.path === '/login.html' && landed.redirect === 'airlines/cathay-pacific.html#work',
-            '★C2 未ログイン：勤務・訓練のタブに見えている「ログイン」は3つ（月の勤務・通勤・Staff Travel の欄に1つずつ）で、どれも行き先の終わりは %23work。月の勤務の欄の「ログイン」を押すとログインの画面に着き、戻り先は airlines/cathay-pacific.html#work（同じタブ）',
+            '★C2 未ログイン：勤務・訓練のタブに見えている「ログイン」は3つ（月の勤務・質問だけのカードの2つの面〔勤務予定・休日・Staff Travel〕に1つずつ）で、どれも行き先の終わりは %23work。月の勤務の欄の「ログイン」を押すとログインの画面に着き、戻り先は airlines/cathay-pacific.html#work（同じタブ）',
             J({ logins, loginAt, landed }));
           /* 見張りの確かめ（上の行を全部判定してから見る）：未ログインの欄の「ログイン」の字を、見張りが1度は見ているはず。
              見ていなければ、C3・C4 の「いっときも出ていない」は、見張りが働かないまま緑になる */
@@ -6896,25 +6938,25 @@ async function main() {
           await go(p, CX + '#work');
           const w = await walk(p), replies = await ear.all(), L = lockedBad(w, PAY_LINE), saw = await sawLogin(p);
           pilotWalk = w;
-          pilotText = replies.length ? replies[0].text : null;
+          pilotText = replies.length ? textSet(replies) : null;
           ok(L.bad.length === 0 && J(L.saw) === J(ALL_SLOTS),
-            `★C3 会員（給与の鍵なし）：どのタブでも、見えている集計の欄（4つ：集まった回答・待遇・通勤・Staff Travel）と月の勤務の欄は、鍵の形で「${PAY_LINE}」の1行だけ（回答の行も数字も無い）。黙る2つの集計の欄は鍵の形で隠れ、字が無い`, J({ bad: L.bad.slice(0, 4), saw: L.saw }));
-          const goes = TABS.map((id) => [id, w[id].flatMap((x) => x.links).filter((a) => a.text === PAY_GO)]);
-          ok(goes.every(([id, a]) => (id === 'overview' ? a.length <= 1 : a.length === 1) && a.every((x) => x.href.endsWith('pay-report.html?airline=' + SLUG))),
-            `★C3 会員：見えている「${PAY_GO}」は、勤務・訓練／給与・待遇／暮らし・家族 のどのタブでも1つだけ（暮らし・家族では街の一覧の欄の1つ・概要では多くて1つ）。行き先は、このページの会社の給与の提出`,
-            J(goes.map(([id, a]) => [id, a.map((x) => x.href)])));
+            `★C3 会員（給与の鍵なし）：どのタブでも、見えている集計の欄（6つ）は質問だけのカードか「${FACT_NONE}」・月の勤務の欄は鍵の形で、どれも「${PAY_LINE}」の1行（回答の行も数字も無い）`, J({ bad: L.bad.slice(0, 4), saw: L.saw }));
+          const goBad = goesBad(w);
+          ok(goBad.length === 0,
+            `★C3 会員：見えている「${PAY_GO}」は、欄ごとに多くて1つ ── 出すのは月の勤務・街の一覧・質問だけのカードの欄だけ（勤務・訓練では月の勤務と、カードの2つの面）。行き先は、このページの会社の給与の提出`,
+            J(goBad.slice(0, 4)));
           const got = w.overview.filter((x) => x.at === 'got'), rows = factRows(w);
-          const named = TABS.flatMap((id) => w[id].filter((x) => x.text.includes(DUTY) || x.text.includes(TRAVEL)).map((x) => `${TAB_NAME[id]}・${slotName(x)}`));
-          ok(got.length === 1 && got[0].rows.length === 0 && rows.length === 0 && named.length === 0,
-            '★C3 会員：「集まった回答」に回答の行が無い。どのタブのどの欄にも、回答の行が1つも無い（スタンバイ勤務・社員の航空券の質問の名前も出ない）', J({ rows: rows.slice(0, 4), named }));
-          ok(replies.length >= 1 && replies.every((r) => only(r, '{"ok":true,"state":"locked"}')),
-            '★C3 会員：集計の読み口の返事は、字として {"ok":true,"state":"locked"} だけ（ほかの鍵も、行も、数字も付いていない）', J(replies.map((r) => [r.status, r.text])));
+          const named = TABS.flatMap((id) => w[id].filter((x) => x.text.includes(DUTY) || x.text.includes(TRAVEL)).map((x) => `${TAB_NAME[id]}・${slotName(x)}`)).sort();
+          const NAMED = ['勤務・訓練・' + SF_SLOT.roster, '勤務・訓練・' + SF_SLOT.travel, '概要・集まった回答'].sort();
+          ok(got.length === 1 && got[0].rows.length === 0 && rows.length === 0 && J(named) === J(NAMED),
+            '★C3 会員：どのタブのどの欄にも、回答の行（答え）が1つも無い。質問（スタンバイ勤務・社員の航空券）は、その質問を持つ欄に、質問だけのカードとして名前と元の疑問文が出る', J({ rows: rows.slice(0, 4), named }));
+          ok(replies.length >= 1 && replies.every((r) => shutLike(r, 'locked', HAS_CX)) && replies.some((r) => J(r.body.has) === J(HAS_CX)),
+            '★C3 会員：集計の読み口の返事は ok・has・state だけ（has は3人そろった質問の id だけ ── 答えも、人数も、年月も付いていない）', J(replies.map((r) => [r.status, r.text])));
           ok(saw.length === 0, '★C3 会員：集計の欄にも月の勤務の欄にも、「ログイン」の字が、いっときも出ていない（未ログインの1行を、先に出していない）', J(saw.slice(0, 3)));
           /* X2（work-pane）：黙る2つの欄・3つの1行・回答の行と人数が無いことは、上の C3 の行が見ている */
           const x2 = await atWork(p), x2go = x2 ? Object.keys(x2.sf).sort().map((s) => [s, x2.sf[s].links]) : null;
-          ok(!!x2 && x2.on && !!x2.scope && x2.scope.on && x2.scope.text === SCOPE && !x2.links.some((a) => a.login)
-            && J(x2go) === J([['career', []], ['commute', []], ['month', [PAY_GO]], ['roster', []], ['travel', []]]),
-            `★X2 会員（給与の鍵なし）：勤務・訓練の板に「${SCOPE}」が見えている。欄の中の入口は、月の勤務の欄の「${PAY_GO}」1つだけ（通勤・Staff Travel の欄にも、黙る2つの欄にも、入口が無い・「ログイン」も無い）`,
+          ok(!!x2 && x2.on && !!x2.scope && !x2.scope.on && !x2.links.some((a) => a.login) && J(x2go) === J(GO_LOCKED),
+            `★X2 会員（給与の鍵なし）：勤務・訓練の板に「${SCOPE}」は出ない。欄の中の入口は「${PAY_GO}」が、月の勤務の欄と、質問だけのカードの面（勤務予定・休日・Staff Travel）に1つずつ（「まだ集計がありません」の面には無い・「ログイン」も無い）`,
             J(x2 && { scope: x2.scope, links: x2go, login: x2.links.filter((a) => a.login).length }));
         } finally {
           ear.off();
@@ -6956,8 +6998,8 @@ async function main() {
           ok(saw.length === 0, '★C4 集計の欄にも月の勤務の欄にも、「ログイン」の字が、いっときも出ていない', J(saw.slice(0, 3)));
           /* X3（work-pane）：月の勤務の欄が開いた形か「まだ集計がありません」で鍵の1行を持たないことは、上の C4 の行が見ている */
           const x3 = await atWork(p);
-          ok(!!x3 && x3.on && !!x3.scope && !x3.scope.on && !!x3.sf.roster && x3.sf.roster.text.includes(ASKH) && x3.sf.roster.text.includes(DUTY),
-            `★X3 給与を出した会員が、自分の会社のページを開く：「${SCOPE}」は見えていない（開いている人に「同じ条件で開きます」と言わない）。勤務予定・休日の面に、見出し「${ASKH}」と「${DUTY}」の行が見えている`,
+          ok(!!x3 && x3.on && !!x3.scope && !x3.scope.on && !!x3.sf.roster && x3.sf.roster.text.includes(ASKH) && x3.sf.roster.text.includes(DUTY_SHORT),
+            `★X3 給与を出した会員が、自分の会社のページを開く：「${SCOPE}」は見えていない（開いている人に「同じ条件で開きます」と言わない）。勤務予定・休日の面に、見出し「${ASKH}」と「${DUTY_SHORT}」のカードが見えている`,
             J(x3 && { scope: x3.scope, roster: x3.sf.roster && x3.sf.roster.text.replace(/\s+/g, ' ').slice(0, 160) }));
         } finally {
           ear.off();
@@ -7092,14 +7134,13 @@ async function main() {
       /* 期限の切れた人の、返事と画面（C5a と、C5b の読み直しのあとで、同じ3つを見る） */
       const expiredFace = (tag, w, replies) => {
         const L = lockedBad(w, PAY_LINE), rows = factRows(w);
-        const named = TABS.flatMap((id) => w[id].filter((x) => x.text.includes(DUTY)).map((x) => `${TAB_NAME[id]}・${slotName(x)}`));
-        ok(pilotText !== null && replies.length >= 1 && replies.every((r) => r.text === pilotText && only(r, '{"ok":true,"state":"locked"}')),
-          `★${tag}：集計の読み口の返事は、会員（給与の鍵なし）が受け取った返事と、全文で同じ字（{"ok":true,"state":"locked"}）`,
+        ok(pilotText !== null && replies.length >= 1 && textSet(replies) === pilotText && replies.every((r) => shutLike(r, 'locked', HAS_CX)),
+          `★${tag}：集計の読み口の返事は、会員（給与の鍵なし）が受け取った返事と、全文で同じ字の組（ok・has・state だけ）`,
           J({ pilot: pilotText, got: replies.map((r) => [r.status, r.text]) }));
         ok(L.bad.length === 0 && J(L.saw) === J(ALL_SLOTS),
-          `★${tag}：どのタブでも、見えている集計の欄（4つ：集まった回答・待遇・通勤・Staff Travel）と月の勤務の欄は、鍵の形で「${PAY_LINE}」の1行だけ（数字が無い）。黙る2つの集計の欄は鍵の形で隠れ、字が無い`, J({ bad: L.bad.slice(0, 4), saw: L.saw }));
-        ok(w.lost.length === 0 && rows.length === 0 && named.length === 0,
-          `★${tag}：「スタンバイ勤務」の行は、どのタブのどの欄にも無い（回答の行が1つも無い）`, J({ rows: rows.slice(0, 4), named, lost: w.lost }));
+          `★${tag}：どのタブでも、見えている集計の欄（6つ）は質問だけのカードか「${FACT_NONE}」・月の勤務の欄は鍵の形で、どれも「${PAY_LINE}」の1行（数字が無い）`, J({ bad: L.bad.slice(0, 4), saw: L.saw }));
+        ok(w.lost.length === 0 && rows.length === 0,
+          `★${tag}：「スタンバイ勤務」の答えは、どのタブのどの欄にも無い（回答の行が1つも無い）`, J({ rows: rows.slice(0, 4), lost: w.lost }));
       };
 
       /* ── C5a：期限の切れた人が開く（390×680）── */
@@ -7132,8 +7173,10 @@ async function main() {
         try {
           await go(p, CX + '#work');
           const n = await nOf('reserve_duty');
-          const drawn = await seen(p, (a) => [...document.querySelectorAll('.crl[data-live="fact"] .crl-fact')].some((r) => r.getClientRects().length > 0
-            && (r.querySelector('.crl-fact-k') || {}).textContent === a.k && [...r.querySelectorAll('.crl-ans-m > span')].some((s) => s.textContent === a.n)), { k: DUTY, n: `回答 ${n}人` });
+          const drawn = await seen(p, (a) => [...document.querySelectorAll('.crl[data-live="fact"]')].some((e) => {
+            const tx = (x) => (x ? x.textContent : '').trim();
+            return e.getClientRects().length > 0 && [...e.querySelectorAll('.crl-tile')].filter((t) => t.querySelector('.crl-tile-v')).flatMap((t) => { const own = (q) => { const c = q.cloneNode(true); c.querySelectorAll('.crl-tile-qa').forEach((x) => x.remove()); return c.textContent.trim(); }, qts = [...t.querySelectorAll('.crl-tile-qt')]; return [{ k: qts[0] ? own(qts[0]) : '', meta: tx(t.querySelector('.crl-tile-m')).split(' · ').filter(Boolean) }, ...[...t.querySelectorAll('.crl-tile-s')].map((ln, i) => ({ k: qts[i + 1] ? own(qts[i + 1]) : '', meta: (qts[i + 1] ? tx(qts[i + 1].querySelector('.crl-tile-qa')) : '').split(' · ').slice(1) }))]; }).some((r) => r.k === a.k && r.meta.includes(a.n));
+          }), { k: DUTY, n: `回答 ${n}人` });
           if (!drawn) throw new Error('前提が崩れた（鍵が生きている人に、開いた形が描かれていない）');
           const S = await storeNow(p);
           if (!S) throw new Error('前提が崩れた（保存領域の控えが入っていない）');
@@ -7176,9 +7219,9 @@ async function main() {
           ok(calm && g0.length === 1 && g0[0].state === 'error' && g0[0].text === 'いま読み出せません' + 'やり直す' && J(g0[0].retry) === J(['やり直す']) && g0[0].rows.length === 0 && g0[0].lock.length === 0,
             '★C6 集計の読み口が落ちた時（500）：「集まった回答」は「いま読み出せません」と「やり直す」だけ（「まだ集計がありません」とも、鍵とも言わない）', J(g0.map((x) => [x.state, x.text, x.retry])));
           const pressed = await p.page.evaluate(() => { const b = document.querySelector('.pvg-got .crl-retry'); if (b) b.click(); return !!b; });
-          const back = pressed && (await seen(p, () => { const e = document.querySelector('.pvg-got .crl[data-live="fact"]'); return !!e && e.getAttribute('data-state') === 'locked'; }));
+          const back = pressed && (await seen(p, () => { const e = document.querySelector('.pvg-got .crl[data-live="fact"]'); return !!e && e.getAttribute('data-state') === 'masked'; }));
           const g1 = await gotNow(p);
-          ok(back && g1.length === 1 && J(g1[0].lock) === J([PAY_LINE]) && g1[0].retry.length === 0 && g1[0].text === PAY_LINE,
+          ok(back && g1.length === 1 && J(g1[0].lock) === J([PAY_LINE]) && g1[0].retry.length === 0 && g1[0].bare === PAY_LINE && g1[0].rows.length === 0,
             `★C6 「やり直す」を押すと、本物の返事が描かれる（会員には「${PAY_LINE}」の1行）`, J({ pressed, got: g1.map((x) => [x.state, x.text]) }));
         } finally {
           await p.st.ctx.close();
@@ -7210,7 +7253,8 @@ async function main() {
         const bad = [], stamped = [];
         for (const id of TABS) {
           const on = w[id].flatMap((x) => x.links), goes = on.filter((a) => a.text === PAY_GO);
-          if (goes.length > 1) bad.push(`${TAB_NAME[id]}：「${PAY_GO}」が ${goes.length}つ見えている`);
+          for (const x of w[id]) { const n = x.links.filter((a) => a.text === PAY_GO).length; if (n > 1) bad.push(`${TAB_NAME[id]}・${slotName(x)}：「${PAY_GO}」が ${n}つ見えている`); }
+          if (id === 'overview' && goes.length > 1) bad.push(`${TAB_NAME[id]}：「${PAY_GO}」が ${goes.length}つ見えている`);
           const has = on.some((a) => a.href.includes(who === 'login' ? 'login.html' : 'pay-report.html?airline=' + SLUG));
           for (const x of w[id].filter((s) => (s.entry === '0' || s.entry === 'give' || (who === 'locked' && s.entry === 'login')) && s.lock.length)) {
             stamped.push(slotName(x));
@@ -7221,13 +7265,13 @@ async function main() {
       };
       /* 入口を自分では出さない欄：未ログイン ＝「集まった回答」（通勤・Staff Travel の欄は、自分の「ログイン」を出す）／
          会員 ＝「集まった回答」と、通勤・Staff Travel の欄（印 "login"：会員には入口を出さない。給与の提出の入口は、同じ板の月の勤務の欄に1つ） */
-      const STAMPED_OUT = ['集まった回答'], STAMPED_IN = ['集まった回答', SF_SLOT.commute, SF_SLOT.travel].sort();
+      const STAMPED_OUT = ['集まった回答'], STAMPED_IN = ['集まった回答', SF_SLOT.travel].sort();   // ★2026-11-09 通勤は「まだ集計がありません」（鍵の1行を出さない）
       const eOut = entryBad(outWalk, 'login'), eIn = entryBad(pilotWalk, 'locked');
       ok(eOut.bad.length === 0 && J(eOut.stamped) === J(STAMPED_OUT),
-        `C9 未ログイン：どのタブでも、見えている「${PAY_GO}」は多くて1つ。入口を自分では出さない欄（集まった回答）が鍵の1行を出しているタブには、見えている欄のどれかに、ログインの入口が在る`,
+        `C9 未ログイン：どの欄でも、見えている「${PAY_GO}」は多くて1つ。入口を自分では出さない欄（集まった回答）が鍵の1行を出しているタブには、見えている欄のどれかに、ログインの入口が在る`,
         J(eOut));
       ok(eIn.bad.length === 0 && J(eIn.stamped) === J(STAMPED_IN),
-        `C9 会員：どのタブでも、見えている「${PAY_GO}」は多くて1つ。入口を自分では出さない欄（集まった回答・通勤・Staff Travel）が鍵の1行を出しているタブには、見えている欄のどれかに、このページの会社の給与の提出の入口が在る`,
+        `C9 会員：どの欄でも、見えている「${PAY_GO}」は多くて1つ。入口を自分では出さない欄（集まった回答・Staff Travel）が鍵の1行を出しているタブには、見えている欄のどれかに、このページの会社の給与の提出の入口が在る`,
         J(eIn));
 
       /* ══ ここから、決まりそのものの通し ── 自分の会社に、要る数まで答えると、ほかの会社が開く ══
@@ -7289,9 +7333,9 @@ async function main() {
       const numsIn = (text) => (String(text).replace(/"(?:[^"\\]|\\.)*"/g, '""').match(/\d+/g) || []).map(Number).sort((x, y) => x - y);
       const gotOf = async (p) => (await gotNow(p))[0] || null;
       /* 「集まった回答」が、その人の答えるカードの形か：1行（要る数）と、カード（その会社の名前・答えた数／要る数・入口1つ）だけ */
-      const cardIs = (x, name, have) => !!x && x.state === 'locked' && J(x.lock) === J([GIVE_LINE(NEED)]) && x.rows.length === 0 && x.give.length === 1
+      const cardIs = (x, name, have) => !!x && /^(locked|masked)$/.test(x.state) && J(x.lock) === J([GIVE_LINE(NEED)]) && x.rows.length === 0 && x.give.length === 1
         && x.give[0].h === GIVE_HEAD(name) && x.give[0].n === GIVE_COUNT(have, NEED) && J(x.give[0].go) === J([GIVE_GO])
-        && x.text === GIVE_LINE(NEED) + GIVE_HEAD(name) + GIVE_COUNT(have, NEED) + GIVE_GO;
+        && x.bare === GIVE_LINE(NEED) + GIVE_HEAD(name) + GIVE_COUNT(have, NEED) + GIVE_GO;
       const cardSeen = (p, name, have) => seen(p, (a) => {
         const e = document.querySelector('.pvg-got .crl[data-live="fact"]'), h = e && e.querySelector('.crl-give-h'), n = e && e.querySelector('.crl-give-n');
         return !!h && !!n && h.textContent.trim() === a.h && n.textContent.trim() === a.n;
@@ -7334,8 +7378,8 @@ async function main() {
           const w = await walk(p);                       // 4つのタブを歩く。終わりは概要
           wk.origin = await p.page.evaluate((m) => { window.__pvWalk = m; return performance.timeOrigin; }, WALK);
           const replies = await wk.ear.all(), gives = wk.ear.gives.slice();
-          ok(replies.length >= 1 && replies.every((r) => only(r, GIVE_TEXT) && !/[0-9]/.test(String(r.text))),
-            '★CM1 給与は出したが、自分の会社への回答が要る数に1つ足りない人が、ほかの会社（JAL）のページを開く：集計の読み口の返事は、字として {"ok":true,"state":"give"} だけ（数字が1つも無い）',
+          ok(replies.length >= 1 && replies.every((r) => shutLike(r, 'give', null) && !/[0-9]/.test(String(r.text))),
+            '★CM1 給与は出したが、自分の会社への回答が要る数に1つ足りない人が、ほかの会社（JAL）のページを開く：集計の読み口の返事は ok・has・state だけ（has は質問の id だけ・数字が1つも無い）',
             J(replies.map((r) => [r.status, r.text])));
           const askOk = (ask) => Array.isArray(ask) && ask.length >= 1 && ask.length <= 8 && new Set(ask).size === ask.length
             && ask.every((id) => typeof id === 'string' && /^[a-z0-9_]{1,64}$/.test(id) && !!asked(id) && !touched.has(id));
@@ -7354,10 +7398,11 @@ async function main() {
             J(got.map((x) => ({ give: x.give, text: x.text.slice(0, 90) }))));
           const all = TABS.flatMap((id) => w[id].map((x) => [`${TAB_NAME[id]}・${GATED(x) ? slotName(x) : x.live}`, x]));
           const rowsAt = all.filter(([, x]) => x.rows.length).map(([at]) => at), countAt = all.filter(([, x]) => x.text.includes(`${N_JAL}人`)).map(([at]) => at);
-          const gated = all.filter(([, x]) => GATED(x)), offLine = gated.filter(([, x]) => x.state !== 'locked' || J(x.lock) !== J([GIVE_LINE(NEED)])).map(([at, x]) => `${at}（${x.state}）`);
+          const gated = all.filter(([, x]) => GATED(x)), offLine = gated.filter(([, x]) => (x.live === 'fact' && x.state === 'empty' ? x.text !== FACT_NONE
+            : x.state !== (x.live === 'fact' ? 'masked' : 'locked') || J(x.lock) !== J([GIVE_LINE(NEED)]))).map(([at, x]) => `${at}（${x.state}）`);
           const qb = quietBad(w);
           ok(w.lost.length === 0 && rowsAt.length === 0 && countAt.length === 0 && offLine.length === 0 && J([...new Set(gated.map(([, x]) => slotName(x)))].sort()) === J(ALL_SLOTS) && qb.length === 0,
-            `★CM1 どのタブのどの欄にも、回答の行が無い。JAL の集計が数えた人数（${N_JAL}人）の字も無い。見えている集計の欄（4つ：集まった回答・待遇・通勤・Staff Travel）と月の勤務の欄は、どれも鍵の形で、同じ1行。黙る2つの集計の欄は鍵の形で隠れ、字が無い`,
+            `★CM1 どのタブのどの欄にも、回答の行が無い。JAL の集計が数えた人数（${N_JAL}人）の字も無い。見えている集計の欄（6つ）は質問だけのカードか「${FACT_NONE}」・月の勤務の欄は鍵の形で、同じ1行`,
             J({ rowsAt, countAt, offLine, lost: w.lost, slots: all.length, quiet: qb.slice(0, 3) }));
         });
         await shoot('S8', { who: 'pay', at: JAL, co: 'jal' });
@@ -7456,7 +7501,8 @@ async function main() {
           const n = await nOfJal('reserve_duty');
           const drawn = await seen(p, (a) => {
             const e = document.querySelector('.pvg-got .crl[data-live="fact"]');
-            return !!e && [...e.querySelectorAll('.crl-fact')].some((r) => (r.querySelector('.crl-fact-k') || {}).textContent === a.k && [...r.querySelectorAll('.crl-ans-m > span')].some((s) => s.textContent === a.n));
+            const tx = (x) => (x ? x.textContent : '').trim();
+            return !!e && [...e.querySelectorAll('.crl-tile')].filter((t) => t.querySelector('.crl-tile-v')).flatMap((t) => { const own = (q) => { const c = q.cloneNode(true); c.querySelectorAll('.crl-tile-qa').forEach((x) => x.remove()); return c.textContent.trim(); }, qts = [...t.querySelectorAll('.crl-tile-qt')]; return [{ k: qts[0] ? own(qts[0]) : '', meta: tx(t.querySelector('.crl-tile-m')).split(' · ').filter(Boolean) }, ...[...t.querySelectorAll('.crl-tile-s')].map((ln, i) => ({ k: qts[i + 1] ? own(qts[i + 1]) : '', meta: (qts[i + 1] ? tx(qts[i + 1].querySelector('.crl-tile-qa')) : '').split(' · ').slice(1) }))]; }).some((r) => r.k === a.k && r.meta.includes(a.n));
           }, { k: DUTY, n: `回答 ${n}人` });
           const g3 = await gotOf(p), cards = await p.page.evaluate(() => document.querySelectorAll('.crl-give').length);
           const row = g3 ? g3.rows.filter((r) => r.k === DUTY) : [];
@@ -7476,7 +7522,7 @@ async function main() {
         await part('CM4', async () => {
           if (!wk || !wk.tab) throw new Error('前提が崩れた（通しの1枚か、もう1枚のタブが無い）');
           const { p, ear, tab } = wk;
-          const g0 = await gotOf(p), rows0 = await p.page.evaluate(() => document.querySelectorAll('.crl-fact').length);
+          const g0 = await gotOf(p), rows0 = await p.page.evaluate(() => document.querySelectorAll('.crl-tile-v, .crl-tile-s').length);
           if (!(g0 && g0.state === 'open' && g0.rows.some((r) => r.k === DUTY) && rows0 >= 2)) throw new Error('前提が崩れた（給与提出者に、JAL の回答の行が出ていない）: ' + J({ got: g0 && [g0.state, g0.text.slice(0, 70)], rows0 }));
           const noisy = (x) => x.rows > 0 || /[0-9０-９]/.test(x.t);
           /* (a) その場でログアウトする（ページ自身のログインの部品で） */
@@ -7487,13 +7533,13 @@ async function main() {
           const sh0 = await shutSheet(p);
           const outErr = await p.page.evaluate(() => window.PVCareer.client().then((sb) => sb.auth.signOut()).then((r) => (r && r.error ? String(r.error.message || r.error) : '')));
           if (outErr) throw new Error('前提が崩れた（その場でログアウトできていない）: ' + outErr);
-          const outSeen = await seen(p, (line) => { const e = document.querySelector('.pvg-got .crl[data-live="fact"]'); return !!e && e.getAttribute('data-state') === 'locked' && e.textContent.trim() === line; }, LOGIN_LINE);
+          const outSeen = await seen(p, (line) => { const e = document.querySelector('.pvg-got .crl[data-live="fact"]'); return !!e && /^(locked|masked)$/.test(e.getAttribute('data-state')) && ((c) => { c.querySelectorAll('.crl-tile-k, .crl-tile-qt').forEach((x) => x.remove()); return c.textContent.trim(); })(e.cloneNode(true)) === line && !e.querySelector('.crl-tile-v, .crl-tile-s'); }, LOGIN_LINE);
           await ear.all();
-          const g1 = await gotOf(p), rows1 = await p.page.evaluate(() => document.querySelectorAll('.crl-fact').length), outReplies = ear.replies.slice(r0), logA = await sinceMark(p, 'CM4-out');
+          const g1 = await gotOf(p), rows1 = await p.page.evaluate(() => document.querySelectorAll('.crl-tile-v, .crl-tile-s').length), outReplies = ear.replies.slice(r0), logA = await sinceMark(p, 'CM4-out');
           const bareOut = await seen(p, sheetBare), sh1 = await shutSheet(p);
-          ok(outSeen && !!g1 && J(g1.lock) === J([LOGIN_LINE]) && g1.text === LOGIN_LINE && g1.links.length === 0 && rows1 === 0
-            && outReplies.length >= 1 && outReplies.every((r) => only(r, '{"ok":true,"state":"login"}')),
-            `★CM4 開いた形が出ているまま、その場でログアウトすると、読み直さなくても、「集まった回答」は「${LOGIN_LINE}」の1行だけになる。回答の行は、ページのどこにも（隠れているタブにも）残らない。聞き直した返事は {"ok":true,"state":"login"} だけ`,
+          ok(outSeen && !!g1 && J(g1.lock) === J([LOGIN_LINE]) && g1.bare === LOGIN_LINE && g1.links.length === 0 && rows1 === 0
+            && outReplies.length >= 1 && outReplies.every((r) => shutLike(r, 'login', null)),
+            `★CM4 開いた形が出ているまま、その場でログアウトすると、読み直さなくても、「集まった回答」は質問だけのカードと「${LOGIN_LINE}」の1行になる。回答の行は、ページのどこにも（隠れているタブにも）残らない。聞き直した返事は ok・has・state だけ`,
             J({ outSeen, got: g1 && [g1.state, g1.text.slice(0, 60)], rows: [rows0, rows1], replies: outReplies.map((r) => [r.status, r.text]) }));
           ok(!!logA && logA.before.some((x) => x.rows > 0) && logA.after.some((x) => x.s === 'idle') && !logA.after.some(noisy),
             '★CM4 ログアウトのあと、集計の欄にも月の勤務の欄にも、回答の行も数字も、いっときも出ていない（前の人の行を、もう一度描いていない）',
@@ -7507,12 +7553,12 @@ async function main() {
           r0 = ear.replies.length;
           await markSlots(p, 'CM4-in');
           await signInTab(tab, 'pilot');
-          const inSeen = await seen(p, (line) => { const e = document.querySelector('.pvg-got .crl[data-live="fact"]'); return !!e && e.getAttribute('data-state') === 'locked' && e.textContent.trim() === line; }, PAY_LINE);
+          const inSeen = await seen(p, (line) => { const e = document.querySelector('.pvg-got .crl[data-live="fact"]'); return !!e && /^(locked|masked)$/.test(e.getAttribute('data-state')) && ((c) => { c.querySelectorAll('.crl-tile-k, .crl-tile-qt').forEach((x) => x.remove()); return c.textContent.trim(); })(e.cloneNode(true)) === line && !e.querySelector('.crl-tile-v, .crl-tile-s'); }, PAY_LINE);
           const w = await walk(p);
           await ear.all();
           const L = lockedBad(w, PAY_LINE), inReplies = ear.replies.slice(r0), logB = await sinceMark(p, 'CM4-in');
-          ok(inSeen && L.bad.length === 0 && J(L.saw) === J(ALL_SLOTS) && inReplies.length >= 1 && inReplies.every((r) => only(r, '{"ok":true,"state":"locked"}')) && (await sameLoad(p)).mark === WALK,
-            `★CM4 そのあと、もう1枚のタブで別の会員（給与の鍵なし）がログインすると、読み直さなくても、どのタブでも、見えている集計の欄（4つ：集まった回答・待遇・通勤・Staff Travel）と月の勤務の欄は「${PAY_LINE}」の1行だけ。その人への返事は {"ok":true,"state":"locked"} だけ`,
+          ok(inSeen && L.bad.length === 0 && J(L.saw) === J(ALL_SLOTS) && inReplies.length >= 1 && inReplies.every((r) => shutLike(r, 'locked', null)) && (await sameLoad(p)).mark === WALK,
+            `★CM4 そのあと、もう1枚のタブで別の会員（給与の鍵なし）がログインすると、読み直さなくても、どのタブでも、見えている集計の欄は質問だけのカードか「${FACT_NONE}」・月の勤務の欄は鍵の形で、どれも「${PAY_LINE}」の1行。その人への返事は ok・has・state だけ`,
             J({ inSeen, bad: L.bad.slice(0, 4), saw: L.saw, replies: inReplies.map((r) => [r.status, r.text]) }));
           ok(!!logB && logB.after.some((x) => x.s === 'idle') && !logB.after.some(noisy),
             '★CM4 その人に替わったあとも、集計の欄にも月の勤務の欄にも、回答の行も数字も、いっときも出ていない',
@@ -7578,8 +7624,13 @@ async function main() {
         for (const [fn, what] of [['pv_contrib_facts', '集計'], ['pv_contrib_notes', '補足']]) {
           const got = [];
           for (const s of ['jal', quiet, 'no-such-airline']) got.push(await ask(fn, s));
-          ok(got.every((r) => r.status === 200 && r.text === got[0].text && only(r, GIVE_TEXT)),
-            `★CM5 開いていない人（要る数に届いていない会員）への、${what}の読み口の返事は、回答が在る会社（JAL）・1つも無い会社・一覧に無い会社で、全文が同じ字（{"ok":true,"state":"give"}）`,
+          /* ★2026-11-09 集計の口だけは、回答の在る会社（JAL）に質問の id（has）が付く。1つも無い会社・一覧に無い会社は空の並び（同じ字） */
+          const factOk = fn === 'pv_contrib_facts' && shutLike(got[0], 'give', null) && got[0].body.has.length > 0
+            && got.slice(1).every((r) => shutLike(r, 'give', []) && r.text === got[1].text);
+          ok(fn === 'pv_contrib_facts' ? factOk : got.every((r) => r.status === 200 && r.text === got[0].text && only(r, GIVE_TEXT)),
+            fn === 'pv_contrib_facts'
+              ? '★CM5 開いていない人（要る数に届いていない会員）への、集計の読み口の返事は ok・has・state だけ ── 回答が在る会社（JAL）は質問の id だけ、1つも無い会社・一覧に無い会社は空の並び（全文が同じ字）'
+              : `★CM5 開いていない人（要る数に届いていない会員）への、${what}の読み口の返事は、回答が在る会社（JAL）・1つも無い会社・一覧に無い会社で、全文が同じ字（{"ok":true,"state":"give"}）`,
             J({ quiet, got: got.map((r) => [r.status, r.text]) }));
         }
       });
@@ -7619,13 +7670,13 @@ async function main() {
           await Promise.all(waits);
           const x = await p.page.evaluate(sfNow), slots = await p.page.evaluate(slotsNow), quiet = await p.page.evaluate(quietNow);
           const dom = await p.page.evaluate((ns) => ({
-            facts: document.querySelectorAll('.crl-fact').length, wb: document.querySelectorAll('.crl-wb').length,
+            facts: document.querySelectorAll('.crl-tile-v, .crl-tile-s').length, wb: document.querySelectorAll('.crl-wb').length,
             counts: [...document.querySelectorAll('.crl')].filter((e) => ns.some((t) => (e.textContent || '').includes(t))).length,
           }), [`${nDuty}人`, `${nTravel}人`]);
           /* 通信の上：どの読み口も1本は来ていて、どれも字として {"ok":true,"state":"give"} だけ */
-          const missing = X6_READS.filter((n) => !got[n].length), off = X6_READS.flatMap((n) => got[n].filter((r) => !only(r, GIVE_TEXT)).map((r) => [n, r.status, r.text]));
+          const missing = X6_READS.filter((n) => !got[n].length), off = X6_READS.flatMap((n) => got[n].filter((r) => !(n === 'pv_contrib_facts' ? shutLike(r, 'give', HAS_CX) : only(r, GIVE_TEXT))).map((r) => [n, r.status, r.text]));
           ok(missing.length === 0 && off.length === 0,
-            `★X6 開いていない会員（給与の鍵は生きている・自分の会社への答えが要る数に届いていない）がキャセイの勤務・訓練のタブを開く：${X6_READS.join('・')} の返事が、どれも1本以上来ていて、どれも字として {"ok":true,"state":"give"} だけ`,
+            `★X6 開いていない会員（給与の鍵は生きている・自分の会社への答えが要る数に届いていない）がキャセイの勤務・訓練のタブを開く：${X6_READS.join('・')} の返事が、どれも1本以上来ていて、集計は ok・has・state だけ（has は質問の id）・ほかは字として {"ok":true,"state":"give"} だけ`,
             J({ missing, off: off.slice(0, 4), n: X6_READS.map((n) => [n, got[n].length]) }));
           ok(gives.length >= 1 && gives.every((g) => g.status === 200 && !!g.body && g.body.state === 'give' && g.body.airline === B_OWN && g.body.have === have && g.body.need === need && g.body.name === name),
             `★X6 答えるカードの材料の返事は、読む人自身の会社のことだけ：会社は ${B_OWN}・名前「${name}」・答えた数 ${have}・要る数 ${need}（保存先から読んだ数）`,
@@ -7640,14 +7691,16 @@ async function main() {
             J({ calm, month: month.map((s) => ({ state: s.state, lock: s.lock, give: s.give, links: s.links.map((a) => a.text), text: s.text.slice(0, 90) })) }));
           /* 通勤・Staff Travel の欄は、同じ1行だけ。黙る2つの欄は隠れて字が無い。範囲の1文は見えている。「ログイン」も「匿名で給与を提出する」も無い */
           const two = slots.filter((s) => s.live === 'fact' && s.at === 'pvg-p-work'), twoSf = two.map((s) => s.sf).sort();
-          const twoOk = J(twoSf) === J(['commute', 'travel']) && two.every((s) => s.state === 'locked' && J(s.lock) === J([GIVE_LINE(need)]) && s.text === GIVE_LINE(need) && s.give.length === 0 && s.links.length === 0 && s.rows.length === 0);
-          const quietOk = J(quiet.map((s) => s.sf).sort()) === J(QUIET_SF) && quiet.every((s) => s.state === 'locked' && !s.on && s.text === '');
-          ok(twoOk && quietOk && x.on && !!x.scope && x.scope.on && x.scope.text === SCOPE && !x.links.some((a) => a.login || a.text === PAY_GO),
-            `★X6 通勤・Staff Travel の欄は、同じ1行「${GIVE_LINE(need)}」だけ（カードも入口も行も無い）。黙る2つの欄は鍵の形で隠れ、字が無い。「${SCOPE}」が見えている。板に「ログイン」も「${PAY_GO}」も無い`,
+          const WANT4 = Object.fromEntries(Object.keys(SF_SLOT).map((sf) => [sf, MASKED_SF.includes(sf) ? 'masked' : 'empty']));
+          const twoOk = J(twoSf) === J(Object.keys(WANT4).sort()) && two.every((s) => s.state === WANT4[s.sf] && s.give.length === 0 && s.links.length === 0 && s.rows.length === 0
+            && (s.state === 'empty' ? s.text === FACT_NONE && !s.lock.length : J(s.lock) === J([GIVE_LINE(need)]) && s.bare === GIVE_LINE(need)));
+          const quietOk = J(quiet.map((s) => s.sf).sort()) === J(QUIET_SF) && quiet.every((s) => s.on && s.state === WANT4[s.sf] && !s.answers);
+          ok(twoOk && quietOk && x.on && !!x.scope && !x.scope.on && !x.links.some((a) => a.login || a.text === PAY_GO),
+            `★X6 4つの集計の欄は、質問だけのカード（勤務予定・休日・Staff Travel：1行「${GIVE_LINE(need)}」だけ・カードも入口も答えも無い）か「${FACT_NONE}」（通勤・昇格・訓練）。「${SCOPE}」は出ない。板に「ログイン」も「${PAY_GO}」も無い`,
             J({ two: two.map((s) => [s.sf, s.state, s.text.slice(0, 40), s.links.length]), quiet, scope: x.scope, links: x.links.filter((a) => a.login || a.text === PAY_GO) }));
           /* キャセイのものは、何もページに来ていない */
           ok(dom.facts === 0 && dom.wb === 0 && dom.counts === 0,
-            `★X6 キャセイの回答は、ページのどこにも無い：回答の行（.crl-fact）も、月の勤務の帯（.crl-wb）も無い。集計が数えた人数（「${nDuty}人」「${nTravel}人」）の字は、どの欄にも無い`,
+            `★X6 キャセイの回答は、ページのどこにも無い：回答の行（.crl-tile の答え）も、月の勤務の帯（.crl-wb）も無い。集計が数えた人数（「${nDuty}人」「${nTravel}人」）の字は、どの欄にも無い`,
             J(dom));
         } finally {
           p.page.off('response', onRes);

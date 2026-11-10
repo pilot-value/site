@@ -2382,6 +2382,7 @@ const LEAK_ROW = { question_id: 'zz_not_asked', kind: 'num', n: 99, lead: null, 
    bogus に名指しした鍵だけは、本物が返さなくても、わざと載せる。 */
 const wire = f => Object.fromEntries([...FACT_KEYS.filter(k => k in f), ...(f.bogus || [])].map(k => [k, f[k]]));
 const SENT = [...FACT_ROWS, ...BEN_ROWS, LEAK_ROW];
+const MASK_HAS = ['commuting_transport', 'days_off_request', 'landing_pay', 'reserve_duty', 'reserve_location', 'staff_travel', 'training_bond', 'upgrade_years', 'zz_not_asked'];
 /* 状態の1語だけの返事（開いていない人に、本物の口が返す形）。語は、書かずに組み立てる。 */
 const stateBody = word => JSON.stringify({ ok: true, state: word });
 const factBody = mode => (mode === 'work' || mode === 'work2' || mode === 'work0'
@@ -2391,6 +2392,9 @@ const factBody = mode => (mode === 'work' || mode === 'work2' || mode === 'work0
   ? JSON.stringify({ ok: true, state: 'locked', facts: SENT.map(wire) })   // 鍵の無い会員。行が付いてきても、画面は1行も出さない
   : mode === 'give' ? JSON.stringify({ ok: true, state: 'give', facts: SENT.map(wire) })      // 自分の会社への回答が足りない人。行が付いてきても、画面は1行も出さない
   : mode === 'giveOpen' ? JSON.stringify({ ok: true, state: 'open', facts: SENT.map(wire) })  // 開いている人。欄が聞いた質問の行だけを出す
+  /* ★2026-11-09 鍵の無い人にも、回答が集まった質問の id（has）だけが届く。子（reserve_location）と聞いていない質問は、わざと混ぜる（画面は出さない） */
+  : mode === 'maskLogin' ? JSON.stringify({ ok: true, state: 'login', has: MASK_HAS })
+  : mode === 'maskRows' ? JSON.stringify({ ok: true, state: 'locked', has: MASK_HAS })
   : JSON.stringify({ ok: true, state: 'login' }));                         // 未ログイン
 /* 街の一覧の口は、集計の口と同じ語で答える（本物は、どちらも pv_contrib_sees の1語）。開いている場面では、街は0件。 */
 const townBody = mode => { const w = JSON.parse(factBody(mode)).state; return w === 'open' ? '{"ok":true,"state":"open","towns":[]}' : stateBody(w); };
@@ -2424,19 +2428,49 @@ const factRowBad = (r, f, at) => {
   if (ppl.length !== 1 || ppl[0] !== people) say('r7', `人数の字「${ppl.join('・')}」（あるべき「${people}」の1つだけ）`);
   const items = [...(how ? [how] : []), people, month];
   if (!same(r.m, items)) say('r8', `小さい字「${r.m.join('｜')}」（あるべき「${items.join('｜')}」）`);
-  if (squash(r.text) !== squash(q.ja.label + v + items.join(''))) say('r8', `行に、質問・答え・小さい字のほかの字が在る「${r.text}」`);
-  const attrs = r.attrs.filter(([n, val]) => n !== 'class' || /\d/.test(val));
+  /* ★2026-11-10 カードの形：親（カードの頭）＝ 答え・小さい字・元の疑問文。子（カードの中の1行）＝ 短い名前・答え ＋ 元の疑問文・答え・小さい字 */
+  const own = r.sub ? q.ja.short + v + q.ja.label + v + ' · ' + items.join(' · ') : v + items.join(' · ') + q.ja.label;
+  if (squash(r.text) !== squash(own)) say('r8', `行に、質問・答え・小さい字のほかの字が在る「${r.text}」`);
+  if (r.sub && r.qaV !== v) say(id, `子の行の、開いた中の答えの字「${r.qaV}」（あるべき「${v}」）`);
+  if (!r.sub && r.label !== q.ja.short && !r.label.endsWith(' › ' + q.ja.short)) say('r8', `カードの名前「${r.label}」（あるべき「${q.ja.short}」か「親 › ${q.ja.short}」）`);
+  /* 属性：class（数字なし）・答えの印 data-mark（y/n/p）・分かれた印 data-split="1" のほかは置かない（印の絵 svg の中は見ない） */
+  const attrs = r.attrs.filter(([n, val]) => !((n === 'class' && !/\d/.test(val)) || (n === 'data-mark' && /^[ynp]$/.test(val)) || (n === 'data-split' && val === '1')));
   if (attrs.length) say('r8', `行に、class のほかの属性・数字の入った属性が在る（${attrs.map(a => a.join('=')).join(' ')}）`);
   return bad;
 };
+/* カードの並び（career-live.js の KIND.fact と同じ決め方）：欄の質問の並びで、いちばん上の親ごとにまとめる。親が先・あとは並びのまま。
+   いちばん上の親 ＝ 欄の質問の中で親をたどった先（欄の外の親で止まる ── data-sub は欄の質問の分だけ）。 */
+const topIn = (id, keys) => { let k = id; const seen = new Set(); while (keys.includes(k) && QBY.get(k) && QBY.get(k).parent && !seen.has(k)) { seen.add(k); k = QBY.get(k).parent; } return k; };
+const tileOrder = (ids, keys) => {
+  const g = new Map();
+  for (const id of ids) { const t = topIn(id, keys); if (!g.has(t)) g.set(t, []); g.get(t).push(id); }
+  return [...g.entries()].flatMap(([t, xs]) => [...xs.filter(x => x === t), ...xs.filter(x => x !== t)]);
+};
 /* ページの中で、集計の欄（sel）の行を読む。attrs ＝ 行とその中の要素が持つ属性ぜんぶ（字に出なくても、属性に数が入っていれば分かる）。 */
+/* ★2026-11-10 1問＝1枚のカード（.crl-tile）。1枚に、いちばん上の親の質問（カードの頭）と、その子の質問（カードの中の1行 .crl-tile-s）。
+   元の疑問文は押すと開く中（.crl-tile-qt。頭の質問が先・子が続く）。ここでは質問ごとの「行」に読み直して返す（k ＝ 元の疑問文）。 */
 const factRowsOf = (p, sel) => p.evaluate(sel => {
   const vis = el => !!el && el.getClientRects().length > 0, tx = el => (el ? el.textContent : '').trim();
-  return [...document.querySelectorAll(sel + ' .crl-fact')].map(r => ({
-    on: vis(r), k: tx(r.querySelector('.crl-fact-k')), v: tx(r.querySelector('.crl-ans-v')), ans: tx(r.querySelector('.crl-ans')), text: tx(r),
-    m: [...r.querySelectorAll('.crl-ans-m > span')].map(tx), how: [...r.querySelectorAll('.crl-how')].map(tx),
-    attrs: [r, ...r.querySelectorAll('*')].flatMap(e => [...e.attributes].map(a => [a.name, a.value])),
-  }));
+  const own = q => { const c = q.cloneNode(true); c.querySelectorAll('.crl-tile-qa').forEach(x => x.remove()); return c.textContent.trim(); };
+  const HOW = ['最多', '中央値'], out = [];
+  for (const t of document.querySelectorAll(sel + ' .crl-tile')) {
+    const sum = t.querySelector('.crl-tile-sum'), qts = [...t.querySelectorAll('.crl-tile-qt')], lines = [...t.querySelectorAll('.crl-tile-s')];
+    const vEl = sum && sum.querySelector('.crl-tile-v'), mEl = sum && sum.querySelector('.crl-tile-m');
+    const m = tx(mEl).split(' · ').filter(Boolean);
+    out.push({
+      on: vis(sum), sub: false, label: tx(t.querySelector('.crl-tile-k')), k: qts[0] ? own(qts[0]) : '', v: tx(vEl), m, how: m.filter(x => HOW.includes(x)),
+      ans: tx(vEl) + tx(mEl), text: tx(vEl) + tx(mEl) + (qts[0] ? tx(qts[0]) : ''),
+      attrs: [t, ...t.querySelectorAll('*')].filter(e => !e.closest('svg')).flatMap(e => [...e.attributes].map(a => [a.name, a.value])),
+    });
+    lines.forEach((ln, i) => {
+      const q = qts[i + 1], parts = (q ? tx(q.querySelector('.crl-tile-qa')) : '').split(' · '), mm = parts.slice(1);
+      out.push({
+        on: vis(ln), sub: true, label: tx(t.querySelector('.crl-tile-k')), k: q ? own(q) : '', v: tx(ln.querySelector('span')), qaV: parts[0], m: mm, how: mm.filter(x => HOW.includes(x)),
+        ans: tx(ln) + (q ? tx(q.querySelector('.crl-tile-qa')) : ''), text: tx(ln) + (q ? tx(q) : ''), attrs: [],
+      });
+    });
+  }
+  return out;
 }, sel);
 /* 開いている人の画面で、集計の行を見る4本（r1〜r8 と、待遇の板の集計）。鍵の無い会員の場面（runRows）では行が1つも出ないので、
    ここへ出してある。呼ぶのは、開いた返事を返す場面だけ（GM9）。4つの ok は、runRows に在った時の字のまま。 */
@@ -2455,7 +2489,8 @@ async function digestRowsOk(p, tag, sel, keys) {
     if (!r) rb.push(`r1 ${i + 1}行め: 「${QBY.get(f.question_id).ja.label}」の行が無い`);
     else rb.push(...factRowBad(r, f, `${i + 1}行め`));
   }
-  if (rows.length === shown.length && !same(rows.map(r => r.k), shown.map(f => QBY.get(f.question_id).ja.label))) rb.push('r1 行の並びが、欄が持つ質問の並びと違う');
+  const order = tileOrder(shown.map(f => f.question_id), keys);
+  if (rows.length === shown.length && !same(rows.map(r => r.k), order.map(id => QBY.get(id).ja.label))) rb.push('r1 行の並びが、欄が持つ質問の並び（いちばん上の親ごとのカード）と違う');
   const of = (...ids) => rb.filter(b => ids.some(id => b.startsWith(id + ' ')));
   ok(!of('r1', 'r2', 'r3', 'r4', 'r5', 'r6').length, `${tag}: 集まった回答の行 ── いちばん多い答えが1つの時だけ、その名前に「最多」（選べるだけ選ぶ質問で並んだ時は、並んだ答えぜんぶ）・並んだ時は「${SPLIT_TEXT}」・数の質問は「中央値」・読めない行は出さない`, of('r1', 'r2', 'r3', 'r4', 'r5', 'r6').join(' ／ '));
   ok(!of('r7').length, `${tag}: 集まった回答の人数は、どの行も「回答 N人」の1つだけ（N ＝ その質問に答えた人の数）`, of('r7').join(' ／ '));
@@ -2509,7 +2544,7 @@ const WORK_FIX2 = { ...WORK_FIX, cap: { ...WORK_FIX.cap, duty_hours: { lo: 100, 
 const workBody = mode => (mode === 'work' ? JSON.stringify({ ok: true, state: 'open', months: 12, by: WORK_FIX })
   : mode === 'work2' ? JSON.stringify({ ok: true, state: 'open', months: 12, by: WORK_FIX2 })
   : mode === 'work0' ? JSON.stringify({ ok: true, state: 'open', months: 12, by: NO_WORK })
-  : mode === 'rows' ? '{"ok":true,"state":"locked"}' : '{"ok":true,"state":"login"}');
+  : mode === 'rows' || mode === 'maskRows' ? '{"ok":true,"state":"locked"}' : '{"ok":true,"state":"login"}');
 /* 会員が挙げた街の一覧の口（db/towns.sql の pv_town_board）。返事は場面ごと（townBody・seen.town）。 */
 const TOWN_RE = /\/rest\/v1\/rpc\/pv_town_board$/;
 /* ★2026-10-31 会員の中央値の口（db/member-median.sql の pv_member_medians）。返すのは、ページに書き込んである中央値と同じ額
@@ -2573,7 +2608,7 @@ function slotsSee() {
     keys: (e.getAttribute('data-keys') || '').split(',').filter(Boolean).length,
     at: e.closest('.pvg-got') ? 'got' : (e.closest('.pvg-panel') || {}).id || '',
     sf: (t => (t ? t.textContent.trim() : ''))(e.closest('.pvg-sf') && e.closest('.pvg-sf').querySelector('.pvg-sf-t')),
-    text: tx(e), lock: [...e.querySelectorAll('.crl-lock')].map(tx), rows: e.querySelectorAll('.crl-fact').length,
+    text: tx(e), lock: [...e.querySelectorAll('.crl-lock')].map(tx), rows: e.querySelectorAll('.crl-tile-v, .crl-tile-s').length,
     cards: [...e.querySelectorAll('.crl-give')].filter(vis).length, retry: [...e.querySelectorAll('.crl-retry')].filter(vis).length,
     links: [...e.querySelectorAll('a')].map(a => ({ text: tx(a), href: a.getAttribute('href') || '', cta: a.classList.contains('crl-cta'), login: a.hasAttribute('data-crl-login'), on: vis(a) })),
   }));
@@ -3970,7 +4005,7 @@ async function runRows(browser, s, [w, h, kind]) {
         return {
           state: slot ? slot.dataset.state : null, keys: slot ? (slot.getAttribute('data-keys') || '').split(',') : [], text: tx(box),
           lock: slot ? [...slot.querySelectorAll('.crl-lock')].map(tx) : [],
-          stray: [...c.querySelectorAll('.crl-fact')].filter(r => !r.closest('.pvg-got')).length,
+          stray: [...c.querySelectorAll('.crl-fact, .crl-tile')].filter(r => !r.closest('.pvg-got')).length,
           plates: [...c.querySelectorAll('details.pvg-topic > summary')].map(x => ({ on: vis(x), text: tx(x) })),
         };
       });
@@ -4906,7 +4941,19 @@ async function runWork(browser, s, [w, h], only) {
       lock: [...e.querySelectorAll('.crl-lock')].map(sq), retry: [...e.querySelectorAll('.crl-retry')].filter(vis).length,
       links: [...e.querySelectorAll('a')].map(a => ({ text: sq(a), on: vis(a), login: a.hasAttribute('data-crl-login'), cta: a.classList.contains('crl-cta'), give: a.getAttribute('data-crl-give') === '1' })),
       cards: [...e.querySelectorAll('.crl-give')].map(c => ({ on: vis(c), head: [...c.querySelectorAll('.crl-give-h')].map(tr), count: [...c.querySelectorAll('.crl-give-n')].map(tr) })),
-      rows: [...e.querySelectorAll('.crl-fact')].map(r => ({ ctx: r.classList.contains('is-ctx'), sub: r.classList.contains('is-sub'), k: tr(r.querySelector('.crl-fact-k')), ans: !!r.querySelector('.crl-ans'), v: tr(r.querySelector('.crl-ans-v')), text: sq(r) })),
+      /* ★2026-11-10 カードの形。rows ＝ 質問ごと（k ＝ 元の疑問文・tile ＝ そのカードの名前・head ＝ カードの頭の質問か） */
+      rows: [...e.querySelectorAll('.crl-tile')].flatMap(t => {
+        const qts = [...t.querySelectorAll('.crl-tile-qt')], lines = [...t.querySelectorAll('.crl-tile-s')], label = tr(t.querySelector('.crl-tile-k'));
+        const own = q => { const c = q.cloneNode(true); c.querySelectorAll('.crl-tile-qa').forEach(x => x.remove()); return c.textContent.trim(); };
+        const sum = t.querySelector('.crl-tile-sum');
+        return [{ head: true, tile: label, k: qts[0] ? own(qts[0]) : '', v: tr(sum && sum.querySelector('.crl-tile-v')), text: sq(sum && sum.querySelector('.crl-tile-v')) + sq(sum && sum.querySelector('.crl-tile-m')) },
+          ...lines.map((ln, i) => ({ head: false, tile: label, k: qts[i + 1] ? own(qts[i + 1]) : '', v: tr(ln.querySelector('span')), text: sq(ln) + sq(qts[i + 1]) }))];
+      }),
+      keyList: (e.getAttribute('data-keys') || '').split(',').filter(Boolean),
+      subs: (e.getAttribute('data-sub') || '').split(',').map(x => x.split(':')[0]).filter(Boolean),
+      tiles: [...e.querySelectorAll('.crl-tile')].map(t => ({ label: tr(t.querySelector('.crl-tile-k')), ghost: !!t.querySelector('.crl-ghost'),
+        ghostText: sq(t.querySelector('.crl-ghost')), text: sq(t), on: vis(t) })),
+      bare: (c => { c.querySelectorAll('.crl-tile-k, .crl-tile-qt').forEach(x => x.remove()); return c.textContent.replace(/\s+/g, ''); })(e.cloneNode(true)),
     }));
     const head = {};
     for (const f of P.querySelectorAll('.pvg-sf')) { const hd = f.querySelector('.pvg-sf-got > .pvg-askh'); if (hd) head[f.getAttribute('data-sf')] = { on: vis(hd), text: tr(hd) }; }
@@ -4919,7 +4966,7 @@ async function runWork(browser, s, [w, h], only) {
         give: P.querySelectorAll('.crl-give').length, wb: WB.reduce((n, c) => n + P.querySelectorAll(c).length, 0),
       },
       page: {
-        crl: [...document.querySelectorAll('.crl')].map(e => e.textContent).join('\n'), facts: document.querySelectorAll('.crl-fact').length,
+        crl: [...document.querySelectorAll('.crl')].map(e => e.textContent).join('\n'), facts: document.querySelectorAll('.crl-tile-v, .crl-tile-s').length,
         give: [...document.querySelectorAll('.crl-give')].filter(vis).length, login: [...document.querySelectorAll('a[data-crl-login]')].filter(vis).length,
         pay: seen.filter(a => sq(a) === payGo).length, wb: WB.reduce((n, c) => n + document.querySelectorAll(c).length, 0),
       },
@@ -5024,11 +5071,10 @@ async function runWork(browser, s, [w, h], only) {
       say(tag, `通勤・Staff Travel の集計の欄は「${PAY_LINE}」の1行だけ ── リンクも、回答の行も、親の質問の行も無い`, M, R => LOUD.flatMap(sf => {
         const x = pick(R, 'fact', sf);
         if (!x) return [`${nm(sf)}が無い`];
-        const b = [], c = x.rows.filter(r => r.ctx).length;
+        const b = [];
         if (x.state !== 'locked' || !x.on || !same(x.lock, [PAY_LINE])) b.push(`${nm(sf)}が ${x.state}${x.on ? '' : '・見えていない'}「${x.lock.join('｜')}」`);
         if (x.links.length) b.push(`${nm(sf)}にリンクが ${x.links.length}つ（${x.links.map(a => a.text).join('｜')}）`);
-        if (x.rows.length - c) b.push(`${nm(sf)}に回答の行が ${x.rows.length - c}つ`);
-        if (c) b.push(`${nm(sf)}に親の質問の行が ${c}つ`);
+        if (x.rows.length) b.push(`${nm(sf)}に回答の行が ${x.rows.length}つ`);
         if (x.text !== PAY_LINE + x.links.map(a => a.text).join('')) b.push(`${nm(sf)}に、1行のほかの字が在る「${x.text.slice(0, 50)}」`);
         return b;
       }));
@@ -5037,6 +5083,36 @@ async function runWork(browser, s, [w, h], only) {
         ...(R.panel.give ? [`板に答えるカードが ${R.panel.give}枚`] : []),
         ...LEAK_SLOT.filter(t => R.page.crl.includes(t)).map(t => `欄の字に「${t}」`),
         ...(R.page.facts ? [`回答の行が、ページの欄に ${R.page.facts}つ`] : []),
+      ]);
+    }
+    /* B5 鍵の無い人にも質問を見せる（2026-11-09 オーナー「ログインしていない・給与を提出していない人にも質問を見せて、回答はぼかして」）。
+       サーバーが質問の id（has）を返すと、4つの集計の欄は、has のうち欄が持つ親の無い質問だけをカード（短い名前・元の疑問文・字の無い影絵）で
+       欄の質問の並びに並べ、下に鍵の1行と入口。子の質問（サーバーが間違えて送ってきても）・欄の外の質問は出さない。答えの字・数字は1つも無い。
+       黙る2つの面も見出しごと出る（各カードが自分で鍵の1行を言う ＝ 板の添え書きは出さない）。上の B1・B2 は has の無い返事（古いサーバー）の絵。 */
+    for (const [mode, who, line, go] of [['maskLogin', '未ログイン', LOGIN_LINE, LOGIN_GO], ['maskRows', '鍵の無い会員', PAY_LINE, PAY_GO]]) {
+      const tag = `${s} ${w}（勤務・訓練・${who}・質問だけ）`, K = await load(mode, who);
+      say(tag, `4つの集計の欄は、届いた質問のうち欄が持つ親の無い質問だけのカード（短い名前・元の疑問文・字の無い影絵）と「${line}」「${go}」── 子の質問・欄の外の質問・数字は無い`, K, R => FOUR.flatMap(sf => {
+        const x = pick(R, 'fact', sf);
+        if (!x) return [`${nm(sf)}が無い`];
+        const want = x.keyList.filter(k => MASK_HAS.includes(k) && !x.subs.includes(k)), b = [];
+        if (!want.length) b.push(`${nm(sf)}：検査の見本（MASK_HAS）に、この欄の質問が1つも無い`);
+        if (x.state !== 'masked' || !x.on) b.push(`${nm(sf)}が ${x.state}${x.on ? '' : '・見えていない'}`);
+        if (!same(x.tiles.map(t => t.label), want.map(k => QBY.get(k).ja.short))) b.push(`${nm(sf)}のカード「${x.tiles.map(t => t.label).join('｜')}」（あるべき「${want.map(k => QBY.get(k).ja.short).join('｜')}」）`);
+        for (const [i, t] of x.tiles.entries()) {
+          const q = want[i] && QBY.get(want[i]);
+          if (!t.on) b.push(`${nm(sf)}の「${t.label}」が見えていない`);
+          if (!t.ghost || t.ghostText) b.push(`${nm(sf)}の「${t.label}」に字の無い影絵が無い${t.ghostText ? `（字「${t.ghostText}」）` : ''}`);
+          if (q && t.text !== squash(q.ja.short + q.ja.label)) b.push(`${nm(sf)}の「${t.label}」に、名前と疑問文のほかの字が在る「${t.text.slice(0, 50)}」`);
+        }
+        if (!same(x.lock, [line])) b.push(`${nm(sf)}の1行「${x.lock.join('｜')}」`);
+        if (!x.links.some(a => a.on && a.text === go)) b.push(`${nm(sf)}に入口「${go}」が無い（${x.links.map(a => a.text).join('｜') || '無し'}）`);
+        if (NO_NUM.test(x.bare)) b.push(`${nm(sf)}に数字が在る「${x.bare.slice(0, 50)}」`);
+        if (x.rows.some(r => r.v)) b.push(`${nm(sf)}に答えの字が在る`);
+        return b;
+      }));
+      say(tag, `黙る2つの面も「${ASKH}」の見出しが見えている・板の添え書き（同じ条件で開きます）は出さない`, K, R => [
+        ...QUIET.flatMap(sf => (!R.head[sf] || !R.head[sf].on ? [`${SF[sf]}の面の「${ASKH}」が見えていない`] : [])),
+        ...(R.scope && R.scope.on ? [`添え書きが見えている「${R.scope.text}」`] : []),
       ]);
     }
     /* B3r 開いている人：子の質問の行は、値の無い親の質問の行の下に立つ（親の行が出ていない時だけ、親の質問の字を上に置く）。
@@ -5085,20 +5161,23 @@ async function runWork(browser, s, [w, h], only) {
         return X;
       });
       const label = id => QBY.get(id).ja.label, people = id => `${FACT_ROWS.find(f => f.question_id === id).n}人`;
-      const under = (sf, row, ctxs) => R => {
+      /* ★2026-11-10 カードの形：親の答えが返事に無い子は、いちばん上の親の短い名前を頭に付けたカード（「親 › 子」）に入る ── 親の値は書かない */
+      const short = id => QBY.get(id).ja.short;
+      const under = (sf, row, top) => R => {
         const x = pick(R, 'fact', sf);
         if (!x) return [`${nm(sf)}が無い`];
-        const b = [], i = x.rows.findIndex(r => !r.ctx && r.k === label(row)), c = x.rows.map((r, j) => [r, j]).filter(([r]) => r.ctx);
+        const b = [], r = x.rows.find(r => r.k === label(row));
         if (x.state !== 'open' || !x.on) b.push(`${nm(sf)}が ${x.state}${x.on ? '' : '・見えていない'}`);
-        if (i < 0) b.push(`「${label(row)}」の行が無い`);
-        else if (!x.rows[i].text.includes(people(row))) b.push(`「${label(row)}」の行に「${people(row)}」が無い「${x.rows[i].text.slice(0, 60)}」`);
-        if (!same(c.map(([r]) => r.k), ctxs.map(label))) b.push(`親の質問の行「${c.map(([r]) => r.k).join('｜') || '無し'}」（あるべき「${ctxs.map(label).join('｜')}」の順）`);
-        if (i >= 0 && c.some(([, j]) => j > i)) b.push(`親の質問の行が「${label(row)}」の行より下に在る`);
-        for (const [r] of c) if (r.ans || NO_NUM.test(r.text) || r.text !== squash(r.k)) b.push(`親の質問の行「${r.k}」に、答えか数字が在る「${r.text.slice(0, 50)}」`);
+        if (!r) b.push(`「${label(row)}」が無い`);
+        else {
+          if (!r.text.includes(people(row))) b.push(`「${label(row)}」に「${people(row)}」が無い「${r.text.slice(0, 60)}」`);
+          if (!r.tile.startsWith(short(top) + ' › ')) b.push(`「${label(row)}」のカードの名前「${r.tile}」（あるべき「${short(top)} › …」）`);
+        }
+        if (x.rows.some(r => r.k === label(top))) b.push(`返事に無い親の質問「${label(top)}」の答えが在る`);
         return b;
       };
-      say(tag, '通勤の面：「タクシーでの出社・帰宅の費用」の行（回答 3人）は、値の無い親の質問の行2つ（出社・帰宅の移動 → どの形で提供されるか）の下に立つ', O, under('commute', 'commuting_taxi_cost', ['commuting_transport', 'commuting_transport_method']));
-      say(tag, 'Staff Travel の面：「上位クラスに乗れるか」の行（回答 6人）は、値の無い親の質問の行1つ（社員向けの航空券制度）の下に立つ', O, under('travel', 'staff_travel_cabin', ['staff_travel']));
+      say(tag, '通勤の面：「タクシーでの出社・帰宅の費用」（回答 3人）は、親の名前を頭に付けたカード（出社・帰宅の移動 › …）に入る・親の値は書かない', O, under('commute', 'commuting_taxi_cost', 'commuting_transport'));
+      say(tag, 'Staff Travel の面：「上位クラスに乗れるか」（回答 6人）は、親の名前を頭に付けたカード（社員航空券 › …）に入る・親の値は書かない', O, under('travel', 'staff_travel_cabin', 'staff_travel'));
       /* B3' 月の勤務の6つの枠（ruling E・addendum A1）。枠ごとに機長と副操縦士の1行ずつ：職位の名前｜軸と帯｜数字｜単位。
          字と帯の位置は、偽のサーバーの返事（WORK_FIX）からここで作り直して突き合わせる（返事の数字をここへ書き写さない）。
          目盛は単位ごとに固定（時間 0〜240・日と泊 0〜31 ── ruling D。会社の決まりの数字ではない）。帯の左端は CSS と同じ
@@ -5168,17 +5247,17 @@ async function runWork(browser, s, [w, h], only) {
       /* 数の質問の行：昇格・訓練の面の upgrade_years ／ 勤務予定・休日の面の reserve_days（子だけに行がある質問。親 reserve_duty の行は値なし）。
          値は偽のサーバーの返事（factBody）の中央値と、質問の台帳の単位から作る。 */
       const FR = JSON.parse(factBody('work')).facts, med = id => { const f = FR.find(x => x.question_id === id); return f ? `${f.median_num}${QBY.get(id).num.ja}` : null; };
-      say(tag, `昇格・訓練の面に「${label('upgrade_years')}」の中央値「${med('upgrade_years')}」・勤務予定・休日の面に「${label('reserve_days')}」の「${med('reserve_days')}」が、値の無い親の質問の行「${label('reserve_duty')}」のすぐ下に、子の行（字下げ）で`, O, R => {
+      say(tag, `昇格・訓練の面に「${label('upgrade_years')}」の中央値「${med('upgrade_years')}」・勤務予定・休日の面に「${label('reserve_days')}」の「${med('reserve_days')}」が、親の名前を頭に付けたカード（${short('reserve_duty')} › ${short('reserve_days')}）で`, O, R => {
         const b = [], cr = pick(R, 'fact', 'career'), ro = pick(R, 'fact', 'roster');
-        const up = cr ? cr.rows.find(r => !r.ctx && r.k === label('upgrade_years')) : null;
+        const up = cr ? cr.rows.find(r => r.k === label('upgrade_years')) : null;
         if (!up || up.v !== med('upgrade_years')) b.push(`昇格・訓練の面の「${label('upgrade_years')}」の行${up ? `「${up.v}」` : 'が無い'}`);
-        const i = ro ? ro.rows.findIndex(r => !r.ctx && r.k === label('reserve_days')) : -1, rd = i >= 0 ? ro.rows[i] : null, c = i > 0 ? ro.rows[i - 1] : null;
-        if (!rd) b.push(`勤務予定・休日の面に「${label('reserve_days')}」の行が無い`);
+        const rd = ro ? ro.rows.find(r => r.k === label('reserve_days')) : null, want = `${short('reserve_duty')} › ${short('reserve_days')}`;
+        if (!rd) b.push(`勤務予定・休日の面に「${label('reserve_days')}」が無い`);
         else {
-          if (rd.v !== med('reserve_days')) b.push(`「${label('reserve_days')}」の行「${rd.v}」`);
-          if (!rd.sub) b.push(`「${label('reserve_days')}」の行が子の行（字下げ）でない`);
-          if (!c || !c.ctx || c.ans || c.k !== label('reserve_duty')) b.push(`「${label('reserve_days')}」のすぐ上の行「${c ? c.k : '無し'}」（あるべき 値の無い親の質問の行）`);
+          if (rd.v !== med('reserve_days')) b.push(`「${label('reserve_days')}」の答え「${rd.v}」`);
+          if (!rd.head || rd.tile !== want) b.push(`「${label('reserve_days')}」のカード「${rd.tile}」（あるべき「${want}」の頭）`);
         }
+        if (ro && ro.rows.some(r => r.k === label('reserve_duty'))) b.push(`返事に無い親の質問「${label('reserve_duty')}」の答えが在る`);
         return b;
       });
       /* 2回めの読み込み（mode 'work2'・A27）：返事の、機長の勤務・拘束時間だけが違う。目盛が集まった値に合わせて動けば、機長の乗務時間の帯が動く。
@@ -7839,7 +7918,7 @@ async function runGive(browser, s, [w, h]) {
       on: vis(slot), state: slot.dataset.state, text: tx(slot), lock: [...slot.querySelectorAll('.crl-lock')].map(tx),
       cards: cards.length, cardOn: vis(card), head: card ? [...card.querySelectorAll('.crl-give-h')].map(tx) : [], count: card ? [...card.querySelectorAll('.crl-give-n')].map(tx) : [],
       links: [...slot.querySelectorAll('a')].map(a => ({ text: tx(a), href: a.getAttribute('href') || '', cls: a.className, give: a.getAttribute('data-crl-give'), inCard: !!card && card.contains(a), on: vis(a) })),
-      facts: slot.querySelectorAll('.crl-fact').length,
+      facts: slot.querySelectorAll('.crl-tile-v, .crl-tile-s').length,
     };
   }, SEL);
   /* 欄が「1行＋答えるカード1枚」になっているか。have・need ＝ 偽のサーバーが返した数（画面は、その数のまま出す） */
@@ -8177,7 +8256,7 @@ async function runGiveOpen(browser, s, [w, h]) {
         const vis = el => !!el && el.getClientRects().length > 0, tx = el => (el ? el.textContent : '').trim();
         return {
           state: slot ? slot.dataset.state : null, keys: slot ? (slot.getAttribute('data-keys') || '').split(',') : [], text: tx(box),
-          stray: [...c.querySelectorAll('.crl-fact')].filter(r => !r.closest('.pvg-got')).length,
+          stray: [...c.querySelectorAll('.crl-fact, .crl-tile')].filter(r => !r.closest('.pvg-got')).length,
           plates: [...c.querySelectorAll('details.pvg-topic > summary')].map(x => ({ on: vis(x), text: tx(x) })),
         };
       });
