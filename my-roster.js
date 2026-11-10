@@ -47,13 +47,13 @@
       upT: 'スケジュールをアップロード',
       upS: 'スクリーンショット・PDF を何枚でも。重なっていても1日1回に数えます。',
       upF: 'PDF · PNG · JPG · WebP',
-      emptyS: '勤務の時間と便が月ごとにまとまり、給与と並べて見られるようになります。',
       airline: '会社', airlinePick: '会社を選んでください', airlineOther: '一覧にない会社', airlineOtherPh: '会社名',
       airlineChange: '会社を変える',
       kDuty: '勤務時間', kBlock: 'ブロック時間', kFlight: '飛行時間', kTime: '便の時間',
       kDays: '勤務日', kSectors: '便数', kDh: 'DH', kOff: '休日', kVac: '有休',
       uDays: '日', uLegs: '便',
       partialOf: '{c}日ぶん（この月は{n}日）',
+      cumK: '勤務時間の累計', cumTo: '{d}まで', dayK: 'この日', mdT: '{n}月{d}日',
       gapsOf: '時刻が読めない日（{n}日）を除く',
       calH: '{t}',
       calHint: '日付を選ぶと、その日の便と勤務が出ます',
@@ -103,13 +103,13 @@
       upT: 'Upload your roster',
       upS: 'Any number of screenshots or PDFs. Overlaps are counted once per day.',
       upF: 'PDF · PNG · JPG · WebP',
-      emptyS: 'Your duty and flights add up month by month, ready to set against your pay.',
       airline: 'Airline', airlinePick: 'Choose your airline', airlineOther: 'Airline not listed', airlineOtherPh: 'Airline name',
       airlineChange: 'Change airline',
       kDuty: 'Duty time', kBlock: 'Block time', kFlight: 'Flight time', kTime: 'Leg time',
       kDays: 'Duty days', kSectors: 'Sectors', kDh: 'DH', kOff: 'Days off', kVac: 'Leave',
       uDays: '', uLegs: '',
       partialOf: '{c} of {n} days',
+      cumK: 'Duty time so far', cumTo: 'Through {d}', dayK: 'That day', mdT: '{s} {d}',
       gapsOf: 'excl. {n} days without readable times',
       calH: '{t}',
       calHint: 'Pick a date to see its flights and duty',
@@ -156,13 +156,13 @@
       upT: 'Sube tu programación',
       upS: 'Todas las capturas de pantalla o PDF que quieras. Lo que se repite se cuenta una sola vez por día.',
       upF: 'PDF · PNG · JPG · WebP',
-      emptyS: 'Tus servicios y vuelos se suman mes a mes, listos para compararlos con tu remuneración.',
       airline: 'Aerolínea', airlinePick: 'Elige tu aerolínea', airlineOther: 'Aerolínea no incluida en la lista', airlineOtherPh: 'Nombre de la aerolínea',
       airlineChange: 'Cambiar de aerolínea',
       kDuty: 'Tiempo de servicio', kBlock: 'Tiempo block', kFlight: 'Tiempo de vuelo', kTime: 'Tiempo del tramo',
       kDays: 'Días de servicio', kSectors: 'Sectores', kDh: 'DH', kOff: 'Días libres', kVac: 'Vacaciones',
       uDays: '', uLegs: '',
       partialOf: '{c} de {n} días',
+      cumK: 'Tiempo de servicio acumulado', cumTo: 'Hasta {d}', dayK: 'Ese día', mdT: '{s} {d}',
       gapsOf: 'excluye {n} días sin horas legibles',
       calH: '{t}',
       calHint: 'Elige una fecha para ver sus vuelos y servicios',
@@ -410,6 +410,54 @@
       '<span class="rs-entry-s">' + esc(T.upS) + '</span>' +
       '<span class="rs-entry-f">' + esc(T.upF) + '</span></button>';
   }
+  /* まだスケジュールが無い人に見せる「出すと見られるもの」（2026-11-11 オーナー「ぼかし入れて、その上からアップロードのボタンでいいだろ」
+     「ぼかしのクオリティ低い。ちゃんと作れ」）。
+     ★本物の画面と同じ部品（上のカード・カレンダー・選んだ日・日別の棒）を見本の勤務で組み、強くぼかす。上にはアップロードのボタンだけ。
+     ★見本の便・時刻は作り物（実在の勤務ではない）。読み上げから外し（aria-hidden）、押せない（inert）。形は my-value.css の .mv-peek。 */
+  var PEEK_DAYS = [
+    { isDuty: true, dOn: '05:40', legs: [{ from: 'DXB', to: 'LHR' }], h: 7.5, b: 7.4 },
+    { isDuty: true, dOn: '13:00', legs: [{ from: 'LHR', to: 'DXB' }], h: 10.9, b: 7.2 },
+    { cls: 'off', code: 'OFF' }, { cls: 'off', code: 'OFF' },
+    { isDuty: true, dOn: '01:30', legs: [{ from: 'DXB', to: 'BKK' }], h: 7.8, b: 6.3 },
+    { isDuty: true, dOn: '13:45', legs: [{ from: 'BKK', to: 'DXB' }], h: 5.4, b: 6.4 },
+    { isDuty: true, cls: 'standby', dOn: '04:00', code: 'SBY', h: 12, b: 0 },
+    { isDuty: true, cls: 'training', dOn: '08:00', legs: [{ kind: 'ground', loc: 'SIM' }], h: 4.5, b: 0 }
+  ];
+  function peekHTML(over) {
+    var t = new Date(), v = t.getFullYear() * 12 + t.getMonth() - 1, ym = Math.floor(v / 12) + '-' + pad2(v % 12 + 1);
+    var n = daysIn(+ym.slice(0, 4), +ym.slice(5, 7)), bd = {}, cum = [], tot = 0;
+    for (var dd = 1; dd <= n; dd++) {
+      var x = PEEK_DAYS[(dd - 1) % PEEK_DAYS.length];
+      bd[ym + '-' + pad2(dd)] = x;
+      tot += (x.h || 0) * 60; cum.push(tot);
+    }
+    var W = 460, H = 112, X = function (d) { return 6 + (W - 16) * (d - 1) / (n - 1); }, Y = function (m0) { return 12 + 78 * (1 - m0 / tot); };
+    var line = cum.map(function (m0, i) { return (i ? 'L' : 'M') + X(i + 1).toFixed(1) + ' ' + Y(m0).toFixed(1); }).join('');
+    var hero = '<section class="rs-card rs-kpis rs-hero"><div class="rs-hero-l"><h3 class="rs-card-t">' + esc(T.kDuty) + '</h3>' +
+        '<b class="rs-kpi-v">' + hm(tot) + '</b><div class="rs-cum-box"><svg class="rs-cum-svg" viewBox="0 0 ' + W + ' ' + H + '">' +
+        '<path d="' + line + 'L' + X(n) + ' 90L' + X(1) + ' 90Z" fill="currentColor" fill-opacity=".14"/><path class="rs-cum-l" d="' + line + '"/>' +
+        '<circle class="rs-cum-d" cx="' + X(n).toFixed(1) + '" cy="' + Y(tot).toFixed(1) + '" r="4.5"/></svg></div></div>' +
+      '<ul class="rs-hero-r">' + [[T.kTime, '102:55'], [T.kDays, '23' + T.uDays], [T.kSectors, '15' + T.uLegs], [T.kOff + ' / ' + T.kVac, '8 / 0' + T.uDays]].map(function (r0) {
+        return '<li class="rs-kpi"><span class="rs-kpi-k">' + esc(r0[0]) + '</span><b class="rs-kpi-v">' + esc(r0[1]) + '</b></li>';
+      }).join('') + '</ul></section>';
+    var cal = '<section class="rs-card rs-cal"><div class="rs-card-h"><h3 class="rs-card-t">' + esc(monthTitle(ym)) + '</h3></div>' +
+      calHTML(ym, bd, { sel: ym + '-01' }) + '</section>';
+    var day = '<section class="rs-card rs-day"><div class="rs-day-hd"><h3 class="rs-day-t">' + esc(dayTitle(ym + '-01')) + '</h3></div>' +
+      '<div class="rs-don"><div><b class="rs-big">05:40</b><span>D-ON</span></div><i class="rs-don-l"></i><div class="r"><b class="rs-big">13:10</b><span>D-OFF</span></div></div>' +
+      '<div class="rs-dstats"><div><span>' + esc(T.kDuty) + '</span><b>7:30</b></div><div><span>' + esc(T.kTime) + '</span><b>7:25</b></div><div><span>' + esc(T.kSectors) + '</span><b>1</b></div></div></section>';
+    var bars = '', CW = 640, CH = 170, cw = (CW - 40) / n;
+    [0, 4, 8, 12].forEach(function (hh) { var yy = 140 - hh * 9.5; bars += '<line class="rs-g" x1="34" x2="' + CW + '" y1="' + yy + '" y2="' + yy + '"/><text class="rs-ax" x="28" y="' + (yy + 3.5) + '" text-anchor="end">' + hh + 'h</text>'; });
+    for (var k = 1; k <= n; k++) {
+      var p = bd[ym + '-' + pad2(k)], cx = 34 + cw * (k - 0.5);
+      if (p.h) bars += '<rect class="rs-b-duty" x="' + (cx - 5.5).toFixed(1) + '" y="' + (140 - p.h * 9.5).toFixed(1) + '" width="5" height="' + (p.h * 9.5).toFixed(1) + '" rx="1.5"/>';
+      if (p.b) bars += '<rect class="rs-b-blk" x="' + (cx + 0.5).toFixed(1) + '" y="' + (140 - p.b * 9.5).toFixed(1) + '" width="5" height="' + (p.b * 9.5).toFixed(1) + '" rx="1.5"/>';
+      if (k === 1 || k % 5 === 0) bars += '<text class="rs-ax" x="' + cx.toFixed(1) + '" y="160" text-anchor="middle">' + k + '</text>';
+    }
+    var chart = '<section class="rs-card rs-ch"><div class="rs-card-h"><h3 class="rs-card-t">' + esc(T.chartH) + '</h3></div>' +
+      '<svg class="rs-ch-svg" viewBox="0 0 ' + CW + ' ' + CH + '">' + bars + '</svg></section>';
+    return '<div class="mv-peek"><div class="mv-peek-in" aria-hidden="true" inert><div class="rs">' + hero + '<div class="rs-grid">' + cal + day + '</div>' + chart + '</div></div>' +
+      '<div class="mv-peek-over">' + over + '</div></div>';
+  }
   function airlinePicker() {
     var opts = '';
     if (S.names) {
@@ -465,8 +513,7 @@
     var dh = (dhN && dhGap >= dhN) ? null : v(m.blockMin.deadhead, P.blockMin.deadhead);
     var dutyN = P.dutyDays || 0, duty = (dutyN && (g.duty || 0) >= dutyN) ? null : v(m.dutyMin, P.dutyMin);
     var noTime = opGap + dhGap;
-    var tiles = [
-      { k: T.kDuty, b: hm(duty), main: true },
+    var rows = [
       { k: timeLabel(S.profile), b: hm(op), s: dhN ? T.kDh + ' ' + hm(dh) : '', n: noTime ? fill(T.kNoTime, { n: noTime }) : '' },
       { k: T.kDays, b: String(v(m.dutyDays, P.dutyDays)), u: T.uDays },
       { k: T.kSectors, b: String(v(m.sectors, P.sectors)), u: T.uLegs, s: v(m.dhLegs, P.dhLegs) ? T.kDh + ' ' + v(m.dhLegs, P.dhLegs) : '' },
@@ -474,12 +521,21 @@
     ];
     var note = part ? fill(T.partialOf, { c: m.coveredDays, n: m.daysInMonth })
       : (m.gaps && m.gaps.duty ? fill(T.gapsOf, { n: m.gaps.duty }) : '');
-    return '<div class="rs-kpis">' + tiles.map(function (t) {
-      return '<div class="rs-kpi' + (t.main ? ' is-main' : '') + '"><span class="rs-kpi-k">' + esc(t.k) + '</span>' +
-        '<b class="rs-kpi-v">' + esc(t.b) + (t.u ? '<small>' + esc(t.u) + '</small>' : '') + '</b>' +
-        (t.s ? '<span class="rs-kpi-s">' + esc(t.s) + '</span>' : '') +
-        (t.n ? '<span class="rs-kpi-s is-miss">' + esc(t.n) + '</span>' : '') + '</div>';
-    }).join('') + (note ? '<p class="rs-kpi-n">' + esc(note) + '</p>' : '') + '</div>';
+    /* ★2026-11-11 オーナー「スケジュールの上の部分を累計のカードみたいな色味に」── MY PAY の累計報酬のカードと同じ形：
+         見出し → 大きい数字1つ（勤務時間）→ 月の頭からの累計の緑の線（指を置くとその日までの累計）→ ほかの数字は行で。 */
+    return '<section class="rs-card rs-kpis rs-hero">' +
+      '<div class="rs-hero-l">' +
+        '<h3 class="rs-card-t">' + esc(T.kDuty) + '</h3>' +
+        '<b class="rs-kpi-v">' + esc(hm(duty)) + '</b>' +
+        '<div class="rs-cum-box"><svg class="rs-cum-svg" role="group" aria-label="' + esc(T.cumK + (S.ym ? ' · ' + monthTitle(S.ym) : '')) + '"></svg>' +
+          '<div class="rs-tip" hidden></div></div>' +
+      '</div>' +
+      '<ul class="rs-hero-r">' + rows.map(function (t) {
+        return '<li class="rs-kpi"><span class="rs-kpi-k">' + esc(t.k) +
+            (t.s ? '<small>' + esc(t.s) + '</small>' : '') + (t.n ? '<small class="is-miss">' + esc(t.n) + '</small>' : '') + '</span>' +
+          '<b class="rs-kpi-v">' + esc(t.b) + (t.u ? '<small>' + esc(t.u) + '</small>' : '') + '</b></li>';
+      }).join('') + '</ul>' +
+      (note ? '<p class="rs-kpi-n">' + esc(note) + '</p>' : '') + '</section>';
   }
   function legHTML(l) {
     var tag = '';
@@ -563,11 +619,13 @@
     } else if (S.err) {
       h = '<div class="rs-card rs-msg"><p>' + esc(S.err === 'notReady' ? T.notReady : T.err) + '</p></div>';
     } else if (!S.airline || S.picking) {
-      h = flashHTML() + '<div class="rs-empty">' + airlinePicker() + entryHTML(true) + '<p class="rs-empty-s">' + esc(T.emptyS) + '</p></div>';
+      /* ★2026-11-11 ぼかした本物の画面の上に、会社を選ぶ欄とアップロードのボタンだけ（オーナー指示）。会社を変えるときは今までどおり */
+      h = flashHTML() + (S.picking ? '<div class="rs-empty">' + airlinePicker() + entryHTML(true) + '</div>'
+        : peekHTML('<div class="rs-empty is-over">' + airlinePicker() + entryHTML(true) + '</div>'));
     } else if (!S.days.length && !S.docs.length) {
-      h = flashHTML() + '<div class="rs-empty"><p class="rs-ey"><span class="rs-air">' + esc(airlineName(S.airline, S.other)) + '</span>' +
+      h = flashHTML() + '<p class="rs-ey"><span class="rs-air">' + esc(airlineName(S.airline, S.other)) + '</span>' +
         (!S.choices.length ? ' <button type="button" class="rs-link" data-act="change">' + esc(T.airlineChange) + '</button>' : '') + '</p>' +
-        entryHTML(false) + '<p class="rs-empty-s">' + esc(T.emptyS) + '</p></div>';
+        peekHTML('<div class="rs-empty is-over">' + entryHTML(false) + '</div>');
     } else if (!S.ym) {
       h = flashHTML() + headless() + docsHTML();
     } else {
@@ -635,8 +693,64 @@
 
   /* ── 日別の勤務時間の図（見えているときだけ描く）───────────── */
   var NS = 'http://www.w3.org/2000/svg';
+  /* 累計の線（上のカード）。月の頭から、その日までの勤務時間を足していく。目盛は 0〜その月の合計。
+     ★線は記録のある最後の日で止める（欠けた月の先を平らに伸ばさない）。選んだ日に白抜きの点。 */
+  function drawCum() {
+    var box = S.el.querySelector('.rs-cum-box'), svg = box && box.querySelector('svg');
+    if (!svg) return;
+    var W = box.clientWidth;
+    S.cum = null;
+    if (W < 40) return;
+    var bd = byDateOf(S.byYm[S.ym]), n = daysIn(+S.ym.slice(0, 4), +S.ym.slice(5, 7));
+    var pts = [], tot = 0, last = 0;
+    for (var dd = 1; dd <= n; dd++) {
+      var x = bd[S.ym + '-' + pad2(dd)];
+      if (x) { tot += x.dutyMin || 0; last = dd; }
+      pts.push(tot);
+    }
+    if (!tot) { box.hidden = true; return; }
+    box.hidden = false;
+    var H = W < 420 ? 96 : 112, PL = 6, PR = 10, PT = 12, PB = 22, base = H - PB;
+    var X = function (d) { return PL + (W - PL - PR) * (d - 1) / Math.max(1, n - 1); };
+    var Y = function (v0) { return PT + (base - PT) * (1 - v0 / tot); };
+    var line = '';
+    for (var i = 1; i <= last; i++) line += (i === 1 ? 'M' : 'L') + X(i).toFixed(1) + ' ' + Y(pts[i - 1]).toFixed(1);
+    var h = '<defs><linearGradient id="rs-cum-f" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="currentColor" stop-opacity=".22"/>' +
+      '<stop offset="100%" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs>';
+    [Y(tot), base].forEach(function (yy) { h += '<line class="rs-cum-g" x1="' + PL + '" x2="' + (W - PR) + '" y1="' + yy.toFixed(1) + '" y2="' + yy.toFixed(1) + '"/>'; });
+    h += '<path d="' + line + 'L' + X(last).toFixed(1) + ' ' + base + 'L' + X(1).toFixed(1) + ' ' + base + 'Z" fill="url(#rs-cum-f)"/>' +
+      '<path class="rs-cum-l" d="' + line + '"/>';
+    var md = function (d0) { var p = ymd(S.ym + '-' + pad2(d0)); return fill(T.mdT, { n: p.m, d: p.d, s: T.monS[p.m - 1] }); };
+    h += '<text class="rs-ax" x="' + X(1).toFixed(1) + '" y="' + (H - 6) + '" text-anchor="start">' + esc(md(1)) + '</text>' +
+      '<text class="rs-ax" x="' + X(n).toFixed(1) + '" y="' + (H - 6) + '" text-anchor="end">' + esc(md(n)) + '</text>';
+    var sd = S.date && S.date.slice(0, 7) === S.ym ? +S.date.slice(8, 10) : 0;
+    if (sd && sd <= last && sd !== last) h += '<circle class="rs-cum-s" cx="' + X(sd).toFixed(1) + '" cy="' + Y(pts[sd - 1]).toFixed(1) + '" r="3.5"/>';
+    h += '<circle class="rs-cum-d" cx="' + X(last).toFixed(1) + '" cy="' + Y(tot).toFixed(1) + '" r="4.5"/>' +
+      '<circle class="rs-cum-o" cx="-20" cy="-20" r="7"/>';
+    var step = (W - PL - PR) / Math.max(1, n - 1);
+    for (var k = 1; k <= last; k++) {
+      h += '<rect class="rs-chit" data-date="' + S.ym + '-' + pad2(k) + '" x="' + Math.max(0, X(k) - step / 2).toFixed(1) + '" y="0" width="' + step.toFixed(1) + '" height="' + H + '"/>';
+    }
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    svg.setAttribute('width', W); svg.setAttribute('height', H);
+    svg.innerHTML = h;
+    S.cum = { pts: pts, X: X, Y: Y };
+  }
+  function cumTip(date) {
+    var box = S.el.querySelector('.rs-cum-box'), tip = box && box.querySelector('.rs-tip'), o = box && box.querySelector('.rs-cum-o');
+    if (!tip) return;
+    if (!date || !S.cum) { tip.hidden = true; if (o) o.style.visibility = 'hidden'; return; }
+    var dd = +date.slice(8, 10), v0 = S.cum.pts[dd - 1], x = byDateOf(S.byYm[S.ym])[date];
+    tip.innerHTML = '<b>' + esc(fill(T.cumTo, { d: dayTitle(date) })) + '</b><span>' + esc(T.cumK) + ' <b>' + hm(v0) + '</b></span>' +
+      (x && x.dutyMin ? '<span>' + esc(T.dayK) + ' ' + hm(x.dutyMin) + '</span>' : '');
+    tip.hidden = false;
+    var cx = S.cum.X(dd), tw = tip.offsetWidth, bw = box.clientWidth;
+    tip.style.left = Math.max(0, Math.min(bw - tw, cx - tw / 2)) + 'px';
+    if (o) { o.setAttribute('cx', cx.toFixed(1)); o.setAttribute('cy', S.cum.Y(v0).toFixed(1)); o.style.visibility = 'visible'; }
+  }
   function drawChart() {
     if (!S.visible || !S.ym) return;
+    drawCum();
     var box = S.el.querySelector('.rs-ch-box'), svg = box && box.querySelector('svg');
     if (!svg) return;
     var W = box.clientWidth;
@@ -706,6 +820,7 @@
     if (!t || !S.el.contains(t)) return;
     if (t.classList.contains('rs-cell') && t.hasAttribute('data-date')) { select(t.getAttribute('data-date'), false, true); return; }
     if (t.classList.contains('rs-hit')) { select(t.getAttribute('data-date')); tipFor(t.getAttribute('data-date')); return; }
+    if (t.classList.contains('rs-chit')) { select(t.getAttribute('data-date')); cumTip(t.getAttribute('data-date')); return; }
     var act = t.getAttribute('data-act');
     if (act === 'prev') setMonth(S.yms[S.yms.indexOf(S.ym) - 1], 'prev');
     else if (act === 'next') setMonth(S.yms[S.yms.indexOf(S.ym) + 1], 'next');
@@ -756,9 +871,11 @@
   function onMove(e) {
     var t = e.target;
     if (t && t.classList && t.classList.contains('rs-hit')) tipFor(t.getAttribute('data-date'));
+    if (t && t.classList && t.classList.contains('rs-chit')) cumTip(t.getAttribute('data-date'));
   }
   function onLeave(e) {
     if (e.target && e.target.classList && e.target.classList.contains('rs-ch-svg')) tipFor(null);
+    if (e.target && e.target.classList && e.target.classList.contains('rs-cum-svg')) cumTip(null);
   }
 
   function delDoc(id) {

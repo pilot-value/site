@@ -76,12 +76,12 @@
   var YEAR_URL = 'my-year.js?v=' + YEAR_V;                 // 「1年」の画面（押したときだけ読む）
   /* ★「勤務ロスター」のタブ（2026-11-09）。開いたときだけ読む4本。指紋は上の2本と同じ決まり
        （db/test-year-report.mjs が中身と突き合わせる）。計算の部品は分析のタブも使う。 */
-  var ROSTER_V = '9d33a574';
-  var ROSTER_CSS_V = '77f7b1f3';
+  var ROSTER_V = 'f328ca66';
+  var ROSTER_CSS_V = '0b3a6dcf';
   var UPLOAD_V = 'ba0ba6df';
   var ENGINE_V = '53f7188b';
   /* ★「分析」のタブ（2026-11-09）。開いたときだけ読む2本（見た目 → 計算の部品 → 画面の順）。指紋の決まりは上と同じ */
-  var ANALYSIS_V = 'b309c44c';
+  var ANALYSIS_V = 'f38aeee0';
   var ANALYSIS_CSS_V = 'aeff3463';
   var LATE = {
     roster: 'my-roster.js?v=' + ROSTER_V, rosterCss: 'my-roster.css?v=' + ROSTER_CSS_V,
@@ -228,7 +228,7 @@
          **円そのものが描けない行**の見本に添える文で、宛先が違う。 */
       restOnly: '※ 手当ごとに分けて入れると、この灰色が項目ごとに分かれます。明細を読み取ると自動で入ります。',
       /* 見本の札。★「サンプル」ではなく「見本」。本人の数字と1文字も似せない。 */
-      sampleTag: '見本', sampleBtn: '匿名で給与を追加する →',
+      sampleTag: '見本', sampleBtn: '匿名で給与を追加する →', psT: '明細から自動入力', psB: ['匿名', '暗号化＆セキュア', '簡単'],
       segBase: '基本給', segGuarantee: '保証手当・職務手当', segCommand: '機長・役職手当',
       segInstructor: '教官・訓練手当', segExaminer: '審査・査察手当',
       segUnion: '組合・乗員代表手当', segManagement: '管理・マネジメント手当',
@@ -273,19 +273,6 @@
          前は「明細を1枚落とすと〜」だけで、**明細が要る**と読めていた。
          実際は手入力でも同じように解放される。★見出し・ボタンにカッコの注記を足さない。 */
       eTitle: 'マイレポート',
-      eRepT: 'あなたの給与レポート',
-      eRepBadge: '未作成',
-      eRepH: '給与をまだ共有していません',
-      eRepS: '給与を1件追加すると、あなただけのレポートがここに出ます。'
-           + '明細がなくても、手入力で作れます。',
-      eRepC: '給与を追加してレポートを作成する →',
-      eKnowT: 'レポートでわかること',
-      eKnow: ['年収・月収・賞与の内訳',
-              '会員の中央値・他社との差',
-              '乗務時間あたりの報酬',
-              'あなたが入れた手取りと控除の積み上げ',
-              '月をまたいだ推移'],
-      eKnowN: '同じ会社・職位で2人そろうと、会員の中央値と比べられます。',
       eBandT: '給与を共有すると、すべての価値が解放されます',
       /* ★数字はサーバーの数え上げから来る。読めなかったら、この行ごと出さない。 */
       eBand: function (n, a) {
@@ -402,7 +389,7 @@
       housingNote: '※ Company-provided housing is not cash, so it is left out of the breakdown.',
       noBd: 'Enter your pay allowance by allowance and this chart becomes your own. Reading a payslip fills it in automatically.',
       restOnly: '※ Enter your pay allowance by allowance and this grey circle splits into items. Reading a payslip fills it in automatically.',
-      sampleTag: 'Sample', sampleBtn: 'Add pay anonymously →',
+      sampleTag: 'Sample', sampleBtn: 'Add pay anonymously →', psT: 'Auto-fill from a payslip', psB: ['Anonymous', 'Encrypted & secure', 'Quick'],
       segBase: 'Base pay', segGuarantee: 'Guarantee / duty',
       segCommand: 'Command / position', segInstructor: 'Instructor / training',
       segExaminer: 'Examiner / check',
@@ -434,19 +421,6 @@
 
       /* Same screen in English. A payslip is not required — typing it in unlocks the same thing. */
       eTitle: 'My report',
-      eRepT: 'Your pay report',
-      eRepBadge: 'Not started',
-      eRepH: 'You have not shared your pay yet',
-      eRepS: 'Add one pay record and your own report appears here. '
-           + 'No payslip needed — you can type it in.',
-      eRepC: 'Add your pay and build the report →',
-      eKnowT: 'What the report shows',
-      eKnow: ['Your annual, monthly and bonus breakdown',
-              'How far you sit from the member median and other airlines',
-              'What you earn per block hour',
-              'The take-home and deductions you entered, stacked up',
-              'How it moves from month to month'],
-      eKnowN: 'Once two pilots at your airline and seat have shared their pay, you can compare against the member median.',
       eBandT: 'Share your pay and everything here opens',
       eBand: function (n, a) {
         return '<b>' + n + '</b> pay records have been shared so far, from <b>' + a + '</b> airlines';
@@ -561,7 +535,7 @@
       housingNote: '※ La vivienda proporcionada por la empresa no es efectivo, así que no se incluye en el desglose.',
       noBd: 'Ingresa tu remuneración asignación por asignación y esta gráfica mostrará tus propias cifras. Al leer un recibo de nómina, se completa automáticamente.',
       restOnly: '※ Ingresa tu remuneración asignación por asignación y este círculo gris se dividirá en conceptos. Al leer un recibo de nómina, se completa automáticamente.',
-      sampleTag: 'Ejemplo', sampleBtn: 'Agregar remuneración de forma anónima →',
+      sampleTag: 'Ejemplo', sampleBtn: 'Agregar remuneración de forma anónima →', psT: 'Autocompletar desde un recibo de nómina', psB: ['Anónimo', 'Cifrado y seguro', 'Rápido'],
       segBase: 'Sueldo base', segGuarantee: 'Horas garantizadas / asignación por servicio',
       segCommand: 'Asignación por categoría (puesto)', segInstructor: 'Instrucción / entrenamiento',
       segExaminer: 'Examinador / verificación',
@@ -593,19 +567,6 @@
 
       /* Same screen in English. A payslip is not required — typing it in unlocks the same thing. */
       eTitle: 'Mi informe',
-      eRepT: 'Tu informe de remuneración',
-      eRepBadge: 'Sin iniciar',
-      eRepH: 'Todavía no has compartido tu remuneración',
-      eRepS: 'Agrega un registro de remuneración y aquí aparecerá tu propio informe. '
-           + 'No necesitas recibo de nómina: puedes ingresarlo a mano.',
-      eRepC: 'Agrega tu remuneración y genera el informe →',
-      eKnowT: 'Lo que muestra el informe',
-      eKnow: ['Tu desglose anual, mensual y de bonos',
-              'A qué distancia estás de la mediana de los miembros y de otras aerolíneas',
-              'Cuánto ganas por hora block (calzo a calzo)',
-              'Tu sueldo neto y las deducciones que ingresaste, apilados',
-              'Cómo cambia de un mes a otro'],
-      eKnowN: 'Cuando dos pilotos de tu aerolínea y categoría hayan compartido su remuneración, podrás compararte con la mediana de los miembros.',
       eBandT: 'Comparte tu remuneración y se desbloquea todo lo que hay aquí',
       eBand: function (n, a) {
         return '<b>' + n + '</b> registros de remuneración compartidos hasta ahora, de <b>' + a + '</b> aerolíneas';
@@ -1547,9 +1508,6 @@
   var E_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"'
             + ' stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"'
             + ' aria-hidden="true" focusable="false">';
-  // 書類（＝これから作るレポート）
-  var IC_DOC = E_SVG + '<path d="M7 3h7l4 4v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/>'
-             + '<path d="M14 3v4h4"/><path d="M9 12h6M9 16h4"/></svg>';
   // 錠前。帯と最後の1行で使い回す
   var IC_LOCK = '<svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor"'
               + ' stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"'
@@ -1601,27 +1559,49 @@
     return '<p class="mv-e-band-s">' + (a != null ? T.eBand(n, a) : T.eBand1(n)) + '</p>';
   }
 
+  /* まだ給与を出していない人に見せる「出すと見られるもの」（2026-11-11 オーナー「ぼかし入れて、その上からアップロードのボタンでいいだろ」
+     「ぼかしのクオリティ低い。ちゃんと作れ」）。
+     ★本物の画面と同じ部品（緑のカード・累計の線・支給構成の円・他社の横の棒）を見本の数字で組み、強くぼかす。上には給与フォームと
+       同じ「明細から自動入力」のボタンだけ（説明の札や「見本」の字は置かない ── オーナーに却下された）。
+     ★見本の数字は作り物で、本人の数字と並ばない（この画面には本人の数字が1つも無い）。読めない強さでぼかし（my-value.css の .mv-peek-in）、
+       読み上げから外し（aria-hidden）、押せず（inert）、通貨の書き換えからも外す（pv-no-cur）。 */
+  var IC_UPLOAD = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 17v-6"/><path d="m9.5 13.5 2.5-2.5 2.5 2.5"/></svg>';
+  function upPay() {
+    return '<a class="mv-up" href="' + payHref() + '"><span class="mv-up-t"><span class="mv-up-i">' + IC_UPLOAD + '</span>' + esc(T.psT) + '</span>' +
+      '<span class="mv-up-b">' + T.psB.map(function (x) { return '<span><i aria-hidden="true">✓</i>' + esc(x) + '</span>'; }).join('') + '</span></a>';
+  }
+  function peek(inner, btn) {
+    return '<div class="mv-peek"><div class="mv-peek-in pv-no-cur" aria-hidden="true" inert>' + inner + '</div>' +
+      '<div class="mv-peek-over">' + btn + '</div></div>';
+  }
+  function peekPay() {
+    var now = new Date(), t = now.getFullYear() * 12 + now.getMonth() - 1;     // 先月まで12か月
+    var ymOf = function (k) { var v = t - k; return { y: Math.floor(v / 12), m: v % 12 + 1 }; };
+    var a = ymOf(0), b = ymOf(1), z = ymOf(11);
+    var green = sec(T.monthOf(T.ym(a.y, a.m)),
+      '<div class="mr-hero"><span class="mr-hero-k">' + esc(T.kGross) + '</span><b class="mr-hero-v">¥1,291,638</b>' + pill(pct(6.0)) + '</div>' +
+      rlList(rl(T.kNet, '¥836,408') + rl(T.kAnnual, '¥17,599,656') + rl(T.perBlock, '¥22,621', pct(4.1))) +
+      '<p class="mr-qty">' + esc(T.mBlockH + ' 57.1h · ' + T.mDutyH + ' 139.6h') + '</p>',
+      T.momOf(T.ym(b.y, b.m)), 'is-green');
+    var rows = [], cum = [], c0 = 0;
+    for (var k = 11; k >= 0; k--) { var q = ymOf(k); rows.push({ period_year: q.y, period_month: q.m }); c0 += 1180000 + ((k * 37) % 9) * 21000; cum.push(c0); }
+    var line = V.chart(rows, 'cum', { width: 460, valueAt: function (r, i) { return cum[i]; },
+      labelOf: function (r) { return T.ymShort(r.period_year, r.period_month); }, yearOf: function (r) { return r.period_year; },
+      endLabel: false, color: '#0a8f79', aria: '' });
+    var total = sec(T.total,
+      '<div class="mr-total"><b class="mr-total-v">¥' + c0.toLocaleString('en-US') + '</b></div><div class="mr-cum">' + line + '</div>' +
+      rlList(rl(T.tAvg, '¥' + Math.round(c0 / 12).toLocaleString('en-US')) + rl(T.tHourly, '¥22,104')),
+      T.tSpanOf(T.ym(z.y, z.m), T.ym(a.y, a.m)), 'is-total');
+    var opp = sec(T.oppQ(T.cap || ''), barList([
+      { name: T.oppMe, sub: T.oppCurAnnual, jpy: 17600000, mod: 'is-me' },
+      { name: 'Airline', jpy: 16000000, tag: T.tagMed, mod: 'is-own' },
+      { name: 'Airways', jpy: 31000000, tag: T.tagEst, diff: '+' + fmt(13400000) },
+      { name: 'Air Lines', jpy: 30500000, tag: T.tagEst, diff: '+' + fmt(12900000) },
+      { name: 'Airline Co', jpy: 26800000, tag: T.tagEst, diff: '+' + fmt(9200000) }
+    ], 31000000), T.oppSub);
+    return peek('<div class="mr-2col">' + green + total + '</div><div class="mr-2col">' + sec(T.breakdown, sampleBreakdown(), T.ym(a.y, a.m)) + opp + '</div>', upPay());
+  }
   function renderEmpty() {
-    var rep =
-      '<section class="mr-card mv-e-rep">'
-      + '<div class="mv-e-rep-b">'
-      +   '<div class="mv-e-rep-hd">'
-      +     '<span class="mv-e-ic" aria-hidden="true">' + IC_DOC + '</span>'
-      +     '<h2 class="mv-e-h">' + esc(T.eRepT) + '</h2>'
-      +     '<span class="mv-e-badge">' + esc(T.eRepBadge) + '</span>'
-      +   '</div>'
-      +   '<p class="mv-e-rep-t">' + esc(T.eRepH) + '</p>'
-      +   '<p class="mv-e-s">' + esc(T.eRepS) + '</p>'
-      +   '<a class="pt-btn" href="' + payHref() + '">' + esc(T.eRepC) + '</a>'
-      + '</div>'
-      + '<aside class="mv-e-know">'
-      +   '<div class="mv-e-know-t">' + esc(T.eKnowT) + '</div>'
-      +   '<ul class="mv-e-know-l">'
-      +     T.eKnow.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('')
-      +   '</ul>'
-      +   '<p class="mv-e-know-n">' + esc(T.eKnowN) + '</p>'
-      + '</aside></section>';
-
     var band =
       '<section class="mr-card mv-e-band">'
       + '<div class="mv-e-band-hd">'
@@ -1643,7 +1623,8 @@
     var head = w.PV_MYPAGE_HOST ? ''       // MY PAGE では ③ の見出しが上に在る
       : '<div class="mr-hd"><h1 class="mr-hd-t">' + esc(T.eTitle) + '</h1></div>';
 
-    root.innerHTML = opBar() + head + rep + band + give;
+    /* ★2026-11-11 上の「あなたの給与レポート（未作成）」の板は、ぼかした本物の画面＋ボタンに置き換えた（オーナー指示） */
+    root.innerHTML = opBar() + head + peekPay() + band + give;
     bindOp();
   }
 

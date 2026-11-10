@@ -952,3 +952,43 @@
 #pv-value .mr-mask-over::after{background:radial-gradient(84% 68% at 50% 38%,var(--pv-accent-soft) 0%,transparent 72%)}
 #pv-value .mr-mask-tag{background:var(--pv-accent-soft);border-color:var(--pv-accent-line);color:var(--pv-accent-ink);
   box-shadow:0 1px 2px rgba(6,117,99,.08),0 6px 16px -10px rgba(6,117,99,.4)}
+
+/* ══ 2026-11-11「出すと見られるもの」（給与サマリー・分析・スケジュールの空の画面）═══════════
+   オーナー「ぼかし入れて、その上からアップロードのボタンでいいだろ」「ぼかしのクオリティ低い。ちゃんと作れ」。
+   ★下は本物の画面と同じ部品（同じ CSS）を見本の数字で組んだもの。強くぼかして読めなくし、上にはボタンだけを置く。
+   ★「見本」の札・説明の文は置かない（「給与を出すと、こう見えます」はオーナーに却下された）。 */
+#pv-value .mv-peek{position:relative;grid-column:1/-1;max-height:820px;border-radius:var(--pv-r-lg);overflow:hidden;isolation:isolate}
+#pv-value .mv-peek-in{display:flex;flex-direction:column;gap:16px;padding:10px;
+  filter:blur(10px) saturate(1.06);transform:scale(1.015);transform-origin:50% 0;
+  pointer-events:none;user-select:none;
+  -webkit-mask-image:linear-gradient(#000 62%,transparent 98%);mask-image:linear-gradient(#000 62%,transparent 98%)}
+#pv-value .mv-peek-in .pt-svg{width:100%;height:auto}
+#pv-value .mv-peek-over{position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:center;padding:clamp(72px,14vh,150px) 16px 16px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--pv-bg) 18%,transparent) 0%,color-mix(in srgb,var(--pv-bg) 34%,transparent) 100%)}
+/* ボタン（給与フォームの「明細から自動入力」と同じ考え：アイコン・名前・3つの ✓）。スケジュールは my-roster.css の .rs-entry が同じ形 */
+#pv-value .mv-up{display:flex;flex-direction:column;align-items:flex-start;gap:12px;width:min(440px,100%);padding:22px 24px;border-radius:var(--pv-r-lg);
+  border:1px solid var(--pv-accent-line);color:var(--pv-ink);text-decoration:none;
+  background:radial-gradient(120% 90% at 0% 0%,var(--pv-accent-soft),transparent 62%),var(--pv-surface);
+  box-shadow:0 2px 4px rgba(6,117,99,.08),0 28px 60px -24px rgba(6,117,99,.45);transition:transform .3s var(--pv-ease)}
+#pv-value .mv-up:hover{transform:translateY(-2px);border-color:var(--pv-accent)}
+#pv-value .mv-up:focus-visible{outline:2px solid var(--pv-accent);outline-offset:3px}
+#pv-value .mv-up:active{transform:translateY(1px)}
+#pv-value .mv-up-t{display:flex;align-items:center;gap:12px;font-size:1.15rem;font-weight:700;letter-spacing:-.02em;line-height:1.3}
+#pv-value .mv-up-i{flex:none;display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:999px;background:var(--pv-accent-dark);color:#fff}
+#pv-value .mv-up-b{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.82rem;font-weight:600;color:var(--pv-ink-2)}
+#pv-value .mv-up-b i{margin-right:5px;font-style:normal;color:var(--pv-accent)}
+/* スケジュール：会社を選ぶ欄とボタンを、ぼかしの上に1枚で */
+#pv-value .rs-empty.is-over{width:min(520px,100%);gap:12px}
+#pv-value .rs-empty.is-over .rs-pick{padding:16px 18px;border-radius:var(--pv-r-lg);border:1px solid var(--pv-line);background:var(--pv-surface);
+  box-shadow:0 2px 4px rgba(15,23,42,.05),0 20px 44px -24px rgba(6,117,99,.4)}
+#pv-value .rs-empty.is-over .rs-entry:disabled{opacity:1;border-color:var(--pv-line)}
+#pv-value .rs-empty.is-over .rs-entry:disabled>*{opacity:.5}
+#pv-value .rs-empty.is-over .rs-entry{box-shadow:0 2px 4px rgba(6,117,99,.08),0 28px 60px -24px rgba(6,117,99,.45)}
+@media (max-width:560px){
+  #pv-value .mv-peek{max-height:640px}
+  #pv-value .mv-peek-in{filter:blur(9px)}
+  #pv-value .mv-peek-over{padding-top:56px}
+  #pv-value .mv-up{padding:18px}
+}
+@media (prefers-reduced-motion:reduce){ #pv-value .mv-up{transition:none} }
+@media print{ #pv-value .mv-peek{display:none} }

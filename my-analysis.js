@@ -47,7 +47,7 @@
       ymT: '{y}年{n}月', ymS: '{n}月', payOf: '{t}明細', workOf: '{t}勤務',
       mon: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
       err: '分析を読み込めませんでした。時間をおいて開き直してください。',
-      emptyT: '給与明細を出すと、ここに分析が出ます。', emptyBtn: '匿名で給与を追加する →',
+      psT: '明細から自動入力', psB: ['匿名', '暗号化＆セキュア', '簡単'],
       noCo: 'この会社の明細はまだありません。',
       /* CSV と印刷（選んでいる範囲をそのまま書く） */
       csvA: 'CSVで保存（{r}）', print: '印刷', printA: '表示中の分析を印刷', prRange: '明細 {r}',
@@ -117,7 +117,7 @@
       ymT: '{M} {y}', ymS: '{M}', payOf: '{t} payslip', workOf: '{t} duty',
       mon: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],   // 二重引用符＝訳の辞書の鍵を勤務ロスターの月名と分ける（西の5月を小文字に）
       err: 'Could not load your analysis. Please try again in a moment.',
-      emptyT: 'Add a payslip and your analysis appears here.', emptyBtn: 'Add pay anonymously →',
+      psT: 'Auto-fill from a payslip', psB: ['Anonymous', 'Encrypted & secure', 'Quick'],
       noCo: 'No payslips for this airline yet.',
       csvA: 'Save as CSV ({r})', print: 'Print', printA: 'Print this analysis', prRange: 'Payslips {r}',
       csvRange: 'Range', csvPay: 'pay months {r}', csvSecPay: 'Payslips (pay month)', csvSecRoster: 'Roster (duty month)',
@@ -185,7 +185,7 @@
       ymT: '{M} {y}', ymS: '{M}', payOf: 'Recibo de {t}', workOf: 'Servicio de {t}',
       mon: ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],   // 二重引用符＝訳の辞書の鍵を勤務ロスターの月名と分ける（西の5月を小文字に）
       err: 'No se pudo cargar tu análisis. Inténtalo de nuevo en un momento.',
-      emptyT: 'Agrega un recibo de nómina y tu análisis aparecerá aquí.', emptyBtn: 'Agregar remuneración de forma anónima →',
+      psT: 'Autocompletar desde un recibo de nómina', psB: ['Anónimo', 'Cifrado y seguro', 'Rápido'],
       noCo: 'Todavía no hay recibos de nómina de esta aerolínea.',
       csvA: 'Guardar como CSV ({r})', print: 'Imprimir', printA: 'Imprimir este análisis', prRange: 'Recibos de nómina {r}',
       csvRange: 'Rango', csvPay: 'meses de pago {r}', csvSecPay: 'Recibos de nómina (mes de pago)', csvSecRoster: 'Programación (mes de servicio)',
@@ -1230,6 +1230,38 @@
 
   /* ── 組む ───────────────────────────────────────────────── */
   function cardsHTML() { return cardA() + cardB() + cardC() + cardD(); }
+  /* まだ給与を出していない人に見せる「出すと見られるもの」（2026-11-11 オーナー「ぼかし入れて、その上からアップロードのボタンでいいだろ」
+     「ぼかしのクオリティ低い。ちゃんと作れ」）。
+     ★本物のカード（収入の内訳・時間あたりの収入）と同じ部品を見本の数字で組み、強くぼかす。上には給与フォームと同じ「明細から自動入力」だけ。
+     ★見本の数字は作り物。読み上げから外し（aria-hidden）、押せず（inert）、通貨の書き換えからも外す（pv-no-cur）。形は my-value.css の .mv-peek。 */
+  function peekHTML() {
+    var t = new Date(), v = t.getFullYear() * 12 + t.getMonth() - 1, ms = [];
+    for (var k = 11; k >= 0; k--) ms.push((v - k) % 12 + 1);
+    var W = 400, H = 190, pl = 40, bw = 18, slot = (W - pl - 6) / 12, g = '', g2 = '';
+    [0, 1, 2, 3].forEach(function (i) {
+      var yy = 150 - i * 40;
+      g += '<line class="an-g' + (i ? '' : ' is-0') + '" x1="' + pl + '" x2="' + W + '" y1="' + yy + '" y2="' + yy + '"/><text class="an-ax" x="' + (pl - 6) + '" y="' + (yy + 3.5) + '" text-anchor="end">' + (i * 50) + '</text>';
+    });
+    g2 = g;
+    ms.forEach(function (mo, i) {
+      var cx = pl + slot * (i + 0.5), x = (cx - bw / 2).toFixed(1), f = 104 + (i % 3) * 3, a = 14 + ((i * 7) % 5) * 2, r = 82 + ((i * 5) % 7) * 6 + (i > 9 ? 14 : 0);
+      g += '<rect class="an-stk c-fixed" x="' + x + '" y="' + (150 - f) + '" width="' + bw + '" height="' + f + '"/>' +
+        '<rect class="an-stk c-allowance" x="' + x + '" y="' + (150 - f - 2 - a) + '" width="' + bw + '" height="' + a + '" rx="3"/>' +
+        '<text class="an-ax' + (i > 9 ? ' is-on' : '') + '" x="' + cx.toFixed(1) + '" y="170" text-anchor="middle">' + esc(T.mon[mo - 1]) + '</text>';
+      g2 += '<rect class="an-col' + (i === 11 ? ' is-b' : i === 10 ? ' is-a' : '') + '" x="' + x + '" y="' + (150 - r) + '" width="' + bw + '" height="' + r + '" rx="3"/>' +
+        '<text class="an-ax' + (i > 9 ? ' is-on' : '') + '" x="' + cx.toFixed(1) + '" y="170" text-anchor="middle">' + esc(T.mon[mo - 1]) + '</text>';
+    });
+    var segs = function (a, b) { return '<div class="an-segs"><span class="an-segb" aria-pressed="true">' + esc(a) + '</span><span class="an-segb">' + esc(b) + '</span></div>'; };
+    var A = '<section class="an-card"><div class="an-card-h"><h3 class="an-card-t">' + esc(T.aT) + '</h3></div>' + stat('92.7%', fill(T.aShare, { t: T.mon ? T.mon[ms[11] - 1] : '' })) +
+      segs(T.aComp, T.aRate) + '<ul class="an-lg"><li><i class="c-fixed"></i>' + esc(catName('fixed')) + '</li><li><i class="c-allowance"></i>' + esc(catName('allowance')) + '</li></ul>' +
+      '<svg class="an-svg" viewBox="0 0 ' + W + ' ' + H + '">' + g + '</svg></section>';
+    var B = '<section class="an-card"><div class="an-card-h"><h3 class="an-card-t">' + esc(T.bTBlock) + '</h3></div>' + stat('+7.7%', '') +
+      segs(T.vEff, T.vDay) + '<svg class="an-svg" viewBox="0 0 ' + W + ' ' + H + '">' + g2 + '</svg></section>';
+    return '<div class="mv-peek"><div class="mv-peek-in pv-no-cur" aria-hidden="true" inert><div class="an-grid">' + A + B + '</div></div>' +
+      '<div class="mv-peek-over"><a class="mv-up" href="pay-report.html#ps"><span class="mv-up-t"><span class="mv-up-i">' +
+        '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 17v-6"/><path d="m9.5 13.5 2.5-2.5 2.5 2.5"/></svg>' +
+        '</span>' + esc(T.psT) + '</span><span class="mv-up-b">' + T.psB.map(function (x) { return '<span><i aria-hidden="true">✓</i>' + esc(x) + '</span>'; }).join('') + '</span></a></div></div>';
+  }
   function render() {
     if (!S.el) return;
     if (!S.visible) { S.dirty = true; return; }
@@ -1237,7 +1269,7 @@
     var h;
     if (S.loading && !S.model) h = '<div class="an-skel"></div><div class="an-grid"><div class="an-skel is-card"></div><div class="an-skel is-card"></div></div>';
     else if (S.err && !S.model) h = '<div class="an-card an-msg"><p>' + esc(T.err) + '</p></div>';
-    else if (!(S.ctx.reports || []).length) h = '<div class="an-card an-msg"><p>' + esc(T.emptyT) + '</p><a class="an-btn is-primary" href="pay-report.html#ps">' + esc(T.emptyBtn) + '</a></div>';
+    else if (!(S.ctx.reports || []).length) h = peekHTML();      // ★2026-11-11 ぼかした本物のカード＋ボタンだけ（オーナー指示）
     else if (!S.model || !S.model.months.length) h = '<div class="an-card an-msg"><p>' + esc(T.noCo) + '</p></div>';
     else h = headHTML() + '<div class="an-grid">' + cardsHTML() + '</div>';
     S.el.innerHTML = '<div class="an pv-no-cur">' + h + '<div class="an-tip" role="tooltip" hidden></div></div>';
