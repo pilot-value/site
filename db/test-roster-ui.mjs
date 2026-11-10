@@ -322,7 +322,7 @@ const BREAK = [
   ['⑧ 時刻を直さずに見る', "var v = P.pad2(+m[1]) + ':' + m[2];", 'var v = s;', 'up'],
   ['⑧ 空港の形を見ない', "if (from && !RX_APT.test(from)) errs[p + 'from'] = 'errApt';", '', 'up'],
   ['⑨ 分からない便の時間を 0:00 で出す', "var op = (opN && opGap >= opN) ? null : v(m.blockMin.operating, P.blockMin.operating);", 'var op = v(m.blockMin.operating, P.blockMin.operating);', 'ros'],
-  ['⑩ 手で入れた日もページ数で出す', "(dc.manual ? T.docManual : fill(T.docPages, { n: dc.pages }))", "fill(T.docPages, { n: dc.pages })", 'ros'],
+  ['⑩ 手で入れた日もページ数で出す', "(dc.manual ? T.docManual : fill(dc.pages === 1 ? T.docPage1 : T.docPages, { n: dc.pages }))", "fill(dc.pages === 1 ? T.docPage1 : T.docPages, { n: dc.pages })", 'ros'],
   ['⑪ 会社の辞書を見ずに聞く', "codes: unknownCodes().filter(function (c) { return !lr.codes[c]; }) };", 'codes: unknownCodes() };', 'up'],
   ['⑪ 印を大文字にする', "code = codeT(dr.code)", 'code = upT(dr.code)', 'up'],
   ['⑪ 印をそのまま画面に出す', "function codeShow(c) { return P.isTok(c) ? tokName(c) : c; }", 'function codeShow(c) { return c; }', 'up'],

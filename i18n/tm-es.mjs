@@ -16049,6 +16049,7 @@ export const TM = {
   "js:'Planned roster'": {"es":"js:'Programación planificada'","st":"manual","by":"claude-review","at":"2026-11-09","pages":["my-roster.js"],"note":"マイレポート 勤務ロスター 2026-11-09"},
   "js:'Uploaded rosters'": {"es":"js:'Programaciones subidas'","st":"manual","by":"claude-review","at":"2026-11-09","pages":["my-roster.js"],"note":"マイレポート 勤務ロスター 2026-11-09"},
   "js:'{n} pages'": {"es":"js:'{n} páginas'","st":"manual","by":"claude-review","at":"2026-11-09","pages":["my-roster.js","roster-upload.js"],"note":"マイレポート 勤務ロスター 2026-11-09"},
+  "js:'{n} page'": {"es":"js:'{n} página'","st":"manual","by":"claude-review","at":"2026-11-11","pages":["my-roster.js"],"note":"MY PAY の作り直し（スケジュール・1ページのときの単数）2026-11-11"},
   "js:'Days in use {o} / {n}'": {"es":"js:'Días en uso {o} / {n}'","st":"manual","by":"claude-review","at":"2026-11-09","pages":["my-roster.js"],"note":"マイレポート 勤務ロスター 2026-11-09"},
   "js:'Added {d}'": {"es":"js:'Agregada el {d}'","st":"manual","by":"claude-review","at":"2026-11-09","pages":["my-roster.js"],"note":"マイレポート 勤務ロスター 2026-11-09"},
   "js:'This removes the file record and the {n} days of duty that came from it.'": {"es":"js:'Esto elimina el registro del archivo y los {n} días de servicio que provienen de él.'","st":"manual","by":"claude-review","at":"2026-11-09","pages":["my-roster.js"],"note":"マイレポート 勤務ロスター 2026-11-09"},

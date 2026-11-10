@@ -37,7 +37,6 @@
 
   var T = {
     ja: {
-      eyebrow: 'YOUR SCHEDULE',
       monthT: '{y}年{n}月', monthDuty: '{t}の勤務',
       mon: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
       monS: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
@@ -70,12 +69,12 @@
       noRec: 'この日の記録はありません。',
       noDuty: '勤務の時刻は書かれていません。',
       reselect: '日付を選び直す',
-      chartEy: 'DUTY & BLOCK TIME', chartH: '日別の勤務時間',
+      chartH: '日別の勤務時間',
       chartS: '原本に書かれた時刻から',
       tipDuty: '勤務', tipDh: 'DH',
       kindActual: '実績のスケジュール', kindPlanned: '予定のスケジュール',
       docsH: '提出資料',
-      docPages: '{n}ページ', docUse: 'いま使っている日 {o} / {n}日', docAdded: '{d} に追加',
+      docPages: '{n}ページ', docPage1: '{n}ページ', docUse: 'いま使っている日 {o} / {n}日', docAdded: '{d} に追加',
       del: '削除', delQ: 'この資料と、この資料から入った {n}日ぶんの勤務を消します。', delYes: '消す', delNo: 'やめる',
       delDone: '消しました。', delErr: '消せませんでした。時間をおいてもう一度お試しください。',
       docsNote: '画像は保存していません。残っているのは読み取った日付・空港・時刻だけ（便名は残しません）で、見られるのはあなただけです。2年たった日は月の合計だけになります。',
@@ -94,7 +93,6 @@
       tokL: '勤務表の言葉 {k}'
     },
     en: {
-      eyebrow: 'YOUR ROSTER',
       monthT: '{M} {y}', monthDuty: 'Duty in {t}',
       mon: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
       monS: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
@@ -127,12 +125,12 @@
       noRec: 'Nothing recorded for this day.',
       noDuty: 'No duty times on this day.',
       reselect: 'Pick another date',
-      chartEy: 'DUTY & BLOCK TIME', chartH: 'Daily duty time',
+      chartH: 'Daily duty time',
       chartS: 'From the times printed on your roster',
       tipDuty: 'Duty', tipDh: 'DH',
       kindActual: 'Actual roster', kindPlanned: 'Planned roster',
       docsH: 'Uploaded rosters',
-      docPages: '{n} pages', docUse: 'Days in use {o} / {n}', docAdded: 'Added {d}',
+      docPages: '{n} pages', docPage1: '{n} page', docUse: 'Days in use {o} / {n}', docAdded: 'Added {d}',
       del: 'Delete', delQ: 'This removes the file record and the {n} days of duty that came from it.', delYes: 'Delete', delNo: 'Cancel',
       delDone: 'Deleted.', delErr: 'Could not delete. Please try again in a moment.',
       docsNote: 'Images are not stored. Only the dates, airports and times read from them are kept (no flight numbers), and only you can see them. After two years, days are reduced to monthly totals.',
@@ -148,7 +146,6 @@
       editNotReady: 'Not available yet.', editErr: 'Could not save. Please try again in a moment.',
       tokL: 'Roster word {k}'
     }, /*PV-MSG:es*/ es: {
-      eyebrow: 'TU PROGRAMACIÓN',
       monthT: '{M} {y}', monthDuty: 'Servicios · {t}',
       mon: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
       monS: ['ene', 'feb', 'mar', 'abr', 'Mayo', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'],
@@ -181,12 +178,12 @@
       noRec: 'No hay nada registrado para este día.',
       noDuty: 'Este día no tiene horas de servicio.',
       reselect: 'Elegir otra fecha',
-      chartEy: 'SERVICIO Y TIEMPO BLOCK', chartH: 'Tiempo de servicio por día',
+      chartH: 'Tiempo de servicio por día',
       chartS: 'Según las horas impresas en tu programación',
       tipDuty: 'Servicio', tipDh: 'DH',
       kindActual: 'Programación real', kindPlanned: 'Programación planificada',
       docsH: 'Programaciones subidas',
-      docPages: '{n} páginas', docUse: 'Días en uso {o} / {n}', docAdded: 'Agregada el {d}',
+      docPages: '{n} páginas', docPage1: '{n} página', docUse: 'Días en uso {o} / {n}', docAdded: 'Agregada el {d}',
       del: 'Eliminar', delQ: 'Esto elimina el registro del archivo y los {n} días de servicio que provienen de él.', delYes: 'Eliminar', delNo: 'Cancelar',
       delDone: 'Eliminado.', delErr: 'No se pudo eliminar. Inténtalo de nuevo en un momento.',
       docsNote: 'Las imágenes no se guardan. Solo se conservan las fechas, los aeropuertos y las horas leídas (sin números de vuelo), y solo tú puedes verlos. Después de dos años, los días quedan solo como totales mensuales.',
@@ -443,7 +440,7 @@
       : '<span class="rs-air">' + esc(airlineName(S.airline, S.other)) + '</span>' +
         (!S.choices.length ? '<button type="button" class="rs-link" data-act="change">' + esc(T.airlineChange) + '</button>' : '');
     return '<div class="rs-hd">' +
-      '<div class="rs-hd-l"><p class="rs-ey">' + esc(T.eyebrow) + ' · ' + air + '</p>' +
+      '<div class="rs-hd-l"><p class="rs-ey">' + air + '</p>' +
         '<h2 class="rs-h">' + esc(fill(T.monthDuty, { t: monthTitle(S.ym) })) + '</h2></div>' +
       '<div class="rs-hd-r">' +
         '<div class="rs-mnav">' +
@@ -451,7 +448,7 @@
           sel +
           '<button type="button" class="rs-ib" data-act="next" aria-label="' + esc(T.next) + '"' + (i >= S.yms.length - 1 ? ' disabled' : '') + '><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>' +
         '</div>' +
-        '<button type="button" class="rs-btn" data-act="upload">' + ICON_PLUS + esc(T.add) + '</button>' +
+        '<button type="button" class="rs-btn is-primary" data-act="upload">' + ICON_PLUS + esc(T.add) + '</button>' +
         '<button type="button" class="rs-btn is-ghost is-sm rs-tool" data-act="csv" aria-label="' + esc(fill(T.csvA, { t: monthTitle(S.ym) })) + '">' + ICON_DL + 'CSV</button>' +
         '<button type="button" class="rs-btn is-ghost is-sm rs-tool" data-act="print" aria-label="' + esc(fill(T.printA, { t: monthTitle(S.ym) })) + '">' + ICON_PR + esc(T.print) + '</button>' +
       '</div></div>';
@@ -546,7 +543,7 @@
             '<button type="button" class="rs-btn is-ghost" data-act="del-no">' + esc(T.delNo) + '</button></div>'
         : '';
       return '<li class="rs-doc"><span class="rs-doc-i" aria-hidden="true">' + ICON_DOC + '</span>' +
-        '<div class="rs-doc-b"><b>' + range + '</b><span>' + esc((dc.manual ? T.docManual : fill(T.docPages, { n: dc.pages })) + ' · ' +
+        '<div class="rs-doc-b"><b>' + range + '</b><span>' + esc((dc.manual ? T.docManual : fill(dc.pages === 1 ? T.docPage1 : T.docPages, { n: dc.pages })) + ' · ' +
           fill(T.docUse, { o: dc.days_owned, n: dc.days }) + ' · ' + fill(T.docAdded, { d: String(dc.created_at || '').slice(0, 10) })) + '</span></div>' +
         (S.confirmDel === dc.id ? '' : '<button type="button" class="rs-btn is-ghost is-sm" data-act="del" data-id="' + esc(dc.id) + '">' + esc(T.del) + '</button>') +
         conf + '</li>';
@@ -568,7 +565,7 @@
     } else if (!S.airline || S.picking) {
       h = flashHTML() + '<div class="rs-empty">' + airlinePicker() + entryHTML(true) + '<p class="rs-empty-s">' + esc(T.emptyS) + '</p></div>';
     } else if (!S.days.length && !S.docs.length) {
-      h = flashHTML() + '<div class="rs-empty"><p class="rs-ey">' + esc(T.eyebrow) + ' · <span class="rs-air">' + esc(airlineName(S.airline, S.other)) + '</span>' +
+      h = flashHTML() + '<div class="rs-empty"><p class="rs-ey"><span class="rs-air">' + esc(airlineName(S.airline, S.other)) + '</span>' +
         (!S.choices.length ? ' <button type="button" class="rs-link" data-act="change">' + esc(T.airlineChange) + '</button>' : '') + '</p>' +
         entryHTML(false) + '<p class="rs-empty-s">' + esc(T.emptyS) + '</p></div>';
     } else if (!S.ym) {
@@ -583,7 +580,7 @@
             '<p class="rs-hint">' + esc(T.calHint) + '</p></section>' +
           '<section class="rs-card rs-day" aria-live="polite">' + dayHTML(S.date) + '</section>' +
         '</div>' +
-        '<section class="rs-card rs-ch"><div class="rs-card-h"><div><p class="rs-ey">' + esc(T.chartEy) + '</p><h3 class="rs-card-t">' + esc(T.chartH) + '</h3></div>' +
+        '<section class="rs-card rs-ch"><div class="rs-card-h"><h3 class="rs-card-t">' + esc(T.chartH) + '</h3>' +
           '<span class="rs-lg"><i class="is-duty"></i>D-ON〜D-OFF<i class="is-blk"></i>' + esc(timeLabel(S.profile)) + '<i class="is-dh"></i>' + esc(T.kDh) + '<i class="is-vac"></i>VAC</span></div>' +
           '<div class="rs-ch-box"><svg class="rs-ch-svg" tabindex="0" role="img" aria-label="' + esc(T.chartH + ' · ' + monthTitle(S.ym)) + '"></svg><div class="rs-tip" hidden></div></div>' +
           '<p class="rs-note">' + esc(T.chartS) + '</p></section>' +
@@ -667,7 +664,8 @@
         if (x.dutyMin) {
           var yd = yOf(x.dutyMin);
           h += '<rect class="rs-b-duty" x="' + (cx - bw - 0.5).toFixed(1) + '" y="' + yd.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + (base - yd).toFixed(1) + '" rx="1.5"/>';
-          if (date === S.date && !narrow) h += '<text class="rs-val" x="' + (cx - bw / 2).toFixed(1) + '" y="' + (yd - 5).toFixed(1) + '" text-anchor="middle">' + hm(x.dutyMin) + '</text>';
+          // 字は図の内側に収める（月初・月末の日に、目盛の「12h」と重ならない）
+          if (date === S.date && !narrow) h += '<text class="rs-val" x="' + Math.min(W - pr - 16, Math.max(pl + 16, cx - bw / 2)).toFixed(1) + '" y="' + (yd - 5).toFixed(1) + '" text-anchor="middle">' + hm(x.dutyMin) + '</text>';
         }
         var op = x.blockKnown.operating || 0, dh = x.blockKnown.deadhead || 0;
         if (op) { var yo = yOf(op); h += '<rect class="rs-b-blk" x="' + (cx + 0.5).toFixed(1) + '" y="' + yo.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + (base - yo).toFixed(1) + '" rx="1.5"/>'; }

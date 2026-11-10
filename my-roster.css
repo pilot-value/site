@@ -2,14 +2,16 @@
    my-roster.css — YOUR PAY の「勤務ロスター」のタブと取り込みの画面（2026-11-09）
    ★my-value.js がタブを開いたときだけ読む（指紋つき）。中身は my-roster.js と roster-upload.js が組む。
    ★色は --pv-* だけ（pv-tokens.css）。ダークは同じトークンが入れ替わる。データの色だけここで決める：
-     勤務（D-ON〜D-OFF）＝ブランドの緑・便の時間＝青・DH＝薄い青・VAC＝紫（承認済みの見本と同じ割り当て）。
+     ★2026-11-11 MY PAY と同じ物差し（オーナー「こういうのだよ。スケジュールとかも」）── 青・紫をやめた：
+     勤務（D-ON〜D-OFF）＝緑・便の時間＝薄い緑（勤務の中の一部）・DH＝薄い灰・VAC＝灰の菱形。
+     カレンダーは白い升に字・勤務の日だけ上に細い緑の線・休みの日は灰の地。色で塗るのは選んだ日の1つだけ。
    ★動かすのは transform と opacity だけ。数字は桁のそろう字（tabular-nums）。角は 14px・間は 16px。
    ════════════════════════════════════════════════════════════════ */
-.rs{--rs-duty:var(--pv-accent);--rs-blk:#3d9bff;--rs-dh:rgba(61,155,255,.42);
-  --rs-vac:#8b74e8;--rs-vac-soft:rgba(139,116,232,.10);--rs-vac-ink:#5b45c4;
+.rs{--rs-duty:var(--pv-accent);--rs-blk:color-mix(in srgb,var(--pv-accent) 55%,var(--pv-surface));--rs-dh:color-mix(in srgb,var(--pv-ink-3) 42%,var(--pv-surface));
+  --rs-vac:var(--pv-ink-3);--rs-vac-soft:var(--pv-bg-sub);--rs-vac-ink:var(--pv-ink-2);
   --rs-bad:#b42318;--rs-bad-soft:rgba(180,35,24,.06);--rs-bad-line:rgba(180,35,24,.24);
   display:flex;flex-direction:column;gap:16px;container-type:inline-size;font-variant-numeric:tabular-nums;color:var(--pv-ink)}
-[data-theme="dark"] .rs{--rs-blk:#5fb0ff;--rs-dh:rgba(95,176,255,.42);--rs-vac:#a996f5;--rs-vac-soft:rgba(169,150,245,.14);--rs-vac-ink:#c4b8ff;
+[data-theme="dark"] .rs{--rs-duty:#119c84;--rs-blk:color-mix(in srgb,#119c84 58%,var(--pv-surface));
   --rs-bad:#fda29b;--rs-bad-soft:rgba(253,162,155,.08);--rs-bad-line:rgba(253,162,155,.28)}
 .rs-main[hidden],.rs-upbox[hidden],.rs [hidden]{display:none !important}
 .rs *{box-sizing:border-box}
@@ -190,7 +192,7 @@ button.rs-cell:active{transform:scale(.97)}
 .rs-legs::before{content:"";position:absolute;left:4px;top:16px;bottom:22px;width:1px;background:var(--pv-line)}
 .rs-leg{position:relative;padding:8px 0 10px}
 .rs-leg::before{content:"";position:absolute;left:-18px;top:14px;width:9px;height:9px;border-radius:50%;border:2px solid var(--pv-accent);background:var(--pv-surface)}
-.rs-leg.is-dh::before{border-color:var(--rs-blk)}
+.rs-leg.is-dh::before{border-color:var(--pv-ink-3);border-style:dashed}
 .rs-leg.is-gnd::before{border-color:var(--pv-ink-3)}
 .rs-leg-a{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .rs-leg-r{display:flex;align-items:center;gap:8px;min-width:0;font-size:1.05rem;font-weight:700;letter-spacing:.03em;color:var(--pv-ink)}
@@ -198,9 +200,9 @@ button.rs-cell:active{transform:scale(.97)}
 .rs-leg-tags{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px}
 .rs-tag{display:inline-flex;align-items:center;padding:2px 7px;border-radius:6px;border:1px solid var(--pv-line);background:var(--pv-bg-sub);
   font-size:.64rem;font-weight:700;letter-spacing:.03em;line-height:1.5;color:var(--pv-ink-2);white-space:nowrap}
-.rs-tag.is-dh{border-color:var(--pv-blue-line);background:var(--pv-blue-soft);color:var(--pv-blue-ink)}
+.rs-tag.is-dh{border-style:dashed;background:var(--pv-surface);color:var(--pv-ink-2)}
 .rs-tag.is-gnd{color:var(--pv-ink-2)}
-.rs-tag.is-unk{border-color:var(--pv-gold-line);background:var(--pv-gold-soft);color:var(--pv-gold-ink)}
+.rs-tag.is-unk{border-style:dashed;background:var(--pv-surface);color:var(--pv-ink-3)}
 .rs-leg-b{display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:12px;margin-top:4px;font-size:.76rem;color:var(--pv-ink-3)}
 .rs-leg-t sup{font-size:.6rem;margin-left:1px}
 .rs-leg-h{font-weight:700;color:var(--pv-ink)}
@@ -213,7 +215,7 @@ button.rs-cell:active{transform:scale(.97)}
 .rs-ch-svg:focus-visible{outline:2px solid var(--pv-accent);outline-offset:4px;border-radius:6px}
 .rs-g{stroke:var(--pv-line-soft);stroke-width:1}
 .rs-ax{fill:var(--pv-ink-3);font-size:10px;font-weight:600}
-.rs-val{fill:var(--pv-accent-ink);font-size:10.5px;font-weight:700}
+.rs-val{fill:var(--pv-ink);font-size:10.5px;font-weight:600}
 .rs-b-duty{fill:var(--rs-duty)}
 .rs-b-blk{fill:var(--rs-blk)}
 .rs-b-dh{fill:var(--rs-dh)}
@@ -432,6 +434,47 @@ li[data-s="done"] .ps-step-dot::after{content:"";position:absolute;left:6px;top:
   .rs-hd-r,.rs-resel,.rs-edit,.rs-docs .rs-btn,.rs-tip{display:none !important}
   .rs-card,.rs-kpis{box-shadow:none}
   /* 表示中のタブの印刷（#pv-print の写し）：明るい面の色に固定 */
-  #pv-print .rs{--rs-blk:#3d9bff;--rs-dh:rgba(61,155,255,.42);--rs-vac:#8b74e8;--rs-vac-soft:rgba(139,116,232,.10);--rs-vac-ink:#5b45c4}
+  #pv-print .rs{--rs-duty:#0a8f79;--rs-blk:#78c1b5;--rs-dh:#c1c7d1;--rs-vac:#64748b;--rs-vac-soft:#f7f9fc;--rs-vac-ink:#475569}
   #pv-print .rs-grid{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}
 }
+
+/* ══ 2026-11-11 MY PAY と同じ物差し（my-value.css の末尾と同じ形）══════════════
+   オーナー「こういうのだよ！このスタイル覚えておいて。…スケジュールとかも」。
+   英語の小見出しをやめて灰色の字1行（会社名）／カード＝角 20px・中 24px・2重の薄い緑の影／字は 600〜700 まで。 */
+.rs-ey{margin:0;font-size:.86rem;font-weight:500;letter-spacing:0;line-height:1.5;color:var(--pv-ink-2)}
+.rs-ey .rs-air{letter-spacing:0;color:inherit}
+.rs-card,.rs-kpis,.ru-card{border-radius:var(--pv-r-lg);
+  box-shadow:0 1px 2px color-mix(in srgb,var(--pv-accent-ink) 6%,transparent),
+             0 12px 28px -18px color-mix(in srgb,var(--pv-accent-ink) 30%,transparent)}
+.rs-card{padding:24px}
+.rs-card.rs-cal{padding:20px}   /* 7列の升に便の区間（BKK→DXB）が入りきる幅を残す */
+@container (min-width:471px){ .rs-c-s{letter-spacing:-.01em} }   /* 狭い升の詰め方（-.04em）は上の 470px の規則のまま */
+.rs-card-t{font-size:1rem}
+.rs-card-s,.rs-lg,.rs-cal-w{font-weight:600}
+.rs-kpi{padding:16px 18px}
+.rs-kpi-k{font-weight:600}
+.rs-kpi-v{font-weight:600;letter-spacing:-.025em}
+.rs-kpi.is-main .rs-kpi-v{font-size:1.6rem}
+.rs-kpi-v small{font-weight:500}
+.rs-big{font-weight:600;letter-spacing:-.025em}
+.rs-dstats b,.rs-leg-r,.rs-c-m{font-weight:600}
+.rs-sel{font-weight:600}
+.rs-btn.is-primary{background:var(--pv-accent-dark);border-color:var(--pv-accent-dark);border-radius:12px}
+.rs-btn.is-primary:hover{background:color-mix(in srgb,var(--pv-accent-dark) 86%,#000);border-color:transparent}
+/* カレンダー：白い升に字。勤務の日だけ上に細い緑の線・休みの日は灰の地（升を緑で塗らない） */
+.rs-cell{background:var(--pv-surface);border-color:var(--pv-line-soft)}
+.rs-cell.is-duty{background:var(--pv-surface);border-color:var(--pv-line)}
+.rs-cell.is-duty::before{content:"";position:absolute;top:0;left:7px;right:7px;height:2px;border-radius:0 0 2px 2px;background:var(--rs-duty)}
+.rs-cell.is-duty .rs-c-m{color:var(--pv-ink)}
+.rs-cell.is-off,.rs-cell.is-code{background:var(--pv-bg-sub);border-color:transparent}
+.rs-cell.is-off .rs-c-m,.rs-cell.is-code .rs-c-m{color:var(--pv-ink-3)}
+.rs-cell.is-vac{background:var(--pv-bg-sub);border-color:transparent}
+.rs-cell.is-vac::before{content:"";position:absolute;top:8px;right:8px;width:6px;height:6px;background:var(--rs-vac);transform:rotate(45deg)}
+.rs-cell.is-none{background:transparent}
+.rs-cell.is-sel{background:var(--pv-accent);border-color:var(--pv-accent)}
+.rs-cell.is-sel::before{display:none}
+button.rs-cell:hover{border-color:var(--pv-accent)}
+.rs-cal-g.is-mini .rs-cell.is-duty::before{left:5px;right:5px}
+@container (max-width:470px){ .rs-cell.is-duty::before{left:4px;right:4px} .rs-cell.is-vac::before{top:6px;right:5px;width:5px;height:5px} }
+.rs-cal .rs-lg i.is-duty{height:3px;width:12px;vertical-align:2px;border-radius:2px}   /* カレンダーでは升の上の線＝凡例も線 */
+@media print{ .rs-cell.is-duty::before{background:#0a8f79} }

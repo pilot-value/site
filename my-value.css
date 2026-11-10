@@ -841,8 +841,8 @@
 .mv-wf-t{position:relative;height:20px}
 .mv-wf-0{position:absolute;top:-3px;bottom:-3px;width:1px;background:var(--pv-line)}
 .mv-wf-b{position:absolute;top:5px;height:10px;border-radius:3px}
-.mv-wf-b.up{background:var(--pv-orange)}
-.mv-wf-b.dn{background:var(--pv-blue)}
+.mv-wf-b.up{background:var(--pv-accent)}   /* ★2026-11-11 橙と青をやめた（増減の色で良し悪しを言わない・向きは0の線の左右で読む） */
+.mv-wf-b.dn{background:var(--pv-ink-3)}
 .mv-wf-b.tot{background:var(--pv-ink-2)}
 .mv-wf-v{min-width:72px;font-size:.8rem;font-weight:700;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 .mv-wf-r.is-tot{margin-top:4px;padding-top:6px;border-top:1px solid var(--pv-line-soft);border-radius:0 0 6px 6px}
@@ -937,3 +937,18 @@
 .mr-gn a:hover{opacity:.86}
 .mr-gn a:focus-visible{outline:2px solid currentColor;outline-offset:3px}
 .mr-gn a:active{opacity:.7}
+
+/* ══ 2026-11-11 まだ給与を出していない人の画面も同じ物差し ══════════════
+   オーナー「こういうのだよ。このスタイル覚えておいて」── 橙の面と札をブランドの緑にそろえる（形と字は変えない）。 */
+#pv-value .pt-first{background:linear-gradient(152deg,var(--pv-accent-soft) 0%,transparent 62%),var(--pv-surface)}
+#pv-value .mv-e-rep{background:linear-gradient(148deg,var(--pv-accent-soft) 0%,transparent 58%),var(--pv-surface)}
+#pv-value .mv-e-band{background:linear-gradient(140deg,var(--pv-accent-soft) 0%,transparent 70%),var(--pv-surface);border-color:var(--pv-accent-line)}
+#pv-value .mv-e-ic,#pv-value .mv-e-st-i{background:var(--pv-accent-soft);color:var(--pv-accent-ink)}
+#pv-value .mv-e-lk{background:var(--pv-accent-dark)}
+#pv-value .mv-e-band-s b,#pv-value .mv-e-link{color:var(--pv-accent-ink)}
+#pv-value .mv-e-link:focus-visible{outline-color:var(--pv-accent)}
+#pv-value .mv-e-know-l li::before{border-color:var(--pv-accent)}
+#pv-value .mv-e-st-n{font-weight:600}
+#pv-value .mr-mask-over::after{background:radial-gradient(84% 68% at 50% 38%,var(--pv-accent-soft) 0%,transparent 72%)}
+#pv-value .mr-mask-tag{background:var(--pv-accent-soft);border-color:var(--pv-accent-line);color:var(--pv-accent-ink);
+  box-shadow:0 1px 2px rgba(6,117,99,.08),0 6px 16px -10px rgba(6,117,99,.4)}

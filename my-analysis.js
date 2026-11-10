@@ -1028,7 +1028,13 @@
         if (p.lab && (p.cls === 'b' || labA)) {
           var lw = txW(p.lab) * 1.05, lx = Math.min(cx, W - pr - lw / 2), anc = 'middle';
           if (cx - lw / 2 < pl) { lx = pl; anc = 'start'; }
-          g += '<text class="an-val" x="' + lx.toFixed(1) + '" y="' + (p.v >= 0 ? y(p.v) - 6 : y(p.v) + 13).toFixed(1) + '" text-anchor="' + anc + '">' + esc(p.lab) + '</text>';
+          // 端で字を寄せたとき、字の下に来る隣の棒より上に置く（隣の棒に字が重ならない）
+          var mid = anc === 'start' ? lx + lw / 2 : lx, vv = p.v;
+          pts.forEach(function (q, j) {
+            if (!isNum(q.v) || Math.abs(pl + slot * (j + 0.5) - mid) >= lw / 2 + bw / 2) return;
+            vv = p.v >= 0 ? Math.max(vv, q.v) : Math.min(vv, q.v);
+          });
+          g += '<text class="an-val" x="' + lx.toFixed(1) + '" y="' + (p.v >= 0 ? y(vv) - 6 : y(vv) + 13).toFixed(1) + '" text-anchor="' + anc + '">' + esc(p.lab) + '</text>';
         }
       } else {
         g += '<rect class="an-col-na" x="' + x.toFixed(1) + '" y="' + (y(0) - 4).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="4" rx="2"/>';
@@ -1080,7 +1086,9 @@
       if (on === 'b' && isNum(c.tv)) {
         var lab = money(c.tot, c.cur), lw = txW(lab) * 1.05, lx = Math.min(cx, W - pr - lw / 2), anc = 'middle';
         if (cx - lw / 2 < pl) { lx = pl; anc = 'start'; }
-        g += '<text class="an-val" x="' + lx.toFixed(1) + '" y="' + (y(c.tv) - 6).toFixed(1) + '" text-anchor="' + anc + '">' + esc(lab) + '</text>';
+        var mid = anc === 'start' ? lx + lw / 2 : lx, tv = c.tv;   // 字の下に来る隣の棒より上に置く（columns と同じ）
+        data.forEach(function (q, j) { if (isNum(q.tv) && Math.abs(pl + slot * (j + 0.5) - mid) < lw / 2 + bw / 2) tv = Math.max(tv, q.tv); });
+        g += '<text class="an-val" x="' + lx.toFixed(1) + '" y="' + (y(tv) - 6).toFixed(1) + '" text-anchor="' + anc + '">' + esc(lab) + '</text>';
       }
       var mo = +c.ym.slice(5, 7);
       if (i % every === 0 || i === n - 1 || on) {

@@ -2,17 +2,19 @@
    my-analysis.css — YOUR PAY の「分析」のタブ（2026-11-09）
    ★my-value.js がタブを開いたときだけ読む（指紋つき）。中身は my-analysis.js が組む。
    ★色は --pv-* だけ（pv-tokens.css）。データの色だけここで決める（ダークは同じ名前で入れ替える）：
-     比べる2つの月＝前が緑・後が青（承認済みの見本と同じ）・ほかの月は薄い灰／増えた＝橙・減った＝青（給与サマリーの増減と同じ）
-     収入の区分は6色（固定・役割・変動・手当・賞与・現物）＋内訳なしの灰。色の組は dataviz の検査（明暗・色覚）を通した値。
+     ★2026-11-11 MY PAY と同じ物差し（オーナー「こういうのだよ」）── 青・橙をやめた。
+     比べる2つの月＝新しい月が緑・前の月が薄い緑・ほかの月は薄い灰／増えた＝緑・減った＝灰（増減の色で良し悪しを言わない）
+     収入の区分は6色（固定＝緑・役割＝テラコッタ・変動＝くすんだ紫・手当＝砂色・賞与＝鈍い青・現物＝ミント）＋内訳なしの灰。
+     色の組は dataviz の検査（明暗の帯・彩度・色覚・隣どうし）を明暗とも通した値。固定・変動・手当は隣に並ぶことが多いので総当たりでも通してある。
    ★字はデータの色を着ない（値・軸・凡例は --pv-ink 系）。数字は桁のそろう字。角 14px・間 16px。
    ★動かすのは transform と opacity だけ。
    ════════════════════════════════════════════════════════════════ */
-.an{--an-up:#e8742c;--an-dn:#3d7fe0;--an-a:#0a8f79;--an-b:#3d7fe0;--an-mute:#cbd5e1;
-  --an-fixed:#0a8f79;--an-role:#a8662b;--an-variable:#d9a21b;--an-allowance:#3d7fe0;--an-bonus:#d9578e;--an-noncash:#8b74e8;
-  --an-unexplained:#b8c2cf;--an-adjustment:#94a3b8;--an-bad:#b42318;
+.an{--an-up:var(--pv-accent);--an-dn:var(--pv-ink-3);--an-a:color-mix(in srgb,var(--pv-accent) 48%,var(--pv-surface));--an-b:var(--pv-accent);--an-mute:#d5dce5;
+  --an-fixed:#0a8f79;--an-role:#c65f48;--an-variable:#8d6bb0;--an-allowance:#b07d2e;--an-bonus:#4a74b8;--an-noncash:#4fb39b;
+  --an-unexplained:#c3ccd6;--an-adjustment:#94a3b8;--an-bad:#b42318;
   position:relative;display:flex;flex-direction:column;gap:16px;container-type:inline-size;font-variant-numeric:tabular-nums;color:var(--pv-ink)}
-[data-theme="dark"] .an{--an-up:#fb923c;--an-dn:#5fb0ff;--an-a:#119c84;--an-b:#4a8ef0;--an-mute:#334155;
-  --an-fixed:#119c84;--an-role:#a3542f;--an-variable:#b58d15;--an-allowance:#4a8ef0;--an-bonus:#d9578e;--an-noncash:#937eec;
+[data-theme="dark"] .an{--an-up:#119c84;--an-a:color-mix(in srgb,#119c84 52%,var(--pv-surface));--an-b:#119c84;--an-mute:#2c3646;
+  --an-fixed:#119c84;--an-role:#c95a45;--an-variable:#9580c8;--an-allowance:#b88a3c;--an-bonus:#5f84c8;--an-noncash:#3fa88f;
   --an-unexplained:#5c6675;--an-adjustment:#64748b;--an-bad:#fda29b}
 .an *{box-sizing:border-box}
 .an [hidden]{display:none !important}
@@ -116,8 +118,8 @@
 .an-lg{display:flex;flex-wrap:wrap;gap:4px 14px;margin:0 0 10px;padding:0;list-style:none;font-size:.68rem;font-weight:700;color:var(--pv-ink-3)}
 .an-lg i{display:inline-block;width:9px;height:9px;margin-right:5px;border-radius:2px;vertical-align:-1px}
 .an-lg.is-sm{margin:0 0 4px}
-.an-lg i.is-fit{background:var(--an-a)}
-.an-lg i.is-val{background:var(--an-b)}
+.an-lg i.is-fit{background:var(--an-b)}
+.an-lg i.is-val{background:var(--pv-ink-3)}
 .an-comp{display:flex;flex-direction:column;gap:10px}
 .an-cb{display:grid;grid-template-columns:minmax(52px,auto) minmax(0,1fr) auto;align-items:center;gap:10px;border-radius:6px}
 .an-cb:focus-visible{outline:2px solid var(--pv-accent);outline-offset:3px}
@@ -128,7 +130,7 @@
 .an-cb-t i:last-child{border-radius:2px 4px 4px 2px}
 .an-cb-t i:only-child{border-radius:4px}
 .an-cb-t em{font-style:normal;font-size:.62rem;font-weight:700;color:#fff;white-space:nowrap}
-.an-cb-t i.c-variable em,.an-cb-t i.c-unexplained em{color:#1f2937}
+.an-cb-t i.c-unexplained em{color:#1f2937}
 .an-cb-v{font-size:.8rem;font-weight:700;white-space:nowrap}
 .an .c-fixed{background:var(--an-fixed)}
 .an .c-role{background:var(--an-role)}
@@ -173,15 +175,15 @@
 .an-hit[role="button"]:active{fill:color-mix(in srgb,var(--pv-accent) 14%,transparent)}
 .an-pt,.an-cv{cursor:pointer;outline:none}
 .an-pt-h{fill:transparent}
-.an-pt-d{fill:var(--an-a);fill-opacity:.85;stroke:var(--pv-surface);stroke-width:2}
+.an-pt-d{fill:var(--an-b);fill-opacity:.85;stroke:var(--pv-surface);stroke-width:2}
 .an-pt:hover .an-pt-d,.an-pt:focus .an-pt-d,.an-cv:hover .an-cv-d,.an-cv:focus .an-cv-d{stroke:var(--pv-ink);fill-opacity:1}
 .an-pt:focus .an-pt-h,.an-cv:focus .an-pt-h{fill:color-mix(in srgb,var(--pv-accent) 16%,transparent)}
 .an-pt:active .an-pt-d{fill:var(--pv-accent-dark)}
 .an-now{stroke:var(--pv-ink-3);stroke-width:1}
 .an-ln{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
-.an-ln.is-fit{stroke:var(--an-a)}
-.an-ln.is-val{stroke:var(--an-b)}
-.an-cv-d{fill:var(--an-a);stroke:var(--pv-surface);stroke-width:2}
+.an-ln.is-fit{stroke:var(--an-b)}
+.an-ln.is-val{stroke:var(--pv-ink-3);stroke-dasharray:4 3}
+.an-cv-d{fill:var(--an-b);stroke:var(--pv-surface);stroke-width:2}
 .an-cv-d.is-on{fill:var(--pv-ink)}
 
 /* ── 2つ並ぶ数字（C の数量と参考値・D の結果）────────────────── */
@@ -225,7 +227,7 @@
 .an-tbl th[scope="row"] .an-role{margin-left:4px}
 .an-role{display:inline-block;padding:2px 6px;border-radius:5px;background:var(--pv-bg-sub);color:var(--pv-ink-3);font-size:.62rem;font-weight:700}
 .an-role.is-fit{background:var(--pv-accent-soft);color:var(--pv-accent-ink)}
-.an-role.is-validate{background:var(--pv-blue-soft);color:var(--pv-blue-ink)}
+.an-role.is-validate{background:var(--pv-surface);box-shadow:inset 0 0 0 1px var(--pv-line);color:var(--pv-ink-2)}
 .an-det{margin-top:12px;padding-top:10px;border-top:1px solid var(--pv-line-soft)}
 .an-det summary{display:flex;align-items:center;justify-content:space-between;gap:8px;list-style:none;cursor:pointer;font-size:.78rem;font-weight:700;
   color:var(--pv-accent-ink);border-radius:6px}
@@ -238,7 +240,7 @@
 .an-cl{display:flex;flex-direction:column;gap:2px;margin-top:8px}
 .an-cl-r{display:grid;grid-template-columns:minmax(58px,auto) minmax(0,1fr) 52px;align-items:center;gap:8px;padding:4px 6px;border:0;border-radius:6px;
   background:none;color:var(--pv-ink-2);font:inherit;font-size:.74rem;text-align:left;cursor:pointer;transition:transform .2s var(--pv-ease)}
-.an-cl-r i{display:block;height:10px;border-radius:0 3px 3px 0;background:var(--an-a)}
+.an-cl-r i{display:block;height:10px;border-radius:0 3px 3px 0;background:var(--an-b)}
 .an-cl-r b{font-weight:700;text-align:right;color:var(--pv-ink)}
 .an-cl-r:hover{background:var(--pv-bg-sub)}
 .an-cl-r:focus-visible{outline:2px solid var(--pv-accent);outline-offset:1px}
@@ -273,11 +275,40 @@
   .an-tools,.an-segb[aria-pressed="false"],.an-thr input,.an-ask,.an-tip,.an-need .an-btn{display:none !important}
   .an-card{box-shadow:none;break-inside:avoid}
   /* 表示中のタブの印刷（#pv-print の写し）：明るい面の色に固定・2列のまま */
-  #pv-print .an{--an-up:#e8742c;--an-dn:#3d7fe0;--an-a:#0a8f79;--an-b:#3d7fe0;--an-mute:#cbd5e1;
-    --an-fixed:#0a8f79;--an-role:#a8662b;--an-variable:#d9a21b;--an-allowance:#3d7fe0;--an-bonus:#d9578e;--an-noncash:#8b74e8;
-    --an-unexplained:#b8c2cf;--an-adjustment:#94a3b8}
+  #pv-print .an{--an-up:#0a8f79;--an-dn:#64748b;--an-a:#86c7bc;--an-b:#0a8f79;--an-mute:#d5dce5;
+    --an-fixed:#0a8f79;--an-role:#c65f48;--an-variable:#8d6bb0;--an-allowance:#b07d2e;--an-bonus:#4a74b8;--an-noncash:#4fb39b;
+    --an-unexplained:#c3ccd6;--an-adjustment:#94a3b8}
   #pv-print .an-ctl{grid-template-columns:repeat(2,minmax(0,1fr))}
   #pv-print .an-segs{margin:0 0 8px}
   #pv-print .an-f{flex-direction:row;align-items:baseline;gap:6px}
 }
 @media (prefers-reduced-motion:reduce){ .an-tool{transition:none} }
+
+/* ══ 2026-11-11 MY PAY と同じ物差し（my-value.css の末尾と同じ形）══════════════
+   オーナー「こういうのだよ！このスタイル覚えておいて。分析もコレで」。
+   カード＝角 20px・中 24px・2重の薄い緑の影／切り替え＝灰色の帯の中で選んだ所だけ白（iPhone の切り替え）／
+   字は 600〜700 まで（大きい数字は 600）。並び・中身・計算は変えていない。 */
+.an-card{border-radius:var(--pv-r-lg);padding:24px;
+  box-shadow:0 1px 2px color-mix(in srgb,var(--pv-accent-ink) 6%,transparent),
+             0 12px 28px -18px color-mix(in srgb,var(--pv-accent-ink) 30%,transparent)}
+.an-card-t{font-size:1rem}
+.an-big{letter-spacing:-.025em}
+.an-cap{font-weight:500;color:var(--pv-ink-3)}
+.an-segs{display:inline-flex;flex-wrap:wrap;gap:2px;padding:3px;border-radius:11px;background:var(--pv-bg-sub);border:1px solid var(--pv-line-soft)}
+.an-segb{min-height:30px;padding:5px 13px;border:0;border-radius:8px;background:transparent;color:var(--pv-ink-3);font-size:.76rem;font-weight:600}
+.an-segb:hover{color:var(--pv-ink);border-color:transparent}
+.an-segb[aria-pressed="true"]{background:var(--pv-surface);color:var(--pv-ink);
+  box-shadow:0 1px 2px rgba(15,23,42,.08),0 2px 6px -2px rgba(15,23,42,.10)}
+.an-segb.is-cand{box-shadow:inset 0 0 0 1px var(--pv-accent)}
+.an-segb[aria-pressed="true"].is-cand{box-shadow:inset 0 0 0 1px var(--pv-accent),0 1px 2px rgba(15,23,42,.08)}
+.an-row2>.an-segs{margin-right:4px}
+/* 「いつの勤務の分？」の答えは切り替えではなく押すだけのボタン（白い札のまま） */
+.an-ask .an-segs{display:flex;gap:6px;padding:0;border:0;border-radius:0;background:none}
+.an-ask .an-segb{min-height:34px;padding:6px 12px;border:1px solid var(--pv-line);background:var(--pv-surface);color:var(--pv-ink-2)}
+.an-ask .an-segb:hover{border-color:var(--pv-accent);color:var(--pv-ink)}
+.an-f-l,.an-lg,.an-cb-k,.an-rr-k,.an-pair span,.an-moved li span{font-weight:600}
+.an-sel,.an-tool{font-weight:600}
+.an-val{font-weight:600}
+.an-btn.is-primary{background:var(--pv-accent-dark);border-color:var(--pv-accent-dark);border-radius:12px}
+.an-btn.is-primary:hover{background:color-mix(in srgb,var(--pv-accent-dark) 86%,#000);border-color:transparent}
+@media print{ .an-segs{background:none;border:0;padding:0} .an-segb[aria-pressed="true"]{box-shadow:none;padding-left:0} }
