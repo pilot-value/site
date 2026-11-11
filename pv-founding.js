@@ -82,14 +82,14 @@
     '.pvf{display:inline-block;vertical-align:top;max-width:100%;',
       'position:relative;overflow:hidden;border-radius:16px;padding:20px 26px;margin-bottom:18px;',
       'border:1px solid rgba(245,200,66,.30);',
-      /* 放射グラデーションを重ねる（左上から金、右下へ橙をわずかに） */
+      /* 放射グラデーションを重ねる（左上から金、右下へ緑をわずかに） */
       'background:',
         'radial-gradient(ellipse 60% 120% at 8% 0%,rgba(245,200,66,.16) 0%,transparent 62%),',
-        'radial-gradient(ellipse 50% 130% at 100% 100%,rgba(249,115,22,.11) 0%,transparent 60%),',
+        'radial-gradient(ellipse 50% 130% at 100% 100%,rgba(6,117,99,.11) 0%,transparent 60%),',
         'linear-gradient(135deg,rgba(28,24,14,.92),rgba(17,22,32,.86));',
-      /* 影は3層。内側の金のハイライト → 橙みの落ち影 → 黒で締める */
+      /* 影は3層。内側の金のハイライト → 緑みの落ち影 → 黒で締める */
       'box-shadow:inset 0 1px 0 rgba(245,200,66,.24),',
-        '0 16px 38px -20px rgba(249,115,22,.50),',
+        '0 16px 38px -20px rgba(6,117,99,.50),',
         '0 2px 10px -4px rgba(0,0,0,.62);',
       'opacity:0;transform:translateY(7px);',
       'transition:opacity .42s cubic-bezier(.16,1,.3,1),transform .42s cubic-bezier(.16,1,.3,1)}',
@@ -116,7 +116,7 @@
     '[data-theme="light"] .pvf{border-color:rgba(160,114,0,.34);',
       'background:',
         'radial-gradient(ellipse 60% 120% at 8% 0%,rgba(245,200,66,.20) 0%,transparent 62%),',
-        'radial-gradient(ellipse 50% 130% at 100% 100%,rgba(249,115,22,.09) 0%,transparent 60%),',
+        'radial-gradient(ellipse 50% 130% at 100% 100%,rgba(6,117,99,.09) 0%,transparent 60%),',
         'linear-gradient(135deg,#fffdf5,#ffffff);',
       'box-shadow:inset 0 1px 0 rgba(255,255,255,.9),',
         '0 12px 28px -18px rgba(160,114,0,.42),',

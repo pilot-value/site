@@ -37,7 +37,7 @@
 .pt-h{font-size:.8rem;font-weight:700;margin-bottom:12px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
 .pt-sub{font-size:.72rem;color:#6b7d93;font-weight:600}
 .pt-bigs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.pt-big{background:linear-gradient(160deg,rgba(245,200,66,.09),rgba(249,115,22,.03));border:1px solid rgba(245,200,66,.18);border-radius:12px;padding:14px}
+.pt-big{background:linear-gradient(160deg,rgba(245,200,66,.09),transparent);border:1px solid rgba(245,200,66,.18);border-radius:12px;padding:14px}
 .pt-big b{display:block;font-size:1.3rem;font-weight:800;letter-spacing:-.03em;color:#f5c842}
 .pt-big span{display:block;font-size:.7rem;color:#9ca3af;margin-top:4px;font-weight:600}
 .pt-note{font-size:.7rem;color:#6b7d93;line-height:1.65;margin-top:8px}
@@ -63,13 +63,13 @@
 .pt-cmp{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .pt-cmp b{font-size:1.15rem;font-weight:800;letter-spacing:-.02em}
 .pt-cmp span{font-size:.73rem;color:#6b7d93}
-.pt-btn{display:inline-flex;align-items:center;gap:6px;margin-top:20px;padding:11px 22px;background:linear-gradient(135deg,#f5c842,#f97316);color:#000;border-radius:10px;font-size:.83rem;font-weight:800;text-decoration:none;box-shadow:0 6px 18px -8px rgba(245,200,66,.7),0 2px 6px -2px rgba(249,115,22,.4);transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .18s cubic-bezier(.2,.8,.2,1)}
-.pt-btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px -8px rgba(245,200,66,.8),0 3px 8px -2px rgba(249,115,22,.5)}
-.pt-btn:focus-visible{outline:2px solid rgba(245,200,66,.7);outline-offset:3px}
+.pt-btn{display:inline-flex;align-items:center;gap:6px;margin-top:20px;padding:11px 22px;background:var(--pv-accent-dark,#067563);color:#fff;border-radius:10px;font-size:.83rem;font-weight:800;text-decoration:none;box-shadow:0 1px 2px rgba(6,117,99,.24),0 10px 24px -12px rgba(6,117,99,.62);transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .18s cubic-bezier(.2,.8,.2,1)}
+.pt-btn:hover{transform:translateY(-1px);box-shadow:0 2px 4px rgba(6,117,99,.26),0 18px 34px -14px rgba(6,117,99,.72)}
+.pt-btn:focus-visible{outline:2px solid var(--pv-accent,#0a8f79);outline-offset:3px}
 .pt-btn:active{transform:translateY(0)}
 .pt-btn.ghost{background:rgba(245,200,66,.09);color:#f5c842;border:1px solid rgba(245,200,66,.28);box-shadow:none}
 .pt-btn.ghost:hover{background:rgba(245,200,66,.14);box-shadow:0 6px 16px -10px rgba(245,200,66,.6)}
-.pt-first{background:linear-gradient(160deg,rgba(245,200,66,.1),rgba(249,115,22,.03));border:1px solid rgba(245,200,66,.22);border-radius:14px;padding:20px}
+.pt-first{background:linear-gradient(160deg,rgba(245,200,66,.1),transparent);border:1px solid rgba(245,200,66,.22);border-radius:14px;padding:20px}
 .pt-first-h{font-size:.95rem;font-weight:800;line-height:1.5;margin-bottom:8px}
 .pt-first-s{font-size:.76rem;color:#9ca3af;line-height:1.7}
 .pt-first .pt-btn{margin-top:16px}
@@ -86,11 +86,11 @@
 [data-theme="light"] .pt-tab{border-color:rgba(0,0,0,.12);color:#64748b}
 [data-theme="light"] .pt-tab:hover{color:#0f172a;border-color:rgba(161,114,0,.4)}
 [data-theme="light"] .pt-tab.on{border-color:rgba(161,114,0,.42);background:rgba(161,114,0,.07);color:#a07200}
-[data-theme="light"] .pt-big{background:linear-gradient(160deg,rgba(161,114,0,.08),rgba(249,115,22,.03));border-color:rgba(161,114,0,.2)}
+[data-theme="light"] .pt-big{background:linear-gradient(160deg,rgba(161,114,0,.08),transparent);border-color:rgba(161,114,0,.2)}
 [data-theme="light"] .pt-big b{color:#a07200}
 [data-theme="light"] .pt-svg{color:#0f172a}
 [data-theme="light"] .pt-empty,[data-theme="light"] .pt-locked{background:rgba(0,0,0,.02);border-color:rgba(0,0,0,.13)}
-[data-theme="light"] .pt-first{background:linear-gradient(160deg,rgba(161,114,0,.08),rgba(249,115,22,.03));border-color:rgba(161,114,0,.22)}
+[data-theme="light"] .pt-first{background:linear-gradient(160deg,rgba(161,114,0,.08),transparent);border-color:rgba(161,114,0,.22)}
 [data-theme="light"] .pt-first-s,[data-theme="light"] .pt-big span,[data-theme="light"] .pt-leg .nm{color:#64748b}
 [data-theme="light"] .pt-btn.ghost{background:rgba(161,114,0,.08);color:#a07200;border-color:rgba(161,114,0,.3)}
 [data-theme="light"] .pt-sw{background:rgba(0,0,0,.16)}

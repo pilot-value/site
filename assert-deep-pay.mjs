@@ -614,8 +614,8 @@ const TAB_LABEL = { ja: 'REAL PAY と DEEP PAY の切り替え', en: 'Switch bet
   ok(moved.length > 0 && moved.every((x) => x === 'transform' || x === 'opacity' || x === 'none'),
      '★タブで動かすのは transform と opacity だけ（transition:all も色の変化も無い）', moved.join(' '));
   ok(!/#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(/i.test(blk) && /var\(--pv-ink\)/.test(blk)
-     && /var\(--pv-ink-3\)/.test(blk) && /var\(--pv-orange\)/.test(blk),
-     '★タブの色はトークンだけ（明暗の切り替えがそのまま効く・色を発明していない）');
+     && /var\(--pv-ink-3\)/.test(blk) && /var\(--pv-accent\)/.test(blk) && !/--pv-orange/.test(blk),
+     '★タブの色はトークンだけ（明暗の切り替えがそのまま効く・色を発明していない）・印は緑（2026-11-10 にオレンジから移した）');
   ok(/a\.pv-paytab:hover/.test(blk) && /a\.pv-paytab:focus-visible\{[^}]*outline:/.test(blk)
      && /a\.pv-paytab:active\{[^}]*transform:/.test(blk),
      '★リンクの側に hover / focus-visible / active が在る');

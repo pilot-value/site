@@ -37,7 +37,9 @@
 
    ── 色 ────────────────────────────────────────────────────────
    値は書かず --pv-* を使う（pv-tokens.css）。ここで新しい色を作らない。
-   この画面はオレンジ（--pv-orange-*）だけを使う。
+   部品（ボタン・枠・見出し・印）は緑（--pv-accent-*）。2026-11-10 にオレンジから移した（オーナー指示）。
+   オレンジ（--pv-orange-*）が残るのは**実データの色**だけ ── 一覧の年収の字（.ap-amt・オーナー判断で残す）と、
+   内訳の色分け（.ap-dw-c-* ＝ pay-viz.js の SEG の写し）とその受け皿。
    ★2026-08-23、公開情報からの推定レンジの節（青）を丸ごと消した。
      **青の系統（pv-tokens.css の blue 系トークン）をこの画面に戻さないこと。**
      戻すということは、
@@ -64,7 +66,7 @@
       枠だけ残して 0 を置かないこと（画面に嘘の数字が生まれる）。
    ★絞り込みでは動かない。絞った結果の数はページ送りの「全N件中」が持つ。
    ★2026-08-24、横に線画のアイコンを1枚ずつ足した（オーナー指示）。
-     丸い薄橙の下地＋ --pv-orange-ink の線。SVG は JS がインラインで書く
+     丸い薄緑の下地＋ --pv-accent-ink の線（2026-11-10 まで薄橙）。SVG は JS がインラインで書く
      （外部ファイルもアイコンフォントも読み込まない）。
    ★2026-10-05、**一覧の下**へ移した（オーナー指示「これいらないから一番下に下げて」）。
      開いたらすぐ一覧。カードは #ap-rows のすぐ後ろに居るので、余白は上に付ける。 */
@@ -77,7 +79,7 @@
 /* 丸い下地。★flex:0 0 auto。数字が長い行で潰れて楕円になるのを止める。 */
 .ap-st-i{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;
   width:40px;height:40px;border-radius:999px;
-  background:var(--pv-orange-soft);color:var(--pv-orange-ink)}
+  background:var(--pv-accent-soft);color:var(--pv-accent-ink)}
 .ap-st-b{min-width:0}
 .ap-st-n{font-size:1.5rem;font-weight:800;letter-spacing:-.03em;line-height:1.15;
   color:var(--pv-ink);font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -118,8 +120,8 @@
   background-repeat:no-repeat;background-position:right 12px center;
   transition:border-color .18s var(--pv-ease),box-shadow .18s var(--pv-ease)}
 .ap-sel:hover{border-color:var(--pv-ink-3)}
-.ap-sel:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
-.ap-sel:active{border-color:var(--pv-orange)}
+.ap-sel:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.ap-sel:active{border-color:var(--pv-accent)}
 
 /* 会社の打ち込み。★見た目は .ap-sel と揃える（同じ帯に並ぶので）。
    矢印は付けない（開かない窓に矢印を出さない）。 */
@@ -131,7 +133,7 @@
   transition:border-color .18s var(--pv-ease),box-shadow .18s var(--pv-ease)}
 .ap-q::placeholder{color:var(--pv-ink-3);font-weight:500}
 .ap-q:hover{border-color:var(--pv-ink-3)}
-.ap-q:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
+.ap-q:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
 /* ★iOS は 16px 未満の入力欄に触れるとページごと拡大し、戻らない。拡大した画面では
    position:fixed のヘッダーと常設バーが窓より広い箱になり、左右とも切れる
    （2026-08-27、オーナーの iPhone 16 で実測 1.09 倍）。⚠️ この 16px を下げない。 */
@@ -142,8 +144,8 @@
   font-family:inherit;font-size:.78rem;font-weight:700;cursor:pointer;
   transition:color .18s var(--pv-ease),border-color .18s var(--pv-ease),
              background-color .18s var(--pv-ease),transform .18s var(--pv-ease)}
-.ap-clear:hover{color:var(--pv-ink);border-color:var(--pv-orange)}
-.ap-clear:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
+.ap-clear:hover{color:var(--pv-ink);border-color:var(--pv-accent)}
+.ap-clear:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
 .ap-clear:active{transform:scale(.97);background:var(--pv-line-soft)}
 
 /* ★日本語が語の途中で折れないようにする。
@@ -182,7 +184,7 @@
 .ap-tbl tbody tr.ap-r{cursor:pointer;
   transition:background-color .16s var(--pv-ease)}
 .ap-tbl tbody tr.ap-r:hover,.ap-tbl tbody tr.ap-r:focus-within{
-  background:var(--pv-orange-soft)}
+  background:var(--pv-accent-soft)}
 
 /* 職位の下に置く機材（7列目を作らない）。★無い行はこの1行が黙って空く。 */
 .ap-pos{display:block;color:var(--pv-ink)}
@@ -197,7 +199,7 @@
 .ap-tbl tbody tr.ap-r:hover .ap-hint,
 .ap-tbl tbody tr.ap-r:focus-within .ap-hint{grid-template-rows:1fr}
 .ap-hint-i{overflow:hidden;min-height:0;
-  font-size:.71rem;font-weight:600;color:var(--pv-orange-ink);
+  font-size:.71rem;font-weight:600;color:var(--pv-accent-ink);
   letter-spacing:.01em;line-height:1.9}
 
 /* › ── 押せることの目印。★最初から見えている（hover で現れない）。
@@ -209,10 +211,10 @@
   font-size:1rem;font-weight:700;line-height:1;cursor:pointer;
   transition:color .18s var(--pv-ease),border-color .18s var(--pv-ease),
              background-color .18s var(--pv-ease)}
-.ap-tbl tbody tr.ap-r:hover .ap-go{color:var(--pv-orange-ink);
-  border-color:var(--pv-orange-ink)}
-.ap-go:hover{color:var(--pv-orange-ink);border-color:var(--pv-orange-ink)}
-.ap-go:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
+.ap-tbl tbody tr.ap-r:hover .ap-go{color:var(--pv-accent-ink);
+  border-color:var(--pv-accent-ink)}
+.ap-go:hover{color:var(--pv-accent-ink);border-color:var(--pv-accent-ink)}
+.ap-go:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
 .ap-go:active{transform:scale(.92)}
 /* 投稿時期と › を1行に並べる（列は増やさない）。 */
 .ap-tbl td:last-child{white-space:nowrap}
@@ -229,7 +231,9 @@
   padding:0;background:var(--pv-surface-2);color:var(--pv-ink-3);
   font-size:.66rem;font-weight:800;letter-spacing:.01em}
 .ap-air{font-weight:700;color:var(--pv-ink);min-width:0}
-/* 金額は表の主役。数字は等幅の数字送りで縦に揃える。 */
+/* 金額は表の主役。数字は等幅の数字送りで縦に揃える。
+   ★色はオレンジのまま（実データの色・2026-11-10 オーナー判断「オレンジのまま」）。部品を緑にしても、ここは緑にしない。
+     トップの REAL PAY の見本の金額（lp.css の .hero-c-v）も同じ色。 */
 .ap-amt{font-weight:800;letter-spacing:-.02em;white-space:nowrap;
   font-variant-numeric:tabular-nums;color:var(--pv-orange-ink)}
 /* 月あたりは年収の言い換え。主役の隣で控えめに。 */
@@ -344,8 +348,8 @@
 /* 数字のボタンは正方に近づける（前へ／次へと違って幅が要らない）。 */
 .ap-pg--n{min-width:36px;padding:7px 10px;
   font-variant-numeric:tabular-nums;text-align:center}
-.ap-pg--n[aria-current="page"]{color:#fff;background:var(--pv-orange);
-  border-color:var(--pv-orange)}
+.ap-pg--n[aria-current="page"]{color:#fff;background:var(--pv-accent-dark);
+  border-color:var(--pv-accent-dark)}
 .ap-pg--n[aria-current="page"]:hover{color:#fff}
 .ap-pg-e{padding:0 2px;font-size:.76rem;font-weight:700;color:var(--pv-ink-3);
   user-select:none}
@@ -354,8 +358,8 @@
   font-family:inherit;font-size:.76rem;font-weight:700;cursor:pointer;
   transition:color .18s var(--pv-ease),border-color .18s var(--pv-ease),
              transform .18s var(--pv-ease)}
-.ap-pg:hover:not(:disabled){color:var(--pv-ink);border-color:var(--pv-orange)}
-.ap-pg:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
+.ap-pg:hover:not(:disabled){color:var(--pv-ink);border-color:var(--pv-accent)}
+.ap-pg:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
 .ap-pg:active:not(:disabled){transform:scale(.97)}
 .ap-pg:disabled{opacity:.4;cursor:default}
 .ap-pg-n{font-size:.72rem;font-weight:700;color:var(--pv-ink-3);
@@ -369,19 +373,19 @@
    ★どれも金額を1文字も出さない。 */
 .ap-msg{background:var(--pv-surface);border:1px solid var(--pv-line);
   border-radius:var(--pv-r);padding:24px;box-shadow:var(--pv-shadow)}
-.ap-msg--lock{border-color:rgba(249,115,22,.28);
-  background:linear-gradient(180deg,var(--pv-orange-soft) 0%,transparent 140px),var(--pv-surface)}
+.ap-msg--lock{border-color:var(--pv-accent-line);
+  background:linear-gradient(180deg,var(--pv-accent-soft) 0%,transparent 140px),var(--pv-surface)}
 .ap-msg-t{font-size:.98rem;font-weight:800;letter-spacing:-.02em;line-height:1.4}
 .ap-msg-s{margin-top:9px;font-size:.81rem;line-height:1.75;color:var(--pv-ink-2);max-width:70ch}
 .ap-cta{display:inline-flex;align-items:center;gap:8px;margin-top:18px;
   min-height:44px;padding:12px 22px;border-radius:999px;
-  background:var(--pv-orange);color:#fff;text-decoration:none;
+  background:var(--pv-accent-dark);color:#fff;text-decoration:none;
   font-size:.84rem;font-weight:800;
-  box-shadow:0 6px 18px -10px rgba(249,115,22,.75);
+  box-shadow:0 6px 18px -10px rgba(6,117,99,.75);
   transition:opacity .18s var(--pv-ease),transform .18s var(--pv-ease),
              box-shadow .18s var(--pv-ease)}
-.ap-cta:hover{opacity:.92;box-shadow:0 10px 24px -12px rgba(249,115,22,.85)}
-.ap-cta:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}
+.ap-cta:hover{opacity:.92;box-shadow:0 10px 24px -12px rgba(6,117,99,.85)}
+.ap-cta:focus-visible{outline:2px solid var(--pv-accent);outline-offset:3px}
 .ap-cta:active{transform:scale(.98)}
 
 /* ══════════════════════════════════════════════════════════════
@@ -393,7 +397,7 @@
   gap:var(--pv-s-4);align-items:center;min-width:0}
 .ap-lockhero-b{min-width:0}
 .ap-lock-n{margin-top:10px;font-size:.72rem;font-weight:600;color:var(--pv-ink-3)}
-.ap-lockhero-a{flex:0 0 auto;color:var(--pv-orange);opacity:.6}
+.ap-lockhero-a{flex:0 0 auto;color:var(--pv-accent);opacity:.6}
 .ap-lock-art{display:block;width:196px;height:auto}
 
 /* 一覧と「見えること」の入れ物。
@@ -434,9 +438,9 @@
 .ap-skel-lock{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);
   display:inline-flex;align-items:center;gap:8px;
   padding:11px 18px;border-radius:999px;
-  background:var(--pv-surface);border:1px solid rgba(249,115,22,.32);
+  background:var(--pv-surface);border:1px solid var(--pv-accent-line);
   box-shadow:var(--pv-shadow-lift);
-  font-size:.75rem;font-weight:700;line-height:1.5;color:var(--pv-orange-ink);
+  font-size:.75rem;font-weight:700;line-height:1.5;color:var(--pv-accent-ink);
   white-space:nowrap}
 
 /* 見えること。 */
@@ -445,8 +449,8 @@
   font-size:.78rem;line-height:1.7;color:var(--pv-ink-2);
   line-break:strict;word-break:auto-phrase}
 .ap-see li::before{content:"";position:absolute;left:0;top:.5em;
-  width:14px;height:8px;border-left:2px solid var(--pv-orange);
-  border-bottom:2px solid var(--pv-orange);border-radius:1px;
+  width:14px;height:8px;border-left:2px solid var(--pv-accent);
+  border-bottom:2px solid var(--pv-accent);border-radius:1px;
   transform:rotate(-45deg) translateY(-1px)}
 .ap-see-n{margin-top:14px;padding-top:13px;border-top:1px solid var(--pv-line-soft);
   display:flex;align-items:flex-start;gap:8px;
@@ -503,7 +507,7 @@
       背景の幕は**単色の rgba だけ**で、後ろを霞ませない。
    ⚠️ .ap-panel / .ap-cols / .ap-main / .ap-side / .ap-bar / .ap-viz を
       使わない。あれは 2026-08-24 に「消したもの」として字で禁じてある。
-   ★色は --pv-* だけ。この画面はオレンジ（--pv-orange-*）で通す。
+   ★色は --pv-* だけ。部品は緑（--pv-accent-*）。オレンジは内訳の色分けの受け皿だけ。
    ══════════════════════════════════════════════════════════════ */
 .ap-dw-back{position:fixed;inset:0;z-index:205;
   background:rgba(10,22,40,.52);opacity:0;
@@ -544,15 +548,34 @@
   color:var(--pv-ink-3);font-size:1.3rem;line-height:1;cursor:pointer;
   transition:color .18s var(--pv-ease),background-color .18s var(--pv-ease),
              border-color .18s var(--pv-ease)}
-.ap-dw-x:hover{color:var(--pv-orange-ink);border-color:var(--pv-orange-ink);
-  background:var(--pv-orange-soft)}
-.ap-dw-x:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
+.ap-dw-x:hover{color:var(--pv-accent-ink);border-color:var(--pv-accent-ink);
+  background:var(--pv-accent-soft)}
+.ap-dw-x:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
 .ap-dw-x:active{transform:scale(.94)}
 
 /* 職位・機材・在籍の段 */
 .ap-dw-meta{margin-top:8px;font-size:.78rem;font-weight:600;
   color:var(--pv-ink-2);line-height:1.7;
   line-break:strict;word-break:auto-phrase}
+
+/* 社名の下の2つ ── その会社のページ／2社比較（2026-11-10・オーナー指示）。
+   ★白い枠の控えめなボタン。下の「匿名で追加」（主のボタン）より目立たせない。
+   ★幅が足りなければ2段に折れる（横にはみ出さない）。指で押せる高さ 44px。 */
+.ap-dw-nav{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.ap-dw-nv{flex:1 1 auto;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  min-height:44px;padding:0 16px;box-sizing:border-box;
+  border:1px solid var(--pv-line);border-radius:999px;background:var(--pv-surface);
+  font-size:.78rem;font-weight:700;line-height:1.3;text-align:center;text-decoration:none;
+  color:var(--pv-ink);
+  transition:border-color .18s var(--pv-ease),background-color .18s var(--pv-ease),
+             color .18s var(--pv-ease),transform .18s var(--pv-ease)}
+.ap-dw-nv::after{content:'\203A';font-size:1.05em;line-height:1;color:var(--pv-ink-3);
+  transition:color .18s var(--pv-ease)}
+.ap-dw-nv:hover{border-color:var(--pv-accent-line);background:var(--pv-accent-soft);
+  color:var(--pv-accent-ink)}
+.ap-dw-nv:hover::after{color:var(--pv-accent-ink)}
+.ap-dw-nv:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.ap-dw-nv:active{transform:scale(.98)}
 
 /* 年収と月あたり */
 .ap-dw-amt{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;
@@ -575,7 +598,7 @@
 /* 節の見出し。★h3。この画面の h2 は 0 のままにする。 */
 .ap-dw-h{margin:24px 0 10px;
   font-size:.68rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
-  color:var(--pv-orange-ink)}
+  color:var(--pv-accent-ink)}
 
 /* 帯の並び */
 .ap-dw-list{list-style:none;margin:0;padding:0;display:grid;gap:12px}
@@ -722,8 +745,8 @@
   border:1px solid var(--pv-line);border-radius:var(--pv-r-sm);
   background:var(--pv-surface);cursor:pointer;
   transition:border-color .18s var(--pv-ease),background-color .18s var(--pv-ease)}
-.ap-dw-sim:hover{border-color:var(--pv-orange-ink);background:var(--pv-orange-soft)}
-.ap-dw-sim:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
+.ap-dw-sim:hover{border-color:var(--pv-accent-ink);background:var(--pv-accent-soft)}
+.ap-dw-sim:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
 .ap-dw-sim:active{transform:scale(.99)}
 .ap-dw-simv{font-size:.86rem;font-weight:800;color:var(--pv-ink);
   font-variant-numeric:tabular-nums}
@@ -736,11 +759,12 @@
 .ap-dw-cta{display:block;width:100%;margin-top:24px;padding:13px 18px;
   border:0;border-radius:999px;text-align:center;cursor:pointer;
   font-family:inherit;font-size:.84rem;font-weight:700;text-decoration:none;
-  color:#fff;background:var(--pv-orange);
-  box-shadow:0 10px 24px -14px rgba(249,115,22,.8);
-  transition:background-color .18s var(--pv-ease),transform .18s var(--pv-ease)}
-.ap-dw-cta:hover{background:var(--pv-orange-ink)}
-.ap-dw-cta:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}
+  color:#fff;background:var(--pv-accent-dark);
+  box-shadow:0 10px 24px -14px rgba(6,117,99,.8);
+  transition:background-color .18s var(--pv-ease),transform .18s var(--pv-ease),
+             box-shadow .18s var(--pv-ease)}
+.ap-dw-cta:hover{transform:translateY(-1px);box-shadow:0 14px 28px -14px rgba(6,117,99,.85)}
+.ap-dw-cta:focus-visible{outline:2px solid var(--pv-accent);outline-offset:3px}
 .ap-dw-cta:active{transform:scale(.98)}
 /* 副 ── 出す側へ戻す。消さずに順位だけ下げる。 */
 .ap-dw-cta2{display:block;margin-top:10px;padding:11px 18px;
@@ -749,9 +773,9 @@
   color:var(--pv-ink-2);background:var(--pv-surface);
   transition:border-color .18s var(--pv-ease),color .18s var(--pv-ease),
              background-color .18s var(--pv-ease)}
-.ap-dw-cta2:hover{border-color:var(--pv-orange-ink);color:var(--pv-orange-ink);
-  background:var(--pv-orange-soft)}
-.ap-dw-cta2:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}
+.ap-dw-cta2:hover{border-color:var(--pv-accent-ink);color:var(--pv-accent-ink);
+  background:var(--pv-accent-soft)}
+.ap-dw-cta2:focus-visible{outline:2px solid var(--pv-accent);outline-offset:3px}
 .ap-dw-note{margin-top:14px;font-size:.71rem;line-height:1.8;color:var(--pv-ink-3);
   line-break:strict;word-break:auto-phrase}
 
@@ -772,8 +796,8 @@
 @media (prefers-reduced-motion:reduce){
   /* ★要素を消さない。動きだけ止める。 */
   .ap-dw-back,.ap-dw,.ap-hint,.ap-tbl tbody tr.ap-r,.ap-go,
-  .ap-dw-x,.ap-dw-sim,.ap-dw-cta,.ap-dw-cta2{transition:none}
-  .ap-go:active,.ap-dw-x:active,.ap-dw-sim:active,.ap-dw-cta:active{transform:none}
+  .ap-dw-x,.ap-dw-sim,.ap-dw-cta,.ap-dw-cta2,.ap-dw-nv,.ap-dw-nv::after{transition:none}
+  .ap-go:active,.ap-dw-x:active,.ap-dw-sim:active,.ap-dw-cta:active,.ap-dw-nv:active{transform:none}
   .ap-dw{transform:none}
 }
 
@@ -913,9 +937,9 @@
     font-family:inherit;font-size:.84rem;font-weight:700;cursor:pointer;
     transition:color .18s var(--pv-ease),border-color .18s var(--pv-ease),
                background-color .18s var(--pv-ease),transform .18s var(--pv-ease)}
-  .ap-fbtn:hover{color:var(--pv-orange-ink);border-color:var(--pv-orange-ink);
-    background:var(--pv-orange-soft)}
-  .ap-fbtn:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
+  .ap-fbtn:hover{color:var(--pv-accent-ink);border-color:var(--pv-accent-ink);
+    background:var(--pv-accent-soft)}
+  .ap-fbtn:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
   .ap-fbtn:active{transform:scale(.97)}
   .ap-fbar-n{display:inline-block;min-width:0;
     font-size:.76rem;font-weight:600;color:var(--pv-ink-3);
@@ -977,9 +1001,9 @@
     color:var(--pv-ink-3);font-family:inherit;font-size:1.3rem;line-height:1;cursor:pointer;
     transition:color .18s var(--pv-ease),border-color .18s var(--pv-ease),
                background-color .18s var(--pv-ease)}
-  .ap-sheet-x:hover{color:var(--pv-orange-ink);border-color:var(--pv-orange-ink);
-    background:var(--pv-orange-soft)}
-  .ap-sheet-x:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}
+  .ap-sheet-x:hover{color:var(--pv-accent-ink);border-color:var(--pv-accent-ink);
+    background:var(--pv-accent-soft)}
+  .ap-sheet-x:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
   .ap-sheet-x:active{transform:scale(.94)}
   /* 中だけがスクロールする（後ろのページは body の overflow で止めてある）。 */
   .ap-sheet-b{display:grid;gap:14px;align-content:start;
@@ -993,11 +1017,12 @@
   .ap-sheet-go{display:block;width:100%;min-height:48px;padding:13px 18px;
     border:0;border-radius:999px;text-align:center;cursor:pointer;
     font-family:inherit;font-size:.86rem;font-weight:700;
-    color:#fff;background:var(--pv-orange);
-    box-shadow:0 10px 24px -14px rgba(249,115,22,.8);
-    transition:background-color .18s var(--pv-ease),transform .18s var(--pv-ease)}
-  .ap-sheet-go:hover{background:var(--pv-orange-ink)}
-  .ap-sheet-go:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}
+    color:#fff;background:var(--pv-accent-dark);
+    box-shadow:0 10px 24px -14px rgba(6,117,99,.8);
+    transition:background-color .18s var(--pv-ease),transform .18s var(--pv-ease),
+               box-shadow .18s var(--pv-ease)}
+  .ap-sheet-go:hover{transform:translateY(-1px);box-shadow:0 14px 28px -14px rgba(6,117,99,.85)}
+  .ap-sheet-go:focus-visible{outline:2px solid var(--pv-accent);outline-offset:3px}
   .ap-sheet-go:active{transform:scale(.98)}
 
   /* ── 下タブ（廃止済み）───────────────────────────────────── */
@@ -1029,14 +1054,14 @@
         ③ .ap-flt-lk（伏せた一覧の職位・機材）
       ②③ もぼかしているのは**中身の空いた板**で、置いた数字を霞ませてはいない。
       assert-pay-rows.mjs がこの3つ以外を実測で落とす。
-   ★色は既存のトークンだけ（--pv-orange* / --pv-line* / --pv-ink*）。新しい色を作らない。
+   ★色は既存のトークンだけ（--pv-accent* / --pv-line* / --pv-ink*）。新しい色を作らない。
    ══════════════════════════════════════════════════════════════ */
 
 /* 見出しの横の小さな札。★「ダミー」「架空」とは書かない（JS の辞書が「プレビュー」）。 */
 .ap-pv-tag{display:inline-flex;align-items:center;margin-left:8px;
   padding:3px 9px;border-radius:999px;
-  background:var(--pv-orange-soft);color:var(--pv-orange-ink);
-  border:1px solid rgba(249,115,22,.28);
+  background:var(--pv-accent-soft);color:var(--pv-accent-ink);
+  border:1px solid var(--pv-accent-line);
   font-size:.62rem;font-weight:800;letter-spacing:.04em;line-height:1.4;
   vertical-align:middle}
 
@@ -1097,7 +1122,7 @@
 .ap-tbl .ap-pv-un-r>td:last-child{white-space:normal}
 .ap-pv-un{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px var(--pv-s-3);
   align-items:center;padding:18px 16px;
-  background:linear-gradient(180deg,var(--pv-orange-soft) 0%,transparent 100%)}
+  background:linear-gradient(180deg,var(--pv-accent-soft) 0%,transparent 100%)}
 .ap-pv-un-b{min-width:0}
 .ap-pv-un-t{font-size:.86rem;font-weight:800;letter-spacing:-.01em;line-height:1.45;
   color:var(--pv-ink);line-break:strict;word-break:auto-phrase}
@@ -1118,12 +1143,12 @@
 /* ヒーローの下の「すでにアカウントをお持ちの方：ログイン」。
    ★未ログインのときだけ JS が出す。登録済みの人には出さない。 */
 .ap-pv-in{margin-top:14px;font-size:.75rem;font-weight:600;color:var(--pv-ink-3)}
-.ap-pv-in-a{margin-left:8px;color:var(--pv-orange-ink);font-weight:800;
+.ap-pv-in-a{margin-left:8px;color:var(--pv-accent-ink);font-weight:800;
   text-decoration:underline;text-underline-offset:3px;
   border-radius:4px;
   transition:opacity .18s var(--pv-ease)}
 .ap-pv-in-a:hover{opacity:.8}
-.ap-pv-in-a:focus-visible{outline:2px solid var(--pv-orange);outline-offset:3px}
+.ap-pv-in-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:3px}
 .ap-pv-in-a:active{opacity:.65}
 
 /* ロックの帯は、骨組みのときのように真ん中へ浮かせない
@@ -1157,7 +1182,7 @@
   .ap-pv-un{grid-template-columns:minmax(0,1fr);gap:12px;
     padding:16px 14px;
     background:var(--pv-surface);
-    border:1px solid rgba(249,115,22,.32);border-radius:var(--pv-r);
+    border:1px solid var(--pv-accent-line);border-radius:var(--pv-r);
     box-shadow:var(--pv-shadow)}
   .ap-pv-un-c{width:100%;justify-content:center;margin-top:2px}
   .ap-pv-msg{padding:16px 14px}
@@ -1197,9 +1222,9 @@
   font-size:clamp(1.25rem,6.4vw,1.5rem);font-weight:800;letter-spacing:-.03em;
   line-height:1.2;white-space:nowrap;text-decoration:none;color:var(--pv-ink-3);
   transition:transform .18s var(--pv-ease),opacity .18s var(--pv-ease)}
-/* 下線 ── いま居る側は橙の実線。もう片方は畳んであって、指を乗せると伸びる。 */
+/* 下線 ── いま居る側は緑の実線。もう片方は畳んであって、指を乗せると伸びる。 */
 .pv-paytab::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;
-  border-radius:3px 3px 0 0;background:var(--pv-orange);
+  border-radius:3px 3px 0 0;background:var(--pv-accent);
   transform:scaleX(0);transform-origin:0 50%;
   transition:transform .22s var(--pv-ease),opacity .18s var(--pv-ease)}
 .pv-paytab.is-on{color:var(--pv-ink)}
@@ -1210,7 +1235,7 @@ a.pv-paytab::before{content:"";position:absolute;left:-7px;right:-7px;top:50%;
   height:46px;margin-top:-23px}
 a.pv-paytab:hover{color:var(--pv-ink)}
 a.pv-paytab:hover::after{transform:none;opacity:.45}
-a.pv-paytab:focus-visible{outline:2px solid var(--pv-orange);outline-offset:4px;border-radius:6px}
+a.pv-paytab:focus-visible{outline:2px solid var(--pv-accent);outline-offset:4px;border-radius:6px}
 a.pv-paytab:active{transform:translateY(1px);opacity:.78}
 @media (prefers-reduced-motion:reduce){
   .pv-paytab,.pv-paytab::after{transition:none}

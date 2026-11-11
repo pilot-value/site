@@ -128,7 +128,7 @@
       'text-underline-offset:3px;cursor:pointer;',
       'transition:color .18s var(--pv-ease)}',
     '.pvgf-later:hover{color:var(--pv-ink)}',
-    '.pvgf-later:focus-visible{outline:2px solid var(--pv-orange);outline-offset:2px}',
+    '.pvgf-later:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}',
     '@media (max-width:420px){.pvgf-card{padding:22px 18px 18px}',
       '.pvgf-plane{font-size:2rem}}'
   ].join('');

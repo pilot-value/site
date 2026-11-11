@@ -1095,6 +1095,36 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
      '★actual-pay.css: タブの規則は塊の中にだけ在る（外に書き足していない）');
 }
 
+/* ★面の「会社ページを開く」「他社と比較」（2026-11-10）が 404 へ行かないこと。
+     画面は pv-airlines.json の kind:'airline' の会社にだけ2つを出す（vote.js の hasPage と同じ決まり）。
+     だから「kind:'airline' の会社は日英西の会社ページが在り、2社比較の選ぶ面に居る」が崩れると、
+     REAL PAY の面から行き止まりのリンクが生える（画面は普通に動いたまま）。 */
+{
+  const air = JSON.parse(read('pv-airlines.json')).airlines;
+  const codes = Object.keys(air).filter((c) => air[c].kind === 'airline');
+  const pages = (dir) => new Set(readdirSync(new URL(dir, ROOT)).filter((f) => f.endsWith('.html'))
+    .map((f) => f.replace(/\.html$/, '')));
+  const P = { ja: pages('airlines/'), en: pages('en/airlines/'), es: pages('es/airlines/') };
+  const pick = (f) => new Set([...read(f).matchAll(/class="cr-pk[" ][^>]*data-airline="([^"]+)"/g)]
+    .map((m) => m[1]));
+  const K = { ja: pick('career.html'), en: pick('en/career.html'), es: pick('es/career.html') };
+  const miss = [];
+  for (const c of codes) {
+    for (const l of ['ja', 'en', 'es']) {
+      if (!P[l].has(c)) miss.push(`${l}/airlines/${c}.html`);
+      if (!K[l].has(c)) miss.push(`${l} の比較に ${c} が居ない`);
+    }
+  }
+  ok(codes.length >= 100 && miss.length === 0,
+     `★★会社ページの在る会社（kind:'airline' ${codes.length}社）は日英西の会社ページが在り、2社比較で選べる`
+     + '（REAL PAY の面のリンクが 404 にならない）',
+     miss.slice(0, 8).join(' / '));
+  const j = decomment(JS);
+  ok(/kind\s*===\s*'airline'/.test(j) && /S\.airPage\[c\]/.test(j),
+     '★面の2つを出す会社は pv-airlines.json の kind:\'airline\' だけで決める',
+     '');
+}
+
 /* ★左メニューの中身（2026-09-06 オーナー確定）。
      ┌ 独立CTA　匿名で給与を追加            → pay-report.html#ps
      └ 1 HOME / 2 REAL PAY / 3 VOTE / 4 ROADMAP & REQUESTS /
@@ -2067,8 +2097,16 @@ function maskedDrawer(d, tag, vf) {
   ok(d.note === 0, `${tag}: ★数字が1つも出ていない面に、匿名化の断り書きを付けない`,
      String(d.note));
   ok(d.cta.length === 1 && /pay-report\.html/.test(d.cta[0] || ''),
-     `${tag}: ★★面から出る道は給与フォーム1つだけ（鍵の無い人を DEEP PAY へ送らない）`,
+     `${tag}: ★★面の主のボタンは給与フォーム1つだけ（鍵の無い人を DEEP PAY へ送らない）`,
      d.cta.join(' | '));
+  /* ★社名の下の2つ（2026-11-10・オーナー指示）── 伏せた面でも出す。社名は元から出ていて、
+       行き先は誰でも開ける会社ページと2社比較。どちらも DEEP PAY ではない。
+     ★この面の見本はどちらも ANA の行（1件目・3件目）。 */
+  ok(d.nav.join(' | ') === 'airlines/ana.html | career.html?view=compare&a=ana',
+     `${tag}: ★伏せた面でも、社名の下に会社ページと2社比較のリンクが出る`,
+     d.nav.join(' | '));
+  ok(d.nav.every((h) => !/deep-pay/.test(h)),
+     `${tag}: ★★その2つも DEEP PAY へは繋がない`, d.nav.join(' | '));
   /* ⚠️ ここで MONEY（\d[\d,]{2,} を含む）を使わない。投稿時期の「1ヶ月以内」に
        当たって**製品は正しいのに赤くなる**。見るのは金額そのものの形だけ。 */
   ok(!/[¥$€£＄]|万/.test(d.text),
@@ -3408,6 +3446,20 @@ for (const lang of ['ja', 'en']) {
         target: e.getAttribute('target') || '',
         gate: e.getAttribute('data-ap-gate') || '' })),
       deepA: q('.ap-dw a[href*="deep-pay"]').length,
+      /* 社名の下の2つ（2026-11-10）── 会社ページと2社比較。to ＝ その画面から解いた行き先。
+         order ＝ 職位の行のすぐ下・年収の箱のすぐ上に居るか。 */
+      nav: q('.ap-dw .ap-dw-nv').map((e) => {
+        const u = e.getAttribute('href') ? new URL(e.getAttribute('href'), location.href) : null;
+        return { tag: e.tagName, href: e.getAttribute('href'), t: t(e),
+                 to: u ? u.pathname : '', q: u ? u.search : '',
+                 target: e.getAttribute('target') || '' };
+      }),
+      navOrder: (() => {
+        const n = document.querySelector('.ap-dw .ap-dw-nav');
+        if (!n) return null;
+        const p = n.previousElementSibling, x = n.nextElementSibling;
+        return !!(p && p.classList.contains('ap-dw-meta') && x && x.classList.contains('ap-dw-amt'));
+      })(),
       /* 副（ap-dw-cta2）── 2026-10-29 に主へ上がった。**1つも無い**のが正しい。 */
       cta: q('.ap-dw-cta2').map((e) => e.getAttribute('href')),
       /* 積み上げバー。★flex の伸び率だけを見る（% も割合の字も持たない）。 */
@@ -3503,6 +3555,22 @@ for (const lang of ['ja', 'en']) {
     ok(d0.deepA === 0 && !/deep-pay|DEEP PAY/.test(d0.html),
        `${lang}: ★★面から DEEP PAY へ繋がる線が1本も無い（字も住所も無い）`,
        `${d0.deepA} / ${(d0.html.match(/.{0,30}(?:deep-pay|DEEP PAY).{0,30}/) || [''])[0]}`);
+    /* ★社名の下の2つ（2026-11-10・オーナー指示「航空会社に移動する手段がない」「比較のボタンも」）。
+         その会社のページと、2社比較（会社ページの「他社と比較」と同じ住所）。ただのリンク。 */
+    {
+      const NAV_T = lang === 'en' ? ['Airline page', 'Compare airlines'] : ['会社ページを開く', '他社と比較'];
+      const base = lang === 'en' ? '/en/' : '/';
+      const n = d0.nav;
+      ok(n.length === 2 && n.every((x) => x.tag === 'A' && x.target === '')
+         && n[0].href === 'airlines/ana.html' && n[0].to === base + 'airlines/ana.html'
+         && n[1].href === 'career.html?view=compare&a=ana'
+         && n[1].to === base + 'career.html' && n[1].q === '?view=compare&a=ana'
+         && n.map((x) => x.t).join('|') === NAV_T.join('|'),
+         `${lang}: ★★社名の下に「${NAV_T.join('」「')}」── その言語の会社ページと2社比較へのただのリンク`,
+         JSON.stringify(n));
+      ok(d0.navOrder === true,
+         `${lang}: ★2つは職位の行のすぐ下・年収の箱のすぐ上（オーナーが選んだ場所）`, String(d0.navOrder));
+    }
 
     /* 消したものが、面を開いた状態でも戻っていないこと。 */
     const vOpen = await page.evaluate(SNAP);
@@ -3674,6 +3742,15 @@ for (const lang of ['ja', 'en']) {
     ok(dOnly.sims.length === 0,
        `${lang}: ★ほかに同じ会社・同じ職位が居なければ、その節ごと出ない`,
        JSON.stringify(dOnly.sims));
+
+    /* ★「一覧にない航空会社」の行（7件目）── 会社ページも比較の札も無いので、2つとも出さない
+         （404 へのリンクを作らない）。 */
+    const dOther = await press(page, 6);
+    ok(dOther.n === 1 && dOther.nav.length === 0 && dOther.navOrder === null,
+       `${lang}: ★★会社ページの無い行には「会社ページを開く」「他社と比較」を出さない`,
+       JSON.stringify(dOther.nav));
+    ok(dOther.go.length === 1,
+       `${lang}: ★その行でも主のボタン（匿名で追加）はそのまま1つ`, JSON.stringify(dOther.go));
 
     console.log(`\n════ ${lang} / J-4 同じ会社・同じ職位のほかの記録 ════`);
     const dSim = await press(page, 0);
@@ -5216,6 +5293,7 @@ for (const lang of ['ja', 'en']) {
       note: q('.ap-dw-note').length,
       cta: q('.ap-dw-cta, .ap-dw-cta2').map(
         (e) => e.getAttribute('href') || '（行き先の無いボタン）'),
+      nav: q('.ap-dw .ap-dw-nv').map((e) => e.getAttribute('href') || ''),
       text: dw ? dw.innerText : ''
     };
   };

@@ -57,9 +57,11 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;transition:background .4s ea
 nav.scrolled{background:rgba(10,12,15,.92);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.06)}
 .nav-link{color:rgba(255,255,255,.6);font-size:.85rem;font-weight:500;letter-spacing:.04em;transition:color .2s;text-decoration:none}
 .nav-link:hover{color:#fff}
-.logo-img{height:40px;width:auto;filter:brightness(1.15) drop-shadow(0 0 8px rgba(249,115,22,.5));transition:filter .3s}
-.btn-orange{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:10px;font-weight:700;font-size:.9rem;background:linear-gradient(135deg,#f97316,#f5c842);color:#000;border:none;cursor:pointer;transition:opacity .2s,transform .2s cubic-bezier(.16,1,.3,1);text-decoration:none}
+.logo-img{height:40px;width:auto;filter:brightness(1.15) drop-shadow(0 0 8px color-mix(in srgb,var(--pv-accent) 50%,transparent));transition:filter .3s}
+.btn-orange{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:10px;font-weight:700;font-size:.9rem;background:var(--pv-accent-dark);color:#fff;border:none;cursor:pointer;transition:opacity .2s,transform .2s cubic-bezier(.16,1,.3,1);text-decoration:none}
 .btn-orange:hover{opacity:.9;transform:translateY(-1px)}
+.btn-orange:focus-visible{outline:2px solid var(--pv-accent);outline-offset:3px}
+.btn-orange:active{transform:translateY(1px)}
 .btn-ghost{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;font-weight:600;font-size:.85rem;color:#e8edf2;border:1px solid rgba(255,255,255,.15);background:transparent;cursor:pointer;transition:border-color .2s,background .2s;text-decoration:none}
 .btn-ghost:hover{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.05)}
 .card{background:rgba(17,22,32,.7);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:32px}

@@ -34,7 +34,7 @@ console.log('\n▼ 静的：止まった会員の板の切り出しそのまま�
 const POP = read('pv-proof-offer.js');
 /* pv-proof.js（main 05c7f2f）の5つの切り出し。K1・K5 はクラス名の頭 pvpf- を pvpo- にした後の指紋。 */
 const KS = [
-  { id: 'K1', from: '  var CSS = [', to: "  ].join('');\n", swap: true, sha: '3f41d3682fb6ac4a0d37997aa1a4ef38578ce9d68fc612a218c675546c5c97bd' },
+  { id: 'K1', from: '  var CSS = [', to: "  ].join('');\n", swap: true, sha: '15e9a476f88bd8b4c4740cb04690a1fa4a62a044be44f0c4a97eff5ead163ec0' },   // 2026-11-10 ボタン・輪郭・影を緑へ（pv-proof.js と同じだけ）
   { id: 'K2', from: '  function esc(s) {', to: '\n  }\n', sha: 'fb7e7f22b95efaaff829ede103f5c017a96b2530f8fffbd2818538b85439b75a' },
   { id: 'K3', from: '  function borrowed() {', to: '\n  }\n', sha: 'd13a8588e9afff8120434ea16059159fa608a01ca5ec782cc27fedd62f5e1cdd' },
   { id: 'K3b', from: '  function viaClient(c, name, args) {', to: '\n  }\n', sha: 'f9345232d91f9f96a5655a74a685819a626d0495d152f41517bb966326dafc9b' },
