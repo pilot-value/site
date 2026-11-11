@@ -92,7 +92,10 @@ const browser = await puppeteer.launch(open
   ? { headless: false, defaultViewport: null, args: ['--no-sandbox', `--window-size=${vw},900`, '--window-position=40,40'] }
   : { headless: 'shell', args: ['--no-sandbox'] });
 const page = (await browser.pages())[0] || await browser.newPage();
-if (!open) await page.setViewport({ width: vw, height: 1000 });
+if (!open) await page.setViewport(process.env.REC
+  /* スマホは「780px の画面に、390px の幅で組んだページを2倍で描く」（コマの絵が 780px の鮮明さで来る。下の meta viewport の差し替えと対） */
+  ? (vw < 600 ? { width: vw * 2, height: 1688, deviceScaleFactor: 1, isMobile: true, hasTouch: true } : { width: vw, height: 800, deviceScaleFactor: 1 })
+  : { width: vw, height: 1000 });
 
 /* ★ setRequestInterception は使わない（CDP デッドロック。shot-tracker.mjs 参照）。
    CDN の supabase-js に上書きさせない目的は defineProperty で達成する。 */
@@ -469,6 +472,26 @@ await page.evaluateOnNewDocument((scene, theme, REALROW) => {
 }, scene, theme, REALROW);
 
 if (process.env.RM) await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+/* REC=<フォルダ> … 画面の動きを1コマずつ撮る（Page.startScreencast）。動画にするのは scratchpad の encode.mjs */
+const REC = { frames: [], cdp: null };
+async function recStart() {
+  REC.cdp = await page.createCDPSession();
+  REC.cdp.on('Page.screencastFrame', (f) => {
+    REC.frames.push({ t: f.metadata.timestamp, data: f.data });
+    REC.cdp.send('Page.screencastFrameAck', { sessionId: f.sessionId }).catch(() => {});
+  });
+  await REC.cdp.send('Page.startScreencast', { format: 'jpeg', quality: 82, everyNthFrame: 1, maxWidth: 1600, maxHeight: 1800 });
+}
+if (process.env.REC) {
+  /* 動画には試作の切り替え（右下の帯）を写さない。ページを移ると ?sw=0 が付いてこないので、ここで隠す */
+  if (vw < 600) await page.evaluateOnNewDocument((w) => {
+    const fix = () => { const m = document.querySelector('meta[name="viewport"]'); if (m && m.content !== 'width=' + w) m.content = 'width=' + w; return !!m; };
+    if (!fix()) { const mo = new MutationObserver(() => { if (fix()) mo.disconnect(); }); mo.observe(document, { childList: true, subtree: true }); }
+  }, vw);
+  await page.evaluateOnNewDocument(() => { document.addEventListener('DOMContentLoaded', () => { const s = document.createElement('style'); s.textContent = '.ut-sw{display:none!important}'; document.head.appendChild(s); }); });
+  await recStart();
+  page.on('framenavigated', (fr) => { if (fr === page.mainFrame()) REC.cdp.send('Page.startScreencast', { format: 'jpeg', quality: 82, everyNthFrame: 1, maxWidth: 1600, maxHeight: 1800 }).catch(() => {}); });
+}
 await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 await new Promise((r) => setTimeout(r, 2500));
 if (gate) {
@@ -510,6 +533,59 @@ if (process.env.ACT) {
     const b = pick && pick(); if (b) b.click(); else console.log('no target ' + act);
   }, act);
   await new Promise((r) => setTimeout(r, Number(process.env.MID) || 1500));
+}
+if (process.env.REC) {
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  /* 押す所に小さな丸を出してから押す（動画で「どこを押したか」が分かるように） */
+  const tap = (sel, nth = 0) => page.evaluate((sel, nth) => {
+    const el = [...document.querySelectorAll(sel)].filter((e) => e.getClientRects().length)[nth];
+    if (!el) return false;
+    const r = el.getBoundingClientRect(), dot = document.createElement('div');
+    dot.style.cssText = 'position:fixed;left:' + (r.left + r.width / 2 - 22) + 'px;top:' + (r.top + r.height / 2 - 22) + 'px;width:44px;height:44px;border-radius:50%;background:rgba(6,117,99,.28);border:2px solid rgba(6,117,99,.6);z-index:2147483647;pointer-events:none;transition:transform .55s ease,opacity .55s ease';
+    document.documentElement.appendChild(dot);
+    requestAnimationFrame(() => requestAnimationFrame(() => { dot.style.transform = 'scale(1.7)'; dot.style.opacity = '0'; }));
+    setTimeout(() => dot.remove(), 700);
+    setTimeout(() => el.click(), 120);
+    return true;
+  }, sel, nth).catch(() => false);
+  /* なめらかにスクロール（指で送る速さ） */
+  const glide = (to, ms) => page.evaluate(async (to, ms) => {
+    const end = to === 'bottom' ? document.documentElement.scrollHeight - innerHeight : to;
+    const from = scrollY, t0 = performance.now();
+    await new Promise((res) => { const step = (t) => { const k = Math.min(1, (t - t0) / ms), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; scrollTo(0, from + (end - from) * e); if (k < 1) requestAnimationFrame(step); else res(); }; requestAnimationFrame(step); });
+  }, to, ms).catch(() => {});
+  await page.evaluate(() => scrollTo(0, 0)).catch(() => {});
+  await sleep(300);
+  REC.start = Date.now() / 1000;   // 動画はここから（読み込みの途中は使わない）
+  await page.evaluate(() => window.PVUiTrial && window.PVUiTrial.replay()).catch(() => {});
+  await sleep(2600);
+  if (vw >= 600) {
+    await tap('#pv-value .pt-tabs .pt-tab', 1); await sleep(2300);
+    await tap('#pv-value .pt-tabs .pt-tab', 0); await sleep(1900);
+    await tap('#pv-value .mv-tab', 2); await sleep(2700);
+    await tap('#pv-value .mv-tab', 0); await sleep(2200);
+    await glide('bottom', 3800); await sleep(1600); await glide(0, 1300); await sleep(900);
+    await tap('.mr-side-a[href^="actual-pay"]'); await sleep(3000);
+    await glide(420, 1600); await sleep(900); await glide(0, 900); await sleep(500);
+    await tap('.mr-side-a[href^="roadmap"]'); await sleep(3000);
+    await glide(760, 2200); await sleep(1100); await glide(0, 900); await sleep(500);
+    await tap('.mr-side-a[href^="profile"]'); await sleep(3200);
+  } else {
+    await tap('#pv-value .pt-tabs .pt-tab', 1); await sleep(2200);
+    await tap('#pv-value .pt-tabs .pt-tab', 0); await sleep(1800);
+    await tap('#pv-value .mv-tab', 2); await sleep(2600);
+    await tap('#pv-value .mv-tab', 0); await sleep(2000);
+    await glide('bottom', 5200); await sleep(1600); await glide(0, 1400); await sleep(900);
+    await tap('.pv-ham-btn'); await sleep(1300);
+    await tap('.mr-side-a[href^="actual-pay"]'); await sleep(3000);
+    await glide(700, 2000); await sleep(1400);
+  }
+  await REC.cdp.send('Page.stopScreencast').catch(() => {});
+  const dir = process.env.REC; fs.mkdirSync(dir, { recursive: true });
+  const idx = REC.frames.map((f, i) => { const n = String(i).padStart(5, '0') + '.jpg'; fs.writeFileSync(path.join(dir, n), Buffer.from(f.data, 'base64')); return { f: n, t: f.t }; });
+  fs.writeFileSync(path.join(dir, 'index.json'), JSON.stringify({ start: REC.start, frames: idx }));
+  console.log('frames ' + idx.length + ' / ' + (idx.length ? (idx[idx.length - 1].t - idx[0].t).toFixed(1) : 0) + 's → ' + dir);
+  await browser.close(); process.exit(0);
 }
 if (process.env.SAFE) {
   /* 一番下までスクロールしてから：動いている物の数・試作の印（ut-）の数・ページまたぎの切り替えの宣言があるか */
