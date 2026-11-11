@@ -1025,6 +1025,22 @@ const vals = (page) => page.evaluate(() => {
   await page.close();
 }
 
+{
+  // (5) ★2026-11-11 オーナー「ボーナスが夏冬だけとは限らないからね」── 季節も回数も決めない。3枚まとめて（四半期・業績・入社時）でも全部足す
+  const kinds = [['第1四半期賞与', 3, 300000], ['Performance bonus', 6, 450000], ['Signing bonus', 9, 1200000]];
+  const slip = (k) => ({ ok: true, result: { currency: 'JPY', period: { year: 2026, month: kinds[k][1] }, earnings: [{ label: kinds[k][0], amount: kinds[k][2], kind: 'bonus' }],
+    gross_total: kinds[k][2], deductions_total: 0, net_pay: kinds[k][2], hours: [], unmapped: [], confidence: 'high' } });
+  const { page, seen, errs } = await open(URL_JA, (n) => ({ body: slip(Math.min(n, 3) - 1) }));
+  const files = fs.readdirSync(FIX).filter((f) => /^payslip-.*\.png$/.test(f)).slice(0, 3);
+  await (await page.$('#ps-file')).uploadFile(...files.map((f) => path.join(FIX, f)));
+  await page.waitForFunction(() => document.querySelectorAll('#ps .ps-ex-p.is-slip').length === 3 && !document.querySelector('.ps-load'), { timeout: 40000 });
+  const v = await vals(page);
+  ok(seen.calls === 3 && dg(v.bonus) === '1950000', '★季節も回数も決めない：3枚（四半期・業績・入社時）を全部足す（300,000＋450,000＋1,200,000）', v.bonus);
+  ok(!dg(v.gross), '★ボーナスだけの明細ばかりなら月の総支給は空のまま', v.gross);
+  ok(errs.length === 0, '画面のエラーなし', errs.join(' | '));
+  await page.close();
+}
+
 // ── コード側の約束：画像・ラベルをログに出していないこと（db/test-payslip-redact.mjs から移した）──
 console.log('\n══ Edge Function のログ検査');
 const fn = readFileSync(path.join(DIR, '..', 'supabase', 'functions', 'parse-payslip', 'index.ts'), 'utf8');
