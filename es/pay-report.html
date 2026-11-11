@@ -212,10 +212,10 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <span class="ps-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 17v-6"/><path d="m9.5 13.5 2.5-2.5 2.5 2.5"/></svg></span>
           <span class="ps-drop-txt">
             <b>Autocompletar desde un recibo de nómina</b>
-            <small>PDF, foto o captura de pantalla</small>
+            <small>PDF, foto o captura de pantalla — también recibos de bono, todos a la vez</small>
           </span>
         </button>
-        <input type="file" id="ps-file" accept="application/pdf,image/png,image/jpeg,image/webp" hidden>
+        <input type="file" id="ps-file" accept="application/pdf,image/png,image/jpeg,image/webp" multiple hidden>
         <!-- ★2026-11-04 作り直し（オーナー判断）：選んだらそのまま読み取りに送る。
              端末の中の黒塗りと、塗った明細を確かめる画面はやめた（手間に見合わなかった）。
              氏名・社員番号・口座は「回答・保存の対象にしない」で守る
@@ -6534,7 +6534,7 @@ addEventListener('scroll', () => {
   });
 })();
 </script>
-<script src="../payslip.js?v=52bb04a9"></script>
+<script src="../payslip.js?v=3d001a15"></script>
 <script src="../pv-app.js?v=a95c64dd"></script>
 <script src="../confetti.js"></script>
 <script src="../pay-login.js"></script>

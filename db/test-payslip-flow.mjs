@@ -1,3 +1,4 @@
+import fs from 'fs';
 /* ════════════════════════════════════════════════════════════════
    db/test-payslip-flow.mjs — 明細から自動入力の通し（2026-11-04 作り直し）
 
@@ -1003,6 +1004,23 @@ const vals = (page) => page.evaluate(() => {
   ok(!dg(v.gross) && !dg(v.paid), '★ボーナスだけの明細は月の総支給に入れない（入れると ×12 される）', `${v.gross} / ${v.paid}`);
   ok(dg(v.bonus) === '900000', '★年間ボーナスに入る', v.bonus);
   ok(/ボーナスの明細でした/.test(v.title) && !!(await page.$('#ps-bo-next')), '「これはボーナスの明細でした」と「月の給与の明細を読む」', v.title);
+  ok(errs.length === 0, '画面のエラーなし', errs.join(' | '));
+  await page.close();
+}
+
+{
+  // (4) ★2026-11-11 オーナー「普通に明細アップロードからボーナスもアップロードできるようにして」
+  //     月の明細とボーナスの明細を一緒に選ぶ → 1枚ずつ読み、月の明細は月の欄へ・ボーナスの明細は年間ボーナスへ
+  const { page, seen, errs } = await open(URL_JA, (n) => ({ body: n === 1 ? BONUS_SLIP : FAKE }));
+  ok(await page.$eval('#ps-file', (n) => n.multiple === true), '明細を選ぶ欄は何枚でも選べる（multiple）');
+  const files = fs.readdirSync(FIX).filter((f) => /^payslip-.*\.png$/.test(f)).slice(0, 2);
+  await (await page.$('#ps-file')).uploadFile(...files.map((f) => path.join(FIX, f)));
+  await page.waitForFunction(() => !!document.querySelector('#ps .ps-res:not(.ps-bo)') && !document.querySelector('.ps-load'), { timeout: 30000 });
+  await new Promise((r) => setTimeout(r, 600));
+  const v = await vals(page);
+  ok(seen.calls === 2, '★2枚とも読む（1枚ずつ）', String(seen.calls));
+  ok(dg(v.gross) === String(FAKE.result.gross_total) && !dg(v.paid), '★月の明細は月の欄へ（ボーナスの明細の額は総支給に入らない）', `${v.gross} / ${v.paid}`);
+  ok(dg(v.bonus) === '900000' && v.parts.some((t) => /ボーナスの明細/.test(t)), '★ボーナスの明細は年間ボーナスへ（先に読んでも、後から読んだ月の明細に消されない）', v.bonus);
   ok(errs.length === 0, '画面のエラーなし', errs.join(' | '));
   await page.close();
 }

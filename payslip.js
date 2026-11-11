@@ -153,6 +153,7 @@
       boS: '年間ボーナスに {a} を入れました。続けて、月の給与の明細を読んでください。',
       boBtn: '月の給与の明細を読む',
       wasBonus: '選んだ明細はボーナスの明細でした。年間ボーナスに入れました。',
+      someFail: '読めなかった明細が {n} 枚ありました。',
       ahaPickB: '会社と職位を選ぶ →',
       ahaNoAirline: '「その他」の会社には公開レンジがありません。',
       ahaNoBand: '訓練生の公開レンジはまだありません。副操縦士から比較が出ます。',
@@ -284,6 +285,7 @@
       boS: 'We added {a} to your annual bonus. Next, read your monthly payslip.',
       boBtn: 'Read your monthly payslip',
       wasBonus: 'That was a bonus payslip, so we added it to your annual bonus.',
+      someFail: 'We couldn’t read {n} of the payslips.',
       ahaPickB: 'Pick airline and seat →',
       ahaNoAirline: '“Other” has no published range.',
       ahaNoBand: 'There is no published range for cadets yet. Comparison starts at first officer.',
@@ -414,6 +416,7 @@
       boS: 'Agregamos {a} a tu bono anual. Ahora lee tu recibo de nómina mensual.',
       boBtn: 'Leer tu recibo de nómina mensual',
       wasBonus: 'Ese era un recibo de bono, así que lo agregamos a tu bono anual.',
+      someFail: 'No pudimos leer {n} de los recibos.',
       ahaPickB: 'Elegir aerolínea y puesto →',
       ahaNoAirline: '“Otra” no tiene rango publicado.',
       ahaNoBand: 'Todavía no hay un rango publicado para pilotos en formación. La comparación empieza en primer oficial.',
@@ -679,8 +682,26 @@
   fileInput.addEventListener('cancel', function () { readMode = 'month'; });
   function readBonusSlip() { readMode = 'bonus'; readModeAt = Date.now(); bonusMsg = ''; fileInput.click(); }
   dropBtn.addEventListener('click', function () { readMode = 'month'; fileInput.click(); });
+  /* ★2026-11-11 オーナー「普通に明細アップロードからボーナスもアップロードできるようにして」──
+       何枚でも一緒に選べる（6枚まで）。1枚ずつ順に読み、ボーナスだけの明細は年間ボーナスへ（isBonusOnly）、
+       月の給与の明細は月の欄へ（apply）。読めなかった1枚があっても、残りは続けて読む。 */
+  var queue = [], batchOk = 0, qFails = 0;
+  var MAX_FILES = 6;
+  function takeMany(list) {
+    list = [].slice.call(list || []).filter(Boolean).slice(0, MAX_FILES);
+    if (!list.length) return;
+    queue = list.slice(1); batchOk = 0; qFails = 0;
+    take(list[0]);
+  }
+  function nextQueued() {
+    if (!queue.length) { readMode = 'month'; return false; }
+    var f = queue.shift();
+    setTimeout(function () { take(f); }, 250);
+    return true;
+  }
+  function failNote() { return qFails ? T.someFail.replace('{n}', function () { return String(qFails); }) : ''; }
   fileInput.addEventListener('change', function () {
-    if (fileInput.files && fileInput.files[0]) take(fileInput.files[0]);
+    if (fileInput.files && fileInput.files.length) takeMany(fileInput.files);
     fileInput.value = '';
   });
 
@@ -691,8 +712,8 @@
     root.addEventListener(ev, function (e) { e.preventDefault(); dropBtn.classList.remove('is-over'); });
   });
   root.addEventListener('drop', function (e) {
-    var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-    if (f) { if (Date.now() - readModeAt > 60000) readMode = 'month'; take(f); }
+    var fs = e.dataTransfer && e.dataTransfer.files;
+    if (fs && fs.length) { if (Date.now() - readModeAt > 60000) readMode = 'month'; takeMany(fs); }
   });
 
   function take(file) {
@@ -818,12 +839,14 @@
           try {
             /* ★ボーナスの明細（2026-11-11）。「ボーナスの明細を読む」から来た1枚か、読んだら支給がボーナスだけだった1枚は、
                  月の欄に1つも書かず、年間ボーナスに足す（月の総支給にボーナスを入れて ×12 しない）。 */
-            if (readMode === 'bonus') { readMode = 'month'; applyBonus(out.result, false); }
+            if (readMode === 'bonus') applyBonus(out.result, false);
             else if (isBonusOnly(out.result)) applyBonus(out.result, true);
             else apply(out.result);
           } catch (e) { throw tag('apply_failed', 'apply'); }
           busy = false;
+          batchOk++;
           loadDone();
+          nextQueued();                     // ★まとめて選んだ次の1枚へ（無ければ読み方を月に戻す）
           /* ★payslip_read_ok ＝ 読めた数字が入力欄に入った（2026-11-04 に定義を変えた。
              前は「サーバーが答えた」の時点で記録していた。サーバーの答えは payslip_api_ok）。 */
           track('payslip_read_ok', { ms: since(t0) });
@@ -1051,6 +1074,13 @@
   var FILE_ERR = { too_large: 1, bad_type: 1, image_decode: 1, image_blank: 1, image_too_large: 1, bad_mime: 1, not_a_payslip: 1,
                    pdf_locked: 1, pdf_xfa: 1, pdf_blank: 1, pdf_broken: 1, image_timeout: 1, pdf_timeout: 1, prep_failed: 1 };
   function showFail(code) {
+    /* ★まとめて読んでいる途中（読めた1枚がある・まだ残りがある）：読めた分の画面は消さず、数だけ言って次へ */
+    if ((batchOk > 0 || queue.length) && (lastRes || slipParts.length || queue.length)) {
+      qFails++; loadClose(); bonusMsg = failNote();
+      if (lastRes) renderResult(lastRes, lastTrace);
+      else if (slipParts.length) renderBonusOnly(slipPart('bonus') + slipPart('profit'));
+      if (nextQueued() || lastRes || slipParts.length) return;
+    }
     if (readMode === 'bonus' && lastRes) {          // ★ボーナスの明細だけ読めなかった＝前の明細の結果は消さない
       readMode = 'month'; loadClose(); bonusMsg = T.exFail;
       renderResult(lastRes, lastTrace);
@@ -1807,7 +1837,7 @@
        既定を「含まれている」のままにすると、入れた瞬間に「内訳の合計が総支給を超えています」で止まる
        （オーナーが本番で踏んだ）。選択はそのまま出るので、本人が「含まれている」へ直せる。 */
     syncPdSrc(trace);
-    bonusMsg = '';
+    bonusMsg = failNote();
     syncBonus(trace);                   // ★2026-11-11 この明細のボーナスで年間の欄を埋める（空のときだけ）
     renderResult(res, trace);
     renderRate();
