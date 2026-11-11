@@ -29,8 +29,10 @@ const SLICES = [
     sha: 'f5b7fe9d88bcb67d00a0208c8c48d1d17be369e3ed7a73d49b46a908d9949bce' },
   { id: 'P2', file: 'db/pay-rows.sql',    from: 'alter table public.pv_proof enable row level security;', to: "security definer の中からしか読めない。';\n",
     sha: '4f51fda14d3d13ab15e43f5933fe772c72c7031115e6c44e2426ef7f52b96272' },
-  { id: 'I',  file: 'db/pilot-proof.sql', from: '-- ── 1. 画像（1人につき1枚）', to: 'revoke all on function public.pv_proof_image_guard_tg() from public, anon, authenticated;\n',
-    sha: 'ef2b739f931ca7292d271a10eba134fe6433eb2ea6e15292e5fce16afc969909' },
+  /* ★I は 2026-11-11 に取り直した（画像を1回の提出につき5枚まで・主キー (user_id, n)）。
+       proof-offer.sql の上書きを (user_id, n) の n=1 に直したうえで取り直している。 */
+  { id: 'I',  file: 'db/pilot-proof.sql', from: '-- ── 1. 画像（1回の提出につき5枚まで・2026-11-11）', to: 'revoke all on function public.pv_proof_image_guard_tg() from public, anon, authenticated;\n',
+    sha: 'cc54c900f071ae51c2db6a139b935bb79b675fad5f0e34cbe06576bfc6cbe18b' },
 ];
 const cut = (text, s) => { const i = text.indexOf(s.from); if (i < 0 || text.indexOf(s.from, i + 1) >= 0) return null;
                             const j = text.indexOf(s.to, i); return j < 0 ? null : text.slice(i, j + s.to.length); };
@@ -354,7 +356,7 @@ if (MERGED) {
   ok(J((await call(OP2, `select public.admin_proof_approve($1::uuid) as v`, [T10])).v) === NONE && (await images(T10)) === 1,
      '運営の承認は申請には効かない（画像も残る）');
   const sc = await selfCheck('db/pilot-proof.sql');
-  ok(sc.length === 8 && sc.every((x) => x === '✅'), 'main の検算8行が、申請の画像があっても全部 ✅', J(sc));
+  ok(sc.length === 9 && sc.every((x) => x === '✅'), 'main の検算9行が、申請の画像があっても全部 ✅', J(sc));
 }
 
 console.log('\n▼ 8. 画像が届いた印（運営への通知メールの元・db/proof-notice.sql・2026-11-03）');

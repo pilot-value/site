@@ -39,7 +39,7 @@
       lead:     'パイロットであることが分かる画像を1枚ご提出ください。',
       lead2:    'Only VERIFIED PILOT',                                                        // NEW
       exT:      '提出できる画像の例',
-      ex:       ['肩章', 'ウィングバッジ', '事業用操縦士の免許証', '勤務表'],
+      ex:       ['肩章', 'ウィングバッジ', '定期運送用操縦士の免許証', '准定期運送用操縦士の免許証', '事業用操縦士の免許証', '特定操縦技能審査／確認の記録', '勤務表'],
       etc:      'など',
       pick:     '画像を選んで提出する',
       pickedS:  'この画像を提出します。よろしければ下のボタンを押してください。',
@@ -64,7 +64,7 @@
       lead:     'Please submit one image showing that you are a pilot.',
       lead2:    'Only VERIFIED PILOT',                                                        // NEW
       exT:      'Examples of what you can submit',
-      ex:       ['Epaulettes', 'Wing badge', 'Commercial pilot licence', 'Roster'],
+      ex:       ['Epaulettes', 'Wing badge', 'Airline transport pilot licence (ATPL)', 'Multi-crew pilot licence (MPL)', 'Commercial pilot licence', 'Proficiency check record', 'Roster'],
       etc:      'etc.',
       pick:     'Choose an image to submit',
       pickedS:  'This image will be submitted. If it looks right, press the button below.',
@@ -88,7 +88,7 @@
       lead:     'Envía una imagen que muestre que eres piloto.',
       lead2:    'Solo para VERIFIED PILOT',                                                        // NEW
       exT:      'Ejemplos de lo que puedes enviar',
-      ex:       ['Hombreras (galones)', 'Alas (insignia de piloto)', 'Licencia de piloto comercial', 'Programación (rol de vuelo)'],
+      ex:       ['Hombreras (galones)', 'Alas (insignia de piloto)', 'Licencia de piloto de transporte de línea aérea (ATPL)', 'Licencia de piloto con tripulación múltiple (MPL)', 'Licencia de piloto comercial', 'Registro de verificación de competencia (chequeo)', 'Programación (rol de vuelo)'],
       etc:      'etc.',
       pick:     'Elegir una imagen para enviar',
       pickedS:  'Se enviará esta imagen. Si es correcta, presiona el botón de abajo.',

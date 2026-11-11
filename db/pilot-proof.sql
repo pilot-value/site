@@ -11,11 +11,16 @@
        パイロットであることを示す画像（肩章・ウィングバッジ・事業用操縦士の
        免許証・勤務表など）を出すボタンを置く。出すまでサイトの詳細は見せない。
        出した画像は、運営が確認したら破棄する。」
+     2026-11-11「提出を求めるときの理由も提示しよう」「定期運送用操縦士・准定期運送用操縦士・
+       特定操縦技能審査／確認とかもいれてね。複数枚提出も可能」
+       → 理由（pv_proof.reason・本人の板にだけ出る）と、1回の提出で5枚まで（pv_proof_max_images）。
+       ⚠️ このファイルの画像の主キーを変えたので、**続けて db/proof-offer.sql も貼る**
+          （あちらの上書きが新しい主キーを見ている。古いままだと申し込みが落ちる）。
 
    何がどこに在るか
      db/pay-rows.sql 1-e2 … 「誰に確認を求めているか」の表 pv_proof と、
                             3つの門が呼ぶ pv_proof_blocked、印の材料 pv_proof_held_keys
-     このファイル        … 画像の表・会員の入口2つ・運営の入口5つ
+     このファイル        … 画像の表・理由の欄・会員の入口2つ・運営の入口6つ
      pv-session.js / pv-proof.js … 会員の画面に出す板
      admin.html          … 運営が押すボタン
 
@@ -52,15 +57,63 @@ end
 $guard$;
 
 
--- ── 1. 画像（1人につき1枚）────────────────────────────────────
---   主キーが user_id そのもの＝2枚目を入れる道が無い。出し直しは上書き。
+-- ── 0-b. 確認を求める理由（2026-11-11）──────────────────────────
+--   ★オーナー指示「提出を求めるときの理由も提示しよう（9月に◯◯、10月に△△で提出しているため、とか）」。
+--   運営が書き、止めた会員本人の板にだけ出る（pv_proof_state）。承認したら消す（残す理由が無い）。
+--   ⚠️ 会員の名前・メールをここに書く道具にしない（書くのは「なぜ確かめたいか」だけ）。
+alter table public.pv_proof add column if not exists reason text;
+alter table public.pv_proof drop constraint if exists pv_proof_reason_ck;
+alter table public.pv_proof add constraint pv_proof_reason_ck check (
+  reason is null or char_length(reason) between 1 and 400);
+
+
+-- ── 1. 画像（1回の提出につき5枚まで・2026-11-11）──────────────────
+--   ★オーナー指示「複数枚提出も可能」。主キーは (user_id, n)。n は 1 から順に埋まる。
+--   ★上限の枚数は pv_proof_max_images() の1か所だけ（制約も・提出の関数も・板も、ここを読む）。
+--   出し直し（n=1 から出す）は前の束を丸ごと入れ替える。
+create or replace function public.pv_proof_max_images()
+returns integer
+language sql
+immutable
+as $fn$ select 5 $fn$;
+
+revoke all on function public.pv_proof_max_images() from public, anon, authenticated;
+
 create table if not exists public.pv_proof_images (
-  user_id    uuid primary key references public.pv_proof(user_id) on delete cascade,
+  user_id    uuid not null references public.pv_proof(user_id) on delete cascade,
+  n          smallint not null default 1,
   mime       text not null default 'image/jpeg',
   bytes      bytea not null,
   byte_len   integer not null,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  primary key (user_id, n)
 );
+
+-- 2026-11-11 より前の形（主キーが user_id だけ・1人1枚）から移す。今ある画像は n=1 になる。
+-- ★create table if not exists は既にある表の主キーを変えないので、ここで直す。何度流しても同じ。
+alter table public.pv_proof_images add column if not exists n smallint not null default 1;
+do $mig$
+declare v_pk text; v_cols text;
+begin
+  select c.conname,
+         (select string_agg(a.attname, ',' order by a.attnum)
+            from pg_attribute a
+           where a.attrelid = c.conrelid and a.attnum = any (c.conkey))
+    into v_pk, v_cols
+    from pg_constraint c
+   where c.conrelid = 'public.pv_proof_images'::regclass and c.contype = 'p';
+  if v_pk is null or v_cols <> 'user_id,n' then
+    if v_pk is not null then
+      execute format('alter table public.pv_proof_images drop constraint %I', v_pk);
+    end if;
+    alter table public.pv_proof_images add constraint pv_proof_images_pkey primary key (user_id, n);
+  end if;
+end
+$mig$;
+
+alter table public.pv_proof_images drop constraint if exists pv_proof_images_n_ck;
+alter table public.pv_proof_images add constraint pv_proof_images_n_ck check (
+  n between 1 and public.pv_proof_max_images());
 
 alter table public.pv_proof_images drop constraint if exists pv_proof_images_len_ck;
 alter table public.pv_proof_images add constraint pv_proof_images_len_ck check (
@@ -75,7 +128,7 @@ alter table public.pv_proof_images enable row level security;
 revoke all on table public.pv_proof_images from public, anon, authenticated;
 
 comment on table public.pv_proof_images is
-  'パイロットであることの確認のために会員が出した画像（1人1枚・JPEG）。'
+  'パイロットであることの確認のために会員が出した画像（1回の提出につき5枚まで・JPEG）。'
   '★確認待ち（pv_proof.state = submitted）のあいだだけ在る。それ以外になった瞬間に引き金が消す。'
   'RLS 有効・ポリシー無し・grant 無し。読めるのは admin_proof_image（運営）だけ。';
 
@@ -131,9 +184,10 @@ revoke all on function public.pv_proof_image_guard_tg() from public, anon, authe
 -- ══════════════════════════════════════════════════════════════
 
 -- 3-a. 自分が止まっているか。板を出すかどうかを決めるためだけに画面が呼ぶ。
---   返るのは state（none / required / submitted）と again（出し直しを求められたか）。
+--   返るのは state（none / required / submitted）と again（出し直しを求められたか）、
+--   止まっているときだけ reason（運営が書いた理由・無ければ null）と max（出せる枚数）。
 --   ★止まっていない人（一度も求められていない・承認済み）はどちらも 'none'。
---     「前に確認を求められたことがある」を画面へ渡さない。
+--     「前に確認を求められたことがある」を画面へ渡さない（理由も返さない）。
 create or replace function public.pv_proof_state()
 returns jsonb
 language sql
@@ -143,8 +197,10 @@ set search_path = public, extensions
 as $fn$
   select coalesce(
     (select jsonb_build_object(
-              'state', b.state,
-              'again', b.state = 'required' and b.rejected_at is not null)
+              'state',  b.state,
+              'again',  b.state = 'required' and b.rejected_at is not null,
+              'reason', b.reason,
+              'max',    public.pv_proof_max_images())
        from public.pv_proof b
       where b.user_id = auth.uid()
         and b.state in ('required', 'submitted')),
@@ -159,10 +215,14 @@ comment on function public.pv_proof_state() is
   '他人については何も答えない。';
 
 
--- 3-b. 画像を出す。
---   ★止まっている会員だけが出せる（約束④）。確認待ちのあいだは出し直せる（上書き）。
+-- 3-b. 画像を出す。1回の通信で1枚（大きな通信を作らない）。
+--   p_n = 1   … 提出の始まり。前に出してあった画像を全部入れ替える（tries に1を足す）。
+--   p_n = 2〜 … 同じ提出の2枚目から。確認待ちのあいだだけ・1つ前の番号が在るときだけ足せる。
+--   ★止まっている会員だけが出せる（約束④）。確認待ちのあいだは出し直せる（n=1 から）。
 --   ★返すのは受け取れたかどうかだけ。画像そのものは返さない（約束②）。
-create or replace function public.pv_proof_submit(p_image_b64 text)
+--   ★2026-11-11 より前の1引数の形は消す（引数を省いた呼び出しは n=1 と同じに動く）。
+drop function if exists public.pv_proof_submit(text);
+create or replace function public.pv_proof_submit(p_image_b64 text, p_n integer default 1)
 returns jsonb
 language plpgsql
 security definer
@@ -172,18 +232,29 @@ declare
   v_uid   uuid := auth.uid();
   v_row   public.pv_proof%rowtype;
   v_bytes bytea;
+  v_n     integer := coalesce(p_n, 1);
 begin
   if v_uid is null then
     raise exception 'ログインが必要です' using errcode = '42501';
+  end if;
+  if v_n < 1 or v_n > public.pv_proof_max_images() then
+    return jsonb_build_object('ok', false, 'status', 'too_many_images');
   end if;
 
   select * into v_row from public.pv_proof b where b.user_id = v_uid for update;
   if not found or v_row.state not in ('required', 'submitted') then
     return jsonb_build_object('ok', false, 'status', 'not_required');
   end if;
-  -- 置き場を埋める連投を止めるだけの上限。運営が求め直すと 0 に戻る
-  if v_row.tries >= 10 then
-    return jsonb_build_object('ok', false, 'status', 'too_many');
+  if v_n = 1 then
+    -- 置き場を埋める連投を止めるだけの上限。運営が求め直すと 0 に戻る
+    if v_row.tries >= 10 then
+      return jsonb_build_object('ok', false, 'status', 'too_many');
+    end if;
+  elsif v_row.state <> 'submitted'
+     or not exists (select 1 from public.pv_proof_images i
+                     where i.user_id = v_uid and i.n = v_n - 1) then
+    -- 2枚目からは、同じ提出の続きのときだけ（番号を飛ばさない・止まっているだけの人に足させない）
+    return jsonb_build_object('ok', false, 'status', 'out_of_order');
   end if;
 
   if p_image_b64 is null or char_length(btrim(p_image_b64)) = 0 then
@@ -206,39 +277,43 @@ begin
     return jsonb_build_object('ok', false, 'status', 'image_bad');
   end if;
 
-  -- ★先に「確認待ち」へ進めてから画像を置く（画像の側の網が state を見ている）
-  update public.pv_proof b
-     set state = 'submitted', submitted_at = now(), rejected_at = null,
-         tries = b.tries + 1
-   where b.user_id = v_uid;
+  if v_n = 1 then
+    -- ★先に「確認待ち」へ進めてから画像を置く（画像の側の網が state を見ている）
+    update public.pv_proof b
+       set state = 'submitted', submitted_at = now(), rejected_at = null,
+           tries = b.tries + 1
+     where b.user_id = v_uid;
+    -- 新しい提出は前の束を丸ごと入れ替える（前の3枚の上に1枚だけ出し直した、を作らない）
+    delete from public.pv_proof_images i where i.user_id = v_uid;
+  end if;
 
-  insert into public.pv_proof_images (user_id, bytes, byte_len)
-  values (v_uid, v_bytes, octet_length(v_bytes))
-  on conflict (user_id) do update
+  insert into public.pv_proof_images (user_id, n, bytes, byte_len)
+  values (v_uid, v_n, v_bytes, octet_length(v_bytes))
+  on conflict (user_id, n) do update
      set bytes = excluded.bytes, byte_len = excluded.byte_len,
          mime = 'image/jpeg', created_at = now();
 
-  return jsonb_build_object('ok', true, 'state', 'submitted');
+  return jsonb_build_object('ok', true, 'state', 'submitted', 'n', v_n);
 end
 $fn$;
 
-revoke all on function public.pv_proof_submit(text) from public, anon;
-grant execute on function public.pv_proof_submit(text) to authenticated;
+revoke all on function public.pv_proof_submit(text, integer) from public, anon;
+grant execute on function public.pv_proof_submit(text, integer) to authenticated;
 
-comment on function public.pv_proof_submit(text) is
-  'パイロットであることを示す画像を出す（止まっている会員だけ・JPEG・900KB まで）。'
+comment on function public.pv_proof_submit(text, integer) is
+  'パイロットであることを示す画像を出す（止まっている会員だけ・JPEG・1枚 900KB まで・1回の提出で5枚まで）。'
   '画像そのものは返さない。';
 
 
 -- ══════════════════════════════════════════════════════════════
--- 4. 運営の入口（5つ。どれも1行目で必ず名簿を見る）
+-- 4. 運営の入口（6つ。どれも1行目で必ず名簿を見る）
 --    名前は db/admin.sql の admin_list_* にそろえてある。
 -- ══════════════════════════════════════════════════════════════
 
 -- 4-a. 確認を求めている会員の一覧。
 --   ★氏名・メールはここから返さない。admin.html は admin_list_profiles の
 --     結果と user_id で突き合わせて出す（会員の表を2か所から配らない）。
---   ★画像は返さない（在るかどうかと大きさだけ）。見るのは 4-c で1枚ずつ。
+--   ★画像は返さない（在るかどうか・枚数・大きさの合計だけ）。見るのは 4-c で1枚ずつ。
 create or replace function public.admin_list_proofs()
 returns jsonb
 language plpgsql
@@ -258,13 +333,17 @@ begin
            'submitted_at', b.submitted_at,
            'rejected_at',  b.rejected_at,
            'decided_at',   b.decided_at,
-           'has_image',    i.user_id is not null,
-           'byte_len',     i.byte_len)
+           'has_image',    coalesce(i.k, 0) > 0,
+           'n_images',     coalesce(i.k, 0),
+           'byte_len',     i.bytes_sum,
+           'reason',       b.reason)
            order by (b.state = 'submitted') desc, (b.state = 'required') desc,
                     coalesce(b.submitted_at, b.required_at) desc), '[]'::jsonb)
     into v
     from public.pv_proof b
-    left join public.pv_proof_images i on i.user_id = b.user_id
+    -- ★枚数を先に数えてから付ける（そのまま join すると、3枚出した人が3行に増える）
+    left join (select x.user_id, count(*)::integer as k, sum(x.byte_len)::integer as bytes_sum
+                 from public.pv_proof_images x group by x.user_id) i on i.user_id = b.user_id
    -- ★会員が自分から出した申請（'offered'・db/proof-offer.sql）は運営の一覧に出さない（見るのはオーナーだけ・db/stays.sql 10-c）
    where b.state <> 'offered';
   return v;
@@ -279,16 +358,24 @@ grant execute on function public.admin_list_proofs() to authenticated;
 --   ★運営は止められない。自分を止めると、解く人が居なくなる。
 --   ★もう止まっている会員には何もしない（出してある画像を消さない）。
 --   ★承認済みの会員にもう一度求めることはできる（回数は 0 に戻る）。
-create or replace function public.admin_proof_require(p_user uuid)
+--   ★p_reason は会員の板に出る理由（空なら出さない・400字まで）。2026-11-11 に足した。
+--     もう止まっている会員の理由を直すのは 4-b2（ここで渡しても書き換えない）。
+drop function if exists public.admin_proof_require(uuid);
+create or replace function public.admin_proof_require(p_user uuid, p_reason text default null)
 returns jsonb
 language plpgsql
 security definer
 set search_path = public, extensions
 as $fn$
-declare v_state text;
+declare
+  v_state  text;
+  v_reason text := nullif(btrim(coalesce(p_reason, '')), '');
 begin
   if not public.pv_is_admin() then
     raise exception '管理者ではありません' using errcode = '42501';
+  end if;
+  if char_length(v_reason) > 400 then
+    return jsonb_build_object('ok', false, 'status', 'reason_too_long');
   end if;
   if p_user is null
      or not exists (select 1 from public.profiles p where p.id = p_user) then
@@ -304,29 +391,62 @@ begin
     return jsonb_build_object('ok', true, 'state', v_state, 'changed', false);
   end if;
 
-  insert into public.pv_proof (user_id, state, required_at)
-  values (p_user, 'required', now())
+  insert into public.pv_proof (user_id, state, required_at, reason)
+  values (p_user, 'required', now(), v_reason)
   on conflict (user_id) do update
      set state = 'required', required_at = now(), submitted_at = null,
-         rejected_at = null, decided_at = null, tries = 0;
+         rejected_at = null, decided_at = null, tries = 0, reason = excluded.reason;
 
   return jsonb_build_object('ok', true, 'state', 'required', 'changed', true);
 end
 $fn$;
 
-revoke all on function public.admin_proof_require(uuid) from public, anon;
-grant execute on function public.admin_proof_require(uuid) to authenticated;
+revoke all on function public.admin_proof_require(uuid, text) from public, anon;
+grant execute on function public.admin_proof_require(uuid, text) to authenticated;
 
 
--- 4-c. 出された画像を1枚見る。
-create or replace function public.admin_proof_image(p_user uuid)
+-- 4-b2. 止まっている会員の理由を直す（空にすると消える）。2026-11-11。
+--   ★止まっている会員（required / submitted）だけ。承認済みの人を、理由を直すつもりで止め直さない。
+--   ★状態・画像・回数には1文字も触らない。
+create or replace function public.admin_proof_reason(p_user uuid, p_reason text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $fn$
+declare v_reason text := nullif(btrim(coalesce(p_reason, '')), '');
+begin
+  if not public.pv_is_admin() then
+    raise exception '管理者ではありません' using errcode = '42501';
+  end if;
+  if char_length(v_reason) > 400 then
+    return jsonb_build_object('ok', false, 'status', 'reason_too_long');
+  end if;
+  update public.pv_proof b set reason = v_reason
+   where b.user_id = p_user and b.state in ('required', 'submitted');
+  if not found then
+    return jsonb_build_object('ok', false, 'status', 'none');
+  end if;
+  return jsonb_build_object('ok', true, 'reason', v_reason);
+end
+$fn$;
+
+revoke all on function public.admin_proof_reason(uuid, text) from public, anon;
+grant execute on function public.admin_proof_reason(uuid, text) to authenticated;
+
+
+-- 4-c. 出された画像を1枚見る（p_n 枚目。total に全部で何枚かを添える）。
+drop function if exists public.admin_proof_image(uuid);
+create or replace function public.admin_proof_image(p_user uuid, p_n integer default 1)
 returns jsonb
 language plpgsql
 stable
 security definer
 set search_path = public, extensions
 as $fn$
-declare v_img public.pv_proof_images%rowtype;
+declare
+  v_img   public.pv_proof_images%rowtype;
+  v_total integer;
 begin
   if not public.pv_is_admin() then
     raise exception '管理者ではありません' using errcode = '42501';
@@ -334,17 +454,19 @@ begin
   -- ★確認待ちの画像だけ。申請の画像（'offered'）は「無い」と同じ答え（見るのはオーナーだけ・db/stays.sql 10-c）
   select i.* into v_img from public.pv_proof_images i
     join public.pv_proof b on b.user_id = i.user_id and b.state = 'submitted'
-   where i.user_id = p_user;
+   where i.user_id = p_user and i.n = coalesce(p_n, 1);
   if not found then
     return jsonb_build_object('ok', false, 'status', 'none');
   end if;
+  select count(*) into v_total from public.pv_proof_images i where i.user_id = p_user;
   return jsonb_build_object('ok', true, 'mime', v_img.mime,
-                            'b64', encode(v_img.bytes, 'base64'));
+                            'b64', encode(v_img.bytes, 'base64'),
+                            'n', v_img.n, 'total', v_total);
 end
 $fn$;
 
-revoke all on function public.admin_proof_image(uuid) from public, anon;
-grant execute on function public.admin_proof_image(uuid) to authenticated;
+revoke all on function public.admin_proof_image(uuid, integer) from public, anon;
+grant execute on function public.admin_proof_image(uuid, integer) to authenticated;
 
 
 -- 4-d. 承認する（＝止めるのをやめる）。画像はこの取引の中で消える（2. の引き金）。
@@ -366,8 +488,9 @@ begin
   end if;
   select count(*) into v_had from public.pv_proof_images i where i.user_id = p_user;
 
+  -- 理由も消す（解いたあとに残す理由が無い）
   update public.pv_proof b
-     set state = 'approved', decided_at = now(), rejected_at = null
+     set state = 'approved', decided_at = now(), rejected_at = null, reason = null
    where b.user_id = p_user and b.state in ('required', 'submitted');
   if not found then
     return jsonb_build_object('ok', false, 'status', 'none');
@@ -425,7 +548,7 @@ grant execute on function public.admin_proof_reject(uuid) to authenticated;
 
 
 -- ══════════════════════════════════════════════════════════════
--- 5. 検算（読むだけ。何も書き換えない）── 期待：8行すべて ✅
+-- 5. 検算（読むだけ。何も書き換えない）── 期待：9行すべて ✅
 -- ══════════════════════════════════════════════════════════════
 with fn as (
   select p.proname, p.oid,
@@ -482,11 +605,23 @@ select 7, '3つの門が pv_proof_blocked を呼んでいる（REAL PAY・DEEP P
             then '✅'
             else '❌ 古いファイルが残っている（pay-rows → deep-pay → reviews-gate の順に貼る）' end
 union all
-select 8, '運営の入口が5つとも「名簿に載っているか」を聞いている',
+select 8, '運営の入口が6つとも「名簿に載っているか」を聞いている',
        case when (select count(*) from fn
                    where proname in ('admin_list_proofs', 'admin_proof_require',
                                      'admin_proof_image', 'admin_proof_approve',
-                                     'admin_proof_reject')
-                     and pg_get_functiondef(oid) like '%if not public.pv_is_admin() then%') = 5
+                                     'admin_proof_reject', 'admin_proof_reason')
+                     and pg_get_functiondef(oid) like '%if not public.pv_is_admin() then%') = 6
+            then '✅' else '❌ 古い形が残っている（同じ名前の関数が2つある）' end
+union all
+select 9, '画像は (user_id, n) で置き、1回の提出で pv_proof_max_images() 枚まで（2026-11-11）',
+       case when (select string_agg(a.attname, ',' order by a.attnum)
+                    from pg_constraint c
+                    join pg_attribute a on a.attrelid = c.conrelid and a.attnum = any (c.conkey)
+                   where c.conrelid = 'public.pv_proof_images'::regclass and c.contype = 'p') = 'user_id,n'
+             and exists (select 1 from pg_constraint c
+                          where c.conrelid = 'public.pv_proof_images'::regclass
+                            and c.conname = 'pv_proof_images_n_ck')
+             and (select count(*) from public.pv_proof_images i
+                   where i.n > public.pv_proof_max_images()) = 0
             then '✅' else '❌' end
 order by 1;

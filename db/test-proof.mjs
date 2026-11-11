@@ -209,9 +209,20 @@ for (const [fn, arg] of [['admin_list_proofs', undefined], ['admin_proof_require
   const n = await anon(`select public.${fn}(${arg === undefined ? '' : `'${arg}'`}) as v`);
   ok(/permission denied/.test(n.err || ''), `未ログインは ${fn} を呼べない`, JSON.stringify(n));
 }
-for (const fn of ['pv_proof_state()', `pv_proof_submit('x')`]) {
+for (const fn of ['pv_proof_state()', `pv_proof_submit('x')`, `pv_proof_submit('x', 2)`]) {
   const n = await anon(`select public.${fn} as v`);
   ok(/permission denied/.test(n.err || ''), `未ログインは ${fn} を呼べない`, JSON.stringify(n));
+}
+{
+  // 理由を直す入口（2026-11-11）も、会員・未ログインには開かない
+  const m = await call(A, `select public.admin_proof_reason($1::uuid, 'x') as v`, [B]);
+  ok(/管理者ではありません/.test(m.err || ''), '会員が admin_proof_reason を呼ぶと断られる', JSON.stringify(m));
+  const n = await anon(`select public.admin_proof_reason('${B}'::uuid, 'x') as v`);
+  ok(/permission denied/.test(n.err || ''), '未ログインは admin_proof_reason を呼べない', JSON.stringify(n));
+  const x = await anon(`select public.pv_proof_max_images() as v`);
+  const y = await call(A, `select public.pv_proof_max_images() as v`);
+  ok(/permission denied/.test(x.err || '') && /permission denied/.test(y.err || ''),
+     '枚数の上限の関数は、会員からも未ログインからも直接は呼べない', JSON.stringify([x, y]));
 }
 for (const fn of ['pv_proof_blocked()', 'pv_proof_held_keys()']) {
   const r = await call(A, `select public.${fn} as v`);
@@ -339,14 +350,15 @@ console.log('\n▼ 6. 会員が画像を出す');
   ok(await images(A) === 1, '画像が1枚置かれた');
   const s = await state(A);
   ok(s.v?.state === 'submitted', 'A の状態は submitted', JSON.stringify(s));
-  ok(Object.keys(s.v).sort().join() === 'again,state', '② 状態の返事は again と state の2つだけ（画像を返さない）');
+  ok(Object.keys(s.v).sort().join() === 'again,max,reason,state' && s.v.reason === null && s.v.max === 5,
+     '② 状態の返事は state・again・reason（理由が無ければ null）・max の4つだけ（画像を返さない）', JSON.stringify(s.v));
   ok((await rows(A)).v?.state === 'locked' && (await review(A)).v === false,
      '★出しただけでは開かない（運営が確認するまで閉じたまま）');
   ok((await rows(B)).v.rows.filter(isA).every(x => x.hold === true), '★確認待ちのあいだも印は付いたまま');
 
-  // 出し直しは上書き（2枚目を作らない）
+  // 1枚目から出し直すと、前の束ごと入れ替わる（前の画像の上に積まない）
   const r2 = await give(A, IMG2);
-  ok(r2.v?.ok === true && await images(A) === 1, '出し直すと上書きされる（1人1枚のまま）', JSON.stringify(r2));
+  ok(r2.v?.ok === true && r2.v.n === 1 && await images(A) === 1, '1枚目から出し直すと前の束ごと入れ替わる（1枚のまま）', JSON.stringify(r2));
 
   // ② 本人も、ほかの会員も、画像を読めない
   for (const who of [A, B]) {
@@ -506,12 +518,123 @@ console.log('\n▼ 11. 会員を消すと、控えも画像も一緒に消える
 }
 
 // ════════════════════════════════════════════════════════════
+console.log('\n▼ 11-b. 理由と複数枚（2026-11-11 オーナー「理由も提示しよう」「複数枚提出も可能」）');
+// ════════════════════════════════════════════════════════════
+{
+  const req   = (uid, why) => call(ADMIN, `select public.admin_proof_require($1::uuid, $2) as v`, [uid, why]);
+  const why   = (uid, w) => call(ADMIN, `select public.admin_proof_reason($1::uuid, $2) as v`, [uid, w]);
+  const giveN = (uid, b64, n) => call(uid, `select public.pv_proof_submit($1, $2) as v`, [b64, n]);
+  const stateOf = async (uid) => (await own(`select state, reason, tries from public.pv_proof where user_id = $1`, [uid])) || {};
+  const WHY = '同じ月に別々の会社の給与が出ているため';
+
+  // 理由の長さ
+  const long = await req(C, 'あ'.repeat(401));
+  ok(long.v?.ok === false && long.v.status === 'reason_too_long' && (await stateOf(C)).state === 'approved',
+     '401字の理由は断り、止めもしない', JSON.stringify(long));
+
+  // 理由を添えて止める → 本人の板にだけ届く
+  const r = await req(C, '  ' + WHY + '  ');
+  ok(r.v?.ok === true && r.v.changed === true, '理由を添えて止めた', JSON.stringify(r));
+  const s = await state(C);
+  ok(s.v?.state === 'required' && s.v.reason === WHY && s.v.max === 5,
+     '本人には理由（前後の空白を落とす）と出せる枚数が届く', JSON.stringify(s.v));
+  const sb = await state(B);
+  ok(sb.v?.state === 'none' && !('reason' in sb.v) && !('max' in sb.v),
+     'ほかの会員（止まっていない）には理由も枚数も返らない', JSON.stringify(sb.v));
+  ok((await rows(C)).v?.state === 'locked', '理由つきでも、止まるのは今までどおり');
+
+  // 理由を直す
+  const e1 = await why(C, '書き直した理由');
+  ok(e1.v?.ok === true && (await state(C)).v.reason === '書き直した理由', '止まっている会員の理由を直せる', JSON.stringify(e1));
+  const e2 = await why(C, '   ');
+  ok(e2.v?.ok === true && (await state(C)).v.reason === null, '空にすると理由が消える（板に出さない）', JSON.stringify(e2));
+  const e3 = await why(B, '止まっていない人の理由');
+  ok(e3.v?.ok === false && e3.v.status === 'none' && (await state(B)).v.state === 'none',
+     '止まっていない会員には理由を書けない（理由を直すつもりで止めない）', JSON.stringify(e3));
+  const e4 = await why(C, 'い'.repeat(401));
+  ok(e4.v?.ok === false && e4.v.status === 'reason_too_long', '理由を直すときも400字まで', JSON.stringify(e4));
+  await why(C, WHY);
+  const again = await req(C, '別の理由');
+  ok(again.v?.changed === false && (await state(C)).v.reason === WHY,
+     'もう止まっている会員に「証明を求める」を押しても、理由は書き換わらない（直すのは admin_proof_reason）', JSON.stringify(again));
+
+  // 複数枚：番号は 1 から順に
+  const early = await giveN(C, IMG1, 2);
+  ok(early.v?.ok === false && early.v.status === 'out_of_order' && await images(C) === 0,
+     '1枚目より先に2枚目は出せない', JSON.stringify(early));
+  const g1 = await giveN(C, IMG1, 1);
+  ok(g1.v?.ok === true && g1.v.n === 1, '1枚目を受け取る', JSON.stringify(g1));
+  const skip = await giveN(C, IMG1, 3);
+  ok(skip.v?.ok === false && skip.v.status === 'out_of_order', '番号を飛ばすと受け取らない', JSON.stringify(skip));
+  const g2 = await giveN(C, IMG2, 2);
+  const g3 = await giveN(C, IMG1, 3);
+  ok(g2.v?.ok === true && g3.v?.ok === true && await images(C) === 3, '2枚目・3枚目を足せる（3枚）', JSON.stringify([g2, g3]));
+  ok((await stateOf(C)).tries === 1, '★足した分は提出の回数に数えない（1回の提出）');
+  const bad = await giveN(C, Buffer.from('not a jpeg').toString('base64'), 4);
+  ok(bad.v?.ok === false && bad.v.status === 'image_bad' && await images(C) === 3,
+     '足すときも JPEG かどうかを確かめる', JSON.stringify(bad));
+
+  const l = await adm(ADMIN, 'admin_list_proofs');
+  const mine = (l.v || []).filter((x) => x.user_id === C);
+  ok(mine.length === 1 && mine[0].n_images === 3 && mine[0].byte_len === 13000 && mine[0].reason === WHY,
+     '運営の一覧では1人1行・枚数3・大きさの合計・理由', JSON.stringify(mine));
+  const i2 = await call(ADMIN, `select public.admin_proof_image($1::uuid, 2) as v`, [C]);
+  ok(i2.v?.ok === true && i2.v.n === 2 && i2.v.total === 3 && i2.v.b64.replace(/\s/g, '') === IMG2,
+     '運営は2枚目を指して見られる（全部で何枚かも分かる）', JSON.stringify(i2).slice(0, 120));
+  const i1 = await adm(ADMIN, 'admin_proof_image', C);
+  ok(i1.v?.ok === true && i1.v.n === 1 && i1.v.b64.replace(/\s/g, '') === IMG1, '番号を省くと1枚目', JSON.stringify(i1).slice(0, 120));
+  const i9 = await call(ADMIN, `select public.admin_proof_image($1::uuid, 9) as v`, [C]);
+  ok(i9.v?.ok === false && i9.v.status === 'none', '無い番号は none', JSON.stringify(i9));
+
+  // 上限は5枚
+  await giveN(C, IMG2, 4);
+  await giveN(C, IMG1, 5);
+  const six = await giveN(C, IMG1, 6);
+  const zero = await giveN(C, IMG1, 0);
+  ok(six.v?.ok === false && six.v.status === 'too_many_images' && zero.v?.status === 'too_many_images' && await images(C) === 5,
+     '6枚目（と 0 番）は受け取らない（5枚まで）', JSON.stringify([six, zero]));
+
+  // 1枚目から出し直すと束ごと入れ替わる
+  const re = await giveN(C, IMG2, 1);
+  ok(re.v?.ok === true && await images(C) === 1 && (await stateOf(C)).tries === 2,
+     '1枚目から出し直すと、前の5枚は消えて1枚から（回数は2回目）', JSON.stringify(re));
+  await giveN(C, IMG1, 2);
+
+  // 承認で全部消え、理由も消える
+  const ap = await adm(ADMIN, 'admin_proof_approve', C);
+  ok(ap.v?.ok === true && ap.v.discarded === 2 && await images(C) === 0 && (await stateOf(C)).reason === null,
+     '★承認すると2枚とも消え（discarded=2）、理由も消える', JSON.stringify(ap));
+
+  // 古い形の関数が残っていない（同じ名前が2つあると、画面の呼び方しだいで古い方に当たる）
+  const dup = await own(`select count(*) filter (where proname = 'pv_proof_submit')::int a,
+                                count(*) filter (where proname = 'admin_proof_require')::int b,
+                                count(*) filter (where proname = 'admin_proof_image')::int c
+                           from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public'`);
+  ok(dup.a === 1 && dup.b === 1 && dup.c === 1, '提出・求める・画像の関数は1つずつ（古い1引数の形は消えている）', JSON.stringify(dup));
+
+  // ── 移り：2026-11-11 より前の形（主キーが user_id だけ・画像1枚が在る）に貼っても、画像を失わずに移る ──
+  await req(C, null);
+  await giveN(C, IMG1, 1);
+  await db.exec(`alter table public.pv_proof_images drop constraint pv_proof_images_n_ck;
+                 alter table public.pv_proof_images drop constraint pv_proof_images_pkey;
+                 alter table public.pv_proof_images add constraint pv_proof_images_pkey primary key (user_id);`);
+  // ── 壊す証明：古い主キーのままだと、2枚目は置けない ──
+  const brokenAdd = await giveN(C, IMG2, 2);
+  ok(!!brokenAdd.err && await images(C) === 1, '★壊す証明：主キーが user_id だけだと、2枚目は置けない', JSON.stringify(brokenAdd).slice(0, 160));
+  await db.exec(read('db/pilot-proof.sql'));
+  ok(await images(C) === 1, '★古い形の上に貼り直しても、出してあった画像は残る（n=1 になる）');
+  const fixedAdd = await giveN(C, IMG2, 2);
+  ok(fixedAdd.v?.ok === true && await images(C) === 2, '貼り直すと2枚目が置ける', JSON.stringify(fixedAdd));
+  await adm(ADMIN, 'admin_proof_approve', C);
+}
+
+// ════════════════════════════════════════════════════════════
 console.log('\n▼ 12. ファイル末尾の検算（オーナーが貼ったときに見る表）');
 // ════════════════════════════════════════════════════════════
 {
   const res = await db.exec(read('db/pilot-proof.sql'));
   const last = res[res.length - 1].rows;
-  ok(last.length === 8, '検算は8行', String(last.length));
+  ok(last.length === 9, '検算は9行', String(last.length));
   for (const r of last) ok(r['結果'] === '✅', `${r['#']}. ${r['項目']}`, r['結果']);
 }
 

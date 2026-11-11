@@ -8,10 +8,12 @@
         聞くのは各ページ1回／後から止まった会員には次のページで最新の要求を出す／
         止まっている会員には、次のページから**聞く前に**出る
      B) 板の約束
-        閉じる手段が無い（×・外・ESC）／下のページを触れない／オーナーが挙げた4つの例が
+        閉じる手段が無い（×・外・ESC）／下のページを触れない／オーナーが挙げた例（2026-11-11 に7つ）が
         出ている／**確認後の画像の扱いを書いていない**（オーナー指示）／
+        運営が書いた理由が字のまま出る（タグとして読まない）・理由が無ければ欄ごと出さない／
         Give → Get の板を重ねない／運営に連絡できる画面と規約では出さない
-     C) 画像は JPEG に焼き直してから送る（付帯情報が落ちる）・大きさの上限に収まる
+     C) 画像は JPEG に焼き直してから送る（付帯情報が落ちる）・大きさの上限に収まる・
+        複数枚は1枚ずつ p_n = 1, 2, … の順に送る（古いサーバーには画像1つだけ）・途中で切れたら言う
      D) 運営が承認したら、自分で消える
      E) 管理画面 ── 入口はサーバーの関数だけ・「破棄しました」は本当に消えたときだけ言う・
         SQL を貼る前でも、ほかの表は今までどおり出る
@@ -72,7 +74,7 @@ function wire(page, server) {
     }
     if (/\/rpc\/pv_proof_submit$/.test(u)) {
       server.sent.push(JSON.parse(r.postData() || '{}'));
-      if (server.submitFail) return r.abort();
+      if (server.submitFail || server.sent.length === server.submitFailAt) return r.abort();
       return json(server.submit);
     }
     if (/\/auth\/v1\/logout/.test(u)) return json({}, 204);
@@ -80,7 +82,7 @@ function wire(page, server) {
   });
 }
 const newServer = (state) => ({ state, hits: [], auth: [], sent: [], delay: 0, fail: false, answered: 0,
-                                submit: { ok: true, state: 'submitted' }, submitFail: false });
+                                submit: { ok: true, state: 'submitted' }, submitFail: false, submitFailAt: 0 });
 
 async function open(url, keys, server, viewport = { width: 1280, height: 800 }) {
   const page = await browser.newPage();
@@ -127,11 +129,17 @@ for (const dir of ['', '/en']) {
   const DEEP  = `${dir}/airlines/ana.html`;       // 1つ深い階層（相対リンクの検算）
   const W = dir
     ? { t: 'Please confirm that you are a pilot',
-        ex: ['Epaulettes', 'Wing badge', 'Commercial pilot licence', 'Roster'],
+        ex: ['Epaulettes', 'Wing badge', 'Airline transport pilot licence (ATPL)', 'Multi-crew pilot licence (MPL)',
+             'Commercial pilot licence', 'Proficiency check record', 'Roster'],
+        whyT: 'Why we are asking', many: 'You can submit up to 5 images.', sendN: 'Submit 3 images',
+        part: /Some of the images could not be sent/,
         pick: 'Choose an image to submit', send: 'Submit this image', doneT: 'We have received your image',
         again: /could not confirm/i, out: 'Log out', net: /could not be sent/i }
     : { t: 'パイロットであることの確認をお願いします',
-        ex: ['肩章', 'ウィングバッジ', '事業用操縦士の免許証', '勤務表'],
+        ex: ['肩章', 'ウィングバッジ', '定期運送用操縦士の免許証', '准定期運送用操縦士の免許証',
+             '事業用操縦士の免許証', '特定操縦技能審査／確認の記録', '勤務表'],
+        whyT: '確認をお願いする理由', many: '画像は5枚まで出せます。', sendN: '3枚の画像を提出する',
+        part: /一部の画像を送れませんでした/,
         pick: '画像を選んで提出する', send: 'この画像を提出する', doneT: '画像を受け取りました',
         again: /確認できませんでした/, out: 'ログアウト', net: /送信できませんでした/ };
 
@@ -184,7 +192,9 @@ for (const dir of ['', '/en']) {
     await page.waitForSelector('#pvpf-back.is-in');
     const b = await board(page);
     ok(b.title === W.t, '見出し', b.title);
-    ok(JSON.stringify(b.ex) === JSON.stringify(W.ex), '★例はオーナーが挙げた4つ（肩章・ウィングバッジ・事業用操縦士の免許証・勤務表）', b.ex);
+    ok(JSON.stringify(b.ex) === JSON.stringify(W.ex), '★例はオーナーが挙げた7つ（肩章・ウィングバッジ・定期運送用／准定期運送用／事業用操縦士の免許証・特定操縦技能審査／確認の記録・勤務表）', b.ex);
+    ok(await page.$('.pvpf-why') === null && await page.$('.pvpf-many') === null,
+       '理由が無ければ理由の欄を出さない・枚数を返さない古いサーバーには「◯枚まで」を書かない');
     ok(b.buttons.includes(W.pick), '画像を出すボタンが在る', b.buttons);
     ok(!SAYS_FATE.test(b.text), '★確認後の画像の扱いを書いていない（オーナー指示）', b.text.match(SAYS_FATE));
     ok((await proofKey(page)).s === 'required', '答えの写しを持つ（次のページから聞く前に出すため）', await proofKey(page));
@@ -228,6 +238,24 @@ for (const dir of ['', '/en']) {
 
     // お問い合わせへの道（1つ深い階層でも切れない）
     ok(b.links.length === 1 && /contact\.html$/.test(b.links[0]), 'お問い合わせへの道が在る', b.links);
+    await page.close();
+  }
+  {
+    // 運営が書いた理由（2026-11-11）。字のまま出す（タグとして読まない）
+    const WHY = '<b>同じ月</b>に別々の会社の給与が出ているため\n2行目';
+    const sv = newServer({ state: 'required', again: false, reason: WHY, max: 5 });
+    const page = await open(PLAIN, cached('required'), sv);
+    await page.waitForSelector('.pvpf-whyB');
+    const w = await page.evaluate(() => ({
+      t: document.querySelector('.pvpf-whyT').textContent, b: document.querySelector('.pvpf-whyB').textContent,
+      tags: document.querySelectorAll('.pvpf-whyB *').length,
+      many: (document.querySelector('.pvpf-many') || {}).textContent || '',
+      order: [...document.querySelector('.pvpf-card').children].map((e) => e.className).join(' ') }));
+    ok(w.t === W.whyT && w.b === WHY && w.tags === 0, '★理由は見出しの下に、運営が書いた字のまま出る（タグとして読まない）', w);
+    ok(w.order.indexOf('pvpf-why') > w.order.indexOf('pvpf-s') && w.order.indexOf('pvpf-why') < w.order.indexOf('pvpf-exT'),
+       '理由は説明の文のすぐ下・例の上', w.order);
+    ok(w.many === W.many, '出せる枚数（サーバーが返す5枚）を書く', w.many);
+    ok(!SAYS_FATE.test((await board(page)).text.replace(WHY, '')), '★理由の欄を足しても、画像の扱いを書いていない');
     await page.close();
   }
   {
@@ -285,7 +313,8 @@ for (const dir of ['', '/en']) {
     const input = await page.$('#pvpf-back input[type=file]');
     ok(await page.evaluate((e) => e.accept === 'image/*' && e.hidden, input), '選べるのは画像だけ');
     await input.uploadFile(shot);
-    await page.waitForSelector('.pvpf-prev img');
+    await page.waitForSelector('.pvpf-th img');
+    ok(await page.$('.pvpf-addT') === null, '枚数を返さない古いサーバーには、1枚だけ（「画像を足す」を出さない）');
     let b = await board(page);
     ok(b.buttons.includes(W.send), '選んだ画像を見せてから、送るかどうかを聞く', b.buttons);
     ok(sv.sent.length === 0, '★選んだだけでは送らない');
@@ -302,7 +331,7 @@ for (const dir of ['', '/en']) {
     await page.evaluate(() => document.querySelector('[data-act=send]').click());
     await page.waitForFunction((t) => (document.querySelector('.pvpf-t') || {}).textContent === t, {}, W.doneT);
     ok(sv.sent.length === 1 && Object.keys(sv.sent[0]).join() === 'p_image_b64',
-       '送るのは画像1つだけ（氏名もメールも添えない）', sv.sent.map((x) => Object.keys(x)));
+       '送るのは画像1つだけ（氏名もメールも添えない・古いサーバーには p_n も付けない）', sv.sent.map((x) => Object.keys(x)));
     const buf = Buffer.from(sv.sent[0].p_image_b64 || '', 'base64');
     const src = readFileSync(shot);
     ok(buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff, '★JPEG に焼き直してから送っている（元は PNG）', [...buf.slice(0, 3)]);
@@ -313,6 +342,52 @@ for (const dir of ['', '/en']) {
     ok(!SAYS_FATE.test(b.text), '★受け取ったあとの画面にも、画像の扱いを書いていない', b.text.match(SAYS_FATE));
     ok((await proofKey(page)).s === 'submitted', '写しも「確認待ち」になる', await proofKey(page));
     ok(await page.$('#pvpf-back') !== null, '★出しただけでは板は消えない（運営が確認するまで止まったまま）');
+    await page.close();
+  }
+
+  {
+    // 複数枚（2026-11-11）：選ぶ・外す・足す・1枚ずつ順に送る・途中で切れたら言う
+    const sv = newServer({ state: 'required', again: false, reason: '', max: 5 });
+    const page = await open(PLAIN, cached('required'), sv);
+    await page.waitForSelector('#pvpf-back');
+    await page.waitForFunction(() => !!document.querySelector('.pvpf-many'));   // サーバーの答え（max）が届いた
+    const shots = [];
+    for (let i = 0; i < 4; i++) {
+      const f = join(tmp, `multi-${L}-${i}.png`);
+      await page.screenshot({ path: f, type: 'png', clip: { x: i * 40, y: 0, width: 300 + i * 20, height: 220 } });
+      shots.push(f);
+    }
+    const [ch1] = await Promise.all([page.waitForFileChooser(), page.evaluate(() => document.querySelector('[data-act=pick]').click())]);
+    ok(ch1.isMultiple(), '★5枚まで出せるときは、まとめて選べる（multiple）');
+    await ch1.accept(shots.slice(0, 3));
+    await page.waitForFunction(() => document.querySelectorAll('.pvpf-th img').length === 3);
+    let b = await board(page);
+    ok(b.buttons.includes(W.sendN) && await page.$('.pvpf-addT') !== null, '3枚を並べて見せ、「画像を足す」も出す', b.buttons);
+    ok(sv.sent.length === 0, '★選んだだけでは送らない（複数でも）');
+    await page.evaluate(() => document.querySelector('[data-act=rm][data-i="1"]').click());
+    await page.waitForFunction(() => document.querySelectorAll('.pvpf-th img').length === 2);
+    ok(true, '× で1枚外せる（2枚になる）');
+    const [ch2] = await Promise.all([page.waitForFileChooser(), page.evaluate(() => document.querySelector('[data-act=add]').click())]);
+    await ch2.accept([shots[3]]);
+    await page.waitForFunction(() => document.querySelectorAll('.pvpf-th img').length === 3);
+    ok(true, '「画像を足す」で前の画像を残したまま足せる（3枚）');
+
+    // 2枚目で切れる → 言う（確認待ちにはなっている）
+    sv.submitFailAt = 2;
+    await page.evaluate(() => document.querySelector('[data-act=send]').click());
+    await page.waitForSelector('.pvpf-err');
+    b = await board(page);
+    ok(W.part.test(b.text) && sv.sent.length === 2, '★途中で切れたら「一部を送れませんでした」と言い、選んだ画像は残す', [b.text.slice(-80), sv.sent.length]);
+    sv.submitFailAt = 0; sv.sent.length = 0;
+    await page.evaluate(() => document.querySelector('[data-act=send]').click());
+    await page.waitForFunction((t) => (document.querySelector('.pvpf-t') || {}).textContent === t, {}, W.doneT);
+    ok(sv.sent.length === 3 && sv.sent.every((x) => Object.keys(x).sort().join() === 'p_image_b64,p_n')
+       && sv.sent.map((x) => x.p_n).join() === '1,2,3',
+       '★送り直すと1枚目から、1枚ずつ順に送る（p_n = 1, 2, 3。氏名もメールも添えない）', sv.sent.map((x) => [Object.keys(x), x.p_n]));
+    ok(sv.sent.every((x) => { const q = Buffer.from(x.p_image_b64 || '', 'base64');
+         return q[0] === 0xff && q[1] === 0xd8 && q[2] === 0xff && q.length <= 800000 && !q.includes('Exif'); }),
+       '★どの1枚も JPEG に焼き直して上限に収まっている');
+    ok(!SAYS_FATE.test((await board(page)).text), '★受け取ったあとの画面にも、画像の扱いを書いていない');
     await page.close();
   }
 
@@ -374,6 +449,24 @@ for (const dir of ['', '/en']) {
 }
 
 // ════════════════════════════════════════════════════════════════
+// B-es) スペイン語のページ（2026-11-11 まで日本語で出ていた）
+// ════════════════════════════════════════════════════════════════
+{
+  console.log('\n════ B-es) スペイン語のページの板 ════');
+  const sv = newServer({ state: 'required', again: false, reason: 'Motivo de prueba', max: 5 });
+  const page = await open('/es/world-airlines.html', cached('required'), sv);
+  await page.waitForSelector('.pvpf-whyB');
+  const b = await board(page);
+  const w = await page.evaluate(() => ({ t: document.querySelector('.pvpf-whyT').textContent,
+                                         many: (document.querySelector('.pvpf-many') || {}).textContent }));
+  ok(b.title === 'Confirma que eres piloto', '見出しがスペイン語', b.title);
+  ok(b.ex.length === 7 && /ATPL/.test(b.ex[2]) && /MPL/.test(b.ex[3]) && !/[ぁ-んァ-ヶ一-龠]/.test(b.text),
+     '例の7つもスペイン語・日本語の字が1つも無い', b.ex);
+  ok(w.t === 'Por qué te lo pedimos' && w.many === 'Puedes enviar hasta 5 imágenes.', '理由の見出しと枚数もスペイン語', w);
+  await page.close();
+}
+
+// ════════════════════════════════════════════════════════════════
 // E) 管理画面
 // ════════════════════════════════════════════════════════════════
 const U1 = '00000000-0000-4000-8000-00000000a001';   // 確認待ちの会員
@@ -385,15 +478,19 @@ async function admin(lang, cfg) {
   await page.setViewport({ width: 1280, height: 900 });
   await page.setRequestInterception(true);
   page.on('request', (r) => (r.url().startsWith(BASE) ? r.continue() : r.abort()));
-  const says = [];
-  page.on('dialog', async (d) => { says.push({ type: d.type(), text: d.message() }); await d.accept(); });
+  const says = [], replies = cfg.replies || [];
+  page.on('dialog', async (d) => {
+    says.push({ type: d.type(), text: d.message(), value: d.defaultValue() });
+    await (d.type() === 'prompt' ? d.accept(replies.length ? replies.shift() : '') : d.accept());
+  });
   await page.evaluateOnNewDocument((cfg, U1, U2, B64) => {
     window.__rpc = []; window.__from = [];
     const USERS = [
       { id: U1, name: 'Sample Pilot', email: 'pilot@example.com', created_at: '2026-01-11T00:00:00Z' },
       { id: U2, name: 'Other Member', email: 'other@example.com', created_at: '2026-01-10T00:00:00Z' }];
     let proofs = [{ user_id: U1, state: 'submitted', required_at: '2026-02-01T00:00:00Z',
-                    submitted_at: '2026-02-02T03:00:00Z', has_image: true, byte_len: 64 }];
+                    submitted_at: '2026-02-02T03:00:00Z', has_image: true, n_images: 3, byte_len: 192,
+                    reason: '<i>理由</i>の例' }];
     const RPC = {
       pv_is_admin: () => true,
       admin_list_profiles: () => USERS,
@@ -402,7 +499,9 @@ async function admin(lang, cfg) {
       admin_proof_require: (a) => { proofs = proofs.concat([{ user_id: a.p_user, state: 'required',
                                       required_at: '2026-02-03T00:00:00Z', has_image: false }]);
                                     return { ok: true, state: 'required', changed: true }; },
-      admin_proof_image: () => ({ ok: true, mime: 'image/jpeg', b64: B64 }),
+      admin_proof_image: (a) => ({ ok: true, mime: 'image/jpeg', b64: B64, n: a.p_n || 1, total: 3 }),
+      admin_proof_reason: (a) => { proofs = proofs.map((p) => p.user_id === a.p_user ? { ...p, reason: a.p_reason } : p);
+                                   return { ok: true, reason: a.p_reason }; },
       admin_proof_approve: (a) => { proofs = proofs.map((p) => p.user_id === a.p_user
                                       ? { ...p, state: 'approved', has_image: false } : p);
                                     return { ok: true, state: 'approved', discarded: cfg.discarded }; },
@@ -437,7 +536,7 @@ for (const lang of ['ja', 'en']) {
 
   console.log(`\n════ E) ${lang} — 管理画面：止める・見る・承認する ════`);
   {
-    const { page, says } = await admin(lang, { discarded: 1 });
+    const { page, says } = await admin(lang, { discarded: 1, replies: ['', ''] });
     const first = await page.evaluate(() => ({
       badge: document.getElementById('proof-n').textContent,
       cells: [...document.querySelectorAll('#users-tbody tr')].map((tr) => tr.lastElementChild.innerText.trim()),
@@ -445,22 +544,37 @@ for (const lang of ['ja', 'en']) {
     ok(first.badge === '1', '確認待ちの人数がタブに出る', first.badge);
     ok(first.cells[0] === W.wait && first.cells[1] === W.ask,
        '会員一覧：確認待ちの会員には状態、ほかの会員には「証明を求める」', first.cells);
-    ok(first.acts.join() === 'view,approve,reject', '確認待ちの会員にできるのは 見る・承認・出し直し の3つ', first.acts);
+    ok(first.acts.join() === 'view,approve,reject,reason', '確認待ちの会員にできるのは 見る・承認・出し直し・理由を直す の4つ', first.acts);
+    const why = await page.evaluate(() => ({ html: document.querySelector('#proofs-tbody .pf-why').innerHTML,
+                                             text: document.querySelector('#proofs-tbody .pf-why').textContent }));
+    ok(why.text === '<i>理由</i>の例' && !/<i>/.test(why.html), '理由の列に、書いた字のまま出る（タグとして読まない）', why);
 
     // 止める
     await click(page, `#users-tbody [data-pf=require][data-u="${U2}"]`);
     await page.waitForFunction((u) => window.__rpc.some((c) => c[0] === 'admin_proof_require')
       && document.querySelectorAll('#proofs-tbody tr').length === 2, {}, U2);
     const req = (await calls(page)).find((c) => c[0] === 'admin_proof_require');
-    ok(req[1].p_user === U2 && Object.keys(req[1]).join() === 'p_user', '「証明を求める」は、その会員の id だけをサーバーへ渡す', req);
-    ok(says.length === 1 && says[0].type === 'confirm' && /REAL PAY/.test(says[0].text),
-       '★止める前に、何が起きるかを確かめる', says[0]);
+    ok(req[1].p_user === U2 && Object.keys(req[1]).join() === 'p_user', '「証明を求める」は、理由が空ならその会員の id だけをサーバーへ渡す', req);
+    ok(says.length === 1 && says[0].type === 'prompt' && /REAL PAY/.test(says[0].text) && says[0].value === '',
+       '★止める前に、何が起きるかを書いたうえで理由を聞く（空でもよい）', says[0]);
 
-    // 見る → 閉じる
+    // 理由を直す
+    says.length = 0;
+    await click(page, `#proofs-tbody [data-pf=reason][data-u="${U1}"]`);
+    await page.waitForFunction(() => window.__rpc.some((c) => c[0] === 'admin_proof_reason'));
+    const rs = (await calls(page)).find((c) => c[0] === 'admin_proof_reason');
+    ok(says[0] && says[0].type === 'prompt' && says[0].value === '<i>理由</i>の例', '「理由を直す」は今の理由を入れた状態で聞く', says[0]);
+    ok(rs[1].p_user === U1 && rs[1].p_reason === '' && Object.keys(rs[1]).sort().join() === 'p_reason,p_user',
+       '理由を直すときに渡すのは id と理由だけ（空なら消える）', rs);
+
+    // 見る → 閉じる（3枚）
     await click(page, `#proofs-tbody [data-pf=view][data-u="${U1}"]`);
-    await page.waitForSelector('#pf-view.is-on img');
-    ok(await page.evaluate(() => document.querySelector('#pf-view img').src.startsWith('data:image/jpeg;base64,/9j/')),
-       '提出された画像が出る');
+    await page.waitForFunction(() => document.querySelectorAll('#pf-view.is-on img').length === 3);
+    const imgs = await page.evaluate(() => ({ src: [...document.querySelectorAll('#pf-view img')].map((i) => i.src.startsWith('data:image/jpeg;base64,/9j/')),
+      cap: [...document.querySelectorAll('#pf-view figcaption')].map((c) => c.textContent) }));
+    ok(imgs.src.every(Boolean) && imgs.cap.join() === '1 / 3,2 / 3,3 / 3', '★提出された画像が3枚とも、何枚目かを添えて出る', imgs);
+    const nAsked = (await calls(page)).filter((c) => c[0] === 'admin_proof_image').map((c) => c[1].p_n || 1);
+    ok(nAsked.join() === '1,2,3', '画像は1枚ずつ取る（p_n = 1, 2, 3）', nAsked);
     await click(page, '#pf-view [data-pf=close]');
     ok(await page.evaluate(() => !document.querySelector('#pf-view img')
          && !document.getElementById('pf-view').classList.contains('is-on')),
@@ -469,7 +583,7 @@ for (const lang of ['ja', 'en']) {
     // 承認する
     says.length = 0;
     await click(page, `#proofs-tbody [data-pf=approve][data-u="${U1}"]`);
-    await page.waitForFunction(() => window.__rpc.filter((c) => c[0] === 'admin_list_proofs').length >= 3);
+    await page.waitForFunction(() => window.__rpc.filter((c) => c[0] === 'admin_list_proofs').length >= 4);
     const ap = (await calls(page)).find((c) => c[0] === 'admin_proof_approve');
     ok(ap && ap[1].p_user === U1, '承認は、その会員の id だけをサーバーへ渡す', ap);
     ok(says[0] && says[0].type === 'confirm' && W.gone.test(says[0].text),

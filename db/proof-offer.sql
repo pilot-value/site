@@ -11,7 +11,7 @@
      「申請した画像…他の会員に見せないだろ？…運営はおれしかいないんだけど」
      ＝ 会員が自分から画像を出せる。出しても何も止まらない。見て決めるのはオーナーだけ。
 
-   ★画像は**前からある置き場**（pv_proof_images・1人1枚・900KB まで・JPEG だけ・出し直しは上書き）。
+   ★画像は**前からある置き場**（pv_proof_images・申請は n=1 の1枚だけ・900KB まで・JPEG だけ・出し直しは上書き）。
      2つ目の置き場を作らない。大きさと形の最後の線は、置き場の制約そのもの（ここで数を写さない）。
    ★止める仕組みには何も足さない。main の止める決まりは「state が required か submitted」の1つで、
      新しい状態 'offered' はそこに入らない（REAL PAY・DEEP PAY・口コミ本文・印・板のどれも数えない）。
@@ -148,9 +148,10 @@ begin
       values (v_uid, 'submitted', now(), now(), 1);
     end if;
 
-    insert into public.pv_proof_images (user_id, bytes, byte_len)
-    values (v_uid, v_bytes, octet_length(v_bytes))
-    on conflict (user_id) do update
+    -- ★申請は1枚だけ（n=1）。置き場の主キーは (user_id, n)（db/pilot-proof.sql・2026-11-11）
+    insert into public.pv_proof_images (user_id, n, bytes, byte_len)
+    values (v_uid, 1, v_bytes, octet_length(v_bytes))
+    on conflict (user_id, n) do update
        set bytes = excluded.bytes, byte_len = excluded.byte_len,
            mime = 'image/jpeg', created_at = now();
 
@@ -188,7 +189,7 @@ set search_path = public, extensions
 as $fn$
   select b.user_id, i.user_id is not null, i.byte_len, b.submitted_at
     from public.pv_proof b
-    left join public.pv_proof_images i on i.user_id = b.user_id
+    left join public.pv_proof_images i on i.user_id = b.user_id and i.n = 1
    where b.state = 'offered';
 $fn$;
 
@@ -208,7 +209,7 @@ begin
   select i.* into v_img
     from public.pv_proof_images i
     join public.pv_proof b on b.user_id = i.user_id
-   where i.user_id = p_user and b.state = 'offered';
+   where i.user_id = p_user and i.n = 1 and b.state = 'offered';
   if not found then
     return jsonb_build_object('ok', false, 'status', 'none');
   end if;
