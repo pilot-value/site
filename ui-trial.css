@@ -188,15 +188,14 @@ html[data-ui]:not([data-theme="dark"]) body{
                0 30px 56px -30px color-mix(in srgb,var(--pv-accent-dark) 58%,transparent)}
 }
 
-/* ── 6) 入るときの動き（ui-trial.js がカードに付ける）────────────────────────
-   .ut-rise … 最初の1画面のカード。開いたとき順に浮かぶ（--ut-i が順番）
-   .ut-sv   … その下のカード。スクロールと一緒に浮かぶ（戻すと沈む）
-   .ut-pre  … スクロールと一緒に動かせないブラウザでの待ち（見えたら .ut-rise に替わる）
-   .ut-wait … 中の数字・棒・円が動き出す前の形（棒は長さ 0・円は描く前）
-   .ut-go   … カードが見えたので、中の数字・棒・円を1回だけ動かす
+/* ── 6) 入るときの動き（ui-trial.js が付ける）──────────────────────────────
+   カード：.ut-rise … 最初の1画面。開いたとき順に浮かぶ（--ut-i が順番）
+           .ut-sv   … その下。スクロールと一緒に浮かぶ（戻すと沈む）
+           .ut-pre  … スクロールと一緒に動かせないブラウザでの待ち（見えたら .ut-rise に替わる）
+   図・棒・円・数字は1つずつ：.ut-w … 画面に入る前（棒は長さ 0・線は描く前・円は開く前）
+                              .ut-g … それ自身が画面に入った。--ut-d だけ待ってから1回だけ動く
    ★棒は行き過ぎない動き（--pv-ease）。値より長く見える瞬間を作らない。 */
 @property --ut-a{syntax:'<angle>';inherits:false;initial-value:360deg}
-@property --ut-p{syntax:'<percentage>';inherits:false;initial-value:110%}
 
 html[data-ui] .ut-rise{animation:utRise .75s var(--ut-spring) both;animation-delay:calc(var(--ut-i,0) * 60ms + 30ms)}
 @keyframes utRise{from{opacity:0;transform:translateY(18px) scale(.985)}}
@@ -206,36 +205,41 @@ html[data-ui] .ut-pre{opacity:0;transform:translateY(18px) scale(.985)}
 }
 @keyframes utLift{from{opacity:0;transform:translateY(28px) scale(.98)}}
 
-/* 6-a) HTML の棒（他社の年収・固定と変動・記録の進み）── 左から伸びる */
-html[data-ui] :is(.ut-wait,.ut-go) :is(.mr-cmp-t>i,.mv-bar>i,.mv-next-bar>i){transform-origin:left center}
-html[data-ui] .ut-wait :is(.mr-cmp-t>i,.mv-bar>i,.mv-next-bar>i){transform:scaleX(0)}
-html[data-ui] .ut-go :is(.mr-cmp-t>i,.mv-bar>i,.mv-next-bar>i){animation:utGrow .9s var(--pv-ease) both;
-  animation-delay:calc(var(--ut-i,0) * 60ms + 260ms + var(--ut-j,0) * 45ms)}
+/* 6-a) HTML の棒（他社の年収・固定と変動・記録の進み・ROADMAP の賛成の数）── 左から伸びる */
+html[data-ui] .ut-hb{transform-origin:left center}
+html[data-ui] .ut-hb.ut-w{transform:scaleX(0)}
+html[data-ui] .ut-hb.ut-g{animation:utGrow 1s var(--pv-ease) both;animation-delay:var(--ut-d,0ms)}
 @keyframes utGrow{from{transform:scaleX(0)}}
 
-/* 6-b) SVG の図の棒（分析・1年）── ui-trial.js が縦の棒に .ut-col、横の棒に .ut-row を付ける */
+/* 6-b) SVG の図（分析・1年・累計・ROADMAP の伸び）
+   縦の棒は下から1本ずつ立ち上がる → 線は左から描かれる → 塗りが浮かぶ → 点がぽんと出る */
 html[data-ui] .ut-col{transform-box:fill-box;transform-origin:50% 100%}
 html[data-ui] .ut-row{transform-box:fill-box;transform-origin:0 50%}
-html[data-ui] .ut-wait .ut-col{transform:scaleY(0)}
-html[data-ui] .ut-wait .ut-row{transform:scaleX(0)}
-html[data-ui] .ut-go .ut-col{animation:utGrowY .8s var(--pv-ease) both;
-  animation-delay:calc(var(--ut-i,0) * 60ms + 260ms + var(--ut-j,0) * 28ms)}
-html[data-ui] .ut-go .ut-row{animation:utGrow .7s var(--pv-ease) both;
-  animation-delay:calc(var(--ut-i,0) * 60ms + 260ms + var(--ut-j,0) * 70ms)}
+html[data-ui] .ut-dot{transform-box:fill-box;transform-origin:center}
+html[data-ui] svg.ut-w .ut-col{transform:scaleY(0)}
+html[data-ui] svg.ut-w .ut-row{transform:scaleX(0)}
+html[data-ui] svg:is(.ut-w,.ut-g) .ut-line{stroke-dasharray:1 1}
+html[data-ui] svg.ut-w .ut-line{stroke-dashoffset:1}
+html[data-ui] svg.ut-w .ut-area{opacity:0}
+html[data-ui] svg.ut-w .ut-dot{transform:scale(0)}
+html[data-ui] svg.ut-g .ut-col{animation:utGrowY .9s var(--pv-ease) both;
+  animation-delay:calc(var(--ut-d,0ms) + var(--ut-j,0) * 45ms)}
+html[data-ui] svg.ut-g .ut-row{animation:utGrow .8s var(--pv-ease) both;
+  animation-delay:calc(var(--ut-d,0ms) + var(--ut-j,0) * 80ms)}
+html[data-ui] svg.ut-g .ut-line{animation:utDraw 1.3s cubic-bezier(.65,0,.35,1) both;animation-delay:calc(var(--ut-d,0ms) + 80ms)}
+html[data-ui] svg.ut-g .ut-area{animation:utFade .9s var(--pv-ease) both;animation-delay:calc(var(--ut-d,0ms) + 450ms)}
+html[data-ui] svg.ut-g .ut-dot{animation:utPop .55s var(--ut-spring) both;animation-delay:calc(var(--ut-d,0ms) + 700ms + var(--ut-j,0) * 40ms)}
 @keyframes utGrowY{from{transform:scaleY(0)}}
+@keyframes utDraw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes utFade{from{opacity:0;transform:translateY(6px)}}
+@keyframes utPop{from{transform:scale(0)}}
 
-/* 6-c) 円（支給構成）は12時から描かれる・線の図（累計）は左から現れる */
-html[data-ui] :is(.ut-wait,.ut-go) .pt-donut svg{
+/* 6-c) 円（支給構成）は12時から描かれる。ROADMAP の輪は ui-trial.js が弧を伸ばす */
+html[data-ui] .pt-donut:is(.ut-w,.ut-g) svg{
   -webkit-mask-image:conic-gradient(#000 var(--ut-a),transparent 0);mask-image:conic-gradient(#000 var(--ut-a),transparent 0)}
-html[data-ui] .ut-wait .pt-donut svg{--ut-a:0deg}
-html[data-ui] .ut-go .pt-donut svg{animation:utSweep 1.1s var(--pv-ease) both;animation-delay:calc(var(--ut-i,0) * 60ms + 220ms)}
+html[data-ui] .pt-donut.ut-w svg{--ut-a:0deg}
+html[data-ui] .pt-donut.ut-g svg{animation:utSweep 1.2s var(--pv-ease) both;animation-delay:var(--ut-d,0ms)}
 @keyframes utSweep{from{--ut-a:0deg}to{--ut-a:360deg}}
-html[data-ui] :is(.ut-wait,.ut-go) .pt-svg{
-  -webkit-mask-image:linear-gradient(90deg,#000 var(--ut-p),transparent calc(var(--ut-p) + 10%));
-  mask-image:linear-gradient(90deg,#000 var(--ut-p),transparent calc(var(--ut-p) + 10%))}
-html[data-ui] .ut-wait .pt-svg{--ut-p:-10%}
-html[data-ui] .ut-go .pt-svg{animation:utWipe 1.2s var(--pv-ease) both;animation-delay:calc(var(--ut-i,0) * 60ms + 240ms)}
-@keyframes utWipe{from{--ut-p:-10%}to{--ut-p:110%}}
 
 /* 6-d) 数字の数え上げ ── 本物の字は書き換えない（透明にするだけ）。上に重ねた絵の字だけが数える。
    ＝ currency.js が読む字は最初から最後まで本物の額のまま */

@@ -560,25 +560,29 @@ if (process.env.REC) {
   await page.evaluate(() => window.PVUiTrial && window.PVUiTrial.replay()).catch(() => {});
   await sleep(2600);
   if (vw >= 600) {
-    await tap('#pv-value .pt-tabs .pt-tab', 1); await sleep(2300);
-    await tap('#pv-value .pt-tabs .pt-tab', 0); await sleep(1900);
-    await tap('#pv-value .mv-tab', 2); await sleep(2700);
-    await tap('#pv-value .mv-tab', 0); await sleep(2200);
-    await glide('bottom', 3800); await sleep(1600); await glide(0, 1300); await sleep(900);
-    await tap('.mr-side-a[href^="actual-pay"]'); await sleep(3000);
-    await glide(420, 1600); await sleep(900); await glide(0, 900); await sleep(500);
-    await tap('.mr-side-a[href^="roadmap"]'); await sleep(3000);
-    await glide(760, 2200); await sleep(1100); await glide(0, 900); await sleep(500);
-    await tap('.mr-side-a[href^="profile"]'); await sleep(3200);
-  } else {
+    /* PC：開いた瞬間 → 1年（年の図）→ 分析（棒と数字）→ 給与サマリーをゆっくり下へ（他社の年収が1本ずつ伸びる）→ REAL PAY → ROADMAP（線・輪・棒）→ MY PAGE */
     await tap('#pv-value .pt-tabs .pt-tab', 1); await sleep(2200);
-    await tap('#pv-value .pt-tabs .pt-tab', 0); await sleep(1800);
+    await glide(700, 2200); await sleep(1600); await glide(0, 1000); await sleep(500);
+    await tap('#pv-value .pt-tabs .pt-tab', 0); await sleep(1700);
     await tap('#pv-value .mv-tab', 2); await sleep(2600);
+    await glide(520, 1800); await sleep(1500); await glide(0, 900); await sleep(400);
     await tap('#pv-value .mv-tab', 0); await sleep(2000);
-    await glide('bottom', 5200); await sleep(1600); await glide(0, 1400); await sleep(900);
-    await tap('.pv-ham-btn'); await sleep(1300);
-    await tap('.mr-side-a[href^="actual-pay"]'); await sleep(3000);
-    await glide(700, 2000); await sleep(1400);
+    await glide('bottom', 6000); await sleep(1800); await glide(0, 1300); await sleep(700);
+    await tap('.mr-side-a[href^="actual-pay"]'); await sleep(2800);
+    await tap('.mr-side-a[href^="roadmap"]'); await sleep(3200);
+    await glide(760, 2400); await sleep(1400); await glide(0, 900); await sleep(500);
+    await tap('.mr-side-a[href^="profile"]'); await sleep(3000);
+  } else {
+    /* スマホ：開いた瞬間 → ゆっくり下へ（円・棒・他社の年収が入ってきた順に動く）→ 1年 → 分析 → ≡ から ROADMAP */
+    await glide('bottom', 8000); await sleep(1600); await glide(0, 1400); await sleep(700);
+    await tap('#pv-value .pt-tabs .pt-tab', 1); await sleep(2000);
+    await glide(1500, 3200); await sleep(1400); await glide(0, 1000); await sleep(500);
+    await tap('#pv-value .pt-tabs .pt-tab', 0); await sleep(1500);
+    await tap('#pv-value .mv-tab', 2); await sleep(2400);
+    await glide(900, 2400); await sleep(1400); await glide(0, 900); await sleep(500);
+    await tap('.pv-ham-btn'); await sleep(1200);
+    await tap('.mr-side-a[href^="roadmap"]'); await sleep(3000);
+    await glide(1300, 3200); await sleep(1600);
   }
   await REC.cdp.send('Page.stopScreencast').catch(() => {});
   const dir = process.env.REC; fs.mkdirSync(dir, { recursive: true });
@@ -600,6 +604,10 @@ if (process.env.SAFE) {
   });
   console.log(JSON.stringify(r)); await browser.close(); process.exit(0);
 }
+if (process.env.WHAT) {
+  const r = await page.evaluate((sel) => [...document.querySelectorAll(sel)].slice(0, 8).map((e) => { const s = e.closest("svg"); const b = s.getBoundingClientRect(); let p = s.parentElement; return e.tagName + " in svg " + Math.round(b.width) + "x" + Math.round(b.height) + " < " + p.tagName.toLowerCase() + "." + [...p.classList].join(".") + " < " + (p.parentElement.className || "").toString().split(" ")[0]; }), process.env.WHAT);
+  r.forEach((x) => console.log("  " + x)); await browser.close(); process.exit(0);
+}
 if (process.env.ENDCHECK) {
   /* 一番下まで少しずつスクロールし、止まって4秒待つ → 棒・カードが本当の形で止まっているか（待ちの印が残っていないか） */
   const r = await page.evaluate(async () => {
@@ -607,10 +615,12 @@ if (process.env.ENDCHECK) {
     for (let y = 0; y <= H; y += 180) { window.scrollTo(0, y); await new Promise((r) => setTimeout(r, 60)); }
     await new Promise((r) => setTimeout(r, 4200));
     const vis = (e) => { const b = e.getBoundingClientRect(); return b.bottom > 0 && b.top < innerHeight && b.width > 0; };
-    const bars = [...document.querySelectorAll(".mr-cmp-t>i,.mv-bar>i,.mv-next-bar>i,.ut-col,.ut-row")];
+    const bars = [...document.querySelectorAll(".ut-hb,.ut-col,.ut-row,.ut-dot")];
     const bad = bars.filter((e) => { const tf = getComputedStyle(e).transform; return tf !== "none" && tf !== "matrix(1, 0, 0, 1, 0, 0)"; });
-    return { scrolled: scrollY, bars: bars.length, notFull: bad.length, waiting: document.querySelectorAll(".ut-wait").length,
-      waitingVisible: [...document.querySelectorAll(".ut-wait")].filter(vis).length, counting: document.querySelectorAll(".ut-counting").length };
+    const lines = [...document.querySelectorAll(".ut-line")].filter((e) => { const cs = getComputedStyle(e); return cs.strokeDasharray !== "none" && parseFloat(cs.strokeDashoffset) !== 0; });
+    const rings = [...document.querySelectorAll(".rm-ring circle[stroke-dasharray]")].filter((c) => c._utDash && c.getAttribute("stroke-dasharray") !== c._utDash);
+    return { scrolled: scrollY, parts: bars.length, notFull: bad.length, lines: document.querySelectorAll(".ut-line").length, linesNotDrawn: lines.length, ringsShort: rings.length,
+      waiting: document.querySelectorAll(".ut-w").length, waitingVisible: [...document.querySelectorAll(".ut-w")].filter(vis).length, counting: document.querySelectorAll(".ut-counting").length };
   });
   console.log("止まったあと：" + JSON.stringify(r)); await browser.close(); process.exit(0);
 }
