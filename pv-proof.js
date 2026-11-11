@@ -218,17 +218,20 @@
   var CSS_MORE = [
     '.pvpf-card{border-top:1px solid var(--pv-line,rgba(15,23,42,.12));border-radius:20px;padding:26px 24px 16px}',
     '.pvpf-t{font-weight:700;letter-spacing:-.02em}',
-    '.pvpf-ex{display:block;line-height:1.9}',
-    '.pvpf-ex li,.pvpf-ex li.pvpf-etc{display:inline;padding:0;border:0;border-radius:0;background:none;',
-      'font-size:.8rem;font-weight:600;color:var(--pv-ink-2,#334155)}',
-    '.pvpf-ex li+li::before{content:" \u00b7 ";font-weight:400;color:var(--pv-ink-3,#64748b)}',
-    '.pvpf-ex li.pvpf-etc{font-weight:400;color:var(--pv-ink-3,#64748b)}',
-    '.pvpf-ex li.pvpf-etc::before{content:" "}',
+    '.pvpf-ex{display:block;line-height:1.45}',
+    /* 1つの例は途中で折らない（「勤務／表」にしない）。折れるのは例と例のあいだだけ。
+       区切りの「·」は前の例の後ろに付ける（行の頭に「·」が来ない）。「など」の前には付けない。 */
+    '.pvpf-ex li,.pvpf-ex li.pvpf-etc{display:inline-block;max-width:100%;margin:0 .5em 0 0;padding:0;border:0;',
+      'border-radius:0;background:none;font-size:.8rem;font-weight:600;line-height:1.6;color:var(--pv-ink-2,#334155)}',
+    '.pvpf-ex li:not(.pvpf-etc):not(:nth-last-child(2))::after{content:"\u00b7";margin-left:.5em;',
+      'font-weight:400;color:var(--pv-ink-3,#64748b)}',
+    '.pvpf-ex li.pvpf-etc{margin-right:0;font-weight:400;color:var(--pv-ink-3,#64748b)}',
     '.pvpf-why{margin:16px 0 0;padding:12px 14px;border-radius:12px;background:var(--pv-bg-sub,#f7f9fc);',
       'border:1px solid var(--pv-line,rgba(15,23,42,.12))}',
     '.pvpf-whyT{margin:0;font-size:.72rem;font-weight:700;color:var(--pv-ink-3,#64748b)}',
+    /* 最後の1文字だけが次の行に落ちない（文節で折る） */
     '.pvpf-whyB{margin:4px 0 0;font-size:.86rem;font-weight:600;line-height:1.7;color:var(--pv-ink,#0f172a);',
-      'white-space:pre-line;overflow-wrap:anywhere}',
+      'white-space:pre-line;overflow-wrap:break-word;line-break:strict;word-break:auto-phrase;text-wrap:pretty}',
     '.pvpf-many{margin:6px 0 0;font-size:.78rem;line-height:1.6;color:var(--pv-ink-3,#64748b)}',
     '.pvpf-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:16px 0 0}',
     '.pvpf-th{position:relative;margin:0;aspect-ratio:1/1;border:1px solid var(--pv-line,rgba(15,23,42,.12));',
@@ -422,7 +425,11 @@
   function render(keepFocus) {
     if (!card) return;
     card.innerHTML = html();
-    if (keepFocus) return;
+    if (keepFocus) {
+      /* 中身を描き直すと、板の中に在ったフォーカスは消える。そのときは板そのものへ戻す（輪を出さない・外へ逃がさない） */
+      if (!card.contains(d.activeElement)) { try { card.focus({ preventScroll: true }); } catch (e) {} }
+      return;
+    }
     /* 送信中は押せるものが無いので、板そのものに置く（フォーカスを下のページへ逃がさない） */
     var f = card.querySelector('.pvpf-go:not([disabled])')
          || card.querySelector('.pvpf-re:not([disabled])') || card;
@@ -635,11 +642,13 @@
     S.proofWrite(v.state, !!v.again);
     var next = { state: v.state, again: !!v.again,
                  reason: typeof v.reason === 'string' ? v.reason : '', max: Number(v.max) || 0 };
-    if (!back) { cur = next; open(); cur = next; render(); return; }
+    if (!back) { cur = next; open(); cur = next; render(true); return; }
     if (busy || picked.length) { cur.reason = next.reason; cur.max = next.max; return; }   // 選んでいる途中の画面は差し替えない
     if (cur.state === next.state && cur.again === next.again && cur.reason === next.reason && cur.max === next.max) return;
+    /* 理由や枚数が届いただけなら、フォーカスは動かさない（まだ何も押していない人のボタンに輪を出さない） */
+    var same = cur.state === next.state && cur.again === next.again;
     cur = next;
-    render();
+    render(same);
   }
 
   /* 板が出ている会員について、サーバの今の答えを取り直す。 */
