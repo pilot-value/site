@@ -95,20 +95,20 @@
       iMore: 'ほか {n}件',
       f: {
         code: '勤務コード', d_on: 'D-ON', d_off: 'D-OFF', 'leg.flight': '便名', 'leg.from': '出発地', 'leg.to': '到着地',
-        'leg.loc': '場所', 'leg.out': '出発時刻', 'leg.in': '到着時刻', 'leg.block': '便の時間',
+        'leg.loc': '場所', 'leg.out': '出発時刻', 'leg.in': '到着時刻', 'leg.block': 'フライトタイム',
         'leg.kind': '便の種類', 'hints.kind': '実績か予定か', 'hints.time_ref': '時刻の基準'
       },
       addMore: 'スクリーンショットを足す',
       qH: 'はじめに教えてください', qS: '同じ会社の次のスケジュールからは、新しいことだけ聞きます。',
       qKind: 'このスケジュールは', qKindA: '実績（飛んだあと）', qKindP: '予定',
       qRef: '時刻は', qRefL: '現地時刻', qRefU: 'UTC',
-      qMean: '便の TIME の欄は', qMeanB: 'ブロック時間（チョック・オフ〜オン）', qMeanF: '飛行時間（離陸〜着陸）', qMeanO: 'ほかの意味・わからない',
+      qMean: '便の TIME の欄は', qMeanB: 'ブロックタイム（チョックオフ〜チョックオン）', qMeanF: 'フライトタイム（離陸〜着陸）', qMeanO: 'ほかの意味・わからない',
       qCodes: '勤務コードの意味', qCodesS: '答えると、休日と勤務日を正しく数えます。',
       codeOpt: { off: '休日', vac: '有休', duty: '勤務', standby: 'スタンバイ', training: '訓練', ground: '地上業務', unknown: 'わからない' },
       codePick: '選ぶ',
       printed: '原本の表記から',
       next: '次へ', prevStep: '戻る',
-      sumRead: '読めた日 {d}／{m}日', sumTime: '便の時間 {b}／{n}便',
+      sumRead: '読めた日 {d}／{m}日', sumTime: 'フライトタイム {b}／{n}便',
       calEdit: '日付を押すと、その日を直せます。',
       missH: '読めなかった日', missS: '空欄のままの日は保存しません。',
       missDuty: '勤務を入力', missBlank: '空欄のまま',
@@ -203,7 +203,7 @@
       iMore: '{n} more',
       f: {
         code: 'Duty code', d_on: 'D-ON', d_off: 'D-OFF', 'leg.flight': 'Flight number', 'leg.from': 'Origin', 'leg.to': 'Destination',
-        'leg.loc': 'Location', 'leg.out': 'Off-block time', 'leg.in': 'On-block time', 'leg.block': 'Leg time',
+        'leg.loc': 'Location', 'leg.out': 'Off-block time', 'leg.in': 'On-block time', 'leg.block': 'Flight time',
         'leg.kind': 'Leg type', 'hints.kind': 'Actual or planned', 'hints.time_ref': 'Time reference'
       },
       addMore: 'Add screenshots',
@@ -309,7 +309,7 @@
       iMore: '{n} más',
       f: {
         code: 'Código de servicio', d_on: 'D-ON', d_off: 'D-OFF', 'leg.flight': 'Número de vuelo', 'leg.from': 'Origen', 'leg.to': 'Destino',
-        'leg.loc': 'Lugar', 'leg.out': 'Hora off-block', 'leg.in': 'Hora on-block', 'leg.block': 'Tiempo del tramo',
+        'leg.loc': 'Lugar', 'leg.out': 'Hora off-block', 'leg.in': 'Hora on-block', 'leg.block': 'Tiempo de vuelo',
         'leg.kind': 'Tipo de tramo', 'hints.kind': 'Real o planificada', 'hints.time_ref': 'Referencia horaria'
       },
       addMore: 'Agregar capturas',

@@ -77,16 +77,17 @@
   var YEAR_URL = 'my-year.js?v=' + YEAR_V;                 // 「1年」の画面（押したときだけ読む）
   /* ★「勤務ロスター」のタブ（2026-11-09）。開いたときだけ読む4本。指紋は上の2本と同じ決まり
        （db/test-year-report.mjs が中身と突き合わせる）。計算の部品は分析のタブも使う。 */
-  var ROSTER_V = '6d312f60';
-  var ROSTER_CSS_V = '2d0e2f7b';
-  var UPLOAD_V = '057a5bca';
-  var ENGINE_V = '65d85fc3';
+  var ROSTER_V = '639f029f';
+  var ROSTER_CSS_V = 'aa718a29';
+  var UPLOAD_V = '8b9b153f';
+  var ENGINE_V = '55404b32';
+  var AIRPORT_TZ_V = 'ec27da34';   // ★2026-11-11 空港 → タイムゾーンの表（pv-airport-tz.js・現地時刻の便の時間）
   /* ★「分析」のタブ（2026-11-09）。開いたときだけ読む2本（見た目 → 計算の部品 → 画面の順）。指紋の決まりは上と同じ */
-  var ANALYSIS_V = 'f38aeee0';
+  var ANALYSIS_V = 'ae699612';
   var ANALYSIS_CSS_V = 'aeff3463';
   var LATE = {
     roster: 'my-roster.js?v=' + ROSTER_V, rosterCss: 'my-roster.css?v=' + ROSTER_CSS_V,
-    upload: 'roster-upload.js?v=' + UPLOAD_V, engine: 'pv-report-engine.js?v=' + ENGINE_V,
+    upload: 'roster-upload.js?v=' + UPLOAD_V, engine: 'pv-report-engine.js?v=' + ENGINE_V, airportTz: 'pv-airport-tz.js?v=' + AIRPORT_TZ_V,
     analysis: 'my-analysis.js?v=' + ANALYSIS_V, analysisCss: 'my-analysis.css?v=' + ANALYSIS_CSS_V,
     airlines: 'pv-airlines.json'
   };
@@ -1225,7 +1226,7 @@
   function ensureRep() {
     if (rep.started) return;
     rep.started = true;
-    Promise.all([lateJs(LATE.engine, function () { return !!w.PVReport; }), reportItems()]).then(function (r) {
+    Promise.all([engineJs(), reportItems()]).then(function (r) {
       rep.done = !!r[0];
       if (!rep.done) return;
       if (!sumShown()) { state.sumDirty = true; return; }
@@ -1940,6 +1941,11 @@
     try { host.dispatchEvent(new CustomEvent('pv-myreport-tab', { bubbles: true, detail: { tab: k } })); } catch (e) {}
   }
 
+  /* 計算の部品。空港のタイムゾーンの表も一緒に読む（読めなくても計算は動く＝現地時刻の便の時間が出ないだけ） */
+  function engineJs() {
+    return Promise.all([lateJs(LATE.airportTz, function () { return !!w.PV_AIRPORT_TZ; }).then(null, function () { return false; }),
+                        lateJs(LATE.engine, function () { return !!w.PVReport; })]).then(function (r) { return r[1]; });
+  }
   /* 後から読む部品（同じものを2回読まない） */
   var late = {};
   function lateJs(src, ready) {
@@ -1972,7 +1978,7 @@
     if (rosterMounted) { if (!quiet) w.PVRoster.show(); return Promise.resolve(true); }
     if (!panes.roster.firstChild) panes.roster.innerHTML = '<div class="mr-skel" style="height:220px"></div>';
     /* 見た目が届いてから描く（素の字が一瞬覆わない）。計算の部品 → 画面の部品の順 */
-    return Promise.all([lateCss(LATE.rosterCss), lateJs(LATE.engine, function () { return !!w.PVReport; })])
+    return Promise.all([lateCss(LATE.rosterCss), engineJs()])
       .then(function (r) { return r[0] && r[1] ? lateJs(LATE.roster, function () { return !!w.PVRoster; }) : false; })
       .then(function (ok) {
         if (rosterMounted) return true;            // 同時に2回呼ばれた（タブと設定）＝もう載っている
@@ -2020,7 +2026,7 @@
     if (anaMounted) { w.PVAnalysis.show(); return; }
     var box = d.getElementById('pv-analysis') || panes.analysis;
     if (!box.firstChild) box.innerHTML = '<div class="mr-skel" style="height:220px"></div>';
-    Promise.all([lateCss(LATE.analysisCss), lateJs(LATE.engine, function () { return !!w.PVReport; })])
+    Promise.all([lateCss(LATE.analysisCss), engineJs()])
       .then(function (r) { return r[0] && r[1] ? lateJs(LATE.analysis, function () { return !!w.PVAnalysis; }) : false; })
       .then(function (ok) {
         if (anaMounted) return;

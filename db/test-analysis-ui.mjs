@@ -392,8 +392,10 @@ console.log('▼ ① 後から読む部品');
   }
   say(/analysis: 'my-analysis\.js\?v=' \+ ANALYSIS_V/.test(MV) && /analysisCss: 'my-analysis\.css\?v=' \+ ANALYSIS_CSS_V/.test(MV), '読む住所は指紋つき');
   const oa = cut(MV, 'openAnalysis') || '';
-  const iCss = oa.indexOf('lateCss(LATE.analysisCss)'), iEng = oa.indexOf('lateJs(LATE.engine'), iAna = oa.indexOf('lateJs(LATE.analysis,');
-  say(iCss >= 0 && iEng >= 0 && iAna > iCss && iAna > iEng, '見た目と計算の部品が届いてから画面の部品を読む');
+  /* ★2026-11-11 計算の部品は engineJs()（空港のタイムゾーンの表と一緒に読む）経由 */
+  const iCss = oa.indexOf('lateCss(LATE.analysisCss)'), iEng = oa.indexOf('engineJs()'), iAna = oa.indexOf('lateJs(LATE.analysis,');
+  const ej = cut(MV, 'engineJs') || '';
+  say(iCss >= 0 && iEng >= 0 && iAna > iCss && iAna > iEng && /lateJs\(LATE\.engine/.test(ej) && /LATE\.airportTz/.test(ej), '見た目と計算の部品が届いてから画面の部品を読む');
   say(/if \(k === 'analysis'\) openAnalysis\(\);/.test(MV), '分析のタブを開いたときだけ読む');
   for (const p of ['profile.html', 'en/profile.html', 'es/profile.html']) {
     if (!fs.existsSync(path.join(ROOT, p))) continue;

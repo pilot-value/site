@@ -382,15 +382,49 @@
     Object.keys(o).forEach(function (k) { var kk = codeUp(k); if (kk && CLASSES[o[k]]) out[kk] = o[k]; });
     return out;
   }
-  function legOf(L, profile) {
+  /* ★2026-11-11 オーナー「Local タイムでも計算されるようにしてよ」── 時刻が現地時刻のときは、出発地と到着地の
+       タイムゾーン（pv-airport-tz.js・IATA → IANA）でそれぞれ UTC に直して引く。夏時間も Intl が持つ。
+       空港のどちらかが表に無い・日付が無いときは出さない（推測しない）。 */
+  var tzFmt = {};
+  function tzOff(tz, ms) {                       // その瞬間の tz の UTC からのずれ（分）
+    var f = tzFmt[tz];
+    if (!f) {
+      try { f = tzFmt[tz] = new Intl.DateTimeFormat('en-US', { timeZone: tz, hourCycle: 'h23', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric' }); }
+      catch (e) { return null; }
+    }
+    var p = {};
+    f.formatToParts(new Date(ms)).forEach(function (x) { p[x.type] = x.value; });
+    return Math.round((Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute) - ms) / 60000);
+  }
+  function localMs(date, min, tz) {              // その日の現地の min 分 → UTC のミリ秒
+    var g = Date.UTC(+date.slice(0, 4), +date.slice(5, 7) - 1, +date.slice(8, 10)) + min * 60000;
+    var o = tzOff(tz, g);
+    if (o == null) return null;
+    var t = g - o * 60000, o2 = tzOff(tz, t);
+    return o2 != null && o2 !== o ? g - o2 * 60000 : t;
+  }
+  function airTz(code) { var f = w.PV_AIRPORT_TZ; return code && typeof f === 'function' ? f(code) : null; }
+  function legOf(L, profile, date) {
     var out = L.out != null ? L.out : L.t_out, inn = L.in != null ? L.in : L.t_in;
     var o = clockMin(out), i = clockMin(inn), inDay = num(L.in_day) || 0;
     var printed = L.block != null ? durMin(L.block) : (L.block_min != null ? durMin(num(L.block_min)) : null);
     var b = printed, src = printed != null ? 'printed' : null;
-    /* 印字が無いときだけ時刻から。区間の時刻は駅ごとの現地時刻のことがある＝ UTC と確認できたときだけ */
+    /* 印字が無いときだけ時刻から。UTC と答えてあればそのまま引く */
     if (b == null && o != null && i != null && profile && profile.time_ref === 'utc') {
       var v = inDay * 1440 + i - o;
       if (v > 0 && v < 1440) { b = v; src = 'times'; }
+    }
+    /* 現地時刻（と答えた・まだ答えていない）：両方の空港のタイムゾーンが分かれば UTC に直して引く。
+       ★答えていないときは、出発地と到着地が同じタイムゾーンの便だけ（UTC でも現地でも差は同じ＝取り違えても狂わない） */
+    if (b == null && o != null && i != null && isDate(date) && !(profile && profile.time_ref === 'utc')) {
+      var tf = airTz(up(L.from != null ? L.from : L.orig)), tt = airTz(up(L.to != null ? L.to : L.dest));
+      if (tf && tt && ((profile && profile.time_ref === 'local') || tf === tt)) {
+        var a0 = localMs(date, o, tf), a1 = localMs(date, inDay * 1440 + i, tt);
+        if (a0 != null && a1 != null) {
+          var v2 = Math.round((a1 - a0) / 60000);
+          if (v2 > 0 && v2 < 1440) { b = v2; src = 'local'; }
+        }
+      }
     }
     var kind = LEG_KINDS.indexOf(L.kind) >= 0 ? L.kind : 'unknown';
     return {
@@ -405,7 +439,7 @@
     var code = codeUp(D.code), cls = code ? (codes[code] || null) : null;
     var on = clockMin(D.d_on), off = clockMin(D.d_off), offDay = num(D.d_off_day) || 0;
     var el = elapsed(D.date, on, off == null ? null : offDay * 1440 + off, profile);
-    var legs = arr(D.legs).map(function (L) { return legOf(L || {}, profile); })
+    var legs = arr(D.legs).map(function (L) { return legOf(L || {}, profile, D.date); })
       .sort(function (a, b) { return (a.seq == null ? 1e9 : a.seq) - (b.seq == null ? 1e9 : b.seq); });
     var block = {}, blockKnown = {}, blockGaps = {}, n = {};
     LEG_KINDS.forEach(function (k) {

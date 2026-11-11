@@ -25,12 +25,14 @@ import { fileURLToPath } from 'url';
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const VIZ = fs.readFileSync(path.join(ROOT, 'pay-viz.js'), 'utf8');
 const SRC = fs.readFileSync(path.join(ROOT, 'pv-report-engine.js'), 'utf8');
+const TZ = fs.readFileSync(path.join(ROOT, 'pv-airport-tz.js'), 'utf8');   // ★2026-11-11 空港 → タイムゾーン（現地時刻の便の時間）
 
 function load(src) {
   const win = { document: { documentElement: { getAttribute: () => 'ja' }, addEventListener() {} }, addEventListener() {} };
   win.window = win;
   const ctx = vm.createContext(win);
   vm.runInContext(VIZ, ctx);
+  vm.runInContext(TZ, ctx);
   vm.runInContext(src, ctx);
   return { R: win.PVReport, V: win.PVViz };
 }
@@ -241,6 +243,28 @@ function suite(R, V) {
     ok(pick(L3, 'perdiem').workYm === '2026-10' && pick(L3, 'flight').workYm === '2026-09', '★手当ごとの答えが優先（パーディアムは当月と答えた・変動給はスケジュールの答え）');
     const two = R.alignCandidates([rep('2026-10', { block_hours: 25 })], MS.roster.byYm)[0];
     ok(two.candidate === -2 && two.compare.length === 3, '明細の乗務時間が前々月のスケジュールと合えば候補は「前々月」', JSON.stringify(two.compare.map((c) => c.offset)));
+  }
+  {
+    // ★2026-11-11 オーナー「Local タイムでも計算されるようにしてよ」── 現地時刻の便の時間を、空港のタイムゾーンで UTC に直して出す
+    const leg1 = (from, to, out, inn, inDay) => ({ seq: 1, from, to, out, in: inn, in_day: inDay || 0, block: null, kind: 'operating' });
+    const one = (date, L, tref) => R.rosterMonths([{ date, d_on: null, d_off: null, legs: [L] }], Object.assign({}, PROFILE, { time_ref: tref }))[0].days[0].legs[0];
+    const a = one('2026-09-10', leg1('HND', 'CTS', '08:00', '09:35'), 'local');
+    ok(a.blockMin === 95 && a.blockSrc === 'local', '★国内線（羽田→新千歳・現地時刻）08:00→09:35 ＝ 1:35', JSON.stringify([a.blockMin, a.blockSrc]));
+    const b = one('2026-09-10', leg1('NRT', 'LHR', '11:00', '15:30'), 'local');
+    ok(b.blockMin === 750, '★国際線（成田 11:00 JST → ヒースロー 15:30 BST）＝ 12:30（夏時間も入る）', String(b.blockMin));
+    const c = one('2026-01-15', leg1('DXB', 'LHR', '07:00', '11:00'), 'local');
+    ok(c.blockMin === 480, '★ドバイ 07:00（UTC+4）→ ヒースロー 11:00（冬・UTC+0）＝ 8:00', String(c.blockMin));
+    const d = one('2026-09-10', leg1('HND', 'BKK', '23:30', '04:10', 1), 'local');
+    ok(d.blockMin === 400, '★日をまたぐ（羽田 23:30 → バンコク 翌 04:10・UTC+7）＝ 6:40', String(d.blockMin));
+    const e = one('2026-09-10', leg1('HND', 'CTS', '08:00', '09:35'), null);
+    const f = one('2026-09-10', leg1('NRT', 'LHR', '11:00', '15:30'), null);
+    ok(e.blockMin === 95 && f.blockMin === null, '時刻の基準をまだ答えていない：同じタイムゾーンの便だけ出す（違えば出さない＝取り違えても狂わない）', JSON.stringify([e.blockMin, f.blockMin]));
+    const g = one('2026-09-10', leg1('NRT', 'LHR', '02:00', '14:30'), 'utc');
+    ok(g.blockMin === 750 && g.blockSrc === 'times', 'UTC と答えてあれば今までどおり引くだけ', JSON.stringify([g.blockMin, g.blockSrc]));
+    const h = one('2026-09-10', leg1('ZZQ', 'CTS', '08:00', '09:35'), 'local');
+    ok(h.blockMin === null, '表に無い空港の便は出さない（推測しない）', String(h.blockMin));
+    const p = one('2026-09-10', Object.assign(leg1('HND', 'CTS', '08:00', '09:35'), { block: '1:30' }), 'local');
+    ok(p.blockMin === 90 && p.blockSrc === 'printed', '印字された便の時間があれば、そちらが先', JSON.stringify([p.blockMin, p.blockSrc]));
   }
   {
     const fl10 = MS.months[1].lines.find((l) => l.labelKey === 'flight pay');

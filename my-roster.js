@@ -49,11 +49,11 @@
       upF: 'PDF · PNG · JPG · WebP',
       airline: '会社', airlinePick: '会社を選んでください', airlineOther: '一覧にない会社', airlineOtherPh: '会社名',
       airlineChange: '会社を変える',
-      kDuty: '勤務時間', kBlock: 'ブロック時間', kFlight: '飛行時間', kTime: '便の時間',
+      kDuty: '勤務時間', kBlock: 'ブロックタイム', kFlight: 'フライトタイム', kTime: 'フライトタイム',
       kDays: '勤務日', kSectors: '便数', kDh: 'DH', kOff: '休日', kVac: '有休',
       uDays: '日', uLegs: '便',
       partialOf: '{c}日ぶん（この月は{n}日）',
-      cumK: '勤務時間の累計', cumTo: '{d}まで', dayK: 'この日', mdT: '{n}月{d}日',
+      cumK: '{k}の累計', cumTo: '{d}まで', dayK: 'この日', mdT: '{n}月{d}日',
       lagLine: '{t}に飛んだ分は、{p}の給与明細に出ます。', lagH: 'スケジュールと給与明細の月',
       lagQ: '飛んだ分（乗務手当・パーディアムなど）は、何月の給与明細に出ますか？',
       lag0: '同じ月', lag1: '翌月', lag2: '翌々月', lagU: 'わからない', lagSaved: '保存しました。', lagErr: '保存できませんでした。もう一度お試しください。',
@@ -62,7 +62,7 @@
       calHint: '日付を選ぶと、その日の便と勤務が出ます',
       lgDuty: '勤務', lgVac: 'VAC 有休',
       dOn: 'D-ON', dOff: 'D-OFF',
-      dDuty: '勤務時間', dLegsT: '便の時間の合計', dLegsN: '便・業務', inclDh: 'DH 含む',
+      dDuty: '勤務時間', dLegsT: 'フライトタイムの合計', dLegsN: '便・業務', inclDh: 'DH 含む',
       legsH: '便・業務', asPrinted: '空港コードは原本の表記',
       nItems: '{n}件',
       kindDh: 'DH', kindGround: '地上業務', kindUnknown: '区分確認中',
@@ -89,7 +89,7 @@
       /* CSV と印刷（表示中の月だけ） */
       csvA: 'CSVで保存（{t}）', print: '印刷', printA: '{t}の勤務を印刷', csvRange: '範囲', csvRoster: 'スケジュール {m}',
       /* 保存したあとに直す（2026-11-09） */
-      editDay: 'この日を直す', addDay: 'この日を入れる', editLimit: '今日はこれ以上直せません。明日また続きをどうぞ。', editOld: '2年より前の日は直せません。', docManual: '手で入れた日', kNoTime: '便の時間が無い便 {n}',
+      editDay: 'この日を直す', addDay: 'この日を入れる', editLimit: '今日はこれ以上直せません。明日また続きをどうぞ。', editOld: '2年より前の日は直せません。', docManual: '手で入れた日', kNoTime: 'フライトタイムが無い便 {n}',
       editDone: 'この日を直しました。', delDayDone: 'この日を消しました。',
       editLogin: 'ログインが切れました。ページを開き直してログインしてください。', editBad: '入力の形が正しくありません。',
       editNotReady: 'まだ使えません。', editErr: '保存できませんでした。時間をおいてもう一度お試しください。',
@@ -108,11 +108,11 @@
       upF: 'PDF · PNG · JPG · WebP',
       airline: 'Airline', airlinePick: 'Choose your airline', airlineOther: 'Airline not listed', airlineOtherPh: 'Airline name',
       airlineChange: 'Change airline',
-      kDuty: 'Duty time', kBlock: 'Block time', kFlight: 'Flight time', kTime: 'Leg time',
+      kDuty: 'Duty time', kBlock: 'Block time', kFlight: 'Flight time', kTime: 'Flight time',
       kDays: 'Duty days', kSectors: 'Sectors', kDh: 'DH', kOff: 'Days off', kVac: 'Leave',
       uDays: '', uLegs: '',
       partialOf: '{c} of {n} days',
-      cumK: 'Duty time so far', cumTo: 'Through {d}', dayK: 'That day', mdT: '{s} {d}',
+      cumK: '{k} so far', cumTo: 'Through {d}', dayK: 'That day', mdT: '{s} {d}',
       lagLine: 'Flying in {t} is paid on your {p} payslip.', lagH: 'Roster month and payslip month',
       lagQ: 'Which month’s payslip pays for your flying (flight pay, per diem, etc.)?',
       lag0: 'Same month', lag1: 'Next month', lag2: 'Two months later', lagU: 'Not sure', lagSaved: 'Saved.', lagErr: 'Couldn’t save. Please try again.',
@@ -121,7 +121,7 @@
       calHint: 'Pick a date to see its flights and duty',
       lgDuty: 'Duty', lgVac: 'VAC leave',
       dOn: 'D-ON', dOff: 'D-OFF',
-      dDuty: 'Duty time', dLegsT: 'Total leg time', dLegsN: 'Legs & duties', inclDh: 'incl. DH',
+      dDuty: 'Duty time', dLegsT: 'Total flight time', dLegsN: 'Legs & duties', inclDh: 'incl. DH',
       legsH: 'Legs & duties', asPrinted: 'Airport codes as printed',
       nItems: '{n}',
       kindDh: 'DH', kindGround: 'Ground duty', kindUnknown: 'Type to confirm',
@@ -146,7 +146,7 @@
       upErr: 'Could not load the import screen. Please try again in a moment.',
       noMonth: 'Nothing recorded for this month.',
       csvA: 'Save {t} as CSV', print: 'Print', printA: 'Print duty in {t}', csvRange: 'Range', csvRoster: 'roster month {m}',
-      editDay: 'Edit this day', addDay: 'Add this day', editLimit: 'You can’t make more edits today. Please continue tomorrow.', editOld: 'Days older than two years can’t be edited.', docManual: 'Days you entered', kNoTime: '{n} flights without a time',
+      editDay: 'Edit this day', addDay: 'Add this day', editLimit: 'You can’t make more edits today. Please continue tomorrow.', editOld: 'Days older than two years can’t be edited.', docManual: 'Days you entered', kNoTime: '{n} legs without a flight time',
       editDone: 'Day updated.', delDayDone: 'Day deleted.',
       editLogin: 'Your login has expired. Reload the page and log in again.', editBad: 'The entry is not in a valid shape.',
       editNotReady: 'Not available yet.', editErr: 'Could not save. Please try again in a moment.',
@@ -164,11 +164,11 @@
       upF: 'PDF · PNG · JPG · WebP',
       airline: 'Aerolínea', airlinePick: 'Elige tu aerolínea', airlineOther: 'Aerolínea no incluida en la lista', airlineOtherPh: 'Nombre de la aerolínea',
       airlineChange: 'Cambiar de aerolínea',
-      kDuty: 'Tiempo de servicio', kBlock: 'Tiempo block', kFlight: 'Tiempo de vuelo', kTime: 'Tiempo del tramo',
+      kDuty: 'Tiempo de servicio', kBlock: 'Tiempo block', kFlight: 'Tiempo de vuelo', kTime: 'Tiempo de vuelo',
       kDays: 'Días de servicio', kSectors: 'Sectores', kDh: 'DH', kOff: 'Días libres', kVac: 'Vacaciones',
       uDays: '', uLegs: '',
       partialOf: '{c} de {n} días',
-      cumK: 'Tiempo de servicio acumulado', cumTo: 'Hasta {d}', dayK: 'Ese día', mdT: '{s} {d}',
+      cumK: '{k} acumulado', cumTo: 'Hasta {d}', dayK: 'Ese día', mdT: '{s} {d}',
       lagLine: 'Lo volado en {t} se paga en tu nómina de {p}.', lagH: 'Mes de la programación y mes de la nómina',
       lagQ: '¿En la nómina de qué mes se paga lo que vuelas (pago por vuelo, viáticos, etc.)?',
       lag0: 'Mismo mes', lag1: 'Mes siguiente', lag2: 'Dos meses después', lagU: 'No lo sé', lagSaved: 'Guardado.', lagErr: 'No se pudo guardar. Inténtalo de nuevo.',
@@ -177,7 +177,7 @@
       calHint: 'Elige una fecha para ver sus vuelos y servicios',
       lgDuty: 'Servicio', lgVac: 'VAC vacaciones',
       dOn: 'D-ON', dOff: 'D-OFF',
-      dDuty: 'Tiempo de servicio', dLegsT: 'Tiempo total de tramos', dLegsN: 'Tramos y actividades', inclDh: 'incl. DH',
+      dDuty: 'Tiempo de servicio', dLegsT: 'Tiempo de vuelo total', dLegsN: 'Tramos y actividades', inclDh: 'incl. DH',
       legsH: 'Tramos y actividades', asPrinted: 'Códigos de aeropuerto tal como aparecen',
       nItems: '{n}',
       kindDh: 'DH', kindGround: 'Actividad en tierra', kindUnknown: 'Tipo por confirmar',
@@ -202,7 +202,7 @@
       upErr: 'No se pudo cargar la pantalla de importación. Inténtalo de nuevo en un momento.',
       noMonth: 'No hay nada registrado para este mes.',
       csvA: 'Guardar {t} como CSV', print: 'Imprimir', printA: 'Imprimir los servicios de {t}', csvRange: 'Rango', csvRoster: 'mes de programación {m}',
-      editDay: 'Corregir este día', addDay: 'Agregar este día', editLimit: 'Hoy ya no puedes hacer más correcciones. Continúa mañana.', editOld: 'Los días de hace más de dos años no se pueden corregir.', docManual: 'Días que ingresaste', kNoTime: '{n} vuelos sin tiempo',
+      editDay: 'Corregir este día', addDay: 'Agregar este día', editLimit: 'Hoy ya no puedes hacer más correcciones. Continúa mañana.', editOld: 'Los días de hace más de dos años no se pueden corregir.', docManual: 'Días que ingresaste', kNoTime: '{n} tramos sin tiempo de vuelo',
       editDone: 'Día actualizado.', delDayDone: 'Día eliminado.',
       editLogin: 'Tu sesión expiró. Vuelve a cargar la página e inicia sesión de nuevo.', editBad: 'Los datos no tienen un formato válido.',
       editNotReady: 'Aún no está disponible.', editErr: 'No se pudo guardar. Inténtalo de nuevo en un momento.',
@@ -442,11 +442,11 @@
     }
     var W = 460, H = 112, X = function (d) { return 6 + (W - 16) * (d - 1) / (n - 1); }, Y = function (m0) { return 12 + 78 * (1 - m0 / tot); };
     var line = cum.map(function (m0, i) { return (i ? 'L' : 'M') + X(i + 1).toFixed(1) + ' ' + Y(m0).toFixed(1); }).join('');
-    var hero = '<section class="rs-card rs-kpis rs-hero"><div class="rs-hero-l"><h3 class="rs-card-t">' + esc(T.kDuty) + '</h3>' +
-        '<b class="rs-kpi-v">' + hm(tot) + '</b><div class="rs-cum-box"><svg class="rs-cum-svg" viewBox="0 0 ' + W + ' ' + H + '">' +
+    var hero = '<section class="rs-card rs-kpis rs-hero"><div class="rs-hero-l"><h3 class="rs-card-t">' + esc(T.kTime) + '</h3>' +
+        '<b class="rs-kpi-v">102:55</b><div class="rs-cum-box"><svg class="rs-cum-svg" viewBox="0 0 ' + W + ' ' + H + '">' +
         '<path d="' + line + 'L' + X(n) + ' 90L' + X(1) + ' 90Z" fill="currentColor" fill-opacity=".14"/><path class="rs-cum-l" d="' + line + '"/>' +
         '<circle class="rs-cum-d" cx="' + X(n).toFixed(1) + '" cy="' + Y(tot).toFixed(1) + '" r="4.5"/></svg></div></div>' +
-      '<ul class="rs-hero-r">' + [[T.kTime, '102:55'], [T.kDays, '23' + T.uDays], [T.kSectors, '15' + T.uLegs], [T.kOff + ' / ' + T.kVac, '8 / 0' + T.uDays]].map(function (r0) {
+      '<ul class="rs-hero-r">' + [[T.kDuty, hm(tot)], [T.kDays, '23' + T.uDays], [T.kSectors, '15' + T.uLegs], [T.kOff + ' / ' + T.kVac, '8 / 0' + T.uDays]].map(function (r0) {
         return '<li class="rs-kpi"><span class="rs-kpi-k">' + esc(r0[0]) + '</span><b class="rs-kpi-v">' + esc(r0[1]) + '</b></li>';
       }).join('') + '</ul></section>';
     var cal = '<section class="rs-card rs-cal"><div class="rs-card-h"><h3 class="rs-card-t">' + esc(monthTitle(ym)) + '</h3></div>' +
@@ -522,8 +522,13 @@
     var dh = (dhN && dhGap >= dhN) ? null : v(m.blockMin.deadhead, P.blockMin.deadhead);
     var dutyN = P.dutyDays || 0, duty = (dutyN && (g.duty || 0) >= dutyN) ? null : v(m.dutyMin, P.dutyMin);
     var noTime = opGap + dhGap;
+    /* ★2026-11-11 オーナー「勤務時間の合計じゃなくて、フライトタイムにした方がいい」── 大きい数字は便の時間（本人の呼び方：
+         ブロック時間／飛行時間／便の時間）。便の時間が1本も分からない月だけ、勤務時間を大きく出す（「—」を大きく出さない）。 */
+    var useOp = op != null;
+    S.heroOp = useOp;
+    var opRow = { k: timeLabel(S.profile), b: hm(op), s: dhN ? T.kDh + ' ' + hm(dh) : '', n: noTime ? fill(T.kNoTime, { n: noTime }) : '' };
     var rows = [
-      { k: timeLabel(S.profile), b: hm(op), s: dhN ? T.kDh + ' ' + hm(dh) : '', n: noTime ? fill(T.kNoTime, { n: noTime }) : '' },
+      useOp ? { k: T.kDuty, b: hm(duty) } : opRow,
       { k: T.kDays, b: String(v(m.dutyDays, P.dutyDays)), u: T.uDays },
       { k: T.kSectors, b: String(v(m.sectors, P.sectors)), u: T.uLegs, s: v(m.dhLegs, P.dhLegs) ? T.kDh + ' ' + v(m.dhLegs, P.dhLegs) : '' },
       { k: T.kOff + ' / ' + T.kVac, b: v(m.offDays, P.offDays) + ' / ' + v(m.vacDays, P.vacDays), u: T.uDays }
@@ -534,9 +539,10 @@
          見出し → 大きい数字1つ（勤務時間）→ 月の頭からの累計の緑の線（指を置くとその日までの累計）→ ほかの数字は行で。 */
     return '<section class="rs-card rs-kpis rs-hero">' +
       '<div class="rs-hero-l">' +
-        '<h3 class="rs-card-t">' + esc(T.kDuty) + '</h3>' +
-        '<b class="rs-kpi-v">' + esc(hm(duty)) + '</b>' +
-        '<div class="rs-cum-box"><svg class="rs-cum-svg" role="group" aria-label="' + esc(T.cumK + (S.ym ? ' · ' + monthTitle(S.ym) : '')) + '"></svg>' +
+        '<h3 class="rs-card-t">' + esc(useOp ? opRow.k : T.kDuty) + '</h3>' +
+        '<b class="rs-kpi-v">' + esc(hm(useOp ? op : duty)) + '</b>' +
+        (useOp && (opRow.s || opRow.n) ? '<p class="rs-hero-s">' + esc(opRow.s) + (opRow.n ? (opRow.s ? ' · ' : '') + '<span class="is-miss">' + esc(opRow.n) + '</span>' : '') + '</p>' : '') +
+        '<div class="rs-cum-box"><svg class="rs-cum-svg" role="group" aria-label="' + esc(cumName() + (S.ym ? ' · ' + monthTitle(S.ym) : '')) + '"></svg>' +
           '<div class="rs-tip" hidden></div></div>' +
       '</div>' +
       '<ul class="rs-hero-r">' + rows.map(function (t) {
@@ -547,6 +553,10 @@
       lagLineHTML() +
       (note ? '<p class="rs-kpi-n">' + esc(note) + '</p>' : '') + '</section>';
   }
+  /* 上のカードの数字の名前（便の時間か勤務時間か）と、その日の値 */
+  function heroName() { return S.heroOp ? timeLabel(S.profile) : T.kDuty; }
+  function cumName() { return fill(T.cumK, { k: heroName() }); }
+  function heroOf(x) { return !x ? 0 : S.heroOp ? (x.blockKnown && x.blockKnown.operating) || 0 : x.dutyMin || 0; }
   /* ★2026-11-11 この月に飛んだ分が出る給与明細の月（読み方の pay_lag・取り込みのときに聞いた答え）。わからない・まだのときは出さない */
   function lagLineHTML() {
     var lag = S.profile ? S.profile.pay_lag : null;
@@ -754,7 +764,7 @@
     var pts = [], tot = 0, last = 0;
     for (var dd = 1; dd <= n; dd++) {
       var x = bd[S.ym + '-' + pad2(dd)];
-      if (x) { tot += x.dutyMin || 0; last = dd; }
+      if (x) { tot += heroOf(x); last = dd; }
       pts.push(tot);
     }
     if (!tot) { box.hidden = true; return; }
@@ -790,8 +800,8 @@
     if (!tip) return;
     if (!date || !S.cum) { tip.hidden = true; if (o) o.style.visibility = 'hidden'; return; }
     var dd = +date.slice(8, 10), v0 = S.cum.pts[dd - 1], x = byDateOf(S.byYm[S.ym])[date];
-    tip.innerHTML = '<b>' + esc(fill(T.cumTo, { d: dayTitle(date) })) + '</b><span>' + esc(T.cumK) + ' <b>' + hm(v0) + '</b></span>' +
-      (x && x.dutyMin ? '<span>' + esc(T.dayK) + ' ' + hm(x.dutyMin) + '</span>' : '');
+    tip.innerHTML = '<b>' + esc(fill(T.cumTo, { d: dayTitle(date) })) + '</b><span>' + esc(cumName()) + ' <b>' + hm(v0) + '</b></span>' +
+      (heroOf(x) ? '<span>' + esc(T.dayK) + ' ' + hm(heroOf(x)) + '</span>' : '');
     tip.hidden = false;
     var cx = S.cum.X(dd), tw = tip.offsetWidth, bw = box.clientWidth;
     tip.style.left = Math.max(0, Math.min(bw - tw, cx - tw / 2)) + 'px';

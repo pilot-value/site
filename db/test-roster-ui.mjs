@@ -177,11 +177,11 @@ function checks({ P, U, W }) {
     P.S.days[0].legs[0].block = '1:10';
     P.S.ym = null; P.compute();
     const k2 = P.kpiHTML(P.S.byYm['2026-07']), v2 = vals(k2);
-    ok(v2[1] === '1:10' && k2.includes(P.fill(P.T.kNoTime, { n: 1 })), '⑨ 一部だけ分かれば分かった分と「便の時間が無い便 1」');
+    ok(v2[0] === '1:10' && k2.includes(P.fill(P.T.kNoTime, { n: 1 })), '⑨ 一部だけ分かれば分かった分（★2026-11-11 から大きい数字は便の時間）と「便の時間が無い便 1」：' + v2.join(' / '));
     P.S.days = [{ date: '2026-07-03', code: null, d_on: null, d_off: null, d_off_day: 0, legs: [L({ block: '1:00' })] }];
     P.S.ym = null; P.compute();
     const v3 = vals(P.kpiHTML(P.S.byYm['2026-07']));
-    ok(v3[0] === '—', '⑨ 勤務の時刻が1日も分からなければ勤務時間も「—」：' + v3[0]);
+    ok(v3[0] === '1:00' && v3[1] === '—', '⑨ 勤務の時刻が1日も分からなければ勤務時間も「—」（大きい数字は便の時間 1:00）：' + v3.join(' / '));
     ok(!P.S.byYm['2026-07'].days.some((x) => x.date === '2026-07-02'), '⑦ 前に保存された空の日はカレンダーの日に数えない');
     P.S.docs = [
       { id: 'm1', date_from: '2026-07-03', date_to: '2026-07-03', pages: 1, days: 1, days_owned: 1, created_at: '2026-11-09T00:00:00Z', manual: true },

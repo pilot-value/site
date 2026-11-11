@@ -514,3 +514,7 @@ button.rs-cell:hover{border-color:var(--pv-accent)}
 /* ── 2026-11-11 スケジュールと給与明細の月（上のカードの1行・設定タブのカード）── */
 .rs-hero .rs-lag{grid-column:1/-1;margin:6px 0 0;font-size:.8rem;line-height:1.6;color:var(--pv-ink-2)}
 .rs-lagc .rs-lagq{margin:0 0 12px}
+
+/* ★2026-11-11 大きい数字は便の時間（ブロック時間）。DH と「便の時間が無い便」はその下に小さく */
+.rs-hero .rs-hero-s{margin:4px 0 0;font-size:.76rem;line-height:1.5;color:var(--pv-ink-3)}
+.rs-hero .rs-hero-s .is-miss{color:var(--pv-gold-ink)}
