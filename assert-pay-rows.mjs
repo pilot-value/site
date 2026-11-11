@@ -1293,10 +1293,9 @@ const sig2n = (v) => {
    ★未ログインの人・登録しただけの人に見せる5行。**作り物**であることが前提で、
      本物の投稿は1行も混ざらない（actual-pay.js は preview のとき pv_pay_rows() を
      1回も投げない。そちらは下の「未ログイン」の節で見る）。
-   ★ここで見るのは**逆側**の危険 ── オーナー指示で実在の航空会社名を出すので、
-     社名の隣に出る数字が作り話だと、それはサイトの主張になってしまう。
-     金額は salary-data.mjs（年収の SSOT）から来ていなければならない。
-     **SSOT を動かしたらこの節が赤くなる**＝プレビューだけ古い数字が残らない。
+   ★2026-11-12 オーナー指示「リアルペイ、なんで給料見えちゃってるのか分からない。本番はぼかしてね」で、
+     5行とも金額を持たなくなった（それまでは先頭2行に、年収の SSOT の平均を見本として出していた）。
+     ここで見るのは「金額が1つも戻ってこない」こと。
    ════════════════════════════════════════════════════════════════ */
 {
   console.log('\n════ プレビューの材料（ap-preview.js）════');
@@ -1305,41 +1304,14 @@ const sig2n = (v) => {
 
   ok(R.length === 5, '★プレビューは5行', String(R.length));
 
-  /* ★金額を持つのは先頭2行だけ。3行目以降は **null**（隠しているのではなく持っていない）。 */
-  const shown = R.filter((r) => r.annual_usd != null);
-  ok(shown.length === 2 && R.indexOf(shown[0]) === 0 && R.indexOf(shown[1]) === 1,
-     '★金額が入っているのは先頭2行だけ',
-     R.map((r, i) => i + ':' + (r.annual_usd == null ? '—' : r.annual_usd)).join(' '));
-  ok(R.slice(2).every((r) => r.annual_usd === null && r._man === undefined && r.lock === true),
-     '★3行目以降は金額を1つも持たない（CSS で隠しているのではない）',
-     JSON.stringify(R.slice(2).map((r) => ({ a: r.annual_usd, m: r._man, l: r.lock }))));
+  /* ★★5行とも金額を持たない（null）。隠しているのではなく持っていない ── 板は中身の空いた .ap-amt-lk */
+  ok(R.every((r) => r.annual_usd === null && r._man === undefined && r._rank === undefined && r.lock === true),
+     '★★5行とも金額を1つも持たない（CSS で隠しているのではない・2026-11-12 から）',
+     JSON.stringify(R.map((r) => ({ a: r.annual_usd, m: r._man, l: r.lock }))));
 
   /* ★実在の社名。SSOT に居ない社を並べない（社名もロゴも本物の一覧と同じ道を通る）。 */
   for (const r of R) {
     ok(!!SALARY[r.airline], `★${r.airline} は年収の SSOT に在る会社`);
-  }
-
-  /* ★★金額が SSOT と一致するか。ここが**この節の本体**。 */
-  const USD = USD_RATE;
-  ok(USD > 0, '換算レートが currency.js から読める', String(USD));
-  for (const r of shown) {
-    const want = (SALARY[r.airline] || {})[r._rank];
-    ok(!!want && want.avg === r._man,
-       `★★${r.airline} の ${r._rank} が SSOT の平均と一致（${r._man}万円）`,
-       JSON.stringify(want || {}));
-    /* USD 側はレートを取り直すたびに動く。±10% の幅で見る
-       （作り話の数字は必ずこの幅から外れる。丸めやレートの揺れでは外れない）。 */
-    const calc = (r._man * 1e4) / USD;
-    const gap = Math.abs(r.annual_usd - calc) / calc;
-    ok(gap <= 0.10,
-       `★${r.airline} のドル建てが ${r._man}万円の換算と ±10% 以内`,
-       `表示 ${r.annual_usd} / 換算 ${Math.round(calc)}（差 ${(gap * 100).toFixed(1)}%）`);
-    /* ★★日本語の画面に出る円は、丸めを通したあとも SSOT と**1円も違わない**。
-         ⚠️ ここは実際に外した ── $210,000 と置くと ¥3,300万 になり、
-            エティハドのページの 3,400万 と食い違った（画面は普通に動いたまま）。 */
-    ok(sig2n(r.annual_usd * USD) === r._man * 1e4,
-       `★★${r.airline} は円に直しても SSOT ちょうど（¥${r._man}万）`,
-       `${sig2n(r.annual_usd * USD)} / 期待 ${r._man * 1e4}`);
   }
 
   /* ★「誰かが実際に出した」と読めるものを1つも持たない。
@@ -1960,10 +1932,9 @@ const SNAP = () => {
 };
 
 /* ★プレビューの5行（2026-09-13）。鍵が無い人の画面は、2026-08-25 の
-     「灰色の骨組み」から**作り物の5行**に替わった。ここで見るのは3つ。
-       ① 出ているのは5行で、読める金額は先頭2行ぶんだけ
-       ② その金額が ap-preview.js の定数どおり ＝ 年収の SSOT どおり
-       ③ 「誰かが実際に出した」と読める表示（Verified・投稿時期・件数）が1つも無い
+     「灰色の骨組み」から**作り物の5行**に替わった。ここで見るのは2つ。
+       ① 出ているのは5行で、読める金額は1つも無い（2026-11-12 オーナー指示。それまでは先頭2行に見本の金額）
+       ② 「誰かが実際に出した」と読める表示（Verified・投稿時期・件数）が1つも無い
      ⚠️ 「本物を取りに行っていない」ことはここでは見ない。それは下の
         **未ログインの節**（pv_pay_rows を1回も呼ばない／毒が1文字も出ない）の仕事。 */
 function previewRows(v, lang, tag) {
@@ -1973,24 +1944,14 @@ function previewRows(v, lang, tag) {
   ok(v.pvTag.length === 1 && v.pvSub === '',
      `${tag}: ★見出しに付くのは「プレビュー」の札だけ（説明の1行は置かない）`,
      `${v.pvTag.join(',')} / ${v.pvSub}`);
-  ok(v.amounts.length === 2 && v.mons.length === 2,
-     `${tag}: ★読める金額は先頭2行ぶんだけ`,
+  ok(v.amounts.length === 0 && v.mons.length === 0,
+     `${tag}: ★★読める金額は1つも無い（年収も月あたりも）`,
      `年収${JSON.stringify(v.amounts)} / 月${JSON.stringify(v.mons)}`);
-  /* ★残りは**中身の空いた板**。ぼかしでも伏せ字でもない（数字が最初から無い）。
-       3行 × 2欄（年収・月あたり）＝ 6枚。 */
-  ok(v.pvPlates === 6 && v.pvPlateText === '',
-     `${tag}: ★残り3行は中身の空いた板（文字が1つも入っていない）`,
+  /* ★全部が**中身の空いた板**。ぼかしでも伏せ字でもない（数字が最初から無い）。
+       5行 × 2欄（年収・月あたり）＝ 10枚。 */
+  ok(v.pvPlates === 10 && v.pvPlateText === '',
+     `${tag}: ★5行とも中身の空いた板（文字が1つも入っていない）`,
      `${v.pvPlates}枚 / ${JSON.stringify(v.pvPlateText)}`);
-  /* ★★画面に出た金額が ap-preview.js の定数そのままか。
-       日本語は円に直したあとの SSOT の万円と**ぴったり**（sig2n は上で突き合わせ済み）。 */
-  {
-    const want = PV_ROWS.filter((r) => r.annual_usd != null)
-      .map((r) => (lang === 'ja' ? r._man * 1e4 : sig2n(r.annual_usd)));
-    const got = v.amounts.map(amountValue);
-    ok(JSON.stringify(got) === JSON.stringify(want),
-       `${tag}: ★★出ている金額が ap-preview.js の定数どおり（年収の SSOT 由来）`,
-       `${JSON.stringify(got)} / 期待 ${JSON.stringify(want)}`);
-  }
   /* ★解放案内は2件目の直後に1枚だけ。全画面の覆いにしない（指示書 §3）。 */
   ok(v.pvUnAt === 2 && v.pvUnCta.length === 1
      && /pay-report\.html#ps/.test(v.pvUnCta[0] || ''),
