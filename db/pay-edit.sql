@@ -81,6 +81,7 @@ begin
              r.instructor_pay, r.examiner_pay, r.union_pay, r.management_pay, r.nonline_pay,
              r.other_allowance, r.flight_variable_pay,
              r.bonus_annual, r.profit_share_annual, r.pension_pct,
+             r.bonus_month,   -- ★2026-11-11 明細に印字されたその月のボーナス（直す画面へ戻す。戻さないと送り直しで ×12 に入る）
              r.contract_type, r.tax_country, r.tax_rate_pct, r.seniority_years, r.rank_years,
              r.net_pay_actual, r.ytd_taxable, r.deduction_total,
              r.duty_hours, r.night_hours, r.credit_hours,

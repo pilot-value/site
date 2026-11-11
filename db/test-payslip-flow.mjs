@@ -412,13 +412,16 @@ console.log('\n══ ① 選んだらすぐ読み取り・確認の画面は無
       });
       const after = await page.evaluate(() => {
         const g = (id) => (document.getElementById(id) || {}).value;
-        return { other: g('f-other'), bonusBox: !!document.getElementById('f-bonus-mo'),
+        return { other: g('f-other'), paid: g('f-bonus-paid'), bonus: g('f-bonus'), bonusBox: !!document.getElementById('f-bonus-mo'),
                  detail: g('f-psdetail'), card: !!document.querySelector('.ps-q') };
       });
       ok(after.bonusBox === false,
-         '★「今月の賞与・ボーナス」の欄はもう無い（2026-09-15 に廃止）');
-      ok(dg(after.other) === '12000',
-         '★賞与と答えても金額はその他の現金に残る（どこにも消えない）', after.other || '(空)');
+         '★「今月の賞与・ボーナス」の手で打つ欄はもう無い（2026-09-15 に廃止）');
+      /* ★2026-11-11 からは、ボーナスと答えた行は「その月のボーナス」（見えない欄 f-bonus-paid ＝ bonus_month）へ移る
+         ＝年換算の ×12 から外れる。年間ボーナスが空なら同じ額で埋まる。金額はどこにも消えない。 */
+      ok(dg(after.paid) === '12000' && !/12000/.test(dg(after.other || '')),
+         '★ボーナスと答えた行は「その月のボーナス」へ移る（×12 しない・その他の現金に二重に残らない）', `${after.paid} / ${after.other}`);
+      ok(dg(after.bonus) === '12000', '★年間ボーナスの欄が空なら、その額で埋まる', after.bonus || '(空)');
       ok(!after.card, '答え終わったらカードごと消える（1件しか無かった）');
       ok(/"asked":"bonus"/.test(after.detail || ''),
          '★本人の答えが内訳データに残る（これが語彙の正解データになる）');
@@ -940,6 +943,67 @@ for (const [url, lang] of [[URL_JA, 'ja'], [URL_EN, 'en'], [URL_ES, 'es']]) {
     ok(bv === '2000000', `[${lang}] 　壊す証明：印（money-live）を外すと打っている最中は組み直されない`, bv);
   }
   ok(errs.length === 0, `[${lang}] 画面のエラーなし`, errs.join(' | '));
+  await page.close();
+}
+
+// ══ ⑪ 明細のボーナス（2026-11-11 オーナー「ボーナスとか手入力じゃん？明細アップロードから読み取れるようにして」）══
+console.log('\n══ ⑪ 明細のボーナス：×12 から外して年間ボーナスへ・ボーナスの明細を読む・ボーナスだけの明細');
+const WITH_BONUS = JSON.parse(JSON.stringify(FAKE));
+WITH_BONUS.result.earnings.push({ label: '夏季賞与', amount: 800000, kind: 'bonus' });
+WITH_BONUS.result.gross_total = FAKE.result.gross_total + 800000;
+WITH_BONUS.result.unmapped = [];
+const BONUS_SLIP = { ok: true, result: { currency: 'JPY', period: { year: 2026, month: 12 },
+  earnings: [{ label: '冬季賞与', amount: 900000, kind: 'bonus' }], gross_total: 900000, deductions_total: 180000, net_pay: 720000,
+  hours: [], unmapped: [], confidence: 'high' } };
+const vals = (page) => page.evaluate(() => {
+  const g = (id) => (document.getElementById(id) || {}).value || '';
+  return { gross: g('f-gross'), paid: g('f-bonus-paid'), bonus: g('f-bonus'), other: g('f-other'),
+           annual: typeof annualTotal === 'function' ? Math.round(annualTotal()) : null,
+           parts: [...document.querySelectorAll('#ps .ps-ex-p')].map((n) => n.textContent.trim()),
+           title: (document.querySelector('#ps .ps-res-title') || {}).textContent || '', msg: (document.querySelector('#ps .ps-ex-msg') || {}).textContent || '' };
+});
+{
+  // (1) 月の明細にボーナスの行 → その月のボーナス（×12 しない）・年間ボーナスはその額で埋まる
+  const { page, seen, errs } = await open(URL_JA, (n) => ({ body: n === 1 ? WITH_BONUS : BONUS_SLIP }));
+  await upload(page, 'payslip-jp-major.png');
+  await page.waitForSelector('.ps-res', { timeout: 20000 });
+  await page.waitForFunction(() => !document.querySelector('.ps-load'), { timeout: 8000 });
+  const v = await vals(page);
+  ok(dg(v.gross) === String(FAKE.result.gross_total + 800000), '総支給は明細のとおり（ボーナス込みの印字）', v.gross);
+  ok(dg(v.paid) === '800000', '★明細のボーナスは「その月のボーナス」（bonus_month）へ', v.paid);
+  ok(dg(v.bonus) === '800000', '★年間ボーナスの欄が空なら、その額で埋まる', v.bonus);
+  ok(!/800000/.test(dg(v.other)), '★その他の現金には入れない（前は ×12 されて年換算が膨らんでいた）', v.other);
+  ok(v.annual === FAKE.result.gross_total * 12 + 800000, `★年換算＝（総支給 − ボーナス）×12 ＋ 年間ボーナス → ${v.annual}`);
+  ok(v.parts.some((t) => /この明細のボーナス/.test(t) && /800,000/.test(t)), '「この明細のボーナス」の行が出る', v.parts.join(' / '));
+  // 壊す証明：年換算から外すのは f-bonus-paid の分だけ（外さなければ 12 倍ぶん高い）
+  const broken = await page.evaluate(() => { const e = document.getElementById('f-bonus-paid'); const k = e.value; e.value = ''; const a = Math.round(annualTotal()); e.value = k; return a; });
+  ok(broken === (FAKE.result.gross_total + 800000) * 12 + 800000, '　壊す証明：その月のボーナスを外さないと年換算がボーナス12回ぶん膨らむ', String(broken));
+  // (2) 「ボーナスの明細を読む」→ 冬の明細を足す。月の欄は1つも変わらない（2回目の読み取りの偽の返事はボーナスの明細）
+  const [fc] = await Promise.all([page.waitForFileChooser({ timeout: 8000 }), page.click('#ps-ex-read')]);
+  await fc.accept([path.join(FIX, 'payslip-jp-major.png')]);
+  await page.waitForFunction(() => [...document.querySelectorAll('#ps .ps-ex-p.is-slip')].length === 1 && !document.querySelector('.ps-load'), { timeout: 20000 });
+  const w = await vals(page);
+  ok(seen.calls === 2, 'ボーナスの明細の読み取りは1回（合わせて2回）', String(seen.calls));
+  ok(dg(w.gross) === dg(v.gross) && dg(w.paid) === '800000', '★ボーナスの明細を読んでも、月の総支給・その月のボーナスは変わらない', `${w.gross} / ${w.paid}`);
+  ok(dg(w.bonus) === '1700000', '★年間ボーナス＝この明細の分＋ボーナスの明細の分（800,000 ＋ 900,000）', w.bonus);
+  ok(w.parts.some((t) => /ボーナスの明細/.test(t) && /900,000/.test(t)), 'ボーナスの明細の行（× で外せる）が出る', w.parts.join(' / '));
+  await page.click('#ps .ps-ex-x');
+  const x = await vals(page);
+  ok(dg(x.bonus) === '800000' && !x.parts.some((t) => /900,000/.test(t)), '× で外すと年間ボーナスから引かれる', x.bonus);
+  ok(errs.length === 0, '画面のエラーなし', errs.join(' | '));
+  await page.close();
+}
+{
+  // (3) 最初の1枚がボーナスだけの明細 → 月の欄には入れない・年間ボーナスへ・「月の給与の明細を読む」
+  const { page, errs } = await open(URL_JA, () => ({ body: BONUS_SLIP }));
+  await upload(page, 'payslip-jp-major.png');
+  await page.waitForSelector('.ps-bo', { timeout: 20000 });
+  await page.waitForFunction(() => !document.querySelector('.ps-load'), { timeout: 8000 });
+  const v = await vals(page);
+  ok(!dg(v.gross) && !dg(v.paid), '★ボーナスだけの明細は月の総支給に入れない（入れると ×12 される）', `${v.gross} / ${v.paid}`);
+  ok(dg(v.bonus) === '900000', '★年間ボーナスに入る', v.bonus);
+  ok(/ボーナスの明細でした/.test(v.title) && !!(await page.$('#ps-bo-next')), '「これはボーナスの明細でした」と「月の給与の明細を読む」', v.title);
+  ok(errs.length === 0, '画面のエラーなし', errs.join(' | '));
   await page.close();
 }
 

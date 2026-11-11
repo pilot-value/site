@@ -63,7 +63,7 @@
       （上げ忘れると「貼り替えたのに古い日付」で、かえって判断を誤らせる）。
    ⚠️ この札そのものが貼り直しなので、**今ある本番の版の証拠にはならない**。
       次に貼った回から効く。 */
-const BUILD = '2026-11-07';
+const BUILD = '2026-11-11';
 
 const ANTHROPIC_API_KEY =
   Deno.env.get('ANTHROPIC_API_KEY_PAYSLIP') || Deno.env.get('ANTHROPIC_API_KEY') || '';
@@ -123,8 +123,8 @@ export const EARNING_KINDS = [
   'instructor',      // 教官・訓練の手当（INSTRUCTOR PAY / TRI / 教官手当）
   'examiner',        // 審査・査察の手当（CHECK AIRMAN / TRE / 審査手当）
   'other',           // その他の手当
-  'bonus',           // 賞与（年額）
-  'profit',          // プロフィットシェア（年額）
+  'bonus',           // 賞与・一時金（★その明細で払われた1回分。画面は ×12 から外して年間ボーナスへ・2026-11-11）
+  'profit',          // プロフィットシェア（同じく、その明細で払われた1回分）
 ] as const;
 
 export const HOUR_KINDS = [
@@ -675,8 +675,11 @@ export function systemPrompt(lang: string): string {
     '  If the identical label AND amount also appear under deductions, it is certainly notional.',
     '  Many people photograph only the earnings page, so classify by the label alone when the',
     '  deductions column is not visible — do not fall back to "other" just because you cannot check.',
-    '- bonus: 賞与 / 一時金 / bonus — annual figures that happen to appear on a monthly slip.',
-    '- profit: profit share / profit sharing / 利益配分.',
+    '- bonus: a one-off bonus paid on THIS slip — 賞与 / 夏季賞与 / 冬季賞与 / 決算賞与 / 期末手当 / 勤勉手当 / 一時金 /',
+    '  bonus / 13th month / 13th salary / Christmas bonus / annual bonus / incentive bonus / Bonus payment.',
+    '  A slip that is only a bonus (e.g. a Japanese 賞与明細) still uses kind "bonus" for that line, and its',
+    '  gross_total is the bonus total. Report the amount exactly as printed (the payment on this slip).',
+    '- profit: profit share / profit sharing / 利益配分 — the amount paid on THIS slip.',
     '- instructor: pay for TRAINING other pilots — INSTRUCTOR PAY / INSTRUCTOR OVERRIDE / TRI / TRE-less',
     '  training roles / TRAINING CAPTAIN / LINE TRAINING / SIM INSTRUCTOR / 教官手当 / 訓練手当.',
     '- examiner: pay for CHECKING or examining other pilots — CHECK AIRMAN / CHECK PILOT /',

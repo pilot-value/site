@@ -57,7 +57,7 @@
 <script>
 tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#18212f',accent:'#3d9bff',gold:'#f5c842',orange:'#f97316',text:'#e8edf2',muted:'#6b7d93'},fontFamily:{sans:['Inter','Noto Sans JP','sans-serif']}}}};
 </script>
-<link rel="stylesheet" href="../pay-report.css?v=71ec39c1">
+<link rel="stylesheet" href="../pay-report.css?v=7cb26eab">
 <!--PV-3P-->
 <script>
 /* 広告と解析は、表示が終わるまで読まない。async でも帯域は奪うため。
@@ -1602,6 +1602,9 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
              arrived but the line name survived nowhere, so neither the person's screen
              nor the review ever showed a single line for it. -->
       <input type="hidden" id="f-absence">
+      <!-- ★2026-11-11 明細に印字されたボーナス・プロフィットシェア（その月に出た1回分）。payslip.js が入れる。
+           bonus_month として送る＝年換算の ×12 から外れる（サーバの pv_annual_total と同じ式）。手で打つ欄は置かない。 -->
+      <input type="hidden" id="f-bonus-paid">
       <input type="hidden" id="f-deduct">
       <input type="hidden" id="f-night-h">
       <input type="hidden" id="f-credit-h">
@@ -3641,7 +3644,9 @@ function annualTotal() {
      drops that whole amount from the annual figure. The server carries the same
      line (p_union_outside_gross). */
   const gross = num('f-gross');
-  const monthly = gross
+  /* ★2026-11-11 明細に印字されたボーナス（f-bonus-paid ＝ bonus_month）は ×12 から外す。
+     サーバの pv_annual_total の greatest(gross − bonus_month, 0) と同じ。年間ボーナスの欄（f-bonus）で1回だけ数える。 */
+  const monthly = (gross > 0 ? Math.max(gross - num('f-bonus-paid'), 0) : gross)
                 + (gross > 0 && unionOutsideGross() ? num('f-union-pay') : 0);
   /* ★明細とは別に受け取るパーディアム（2026-11-04）。総支給の中に無いので、組合の分と同じく足す。 */
   const pdOut = (gross > 0 && perdiemOutsideGross()) ? num('f-perdiem') : 0;
@@ -4582,7 +4587,7 @@ const CARRY = {
     'f-transport','f-other','f-hourly','f-flightvar','f-deduct','f-ytd',
     'f-block','f-duty','f-stay','f-duty-h','f-night-h','f-credit-h',
     'f-instructor','f-examiner','f-union-pay','f-mgmt-pay','f-nonline-pay',
-    'f-source','f-psdetail','f-absence'],
+    'f-source','f-psdetail','f-absence','f-bonus-paid'],
 };
 /* ★What this device keeps as the template. The two totals (f-var-sum / f-oth-sum)
      are derived by pdSync(), so they belong to no group. */
@@ -4804,7 +4809,7 @@ function snapPrev(ids) {
    ⚠️ What must NOT go in here is anything month-independent — airline, position, fleet,
      currency, contract, seniority, tax country, the role chips (f-jobrole), pension rate.
      Those must not be retyped every month. */
-const PAYSLIP_MONTH_IDS = ['f-gross','f-base','f-guarantee','f-command','f-housing-amt','f-other',
+const PAYSLIP_MONTH_IDS = ['f-gross','f-bonus-paid','f-base','f-guarantee','f-command','f-housing-amt','f-other',
   'f-perdiem','f-perdiem-src','f-transport','f-profit','f-instructor','f-examiner','f-payitems',
   'f-block','f-guar','f-duty-h','f-night-h','f-credit-h',
   'f-netpay','f-ytd','f-deduct','f-flightvar','f-psdetail',
@@ -5419,7 +5424,7 @@ function editForm(r) {
     'f-transport': s(r.transport), 'f-command': s(r.command_pay),
     'f-instructor': s(r.instructor_pay), 'f-examiner': s(r.examiner_pay), 'f-union-pay': s(r.union_pay),
     'f-mgmt-pay': s(r.management_pay), 'f-nonline-pay': s(r.nonline_pay),
-    'f-bonus': s(r.bonus_annual), 'f-profit': s(r.profit_share_annual), 'f-pension': s(r.pension_pct),
+    'f-bonus': s(r.bonus_annual), 'f-profit': s(r.profit_share_annual), 'f-pension': s(r.pension_pct), 'f-bonus-paid': s(r.bonus_month),
     'f-contract': s(r.contract_type), 'f-taxcountry': s(r.tax_country), 'f-tax': s(r.tax_rate_pct),
     'f-seniority': s(r.seniority_years), 'f-rankyears': s(r.rank_years),
     'f-netpay': s(r.net_pay_actual), 'f-ytd': s(r.ytd_taxable), 'f-deduct': s(r.deduction_total),
@@ -5970,6 +5975,7 @@ function buildPayload(airline) {
     other_allowance:     sumField('f-other', 'f-var-sum', 'f-oth-sum'),
     bonus_annual:        val('f-bonus'),
     profit_share_annual: val('f-profit'),
+    bonus_month: val('f-bonus-paid'),        // ★2026-11-11 明細に印字された1回分（×12 から外す）
     pension_pct:         val('f-pension'),
     contract_type:       val('f-contract'),
     tax_country:         val('f-taxcountry'),
@@ -6528,7 +6534,7 @@ addEventListener('scroll', () => {
   });
 })();
 </script>
-<script src="../payslip.js?v=278dca9c"></script>
+<script src="../payslip.js?v=52bb04a9"></script>
 <script src="../pv-app.js?v=a95c64dd"></script>
 <script src="../confetti.js"></script>
 <script src="../pay-login.js"></script>

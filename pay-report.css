@@ -1842,3 +1842,25 @@ body:has(#entry[hidden]) #pay-count{display:none}
 .card.sec :is(.fld,.grid2,.grid3):not(:has(~ :not(.q-off,[hidden]))){margin-bottom:0}
 /* 未入力の役職の赤い枠は、ほかの欄の列からはみ出さない（前は 7px 外へ出て、左の赤い線と下の説明にくっついていた） */
 .fld.is-miss .roleboxes{outline-offset:3px}
+
+/* ── 2026-11-11 明細のボーナス（「明細にないお金」の中）──────────────────
+   その月の明細に印字されたボーナス（12倍しない）と、ボーナスの明細から読んだ分を、欄の下に1行ずつ。× で外せる。
+   その下に「ボーナスの明細を読む」（字のボタン）。 */
+#ps .ps-ex-ps{list-style:none;margin:0 0 6px;padding:0}
+#ps .ps-ex-p{display:flex;align-items:center;gap:8px;min-height:30px;font-size:.78rem;line-height:1.5;color:var(--pv-ink-3)}
+#ps .ps-ex-p.is-slip{color:var(--pv-ink-2)}
+#ps .ps-ex-p.is-slip span{flex:1;min-width:0}
+#ps .ps-ex-p b{font-weight:600;color:var(--pv-ink);font-variant-numeric:tabular-nums}
+#ps .ps-ex-x{flex:none;width:28px;height:28px;padding:0;border:0;border-radius:8px;background:none;color:var(--pv-ink-3);font:inherit;font-size:1rem;line-height:1;cursor:pointer;transition:transform .15s var(--pv-ease)}
+#ps .ps-ex-x:hover{background:var(--pv-bg-sub);color:var(--pv-ink)}
+#ps .ps-ex-x:focus-visible{outline:2px solid var(--pv-accent);outline-offset:1px}
+#ps .ps-ex-x:active{transform:scale(.94)}
+#ps .ps-ex-parts:empty{display:none}
+#ps .ps-extra .ps-ex-read{margin:2px 0 8px}
+#ps .ps-ex-msg{margin:4px 0 0;font-size:.78rem;line-height:1.6;color:var(--pv-ink-2)}
+#ps .ps-ex-msg[hidden]{display:none}
+@media (prefers-reduced-motion:reduce){ #ps .ps-ex-x{transition:none} }
+/* 最初の1枚がボーナスの明細だった画面：次にやること（月の給与の明細を読む）だけは緑の主ボタン（結果の画面の字のボタンの形を外す） */
+#ps .ps-res.ps-bo>.ps-bar .ps-btn-primary{min-height:46px;padding:10px 20px;border:1px solid var(--pv-accent-dark);border-radius:12px;
+  background:var(--pv-accent-dark);color:#fff;font-weight:700;box-shadow:0 1px 2px rgba(6,117,99,.25),0 8px 18px -12px rgba(6,117,99,.7)}
+#ps .ps-res.ps-bo>.ps-bar .ps-btn-primary:hover{color:#fff;background:color-mix(in srgb,var(--pv-accent-dark) 86%,#000);transform:translateY(-1px)}

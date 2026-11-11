@@ -144,6 +144,15 @@
       exBonus: 'ボーナス',
       exProfit: 'プロフィットシェア',
       perYear: '年',
+      exMonthB: 'この明細のボーナス {a}・12倍には入れていません',
+      exMonthP: 'この明細のプロフィットシェア {a}・12倍には入れていません',
+      exSlip: 'ボーナスの明細 {t}', exRead: 'ボーナスの明細を読む', exRemove: '外す',
+      exNone: 'その明細にボーナスの行が見つかりませんでした。',
+      exFail: 'ボーナスの明細を読めませんでした。もう一度お試しください。',
+      boT: 'これはボーナスの明細でした',
+      boS: '年間ボーナスに {a} を入れました。続けて、月の給与の明細を読んでください。',
+      boBtn: '月の給与の明細を読む',
+      wasBonus: '選んだ明細はボーナスの明細でした。年間ボーナスに入れました。',
       ahaPickB: '会社と職位を選ぶ →',
       ahaNoAirline: '「その他」の会社には公開レンジがありません。',
       ahaNoBand: '訓練生の公開レンジはまだありません。副操縦士から比較が出ます。',
@@ -266,6 +275,15 @@
       exBonus: 'Bonus',
       exProfit: 'Profit share',
       perYear: 'yr',
+      exMonthB: 'Bonus on this payslip {a} · not multiplied by 12',
+      exMonthP: 'Profit share on this payslip {a} · not multiplied by 12',
+      exSlip: 'Bonus payslip {t}', exRead: 'Read a bonus payslip', exRemove: 'Remove',
+      exNone: 'We couldn’t find a bonus line on that payslip.',
+      exFail: 'We couldn’t read that bonus payslip. Please try again.',
+      boT: 'This is a bonus payslip',
+      boS: 'We added {a} to your annual bonus. Next, read your monthly payslip.',
+      boBtn: 'Read your monthly payslip',
+      wasBonus: 'That was a bonus payslip, so we added it to your annual bonus.',
       ahaPickB: 'Pick airline and seat →',
       ahaNoAirline: '“Other” has no published range.',
       ahaNoBand: 'There is no published range for cadets yet. Comparison starts at first officer.',
@@ -387,6 +405,15 @@
       exBonus: 'Bono',
       exProfit: 'Participación en las utilidades',
       perYear: 'año',
+      exMonthB: 'Bono en esta nómina {a} · no se multiplica por 12',
+      exMonthP: 'Participación en beneficios en esta nómina {a} · no se multiplica por 12',
+      exSlip: 'Recibo de bono {t}', exRead: 'Leer un recibo de bono', exRemove: 'Quitar',
+      exNone: 'No encontramos una línea de bono en ese recibo.',
+      exFail: 'No pudimos leer ese recibo de bono. Inténtalo de nuevo.',
+      boT: 'Este es un recibo de bono',
+      boS: 'Agregamos {a} a tu bono anual. Ahora lee tu recibo de nómina mensual.',
+      boBtn: 'Leer tu recibo de nómina mensual',
+      wasBonus: 'Ese era un recibo de bono, así que lo agregamos a tu bono anual.',
       ahaPickB: 'Elegir aerolínea y puesto →',
       ahaNoAirline: '“Otra” no tiene rango publicado.',
       ahaNoBand: 'Todavía no hay un rango publicado para pilotos en formación. La comparación empieza en primer oficial.',
@@ -481,8 +508,14 @@
           サーバ側の白リストと Edge Function の語彙に入っている。
        ⚠️ 年間ボーナス(f-bonus)へは入れない。明細に印字されているのは「その月に出た額」
           なので、1ヶ月ぶんが年額として年収に丸ごと乗る（2026-08-13 の事故）。 */
-    bonus: 'f-other',
-    profit: 'f-profit',
+    /* ★2026-11-11 オーナー「ボーナスとか手入力じゃん？明細アップロードから読み取れるようにして」──
+       明細に印字されたボーナス・プロフィットシェアは「その月に出た1回分」。見えない欄 f-bonus-paid
+       （＝ bonus_month）に入れて、年換算の ×12 から外す（サーバの pv_annual_total と同じ式）。
+       年間ボーナス・プロフィットシェアの欄は、空のときだけこの額で埋める（syncBonus）。
+       ⚠️ 年間ボーナスを読んだ1回分で上書きしない（本人が書いた年の合計を消す・2026-08-13 の事故の逆向き）。
+       ⚠️ 前は profit を年額の欄へ直に入れ、同じ額が総支給 ×12 にも残っていた（二重）。 */
+    bonus: 'f-bonus-paid',
+    profit: 'f-bonus-paid',
     /* notional（航空券課税などの現物給与）はここに載せない。
        控除欄に同額が立って手取りが1円も動かないので、収入に足すと時給が水増しになる。
        apply() で別扱いにして「数えていません」と画面に出す。 */
@@ -512,7 +545,7 @@
     { field: 'f-other',    kind: 'flight_variable', asked: 'flight_variable' },
     { field: 'f-other',    kind: 'flight_variable', asked: 'night_ot' },
     { field: 'f-command',  kind: 'command',         asked: 'command' },
-    { field: 'f-other',    kind: 'bonus',           asked: 'bonus' },
+    { field: 'f-bonus-paid', kind: 'bonus',         asked: 'bonus' },   // ★2026-11-11 ×12 から外す（上の KIND_FIELD と同じ）
     { field: 'f-perdiem',  kind: 'per_diem',        asked: 'per_diem' },
     { field: 'f-other',    kind: 'other',           asked: 'other' },
   ];
@@ -575,6 +608,7 @@
     'f-other': { ja: 'その他手当', en: 'Other allowances' },
     'f-bonus': { ja: '年間ボーナス', en: 'Annual bonus' },
     'f-profit': { ja: 'プロフィットシェア（年）', en: 'Profit share (annual)' },
+    'f-bonus-paid': { ja: 'この月のボーナス（12倍しない）', en: 'Bonus this month (not ×12)' },
     'f-block': { ja: 'フライトタイム', en: 'Flight time' },
     'f-netpay': { ja: '手取り額', en: 'Net pay' },
     'f-duty-h': { ja: '勤務時間', en: 'Duty time' },
@@ -639,7 +673,12 @@
   // ════════════════════════════════════════════════════════
   // ① 受け取る
   // ════════════════════════════════════════════════════════
-  dropBtn.addEventListener('click', function () { fileInput.click(); });
+  /* ★読む明細の種類（2026-11-11）。'bonus' ＝「ボーナスの明細を読む」から来た1枚＝月の欄には1つも書かない。
+       ファイルを選ばずに閉じたら戻す（次に落とした明細を、黙ってボーナスとして読まない）。 */
+  var readMode = 'month', readModeAt = 0;
+  fileInput.addEventListener('cancel', function () { readMode = 'month'; });
+  function readBonusSlip() { readMode = 'bonus'; readModeAt = Date.now(); bonusMsg = ''; fileInput.click(); }
+  dropBtn.addEventListener('click', function () { readMode = 'month'; fileInput.click(); });
   fileInput.addEventListener('change', function () {
     if (fileInput.files && fileInput.files[0]) take(fileInput.files[0]);
     fileInput.value = '';
@@ -653,7 +692,7 @@
   });
   root.addEventListener('drop', function (e) {
     var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-    if (f) take(f);
+    if (f) { if (Date.now() - readModeAt > 60000) readMode = 'month'; take(f); }
   });
 
   function take(file) {
@@ -776,7 +815,13 @@
           if (mine !== readToken) return;
           /* ★入力欄に入れるところで落ちたら「通信エラー」にしない（2026-11-04 まで
              read_ok のあとに read_ng network も記録していた）。 */
-          try { apply(out.result); } catch (e) { throw tag('apply_failed', 'apply'); }
+          try {
+            /* ★ボーナスの明細（2026-11-11）。「ボーナスの明細を読む」から来た1枚か、読んだら支給がボーナスだけだった1枚は、
+                 月の欄に1つも書かず、年間ボーナスに足す（月の総支給にボーナスを入れて ×12 しない）。 */
+            if (readMode === 'bonus') { readMode = 'month'; applyBonus(out.result, false); }
+            else if (isBonusOnly(out.result)) applyBonus(out.result, true);
+            else apply(out.result);
+          } catch (e) { throw tag('apply_failed', 'apply'); }
           busy = false;
           loadDone();
           /* ★payslip_read_ok ＝ 読めた数字が入力欄に入った（2026-11-04 に定義を変えた。
@@ -981,7 +1026,7 @@
     d.appendChild(im);
     return d;
   }
-  function chooseBtn(cls) { return btn(T.choose, cls || 'ps-btn-ghost', function () { fileInput.click(); }, 'ps-choose'); }
+  function chooseBtn(cls) { return btn(T.choose, cls || 'ps-btn-ghost', function () { readMode = 'month'; fileInput.click(); }, 'ps-choose'); }
   function retryRead() { track('payslip_retry'); startRead(); }
 
   /* 読み取りの失敗・ファイルの失敗。★どれでも行き止まりにしない ──
@@ -1006,6 +1051,12 @@
   var FILE_ERR = { too_large: 1, bad_type: 1, image_decode: 1, image_blank: 1, image_too_large: 1, bad_mime: 1, not_a_payslip: 1,
                    pdf_locked: 1, pdf_xfa: 1, pdf_blank: 1, pdf_broken: 1, image_timeout: 1, pdf_timeout: 1, prep_failed: 1 };
   function showFail(code) {
+    if (readMode === 'bonus' && lastRes) {          // ★ボーナスの明細だけ読めなかった＝前の明細の結果は消さない
+      readMode = 'month'; loadClose(); bonusMsg = T.exFail;
+      renderResult(lastRes, lastTrace);
+      return;
+    }
+    readMode = 'month';
     loadClose();
     panel.innerHTML = '';
     var box = el('div', 'ps-live ps-fail');
@@ -1756,6 +1807,8 @@
        既定を「含まれている」のままにすると、入れた瞬間に「内訳の合計が総支給を超えています」で止まる
        （オーナーが本番で踏んだ）。選択はそのまま出るので、本人が「含まれている」へ直せる。 */
     syncPdSrc(trace);
+    bonusMsg = '';
+    syncBonus(trace);                   // ★2026-11-11 この明細のボーナスで年間の欄を埋める（空のときだけ）
     renderResult(res, trace);
     renderRate();
     /* ★段を「明細にない項目 → 確認」の2つに組み替え、まだ答えていない欄だけを出す（2026-11-05 オーナー指示）。
@@ -1968,6 +2021,7 @@
     /* ★代入で入れた値では change が出ない＝「超えています」の判定が走らない
        （2026-09-15 に判定を change へ移した）。読み取りの直後だけ手で呼ぶ。 */
     if (typeof settleOver === 'function') settleOver();
+    syncBonus(); paintParts();          // ★表で金額を直した・6択で「ボーナス」と答えた → 年間の欄と「この明細のボーナス」の行も直す
     renderRate();
   }
 
@@ -2503,6 +2557,90 @@
        ── 2か所に同じ欄を置かない。明細に行が無ければ、そこで入れた額は「明細とは別に受け取っている」が既定
        （syncPdSrc）＝年収に ×12 で入る。
      ★説明の文は置かない（オーナー「文言は最小限に」）。 */
+  /* ── ボーナス・プロフィットシェア（2026-11-11 オーナー「ボーナスとか手入力じゃん？明細アップロードから読み取れるようにして」）──
+     ・月の明細に印字された分 ＝ lastTrace の f-bonus-paid の行（表で直した額もここに反映される）。
+     ・ボーナスの明細から読んだ分 ＝ slipParts（夏・冬など何枚でも足す・× で外せる）。
+     ・年間ボーナス／プロフィットシェアの欄は、空か、こちらが前に書いた額のときだけ書き直す（本人の年の額は消さない）。 */
+  var slipParts = [];
+  var bonusMsg = '';
+  var autoVal = { bonus: null, profit: null };
+  var EX_ID = { bonus: 'f-bonus', profit: 'f-profit' };
+  function monthPart(k, tr) {
+    return (tr || lastTrace || []).filter(function (t) {
+      return t.field === 'f-bonus-paid' && (k === 'profit' ? t.kind === 'profit' : t.kind !== 'profit');
+    }).reduce(function (a, t) { return a + (Number(t.amount) || 0); }, 0);
+  }
+  function slipPart(k) { return slipParts.filter(function (p) { return p.kind === k; }).reduce(function (a, p) { return a + p.amount; }, 0); }
+  function syncBonus(tr) {
+    ['bonus', 'profit'].forEach(function (k) {
+      var f = document.getElementById(EX_ID[k]);
+      if (!f) return;
+      var want = Math.round(monthPart(k, tr) + slipPart(k));
+      var cur = typeof num === 'function' ? num(EX_ID[k]) : (Number(f.value) || 0);
+      var ours = !String(f.value || '').trim() || (autoVal[k] != null && Math.round(cur) === autoVal[k]);
+      if (!ours || (!want && autoVal[k] == null)) return;
+      writeField(EX_ID[k], want || '');
+      autoVal[k] = want || null;
+      var ex = document.getElementById('ps-ex-' + k);
+      if (ex) ex.value = f.value;
+    });
+  }
+  function isBonusOnly(res) {
+    var es = ((res && res.earnings) || []).filter(function (e) { return e && e.kind !== 'notional' && e.kind !== 'absence' && Number(e.amount) > 0; });
+    var b = es.filter(function (e) { return e.kind === 'bonus' || e.kind === 'profit'; });
+    if (!b.length) return false;
+    if (b.length === es.length) return true;
+    var bs = b.reduce(function (a, e) { return a + Number(e.amount); }, 0), g = Number(res.gross_total) || 0;
+    return g > 0 && bs >= g * 0.9;
+  }
+  function amtTx(v) {
+    var sel = document.getElementById('f-currency'), code = sel ? sel.value : '';
+    return grpInt(v) + ((L === 'ja' && code === 'JPY') ? '円' : code ? ' ' + code : '');
+  }
+  function ymTx(y, m) { return !(y && m) ? '' : L === 'ja' ? y + '年' + m + '月' : m + '/' + y; }
+  function applyBonus(res, auto) {
+    var es = ((res && res.earnings) || []).filter(function (e) { return e && (e.kind === 'bonus' || e.kind === 'profit') && Number(e.amount) > 0; });
+    var pr = (res && res.period) || {};
+    es.forEach(function (e) {
+      slipParts.push({ kind: e.kind === 'profit' ? 'profit' : 'bonus', amount: Math.abs(Number(e.amount)), y: pr.year || null, m: pr.month || null });
+    });
+    bonusMsg = !es.length ? T.exNone : (auto && lastRes ? T.wasBonus : '');
+    var cur = document.getElementById('f-currency');
+    if (cur && !cur.value && res && res.currency) setField('f-currency', res.currency);
+    syncBonus();
+    if (typeof recalc === 'function') recalc();
+    track('payslip_bonus_slip', { n: es.length, auto: auto ? 1 : 0 });
+    if (lastRes) renderResult(lastRes, lastTrace);
+    else renderBonusOnly(slipPart('bonus') + slipPart('profit'));
+  }
+  /* 最初の1枚がボーナスの明細だった：月の欄は空のまま、年間ボーナスに入れて「月の給与の明細を読む」へ戻す */
+  function renderBonusOnly(total) {
+    clearPanel();
+    var box = el('div', 'ps-res ps-bo pv-no-cur');
+    box.appendChild(el('div', 'ps-res-title', esc2(T.boT)));
+    box.appendChild(el('p', 'ps-res-lead', esc2(T.boS.replace('{a}', function () { return amtTx(total); }))));
+    box.appendChild(extraCard([]));
+    box.appendChild(bar([btn(T.boBtn, 'ps-btn-primary', function () { readMode = 'month'; fileInput.click(); }, 'ps-bo-next')]));
+    panel.appendChild(box);
+  }
+  function partsHTML(k) {
+    var out = '', mp = monthPart(k);
+    if (mp > 0) out += '<li class="ps-ex-p">' + esc2((k === 'bonus' ? T.exMonthB : T.exMonthP).replace('{a}', function () { return amtTx(mp); })) + '</li>';
+    slipParts.forEach(function (p, i) {
+      if (p.kind !== k) return;
+      out += '<li class="ps-ex-p is-slip"><span>' + esc2(T.exSlip.replace('{t}', function () { return ymTx(p.y, p.m); })) + '</span><b>' + esc2(amtTx(p.amount)) + '</b>' +
+        '<button type="button" class="ps-ex-x" data-part="' + i + '" aria-label="' + esc2(T.exRemove) + '">×</button></li>';
+    });
+    return out ? '<ul class="ps-ex-ps">' + out + '</ul>' : '';
+  }
+  function paintParts() {
+    ['bonus', 'profit'].forEach(function (k) {
+      var c = panel.querySelector('.ps-ex-parts[data-k="' + k + '"]');
+      if (c) c.innerHTML = partsHTML(k);
+    });
+    var m = panel.querySelector('.ps-ex-msg');
+    if (m) { m.textContent = bonusMsg; m.hidden = !bonusMsg; }
+  }
   function extraCard(trace) {
     var card = el('div', 'ps-extra');
     card.appendChild(el('div', 'ps-extra-t', esc2(T.exT)));
@@ -2540,6 +2678,25 @@
       v.appendChild(u);
       lab.appendChild(v);
       card.appendChild(lab);
+      var k = id === 'f-bonus' ? 'bonus' : 'profit';
+      var parts = el('div', 'ps-ex-parts', partsHTML(k));
+      parts.setAttribute('data-k', k);
+      card.appendChild(parts);
+      if (k === 'bonus') card.appendChild(bar([btn(T.exRead, 'ps-btn-ghost ps-ex-read', readBonusSlip, 'ps-ex-read')]));
+    });
+    var msg = el('p', 'ps-ex-msg', esc2(bonusMsg));
+    msg.setAttribute('role', 'status');
+    msg.hidden = !bonusMsg;
+    card.appendChild(msg);
+    card.addEventListener('click', function (e) {
+      var x = e.target.closest ? e.target.closest('.ps-ex-x') : null;
+      if (!x) return;
+      slipParts.splice(+x.getAttribute('data-part'), 1);
+      bonusMsg = '';
+      syncBonus();
+      if (typeof recalc === 'function') recalc();
+      paintParts();
+      if (typeof renderAha === 'function') renderAha();
     });
     /* ★欄の下に、年間ペースをもう1行（2026-11-07 オーナー選択「欄の下に合計をもう1つ」）。
        上の大きな数字はカードの頭にあり、ここで打っているあいだは画面の外にある。

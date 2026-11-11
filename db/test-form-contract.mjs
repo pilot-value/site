@@ -3864,6 +3864,9 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
        合計が入る（other_allowance はその上位＝変動給＋その他の合計）。
        だから wrongZero の側（手入力では null であるべき列）には**入れない**。 */
     'flight_variable_pay',
+    /* ★2026-11-11 明細に印字されたその月のボーナス・プロフィットシェア（見えない欄 f-bonus-paid）。
+       明細から読んだときだけ入る＝手入力では null（下で確かめる）。 */
+    'bonus_month',
     'source'];
 
   const missing = KEYS_BEFORE.concat(KEYS_PAYSLIP).filter((k) => !(k in p));
@@ -3931,10 +3934,10 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
      && p.net_pay_actual === SAMPLE['f-netpay'] && p.duty_hours === SAMPLE['f-duty-h'],
      `★手入力のステイ日数・手取り・勤務時間が届く`,
      `${p.stay_nights} / ${p.net_pay_actual} / ${p.duty_hours}`);
-  /* ★2026-09-15 に廃止した欄のキーは送らない。列は残っているので過去の行は無事。
-     送ってしまうと上の「知らないキーが増えていない」でも落ちる（二重の網）。 */
-  ok(!('bonus_month' in p),
-     '★廃止した「今月の賞与」のキーは送らない（列は残す・過去の行はそのまま）',
+  /* ★2026-09-15 に「今月の賞与」の手で打つ欄は廃止した。2026-11-11 からキーは送るが、入るのは明細から読んだときだけ
+     （見えない欄 f-bonus-paid）＝手入力では必ず null（0 で埋めない）。 */
+  ok(p.bonus_month === null || p.bonus_month === undefined,
+     '★手入力では「その月のボーナス」を送らない（明細から読んだときだけ・手で打つ欄は無い）',
      JSON.stringify(p.bonus_month));
   ok(p.source === 'web', `★手入力の出所は 'web'（'payslip' を騙らない） → ${p.source}`);
 
