@@ -992,3 +992,91 @@
 }
 @media (prefers-reduced-motion:reduce){ #pv-value .mv-up{transition:none} }
 @media print{ #pv-value .mv-peek{display:none} }
+
+/* ══ 2026-11-11「1年」を狭いカードの2列に ═════════════════════════════
+   オーナー「今月は見やすいのに1年は見づらい。カードが横に長すぎる」。my-year.js が中身ごとの .mr-card（.yr-c）を
+   #pv-year（.yr-g）に並べる。1枚目は累計報酬（my-value.js の lifetime）。高さは行ごとにそろえる（今月の .mr-2col と同じ）。 */
+#pv-value .yr-g{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:stretch}
+#pv-value .yr-g.is-two{grid-template-columns:repeat(2,minmax(0,1fr))}
+#pv-value .yr-g>.mr-card{margin:0;min-width:0}
+#pv-value .yr-g>.yr-c.is-wide{grid-column:1/-1}
+#pv-value .yr-c .yr-ins,#pv-value .yr-c .yr-kink,#pv-value .yr-c .yr-rates,#pv-value .yr-c .yr-ch,
+#pv-value .yr-c .yr-sm,#pv-value .yr-c .yr-tiles{margin-bottom:0}
+#pv-value .yr-c .yr-h,#pv-value .yr-c .yr-ch-h h3{font-size:1rem;margin-bottom:14px}
+#pv-value .yr-c .yr-rl{border-top:0}
+#pv-value .yr-c .yr-rl-i:last-child{border-bottom:0;padding-bottom:0}
+#pv-value .yr-c .yr-tiles{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+#pv-value .yr-c.is-head .yr-top{margin-bottom:16px}
+@container (max-width:560px){
+  #pv-value .yr-c .yr-ins,#pv-value .yr-c .yr-kink{grid-template-columns:minmax(0,1fr)}
+  #pv-value .yr-c .yr-kink-g svg{max-width:none;margin:0}
+}
+@container (max-width:400px){ #pv-value .yr-c .yr-tiles{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media print{ #pv-print .yr-g{display:block} #pv-print .yr-g>.mr-card{margin-bottom:12px;break-inside:avoid} }
+
+/* ══ 2026-11-11 他社の年収をランキングに（地域ごとに選んだ会社＋あなた・年収の高い順・番号は付けない）═══════
+   オーナー「色はちゃんと分けて。緑と灰色以外使っていい。薄い色で」「自分の位置がわかるように。濃くするとか」。
+   地域ごとの薄い色（緑は「あなた」と自社のために空けておく）。色だけに頼らず、社名の下に地域名を書く。
+   あなたの行は濃い緑の棒＋行ごと薄い緑の地。 */
+#pv-value .mr-cmp.is-rank{--g-asia:#9ec5f0;--g-na:#c6b3ee;--g-europe:#f2aac6;--g-mideast:#f6c28f;--g-oceania:#e9d77e;--g-latam:#f0a99a;--g-africa:#cdb79c}
+[data-theme="dark"] #pv-value .mr-cmp.is-rank,#pv-value .mr-cmp-lg{--g-asia:#9ec5f0;--g-na:#c6b3ee;--g-europe:#f2aac6;--g-mideast:#f6c28f;--g-oceania:#e9d77e;--g-latam:#f0a99a;--g-africa:#cdb79c}
+#pv-value .mr-cmp.is-rank .mr-cmp-t i{opacity:.95}
+#pv-value .mr-cmp.is-rank .g-asia .mr-cmp-t i,#pv-value .mr-cmp-lg i.g-asia{background:var(--g-asia)}
+#pv-value .mr-cmp.is-rank .g-na .mr-cmp-t i,#pv-value .mr-cmp-lg i.g-na{background:var(--g-na)}
+#pv-value .mr-cmp.is-rank .g-europe .mr-cmp-t i,#pv-value .mr-cmp-lg i.g-europe{background:var(--g-europe)}
+#pv-value .mr-cmp.is-rank .g-mideast .mr-cmp-t i,#pv-value .mr-cmp-lg i.g-mideast{background:var(--g-mideast)}
+#pv-value .mr-cmp.is-rank .g-oceania .mr-cmp-t i,#pv-value .mr-cmp-lg i.g-oceania{background:var(--g-oceania)}
+#pv-value .mr-cmp.is-rank .g-latam .mr-cmp-t i,#pv-value .mr-cmp-lg i.g-latam{background:var(--g-latam)}
+#pv-value .mr-cmp.is-rank .g-africa .mr-cmp-t i,#pv-value .mr-cmp-lg i.g-africa{background:var(--g-africa)}
+#pv-value .mr-cmp.is-rank .mr-cmp-t{height:12px}
+#pv-value .mr-cmp.is-rank .mr-cmp-d{color:var(--pv-ink-3);font-weight:500}
+#pv-value .mr-cmp.is-rank .mr-cmp-r.is-me{position:relative;border-bottom-color:transparent}
+#pv-value .mr-cmp.is-rank .mr-cmp-r.is-me::before{content:"";position:absolute;inset:2px -12px;z-index:-1;border-radius:12px;
+  background:color-mix(in srgb,var(--pv-accent) 9%,var(--pv-surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--pv-accent) 28%,transparent)}
+#pv-value .mr-cmp.is-rank .mr-cmp-r.is-me .mr-cmp-n{font-weight:700}
+#pv-value .mr-cmp.is-rank .mr-cmp-r.is-me .mr-cmp-v b{font-weight:700}
+#pv-value .mr-cmp.is-rank .mr-cmp-r.is-me .mr-cmp-t i{background:var(--pv-accent-dark)}
+#pv-value .mr-card:has(.mr-cmp.is-rank){isolation:isolate}
+#pv-value .mr-cmp-lg{display:flex;flex-wrap:wrap;gap:6px 16px;margin:0 0 10px;padding:0;list-style:none;font-size:.74rem;font-weight:500;color:var(--pv-ink-2)}
+#pv-value .mr-cmp-lg li{display:inline-flex;align-items:center;gap:6px}
+#pv-value .mr-cmp-lg i{width:10px;height:10px;border-radius:3px}
+
+/* ══ 2026-11-11 設定タブ（提出したものを直す・消す）══════════════════════
+   オーナー「分析タブの隣に設定タブを作って、自分が提出したものを削除編集できるように」「設定にも高級感・スタイリッシュ感を持ってね」。
+   中身は profile.html の「あなたが出したもの」（#my-reviews-card）を移したもの。字と JS は変えず、形だけここで MY PAY にそろえる
+   （白いカード・角 20px・薄い緑の2重の影／1件1行・会社名は濃い字・日付は灰色・右に「編集」「削除」の字のボタン）。 */
+#pv-value .mv-set{display:flex;flex-direction:column;gap:16px}
+#pv-value .mv-set #my-reviews-card{margin:0 !important;padding:24px;border-radius:var(--pv-r-lg);border:1px solid var(--pv-line);
+  background:var(--pv-surface);-webkit-backdrop-filter:none;backdrop-filter:none;color:var(--pv-ink);
+  box-shadow:0 1px 2px color-mix(in srgb,var(--pv-accent-ink) 6%,transparent),0 12px 28px -18px color-mix(in srgb,var(--pv-accent-ink) 30%,transparent)}
+#pv-value .mv-set #my-reviews-card>div:first-child{margin-bottom:4px !important;font-size:1rem !important;font-weight:700 !important;letter-spacing:-.01em;color:var(--pv-ink)}
+#pv-value .mv-set .mine-h{margin:22px 0 2px !important;font-size:.76rem;font-weight:600;letter-spacing:.02em;color:var(--pv-ink-3)}
+#pv-value .mv-set .mine-row{display:flex;flex-wrap:wrap;align-items:center;gap:4px 18px;padding:12px 0;border-bottom:1px solid var(--pv-line-soft)}
+#pv-value .mv-set .mine-row>div:first-child{flex:0 0 auto;min-width:min(15em,100%);margin:0 !important}
+#pv-value .mv-set .mine-row>.mine-body{flex:1 1 16em;min-width:0}
+#pv-value .mv-set .mine-row:last-child{border-bottom:0;padding-bottom:0}
+#pv-value .mv-set .mine-row>div:first-child{gap:10px !important;align-items:baseline !important}
+#pv-value .mv-set .mine-tag{padding:0;border:0;border-radius:0;background:none;font-size:.92rem;font-weight:600;letter-spacing:-.005em;color:var(--pv-ink)}
+#pv-value .mv-set .mine-when{font-size:.74rem;font-weight:500;color:var(--pv-ink-3);font-variant-numeric:tabular-nums}
+#pv-value .mv-set .mine-body{display:flex;flex-wrap:wrap;align-items:center;gap:4px 4px;font-size:.84rem;line-height:1.6;color:var(--pv-ink-2)}
+#pv-value .mv-set .mine-empty{font-size:.84rem;color:var(--pv-ink-3)}
+#pv-value .mv-set .mine-fix,#pv-value .mv-set .mine-del{display:inline-flex;align-items:center;min-height:32px;padding:4px 12px;border-radius:10px;
+  font-size:.8rem;font-weight:600;text-decoration:none;transition:transform .18s var(--pv-ease)}
+#pv-value .mv-set .mine-fix{margin-left:auto;color:var(--pv-accent-ink);background:var(--pv-accent-soft)}
+#pv-value .mv-set .mine-del{margin-left:0;color:#b42318;background:transparent}
+[data-theme="dark"] #pv-value .mv-set .mine-del{color:#fda29b}
+#pv-value .mv-set .mine-fix:hover{text-decoration:none;background:color-mix(in srgb,var(--pv-accent) 18%,var(--pv-surface))}
+#pv-value .mv-set .mine-del:hover{text-decoration:none;background:color-mix(in srgb,#b42318 8%,transparent)}
+#pv-value .mv-set .mine-fix:active,#pv-value .mv-set .mine-del:active{transform:translateY(1px)}
+#pv-value .mv-set .mine-ask{flex-basis:100%;margin-top:12px;padding:14px 16px;border-radius:14px;border:1px solid color-mix(in srgb,#b42318 22%,transparent);
+  background:color-mix(in srgb,#b42318 5%,var(--pv-surface))}
+#pv-value .mv-set .mine-ask p{color:var(--pv-ink-2)}
+#pv-value .mv-set .mine-ask-b button{border-radius:10px;font-weight:700}
+#pv-value .mv-set .mine-ask-no{border-color:var(--pv-line);color:var(--pv-ink-2)}
+#pv-value .mv-set .claim-note{color:var(--pv-accent-ink)}
+#pv-value .mv-set-cta{margin-top:16px}
+#pv-value .mv-set-cta .mv-up{width:100%;box-shadow:0 1px 2px rgba(6,117,99,.08),0 12px 32px -18px rgba(6,117,99,.45)}
+#pv-value .mv-set-docs .rs-docs-up{margin-top:14px}
+@media (prefers-reduced-motion:reduce){ #pv-value .mv-set .mine-fix,#pv-value .mv-set .mine-del{transition:none} }
+/* MY PAGE の「YOUR CONTRIBUTIONS」：一覧を設定タブへ移したあと、待遇の質問も出ていなければ見出しごと隠す（空の見出しを残さない） */
+#your-contributions:not(:has(#my-reviews-card)):not(:has(#cond-slot > *)){display:none}

@@ -67,16 +67,17 @@
      ＝ salary-leveling.js と同じやり方。currentScript は同期実行中しか
      取れないので、ここ（IIFE の冒頭）で確定させる。 */
   var PUB_URL = 'salary-data.json';
+  var POP_URL = 'vote-popular.json';     // よく見られている会社の順（GA4・gen-vote-popular.mjs が書く）
   /* ★後から読む2本にも中身の指紋を付ける（.js は配信で4時間覚えられる＝付けないと出した直後に古い部品が残る）。
        my-year.js か my-value-sample.js を直したら、db/test-year-report.mjs が示す値に書き換える（中身と一致するかを見ている）。
        そのあと profile.html（日英）の my-value.js の指紋も変わる（assert-links.mjs が示す値に写す・西は gen-lang.mjs）。 */
-  var YEAR_V = 'ed3b7dca';
+  var YEAR_V = 'adbe97b5';
   var SAMPLE_V = '56f31187';
   var SAMPLE_URL = 'my-value-sample.js?v=' + SAMPLE_V;     // 運営の見本（運営のときだけ読む）
   var YEAR_URL = 'my-year.js?v=' + YEAR_V;                 // 「1年」の画面（押したときだけ読む）
   /* ★「勤務ロスター」のタブ（2026-11-09）。開いたときだけ読む4本。指紋は上の2本と同じ決まり
        （db/test-year-report.mjs が中身と突き合わせる）。計算の部品は分析のタブも使う。 */
-  var ROSTER_V = 'f328ca66';
+  var ROSTER_V = 'dbef0cc8';
   var ROSTER_CSS_V = '0b3a6dcf';
   var UPLOAD_V = 'ba0ba6df';
   var ENGINE_V = '53f7188b';
@@ -93,6 +94,7 @@
     var _self = (d.currentScript && d.currentScript.src) || '';
     if (_self) {
       PUB_URL = new URL('salary-data.json', _self).href;
+      POP_URL = new URL('vote-popular.json', _self).href;
       SAMPLE_URL = new URL('my-value-sample.js?v=' + SAMPLE_V, _self).href;
       YEAR_URL = new URL('my-year.js?v=' + YEAR_V, _self).href;
       Object.keys(LATE).forEach(function (k) { LATE[k] = new URL(LATE[k], _self).href; });
@@ -146,8 +148,8 @@
       vMonth: '今月', vYear: '1年',
       /* YOUR PAY の3つのタブ（2026-11-09）。期間の切り替え（今月｜1年）とは別物＝形も違える。短い字は狭い画面用。 */
       tabsAria: 'YOUR PAY の表示',
-      tabSum: '給与サマリー', tabRoster: 'スケジュール', tabAna: '分析',
-      tabSumS: '給与', tabRosterS: '勤務', tabAnaS: '分析',
+      tabSum: '給与サマリー', tabRoster: 'スケジュール', tabAna: '分析', tabSet: '設定',
+      tabSumS: '給与', tabRosterS: '勤務', tabAnaS: '分析', tabSetS: '設定',
       /* MY PAGE｜MY PAY のタブ（2026-11-09 オーナー「mypage と my pay でタブ分けない？」）。字はオーナーの呼び方のまま */
       pgAria: 'マイページの表示', pgPage: 'MY PAGE', pgPay: 'MY PAY',
       anaErr: '分析の画面を読み込めませんでした。時間をおいて開き直してください。',
@@ -188,7 +190,8 @@
       /* 機会。★ ここに出すのは「いまより上がる選択肢」だけ。
          下回る会社は畳んだ先にも出さない（オーナー判断・2026-08-12）。 */
       oppQ: function (p) { return '他社の{p}の年収'.replace('{p}', function () { return p; }); },
-      oppSub: 'あなたの年換算より高い会社',
+      oppSub: '地域ごとに選んだ会社 · 年収の高い順',
+      rg: { asia: 'アジア', na: '北米', europe: 'ヨーロッパ', mideast: '中東', oceania: 'オセアニア', latam: '中南米', africa: 'アフリカ' },
       oppMe: 'あなた',
       tagEst: '推定', tagMed: '中央値',
       oppCurAnnual: '今月ベースの単純年換算',
@@ -200,9 +203,6 @@
          ★「受け取れる」と言い切らない（機能が無いので嘘になる）。 */
       /* 他社の額は会社ページに出ている額と同じ（推定年収か会員の中央値）。
          ★2026-11-08 オーナー決定「会社ページと同じ2人にそろえる」。どちらの額かは札に必ず書く。 */
-      pubNoUp: 'いまのあなたを上回る会社はありません。',
-      pubMoreH: 'ほかにも上回る会社を見る',
-      pubRest: function (n) { return 'このほかに' + n + '社が上回っています。'; },
       pubAll: '全社の一覧を見る →',
 
       /* 前回との差。★ 見出しの文字列は変えない（契約テストがこれで節を探す） */
@@ -326,9 +326,9 @@
       tabsAria: 'YOUR PAY views',
       /* ★"Roster" と "Pay" だけ二重引用符：訳の辞書の 'Roster'・'Pay' は別の部品のための長い訳（括弧の説明つき）を持つ。
            タブは短い字が要るので、別の鍵にしてある（gen-msg.mjs は値のソースそのものを鍵にする）。 */
-      tabSum: 'Pay summary', tabRoster: "Roster", tabAna: 'Analysis',
+      tabSum: 'Pay summary', tabRoster: "Roster", tabAna: 'Analysis', tabSet: 'Settings',
       pgAria: 'My page views', pgPage: 'MY PAGE', pgPay: 'MY PAY',
-      tabSumS: "Pay", tabRosterS: "Roster", tabAnaS: 'Analysis',
+      tabSumS: "Pay", tabRosterS: "Roster", tabAnaS: 'Analysis', tabSetS: 'Settings',
       anaErr: 'Could not load the analysis view. Please try again in a moment.',
       prPrint: 'Print', prPrintA: 'Print this tab', prMonth: '{t} payslip',
       rosterErr: 'Could not load the roster view. Please try again in a moment.',
@@ -358,7 +358,8 @@
       months: function (n) { return n + (n === 1 ? ' month' : ' months'); },
 
       oppQ: function (p) { return '{p} pay at other airlines'.replace('{p}', function () { return p; }); },
-      oppSub: 'Airlines above your annualised pay',
+      oppSub: 'Picked by region · highest pay first',
+      rg: { asia: 'Asia', na: 'North America', europe: 'Europe', mideast: 'Middle East', oceania: 'Oceania', latam: 'Latin America', africa: 'Africa' },
       oppMe: 'You',
       tagEst: 'est.', tagMed: 'median',
       oppCurAnnual: 'This month, straight-annualised',
@@ -366,9 +367,6 @@
       oppNone: 'No airlines to compare with yet.',
       oppNoPace: 'Your annual figure (monthly × 12 + bonus) is not available yet, so there is nothing to compare. File the payslip again, or fill in the annual fields on the form.',
       /* スカウトは作らない。将来やる予定があることだけ示す。 */
-      pubNoUp: 'No airline sits above where you are now.',
-      pubMoreH: 'See the other airlines above you',
-      pubRest: function (n) { return n + (n === 1 ? ' more airline sits' : ' more airlines sit') + ' above you.'; },
       pubAll: 'See every airline →',
 
       cmp: 'Change since your last payslip',
@@ -472,9 +470,9 @@
       tabsAria: 'Vistas de YOUR PAY',
       /* ★"Roster" と "Pay" だけ二重引用符：訳の辞書の 'Roster'・'Pay' は別の部品のための長い訳（括弧の説明つき）を持つ。
            タブは短い字が要るので、別の鍵にしてある（gen-msg.mjs は値のソースそのものを鍵にする）。 */
-      tabSum: 'Resumen de pago', tabRoster: "Programación", tabAna: 'Análisis',
+      tabSum: 'Resumen de pago', tabRoster: "Programación", tabAna: 'Análisis', tabSet: 'Ajustes',
       pgAria: 'Vistas de mi página', pgPage: 'MI PÁGINA', pgPay: 'MI REMUNERACIÓN',
-      tabSumS: "Pago", tabRosterS: "Programación", tabAnaS: 'Análisis',
+      tabSumS: "Pago", tabRosterS: "Programación", tabAnaS: 'Análisis', tabSetS: 'Ajustes',
       anaErr: 'No se pudo cargar la vista de análisis. Inténtalo de nuevo en un momento.',
       prPrint: 'Imprimir', prPrintA: 'Imprimir esta pestaña', prMonth: 'Recibo de {t}',
       rosterErr: 'No se pudo cargar la vista de programación. Inténtalo de nuevo en un momento.',
@@ -504,7 +502,8 @@
       months: function (n) { return n + (n === 1 ? ' mes' : ' meses'); },
 
       oppQ: function (p) { return '{p}: remuneración en otras aerolíneas'.replace('{p}', function () { return p; }); },
-      oppSub: 'Aerolíneas por encima de tu remuneración anualizada',
+      oppSub: 'Seleccionadas por región · de mayor a menor remuneración',
+      rg: { asia: 'Asia', na: 'Norteamérica', europe: 'Europa', mideast: 'Oriente Medio', oceania: 'Oceanía', latam: 'Latinoamérica', africa: 'África' },
       oppMe: 'Tú',
       tagEst: 'estimado', tagMed: 'mediana',
       oppCurAnnual: 'Este mes, anualizado de forma simple',
@@ -512,9 +511,6 @@
       oppNone: 'Todavía no hay aerolíneas para comparar.',
       oppNoPace: 'Tu cifra anual (mensual × 12 + bono) todavía no está disponible, así que no hay nada con qué comparar. Vuelve a enviar el recibo de nómina o llena los campos anuales del formulario.',
       /* スカウトは作らない。将来やる予定があることだけ示す。 */
-      pubNoUp: 'Ninguna aerolínea está por encima de tu situación actual.',
-      pubMoreH: 'Ver las otras aerolíneas por encima de ti',
-      pubRest: function (n) { return n + (n === 1 ? ' aerolínea más está' : ' aerolíneas más están') + ' por encima de ti.'; },
       pubAll: 'Ver todas las aerolíneas →',
 
       cmp: 'Cambio desde tu último recibo de nómina',
@@ -1097,16 +1093,20 @@
       var f = figureOf(k, band), a = p.A[k];
       if (!f) return;
       list.push({ slug: k, band: band, jpy: f.jpy, med: f.med,
-                  name: (L === 'en' && a.en) ? a.en : (a.ja || codeLabel(k)) });
+                  name: (L !== 'ja' && a.en) ? a.en : (a.ja || codeLabel(k)) });
     });
     list.sort(function (x, y) { return y.jpy - x.jpy; });
     return list;
   }
 
+  /* あなたとの差（上も下も・色は付けない）。同じ額なら書かない */
+  function diffTx(jpy, mine) {
+    var dd = Math.round((jpy - mine) / 10000) * 10000;
+    return dd > 0 ? '+' + fmt(dd) : dd < 0 ? '−' + fmt(-dd) : '';
+  }
   function pubRow(x, mine) {
-    var dd = Math.round((x.jpy - mine) / 10000) * 10000;
     return { name: x.name, href: 'airlines/' + x.slug + '.html', jpy: x.jpy,
-             tag: x.med ? T.tagMed : T.tagEst, diff: dd > 0 ? '+' + fmt(dd) : '' };
+             tag: x.med ? T.tagMed : T.tagEst, diff: diffTx(x.jpy, mine) };
   }
 
   /* 招待（データ密度）カードの差し込み口。中身は pv-referral.js が描く。
@@ -1114,6 +1114,25 @@
        忘れると「いちばん区分が薄い人」＝この機能の対象そのものが永久にカードを見られない。 */
   function refSlot() { return '<div id="mr-ref-slot"></div>'; }
 
+  /* ★2026-11-11 オーナー「ランキング形式でピックアップして、自分もその中に入るかたち。各地域から1社ずつ。自分と同じ地域は3社。
+       日本ならアジア。色はちゃんと分けて（緑と灰色以外も・薄い色）」「番号は付けない」。
+     ★2026-08-12 の「あなたより高い会社だけ」はやめた（オーナーが今回変えた）。順位の番号・上位◯% は今も書かない。
+     地域は salary-data.json の region（japan はアジアに・us は北米に寄せる）。各地域の中では、よく見られている会社（vote-popular.json）
+     を先に、無ければ年収の高い順に選ぶ。額の決め方は figureOf()（会社ページと同じ額・推定／中央値の札）のまま。 */
+  var RG_OF = { japan: 'asia', asia: 'asia', us: 'na', europe: 'europe', mideast: 'mideast', oceania: 'oceania', latam: 'latam', africa: 'africa' };
+  var RG_ORDER = ['asia', 'na', 'europe', 'mideast', 'oceania', 'latam', 'africa'];
+  function regionOf(k) { var a = state.pub && state.pub.A && state.pub.A[k]; return a ? RG_OF[a.region] || null : null; }
+  function rankPicks(list, mineRg) {
+    var pop = (state.pub && state.pub.P) || [];
+    var at = function (x) { var i = pop.indexOf(x.slug); return i < 0 ? 1e6 : i; };
+    var out = [];
+    RG_ORDER.forEach(function (g) {
+      var c = list.filter(function (x) { return regionOf(x.slug) === g; });
+      c.sort(function (p, q) { return at(p) - at(q) || q.jpy - p.jpy; });
+      out = out.concat(c.slice(0, g === mineRg ? 3 : 1));
+    });
+    return out;
+  }
   function opportunity(r) {
     var mine = annualJpy(r), band = PUB_BAND[r && r.position];
     var title = band ? T[band] : posName(r);
@@ -1125,27 +1144,25 @@
     if (!list.length) {
       return sec(T.oppQ(title), empty(T.oppNone) + refSlot());
     }
-
-    var up = list.filter(function (x) { return x.jpy - mine > 0; });
-    var top = up.slice(0, 5);
-    /* 畳んだ先に入れるのは9社まで。★ 黙って切らない。残りは社数を書いて
-       全社の一覧へ送る（低い階級ほど「上回る会社」が90社以上になるため）。 */
-    var rest = up.slice(5, 14), over = up.length - 5 - rest.length;
+    var mineRg = regionOf(airlineKey(r));
+    var rows = rankPicks(list, mineRg).map(function (x) {
+      var o = pubRow(x, mine), g = regionOf(x.slug);
+      o.mod = 'g-' + g; o.sub = T.rg[g]; o.g = g;
+      return o;
+    });
     var om = ownMedian(r);
-    var max = Math.max(mine, om || 0, up.length ? up[0].jpy : 0);
-    var head = [{ mod: 'is-me', name: T.oppMe, sub: hasBonus(r) ? T.oppCurAnnualB : T.oppCurAnnual, jpy: mine }];
-    if (om != null) head.push({ mod: 'is-own', name: ownName(r), href: ownHref(r), tag: T.tagMed, jpy: om });
-    var body = barList(head.concat(top.map(function (x) { return pubRow(x, mine); })), max);
-    if (!up.length) body += note(esc(T.pubNoUp));
-    if (rest.length) {
-      body += '<details class="mr-more"><summary>' + esc(T.pubMoreH) + '</summary>' +
-        barList(rest.map(function (x) { return pubRow(x, mine); }), max, 'is-more') +
-        (over > 0 ? '<p class="mr-more-s">' + esc(T.pubRest(over)) +
-          ' <a class="mr-cmp-all" href="world-airlines.html">' + esc(T.pubAll) + '</a></p>' : '') +
-        '</details>';
-    }
+    if (om != null) rows.push({ mod: 'is-own', name: ownName(r), href: ownHref(r), tag: T.tagMed, jpy: om, sub: mineRg ? T.rg[mineRg] : '', diff: diffTx(om, mine) });
+    rows.push({ mod: 'is-me', name: T.oppMe, sub: hasBonus(r) ? T.oppCurAnnualB : T.oppCurAnnual, jpy: mine, me: true });
+    rows.sort(function (p, q) { return q.jpy - p.jpy || (p.me ? 1 : 0) - (q.me ? 1 : 0); });
+    var max = Math.max.apply(null, rows.map(function (x) { return x.jpy; }));
+    var seen = {};
+    rows.forEach(function (x) { if (x.g) seen[x.g] = 1; });
+    var body = '<ul class="mr-cmp-lg" aria-hidden="true">' + RG_ORDER.filter(function (g) { return seen[g]; }).map(function (g) {
+      return '<li><i class="g-' + g + '"></i>' + esc(T.rg[g]) + '</li>';
+    }).join('') + '</ul>' + barList(rows, max, 'is-rank') +
+      '<p class="mr-more-s"><a class="mr-cmp-all" href="world-airlines.html">' + esc(T.pubAll) + '</a></p>';
     body += refSlot();
-    return sec(T.oppQ(title), body, up.length ? T.oppSub : '');
+    return sec(T.oppQ(title), body, T.oppSub);
   }
 
   /* ── 前回の明細との差 ──────────────────────────────────────
@@ -1712,7 +1729,7 @@
     scope.className = 'pv-no-cur pv-pr';
     var t = d.createElement('p');
     t.className = 'pv-pr-t';
-    t.textContent = ['YOUR PAY', { summary: T.tabSum, roster: T.tabRoster, analysis: T.tabAna }[state.tab], period].filter(Boolean).join(' · ');
+    t.textContent = ['YOUR PAY', { summary: T.tabSum, roster: T.tabRoster, analysis: T.tabAna, settings: T.tabSet }[state.tab], period].filter(Boolean).join(' · ');
     scope.appendChild(t);
     var c = src.cloneNode(true);
     c.hidden = false; c.removeAttribute('id');
@@ -1857,11 +1874,11 @@
      ★面は消さずに隠すだけ＝タブを移っても、選んだ月・日はそのまま。
        隠れた面には図を描かない（幅0で描くと崩れたまま残る）。見えたときに描き直す。
      ★勤務ロスターの部品は、そのタブを開いたときだけ読む（会員の大多数は通信が増えない）。 */
-  var TABS = ['summary', 'roster', 'analysis'];
+  var TABS = ['summary', 'roster', 'analysis', 'settings'];     // ★2026-11-11 設定（提出したものを直す・消す）を足した
   var panes = null;
   function tabText(k) {
-    var full = { summary: T.tabSum, roster: T.tabRoster, analysis: T.tabAna }[k];
-    var short = { summary: T.tabSumS, roster: T.tabRosterS, analysis: T.tabAnaS }[k];
+    var full = { summary: T.tabSum, roster: T.tabRoster, analysis: T.tabAna, settings: T.tabSet }[k];
+    var short = { summary: T.tabSumS, roster: T.tabRosterS, analysis: T.tabAnaS, settings: T.tabSetS }[k];
     return '<span class="mv-tab-l">' + esc(full) + '</span><span class="mv-tab-s" aria-hidden="true">' + esc(short) + '</span>';
   }
   function shell() {
@@ -1880,6 +1897,12 @@
     root = panes.summary;
     /* 分析は開いたときに my-analysis.js が #pv-analysis を埋める */
     panes.analysis.innerHTML = '<div id="pv-analysis"></div>';
+    /* ★2026-11-11 設定タブ：MY PAGE の「あなたが出したもの」（profile.html の #my-reviews-card・給与の編集と削除・口コミの一覧）を
+         ここへ移す。中身を描くのは今までどおり profile.html の JS（id で探すので、置き場所が変わっても同じに動く）。
+         置き場所は1つ＝MY PAGE からは消える。スケジュールの提出資料は開いたときに my-roster.js が描く（mountDocs）。 */
+    panes.settings.innerHTML = '<div class="mv-set"><div class="mv-set-posts"></div><div class="mv-set-docs"></div></div>';
+    var mine = d.getElementById('my-reviews-card');
+    if (mine) panes.settings.querySelector('.mv-set-posts').appendChild(mine);
     var bar = host.querySelector('.mv-tabs');
     bar.addEventListener('click', function (e) {
       var b = e.target.closest ? e.target.closest('.mv-tab') : null;
@@ -1913,6 +1936,7 @@
     else if (w.PVRoster && w.PVRoster.hide) w.PVRoster.hide();
     if (k === 'analysis') openAnalysis();
     else if (w.PVAnalysis && w.PVAnalysis.hide) w.PVAnalysis.hide();
+    if (k === 'settings') openSettings();
     try { host.dispatchEvent(new CustomEvent('pv-myreport-tab', { bubbles: true, detail: { tab: k } })); } catch (e) {}
   }
 
@@ -1944,15 +1968,15 @@
     return late[href];
   }
   var rosterMounted = false;
-  function openRoster() {
-    if (rosterMounted) { w.PVRoster.show(); return; }
+  function openRoster(quiet) {
+    if (rosterMounted) { if (!quiet) w.PVRoster.show(); return Promise.resolve(true); }
     if (!panes.roster.firstChild) panes.roster.innerHTML = '<div class="mr-skel" style="height:220px"></div>';
     /* 見た目が届いてから描く（素の字が一瞬覆わない）。計算の部品 → 画面の部品の順 */
-    Promise.all([lateCss(LATE.rosterCss), lateJs(LATE.engine, function () { return !!w.PVReport; })])
+    return Promise.all([lateCss(LATE.rosterCss), lateJs(LATE.engine, function () { return !!w.PVReport; })])
       .then(function (r) { return r[0] && r[1] ? lateJs(LATE.roster, function () { return !!w.PVRoster; }) : false; })
       .then(function (ok) {
-        if (rosterMounted) return;
-        if (!ok) { panes.roster.innerHTML = empty(T.rosterErr); return; }
+        if (rosterMounted) return true;            // 同時に2回呼ばれた（タブと設定）＝もう載っている
+        if (!ok) { panes.roster.innerHTML = empty(T.rosterErr); return false; }
         rosterMounted = true;
         w.PVRoster.mount(panes.roster, {
           sb: SB,
@@ -1962,7 +1986,23 @@
         });
         if (state.tab === 'roster') w.PVRoster.show(); else w.PVRoster.hide();
         if (rosterWant) { w.PVRoster.open(rosterWant); rosterWant = null; }
+        return true;
       });
+  }
+  /* 設定タブ（2026-11-11）。給与と口コミの一覧は shell() で移してある。スケジュールの提出資料はロスターの部品を読んでから描く。
+     まだ給与を出していない人には、一覧の下に「明細から自動入力」を置く（空の画面の上のボタンと同じもの）。 */
+  var setMounted = false;
+  function openSettings() {
+    if (setMounted) return;
+    setMounted = true;
+    var rows = (state.data && state.data.reports) || [];
+    if (!rows.length && !state.sample) panes.settings.querySelector('.mv-set-posts').insertAdjacentHTML('beforeend', '<div class="mv-set-cta">' + upPay() + '</div>');
+    var box = panes.settings.querySelector('.mv-set-docs');
+    box.innerHTML = '<div class="mr-skel" style="height:120px"></div>';
+    openRoster(true).then(function (ok) {
+      if (!ok || !w.PVRoster || !w.PVRoster.mountDocs) { box.innerHTML = ''; return; }
+      w.PVRoster.mountDocs(box, { upload: function () { gotoRoster({ upload: true }); } });
+    }, function () { box.innerHTML = ''; });
   }
   /* 分析のタブから勤務ロスターへ（点を押した日・「ロスターを足す」）。ロスターの部品が届いてから渡す */
   var rosterWant = null;
@@ -2000,8 +2040,9 @@
     /* ★累計報酬（2026-11-09 オーナー「1年の累計報酬のカードとか消えてる」→「両方やる」）。
          「今月」と同じカードを年のまとめの上に置く（全社ぶん・足し方は totals()）。PDF（#pv-year の写し）には入れない。 */
     /* 見出しの行（会社・機種・職位＋「今月｜1年」）は「今月」と同じ＝切り替えても同じ場所に居る */
+    /* ★2026-11-11 累計報酬は1年のカードと同じ2列の並びの1枚目（my-year.js の lead）。1年の部品が届く前もそこに置いておく */
     root.innerHTML = opBar() + header(state.data || {}, rows[rows.length - 1], rows) +
-      '<div class="mr-stack">' + lifetime(rows) + '<div id="pv-year-box"></div></div>';
+      '<div class="mr-stack"><div id="pv-year-box"><div class="yr yr-g">' + lifetime(rows) + '</div></div></div>';
     drawCumChart();                        // 実寸が要るので DOM に入れてから
     bindOp();
     bindView();
@@ -2012,6 +2053,7 @@
     /* 月をまたぐ比較と同じく、最新の会社の月だけ（会社が変われば契約が違う） */
     w.PVYear.render(d.getElementById('pv-year-box'), sameAirline(rows, rows[rows.length - 1]), {
       segName: SEGNAME, sample: !!state.sample,
+      lead: function () { return lifetime(rows); }, onDraw: drawCumChart,
       /* 会社の会員の単価と折れ目（db/company-rates.sql・2人以上の組だけ・人数は返らない）。
          口がまだ無い（SQL を貼る前）・失敗したときは null ＝本人の数字だけで描く。見本のときは作り物を返す。 */
       company: function (airline) {
@@ -2118,11 +2160,13 @@
      ★ salary-data.json は世界に公開しているファイルなので、読むだけで
        誰が読んだかは残らない（本人の記録は一切ここへ渡さない）。 */
   async function loadPub() {
+    /* よく見られている会社の順は、他社のランキングで地域ごとの会社を選ぶのに使う。読めなければ年収の順だけで選ぶ */
+    var pop = fetch(POP_URL).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { return (j && Array.isArray(j.slugs)) ? j.slugs : []; }, function () { return []; });
     try {
       var res = await fetch(PUB_URL);
       if (!res.ok) return null;
       var j = await res.json();
-      return (j && j.airlines) ? { A: j.airlines, R: j.medRule || {} } : null;
+      return (j && j.airlines) ? { A: j.airlines, R: j.medRule || {}, P: await pop } : null;
     } catch (e) { return null; }        // 読めなくてもレポート本体は出す
   }
 

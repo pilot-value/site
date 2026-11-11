@@ -408,7 +408,7 @@
   }
 
   /* ══ 描画 ═══════════════════════════════════════════════════════ */
-  var C_BLOCK = '#0a8f79', C_DUTY = '#3d9bff';
+  var C_BLOCK = '#0a8f79', C_DUTY = '#86c7bc';   // ★2026-11-11 青をやめた：乗務＝緑・総勤務＝薄い緑（スケジュールの日別の棒と同じ）
   var INK3 = 'var(--pv-ink-3)', LINE = 'var(--pv-line-soft)';
   var state = { year: null, box: null, rows: null, o: null, model: null, company: null, coKey: null };
   /* 本人の画面の行 → 会社の表（pv_company_rates）の k */
@@ -716,7 +716,11 @@
     if (!ys.length) { box.innerHTML = ''; return; }
     if (ys.indexOf(state.year) < 0) state.year = ys[0];
     var md = state.model = calc(rows, state.year);
-    var W = Math.max(300, Math.round(box.clientWidth || 1000));
+    /* ★2026-11-11 オーナー「1年はカードが横に長すぎて見づらい」── 中身ごとの狭いカードを2列に並べる（狭い画面は1列）。
+         図はカードの中の実寸で描く（横いっぱいの幅で描いて縮めると、字が小さくなる）。 */
+    var full = Math.round(box.clientWidth || 1000), two = full >= 880;
+    var W = Math.max(280, (two ? Math.floor((full - 16) / 2) : full) - 48);
+    var card = function (inner, mod) { return inner ? '<section class="pt-sec mr-card yr-c' + (mod ? ' ' + mod : '') + '">' + inner + '</section>' : ''; };
     var tl = md.tiles, extra = (tl.bonus || 0) + (tl.profit || 0), tiles = [];
     /* 総支給の合計に、年間のボーナス・プロフィットシェアを足して出す（中身は「うち…」の行で見せる）。
        総支給が欠けた月がある年は合計を出さない（今までどおり）ので、そのときはボーナスだけを別に出す。 */
@@ -730,8 +734,8 @@
     if (tl.days != null) tiles.push({ k: T.tDays, v: Math.round(tl.days), u: T.qDay });
     if (tl.net != null) tiles.push({ k: T.tNet, v: fmt(tl.net) });
     box.innerHTML =
-      '<section class="pt-sec mr-card yr" id="pv-year">' +
-        '<div class="yr-top"><h2 class="mr-card-t">' + esc(T.title) + '<span class="yr-pyr">' + esc(L === 'ja' ? '（' + T.yr(state.year) + '）' : ' (' + T.yr(state.year) + ')') + '</span></h2>' +
+      '<div class="yr yr-g' + (two ? ' is-two' : '') + '" id="pv-year">' +
+        card('<div class="yr-top"><h2 class="mr-card-t">' + esc(T.title) + '<span class="yr-pyr">' + esc(L === 'ja' ? '（' + T.yr(state.year) + '）' : ' (' + T.yr(state.year) + ')') + '</span></h2>' +
           (ys.length > 1 ? '<div class="pt-tabs yr-years">' + ys.map(function (y) {
             return '<button type="button" class="pt-tab' + (y === state.year ? ' on' : '') + '" data-yr="' + y + '">' + esc(T.yr(y)) + '</button>';
           }).join('') + '</div>' : '<span class="yr-one">' + esc(T.yr(state.year)) + '</span>') +
@@ -739,11 +743,14 @@
         (tiles.length ? '<div class="yr-tiles">' + tiles.map(function (t) {
           return '<div class="yr-tile"><span>' + esc(t.k) + '</span><b>' + esc(String(t.v)) + (t.u ? '<i>' + esc(t.u) + '</i>' : '') + '</b>' +
             (t.sub || []).map(function (x) { return '<small><span>' + esc(x[0]) + '</span> <span>' + esc(x[1]) + '</span></small>'; }).join('') + '</div>';
-        }).join('') + '</div>' : '') +
-        insights(md) + kinkCard(md, W) + ratesList(md) +
-        hoursChart(md, W) + payChart(md, W, o.segName || {}) + smallsHTML(md) + monthTable(md) +
+        }).join('') + '</div>' : ''), 'is-head is-wide') +
+        (typeof o.lead === 'function' ? o.lead() : '') +      // 累計報酬（見出しの下・左の列）
+        card(insights(md)) + card(kinkCard(md, W)) +
+        card(hoursChart(md, W)) + card(payChart(md, W, o.segName || {})) +
+        card(ratesList(md)) + card(smallsHTML(md)) + card(monthTable(md), 'is-wide') +
         '<div class="yr-tip" role="status"></div>' +
-      '</section>';
+      '</div>';
+    if (typeof o.onDraw === 'function') o.onDraw();
     box.querySelectorAll('[data-yr]').forEach(function (b) {
       b.addEventListener('click', function () { state.year = +b.getAttribute('data-yr'); draw(); });
     });
@@ -766,7 +773,9 @@
     var scope = d.createElement('div');
     scope.id = 'pv-value';                         // 見た目の規則（#pv-value .yr-…）をそのまま効かせる
     scope.className = 'pv-no-cur';
-    scope.appendChild(src.cloneNode(true));
+    var cp = src.cloneNode(true);
+    cp.querySelectorAll('.mr-card.is-total').forEach(function (x) { x.parentNode.removeChild(x); });   // 累計のカードは PDF に入れない（今までどおり）
+    scope.appendChild(cp);
     wrap.appendChild(scope);
     var dt = wrap.querySelector('.yr-tb');
     if (dt) dt.open = true;

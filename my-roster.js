@@ -73,7 +73,7 @@
       chartS: '原本に書かれた時刻から',
       tipDuty: '勤務', tipDh: 'DH',
       kindActual: '実績のスケジュール', kindPlanned: '予定のスケジュール',
-      docsH: '提出資料',
+      docsH: '提出資料', docsNone: 'まだスケジュールを出していません。',
       docPages: '{n}ページ', docPage1: '{n}ページ', docUse: 'いま使っている日 {o} / {n}日', docAdded: '{d} に追加',
       del: '削除', delQ: 'この資料と、この資料から入った {n}日ぶんの勤務を消します。', delYes: '消す', delNo: 'やめる',
       delDone: '消しました。', delErr: '消せませんでした。時間をおいてもう一度お試しください。',
@@ -129,7 +129,7 @@
       chartS: 'From the times printed on your roster',
       tipDuty: 'Duty', tipDh: 'DH',
       kindActual: 'Actual roster', kindPlanned: 'Planned roster',
-      docsH: 'Uploaded rosters',
+      docsH: 'Uploaded rosters', docsNone: 'You haven’t uploaded a roster yet.',
       docPages: '{n} pages', docPage1: '{n} page', docUse: 'Days in use {o} / {n}', docAdded: 'Added {d}',
       del: 'Delete', delQ: 'This removes the file record and the {n} days of duty that came from it.', delYes: 'Delete', delNo: 'Cancel',
       delDone: 'Deleted.', delErr: 'Could not delete. Please try again in a moment.',
@@ -182,7 +182,7 @@
       chartS: 'Según las horas impresas en tu programación',
       tipDuty: 'Servicio', tipDh: 'DH',
       kindActual: 'Programación real', kindPlanned: 'Programación planificada',
-      docsH: 'Programaciones subidas',
+      docsH: 'Programaciones subidas', docsNone: 'Todavía no has subido tu programación.',
       docPages: '{n} páginas', docPage1: '{n} página', docUse: 'Días en uso {o} / {n}', docAdded: 'Agregada el {d}',
       del: 'Eliminar', delQ: 'Esto elimina el registro del archivo y los {n} días de servicio que provienen de él.', delYes: 'Eliminar', delNo: 'Cancelar',
       delDone: 'Eliminado.', delErr: 'No se pudo eliminar. Inténtalo de nuevo en un momento.',
@@ -609,6 +609,19 @@
       '<p class="rs-note">' + esc(T.docsNote) + '</p></section>';
   }
 
+  /* ★2026-11-11 提出資料の一覧と削除は MY PAY の「設定」タブへ移した（オーナー「設定タブで自分が提出したものを削除・編集」）。
+       設定タブが mountDocs(el) で置き場所を渡す。消す処理（delDoc）と状態はこのタブと同じもの。 */
+  function paintDocs() {
+    if (!S.docsEl) return;
+    S.docsEl.innerHTML = '<div class="rs">' + (docsHTML() || (S.loading ? '<div class="mr-skel" style="height:120px"></div>'
+      : '<section class="rs-card rs-docs"><div class="rs-card-h"><h3 class="rs-card-t">' + esc(T.docsH) + '</h3></div>' +
+        '<p class="rs-muted">' + esc(T.docsNone) + '</p><button type="button" class="rs-btn is-primary rs-docs-up" data-act="docs-up">' + ICON_PLUS + esc(T.upT) + '</button></section>')) + '</div>';
+  }
+  function mountDocs(el, o) {
+    S.docsEl = el; S.docsOpt = o || {};
+    el.addEventListener('click', onClick);
+    paintDocs();
+  }
   function render() {
     if (!S.el) return;
     if (S.view !== 'roster') return;            // 取り込み・直す画面のあいだは触らない
@@ -627,7 +640,7 @@
         (!S.choices.length ? ' <button type="button" class="rs-link" data-act="change">' + esc(T.airlineChange) + '</button>' : '') + '</p>' +
         peekHTML('<div class="rs-empty is-over">' + entryHTML(false) + '</div>');
     } else if (!S.ym) {
-      h = flashHTML() + headless() + docsHTML();
+      h = flashHTML() + headless();
     } else {
       var m = S.byYm[S.ym];
       h = flashHTML() + headHTML(m) + kpiHTML(m) +
@@ -641,10 +654,10 @@
         '<section class="rs-card rs-ch"><div class="rs-card-h"><h3 class="rs-card-t">' + esc(T.chartH) + '</h3>' +
           '<span class="rs-lg"><i class="is-duty"></i>D-ON〜D-OFF<i class="is-blk"></i>' + esc(timeLabel(S.profile)) + '<i class="is-dh"></i>' + esc(T.kDh) + '<i class="is-vac"></i>VAC</span></div>' +
           '<div class="rs-ch-box"><svg class="rs-ch-svg" tabindex="0" role="img" aria-label="' + esc(T.chartH + ' · ' + monthTitle(S.ym)) + '"></svg><div class="rs-tip" hidden></div></div>' +
-          '<p class="rs-note">' + esc(T.chartS) + '</p></section>' +
-        docsHTML();
+          '<p class="rs-note">' + esc(T.chartS) + '</p></section>';
     }
     main.innerHTML = '<div class="rs">' + h + '</div>';
+    paintDocs();
     if (S.picking || !S.airline) bindPicker();
     drawChart();
   }
@@ -817,7 +830,7 @@
   /* ── 操作 ───────────────────────────────────────────────── */
   function onClick(e) {
     var t = e.target.closest ? e.target.closest('[data-act],[data-date]') : null;
-    if (!t || !S.el.contains(t)) return;
+    if (!t || !(S.el.contains(t) || (S.docsEl && S.docsEl.contains(t)))) return;
     if (t.classList.contains('rs-cell') && t.hasAttribute('data-date')) { select(t.getAttribute('data-date'), false, true); return; }
     if (t.classList.contains('rs-hit')) { select(t.getAttribute('data-date')); tipFor(t.getAttribute('data-date')); return; }
     if (t.classList.contains('rs-chit')) { select(t.getAttribute('data-date')); cumTip(t.getAttribute('data-date')); return; }
@@ -836,6 +849,7 @@
     else if (act === 'del-no') { var id0 = S.confirmDel; S.confirmDel = null; render(); var b = S.el.querySelector('[data-act="del"][data-id="' + id0 + '"]'); if (b) b.focus(); }
     else if (act === 'del-yes') delDoc(t.getAttribute('data-id'));
     else if (act === 'edit') openEdit(t.getAttribute('data-id'));
+    else if (act === 'docs-up' && S.docsOpt && typeof S.docsOpt.upload === 'function') S.docsOpt.upload();
   }
   function onChange(e) {
     var t = e.target, act = t.getAttribute && t.getAttribute('data-act');
@@ -1112,7 +1126,7 @@
   function current() { return { airline: S.airline, other: S.other }; }
 
   w.PVRoster = {
-    mount: mount, show: show, hide: hide, redraw: drawChart, open: open, current: current,
+    mount: mount, mountDocs: mountDocs, show: show, hide: hide, redraw: drawChart, open: open, current: current,
     _: { T: T, L: L, S: S, csvOf: csvOf, compute: compute, esc: esc, fill: fill, hm: hm, pad2: pad2, monthTitle: monthTitle, dayTitle: dayTitle, ymAdd: ymAdd, nowYm: nowYm,
          calHTML: calHTML, timeLabel: timeLabel, entryIcon: ICON_UP, legHTML: legHTML, cellParts: cellParts,
          kpiHTML: kpiHTML, docsHTML: docsHTML, dayHTML: dayHTML, isTok: isTok, canon: canon, letter: letter, tokName: tokName, codeText: codeText, fixPairs: fixPairs }
