@@ -271,7 +271,9 @@ html[data-ui] .ut-counting::after{content:attr(data-ut-n);content:attr(data-ut-n
 ::view-transition-group(ut-bar){animation:none}
 ::view-transition-old(ut-bar){display:none}
 ::view-transition-new(ut-bar){animation:none}
-html.ut-pagevt .ut-rail-pill{view-transition-name:ut-rail-pill}
+/* 板が滑るのは、左のメニューが常に出ている広い画面だけ。
+   狭い画面はメニューが右から出る板で、押すと閉じる ＝ 閉じた板の中の印だけが中身の上に浮いて見える（実際に撮れた） */
+@media(min-width:1001px){html.ut-pagevt .ut-rail-pill{view-transition-name:ut-rail-pill}}
 html.ut-pagevt main{view-transition-name:ut-page}
 ::view-transition-group(ut-rail-pill){animation-duration:.6s;animation-timing-function:var(--ut-spring)}
 /* 滑ってくる板は一番上に描かれる ＝ そのままだと、通り過ぎる項目の字を隠す。掛け合わせて字を透かす。

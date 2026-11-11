@@ -568,12 +568,16 @@ if (process.env.REC) {
     await glide(520, 1800); await sleep(1500); await glide(0, 900); await sleep(400);
     await tap('#pv-value .mv-tab', 0); await sleep(2000);
     await glide('bottom', 6000); await sleep(1800); await glide(0, 1300); await sleep(700);
+    /* REAL PAY は下まで送る（見本の行に金額が1つも無いのを見せる） */
     await tap('.mr-side-a[href^="actual-pay"]'); await sleep(2800);
+    await glide('bottom', 3600); await sleep(1600); await glide(0, 1000); await sleep(500);
     await tap('.mr-side-a[href^="roadmap"]'); await sleep(3200);
     await glide(760, 2400); await sleep(1400); await glide(0, 900); await sleep(500);
+    await tap('.mr-side-a[href^="invite"]'); await sleep(3000);
+    await glide('bottom', 2600); await sleep(1300); await glide(0, 900); await sleep(500);
     await tap('.mr-side-a[href^="profile"]'); await sleep(3000);
   } else {
-    /* スマホ：開いた瞬間 → ゆっくり下へ（円・棒・他社の年収が入ってきた順に動く）→ 1年 → 分析 → ≡ から ROADMAP */
+    /* スマホ：開いた瞬間 → ゆっくり下へ（円・棒・他社の年収が入ってきた順に動く）→ 1年 → 分析 → ≡ から REAL PAY・ROADMAP・INVITE */
     await glide('bottom', 8000); await sleep(1600); await glide(0, 1400); await sleep(700);
     await tap('#pv-value .pt-tabs .pt-tab', 1); await sleep(2000);
     await glide(1500, 3200); await sleep(1400); await glide(0, 1000); await sleep(500);
@@ -581,8 +585,14 @@ if (process.env.REC) {
     await tap('#pv-value .mv-tab', 2); await sleep(2400);
     await glide(900, 2400); await sleep(1400); await glide(0, 900); await sleep(500);
     await tap('.pv-ham-btn'); await sleep(1200);
+    await tap('.mr-side-a[href^="actual-pay"]'); await sleep(3000);
+    await glide('bottom', 4200); await sleep(1600); await glide(0, 1000); await sleep(500);
+    await tap('.pv-ham-btn'); await sleep(1200);
     await tap('.mr-side-a[href^="roadmap"]'); await sleep(3000);
-    await glide(1300, 3200); await sleep(1600);
+    await glide(1300, 3200); await sleep(1600); await glide(0, 1000); await sleep(500);
+    await tap('.pv-ham-btn'); await sleep(1200);
+    await tap('.mr-side-a[href^="invite"]'); await sleep(3000);
+    await glide('bottom', 3000); await sleep(1600);
   }
   await REC.cdp.send('Page.stopScreencast').catch(() => {});
   const dir = process.env.REC; fs.mkdirSync(dir, { recursive: true });
