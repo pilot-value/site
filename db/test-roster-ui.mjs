@@ -253,9 +253,14 @@ function checks({ P, U, W }) {
       learned: { ok: true, kind: 'planned', time_ref: 'utc', time_meaning: 'flight', blank: 'none', codes: { OFF: 'off' } } });
     U.prepare({ days: [day(1, { code: 'OFF', cat: 'off' }), day(2, { blank: true, cat: 'blank' }), day(3, { d_on: '07:00', d_off: '12:00' })], issues: [], period: null, hints: { kind: 'actual' } }, 1);
     const q2 = U.asks(), p2 = U.profilePatch();
-    ok(!U.needAsk() && !q2.blank && !q2.kind && !q2.codes.length, '⑪ 会社の辞書でそろう会社には聞かない');
+    /* ★2026-11-11 から「飛んだ分は何月の給与明細に出るか」（pay_lag）だけは、会社の辞書があっても本人に1回聞く（人ごとの答え） */
+    ok(!q2.blank && !q2.kind && !q2.codes.length && q2.lag === true && U.needAsk(), '⑪ 会社の辞書でそろう会社には聞かない（聞くのは「明細に出る月」だけ）');
     ok(p2 && p2.kind === 'planned' && p2.time_ref === 'utc' && p2.time_meaning === 'flight' && p2.blank === 'none' && p2.codes.OFF === 'off', '⑪ 辞書の答えを本人の読み方として保存する');
     ok(!U.sendDays().some((x) => x.date === dd(2)) && !U.missHTML().includes('data-id="' + dd(2) + '"'), '⑫ 「何も無い日」なら送らず、読めなかった日にも並べない');
+    const q3 = (W.open(fakeBox(), { sb: null, airline: 'yy', other: null, airlineLabel: 'Y', done() {}, profile: { codes: {}, pay_lag: 1 },
+      learned: { ok: true, kind: 'planned', time_ref: 'utc', time_meaning: 'flight', blank: 'none', codes: { OFF: 'off' } } }),
+      U.prepare({ days: [day(1, { code: 'OFF', cat: 'off' }), day(3, { d_on: '07:00', d_off: '12:00' })], issues: [], period: null, hints: { kind: 'actual' } }, 1), U.asks());
+    ok(q3.lag === false && !U.needAsk(), '⑪ 「明細に出る月」を答えてある会社では、何も聞かない');
 
     /* 運営に知らせる本文 */
     const before = { date: dd(20), code: null, d_on: '07:00', d_off: null, d_off_day: 0, legs: [

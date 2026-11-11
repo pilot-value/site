@@ -224,6 +224,25 @@ function suite(R, V) {
     ok(R.alignCandidates([rep('2026-09', {})], MS.roster.byYm)[0].reason === 'no_slip_block', '明細に乗務時間が無ければ候補なし');
   }
   {
+    // ★2026-11-11 スケジュールの取り込みで聞いた「飛んだ分は何か月あとの明細に出るか」（読み方の pay_lag）
+    const r10 = () => rep('2026-10', { gross_monthly: 500000, base_pay: 390000, flight_variable_pay: 80000, other_allowance: 80000, per_diem: 30000 });   // 変動給は other_allowance の内訳
+    const lines = (m) => m.months[0].lines;
+    const pick = (ls, k) => ls.find((l) => l.kind === k) || {};
+    const L1 = lines(R.build({ reports: [r10()], roster: { days: [], profile: Object.assign({}, PROFILE, { pay_lag: 1 }) } }));
+    ok(pick(L1, 'flight').workYm === '2026-09' && pick(L1, 'perdiem').workYm === '2026-09' && pick(L1, 'perdiem').mapStatus === 'profile',
+       '★翌月払い（pay_lag 1）：10月の明細の変動給・パーディアムは9月の勤務に結ぶ', JSON.stringify([pick(L1, 'flight').workYm, pick(L1, 'perdiem').workYm]));
+    ok(pick(L1, 'base').workYm === null, '基本給（固定）は結ばない');
+    const L2 = lines(R.build({ reports: [r10()], roster: { days: [], profile: Object.assign({}, PROFILE, { pay_lag: 2 }) } }));
+    ok(pick(L2, 'flight').workYm === '2026-08', '翌々月払い（pay_lag 2）：8月の勤務');
+    const L0 = lines(R.build({ reports: [r10()], roster: { days: [], profile: Object.assign({}, PROFILE, { pay_lag: -1 }) } }));
+    ok(pick(L0, 'flight').workYm === null && pick(L0, 'flight').mapStatus === null, '「わからない」（-1）なら結ばない（今までどおり手当ごとに聞く）');
+    const L3 = lines(R.build({ reports: [r10()], maps: [{ airline: 'pv', airline_other: null, label_key: 'k:perdiem', offset: 0, status: 'confirmed', qty_kind: null }],
+      roster: { days: [], profile: Object.assign({}, PROFILE, { pay_lag: 1 }) } }));
+    ok(pick(L3, 'perdiem').workYm === '2026-10' && pick(L3, 'flight').workYm === '2026-09', '★手当ごとの答えが優先（パーディアムは当月と答えた・変動給はスケジュールの答え）');
+    const two = R.alignCandidates([rep('2026-10', { block_hours: 25 })], MS.roster.byYm)[0];
+    ok(two.candidate === -2 && two.compare.length === 3, '明細の乗務時間が前々月のスケジュールと合えば候補は「前々月」', JSON.stringify(two.compare.map((c) => c.offset)));
+  }
+  {
     const fl10 = MS.months[1].lines.find((l) => l.labelKey === 'flight pay');
     ok(fl10.workYm === '2026-09' && fl10.mapKey === 'k:flight' && fl10.offset === -1, '対応表 k:flight（前月）→ 10月の変動給は9月の勤務');
     const un = MS.months[0].lines.find((l) => l.kind === 'unexplained');

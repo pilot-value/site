@@ -54,6 +54,9 @@
       uDays: '日', uLegs: '便',
       partialOf: '{c}日ぶん（この月は{n}日）',
       cumK: '勤務時間の累計', cumTo: '{d}まで', dayK: 'この日', mdT: '{n}月{d}日',
+      lagLine: '{t}に飛んだ分は、{p}の給与明細に出ます。', lagH: 'スケジュールと給与明細の月',
+      lagQ: '飛んだ分（乗務手当・パーディアムなど）は、何月の給与明細に出ますか？',
+      lag0: '同じ月', lag1: '翌月', lag2: '翌々月', lagU: 'わからない', lagSaved: '保存しました。', lagErr: '保存できませんでした。もう一度お試しください。',
       gapsOf: '時刻が読めない日（{n}日）を除く',
       calH: '{t}',
       calHint: '日付を選ぶと、その日の便と勤務が出ます',
@@ -110,6 +113,9 @@
       uDays: '', uLegs: '',
       partialOf: '{c} of {n} days',
       cumK: 'Duty time so far', cumTo: 'Through {d}', dayK: 'That day', mdT: '{s} {d}',
+      lagLine: 'Flying in {t} is paid on your {p} payslip.', lagH: 'Roster month and payslip month',
+      lagQ: 'Which month’s payslip pays for your flying (flight pay, per diem, etc.)?',
+      lag0: 'Same month', lag1: 'Next month', lag2: 'Two months later', lagU: 'Not sure', lagSaved: 'Saved.', lagErr: 'Couldn’t save. Please try again.',
       gapsOf: 'excl. {n} days without readable times',
       calH: '{t}',
       calHint: 'Pick a date to see its flights and duty',
@@ -163,6 +169,9 @@
       uDays: '', uLegs: '',
       partialOf: '{c} de {n} días',
       cumK: 'Tiempo de servicio acumulado', cumTo: 'Hasta {d}', dayK: 'Ese día', mdT: '{s} {d}',
+      lagLine: 'Lo volado en {t} se paga en tu nómina de {p}.', lagH: 'Mes de la programación y mes de la nómina',
+      lagQ: '¿En la nómina de qué mes se paga lo que vuelas (pago por vuelo, viáticos, etc.)?',
+      lag0: 'Mismo mes', lag1: 'Mes siguiente', lag2: 'Dos meses después', lagU: 'No lo sé', lagSaved: 'Guardado.', lagErr: 'No se pudo guardar. Inténtalo de nuevo.',
       gapsOf: 'excluye {n} días sin horas legibles',
       calH: '{t}',
       calHint: 'Elige una fecha para ver sus vuelos y servicios',
@@ -535,7 +544,14 @@
             (t.s ? '<small>' + esc(t.s) + '</small>' : '') + (t.n ? '<small class="is-miss">' + esc(t.n) + '</small>' : '') + '</span>' +
           '<b class="rs-kpi-v">' + esc(t.b) + (t.u ? '<small>' + esc(t.u) + '</small>' : '') + '</b></li>';
       }).join('') + '</ul>' +
+      lagLineHTML() +
       (note ? '<p class="rs-kpi-n">' + esc(note) + '</p>' : '') + '</section>';
+  }
+  /* ★2026-11-11 この月に飛んだ分が出る給与明細の月（読み方の pay_lag・取り込みのときに聞いた答え）。わからない・まだのときは出さない */
+  function lagLineHTML() {
+    var lag = S.profile ? S.profile.pay_lag : null;
+    if (!S.ym || !(lag === 0 || lag === 1 || lag === 2)) return '';
+    return '<p class="rs-lag">' + esc(fill(T.lagLine, { t: monthTitle(S.ym), p: monthTitle(ymAdd(S.ym, lag)) })) + '</p>';
   }
   function legHTML(l) {
     var tag = '';
@@ -611,9 +627,29 @@
 
   /* ★2026-11-11 提出資料の一覧と削除は MY PAY の「設定」タブへ移した（オーナー「設定タブで自分が提出したものを削除・編集」）。
        設定タブが mountDocs(el) で置き場所を渡す。消す処理（delDoc）と状態はこのタブと同じもの。 */
+  /* ★2026-11-11 設定タブで「飛んだ分は何月の給与明細に出るか」を変えられる（取り込みのときに聞いた答え） */
+  function lagCardHTML() {
+    if (!S.airline || S.loading) return '';
+    var lag = S.profile ? S.profile.pay_lag : null;
+    return '<section class="rs-card rs-lagc"><div class="rs-card-h"><h3 class="rs-card-t">' + esc(T.lagH) + '</h3></div>' +
+      '<p class="rs-muted rs-lagq">' + esc(T.lagQ) + '</p><div class="ru-chips is-sm">' +
+      [[0, T.lag0], [1, T.lag1], [2, T.lag2], [-1, T.lagU]].map(function (o) {
+        var on = lag === o[0];
+        return '<button type="button" class="ru-chip' + (on ? ' is-on' : '') + '" data-act="lag" data-v="' + o[0] + '" aria-pressed="' + on + '">' + esc(o[1]) + '</button>';
+      }).join('') + '</div>' + (S.lagMsg ? '<p class="rs-muted" role="status">' + esc(S.lagMsg) + '</p>' : '') + '</section>';
+  }
+  function setLag(v) {
+    if (S.busy || !S.airline) return;
+    S.busy = true; S.lagMsg = '';
+    S.sb.rpc('set_roster_profile', { p_airline: S.airline, p_airline_other: S.other, p: { pay_lag: v } }).then(function (r) {
+      S.busy = false;
+      if (r && !r.error && r.data && r.data.ok) { S.profile = r.data.profile || S.profile; S.lagMsg = T.lagSaved; render(); announce(); }
+      else { S.lagMsg = T.lagErr; paintDocs(); }
+    }, function () { S.busy = false; S.lagMsg = T.lagErr; paintDocs(); });
+  }
   function paintDocs() {
     if (!S.docsEl) return;
-    S.docsEl.innerHTML = '<div class="rs">' + (docsHTML() || (S.loading ? '<div class="mr-skel" style="height:120px"></div>'
+    S.docsEl.innerHTML = '<div class="rs">' + lagCardHTML() + (docsHTML() || (S.loading ? '<div class="mr-skel" style="height:120px"></div>'
       : '<section class="rs-card rs-docs"><div class="rs-card-h"><h3 class="rs-card-t">' + esc(T.docsH) + '</h3></div>' +
         '<p class="rs-muted">' + esc(T.docsNone) + '</p><button type="button" class="rs-btn is-primary rs-docs-up" data-act="docs-up">' + ICON_PLUS + esc(T.upT) + '</button></section>')) + '</div>';
   }
@@ -850,6 +886,7 @@
     else if (act === 'del-yes') delDoc(t.getAttribute('data-id'));
     else if (act === 'edit') openEdit(t.getAttribute('data-id'));
     else if (act === 'docs-up' && S.docsOpt && typeof S.docsOpt.upload === 'function') S.docsOpt.upload();
+    else if (act === 'lag') setLag(+t.getAttribute('data-v'));
   }
   function onChange(e) {
     var t = e.target, act = t.getAttribute && t.getAttribute('data-act');
@@ -942,7 +979,8 @@
       var main = S.el.querySelector('.rs-main'), box = S.el.querySelector('.rs-upbox');
       main.hidden = true; box.hidden = false;
       var ctx = { sb: S.sb, airline: S.airline, other: S.other, airlineLabel: airlineName(S.airline, S.other),
-                  profile: S.profile, learned: null, done: closeUpload };
+                  profile: S.profile, learned: null, done: closeUpload,
+                  reports: (S.ctx && S.ctx.reports) || [] };     // ★明細の乗務時間で「明細に出る月」を自動で選ぶため（2026-11-11）
       learned.then(function (j) { ctx.learned = j; });
       w.PVRosterUpload.open(box, ctx);
       var f = box.querySelector('h2, button');

@@ -80,6 +80,13 @@ alter table public.pv_roster_profile add column if not exists blank text;
 alter table public.pv_roster_profile drop constraint if exists pv_roster_profile_blank_check;
 alter table public.pv_roster_profile add constraint pv_roster_profile_blank_check
   check (blank is null or blank in ('off', 'none'));
+-- ★2026-11-11 スケジュールで飛んだ分が何か月あとの給与明細に出るか（オーナー「どの月がどの明細に紐づくかわかんないじゃん？
+--   自動でわかるといいけど、そうでない場合は勤務表アップロードした時点で最初にユーザーに聞いて」）。
+--   0 = 同じ月 ／ 1 = 翌月 ／ 2 = 翌々月 ／ -1 = 本人が「わからない」と答えた ／ null = まだ聞いていない。
+alter table public.pv_roster_profile add column if not exists pay_lag smallint;
+alter table public.pv_roster_profile drop constraint if exists pv_roster_profile_pay_lag_check;
+alter table public.pv_roster_profile add constraint pv_roster_profile_pay_lag_check
+  check (pay_lag is null or pay_lag between -1 and 2);
 -- この読み方がどの会社のものか（一覧の会社コード。「一覧にない会社」は null）。会社の辞書を会社ごとに数えるためだけに持つ。
 -- set_roster_profile が書くたびに入れる。前に貼った版の行は、下の「9-c」で鍵から当て直す。
 -- ★会員 × 一覧の全社の鍵を作って当てる重い当て直しは、この列を初めて足す貼り付けの1回だけ（印を立てて 9-c が見る）。
@@ -355,7 +362,7 @@ set search_path = public, extensions
 as $$
   select jsonb_build_object(
            'kind', r.kind, 'time_ref', r.time_ref, 'tz', r.tz,
-           'time_meaning', r.time_meaning, 'codes', r.codes, 'blank', r.blank,
+           'time_meaning', r.time_meaning, 'codes', r.codes, 'blank', r.blank, 'pay_lag', r.pay_lag,
            'share_company', r.share_company, 'updated_at', r.updated_at)
     from public.pv_roster_profile r
    where r.proof_hash = p_hash
@@ -936,6 +943,7 @@ declare
   v_codes jsonb;
   v_share boolean;
   v_blank text;
+  v_lag   smallint;
   v_air   text;
   v_n     int;
 begin
@@ -1000,6 +1008,16 @@ begin
   if p ? 'blank' then
     v_blank := public.pv_roster_txt(p, 'blank', '^(off|none)$', '空欄の日の意味');
   end if;
+  v_lag := v_old.pay_lag;
+  if p ? 'pay_lag' then        -- ★-1（わからない）があるので pv_roster_int（0 以上だけ）は使わない
+    if jsonb_typeof(p->'pay_lag') = 'null' then
+      v_lag := null;
+    elsif jsonb_typeof(p->'pay_lag') = 'number' and (p->>'pay_lag') in ('-1', '0', '1', '2') then
+      v_lag := (p->>'pay_lag')::smallint;
+    else
+      raise exception 'ロスターの給与明細に出る月が不正です' using errcode = '22023';
+    end if;
+  end if;
   if p ? 'codes' then
     if jsonb_typeof(p->'codes') = 'null' then
       v_codes := '{}'::jsonb;
@@ -1018,12 +1036,12 @@ begin
   end if;
 
   insert into public.pv_roster_profile as t
-         (proof_hash, kind, time_ref, tz, time_meaning, codes, share_company, blank, airline, updated_at)
-  values (v_key, v_kind, v_ref, v_tz, v_mean, v_codes, v_share, v_blank, v_air, now())
+         (proof_hash, kind, time_ref, tz, time_meaning, codes, share_company, blank, pay_lag, airline, updated_at)
+  values (v_key, v_kind, v_ref, v_tz, v_mean, v_codes, v_share, v_blank, v_lag, v_air, now())
   on conflict (proof_hash) do update
      set kind = excluded.kind, time_ref = excluded.time_ref, tz = excluded.tz,
          time_meaning = excluded.time_meaning, codes = excluded.codes,
-         share_company = excluded.share_company, blank = excluded.blank,
+         share_company = excluded.share_company, blank = excluded.blank, pay_lag = excluded.pay_lag,
          airline = excluded.airline, updated_at = now();
 
   return jsonb_build_object('ok', true, 'profile', public.pv_roster_profile_json(v_key));
@@ -1776,5 +1794,12 @@ union all select 21, '会社の辞書を読む口は表を引くだけ（数え�
              and strpos((select s from ac), 'pv_roster_profile') = 0
              and strpos((select s from ac), $o$v_air = 'other'$o$) > 0
              and length((select s from ac)) > 0
+            then '✅' else '❌' end
+union all select 22, '読み方に「給与明細に出る月」（pay_lag：-1〜2／null）の列と制約がある・保存の口が書き・読み方の形が返す',
+       case when exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'pv_roster_profile' and column_name = 'pay_lag')
+             and exists (select 1 from pg_constraint where conname = 'pv_roster_profile_pay_lag_check')
+             and strpos((select s from sp), $l$(p->>'pay_lag') in ('-1', '0', '1', '2')$l$) > 0
+             and strpos((select s from sp), 'pay_lag = excluded.pay_lag') > 0
+             and strpos(coalesce(pg_get_functiondef(to_regprocedure('public.pv_roster_profile_json(text)')), ''), $l$'pay_lag', r.pay_lag$l$) > 0
             then '✅' else '❌' end
 order by 1;

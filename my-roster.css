@@ -510,3 +510,7 @@ button.rs-cell:hover{border-color:var(--pv-accent)}
 }
 /* 選んだ日の板の D-ON → D-OFF の線も緑（上のカードの線と同じ色） */
 .rs-don-l,.rs-don-l::before,.rs-don-l::after{background:var(--rs-duty)}
+
+/* ── 2026-11-11 スケジュールと給与明細の月（上のカードの1行・設定タブのカード）── */
+.rs-hero .rs-lag{grid-column:1/-1;margin:6px 0 0;font-size:.8rem;line-height:1.6;color:var(--pv-ink-2)}
+.rs-lagc .rs-lagq{margin:0 0 12px}

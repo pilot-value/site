@@ -512,6 +512,16 @@ await asUser(1);
   ok(b3.profile.blank === 'none' && (await myRoster()).profile.blank === 'none', '空欄の意味 none を保存できる・my_roster も返す');
   const b4 = await setProfile({ blank: null });
   ok(b4.profile.blank === null, '空欄の意味は null で「まだ答えていない」に戻せる');
+  // ★2026-11-11 給与明細に出る月（pay_lag）：0 同じ月／1 翌月／2 翌々月／-1 わからない／null まだ聞いていない
+  ok(b4.profile.pay_lag === null && 'pay_lag' in b4.profile, 'まだ聞いていない「明細に出る月」は null（キーは在る）');
+  const g1 = await setProfile({ pay_lag: 1 });
+  const g2 = await setProfile({ kind: 'actual' });
+  ok(g1.profile.pay_lag === 1 && g2.profile.pay_lag === 1, '「翌月」を保存できる・ほかのキーだけ書いても前のまま');
+  const g3 = await setProfile({ pay_lag: -1 });
+  ok(g3.profile.pay_lag === -1 && (await myRoster()).profile.pay_lag === -1, '「わからない」（-1）も答えとして残る・my_roster も返す');
+  const g4 = await setProfile({ pay_lag: null });
+  ok(g4.profile.pay_lag === null, 'null で「まだ聞いていない」に戻せる');
+  await setProfile({ kind: 'planned' });
   // 勤務コードのキーに読み取りの印（#＋小文字の16進16字）
   const tk = await setProfile({ codes: { OFF: 'off', '#0123456789abcdef': 'vac', '#a0b1c2d3e4f5a6b7': 'unknown' } });
   ok(tk.ok && tk.profile.codes['#0123456789abcdef'] === 'vac' && tk.profile.codes['#a0b1c2d3e4f5a6b7'] === 'unknown',
@@ -539,6 +549,9 @@ await asUser(1);
     ['空欄の意味が大文字', { blank: 'OFF' }],
     ['空欄の意味が数', { blank: 1 }],
     ['空欄の意味が真偽', { blank: true }],
+    ['明細に出る月が範囲の外（3か月あと）', { pay_lag: 3 }],
+    ['明細に出る月が範囲の外（-2）', { pay_lag: -2 }],
+    ['明細に出る月が字', { pay_lag: '1' }],
   ];
   for (const [label, p] of badP) {
     const e = await boom(`select set_roster_profile('emirates', null, $1::jsonb)`, [JSON.stringify(p)]);
@@ -1104,7 +1117,7 @@ const TAIL = SRC.slice(SRC.indexOf('-- ── 11. 検算'));
   const before = await cnt('pv_roster_days');
   const res = await db.exec(SRC);
   const chk = res[res.length - 1].rows;
-  ok(chk.length === 21 && chk.every((x) => x['判定'] === '✅'),
+  ok(chk.length === 22 && chk.every((x) => x['判定'] === '✅'),
      `★db/roster.sql の検算 ${chk.length} 行が全部 ✅`, chk.filter((x) => x['判定'] !== '✅').map((x) => x['#'] + ' ' + x['確かめること']).join(' | '));
   ok(await cnt('pv_roster_days') === before, 'もう一度流しても、入っている勤務表は消えない');
   ok(TAIL.length > 100, '（検算の部分だけを切り出せた）');

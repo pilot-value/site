@@ -174,6 +174,7 @@
     unexplained: { cat: 'unexplained', seg: 'rest',       col: null }           // 総支給 − 分かっている分
   };
   var KIND_ORDER = Object.keys(KINDS);
+  var LAG_CAT = { variable: 1, role: 1, allowance: 1 };   // スケジュールの「明細に出る月」で結ぶ区分（分析の「いつの勤務の分？」と同じ）
   var CAT_ORDER = ['fixed', 'role', 'variable', 'allowance', 'bonus', 'noncash', 'adjustment', 'unexplained'];
   var CATEGORIES = CAT_ORDER.map(function (c) {
     return { k: c, kinds: KIND_ORDER.filter(function (k) { return KINDS[k].cat === c; }) };
@@ -650,7 +651,7 @@
     return arr(payRows).map(function (p) {
       var ym = p.ym || ymOf(num(p.period_year), num(p.period_month));
       var slip = p.qty ? p.qty.block : hoursToMin(p.block_hours);
-      var compare = [0, -1].map(function (off) {
+      var compare = [0, -1, -2].map(function (off) {      // ★2026-11-11 翌々月払いもある（同じ月・前の月・前々月）
         var wy = ymAdd(ym, off), rm = by[wy], v = null;
         if (rm) { v = 0; kinds.forEach(function (k) { var x = rm.blockMin && rm.blockMin[k]; v = (v == null || x == null) ? null : v + x; }); }
         var diff = (slip != null && v != null) ? slip - v : null;
@@ -727,6 +728,20 @@
         } else if (hit.m.status === 'other') l.ownPeriod = true;
       });
     });
+    /* ★2026-11-11 スケジュールの取り込みで聞いた「飛んだ分は何か月あとの給与明細に出るか」（読み方の pay_lag：0〜2）。
+         手当ごとの答え（上の dict）が無い 変動給・役割・手当 の行は、この答えで勤務の月に結ぶ。手当ごとの答えが優先。
+         -1（わからない）と null（まだ聞いていない）は何もしない＝今までどおり手当ごとに聞く。 */
+    var prof = input.roster && input.roster.profile, lag = prof && isNum(prof.pay_lag) && prof.pay_lag >= 0 && prof.pay_lag <= 2 ? prof.pay_lag : null;
+    if (lag != null) {
+      months.forEach(function (mo) {
+        mo.lines.forEach(function (l) {
+          var k = KINDS[l.kind];
+          if (l.mapStatus || !k || !LAG_CAT[k.cat]) return;
+          l.mapStatus = 'profile'; l.offset = -lag; l.workYm = ymAdd(mo.ym, -lag);
+          offsets[-lag] = 1;
+        });
+      });
+    }
 
     var R = input.roster || {};
     var rms = Array.isArray(R.months) ? R.months : rosterMonths(R.days, R.profile);

@@ -128,6 +128,10 @@
       errDays: '一度に保存できるのは62日までです。ひと月ずつ取り込んでください。',
       /* 2026-11-10：何も書いていない日・知らない言葉・読めなかった日の候補・運営に知らせる */
       qBlank: '勤務表で何も書いていない日は？', qBlankOff: '休み', qBlankNone: '何も無い日',
+      qLag: 'このスケジュールで飛んだ分（乗務手当・パーディアムなど）は、何月の給与明細に出ますか？',
+      qLagS: '例：9月に飛んだ分が10月の明細に出るなら「翌月」。',
+      qLagAuto: '明細の乗務時間とぴったり合う月を選んでおきました。違えば選び直してください。',
+      qLag0: '同じ月', qLag1: '翌月', qLag2: '翌々月', qLagU: 'わからない',
       dlD: '{list}日', dlM: '{n}月{list}日', dlSep: '・', dlGrp: '・',
       chipStd: { OFF: '休み', VAC: '休暇', SBY: '待機', TRN: '訓練', GND: '地上' },
       sugApply: 'この内容で決める（{n}日）', sugA: '候補',
@@ -231,6 +235,10 @@
       errLogin: 'Your login has expired. Reload the page and log in again.',
       errDays: 'Up to 62 days can be saved at once. Please import one month at a time.',
       qBlank: 'Days with nothing printed are…', qBlankOff: 'Day off', qBlankNone: 'Nothing (don’t save)',
+      qLag: 'Which month’s payslip pays for the flying on this roster (flight pay, per diem, etc.)?',
+      qLagS: 'E.g. if September’s flying is paid on your October payslip, choose “Next month”.',
+      qLagAuto: 'We picked the month whose payslip flight hours match exactly. Change it if that’s wrong.',
+      qLag0: 'Same month', qLag1: 'Next month', qLag2: 'Two months later', qLagU: 'Not sure',
       dlD: '{s} {list}', dlM: '{s} {list}', dlSep: ', ', dlGrp: '; ',
       chipStd: { OFF: 'Off', VAC: 'Leave', SBY: 'Standby', TRN: 'Training', GND: 'Ground' },
       sugApply: 'Apply these ({n} days)', sugA: 'suggested',
@@ -333,6 +341,10 @@
       errLogin: 'Tu sesión expiró. Vuelve a cargar la página e inicia sesión de nuevo.',
       errDays: 'Se pueden guardar hasta 62 días a la vez. Importa un mes a la vez.',
       qBlank: 'Los días sin nada impreso son…', qBlankOff: 'Día libre', qBlankNone: 'Nada (no se guardan)',
+      qLag: '¿En la nómina de qué mes se paga lo volado en esta programación (pago por vuelo, viáticos, etc.)?',
+      qLagS: 'Por ejemplo, si lo volado en septiembre se paga en la nómina de octubre, elige «Mes siguiente».',
+      qLagAuto: 'Elegimos el mes cuyas horas de vuelo coinciden exactamente con la nómina. Cámbialo si no es correcto.',
+      qLag0: 'Mismo mes', qLag1: 'Mes siguiente', qLag2: 'Dos meses después', qLagU: 'No lo sé',
       dlD: '{list} {s}', dlM: '{list} {s}', dlSep: ', ', dlGrp: '; ',
       chipStd: { OFF: 'Libre', VAC: 'Vacaciones', SBY: 'Standby', TRN: 'Entrenamiento', GND: 'Tierra' },
       sugApply: 'Aplicar estos ({n} días)', sugA: 'sugerido',
@@ -1062,12 +1074,14 @@
     var pr = U.ctx.profile || {}, lr = learned();
     return { kind: !pr.kind && !lr.kind, ref: !pr.time_ref && !lr.time_ref, mean: !pr.time_meaning && !lr.time_meaning,
              blank: !pr.blank && !lr.blank && blankDates().length > 0,
+             lag: pr.pay_lag == null,                        // ★2026-11-11 明細に出る月（会社ごとに1回・答えは -1〜2）
              codes: unknownCodes().filter(function (c) { return !lr.codes[c]; }) };
   }
   function needAsk() {
     var q = asks();
-    if (!q.kind && !q.ref && !q.mean && !q.blank && !q.codes.length) return false;
+    if (!q.kind && !q.ref && !q.mean && !q.blank && !q.lag && !q.codes.length) return false;
     if (!U.asked) return true;
+    if (q.lag && !U.seen['@lag']) return true;
     if (q.blank && !U.seen['@blank']) return true;               // 足したスクリーンショットで、何も書いていない日が初めて出たとき
     return q.codes.some(function (c) { return !U.seen[c]; });   // 足したスクリーンショットで新しいコードが出たときだけ聞き直す
   }
@@ -1076,6 +1090,23 @@
     U.asked = true;
     q.codes.forEach(function (c) { U.seen[c] = 1; });
     if (q.blank) U.seen['@blank'] = 1;
+    if (q.lag) U.seen['@lag'] = 1;
+  }
+  /* ★2026-11-11 オーナー「どの月がどの明細に紐づくかわかんないじゃん？本当は自動でわかるといいけど、そうでない場合は
+       勤務表アップロードした時点で最初にユーザーに聞いて」。同じ会社の給与の明細の乗務時間が、このスケジュールの
+       同じ月・前の月・前々月のどれか1つとぴったり合えば、その答えを選んでおく（pv-report-engine.js の alignCandidates）。 */
+  function lagGuess() {
+    try {
+      if (!R || !R.alignCandidates || !R.rosterMonths) return null;
+      var oth = String(U.ctx.other || '').toLowerCase();
+      var reps = (U.ctx.reports || []).filter(function (r) {
+        return r && r.airline === U.ctx.airline && (U.ctx.airline !== 'other' || String(r.airline_other || '').toLowerCase() === oth);
+      });
+      if (!reps.length) return null;
+      var c = R.alignCandidates(reps, R.rosterMonths(U.merged.days, U.ctx.profile || {}))
+        .filter(function (x) { return x.candidate != null && !x.ambiguous; }).map(function (x) { return -x.candidate; });
+      return c.length && c.every(function (v) { return v === c[0]; }) ? c[0] : null;
+    } catch (e) { return null; }
   }
   function chipsHTML(q, cur, opts, c) {
     return '<div class="ru-chips">' + opts.map(function (o) {
@@ -1094,6 +1125,11 @@
     if (q.mean) h += qSet(T.qMean, chipsHTML('mean', a.time_meaning, [['block', T.qMeanB], ['flight', T.qMeanF], ['other', T.qMeanO]]));
     if (q.blank) h += qSet(T.qBlank, '<p class="ru-qs ru-dl">' + esc(datesLabel(blankDates())) + '</p>' +
       chipsHTML('blank', a.blank, [['off', T.qBlankOff], ['none', T.qBlankNone]]));
+    if (q.lag) {
+      if (a.pay_lag == null && U.lagAuto === undefined) { U.lagAuto = lagGuess(); if (U.lagAuto != null) a.pay_lag = String(U.lagAuto); }
+      h += qSet(T.qLag, '<p class="ru-qs ru-dl">' + esc(U.lagAuto != null ? T.qLagAuto : T.qLagS) + '</p>' +
+        chipsHTML('lag', a.pay_lag, [['0', T.qLag0], ['1', T.qLag1], ['2', T.qLag2], ['-1', T.qLagU]]));
+    }
     if (q.codes.length) {
       var opts = CODE_OPTS.map(function (o) { return [o, T.codeOpt[o]]; });
       h += '<fieldset class="ru-q"><legend>' + esc(T.qCodes) + '</legend><p class="ru-qs">' + esc(T.qCodesS) + '</p><div class="ru-codes">' +
@@ -1115,6 +1151,7 @@
     else if (q === 'ref') { a.time_ref = v; U.printed.time_ref = false; }
     else if (q === 'mean') a.time_meaning = v;
     else if (q === 'blank') { a.blank = v; applyBlank(); }
+    else if (q === 'lag') a.pay_lag = v;
     else if (q === 'code') (a.codes = a.codes || {})[P.canon(t.getAttribute('data-c'))] = v;
     [].forEach.call(t.parentNode.querySelectorAll('.ru-chip'), function (b) {
       var on = b === t;
@@ -1384,6 +1421,7 @@
     pr = pr || {}; a = a || {};
     var p = {}, any = false;
     ['kind', 'time_ref', 'time_meaning', 'blank'].forEach(function (k) { if (!pr[k] && a[k]) { p[k] = a[k]; any = true; } });
+    if (pr.pay_lag == null && /^(-1|0|1|2)$/.test(String(a.pay_lag))) { p.pay_lag = Number(a.pay_lag); any = true; }   // ★明細に出る月（2026-11-11）
     var add = {};
     Object.keys(a.codes || {}).forEach(function (k) { if (a.codes[k]) add[k] = a.codes[k]; });
     if (Object.keys(add).length) {
