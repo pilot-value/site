@@ -1332,6 +1332,13 @@ CLAUDE.md 側にあり、ここにあるのは **各検査が何を約束して�
     - **`assert-pay-rows.mjs` の R-3 が落ちた** ── `actual-pay.js` の `warnMark` / `warnText`。
       far だけの行の出力は前と1文字も違わない作りにしてある（R の節がそのまま通る）。
       ⚠️ `actual-pay.js` を直したら `?v=` を付け替える（`assert-links.mjs` が指紋を教える）。
+    - **「1枚目から出し直すと前の束ごと入れ替わる」「6枚目は受け取らない」が落ちた**（2026-11-11）── 画像の主キーが
+      `(user_id, n)` でなくなったか、`pv_proof_submit` の n=1 の delete を消した。前の画像の上に1枚だけ足された束を運営が見ることになる。
+      上限の枚数は `pv_proof_max_images()` の1か所だけ（制約にも関数にも数字を直書きしない）。
+    - **`db/test-proof-offer.mjs` の「main の db/pilot-proof.sql の I は…前提にした形のまま」が落ちた** ── 画像の表の節を直した。
+      `db/proof-offer.sql` の上書き（`on conflict (user_id, n)`・n=1）がそれで通るか確かめてから、指紋を取り直す。
+    - **「理由は見出しの下に、運営が書いた字のまま出る」が落ちた** ── 理由を esc を通さずに描いたか、置き場所を変えた。
+      理由は運営の入力で、会員の画面にそのまま出る。タグとして読ませない。
     - **`assert-admin.mjs` の「サーバーの入口だけを使っている」が落ちた** ── 管理画面が最初に呼ぶ入口の並びは
       `pv_is_admin → admin_list_profiles → admin_list_reviews → admin_list_proofs`。
       4本目が失敗しても、前の2つの表は出す（`proofReady`）。ここを `usersRes.error` と同じ扱いにすると、

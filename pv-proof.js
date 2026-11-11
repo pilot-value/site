@@ -22,7 +22,14 @@
 
    ⚠️ **会員を名指しで書かない**（公開リポジトリ）。止める相手は admin.html で決める。
    ⚠️ 文言に「確認後の画像の扱い」を書かない（オーナー指示）。
-   ⚠️ 文言を直すときは日英を一緒に。見ているのは assert-proof.mjs。
+   ⚠️ 文言を直すときは日英を一緒に（スペイン語は node gen-msg.mjs が書く）。見ているのは assert-proof.mjs。
+   ★2026-11-11 オーナー指示「提出を求めるときの理由も提示しよう」「定期運送用操縦士・准定期運送用操縦士・
+     特定操縦技能審査／確認とかもいれてね。複数枚提出も可能」
+     → 運営が書いた理由を見出しの下に出す（サーバの pv_proof_state が本人にだけ返す reason）。
+       画像は1回の提出で max 枚まで（サーバが pv_proof_state で返す。返さない古いサーバには1枚）。
+       送るのは1回の通信で1枚ずつ（p_n = 1, 2, …）。1枚目から送り直すと、サーバは前の束を入れ替える。
+   ⚠️ 下の K1（var CSS）・K4（画像の焼き直し）・K5（hush〜unlock）は pv-proof-offer.js と1文字も違わない
+      約束（assert-proof-offer.mjs が指紋で見ている）。この板だけの見た目は CSS_MORE に足す。
 ════════════════════════════════════════════════════════════════ */
 (function (w, d) {
   'use strict';
@@ -31,56 +38,109 @@
   if (!S || typeof S.proofDue !== 'function' || w.__pvProof) return;
   w.__pvProof = true;
 
-  var L = (d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';
+  /* スペイン語のページは英語と同じ動き（pv-session.js の PV_BASE）。字はスペイン語の辞書（下の T）。 */
+  var L = (w.PV_BASE === 'en' || d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';
 
   var T = {
     ja: {
       t:       'パイロットであることの確認をお願いします',
-      lead:    'このアカウントは現在、ご利用を停止しています。パイロットであることが分かる画像を1枚ご提出ください。確認ができしだい、ご利用いただけるようになります。',
+      lead:    'このアカウントは現在、ご利用を停止しています。パイロットであることが分かる画像をご提出ください。確認ができしだい、ご利用いただけるようになります。',
+      many:    '画像は{n}枚まで出せます。',
+      whyT:    '確認をお願いする理由',
       again:   'ご提出いただいた画像では確認できませんでした。お手数ですが、別の画像をご提出ください。',
       exT:     '提出できる画像の例',
-      ex:      ['肩章', 'ウィングバッジ', '事業用操縦士の免許証', '勤務表'],
+      ex:      ['肩章', 'ウィングバッジ', '定期運送用操縦士の免許証', '准定期運送用操縦士の免許証', '事業用操縦士の免許証', '特定操縦技能審査／確認の記録', '勤務表'],
       etc:     'など',
       pick:    '画像を選んで提出する',
-      pickedS: 'この画像を提出します。よろしければ下のボタンを押してください。',
+      pickedS: '選んだ画像を提出します。よろしければ下のボタンを押してください。',
+      add:     '画像を足す',
+      count:   '{k}／{n}枚',
+      rm:      '{i}枚目を外す',
       send:    'この画像を提出する',
+      sendN:   '{k}枚の画像を提出する',
       sending: '送信しています…',
+      sendingN: '送信しています…（{i}／{k}）',
       repick:  '選び直す',
       doneT:   '画像を受け取りました',
       doneS:   '運営が確認するまでお待ちください。確認ができしだい、ご利用いただけるようになります。',
       redo:    '別の画像を出し直す',
       out:     'ログアウト',
       contact: 'お問い合わせ',
-      alt:     '提出する画像',
+      alt:     '提出する画像 {i}',
       eType:   'この画像は読み込めませんでした。JPEG か PNG の画像を選んでください。',
       eBig:    '画像が大きすぎます。別の画像を選んでください。',
       eNet:    '送信できませんでした。通信状況を確かめて、もう一度お試しください。',
+      ePart:   '一部の画像を送れませんでした。お手数ですが、もう一度すべて提出してください。',
+      eMax:    '画像は{n}枚まで選べます。',
       eMany:   '提出の回数が上限に達しました。お問い合わせからご連絡ください。'
     },
     en: {
       t:       'Please confirm that you are a pilot',
-      lead:    'This account is currently suspended. Please submit one image showing that you are a pilot. Access will be restored once we have confirmed it.',
+      lead:    'This account is currently suspended. Please submit images showing that you are a pilot. Access will be restored once we have confirmed it.',
+      many:    'You can submit up to {n} images.',
+      whyT:    'Why we are asking',
       again:   'We could not confirm it from the image you submitted. Please submit a different one.',
       exT:     'Examples of what you can submit',
-      ex:      ['Epaulettes', 'Wing badge', 'Commercial pilot licence', 'Roster'],
+      ex:      ['Epaulettes', 'Wing badge', 'Airline transport pilot licence (ATPL)', 'Multi-crew pilot licence (MPL)', 'Commercial pilot licence', 'Proficiency check record', 'Roster'],
       etc:     'etc.',
       pick:    'Choose an image to submit',
-      pickedS: 'This image will be submitted. If it looks right, press the button below.',
+      pickedS: 'The images below will be submitted. If they look right, press the button below.',
+      add:     'Add an image',
+      count:   '{k} of {n}',
+      rm:      'Remove image {i}',
       send:    'Submit this image',
+      sendN:   'Submit {k} images',
       sending: 'Sending…',
-      repick:  'Choose another',
+      sendingN: 'Sending… ({i} of {k})',
+      repick:  'Choose again',
       doneT:   'We have received your image',
       doneS:   'Please wait while we review it. Access will be restored once we have confirmed it.',
       redo:    'Submit a different image',
       out:     'Log out',
       contact: 'Contact us',
-      alt:     'The image you are submitting',
+      alt:     'Image {i} you are submitting',
       eType:   'This image could not be read. Please choose a JPEG or PNG image.',
       eBig:    'This image is too large. Please choose a different one.',
       eNet:    'It could not be sent. Please check your connection and try again.',
+      ePart:   'Some of the images could not be sent. Please submit them all again.',
+      eMax:    'You can choose up to {n} images.',
       eMany:   'You have reached the submission limit. Please get in touch via the contact page.'
-    }
-  }[L];
+    }, /*PV-MSG:es*/ es: {
+      t:       'Confirma que eres piloto',
+      lead:    'Esta cuenta está suspendida por ahora. Envía imágenes que muestren que eres piloto. Restableceremos el acceso en cuanto lo confirmemos.',
+      many:    'Puedes enviar hasta {n} imágenes.',
+      whyT:    'Por qué te lo pedimos',
+      again:   'No pudimos confirmarlo con la imagen que enviaste. Envía otra, por favor.',
+      exT:     'Ejemplos de lo que puedes enviar',
+      ex:      ['Hombreras (galones)', 'Alas (insignia de piloto)', 'Licencia de piloto de transporte de línea aérea (ATPL)', 'Licencia de piloto con tripulación múltiple (MPL)', 'Licencia de piloto comercial', 'Registro de verificación de competencia (chequeo)', 'Programación (rol de vuelo)'],
+      etc:     'etc.',
+      pick:    'Elegir una imagen para enviar',
+      pickedS: 'Se enviarán las imágenes de abajo. Si son correctas, presiona el botón de abajo.',
+      add:     'Agregar una imagen',
+      count:   '{k} de {n}',
+      rm:      'Quitar la imagen {i}',
+      send:    'Enviar esta imagen',
+      sendN:   'Enviar {k} imágenes',
+      sending: 'Enviando…',
+      sendingN: 'Enviando… ({i} de {k})',
+      repick:  'Elegir de nuevo',
+      doneT:   'Recibimos tu imagen',
+      doneS:   'Espera mientras la revisamos. Restableceremos el acceso en cuanto lo confirmemos.',
+      redo:    'Enviar otra imagen',
+      out:     'Cerrar sesión',
+      contact: 'Contacto',
+      alt:     'Imagen {i} que vas a enviar',
+      eType:   'No se pudo leer esta imagen. Elige una imagen JPEG o PNG.',
+      eBig:    'Esta imagen es demasiado grande. Elige otra.',
+      eNet:    'No se pudo enviar. Revisa tu conexión e inténtalo de nuevo.',
+      ePart:   'No se pudieron enviar algunas imágenes. Envíalas todas de nuevo, por favor.',
+      eMax:    'Puedes elegir hasta {n} imágenes.',
+      eMany:   'Alcanzaste el límite de envíos. Comunícate con nosotros desde la página de contacto.'
+    } /*/PV-MSG:es*/
+  };
+  T = (w.PV_T && w.PV_T(T, L)) || T[L];   // スペイン語の辞書（gen-msg.mjs が足す）があればそれ
+  /* '{n}' などの差し込み。字はそのまま（esc は描くときにする）。 */
+  function fill(s, o) { return String(s).replace(/\{(\w+)\}/g, function (m, k) { return o && o[k] != null ? String(o[k]) : m; }); }
 
   /* ── 見た目 ─────────────────────────────────────────────────── */
   var CSS = [
@@ -151,6 +211,48 @@
     '.pvpf-foot{display:flex;justify-content:center;gap:14px;margin:16px 0 0;padding:10px 0 0;',
       'border-top:1px solid var(--pv-line,rgba(15,23,42,.12))}',
     '@media (max-width:420px){.pvpf-card{padding:24px 20px 14px}.pvpf-t{font-size:1.04rem}}'
+  ].join('');
+
+  /* この板だけの見た目（2026-11-11）。K1 の上に重ねる（K1 は pv-proof-offer.js と共有なので触らない）。
+     物差しは MY PAY の作り直し：字は 700 まで・色は緑と黒と灰だけ・押せない物（例）は丸い枠にせず「 · 」でつなぐ。 */
+  var CSS_MORE = [
+    '.pvpf-card{border-top:1px solid var(--pv-line,rgba(15,23,42,.12));border-radius:20px;padding:26px 24px 16px}',
+    '.pvpf-t{font-weight:700;letter-spacing:-.02em}',
+    '.pvpf-ex{display:block;line-height:1.9}',
+    '.pvpf-ex li,.pvpf-ex li.pvpf-etc{display:inline;padding:0;border:0;border-radius:0;background:none;',
+      'font-size:.8rem;font-weight:600;color:var(--pv-ink-2,#334155)}',
+    '.pvpf-ex li+li::before{content:" \u00b7 ";font-weight:400;color:var(--pv-ink-3,#64748b)}',
+    '.pvpf-ex li.pvpf-etc{font-weight:400;color:var(--pv-ink-3,#64748b)}',
+    '.pvpf-ex li.pvpf-etc::before{content:" "}',
+    '.pvpf-why{margin:16px 0 0;padding:12px 14px;border-radius:12px;background:var(--pv-bg-sub,#f7f9fc);',
+      'border:1px solid var(--pv-line,rgba(15,23,42,.12))}',
+    '.pvpf-whyT{margin:0;font-size:.72rem;font-weight:700;color:var(--pv-ink-3,#64748b)}',
+    '.pvpf-whyB{margin:4px 0 0;font-size:.86rem;font-weight:600;line-height:1.7;color:var(--pv-ink,#0f172a);',
+      'white-space:pre-line;overflow-wrap:anywhere}',
+    '.pvpf-many{margin:6px 0 0;font-size:.78rem;line-height:1.6;color:var(--pv-ink-3,#64748b)}',
+    '.pvpf-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:16px 0 0}',
+    '.pvpf-th{position:relative;margin:0;aspect-ratio:1/1;border:1px solid var(--pv-line,rgba(15,23,42,.12));',
+      'border-radius:12px;overflow:hidden;background:var(--pv-line-soft,#eef2f7)}',
+    '.pvpf-th img{display:block;width:100%;height:100%;object-fit:cover}',
+    '.pvpf-x{position:absolute;top:6px;right:6px;display:flex;align-items:center;justify-content:center;',
+      'width:28px;height:28px;margin:0;padding:0;border:0;border-radius:999px;background:rgba(15,23,42,.72);',
+      'color:#fff;font:inherit;font-size:17px;line-height:1;cursor:pointer;',
+      'transition:transform .18s cubic-bezier(.34,1.3,.64,1),opacity .18s var(--pv-ease,ease)}',
+    '.pvpf-x:hover{background:rgba(15,23,42,.9)}',
+    '.pvpf-x:focus-visible{outline:2px solid var(--pv-accent,#0a8f79);outline-offset:2px}',
+    '.pvpf-x:active{transform:scale(.9)}',
+    '.pvpf-x[disabled]{opacity:.4;cursor:default;transform:none}',
+    '.pvpf-addT{display:flex;align-items:center;justify-content:center;margin:0;padding:8px;aspect-ratio:1/1;',
+      'border:1px dashed var(--pv-accent-line,#bfe6db);border-radius:12px;background:var(--pv-accent-soft,#e7f5f1);',
+      'color:var(--pv-accent-dark,#067563);font:inherit;font-size:.78rem;font-weight:700;line-height:1.4;',
+      'text-align:center;cursor:pointer;transition:transform .18s cubic-bezier(.34,1.3,.64,1),opacity .18s var(--pv-ease,ease)}',
+    '.pvpf-addT:hover{opacity:.85}',
+    '.pvpf-addT:focus-visible{outline:2px solid var(--pv-accent,#0a8f79);outline-offset:2px}',
+    '.pvpf-addT:active{transform:scale(.97)}',
+    '.pvpf-addT[disabled]{opacity:.5;cursor:default;transform:none}',
+    '.pvpf-cnt{margin:8px 0 0;font-size:.74rem;color:var(--pv-ink-3,#64748b);text-align:right;',
+      'font-variant-numeric:tabular-nums}',
+    '@media (max-width:420px){.pvpf-card{padding:22px 18px 12px}}'
   ].join('');
 
   function esc(s) {
@@ -246,9 +348,11 @@
 
   /* ── 板 ─────────────────────────────────────────────────────── */
   var back = null, card = null, file = null;
-  var cur = { state: 'required', again: false };
-  var picked = null;        // {b64, url}
-  var busy = false, errText = '';
+  var cur = { state: 'required', again: false, reason: '', max: 0 };
+  var picked = [];          // [{b64, url}]。1回の提出で max 枚まで
+  var busy = false, errText = '', sendAt = 0;
+  /* 出せる枚数。サーバが返さない（古い pv_proof_state）ときは1枚＝今までの送り方のまま。 */
+  function maxImages() { var n = Math.floor(Number(cur.max) || 0); return n >= 1 ? Math.min(n, 9) : 1; }
   var inerted = [], watch = null, lastCheck = 0;
 
   function footHTML() {
@@ -262,14 +366,23 @@
     var err = errText ? '<p class="pvpf-err" role="alert">' + esc(errText) + '</p>' : '';
     var dis = busy ? ' disabled' : '';
 
-    if (picked) {
+    if (picked.length) {
+      var max = maxImages(), k = picked.length;
+      var tiles = picked.map(function (p, i) {
+        return '<figure class="pvpf-th"><img src="' + esc(p.url) + '" alt="' + esc(fill(T.alt, { i: i + 1 })) + '">'
+             + '<button type="button" class="pvpf-x" data-act="rm" data-i="' + i + '" aria-label="'
+             +   esc(fill(T.rm, { i: i + 1 })) + '"' + dis + '>\u00d7</button></figure>';
+      }).join('');
+      if (k < max) tiles += '<button type="button" class="pvpf-addT" data-act="add"' + dis + '>' + esc(T.add) + '</button>';
+      var label = busy ? (k > 1 ? fill(T.sendingN, { i: sendAt, k: k }) : T.sending)
+                       : (k > 1 ? fill(T.sendN, { k: k }) : T.send);
       return '<h2 class="pvpf-t" id="pvpf-t">' + esc(T.t) + '</h2>'
            + '<p class="pvpf-s">' + esc(T.pickedS) + '</p>'
-           + '<div class="pvpf-prev"><img src="' + esc(picked.url) + '" alt="' + esc(T.alt) + '"></div>'
+           + '<div class="pvpf-grid">' + tiles + '</div>'
+           + (max > 1 ? '<p class="pvpf-cnt">' + esc(fill(T.count, { k: k, n: max })) + '</p>' : '')
            + err
            + '<div class="pvpf-b">'
-           +   '<button type="button" class="pvpf-go" data-act="send"' + dis + '>'
-           +     esc(busy ? T.sending : T.send) + '</button>'
+           +   '<button type="button" class="pvpf-go" data-act="send"' + dis + '>' + esc(label) + '</button>'
            +   '<button type="button" class="pvpf-re" data-act="pick"' + dis + '>' + esc(T.repick) + '</button>'
            + '</div>'
            + footHTML();
@@ -285,13 +398,20 @@
            + footHTML();
     }
 
+    /* 運営が書いた理由（本人にだけ届く）。字は esc を通して描く＝タグとしては読まない。 */
+    var why = cur.reason
+      ? '<div class="pvpf-why"><p class="pvpf-whyT">' + esc(T.whyT) + '</p>'
+        + '<p class="pvpf-whyB">' + esc(cur.reason) + '</p></div>'
+      : '';
     return '<h2 class="pvpf-t" id="pvpf-t">' + esc(T.t) + '</h2>'
          + '<p class="pvpf-s">' + esc(cur.again ? T.again : T.lead) + '</p>'
+         + why
          + '<p class="pvpf-exT">' + esc(T.exT) + '</p>'
          + '<ul class="pvpf-ex">'
          +   T.ex.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('')
          +   '<li class="pvpf-etc">' + esc(T.etc) + '</li>'
          + '</ul>'
+         + (maxImages() > 1 ? '<p class="pvpf-many">' + esc(fill(T.many, { n: maxImages() })) + '</p>' : '')
          + err
          + '<div class="pvpf-b">'
          +   '<button type="button" class="pvpf-go" data-act="pick">' + esc(T.pick) + '</button>'
@@ -309,53 +429,93 @@
     try { f.focus({ preventScroll: true }); } catch (e) {}
   }
 
-  function dropPicked() {
-    if (picked && picked.url) { try { w.URL.revokeObjectURL(picked.url); } catch (e) {} }
-    picked = null;
-  }
+  function revoke(p) { if (p && p.url) { try { w.URL.revokeObjectURL(p.url); } catch (e) {} } }
+  function dropPicked() { picked.forEach(revoke); picked = []; }
 
-  function onPick() {
+  /* 選び直す（mode 'new'）／足す（'add'）。足すときは今の画像を残す。 */
+  var pickMode = 'new';
+  function onPick(mode) {
     if (busy || !file) return;
+    pickMode = mode === 'add' ? 'add' : 'new';
+    var room = maxImages() - (pickMode === 'add' ? picked.length : 0);
+    if (room < 1) { errText = fill(T.eMax, { n: maxImages() }); render(); return; }
+    file.multiple = room > 1;
     file.value = '';
     file.click();
   }
 
   function onFile() {
-    var f = file && file.files && file.files[0];
-    if (!f) return;
+    var list = Array.prototype.slice.call((file && file.files) || []);
+    if (!list.length) return;
     errText = '';
-    shrinkImage(f).then(function (r) {
-      dropPicked();
-      picked = { b64: r.b64, url: w.URL.createObjectURL(r.blob) };
-      render();
-    }, function (e) {
-      errText = (e && e.message === 'big') ? T.eBig : T.eType;
+    var keep = pickMode === 'add' ? picked.slice() : [];
+    var room = maxImages() - keep.length;
+    if (list.length > room) errText = fill(T.eMax, { n: maxImages() });
+    list = list.slice(0, Math.max(0, room));
+    var got = [], bad = '';
+    /* 1枚ずつ焼き直す（同時に何枚も canvas に描くと、古いスマホがメモリで落ちる） */
+    var step = function (i) {
+      if (i >= list.length) return Promise.resolve();
+      return shrinkImage(list[i]).then(function (r) {
+        got.push({ b64: r.b64, url: w.URL.createObjectURL(r.blob) });
+      }, function (e) {
+        bad = (e && e.message === 'big') ? T.eBig : T.eType;
+      }).then(function () { return step(i + 1); });
+    };
+    step(0).then(function () {
+      if (pickMode !== 'add') dropPicked();
+      picked = keep.concat(got);
+      if (bad) errText = bad;
       render();
     });
   }
 
-  function onSend() {
-    if (busy || !picked) return;
-    busy = true; errText = '';
+  function onRemove(i) {
+    if (busy || !(i >= 0 && i < picked.length)) return;
+    revoke(picked[i]);
+    picked.splice(i, 1);
+    errText = '';
     render();
-    rpc('pv_proof_submit', { p_image_b64: picked.b64 }, true).then(function (v) {
+  }
+
+  /* 1枚ずつ順に送る（p_n = 1, 2, …）。1枚目はサーバで「新しい提出」になり、前の束は入れ替わる。
+     ★古いサーバ（max を返さない）には、今までどおり画像1つだけを送る（p_n を付けない）。 */
+  function onSend() {
+    if (busy || !picked.length) return;
+    busy = true; errText = '';
+    var list = picked.slice(), many = maxImages() > 1;
+    var one = function (i) {
+      sendAt = i + 1;
+      render();
+      var args = many ? { p_image_b64: list[i].b64, p_n: i + 1 } : { p_image_b64: list[i].b64 };
+      return rpc('pv_proof_submit', args, true).then(function (v) {
+        if (v && v.ok) return i + 1 < list.length ? one(i + 1) : { ok: true };
+        return { ok: false, at: i, status: v && v.status };
+      }, function () { return { ok: false, at: i, status: 'net' }; });
+    };
+    one(0).then(function (r) {
       busy = false;
-      if (v && v.ok) {
+      if (r.ok) {
         dropPicked();
-        cur = { state: 'submitted', again: false };
+        cur = { state: 'submitted', again: false, reason: cur.reason, max: cur.max };
         S.proofWrite('submitted', false);
         render();
         return;
       }
-      var st = v && v.status;
+      var st = r.status;
       if (st === 'not_required') { released(); return; }   // 送る前に運営が承認していた
+      if (r.at > 0) {
+        // 途中まで届いた。サーバは確認待ちになっている。もう一度押すと1枚目から送り直す（束ごと入れ替わる）
+        cur = { state: 'submitted', again: false, reason: cur.reason, max: cur.max };
+        S.proofWrite('submitted', false);
+        errText = T.ePart;
+        render();
+        return;
+      }
       errText = st === 'too_many' ? T.eMany
               : st === 'image_too_big' ? T.eBig
               : st === 'image_bad' ? T.eType : T.eNet;
       if (st === 'image_too_big' || st === 'image_bad') dropPicked();
-      render();
-    }, function () {
-      busy = false; errText = T.eNet;
       render();
     });
   }
@@ -372,7 +532,9 @@
     var t = e.target && e.target.closest ? e.target.closest('[data-act]') : null;
     if (!t || !card || !card.contains(t)) return;
     var a = t.getAttribute('data-act');
-    if (a === 'pick') onPick();
+    if (a === 'pick') onPick('new');
+    else if (a === 'add') onPick('add');
+    else if (a === 'rm') onRemove(Number(t.getAttribute('data-i')));
     else if (a === 'send') onSend();
     else if (a === 'out') onOut();
   }
@@ -420,12 +582,12 @@
   function open() {
     if (back || !d.body) return;
     var r = S.proofRead();
-    cur = { state: r.s === 'submitted' ? 'submitted' : 'required', again: !!r.a };
+    cur = { state: r.s === 'submitted' ? 'submitted' : 'required', again: !!r.a, reason: cur.reason, max: cur.max };
 
     if (!d.getElementById('pvpf-css')) {
       var st = d.createElement('style');
       st.id = 'pvpf-css';
-      st.textContent = CSS;
+      st.textContent = CSS + CSS_MORE;
       (d.head || d.documentElement).appendChild(st);
     }
     /* Give → Get の板が先に出ていたら下ろす（同じ画面に板を2枚重ねない） */
@@ -471,10 +633,12 @@
     if (!v || typeof v.state !== 'string') return;
     if (v.state !== 'required' && v.state !== 'submitted') { released(); return; }
     S.proofWrite(v.state, !!v.again);
-    if (!back) { open(); return; }
-    if (busy || picked) return;                      // 選んでいる途中の画面は差し替えない
-    if (cur.state === v.state && cur.again === !!v.again) return;
-    cur = { state: v.state, again: !!v.again };
+    var next = { state: v.state, again: !!v.again,
+                 reason: typeof v.reason === 'string' ? v.reason : '', max: Number(v.max) || 0 };
+    if (!back) { cur = next; open(); cur = next; render(); return; }
+    if (busy || picked.length) { cur.reason = next.reason; cur.max = next.max; return; }   // 選んでいる途中の画面は差し替えない
+    if (cur.state === next.state && cur.again === next.again && cur.reason === next.reason && cur.max === next.max) return;
+    cur = next;
     render();
   }
 
