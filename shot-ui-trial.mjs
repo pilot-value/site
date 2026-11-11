@@ -77,19 +77,19 @@ const gate  = process.argv.includes('gate');
 
 const dir = path.join(__dirname, 'temporary screenshots');
 if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-const label = `ui-${process.env.UI || 'now'}-${scene}-${lang}-${theme}` + (vw !== 1440 ? `-${vw}` : '') + (process.env.VIEW ? '-view' : '') + (process.env.ACT ? '-' + process.env.ACT + (process.env.MID ? '-' + process.env.MID : '') : '');
+const label = `ui-${process.env.UI || 'now'}-${(process.env.PAGE || '').replace(/\.html$/, '')}${process.env.PAGE ? '-' : ''}${scene}-${lang}-${theme}` + (vw !== 1440 ? `-${vw}` : '') + (process.env.VIEW ? '-view' : '') + (process.env.ACT ? '-' + process.env.ACT.replace(/[^a-z0-9]+/gi, '_') + (process.env.MID ? '-' + process.env.MID : '') : '');
 let n = 1;
 while (fs.existsSync(path.join(dir, `screenshot-${n}-${label}.png`))) n++;
 const outPath = path.join(dir, `screenshot-${n}-${label}.png`);
 
 const UI = process.env.UI || '';
-const url = `http://localhost:${process.env.PV_PORT || 3210}/${lang === 'en' ? 'en/' : ''}profile.html` +
-            '?' + (UI ? 'ui=' + UI + '&' : '') + (process.argv.includes('open') ? '' : 'sw=0') + (process.env.PG === 'page' ? '' : '#your-pay');
+const url = `http://localhost:${process.env.PV_PORT || 3210}/${lang === 'en' ? 'en/' : ''}${process.env.PAGE || 'profile.html'}` +
+            '?' + (UI ? 'ui=' + UI + '&' : '') + (process.argv.includes('open') ? '' : 'sw=0') + (process.env.PG === 'page' || process.env.PAGE ? '' : '#your-pay');
 
 /* ★ headless:'new' はこの環境で page.screenshot() が永久に返ってこない
    （shot-tracker.mjs に実測の経緯あり）。chrome-headless-shell を使う。 */
 const browser = await puppeteer.launch(open
-  ? { headless: false, defaultViewport: null, args: ['--no-sandbox', `--window-size=${vw},1000`] }
+  ? { headless: false, defaultViewport: null, args: ['--no-sandbox', `--window-size=${vw},900`, '--window-position=40,40'] }
   : { headless: 'shell', args: ['--no-sandbox'] });
 const page = (await browser.pages())[0] || await browser.newPage();
 if (!open) await page.setViewport({ width: vw, height: 1000 });
@@ -418,6 +418,14 @@ await page.evaluateOnNewDocument((scene, theme, REALROW) => {
     pv_give_progress: () => ({
       ok: true, contributors: ST_LOCK.contributors, give: PAY_ROWS.give
     }),
+    /* 試作：ROADMAP の見本（数字も要望の文もでたらめ・実在の名前は書かない） */
+    pv_give_growth: () => Array.from({ length: 10 }, (_, i) => ({ d: new Date(Date.UTC(2026, 8, 1 + i * 7)).toISOString().slice(0, 10), n: [2, 3, 4, 6, 7, 9, 11, 13, 15, 17][i] })),
+    pv_requests_list: () => ({ total: 4, items: [
+      { id: 1, body: "機種ごとの月間フライトタイムを会社別に見たい", category: "data", status: "considering", like_count: 9, liked_by_me: false, comment_count: 2, created_at: "2026-10-20T00:00:00Z", is_hidden: false, image: null, visibility: "public" },
+      { id: 2, body: "副操縦士の昇格までの年数を比べたい", category: "data", status: "planned", like_count: 6, liked_by_me: true, comment_count: 1, created_at: "2026-10-28T00:00:00Z", is_hidden: false, image: null, visibility: "public" },
+      { id: 3, body: "給与明細を毎月リマインドしてほしい", category: "feature", status: "building", like_count: 4, liked_by_me: false, comment_count: 0, created_at: "2026-11-02T00:00:00Z", is_hidden: false, image: null, visibility: "public" },
+      { id: 4, body: "ダークモードの文字をもう少し大きく", category: "ui", status: "new", like_count: 2, liked_by_me: false, comment_count: 0, created_at: "2026-11-08T00:00:00Z", is_hidden: false, image: null, visibility: "public" }
+    ] }),
     // 本番と同じく、オンにすると親（email_opt_in）も一緒に立てて返す
     set_mail_optin: (a) => {
       OPTIN.on = !!(a && a.p_on);
@@ -495,9 +503,66 @@ if (process.env.ACT) {
       page: () => [...document.querySelectorAll('.mp-tab')].find(b => !b.classList.contains('on'))
     }[act];
     if (act === 'replay') { window.scrollTo(0, 0); window.PVUiTrial && window.PVUiTrial.replay(); return; }
+    /* scroll:600 … 600px 下へ（見えたカードが動き出す）。nav:actual-pay … 左のメニューのその項目を押す（ページを移る） */
+    if (act.startsWith('click:')) { const el = document.querySelector(act.slice(6)); if (el) el.click(); else console.log('no ' + act); return; }
+    if (act.startsWith('scroll:')) { window.scrollTo(0, +act.slice(7)); return; }
+    if (act.startsWith('nav:')) { const a = document.querySelector('.mr-side-a[href^="' + act.slice(4) + '"]'); if (a) a.click(); else console.log('no nav ' + act); return; }
     const b = pick && pick(); if (b) b.click(); else console.log('no target ' + act);
   }, act);
   await new Promise((r) => setTimeout(r, Number(process.env.MID) || 1500));
+}
+if (process.env.SAFE) {
+  /* 一番下までスクロールしてから：動いている物の数・試作の印（ut-）の数・ページまたぎの切り替えの宣言があるか */
+  const r = await page.evaluate(async () => {
+    const H = document.documentElement.scrollHeight;
+    for (let y = 0; y <= H; y += 200) { window.scrollTo(0, y); await new Promise((r) => setTimeout(r, 50)); }
+    await new Promise((r) => setTimeout(r, 400));
+    const ut = [...document.querySelectorAll("*")].filter((e) => [...e.classList].some((c) => c.startsWith("ut-") && c !== "ut-sw" && !c.startsWith("ut-sw"))).length;
+    const vt = [...document.querySelectorAll("style")].some((s) => s.textContent.includes("@view-transition"));
+    const running = document.getAnimations().filter((a) => a.playState === "running").length;
+    return { ui: document.documentElement.getAttribute("data-ui"), running, utMarks: ut, pageVT: vt, pill: !!document.querySelector(".ut-rail-pill") };
+  });
+  console.log(JSON.stringify(r)); await browser.close(); process.exit(0);
+}
+if (process.env.ENDCHECK) {
+  /* 一番下まで少しずつスクロールし、止まって4秒待つ → 棒・カードが本当の形で止まっているか（待ちの印が残っていないか） */
+  const r = await page.evaluate(async () => {
+    const H = document.documentElement.scrollHeight;
+    for (let y = 0; y <= H; y += 180) { window.scrollTo(0, y); await new Promise((r) => setTimeout(r, 60)); }
+    await new Promise((r) => setTimeout(r, 4200));
+    const vis = (e) => { const b = e.getBoundingClientRect(); return b.bottom > 0 && b.top < innerHeight && b.width > 0; };
+    const bars = [...document.querySelectorAll(".mr-cmp-t>i,.mv-bar>i,.mv-next-bar>i,.ut-col,.ut-row")];
+    const bad = bars.filter((e) => { const tf = getComputedStyle(e).transform; return tf !== "none" && tf !== "matrix(1, 0, 0, 1, 0, 0)"; });
+    return { scrolled: scrollY, bars: bars.length, notFull: bad.length, waiting: document.querySelectorAll(".ut-wait").length,
+      waitingVisible: [...document.querySelectorAll(".ut-wait")].filter(vis).length, counting: document.querySelectorAll(".ut-counting").length };
+  });
+  console.log("止まったあと：" + JSON.stringify(r)); await browser.close(); process.exit(0);
+}
+if (process.env.CHAIN) {
+  /* その字を含む一番内側の要素から、上へ向かって地の色・角・名前を並べる */
+  const r = await page.evaluate((txt) => {
+    const el = [...document.querySelectorAll("main *")].filter((e) => [...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.includes(txt)))[0];
+    if (!el) return ['not found'];
+    const out = []; for (let e = el; e && e !== document.body; e = e.parentElement) { const cs = getComputedStyle(e); out.push(e.tagName.toLowerCase() + "." + [...e.classList].join(".") + " COLOR " + cs.color + " bg=" + cs.backgroundColor + " r=" + cs.borderTopLeftRadius); }
+    return out;
+  }, process.env.CHAIN);
+  r.forEach((x) => console.log("  " + x)); await browser.close(); process.exit(0);
+}
+if (process.env.CARDS) {
+  /* 角が丸く・地か枠があり・幅 200px 以上の箱（＝カードらしい物）を、名前ごとに数える */
+  const r = await page.evaluate(() => {
+    const m = new Map(); const main = document.querySelector("main") || document.body;
+    for (const e of main.querySelectorAll("*")) {
+      const cs = getComputedStyle(e), b = e.getBoundingClientRect();
+      if (b.width < 200 || b.height < 60 || parseFloat(cs.borderTopLeftRadius) < 10) continue;
+      if (cs.backgroundColor === "rgba(0, 0, 0, 0)" && cs.borderTopWidth === "0px") continue;
+      const k = e.tagName.toLowerCase() + "." + [...e.classList].join(".") + " < " + (e.parentElement.className || e.parentElement.tagName).toString().split(" ")[0];
+      m.set(k, (m.get(k) || 0) + 1);
+    }
+    return { url: location.pathname, main: !!document.querySelector("main"), list: [...m].slice(0, 30) };
+  });
+  console.log(r.url, "main=" + r.main); r.list.forEach(([k, n]) => console.log("  " + n + " × " + k));
+  await browser.close(); process.exit(0);
 }
 if (process.env.DUMP) {
   const info = await page.evaluate(() => {
@@ -551,7 +616,9 @@ if (process.env.CONTRAST) {
       const cs = getComputedStyle(el); if (parseFloat(cs.fontSize) >= 14 || cs.visibility === "hidden") continue;
       const m = cs.color.match(/[\d.]+/g); if (!m || (m[3] && +m[3] < 1)) continue;
       const r = el.getBoundingClientRect(); if (r.width < 4 || r.bottom < 0 || r.top > innerHeight) continue;
-      const d = cx.getImageData(Math.max(0, r.left), Math.max(0, r.top), Math.min(r.width, cv.width - r.left), Math.min(r.height, cv.height - r.top)).data;
+      const x0 = Math.max(0, Math.floor(r.left)), y0 = Math.max(0, Math.floor(r.top)), ww = Math.min(Math.ceil(r.width), cv.width - x0), hh = Math.min(Math.ceil(r.height), cv.height - y0);
+      if (ww < 1 || hh < 1) continue;
+      const d = cx.getImageData(x0, y0, ww, hh).data;
       const Lt = lum(+m[0], +m[1], +m[2]);
       /* 地＝字の色から一番遠い明るさの画素（明るい字なら一番暗い所・暗い字なら一番明るい所） */
       let best = Lt; for (let i = 0; i < d.length; i += 4) { const L = lum(d[i], d[i + 1], d[i + 2]); if (Math.abs(L - Lt) > Math.abs(best - Lt)) best = L; } const c = (Math.max(best, Lt) + .05) / (Math.min(best, Lt) + .05);

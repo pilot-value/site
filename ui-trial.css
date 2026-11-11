@@ -1,11 +1,11 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   ui-trial.css — すりガラスと動きの試作（2026-11-11・MY PAY の1枚だけ・本番に出さない）
-   オーナーの参考動画4本（V2 ×2・V7・V22）を、今の緑で写したもの。2通りを見比べる：
-     ?ui=v22   … カードは今日の MY PAY のまま白。ガラスはヘッダーと左のメニューだけ（左は深い緑の板）
-     ?ui=glass … 背景に緑を敷き、カードもタブもすりガラス（緑の「今月」のカードだけは不透明のまま）
-   何も付けなければ1行も効かない（全部 html[data-ui] の下）。動きは ui-trial.js が付ける。
+   ui-trial.css — すりガラスと動きの試作（2026-11-12・左メニューのある会員の画面4枚・本番に出さない）
+   オーナーの参考動画（V2・V7・V22・緑と青の Dashboard Animation）を今の緑で写したもの。
+   2026-11-12 オーナー「ガラスの方がいい」で「全部ガラス」に決定（V22 寄りは外した）。
+   ?ui=glass で効く（ui-trial.js が端末に覚えて、ページを移っても続く）。何も無ければ1行も効かない（全部 html[data-ui] の下）。
    ★色は pv-tokens.css の --pv-* から作る。新しいブランド色を作らない。
-   ★動かすのは transform と opacity。例外はタブを押した一瞬の「絵」（View Transitions の写し）のぼかしだけ。
+   ★動かすのは transform と opacity。例外は切り替えの一瞬の「絵」（View Transitions の写し）のぼかしと、
+     円と線の図を描き出す覆い（mask の角度・幅）だけ。
    ══════════════════════════════════════════════════════════════════════════ */
 
 /* ── 0) 共通の定数 ─────────────────────────────────────────────── */
@@ -42,32 +42,22 @@ html[data-ui][data-theme="dark"]{
   html[data-ui]{--ut-glass:var(--pv-surface);--ut-glass-hi:var(--pv-surface)}
 }
 
-/* ── 1) 背景の緑（固定。スクロールするとガラスの下を緑が流れる）──────────── */
+/* ── 1) 背景の緑（画面に固定。スクロールにつれて少し上へ流れる ＝ ガラスの下を緑が動く）──────
+   ガラスは下に色の濃淡があって初めて見える。深い緑は左の端（メニューの下）と右上、カードの下は明るい緑 */
 html[data-ui] body{background:var(--pv-bg)}
-html[data-ui] body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+html[data-ui] body::before{content:'';position:fixed;inset:-12vh 0;z-index:-1;pointer-events:none;
   background:
-    radial-gradient(60vw 55vh at 100% 0%,color-mix(in srgb,var(--pv-accent) 13%,transparent),transparent 70%),
-    radial-gradient(55vw 60vh at 0% 100%,color-mix(in srgb,var(--pv-accent-line) 55%,transparent),transparent 72%),
-    linear-gradient(180deg,var(--pv-bg) 0%,color-mix(in srgb,var(--pv-accent-soft) 75%,var(--pv-bg)) 100%)}
-/* ガラスは下に色の濃淡があって初めて見える。深い緑は左の端（メニューの下）と右上、カードの下は明るい緑 */
-html[data-ui="glass"] body::before{
-  background:
-    radial-gradient(30vmax 34vmax at 0% 22%,color-mix(in srgb,var(--pv-accent-dark) 62%,transparent),transparent 70%),
-    radial-gradient(28vmax 26vmax at 100% 0%,color-mix(in srgb,var(--pv-accent) 52%,transparent),transparent 70%),
-    radial-gradient(34vmax 30vmax at 82% 78%,color-mix(in srgb,var(--pv-accent) 30%,transparent),transparent 70%),
-    radial-gradient(30vmax 26vmax at 10% 100%,color-mix(in srgb,var(--pv-accent) 34%,transparent),transparent 70%),
-    radial-gradient(40vmax 30vmax at 48% 40%,color-mix(in srgb,var(--pv-accent-soft) 95%,transparent),transparent 72%),
+    radial-gradient(30vmax 34vmax at 0% 26%,color-mix(in srgb,var(--pv-accent-dark) 62%,transparent),transparent 70%),
+    radial-gradient(28vmax 26vmax at 100% 8%,color-mix(in srgb,var(--pv-accent) 52%,transparent),transparent 70%),
+    radial-gradient(34vmax 30vmax at 82% 74%,color-mix(in srgb,var(--pv-accent) 30%,transparent),transparent 70%),
+    radial-gradient(30vmax 26vmax at 10% 96%,color-mix(in srgb,var(--pv-accent) 34%,transparent),transparent 70%),
+    radial-gradient(40vmax 30vmax at 48% 42%,color-mix(in srgb,var(--pv-accent-soft) 95%,transparent),transparent 72%),
     linear-gradient(160deg,color-mix(in srgb,var(--pv-accent-soft) 85%,var(--pv-bg)),color-mix(in srgb,var(--pv-accent-line) 70%,var(--pv-bg)))}
 html[data-ui][data-theme="dark"] body::before{
   background:
-    radial-gradient(60vw 55vh at 100% 0%,color-mix(in srgb,var(--pv-accent) 16%,transparent),transparent 70%),
-    radial-gradient(55vw 60vh at 0% 100%,color-mix(in srgb,var(--pv-accent-dark) 18%,transparent),transparent 72%),
-    var(--pv-bg)}
-html[data-ui="glass"][data-theme="dark"] body::before{
-  background:
-    radial-gradient(38vmax 38vmax at 6% 10%,color-mix(in srgb,var(--pv-accent) 30%,transparent),transparent 70%),
-    radial-gradient(34vmax 34vmax at 96% 26%,color-mix(in srgb,var(--pv-accent-dark) 34%,transparent),transparent 70%),
-    radial-gradient(40vmax 34vmax at 58% 104%,color-mix(in srgb,var(--pv-accent) 22%,transparent),transparent 70%),
+    radial-gradient(38vmax 38vmax at 6% 14%,color-mix(in srgb,var(--pv-accent) 30%,transparent),transparent 70%),
+    radial-gradient(34vmax 34vmax at 96% 30%,color-mix(in srgb,var(--pv-accent-dark) 34%,transparent),transparent 70%),
+    radial-gradient(40vmax 34vmax at 58% 100%,color-mix(in srgb,var(--pv-accent) 22%,transparent),transparent 70%),
     var(--pv-bg)}
 /* 粒の質感（今月の緑のカードと同じ絵）*/
 html[data-ui] body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.05;mix-blend-mode:multiply;
@@ -75,20 +65,23 @@ html[data-ui] body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-e
   background-size:160px}
 html[data-ui][data-theme="dark"] body::after{mix-blend-mode:overlay;opacity:.08}
 
-/* ── 2) ヘッダー（両方）── 白の半透明＋ぼかし＋白い細い線 ────────────────── */
+/* ── 2) ヘッダー ── 白の半透明＋ぼかし＋白い細い線。少しスクロールしたら下に影が出る ──────── */
 html[data-ui] .mr-top{
   background:color-mix(in srgb,var(--pv-bg) 55%,transparent);
   -webkit-backdrop-filter:var(--ut-blur);backdrop-filter:var(--ut-blur);
   border-bottom:1px solid var(--ut-glass-line);
   box-shadow:0 1px 0 color-mix(in srgb,var(--pv-accent-dark) 5%,transparent)}
+html[data-ui] .mr-top::after{content:'';position:absolute;left:0;right:0;top:100%;height:22px;pointer-events:none;opacity:0;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--pv-accent-dark) 12%,transparent),transparent)}
+html[data-ui][data-theme="dark"] .mr-top::after{background:linear-gradient(180deg,rgba(0,0,0,.45),transparent)}
 
 /* ── 3) 左のメニュー ───────────────────────────────────────────────
-   広い画面（≥1001px）はレールを画面の端から浮かせて角を丸める（列の真ん中は今のまま＝ロゴと揃う）。
-   V22 … 深い緑の板に白い字・選んだ所は明るい緑の丸。 ガラス … 白いすりガラスの板。 */
+   広い画面（≥1001px）はレールを画面の端から浮かせて角を丸めたすりガラスの板に（列の真ん中 72px は今のまま＝ロゴと揃う）。
+   選んだ項目は緑の丸い板（.ut-rail-pill）に白い字。ページを移ると、板が前の位置から滑ってくる（7 の節）。 */
 @media(min-width:1001px){
   html[data-ui] body.pv-anav-shell .mr-side,
   html[data-ui] body.pv-anav-shell .mr-col .mr-side{
-    top:calc(var(--pv-topbar) + 12px);left:8px;bottom:12px;width:128px;   /* 列の真ん中 72px は今のまま（ロゴと揃う） */
+    top:calc(var(--pv-topbar) + 12px);left:8px;bottom:12px;width:128px;
     padding:12px 4px calc(12px + env(safe-area-inset-bottom));
     border:1px solid var(--ut-glass-line);border-radius:24px;
     background:var(--ut-glass-hi);
@@ -96,161 +89,176 @@ html[data-ui] .mr-top{
     box-shadow:inset 0 1px 0 var(--ut-hi),var(--ut-shadow)}
   html[data-ui] body.pv-anav-shell .mr-side-a,
   html[data-ui] body.pv-anav-shell .mr-col .mr-side-a{border-radius:16px;
-    transition:background-color .2s var(--pv-ease),transform .35s var(--ut-spring)}
+    transition:background-color .2s var(--pv-ease),transform .35s var(--ut-spring)}   /* 字の色は動かさない（ページを移った直後に薄く見える）*/
   html[data-ui] body.pv-anav-shell .mr-side-a:active{transform:scale(.96)}
 }
-/* 深い緑の板（V22）── 中の部品は全部 --pv-* を読むので、板の中だけトークンを差し替える */
-html[data-ui="v22"] .mr-side{
-  --pv-ink:#fff;--pv-ink-2:rgba(255,255,255,.78);--pv-ink-3:rgba(255,255,255,.62);
-  --pv-line:rgba(255,255,255,.12);--pv-line-soft:rgba(255,255,255,.08);
-  /* 明るい緑（ライトでもダークでも同じ値になるよう、両方で同じ --pv-accent から混ぜる） */
-  --ut-mint:color-mix(in srgb,var(--pv-accent) 28%,#fff);
-  --pv-accent-soft:var(--ut-mint);--pv-accent-ink:var(--pv-accent-dark);
-  color:var(--pv-ink)}
-/* 「匿名で給与を追加」の字は緑の字 → 深い緑の板では明るい緑に（絵の丸の中は深い緑のまま） */
-html[data-ui="v22"] .mr-side .mr-side-a.is-add{color:var(--ut-mint)}
-html[data-ui="v22"] .mr-side .mr-side-a.is-add:hover{background:var(--pv-line-soft)}
-@media(min-width:1001px){
-  html[data-ui="v22"] body.pv-anav-shell .mr-side,
-  html[data-ui="v22"] body.pv-anav-shell .mr-col .mr-side{
-    border-color:rgba(255,255,255,.06);
-    background:
-      radial-gradient(120% 50% at 50% 0%,rgba(255,255,255,.07),transparent 60%),
-      linear-gradient(180deg,color-mix(in srgb,var(--pv-accent-dark) 62%,#020807),color-mix(in srgb,var(--pv-accent-dark) 40%,#020807));
-    box-shadow:0 2px 6px color-mix(in srgb,var(--pv-accent-dark) 22%,transparent),
-               0 28px 56px -28px color-mix(in srgb,var(--pv-accent-dark) 70%,transparent)}
-}
-/* 狭い画面（≤1000px）── 右から出る板 */
 @media(max-width:1000px){
   html[data-ui] .mr-side,
   html[data-ui] .mr-col .mr-side{
     background:var(--ut-glass-hi);
     -webkit-backdrop-filter:var(--ut-blur);backdrop-filter:var(--ut-blur);
     border-left:1px solid var(--ut-glass-line);border-radius:24px 0 0 24px}
-  html[data-ui="v22"] .mr-side,
-  html[data-ui="v22"] .mr-col .mr-side{
-    background:linear-gradient(180deg,color-mix(in srgb,var(--pv-accent-dark) 62%,#020807),color-mix(in srgb,var(--pv-accent-dark) 40%,#020807));
-    border-left-color:rgba(255,255,255,.06)}
 }
+/* 選んだ項目：板の上に白い字と白い絵（白い字と深い緑は 5.6:1）*/
+html[data-ui] .mr-side .mr-side-a.is-on{position:relative;isolation:isolate;
+  background:none;border-color:transparent;box-shadow:none;color:#fff}
+html[data-ui] .mr-side .mr-side-a.is-on>svg:not(.mr-side-lk){background:none !important;color:#fff !important;opacity:1}
+html[data-ui] .ut-rail-pill{position:absolute;inset:0;z-index:-1;border-radius:16px;pointer-events:none;
+  background:
+    radial-gradient(120% 90% at 50% 0%,rgba(255,255,255,.16),transparent 60%),
+    linear-gradient(160deg,var(--pv-accent-dark),color-mix(in srgb,var(--pv-accent-dark) 82%,#000));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),
+             0 2px 4px color-mix(in srgb,var(--pv-accent-dark) 22%,transparent),
+             0 12px 26px -12px color-mix(in srgb,var(--pv-accent-dark) 70%,transparent)}
+/* ページを移っている間だけは、字を濃いまま（板が滑ってくる途中、白い字が白い地に溶けないように） */
+html.ut-pagevt .mr-side .mr-side-a.is-on{color:var(--pv-ink)}
+html.ut-pagevt .mr-side .mr-side-a.is-on>svg:not(.mr-side-lk){color:var(--pv-accent-ink) !important}
 
-/* ── 4) 選んだ印が滑って移る（ui-trial.js が --ut-dx / --ut-sx を入れる）──────
+/* ── 4) 選んだ印が滑って移る（タブの中・ui-trial.js が --ut-dx / --ut-sx を入れる）──────
    印は「選んだボタン」の疑似要素。押されたら前の位置と幅から、ばねで今の位置へ戻す（FLIP）。 */
 html[data-ui] .ut-snap::before,html[data-ui] .ut-snap::after{transition:none !important}
 
-/* 4-a) MY PAGE｜MY PAY の大きい見出し ── 緑の下線が滑る（両方） */
+/* 4-a) MY PAGE｜MY PAY の大きい見出し ── 緑の下線が滑る */
 html[data-ui] .mp-tab{position:relative;border-bottom-color:transparent !important}
 html[data-ui] .mp-tab::after{content:'';position:absolute;left:0;right:0;bottom:-3px;height:3px;border-radius:3px;
   background:var(--pv-accent);opacity:0;transform-origin:left center}
 html[data-ui] .mp-tab.on::after{opacity:1;
   transform:translateX(var(--ut-dx,0px)) scaleX(var(--ut-sx,1));transition:transform .6s var(--ut-spring)}
-html[data-ui="glass"] .mp-tabs{border-bottom-color:var(--ut-glass-line)}
+html[data-ui] .mp-tabs{border-bottom-color:var(--ut-glass-line)}
 
-/* 4-b) 給与サマリー｜スケジュール｜分析｜設定
-   V22 … 今の緑の下線のまま、下線が滑る。 ガラス … V7 のようにガラスの帯＋白い丸 */
-html[data-ui] #pv-value .mv-tab::after{transition:none}
-html[data-ui] #pv-value .mv-tab.on::after{transform-origin:left center;
-  transform:translateX(var(--ut-dx,0px)) scaleX(var(--ut-sx,1));transition:transform .6s var(--ut-spring)}
-html[data-ui="glass"] #pv-value .mv-tabs{display:inline-flex;gap:2px;padding:4px;border:1px solid var(--ut-glass-line);
+/* 4-b) 給与サマリー｜スケジュール｜分析｜設定 ── V7 のようにガラスの帯＋白い丸 */
+html[data-ui] #pv-value .mv-tabs{display:inline-flex;gap:2px;padding:4px;border:1px solid var(--ut-glass-line);
   border-radius:999px;background:var(--ut-glass);-webkit-backdrop-filter:var(--ut-blur);backdrop-filter:var(--ut-blur);
-  box-shadow:inset 0 1px 0 var(--ut-hi),var(--ut-shadow)}
-html[data-ui="glass"] #pv-value .mv-tabs{isolation:isolate}
-html[data-ui="glass"] #pv-value .mv-tab{min-height:36px;padding:7px 16px;border-radius:999px}
-html[data-ui="glass"] #pv-value .mv-tab::after{display:none}
-html[data-ui="glass"] #pv-value .mv-tab:hover{color:var(--pv-ink)}
-html[data-ui="glass"] #pv-value .mv-tab.on::before{content:'';position:absolute;inset:0;z-index:-1;border-radius:inherit;
+  box-shadow:inset 0 1px 0 var(--ut-hi),var(--ut-shadow);isolation:isolate}
+html[data-ui] #pv-value .mv-tab{min-height:36px;padding:7px 16px;border-radius:999px}
+html[data-ui] #pv-value .mv-tab::after{display:none}
+html[data-ui] #pv-value .mv-tab:hover{color:var(--pv-ink)}
+html[data-ui] #pv-value .mv-tab.on::before{content:'';position:absolute;inset:0;z-index:-1;border-radius:inherit;
   background:var(--ut-pill);box-shadow:inset 0 1px 0 var(--ut-hi),var(--ut-pill-shadow);transform-origin:left center;
   transform:translateX(var(--ut-dx,0px)) scaleX(var(--ut-sx,1));transition:transform .6s var(--ut-spring)}
 @media (max-width:420px){
-  html[data-ui="glass"] #pv-value .mv-tabs{display:flex;gap:0}
-  html[data-ui="glass"] #pv-value .mv-tab{flex:1 1 0;justify-content:center;padding:7px 8px}
+  html[data-ui] #pv-value .mv-tabs{display:flex;gap:0}
+  html[data-ui] #pv-value .mv-tab{flex:1 1 0;justify-content:center;padding:7px 8px}
 }
 
-/* 4-c) 今月｜1年 ── 帯の中を白い丸が滑る（両方）。ガラスでは帯もすりガラス */
-/* ★丸は帯の中で一番下に描く（帯を重なりの土台にし、ボタン1つ1つは土台にしない）。
+/* 4-c) 今月｜1年 ── すりガラスの帯の中を白い丸が滑る
+   ★丸は帯の中で一番下に描く（帯を重なりの土台にし、ボタン1つ1つは土台にしない）。
      ボタンごとに土台にすると、滑っている丸が隣のボタンの字の上に乗って字を隠す */
-html[data-ui] #pv-value .pt-tabs{isolation:isolate}
+html[data-ui] #pv-value .pt-tabs{isolation:isolate;border-color:var(--ut-glass-line);background:var(--ut-glass);
+  -webkit-backdrop-filter:var(--ut-blur);backdrop-filter:var(--ut-blur);box-shadow:inset 0 1px 0 var(--ut-hi)}
 html[data-ui] #pv-value .pt-tab{position:relative}
 html[data-ui] #pv-value .pt-tab.on{background:transparent;box-shadow:none}
 html[data-ui] #pv-value .pt-tab.on::before{content:'';position:absolute;inset:0;z-index:-1;border-radius:inherit;
   background:var(--ut-pill);box-shadow:var(--ut-pill-shadow);transform-origin:left center;
   transform:translateX(var(--ut-dx,0px)) scaleX(var(--ut-sx,1));transition:transform .55s var(--ut-spring)}
-html[data-ui="glass"] #pv-value .pt-tabs{border-color:var(--ut-glass-line);background:var(--ut-glass);
-  -webkit-backdrop-filter:var(--ut-blur);backdrop-filter:var(--ut-blur);box-shadow:inset 0 1px 0 var(--ut-hi)}
 
-/* ── 5) カード（ガラスだけ）── 白いカードを全部すりガラスに。緑の「今月」は不透明のまま ──── */
-/* カードの名前はタブごとに違う：給与サマリー・1年＝.mr-card／分析＝.an-card／スケジュール＝.rs-card・.ru-card */
-html[data-ui="glass"] #pv-value :is(.mr-card,.an-card,.rs-card,.ru-card):not(.is-green),
-html[data-ui="glass"] .mp-pane .mr-card:not(.is-green){
+/* ── 5) カード ── 白いカードを全部すりガラスに。緑の「今月」は不透明のまま ──────────────
+   カードの名前は画面ごとに違う：MY PAY＝.mr-card・.an-card・.rs-card・.ru-card／ROADMAP＝.mr-card／
+   REAL PAY＝.ap-filter（絞り込み）・.ap-lock-skel（給与を出す前の一覧の箱）・.ap-tw（一覧の表）・.ap-st（数字の札）・.ap-msg（案内）・.ap-lock-see */
+html[data-ui] main :is(.mr-card,.an-card,.rs-card,.ru-card,.ap-filter,.ap-tw,.ap-lock-skel,.ap-st,.ap-msg,.ap-lock-see):not(.is-green):not(.is-hero){   /* 色のついたカード（MY PAY の緑・ROADMAP の紺）はそのまま */
   background:var(--ut-glass);-webkit-backdrop-filter:var(--ut-blur);backdrop-filter:var(--ut-blur);
   border-color:var(--ut-glass-line);
   box-shadow:inset 0 1px 0 var(--ut-hi),var(--ut-shadow);
-  /* 透ける下地でも小さい灰色の字が 4.5:1 を割らないよう、カードの中だけ灰色を1段濃く */
-  --pv-ink-3:color-mix(in srgb,var(--pv-ink-3) 72%,var(--pv-ink));
   --pv-surface-2:color-mix(in srgb,var(--pv-surface) 45%,transparent);
   --pv-bg-sub:color-mix(in srgb,var(--pv-surface) 50%,transparent)}
-html[data-ui="glass"][data-theme="dark"] #pv-value :is(.mr-card,.an-card,.rs-card,.ru-card):not(.is-green),
-html[data-ui="glass"][data-theme="dark"] .mp-pane .mr-card:not(.is-green){
-  --pv-ink-3:color-mix(in srgb,var(--pv-ink-3) 70%,var(--pv-ink))}
-
-/* カードの外（緑の地の上に直に置いた注記）も同じく灰色を1段濃く */
-html[data-ui="glass"] #pv-value,html[data-ui="glass"] .mp-pane{--pv-ink-3:color-mix(in srgb,var(--pv-ink-3) 72%,var(--pv-ink))}
-html[data-ui="glass"][data-theme="dark"] #pv-value,html[data-ui="glass"][data-theme="dark"] .mp-pane{--pv-ink-3:color-mix(in srgb,var(--pv-ink-3) 70%,var(--pv-ink))}
+/* INVITE：招待の塊（pv-referral.js が描く・main の直下）を1枚のガラスのカードに。
+   字の色はあちらが決め打ち（灰 #64748b・金 #a07200）なので、ガラスの上では共通の濃い灰と1段濃い金に替える */
+html[data-ui] main>.pvr{padding:24px;border:1px solid var(--ut-glass-line);border-radius:var(--pv-r-lg);
+  background:var(--ut-glass);-webkit-backdrop-filter:var(--ut-blur);backdrop-filter:var(--ut-blur);
+  box-shadow:inset 0 1px 0 var(--ut-hi),var(--ut-shadow)}
+html[data-ui] main>.pvr :is(.pvr-note,.pvr-nb){color:var(--pv-ink-3) !important}
+html[data-ui]:not([data-theme="dark"]) main>.pvr :is(.pvr-eyebrow,.pvr-btn2){color:color-mix(in srgb,#a07200 76%,#000) !important}
+/* カードの中のカード（REAL PAY の一覧の表）はガラスを重ねず、薄い面にするだけ */
+html[data-ui] main :is(.ap-lock-skel,.mr-card) .ap-tw{-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;
+  background:color-mix(in srgb,var(--pv-surface) 55%,transparent)}
+/* 透ける下地でも小さい字が 4.5:1 を割らないよう、ページ全体（メニューも）で灰色を1段濃く。
+   ライトでは金と橙の字（INVITE の「招待」・ROADMAP の「開発中」）も1段濃く */
+html[data-ui] body{--pv-ink-3:color-mix(in srgb,var(--pv-ink-3) 66%,var(--pv-ink))}
+html[data-ui][data-theme="dark"] body{--pv-ink-3:color-mix(in srgb,var(--pv-ink-3) 70%,var(--pv-ink))}
+html[data-ui]:not([data-theme="dark"]) body{
+  --pv-gold-ink:color-mix(in srgb,var(--pv-gold-ink) 78%,#000);
+  --pv-orange-ink:color-mix(in srgb,var(--pv-orange-ink) 82%,#000)}
 
 /* カードに指を乗せると少し浮く（マウスのある端末だけ）*/
 @media (hover:hover) and (pointer:fine){
-  html[data-ui] #pv-value :is(.mr-card,.an-card,.rs-card,.ru-card){transition:transform .5s var(--ut-spring),box-shadow .5s var(--pv-ease)}
-  html[data-ui] #pv-value :is(.mr-card,.an-card,.rs-card,.ru-card):hover{transform:translateY(-3px)}
-  html[data-ui] #pv-value :is(.mr-card,.an-card,.rs-card,.ru-card):not(.is-green):hover{
+  html[data-ui] main :is(.mr-card,.an-card,.rs-card,.ru-card,.ap-st){transition:transform .5s var(--ut-spring),box-shadow .5s var(--pv-ease)}
+  html[data-ui] main :is(.mr-card,.an-card,.rs-card,.ru-card,.ap-st):hover{transform:translateY(-3px)}
+  html[data-ui] main :is(.mr-card,.an-card,.rs-card,.ru-card,.ap-st):not(.is-green):not(.is-hero):hover{
     box-shadow:inset 0 1px 0 var(--ut-hi),0 2px 4px color-mix(in srgb,var(--pv-accent-dark) 8%,transparent),
                0 30px 56px -30px color-mix(in srgb,var(--pv-accent-dark) 58%,transparent)}
 }
 
-/* ── 6) 画面に入るときの動き（ui-trial.js が .ut-enter と --ut-i / --ut-j を付ける）──────
-   カードは下から順に浮かぶ → 中の棒は左から伸びる → 円は12時から描かれる → 線の図は左から現れる。
+/* ── 6) 入るときの動き（ui-trial.js がカードに付ける）────────────────────────
+   .ut-rise … 最初の1画面のカード。開いたとき順に浮かぶ（--ut-i が順番）
+   .ut-sv   … その下のカード。スクロールと一緒に浮かぶ（戻すと沈む）
+   .ut-pre  … スクロールと一緒に動かせないブラウザでの待ち（見えたら .ut-rise に替わる）
+   .ut-wait … 中の数字・棒・円が動き出す前の形（棒は長さ 0・円は描く前）
+   .ut-go   … カードが見えたので、中の数字・棒・円を1回だけ動かす
    ★棒は行き過ぎない動き（--pv-ease）。値より長く見える瞬間を作らない。 */
 @property --ut-a{syntax:'<angle>';inherits:false;initial-value:360deg}
 @property --ut-p{syntax:'<percentage>';inherits:false;initial-value:110%}
 
-html[data-ui] .ut-enter :is(.mr-card,.an-card,.rs-card,.ru-card,.mv-peek){
-  animation:utRise .75s var(--ut-spring) both;animation-delay:calc(var(--ut-i,0) * 60ms + 30ms)}
+html[data-ui] .ut-rise{animation:utRise .75s var(--ut-spring) both;animation-delay:calc(var(--ut-i,0) * 60ms + 30ms)}
 @keyframes utRise{from{opacity:0;transform:translateY(18px) scale(.985)}}
+html[data-ui] .ut-pre{opacity:0;transform:translateY(18px) scale(.985)}
+@supports (animation-timeline:view()){
+  html[data-ui] .ut-sv{animation:utLift linear both;animation-timeline:view();animation-range:entry 0% entry 260px}
+}
+@keyframes utLift{from{opacity:0;transform:translateY(28px) scale(.98)}}
 
-html[data-ui] .ut-enter .mr-cmp-t>i,
-html[data-ui] .ut-enter .mv-bar>i,
-html[data-ui] .ut-enter .mv-next-bar>i{
-  transform-origin:left center;animation:utGrow .9s var(--pv-ease) both;
+/* 6-a) HTML の棒（他社の年収・固定と変動・記録の進み）── 左から伸びる */
+html[data-ui] :is(.ut-wait,.ut-go) :is(.mr-cmp-t>i,.mv-bar>i,.mv-next-bar>i){transform-origin:left center}
+html[data-ui] .ut-wait :is(.mr-cmp-t>i,.mv-bar>i,.mv-next-bar>i){transform:scaleX(0)}
+html[data-ui] .ut-go :is(.mr-cmp-t>i,.mv-bar>i,.mv-next-bar>i){animation:utGrow .9s var(--pv-ease) both;
   animation-delay:calc(var(--ut-i,0) * 60ms + 260ms + var(--ut-j,0) * 45ms)}
 @keyframes utGrow{from{transform:scaleX(0)}}
 
-/* SVG の図の棒（分析・1年）── ui-trial.js が縦の棒に .ut-col、横の棒に .ut-row を付ける */
-html[data-ui] .ut-enter .ut-col{transform-box:fill-box;transform-origin:50% 100%;animation:utGrowY .8s var(--pv-ease) both;
+/* 6-b) SVG の図の棒（分析・1年）── ui-trial.js が縦の棒に .ut-col、横の棒に .ut-row を付ける */
+html[data-ui] .ut-col{transform-box:fill-box;transform-origin:50% 100%}
+html[data-ui] .ut-row{transform-box:fill-box;transform-origin:0 50%}
+html[data-ui] .ut-wait .ut-col{transform:scaleY(0)}
+html[data-ui] .ut-wait .ut-row{transform:scaleX(0)}
+html[data-ui] .ut-go .ut-col{animation:utGrowY .8s var(--pv-ease) both;
   animation-delay:calc(var(--ut-i,0) * 60ms + 260ms + var(--ut-j,0) * 28ms)}
-html[data-ui] .ut-enter .ut-row{transform-box:fill-box;transform-origin:0 50%;animation:utGrow .7s var(--pv-ease) both;
+html[data-ui] .ut-go .ut-row{animation:utGrow .7s var(--pv-ease) both;
   animation-delay:calc(var(--ut-i,0) * 60ms + 260ms + var(--ut-j,0) * 70ms)}
 @keyframes utGrowY{from{transform:scaleY(0)}}
 
-html[data-ui] .ut-enter .pt-donut svg{
-  -webkit-mask-image:conic-gradient(#000 var(--ut-a),transparent 0);mask-image:conic-gradient(#000 var(--ut-a),transparent 0);
-  animation:utSweep 1.1s var(--pv-ease) both;animation-delay:calc(var(--ut-i,0) * 60ms + 220ms)}
+/* 6-c) 円（支給構成）は12時から描かれる・線の図（累計）は左から現れる */
+html[data-ui] :is(.ut-wait,.ut-go) .pt-donut svg{
+  -webkit-mask-image:conic-gradient(#000 var(--ut-a),transparent 0);mask-image:conic-gradient(#000 var(--ut-a),transparent 0)}
+html[data-ui] .ut-wait .pt-donut svg{--ut-a:0deg}
+html[data-ui] .ut-go .pt-donut svg{animation:utSweep 1.1s var(--pv-ease) both;animation-delay:calc(var(--ut-i,0) * 60ms + 220ms)}
 @keyframes utSweep{from{--ut-a:0deg}to{--ut-a:360deg}}
-
-html[data-ui] .ut-enter .pt-svg{
+html[data-ui] :is(.ut-wait,.ut-go) .pt-svg{
   -webkit-mask-image:linear-gradient(90deg,#000 var(--ut-p),transparent calc(var(--ut-p) + 10%));
-  mask-image:linear-gradient(90deg,#000 var(--ut-p),transparent calc(var(--ut-p) + 10%));
-  animation:utWipe 1.2s var(--pv-ease) both;animation-delay:calc(var(--ut-i,0) * 60ms + 240ms)}
+  mask-image:linear-gradient(90deg,#000 var(--ut-p),transparent calc(var(--ut-p) + 10%))}
+html[data-ui] .ut-wait .pt-svg{--ut-p:-10%}
+html[data-ui] .ut-go .pt-svg{animation:utWipe 1.2s var(--pv-ease) both;animation-delay:calc(var(--ut-i,0) * 60ms + 240ms)}
 @keyframes utWipe{from{--ut-p:-10%}to{--ut-p:110%}}
 
-/* 数字の数え上げ ── 本物の字は書き換えない（透明にするだけ）。上に重ねた絵の字だけが数える。
+/* 6-d) 数字の数え上げ ── 本物の字は書き換えない（透明にするだけ）。上に重ねた絵の字だけが数える。
    ＝ currency.js が読む字は最初から最後まで本物の額のまま */
 html[data-ui] .ut-counting{position:relative;color:transparent !important}
 html[data-ui] .ut-counting::after{content:attr(data-ut-n);content:attr(data-ut-n) / "";position:absolute;inset:0;
   color:var(--ut-c);white-space:nowrap;text-align:inherit;pointer-events:none}
 
-/* ── 7) タブを押したときの切り替え（View Transitions）─────────────────────
-   前の中身は少しぼけて薄れ、次の中身はぼけから戻る。タブの帯は写さず、生きたまま（＝丸が滑るのが見える）。 */
-::view-transition-group(ut-body){animation-duration:.45s;animation-timing-function:cubic-bezier(.16,1,.3,1)}
-::view-transition-old(ut-body){animation:utOut .26s cubic-bezier(.4,0,1,1) both}
+/* 6-e) スクロールにつれて：背景の緑が少し上へ流れる・ヘッダーの下に影が出る（どちらもスクロールと一緒に進む） */
+@supports (animation-timeline:scroll()){
+  html[data-ui] body::before{animation:utDrift linear both;animation-timeline:scroll(root)}
+  html[data-ui] .mr-top::after{animation:utShow linear both;animation-timeline:scroll(root);animation-range:0px 140px}
+}
+@keyframes utDrift{to{transform:translateY(-10vh)}}
+@keyframes utShow{to{opacity:1}}
+
+/* ── 7) 切り替え（View Transitions）─────────────────────────────────────
+   タブを押したとき（ut-body）とページを移るとき（ut-page）：前の中身は少しぼけて薄れ、次の中身はぼけから戻る。
+   タブの帯（ut-bar）とページの外枠（ヘッダー・メニュー＝root）は写さず、そのまま。
+   メニューの板（ut-rail-pill）だけが、前のページの位置から今の位置へ滑る。 */
+::view-transition-group(ut-body),::view-transition-group(ut-page){animation-duration:.45s;animation-timing-function:cubic-bezier(.16,1,.3,1)}
+::view-transition-old(ut-body),::view-transition-old(ut-page){animation:utOut .26s cubic-bezier(.4,0,1,1) both}
 ::view-transition-new(ut-body){animation:utIn .42s .06s cubic-bezier(.16,1,.3,1) both}
+::view-transition-new(ut-page){animation:utIn .5s .1s cubic-bezier(.16,1,.3,1) both}
 @keyframes utOut{to{opacity:0;filter:blur(10px);transform:scale(.985)}}
 @keyframes utIn{from{opacity:0;filter:blur(8px)}}
 /* ページのほかの部分は重ねて薄めない（押した拍子に少しスクロールすると、見出しが2重に見える） */
@@ -259,6 +267,13 @@ html[data-ui] .ut-counting::after{content:attr(data-ut-n);content:attr(data-ut-n
 ::view-transition-group(ut-bar){animation:none}
 ::view-transition-old(ut-bar){display:none}
 ::view-transition-new(ut-bar){animation:none}
+html.ut-pagevt .ut-rail-pill{view-transition-name:ut-rail-pill}
+html.ut-pagevt main{view-transition-name:ut-page}
+::view-transition-group(ut-rail-pill){animation-duration:.6s;animation-timing-function:var(--ut-spring)}
+/* 滑ってくる板は一番上に描かれる ＝ そのままだと、通り過ぎる項目の字を隠す。掛け合わせて字を透かす。
+   ★掛け合わせは group に付ける（image-pair は自分の中で閉じていて、下のメニューの字と混ざらない） */
+::view-transition-group(ut-rail-pill){mix-blend-mode:multiply}
+html[data-theme="dark"]::view-transition-group(ut-rail-pill){mix-blend-mode:screen}
 
 /* ── 8) 試作の切り替え（手元だけ・右下の小さな帯）──────────────────────── */
 .ut-sw{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:400;display:flex;gap:2px;padding:4px;
@@ -277,6 +292,7 @@ html[data-ui] .ut-counting::after{content:attr(data-ut-n);content:attr(data-ut-n
 /* ── 9) 動きを減らす設定・印刷 ─────────────────────────────────────── */
 @media (prefers-reduced-motion:reduce){
   html[data-ui] *,html[data-ui] *::before,html[data-ui] *::after{animation:none !important;transition:none !important}
+  html[data-ui] .ut-pre{opacity:1;transform:none}
   ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none !important}
 }
 @media print{
