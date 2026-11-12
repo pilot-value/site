@@ -1111,9 +1111,7 @@
     w.addEventListener('resize', place);
     if (d.fonts && d.fonts.ready) d.fonts.ready.then(place);
     place();
-    if (!RM) scr[0].classList.add('lt-play');
-    play(scr[0]);
-    if (RM) return;
+    if (RM) { play(scr[0]); return; }
     /* カーソル：次に押す所（左のメニューの項目、スケジュールは本文の「勤務」）へ動いて、押す */
     var cursor = pc.querySelector('.lt-cursor');
     var aim = function (el) {
@@ -1136,11 +1134,22 @@
         }, 520);
       }, DWELL - 650);
     };
-    aim(tabOf(0));
-    loop();
-    var stop = {};
+    /* ★オーナー「スマホはちゃんとその画像の部分になってから動画スタートで」── 箱の6割が画面に入って初めて、
+         最初の画面が浮かんで数え始め、めぐり出す（それまでは何も動かない）。 */
+    var started = false;
+    var start = function () {
+      if (started) return;
+      started = true;
+      scr[0].classList.add('lt-play');
+      play(scr[0]);
+      aim(tabOf(0));
+      loop();
+    };
+    var stop = { out: true };
+    paused = true;
     var sync = function () {
       var p = !!(stop.hover || stop.focus || stop.out || d.hidden);
+      if (!p && !started) { paused = false; start(); return; }
       if (p === paused) return;
       paused = p;
       if (paused) { timers.forEach(clearTimeout); timers = []; waiting = true; }
@@ -1152,7 +1161,8 @@
       shot.addEventListener('pointerleave', function () { stop.hover = 0; sync(); });
       shot.addEventListener('focusin', function () { stop.focus = 1; sync(); });
       shot.addEventListener('focusout', function () { stop.focus = 0; sync(); });
-      if ('IntersectionObserver' in w) new IntersectionObserver(function (es) { stop.out = !es[0].isIntersecting; sync(); }, { threshold: 0.25 }).observe(shot);
+      if ('IntersectionObserver' in w) new IntersectionObserver(function (es) { stop.out = es[0].intersectionRatio < 0.6; sync(); }, { threshold: [0, 0.6, 1] }).observe(shot);
+      else { stop.out = false; sync(); }
     }
     d.addEventListener('visibilitychange', sync);
   }
@@ -1216,10 +1226,10 @@
     cursor.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px)';
   }
   var RM_ALL = !!(w.matchMedia && w.matchMedia('(prefers-reduced-motion: reduce)').matches) || (!!navigator.webdriver && !w.__pvMotion);
-  /* 箱が画面に入っている間だけ回す（外・裏のタブでは止める）。run(on) は入った／出たで呼ばれる */
+  /* 箱の6割が画面に入っている間だけ回す（外・裏のタブでは止める）。run(on) は入った／出たで呼ばれる */
   function whileSeen(el, run) {
     var seen = false, sync = function () { var v = seen && !d.hidden; run(v); };
-    if ('IntersectionObserver' in w) new IntersectionObserver(function (es) { seen = es[0].isIntersecting; sync(); }, { threshold: 0.3 }).observe(el);
+    if ('IntersectionObserver' in w) new IntersectionObserver(function (es) { seen = es[0].intersectionRatio >= 0.6; sync(); }, { threshold: [0, 0.6, 1] }).observe(el);
     d.addEventListener('visibilitychange', sync);
   }
 
