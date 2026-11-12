@@ -16501,4 +16501,5 @@ export const TM = {
   "js:'Filter'": {"es":"js:'Filtrar'","st":"manual","by":"claude","at":"2026-11-12","pages":["lp.js"]},
   "js:'Position · Aircraft'": {"es":"js:'Cargo · Aeronave'","st":"manual","by":"claude","at":"2026-11-12","pages":["lp.js"]},
   "js:'Years'": {"es":"js:'Años'","st":"manual","by":"claude","at":"2026-11-12","pages":["lp.js"]},
+  "js:'Add pay anonymously'": {"es":"js:'Agregar remuneración de forma anónima'","st":"manual","by":"claude","at":"2026-11-12","pages":["lp.js"]},
 };

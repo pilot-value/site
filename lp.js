@@ -281,7 +281,7 @@
       rpYrs: 'Años',
       rpAmt: 'Anual',
       rpComp: 'Desglose de la remuneración',
-      railAdd: 'Add pay anonymously'
+      railAdd: 'Agregar remuneración de forma anónima'
     } /*/PV-MSG:es*/
   };
   TT = (window.PV_T && window.PV_T(TT, L)) || TT[L];
