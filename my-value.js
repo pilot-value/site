@@ -86,8 +86,8 @@
   var ANALYSIS_V = 'ae699612';
   var ANALYSIS_CSS_V = 'aeff3463';
   /* ★スケジュールの一番上の「飛んだルート」の地球儀（2026-11-12）。スケジュールのタブを開いたときだけ読む4本。指紋の決まりは上と同じ */
-  var GLOBE_V = '72538582';
-  var GLOBE_CSS_V = 'b3a1bbd7';
+  var GLOBE_V = 'c30d2f84';
+  var GLOBE_CSS_V = 'ccea66bd';
   var AIRPORT_GEO_V = '12fab2ff';   // 空港 → 位置と街の名前（pv-airport-geo.js）
   var GLOBE_LAND_V = '84b69b9c';    // 陸地の点（pv-globe-land.js）
   var LATE = {

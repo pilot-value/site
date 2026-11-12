@@ -16543,4 +16543,5 @@ export const TM = {
   "js:'Earnings by day (est.)'": {"es":"js:'Ingresos por día (est.)'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"スケジュールの地球儀 2026-11-12"},
   "js:'Tap to see only that month'": {"es":"js:'Toca para ver solo ese mes'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"スケジュールの地球儀 2026-11-12"},
   "js:'Tap to see only that day'": {"es":"js:'Toca para ver solo ese día'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"スケジュールの地球儀 2026-11-12"},
+  "js:'Not on the map: {c}'": {"es":"js:'Fuera del mapa: {c}'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"スケジュールの地球儀 2026-11-12"},
 };

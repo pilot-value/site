@@ -25,7 +25,7 @@
 
   var T = {
     ja: {
-      title: '飛んだルート', sub: '{p} · {r}ルート · {n}便', aria: '飛んだルートの地球儀',
+      title: '飛んだルート', sub: '{p} · {r}ルート · {n}便', aria: '飛んだルートの地球儀', noPos: '地図に出せない空港 {c}',
       perAria: '期間', perD: '日', perM: '月', per3: '3か月', per12: '1年', perAll: '全部',
       p3: '直近3か月', p12: '直近1年', pAll: '直近2年', ymT: '{y}年{n}月',
       prevD: '前の日', nextD: '次の日', prevM: '前の月', nextM: '次の月',
@@ -49,7 +49,7 @@
       mon: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
     },
     en: {
-      title: 'Routes flown', sub: '{p} · {r} routes · {n} flights', aria: 'Globe of the routes you flew',
+      title: 'Routes flown', sub: '{p} · {r} routes · {n} flights', aria: 'Globe of the routes you flew', noPos: 'Not on the map: {c}',
       perAria: 'Period', perD: '1D', perM: '1M', per3: '3M', per12: '1Y', perAll: 'All time',
       p3: 'Last 3 months', p12: 'Last 12 months', pAll: 'Last 24 months', ymT: '{M} {y}',
       prevD: 'Previous day', nextD: 'Next day', prevM: 'Previous month', nextM: 'Next month',
@@ -72,7 +72,7 @@
       wd: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
       mon: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     }, /*PV-MSG:es*/ es: {
-      title: 'Rutas voladas', sub: '{p} · {r} rutas · {n} vuelos', aria: 'Globo con las rutas que volaste',
+      title: 'Rutas voladas', sub: '{p} · {r} rutas · {n} vuelos', aria: 'Globo con las rutas que volaste', noPos: 'Fuera del mapa: {c}',
       perAria: 'Período', perD: '1D', perM: '1M', per3: '3M', per12: '1Y', perAll: 'Todo',
       p3: 'Últimos 3 meses', p12: 'Últimos 12 meses', pAll: 'Últimos 24 meses', ymT: '{M} {y}',
       prevD: 'Día anterior', nextD: 'Día siguiente', prevM: 'Mes anterior', nextM: 'Mes siguiente',
@@ -186,11 +186,13 @@
     var t = today();
     S.legs = (S.fp ? S.fp.legs : []).filter(function (l) { return l.date <= t; }).map(function (l) {
       var o = Object.assign({}, l);
-      o.ga = geo(l.from); o.gb = geo(l.to);
+      /* 位置の分からない空港（表に無いコード・読み違い）も便としては残す＝稼ぎの合計と一覧に入る。地球儀に描かないだけ */
+      o.ga = geo(l.from) || { iata: String(l.from).toUpperCase(), en: '', ja: '', lat: null, lon: null };
+      o.gb = geo(l.to) || { iata: String(l.to).toUpperCase(), en: '', ja: '', lat: null, lon: null };
       o.fleet = l.fleet ? String(l.fleet).toUpperCase() : null;   // 明細の機材（b777 → B777）
       o.id = l.date + '#' + l.seq + '#' + l.from + l.to;
       return o;
-    }).filter(function (l) { return l.ga && l.gb && l.ga.iata !== l.gb.iata; })
+    }).filter(function (l) { return l.ga.iata !== l.gb.iata; })
       .sort(function (p, q) { return p.date < q.date ? 1 : p.date > q.date ? -1 : (q.seq || 0) - (p.seq || 0); });
   }
 
@@ -311,7 +313,10 @@
       G.setData(null);
       return;
     }
-    sub.textContent = fill(T.sub, { p: perL, r: V.routes.length, n: V.legs.length });
+    var nopos = {};
+    V.legs.forEach(function (l) { [l.ga, l.gb].forEach(function (g) { if (g.lat == null) nopos[g.iata] = 1; }); });
+    var np = Object.keys(nopos).sort();
+    sub.textContent = fill(T.sub, { p: perL, r: V.routes.length, n: V.legs.length }) + (np.length ? ' · ' + fill(T.noPos, { c: np.slice(0, 4).join(' ') + (np.length > 4 ? ' …' : '') }) : '');
     /* 選んでいるルート・便が期間の外に出たら、いちばん新しい便へ */
     if (S.leg && !V.legs.some(function (l) { return l.id === S.leg; })) S.leg = null;
     if (S.route && !V.routes.some(function (r) { return r.k === S.route; })) S.route = null;
@@ -474,8 +479,8 @@
     }
     function geom() {
       var narrow = W < 560;
-      var cx = narrow ? W / 2 : W * 0.6, cy = narrow ? H * 0.5 : H * 0.53;
-      var r0 = narrow ? Math.min(W * 0.44, H * 0.46) : Math.min(H * 0.49, W * 0.37);
+      var cx = narrow ? W / 2 : W * 0.62, cy = narrow ? H * 0.5 : H * 0.52;
+      var r0 = narrow ? Math.min(W * 0.41, H * 0.43) : Math.min(H * 0.41, W * 0.33);
       return { cx: cx, cy: cy, R: r0 * k };
     }
     function init(canvas, host) {
@@ -521,6 +526,7 @@
       if (V) {
         var seenP = {};
         V.routes.forEach(function (r, i) {
+          if (r.a.lat == null || r.b.lat == null) return;          // 位置の分からない空港の区間は描かない
           arcs.push({ k: r.k, n: r.n, dh: r.dh === r.n, pts: arcOf(r.a, r.b), off: (i * 0.37) % 1, scr: [], fly: false });
           [r.a, r.b].forEach(function (g) { if (!seenP[g.iata]) { seenP[g.iata] = 1; ports.push({ g: g, v: vec(g.lat, g.lon) }); } });
         });
@@ -579,14 +585,18 @@
       var g = geom(), cx = g.cx, cy = g.cy, R = g.R, c = cx2, tmp = [0, 0, 0];
       c.setTransform(dpr, 0, 0, dpr, 0, 0);
       c.clearRect(0, 0, W, H);
-      /* 外の光（大気）：縁のすぐ外だけ、白っぽい緑がふわっと */
-      var halo = c.createRadialGradient(cx, cy, R * 0.96, cx, cy, R * 1.16);
-      halo.addColorStop(0, 'rgba(200,255,240,.20)'); halo.addColorStop(1, 'rgba(200,255,240,0)');
-      c.fillStyle = halo; c.beginPath(); c.arc(cx, cy, R * 1.16, 0, Math.PI * 2); c.fill();
-      /* 球：ガラス玉のように、左上が少し明るく・右下が少し沈む（色は面の緑のまま） */
-      var body = c.createRadialGradient(cx - R * 0.4, cy - R * 0.45, R * 0.05, cx, cy, R);
-      body.addColorStop(0, 'rgba(255,255,255,.10)'); body.addColorStop(0.6, 'rgba(255,255,255,.03)'); body.addColorStop(1, 'rgba(0,40,36,.22)');
+      /* 外の光（大気）：縁のすぐ外で光る。見本と同じく左上ほど強い */
+      var halo = c.createRadialGradient(cx + R * 0.08, cy + R * 0.06, R * 0.95, cx, cy, R * 1.24);
+      halo.addColorStop(0, 'rgba(120,230,208,.34)'); halo.addColorStop(0.45, 'rgba(90,200,182,.12)'); halo.addColorStop(1, 'rgba(90,200,182,0)');
+      c.fillStyle = halo; c.beginPath(); c.arc(cx, cy, R * 1.24, 0, Math.PI * 2); c.fill();
+      /* 球：中は暗い青緑（見本 #0e5253）。白で濁らせない */
+      var body = c.createRadialGradient(cx - R * 0.28, cy - R * 0.36, R * 0.08, cx, cy, R);
+      body.addColorStop(0, 'rgba(52,150,138,.62)'); body.addColorStop(0.55, 'rgba(18,86,84,.6)'); body.addColorStop(1, 'rgba(6,50,52,.72)');
       c.fillStyle = body; c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.fill();
+      /* 縁の内側の光：右下から左上へ、縁に近いほど明るい（見本の左上の光る縁） */
+      var lit = c.createRadialGradient(cx + R * 0.22, cy + R * 0.18, R * 0.55, cx, cy, R * 1.02);
+      lit.addColorStop(0, 'rgba(110,220,200,0)'); lit.addColorStop(0.75, 'rgba(110,220,200,.10)'); lit.addColorStop(1, 'rgba(150,240,220,.42)');
+      c.fillStyle = lit; c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.fill();
       /* 陸の点：丸い点を同じ間隔で（見本と同じ）。縁へ行くほど少し小さく・薄く */
       var n = land.length / 3, rad = Math.max(0.8, R * 0.0058), buckets = [[], [], [], []];
       var cl = Math.cos(lam), sl = Math.sin(lam), cp = Math.cos(phi), sp = Math.sin(phi);
@@ -598,16 +608,14 @@
       }
       for (var bI = 0; bI < 4; bI++) {
         var B = buckets[bI];
-        c.fillStyle = 'rgba(232,255,249,' + [0.34, 0.6, 0.8, 0.92][bI] + ')';
+        c.fillStyle = 'rgba(236,255,250,' + [0.4, 0.68, 0.88, 1][bI] + ')';
         c.beginPath();
         for (var j = 0; j < B.length; j += 3) { var s = rad * (0.62 + 0.38 * B[j + 2]); c.moveTo(B[j] + s, B[j + 1]); c.arc(B[j], B[j + 1], s, 0, Math.PI * 2); }
         c.fill();
       }
-      /* 縁：内側にうすい光の帯 ＋ 細い明るい線（ガラスの縁） */
-      var rim = c.createRadialGradient(cx, cy, R * 0.84, cx, cy, R);
-      rim.addColorStop(0, 'rgba(210,255,244,0)'); rim.addColorStop(1, 'rgba(210,255,244,.16)');
-      c.fillStyle = rim; c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.fill();
-      c.lineWidth = 1.3; c.strokeStyle = 'rgba(230,255,248,.55)'; c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.stroke();
+      /* 縁：細い明るい線に光をにじませる（ガラスの縁） */
+      c.save(); c.shadowColor = 'rgba(140,245,220,.9)'; c.shadowBlur = 14;
+      c.lineWidth = 1.4; c.strokeStyle = 'rgba(205,255,242,.72)'; c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.stroke(); c.restore();
 
       /* 弧：裏側（球に隠れる所）は描かない。選んだルートは最後に金色で */
       var t = now / 1000, sel = null;
