@@ -32,15 +32,17 @@
       p3: '直近3か月', p12: '直近1年', pAll: '直近2年', ymT: '{y}年{n}月',
       prevD: '前の日', nextD: '次の日', prevM: '前の月', nextM: '次の月',
       sumT: 'FLIGHT EARNINGS', est: '目安',
-      ringL: 'ブロック', ringA: '勤務時間のうちブロックタイムの割合 {p}', ringP: '{p}の全便', thisDay: 'この日', shareL: 'この日の稼ぎ {t} のうち', shareA: 'この日の稼ぎ {t} のうち、この便の分 {p}',
+      ringA: '{p}の稼ぎの配分：固定給 {f}・変動給 {v}', ringP: '{p}の全便', thisDay: 'この日', shareL: 'この日の稼ぎ {t} のうち', shareA: 'この日の稼ぎ {t} のうち、この便の分 {p}',
       legHub: '拠点', legDest: '行き先', legDh: 'DH',
       hint: 'ドラッグで回す・ルートを押す', zin: '拡大', zout: '縮小',
       op: '乗務', dh: 'DH', unk: '区分確認中',
-      earn: 'この便の稼ぎ（目安）', fixedL: '時給 × 勤務', flightL: '乗務手当・日当',
+      earn: 'この便の稼ぎ（目安）',
+      mixF: '固定給', mixV: '変動給', howF: '時給 × 勤務時間', howV: 'ブロックタイムで按分',
+      fixF: '時給 {r} × 勤務 {d}', rateF: '時給 ＝ 月の固定給 {o} ÷ 勤務 {D}', flF: '月の変動給 {m} を、ブロック {b} ／ {t} で按分', dhNo: '便乗の便には付かない',
       no_payslip: '{m}の明細を足すと出ます', roster_partial: 'この月のスケジュールを全部取り込むと出ます',
       mixed_currency: '通貨の違う明細が混ざる月は出せません', no_duty: '勤務時間が分からない月は出せません',
       no_block: 'この便の時間が分からないため出せません', no_pay: 'この月は額を出せません',
-      fixedFrom: '基本給は{m}の明細から', lagQ: '飛んだ分（乗務手当・日当）は、何月の給与明細に出ますか？',
+      fixedFrom: '固定給は{m}の明細から', lagQ: '飛んだ分（乗務手当・日当）は、何月の給与明細に出ますか？',
       lag0: '同じ月', lag1: '翌月', lag2: '翌々月', lagU: 'わからない', lagErr: '保存できませんでした。もう一度お試しください。',
       addPay: '明細を足す',
       listT: '便の一覧', all: 'すべて', allRoutes: '全ルート', more: 'もっと見る', less: '閉じる',
@@ -60,15 +62,17 @@
       p3: 'Last 3 months', p12: 'Last 12 months', pAll: 'Last 24 months', ymT: '{M} {y}',
       prevD: 'Previous day', nextD: 'Next day', prevM: 'Previous month', nextM: 'Next month',
       sumT: 'FLIGHT EARNINGS', est: 'est.',
-      ringL: 'Block', ringA: 'Block time as a share of duty time {p}', ringP: '{p}, all flights', thisDay: 'This day', shareL: 'Share of the day’s {t}', shareA: 'This flight’s share of the day’s earnings {t}: {p}',
+      ringA: 'Earnings split ({p}): fixed pay {f}, variable pay {v}', ringP: '{p}, all flights', thisDay: 'This day', shareL: 'Share of the day’s {t}', shareA: 'This flight’s share of the day’s earnings {t}: {p}',
       legHub: 'Base', legDest: 'Destination', legDh: 'Deadhead',
       hint: 'Drag to rotate, tap a route', zin: 'Zoom in', zout: 'Zoom out',
       op: 'Operating', dh: 'Deadhead', unk: 'Unclassified',
-      earn: 'Earned on this flight (est.)', fixedL: 'Hourly × duty', flightL: 'Flight pay & per diem',
+      earn: 'Earned on this flight (est.)',
+      mixF: 'Fixed pay', mixV: 'Variable pay', howF: 'Hourly × duty time', howV: 'Split by block time',
+      fixF: '{r}/hr × duty {d}', rateF: 'Hourly = monthly fixed pay {o} ÷ duty {D}', flF: '{m} monthly variable pay, split by block {b} / {t}', dhNo: 'Not paid on deadhead legs',
       no_payslip: 'Add your {m} payslip to see this', roster_partial: 'Import the whole month of your roster to see this',
       mixed_currency: 'Not shown for months with payslips in different currencies', no_duty: 'Not shown when the month has no duty times',
       no_block: 'Not shown because this flight has no block time', no_pay: 'Not shown for this month',
-      fixedFrom: 'Base pay from your {m} payslip', lagQ: 'Which month’s payslip pays for your flying (flight pay, per diem)?',
+      fixedFrom: 'Fixed pay from your {m} payslip', lagQ: 'Which month’s payslip pays for your flying (flight pay, per diem)?',
       lag0: 'Same month', lag1: 'Next month', lag2: 'Two months later', lagU: 'Not sure', lagErr: 'Couldn’t save. Please try again.',
       addPay: 'Add payslip',
       listT: 'Flights', all: 'All flights', allRoutes: 'All routes', more: 'Show more', less: 'Show less',
@@ -87,15 +91,17 @@
       p3: 'Últimos 3 meses', p12: 'Últimos 12 meses', pAll: 'Últimos 24 meses', ymT: '{M} {y}',
       prevD: 'Día anterior', nextD: 'Día siguiente', prevM: 'Mes anterior', nextM: 'Mes siguiente',
       sumT: 'FLIGHT EARNINGS', est: 'estimado',
-      ringL: 'Horas block', ringA: 'Tiempo de bloque sobre el tiempo de servicio {p}', ringP: '{p}, todos los vuelos', thisDay: 'Este día', shareL: 'Parte de los {t} de ese día', shareA: 'Parte de este vuelo en lo ganado ese día {t}: {p}',
+      ringA: 'Reparto de lo ganado ({p}): remuneración fija {f}, remuneración variable {v}', ringP: '{p}, todos los vuelos', thisDay: 'Este día', shareL: 'Parte de los {t} de ese día', shareA: 'Parte de este vuelo en lo ganado ese día {t}: {p}',
       legHub: 'Base', legDest: 'Destino', legDh: 'Deadhead',
       hint: 'Arrastra para girar y toca una ruta', zin: 'Acercar', zout: 'Alejar',
       op: 'Operando', dh: 'Deadhead', unk: 'Sin clasificar',
-      earn: 'Ganado en este vuelo (est.)', fixedL: 'Por hora × servicio', flightL: 'Pago de vuelo y viáticos',
+      earn: 'Ganado en este vuelo (est.)',
+      mixF: 'Remuneración fija', mixV: 'Remuneración variable', howF: 'Por hora × tiempo de servicio', howV: 'Repartido por tiempo de bloque',
+      fixF: '{r}/h × servicio {d}', rateF: 'Por hora = remuneración fija del mes {o} ÷ servicio {D}', flF: '{m} de remuneración variable del mes, repartido por bloque {b} / {t}', dhNo: 'No se paga en tramos deadhead',
       no_payslip: 'Agrega tu recibo de nómina de {m} para verlo', roster_partial: 'Importa el mes completo de tu programación para verlo',
       mixed_currency: 'No se muestra en meses con recibos en distintas monedas', no_duty: 'No se muestra si el mes no tiene horas de servicio',
       no_block: 'No se muestra porque este vuelo no tiene tiempo de bloque', no_pay: 'No se muestra en este mes',
-      fixedFrom: 'Sueldo base de tu recibo de {m}', lagQ: '¿En la nómina de qué mes se paga lo que vuelas (pago por vuelo, viáticos)?',
+      fixedFrom: 'Remuneración fija de tu recibo de {m}', lagQ: '¿En la nómina de qué mes se paga lo que vuelas (pago por vuelo, viáticos)?',
       lag0: 'Mismo mes', lag1: 'Mes siguiente', lag2: 'Dos meses después', lagU: 'No lo sé', lagErr: 'No se pudo guardar. Inténtalo de nuevo.',
       addPay: 'Agregar recibo',
       listT: 'Vuelos', all: 'Todos', allRoutes: 'Todas las rutas', more: 'Ver más', less: 'Ver menos',
@@ -247,25 +253,15 @@
       port[a] = (port[a] || 0) + 1; port[b] = (port[b] || 0) + 1;
     });
     var hub = Object.keys(port).sort(function (p, q) { return port[q] - port[p] || (p < q ? -1 : 1); })[0] || null;
-    /* 勤務時間のうちブロックタイムの割合（乗務の便のブロックタイム ÷ 勤務時間ぜんぶ）。1日でも1年でも同じ式・期間の稼ぎの合計
-       ★2026-11-13 日ごとの勤務時間は、エンジンの答え（flightPay の dutyByDate）を読む。ここで数え直さない
-         （どの日を勤務日に数えるか・時刻の無い日をどう補うかは flightPay の1か所。写しを持つと、便の額と輪が同じ日で食い違う）。
-         前の数え方で代えるのは、古いエンジン（最大4時間残る）で dutyByDate そのものが無いときだけ。
-         ⚠️ 新しいエンジンが「この日は出せない」（min が null）と返した日を、前の数え方で埋めない */
-    var t = today(), fly = 0, all = 0, total = 0, cur = null, byDate = S.fp && S.fp.dutyByDate;
-    (S.model && S.model.roster ? S.model.roster.months : []).forEach(function (rm) {
-      rm.days.forEach(function (x) {
-        if (x.date > t || !inRange(x.date)) return;
-        var v;
-        if (byDate) v = byDate[x.date] ? byDate[x.date].min : null;
-        else v = !x.isDuty ? null : (x.dutyMin != null ? x.dutyMin : ((x.blockKnown.operating || 0) + (x.blockKnown.deadhead || 0) + (x.blockKnown.unknown || 0)) || null);
-        if (v != null) all += v;
-      });
-    });
-    legs.forEach(function (l) { if (l.kind !== 'deadhead' && l.blockMin != null) fly += l.blockMin; });
-    legs.forEach(function (l) { if (l.amount == null) return; if (cur == null) cur = l.currency; if (cur === l.currency) total += l.amount; });
+    /* ★2026-11-13 輪は稼ぎの配分＝固定給と変動給の2つだけ（オーナー「まだブロック率のままやん」「基本給の割合とか配分グラフに入れようや。色分けしてどういう計算なのか」
+         「固定給と変動給でわけるだけでいいや。細かいと突っ込まれそうだから」）。
+       便の額は flightPay が2つに分けて返す（fixed＝時給 × この便の勤務時間＝固定給／flight＝月の変動給をブロックタイムで按分＝変動給。日当も変動給に入る）。
+       ここでは足すだけ・数え直さない。⚠️ ブロック率（勤務時間のうちブロックタイム）を輪に戻さない。地球儀で勤務時間を数えない（数えるのは flightPay の1か所）。
+       ⚠️ 手当ごとに細かく分けない（同じ日の便はどれも同じ割合になるうえ、配り方の規則を突っ込まれる） */
+    var total = 0, fx = 0, fv = 0, cur = null;
+    legs.forEach(function (l) { if (l.amount == null) return; if (cur == null) cur = l.currency; if (cur === l.currency) { total += l.amount; fx += l.fixed || 0; fv += l.flight || 0; } });
     var top = order.filter(function (r) { return r.cur === cur && r.sum > 0; }).sort(function (p, q) { return q.sum - p.sum; }).slice(0, 3);
-    return { legs: legs, routes: order, hub: hub, ring: all > 0 ? Math.min(1, fly / all) : null, total: cur == null ? null : total, cur: cur, top: top };
+    return { legs: legs, routes: order, hub: hub, total: cur == null ? null : total, fx: fx, fv: fv, cur: cur, top: top };
   }
 
   /* ── 描く（字）──────────────────────────────────────────── */
@@ -389,34 +385,61 @@
     G.setData(V, drawRoute, leg);
   }
   function routeKey(l) { var k = l.ga.iata + '>' + l.gb.iata; return dayMode() ? k : pairOf(k); }
+  /* 固定給と変動給の2行：{ k, amt, p(0.1%単位), c, name, how } ／色は REAL PAY と同じ（pay-viz.js の SEG の基本給・乗務変動手当） */
+  var MIX_C = { fixed: '#34d399', var: '#f5c842' };
+  function mixRows(fx, fv, how) {
+    var rows = [{ k: 'fixed', amt: Math.max(0, Math.round(fx || 0)), name: T.mixF, how: how.f }, { k: 'var', amt: Math.max(0, Math.round(fv || 0)), name: T.mixV, how: how.v }];
+    var tot = rows[0].amt + rows[1].amt;
+    if (!(tot > 0)) return [];
+    var p0 = Math.round(rows[0].amt * 1000 / tot);
+    rows[0].p = p0 / 10; rows[1].p = (1000 - p0) / 10;
+    rows.forEach(function (r) { r.c = MIX_C[r.k]; });
+    return rows;
+  }
+  function pct(p) { return p.toFixed(1) + '%'; }
+  function ringSVG(rows) {
+    var C = 2 * Math.PI * 34, live = rows.filter(function (r) { return r.amt > 0; }), gap = live.length > 1 ? 2 : 0, at = 0, out = '';
+    var tot = live.reduce(function (a, r) { return a + r.amt; }, 0);
+    live.forEach(function (r, i) {
+      var len = C * r.amt / tot;
+      out += '<circle cx="42" cy="42" r="34" class="gl-ring-v" style="--i:' + i + ';stroke:' + r.c + '" stroke-dasharray="' + Math.max(0.5, len - gap).toFixed(1) + ' ' + C.toFixed(1) +
+        '" stroke-dashoffset="' + (-at).toFixed(1) + '" transform="rotate(-90 42 42)"/>';
+      at += len;
+    });
+    return '<svg viewBox="0 0 84 84" width="84" height="84" aria-hidden="true"><circle cx="42" cy="42" r="34" class="gl-ring-tr"/>' + out + '</svg>';
+  }
+  /* 凡例：色の点・名前・％（稼ぎのカードだけ）・額、名前の下に式 */
+  function mixList(rows, cur, withP) {
+    if (!rows.length) return '';
+    return '<ul class="gl-mx' + (withP ? '' : ' is-leg') + '">' + rows.map(function (r) {
+      return '<li><i style="background:' + r.c + '"></i><span class="gl-mx-n">' + esc(r.name) + '</span>' +
+        (withP ? '<em style="color:' + r.c + '">' + esc(pct(r.p)) + '</em>' : '') + '<b>' + esc(money(r.amt, cur)) + '</b>' +
+        (r.how || []).map(function (h) { return '<small>' + esc(h) + '</small>'; }).join('') + '</li>';
+    }).join('') + '</ul>';
+  }
   function sumHTML(V) {
-    var p = V.ring == null ? null : Math.round(V.ring * 1000) / 10;
-    var C = 2 * Math.PI * 34, off = p == null ? C : C * (1 - p / 100);
+    var rows = V.total == null ? [] : mixRows(V.fx, V.fv, { f: [T.howF], v: [T.howV] });
+    var main = rows.length ? (rows[1].amt > 0 ? rows[1] : rows[0]) : null;
     var max = V.top.length ? V.top[0].sum : 0;
     return '<div class="gl-sum-h"><span class="gl-ov-t">' + esc(T.sumT) + '<small>' + esc(T.est) + '</small></span>' +
         '<span class="gl-chip">' + esc(V.total == null ? '—' : money(V.total, V.cur)) + '</span></div>' +
       '<div class="gl-sum-b">' +
-        '<div class="gl-ringw"><div class="gl-ring" role="img" aria-label="' + esc(fill(T.ringA, { p: p == null ? '—' : p + '%' }) + ' · ' + ringP()) + '">' +
-          '<svg viewBox="0 0 84 84" width="84" height="84" aria-hidden="true"><defs><linearGradient id="glRg" x1="0" y1="1" x2="1" y2="0">' +
-          '<stop offset="0" stop-color="#9ff0da"/><stop offset=".55" stop-color="#d9f2a8"/><stop offset="1" stop-color="#f5c35a"/></linearGradient></defs>' +
-          '<circle cx="42" cy="42" r="34" class="gl-ring-tr"/>' +
-          '<circle cx="42" cy="42" r="34" class="gl-ring-v" stroke="url(#glRg)" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + off.toFixed(1) + '" transform="rotate(-90 42 42)"/></svg>' +
-          '<span class="gl-ring-n">' + (p == null ? '—' : p.toFixed(1) + '%') + '<small>' + esc(T.ringL) + '</small></span></div>' +
+        '<div class="gl-ringw"><div class="gl-ring" role="img" aria-label="' + esc(fill(T.ringA, { p: ringP(), f: rows.length ? pct(rows[0].p) : '—', v: rows.length ? pct(rows[1].p) : '—' })) + '">' +
+          ringSVG(rows) +
+          '<span class="gl-ring-n">' + (main ? pct(main.p) + '<small style="color:' + main.c + '">' + esc(main.name) + '</small>' : '—') + '</span></div>' +
           '<span class="gl-ring-p">' + esc(ringP()) + '</span></div>' +
         '<div class="gl-bars">' + V.top.map(function (r, i) {
           return '<button type="button" class="gl-bar' + (r.k === S.drawRoute ? ' on' : '') + '" data-route="' + esc(r.k) + '">' +
             '<span class="gl-bar-l">' + esc(routeLabel(r)) + '</span><span class="gl-bar-v">' + esc(money(r.sum, r.cur)) + '</span>' +
-            '<i class="gl-bar-t"><i class="gl-bar-f' + (i === 0 ? ' is-1' : '') + '" style="--i:' + i + ';transform:scaleX(' + (max > 0 ? (r.sum / max).toFixed(3) : 0) + ')"></i></i></button>';
+            '<i class="gl-bar-t"><i class="gl-bar-f" style="--i:' + i + ';transform:scaleX(' + (max > 0 ? (r.sum / max).toFixed(3) : 0) + ')"></i></i></button>';
         }).join('') + '</div>' +
-      '</div>';
+      '</div>' + mixList(rows.filter(function (r) { return r.amt > 0; }), V.cur, true);
   }
   function fltHTML(l) {
     var head = esc(dayL(l.date)) + (l.fleet ? '<span class="gl-flt-fl">' + esc(l.fleet) + '</span>' : '');
     var chip = '<span class="gl-chip gl-chip-k is-' + esc(l.kind) + '"><i></i>' + esc(kindL(l.kind)) + '</span>';
     var stats = l.amount != null
-      ? '<div class="gl-st"><span>' + esc(T.earn) + '</span><b>' + esc(money(l.amount, l.currency)) + '</b></div>' +
-        '<div class="gl-st"><span>' + esc(T.fixedL) + '</span><b>' + esc(money(Math.round(l.ratePerHour), l.currency)) + ' × ' + esc(hm(l.dutyMin)) + '</b></div>' +
-        (l.basis === 'split' ? '<div class="gl-st"><span>' + esc(T.flightL) + '</span><b>' + esc(money(l.flight, l.currency)) + '</b></div>' : '')
+      ? '<div class="gl-st"><span>' + esc(T.earn) + '</span><b>' + esc(money(l.amount, l.currency)) + '</b></div>' + legMixHTML(l)
       : '<div class="gl-why">' + esc(why(l)) + (l.reason === 'no_payslip' ? ' <a class="gl-add" href="pay-report.html#ps">' + esc(T.addPay) + ' →</a>' : '') + '</div>' + lagAskHTML(l);
     if (l.amount != null && l.fixedFrom) stats += '<p class="gl-from">' + esc(fill(T.fixedFrom, { m: ymS(l.fixedFrom) })) + '</p>';
     if (l.amount != null && l.partial && l.partial.gaps.length) {
@@ -444,6 +467,18 @@
     var p = Math.round(sh.r * 1000) / 10;
     return '<div class="gl-shr" role="img" aria-label="' + esc(fill(T.shareA, { p: p + '%', t: money(sh.tot, l.currency) })) + '"><span>' + esc(fill(T.shareL, { t: money(sh.tot, l.currency) })) + '</span><b>' + p.toFixed(1) + '%</b>' +
       '<i class="gl-shr-t"><i style="transform:scaleX(' + sh.r.toFixed(3) + ')"></i></i></div>';
+  }
+  /* ★2026-11-13 便の内訳を式ごと（オーナー「どういう計算なのか」）。数字は flightPay の答えを並べるだけ：
+       固定給 ＝ 時給 × この便の勤務時間（時給 ＝ 月の固定給 ÷ 月の勤務時間）／変動給 ＝ 月の変動給 × この便のブロックタイム ÷ 月のブロックタイム（便乗には付かない） */
+  function legMixHTML(l) {
+    var M = S.fp && S.fp.byYm ? S.fp.byYm[l.ym] : null, cur = l.currency;
+    var hf = [fill(T.fixF, { r: money(Math.round(l.ratePerHour), cur), d: hm(l.dutyMin) })];
+    if (M && M.otMinor != null && M.dutyMin > 0) hf.push(fill(T.rateF, { o: money(Math.round(M.otMinor), cur), D: hm(M.dutyMin) }));
+    var hv = l.kind === 'deadhead' ? [T.dhNo]
+      : M && M.flMinor != null && M.opBlockMin > 0 ? [fill(T.flF, { m: money(Math.round(M.flMinor), cur), b: hm(l.blockMin), t: hm(M.opBlockMin) })] : [T.howV];
+    var rows = [{ k: 'fixed', amt: l.fixed || 0, name: T.mixF, how: hf, c: MIX_C.fixed }];
+    if (l.basis === 'split') rows.push({ k: 'var', amt: l.flight || 0, name: T.mixV, how: hv, c: MIX_C.var });
+    return mixList(rows, cur, false);
   }
   function ringP() {
     var p = S.per === 'd' ? T.thisDay : S.per === 'm' && S.ym ? ymS(S.ym) : S.per === '3' ? T.p3 : S.per === '12' ? T.p12 : T.pAll;

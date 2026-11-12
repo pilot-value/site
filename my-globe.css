@@ -68,14 +68,14 @@
 .gl-sum-h,.gl-flt-h{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .gl-sum-b{display:grid;grid-template-columns:84px 1fr;gap:16px;align-items:center;margin-top:14px}
 
-/* 輪（勤務時間のうち乗務の割合） */
+/* 輪（★2026-11-13 稼ぎの配分＝固定給（緑）と変動給（金）。色は REAL PAY と同じ・JS が弧ごとに付ける） */
 .gl-ring{position:relative;width:84px;height:84px}
 .gl-ring svg{display:block}
 .gl-ring-tr{fill:none;stroke:rgba(255,255,255,.14);stroke-width:6}
-.gl-ring-v{fill:none;stroke-width:6;stroke-linecap:round}
+.gl-ring-v{fill:none;stroke-width:6;stroke-linecap:butt}
 .gl-ring-n{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:1rem;font-weight:600;letter-spacing:-.02em;line-height:1.1}
-.gl-ring-n small{margin-top:3px;font-size:.58rem;font-weight:400;letter-spacing:0;color:var(--gl-ink3)}
-/* 輪がどの期間の数字か（オーナー「日ごとのブロックの割合は一番上のやつ？」） */
+.gl-ring-n small{max-width:60px;margin-top:3px;font-size:.58rem;font-weight:600;letter-spacing:0;line-height:1.2;text-align:center;color:var(--gl-ink3)}
+/* 輪がどの期間の数字か（下に「9月の全便」のように） */
 .gl-ringw{display:flex;flex-direction:column;align-items:center;gap:6px;width:84px}
 .gl-ring-p{max-width:84px;font-size:.58rem;font-weight:400;line-height:1.35;text-align:center;color:var(--gl-ink3)}
 
@@ -91,8 +91,19 @@
 .gl-bar.on .gl-bar-l{color:#ffe2a6}
 .gl-bar-v{font-size:.72rem;font-weight:600}
 .gl-bar-t{grid-column:1/-1;display:block;height:4px;border-radius:3px;background:rgba(255,255,255,.14);overflow:hidden}
-.gl-bar-f{display:block;height:100%;border-radius:3px;background:var(--gl-mint);transform-origin:left center}
-.gl-bar-f.is-1{background:var(--gl-gold)}
+.gl-bar-f{display:block;height:100%;border-radius:3px;background:rgba(255,255,255,.78);transform-origin:left center}
+
+/* 配分の凡例（色の点・名前・％・額、名前の下に式）。稼ぎのカードの下と、便のカードの内訳で同じ形 */
+.gl-mx{display:flex;flex-direction:column;gap:9px;margin:14px 0 0;padding:12px 0 0;border-top:1px solid var(--gl-line);list-style:none}
+.gl-mx li{display:grid;grid-template-columns:8px minmax(0,1fr) auto auto;align-items:center;gap:0 8px}
+.gl-mx li>i{width:8px;height:8px;border-radius:50%}
+.gl-mx-n{min-width:0;font-size:.7rem;font-weight:600;line-height:1.35}
+.gl-mx li>small{grid-column:2/-1;margin-top:2px;font-size:.6rem;font-weight:400;line-height:1.45;color:var(--gl-ink3)}
+.gl-mx em{grid-column:3;font-style:normal;font-size:.72rem;font-weight:600;font-variant-numeric:tabular-nums}
+.gl-mx b{grid-column:4;font-size:.72rem;font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+.gl-mx.is-leg{margin:0;padding:0;border:0;gap:11px}
+.gl-mx.is-leg .gl-mx-n{font-size:.74rem}
+.gl-mx.is-leg b{font-size:.84rem}
 
 /* 選んだ便（出発地 → 目的地） */
 .gl-flt-d{font-size:.82rem;font-weight:600}
@@ -111,18 +122,20 @@
 .gl-flt-ln.is-r{border-top-style:dashed;border-top-color:rgba(255,255,255,.34)}
 .gl-flt-pl{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;margin:0 4px;border-radius:50%;background:#fff;color:#0b3d36}
 .gl-flt-bt{position:absolute;top:calc(100% + 6px);left:0;right:0;text-align:center;font-size:.66rem;font-weight:400;color:var(--gl-ink3)}
-.gl-sts{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:14px;margin-top:22px;padding-top:12px;border-top:1px solid var(--gl-line)}
+.gl-sts{display:flex;flex-direction:column;gap:12px;margin-top:22px;padding-top:12px;border-top:1px solid var(--gl-line)}
 .gl-st{min-width:0}
 .gl-st span{display:block;font-size:.62rem;font-weight:400;color:var(--gl-ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gl-st b{display:block;margin-top:4px;font-size:.84rem;font-weight:600;white-space:nowrap}
 .gl-st:first-child b{font-size:1rem}
-.gl-st:first-child b{color:#ffe2a6}
+.gl-st:first-child{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.gl-st:first-child span{flex:1}
+.gl-st:first-child b{margin-top:0;font-size:1.15rem}
 /* 便のカード：この日の稼ぎのうち、この便の分（便を選ぶたびに変わる） */
 .gl-shr{display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:5px 8px;margin-top:28px}
 .gl-shr span{font-size:.62rem;font-weight:400;color:var(--gl-ink3)}
 .gl-shr b{font-size:.84rem;font-weight:600;font-variant-numeric:tabular-nums}
 .gl-shr-t{grid-column:1/-1;display:block;height:4px;border-radius:3px;background:rgba(255,255,255,.14);overflow:hidden}
-.gl-shr-t i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#f5c35a,#ffe2a6);transform-origin:left center;
+.gl-shr-t i{display:block;height:100%;border-radius:3px;background:rgba(255,255,255,.78);transform-origin:left center;
   animation:glGrowX .7s cubic-bezier(.22,1.18,.36,1) both}   /* 便を選び直すたびに伸ばす（選んだ便の数字が替わったと分かる） */
 .gl-shr + .gl-sts{margin-top:14px}
 .gl-why{grid-column:1/-1;font-size:.76rem;font-weight:400;color:var(--gl-ink2);line-height:1.6}
@@ -253,10 +266,10 @@ button.gl-mb-c:active{opacity:.6}
 /* ★2026-11-12 オーナー「棒グラフはモーションつけてね」：期間を替えたときと最初の1回だけ、棒と輪を 0 から伸ばす（transform と線の長さだけ） */
 .gl-anim .gl-bar-f{animation:glGrowX .9s cubic-bezier(.22,1.18,.36,1) both;animation-delay:calc(var(--i,0) * 90ms + 120ms)}
 .gl-anim .gl-mb-c:not(.is-none):not(.is-off) i{animation:glGrowY .75s cubic-bezier(.22,1.18,.36,1) both;animation-delay:calc(var(--i,0) * 22ms)}
-.gl-anim .gl-ring-v{animation:glRing 1.1s cubic-bezier(.22,1,.36,1) both}
+.gl-anim .gl-ring-v{animation:glRing .8s cubic-bezier(.22,1,.36,1) both;animation-delay:calc(var(--i,0) * .55s + .1s)}
 @keyframes glGrowX{from{transform:scaleX(0)}}
 @keyframes glGrowY{from{transform:scaleY(0)}}
-@keyframes glRing{from{stroke-dashoffset:213.6}}
+@keyframes glRing{from{stroke-dasharray:0 213.6}}
 @media (prefers-reduced-motion: reduce){
   .gl-pb,.gl-zb,.gl-bar{transition:none}
   .gl-shr-t i,.gl-anim .gl-bar-f,.gl-anim .gl-mb-c i,.gl-anim .gl-ring-v{animation:none}

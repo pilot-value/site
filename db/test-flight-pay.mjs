@@ -288,11 +288,13 @@ function suite(R) {
     const g = fs.existsSync(gp) ? fs.readFileSync(gp, 'utf8') : '';
     const T = (g.match(/var T = \{[\s\S]*?\n  \};/) || [''])[0];
     ok(T.length > 0 && !/単価|料率|tarifa|rate per/i.test(T), '地球儀の字に「単価」「料率」が無い');
-    /* ★2026-11-13 地球儀は勤務時間を数え直さない：日ごとの勤務時間はエンジンの答え（dutyByDate）から。
-         前の数え方（isDuty と x.dutyMin）が残ってよいのは、古いエンジンのときに代える1行だけ */
-    const oldCalc = g.split('\n').filter((ln) => /x\.isDuty|x\.dutyMin/.test(ln));
-    ok(/if \(byDate\) v = byDate\[x\.date\] \? byDate\[x\.date\]\.min : null;/.test(g) && oldCalc.length === 1 && /^\s*else v = /.test(oldCalc[0]) && !/dayRatio/.test(g),
-      '★地球儀は日ごとの勤務時間をエンジンの答えから読む（前の数え方は、古いエンジンのときの1行だけ）');
+    /* ★2026-11-13 地球儀は勤務時間を数えない。輪はお金の配分＝固定給（便の fixed）と変動給（便の flight）を足すだけ。
+         オーナー「まだブロック率のままやん」＝ ブロック率（勤務時間のうちブロックタイム）を輪にも便のカードにも戻さない。
+         オーナー「固定給と変動給でわけるだけでいいや。細かいと突っ込まれそうだから」＝ 手当ごとに分けない */
+    const oldCalc = g.split('\n').filter((ln) => /x\.isDuty|x\.dutyMin|blockKnown|dutyByDate/.test(ln));
+    ok(oldCalc.length === 0 && !/dayRatio|ブロックタイムの割合|ringL/.test(g) && /fx \+= l\.fixed/.test(g) && /fv \+= l\.flight/.test(g),
+      '★地球儀は勤務時間を数えない・輪は稼ぎの配分（固定給／変動給）でブロック率を出さない');
+    ok(!/segName|パーディアム|perdiem/.test(g), '★地球儀は固定給と変動給の2つだけ（手当ごと・日当を分けて書かない）');
   }
   return res;
 }
