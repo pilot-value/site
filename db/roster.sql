@@ -1028,7 +1028,7 @@ begin
     elsif exists (select 1 from jsonb_each(p->'codes') e
                    where e.key !~ '^([A-Z0-9/+\-]{1,12}|#[0-9a-f]{16})$'
                       or jsonb_typeof(e.value) <> 'string'
-                      or (e.value #>> '{}') not in ('off', 'vac', 'duty', 'standby', 'training', 'ground', 'unknown')) then
+                      or (e.value #>> '{}') not in ('off', 'vac', 'duty', 'standby', 'training', 'ground', 'other', 'unknown')) then   -- ★2026-11-12 other（その他）
       raise exception 'ロスターの勤務コードが不正です' using errcode = '22023';
     else
       v_codes := p->'codes';
@@ -1327,7 +1327,7 @@ $cron$;
 
 -- ── 9-c. 会社の辞書（2026-11-10）────────────────────────────────────
 -- オーナー「勤務表を読んだあとに読めない日が残り、会員が打つことが多い」。勤務コードの意味などを、同じ会社の会員の答えから覚える。
---   数える単位 … 読み方（pv_roster_profile）の1行 ＝ 1人・1社。codes の 'unknown' は答えに数えない（kind などの null も）。
+--   数える単位 … 読み方（pv_roster_profile）の1行 ＝ 1人・1社。codes の 'unknown'・'other'（その他）は答えに数えない（kind などの null も）。
 --   そろった線 … いちばん多い答えが3人以上 かつ 答えた人の過半数（db/ask-own-airline.sql の pv_ask_filled と同じ考え。
 --                3対3 は割れている ＝ 置かない）。★線は pv_roster_airline_recount の定数の1か所だけ。
 --   数えるとき … 読み方の表に書いたとき（引き金）。その会社の分だけを作り直す。⚠️ 読むたびに数えない。
@@ -1365,7 +1365,7 @@ begin
   ans as (
     select r.proof_hash, e.key, e.value #>> '{}' as v
       from pr r cross join lateral jsonb_each(r.codes) e
-     where jsonb_typeof(e.value) = 'string' and (e.value #>> '{}') <> 'unknown'
+     where jsonb_typeof(e.value) = 'string' and (e.value #>> '{}') not in ('unknown', 'other')   -- 「その他」も辞書には入れない
     union all select r.proof_hash, '@kind', r.kind from pr r where r.kind is not null
     union all select r.proof_hash, '@time_ref', r.time_ref from pr r where r.time_ref is not null
     union all select r.proof_hash, '@time_meaning', r.time_meaning from pr r where r.time_meaning is not null

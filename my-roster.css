@@ -322,6 +322,10 @@ button.rs-cell:active{transform:scale(.97)}
 .ru-cal+.ru-cal{margin-top:20px}
 .ru-cals .ru-lead{margin-bottom:12px}
 .rs-cell.is-ask{border-style:dashed;border-color:var(--pv-gold-line);background:var(--pv-gold-soft)}
+/* 取り込みの確かめる画面：前に出した日（薄く・押せない） */
+.rs-cell.is-prev{opacity:.42;cursor:default}
+.ru-prevnote{display:flex;align-items:center;gap:8px}
+.ru-prev-k{flex:none;width:14px;height:14px;border-radius:4px;background:var(--pv-accent);opacity:.42}
 .rs-cell.is-ask .rs-c-m{color:var(--pv-gold-ink)}
 .rs-cell.has-iss::after{content:"";position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--pv-gold)}
 .rs-cell.is-sel.has-iss::after{background:var(--pv-surface)}

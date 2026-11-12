@@ -77,17 +77,17 @@
   var YEAR_URL = 'my-year.js?v=' + YEAR_V;                 // 「1年」の画面（押したときだけ読む）
   /* ★「勤務ロスター」のタブ（2026-11-09）。開いたときだけ読む4本。指紋は上の2本と同じ決まり
        （db/test-year-report.mjs が中身と突き合わせる）。計算の部品は分析のタブも使う。 */
-  var ROSTER_V = '639f029f';
-  var ROSTER_CSS_V = 'aa718a29';
-  var UPLOAD_V = '8b9b153f';
-  var ENGINE_V = 'a96bd179';
+  var ROSTER_V = 'fd52ee85';
+  var ROSTER_CSS_V = '4b57ef14';
+  var UPLOAD_V = '546270b4';
+  var ENGINE_V = 'af0a0fea';
   var AIRPORT_TZ_V = 'ec27da34';   // ★2026-11-11 空港 → タイムゾーンの表（pv-airport-tz.js・現地時刻の便の時間）
   /* ★「分析」のタブ（2026-11-09）。開いたときだけ読む2本（見た目 → 計算の部品 → 画面の順）。指紋の決まりは上と同じ */
   var ANALYSIS_V = 'ae699612';
-  var ANALYSIS_CSS_V = 'aeff3463';
+  var ANALYSIS_CSS_V = '19e86be1';
   /* ★スケジュールの一番上の「飛んだルート」の地球儀（2026-11-12）。スケジュールのタブを開いたときだけ読む4本。指紋の決まりは上と同じ */
-  var GLOBE_V = '72fce156';
-  var GLOBE_CSS_V = '9129a5ea';
+  var GLOBE_V = '65f69b1a';
+  var GLOBE_CSS_V = '8b9b34c4';
   var AIRPORT_GEO_V = '12fab2ff';   // 空港 → 位置と街の名前（pv-airport-geo.js）
   var GLOBE_COAST_V = '48ed6a23';  // 陸の縁（pv-globe-coast.js・0.25° より細かく寄ったときだけ my-globe.js が読む）
   var GLOBE_LAND_V = '1b63fac1';    // 陸地の点（pv-globe-land.js）

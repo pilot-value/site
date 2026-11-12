@@ -26,6 +26,8 @@
   var T = {
     ja: {
       title: 'ROUTE', sub: '{p} · {r}ルート · {n}便', aria: '飛んだルートの地球儀', noPos: '地図に出せない空港 {c}',
+      nFl: '{n}便', nFl1: '1便', partT: '{m}は {g} のスケジュールが無いので、取り込んだ日から補って見積もっています。', gapD: '{a}〜{b}日', gapD1: '{a}日', gapJ: '・',
+      addRoster: 'スケジュールを足す',
       perAria: '期間', perD: '日', perM: '月', per3: '3か月', per12: '1年', perAll: '全部',
       p3: '直近3か月', p12: '直近1年', pAll: '直近2年', ymT: '{y}年{n}月',
       prevD: '前の日', nextD: '次の日', prevM: '前の月', nextM: '次の月',
@@ -52,6 +54,8 @@
     },
     en: {
       title: 'ROUTE', sub: '{p} · {r} routes · {n} flights', aria: 'Globe of the routes you flew', noPos: 'Not on the map: {c}',
+      nFl: '{n} flights', nFl1: '1 flight', partT: 'No roster for {g} {m}, so this is estimated from the days you imported.', gapD: '{a}–{b}', gapD1: '{a}', gapJ: ', ',
+      addRoster: 'Add roster',
       perAria: 'Period', perD: '1D', perM: '1M', per3: '3M', per12: '1Y', perAll: 'All time',
       p3: 'Last 3 months', p12: 'Last 12 months', pAll: 'Last 24 months', ymT: '{M} {y}',
       prevD: 'Previous day', nextD: 'Next day', prevM: 'Previous month', nextM: 'Next month',
@@ -77,6 +81,8 @@
       mon: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     }, /*PV-MSG:es*/ es: {
       title: 'ROUTE', sub: '{p} · {r} rutas · {n} vuelos', aria: 'Globo con las rutas que volaste', noPos: 'Fuera del mapa: {c}',
+      nFl: '{n} vuelos', nFl1: '1 vuelo', partT: 'No hay programación para el {g} de {m}, así que se estima con los días que importaste.', gapD: '{a}–{b}', gapD1: '{a}', gapJ: ', ',
+      addRoster: 'Agregar programación',
       perAria: 'Período', perD: '1D', perM: '1M', per3: '3M', per12: '1Y', perAll: 'Todo',
       p3: 'Últimos 3 meses', p12: 'Últimos 12 meses', pAll: 'Últimos 24 meses', ymT: '{M} {y}',
       prevD: 'Día anterior', nextD: 'Día siguiente', prevM: 'Mes anterior', nextM: 'Mes siguiente',
@@ -230,8 +236,9 @@
     legs.forEach(function (l) {
       var a = l.ga.iata, b = l.gb.iata, k = a < b ? a + '|' + b : b + '|' + a;
       var r = routes[k];
-      if (!r) { r = routes[k] = { k: k, a: a < b ? l.ga : l.gb, b: a < b ? l.gb : l.ga, legs: [], n: 0, dh: 0, sum: 0, cur: null }; order.push(r); }
+      if (!r) { r = routes[k] = { k: k, a: a < b ? l.ga : l.gb, b: a < b ? l.gb : l.ga, legs: [], n: 0, dh: 0, sum: 0, cur: null, dirs: {} }; order.push(r); }
       r.legs.push(l); r.n++; if (l.kind === 'deadhead') r.dh++;
+      r.dirs[a + '>' + b] = 1;
       if (l.amount != null) { if (r.cur == null) r.cur = l.currency; if (r.cur === l.currency) r.sum += l.amount; }
       port[a] = (port[a] || 0) + 1; port[b] = (port[b] || 0) + 1;
     });
@@ -255,6 +262,16 @@
   var IC_PLANE = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M21 15.5v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V8.5l-8 5v2l8-2.5V18l-2 1.5V21l3.5-1 3.5 1v-1.5L13 18v-5z" transform="rotate(90 12 12)"/></svg>';
   var IC_HAND = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12"/><path d="M11 11.5v-2a1.5 1.5 0 0 1 3 0V12"/><path d="M14 10.5a1.5 1.5 0 0 1 3 0V12"/><path d="M17 11.5a1.5 1.5 0 0 1 3 0V16a6 6 0 0 1-6 6h-1.5a6 6 0 0 1-4.6-2.2L5 16.5a1.6 1.6 0 0 1 2.4-2.1L8 15"/></svg>';
   function kindL(k) { return k === 'deadhead' ? T.dh : k === 'unknown' ? T.unk : T.op; }
+  /* ★2026-11-12 オーナー「片道なのに矢印が2つ」：期間の中で飛んだ向きが1つだけなら、その向きで「HND → FUK」。両方あれば「HND ⇄ KMJ」 */
+  function routeLabel(r) {
+    var ks = Object.keys(r.dirs || {});
+    if (ks.length === 1) { var p = ks[0].split('>'); return p[0] + ' → ' + p[1]; }
+    return r.a.iata + ' ⇄ ' + r.b.iata;
+  }
+  function nFl(n) { return n === 1 ? T.nFl1 : fill(T.nFl, { n: n }); }
+  function gapsL(gs) {
+    return (gs || []).map(function (g) { return g[0] === g[1] ? fill(T.gapD1, { a: g[0] }) : fill(T.gapD, { a: g[0], b: g[1] }); }).join(T.gapJ);
+  }
   function why(l) {
     if (!l || !l.reason) return '';
     if (l.reason === 'no_payslip') return fill(T.no_payslip, { m: (l.missing || []).map(ymS).join('・') || ymS(l.ym) });
@@ -356,7 +373,7 @@
           '<span class="gl-ring-n">' + (p == null ? '—' : p.toFixed(1) + '%') + '<small>' + esc(T.ringL) + '</small></span></div>' +
         '<div class="gl-bars">' + V.top.map(function (r, i) {
           return '<button type="button" class="gl-bar' + (r.k === S.drawRoute ? ' on' : '') + '" data-route="' + esc(r.k) + '">' +
-            '<span class="gl-bar-l">' + esc(r.a.iata + ' ⇄ ' + r.b.iata) + '</span><span class="gl-bar-v">' + esc(money(r.sum, r.cur)) + '</span>' +
+            '<span class="gl-bar-l">' + esc(routeLabel(r)) + '</span><span class="gl-bar-v">' + esc(money(r.sum, r.cur)) + '</span>' +
             '<i class="gl-bar-t"><i class="gl-bar-f' + (i === 0 ? ' is-1' : '') + '" style="transform:scaleX(' + (max > 0 ? (r.sum / max).toFixed(3) : 0) + ')"></i></i></button>';
         }).join('') + '</div>' +
       '</div>';
@@ -370,6 +387,10 @@
         (l.basis === 'split' ? '<div class="gl-st"><span>' + esc(T.flightL) + '</span><b>' + esc(money(l.flight, l.currency)) + '</b></div>' : '')
       : '<div class="gl-why">' + esc(why(l)) + (l.reason === 'no_payslip' ? ' <a class="gl-add" href="pay-report.html#ps">' + esc(T.addPay) + ' →</a>' : '') + '</div>' + lagAskHTML(l);
     if (l.amount != null && l.fixedFrom) stats += '<p class="gl-from">' + esc(fill(T.fixedFrom, { m: ymS(l.fixedFrom) })) + '</p>';
+    if (l.amount != null && l.partial && l.partial.gaps.length) {
+      stats += '<div class="gl-part"><p>' + esc(fill(T.partT, { m: ymS(l.ym), g: gapsL(l.partial.gaps) })) + '</p>' +
+        '<button type="button" class="gl-lagb" data-roster-up="1">' + esc(T.addRoster) + '</button></div>';
+    }
     return '<div class="gl-flt-h"><span class="gl-flt-d">' + head + '</span>' + chip + '</div>' +
       '<div class="gl-flt-r"><div class="gl-ap"><b>' + esc(l.ga.iata) + '</b><span>' + esc(city(l.ga)) + '</span><span class="gl-ap-t">' + esc(l.out || '') + '</span></div>' +
         '<div class="gl-flt-m"><i class="gl-flt-ln"></i><span class="gl-flt-pl">' + IC_PLANE + '</span><i class="gl-flt-ln is-r"></i><span class="gl-flt-bt">' + esc(hm(l.blockMin)) + '</span></div>' +
@@ -407,7 +428,7 @@
     var r = S.route ? V.routes.filter(function (x) { return x.k === S.route; })[0] : null;
     var chips = [['all', T.all], ['operating', T.op], ['deadhead', T.dh]].filter(function (c) { return c[0] === 'all' || n[c[0]]; });
     return '<div class="gl-card-h"><div><h4 class="gl-card-t">' + esc(T.listT) + '</h4><p class="gl-card-s">' +
-        esc(r ? r.a.iata + ' ⇄ ' + r.b.iata + ' · ' + city(r.a) + ' / ' + city(r.b) : T.allRoutes) + '</p></div>' +
+        esc(r ? routeLabel(r) + ' · ' + nFl(r.n) + ' · ' + city(r.a) + ' / ' + city(r.b) : T.allRoutes) + '</p></div>' +
         (S.route ? '<button type="button" class="gl-x" data-route="" aria-label="' + esc(T.allRoutes) + '">' + esc(T.allRoutes) + '</button>' : '') + '</div>' +
       '<div class="gl-fl" role="group">' + chips.map(function (c) {
         return '<button type="button" class="gl-fb' + (S.filt === c[0] ? ' on' : '') + '" data-filt="' + c[0] + '" aria-pressed="' + (S.filt === c[0]) + '">' +
@@ -472,9 +493,10 @@
   function onClick(e) {
     var t = e.target.closest ? e.target.closest('button,a') : null;
     if (!t || !S.root.contains(t)) return;
-    if (t.hasAttribute('data-per')) { S.per = t.getAttribute('data-per'); store(PKEY, S.per); S.listN = 8; S.leg = null; S.route = null; render(); G.focusRoute(true); return; }
+    if (t.hasAttribute('data-per')) { S.per = t.getAttribute('data-per'); store(PKEY, S.per); S.listN = 8; S.leg = null; S.route = null; render(); G.home(); return; }
     if (t.hasAttribute('data-step')) { step(+t.getAttribute('data-step')); return; }
     if (t.hasAttribute('data-lag')) { setLag(+t.getAttribute('data-lag')); return; }
+    if (t.hasAttribute('data-roster-up')) { if (w.PVRoster && w.PVRoster.open) w.PVRoster.open({ upload: true }); return; }
     if (t.hasAttribute('data-goym')) { S.per = 'm'; S.ym = t.getAttribute('data-goym'); S.leg = null; S.route = null; S.listN = 8; render(); G.focusRoute(); return; }
     if (t.hasAttribute('data-goday')) { S.per = 'd'; S.day = t.getAttribute('data-goday'); S.leg = null; S.route = null; S.listN = 8; render(); G.focusRoute(); return; }
     if (t.hasAttribute('data-route')) { pickRoute(t.getAttribute('data-route') || null); return; }
@@ -562,7 +584,7 @@
           [r.a, r.b].forEach(function (g) { if (!seenP[g.iata]) { seenP[g.iata] = 1; ports.push({ g: g, v: vec(g.lat, g.lon) }); } });
         });
         hub = V.hub;
-        if (!seen && V.legs.length) { seen = true; center(true); }
+        if (!seen && V.legs.length) { seen = true; home(true); }
       }
       kick(); draw();
     }
@@ -594,6 +616,22 @@
       kick();
     }
     function focusRoute(soft) { center(!!soft && RM); idleAt = performance.now(); }
+    /* ★2026-11-12 オーナー「くるくる回ると見づらい・主基地を中心に止めておく」：主基地（いちばん多く出た空港）を正面に、
+         行き先が全部入る大きさで止める（主基地から一番遠い行き先までの角度で寄り具合を決める） */
+    function home(now) {
+      var hp = ports.filter(function (p) { return p.g.iata === hub; })[0];
+      if (!hp) { center(now); return; }
+      var far = 0;
+      ports.forEach(function (p) { var dt2 = hp.v[0] * p.v[0] + hp.v[1] * p.v[1] + hp.v[2] * p.v[2]; far = Math.max(far, Math.acos(Math.max(-1, Math.min(1, dt2)))); });
+      var r0 = geom().R / k;
+      var kT = far >= 1.2 || far <= 0 ? 1 : Math.max(1, Math.min(40, (Math.min(W, H) * 0.42) / (r0 * Math.sin(far))));
+      var tl = Math.atan2(hp.v[0], hp.v[2]), tp = Math.asin(Math.max(-1, Math.min(1, hp.v[1])));
+      var pT = kT > 1.5 ? tp : tp * 0.8 + 0.12;
+      if (now || RM) { lam = tl; phi = pT; k = kT; draw(); return; }
+      var dl = tl - lam; while (dl > Math.PI) dl -= 2 * Math.PI; while (dl < -Math.PI) dl += 2 * Math.PI;
+      tween = { t0: performance.now(), l0: lam, p0: phi, dl: dl, dp: pT - phi, k0: k, dk: kT - k, dur: 1000 };
+      kick();
+    }
     var KMAX = 200;  // 県くらいまで見えるように（オーナー「もっと拡大。県くらいまで見えるレベルで」＝ 画面の幅が 100〜150km）
     function zoomBy(f) { tween = null; k = Math.max(0.7, Math.min(KMAX, k * f)); idleAt = performance.now(); kick(); draw(); }
 
@@ -652,7 +690,6 @@
         if (p >= 1) tween = null;
       } else if (!drag && !pinch) {
         if (Math.abs(vlam) > 1e-5 || Math.abs(vphi) > 1e-5) { lam += vlam * dt; phi = clampP(phi + vphi * dt); vlam *= 0.92; vphi *= 0.92; }
-        else if (now - idleAt > 6000) lam -= 0.000022 * dt;    // 触っていない間はゆっくり自転
       }
       draw(now);
       if (!RM) raf = w.requestAnimationFrame(frame);
@@ -907,7 +944,7 @@
       });
       if (best) pickRoute(best.k);
     }
-    return { init: init, setData: setData, focusRoute: focusRoute, zoomBy: zoomBy, kick: kick, draw: draw };
+    return { init: init, setData: setData, focusRoute: focusRoute, home: home, zoomBy: zoomBy, kick: kick, draw: draw };
   }());
 
   /* ── 外から ─────────────────────────────────────────────── */

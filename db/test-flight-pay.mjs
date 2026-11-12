@@ -129,8 +129,16 @@ function suite(R) {
     const nov = fp.legs.filter((l) => l.ym === '2026-11');
     ok(nov.length === 4 && nov.every((l) => l.amount === null && l.reason === 'no_payslip'), '★明細の無い月は額を出さない');
     ok(fp.byYm['2026-11'].missing.join() === '2026-11', 'どの月の明細が足りないかを返す');
+    /* ★2026-11-12 オーナー回答「欠けた日を補って出す」：25日ぶん（26〜31日が無い）でも額を出す。
+         勤務 9,600分 × 31 ÷ 25 ＝ 11,904分・乗務 1,500分 × 31 ÷ 25 ＝ 1,860分 で割る */
     const part = run(R, [OCT()], month('2026-10', D10, S10).slice(0, 25));
-    ok(part.legs.every((l) => l.amount === null && l.reason === 'roster_partial'), '★スケジュールが月の一部だけの月は額を出さない');
+    const p0 = part.legs[0];
+    ok(p0 && p0.amount === Math.round(1000000 / 11904 * 240) + Math.round(250000 * 75 / 1860), '★スケジュールが月の一部でも、欠けた日を補って額を出す');
+    ok(p0 && p0.partial && p0.partial.covered === 25 && JSON.stringify(p0.partial.gaps) === '[[26,31]]', '欠けた日の範囲を返す（26〜31日）');
+    const part2 = run(R, [OCT({ block_hours: 25 })], month('2026-10', D10, S10).slice(0, 25));
+    ok(part2.legs[0].flight === 12500 && part2.legs[0].partial.blockFrom === 'payslip', '★明細に乗務時間が印字されていれば、乗務手当はその時間で割る');
+    const full = run(R, [OCT()], month('2026-10', D10, S10));
+    ok(full.legs[0].partial === null, '全部の日がある月は partial を返さない');
     const nob = { code: null, d_on: null, d_off: null, d_off_day: 0, legs: [{ seq: 1, from: 'HND', to: 'FUK', kind: 'operating' }] };
     const fb = run(R, [OCT()], month('2026-10', D10, S10, { 26: nob }));
     const x = fb.legs.find((l) => l.to === 'FUK');
@@ -184,7 +192,7 @@ const BREAK = [
   ['便乗にも手当を付ける', "var fv = L.kind === 'deadhead' || !(opBlock > 0) ? 0 : M.flMinor * L.blockMin / opBlock;", 'var fv = !(opBlock > 0) ? 0 : M.flMinor * L.blockMin / opBlock;'],
   ['賞与を入れる', 'var FP_SKIP_CAT = { bonus: 1, noncash: 1 };', 'var FP_SKIP_CAT = { noncash: 1 };'],
   ['明細の無い月も額を出す', "if (M.missing.length) M.reason = 'no_payslip';\n      else ", ''],
-  ['月の一部だけのスケジュールでも額を出す', "else if (!rm.complete) M.reason = 'roster_partial';", ''],
+  ['欠けた日を補わずに割る', 'duty = duty * dim / cov;', ''],
   ['近い月の明細を使わない', 'if (fb) M.fixedFrom = fb;', 'fb = null;'],
   ['乗務手当も近い月から借りる', 'flNeed.forEach(function (p) { if (p && !have[p] && M.missing.indexOf(p) < 0) M.missing.push(p); });', '']
 ];

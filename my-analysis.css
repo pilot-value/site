@@ -10,11 +10,12 @@
    ★動かすのは transform と opacity だけ。
    ════════════════════════════════════════════════════════════════ */
 .an{--an-up:var(--pv-accent);--an-dn:var(--pv-ink-3);--an-a:color-mix(in srgb,var(--pv-accent) 48%,var(--pv-surface));--an-b:var(--pv-accent);--an-mute:#d5dce5;
-  --an-fixed:#0a8f79;--an-role:#c65f48;--an-variable:#8d6bb0;--an-allowance:#b07d2e;--an-bonus:#4a74b8;--an-noncash:#4fb39b;
-  --an-unexplained:#c3ccd6;--an-adjustment:#94a3b8;--an-bad:#b42318;
+  /* ★2026-11-12 オーナー「紫と茶色がきもい・REAL PAY の色を」：区分の色は REAL PAY の内訳の色（actual-pay.css の .ap-dw-c-* ＝ pay-viz.js の SEG）にそろえる */
+  --an-fixed:#34d399;--an-role:#e8604c;--an-variable:#f5c842;--an-allowance:#5fb0ff;--an-bonus:#22d3ee;--an-noncash:#a3e635;
+  --an-unexplained:#5c6675;--an-adjustment:#94a3b8;--an-bad:#b42318;
   position:relative;display:flex;flex-direction:column;gap:16px;container-type:inline-size;font-variant-numeric:tabular-nums;color:var(--pv-ink)}
 [data-theme="dark"] .an{--an-up:#119c84;--an-a:color-mix(in srgb,#119c84 52%,var(--pv-surface));--an-b:#119c84;--an-mute:#2c3646;
-  --an-fixed:#119c84;--an-role:#c95a45;--an-variable:#9580c8;--an-allowance:#b88a3c;--an-bonus:#5f84c8;--an-noncash:#3fa88f;
+  --an-fixed:#34d399;--an-role:#e8604c;--an-variable:#f5c842;--an-allowance:#5fb0ff;--an-bonus:#22d3ee;--an-noncash:#a3e635;
   --an-unexplained:#5c6675;--an-adjustment:#64748b;--an-bad:#fda29b}
 .an *{box-sizing:border-box}
 .an [hidden]{display:none !important}
@@ -129,8 +130,8 @@
 .an-cb-t i:first-child{border-radius:4px 2px 2px 4px}
 .an-cb-t i:last-child{border-radius:2px 4px 4px 2px}
 .an-cb-t i:only-child{border-radius:4px}
-.an-cb-t em{font-style:normal;font-size:.62rem;font-weight:700;color:#fff;white-space:nowrap}
-.an-cb-t i.c-unexplained em{color:#1f2937}
+.an-cb-t em{font-style:normal;font-size:.62rem;font-weight:700;color:#10241f;white-space:nowrap}   /* 明るい色の帯の上は濃い字（白だと読めない） */
+.an-cb-t i:is(.c-role,.c-unexplained,.c-adjustment) em{color:#fff}
 .an-cb-v{font-size:.8rem;font-weight:700;white-space:nowrap}
 .an .c-fixed{background:var(--an-fixed)}
 .an .c-role{background:var(--an-role)}
@@ -276,8 +277,8 @@
   .an-card{box-shadow:none;break-inside:avoid}
   /* 表示中のタブの印刷（#pv-print の写し）：明るい面の色に固定・2列のまま */
   #pv-print .an{--an-up:#0a8f79;--an-dn:#64748b;--an-a:#86c7bc;--an-b:#0a8f79;--an-mute:#d5dce5;
-    --an-fixed:#0a8f79;--an-role:#c65f48;--an-variable:#8d6bb0;--an-allowance:#b07d2e;--an-bonus:#4a74b8;--an-noncash:#4fb39b;
-    --an-unexplained:#c3ccd6;--an-adjustment:#94a3b8}
+    --an-fixed:#34d399;--an-role:#e8604c;--an-variable:#f5c842;--an-allowance:#5fb0ff;--an-bonus:#22d3ee;--an-noncash:#a3e635;
+    --an-unexplained:#5c6675;--an-adjustment:#94a3b8}
   #pv-print .an-ctl{grid-template-columns:repeat(2,minmax(0,1fr))}
   #pv-print .an-segs{margin:0 0 8px}
   #pv-print .an-f{flex-direction:row;align-items:baseline;gap:6px}

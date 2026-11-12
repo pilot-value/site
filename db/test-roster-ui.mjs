@@ -194,6 +194,10 @@ function checks({ P, U, W }) {
     const cal = P.calHTML('2026-07', {}, { interactive: true, edit: true, ask: { '2026-07-05': 1 }, flag: { '2026-07-06': 1 }, askLabel: 'X' });
     ok(/data-date="2026-07-05"[^>]*>.*?<span class="rs-c-m">\?<\/span>/.test(cal) && /class="rs-cell is-none is-ask"/.test(cal) && /has-iss[^"]*" data-date="2026-07-06"/.test(cal) && !cal.includes('aria-pressed'),
        '⑩ 確かめる画面のカレンダー：読めなかった日は「?」・確かめてほしい日に印・押す札ではない（aria-pressed なし）');
+    /* ★2026-11-12 前に出した日（prev）は薄く・押せない（data-date を付けない） */
+    const pd = { date: '2026-07-07', ym: '2026-07', isDuty: false, cls: 'off', code: 'OFF', legs: [] };
+    const cp = P.calHTML('2026-07', { '2026-07-07': pd }, { interactive: true, edit: true, prev: { '2026-07-07': 1 }, prevLabel: 'P' });
+    ok(/<span class="rs-cell [^"]*is-prev"[^>]*>/.test(cp) && !cp.includes('data-date="2026-07-07"'), '⑩ 前に出した日は薄く（is-prev）・押せない');
   } else ok(false, '⑨⑩ 月の数字・資料・日の板の部品が無い');
 
   // ⑪〜⑮ 取り込みの確認（画面の無い箱で open → prepare → 押す）

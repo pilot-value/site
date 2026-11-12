@@ -79,6 +79,7 @@
 .gl-bar:focus-visible{outline:2px solid var(--gl-gold);outline-offset:3px;border-radius:4px}
 .gl-bar:active{opacity:.7}
 .gl-bar-l{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.72rem;font-weight:600}
+.gl-bar-l small{margin-left:6px;font-size:.62rem;font-weight:400;color:var(--gl-ink3)}
 .gl-bar.on .gl-bar-l{color:#ffe2a6}
 .gl-bar-v{font-size:.72rem;font-weight:600}
 .gl-bar-t{grid-column:1/-1;display:block;height:4px;border-radius:3px;background:rgba(255,255,255,.14);overflow:hidden}
@@ -109,6 +110,8 @@
 .gl-st:first-child b{font-size:1rem}
 .gl-st:first-child b{color:#ffe2a6}
 .gl-why{grid-column:1/-1;font-size:.76rem;font-weight:400;color:var(--gl-ink2);line-height:1.6}
+.gl-part{grid-column:1/-1;margin-top:8px;padding:10px 12px;border-radius:12px;background:rgba(245,195,90,.12);border:1px solid rgba(245,195,90,.28)}
+.gl-part p{margin:0 0 8px;font-size:.7rem;font-weight:400;line-height:1.6;color:#ffe9bd}
 .gl-from{grid-column:1/-1;margin:2px 0 0;font-size:.64rem;font-weight:400;color:var(--gl-ink3)}
 .gl-lagq{grid-column:1/-1;margin-top:10px}
 .gl-lagq p{margin:0 0 8px;font-size:.74rem;font-weight:500;color:var(--gl-ink)}

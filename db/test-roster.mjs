@@ -526,6 +526,9 @@ await asUser(1);
   const tk = await setProfile({ codes: { OFF: 'off', '#0123456789abcdef': 'vac', '#a0b1c2d3e4f5a6b7': 'unknown' } });
   ok(tk.ok && tk.profile.codes['#0123456789abcdef'] === 'vac' && tk.profile.codes['#a0b1c2d3e4f5a6b7'] === 'unknown',
      '★読み方の codes のキーに読み取りの印を使える', JSON.stringify(tk.profile.codes));
+  /* ★2026-11-12 オーナー「わからないの他にその他」：勤務コードの意味に other（その他）を受け付ける */
+  const ot = await setProfile({ codes: { OFF: 'off', S4N: 'other' } });
+  ok(ot.ok && ot.profile.codes.S4N === 'other', '★勤務コードの意味に「その他」（other）を受け付ける', JSON.stringify(ot.profile && ot.profile.codes));
   {
     const air = (await one(`select airline from public.pv_roster_profile where proof_hash = public.pv_roster_key($1::uuid, 'emirates', null)`, [uid(1)])).airline;
     ok(air === 'emirates', `★読み方の行に会社（一覧の会社コード）が入る → ${air}`);
