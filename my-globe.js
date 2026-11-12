@@ -27,7 +27,7 @@
     ja: {
       title: 'ROUTE', sub: '{p} · {r}ルート · {n}便', aria: '飛んだルートの地球儀', noPos: '地図に出せない空港 {c}',
       nFl: '{n}便', nFl1: '1便', partT: '{m}は {g} のスケジュールが無いので、取り込んだ日から補って見積もっています。', gapD: '{a}〜{b}日', gapD1: '{a}日', gapJ: '・',
-      addRoster: 'スケジュールを足す',
+      addRoster: 'スケジュールを提出する', close: '閉じる',   // オーナー「ポップアップと一緒にスケジュール提出のボタン」
       perAria: '期間', perD: '日', perM: '月', per3: '3か月', per12: '1年', perAll: '全部',
       p3: '直近3か月', p12: '直近1年', pAll: '直近2年', ymT: '{y}年{n}月',
       prevD: '前の日', nextD: '次の日', prevM: '前の月', nextM: '次の月',
@@ -55,7 +55,7 @@
     en: {
       title: 'ROUTE', sub: '{p} · {r} routes · {n} flights', aria: 'Globe of the routes you flew', noPos: 'Not on the map: {c}',
       nFl: '{n} flights', nFl1: '1 flight', partT: 'No roster for {g} {m}, so this is estimated from the days you imported.', gapD: '{a}–{b}', gapD1: '{a}', gapJ: ', ',
-      addRoster: 'Add roster',
+      addRoster: 'Submit roster', close: 'Close',
       perAria: 'Period', perD: '1D', perM: '1M', per3: '3M', per12: '1Y', perAll: 'All time',
       p3: 'Last 3 months', p12: 'Last 12 months', pAll: 'Last 24 months', ymT: '{M} {y}',
       prevD: 'Previous day', nextD: 'Next day', prevM: 'Previous month', nextM: 'Next month',
@@ -82,7 +82,7 @@
     }, /*PV-MSG:es*/ es: {
       title: 'ROUTE', sub: '{p} · {r} rutas · {n} vuelos', aria: 'Globo con las rutas que volaste', noPos: 'Fuera del mapa: {c}',
       nFl: '{n} vuelos', nFl1: '1 vuelo', partT: 'No hay programación para el {g} de {m}, así que se estima con los días que importaste.', gapD: '{a}–{b}', gapD1: '{a}', gapJ: ', ',
-      addRoster: 'Agregar programación',
+      addRoster: 'Enviar programación', close: 'Cerrar',
       perAria: 'Período', perD: '1D', perM: '1M', per3: '3M', per12: '1Y', perAll: 'Todo',
       p3: 'Últimos 3 meses', p12: 'Últimos 12 meses', pAll: 'Últimos 24 meses', ymT: '{M} {y}',
       prevD: 'Día anterior', nextD: 'Día siguiente', prevM: 'Mes anterior', nextM: 'Mes siguiente',
@@ -234,11 +234,10 @@
     var legs = S.legs.filter(function (l) { return inRange(l.date); });
     var routes = {}, port = {}, order = [];
     legs.forEach(function (l) {
-      var a = l.ga.iata, b = l.gb.iata, k = a < b ? a + '|' + b : b + '|' + a;
+      var a = l.ga.iata, b = l.gb.iata, k = a + '>' + b;     // ★2026-11-12 オーナー「往復分を出すのやめない？」＝向きごとに別のルート
       var r = routes[k];
-      if (!r) { r = routes[k] = { k: k, a: a < b ? l.ga : l.gb, b: a < b ? l.gb : l.ga, legs: [], n: 0, dh: 0, sum: 0, cur: null, dirs: {} }; order.push(r); }
+      if (!r) { r = routes[k] = { k: k, a: l.ga, b: l.gb, legs: [], n: 0, dh: 0, sum: 0, cur: null }; order.push(r); }
       r.legs.push(l); r.n++; if (l.kind === 'deadhead') r.dh++;
-      r.dirs[a + '>' + b] = 1;
       if (l.amount != null) { if (r.cur == null) r.cur = l.currency; if (r.cur === l.currency) r.sum += l.amount; }
       port[a] = (port[a] || 0) + 1; port[b] = (port[b] || 0) + 1;
     });
@@ -263,10 +262,12 @@
   var IC_HAND = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12"/><path d="M11 11.5v-2a1.5 1.5 0 0 1 3 0V12"/><path d="M14 10.5a1.5 1.5 0 0 1 3 0V12"/><path d="M17 11.5a1.5 1.5 0 0 1 3 0V16a6 6 0 0 1-6 6h-1.5a6 6 0 0 1-4.6-2.2L5 16.5a1.6 1.6 0 0 1 2.4-2.1L8 15"/></svg>';
   function kindL(k) { return k === 'deadhead' ? T.dh : k === 'unknown' ? T.unk : T.op; }
   /* ★2026-11-12 オーナー「片道なのに矢印が2つ」：期間の中で飛んだ向きが1つだけなら、その向きで「HND → FUK」。両方あれば「HND ⇄ KMJ」 */
-  function routeLabel(r) {
-    var ks = Object.keys(r.dirs || {});
-    if (ks.length === 1) { var p = ks[0].split('>'); return p[0] + ' → ' + p[1]; }
-    return r.a.iata + ' ⇄ ' + r.b.iata;
+  function routeLabel(r) { return r.a.iata + ' → ' + r.b.iata; }
+  /* 地球儀の線は2空港で1本（向きを問わない）。向きつきのルート 'A>B' → 線の鍵 'A|B'（名前の順） */
+  function pairOf(k) {
+    if (!k || k.indexOf('>') < 0) return k || null;
+    var p = k.split('>');
+    return p[0] < p[1] ? p[0] + '|' + p[1] : p[1] + '|' + p[0];
   }
   function nFl(n) { return n === 1 ? T.nFl1 : fill(T.nFl, { n: n }); }
   function gapsL(gs) {
@@ -284,7 +285,8 @@
           '<div class="gl-cvbox"><canvas class="gl-cv" role="img" aria-label="' + esc(T.aria) + '"></canvas>' +
             '<div class="gl-zoom"><button type="button" class="gl-zb" data-z="1" aria-label="' + esc(T.zin) + '">+</button>' +
             '<button type="button" class="gl-zb" data-z="-1" aria-label="' + esc(T.zout) + '">−</button></div>' +
-            '<div class="gl-msg" hidden></div></div>' +
+            '<div class="gl-msg" hidden></div>' +
+            '<div class="gl-toast" role="status" hidden></div></div>' +
           '<div class="gl-top"><div class="gl-hd"><h3 class="gl-t">' + esc(T.title) + '</h3><p class="gl-s"></p></div>' +
             '<div class="gl-per" role="group" aria-label="' + esc(T.perAria) + '">' +
               [['d', T.perD], ['m', T.perM], ['3', T.per3], ['12', T.per12], ['all', T.perAll]].map(function (p) {
@@ -355,9 +357,18 @@
     list.hidden = !V.legs.length; mon.hidden = !V.legs.length;
     if (V.legs.length) { sum.innerHTML = sumHTML(V); list.innerHTML = listHTML(V); mon.innerHTML = monHTML(V, leg); }
     if (leg) flt.innerHTML = fltHTML(leg);
+    /* ★2026-11-12 オーナー「スケジュールが無い旨のポップアップも」：欠けた月の便を開いたら、その月で1回だけ知らせる */
+    var toast = S.root.querySelector('.gl-toast'), pt = leg && leg.amount != null && leg.partial && leg.partial.gaps.length ? leg : null;
+    S.toastSeen = S.toastSeen || {};
+    if (pt && !S.toastSeen[pt.ym]) {
+      toast.innerHTML = '<p>⚠ ' + esc(fill(T.partT, { m: ymS(pt.ym), g: gapsL(pt.partial.gaps) })) + '</p>' +
+        '<div class="gl-toast-a"><button type="button" class="gl-lagb" data-roster-up="1">' + esc(T.addRoster) + '</button>' +
+        '<button type="button" class="gl-toast-x" data-toast-x="' + esc(pt.ym) + '" aria-label="' + esc(T.close) + '">×</button></div>';
+      toast.hidden = false;
+    } else toast.hidden = true;
     G.setData(V, drawRoute, leg);
   }
-  function routeKey(l) { var a = l.ga.iata, b = l.gb.iata; return a < b ? a + '|' + b : b + '|' + a; }
+  function routeKey(l) { return l.ga.iata + '>' + l.gb.iata; }
   function sumHTML(V) {
     var p = V.ring == null ? null : Math.round(V.ring * 1000) / 10;
     var C = 2 * Math.PI * 34, off = p == null ? C : C * (1 - p / 100);
@@ -497,6 +508,7 @@
     if (t.hasAttribute('data-step')) { step(+t.getAttribute('data-step')); return; }
     if (t.hasAttribute('data-lag')) { setLag(+t.getAttribute('data-lag')); return; }
     if (t.hasAttribute('data-roster-up')) { if (w.PVRoster && w.PVRoster.open) w.PVRoster.open({ upload: true }); return; }
+    if (t.hasAttribute('data-toast-x')) { S.toastSeen = S.toastSeen || {}; S.toastSeen[t.getAttribute('data-toast-x')] = 1; render(); return; }
     if (t.hasAttribute('data-goym')) { S.per = 'm'; S.ym = t.getAttribute('data-goym'); S.leg = null; S.route = null; S.listN = 8; render(); G.focusRoute(); return; }
     if (t.hasAttribute('data-goday')) { S.per = 'd'; S.day = t.getAttribute('data-goday'); S.leg = null; S.route = null; S.listN = 8; render(); G.focusRoute(); return; }
     if (t.hasAttribute('data-route')) { pickRoute(t.getAttribute('data-route') || null); return; }
@@ -506,6 +518,8 @@
     if (t.hasAttribute('data-z')) { G.zoomBy(+t.getAttribute('data-z') > 0 ? 1.8 : 1 / 1.8); return; }
   }
   function pickRoute(k) {
+    /* 地球儀の線を押した（'A|B'）＝その2空港のいちばん新しい便の向きを選ぶ */
+    if (k && k.indexOf('|') >= 0) { var nl = S.V.legs.filter(function (x) { return pairOf(routeKey(x)) === k; })[0]; k = nl ? routeKey(nl) : null; }
     S.route = k; S.listN = 8; S.filt = 'all';
     if (k) { var l = S.V.legs.filter(function (x) { return routeKey(x) === k; })[0]; S.leg = l ? l.id : S.leg; }
     render(); G.focusRoute();
@@ -571,16 +585,20 @@
     }
     var selT0 = 0;
     function setData(v, route, leg) {
-      if ((route || null) !== selRoute || (leg && leg.id) !== (selLeg && selLeg.id)) selT0 = performance.now() / 1000;   // 選び直したら出発地から
-      V = v; selRoute = route || null; selLeg = leg || null;
+      if (pairOf(route) !== selRoute || (leg && leg.id) !== (selLeg && selLeg.id)) selT0 = performance.now() / 1000;   // 選び直したら出発地から
+      V = v; selRoute = pairOf(route); selLeg = leg || null;
       arcs = []; ports = []; hub = null;
       if (V) {
-        var seenP = {};
-        V.routes.forEach(function (r, i) {
+        var seenP = {}, byPair = {};
+        V.routes.forEach(function (r) {
           if (r.a.lat == null || r.b.lat == null) return;          // 位置の分からない空港の区間は描かない
-          var A0 = vec(r.a.lat, r.a.lon), B0 = vec(r.b.lat, r.b.lon);
+          var pk = pairOf(r.k), ex = byPair[pk];
+          if (ex) { ex.n += r.n; ex.dh = ex.dh && r.dh === r.n; return; }
+          var p0 = r.a.iata < r.b.iata ? r.a : r.b, p1 = p0 === r.a ? r.b : r.a;   // 線は名前の順の空港から
+          var A0 = vec(p0.lat, p0.lon), B0 = vec(p1.lat, p1.lon);
           var om = Math.acos(Math.max(-1, Math.min(1, A0[0] * B0[0] + A0[1] * B0[1] + A0[2] * B0[2])));
-          arcs.push({ k: r.k, n: r.n, dh: r.dh === r.n, pts: arcOf(r.a, r.b), om: om, a: r.a.iata, scr: [] });
+          ex = byPair[pk] = { k: pk, n: r.n, dh: r.dh === r.n, pts: arcOf(p0, p1), om: om, a: p0.iata, scr: [] };
+          arcs.push(ex);
           [r.a, r.b].forEach(function (g) { if (!seenP[g.iata]) { seenP[g.iata] = 1; ports.push({ g: g, v: vec(g.lat, g.lon) }); } });
         });
         hub = V.hub;
