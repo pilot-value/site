@@ -4,7 +4,10 @@
 --   オーナー採用（2026-11-07）：
 --     ・会社ページの「フォロー」で会社を足す（1人10社まで）。マイページで外せる。
 --     ・**自分の会社（登録の会社）は最初からフォロー済み**。外したときだけ外れる（外した記録だけを持つ＝全員分を書き込まない）。
---     ・新着（給与・口コミ・待遇の答え）を別のメールで知らせる。
+--     ・新着（口コミ・待遇の答え）を別のメールで知らせる。
+--       ★★2026-11-12 オーナー指示「出しづらいからメールなしにして。給与投稿はいらない」：**給与では知らせない。**
+--         前は給与の新しい行でも「新しい給与が入りました」と知らせていた。受け取るのは主に同じ会社の同僚で、
+--         毎月出す人は出すたびに同僚へ知らせが行っていた。⚠️ 給与を新着へ足し戻さない（検算の最後から2行目が見ている）。
 --       ★2026-11-09 オーナー指示「提出後すぐではなく、翌日の17時に」「受け取る人の国の17時」：
 --       **ある日に入った新着を、次の日の17時（受け取る人の国の時間）に1通にまとめて送る。**
 --       日の区切りも受け取る人の国の0時。国はプロフィールの国の欄（pv_follow_tz の1か所で時間帯に直す）。
@@ -12,7 +15,7 @@
 --     ・**フォローしていなくても、見た会社にも知らせる**（2026-11-07 オーナー「OpenWork は閲覧だけで送っている」）。
 --       見た記録は1人10社まで・30日で消える。マイページに「最近見た会社」として出し、本人が消せる。
 --     ・メールに書くのは**サイトで誰にでも見せている範囲だけ**（2026-11-07 オーナー決定）：
---       口コミ＝評価・職位・在籍年数・最初の80字／給与＝「入った」だけ（金額は書かない＝Give & Get）／待遇＝答えが入った質問の名前。
+--       口コミ＝評価・職位・在籍年数・最初の80字／待遇＝答えが入った質問の名前。
 --   推測されにくくする工夫（オーナーの決定の範囲で）：
 --     ・次の日の17時にまとめて送る（＝届いた時刻から、出した時刻が分からない。2026-11-08 には出して数分後に届いていた）
 --     ・1人1日1通まで（前の日の0時までに入った分を1通に。送った日の分は次の日の1通に回る）
@@ -35,7 +38,7 @@
 --     時計 pv-follow-notify    … 1時間おき（毎時0分）に Edge Function を叩く（国ごとの17時を拾うため。送るのは各国の17時〜24時だけ）
 --
 --   ★数えるもの（ほかの画面と同じ外し方。db/airline-activity.sql と同じ）
---     給与＝年 $10,000〜$700,000 の幅・一覧から下ろした人でない・テスト用アカウントでない
+--     給与＝**数えない**（2026-11-12 から。上の ★★）
 --     口コミ＝テスト用アカウントでない（引き取っていない預かりは数えない：誰の投稿か分からず、本人を外せないため）
 --     待遇の答え＝実際に答えた行だけ（スキップ・「わからない」は数えない）・テスト用アカウントでない
 --   ★知らせの数え始めは、このファイルを初めて貼った時刻（それより前の投稿では知らせない）。
@@ -335,17 +338,11 @@ as $$
   floor_at as (select greatest((select at from launch), p_now - interval '8 days') as at),
   -- ★新着の候補（数える物だけ・テスト用アカウントを外す）。8日より前は見ない（重くしない）
   ev as (
-    select r.airline as code, 'pay'::text as kind, r.created_at as at, r.proof_hash as h, 'pay'::text as hk, null::text as raw,
-           null::uuid as rid, null::text as qid
-      from public.pay_reports r
-     where r.created_at > (select at from floor_at)
-       and r.airline <> 'other'
-       and r.annual_total_usd between 10000 and 700000
-       and not exists (select 1 from public.pay_hidden h where h.proof_hash = r.proof_hash)
-       and not exists (select 1 from public.pv_test_users t
-                        where encode(digest(t.uid::text || '::pv_pay::' || r.airline, 'sha256'), 'hex') = r.proof_hash)
-    union all
-    select public.pv_airline_resolve(v.airline), 'review', v.created_at, v.proof_hash, 'review', v.airline, v.id, null
+    /* ★給与は数えない（2026-11-12 オーナー指示「出しづらいからメールなしにして」）。
+       前は pay_reports の新しい行も「新しい給与が入りました」と知らせていた。受け取るのは主に同じ会社の同僚で、
+       毎月出す人は出すたびに同僚へ知らせが行っていた ＝ 出しづらい。⚠️ ここへ pay_reports を足し戻さない。 */
+    select public.pv_airline_resolve(v.airline) as code, 'review'::text as kind, v.created_at as at, v.proof_hash as h,
+           'review'::text as hk, v.airline as raw, v.id as rid, null::text as qid
       from public.reviews_v2 v
      where v.created_at > (select at from floor_at)
        and not exists (select 1 from public.pv_test_users t where public.pv_review_hash(t.uid, v.airline) = v.proof_hash)
@@ -391,7 +388,6 @@ as $$
        and e.at < w.cut          -- ★今日入った分は、次の日の17時に回す
        -- ★自分が出した分では知らせない（受け取る人の印を作り直して外す）
        and e.h is distinct from (case e.hk
-             when 'pay'    then encode(digest(w.id::text || '::pv_pay::' || l.airline, 'sha256'), 'hex')
              when 'review' then public.pv_review_hash(w.id, e.raw)
              else               public.pv_condition_hash(w.id, l.airline, null) end)
   ),
@@ -532,6 +528,11 @@ select case when not has_table_privilege('authenticated', 'public.pv_follow', 's
              and not has_table_privilege('anon', 'public.pv_follow', 'select')
              and not has_table_privilege('authenticated', 'public.pv_follow_view', 'select')
             then '✅ 表は会員から直接読めない（ほかの人のフォローは見えない）' else '❌ 表が会員から読める' end
+union all
+select case when (select prosrc from pg_proc where oid = 'public.pv_follow_due(integer, timestamptz)'::regprocedure)
+                 not like '%from public.pay_reports%'
+            then '✅ 給与の提出では知らせない（新着に数えるのは口コミと待遇の答えだけ）'
+            else '❌ 給与の提出でも知らせが飛ぶ古い形が残っている' end
 union all
 select case when not exists (select 1 from pg_extension where extname = 'pg_cron')
             then 'ℹ️ 時計が無い場所（手元の検査）'

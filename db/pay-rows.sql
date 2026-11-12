@@ -208,7 +208,7 @@
 --
 -- ★投稿の時期について。2026-08-24 オーナー判断で**粗い段だけ出すことにした**。
 --   一覧の右端に「1ヶ月以内／3ヶ月以内／6ヶ月以内／1年以内／それより前」の5段が出る。
---   その人の**いちばん新しい提出**から決める。
+--   その人が**最初に出した提出**から決める（2026-11-12 から。下の「★並びについて」の末尾）。
 --   ★2026-11-04 オーナー指示「最短1ヶ月以内を 3・7・14日以内にしよう」で、1ヶ月の手前に
 --     3日以内／7日以内／14日以内の3段を足した＝8段（age 0〜7）。1ヶ月以内から先は今までどおり。
 --     細かくなったのは直近2週間だけ。並びは前から新しい順なので、どちらが先かは前から読めた。
@@ -240,7 +240,21 @@
 --     ・**画面から並べ替える口を作らない。** 並びはサーバが1つに決める。
 --     ・段で絞る口も作らない。
 --   ★「一旦」と言われている。戻すときは order by を md5(p.pkey) に戻すだけ
---     （古い順に戻すなら last_at の desc を外すだけ）。
+--     （古い順に戻すなら first_at の desc を外すだけ）。
+--
+--   ★2026-11-12 オーナー決定：並べる時刻と段（age）を、その人が**最初に出した日**
+--     （min(cat)）に変えた。前はいちばん新しい提出（max(cat)）だった。
+--     オーナー指摘「更新するたびに REAL PAY も更新されるんじゃ何度も出しづらい」──
+--     毎月出す人の行が、出すたびに先頭へ上がり、段がいちばん新しい所へ戻っていた
+--     ＝ 続けて見ている人に「この行の人がまた出した」と読めた。
+--     いまは、2回目からは行の位置も段も動かない（動くのは中央値だけ）。
+--     ⚠️ max(cat) に戻さない。戻すと、毎月出す人ほど目立つ。
+--     ⚠️ 提出の件数（stats の reports / mo）は月の行のまま数える。ここは変えていない
+--        ＝ 毎月の提出は件数に +1 される（オーナー「数字には反映させて」）。
+--     ・min は24か月の窓の中の最初。古い月が窓から落ちると少し前へ出るが、
+--       それは提出と無関係の時に起きる。
+--     ・同じ月の訂正は created_at が書き換わる（pay-reports.sql）。1か月しか
+--       出していない人の訂正は今までどおり先頭へ出る。
 --
 -- ★口コミに書かれた給与も一覧に混ぜる（2026-08-24 オーナー判断）
 --   給与明細の仕組みができる前、口コミフォームが年収も聞いていた時期がある。
@@ -1990,7 +2004,7 @@ alter table public.pv_airlines add column if not exists fo_hi  integer;
 --               （打ち込まれた文字列は返さない。画面が固定の札に置き換える）
 --     age     … 投稿の時期。0=3日以内 1=7日以内 2=14日以内 3=1ヶ月以内 4=3ヶ月以内
 --               5=6ヶ月以内 6=1年以内 7=それより前（2026-11-04 に 0〜4 の5段から8段へ）。
---               その人のいちばん新しい提出から決める。**日付も年月も返さない。**
+--               その人が最初に出した提出から決める。**日付も年月も返さない。**
 --               並べ替えにも絞り込みにも使わない（契約⑥はそのまま）。
 --     ★機材は返さない（2026-08-24 に外した。理由はファイル冒頭）。
 --     far     … 公開年収から大きく外れた本人申告の人だけ true（2026-09-19）。
@@ -2193,15 +2207,15 @@ begin
       select pkey, airline, pos,
              (percentile_cont(0.5) within group (order by usd))::numeric as v,
              bool_or(vf) as verified,
-             case when max(cat) >= now() - interval '3 days'    then 0
-                  when max(cat) >= now() - interval '7 days'    then 1
-                  when max(cat) >= now() - interval '14 days'   then 2
-                  when max(cat) >= now() - interval '1 month'   then 3
-                  when max(cat) >= now() - interval '3 months'  then 4
-                  when max(cat) >= now() - interval '6 months'  then 5
-                  when max(cat) >= now() - interval '12 months' then 6
+             case when min(cat) >= now() - interval '3 days'    then 0
+                  when min(cat) >= now() - interval '7 days'    then 1
+                  when min(cat) >= now() - interval '14 days'   then 2
+                  when min(cat) >= now() - interval '1 month'   then 3
+                  when min(cat) >= now() - interval '3 months'  then 4
+                  when min(cat) >= now() - interval '6 months'  then 5
+                  when min(cat) >= now() - interval '12 months' then 6
                   else 7 end as age,
-             max(cat) as last_at
+             min(cat) as first_at
         from sane
        group by pkey, airline, pos
     ),
@@ -2211,7 +2225,7 @@ begin
                'airline',  p.airline,
                'verified', p.verified,
                'age',      p.age
-             )) order by p.last_at desc, md5(p.pkey)), '[]'::jsonb) as j
+             )) order by p.first_at desc, md5(p.pkey)), '[]'::jsonb) as j
         from person p
       -- pv-mask-end
     ),
@@ -2481,23 +2495,24 @@ begin
            --   round(値, 桁) は numeric にしか無いので、先に ::numeric を通す。
            (percentile_cont(0.5) within group (order by usd))::numeric as v,
            bool_or(vf) as verified,
-           -- ★投稿の時期。**その人のいちばん新しい提出**から決める。
+           -- ★投稿の時期。**その人が最初に出した提出**から決める（2026-11-12。
+           --   毎月出しても段も並びも動かない。理由はファイル冒頭「★並びについて」の末尾）。
            --   出るのは0〜7の段だけで、日付も年月もここから先へ行かない。
            --   段で並べ替えない・段で絞らない（契約⑥。理由はファイル冒頭）。
            --   ★3日・7日・14日は2026-11-04 に足した（ファイル冒頭「★投稿の時期について」）。
            --     段3（1ヶ月以内）の境目は下の stats の mo と同じ式。片方だけ動かさない。
-           case when max(cat) >= now() - interval '3 days'    then 0
-                when max(cat) >= now() - interval '7 days'    then 1
-                when max(cat) >= now() - interval '14 days'   then 2
-                when max(cat) >= now() - interval '1 month'   then 3
-                when max(cat) >= now() - interval '3 months'  then 4
-                when max(cat) >= now() - interval '6 months'  then 5
-                when max(cat) >= now() - interval '12 months' then 6
+           case when min(cat) >= now() - interval '3 days'    then 0
+                when min(cat) >= now() - interval '7 days'    then 1
+                when min(cat) >= now() - interval '14 days'   then 2
+                when min(cat) >= now() - interval '1 month'   then 3
+                when min(cat) >= now() - interval '3 months'  then 4
+                when min(cat) >= now() - interval '6 months'  then 5
+                when min(cat) >= now() - interval '12 months' then 6
                 else 7 end as age,
            -- ★並べるためだけの時刻（契約⑥）。**行には入れない**。
-           --   段（age）と同じ max(cat) から出す。別の時刻で並べると、
+           --   段（age）と同じ min(cat) から出す。別の時刻で並べると、
            --   並び順と右端の列が食い違って見える。
-           max(cat) as last_at
+           min(cat) as first_at
       from sane
      group by pkey, airline, pos
   ),
@@ -2741,11 +2756,11 @@ begin
            -- ★2026-08-25、オーナー指示で md5 順をやめ、**新しい順**にした
            --   （新しいほうが上）。理由と、これで何が読めるようになったかは
            --   ファイル冒頭「★並びについて」。
-           --   ・並べるのに使う時刻（last_at）は**行に入れない**。
+           --   ・並べるのに使う時刻（first_at）は**行に入れない**。
            --     出るのは今までどおり段（age）だけ。
            --   ・同じ時刻の人が居ても順番が揺れないよう md5 を第2キーに残す。
            --   ・画面側に並べ替えの口は作らない（サーバが1つに決める）。
-           )) order by p.last_at desc, md5(p.pkey)), '[]'::jsonb) as j
+           )) order by p.first_at desc, md5(p.pkey)), '[]'::jsonb) as j
       from person p
       /* ★どれも left join。材料が無い人も**行は必ず出る**（総額だけの行になる）。
          内側の join にすると、口コミ由来の行と総支給だけの行が一覧から消える。 */
@@ -2784,7 +2799,7 @@ begin
              'airline',  p.airline,
              'verified', p.verified,
              'age',      p.age
-           )) order by p.last_at desc, md5(p.pkey)), '[]'::jsonb) as j
+           )) order by p.first_at desc, md5(p.pkey)), '[]'::jsonb) as j
       from person p
     -- pv-mask-end
   ),
@@ -2879,7 +2894,7 @@ comment on function public.pv_pay_rows() is
   '投稿の時期は8段の粗い区分（age 0〜7：3日・7日・14日・1ヶ月・3ヶ月・6ヶ月・1年以内／それより前）でだけ返す。日付も年月も返さない。'
   '支給の内訳も返さない（内訳は DEEP PAY の担当）。'
   '金額は有効数字2桁に丸め、年 $10,000〜$700,000 の外は打ち間違いとして出さない。'
-  '並びは新しい順（last_at desc）。並べるのに使う時刻は行に入れない。'
+  '並びは新しい順（first_at desc ＝ その人が最初に出した日。出し足しても動かない）。並べるのに使う時刻は行に入れない。'
   '2026-08-24 から stats（提出の件数・直近1ヶ月のぶん）も返す。行と同じ材料から数える。'
   '2026-08-25 から stats に社数と、給与を出したユニークな人数（contributors）を足し、'
   '**鍵が無い人にも stats を返す**ようにした（金額は1つも出ない。行は今までどおり空）。'
@@ -3063,11 +3078,11 @@ from (
   select 11, '★並びは新しい順（サーバが1つに決める。同着は md5 で固定）',
          -- ★2026-08-25 に書き換えた。前は「md5 順であること」を見ていた。
          --   オーナー指示で出した順にしたので、見るところを
-         --   「並べるのに使う時刻が last_at であること」＋
+         --   「並べるのに使う時刻が first_at であること」＋
          --   「同着でも順番が揺れないよう md5 が第2キーに残っていること」に変えた。
          --   時刻そのものを返していないことは 12・26 が見ている。
          case when f_rows is null then false
-              else pg_get_functiondef(f_rows) like '%order by p.last_at desc, md5(p.pkey)%'
+              else pg_get_functiondef(f_rows) like '%order by p.first_at desc, md5(p.pkey)%'
          end from f
   union all
   select 12, '返す行に個人の同定キーが入っていない',
@@ -3295,12 +3310,12 @@ from (
          end from f
   union all
   select 26, '★投稿の時刻そのものは行として返していない（返すのは粗い段だけ）',
-         -- ★並べるのに使う last_at も行に入れていないこと。
+         -- ★並べるのに使う first_at も行に入れていないこと。
          --   入れると、5段どころか秒単位の提出時刻がそのまま外へ出る。
          case when f_rows is null then false
               else pg_get_functiondef(f_rows) not like '%''created_at''%'
                and pg_get_functiondef(f_rows) not like '%''cat''%'
-               and pg_get_functiondef(f_rows) not like '%''last_at''%'
+               and pg_get_functiondef(f_rows) not like '%''first_at''%'
          end from f
   union all
   -- ── 投稿の時期・口コミの合流（2026-08-24）────────────────────
@@ -3313,7 +3328,7 @@ from (
                and pg_get_functiondef(f_rows) like '%interval ''12 months''%'
          end from f
   union all
-  select 28, '★段（age）そのもので並べ替えてはいない（並べるのは last_at）',
+  select 28, '★段（age）そのもので並べ替えてはいない（並べるのは first_at）',
          case when f_rows is null then false
               -- ★[^,()]* にしてある。[^;]* だと percentile_cont の
               --   order by usd から下の as age まで届いて、常に落ちる。
