@@ -32,14 +32,21 @@ export const GLASS_DIRS = [
 ];
 /* 運営の画面と、本番から消した DEEP PAY（_config.yml の exclude・検査が通信の行き先と字の色を細かく縛っている）には入れない */
 export const SKIP = new Set(['admin.html', 'deep-pay.html', 'deep-pay-compare.html', 'en/deep-pay.html', 'en/deep-pay-compare.html']);
-export const FONTS = 'https://fonts.googleapis.com/css2?family=Outfit:wght@300..700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap';
+export const FONTS = 'https://fonts.googleapis.com/css2?family=Outfit:wght@300..700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=optional';
 export const fingerprint = (f) => createHash('sha256').update(fs.readFileSync(path.join(ROOT, f))).digest('hex').slice(0, 8);
 
+/* ★2026-11-12 速さ：本番と比べて最初の描画が約 0.9 秒遅れた（字の CSS と pv-glass.js が描画を止めていた）。
+     ・字（Google Fonts）は描画を止めない読み方（media="print" → 読めたら all）。display=optional ＝ 間に合わなければその回は今までの字のまま
+       （届いてから差し替えると字の幅が変わって中身が跳ねる＝CLS が本番の 0.01 → 0.25 になった）。2枚目からは手元に残った字で出る。
+     ・pv-glass.js は defer。最初に要る2つ（html に data-ui を立てる・ページをまたぐ切り替えの準備）だけ、小さなインラインで先にやる。
+       判定は pv-glass.js と同じ（手元の ?ui=now・動きを減らす・自動の検査・ロボット）。 */
+export const EARLY = "(function(){var d=document.documentElement,w=window,off=false;try{if(/^(localhost|127\\.0\\.0\\.1)$/.test(location.hostname)){var q=location.search;if(/[?&]ui=now\\b/.test(q))localStorage.setItem('pv-ui-off','1');else if(/[?&]ui=glass\\b/.test(q))localStorage.removeItem('pv-ui-off');off=localStorage.getItem('pv-ui-off')==='1'}}catch(e){}if(off)return;d.setAttribute('data-ui','glass');var rm=(w.matchMedia&&w.matchMedia('(prefers-reduced-motion: reduce)').matches)||((navigator.webdriver||/bot|crawl|spider|slurp|lighthouse|inspectiontool|headlesschrome/i.test(navigator.userAgent||''))&&!w.__pvMotion);if(rm)return;var s=document.createElement('style');s.textContent='@view-transition{navigation:auto}';document.head.appendChild(s);w.addEventListener('pageswap',function(e){if(e.viewTransition)d.classList.add('ut-pagevt')});w.addEventListener('pagereveal',function(e){if(!e.viewTransition)return;d.classList.add('ut-pagevt');e.viewTransition.finished.finally(function(){d.classList.remove('ut-pagevt')})})})();";
 export function glassBlock(rel) {
   return `<!--PV-GLASS-->
-<link rel="stylesheet" href="${FONTS}">
+<link rel="stylesheet" href="${FONTS}" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="${rel}pv-glass.css?v=${fingerprint('pv-glass.css')}">
-<script src="${rel}pv-glass.js?v=${fingerprint('pv-glass.js')}"></script>
+<script>${EARLY}</script>
+<script defer src="${rel}pv-glass.js?v=${fingerprint('pv-glass.js')}"></script>
 <!--/PV-GLASS-->`;
 }
 export const BLOCK_RE = /<!--PV-GLASS-->[\s\S]*?<!--\/PV-GLASS-->/;

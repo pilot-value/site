@@ -1,7 +1,8 @@
 /* pv-glass.js — すりガラスと動き（2026-11-12 オーナー採用・全ページ）
    オーナーの参考動画（緑・青の Dashboard Animation・Glassy V2）を、今の緑で写したもの。
    試作を会員の画面4枚で見せて「ガラスの方がいい」「いいね」→「全部のページに広げて」（2026-11-12）。
-   読み込みは全ページの head の <!--PV-GLASS--> の塊（inject-glass.mjs が書く・pv-glass.css と対）。
+   読み込みは全ページの head の <!--PV-GLASS--> の塊（inject-glass.mjs が書く・pv-glass.css と対）。このファイルは defer（最初の描画を止めない）。
+   data-ui を立てる・ページをまたぐ切り替えの準備は、塊の中の小さなインラインが先にやる（ここでも同じ判定をする）。
    ★本物の字・数字は書き換えない。数え上げは「字を透明にして、上に重ねた絵の字だけを数える」。
      ＝ currency.js が読む字は最初から最後まで本物の額のまま。見出しを1字ずつに割るのも、動き終わったら元の字に戻す。
    ★my-value.js には触らない。タブを押した瞬間を横取りして、View Transitions で包んでから
@@ -71,19 +72,10 @@
     };
     var pillMo = new MutationObserver(function () { if (putPill()) pillMo.disconnect(); });
     pillMo.observe(root, { childList: true, subtree: true });
-    d.addEventListener('DOMContentLoaded', function () { putPill(); pillMo.disconnect(); });
-    if (!RM) {
-      var st = d.createElement('style');
-      st.textContent = '@view-transition{navigation:auto}';
-      (d.head || root).appendChild(st);
-      /* 名前（ut-page・ut-rail-pill）はページを移る間だけ付ける。タブの切り替え（ut-body）と名前がぶつからないように */
-      w.addEventListener('pageswap', function (e) { if (e.viewTransition) root.classList.add('ut-pagevt'); });
-      w.addEventListener('pagereveal', function (e) {
-        if (!e.viewTransition) return;
-        root.classList.add('ut-pagevt');
-        e.viewTransition.finished.finally(function () { root.classList.remove('ut-pagevt'); });
-      });
-    }
+    if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', function () { putPill(); pillMo.disconnect(); });
+    else { putPill(); pillMo.disconnect(); }
+    /* ページをまたぐ切り替えの宣言（@view-transition）と pageswap / pagereveal の見張りは、head の <!--PV-GLASS--> の中の
+       小さなインラインが受け持つ（このファイルは defer で読む ＝ 最初の描画を止めない。pagereveal はそれより前に起きるため） */
   }
 
   /* ── 1) 選んだ印が滑る（タブの中・FLIP）────────────────────────────────
