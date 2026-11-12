@@ -15,6 +15,7 @@
          node shot-remind.mjs --realpay   … REAL PAY 公開のお知らせを撮る
          node shot-remind.mjs --update    … この1ヶ月のお知らせを撮る
          node shot-remind.mjs --renewal   … トップページ刷新のお知らせを撮る
+         node shot-remind.mjs --route     … MY PAY の新しい機能のお知らせを撮る（絵は mail-bot/.page-shots/route-ja.jpg・route-en.jpg）
          node shot-remind.mjs --pages     … 各航空会社のページと Vote のお知らせを撮る（絵は mail-bot/.page-shots/ から。先に gen-mail-airline-shots.mjs）
          node shot-remind.mjs --digest    … 週に一度の新着まとめを撮る
          node shot-remind.mjs --welcome   … 登録した会員への歓迎メールを撮る（日・英＋日・西）
@@ -25,7 +26,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { build } from './supabase/functions/remind-payslip/index.ts';
 import { buildWelcome } from './supabase/functions/welcome-member/index.ts';
-import { build as buildAnnounce, buildFounding, buildRealPay, buildUpdate, buildRenewal, buildPages, buildDigest, digestStats } from './mail-bot/announce-mail.mjs';
+import { build as buildAnnounce, buildFounding, buildRealPay, buildUpdate, buildRenewal, buildPages, buildRoute, buildDigest, digestStats } from './mail-bot/announce-mail.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const outDir = path.join(__dirname, 'temporary screenshots', 'mail');
@@ -37,6 +38,7 @@ const REALPAY  = process.argv.includes('--realpay');
 const UPDATE   = process.argv.includes('--update');
 const RENEWAL  = process.argv.includes('--renewal');
 const PAGES    = process.argv.includes('--pages');
+const ROUTE    = process.argv.includes('--route');
 const DIGEST   = process.argv.includes('--digest');
 const WELCOME  = process.argv.includes('--welcome');
 const day = (n) => new Date(Date.now() + n * 86400000).toISOString();
@@ -122,6 +124,12 @@ const PAGES_CASES = [
   { k: 'pg-both-noair',   p: { name: null,          country: null,   airline_code: '' } },
 ];
 
+/* ★MY PAY の新しい機能のお知らせ。会員ごとに変わる所は無い ＝ 日本語／日英の2通りだけ。氏名は架空。 */
+const ROUTE_CASES = [
+  { k: 'rt-ja',   p: { name: '高橋 蓮',     country: '日本' } },
+  { k: 'rt-both', p: { name: 'Alex Mercer', country: 'UAE' } },
+];
+
 /* ★週に一度の新着まとめ。stats は digestStats() に通した本物の形で渡す
    （ここで数えない＝メールと同じ数え方しか見えないようにする）。
    rows の中身は架空。実在の投稿を絵に使わない。 */
@@ -155,7 +163,7 @@ const WELCOME_CASES = [
   { k: 'wc-en-paid', p: { lang: 'en', gave_pay: true } },
 ];
 
-const CASES = WELCOME ? WELCOME_CASES : PAGES ? PAGES_CASES : DIGEST ? DIGEST_CASES : RENEWAL ? RENEWAL_CASES : UPDATE ? UPDATE_CASES : REALPAY ? REALPAY_CASES : FOUNDING ? FOUNDING_CASES : ANNOUNCE ? ANNOUNCE_CASES : REMIND_CASES;
+const CASES = WELCOME ? WELCOME_CASES : ROUTE ? ROUTE_CASES : PAGES ? PAGES_CASES : DIGEST ? DIGEST_CASES : RENEWAL ? RENEWAL_CASES : UPDATE ? UPDATE_CASES : REALPAY ? REALPAY_CASES : FOUNDING ? FOUNDING_CASES : ANNOUNCE ? ANNOUNCE_CASES : REMIND_CASES;
 
 const files = [];
 for (const c of CASES) {
@@ -165,6 +173,9 @@ for (const c of CASES) {
     : DIGEST
     ? buildDigest({ id: 'x', unsub_token: '0000-token', ...c.p },
       { stats: c.st, supabaseUrl: 'https://example.supabase.co', siteUrl: 'http://localhost:3000' })
+    : ROUTE
+    ? buildRoute({ id: 'x', unsub_token: '0000-token', ...c.p },
+      { supabaseUrl: 'https://example.supabase.co', siteUrl: 'http://localhost:3000' })
     : PAGES
     ? buildPages({ id: 'x', unsub_token: '0000-token', ...c.p },
       { supabaseUrl: 'https://example.supabase.co', siteUrl: 'http://localhost:3000' })
@@ -217,7 +228,7 @@ const page = await browser.newPage();
 await page.setViewport({ width: 720, height: 900 });
 const dir = path.join(__dirname, 'temporary screenshots');
 for (const f of files) {
-  await page.goto(`http://localhost:3000/${encodeURI(f.rel)}`, { waitUntil: 'networkidle2', timeout: 30000 });
+  await page.goto(`http://localhost:${process.env.PV_PORT || 3000}/${encodeURI(f.rel)}`, { waitUntil: 'networkidle2', timeout: 30000 });
   let n = 1;
   while (fs.existsSync(path.join(dir, `screenshot-${n}-mail-${f.k}.png`))) n++;
   const out = path.join(dir, `screenshot-${n}-mail-${f.k}.png`);

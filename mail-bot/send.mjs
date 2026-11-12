@@ -39,6 +39,10 @@
      node mail-bot/send.mjs pages                           # 送らない。何人に届くか・会社のページへ何人かだけ出る
      node mail-bot/send.mjs pages --to=info@… --airline=jal --send  # ★自分の受信箱で現物を見る（絵つき）
      node mail-bot/send.mjs pages --send                    # 本番（1人1通・二度は送らない）
+
+     node mail-bot/send.mjs route                           # 送らない。何人に届くかだけ出る（MY PAY の新しい機能のお知らせ）
+     node mail-bot/send.mjs route --to=info@…      --send   # ★自分の受信箱で現物を見る（絵つき）
+     node mail-bot/send.mjs route --send                    # 本番（1人1通・二度は送らない）
        ★先に node gen-mail-airline-shots.mjs で会社ページの絵を撮っておく（無い絵があると止まる）
 
    ★ announce だけは既定が「送らない」。--dry-run を付け忘れて全員に飛ぶ事故を
@@ -76,10 +80,10 @@ const toArg    = (args.find(a => a.startsWith('--to=')) || '').split('=')[1];   
 const airlineArg = ((args.find(a => a.startsWith('--airline=')) || '').split('=')[1] || '').trim().toLowerCase();  // pages の下見の会社
 /* announce は「--send と書いたときだけ送る」。他のモードは従来どおり
    「--dry-run と書いたときだけ送らない」。既定を逆にしてあるのはわざと。 */
-const NEEDS_SEND = MODE === 'digest' || MODE === 'announce' || MODE === 'founding' || MODE === 'realpay' || MODE === 'update' || MODE === 'renewal' || MODE === 'pages';
+const NEEDS_SEND = MODE === 'digest' || MODE === 'announce' || MODE === 'founding' || MODE === 'realpay' || MODE === 'update' || MODE === 'renewal' || MODE === 'pages' || MODE === 'route';
 const DRY = NEEDS_SEND ? !args.includes('--send') : args.includes('--dry-run');
 
-if (!['welcome', 'digest', 'announce', 'founding', 'realpay', 'update', 'renewal', 'pages'].includes(MODE)) { console.error('使い方: node mail-bot/send.mjs <welcome|digest|announce|founding|realpay|update|renewal|pages> [--dry-run] [--send] [--only=ADDR] [--to=ADDR] [--lang=ja|en|both] [--airline=CODE] [--backfill] [--since=ISO]'); process.exit(1); }
+if (!['welcome', 'digest', 'announce', 'founding', 'realpay', 'update', 'renewal', 'pages', 'route'].includes(MODE)) { console.error('使い方: node mail-bot/send.mjs <welcome|digest|announce|founding|realpay|update|renewal|pages|route> [--dry-run] [--send] [--only=ADDR] [--to=ADDR] [--lang=ja|en|both] [--airline=CODE] [--backfill] [--since=ISO]'); process.exit(1); }
 if (!SUPABASE_URL || !SERVICE_KEY) { console.error('❌ SUPABASE_URL / SUPABASE_SERVICE_KEY 未設定'); process.exit(1); }
 if (!DRY && !RESEND_KEY) { console.error('❌ RESEND_API_KEY 未設定（実送信には必須）'); process.exit(1); }
 
@@ -185,7 +189,7 @@ const stateFile = join(__dir, '.send-state.json');
 /* updateSent も別の鍵。ここを使い回すと、過去3通のどれかを受け取った人に
    今回のお知らせが1通も届かない（しかも黙って「送信済み」と数えられる）。 */
 /* renewalSent（トップページ刷新のお知らせ）も別の鍵。理由は上と同じ。 */
-let state = { lastWelcomeAt: null, lastDigestAt: null, announceSent: {}, foundingSent: {}, realPaySent: {}, updateSent: {}, renewalSent: {}, pagesSent: {} };
+let state = { lastWelcomeAt: null, lastDigestAt: null, announceSent: {}, foundingSent: {}, realPaySent: {}, updateSent: {}, renewalSent: {}, pagesSent: {}, routeSent: {} };
 if (existsSync(stateFile)) { try { state = { ...state, ...JSON.parse(readFileSync(stateFile, 'utf8')) }; } catch {} }
 const saveState = () => writeFileSync(stateFile, JSON.stringify(state, null, 2));
 const nowIso = new Date().toISOString();
@@ -913,6 +917,104 @@ async function runPages() {
   if (DRY) console.log('        本文を絵で見る: node shot-remind.mjs --pages');
 }
 
+/* ════════════════════════════════════════════════════════════════
+   route … MY PAY の新しい機能のお知らせ（2026-11-13。文面は announce-mail.mjs の buildRoute）
+   renewal と同じく ★email_opt_in で絞らず登録者全員に送る（文面は誘いを1文も含まない）。
+   pages と違い、会員ごとに変わる所が無い ＝ 本番の DB を1人ずつ引かない（読むのは profiles の1回と、言語の判定の地域だけ）。
+   絵は地球儀の見本の1枚（mail-bot/.page-shots/route-ja.jpg・route-en.jpg）。
+     撮り方：手元のポートで配って `ACT=tab2 node shot-glass.mjs globe ja light`（en も）→ ROUTE の板だけ切り出して JPEG に。
+   ════════════════════════════════════════════════════════════════ */
+async function runRoute() {
+  const { buildRoute, langModeOf } = await import('./announce-mail.mjs');
+  /* ★Resend に渡す鍵の目印。次に別のお知らせを送るときは必ず変える。 */
+  const TAG = '2026-11-route';
+  const SHOTS = join(__dir, '.page-shots');
+  const cache = new Map();
+  const attachmentsOf = (b) => b.images.map((im) => {
+    const f = join(SHOTS, im.file);
+    if (!cache.has(f)) cache.set(f, readFileSync(f).toString('base64'));
+    return { filename: im.file, content: cache.get(f), content_type: 'image/jpeg', content_id: im.cid };
+  });
+  const missingOf = (b) => b.images.filter((im) => !existsSync(join(SHOTS, im.file))).map((im) => im.file);
+
+  /* ★自分の受信箱で現物を見る逃げ道。会員には1通も出さない。 */
+  if (toArg) {
+    const me = { id: 'self-preview', email: toArg, name: null, country: null, unsub_token: 'preview-token' };
+    const b = buildRoute(me, { siteUrl: SITE_URL, supabaseUrl: SUPABASE_URL, adminEmail: ADMIN_EMAIL, lang: langArg });
+    console.log(`[route] 自分宛のプレビュー（会員には送りません）… ${b.lang}`);
+    console.log(`        ${b.subject}`);
+    console.log(`        行き先 ${b.pageUrl}`);
+    const miss = missingOf(b);
+    if (miss.length) { console.error(`❌ 絵がありません: ${miss.join(', ')}（mail-bot/.page-shots/）`); process.exit(1); }
+    if (DRY) return console.log('        ※ 送りません。実際に送るには --send を付けてください。');
+    await sendEmail(toArg, '[preview] ' + b.subject, b.html, { text: b.text, replyTo: ADMIN_EMAIL, attachments: attachmentsOf(b) });
+    return console.log('  ✓ 送りました');
+  }
+
+  if (TEST_PATTERNS.length === 0) {
+    console.error('❌ PV_TEST_EMAILS が mail-bot/.env にありません。');
+    console.error('   動作確認用のアカウントを外せないので止めます（送信は取り消せません）。');
+    process.exit(1);
+  }
+
+  /* ★email_opt_in を条件に入れない。全員が対象。 */
+  const people = await sbSelect('profiles', 'id,name,email,country,company,unsub_token',
+    [['order', 'created_at.asc']]);
+
+  const sentBefore = state.routeSent || {};
+  let targets = people.filter(m => m.email && String(m.email).includes('@'));
+  const total = targets.length;
+  const testers = targets.filter(m => isTestEmail(m.email)).length;
+  targets = targets.filter(m => !isTestEmail(m.email));
+  const already = targets.filter(m => sentBefore[m.id]).length;
+  targets = targets.filter(m => !sentBefore[m.id]);
+  if (onlyArg) targets = targets.filter(m => String(m.email).toLowerCase() === onlyArg.toLowerCase());
+
+  /* 勤務先を見るのは「氏名も居住国も手がかりが無い人」だけ（renewal と同じ）。 */
+  const needRegion = [...new Set(targets
+    .filter(m => langModeOf(m) === 'both' && String(m.company ?? '').trim())
+    .map(m => String(m.company).trim()))];
+  const regions = await airlineRegionMap(needRegion);
+  for (const m of targets) m.airline_region = regions.get(String(m.company ?? '').trim()) || '';
+
+  const mails = targets.map(m => ({ m, b: buildRoute(m, { siteUrl: SITE_URL, supabaseUrl: SUPABASE_URL, adminEmail: ADMIN_EMAIL, lang: langArg }) }));
+  const pre = { ja: 0, en: 0, both: 0 };
+  for (const x of mails) pre[x.b.lang] = (pre[x.b.lang] || 0) + 1;
+  console.log(`[route] 登録 ${total} 名／動作確認 ${testers} 名を除外／送信済み ${already} 名／今回の対象 ${targets.length} 名`
+    + `（日本語 ${pre.ja} / 英語 ${pre.en} / 日英ともに ${pre.both}）`
+    + (onlyArg ? `（--only=${onlyArg}）` : ''));
+
+  /* ★絵が1枚でも欠けていたら、1通も送らない。 */
+  const miss = [...new Set(mails.flatMap(x => missingOf(x.b)))];
+  if (miss.length) {
+    console.error(`❌ 絵がありません: ${miss.join(', ')}（mail-bot/.page-shots/）。1通も送らずに止めます。`);
+    process.exit(1);
+  }
+  if (DRY) console.log('        ※ 送りません。実際に送るには --send を付けてください。');
+  if (targets.length === 0) return;
+
+  let sent = 0;
+  for (const { m, b } of mails) {
+    const headers = {
+      'List-Unsubscribe': (b.oneClickUrl ? `<${b.oneClickUrl}>, ` : '') + `<${b.unsubUrl}>, <mailto:${ADMIN_EMAIL}?subject=unsubscribe>`,
+      ...(b.oneClickUrl ? { 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } : {}),
+    };
+    try {
+      await sendEmail(m.email, b.subject, b.html, {
+        text: b.text, headers, replyTo: ADMIN_EMAIL, attachments: attachmentsOf(b),
+        idempotencyKey: `pv-${TAG}-${m.id}`,
+      });
+      sent++;
+      if (!DRY) { (state.routeSent ||= {})[m.id] = nowIso; saveState(); }
+      /* 宛先は出さない。ここの出力を貼って渡すと会員のメールが漏れる。 */
+      const L = { ja: '日本語', en: '英語', both: '日英ともに' }[b.lang] || b.lang;
+      if (!DRY) { console.log(`  ✓ ${L}`); await new Promise(r => setTimeout(r, 320)); }
+    } catch (e) { console.error(`  ❌ 1名ぶん失敗: ${e.message}`); }
+  }
+  console.log(`[route] ${DRY ? 'プレビュー' : '送信'} ${sent}/${targets.length}`);
+  if (DRY) console.log('        本文を絵で見る: node shot-remind.mjs --route');
+}
+
 (async () => {
   try {
     if (MODE === 'welcome') await runWelcome();
@@ -922,6 +1024,7 @@ async function runPages() {
     else if (MODE === 'update') await runUpdate();
     else if (MODE === 'renewal') await runRenewal();
     else if (MODE === 'pages') await runPages();
+    else if (MODE === 'route') await runRoute();
     else await runDigest();
   } catch (e) { console.error('❌', e.message, e.cause ? `（${e.cause.code || e.cause.message}）` : ''); process.exit(1); }
 })();

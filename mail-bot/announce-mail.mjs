@@ -1710,3 +1710,193 @@ export function digestStats(rows = {}) {
     });
   return { pay, reviews, total: pay + reviews, airlines };
 }
+
+/* ════════════════════════════════════════════════════════════════
+   MY PAY の新しい機能のお知らせ（buildRoute・2026-11-13）
+
+   ── ★目的 ────────────────────────────────────────────────────
+   スケジュール（ロスター）を入れると、飛んだルートが地球儀に並び、便ごとの稼ぎ（目安）が出る
+   ── 2026-11-09〜13 に MY PAY に入った機能を、機能ごとの節に分けて知らせる
+   （オーナー指示「この新機能を含めてみんなにメールしよう。機能をいくつかに分けて」）。
+   行き先は MY PAY の1つだけ（会員ごとに変わる所は無い ＝ 本番の DB を1人ずつ引かない）。
+
+   ── ★登録者全員に送る ＝「サービスからのお知らせ」に限る ──────────
+   pages・renewal と同じ。給与の提出・招待の誘いを1文も入れない。
+   給与フォームへのリンクも置かない（明細から自動で入れられることは、機能の事実として1文だけ）。
+
+   ── ★本文の字に入れないもの ────────────────────────────────────
+   金額・社名・職位名・明細の項目名・件数・人数（他の全員宛てと同じ）。
+   絵は地球儀の見本（shot-glass.mjs の globe ＝ 作り物のスケジュールと給与）。
+   見本の数字が写るので、絵の下に「画面の例（数字は見本です）」と書く。
+
+   ── ★言い切らない・画面の字のまま ────────────────────────────────
+   ・便の額は「目安」。「正確な」「単価」「料率」と書かない（my-globe.js と同じ）。
+   ・スケジュールの扱いは roster-upload.js の priv、明細の扱いは CLAUDE.md の決まった言い方を
+     **1文字も変えずに**写す（下の検査が画面の字と突き合わせる）。
+     「画像は送りません」「黒塗りしてから送る」とは書けない（どちらも事実と違う）。
+   ・タブの名前（スケジュール／給与サマリー／Roster／Pay summary）は my-value.js の字のまま。
+
+   ── ★送り分けは renewal・pages と同じ（renewalLangOf）─────────────
+   日本の会員は日本語だけ、それ以外は英語が上・日本語が下の1通。絵は上の言語の画面の1枚だけ。
+   ════════════════════════════════════════════════════════════════ */
+const ROUTE_BOTH_ORDER = ['en', 'ja'];
+export const ROUTE_SHOT_W = 512;
+
+function routeCopy(lang) {
+  if (lang === 'ja') {
+    return {
+      subject: 'あなたの1便は、いくらですか？ ✈️',
+      lead: [
+        'PILOT VALUE をご利用いただき、ありがとうございます。',
+        'MY PAY に、スケジュール（ロスター）から1便ごとの稼ぎを見られる機能が加わりました。',
+      ],
+      alt: 'MY PAY のスケジュールの地球儀',
+      cap: '画面の例（数字は見本です）',
+      news: [
+        { h: '飛んだルートを、地球儀で', p: 'MY PAY の「スケジュール」に、スケジュールのスクリーンショットか PDF を入れると、飛んだルートが地球儀に並びます。日・月・3か月・1年で切り替えられます。' },
+        { h: '1便ごとの稼ぎ（目安）', p: 'ルートを押すと、その便の稼ぎ（目安）が出ます。給与の記録がある月が対象です。記録は、給与明細の写真や PDF から自動で入れられます。' },
+        { h: '月と年のまとめ', p: '「給与サマリー」では、月ごとの給与と累計報酬、1年のまとめを見られます。他社の同じ職位の年収も並びます。' },
+      ],
+      cta: 'MY PAY を開く',
+      privH: 'データの扱い',
+      priv: [
+        '画像は読み取りのために送りますが、保存しません。保存するのは読み取った日付・空港・時刻だけで、便名と氏名は保存しません。2年たった日は月の合計だけになります。見られるのはあなただけで、いつでも消せます。',
+        '明細は給与の数字を読み取るためだけに使い、氏名・社員番号・口座は回答・保存の対象にしません。画像は保存しません。',
+      ],
+      privL: ['スケジュール', '給与明細'],
+      close: [
+        '使ってみて気づいたことは、このメールに返信すると運営に届きます。',
+        'これからもよろしくお願いいたします。',
+      ],
+      sign: ['PILOT VALUE Team', "Pilot defines. Pilot's value."],
+      why: 'このメールは、PILOT VALUE にご登録いただいた方へ、サービスからのお知らせとしてお送りしています。',
+      unsub: '配信を停止する',
+    };
+  }
+  return {
+    subject: 'What did that flight earn you? ✈️',
+    lead: [
+      'Thank you for being part of PILOT VALUE.',
+      'MY PAY can now show what each flight earned you, straight from your roster.',
+    ],
+    alt: 'The ROUTE globe in MY PAY',
+    cap: 'Sample screen (figures are examples)',
+    news: [
+      { h: 'Your routes on a globe', p: 'Add screenshots or a PDF of your roster under MY PAY → Roster, and the routes you flew appear on a globe. Switch between 1D, 1M, 3M and 1Y.' },
+      { h: 'Earnings per flight (est.)', p: 'Select a route to see what that flight earned you (est.). It covers months with a pay record, which can be filled in automatically from a photo or PDF of your payslip.' },
+      { h: 'Your month and your year', p: 'Pay summary shows each month, your total pay recorded and Your year. Pay for your rank at other airlines is shown alongside.' },
+    ],
+    cta: 'Open MY PAY',
+    privH: 'How your data is handled',
+    priv: [
+      'Images are sent to be read and are not stored. Only the dates, airports and times are saved — never flight numbers or names. After two years, only monthly totals are kept. Only you can see them, and you can delete them anytime.',
+      'Your payslip is used only to read the pay figures; your name, staff number and bank details are not part of what is returned or stored. The image itself is never stored.',
+    ],
+    privL: ['Roster', 'Payslip'],
+    close: [
+      'If you notice anything while using it, a reply to this email reaches the team.',
+      'Thanks, as always.',
+    ],
+    sign: ['PILOT VALUE Team', "Pilot defines. Pilot's value."],
+    why: 'This is a service notice sent to people registered with PILOT VALUE.',
+    unsub: 'Unsubscribe',
+  };
+}
+
+/* p = { name, country, airline_region, unsub_token }（name は言語の判定にしか使わない。宛名には出さない）
+   o = { siteUrl, supabaseUrl, adminEmail, lang }  ← lang を渡すと判定を上書き
+   返す images は「メールに埋め込む絵」── file は mail-bot/.page-shots/ の中の名前、cid は本文の <img src="cid:…">。
+   読み込んで Resend に渡すのは send.mjs（ここはファイルを読まない＝検査を鍵もネットも無しで回せる）。 */
+export function buildRoute(p, o = {}) {
+  const opt = { ...DEFAULTS, ...o };
+  const site = String(opt.siteUrl).replace(/\/+$/, '');
+  const lang = opt.lang || renewalLangOf(p);
+  const langs = lang === 'both' ? ROUTE_BOTH_ORDER : [lang];
+
+  const pre = (l) => (l === 'en' ? 'en/' : '');
+  /* ★追跡用のパラメータを付けない。印（#…）も付けない ── 印の無い住所で MY PAY が最初に開く。 */
+  const payUrl = (l) => `${site}/${pre(l)}profile.html`;
+  const unsubPage = (l) => `${site}/${pre(l)}unsubscribe.html?token=${encodeURIComponent(p?.unsub_token || '')}`;
+  const unsubUrl = unsubPage(langs[0]);
+  const oneClickUrl = opt.supabaseUrl
+    ? `${String(opt.supabaseUrl).replace(/\/+$/, '')}/functions/v1/remind-payslip?u=${encodeURIComponent(p?.unsub_token || '')}`
+    : '';
+
+  /* 絵は上の言語の画面の1枚だけ。 */
+  const shotLang = langs[0];
+  const images = [{ file: `route-${shotLang}.jpg`, cid: `pv-route-${shotLang}` }];
+
+  const parts = langs.map((l) => ({ l, t: routeCopy(l), u: payUrl(l), shot: l === shotLang }));
+  const subject = lang === 'both'
+    ? `${parts[0].t.subject} / ${parts[1].t.subject}`
+    : parts[0].t.subject;
+
+  const para = (s) => `<p style="margin:0 0 16px;color:#333">${esc(s)}</p>`;
+  /* 絵は押すと MY PAY が開く。下に「画面の例」の一言。 */
+  const shotHtml = (x) => `
+    <p style="margin:6px 0 6px;text-align:center">
+      <a href="${esc(x.u)}" style="display:inline-block;text-decoration:none">
+        <img src="cid:${esc(images[0].cid)}" width="${ROUTE_SHOT_W}" alt="${esc(x.t.alt)}"
+             style="display:block;width:${ROUTE_SHOT_W}px;max-width:100%;height:auto;border:1px solid #e6e9ef;border-radius:14px">
+      </a>
+    </p>
+    <p style="margin:0 0 22px;text-align:center;color:#9aa5b1;font-size:12px">${esc(x.t.cap)}</p>`;
+
+  const blockHtml = (x) => `
+    ${x.t.lead.map(para).join('')}
+    ${x.shot ? shotHtml(x) : ''}
+    ${x.t.news.map((n) => `
+    <p style="margin:0 0 4px;color:#111;font-weight:800">■ ${esc(n.h)}</p>
+    <p style="margin:0 0 16px;color:#333">${esc(n.p)}</p>`).join('')}
+    <p style="margin:8px 0 24px;text-align:center">
+      <a href="${esc(x.u)}" style="display:inline-block;background:#f5c842;color:#111;text-decoration:none;font-weight:800;padding:12px 22px;border-radius:10px">${esc(x.t.cta)}</a>
+    </p>
+    <div style="margin:0 0 24px;padding:16px 18px 4px;background:#f6f8fa;border:1px solid #e6e9ef;border-radius:12px">
+      <p style="margin:0 0 8px;color:#111;font-weight:700;font-size:13px">${esc(x.t.privH)}</p>
+      ${x.t.priv.map((s, i) => `<p style="margin:0 0 12px;color:#6b7280;font-size:13px"><b style="color:#4b5563">${esc(x.t.privL[i])}</b>　${esc(s)}</p>`).join('')}
+    </div>
+    ${x.t.close.map(para).join('')}
+    <p style="margin:22px 0 0;color:#333">${x.t.sign.map(esc).join('<br>')}</p>`;
+
+  const blockText = (x) => [
+    ...x.t.lead.flatMap((s) => [s, '']),
+    ...x.t.news.flatMap((n) => [`■ ${n.h}`, n.p, '']),
+    `▶ ${x.t.cta}`, `  ${x.u}`, '',
+    `【${x.t.privH}】`,
+    ...x.t.priv.map((s, i) => `${x.t.privL[i]}：${s}`), '',
+    ...x.t.close.flatMap((s) => [s, '']),
+    ...x.t.sign,
+  ].join('\n');
+
+  /* ★足元は日英ともに出す（全員に送るので、解除のしかたが読めない人を作らない）。 */
+  const feet = parts.map((x) => x.t);
+  const unsubLink = parts
+    .map((x) => `<a href="${esc(unsubPage(x.l))}" style="color:#6b7280">${esc(x.t.unsub)}</a>`)
+    .join(' / ');
+
+  const html =
+    `<div style="background:#f3f5f8;padding:24px 12px;font-family:-apple-system,'Segoe UI','Noto Sans JP',sans-serif">
+      <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #e6e9ef">
+        <div style="background:#0a0c0f;padding:18px 24px">
+          <span style="color:#f5c842;font-weight:800;letter-spacing:.04em;font-size:15px">PILOT VALUE</span>
+        </div>
+        <div style="padding:26px 24px;color:#1f2937;font-size:14px;line-height:1.8">
+          ${parts.map(blockHtml).reduce((acc, b, i) => acc + dividerFor(langs[i]) + b)}
+        </div>
+        <div style="padding:16px 24px;border-top:1px solid #eef0f4;color:#9aa5b1;font-size:11px;line-height:1.7">
+          ${feet.map((t) => esc(t.why)).join('<br>')}<br>
+          ${unsubLink}
+          ・<a href="${esc(site)}" style="color:#6b7280">${esc(site.replace(/^https?:\/\//, ''))}</a>
+        </div>
+      </div>
+    </div>`;
+
+  const text = [
+    parts.map(blockText).join('\n\n— — —\n\n'),
+    '', '--',
+    ...feet.map((t) => t.why),
+    ...parts.map((x) => `${x.t.unsub}: ${unsubPage(x.l)}`),
+  ].join('\n');
+
+  return { lang, subject, html, text, unsubUrl, oneClickUrl, pageUrl: payUrl(langs[0]), images };
+}

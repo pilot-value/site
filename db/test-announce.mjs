@@ -1320,6 +1320,130 @@ console.log('\n── ⑦-b 各航空会社のページと Vote のお知らせ 
 }
 
 
+/* ════════ ⑦-c MY PAY の新しい機能のお知らせ ═══════════════════════
+   buildRoute()（2026-11-13）。⑦・⑦-b と同じく登録者全員へ送る。
+   ・金額・社名・職位名・明細の項目名・人数を本文の字に入れない（絵は見本で、下に「見本」と書く）。
+   ・誘い（給与の提出・招待・登録）を入れない。給与フォームへのリンクも置かない。行き先は MY PAY だけ。
+   ・★言い切らない：便の額は「目安」。「正確」「単価」「料率」と書かない。
+   ・★データの扱いは画面の字と1文字も違わない（スケジュール＝roster-upload.js の priv／明細＝CLAUDE.md の決まった言い方）。
+     「画像は送りません」「黒塗りしてから送る」は事実と違うので書けない。
+   ・タブの名前は my-value.js の字のまま。
+   ════════════════════════════════════════════════════════════════ */
+console.log('\n── ⑦-c MY PAY の新しい機能のお知らせ ──');
+{
+  const { buildRoute, ROUTE_SHOT_W } = await import(join(ROOT, 'mail-bot/announce-mail.mjs'));
+  const RT = {
+    'ja':      { name: '高橋 蓮',     country: '日本', unsub_token: 'rt1', company: 'ジャル 羽田 XYZ123' },
+    'both':    { name: 'Alex Mercer', country: 'UAE',  unsub_token: 'rt2', company: 'EK fleet Q7Q7' },
+    'both-no': { name: null,          country: null,   unsub_token: 'rt3' },
+  };
+  const RTALL = Object.entries(RT).map(([k, x]) => [k, x, buildRoute(x, O)]);
+  const SITE = 'https://pilot-value.com';
+
+  for (const [k, p, b] of RTALL) {
+    const body = b.html + '\n' + b.subject + '\n' + b.text;
+    const low = body.toLowerCase();
+    const money = MONEY.find(([re]) => re.test(body));
+    ok(!money, `route/${k}: 金額が1つも入っていない`, money ? `${money[1]} → ${body.match(money[0])[0]}` : '');
+    const ded = DEDUCT.find((w) => low.includes(w.toLowerCase()));
+    ok(!ded, `route/${k}: 控除の項目名が入っていない`, ded || '');
+    const slip = SLIP.find((w) => low.includes(w.toLowerCase()));
+    ok(!slip, `route/${k}: 明細の項目名が入っていない`, slip || '');
+    ok(!/賞与|ボーナス|\bbonus/.test(low), `route/${k}: 賞与のことを書いていない`);
+    ok(!/機長|副操縦士|\bcaptain\b|first officer/.test(low), `route/${k}: 職位名が入っていない`);
+    const over = OVERCLAIM.find((re) => re.test(body));
+    ok(!over, `route/${k}: 特定されないと言い切っていない`, over ? String(over) : '');
+    const stray = NAMES.find((n) => hitsName(body, n));
+    ok(!stray, `route/${k}: 会社の名前が1つも入っていない`, stray || '');
+    ok(!/XYZ123|Q7Q7/.test(body), `route/${k}: 勤務先の自由入力が本文に出ない`);
+    const cnt = COUNTS.find((re) => re.test(body));
+    ok(!cnt, `route/${k}: 会員数が分かる言い回しが入っていない`, cnt ? String(cnt) : '');
+
+    /* 誘いを入れない（全員宛ては「サービスからのお知らせ」に限る）。 */
+    const sol = SOLICIT.find((w) => low.includes(w.toLowerCase()));
+    ok(!sol, `route/${k}: 勧誘の言い回しが入っていない`, sol || '');
+    const lure = ['pay-report.html', 'invite.html', 'signup.html', 'give & get', '招待', '給与を出', '給与を提出',
+      'submit your', 'upload your', 'sign up', 'please share', 'invite a', '共有して'].find((w) => low.includes(w));
+    ok(!lure, `route/${k}: 給与の提出・招待・登録の誘いが入っていない`, lure || '');
+
+    /* 言い切らない・事実と違う言い方をしない。 */
+    ok(!/正確|単価|料率|accurate|exact(ly)? what/.test(low), `route/${k}: 便の額を「正確」「単価」「料率」と書いていない`);
+    ok(!/画像は送りません|黒塗り|塗ってから|保管ゼロ|blacked out|never sent|never leaves/.test(low),
+       `route/${k}: 「画像は送りません」「黒塗りしてから送る」と書いていない（事実と違う）`);
+    ok(!/deep ?pay/.test(low), `route/${k}: 閉じている画面（DEEP PAY）に触れていない`);
+
+    /* リンクは全部、本番に在るページへ。追跡用の印を付けない。行き先は MY PAY だけ。 */
+    const hrefs = [...b.html.matchAll(/href="([^"]+)"/g)].map((m) => m[1].replace(/&amp;/g, '&'));
+    const siteLinks = hrefs.filter((h) => h.startsWith(SITE));
+    const missing = siteLinks.map((h) => h.slice(SITE.length).replace(/^\//, '').replace(/[?#].*$/, ''))
+      .map((r) => (r === '' || r.endsWith('/') ? r + 'index.html' : r))
+      .filter((r) => !existsSync(join(ROOT, r)));
+    ok(missing.length === 0, `route/${k}: リンク先のページが全部リポジトリに在る`, missing.join(', '));
+    const tracked = siteLinks.filter((h) => !/unsubscribe\.html\?token=/.test(h) && /[?#]/.test(h));
+    ok(tracked.length === 0, `route/${k}: MY PAY の URL に印が付いていない`, tracked.join(', '));
+    const langs = b.lang === 'both' ? ['en', 'ja'] : [b.lang];
+    const dest = [...new Set(siteLinks.filter((h) => !/unsubscribe\.html/.test(h) && h !== SITE))].sort();
+    ok(dest.join() === langs.map((l) => `${SITE}/${l === 'en' ? 'en/' : ''}profile.html`).sort().join(),
+       `route/${k}: 行き先は言語ごとの MY PAY だけ`, dest.join(', '));
+
+    /* 埋め込みの絵は1枚（上の言語の地球儀の見本）。押すと MY PAY が開き、下に「見本」と書いてある。 */
+    const imgs = [...b.html.matchAll(/<img [^>]*src="cid:([^"]+)"/g)].map((m) => m[1]);
+    ok(imgs.length === 1 && b.images.length === 1 && imgs[0] === b.images[0].cid, `route/${k}: 埋め込みの絵が1枚で、返す images と同じ`, imgs.join(','));
+    ok(b.images[0].file === `route-${langs[0]}.jpg`, `route/${k}: 絵は上の言語の画面`, b.images[0].file);
+    ok(new RegExp(`<a href="${reEsc(b.pageUrl)}"[^>]*>\\s*<img `).test(b.html), `route/${k}: 絵を押すと MY PAY が開く`);
+    ok(b.html.includes(langs[0] === 'ja' ? '画面の例（数字は見本です）' : 'Sample screen (figures are examples)'), `route/${k}: 絵の下に「見本」と書いてある`);
+    ok(b.html.includes(`width="${ROUTE_SHOT_W}"`), `route/${k}: 絵の幅が本文の幅に収まる`);
+    ok(!/<img [^>]*src="https?:/.test(b.html), `route/${k}: 外から読み込む絵が無い（全部埋め込み）`);
+
+    const btn = (b.html.match(/background:#f5c842/g) || []).length;
+    ok(btn === langs.length, `route/${k}: 押すボタンは言語ごとに1つだけ`, String(btn));
+    ok(langs.every((l) => b.html.includes(`${l === 'en' ? 'en/' : ''}unsubscribe.html?token=${p.unsub_token}`)) && b.oneClickUrl,
+       `route/${k}: 配信停止のリンクとワンクリック解除がある`);
+    ok(b.html.includes('サービスからのお知らせとしてお送り') || b.html.includes('service notice'), `route/${k}: 足元は「サービスからのお知らせ」`);
+    ok(b.subject.length <= 78, `route/${k}: 件名が 78 文字以内（${b.subject.length}）`);
+    ok(!/null|undefined/.test(b.text + b.html), `route/${k}: 本文に null / undefined が出ない`);
+  }
+
+  ok(buildRoute(RT.ja, O).lang === 'ja' && buildRoute(RT.both, O).lang === 'both' && buildRoute(RT['both-no'], O).lang === 'both',
+     'route: 日本の会員は日本語・それ以外は日英の1通（renewal と同じ）');
+  /* 会員ごとに変わる所が無い（言語と解除の鍵だけ）。 */
+  ok(buildRoute(RT.both, O).text.split('rt2').join('') === buildRoute(RT['both-no'], O).text.split('rt3').join(''),
+     'route: 同じ言語の会員には、解除の鍵のほか1文字も違わない本文が届く');
+
+  /* 画面の字と1文字も違わないこと。 */
+  {
+    const ja = buildRoute(RT.ja, O).text, en = buildRoute(RT.ja, { ...O, lang: 'en' }).text;
+    const RU = read('roster-upload.js'), MV = read('my-value.js'), MG = read('my-globe.js'), MY = read('my-year.js'), CL = read('CLAUDE.md');
+    const priv = [...RU.matchAll(/priv: '([^']+)'/g)].map((m) => m[1]);
+    ok(priv.length >= 2 && ja.includes(priv[0]) && en.includes(priv[1]), 'route: スケジュールの扱いが取り込みの画面の字と1文字も違わない（日英）');
+    const claim = [...CL.matchAll(/^> (明細は給与の数字を読み取るためだけに使い[^\n]+|Your payslip is used only to read the pay figures[^\n]+)$/gm)].map((m) => m[1]);
+    ok(claim.length === 2 && ja.includes(claim[0]) && en.includes(claim[1]), 'route: 明細の扱いが決まった言い方と1文字も違わない（日英）');
+    ok(ja.includes('「スケジュール」') && MV.includes("tabRoster: 'スケジュール'") && ja.includes('「給与サマリー」') && MV.includes("tabSum: '給与サマリー'"),
+       'route/ja: タブの名前が画面の字のまま');
+    ok(en.includes('MY PAY → Roster') && MV.includes('tabRoster: "Roster"') && en.includes('Pay summary') && MV.includes("tabSum: 'Pay summary'"),
+       'route/en: タブの名前が画面の字のまま');
+    ok(ja.includes('累計報酬') && MV.includes("total: '累計報酬'") && ja.includes('1年のまとめ') && MY.includes("title: '1年のまとめ'"), 'route/ja: 「累計報酬」「1年のまとめ」が画面の字のまま');
+    ok(en.includes('total pay recorded') && MV.includes("total: 'Total pay recorded'") && en.includes('Your year') && MY.includes("title: 'Your year'"), 'route/en: 画面の字のまま');
+    ok(ja.includes('その便の稼ぎ（目安）') && MG.includes("earn: 'この便の稼ぎ（目安）'") && en.includes('(est.)') && MG.includes("earn: 'Earned on this flight (est.)'"),
+       'route: 便の額は画面と同じく「目安」／(est.)');
+  }
+
+  /* 送信側の門（send.mjs の route）。 */
+  {
+    const S = read('mail-bot/send.mjs');
+    const run = S.slice(S.indexOf('async function runRoute'), S.indexOf('(async () => {', S.indexOf('async function runRoute')));
+    ok(run.length > 500, 'route/send: runRoute がある');
+    ok(/1通も送らずに止めます/.test(run) && /missingOf/.test(run), 'route/send: 絵が欠けていたら1通も送らない');
+    ok(/attachments: attachmentsOf\(b\)/.test(run), 'route/send: 絵を埋め込んで送る');
+    ok(/const TAG = '2026-11-route'/.test(run) && /routeSent/.test(run) && !/pagesSent|renewalSent/.test(run), 'route/send: 送信済みの控えと Resend の目印がほかのお知らせと別');
+    ok(!/console\.log\(`.*(m\.email|m\.company|m\.name)/.test(run), 'route/send: 宛先も勤務先も画面に出さない');
+    ok(!/email_opt_in/.test(run.replace(/\/\*[\s\S]*?\*\//g, '')), 'route/send: 登録者全員に送る（希望者だけに絞っていない）');
+    ok(/isTestEmail/.test(run) && /TEST_PATTERNS\.length === 0/.test(run), 'route/send: 動作確認用のアカウントを外す（外せないときは止まる）');
+    ok(!/sbRpc\(/.test(run), 'route/send: 会員を1人ずつ本番の DB に引きに行かない');
+  }
+}
+
+
 /* ════════ ⑧ 週に一度の新着まとめ ════════════════════════════════
    buildDigest()。**これだけが繰り返し送るメール**で、送り先は
    email_opt_in = true の人だけ。①〜⑦とは足元の文言も違う。
