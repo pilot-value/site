@@ -1264,8 +1264,108 @@
     }
   };
 
+  /* ════ 便ごとの稼ぎ（目安）═══════════════════════════════════
+     2026-11-12 オーナー「ルートを押すと、その便でいくら稼いだか」→ 決め方は「時給＋手当」（オーナー回答）。
+     総支給 ÷ 飛んだ時間だと、地上勤務の多い人ほど便の額が膨らむ（オーナー指摘）。なので働いた月 m ごとに2つに分けて割り振る：
+     ・手当の分（乗務手当 flight・日当 perdiem）… m の乗務のブロックタイムで按分 → その便のブロックタイムぶん
+     ・基本給の分（それ以外の毎月のお金）… 時給 ＝ 額 ÷ m の勤務時間ぜんぶ（乗務・地上勤務・スタンバイで時刻のある日）
+       → その便の勤務時間ぶん（その日の勤務を、その日の区間のブロックタイムで按分）
+     便乗は基本給の分だけ。区分の分からない便（unknown）は乗務と同じに数える（空港のある区間の大半は乗務）。
+     入れないもの：賞与（月の賞与・利益配分）・現物（課税評価）・組合から総支給の外で出た分・別の期間の行（ownPeriod）。
+     行の「働いた月」は build() の決まりのまま（pv_line_map → スケジュールの pay_lag）。決まっていない行は明細の月。
+     約束：m の便の額と、便の無い勤務の額を全部足すと、m に割り当てたお金（手当の分＋基本給の分）にぴったり戻る。
+     額を出さない（reason）：no_payslip（m の分の明細が足りない・missing に月）・roster_partial（m のスケジュールが月の一部）・
+       mixed_currency・no_duty（勤務時間ぜんぶが0）・no_block（その便の時間が分からない）・no_pay（額が負）。 */
+  var FP_FLIGHT = { flight: 1, perdiem: 1 };
+  var FP_SKIP_CAT = { bonus: 1, noncash: 1 };
+  var FP_LEG = { operating: 1, deadhead: 1, unknown: 1 };
+  function fpDayDuty(x) {
+    if (!x || !x.isDuty) return null;
+    if (x.dutyMin != null) return x.dutyMin;
+    var b = (x.blockKnown.operating || 0) + (x.blockKnown.deadhead || 0) + (x.blockKnown.unknown || 0);
+    return b > 0 ? b : null;                     // 勤務の時刻が無い日は、その日の便の時間で代える
+  }
+  function flightPay(model) {
+    var res = { months: [], byYm: {}, legs: [] };
+    if (!model || !model.roster) return res;
+    var have = {}, offs = {};
+    arr(model.months).forEach(function (mo) {
+      have[mo.ym] = mo;
+      mo.lines.forEach(function (l) { if (l.offset != null && !l.ownPeriod) offs[l.offset] = 1; });
+    });
+    /* スケジュールの取り込みで答えた「飛んだ分は何か月あとの明細」も、足りない明細の月に数える（その月の手当の行がまだ1つも無くても） */
+    var lagP = model.roster.profile && model.roster.profile.pay_lag;
+    if (isNum(lagP) && lagP >= 0 && lagP <= 2) offs[-lagP] = 1;
+    var pools = {};
+    arr(model.months).forEach(function (mo) {
+      mo.lines.forEach(function (l) {
+        if (!l.counted || !l.cash || l.ownPeriod || FP_SKIP_CAT[l.cat]) return;
+        if (l.kind === 'union' && l.outsideGross) return;
+        var ym = l.workYm || mo.ym;
+        var P = pools[ym] || (pools[ym] = {});
+        var c = P[mo.currency] || (P[mo.currency] = { fl: 0, ot: 0 });
+        if (FP_FLIGHT[l.kind]) c.fl += l.amount; else c.ot += l.amount;
+      });
+    });
+    arr(model.roster.months).forEach(function (rm) {
+      var ym = rm.ym, M = { ym: ym, currency: null, fleet: null, flMinor: null, otMinor: null, opBlockMin: null, dutyMin: null,
+                            ratePerHour: null, basis: null, reason: null, missing: [] };
+      var fleet = have[ym] && have[ym].row ? String(have[ym].row.fleet || '').trim() : '';
+      M.fleet = fleet || null;
+      if (!have[ym]) M.missing.push(ym);
+      Object.keys(offs).forEach(function (o) {
+        var p = ymAdd(ym, -Number(o));
+        if (p && p !== ym && !have[p] && M.missing.indexOf(p) < 0) M.missing.push(p);
+      });
+      M.missing.sort();
+      var curs = Object.keys(pools[ym] || {});
+      var legs = [];
+      rm.days.forEach(function (x) {
+        x.legs.forEach(function (L) { if (FP_LEG[L.kind] && L.from && L.to) legs.push({ day: x, leg: L }); });
+      });
+      var opBlock = 0, duty = 0;
+      legs.forEach(function (p) { if (p.leg.kind !== 'deadhead' && p.leg.blockMin != null) opBlock += p.leg.blockMin; });
+      rm.days.forEach(function (x) { var v = fpDayDuty(x); if (v != null) duty += v; });
+      M.opBlockMin = opBlock; M.dutyMin = duty;
+      if (M.missing.length) M.reason = 'no_payslip';
+      else if (!rm.complete) M.reason = 'roster_partial';
+      else if (curs.length !== 1) M.reason = curs.length ? 'mixed_currency' : 'no_payslip';
+      else if (!(duty > 0)) M.reason = 'no_duty';
+      var c = curs.length === 1 ? pools[ym][curs[0]] : null;
+      if (c) {
+        M.currency = curs[0];
+        var fl = c.fl, ot = c.ot;
+        if (fl > 0 && !(opBlock > 0)) { ot += fl; fl = 0; }    // 乗務の便が無い月の乗務手当は、勤務時間で割り振る
+        M.flMinor = fl; M.otMinor = ot;
+        M.basis = fl > 0 ? 'split' : 'gross';
+        if (!M.reason && (fl < 0 || ot < 0)) M.reason = 'no_pay';
+        if (!M.reason) M.ratePerHour = ot * 60 / duty;
+      }
+      res.months.push(M); res.byYm[ym] = M;
+      legs.forEach(function (p) {
+        var x = p.day, L = p.leg;
+        var dayBlock = 0;
+        x.legs.forEach(function (y) { if (FP_LEG[y.kind] && y.from && y.to && y.blockMin != null) dayBlock += y.blockMin; });
+        var dd = fpDayDuty(x);
+        var share = L.blockMin != null && dayBlock > 0 && dd != null ? dd * L.blockMin / dayBlock : null;
+        var o = { date: x.date, ym: ym, seq: L.seq, from: L.from, to: L.to, kind: L.kind, out: L.out, in: L.in, inDay: L.inDay,
+                  blockMin: L.blockMin, dutyMin: share == null ? null : Math.round(share), currency: M.currency, fleet: M.fleet,
+                  amount: null, fixed: null, flight: null, ratePerHour: M.ratePerHour, basis: M.basis, reason: M.reason, missing: M.missing };
+        if (!o.reason && share == null) o.reason = 'no_block';
+        if (!o.reason) {
+          var fx = (M.otMinor / duty) * share;
+          var fv = L.kind === 'deadhead' || !(opBlock > 0) ? 0 : M.flMinor * L.blockMin / opBlock;
+          o.fixed = Math.round(fx); o.flight = Math.round(fv); o.amount = o.fixed + o.flight;   // 内訳の2行を足すと合計（1円もずれない）
+        }
+        res.legs.push(o);
+      });
+    });
+    return res;
+  }
+
   w.PVReport = {
     VERSION: VERSION, CATEGORIES: CATEGORIES, KINDS: KINDS, KIND_ORDER: KIND_ORDER, QTY_UNIT: QTY_UNIT,
+    flightPay: flightPay,
     minorDigits: minorDigits, toMinor: toMinor, fromMinor: fromMinor,
     linesOf: linesOf, rosterMonths: rosterMonths, mergePages: mergePages, alignCandidates: alignCandidates,
     build: build, summary: summary, cardA: cardA, cardB: cardB, cardC: cardC, checks: checks, waterfall: waterfall,

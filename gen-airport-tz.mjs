@@ -8,9 +8,13 @@
      curl -sL -o /tmp/airports.json https://raw.githubusercontent.com/mwgg/Airports/master/airports.json
      node gen-airport-tz.mjs /tmp/airports.json
    ★書くのは「IATA の3字とタイムゾーン」だけ（空港名・位置は持たない）。何度流しても同じ結果になる。
+   ★2026-11-12 もう1枚 pv-airport-geo.js（空港 → 位置と街の名前）も書く。スケジュールの地球儀（my-globe.js）が、
+     飛んだ区間を地図に描くのに使う（地球儀を開いたときだけ読む）。位置は小数2桁（約1km）・街の名前は英語（mwgg）と、
+     サイトの就航地の表（airline-destinations.mjs）に在る空港だけ日本語も。
    ════════════════════════════════════════════════════════════════ */
 import { readFileSync, writeFileSync } from 'fs';
 import path from 'path';
+import { PLACES, RESEARCH_PLACES, CODE_PLACES } from './airline-destinations.mjs';
 import { fileURLToPath } from 'url';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
@@ -46,3 +50,42 @@ ${body}
 `;
 writeFileSync(path.join(ROOT, 'pv-airport-tz.js'), out);
 console.log(`pv-airport-tz.js: ${n}空港・${tzs.length}のタイムゾーン・${(out.length / 1024).toFixed(0)}KB`);
+
+/* ── 2枚目：pv-airport-geo.js（IATA と ICAO → [緯度, 経度, 街の名前 en, ja]）──────────── */
+const JA = Object.assign({}, CODE_PLACES, RESEARCH_PLACES, PLACES);
+const rows = [];
+for (const a of Object.values(j)) {
+  if (!a || !/^[A-Z0-9]{3}$/.test(a.iata || '')) continue;
+  const lat = Number(a.lat), lon = Number(a.lon);
+  if (!isFinite(lat) || !isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) continue;
+  const icao = /^[A-Z0-9]{4}$/.test(a.icao || '') ? a.icao : '';
+  const clean = (t) => String(t || '').replace(/[|;]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 40);
+  const ja = JA[a.iata] ? clean(JA[a.iata][0]) : '';
+  rows.push([a.iata, icao, Math.round(lat * 100), Math.round(lon * 100), clean(a.city), ja]);
+}
+rows.sort((p, q) => (p[0] < q[0] ? -1 : p[0] > q[0] ? 1 : 0));
+const seen = new Set();
+const uniq = rows.filter((r) => (seen.has(r[0]) ? false : (seen.add(r[0]), true)));
+const packed = uniq.map((r) => r.join('|')).join(';');
+const geo = `/* pv-airport-geo.js — 空港（IATA 3字・ICAO 4字）→ 位置と街の名前。★生成物：node gen-airport-tz.mjs <airports.json>（手で直さない）
+   出典：mwgg/Airports（MIT License, Copyright (c) 2014 mwgg）https://github.com/mwgg/Airports
+   日本語の街の名前は airline-destinations.mjs（サイトの就航地の表）に在る空港だけ。
+   用途：スケジュールの地球儀（my-globe.js）が飛んだ区間を描く。地球儀を開いたときだけ読む。${uniq.length}空港。 */
+(function (w) {
+  'use strict';
+  var P = '${packed.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}';
+  var M = null;
+  w.PV_AIRPORT_GEO = function (code) {
+    if (!M) {
+      M = {};
+      P.split(';').forEach(function (s) {
+        var f = s.split('|'), o = { iata: f[0], lat: +f[2] / 100, lon: +f[3] / 100, en: f[4] || '', ja: f[5] || '' };
+        M[f[0]] = o; if (f[1]) M[f[1]] = o;
+      });
+    }
+    return M[String(code || '').toUpperCase()] || null;
+  };
+}(typeof window !== 'undefined' ? window : globalThis));
+`;
+writeFileSync(path.join(ROOT, 'pv-airport-geo.js'), geo);
+console.log(`pv-airport-geo.js: ${uniq.length}空港・${(geo.length / 1024).toFixed(0)}KB`);

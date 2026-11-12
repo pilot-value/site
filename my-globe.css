@@ -1,0 +1,188 @@
+/* ════════════════════════════════════════════════════════════════
+   my-globe.css — スケジュールの一番上の「飛んだルート」の地球儀（2026-11-12）
+   ★my-value.js がスケジュールのタブを開いたときだけ読む（指紋つき）。中身は my-globe.js が組む。
+   ★見本（オーナーの動画）どおり：深い緑の面に点の地球儀・左上に輪と棒のガラスのカード・左下に出発地と目的地のカード・
+     右下に操作のヒントと凡例。その下に白いカード2枚（便の一覧・月ごとの稼ぎ）。
+   ★色は --pv-* から作る。地球儀の面は明るい画面でも暗い画面でも同じ深い緑（見本と同じ）。選んだルートだけ金色。
+   ★動かすのは transform と opacity だけ。数字は桁のそろう字。
+   ════════════════════════════════════════════════════════════════ */
+#pv-globe{margin-bottom:16px}
+#pv-globe:has(~ .rs-upbox:not([hidden])){display:none}      /* 取り込みの画面の間は出さない */
+.gl{--gl-ink:#fff;--gl-ink2:rgba(255,255,255,.72);--gl-ink3:rgba(255,255,255,.56);--gl-line:rgba(255,255,255,.14);
+  --gl-glass:rgba(255,255,255,.08);--gl-gold:#f2b84b;--gl-mint:#6fd6bf;
+  display:flex;flex-direction:column;gap:16px;container-type:inline-size;font-variant-numeric:tabular-nums}
+.gl *{box-sizing:border-box}
+.gl [hidden]{display:none !important}
+:where(.gl button){font:inherit;color:inherit}   /* 重さ0：下の各ボタンの字の大きさ・色が勝つ */
+
+/* ── 地球儀の面 ─────────────────────────────────────────── */
+.gl-stage{position:relative;min-height:560px;border-radius:var(--pv-r-lg,20px);overflow:hidden;color:var(--gl-ink);isolation:isolate;
+  background:
+    radial-gradient(70% 80% at 62% 52%,color-mix(in srgb,var(--pv-accent) 46%,#04211d) 0%,transparent 70%),
+    linear-gradient(160deg,color-mix(in srgb,var(--pv-accent-dark) 62%,#021a17) 0%,#03201c 100%);
+  box-shadow:0 1px 2px rgba(3,32,28,.18),0 18px 40px -18px rgba(3,32,28,.55)}
+.gl-cvbox{position:absolute;inset:0;z-index:0}
+.gl-cv{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+.gl-cv:active{cursor:grabbing}
+.gl-top{position:absolute;z-index:2;top:18px;left:22px;right:20px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;pointer-events:none}
+.gl-top>*{pointer-events:auto}
+.gl-t{margin:0;font-size:1.06rem;font-weight:700;letter-spacing:-.01em;line-height:1.3}
+.gl-s{margin:3px 0 0;font-size:.74rem;font-weight:600;color:var(--gl-ink3)}
+
+/* 期間（ガラスの札） */
+.gl-per{display:flex;gap:2px;padding:3px;border-radius:999px;background:var(--gl-glass);border:1px solid var(--gl-line);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.gl-pb{height:28px;padding:0 12px;border:0;border-radius:999px;background:transparent;font-size:.72rem;font-weight:700;color:var(--gl-ink2);cursor:pointer;
+  transition:transform .2s var(--pv-ease,ease),opacity .2s}
+.gl-pb:hover{opacity:.85;color:#fff}
+.gl-pb:focus-visible{outline:2px solid var(--gl-gold);outline-offset:2px}
+.gl-pb:active{transform:scale(.96)}
+.gl-pb.on{background:#fff;color:#0b3d36}
+
+/* ガラスのカード（左上・左下） */
+.gl-ov{position:absolute;z-index:2;padding:14px 16px;border-radius:16px;background:var(--gl-glass);border:1px solid var(--gl-line);
+  -webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3);
+  box-shadow:0 10px 30px -14px rgba(0,0,0,.45)}
+.gl-sum{top:84px;left:20px;width:300px}
+.gl-flt{bottom:20px;left:20px;width:372px}
+.gl-ov-t{font-size:.78rem;font-weight:700}
+.gl-chip{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 9px;border-radius:999px;background:rgba(255,255,255,.12);font-size:.68rem;font-weight:700;white-space:nowrap}
+.gl-sum-h,.gl-flt-h{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.gl-sum-b{display:grid;grid-template-columns:76px 1fr;gap:16px;align-items:center;margin-top:12px}
+
+/* 輪（勤務時間のうち乗務の割合） */
+.gl-ring{position:relative;width:76px;height:76px}
+.gl-ring svg{display:block}
+.gl-ring-tr{fill:none;stroke:rgba(255,255,255,.14);stroke-width:7}
+.gl-ring-v{fill:none;stroke-width:7;stroke-linecap:round}
+.gl-ring-n{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.84rem;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.gl-ring-n small{margin-top:2px;font-size:.58rem;font-weight:700;letter-spacing:0;color:var(--gl-ink3)}
+
+/* 棒（稼いだルートの上位3つ） */
+.gl-bars{display:flex;flex-direction:column;gap:9px;min-width:0}
+.gl-bar{display:grid;grid-template-columns:1fr auto;gap:4px 8px;align-items:baseline;width:100%;padding:0;border:0;background:none;text-align:left;cursor:pointer;
+  transition:opacity .2s}
+.gl-bar:hover{opacity:.82}
+.gl-bar:focus-visible{outline:2px solid var(--gl-gold);outline-offset:3px;border-radius:4px}
+.gl-bar:active{opacity:.7}
+.gl-bar-l{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.7rem;font-weight:700}
+.gl-bar.on .gl-bar-l{color:#ffe2a6}
+.gl-bar-v{font-size:.7rem;font-weight:700}
+.gl-bar-t{grid-column:1/-1;display:block;height:5px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden}
+.gl-bar-f{display:block;height:100%;border-radius:3px;background:var(--gl-mint);transform-origin:left center}
+.gl-bar-f.is-1{background:var(--gl-gold)}
+
+/* 選んだ便（出発地 → 目的地） */
+.gl-flt-d{font-size:.8rem;font-weight:700}
+.gl-flt-fl{margin-left:8px;font-size:.68rem;font-weight:600;color:var(--gl-ink3)}
+.gl-chip-k i{width:6px;height:6px;border-radius:50%;background:var(--gl-mint)}
+.gl-chip-k.is-deadhead i{background:transparent;border:1.5px solid rgba(255,255,255,.7)}
+.gl-chip-k.is-unknown i{background:rgba(255,255,255,.5)}
+.gl-flt-r{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin-top:12px}
+.gl-ap{min-width:0}
+.gl-ap b{display:block;font-size:1.62rem;font-weight:800;letter-spacing:-.02em;line-height:1.05}
+.gl-ap span{display:block;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.66rem;font-weight:600;color:var(--gl-ink3)}
+.gl-ap.is-r{text-align:right}
+.gl-flt-m{position:relative;display:flex;align-items:center;width:84px}
+.gl-flt-ln{flex:1;height:0;border-top:1.5px solid rgba(255,255,255,.62)}
+.gl-flt-ln.is-r{border-top-style:dashed;border-top-color:rgba(255,255,255,.34)}
+.gl-flt-pl{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;margin:0 4px;border-radius:50%;background:#fff;color:#0b3d36}
+.gl-flt-bt{position:absolute;top:calc(100% + 6px);left:0;right:0;text-align:center;font-size:.64rem;font-weight:700;color:var(--gl-ink3)}
+.gl-sts{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:14px;margin-top:22px;padding-top:12px;border-top:1px solid var(--gl-line)}
+.gl-st{min-width:0}
+.gl-st span{display:block;font-size:.6rem;font-weight:600;color:var(--gl-ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gl-st b{display:block;margin-top:3px;font-size:.8rem;font-weight:700;white-space:nowrap}
+.gl-st:first-child b{font-size:.94rem}
+.gl-st:first-child b{color:#ffe2a6}
+.gl-why{grid-column:1/-1;font-size:.74rem;font-weight:600;color:var(--gl-ink2);line-height:1.6}
+.gl-add{color:#ffe2a6;font-weight:700;text-decoration:none;white-space:nowrap}
+.gl-add:hover{text-decoration:underline}
+.gl-add:focus-visible{outline:2px solid var(--gl-gold);outline-offset:2px;border-radius:3px}
+
+/* 右下：操作のヒントと凡例 */
+.gl-foot{position:absolute;z-index:2;right:20px;bottom:18px;display:flex;flex-direction:column;align-items:flex-end;gap:8px;pointer-events:none}
+.gl-hint{display:inline-flex;align-items:center;gap:6px;font-size:.7rem;font-weight:600;color:var(--gl-ink3)}
+.gl-lg{display:inline-flex;gap:12px;padding:6px 12px;border-radius:999px;background:var(--gl-glass);border:1px solid var(--gl-line);font-size:.68rem;font-weight:700;color:var(--gl-ink2);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.gl-lg span{display:inline-flex;align-items:center;gap:6px}
+.gl-lg i{display:inline-block;width:8px;height:8px;border-radius:50%}
+.gl-lg-hub{background:#fff}
+.gl-lg-dst{border:1.5px solid rgba(255,255,255,.85)}
+.gl-lg-dh{width:14px !important;height:0 !important;border-radius:0 !important;border-top:1.5px dashed rgba(255,255,255,.7)}
+
+/* 拡大・縮小 */
+.gl-zoom{position:absolute;z-index:2;right:20px;top:50%;display:flex;flex-direction:column;gap:6px;transform:translateY(-50%)}
+.gl-zb{width:32px;height:32px;padding:0;border-radius:10px;border:1px solid var(--gl-line);background:var(--gl-glass);font-size:1rem;font-weight:700;line-height:1;cursor:pointer;
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);transition:transform .2s var(--pv-ease,ease),opacity .2s}
+.gl-zb:hover{opacity:.82}
+.gl-zb:focus-visible{outline:2px solid var(--gl-gold);outline-offset:2px}
+.gl-zb:active{transform:scale(.94)}
+.gl-msg{position:absolute;z-index:2;left:50%;top:50%;max-width:min(360px,80%);padding:12px 16px;border-radius:14px;background:var(--gl-glass);border:1px solid var(--gl-line);
+  font-size:.8rem;font-weight:600;line-height:1.6;text-align:center;transform:translate(-50%,-50%);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+
+/* ── 下の白いカード（便の一覧・月ごとの稼ぎ）────────────────────── */
+.gl-row{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:16px;align-items:start}
+.gl-card{min-width:0;padding:20px;border-radius:var(--pv-r-lg,20px);border:1px solid var(--pv-line);background:var(--pv-surface);box-shadow:var(--pv-shadow);color:var(--pv-ink)}
+.gl-card-h{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.gl-card-t{margin:0;font-size:.98rem;font-weight:700;letter-spacing:-.01em}
+.gl-card-s{margin:3px 0 0;font-size:.72rem;font-weight:700;color:var(--pv-ink-3)}
+.gl-card-big{display:flex;flex-direction:column;align-items:flex-end;font-size:1.02rem;font-weight:800;letter-spacing:-.02em}
+.gl-card-big small{font-size:.66rem;font-weight:700;color:var(--pv-ink-3)}
+.gl-x{flex:none;height:28px;padding:0 10px;border-radius:8px;border:1px solid var(--pv-line);background:var(--pv-surface);font-size:.7rem;font-weight:700;color:var(--pv-ink-2);cursor:pointer}
+.gl-x:hover{background:var(--pv-bg-sub)}
+.gl-x:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.gl-x:active{transform:scale(.97)}
+.gl-fl{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 6px}
+.gl-fb{height:30px;padding:0 12px;border-radius:999px;border:1px solid transparent;background:var(--pv-bg-sub);font-size:.72rem;font-weight:700;color:var(--pv-ink-2);cursor:pointer}
+.gl-fb b{margin-left:3px;color:var(--pv-ink-3)}
+.gl-fb:hover{border-color:var(--pv-line)}
+.gl-fb:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.gl-fb:active{transform:scale(.97)}
+.gl-fb.on{background:var(--pv-surface);border-color:var(--pv-line);color:var(--pv-ink);box-shadow:0 1px 2px rgba(3,32,28,.08)}
+.gl-rows{list-style:none;margin:0;padding:0}
+.gl-rows li+li{border-top:1px solid var(--pv-line)}
+.gl-r{display:grid;grid-template-columns:62px minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;padding:12px 8px;border:0;border-radius:12px;background:transparent;text-align:left;cursor:pointer}
+.gl-r:hover{background:var(--pv-bg-sub)}
+.gl-r:focus-visible{outline:2px solid var(--pv-accent);outline-offset:-2px}
+.gl-r:active{transform:scale(.995)}
+.gl-r.on{background:var(--pv-accent-soft)}
+.gl-r-d b{display:block;font-size:.8rem;font-weight:700}
+.gl-r-d small{display:block;margin-top:2px;font-size:.64rem;font-weight:600;color:var(--pv-ink-3)}
+.gl-r-m{display:grid;grid-template-columns:auto minmax(18px,1fr) auto;align-items:center;gap:8px;min-width:0}
+.gl-r-ap{font-size:.84rem;font-weight:800;letter-spacing:-.01em}
+.gl-r-ln{position:relative;height:0;border-top:1.5px solid var(--pv-accent-line)}
+.gl-r-ln i{position:absolute;left:50%;top:-4px;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:var(--pv-accent)}
+.gl-r-ln.is-dh{border-top-style:dashed;border-top-color:var(--pv-line)}
+.gl-r-ln.is-dh i{background:var(--pv-surface);border:1.5px solid var(--pv-ink-3)}
+.gl-r-m small{grid-column:1/-1;font-size:.66rem;font-weight:600;color:var(--pv-ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gl-r-v{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.gl-r-v b{font-size:.86rem;font-weight:700;white-space:nowrap}
+.gl-r-k{font-size:.62rem;font-weight:700;color:var(--pv-accent-ink)}
+.gl-r-k.is-deadhead,.gl-r-k.is-unknown{color:var(--pv-ink-3)}
+.gl-more{display:block;margin:10px auto 0;height:32px;padding:0 14px;border-radius:999px;border:1px solid var(--pv-line);background:var(--pv-surface);font-size:.74rem;font-weight:700;color:var(--pv-ink-2);cursor:pointer}
+.gl-more:hover{background:var(--pv-bg-sub)}
+.gl-more:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.gl-more:active{transform:scale(.97)}
+/* 月ごとの棒（選んだ便の月だけ金色） */
+.gl-mb{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:5px;align-items:end;height:150px;margin-top:18px}
+.gl-mb-c{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0}
+.gl-mb-c i{display:block;width:100%;max-width:22px;height:calc(100% - 18px);border-radius:6px 6px 3px 3px;
+  background:color-mix(in srgb,var(--pv-accent) 72%,var(--pv-surface));transform-origin:bottom center}
+.gl-mb-c.on i{background:var(--gl-gold)}
+.gl-mb-c.is-none i{transform:none !important;height:4px;background:transparent;border-top:2px dashed var(--pv-line);border-radius:0}
+.gl-mb-c small{margin-top:5px;font-size:.6rem;font-weight:700;color:var(--pv-ink-3)}
+
+/* ── 狭い幅：地球儀の下にガラスのカードを並べる（見本の重ね方は広い画面だけ）──── */
+@container (max-width: 700px){
+  .gl-stage{display:flex;flex-direction:column;gap:12px;min-height:0;padding:16px}
+  .gl-cvbox{position:relative;inset:auto;height:330px;margin:0 -16px}
+  .gl-top{position:static;flex-wrap:wrap;order:-1}
+  .gl-ov{position:static;width:auto}
+  .gl-foot{position:static;align-items:flex-start;flex-direction:row;flex-wrap:wrap;justify-content:space-between}
+  .gl-zoom{right:12px}
+  .gl-row{grid-template-columns:1fr}
+  .gl-ap b{font-size:1.45rem}
+}
+@media (prefers-reduced-motion: reduce){
+  .gl-pb,.gl-zb,.gl-bar{transition:none}
+}

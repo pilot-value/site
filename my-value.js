@@ -80,15 +80,22 @@
   var ROSTER_V = '639f029f';
   var ROSTER_CSS_V = 'aa718a29';
   var UPLOAD_V = '8b9b153f';
-  var ENGINE_V = '55404b32';
+  var ENGINE_V = '2d3cdeae';
   var AIRPORT_TZ_V = 'ec27da34';   // ★2026-11-11 空港 → タイムゾーンの表（pv-airport-tz.js・現地時刻の便の時間）
   /* ★「分析」のタブ（2026-11-09）。開いたときだけ読む2本（見た目 → 計算の部品 → 画面の順）。指紋の決まりは上と同じ */
   var ANALYSIS_V = 'ae699612';
   var ANALYSIS_CSS_V = 'aeff3463';
+  /* ★スケジュールの一番上の「飛んだルート」の地球儀（2026-11-12）。スケジュールのタブを開いたときだけ読む4本。指紋の決まりは上と同じ */
+  var GLOBE_V = '0e63845f';
+  var GLOBE_CSS_V = '83a20b4b';
+  var AIRPORT_GEO_V = '12fab2ff';   // 空港 → 位置と街の名前（pv-airport-geo.js）
+  var GLOBE_LAND_V = '7d85dd89';    // 陸地の点（pv-globe-land.js）
   var LATE = {
     roster: 'my-roster.js?v=' + ROSTER_V, rosterCss: 'my-roster.css?v=' + ROSTER_CSS_V,
     upload: 'roster-upload.js?v=' + UPLOAD_V, engine: 'pv-report-engine.js?v=' + ENGINE_V, airportTz: 'pv-airport-tz.js?v=' + AIRPORT_TZ_V,
     analysis: 'my-analysis.js?v=' + ANALYSIS_V, analysisCss: 'my-analysis.css?v=' + ANALYSIS_CSS_V,
+    globe: 'my-globe.js?v=' + GLOBE_V, globeCss: 'my-globe.css?v=' + GLOBE_CSS_V,
+    airportGeo: 'pv-airport-geo.js?v=' + AIRPORT_GEO_V, globeLand: 'pv-globe-land.js?v=' + GLOBE_LAND_V,
     airlines: 'pv-airlines.json'
   };
   try {
@@ -1876,10 +1883,10 @@
         }
       } catch (e) {}
     }
-    if (k !== 'pay') return;
+    if (k !== 'pay') { if (w.PVGlobe) w.PVGlobe.hide(); return; }
     /* 開いたとき：隠れている間に描きそびれた面を描き直す */
     if (state.tab === 'summary' && state.sumDirty) { state.sumDirty = false; render(); }
-    else if (state.tab === 'roster' && w.PVRoster && w.PVRoster.redraw) w.PVRoster.redraw();
+    else if (state.tab === 'roster' && w.PVRoster && w.PVRoster.redraw) { w.PVRoster.redraw(); if (w.PVGlobe) w.PVGlobe.show(); }
     else if (state.tab === 'analysis' && w.PVAnalysis && w.PVAnalysis.redraw) w.PVAnalysis.redraw();
   }
 
@@ -1946,8 +1953,9 @@
     });
     TABS.forEach(function (t) { panes[t].hidden = t !== k; });
     if (k === 'summary' && state.sumDirty && payShown()) { state.sumDirty = false; render(); }
-    if (k === 'roster') openRoster();
+    if (k === 'roster') openRoster().then(function (ok) { if (ok) openGlobe(); });
     else if (w.PVRoster && w.PVRoster.hide) w.PVRoster.hide();
+    if (k !== 'roster' && w.PVGlobe) w.PVGlobe.hide();
     if (k === 'analysis') openAnalysis();
     else if (w.PVAnalysis && w.PVAnalysis.hide) w.PVAnalysis.hide();
     if (k === 'settings') openSettings();
@@ -2007,6 +2015,34 @@
         if (rosterWant) { w.PVRoster.open(rosterWant); rosterWant = null; }
         return true;
       });
+  }
+  /* 「飛んだルート」の地球儀（2026-11-12）── スケジュールのタブの一番上。タブを開いたときだけ読む
+     （見た目 → 空港の位置・陸地の点・計算の部品 → 画面）。読めなければ黙って出さない（スケジュールは今のまま）。
+     取り込みの画面を開いている間は CSS が隠す（my-globe.css）。 */
+  var globeMounted = false, globeLoading = false;
+  function openGlobe() {
+    if (globeMounted) { if (state.tab === 'roster' && payShown()) w.PVGlobe.show(); return; }
+    if (globeLoading || !w.PVRoster || !panes.roster) return;
+    globeLoading = true;
+    Promise.all([lateCss(LATE.globeCss), engineJs(),
+                 lateJs(LATE.airportGeo, function () { return !!w.PV_AIRPORT_GEO; }),
+                 lateJs(LATE.globeLand, function () { return !!w.PV_GLOBE_LAND; })])
+      .then(function (r) { return r[0] && r[1] && r[2] && r[3] ? lateJs(LATE.globe, function () { return !!w.PVGlobe; }) : false; })
+      .then(function (ok) {
+        globeLoading = false;
+        if (!ok || globeMounted) return;
+        globeMounted = true;
+        var box = d.createElement('div');
+        box.id = 'pv-globe';
+        panes.roster.insertBefore(box, panes.roster.firstChild);
+        w.PVGlobe.mount(box, {
+          sb: SB,
+          reports: (state.data && state.data.reports) || [],   // ★運営の見本は渡さない（本人の行だけ）
+          items: reportItems,
+          current: function () { return w.PVRoster && w.PVRoster.current ? w.PVRoster.current() : null; }
+        });
+        if (state.tab === 'roster' && payShown()) w.PVGlobe.show(); else w.PVGlobe.hide();
+      }, function () { globeLoading = false; });
   }
   /* 設定タブ（2026-11-11）。給与と口コミの一覧は shell() で移してある。スケジュールの提出資料はロスターの部品を読んでから描く。
      まだ給与を出していない人には、一覧の下に「明細から自動入力」を置く（空の画面の上のボタンと同じもの）。 */

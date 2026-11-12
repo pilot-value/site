@@ -257,6 +257,13 @@ await page.evaluateOnNewDocument((scene, theme, REALROW) => {
     'empty-ready': [],
     one:   [mk(2026, 6)],
     many:  MANY,
+    /* ★2026-11-12 スケジュールの地球儀の見本：エミレーツの機長（ドバイ拠点）の明細 2025年11月〜2026年10月（作り物）。
+         スケジュールは下の ROSTER（同じ12か月＋今月）。11月の明細はまだ無い＝今月の便は「明細を足すと出ます」 */
+    globe: Array.from({ length: 12 }, (_, i) => {
+      const y = i < 2 ? 2025 : 2026, m = i < 2 ? 11 + i : i - 1;
+      const fv = [5200, 6100, 4800, 7000, 3400, 7800, 5800, 6600, 4100, 7300, 6900, 5500][i];
+      return mk(y, m, { other_allowance: fv + 2200, flight_variable_pay: fv, per_diem: 3600 + (i % 4) * 400 });
+    }),
     new:   MANY,
     gap:   [MANY[0], mk(2026, 6)],
     job:   [mk(2026, 2, JP), mk(2026, 3, JP), mk(2026, 4, JP), mk(2026, 6)],
@@ -545,7 +552,51 @@ await page.evaluateOnNewDocument((scene, theme, REALROW) => {
     pv_work_view: () => ({ ok: true, state: 'open', months: 12, by: AIR_WORK })
   };
 
+  /* ★2026-11-12 地球儀の見本のスケジュール（scene='globe' だけ）。ドバイ拠点・行って泊まって帰る便・シミュレーター・スタンバイ・休み。
+       便の時間は印字どおり（H:MM）。数字は全部でたらめ（本物のスケジュールは1つも写していない）。 */
+  const ROSTER = (function () {
+    if (scene !== 'globe') return null;
+    const DEST = [['LHR', '7:40', '7:15'], ['JFK', '14:05', '12:40'], ['SYD', '13:55', '14:35'], ['HND', '9:35', '9:10'], ['SIN', '7:25', '7:05'],
+      ['BKK', '6:10', '6:40'], ['MLE', '4:15', '4:30'], ['CDG', '7:20', '6:55'], ['JNB', '8:05', '8:20'], ['MAN', '7:50', '7:25'],
+      ['MEL', '13:35', '14:10'], ['GRU', '14:50', '14:05'], ['FCO', '5:55', '5:30'], ['NBO', '5:05', '5:15'], ['BOM', '3:05', '3:20'], ['CMB', '4:20', '4:35']];
+    const pad = (n) => String(n).padStart(2, '0');
+    const add = (hhmm, dur) => { const [a, b] = hhmm.split(':').map(Number), [c, e] = dur.split(':').map(Number), t = a * 60 + b + c * 60 + e; return { t: pad(Math.floor(t / 60) % 24) + ':' + pad(t % 60), d: Math.floor(t / 1440) }; };
+    const sub = (hhmm, min) => { const [a, b] = hhmm.split(':').map(Number); let t = a * 60 + b - min; if (t < 0) t += 1440; return pad(Math.floor(t / 60)) + ':' + pad(t % 60); };
+    let seed = 7; const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+    const days = {};
+    const leg = (from, to, out, blk, kind) => { const e = add(out, blk); return { seq: 1, from, to, out, in: e.t, in_day: e.d, block: blk, kind: kind || 'operating' }; };
+    const duty = (date, l) => { const off = add(l.in, '0:30'); return { date, code: null, d_on: sub(l.out, 90), d_off: off.t, d_off_day: l.in_day + off.d, legs: [l] }; };
+    for (let mi = 0; mi < 13; mi++) {
+      const y = mi < 2 ? 2025 : 2026, m = mi < 2 ? 11 + mi : mi - 1, n = new Date(Date.UTC(y, m, 0)).getUTCDate();
+      const ds = (d) => y + '-' + pad(m) + '-' + pad(d);
+      for (let d = 1; d <= n; d++) days[ds(d)] = { date: ds(d), code: 'OFF', d_on: null, d_off: null, d_off_day: 0, legs: [] };
+      let d = 1 + Math.floor(rnd() * 2), trip = 0;
+      while (d + 2 <= n) {
+        const k = (mi * 5 + trip * 3 + Math.floor(rnd() * 4)) % DEST.length, D = DEST[k], ul = D[1].split(':')[0] >= 13;
+        const out = pad(1 + Math.floor(rnd() * 20)) + ':' + ['05', '20', '35', '50'][Math.floor(rnd() * 4)];
+        days[ds(d)] = duty(ds(d), leg('DXB', D[0], out, D[1]));
+        days[ds(d + 1)] = { date: ds(d + 1), code: 'LO', d_on: null, d_off: null, d_off_day: 0, legs: [] };
+        const back = pad(1 + Math.floor(rnd() * 20)) + ':' + ['10', '25', '40', '55'][Math.floor(rnd() * 4)];
+        const ret = d + (ul ? 2 : 2);
+        if (ret > n) break;
+        /* ときどき帰りは便乗（DH） */
+        days[ds(ret)] = duty(ds(ret), leg(D[0], 'DXB', back, D[2], trip % 5 === 4 ? 'deadhead' : 'operating'));
+        d = ret + 2 + Math.floor(rnd() * 2); trip++;
+        if (trip === 2 && d + 1 <= n) { days[ds(d)] = { date: ds(d), code: 'SIM', d_on: '08:00', d_off: '16:00', d_off_day: 0, legs: [{ seq: 1, loc: 'DXB', kind: 'ground' }] }; d += 1; }
+        if (trip === 4 && d + 1 <= n) { days[ds(d)] = { date: ds(d), code: 'SBY', d_on: '04:00', d_off: '16:00', d_off_day: 0, legs: [] }; d += 1; }
+      }
+    }
+    return { days: Object.values(days).sort((a, b) => (a.date < b.date ? -1 : 1)),
+             profile: { kind: 'actual', time_ref: 'local', tz: 'Asia/Dubai', time_meaning: 'block', codes: { OFF: 'off', LO: 'off', SIM: 'training', SBY: 'standby' }, pay_lag: 0 } };
+  }());
   const RPC = {
+    my_roster: (a) => {
+      if (!ROSTER) return { ok: true, days: [], profile: null };
+      const from = a && a.p_from, to = a && a.p_to;
+      return { ok: true, profile: ROSTER.profile, days: ROSTER.days.filter((x) => (!from || x.date >= from) && (!to || x.date <= to)) };
+    },
+    my_roster_docs: () => ({ ok: true, docs: [] }),
+    my_report_items: () => ({ ok: true, items: [], maps: [] }),
     my_pay_reports: () => ({
       ok: true, reports: REPORTS,
       report_count: REPORTS.length,
@@ -727,6 +778,27 @@ if (process.env.REC) {
     const yOf = (sel) => page.evaluate((sel) => { const e = document.querySelector(sel); if (!e) return 0; const r = e.getBoundingClientRect(); return Math.max(0, scrollY + r.top - (innerHeight - r.height) / 2); }, sel);
     await glide(await yOf('#lt2-box'), 1400); await sleep(4600);
     await glide(await yOf('#lt3-box'), 1200); await sleep(5600);
+  } else if (process.env.TOUR === 'globe') {
+    /* スケジュールの地球儀（2026-11-12）：scene=globe。スケジュールのタブ → 回す → 拡大 → 輪の横の棒でルートを選ぶ → 一覧の便 → 期間「全部」 */
+    await tap('.mv-tab', 1); await sleep(3600);
+    const y = await page.evaluate(() => { const e = document.querySelector('.gl-stage'); return e ? Math.max(0, scrollY + e.getBoundingClientRect().top - 90) : 0; });
+    await glide(y, 900); await sleep(1600);
+    const box = await page.evaluate(() => { const e = document.querySelector('.gl-cv'); if (!e) return null; const r = e.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; });
+    if (box) {
+      const cx = box.x + box.w * (vw < 600 ? 0.5 : 0.62), cy = box.y + box.h * 0.5;
+      await page.mouse.move(cx, cy); await page.mouse.down();
+      for (let i = 1; i <= 30; i++) { await page.mouse.move(cx - i * 7, cy + Math.sin(i / 6) * 10); await sleep(26); }
+      await page.mouse.up(); await sleep(1400);
+    }
+    await tap('.gl-zb', 0); await sleep(700); await tap('.gl-zb', 0); await sleep(1600);
+    await tap('.gl-bar', 0); await sleep(2600);
+    await tap('.gl-bar', 2); await sleep(2600);
+    await tap('.gl-zb', 1); await sleep(900);
+    if (vw < 600) { await glide(await page.evaluate(() => { const e = document.querySelector('.gl-list'); return e ? scrollY + e.getBoundingClientRect().top - 80 : 0; }), 1400); await sleep(800); }
+    else { await glide(y + 380, 1200); await sleep(600); }
+    await tap('.gl-r', 2); await sleep(1200);
+    await glide(y, 1000); await sleep(2200);
+    await tap('.gl-pb', 2); await sleep(3600);
   } else if (process.env.TOUR === 'all') {
     /* 全ページに広げたあとの見本（2026-11-12）：トップ → 航空会社一覧 → 会社ページ → Vote → 国のページ → MY PAY → REAL PAY。
        PAGE=index.html で始める。ページは住所を変えて移る（ページまたぎの切り替えが起きる） */

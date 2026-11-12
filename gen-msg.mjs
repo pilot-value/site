@@ -25,7 +25,7 @@ const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const MAP_NAMES = ['L10N', 'PV_SEARCH_L10N', 'EN_WORD'];   // EN_WORD はトップの見本（lp.js）
 
 export const MSG_FILES = ['pay-wizard.js', 'pay-login.js', 'payslip.js', 'pv-app.js', 'pv-follow.js', 'pv-gates.js', 'pv-give-first.js', 'app-nav.js',
-  'pv-referral.js', 'pv-conditions.js', 'my-value.js', 'my-year.js', 'my-roster.js', 'roster-upload.js', 'my-analysis.js', 'actual-pay.js', 'pv-proof-offer.js', 'pv-proof.js', 'ap-preview.js', 'review-i18n.js',
+  'pv-referral.js', 'pv-conditions.js', 'my-value.js', 'my-year.js', 'my-roster.js', 'roster-upload.js', 'my-analysis.js', 'my-globe.js', 'actual-pay.js', 'pv-proof-offer.js', 'pv-proof.js', 'ap-preview.js', 'review-i18n.js',
   /* 段3（2026-11-02）：会社ページ・トップ */
   'career-live.js', 'career-stay.js', 'pv-contrib.js', 'lp.js', 'airlines/airline-reviews-ui.js',
   /* 2026-11-02：口コミ一覧（Vote） */

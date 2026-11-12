@@ -144,7 +144,9 @@ console.log('▼ 後から読む部品の指紋');
   for (const [name, file] of [['YEAR_V', 'my-year.js'], ['SAMPLE_V', 'my-value-sample.js'],
     ['ROSTER_V', 'my-roster.js'], ['ROSTER_CSS_V', 'my-roster.css'], ['UPLOAD_V', 'roster-upload.js'], ['ENGINE_V', 'pv-report-engine.js'],
     /* ★分析のタブ（2026-11-09）も同じ決まり */
-    ['ANALYSIS_V', 'my-analysis.js'], ['ANALYSIS_CSS_V', 'my-analysis.css']]) {
+    ['ANALYSIS_V', 'my-analysis.js'], ['ANALYSIS_CSS_V', 'my-analysis.css'],
+    /* ★スケジュールの地球儀（2026-11-12）も同じ決まり */
+    ['GLOBE_V', 'my-globe.js'], ['GLOBE_CSS_V', 'my-globe.css'], ['AIRPORT_GEO_V', 'pv-airport-geo.js'], ['GLOBE_LAND_V', 'pv-globe-land.js']]) {
     const want = createHash('sha256').update(fs.readFileSync(path.join(ROOT, file))).digest('hex').slice(0, 8);
     const m = mv.match(new RegExp('var ' + name + " = '([0-9a-f]{8})';"));
     say(m && m[1] === want, name + '（' + file + '）の指紋が中身と一致' + (m && m[1] !== want ? '：' + m[1] + ' → ' + want + ' に直す' : ''));
