@@ -148,9 +148,20 @@ const codes = (v) => (v && v.list ? v.list.map((x) => x.code) : []);
    wall(tz, d, 'hh:mm') ＝ その国で、今日から d 日後の hh:mm。nextDay17(tz, t) ＝ t の次の日の17時（その国で）。
    CLOCK ＝ 明日の17時30分（日本）＝ いまより前に入った分は全部「前の日まで」になる時刻。 */
 const TOKYO = 'Asia/Tokyo';
-const wall = async (tz, d, hm) => (await one(`select (date_trunc('day', now() at time zone $1) + $2::interval) at time zone $1 as t`, [tz, `${d} days ${hm}`])).t;
-const nextDay17 = async (tz, t) => (await one(`select (date_trunc('day', $2::timestamptz at time zone $1) + interval '1 day 17 hours') at time zone $1 as t`, [tz, t])).t;
-const CLOCK = await wall(TOKYO, 1, '17:30');
+/* ★2026-11-12 から知らせは週に1度（木曜の17時）。検査の時計は「木曜を2日目」に置く：
+   wall(tz, d, 'hh:mm') ＝ その国で、d 日目の hh:mm。**2日目＝今日の2日後から数えて最初の木曜**（1日目＝水曜・9日目＝次の木曜）。
+   こうすると「前の日に入った分を、木曜の17時に」「木曜に入った分は次の木曜に」が、日の番号でそのまま読める。
+   sendAt(tz, t) ＝ t が入った日より後の、最初の木曜の17時（その国で）。
+   CLOCK ＝ 2日目（木曜）の17時30分（日本）＝ いまより前に入った分は全部「木曜の0時より前」になる時刻。 */
+const wall = async (tz, d, hm) => (await one(
+  `with b as (select date_trunc('day', now() at time zone $1) + interval '2 days' as d0)
+   select ((select d0 from b) + ((11 - extract(isodow from (select d0 from b))::int) % 7) * interval '1 day'
+           + $2::interval) at time zone $1 as t`, [tz, `${d - 2} days ${hm}`])).t;
+const nextDay17 = async (tz, t) => (await one(
+  `with b as (select date_trunc('day', $2::timestamptz at time zone $1) + interval '1 day' as d0)
+   select ((select d0 from b) + ((11 - extract(isodow from (select d0 from b))::int) % 7) * interval '1 day'
+           + interval '17 hours') at time zone $1 as t`, [tz, t])).t;
+const CLOCK = await wall(TOKYO, 2, '17:30');
 const due = async (at = CLOCK) => (await db.query(`select * from public.pv_follow_due(200, $1)`, [at])).rows;
 const itemsOf = async (who, at = CLOCK) => { const r = (await due(at)).find((x) => x.id === who); return r ? r.items : null; };
 const kindsOf = async (who, code, at = CLOCK) => { const it = await itemsOf(who, at); const x = it && it.find((i) => i.code === code); return x ? x.kinds : null; };
@@ -161,7 +172,7 @@ const mark = async (who, okv, at = CLOCK) => {
 };
 const reset = async () => {
   await db.exec(`delete from public.pay_reports; delete from public.reviews_v2; delete from public.airline_conditions; delete from public.pv_follow_mail;`);
-  await db.exec(`update public.pv_follow_launch set at = now() - interval '1 day'`);
+  await db.exec(`update public.pv_follow_launch set at = now() - interval '1 day', pay_from = now() - interval '30 days'`);
 };
 
 // ════════════════ A) フォローの口（会員が呼ぶ） ════════════════
@@ -227,23 +238,19 @@ await db.query(`insert into public.pv_test_users (uid) values ($1)`, [T]);
 await db.query(`update public.pv_follow set updated_at = now() - interval '1 hour' where uid = $1`, [R2]);
 
 ok((await due()).length === 0, '新着が無ければ、誰にも送らない');
-/* ★2026-11-12 オーナー指示「出しづらいからメールなしにして。給与投稿はいらない」＝ 給与では誰にも知らせない。 */
-await pay(AU, 'ana'); await pay(AU, 'ana');
-ok((await due()).length === 0, '★給与が入っても、誰にも知らせない（同じ会社の会員にも・フォローしている会員にも・2か月目でも）');
-await news(AU, 'ana');
-ok(JSON.stringify(await kindsOf(R1, 'ana')) === '["review"]', 'ANA に口コミが入った → 自分の会社が ANA の会員に「口コミ」');
-ok(JSON.stringify(await kindsOf(R2, 'ana')) === '["review"]', '→ ANA をフォローしている会員にも「口コミ」');
+await pay(AU, 'ana');
+ok(JSON.stringify(await kindsOf(R1, 'ana')) === '["pay"]', 'ANA に給与が入った → 自分の会社が ANA の会員に「給与」');
+ok(JSON.stringify(await kindsOf(R2, 'ana')) === '["pay"]', '→ ANA をフォローしている会員にも「給与」');
 ok((await itemsOf(AU)) === null, '★出した本人には知らせない（同じ会社の会員でも）');
 ok((await itemsOf(R3)) === null, '通知を外した人には送らない');
 ok((await itemsOf(R4)) === null, '確認待ちで止めた会員には送らない');
-await cond(AU, 'ana');
+await review(AU, 'ana'); await cond(AU, 'ana');
 ok((await itemsOf(AU)) === null, '★本人の口コミ・待遇の答えでも、本人には知らせない');
 const RV = await member({ company: 'jal' });
 await review(RV, 'ana');
 const CD = await member({ company: 'jal' });
 await cond(CD, 'ana');
-await pay(RV, 'ana');
-ok(JSON.stringify(await kindsOf(R1, 'ana')) === '["review","cond"]', '口コミ・待遇の答えは「何が入ったか」だけ返す（口コミ→待遇の順）。★ほかの人の給与が入っていても「給与」は出ない');
+ok(JSON.stringify(await kindsOf(R1, 'ana')) === '["pay","review","cond"]', '給与・口コミ・待遇の答えの3つとも「何が入ったか」だけ返す（給与→口コミ→待遇の順）');
 const row = (await due()).find((x) => x.id === R1);
 ok(Object.keys(row).join(',') === 'id,email,name,country,airline_region,lang,unsub_token,has_key,items,upto'
    && Object.keys(row.items[0]).sort().join(',') === 'code,conds,en,ja,kinds,page,reviews,why', '★返す欄は決まった形だけ（会社・何が入ったか・口コミの抜粋・待遇の質問名）', J(row.items));
@@ -258,8 +265,30 @@ await cond(RV, 'jal', { unknown: true });
 ok((await kindsOf(R2, 'jal')) === null, '待遇の質問をスキップした行・「わからない」の答えは数えない');
 await pay(T, 'jal'); await review(T, 'jal'); await cond(T, 'jal', { q: 'sick_leave_days' });
 ok((await kindsOf(R2, 'jal')) === null, 'テスト用アカウントの給与・口コミ・待遇の答えでは知らせない');
+await pay(CD, 'jal', { usd: 5000 });
+ok((await kindsOf(R2, 'jal')) === null, '年収の幅（$10,000〜$700,000）の外の給与は数えない');
 await pay(RV, 'jal');
-ok((await kindsOf(R2, 'jal')) === null, '★ふつうの会員の、幅の中の給与でも数えない（給与は新着ではない）');
+await db.query(`insert into public.pay_hidden (proof_hash, reason) values ($1, 'test')`, [payKey(RV, 'jal')]);
+ok((await kindsOf(R2, 'jal')) === null, '一覧から下ろした人の給与は数えない');
+/* ★2026-11-12 オーナー「管理者が投稿した分は、みんなにメールするのにカウントしないで」 */
+{
+  const AD = await member({ company: 'ana' });
+  await db.query(`insert into public.pv_admins (user_id, note) values ($1, 'test')`, [AD]);
+  await pay(AD, 'jal'); await review(AD, 'jal'); await cond(AD, 'jal', { q: 'sick_leave_days' });
+  ok((await kindsOf(R2, 'jal')) === null, '★運営（pv_admins）が出した給与・口コミ・待遇の答えでは知らせない');
+  await db.query(`delete from public.pv_admins where user_id = $1`, [AD]);
+  ok(J(await kindsOf(R2, 'jal')) === '["pay","review","cond"]', '　（名簿から外すと数える＝外しているのは名簿の1行ずつ）');
+  await db.query(`delete from public.pay_reports where proof_hash = $1`, [payKey(AD, 'jal')]);
+}
+/* ★給与は、この版を貼った時刻（pay_from）より後の分だけ */
+{
+  await reset();
+  await pay(CD, 'jal'); await review(RV, 'jal');
+  await db.exec(`update public.pv_follow_launch set pay_from = now()`);
+  ok(J(await kindsOf(R2, 'jal')) === '["review"]', '★pay_from より前に入った給与では知らせない（口コミは今までどおり）');
+  await db.exec(`update public.pv_follow_launch set pay_from = now() - interval '30 days'`);
+  ok(J(await kindsOf(R2, 'jal')) === '["pay","review"]', '　pay_from より後の給与は知らせる');
+}
 await db.query(`insert into public.pv_review_pending (airline, created_at) select 'jal', now() where false`);   // 形だけ（列が変わったら下で落ちる）
 await db.query(`delete from public.pay_hidden`);
 await reset();
@@ -286,8 +315,10 @@ await mark(R1, true, S2);
 ok((await itemsOf(R1, await wall(TOKYO, 2, '18:00'))) === null && (await itemsOf(R1, await wall(TOKYO, 2, '23:59'))) === null,
    '送ったら、その日はもう送らない（1日1通）');
 await review(CD, 'ana', await wall(TOKYO, 2, '12:00'));       // 送った日の昼に入った口コミ
-{ const it = ((await itemsOf(R1, await wall(TOKYO, 3, '17:00'))) || []).find((i) => i.code === 'ana');
-  ok(it && J(it.kinds) === '["review"]' && it.reviews.length === 1, '送った日に入った分は次の日の1通に（前の1通の口コミは二度と入らない）', J(it)); }
+ok((await itemsOf(R1, await wall(TOKYO, 3, '17:30'))) === null && (await itemsOf(R1, await wall(TOKYO, 8, '17:30'))) === null,
+   '★木曜のあとは、次の木曜まで送らない（金曜にも・次の水曜にも送らない＝週に1度）');
+{ const it = ((await itemsOf(R1, await wall(TOKYO, 9, '17:00'))) || []).find((i) => i.code === 'ana');
+  ok(it && J(it.kinds) === '["review"]' && it.reviews.length === 1, '木曜に入った分は次の木曜の1通に（前の1通の口コミは二度と入らない）', J(it)); }
 
 await reset();
 await db.query(`insert into public.pv_follow_mail (uid, sent_at, tries, tried_at) values ($1, $2, 0, $2)`, [R1, await wall(TOKYO, 1, '23:07')]);
@@ -312,7 +343,7 @@ ok((await itemsOf(R2)) !== null, '2回失敗：まだ送る');
 await mark(R2, false);
 await db.query(`update public.pv_follow_mail set tried_at = $2 where uid = $1`, [R2, CLOCK]);   // 検査の時計に合わせる（今日の17時より後に3回失敗した）
 ok((await itemsOf(R2)) === null, '続けて3回失敗したら、その日は諦める');
-ok((await itemsOf(R2, await wall(TOKYO, 2, '17:00'))) !== null, '次の日の17時に、もう一度送る');
+ok((await itemsOf(R2, await wall(TOKYO, 9, '17:00'))) !== null, '次の木曜の17時に、もう一度送る');
 await db.query(`delete from public.profiles where id = $1`, [R2]);
 ok(!(await one(`select 1 x from public.pv_follow where uid = $1`, [R2])) && !(await one(`select 1 x from public.pv_follow_mail where uid = $1`, [R2])),
    '退会したら、フォローも送った記録も消える');
@@ -404,8 +435,18 @@ console.log('\n▼ C 壊す証明');
   ok(broken !== FOLLOW, '（準備）「今日入った分は次の日に回す」の1行を抜いた版を作れた');
   await db.exec(broken.slice(0, broken.indexOf('-- ── 6. 1時間おきの時計')));
   await reset();
-  await news(RV, 'ana', { at: await wall(TOKYO, 1, '10:00') });
-  ok((await itemsOf(R1, await wall(TOKYO, 1, '17:30'))) !== null, '抜いた版では、入ったその日の17時に送ってしまう＝B-4 の「入った日のうちは送らない」が赤くなる');
+  await news(RV, 'ana', { at: await wall(TOKYO, 2, '10:00') });
+  ok((await itemsOf(R1, await wall(TOKYO, 2, '17:30'))) !== null, '抜いた版では、入ったその日の17時に送ってしまう＝B-4 の「入った日のうちは送らない」が赤くなる');
+  await db.exec(FOLLOW.slice(0, FOLLOW.indexOf('-- ── 6. 1時間おきの時計')));
+}
+
+{
+  const broken = FOLLOW.replace(/\n       and extract\(isodow from \(p_now at time zone t\.tz\)\) = 4/, () => '');
+  ok(broken !== FOLLOW, '（準備）「木曜だけ」の1行を抜いた版を作れた');
+  await db.exec(broken.slice(0, broken.indexOf('-- ── 6. 1時間おきの時計')));
+  await reset();
+  await news(RV, 'ana');
+  ok((await itemsOf(R1, await wall(TOKYO, 3, '17:30'))) !== null, '抜いた版では、金曜にも送ってしまう＝B-4 の「週に1度」が赤くなる');
   await db.exec(FOLLOW.slice(0, FOLLOW.indexOf('-- ── 6. 1時間おきの時計')));
 }
 
