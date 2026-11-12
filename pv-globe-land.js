@@ -14,7 +14,6 @@
   /* 段ごとに、行（緯度・点の数・陸の印）を1回だけ読み解く。印は Uint8Array（i 番目の点＝ i>>3 の (i&7) ビット） */
   var cache = [];
   w.PV_GLOBE_LAND = function (lv) {
-    if (w.PV_GLOBE_LAND_HI && L.indexOf(w.PV_GLOBE_LAND_HI) < 0) { L.push(w.PV_GLOBE_LAND_HI); w.PV_GLOBE_LAND.levels.push(w.PV_GLOBE_LAND_HI.step); }
     lv = Math.max(0, Math.min(L.length - 1, lv | 0));
     if (cache[lv]) return cache[lv];
     var src = L[lv], rs = src.rows.split(';'), lat = -90 + src.step / 2, rows = [];

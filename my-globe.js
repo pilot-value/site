@@ -481,7 +481,7 @@
     if (t.hasAttribute('data-leg')) { S.leg = t.getAttribute('data-leg'); render(); G.focusRoute(); return; }   // 一覧の絞り方はそのまま
     if (t.hasAttribute('data-filt')) { S.filt = t.getAttribute('data-filt'); S.listN = 8; render(); return; }
     if (t.hasAttribute('data-more')) { S.listN = S.listN > 8 ? 8 : 999; render(); return; }
-    if (t.hasAttribute('data-z')) { G.zoomBy(+t.getAttribute('data-z') > 0 ? 1.6 : 1 / 1.6); return; }
+    if (t.hasAttribute('data-z')) { G.zoomBy(+t.getAttribute('data-z') > 0 ? 1.8 : 1 / 1.8); return; }
   }
   function pickRoute(k) {
     S.route = k; S.listN = 8; S.filt = 'all';
@@ -594,19 +594,50 @@
       kick();
     }
     function focusRoute(soft) { center(!!soft && RM); idleAt = performance.now(); }
-    var KMAX = 40;   // 国内線の1便まで見えるように（オーナー「もっと拡大できるように」）
+    var KMAX = 200;  // 県くらいまで見えるように（オーナー「もっと拡大。県くらいまで見えるレベルで」＝ 画面の幅が 100〜150km）
     function zoomBy(f) { tween = null; k = Math.max(0.7, Math.min(KMAX, k * f)); idleAt = performance.now(); kick(); draw(); }
 
-    var hiState = 0;   // 0 まだ・1 読んでいる・2 読めた・3 読めない
-    function loadHi() {
-      if (hiState || !S.ctx || !S.ctx.urls || !S.ctx.urls.landHi) return;
-      hiState = 1;
+    /* ── 0.25° より細かく寄ったとき：陸の縁（pv-globe-coast.js）を読み、緯度の行ごとに「縁と交わる経度」を並べて、画面の上で点を作る ──
+       行ごとの交わりは覚えておく（同じ行は2回数えない）。縁は 0.5° 幅の帯ごとに引けるようにしておく */
+    var coastState = 0, coast = null, coastRowN = 0;   // 0 まだ・1 読んでいる・2 読めた・3 読めない
+    function loadCoast() {
+      if (coastState || !S.ctx || !S.ctx.urls || !S.ctx.urls.coast) return;
+      coastState = 1;
       var el = d.createElement('script');
-      el.src = S.ctx.urls.landHi;
-      el.onload = function () { hiState = w.PV_GLOBE_LAND_HI ? 2 : 3; if (hiState === 2) { w.PV_GLOBE_LAND(0); draw(); } };
-      el.onerror = function () { hiState = 3; };
+      el.src = S.ctx.urls.coast;
+      el.onload = function () { coastState = w.PV_GLOBE_COAST ? 2 : 3; draw(); };
+      el.onerror = function () { coastState = 3; };
       d.head.appendChild(el);
     }
+    function coastReady() {
+      if (coast) return true;
+      if (!w.PV_GLOBE_COAST) return false;
+      var str = w.atob(w.PV_GLOBE_COAST), n = str.length, i = 0, E = [], bands = {};
+      var rd = function () { var v = 0, m = 1, ch; do { ch = str.charCodeAt(i++); v += (ch & 127) * m; m *= 128; } while (ch & 128); return v % 2 ? -(v + 1) / 2 : v / 2; };
+      while (i < n) {
+        var cnt = rd(), px = 0, py = 0, xs = [], ys = [];
+        for (var q = 0; q < cnt; q++) { px += rd(); py += rd(); xs.push(px / 100); ys.push(py / 100); }
+        for (var a = 0, b = cnt - 1; a < cnt; b = a++) {
+          var y1 = ys[b], y2 = ys[a], x1 = xs[b], x2 = xs[a];
+          if (y1 === y2) continue;
+          if (y1 > y2) { var tt = y1; y1 = y2; y2 = tt; tt = x1; x1 = x2; x2 = tt; }
+          var id = E.length / 4; E.push(y1, y2, x1, x2);
+          for (var bb = Math.floor(y1 * 2); bb <= Math.floor(y2 * 2); bb++) (bands[bb] || (bands[bb] = [])).push(id);
+        }
+      }
+      coast = { E: new Float64Array(E), bands: bands, rows: {} };
+      return true;
+    }
+    function coastRow(lat) {
+      var key = lat.toFixed(6), hit = coast.rows[key];
+      if (hit) return hit;
+      var ids = coast.bands[Math.floor(lat * 2)] || [], E = coast.E, xs = [];
+      for (var q = 0; q < ids.length; q++) { var o = ids[q] * 4; if (E[o] <= lat && E[o + 1] > lat) xs.push(E[o + 2] + (lat - E[o]) / (E[o + 1] - E[o]) * (E[o + 3] - E[o + 2])); }
+      xs.sort(function (p, r) { return p - r; });
+      if (++coastRowN > 6000) { coast.rows = {}; coastRowN = 0; }
+      return (coast.rows[key] = xs);
+    }
+    function onLand(xs, lon) { var lo = 0, hi = xs.length; while (lo < hi) { var mid = (lo + hi) >> 1; if (xs[mid] < lon) lo = mid + 1; else hi = mid; } return lo % 2 === 1; }
     function hid() { return d.hidden || !inView || !S.visible; }
     function animating() { return !RM && !hid(); }
     function kick() { if (!raf && animating()) { last = performance.now(); raf = w.requestAnimationFrame(frame); } }
@@ -658,14 +689,39 @@
          見えている所（正面のまわり）の行と列だけを見る＝細かい段でも重くならない */
       var LV = w.PV_GLOBE_LAND.levels, lvl = 0;
       while (lvl < LV.length - 1 && R * LV[lvl] * Math.PI / 180 > 11) lvl++;
-      if (lvl === LV.length - 1 && R * LV[lvl] * Math.PI / 180 > 9) loadHi();
-      var LD = w.PV_GLOBE_LAND(lvl), stepR = LD.step * Math.PI / 180;
+      var cstep = 0;
+      if (R * LV[lvl] * Math.PI / 180 > 11) {                     // 点の表のいちばん細かい段でもまだ粗い＝陸の縁から作る
+        if (coastReady()) { cstep = LV[lvl]; while (R * cstep * Math.PI / 180 > 11) cstep /= 2; } else loadCoast();
+      }
+      var LD = cstep ? null : w.PV_GLOBE_LAND(lvl), stepR = (cstep || LD.step) * Math.PI / 180;
       var rad = Math.max(0.8, R * stepR * 0.17), buckets = [[], [], [], []];
       var cl = Math.cos(lam), sl = Math.sin(lam), cp = Math.cos(phi), sp = Math.sin(phi);
       var dMax = Math.max(Math.hypot(cx, cy), Math.hypot(W - cx, cy), Math.hypot(cx, H - cy), Math.hypot(W - cx, H - cy));
       var ang = dMax >= R ? Math.PI / 2 + 0.05 : Math.asin(dMax / R) + 0.03;
       var pole = Math.abs(phi) + ang >= Math.PI / 2 - 0.02;
-      for (var ri = 0; ri < LD.rows.length; ri++) {
+      if (cstep) {
+        var latC = phi * 180 / Math.PI, angD = ang * 180 / Math.PI, nRows = Math.round(180 / cstep);
+        var j0 = Math.max(0, Math.floor((latC - angD + 90) / cstep)), j1 = Math.min(nRows - 1, Math.ceil((latC + angD + 90) / cstep));
+        for (var jj = j0; jj <= j1; jj++) {
+          var latD = -90 + cstep * (jj + 0.5), la2 = latD * Math.PI / 180, cla2 = Math.cos(la2), y02 = Math.sin(la2);
+          var nn2 = Math.max(1, Math.round((360 / cstep) * cla2)), xsr = coastRow(latD);
+          if (!xsr.length) continue;
+          var dl2 = pole || cla2 < 0.02 ? Math.PI : Math.min(Math.PI, ang / cla2 * 1.15 + 0.02);
+          var k0 = 0, k1 = nn2 - 1;
+          if (dl2 < Math.PI) { k0 = Math.floor((lam - dl2 + Math.PI) / (2 * Math.PI) * nn2); k1 = Math.floor((lam + dl2 + Math.PI) / (2 * Math.PI) * nn2); }
+          for (var kk = k0; kk <= k1; kk++) {
+            var cj = ((kk % nn2) + nn2) % nn2, lonD = -180 + 360 * (cj + 0.5) / nn2;
+            if (!onLand(xsr, lonD)) continue;
+            var lo2 = lonD * Math.PI / 180, xa = cla2 * Math.sin(lo2), za = cla2 * Math.cos(lo2);
+            var xb = xa * cl - za * sl, zb = xa * sl + za * cl, yb = y02 * cp - zb * sp, zc = y02 * sp + zb * cp;
+            if (zc <= 0.02) continue;
+            var qx = cx + R * xb, qy = cy - R * yb;
+            if (qx < -8 || qx > W + 8 || qy < -8 || qy > H + 8) continue;
+            buckets[Math.min(3, Math.floor(zc * 4))].push(qx, qy, zc);
+          }
+        }
+      }
+      for (var ri = 0; !cstep && ri < LD.rows.length; ri++) {
         var row = LD.rows[ri], la = row.lat * Math.PI / 180;
         if (Math.abs(la - phi) > ang) continue;
         var cla = Math.cos(la), y0 = Math.sin(la), nn = row.n, bits = row.bits;

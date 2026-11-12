@@ -802,6 +802,11 @@ if (process.env.REC) {
     await sleep(300);
     await page.evaluate(() => { const r = [...document.querySelectorAll('.gl-r')].find((e) => /MCT/.test(e.textContent)); if (r) r.click(); }).catch(() => {});
     await sleep(3000);
+    /* さらに寄る（県くらいまで）→ 戻す */
+    for (let i = 0; i < 4; i++) { await tap('.gl-zb', 0); await sleep(1000); }
+    await sleep(1200);
+    for (let i = 0; i < 4; i++) { await tap('.gl-zb', 1); await sleep(450); }
+    await sleep(600);
     await tap('.gl-bar', 0); await sleep(2600);
     await tap('.gl-bar', 2); await sleep(2600);
     await tap('.gl-zb', 1); await sleep(900);

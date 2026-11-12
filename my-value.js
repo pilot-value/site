@@ -86,17 +86,17 @@
   var ANALYSIS_V = 'ae699612';
   var ANALYSIS_CSS_V = 'aeff3463';
   /* ★スケジュールの一番上の「飛んだルート」の地球儀（2026-11-12）。スケジュールのタブを開いたときだけ読む4本。指紋の決まりは上と同じ */
-  var GLOBE_V = 'e7a79802';
+  var GLOBE_V = '72fce156';
   var GLOBE_CSS_V = '9129a5ea';
   var AIRPORT_GEO_V = '12fab2ff';   // 空港 → 位置と街の名前（pv-airport-geo.js）
-  var GLOBE_LAND_HI_V = '3f234a8f'; // 陸地の点のいちばん細かい段（pv-globe-land-hi.js・国内線まで寄ったときだけ my-globe.js が読む）
-  var GLOBE_LAND_V = '6c1dca3b';    // 陸地の点（pv-globe-land.js）
+  var GLOBE_COAST_V = '48ed6a23';  // 陸の縁（pv-globe-coast.js・0.25° より細かく寄ったときだけ my-globe.js が読む）
+  var GLOBE_LAND_V = '1b63fac1';    // 陸地の点（pv-globe-land.js）
   var LATE = {
     roster: 'my-roster.js?v=' + ROSTER_V, rosterCss: 'my-roster.css?v=' + ROSTER_CSS_V,
     upload: 'roster-upload.js?v=' + UPLOAD_V, engine: 'pv-report-engine.js?v=' + ENGINE_V, airportTz: 'pv-airport-tz.js?v=' + AIRPORT_TZ_V,
     analysis: 'my-analysis.js?v=' + ANALYSIS_V, analysisCss: 'my-analysis.css?v=' + ANALYSIS_CSS_V,
     globe: 'my-globe.js?v=' + GLOBE_V, globeCss: 'my-globe.css?v=' + GLOBE_CSS_V,
-    airportGeo: 'pv-airport-geo.js?v=' + AIRPORT_GEO_V, globeLand: 'pv-globe-land.js?v=' + GLOBE_LAND_V, globeLandHi: 'pv-globe-land-hi.js?v=' + GLOBE_LAND_HI_V,
+    airportGeo: 'pv-airport-geo.js?v=' + AIRPORT_GEO_V, globeLand: 'pv-globe-land.js?v=' + GLOBE_LAND_V, globeCoast: 'pv-globe-coast.js?v=' + GLOBE_COAST_V,
     airlines: 'pv-airlines.json'
   };
   try {
@@ -2039,7 +2039,7 @@
         w.PVGlobe.mount(box, {
           sb: SB,
           reports: (state.data && state.data.reports) || [],   // ★運営の見本は渡さない（本人の行だけ）
-          items: reportItems, urls: { landHi: LATE.globeLandHi },
+          items: reportItems, urls: { coast: LATE.globeCoast },
           current: function () { return w.PVRoster && w.PVRoster.current ? w.PVRoster.current() : null; }
         });
         if (state.tab === 'roster' && payShown()) w.PVGlobe.show(); else w.PVGlobe.hide();
