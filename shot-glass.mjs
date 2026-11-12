@@ -528,6 +528,22 @@ await page.evaluateOnNewDocument((scene, theme, REALROW) => {
     pv_stays: () => ({ ok: true, state: 'locked' })
   };
 
+  /* Vote（community.html）の見本：よく見られている会社（vote-popular.json の6社）の口コミと月の勤務。
+     会社ごとに点数を少しずつずらす（6つのレーダーが同じ形にならないように）。数字も文もでたらめ。 */
+  const VOTE = /\/community\.html$/.test(location.pathname);
+  const VOTE_RPC = {
+    pv_reviews: (a) => ({ unlocked: true, rows: (P(a).airlines || ['ana', 'jal', 'zipair', 'peach', 'starlux', 'emirates']).flatMap((s, k) =>
+      AIR_REVS(s).map((r, i) => {
+        const o = Object.assign({}, r, { id: REV_ID(k * 10 + i + 1) });
+        ['culture_score', 'salary_score', 'benefits_score', 'wlb_score', 'ops_score', 'training_score'].forEach((f, j) => {
+          const h = String(s).split('').reduce((n, ch) => n + ch.charCodeAt(0), 0);   // 会社ごとに形を変える
+          o[f] = Math.max(1, Math.min(5, r[f] + (((h + j * 7 + i) % 3) - 1)));
+        });
+        return o;
+      })) }),
+    pv_work_view: () => ({ ok: true, state: 'open', months: 12, by: AIR_WORK })
+  };
+
   const RPC = {
     my_pay_reports: () => ({
       ok: true, reports: REPORTS,
@@ -594,7 +610,7 @@ await page.evaluateOnNewDocument((scene, theme, REALROW) => {
       return q([]);
     },
     rpc: async (name, a) => {
-      const fn = (AIR && AIR_RPC[name]) || RPC[name];
+      const fn = (AIR && AIR_RPC[name]) || (VOTE && VOTE_RPC[name]) || RPC[name];
       return { data: fn ? fn(a) : { ok: true }, error: null };
     }
   };
