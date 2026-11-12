@@ -721,8 +721,8 @@ if (process.env.REC) {
       const y = await page.evaluate(() => { const e = document.querySelector('#hero-section .hero-shot'); const r = e.getBoundingClientRect(); return Math.max(0, scrollY + r.top - 70); });
       await sleep(1200); await glide(y, 1800); await sleep(800);
     }
-    await sleep(28000);
-    await glide(vw >= 600 ? 2400 : 3600, 8000); await sleep(1500);
+    await sleep(21000);   // 3.4 秒 × 4画面 × 1.5周
+    await glide(vw >= 600 ? 2400 : 3600, 7000); await sleep(1200);
   } else if (process.env.TOUR === 'all') {
     /* 全ページに広げたあとの見本（2026-11-12）：トップ → 航空会社一覧 → 会社ページ → Vote → 国のページ → MY PAY → REAL PAY。
        PAGE=index.html で始める。ページは住所を変えて移る（ページまたぎの切り替えが起きる） */

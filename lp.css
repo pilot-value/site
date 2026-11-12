@@ -1554,7 +1554,7 @@
 #hero-section .lt-tab::after{content:'';position:absolute;left:12px;right:12px;bottom:-1px;height:2px;border-radius:2px;
   background:var(--pv-accent);transform:scaleX(0);transform-origin:left center}
 #hero-section .lt-tabs:not(.lt-auto) .lt-tab.is-on::after{transform:none}
-#hero-section .lt-tabs.lt-auto .lt-tab.is-on::after{animation:ltProg 6.8s linear forwards}   /* 1つの画面に 6.8 秒（中身が流れきるまで） */
+#hero-section .lt-tabs.lt-auto .lt-tab.is-on::after{animation:ltProg 3.4s linear forwards}   /* 1つの画面に 3.4 秒（リールの速さ） */
 #hero-section .lt-tabs.lt-paused .lt-tab.is-on::after{animation-play-state:paused}
 @keyframes ltProg{to{transform:scaleX(1)}}
 /* 選んだ札の後ろの白いすりガラスの板（lp.js が位置と幅を入れる）。幅は 60px を土台に scaleX で合わせる */
@@ -1590,12 +1590,76 @@
 #hero-section .lt-go.lt-sweep::after{animation:ltSweep .95s cubic-bezier(.45,0,.2,1) both}
 @keyframes ltSweep{0%{opacity:0;transform:translateX(-55%)}15%{opacity:1}85%{opacity:1}100%{opacity:0;transform:translateX(55%)}}
 
+/* ── リールの効果（2026-11-12）：切り替えは毎回違う効果 ・ 主役へカメラが寄る ・ 電話が揺れる ・ 横に大きな字幕 ── */
+#hero-section .lt-go{transition:transform .5s cubic-bezier(.2,.9,.25,1.04);will-change:transform}
+#hero-section .lt-go.lt-zoom{transform:scale(1.38)}
+#hero-section .lt-hl{position:relative;z-index:2}
+#hero-section .lt-hl::after{content:'';position:absolute;inset:-4px;border-radius:10px;pointer-events:none;
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--pv-accent) 70%,transparent),0 0 18px 4px color-mix(in srgb,var(--pv-accent) 45%,transparent);
+  animation:ltHl 1.1s ease-out both}
+@keyframes ltHl{0%{opacity:0;transform:scale(1.25)}30%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1)}}
+/* 入る効果（次の画面） */
+#hero-section .lt-scr.is-on.lt-play.fx-zoom{animation:fxZoomIn .5s cubic-bezier(.16,1,.3,1) both}
+#hero-section .lt-scr.is-on.lt-play.fx-swipe{animation:fxSwipeIn .45s cubic-bezier(.16,1,.3,1) both}
+#hero-section .lt-scr.is-on.lt-play.fx-flash{animation:fxPop .4s cubic-bezier(.16,1,.3,1) both}
+#hero-section .lt-scr.is-on.lt-play.fx-iris{animation:fxIris .55s cubic-bezier(.65,0,.35,1) both}
+#hero-section .lt-scr.is-on.lt-play.fx-flip{animation:fxFlipIn .55s cubic-bezier(.16,1,.3,1) both}
+@keyframes fxZoomIn{from{opacity:0;transform:scale(1.45);filter:blur(14px)}to{opacity:1;transform:none;filter:none}}
+@keyframes fxSwipeIn{from{opacity:.2;transform:translateX(88%) skewX(-8deg);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+@keyframes fxPop{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:none}}
+@keyframes fxIris{from{clip-path:circle(0% at 50% 30%)}to{clip-path:circle(150% at 50% 30%)}}
+@keyframes fxFlipIn{from{opacity:0;transform:perspective(600px) rotateY(-75deg) scale(.9)}to{opacity:1;transform:none}}
+/* 出る効果（前の画面） */
+#hero-section .lt-scr.is-out.fx-zoom{animation:fxZoomOut .4s cubic-bezier(.4,0,1,1) both}
+#hero-section .lt-scr.is-out.fx-swipe{animation:fxSwipeOut .4s cubic-bezier(.4,0,1,1) both}
+#hero-section .lt-scr.is-out.fx-flash{animation:fxFade .25s linear both}
+#hero-section .lt-scr.is-out.fx-iris{animation:fxHold .55s linear both}
+#hero-section .lt-scr.is-out.fx-flip{animation:fxFlipOut .35s cubic-bezier(.4,0,1,1) both}
+@keyframes fxZoomOut{to{opacity:0;transform:scale(.82);filter:blur(8px)}}
+@keyframes fxSwipeOut{to{opacity:0;transform:translateX(-45%) skewX(6deg);filter:blur(4px)}}
+@keyframes fxFade{to{opacity:0}}
+@keyframes fxHold{0%,90%{opacity:1}100%{opacity:0}}
+@keyframes fxFlipOut{to{opacity:0;transform:perspective(600px) rotateY(75deg) scale(.9)}}
+/* 白く光る */
+#hero-section .lt-go::before{content:'';position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;background:#fff}
+#hero-section .lt-go.lt-flash::before{animation:ltFlash .45s ease-out both}
+@keyframes ltFlash{0%{opacity:0}20%{opacity:.85}100%{opacity:0}}
+/* 電話が揺れる（左右交互に少し傾いて戻る） */
+#hero-section .lp-phone.lt-bump{animation:ltBump .6s cubic-bezier(.2,.9,.25,1.04)}
+#hero-section .lp-phone.lt-bump2{animation:ltBump2 .6s cubic-bezier(.2,.9,.25,1.04)}
+@keyframes ltBump{0%{transform:none}35%{transform:perspective(900px) rotateY(-7deg) rotateZ(-1.2deg) scale(.975)}100%{transform:none}}
+@keyframes ltBump2{0%{transform:none}35%{transform:perspective(900px) rotateY(7deg) rotateZ(1.2deg) scale(.975)}100%{transform:none}}
+/* 緑の面の後ろでゆっくり回る光（リールの背景の動き） */
+#hero-section .hero-panel::after{content:'';position:absolute;left:50%;top:50%;width:160%;aspect-ratio:1;margin:-80% 0 0 -80%;z-index:-1;pointer-events:none;
+  background:conic-gradient(from 0deg,transparent 0 12%,rgba(255,255,255,.14) 18%,transparent 26% 46%,rgba(255,255,255,.10) 54%,transparent 62% 100%);
+  animation:ltRays 18s linear infinite}
+@keyframes ltRays{to{transform:rotate(360deg)}}
+/* 大きな字幕（電話の左に・狭い画面は電話の左下に重ねて） */
+#hero-section .lt-stk{position:absolute;left:18px;top:42%;z-index:5;display:grid;gap:2px;max-width:150px;pointer-events:none;opacity:0;color:#fff}
+#hero-section .lt-stk b{font-size:26px;font-weight:700;letter-spacing:-.03em;line-height:1.05;text-shadow:0 6px 18px rgba(2,40,33,.45)}
+#hero-section .lt-stk span{font-size:12px;font-weight:600;line-height:1.35;opacity:.92;text-shadow:0 4px 12px rgba(2,40,33,.45)}
+#hero-section .lt-stk.is-pop{animation:ltStk 3.3s cubic-bezier(.2,.9,.25,1.04) both}
+@keyframes ltStk{0%{opacity:0;transform:translateY(14px) scale(.7) rotate(-6deg);filter:blur(6px)}
+  12%{opacity:1;transform:translateY(0) scale(1.06) rotate(-3deg);filter:none}20%{transform:scale(1) rotate(-3deg)}
+  85%{opacity:1;transform:scale(1) rotate(-3deg)}100%{opacity:0;transform:translateY(-8px) scale(.96) rotate(-3deg)}}
+@media (max-width:1099px){
+  #hero-section .lt-stk{left:auto;right:12px;top:auto;bottom:16px;max-width:none;padding:8px 12px;border-radius:14px;text-align:right;
+    background:color-mix(in srgb,#03231d 55%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    box-shadow:0 10px 24px -10px rgba(2,30,25,.6)}
+  #hero-section .lt-stk b{font-size:18px}
+  #hero-section .lt-stk span{font-size:10.5px}
+}
+@media (prefers-reduced-motion:reduce){
+  #hero-section .hero-panel::after,#hero-section .lt-stk,#hero-section .lp-phone{animation:none !important}
+  #hero-section .lt-go{transition:none}
+}
+
 /* 画面の中身。本物のページの小さな写し（字の大きさは本物の約 0.62 倍）。
    動き：画面が出る → 部品（.lt-r）が見えた所から順に浮かぶ（.lt-on）→ 1.5 秒後に中身（.lt-in）がゆっくり下へ流れる（.lt-flow）。
    棒・円・線・日付は、その部品が見えた瞬間（.lt-on）に描かれる。 */
 #hero-section .lt-in{display:grid;gap:7px;padding:7px 9px 18px;will-change:transform}
 #hero-section #hero-win-rows.lt-in{display:grid;row-gap:6px;padding:6px 10px 0}   /* 下の余白を足さない（一覧の高さ 410px が電話と緑の面の高さを決める） */
-#hero-section .lt-in.lt-flow{transition:transform 3.4s cubic-bezier(.45,.05,.25,1)}
+#hero-section .lt-in.lt-flow{transition:transform 1.5s cubic-bezier(.6,.05,.25,1)}
 #hero-section .lt-r{opacity:0;transform:translateY(12px)}
 #hero-section .lt-r.lt-on{opacity:1;transform:none;transition:opacity .45s ease,transform .7s cubic-bezier(.16,1,.3,1)}
 

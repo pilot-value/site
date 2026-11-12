@@ -79,6 +79,8 @@
               schT: '11月の勤務', schBh: 'ブロックタイム', schFt: 'フライトタイム', schWd: '月,火,水,木,金,土,日',
               schMons: '6月,7月,8月,9月,10月,11月', bhT: '月のブロックタイム', dayU: '日',
               schKey: { f: '乗務', s: 'スタンバイ', t: '訓練', o: '休み' },
+              stk: { realpay: ['REAL PAY', '他のパイロットの実際の給与'], airline: ['航空会社ページ', '年収・口コミ・勤務'],
+                     mypay: ['MY PAY', 'あなたの給与を分析'], schedule: ['スケジュール', '月の勤務を一目で'] },
               open: { realpay: 'REAL PAY を開く', airline: '航空会社のページを開く', mypay: 'MY PAY を開く', schedule: 'スケジュールを開く' } },
     },
     en: {
@@ -110,6 +112,8 @@
               schT: 'November roster', schBh: 'Block hours', schFt: 'Flight time', schWd: 'M,T,W,T,F,S,S',
               schMons: 'Jun,Jul,Aug,Sep,Oct,Nov', bhT: 'Monthly block hours', dayU: ' days',
               schKey: { f: 'Flying', s: 'Standby', t: 'Training', o: 'Off' },
+              stk: { realpay: ['REAL PAY', 'Real pay from other pilots'], airline: ['Airline pages', 'Pay, reviews, rosters'],
+                     mypay: ['MY PAY', 'Your pay, broken down'], schedule: ['Roster', 'Your month at a glance'] },
               open: { realpay: 'Open REAL PAY', airline: 'Open the airline page', mypay: 'Open MY PAY', schedule: 'Open the roster' } },
     }, /*PV-MSG:es*/ es: {
       sep: ' · ',
@@ -876,16 +880,34 @@
         if (e.target.classList.contains('lt-n')) tourCount(e.target);
       });
     }, { root: panel, threshold: 0.35 }) : null;
-    /* 1つの画面を動かす：中身を最初の位置へ戻し、部品の印を外して見張り直し、少し待ってからゆっくり下へ流す */
+    /* 1つの画面を動かす（2026-11-12 オーナー「もっと素早く。インスタのリールのバズる要素を。ズームとか、いろんなエフェクトで目を引くように」）：
+       ① 中身を最初の位置へ戻し、部品の印を外して見張り直す
+       ② 0.45 秒で、その画面の主役（額・カレンダー）へカメラが寄って光り（.lt-zoom ＋ .lt-hl）、1.1 秒で引く
+       ③ 1.5 秒から中身がすっと下へ流れる（.lt-flow）── 1画面 3.4 秒 */
+    var FOCUS = { realpay: '.hero-card .hero-c-amt', airline: '.lt-2 > div', mypay: '.lt-green .lt-big', schedule: '.lt-cal' };
+    var timers = [];
+    var later = function (fn, ms) { timers.push(setTimeout(fn, ms)); };
     var play = function (s) {
       var inn = s.querySelector('.lt-in');
-      clearTimeout(flowT);
+      timers.forEach(clearTimeout); timers = [];
+      go.classList.remove('lt-zoom');
+      Array.prototype.forEach.call(go.querySelectorAll('.lt-hl'), function (h) { h.classList.remove('lt-hl'); });
       Array.prototype.forEach.call(s.querySelectorAll('.lt-r'), function (r) { r.classList.remove('lt-on'); if (io) { io.unobserve(r); io.observe(r); } });
       if (!inn) return;
       inn.classList.remove('lt-flow');
       inn.style.transform = '';
       if (RM || !io) { Array.prototype.forEach.call(s.querySelectorAll('.lt-r'), function (r) { r.classList.add('lt-on'); }); return; }
-      flowT = setTimeout(function () {
+      later(function () {
+        var f = s.querySelector(FOCUS[s.getAttribute('data-k')]);
+        if (!f) return;
+        var g = go.getBoundingClientRect(), r = f.getBoundingClientRect();
+        go.style.transformOrigin = Math.round(r.left - g.left + r.width / 2) + 'px ' + Math.round(r.top - g.top + r.height / 2) + 'px';
+        go.classList.add('lt-zoom');
+        f.classList.add('lt-hl');
+        later(function () { go.classList.remove('lt-zoom'); }, 650);
+        later(function () { f.classList.remove('lt-hl'); }, 1100);
+      }, 450);
+      later(function () {
         var pb = panel.getBoundingClientRect().bottom, top = inn.getBoundingClientRect().top;
         var dist = Math.max(0, Math.round(inn.scrollHeight - (pb - top) + 14));
         if (!dist) return;
@@ -893,16 +915,37 @@
         inn.style.transform = 'translateY(' + (-dist) + 'px)';
       }, 1500);
     };
+    /* 切り替えの効果は毎回替える（ズームで飛び込む・横に払う・白く光る・丸く開く・くるっと返る） */
+    var FX = ['fx-zoom', 'fx-swipe', 'fx-flash', 'fx-iris', 'fx-flip'], nfx = 0;
+    var phone = d.querySelector('#hero-section .lp-phone');
+    /* 電話の横に出る大きな字（リールの字幕のように）。画面の名前と一言 */
+    var stk = d.createElement('div');
+    stk.className = 'lt-stk';
+    stk.setAttribute('aria-hidden', 'true');
+    panel.appendChild(stk);
+    var sticker = function (k) {
+      var t = T.tour.stk[k];
+      if (!t || RM) return;
+      stk.innerHTML = '<b>' + esc(t[0]) + '</b><span>' + esc(t[1]) + '</span>';
+      stk.classList.remove('is-pop'); void stk.offsetWidth; stk.classList.add('is-pop');
+    };
     var show = function (i) {
       if (i === cur || !scr[i]) return;
       var prev = scr[cur], next = scr[i];
+      var fx = FX[nfx++ % FX.length];
       prev.classList.remove('is-on', 'lt-play');
       prev.setAttribute('aria-hidden', 'true');
-      if (!RM) { prev.classList.add('is-out'); setTimeout(function () { prev.classList.remove('is-out'); }, 520); }
+      FX.forEach(function (c) { prev.classList.remove(c); next.classList.remove(c); });
+      if (!RM) { prev.classList.add('is-out', fx); setTimeout(function () { prev.classList.remove('is-out', fx); }, 560); }
       next.classList.add('is-on');
       next.removeAttribute('aria-hidden');
       void next.offsetWidth;
-      if (!RM) { next.classList.add('lt-play'); go.classList.remove('lt-sweep'); void go.offsetWidth; go.classList.add('lt-sweep'); }
+      if (!RM) {
+        next.classList.add('lt-play', fx);
+        go.classList.remove('lt-sweep', 'lt-flash'); void go.offsetWidth; go.classList.add(fx === 'fx-flash' ? 'lt-flash' : 'lt-sweep');
+        if (phone) { phone.classList.remove('lt-bump', 'lt-bump2'); void phone.offsetWidth; phone.classList.add(nfx % 2 ? 'lt-bump' : 'lt-bump2'); }
+        sticker(TOUR[i].k);
+      }
       play(next);
       tabs.forEach(function (t, j) {
         var on = j === i;
@@ -935,6 +978,7 @@
     place();
     if (!RM) rp.classList.add('lt-play');
     play(rp);
+    sticker('realpay');
     if (RM) return;
     /* ひとりでに進む：今の札の下の線（::after の ltProg）が伸びきったら次へ。止めるのは線を止めるだけ（class lt-paused） */
     bar.classList.add('lt-auto');
