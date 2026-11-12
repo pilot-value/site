@@ -170,7 +170,7 @@
        どちらもこの版で無くなっている。
        ⚠️ ?v= は lp.css の中身の指紋（2026-10-04）。lp.css を直すと assert-links.mjs が
           新しい値を言うので、日英2枚に写す（理由は index.html の同じ場所）。 -->
-  <link rel="stylesheet" href="../lp.css?v=f3902a72">
+  <link rel="stylesheet" href="../lp.css?v=db2e7b2e">
 <!-- Google tag (gtag.js) -->
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -361,12 +361,15 @@
            見本が実データとして拾われることはない。★札を戻さない。
          見本に Verified・本人申告・投稿時期を付けない（信用の印は偽造しない ── 2026-11-01 にオーナーが改めて「1」）。
          全体で1本のリンク（hero_realpay_ui）。 -->
-    <a class="hero-shot" href="actual-pay.html" data-pv-ev="hero_realpay_ui" aria-label="Open REAL PAY">
+    <div class="hero-shot">
       <div class="hero-panel lp-panel">
         <div class="lp-phone">
           <div class="lp-phone-scr hero-win">
             <i class="lp-phone-pill" aria-hidden="true"></i>
-            <div class="hero-win-bar"><span class="hero-win-name">REAL PAY</span></div>
+            <div class="lt-status" aria-hidden="true"><span class="lt-time">9:41</span><span class="lt-sicons"><svg width="15" height="10" viewBox="0 0 15 10"><rect x="0" y="6.5" width="2.6" height="3.5" rx=".7"/><rect x="4" y="4.5" width="2.6" height="5.5" rx=".7"/><rect x="8" y="2.3" width="2.6" height="7.7" rx=".7"/><rect x="12" y="0" width="2.6" height="10" rx=".7"/></svg><svg width="14" height="10" viewBox="0 0 14 10"><path d="M7 2.2c2 0 3.8.8 5.1 2.1l1-1A8.6 8.6 0 0 0 7 .8 8.6 8.6 0 0 0 .9 3.3l1 1A7.2 7.2 0 0 1 7 2.2Zm0 2.9c1.2 0 2.3.5 3.1 1.3l1-1A5.8 5.8 0 0 0 7 3.7a5.8 5.8 0 0 0-4.1 1.7l1 1C4.7 5.6 5.8 5.1 7 5.1Zm0 2.9c.5 0 .9.2 1.2.5L7 9.7 5.8 8.5c.3-.3.7-.5 1.2-.5Z"/></svg><svg width="24" height="11" viewBox="0 0 24 11"><rect x=".5" y=".5" width="20" height="10" rx="3" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="15" height="7" rx="1.6"/><rect x="21.6" y="3.6" width="1.6" height="3.8" rx=".8" opacity=".5"/></svg></span></div>
+            <div class="hero-win-bar lt-tabs" role="tablist" aria-label="Sample screens"><button type="button" class="lt-tab is-on" role="tab" id="lt-t-realpay" data-k="realpay" aria-controls="lt-go" aria-selected="true">REAL PAY</button><button type="button" class="lt-tab" role="tab" id="lt-t-airline" data-k="airline" aria-controls="lt-go" aria-selected="false" tabindex="-1">Airlines</button><button type="button" class="lt-tab" role="tab" id="lt-t-mypay" data-k="mypay" aria-controls="lt-go" aria-selected="false" tabindex="-1">MY PAY</button><button type="button" class="lt-tab" role="tab" id="lt-t-schedule" data-k="schedule" aria-controls="lt-go" aria-selected="false" tabindex="-1">Schedule</button><i class="lt-pill" aria-hidden="true"></i></div>
+            <a class="lt-go" id="lt-go" role="tabpanel" aria-labelledby="lt-t-realpay" href="actual-pay.html" data-pv-ev="hero_realpay_ui" aria-label="Open REAL PAY">
+            <div class="lt-scr is-on" data-k="realpay">
             <div id="hero-win-rows">
               <div class="hero-card hero-card--sk"><i class="hero-sk hero-sk--logo"></i><i class="hero-sk hero-sk--a"></i><i class="hero-sk hero-sk--v"></i><i class="hero-sk hero-sk--m"></i><i class="hero-sk hero-sk--cb"></i></div>
               <div class="hero-card hero-card--sk"><i class="hero-sk hero-sk--logo"></i><i class="hero-sk hero-sk--a"></i><i class="hero-sk hero-sk--v"></i><i class="hero-sk hero-sk--m"></i><i class="hero-sk hero-sk--cb"></i></div>
@@ -374,10 +377,12 @@
               <div class="hero-card hero-card--sk"><i class="hero-sk hero-sk--logo"></i><i class="hero-sk hero-sk--a"></i><i class="hero-sk hero-sk--v"></i><i class="hero-sk hero-sk--m"></i><i class="hero-sk hero-sk--cb"></i></div>
               <div class="hero-card hero-card--sk"><i class="hero-sk hero-sk--logo"></i><i class="hero-sk hero-sk--a"></i><i class="hero-sk hero-sk--v"></i><i class="hero-sk hero-sk--m"></i><i class="hero-sk hero-sk--cb"></i></div>
             </div>
+            </div>
+            </a>
           </div>
         </div>
       </div>
-    </a>
+    </div>
   </div>
 </section>
 
@@ -979,7 +984,7 @@ if (window.PVReferral) window.PVReferral.mountStrip();</script>
 </script>
 <script src="../review-i18n.js"></script>
 <!-- ★ lp.js は日英1本。<html lang> を見て文言を出し分ける。currency.js より前に置く。 -->
-<script defer src="../lp.js?v=959ebc01"></script>
+<script defer src="../lp.js?v=5e63c2f7"></script>
 <script src="../currency.js"></script>
 <!-- PV-NAV: opens and closes the navigation. Loads AFTER search.js so it can adopt
      the hamburger that file creates; on pages without search.js it makes its own. -->

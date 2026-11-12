@@ -67,6 +67,19 @@
       ten: function (y) { return '昇格後' + y; },
       voice: { culture: '企業文化', salary: '給与', benefits: '福利厚生',
                wlb: 'WLB', ops: '運航環境', training: '訓練環境', mgmt: '経営陣への提案' },
+      /* ★ヒーローの電話がめぐる画面（2026-11-12）。全部見本。本物の画面の語にそろえる */
+      tour: { airSub: 'ドバイ DXB', airMed: '中央値', airScore: 'パイロットによる評価スコア',
+              airTabs: '概要,給与・待遇,口コミ,勤務・訓練', airPayT: '給与', airTax: '非課税（UAE）',
+              estCap: '機長の推定年収', estFo: '副操縦士の推定年収', rangeT: '年収の幅（25〜75%）', cap: '機長', fo: '副操縦士',
+              axes: '企業文化,給与,福利厚生,WLB,運航,訓練',
+              mySub: '給与,勤務,分析,設定', myMeta: 'エミレーツ · B777 · 機長 · ベース DXB',
+              myT: '2026年6月の給与', myGross: '総支給', myYear: '今月ベースの年換算（賞与込み）', myHour: '乗務1時間あたり',
+              cumT: '累計報酬', compT: '支給構成', othersT: '他社の機長の年収',
+              mySeg: { base: '基本給', variable: '乗務変動手当', command: '機長・役職手当', perdiem: 'パーディアム', housing: '住宅手当' },
+              schT: '11月の勤務', schBh: 'ブロックタイム', schFt: 'フライトタイム', schWd: '月,火,水,木,金,土,日',
+              schMons: '6月,7月,8月,9月,10月,11月', bhT: '月のブロックタイム', dayU: '日',
+              schKey: { f: '乗務', s: 'スタンバイ', t: '訓練', o: '休み' },
+              open: { realpay: 'REAL PAY を開く', airline: '航空会社のページを開く', mypay: 'MY PAY を開く', schedule: 'スケジュールを開く' } },
     },
     en: {
       sep: ' · ',
@@ -86,6 +99,18 @@
       ten: function (y) { return y + ' in rank'; },
       voice: { culture: 'Culture', salary: 'Pay', benefits: 'Benefits',
                wlb: 'WLB', ops: 'Operations', training: 'Training', mgmt: 'To management' },
+      tour: { airSub: 'Dubai DXB', airMed: 'Median', airScore: 'Pilot rating',
+              airTabs: 'Overview,Pay & benefits,Reviews,Roster & training', airPayT: 'Pay', airTax: 'Tax-free (UAE)',
+              estCap: 'Captain estimate', estFo: 'First Officer estimate', rangeT: 'Pay range (25–75%)', cap: 'Captain', fo: 'First Officer',
+              axes: 'Culture,Pay,Benefits,WLB,Ops,Training',
+              mySub: 'Pay,Roster,Analysis,Settings', myMeta: 'Emirates · B777 · Captain · Base DXB',
+              myT: 'June 2026 pay', myGross: 'Gross pay', myYear: 'Annualized this month (incl. bonus)', myHour: 'Per block hour',
+              cumT: 'Total earned', compT: 'Pay breakdown', othersT: 'Captain pay at other airlines',
+              mySeg: { base: 'Base pay', variable: 'Flying pay', command: 'Command pay', perdiem: 'Per diem', housing: 'Housing' },
+              schT: 'November roster', schBh: 'Block hours', schFt: 'Flight time', schWd: 'M,T,W,T,F,S,S',
+              schMons: 'Jun,Jul,Aug,Sep,Oct,Nov', bhT: 'Monthly block hours', dayU: ' days',
+              schKey: { f: 'Flying', s: 'Standby', t: 'Training', o: 'Off' },
+              open: { realpay: 'Open REAL PAY', airline: 'Open the airline page', mypay: 'Open MY PAY', schedule: 'Open the roster' } },
     }, /*PV-MSG:es*/ es: {
       sep: ' · ',
       rating:    'Calificación ',
@@ -501,7 +526,12 @@
 
   function repaintMarquee() {
     // 流れるカード・ヒーローの見本の画面・REAL PAY の節のカードの金額（どれも pv-no-cur ＋ data-jpy）。
-    var els = d.querySelectorAll('#hero-mq-track .hero-mq-amt, #hero-section .pv-no-cur[data-jpy], #lp-realpay .pv-no-cur[data-jpy]');
+    var els = d.querySelectorAll('#hero-mq-track .hero-mq-amt, #hero-section .pv-no-cur[data-jpy]:not(.lt-sal):not(.lt-exact), #lp-realpay .pv-no-cur[data-jpy]');
+    /* ヒーローの電話の会社・MY PAY の画面の額（本物の推定年収・MY PAY の見本）は丸めない書き方（salAmt）で塗り直す */
+    var sal = d.querySelectorAll('#hero-section .lt-sal[data-jpy]');
+    for (var j = 0; j < sal.length; j++) sal[j].textContent = salAmt(parseInt(sal[j].getAttribute('data-jpy'), 10));
+    var ex = d.querySelectorAll('#hero-section .lt-exact[data-jpy]');
+    for (var x = 0; x < ex.length; x++) ex[x].textContent = exactAmt(parseInt(ex[x].getAttribute('data-jpy'), 10));
     for (var i = 0; i < els.length; i++) {
       els[i].textContent = mqAmt(parseInt(els[i].getAttribute('data-jpy'), 10));
     }
@@ -636,6 +666,303 @@
 
     /* ★人数は出さない（2026-09-24 オーナー指示）。ここで pv_pay_rows() を呼んで
        stats.contributors を入れ、is-wait を外していた。文は HTML に書いてあるだけになった。 */
+  }
+
+  /* ── ⓬ ヒーローの電話：画面がめぐる（2026-11-12）──────────────────────────────
+     オーナー「ホーム画面の REAL PAY の画面もどきも動かして。REAL PAY と各航空会社ページと MY PAY とスケジュールも
+     見せられるようにして。かっこよくスタイリッシュなエフェクトつきで」→「航空会社ページ、給与画面、スケジュールもリアルにして。
+     俺があげた動画を参考にモーションも」「real pay 表示される時のグラフと数字もモーション」。
+     ★画面は本物のページの小さな写し（並び・見出し・語は本物と同じ）。会社の推定年収だけは本物（salary-data.json・PVLeveling.load()）、
+       ほかは全部見本（PV_DEMO と下の TOUR_DEMO）。金額は HTML に書かない（ここで描く）。Verified・投稿時期は付けない。
+     ★1つの画面が出ると：カードが順に浮かび → 電話の中がゆっくり下へ流れ（見本の動画のように）→ 見えた所から棒が伸び・円が描かれ・数字が数える。
+       6.8 秒で次の画面へ（前の画面はぼけて沈み、次はぼけから浮かび、光が横切る）。上の札で選べる（札の下の線が残り時間）。
+       指を乗せている間・キーボードで中にいる間・画面の外・タブを裏にしている間は止まる。
+       「動きを減らす」設定と自動の検査（navigator.webdriver）では自分では進まず、流れもしない（札で選べば一瞬で替わる）。
+     ★画面を押すと、その画面の本物のページへ（GA4 は hero_realpay_ui / hero_airline_ui / hero_mypay_ui / hero_schedule_ui）。
+     ★電話の外寸・行の高さは1pxも変えない（画面は重ねて置く ＝ REAL PAY の一覧が高さを決める）。 */
+  var TOUR = [
+    { k: 'realpay', href: 'actual-pay.html', ev: 'hero_realpay_ui' },
+    { k: 'airline', href: 'airlines/emirates.html', ev: 'hero_airline_ui' },
+    { k: 'mypay', href: 'profile.html#your-pay', ev: 'hero_mypay_ui' },
+    { k: 'schedule', href: 'profile.html#your-pay', ev: 'hero_schedule_ui' }
+  ];
+  /* 見本の数（でたらめ・本物の投稿ではない）。会社の画面はエミレーツ（ロゴがある）── 推定年収は本物・「提出された年収」は流れるカードの見本（marquee の0番）と同じ */
+  var TOUR_DEMO = {
+    air: 'emirates', airI: 0, code: 'EK', score: [3.6, 4.2, 3.9, 3.2, 3.8, 4.1], scoreAvg: '3.8',
+    gross: 2692800, year: 37617600, hour: 29150,
+    cum: [2.31, 2.48, 2.39, 2.62, 2.55, 2.69],
+    seg: [['base', 30], ['variable', 17], ['housing', 18], ['command', 5], ['perdiem', 30]],
+    others: ['delta', 'emirates', 'cathay-pacific', 'ana'],
+    /* 2026年11月（1日は日曜）。f 乗務・s スタンバイ・t 訓練・o 休み */
+    days: 'oofffoosfffoottfffoosfffooffos', bh: 74, ft: 68, bhs: [61, 70, 66, 78, 72, 74]
+  };
+  function lvBar(pct, cls) { return '<span class="lt-trk' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><i class="lt-fill" style="--w:' + pct.toFixed(1) + '"></i></span>'; }
+  function amt(jpy, cls) { return '<span class="' + (cls || '') + ' pv-no-cur" data-jpy="' + jpy + '">' + esc(mqAmt(jpy)) + '</span>'; }
+  /* MY PAY の額は本物の画面と同じく丸めない（日本語・円は ¥2,692,800）。ほかの通貨は今の通貨で */
+  function exactAmt(jpy) {
+    var C = w.PVCurrency;
+    if (C && typeof C.fmt === 'function' && (L === 'en' || (typeof C.get === 'function' && C.get() !== 'JPY'))) return C.fmt(jpy);
+    return '¥' + Math.round(jpy).toLocaleString('en-US');
+  }
+  function exactSpan(jpy, cls) { return '<span class="lt-exact ' + (cls || '') + ' pv-no-cur" data-jpy="' + jpy + '">' + esc(exactAmt(jpy)) + '</span>'; }
+  function salAmtSpan(jpy, cls) { return '<span class="lt-sal ' + (cls || '') + ' pv-no-cur" data-jpy="' + jpy + '">' + esc(salAmt(jpy)) + '</span>'; }
+  /* 本物の MY PAGE の上の帯（MY PAGE｜MY PAY と 給与・勤務・分析・設定） */
+  function tourMyHead(on) {
+    var sub = T.tour.mySub.split(',');
+    return '<div class="lt-myhd lt-r"><span class="lt-mp">MY PAGE</span><span class="lt-mp is-on">MY PAY</span></div>' +
+      '<div class="lt-sub lt-r">' + sub.map(function (s, i) { return '<span' + (i === on ? ' class="is-on"' : '') + '>' + esc(s) + '</span>'; }).join('') + '</div>';
+  }
+  function tourAirline(SAL) {
+    var D = TOUR_DEMO, on = PV_DEMO.marquee[D.airI] || PV_DEMO.marquee[0];
+    var slug = D.air, name = airlineName(slug, on[7]);
+    var a = SAL && SAL.airlines && SAL.airlines[slug];
+    var tabs = T.tour.airTabs.split(',');
+    /* 会社の推定年収（本物の数・salary-data.json）。読めなければこの箱ごと出さない（推測で埋めない） */
+    var est = '';
+    if (a && a.cap && a.fo) {
+      var maxv = 8000;
+      est = '<div class="lt-card lt-r"><p class="lt-hd"><i class="lt-ico">¥</i>' + esc(T.tour.airPayT) + '<em>' + esc(T.tour.airTax) + '</em></p>' +
+        '<div class="lt-2">' +
+          '<div><p class="lt-cap">' + esc(T.tour.estCap) + '</p><p class="lt-big lt-n">' + salAmtSpan(a.cap.avg * 10000) + '</p>' + lvBar(a.cap.avg / maxv * 100, 'lt-gold') + '</div>' +
+          '<div><p class="lt-cap">' + esc(T.tour.estFo) + '</p><p class="lt-big lt-n">' + salAmtSpan(a.fo.avg * 10000) + '</p>' + lvBar(a.fo.avg / maxv * 100, 'lt-gold') + '</div>' +
+        '</div></div>';
+    }
+    /* 提出された年収の幅（見本）。本物の画面の「年収の幅（25〜75%）」の形 */
+    var med = on[1] * 10000, max = 6e7, pc = function (v) { return (v / max * 100).toFixed(1); };
+    var row = function (lab, m) {
+      var lo = Math.round(m * 0.9 / 1e6) * 1e6, hi = Math.round(m * 1.08 / 1e6) * 1e6;
+      return '<p class="lt-rl">' + esc(lab) + '</p>' +
+        '<span class="lt-rg-t" aria-hidden="true"><i class="lt-rg-b" style="left:' + pc(lo) + '%;width:' + (pc(hi) - pc(lo)).toFixed(1) + '%"></i><i class="lt-rg-m" style="left:' + pc(m) + '%"></i></span>' +
+        '<p class="lt-rv">25% <b>' + amt(lo) + '</b> · <em>' + esc(T.tour.airMed) + '</em> <b>' + amt(m, 'lt-n') + '</b> · 75% <b>' + amt(hi) + '</b></p>';
+    };
+    /* レーダー（6軸・5点満点）と軸の名前 */
+    var pt = function (v, i) { var g = -Math.PI / 2 + i * Math.PI / 3, r = 30 * v / 5; return (50 + r * Math.cos(g)).toFixed(1) + ',' + (50 + r * Math.sin(g)).toFixed(1); };
+    var ring = function (v) { return '<polygon class="lt-rdg" points="' + [0, 1, 2, 3, 4, 5].map(function (i) { return pt(v, i); }).join(' ') + '"/>'; };
+    var labs = T.tour.axes.split(','), pos = [[50, 9], [91, 30], [91, 74], [50, 97], [9, 74], [9, 30]];
+    var lab = labs.map(function (l, i) { return '<text x="' + pos[i][0] + '" y="' + pos[i][1] + '" text-anchor="middle">' + esc(l) + '</text>'; }).join('');
+    return '<div class="lt-in">' +
+      '<div class="lt-air-hd lt-r">' + heroLogo(slug, name) + '<span class="lt-air-n"><b>' + esc(name) + '<i class="lt-chip">' + D.code + '</i></b>' +
+        '<small>' + esc(T.tour.airSub) + ' · <span class="lt-st">★★★★<s>★</s></span> <b>' + D.scoreAvg + '</b></small></span></div>' +
+      '<div class="lt-tabs2 lt-r">' + tabs.map(function (t, i) { return '<span' + (i === 1 ? ' class="is-on"' : '') + '>' + esc(t) + '</span>'; }).join('') + '</div>' +
+      est +
+      '<div class="lt-card lt-r"><p class="lt-hd">' + esc(T.tour.rangeT) + '</p>' + row(T.tour.cap, med) + row(T.tour.fo, Math.round(med * 0.52 / 1e6) * 1e6) + '</div>' +
+      '<div class="lt-card lt-r lt-score"><p class="lt-hd">' + esc(T.tour.airScore) + '<em class="lt-avg"><b class="lt-n">' + D.scoreAvg + '</b> / 5</em></p>' +
+        '<svg class="lt-radar" viewBox="0 0 100 106" aria-hidden="true">' + ring(5) + ring(3.33) + ring(1.67) +
+        '<polygon class="lt-rs" points="' + D.score.map(pt).join(' ') + '"/>' + lab + '</svg></div>' +
+    '</div>';
+  }
+  function tourMyPay(SAL) {
+    var D = TOUR_DEMO, acc = 0;
+    /* 累計報酬の線（見本の6か月）。0 から描く */
+    var mx = Math.max.apply(null, D.cum), mn = Math.min.apply(null, D.cum) * 0.96;
+    var line = D.cum.map(function (v, i) { return (4 + i * 18.4).toFixed(1) + ',' + (34 - (v - mn) / (mx - mn) * 28).toFixed(1); }).join(' ');
+    var arcs = D.seg.map(function (sg) {
+      var s = '<circle class="lt-arc s-' + sg[0] + '" cx="21" cy="21" r="15.9" pathLength="100" stroke-dasharray="' + sg[1] + ' 100" stroke-dashoffset="' + (-acc) + '" style="--d:' + (acc * 9) + 'ms"/>';
+      acc += sg[1]; return s;
+    }).join('');
+    var leg = D.seg.map(function (sg, i) {
+      return '<li style="--i:' + i + '"><i class="s-' + sg[0] + '"></i>' + esc(T.tour.mySeg[sg[0]]) + '<b>' + sg[1] + '%</b></li>';
+    }).join('');
+    /* 他社の機長の年収（本物の数・salary-data.json）。読めなければ箱ごと出さない */
+    var oth = '';
+    var all = SAL && SAL.airlines;
+    if (all) {
+      var rows = D.others.filter(function (s) { return all[s] && all[s].cap; }).map(function (s) { return [s, all[s].cap.avg]; });
+      var top = Math.max.apply(null, rows.map(function (r) { return r[1]; }).concat([1]));
+      oth = '<div class="lt-card lt-r"><p class="lt-hd">' + esc(T.tour.othersT) + '</p>' + rows.map(function (r, i) {
+        return '<p class="lt-or" style="--i:' + i + '"><span>' + esc(airlineName(r[0], (all[r[0]] || {})[L] || r[0])) + '</span>' + salAmtSpan(r[1] * 10000, 'lt-ov') + '</p>' +
+          lvBar(r[1] / top * 100, 'lt-o' + (i % 4));
+      }).join('') + '</div>';
+    }
+    return '<div class="lt-in">' + tourMyHead(0) +
+      '<p class="lt-meta lt-r">' + esc(T.tour.myMeta) + '</p>' +
+      '<div class="lt-green lt-r"><p class="lt-cap">' + esc(T.tour.myT) + '</p><p class="lt-cap2">' + esc(T.tour.myGross) + '</p>' +
+        '<p class="lt-big lt-n">' + exactSpan(D.gross) + '</p>' +
+        '<p class="lt-row"><span>' + esc(T.tour.myYear) + '</span><b class="lt-n">' + exactSpan(D.year) + '</b></p>' +
+        '<p class="lt-row"><span>' + esc(T.tour.myHour) + '</span><b class="lt-n">' + exactSpan(D.hour) + '</b></p></div>' +
+      '<div class="lt-card lt-r"><p class="lt-hd">' + esc(T.tour.cumT) + '</p><p class="lt-big lt-n">' + exactSpan(Math.round(D.cum.reduce(function (s, v) { return s + v; }, 0) * 1e6)) + '</p>' +
+        '<svg class="lt-line" viewBox="0 0 100 38" preserveAspectRatio="none" aria-hidden="true"><polyline class="lt-ln" pathLength="1" points="' + line + '"/></svg></div>' +
+      '<div class="lt-card lt-r lt-dn"><p class="lt-hd">' + esc(T.tour.compT) + '</p><div class="lt-dn2"><svg class="lt-donut" viewBox="0 0 42 42" aria-hidden="true"><circle class="lt-track" cx="21" cy="21" r="15.9"/>' + arcs + '</svg>' +
+        '<ul class="lt-leg">' + leg + '</ul></div></div>' +
+      oth +
+    '</div>';
+  }
+  function tourSchedule() {
+    var wd = T.tour.schWd.split(','), D = TOUR_DEMO, cells = '', fly = 0, off = 0;
+    for (var b = 0; b < 6; b++) cells += '<i class="lt-d lt-d--x"></i>';   // 2026年11月1日は日曜 ＝ 月曜はじまりで前に6つ空ける
+    for (var day = 1; day <= 30; day++) {
+      var t = D.days.charAt(day - 1) || 'o';
+      if (t === 'f') fly++; if (t === 'o') off++;
+      cells += '<i class="lt-d t-' + t + '" style="--i:' + day + '"><span>' + day + '</span></i>';
+    }
+    var key = ['f', 's', 't', 'o'].map(function (k) { return '<span><i class="t-' + k + '"></i>' + esc(T.tour.schKey[k]) + '</span>'; }).join('');
+    var bmx = Math.max.apply(null, D.bhs), mons = T.tour.schMons.split(',');
+    var bars = D.bhs.map(function (v, i) {
+      return '<span class="lt-vb" style="--i:' + i + '"><i style="--h:' + (v / bmx * 100).toFixed(1) + '"></i><small>' + esc(mons[i]) + '</small></span>';
+    }).join('');
+    var stat = function (lab, v, unit) { return '<p class="lt-kv"><span>' + esc(lab) + '</span><b><span class="lt-n">' + v + '</span>' + esc(unit) + '</b></p>'; };
+    return '<div class="lt-in">' + tourMyHead(1) +
+      '<div class="lt-card lt-r"><p class="lt-hd">' + esc(T.tour.schT) + '</p>' +
+        stat(T.tour.schKey.f, fly, T.tour.dayU) + stat(T.tour.schBh, D.bh + '.0', 'h') + stat(T.tour.schFt, D.ft + '.5', 'h') + stat(T.tour.schKey.o, off, T.tour.dayU) + '</div>' +
+      '<div class="lt-card lt-r"><div class="lt-cal">' + wd.map(function (x) { return '<i class="lt-wd">' + esc(x) + '</i>'; }).join('') + cells + '</div>' +
+        '<p class="lt-key">' + key + '</p></div>' +
+      '<div class="lt-card lt-r"><p class="lt-hd">' + esc(T.tour.bhT) + '</p><div class="lt-vbs">' + bars + '</div></div>' +
+    '</div>';
+  }
+  /* 数え上げ：見えている字（本物の額・数）をそのまま目標にして、0 から同じ書式で数える */
+  function tourCount(el) {
+    var tgt = el.querySelector('[data-jpy]') || el;
+    var fin = tgt.hasAttribute('data-jpy') ? (tgt.classList.contains('lt-exact') ? exactAmt : tgt.classList.contains('lt-sal') ? salAmt : mqAmt)(parseInt(tgt.getAttribute('data-jpy'), 10))
+                                           : (tgt._ltFin || (tgt._ltFin = tgt.textContent));
+    var m = fin.match(/\d[\d,]*(\.\d+)?/);
+    if (!m) return;
+    var val = parseFloat(m[0].replace(/,/g, '')), dec = m[1] ? m[1].length - 1 : 0, grp = m[0].indexOf(',') >= 0;
+    var pre = fin.slice(0, m.index), post = fin.slice(m.index + m[0].length), t0 = null, my = (tgt._ltRun = (tgt._ltRun || 0) + 1);
+    var fmt = function (v) { var s = v.toFixed(dec); if (grp) s = s.replace(/\B(?=(\d{3})+(?!\d))/g, ','); return pre + s + post; };
+    tgt.textContent = fmt(0);
+    var step = function (now) {
+      if (my !== tgt._ltRun) return;
+      if (t0 == null) t0 = now;
+      var k = Math.min(1, (now - t0) / 1000), e = 1 - Math.pow(1 - k, 4);
+      tgt.textContent = k < 1 ? fmt(val * e) : fin;
+      if (k < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+  function tour() {
+    var go = d.getElementById('lt-go'), bar = d.querySelector('#hero-section .lt-tabs'), panel = d.querySelector('#hero-section .hero-panel');
+    if (!go || !bar || !panel) return;
+    var RM = !!(w.matchMedia && w.matchMedia('(prefers-reduced-motion: reduce)').matches) || (!!navigator.webdriver && !w.__pvMotion);
+    /* REAL PAY の一覧も、ほかの画面と同じ「流れる中身」と「見えたら動く印」を持たせる */
+    var rp = go.querySelector('.lt-scr[data-k="realpay"]'), rows = d.getElementById('hero-win-rows');
+    if (rows) {
+      rows.classList.add('lt-in');
+      Array.prototype.forEach.call(rows.querySelectorAll('.hero-card'), function (c) { c.classList.add('lt-r'); var v = c.querySelector('.hero-c-v'); if (v) v.classList.add('lt-n'); });
+    }
+    var make = { airline: tourAirline, mypay: tourMyPay, schedule: tourSchedule }, built = {};
+    TOUR.forEach(function (t) {
+      if (!make[t.k]) return;
+      var s = d.createElement('div');
+      s.className = 'lt-scr';
+      s.setAttribute('data-k', t.k);
+      s.setAttribute('aria-hidden', 'true');
+      s.innerHTML = make[t.k](null);
+      go.appendChild(s);
+    });
+    var scr = TOUR.map(function (t) { return go.querySelector('.lt-scr[data-k="' + t.k + '"]'); });
+    /* 本物の年収（salary-data.json）が読めたら、会社と MY PAY の画面を描き直す（下のランキングと同じ1回の取り寄せ） */
+    if (w.PVLeveling && typeof w.PVLeveling.load === 'function') {
+      w.PVLeveling.load().then(function (SAL) {
+        ['airline', 'mypay'].forEach(function (k) {
+          var s = go.querySelector('.lt-scr[data-k="' + k + '"]');
+          if (s) { s.innerHTML = make[k](SAL); if (s.classList.contains('is-on')) play(s); }
+        });
+      }, function () {});
+    }
+    var tabs = TOUR.map(function (t) { return bar.querySelector('.lt-tab[data-k="' + t.k + '"]'); });
+    var pill = bar.querySelector('.lt-pill'), cur = 0, flowT = 0;
+    var place = function () {
+      var t = tabs[cur]; if (!t || !pill) return;
+      pill.style.transform = 'translateX(' + t.offsetLeft + 'px) scaleX(' + (t.offsetWidth / 60).toFixed(3) + ')';   // 板の幅は 60px（lp.css）
+    };
+    /* 電話の中で見えている所（緑の面で下が切れている）に入った部品だけ動かす */
+    var io = ('IntersectionObserver' in w) ? new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (!e.isIntersecting || e.target.classList.contains('lt-on')) return;
+        var s = e.target.closest('.lt-scr');
+        if (!s || !s.classList.contains('is-on')) return;
+        e.target.classList.add('lt-on');
+        Array.prototype.forEach.call(e.target.querySelectorAll('.lt-n'), tourCount);
+        if (e.target.classList.contains('lt-n')) tourCount(e.target);
+      });
+    }, { root: panel, threshold: 0.35 }) : null;
+    /* 1つの画面を動かす：中身を最初の位置へ戻し、部品の印を外して見張り直し、少し待ってからゆっくり下へ流す */
+    var play = function (s) {
+      var inn = s.querySelector('.lt-in');
+      clearTimeout(flowT);
+      Array.prototype.forEach.call(s.querySelectorAll('.lt-r'), function (r) { r.classList.remove('lt-on'); if (io) { io.unobserve(r); io.observe(r); } });
+      if (!inn) return;
+      inn.classList.remove('lt-flow');
+      inn.style.transform = '';
+      if (RM || !io) { Array.prototype.forEach.call(s.querySelectorAll('.lt-r'), function (r) { r.classList.add('lt-on'); }); return; }
+      flowT = setTimeout(function () {
+        var pb = panel.getBoundingClientRect().bottom, top = inn.getBoundingClientRect().top;
+        var dist = Math.max(0, Math.round(inn.scrollHeight - (pb - top) + 14));
+        if (!dist) return;
+        inn.classList.add('lt-flow');
+        inn.style.transform = 'translateY(' + (-dist) + 'px)';
+      }, 1500);
+    };
+    var show = function (i) {
+      if (i === cur || !scr[i]) return;
+      var prev = scr[cur], next = scr[i];
+      prev.classList.remove('is-on', 'lt-play');
+      prev.setAttribute('aria-hidden', 'true');
+      if (!RM) { prev.classList.add('is-out'); setTimeout(function () { prev.classList.remove('is-out'); }, 520); }
+      next.classList.add('is-on');
+      next.removeAttribute('aria-hidden');
+      void next.offsetWidth;
+      if (!RM) { next.classList.add('lt-play'); go.classList.remove('lt-sweep'); void go.offsetWidth; go.classList.add('lt-sweep'); }
+      play(next);
+      tabs.forEach(function (t, j) {
+        var on = j === i;
+        t.classList.toggle('is-on', on);
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+      });
+      cur = i;
+      go.setAttribute('href', TOUR[i].href);
+      go.setAttribute('data-pv-ev', TOUR[i].ev);
+      go.setAttribute('aria-label', T.tour.open[TOUR[i].k]);
+      go.setAttribute('aria-labelledby', 'lt-t-' + TOUR[i].k);
+      place();
+    };
+    bar.addEventListener('click', function (e) {
+      var t = e.target.closest ? e.target.closest('.lt-tab') : null;
+      if (!t) return;
+      show(tabs.indexOf(t));
+      ev('hero_tour_tab', { tab: t.getAttribute('data-k') });
+    });
+    bar.addEventListener('keydown', function (e) {
+      var k = e.key, n = k === 'ArrowRight' ? 1 : k === 'ArrowLeft' ? -1 : 0;
+      if (!n) return;
+      e.preventDefault();
+      var i = (cur + n + tabs.length) % tabs.length;
+      show(i); tabs[i].focus();
+    });
+    w.addEventListener('resize', place);
+    if (d.fonts && d.fonts.ready) d.fonts.ready.then(place);
+    place();
+    if (!RM) rp.classList.add('lt-play');
+    play(rp);
+    if (RM) return;
+    /* ひとりでに進む：今の札の下の線（::after の ltProg）が伸びきったら次へ。止めるのは線を止めるだけ（class lt-paused） */
+    bar.classList.add('lt-auto');
+    /* 自分で進むときは、誰かが札を押したように見せる（押した所に丸い波紋）＝ 本物の画面を触っている感じ */
+    var tap = function (t) {
+      var r = d.createElement('i');
+      r.className = 'lt-tap';
+      r.setAttribute('aria-hidden', 'true');
+      r.style.left = (t.offsetLeft + t.offsetWidth / 2) + 'px';
+      bar.appendChild(r);
+      setTimeout(function () { r.remove(); }, 900);
+    };
+    bar.addEventListener('animationend', function (e) {
+      if (e.animationName !== 'ltProg') return;
+      var n = (cur + 1) % TOUR.length;
+      tap(tabs[n]);
+      setTimeout(function () { show(n); }, 160);
+    });
+    var shot = d.querySelector('#hero-section .hero-shot'), stop = {};
+    var sync = function () { bar.classList.toggle('lt-paused', !!(stop.hover || stop.focus || stop.out || d.hidden)); };
+    if (shot) {
+      shot.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') { stop.hover = 1; sync(); } });
+      shot.addEventListener('pointerleave', function () { stop.hover = 0; sync(); });
+      shot.addEventListener('focusin', function () { stop.focus = 1; sync(); });
+      shot.addEventListener('focusout', function () { stop.focus = 0; sync(); });
+      if ('IntersectionObserver' in w) new IntersectionObserver(function (es) { stop.out = !es[0].isIntersecting; sync(); }, { threshold: 0.2 }).observe(shot);
+    }
+    d.addEventListener('visibilitychange', sync);
   }
 
   /* ── ⓫ REAL PAY の節：白いカード（行を押すと出る面の見本）──────────────────
@@ -901,6 +1228,7 @@
     wireEvents();
     fillMarquee();
     fillHero();
+    tour();
     fillRealPay();
     fillAirlines();
     wireCompare();

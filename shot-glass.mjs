@@ -715,7 +715,15 @@ if (process.env.REC) {
   /* 会社ページへは左メニューに入口が無い（AIRLINES は一覧）＝ ページの中から住所を変えて移る（ページまたぎの切り替えはそのまま起きる） */
   const go = (u) => page.evaluate((u) => { location.href = (u.startsWith('/') || u.startsWith('http') ? '' : '/') + u; }, u).catch(() => {});
   const AIR = 'airlines/cathay-pacific.html';
-  if (process.env.TOUR === 'all') {
+  if (process.env.TOUR === 'hero') {
+    /* トップの電話がめぐる画面（2026-11-12）：4つの画面がひとまわり（6.8 秒 × 4）→ ページをゆっくり下へ。PAGE=index.html */
+    if (vw < 600) {   // 狭い画面は電話が帯の下 ＝ 先に電話まで送る
+      const y = await page.evaluate(() => { const e = document.querySelector('#hero-section .hero-shot'); const r = e.getBoundingClientRect(); return Math.max(0, scrollY + r.top - 70); });
+      await sleep(1200); await glide(y, 1800); await sleep(800);
+    }
+    await sleep(28000);
+    await glide(vw >= 600 ? 2400 : 3600, 8000); await sleep(1500);
+  } else if (process.env.TOUR === 'all') {
     /* 全ページに広げたあとの見本（2026-11-12）：トップ → 航空会社一覧 → 会社ページ → Vote → 国のページ → MY PAY → REAL PAY。
        PAGE=index.html で始める。ページは住所を変えて移る（ページまたぎの切り替えが起きる） */
     const pc = vw >= 600;
