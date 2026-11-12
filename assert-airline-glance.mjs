@@ -79,6 +79,7 @@ import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { SALARY } from './salary-data.mjs';
 import { DONOR_PAGES } from './airline-donor-pages.mjs';
+import { withGlass } from './inject-glass.mjs';
 import { BASIS } from './salary-basis.mjs';
 import { JPY_PER } from './fx-rates.mjs';
 import { GLANCE, LEAD } from './pv-airline-view.mjs';
@@ -2261,7 +2262,9 @@ head('暮らし（街・家賃・空港までの移動）');
    そこで見本は、その借り元の2枚そのもの（OLD_HTML）。場面 ggold は、本物の住所（404）を開く代わりに、手元のブラウザの中だけで
    この2枚を同じ住所に返して測る（共有の JS 2本 ── premium-auth-lock.js・airline-reviews-ui.js ── は本物のファイルを読む）。 */
 const OLD_SAMPLE = { ja: 'spirit', en: 'spirit' };
-const OLD_HTML = { ja: (DONOR_PAGES[OLD_SAMPLE.ja] || {}).ja || '', en: (DONOR_PAGES[OLD_SAMPLE.en] || {}).en || '' };
+/* ★2026-11-12 gen-new-airline.mjs は起こしたページにすりガラスと動きの塊（inject-glass.mjs の withGlass）を入れて書く ＝ 見本も同じ形にして測る */
+const glassed = (html, rel) => (html ? (withGlass(html, rel) ?? html) : '');
+const OLD_HTML = { ja: glassed((DONOR_PAGES[OLD_SAMPLE.ja] || {}).ja || '', '../'), en: glassed((DONOR_PAGES[OLD_SAMPLE.en] || {}).en || '', '../../') };
 const VOICE_KEYS = (() => { const t = read('airlines/airline-reviews-data.js'), i = t.indexOf('const VOICES = {'); return i < 0 ? [] : [...t.slice(i).matchAll(/^\s{4}'?([a-z0-9-]+)'?\s*:\s*\{/gm)].map(m => m[1]); })();
 const OLD_VOICES = { ja: VOICE_KEYS.includes(OLD_SAMPLE.ja), en: VOICE_KEYS.includes(OLD_SAMPLE.en) };
 {

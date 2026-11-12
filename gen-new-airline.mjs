@@ -38,6 +38,7 @@ import { curCore } from './cur-core.mjs';
    その2枚を1バイトも変えずに airline-donor-pages.mjs（配信されない .mjs）へ写した。donor にその名前があればそちらを読み、
    無ければ今までどおりリポジトリのページを読む。⚠️ ここへ戻して airlines/spirit.html を置き直さない（住所は 404 のまま）。 */
 import { DONOR_PAGES } from './airline-donor-pages.mjs';
+import { withGlass } from './inject-glass.mjs';   // すりガラスと動きの塊（2026-11-12）。起こしたページにも最初から入れる
 /* ★ドルの換算レートを手で持たない（2026-09-18）。
    ここが 160 のまま置き去りになり、currency.js（158.95）が塗る本文と食い違って
    **同じページの中でタイトルが $231K・本文が $233K** になっていた。
@@ -2450,7 +2451,7 @@ function build({ donor, lang }) {
 }
 
 for (const t of targets) {
-  const out = build(t);
+  const out = withGlass(build(t), '../'.repeat(t.rel.split('/').length - 1)) ?? build(t);
   fs.writeFileSync(path.join(ROOT, t.rel), out);
   console.log(`✅ ${t.rel}  ${(out.length / 1024).toFixed(1)}KB`);
 }
