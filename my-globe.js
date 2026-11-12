@@ -32,7 +32,7 @@
       p3: '直近3か月', p12: '直近1年', pAll: '直近2年', ymT: '{y}年{n}月',
       prevD: '前の日', nextD: '次の日', prevM: '前の月', nextM: '次の月',
       sumT: 'FLIGHT EARNINGS', est: '目安',
-      ringL: 'ブロック', ringA: '勤務時間のうちブロックタイムの割合 {p}',
+      ringL: 'ブロック', ringA: '勤務時間のうちブロックタイムの割合 {p}', ringP: '{p}の全便', thisDay: 'この日', blkR: 'この日のブロック率', blkA: 'この便を飛んだ日の、勤務時間のうちブロックタイムの割合 {p}',
       legHub: '拠点', legDest: '行き先', legDh: 'DH',
       hint: 'ドラッグで回す・ルートを押す', zin: '拡大', zout: '縮小',
       op: '乗務', dh: 'DH', unk: '区分確認中',
@@ -60,7 +60,7 @@
       p3: 'Last 3 months', p12: 'Last 12 months', pAll: 'Last 24 months', ymT: '{M} {y}',
       prevD: 'Previous day', nextD: 'Next day', prevM: 'Previous month', nextM: 'Next month',
       sumT: 'FLIGHT EARNINGS', est: 'est.',
-      ringL: 'Block', ringA: 'Block time as a share of duty time {p}',
+      ringL: 'Block', ringA: 'Block time as a share of duty time {p}', ringP: '{p}, all flights', thisDay: 'This day', blkR: 'Block/duty that day', blkA: 'Block time as a share of duty time on the day of this flight {p}',
       legHub: 'Base', legDest: 'Destination', legDh: 'Deadhead',
       hint: 'Drag to rotate, tap a route', zin: 'Zoom in', zout: 'Zoom out',
       op: 'Operating', dh: 'Deadhead', unk: 'Unclassified',
@@ -87,7 +87,7 @@
       p3: 'Últimos 3 meses', p12: 'Últimos 12 meses', pAll: 'Últimos 24 meses', ymT: '{M} {y}',
       prevD: 'Día anterior', nextD: 'Día siguiente', prevM: 'Mes anterior', nextM: 'Mes siguiente',
       sumT: 'FLIGHT EARNINGS', est: 'estimado',
-      ringL: 'Horas block', ringA: 'Tiempo de bloque sobre el tiempo de servicio {p}',
+      ringL: 'Horas block', ringA: 'Tiempo de bloque sobre el tiempo de servicio {p}', ringP: '{p}, todos los vuelos', thisDay: 'Este día', blkR: 'Block/servicio de ese día', blkA: 'Tiempo de bloque sobre el tiempo de servicio del día de este vuelo {p}',
       legHub: 'Base', legDest: 'Destino', legDh: 'Deadhead',
       hint: 'Arrastra para girar y toca una ruta', zin: 'Acercar', zout: 'Alejar',
       op: 'Operando', dh: 'Deadhead', unk: 'Sin clasificar',
@@ -234,9 +234,14 @@
     var legs = S.legs.filter(function (l) { return inRange(l.date); });
     var routes = {}, port = {}, order = [];
     legs.forEach(function (l) {
-      var a = l.ga.iata, b = l.gb.iata, k = a + '>' + b;     // ★2026-11-12 オーナー「往復分を出すのやめない？」＝向きごとに別のルート
+      var a = l.ga.iata, b = l.gb.iata, k = routeKey(l);     // ★日は向きごと・月より長い期間は2空港で1つ（オーナー「日ごとは1便ずつ・月以上は往復で」）
       var r = routes[k];
-      if (!r) { r = routes[k] = { k: k, a: l.ga, b: l.gb, legs: [], n: 0, dh: 0, sum: 0, cur: null }; order.push(r); }
+      if (!r) {
+        var srt = dayMode() || a < b;
+        r = routes[k] = { k: k, a: srt ? l.ga : l.gb, b: srt ? l.gb : l.ga, legs: [], n: 0, dh: 0, sum: 0, cur: null, dirs: {} };
+        order.push(r);
+      }
+      r.dirs[a + '>' + b] = 1;
       r.legs.push(l); r.n++; if (l.kind === 'deadhead') r.dh++;
       if (l.amount != null) { if (r.cur == null) r.cur = l.currency; if (r.cur === l.currency) r.sum += l.amount; }
       port[a] = (port[a] || 0) + 1; port[b] = (port[b] || 0) + 1;
@@ -262,7 +267,13 @@
   var IC_HAND = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12"/><path d="M11 11.5v-2a1.5 1.5 0 0 1 3 0V12"/><path d="M14 10.5a1.5 1.5 0 0 1 3 0V12"/><path d="M17 11.5a1.5 1.5 0 0 1 3 0V16a6 6 0 0 1-6 6h-1.5a6 6 0 0 1-4.6-2.2L5 16.5a1.6 1.6 0 0 1 2.4-2.1L8 15"/></svg>';
   function kindL(k) { return k === 'deadhead' ? T.dh : k === 'unknown' ? T.unk : T.op; }
   /* ★2026-11-12 オーナー「片道なのに矢印が2つ」：期間の中で飛んだ向きが1つだけなら、その向きで「HND → FUK」。両方あれば「HND ⇄ KMJ」 */
-  function routeLabel(r) { return r.a.iata + ' → ' + r.b.iata; }
+  /* ルートの名前：日は向きのまま。まとめたルートは、両方の向きを飛んでいれば ⇄・片方だけなら実際の向きで → */
+  function routeLabel(r) {
+    var ks = Object.keys(r.dirs || {});
+    if (ks.length === 1) { var p = ks[0].split('>'); return p[0] + ' → ' + p[1]; }
+    return r.a.iata + ' ⇄ ' + r.b.iata;
+  }
+  function dayMode() { return S.per === 'd'; }
   /* 地球儀の線は2空港で1本（向きを問わない）。向きつきのルート 'A>B' → 線の鍵 'A|B'（名前の順） */
   function pairOf(k) {
     if (!k || k.indexOf('>') < 0) return k || null;
@@ -356,6 +367,10 @@
     sum.hidden = !V.legs.length; flt.hidden = !leg;
     list.hidden = !V.legs.length; mon.hidden = !V.legs.length;
     if (V.legs.length) { sum.innerHTML = sumHTML(V); list.innerHTML = listHTML(V); mon.innerHTML = monHTML(V, leg); }
+    /* ★2026-11-12 オーナー「棒グラフはモーションつけてね」：期間・月・日を替えたときと最初の1回だけ、棒と輪を伸ばす */
+    var sig = [S.per, S.ym, S.day, V.legs.length, V.total].join('|'), grow = sig !== S.animSig;
+    S.animSig = sig;
+    sum.classList.toggle('gl-anim', grow); mon.classList.toggle('gl-anim', grow);
     if (leg) flt.innerHTML = fltHTML(leg);
     /* ★2026-11-12 オーナー「スケジュールが無い旨のポップアップも」：欠けた月の便を開いたら、その月で1回だけ知らせる */
     var toast = S.root.querySelector('.gl-toast'), pt = leg && leg.amount != null && leg.partial && leg.partial.gaps.length ? leg : null;
@@ -368,7 +383,7 @@
     } else toast.hidden = true;
     G.setData(V, drawRoute, leg);
   }
-  function routeKey(l) { return l.ga.iata + '>' + l.gb.iata; }
+  function routeKey(l) { var k = l.ga.iata + '>' + l.gb.iata; return dayMode() ? k : pairOf(k); }
   function sumHTML(V) {
     var p = V.ring == null ? null : Math.round(V.ring * 1000) / 10;
     var C = 2 * Math.PI * 34, off = p == null ? C : C * (1 - p / 100);
@@ -376,16 +391,17 @@
     return '<div class="gl-sum-h"><span class="gl-ov-t">' + esc(T.sumT) + '<small>' + esc(T.est) + '</small></span>' +
         '<span class="gl-chip">' + esc(V.total == null ? '—' : money(V.total, V.cur)) + '</span></div>' +
       '<div class="gl-sum-b">' +
-        '<div class="gl-ring" role="img" aria-label="' + esc(fill(T.ringA, { p: p == null ? '—' : p + '%' })) + '">' +
+        '<div class="gl-ringw"><div class="gl-ring" role="img" aria-label="' + esc(fill(T.ringA, { p: p == null ? '—' : p + '%' }) + ' · ' + ringP()) + '">' +
           '<svg viewBox="0 0 84 84" width="84" height="84" aria-hidden="true"><defs><linearGradient id="glRg" x1="0" y1="1" x2="1" y2="0">' +
           '<stop offset="0" stop-color="#9ff0da"/><stop offset=".55" stop-color="#d9f2a8"/><stop offset="1" stop-color="#f5c35a"/></linearGradient></defs>' +
           '<circle cx="42" cy="42" r="34" class="gl-ring-tr"/>' +
           '<circle cx="42" cy="42" r="34" class="gl-ring-v" stroke="url(#glRg)" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + off.toFixed(1) + '" transform="rotate(-90 42 42)"/></svg>' +
           '<span class="gl-ring-n">' + (p == null ? '—' : p.toFixed(1) + '%') + '<small>' + esc(T.ringL) + '</small></span></div>' +
+          '<span class="gl-ring-p">' + esc(ringP()) + '</span></div>' +
         '<div class="gl-bars">' + V.top.map(function (r, i) {
           return '<button type="button" class="gl-bar' + (r.k === S.drawRoute ? ' on' : '') + '" data-route="' + esc(r.k) + '">' +
             '<span class="gl-bar-l">' + esc(routeLabel(r)) + '</span><span class="gl-bar-v">' + esc(money(r.sum, r.cur)) + '</span>' +
-            '<i class="gl-bar-t"><i class="gl-bar-f' + (i === 0 ? ' is-1' : '') + '" style="transform:scaleX(' + (max > 0 ? (r.sum / max).toFixed(3) : 0) + ')"></i></i></button>';
+            '<i class="gl-bar-t"><i class="gl-bar-f' + (i === 0 ? ' is-1' : '') + '" style="--i:' + i + ';transform:scaleX(' + (max > 0 ? (r.sum / max).toFixed(3) : 0) + ')"></i></i></button>';
         }).join('') + '</div>' +
       '</div>';
   }
@@ -406,7 +422,33 @@
       '<div class="gl-flt-r"><div class="gl-ap"><b>' + esc(l.ga.iata) + '</b><span>' + esc(city(l.ga)) + '</span><span class="gl-ap-t">' + esc(l.out || '') + '</span></div>' +
         '<div class="gl-flt-m"><i class="gl-flt-ln"></i><span class="gl-flt-pl">' + IC_PLANE + '</span><i class="gl-flt-ln is-r"></i><span class="gl-flt-bt">' + esc(hm(l.blockMin)) + '</span></div>' +
         '<div class="gl-ap is-r"><b>' + esc(l.gb.iata) + '</b><span>' + esc(city(l.gb)) + '</span><span class="gl-ap-t">' + esc(l.in ? l.in + (l.inDay ? ' +' + l.inDay : '') : '') + '</span></div></div>' +
+      blkHTML(l) +
       '<div class="gl-sts">' + stats + '</div>';
+  }
+  /* ★2026-11-12 オーナー「フライトを選んだら割合は変わるよね？」：1日の勤務時間は便ごとに分けられない（報告から解散までが1つの勤務）。
+       なので便のカードには「その便を飛んだ日」の割合を出す（輪と同じ式＝乗務の便のブロックタイム ÷ その日の勤務時間）。同じ日の便は同じ数字 */
+  function dayRatio(date) {
+    var all = null, fly = 0;
+    (S.model && S.model.roster ? S.model.roster.months : []).forEach(function (rm) {
+      rm.days.forEach(function (x) {
+        if (x.date !== date || !x.isDuty) return;
+        var v = x.dutyMin != null ? x.dutyMin : ((x.blockKnown.operating || 0) + (x.blockKnown.deadhead || 0) + (x.blockKnown.unknown || 0)) || null;
+        if (v != null) all = (all || 0) + v;
+      });
+    });
+    S.legs.forEach(function (l) { if (l.date === date && l.kind !== 'deadhead' && l.blockMin != null) fly += l.blockMin; });
+    return all > 0 ? Math.min(1, fly / all) : null;
+  }
+  function blkHTML(l) {
+    var r = dayRatio(l.date);
+    if (r == null) return '';
+    var p = Math.round(r * 1000) / 10;
+    return '<div class="gl-blk" role="img" aria-label="' + esc(fill(T.blkA, { p: p + '%' })) + '"><span>' + esc(T.blkR) + '</span><b>' + p.toFixed(1) + '%</b>' +
+      '<i class="gl-blk-t"><i style="transform:scaleX(' + r.toFixed(3) + ')"></i></i></div>';
+  }
+  function ringP() {
+    var p = S.per === 'd' ? T.thisDay : S.per === 'm' && S.ym ? ymS(S.ym) : S.per === '3' ? T.p3 : S.per === '12' ? T.p12 : T.pAll;
+    return fill(T.ringP, { p: p });
   }
   /* 飛んだ分が何月の明細に出るか（会社ごと・スケジュールの取り込みで聞く・設定で直せる）。まだ答えていない人には、額が出ない便のカードで聞く */
   function lagAskHTML(l) {
@@ -473,7 +515,7 @@
         var m = by[ym], h = m.known && max > 0 ? m.sum / max : 0;
         var tip = ymS(ym) + ' · ' + (m.known ? money(m.sum, m.cur) : '—');
         return '<button type="button" class="gl-mb-c' + (ym === selYm ? ' on' : '') + (m.known ? '' : ' is-none') + '" data-goym="' + ym + '" title="' + esc(tip + ' · ' + T.monTip) + '" aria-label="' + esc(tip) + '">' +
-          '<i style="transform:scaleY(' + Math.max(m.known ? 0.04 : 0, h).toFixed(3) + ')"></i><small>' + esc(String(+ym.slice(5, 7))) + '</small></button>';
+          '<i style="--i:' + yms.indexOf(ym) + ';transform:scaleY(' + Math.max(m.known ? 0.04 : 0, h).toFixed(3) + ')"></i><small>' + esc(String(+ym.slice(5, 7))) + '</small></button>';
       }).join('') + '</div>';
   }
   function dayBarsHTML(leg) {
@@ -493,7 +535,7 @@
       if (!b) { cells.push('<span class="gl-mb-c is-off"><i></i><small>' + (i % 5 === 1 || i === n ? i : '') + '</small></span>'); continue; }
       var h = b.known && max > 0 ? b.sum / max : 0, tip = dayS(dt) + ' · ' + (b.known ? money(b.sum, cur) : '—');
       cells.push('<button type="button" class="gl-mb-c' + (dt === sel ? ' on' : '') + (b.known ? '' : ' is-none') + '" data-goday="' + dt + '" title="' + esc(tip + ' · ' + T.dayTip) + '" aria-label="' + esc(tip) + '">' +
-        '<i style="transform:scaleY(' + Math.max(b.known ? 0.04 : 0, h).toFixed(3) + ')"></i><small>' + (i % 5 === 1 || i === n || dt === sel ? i : '') + '</small></button>');
+        '<i style="--i:' + i + ';transform:scaleY(' + Math.max(b.known ? 0.04 : 0, h).toFixed(3) + ')"></i><small>' + (i % 5 === 1 || i === n || dt === sel ? i : '') + '</small></button>');
     }
     return '<div class="gl-card-h"><div><h4 class="gl-card-t">' + esc(T.dayMonT) + '</h4><p class="gl-card-s">' + esc(ymL(ym)) + '</p></div>' +
         (cur != null ? '<span class="gl-card-big">' + esc(money(tot, cur)) + '<small>' + esc(ymS(ym)) + '</small></span>' : '') + '</div>' +
@@ -519,7 +561,7 @@
   }
   function pickRoute(k) {
     /* 地球儀の線を押した（'A|B'）＝その2空港のいちばん新しい便の向きを選ぶ */
-    if (k && k.indexOf('|') >= 0) { var nl = S.V.legs.filter(function (x) { return pairOf(routeKey(x)) === k; })[0]; k = nl ? routeKey(nl) : null; }
+    if (k && k.indexOf('|') >= 0 && dayMode()) { var nl = S.V.legs.filter(function (x) { return pairOf(routeKey(x)) === k; })[0]; k = nl ? routeKey(nl) : null; }
     S.route = k; S.listN = 8; S.filt = 'all';
     if (k) { var l = S.V.legs.filter(function (x) { return routeKey(x) === k; })[0]; S.leg = l ? l.id : S.leg; }
     render(); G.focusRoute();
@@ -532,7 +574,7 @@
     var cv, box, cx2, W = 0, H = 0, dpr = 1, raf = 0, last = 0;
     var lam = 0, phi = 0.35, k = 1, vlam = 0, vphi = 0, idleAt = 0, tween = null;
     var V = null, selRoute = null, selLeg = null, arcs = [], hub = null, ports = [];
-    var drag = null, pts = {}, pinch = null, seen = false, inView = false;
+    var drag = null, pts = {}, pinch = null, seen = false, inView = false, intro = false;
     var RM = reduced();
     var PLANE = null;
 
@@ -575,11 +617,17 @@
     function arcOf(a, b) {
       var A = vec(a.lat, a.lon), B = vec(b.lat, b.lon);
       var dot = Math.max(-1, Math.min(1, A[0] * B[0] + A[1] * B[1] + A[2] * B[2])), om = Math.acos(dot);
-      var n = Math.max(16, Math.min(96, Math.ceil(om * 48))), out = [], hmax = Math.min(0.14, 0.012 + om * 0.06);
+      var n = Math.max(24, Math.min(110, Math.ceil(om * 56))), out = [], hmax = Math.min(0.15, 0.016 + om * 0.07);
+      /* ★2026-11-12 オーナー「もう少し円弧を描いても」：大圏の面に直角な向き（北側）へも弧の長さの 16% ふくらませる。両端は空港の上のまま */
+      var N = [A[1] * B[2] - A[2] * B[1], A[2] * B[0] - A[0] * B[2], A[0] * B[1] - A[1] * B[0]], nl = Math.sqrt(N[0] * N[0] + N[1] * N[1] + N[2] * N[2]);
+      if (nl < 1e-9) N = [0, 0, 0]; else { var sg = N[1] < 0 ? -1 : 1; N = [N[0] / nl * sg, N[1] / nl * sg, N[2] / nl * sg]; }
+      var side = Math.min(0.07, om * 0.16);   // 長い便は大圏そのものがもう弧に見える＝ふくらみは控えめ（地球の外へはみ出さない）
       for (var i = 0; i <= n; i++) {
         var t = i / n, s1 = om > 1e-6 ? Math.sin((1 - t) * om) / Math.sin(om) : 1 - t, s2 = om > 1e-6 ? Math.sin(t * om) / Math.sin(om) : t;
-        var h = 1 + hmax * Math.sin(Math.PI * t);
-        out.push([(A[0] * s1 + B[0] * s2) * h, (A[1] * s1 + B[1] * s2) * h, (A[2] * s1 + B[2] * s2) * h]);
+        var bw = Math.sin(Math.PI * t), h = 1 + hmax * bw, sd = side * bw;
+        var px = A[0] * s1 + B[0] * s2 + N[0] * sd, py = A[1] * s1 + B[1] * s2 + N[1] * sd, pz = A[2] * s1 + B[2] * s2 + N[2] * sd;
+        var pl = Math.sqrt(px * px + py * py + pz * pz) || 1;
+        out.push([px / pl * h, py / pl * h, pz / pl * h]);
       }
       return out;
     }
@@ -602,7 +650,12 @@
           [r.a, r.b].forEach(function (g) { if (!seenP[g.iata]) { seenP[g.iata] = 1; ports.push({ g: g, v: vec(g.lat, g.lon) }); } });
         });
         hub = V.hub;
-        if (!seen && V.legs.length) { seen = true; home(true); }
+        if (!seen && V.legs.length) {
+          seen = true; home(true);
+          /* ★2026-11-12 オーナー「最初は地球全体から始めて、自分の地域に拡大して止めて」：止まる位置から少し西へずらした地球全体で描き、
+               見え始めたら（frame）寄っていく。動きを減らす設定では最初から止まる位置 */
+          if (!RM) { var hl = phi; lam += 0.55; phi = Math.max(-0.9, Math.min(0.9, hl * 0.55 + 0.12)); k = 1; intro = true; }
+        }
       }
       kick(); draw();
     }
@@ -636,7 +689,7 @@
     function focusRoute(soft) { center(!!soft && RM); idleAt = performance.now(); }
     /* ★2026-11-12 オーナー「くるくる回ると見づらい・主基地を中心に止めておく」：主基地（いちばん多く出た空港）を正面に、
          行き先が全部入る大きさで止める（主基地から一番遠い行き先までの角度で寄り具合を決める） */
-    function home(now) {
+    function home(now, dur, ease) {
       var hp = ports.filter(function (p) { return p.g.iata === hub; })[0];
       if (!hp) { center(now); return; }
       var far = 0;
@@ -647,11 +700,11 @@
       var pT = kT > 1.5 ? tp : tp * 0.8 + 0.12;
       if (now || RM) { lam = tl; phi = pT; k = kT; draw(); return; }
       var dl = tl - lam; while (dl > Math.PI) dl -= 2 * Math.PI; while (dl < -Math.PI) dl += 2 * Math.PI;
-      tween = { t0: performance.now(), l0: lam, p0: phi, dl: dl, dp: pT - phi, k0: k, dk: kT - k, dur: 1000 };
+      tween = { t0: performance.now(), l0: lam, p0: phi, dl: dl, dp: pT - phi, k0: k, dk: kT - k, dur: dur || 1000, io: !!ease };
       kick();
     }
     var KMAX = 200;  // 県くらいまで見えるように（オーナー「もっと拡大。県くらいまで見えるレベルで」＝ 画面の幅が 100〜150km）
-    function zoomBy(f) { tween = null; k = Math.max(0.7, Math.min(KMAX, k * f)); idleAt = performance.now(); kick(); draw(); }
+    function zoomBy(f) { tween = null; intro = false; k = Math.max(0.7, Math.min(KMAX, k * f)); idleAt = performance.now(); kick(); draw(); }
 
     /* ── 0.25° より細かく寄ったとき：陸の縁（pv-globe-coast.js）を読み、緯度の行ごとに「縁と交わる経度」を並べて、画面の上で点を作る ──
        行ごとの交わりは覚えておく（同じ行は2回数えない）。縁は 0.5° 幅の帯ごとに引けるようにしておく */
@@ -701,10 +754,13 @@
       raf = 0;
       if (hid()) return;
       var dt = Math.min(64, now - last); last = now;
+      if (intro) { intro = false; home(false, 2600, true); }   // 見え始めた瞬間から寄る（見えないうちに終わらせない）
       if (tween) {
-        var p = Math.min(1, (now - tween.t0) / tween.dur), e = 1 - Math.pow(1 - p, 3);
+        var p = Math.min(1, (now - tween.t0) / tween.dur), e = 1 - Math.pow(1 - p, 3), ez = e;
+        /* 最初の寄り（io）：先に回して主基地を正面へ → それから寄る（同時に寄ると、途中で海の上を大きく映して画面が空になる） */
+        if (tween.io) { e = io3(Math.min(1, p / 0.55)); ez = io3(Math.max(0, Math.min(1, (p - 0.3) / 0.7))); }
         lam = tween.l0 + tween.dl * e; phi = tween.p0 + tween.dp * e;
-        if (tween.dk) k = tween.k0 * Math.pow((tween.k0 + tween.dk) / tween.k0, e);   // 寄るのは倍率で（等速に見える）
+        if (tween.dk) k = tween.k0 * Math.pow((tween.k0 + tween.dk) / tween.k0, ez);   // 寄るのは倍率で（等速に見える）
         if (p >= 1) tween = null;
       } else if (!drag && !pinch) {
         if (Math.abs(vlam) > 1e-5 || Math.abs(vphi) > 1e-5) { lam += vlam * dt; phi = clampP(phi + vphi * dt); vlam *= 0.92; vphi *= 0.92; }
@@ -712,6 +768,7 @@
       draw(now);
       if (!RM) raf = w.requestAnimationFrame(frame);
     }
+    function io3(p) { return p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2; }
     function clampP(p) { return Math.max(-1.35, Math.min(1.35, p)); }
 
     /* ── 描く ── */
@@ -914,7 +971,7 @@
       var ids = Object.keys(pts);
       if (ids.length === 2) { var a = pts[ids[0]], b = pts[ids[1]]; pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), k: k }; drag = null; return; }
       drag = { x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, t: performance.now(), moved: 0 };
-      tween = null; vlam = vphi = 0; idleAt = performance.now();
+      tween = null; intro = false; vlam = vphi = 0; idleAt = performance.now();
     }
     function move(e) {
       if (!pts[e.pointerId]) return;
@@ -945,7 +1002,7 @@
     function wheel(e) {
       if (!e.ctrlKey) return;                     // ふつうのホイールはページを送る。Ctrl＋ホイール（トラックパッドのピンチ）だけ拡大縮小
       e.preventDefault();
-      tween = null; k = Math.max(0.7, Math.min(KMAX, k * Math.exp(-e.deltaY * 0.01))); idleAt = performance.now(); draw();
+      tween = null; intro = false; k = Math.max(0.7, Math.min(KMAX, k * Math.exp(-e.deltaY * 0.01))); idleAt = performance.now(); draw();
     }
     /* 押した所にいちばん近い弧（12px 以内） */
     function hit(x, y) {

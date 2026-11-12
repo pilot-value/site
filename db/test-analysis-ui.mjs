@@ -338,7 +338,7 @@ console.log('▼ 給与が変わった理由（my-value.js の whyModel）');
   const { R } = load(ANA);
   const f = whySuite(MV, R);
   say(f.length === 0, '約束⑥がすべて守られている' + (f.length ? '：' + f.join(' / ') : ''));
-  say(/var wy = why\(rows, m\);/.test(MV) && /function why\(rows, m\)[\s\S]*?return \{ card: compare\(rows, m\), table: '' \};/.test(MV),
+  say(/var wy = why\((?:rows|upTo), m\);/.test(MV) &&   /* ★2026-11-12 選んだ月までの明細（upTo）で読む */ /function why\(rows, m\)[\s\S]*?return \{ card: compare\(rows, m\), table: '' \};/.test(MV),
     '⑥ 描けないときは今までの compare（前回の明細との差）を出す');
 }
 

@@ -71,7 +71,7 @@
   /* ★後から読む2本にも中身の指紋を付ける（.js は配信で4時間覚えられる＝付けないと出した直後に古い部品が残る）。
        my-year.js か my-value-sample.js を直したら、db/test-year-report.mjs が示す値に書き換える（中身と一致するかを見ている）。
        そのあと profile.html（日英）の my-value.js の指紋も変わる（assert-links.mjs が示す値に写す・西は gen-lang.mjs）。 */
-  var YEAR_V = 'adbe97b5';
+  var YEAR_V = '7ee5a36e';
   var SAMPLE_V = '56f31187';
   var SAMPLE_URL = 'my-value-sample.js?v=' + SAMPLE_V;     // 運営の見本（運営のときだけ読む）
   var YEAR_URL = 'my-year.js?v=' + YEAR_V;                 // 「1年」の画面（押したときだけ読む）
@@ -86,8 +86,8 @@
   var ANALYSIS_V = 'ae699612';
   var ANALYSIS_CSS_V = '19e86be1';
   /* ★スケジュールの一番上の「飛んだルート」の地球儀（2026-11-12）。スケジュールのタブを開いたときだけ読む4本。指紋の決まりは上と同じ */
-  var GLOBE_V = 'a81d48ec';
-  var GLOBE_CSS_V = 'd387b690';
+  var GLOBE_V = '1e43f892';
+  var GLOBE_CSS_V = '658f744c';
   var AIRPORT_GEO_V = '12fab2ff';   // 空港 → 位置と街の名前（pv-airport-geo.js）
   var GLOBE_COAST_V = '48ed6a23';  // 陸の縁（pv-globe-coast.js・0.25° より細かく寄ったときだけ my-globe.js が読む）
   var GLOBE_LAND_V = '1b63fac1';    // 陸地の点（pv-globe-land.js）
@@ -154,7 +154,9 @@
       opEmpty: '給与なしの画面',
       opMine: '自分の数字',          // 運営が自分の明細も出しているとき、最後のボタンはこれ（2026-11-09）
       /* 「今月｜1年」の切り替え（2026-11-08 オーナー決定の置き場所） */
-      vMonth: '今月', vYear: '1年',
+      vMonth: '月', vYear: '年',   // ★2026-11-12 オーナー「今月と1年しか見られない」→ 月も年も選べるように（「今月」「1年」から呼び名を変えた）
+      pickM: '表示する月', pickY: '表示する年', prevM: '前の月', nextM: '次の月', prevY: '前の年', nextY: '次の年',
+      yrL: function (y) { return y + '年'; },
       /* YOUR PAY の3つのタブ（2026-11-09）。期間の切り替え（今月｜1年）とは別物＝形も違える。短い字は狭い画面用。 */
       tabsAria: 'YOUR PAY の表示',
       tabSum: '給与サマリー', tabRoster: 'スケジュール', tabAna: '分析', tabSet: '設定',
@@ -331,7 +333,9 @@
       opS: { many: '12 months', one: '1 month', hand: 'Typed in only' },
       opEmpty: 'No-pay screen',
       opMine: 'My numbers',
-      vMonth: 'This month', vYear: 'Year',
+      vMonth: 'Month', vYear: 'Year',
+      pickM: 'Month shown', pickY: 'Year shown', prevM: 'Previous month', nextM: 'Next month', prevY: 'Previous year', nextY: 'Next year',
+      yrL: function (y) { return String(y); },
       tabsAria: 'YOUR PAY views',
       /* ★"Roster" と "Pay" だけ二重引用符：訳の辞書の 'Roster'・'Pay' は別の部品のための長い訳（括弧の説明つき）を持つ。
            タブは短い字が要るので、別の鍵にしてある（gen-msg.mjs は値のソースそのものを鍵にする）。 */
@@ -475,7 +479,9 @@
       opS: { many: '12 meses', one: '1 mes', hand: 'Solo ingreso manual' },
       opEmpty: 'Pantalla sin remuneración',
       opMine: 'Mis cifras',
-      vMonth: 'Este mes', vYear: 'Año',
+      vMonth: 'Mes', vYear: 'Año',
+      pickM: 'Mes que se muestra', pickY: 'Año que se muestra', prevM: 'Mes anterior', nextM: 'Mes siguiente', prevY: 'Año anterior', nextY: 'Año siguiente',
+      yrL: function (y) { return String(y); },
       tabsAria: 'Vistas de YOUR PAY',
       /* ★"Roster" と "Pay" だけ二重引用符：訳の辞書の 'Roster'・'Pay' は別の部品のための長い訳（括弧の説明つき）を持つ。
            タブは短い字が要るので、別の鍵にしてある（gen-msg.mjs は値のソースそのものを鍵にする）。 */
@@ -622,7 +628,8 @@
   var state = { data: null, rows: [], series: [], busy: false,
                pub: null, meds: null, name: '', pay: null,
                op: false, sample: null,           // 運営か・見本の種類（運営だけ）
-               view: 'month',                     // 「今月」か「1年」か
+               view: 'month',                     // 「月」か「年」か
+               mYm: null, year: null,             // ★選んだ月（'YYYY-MM'）・年。null ＝いちばん新しい（MY PAY を開いている間だけ覚える）
                tab: 'summary', sumDirty: false };  // YOUR PAY のタブ・給与サマリーを隠れている間に描き直しそびれたか
 
   /* 見出しに出す呼び名。★ プロフィールの氏名を**そのまま**は出さない。
@@ -1521,7 +1528,7 @@
       .concat(host ? [] : [T.sheets(rows.length), left > 0 ? T.unlockOn(left) : T.unlockOff]);
     return '<div class="mr-hd mv-meta">' +
       (host ? '' : '<h1 class="mr-hd-t">' + esc(T.titleOf(personName())) + '</h1>') +
-      '<p class="mv-meta-t">' + esc(meta.join(' · ')) + '</p>' + viewBar() + '</div>';
+      '<p class="mv-meta-t">' + esc(meta.join(' · ')) + '</p>' + viewBar(rows) + '</div>';
   }
 
   /* ══ まだ給与を1件も出していない人の画面 ═══════════════════════
@@ -1685,12 +1692,45 @@
   }
   /* ── 「今月｜1年」（2026-11-08）──────────────────────────────
      開いたときは「今月」＝今までと1文字も変わらない画面。「1年」は my-year.js が描く。 */
-  function viewBar() {
+  /* 選べる月（出した明細の月・新しい順）と年（年の画面と同じく、いちばん新しい明細の会社の年だけ・新しい順） */
+  function ymOfRow(r) { return r.period_year + '-' + (r.period_month < 10 ? '0' : '') + r.period_month; }
+  function monthsOf(rows) {
+    var seen = {}, out = [];
+    rows.slice().reverse().forEach(function (r) { var k = ymOfRow(r); if (!seen[k]) { seen[k] = 1; out.push({ k: k, y: r.period_year, m: r.period_month }); } });
+    return out;
+  }
+  function yearsOf(rows) {
+    var last = rows[rows.length - 1], seen = {};
+    if (!last) return [];
+    sameAirline(rows, last).forEach(function (r) { if (r.period_year) seen[r.period_year] = 1; });
+    return Object.keys(seen).map(Number).sort(function (a, b) { return b - a; });
+  }
+  /* 「‹ 2026年10月 ▾ ›」：‹ で古い方・› で新しい方。端では押せない */
+  function picker(kind, opts, cur, label, prevL, nextL) {
+    var i = opts.map(function (o) { return o.k; }).indexOf(cur);
+    if (i < 0) i = 0;
+    return '<div class="mv-pick">' +
+      '<button type="button" class="mv-pb" data-step-' + kind + '="1"' + (i >= opts.length - 1 ? ' disabled' : '') + ' aria-label="' + esc(prevL) + '">‹</button>' +
+      '<select class="mv-psel" data-pick-' + kind + ' aria-label="' + esc(label) + '">' + opts.map(function (o, j) {
+        return '<option value="' + esc(String(o.k)) + '"' + (j === i ? ' selected' : '') + '>' + esc(o.t) + '</option>';
+      }).join('') + '</select>' +
+      '<button type="button" class="mv-pb" data-step-' + kind + '="-1"' + (i <= 0 ? ' disabled' : '') + ' aria-label="' + esc(nextL) + '">›</button></div>';
+  }
+  function viewBar(rows) {
+    rows = rows || [];
+    var pk = '';
+    if (state.view === 'month') {
+      var ms = monthsOf(rows).map(function (o) { return { k: o.k, t: T.ym(o.y, o.m) }; });
+      if (ms.length) pk = picker('m', ms, state.mYm || ms[0].k, T.pickM, T.prevM, T.nextM);
+    } else {
+      var ys = yearsOf(rows).map(function (y) { return { k: y, t: T.yrL(y) }; });
+      if (ys.length) pk = picker('y', ys, state.year || ys[0].k, T.pickY, T.prevY, T.nextY);
+    }
     return '<div class="mv-vrow"><div class="pt-tabs mv-view" role="tablist">' +
       ['month', 'year'].map(function (k) {
         return '<button type="button" role="tab" aria-selected="' + (state.view === k) + '" class="pt-tab' + (state.view === k ? ' on' : '') +
           '" data-view="' + k + '">' + esc(k === 'month' ? T.vMonth : T.vYear) + '</button>';
-      }).join('') + '</div>' +
+      }).join('') + '</div>' + pk +
       /* 「今月」だけ印刷のボタン（「1年」には自分の PDF のボタンがある） */
       (state.view === 'month' ? '<button type="button" class="mv-tool" data-print aria-label="' + esc(T.prPrintA) + '">' + PRINT_ICON + esc(T.prPrint) + '</button>' : '') +
       '</div>';
@@ -1769,7 +1809,7 @@
   function bindView() {
     var pb = root.querySelector('[data-print]');
     if (pb) pb.addEventListener('click', function () {
-      var r = state.rows[state.rows.length - 1];
+      var r = state.sel || state.rows[state.rows.length - 1];   // ★選んでいる月の明細
       var p = r ? T.prMonth.replace('{t}', function () { return T.ym(r.period_year, r.period_month); }) : '';
       // 作成日は画面から外した（2026-11-11）。紙の見出しにだけ載せる
       if (r && r.created_at) p += ' · ' + T.kUpdated + ' ' + T.date(r.created_at);
@@ -1783,6 +1823,25 @@
         render();
       });
     });
+    /* 月・年を選ぶ（‹ › と選ぶ欄） */
+    var pickM = root.querySelector('[data-pick-m]'), pickY = root.querySelector('[data-pick-y]');
+    var stepTo = function (sel, dir) {
+      var i = sel.selectedIndex + dir;
+      if (i < 0 || i >= sel.options.length) return null;
+      return sel.options[i].value;
+    };
+    if (pickM) {
+      pickM.addEventListener('change', function () { state.mYm = pickM.value; render(); });
+      root.querySelectorAll('[data-step-m]').forEach(function (b) {
+        b.addEventListener('click', function () { var v = stepTo(pickM, +b.getAttribute('data-step-m')); if (v) { state.mYm = v; render(); } });
+      });
+    }
+    if (pickY) {
+      pickY.addEventListener('change', function () { state.year = +pickY.value; render(); });
+      root.querySelectorAll('[data-step-y]').forEach(function (b) {
+        b.addEventListener('click', function () { var v = stepTo(pickY, +b.getAttribute('data-step-y')); if (v) { state.year = +v; render(); } });
+      });
+    }
   }
   var yearLoading = null;
   function loadYear() {
@@ -2107,8 +2166,11 @@
       return;
     }
     /* 月をまたぐ比較と同じく、最新の会社の月だけ（会社が変われば契約が違う） */
+    var ysel = yearsOf(rows);
+    if (state.year && ysel.indexOf(state.year) < 0) state.year = null;
     w.PVYear.render(d.getElementById('pv-year-box'), sameAirline(rows, rows[rows.length - 1]), {
       segName: SEGNAME, sample: !!state.sample,
+      year: state.year || ysel[0] || null,     // ★上の「‹ 2026年 ›」で選んだ年（カードの中の年の切り替えは出さない）
       lead: function () { return lifetime(rows); }, onDraw: drawCumChart,
       /* 会社の会員の単価と折れ目（db/company-rates.sql・2人以上の組だけ・人数は返らない）。
          口がまだ無い（SQL を貼る前）・失敗したときは null ＝本人の数字だけで描く。見本のときは作り物を返す。 */
@@ -2138,10 +2200,15 @@
     var rows = (state.sample && w.PV_VALUE_SAMPLE) ? w.PV_VALUE_SAMPLE(state.sample) : (dat.reports || []);
     if (!rows.length) return renderEmpty();
     if (state.view === 'year') return renderYear(rows);
-    var r = rows[rows.length - 1];
-    state.series = sameAirline(rows, r);   // 月をまたぐ比較はこの会社の中だけ
+    var at = rows.length - 1;
+    if (state.mYm) { for (var ri = rows.length - 1; ri >= 0; ri--) if (ymOfRow(rows[ri]) === state.mYm) { at = ri; break; } }
+    if (ymOfRow(rows[at]) !== state.mYm) state.mYm = null;
+    var upTo = rows.slice(0, at + 1);       // ★選んだ月まで（前回との差・給与が変わった理由はこの中で数える）
+    var r = upTo[upTo.length - 1];
+    state.sel = r;
+    state.series = sameAirline(upTo, r);   // 月をまたぐ比較はこの会社の中だけ
     state.rows = rows;                     // 累計だけは全社ぶんを足す
-    var m = mom(rows);
+    var m = mom(upTo);
 
     /* ★ 並びは「今月（緑）｜累計 → 構成｜前回との差 → 他社 → 次」。
        ★2026-11-11 オーナー「今月の実績を緑のカード・白い字に」── 色のついたカードは今月の1枚だけにして先頭へ
@@ -2155,7 +2222,7 @@
          自分の明細を読み終えてから外（機会）を見る、という順にする。
        ★ どちらの段も、幅が足りない画面では自動で縦に落ちる
          （CSS 側。メディアクエリではなく flex-basis で決めている）。 */
-    var wy = why(rows, m);                 // 給与が変わった理由（検算が通らなければ前回の明細との差）
+    var wy = why(upTo, m);                 // 給与が変わった理由（検算が通らなければ前回の明細との差）
     root.innerHTML =
       opBar() +
       header(dat, r, rows) +
