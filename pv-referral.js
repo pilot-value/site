@@ -498,7 +498,9 @@
        ここを1文字でも伸ばすなら必ず `node shot-referral.mjs strip ja dark 390` を撮る。 */
     '@media (max-width:640px){.pvr-strip{padding:18px}',
       '.pvr-card{padding:32px 22px 26px;border-radius:19px}',
-      '.pvr-strip-t{font-size:1.1rem}',
+      /* ★2026-11-12 英語の見出し（An anonymous pilot invited you）が 390px で2行になった（assert-referral が赤）。
+         字（Outfit）が届く前の代わりの字だと 1.1rem で本文幅 308px を超える。1rem なら日英どちらの字でも1行（実測）。 */
+      '.pvr-strip-t{font-size:1rem}',
       /* ★VISION も 1文字ぶん落とす。.78rem のままだと日本語の1行目が
          328px 必要で本文幅 303px に入らず、「知り、」だけが2行目に落ちる
          （実測。英語は語の切れ目で折り返すので3行になっても読める）。 */
