@@ -155,6 +155,10 @@ html[data-ui] .ut-rail-pill{position:absolute;inset:0;z-index:-1;border-radius:1
 html.ut-pagevt .mr-side .mr-side-a.is-on{color:var(--pv-ink)}
 html.ut-pagevt .mr-side .mr-side-a.is-on>svg:not(.mr-side-lk){color:var(--pv-accent-ink) !important}
 
+/* 左メニューの字はどのページでも同じ字（Inter）── 新しい字は間に合わない回があり（display=optional）、
+   ページごとに字の幅が変わると、移るたびにメニューが揺れて見えた（2026-11-12 オーナー「ぶれる」） */
+html[data-ui] .mr-side,html[data-ui] .mr-side *{font-family:'Inter','Noto Sans JP',system-ui,sans-serif !important}
+
 /* ── 4) 選んだ印が滑って移る（タブの中・pv-glass.js が --ut-dx / --ut-sx を入れる）──────
    印は「選んだボタン」の疑似要素。押されたら前の位置と幅から、ばねで今の位置へ戻す（FLIP）。 */
 html[data-ui] .ut-snap::before,html[data-ui] .ut-snap::after{transition:none !important}
@@ -369,10 +373,8 @@ html[data-ui] .ut-counting::after{content:attr(data-ut-n);content:attr(data-ut-n
 
 /* 6-e) スクロールにつれて：背景の緑が少し上へ流れる・ヘッダーの下に影が出る（どちらもスクロールと一緒に進む） */
 @supports (animation-timeline:scroll()){
-  html[data-ui] body::before{animation:utDrift linear both;animation-timeline:scroll(root)}
   html[data-ui] .mr-top::after{animation:utShow linear both;animation-timeline:scroll(root);animation-range:0px 140px}
 }
-@keyframes utDrift{to{transform:translateY(-10vh)}}
 @keyframes utShow{to{opacity:1}}
 
 /* ── 7) 切り替え（View Transitions）─────────────────────────────────────
@@ -395,7 +397,7 @@ html[data-ui] .ut-counting::after{content:attr(data-ut-n);content:attr(data-ut-n
    狭い画面はメニューが右から出る板で、押すと閉じる ＝ 閉じた板の中の印だけが中身の上に浮いて見える（実際に撮れた） */
 @media(min-width:1001px){html.ut-pagevt .ut-rail-pill{view-transition-name:ut-rail-pill}}
 html.ut-pagevt main{view-transition-name:ut-page}
-::view-transition-group(ut-rail-pill){animation-duration:.6s;animation-timing-function:var(--ut-spring)}
+::view-transition-group(ut-rail-pill){animation-duration:.5s;animation-timing-function:cubic-bezier(.22,1,.36,1)}   /* 行き過ぎない（ばねだと着いてから揺れて見えた） */
 /* 滑ってくる板は一番上に描かれる ＝ そのままだと、通り過ぎる項目の字を隠す。掛け合わせて字を透かす。
    ★掛け合わせは group に付ける（image-pair は自分の中で閉じていて、下のメニューの字と混ざらない） */
 ::view-transition-group(ut-rail-pill){mix-blend-mode:multiply}
