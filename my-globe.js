@@ -234,9 +234,14 @@
     var legs = S.legs.filter(function (l) { return inRange(l.date); });
     var routes = {}, port = {}, order = [];
     legs.forEach(function (l) {
-      var a = l.ga.iata, b = l.gb.iata, k = a + '>' + b;     // ★2026-11-12 オーナー「往復分を出すのやめない？」＝向きごとに別のルート
+      var a = l.ga.iata, b = l.gb.iata, k = routeKey(l);     // ★日は向きごと・月より長い期間は2空港で1つ（オーナー「日ごとは1便ずつ・月以上は往復で」）
       var r = routes[k];
-      if (!r) { r = routes[k] = { k: k, a: l.ga, b: l.gb, legs: [], n: 0, dh: 0, sum: 0, cur: null }; order.push(r); }
+      if (!r) {
+        var srt = dayMode() || a < b;
+        r = routes[k] = { k: k, a: srt ? l.ga : l.gb, b: srt ? l.gb : l.ga, legs: [], n: 0, dh: 0, sum: 0, cur: null, dirs: {} };
+        order.push(r);
+      }
+      r.dirs[a + '>' + b] = 1;
       r.legs.push(l); r.n++; if (l.kind === 'deadhead') r.dh++;
       if (l.amount != null) { if (r.cur == null) r.cur = l.currency; if (r.cur === l.currency) r.sum += l.amount; }
       port[a] = (port[a] || 0) + 1; port[b] = (port[b] || 0) + 1;
@@ -262,7 +267,13 @@
   var IC_HAND = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12"/><path d="M11 11.5v-2a1.5 1.5 0 0 1 3 0V12"/><path d="M14 10.5a1.5 1.5 0 0 1 3 0V12"/><path d="M17 11.5a1.5 1.5 0 0 1 3 0V16a6 6 0 0 1-6 6h-1.5a6 6 0 0 1-4.6-2.2L5 16.5a1.6 1.6 0 0 1 2.4-2.1L8 15"/></svg>';
   function kindL(k) { return k === 'deadhead' ? T.dh : k === 'unknown' ? T.unk : T.op; }
   /* ★2026-11-12 オーナー「片道なのに矢印が2つ」：期間の中で飛んだ向きが1つだけなら、その向きで「HND → FUK」。両方あれば「HND ⇄ KMJ」 */
-  function routeLabel(r) { return r.a.iata + ' → ' + r.b.iata; }
+  /* ルートの名前：日は向きのまま。まとめたルートは、両方の向きを飛んでいれば ⇄・片方だけなら実際の向きで → */
+  function routeLabel(r) {
+    var ks = Object.keys(r.dirs || {});
+    if (ks.length === 1) { var p = ks[0].split('>'); return p[0] + ' → ' + p[1]; }
+    return r.a.iata + ' ⇄ ' + r.b.iata;
+  }
+  function dayMode() { return S.per === 'd'; }
   /* 地球儀の線は2空港で1本（向きを問わない）。向きつきのルート 'A>B' → 線の鍵 'A|B'（名前の順） */
   function pairOf(k) {
     if (!k || k.indexOf('>') < 0) return k || null;
@@ -368,7 +379,7 @@
     } else toast.hidden = true;
     G.setData(V, drawRoute, leg);
   }
-  function routeKey(l) { return l.ga.iata + '>' + l.gb.iata; }
+  function routeKey(l) { var k = l.ga.iata + '>' + l.gb.iata; return dayMode() ? k : pairOf(k); }
   function sumHTML(V) {
     var p = V.ring == null ? null : Math.round(V.ring * 1000) / 10;
     var C = 2 * Math.PI * 34, off = p == null ? C : C * (1 - p / 100);
@@ -519,7 +530,7 @@
   }
   function pickRoute(k) {
     /* 地球儀の線を押した（'A|B'）＝その2空港のいちばん新しい便の向きを選ぶ */
-    if (k && k.indexOf('|') >= 0) { var nl = S.V.legs.filter(function (x) { return pairOf(routeKey(x)) === k; })[0]; k = nl ? routeKey(nl) : null; }
+    if (k && k.indexOf('|') >= 0 && dayMode()) { var nl = S.V.legs.filter(function (x) { return pairOf(routeKey(x)) === k; })[0]; k = nl ? routeKey(nl) : null; }
     S.route = k; S.listN = 8; S.filt = 'all';
     if (k) { var l = S.V.legs.filter(function (x) { return routeKey(x) === k; })[0]; S.leg = l ? l.id : S.leg; }
     render(); G.focusRoute();

@@ -16557,4 +16557,8 @@ export const TM = {
   "js:{ off: 'Off', vac: 'Leave', duty: 'Duty', standby: 'SBY', training: 'Training', ground: 'Ground', other: 'Other', unknown: '' }": {"es":"js:{ off: 'Libre', vac: 'Vacaciones', duty: 'Servicio', standby: 'SBY', training: 'Entrenamiento', ground: 'Tierra', other: 'Otro', unknown: '' }","st":"manual","by":"claude","at":"2026-11-12","pages":["my-roster.js"],"note":"勤務コードに「その他」（2026-11-12）"},
   "js:{ off: 'Day off', vac: 'Annual leave', duty: 'Duty', standby: 'Standby', training: 'Training', ground: 'Ground duty', other: 'Other', unknown: 'Not sure' }": {"es":"js:{ off: 'Día libre', vac: 'Vacaciones anuales', duty: 'Servicio', standby: 'Standby', training: 'Entrenamiento', ground: 'Actividad en tierra', other: 'Otro', unknown: 'No estoy seguro' }","st":"manual","by":"claude","at":"2026-11-12","pages":["roster-upload.js"],"note":"勤務コードに「その他」（2026-11-12）"},
   "js:'Submit roster'": {"es":"js:'Enviar programación'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"地球儀 2026-11-12"},
+  "js:'Month shown'": {"es":"js:'Mes que se muestra'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-value.js"],"note":"給与サマリーの月・年を選ぶ 2026-11-12"},
+  "js:'Year shown'": {"es":"js:'Año que se muestra'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-value.js"],"note":"給与サマリーの月・年を選ぶ 2026-11-12"},
+  "js:'Previous year'": {"es":"js:'Año anterior'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-value.js"],"note":"給与サマリーの月・年を選ぶ 2026-11-12"},
+  "js:'Next year'": {"es":"js:'Año siguiente'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-value.js"],"note":"給与サマリーの月・年を選ぶ 2026-11-12"},
 };

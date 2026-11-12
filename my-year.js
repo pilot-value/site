@@ -714,6 +714,7 @@
     if (!box) return;
     var ys = years(rows);
     if (!ys.length) { box.innerHTML = ''; return; }
+    if (o.year && ys.indexOf(o.year) >= 0) state.year = o.year;      // ★2026-11-12 上の「‹ 2026年 ›」で選んだ年
     if (ys.indexOf(state.year) < 0) state.year = ys[0];
     var md = state.model = calc(rows, state.year);
     /* ★2026-11-11 オーナー「1年はカードが横に長すぎて見づらい」── 中身ごとの狭いカードを2列に並べる（狭い画面は1列）。
@@ -736,7 +737,7 @@
     box.innerHTML =
       '<div class="yr yr-g' + (two ? ' is-two' : '') + '" id="pv-year">' +
         card('<div class="yr-top"><h2 class="mr-card-t">' + esc(T.title) + '<span class="yr-pyr">' + esc(L === 'ja' ? '（' + T.yr(state.year) + '）' : ' (' + T.yr(state.year) + ')') + '</span></h2>' +
-          (ys.length > 1 ? '<div class="pt-tabs yr-years">' + ys.map(function (y) {
+          (ys.length > 1 && !o.year ? '<div class="pt-tabs yr-years">' + ys.map(function (y) {
             return '<button type="button" class="pt-tab' + (y === state.year ? ' on' : '') + '" data-yr="' + y + '">' + esc(T.yr(y)) + '</button>';
           }).join('') + '</div>' : '<span class="yr-one">' + esc(T.yr(state.year)) + '</span>') +
           '<span class="yr-sp"></span><button type="button" class="yr-pdf">' + esc(T.pdf) + '</button></div>' +
