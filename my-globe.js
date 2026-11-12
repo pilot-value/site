@@ -37,8 +37,8 @@
       hint: 'ドラッグで回す・ルートを押す', zin: '拡大', zout: '縮小',
       op: '乗務', dh: 'DH', unk: '区分確認中',
       earn: 'この便の稼ぎ（目安）',
-      mixF: '固定給', mixV: '変動給', howF: '時給 × 勤務時間', howV: 'ブロックタイムで按分',
-      fixF: '時給 {r} × 勤務 {d}', rateF: '時給 ＝ 月の固定給 {o} ÷ 勤務 {D}', flF: '月の変動給 {m} を、ブロック {b} ／ {t} で按分', dhNo: '便乗の便には付かない',
+      mixF: '固定給', mixV: '変動給', bhL: 'ブロック1時間あたり',
+      fixF: '時給 {r} × 勤務 {d}', flF: '月の変動給 {m} を、ブロック {b} ／ {t} で按分', dhNo: '便乗の便には付かない',
       no_payslip: '{m}の明細を足すと出ます', roster_partial: 'この月のスケジュールを全部取り込むと出ます',
       mixed_currency: '通貨の違う明細が混ざる月は出せません', no_duty: '勤務時間が分からない月は出せません',
       no_block: 'この便の時間が分からないため出せません', no_pay: 'この月は額を出せません',
@@ -67,8 +67,8 @@
       hint: 'Drag to rotate, tap a route', zin: 'Zoom in', zout: 'Zoom out',
       op: 'Operating', dh: 'Deadhead', unk: 'Unclassified',
       earn: 'Earned on this flight (est.)',
-      mixF: 'Fixed pay', mixV: 'Variable pay', howF: 'Hourly × duty time', howV: 'Split by block time',
-      fixF: '{r}/hr × duty {d}', rateF: 'Hourly = monthly fixed pay {o} ÷ duty {D}', flF: '{m} monthly variable pay, split by block {b} / {t}', dhNo: 'Not paid on deadhead legs',
+      mixF: 'Fixed pay', mixV: 'Variable pay', bhL: 'Per block hour',
+      fixF: '{r}/hr × duty {d}', flF: '{m} monthly variable pay, split by block {b} / {t}', dhNo: 'Not paid on deadhead legs',
       no_payslip: 'Add your {m} payslip to see this', roster_partial: 'Import the whole month of your roster to see this',
       mixed_currency: 'Not shown for months with payslips in different currencies', no_duty: 'Not shown when the month has no duty times',
       no_block: 'Not shown because this flight has no block time', no_pay: 'Not shown for this month',
@@ -96,8 +96,8 @@
       hint: 'Arrastra para girar y toca una ruta', zin: 'Acercar', zout: 'Alejar',
       op: 'Operando', dh: 'Deadhead', unk: 'Sin clasificar',
       earn: 'Ganado en este vuelo (est.)',
-      mixF: 'Remuneración fija', mixV: 'Remuneración variable', howF: 'Por hora × tiempo de servicio', howV: 'Repartido por tiempo de bloque',
-      fixF: '{r}/h × servicio {d}', rateF: 'Por hora = remuneración fija del mes {o} ÷ servicio {D}', flF: '{m} de remuneración variable del mes, repartido por bloque {b} / {t}', dhNo: 'No se paga en tramos deadhead',
+      mixF: 'Remuneración fija', mixV: 'Remuneración variable', bhL: 'Por hora block',
+      fixF: '{r}/h × servicio {d}', flF: '{m} de remuneración variable del mes, repartido por bloque {b} / {t}', dhNo: 'No se paga en tramos deadhead',
       no_payslip: 'Agrega tu recibo de nómina de {m} para verlo', roster_partial: 'Importa el mes completo de tu programación para verlo',
       mixed_currency: 'No se muestra en meses con recibos en distintas monedas', no_duty: 'No se muestra si el mes no tiene horas de servicio',
       no_block: 'No se muestra porque este vuelo no tiene tiempo de bloque', no_pay: 'No se muestra en este mes',
@@ -258,10 +258,12 @@
        便の額は flightPay が2つに分けて返す（fixed＝時給 × この便の勤務時間＝固定給／flight＝月の変動給をブロックタイムで按分＝変動給。日当も変動給に入る）。
        ここでは足すだけ・数え直さない。⚠️ ブロック率（勤務時間のうちブロックタイム）を輪に戻さない。地球儀で勤務時間を数えない（数えるのは flightPay の1か所）。
        ⚠️ 手当ごとに細かく分けない（同じ日の便はどれも同じ割合になるうえ、配り方の規則を突っ込まれる） */
-    var total = 0, fx = 0, fv = 0, cur = null;
-    legs.forEach(function (l) { if (l.amount == null) return; if (cur == null) cur = l.currency; if (cur === l.currency) { total += l.amount; fx += l.fixed || 0; fv += l.flight || 0; } });
+    var total = 0, fx = 0, fv = 0, cur = null, opAmt = 0, opMin = 0;
+    legs.forEach(function (l) { if (l.amount == null) return; if (cur == null) cur = l.currency; if (cur === l.currency) { total += l.amount; fx += l.fixed || 0; fv += l.flight || 0;
+      if (l.kind !== 'deadhead' && l.blockMin > 0) { opAmt += l.amount; opMin += l.blockMin; } } });
+    /* ★2026-11-13 ブロック1時間あたり＝乗務の便の稼ぎ ÷ そのブロックタイム（便乗は分子にも分母にも入れない）。オーナー「計算方法わざわざ下に書く必要ある？もっと書いた方がためになること」 */
     var top = order.filter(function (r) { return r.cur === cur && r.sum > 0; }).sort(function (p, q) { return q.sum - p.sum; }).slice(0, 3);
-    return { legs: legs, routes: order, hub: hub, total: cur == null ? null : total, fx: fx, fv: fv, cur: cur, top: top };
+    return { legs: legs, routes: order, hub: hub, total: cur == null ? null : total, fx: fx, fv: fv, cur: cur, top: top, perBh: opMin > 0 ? opAmt * 60 / opMin : null };
   }
 
   /* ── 描く（字）──────────────────────────────────────────── */
@@ -418,7 +420,7 @@
     }).join('') + '</ul>';
   }
   function sumHTML(V) {
-    var rows = V.total == null ? [] : mixRows(V.fx, V.fv, { f: [T.howF], v: [T.howV] });
+    var rows = V.total == null ? [] : mixRows(V.fx, V.fv, { f: [], v: [] });
     var main = rows.length ? (rows[1].amt > 0 ? rows[1] : rows[0]) : null;
     var max = V.top.length ? V.top[0].sum : 0;
     return '<div class="gl-sum-h"><span class="gl-ov-t">' + esc(T.sumT) + '<small>' + esc(T.est) + '</small></span>' +
@@ -433,7 +435,8 @@
             '<span class="gl-bar-l">' + esc(routeLabel(r)) + '</span><span class="gl-bar-v">' + esc(money(r.sum, r.cur)) + '</span>' +
             '<i class="gl-bar-t"><i class="gl-bar-f" style="--i:' + i + ';transform:scaleX(' + (max > 0 ? (r.sum / max).toFixed(3) : 0) + ')"></i></i></button>';
         }).join('') + '</div>' +
-      '</div>' + mixList(rows.filter(function (r) { return r.amt > 0; }), V.cur, true);
+      '</div>' + mixList(rows.filter(function (r) { return r.amt > 0; }), V.cur, true) +
+      (V.perBh != null ? '<div class="gl-bh"><span>' + esc(T.bhL) + '</span><b>' + esc(money(Math.round(V.perBh), V.cur)) + '</b></div>' : '');
   }
   function fltHTML(l) {
     var head = esc(dayL(l.date)) + (l.fleet ? '<span class="gl-flt-fl">' + esc(l.fleet) + '</span>' : '');
@@ -469,13 +472,12 @@
       '<i class="gl-shr-t"><i style="transform:scaleX(' + sh.r.toFixed(3) + ')"></i></i></div>';
   }
   /* ★2026-11-13 便の内訳を式ごと（オーナー「どういう計算なのか」）。数字は flightPay の答えを並べるだけ：
-       固定給 ＝ 時給 × この便の勤務時間（時給 ＝ 月の固定給 ÷ 月の勤務時間）／変動給 ＝ 月の変動給 × この便のブロックタイム ÷ 月のブロックタイム（便乗には付かない） */
+       固定給 ＝ 時給 × この便の勤務時間／変動給 ＝ 月の変動給 × この便のブロックタイム ÷ 月のブロックタイム（便乗には付かない） */
   function legMixHTML(l) {
     var M = S.fp && S.fp.byYm ? S.fp.byYm[l.ym] : null, cur = l.currency;
     var hf = [fill(T.fixF, { r: money(Math.round(l.ratePerHour), cur), d: hm(l.dutyMin) })];
-    if (M && M.otMinor != null && M.dutyMin > 0) hf.push(fill(T.rateF, { o: money(Math.round(M.otMinor), cur), D: hm(M.dutyMin) }));
     var hv = l.kind === 'deadhead' ? [T.dhNo]
-      : M && M.flMinor != null && M.opBlockMin > 0 ? [fill(T.flF, { m: money(Math.round(M.flMinor), cur), b: hm(l.blockMin), t: hm(M.opBlockMin) })] : [T.howV];
+      : M && M.flMinor != null && M.opBlockMin > 0 ? [fill(T.flF, { m: money(Math.round(M.flMinor), cur), b: hm(l.blockMin), t: hm(M.opBlockMin) })] : [];
     var rows = [{ k: 'fixed', amt: l.fixed || 0, name: T.mixF, how: hf, c: MIX_C.fixed }];
     if (l.basis === 'split') rows.push({ k: 'var', amt: l.flight || 0, name: T.mixV, how: hv, c: MIX_C.var });
     return mixList(rows, cur, false);

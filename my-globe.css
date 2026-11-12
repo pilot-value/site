@@ -93,7 +93,7 @@
 .gl-bar-t{grid-column:1/-1;display:block;height:4px;border-radius:3px;background:rgba(255,255,255,.14);overflow:hidden}
 .gl-bar-f{display:block;height:100%;border-radius:3px;background:rgba(255,255,255,.78);transform-origin:left center}
 
-/* 配分の凡例（色の点・名前・％・額、名前の下に式）。稼ぎのカードの下と、便のカードの内訳で同じ形 */
+/* 配分の凡例（色の点・名前・％・額）。便のカードだけ名前の下に式を1行。稼ぎのカードの下と、便のカードの内訳で同じ形 */
 .gl-mx{display:flex;flex-direction:column;gap:9px;margin:14px 0 0;padding:12px 0 0;border-top:1px solid var(--gl-line);list-style:none}
 .gl-mx li{display:grid;grid-template-columns:8px minmax(0,1fr) auto auto;align-items:center;gap:0 8px}
 .gl-mx li>i{width:8px;height:8px;border-radius:50%}
@@ -102,6 +102,10 @@
 .gl-mx em{grid-column:3;font-style:normal;font-size:.72rem;font-weight:600;font-variant-numeric:tabular-nums}
 .gl-mx b{grid-column:4;font-size:.72rem;font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
 .gl-mx.is-leg{margin:0;padding:0;border:0;gap:11px}
+/* ブロック1時間あたり（稼ぎのカードのいちばん下） */
+.gl-bh{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:12px;padding-top:12px;border-top:1px solid var(--gl-line)}
+.gl-bh span{font-size:.7rem;font-weight:600}
+.gl-bh b{font-size:.95rem;font-weight:600;font-variant-numeric:tabular-nums}
 .gl-mx.is-leg .gl-mx-n{font-size:.74rem}
 .gl-mx.is-leg b{font-size:.84rem}
 
