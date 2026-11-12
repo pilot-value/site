@@ -721,11 +721,11 @@ if (process.env.REC) {
       const y = await page.evaluate(() => { const e = document.querySelector('#hero-section .hero-shot'); const r = e.getBoundingClientRect(); return Math.max(0, scrollY + r.top - 160); });
       await sleep(1200); await glide(y, 1800); await sleep(800);
     }
-    await sleep(12500);   // 2.8 秒 × 4画面 ＋ 少し
+    await sleep(8000);   // 1画面 1.4〜1.8 秒 × 4画面 ＋ 少し
     /* 下の2つの節（REAL PAY・航空会社の比較）も PC の窓。それぞれ見せてから先へ */
     const yOf = (sel) => page.evaluate((sel) => { const e = document.querySelector(sel); if (!e) return 0; const r = e.getBoundingClientRect(); return Math.max(0, scrollY + r.top - (innerHeight - r.height) / 2); }, sel);
-    await glide(await yOf('#lt2-box'), 1600); await sleep(6200);
-    await glide(await yOf('#lt3-box'), 1400); await sleep(7200);
+    await glide(await yOf('#lt2-box'), 1400); await sleep(4600);
+    await glide(await yOf('#lt3-box'), 1200); await sleep(5600);
   } else if (process.env.TOUR === 'all') {
     /* 全ページに広げたあとの見本（2026-11-12）：トップ → 航空会社一覧 → 会社ページ → Vote → 国のページ → MY PAY → REAL PAY。
        PAGE=index.html で始める。ページは住所を変えて移る（ページまたぎの切り替えが起きる） */

@@ -1596,22 +1596,22 @@
 :is(#hero-section,#lp-realpay,#lp-airlines) .lt-go:focus-visible{outline:3px solid var(--pv-accent);outline-offset:-3px}
 :is(#hero-section,#lp-realpay,#lp-airlines) .lt-scr{position:absolute;inset:0;opacity:0;visibility:hidden;pointer-events:none}
 :is(#hero-section,#lp-realpay,#lp-airlines) .lt-scr.is-on{opacity:1;visibility:visible;pointer-events:auto}
-:is(#hero-section,#lp-realpay,#lp-airlines) .lt-scr.is-on.lt-play{animation:ltIn .45s cubic-bezier(.16,1,.3,1) both}
-:is(#hero-section,#lp-realpay,#lp-airlines) .lt-scr.is-out{visibility:visible;animation:ltOut .28s cubic-bezier(.4,0,1,1) both}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-scr.is-on.lt-play{animation:ltIn .34s cubic-bezier(.16,1,.3,1) both}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-scr.is-out{visibility:visible;animation:ltOut .22s cubic-bezier(.4,0,1,1) both}
 @keyframes ltIn{from{opacity:0;transform:translateY(10px);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
 @keyframes ltOut{from{opacity:1;filter:none}to{opacity:0;transform:translateY(-6px);filter:blur(6px)}}
 /* カーソル（次に押す所へ動く） */
 :is(#hero-section,#lp-realpay,#lp-airlines) .lt-cursor{position:absolute;left:0;top:0;z-index:10;width:22px;height:22px;pointer-events:none;
-  filter:drop-shadow(0 3px 4px rgba(0,0,0,.28));transition:transform .5s cubic-bezier(.45,.05,.2,1)}
+  filter:drop-shadow(0 3px 4px rgba(0,0,0,.28));transition:transform .36s cubic-bezier(.45,.05,.2,1)}
 :is(#hero-section,#lp-realpay,#lp-airlines) .lt-cursor svg{display:block}
 
 /* 画面の中身。部品（.lt-r）は見えた所から順に浮かぶ（.lt-on）。はみ出す分は 1.4 秒後にすっと下へ流れる（.lt-flow） */
 :is(#hero-section,#lp-realpay,#lp-airlines) .lt-in{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-content:start;padding:2px 18px 20px 14px;will-change:transform}
-:is(#hero-section,#lp-realpay,#lp-airlines) .lt-in.lt-flow{transition:transform 1.1s cubic-bezier(.6,.05,.25,1)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-in.lt-flow{transition:transform .8s cubic-bezier(.6,.05,.25,1)}
 :is(#hero-section,#lp-realpay,#lp-airlines) .lt-span{grid-column:1 / -1}
 :is(#hero-section,#lp-realpay,#lp-airlines) .lt-col{display:grid;gap:12px;align-content:start;min-width:0}
 :is(#hero-section,#lp-realpay,#lp-airlines) .lt-r{opacity:0;transform:translateY(12px)}
-:is(#hero-section,#lp-realpay,#lp-airlines) .lt-r.lt-on{opacity:1;transform:none;transition:opacity .45s ease,transform .7s cubic-bezier(.16,1,.3,1)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-r.lt-on{opacity:1;transform:none;transition:opacity .3s ease,transform .5s cubic-bezier(.16,1,.3,1)}
 :is(#hero-section,#lp-realpay,#lp-airlines) .lt-card{padding:14px 16px;border-radius:18px;border:1px solid color-mix(in srgb,#fff 66%,transparent);
   background:color-mix(in srgb,var(--pv-surface) 74%,transparent);
   box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 85%,transparent),0 18px 36px -26px color-mix(in srgb,var(--pv-accent-dark) 55%,transparent)}
@@ -1789,7 +1789,7 @@
 @media (max-width:767px){ :is(#lp-realpay,#lp-airlines) .lt-pcbox.lt-pcbox{height:auto;aspect-ratio:10 / 10.5;padding:0} }
 #lp-realpay .lt-main{position:relative}
 #lp-realpay .lp-rp-card.lt-dw{position:absolute;top:60px;right:14px;bottom:14px;z-index:5;width:340px;max-width:none;margin:0;overflow:hidden;border-radius:20px;
-  transform:translateX(115%);transition:transform .65s cubic-bezier(.2,.9,.25,1.04);
+  transform:translateX(115%);transition:transform .45s cubic-bezier(.2,.9,.25,1.04);
   box-shadow:0 2px 4px rgba(15,23,42,.06),0 28px 56px -24px rgba(2,48,40,.55)}
 #lp-realpay .lp-rp-card.lt-dw.is-open{transform:none}
 #lp-realpay .lt-pc.is-narrow .lp-rp-card.lt-dw{width:300px;right:10px}

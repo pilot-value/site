@@ -992,7 +992,7 @@
     var step = function (now) {
       if (my !== tgt._ltRun) return;
       if (t0 == null) t0 = now;
-      var k = Math.min(1, (now - t0) / 800), e = 1 - Math.pow(1 - k, 4);
+      var k = Math.min(1, (now - t0) / 650), e = 1 - Math.pow(1 - k, 4);
       tgt.textContent = k < 1 ? fmt(val * e) : fin;
       if (k < 1) requestAnimationFrame(step);
     };
@@ -1052,9 +1052,11 @@
         if (e.target.classList.contains('lt-n')) tourCount(e.target);
       });
     }, { root: box, threshold: 0.3 }) : null;
+    var motionEnd = 950;   // この画面の動きが終わる時刻（ms）。流れる画面は 550 ＋ 800
     var play = function (s) {
       Array.prototype.forEach.call(s.querySelectorAll('.lt-r'), function (r) { r.classList.remove('lt-on'); if (io && !RM) { io.unobserve(r); io.observe(r); } });
       var inn = s.querySelector('.lt-in');
+      motionEnd = inn && inn.scrollHeight - go.clientHeight > 4 ? 1350 : 950;
       if (inn) { inn.classList.remove('lt-flow'); inn.style.transform = ''; }
       if (RM || !io) { Array.prototype.forEach.call(s.querySelectorAll('.lt-r'), function (r) { r.classList.add('lt-on'); }); return; }
       /* 1.4 秒たったら、はみ出している分だけ本文がすっと下へ流れる（本物の画面をスクロールしている感じ） */
@@ -1064,7 +1066,7 @@
         if (dist < 4) return;
         inn.classList.add('lt-flow');
         inn.style.transform = 'translateY(' + (-dist) + 'px)';
-      }, 900);
+      }, 550);
     };
     var show = function (i) {
       if (i === cur || !scr[i]) return;
@@ -1120,19 +1122,20 @@
       var x = (r.left - p.left + r.width * 0.55) / s, y = (r.top - p.top + r.height * 0.6) / s;
       cursor.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px)';
     };
-    var DWELL = 2800;   // オーナー「もっと素早く」（4.2 → 2.8 秒）
+    /* ★オーナー「もっと素早く」「カーソルが止まって画面が動き終わってからが遅い」「モーションが終わったらすぐ別のタブへ」──
+         決まった秒数で待たず、その画面の動きが終わった瞬間（motionEnd）にカーソルが動き出し、着いたら押して替える */
     var loop = function () {
       timers.forEach(clearTimeout); timers = [];
       if (paused) { waiting = true; return; }
       later(function () {
-        var n = (cur + 1) % TOUR.length;   // カーソルが動き出すのは切り替えの 0.75 秒前
+        var n = (cur + 1) % TOUR.length;
         var target = TOUR[n].k === 'schedule' ? scr[cur].querySelector('[data-sub="roster"]') : tabOf(n);
         aim(target);
         later(function () {
           if (target) { target.classList.add('is-press'); setTimeout(function () { target.classList.remove('is-press'); }, 220); }
-          later(function () { show(n); loop(); }, 120);
-        }, 520);
-      }, DWELL - 650);
+          later(function () { show(n); loop(); }, 70);
+        }, 380);
+      }, motionEnd);
     };
     /* ★オーナー「スマホはちゃんとその画像の部分になってから動画スタートで」── 箱の6割が画面に入って初めて、
          最初の画面が浮かんで数え始め、めぐり出す（それまでは何も動かない）。 */
@@ -1275,13 +1278,13 @@
         Array.prototype.forEach.call(go.querySelectorAll('.lt-n'), tourCount);
         pcAim(pc, cursor, go.querySelector('.lt-th'), 0.9, 0.5);
       }
-      later(function () { pcAim(pc, cursor, pick, 0.5, 0.55); }, 600);
-      later(function () { pick.classList.add('is-press'); setTimeout(function () { pick.classList.remove('is-press'); }, 200); }, 1150);
-      later(openDw, 1270);
-      later(function () { pcAim(pc, cursor, x, 0.5, 0.5); }, 4300);
-      later(function () { if (x) { x.classList.add('is-press'); setTimeout(function () { x.classList.remove('is-press'); }, 200); } }, 4850);
-      later(closeDw, 4970);
-      later(cycle, 5800);
+      later(function () { pcAim(pc, cursor, pick, 0.5, 0.55); }, 350);
+      later(function () { pick.classList.add('is-press'); setTimeout(function () { pick.classList.remove('is-press'); }, 160); }, 760);
+      later(openDw, 840);
+      later(function () { pcAim(pc, cursor, x, 0.5, 0.5); }, 2700);
+      later(function () { if (x) { x.classList.add('is-press'); setTimeout(function () { x.classList.remove('is-press'); }, 160); } }, 3100);
+      later(closeDw, 3180);
+      later(cycle, 3650);
     };
     whileSeen(box, function (on) {
       timers.forEach(clearTimeout); timers = [];
@@ -1436,7 +1439,7 @@
         box3.addEventListener('pointerleave', function () { hover3 = false; });
         whileSeen(box3, function (on) {
           clearInterval(t3);
-          if (on) t3 = setInterval(function () { if (!hover3) go(base() >= n - 1 ? 0 : base() + 1); }, 3200);
+          if (on) t3 = setInterval(function () { if (!hover3) go(base() >= n - 1 ? 0 : base() + 1); }, 2400);
         });
       }
     }
