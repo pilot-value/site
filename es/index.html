@@ -79,7 +79,7 @@
        どちらもこの版で無くなっている。
        ⚠️ ?v= は lp.css の中身の指紋（2026-10-04）。lp.css を直すと assert-links.mjs が
           新しい値を言うので、日英2枚に写す（理由は index.html の同じ場所）。 -->
-  <link rel="stylesheet" href="../lp.css?v=0c13af99">
+  <link rel="stylesheet" href="../lp.css?v=4be0e0fe">
 <!-- Google tag (gtag.js) -->
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -206,7 +206,7 @@
            ★見出しは日英とも同じ英語（2026-09-22 オーナー指定）。
            ★2026-11-01 に別の見出しを試して同じ日に戻した（オーナー「やっぱイマイチだから元に戻そう」）。 -->
       <h1 class="hero-h1">Toma el control de tu carrera en la cabina.</h1>
-      <p class="hero-lede">Datos reales y anónimos. Compara sueldos y condiciones entre pilotos.<br><span class="hero-ph">Tu sueldo, a la vista.</span> <span class="hero-ph">¿Cuánto ganas por vuelo?</span></p>
+      <p class="hero-lede">Datos reales y anónimos. Compara sueldos y condiciones.<br><span class="hero-ph">Lo que ganas, a la vista.</span> <span class="hero-ph">¿Y por vuelo?</span></p>
 
       <!-- ★ボタンは2本（2026-09-22 オーナー指示。2026-08-22 の「CTA は1本だけ」を置き換えた）。
            主＝給与を出す（hero_primary_cta）／副＝REAL PAY を見る（hero_salary_data。
@@ -217,8 +217,8 @@
              この3本だけは anonymously を持たない ── patch-anon-cta.mjs の表からも外してある。戻さない。
            添え書きは、今日ひらくもの（REAL PAY）をそのまま言うために残す（押せる物ではない）。 -->
       <div class="hero-ctas">
-        <a href="pay-report.html" class="hero-btn hero-btn--p" data-pv-ev="hero_primary_cta"><span class="lp-gg"><span>Give &amp; Get</span> Desbloquear todos los datos de remuneración</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-        <a href="actual-pay.html" class="hero-btn hero-btn--s" data-pv-ev="hero_salary_data">Explorar REAL PAY</a>
+        <a href="pay-report.html" class="hero-btn hero-btn--p" data-pv-ev="hero_primary_cta"><span class="lp-gg"><span>Give &amp; Get</span> Desbloquear todos los datos</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a href="actual-pay.html" class="hero-btn hero-btn--s" data-pv-ev="hero_salary_data">Ver REAL PAY</a>
         <p class="hero-unlock"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.6" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Desbloquear REAL PAY</p>
       </div>
 
@@ -229,7 +229,7 @@
               必ず戻す（誰も更新しない飾りの数を画面に置かないため）。 -->
       <div class="hero-proof" id="hero-proof">
         <span class="hero-av" aria-hidden="true"><i><svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="7" r="3.4"/><path d="M3.6 17.4c.7-3.4 3.3-5.3 6.4-5.3s5.7 1.9 6.4 5.3z"/></svg></i><i><svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="7" r="3.4"/><path d="M3.6 17.4c.7-3.4 3.3-5.3 6.4-5.3s5.7 1.9 6.4 5.3z"/></svg></i><i><svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="7" r="3.4"/><path d="M3.6 17.4c.7-3.4 3.3-5.3 6.4-5.3s5.7 1.9 6.4 5.3z"/></svg></i><i><svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="7" r="3.4"/><path d="M3.6 17.4c.7-3.4 3.3-5.3 6.4-5.3s5.7 1.9 6.4 5.3z"/></svg></i></span>
-        <p class="hero-proof-t">Muchos pilotos están compartiendo su remuneración de forma anónima. ¡La comunidad crece rápidamente!</p>
+        <p class="hero-proof-t">Muchos pilotos ya comparten lo que ganan, de forma anónima. ¡La comunidad crece rápido!</p>
       </div>
     </div>
 
@@ -310,7 +310,7 @@
       <a class="lp-link" href="actual-pay.html" data-pv-ev="lp_realpay_block">Ver REAL PAY<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
       <!-- ★2026-09-26・2本目の入口。印は 9/23 の刷新で消えた旧名をそのまま再利用する
            ＝刷新の前と後を GA4 で1本の線として比べられる。新しい名前を付けない。 -->
-      <a class="lp-link lp-link--alt" href="pay-report.html" data-pv-ev="actual_pay_contribute_cta"><span class="lp-gg"><span>Give &amp; Get</span> Desbloquear todos los datos de remuneración</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <a class="lp-link lp-link--alt" href="pay-report.html" data-pv-ev="actual_pay_contribute_cta"><span class="lp-gg"><span>Give &amp; Get</span> Desbloquear todos los datos</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
     </div>
     <!-- ★2026-11-12 オーナー「他社のパイロットはいくら稼いでいる？の部分も PC 画面に」── 緑の面の箱がそのまま PC の窓。
          中は REAL PAY の一覧（lp.js の realpayDemo が描く・全部見本）。カーソルが行を押すと、右から今までの白いカード（行を押すと出る面）が滑り込む。
@@ -355,7 +355,7 @@
       <p class="lp-body">Rangos de remuneración de capitanes y primeros oficiales en <span data-pv-n="airlines">124</span> aerolíneas, elaborados a partir de información pública. La página de cada aerolínea también incluye operaciones, entrenamiento y beneficios.</p>
       <a class="lp-btn" href="world-airlines.html" data-pv-ev="lp_airlines_block">Ver todas las aerolíneas<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
       <!-- ★2026-09-26・2本目の入口。ここだけは旧版に対応する印が無いので新しい名前。 -->
-      <a class="lp-btn lp-btn--alt" href="pay-report.html" data-pv-ev="lp_airlines_contribute"><span class="lp-gg"><span>Give &amp; Get</span> Desbloquear todos los datos de remuneración</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <a class="lp-btn lp-btn--alt" href="pay-report.html" data-pv-ev="lp_airlines_contribute"><span class="lp-gg"><span>Give &amp; Get</span> Desbloquear todos los datos</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
     </div>
     <!-- ★2026-11-01、電話の中身を本物の2社比較の画面のスライドにした（オーナー「比較の画面はスライドできる
          （クリックしたらその比較画面になる）」）。下の印の中は gen-lp-compare.mjs が career.html から写して書く。手で直さない。 -->
@@ -905,7 +905,7 @@ if (window.PVReferral) window.PVReferral.mountStrip();</script>
 </script>
 <script src="../review-i18n.js"></script>
 <!-- ★ lp.js は日英1本。<html lang> を見て文言を出し分ける。currency.js より前に置く。 -->
-<script defer src="../lp.js?v=7c9e61a4"></script>
+<script defer src="../lp.js?v=7fdfb1a8"></script>
 <script src="../currency.js"></script>
 <!-- PV-NAV: opens and closes the navigation. Loads AFTER search.js so it can adopt
      the hamburger that file creates; on pages without search.js it makes its own. -->
