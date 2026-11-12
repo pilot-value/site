@@ -4,12 +4,13 @@
      node gen-globe-land.mjs --from <生データのフォルダ>
      node gen-globe-land.mjs --from <…> --check     書かずに、いまの pv-globe-land.js と比べる
 
-   読むもの: <--from>/ne_110m_land.geojson（Natural Earth「Land」1:110m・パブリックドメイン）
-             https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_land.geojson
+   読むもの: <--from>/ne_50m_land.geojson（Natural Earth「Land」1:50m・パブリックドメイン）
+             https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_land.geojson
    書くもの: pv-globe-land.js だけ。
 
-   ★点は緯度の行ごとに並べる（行の点の数は cos(緯度) に比例＝どこでも同じ間隔）。陸の上にある点だけ 1。
-     行ごとの 0/1 を base64 にして持つ（約3KB）。地球儀が緯度経度に戻す。
+   ★点の細かさは4段（2°・1°・0.5°・0.25°）。地球儀は拡大するほど細かい段を使う（オーナー「拡大したら点も細かく」）。
+     どの段も、緯度の行ごとに cos(緯度) に比例した数の点（どこでも同じ間隔）。陸の上の点だけ 1、行ごとに base64。
+   ★陸かどうかは行ごとの走査線（その緯度で陸の縁と交わる経度を並べ、左から数えて奇数番目の内側）＝ 速くて、穴（湖）も正しく抜ける。
    ★生データはリポジトリに入れない。フォルダの場所はこのファイルに書かない（ログイン名が入る）。
    ★ネットを叩かない・時計を読まない＝何度流しても同じバイト。
    ════════════════════════════════════════════════════════════════ */
@@ -20,78 +21,79 @@ import { fileURLToPath } from 'node:url';
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const arg = (k) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : null; };
 const from = arg('--from');
-if (!from) { console.error('使い方: node gen-globe-land.mjs --from <ne_110m_land.geojson のあるフォルダ> [--check]'); process.exit(1); }
-const gj = JSON.parse(fs.readFileSync(path.join(from, 'ne_110m_land.geojson'), 'utf8'));
+if (!from) { console.error('使い方: node gen-globe-land.mjs --from <ne_50m_land.geojson のあるフォルダ> [--check]'); process.exit(1); }
+const gj = JSON.parse(fs.readFileSync(path.join(from, 'ne_50m_land.geojson'), 'utf8'));
 
-const STEP = 2;                         // 点の間隔（度）。地球儀の大きさでいちばん見栄えのした値
-const polys = [];                       // [[ring(外), ring(穴)…]…]（[lon, lat] の並び）
+const STEPS = [2, 1, 0.5, 0.25];        // 点の間隔（度）。地球儀が拡大するほど右の段
+const rings = [];                       // 陸の縁（外側も穴も）＝ [lon, lat] の並び
 for (const f of gj.features || []) {
   const g = f && f.geometry;
   if (!g) continue;
-  if (g.type === 'Polygon') polys.push(g.coordinates);
-  else if (g.type === 'MultiPolygon') g.coordinates.forEach((p) => polys.push(p));
+  const polys = g.type === 'Polygon' ? [g.coordinates] : g.type === 'MultiPolygon' ? g.coordinates : [];
+  for (const p of polys) for (const r of p) rings.push(r);
 }
-if (!polys.length) { console.error('陸の形が1つも読めない'); process.exit(1); }
-const boxes = polys.map((p) => {
-  let a = Infinity, b = -Infinity, c = Infinity, e = -Infinity;
-  p[0].forEach(([x, y]) => { a = Math.min(a, x); b = Math.max(b, x); c = Math.min(c, y); e = Math.max(e, y); });
-  return [a, b, c, e];
-});
-function inRing(x, y, ring) {
-  let inside = false;
-  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-    const [xi, yi] = ring[i], [xj, yj] = ring[j];
-    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+if (!rings.length) { console.error('陸の形が1つも読めない'); process.exit(1); }
+/* 縁を辺に（緯度の低い順に並べて、行ごとに交わる辺だけを見る） */
+const edges = [];
+for (const r of rings) {
+  for (let i = 0, j = r.length - 1; i < r.length; j = i++) {
+    const [x1, y1] = r[j], [x2, y2] = r[i];
+    if (y1 === y2) continue;
+    edges.push(y1 < y2 ? [y1, y2, x1, x2] : [y2, y1, x2, x1]);   // [下の緯度, 上の緯度, 下の経度, 上の経度]
   }
-  return inside;
 }
-function onLand(lon, lat) {
-  for (let k = 0; k < polys.length; k++) {
-    const b = boxes[k];
-    if (lon < b[0] || lon > b[1] || lat < b[2] || lat > b[3]) continue;
-    const p = polys[k];
-    if (!inRing(lon, lat, p[0])) continue;
-    let hole = false;
-    for (let h = 1; h < p.length; h++) if (inRing(lon, lat, p[h])) { hole = true; break; }
-    if (!hole) return true;
-  }
-  return false;
-}
+edges.sort((a, b) => a[0] - b[0]);
 
-const rows = [];
-let dots = 0, all = 0;
-for (let lat = -90 + STEP / 2; lat < 90; lat += STEP) {
-  const n = Math.max(1, Math.round((360 / STEP) * Math.cos((lat * Math.PI) / 180)));
-  const bytes = new Uint8Array(Math.ceil(n / 8));
-  for (let i = 0; i < n; i++) {
-    const lon = -180 + (360 * (i + 0.5)) / n;
-    all++;
-    if (onLand(lon, lat)) { bytes[i >> 3] |= 1 << (i & 7); dots++; }
+function level(step) {
+  const rows = [];
+  let dots = 0, all = 0;
+  for (let lat = -90 + step / 2; lat < 90; lat += step) {
+    const xs = [];
+    for (const e of edges) {
+      if (e[0] > lat) break;
+      if (e[1] <= lat) continue;
+      xs.push(e[2] + ((lat - e[0]) / (e[1] - e[0])) * (e[3] - e[2]));
+    }
+    xs.sort((a, b) => a - b);
+    const n = Math.max(1, Math.round((360 / step) * Math.cos((lat * Math.PI) / 180)));
+    const bytes = new Uint8Array(Math.ceil(n / 8));
+    let k = 0;
+    for (let i = 0; i < n; i++) {
+      const lon = -180 + (360 * (i + 0.5)) / n;
+      while (k < xs.length && xs[k] < lon) k++;
+      all++;
+      if (k % 2 === 1) { bytes[i >> 3] |= 1 << (i & 7); dots++; }
+    }
+    rows.push(n + ':' + Buffer.from(bytes).toString('base64'));
   }
-  rows.push(n + ':' + Buffer.from(bytes).toString('base64'));
+  return { step, rows, dots, all };
 }
+const L = STEPS.map(level);
 
 const out = `/* pv-globe-land.js — スケジュールの地球儀の陸地の点。★生成物：node gen-globe-land.mjs --from <フォルダ>（手で直さない）
-   出典：Natural Earth「Land」1:110m（パブリックドメイン）https://www.naturalearthdata.com/
-   緯度 ${STEP}° ごとの行に、cos(緯度) に比例した数の点。陸の上の点だけ 1（行ごとに base64）。${dots}点 / ${all}点。 */
+   出典：Natural Earth「Land」1:50m（パブリックドメイン）https://www.naturalearthdata.com/
+   点の細かさは ${STEPS.length}段（${STEPS.map((s) => s + '°').join('・')}）。拡大するほど細かい段を使う。
+   緯度の行ごとに cos(緯度) に比例した数の点・陸の上の点だけ 1（行ごとに base64）。
+   ${L.map((l) => l.step + '°＝' + l.dots + '点').join('・')}。 */
 (function (w) {
   'use strict';
-  var STEP = ${STEP};
-  var R = '${rows.join(';')}';
-  var cache = null;
-  /* → [緯度, 経度, 緯度, 経度, …]（Float32Array） */
-  w.PV_GLOBE_LAND = function () {
-    if (cache) return cache;
-    var rows = R.split(';'), out = [], lat = -90 + STEP / 2;
-    for (var r = 0; r < rows.length; r++, lat += STEP) {
-      var p = rows[r].split(':'), n = +p[0], s = w.atob(p[1]);
-      for (var i = 0; i < n; i++) {
-        if (s.charCodeAt(i >> 3) & (1 << (i & 7))) out.push(lat, -180 + 360 * (i + 0.5) / n);
-      }
+  var L = [
+${L.map((l) => `    { step: ${l.step}, rows: '${l.rows.join(';')}' }`).join(',\n')}
+  ];
+  /* 段ごとに、行（緯度・点の数・陸の印）を1回だけ読み解く。印は Uint8Array（i 番目の点＝ i>>3 の (i&7) ビット） */
+  var cache = [];
+  w.PV_GLOBE_LAND = function (lv) {
+    lv = Math.max(0, Math.min(L.length - 1, lv | 0));
+    if (cache[lv]) return cache[lv];
+    var src = L[lv], rs = src.rows.split(';'), lat = -90 + src.step / 2, rows = [];
+    for (var r = 0; r < rs.length; r++, lat += src.step) {
+      var p = rs[r].split(':'), s = w.atob(p[1]), b = new Uint8Array(s.length);
+      for (var i = 0; i < s.length; i++) b[i] = s.charCodeAt(i);
+      rows.push({ lat: lat, n: +p[0], bits: b });
     }
-    cache = new Float32Array(out);
-    return cache;
+    return (cache[lv] = { step: src.step, rows: rows });
   };
+  w.PV_GLOBE_LAND.levels = L.map(function (x) { return x.step; });
 }(typeof window !== 'undefined' ? window : globalThis));
 `;
 const file = path.join(ROOT, 'pv-globe-land.js');
@@ -101,4 +103,4 @@ if (process.argv.includes('--check')) {
   process.exit(now === out ? 0 : 1);
 }
 fs.writeFileSync(file, out);
-console.log(`pv-globe-land.js: ${dots}点 / ${all}点・${(out.length / 1024).toFixed(1)}KB`);
+console.log(`pv-globe-land.js: ${L.map((l) => l.step + '°=' + l.dots).join(' / ')}・${(out.length / 1024).toFixed(0)}KB`);

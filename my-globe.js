@@ -25,11 +25,11 @@
 
   var T = {
     ja: {
-      title: '飛んだルート', sub: '{p} · {r}ルート · {n}便', aria: '飛んだルートの地球儀', noPos: '地図に出せない空港 {c}',
+      title: 'ROUTE', sub: '{p} · {r}ルート · {n}便', aria: '飛んだルートの地球儀', noPos: '地図に出せない空港 {c}',
       perAria: '期間', perD: '日', perM: '月', per3: '3か月', per12: '1年', perAll: '全部',
       p3: '直近3か月', p12: '直近1年', pAll: '直近2年', ymT: '{y}年{n}月',
       prevD: '前の日', nextD: '次の日', prevM: '前の月', nextM: '次の月',
-      sumT: 'この期間の稼ぎ（目安）', sumD: 'この日の稼ぎ（目安）', sumM: 'この月の稼ぎ（目安）',
+      sumT: 'FLIGHT EARNINGS', est: '目安',
       ringL: 'ブロック', ringA: '勤務時間のうちブロックタイムの割合 {p}',
       legHub: '拠点', legDest: '行き先', legDh: 'DH',
       hint: 'ドラッグで回す・ルートを押す', zin: '拡大', zout: '縮小',
@@ -49,11 +49,11 @@
       mon: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
     },
     en: {
-      title: 'Routes flown', sub: '{p} · {r} routes · {n} flights', aria: 'Globe of the routes you flew', noPos: 'Not on the map: {c}',
+      title: 'ROUTE', sub: '{p} · {r} routes · {n} flights', aria: 'Globe of the routes you flew', noPos: 'Not on the map: {c}',
       perAria: 'Period', perD: '1D', perM: '1M', per3: '3M', per12: '1Y', perAll: 'All time',
       p3: 'Last 3 months', p12: 'Last 12 months', pAll: 'Last 24 months', ymT: '{M} {y}',
       prevD: 'Previous day', nextD: 'Next day', prevM: 'Previous month', nextM: 'Next month',
-      sumT: 'Earnings this period (est.)', sumD: 'Earnings this day (est.)', sumM: 'Earnings this month (est.)',
+      sumT: 'FLIGHT EARNINGS', est: 'est.',
       ringL: 'Block', ringA: 'Block time as a share of duty time {p}',
       legHub: 'Base', legDest: 'Destination', legDh: 'Deadhead',
       hint: 'Drag to rotate, tap a route', zin: 'Zoom in', zout: 'Zoom out',
@@ -72,11 +72,11 @@
       wd: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
       mon: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     }, /*PV-MSG:es*/ es: {
-      title: 'Rutas voladas', sub: '{p} · {r} rutas · {n} vuelos', aria: 'Globo con las rutas que volaste', noPos: 'Fuera del mapa: {c}',
+      title: 'ROUTE', sub: '{p} · {r} rutas · {n} vuelos', aria: 'Globo con las rutas que volaste', noPos: 'Fuera del mapa: {c}',
       perAria: 'Período', perD: '1D', perM: '1M', per3: '3M', per12: '1Y', perAll: 'Todo',
       p3: 'Últimos 3 meses', p12: 'Últimos 12 meses', pAll: 'Últimos 24 meses', ymT: '{M} {y}',
       prevD: 'Día anterior', nextD: 'Día siguiente', prevM: 'Mes anterior', nextM: 'Mes siguiente',
-      sumT: 'Ingresos del período (est.)', sumD: 'Ingresos del día (est.)', sumM: 'Ingresos del mes (est.)',
+      sumT: 'FLIGHT EARNINGS', est: 'estimado',
       ringL: 'Horas block', ringA: 'Tiempo de bloque sobre el tiempo de servicio {p}',
       legHub: 'Base', legDest: 'Destino', legDh: 'Deadhead',
       hint: 'Arrastra para girar y toca una ruta', zin: 'Acercar', zout: 'Alejar',
@@ -323,7 +323,8 @@
     /* 最初に選ぶのは、額の出るいちばん新しい便（無ければいちばん新しい便） */
     if (!S.leg && V.legs.length) { var amt = V.legs.filter(function (l) { return l.amount != null; })[0]; S.leg = (amt || V.legs[0]).id; }
     var leg = V.legs.filter(function (l) { return l.id === S.leg; })[0] || null;
-    if (!S.route && leg) S.route = routeKey(leg);
+    var drawRoute = S.route || (leg ? routeKey(leg) : null);   // ★S.route を便から埋めない（埋めると「全ルート」が押しても戻る）
+    S.drawRoute = drawRoute;
     var empty = !S.legs.length;
     msg.hidden = !(empty || !V.legs.length);
     msg.textContent = empty ? T.empty : !V.legs.length ? T.none : '';
@@ -331,14 +332,14 @@
     list.hidden = !V.legs.length; mon.hidden = !V.legs.length;
     if (V.legs.length) { sum.innerHTML = sumHTML(V); list.innerHTML = listHTML(V); mon.innerHTML = monHTML(V, leg); }
     if (leg) flt.innerHTML = fltHTML(leg);
-    G.setData(V, S.route, leg);
+    G.setData(V, drawRoute, leg);
   }
   function routeKey(l) { var a = l.ga.iata, b = l.gb.iata; return a < b ? a + '|' + b : b + '|' + a; }
   function sumHTML(V) {
     var p = V.ring == null ? null : Math.round(V.ring * 1000) / 10;
     var C = 2 * Math.PI * 34, off = p == null ? C : C * (1 - p / 100);
     var max = V.top.length ? V.top[0].sum : 0;
-    return '<div class="gl-sum-h"><span class="gl-ov-t">' + esc(S.per === 'd' ? T.sumD : S.per === 'm' ? T.sumM : T.sumT) + '</span>' +
+    return '<div class="gl-sum-h"><span class="gl-ov-t">' + esc(T.sumT) + '<small>' + esc(T.est) + '</small></span>' +
         '<span class="gl-chip">' + esc(V.total == null ? '—' : money(V.total, V.cur)) + '</span></div>' +
       '<div class="gl-sum-b">' +
         '<div class="gl-ring" role="img" aria-label="' + esc(fill(T.ringA, { p: p == null ? '—' : p + '%' })) + '">' +
@@ -348,7 +349,7 @@
           '<circle cx="42" cy="42" r="34" class="gl-ring-v" stroke="url(#glRg)" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + off.toFixed(1) + '" transform="rotate(-90 42 42)"/></svg>' +
           '<span class="gl-ring-n">' + (p == null ? '—' : p.toFixed(1) + '%') + '<small>' + esc(T.ringL) + '</small></span></div>' +
         '<div class="gl-bars">' + V.top.map(function (r, i) {
-          return '<button type="button" class="gl-bar' + (r.k === S.route ? ' on' : '') + '" data-route="' + esc(r.k) + '">' +
+          return '<button type="button" class="gl-bar' + (r.k === S.drawRoute ? ' on' : '') + '" data-route="' + esc(r.k) + '">' +
             '<span class="gl-bar-l">' + esc(r.a.iata + ' ⇄ ' + r.b.iata) + '</span><span class="gl-bar-v">' + esc(money(r.sum, r.cur)) + '</span>' +
             '<i class="gl-bar-t"><i class="gl-bar-f' + (i === 0 ? ' is-1' : '') + '" style="transform:scaleX(' + (max > 0 ? (r.sum / max).toFixed(3) : 0) + ')"></i></i></button>';
         }).join('') + '</div>' +
@@ -448,10 +449,10 @@
     if (t.hasAttribute('data-goym')) { S.per = 'm'; S.ym = t.getAttribute('data-goym'); S.leg = null; S.route = null; S.listN = 8; render(); G.focusRoute(); return; }
     if (t.hasAttribute('data-goday')) { S.per = 'd'; S.day = t.getAttribute('data-goday'); S.leg = null; S.route = null; S.listN = 8; render(); G.focusRoute(); return; }
     if (t.hasAttribute('data-route')) { pickRoute(t.getAttribute('data-route') || null); return; }
-    if (t.hasAttribute('data-leg')) { S.leg = t.getAttribute('data-leg'); var l = S.V.legs.filter(function (x) { return x.id === S.leg; })[0]; if (l) S.route = routeKey(l); render(); G.focusRoute(); return; }
+    if (t.hasAttribute('data-leg')) { S.leg = t.getAttribute('data-leg'); render(); G.focusRoute(); return; }   // 一覧の絞り方はそのまま
     if (t.hasAttribute('data-filt')) { S.filt = t.getAttribute('data-filt'); S.listN = 8; render(); return; }
     if (t.hasAttribute('data-more')) { S.listN = S.listN > 8 ? 8 : 999; render(); return; }
-    if (t.hasAttribute('data-z')) { G.zoomBy(+t.getAttribute('data-z') > 0 ? 1.35 : 1 / 1.35); return; }
+    if (t.hasAttribute('data-z')) { G.zoomBy(+t.getAttribute('data-z') > 0 ? 1.6 : 1 / 1.6); return; }
   }
   function pickRoute(k) {
     S.route = k; S.listN = 8; S.filt = 'all';
@@ -465,7 +466,7 @@
   var G = (function () {
     var cv, box, cx2, W = 0, H = 0, dpr = 1, raf = 0, last = 0;
     var lam = 0, phi = 0.35, k = 1, vlam = 0, vphi = 0, idleAt = 0, tween = null;
-    var land = null, V = null, selRoute = null, selLeg = null, arcs = [], hub = null, ports = [];
+    var V = null, selRoute = null, selLeg = null, arcs = [], hub = null, ports = [];
     var drag = null, pts = {}, pinch = null, seen = false, inView = false;
     var RM = reduced();
     var PLANE = null;
@@ -487,9 +488,6 @@
       cv = canvas; box = host; cx2 = cv.getContext('2d');
       /* 上から見た飛行機（機首が右）：胴・主翼・尾翼 */
       PLANE = typeof Path2D === 'function' ? new Path2D('M7 0 C7 -.8 5.6 -1 4.6 -1 L1.6 -1 L-1.6 -6 L-3 -6 L-1.4 -1 L-4.6 -1 L-5.8 -3 L-6.8 -3 L-6 0 L-6.8 3 L-5.8 3 L-4.6 1 L-1.4 1 L-3 6 L-1.6 6 L1.6 1 L4.6 1 C5.6 1 7 .8 7 0 Z') : null;
-      var L0 = w.PV_GLOBE_LAND(), n = L0.length / 2;
-      land = new Float32Array(n * 3);
-      for (var i = 0; i < n; i++) { var v = vec(L0[i * 2], L0[i * 2 + 1]); land[i * 3] = v[0]; land[i * 3 + 1] = v[1]; land[i * 3 + 2] = v[2]; }
       size();
       if (typeof ResizeObserver === 'function') new ResizeObserver(function () { size(); draw(); }).observe(box);
       if (typeof IntersectionObserver === 'function') {
@@ -527,7 +525,9 @@
         var seenP = {};
         V.routes.forEach(function (r, i) {
           if (r.a.lat == null || r.b.lat == null) return;          // 位置の分からない空港の区間は描かない
-          arcs.push({ k: r.k, n: r.n, dh: r.dh === r.n, pts: arcOf(r.a, r.b), off: (i * 0.37) % 1, scr: [], fly: false });
+          var A0 = vec(r.a.lat, r.a.lon), B0 = vec(r.b.lat, r.b.lon);
+          var om = Math.acos(Math.max(-1, Math.min(1, A0[0] * B0[0] + A0[1] * B0[1] + A0[2] * B0[2])));
+          arcs.push({ k: r.k, n: r.n, dh: r.dh === r.n, pts: arcOf(r.a, r.b), om: om, off: (i * 0.37) % 1, scr: [], fly: false });
           [r.a, r.b].forEach(function (g) { if (!seenP[g.iata]) { seenP[g.iata] = 1; ports.push({ g: g, v: vec(g.lat, g.lon) }); } });
         });
         hub = V.hub;
@@ -547,16 +547,25 @@
       var m = Math.sqrt(x * x + y * y + z * z) || 1;
       return { lam: Math.atan2(x / m, z / m), phi: Math.max(-1.2, Math.min(1.2, Math.asin(y / m))) };
     }
+    /* 寄り具合：2,200km より短いルートは、画面の中でちょうどよい長さになるまで寄る。長いルートを選んだら引く */
+    function fitK() {
+      var a = selRoute ? arcs.filter(function (x) { return x.k === selRoute; })[0] : null;
+      if (!a) return k;
+      if (a.om < 0.35) return Math.max(1, Math.min(8, 0.7 / Math.max(a.om, 0.01)));
+      return k > 1.4 ? 1 : k;
+    }
     function center(now) {
       var t = target();
       if (!t) return;
-      if (now || RM) { lam = t.lam; phi = t.phi * 0.8 + 0.12; draw(); return; }
+      var kT = fitK(), pT = t.phi * (1 - 0.2 / kT) + 0.12 / kT;     // 寄るほど真ん中に（引いているときは少し傾けて北が上に見える）
+      if (now || RM) { lam = t.lam; phi = pT; k = kT; draw(); return; }
       var dl = t.lam - lam; while (dl > Math.PI) dl -= 2 * Math.PI; while (dl < -Math.PI) dl += 2 * Math.PI;
-      tween = { t0: performance.now(), l0: lam, p0: phi, dl: dl, dp: (t.phi * 0.8 + 0.12) - phi, dur: 900 };
+      tween = { t0: performance.now(), l0: lam, p0: phi, dl: dl, dp: pT - phi, k0: k, dk: kT - k, dur: 1000 };
       kick();
     }
     function focusRoute(soft) { center(!!soft && RM); idleAt = performance.now(); }
-    function zoomBy(f) { k = Math.max(0.7, Math.min(3.2, k * f)); idleAt = performance.now(); draw(); }
+    var KMAX = 10;   // 国内線まで見えるように（オーナー「国内線とか拡大すると」）
+    function zoomBy(f) { tween = null; k = Math.max(0.7, Math.min(KMAX, k * f)); idleAt = performance.now(); kick(); draw(); }
 
     function hid() { return d.hidden || !inView || !S.visible; }
     function animating() { return !RM && !hid(); }
@@ -568,6 +577,7 @@
       if (tween) {
         var p = Math.min(1, (now - tween.t0) / tween.dur), e = 1 - Math.pow(1 - p, 3);
         lam = tween.l0 + tween.dl * e; phi = tween.p0 + tween.dp * e;
+        if (tween.dk) k = tween.k0 * Math.pow((tween.k0 + tween.dk) / tween.k0, e);   // 寄るのは倍率で（等速に見える）
         if (p >= 1) tween = null;
       } else if (!drag && !pinch) {
         if (Math.abs(vlam) > 1e-5 || Math.abs(vphi) > 1e-5) { lam += vlam * dt; phi = clampP(phi + vphi * dt); vlam *= 0.92; vphi *= 0.92; }
@@ -597,14 +607,35 @@
       var lit = c.createRadialGradient(cx + R * 0.22, cy + R * 0.18, R * 0.55, cx, cy, R * 1.02);
       lit.addColorStop(0, 'rgba(110,220,200,0)'); lit.addColorStop(0.75, 'rgba(110,220,200,.10)'); lit.addColorStop(1, 'rgba(150,240,220,.42)');
       c.fillStyle = lit; c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.fill();
-      /* 陸の点：丸い点を同じ間隔で（見本と同じ）。縁へ行くほど少し小さく・薄く */
-      var n = land.length / 3, rad = Math.max(0.8, R * 0.0058), buckets = [[], [], [], []];
+      /* 陸の点：丸い点を同じ間隔で（見本と同じ）。縁へ行くほど少し小さく・薄く。
+         ★拡大するほど細かい段（2°→1°→0.5°→0.25°）に替えて、点の間隔が画面でいつも 6〜12px になるように（オーナー「拡大したら点も細かく」）。
+         見えている所（正面のまわり）の行と列だけを見る＝細かい段でも重くならない */
+      var LV = w.PV_GLOBE_LAND.levels, lvl = 0;
+      while (lvl < LV.length - 1 && R * LV[lvl] * Math.PI / 180 > 12) lvl++;
+      var LD = w.PV_GLOBE_LAND(lvl), stepR = LD.step * Math.PI / 180;
+      var rad = Math.max(0.8, R * stepR * 0.17), buckets = [[], [], [], []];
       var cl = Math.cos(lam), sl = Math.sin(lam), cp = Math.cos(phi), sp = Math.sin(phi);
-      for (var i = 0; i < n; i++) {
-        var x0 = land[i * 3], y0 = land[i * 3 + 1], z0 = land[i * 3 + 2];
-        var x1 = x0 * cl - z0 * sl, z1 = x0 * sl + z0 * cl, y2 = y0 * cp - z1 * sp, z2 = y0 * sp + z1 * cp;
-        if (z2 <= 0.02) continue;
-        buckets[Math.min(3, Math.floor(z2 * 4))].push(cx + R * x1, cy - R * y2, z2);
+      var dMax = Math.max(Math.hypot(cx, cy), Math.hypot(W - cx, cy), Math.hypot(cx, H - cy), Math.hypot(W - cx, H - cy));
+      var ang = dMax >= R ? Math.PI / 2 + 0.05 : Math.asin(dMax / R) + 0.03;
+      var pole = Math.abs(phi) + ang >= Math.PI / 2 - 0.02;
+      for (var ri = 0; ri < LD.rows.length; ri++) {
+        var row = LD.rows[ri], la = row.lat * Math.PI / 180;
+        if (Math.abs(la - phi) > ang) continue;
+        var cla = Math.cos(la), y0 = Math.sin(la), nn = row.n, bits = row.bits;
+        var dl = pole || cla < 0.02 ? Math.PI : Math.min(Math.PI, ang / cla * 1.15 + 0.02);
+        var i0 = 0, i1 = nn - 1;
+        if (dl < Math.PI) { i0 = Math.floor((lam - dl + Math.PI) / (2 * Math.PI) * nn); i1 = Math.floor((lam + dl + Math.PI) / (2 * Math.PI) * nn); }
+        for (var ii = i0; ii <= i1; ii++) {
+          var ci = ((ii % nn) + nn) % nn;
+          if (!(bits[ci >> 3] & (1 << (ci & 7)))) continue;
+          var lo = -Math.PI + 2 * Math.PI * (ci + 0.5) / nn;
+          var x0 = cla * Math.sin(lo), z0 = cla * Math.cos(lo);
+          var x1 = x0 * cl - z0 * sl, z1 = x0 * sl + z0 * cl, y2 = y0 * cp - z1 * sp, z2 = y0 * sp + z1 * cp;
+          if (z2 <= 0.02) continue;
+          var px = cx + R * x1, py = cy - R * y2;
+          if (px < -8 || px > W + 8 || py < -8 || py > H + 8) continue;
+          buckets[Math.min(3, Math.floor(z2 * 4))].push(px, py, z2);
+        }
       }
       for (var bI = 0; bI < 4; bI++) {
         var B = buckets[bI];
@@ -719,7 +750,7 @@
       if (pinch) {
         var ids = Object.keys(pts); if (ids.length < 2) return;
         var a = pts[ids[0]], b = pts[ids[1]], dd = Math.hypot(a.x - b.x, a.y - b.y);
-        k = Math.max(0.7, Math.min(3.2, pinch.k * dd / (pinch.d || 1))); draw(); return;
+        k = Math.max(0.7, Math.min(KMAX, pinch.k * dd / (pinch.d || 1))); draw(); return;
       }
       if (!drag) return;
       var R = geom().R, dx = e.clientX - drag.x, dy = e.clientY - drag.y, nt = performance.now(), dt = Math.max(8, nt - drag.t);
@@ -742,7 +773,7 @@
     function wheel(e) {
       if (!e.ctrlKey) return;                     // ふつうのホイールはページを送る。Ctrl＋ホイール（トラックパッドのピンチ）だけ拡大縮小
       e.preventDefault();
-      k = Math.max(0.7, Math.min(3.2, k * Math.exp(-e.deltaY * 0.01))); idleAt = performance.now(); draw();
+      tween = null; k = Math.max(0.7, Math.min(KMAX, k * Math.exp(-e.deltaY * 0.01))); idleAt = performance.now(); draw();
     }
     /* 押した所にいちばん近い弧（12px 以内） */
     function hit(x, y) {

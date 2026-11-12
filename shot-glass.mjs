@@ -558,7 +558,8 @@ await page.evaluateOnNewDocument((scene, theme, REALROW) => {
     if (scene !== 'globe') return null;
     const DEST = [['LHR', '7:40', '7:15'], ['JFK', '14:05', '12:40'], ['SYD', '13:55', '14:35'], ['HND', '9:35', '9:10'], ['SIN', '7:25', '7:05'],
       ['BKK', '6:10', '6:40'], ['MLE', '4:15', '4:30'], ['CDG', '7:20', '6:55'], ['JNB', '8:05', '8:20'], ['MAN', '7:50', '7:25'],
-      ['MEL', '13:35', '14:10'], ['GRU', '14:50', '14:05'], ['FCO', '5:55', '5:30'], ['NBO', '5:05', '5:15'], ['BOM', '3:05', '3:20'], ['CMB', '4:20', '4:35']];
+      ['MEL', '13:35', '14:10'], ['GRU', '14:50', '14:05'], ['FCO', '5:55', '5:30'], ['NBO', '5:05', '5:15'], ['BOM', '3:05', '3:20'], ['CMB', '4:20', '4:35'],
+      ['MCT', '1:05', '1:10'], ['BAH', '1:20', '1:15'], ['KWI', '1:45', '1:50']];   // 近い便（寄って見えるかを確かめる）
     const pad = (n) => String(n).padStart(2, '0');
     const add = (hhmm, dur) => { const [a, b] = hhmm.split(':').map(Number), [c, e] = dur.split(':').map(Number), t = a * 60 + b + c * 60 + e; return { t: pad(Math.floor(t / 60) % 24) + ':' + pad(t % 60), d: Math.floor(t / 1440) }; };
     const sub = (hhmm, min) => { const [a, b] = hhmm.split(':').map(Number); let t = a * 60 + b - min; if (t < 0) t += 1440; return pad(Math.floor(t / 60)) + ':' + pad(t % 60); };
@@ -790,7 +791,17 @@ if (process.env.REC) {
       for (let i = 1; i <= 30; i++) { await page.mouse.move(cx - i * 7, cy + Math.sin(i / 6) * 10); await sleep(26); }
       await page.mouse.up(); await sleep(1400);
     }
-    await tap('.gl-zb', 0); await sleep(700); await tap('.gl-zb', 0); await sleep(1600);
+    /* 拡大すると点が細かくなる（＋を4回 → −を4回） */
+    for (let i = 0; i < 4; i++) { await tap('.gl-zb', 0); await sleep(1100); }
+    for (let i = 0; i < 4; i++) { await tap('.gl-zb', 1); await sleep(500); }
+    await sleep(800);
+    /* 近いルート（マスカット）を一覧から選ぶ → 自動で寄る */
+    await page.evaluate(() => { const x = document.querySelector('.gl-x'); if (x) x.click(); }).catch(() => {});
+    await sleep(300);
+    await page.evaluate(() => { const m = document.querySelector('.gl-more'); if (m) m.click(); }).catch(() => {});
+    await sleep(300);
+    await page.evaluate(() => { const r = [...document.querySelectorAll('.gl-r')].find((e) => /MCT/.test(e.textContent)); if (r) r.click(); }).catch(() => {});
+    await sleep(3000);
     await tap('.gl-bar', 0); await sleep(2600);
     await tap('.gl-bar', 2); await sleep(2600);
     await tap('.gl-zb', 1); await sleep(900);
