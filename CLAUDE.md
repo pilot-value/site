@@ -234,6 +234,7 @@ baland_ass/                            ブランド資産（※ brand_assets の
 | [seo-normalize.mjs](seo-normalize.mjs) と [assert-seo.mjs](assert-seo.mjs) の `JA_ONLY` | **英語版を置かないページなら両方に足す**（2つで対）。足さないと在りもしない `en/` への hreflang が出る。英語版を置いたら両方から外す |
 | [assert-generated.mjs](assert-generated.mjs) の `GENERATORS` | 本文を生成スクリプトが書くページなら、そのスクリプトを足す（流し忘れを捕まえる） |
 | [assert-header.mjs](assert-header.mjs) の `PAGES` | ヘッダーを持つ新しい形の画面なら足す（10の幅で畳み方と横溢れを測る） |
+| [inject-glass.mjs](inject-glass.mjs) | **流す**（すりガラスと動きの塊を入れる。es は gen-lang.mjs が写す） |
 | `node inject-app.mjs` | **どのページでも流す**（ホーム画面に置ける形の head の塊 `<!--PV-APP-->`・2026-11-07）。日英はここで入る・西は gen-lang.mjs が写す（manifest-en → manifest-es）。入れ忘れは `assert-app.mjs` が落とす。⚠️ `gen-countries.mjs`・`airline-donor-pages.mjs` が書いたページにも、そのあと必ず流す |
 
 ⚠️ **`defer-third-party.mjs` は流さない。** あれは PV-3P の塊を必ず `</head>` の直前へ置き直すので、
@@ -829,6 +830,27 @@ baland_ass/                            ブランド資産（※ brand_assets の
   `db/test-welcome-followup.mjs` がオーナーの字を1文字ずつ持っている（勝手に直すと落ちる）。英語・スペイン語はその訳。
 - ⚠️ 2通目の口（SQL）が無くても、関数は2通目を飛ばすだけで歓迎メールは今までどおり送る。**貼る順はどちらでもよい**（Deploy → SQL を勧める）。
 見るもの: `node db/test-welcome-followup.mjs`。
+
+## すりガラスと動き（全ページ・2026-11-12 オーナー採用）
+
+★オーナーの参考動画（すりガラスの Dashboard）を今の緑で写した。試作を見て「ガラスの方がいい」→「いいね」→「全部のページに」。
+中身は [pv-glass.css](pv-glass.css) と [pv-glass.js](pv-glass.js) の2本だけ。全ページの head の `<!--PV-GLASS-->` の塊が読む
+（[inject-glass.mjs](inject-glass.mjs) が `</head>` の直前に書く ＝ ページのどの CSS よりも後に効く。字の Outfit ＋ Zen Kaku Gothic New もここ）。
+
+- **`pv-glass.css` か `pv-glass.js` を直したら `node inject-glass.mjs` → `node gen-lang.mjs es`**（指紋 `?v=` が変わる・約600枚）。
+  流し忘れは `assert-glass.mjs` と `assert-links.mjs` が落とす。新しいページを足したときも流す。
+- 規則は全部 `html[data-ui]` の下（JS が立てる）＝ JS が読めないページは今までの見た目のまま。
+- 背景：会員の画面（`body.pv-anav-app`）は緑・公開の画面（`body.pv-anav-pub`・会社ページなど）は白（オーナー「会社ページは白の方がいい」）。
+- 色のついたカード（MY PAY の緑 `.is-green`・ROADMAP の紺 `.is-hero`・トップの緑の面・2社比較の紺）はガラスにしない。
+- 動き：見出しが1字ずつせり上がる・カードが浮かぶ・数字が数え上がる・棒が伸び線が描かれ円が順に描かれる・メニューの選んだ板がページをまたいで滑る。
+  ⚠️ 本物の字・数字は書き換えない（数え上げは透明にした字の上に重ねた絵の字だけ・1字ずつの窓は動き終わったら元の字に戻す）。
+  ⚠️ **トップの大見出し（`.hero-h1`）と、字の形に色を塗った見出し（background-clip:text）は割らない**（最初の描画が遅れる／色が消える）。
+  ⚠️ 前からの浮かぶ動き（`.fade-up`）を持つ箱・自分で動く棒（transform や animation を持つもの）・部品が160を超える絵（世界地図）は触らない。
+- **動かさない相手**：「動きを減らす」設定の人・検索のロボット・**自動の検査（`navigator.webdriver`）**。
+  ほかの検査が「長さ 0 の棒」「透明にした数字」を測らないため。動きそのものは `assert-glass-motion.mjs` が `window.__pvMotion` を立てて確かめる。
+  撮影・動画は [shot-glass.mjs](shot-glass.mjs)（同じ旗を立てる）。手元の住所でだけ `?ui=now` で今までの見た目に戻して比べられる（`?ui=glass` で戻す）。
+
+見るもの: `node assert-glass.mjs`（塊・指紋・名残・規則の置き場）／`node assert-glass-motion.mjs`（止まったあと本当の形・動かさない相手）。
 
 ## デプロイ前チェック
 

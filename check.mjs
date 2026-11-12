@@ -41,6 +41,7 @@ const FAST = [
   ['db/test-analysis-ui.mjs', 0.5],   // 2026-11-09：分析タブ（月を直書きしない・残りの差を単価の変化と呼ばない・確度%なし・増減のグラフの戻り道）
   ['assert-import-research.mjs', 4],   // 2026-10-20（WP-roll-a）：調査パックの取り込み。作り物のパック・使い捨ての台帳の写しだけ（本物の台帳は読むだけ）
   ['assert-rollout.mjs', 4.5],         // 2026-10-21（WP-roll-b）：会社ページを全社へ広げる生成器。切り替えは使い捨ての写しの中だけ（リポジトリには書かない）
+  ['assert-glass.mjs', 1],             // 2026-11-12：すりガラスと動き。全ページの PV-GLASS の塊（指紋）・試作の名残・規則が html[data-ui] の下
 ];
 
 const SQL = [
@@ -128,6 +129,9 @@ const WEB = [
   ['assert-towns.mjs', 199], ['assert-keep.mjs', 164], ['assert-proof-offer.mjs', 31],
   /* 2026-10-29 Vote（口コミ一覧の作り直し）。手元の使い捨ての保存先を OS が選ぶ番号で立てる。単独で約17秒。 */
   ['assert-vote.mjs', 17],
+  /* 2026-11-12 すりガラスと動き（pv-glass.js）。3000 番を使わない（自分で配り口を立てる）・本番の Supabase へは出さない。
+     動かしたときに止まったあと本当の形か／自動の検査と「動きを減らす」では動きの印が1つも付かないか。秒数は単独の実測 */
+  ['assert-glass-motion.mjs', 150],
 ];
 
 const argv = process.argv.slice(2);

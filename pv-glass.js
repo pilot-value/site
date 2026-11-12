@@ -1,6 +1,6 @@
 /* pv-glass.js — すりガラスと動き（2026-11-12 オーナー採用・全ページ）
    オーナーの参考動画（緑・青の Dashboard Animation・Glassy V2）を、今の緑で写したもの。
-   試作（ui-trial.js）を4枚で見せて「ガラスの方がいい」「いいね」→「全部のページに広げて」（2026-11-12）。
+   試作を会員の画面4枚で見せて「ガラスの方がいい」「いいね」→「全部のページに広げて」（2026-11-12）。
    読み込みは全ページの head の <!--PV-GLASS--> の塊（inject-glass.mjs が書く・pv-glass.css と対）。
    ★本物の字・数字は書き換えない。数え上げは「字を透明にして、上に重ねた絵の字だけを数える」。
      ＝ currency.js が読む字は最初から最後まで本物の額のまま。見出しを1字ずつに割るのも、動き終わったら元の字に戻す。
@@ -35,12 +35,18 @@
   var BAR = '.mp-tabs,.mv-tabs,.pt-tabs';
   var TAB = '.mp-tab,.mv-tab,.pt-tab';
   /* 数え上げる数字：MY PAY の大きい額・他社の年収の額・分析の大きい数・REAL PAY の数字の札・ROADMAP の賛成の数 */
-  var COUNT = '.mr-hero-v,.mr-total-v,.mv-ratio>b,.an-big,.ap-st-n,.mr-cmp-v,.rm-wn,.pt-donut-c>b,.pvg-big,.crl-sc-avg>b';
+  var COUNT = '.mr-hero-v,.mr-total-v,.mv-ratio>b,.an-big,.ap-st-n,.mr-cmp-v,.rm-wn,.pt-donut-c>b,.pvg-big,.crl-sc-avg>b,' +
+    '.stat-value.num,.bar-val,.lp-ex-bv,.vt-rn';
   /* 見出し：ページの題（1字ずつ下からせり上がる）と、カードの題（カードが見えたら同じ動きを短く） */
-  var TITLE = '.mp-h1,.mp-tab,h1.pv-paytab,.mr-hd-t,main h1,.pvg-name h1';
-  var SUBT = '.mr-card-t,.pt-h,.an-card-t,.rs-card-t,.ru-card-t,.ap-msg-t,.pvg-eyebrow,.crl-rg-tt,.crl-yd-tt,.crl-dn-h,.crl-sum-title';
+  /* 題はどのページでも h1（トップの大見出しは除く ＝ 最初に描く絵の主役で、遅らせると表示が 2 秒遅れる・lp.css の注）。
+     色を字の形に塗った見出し（background-clip:text）は割らない（1字ずつの窓に割ると色が消える）＝ split() が見る */
+  var TITLE = '.mp-h1,.mp-tab,h1:not(.hero-h1)';
+  var SUBT = '.mr-card-t,.pt-h,.an-card-t,.rs-card-t,.ru-card-t,.ap-msg-t,.pvg-eyebrow,.crl-rg-tt,.crl-yd-tt,.crl-dn-h,.crl-sum-title,' +
+    '.lp-h2,.pv-h2,.vt-title,.cr-h2,.sec-title,.wam-h';
   /* カードの名前は画面ごとに違う：MY PAY＝.mr-card・.an-card・.rs-card・.ru-card／ROADMAP＝.mr-card／REAL PAY＝.ap-* */
-  var CARD = '.mr-card,.an-card,.rs-card,.ru-card,.mv-peek,.ap-filter,.ap-lock-skel,.ap-tw,.ap-st,.ap-msg,.ap-lock-see,main>.pvr,.pvg-card';
+  var CARD = '.mr-card,.an-card,.rs-card,.ru-card,.mv-peek,.ap-filter,.ap-lock-skel,.ap-tw,.ap-st,.ap-msg,.ap-lock-see,main>.pvr,.pvg-card,' +
+    /* 公開の画面：国・地域・記事の箱・トップの箱・Vote の会社・2社比較・ログイン（給与フォームの段は自分で動くので入れない） */
+    '.stat-card,.info-card,.policy-card,.c-card,.pv-card,.lp-ex-card,.lp-why-item,.vt-co,.cr-sec,.cr-topic,.cr-card,.auth-card,details.pvcf-sec';
   /* 会社ページの HTML の図：年数の点（ぽんと出る）・幅の箱の中央値と真ん中の帯（浮かぶ）・月の勤務の棒（左から伸びる） */
   var HDOT = '.crl-yd-d', HFADE = '.crl-yd-bd,.crl-yd-md,.crl-rg-m', HBAR = '.crl-wb-b';
 
@@ -128,7 +134,8 @@
   var dio = ('IntersectionObserver' in w) ? new IntersectionObserver(onData, { threshold: [0, .3, .6, 1] }) : null;
   function topCards(region) {
     return Array.prototype.filter.call(region.querySelectorAll(CARD), function (c) {
-      return !(c.parentElement && c.parentElement.closest(CARD)) && c.getClientRects().length;
+      /* 前からの浮かぶ動き（.fade-up）を持つ箱は、こちらでは動かさない（2つの動きが重なる） */
+      return !(c.parentElement && c.parentElement.closest(CARD)) && !c.closest('.fade-up') && c.getClientRects().length;
     });
   }
   /* force … タブを押したとき（前に動いたものももう一度動かす）。無し … 開いた直後に遅れて出てきたものだけ動かす */
@@ -184,6 +191,9 @@
   var CJK = /[　-鿿豈-﫿＀-￯]/;
   function split(el, step) {
     if (el._utSp || RM) return null;
+    var cs0 = getComputedStyle(el);
+    if (/text/.test(cs0.webkitBackgroundClip || cs0.backgroundClip || '') || cs0.webkitTextFillColor === 'rgba(0, 0, 0, 0)') return null;   // 字の形に色を塗った見出し
+    if (el.querySelector('.fade-up,[style*="background-clip"]')) return null;
     var tw = d.createTreeWalker(el, NodeFilter.SHOW_TEXT, null), list = [], t;
     while ((t = tw.nextNode())) if (t.nodeValue.trim() && !(t.parentNode && t.parentNode.closest && t.parentNode.closest('svg'))) list.push(t);
     if (!list.length) return null;
@@ -212,6 +222,7 @@
     });
     var al = !el.hasAttribute('aria-label');
     if (al) el.setAttribute('aria-label', label);
+    step = Math.max(12, Math.min(step, Math.round(900 / Math.max(n, 1))));   // 長い題でも1秒ほどで出そろう
     el.style.setProperty('--ut-cs', step + 'ms');
     el.classList.add('ut-split');
     el._utSp = { pairs: pairs, n: n, al: al, step: step };
@@ -347,6 +358,8 @@
         svg.classList.add('ut-pie');
         return;
       }
+      /* 部品が多すぎる絵は図ではない（一覧の世界地図は数千の点）＝ 触らない */
+      if (svg.classList.contains('wam-svg') || svg.querySelectorAll('rect,circle,path,polygon,polyline,line').length > 160) { svg._utM = 1; return; }
       var rd = svg.closest('[data-radar]');
       if (rd && rd.getAttribute('data-radar') !== 'real') return;   // 会社ページのレーダーは、本物の点が入ってから
       var bb = svg.getBoundingClientRect();
@@ -405,6 +418,8 @@
       var cs = getComputedStyle(e), h = parseFloat(cs.height);
       if (!(h >= 3 && h <= 16)) return;
       if (cs.backgroundColor === 'rgba(0, 0, 0, 0)' && cs.backgroundImage === 'none') return;
+      /* 自分で動く棒（トップの順位・2社比較・フォームの進み）と、読み込み中の灰色の骨組みは触らない */
+      if (cs.transform !== 'none' || cs.animationName !== 'none' || e.closest('.pv-skel,[class*="skel"]')) { e._utM = 1; return; }
       e._utM = 1;
       e.classList.add('ut-hb');
       if (cs.backgroundImage === 'none') e.classList.add('ut-hbg');   // 自分の模様を持たない棒だけ、ガラスの光を重ねる

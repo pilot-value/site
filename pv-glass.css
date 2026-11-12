@@ -219,6 +219,28 @@ html[data-ui] .pvg :is(.crl-rg,.crl-yd,.crl-dn,.pvg-pub,.crl-sum-ovb,.crl-sum-li
   background:color-mix(in srgb,var(--pv-surface) 55%,transparent);border-color:var(--ut-glass-line);box-shadow:inset 0 1px 0 var(--ut-hi)}
 html[data-ui] .pvg-tabbar{background:color-mix(in srgb,var(--pv-bg) 55%,transparent) !important;
   -webkit-backdrop-filter:var(--ut-blur);backdrop-filter:var(--ut-blur)}
+/* 5-b) 公開の画面（body.pv-anav-pub ＝ 下地は白）の箱。下地が白っぽいので、ガラスは白を8割（字の濃さを保つ）。
+   あちらの色は pv-toggles.js・airline-base.css が !important で決め打ちしているので、こちらも !important。
+   ★色を直書きした箱（style="background:…" の色つきの箱）は平らにしない。
+   ★数の多い箱（一覧の124社・流れる口コミ）はぼかさない（重い）＝ 透ける白だけ。 */
+html[data-ui]{--ut-glass-pub:color-mix(in srgb,var(--pv-surface) 80%,transparent)}
+html[data-ui][data-theme="dark"]{--ut-glass-pub:color-mix(in srgb,var(--pv-surface) 72%,transparent)}
+html[data-ui] body.pv-anav-pub :is(.glass,.glass-raised,.stat-card,.info-card,.policy-card,.c-card,details.faq,.faq-item,.card,.pv-card,
+  .lp-ex-card,.lp-ex-lvl,.lp-why-item,.vt-co,.vt-privacy,.wd-search,.wam-g,.entry-card):not([style*="background"]):not(.is-green):not(.is-hero){
+  background:var(--ut-glass-pub) !important;-webkit-backdrop-filter:var(--ut-blur);backdrop-filter:var(--ut-blur);
+  border-color:var(--ut-glass-line) !important;box-shadow:inset 0 1px 0 var(--ut-hi),var(--ut-shadow) !important}
+html[data-ui] body.pv-anav-pub :is(.wd-li,.vt-rc){background:var(--ut-glass-pub) !important;border-color:var(--ut-glass-line) !important;
+  box-shadow:inset 0 1px 0 var(--ut-hi),0 1px 2px color-mix(in srgb,var(--pv-accent-dark) 6%,transparent),0 14px 28px -22px color-mix(in srgb,var(--pv-accent-dark) 40%,transparent)}
+/* Vote は自分の下地を敷いて、body::before を消している（vote.css）＝ ガラスの下地を出し直す */
+html[data-ui] body.vt-body{background:var(--pv-bg) !important}
+html[data-ui] body.vt-body::before{display:block !important}
+/* 5-c) 緑の下地の公開でない画面（2社比較・ログイン・待遇の質問）の箱。字の多い箱なので白を7割 */
+html[data-ui] body.pv-anav-app :is(.cr-sec,.cr-topic,.cr-card,.cr-pub,.cr-side,.auth-card,details.pvcf-sec):not([style*="background"]){
+  background:color-mix(in srgb,var(--pv-surface) 72%,transparent) !important;-webkit-backdrop-filter:var(--ut-blur);backdrop-filter:var(--ut-blur);
+  border-color:var(--ut-glass-line) !important;box-shadow:inset 0 1px 0 var(--ut-hi),var(--ut-shadow) !important}
+/* 5-d) 公開の画面の上の帯（#main-nav）もガラスに */
+html[data-ui] #main-nav,html[data-ui] #main-nav.scrolled{background:color-mix(in srgb,var(--pv-bg) 62%,transparent) !important;
+  -webkit-backdrop-filter:var(--ut-blur) !important;backdrop-filter:var(--ut-blur) !important;border-bottom-color:var(--ut-glass-line) !important}
 /* カードの中のカード（REAL PAY の一覧の表）はガラスを重ねず、薄い面にするだけ */
 html[data-ui] main :is(.ap-lock-skel,.mr-card) .ap-tw{-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;
   background:color-mix(in srgb,var(--pv-surface) 55%,transparent)}
