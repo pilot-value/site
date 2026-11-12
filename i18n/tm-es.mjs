@@ -16563,6 +16563,6 @@ export const TM = {
   "js:'Next year'": {"es":"js:'Año siguiente'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-value.js"],"note":"給与サマリーの月・年を選ぶ 2026-11-12"},
   "js:'{p}, all flights'": {"es":"js:'{p}, todos los vuelos'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"地球儀の輪の期間・便のブロック率 2026-11-12"},
   "js:'This day'": {"es":"js:'Este día'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"地球儀の輪の期間・便のブロック率 2026-11-12"},
-  "js:'Block/duty that day'": {"es":"js:'Block/servicio de ese día'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"地球儀の輪の期間・便のブロック率 2026-11-12"},
-  "js:'Block time as a share of duty time on the day of this flight {p}'": {"es":"js:'Tiempo de bloque sobre el tiempo de servicio del día de este vuelo {p}'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"地球儀の輪の期間・便のブロック率 2026-11-12"},
+  "js:'Share of the day’s {t}'": {"es":"js:'Parte de los {t} de ese día'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"地球儀の便のカード＝この日の稼ぎのうちこの便の分 2026-11-12"},
+  "js:'This flight’s share of the day’s earnings {t}: {p}'": {"es":"js:'Parte de este vuelo en lo ganado ese día {t}: {p}'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"地球儀の便のカード＝この日の稼ぎのうちこの便の分 2026-11-12"},
 };

@@ -32,7 +32,7 @@
       p3: '直近3か月', p12: '直近1年', pAll: '直近2年', ymT: '{y}年{n}月',
       prevD: '前の日', nextD: '次の日', prevM: '前の月', nextM: '次の月',
       sumT: 'FLIGHT EARNINGS', est: '目安',
-      ringL: 'ブロック', ringA: '勤務時間のうちブロックタイムの割合 {p}', ringP: '{p}の全便', thisDay: 'この日', blkR: 'この日のブロック率', blkA: 'この便を飛んだ日の、勤務時間のうちブロックタイムの割合 {p}',
+      ringL: 'ブロック', ringA: '勤務時間のうちブロックタイムの割合 {p}', ringP: '{p}の全便', thisDay: 'この日', shareL: 'この日の稼ぎ {t} のうち', shareA: 'この日の稼ぎ {t} のうち、この便の分 {p}',
       legHub: '拠点', legDest: '行き先', legDh: 'DH',
       hint: 'ドラッグで回す・ルートを押す', zin: '拡大', zout: '縮小',
       op: '乗務', dh: 'DH', unk: '区分確認中',
@@ -60,7 +60,7 @@
       p3: 'Last 3 months', p12: 'Last 12 months', pAll: 'Last 24 months', ymT: '{M} {y}',
       prevD: 'Previous day', nextD: 'Next day', prevM: 'Previous month', nextM: 'Next month',
       sumT: 'FLIGHT EARNINGS', est: 'est.',
-      ringL: 'Block', ringA: 'Block time as a share of duty time {p}', ringP: '{p}, all flights', thisDay: 'This day', blkR: 'Block/duty that day', blkA: 'Block time as a share of duty time on the day of this flight {p}',
+      ringL: 'Block', ringA: 'Block time as a share of duty time {p}', ringP: '{p}, all flights', thisDay: 'This day', shareL: 'Share of the day’s {t}', shareA: 'This flight’s share of the day’s earnings {t}: {p}',
       legHub: 'Base', legDest: 'Destination', legDh: 'Deadhead',
       hint: 'Drag to rotate, tap a route', zin: 'Zoom in', zout: 'Zoom out',
       op: 'Operating', dh: 'Deadhead', unk: 'Unclassified',
@@ -87,7 +87,7 @@
       p3: 'Últimos 3 meses', p12: 'Últimos 12 meses', pAll: 'Últimos 24 meses', ymT: '{M} {y}',
       prevD: 'Día anterior', nextD: 'Día siguiente', prevM: 'Mes anterior', nextM: 'Mes siguiente',
       sumT: 'FLIGHT EARNINGS', est: 'estimado',
-      ringL: 'Horas block', ringA: 'Tiempo de bloque sobre el tiempo de servicio {p}', ringP: '{p}, todos los vuelos', thisDay: 'Este día', blkR: 'Block/servicio de ese día', blkA: 'Tiempo de bloque sobre el tiempo de servicio del día de este vuelo {p}',
+      ringL: 'Horas block', ringA: 'Tiempo de bloque sobre el tiempo de servicio {p}', ringP: '{p}, todos los vuelos', thisDay: 'Este día', shareL: 'Parte de los {t} de ese día', shareA: 'Parte de este vuelo en lo ganado ese día {t}: {p}',
       legHub: 'Base', legDest: 'Destino', legDh: 'Deadhead',
       hint: 'Arrastra para girar y toca una ruta', zin: 'Acercar', zout: 'Alejar',
       op: 'Operando', dh: 'Deadhead', unk: 'Sin clasificar',
@@ -422,29 +422,23 @@
       '<div class="gl-flt-r"><div class="gl-ap"><b>' + esc(l.ga.iata) + '</b><span>' + esc(city(l.ga)) + '</span><span class="gl-ap-t">' + esc(l.out || '') + '</span></div>' +
         '<div class="gl-flt-m"><i class="gl-flt-ln"></i><span class="gl-flt-pl">' + IC_PLANE + '</span><i class="gl-flt-ln is-r"></i><span class="gl-flt-bt">' + esc(hm(l.blockMin)) + '</span></div>' +
         '<div class="gl-ap is-r"><b>' + esc(l.gb.iata) + '</b><span>' + esc(city(l.gb)) + '</span><span class="gl-ap-t">' + esc(l.in ? l.in + (l.inDay ? ' +' + l.inDay : '') : '') + '</span></div></div>' +
-      blkHTML(l) +
+      shareHTML(l) +
       '<div class="gl-sts">' + stats + '</div>';
   }
-  /* ★2026-11-12 オーナー「フライトを選んだら割合は変わるよね？」：1日の勤務時間は便ごとに分けられない（報告から解散までが1つの勤務）。
-       なので便のカードには「その便を飛んだ日」の割合を出す（輪と同じ式＝乗務の便のブロックタイム ÷ その日の勤務時間）。同じ日の便は同じ数字 */
-  function dayRatio(date) {
-    var all = null, fly = 0;
-    (S.model && S.model.roster ? S.model.roster.months : []).forEach(function (rm) {
-      rm.days.forEach(function (x) {
-        if (x.date !== date || !x.isDuty) return;
-        var v = x.dutyMin != null ? x.dutyMin : ((x.blockKnown.operating || 0) + (x.blockKnown.deadhead || 0) + (x.blockKnown.unknown || 0)) || null;
-        if (v != null) all = (all || 0) + v;
-      });
-    });
-    S.legs.forEach(function (l) { if (l.date === date && l.kind !== 'deadhead' && l.blockMin != null) fly += l.blockMin; });
-    return all > 0 ? Math.min(1, fly / all) : null;
+  /* ★2026-11-12 オーナー「今日稼いだお金の、便ごとのパーセンテージが出ると思ってた」：便のカードには、
+       その日の便の稼ぎ（目安）の合計のうち、この便の分が何％か。同じ日の便でも便ごとに変わる。額の出ない便・通貨の違う便は数えない。その日に1便だけ（100%）なら出さない */
+  function dayShare(l) {
+    if (l.amount == null) return null;
+    var tot = 0, n = 0;
+    S.legs.forEach(function (x) { if (x.date === l.date && x.amount != null && x.currency === l.currency) { tot += x.amount; n++; } });
+    return tot > 0 && n > 1 ? { r: Math.max(0, Math.min(1, l.amount / tot)), tot: tot } : null;
   }
-  function blkHTML(l) {
-    var r = dayRatio(l.date);
-    if (r == null) return '';
-    var p = Math.round(r * 1000) / 10;
-    return '<div class="gl-blk" role="img" aria-label="' + esc(fill(T.blkA, { p: p + '%' })) + '"><span>' + esc(T.blkR) + '</span><b>' + p.toFixed(1) + '%</b>' +
-      '<i class="gl-blk-t"><i style="transform:scaleX(' + r.toFixed(3) + ')"></i></i></div>';
+  function shareHTML(l) {
+    var sh = dayShare(l);
+    if (!sh) return '';
+    var p = Math.round(sh.r * 1000) / 10;
+    return '<div class="gl-shr" role="img" aria-label="' + esc(fill(T.shareA, { p: p + '%', t: money(sh.tot, l.currency) })) + '"><span>' + esc(fill(T.shareL, { t: money(sh.tot, l.currency) })) + '</span><b>' + p.toFixed(1) + '%</b>' +
+      '<i class="gl-shr-t"><i style="transform:scaleX(' + sh.r.toFixed(3) + ')"></i></i></div>';
   }
   function ringP() {
     var p = S.per === 'd' ? T.thisDay : S.per === 'm' && S.ym ? ymS(S.ym) : S.per === '3' ? T.p3 : S.per === '12' ? T.p12 : T.pAll;
