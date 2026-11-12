@@ -1303,7 +1303,8 @@ console.log('\n── ⑦-b 各航空会社のページと Vote のお知らせ 
   /* 送信側の門（send.mjs の pages）。 */
   {
     const S = read('mail-bot/send.mjs');
-    const run = S.slice(S.indexOf('async function runPages'), S.indexOf('(async () => {', S.indexOf('async function runPages')));
+    /* runPages の本体だけ（後ろに足した runRoute を含めない） */
+    const run = S.slice(S.indexOf('async function runPages'), S.indexOf('\nasync function ', S.indexOf('async function runPages') + 10));
     ok(run.length > 500, 'pages/send: runPages がある');
     ok(/1通も送らずに止めます/.test(run) && /missingOf/.test(run), 'pages/send: 絵が1枚でも欠けていたら1通も送らない');
     ok(/attachments: attachmentsOf\(b\)/.test(run), 'pages/send: 絵を埋め込んで送る');
@@ -1437,7 +1438,9 @@ console.log('\n── ⑦-c MY PAY の新しい機能のお知らせ ──');
     ok(/attachments: attachmentsOf\(b\)/.test(run), 'route/send: 絵を埋め込んで送る');
     ok(/const TAG = '2026-11-route'/.test(run) && /routeSent/.test(run) && !/pagesSent|renewalSent/.test(run), 'route/send: 送信済みの控えと Resend の目印がほかのお知らせと別');
     ok(!/console\.log\(`.*(m\.email|m\.company|m\.name)/.test(run), 'route/send: 宛先も勤務先も画面に出さない');
-    ok(!/email_opt_in/.test(run.replace(/\/\*[\s\S]*?\*\//g, '')), 'route/send: 登録者全員に送る（希望者だけに絞っていない）');
+    ok(!/email_opt_in', 'eq\.true/.test(run), 'route/send: 登録者全員に送る（希望者だけに絞っていない）');
+    ok(/m\.email_opt_in === false && !!m\.email_opt_in_at/.test(run) && /targets = targets\.filter\(m => !stoppedOf\(m\)\)/.test(run),
+       'route/send: 受け取りを一度オンにしてから自分で止めた人には送らない（一度もオンにしていない人は対象のまま）');
     ok(/isTestEmail/.test(run) && /TEST_PATTERNS\.length === 0/.test(run), 'route/send: 動作確認用のアカウントを外す（外せないときは止まる）');
     ok(!/sbRpc\(/.test(run), 'route/send: 会員を1人ずつ本番の DB に引きに行かない');
   }

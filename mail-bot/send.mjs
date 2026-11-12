@@ -958,7 +958,7 @@ async function runRoute() {
   }
 
   /* ★email_opt_in を条件に入れない。全員が対象。 */
-  const people = await sbSelect('profiles', 'id,name,email,country,company,unsub_token',
+  const people = await sbSelect('profiles', 'id,name,email,country,company,unsub_token,email_opt_in,email_opt_in_at',
     [['order', 'created_at.asc']]);
 
   const sentBefore = state.routeSent || {};
@@ -966,6 +966,12 @@ async function runRoute() {
   const total = targets.length;
   const testers = targets.filter(m => isTestEmail(m.email)).length;
   targets = targets.filter(m => !isTestEmail(m.email));
+  /* ★メールの受け取りを一度オンにしてから自分で止めた人には送らない（2026-11-13）。
+     「配信を停止する」を押した・設定で切った、のどちらも受け取りの旗が落ち、オンにした日時だけが残る。
+     一度もオンにしていない人（日時が空）は今までどおり対象 ── サービスからのお知らせは登録者全員に送る。 */
+  const stoppedOf = (m) => m.email_opt_in === false && !!m.email_opt_in_at;
+  const stopped = targets.filter(stoppedOf).length;
+  targets = targets.filter(m => !stoppedOf(m));
   const already = targets.filter(m => sentBefore[m.id]).length;
   targets = targets.filter(m => !sentBefore[m.id]);
   if (onlyArg) targets = targets.filter(m => String(m.email).toLowerCase() === onlyArg.toLowerCase());
@@ -980,7 +986,7 @@ async function runRoute() {
   const mails = targets.map(m => ({ m, b: buildRoute(m, { siteUrl: SITE_URL, supabaseUrl: SUPABASE_URL, adminEmail: ADMIN_EMAIL, lang: langArg }) }));
   const pre = { ja: 0, en: 0, both: 0 };
   for (const x of mails) pre[x.b.lang] = (pre[x.b.lang] || 0) + 1;
-  console.log(`[route] 登録 ${total} 名／動作確認 ${testers} 名を除外／送信済み ${already} 名／今回の対象 ${targets.length} 名`
+  console.log(`[route] 登録 ${total} 名／動作確認 ${testers} 名を除外／受け取りを止めた ${stopped} 名を除外／送信済み ${already} 名／今回の対象 ${targets.length} 名`
     + `（日本語 ${pre.ja} / 英語 ${pre.en} / 日英ともに ${pre.both}）`
     + (onlyArg ? `（--only=${onlyArg}）` : ''));
 
