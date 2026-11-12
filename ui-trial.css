@@ -34,6 +34,17 @@ html[data-ui][data-theme="dark"]{
   --ut-pill-shadow:0 1px 2px rgba(0,0,0,.35),0 6px 16px -6px rgba(0,0,0,.5);
   --ut-shadow:0 1px 2px rgba(0,0,0,.3),0 24px 48px -28px rgba(0,0,0,.7);
 }
+/* ── 0-b) 字（2026-11-12 オーナー「フォントの雰囲気も動画に合わせて。スタイリッシュでかっこいい」）──
+   見本は丸みのある幾何学的な字（Outfit に近い）で、大きい字ほど細めの太さ（500）・字の間を詰める・小さい札は灰色。
+   英数字は Outfit、日本語は Zen Kaku Gothic New（細く端正）。読み込みは ui-trial.js が試作のときだけ足す。 */
+html[data-ui]{--ut-font:'Outfit','Zen Kaku Gothic New','Hiragino Sans','Noto Sans JP',system-ui,sans-serif}
+html[data-ui] body,html[data-ui] body *:not(code):not(pre):not(kbd){font-family:var(--ut-font) !important}
+html[data-ui] body{font-feature-settings:'palt' 1;letter-spacing:.005em}
+/* 大きい字：題・大きい額は 500〜600 で字間を詰める */
+html[data-ui] :is(.mp-h1,.mp-tab,h1.pv-paytab,.mr-hd-t,main h1){font-weight:600 !important;letter-spacing:-.025em !important}
+html[data-ui] :is(.mr-hero-v,.mr-total-v,.an-big,.ap-st-n,.mr-cmp-v,.pt-donut-c>b){font-weight:600 !important;letter-spacing:-.02em !important}
+html[data-ui] :is(.mr-card-t,.pt-h,.an-card-t,.rs-card-t,.ru-card-t,.ap-msg-t){font-weight:600 !important;letter-spacing:-.01em !important}
+
 /* 「透明度を下げる」設定・ガラスを描けないブラウザは、不透明な面に戻す */
 @media (prefers-reduced-transparency:reduce){
   html[data-ui]{--ut-glass:var(--pv-surface);--ut-glass-hi:var(--pv-surface);--ut-blur:none}
@@ -53,6 +64,8 @@ html[data-ui] body::before{content:'';position:fixed;inset:-12vh 0;z-index:-1;po
     radial-gradient(30vmax 26vmax at 10% 96%,color-mix(in srgb,var(--pv-accent) 34%,transparent),transparent 70%),
     radial-gradient(40vmax 30vmax at 48% 42%,color-mix(in srgb,var(--pv-accent-soft) 95%,transparent),transparent 72%),
     linear-gradient(160deg,color-mix(in srgb,var(--pv-accent-soft) 85%,var(--pv-bg)),color-mix(in srgb,var(--pv-accent-line) 70%,var(--pv-bg)))}
+/* 会社ページは body::before に細かいざらつきの絵を敷いて、明るい画面では 3% に薄めている（airline-base.css）。試作の緑はそれを上書きする */
+html[data-ui] body::before{opacity:1 !important;inset:-12vh 0 !important;z-index:-1 !important;background-size:auto !important}
 html[data-ui][data-theme="dark"] body::before{
   background:
     radial-gradient(38vmax 38vmax at 6% 14%,color-mix(in srgb,var(--pv-accent) 30%,transparent),transparent 70%),
@@ -60,6 +73,23 @@ html[data-ui][data-theme="dark"] body::before{
     radial-gradient(40vmax 34vmax at 58% 100%,color-mix(in srgb,var(--pv-accent) 22%,transparent),transparent 70%),
     var(--pv-bg)}
 /* 粒の質感（今月の緑のカードと同じ絵）*/
+/* 1-b) 会社ページの背景「白」（?bg=plain・2026-11-12 オーナー「会社ページはバックが緑じゃない方がいいかも」）
+   緑を1滴も使わない、灰と白の淡い濃淡だけ。ガラスは下に濃淡があって初めて見えるので、真っ白の1色にはしない。
+   緑はメニューの選んだ板・ボタン・図の色にだけ残る。 */
+html[data-ui][data-ui-bg="plain"] body::before{
+  background:
+    radial-gradient(32vmax 32vmax at 0% 22%,color-mix(in srgb,var(--pv-ink-3) 26%,transparent),transparent 70%),
+    radial-gradient(30vmax 26vmax at 100% 6%,color-mix(in srgb,var(--pv-ink-3) 16%,transparent),transparent 70%),
+    radial-gradient(36vmax 30vmax at 84% 76%,color-mix(in srgb,var(--pv-ink-3) 18%,transparent),transparent 70%),
+    radial-gradient(30vmax 26vmax at 8% 96%,color-mix(in srgb,var(--pv-ink-3) 14%,transparent),transparent 70%),
+    radial-gradient(42vmax 32vmax at 48% 40%,color-mix(in srgb,var(--pv-bg) 92%,transparent),transparent 72%),
+    linear-gradient(160deg,var(--pv-bg-sub),color-mix(in srgb,var(--pv-line) 70%,var(--pv-bg)))}
+html[data-ui][data-ui-bg="plain"][data-theme="dark"] body::before{
+  background:
+    radial-gradient(36vmax 36vmax at 6% 14%,rgba(255,255,255,.07),transparent 70%),
+    radial-gradient(34vmax 34vmax at 96% 30%,rgba(255,255,255,.05),transparent 70%),
+    radial-gradient(40vmax 34vmax at 70% 92%,rgba(255,255,255,.05),transparent 72%),
+    linear-gradient(160deg,var(--pv-bg-sub),var(--pv-bg))}
 html[data-ui] body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.05;mix-blend-mode:multiply;
   background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size:160px}
@@ -103,13 +133,21 @@ html[data-ui][data-theme="dark"] .mr-top::after{background:linear-gradient(180de
 html[data-ui] .mr-side .mr-side-a.is-on{position:relative;isolation:isolate;
   background:none;border-color:transparent;box-shadow:none;color:#fff}
 html[data-ui] .mr-side .mr-side-a.is-on>svg:not(.mr-side-lk){background:none !important;color:#fff !important;opacity:1}
+/* 板は真緑の1色ではなく、左の深い緑から右へ行くほど少し薄く透けるすりガラス
+   （2026-11-12 オーナー「右に行くにつれてちょっと薄く。すりガラス風に」）。
+   ★字の載る真ん中（〜8割）は白い字が 4.5:1 を保つ濃さのまま。薄くなるのは右の端だけ。 */
 html[data-ui] .ut-rail-pill{position:absolute;inset:0;z-index:-1;border-radius:16px;pointer-events:none;
   background:
-    radial-gradient(120% 90% at 50% 0%,rgba(255,255,255,.16),transparent 60%),
-    linear-gradient(160deg,var(--pv-accent-dark),color-mix(in srgb,var(--pv-accent-dark) 82%,#000));
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),
-             0 2px 4px color-mix(in srgb,var(--pv-accent-dark) 22%,transparent),
-             0 12px 26px -12px color-mix(in srgb,var(--pv-accent-dark) 70%,transparent)}
+    linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,0) 55%),
+    linear-gradient(90deg,
+      color-mix(in srgb,var(--pv-accent-dark) 84%,#000) 0%,
+      var(--pv-accent-dark) 48%,
+      color-mix(in srgb,var(--pv-accent) 45%,var(--pv-accent-dark)) 85%,
+      color-mix(in srgb,var(--pv-accent) 74%,transparent) 100%);   /* 白い字の比：8割5分の位置まで 4.7 以上（測った）*/
+  -webkit-backdrop-filter:blur(14px) saturate(1.8);backdrop-filter:blur(14px) saturate(1.8);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.34),inset 0 0 0 1px rgba(255,255,255,.16),
+             0 2px 4px color-mix(in srgb,var(--pv-accent-dark) 18%,transparent),
+             0 12px 26px -12px color-mix(in srgb,var(--pv-accent-dark) 60%,transparent)}
 /* ページを移っている間だけは、字を濃いまま（板が滑ってくる途中、白い字が白い地に溶けないように） */
 html.ut-pagevt .mr-side .mr-side-a.is-on{color:var(--pv-ink)}
 html.ut-pagevt .mr-side .mr-side-a.is-on>svg:not(.mr-side-lk){color:var(--pv-accent-ink) !important}
@@ -168,6 +206,16 @@ html[data-ui] main>.pvr{padding:24px;border:1px solid var(--ut-glass-line);borde
   box-shadow:inset 0 1px 0 var(--ut-hi),var(--ut-shadow)}
 html[data-ui] main>.pvr :is(.pvr-note,.pvr-nb){color:var(--pv-ink-3) !important}
 html[data-ui]:not([data-theme="dark"]) main>.pvr :is(.pvr-eyebrow,.pvr-btn2){color:color-mix(in srgb,#a07200 76%,#000) !important}
+/* 会社ページ：外の箱（.pvg-card）をすりガラスに。中の箱（幅・年数・内訳・要約）はガラスを重ねず薄い面に。タブの帯もガラス */
+html[data-ui] .pvg .pvg-card{
+  background:var(--ut-glass);-webkit-backdrop-filter:var(--ut-blur);backdrop-filter:var(--ut-blur);
+  border-color:var(--ut-glass-line);box-shadow:inset 0 1px 0 var(--ut-hi),var(--ut-shadow);
+  --pv-surface-2:color-mix(in srgb,var(--pv-surface) 45%,transparent);
+  --pv-bg-sub:color-mix(in srgb,var(--pv-surface) 50%,transparent)}
+html[data-ui] .pvg :is(.crl-rg,.crl-yd,.crl-dn,.pvg-pub,.crl-sum-ovb,.crl-sum-li,.crl-rev){
+  background:color-mix(in srgb,var(--pv-surface) 55%,transparent);border-color:var(--ut-glass-line);box-shadow:inset 0 1px 0 var(--ut-hi)}
+html[data-ui] .pvg-tabbar{background:color-mix(in srgb,var(--pv-bg) 55%,transparent) !important;
+  -webkit-backdrop-filter:var(--ut-blur);backdrop-filter:var(--ut-blur)}
 /* カードの中のカード（REAL PAY の一覧の表）はガラスを重ねず、薄い面にするだけ */
 html[data-ui] main :is(.ap-lock-skel,.mr-card) .ap-tw{-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;
   background:color-mix(in srgb,var(--pv-surface) 55%,transparent)}
@@ -195,7 +243,6 @@ html[data-ui]:not([data-theme="dark"]) body{
    図・棒・円・数字は1つずつ：.ut-w … 画面に入る前（棒は長さ 0・線は描く前・円は開く前）
                               .ut-g … それ自身が画面に入った。--ut-d だけ待ってから1回だけ動く
    ★棒は行き過ぎない動き（--pv-ease）。値より長く見える瞬間を作らない。 */
-@property --ut-a{syntax:'<angle>';inherits:false;initial-value:360deg}
 
 html[data-ui] .ut-rise{animation:utRise .75s var(--ut-spring) both;animation-delay:calc(var(--ut-i,0) * 60ms + 30ms)}
 @keyframes utRise{from{opacity:0;transform:translateY(18px) scale(.985)}}
@@ -207,8 +254,16 @@ html[data-ui] .ut-pre{opacity:0;transform:translateY(18px) scale(.985)}
 
 /* 6-a) HTML の棒（他社の年収・固定と変動・記録の進み・ROADMAP の賛成の数）── 左から伸びる */
 html[data-ui] .ut-hb{transform-origin:left center}
-html[data-ui] .ut-hb.ut-w{transform:scaleX(0)}
-html[data-ui] .ut-hb.ut-g{animation:utGrow 1s var(--pv-ease) both;animation-delay:var(--ut-d,0ms)}
+html[data-ui] .ut-hb.ut-w{scale:0 1}
+html[data-ui] .ut-hb.ut-g{animation:utGrowS 1s var(--pv-ease) both;animation-delay:var(--ut-d,0ms)}
+@keyframes utGrowS{from{scale:0 1}}
+/* 会社ページ：年数の点はぽんと出る・中央値の線と真ん中の帯は浮かぶ（どちらも自分の transform を持つので scale と opacity だけ） */
+html[data-ui] .ut-hd.ut-w{scale:0}
+html[data-ui] .ut-hd.ut-g{animation:utPopS .6s var(--ut-spring) both;animation-delay:var(--ut-d,0ms)}
+@keyframes utPopS{from{scale:0}}
+html[data-ui] .ut-hf.ut-w{opacity:0}
+html[data-ui] .ut-hf.ut-g{animation:utFadeO .9s var(--pv-ease) both;animation-delay:calc(var(--ut-d,0ms) + 200ms)}
+@keyframes utFadeO{from{opacity:0}}
 @keyframes utGrow{from{transform:scaleX(0)}}
 
 /* 6-b) SVG の図（分析・1年・累計・ROADMAP の伸び）
@@ -228,18 +283,46 @@ html[data-ui] svg.ut-g .ut-row{animation:utGrow .8s var(--pv-ease) both;
   animation-delay:calc(var(--ut-d,0ms) + var(--ut-j,0) * 80ms)}
 html[data-ui] svg.ut-g .ut-line{animation:utDraw 1.3s cubic-bezier(.65,0,.35,1) both;animation-delay:calc(var(--ut-d,0ms) + 80ms)}
 html[data-ui] svg.ut-g .ut-area{animation:utFade .9s var(--pv-ease) both;animation-delay:calc(var(--ut-d,0ms) + 450ms)}
+html[data-ui] svg .ut-rad{transform-box:view-box;transform-origin:50% 50%}
+html[data-ui] svg.ut-w .ut-rad{transform:scale(0) rotate(-40deg);opacity:0}
+html[data-ui] svg.ut-g .ut-rad{animation:utRad 1.2s var(--ut-spring) both;animation-delay:calc(var(--ut-d,0ms) + 60ms)}
+@keyframes utRad{from{transform:scale(0) rotate(-40deg);opacity:0}}
 html[data-ui] svg.ut-g .ut-dot{animation:utPop .55s var(--ut-spring) both;animation-delay:calc(var(--ut-d,0ms) + 700ms + var(--ut-j,0) * 40ms)}
 @keyframes utGrowY{from{transform:scaleY(0)}}
 @keyframes utDraw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
 @keyframes utFade{from{opacity:0;transform:translateY(6px)}}
 @keyframes utPop{from{transform:scale(0)}}
 
-/* 6-c) 円（支給構成）は12時から描かれる。ROADMAP の輪は ui-trial.js が弧を伸ばす */
-html[data-ui] .pt-donut:is(.ut-w,.ut-g) svg{
-  -webkit-mask-image:conic-gradient(#000 var(--ut-a),transparent 0);mask-image:conic-gradient(#000 var(--ut-a),transparent 0)}
-html[data-ui] .pt-donut.ut-w svg{--ut-a:0deg}
-html[data-ui] .pt-donut.ut-g svg{animation:utSweep 1.2s var(--pv-ease) both;animation-delay:var(--ut-d,0ms)}
-@keyframes utSweep{from{--ut-a:0deg}to{--ut-a:360deg}}
+/* 6-c) 円グラフ・輪：色の区切りが12時から1つずつ順に描かれる（弧は ui-trial.js が伸ばす）。
+   同時に輪が少し回りながら大きくなり、まん中の額が数え上がり、横の凡例が1行ずつ浮かぶ。最後に上からの光が差す。 */
+html[data-ui] svg.ut-pie{transform-origin:50% 50%;overflow:visible}
+html[data-ui] svg.ut-pie.ut-w{transform:rotate(-80deg) scale(.86)}
+html[data-ui] svg.ut-pie.ut-g{animation:utSpin 1.5s var(--ut-spring) both;animation-delay:var(--ut-d,0ms)}
+@keyframes utSpin{from{transform:rotate(-80deg) scale(.86)}}
+html[data-ui] svg.ut-pie .ut-sheen{opacity:.85;mix-blend-mode:soft-light}
+html[data-ui] svg.ut-pie.ut-w .ut-sheen{opacity:0}
+html[data-ui] svg.ut-pie.ut-g .ut-sheen{animation:utFade .9s var(--pv-ease) both;animation-delay:calc(var(--ut-d,0ms) + 1100ms)}
+html[data-ui] .pt-donut svg,html[data-ui] svg.ut-pie{filter:drop-shadow(0 10px 18px color-mix(in srgb,var(--pv-accent-dark) 20%,transparent))}
+html[data-ui] .ut-leg-w>*{opacity:0;transform:translateY(8px)}
+html[data-ui] .ut-leg-g>*{animation:utFade .6s var(--pv-ease) both;animation-delay:calc(var(--ut-d,0ms) + 250ms + var(--ut-j,0) * 70ms)}
+
+/* 6-f) 見出しが1字ずつ下からせり上がる（ui-trial.js が字を窓に入れる）
+   窓（.ut-cw）は字の形に合わせて少し広く切り抜く（g・y の下も、上の点も切れない）。字は窓の下から上がる。 */
+html[data-ui] .ut-wd{white-space:nowrap}
+html[data-ui] .ut-cw{display:inline-block;clip-path:inset(-.4em -.3em -.2em -.3em)}
+html[data-ui] .ut-ch{display:inline-block;white-space:pre}
+html[data-ui] .ut-split .ut-ch{transform:translateY(130%);opacity:0}
+html[data-ui] .ut-split.ut-split-go .ut-ch{transform:none;opacity:1;
+  transition:transform .75s cubic-bezier(.16,1,.3,1),opacity .35s linear;
+  transition-delay:calc(var(--ut-d,0ms) + var(--ci,0) * var(--ut-cs,30ms))}
+
+/* 6-g) すりガラスの図（2026-11-12 オーナー「グラフもすりガラス風に弱いグラデーション」）
+   SVG の棒は ui-trial.js が覆い（先を濃く・根元を 4 割まで透かす）を付ける。ここは線の光と HTML の棒。 */
+html[data-ui] svg .ut-line{filter:drop-shadow(0 5px 7px color-mix(in srgb,var(--pv-accent) 35%,transparent))}
+html[data-ui] .ut-hbg{background-image:linear-gradient(90deg,rgba(255,255,255,.42),rgba(255,255,255,.08) 70%,rgba(255,255,255,0)) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 4px 10px -6px color-mix(in srgb,var(--pv-accent-dark) 45%,transparent)}
+html[data-ui][data-theme="dark"] .ut-hbg{background-image:linear-gradient(90deg,rgba(255,255,255,.16),rgba(255,255,255,0) 70%) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18)}
 
 /* 6-d) 数字の数え上げ ── 本物の字は書き換えない（透明にするだけ）。上に重ねた絵の字だけが数える。
    ＝ currency.js が読む字は最初から最後まで本物の額のまま */
@@ -299,8 +382,13 @@ html[data-theme="dark"]::view-transition-group(ut-rail-pill){mix-blend-mode:scre
 @media (prefers-reduced-motion:reduce){
   html[data-ui] *,html[data-ui] *::before,html[data-ui] *::after{animation:none !important;transition:none !important}
   html[data-ui] .ut-pre{opacity:1;transform:none}
+  html[data-ui] .ut-split .ut-ch,html[data-ui] .ut-leg-w>*{opacity:1;transform:none}
+  html[data-ui] :is(.ut-hb,.ut-hd){scale:none}
+  html[data-ui] .ut-hf{opacity:1}
   ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none !important}
 }
 @media print{
   html[data-ui] body::before,html[data-ui] body::after,.ut-sw{display:none !important}
+  html[data-ui] .ut-split .ut-ch,html[data-ui] .ut-leg-w>*{opacity:1 !important;transform:none !important}
+  html[data-ui] svg.ut-pie{transform:none !important}
 }

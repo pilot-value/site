@@ -77,14 +77,18 @@ const gate  = process.argv.includes('gate');
 
 const dir = path.join(__dirname, 'temporary screenshots');
 if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-const label = `ui-${process.env.UI || 'now'}-${(process.env.PAGE || '').replace(/\.html$/, '')}${process.env.PAGE ? '-' : ''}${scene}-${lang}-${theme}` + (vw !== 1440 ? `-${vw}` : '') + (process.env.VIEW ? '-view' : '') + (process.env.ACT ? '-' + process.env.ACT.replace(/[^a-z0-9]+/gi, '_') + (process.env.MID ? '-' + process.env.MID : '') : '');
+const label = `ui-${process.env.UI || 'now'}-${(process.env.PAGE || '').replace(/\.html$/, '').replace(/\//g, '_')}${process.env.PAGE ? '-' : ''}${process.env.HASH ? process.env.HASH.replace(/[^a-z0-9]+/gi, '') + '-' : ''}${scene}-${lang}-${theme}` + (vw !== 1440 ? `-${vw}` : '') + (process.env.BG ? '-bg' + process.env.BG : '') + (process.env.VIEW ? '-view' : '') + (process.env.ACT ? '-' + process.env.ACT.replace(/[^a-z0-9]+/gi, '_') + (process.env.MID ? '-' + process.env.MID : '') : '');
 let n = 1;
 while (fs.existsSync(path.join(dir, `screenshot-${n}-${label}.png`))) n++;
 const outPath = path.join(dir, `screenshot-${n}-${label}.png`);
 
 const UI = process.env.UI || '';
+/* 会社ページ（PAGE=airlines/<slug>.html）も開ける。#your-pay は MY PAGE の印なので、PAGE を渡したら付けない。
+   HASH=work などで会社ページのタブ（overview / pay / reviews / work / life / stay）を開いた状態から撮れる。 */
+const hash = process.env.HASH ? '#' + process.env.HASH.replace(/^#/, '')
+           : (process.env.PG === 'page' || process.env.PAGE) ? '' : '#your-pay';
 const url = `http://localhost:${process.env.PV_PORT || 3210}/${lang === 'en' ? 'en/' : ''}${process.env.PAGE || 'profile.html'}` +
-            '?' + (UI ? 'ui=' + UI + '&' : '') + (process.argv.includes('open') ? '' : 'sw=0') + (process.env.PG === 'page' || process.env.PAGE ? '' : '#your-pay');
+            '?' + (UI ? 'ui=' + UI + '&' : '') + (process.env.BG ? 'bg=' + process.env.BG + '&' : '') + (process.argv.includes('open') ? '' : 'sw=0') + hash;
 
 /* ★ headless:'new' はこの環境で page.screenshot() が永久に返ってこない
    （shot-tracker.mjs に実測の経緯あり）。chrome-headless-shell を使う。 */
@@ -92,6 +96,19 @@ const browser = await puppeteer.launch(open
   ? { headless: false, defaultViewport: null, args: ['--no-sandbox', `--window-size=${vw},900`, '--window-position=40,40'] }
   : { headless: 'shell', args: ['--no-sandbox'] });
 const page = (await browser.pages())[0] || await browser.newPage();
+/* ★本番の Supabase へは1本も出さない保険（2026-11-12）。差し替えクライアント（下の FAKE）を通らない通信 ──
+   ページが自分で fetch する口・後から読む supabase-js ── が在っても、ブラウザがその場で止める。
+   setRequestInterception は使わない（CDP デッドロック）。止めるのはブラウザの「この住所は読まない」の一覧だけ。
+   止めた通信は数えて最後に出す（0 でなければ、どこかが差し替えの外から本番へ出ようとした）。 */
+const GUARD = await page.createCDPSession();
+await GUARD.send('Network.enable');
+await GUARD.send('Network.setBlockedURLs', { urls: ['*supabase.co*'] });
+const BLOCKED = [];
+page.on('requestfailed', (r) => { if (/supabase\.co/.test(r.url())) BLOCKED.push(r.url().replace(/\?.*$/, '')); });
+/* ページの console のエラーと、捕まらなかった例外。撮ったあとに出す */
+const ERRS = [];
+page.on('console', (m) => { if (m.type() === 'error') ERRS.push(m.text().slice(0, 240)); });
+page.on('pageerror', (e) => ERRS.push('pageerror: ' + String(e && e.message || e).slice(0, 240)));
 if (!open) await page.setViewport(process.env.REC
   /* スマホは「780px の画面に、390px の幅で組んだページを2倍で描く」（コマの絵が 780px の鮮明さで来る。下の meta viewport の差し替えと対） */
   ? (vw < 600 ? { width: vw * 2, height: 1688, deviceScaleFactor: 1, isMobile: true, hasTouch: true } : { width: vw, height: 800, deviceScaleFactor: 1 })
@@ -399,6 +416,116 @@ await page.evaluateOnNewDocument((scene, theme, REALROW) => {
   }[scene] || { ok: true, state: 'locked', rows: [], stats: ST_LOCK,
                 give: { basic: false, detailed: false, payslip: false } };
 
+  /* ── 会社ページ（/airlines/<slug>.html・/en/airlines/<slug>.html）だけの見本（2026-11-12 すりガラスの試作）──────────
+     給与の鍵が開いた会員として、会社ページの図（年収の幅の棒・年数の点・内訳の円・月の勤務の帯・評価の6角形・口コミの要約）を
+     全部描かせるための答え。★数字も文も全部でたらめ（本物の提出・口コミは1つも写していない・人の名前は書かない）。
+     額はキャセイの機長 USD 20万〜30万・副操縦士 USD 10万〜15万の幅に収めてある。どの会社のページでも同じ見本を、
+     聞かれた会社（引数の slug ／ pv_pay_rows は住所の slug）の行として返す。
+     MY PAGE・REAL PAY・ROADMAP・INVITE ではこの表を1つも見ない（AIR が空）＝ 今までと1文字も同じ答え。 */
+  const AIR = (location.pathname.match(/\/airlines\/([a-z0-9-]+)\.html$/) || [])[1] || '';
+  const P = (a) => (a && a.p) || {};
+  const slugOf = (a) => P(a).airline || (Array.isArray(P(a).airlines) && P(a).airlines[0]) || AIR;
+  const AIR_PAY = (s) => [
+    /* 機長：昇格後の年数の5段（ten 0〜4・tenk 'r'）に散らす ＝ 年数の図に点が並ぶ */
+    { pos: 'cap', fleet: 'a350', ten: 0, annual_usd: 212000, verified: true,  age: 1 },
+    { pos: 'cap', fleet: 'b777', ten: 1, annual_usd: 228000, verified: false, age: 2 },
+    { pos: 'cap', fleet: 'a350', ten: 1, annual_usd: 241000, verified: true,  age: 0 },
+    { pos: 'cap', fleet: 'a330', ten: 2, annual_usd: 252000, verified: false, age: 3 },
+    { pos: 'cap', fleet: 'b777', ten: 3, annual_usd: 268000, verified: true,  age: 4 },
+    { pos: 'cap', fleet: 'a350', ten: 4, annual_usd: 287000, verified: false, age: 5 },
+    { pos: 'fo',  fleet: 'a330', ten: 0, annual_usd: 104000, verified: true,  age: 0 },
+    { pos: 'fo',  fleet: 'a350', ten: 1, annual_usd: 116000, verified: false, age: 1 },
+    { pos: 'fo',  fleet: 'b777', ten: 2, annual_usd: 128000, verified: true,  age: 2 },
+    { pos: 'fo',  fleet: 'a350', ten: 3, annual_usd: 139000, verified: false, age: 3 },
+    { pos: 'fo',  fleet: 'b777', ten: 4, annual_usd: 147000, verified: true,  age: 6 }
+  ].map((r) => Object.assign({ airline: s, tenk: 'r', far: false }, r));
+  const AIR_PER = { from: '2024-11', to: '2026-10' };
+  /* 職位ごとの中央値と 25%・75%（pv_company_pay の開いた答えの形）。人数は返さない */
+  const AIR_MED = { cap: { s: 'ok', median_usd: 250000, p25_usd: 228000, p75_usd: 268000 },
+                    fo:  { s: 'ok', median_usd: 128000, p25_usd: 116000, p75_usd: 139000 } };
+  /* 月の給与の内訳（pv_company_comp）── 割合は整数で合計 100・額は月の平均 USD */
+  const AIR_COMP = {
+    cap: { s: 'ok', segs: [{ k: 'base', pct: 50, avg_usd: 10400 }, { k: 'variable', pct: 22, avg_usd: 4600 }, { k: 'command', pct: 8, avg_usd: 1700 },
+                           { k: 'perdiem', pct: 9, avg_usd: 1900 }, { k: 'other', pct: 7, avg_usd: 1500 }, { k: 'rest', pct: 4, avg_usd: 800 }] },
+    fo:  { s: 'ok', segs: [{ k: 'base', pct: 56, avg_usd: 6000 }, { k: 'variable', pct: 24, avg_usd: 2600 }, { k: 'perdiem', pct: 10, avg_usd: 1100 },
+                           { k: 'other', pct: 6, avg_usd: 640 }, { k: 'rest', pct: 4, avg_usd: 430 }] }
+  };
+  /* 月の勤務（pv_work_view）── 時間は 0〜240・日と泊は 0〜31 の目盛に収まる幅 */
+  const AIR_WORK = {
+    cap: { block_hours: { lo: 68, hi: 82 }, duty_hours: { lo: 150, hi: 185 }, work_days: { lo: 15, hi: 18 },
+           duty_days: { lo: 14, hi: 17 }, days_off: { lo: 10, hi: 13 }, stay_nights: { lo: 6, hi: 10 } },
+    fo:  { block_hours: { lo: 72, hi: 88 }, duty_hours: { lo: 160, hi: 195 }, work_days: { lo: 16, hi: 19 },
+           duty_days: { lo: 15, hi: 18 }, days_off: { lo: 9, hi: 12 }, stay_nights: { lo: 7, hi: 11 } }
+  };
+  /* 口コミ（pv_reviews の、鍵を持つ人への形）。6分類ぜんぶに点数 ＝ 6角形が塗られる。英語のページ用に訳も付ける */
+  const REV_ID = (i) => '00000000-0000-4000-8000-0000000000b' + i;
+  const AIR_REVS = (s) => [
+    { position: 'captain', tenure_bucket: '10-15', fleet: 'a350', created_at: '2026-10-18T00:00:00Z', sc: [4, 4, 3, 3, 4, 5],
+      c: { training: ['シミュレーターの教官が丁寧で、機種移行の準備がしやすい。', 'Simulator instructors are thorough, so type conversions are well prepared.'],
+           wlb: ['長距離が中心で、月のブロックタイムは安定している。', 'Mostly long-haul, and monthly block time is steady.'] } },
+    { position: 'fo', tenure_bucket: '5-10', fleet: 'b777', created_at: '2026-09-27T00:00:00Z', sc: [3, 3, 4, 3, 4, 4],
+      c: { salary: ['基本給より乗務の手当の割合が大きく、月によって差が出る。', 'Flying pay makes up a large share, so it varies month to month.'],
+           culture: ['先任順がはっきりしていて、昇格の見通しは立てやすい。', 'Seniority is clear, so upgrade timing is predictable.'] } },
+    { position: 'fo', tenure_bucket: '1-5', fleet: 'a330', created_at: '2026-09-02T00:00:00Z', sc: [4, 3, 4, 4, 3, 4],
+      c: { ops: ['運航管理との連携がよく、遅延時の判断がしやすい。', 'Good coordination with dispatch makes delay decisions easier.'],
+           benefits: ['社員の航空券は使いやすいが、繁忙期は取りにくい。', 'Staff travel is handy, but hard to get in peak season.'] } },
+    { position: 'captain', tenure_bucket: '15-20', fleet: 'b777', created_at: '2026-08-14T00:00:00Z', sc: [3, 4, 3, 3, 4, 4],
+      c: { wlb: ['夜間の出発が続く月は、休みの日も疲れが残る。', 'Months with many night departures leave you tired even on days off.'],
+           salary: ['機長になると手当が増え、年収の伸びははっきりしている。', 'Pay rises clearly once you upgrade to captain.'] } }
+  ].map((r, i) => {
+    const o = { id: REV_ID(i + 1), airline: s, orig_lang: 'ja', position: r.position, tenure_bucket: r.tenure_bucket,
+                fleet: r.fleet, job_role: '', created_at: r.created_at, translations: { en: {} } };
+    ['culture_score', 'salary_score', 'benefits_score', 'wlb_score', 'ops_score', 'training_score'].forEach((k, j) => { o[k] = r.sc[j]; });
+    ['culture', 'salary', 'benefits', 'wlb', 'ops', 'training', 'mgmt'].forEach((k) => {
+      o[k + '_comment'] = r.c[k] ? r.c[k][0] : '';
+      if (r.c[k]) o.translations.en[k] = r.c[k][1];
+    });
+    return o;
+  });
+  /* 口コミの要約（pv_review_summary の開いた答え）。「話題：説明」の形・短い見本の文 */
+  const SUM = {
+    ja: { overview: '訓練の質と長距離中心の働き方を評価する声が多い一方、昇格までの年数と拠点の住居費を気にする声が目立ちます。',
+          good: [['訓練：シミュレーターの教官が丁寧で、機種移行の準備がしやすいという声。', 'training'],
+                 ['勤務：長距離が中心で、月のブロックタイムが安定しているという声。', 'wlb'],
+                 ['給与：機長に昇格すると手当が増え、年収の伸びがはっきりしているという声。', 'salary']],
+          concern: [['昇格：機長への昇格まで年数がかかるという声が複数あります。', 'culture'],
+                    ['生活費：拠点の家賃が高く、手当だけでは足りないという声。', 'benefits']] },
+    en: { overview: 'Pilots praise the training and the long-haul pattern, while the wait for command and the cost of housing near base come up often.',
+          good: [['Training: Simulator instructors are thorough, which makes type conversions easier.', 'training'],
+                 ['Rostering: Mostly long-haul, with steady monthly block time.', 'wlb'],
+                 ['Pay: Allowances rise clearly after the command upgrade.', 'salary']],
+          concern: [['Command upgrade: Several pilots say the wait for command is long.', 'culture'],
+                    ['Cost of living: Rent near base is high relative to allowances.', 'benefits']] }
+  };
+  const AIR_RPC = {
+    /* 給与の鍵が開いた会員への一覧（state 'open'）。会社ページの給与の欄は、この会社の行だけを数えて図にする */
+    pv_pay_rows: () => ({ ok: true, state: 'open', stats: ST_LOCK,
+                          give: { basic: true, detailed: true, payslip: false, full: false }, rows: AIR_PAY(AIR) }),
+    pv_company_pay: (a) => ({ ok: true, state: 'open', floor: 3, period: AIR_PER,
+      airlines: Object.fromEntries((P(a).airlines || [AIR]).map((s) => [s, AIR_MED])) }),
+    pv_company_comp: (a) => ({ ok: true, state: 'open', period: AIR_PER,
+      airlines: Object.fromEntries((P(a).airlines || [AIR]).map((s) => [s, AIR_COMP])) }),
+    pv_work_view: () => ({ ok: true, state: 'open', months: 12, by: AIR_WORK }),
+    pv_reviews: (a) => ({ unlocked: true, rows: AIR_REVS(slugOf(a)) }),
+    pv_review_summary: (a) => {
+      const L = SUM[P(a).lang === 'en' || P(a).lang === 'es' ? 'en' : 'ja'];
+      const ids = [REV_ID(1), REV_ID(2), REV_ID(3), REV_ID(4)];
+      return { ok: true, state: 'open', n: 4, as_of: '2026-11-01', as_of_at: '2026-11-01T03:00:00Z', overview: L.overview,
+               good: L.good.map(([text, cat], i) => ({ text, cat, ids: ids.slice(i, i + 2) })),
+               concern: L.concern.map(([text, cat], i) => ({ text, cat, ids: ids.slice(i + 1, i + 3) })) };
+    },
+    /* 会員の中央値で書き込みを差し替えない（ページに出荷した額のまま） */
+    pv_member_medians: () => [],
+    /* 待遇の集計・補足・街：開いた会員への「まだ集まっていない」答え（欄は「まだ集計がありません」・補足と街は畳む） */
+    pv_contrib_facts: () => ({ ok: true, state: 'open', facts: [] }),
+    pv_contrib_notes: () => ({ ok: true, state: 'open', notes: [] }),
+    pv_contrib_give: () => ({ ok: true, state: 'open' }),
+    pv_town_board: () => ({ ok: true, state: 'open', towns: [] }),
+    pv_town_options: () => ({ ok: true, towns: [] }),
+    my_town_posts: () => ({ ok: true, posts: [] }),
+    pv_stays: () => ({ ok: true, state: 'locked' })
+  };
+
   const RPC = {
     my_pay_reports: () => ({
       ok: true, reports: REPORTS,
@@ -460,10 +587,17 @@ await page.evaluateOnNewDocument((scene, theme, REALROW) => {
         id: UID, name: 'Sample Pilot', email: 'pilot@example.com',
         company: 'Emirates', position: 'captain', email_opt_in: OPTIN.on
       }]);
+      /* 会社ページの口コミの枠（premium-auth-lock.js）は「この会社に口コミを出したか」をここで見る ＝ 出した会員として開く */
+      if (AIR && t === 'reviews_v2') return q([{ id: REV_ID(9) }]);
       return q([]);
     },
-    rpc: async (name, a) => ({ data: RPC[name] ? RPC[name](a) : { ok: true }, error: null })
+    rpc: async (name, a) => {
+      const fn = (AIR && AIR_RPC[name]) || RPC[name];
+      return { data: fn ? fn(a) : { ok: true }, error: null };
+    }
   };
+  /* 会社ページの部品（career-live.js・career-stay.js・pv-contrib.js）はログインの知らせも聞く。会社ページでだけ口を足す */
+  if (AIR) FAKE.auth.onAuthStateChange = () => ({ data: { subscription: { unsubscribe() {} } } });
   /* 後から読まれる CDN の supabase-js は `global.supabase = …` で上書きしてくるので、
      書き換え不可にして跳ね返す。 */
   Object.defineProperty(window, 'supabase', {
@@ -551,48 +685,60 @@ if (process.env.REC) {
   /* なめらかにスクロール（指で送る速さ） */
   const glide = (to, ms) => page.evaluate(async (to, ms) => {
     const end = to === 'bottom' ? document.documentElement.scrollHeight - innerHeight : to;
-    const from = scrollY, t0 = performance.now();
+    const from = scrollY, t0 = performance.now(), rs = document.documentElement.style.scrollBehavior;
+    document.documentElement.style.scrollBehavior = 'auto';   // 会社ページは scroll-behavior:smooth ＝ 1コマごとの scrollTo が打ち消し合って進まない
     await new Promise((res) => { const step = (t) => { const k = Math.min(1, (t - t0) / ms), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; scrollTo(0, from + (end - from) * e); if (k < 1) requestAnimationFrame(step); else res(); }; requestAnimationFrame(step); });
+    document.documentElement.style.scrollBehavior = rs;
   }, to, ms).catch(() => {});
   await page.evaluate(() => scrollTo(0, 0)).catch(() => {});
   await sleep(300);
   REC.start = Date.now() / 1000;   // 動画はここから（読み込みの途中は使わない）
   await page.evaluate(() => window.PVUiTrial && window.PVUiTrial.replay()).catch(() => {});
   await sleep(2600);
-  if (vw >= 600) {
-    /* PC：開いた瞬間 → 1年（年の図）→ 分析（棒と数字）→ 給与サマリーをゆっくり下へ（他社の年収が1本ずつ伸びる）→ REAL PAY → ROADMAP（線・輪・棒）→ MY PAGE */
-    await tap('#pv-value .pt-tabs .pt-tab', 1); await sleep(2200);
-    await glide(700, 2200); await sleep(1600); await glide(0, 1000); await sleep(500);
-    await tap('#pv-value .pt-tabs .pt-tab', 0); await sleep(1700);
-    await tap('#pv-value .mv-tab', 2); await sleep(2600);
-    await glide(520, 1800); await sleep(1500); await glide(0, 900); await sleep(400);
-    await tap('#pv-value .mv-tab', 0); await sleep(2000);
-    await glide('bottom', 6000); await sleep(1800); await glide(0, 1300); await sleep(700);
-    /* REAL PAY は下まで送る（見本の行に金額が1つも無いのを見せる） */
-    await tap('.mr-side-a[href^="actual-pay"]'); await sleep(2800);
-    await glide('bottom', 3600); await sleep(1600); await glide(0, 1000); await sleep(500);
-    await tap('.mr-side-a[href^="roadmap"]'); await sleep(3200);
-    await glide(760, 2400); await sleep(1400); await glide(0, 900); await sleep(500);
-    await tap('.mr-side-a[href^="invite"]'); await sleep(3000);
-    await glide('bottom', 2600); await sleep(1300); await glide(0, 900); await sleep(500);
-    await tap('.mr-side-a[href^="profile"]'); await sleep(3000);
-  } else {
-    /* スマホ：開いた瞬間 → ゆっくり下へ（円・棒・他社の年収が入ってきた順に動く）→ 1年 → 分析 → ≡ から REAL PAY・ROADMAP・INVITE */
-    await glide('bottom', 8000); await sleep(1600); await glide(0, 1400); await sleep(700);
+  /* 会社ページへは左メニューに入口が無い（AIRLINES は一覧）＝ ページの中から住所を変えて移る（ページまたぎの切り替えはそのまま起きる） */
+  const go = (u) => page.evaluate((u) => { location.href = u; }, u).catch(() => {});
+  const AIR = 'airlines/cathay-pacific.html?sw=0';
+  if ((process.env.PAGE || '').startsWith('airlines/')) {
+    /* 会社ページだけ（背景の2通りを比べる用）：開いた瞬間 → ゆっくり下まで → 上へ → 勤務・訓練 */
+    await sleep(800);
+    await glide('bottom', vw >= 600 ? 9000 : 12000); await sleep(1400); await glide(0, 1400); await sleep(600);
+    await tap('a[data-pvg-tab="work"]'); await sleep(2400);
+    await glide(vw >= 600 ? 900 : 1100, 2600); await sleep(1400);
+  } else if (vw >= 600) {
+    /* PC：開いた瞬間 → 1年 → 分析 → 給与サマリーを下へ（円・他社の年収）→ REAL PAY → ROADMAP → 会社ページ（題・評価・幅の棒・年数の点・円）→ 勤務・訓練（月の勤務の棒） */
     await tap('#pv-value .pt-tabs .pt-tab', 1); await sleep(2000);
-    await glide(1500, 3200); await sleep(1400); await glide(0, 1000); await sleep(500);
-    await tap('#pv-value .pt-tabs .pt-tab', 0); await sleep(1500);
+    await glide(700, 1800); await sleep(1200); await glide(0, 900); await sleep(400);
+    await tap('#pv-value .pt-tabs .pt-tab', 0); await sleep(1400);
     await tap('#pv-value .mv-tab', 2); await sleep(2400);
-    await glide(900, 2400); await sleep(1400); await glide(0, 900); await sleep(500);
-    await tap('.pv-ham-btn'); await sleep(1200);
-    await tap('.mr-side-a[href^="actual-pay"]'); await sleep(3000);
-    await glide('bottom', 4200); await sleep(1600); await glide(0, 1000); await sleep(500);
-    await tap('.pv-ham-btn'); await sleep(1200);
+    await glide(520, 1600); await sleep(1200); await glide(0, 800); await sleep(400);
+    await tap('#pv-value .mv-tab', 0); await sleep(1800);
+    await glide('bottom', 5500); await sleep(1500); await glide(0, 1100); await sleep(500);
+    await tap('.mr-side-a[href^="actual-pay"]'); await sleep(2600);
+    await glide('bottom', 3000); await sleep(1200); await glide(0, 900); await sleep(400);
     await tap('.mr-side-a[href^="roadmap"]'); await sleep(3000);
-    await glide(1300, 3200); await sleep(1600); await glide(0, 1000); await sleep(500);
-    await tap('.pv-ham-btn'); await sleep(1200);
-    await tap('.mr-side-a[href^="invite"]'); await sleep(3000);
-    await glide('bottom', 3000); await sleep(1600);
+    await glide(760, 2200); await sleep(1200);
+    await go(AIR); await sleep(3600);
+    await glide('bottom', 9000); await sleep(1600); await glide(0, 1400); await sleep(600);
+    await tap('a[data-pvg-tab="work"]'); await sleep(2600);
+    await glide(900, 2400); await sleep(1600);
+  } else {
+    /* スマホ：開いた瞬間 → ゆっくり下へ → 1年 → 分析 → ≡ から REAL PAY・ROADMAP → 会社ページを下まで → 勤務・訓練 */
+    await glide('bottom', 8000); await sleep(1400); await glide(0, 1200); await sleep(600);
+    await tap('#pv-value .pt-tabs .pt-tab', 1); await sleep(1800);
+    await glide(1500, 3000); await sleep(1200); await glide(0, 900); await sleep(400);
+    await tap('#pv-value .pt-tabs .pt-tab', 0); await sleep(1300);
+    await tap('#pv-value .mv-tab', 2); await sleep(2200);
+    await glide(900, 2200); await sleep(1200); await glide(0, 800); await sleep(400);
+    await tap('.pv-ham-btn'); await sleep(1100);
+    await tap('.mr-side-a[href^="actual-pay"]'); await sleep(2800);
+    await glide('bottom', 3800); await sleep(1200); await glide(0, 900); await sleep(400);
+    await tap('.pv-ham-btn'); await sleep(1100);
+    await tap('.mr-side-a[href^="roadmap"]'); await sleep(2800);
+    await glide(1300, 3000); await sleep(1200);
+    await go(AIR); await sleep(3400);
+    await glide('bottom', 11000); await sleep(1400); await glide(0, 1400); await sleep(600);
+    await tap('a[data-pvg-tab="work"]'); await sleep(2400);
+    await glide(1100, 2600); await sleep(1400);
   }
   await REC.cdp.send('Page.stopScreencast').catch(() => {});
   const dir = process.env.REC; fs.mkdirSync(dir, { recursive: true });
@@ -625,11 +771,15 @@ if (process.env.ENDCHECK) {
     for (let y = 0; y <= H; y += 180) { window.scrollTo(0, y); await new Promise((r) => setTimeout(r, 60)); }
     await new Promise((r) => setTimeout(r, 4200));
     const vis = (e) => { const b = e.getBoundingClientRect(); return b.bottom > 0 && b.top < innerHeight && b.width > 0; };
-    const bars = [...document.querySelectorAll(".ut-hb,.ut-col,.ut-row,.ut-dot")];
-    const bad = bars.filter((e) => { const tf = getComputedStyle(e).transform; return tf !== "none" && tf !== "matrix(1, 0, 0, 1, 0, 0)"; });
+    const bars = [...document.querySelectorAll(".ut-hb,.ut-col,.ut-row,.ut-dot,.ut-hd,.ut-rad")];
+    const bad = bars.filter((e) => { const cs = getComputedStyle(e), tf = cs.transform, sc = cs.scale; return (tf !== "none" && tf !== "matrix(1, 0, 0, 1, 0, 0)") || (sc !== "none" && sc !== "1"); });
     const lines = [...document.querySelectorAll(".ut-line")].filter((e) => { const cs = getComputedStyle(e); return cs.strokeDasharray !== "none" && parseFloat(cs.strokeDashoffset) !== 0; });
-    const rings = [...document.querySelectorAll(".rm-ring circle[stroke-dasharray]")].filter((c) => c._utDash && c.getAttribute("stroke-dasharray") !== c._utDash);
+    const rings = [...document.querySelectorAll("svg.ut-pie circle[stroke-dasharray]")].filter((c) => c._utDash && c.getAttribute("stroke-dasharray") !== c._utDash);
+    const pies = [...document.querySelectorAll("svg.ut-pie")].filter((e) => { const tf = getComputedStyle(e).transform; return tf !== "none" && tf !== "matrix(1, 0, 0, 1, 0, 0)"; });
+    const faded = [...document.querySelectorAll(".ut-hf,.ut-leg-g>*,.ut-leg-w>*")].filter((e) => parseFloat(getComputedStyle(e).opacity) < 1);
     return { scrolled: scrollY, parts: bars.length, notFull: bad.length, lines: document.querySelectorAll(".ut-line").length, linesNotDrawn: lines.length, ringsShort: rings.length,
+      pies: document.querySelectorAll("svg.ut-pie").length, piesTurned: pies.length, faded: faded.length,
+      titlesSplit: document.querySelectorAll(".ut-split").length, legendsWaiting: document.querySelectorAll(".ut-leg-w").length,
       waiting: document.querySelectorAll(".ut-w").length, waitingVisible: [...document.querySelectorAll(".ut-w")].filter(vis).length, counting: document.querySelectorAll(".ut-counting").length };
   });
   console.log("止まったあと：" + JSON.stringify(r)); await browser.close(); process.exit(0);
@@ -725,6 +875,26 @@ if (process.env.CONTRAST) {
   console.log("小さい字 " + res.n + " か所・いちばん低い " + JSON.stringify(res.min) + "・4.5 未満 " + res.low.length + " か所 " + JSON.stringify(res.low.slice(0, 8)));
   await browser.close(); process.exit(0);
 }
+if (process.env.LIVE) {
+  /* 会社ページ用：上から下まで少しずつスクロールして、実データの欄（.crl[data-live]）が最後にどの形で止まったか・
+     図の部品がいくつ描かれたか・console のエラー・止めた本番への通信を出す */
+  const r = await page.evaluate(async () => {
+    const H = document.documentElement.scrollHeight;
+    for (let y = 0; y <= H; y += 240) { window.scrollTo(0, y); await new Promise((r) => setTimeout(r, 80)); }
+    await new Promise((r) => setTimeout(r, 1200));
+    window.scrollTo(0, 0);
+    const slots = [...document.querySelectorAll('.crl[data-live]')].map((n) => n.dataset.live + '=' + n.dataset.state + (n.getClientRects().length ? '' : '(hidden)'));
+    const n = (s) => document.querySelectorAll(s).length;
+    return { slots, parts: { rangeBars: n('.crl-rg-t'), ydDots: n('.crl-yd-d'), ydBand: n('.crl-yd-bd'), donutArcs: n('.crl-dn-arc'),
+      workBars: n('.crl-wb-b'), radarShape: n('.crl-radar-shape:not(.is-ph)'), radarDots: n('.crl-radar-dot'), sumItems: n('.crl-sum-li'),
+      ghosts: n('.crl-ghost'), plates: n('.crl-plate'), payRows: n('.crl-row'), revCards: n('.crl-rev,.crl-revs > li') } };
+  });
+  console.log('欄：' + r.slots.join('  '));
+  console.log('図：' + JSON.stringify(r.parts));
+  console.log(ERRS.length ? 'console のエラー ' + ERRS.length + '件\n   ' + [...new Set(ERRS)].join('\n   ') : 'console のエラー 0件');
+  console.log('止めた本番への通信 ' + BLOCKED.length + '件' + (BLOCKED.length ? '\n   ' + [...new Set(BLOCKED)].join('\n   ') : ''));
+  await browser.close(); process.exit(0);
+}
 if (process.env.VIEW) await new Promise((r) => setTimeout(r, 1500));   // 1画面ぶんだけ撮る
 if (!process.env.MID && !process.env.VIEW) {
   await new Promise((r) => setTimeout(r, process.env.UI ? 1500 : 0));   // 入る動きが終わるまで
@@ -756,5 +926,7 @@ console.log(over.doc > over.view + 1
   ? `❌ 横スクロールがある（文書 ${over.doc}px / 画面 ${over.view}px）\n   ${over.list.join('\n   ')}`
   : `✓ 横スクロールなし（${over.view}px）`);
 
+if (ERRS.length) console.log('console のエラー ' + ERRS.length + '件\n   ' + [...new Set(ERRS)].slice(0, 8).join('\n   '));
+if (BLOCKED.length) console.log('止めた本番への通信 ' + BLOCKED.length + '件\n   ' + [...new Set(BLOCKED)].slice(0, 8).join('\n   '));
 await browser.close();
 console.log(outPath);

@@ -20,22 +20,46 @@
     ui = ask === 'now' ? '' : (ask === 'glass' || localStorage.getItem(KEY) === 'glass') ? 'glass' : '';
   } catch (e) { ui = ask === 'glass' ? 'glass' : ''; }
   if (ui) root.setAttribute('data-ui', ui);
+  /* 会社ページの背景（2026-11-12 オーナー「会社ページはバックが緑じゃない方がいいかも。2通り作れる？」→ 比べて「白の方がいいな。ここは」）。
+     既定は白（plain・緑を使わない）。?bg=green で緑と比べられる（端末に覚える）。会社ページにだけ効く */
+  var AIRPAGE = /\/airlines\//.test(location.pathname), bg = 'plain';
+  try {
+    var bgAsk = q.get('bg');
+    if (bgAsk === 'green' || bgAsk === 'plain') localStorage.setItem('pv-ui-bg', bgAsk);
+    bg = localStorage.getItem('pv-ui-bg') || 'plain';
+  } catch (e) { bg = q.get('bg') === 'green' ? 'green' : 'plain'; }
+  if (ui && AIRPAGE) root.setAttribute('data-ui-bg', bg);
   var RM = !!(w.matchMedia && w.matchMedia('(prefers-reduced-motion: reduce)').matches);
   var SV = !!(w.CSS && CSS.supports && CSS.supports('animation-timeline: view()'));
 
   var BAR = '.mp-tabs,.mv-tabs,.pt-tabs';
   var TAB = '.mp-tab,.mv-tab,.pt-tab';
   /* 数え上げる数字：MY PAY の大きい額・他社の年収の額・分析の大きい数・REAL PAY の数字の札・ROADMAP の賛成の数 */
-  var COUNT = '.mr-hero-v,.mr-total-v,.mv-ratio>b,.an-big,.ap-st-n,.mr-cmp-v,.rm-wn';
+  var COUNT = '.mr-hero-v,.mr-total-v,.mv-ratio>b,.an-big,.ap-st-n,.mr-cmp-v,.rm-wn,.pt-donut-c>b,.pvg-big,.crl-sc-avg>b';
+  /* 見出し：ページの題（1字ずつ下からせり上がる）と、カードの題（カードが見えたら同じ動きを短く） */
+  var TITLE = '.mp-h1,.mp-tab,h1.pv-paytab,.mr-hd-t,main h1,.pvg-name h1';
+  var SUBT = '.mr-card-t,.pt-h,.an-card-t,.rs-card-t,.ru-card-t,.ap-msg-t,.pvg-eyebrow,.crl-rg-tt,.crl-yd-tt,.crl-dn-h,.crl-sum-title';
   /* カードの名前は画面ごとに違う：MY PAY＝.mr-card・.an-card・.rs-card・.ru-card／ROADMAP＝.mr-card／REAL PAY＝.ap-* */
-  var CARD = '.mr-card,.an-card,.rs-card,.ru-card,.mv-peek,.ap-filter,.ap-lock-skel,.ap-tw,.ap-st,.ap-msg,.ap-lock-see,main>.pvr';
+  var CARD = '.mr-card,.an-card,.rs-card,.ru-card,.mv-peek,.ap-filter,.ap-lock-skel,.ap-tw,.ap-st,.ap-msg,.ap-lock-see,main>.pvr,.pvg-card';
+  /* 会社ページの HTML の図：年数の点（ぽんと出る）・幅の箱の中央値と真ん中の帯（浮かぶ）・月の勤務の棒（左から伸びる） */
+  var HDOT = '.crl-yd-d', HFADE = '.crl-yd-bd,.crl-yd-md,.crl-rg-m', HBAR = '.crl-wb-b';
 
   /* ── 0) ページをまたぐ切り替えと、左メニューの選んだ印 ─────────────────────
      印（.ut-rail-pill）は選んだ項目の後ろに置く中身の無い板。ページを移るとき、前のページの板の位置から
      新しいページの板の位置へブラウザが滑らせる。最初の描画より前に置かないと滑らない ＝ 読み込みの途中から見張る。 */
   if (ui) {
+    /* 字：見本の動画の丸みのある幾何学的な字（Outfit）＋ 日本語は細めで端正な Zen Kaku Gothic New */
+    var fl = d.createElement('link');
+    fl.rel = 'stylesheet';
+    fl.href = 'https://fonts.googleapis.com/css2?family=Outfit:wght@300..700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap';
+    (d.head || root).appendChild(fl);
     var putPill = function () {
       var a = d.querySelector('.mr-side-a.is-on');
+      /* 会社ページはメニューのどれも選ばれていない ＝ 試作では AIRLINES を選んだ形にして、板がそこへ滑るようにする */
+      if (!a && /\/airlines\//.test(location.pathname)) {
+        a = d.querySelector('.mr-side-a[href*="world-airlines"]');
+        if (a) { a.classList.add('is-on'); a.setAttribute('aria-current', 'page'); }
+      }
       if (a && !a.querySelector('.ut-rail-pill')) {
         var p = d.createElement('i');
         p.className = 'ut-rail-pill';
@@ -70,12 +94,15 @@
     box.setAttribute('aria-label', '見た目の試作');
     box.innerHTML = '<span class="ut-sw-l">試作</span>' + [['now', '今'], ['glass', 'ガラス']].map(function (o) {
       return '<button type="button" data-ui="' + o[0] + '" aria-pressed="' + ((ui || 'now') === o[0]) + '">' + o[1] + '</button>';
-    }).join('');
+    }).join('') + (ui && AIRPAGE ? '<span class="ut-sw-l">背景</span>' + [['green', '緑'], ['plain', '白']].map(function (o) {
+      return '<button type="button" data-bg="' + o[0] + '" aria-pressed="' + (bg === o[0]) + '">' + o[1] + '</button>';
+    }).join('') : '');
     box.addEventListener('click', function (e) {
       var b = e.target.closest('button');
       if (!b) return;
       var u = new URL(location.href);
-      u.searchParams.set('ui', b.getAttribute('data-ui'));
+      if (b.hasAttribute('data-bg')) u.searchParams.set('bg', b.getAttribute('data-bg'));
+      else u.searchParams.set('ui', b.getAttribute('data-ui'));
       location.replace(u.href);
     });
     d.body.appendChild(box);
@@ -178,6 +205,160 @@
     });
   }
 
+  /* ── 2-a) 見出しが1字ずつ下からせり上がる（見本の「Campaigns」）──────────────────
+     字を1字ずつ小さな窓（.ut-cw）に入れ、窓の下から順に上げる。英語の語は途中で折り返さないように1語ずつまとめる。
+     ★動き終わったら元の字に戻す（字の並びを書き換えたまま残さない）。途中で中身が描き直されたら、戻さずに手を引く。
+     ★読み上げは見出しの aria-label（元の字）に任せ、1字ずつの窓は aria-hidden。 */
+  var CJK = /[　-鿿豈-﫿＀-￯]/;
+  function split(el, step) {
+    if (el._utSp || RM) return null;
+    var tw = d.createTreeWalker(el, NodeFilter.SHOW_TEXT, null), list = [], t;
+    while ((t = tw.nextNode())) if (t.nodeValue.trim() && !(t.parentNode && t.parentNode.closest && t.parentNode.closest('svg'))) list.push(t);
+    if (!list.length) return null;
+    var label = el.textContent.replace(/\s+/g, ' ').trim(), n = 0, pairs = [];
+    var ch1 = function (box, ch) {
+      var cw = d.createElement('span'), c = d.createElement('span');
+      cw.className = 'ut-cw'; c.className = 'ut-ch'; c.textContent = ch;
+      c.style.setProperty('--ci', String(n++));
+      cw.appendChild(c); box.appendChild(cw);
+    };
+    list.forEach(function (t) {
+      var box = d.createElement('span');
+      box.className = 'ut-sp';
+      box.setAttribute('aria-hidden', 'true');
+      t.nodeValue.split(/(\s+)/).forEach(function (part) {
+        if (!part) return;
+        if (/^\s+$/.test(part)) { box.appendChild(d.createTextNode(part)); return; }
+        if (CJK.test(part)) { Array.from(part).forEach(function (ch) { ch1(box, ch); }); return; }
+        var wd = d.createElement('span');
+        wd.className = 'ut-wd';
+        Array.from(part).forEach(function (ch) { ch1(wd, ch); });
+        box.appendChild(wd);
+      });
+      t.parentNode.replaceChild(box, t);
+      pairs.push([box, t]);
+    });
+    var al = !el.hasAttribute('aria-label');
+    if (al) el.setAttribute('aria-label', label);
+    el.style.setProperty('--ut-cs', step + 'ms');
+    el.classList.add('ut-split');
+    el._utSp = { pairs: pairs, n: n, al: al, step: step };
+    return el._utSp;
+  }
+  function reveal(el, delay) {
+    var sp = el._utSp;
+    if (!sp) return;
+    el.style.setProperty('--ut-d', delay + 'ms');
+    void el.offsetWidth;
+    el.classList.add('ut-split-go');
+    clearTimeout(sp.t);
+    sp.t = setTimeout(function () { unsplit(el); }, delay + sp.n * sp.step + 1000);
+  }
+  function unsplit(el) {
+    var sp = el._utSp;
+    if (!sp) return;
+    clearTimeout(sp.t);
+    sp.pairs.forEach(function (p) { if (p[0].parentNode) p[0].parentNode.replaceChild(p[1], p[0]); });
+    if (sp.al) el.removeAttribute('aria-label');
+    el.classList.remove('ut-split', 'ut-split-go');
+    el._utSp = null;
+  }
+  /* ページの題：読み込んだらすぐ窓の下へ隠し（headsSplit）、中身が出たら1回せり上げる（heads・カードより先に）。
+     中身がなかなか出ないページでも3秒で上げる */
+  function headsSplit() {
+    if (RM) return;
+    d.querySelectorAll(TITLE).forEach(function (el) {
+      if (el._utHd || el.closest('.mr-side')) return;
+      el._utHd = 1;
+      split(el, 34);
+    });
+  }
+  function heads() {
+    if (RM) return;
+    headsSplit();
+    var i = 0;
+    d.querySelectorAll(TITLE).forEach(function (el) {
+      if (!el._utSp || el._utGo) return;
+      el._utGo = 1;
+      reveal(el, 40 + (i++) * 110);
+    });
+  }
+
+  /* ── 2-b) すりガラスの図：棒は先を濃く根元を透かす・線に淡い光・円に上からの光 ──────────
+     SVG の覆い（mask）と光の色（gradient）は、ページに1つだけ置いた見えない SVG の中に持つ。 */
+  function glassDefs() {
+    if (d.getElementById('ut-defs')) return;
+    var s = d.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    s.id = 'ut-defs';
+    s.setAttribute('aria-hidden', 'true');
+    s.setAttribute('width', '0'); s.setAttribute('height', '0');
+    s.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden';
+    s.innerHTML = '<defs>' +
+      '<linearGradient id="utGV" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".42"/><stop offset=".8" stop-color="#fff" stop-opacity="1"/></linearGradient>' +
+      '<mask id="utMV" maskContentUnits="objectBoundingBox"><rect width="1" height="1" fill="url(#utGV)"/></mask>' +
+      '<linearGradient id="utGH" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".42"/><stop offset=".8" stop-color="#fff" stop-opacity="1"/></linearGradient>' +
+      '<mask id="utMH" maskContentUnits="objectBoundingBox"><rect width="1" height="1" fill="url(#utGH)"/></mask>' +
+      '<linearGradient id="utSheen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".6"/>' +
+        '<stop offset=".42" stop-color="#fff" stop-opacity=".1"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/>' +
+        '<stop offset="1" stop-color="#fff" stop-opacity=".22"/></linearGradient>' +
+      '</defs>';
+    (d.body || root).appendChild(s);
+  }
+
+  /* ── 2-c) 円グラフ：色の区切りが12時から1つずつ順に描かれる（弧の長さを 0 から本当の長さへ）──────
+     円の弧は stroke-dasharray（長さ と 残り）で描いてある。区切りの順は stroke-dashoffset（-それまでの長さ）の順。
+     ★描き終わったら元の値をそのまま書き戻す（途中の値を残さない）。 */
+  function pieSegs(u) {
+    return Array.prototype.filter.call(u.querySelectorAll('circle'), function (c) {
+      var da = c._utDash || c.getAttribute('stroke-dasharray');
+      return !c.classList.contains('ut-sheen') && da && /^\s*[\d.]+[ ,]+[\d.]+\s*$/.test(da);
+    }).map(function (c) {
+      if (!c._utDash) c._utDash = c.getAttribute('stroke-dasharray');
+      var p = c._utDash.split(/[ ,]+/).map(parseFloat);
+      return { c: c, on: p[0], C: p[0] + p[1], off: parseFloat(c.getAttribute('stroke-dashoffset') || '0') };
+    }).sort(function (a, b) { return b.off - a.off; });
+  }
+  function pieReset(u) {
+    var segs = pieSegs(u);
+    segs.forEach(function (s) { s.c.setAttribute('stroke-dasharray', '0 ' + s.C); s.c.style.opacity = '0'; });
+    /* 上からの光（区切りと同じ輪の上に、白い光の輪を1本重ねる） */
+    if (segs.length > 1 && !u.querySelector('.ut-sheen')) {
+      var c0 = segs[0].c, sh = d.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      ['cx', 'cy', 'r', 'stroke-width'].forEach(function (a) { if (c0.hasAttribute(a)) sh.setAttribute(a, c0.getAttribute(a)); });
+      sh.setAttribute('fill', 'none');
+      sh.setAttribute('stroke', 'url(#utSheen)');
+      sh.setAttribute('class', 'ut-sheen');
+      sh.setAttribute('pointer-events', 'none');
+      u.appendChild(sh);
+    }
+  }
+  function pieGo(u, delay) {
+    var segs = pieSegs(u);
+    if (!segs.length) return;
+    var acc = 0;
+    segs.forEach(function (s) { s.a = acc; acc += s.on; });
+    var S = acc, t0 = null, dur = segs.length > 1 ? 1500 : 1100;
+    setTimeout(function () {
+      var step = function (ts) {
+        if (t0 == null) t0 = ts;
+        var k = Math.min(1, (ts - t0) / dur), e = 1 - Math.pow(1 - k, 3), s = S * e;
+        segs.forEach(function (g) {
+          var v = Math.max(0, Math.min(g.on, s - g.a));
+          g.c.setAttribute('stroke-dasharray', v.toFixed(2) + ' ' + (g.C - v).toFixed(2));
+          g.c.style.opacity = v > 0 ? '' : '0';
+        });
+        if (k < 1) requestAnimationFrame(step);
+        else segs.forEach(function (g) { g.c.setAttribute('stroke-dasharray', g.c._utDash); g.c.style.opacity = ''; });
+      };
+      requestAnimationFrame(step);
+    }, delay);
+  }
+  /* 円の横の凡例：円が描かれるのに合わせて1行ずつ浮かぶ */
+  function legendOf(u) {
+    var wrap = u.closest('.pt-donut-wrap,.crl-dn');
+    return wrap ? wrap.querySelector('.pt-legend,.crl-dn-lg') : null;
+  }
+
   /* 図の部品に印を付ける。
      SVG の図 … 縦の棒 .ut-col（下から伸びる）・横の棒 .ut-row（左から）・線 .ut-line（左から描かれる）・
                  塗り .ut-area（あとから浮かぶ）・点 .ut-dot（最後にぽんと出る）
@@ -185,8 +366,17 @@
      ★自分で transform を持つ物・点線（stroke-dasharray を持つ線）・塗りの無い物は触らない。 */
   function marks(scope) {
     scope.querySelectorAll('svg').forEach(function (svg) {
-      if (svg._utM) return;
-      if (svg.closest('button,a,.mr-side,.pt-donut,.rm-ring')) return;
+      if (svg._utM || svg.id === 'ut-defs') return;
+      if (svg.closest('button,a,.mr-side')) return;
+      /* 円グラフ・輪（弧を stroke-dasharray で描いた太い輪）は、棒や線とは別の動き（2-c） */
+      var arcs = svg.querySelectorAll('circle[stroke-dasharray]');
+      if (arcs.length && Array.prototype.every.call(arcs, function (c) { return parseFloat(c.getAttribute('r')) >= 14; })) {
+        svg._utM = 1;
+        svg.classList.add('ut-pie');
+        return;
+      }
+      var rd = svg.closest('[data-radar]');
+      if (rd && rd.getAttribute('data-radar') !== 'real') return;   // 会社ページのレーダーは、本物の点が入ってから
       var bb = svg.getBoundingClientRect();
       if (bb.width < 60 || bb.height < 30) return;                 // 字の横の小さな絵
       var n = 0, j = 0, k = 0;
@@ -196,8 +386,8 @@
         if (!f || f === 'none' || f === 'transparent' || /,\s*0\)$/.test(f) || parseFloat(cs.fillOpacity) === 0 || parseFloat(cs.opacity) === 0) return;
         var b; try { b = r.getBBox(); } catch (e) { return; }
         if (!b || !b.width || !b.height) return;
-        if (b.height > b.width * 1.2) r.classList.add('ut-col');
-        else if (b.width > b.height * 2) r.classList.add('ut-row');
+        if (b.height > b.width * 1.2) { r.classList.add('ut-col'); if (!r.hasAttribute('mask')) r.setAttribute('mask', 'url(#utMV)'); }
+        else if (b.width > b.height * 2) { r.classList.add('ut-row'); if (!r.hasAttribute('mask')) r.setAttribute('mask', 'url(#utMH)'); }
         else return;
         r.style.setProperty('--ut-j', String(Math.min(j++, 16)));
         n++;
@@ -217,6 +407,12 @@
           n++;
         }
       });
+      svg.querySelectorAll('polygon').forEach(function (pg) {
+        var cs = getComputedStyle(pg);
+        if (cs.fill === 'none' || parseFloat(cs.fillOpacity) === 0 || pg.hasAttribute('transform')) return;   // 目盛の多角形（塗り無し）はそのまま
+        pg.classList.add('ut-rad');
+        n++;
+      });
       svg.querySelectorAll('circle').forEach(function (c) {
         var r = parseFloat(c.getAttribute('r'));
         if (!r || r > 7 || c.hasAttribute('transform')) return;
@@ -227,6 +423,9 @@
       svg._utM = 1;
       if (n) svg.classList.add('ut-chart');
     });
+    scope.querySelectorAll(HDOT).forEach(function (e) { if (!e._utM) { e._utM = 1; e.classList.add('ut-hd'); } });
+    scope.querySelectorAll(HFADE).forEach(function (e) { if (!e._utM) { e._utM = 1; e.classList.add('ut-hf'); } });
+    scope.querySelectorAll(HBAR).forEach(function (e) { if (!e._utM) { e._utM = 1; e.classList.add('ut-hb'); } });
     scope.querySelectorAll('i,span,b,div').forEach(function (e) {
       if (e._utM) return;
       var sw = e.style && e.style.width;
@@ -236,14 +435,16 @@
       if (cs.backgroundColor === 'rgba(0, 0, 0, 0)' && cs.backgroundImage === 'none') return;
       e._utM = 1;
       e.classList.add('ut-hb');
+      if (cs.backgroundImage === 'none') e.classList.add('ut-hbg');   // 自分の模様を持たない棒だけ、ガラスの光を重ねる
     });
   }
-  /* 見張る単位：SVG の図1枚・HTML の棒1本・円グラフ1つ・リング1つ・数字1つ */
+  /* 見張る単位：SVG の図1枚・HTML の棒1本・円グラフ1つ・リング1つ・数字1つ・カードの題1つ */
   function units(scope) {
-    return Array.prototype.slice.call(scope.querySelectorAll('svg.ut-chart,.ut-hb,.pt-donut,.rm-ring,' + COUNT));
+    return Array.prototype.slice.call(scope.querySelectorAll('svg.ut-chart,svg.ut-pie,.ut-hb,.ut-hd,.ut-hf,' + COUNT + ',' + SUBT));
   }
   function prepData(scope, force) {
     if (RM || !dio) return;
+    glassDefs();
     marks(scope);
     units(scope).forEach(function (u) {
       if (u._utDone && !force) return;
@@ -253,8 +454,18 @@
       u._utWatch = true;
       clearTimeout(u._utT);
       u.classList.remove('ut-g');
-      if (!u.matches(COUNT)) u.classList.add('ut-w');
-      if (u.matches('.rm-ring')) ringReset(u);
+      if (u.matches(SUBT)) { unsplit(u); split(u, 22); }
+      else if (!u.matches(COUNT)) u.classList.add('ut-w');
+      if (u.matches('svg.ut-pie')) {
+        pieReset(u);
+        var lg = legendOf(u);
+        if (lg) {
+          clearTimeout(lg._utT);
+          lg.classList.remove('ut-leg-g');
+          lg.classList.add('ut-leg-w');
+          Array.prototype.forEach.call(lg.children, function (r, j) { r.style.setProperty('--ut-j', String(Math.min(j, 14))); });
+        }
+      }
       dio.unobserve(u);
       dio.observe(u);
     });
@@ -275,36 +486,23 @@
       var delay = Math.round(base + n * 55);
       u.style.setProperty('--ut-d', delay + 'ms');
       if (u.matches(COUNT)) { count(u, delay); return; }
+      if (u._utSp) { reveal(u, delay); return; }
+      if (u.matches(SUBT)) return;
       u.classList.remove('ut-w');
       void u.getBoundingClientRect();
       u.classList.add('ut-g');
-      if (u.matches('.rm-ring')) ringGo(u, delay);
+      if (u.matches('svg.ut-pie')) {
+        pieGo(u, delay);
+        var lg = legendOf(u);
+        if (lg) {
+          lg.style.setProperty('--ut-d', delay + 'ms');
+          lg.classList.remove('ut-leg-w');
+          lg.classList.add('ut-leg-g');
+          lg._utT = setTimeout(function () { lg.classList.remove('ut-leg-g'); }, delay + 2600);
+        }
+      }
       u._utT = setTimeout(function () { u.classList.remove('ut-g'); }, delay + 2600);
     });
-  }
-  /* ROADMAP の輪（人数の割合）── 弧の長さ（stroke-dasharray）を 0 から本当の長さまで伸ばす */
-  function ringArc(u) { return u.querySelector('circle[stroke-dasharray]'); }
-  function ringReset(u) {
-    var c = ringArc(u);
-    if (!c) return;
-    if (!c._utDash) c._utDash = c.getAttribute('stroke-dasharray');
-    var p = c._utDash.split(/[ ,]+/).map(parseFloat);
-    if (p.length < 2) return;
-    c.setAttribute('stroke-dasharray', '0 ' + (p[0] + p[1]));
-  }
-  function ringGo(u, delay) {
-    var c = ringArc(u);
-    if (!c || !c._utDash) return;
-    var p = c._utDash.split(/[ ,]+/).map(parseFloat), on = p[0], C = p[0] + p[1], t0 = null;
-    setTimeout(function () {
-      var step = function (ts) {
-        if (t0 == null) t0 = ts;
-        var k = Math.min(1, (ts - t0) / 1100), e = 1 - Math.pow(1 - k, 3);
-        c.setAttribute('stroke-dasharray', (on * e).toFixed(2) + ' ' + (C - on * e).toFixed(2));
-        if (k < 1) requestAnimationFrame(step); else c.setAttribute('stroke-dasharray', c._utDash);
-      };
-      requestAnimationFrame(step);
-    }, delay);
   }
 
   /* 数え上げ ── 字の中の最初の数を見つけ、同じ書式（けた区切り・小数のけた・前後の字）で 0 から数える。
@@ -397,6 +595,8 @@
   }
 
   function boot() {
+    headsSplit();
+    setTimeout(heads, 3000);
     d.addEventListener('click', onClick, true);
     /* 選ばれたボタンが替わったら印を滑らせる（キーボードの矢印・描き直しも拾う） */
     new MutationObserver(function (list) {
@@ -413,6 +613,7 @@
       if (host && !host.querySelector('.mr-card')) return false;
       if (!host && !main.querySelector(CARD)) return false;
       sync(false);
+      heads();
       enter(host ? (visible(host.querySelectorAll('.mv-pane')) || host) : main);
       return true;
     };
@@ -425,10 +626,16 @@
     });
     mo.observe(host || main, { childList: true, subtree: true });
     setTimeout(function () { mo.disconnect(); }, 6000);
+    /* 会社ページのタブ（概要・給与・待遇・口コミ…）を押したら、出てきたカードと図を動かす */
+    d.addEventListener('click', function (e) {
+      var t = e.target.closest && e.target.closest('[data-pvg-tab]');
+      if (t) setTimeout(function () { heads(); enter(main); }, 80);
+    });
   }
 
   /* 撮影で動きの途中を撮るための口（試作だけ） */
-  w.PVUiTrial = { replay: function () { var h = d.getElementById('pv-value'); w.scrollTo(0, 0); enter(h ? (visible(h.querySelectorAll('.mv-pane')) || h) : (d.querySelector('main') || d.body), true); } };
+  w.PVUiTrial = { replay: function () { var h = d.getElementById('pv-value'); w.scrollTo(0, 0);
+    d.querySelectorAll(TITLE).forEach(function (el) { unsplit(el); el._utHd = 0; el._utGo = 0; }); heads(); enter(h ? (visible(h.querySelectorAll('.mv-pane')) || h) : (d.querySelector('main') || d.body), true); } };
 
   var start = function () { switcher(); if (ui) boot(); };
   if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', start); else start();
