@@ -96,6 +96,7 @@
 .gl-ap b{display:block;font-size:1.75rem;font-weight:600;letter-spacing:-.01em;line-height:1.05}
 .gl-ap span{display:block;margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.68rem;font-weight:400;color:var(--gl-ink3)}
 .gl-ap.is-r{text-align:right}
+.gl-ap .gl-ap-t{margin-top:2px;font-variant-numeric:tabular-nums}
 .gl-flt-m{position:relative;display:flex;align-items:center;width:84px}
 .gl-flt-ln{flex:1;height:0;border-top:1.5px solid rgba(255,255,255,.62)}
 .gl-flt-ln.is-r{border-top-style:dashed;border-top-color:rgba(255,255,255,.34)}
@@ -108,6 +109,16 @@
 .gl-st:first-child b{font-size:1rem}
 .gl-st:first-child b{color:#ffe2a6}
 .gl-why{grid-column:1/-1;font-size:.76rem;font-weight:400;color:var(--gl-ink2);line-height:1.6}
+.gl-from{grid-column:1/-1;margin:2px 0 0;font-size:.64rem;font-weight:400;color:var(--gl-ink3)}
+.gl-lagq{grid-column:1/-1;margin-top:10px}
+.gl-lagq p{margin:0 0 8px;font-size:.74rem;font-weight:500;color:var(--gl-ink)}
+.gl-lagc{display:flex;flex-wrap:wrap;gap:6px}
+.gl-lagb{height:30px;padding:0 12px;border-radius:999px;border:1px solid var(--gl-line);background:var(--gl-glass);font-size:.72rem;font-weight:600;color:#fff;cursor:pointer;
+  transition:transform .2s var(--pv-ease,ease),opacity .2s}
+.gl-lagb:hover{opacity:.82}
+.gl-lagb:focus-visible{outline:2px solid var(--gl-gold);outline-offset:2px}
+.gl-lagb:active{transform:scale(.96)}
+.gl-lagq .gl-lage{margin:8px 0 0;font-size:.7rem;color:#ffd0c8}
 .gl-add{color:#ffe2a6;font-weight:500;text-decoration:none;white-space:nowrap}
 .gl-add:hover{text-decoration:underline}
 .gl-add:focus-visible{outline:2px solid var(--gl-gold);outline-offset:2px;border-radius:3px}

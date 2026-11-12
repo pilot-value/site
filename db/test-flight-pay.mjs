@@ -149,6 +149,20 @@ function suite(R) {
     ok(fp2.byYm['2026-10'].missing.join() === '2026-11' && fp2.legs.every((l) => l.amount === null), '★翌月の明細がまだ無ければ額を出さない（手当の行がまだ1つも無くても）');
   }
 
+  /* 8. その月の明細が無いとき（オーナー回答「近い月の明細で出す」）：決まった額は近い月から・乗務手当は借りない */
+  {
+    const r11 = rep('2026-11', { gross_monthly: 1250000, base_pay: 1000000, other_allowance: 200000, flight_variable_pay: 200000, per_diem: 50000 });
+    /* 飛んだ分は翌月の明細（pay_lag 1）・10月の明細は無い：10月の便 ＝ 手当は11月の明細・基本給は近い月（11月）から */
+    const fp = run(R, [r11], month('2026-10', D10, S10), PROFILE({ pay_lag: 1 }));
+    const a = fp.legs[0];
+    ok(a && a.amount === 37500 && a.fixedFrom === '2026-11', '★明細の無い月は、決まった額を近い月の明細から（どの月からかを返す）');
+    ok(fp.lagAsked === true, '飛んだ分が何月の明細に出るかを答えてあれば、聞かない');
+    /* 飛んだ分は同じ月（答えていない）＝乗務手当は10月の明細に載る → 10月の明細が無ければ出さない（借りない） */
+    const fq = run(R, [r11], month('2026-10', D10, S10));
+    ok(fq.legs.every((l) => l.amount === null && l.reason === 'no_payslip') && fq.byYm['2026-10'].missing.join() === '2026-10', '★乗務手当は近い月から借りない');
+    ok(fq.lagAsked === false, '飛んだ分が何月の明細に出るかをまだ答えていなければ、画面が聞く（lagAsked=false）');
+  }
+
   /* 7. 字：地球儀に「単価」「料率」を使わない */
   {
     const gp = path.join(ROOT, 'my-globe.js');
@@ -170,7 +184,9 @@ const BREAK = [
   ['便乗にも手当を付ける', "var fv = L.kind === 'deadhead' || !(opBlock > 0) ? 0 : M.flMinor * L.blockMin / opBlock;", 'var fv = !(opBlock > 0) ? 0 : M.flMinor * L.blockMin / opBlock;'],
   ['賞与を入れる', 'var FP_SKIP_CAT = { bonus: 1, noncash: 1 };', 'var FP_SKIP_CAT = { noncash: 1 };'],
   ['明細の無い月も額を出す', "if (M.missing.length) M.reason = 'no_payslip';\n      else ", ''],
-  ['月の一部だけのスケジュールでも額を出す', "else if (!rm.complete) M.reason = 'roster_partial';", '']
+  ['月の一部だけのスケジュールでも額を出す', "else if (!rm.complete) M.reason = 'roster_partial';", ''],
+  ['近い月の明細を使わない', 'if (fb) M.fixedFrom = fb;', 'fb = null;'],
+  ['乗務手当も近い月から借りる', 'flNeed.forEach(function (p) { if (p && !have[p] && M.missing.indexOf(p) < 0) M.missing.push(p); });', '']
 ];
 for (const [name, from, to] of BREAK) {
   if (SRC.split(from).length !== 2) { say(false, `${name}：差し替える1行が pv-report-engine.js に1回だけ無い（検査が古い）`); continue; }

@@ -38,6 +38,8 @@
       no_payslip: '{m}の明細を足すと出ます', roster_partial: 'この月のスケジュールを全部取り込むと出ます',
       mixed_currency: '通貨の違う明細が混ざる月は出せません', no_duty: '勤務時間が分からない月は出せません',
       no_block: 'この便の時間が分からないため出せません', no_pay: 'この月は額を出せません',
+      fixedFrom: '基本給は{m}の明細から', lagQ: '飛んだ分（乗務手当・日当）は、何月の給与明細に出ますか？',
+      lag0: '同じ月', lag1: '翌月', lag2: '翌々月', lagU: 'わからない', lagErr: '保存できませんでした。もう一度お試しください。',
       addPay: '明細を足す',
       listT: '便の一覧', all: 'すべて', allRoutes: '全ルート', more: 'もっと見る', less: '閉じる',
       monT: '月ごとの稼ぎ（目安）', monS: '便の額の合計', dayMonT: '日ごとの稼ぎ（目安）', monTip: '押すとその月だけ', dayTip: '押すとその日だけ',
@@ -62,6 +64,8 @@
       no_payslip: 'Add your {m} payslip to see this', roster_partial: 'Import the whole month of your roster to see this',
       mixed_currency: 'Not shown for months with payslips in different currencies', no_duty: 'Not shown when the month has no duty times',
       no_block: 'Not shown because this flight has no block time', no_pay: 'Not shown for this month',
+      fixedFrom: 'Base pay from your {m} payslip', lagQ: 'Which month’s payslip pays for your flying (flight pay, per diem)?',
+      lag0: 'Same month', lag1: 'Next month', lag2: 'Two months later', lagU: 'Not sure', lagErr: 'Couldn’t save. Please try again.',
       addPay: 'Add payslip',
       listT: 'Flights', all: 'All flights', allRoutes: 'All routes', more: 'Show more', less: 'Show less',
       monT: 'Earnings by month (est.)', monS: 'Sum of flights', dayMonT: 'Earnings by day (est.)', monTip: 'Tap to see only that month', dayTip: 'Tap to see only that day',
@@ -85,6 +89,8 @@
       no_payslip: 'Agrega tu recibo de nómina de {m} para verlo', roster_partial: 'Importa el mes completo de tu programación para verlo',
       mixed_currency: 'No se muestra en meses con recibos en distintas monedas', no_duty: 'No se muestra si el mes no tiene horas de servicio',
       no_block: 'No se muestra porque este vuelo no tiene tiempo de bloque', no_pay: 'No se muestra en este mes',
+      fixedFrom: 'Sueldo base de tu recibo de {m}', lagQ: '¿En la nómina de qué mes se paga lo que vuelas (pago por vuelo, viáticos)?',
+      lag0: 'Mismo mes', lag1: 'Mes siguiente', lag2: 'Dos meses después', lagU: 'No lo sé', lagErr: 'No se pudo guardar. Inténtalo de nuevo.',
       addPay: 'Agregar recibo',
       listT: 'Vuelos', all: 'Todos', allRoutes: 'Todas las rutas', more: 'Ver más', less: 'Ver menos',
       monT: 'Ingresos por mes (est.)', monS: 'Suma de los vuelos', dayMonT: 'Ingresos por día (est.)', monTip: 'Toca para ver solo ese mes', dayTip: 'Toca para ver solo ese día',
@@ -358,17 +364,39 @@
   function fltHTML(l) {
     var head = esc(dayL(l.date)) + (l.fleet ? '<span class="gl-flt-fl">' + esc(l.fleet) + '</span>' : '');
     var chip = '<span class="gl-chip gl-chip-k is-' + esc(l.kind) + '"><i></i>' + esc(kindL(l.kind)) + '</span>';
-    var t1 = l.out ? ', ' + l.out : '', t2 = l.in ? ', ' + l.in + (l.inDay ? ' +' + l.inDay : '') : '';
     var stats = l.amount != null
       ? '<div class="gl-st"><span>' + esc(T.earn) + '</span><b>' + esc(money(l.amount, l.currency)) + '</b></div>' +
         '<div class="gl-st"><span>' + esc(T.fixedL) + '</span><b>' + esc(money(Math.round(l.ratePerHour), l.currency)) + ' × ' + esc(hm(l.dutyMin)) + '</b></div>' +
         (l.basis === 'split' ? '<div class="gl-st"><span>' + esc(T.flightL) + '</span><b>' + esc(money(l.flight, l.currency)) + '</b></div>' : '')
-      : '<div class="gl-why">' + esc(why(l)) + (l.reason === 'no_payslip' ? ' <a class="gl-add" href="pay-report.html#ps">' + esc(T.addPay) + ' →</a>' : '') + '</div>';
+      : '<div class="gl-why">' + esc(why(l)) + (l.reason === 'no_payslip' ? ' <a class="gl-add" href="pay-report.html#ps">' + esc(T.addPay) + ' →</a>' : '') + '</div>' + lagAskHTML(l);
+    if (l.amount != null && l.fixedFrom) stats += '<p class="gl-from">' + esc(fill(T.fixedFrom, { m: ymS(l.fixedFrom) })) + '</p>';
     return '<div class="gl-flt-h"><span class="gl-flt-d">' + head + '</span>' + chip + '</div>' +
-      '<div class="gl-flt-r"><div class="gl-ap"><b>' + esc(l.ga.iata) + '</b><span>' + esc(city(l.ga) + t1) + '</span></div>' +
+      '<div class="gl-flt-r"><div class="gl-ap"><b>' + esc(l.ga.iata) + '</b><span>' + esc(city(l.ga)) + '</span><span class="gl-ap-t">' + esc(l.out || '') + '</span></div>' +
         '<div class="gl-flt-m"><i class="gl-flt-ln"></i><span class="gl-flt-pl">' + IC_PLANE + '</span><i class="gl-flt-ln is-r"></i><span class="gl-flt-bt">' + esc(hm(l.blockMin)) + '</span></div>' +
-        '<div class="gl-ap is-r"><b>' + esc(l.gb.iata) + '</b><span>' + esc(city(l.gb) + t2) + '</span></div></div>' +
+        '<div class="gl-ap is-r"><b>' + esc(l.gb.iata) + '</b><span>' + esc(city(l.gb)) + '</span><span class="gl-ap-t">' + esc(l.in ? l.in + (l.inDay ? ' +' + l.inDay : '') : '') + '</span></div></div>' +
       '<div class="gl-sts">' + stats + '</div>';
+  }
+  /* 飛んだ分が何月の明細に出るか（会社ごと・スケジュールの取り込みで聞く・設定で直せる）。まだ答えていない人には、額が出ない便のカードで聞く */
+  function lagAskHTML(l) {
+    if (!S.fp || S.fp.lagAsked || l.reason !== 'no_payslip') return '';
+    return '<div class="gl-lagq"><p>' + esc(T.lagQ) + '</p><div class="gl-lagc">' +
+      [[0, T.lag0], [1, T.lag1], [2, T.lag2], [-1, T.lagU]].map(function (o) {
+        return '<button type="button" class="gl-lagb" data-lag="' + o[0] + '">' + esc(o[1]) + '</button>';
+      }).join('') + '</div>' + (S.lagErr ? '<p class="gl-lage" role="status">' + esc(T.lagErr) + '</p>' : '') + '</div>';
+  }
+  function setLag(v) {
+    var a = S.ctx.current ? S.ctx.current() : null;
+    if (!a || !a.airline || S.lagBusy) return;
+    S.lagBusy = true; S.lagErr = false;
+    Promise.resolve(S.sb.rpc('set_roster_profile', { p_airline: a.airline, p_airline_other: a.other || null, p: { pay_lag: v } })).then(function (r) {
+      S.lagBusy = false;
+      if (r && !r.error && r.data && r.data.ok) {
+        /* スケジュールのタブ（設定の「明細に出る月」）も同じ答えに */
+        try { var RS = w.PVRoster && w.PVRoster._ && w.PVRoster._.S; if (RS && r.data.profile) RS.profile = r.data.profile; } catch (e) {}
+        load();
+      }
+      else { S.lagErr = true; render(); }
+    }, function () { S.lagBusy = false; S.lagErr = true; render(); });
   }
   function listHTML(V) {
     var legs = V.legs.filter(function (l) { return !S.route || routeKey(l) === S.route; });
@@ -446,6 +474,7 @@
     if (!t || !S.root.contains(t)) return;
     if (t.hasAttribute('data-per')) { S.per = t.getAttribute('data-per'); store(PKEY, S.per); S.listN = 8; S.leg = null; S.route = null; render(); G.focusRoute(true); return; }
     if (t.hasAttribute('data-step')) { step(+t.getAttribute('data-step')); return; }
+    if (t.hasAttribute('data-lag')) { setLag(+t.getAttribute('data-lag')); return; }
     if (t.hasAttribute('data-goym')) { S.per = 'm'; S.ym = t.getAttribute('data-goym'); S.leg = null; S.route = null; S.listN = 8; render(); G.focusRoute(); return; }
     if (t.hasAttribute('data-goday')) { S.per = 'd'; S.day = t.getAttribute('data-goday'); S.leg = null; S.route = null; S.listN = 8; render(); G.focusRoute(); return; }
     if (t.hasAttribute('data-route')) { pickRoute(t.getAttribute('data-route') || null); return; }
@@ -518,7 +547,9 @@
       }
       return out;
     }
+    var selT0 = 0;
     function setData(v, route, leg) {
+      if ((route || null) !== selRoute || (leg && leg.id) !== (selLeg && selLeg.id)) selT0 = performance.now() / 1000;   // 選び直したら出発地から
       V = v; selRoute = route || null; selLeg = leg || null;
       arcs = []; ports = []; hub = null;
       if (V) {
@@ -527,12 +558,10 @@
           if (r.a.lat == null || r.b.lat == null) return;          // 位置の分からない空港の区間は描かない
           var A0 = vec(r.a.lat, r.a.lon), B0 = vec(r.b.lat, r.b.lon);
           var om = Math.acos(Math.max(-1, Math.min(1, A0[0] * B0[0] + A0[1] * B0[1] + A0[2] * B0[2])));
-          arcs.push({ k: r.k, n: r.n, dh: r.dh === r.n, pts: arcOf(r.a, r.b), om: om, off: (i * 0.37) % 1, scr: [], fly: false });
+          arcs.push({ k: r.k, n: r.n, dh: r.dh === r.n, pts: arcOf(r.a, r.b), om: om, a: r.a.iata, scr: [] });
           [r.a, r.b].forEach(function (g) { if (!seenP[g.iata]) { seenP[g.iata] = 1; ports.push({ g: g, v: vec(g.lat, g.lon) }); } });
         });
         hub = V.hub;
-        /* 飛行機を飛ばすのは、よく飛んだ5ルートと選んだルートだけ（全部に飛ばすと騒がしい） */
-        arcs.slice().sort(function (p, q) { return q.n - p.n; }).slice(0, 5).forEach(function (a) { a.fly = true; });
         if (!seen && V.legs.length) { seen = true; center(true); }
       }
       kick(); draw();
@@ -551,7 +580,8 @@
     function fitK() {
       var a = selRoute ? arcs.filter(function (x) { return x.k === selRoute; })[0] : null;
       if (!a) return k;
-      if (a.om < 0.35) return Math.max(1, Math.min(8, 0.7 / Math.max(a.om, 0.01)));
+      /* ★2026-11-12 オーナー「国内線の1便の線がちゃんと見えるまで」：ルートが画面の短い辺の半分くらいの長さになるまで寄る */
+      if (a.om < 0.35) { var r0 = geom().R / k; return Math.max(1, Math.min(KMAX, (Math.min(W, H) * 0.5) / (r0 * Math.max(a.om, 0.002)))); }
       return k > 1.4 ? 1 : k;
     }
     function center(now) {
@@ -564,9 +594,19 @@
       kick();
     }
     function focusRoute(soft) { center(!!soft && RM); idleAt = performance.now(); }
-    var KMAX = 10;   // 国内線まで見えるように（オーナー「国内線とか拡大すると」）
+    var KMAX = 40;   // 国内線の1便まで見えるように（オーナー「もっと拡大できるように」）
     function zoomBy(f) { tween = null; k = Math.max(0.7, Math.min(KMAX, k * f)); idleAt = performance.now(); kick(); draw(); }
 
+    var hiState = 0;   // 0 まだ・1 読んでいる・2 読めた・3 読めない
+    function loadHi() {
+      if (hiState || !S.ctx || !S.ctx.urls || !S.ctx.urls.landHi) return;
+      hiState = 1;
+      var el = d.createElement('script');
+      el.src = S.ctx.urls.landHi;
+      el.onload = function () { hiState = w.PV_GLOBE_LAND_HI ? 2 : 3; if (hiState === 2) { w.PV_GLOBE_LAND(0); draw(); } };
+      el.onerror = function () { hiState = 3; };
+      d.head.appendChild(el);
+    }
     function hid() { return d.hidden || !inView || !S.visible; }
     function animating() { return !RM && !hid(); }
     function kick() { if (!raf && animating()) { last = performance.now(); raf = w.requestAnimationFrame(frame); } }
@@ -598,10 +638,16 @@
       /* 外の光（大気）：縁のすぐ外で光る。見本と同じく左上ほど強い */
       var halo = c.createRadialGradient(cx + R * 0.08, cy + R * 0.06, R * 0.95, cx, cy, R * 1.24);
       halo.addColorStop(0, 'rgba(120,230,208,.34)'); halo.addColorStop(0.45, 'rgba(90,200,182,.12)'); halo.addColorStop(1, 'rgba(90,200,182,0)');
-      c.fillStyle = halo; c.beginPath(); c.arc(cx, cy, R * 1.24, 0, Math.PI * 2); c.fill();
+      /* 大気は球の外側の輪だけ（球の中は下で別に・寄るほど薄く）。★輪の内側まで塗ると、寄ったとき球の中が白っぽく濁る（オーナー「色が薄くなる」） */
+      var zf = Math.min(1, Math.max(0, (k - 1) / 3));
+      c.fillStyle = halo; c.beginPath(); c.arc(cx, cy, R * 1.24, 0, Math.PI * 2); c.arc(cx, cy, R, 0, Math.PI * 2, true); c.fill('evenodd');
+      c.fillStyle = 'rgba(120,230,208,' + (0.34 * (1 - zf)).toFixed(3) + ')'; c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.fill();
       /* 球：中は暗い青緑（見本 #0e5253）。白で濁らせない */
+      /* ★寄ったとき（オーナー「色が薄くなる」）：明るい所は球の左上の一部だけ。寄るほど明るさを抑えて、遠目と同じ濃さに */
+      var lightA = (0.62 * (1 - 0.7 * zf)).toFixed(3);
       var body = c.createRadialGradient(cx - R * 0.28, cy - R * 0.36, R * 0.08, cx, cy, R);
-      body.addColorStop(0, 'rgba(52,150,138,.62)'); body.addColorStop(0.55, 'rgba(18,86,84,.6)'); body.addColorStop(1, 'rgba(6,50,52,.72)');
+      body.addColorStop(0, 'rgba(52,150,138,' + lightA + ')'); body.addColorStop(0.55, 'rgba(18,86,84,' + (0.6 + 0.32 * zf).toFixed(3) + ')'); body.addColorStop(1, 'rgba(6,50,52,' + (0.72 + 0.2 * zf).toFixed(3) + ')');
+      /* 寄ると球が画面を覆う＝面の光（CSS）が透けて薄く見える。寄るほど、球の中を見本の濃い青緑（#0e5253）で埋める */
       c.fillStyle = body; c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.fill();
       /* 縁の内側の光：右下から左上へ、縁に近いほど明るい（見本の左上の光る縁） */
       var lit = c.createRadialGradient(cx + R * 0.22, cy + R * 0.18, R * 0.55, cx, cy, R * 1.02);
@@ -611,7 +657,8 @@
          ★拡大するほど細かい段（2°→1°→0.5°→0.25°）に替えて、点の間隔が画面でいつも 6〜12px になるように（オーナー「拡大したら点も細かく」）。
          見えている所（正面のまわり）の行と列だけを見る＝細かい段でも重くならない */
       var LV = w.PV_GLOBE_LAND.levels, lvl = 0;
-      while (lvl < LV.length - 1 && R * LV[lvl] * Math.PI / 180 > 12) lvl++;
+      while (lvl < LV.length - 1 && R * LV[lvl] * Math.PI / 180 > 11) lvl++;
+      if (lvl === LV.length - 1 && R * LV[lvl] * Math.PI / 180 > 9) loadHi();
       var LD = w.PV_GLOBE_LAND(lvl), stepR = LD.step * Math.PI / 180;
       var rad = Math.max(0.8, R * stepR * 0.17), buckets = [[], [], [], []];
       var cl = Math.cos(lam), sl = Math.sin(lam), cp = Math.cos(phi), sp = Math.sin(phi);
@@ -637,12 +684,27 @@
           buckets[Math.min(3, Math.floor(z2 * 4))].push(px, py, z2);
         }
       }
+      /* ★寄ったとき（オーナー「地球の丸みが分からない」）：画面の真ん中から離れるほど、点を小さく・暗く（丸い面が向こうへ逃げていくように） */
+      var cf = Math.min(1, Math.max(0, (k - 1.6) / 2.5)), vmax = Math.hypot(W, H) * 0.55;
+      if (cf > 0) {
+        var nb = [[], [], [], []];
+        for (var b2 = 0; b2 < 4; b2++) for (var q2 = 0; q2 < buckets[b2].length; q2 += 3) {
+          var dd = Math.min(1, Math.hypot(buckets[b2][q2] - cx, buckets[b2][q2 + 1] - cy) / vmax), zz = buckets[b2][q2 + 2] * (1 - cf * 0.62 * dd * dd);
+          nb[Math.max(0, Math.min(3, Math.floor(zz * 4)))].push(buckets[b2][q2], buckets[b2][q2 + 1], zz);
+        }
+        buckets = nb;
+      }
       for (var bI = 0; bI < 4; bI++) {
         var B = buckets[bI];
         c.fillStyle = 'rgba(236,255,250,' + [0.4, 0.68, 0.88, 1][bI] + ')';
         c.beginPath();
         for (var j = 0; j < B.length; j += 3) { var s = rad * (0.62 + 0.38 * B[j + 2]); c.moveTo(B[j] + s, B[j + 1]); c.arc(B[j], B[j + 1], s, 0, Math.PI * 2); }
         c.fill();
+      }
+      if (cf > 0) {
+        var vg = c.createRadialGradient(cx, cy, Math.min(W, H) * 0.28, cx, cy, vmax * 1.05);
+        vg.addColorStop(0, 'rgba(4,34,38,0)'); vg.addColorStop(1, 'rgba(4,30,34,' + (0.62 * cf).toFixed(3) + ')');
+        c.fillStyle = vg; c.fillRect(0, 0, W, H);
       }
       /* 縁：細い明るい線に光をにじませる（ガラスの縁） */
       c.save(); c.shadowColor = 'rgba(140,245,220,.9)'; c.shadowBlur = 14;
@@ -674,16 +736,15 @@
         a.scr.forEach(function (p) { if (!p) { on = false; return; } if (on) c.lineTo(p[0], p[1]); else c.moveTo(p[0], p[1]); on = true; });
         c.stroke(); c.setLineDash([]);
       }
-      /* 飛んでいる飛行機（ルートごとに1機）。動きを減らす設定では止めて、弧の真ん中に置く */
-      arcs.forEach(function (a) {
-        var isSel = a.k === selRoute;
-        if (!a.fly && !isSel) return;
-        var per = 5 + a.pts.length * 0.09, u = RM ? 0.5 : ((t / per + a.off) % 1);
-        var pos = at(a, u);
-        if (!pos) return;
-        plane(pos, isSel ? '#f5c35a' : 'rgba(255,255,255,.9)', isSel ? 1.05 : 0.78);
-        if (isSel) sel.planeAt = pos;
-      });
+      /* ★飛行機は選んだルートだけ（オーナー「ルートを選んだら飛ぶように」）。選んだ便の出発地から目的地へ、着いたら少し止まってもう一度。
+           動きを減らす設定では止めて、弧の真ん中に置く */
+      if (sel) {
+        var fwd = !selLeg || !selLeg.ga || selLeg.ga.iata === sel.a;
+        var dur = 2.6 + Math.min(3, sel.om * 2.2), cyc = (t - selT0) % (dur + 0.9), u = RM ? 0.5 : Math.min(1, cyc / dur);
+        u = u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;                 // 出るときと着くときはゆっくり
+        var pos = at(sel, fwd ? u : 1 - u);
+        if (pos) { if (!fwd) pos.ang += Math.PI; plane(pos, '#f5c35a', 1.1); sel.planeAt = pos; }
+      }
       /* 空港：拠点は白い点・行き先は白い輪。名前は重なるものを省く（拠点と選んだルートが先） */
       var FONT = '"Outfit", "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif';
       c.font = '500 10.5px ' + FONT; c.textBaseline = 'middle';

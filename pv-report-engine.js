@@ -1274,6 +1274,9 @@
      入れないもの：賞与（月の賞与・利益配分）・現物（課税評価）・組合から総支給の外で出た分・別の期間の行（ownPeriod）。
      行の「働いた月」は build() の決まりのまま（pv_line_map → スケジュールの pay_lag）。決まっていない行は明細の月。
      約束：m の便の額と、便の無い勤務の額を全部足すと、m に割り当てたお金（手当の分＋基本給の分）にぴったり戻る。
+     ★2026-11-12 オーナー回答「近い月の明細で出す」：m の明細がまだ無いとき、基本給などの決まった額は、いちばん近い月の明細の額を使う（fixedFrom にその月）。
+       乗務手当・日当は月ごとに違うので借りない ＝ それを載せている明細（飛んだ分が何か月あとの明細に出るか＝pay_lag・項目ごとの対応）が無ければ額を出さない。
+       pay_lag をまだ答えていないときは「同じ月の明細」として数える（lagAsked=false を返す＝画面がその場で聞く）。
      額を出さない（reason）：no_payslip（m の分の明細が足りない・missing に月）・roster_partial（m のスケジュールが月の一部）・
        mixed_currency・no_duty（勤務時間ぜんぶが0）・no_block（その便の時間が分からない）・no_pay（額が負）。 */
   var FP_FLIGHT = { flight: 1, perdiem: 1 };
@@ -1288,14 +1291,31 @@
   function flightPay(model) {
     var res = { months: [], byYm: {}, legs: [] };
     if (!model || !model.roster) return res;
-    var have = {}, offs = {};
+    var have = {}, flOffs = {}, own = {};
+    /* 乗務手当・日当の行が「何か月まえの勤務の分」か（offset）。行に結びつけが無ければ同じ月（0） */
     arr(model.months).forEach(function (mo) {
       have[mo.ym] = mo;
-      mo.lines.forEach(function (l) { if (l.offset != null && !l.ownPeriod) offs[l.offset] = 1; });
+      var s0 = 0;
+      mo.lines.forEach(function (l) {
+        if (!l.counted || !l.cash || l.ownPeriod || FP_SKIP_CAT[l.cat]) return;
+        if (l.kind === 'union' && l.outsideGross) return;
+        if (FP_FLIGHT[l.kind]) { flOffs[l.workYm ? (ymIdx(l.workYm) - ymIdx(mo.ym)) : 0] = 1; return; }
+        if (!l.workYm || l.workYm === mo.ym) s0 += l.amount;          // その明細の月の決まった額（よその月へ移した行は除く）
+      });
+      own[mo.ym] = { cur: mo.currency, amt: s0 };
     });
-    /* スケジュールの取り込みで答えた「飛んだ分は何か月あとの明細」も、足りない明細の月に数える（その月の手当の行がまだ1つも無くても） */
+    /* スケジュールの取り込みで答えた「飛んだ分は何か月あとの明細」も数える（その月の手当の行がまだ1つも無くても） */
     var lagP = model.roster.profile && model.roster.profile.pay_lag;
-    if (isNum(lagP) && lagP >= 0 && lagP <= 2) offs[-lagP] = 1;
+    var lagKnown = isNum(lagP) && lagP >= 0 && lagP <= 2;
+    if (lagKnown) flOffs[-lagP] = 1;
+    if (!Object.keys(flOffs).length) flOffs[0] = 1;
+    var payYms = Object.keys(have).sort();
+    function nearest(ym) {
+      var i = ymIdx(ym), best = null, bd = Infinity;
+      payYms.forEach(function (p) { var dd = Math.abs(ymIdx(p) - i); if (dd < bd || (dd === bd && p > best)) { bd = dd; best = p; } });
+      return best;
+    }
+    res.lagAsked = lagKnown || lagP === -1;
     var pools = {};
     arr(model.months).forEach(function (mo) {
       mo.lines.forEach(function (l) {
@@ -1309,15 +1329,22 @@
     });
     arr(model.roster.months).forEach(function (rm) {
       var ym = rm.ym, M = { ym: ym, currency: null, fleet: null, flMinor: null, otMinor: null, opBlockMin: null, dutyMin: null,
-                            ratePerHour: null, basis: null, reason: null, missing: [] };
-      var fleet = have[ym] && have[ym].row ? String(have[ym].row.fleet || '').trim() : '';
-      M.fleet = fleet || null;
-      if (!have[ym]) M.missing.push(ym);
-      Object.keys(offs).forEach(function (o) {
-        var p = ymAdd(ym, -Number(o));
-        if (p && p !== ym && !have[p] && M.missing.indexOf(p) < 0) M.missing.push(p);
-      });
+                            ratePerHour: null, basis: null, reason: null, missing: [], fixedFrom: null };
+      /* 乗務手当・日当を載せている明細（飛んだ分が出る月）。無ければ額を出さない（借りない） */
+      var flNeed = Object.keys(flOffs).map(function (o) { return ymAdd(ym, -Number(o)); });
+      flNeed.forEach(function (p) { if (p && !have[p] && M.missing.indexOf(p) < 0) M.missing.push(p); });
       M.missing.sort();
+      /* 決まった額：その月の明細が無ければ、いちばん近い月の明細から（乗務手当がその月の明細に載る人は上で止まる） */
+      var fb = !have[ym] && !M.missing.length ? nearest(ym) : null;
+      if (fb) M.fixedFrom = fb;
+      var src = have[ym] || (fb ? have[fb] : null);
+      var fleet = src && src.row ? String(src.row.fleet || '').trim() : '';
+      M.fleet = fleet || null;
+      if (fb) {
+        var P0 = pools[ym] || (pools[ym] = {});
+        var c0 = P0[own[fb].cur] || (P0[own[fb].cur] = { fl: 0, ot: 0 });
+        c0.ot += own[fb].amt;
+      }
       var curs = Object.keys(pools[ym] || {});
       var legs = [];
       rm.days.forEach(function (x) {
@@ -1350,7 +1377,7 @@
         var share = L.blockMin != null && dayBlock > 0 && dd != null ? dd * L.blockMin / dayBlock : null;
         var o = { date: x.date, ym: ym, seq: L.seq, from: L.from, to: L.to, kind: L.kind, out: L.out, in: L.in, inDay: L.inDay,
                   blockMin: L.blockMin, dutyMin: share == null ? null : Math.round(share), currency: M.currency, fleet: M.fleet,
-                  amount: null, fixed: null, flight: null, ratePerHour: M.ratePerHour, basis: M.basis, reason: M.reason, missing: M.missing };
+                  amount: null, fixed: null, flight: null, ratePerHour: M.ratePerHour, basis: M.basis, reason: M.reason, missing: M.missing, fixedFrom: M.fixedFrom };
         if (!o.reason && share == null) o.reason = 'no_block';
         if (!o.reason) {
           var fx = (M.otMinor / duty) * share;

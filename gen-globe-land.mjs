@@ -25,6 +25,7 @@ if (!from) { console.error('使い方: node gen-globe-land.mjs --from <ne_50m_la
 const gj = JSON.parse(fs.readFileSync(path.join(from, 'ne_50m_land.geojson'), 'utf8'));
 
 const STEPS = [2, 1, 0.5, 0.25];        // 点の間隔（度）。地球儀が拡大するほど右の段
+const HI = 0.125;                       // ★いちばん細かい段は別の箱（pv-globe-land-hi.js）＝国内線まで寄ったときだけ読む（2026-11-12 オーナー「国内線の1便の線が見えるまで拡大」）
 const rings = [];                       // 陸の縁（外側も穴も）＝ [lon, lat] の並び
 for (const f of gj.features || []) {
   const g = f && f.geometry;
@@ -69,6 +70,7 @@ function level(step) {
   return { step, rows, dots, all };
 }
 const L = STEPS.map(level);
+const LH = level(HI);
 
 const out = `/* pv-globe-land.js — スケジュールの地球儀の陸地の点。★生成物：node gen-globe-land.mjs --from <フォルダ>（手で直さない）
    出典：Natural Earth「Land」1:50m（パブリックドメイン）https://www.naturalearthdata.com/
@@ -83,6 +85,7 @@ ${L.map((l) => `    { step: ${l.step}, rows: '${l.rows.join(';')}' }`).join(',\n
   /* 段ごとに、行（緯度・点の数・陸の印）を1回だけ読み解く。印は Uint8Array（i 番目の点＝ i>>3 の (i&7) ビット） */
   var cache = [];
   w.PV_GLOBE_LAND = function (lv) {
+    if (w.PV_GLOBE_LAND_HI && L.indexOf(w.PV_GLOBE_LAND_HI) < 0) { L.push(w.PV_GLOBE_LAND_HI); w.PV_GLOBE_LAND.levels.push(w.PV_GLOBE_LAND_HI.step); }
     lv = Math.max(0, Math.min(L.length - 1, lv | 0));
     if (cache[lv]) return cache[lv];
     var src = L[lv], rs = src.rows.split(';'), lat = -90 + src.step / 2, rows = [];
@@ -96,11 +99,22 @@ ${L.map((l) => `    { step: ${l.step}, rows: '${l.rows.join(';')}' }`).join(',\n
   w.PV_GLOBE_LAND.levels = L.map(function (x) { return x.step; });
 }(typeof window !== 'undefined' ? window : globalThis));
 `;
+const outHi = `/* pv-globe-land-hi.js — 地球儀の陸地の点のいちばん細かい段（${HI}°）。★生成物：node gen-globe-land.mjs --from <フォルダ>（手で直さない）
+   出典：Natural Earth「Land」1:50m（パブリックドメイン）。国内線まで寄ったときだけ my-globe.js が読む。${LH.dots}点。 */
+(function (w) {
+  'use strict';
+  w.PV_GLOBE_LAND_HI = { step: ${HI}, rows: '${LH.rows.join(';')}' };
+}(typeof window !== 'undefined' ? window : globalThis));
+`;
+const fileHi = path.join(ROOT, 'pv-globe-land-hi.js');
 const file = path.join(ROOT, 'pv-globe-land.js');
 if (process.argv.includes('--check')) {
   const now = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
-  console.log(now === out ? '✓ 変更なし' : '✗ 中身が違う（流し直すと変わる）');
-  process.exit(now === out ? 0 : 1);
+  const nowHi = fs.existsSync(fileHi) ? fs.readFileSync(fileHi, 'utf8') : '';
+  const same = now === out && nowHi === outHi;
+  console.log(same ? '✓ 変更なし' : '✗ 中身が違う（流し直すと変わる）');
+  process.exit(same ? 0 : 1);
 }
 fs.writeFileSync(file, out);
-console.log(`pv-globe-land.js: ${L.map((l) => l.step + '°=' + l.dots).join(' / ')}・${(out.length / 1024).toFixed(0)}KB`);
+fs.writeFileSync(fileHi, outHi);
+console.log(`pv-globe-land.js: ${L.map((l) => l.step + '°=' + l.dots).join(' / ')}・${(out.length / 1024).toFixed(0)}KB ／ pv-globe-land-hi.js: ${HI}°=${LH.dots}・${(outHi.length / 1024).toFixed(0)}KB`);

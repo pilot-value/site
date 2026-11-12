@@ -16546,4 +16546,6 @@ export const TM = {
   "js:'Not on the map: {c}'": {"es":"js:'Fuera del mapa: {c}'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"スケジュールの地球儀 2026-11-12"},
   "js:'ROUTE'": {"es":"js:'ROUTE'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"スケジュールの地球儀 2026-11-12（見出しは英語のまま）"},
   "js:'FLIGHT EARNINGS'": {"es":"js:'FLIGHT EARNINGS'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"スケジュールの地球儀 2026-11-12（見出しは英語のまま）"},
+  "js:'Base pay from your {m} payslip'": {"es":"js:'Sueldo base de tu recibo de {m}'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"スケジュールの地球儀 2026-11-12"},
+  "js:'Which month’s payslip pays for your flying (flight pay, per diem)?'": {"es":"js:'¿En la nómina de qué mes se paga lo que vuelas (pago por vuelo, viáticos)?'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"スケジュールの地球儀 2026-11-12"},
 };
