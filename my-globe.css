@@ -16,7 +16,7 @@
 :where(.gl button){font:inherit;color:inherit}   /* 重さ0：下の各ボタンの字の大きさ・色が勝つ */
 
 /* ── 地球儀の面 ─────────────────────────────────────────── */
-.gl-stage{position:relative;min-height:560px;border-radius:var(--pv-r-lg,20px);overflow:hidden;color:var(--gl-ink);isolation:isolate;
+.gl-stage{position:relative;display:flex;min-height:560px;border-radius:var(--pv-r-lg,20px);overflow:hidden;color:var(--gl-ink);isolation:isolate;
   /* ★2026-11-12 オーナー「見本と色味が違う・高級感」→ 見本を点ごとに測って合わせた：
      四隅は濃い（#092c30）・地球のまわりだけ光る（縁 #489392）・地球の中は暗い（#0e5253）＝明暗の差で奥行き。全体を中間の明るさにしない */
   background:
@@ -52,11 +52,16 @@
 .gl-sl{min-width:7.5em;text-align:center;font-size:.76rem;font-weight:500}
 
 /* ガラスのカード（左上・左下） */
-.gl-ov{position:absolute;z-index:2;padding:16px 18px;border-radius:18px;background:linear-gradient(160deg,rgba(150,178,188,.24),rgba(84,112,122,.18));border:1px solid var(--gl-line);
+/* ★2026-11-12 オーナー「カードが被っちゃってる」：上と下に釘で留めていた（top:96px／bottom:20px）ので、中身が伸びると重なった。
+   左の列（.gl-side）に縦に積む。列は面の高さいっぱい・稼ぎのカードは上・便のカードは下。中身が長ければ面ごと伸びる（地球儀も一緒に） */
+.gl-side{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;gap:12px;
+  width:392px;max-width:100%;padding:96px 0 20px 20px;box-sizing:border-box;pointer-events:none}
+.gl-side>*{pointer-events:auto}
+.gl-ov{position:relative;z-index:2;padding:16px 18px;border-radius:18px;background:linear-gradient(160deg,rgba(150,178,188,.24),rgba(84,112,122,.18));border:1px solid var(--gl-line);
   -webkit-backdrop-filter:blur(18px) saturate(.85);backdrop-filter:blur(18px) saturate(.85);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 16px 36px -18px rgba(0,16,20,.6)}
-.gl-sum{top:96px;left:20px;width:308px}
-.gl-flt{bottom:20px;left:20px;width:372px}
+.gl-sum{width:308px}
+.gl-flt{width:372px}
 .gl-ov-t{display:inline-flex;align-items:baseline;gap:7px;font-size:.74rem;font-weight:600;letter-spacing:.07em}
 .gl-ov-t small{font-size:.62rem;font-weight:400;letter-spacing:0;color:var(--gl-ink3)}
 .gl-chip{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 9px;border-radius:999px;background:rgba(255,255,255,.12);font-size:.7rem;font-weight:600;white-space:nowrap}
@@ -237,6 +242,7 @@ button.gl-mb-c:active{opacity:.6}
   .gl-stage{display:flex;flex-direction:column;gap:12px;min-height:0;padding:16px}
   .gl-cvbox{position:relative;inset:auto;height:330px;margin:0 -16px}
   .gl-top{position:static;flex-wrap:wrap;order:-1}
+  .gl-side{display:contents}
   .gl-ov{position:static;width:auto}
   .gl-foot{position:static;align-items:flex-start;flex-direction:row;flex-wrap:wrap;justify-content:space-between}
   .gl-zoom{right:12px}

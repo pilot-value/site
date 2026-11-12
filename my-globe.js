@@ -305,8 +305,7 @@
               }).join('') + '</div>' +
             '<div class="gl-step" hidden><button type="button" class="gl-sb" data-step="-1">‹</button><span class="gl-sl"></span>' +
               '<button type="button" class="gl-sb" data-step="1">›</button></div></div>' +
-          '<div class="gl-ov gl-sum" hidden></div>' +
-          '<div class="gl-ov gl-flt" hidden></div>' +
+          '<div class="gl-side"><div class="gl-ov gl-sum" hidden></div><div class="gl-ov gl-flt" hidden></div></div>' +   // ★2つのカードは縦に積む（重ならない）
           '<div class="gl-foot"><span class="gl-hint">' + IC_HAND + esc(T.hint) + '</span>' +
             '<span class="gl-lg"><span><i class="gl-lg-hub"></i>' + esc(T.legHub) + '</span><span><i class="gl-lg-dst"></i>' + esc(T.legDest) +
             '</span><span><i class="gl-lg-dh"></i>' + esc(T.legDh) + '</span></span></div>' +
