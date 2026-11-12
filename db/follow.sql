@@ -5,6 +5,16 @@
 --     ・会社ページの「フォロー」で会社を足す（1人10社まで）。マイページで外せる。
 --     ・**自分の会社（登録の会社）は最初からフォロー済み**。外したときだけ外れる（外した記録だけを持つ＝全員分を書き込まない）。
 --     ・新着（給与・口コミ・待遇の答え）を別のメールで知らせる。
+--       ★★2026-11-12 オーナー決定（「出しづらい」「メールで知らせるのは1週間に1度にしたら？」
+--         「管理者が投稿した分は、みんなにメールするのにカウントしないで」）：
+--         ① **知らせは週に1度。木曜の17時（受け取る人の国の時間）に、前の木曜から入った分を1通に。**
+--            前は毎日（入った次の日の17時）だった。受け取るのは主に同じ会社の同僚で、毎月出す人は出した次の日に
+--            同僚へ知らせが行っていた ＝ 出しづらい。週に1度なら「いつ出したか」は1週間の幅までしか分からない。
+--            ⚠️ 毎日に戻さない（pv_follow_due の「木曜だけ」の1行。検算と test-follow の壊す証明が見ている）。
+--            曜日は週の新着まとめ（月曜）とずらしてある。
+--         ② **運営（pv_admins）が出した給与・口コミ・待遇の答えは数えない**（テスト用アカウントと同じ扱い）。
+--         ③ 給与は、この版を初めて貼った時刻（pv_follow_launch.pay_from）より後に入った分だけ数える
+--            （2026-11-12 の数時間だけ給与を数えない版が本番に在った。そのあいだと、それより前の給与では知らせない）。
 --       ★2026-11-09 オーナー指示「提出後すぐではなく、翌日の17時に」「受け取る人の国の17時」：
 --       **ある日に入った新着を、次の日の17時（受け取る人の国の時間）に1通にまとめて送る。**
 --       日の区切りも受け取る人の国の0時。国はプロフィールの国の欄（pv_follow_tz の1か所で時間帯に直す）。
@@ -15,7 +25,7 @@
 --       口コミ＝評価・職位・在籍年数・最初の80字／給与＝「入った」だけ（金額は書かない＝Give & Get）／待遇＝答えが入った質問の名前。
 --   推測されにくくする工夫（オーナーの決定の範囲で）：
 --     ・次の日の17時にまとめて送る（＝届いた時刻から、出した時刻が分からない。2026-11-08 には出して数分後に届いていた）
---     ・1人1日1通まで（前の日の0時までに入った分を1通に。送った日の分は次の日の1通に回る）
+--     ・1人週に1通まで（2026-11-12 から。木曜の0時までに入った分を1通に。木曜に入った分は次の木曜の1通に回る）
 --     ・**自分が出した分では知らせない**（受け取る人の印を作り直して、その人の投稿を外す）
 --
 --   貼る順: pay-reports.sql → pay-rows.sql → airline-conditions.sql → reviews-gate.sql → pilot-proof.sql
@@ -35,7 +45,8 @@
 --     時計 pv-follow-notify    … 1時間おき（毎時0分）に Edge Function を叩く（国ごとの17時を拾うため。送るのは各国の17時〜24時だけ）
 --
 --   ★数えるもの（ほかの画面と同じ外し方。db/airline-activity.sql と同じ）
---     給与＝年 $10,000〜$700,000 の幅・一覧から下ろした人でない・テスト用アカウントでない
+--     給与＝年 $10,000〜$700,000 の幅・一覧から下ろした人でない・テスト用アカウントでない・pay_from より後
+--     ★どれも、運営（pv_admins）が出した分は数えない（2026-11-12）
 --     口コミ＝テスト用アカウントでない（引き取っていない預かりは数えない：誰の投稿か分からず、本人を外せないため）
 --     待遇の答え＝実際に答えた行だけ（スキップ・「わからない」は数えない）・テスト用アカウントでない
 --   ★知らせの数え始めは、このファイルを初めて貼った時刻（それより前の投稿では知らせない）。
@@ -99,6 +110,9 @@ create table if not exists public.pv_follow_launch (
 alter table public.pv_follow_launch enable row level security;
 revoke all on table public.pv_follow_launch from public, anon, authenticated;
 insert into public.pv_follow_launch(one) values (true) on conflict (one) do nothing;
+-- 給与を数え始める時刻（2026-11-12。この版を初めて貼った時刻。二度目からは変えない）
+alter table public.pv_follow_launch add column if not exists pay_from timestamptz;
+update public.pv_follow_launch set pay_from = now() where pay_from is null;
 
 -- 受け取る人の国 → 時間帯（2026-11-09 オーナー「受け取る人の国の17時」）。
 --   国の欄は登録・プロフィールの決まった20の選択肢（日英西とも値は日本語）。
@@ -332,23 +346,28 @@ set search_path = public, extensions
 as $$
   with
   launch as (select coalesce((select l.at from public.pv_follow_launch l), p_now) as at),
-  floor_at as (select greatest((select at from launch), p_now - interval '8 days') as at),
-  -- ★新着の候補（数える物だけ・テスト用アカウントを外す）。8日より前は見ない（重くしない）
+  floor_at as (select greatest((select at from launch), p_now - interval '15 days') as at),
+  pay_from as (select coalesce((select l.pay_from from public.pv_follow_launch l), p_now) as at),
+  -- ★新着の候補（数える物だけ・テスト用アカウントと運営を外す）。15日より前は見ない（重くしない。1週とばしても拾える幅）
   ev as (
     select r.airline as code, 'pay'::text as kind, r.created_at as at, r.proof_hash as h, 'pay'::text as hk, null::text as raw,
            null::uuid as rid, null::text as qid
       from public.pay_reports r
      where r.created_at > (select at from floor_at)
+       and r.created_at > (select at from pay_from)
        and r.airline <> 'other'
        and r.annual_total_usd between 10000 and 700000
        and not exists (select 1 from public.pay_hidden h where h.proof_hash = r.proof_hash)
        and not exists (select 1 from public.pv_test_users t
                         where encode(digest(t.uid::text || '::pv_pay::' || r.airline, 'sha256'), 'hex') = r.proof_hash)
+       and not exists (select 1 from public.pv_admins a
+                        where encode(digest(a.user_id::text || '::pv_pay::' || r.airline, 'sha256'), 'hex') = r.proof_hash)
     union all
     select public.pv_airline_resolve(v.airline), 'review', v.created_at, v.proof_hash, 'review', v.airline, v.id, null
       from public.reviews_v2 v
      where v.created_at > (select at from floor_at)
        and not exists (select 1 from public.pv_test_users t where public.pv_review_hash(t.uid, v.airline) = v.proof_hash)
+       and not exists (select 1 from public.pv_admins a where public.pv_review_hash(a.user_id, v.airline) = v.proof_hash)
     union all
     select c.airline, 'cond', c.created_at, c.proof_hash, 'cond', null, null, c.question_id
       from public.airline_conditions c
@@ -358,6 +377,7 @@ as $$
        and num_nonnulls(c.answer_code, c.answer_codes, c.answer_num) > 0
        and c.answer_code is distinct from 'unknown'
        and not exists (select 1 from public.pv_test_users t where public.pv_condition_hash(t.uid, c.airline, null) = c.proof_hash)
+       and not exists (select 1 from public.pv_admins a where public.pv_condition_hash(a.user_id, c.airline, null) = c.proof_hash)
   ),
   who as (
     select p.id, p.email, p.name, p.country, p.lang, p.unsub_token::text as unsub_token, p.created_at, p.company,
@@ -373,9 +393,11 @@ as $$
                                  (date_trunc('day', p_now at time zone t.tz) + interval '17 hours') at time zone t.tz as send_at) z
      where coalesce(p.email_opt_in, false)
        and p.email is not null and position('@' in p.email) > 1
+       -- ★週に1度：受け取る人の国で木曜の日だけ（2026-11-12。⚠️ この1行を外すと毎日に戻る）
+       and extract(isodow from (p_now at time zone t.tz)) = 4
        -- ★受け取る人の国で17時を過ぎてから（17時〜24時。送れなかった分は次の1時間で送り直す）
        and p_now >= z.send_at
-       -- ★1日1通まで（今日の0時までの分をもう送った人は、次の日まで待つ）
+       -- ★その日は1通まで（木曜の0時までの分をもう送った人は、次の木曜まで待つ）
        and coalesce(fm.upto, fm.sent_at, '-infinity'::timestamptz) < z.cut
        -- ★続けて3回失敗したら、その日は諦める
        and not (coalesce(fm.tries, 0) >= 3 and fm.tried_at >= z.send_at)
@@ -388,7 +410,7 @@ as $$
       cross join lateral public.pv_follow_list(w.id) l
       join ev e on e.code = l.airline
      where e.at > greatest(w.since_p, l.since)
-       and e.at < w.cut          -- ★今日入った分は、次の日の17時に回す
+       and e.at < w.cut          -- ★今日（木曜）入った分は、次の木曜の17時に回す
        -- ★自分が出した分では知らせない（受け取る人の印を作り直して外す）
        and e.h is distinct from (case e.hk
              when 'pay'    then encode(digest(w.id::text || '::pv_pay::' || l.airline, 'sha256'), 'hex')
@@ -532,6 +554,15 @@ select case when not has_table_privilege('authenticated', 'public.pv_follow', 's
              and not has_table_privilege('anon', 'public.pv_follow', 'select')
              and not has_table_privilege('authenticated', 'public.pv_follow_view', 'select')
             then '✅ 表は会員から直接読めない（ほかの人のフォローは見えない）' else '❌ 表が会員から読める' end
+union all
+select case when (select prosrc from pg_proc where oid = 'public.pv_follow_due(integer, timestamptz)'::regprocedure)
+                 like '%extract(isodow from (p_now at time zone t.tz)) = 4%'
+             and (select count(*) from regexp_matches(
+                   (select prosrc from pg_proc where oid = 'public.pv_follow_due(integer, timestamptz)'::regprocedure),
+                   'from public\.pv_admins a', 'g')) = 3
+             and (select pay_from from public.pv_follow_launch) is not null
+            then '✅ 知らせは週に1度（木曜の17時・受け取る人の国）・運営の投稿は数えない・給与はこの版を貼った時刻から'
+            else '❌ 毎日送る古い形か、運営の投稿を数える形が残っている' end
 union all
 select case when not exists (select 1 from pg_extension where extname = 'pg_cron')
             then 'ℹ️ 時計が無い場所（手元の検査）'

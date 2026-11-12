@@ -1,7 +1,9 @@
 /* ════════════════════════════════════════════════════════════════
    PILOT VALUE — 気になる会社のフォロー（2026-11-07）
 
-   オーナー採用：会社ページで会社をフォローすると、新しい給与・口コミ・待遇の回答が入ったときにメールで知らせる。
+   オーナー採用：会社ページで会社をフォローすると、新しい口コミ・待遇・年収の回答が入ったときにメールで知らせる。
+   ★2026-11-12 オーナー決定：知らせは週に1度（木曜の17時・受け取る人の国）・運営の投稿は数えない（db/follow.sql）。
+     説明の日本語はオーナーの字。書き直さない。
    自分の会社（登録の会社）は最初からフォロー済み。1人10社まで。
    決まりは全部サーバー（db/follow.sql の pv_my_follows・pv_follow_set）。ここは押す・見せるだけ。
 
@@ -25,7 +27,7 @@
       tooMany: '10社までです。マイページで外せます。',
       failed: '保存できませんでした。もう一度お試しください。',
       listTitle: 'フォロー中の会社',
-      listLead: '新しい給与・口コミ・待遇の回答が入ると、メールでお知らせします。',
+      listLead: '新しい口コミ・待遇・年収の回答が入ると、メールでお知らせします。',
       own: '所属',
       remove: '外す',
       empty: '会社ページの「＋ フォロー」で追加できます。',
@@ -39,7 +41,7 @@
       tooMany: 'You can follow up to 10 airlines. Remove one on My Page.',
       failed: 'Could not save. Please try again.',
       listTitle: 'Airlines you follow',
-      listLead: 'We email you when new pay, reviews or working conditions are added.',
+      listLead: 'We email you when new reviews, working conditions or pay are added.',
       own: 'Your airline',
       remove: 'Remove',
       empty: 'Add airlines with “+ Follow” on an airline page.',
@@ -52,7 +54,7 @@
       tooMany: 'Puedes seguir hasta 10 aerolíneas. Quita una en Mi página.',
       failed: 'No se pudo guardar. Inténtalo de nuevo.',
       listTitle: 'Aerolíneas que sigues',
-      listLead: 'Te avisamos por correo cuando se agregan remuneraciones, reseñas o condiciones de trabajo nuevas.',
+      listLead: 'Te avisamos por correo cuando se agregan reseñas, condiciones de trabajo o remuneraciones nuevas.',
       own: 'Tu aerolínea',
       remove: 'Quitar',
       empty: 'Agrega aerolíneas con «+ Seguir» en la página de una aerolínea.',

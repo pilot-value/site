@@ -527,9 +527,9 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
      前は md5(人のキー) 順で、並びが中身と何も関係していないのが取り柄だった。
      ゆるめたのは並びだけ。**時刻そのものを返さないこと**と
      **画面から並べ替えられないこと**は下で見張り続ける。 */
-  ok(/order by p\.last_at desc, md5\(p\.pkey\)/.test(FN),
+  ok(/order by p\.first_at desc, md5\(p\.pkey\)/.test(FN),
      '★並びは新しい順（同着でも揺れないよう md5 を第2キーに残している）');
-  ok(!/'last_at'/.test(FN),
+  ok(!/'first_at'/.test(FN),
      '★並べるのに使う時刻は行に入れていない（入れると秒単位の提出時刻が漏れる）');
   ok(!/>=\s*5|having\s+count/.test(FN), '★人数の門が残っていない（全員出す）');
   ok(!/interval\s*'30 days'|30 day/.test(FN), '★30日の遅延が残っていない');
@@ -672,7 +672,7 @@ for (const [name, raw] of [['ja', JA], ['en', EN]]) {
   ok(/count\(\*\) filter \(where cat >= now\(\) - interval '1 month'\)/.test(FN),
      "★直近1ヶ月ぶんを数えている（暦の月に戻っていない）");
   ok(!/date_trunc\('month'/.test(FN), '★暦の月（date_trunc）で数えていない');
-  ok(/max\(cat\) >= now\(\) - interval '1 month'/.test(FN),
+  ok(/min\(cat\) >= now\(\) - interval '1 month'/.test(FN),
      '★表の段3（1ヶ月以内）とカードが同じ境目を使っている');
   /* ★数えるために投稿時刻を読むが、行としては返さない（契約⑥・②）。 */
   ok(!/'created_at'/.test(FN) && !/'cat'/.test(FN),

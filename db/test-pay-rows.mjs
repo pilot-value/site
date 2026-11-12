@@ -645,7 +645,7 @@ console.log('\n▼ 6. ★並びは新しい順（2026-08-25。前は md5 順だ�
 }
 {
   /* ★並びと右端の列が食い違わないこと。
-     新しい順（新しいほうが上）に並び、段はその同じ時刻から決まるので、
+     新しい順（最初に出した日の新しいほうが上）に並び、段はその同じ時刻から決まるので、
      上から下へ段は必ず 0→7 の向きにしか動かない。逆流したら、
      並べるのに使った時刻と段を出した時刻が別物になっている。 */
   const ages = R.map(x => x.age);
@@ -656,7 +656,7 @@ console.log('\n▼ 6. ★並びは新しい順（2026-08-25。前は md5 順だ�
 {
   // 並べるのに使う時刻は返していない（返すと秒単位の提出時刻がそのまま漏れる）
   const t = (await one(`select pv_pay_rows()::text t`)).t;
-  ok(!t.includes('last_at'), '★並べるのに使う時刻（last_at）を行に入れていない');
+  ok(!t.includes('first_at'), '★並べるのに使う時刻（first_at）を行に入れていない');
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1559,7 +1559,7 @@ await sameAsRef('口コミに書かれた給与を足したあと');   // ▼18
 console.log('\n▼ 12-d. ★投稿の時期は8段の粗い区分だけ（2026-11-04 に 3日・7日・14日を足した）');
 // ════════════════════════════════════════════════════════════
 /* 段の境目。3日／7日／14日／1ヶ月／3ヶ月／6ヶ月／1年 の内と外に、余裕を持たせて置く。
-   ★段は「その人のいちばん新しい提出」から決まる。 */
+   ★段は「その人が最初に出した提出」から決まる（2026-11-12 から）。 */
 const AGE_CASES = [[1, 0], [5, 1], [10, 2], [20, 3], [40, 4], [100, 5], [200, 6], [400, 7]];
 for (const [days, want] of AGE_CASES) {
   const u = await review(A_AGE, 'fo', { ann: 1000 + days }, days);
@@ -1574,7 +1574,8 @@ await asViewer();
      '★1/5/10/20/40/100/200/400日前が 0〜7 の段に分かれる', JSON.stringify(got));
 }
 {
-  /* 同じ人が古い月と新しい月を出していたら、新しいほうの段になる。 */
+  /* 同じ人が古い月と新しい月を出していたら、**最初に出したほう**の段になる
+     （2026-11-12。前は新しいほうだった＝出し足すたびに段が戻っていた）。 */
   const u = await person(A_OLD, 'fo', [{ fleet: 'b737', month: 6, gross: 4000 }]);
   await db.query(`update pay_reports set created_at = now() - interval '400 days'
                    where airline = $1 and created_at > now() - interval '1 day'`, [A_OLD]);
@@ -1583,8 +1584,8 @@ await asViewer();
                  period_year: YEAR, period_month: 7, gross_monthly: 4000 });
   await asViewer();
   const row = only((await payRows()).rows, x => x.airline === A_OLD && x.pos === 'fo');
-  ok(row.length === 1 && row[0].age === 0,
-     '★同じ人の古い月と新しい月は1行に畳まれ、段は新しいほうになる', JSON.stringify(row));
+  ok(row.length === 1 && row[0].age === 7,
+     '★同じ人の古い月と新しい月は1行に畳まれ、段は最初に出したほうのまま', JSON.stringify(row));
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1627,9 +1628,9 @@ console.log('\n▼ 12-e. ★段が「その人の本当の投稿日」と1つず
 }
 {
   /* (b) 一覧に出ている行を1つずつ、生の pay_reports から数え直したものと突き合わせる。
-     関数の中の CTE を通らずに、テーブルから直接「人ごとのいちばん新しい提出」を出す。
+     関数の中の CTE を通らずに、テーブルから直接「人ごとの最初の提出」を出す（2026-11-12 から min）。
      ・group by を間違えている（別の人の日付を貼っている）
-     ・max ではなく min を見ている（初回の日付が出ている）
+     ・min ではなく max を見ている（出し足した日付が出ている）
      ・口コミや預かりと取り違えている
      このどれが起きても、ここで金額と段の組が食い違う。
      ★預かり（人の単位が違う）と、打ち込まれた社名の行（12-e(a) の担当）は外す。 */
@@ -1640,13 +1641,13 @@ console.log('\n▼ 12-e. ★段が「その人の本当の投稿日」と1つず
            r."position" as pos,
            public.pv_sig2((percentile_cont(0.5) within group
              (order by r.annual_total_usd))::numeric) as usd,
-           case when max(r.created_at) >= now() - interval '3 days'    then 0
-                when max(r.created_at) >= now() - interval '7 days'    then 1
-                when max(r.created_at) >= now() - interval '14 days'   then 2
-                when max(r.created_at) >= now() - interval '1 month'   then 3
-                when max(r.created_at) >= now() - interval '3 months'  then 4
-                when max(r.created_at) >= now() - interval '6 months'  then 5
-                when max(r.created_at) >= now() - interval '12 months' then 6
+           case when min(r.created_at) >= now() - interval '3 days'    then 0
+                when min(r.created_at) >= now() - interval '7 days'    then 1
+                when min(r.created_at) >= now() - interval '14 days'   then 2
+                when min(r.created_at) >= now() - interval '1 month'   then 3
+                when min(r.created_at) >= now() - interval '3 months'  then 4
+                when min(r.created_at) >= now() - interval '6 months'  then 5
+                when min(r.created_at) >= now() - interval '12 months' then 6
                 else 7 end as age
       from pay_reports r
      where r.annual_total_usd is not null
@@ -1660,7 +1661,7 @@ console.log('\n▼ 12-e. ★段が「その人の本当の投稿日」と1つず
   const A = exp.map(key).sort();
   const B = mine.map(key).sort();
   ok(A.length === B.length && A.join('|') === B.join('|'),
-     `★${B.length}行すべて、段が生のテーブルの「その人の最新の提出」と一致する`,
+     `★${B.length}行すべて、段が生のテーブルの「その人の最初の提出」と一致する`,
      A.join('|') === B.join('|') ? ''
        : `違い: ${A.filter(x => !B.includes(x)).slice(0, 3).join(' , ')}`);
 }
@@ -2827,6 +2828,58 @@ console.log('\n▼ 18. ★鍵の無い人の近道（2026-11-06・答えは1バ�
   }
   await asViewer();
   await db.query(`delete from public.pay_hidden`);
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ ★毎月出しても、行の位置と投稿時期が動かない（2026-11-12）');
+// ════════════════════════════════════════════════════════════
+/* オーナー指摘「更新するたびに REAL PAY も更新されるんじゃ何度も出しづらい」。
+   並べる時刻と段（age）は、その人が**最初に出した日**から決める（min(cat)）。
+   先に出した人 A（50日前）・後から出した人 B（40日前）を作り、A が別の月をもう1件
+   今日出しても、A は B の下のまま・段も同じ・行は増えない・件数だけ +1 になることを見る。 */
+{
+  await person(A_STAT, 'fo', [{ fleet: 'a320', month: 7, gross: 3000 }]);          // A
+  await person(A_STAT, 'fo', [{ fleet: 'a320', month: 8, gross: 4000 }]);          // B
+  const uA = seat - 1;
+  const back = (month, days) => db.query(
+    `update pay_reports set created_at = now() - ($3 || ' days')::interval
+      where airline = $1 and period_month = $2 and fleet = 'a320'`, [A_STAT, month, String(days)]);
+  await back(7, 50); await back(8, 40);
+  const look = async () => {
+    await asViewer();
+    const r = await payRows();
+    const fo = r.rows.filter((x) => x.airline === A_STAT && x.pos === 'fo');
+    return { r, a: fo.findIndex((x) => Number(x.annual_usd) === 36000),
+                b: fo.findIndex((x) => Number(x.annual_usd) === 48000), fo };
+  };
+  const t0 = await look();
+  ok(t0.a >= 0 && t0.b >= 0 && t0.b < t0.a, '　出す前：後から出した B が上・先に出した A が下',
+     JSON.stringify({ a: t0.a, b: t0.b }));
+  const ageA = t0.fo[t0.a].age;
+
+  await asUser(uA);
+  await submit({ ...BASE, airline: A_STAT, position: 'fo', fleet: 'a320',
+                 period_year: YEAR, period_month: 9, gross_monthly: 3000 });
+  const t1 = await look();
+  ok(t1.b < t1.a, '★A が別の月を出しても、A は B の下のまま（先頭へ上がらない）',
+     JSON.stringify({ a: t1.a, b: t1.b }));
+  ok(t1.fo[t1.a].age === ageA, '★A の投稿時期の段も変わらない', `${ageA} → ${t1.fo[t1.a].age}`);
+  ok(t1.r.rows.length === t0.r.rows.length, '　行は増えない');
+  ok(t1.r.stats.reports === t0.r.stats.reports + 1 && t1.r.stats.month === t0.r.stats.month + 1,
+     '★提出の件数には +1 される（毎月の提出を数える）',
+     `${t0.r.stats.reports} → ${t1.r.stats.reports}`);
+
+  // 壊す証明 ── いちばん新しい提出（max）で並べる形に戻すと、A が B の上へ出る。
+  ok(PAYROWS_FN.split('min(cat)').length - 1 === 17, '　（min(cat) は関数の中に17か所＝2つの person と注記1つ）');
+  await db.exec('begin');
+  try {
+    await db.exec(PAYROWS_FN.replaceAll('min(cat)', 'max(cat)'));
+    const t2 = await look();
+    ok(t2.a < t2.b && t2.fo[t2.a].age !== ageA,
+       '★壊す証明：max(cat) に戻すと、出し足した A が上へ出て段も新しくなる',
+       JSON.stringify({ a: t2.a, b: t2.b, age: t2.fo[t2.a].age }));
+  } finally { await db.exec('rollback'); }
+  await asViewer();
 }
 
 // ── まとめ ───────────────────────────────────────────────────
