@@ -26,9 +26,11 @@
   var T = {
     ja: {
       title: '飛んだルート', sub: '{p} · {r}ルート · {n}便', aria: '飛んだルートの地球儀',
-      perAria: '期間', per3: '3か月', per12: '1年', perAll: '全部',
-      p3: '直近3か月', p12: '直近1年', pAll: '直近2年',
-      sumT: 'この期間の稼ぎ（目安）', ringL: '乗務', ringA: '勤務時間のうち乗務の割合 {p}',
+      perAria: '期間', perD: '日', perM: '月', per3: '3か月', per12: '1年', perAll: '全部',
+      p3: '直近3か月', p12: '直近1年', pAll: '直近2年', ymT: '{y}年{n}月',
+      prevD: '前の日', nextD: '次の日', prevM: '前の月', nextM: '次の月',
+      sumT: 'この期間の稼ぎ（目安）', sumD: 'この日の稼ぎ（目安）', sumM: 'この月の稼ぎ（目安）',
+      ringL: 'ブロック', ringA: '勤務時間のうちブロックタイムの割合 {p}',
       legHub: '拠点', legDest: '行き先', legDh: 'DH',
       hint: 'ドラッグで回す・ルートを押す', zin: '拡大', zout: '縮小',
       op: '乗務', dh: 'DH', unk: '区分確認中',
@@ -38,7 +40,7 @@
       no_block: 'この便の時間が分からないため出せません', no_pay: 'この月は額を出せません',
       addPay: '明細を足す',
       listT: '便の一覧', all: 'すべて', allRoutes: '全ルート', more: 'もっと見る', less: '閉じる',
-      monT: '月ごとの稼ぎ（目安）', monS: '便の額の合計',
+      monT: '月ごとの稼ぎ（目安）', monS: '便の額の合計', dayMonT: '日ごとの稼ぎ（目安）', monTip: '押すとその月だけ', dayTip: '押すとその日だけ',
       empty: 'スケジュールを取り込むと、飛んだルートがここに描かれます。',
       none: 'この期間に飛んだ便はありません。',
       err: '地球儀を読み込めませんでした。時間をおいて開き直してください。',
@@ -48,9 +50,11 @@
     },
     en: {
       title: 'Routes flown', sub: '{p} · {r} routes · {n} flights', aria: 'Globe of the routes you flew',
-      perAria: 'Period', per3: '3M', per12: '1Y', perAll: 'All time',
-      p3: 'Last 3 months', p12: 'Last 12 months', pAll: 'Last 24 months',
-      sumT: 'Earnings this period (est.)', ringL: 'Flying', ringA: 'Share of duty time spent flying {p}',
+      perAria: 'Period', perD: '1D', perM: '1M', per3: '3M', per12: '1Y', perAll: 'All time',
+      p3: 'Last 3 months', p12: 'Last 12 months', pAll: 'Last 24 months', ymT: '{M} {y}',
+      prevD: 'Previous day', nextD: 'Next day', prevM: 'Previous month', nextM: 'Next month',
+      sumT: 'Earnings this period (est.)', sumD: 'Earnings this day (est.)', sumM: 'Earnings this month (est.)',
+      ringL: 'Block', ringA: 'Block time as a share of duty time {p}',
       legHub: 'Base', legDest: 'Destination', legDh: 'Deadhead',
       hint: 'Drag to rotate, tap a route', zin: 'Zoom in', zout: 'Zoom out',
       op: 'Operating', dh: 'Deadhead', unk: 'Unclassified',
@@ -60,7 +64,7 @@
       no_block: 'Not shown because this flight has no block time', no_pay: 'Not shown for this month',
       addPay: 'Add payslip',
       listT: 'Flights', all: 'All flights', allRoutes: 'All routes', more: 'Show more', less: 'Show less',
-      monT: 'Earnings by month (est.)', monS: 'Sum of flights',
+      monT: 'Earnings by month (est.)', monS: 'Sum of flights', dayMonT: 'Earnings by day (est.)', monTip: 'Tap to see only that month', dayTip: 'Tap to see only that day',
       empty: 'Import your roster and every route you fly will be drawn here.',
       none: 'No flights in this period.',
       err: 'Could not load the globe. Please try again in a moment.',
@@ -69,9 +73,11 @@
       mon: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     }, /*PV-MSG:es*/ es: {
       title: 'Rutas voladas', sub: '{p} · {r} rutas · {n} vuelos', aria: 'Globo con las rutas que volaste',
-      perAria: 'Período', per3: '3M', per12: '1Y', perAll: 'Todo',
-      p3: 'Últimos 3 meses', p12: 'Últimos 12 meses', pAll: 'Últimos 24 meses',
-      sumT: 'Ingresos del período (est.)', ringL: 'Vuelo', ringA: 'Parte del tiempo de servicio en vuelo {p}',
+      perAria: 'Período', perD: '1D', perM: '1M', per3: '3M', per12: '1Y', perAll: 'Todo',
+      p3: 'Últimos 3 meses', p12: 'Últimos 12 meses', pAll: 'Últimos 24 meses', ymT: '{M} {y}',
+      prevD: 'Día anterior', nextD: 'Día siguiente', prevM: 'Mes anterior', nextM: 'Mes siguiente',
+      sumT: 'Ingresos del período (est.)', sumD: 'Ingresos del día (est.)', sumM: 'Ingresos del mes (est.)',
+      ringL: 'Horas block', ringA: 'Tiempo de bloque sobre el tiempo de servicio {p}',
       legHub: 'Base', legDest: 'Destino', legDh: 'Deadhead',
       hint: 'Arrastra para girar y toca una ruta', zin: 'Acercar', zout: 'Alejar',
       op: 'Operando', dh: 'Deadhead', unk: 'Sin clasificar',
@@ -81,7 +87,7 @@
       no_block: 'No se muestra porque este vuelo no tiene tiempo de bloque', no_pay: 'No se muestra en este mes',
       addPay: 'Agregar recibo',
       listT: 'Vuelos', all: 'Todos', allRoutes: 'Todas las rutas', more: 'Ver más', less: 'Ver menos',
-      monT: 'Ingresos por mes (est.)', monS: 'Suma de los vuelos',
+      monT: 'Ingresos por mes (est.)', monS: 'Suma de los vuelos', dayMonT: 'Ingresos por día (est.)', monTip: 'Toca para ver solo ese mes', dayTip: 'Toca para ver solo ese día',
       empty: 'Importa tu programación y aquí se dibujará cada ruta que vueles.',
       none: 'No hay vuelos en este período.',
       err: 'No se pudo cargar el globo. Inténtalo de nuevo en un momento.',
@@ -112,6 +118,7 @@
   function dayL(date) { var n = +date.slice(5, 7); return fill(T.dayT, { n: n, M: T.mon[n - 1], d: +date.slice(8, 10), w: T.wd[wdOf(date)] }); }
   function dayS(date) { var n = +date.slice(5, 7); return fill(T.dayS, { n: n, M: T.mon[n - 1], d: +date.slice(8, 10) }); }
   function ymS(ym) { var n = +ym.slice(5, 7); return fill(T.ymS, { n: n, M: T.mon[n - 1] }); }
+  function ymL(ym) { var n = +ym.slice(5, 7); return fill(T.ymT, { y: +ym.slice(0, 4), n: n, M: T.mon[n - 1] }); }
   function reduced() { try { return w.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } }
   function stored(k) { try { return w.localStorage.getItem(k); } catch (e) { return null; } }
   function store(k, v) { try { w.localStorage.setItem(k, v); } catch (e) {} }
@@ -141,7 +148,8 @@
   var PKEY = 'pv-globe-per';
   var S = {
     el: null, ctx: null, sb: null, model: null, fp: null, legs: [], days: [], err: false, loading: true,
-    per: (function () { var v = stored(PKEY); return v === '3' || v === '12' || v === 'all' ? v : '12'; }()),
+    per: (function () { var v = stored(PKEY); return /^(d|m|3|12|all)$/.test(v || '') ? v : '12'; }()),
+    day: null, ym: null,
     filt: 'all', route: null, leg: null, listN: 8, visible: false
   };
 
@@ -188,8 +196,28 @@
 
   /* ── 期間で絞る・ルートに束ねる ────────────────────────────── */
   function cutoff() { var t = today(); return S.per === '3' ? addMonths(t, -3) : S.per === '12' ? addMonths(t, -12) : addMonths(t, -24); }
+  /* 日・月で見るとき：飛んだ日・飛んだ月だけを順に送る（便の無い日・月は飛ばす）。最初はいちばん新しい日・月 */
+  function flownDays() { var o = {}; S.legs.forEach(function (l) { o[l.date] = 1; }); return Object.keys(o).sort(); }
+  function flownYms() { var o = {}; S.legs.forEach(function (l) { o[l.date.slice(0, 7)] = 1; }); return Object.keys(o).sort(); }
+  function anchor() {
+    var ds = flownDays(), ys = flownYms();
+    if (!S.day || ds.indexOf(S.day) < 0) S.day = ds[ds.length - 1] || null;
+    if (!S.ym || ys.indexOf(S.ym) < 0) S.ym = ys[ys.length - 1] || null;
+  }
+  function inRange(date) {
+    if (S.per === 'd') return date === S.day;
+    if (S.per === 'm') return date.slice(0, 7) === S.ym;
+    return date > cutoff() && date <= today();
+  }
+  function step(dir) {
+    var list = S.per === 'd' ? flownDays() : flownYms(), cur = S.per === 'd' ? S.day : S.ym, i = list.indexOf(cur) + dir;
+    if (i < 0 || i >= list.length) return;
+    if (S.per === 'd') S.day = list[i]; else S.ym = list[i];
+    S.leg = null; S.route = null; S.listN = 8; render(); G.focusRoute();
+  }
   function view() {
-    var c = cutoff(), legs = S.legs.filter(function (l) { return l.date > c; });
+    anchor();
+    var legs = S.legs.filter(function (l) { return inRange(l.date); });
     var routes = {}, port = {}, order = [];
     legs.forEach(function (l) {
       var a = l.ga.iata, b = l.gb.iata, k = a < b ? a + '|' + b : b + '|' + a;
@@ -200,20 +228,19 @@
       port[a] = (port[a] || 0) + 1; port[b] = (port[b] || 0) + 1;
     });
     var hub = Object.keys(port).sort(function (p, q) { return port[q] - port[p] || (p < q ? -1 : 1); })[0] || null;
-    /* 勤務時間のうち乗務の割合（区間のある日の勤務 ÷ 勤務ぜんぶ）・期間の稼ぎの合計 */
+    /* 勤務時間のうちブロックタイムの割合（乗務の便のブロックタイム ÷ 勤務時間ぜんぶ）。1日でも1年でも同じ式・期間の稼ぎの合計 */
     var t = today(), fly = 0, all = 0, total = 0, cur = null;
     (S.model && S.model.roster ? S.model.roster.months : []).forEach(function (rm) {
       rm.days.forEach(function (x) {
-        if (!x.isDuty || x.date <= c || x.date > t) return;
+        if (!x.isDuty || x.date > t || !inRange(x.date)) return;
         var v = x.dutyMin != null ? x.dutyMin : ((x.blockKnown.operating || 0) + (x.blockKnown.deadhead || 0) + (x.blockKnown.unknown || 0)) || null;
-        if (v == null) return;
-        all += v;
-        if (x.legs.some(function (L0) { return L0.from && L0.to && L0.kind !== 'ground'; })) fly += v;
+        if (v != null) all += v;
       });
     });
+    legs.forEach(function (l) { if (l.kind !== 'deadhead' && l.blockMin != null) fly += l.blockMin; });
     legs.forEach(function (l) { if (l.amount == null) return; if (cur == null) cur = l.currency; if (cur === l.currency) total += l.amount; });
     var top = order.filter(function (r) { return r.cur === cur && r.sum > 0; }).sort(function (p, q) { return q.sum - p.sum; }).slice(0, 3);
-    return { legs: legs, routes: order, hub: hub, ring: all > 0 ? fly / all : null, total: cur == null ? null : total, cur: cur, top: top };
+    return { legs: legs, routes: order, hub: hub, ring: all > 0 ? Math.min(1, fly / all) : null, total: cur == null ? null : total, cur: cur, top: top };
   }
 
   /* ── 描く（字）──────────────────────────────────────────── */
@@ -235,9 +262,11 @@
             '<div class="gl-msg" hidden></div></div>' +
           '<div class="gl-top"><div class="gl-hd"><h3 class="gl-t">' + esc(T.title) + '</h3><p class="gl-s"></p></div>' +
             '<div class="gl-per" role="group" aria-label="' + esc(T.perAria) + '">' +
-              [['3', T.per3], ['12', T.per12], ['all', T.perAll]].map(function (p) {
+              [['d', T.perD], ['m', T.perM], ['3', T.per3], ['12', T.per12], ['all', T.perAll]].map(function (p) {
                 return '<button type="button" class="gl-pb" data-per="' + p[0] + '" aria-pressed="false">' + esc(p[1]) + '</button>';
-              }).join('') + '</div></div>' +
+              }).join('') + '</div>' +
+            '<div class="gl-step" hidden><button type="button" class="gl-sb" data-step="-1">‹</button><span class="gl-sl"></span>' +
+              '<button type="button" class="gl-sb" data-step="1">›</button></div></div>' +
           '<div class="gl-ov gl-sum" hidden></div>' +
           '<div class="gl-ov gl-flt" hidden></div>' +
           '<div class="gl-foot"><span class="gl-hint">' + IC_HAND + esc(T.hint) + '</span>' +
@@ -263,6 +292,18 @@
     var sum = S.root.querySelector('.gl-sum'), flt = S.root.querySelector('.gl-flt');
     var list = S.root.querySelector('.gl-list'), mon = S.root.querySelector('.gl-mon');
     var perL = S.per === '3' ? T.p3 : S.per === '12' ? T.p12 : T.pAll;
+    if (V && S.per === 'd' && S.day) perL = dayL(S.day);
+    if (V && S.per === 'm' && S.ym) perL = ymL(S.ym);
+    /* 日・月の送り：端では押せない */
+    var stepEl = S.root.querySelector('.gl-step'), dm = !!V && (S.per === 'd' || S.per === 'm') && S.legs.length > 0;
+    stepEl.hidden = !dm;
+    if (dm) {
+      var seq = S.per === 'd' ? flownDays() : flownYms(), at = seq.indexOf(S.per === 'd' ? S.day : S.ym);   // ★名前を list にしない（上の便の一覧の箱と同じ var になる）
+      var bs = stepEl.querySelectorAll('.gl-sb');
+      bs[0].disabled = at <= 0; bs[1].disabled = at < 0 || at >= seq.length - 1;
+      bs[0].setAttribute('aria-label', S.per === 'd' ? T.prevD : T.prevM); bs[1].setAttribute('aria-label', S.per === 'd' ? T.nextD : T.nextM);
+      stepEl.querySelector('.gl-sl').textContent = perL;
+    }
     if (!V) {
       sub.textContent = S.err ? '' : perL;
       msg.hidden = !S.err; msg.textContent = S.err ? T.err : '';
@@ -290,16 +331,16 @@
   function routeKey(l) { var a = l.ga.iata, b = l.gb.iata; return a < b ? a + '|' + b : b + '|' + a; }
   function sumHTML(V) {
     var p = V.ring == null ? null : Math.round(V.ring * 1000) / 10;
-    var C = 2 * Math.PI * 30, off = p == null ? C : C * (1 - p / 100);
+    var C = 2 * Math.PI * 34, off = p == null ? C : C * (1 - p / 100);
     var max = V.top.length ? V.top[0].sum : 0;
-    return '<div class="gl-sum-h"><span class="gl-ov-t">' + esc(T.sumT) + '</span>' +
+    return '<div class="gl-sum-h"><span class="gl-ov-t">' + esc(S.per === 'd' ? T.sumD : S.per === 'm' ? T.sumM : T.sumT) + '</span>' +
         '<span class="gl-chip">' + esc(V.total == null ? '—' : money(V.total, V.cur)) + '</span></div>' +
       '<div class="gl-sum-b">' +
         '<div class="gl-ring" role="img" aria-label="' + esc(fill(T.ringA, { p: p == null ? '—' : p + '%' })) + '">' +
-          '<svg viewBox="0 0 76 76" width="76" height="76" aria-hidden="true"><defs><linearGradient id="glRg" x1="0" y1="1" x2="1" y2="0">' +
-          '<stop offset="0" stop-color="#7fe0c6"/><stop offset="1" stop-color="#f2c35b"/></linearGradient></defs>' +
-          '<circle cx="38" cy="38" r="30" class="gl-ring-tr"/>' +
-          '<circle cx="38" cy="38" r="30" class="gl-ring-v" stroke="url(#glRg)" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + off.toFixed(1) + '" transform="rotate(-90 38 38)"/></svg>' +
+          '<svg viewBox="0 0 84 84" width="84" height="84" aria-hidden="true"><defs><linearGradient id="glRg" x1="0" y1="1" x2="1" y2="0">' +
+          '<stop offset="0" stop-color="#9ff0da"/><stop offset=".55" stop-color="#d9f2a8"/><stop offset="1" stop-color="#f5c35a"/></linearGradient></defs>' +
+          '<circle cx="42" cy="42" r="34" class="gl-ring-tr"/>' +
+          '<circle cx="42" cy="42" r="34" class="gl-ring-v" stroke="url(#glRg)" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + off.toFixed(1) + '" transform="rotate(-90 42 42)"/></svg>' +
           '<span class="gl-ring-n">' + (p == null ? '—' : p.toFixed(1) + '%') + '<small>' + esc(T.ringL) + '</small></span></div>' +
         '<div class="gl-bars">' + V.top.map(function (r, i) {
           return '<button type="button" class="gl-bar' + (r.k === S.route ? ' on' : '') + '" data-route="' + esc(r.k) + '">' +
@@ -350,6 +391,7 @@
       (shown.length > 8 ? '<button type="button" class="gl-more" data-more="1">' + esc(S.listN < shown.length ? T.more : T.less) + '</button>' : '');
   }
   function monHTML(V, leg) {
+    if (S.per === 'd' || S.per === 'm') return dayBarsHTML(leg);
     var by = {}, yms = [];
     V.legs.forEach(function (l) {
       if (!by[l.ym]) { by[l.ym] = { sum: 0, n: 0, known: 0, cur: null }; yms.push(l.ym); }
@@ -364,9 +406,32 @@
       '<div class="gl-mb" style="--n:' + yms.length + '">' + yms.map(function (ym) {
         var m = by[ym], h = m.known && max > 0 ? m.sum / max : 0;
         var tip = ymS(ym) + ' · ' + (m.known ? money(m.sum, m.cur) : '—');
-        return '<span class="gl-mb-c' + (ym === selYm ? ' on' : '') + (m.known ? '' : ' is-none') + '" title="' + esc(tip) + '">' +
-          '<i style="transform:scaleY(' + Math.max(m.known ? 0.04 : 0, h).toFixed(3) + ')"></i><small>' + esc(String(+ym.slice(5, 7))) + '</small></span>';
+        return '<button type="button" class="gl-mb-c' + (ym === selYm ? ' on' : '') + (m.known ? '' : ' is-none') + '" data-goym="' + ym + '" title="' + esc(tip + ' · ' + T.monTip) + '" aria-label="' + esc(tip) + '">' +
+          '<i style="transform:scaleY(' + Math.max(m.known ? 0.04 : 0, h).toFixed(3) + ')"></i><small>' + esc(String(+ym.slice(5, 7))) + '</small></button>';
       }).join('') + '</div>';
+  }
+  function dayBarsHTML(leg) {
+    var ym = S.per === 'd' ? (S.day || '').slice(0, 7) : S.ym;
+    if (!ym) return '';
+    var n = new Date(Date.UTC(+ym.slice(0, 4), +ym.slice(5, 7), 0)).getUTCDate(), by = {}, tot = 0, cur = null, max = 0;
+    S.legs.forEach(function (l) {
+      if (l.date.slice(0, 7) !== ym) return;
+      var b = by[l.date] || (by[l.date] = { sum: 0, known: 0, n: 0 });
+      b.n++;
+      if (l.amount != null && (cur == null || cur === l.currency)) { cur = l.currency; b.sum += l.amount; b.known++; tot += l.amount; }
+    });
+    Object.keys(by).forEach(function (k) { if (by[k].known) max = Math.max(max, by[k].sum); });
+    var sel = S.per === 'd' ? S.day : (leg ? leg.date : null), cells = [];
+    for (var i = 1; i <= n; i++) {
+      var dt = ym + '-' + pad2(i), b = by[dt];
+      if (!b) { cells.push('<span class="gl-mb-c is-off"><i></i><small>' + (i % 5 === 1 || i === n ? i : '') + '</small></span>'); continue; }
+      var h = b.known && max > 0 ? b.sum / max : 0, tip = dayS(dt) + ' · ' + (b.known ? money(b.sum, cur) : '—');
+      cells.push('<button type="button" class="gl-mb-c' + (dt === sel ? ' on' : '') + (b.known ? '' : ' is-none') + '" data-goday="' + dt + '" title="' + esc(tip + ' · ' + T.dayTip) + '" aria-label="' + esc(tip) + '">' +
+        '<i style="transform:scaleY(' + Math.max(b.known ? 0.04 : 0, h).toFixed(3) + ')"></i><small>' + (i % 5 === 1 || i === n || dt === sel ? i : '') + '</small></button>');
+    }
+    return '<div class="gl-card-h"><div><h4 class="gl-card-t">' + esc(T.dayMonT) + '</h4><p class="gl-card-s">' + esc(ymL(ym)) + '</p></div>' +
+        (cur != null ? '<span class="gl-card-big">' + esc(money(tot, cur)) + '<small>' + esc(ymS(ym)) + '</small></span>' : '') + '</div>' +
+      '<div class="gl-mb is-days" style="--n:' + n + '">' + cells.join('') + '</div>';
   }
 
   /* ── 押す ───────────────────────────────────────────────── */
@@ -374,6 +439,9 @@
     var t = e.target.closest ? e.target.closest('button,a') : null;
     if (!t || !S.root.contains(t)) return;
     if (t.hasAttribute('data-per')) { S.per = t.getAttribute('data-per'); store(PKEY, S.per); S.listN = 8; S.leg = null; S.route = null; render(); G.focusRoute(true); return; }
+    if (t.hasAttribute('data-step')) { step(+t.getAttribute('data-step')); return; }
+    if (t.hasAttribute('data-goym')) { S.per = 'm'; S.ym = t.getAttribute('data-goym'); S.leg = null; S.route = null; S.listN = 8; render(); G.focusRoute(); return; }
+    if (t.hasAttribute('data-goday')) { S.per = 'd'; S.day = t.getAttribute('data-goday'); S.leg = null; S.route = null; S.listN = 8; render(); G.focusRoute(); return; }
     if (t.hasAttribute('data-route')) { pickRoute(t.getAttribute('data-route') || null); return; }
     if (t.hasAttribute('data-leg')) { S.leg = t.getAttribute('data-leg'); var l = S.V.legs.filter(function (x) { return x.id === S.leg; })[0]; if (l) S.route = routeKey(l); render(); G.focusRoute(); return; }
     if (t.hasAttribute('data-filt')) { S.filt = t.getAttribute('data-filt'); S.listN = 8; render(); return; }
@@ -406,13 +474,14 @@
     }
     function geom() {
       var narrow = W < 560;
-      var cx = narrow ? W / 2 : W * 0.6, cy = narrow ? H * 0.52 : H * 0.53;
-      var r0 = narrow ? Math.min(W, H) * 0.4 : Math.min(H * 0.43, W * 0.36);
+      var cx = narrow ? W / 2 : W * 0.6, cy = narrow ? H * 0.5 : H * 0.53;
+      var r0 = narrow ? Math.min(W * 0.44, H * 0.46) : Math.min(H * 0.49, W * 0.37);
       return { cx: cx, cy: cy, R: r0 * k };
     }
     function init(canvas, host) {
       cv = canvas; box = host; cx2 = cv.getContext('2d');
-      PLANE = typeof Path2D === 'function' ? new Path2D('M7 0 L-5 -4.6 L-2.6 0 L-5 4.6 Z') : null;
+      /* 上から見た飛行機（機首が右）：胴・主翼・尾翼 */
+      PLANE = typeof Path2D === 'function' ? new Path2D('M7 0 C7 -.8 5.6 -1 4.6 -1 L1.6 -1 L-1.6 -6 L-3 -6 L-1.4 -1 L-4.6 -1 L-5.8 -3 L-6.8 -3 L-6 0 L-6.8 3 L-5.8 3 L-4.6 1 L-1.4 1 L-3 6 L-1.6 6 L1.6 1 L4.6 1 C5.6 1 7 .8 7 0 Z') : null;
       var L0 = w.PV_GLOBE_LAND(), n = L0.length / 2;
       land = new Float32Array(n * 3);
       for (var i = 0; i < n; i++) { var v = vec(L0[i * 2], L0[i * 2 + 1]); land[i * 3] = v[0]; land[i * 3 + 1] = v[1]; land[i * 3 + 2] = v[2]; }
@@ -438,7 +507,7 @@
     function arcOf(a, b) {
       var A = vec(a.lat, a.lon), B = vec(b.lat, b.lon);
       var dot = Math.max(-1, Math.min(1, A[0] * B[0] + A[1] * B[1] + A[2] * B[2])), om = Math.acos(dot);
-      var n = Math.max(16, Math.min(96, Math.ceil(om * 48))), out = [], hmax = Math.min(0.32, 0.04 + om * 0.16);
+      var n = Math.max(16, Math.min(96, Math.ceil(om * 48))), out = [], hmax = Math.min(0.14, 0.012 + om * 0.06);
       for (var i = 0; i <= n; i++) {
         var t = i / n, s1 = om > 1e-6 ? Math.sin((1 - t) * om) / Math.sin(om) : 1 - t, s2 = om > 1e-6 ? Math.sin(t * om) / Math.sin(om) : t;
         var h = 1 + hmax * Math.sin(Math.PI * t);
@@ -452,10 +521,12 @@
       if (V) {
         var seenP = {};
         V.routes.forEach(function (r, i) {
-          arcs.push({ k: r.k, n: r.n, dh: r.dh === r.n, pts: arcOf(r.a, r.b), off: (i * 0.37) % 1, scr: [] });
+          arcs.push({ k: r.k, n: r.n, dh: r.dh === r.n, pts: arcOf(r.a, r.b), off: (i * 0.37) % 1, scr: [], fly: false });
           [r.a, r.b].forEach(function (g) { if (!seenP[g.iata]) { seenP[g.iata] = 1; ports.push({ g: g, v: vec(g.lat, g.lon) }); } });
         });
         hub = V.hub;
+        /* 飛行機を飛ばすのは、よく飛んだ5ルートと選んだルートだけ（全部に飛ばすと騒がしい） */
+        arcs.slice().sort(function (p, q) { return q.n - p.n; }).slice(0, 5).forEach(function (a) { a.fly = true; });
         if (!seen && V.legs.length) { seen = true; center(true); }
       }
       kick(); draw();
@@ -508,48 +579,35 @@
       var g = geom(), cx = g.cx, cy = g.cy, R = g.R, c = cx2, tmp = [0, 0, 0];
       c.setTransform(dpr, 0, 0, dpr, 0, 0);
       c.clearRect(0, 0, W, H);
-      /* 外の光 */
-      var halo = c.createRadialGradient(cx, cy, R * 0.92, cx, cy, R * 1.28);
-      halo.addColorStop(0, 'rgba(150,255,226,.16)'); halo.addColorStop(1, 'rgba(150,255,226,0)');
-      c.fillStyle = halo; c.beginPath(); c.arc(cx, cy, R * 1.28, 0, Math.PI * 2); c.fill();
-      /* 球 */
-      var body = c.createRadialGradient(cx - R * 0.35, cy - R * 0.42, R * 0.05, cx, cy, R * 1.05);
-      body.addColorStop(0, 'rgba(140,240,210,.26)'); body.addColorStop(0.55, 'rgba(40,150,128,.14)'); body.addColorStop(1, 'rgba(2,30,26,.38)');
+      /* 外の光（大気）：縁のすぐ外だけ、白っぽい緑がふわっと */
+      var halo = c.createRadialGradient(cx, cy, R * 0.96, cx, cy, R * 1.16);
+      halo.addColorStop(0, 'rgba(200,255,240,.20)'); halo.addColorStop(1, 'rgba(200,255,240,0)');
+      c.fillStyle = halo; c.beginPath(); c.arc(cx, cy, R * 1.16, 0, Math.PI * 2); c.fill();
+      /* 球：ガラス玉のように、左上が少し明るく・右下が少し沈む（色は面の緑のまま） */
+      var body = c.createRadialGradient(cx - R * 0.4, cy - R * 0.45, R * 0.05, cx, cy, R);
+      body.addColorStop(0, 'rgba(255,255,255,.10)'); body.addColorStop(0.6, 'rgba(255,255,255,.03)'); body.addColorStop(1, 'rgba(0,40,36,.22)');
       c.fillStyle = body; c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.fill();
-      /* 経緯線（うすく） */
-      c.lineWidth = 1; c.strokeStyle = 'rgba(255,255,255,.06)';
-      for (var lo = -180; lo < 180; lo += 30) line(function (t) { return vec(-80 + 160 * t, lo); });
-      for (var la = -60; la <= 60; la += 30) line(function (t) { return vec(la, -180 + 360 * t); });
-      function line(f) {
-        c.beginPath(); var on = false;
-        for (var i = 0; i <= 72; i++) {
-          var p = rot(f(i / 72), tmp);
-          if (p[2] < 0) { on = false; continue; }
-          var x = cx + R * p[0], y = cy - R * p[1];
-          if (on) c.lineTo(x, y); else c.moveTo(x, y);
-          on = true;
-        }
-        c.stroke();
-      }
-      /* 陸の点：手前ほど大きく・明るく（明るさの段ごとにまとめて塗る） */
-      var n = land.length / 3, step = Math.max(1.1, R * 0.0068), buckets = [[], [], [], [], []];
+      /* 陸の点：丸い点を同じ間隔で（見本と同じ）。縁へ行くほど少し小さく・薄く */
+      var n = land.length / 3, rad = Math.max(0.8, R * 0.0058), buckets = [[], [], [], []];
       var cl = Math.cos(lam), sl = Math.sin(lam), cp = Math.cos(phi), sp = Math.sin(phi);
       for (var i = 0; i < n; i++) {
         var x0 = land[i * 3], y0 = land[i * 3 + 1], z0 = land[i * 3 + 2];
         var x1 = x0 * cl - z0 * sl, z1 = x0 * sl + z0 * cl, y2 = y0 * cp - z1 * sp, z2 = y0 * sp + z1 * cp;
         if (z2 <= 0.02) continue;
-        buckets[Math.min(4, Math.floor(z2 * 5))].push(cx + R * x1, cy - R * y2, z2);
+        buckets[Math.min(3, Math.floor(z2 * 4))].push(cx + R * x1, cy - R * y2, z2);
       }
-      for (var bI = 0; bI < 5; bI++) {
+      for (var bI = 0; bI < 4; bI++) {
         var B = buckets[bI];
-        c.fillStyle = 'rgba(214,255,243,' + (0.22 + bI * 0.17).toFixed(2) + ')';
-        for (var j = 0; j < B.length; j += 3) { var s = step * (0.62 + 0.5 * B[j + 2]); c.fillRect(B[j] - s / 2, B[j + 1] - s / 2, s, s); }
+        c.fillStyle = 'rgba(232,255,249,' + [0.34, 0.6, 0.8, 0.92][bI] + ')';
+        c.beginPath();
+        for (var j = 0; j < B.length; j += 3) { var s = rad * (0.62 + 0.38 * B[j + 2]); c.moveTo(B[j] + s, B[j + 1]); c.arc(B[j], B[j + 1], s, 0, Math.PI * 2); }
+        c.fill();
       }
-      /* 縁の光 */
-      c.lineWidth = 1.2; c.strokeStyle = 'rgba(200,255,240,.32)'; c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.stroke();
-      var rim = c.createRadialGradient(cx, cy, R * 0.8, cx, cy, R);
-      rim.addColorStop(0, 'rgba(180,255,235,0)'); rim.addColorStop(1, 'rgba(180,255,235,.12)');
+      /* 縁：内側にうすい光の帯 ＋ 細い明るい線（ガラスの縁） */
+      var rim = c.createRadialGradient(cx, cy, R * 0.84, cx, cy, R);
+      rim.addColorStop(0, 'rgba(210,255,244,0)'); rim.addColorStop(1, 'rgba(210,255,244,.16)');
       c.fillStyle = rim; c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.fill();
+      c.lineWidth = 1.3; c.strokeStyle = 'rgba(230,255,248,.55)'; c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.stroke();
 
       /* 弧：裏側（球に隠れる所）は描かない。選んだルートは最後に金色で */
       var t = now / 1000, sel = null;
@@ -558,51 +616,71 @@
         var vis = [];
         a.pts.forEach(function (v) {
           var p = rot(v, [0, 0, 0]), r2 = p[0] * p[0] + p[1] * p[1];
-          var shown = p[2] > 0 || r2 > 1.0005;
+          var shown = p[2] > 0 || (r2 > 1.0005 && p[2] > -0.22);   // 裏へ回った弧は、縁から少し浮いた所までだけ（縁に沿って長く伸びない）
           vis.push(shown ? [cx + R * p[0], cy - R * p[1]] : null);
         });
         a.scr = vis;
         if (a.k === selRoute) { sel = a; return; }
-        stroke(a, 'rgba(255,255,255,' + (a.dh ? '.42' : '.62') + ')', Math.min(2.4, 1 + Math.log(a.n) * 0.35), a.dh);
+        stroke(a, 'rgba(255,255,255,' + (a.dh ? '.38' : '.55') + ')', a.n >= 6 ? 1.35 : 1.05, a.dh);
       });
       if (sel) {
-        c.save(); c.shadowColor = 'rgba(242,184,75,.7)'; c.shadowBlur = 10;
-        stroke(sel, '#f2b84b', 2.4, false); c.restore();
+        c.save(); c.shadowColor = 'rgba(245,190,80,.85)'; c.shadowBlur = 14;
+        var g0 = sel.scr.filter(Boolean), gr = g0.length > 1 ? c.createLinearGradient(g0[0][0], g0[0][1], g0[g0.length - 1][0], g0[g0.length - 1][1]) : null;
+        if (gr) { gr.addColorStop(0, '#fff3cf'); gr.addColorStop(1, '#f2b84b'); }
+        stroke(sel, gr || '#f2b84b', 2.6, false); c.restore();
       }
       function stroke(a, col, lw, dash) {
-        c.strokeStyle = col; c.lineWidth = lw; c.setLineDash(dash ? [3, 4] : []);
+        c.strokeStyle = col; c.lineWidth = lw; c.lineCap = 'round'; c.setLineDash(dash ? [2.5, 4] : []);
         c.beginPath(); var on = false;
         a.scr.forEach(function (p) { if (!p) { on = false; return; } if (on) c.lineTo(p[0], p[1]); else c.moveTo(p[0], p[1]); on = true; });
         c.stroke(); c.setLineDash([]);
       }
       /* 飛んでいる飛行機（ルートごとに1機）。動きを減らす設定では止めて、弧の真ん中に置く */
       arcs.forEach(function (a) {
+        var isSel = a.k === selRoute;
+        if (!a.fly && !isSel) return;
         var per = 5 + a.pts.length * 0.09, u = RM ? 0.5 : ((t / per + a.off) % 1);
         var pos = at(a, u);
         if (!pos) return;
-        plane(pos, a.k === selRoute ? '#f2b84b' : 'rgba(255,255,255,.92)', a.k === selRoute ? 1.15 : 0.9);
-        if (a.k === selRoute) sel.planeAt = pos;
+        plane(pos, isSel ? '#f5c35a' : 'rgba(255,255,255,.9)', isSel ? 1.05 : 0.78);
+        if (isSel) sel.planeAt = pos;
       });
-      /* 空港 */
-      c.font = '600 10px Inter, "Noto Sans JP", system-ui, sans-serif'; c.textBaseline = 'middle';
+      /* 空港：拠点は白い点・行き先は白い輪。名前は重なるものを省く（拠点と選んだルートが先） */
+      var FONT = '"Outfit", "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif';
+      c.font = '500 10.5px ' + FONT; c.textBaseline = 'middle';
+      var placed = [], list = [];
       ports.forEach(function (p) {
         var q = rot(p.v, [0, 0, 0]);
         if (q[2] <= 0.03) return;
-        var x = cx + R * q[0], y = cy - R * q[1], isHub = p.g.iata === hub;
-        var onSel = selRoute && selRoute.split('|').indexOf(p.g.iata) >= 0;
-        c.lineWidth = 1.4;
-        if (isHub) { c.fillStyle = '#ffffff'; c.beginPath(); c.arc(x, y, 3.6, 0, Math.PI * 2); c.fill(); }
-        else { c.strokeStyle = onSel ? '#f2b84b' : 'rgba(255,255,255,.9)'; c.fillStyle = 'rgba(6,60,52,.85)'; c.beginPath(); c.arc(x, y, 3, 0, Math.PI * 2); c.fill(); c.stroke(); }
-        c.fillStyle = onSel ? '#ffe2a6' : 'rgba(255,255,255,.82)';
-        c.fillText(p.g.iata, x + 6, y + 0.5);
+        var onSel = !!(selRoute && selRoute.split('|').indexOf(p.g.iata) >= 0), isHub = p.g.iata === hub;
+        list.push({ p: p, x: cx + R * q[0], y: cy - R * q[1], hub: isHub, sel: onSel, pr: isHub ? 0 : onSel ? 1 : 2 });
+      });
+      list.sort(function (a, b) { return a.pr - b.pr; });
+      list.forEach(function (o) {
+        c.lineWidth = 1.3;
+        if (o.hub) {
+          c.save(); c.shadowColor = 'rgba(255,255,255,.8)'; c.shadowBlur = 8;
+          c.fillStyle = '#ffffff'; c.beginPath(); c.arc(o.x, o.y, 3.8, 0, Math.PI * 2); c.fill(); c.restore();
+        } else {
+          c.strokeStyle = o.sel ? '#f5c35a' : 'rgba(255,255,255,.85)'; c.fillStyle = 'rgba(14,74,68,.9)';
+          c.beginPath(); c.arc(o.x, o.y, 3.1, 0, Math.PI * 2); c.fill(); c.stroke();
+        }
+        var tw = c.measureText(o.p.g.iata).width, box = [o.x + 7, o.y - 7, o.x + 9 + tw, o.y + 7];
+        if (o.pr === 2 && placed.some(function (b) { return box[0] < b[2] && box[2] > b[0] && box[1] < b[3] && box[3] > b[1]; })) return;
+        placed.push(box);
+        c.fillStyle = o.sel ? '#ffe7b0' : o.hub ? '#ffffff' : 'rgba(255,255,255,.78)';
+        c.font = (o.hub || o.sel ? '600 ' : '500 ') + '10.5px ' + FONT;
+        c.fillText(o.p.g.iata, o.x + 7, o.y + 0.5);
       });
       /* 選んだ便の札（額。出ない便は区間） */
       if (sel && sel.planeAt && selLeg) {
         var label = selLeg.amount != null ? money(selLeg.amount, selLeg.currency) : selLeg.ga.iata + '–' + selLeg.gb.iata;
-        c.font = '700 10.5px Inter, "Noto Sans JP", system-ui, sans-serif';
-        var tw = c.measureText(label).width + 16, px = sel.planeAt.x - tw / 2, py = sel.planeAt.y - 26;
-        c.fillStyle = 'rgba(255,255,255,.95)'; rr(px, py, tw, 18, 9); c.fill();
-        c.fillStyle = '#0b3d36'; c.textAlign = 'center'; c.fillText(label, sel.planeAt.x, py + 9.5); c.textAlign = 'left';
+        c.font = '600 11px ' + FONT;
+        var tw = c.measureText(label).width + 18, px = sel.planeAt.x - tw / 2, py = sel.planeAt.y - 30;
+        c.save(); c.shadowColor = 'rgba(0,30,26,.28)'; c.shadowBlur = 10; c.shadowOffsetY = 3;
+        c.fillStyle = 'rgba(255,255,255,.96)'; rr(px, py, tw, 20, 10); c.fill();
+        c.beginPath(); c.moveTo(sel.planeAt.x - 4, py + 20); c.lineTo(sel.planeAt.x + 4, py + 20); c.lineTo(sel.planeAt.x, py + 24); c.closePath(); c.fill(); c.restore();
+        c.fillStyle = '#0b3d36'; c.textAlign = 'center'; c.fillText(label, sel.planeAt.x, py + 10.5); c.textAlign = 'left';
       }
       function rr(x, y, w0, h0, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w0, y, x + w0, y + h0, r); c.arcTo(x + w0, y + h0, x, y + h0, r); c.arcTo(x, y + h0, x, y, r); c.arcTo(x, y, x + w0, y, r); c.closePath(); }
       function at(a, u) {

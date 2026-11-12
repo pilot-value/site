@@ -798,7 +798,15 @@ if (process.env.REC) {
     else { await glide(y + 380, 1200); await sleep(600); }
     await tap('.gl-r', 2); await sleep(1200);
     await glide(y, 1000); await sleep(2200);
-    await tap('.gl-pb', 2); await sleep(3600);
+    /* 期間：月 → 前の月 → 下の日ごとの棒からその日 → 次の日 → 1年 */
+    await tap('.gl-pb', 1); await sleep(2400);
+    await tap('.gl-sb', 0); await sleep(2200);
+    if (vw < 600) { await glide(await page.evaluate(() => { const e = document.querySelector('.gl-mon'); return e ? scrollY + e.getBoundingClientRect().top - 120 : 0; }), 1200); await sleep(500); }
+    else { await glide(y + 420, 1000); await sleep(500); }
+    await tap('button.gl-mb-c', 3); await sleep(900);
+    await glide(y, 900); await sleep(1800);
+    await tap('.gl-sb', 1); await sleep(2200);
+    await tap('.gl-pb', 3); await sleep(2600);
   } else if (process.env.TOUR === 'all') {
     /* 全ページに広げたあとの見本（2026-11-12）：トップ → 航空会社一覧 → 会社ページ → Vote → 国のページ → MY PAY → REAL PAY。
        PAGE=index.html で始める。ページは住所を変えて移る（ページまたぎの切り替えが起きる） */

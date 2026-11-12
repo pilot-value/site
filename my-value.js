@@ -86,10 +86,10 @@
   var ANALYSIS_V = 'ae699612';
   var ANALYSIS_CSS_V = 'aeff3463';
   /* ★スケジュールの一番上の「飛んだルート」の地球儀（2026-11-12）。スケジュールのタブを開いたときだけ読む4本。指紋の決まりは上と同じ */
-  var GLOBE_V = '0e63845f';
-  var GLOBE_CSS_V = '83a20b4b';
+  var GLOBE_V = '72538582';
+  var GLOBE_CSS_V = '864b63ac';
   var AIRPORT_GEO_V = '12fab2ff';   // 空港 → 位置と街の名前（pv-airport-geo.js）
-  var GLOBE_LAND_V = '7d85dd89';    // 陸地の点（pv-globe-land.js）
+  var GLOBE_LAND_V = '84b69b9c';    // 陸地の点（pv-globe-land.js）
   var LATE = {
     roster: 'my-roster.js?v=' + ROSTER_V, rosterCss: 'my-roster.css?v=' + ROSTER_CSS_V,
     upload: 'roster-upload.js?v=' + UPLOAD_V, engine: 'pv-report-engine.js?v=' + ENGINE_V, airportTz: 'pv-airport-tz.js?v=' + AIRPORT_TZ_V,

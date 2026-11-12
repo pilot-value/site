@@ -23,7 +23,7 @@ const from = arg('--from');
 if (!from) { console.error('使い方: node gen-globe-land.mjs --from <ne_110m_land.geojson のあるフォルダ> [--check]'); process.exit(1); }
 const gj = JSON.parse(fs.readFileSync(path.join(from, 'ne_110m_land.geojson'), 'utf8'));
 
-const STEP = 1.5;                       // 点の間隔（度）。地球儀の大きさでいちばん見栄えのした値
+const STEP = 2;                         // 点の間隔（度）。地球儀の大きさでいちばん見栄えのした値
 const polys = [];                       // [[ring(外), ring(穴)…]…]（[lon, lat] の並び）
 for (const f of gj.features || []) {
   const g = f && f.geometry;

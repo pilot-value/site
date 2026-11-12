@@ -16536,4 +16536,11 @@ export const TM = {
   "js:'Import your roster and every route you fly will be drawn here.'": {"es":"js:'Importa tu programación y aquí se dibujará cada ruta que vueles.'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"スケジュールの地球儀 2026-11-12"},
   "js:'No flights in this period.'": {"es":"js:'No hay vuelos en este período.'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"スケジュールの地球儀 2026-11-12"},
   "js:'Could not load the globe. Please try again in a moment.'": {"es":"js:'No se pudo cargar el globo. Inténtalo de nuevo en un momento.'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"スケジュールの地球儀 2026-11-12"},
+  "js:'Previous day'": {"es":"js:'Día anterior'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"スケジュールの地球儀 2026-11-12"},
+  "js:'Earnings this day (est.)'": {"es":"js:'Ingresos del día (est.)'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"スケジュールの地球儀 2026-11-12"},
+  "js:'Earnings this month (est.)'": {"es":"js:'Ingresos del mes (est.)'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"スケジュールの地球儀 2026-11-12"},
+  "js:'Block time as a share of duty time {p}'": {"es":"js:'Tiempo de bloque sobre el tiempo de servicio {p}'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"スケジュールの地球儀 2026-11-12"},
+  "js:'Earnings by day (est.)'": {"es":"js:'Ingresos por día (est.)'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"スケジュールの地球儀 2026-11-12"},
+  "js:'Tap to see only that month'": {"es":"js:'Toca para ver solo ese mes'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"スケジュールの地球儀 2026-11-12"},
+  "js:'Tap to see only that day'": {"es":"js:'Toca para ver solo ese día'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"スケジュールの地球儀 2026-11-12"},
 };
