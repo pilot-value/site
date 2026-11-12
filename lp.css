@@ -1543,13 +1543,14 @@
    ★箱の高さは今までの緑の面と同じ（356px・iPad 縦は 378px）＝ 帯2本が最初の1画面に入る約束（assert-hero-fold）を変えない。
    ★中（.lt-pc）は設計の大きさ（広い幅 960・狭い幅 720）で組み、lp.js が箱の幅に合わせて scale で縮める。ここの px は設計の大きさ。
    ★動かすのは transform と opacity（画面の入れ替えの一瞬だけぼかし）。ズーム・揺れ・光の演出は使わない（オーナー指示）。 */
-#hero-section .hero-panel.lt-pcbox{position:relative;height:356px;padding:0;overflow:hidden;border-radius:22px;
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-pcbox{position:relative;padding:0;min-height:0;overflow:hidden;border-radius:22px;
   background:var(--pv-surface);box-shadow:0 2px 4px rgba(6,117,99,.10),0 30px 60px -30px rgba(6,117,99,.55),0 0 0 1px color-mix(in srgb,var(--pv-accent-dark) 18%,transparent)}
-#hero-section .hero-panel.lt-pcbox::before{display:none}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-pcbox::before{display:none}
+#hero-section .hero-panel.lt-pcbox{height:356px}
 @media (min-width:768px) and (max-width:1099px) and (min-height:1000px){ #hero-section .hero-panel.lt-pcbox{height:378px;padding:0} }
 /* スマホの幅：帯2本より下に置かれる ＝ 帯の約束に響かない。中身の縦横比に合わせて低くする */
 @media (max-width:767px){ #hero-section .hero-panel.lt-pcbox{height:auto;aspect-ratio:10 / 9} }
-#hero-section .lt-pc{position:absolute;left:0;top:0;width:960px;height:668px;transform-origin:0 0;overflow:hidden;
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-pc{position:absolute;left:0;top:0;width:960px;height:668px;transform-origin:0 0;overflow:hidden;
   display:flex;flex-direction:column;font-size:13px;line-height:1.45;color:var(--pv-ink);
   background:
     radial-gradient(40% 55% at 0% 30%,color-mix(in srgb,var(--pv-accent-dark) 55%,transparent),transparent 70%),
@@ -1557,227 +1558,264 @@
     radial-gradient(40% 40% at 85% 85%,color-mix(in srgb,var(--pv-accent) 26%,transparent),transparent 70%),
     linear-gradient(160deg,color-mix(in srgb,var(--pv-accent-soft) 85%,var(--pv-bg)),color-mix(in srgb,var(--pv-accent-line) 70%,var(--pv-bg)))}
 /* 窓の帯（●●● と住所） */
-#hero-section .lt-chrome{flex:none;display:flex;align-items:center;gap:8px;height:40px;padding:0 16px;
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-chrome{flex:none;display:flex;align-items:center;gap:8px;height:40px;padding:0 16px;
   background:color-mix(in srgb,var(--pv-surface) 82%,transparent);border-bottom:1px solid color-mix(in srgb,#fff 50%,transparent)}
-#hero-section .lt-chrome i{width:12px;height:12px;border-radius:50%;background:#ff5f57}
-#hero-section .lt-chrome i:nth-child(2){background:#febc2e}
-#hero-section .lt-chrome i:nth-child(3){background:#28c840}
-#hero-section .lt-url{margin:0 auto;padding:5px 18px;border-radius:999px;font-size:12px;color:var(--pv-ink-3);background:color-mix(in srgb,var(--pv-bg-sub) 90%,transparent)}
-#hero-section .lt-url b{font-weight:600;color:var(--pv-ink-2)}
-#hero-section .lt-app{flex:1;display:flex;min-height:0}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-chrome i{width:12px;height:12px;border-radius:50%;background:#ff5f57}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-chrome i:nth-child(2){background:#febc2e}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-chrome i:nth-child(3){background:#28c840}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-url{margin:0 auto;padding:5px 18px;border-radius:999px;font-size:12px;color:var(--pv-ink-3);background:color-mix(in srgb,var(--pv-bg-sub) 90%,transparent)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-url b{font-weight:600;color:var(--pv-ink-2)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-app{flex:1;display:flex;min-height:0}
 /* 左のメニュー（本物と同じ浮いたすりガラスの板・選んだ項目に緑の板） */
-#hero-section .lt-rail{position:relative;isolation:isolate;flex:none;display:flex;flex-direction:column;gap:4px;width:128px;margin:12px 0 12px 10px;padding:10px 6px;
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-rail{position:relative;isolation:isolate;flex:none;display:flex;flex-direction:column;gap:4px;width:128px;margin:12px 0 12px 10px;padding:10px 6px;
   border-radius:22px;border:1px solid color-mix(in srgb,#fff 66%,transparent);background:color-mix(in srgb,var(--pv-surface) 80%,transparent);
   box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 85%,transparent),0 20px 40px -26px color-mix(in srgb,var(--pv-accent-dark) 50%,transparent)}
-#hero-section .lt-ri{display:flex;flex-direction:column;align-items:center;gap:4px;padding:9px 4px 8px;border:0;border-radius:15px;background:none;
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-ri{display:flex;flex-direction:column;align-items:center;gap:4px;padding:9px 4px 8px;border:0;border-radius:15px;background:none;
   font:inherit;font-size:10.5px;font-weight:600;letter-spacing:.02em;line-height:1.2;text-align:center;color:var(--pv-ink-2);
   transition:color .3s ease,transform .18s ease}
-#hero-section .lt-ri em{font-style:normal}
-#hero-section .lt-add{color:var(--pv-accent-dark)}
-#hero-section .lt-tab{cursor:pointer}
-#hero-section .lt-tab:hover{color:var(--pv-ink)}
-#hero-section .lt-tab:focus-visible{outline:3px solid var(--pv-accent);outline-offset:-3px}
-#hero-section .lt-tab.is-on{color:#fff}
-#hero-section .lt-tab.is-press{transform:scale(.93)}
-#hero-section .lt-pill{position:absolute;left:6px;top:0;z-index:-1;width:116px;height:60px;border-radius:15px;
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-ri em{font-style:normal}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-add{color:var(--pv-accent-dark)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-tab{cursor:pointer}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-tab:hover{color:var(--pv-ink)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-tab:focus-visible{outline:3px solid var(--pv-accent);outline-offset:-3px}
+:is(#hero-section,#lp-realpay,#lp-airlines) :is(.lt-tab,.lt-ri).is-on{color:#fff}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-tab.is-press{transform:scale(.93)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-pill{position:absolute;left:6px;top:0;z-index:-1;width:116px;height:60px;border-radius:15px;
   background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,0) 55%),
              linear-gradient(90deg,color-mix(in srgb,var(--pv-accent-dark) 84%,#000) 0%,var(--pv-accent-dark) 48%,color-mix(in srgb,var(--pv-accent) 45%,var(--pv-accent-dark)) 85%,color-mix(in srgb,var(--pv-accent) 74%,transparent) 100%);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 10px 22px -10px color-mix(in srgb,var(--pv-accent-dark) 65%,transparent);
-  transition:transform .6s cubic-bezier(.2,.9,.25,1.04)}
+  transition:transform .45s cubic-bezier(.2,.9,.25,1.04)}
 /* 本文：上の帯と画面 */
-#hero-section .lt-main{flex:1;min-width:0;display:flex;flex-direction:column}
-#hero-section .lt-top{flex:none;display:flex;align-items:center;gap:8px;height:52px;padding:0 18px 0 16px}
-#hero-section .lt-logo{margin-right:auto;padding:5px 7px;border-radius:6px;font-size:7.5px;font-weight:800;letter-spacing:.08em;line-height:1.1;color:#fff;background:#0f172a}
-#hero-section .lt-tb{min-width:30px;height:28px;padding:0 10px;border-radius:9px;display:inline-grid;place-items:center;font-size:11px;font-weight:700;color:var(--pv-ink);
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-main{flex:1;min-width:0;display:flex;flex-direction:column}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-top{flex:none;display:flex;align-items:center;gap:8px;height:52px;padding:0 18px 0 16px}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-logo{margin-right:auto;padding:5px 7px;border-radius:6px;font-size:7.5px;font-weight:800;letter-spacing:.08em;line-height:1.1;color:#fff;background:#0f172a}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-tb{min-width:30px;height:28px;padding:0 10px;border-radius:9px;display:inline-grid;place-items:center;font-size:11px;font-weight:700;color:var(--pv-ink);
   background:color-mix(in srgb,var(--pv-surface) 80%,transparent);border:1px solid color-mix(in srgb,#fff 60%,transparent)}
-#hero-section .lt-tb-i{padding:0;width:30px}
-#hero-section .lt-go{position:relative;flex:1;display:block;min-height:0;overflow:hidden;color:inherit;text-decoration:none}
-#hero-section .lt-go:focus-visible{outline:3px solid var(--pv-accent);outline-offset:-3px}
-#hero-section .lt-scr{position:absolute;inset:0;opacity:0;visibility:hidden;pointer-events:none}
-#hero-section .lt-scr.is-on{opacity:1;visibility:visible;pointer-events:auto}
-#hero-section .lt-scr.is-on.lt-play{animation:ltIn .6s cubic-bezier(.16,1,.3,1) both}
-#hero-section .lt-scr.is-out{visibility:visible;animation:ltOut .38s cubic-bezier(.4,0,1,1) both}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-tb-i{padding:0;width:30px}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-go{position:relative;flex:1;display:block;min-height:0;overflow:hidden;color:inherit;text-decoration:none}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-go:focus-visible{outline:3px solid var(--pv-accent);outline-offset:-3px}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-scr{position:absolute;inset:0;opacity:0;visibility:hidden;pointer-events:none}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-scr.is-on{opacity:1;visibility:visible;pointer-events:auto}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-scr.is-on.lt-play{animation:ltIn .45s cubic-bezier(.16,1,.3,1) both}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-scr.is-out{visibility:visible;animation:ltOut .28s cubic-bezier(.4,0,1,1) both}
 @keyframes ltIn{from{opacity:0;transform:translateY(10px);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
 @keyframes ltOut{from{opacity:1;filter:none}to{opacity:0;transform:translateY(-6px);filter:blur(6px)}}
 /* カーソル（次に押す所へ動く） */
-#hero-section .lt-cursor{position:absolute;left:0;top:0;z-index:10;width:22px;height:22px;pointer-events:none;
-  filter:drop-shadow(0 3px 4px rgba(0,0,0,.28));transition:transform .7s cubic-bezier(.45,.05,.2,1)}
-#hero-section .lt-cursor svg{display:block}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-cursor{position:absolute;left:0;top:0;z-index:10;width:22px;height:22px;pointer-events:none;
+  filter:drop-shadow(0 3px 4px rgba(0,0,0,.28));transition:transform .5s cubic-bezier(.45,.05,.2,1)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-cursor svg{display:block}
 
 /* 画面の中身。部品（.lt-r）は見えた所から順に浮かぶ（.lt-on）。はみ出す分は 1.4 秒後にすっと下へ流れる（.lt-flow） */
-#hero-section .lt-in{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-content:start;padding:2px 18px 20px 14px;will-change:transform}
-#hero-section .lt-in.lt-flow{transition:transform 1.6s cubic-bezier(.6,.05,.25,1)}
-#hero-section .lt-span{grid-column:1 / -1}
-#hero-section .lt-col{display:grid;gap:12px;align-content:start;min-width:0}
-#hero-section .lt-r{opacity:0;transform:translateY(12px)}
-#hero-section .lt-r.lt-on{opacity:1;transform:none;transition:opacity .45s ease,transform .7s cubic-bezier(.16,1,.3,1)}
-#hero-section .lt-card{padding:14px 16px;border-radius:18px;border:1px solid color-mix(in srgb,#fff 66%,transparent);
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-in{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-content:start;padding:2px 18px 20px 14px;will-change:transform}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-in.lt-flow{transition:transform 1.1s cubic-bezier(.6,.05,.25,1)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-span{grid-column:1 / -1}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-col{display:grid;gap:12px;align-content:start;min-width:0}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-r{opacity:0;transform:translateY(12px)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-r.lt-on{opacity:1;transform:none;transition:opacity .45s ease,transform .7s cubic-bezier(.16,1,.3,1)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-card{padding:14px 16px;border-radius:18px;border:1px solid color-mix(in srgb,#fff 66%,transparent);
   background:color-mix(in srgb,var(--pv-surface) 74%,transparent);
   box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 85%,transparent),0 18px 36px -26px color-mix(in srgb,var(--pv-accent-dark) 55%,transparent)}
-#hero-section .lt-hd{display:flex;align-items:center;gap:7px;margin-bottom:8px;font-size:13px;font-weight:700;color:var(--pv-ink)}
-#hero-section .lt-hd em{margin-left:auto;padding:2px 9px;border-radius:99px;font-style:normal;font-size:10.5px;font-weight:600;color:var(--pv-ink-2);background:var(--pv-bg-sub)}
-#hero-section .lt-hd .lt-avg{padding:0;background:none;font-size:11px;color:var(--pv-ink-3)}
-#hero-section .lt-hd .lt-avg b{font-size:18px;font-weight:600;color:var(--pv-ink)}
-#hero-section .lt-ico{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:7px;font-style:normal;font-size:12px;font-weight:700;
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-hd{display:flex;align-items:center;gap:7px;margin-bottom:8px;font-size:13px;font-weight:700;color:var(--pv-ink)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-hd em{margin-left:auto;padding:2px 9px;border-radius:99px;font-style:normal;font-size:10.5px;font-weight:600;color:var(--pv-ink-2);background:var(--pv-bg-sub)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-hd .lt-avg{padding:0;background:none;font-size:11px;color:var(--pv-ink-3)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-hd .lt-avg b{font-size:18px;font-weight:600;color:var(--pv-ink)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-ico{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:7px;font-style:normal;font-size:12px;font-weight:700;
   color:var(--pv-accent-dark);background:color-mix(in srgb,var(--pv-accent) 14%,var(--pv-surface))}
-#hero-section .lt-cap{font-size:11px;font-weight:600;line-height:1.35;color:var(--pv-ink-3)}
-#hero-section .lt-cap2{margin-top:4px;font-size:11px;font-weight:600;color:rgba(255,255,255,.85)}
-#hero-section .lt-big{margin-top:2px;font-size:24px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:var(--pv-ink);font-variant-numeric:tabular-nums}
-#hero-section .lt-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-#hero-section .lt-trk{position:relative;display:block;height:7px;margin-top:6px;border-radius:99px;overflow:hidden;background:var(--pv-bg-sub)}
-#hero-section .lt-fill{position:absolute;inset:0 auto 0 0;width:calc(var(--w) * 1%);border-radius:inherit;transform-origin:left center;
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-cap{font-size:11px;font-weight:600;line-height:1.35;color:var(--pv-ink-3)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-cap2{margin-top:4px;font-size:11px;font-weight:600;color:rgba(255,255,255,.85)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-big{margin-top:2px;font-size:24px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:var(--pv-ink);font-variant-numeric:tabular-nums}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-trk{position:relative;display:block;height:7px;margin-top:6px;border-radius:99px;overflow:hidden;background:var(--pv-bg-sub)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-fill{position:absolute;inset:0 auto 0 0;width:calc(var(--w) * 1%);border-radius:inherit;transform-origin:left center;
   background:linear-gradient(90deg,color-mix(in srgb,var(--pv-accent) 50%,transparent),var(--pv-accent));box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
-#hero-section .lt-gold .lt-fill{background:linear-gradient(90deg,#d7b24a,#b8901a)}
-#hero-section .lt-o1 .lt-fill{background:linear-gradient(90deg,#f6b4c5,#e8607f)}
-#hero-section .lt-o2 .lt-fill{background:linear-gradient(90deg,#9ed0ff,#5fb0ff)}
-#hero-section .lt-o3 .lt-fill{background:linear-gradient(90deg,#c9b8ff,#a78bfa)}
-#hero-section .lt-r:not(.lt-on) .lt-fill{transform:scaleX(0)}
-#hero-section .lt-on .lt-fill{animation:ltGrow 1s .15s cubic-bezier(.16,1,.3,1) both}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-gold .lt-fill{background:linear-gradient(90deg,#d7b24a,#b8901a)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-o1 .lt-fill{background:linear-gradient(90deg,#f6b4c5,#e8607f)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-o2 .lt-fill{background:linear-gradient(90deg,#9ed0ff,#5fb0ff)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-o3 .lt-fill{background:linear-gradient(90deg,#c9b8ff,#a78bfa)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-r:not(.lt-on) .lt-fill{transform:scaleX(0)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-on .lt-fill{animation:ltGrow 1s .15s cubic-bezier(.16,1,.3,1) both}
 @keyframes ltGrow{from{transform:scaleX(0)}}
 
 /* REAL PAY（本物の PC 版の一覧） */
-#hero-section .lt-rp-hd{display:flex;align-items:flex-end;gap:16px;padding:2px 2px 0}
-#hero-section .lt-rp-t{position:relative;font-size:22px;font-weight:800;letter-spacing:-.02em}
-#hero-section .lt-rp-t::after{content:'';position:absolute;left:0;right:0;bottom:-7px;height:3px;border-radius:3px;background:var(--pv-accent)}
-#hero-section .lt-rp-t2{font-size:15px;font-weight:700;color:var(--pv-ink-3)}
-#hero-section .lt-chipf{margin-left:auto;padding:6px 14px;border-radius:999px;font-size:11.5px;font-weight:700;color:var(--pv-ink);
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-rp-hd{display:flex;align-items:flex-end;gap:16px;padding:2px 2px 0}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-rp-t{position:relative;font-size:22px;font-weight:800;letter-spacing:-.02em}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-rp-t::after{content:'';position:absolute;left:0;right:0;bottom:-7px;height:3px;border-radius:3px;background:var(--pv-accent)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-rp-t2{font-size:15px;font-weight:700;color:var(--pv-ink-3)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-chipf{margin-left:auto;padding:6px 14px;border-radius:999px;font-size:11.5px;font-weight:700;color:var(--pv-ink);
   background:color-mix(in srgb,var(--pv-surface) 82%,transparent);border:1px solid color-mix(in srgb,#fff 60%,transparent)}
-#hero-section .lt-tbl{margin-top:8px;border-radius:18px;overflow:hidden;border:1px solid color-mix(in srgb,#fff 66%,transparent);
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-tbl{margin-top:8px;border-radius:18px;overflow:hidden;border:1px solid color-mix(in srgb,#fff 66%,transparent);
   background:color-mix(in srgb,var(--pv-surface) 78%,transparent);box-shadow:0 18px 36px -26px color-mix(in srgb,var(--pv-accent-dark) 55%,transparent)}
-#hero-section :is(.lt-th,.lt-tr){display:grid;grid-template-columns:1.5fr 1.5fr .9fr .9fr 1.3fr;align-items:center;gap:12px;padding:0 16px}
-#hero-section .lt-th{height:34px;font-size:10.5px;font-weight:700;color:var(--pv-ink-3);background:color-mix(in srgb,var(--pv-bg-sub) 80%,transparent)}
-#hero-section .lt-tr{height:62px;border-top:1px solid var(--pv-line-soft)}
-#hero-section .lt-r.lt-tr.lt-on{transition-delay:calc(var(--i,0) * 60ms)}
-#hero-section .lt-td{min-width:0;font-size:12px;color:var(--pv-ink-2)}
-#hero-section .lt-td-air{display:flex;align-items:center;gap:8px}
-#hero-section .lt-td-air b{font-weight:700;color:var(--pv-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#hero-section .lt-td-air .hero-win-logo{width:28px;height:28px}
-#hero-section .lt-td-pos{display:grid;line-height:1.3}
-#hero-section .lt-td-pos small{font-size:10.5px;color:var(--pv-ink-3)}
-#hero-section .lt-td-amt{font-size:16px;font-weight:700;color:#d2541d;font-variant-numeric:tabular-nums}
-#hero-section .lt-td-cb .hero-c-cb{height:8px}
-#hero-section .lt-tr:not(.lt-on) .hero-c-cb i{transform:scaleX(0)}
-#hero-section .lt-tr.lt-on .hero-c-cb i{transform-origin:left center;animation:ltGrow .8s .1s cubic-bezier(.16,1,.3,1) both}
-#hero-section .lt-tr.lt-on .hero-c-cb i:nth-child(2){animation-delay:.22s}
-#hero-section .lt-tr.lt-on .hero-c-cb i:nth-child(3){animation-delay:.34s}
+:is(#hero-section,#lp-realpay,#lp-airlines) :is(.lt-th,.lt-tr){display:grid;grid-template-columns:1.5fr 1.5fr .9fr .9fr 1.3fr;align-items:center;gap:12px;padding:0 16px}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-th{height:34px;font-size:10.5px;font-weight:700;color:var(--pv-ink-3);background:color-mix(in srgb,var(--pv-bg-sub) 80%,transparent)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-tr{height:62px;border-top:1px solid var(--pv-line-soft)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-r.lt-tr.lt-on{transition-delay:calc(var(--i,0) * 60ms)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-td{min-width:0;font-size:12px;color:var(--pv-ink-2)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-td-air{display:flex;align-items:center;gap:8px}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-td-air b{font-weight:700;color:var(--pv-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-td-air .hero-win-logo{width:28px;height:28px}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-td-pos{display:grid;line-height:1.3}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-td-pos small{font-size:10.5px;color:var(--pv-ink-3)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-td-amt{font-size:16px;font-weight:700;color:#d2541d;font-variant-numeric:tabular-nums}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-td-cb .hero-c-cb{height:8px}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-tr:not(.lt-on) .hero-c-cb i{transform:scaleX(0)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-tr.lt-on .hero-c-cb i{transform-origin:left center;animation:ltGrow .8s .1s cubic-bezier(.16,1,.3,1) both}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-tr.lt-on .hero-c-cb i:nth-child(2){animation-delay:.22s}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-tr.lt-on .hero-c-cb i:nth-child(3){animation-delay:.34s}
 
 /* 会社の画面 */
-#hero-section .lt-air-hd{display:flex;align-items:center;gap:12px;padding:2px 2px 0}
-#hero-section .lt-air-hd .hero-win-logo{width:40px;height:40px;padding:4px;border-radius:10px}
-#hero-section .lt-air-n{display:grid;line-height:1.3;min-width:0}
-#hero-section .lt-air-n b{display:flex;align-items:center;gap:6px;font-size:20px;font-weight:700;letter-spacing:-.01em;color:var(--pv-ink)}
-#hero-section .lt-chip{padding:1px 6px;border:1px solid var(--pv-line);border-radius:5px;font-style:normal;font-size:10px;font-weight:700;color:var(--pv-ink-2)}
-#hero-section .lt-air-n small{font-size:11.5px;color:var(--pv-ink-3)}
-#hero-section .lt-air-n small b{display:inline;font-size:13px}
-#hero-section .lt-st{letter-spacing:1px;color:#d99a00}
-#hero-section .lt-st s{text-decoration:none;color:var(--pv-line)}
-#hero-section .lt-tabs2{display:flex;gap:20px;margin-top:10px;padding:0 2px 7px;border-bottom:1px solid var(--pv-line-soft);font-size:12px;font-weight:600;color:var(--pv-ink-3);white-space:nowrap;overflow:hidden}
-#hero-section .lt-tabs2 .is-on{position:relative;color:var(--pv-accent-dark)}
-#hero-section .lt-tabs2 .is-on::after{content:'';position:absolute;left:0;right:0;bottom:-8px;height:2.5px;border-radius:2px;background:var(--pv-accent)}
-#hero-section .lt-rl{margin-top:6px;font-size:11.5px;font-weight:600;color:var(--pv-ink-2)}
-#hero-section .lt-rg-t{position:relative;display:block;height:12px;margin:5px 0 4px;border-radius:99px;background:var(--pv-bg-sub)}
-#hero-section .lt-rg-b{position:absolute;top:1px;bottom:1px;border-radius:99px;transform-origin:center;background:color-mix(in srgb,var(--pv-accent-dark) 45%,var(--pv-surface))}
-#hero-section .lt-rg-m{position:absolute;top:-3px;width:3px;height:18px;margin-left:-1.5px;border-radius:2px;background:var(--pv-accent-dark)}
-#hero-section .lt-r:not(.lt-on) :is(.lt-rg-b,.lt-rg-m){opacity:0}
-#hero-section .lt-on .lt-rg-b{animation:ltSpread .9s .15s cubic-bezier(.16,1,.3,1) both}
-#hero-section .lt-on .lt-rg-m{animation:ltPop .5s .65s cubic-bezier(.34,1.56,.64,1) both}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-air-hd{display:flex;align-items:center;gap:12px;padding:2px 2px 0}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-air-hd .hero-win-logo{width:40px;height:40px;padding:4px;border-radius:10px}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-air-n{display:grid;line-height:1.3;min-width:0}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-air-n b{display:flex;align-items:center;gap:6px;font-size:20px;font-weight:700;letter-spacing:-.01em;color:var(--pv-ink)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-chip{padding:1px 6px;border:1px solid var(--pv-line);border-radius:5px;font-style:normal;font-size:10px;font-weight:700;color:var(--pv-ink-2)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-air-n small{font-size:11.5px;color:var(--pv-ink-3)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-air-n small b{display:inline;font-size:13px}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-st{letter-spacing:1px;color:#d99a00}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-st s{text-decoration:none;color:var(--pv-line)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-tabs2{display:flex;gap:20px;margin-top:10px;padding:0 2px 7px;border-bottom:1px solid var(--pv-line-soft);font-size:12px;font-weight:600;color:var(--pv-ink-3);white-space:nowrap;overflow:hidden}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-tabs2 .is-on{position:relative;color:var(--pv-accent-dark)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-tabs2 .is-on::after{content:'';position:absolute;left:0;right:0;bottom:-8px;height:2.5px;border-radius:2px;background:var(--pv-accent)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-rl{margin-top:6px;font-size:11.5px;font-weight:600;color:var(--pv-ink-2)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-rg-t{position:relative;display:block;height:12px;margin:5px 0 4px;border-radius:99px;background:var(--pv-bg-sub)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-rg-b{position:absolute;top:1px;bottom:1px;border-radius:99px;transform-origin:center;background:color-mix(in srgb,var(--pv-accent-dark) 45%,var(--pv-surface))}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-rg-m{position:absolute;top:-3px;width:3px;height:18px;margin-left:-1.5px;border-radius:2px;background:var(--pv-accent-dark)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-r:not(.lt-on) :is(.lt-rg-b,.lt-rg-m){opacity:0}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-on .lt-rg-b{animation:ltSpread .9s .15s cubic-bezier(.16,1,.3,1) both}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-on .lt-rg-m{animation:ltPop .5s .65s cubic-bezier(.34,1.56,.64,1) both}
 @keyframes ltSpread{from{opacity:0;transform:scaleX(.1)}}
 @keyframes ltPop{from{opacity:0;transform:scaleY(0)}}
-#hero-section .lt-rv{font-size:10.5px;color:var(--pv-ink-3);font-variant-numeric:tabular-nums;white-space:nowrap}
-#hero-section .lt-rv b{font-weight:700;color:var(--pv-ink)}
-#hero-section .lt-rv em{font-style:normal;font-weight:700;color:var(--pv-accent-dark)}
-#hero-section .lt-radar{display:block;width:100%;height:220px;overflow:visible}
-#hero-section .lt-rdg{fill:none;stroke:var(--pv-line);stroke-width:.5}
-#hero-section .lt-radar text{font-size:4.6px;font-weight:600;fill:var(--pv-ink-3)}
-#hero-section .lt-rs{fill:color-mix(in srgb,#d99a00 16%,transparent);stroke:#c28a00;stroke-width:.9;stroke-linejoin:round;
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-rv{font-size:10.5px;color:var(--pv-ink-3);font-variant-numeric:tabular-nums;white-space:nowrap}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-rv b{font-weight:700;color:var(--pv-ink)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-rv em{font-style:normal;font-weight:700;color:var(--pv-accent-dark)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-radar{display:block;width:100%;height:220px;overflow:visible}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-rdg{fill:none;stroke:var(--pv-line);stroke-width:.5}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-radar text{font-size:4.6px;font-weight:600;fill:var(--pv-ink-3)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-rs{fill:color-mix(in srgb,#d99a00 16%,transparent);stroke:#c28a00;stroke-width:.9;stroke-linejoin:round;
   transform-box:view-box;transform-origin:50% 47%}
-#hero-section .lt-r:not(.lt-on) .lt-rs{opacity:0}
-#hero-section .lt-on .lt-rs{animation:ltRad 1.1s .2s cubic-bezier(.2,.9,.25,1.04) both}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-r:not(.lt-on) .lt-rs{opacity:0}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-on .lt-rs{animation:ltRad 1.1s .2s cubic-bezier(.2,.9,.25,1.04) both}
 @keyframes ltRad{from{opacity:0;transform:scale(0)}}
 
 /* MY PAY・スケジュール（本物の MY PAGE） */
-#hero-section .lt-myhd{display:flex;gap:22px;padding:0 2px 8px;border-bottom:1px solid var(--pv-line-soft);font-size:19px;font-weight:700;letter-spacing:-.01em}
-#hero-section .lt-mp{color:var(--pv-ink-3)}
-#hero-section .lt-mp.is-on{position:relative;color:var(--pv-ink)}
-#hero-section .lt-mp.is-on::after{content:'';position:absolute;left:0;right:0;bottom:-9px;height:3px;border-radius:3px;background:var(--pv-accent)}
-#hero-section .lt-sub{display:inline-flex;gap:4px;margin-top:12px;padding:4px;border-radius:99px;font-size:12px;font-weight:600;color:var(--pv-ink-2);
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-myhd{display:flex;gap:22px;padding:0 2px 8px;border-bottom:1px solid var(--pv-line-soft);font-size:19px;font-weight:700;letter-spacing:-.01em}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-mp{color:var(--pv-ink-3)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-mp.is-on{position:relative;color:var(--pv-ink)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-mp.is-on::after{content:'';position:absolute;left:0;right:0;bottom:-9px;height:3px;border-radius:3px;background:var(--pv-accent)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-sub{display:inline-flex;gap:4px;margin-top:12px;padding:4px;border-radius:99px;font-size:12px;font-weight:600;color:var(--pv-ink-2);
   background:color-mix(in srgb,var(--pv-surface) 70%,transparent);border:1px solid color-mix(in srgb,#fff 60%,transparent)}
-#hero-section .lt-sub span{padding:6px 16px;border-radius:99px;transition:transform .18s ease}
-#hero-section .lt-sub .is-on{color:var(--pv-ink);background:var(--pv-surface);box-shadow:0 1px 2px rgba(15,23,42,.08),0 6px 14px -8px rgba(6,117,99,.4)}
-#hero-section .lt-sub .is-press{transform:scale(.92)}
-#hero-section .lt-meta{margin-top:8px;font-size:11.5px;color:var(--pv-ink-2)}
-#hero-section .lt-green{padding:14px 16px;border-radius:18px;color:#fff;
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-sub span{padding:6px 16px;border-radius:99px;transition:transform .18s ease}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-sub .is-on{color:var(--pv-ink);background:var(--pv-surface);box-shadow:0 1px 2px rgba(15,23,42,.08),0 6px 14px -8px rgba(6,117,99,.4)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-sub .is-press{transform:scale(.92)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-meta{margin-top:8px;font-size:11.5px;color:var(--pv-ink-2)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-green{padding:14px 16px;border-radius:18px;color:#fff;
   background:radial-gradient(110% 90% at 100% 0%,rgba(255,255,255,.2),transparent 55%),linear-gradient(155deg,var(--pv-accent),var(--pv-accent-dark));
   box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 18px 34px -18px rgba(6,117,99,.75)}
-#hero-section .lt-green .lt-cap{font-size:13px;font-weight:700;color:#fff}
-#hero-section .lt-green .lt-big{font-size:28px;color:#fff}
-#hero-section .lt-row{display:flex;justify-content:space-between;gap:8px;margin-top:7px;padding-top:7px;border-top:1px solid rgba(255,255,255,.22);font-size:11px;color:rgba(255,255,255,.92)}
-#hero-section .lt-row b{font-weight:600;color:#fff;font-variant-numeric:tabular-nums}
-#hero-section .lt-line{display:block;width:100%;height:58px;margin-top:6px;overflow:visible}
-#hero-section .lt-ln{fill:none;stroke:var(--pv-accent);stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;stroke-dasharray:1 1;
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-green .lt-cap{font-size:13px;font-weight:700;color:#fff}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-green .lt-big{font-size:28px;color:#fff}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-row{display:flex;justify-content:space-between;gap:8px;margin-top:7px;padding-top:7px;border-top:1px solid rgba(255,255,255,.22);font-size:11px;color:rgba(255,255,255,.92)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-row b{font-weight:600;color:#fff;font-variant-numeric:tabular-nums}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-line{display:block;width:100%;height:58px;margin-top:6px;overflow:visible}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-ln{fill:none;stroke:var(--pv-accent);stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;stroke-dasharray:1 1;
   filter:drop-shadow(0 4px 5px color-mix(in srgb,var(--pv-accent) 40%,transparent))}
-#hero-section .lt-r:not(.lt-on) .lt-ln{stroke-dashoffset:1}
-#hero-section .lt-on .lt-ln{animation:ltDraw 1.4s .15s cubic-bezier(.65,0,.35,1) both}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-r:not(.lt-on) .lt-ln{stroke-dashoffset:1}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-on .lt-ln{animation:ltDraw 1.4s .15s cubic-bezier(.65,0,.35,1) both}
 @keyframes ltDraw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
-#hero-section .lt-dn2{display:flex;align-items:center;gap:16px}
-#hero-section .lt-donut{flex:none;width:112px;height:112px;transform:rotate(-90deg)}
-#hero-section .lt-track{fill:none;stroke:var(--pv-bg-sub);stroke-width:6.5}
-#hero-section .lt-arc{fill:none;stroke-width:6.5}
-#hero-section .lt-r:not(.lt-on) .lt-arc{stroke-dasharray:0 100}
-#hero-section .lt-on .lt-arc{animation:ltArc .7s cubic-bezier(.3,.7,.2,1) both;animation-delay:calc(.15s + var(--d,0ms))}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-dn2{display:flex;align-items:center;gap:16px}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-donut{flex:none;width:112px;height:112px;transform:rotate(-90deg)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-track{fill:none;stroke:var(--pv-bg-sub);stroke-width:6.5}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-arc{fill:none;stroke-width:6.5}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-r:not(.lt-on) .lt-arc{stroke-dasharray:0 100}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-on .lt-arc{animation:ltArc .7s cubic-bezier(.3,.7,.2,1) both;animation-delay:calc(.15s + var(--d,0ms))}
 @keyframes ltArc{from{stroke-dasharray:0 100}}
-#hero-section .lt-leg{display:grid;gap:5px;flex:1;min-width:0;margin:0;padding:0;list-style:none}
-#hero-section .lt-leg li{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--pv-ink-2);white-space:nowrap}
-#hero-section .lt-leg li i{flex:none;width:9px;height:9px;border-radius:3px}
-#hero-section .lt-leg li b{margin-left:auto;font-weight:600;color:var(--pv-ink);font-variant-numeric:tabular-nums}
-#hero-section .lt-r:not(.lt-on) .lt-leg li{opacity:0}
-#hero-section .lt-on .lt-leg li{animation:ltRise .5s cubic-bezier(.16,1,.3,1) both;animation-delay:calc(.4s + var(--i,0) * 80ms)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-leg{display:grid;gap:5px;flex:1;min-width:0;margin:0;padding:0;list-style:none}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-leg li{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--pv-ink-2);white-space:nowrap}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-leg li i{flex:none;width:9px;height:9px;border-radius:3px}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-leg li b{margin-left:auto;font-weight:600;color:var(--pv-ink);font-variant-numeric:tabular-nums}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-r:not(.lt-on) .lt-leg li{opacity:0}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-on .lt-leg li{animation:ltRise .5s cubic-bezier(.16,1,.3,1) both;animation-delay:calc(.4s + var(--i,0) * 80ms)}
 @keyframes ltRise{from{opacity:0;transform:translateY(8px)}}
-#hero-section .s-base{stroke:#34d399;background:#34d399}
-#hero-section .s-variable{stroke:#f5c842;background:#f5c842}
-#hero-section .s-command{stroke:#5fb0ff;background:#5fb0ff}
-#hero-section .s-perdiem{stroke:#f472b6;background:#f472b6}
-#hero-section .s-housing{stroke:#fb923c;background:#fb923c}
-#hero-section .lt-or{display:flex;justify-content:space-between;gap:8px;margin-top:8px;font-size:11.5px;color:var(--pv-ink-2)}
-#hero-section .lt-or .lt-ov{font-weight:700;color:var(--pv-ink);font-variant-numeric:tabular-nums}
-#hero-section .lt-kv{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-top:1px solid var(--pv-line-soft);font-size:12px;color:var(--pv-ink-2)}
-#hero-section .lt-hd + .lt-kv{border-top:0}
-#hero-section .lt-kv b{font-size:17px;font-weight:600;color:var(--pv-ink);font-variant-numeric:tabular-nums}
-#hero-section .lt-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
-#hero-section .lt-wd{display:block;padding-bottom:2px;text-align:center;font-style:normal;font-size:10.5px;font-weight:600;color:var(--pv-ink-3)}
-#hero-section .lt-d{display:grid;place-items:center;height:30px;border-radius:7px;font-style:normal;font-size:11px;font-weight:600;
+:is(#hero-section,#lp-realpay,#lp-airlines) .s-base{stroke:#34d399;background:#34d399}
+:is(#hero-section,#lp-realpay,#lp-airlines) .s-variable{stroke:#f5c842;background:#f5c842}
+:is(#hero-section,#lp-realpay,#lp-airlines) .s-command{stroke:#5fb0ff;background:#5fb0ff}
+:is(#hero-section,#lp-realpay,#lp-airlines) .s-perdiem{stroke:#f472b6;background:#f472b6}
+:is(#hero-section,#lp-realpay,#lp-airlines) .s-housing{stroke:#fb923c;background:#fb923c}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-or{display:flex;justify-content:space-between;gap:8px;margin-top:8px;font-size:11.5px;color:var(--pv-ink-2)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-or .lt-ov{font-weight:700;color:var(--pv-ink);font-variant-numeric:tabular-nums}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-kv{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-top:1px solid var(--pv-line-soft);font-size:12px;color:var(--pv-ink-2)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-hd + .lt-kv{border-top:0}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-kv b{font-size:17px;font-weight:600;color:var(--pv-ink);font-variant-numeric:tabular-nums}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-wd{display:block;padding-bottom:2px;text-align:center;font-style:normal;font-size:10.5px;font-weight:600;color:var(--pv-ink-3)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-d{display:grid;place-items:center;height:30px;border-radius:7px;font-style:normal;font-size:11px;font-weight:600;
   font-variant-numeric:tabular-nums;color:var(--pv-ink-2);background:var(--pv-bg-sub)}
-#hero-section .lt-d--x{background:none}
-#hero-section :is(.lt-d,.lt-key i).t-f{color:#fff;background:linear-gradient(160deg,var(--pv-accent),var(--pv-accent-dark))}
-#hero-section :is(.lt-d,.lt-key i).t-s{color:#6b4e00;background:color-mix(in srgb,#f5c842 55%,var(--pv-surface))}
-#hero-section :is(.lt-d,.lt-key i).t-t{color:#1d4a7a;background:color-mix(in srgb,#5fb0ff 45%,var(--pv-surface))}
-#hero-section :is(.lt-d,.lt-key i).t-o{background:var(--pv-bg-sub)}
-#hero-section .lt-r:not(.lt-on) .lt-d:not(.lt-d--x){opacity:0}
-#hero-section .lt-on .lt-d:not(.lt-d--x){animation:ltDay .45s cubic-bezier(.34,1.56,.64,1) both;animation-delay:calc(.1s + var(--i,0) * 16ms)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-d--x{background:none}
+:is(#hero-section,#lp-realpay,#lp-airlines) :is(.lt-d,.lt-key i).t-f{color:#fff;background:linear-gradient(160deg,var(--pv-accent),var(--pv-accent-dark))}
+:is(#hero-section,#lp-realpay,#lp-airlines) :is(.lt-d,.lt-key i).t-s{color:#6b4e00;background:color-mix(in srgb,#f5c842 55%,var(--pv-surface))}
+:is(#hero-section,#lp-realpay,#lp-airlines) :is(.lt-d,.lt-key i).t-t{color:#1d4a7a;background:color-mix(in srgb,#5fb0ff 45%,var(--pv-surface))}
+:is(#hero-section,#lp-realpay,#lp-airlines) :is(.lt-d,.lt-key i).t-o{background:var(--pv-bg-sub)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-r:not(.lt-on) .lt-d:not(.lt-d--x){opacity:0}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-on .lt-d:not(.lt-d--x){animation:ltDay .45s cubic-bezier(.34,1.56,.64,1) both;animation-delay:calc(.1s + var(--i,0) * 16ms)}
 @keyframes ltDay{from{opacity:0;transform:scale(.4)}}
-#hero-section .lt-key{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:10px;font-size:11px;color:var(--pv-ink-3)}
-#hero-section .lt-key span{display:inline-flex;align-items:center;gap:5px}
-#hero-section .lt-key i{width:10px;height:10px;border-radius:3px}
-#hero-section .lt-vbs{display:flex;align-items:flex-end;gap:10px;height:96px;padding-top:6px}
-#hero-section .lt-vb{display:grid;grid-template-rows:1fr auto;flex:1;height:100%;text-align:center}
-#hero-section .lt-vb i{align-self:end;height:calc(var(--h) * 1%);border-radius:6px 6px 3px 3px;transform-origin:bottom center;
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-key{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:10px;font-size:11px;color:var(--pv-ink-3)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-key span{display:inline-flex;align-items:center;gap:5px}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-key i{width:10px;height:10px;border-radius:3px}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-vbs{display:flex;align-items:flex-end;gap:10px;height:96px;padding-top:6px}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-vb{display:grid;grid-template-rows:1fr auto;flex:1;height:100%;text-align:center}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-vb i{align-self:end;height:calc(var(--h) * 1%);border-radius:6px 6px 3px 3px;transform-origin:bottom center;
   background:linear-gradient(180deg,var(--pv-accent),color-mix(in srgb,var(--pv-accent) 45%,transparent));box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
-#hero-section .lt-vb:last-child i{background:linear-gradient(180deg,var(--pv-accent-dark),var(--pv-accent))}
-#hero-section .lt-vb small{margin-top:3px;font-size:10px;color:var(--pv-ink-3)}
-#hero-section .lt-r:not(.lt-on) .lt-vb i{transform:scaleY(0)}
-#hero-section .lt-on .lt-vb i{animation:ltGrowY .8s cubic-bezier(.16,1,.3,1) both;animation-delay:calc(.15s + var(--i,0) * 70ms)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-vb:last-child i{background:linear-gradient(180deg,var(--pv-accent-dark),var(--pv-accent))}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-vb small{margin-top:3px;font-size:10px;color:var(--pv-ink-3)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-r:not(.lt-on) .lt-vb i{transform:scaleY(0)}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-on .lt-vb i{animation:ltGrowY .8s cubic-bezier(.16,1,.3,1) both;animation-delay:calc(.15s + var(--i,0) * 70ms)}
 @keyframes ltGrowY{from{transform:scaleY(0)}}
 
 /* 狭い幅（設計 720）：左のメニューは絵だけ・REAL PAY の表は「年数」を外す */
-#hero-section .lt-pc.is-narrow .lt-rail{width:62px;margin-left:8px;padding:8px 5px}
-#hero-section .lt-pc.is-narrow .lt-ri em{display:none}
-#hero-section .lt-pc.is-narrow .lt-ri{padding:11px 4px}
-#hero-section .lt-pc.is-narrow .lt-pill{width:52px}
-#hero-section .lt-pc.is-narrow :is(.lt-th,.lt-tr){grid-template-columns:1.6fr 1.6fr 1fr 1.2fr}
-#hero-section .lt-pc.is-narrow :is(.lt-th span:nth-child(3),.lt-td-yr){display:none}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-pc.is-narrow .lt-rail{width:62px;margin-left:8px;padding:8px 5px}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-pc.is-narrow .lt-ri em{display:none}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-pc.is-narrow .lt-ri{padding:11px 4px}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-pc.is-narrow .lt-pill{width:52px}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-pc.is-narrow :is(.lt-th,.lt-tr){grid-template-columns:1.6fr 1.6fr 1fr 1.2fr}
+:is(#hero-section,#lp-realpay,#lp-airlines) .lt-pc.is-narrow :is(.lt-th span:nth-child(3),.lt-td-yr){display:none}
 
 @media (prefers-reduced-motion:reduce){
-  #hero-section :is(.lt-scr,.lt-on *,.lt-r){animation:none !important;transition:none !important}
-  #hero-section .lt-r{opacity:1;transform:none}
-  #hero-section :is(.lt-pill,.lt-cursor,.lt-in){transition:none !important}
+  :is(#hero-section,#lp-realpay,#lp-airlines) :is(.lt-scr,.lt-on *,.lt-r){animation:none !important;transition:none !important}
+  :is(#hero-section,#lp-realpay,#lp-airlines) .lt-r{opacity:1;transform:none}
+  :is(#hero-section,#lp-realpay,#lp-airlines) :is(.lt-pill,.lt-cursor,.lt-in){transition:none !important}
 }
+
+/* ── REAL PAY の節の PC の窓（#lt2-box）：右から「行を押すと出る面」（今までの白いカード）が滑り込む ── */
+#lp-realpay .lp-rp-panel.lt-pcbox{display:block;height:440px;padding:0}
+#lp-airlines .lp-air-panel.lt-pcbox{height:360px;padding:0}
+@media (max-width:767px){ :is(#lp-realpay,#lp-airlines) .lt-pcbox.lt-pcbox{height:auto;aspect-ratio:10 / 10.5;padding:0} }
+#lp-realpay .lt-main{position:relative}
+#lp-realpay .lp-rp-card.lt-dw{position:absolute;top:60px;right:14px;bottom:14px;z-index:5;width:340px;max-width:none;margin:0;overflow:hidden;border-radius:20px;
+  transform:translateX(115%);transition:transform .65s cubic-bezier(.2,.9,.25,1.04);
+  box-shadow:0 2px 4px rgba(15,23,42,.06),0 28px 56px -24px rgba(2,48,40,.55)}
+#lp-realpay .lp-rp-card.lt-dw.is-open{transform:none}
+#lp-realpay .lt-pc.is-narrow .lp-rp-card.lt-dw{width:300px;right:10px}
+:is(#lp-realpay,#hero-section) .lt-tr{transition:background-color .25s ease,opacity .45s ease,transform .7s cubic-bezier(.16,1,.3,1)}
+:is(#lp-realpay,#hero-section) .lt-tr.is-sel{background:color-mix(in srgb,var(--pv-accent) 12%,transparent)}
+:is(#lp-realpay,#hero-section) .lt-tr.is-press{transform:scale(.985)}
+#lp-realpay .lp-rp-x{transition:transform .18s ease}
+#lp-realpay .lp-rp-x.is-press{transform:scale(.82)}
+#lp-realpay .lt-dw.is-play .lp-rp-bar i{transform-origin:left center;animation:ltGrow .9s .35s cubic-bezier(.16,1,.3,1) both}
+#lp-realpay .lt-dw.is-play .lp-rp-list li{animation:ltRise .5s cubic-bezier(.16,1,.3,1) both}
+#lp-realpay .lt-dw.is-play .lp-rp-list li:nth-child(1){animation-delay:.45s}
+#lp-realpay .lt-dw.is-play .lp-rp-list li:nth-child(2){animation-delay:.55s}
+#lp-realpay .lt-dw.is-play .lp-rp-list li:nth-child(3){animation-delay:.65s}
+#lp-realpay .lt-dw.is-play .lp-rp-list li:nth-child(4){animation-delay:.75s}
+
+/* ── 航空会社の比較の節の PC の窓（#lt3-box）：スライドは2列（左＝2社の札・右＝年収の板）。見えている1枚の棒が伸びる ── */
+#lp-airlines .lt-cmp{position:relative;flex:1;min-height:0;overflow:hidden;padding:0 10px 0 4px;background:none}
+#lp-airlines .lt-cmp .lp-cmp-track{height:100%}
+#lp-airlines .lt-cmp .lp-cmp-s{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);column-gap:16px;align-content:start;padding:4px 8px 0}
+#lp-airlines .lt-cmp .lp-cmp-s > :is(.lp-cmp-back,.lp-cmp-h){grid-column:1 / -1}
+#lp-airlines .lt-cmp .lp-cmp-pick{grid-column:1;grid-row:3;align-self:start}
+#lp-airlines .lt-cmp .lp-cmp-panel{grid-column:2;grid-row:3 / span 2;margin-top:0}
+#lp-airlines .lt-cmp .lp-cmp-s > :not(.lp-cmp-back):not(.lp-cmp-h):not(.lp-cmp-pick):not(.lp-cmp-panel){grid-column:1}
+#lp-airlines .lt-cmp .lp-cmp-h{font-size:24px;margin:4px 0 10px}
+#lp-airlines .lt-cmp .lp-cmp-p{min-height:96px}
+#lp-airlines .lt-cmp .lp-cmp-s .lp-cmp-trk i{transform-origin:left center}
+#lp-airlines .lt-cmp .lp-cmp-s.is-cur .lp-cmp-trk i{animation:ltGrow 1s .25s cubic-bezier(.16,1,.3,1) both}
+#lp-airlines .lt-pc.is-narrow .lt-cmp .lp-cmp-s{grid-template-columns:1fr;row-gap:8px}
+#lp-airlines .lt-pc.is-narrow .lt-cmp .lp-cmp-s > *{grid-column:1 !important;grid-row:auto !important}

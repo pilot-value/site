@@ -189,14 +189,22 @@ function block(pg) {
   }));
   const first = credits.filter(c => /data-slide="0"/.test(c)).length;
   const head = `<span data-n="1"${first === 1 ? '' : ' hidden'}>${esc(C.word.photos[0])}</span><span data-n="2"${first === 1 ? ' hidden' : ''}>${esc(C.word.photos[1])}</span>`;
+  /* ★2026-11-12 オーナー「世界の航空会社を比較できるの部分も PC 画面に」── 電話の枠をやめ、緑の面の箱をそのまま PC の窓にした
+     （窓の帯・飾りの左メニュー（AIRLINES）・上の帯は lp.js の pcFrames が描く）。スライドの中身はそのまま。 */
   const body = `${OPEN}
 <div class="lp-cmp">
-<div class="lp-panel lp-air-panel">
-<div class="lp-phone">
-<div class="lp-phone-scr lp-cmp-scr">
-<i class="lp-phone-pill" aria-hidden="true"></i>
+<div class="lp-panel lp-air-panel lt-pcbox lt-pcbox3" id="lt3-box">
+<div class="lt-pc" id="lt3-pc">
+<div class="lt-chrome" aria-hidden="true"><i></i><i></i><i></i><span class="lt-url">pilot-value.com/<b>career?view=compare</b></span></div>
+<div class="lt-app">
+<div class="lt-rail" data-on="airlines" aria-hidden="true"></div>
+<div class="lt-main">
+<div class="lt-top" data-fill aria-hidden="true"></div>
+<div class="lp-cmp-scr lt-cmp">
 <div class="lp-cmp-track" id="lp-cmp-track" aria-label="${esc(T.nav)}">
 ${slides.join('\n')}
+</div>
+</div>
 </div>
 </div>
 </div>

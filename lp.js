@@ -165,7 +165,8 @@
       rpPos: '職位・機材',
       rpYrs: '年数',
       rpAmt: '年収',
-      rpComp: '報酬の内訳'
+      rpComp: '報酬の内訳',
+      railAdd: '匿名で給与を追加'
     },
     en: {
       airSub: 'Dubai DXB',
@@ -222,7 +223,8 @@
       rpPos: 'Position · Aircraft',
       rpYrs: 'Years',
       rpAmt: 'Annual',
-      rpComp: 'Pay breakdown'
+      rpComp: 'Pay breakdown',
+      railAdd: 'Add pay anonymously'
     }, /*PV-MSG:es*/ es: {
       airSub: 'Dubái DXB',
       airMed: 'Mediana',
@@ -272,7 +274,14 @@
       open_realpay: 'Abrir REAL PAY',
       open_airline: 'Abrir la página de la aerolínea',
       open_mypay: 'Abrir MY PAY',
-      open_schedule: 'Abrir la programación'
+      open_schedule: 'Abrir la programación',
+      rpFilter: 'Filtrar',
+      rpAir: 'Aerolínea',
+      rpPos: 'Cargo · Aeronave',
+      rpYrs: 'Años',
+      rpAmt: 'Anual',
+      rpComp: 'Desglose de la remuneración',
+      railAdd: 'Add pay anonymously'
     } /*/PV-MSG:es*/
   };
   TT = (window.PV_T && window.PV_T(TT, L)) || TT[L];
@@ -983,7 +992,7 @@
     var step = function (now) {
       if (my !== tgt._ltRun) return;
       if (t0 == null) t0 = now;
-      var k = Math.min(1, (now - t0) / 1000), e = 1 - Math.pow(1 - k, 4);
+      var k = Math.min(1, (now - t0) / 800), e = 1 - Math.pow(1 - k, 4);
       tgt.textContent = k < 1 ? fmt(val * e) : fin;
       if (k < 1) requestAnimationFrame(step);
     };
@@ -1055,7 +1064,7 @@
         if (dist < 4) return;
         inn.classList.add('lt-flow');
         inn.style.transform = 'translateY(' + (-dist) + 'px)';
-      }, 1400);
+      }, 900);
     };
     var show = function (i) {
       if (i === cur || !scr[i]) return;
@@ -1113,19 +1122,19 @@
       var x = (r.left - p.left + r.width * 0.55) / s, y = (r.top - p.top + r.height * 0.6) / s;
       cursor.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px)';
     };
-    var DWELL = 4200;
+    var DWELL = 2800;   // オーナー「もっと素早く」（4.2 → 2.8 秒）
     var loop = function () {
       timers.forEach(clearTimeout); timers = [];
       if (paused) { waiting = true; return; }
       later(function () {
-        var n = (cur + 1) % TOUR.length;
+        var n = (cur + 1) % TOUR.length;   // カーソルが動き出すのは切り替えの 0.75 秒前
         var target = TOUR[n].k === 'schedule' ? scr[cur].querySelector('[data-sub="roster"]') : tabOf(n);
         aim(target);
         later(function () {
           if (target) { target.classList.add('is-press'); setTimeout(function () { target.classList.remove('is-press'); }, 220); }
-          later(function () { show(n); loop(); }, 160);
-        }, 720);
-      }, DWELL - 900);
+          later(function () { show(n); loop(); }, 120);
+        }, 520);
+      }, DWELL - 650);
     };
     aim(tabOf(0));
     loop();
@@ -1146,6 +1155,128 @@
       if ('IntersectionObserver' in w) new IntersectionObserver(function (es) { stop.out = !es[0].isIntersecting; sync(); }, { threshold: 0.25 }).observe(shot);
     }
     d.addEventListener('visibilitychange', sync);
+  }
+
+  /* ── ⓬-b PC の窓の部品（トップの3か所が共有：ヒーロー・REAL PAY の節・航空会社の比較の節）──────────
+     ★箱（.lt-pcbox）の幅に合わせて、中（.lt-pc）を設計の大きさで組んで縮める。高さは箱に合わせて設計の高さを決める。
+     ★飾りの左メニュー（押せない）と上の帯は、空の入れ物（data-on）にここで描く ＝ 同じ絵を3か所に書かない。 */
+  var RAIL_IC = {
+    add: '<path d="M12 5v14M5 12h14"/>',
+    home: '<path d="M3 9.5 12 2l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>',
+    others: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+    vote: '<path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/>',
+    roadmap: '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V4s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/>',
+    airlines: '<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
+    invite: '<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/>',
+    settings: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'
+  };
+  function railHTML(on) {
+    var items = [['add', TT.railAdd], ['home', 'HOME'], ['others', 'REAL PAY'], ['vote', 'VOTE'], ['roadmap', 'ROADMAP & REQUESTS'],
+                 ['airlines', 'AIRLINES'], ['invite', 'INVITE'], ['settings', 'MY PAGE']];
+    return items.map(function (it) {
+      return '<span class="lt-ri' + (it[0] === 'add' ? ' lt-add' : '') + (it[0] === on ? ' is-on' : '') + '">' +
+        '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + RAIL_IC[it[0]] + '</svg>' +
+        '<em>' + esc(it[1]) + '</em></span>';
+    }).join('') + '<i class="lt-pill"></i>';
+  }
+  function pcFrames() {
+    Array.prototype.forEach.call(d.querySelectorAll('.lt-rail[data-on]'), function (r) { r.innerHTML = railHTML(r.getAttribute('data-on')); });
+    Array.prototype.forEach.call(d.querySelectorAll('.lt-top[data-fill]'), function (t) {
+      t.innerHTML = '<span class="lt-logo">PILOT<br>VALUE</span><span class="lt-tb lt-tb-i"></span><span class="lt-tb lt-tb-i"></span><span class="lt-tb">' + (L === 'en' ? 'EN' : 'JP') + '</span><span class="lt-tb">¥ JPY</span>';
+    });
+  }
+  /* 飾りの左メニューの緑の板を、選んだ項目の位置に置く（動かない） */
+  function railPill(rail) {
+    var on = rail && rail.querySelector('.lt-ri.is-on'), pill = rail && rail.querySelector('.lt-pill');
+    if (!on || !pill) return;
+    pill.style.transform = 'translateY(' + on.offsetTop + 'px)';
+    pill.style.height = on.offsetHeight + 'px';
+    pill.style.width = on.offsetWidth + 'px';
+    pill.style.left = on.offsetLeft + 'px';
+  }
+  function pcFit(box, pc, wide, narrow, cb) {
+    var fit = function () {
+      var bw = box.clientWidth, bh = box.clientHeight;
+      if (!bw || !bh) return;
+      var W = bw >= 440 ? wide : narrow, s = bw / W;
+      pc.classList.toggle('is-narrow', W === narrow);
+      pc.style.width = W + 'px';
+      pc.style.height = Math.round(bh / s) + 'px';
+      pc.style.transform = 'scale(' + s.toFixed(4) + ')';
+      if (cb) cb();
+    };
+    fit();
+    if ('ResizeObserver' in w) new ResizeObserver(fit).observe(box); else w.addEventListener('resize', fit);
+  }
+  /* カーソルを pc の中の el へ動かす（設計の座標で） */
+  function pcAim(pc, cursor, el, fx, fy) {
+    if (!cursor || !el) return;
+    var p = pc.getBoundingClientRect(), r = el.getBoundingClientRect(), s = p.width / pc.offsetWidth;
+    var x = (r.left - p.left + r.width * (fx == null ? 0.55 : fx)) / s, y = (r.top - p.top + r.height * (fy == null ? 0.6 : fy)) / s;
+    cursor.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px)';
+  }
+  var RM_ALL = !!(w.matchMedia && w.matchMedia('(prefers-reduced-motion: reduce)').matches) || (!!navigator.webdriver && !w.__pvMotion);
+  /* 箱が画面に入っている間だけ回す（外・裏のタブでは止める）。run(on) は入った／出たで呼ばれる */
+  function whileSeen(el, run) {
+    var seen = false, sync = function () { var v = seen && !d.hidden; run(v); };
+    if ('IntersectionObserver' in w) new IntersectionObserver(function (es) { seen = es[0].isIntersecting; sync(); }, { threshold: 0.3 }).observe(el);
+    d.addEventListener('visibilitychange', sync);
+  }
+
+  /* ── ⓬-c REAL PAY の節：PC の窓の中の REAL PAY。カーソルが行を押す → 右から「行を押すと出る面」（今までの白いカード）が滑り込む ──
+     ★面の中身は今までどおり fillRealPay() が描く（全部見本・キャセイの機長）。ここは開け閉めと動きだけ。 */
+  function realpayDemo() {
+    var box = d.getElementById('lt2-box'), pc = d.getElementById('lt2-pc'), go = d.getElementById('lt2-go'), dw = d.getElementById('lt2-dw');
+    if (!box || !pc || !go || !dw) return;
+    var H = PV_DEMO.hero, idx = [0, H.rp.on, 1, 2, 4];
+    var partsOf = function (i) { if (i === H.rp.on) return H.detail.parts; var r = H.rows.filter(function (x) { return x.i === i; })[0]; return r ? r.parts : [['base', 60], ['variable', 26], ['bonus', 14]]; };
+    var rows = idx.map(function (i, n) {
+      var r = PV_DEMO.marquee[i]; if (!r) return '';
+      var slug = r[0], jpy = r[1] * 10000, name = airlineName(slug, r[7]);
+      return '<div class="lt-tr lt-r' + (i === H.rp.on ? ' lt-pick' : '') + '" style="--i:' + n + '">' +
+        '<span class="lt-td lt-td-air">' + heroLogo(slug, name) + '<b>' + esc(name) + '</b></span>' +
+        '<span class="lt-td lt-td-pos">' + esc(posReal(r[3])) + '<small>' + esc(fleetReal(r[4])) + '</small></span>' +
+        '<span class="lt-td lt-td-yr">' + esc(T.ten(tw(r[5]))) + '</span>' +
+        '<span class="lt-td lt-td-amt"><span class="lt-n">' + amt(jpy, 'lt-rp-v') + '</span></span>' +
+        '<span class="lt-td lt-td-cb">' + heroBar('hero-c-cb', partsOf(i)) + '</span></div>';
+    }).join('');
+    go.innerHTML = '<div class="lt-in">' +
+      '<div class="lt-span lt-r lt-rp-hd"><b class="lt-rp-t">REAL PAY</b><span class="lt-rp-t2">VERIFIED PAY</span><span class="lt-chipf">' + esc(TT.rpFilter) + '</span></div>' +
+      '<div class="lt-span lt-tbl"><div class="lt-th lt-r"><span>' + esc(TT.rpAir) + '</span><span>' + esc(TT.rpPos) + '</span><span>' + esc(TT.rpYrs) + '</span>' +
+        '<span>' + esc(TT.rpAmt) + '</span><span>' + esc(TT.rpComp) + '</span></div>' + rows + '</div></div>';
+    var rail = pc.querySelector('.lt-rail');
+    pcFit(box, pc, 880, 720, function () { railPill(rail); });
+    var all = [].slice.call(go.querySelectorAll('.lt-r'));
+    if (RM_ALL) { all.forEach(function (r) { r.classList.add('lt-on'); }); dw.classList.add('is-open'); return; }
+    var cursor = pc.querySelector('.lt-cursor'), pick = go.querySelector('.lt-pick'), x = dw.querySelector('.lp-rp-x');
+    var timers = [], first = true;
+    var later = function (fn, ms) { timers.push(setTimeout(fn, ms)); };
+    var openDw = function () {
+      pick.classList.add('is-sel');
+      dw.classList.remove('is-play'); void dw.offsetWidth;
+      dw.classList.add('is-open', 'is-play');
+      Array.prototype.forEach.call(dw.querySelectorAll('.lp-rp-av, .lp-rp-v .pv-no-cur'), tourCount);
+    };
+    var closeDw = function () { dw.classList.remove('is-open'); pick.classList.remove('is-sel'); };
+    var cycle = function () {
+      if (first) {
+        first = false;
+        all.forEach(function (r) { r.classList.add('lt-on'); });
+        Array.prototype.forEach.call(go.querySelectorAll('.lt-n'), tourCount);
+        pcAim(pc, cursor, go.querySelector('.lt-th'), 0.9, 0.5);
+      }
+      later(function () { pcAim(pc, cursor, pick, 0.5, 0.55); }, 600);
+      later(function () { pick.classList.add('is-press'); setTimeout(function () { pick.classList.remove('is-press'); }, 200); }, 1150);
+      later(openDw, 1270);
+      later(function () { pcAim(pc, cursor, x, 0.5, 0.5); }, 4300);
+      later(function () { if (x) { x.classList.add('is-press'); setTimeout(function () { x.classList.remove('is-press'); }, 200); } }, 4850);
+      later(closeDw, 4970);
+      later(cycle, 5800);
+    };
+    whileSeen(box, function (on) {
+      timers.forEach(clearTimeout); timers = [];
+      if (on) cycle();
+    });
   }
 
   /* ── ⓫ REAL PAY の節：白いカード（行を押すと出る面の見本）──────────────────
@@ -1231,6 +1362,7 @@
       for (var k = 0; k < dots.length; k++) {
         if (k === i) dots[k].setAttribute('aria-current', 'true'); else dots[k].removeAttribute('aria-current');
       }
+      for (var q = 0; q < n; q++) slides[q].classList.toggle('is-cur', q === i);   // 見えている1枚だけ棒が伸びる（lp.css）
       if (label) label.textContent = slides[i].getAttribute('data-pair') || '';
       if (prev) prev.disabled = i === 0;
       if (next) next.disabled = i === n - 1;
@@ -1282,6 +1414,22 @@
     // 幅が変わったら、いまの1枚の頭へ合わせ直す（回転・ウィンドウの幅を変えたとき半端な位置で止めない）。
     w.addEventListener('resize', function () { if (cur >= 0) track.scrollLeft = cur * track.clientWidth; });
     paint(at());
+    /* ★2026-11-12 PC の窓（#lt3-box）に入れた。箱の幅に合わせて縮め、見えている間は 5 秒ごとに次の組へ（最後の次は最初へ）。
+         指を乗せている間・「動きを減らす」・自動の検査では送らない。 */
+    var box3 = d.getElementById('lt3-box'), pc3 = d.getElementById('lt3-pc');
+    if (box3 && pc3) {
+      var rail3 = pc3.querySelector('.lt-rail');
+      pcFit(box3, pc3, 820, 640, function () { railPill(rail3); if (cur >= 0) track.scrollLeft = cur * track.clientWidth; });
+      if (!RM_ALL) {
+        var t3 = 0, hover3 = false;
+        box3.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') hover3 = true; });
+        box3.addEventListener('pointerleave', function () { hover3 = false; });
+        whileSeen(box3, function (on) {
+          clearInterval(t3);
+          if (on) t3 = setInterval(function () { if (!hover3) go(base() >= n - 1 ? 0 : base() + 1); }, 3200);
+        });
+      }
+    }
   }
 
   /* ── ⓭ 航空会社別の年収ランキング（#ranking の棒グラフ）─────────────────
@@ -1411,8 +1559,10 @@
     wireEvents();
     fillMarquee();
     fillHero();
+    pcFrames();
     tour();
     fillRealPay();
+    realpayDemo();
     fillAirlines();
     wireCompare();
     fillRanking();

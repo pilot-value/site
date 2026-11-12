@@ -170,7 +170,7 @@
        どちらもこの版で無くなっている。
        ⚠️ ?v= は lp.css の中身の指紋（2026-10-04）。lp.css を直すと assert-links.mjs が
           新しい値を言うので、日英2枚に写す（理由は index.html の同じ場所）。 -->
-  <link rel="stylesheet" href="../lp.css?v=7eb91973">
+  <link rel="stylesheet" href="../lp.css?v=654db5cd">
 <!-- Google tag (gtag.js) -->
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -402,12 +402,24 @@
            ＝刷新の前と後を GA4 で1本の線として比べられる。新しい名前を付けない。 -->
       <a class="lp-link lp-link--alt" href="pay-report.html" data-pv-ev="actual_pay_contribute_cta"><span class="lp-gg"><span>Give &amp; Get</span> Unlock all pay data</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
     </div>
-    <div class="lp-panel lp-rp-panel">
-      <!-- ★2026-11-01、本物の「行を押すと出る面」（actual-pay.js の dwHTML）と同じ並びにした。中身は lp.js の fillRealPay が描く（全部サンプル）。
-           ⚠️ 金額を HTML に書かない。#lp-rp-body の高さは lp.css が固定している（描き替えても跳ねない）。 -->
-      <div class="lp-rp-card">
-        <div class="lp-rp-top"><span class="lp-rp-name" id="lp-rp-name"><i class="hero-sk hero-sk--logo"></i></span><span class="lp-tag">Sample</span><span class="lp-rp-x" aria-hidden="true">×</span></div>
-        <div class="lp-rp-body" id="lp-rp-body"></div>
+    <!-- ★2026-11-12 オーナー「他社のパイロットはいくら稼いでいる？の部分も PC 画面に」── 緑の面の箱がそのまま PC の窓。
+         中は REAL PAY の一覧（lp.js の realpayDemo が描く・全部見本）。カーソルが行を押すと、右から今までの白いカード（行を押すと出る面）が滑り込む。
+         ⚠️ 金額を HTML に書かない（白いカードの中身も今までどおり fillRealPay が描く）。 -->
+    <div class="lp-panel lp-rp-panel lt-pcbox lt-pcbox2" id="lt2-box">
+      <div class="lt-pc" id="lt2-pc">
+        <div class="lt-chrome" aria-hidden="true"><i></i><i></i><i></i><span class="lt-url">pilot-value.com/<b>actual-pay</b></span></div>
+        <div class="lt-app">
+          <div class="lt-rail" data-on="others" aria-hidden="true"></div>
+          <div class="lt-main">
+            <div class="lt-top" data-fill aria-hidden="true"></div>
+            <div class="lt-go" id="lt2-go"></div>
+            <div class="lp-rp-card lt-dw" id="lt2-dw">
+              <div class="lp-rp-top"><span class="lp-rp-name" id="lp-rp-name"><i class="hero-sk hero-sk--logo"></i></span><span class="lp-tag">Sample</span><span class="lp-rp-x" aria-hidden="true">×</span></div>
+              <div class="lp-rp-body" id="lp-rp-body"></div>
+            </div>
+          </div>
+        </div>
+        <i class="lt-cursor" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M5 3l14 8-6.2 1.6L10 19z" fill="#0f172a" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg></i>
       </div>
     </div>
   </div>
@@ -439,10 +451,14 @@
          （クリックしたらその比較画面になる）」）。下の印の中は gen-lp-compare.mjs が career.html から写して書く。手で直さない。 -->
 <!--PV-LPCMP-->
 <div class="lp-cmp">
-<div class="lp-panel lp-air-panel">
-<div class="lp-phone">
-<div class="lp-phone-scr lp-cmp-scr">
-<i class="lp-phone-pill" aria-hidden="true"></i>
+<div class="lp-panel lp-air-panel lt-pcbox lt-pcbox3" id="lt3-box">
+<div class="lt-pc" id="lt3-pc">
+<div class="lt-chrome" aria-hidden="true"><i></i><i></i><i></i><span class="lt-url">pilot-value.com/<b>career?view=compare</b></span></div>
+<div class="lt-app">
+<div class="lt-rail" data-on="airlines" aria-hidden="true"></div>
+<div class="lt-main">
+<div class="lt-top" data-fill aria-hidden="true"></div>
+<div class="lp-cmp-scr lt-cmp">
 <div class="lp-cmp-track" id="lp-cmp-track" aria-label="Comparison screen preview">
 <a class="lp-cmp-s" href="career.html?view=compare&amp;a=jal&amp;b=ana" data-pv-ev="lp_compare_slide" data-pair="Japan Airlines (JAL) × All Nippon Airways (ANA)" aria-label="Open the comparison: Japan Airlines (JAL) and All Nippon Airways (ANA)">
 <span class="lp-cmp-back"><svg class="lp-cmp-ic" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>Choose an airline</span>
@@ -489,6 +505,8 @@
 </span>
 <span class="lp-cmp-next"><b>Submitted pay</b><span lang="en">REAL PAY</span></span>
 </a>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -982,7 +1000,7 @@ if (window.PVReferral) window.PVReferral.mountStrip();</script>
 </script>
 <script src="../review-i18n.js"></script>
 <!-- ★ lp.js は日英1本。<html lang> を見て文言を出し分ける。currency.js より前に置く。 -->
-<script defer src="../lp.js?v=a2aa6925"></script>
+<script defer src="../lp.js?v=52990eaa"></script>
 <script src="../currency.js"></script>
 <!-- PV-NAV: opens and closes the navigation. Loads AFTER search.js so it can adopt
      the hamburger that file creates; on pages without search.js it makes its own. -->
