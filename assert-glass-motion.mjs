@@ -62,7 +62,11 @@ for (const p of PAGES) {
     const r = await page.evaluate(async () => {
       document.documentElement.style.scrollBehavior = 'auto';
       const H = document.documentElement.scrollHeight;
-      for (let y = 0; y <= H; y += 220) { window.scrollTo(0, y); await new Promise((r) => setTimeout(r, 70)); }
+      const frame = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      for (let y = 0; y <= H; y += 220) { window.scrollTo(0, y); await frame(); await new Promise((r) => setTimeout(r, 60)); }
+      /* 速く送ると、絵を描くのが遅い機械（検査のブラウザ）では見出しが1コマも映らずに通り過ぎることがある。
+         そのときは見出しは割れたまま待つ（次に映ったときにせり上がる）＝ 残っているものは1つずつ画面に入れて確かめる */
+      for (const e of [...document.querySelectorAll('.ut-split')]) { e.scrollIntoView({ block: 'center' }); await frame(); await new Promise((r) => setTimeout(r, 400)); }
       window.scrollTo(0, 0);
       await new Promise((r) => setTimeout(r, 4600));
       const sc = (e) => { const cs = getComputedStyle(e); return (cs.scale !== 'none' && cs.scale !== '1') || (cs.transform !== 'none' && cs.transform !== 'matrix(1, 0, 0, 1, 0, 0)'); };

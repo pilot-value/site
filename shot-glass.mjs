@@ -697,9 +697,26 @@ if (process.env.REC) {
   await page.evaluate(() => window.PVUiTrial && window.PVUiTrial.replay()).catch(() => {});
   await sleep(2600);
   /* 会社ページへは左メニューに入口が無い（AIRLINES は一覧）＝ ページの中から住所を変えて移る（ページまたぎの切り替えはそのまま起きる） */
-  const go = (u) => page.evaluate((u) => { location.href = u; }, u).catch(() => {});
-  const AIR = 'airlines/cathay-pacific.html?sw=0';
-  if ((process.env.PAGE || '').startsWith('airlines/')) {
+  const go = (u) => page.evaluate((u) => { location.href = (u.startsWith('/') || u.startsWith('http') ? '' : '/') + u; }, u).catch(() => {});
+  const AIR = 'airlines/cathay-pacific.html';
+  if (process.env.TOUR === 'all') {
+    /* 全ページに広げたあとの見本（2026-11-12）：トップ → 航空会社一覧 → 会社ページ → Vote → 国のページ → MY PAY → REAL PAY。
+       PAGE=index.html で始める。ページは住所を変えて移る（ページまたぎの切り替えが起きる） */
+    const pc = vw >= 600;
+    await glide(pc ? 2300 : 3200, pc ? 6500 : 8000); await sleep(1400);
+    await go('world-airlines.html'); await sleep(3200);
+    if (!pc) { await glide(700, 2200); await sleep(1000); }
+    await go('airlines/cathay-pacific.html'); await sleep(3400);
+    await glide(pc ? 1500 : 2600, pc ? 4500 : 6500); await sleep(1600);
+    await go('community.html'); await sleep(3200);
+    await glide(pc ? 1300 : 1900, pc ? 4000 : 5000); await sleep(1400);
+    await go('countries/japan.html'); await sleep(3000);
+    await glide(pc ? 1000 : 1500, 3500); await sleep(1400);
+    await go('profile.html#your-pay'); await sleep(3400);
+    await glide(pc ? 1100 : 1900, pc ? 3600 : 5200); await sleep(1600); await glide(0, 1000); await sleep(400);
+    if (pc) { await tap('.mr-side-a[href^="actual-pay"]'); await sleep(3000); }
+    else { await tap('.pv-ham-btn'); await sleep(1100); await tap('.mr-side-a[href^="actual-pay"]'); await sleep(3000); }
+  } else if ((process.env.PAGE || '').startsWith('airlines/')) {
     /* 会社ページだけ（背景の2通りを比べる用）：開いた瞬間 → ゆっくり下まで → 上へ → 勤務・訓練 */
     await sleep(800);
     await glide('bottom', vw >= 600 ? 9000 : 12000); await sleep(1400); await glide(0, 1400); await sleep(600);

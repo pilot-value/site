@@ -126,10 +126,10 @@ html[data-ui][data-theme="dark"] .mr-top::after{background:linear-gradient(180de
   html[data-ui] body.pv-anav-shell .mr-side-a:active{transform:scale(.96)}
 }
 @media(max-width:1000px){
+  /* 狭い画面の引き出し：ぼかさない（滑り込む間ずっと下を描き直すので重い・古い電話でカクつく）。白をほぼ不透明に、角だけ丸く */
   html[data-ui] .mr-side,
   html[data-ui] .mr-col .mr-side{
-    background:var(--ut-glass-hi);
-    -webkit-backdrop-filter:var(--ut-blur);backdrop-filter:var(--ut-blur);
+    background:color-mix(in srgb,var(--pv-surface) 94%,transparent);
     border-left:1px solid var(--ut-glass-line);border-radius:24px 0 0 24px}
 }
 /* 選んだ項目：板の上に白い字と白い絵（白い字と深い緑は 5.6:1）*/
@@ -244,8 +244,8 @@ html[data-ui] #main-nav,html[data-ui] #main-nav.scrolled{background:color-mix(in
 /* REAL PAY：ぼかしは1つも掛けない ＝ 透ける白だけ。
    ① 「本文にぼかしが1つも掛かっていない（隠すのではなく渡さない）」の約束を見た目でも守る（assert-pay-rows.mjs）
    ② ぼかしを持つ箱は、中の「下から出るシート」（position:fixed）の置き場を箱の中へ変えてしまう（狭い画面の絞り込みが開かなくなった） */
-html[data-ui] main :is(.ap-filter,.ap-tw,.ap-lock-skel,.ap-st,.ap-msg,.ap-lock-see){-webkit-backdrop-filter:none;backdrop-filter:none;
-  background:color-mix(in srgb,var(--pv-surface) 84%,transparent)}
+html[data-ui] main :is(.ap-filter,.ap-tw,.ap-lock-skel,.ap-st,.ap-msg,.ap-lock-see){-webkit-backdrop-filter:none !important;backdrop-filter:none !important;
+  background:color-mix(in srgb,var(--pv-surface) 84%,transparent) !important}   /* 上のガラスの規則のほうが強い（:not が2つ）＝ !important */
 /* ★中に「下から出るシート」「ダイアログ」「引き出し」を持つ箱は、どの画面でもぼかさない。
      ぼかし（backdrop-filter）を持つ箱は、中の position:fixed の置き場を「画面」から「箱」へ変えてしまう（REAL PAY で踏んだ）。 */
 html[data-ui] :is(.mr-card,.an-card,.rs-card,.ru-card,.pvg-card,.glass,.glass-raised,.card,.cr-sec,.cr-topic,.cr-card,.cr-side,.vt-co,.wd-search,.wam-g):has(dialog,[role="dialog"],[class*="sheet"],[class*="modal"],[class*="drawer"],[class*="popover"]){
