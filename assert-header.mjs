@@ -615,11 +615,14 @@ async function runPage(href, label, opt, ok) {
         };
       }, RAIL_PX);
       if (r) {
-        ok(Math.abs(r.width - RAIL_PX) < 0.5 && r.pad === RAIL_PX,
-           `${tag} レールは ${RAIL_PX}px・本文の左余白も同じ`,
-           `幅 ${r.width} / padding-left ${r.pad}`);
-        ok(r.pos === 'fixed' && Math.abs(r.left) < 0.5,
-           `${tag} レールは画面の左端に固定`, `${r.pos} / 左端 ${r.left}`);
+        /* ★2026-11-12 すりガラス（pv-glass.css の 3 節）で、レールは端に付いた 144px の帯から「列の中に浮かぶ板」になった
+             （左 8px・幅 128px・角丸）。変わらない約束は2つ ── 列の真ん中は 72px（左上のロゴと揃う）・本文の左余白は 144px
+             （＝ 板の右端は本文に掛からない）。端に付いた帯に戻すと、ここは前と同じ式でも通る。 */
+        ok(r.pad === RAIL_PX && Math.abs(r.left + r.width / 2 - RAIL_PX / 2) < 0.5 && r.left + r.width <= RAIL_PX + 0.5 && r.width >= RAIL_PX - 24,
+           `${tag} レールは ${RAIL_PX}px の列の真ん中・本文の左余白は ${RAIL_PX}px（板の右端が本文に掛からない）`,
+           `幅 ${r.width} / 左端 ${r.left} / padding-left ${r.pad}`);
+        ok(r.pos === 'fixed' && r.left >= -0.5 && r.left <= 12,
+           `${tag} レールは画面の左に固定（端から 12px 以内）`, `${r.pos} / 左端 ${r.left}`);
         /* ★⑤ 絵の上・文字の下。1つでも横並びが残っていたら落とす。 */
         const flat = r.rows.filter((x) => !x.stacked);
         ok(flat.length === 0 && r.rows.length > 0,
@@ -830,8 +833,8 @@ async function runInviteRail(href, label, needSession, wantStrip, ok) {
       }, RAIL_PX);
 
       if (r.noRail) { ok(false, `${label} レールがある`, `いま ${r.url}`); return; }
-      ok(Math.abs(r.width - RAIL_PX) < 0.5 && r.vis === 'visible',
-         `${label} レールが ${RAIL_PX}px で出ている`, `幅 ${r.width} / ${r.vis}`);
+      ok(r.width >= RAIL_PX - 24 && r.width <= RAIL_PX + 0.5 && r.vis === 'visible',
+         `${label} レールが ${RAIL_PX}px の列に出ている`, `幅 ${r.width} / ${r.vis}`);
       if (r.strip) {
         ok(Number(r.zRail) > Number(r.zStrip),
            `${label} レールは招待状より上にある`, `レール ${r.zRail} / 招待状 ${r.zStrip}`);

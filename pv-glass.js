@@ -135,7 +135,9 @@
   function topCards(region) {
     return Array.prototype.filter.call(region.querySelectorAll(CARD), function (c) {
       /* 前からの浮かぶ動き（.fade-up）を持つ箱は、こちらでは動かさない（2つの動きが重なる） */
-      return !(c.parentElement && c.parentElement.closest(CARD)) && !c.closest('.fade-up') && c.getClientRects().length;
+      /* 中にシート・ダイアログ・引き出しを持つ箱も動かさない（動いている間は transform が掛かり、中の position:fixed が箱の中に閉じ込められる） */
+      return !(c.parentElement && c.parentElement.closest(CARD)) && !c.closest('.fade-up') && c.getClientRects().length &&
+        !c.querySelector('dialog,[role="dialog"],[class*="sheet"],[class*="modal"],[class*="drawer"],[class*="popover"]');
     });
   }
   /* force … タブを押したとき（前に動いたものももう一度動かす）。無し … 開いた直後に遅れて出てきたものだけ動かす */

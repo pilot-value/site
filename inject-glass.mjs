@@ -4,7 +4,7 @@
    入れるのは <!--PV-GLASS-->…<!--/PV-GLASS--> の1つだけ（</head> の直前 ＝ ページのどの CSS よりも後に効く）：
      ・字（Google Fonts の Outfit と Zen Kaku Gothic New）
      ・pv-glass.css と pv-glass.js（どちらも中身の指紋 ?v= 付き ＝ 直したら流し直す。古い組み合わせを4時間残さない）
-   ・対象は app-nav.css を読んでいるページ（ヘッダーと左メニューのある画面）。運営の画面（admin.html）は入れない。
+   ・対象は app-nav.css を読んでいるページ（ヘッダーと左メニューのある画面）。運営の画面（admin.html）と DEEP PAY（本番から消した）は入れない。
    ・何度流しても同じ結果。試作のときの2行（ui-trial.css / ui-trial.js）が残っていたら取り除く。
    ・日英のページはここで書く。スペイン語（es/）は gen-lang.mjs が英語のページから写す（同じ深さなので住所はそのまま）。
      ⚠️ es/ をここで書かない ── gen-lang.mjs の出力と食い違うと assert-generated.mjs が落ちる。
@@ -30,7 +30,8 @@ export const GLASS_DIRS = [
   ['.', ''], ['airlines', '../'], ['countries', '../'],
   ['en', '../'], ['en/airlines', '../../'], ['en/countries', '../../'],
 ];
-export const SKIP = new Set(['admin.html']);
+/* 運営の画面と、本番から消した DEEP PAY（_config.yml の exclude・検査が通信の行き先と字の色を細かく縛っている）には入れない */
+export const SKIP = new Set(['admin.html', 'deep-pay.html', 'deep-pay-compare.html', 'en/deep-pay.html', 'en/deep-pay-compare.html']);
 export const FONTS = 'https://fonts.googleapis.com/css2?family=Outfit:wght@300..700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap';
 export const fingerprint = (f) => createHash('sha256').update(fs.readFileSync(path.join(ROOT, f))).digest('hex').slice(0, 8);
 
@@ -66,7 +67,12 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
     for (const f of fs.readdirSync(abs).filter((x) => x.endsWith('.html')).sort()) {
       const fp = path.join(abs, f);
       const html = fs.readFileSync(fp, 'utf8');
-      if (SKIP.has(path.posix.join(dir === '.' ? '' : dir, f)) || !wantsGlass(html)) { skipped++; continue; }
+      if (SKIP.has(path.posix.join(dir === '.' ? '' : dir, f)) || !wantsGlass(html)) {
+        /* 対象外のページに塊が残っていたら外す（あとから対象外にしたページ） */
+        if (BLOCK_RE.test(html)) { wrote++; if (!CHECK) fs.writeFileSync(fp, html.replace(new RegExp(BLOCK_RE.source + '\\n?'), '')); }
+        else skipped++;
+        continue;
+      }
       const next = withGlass(html, rel);
       if (next == null) { noHead.push(path.join(dir, f)); continue; }
       if (next === html) { same++; continue; }

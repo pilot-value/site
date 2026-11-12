@@ -353,7 +353,10 @@ for (const f of files) {
       process.exitCode = 1;
       continue;
     }
-    html = html.replace('</head>', () => block + '</head>');
+    /* ★2026-11-12 すりガラスと動きの塊（<!--PV-GLASS-->・inject-glass.mjs）は、こちらの塊よりさらに後（</head> の直前）に居る。
+         塊が在れば、その直前に置く ＝ 並びは「ナビの CSS → ガラス → </head>」で、どちらを先に流しても同じ結果。 */
+    const at = html.includes('<!--PV-GLASS-->') ? '<!--PV-GLASS-->' : '</head>';
+    html = html.replace(at, () => block + at);
   }
 
   /* ── ④ app-nav.js を </body> の直前へ。★search.js より必ず後になる。 */

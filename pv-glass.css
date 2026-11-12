@@ -241,16 +241,28 @@ html[data-ui] body.pv-anav-app :is(.cr-sec,.cr-topic,.cr-card,.cr-pub,.cr-side,.
 /* 5-d) 公開の画面の上の帯（#main-nav）もガラスに */
 html[data-ui] #main-nav,html[data-ui] #main-nav.scrolled{background:color-mix(in srgb,var(--pv-bg) 62%,transparent) !important;
   -webkit-backdrop-filter:var(--ut-blur) !important;backdrop-filter:var(--ut-blur) !important;border-bottom-color:var(--ut-glass-line) !important}
+/* REAL PAY：ぼかしは1つも掛けない ＝ 透ける白だけ。
+   ① 「本文にぼかしが1つも掛かっていない（隠すのではなく渡さない）」の約束を見た目でも守る（assert-pay-rows.mjs）
+   ② ぼかしを持つ箱は、中の「下から出るシート」（position:fixed）の置き場を箱の中へ変えてしまう（狭い画面の絞り込みが開かなくなった） */
+html[data-ui] main :is(.ap-filter,.ap-tw,.ap-lock-skel,.ap-st,.ap-msg,.ap-lock-see){-webkit-backdrop-filter:none;backdrop-filter:none;
+  background:color-mix(in srgb,var(--pv-surface) 84%,transparent)}
+/* ★中に「下から出るシート」「ダイアログ」「引き出し」を持つ箱は、どの画面でもぼかさない。
+     ぼかし（backdrop-filter）を持つ箱は、中の position:fixed の置き場を「画面」から「箱」へ変えてしまう（REAL PAY で踏んだ）。 */
+html[data-ui] :is(.mr-card,.an-card,.rs-card,.ru-card,.pvg-card,.glass,.glass-raised,.card,.cr-sec,.cr-topic,.cr-card,.cr-side,.vt-co,.wd-search,.wam-g):has(dialog,[role="dialog"],[class*="sheet"],[class*="modal"],[class*="drawer"],[class*="popover"]){
+  -webkit-backdrop-filter:none !important;backdrop-filter:none !important}
 /* カードの中のカード（REAL PAY の一覧の表）はガラスを重ねず、薄い面にするだけ */
 html[data-ui] main :is(.ap-lock-skel,.mr-card) .ap-tw{-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;
   background:color-mix(in srgb,var(--pv-surface) 55%,transparent)}
 /* 透ける下地でも小さい字が 4.5:1 を割らないよう、ページ全体（メニューも）で灰色を1段濃く。
-   ライトでは金と橙の字（INVITE の「招待」・ROADMAP の「開発中」）も1段濃く */
-html[data-ui] body{--pv-ink-3:color-mix(in srgb,var(--pv-ink-3) 66%,var(--pv-ink))}
-html[data-ui][data-theme="dark"] body{--pv-ink-3:color-mix(in srgb,var(--pv-ink-3) 70%,var(--pv-ink))}
+   ライトでは金と橙の字（INVITE の「招待」・ROADMAP の「開発中」）も1段濃く
+   ⚠️ 自分を自分で参照しない（--pv-ink-3:…var(--pv-ink-3)… は循環 ＝ 値が無くなり、字が親の色＝真っ黒になる。2026-11-12 に踏んだ）。
+      html で元の値を別の名前に写してから、body で混ぜる。 */
+html[data-ui]{--ut-ink3:var(--pv-ink-3);--ut-gold:var(--pv-gold-ink);--ut-orange:var(--pv-orange-ink)}
+html[data-ui] body{--pv-ink-3:color-mix(in srgb,var(--ut-ink3) 66%,var(--pv-ink))}
+html[data-ui][data-theme="dark"] body{--pv-ink-3:color-mix(in srgb,var(--ut-ink3) 70%,var(--pv-ink))}
 html[data-ui]:not([data-theme="dark"]) body{
-  --pv-gold-ink:color-mix(in srgb,var(--pv-gold-ink) 78%,#000);
-  --pv-orange-ink:color-mix(in srgb,var(--pv-orange-ink) 82%,#000)}
+  --pv-gold-ink:color-mix(in srgb,var(--ut-gold) 78%,#000);
+  --pv-orange-ink:color-mix(in srgb,var(--ut-orange) 82%,#000)}
 
 /* カードに指を乗せると少し浮く（マウスのある端末だけ）*/
 @media (hover:hover) and (pointer:fine){

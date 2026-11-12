@@ -27,7 +27,7 @@ for (const [dir, rel] of dirs) {
   if (!fs.existsSync(abs)) continue;
   for (const f of fs.readdirSync(abs).filter((x) => x.endsWith('.html'))) {
     const name = path.posix.join(dir === '.' ? '' : dir, f);
-    if (SKIP.has(name)) continue;
+    if (SKIP.has(name) || SKIP.has(name.replace(/^es\//, 'en/'))) continue;
     const html = fs.readFileSync(path.join(abs, f), 'utf8');
     if (!wantsGlass(html)) continue;
     pages++;
@@ -43,6 +43,8 @@ ok(twice.length === 0, '塊が2つあるページが無い', twice.slice(0, 8).j
 ok(wrong.length === 0, '塊の中身が glassBlock と1文字も違わない（指紋が新しい）── 直すなら node inject-glass.mjs → node gen-lang.mjs es', wrong.slice(0, 8).join(' '));
 const admin = fs.existsSync(path.join(ROOT, 'admin.html')) ? fs.readFileSync(path.join(ROOT, 'admin.html'), 'utf8') : '';
 ok(!/<!--PV-GLASS-->/.test(admin), '運営の画面（admin.html）には入れない');
+const dp = ['deep-pay.html', 'en/deep-pay.html', 'deep-pay-compare.html', 'en/deep-pay-compare.html'].filter((f) => fs.existsSync(path.join(ROOT, f)) && /<!--PV-GLASS-->/.test(fs.readFileSync(path.join(ROOT, f), 'utf8')));
+ok(dp.length === 0, '本番から消した DEEP PAY には入れない', dp.join(' '));
 
 console.log('\n② 試作の名残');
 let left = '';
