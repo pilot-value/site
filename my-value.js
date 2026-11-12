@@ -71,7 +71,7 @@
   /* ★後から読む2本にも中身の指紋を付ける（.js は配信で4時間覚えられる＝付けないと出した直後に古い部品が残る）。
        my-year.js か my-value-sample.js を直したら、db/test-year-report.mjs が示す値に書き換える（中身と一致するかを見ている）。
        そのあと profile.html（日英）の my-value.js の指紋も変わる（assert-links.mjs が示す値に写す・西は gen-lang.mjs）。 */
-  var YEAR_V = 'a557e977';
+  var YEAR_V = '7ee5a36e';
   var SAMPLE_V = '56f31187';
   var SAMPLE_URL = 'my-value-sample.js?v=' + SAMPLE_V;     // 運営の見本（運営のときだけ読む）
   var YEAR_URL = 'my-year.js?v=' + YEAR_V;                 // 「1年」の画面（押したときだけ読む）
@@ -86,8 +86,8 @@
   var ANALYSIS_V = 'ae699612';
   var ANALYSIS_CSS_V = '19e86be1';
   /* ★スケジュールの一番上の「飛んだルート」の地球儀（2026-11-12）。スケジュールのタブを開いたときだけ読む4本。指紋の決まりは上と同じ */
-  var GLOBE_V = '55a9db78';
-  var GLOBE_CSS_V = 'd387b690';
+  var GLOBE_V = '1e43f892';
+  var GLOBE_CSS_V = '658f744c';
   var AIRPORT_GEO_V = '12fab2ff';   // 空港 → 位置と街の名前（pv-airport-geo.js）
   var GLOBE_COAST_V = '48ed6a23';  // 陸の縁（pv-globe-coast.js・0.25° より細かく寄ったときだけ my-globe.js が読む）
   var GLOBE_LAND_V = '1b63fac1';    // 陸地の点（pv-globe-land.js）

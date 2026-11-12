@@ -70,6 +70,9 @@
 .gl-ring-v{fill:none;stroke-width:6;stroke-linecap:round}
 .gl-ring-n{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:1rem;font-weight:600;letter-spacing:-.02em;line-height:1.1}
 .gl-ring-n small{margin-top:3px;font-size:.58rem;font-weight:400;letter-spacing:0;color:var(--gl-ink3)}
+/* 輪がどの期間の数字か（オーナー「日ごとのブロックの割合は一番上のやつ？」） */
+.gl-ringw{display:flex;flex-direction:column;align-items:center;gap:6px;width:84px}
+.gl-ring-p{max-width:84px;font-size:.58rem;font-weight:400;line-height:1.35;text-align:center;color:var(--gl-ink3)}
 
 /* 棒（稼いだルートの上位3つ） */
 .gl-bars{display:flex;flex-direction:column;gap:9px;min-width:0}
@@ -109,6 +112,14 @@
 .gl-st b{display:block;margin-top:4px;font-size:.84rem;font-weight:600;white-space:nowrap}
 .gl-st:first-child b{font-size:1rem}
 .gl-st:first-child b{color:#ffe2a6}
+/* 便のカード：その便を飛んだ日のブロック率（勤務時間は便に分けられないので日の割合） */
+.gl-blk{display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:5px 8px;margin-top:28px}
+.gl-blk span{font-size:.62rem;font-weight:400;color:var(--gl-ink3)}
+.gl-blk b{font-size:.84rem;font-weight:600;font-variant-numeric:tabular-nums}
+.gl-blk-t{grid-column:1/-1;display:block;height:4px;border-radius:3px;background:rgba(255,255,255,.14);overflow:hidden}
+.gl-blk-t i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#9ff0da,#d9f2a8);transform-origin:left center;
+  animation:glGrowX .7s cubic-bezier(.22,1.18,.36,1) both}   /* 便を選び直すたびに伸ばす（選んだ便の数字が替わったと分かる） */
+.gl-blk + .gl-sts{margin-top:14px}
 .gl-why{grid-column:1/-1;font-size:.76rem;font-weight:400;color:var(--gl-ink2);line-height:1.6}
 .gl-part{grid-column:1/-1;margin-top:8px;padding:10px 12px;border-radius:12px;background:rgba(245,195,90,.12);border:1px solid rgba(245,195,90,.28)}
 .gl-part p{margin:0 0 8px;font-size:.7rem;font-weight:400;line-height:1.6;color:#ffe9bd}
@@ -233,6 +244,14 @@ button.gl-mb-c:active{opacity:.6}
   .gl-row{grid-template-columns:1fr}
   .gl-ap b{font-size:1.45rem}
 }
+/* ★2026-11-12 オーナー「棒グラフはモーションつけてね」：期間を替えたときと最初の1回だけ、棒と輪を 0 から伸ばす（transform と線の長さだけ） */
+.gl-anim .gl-bar-f{animation:glGrowX .9s cubic-bezier(.22,1.18,.36,1) both;animation-delay:calc(var(--i,0) * 90ms + 120ms)}
+.gl-anim .gl-mb-c:not(.is-none):not(.is-off) i{animation:glGrowY .75s cubic-bezier(.22,1.18,.36,1) both;animation-delay:calc(var(--i,0) * 22ms)}
+.gl-anim .gl-ring-v{animation:glRing 1.1s cubic-bezier(.22,1,.36,1) both}
+@keyframes glGrowX{from{transform:scaleX(0)}}
+@keyframes glGrowY{from{transform:scaleY(0)}}
+@keyframes glRing{from{stroke-dashoffset:213.6}}
 @media (prefers-reduced-motion: reduce){
   .gl-pb,.gl-zb,.gl-bar{transition:none}
+  .gl-blk-t i,.gl-anim .gl-bar-f,.gl-anim .gl-mb-c i,.gl-anim .gl-ring-v{animation:none}
 }

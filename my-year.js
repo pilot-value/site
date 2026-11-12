@@ -741,10 +741,7 @@
             return '<button type="button" class="pt-tab' + (y === state.year ? ' on' : '') + '" data-yr="' + y + '">' + esc(T.yr(y)) + '</button>';
           }).join('') + '</div>' : '<span class="yr-one">' + esc(T.yr(state.year)) + '</span>') +
           '<span class="yr-sp"></span><button type="button" class="yr-pdf">' + esc(T.pdf) + '</button></div>' +
-        (tiles.length ? '<div class="yr-tiles">' + tiles.map(function (t) {
-          return '<div class="yr-tile"><span>' + esc(t.k) + '</span><b>' + esc(String(t.v)) + (t.u ? '<i>' + esc(t.u) + '</i>' : '') + '</b>' +
-            (t.sub || []).map(function (x) { return '<small><span>' + esc(x[0]) + '</span> <span>' + esc(x[1]) + '</span></small>'; }).join('') + '</div>';
-        }).join('') + '</div>' : ''), 'is-head is-wide') +
+        headBody(tiles), 'is-head is-wide is-green') +
         (typeof o.lead === 'function' ? o.lead() : '') +      // 累計報酬（見出しの下・左の列）
         card(insights(md)) + card(kinkCard(md, W)) +
         card(hoursChart(md, W)) + card(payChart(md, W, o.segName || {})) +
@@ -764,6 +761,21 @@
     bindHover(box.querySelector('#pv-year'));
   }
 
+  /* ★2026-11-12 オーナー「1年のまとめの最初のカード寂しい。月みたいにもっと目立たせよう。せっかくすごい数字なのに」：
+       今月のカードと同じ緑の面（is-green）・大きい数字は1つ（いちばん上の数字＝総支給の合計）・ほかは名前が左・数字が右の行（今月と同じ .mr-hero / .mr-rl）。
+       数字も並びも今までの升目と同じ（足していない・削っていない） */
+  function headBody(tiles) {
+    if (!tiles.length) return '';
+    var unit = function (t) { return t.u ? '<i>' + esc(t.u) + '</i>' : ''; };
+    var h = tiles[0];
+    return '<div class="yr-hd"><div class="yr-hd-m"><div class="mr-hero"><span class="mr-hero-k">' + esc(h.k) + '</span>' +
+        '<b class="mr-hero-v">' + esc(String(h.v)) + unit(h) + '</b></div>' +
+        ((h.sub || []).length ? '<p class="yr-hd-sub">' + h.sub.map(function (x) { return '<span>' + esc(x[0]) + ' <b>' + esc(x[1]) + '</b></span>'; }).join('') + '</p>' : '') +
+      '</div>' +
+      (tiles.length > 1 ? '<ul class="mr-rl yr-hd-rl" role="list">' + tiles.slice(1).map(function (t) {
+        return '<li class="mr-rl-i"><span class="mr-rl-k">' + esc(t.k) + '</span><span class="mr-rl-v"><b>' + esc(String(t.v)) + unit(t) + '</b></span></li>';
+      }).join('') + '</ul>' : '') + '</div>';
+  }
   function printYear() {
     var src = d.getElementById('pv-year');
     if (!src) return;

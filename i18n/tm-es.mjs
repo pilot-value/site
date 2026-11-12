@@ -16561,4 +16561,8 @@ export const TM = {
   "js:'Year shown'": {"es":"js:'Año que se muestra'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-value.js"],"note":"給与サマリーの月・年を選ぶ 2026-11-12"},
   "js:'Previous year'": {"es":"js:'Año anterior'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-value.js"],"note":"給与サマリーの月・年を選ぶ 2026-11-12"},
   "js:'Next year'": {"es":"js:'Año siguiente'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-value.js"],"note":"給与サマリーの月・年を選ぶ 2026-11-12"},
+  "js:'{p}, all flights'": {"es":"js:'{p}, todos los vuelos'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"地球儀の輪の期間・便のブロック率 2026-11-12"},
+  "js:'This day'": {"es":"js:'Este día'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"地球儀の輪の期間・便のブロック率 2026-11-12"},
+  "js:'Block/duty that day'": {"es":"js:'Block/servicio de ese día'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"地球儀の輪の期間・便のブロック率 2026-11-12"},
+  "js:'Block time as a share of duty time on the day of this flight {p}'": {"es":"js:'Tiempo de bloque sobre el tiempo de servicio del día de este vuelo {p}'","st":"manual","by":"claude","at":"2026-11-12","pages":["my-globe.js"],"note":"地球儀の輪の期間・便のブロック率 2026-11-12"},
 };

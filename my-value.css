@@ -1027,6 +1027,21 @@
 }
 @container (max-width:400px){ #pv-value .yr-c .yr-tiles{grid-template-columns:repeat(2,minmax(0,1fr))} }
 @media print{ #pv-print .yr-g{display:block} #pv-print .yr-g>.mr-card{margin-bottom:12px;break-inside:avoid} }
+/* ★2026-11-12 オーナー「1年のまとめの最初のカード寂しい。月みたいに目立たせよう」── 今月と同じ緑の面（.mr-card.is-green の規則をそのまま使う）。
+   大きい数字は1つ（総支給の合計）・ほかは名前が左・数字が右の行。広いカードでは左に大きい数字・右に行を並べる */
+#pv-value .yr-hd{display:grid;grid-template-columns:minmax(0,1fr);gap:4px 32px;align-items:end}
+#pv-value .yr-hd .mr-hero-v i,#pv-value .yr-hd .mr-rl-v b i{font-style:normal;font-size:.5em;font-weight:600;margin-left:3px;color:var(--pv-ink-2)}
+#pv-value .yr-hd .mr-rl-v b i{font-size:.8rem}
+#pv-value .yr-hd-sub{display:flex;flex-wrap:wrap;gap:4px 16px;margin:10px 0 0;font-size:.8rem;font-weight:500;color:var(--pv-ink-2)}
+#pv-value .yr-hd-sub b{font-weight:600;color:var(--pv-ink);font-variant-numeric:tabular-nums}
+#pv-value .yr-c.is-green .yr-one{color:var(--pv-ink-2)}
+#pv-value .yr-c.is-green .yr-pdf{background:rgba(255,255,255,.14);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.34)}
+#pv-value .yr-c.is-green .yr-pdf:hover{opacity:1;background:rgba(255,255,255,.22)}
+#pv-value .yr-c.is-green .yr-pdf:focus-visible{outline-color:#fff}
+@container (min-width:640px){
+  #pv-value .yr-hd{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  #pv-value .yr-hd-rl{margin-top:0}
+}
 
 /* ══ 2026-11-11 他社の年収をランキングに（地域ごとに選んだ会社＋あなた・年収の高い順・番号は付けない）═══════
    オーナー「色はちゃんと分けて。緑と灰色以外使っていい。薄い色で」「自分の位置がわかるように。濃くするとか」。
