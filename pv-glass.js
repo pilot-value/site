@@ -36,7 +36,7 @@
   var TAB = '.mp-tab,.mv-tab,.pt-tab';
   /* 数え上げる数字：MY PAY の大きい額・他社の年収の額・分析の大きい数・REAL PAY の数字の札・ROADMAP の賛成の数 */
   var COUNT = '.mr-hero-v,.mr-total-v,.mv-ratio>b,.an-big,.ap-st-n,.mr-cmp-v,.rm-wn,.pt-donut-c>b,.pvg-big,.crl-sc-avg>b,' +
-    '.stat-value.num,.bar-val,.lp-ex-bv,.vt-rn';
+    '.stat-value.num,.bar-val,.lp-ex-bv,.vt-rn,.ap-amt';   // REAL PAY の一覧の年収（オーナー「real pay の数字もモーション」）
   /* 見出し：ページの題（1字ずつ下からせり上がる）と、カードの題（カードが見えたら同じ動きを短く） */
   /* 題はどのページでも h1（トップの大見出しは除く ＝ 最初に描く絵の主役で、遅らせると表示が 2 秒遅れる・lp.css の注）。
      色を字の形に塗った見出し（background-clip:text）は割らない（1字ずつの窓に割ると色が消える）＝ split() が見る */
@@ -48,7 +48,7 @@
     /* 公開の画面：国・地域・記事の箱・トップの箱・Vote の会社・2社比較・ログイン（給与フォームの段は自分で動くので入れない） */
     '.stat-card,.info-card,.policy-card,.c-card,.pv-card,.lp-ex-card,.lp-why-item,.vt-co,.cr-sec,.cr-topic,.cr-card,.auth-card,details.pvcf-sec';
   /* 会社ページの HTML の図：年数の点（ぽんと出る）・幅の箱の中央値と真ん中の帯（浮かぶ）・月の勤務の棒（左から伸びる） */
-  var HDOT = '.crl-yd-d', HFADE = '.crl-yd-bd,.crl-yd-md,.crl-rg-m', HBAR = '.crl-wb-b';
+  var HDOT = '.crl-yd-d', HFADE = '.crl-yd-bd,.crl-yd-md,.crl-rg-m', HBAR = '.crl-wb-b,.ap-cb';   // .ap-cb ＝ REAL PAY の一覧の内訳の棒
 
   /* ── 0) ページをまたぐ切り替えと、左メニューの選んだ印 ─────────────────────
      印（.ut-rail-pill）は選んだ項目の後ろに置く中身の無い板。ページを移るとき、前のページの板の位置から
