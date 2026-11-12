@@ -602,7 +602,8 @@ console.log('\n════ PVUnlock 本体 ════');
 }
 
 // ── D: マイページのバッジ。口コミは日付を出さない／年収は出す ──
-for (const [lang, url] of [['ja', '/profile.html'], ['en', '/en/profile.html']]) {
+/* ★2026-11-12 からマイページは MY PAY の面で開く。MY PAGE の面（プロフィール・ログアウト・バッジ…）を見るので #my-page で開く */
+for (const [lang, url] of [['ja', '/profile.html#my-page'], ['en', '/en/profile.html#my-page']]) {
   console.log(`\n════ マイページのバッジ（${lang}） ════`);
   const page = await browser.newPage();
   await stub(page, { hasReview: true,

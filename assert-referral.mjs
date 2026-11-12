@@ -780,7 +780,7 @@ for (const lang of ['ja', 'en']) {
   const errs = [];
   page.on('pageerror', (e) => errs.push(String(e.message).slice(0, 140)));
   await page.evaluateOnNewDocument(FAKE, GAP.near2, CODE);
-  /* ★2026-11-09 から MY PAGE｜MY PAY のタブ。給与の中身（YOUR PAY）は MY PAY ＝ #your-pay で開く（無しだと MY PAGE が開き、MY PAY は描かない）。 */
+  /* ★2026-11-09 から MY PAGE｜MY PAY のタブ。給与の中身（YOUR PAY）は MY PAY ＝ #your-pay で開く（2026-11-12 から印が無くても MY PAY）。 */
   await page.goto(BASE + (lang === 'en' ? '/en/' : '/') + 'profile.html#your-pay',
                   { waitUntil: 'domcontentloaded', timeout: 30000 });
   await sleep(2800);

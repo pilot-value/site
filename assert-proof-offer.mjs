@@ -514,7 +514,7 @@ async function scenes() {
           };
           requestAnimationFrame(tick);
         });
-        await mp.goto(LC.base + (lang === 'en' ? '/en/profile.html' : '/profile.html'), { waitUntil: 'load' });
+        await mp.goto(LC.base + (lang === 'en' ? '/en/profile.html#my-page' : '/profile.html#my-page'), { waitUntil: 'load' });   // ★入口は MY PAGE の面
         /* 待つのはボタンが出て60枚たつまで（出なければ、この下の1行が赤くなる ── ここで止めない） */
         await mp.waitForFunction(() => window.__pvBtn.length >= 61, { timeout: 20000 }).catch(() => {});
         const ys = await mp.evaluate(() => window.__pvBtn);

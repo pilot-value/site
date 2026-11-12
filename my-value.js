@@ -1788,13 +1788,26 @@
     }
     return yearLoading;
   }
-  /* ── MY PAGE｜MY PAY のタブ（2026-11-09 オーナー「mypage と my pay でタブ分けない？」）──────────
+  /* ── MY PAY｜MY PAGE のタブ（2026-11-09 オーナー「mypage と my pay でタブ分けない？」）──────────
      ★作るのはこの JS（日英西で1本）。HTML の骨組みはそのまま＝この JS が落ちても今までの縦並びで全部見える。
-     ★#your-pay で来た人（給与を出した直後・古いメール・my-value.html の転送）は MY PAY で開く。ほかは MY PAGE。
-       押したら住所の #your-pay を付け外し（履歴は積まない）。ページの中の #your-pay へのリンクも切り替える。
+     ★2026-11-12 オーナー「最初に表示させるのは MY PAY。タブの順番は MY PAY が先で次に MY PAGE」。
+       住所に印が無ければ MY PAY。MY PAGE で開くのは #my-page か、MY PAGE の中の場所を指す印
+       （#pay-tracker・#edit-card・#password-card など ── 昔からの行き先を死なせない）。
+       押したら住所の印を替える（履歴は積まない）＝読み込み直しても同じ面のまま。
      ★MY PAY が閉じている間は図を描かない（幅0で描くと崩れたまま残る）。開いたときに今の小タブを描き直す。 */
-  var PAGES = ['page', 'pay'];
-  var pg = { on: false, cur: 'page', panes: null };
+  var PAGES = ['pay', 'page'];
+  var pg = { on: false, cur: 'pay', panes: null };
+  /* 住所の印 → 開く面。分からない印（ページの外の名前・#）は null ＝ 今の面のまま */
+  function hashPage() {
+    var h = location.hash;
+    if (!h || h === '#') return null;
+    if (h === '#your-pay') return 'pay';
+    if (h === '#my-page') return 'page';
+    var t = null;
+    try { t = d.getElementById(decodeURIComponent(h.slice(1))); } catch (e) {}
+    if (!t || !pg.panes) return null;
+    return pg.panes.page.contains(t) ? 'page' : pg.panes.pay.contains(t) ? 'pay' : null;
+  }
   function payShown() { return !pg.on || pg.cur === 'pay'; }
   function sumShown() { return state.tab === 'summary' && payShown(); }
   function pageTabs() {
@@ -1823,8 +1836,8 @@
       (el === pay ? pg.panes.pay : pg.panes.page).appendChild(el);
     });
     main.appendChild(bar);
-    main.appendChild(pg.panes.page);
     main.appendChild(pg.panes.pay);
+    main.appendChild(pg.panes.page);
     main.classList.add('mp-tabbed');
     pg.on = true;
     bar.addEventListener('click', function (e) {
@@ -1841,8 +1854,8 @@
       e.preventDefault();
       setPage(PAGES[j], true, true);
     });
-    w.addEventListener('hashchange', function () { if (location.hash === '#your-pay') setPage('pay'); });
-    setPage(location.hash === '#your-pay' ? 'pay' : 'page');
+    w.addEventListener('hashchange', function () { var k = hashPage(); if (k) setPage(k); });
+    setPage(hashPage() || 'pay');
   }
   function setPage(k, focus, byUser) {
     if (!pg.on || PAGES.indexOf(k) < 0) return;
@@ -1857,9 +1870,9 @@
     PAGES.forEach(function (t) { pg.panes[t].hidden = t !== k; });
     if (byUser) {
       try {
-        var want = k === 'pay' ? '#your-pay' : '';
-        if (location.hash !== want && (k === 'pay' || location.hash === '#your-pay')) {
-          history.replaceState(history.state, '', location.pathname + location.search + want);
+        var now = hashPage() || (location.hash && location.hash !== '#' ? null : 'pay');
+        if (now !== k) {
+          history.replaceState(history.state, '', location.pathname + location.search + (k === 'pay' ? '#your-pay' : '#my-page'));
         }
       } catch (e) {}
     }

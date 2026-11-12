@@ -110,7 +110,8 @@ for (const kase of CASES) {
      偽のサーバは3問しか返さないので、3問で頭打ち。 */
   const INIT = BANK.settings.initial_limit, REC = BANK.settings.recurring_limit;
   const want = Math.min(3, mine < INIT ? Math.max(INIT - mine, REC) : REC);
-  const url = 'http://localhost:3000/' + (lang === 'en' ? 'en/' : '') + 'profile.html';
+  /* ★2026-11-12 からマイページは MY PAY の面で開く。MY PAGE の面（プロフィール・ログアウト・バッジ…）を見るので #my-page で開く */
+  const url = 'http://localhost:3000/' + (lang === 'en' ? 'en/' : '') + 'profile.html#my-page';
   console.log(`\n════ ${lang} / 既に答えている数 ${mine} → ${want}問出るはず ════`);
 
   const page = await browser.newPage();

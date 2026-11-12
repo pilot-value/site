@@ -192,7 +192,8 @@ async function open(lang, payload, theme, width) {
   const page = await jar.newPage();
   await page.setViewport({ width: width || 1280, height: 1100 });
   await page.evaluateOnNewDocument(FAKE, payload, theme || 'dark');
-  await page.goto(BASE + (lang === 'en' ? '/en/' : '/') + 'profile.html',
+  /* ★2026-11-12 からマイページは MY PAY の面で開く。MY PAGE の面（プロフィール・ログアウト・バッジ…）を見るので #my-page で開く */
+  await page.goto(BASE + (lang === 'en' ? '/en/' : '/') + 'profile.html#my-page',
                   { waitUntil: 'domcontentloaded', timeout: 30000 });
   await sleep(1600);
   return page;

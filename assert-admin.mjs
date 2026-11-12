@@ -1585,7 +1585,7 @@ async function profileBack() {
           localStorage.setItem('pv_session_start', now);
           localStorage.setItem('pv_give_seen', JSON.stringify({ t: Date.now(), s: String(isNaN(at) ? now : at) }));
         }, s);
-        await page.goto(P + 'profile.html', { waitUntil: 'load', timeout: 60000 });
+        await page.goto(P + 'profile.html#my-page', { waitUntil: 'load', timeout: 60000 });   // ★名前とメール・ログアウトは MY PAGE の面（2026-11-12 から既定は MY PAY）
         await page.waitForFunction((m) => (document.getElementById('display-email') || {}).textContent === m, {}, A.email);
         const before = await page.evaluate((w) => { const t = document.body.innerText; return { name: t.includes(w.name), mail: t.includes(w.email) }; }, { name: A.ja, email: A.email });
         ok(before.name && before.mail, `H 前提：ログインしているマイページには、会員の名前（${A.ja}）とメール（${A.email}）が出ている`, JSON.stringify(before));
@@ -1609,8 +1609,8 @@ async function profileBack() {
           const t = document.body.innerText + ' ' + [...document.querySelectorAll('input, textarea')].map((e) => e.value).join(' ');
           return { path: location.pathname, q: location.search, name: t.includes(w.name), mail: t.includes(w.email) };
         }, { name: A.ja, email: A.email });
-        ok(restored && landed && end.q === '?redirect=profile.html' && !end.name && !end.mail,
-           '★H そのままログインしていない人の道（login.html?redirect=profile.html）に着く・着いた先のどこにも名前とメールが無い', JSON.stringify(end));
+        ok(restored && landed && end.q === '?redirect=' + encodeURIComponent('profile.html#my-page') && !end.name && !end.mail,
+           '★H そのままログインしていない人の道（login.html?redirect=profile.html#my-page ── 開いていた面ごと戻る）に着く・着いた先のどこにも名前とメールが無い', JSON.stringify(end));
       } finally {
         await ctx.close().catch(() => {});
       }

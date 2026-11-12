@@ -321,7 +321,8 @@ async function open(scene, lang) {
     window['ga-disable-G-3XYF69VQ3X'] = true;      // 本番の GA4 に送らない
   });
   await page.evaluateOnNewDocument(FAKE, SCENES[scene]);
-  await page.goto(BASE + (lang === 'en' ? '/en/' : '/') + 'profile.html',
+  /* ★2026-11-12 からマイページは MY PAY の面で開く。MY PAGE の面（プロフィール・ログアウト・バッジ…）を見るので #my-page で開く */
+  await page.goto(BASE + (lang === 'en' ? '/en/' : '/') + 'profile.html#my-page',
                   { waitUntil: 'domcontentloaded', timeout: 30000 });
   await sleep(2400);
   return { page, errs };

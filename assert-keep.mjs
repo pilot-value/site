@@ -290,7 +290,8 @@ async function kit(o = {}) {
   };
   /* サイトのログアウト（profile.html の「ログアウト」。確かめの問いには「はい」）。鍵と pv_user が消えたかを返す */
   const logoutVia = async (p) => {
-    await p.page.goto(`${base}/profile.html`, { waitUntil: 'load', timeout: 60000 });
+    /* ★2026-11-12 からマイページは MY PAY の面で開く。MY PAGE の面（プロフィール・ログアウト・バッジ…）を見るので #my-page で開く */
+    await p.page.goto(`${base}/profile.html#my-page`, { waitUntil: 'load', timeout: 60000 });
     await p.page.waitForSelector('.btn-logout', { visible: true });
     const yes = (d) => { d.accept().catch(() => {}); };
     p.page.on('dialog', yes);
@@ -925,7 +926,7 @@ async function bfcache() {
         const p = await tab(true);
         await enter(p);
         await townType(p, TB.exp);
-        await leave(p, '/profile.html');
+        await leave(p, '/profile.html#my-page');   // ★MY PAGE の面（ログアウトはそこに在る）
         await p.page.waitForSelector('.btn-logout', { visible: true, timeout: 30000 });
         await Promise.all([p.page.waitForNavigation({ waitUntil: 'load', timeout: 60000 }), p.page.click('.btn-logout')]);
         await p.page.goBack({ waitUntil: 'load', timeout: 60000 });
@@ -956,7 +957,7 @@ async function bfcache() {
         const want = { bm: B.email, an: A.ja, am: A.email };
         const r = await tries(async () => {
           const p = await tab(true);
-          await seedIn(p, `${base}${PROF}`);
+          await seedIn(p, `${base}${PROF}#my-page`);   // ★名前とメールは MY PAGE の面に出る
           const pre = await p.page.waitForFunction((n, m) => Array.isArray(window.__ps) && window.__ps.length > 0
             && !!document.body && document.body.innerText.includes(n) && document.body.innerText.includes(m), { timeout: 30000 }, A.ja, A.email)
             .then(() => true, () => false);

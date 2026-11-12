@@ -627,7 +627,10 @@ baland_ass/                            ブランド資産（※ brand_assets の
   読み取りの精度は `node db/eval-roster.mjs`（**費用あり・手で流す**。作り物6形式＋`--dir` でネットの見本。check.mjs に入れない）。
 - **本番の作業（OK のあと）**：`db/roster.sql` を貼る → `parse-roster` を Deploy（secrets は parse-payslip と同じ・任意で `PV_ROSTER_DAILY` など）→ push。
 - ★2026-11-09 夜（オーナーが本番で見た・取り込んだあとの直し）
-  - **MY PAGE｜MY PAY のタブ**は my-value.js の `pageTabs()`（main の子を2つの面へ移す・JS が落ちれば今までの縦並び）。`#your-pay` で来たら MY PAY・押したら replaceState。
+  - **MY PAY｜MY PAGE のタブ**は my-value.js の `pageTabs()`（main の子を2つの面へ移す・JS が落ちれば今までの縦並び）。
+    ★2026-11-12 オーナー「最初に表示させるのは MY PAY・順番は MY PAY → MY PAGE」── 印が無ければ MY PAY。
+    MY PAGE で開くのは `#my-page` か MY PAGE の中の場所の印（`#pay-tracker`・`#edit-card`・`#password-card`）。押したら replaceState で印を替える。
+    ⚠️ プロフィール・ログアウト・バッジ・FOUNDING の板・確認の入口は MY PAGE の面＝それを見る検査は `#my-page` で開く。
     ⚠️ MY PAY が閉じている間は図を描かない（`payShown()`／`sumShown()`）── 開いたときに今の小タブを描き直す。幅はマイページだけ `.mr-shell:has(#pv-value){max-width:972px}`。
   - **日本語の画面では「ロスター」と言わない ＝「スケジュール」**（オーナー「日本語でロスターって言っても通じない」）。英語は Roster・スペイン語は Programación のまま。
   - 分析タブは**最新の月とその前の月を比べる**（選ぶ欄は無い）。上に期間「3か月｜6か月｜1年｜全部」（明細が3か月以下なら出さない）。「収入の構成」が先。

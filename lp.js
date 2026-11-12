@@ -860,10 +860,10 @@
   }
   function exactSpan(jpy, cls) { return '<span class="lt-exact ' + (cls || '') + ' pv-no-cur" data-jpy="' + jpy + '">' + esc(exactAmt(jpy)) + '</span>'; }
   function salAmtSpan(jpy, cls) { return '<span class="lt-sal ' + (cls || '') + ' pv-no-cur" data-jpy="' + jpy + '">' + esc(salAmt(jpy)) + '</span>'; }
-  /* 本物の MY PAGE の上の帯（MY PAGE｜MY PAY と 給与・勤務・分析・設定） */
+  /* 本物の MY PAGE の上の帯（MY PAY｜MY PAGE と 給与・勤務・分析・設定。2026-11-12 から MY PAY が先） */
   function tourMyHead(on) {
     var sub = TT.mySub.split(',');
-    return '<div class="lt-span lt-r"><div class="lt-myhd"><span class="lt-mp">MY PAGE</span><span class="lt-mp is-on">MY PAY</span></div>' +
+    return '<div class="lt-span lt-r"><div class="lt-myhd"><span class="lt-mp is-on">MY PAY</span><span class="lt-mp">MY PAGE</span></div>' +
       '<div class="lt-sub">' + sub.map(function (s, i) { return '<span' + (i === on ? ' class="is-on"' : '') + (i === 1 ? ' data-sub="roster"' : '') + '>' + esc(s) + '</span>'; }).join('') + '</div>' +
       '<p class="lt-meta">' + esc(TT.myMeta) + '</p></div>';
   }

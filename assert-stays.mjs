@@ -281,7 +281,8 @@ async function kit(W, o = {}) {
   /* サイトのログアウト（profile.html の「ログアウト」。確かめの問いには「はい」）。押した画面は index.html へ移る。
      ログインの鍵と pv_user が消えたかを返す。 */
   const logoutVia = async (p) => {
-    await p.page.goto(`${base}/profile.html`, { waitUntil: 'load', timeout: 60000 });
+    /* ★2026-11-12 からマイページは MY PAY の面で開く。MY PAGE の面（プロフィール・ログアウト・バッジ…）を見るので #my-page で開く */
+    await p.page.goto(`${base}/profile.html#my-page`, { waitUntil: 'load', timeout: 60000 });
     await p.page.waitForSelector('.btn-logout', { visible: true });
     const yes = (d) => { d.accept().catch(() => {}); };
     p.page.on('dialog', yes);

@@ -87,7 +87,8 @@ const UI = process.env.UI || '';
 /* 会社ページ（PAGE=airlines/<slug>.html）も開ける。#your-pay は MY PAGE の印なので、PAGE を渡したら付けない。
    HASH=work などで会社ページのタブ（overview / pay / reviews / work / life / stay）を開いた状態から撮れる。 */
 const hash = process.env.HASH ? '#' + process.env.HASH.replace(/^#/, '')
-           : (process.env.PG === 'page' || process.env.PAGE) ? '' : '#your-pay';
+           : process.env.PG === 'page' ? '#my-page'                    // MY PAGE の面（2026-11-12 から既定は MY PAY）
+           : (process.env.PG === 'bare' || process.env.PAGE) ? '' : '#your-pay';   // bare … 印なし＝既定の面
 const url = `http://localhost:${process.env.PV_PORT || 3210}/${lang === 'en' ? 'en/' : ''}${process.env.PAGE || 'profile.html'}` +
             '?' + (UI ? 'ui=' + UI + '&' : '') + (process.env.BG ? 'bg=' + process.env.BG + '&' : '') + (process.argv.includes('open') ? '' : 'sw=0') + hash;
 
@@ -853,6 +854,28 @@ if (process.env.CARDS) {
     return { url: location.pathname, main: !!document.querySelector("main"), list: [...m].slice(0, 30) };
   });
   console.log(r.url, "main=" + r.main); r.list.forEach(([k, n]) => console.log("  " + n + " × " + k));
+  await browser.close(); process.exit(0);
+}
+/* TABS=1 … MY PAY｜MY PAGE のどちらが開くか（印なし・押した・読み込み直し・昔の行き先）を順に書き出す（2026-11-12） */
+if (process.env.TABS) {
+  const cur = () => page.evaluate(() => ({ hash: location.hash, on: (document.querySelector('.mp-tab.on') || {}).textContent, order: [...document.querySelectorAll('.mp-tab')].map((b) => b.textContent).join(' | ') }));
+  const base = url.replace(/#.*$/, '');
+  const settle = () => new Promise((r) => setTimeout(r, 1800));
+  console.log('印なし      ', JSON.stringify(await cur()));
+  await page.evaluate(() => [...document.querySelectorAll('.mp-tab')].find((b) => !b.classList.contains('on')).click()); await settle();
+  console.log('MY PAGE を押す', JSON.stringify(await cur()));
+  await page.reload({ waitUntil: 'load' }); await settle();
+  console.log('読み込み直し', JSON.stringify(await cur()));
+  await page.evaluate(() => [...document.querySelectorAll('.mp-tab')].find((b) => !b.classList.contains('on')).click()); await settle();
+  console.log('MY PAY を押す', JSON.stringify(await cur()));
+  for (const h of ['#pay-tracker', '#password-card', '#your-pay', '#']) {
+    await page.goto(base + h, { waitUntil: 'load' }); await page.reload({ waitUntil: 'load' }); await settle();
+    console.log(('開く ' + h).padEnd(12), JSON.stringify(await cur()));
+  }
+  await page.evaluate(() => { location.hash = '#edit-card'; }); await settle();
+  console.log('#edit-card へ ', JSON.stringify(await cur()));
+  await page.evaluate(() => { location.hash = '#'; }); await settle();
+  console.log('# へ（空の印）', JSON.stringify(await cur()));
   await browser.close(); process.exit(0);
 }
 if (process.env.DUMP) {

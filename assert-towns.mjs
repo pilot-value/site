@@ -2086,7 +2086,7 @@ async function admin() {
     /* マイページ（日本語・英語）から、その場で描いた FIXTURE の画像で申請する（ファイルは作らない） */
     const apply = async (who, lang) => {
       const p = await page({ who, w: 390, h: 844 });
-      await p.page.goto(`${base}/${lang === 'en' ? 'en/' : ''}profile.html`, { waitUntil: 'load', timeout: 60000 });
+      await p.page.goto(`${base}/${lang === 'en' ? 'en/' : ''}profile.html#my-page`, { waitUntil: 'load', timeout: 60000 });   // ★確認の入口は MY PAGE の面
       await p.page.waitForSelector('#pv-proof-slot .mp-cta', { timeout: 30000 });
       /* 押すのは、ページの読みが全部答え、書体がそろい、ボタンが10コマ続けて同じ位置になってから
          （マイページのほかの欄が読み込みで伸びると、押した点がずれて外れる ── 混んだ回に、製品は正しいのにここで止まっていた） */
