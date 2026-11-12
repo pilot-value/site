@@ -17,10 +17,10 @@
 
 /* ── 地球儀の面 ─────────────────────────────────────────── */
 .gl-stage{position:relative;min-height:560px;border-radius:var(--pv-r-lg,20px);overflow:hidden;color:var(--gl-ink);isolation:isolate;
+  /* ★2026-11-12 オーナー「緑が薄すぎ・もっと濃く・高級感」→ 見本の実際の色を測って合わせた（縁 #0a3843・真ん中 #126768 の深い青緑） */
   background:
-    radial-gradient(55% 70% at 60% 50%,color-mix(in srgb,var(--pv-accent) 52%,#4aa3a8) 0%,transparent 72%),
-    radial-gradient(120% 90% at 0% 0%,color-mix(in srgb,var(--pv-accent) 40%,#2b7a80) 0%,transparent 60%),
-    linear-gradient(165deg,color-mix(in srgb,var(--pv-accent) 48%,#1d5f66) 0%,color-mix(in srgb,var(--pv-accent-dark) 40%,#103e45) 100%);
+    radial-gradient(52% 68% at 60% 50%,color-mix(in srgb,var(--pv-accent) 55%,#11414a) 0%,transparent 74%),
+    linear-gradient(165deg,color-mix(in srgb,var(--pv-accent) 30%,#0b3b44) 0%,color-mix(in srgb,var(--pv-accent-dark) 18%,#08303a) 100%);
   box-shadow:0 1px 2px rgba(6,50,48,.14),0 24px 48px -24px rgba(6,50,48,.5)}
 .gl-cvbox{position:absolute;inset:0;z-index:0}
 .gl-cv{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
