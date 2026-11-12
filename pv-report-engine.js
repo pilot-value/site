@@ -1278,15 +1278,66 @@
        乗務手当・日当は月ごとに違うので借りない ＝ それを載せている明細（飛んだ分が何か月あとの明細に出るか＝pay_lag・項目ごとの対応）が無ければ額を出さない。
        pay_lag をまだ答えていないときは「同じ月の明細」として数える（lagAsked=false を返す＝画面がその場で聞く）。
      額を出さない（reason）：no_payslip（m の分の明細が足りない・missing に月）・
-       mixed_currency・no_duty（勤務時間ぜんぶが0）・no_block（その便の時間が分からない）・no_pay（額が負）。 */
+       mixed_currency・no_duty（勤務時間ぜんぶが0・補えない勤務日がある）・no_block（その便の時間が分からない）・no_pay（額が負）。
+     ★2026-11-13 勤務時間の数え方の穴を塞いだ（オーナーの相談 → ChatGPT と点検。決め方＝「時給＋手当」は変えていない）。
+       勤務日：いままで勤務日だった日（休み・有給以外で、出頭・解散の時刻か便がある日）はそのまま全部。そこへ2つ足す ──
+         ① 勤務・スタンバイ・訓練・地上業務の勤務コードだけの日（時刻も便も無い）／② 休み・有給のコードでも便がある日。
+         ①を落とすと勤務時間が減って時給が2倍になり（37,500 → 62,500）、②を落とすとその便に額が出ず、手当が月の合計から消えていた。
+         ⚠️ いまより狭くしない（勤務コードが未分類・便なしで、出頭・解散だけ印字された日も勤務日のまま）。
+       勤務時間：出頭・解散の印字があれば、その実際の時刻（休みのコードで便のある日も）。無い日は、本人の「時刻の印字がある日」だけを材料に補う ──
+         便のある日 ＝ その日のブロックタイム × 本人の「勤務 ÷ ブロック」（材料が1日も無ければ、今までどおりブロックタイムそのまま）／
+         便の無い日 ＝ 同じ勤務コード → 同じ種類 → 勤務日ぜんぶ の平均（どれも 同じ月 → 全部の月）。
+         ⚠️ 補った値を、次の補いの材料にしない。⚠️ 最後まで補えない勤務日がある月は、0時間のまま配り切らない＝額を出さない（no_duty）。
+         何を根拠に補ったかは dutyEst（月）と dutyByDate（日）に返す。地球儀の輪は dutyByDate を読む（写しを持たせない）。
+       スタンバイの手当（連動先が reserve の行）は便に載せない（offLeg.reserve）。
+       月の検算 check：対象の額（元の行から1度ずつ積む）と、配った先（便・便の無い勤務・取り込んでいない日の分・スタンバイの手当）を
+         別々に積んで比べる。⚠️ 引き算で帳尻を合わせない（行き先の無いお金は diff に出て、ok が偽になる）。
+         basis：actual＝実際の明細どおり／borrowed＝決まった額を近い月の明細から借りた月／partial＝スケジュールが月の一部。 */
   var FP_FLIGHT = { flight: 1, perdiem: 1 };
   var FP_SKIP_CAT = { bonus: 1, noncash: 1 };
   var FP_LEG = { operating: 1, deadhead: 1, unknown: 1 };
-  function fpDayDuty(x) {
-    if (!x || !x.isDuty) return null;
-    if (x.dutyMin != null) return x.dutyMin;
-    var b = (x.blockKnown.operating || 0) + (x.blockKnown.deadhead || 0) + (x.blockKnown.unknown || 0);
-    return b > 0 ? b : null;                     // 勤務の時刻が無い日は、その日の便の時間で代える
+  var FP_WORK_CLS = { duty: 1, standby: 1, training: 1, ground: 1 };
+  var FP_REST_CLS = { off: 1, vac: 1 };
+  function fpLegBlock(x) { return (x.blockKnown.operating || 0) + (x.blockKnown.deadhead || 0) + (x.blockKnown.unknown || 0); }
+  /* 日ごとの勤務時間（分）と出どころ。勤務日でない日は入れない。
+     src：times＝印字の時刻／ratio＝ブロックタイム × 本人の比／block＝ブロックタイムそのまま／code・cls・all＝同じ勤務コード・同じ種類・勤務日ぜんぶの平均／null＝補えない */
+  function fpDutyMap(months, profile) {
+    var days = [], map = {};
+    arr(months).forEach(function (rm) { rm.days.forEach(function (x) { days.push(x); }); });
+    days.forEach(function (x) {
+      var rest = !!FP_REST_CLS[x.cls];
+      var hasLeg = x.legs.some(function (L) { return FP_LEG[L.kind] && L.from && L.to; });
+      var isWork = x.isDuty || (!rest && !!FP_WORK_CLS[x.cls]) || (rest && hasLeg);
+      if (!isWork) return;
+      var min = x.dutyMin;
+      if (min == null && rest) {                 // 休み・有給のコードで便のある日：出頭・解散の印字があれば実際の時刻
+        var on = clockMin(x.dOn), off = clockMin(x.dOff);
+        min = elapsed(x.date, on, off == null ? null : (x.dOffDay || 0) * 1440 + off, profile).min;
+      }
+      map[x.date] = { min: min, src: min != null ? 'times' : null };
+    });
+    function timed(y) { return !!map[y.date] && map[y.date].src === 'times'; }    // 材料は時刻の印字がある日だけ（補った値は使わない）
+    function near(x, f) {                        // 同じ月 → 全部の月
+      var L = days.filter(function (y) { return timed(y) && y.ym === x.ym && f(y); });
+      return L.length ? L : days.filter(function (y) { return timed(y) && f(y); });
+    }
+    function mean(L) { return L.length ? Math.round(sum(L.map(function (y) { return map[y.date].min; })) / L.length) : null; }
+    days.forEach(function (x) {
+      var e = map[x.date];
+      if (!e || e.min != null) return;
+      var b = fpLegBlock(x), v = null, src = null;
+      if (b > 0) {
+        var L = near(x, function (y) { return fpLegBlock(y) > 0; }), lb = sum(L.map(fpLegBlock));
+        if (lb > 0) { v = Math.round(b * sum(L.map(function (y) { return map[y.date].min; })) / lb); src = 'ratio'; }
+        else { v = b; src = 'block'; }           // 時刻のある便の日が1日も無い：その日の便の時間で代える（今までどおり）
+      } else {
+        if (x.code) { v = mean(near(x, function (y) { return y.code === x.code; })); if (v != null) src = 'code'; }
+        if (v == null && x.cls) { v = mean(near(x, function (y) { return y.cls === x.cls; })); if (v != null) src = 'cls'; }
+        if (v == null) { v = mean(near(x, function () { return true; })); if (v != null) src = 'all'; }
+      }
+      e.min = v; e.src = src;
+    });
+    return map;
   }
   function flightPay(model) {
     var res = { months: [], byYm: {}, legs: [] };
@@ -1316,6 +1367,9 @@
       return best;
     }
     res.lagAsked = lagKnown || lagP === -1;
+    var dmap = fpDutyMap(model.roster.months, model.roster.profile);
+    res.dutyByDate = dmap;
+    /* 入れ物：fl＝便へ配る手当／ot＝時給の分／rs＝スタンバイの手当（便に載せない）／tg＝検算の「対象の額」（元の行から1度ずつ）／bw＝近い月から借りた額 */
     var pools = {};
     arr(model.months).forEach(function (mo) {
       mo.lines.forEach(function (l) {
@@ -1323,13 +1377,16 @@
         if (l.kind === 'union' && l.outsideGross) return;
         var ym = l.workYm || mo.ym;
         var P = pools[ym] || (pools[ym] = {});
-        var c = P[mo.currency] || (P[mo.currency] = { fl: 0, ot: 0 });
-        if (FP_FLIGHT[l.kind]) c.fl += l.amount; else c.ot += l.amount;
+        var c = P[mo.currency] || (P[mo.currency] = { fl: 0, ot: 0, rs: 0, tg: 0, bw: 0 });
+        c.tg += l.amount;
+        if (l.kind === 'flight' && l.basis === 'reserve') c.rs += l.amount;
+        else if (FP_FLIGHT[l.kind]) c.fl += l.amount; else c.ot += l.amount;
       });
     });
     arr(model.roster.months).forEach(function (rm) {
       var ym = rm.ym, M = { ym: ym, currency: null, fleet: null, flMinor: null, otMinor: null, opBlockMin: null, dutyMin: null,
-                            ratePerHour: null, basis: null, reason: null, missing: [], fixedFrom: null, partial: null };
+                            ratePerHour: null, basis: null, reason: null, missing: [], fixedFrom: null, partial: null,
+                            dutyEst: null, offLeg: null, check: null };
       /* 乗務手当・日当を載せている明細（飛んだ分が出る月）。無ければ額を出さない（借りない） */
       var flNeed = Object.keys(flOffs).map(function (o) { return ymAdd(ym, -Number(o)); });
       flNeed.forEach(function (p) { if (p && !have[p] && M.missing.indexOf(p) < 0) M.missing.push(p); });
@@ -1342,17 +1399,24 @@
       M.fleet = fleet || null;
       if (fb) {
         var P0 = pools[ym] || (pools[ym] = {});
-        var c0 = P0[own[fb].cur] || (P0[own[fb].cur] = { fl: 0, ot: 0 });
-        c0.ot += own[fb].amt;
+        var c0 = P0[own[fb].cur] || (P0[own[fb].cur] = { fl: 0, ot: 0, rs: 0, tg: 0, bw: 0 });
+        c0.ot += own[fb].amt; c0.tg += own[fb].amt; c0.bw += own[fb].amt;
       }
       var curs = Object.keys(pools[ym] || {});
       var legs = [];
       rm.days.forEach(function (x) {
         x.legs.forEach(function (L) { if (FP_LEG[L.kind] && L.from && L.to) legs.push({ day: x, leg: L }); });
       });
-      var opBlock = 0, duty = 0;
+      var opBlock = 0, duty = 0, est = { days: 0, min: 0, by: {}, unresolved: 0 };
       legs.forEach(function (p) { if (p.leg.kind !== 'deadhead' && p.leg.blockMin != null) opBlock += p.leg.blockMin; });
-      rm.days.forEach(function (x) { var v = fpDayDuty(x); if (v != null) duty += v; });
+      rm.days.forEach(function (x) {
+        var e = dmap[x.date];
+        if (!e) return;
+        if (e.min == null) { est.unresolved++; return; }
+        duty += e.min;
+        if (e.src !== 'times') { est.days++; est.min += e.min; est.by[e.src] = (est.by[e.src] || 0) + 1; }
+      });
+      var dutyCov = duty, opCov = opBlock;       // 取り込んだ日の分（欠けた日を補う前）
       /* ★2026-11-12 オーナー回答「欠けた日を補って出す」：スケジュールが月の一部だけでも額を出す。
            勤務時間ぜんぶは「取り込んだ日の勤務 × 月の日数 ÷ 取り込んだ日数」。乗務のブロックタイムは、乗務手当を載せた明細に
            乗務時間が印字されていればそれ、無ければ同じく日数で補う。partial に取り込んだ日数と欠けた日（[から, まで] の日）を返す */
@@ -1370,12 +1434,15 @@
         M.partial = { covered: cov, days: dim, gaps: gaps, blockFrom: slip != null ? 'payslip' : 'scaled' };
       }
       M.opBlockMin = opBlock; M.dutyMin = duty;
+      M.dutyEst = est.days || est.unresolved ? est : null;
       if (M.missing.length) M.reason = 'no_payslip';
       else if (curs.length !== 1) M.reason = curs.length ? 'mixed_currency' : 'no_payslip';
       else if (!(duty > 0)) M.reason = 'no_duty';
+      else if (est.unresolved) M.reason = 'no_duty';
       var c = curs.length === 1 ? pools[ym][curs[0]] : null;
       if (c) {
         M.currency = curs[0];
+        M.offLeg = { reserve: c.rs };
         var fl = c.fl, ot = c.ot;
         if (fl > 0 && !(opBlock > 0)) { ot += fl; fl = 0; }    // 乗務の便が無い月の乗務手当は、勤務時間で割り振る
         M.flMinor = fl; M.otMinor = ot;
@@ -1384,11 +1451,12 @@
         if (!M.reason) M.ratePerHour = ot * 60 / duty;
       }
       res.months.push(M); res.byYm[ym] = M;
+      var paid = 0, nPaid = 0, legMin = 0;       // 便に配った額・額の出た便の数・便に配った勤務時間
       legs.forEach(function (p) {
         var x = p.day, L = p.leg;
         var dayBlock = 0;
         x.legs.forEach(function (y) { if (FP_LEG[y.kind] && y.from && y.to && y.blockMin != null) dayBlock += y.blockMin; });
-        var dd = fpDayDuty(x);
+        var dd = dmap[x.date] ? dmap[x.date].min : null;
         var share = L.blockMin != null && dayBlock > 0 && dd != null ? dd * L.blockMin / dayBlock : null;
         var o = { date: x.date, ym: ym, seq: L.seq, from: L.from, to: L.to, kind: L.kind, out: L.out, in: L.in, inDay: L.inDay,
                   blockMin: L.blockMin, dutyMin: share == null ? null : Math.round(share), currency: M.currency, fleet: M.fleet,
@@ -1398,9 +1466,18 @@
           var fx = (M.otMinor / duty) * share;
           var fv = L.kind === 'deadhead' || !(opBlock > 0) ? 0 : M.flMinor * L.blockMin / opBlock;
           o.fixed = Math.round(fx); o.flight = Math.round(fv); o.amount = o.fixed + o.flight;   // 内訳の2行を足すと合計（1円もずれない）
+          paid += o.amount; nPaid++; legMin += share;
         }
         res.legs.push(o);
       });
+      if (c && !M.reason) {
+        var onGround = M.otMinor * (dutyCov - legMin) / duty;       // 便の無い勤務（地上業務・訓練・スタンバイ・額の出ない便の日）
+        var notIn = M.otMinor * (duty - dutyCov) / duty + (opBlock > 0 ? M.flMinor * (opBlock - opCov) / opBlock : 0);   // 取り込んでいない日の分
+        var diff = c.tg - (paid + onGround + notIn + c.rs);
+        M.check = { target: c.tg, legs: paid, nonFlight: Math.round(onGround), uncovered: Math.round(notIn), reserve: c.rs,
+                    diff: Math.round(diff), ok: Math.abs(diff) <= nPaid + 1,
+                    basis: fb ? 'borrowed' : (M.partial ? 'partial' : 'actual'), borrowed: c.bw };
+      }
     });
     return res;
   }

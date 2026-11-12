@@ -247,12 +247,18 @@
       port[a] = (port[a] || 0) + 1; port[b] = (port[b] || 0) + 1;
     });
     var hub = Object.keys(port).sort(function (p, q) { return port[q] - port[p] || (p < q ? -1 : 1); })[0] || null;
-    /* 勤務時間のうちブロックタイムの割合（乗務の便のブロックタイム ÷ 勤務時間ぜんぶ）。1日でも1年でも同じ式・期間の稼ぎの合計 */
-    var t = today(), fly = 0, all = 0, total = 0, cur = null;
+    /* 勤務時間のうちブロックタイムの割合（乗務の便のブロックタイム ÷ 勤務時間ぜんぶ）。1日でも1年でも同じ式・期間の稼ぎの合計
+       ★2026-11-13 日ごとの勤務時間は、エンジンの答え（flightPay の dutyByDate）を読む。ここで数え直さない
+         （どの日を勤務日に数えるか・時刻の無い日をどう補うかは flightPay の1か所。写しを持つと、便の額と輪が同じ日で食い違う）。
+         前の数え方で代えるのは、古いエンジン（最大4時間残る）で dutyByDate そのものが無いときだけ。
+         ⚠️ 新しいエンジンが「この日は出せない」（min が null）と返した日を、前の数え方で埋めない */
+    var t = today(), fly = 0, all = 0, total = 0, cur = null, byDate = S.fp && S.fp.dutyByDate;
     (S.model && S.model.roster ? S.model.roster.months : []).forEach(function (rm) {
       rm.days.forEach(function (x) {
-        if (!x.isDuty || x.date > t || !inRange(x.date)) return;
-        var v = x.dutyMin != null ? x.dutyMin : ((x.blockKnown.operating || 0) + (x.blockKnown.deadhead || 0) + (x.blockKnown.unknown || 0)) || null;
+        if (x.date > t || !inRange(x.date)) return;
+        var v;
+        if (byDate) v = byDate[x.date] ? byDate[x.date].min : null;
+        else v = !x.isDuty ? null : (x.dutyMin != null ? x.dutyMin : ((x.blockKnown.operating || 0) + (x.blockKnown.deadhead || 0) + (x.blockKnown.unknown || 0)) || null);
         if (v != null) all += v;
       });
     });

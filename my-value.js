@@ -80,13 +80,13 @@
   var ROSTER_V = 'fd52ee85';
   var ROSTER_CSS_V = '4b57ef14';
   var UPLOAD_V = '546270b4';
-  var ENGINE_V = 'af0a0fea';
+  var ENGINE_V = '18e2d031';
   var AIRPORT_TZ_V = 'ec27da34';   // ★2026-11-11 空港 → タイムゾーンの表（pv-airport-tz.js・現地時刻の便の時間）
   /* ★「分析」のタブ（2026-11-09）。開いたときだけ読む2本（見た目 → 計算の部品 → 画面の順）。指紋の決まりは上と同じ */
   var ANALYSIS_V = 'ae699612';
   var ANALYSIS_CSS_V = '19e86be1';
   /* ★スケジュールの一番上の「飛んだルート」の地球儀（2026-11-12）。スケジュールのタブを開いたときだけ読む4本。指紋の決まりは上と同じ */
-  var GLOBE_V = 'f76a9906';
+  var GLOBE_V = '45bd5231';
   var GLOBE_CSS_V = '89853d0d';
   var AIRPORT_GEO_V = '12fab2ff';   // 空港 → 位置と街の名前（pv-airport-geo.js）
   var GLOBE_COAST_V = '48ed6a23';  // 陸の縁（pv-globe-coast.js・0.25° より細かく寄ったときだけ my-globe.js が読む）
