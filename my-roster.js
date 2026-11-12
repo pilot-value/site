@@ -67,8 +67,8 @@
       nItems: '{n}件',
       kindDh: 'DH', kindGround: '地上業務', kindUnknown: '区分確認中',
       groundS: '地上',
-      cls: { off: '休日', vac: '有給休暇', duty: '勤務', standby: 'スタンバイ', training: '訓練', ground: '地上業務', unknown: '区分確認中' },
-      clsS: { off: '休日', vac: '有休', duty: '勤務', standby: '待機', training: '訓練', ground: '地上', unknown: '' },
+      cls: { off: '休日', vac: '有給休暇', duty: '勤務', standby: 'スタンバイ', training: '訓練', ground: '地上業務', other: 'その他', unknown: '区分確認中' },
+      clsS: { off: '休日', vac: '有休', duty: '勤務', standby: '待機', training: '訓練', ground: '地上', other: 'その他', unknown: '' },
       noRec: 'この日の記録はありません。',
       noDuty: '勤務の時刻は書かれていません。',
       reselect: '日付を選び直す',
@@ -126,8 +126,8 @@
       nItems: '{n}',
       kindDh: 'DH', kindGround: 'Ground duty', kindUnknown: 'Type to confirm',
       groundS: 'Ground',
-      cls: { off: 'Day off', vac: 'Annual leave', duty: 'Duty', standby: 'Standby', training: 'Training', ground: 'Ground duty', unknown: 'Type to confirm' },
-      clsS: { off: 'Off', vac: 'Leave', duty: 'Duty', standby: 'SBY', training: 'Training', ground: 'Ground', unknown: '' },
+      cls: { off: 'Day off', vac: 'Annual leave', duty: 'Duty', standby: 'Standby', training: 'Training', ground: 'Ground duty', other: 'Other', unknown: 'Type to confirm' },
+      clsS: { off: 'Off', vac: 'Leave', duty: 'Duty', standby: 'SBY', training: 'Training', ground: 'Ground', other: 'Other', unknown: '' },
       noRec: 'Nothing recorded for this day.',
       noDuty: 'No duty times on this day.',
       reselect: 'Pick another date',
@@ -182,8 +182,8 @@
       nItems: '{n}',
       kindDh: 'DH', kindGround: 'Actividad en tierra', kindUnknown: 'Tipo por confirmar',
       groundS: 'Tierra',
-      cls: { off: 'Día libre', vac: 'Vacaciones anuales', duty: 'Servicio', standby: 'Standby', training: 'Entrenamiento', ground: 'Actividad en tierra', unknown: 'Tipo por confirmar' },
-      clsS: { off: 'Libre', vac: 'Vacaciones', duty: 'Servicio', standby: 'SBY', training: 'Entrenamiento', ground: 'Tierra', unknown: '' },
+      cls: { off: 'Día libre', vac: 'Vacaciones anuales', duty: 'Servicio', standby: 'Standby', training: 'Entrenamiento', ground: 'Actividad en tierra', other: 'Otro', unknown: 'Tipo por confirmar' },
+      clsS: { off: 'Libre', vac: 'Vacaciones', duty: 'Servicio', standby: 'SBY', training: 'Entrenamiento', ground: 'Tierra', other: 'Otro', unknown: '' },
       noRec: 'No hay nada registrado para este día.',
       noDuty: 'Este día no tiene horas de servicio.',
       reselect: 'Elegir otra fecha',
@@ -272,7 +272,8 @@
   }
 
   /* ── カレンダー（取り込みの確認画面も借りる）──────────────────
-     byDate: 日付 → rosterMonths の日の記録。o = { sel, interactive, mini, edit, ask, flag, askLabel }
+     byDate: 日付 → rosterMonths の日の記録。o = { sel, interactive, mini, edit, ask, flag, askLabel, prev, prevLabel }
+       prev … 日付 → 1：前に出した日（取り込みの確かめる画面だけ）。薄く出し、押せない（直すのは保存したあとスケジュールのタブで）
        edit … 押すと直す画面へ（選ぶ札ではないので aria-pressed を付けない）
        ask  … 日付 → 1：読めなかった日（点線に「?」）／flag … 日付 → 1：確かめてほしいところがある日（琥珀の点） */
   function cellParts(x) {
@@ -299,11 +300,14 @@
     for (var dd = 1; dd <= dim; dd++) {
       var date = ym + '-' + pad2(dd), x = byDate[date], p = cellParts(x), sel = o.sel === date, ask = !x && !!(o.ask && o.ask[date]);
       if (ask) p = { k: 'is-none is-ask', main: '?', sub: '' };
-      var k = p.k + (o.flag && o.flag[date] ? ' has-iss' : '');
+      var prv = !!(o.prev && o.prev[date] && x);
+      var k = p.k + (o.flag && o.flag[date] ? ' has-iss' : '') + (prv ? ' is-prev' : '');
       var inner = '<span class="rs-c-d">' + dd + '</span>' +
         (p.main ? '<span class="rs-c-m">' + esc(p.main) + '</span>' : '') +
         (p.sub && !o.mini ? '<span class="rs-c-s">' + (p.subH || esc(p.sub)) + (p.more ? '<span class="rs-c-x"> +' + p.more + '</span>' : '') + '</span>' : '');
-      if (o.interactive) {
+      if (o.interactive && prv) {
+        h += '<span class="rs-cell ' + k + '" aria-label="' + esc(dayTitle(date) + (o.prevLabel ? ' · ' + o.prevLabel : '')) + '">' + inner + '</span>';
+      } else if (o.interactive) {
         var lab = ask ? dayTitle(date) + (o.askLabel ? ' · ' + o.askLabel : '')
           : dayTitle(date) + (p.main ? ' · ' + p.main : '') + (p.sub ? ' · ' + p.sub + (p.more ? ' +' + p.more : '') : '');
         h += '<button type="button" class="rs-cell ' + k + (sel ? ' is-sel' : '') + '" data-date="' + date + '"' + (o.edit ? '' : ' aria-pressed="' + sel + '"') +
@@ -990,7 +994,8 @@
       main.hidden = true; box.hidden = false;
       var ctx = { sb: S.sb, airline: S.airline, other: S.other, airlineLabel: airlineName(S.airline, S.other),
                   profile: S.profile, learned: null, done: closeUpload,
-                  reports: (S.ctx && S.ctx.reports) || [] };     // ★明細の乗務時間で「明細に出る月」を自動で選ぶため（2026-11-11）
+                  reports: (S.ctx && S.ctx.reports) || [],       // ★明細の乗務時間で「明細に出る月」を自動で選ぶため（2026-11-11）
+                  saved: S.days || [] };                          // ★確かめる画面に、その月に前に出した日も薄く出す（2026-11-12 オーナー）
       learned.then(function (j) { ctx.learned = j; });
       w.PVRosterUpload.open(box, ctx);
       var f = box.querySelector('h2, button');

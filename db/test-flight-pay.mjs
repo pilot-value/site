@@ -129,8 +129,16 @@ function suite(R) {
     const nov = fp.legs.filter((l) => l.ym === '2026-11');
     ok(nov.length === 4 && nov.every((l) => l.amount === null && l.reason === 'no_payslip'), '★明細の無い月は額を出さない');
     ok(fp.byYm['2026-11'].missing.join() === '2026-11', 'どの月の明細が足りないかを返す');
+    /* ★2026-11-12 オーナー回答「欠けた日を補って出す」：25日ぶん（26〜31日が無い）でも額を出す。
+         勤務 9,600分 × 31 ÷ 25 ＝ 11,904分・乗務 1,500分 × 31 ÷ 25 ＝ 1,860分 で割る */
     const part = run(R, [OCT()], month('2026-10', D10, S10).slice(0, 25));
-    ok(part.legs.every((l) => l.amount === null && l.reason === 'roster_partial'), '★スケジュールが月の一部だけの月は額を出さない');
+    const p0 = part.legs[0];
+    ok(p0 && p0.amount === Math.round(1000000 / 11904 * 240) + Math.round(250000 * 75 / 1860), '★スケジュールが月の一部でも、欠けた日を補って額を出す');
+    ok(p0 && p0.partial && p0.partial.covered === 25 && JSON.stringify(p0.partial.gaps) === '[[26,31]]', '欠けた日の範囲を返す（26〜31日）');
+    const part2 = run(R, [OCT({ block_hours: 25 })], month('2026-10', D10, S10).slice(0, 25));
+    ok(part2.legs[0].flight === 12500 && part2.legs[0].partial.blockFrom === 'payslip', '★明細に乗務時間が印字されていれば、乗務手当はその時間で割る');
+    const full = run(R, [OCT()], month('2026-10', D10, S10));
+    ok(full.legs[0].partial === null, '全部の日がある月は partial を返さない');
     const nob = { code: null, d_on: null, d_off: null, d_off_day: 0, legs: [{ seq: 1, from: 'HND', to: 'FUK', kind: 'operating' }] };
     const fb = run(R, [OCT()], month('2026-10', D10, S10, { 26: nob }));
     const x = fb.legs.find((l) => l.to === 'FUK');
@@ -147,6 +155,20 @@ function suite(R) {
     ok(a && a.fixed === 25000 && a.flight === 12500, '★pay_lag どおり：10月の便の手当は11月の明細・基本給は10月の明細');
     const fp2 = run(R, [r10], month('2026-10', D10, S10), PROFILE({ pay_lag: 1 }));
     ok(fp2.byYm['2026-10'].missing.join() === '2026-11' && fp2.legs.every((l) => l.amount === null), '★翌月の明細がまだ無ければ額を出さない（手当の行がまだ1つも無くても）');
+  }
+
+  /* 8. その月の明細が無いとき（オーナー回答「近い月の明細で出す」）：決まった額は近い月から・乗務手当は借りない */
+  {
+    const r11 = rep('2026-11', { gross_monthly: 1250000, base_pay: 1000000, other_allowance: 200000, flight_variable_pay: 200000, per_diem: 50000 });
+    /* 飛んだ分は翌月の明細（pay_lag 1）・10月の明細は無い：10月の便 ＝ 手当は11月の明細・基本給は近い月（11月）から */
+    const fp = run(R, [r11], month('2026-10', D10, S10), PROFILE({ pay_lag: 1 }));
+    const a = fp.legs[0];
+    ok(a && a.amount === 37500 && a.fixedFrom === '2026-11', '★明細の無い月は、決まった額を近い月の明細から（どの月からかを返す）');
+    ok(fp.lagAsked === true, '飛んだ分が何月の明細に出るかを答えてあれば、聞かない');
+    /* 飛んだ分は同じ月（答えていない）＝乗務手当は10月の明細に載る → 10月の明細が無ければ出さない（借りない） */
+    const fq = run(R, [r11], month('2026-10', D10, S10));
+    ok(fq.legs.every((l) => l.amount === null && l.reason === 'no_payslip') && fq.byYm['2026-10'].missing.join() === '2026-10', '★乗務手当は近い月から借りない');
+    ok(fq.lagAsked === false, '飛んだ分が何月の明細に出るかをまだ答えていなければ、画面が聞く（lagAsked=false）');
   }
 
   /* 7. 字：地球儀に「単価」「料率」を使わない */
@@ -170,7 +192,9 @@ const BREAK = [
   ['便乗にも手当を付ける', "var fv = L.kind === 'deadhead' || !(opBlock > 0) ? 0 : M.flMinor * L.blockMin / opBlock;", 'var fv = !(opBlock > 0) ? 0 : M.flMinor * L.blockMin / opBlock;'],
   ['賞与を入れる', 'var FP_SKIP_CAT = { bonus: 1, noncash: 1 };', 'var FP_SKIP_CAT = { noncash: 1 };'],
   ['明細の無い月も額を出す', "if (M.missing.length) M.reason = 'no_payslip';\n      else ", ''],
-  ['月の一部だけのスケジュールでも額を出す', "else if (!rm.complete) M.reason = 'roster_partial';", '']
+  ['欠けた日を補わずに割る', 'duty = duty * dim / cov;', ''],
+  ['近い月の明細を使わない', 'if (fb) M.fixedFrom = fb;', 'fb = null;'],
+  ['乗務手当も近い月から借りる', 'flNeed.forEach(function (p) { if (p && !have[p] && M.missing.indexOf(p) < 0) M.missing.push(p); });', '']
 ];
 for (const [name, from, to] of BREAK) {
   if (SRC.split(from).length !== 2) { say(false, `${name}：差し替える1行が pv-report-engine.js に1回だけ無い（検査が古い）`); continue; }

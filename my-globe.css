@@ -79,6 +79,7 @@
 .gl-bar:focus-visible{outline:2px solid var(--gl-gold);outline-offset:3px;border-radius:4px}
 .gl-bar:active{opacity:.7}
 .gl-bar-l{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.72rem;font-weight:600}
+.gl-bar-l small{margin-left:6px;font-size:.62rem;font-weight:400;color:var(--gl-ink3)}
 .gl-bar.on .gl-bar-l{color:#ffe2a6}
 .gl-bar-v{font-size:.72rem;font-weight:600}
 .gl-bar-t{grid-column:1/-1;display:block;height:4px;border-radius:3px;background:rgba(255,255,255,.14);overflow:hidden}
@@ -96,6 +97,7 @@
 .gl-ap b{display:block;font-size:1.75rem;font-weight:600;letter-spacing:-.01em;line-height:1.05}
 .gl-ap span{display:block;margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.68rem;font-weight:400;color:var(--gl-ink3)}
 .gl-ap.is-r{text-align:right}
+.gl-ap .gl-ap-t{margin-top:2px;font-variant-numeric:tabular-nums}
 .gl-flt-m{position:relative;display:flex;align-items:center;width:84px}
 .gl-flt-ln{flex:1;height:0;border-top:1.5px solid rgba(255,255,255,.62)}
 .gl-flt-ln.is-r{border-top-style:dashed;border-top-color:rgba(255,255,255,.34)}
@@ -108,6 +110,18 @@
 .gl-st:first-child b{font-size:1rem}
 .gl-st:first-child b{color:#ffe2a6}
 .gl-why{grid-column:1/-1;font-size:.76rem;font-weight:400;color:var(--gl-ink2);line-height:1.6}
+.gl-part{grid-column:1/-1;margin-top:8px;padding:10px 12px;border-radius:12px;background:rgba(245,195,90,.12);border:1px solid rgba(245,195,90,.28)}
+.gl-part p{margin:0 0 8px;font-size:.7rem;font-weight:400;line-height:1.6;color:#ffe9bd}
+.gl-from{grid-column:1/-1;margin:2px 0 0;font-size:.64rem;font-weight:400;color:var(--gl-ink3)}
+.gl-lagq{grid-column:1/-1;margin-top:10px}
+.gl-lagq p{margin:0 0 8px;font-size:.74rem;font-weight:500;color:var(--gl-ink)}
+.gl-lagc{display:flex;flex-wrap:wrap;gap:6px}
+.gl-lagb{height:30px;padding:0 12px;border-radius:999px;border:1px solid var(--gl-line);background:var(--gl-glass);font-size:.72rem;font-weight:600;color:#fff;cursor:pointer;
+  transition:transform .2s var(--pv-ease,ease),opacity .2s}
+.gl-lagb:hover{opacity:.82}
+.gl-lagb:focus-visible{outline:2px solid var(--gl-gold);outline-offset:2px}
+.gl-lagb:active{transform:scale(.96)}
+.gl-lagq .gl-lage{margin:8px 0 0;font-size:.7rem;color:#ffd0c8}
 .gl-add{color:#ffe2a6;font-weight:500;text-decoration:none;white-space:nowrap}
 .gl-add:hover{text-decoration:underline}
 .gl-add:focus-visible{outline:2px solid var(--gl-gold);outline-offset:2px;border-radius:3px}
@@ -130,6 +144,20 @@
 .gl-zb:hover{opacity:.82}
 .gl-zb:focus-visible{outline:2px solid var(--gl-gold);outline-offset:2px}
 .gl-zb:active{transform:scale(.94)}
+/* 欠けた月の便のポップアップ（その月で1回・閉じられる） */
+.gl-toast{position:absolute;z-index:4;left:50%;top:76px;width:min(440px,calc(100% - 24px));padding:12px 14px;border-radius:14px;
+  background:linear-gradient(160deg,rgba(80,62,20,.88),rgba(52,44,22,.9));border:1px solid rgba(245,195,90,.42);color:#ffe9bd;
+  box-shadow:0 16px 36px -14px rgba(0,0,0,.55);transform:translateX(-50%);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  animation:glToast .45s var(--pv-ease,ease) both}
+.gl-toast p{margin:0;font-size:.74rem;font-weight:500;line-height:1.6}
+.gl-toast-a{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px}
+.gl-toast-x{width:30px;height:30px;padding:0;border-radius:50%;border:1px solid rgba(245,195,90,.35);background:transparent;color:#ffe9bd;font-size:1rem;line-height:1;cursor:pointer;
+  transition:transform .2s var(--pv-ease,ease),opacity .2s}
+.gl-toast-x:hover{opacity:.8}
+.gl-toast-x:focus-visible{outline:2px solid var(--gl-gold);outline-offset:2px}
+.gl-toast-x:active{transform:scale(.94)}
+@keyframes glToast{from{opacity:0;transform:translate(-50%,-8px)}to{opacity:1;transform:translate(-50%,0)}}
+@media (prefers-reduced-motion: reduce){.gl-toast{animation:none}}
 .gl-msg{position:absolute;z-index:2;left:50%;top:50%;max-width:min(360px,80%);padding:12px 16px;border-radius:14px;background:var(--gl-glass);border:1px solid var(--gl-line);
   font-size:.8rem;font-weight:400;line-height:1.6;text-align:center;transform:translate(-50%,-50%);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
 
@@ -201,6 +229,7 @@ button.gl-mb-c:active{opacity:.6}
   .gl-ov{position:static;width:auto}
   .gl-foot{position:static;align-items:flex-start;flex-direction:row;flex-wrap:wrap;justify-content:space-between}
   .gl-zoom{right:12px}
+  .gl-toast{top:10px}
   .gl-row{grid-template-columns:1fr}
   .gl-ap b{font-size:1.45rem}
 }

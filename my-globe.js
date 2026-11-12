@@ -26,6 +26,8 @@
   var T = {
     ja: {
       title: 'ROUTE', sub: '{p} · {r}ルート · {n}便', aria: '飛んだルートの地球儀', noPos: '地図に出せない空港 {c}',
+      nFl: '{n}便', nFl1: '1便', partT: '{m}は {g} のスケジュールが無いので、取り込んだ日から補って見積もっています。', gapD: '{a}〜{b}日', gapD1: '{a}日', gapJ: '・',
+      addRoster: 'スケジュールを提出する', close: '閉じる',   // オーナー「ポップアップと一緒にスケジュール提出のボタン」
       perAria: '期間', perD: '日', perM: '月', per3: '3か月', per12: '1年', perAll: '全部',
       p3: '直近3か月', p12: '直近1年', pAll: '直近2年', ymT: '{y}年{n}月',
       prevD: '前の日', nextD: '次の日', prevM: '前の月', nextM: '次の月',
@@ -38,6 +40,8 @@
       no_payslip: '{m}の明細を足すと出ます', roster_partial: 'この月のスケジュールを全部取り込むと出ます',
       mixed_currency: '通貨の違う明細が混ざる月は出せません', no_duty: '勤務時間が分からない月は出せません',
       no_block: 'この便の時間が分からないため出せません', no_pay: 'この月は額を出せません',
+      fixedFrom: '基本給は{m}の明細から', lagQ: '飛んだ分（乗務手当・日当）は、何月の給与明細に出ますか？',
+      lag0: '同じ月', lag1: '翌月', lag2: '翌々月', lagU: 'わからない', lagErr: '保存できませんでした。もう一度お試しください。',
       addPay: '明細を足す',
       listT: '便の一覧', all: 'すべて', allRoutes: '全ルート', more: 'もっと見る', less: '閉じる',
       monT: '月ごとの稼ぎ（目安）', monS: '便の額の合計', dayMonT: '日ごとの稼ぎ（目安）', monTip: '押すとその月だけ', dayTip: '押すとその日だけ',
@@ -50,6 +54,8 @@
     },
     en: {
       title: 'ROUTE', sub: '{p} · {r} routes · {n} flights', aria: 'Globe of the routes you flew', noPos: 'Not on the map: {c}',
+      nFl: '{n} flights', nFl1: '1 flight', partT: 'No roster for {g} {m}, so this is estimated from the days you imported.', gapD: '{a}–{b}', gapD1: '{a}', gapJ: ', ',
+      addRoster: 'Submit roster', close: 'Close',
       perAria: 'Period', perD: '1D', perM: '1M', per3: '3M', per12: '1Y', perAll: 'All time',
       p3: 'Last 3 months', p12: 'Last 12 months', pAll: 'Last 24 months', ymT: '{M} {y}',
       prevD: 'Previous day', nextD: 'Next day', prevM: 'Previous month', nextM: 'Next month',
@@ -62,6 +68,8 @@
       no_payslip: 'Add your {m} payslip to see this', roster_partial: 'Import the whole month of your roster to see this',
       mixed_currency: 'Not shown for months with payslips in different currencies', no_duty: 'Not shown when the month has no duty times',
       no_block: 'Not shown because this flight has no block time', no_pay: 'Not shown for this month',
+      fixedFrom: 'Base pay from your {m} payslip', lagQ: 'Which month’s payslip pays for your flying (flight pay, per diem)?',
+      lag0: 'Same month', lag1: 'Next month', lag2: 'Two months later', lagU: 'Not sure', lagErr: 'Couldn’t save. Please try again.',
       addPay: 'Add payslip',
       listT: 'Flights', all: 'All flights', allRoutes: 'All routes', more: 'Show more', less: 'Show less',
       monT: 'Earnings by month (est.)', monS: 'Sum of flights', dayMonT: 'Earnings by day (est.)', monTip: 'Tap to see only that month', dayTip: 'Tap to see only that day',
@@ -73,6 +81,8 @@
       mon: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     }, /*PV-MSG:es*/ es: {
       title: 'ROUTE', sub: '{p} · {r} rutas · {n} vuelos', aria: 'Globo con las rutas que volaste', noPos: 'Fuera del mapa: {c}',
+      nFl: '{n} vuelos', nFl1: '1 vuelo', partT: 'No hay programación para el {g} de {m}, así que se estima con los días que importaste.', gapD: '{a}–{b}', gapD1: '{a}', gapJ: ', ',
+      addRoster: 'Enviar programación', close: 'Cerrar',
       perAria: 'Período', perD: '1D', perM: '1M', per3: '3M', per12: '1Y', perAll: 'Todo',
       p3: 'Últimos 3 meses', p12: 'Últimos 12 meses', pAll: 'Últimos 24 meses', ymT: '{M} {y}',
       prevD: 'Día anterior', nextD: 'Día siguiente', prevM: 'Mes anterior', nextM: 'Mes siguiente',
@@ -85,6 +95,8 @@
       no_payslip: 'Agrega tu recibo de nómina de {m} para verlo', roster_partial: 'Importa el mes completo de tu programación para verlo',
       mixed_currency: 'No se muestra en meses con recibos en distintas monedas', no_duty: 'No se muestra si el mes no tiene horas de servicio',
       no_block: 'No se muestra porque este vuelo no tiene tiempo de bloque', no_pay: 'No se muestra en este mes',
+      fixedFrom: 'Sueldo base de tu recibo de {m}', lagQ: '¿En la nómina de qué mes se paga lo que vuelas (pago por vuelo, viáticos)?',
+      lag0: 'Mismo mes', lag1: 'Mes siguiente', lag2: 'Dos meses después', lagU: 'No lo sé', lagErr: 'No se pudo guardar. Inténtalo de nuevo.',
       addPay: 'Agregar recibo',
       listT: 'Vuelos', all: 'Todos', allRoutes: 'Todas las rutas', more: 'Ver más', less: 'Ver menos',
       monT: 'Ingresos por mes (est.)', monS: 'Suma de los vuelos', dayMonT: 'Ingresos por día (est.)', monTip: 'Toca para ver solo ese mes', dayTip: 'Toca para ver solo ese día',
@@ -222,9 +234,9 @@
     var legs = S.legs.filter(function (l) { return inRange(l.date); });
     var routes = {}, port = {}, order = [];
     legs.forEach(function (l) {
-      var a = l.ga.iata, b = l.gb.iata, k = a < b ? a + '|' + b : b + '|' + a;
+      var a = l.ga.iata, b = l.gb.iata, k = a + '>' + b;     // ★2026-11-12 オーナー「往復分を出すのやめない？」＝向きごとに別のルート
       var r = routes[k];
-      if (!r) { r = routes[k] = { k: k, a: a < b ? l.ga : l.gb, b: a < b ? l.gb : l.ga, legs: [], n: 0, dh: 0, sum: 0, cur: null }; order.push(r); }
+      if (!r) { r = routes[k] = { k: k, a: l.ga, b: l.gb, legs: [], n: 0, dh: 0, sum: 0, cur: null }; order.push(r); }
       r.legs.push(l); r.n++; if (l.kind === 'deadhead') r.dh++;
       if (l.amount != null) { if (r.cur == null) r.cur = l.currency; if (r.cur === l.currency) r.sum += l.amount; }
       port[a] = (port[a] || 0) + 1; port[b] = (port[b] || 0) + 1;
@@ -249,6 +261,18 @@
   var IC_PLANE = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M21 15.5v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V8.5l-8 5v2l8-2.5V18l-2 1.5V21l3.5-1 3.5 1v-1.5L13 18v-5z" transform="rotate(90 12 12)"/></svg>';
   var IC_HAND = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12"/><path d="M11 11.5v-2a1.5 1.5 0 0 1 3 0V12"/><path d="M14 10.5a1.5 1.5 0 0 1 3 0V12"/><path d="M17 11.5a1.5 1.5 0 0 1 3 0V16a6 6 0 0 1-6 6h-1.5a6 6 0 0 1-4.6-2.2L5 16.5a1.6 1.6 0 0 1 2.4-2.1L8 15"/></svg>';
   function kindL(k) { return k === 'deadhead' ? T.dh : k === 'unknown' ? T.unk : T.op; }
+  /* ★2026-11-12 オーナー「片道なのに矢印が2つ」：期間の中で飛んだ向きが1つだけなら、その向きで「HND → FUK」。両方あれば「HND ⇄ KMJ」 */
+  function routeLabel(r) { return r.a.iata + ' → ' + r.b.iata; }
+  /* 地球儀の線は2空港で1本（向きを問わない）。向きつきのルート 'A>B' → 線の鍵 'A|B'（名前の順） */
+  function pairOf(k) {
+    if (!k || k.indexOf('>') < 0) return k || null;
+    var p = k.split('>');
+    return p[0] < p[1] ? p[0] + '|' + p[1] : p[1] + '|' + p[0];
+  }
+  function nFl(n) { return n === 1 ? T.nFl1 : fill(T.nFl, { n: n }); }
+  function gapsL(gs) {
+    return (gs || []).map(function (g) { return g[0] === g[1] ? fill(T.gapD1, { a: g[0] }) : fill(T.gapD, { a: g[0], b: g[1] }); }).join(T.gapJ);
+  }
   function why(l) {
     if (!l || !l.reason) return '';
     if (l.reason === 'no_payslip') return fill(T.no_payslip, { m: (l.missing || []).map(ymS).join('・') || ymS(l.ym) });
@@ -261,7 +285,8 @@
           '<div class="gl-cvbox"><canvas class="gl-cv" role="img" aria-label="' + esc(T.aria) + '"></canvas>' +
             '<div class="gl-zoom"><button type="button" class="gl-zb" data-z="1" aria-label="' + esc(T.zin) + '">+</button>' +
             '<button type="button" class="gl-zb" data-z="-1" aria-label="' + esc(T.zout) + '">−</button></div>' +
-            '<div class="gl-msg" hidden></div></div>' +
+            '<div class="gl-msg" hidden></div>' +
+            '<div class="gl-toast" role="status" hidden></div></div>' +
           '<div class="gl-top"><div class="gl-hd"><h3 class="gl-t">' + esc(T.title) + '</h3><p class="gl-s"></p></div>' +
             '<div class="gl-per" role="group" aria-label="' + esc(T.perAria) + '">' +
               [['d', T.perD], ['m', T.perM], ['3', T.per3], ['12', T.per12], ['all', T.perAll]].map(function (p) {
@@ -332,9 +357,18 @@
     list.hidden = !V.legs.length; mon.hidden = !V.legs.length;
     if (V.legs.length) { sum.innerHTML = sumHTML(V); list.innerHTML = listHTML(V); mon.innerHTML = monHTML(V, leg); }
     if (leg) flt.innerHTML = fltHTML(leg);
+    /* ★2026-11-12 オーナー「スケジュールが無い旨のポップアップも」：欠けた月の便を開いたら、その月で1回だけ知らせる */
+    var toast = S.root.querySelector('.gl-toast'), pt = leg && leg.amount != null && leg.partial && leg.partial.gaps.length ? leg : null;
+    S.toastSeen = S.toastSeen || {};
+    if (pt && !S.toastSeen[pt.ym]) {
+      toast.innerHTML = '<p>⚠ ' + esc(fill(T.partT, { m: ymS(pt.ym), g: gapsL(pt.partial.gaps) })) + '</p>' +
+        '<div class="gl-toast-a"><button type="button" class="gl-lagb" data-roster-up="1">' + esc(T.addRoster) + '</button>' +
+        '<button type="button" class="gl-toast-x" data-toast-x="' + esc(pt.ym) + '" aria-label="' + esc(T.close) + '">×</button></div>';
+      toast.hidden = false;
+    } else toast.hidden = true;
     G.setData(V, drawRoute, leg);
   }
-  function routeKey(l) { var a = l.ga.iata, b = l.gb.iata; return a < b ? a + '|' + b : b + '|' + a; }
+  function routeKey(l) { return l.ga.iata + '>' + l.gb.iata; }
   function sumHTML(V) {
     var p = V.ring == null ? null : Math.round(V.ring * 1000) / 10;
     var C = 2 * Math.PI * 34, off = p == null ? C : C * (1 - p / 100);
@@ -350,7 +384,7 @@
           '<span class="gl-ring-n">' + (p == null ? '—' : p.toFixed(1) + '%') + '<small>' + esc(T.ringL) + '</small></span></div>' +
         '<div class="gl-bars">' + V.top.map(function (r, i) {
           return '<button type="button" class="gl-bar' + (r.k === S.drawRoute ? ' on' : '') + '" data-route="' + esc(r.k) + '">' +
-            '<span class="gl-bar-l">' + esc(r.a.iata + ' ⇄ ' + r.b.iata) + '</span><span class="gl-bar-v">' + esc(money(r.sum, r.cur)) + '</span>' +
+            '<span class="gl-bar-l">' + esc(routeLabel(r)) + '</span><span class="gl-bar-v">' + esc(money(r.sum, r.cur)) + '</span>' +
             '<i class="gl-bar-t"><i class="gl-bar-f' + (i === 0 ? ' is-1' : '') + '" style="transform:scaleX(' + (max > 0 ? (r.sum / max).toFixed(3) : 0) + ')"></i></i></button>';
         }).join('') + '</div>' +
       '</div>';
@@ -358,17 +392,43 @@
   function fltHTML(l) {
     var head = esc(dayL(l.date)) + (l.fleet ? '<span class="gl-flt-fl">' + esc(l.fleet) + '</span>' : '');
     var chip = '<span class="gl-chip gl-chip-k is-' + esc(l.kind) + '"><i></i>' + esc(kindL(l.kind)) + '</span>';
-    var t1 = l.out ? ', ' + l.out : '', t2 = l.in ? ', ' + l.in + (l.inDay ? ' +' + l.inDay : '') : '';
     var stats = l.amount != null
       ? '<div class="gl-st"><span>' + esc(T.earn) + '</span><b>' + esc(money(l.amount, l.currency)) + '</b></div>' +
         '<div class="gl-st"><span>' + esc(T.fixedL) + '</span><b>' + esc(money(Math.round(l.ratePerHour), l.currency)) + ' × ' + esc(hm(l.dutyMin)) + '</b></div>' +
         (l.basis === 'split' ? '<div class="gl-st"><span>' + esc(T.flightL) + '</span><b>' + esc(money(l.flight, l.currency)) + '</b></div>' : '')
-      : '<div class="gl-why">' + esc(why(l)) + (l.reason === 'no_payslip' ? ' <a class="gl-add" href="pay-report.html#ps">' + esc(T.addPay) + ' →</a>' : '') + '</div>';
+      : '<div class="gl-why">' + esc(why(l)) + (l.reason === 'no_payslip' ? ' <a class="gl-add" href="pay-report.html#ps">' + esc(T.addPay) + ' →</a>' : '') + '</div>' + lagAskHTML(l);
+    if (l.amount != null && l.fixedFrom) stats += '<p class="gl-from">' + esc(fill(T.fixedFrom, { m: ymS(l.fixedFrom) })) + '</p>';
+    if (l.amount != null && l.partial && l.partial.gaps.length) {
+      stats += '<div class="gl-part"><p>' + esc(fill(T.partT, { m: ymS(l.ym), g: gapsL(l.partial.gaps) })) + '</p>' +
+        '<button type="button" class="gl-lagb" data-roster-up="1">' + esc(T.addRoster) + '</button></div>';
+    }
     return '<div class="gl-flt-h"><span class="gl-flt-d">' + head + '</span>' + chip + '</div>' +
-      '<div class="gl-flt-r"><div class="gl-ap"><b>' + esc(l.ga.iata) + '</b><span>' + esc(city(l.ga) + t1) + '</span></div>' +
+      '<div class="gl-flt-r"><div class="gl-ap"><b>' + esc(l.ga.iata) + '</b><span>' + esc(city(l.ga)) + '</span><span class="gl-ap-t">' + esc(l.out || '') + '</span></div>' +
         '<div class="gl-flt-m"><i class="gl-flt-ln"></i><span class="gl-flt-pl">' + IC_PLANE + '</span><i class="gl-flt-ln is-r"></i><span class="gl-flt-bt">' + esc(hm(l.blockMin)) + '</span></div>' +
-        '<div class="gl-ap is-r"><b>' + esc(l.gb.iata) + '</b><span>' + esc(city(l.gb) + t2) + '</span></div></div>' +
+        '<div class="gl-ap is-r"><b>' + esc(l.gb.iata) + '</b><span>' + esc(city(l.gb)) + '</span><span class="gl-ap-t">' + esc(l.in ? l.in + (l.inDay ? ' +' + l.inDay : '') : '') + '</span></div></div>' +
       '<div class="gl-sts">' + stats + '</div>';
+  }
+  /* 飛んだ分が何月の明細に出るか（会社ごと・スケジュールの取り込みで聞く・設定で直せる）。まだ答えていない人には、額が出ない便のカードで聞く */
+  function lagAskHTML(l) {
+    if (!S.fp || S.fp.lagAsked || l.reason !== 'no_payslip') return '';
+    return '<div class="gl-lagq"><p>' + esc(T.lagQ) + '</p><div class="gl-lagc">' +
+      [[0, T.lag0], [1, T.lag1], [2, T.lag2], [-1, T.lagU]].map(function (o) {
+        return '<button type="button" class="gl-lagb" data-lag="' + o[0] + '">' + esc(o[1]) + '</button>';
+      }).join('') + '</div>' + (S.lagErr ? '<p class="gl-lage" role="status">' + esc(T.lagErr) + '</p>' : '') + '</div>';
+  }
+  function setLag(v) {
+    var a = S.ctx.current ? S.ctx.current() : null;
+    if (!a || !a.airline || S.lagBusy) return;
+    S.lagBusy = true; S.lagErr = false;
+    Promise.resolve(S.sb.rpc('set_roster_profile', { p_airline: a.airline, p_airline_other: a.other || null, p: { pay_lag: v } })).then(function (r) {
+      S.lagBusy = false;
+      if (r && !r.error && r.data && r.data.ok) {
+        /* スケジュールのタブ（設定の「明細に出る月」）も同じ答えに */
+        try { var RS = w.PVRoster && w.PVRoster._ && w.PVRoster._.S; if (RS && r.data.profile) RS.profile = r.data.profile; } catch (e) {}
+        load();
+      }
+      else { S.lagErr = true; render(); }
+    }, function () { S.lagBusy = false; S.lagErr = true; render(); });
   }
   function listHTML(V) {
     var legs = V.legs.filter(function (l) { return !S.route || routeKey(l) === S.route; });
@@ -379,7 +439,7 @@
     var r = S.route ? V.routes.filter(function (x) { return x.k === S.route; })[0] : null;
     var chips = [['all', T.all], ['operating', T.op], ['deadhead', T.dh]].filter(function (c) { return c[0] === 'all' || n[c[0]]; });
     return '<div class="gl-card-h"><div><h4 class="gl-card-t">' + esc(T.listT) + '</h4><p class="gl-card-s">' +
-        esc(r ? r.a.iata + ' ⇄ ' + r.b.iata + ' · ' + city(r.a) + ' / ' + city(r.b) : T.allRoutes) + '</p></div>' +
+        esc(r ? routeLabel(r) + ' · ' + nFl(r.n) + ' · ' + city(r.a) + ' / ' + city(r.b) : T.allRoutes) + '</p></div>' +
         (S.route ? '<button type="button" class="gl-x" data-route="" aria-label="' + esc(T.allRoutes) + '">' + esc(T.allRoutes) + '</button>' : '') + '</div>' +
       '<div class="gl-fl" role="group">' + chips.map(function (c) {
         return '<button type="button" class="gl-fb' + (S.filt === c[0] ? ' on' : '') + '" data-filt="' + c[0] + '" aria-pressed="' + (S.filt === c[0]) + '">' +
@@ -444,17 +504,22 @@
   function onClick(e) {
     var t = e.target.closest ? e.target.closest('button,a') : null;
     if (!t || !S.root.contains(t)) return;
-    if (t.hasAttribute('data-per')) { S.per = t.getAttribute('data-per'); store(PKEY, S.per); S.listN = 8; S.leg = null; S.route = null; render(); G.focusRoute(true); return; }
+    if (t.hasAttribute('data-per')) { S.per = t.getAttribute('data-per'); store(PKEY, S.per); S.listN = 8; S.leg = null; S.route = null; render(); G.home(); return; }
     if (t.hasAttribute('data-step')) { step(+t.getAttribute('data-step')); return; }
+    if (t.hasAttribute('data-lag')) { setLag(+t.getAttribute('data-lag')); return; }
+    if (t.hasAttribute('data-roster-up')) { if (w.PVRoster && w.PVRoster.open) w.PVRoster.open({ upload: true }); return; }
+    if (t.hasAttribute('data-toast-x')) { S.toastSeen = S.toastSeen || {}; S.toastSeen[t.getAttribute('data-toast-x')] = 1; render(); return; }
     if (t.hasAttribute('data-goym')) { S.per = 'm'; S.ym = t.getAttribute('data-goym'); S.leg = null; S.route = null; S.listN = 8; render(); G.focusRoute(); return; }
     if (t.hasAttribute('data-goday')) { S.per = 'd'; S.day = t.getAttribute('data-goday'); S.leg = null; S.route = null; S.listN = 8; render(); G.focusRoute(); return; }
     if (t.hasAttribute('data-route')) { pickRoute(t.getAttribute('data-route') || null); return; }
     if (t.hasAttribute('data-leg')) { S.leg = t.getAttribute('data-leg'); render(); G.focusRoute(); return; }   // 一覧の絞り方はそのまま
     if (t.hasAttribute('data-filt')) { S.filt = t.getAttribute('data-filt'); S.listN = 8; render(); return; }
     if (t.hasAttribute('data-more')) { S.listN = S.listN > 8 ? 8 : 999; render(); return; }
-    if (t.hasAttribute('data-z')) { G.zoomBy(+t.getAttribute('data-z') > 0 ? 1.6 : 1 / 1.6); return; }
+    if (t.hasAttribute('data-z')) { G.zoomBy(+t.getAttribute('data-z') > 0 ? 1.8 : 1 / 1.8); return; }
   }
   function pickRoute(k) {
+    /* 地球儀の線を押した（'A|B'）＝その2空港のいちばん新しい便の向きを選ぶ */
+    if (k && k.indexOf('|') >= 0) { var nl = S.V.legs.filter(function (x) { return pairOf(routeKey(x)) === k; })[0]; k = nl ? routeKey(nl) : null; }
     S.route = k; S.listN = 8; S.filt = 'all';
     if (k) { var l = S.V.legs.filter(function (x) { return routeKey(x) === k; })[0]; S.leg = l ? l.id : S.leg; }
     render(); G.focusRoute();
@@ -518,22 +583,26 @@
       }
       return out;
     }
+    var selT0 = 0;
     function setData(v, route, leg) {
-      V = v; selRoute = route || null; selLeg = leg || null;
+      if (pairOf(route) !== selRoute || (leg && leg.id) !== (selLeg && selLeg.id)) selT0 = performance.now() / 1000;   // 選び直したら出発地から
+      V = v; selRoute = pairOf(route); selLeg = leg || null;
       arcs = []; ports = []; hub = null;
       if (V) {
-        var seenP = {};
-        V.routes.forEach(function (r, i) {
+        var seenP = {}, byPair = {};
+        V.routes.forEach(function (r) {
           if (r.a.lat == null || r.b.lat == null) return;          // 位置の分からない空港の区間は描かない
-          var A0 = vec(r.a.lat, r.a.lon), B0 = vec(r.b.lat, r.b.lon);
+          var pk = pairOf(r.k), ex = byPair[pk];
+          if (ex) { ex.n += r.n; ex.dh = ex.dh && r.dh === r.n; return; }
+          var p0 = r.a.iata < r.b.iata ? r.a : r.b, p1 = p0 === r.a ? r.b : r.a;   // 線は名前の順の空港から
+          var A0 = vec(p0.lat, p0.lon), B0 = vec(p1.lat, p1.lon);
           var om = Math.acos(Math.max(-1, Math.min(1, A0[0] * B0[0] + A0[1] * B0[1] + A0[2] * B0[2])));
-          arcs.push({ k: r.k, n: r.n, dh: r.dh === r.n, pts: arcOf(r.a, r.b), om: om, off: (i * 0.37) % 1, scr: [], fly: false });
+          ex = byPair[pk] = { k: pk, n: r.n, dh: r.dh === r.n, pts: arcOf(p0, p1), om: om, a: p0.iata, scr: [] };
+          arcs.push(ex);
           [r.a, r.b].forEach(function (g) { if (!seenP[g.iata]) { seenP[g.iata] = 1; ports.push({ g: g, v: vec(g.lat, g.lon) }); } });
         });
         hub = V.hub;
-        /* 飛行機を飛ばすのは、よく飛んだ5ルートと選んだルートだけ（全部に飛ばすと騒がしい） */
-        arcs.slice().sort(function (p, q) { return q.n - p.n; }).slice(0, 5).forEach(function (a) { a.fly = true; });
-        if (!seen && V.legs.length) { seen = true; center(true); }
+        if (!seen && V.legs.length) { seen = true; home(true); }
       }
       kick(); draw();
     }
@@ -551,7 +620,8 @@
     function fitK() {
       var a = selRoute ? arcs.filter(function (x) { return x.k === selRoute; })[0] : null;
       if (!a) return k;
-      if (a.om < 0.35) return Math.max(1, Math.min(8, 0.7 / Math.max(a.om, 0.01)));
+      /* ★2026-11-12 オーナー「国内線の1便の線がちゃんと見えるまで」：ルートが画面の短い辺の半分くらいの長さになるまで寄る */
+      if (a.om < 0.35) { var r0 = geom().R / k; return Math.max(1, Math.min(KMAX, (Math.min(W, H) * 0.5) / (r0 * Math.max(a.om, 0.002)))); }
       return k > 1.4 ? 1 : k;
     }
     function center(now) {
@@ -564,9 +634,66 @@
       kick();
     }
     function focusRoute(soft) { center(!!soft && RM); idleAt = performance.now(); }
-    var KMAX = 10;   // 国内線まで見えるように（オーナー「国内線とか拡大すると」）
+    /* ★2026-11-12 オーナー「くるくる回ると見づらい・主基地を中心に止めておく」：主基地（いちばん多く出た空港）を正面に、
+         行き先が全部入る大きさで止める（主基地から一番遠い行き先までの角度で寄り具合を決める） */
+    function home(now) {
+      var hp = ports.filter(function (p) { return p.g.iata === hub; })[0];
+      if (!hp) { center(now); return; }
+      var far = 0;
+      ports.forEach(function (p) { var dt2 = hp.v[0] * p.v[0] + hp.v[1] * p.v[1] + hp.v[2] * p.v[2]; far = Math.max(far, Math.acos(Math.max(-1, Math.min(1, dt2)))); });
+      var r0 = geom().R / k;
+      var kT = far >= 1.2 || far <= 0 ? 1 : Math.max(1, Math.min(40, (Math.min(W, H) * 0.42) / (r0 * Math.sin(far))));
+      var tl = Math.atan2(hp.v[0], hp.v[2]), tp = Math.asin(Math.max(-1, Math.min(1, hp.v[1])));
+      var pT = kT > 1.5 ? tp : tp * 0.8 + 0.12;
+      if (now || RM) { lam = tl; phi = pT; k = kT; draw(); return; }
+      var dl = tl - lam; while (dl > Math.PI) dl -= 2 * Math.PI; while (dl < -Math.PI) dl += 2 * Math.PI;
+      tween = { t0: performance.now(), l0: lam, p0: phi, dl: dl, dp: pT - phi, k0: k, dk: kT - k, dur: 1000 };
+      kick();
+    }
+    var KMAX = 200;  // 県くらいまで見えるように（オーナー「もっと拡大。県くらいまで見えるレベルで」＝ 画面の幅が 100〜150km）
     function zoomBy(f) { tween = null; k = Math.max(0.7, Math.min(KMAX, k * f)); idleAt = performance.now(); kick(); draw(); }
 
+    /* ── 0.25° より細かく寄ったとき：陸の縁（pv-globe-coast.js）を読み、緯度の行ごとに「縁と交わる経度」を並べて、画面の上で点を作る ──
+       行ごとの交わりは覚えておく（同じ行は2回数えない）。縁は 0.5° 幅の帯ごとに引けるようにしておく */
+    var coastState = 0, coast = null, coastRowN = 0;   // 0 まだ・1 読んでいる・2 読めた・3 読めない
+    function loadCoast() {
+      if (coastState || !S.ctx || !S.ctx.urls || !S.ctx.urls.coast) return;
+      coastState = 1;
+      var el = d.createElement('script');
+      el.src = S.ctx.urls.coast;
+      el.onload = function () { coastState = w.PV_GLOBE_COAST ? 2 : 3; draw(); };
+      el.onerror = function () { coastState = 3; };
+      d.head.appendChild(el);
+    }
+    function coastReady() {
+      if (coast) return true;
+      if (!w.PV_GLOBE_COAST) return false;
+      var str = w.atob(w.PV_GLOBE_COAST), n = str.length, i = 0, E = [], bands = {};
+      var rd = function () { var v = 0, m = 1, ch; do { ch = str.charCodeAt(i++); v += (ch & 127) * m; m *= 128; } while (ch & 128); return v % 2 ? -(v + 1) / 2 : v / 2; };
+      while (i < n) {
+        var cnt = rd(), px = 0, py = 0, xs = [], ys = [];
+        for (var q = 0; q < cnt; q++) { px += rd(); py += rd(); xs.push(px / 100); ys.push(py / 100); }
+        for (var a = 0, b = cnt - 1; a < cnt; b = a++) {
+          var y1 = ys[b], y2 = ys[a], x1 = xs[b], x2 = xs[a];
+          if (y1 === y2) continue;
+          if (y1 > y2) { var tt = y1; y1 = y2; y2 = tt; tt = x1; x1 = x2; x2 = tt; }
+          var id = E.length / 4; E.push(y1, y2, x1, x2);
+          for (var bb = Math.floor(y1 * 2); bb <= Math.floor(y2 * 2); bb++) (bands[bb] || (bands[bb] = [])).push(id);
+        }
+      }
+      coast = { E: new Float64Array(E), bands: bands, rows: {} };
+      return true;
+    }
+    function coastRow(lat) {
+      var key = lat.toFixed(6), hit = coast.rows[key];
+      if (hit) return hit;
+      var ids = coast.bands[Math.floor(lat * 2)] || [], E = coast.E, xs = [];
+      for (var q = 0; q < ids.length; q++) { var o = ids[q] * 4; if (E[o] <= lat && E[o + 1] > lat) xs.push(E[o + 2] + (lat - E[o]) / (E[o + 1] - E[o]) * (E[o + 3] - E[o + 2])); }
+      xs.sort(function (p, r) { return p - r; });
+      if (++coastRowN > 6000) { coast.rows = {}; coastRowN = 0; }
+      return (coast.rows[key] = xs);
+    }
+    function onLand(xs, lon) { var lo = 0, hi = xs.length; while (lo < hi) { var mid = (lo + hi) >> 1; if (xs[mid] < lon) lo = mid + 1; else hi = mid; } return lo % 2 === 1; }
     function hid() { return d.hidden || !inView || !S.visible; }
     function animating() { return !RM && !hid(); }
     function kick() { if (!raf && animating()) { last = performance.now(); raf = w.requestAnimationFrame(frame); } }
@@ -581,7 +708,6 @@
         if (p >= 1) tween = null;
       } else if (!drag && !pinch) {
         if (Math.abs(vlam) > 1e-5 || Math.abs(vphi) > 1e-5) { lam += vlam * dt; phi = clampP(phi + vphi * dt); vlam *= 0.92; vphi *= 0.92; }
-        else if (now - idleAt > 6000) lam -= 0.000022 * dt;    // 触っていない間はゆっくり自転
       }
       draw(now);
       if (!RM) raf = w.requestAnimationFrame(frame);
@@ -598,10 +724,16 @@
       /* 外の光（大気）：縁のすぐ外で光る。見本と同じく左上ほど強い */
       var halo = c.createRadialGradient(cx + R * 0.08, cy + R * 0.06, R * 0.95, cx, cy, R * 1.24);
       halo.addColorStop(0, 'rgba(120,230,208,.34)'); halo.addColorStop(0.45, 'rgba(90,200,182,.12)'); halo.addColorStop(1, 'rgba(90,200,182,0)');
-      c.fillStyle = halo; c.beginPath(); c.arc(cx, cy, R * 1.24, 0, Math.PI * 2); c.fill();
+      /* 大気は球の外側の輪だけ（球の中は下で別に・寄るほど薄く）。★輪の内側まで塗ると、寄ったとき球の中が白っぽく濁る（オーナー「色が薄くなる」） */
+      var zf = Math.min(1, Math.max(0, (k - 1) / 3));
+      c.fillStyle = halo; c.beginPath(); c.arc(cx, cy, R * 1.24, 0, Math.PI * 2); c.arc(cx, cy, R, 0, Math.PI * 2, true); c.fill('evenodd');
+      c.fillStyle = 'rgba(120,230,208,' + (0.34 * (1 - zf)).toFixed(3) + ')'; c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.fill();
       /* 球：中は暗い青緑（見本 #0e5253）。白で濁らせない */
+      /* ★寄ったとき（オーナー「色が薄くなる」）：明るい所は球の左上の一部だけ。寄るほど明るさを抑えて、遠目と同じ濃さに */
+      var lightA = (0.62 * (1 - 0.7 * zf)).toFixed(3);
       var body = c.createRadialGradient(cx - R * 0.28, cy - R * 0.36, R * 0.08, cx, cy, R);
-      body.addColorStop(0, 'rgba(52,150,138,.62)'); body.addColorStop(0.55, 'rgba(18,86,84,.6)'); body.addColorStop(1, 'rgba(6,50,52,.72)');
+      body.addColorStop(0, 'rgba(52,150,138,' + lightA + ')'); body.addColorStop(0.55, 'rgba(18,86,84,' + (0.6 + 0.32 * zf).toFixed(3) + ')'); body.addColorStop(1, 'rgba(6,50,52,' + (0.72 + 0.2 * zf).toFixed(3) + ')');
+      /* 寄ると球が画面を覆う＝面の光（CSS）が透けて薄く見える。寄るほど、球の中を見本の濃い青緑（#0e5253）で埋める */
       c.fillStyle = body; c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.fill();
       /* 縁の内側の光：右下から左上へ、縁に近いほど明るい（見本の左上の光る縁） */
       var lit = c.createRadialGradient(cx + R * 0.22, cy + R * 0.18, R * 0.55, cx, cy, R * 1.02);
@@ -611,14 +743,40 @@
          ★拡大するほど細かい段（2°→1°→0.5°→0.25°）に替えて、点の間隔が画面でいつも 6〜12px になるように（オーナー「拡大したら点も細かく」）。
          見えている所（正面のまわり）の行と列だけを見る＝細かい段でも重くならない */
       var LV = w.PV_GLOBE_LAND.levels, lvl = 0;
-      while (lvl < LV.length - 1 && R * LV[lvl] * Math.PI / 180 > 12) lvl++;
-      var LD = w.PV_GLOBE_LAND(lvl), stepR = LD.step * Math.PI / 180;
+      while (lvl < LV.length - 1 && R * LV[lvl] * Math.PI / 180 > 11) lvl++;
+      var cstep = 0;
+      if (R * LV[lvl] * Math.PI / 180 > 11) {                     // 点の表のいちばん細かい段でもまだ粗い＝陸の縁から作る
+        if (coastReady()) { cstep = LV[lvl]; while (R * cstep * Math.PI / 180 > 11) cstep /= 2; } else loadCoast();
+      }
+      var LD = cstep ? null : w.PV_GLOBE_LAND(lvl), stepR = (cstep || LD.step) * Math.PI / 180;
       var rad = Math.max(0.8, R * stepR * 0.17), buckets = [[], [], [], []];
       var cl = Math.cos(lam), sl = Math.sin(lam), cp = Math.cos(phi), sp = Math.sin(phi);
       var dMax = Math.max(Math.hypot(cx, cy), Math.hypot(W - cx, cy), Math.hypot(cx, H - cy), Math.hypot(W - cx, H - cy));
       var ang = dMax >= R ? Math.PI / 2 + 0.05 : Math.asin(dMax / R) + 0.03;
       var pole = Math.abs(phi) + ang >= Math.PI / 2 - 0.02;
-      for (var ri = 0; ri < LD.rows.length; ri++) {
+      if (cstep) {
+        var latC = phi * 180 / Math.PI, angD = ang * 180 / Math.PI, nRows = Math.round(180 / cstep);
+        var j0 = Math.max(0, Math.floor((latC - angD + 90) / cstep)), j1 = Math.min(nRows - 1, Math.ceil((latC + angD + 90) / cstep));
+        for (var jj = j0; jj <= j1; jj++) {
+          var latD = -90 + cstep * (jj + 0.5), la2 = latD * Math.PI / 180, cla2 = Math.cos(la2), y02 = Math.sin(la2);
+          var nn2 = Math.max(1, Math.round((360 / cstep) * cla2)), xsr = coastRow(latD);
+          if (!xsr.length) continue;
+          var dl2 = pole || cla2 < 0.02 ? Math.PI : Math.min(Math.PI, ang / cla2 * 1.15 + 0.02);
+          var k0 = 0, k1 = nn2 - 1;
+          if (dl2 < Math.PI) { k0 = Math.floor((lam - dl2 + Math.PI) / (2 * Math.PI) * nn2); k1 = Math.floor((lam + dl2 + Math.PI) / (2 * Math.PI) * nn2); }
+          for (var kk = k0; kk <= k1; kk++) {
+            var cj = ((kk % nn2) + nn2) % nn2, lonD = -180 + 360 * (cj + 0.5) / nn2;
+            if (!onLand(xsr, lonD)) continue;
+            var lo2 = lonD * Math.PI / 180, xa = cla2 * Math.sin(lo2), za = cla2 * Math.cos(lo2);
+            var xb = xa * cl - za * sl, zb = xa * sl + za * cl, yb = y02 * cp - zb * sp, zc = y02 * sp + zb * cp;
+            if (zc <= 0.02) continue;
+            var qx = cx + R * xb, qy = cy - R * yb;
+            if (qx < -8 || qx > W + 8 || qy < -8 || qy > H + 8) continue;
+            buckets[Math.min(3, Math.floor(zc * 4))].push(qx, qy, zc);
+          }
+        }
+      }
+      for (var ri = 0; !cstep && ri < LD.rows.length; ri++) {
         var row = LD.rows[ri], la = row.lat * Math.PI / 180;
         if (Math.abs(la - phi) > ang) continue;
         var cla = Math.cos(la), y0 = Math.sin(la), nn = row.n, bits = row.bits;
@@ -637,12 +795,27 @@
           buckets[Math.min(3, Math.floor(z2 * 4))].push(px, py, z2);
         }
       }
+      /* ★寄ったとき（オーナー「地球の丸みが分からない」）：画面の真ん中から離れるほど、点を小さく・暗く（丸い面が向こうへ逃げていくように） */
+      var cf = Math.min(1, Math.max(0, (k - 1.6) / 2.5)), vmax = Math.hypot(W, H) * 0.55;
+      if (cf > 0) {
+        var nb = [[], [], [], []];
+        for (var b2 = 0; b2 < 4; b2++) for (var q2 = 0; q2 < buckets[b2].length; q2 += 3) {
+          var dd = Math.min(1, Math.hypot(buckets[b2][q2] - cx, buckets[b2][q2 + 1] - cy) / vmax), zz = buckets[b2][q2 + 2] * (1 - cf * 0.62 * dd * dd);
+          nb[Math.max(0, Math.min(3, Math.floor(zz * 4)))].push(buckets[b2][q2], buckets[b2][q2 + 1], zz);
+        }
+        buckets = nb;
+      }
       for (var bI = 0; bI < 4; bI++) {
         var B = buckets[bI];
         c.fillStyle = 'rgba(236,255,250,' + [0.4, 0.68, 0.88, 1][bI] + ')';
         c.beginPath();
         for (var j = 0; j < B.length; j += 3) { var s = rad * (0.62 + 0.38 * B[j + 2]); c.moveTo(B[j] + s, B[j + 1]); c.arc(B[j], B[j + 1], s, 0, Math.PI * 2); }
         c.fill();
+      }
+      if (cf > 0) {
+        var vg = c.createRadialGradient(cx, cy, Math.min(W, H) * 0.28, cx, cy, vmax * 1.05);
+        vg.addColorStop(0, 'rgba(4,34,38,0)'); vg.addColorStop(1, 'rgba(4,30,34,' + (0.62 * cf).toFixed(3) + ')');
+        c.fillStyle = vg; c.fillRect(0, 0, W, H);
       }
       /* 縁：細い明るい線に光をにじませる（ガラスの縁） */
       c.save(); c.shadowColor = 'rgba(140,245,220,.9)'; c.shadowBlur = 14;
@@ -674,16 +847,15 @@
         a.scr.forEach(function (p) { if (!p) { on = false; return; } if (on) c.lineTo(p[0], p[1]); else c.moveTo(p[0], p[1]); on = true; });
         c.stroke(); c.setLineDash([]);
       }
-      /* 飛んでいる飛行機（ルートごとに1機）。動きを減らす設定では止めて、弧の真ん中に置く */
-      arcs.forEach(function (a) {
-        var isSel = a.k === selRoute;
-        if (!a.fly && !isSel) return;
-        var per = 5 + a.pts.length * 0.09, u = RM ? 0.5 : ((t / per + a.off) % 1);
-        var pos = at(a, u);
-        if (!pos) return;
-        plane(pos, isSel ? '#f5c35a' : 'rgba(255,255,255,.9)', isSel ? 1.05 : 0.78);
-        if (isSel) sel.planeAt = pos;
-      });
+      /* ★飛行機は選んだルートだけ（オーナー「ルートを選んだら飛ぶように」）。選んだ便の出発地から目的地へ、着いたら少し止まってもう一度。
+           動きを減らす設定では止めて、弧の真ん中に置く */
+      if (sel) {
+        var fwd = !selLeg || !selLeg.ga || selLeg.ga.iata === sel.a;
+        var dur = 2.6 + Math.min(3, sel.om * 2.2), cyc = (t - selT0) % (dur + 0.9), u = RM ? 0.5 : Math.min(1, cyc / dur);
+        u = u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;                 // 出るときと着くときはゆっくり
+        var pos = at(sel, fwd ? u : 1 - u);
+        if (pos) { if (!fwd) pos.ang += Math.PI; plane(pos, '#f5c35a', 1.1); sel.planeAt = pos; }
+      }
       /* 空港：拠点は白い点・行き先は白い輪。名前は重なるものを省く（拠点と選んだルートが先） */
       var FONT = '"Outfit", "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif';
       c.font = '500 10.5px ' + FONT; c.textBaseline = 'middle';
@@ -790,7 +962,7 @@
       });
       if (best) pickRoute(best.k);
     }
-    return { init: init, setData: setData, focusRoute: focusRoute, zoomBy: zoomBy, kick: kick, draw: draw };
+    return { init: init, setData: setData, focusRoute: focusRoute, home: home, zoomBy: zoomBy, kick: kick, draw: draw };
   }());
 
   /* ── 外から ─────────────────────────────────────────────── */

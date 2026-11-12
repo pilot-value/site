@@ -104,12 +104,12 @@
       qRef: '時刻は', qRefL: '現地時刻', qRefU: 'UTC',
       qMean: '便の TIME の欄は', qMeanB: 'ブロックタイム（チョックオフ〜チョックオン）', qMeanF: 'フライトタイム（離陸〜着陸）', qMeanO: 'ほかの意味・わからない',
       qCodes: '勤務コードの意味', qCodesS: '答えると、休日と勤務日を正しく数えます。',
-      codeOpt: { off: '休日', vac: '有休', duty: '勤務', standby: 'スタンバイ', training: '訓練', ground: '地上業務', unknown: 'わからない' },
+      codeOpt: { off: '休日', vac: '有休', duty: '勤務', standby: 'スタンバイ', training: '訓練', ground: '地上業務', other: 'その他', unknown: 'わからない' },
       codePick: '選ぶ',
       printed: '原本の表記から',
       next: '次へ', prevStep: '戻る',
       sumRead: '読めた日 {d}／{m}日', sumTime: 'フライトタイム {b}／{n}便',
-      calEdit: '日付を押すと、その日を直せます。',
+      calEdit: '日付を押すと、その日を直せます。', prevNote: '薄い色の日は、前に出したスケジュールです（そのまま残ります）。', prevLab: '前に出した日',
       missH: '読めなかった日', missS: '空欄のままの日は保存しません。',
       missDuty: '勤務を入力', missBlank: '空欄のまま',
       eEdit: 'この日を直す', eAdd: 'この日を入れる',
@@ -212,12 +212,12 @@
       qRef: 'Times are in', qRefL: 'Local time', qRefU: 'UTC',
       qMean: 'The TIME column on legs is', qMeanB: 'Block time (chocks off to chocks on)', qMeanF: 'Flight time (takeoff to landing)', qMeanO: 'Something else / not sure',
       qCodes: 'What these duty codes mean', qCodesS: 'Your answers let us count days off and duty days correctly.',
-      codeOpt: { off: 'Day off', vac: 'Annual leave', duty: 'Duty', standby: 'Standby', training: 'Training', ground: 'Ground duty', unknown: 'Not sure' },
+      codeOpt: { off: 'Day off', vac: 'Annual leave', duty: 'Duty', standby: 'Standby', training: 'Training', ground: 'Ground duty', other: 'Other', unknown: 'Not sure' },
       codePick: 'Choose',
       printed: 'as printed',
       next: 'Next', prevStep: 'Back',
       sumRead: 'Days read {d}/{m}', sumTime: 'Flight times {b}/{n}',
-      calEdit: 'Tap a date to fix that day.',
+      calEdit: 'Tap a date to fix that day.', prevNote: 'Faded days are from rosters you added before (they stay as they are).', prevLab: 'Added before',
       missH: 'Days not read', missS: 'Days left blank are not saved.',
       missDuty: 'Enter duty', missBlank: 'Leave blank',
       eEdit: 'Edit this day', eAdd: 'Add this day',
@@ -318,12 +318,12 @@
       qRef: 'Las horas están en', qRefL: 'Hora local', qRefU: 'UTC',
       qMean: 'La columna TIME de los tramos es', qMeanB: 'Tiempo block (de calzos fuera a calzos dentro)', qMeanF: 'Tiempo de vuelo (del despegue al aterrizaje)', qMeanO: 'Otra cosa / no estoy seguro',
       qCodes: 'Qué significan estos códigos de servicio', qCodesS: 'Con tus respuestas contamos bien los días libres y los días de servicio.',
-      codeOpt: { off: 'Día libre', vac: 'Vacaciones anuales', duty: 'Servicio', standby: 'Standby', training: 'Entrenamiento', ground: 'Actividad en tierra', unknown: 'No estoy seguro' },
+      codeOpt: { off: 'Día libre', vac: 'Vacaciones anuales', duty: 'Servicio', standby: 'Standby', training: 'Entrenamiento', ground: 'Actividad en tierra', other: 'Otro', unknown: 'No estoy seguro' },
       codePick: 'Elegir',
       printed: 'según lo impreso',
       next: 'Siguiente', prevStep: 'Volver',
       sumRead: 'Días leídos {d}/{m}', sumTime: 'Tiempos de vuelo {b}/{n}',
-      calEdit: 'Toca una fecha para corregir ese día.',
+      calEdit: 'Toca una fecha para corregir ese día.', prevNote: 'Los días atenuados son de programaciones que agregaste antes (se mantienen igual).', prevLab: 'Agregado antes',
       missH: 'Días no leídos', missS: 'Los días que quedan en blanco no se guardan.',
       missDuty: 'Ingresar servicio', missBlank: 'Dejar en blanco',
       eEdit: 'Corregir este día', eAdd: 'Agregar este día',
@@ -1069,7 +1069,7 @@
   }
 
   /* ── はじめに聞く（その会社で初めてのときだけ・分からないものだけ）──────── */
-  var CODE_OPTS = ['off', 'vac', 'standby', 'training', 'ground', 'duty', 'unknown'];
+  var CODE_OPTS = ['off', 'vac', 'standby', 'training', 'ground', 'duty', 'other', 'unknown'];   // ★2026-11-12 オーナー「わからないの他にその他」
   function asks() {
     var pr = U.ctx.profile || {}, lr = learned();
     return { kind: !pr.kind && !lr.kind, ref: !pr.time_ref && !lr.time_ref, mean: !pr.time_meaning && !lr.time_meaning,
@@ -1185,12 +1185,20 @@
     if (ds.length && ds[0] < a) a = ds[0];
     if (ds.length && ds[ds.length - 1] > b) b = ds[ds.length - 1];
     var yms = a && b ? R.helpers.ymRange(a.slice(0, 7), b.slice(0, 7)).slice(0, 3) : [];
-    return '<section class="ru-card ru-cals"><p class="ru-qs ru-lead">' + esc(T.calEdit) + '</p>' + yms.map(function (ym) {
+    /* ★2026-11-12 オーナー「半月ぶん足したあと、その月に今まで出した分も入れて（区別できるように）」：
+         今回の取り込みに無い日付だけ、保存済みの日を薄く出す（保存する日数には入らない・送らない＝前の日はそのまま残る） */
+    var sv = (U.ctx.saved || []).filter(function (x) { return x && x.date && yms.indexOf(x.date.slice(0, 7)) >= 0; });
+    var svBy = {}, prev = {}, anyPrev = false;
+    if (sv.length) R.rosterMonths(sv, draftProfile()).forEach(function (m) { svBy[m.ym] = m; });
+    var html = yms.map(function (ym) {
       var bd = {};
       (byYm[ym] ? byYm[ym].days : []).forEach(function (x) { bd[x.date] = x; });
+      (svBy[ym] ? svBy[ym].days : []).forEach(function (x) { if (!bd[x.date]) { bd[x.date] = x; prev[x.date] = 1; anyPrev = true; } });
       return '<div class="ru-cal"><p class="ru-prev-t">' + esc(P.monthTitle(ym)) + '</p>' +
-        P.calHTML(ym, bd, { interactive: true, edit: true, ask: ask, flag: flag, askLabel: T.missH }) + '</div>';
-    }).join('') + '</section>';
+        P.calHTML(ym, bd, { interactive: true, edit: true, ask: ask, flag: flag, askLabel: T.missH, prev: prev, prevLabel: T.prevLab }) + '</div>';
+    }).join('');
+    return '<section class="ru-card ru-cals"><p class="ru-qs ru-lead">' + esc(T.calEdit) + '</p>' +
+      (anyPrev ? '<p class="ru-qs ru-prevnote"><i class="ru-prev-k" aria-hidden="true"></i>' + esc(T.prevNote) + '</p>' : '') + html + '</section>';
   }
   function daySum(x) {
     var s = [];
