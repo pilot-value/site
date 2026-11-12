@@ -63,7 +63,11 @@ const ALT = /[ \t]*<link rel="alternate" hreflang="[^"]*" href="[^"]*"\/>\n?|[ \
 /* ★ホーム画面に置ける形の塊（inject-app.mjs・2026-11-07）も、直した日に数えない。全ページの head に同じ塊が入るだけで、
      本文は1文字も変わらない。inject-app.mjs は「塊＋改行1つ」だけを足すので、それを取り除けば元のファイルに戻る。 */
 const APP = /<!--PV-APP-->[\s\S]*?<!--\/PV-APP-->\n/g;
-const strip = (s) => s.replace(APP, '').replace(ALT, '').replace(LD, (all, open, json, close) => {
+/* ★すりガラスと動きの塊（inject-glass.mjs・2026-11-12）も同じ。全ページの head に同じ塊が入るだけで、本文は1文字も変わらない。
+     試作のときの2行（ui-trial.css / ui-trial.js）も、取り除いて比べる（塊に置き換わる＝本文は同じ）。 */
+const GLASS = /<!--PV-GLASS-->[\s\S]*?<!--\/PV-GLASS-->\n/g;
+const TRIAL = /[ \t]*<!-- すりガラスと動きの試作[^\n]*-->\n[ \t]*<link rel="stylesheet" href="[^"]*ui-trial\.css">\n[ \t]*<script src="[^"]*ui-trial\.js"><\/script>\n/g;
+const strip = (s) => s.replace(APP, '').replace(GLASS, '').replace(TRIAL, '').replace(ALT, '').replace(LD, (all, open, json, close) => {
   try { return open + JSON.stringify(drop(JSON.parse(json))) + close; } catch { return all; }
 });
 

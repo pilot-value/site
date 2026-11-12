@@ -1,4 +1,5 @@
-/* shot-ui-trial.mjs — shot-value.mjs の写し（すりガラスの試作用・ポート 3210・UI=v22|glass・ACT/MID）。本体は shot-value.mjs。
+/* shot-glass.mjs — すりガラスと動き（pv-glass.*）を撮る・動画にする道具（2026-11-12）。shot-value.mjs の写しから育てた（ポート 3210・ACT/MID/REC）。
+   ★撮る画面では動きを止めない（window.__pvMotion を立てる ＝ 自動の検査で止まる動きを、ここでは動かす）。UI=now で今までの見た目（手元の ?ui=now）。
    shot-value.mjs — 市場価値レポート（MY PAGE の ③ YOUR PAY）を localhost の実ページで撮る。
    ★2026-09-06、レポートは profile.html の中の1節になった（my-value.html は転送1枚）。
 
@@ -159,6 +160,7 @@ if (scene === 'real') {
               '／ 組合が総支給の外 =', REALROW.union_outside_gross);
 }
 
+await page.evaluateOnNewDocument(() => { window.__pvMotion = 1; });
 await page.evaluateOnNewDocument((scene, theme, REALROW) => {
   localStorage.setItem('pv-theme', theme);
   localStorage.removeItem('pv_unlock_expiry');
@@ -617,12 +619,11 @@ async function recStart() {
   await REC.cdp.send('Page.startScreencast', { format: 'jpeg', quality: 82, everyNthFrame: 1, maxWidth: 1600, maxHeight: 1800 });
 }
 if (process.env.REC) {
-  /* 動画には試作の切り替え（右下の帯）を写さない。ページを移ると ?sw=0 が付いてこないので、ここで隠す */
+  /* スマホの動画：780px の画面に 390px のページを2倍で描く（ページを移っても meta viewport を差し替える） */
   if (vw < 600) await page.evaluateOnNewDocument((w) => {
     const fix = () => { const m = document.querySelector('meta[name="viewport"]'); if (m && m.content !== 'width=' + w) m.content = 'width=' + w; return !!m; };
     if (!fix()) { const mo = new MutationObserver(() => { if (fix()) mo.disconnect(); }); mo.observe(document, { childList: true, subtree: true }); }
   }, vw);
-  await page.evaluateOnNewDocument(() => { document.addEventListener('DOMContentLoaded', () => { const s = document.createElement('style'); s.textContent = '.ut-sw{display:none!important}'; document.head.appendChild(s); }); });
   await recStart();
   page.on('framenavigated', (fr) => { if (fr === page.mainFrame()) REC.cdp.send('Page.startScreencast', { format: 'jpeg', quality: 82, everyNthFrame: 1, maxWidth: 1600, maxHeight: 1800 }).catch(() => {}); });
 }

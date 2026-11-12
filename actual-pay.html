@@ -66,9 +66,6 @@
   <!-- この画面だけの見た目（.ap-*）。
        ★pay-viz.css は読まない。この画面にドーナツは無い（内訳は DEEP PAY の担当）。 -->
   <link rel="stylesheet" href="actual-pay.css?v=d1db356c">
-  <!-- すりガラスと動きの試作（2026-11-12・手元の住所で ?ui=glass のときだけ効く・本番に出さない） -->
-  <link rel="stylesheet" href="ui-trial.css">
-  <script src="ui-trial.js"></script>
 
   <style>
     /* ここに置くのは「CSS が届く前に見えてしまう部分」だけ。
@@ -111,6 +108,11 @@
 </script>
 <!--/PV-3P-->
 <script src="pv-session.js?v=c5cd5bac"></script>
+<!--PV-GLASS-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300..700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="pv-glass.css?v=773b8f9e">
+<script src="pv-glass.js?v=856761ef"></script>
+<!--/PV-GLASS-->
 </head>
 <body class="pv-anav-shell pv-anav-app">
   <header class="mr-top">

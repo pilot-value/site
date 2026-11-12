@@ -1,35 +1,35 @@
-/* ui-trial.js — すりガラスと動きの試作（2026-11-12・左メニューのある会員の画面4枚・本番に出さない）
-   ?ui=glass で html に data-ui="glass" を立て、動きを付ける。?ui=now で戻す。選んだ方は端末に覚えて、ページを移っても続く。
-   ★手元の住所（localhost）でだけ効く。本番の住所では ?ui= を付けても1行も動かない。
+/* pv-glass.js — すりガラスと動き（2026-11-12 オーナー採用・全ページ）
+   オーナーの参考動画（緑・青の Dashboard Animation・Glassy V2）を、今の緑で写したもの。
+   試作（ui-trial.js）を4枚で見せて「ガラスの方がいい」「いいね」→「全部のページに広げて」（2026-11-12）。
+   読み込みは全ページの head の <!--PV-GLASS--> の塊（inject-glass.mjs が書く・pv-glass.css と対）。
    ★本物の字・数字は書き換えない。数え上げは「字を透明にして、上に重ねた絵の字だけを数える」。
-     ＝ currency.js が読む字は最初から最後まで本物の額のまま。
+     ＝ currency.js が読む字は最初から最後まで本物の額のまま。見出しを1字ずつに割るのも、動き終わったら元の字に戻す。
    ★my-value.js には触らない。タブを押した瞬間を横取りして、View Transitions で包んでから
      もう一度同じボタンを押す（中の処理は今までと1文字も同じ道を通る）。
    ★スクロールの動きは2種類：カードの出入りはスクロールと一緒に進む（戻すと戻る）。
-     数字・棒・円はカードが見えたときに1回だけ時間で動く（途中で止めても、棒が本当より短く止まらない）。 */
+     数字・棒・円は、それ自身が画面に入ったときに1回だけ時間で動く（途中で止めても、棒が本当より短く止まらない）。
+   ★動かさない相手：「動きを減らす」設定の人・検索のロボット・自動の検査（navigator.webdriver）。
+     検査は途中の形（長さ 0 の棒・透明にした数字）を測らないように、止まった最後の形だけを見る。
+     動きそのものは assert-glass.mjs が window.__pvMotion を立てて確かめる。
+   ★手元の住所でだけ ?ui=now で今までの見た目に戻せる（比べる用・端末に覚える。?ui=glass で戻す）。 */
 (function () {
   'use strict';
   var d = document, w = window, root = d.documentElement;
   var LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
-  if (!LOCAL) return;
-  var q = new URLSearchParams(location.search);
-  var KEY = 'pv-ui-trial', ask = q.get('ui'), ui = '';
-  try {
-    if (ask === 'glass') localStorage.setItem(KEY, 'glass');
-    else if (ask === 'now') localStorage.removeItem(KEY);
-    ui = ask === 'now' ? '' : (ask === 'glass' || localStorage.getItem(KEY) === 'glass') ? 'glass' : '';
-  } catch (e) { ui = ask === 'glass' ? 'glass' : ''; }
+  var q = new URLSearchParams(location.search), ui = 'glass';
+  if (LOCAL) {
+    try {
+      if (q.get('ui') === 'now') localStorage.setItem('pv-ui-off', '1');
+      else if (q.get('ui') === 'glass') localStorage.removeItem('pv-ui-off');
+      if (localStorage.getItem('pv-ui-off') === '1') ui = '';
+    } catch (e) { if (q.get('ui') === 'now') ui = ''; }
+  }
   if (ui) root.setAttribute('data-ui', ui);
-  /* 会社ページの背景（2026-11-12 オーナー「会社ページはバックが緑じゃない方がいいかも。2通り作れる？」→ 比べて「白の方がいいな。ここは」）。
-     既定は白（plain・緑を使わない）。?bg=green で緑と比べられる（端末に覚える）。会社ページにだけ効く */
-  var AIRPAGE = /\/airlines\//.test(location.pathname), bg = 'plain';
-  try {
-    var bgAsk = q.get('bg');
-    if (bgAsk === 'green' || bgAsk === 'plain') localStorage.setItem('pv-ui-bg', bgAsk);
-    bg = localStorage.getItem('pv-ui-bg') || 'plain';
-  } catch (e) { bg = q.get('bg') === 'green' ? 'green' : 'plain'; }
-  if (ui && AIRPAGE) root.setAttribute('data-ui-bg', bg);
-  var RM = !!(w.matchMedia && w.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  /* 会社ページは左メニューのどれも選ばれていない ＝ AIRLINES を選んだ形にする（下の putPill） */
+  var AIRPAGE = /\/airlines\//.test(location.pathname);
+  var BOT = /bot|crawl|spider|slurp|lighthouse|inspectiontool|headlesschrome/i.test(navigator.userAgent || '') && !w.__pvMotion;
+  var AUTO = !!navigator.webdriver && !w.__pvMotion;
+  var RM = !!(w.matchMedia && w.matchMedia('(prefers-reduced-motion: reduce)').matches) || BOT || AUTO;
   var SV = !!(w.CSS && CSS.supports && CSS.supports('animation-timeline: view()'));
 
   var BAR = '.mp-tabs,.mv-tabs,.pt-tabs';
@@ -48,15 +48,10 @@
      印（.ut-rail-pill）は選んだ項目の後ろに置く中身の無い板。ページを移るとき、前のページの板の位置から
      新しいページの板の位置へブラウザが滑らせる。最初の描画より前に置かないと滑らない ＝ 読み込みの途中から見張る。 */
   if (ui) {
-    /* 字：見本の動画の丸みのある幾何学的な字（Outfit）＋ 日本語は細めで端正な Zen Kaku Gothic New */
-    var fl = d.createElement('link');
-    fl.rel = 'stylesheet';
-    fl.href = 'https://fonts.googleapis.com/css2?family=Outfit:wght@300..700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap';
-    (d.head || root).appendChild(fl);
     var putPill = function () {
       var a = d.querySelector('.mr-side-a.is-on');
-      /* 会社ページはメニューのどれも選ばれていない ＝ 試作では AIRLINES を選んだ形にして、板がそこへ滑るようにする */
-      if (!a && /\/airlines\//.test(location.pathname)) {
+      /* 会社ページはメニューのどれも選ばれていない ＝ AIRLINES を選んだ形にして、板がそこへ滑るようにする */
+      if (!a && AIRPAGE) {
         a = d.querySelector('.mr-side-a[href*="world-airlines"]');
         if (a) { a.classList.add('is-on'); a.setAttribute('aria-current', 'page'); }
       }
@@ -83,29 +78,6 @@
         e.viewTransition.finished.finally(function () { root.classList.remove('ut-pagevt'); });
       });
     }
-  }
-
-  /* ── 試作の切り替え（右下の小さな帯）── ?sw=0 なら出さない（撮影用） */
-  function switcher() {
-    if (q.get('sw') === '0') return;
-    var box = d.createElement('div');
-    box.className = 'ut-sw';
-    box.setAttribute('role', 'group');
-    box.setAttribute('aria-label', '見た目の試作');
-    box.innerHTML = '<span class="ut-sw-l">試作</span>' + [['now', '今'], ['glass', 'ガラス']].map(function (o) {
-      return '<button type="button" data-ui="' + o[0] + '" aria-pressed="' + ((ui || 'now') === o[0]) + '">' + o[1] + '</button>';
-    }).join('') + (ui && AIRPAGE ? '<span class="ut-sw-l">背景</span>' + [['green', '緑'], ['plain', '白']].map(function (o) {
-      return '<button type="button" data-bg="' + o[0] + '" aria-pressed="' + (bg === o[0]) + '">' + o[1] + '</button>';
-    }).join('') : '');
-    box.addEventListener('click', function (e) {
-      var b = e.target.closest('button');
-      if (!b) return;
-      var u = new URL(location.href);
-      if (b.hasAttribute('data-bg')) u.searchParams.set('bg', b.getAttribute('data-bg'));
-      else u.searchParams.set('ui', b.getAttribute('data-ui'));
-      location.replace(u.href);
-    });
-    d.body.appendChild(box);
   }
 
   /* ── 1) 選んだ印が滑る（タブの中・FLIP）────────────────────────────────
@@ -633,10 +605,10 @@
     });
   }
 
-  /* 撮影で動きの途中を撮るための口（試作だけ） */
+  /* 撮影・検査で動きをもう一度最初から見るための口 */
   w.PVUiTrial = { replay: function () { var h = d.getElementById('pv-value'); w.scrollTo(0, 0);
     d.querySelectorAll(TITLE).forEach(function (el) { unsplit(el); el._utHd = 0; el._utGo = 0; }); heads(); enter(h ? (visible(h.querySelectorAll('.mv-pane')) || h) : (d.querySelector('main') || d.body), true); } };
 
-  var start = function () { switcher(); if (ui) boot(); };
+  var start = function () { if (ui) boot(); };
   if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', start); else start();
 })();

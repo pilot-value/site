@@ -1,11 +1,14 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   ui-trial.css — すりガラスと動きの試作（2026-11-12・左メニューのある会員の画面4枚・本番に出さない）
+   pv-glass.css — すりガラスと動き（2026-11-12 オーナー採用・全ページ・pv-glass.js と対）
    オーナーの参考動画（V2・V7・V22・緑と青の Dashboard Animation）を今の緑で写したもの。
-   2026-11-12 オーナー「ガラスの方がいい」で「全部ガラス」に決定（V22 寄りは外した）。
-   ?ui=glass で効く（ui-trial.js が端末に覚えて、ページを移っても続く）。何も無ければ1行も効かない（全部 html[data-ui] の下）。
+   試作を見て「ガラスの方がいい」→「いいね」→「全部のページに広げて」（2026-11-12）。
+   読み込みは全ページの head の <!--PV-GLASS-->（inject-glass.mjs が app-nav.css の直後に書く＝ページの CSS より後に効く）。
+   全部 html[data-ui] の下（pv-glass.js が立てる）。JS が読めなかったページは1行も効かない ＝ 今までの見た目のまま。
+   背景：会員の画面（body.pv-anav-app）は緑・公開の画面（body.pv-anav-pub・会社ページなど）は白（オーナー「会社ページは白の方がいい」）。
    ★色は pv-tokens.css の --pv-* から作る。新しいブランド色を作らない。
-   ★動かすのは transform と opacity。例外は切り替えの一瞬の「絵」（View Transitions の写し）のぼかしと、
-     円と線の図を描き出す覆い（mask の角度・幅）だけ。
+   ★動かすのは transform（scale を含む）と opacity。例外は切り替えの一瞬の「絵」（View Transitions の写し）のぼかしと、
+     線を描き出す stroke-dashoffset・円の弧の長さ（pv-glass.js）だけ。
+   ★色のついたカード（MY PAY の緑・ROADMAP の紺）はガラスにしない。
    ══════════════════════════════════════════════════════════════════════════ */
 
 /* ── 0) 共通の定数 ─────────────────────────────────────────────── */
@@ -36,7 +39,7 @@ html[data-ui][data-theme="dark"]{
 }
 /* ── 0-b) 字（2026-11-12 オーナー「フォントの雰囲気も動画に合わせて。スタイリッシュでかっこいい」）──
    見本は丸みのある幾何学的な字（Outfit に近い）で、大きい字ほど細めの太さ（500）・字の間を詰める・小さい札は灰色。
-   英数字は Outfit、日本語は Zen Kaku Gothic New（細く端正）。読み込みは ui-trial.js が試作のときだけ足す。 */
+   英数字は Outfit、日本語は Zen Kaku Gothic New（細く端正）。読み込みは全ページの <!--PV-GLASS--> の塊（Google Fonts）。 */
 html[data-ui]{--ut-font:'Outfit','Zen Kaku Gothic New','Hiragino Sans','Noto Sans JP',system-ui,sans-serif}
 html[data-ui] body,html[data-ui] body *:not(code):not(pre):not(kbd){font-family:var(--ut-font) !important}
 html[data-ui] body{font-feature-settings:'palt' 1;letter-spacing:.005em}
@@ -64,7 +67,7 @@ html[data-ui] body::before{content:'';position:fixed;inset:-12vh 0;z-index:-1;po
     radial-gradient(30vmax 26vmax at 10% 96%,color-mix(in srgb,var(--pv-accent) 34%,transparent),transparent 70%),
     radial-gradient(40vmax 30vmax at 48% 42%,color-mix(in srgb,var(--pv-accent-soft) 95%,transparent),transparent 72%),
     linear-gradient(160deg,color-mix(in srgb,var(--pv-accent-soft) 85%,var(--pv-bg)),color-mix(in srgb,var(--pv-accent-line) 70%,var(--pv-bg)))}
-/* 会社ページは body::before に細かいざらつきの絵を敷いて、明るい画面では 3% に薄めている（airline-base.css）。試作の緑はそれを上書きする */
+/* 会社ページは body::before に細かいざらつきの絵を敷いて、明るい画面では 3% に薄めている（airline-base.css）。ガラスの背景はそれを上書きする */
 html[data-ui] body::before{opacity:1 !important;inset:-12vh 0 !important;z-index:-1 !important;background-size:auto !important}
 html[data-ui][data-theme="dark"] body::before{
   background:
@@ -73,10 +76,10 @@ html[data-ui][data-theme="dark"] body::before{
     radial-gradient(40vmax 34vmax at 58% 100%,color-mix(in srgb,var(--pv-accent) 22%,transparent),transparent 70%),
     var(--pv-bg)}
 /* 粒の質感（今月の緑のカードと同じ絵）*/
-/* 1-b) 会社ページの背景「白」（?bg=plain・2026-11-12 オーナー「会社ページはバックが緑じゃない方がいいかも」）
+/* 1-b) 公開の画面の背景「白」（body.pv-anav-pub・2026-11-12 オーナー「会社ページはバックが緑じゃない方がいいかも」→ 2通り比べて「白の方がいいな」）
    緑を1滴も使わない、灰と白の淡い濃淡だけ。ガラスは下に濃淡があって初めて見えるので、真っ白の1色にはしない。
    緑はメニューの選んだ板・ボタン・図の色にだけ残る。 */
-html[data-ui][data-ui-bg="plain"] body::before{
+html[data-ui] body.pv-anav-pub::before{
   background:
     radial-gradient(32vmax 32vmax at 0% 22%,color-mix(in srgb,var(--pv-ink-3) 26%,transparent),transparent 70%),
     radial-gradient(30vmax 26vmax at 100% 6%,color-mix(in srgb,var(--pv-ink-3) 16%,transparent),transparent 70%),
@@ -84,7 +87,7 @@ html[data-ui][data-ui-bg="plain"] body::before{
     radial-gradient(30vmax 26vmax at 8% 96%,color-mix(in srgb,var(--pv-ink-3) 14%,transparent),transparent 70%),
     radial-gradient(42vmax 32vmax at 48% 40%,color-mix(in srgb,var(--pv-bg) 92%,transparent),transparent 72%),
     linear-gradient(160deg,var(--pv-bg-sub),color-mix(in srgb,var(--pv-line) 70%,var(--pv-bg)))}
-html[data-ui][data-ui-bg="plain"][data-theme="dark"] body::before{
+html[data-ui][data-theme="dark"] body.pv-anav-pub::before{
   background:
     radial-gradient(36vmax 36vmax at 6% 14%,rgba(255,255,255,.07),transparent 70%),
     radial-gradient(34vmax 34vmax at 96% 30%,rgba(255,255,255,.05),transparent 70%),
@@ -152,7 +155,7 @@ html[data-ui] .ut-rail-pill{position:absolute;inset:0;z-index:-1;border-radius:1
 html.ut-pagevt .mr-side .mr-side-a.is-on{color:var(--pv-ink)}
 html.ut-pagevt .mr-side .mr-side-a.is-on>svg:not(.mr-side-lk){color:var(--pv-accent-ink) !important}
 
-/* ── 4) 選んだ印が滑って移る（タブの中・ui-trial.js が --ut-dx / --ut-sx を入れる）──────
+/* ── 4) 選んだ印が滑って移る（タブの中・pv-glass.js が --ut-dx / --ut-sx を入れる）──────
    印は「選んだボタン」の疑似要素。押されたら前の位置と幅から、ばねで今の位置へ戻す（FLIP）。 */
 html[data-ui] .ut-snap::before,html[data-ui] .ut-snap::after{transition:none !important}
 
@@ -236,7 +239,7 @@ html[data-ui]:not([data-theme="dark"]) body{
                0 30px 56px -30px color-mix(in srgb,var(--pv-accent-dark) 58%,transparent)}
 }
 
-/* ── 6) 入るときの動き（ui-trial.js が付ける）──────────────────────────────
+/* ── 6) 入るときの動き（pv-glass.js が付ける）──────────────────────────────
    カード：.ut-rise … 最初の1画面。開いたとき順に浮かぶ（--ut-i が順番）
            .ut-sv   … その下。スクロールと一緒に浮かぶ（戻すと沈む）
            .ut-pre  … スクロールと一緒に動かせないブラウザでの待ち（見えたら .ut-rise に替わる）
@@ -293,7 +296,7 @@ html[data-ui] svg.ut-g .ut-dot{animation:utPop .55s var(--ut-spring) both;animat
 @keyframes utFade{from{opacity:0;transform:translateY(6px)}}
 @keyframes utPop{from{transform:scale(0)}}
 
-/* 6-c) 円グラフ・輪：色の区切りが12時から1つずつ順に描かれる（弧は ui-trial.js が伸ばす）。
+/* 6-c) 円グラフ・輪：色の区切りが12時から1つずつ順に描かれる（弧は pv-glass.js が伸ばす）。
    同時に輪が少し回りながら大きくなり、まん中の額が数え上がり、横の凡例が1行ずつ浮かぶ。最後に上からの光が差す。 */
 html[data-ui] svg.ut-pie{transform-origin:50% 50%;overflow:visible}
 html[data-ui] svg.ut-pie.ut-w{transform:rotate(-80deg) scale(.86)}
@@ -306,7 +309,7 @@ html[data-ui] .pt-donut svg,html[data-ui] svg.ut-pie{filter:drop-shadow(0 10px 1
 html[data-ui] .ut-leg-w>*{opacity:0;transform:translateY(8px)}
 html[data-ui] .ut-leg-g>*{animation:utFade .6s var(--pv-ease) both;animation-delay:calc(var(--ut-d,0ms) + 250ms + var(--ut-j,0) * 70ms)}
 
-/* 6-f) 見出しが1字ずつ下からせり上がる（ui-trial.js が字を窓に入れる）
+/* 6-f) 見出しが1字ずつ下からせり上がる（pv-glass.js が字を窓に入れる）
    窓（.ut-cw）は字の形に合わせて少し広く切り抜く（g・y の下も、上の点も切れない）。字は窓の下から上がる。 */
 html[data-ui] .ut-wd{white-space:nowrap}
 html[data-ui] .ut-cw{display:inline-block;clip-path:inset(-.4em -.3em -.2em -.3em)}
@@ -317,7 +320,7 @@ html[data-ui] .ut-split.ut-split-go .ut-ch{transform:none;opacity:1;
   transition-delay:calc(var(--ut-d,0ms) + var(--ci,0) * var(--ut-cs,30ms))}
 
 /* 6-g) すりガラスの図（2026-11-12 オーナー「グラフもすりガラス風に弱いグラデーション」）
-   SVG の棒は ui-trial.js が覆い（先を濃く・根元を 4 割まで透かす）を付ける。ここは線の光と HTML の棒。 */
+   SVG の棒は pv-glass.js が覆い（先を濃く・根元を 4 割まで透かす）を付ける。ここは線の光と HTML の棒。 */
 html[data-ui] svg .ut-line{filter:drop-shadow(0 5px 7px color-mix(in srgb,var(--pv-accent) 35%,transparent))}
 html[data-ui] .ut-hbg{background-image:linear-gradient(90deg,rgba(255,255,255,.42),rgba(255,255,255,.08) 70%,rgba(255,255,255,0)) !important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 4px 10px -6px color-mix(in srgb,var(--pv-accent-dark) 45%,transparent)}
@@ -364,20 +367,6 @@ html.ut-pagevt main{view-transition-name:ut-page}
 ::view-transition-group(ut-rail-pill){mix-blend-mode:multiply}
 html[data-theme="dark"]::view-transition-group(ut-rail-pill){mix-blend-mode:screen}
 
-/* ── 8) 試作の切り替え（手元だけ・右下の小さな帯）──────────────────────── */
-.ut-sw{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:400;display:flex;gap:2px;padding:4px;
-  border-radius:999px;border:1px solid color-mix(in srgb,#fff 60%,transparent);
-  background:color-mix(in srgb,var(--pv-surface) 70%,transparent);
-  -webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6);
-  box-shadow:0 1px 2px rgba(15,23,42,.08),0 16px 36px -18px rgba(6,117,99,.5);font-family:inherit}
-.ut-sw-l{align-self:center;padding:0 8px 0 10px;font-size:.7rem;font-weight:600;color:var(--pv-ink-3)}
-.ut-sw button{appearance:none;border:0;background:transparent;color:var(--pv-ink-2);font:inherit;font-size:.78rem;font-weight:600;
-  min-height:32px;padding:6px 12px;border-radius:999px;cursor:pointer;transition:transform .2s var(--pv-ease)}
-.ut-sw button:hover{color:var(--pv-ink)}
-.ut-sw button:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
-.ut-sw button:active{transform:scale(.96)}
-.ut-sw button[aria-pressed="true"]{background:var(--pv-accent-dark);color:#fff}
-
 /* ── 9) 動きを減らす設定・印刷 ─────────────────────────────────────── */
 @media (prefers-reduced-motion:reduce){
   html[data-ui] *,html[data-ui] *::before,html[data-ui] *::after{animation:none !important;transition:none !important}
@@ -388,7 +377,7 @@ html[data-theme="dark"]::view-transition-group(ut-rail-pill){mix-blend-mode:scre
   ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none !important}
 }
 @media print{
-  html[data-ui] body::before,html[data-ui] body::after,.ut-sw{display:none !important}
+  html[data-ui] body::before,html[data-ui] body::after{display:none !important}
   html[data-ui] .ut-split .ut-ch,html[data-ui] .ut-leg-w>*{opacity:1 !important;transform:none !important}
   html[data-ui] svg.ut-pie{transform:none !important}
 }
