@@ -718,10 +718,10 @@ if (process.env.REC) {
   if (process.env.TOUR === 'hero') {
     /* トップの電話がめぐる画面（2026-11-12）：4つの画面がひとまわり（6.8 秒 × 4）→ ページをゆっくり下へ。PAGE=index.html */
     if (vw < 600) {   // 狭い画面は電話が帯の下 ＝ 先に電話まで送る
-      const y = await page.evaluate(() => { const e = document.querySelector('#hero-section .hero-shot'); const r = e.getBoundingClientRect(); return Math.max(0, scrollY + r.top - 70); });
+      const y = await page.evaluate(() => { const e = document.querySelector('#hero-section .hero-shot'); const r = e.getBoundingClientRect(); return Math.max(0, scrollY + r.top - 160); });
       await sleep(1200); await glide(y, 1800); await sleep(800);
     }
-    await sleep(21000);   // 3.4 秒 × 4画面 × 1.5周
+    await sleep(19000);   // 4.2 秒 × 4画面 ＋ 少し
     await glide(vw >= 600 ? 2400 : 3600, 7000); await sleep(1200);
   } else if (process.env.TOUR === 'all') {
     /* 全ページに広げたあとの見本（2026-11-12）：トップ → 航空会社一覧 → 会社ページ → Vote → 国のページ → MY PAY → REAL PAY。
