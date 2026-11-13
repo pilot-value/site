@@ -766,8 +766,8 @@ li[data-s="done"] .ps-step-dot::after{content:"";position:absolute;left:6px;top:
 .ps-live.ps-fail .ps-bar{margin:12px 0 2px;gap:4px 14px;align-items:center;padding-left:4px}
 @media (min-width:481px){.ps-live.ps-fail.has-thumb .ps-bar{padding-left:50px}}
 /* 鍵の付いた PDF のパスワードを聞くポップアップ（2026-11-13）。読み込みの覆い（.ps-load・2000）より上。
-   字は 16px（iPhone で寄らない）。狭い画面は上寄せ（キーボードが下から出ても隠れない）。 */
-.ps-lock{position:fixed;inset:0;z-index:2100;display:flex;align-items:center;justify-content:center;padding:16px;
+   字は 16px（iPhone で寄らない）。置き場所は真ん中より少し上（下の余白を多めに取る・2026-11-13 オーナー「中央少し上でしょ」）。 */
+.ps-lock{position:fixed;inset:0;z-index:2100;display:flex;align-items:center;justify-content:center;padding:16px 16px max(16px,12vh);
   background:rgba(4,22,24,.42);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);animation:psFadeIn .2s var(--pv-ease) both}
 .ps-lock-card{position:relative;box-sizing:border-box;width:100%;max-width:400px;padding:22px 20px 12px;border-radius:18px;
   background:var(--pv-surface);color:var(--pv-ink);border:1px solid var(--pv-line);
@@ -775,6 +775,7 @@ li[data-s="done"] .ps-step-dot::after{content:"";position:absolute;left:6px;top:
   animation:psRise .28s var(--pv-ease) both}
 .ps-lock-t{margin:0 30px 0 0;font-size:1rem;font-weight:700;letter-spacing:-.01em;line-height:1.4;color:var(--pv-ink)}
 .ps-lock-msg{margin:6px 0 0;font-size:.8rem;line-height:1.6;color:var(--pv-ink-2)}
+.ps-lock-msg .ps-ph{display:inline-block}
 .ps-lock-msg.is-bad{color:var(--pv-ink);font-weight:600}
 .ps-lock-x{position:absolute;top:10px;right:10px;display:flex;align-items:center;justify-content:center;width:30px;height:30px;
   padding:0;margin:0;border:0;border-radius:999px;background:none;color:var(--pv-ink-2);cursor:pointer;transition:transform .18s var(--pv-ease)}
@@ -789,7 +790,6 @@ li[data-s="done"] .ps-step-dot::after{content:"";position:absolute;left:6px;top:
 .ps-pw .ps-btn-primary{flex:none;min-height:44px;padding:0 18px;border-radius:12px}
 .ps-pw .ps-btn-primary:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
 .ps-lock-card .ps-bar{margin-top:6px}
-@media (max-width:480px){.ps-lock{align-items:flex-start;padding-top:max(16px,12vh)}}
 @media (prefers-reduced-motion:reduce){.ps-lock,.ps-lock-card{animation:none}.ps-lock-x{transition:none}}
 .ps-thumb{position:relative;flex:none;box-sizing:border-box;width:38px;height:48px;padding:0;margin:0;border-radius:7px;overflow:hidden;
   background:var(--pv-bg-sub);border:1px solid var(--pv-line);cursor:zoom-in;transition:transform .2s var(--pv-ease)}

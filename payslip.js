@@ -1167,7 +1167,9 @@
     var title = el('h2', 'ps-lock-t', esc2(T.lockT));
     title.id = 'ps-lock-t';
     card.appendChild(title);
-    var msg = el('p', 'ps-lock-msg' + (wrong ? ' is-bad' : ''), esc2(wrong ? T.lockBad : T.lockMsg));
+    /* 句読点ごとのかたまりで折る（iPhone で「読みま／す。」のように1字だけ次の行に落ちない）。 */
+    var msgHtml = '<span class="ps-ph">' + esc2(wrong ? T.lockBad : T.lockMsg).replace(/([、。])(?!$)/g, function (m) { return m + '</span><span class="ps-ph">'; }) + '</span>';
+    var msg = el('p', 'ps-lock-msg' + (wrong ? ' is-bad' : ''), msgHtml);
     if (wrong) msg.setAttribute('role', 'alert');
     card.appendChild(msg);
     var form = document.createElement('form');
