@@ -2842,6 +2842,8 @@ async function open(browser, slug, w, h, mode, pre, pay, extra) {
   await p.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
   /* 開く前に置いておくもの（手元の鍵の控えだけが残っている人の場面）。ふだんは何も置かない。 */
   if (pre) await p.evaluateOnNewDocument(pre);
+  /* ステイ先を閉じているあいだ、「情報を追加」のホテル・ステイの札は手元の印でだけ出る（pv-contrib.js の stayOpen ── 上の OPENED と同じ考え） */
+  if (!STAYS_SHIPPED) await p.evaluateOnNewDocument(() => { window.__PV_STAY_OPEN = true; });
   await p.setRequestInterception(true);
   p.on('request', r => {
     let u; try { u = new URL(r.url()); } catch { return r.continue(); }

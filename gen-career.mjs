@@ -387,7 +387,7 @@ function credits(items, withName, shown) {
 /* 英語は英語の会社ページ（en/airlines/{slug}.html ── 比較の「Details」の行き先そのもの）から読む。 */
 const PAGE_TABS = {};
 /* 手元の検査用サーバーがステイ先を開いて配るあいだ（stayOn・下の STAY_OPEN の注）は、ファイルの会社ページ（タブ無し）ではなく、同じサーバーが配るページ（タブ在り）を指す */
-const pageTabs = s => (PAGE_TABS[`${LANG}:${s}`] ||= new Set([...[...fs.readFileSync(path.join(ROOT, EN() ? 'en' : '', 'airlines', `${s}.html`), 'utf8').matchAll(/ data-pvg-tab="([a-z]+)"/g)].map(m => m[1]),
+const pageTabs = s => (PAGE_TABS[`${LANG}:${s}:${stayOn}`] ||= new Set([...[...fs.readFileSync(path.join(ROOT, EN() ? 'en' : '', 'airlines', `${s}.html`), 'utf8').matchAll(/ data-pvg-tab="([a-z]+)"/g)].map(m => m[1]),
   ...(stayOn && !STAY_OPEN ? ['stay'] : [])]));
 const href = {
   /* ★2026-10-26 P12.130：会社を選ぶ所 ＝ 航空会社一覧（どちらの言葉も、そのページから見た同じ字 ── en/career.html からは en/world-airlines.html）。
