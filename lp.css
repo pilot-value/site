@@ -1525,15 +1525,26 @@
        スペイン語は英語より字が長い（ボタンの文・「US$ 250 mil」）。スペイン語のページにだけ効く規則で、
        日英の見た目は1ピクセルも変えない（どれも html[lang^="es"] の下）。
        ・ボタンの字は折り返してよい（スマホで「Desbloquear todos los datos…」が切れていた）
-       ・2本並べて入らない幅（左の列 720px 未満）では縦に積む（PC で副のボタンが右の緑の面の下へ潜っていた）
-       ・見本のカード：金額の字を 1.5px 小さく ＝ 社名の幅を空ける（「ANUAL」を上の行へ上げると行が高くなり、職位の行が棒の下に隠れた）。社名は語の途中で折らない */
+       ・2本並べて入らない幅（左の列 510px 未満）では縦に積む（PC で副のボタンが右の緑の面の下へ潜っていた）
+       ・見本のカード：金額の字を 1.5px 小さく ＝ 社名の幅を空ける（「ANUAL」を上の行へ上げると行が高くなり、職位の行が棒の下に隠れた）。社名は語の途中で折らない
+       ★2026-11-12 オーナー「トップの帯のはみ出しは直して」── スペイン語だけ、帯2本が最初の1画面に入っていなかった
+         （1440×780 で口コミの帯が 95px・390×680 で緑の帯が 29px・375×640 で 65px はみ出し）。
+         原因は字の長さだけ ── 主のボタン（「…todos los datos de remuneración」）で PC は2本が縦に積まれ・スマホは3行、
+         説明文が4行、人数の行が4行、緑のカードの内訳（「SUELDO BASE + PAGO POR HORA DE VUELO」）が2〜3行。
+         訳を短くし（i18n/tm-es.mjs の note「トップのヒーローが1画面に収まるように」）、並べる閾値を 720 → 510px に下げた
+         （2本の幅は約 497px）。カードは内訳の最長「BASE + BONO + HORAS DE VUELO」（約 170px）が1行に入る幅にした。
+         ⚠️ 内訳を長い訳に戻すと、カードの高さが日英の 123px（スマホ 117px）から伸びて帯が押し出される。見張りは assert-hero-fold.mjs（スペイン語も見ている） */
     html[lang^="es"] .lp-gg{ white-space:normal; }
     html[lang^="es"] #hero-section .hero-btn{ white-space:normal; text-align:center; }
     @media (min-width:640px){
-      @container herocopy (max-width:719px){
+      @container herocopy (max-width:509px){
         html[lang^="es"] #hero-section .hero-ctas{ grid-template-columns:auto; grid-template-areas:"p" "s" "u"; }
       }
     }
+    html[lang^="es"] .hero-mq-c:not(.hero-rv-c){ width:214px; }
+    @media (max-width:640px){ html[lang^="es"] .hero-mq-c:not(.hero-rv-c){ width:204px; } }
+    /* 幅 360px の電話では主のボタンの字（約 245px）が左右の余白 26px で 3px 足りず3行になった。ここだけ余白を詰めて2行に保つ */
+    @media (max-width:379px){ html[lang^="es"] #hero-section .hero-btn{ padding-inline:18px; } }
     html[lang^="es"] #hero-section .hero-c-v{ font-size:12.5px; }
     html[lang^="es"] #hero-section .hero-c-an{ overflow-wrap:normal; word-break:normal; }
 

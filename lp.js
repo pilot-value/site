@@ -314,13 +314,13 @@
     // 職位
     '機長': 'Capitán', '副操縦士': 'Primer oficial', '訓練生': 'Piloto en formación',
     // 何で構成された額か
-    '年俸＋住宅手当（非課税）': 'Sueldo + ayuda para vivienda, libre de impuestos',
-    '年俸＋住宅手当': 'Sueldo + ayuda para vivienda',
-    '年俸＋年金拠出': 'Sueldo + aportación al plan de pensiones',
-    '年俸（税引前）': 'Anual, antes de impuestos',
-    '月給＋賞与＋乗務手当': 'Sueldo base + bono + pago por hora de vuelo',
+    '年俸＋住宅手当（非課税）': 'Sueldo + vivienda, exento',
+    '年俸＋住宅手当': 'Sueldo + vivienda',
+    '年俸＋年金拠出': 'Sueldo + pensión',
+    '年俸（税引前）': 'Anual, bruto',
+    '月給＋賞与＋乗務手当': 'Base + bono + horas de vuelo',
     '月給＋賞与': 'Sueldo base + bono',
-    '基本給＋乗務手当': 'Sueldo base + pago por hora de vuelo',
+    '基本給＋乗務手当': 'Base + horas de vuelo',
     // 経験年数
     '3〜5年': '3–5 años', '5〜10年': '5–10 años', '10〜15年': '10–15 años',
     '15〜20年': '15–20 años', '20年以上': '20+ años',
