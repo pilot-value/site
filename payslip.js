@@ -1131,21 +1131,45 @@
     panel.appendChild(box);
     try { panel.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (e) { panel.scrollIntoView(); }
   }
-  /* 鍵の付いた PDF：パスワードの欄。打った字は take → renderPdf に渡すだけで、変数にも保存領域にも残さない。 */
+  /* 鍵の付いた PDF：パスワードを聞くポップアップ（2026-11-13 オーナー「最初からポップアップにしろよ、右上に消すばつも小さく」）。
+     打った字は take → renderPdf に渡すだけで、変数にも保存領域にも残さない。
+     ★閉じる（× と Esc）も「別の明細を選ぶ」も「諦めた」＝ここで初めて「読めなかった」を1回だけ知らせる。
+     ★外側を押しても閉じない（打っている途中に指が外へ出て消えると、打ち直しになる）。
+     ★「パスワードは送りません」の1文と「手で入力する」は置かない（2026-11-13 オーナー「これいらない」）。
+     ★スクロールを止めるのは html の class（明細を見る画面と同じ ps-view-lock）。 */
+  var lockDlg = null;
+  function lockClose() {
+    if (!lockDlg) return;
+    var n = lockDlg;
+    lockDlg = null;
+    n.remove();
+    document.documentElement.classList.remove('ps-view-lock');
+  }
   function askPassword(file, wrong) {
-    readMode = 'month';
     loadClose();
-    panel.innerHTML = '';
-    var box = el('div', 'ps-live ps-fail ps-lock');
-    box.setAttribute('data-code', 'pdf_locked');
-    var row = el('div', 'ps-live-row');
-    var main = el('div', 'ps-live-main');
-    main.appendChild(el('span', 'ps-state-t ps-live-t', esc2(T.lockT)));
-    var msg = el('p', 'ps-live-msg' + (wrong ? ' is-bad' : ''), esc2(wrong ? T.lockBad : T.lockMsg));
+    lockClose();
+    var gaveUp = false;
+    function giveUp() { if (gaveUp) return; gaveUp = true; track('payslip_reject', { reason: 'pdf_locked' }); report('pdf_locked', 'file', file.size); }
+    function dismiss() {
+      giveUp();
+      lockClose();
+      /* ボーナスの明細だけ読めなかった＝前の明細の結果は消さない（showFail と同じ扱い） */
+      if (readMode === 'bonus' && lastRes) { readMode = 'month'; bonusMsg = T.exFail; renderResult(lastRes, lastTrace); }
+      else readMode = 'month';
+      try { dropBtn.focus({ preventScroll: true }); } catch (e) {}
+    }
+    var dlg = el('div', 'ps-lock');
+    dlg.setAttribute('data-code', 'pdf_locked');
+    var card = el('div', 'ps-lock-card');
+    card.setAttribute('role', 'dialog');
+    card.setAttribute('aria-modal', 'true');
+    card.setAttribute('aria-labelledby', 'ps-lock-t');
+    var title = el('h2', 'ps-lock-t', esc2(T.lockT));
+    title.id = 'ps-lock-t';
+    card.appendChild(title);
+    var msg = el('p', 'ps-lock-msg' + (wrong ? ' is-bad' : ''), esc2(wrong ? T.lockBad : T.lockMsg));
     if (wrong) msg.setAttribute('role', 'alert');
-    main.appendChild(msg);
-    row.appendChild(main);
-    box.appendChild(row);
+    card.appendChild(msg);
     var form = document.createElement('form');
     form.className = 'ps-pw';
     form.noValidate = true;
@@ -1168,17 +1192,29 @@
       var v = inp.value;
       if (!v) { inp.focus(); return; }
       inp.value = '';
+      lockClose();
       take(file, v);
     });
-    box.appendChild(form);
-    /* 諦めて別の明細を選んだときだけ「読めなかった」を知らせる（ここで初めて失敗になる）。
-       ★「パスワードは送りません」の1文と「手で入力する」は置かない（2026-11-13 オーナー「これいらない」）。 */
-    var gaveUp = false;
-    function giveUp() { if (gaveUp) return; gaveUp = true; track('payslip_reject', { reason: 'pdf_locked' }); report('pdf_locked', 'file', file.size); }
-    var choose = btn(T.choose, 'ps-btn-link', function () { giveUp(); readMode = 'month'; fileInput.click(); }, 'ps-choose');
-    box.appendChild(bar([choose]));
-    panel.appendChild(box);
-    try { panel.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (e) { panel.scrollIntoView(); }
+    card.appendChild(form);
+    var choose = btn(T.choose, 'ps-btn-link', function () { giveUp(); lockClose(); readMode = 'month'; fileInput.click(); }, 'ps-choose');
+    card.appendChild(bar([choose]));
+    var x = btn('', 'ps-lock-x', dismiss, 'ps-pw-x');
+    x.className = 'ps-lock-x';
+    x.setAttribute('aria-label', T.viewClose);
+    x.innerHTML = '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+    card.appendChild(x);
+    dlg.appendChild(card);
+    /* Esc は × と同じ。Tab はポップアップの中だけを回る。 */
+    dlg.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { e.preventDefault(); dismiss(); return; }
+      if (e.key !== 'Tab') return;
+      var f = [inp, go, choose, x], i = f.indexOf(document.activeElement);
+      if (e.shiftKey && i <= 0) { e.preventDefault(); x.focus(); }
+      else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); inp.focus(); }
+    });
+    document.body.appendChild(dlg);
+    lockDlg = dlg;
+    document.documentElement.classList.add('ps-view-lock');
     try { inp.focus({ preventScroll: true }); } catch (e) { inp.focus(); }
   }
   function focusForm() {

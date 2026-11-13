@@ -591,10 +591,10 @@ console.log('\n══ 開けない PDF（鍵付き・XFA・白紙）');
     /* ★時間で待たない。警告が出るか、確認画面が出るか、どちらかが起きるまで待つ。
        確認画面が出てしまったら、その時点で下の判定が赤くなる。 */
     await page.waitForFunction(
-      () => !!document.querySelector('#ps-panel .ps-fail') || !!document.querySelector('.ps-edit'),
+      () => !!document.querySelector('#ps-panel .ps-fail') || !!document.querySelector('.ps-lock') || !!document.querySelector('.ps-edit'),
       { timeout: 30000 });
     const m = await page.evaluate(() => ({
-      warn: (document.querySelector('#ps-panel .ps-fail') || {}).textContent || '',
+      warn: (document.querySelector('#ps-panel .ps-fail') || document.querySelector('.ps-lock') || {}).textContent || '',
       edit: !!document.querySelector('.ps-edit'),
       confirm: !!document.getElementById('ps-confirm'),
     }));
@@ -604,7 +604,13 @@ console.log('\n══ 開けない PDF（鍵付き・XFA・白紙）');
     if (slug === 'locked') {
       const PWX = 'not-the-password';
       const lockedNow = () => seen.reports.filter((b) => b.report && b.report.reason === 'pdf_locked').length;
-      ok(!!(await page.$('#ps-pw')) && !!(await page.$('#ps-pw-go')), '★鍵付きはパスワードの欄を出す（行き止まりにしない）');
+      const pop = await page.evaluate(() => {
+        const o = document.querySelector('.ps-lock'), d = o && o.querySelector('[role="dialog"]');
+        return { fixed: !!o && getComputedStyle(o).position === 'fixed', dialog: !!d && d.getAttribute('aria-modal') === 'true',
+                 x: !!(o && o.querySelector('#ps-pw-x[aria-label]')), lock: document.documentElement.classList.contains('ps-view-lock') };
+      });
+      ok(!!(await page.$('.ps-lock #ps-pw')) && !!(await page.$('.ps-lock #ps-pw-go')) && pop.fixed && pop.dialog && pop.x && pop.lock,
+         '★鍵付きはパスワードを聞くポップアップを出す（右上に ×・下のページは止める）', JSON.stringify(pop));
       ok(lockedNow() === 0, '★パスワードを聞いた時点では「読めなかった」を知らせない（打てば読めるのがふつう）', `${lockedNow()} 件`);
       /* 押すのは DOM の click で（札は滑らかに寄せてくるので、座標で押すと寄せている途中の別の物に当たる）。 */
       await page.$eval('#ps-pw', (n, v) => { n.value = v; }, PWX);
@@ -614,9 +620,10 @@ console.log('\n══ 開けない PDF（鍵付き・XFA・白紙）');
       ok(lockedNow() === 0, '★違うパスワードでも、まだ知らせない', `${lockedNow()} 件`);
       ok(!(await page.$('.ps-lock #ps-manual')) && !/送りません/.test(await page.$eval('.ps-lock', (n) => n.textContent)),
          '★鍵付きの欄に「手で入力する」と「パスワードは送りません」を置かない（オーナー「これいらない」）');
-      await page.$eval('.ps-lock #ps-choose', (b) => b.click());
+      await page.$eval('.ps-lock #ps-pw-x', (b) => b.click());
       for (let i = 0; i < 30 && !lockedNow(); i++) await new Promise((r) => setTimeout(r, 100));
-      ok(lockedNow() === 1, '★諦めて「別の明細を選ぶ」を押したら、1回だけ知らせる', `${lockedNow()} 件`);
+      const gone = await page.evaluate(() => !document.querySelector('.ps-lock') && !document.documentElement.classList.contains('ps-view-lock'));
+      ok(lockedNow() === 1 && gone, '★× で閉じたら（＝諦めた）1回だけ知らせ、ポップアップもスクロールの止めも消える', `${lockedNow()} 件・消えた ${gone}`);
       ok(!JSON.stringify(seen).includes(PWX), '★打ったパスワードはどこにも送らない');
     }
   }
