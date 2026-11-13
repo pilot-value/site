@@ -1540,8 +1540,14 @@
 
   /* ── 項目の一覧 ─────────────────────────────────────────── */
   /* ★2026-11-13 オーナー「各航空会社のステイ先を一旦全部なしに。隠そう。タブも」── false のあいだ、ホテル・ステイの札を出さない
-     （会社ページにステイ先のタブが無い ＝ 行き先が無い）。戻す日は gen-career.mjs の STAY_OPEN と一緒に true にする。 */
+     （会社ページにステイ先のタブが無い ＝ 行き先が無い）。戻す日は gen-career.mjs の STAY_OPEN と一緒に true にする。
+     ★試験用の口：手元の検査用サーバー（localhost / 127.0.0.1）で、そのサーバーが先に置いた印（window.__PV_STAY_OPEN = true）が
+       在るときだけ札を出す（サーバーが会社ページも開いて配っている ── serve-local.mjs の stays）。本番の住所では印が在っても出さない。 */
   var STAY_OPEN = false;
+  function stayOpen() {
+    if (STAY_OPEN) return true;
+    try { return w.__PV_STAY_OPEN === true && /^(?:localhost|127\.0\.0\.1)$/.test(w.location.hostname); } catch (e) { return false; }
+  }
   /* ホテル・ステイの札の字は、ここに書いたまま（assert-claims.mjs がこの形をそのまま読む）。英語は T.en の stayT・stayQ（renderList が選ぶ）。
      ほかの画面の住所は、英語の面では en/ の下（英語の会社ページ。英語の会社ページはステイ先のタブを持つので、
      ふだんはタブへ切り替えるだけで、この住所へは行かない）。 */
@@ -1555,7 +1561,7 @@
     { k: 'benefits', t: TX.gBenefits, q: TX.qBenefits, view: 'benefits' },
     /* ★2026-10-26 P12.130（WP-compare-all-22）：career.html の会社の概要は無くなった ── ほかの会社のぶんは、その会社のページのステイ先のタブへ */
     { k: 'stay', t: 'ホテル・ステイ', q: '就航地ごと', tab: 'stay', href: (LANG === 'en' ? 'en/' : '') + 'airlines/{s}.html#stay' }
-  ].filter(function (t) { return t.k !== 'stay' || STAY_OPEN; });
+  ].filter(function (t) { return t.k !== 'stay' || stayOpen(); });
   /* このページが「ステイ先」のタブを持っているか（持っていれば、ほかの画面へ送り出さない）。
      ほかの会社について開いているあいだ（CO）は、持っていないことにする ── このページのタブは、このページの会社のもの。 */
   function ownTab(tab) {

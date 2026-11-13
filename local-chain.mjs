@@ -34,11 +34,12 @@ export const LIBS = /^(cdn\.jsdelivr\.net|fonts\.googleapis\.com|fonts\.gstatic\
    q        保存先へ直接（DB の持ち主として）。サーバーの要求と同じ列に並ぶ（locked）。
    failNext 次の n 本の、match を含む要求をわざと失敗させる（mode 'drop' ＝ 通信そのものを切る）。
    stop     サーバーを止め、保存先のフォルダを消す。
-   o.places ホテルの名前の候補の口を立てるとき（serve-local.mjs の fnCall。手元の模擬の Google の住所と作り物の鍵）。 */
+   o.places ホテルの名前の候補の口を立てるとき（serve-local.mjs の fnCall。手元の模擬の Google の住所と作り物の鍵）。
+   o.stays  ステイ先を開いた形で配るか（既定 true ── serve-local.mjs の stayOpenHtml。閉じた形を見るときだけ false）。 */
 export async function bring(o = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pv-chain-'));
   let local;
-  try { local = await start({ port: 0, dir, quiet: true, places: o.places }); }
+  try { local = await start({ port: 0, dir, quiet: true, places: o.places, stays: o.stays ?? true }); }
   catch (e) { fs.rmSync(dir, { recursive: true, force: true }); throw e; }
   if (local.port === 3000) {
     await local.close();

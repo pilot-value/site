@@ -72,7 +72,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { MEMBERS, OTP } from './serve-local.mjs';
+import { MEMBERS, OTP, stayOpenHtml } from './serve-local.mjs';
 import { LIBS, bring, open, rpcAs, watchSuggest, settleSuggest } from './local-chain.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
@@ -122,7 +122,8 @@ if (!/^[a-z0-9-]+$/.test(SLUG) || !fs.existsSync(path.join(ROOT, 'airlines', SLU
   console.error(`✗ 会社のページが無い: airlines/${SLUG}.html`); process.exit(2);
 }
 /* その会社のページの、就航地の一覧の最初の都市（#stay-XXX で直接開く） */
-const IATA = (read(`airlines/${SLUG}.html`).match(/href="#stay-([A-Z]{3})" data-city="\1"/) || [])[1];
+/* ★2026-11-13 ステイ先を閉じているあいだ、ファイルの会社ページには就航地が無い ── 手元の検査用サーバーが配る形（stayOpenHtml。ステイ先を開いた形）から読む */
+const IATA = ((await stayOpenHtml(`airlines/${SLUG}.html`, read(`airlines/${SLUG}.html`))).match(/href="#stay-([A-Z]{3})" data-city="\1"/) || [])[1];
 if (!IATA) { console.error(`✗ airlines/${SLUG}.html に就航地の都市が無い`); process.exit(2); }
 
 const M = Object.fromEntries(MEMBERS.map((m) => [m.key, m]));

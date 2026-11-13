@@ -99,7 +99,18 @@ import { primary, needsCredit } from './airline-photos.mjs';
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const BASE = 'http://localhost:3000';
 const STATIC_ONLY = process.argv.includes('--static');
-const read = rel => fs.readFileSync(path.join(ROOT, rel), 'utf8');
+/* ★2026-11-13 ステイ先を閉じているあいだ（gen-career.mjs の STAY_OPEN）も、この検査は今までどおり、ステイ先を開いた形の会社ページ（日英）と
+   比較のページを見る ── 手元の検査用サーバー（serve-local.mjs）と同じ stayOpenHtml で組み直したものを、ファイルの代わりに読み・ブラウザにも配る
+   （配るのは下の各 p.on('request') の OPENED の1行）。閉じた形（ファイルそのもの）は assert-rollout.mjs の E が全社で見ている。 */
+const { STAY_OPEN } = await import('./gen-career.mjs');
+const OPENED = new Map();
+if (!STAY_OPEN) {
+  const { stayOpenHtml } = await import('./serve-local.mjs');
+  for (const rel of [...GLANCE.map(s => `airlines/${s}.html`), ...EN_SWITCH.map(s => `en/airlines/${s}.html`), 'career.html', 'en/career.html'])
+    OPENED.set(rel, await stayOpenHtml(rel, fs.readFileSync(path.join(ROOT, rel), 'utf8')));
+}
+const read = rel => OPENED.get(String(rel).split(path.sep).join('/')) ?? fs.readFileSync(path.join(ROOT, rel), 'utf8');
+const OPENED_REPLY = u => ({ status: 200, contentType: 'text/html; charset=utf-8', body: OPENED.get(u.pathname.slice(1)) });
 
 let pass = 0, fail = 0;
 const ok = (cond, label, detail = '') => {
@@ -2837,6 +2848,7 @@ async function open(browser, slug, w, h, mode, pre, pay, extra) {
     if (['data:', 'blob:', 'about:'].includes(u.protocol)) return r.continue();
     /* 204 で返す ＝ ブラウザは、いまのページに居たままになる（abort だと、エラーのページへ移ってしまう） */
     if (seen.nav && r.isNavigationRequest() && r.frame() === p.mainFrame()) { seen.nav.push(u.pathname + u.search); return r.respond({ status: 204 }); }
+    if (u.origin === BASE && OPENED.has(u.pathname.slice(1))) return r.respond(OPENED_REPLY(u));   // ステイ先を開いた形（上の OPENED）
     if (u.origin === BASE || LIBS.test(u.hostname)) return r.continue();
     if (/\.supabase\.co$/.test(u.hostname)) {
       const cors = { 'access-control-allow-origin': '*' };
@@ -7317,6 +7329,7 @@ function ggBase(browser) {
       await p.setRequestInterception(true);
       p.on('request', r => {
         let u; try { u = new URL(r.url()); } catch { return r.continue(); }
+        if (u.origin === BASE && OPENED.has(u.pathname.slice(1))) return r.respond(OPENED_REPLY(u));   // ステイ先を開いた形（上の OPENED）
         if (['data:', 'blob:', 'about:'].includes(u.protocol) || u.origin === BASE || LIBS.test(u.hostname)) return r.continue();
         return r.abort();                              // 本番の DB も解析タグも読まない（測るのは形だけ）
       });
@@ -7534,6 +7547,7 @@ async function openOld(browser, lang, w, h, { block = '', stale = false } = {}) 
   p.on('request', r => {
     let u; try { u = new URL(r.url()); } catch { return r.continue(); }
     if (['data:', 'blob:', 'about:'].includes(u.protocol)) return r.continue();
+    if (u.origin === BASE && OPENED.has(u.pathname.slice(1))) return r.respond(OPENED_REPLY(u));   // ステイ先を開いた形（上の OPENED）
     if (u.origin === BASE) {
       /* 見本のページ（借り元の写し）は、この手元のブラウザの中だけで本物の住所に返す（配っているサイトでは 404） */
       if (u.pathname === OLD_PATH[lang]) return r.respond({ status: 200, contentType: 'text/html; charset=utf-8', body: OLD_HTML[lang] });
@@ -8683,6 +8697,7 @@ async function runTopBarIn(browser, s, lang) {
     await p.setRequestInterception(true);
     p.on('request', r => {
       let u; try { u = new URL(r.url()); } catch { return r.continue(); }
+      if (u.origin === BASE && OPENED.has(u.pathname.slice(1))) return r.respond(OPENED_REPLY(u));   // ステイ先を開いた形（上の OPENED）
       if (['data:', 'blob:', 'about:'].includes(u.protocol) || u.origin === BASE || LIBS.test(u.hostname)) return r.continue();
       if (/\.supabase\.co$/.test(u.hostname)) {
         const cors = { 'access-control-allow-origin': '*' };
@@ -8748,6 +8763,7 @@ async function runTopBar(browser, s) {
     await p.setRequestInterception(true);
     p.on('request', r => {
       let u; try { u = new URL(r.url()); } catch { return r.continue(); }
+      if (u.origin === BASE && OPENED.has(u.pathname.slice(1))) return r.respond(OPENED_REPLY(u));   // ステイ先を開いた形（上の OPENED）
       if (['data:', 'blob:', 'about:'].includes(u.protocol) || u.origin === BASE || LIBS.test(u.hostname)) return r.continue();
       if (/\.supabase\.co$/.test(u.hostname)) {
         const cors = { 'access-control-allow-origin': '*' };
@@ -8901,6 +8917,7 @@ async function runContrast(browser, rel) {
     await p.setRequestInterception(true);
     p.on('request', r => {
       let u; try { u = new URL(r.url()); } catch { return r.continue(); }
+      if (u.origin === BASE && OPENED.has(u.pathname.slice(1))) return r.respond(OPENED_REPLY(u));   // ステイ先を開いた形（上の OPENED）
       if (['data:', 'blob:', 'about:'].includes(u.protocol) || u.origin === BASE || LIBS.test(u.hostname)) return r.continue();
       if (/\.supabase\.co$/.test(u.hostname)) {
         const cors = { 'access-control-allow-origin': '*' };

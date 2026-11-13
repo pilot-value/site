@@ -680,8 +680,11 @@ scene('walk', '会社ページ → 比較 → 切り替え・入れ替え → �
   made.did.forEach((l) => console.log('  ・' + l));
 
   /* ── ホテル（LC-A5）：ログインしない人が足し、運営が通す → pilot が1つの文書で見る → 同じ文書のカードに名前が無い ── */
+  /* ★2026-11-13 ステイ先を閉じているあいだ、ファイルの career.html には就航地の画面が無い ── 手元の検査用サーバーが配る形（stayOpenHtml）から読む */
+  const { stayOpenHtml } = await import('./serve-local.mjs');
+  const careerOpen = await stayOpenHtml('career.html', read('career.html'));
   const city = (() => {
-    const h = read('career.html'), i = h.indexOf(`data-view="stay" data-airline="${STAY_AIR}" data-stay="${STAY_AT}"`);
+    const h = careerOpen, i = h.indexOf(`data-view="stay" data-airline="${STAY_AIR}" data-stay="${STAY_AT}"`);
     const m = i < 0 ? null : h.slice(i, i + 4000).match(/<h1[^>]*>([\s\S]*?)<\/h1>/);
     return m ? m[1].replace(/<([a-z0-9]+)[^>]*>[\s\S]*?<\/\1>/g, '').replace(/\s+/g, ' ').trim() : '';
   })();

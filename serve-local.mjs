@@ -32,6 +32,7 @@
    ⚠️ SQL を足したら SQL_FILES に足す（並びは本番に貼る順）。
    ══════════════════════════════════════════════════════════════════ */
 import http from 'node:http';
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -371,6 +372,32 @@ export function rosterFixture(y, m, page) {
 }
 
 /* ── 立ち上げ ───────────────────────────────────────────── */
+/* ★2026-11-13 ステイ先を閉じているあいだ（gen-career.mjs の STAY_OPEN）も、検査が本体（ホテルの欄・就航地の一覧・比較の就航地の画面）を
+   見続けるための口。start({ stays: true }) のときだけ、会社ページ（日英）と比較のページを、生成器でステイ先を開いた形に組み直して配る
+   （ファイルは書かない ── 本番に出るのはファイルのほう＝閉じた形）。手元の検査の道具（local-chain.mjs の bring）は既定で開く。
+   ページの JS には印 window.__PV_STAY_OPEN を置く（pv-contrib.js の札。手元の住所でしか効かない）。
+   ステイ先を開いた日（STAY_OPEN が true）は、ファイルがもう開いた形なので、そのまま配る。 */
+let STAY_GEN = null;
+const STAY_CACHE = new Map();
+export async function stayOpenHtml(rel, html) {
+  const m = /^\/?(en\/)?(?:airlines\/([a-z0-9-]+)|(career))\.html$/.exec(rel);
+  if (!m) return html;
+  STAY_GEN ||= (async () => {
+    const c = await import('./gen-career.mjs');
+    c.openStaysForLocal();
+    const [g, v, r] = await Promise.all([import('./gen-airline-glance.mjs'), import('./pv-airline-view.mjs'), import('./airline-rollout.mjs')]);
+    return { c, g, glance: v.GLANCE, en: r.EN_SWITCH };
+  })();
+  const { c, g, glance, en } = await STAY_GEN;
+  if (c.STAY_OPEN) return html;
+  const lang = m[1] ? 'en' : 'ja';
+  if (m[2] && !(lang === 'en' ? en : glance).includes(m[2])) return html;
+  const key = `${rel}\n${html.length}\n${createHashOf(html)}`;
+  if (!STAY_CACHE.has(key)) STAY_CACHE.set(key, m[3] ? c.render(html, lang) : g.build(m[2], html, lang));
+  return STAY_CACHE.get(key);
+}
+const createHashOf = (t) => crypto.createHash('sha1').update(t).digest('hex');
+
 export async function start(opt = {}) {
   const port = opt.port ?? 3100;
   const host = opt.host ?? '127.0.0.1';
@@ -719,7 +746,7 @@ export async function start(opt = {}) {
   const state = { fail: { n: 0, match: '', mode: 'http' }, log: [] };
   const inject = '<script data-pv-local>(' + client.toString() + ')(' + JSON.stringify({
     key: STORAGE_KEY, otp: OTP, members: MEMBERS.map(({ key, ja, email }) => ({ key, ja, email })),
-  }) + ');</script>';
+  }) + ');</script>' + (opt.stays ? '<script data-pv-local>window.__PV_STAY_OPEN=true</script>' : '');
 
   function sendJson(res, status, obj, headers = {}) {
     const text = obj === undefined ? '' : (typeof obj === 'string' ? obj : JSON.stringify(obj));
@@ -886,12 +913,17 @@ export async function start(opt = {}) {
     const hidden = rel.split('/').some((s) => s.length > 1 && s.startsWith('.'));
     if (hidden || !filePath.startsWith(ROOT)) { res.writeHead(404); return res.end('Not found'); }
     if (filePath.endsWith('/') || !path.extname(filePath)) filePath = path.join(filePath, 'index.html');
-    fs.readFile(filePath, (err, data) => {
+    fs.readFile(filePath, async (err, data) => {
       if (err) { res.writeHead(404); return res.end('Not found'); }
       const ext = path.extname(filePath).toLowerCase();
       if (ext === '.html') {
-        /* 配る瞬間にだけ ── 解析タグを外し、<head> の直後に切替を差し込む */
-        let html = data.toString('utf8').replace(/<!--PV-3P-->[\s\S]*?<!--\/PV-3P-->/g, () => '');
+        /* 配る瞬間にだけ ── 解析タグを外し、<head> の直後に切替を差し込む（stays のときは、先にステイ先を開いた形に組み直す） */
+        let raw = data.toString('utf8');
+        if (opt.stays) {
+          try { raw = await stayOpenHtml(path.relative(ROOT, filePath).split(path.sep).join('/'), raw); }
+          catch (e) { res.writeHead(500); return res.end('stays: ' + String(e && e.message || e)); }
+        }
+        let html = raw.replace(/<!--PV-3P-->[\s\S]*?<!--\/PV-3P-->/g, () => '');
         const before = html;
         html = html.replace(/<head[^>]*>/i, (m) => m + inject);
         if (html === before) html = inject + html;

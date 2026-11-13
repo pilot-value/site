@@ -386,7 +386,9 @@ function credits(items, withName, shown) {
 /* 会社ページが持っているタブ（生成済みのページから読む ── タブの名前をここに打たない）。今までの形のページは空。 */
 /* 英語は英語の会社ページ（en/airlines/{slug}.html ── 比較の「Details」の行き先そのもの）から読む。 */
 const PAGE_TABS = {};
-const pageTabs = s => (PAGE_TABS[`${LANG}:${s}`] ||= new Set([...fs.readFileSync(path.join(ROOT, EN() ? 'en' : '', 'airlines', `${s}.html`), 'utf8').matchAll(/ data-pvg-tab="([a-z]+)"/g)].map(m => m[1])));
+/* 手元の検査用サーバーがステイ先を開いて配るあいだ（stayOn・下の STAY_OPEN の注）は、ファイルの会社ページ（タブ無し）ではなく、同じサーバーが配るページ（タブ在り）を指す */
+const pageTabs = s => (PAGE_TABS[`${LANG}:${s}`] ||= new Set([...[...fs.readFileSync(path.join(ROOT, EN() ? 'en' : '', 'airlines', `${s}.html`), 'utf8').matchAll(/ data-pvg-tab="([a-z]+)"/g)].map(m => m[1]),
+  ...(stayOn && !STAY_OPEN ? ['stay'] : [])]));
 const href = {
   /* ★2026-10-26 P12.130：会社を選ぶ所 ＝ 航空会社一覧（どちらの言葉も、そのページから見た同じ字 ── en/career.html からは en/world-airlines.html）。
      比較の「航空会社を選ぶ」はここへ・いま並べている2社を一覧の比べる社（?cmp= ── 一覧が住所から読む）に連れていく（career.js の pair()）。 */
@@ -1013,10 +1015,15 @@ ${REGIONS.map(R => { const ss = choice().filter(s => dir().airlines[s].region ==
    「情報を追加」の面のホテル・ステイの札は pv-contrib.js の STAY_OPEN（ブラウザの JS なのでこれを読めない ── 2つを一緒に動かす）。
    戻す日は2つを true にして、gen-airline-glance → gen-career → gen-lang es → seo-normalize → gen-datemod → gen-sitemap。 */
 export const STAY_OPEN = false;
+/* 手元の検査用サーバー（serve-local.mjs の stays）だけが、閉じているあいだも本体を開いて配る口（DEEP PAY の __PV_DEEP_OPEN と同じ考え ──
+   閉じているあいだも検査が本体を見続ける）。ファイルに書く生成（このファイルと gen-airline-glance.mjs を node で流す）は呼ばない ＝ STAY_OPEN のまま。 */
+let stayOn = STAY_OPEN;
+export const staysOn = () => stayOn;
+export function openStaysForLocal() { stayOn = true; }
 const PTABS = () => {
   const sets = ALL.map(pageTabs).filter(s => s.size);
   const all = sets.length ? [...sets[0]].filter(t => sets.every(s => s.has(t))) : [];
-  if (STAY_OPEN && !all.includes('stay')) throw new Error('会社ページにステイ先のタブ（stay）が無い会社が在る（就航地の「戻る」の先が無くなる）');
+  if (stayOn && !all.includes('stay')) throw new Error('会社ページにステイ先のタブ（stay）が無い会社が在る（就航地の「戻る」の先が無くなる）');
   return all.join(' ');
 };
 export function build() {
@@ -1025,7 +1032,7 @@ export function build() {
 <script>if(!/[?&](airline|view)=/.test(location.search))location.replace('${href.list}')</script>
 <p class="cr-else" id="cr-off"><a class="cr-link" href="${href.list}">${W.back}${IC.go}</a></p>
 ${DEEP.flatMap(s => ROLES.map(([r]) => detail(s, r, W.rank[r]))).join('\n')}
-${STAY_OPEN ? `${DEEP.flatMap(s => destinations(s).map(d => stay(s, d))).join('\n')}\n` : ''}${compare()}
+${stayOn ? `${DEEP.flatMap(s => destinations(s).map(d => stay(s, d))).join('\n')}\n` : ''}${compare()}
 ${sheet()}
 ${card()}
 </div>`;

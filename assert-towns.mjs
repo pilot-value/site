@@ -122,7 +122,7 @@ import puppeteer from 'puppeteer';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { MEMBERS, OTP } from './serve-local.mjs';
+import { MEMBERS, OTP, stayOpenHtml } from './serve-local.mjs';
 import { bring, open, rpcAs, seedOf } from './local-chain.mjs';
 import { viewOf } from './pv-airline-view.mjs';
 import { SALARY } from './salary-data.mjs';
@@ -1411,7 +1411,8 @@ const OWNER_WORDS = ['申請してきた人', '会員一覧', 'verified', '画�
    AD7 は、画像で verified にしたあと取り消した 'a' の行にこの1文が出ないこと（P12.61 Q1 = 2 ── 押せる「verified」に戻る）を見る */
 const REAPPLY_T = 'この人は以前に申請したことがあるため、画像を見てからでないと verified にできません。本人がマイページから新しい画像を出すと「申請してきた人」に並びます。';
 /* その会社のページの、就航地の一覧の最初の都市（ステイ先の欄を #stay-XXX で直接開く。assert-stays.mjs と同じ決め方） */
-const STAY_IATA = (read(`airlines/${SLUG}.html`).match(/href="#stay-([A-Z]{3})" data-city="\1"/) || [])[1] || '';
+/* ★2026-11-13 ステイ先を閉じているあいだ、ファイルの会社ページには就航地が無い ── 手元の検査用サーバーが配る形（stayOpenHtml。ステイ先を開いた形）から読む */
+const STAY_IATA = ((await stayOpenHtml(`airlines/${SLUG}.html`, read(`airlines/${SLUG}.html`))).match(/href="#stay-([A-Z]{3})" data-city="\1"/) || [])[1] || '';
 /* 管理画面の「会社・基地」の選択肢の字（admin-queue.js の airName ＝ pv-airlines.json の日本語の名前） */
 const AIR_JA = ((JSON.parse(read('pv-airlines.json')).airlines || {})[SLUG] || {}).ja || '';
 const keysOf = (t) => [...String(t).matchAll(/"((?:[^"\\]|\\.)*)"\s*:/g)].map((m) => m[1]).join();

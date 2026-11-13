@@ -269,9 +269,15 @@ for (const [page, pre] of [['profile.html', ''], ['en/profile.html', '../']]) {
 {
   const want = createHash('sha256').update(readFileSync(path.join(ROOT, 'pv-proof-offer.js'))).digest('hex').slice(0, 8);
   // en/career.html（EN-9・2026-10-25）は career.html と同じページを英語で書き出したもので、同じホテルの欄を持つ。
-  const HOTEL = ['career.html', 'en/career.html', ...SWITCH.map((slug) => `airlines/${slug}.html`), ...EN_SWITCH.map((slug) => `en/airlines/${slug}.html`)];
+  /* ★2026-11-13 ステイ先を閉じているあいだ（gen-career.mjs の STAY_OPEN）、ファイルの会社ページはホテルの欄を持たない ＝ このポップアップを読まない。
+     「1回だけ・指紋つき・career-stay.js より前」は、手元の検査用サーバーが配る形（stayOpenHtml。開いた形）で見続ける。
+     比較のページ（日英）は閉じているあいだも部品を読んだまま（就航地の画面を書かないだけ）。 */
+  const { STAY_OPEN } = await import('./gen-career.mjs');
+  const { stayOpenHtml } = await import('./serve-local.mjs');
+  const COS = [...SWITCH.map((slug) => `airlines/${slug}.html`), ...EN_SWITCH.map((slug) => `en/airlines/${slug}.html`)];
+  const HOTEL = ['career.html', 'en/career.html', ...COS];
   for (const page of HOTEL) {
-    const h = read(page), pre = '../'.repeat(page.split('/').length - 1);
+    const h = STAY_OPEN || !COS.includes(page) ? read(page) : await stayOpenHtml(page, read(page)), pre = '../'.repeat(page.split('/').length - 1);
     const e = (s) => s.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&');
     const m = [...h.matchAll(new RegExp('<script src="' + e(pre + 'pv-proof-offer.js') + '\\?v=([0-9a-f]+)"></script>', 'g'))];
     const iP = h.indexOf('"' + pre + 'pv-proof-offer.js?v='), iS = h.indexOf('"' + pre + 'career-stay.js?v=');
@@ -279,14 +285,14 @@ for (const [page, pre] of [['profile.html', ''], ['en/profile.html', '../']]) {
        `${page}: ホテルの欄の画面 ── pv-proof-offer.js を career-stay.js より前に、今の中身の指紋（?v=${want}）で1回だけ読む・マイページの入口の置き場も押すと開く印も無い`,
        J({ hits: m.map((x) => x[1]), iP, iS }));
   }
-  const allow = new Set(['profile.html', 'en/profile.html', ...HOTEL]);
+  const allow = new Set(['profile.html', 'en/profile.html', ...(STAY_OPEN ? HOTEL : ['career.html', 'en/career.html'])]);
   const pages = [];
   for (const dir of ['', 'airlines', 'en', 'en/airlines']) {
     for (const f of readdirSync(path.join(ROOT, dir || '.'))) if (f.endsWith('.html')) pages.push(dir ? `${dir}/${f}` : f);
   }
   const readers = pages.filter((f) => /pv-proof-offer\.js|pv-proof-slot|data-pv-proof-open/.test(read(f)));
   ok(pages.length > 300 && J(readers.slice().sort()) === J([...allow].sort()),
-     `ほかのページ（サイトの HTML ${pages.length}枚のうち、マイページ日英とホテルの欄の${HOTEL.length}枚のほか）は、このポップアップを読まない`,
+     `ほかのページ（サイトの HTML ${pages.length}枚のうち、マイページ日英とホテルの欄の${allow.size - 2}枚のほか${STAY_OPEN ? '' : ' ── ステイ先を閉じているあいだは会社ページも読まない'}）は、このポップアップを読まない`,
      J({ extra: readers.filter((f) => !allow.has(f)), missing: [...allow].filter((f) => !readers.includes(f)) }));
 }
 
@@ -555,7 +561,9 @@ async function scenes() {
       const LC6 = await bring6();
       const outs = [];
       try {
-        const IATA = (read('airlines/jal.html').match(/href="#stay-([A-Z]{3})" data-city="\1"/) || [])[1];
+        /* ★2026-11-13 ステイ先を閉じているあいだは、手元の検査用サーバーが配る形（ステイ先を開いた形）から読む */
+        const { stayOpenHtml } = await import('./serve-local.mjs');
+        const IATA = ((await stayOpenHtml('airlines/jal.html', read('airlines/jal.html'))).match(/href="#stay-([A-Z]{3})" data-city="\1"/) || [])[1];
         const SL = '#pvg-city .crl[data-live="hotels"]', ZN = SL + ' + .crs-zone', FM = ZN + ' .crs-formbox > .crs-form';
         const LOCK = 'Only VERIFIED PILOT', LOGIN = 'ログイン', PICK = '画像を選んで提出する', WAIT = '運営が確認するまでお待ちください。';
         const A_ID = '00000000-0000-4000-8000-0000000000a1';           // serve-local.mjs の手元の会員 'a'（模擬）

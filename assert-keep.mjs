@@ -54,7 +54,7 @@ import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { MEMBERS, OTP } from './serve-local.mjs';
+import { MEMBERS, OTP, stayOpenHtml } from './serve-local.mjs';
 import { bring, open, rpcAs, seedOf, LIBS, watchSuggest, settleSuggest } from './local-chain.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
@@ -72,7 +72,8 @@ const unknown = want.filter((s) => !SCENES[s]);
 if (unknown.length) { console.error(`✗ 知らない場面: ${unknown.join(', ')}（あるのは ${Object.keys(SCENES).join(', ')}）`); process.exit(2); }
 
 const SLUG = 'jal', CO = { airline: 'ana', name: 'ANA', ask: ['reserve_duty'] };
-const IATA = (read(`airlines/${SLUG}.html`).match(/href="#stay-([A-Z]{3})" data-city="\1"/) || [])[1];
+/* ★2026-11-13 ステイ先を閉じているあいだ、ファイルの会社ページには就航地が無い ── 手元の検査用サーバーが配る形（stayOpenHtml。ステイ先を開いた形）から読む */
+const IATA = ((await stayOpenHtml(`airlines/${SLUG}.html`, read(`airlines/${SLUG}.html`))).match(/href="#stay-([A-Z]{3})" data-city="\1"/) || [])[1];
 if (!IATA) { console.error(`✗ airlines/${SLUG}.html に就航地の都市が無い`); process.exit(2); }
 const PAGE = `airlines/${SLUG}.html`, CITY = `${PAGE}#stay-${IATA}`;
 const M = Object.fromEntries(MEMBERS.map((m) => [m.key, m]));
