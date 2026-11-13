@@ -725,7 +725,7 @@ html.ps-load-lock,html.ps-load-lock body{overflow:hidden}
 .ps-load{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;
   padding:24px;background:var(--pv-surface);color:var(--pv-ink);
   animation:psFadeIn .22s var(--pv-ease) both}
-.ps-load.is-out{opacity:0;transition:opacity .24s var(--pv-ease)}
+.ps-load.is-out{opacity:0;pointer-events:none;transition:opacity .24s var(--pv-ease)}
 @keyframes psFadeIn{from{opacity:0}to{opacity:1}}
 .ps-load-in{width:100%;max-width:300px;display:flex;flex-direction:column;align-items:center;text-align:center;
   animation:psRise .4s var(--pv-ease) both}
@@ -765,6 +765,15 @@ li[data-s="done"] .ps-step-dot::after{content:"";position:absolute;left:6px;top:
 .ps-live-msg b{font-weight:600;color:var(--pv-ink)}
 .ps-live.ps-fail .ps-bar{margin:12px 0 2px;gap:4px 14px;align-items:center;padding-left:4px}
 @media (min-width:481px){.ps-live.ps-fail.has-thumb .ps-bar{padding-left:50px}}
+/* 鍵の付いた PDF のパスワードの欄（2026-11-13）。字は 16px（iPhone で寄らない）。 */
+.ps-pw{display:flex;gap:8px;margin:12px 0 0;padding-left:4px}
+.ps-pw input{flex:1 1 auto;min-width:0;box-sizing:border-box;height:44px;padding:0 12px;font:inherit;font-size:16px;color:var(--pv-ink);
+  background:var(--pv-bg);border:1px solid var(--pv-line);border-radius:12px;transition:border-color .2s var(--pv-ease),box-shadow .2s var(--pv-ease)}
+.ps-pw input:hover{border-color:var(--pv-ink-3,var(--pv-line))}
+.ps-pw input:focus-visible{outline:none;border-color:var(--pv-accent);box-shadow:0 0 0 3px rgba(6,117,99,.18)}
+.ps-pw .ps-btn-primary{flex:none;min-height:44px;padding:0 18px;border-radius:12px}
+.ps-pw .ps-btn-primary:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.ps-lock .ps-live-msg.is-bad{color:var(--pv-ink);font-weight:600}
 .ps-thumb{position:relative;flex:none;box-sizing:border-box;width:38px;height:48px;padding:0;margin:0;border-radius:7px;overflow:hidden;
   background:var(--pv-bg-sub);border:1px solid var(--pv-line);cursor:zoom-in;transition:transform .2s var(--pv-ease)}
 .ps-thumb:hover{transform:translateY(-1px)}

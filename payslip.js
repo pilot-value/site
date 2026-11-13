@@ -51,6 +51,12 @@
       pdfReading: 'PDF を開いています…（初回だけ、読み込み用のデータを取りに行きます）',
       pdfPages: function (n) { return n + 'ページあるうちの1ページ目を読んでいます。給与の表が別のページにあるときは、そのページだけの画像（スクリーンショット）を選んでください。'; },
       pdfLocked: 'この PDF はパスワードで保護されています。パスワードを外して保存し直すか、開いた画面のスクリーンショットを落としてください。',
+      /* ★鍵の付いた PDF は、その場でパスワードを聞いて端末の中で開く（2026-11-13 オーナー「失敗してるぞ」）。 */
+      lockT: 'パスワード付きの PDF です',
+      lockMsg: 'パスワードを入れると、この端末の中で開いて読みます。パスワードは送りません。',
+      lockBad: 'パスワードが違います。もう一度入れてください。',
+      lockPh: 'PDF のパスワード',
+      lockGo: '開く',
       pdf: 'PDF を開けませんでした。開いた画面のスクリーンショットを撮って落としてください。',
       /* ★「開けた」のに中身が出ない PDF が2種類ある。どちらも以前は真っ白な紙を
          送って「明細として読み取れません」で終わっていた＝本人には原因が分からない。 */
@@ -192,6 +198,11 @@
       pdfReading: 'Opening the PDF… (the reader is downloaded the first time only)',
       pdfPages: function (n) { return 'Reading page 1 of ' + n + '. If your pay table is on another page, choose an image (screenshot) of that page instead.'; },
       pdfLocked: 'This PDF is password-protected. Save a copy without the password, or drop a screenshot of it instead.',
+      lockT: 'This PDF has a password',
+      lockMsg: 'Enter it to open the PDF here on your device. The password is never sent.',
+      lockBad: 'Wrong password. Please try again.',
+      lockPh: 'PDF password',
+      lockGo: 'Open',
       pdf: 'That PDF could not be opened. Open it and drop a screenshot instead.',
       /* ★Same two cases as above: the file opens but nothing can be drawn from it. */
       pdfXfa: 'This PDF uses a special form format (XFA) that cannot be drawn here. Open it and drop a screenshot instead.',
@@ -323,6 +334,11 @@
       pdfReading: 'Abriendo el PDF… (el lector solo se descarga la primera vez)',
       pdfPages: function (n) { return 'Leyendo la página 1 de ' + n + '. Si tu tabla de pagos está en otra página, elige una imagen (captura de pantalla) de esa página.'; },
       pdfLocked: 'Este PDF está protegido con contraseña. Guarda una copia sin contraseña o, en su lugar, arrastra aquí una captura de pantalla.',
+      lockT: 'Este PDF tiene contraseña',
+      lockMsg: 'Escríbela para abrir el PDF aquí, en tu dispositivo. La contraseña nunca se envía.',
+      lockBad: 'Contraseña incorrecta. Inténtalo de nuevo.',
+      lockPh: 'Contraseña del PDF',
+      lockGo: 'Abrir',
       pdf: 'No se pudo abrir el PDF. Ábrelo y, en su lugar, arrastra aquí una captura de pantalla.',
       /* ★Same two cases as above: the file opens but nothing can be drawn from it. */
       pdfXfa: 'Este PDF usa un formato de formulario especial (XFA) que no se puede mostrar aquí. Ábrelo y, en su lugar, arrastra aquí una captura de pantalla.',
@@ -716,7 +732,7 @@
     if (fs && fs.length) { if (Date.now() - readModeAt > 60000) readMode = 'month'; takeMany(fs); }
   });
 
-  function take(file) {
+  function take(file, pw) {
     var isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
     /* ★ここで弾かれた人は「明細を出そうとしたのに1歩も進めなかった人」。
        黙って戻ると、選びもしなかった人と同じ数に見えてしまう。 */
@@ -739,11 +755,11 @@
     work = null;
     kindNow = isPdf ? 'pdf' : 'image';
     pageNote = '';
-    track('payslip_loaded', { kind: kindNow });
+    if (!pw) track('payslip_loaded', { kind: kindNow });   // パスワードを入れ直した回は数えない（同じ1枚）
     clearPanel();
     loadOpen();
     var t0 = now();
-    var p = isPdf ? withTimeout(renderPdf(file), PREP_MS, 'pdf_timeout')
+    var p = isPdf ? withTimeout(renderPdf(file, pw), PREP_MS, 'pdf_timeout')
                   : withTimeout(loadImage(file), PREP_MS, 'image_timeout');
     var via = 'img';
     p.then(function (r) {
@@ -782,6 +798,13 @@
       /* ★PDF の部品の読み込みが止まったら、次の PDF でもう一度取りに行く
          （止まったままの約束を持ち続けると、以後の PDF が全部止まる）。 */
       if (why === 'pdf_timeout') pdfLib = null;
+      /* ★1枚だけ選んだときは行き止まりにしない ── パスワードを聞いて、端末の中で開き直す。
+         ここではまだ失敗の知らせを送らない（打てば読めるのがふつう）。送るのは諦めて別の道を選んだときだけ（askPassword）。
+         まとめて何枚も選んだ途中の1枚は今までどおり（読めなかった1枚として数え、残りへ進む）。 */
+      if (why === 'pdf_locked' && !queue.length && !batchOk) {
+        track('payslip_pdf_password', { wrong: pw ? 1 : 0 });
+        return askPassword(file, !!pw);
+      }
       track('payslip_reject', { reason: why });
       report(why, 'file', file.size);
       showFail(why);
@@ -1108,6 +1131,56 @@
     panel.appendChild(box);
     try { panel.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (e) { panel.scrollIntoView(); }
   }
+  /* 鍵の付いた PDF：パスワードの欄。打った字は take → renderPdf に渡すだけで、変数にも保存領域にも残さない。 */
+  function askPassword(file, wrong) {
+    readMode = 'month';
+    loadClose();
+    panel.innerHTML = '';
+    var box = el('div', 'ps-live ps-fail ps-lock');
+    box.setAttribute('data-code', 'pdf_locked');
+    var row = el('div', 'ps-live-row');
+    var main = el('div', 'ps-live-main');
+    main.appendChild(el('span', 'ps-state-t ps-live-t', esc2(T.lockT)));
+    var msg = el('p', 'ps-live-msg' + (wrong ? ' is-bad' : ''), esc2(wrong ? T.lockBad : T.lockMsg));
+    if (wrong) msg.setAttribute('role', 'alert');
+    main.appendChild(msg);
+    row.appendChild(main);
+    box.appendChild(row);
+    var form = document.createElement('form');
+    form.className = 'ps-pw';
+    form.noValidate = true;
+    var inp = document.createElement('input');
+    inp.type = 'password';
+    inp.id = 'ps-pw';
+    inp.autocomplete = 'off';
+    inp.setAttribute('autocapitalize', 'off');
+    inp.setAttribute('spellcheck', 'false');
+    inp.setAttribute('enterkeyhint', 'go');
+    inp.setAttribute('aria-label', T.lockPh);
+    inp.placeholder = T.lockPh;
+    var go = el('button', 'ps-btn ps-btn-primary', esc2(T.lockGo));
+    go.type = 'submit';
+    go.id = 'ps-pw-go';
+    form.appendChild(inp);
+    form.appendChild(go);
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var v = inp.value;
+      if (!v) { inp.focus(); return; }
+      inp.value = '';
+      take(file, v);
+    });
+    box.appendChild(form);
+    /* 諦めて別の道へ行ったときだけ「読めなかった」を知らせる（ここで初めて失敗になる）。 */
+    var gaveUp = false;
+    function giveUp() { if (gaveUp) return; gaveUp = true; track('payslip_reject', { reason: 'pdf_locked' }); report('pdf_locked', 'file', file.size); }
+    var choose = btn(T.choose, 'ps-btn-link', function () { giveUp(); readMode = 'month'; fileInput.click(); }, 'ps-choose');
+    var manual = btn(T.manual, 'ps-btn-link', function () { giveUp(); openForm(); focusForm(); }, 'ps-manual');
+    box.appendChild(bar([choose, manual]));
+    panel.appendChild(box);
+    try { panel.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (e) { panel.scrollIntoView(); }
+    try { inp.focus({ preventScroll: true }); } catch (e) { inp.focus(); }
+  }
   function focusForm() {
     var h = document.querySelector('#form-body:not([hidden]) h2, #form-body:not([hidden]) select, #form-body:not([hidden]) input');
     if (h && typeof h.focus === 'function') { try { h.focus(); } catch (e) {} }
@@ -1229,7 +1302,7 @@
     } catch (e) { return false; }
   }
 
-  function renderPdf(file) {
+  function renderPdf(file, pw) {
     /* ★この変数を L と名付けない。ファイル先頭の L（＝言語）を遮蔽してしまい、
        この中で文言を言語で出し分けた瞬間に壊れる。 */
     var lib = null;
@@ -1240,7 +1313,10 @@
     }).then(function (buf) {
       /* isEvalSupported:false＝PDF の中の JavaScript を動かさない。
          他人が作った PDF を開くので、こちらから実行の道を開けない。 */
-      return lib.getDocument({ data: new Uint8Array(buf), isEvalSupported: false }).promise;
+      /* ★pw は本人が打ったパスワード。pdf.js が端末の中で鍵を外すのに使うだけで、どこにも送らない・残さない。 */
+      var opt = { data: new Uint8Array(buf), isEvalSupported: false };
+      if (pw) opt.password = pw;
+      return lib.getDocument(opt).promise;
     }).then(function (doc) {
       var pages = doc.numPages;
       /* メタが取れないのは致命ではないので、失敗したら空で進む。 */

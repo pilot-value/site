@@ -561,12 +561,6 @@ console.log('\n══ 開けない PDF（鍵付き・XFA・白紙）');
   ];
 
   const cases = [
-    ['鍵付き（パスワードで保護されている）', 'locked',
-     buildPdf([...BODY,
-       /* V1/R2・40bit。/U はわざと合わない値 ── pdf.js は鍵を作る前にここで落ちる。 */
-       '<< /Filter /Standard /V 1 /R 2 /Length 40 /O <' + hx(32) + '> /U <' + hx(32) + '> /P -1 >>'],
-       '/Encrypt 4 0 R /ID [<' + hx(16) + '> <' + hx(16) + '>]'),
-     'パスワードで保護されています'],
     ['XFA フォーム（中身が XML 側にあり、ページは空）', 'xfa',
      buildPdf([
        '<< /Type /Catalog /Pages 2 0 R /AcroForm 4 0 R >>',
@@ -576,6 +570,14 @@ console.log('\n══ 開けない PDF（鍵付き・XFA・白紙）');
      '特殊な形式'],
     ['白紙（正しい PDF だが描き出すものが無い）', 'blank', buildPdf(BODY, ''),
      '描き出せませんでした'],
+    /* ★2026-11-13 から鍵付きは行き止まりにしない ── パスワードの欄を出し、端末の中で開き直す（オーナー「失敗してるぞ」）。
+       この見本はどのパスワードでも開かない（/U がわざと合わない）＝「違います」の道を通る。 */
+    ['鍵付き（パスワードで保護されている）', 'locked',
+     buildPdf([...BODY,
+       /* V1/R2・40bit。/U はわざと合わない値 ── pdf.js は鍵を作る前にここで落ちる。 */
+       '<< /Filter /Standard /V 1 /R 2 /Length 40 /O <' + hx(32) + '> /U <' + hx(32) + '> /P -1 >>'],
+       '/Encrypt 4 0 R /ID [<' + hx(16) + '> <' + hx(16) + '>]'),
+     'パスワード付きの PDF です'],
   ];
 
   const { page, seen } = await open(URL_JA, { body: FAKE }, { w: 1280 });
@@ -599,6 +601,22 @@ console.log('\n══ 開けない PDF（鍵付き・XFA・白紙）');
     ok(m.warn.includes(want), `★正しい文言が出る：${name}`, `出た文言「${m.warn.slice(0, 60)}」`);
     ok(!m.edit && !m.confirm, `★送る道に乗らない（明細の確認画面が出ない）：${name}`,
        `.ps-edit ${m.edit ? '有' : '無'} / #ps-confirm ${m.confirm ? '有' : '無'}`);
+    if (slug === 'locked') {
+      const PWX = 'not-the-password';
+      const lockedNow = () => seen.reports.filter((b) => b.report && b.report.reason === 'pdf_locked').length;
+      ok(!!(await page.$('#ps-pw')) && !!(await page.$('#ps-pw-go')), '★鍵付きはパスワードの欄を出す（行き止まりにしない）');
+      ok(lockedNow() === 0, '★パスワードを聞いた時点では「読めなかった」を知らせない（打てば読めるのがふつう）', `${lockedNow()} 件`);
+      /* 押すのは DOM の click で（札は滑らかに寄せてくるので、座標で押すと寄せている途中の別の物に当たる）。 */
+      await page.$eval('#ps-pw', (n, v) => { n.value = v; }, PWX);
+      await page.$eval('#ps-pw-go', (b) => b.click());
+      await page.waitForFunction(() => !!document.querySelector('.ps-lock .is-bad') && !!document.getElementById('ps-pw'), { timeout: 30000 });
+      ok(true, '★違うパスワードなら「違います」と出して、もう一度聞く');
+      ok(lockedNow() === 0, '★違うパスワードでも、まだ知らせない', `${lockedNow()} 件`);
+      await page.$eval('.ps-lock #ps-manual', (b) => b.click());
+      for (let i = 0; i < 30 && !lockedNow(); i++) await new Promise((r) => setTimeout(r, 100));
+      ok(lockedNow() === 1, '★諦めて別の道（手で入力する）を選んだら、1回だけ知らせる', `${lockedNow()} 件`);
+      ok(!JSON.stringify(seen).includes(PWX), '★打ったパスワードはどこにも送らない');
+    }
   }
   ok(seen.calls === 0, '★開けない PDF は1度も Edge Function へ送っていない', `${seen.calls} 回`);
   /* ★開けなかったことは運営に知らせる（2026-11-07）。送るのは理由の語・段・大きさだけ（画像もファイル名も無い）。 */
