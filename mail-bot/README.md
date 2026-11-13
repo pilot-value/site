@@ -288,6 +288,54 @@ node mail-bot/send.mjs digest  --backfill # 初回：直近7日ぶんをまと�
 - `digest` は既定で**前回実行以降**（初回は直近7日）の新着口コミを、`email_opt_in=true` の全員へ。
 - 状態：`.send-state.json`（`lastWelcomeAt` / `lastDigestAt`）。
 
+### 「もう送らないで」と言われた人を外す（2026-10-30）
+2つやる。片方だけだと、どこかのメールがまだ届く。
+
+1. **DB の旗を落とす**（Supabase の SQL Editor）── 週の新着まとめ（自動配信）・お知らせ・月次リマインドが止まる。
+   ```sql
+   update public.profiles set email_opt_in = false, mail_optin = false
+    where lower(email) = '<その人のアドレス>'
+   returning name, email, email_opt_in, mail_optin;
+   ```
+2. **`mail-bot/.mail-block` に1行足す** ── 登録者全員に送るお知らせ（`founding` / `realpay` / `update` / `renewal`）は
+   旗を見ないので、こちらで外す。1行1アドレス・`#` から後ろはコメント・大文字小文字は区別しない。
+   `send.mjs` は会員を読んだ時点で外し（「配信を断った N 名を除外」と人数だけ出る）、送る直前にももう1回見る
+   （`--only=` や `--to=` で名指ししても送らない）。
+
+- ⚠️ **アドレスをコードやこの README に書かない**（公開リポジトリ）。名簿は gitignore 済み。
+- ⚠️ **名簿のファイルが無いと、会員への実送信は止まる**（新しい Mac で戻し忘れると、断った人に黙って届くため）。
+  iCloud の `Claude-Backup/latest/repo-lists/mail-bot.mail-block` から戻す。断った人がいないなら空のファイルでよい。
+  送らない回と自分宛ての下見（`--to=`）は名簿が無くても動く。
+- 名簿は `backup-claude.command` が iCloud へ退避している。
+
+### 各航空会社のページと Vote のお知らせ（send.mjs pages・2026-10-30）
+登録者全員に1通。**その人の会社のページへ直接リンクし、そのページの絵（PC の画面）をメールに埋め込む。**
+自分の会社のページを見て、違うところを教えてもらうお願いつき（返信／ROADMAP & REQUESTS の「運営だけに見せる」）。
+```
+node gen-mail-airline-shots.mjs                                   # 先に絵を撮る（112社 × 日英＋一覧。本番の公開ページを未ログインで）
+node mail-bot/send.mjs pages --to=info@pilot-value.com --airline=jal --send   # ★自分の受信箱で現物（会員には出ない）
+node mail-bot/send.mjs pages                                      # 送らない。人数と「会社のページへ N 名・一覧へ M 名」だけ
+node mail-bot/send.mjs pages --send                               # 本番（1人1通・二度は送らない）
+node shot-remind.mjs --pages                                      # 本文を絵で見る
+```
+- 勤務先（自由入力）は `pv_airline_resolve` で会社に当てる。会社ページの無い会社（チャーター・ビジネスジェット等）や当たらない人は一覧へ。
+- 絵は `mail-bot/.page-shots/`（gitignore 済み）。**使う絵が1枚でも無ければ1通も送らずに止まる**（足りない会社を撮るコマンドが出る）。
+- 絵は Give & Get のボタンより上で切ってある（全員宛てに誘いを載せない）。文面は `announce-mail.mjs` の `pagesCopy`（オーナーと決めた字。作文で直さない）。
+
+### MY PAY の新しい機能のお知らせ（send.mjs route・2026-11-13）
+登録者全員に1通。スケジュール（ロスター）の地球儀・便ごとの稼ぎ（目安）・月と年のまとめを、機能ごとの節で知らせる。
+会員ごとに変わる所は無い（行き先は MY PAY だけ・本番の DB を1人ずつ引かない）。
+```
+node mail-bot/send.mjs route --to=info@pilot-value.com --send     # ★自分の受信箱で現物（会員には出ない。--lang=ja で日本語だけの版）
+node mail-bot/send.mjs route                                      # 送らない。人数と言語の内訳だけ
+node mail-bot/send.mjs route --send                               # 本番（1人1通・二度は送らない）
+node shot-remind.mjs --route                                      # 本文を絵で見る（PV_PORT でポートを替えられる）
+```
+- 絵は地球儀の見本の1枚（`mail-bot/.page-shots/route-ja.jpg`・`route-en.jpg`）。手元のポートで配って
+  `ACT=tab2 node shot-glass.mjs globe ja light`（en も）で撮り、ROUTE の板だけ切り出して JPEG にする。数字は作り物 ＝ 絵の下に「見本」と書いてある。
+- 全員宛てなので誘いを入れない。給与フォームへのリンクも置かない（明細から自動で入ることは事実として1文だけ）。
+- データの扱いの2文は画面の字の写し（`roster-upload.js` の `priv`・CLAUDE.md の明細の言い方）。`db/test-announce.mjs` の ⑦-c が突き合わせる。
+
 ### 一度だけのお知らせ（send.mjs announce）
 
 給与レポートを公開したことを、登録済みの会員に1通だけ知らせる。

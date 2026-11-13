@@ -1229,7 +1229,8 @@ git config core.hooksPath .githooks     # commit と push のたびに検査が�
 #                触っている回だけ check.mjs sql（約70秒）も足して流し、落ちたら止める
 # iCloud の Claude-Backup/latest/repo-lists/ から
 #   .pii-denylist と .employer-denylist をリポジトリのルートに戻す
-# （どちらも gitignore 済みなので clone には付いてこない。
+#   mail-bot.mail-block は mail-bot/.mail-block として戻す（配信を断った人の名簿。無いと send.mjs が送らずに止まる）
+# （どれも gitignore 済みなので clone には付いてこない。
 #   backup-claude.command が iCloud へ入れている）
 ```
 **この2つのどちらかが無いと `assert-no-pii.mjs` は落ちる。** 氏名や勤務先の検査だけが黙って

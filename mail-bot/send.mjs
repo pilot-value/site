@@ -36,6 +36,14 @@
      node mail-bot/send.mjs realpay                         # 送らない。何人に届くかだけ出る
      node mail-bot/send.mjs realpay --to=info@…    --send   # ★自分の受信箱で現物を見る
      node mail-bot/send.mjs realpay --send                  # 本番（1人1通・二度は送らない）
+     node mail-bot/send.mjs pages                           # 送らない。何人に届くか・会社のページへ何人かだけ出る
+     node mail-bot/send.mjs pages --to=info@… --airline=jal --send  # ★自分の受信箱で現物を見る（絵つき）
+     node mail-bot/send.mjs pages --send                    # 本番（1人1通・二度は送らない）
+
+     node mail-bot/send.mjs route                           # 送らない。何人に届くかだけ出る（MY PAY の新しい機能のお知らせ）
+     node mail-bot/send.mjs route --to=info@…      --send   # ★自分の受信箱で現物を見る（絵つき）
+     node mail-bot/send.mjs route --send                    # 本番（1人1通・二度は送らない）
+       ★先に node gen-mail-airline-shots.mjs で会社ページの絵を撮っておく（無い絵があると止まる）
 
    ★ announce だけは既定が「送らない」。--dry-run を付け忘れて全員に飛ぶ事故を
      起こしようがない側に倒してある（取り消せない操作なので）。
@@ -69,14 +77,39 @@ const sinceArg = (args.find(a => a.startsWith('--since=')) || '').split('=')[1];
 const onlyArg  = (args.find(a => a.startsWith('--only=')) || '').split('=')[1];
 const langArg  = (args.find(a => a.startsWith('--lang=')) || '').split('=')[1];  // ja|en|both
 const toArg    = (args.find(a => a.startsWith('--to=')) || '').split('=')[1];    // 自分宛の下見だけに使う
+const airlineArg = ((args.find(a => a.startsWith('--airline=')) || '').split('=')[1] || '').trim().toLowerCase();  // pages の下見の会社
 /* announce は「--send と書いたときだけ送る」。他のモードは従来どおり
    「--dry-run と書いたときだけ送らない」。既定を逆にしてあるのはわざと。 */
-const NEEDS_SEND = MODE === 'digest' || MODE === 'announce' || MODE === 'founding' || MODE === 'realpay' || MODE === 'update' || MODE === 'renewal';
+const NEEDS_SEND = MODE === 'digest' || MODE === 'announce' || MODE === 'founding' || MODE === 'realpay' || MODE === 'update' || MODE === 'renewal' || MODE === 'pages' || MODE === 'route';
 const DRY = NEEDS_SEND ? !args.includes('--send') : args.includes('--dry-run');
 
-if (!['welcome', 'digest', 'announce', 'founding', 'realpay', 'update', 'renewal'].includes(MODE)) { console.error('使い方: node mail-bot/send.mjs <welcome|digest|announce|founding|realpay|update|renewal> [--dry-run] [--send] [--only=ADDR] [--to=ADDR] [--lang=ja|en|both] [--backfill] [--since=ISO]'); process.exit(1); }
+if (!['welcome', 'digest', 'announce', 'founding', 'realpay', 'update', 'renewal', 'pages', 'route'].includes(MODE)) { console.error('使い方: node mail-bot/send.mjs <welcome|digest|announce|founding|realpay|update|renewal|pages|route> [--dry-run] [--send] [--only=ADDR] [--to=ADDR] [--lang=ja|en|both] [--airline=CODE] [--backfill] [--since=ISO]'); process.exit(1); }
 if (!SUPABASE_URL || !SERVICE_KEY) { console.error('❌ SUPABASE_URL / SUPABASE_SERVICE_KEY 未設定'); process.exit(1); }
 if (!DRY && !RESEND_KEY) { console.error('❌ RESEND_API_KEY 未設定（実送信には必須）'); process.exit(1); }
+
+/* ── 配信を断った人の名簿（全員宛てのお知らせからも外す） ──
+   email_opt_in を落とすだけでは、登録者全員に送るお知らせ
+   （founding / realpay / update / renewal）はまだ届く。そこまで止めるための名簿。
+   置き場は mail-bot/.mail-block（gitignore 済み・iCloud の Claude-Backup に退避）。
+   1行に1アドレス・# から後ろはコメント・大文字小文字は区別しない。
+   ★アドレスをこのスクリプトに書かない（公開リポジトリ＝pilot-value.com から誰でも読める）。
+   ★名簿のファイルが無いときは会員への実送信を止める。新しい Mac で戻し忘れると、
+     断った人に黙って届くため。空のファイルは「誰も断っていない」として通す。
+     自分宛ての下見（--to=）と送らない回は名簿が無くても動く。 */
+const BLOCK_FILE = join(__dir, '.mail-block');
+const BLOCKED = existsSync(BLOCK_FILE)
+  ? new Set(readFileSync(BLOCK_FILE, 'utf8').split('\n')
+      .map(s => s.replace(/#.*/, '').trim().toLowerCase()).filter(Boolean))
+  : null;
+const isBlocked = (email) => !!BLOCKED && BLOCKED.has(String(email ?? '').trim().toLowerCase());
+if (!DRY && !toArg && BLOCKED === null) {
+  console.error('❌ mail-bot/.mail-block（配信を断った人の名簿）がありません。');
+  console.error('   断った人に届いてしまうので止めます（送信は取り消せません）。');
+  console.error('   iCloud の Claude-Backup/latest/repo-lists/mail-bot.mail-block から戻してください。');
+  console.error('   断った人がいないなら、空のファイルを置けば通ります。');
+  process.exit(1);
+}
+if (toArg && isBlocked(toArg)) { console.error('❌ --to= の宛先は配信を断った人です。送りません。'); process.exit(1); }
 
 const esc = s => String(s ?? '').replace(/[&<>]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;' }[c]));
 const POS = { captain:'機長', fo:'副操縦士', cadet:'訓練生' };
@@ -89,13 +122,25 @@ async function sbSelect(table, select, filters = []) {
     headers: { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY }
   });
   if (!res.ok) throw new Error(`${table} REST ${res.status}: ${await res.text()}`);
-  return res.json();
+  const rows = await res.json();
+  if (table !== 'profiles') return rows;
+  /* 送り先は全部ここ（profiles）から選ぶので、断った人はここで1回外す。
+     email を取らずに読むと外せないので、その形は通さない。 */
+  if (!/\bemail\b/.test(select)) throw new Error('profiles を読むときは email を含める（配信を断った人を外せないため）');
+  const kept = rows.filter(r => !isBlocked(r.email));
+  /* 人数だけ出す。宛先は出さない。 */
+  if (kept.length < rows.length) console.log(`  （配信を断った ${rows.length - kept.length} 名を除外）`);
+  return kept;
 }
 
-/* opt = { text, headers, idempotencyKey, replyTo } — どれも任意。
+/* opt = { text, headers, idempotencyKey, replyTo, attachments } — どれも任意。
+   attachments は Resend の形そのまま（[{ filename, content(base64), content_type, content_id }]）。
+   content_id を付けた絵は本文の <img src="cid:…"> で出る（pages のお知らせが使う）。
    idempotencyKey は「同じ鍵の2回目は送らない」を Resend 側に約束させるもの。
    途中で落ちて流し直したとき、既に届いた人へ二通目が飛ばない。 */
 async function sendEmail(to, subject, html, opt = {}) {
+  /* 最後の関所。--only= や --to= で名指ししても、断った宛先には送らない。 */
+  if (isBlocked(to)) { console.log('  ⏭ 配信を断った宛先なので送りません'); return { blocked: true }; }
   if (DRY) return { dry: true };
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -109,6 +154,7 @@ async function sendEmail(to, subject, html, opt = {}) {
       ...(opt.text ? { text: opt.text } : {}),
       ...(opt.replyTo ? { reply_to: opt.replyTo } : {}),
       ...(opt.headers ? { headers: opt.headers } : {}),
+      ...(opt.attachments ? { attachments: opt.attachments } : {}),
     })
   });
   if (!res.ok) throw new Error(`Resend ${res.status}: ${await res.text()}`);
@@ -143,7 +189,7 @@ const stateFile = join(__dir, '.send-state.json');
 /* updateSent も別の鍵。ここを使い回すと、過去3通のどれかを受け取った人に
    今回のお知らせが1通も届かない（しかも黙って「送信済み」と数えられる）。 */
 /* renewalSent（トップページ刷新のお知らせ）も別の鍵。理由は上と同じ。 */
-let state = { lastWelcomeAt: null, lastDigestAt: null, announceSent: {}, foundingSent: {}, realPaySent: {}, updateSent: {}, renewalSent: {} };
+let state = { lastWelcomeAt: null, lastDigestAt: null, announceSent: {}, foundingSent: {}, realPaySent: {}, updateSent: {}, renewalSent: {}, pagesSent: {}, routeSent: {} };
 if (existsSync(stateFile)) { try { state = { ...state, ...JSON.parse(readFileSync(stateFile, 'utf8')) }; } catch {} }
 const saveState = () => writeFileSync(stateFile, JSON.stringify(state, null, 2));
 const nowIso = new Date().toISOString();
@@ -473,17 +519,24 @@ async function sbRpc(fn, body) {
    ★prof.company は自由入力なので、コードと直接くらべない
    （db/usage.mjs も同じ理由で pv_airline_resolve を通している）。 */
 async function airlineRegionMap(companies) {
+  const hits = await airlineCodeMap(companies);
+  return new Map([...hits].map(([c, h]) => [c, h.region]));
+}
+
+/* 自由入力の勤務先 → { code, region }。当たらなければ両方とも空文字。
+   pages のお知らせは、ここの code でその人の会社のページへリンクする。 */
+async function airlineCodeMap(companies) {
   const map = new Map();
   if (!companies.length) return map;
   const airs = await sbSelect('pv_airlines', 'code,region', []);
   const byCode = new Map((Array.isArray(airs) ? airs : []).map(a => [a.code, a.region]));
   for (const c of companies) {
-    let region = '';
+    let hit = { code: '', region: '' };
     try {
       const code = await sbRpc('pv_airline_resolve', { p_typed: c });
-      if (code && code !== 'other') region = byCode.get(code) || '';
-    } catch (e) { console.error(`  ⚠️ 勤務先の名寄せに失敗（日英ともに送ります）: ${e.message}`); }
-    map.set(c, region);
+      if (code && code !== 'other') hit = { code: String(code), region: byCode.get(code) || '' };
+    } catch (e) { console.error(`  ⚠️ 勤務先の名寄せに失敗（その人は一覧へ案内・日英ともに送ります）: ${e.message}`); }
+    map.set(c, hit);
   }
   return map;
 }
@@ -731,6 +784,243 @@ async function runRenewal() {
   if (DRY) console.log('          本文を絵で見る: node shot-remind.mjs --renewal');
 }
 
+/* ════════════════════ pages ════════════════════
+   各航空会社のページと Vote が新しくなったお知らせ（2026-10-30）。文面は announce-mail.mjs の buildPages()。
+   renewal と同じく ★email_opt_in で絞らず登録者全員に送る（文面は誘いを1文も含まない）。
+   renewal と違うのは2つ ──
+     ① 勤務先がある人は全員、勤務先を会社に当て、その会社のページへリンクする（当たらなければ一覧へ）。
+     ② そのページの絵をメールに埋め込む（mail-bot/.page-shots/。gen-mail-airline-shots.mjs が撮る）。
+        ★使う絵が1枚でも手元に無ければ、1通も送らずに止める（絵の欠けたメールを出さない）。 */
+async function runPages() {
+  const { buildPages, pagesAirlineOf, langModeOf } = await import('./announce-mail.mjs');
+  /* ★Resend に渡す鍵の目印。次に別のお知らせを送るときは必ず変える。 */
+  const TAG = '2026-10-pages';
+  const SHOTS = join(__dir, '.page-shots');
+  const cache = new Map();
+  /* 埋め込む絵を Resend の形にする。手元に無ければ null。 */
+  const attachmentsOf = (b) => b.images.map((im) => {
+    const f = join(SHOTS, im.file);
+    if (!existsSync(f)) return null;
+    if (!cache.has(f)) cache.set(f, readFileSync(f).toString('base64'));
+    return { filename: im.file, content: cache.get(f), content_type: 'image/jpeg', content_id: im.cid };
+  });
+  const missingOf = (b) => b.images.filter((im) => !existsSync(join(SHOTS, im.file))).map((im) => im.file);
+  const shotHint = (files) => `node gen-mail-airline-shots.mjs --only=${[...new Set(files.map((f) => f.replace(/-(ja|en)\.jpg$/, '')))].join(',')}`;
+
+  /* ★自分の受信箱で現物を見る逃げ道。会員には1通も出さない。--airline=jal で会社を選ぶ（無ければ一覧の版）。 */
+  if (toArg) {
+    const me = { id: 'self-preview', email: toArg, name: null, country: null, unsub_token: 'preview-token', airline_code: airlineArg };
+    if (airlineArg && !pagesAirlineOf(me)) { console.error(`❌ 会社ページの無いコードです: ${airlineArg}`); process.exit(1); }
+    const b = buildPages(me, { siteUrl: SITE_URL, supabaseUrl: SUPABASE_URL, adminEmail: ADMIN_EMAIL, lang: langArg });
+    console.log(`[pages] 自分宛のプレビュー（会員には送りません）… ${b.lang}`);
+    console.log(`        ${b.subject}`);
+    console.log(`        行き先 ${b.pageUrl}`);
+    const miss = missingOf(b);
+    if (miss.length) { console.error(`❌ 絵がありません: ${miss.join(', ')} ── 先に ${shotHint(miss)}`); process.exit(1); }
+    if (DRY) return console.log('        ※ 送りません。実際に送るには --send を付けてください。');
+    await sendEmail(toArg, '[preview] ' + b.subject, b.html, { text: b.text, replyTo: ADMIN_EMAIL, attachments: attachmentsOf(b) });
+    return console.log('  ✓ 送りました');
+  }
+
+  if (TEST_PATTERNS.length === 0) {
+    console.error('❌ PV_TEST_EMAILS が mail-bot/.env にありません。');
+    console.error('   動作確認用のアカウントを外せないので止めます（送信は取り消せません）。');
+    process.exit(1);
+  }
+
+  /* ★email_opt_in を条件に入れない。全員が対象。 */
+  const people = await sbSelect('profiles', 'id,name,email,country,company,unsub_token',
+    [['order', 'created_at.asc']]);
+
+  const sentBefore = state.pagesSent || {};
+  let targets = people.filter(m => m.email && String(m.email).includes('@'));
+  const total = targets.length;
+  const testers = targets.filter(m => isTestEmail(m.email)).length;
+  targets = targets.filter(m => !isTestEmail(m.email));
+  const already = targets.filter(m => sentBefore[m.id]).length;
+  targets = targets.filter(m => !sentBefore[m.id]);
+  if (onlyArg) targets = targets.filter(m => String(m.email).toLowerCase() === onlyArg.toLowerCase());
+
+  /* ★その人の会社 ＝ 給与・口コミを出した会社（2026-10-31 オーナー「口コミを出した会社、自分の年収を出した会社が自分の会社」）。
+     決めるのはサーバの pv_ask_own の1か所（戻ってきた会員に聞く板と同じ：最新の給与 → 無ければ最新の口コミ）。
+     給与も口コミも user_id を持たないので、突き合わせの式をここへ写さない。
+     出していない人・出した会社にページが無い人だけ、登録の勤務先の字で当てる。
+     言語の判定に地域を使うのは renewal と同じく「氏名も居住国も手がかりが無い人」だけ。 */
+  const companies = [...new Set(targets.map(m => String(m.company ?? '').trim()).filter(Boolean))];
+  const hits = await airlineCodeMap(companies);
+  const regionOf = new Map((await sbSelect('pv_airlines', 'code,region', [])).map(a => [a.code, a.region || '']));
+  for (const m of targets) {
+    let own = '';
+    try { own = String((await sbRpc('pv_ask_own', { p_uid: m.id })) || ''); }
+    catch (e) {
+      /* 黙って登録の勤務先だけに落とすと、給与・口コミを出した人まで一覧へ回る。止める。 */
+      console.error(`❌ 給与・口コミを出した会社を引けません（1通も送りません）: ${e.message}`);
+      process.exit(1);
+    }
+    const prof = (hits.get(String(m.company ?? '').trim()) || {}).code || '';
+    const code = [own, prof].find(c => c && pagesAirlineOf({ airline_code: c })) || own || prof || '';
+    m.airline_code = code;
+    m.airline_src = !code ? '' : code === own ? 'post' : 'profile';
+    m.airline_region = langModeOf(m) === 'both' ? (regionOf.get(code) || '') : '';
+  }
+
+  const mails = targets.map(m => ({ m, b: buildPages(m, { siteUrl: SITE_URL, supabaseUrl: SUPABASE_URL, adminEmail: ADMIN_EMAIL, lang: langArg }) }));
+  const toPage = mails.filter(x => x.b.airline).length;
+  console.log(`[pages] 登録 ${total} 名／動作確認 ${testers} 名を除外／送信済み ${already} 名／今回の対象 ${targets.length} 名`
+    + `（会社のページへ ${toPage} 名・一覧へ ${targets.length - toPage} 名）`
+    + (onlyArg ? `（--only=${onlyArg}）` : ''));
+  /* 会社の決め手と、一覧へ回る理由を人数だけで出す（勤務先の字も会社名も出さない）。 */
+  const src = { post: 0, profile: 0 };
+  const why = { empty: 0, unknown: 0, ops: 0 };
+  for (const x of mails) {
+    if (x.b.airline) { src[x.m.airline_src] = (src[x.m.airline_src] || 0) + 1; continue; }
+    if (x.m.airline_code) why.ops++;
+    else if (!String(x.m.company ?? '').trim()) why.empty++;
+    else why.unknown++;
+  }
+  console.log(`        会社の決め手：給与・口コミを出した会社 ${src.post} 名・登録の勤務先 ${src.profile} 名`);
+  console.log(`        一覧へ回る内訳：給与・口コミなしで勤務先も空 ${why.empty} 名・勤務先の字が会社に当たらない ${why.unknown} 名・会社ページの無い運航会社 ${why.ops} 名`);
+
+  /* ★絵が1枚でも欠けていたら、1通も送らない。 */
+  const miss = [...new Set(mails.flatMap(x => missingOf(x.b)))];
+  if (miss.length) {
+    console.error(`❌ 絵が ${miss.length} 枚ありません。1通も送らずに止めます。`);
+    console.error(`   ${shotHint(miss)}`);
+    process.exit(1);
+  }
+  if (DRY) console.log('        ※ 送りません。実際に送るには --send を付けてください。');
+  if (targets.length === 0) return;
+
+  let sent = 0;
+  const tally = { ja: 0, en: 0, both: 0 };
+  for (const { m, b } of mails) {
+    tally[b.lang] = (tally[b.lang] || 0) + 1;
+    const headers = {
+      'List-Unsubscribe': (b.oneClickUrl ? `<${b.oneClickUrl}>, ` : '') + `<${b.unsubUrl}>, <mailto:${ADMIN_EMAIL}?subject=unsubscribe>`,
+      ...(b.oneClickUrl ? { 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } : {}),
+    };
+    try {
+      await sendEmail(m.email, b.subject, b.html, {
+        text: b.text, headers, replyTo: ADMIN_EMAIL, attachments: attachmentsOf(b),
+        idempotencyKey: `pv-${TAG}-${m.id}`,
+      });
+      sent++;
+      if (!DRY) { (state.pagesSent ||= {})[m.id] = nowIso; saveState(); }
+      /* 宛先も会社名も出さない。ここの出力を貼って渡すと会員の情報が漏れる。 */
+      const L = { ja: '日本語', en: '英語', both: '日英ともに' }[b.lang] || b.lang;
+      console.log(`${DRY ? '  [dry]' : '  ✓'} ${L.padEnd(5, '　')} … ${b.airline ? '会社のページ' : '一覧'}`);
+      if (!DRY) await new Promise(r => setTimeout(r, 320));
+    } catch (e) { console.error(`  ❌ 1名ぶん失敗: ${e.message}`); }
+  }
+  console.log(`[pages] ${DRY ? 'プレビュー' : '送信'} ${sent}/${targets.length}`
+    + `（日本語 ${tally.ja} / 英語 ${tally.en} / 日英ともに ${tally.both}）`);
+  if (DRY) console.log('        本文を絵で見る: node shot-remind.mjs --pages');
+}
+
+/* ════════════════════════════════════════════════════════════════
+   route … MY PAY の新しい機能のお知らせ（2026-11-13。文面は announce-mail.mjs の buildRoute）
+   renewal と同じく ★email_opt_in で絞らず登録者全員に送る（文面は誘いを1文も含まない）。
+   pages と違い、会員ごとに変わる所が無い ＝ 本番の DB を1人ずつ引かない（読むのは profiles の1回と、言語の判定の地域だけ）。
+   絵は地球儀の見本の1枚（mail-bot/.page-shots/route-ja.jpg・route-en.jpg）。
+     撮り方：手元のポートで配って `ACT=tab2 node shot-glass.mjs globe ja light`（en も）→ ROUTE の板だけ切り出して JPEG に。
+   ════════════════════════════════════════════════════════════════ */
+async function runRoute() {
+  const { buildRoute, langModeOf } = await import('./announce-mail.mjs');
+  /* ★Resend に渡す鍵の目印。次に別のお知らせを送るときは必ず変える。 */
+  const TAG = '2026-11-route';
+  const SHOTS = join(__dir, '.page-shots');
+  const cache = new Map();
+  const attachmentsOf = (b) => b.images.map((im) => {
+    const f = join(SHOTS, im.file);
+    if (!cache.has(f)) cache.set(f, readFileSync(f).toString('base64'));
+    return { filename: im.file, content: cache.get(f), content_type: 'image/jpeg', content_id: im.cid };
+  });
+  const missingOf = (b) => b.images.filter((im) => !existsSync(join(SHOTS, im.file))).map((im) => im.file);
+
+  /* ★自分の受信箱で現物を見る逃げ道。会員には1通も出さない。 */
+  if (toArg) {
+    const me = { id: 'self-preview', email: toArg, name: null, country: null, unsub_token: 'preview-token' };
+    const b = buildRoute(me, { siteUrl: SITE_URL, supabaseUrl: SUPABASE_URL, adminEmail: ADMIN_EMAIL, lang: langArg });
+    console.log(`[route] 自分宛のプレビュー（会員には送りません）… ${b.lang}`);
+    console.log(`        ${b.subject}`);
+    console.log(`        行き先 ${b.pageUrl}`);
+    const miss = missingOf(b);
+    if (miss.length) { console.error(`❌ 絵がありません: ${miss.join(', ')}（mail-bot/.page-shots/）`); process.exit(1); }
+    if (DRY) return console.log('        ※ 送りません。実際に送るには --send を付けてください。');
+    await sendEmail(toArg, '[preview] ' + b.subject, b.html, { text: b.text, replyTo: ADMIN_EMAIL, attachments: attachmentsOf(b) });
+    return console.log('  ✓ 送りました');
+  }
+
+  if (TEST_PATTERNS.length === 0) {
+    console.error('❌ PV_TEST_EMAILS が mail-bot/.env にありません。');
+    console.error('   動作確認用のアカウントを外せないので止めます（送信は取り消せません）。');
+    process.exit(1);
+  }
+
+  /* ★email_opt_in を条件に入れない。全員が対象。 */
+  const people = await sbSelect('profiles', 'id,name,email,country,company,unsub_token,email_opt_in,email_opt_in_at',
+    [['order', 'created_at.asc']]);
+
+  const sentBefore = state.routeSent || {};
+  let targets = people.filter(m => m.email && String(m.email).includes('@'));
+  const total = targets.length;
+  const testers = targets.filter(m => isTestEmail(m.email)).length;
+  targets = targets.filter(m => !isTestEmail(m.email));
+  /* ★メールの受け取りを一度オンにしてから自分で止めた人には送らない（2026-11-13）。
+     「配信を停止する」を押した・設定で切った、のどちらも受け取りの旗が落ち、オンにした日時だけが残る。
+     一度もオンにしていない人（日時が空）は今までどおり対象 ── サービスからのお知らせは登録者全員に送る。 */
+  const stoppedOf = (m) => m.email_opt_in === false && !!m.email_opt_in_at;
+  const stopped = targets.filter(stoppedOf).length;
+  targets = targets.filter(m => !stoppedOf(m));
+  const already = targets.filter(m => sentBefore[m.id]).length;
+  targets = targets.filter(m => !sentBefore[m.id]);
+  if (onlyArg) targets = targets.filter(m => String(m.email).toLowerCase() === onlyArg.toLowerCase());
+
+  /* 勤務先を見るのは「氏名も居住国も手がかりが無い人」だけ（renewal と同じ）。 */
+  const needRegion = [...new Set(targets
+    .filter(m => langModeOf(m) === 'both' && String(m.company ?? '').trim())
+    .map(m => String(m.company).trim()))];
+  const regions = await airlineRegionMap(needRegion);
+  for (const m of targets) m.airline_region = regions.get(String(m.company ?? '').trim()) || '';
+
+  const mails = targets.map(m => ({ m, b: buildRoute(m, { siteUrl: SITE_URL, supabaseUrl: SUPABASE_URL, adminEmail: ADMIN_EMAIL, lang: langArg }) }));
+  const pre = { ja: 0, en: 0, both: 0 };
+  for (const x of mails) pre[x.b.lang] = (pre[x.b.lang] || 0) + 1;
+  console.log(`[route] 登録 ${total} 名／動作確認 ${testers} 名を除外／受け取りを止めた ${stopped} 名を除外／送信済み ${already} 名／今回の対象 ${targets.length} 名`
+    + `（日本語 ${pre.ja} / 英語 ${pre.en} / 日英ともに ${pre.both}）`
+    + (onlyArg ? `（--only=${onlyArg}）` : ''));
+
+  /* ★絵が1枚でも欠けていたら、1通も送らない。 */
+  const miss = [...new Set(mails.flatMap(x => missingOf(x.b)))];
+  if (miss.length) {
+    console.error(`❌ 絵がありません: ${miss.join(', ')}（mail-bot/.page-shots/）。1通も送らずに止めます。`);
+    process.exit(1);
+  }
+  if (DRY) console.log('        ※ 送りません。実際に送るには --send を付けてください。');
+  if (targets.length === 0) return;
+
+  let sent = 0;
+  for (const { m, b } of mails) {
+    const headers = {
+      'List-Unsubscribe': (b.oneClickUrl ? `<${b.oneClickUrl}>, ` : '') + `<${b.unsubUrl}>, <mailto:${ADMIN_EMAIL}?subject=unsubscribe>`,
+      ...(b.oneClickUrl ? { 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } : {}),
+    };
+    try {
+      await sendEmail(m.email, b.subject, b.html, {
+        text: b.text, headers, replyTo: ADMIN_EMAIL, attachments: attachmentsOf(b),
+        idempotencyKey: `pv-${TAG}-${m.id}`,
+      });
+      sent++;
+      if (!DRY) { (state.routeSent ||= {})[m.id] = nowIso; saveState(); }
+      /* 宛先は出さない。ここの出力を貼って渡すと会員のメールが漏れる。 */
+      const L = { ja: '日本語', en: '英語', both: '日英ともに' }[b.lang] || b.lang;
+      if (!DRY) { console.log(`  ✓ ${L}`); await new Promise(r => setTimeout(r, 320)); }
+    } catch (e) { console.error(`  ❌ 1名ぶん失敗: ${e.message}`); }
+  }
+  console.log(`[route] ${DRY ? 'プレビュー' : '送信'} ${sent}/${targets.length}`);
+  if (DRY) console.log('        本文を絵で見る: node shot-remind.mjs --route');
+}
+
 (async () => {
   try {
     if (MODE === 'welcome') await runWelcome();
@@ -739,6 +1029,8 @@ async function runRenewal() {
     else if (MODE === 'realpay') await runRealPay();
     else if (MODE === 'update') await runUpdate();
     else if (MODE === 'renewal') await runRenewal();
+    else if (MODE === 'pages') await runPages();
+    else if (MODE === 'route') await runRoute();
     else await runDigest();
-  } catch (e) { console.error('❌', e.message); process.exit(1); }
+  } catch (e) { console.error('❌', e.message, e.cause ? `（${e.cause.code || e.cause.message}）` : ''); process.exit(1); }
 })();
