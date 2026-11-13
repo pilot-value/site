@@ -32,7 +32,7 @@
       p3: '直近3か月', p12: '直近1年', pAll: '直近2年', ymT: '{y}年{n}月',
       prevD: '前の日', nextD: '次の日', prevM: '前の月', nextM: '次の月',
       sumT: 'FLIGHT EARNINGS', est: '目安',
-      ringA: '{p}の稼ぎの配分：固定給 {f}・変動給 {v}', ringP: '{p}の全便', thisDay: 'この日', shareL: 'この日の稼ぎ {t} のうち', shareA: 'この日の稼ぎ {t} のうち、この便の分 {p}',
+      ringA: '{p}の稼ぎのうち：{s}', restF: 'ほかの{n}便', restR: 'ほかの{n}ルート', ringP: '{p}の全便', thisDay: 'この日', shareL: 'この日の稼ぎ {t} のうち', shareA: 'この日の稼ぎ {t} のうち、この便の分 {p}',
       legHub: '拠点', legDest: '行き先', legDh: 'DH',
       hint: 'ドラッグで回す・ルートを押す', zin: '拡大', zout: '縮小',
       op: '乗務', dh: 'DH', unk: '区分確認中',
@@ -62,7 +62,7 @@
       p3: 'Last 3 months', p12: 'Last 12 months', pAll: 'Last 24 months', ymT: '{M} {y}',
       prevD: 'Previous day', nextD: 'Next day', prevM: 'Previous month', nextM: 'Next month',
       sumT: 'FLIGHT EARNINGS', est: 'est.',
-      ringA: 'Earnings split ({p}): fixed pay {f}, variable pay {v}', ringP: '{p}, all flights', thisDay: 'This day', shareL: 'Share of the day’s {t}', shareA: 'This flight’s share of the day’s earnings {t}: {p}',
+      ringA: 'Share of earnings ({p}): {s}', restF: '{n} other flights', restR: '{n} other routes', ringP: '{p}, all flights', thisDay: 'This day', shareL: 'Share of the day’s {t}', shareA: 'This flight’s share of the day’s earnings {t}: {p}',
       legHub: 'Base', legDest: 'Destination', legDh: 'Deadhead',
       hint: 'Drag to rotate, tap a route', zin: 'Zoom in', zout: 'Zoom out',
       op: 'Operating', dh: 'Deadhead', unk: 'Unclassified',
@@ -91,7 +91,7 @@
       p3: 'Últimos 3 meses', p12: 'Últimos 12 meses', pAll: 'Últimos 24 meses', ymT: '{M} {y}',
       prevD: 'Día anterior', nextD: 'Día siguiente', prevM: 'Mes anterior', nextM: 'Mes siguiente',
       sumT: 'FLIGHT EARNINGS', est: 'estimado',
-      ringA: 'Reparto de lo ganado ({p}): remuneración fija {f}, remuneración variable {v}', ringP: '{p}, todos los vuelos', thisDay: 'Este día', shareL: 'Parte de los {t} de ese día', shareA: 'Parte de este vuelo en lo ganado ese día {t}: {p}',
+      ringA: 'Parte de lo ganado ({p}): {s}', restF: 'Otros {n} vuelos', restR: 'Otras {n} rutas', ringP: '{p}, todos los vuelos', thisDay: 'Este día', shareL: 'Parte de los {t} de ese día', shareA: 'Parte de este vuelo en lo ganado ese día {t}: {p}',
       legHub: 'Base', legDest: 'Destino', legDh: 'Deadhead',
       hint: 'Arrastra para girar y toca una ruta', zin: 'Acercar', zout: 'Alejar',
       op: 'Operando', dh: 'Deadhead', unk: 'Sin clasificar',
@@ -253,17 +253,12 @@
       port[a] = (port[a] || 0) + 1; port[b] = (port[b] || 0) + 1;
     });
     var hub = Object.keys(port).sort(function (p, q) { return port[q] - port[p] || (p < q ? -1 : 1); })[0] || null;
-    /* ★2026-11-13 輪は稼ぎの配分＝固定給と変動給の2つだけ（オーナー「まだブロック率のままやん」「基本給の割合とか配分グラフに入れようや。色分けしてどういう計算なのか」
-         「固定給と変動給でわけるだけでいいや。細かいと突っ込まれそうだから」）。
-       便の額は flightPay が2つに分けて返す（fixed＝時給 × この便の勤務時間＝固定給／flight＝月の変動給をブロックタイムで按分＝変動給。日当も変動給に入る）。
-       ここでは足すだけ・数え直さない。⚠️ ブロック率（勤務時間のうちブロックタイム）を輪に戻さない。地球儀で勤務時間を数えない（数えるのは flightPay の1か所）。
-       ⚠️ 手当ごとに細かく分けない（同じ日の便はどれも同じ割合になるうえ、配り方の規則を突っ込まれる） */
-    var total = 0, fx = 0, fv = 0, cur = null, opAmt = 0, opMin = 0;
-    legs.forEach(function (l) { if (l.amount == null) return; if (cur == null) cur = l.currency; if (cur === l.currency) { total += l.amount; fx += l.fixed || 0; fv += l.flight || 0;
+    /* 便の額は flightPay が出す（ここでは足すだけ・数え直さない）。⚠️ 地球儀で勤務時間を数えない（数えるのは flightPay の1か所）。
+       ★2026-11-13 ブロック1時間あたり＝乗務の便の稼ぎ ÷ そのブロックタイム（便乗は分子にも分母にも入れない）。オーナー「計算方法わざわざ下に書く必要ある？もっと書いた方がためになること」 */
+    var total = 0, cur = null, opAmt = 0, opMin = 0;
+    legs.forEach(function (l) { if (l.amount == null) return; if (cur == null) cur = l.currency; if (cur === l.currency) { total += l.amount;
       if (l.kind !== 'deadhead' && l.blockMin > 0) { opAmt += l.amount; opMin += l.blockMin; } } });
-    /* ★2026-11-13 ブロック1時間あたり＝乗務の便の稼ぎ ÷ そのブロックタイム（便乗は分子にも分母にも入れない）。オーナー「計算方法わざわざ下に書く必要ある？もっと書いた方がためになること」 */
-    var top = order.filter(function (r) { return r.cur === cur && r.sum > 0; }).sort(function (p, q) { return q.sum - p.sum; }).slice(0, 3);
-    return { legs: legs, routes: order, hub: hub, total: cur == null ? null : total, fx: fx, fv: fv, cur: cur, top: top, perBh: opMin > 0 ? opAmt * 60 / opMin : null };
+    return { legs: legs, routes: order, hub: hub, total: cur == null ? null : total, cur: cur, perBh: opMin > 0 ? opAmt * 60 / opMin : null };
   }
 
   /* ── 描く（字）──────────────────────────────────────────── */
@@ -387,16 +382,41 @@
     G.setData(V, drawRoute, leg);
   }
   function routeKey(l) { var k = l.ga.iata + '>' + l.gb.iata; return dayMode() ? k : pairOf(k); }
-  /* 固定給と変動給の2行：{ k, amt, p(0.1%単位), c, name, how } ／色は REAL PAY と同じ（pay-viz.js の SEG の基本給・乗務変動手当） */
+  /* 便のカードの内訳（固定給と変動給の2行）の色＝ REAL PAY と同じ（pay-viz.js の SEG の基本給・乗務変動手当） */
   var MIX_C = { fixed: '#34d399', var: '#f5c842' };
-  function mixRows(fx, fv, how) {
-    var rows = [{ k: 'fixed', amt: Math.max(0, Math.round(fx || 0)), name: T.mixF, how: how.f }, { k: 'var', amt: Math.max(0, Math.round(fv || 0)), name: T.mixV, how: how.v }];
-    var tot = rows[0].amt + rows[1].amt;
+  /* ★2026-11-13 稼ぎのカードの輪は「この期間の稼ぎのうち、どこで稼いだか」（オーナー「変動給のパーセンテージ出してもずっと変わらない」
+       →「日なら1便がその日の稼いだお金の何%なのか円グラフで」「月・年はルートごとに何パーなのか」）。
+       日＝便ごと（飛んだ順）・それより長い期間＝ルートごと（多い順）。額は flightPay の答えを足すだけ。通貨の違う便は数えない。
+       ⚠️ 固定給と変動給の割合を輪に戻さない（日ごとにほとんど変わらず、見る意味が無い）。ブロック率も戻さない。
+       色は REAL PAY の色から5つ。6つ目からは「ほかの◯便／◯ルート」として灰色に1つでまとめる。 */
+  var PIE_C = ['#34d399', '#f5c842', '#5fb0ff', '#e8604c', '#a78bfa'], PIE_REST = 'rgba(255,255,255,.42)';
+  function pieRows(V) {
+    if (V.total == null || !(V.total > 0)) return [];
+    var day = dayMode(), it;
+    if (day) {
+      it = V.legs.filter(function (l) { return l.amount > 0 && l.currency === V.cur; })
+        .sort(function (p, q) { return (p.seq || 0) - (q.seq || 0); })
+        .map(function (l) { return { leg: l.id, k: routeKey(l), name: l.ga.iata + ' → ' + l.gb.iata, out: l.out || '', amt: l.amount }; });
+      /* 時刻は、同じ日に同じ向きを2回飛んだときだけ添える（見分けるため。ふだんは出さない＝スマホで字が切れない） */
+      it.forEach(function (r) { r.sub = it.filter(function (x) { return x.name === r.name; }).length > 1 ? r.out : ''; });
+    } else {
+      it = V.routes.filter(function (r) { return r.cur === V.cur && r.sum > 0; })
+        .sort(function (p, q) { return q.sum - p.sum; })
+        .map(function (r) { return { k: r.k, name: routeLabel(r), amt: r.sum }; });
+    }
+    if (it.length > PIE_C.length) {
+      var rest = it.slice(PIE_C.length - 1);
+      it = it.slice(0, PIE_C.length - 1);
+      it.push({ rest: true, name: fill(day ? T.restF : T.restR, { n: rest.length }), amt: rest.reduce(function (a, r) { return a + r.amt; }, 0) });
+    }
+    var tot = it.reduce(function (a, r) { return a + r.amt; }, 0);
     if (!(tot > 0)) return [];
-    var p0 = Math.round(rows[0].amt * 1000 / tot);
-    rows[0].p = p0 / 10; rows[1].p = (1000 - p0) / 10;
-    rows.forEach(function (r) { r.c = MIX_C[r.k]; });
-    return rows;
+    /* ％は 0.1 刻み。足すとちょうど 100.0 になるように、端数の大きい順に 0.1 を配る */
+    var used = 0;
+    it.forEach(function (r, i) { var x = r.amt * 1000 / tot; r.t = Math.floor(x); r.f = x - r.t; used += r.t; r.c = r.rest ? PIE_REST : PIE_C[i]; });
+    it.slice().sort(function (p, q) { return q.f - p.f; }).slice(0, 1000 - used).forEach(function (r) { r.t++; });
+    it.forEach(function (r) { r.p = r.t / 10; });
+    return it;
   }
   function pct(p) { return p.toFixed(1) + '%'; }
   function ringSVG(rows) {
@@ -420,22 +440,25 @@
     }).join('') + '</ul>';
   }
   function sumHTML(V) {
-    var rows = V.total == null ? [] : mixRows(V.fx, V.fv, { f: [], v: [] });
-    var main = rows.length ? (rows[1].amt > 0 ? rows[1] : rows[0]) : null;
-    var max = V.top.length ? V.top[0].sum : 0;
+    var rows = pieRows(V), day = dayMode();
+    var big = rows.filter(function (r) { return !r.rest; }).sort(function (p, q) { return q.amt - p.amt; })[0] || null;
+    var said = rows.map(function (r) { return r.name + ' ' + pct(r.p); }).join(T.gapJ);
     return '<div class="gl-sum-h"><span class="gl-ov-t">' + esc(T.sumT) + '<small>' + esc(T.est) + '</small></span>' +
         '<span class="gl-chip">' + esc(V.total == null ? '—' : money(V.total, V.cur)) + '</span></div>' +
       '<div class="gl-sum-b">' +
-        '<div class="gl-ringw"><div class="gl-ring" role="img" aria-label="' + esc(fill(T.ringA, { p: ringP(), f: rows.length ? pct(rows[0].p) : '—', v: rows.length ? pct(rows[1].p) : '—' })) + '">' +
+        '<div class="gl-ringw"><div class="gl-ring" role="img" aria-label="' + esc(fill(T.ringA, { p: ringP(), s: said || '—' })) + '">' +
           ringSVG(rows) +
-          '<span class="gl-ring-n">' + (main ? pct(main.p) + '<small style="color:' + main.c + '">' + esc(main.name) + '</small>' : '—') + '</span></div>' +
+          '<span class="gl-ring-n">' + (big ? pct(big.p) + '<small style="color:' + big.c + '">' + esc(big.name) + '</small>' : '—') + '</span></div>' +
           '<span class="gl-ring-p">' + esc(ringP()) + '</span></div>' +
-        '<div class="gl-bars">' + V.top.map(function (r, i) {
-          return '<button type="button" class="gl-bar' + (r.k === S.drawRoute ? ' on' : '') + '" data-route="' + esc(r.k) + '">' +
-            '<span class="gl-bar-l">' + esc(routeLabel(r)) + '</span><span class="gl-bar-v">' + esc(money(r.sum, r.cur)) + '</span>' +
-            '<i class="gl-bar-t"><i class="gl-bar-f" style="--i:' + i + ';transform:scaleX(' + (max > 0 ? (r.sum / max).toFixed(3) : 0) + ')"></i></i></button>';
+        /* 輪の横に、色・便（ルート）・％・額。押すと日はその便・それより長い期間はそのルートを選ぶ（前の棒と同じ） */
+        '<div class="gl-pie">' + rows.map(function (r) {
+          var inner = '<i style="background:' + r.c + '"></i><span class="gl-pr-l">' + esc(r.name) + (r.sub ? '<small>' + esc(r.sub) + '</small>' : '') + '</span>' +
+            '<em>' + esc(pct(r.p)) + '</em><b>' + esc(money(Math.round(r.amt), V.cur)) + '</b>';
+          if (r.rest) return '<div class="gl-pr is-rest">' + inner + '</div>';
+          var on = day ? r.leg === S.leg : r.k === S.drawRoute;
+          return '<button type="button" class="gl-pr' + (on ? ' on' : '') + '"' + (day ? ' data-leg="' + esc(r.leg) + '"' : ' data-route="' + esc(r.k) + '"') + '>' + inner + '</button>';
         }).join('') + '</div>' +
-      '</div>' + mixList(rows.filter(function (r) { return r.amt > 0; }), V.cur, true) +
+      '</div>' +
       (V.perBh != null ? '<div class="gl-bh"><span>' + esc(T.bhL) + '</span><b>' + esc(money(Math.round(V.perBh), V.cur)) + '</b></div>' : '');
   }
   function fltHTML(l) {

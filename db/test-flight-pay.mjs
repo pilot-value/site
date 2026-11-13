@@ -288,13 +288,18 @@ function suite(R) {
     const g = fs.existsSync(gp) ? fs.readFileSync(gp, 'utf8') : '';
     const T = (g.match(/var T = \{[\s\S]*?\n  \};/) || [''])[0];
     ok(T.length > 0 && !/単価|料率|tarifa|rate per/i.test(T), '地球儀の字に「単価」「料率」が無い');
-    /* ★2026-11-13 地球儀は勤務時間を数えない。輪はお金の配分＝固定給（便の fixed）と変動給（便の flight）を足すだけ。
+    /* ★2026-11-13 地球儀は勤務時間を数えない（数えるのは flightPay の1か所）。
+         輪は「この期間の稼ぎのうち、どこで稼いだか」＝ 日は便ごと・それより長い期間はルートごと（pieRows）。
+         オーナー「変動給のパーセンテージ出してもずっと変わらない」＝ 固定給と変動給の割合を輪に戻さない。
          オーナー「まだブロック率のままやん」＝ ブロック率（勤務時間のうちブロックタイム）を輪にも便のカードにも戻さない。
-         オーナー「固定給と変動給でわけるだけでいいや。細かいと突っ込まれそうだから」＝ 手当ごとに分けない */
+         オーナー「固定給と変動給でわけるだけでいいや。細かいと突っ込まれそうだから」＝ 便のカードの内訳は手当ごとに分けない */
     const oldCalc = g.split('\n').filter((ln) => /x\.isDuty|x\.dutyMin|blockKnown|dutyByDate/.test(ln));
-    ok(oldCalc.length === 0 && !/dayRatio|ブロックタイムの割合|ringL/.test(g) && /fx \+= l\.fixed/.test(g) && /fv \+= l\.flight/.test(g),
-      '★地球儀は勤務時間を数えない・輪は稼ぎの配分（固定給／変動給）でブロック率を出さない');
-    ok(!/segName|パーディアム|perdiem/.test(g), '★地球儀は固定給と変動給の2つだけ（手当ごと・日当を分けて書かない）');
+    const sum = (g.match(/function sumHTML[\s\S]*?\n  \}\n/) || [''])[0];
+    ok(oldCalc.length === 0 && !/dayRatio|ブロックタイムの割合|ringL/.test(g),
+      '★地球儀は勤務時間を数えない・ブロック率を出さない');
+    ok(/pieRows\(V\)/.test(sum) && !/mixRows|V\.fx|V\.fv|fixed|flight/.test(sum) && /function pieRows/.test(g) && /day \? T\.restF : T\.restR/.test(g),
+      '★輪は便ごと（日）・ルートごと（それより長い期間）の割合で、固定給と変動給の割合を出さない');
+    ok(!/segName|パーディアム|perdiem/.test(g), '★便のカードの内訳は固定給と変動給の2つだけ（手当ごと・日当を分けて書かない）');
   }
   return res;
 }

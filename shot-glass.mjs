@@ -807,8 +807,8 @@ if (process.env.REC) {
     await sleep(1200);
     for (let i = 0; i < 4; i++) { await tap('.gl-zb', 1); await sleep(450); }
     await sleep(600);
-    await tap('.gl-bar', 0); await sleep(2600);
-    await tap('.gl-bar', 2); await sleep(2600);
+    await tap('.gl-pr', 0); await sleep(2600);
+    await tap('.gl-pr', 2); await sleep(2600);
     await tap('.gl-zb', 1); await sleep(900);
     if (vw < 600) { await glide(await page.evaluate(() => { const e = document.querySelector('.gl-list'); return e ? scrollY + e.getBoundingClientRect().top - 80 : 0; }), 1400); await sleep(800); }
     else { await glide(y + 380, 1200); await sleep(600); }
