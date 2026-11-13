@@ -63,7 +63,7 @@ import { SALARY } from './salary-data.mjs';
 import { BASIS, figures } from './salary-basis.mjs';
 import { LEAD, SAMPLES, WIDE, SWITCH, SHOWN, why, research, researchFacts, dateOf, EN_SWITCH } from './airline-rollout.mjs';
 import { GLANCE, viewOf, checkViewEn } from './pv-airline-view.mjs';
-import { build, pageOf, TABBED, NO_FAQ, LEGACY, LEGACY_REST, LEGACY_EN, legacyPlan, legacyAct, LOGOS, logoHtml, WORDS, checkWords, CMP_EN } from './gen-airline-glance.mjs';
+import { build, pageOf, TABBED, NO_FAQ, LEGACY, LEGACY_REST, LEGACY_EN, legacyPlan, legacyAct, LOGOS, logoHtml, WORDS, checkWords, CMP_EN, STAY_OPEN } from './gen-airline-glance.mjs';
 import { PHOTOS as PLACE_PHOTOS } from './place-photos.mjs';
 import { PHOTOS as AIRLINE_PHOTOS } from './airline-photos.mjs';
 import { LINES, CITY, NET, AGREEMENTS, RANK_JA, rankOf, say, check as displayCheck, agreementCheck, jpPlaceEn, ITEM, fleetJa } from './airline-display.mjs';
@@ -629,7 +629,7 @@ try {
     ok(!crewNotes.length, `D ${s}: 乗員全体の平均が在る会社の、年収の根拠の注を出さない`, crewNotes.join(' ／ '));
     /* 就航地の字の表（NET）が無い会社・拠点の街の家賃が無い会社だけ（拠点の空港が先行5社の台帳の街の空港なら、その街の1組が出る ── 東京など） */
     const vd = viewOf(s), noRent = !vd.living || !vd.livings.some(L => L.rents.some(r => Object.keys(r.value).length));
-    ok((vd.network || g.includes('就航地ごとのホテル・レストランは、会社が公表する就航地の一覧を確認してから開きます。')) && (!noRent || g.includes('家賃の資料を確認できていません')),
+    ok((!STAY_OPEN || vd.network || g.includes('就航地ごとのホテル・レストランは、会社が公表する就航地の一覧を確認してから開きます。')) && (!noRent || g.includes('家賃の資料を確認できていません')),
       `D ${s}: 資料をまだ出せない所は、今までの字（就航地「…確認してから開きます。」・家賃の無い暮らし「家賃の資料を確認できていません」）`, `就航地 ${vd.network ? '在る' : '無い'}・暮らし ${noRent ? '家賃なし' : vd.livings.map(L => L.cityKey).join(',')}`);
     const unset = rowsOf(s).filter(r => !SHOWN.includes(r.use)).filter(r => [r.label_ja, r.value].some(t => typeof t === 'string' && t.length > 3 && g.includes(t)));
     ok(!unset.length, `D ${s}: 使い方が4つでない台帳の行の字が、ページに無い`, unset.map(r => r.id).join(','));
@@ -781,7 +781,12 @@ for (const s of ROLLED) {
   const saysNoBase = /拠点の空港は入れていません|Base airports are not included/.test(`${(NET[s] || {}).basis || ''} ${(NET[s] || {}).basis_en || ''}`);
   ok((homes.length > 0 || !net || !saysNoBase) && !shownHome.length && !(net && net.list.some(d => homes.includes(d.iata))),
     `E ${s}: 就航地の一覧に、その会社の拠点の空港（${homes.join('・') || '台帳に拠点の行なし'}）が無い（本拠地は一覧に入れない ── 先行5社と同じ）／拠点の分からない会社の出典は「拠点の空港は入れていません」と言わない`, `出ている拠点 ${[...new Set(shownHome)].join(',')}${!homes.length && net && saysNoBase ? ' ／ 拠点が分からないのに basis が「入れていません」' : ''}`);
-  if (wantNet.length && NET[s]) {
+  if (!STAY_OPEN) {
+    /* ★2026-11-13 ステイ先を閉じているあいだ（gen-career.mjs の STAY_OPEN）：タブ・就航地の板・都市の面・ステイの条件・その部品の読み込みが1つも無い */
+    const left = [['タブ', /data-pvg-tab="stay"/], ['就航地の板', /class="pvg-card pvg-stay"|id="pvg-stay"/], ['都市の面', /id="pvg-city"/], ['ステイの条件', /data-tm-tab="stay"/],
+      ['部品', /career-stay\.(?:css|js)|pv-hotel-suggest\.js|pv-proof-offer\.js/], ['就航地への行き先', /href="#(?:pvg-)?stay/]].filter(([, re]) => re.test(b)).map(([k]) => k);
+    ok(!left.length, `E ${s}: ステイ先を閉じているあいだ、ページにステイ先のタブ・就航地の一覧・都市の面・ステイの条件・その部品が無い`, left.join('・'));
+  } else if (wantNet.length && NET[s]) {
     ok(!!net && net.partial && n === wantNet.length && same([...codes].sort(), [...wantNet].sort()) && st.includes(`調べで確かめた就航地・${n}空港・${dateJa(net.at)}時点です。`) && st.includes(`調べで確かめた就航地を見る（${n}空港）`)
       && !/会社全体の就航地|公式の就航地/.test(st), `E ${s}: 就航地は「調べで確かめた就航地・${wantNet.length}空港・日付」と言い、「会社全体の就航地」「公式の就航地」と言わない（一覧も台帳の ${wantNet.length}空港）`, `一覧 ${codes.join(',')} ／ 台帳 ${wantNet.join(',')}`);
     /* ★2026-10-29 オーナー「最初の24枚だけ出して「すべて見る」で開く」：24枚より多い一覧は畳む印（data-pvg-fold）と「すべて見る（n空港）」の
@@ -1345,6 +1350,8 @@ ok(O1N.n >= 10, `E 切り替えた会社のページに、勤務・待遇の「�
   for (const [slug, tabs] of Object.entries(TM)) for (const lang of ['ja', 'en']) {
     const h = fs.readFileSync(path.join(HERE, pageOf(slug, lang === 'en' ? 'en' : undefined)), 'utf8');
     for (const [tab, list] of Object.entries(tabs)) {
+      /* ★2026-11-13 ステイ先を閉じているあいだは、ステイの条件の札を置かない（タブが無い） */
+      if (tab === 'stay' && !STAY_OPEN) { if (/data-tm-tab="stay"/.test(h)) bad2.push(`${slug} ${lang}: 閉じているのに stay の札が在る`); continue; }
       const card = (h.match(new RegExp(`<article class="pvg-card pvg-tm" data-tm-tab="${tab}">[\\s\\S]*?</article>`)) || [''])[0];
       if (!card) { bad2.push(`${slug} ${lang}: ${tab} の札が無い`); continue; }
       for (const r of list) {

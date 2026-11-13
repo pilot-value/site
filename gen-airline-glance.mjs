@@ -34,7 +34,7 @@ import { GLANCE, LEAD, SWITCH, RANKS, scaleOf, viewOf, width, yen, rentCell, coS
 import { barGroup } from './pv-bars.mjs';
 import { fxNote, BASIS } from './salary-basis.mjs';
 import { SALARY } from './salary-data.mjs';
-import { TOPICS, askGroup, CMP as CAREER, EST_TARGET } from './gen-career.mjs';
+import { TOPICS, askGroup, CMP as CAREER, EST_TARGET, STAY_OPEN } from './gen-career.mjs';
 import { researchHeld, EN_SWITCH } from './airline-rollout.mjs';
 import { AD_TAG } from './airline-display.mjs';
 import { QUESTIONS } from './pv-conditions.mjs';
@@ -143,6 +143,14 @@ export const TABBED = new Set(SWITCH);
 export const NO_FAQ = new Set(LEAD);
 export const TABS = [['overview', '概要', IC.company], ['pay', '給与・待遇', IC.pay], ['reviews', '口コミ', IC.reviews],
   ['work', '勤務・訓練', IC.work], ['life', '暮らし・家族', IC.living], ['stay', 'ステイ先', IC.stay]];
+/* ★2026-11-13 オーナー「各航空会社のステイ先を一旦全部なしに。隠そう。タブも」── false のあいだ、会社ページ（日英。西は英語から作る）に
+   ステイ先のタブ・就航地の一覧と都市の詳細（#pvg-stay・#pvg-city）・「ステイの条件」・「ひとつ教えて」の「ホテル・おすすめ」の行を書かない
+   ＝ HTML に1文字も無い（隠すのではなく、置かない）。その部品の CSS・JS（career-stay.* ほか）も読ませない。
+   2社比較の就航地の画面（gen-career.mjs）も同じ印で書かない・「情報を追加」の面のホテル・ステイの札は pv-contrib.js の STAY_OPEN。
+   台帳（airline-destinations.mjs）・サーバーのホテル・運営の待ち行列は触っていない。
+   印そのものは gen-career.mjs の STAY_OPEN（あちらがこのファイルを読めないので、あちらに置いてここで読む）。 */
+export { STAY_OPEN };
+const SHOWN = TABS.filter(([id]) => STAY_OPEN || id !== 'stay');
 const tabbed = slug => TABBED.has(slug);
 const pane = (slug, names) => (tabbed(slug) ? ` data-pvg-pane="${names}"` : '');
 /* 勤務・待遇・暮らしの板が、自分のタブでは開いたまま本文になる（pv-glance.js の OPEN と同じ対） */
@@ -208,7 +216,7 @@ const tabBar = v => `<div class="pvg-tabbar" style="--pvg-c:${esc(v.color)}">
 <div class="pvg-tabrow">
 <div class="pvg-tabwrap">
 <div class="pvg-tabs" id="pvg-tabs" role="navigation" aria-label="${W.tabNav(esc(v.name))}">
-${TABS.map(([id, , icon], i) => `<a href="#${id}" data-pvg-tab="${id}"${i ? '' : ' aria-current="page"'}>${icon}<span>${W.tabs[i]}</span></a>`).join('\n')}
+${SHOWN.map(t => [...t, TABS.indexOf(t)]).map(([id, , icon, i]) => `<a href="#${id}" data-pvg-tab="${id}"${i ? '' : ' aria-current="page"'}>${icon}<span>${W.tabs[i]}</span></a>`).join('\n')}
 </div>
 </div>
 <button type="button" class="pvg-add" data-pvc-open="list">${W.addBtn}</button>
@@ -1272,7 +1280,7 @@ function askCard(v) {
     if (LANG === 'en' && !W.topic[id]) throw new Error(`askCard: 話題「${id}」の英語の名前が無い（WORDS.en.topic に足す）`);
     return [id, name, gloss, list];
   });
-  const stay = netOf(v) ? `<a class="pvg-topic pvg-topic-a" href="#pvg-stay">${topicHead(IC.stay, W.hotelsTopic, W.hotelsTopicSub)}${IC.next}</a>` : '';
+  const stay = STAY_OPEN && netOf(v) ? `<a class="pvg-topic pvg-topic-a" href="#pvg-stay">${topicHead(IC.stay, W.hotelsTopic, W.hotelsTopicSub)}${IC.next}</a>` : '';
   const keys = [...new Set(groups.flatMap(([, , , list]) => list.map(a => a[0])))];
   /* タブを持つページ：見出しの横から項目の一覧（「情報を追加」の面）を開ける。通勤・タクシーの質問はその面の中で答える。 */
   const add = tabbed(v.slug) ? `<button type="button" class="pvg-link" data-pvc-open="list">${W.addFromList}${IC.go}</button>` : '';
@@ -1333,11 +1341,10 @@ ${livingCell(v)}
 </div>
 ${termsCard(v, 'work')}
 ${termsCard(v, 'life')}
-<div class="pvg-more-grid pvg-g-st"${pane(v.slug, 'overview stay')}>
-${stayCard(v)}
-${askCard(v)}
+<div class="pvg-more-grid pvg-g-st"${pane(v.slug, STAY_OPEN ? 'overview stay' : 'overview')}>
+${STAY_OPEN ? `${stayCard(v)}\n` : ''}${askCard(v)}
 </div>
-${termsCard(v, 'stay')}
+${STAY_OPEN ? termsCard(v, 'stay') : ''}
 <div id="pvg-revcats"${pane(v.slug, 'reviews')}></div>${tabbed(v.slug) ? '\n' + reviewsList(v) : ''}
 <script type="application/json" id="crc-data">${island}</script>
 </section>`;
@@ -1911,7 +1918,7 @@ function buildIn(slug, html) {
   html = html.slice(0, a) + heroText + (old.startsWith(H0) ? '' : '\n\n') + html.slice(b);
 
   /* 2) 見た目（左メニューの <link> の塊の直前。あちらは </head> の直前に居続ける） */
-  html = blockBefore(html, 'PV-GLANCE-HEAD', [...CSS, ...(tabbed(slug) ? [CONTRIB.css, STAY.css] : [])].map(f => `<link rel="stylesheet" href="${asset(f)}">`).join('\n'), h => {
+  html = blockBefore(html, 'PV-GLANCE-HEAD', [...CSS, ...(tabbed(slug) ? [CONTRIB.css, ...(STAY_OPEN ? [STAY.css] : [])] : [])].map(f => `<link rel="stylesheet" href="${asset(f)}">`).join('\n'), h => {
     const m = NAV_HEAD.exec(h);
     if (!m) throw new Error(`${slug}: 左メニューの <link> の塊（PV-NAV）が無い`);
     return m.index;
@@ -1922,7 +1929,7 @@ function buildIn(slug, html) {
   /* 3b) 残した「よくある質問」は本文の箱の最後（新しい部品のすぐ後ろ・ページの最後の節）── 先行5社には残す節が無い（1文字も変えない） */
   if (tabbed(slug) && !LEAD.includes(slug)) html = keptIntoBox(html);
   /* 4) 部品の JS（口コミの部品より後 ＝ app-nav.js の塊の直前。あちらは </body> の直前に居続ける） */
-  html = blockBefore(html, 'PV-GLANCE-JS', [...JS, ...(tabbed(slug) ? [CONTRIB.js, PROOF.js, SUGGEST.js, STAY.js] : [])].map(f => `<script src="${asset(f)}"></script>`).join('\n'), h => {
+  html = blockBefore(html, 'PV-GLANCE-JS', [...JS, ...(tabbed(slug) ? [CONTRIB.js, ...(STAY_OPEN ? [PROOF.js, SUGGEST.js, STAY.js] : [])] : [])].map(f => `<script src="${asset(f)}"></script>`).join('\n'), h => {
     const m = NAV_JS.exec(h);
     if (!m) throw new Error(`${slug}: app-nav.js の <script> が無い`);
     return m.index;

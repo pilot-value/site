@@ -1008,10 +1008,15 @@ ${REGIONS.map(R => { const ss = choice().filter(s => dir().airlines[s].region ==
    台本が動かない・career.js が届かないときは、一覧へのリンク1本（#cr-off ── 字は比較の「航空会社を選ぶ」と同じ）── 白い画面にしない。
    career.js は動き出したらまずこれを隠す（住所に airline= か view= が在るあいだは、頭の cr-boot が決まるまで本文ごと隠しているので一瞬も見えない）。 */
 /* タブの無い今までの形のページ（2026-11-02 にスピリットを外して、いまは起こした直後の新しい会社だけ）は数えない ── あちらは # を読まない（その名前の要素も無い）ので、ページの頭が開く。 */
+/* ★2026-11-13 オーナー「各航空会社のステイ先を一旦全部なしに。隠そう。タブも」── false のあいだ、就航地の画面（career.html?airline=…&stay=…）を書かない。
+   会社ページのステイ先のタブ・一覧も gen-airline-glance.mjs がこの印を読んで書かない。古い住所は career.js が会社ページの頭へ送る（data-tabs に stay が無い）。
+   「情報を追加」の面のホテル・ステイの札は pv-contrib.js の STAY_OPEN（ブラウザの JS なのでこれを読めない ── 2つを一緒に動かす）。
+   戻す日は2つを true にして、gen-airline-glance → gen-career → gen-lang es → seo-normalize → gen-datemod → gen-sitemap。 */
+export const STAY_OPEN = false;
 const PTABS = () => {
   const sets = ALL.map(pageTabs).filter(s => s.size);
   const all = sets.length ? [...sets[0]].filter(t => sets.every(s => s.has(t))) : [];
-  if (!all.includes('stay')) throw new Error('会社ページにステイ先のタブ（stay）が無い会社が在る（就航地の「戻る」の先が無くなる）');
+  if (STAY_OPEN && !all.includes('stay')) throw new Error('会社ページにステイ先のタブ（stay）が無い会社が在る（就航地の「戻る」の先が無くなる）');
   return all.join(' ');
 };
 export function build() {
@@ -1020,8 +1025,7 @@ export function build() {
 <script>if(!/[?&](airline|view)=/.test(location.search))location.replace('${href.list}')</script>
 <p class="cr-else" id="cr-off"><a class="cr-link" href="${href.list}">${W.back}${IC.go}</a></p>
 ${DEEP.flatMap(s => ROLES.map(([r]) => detail(s, r, W.rank[r]))).join('\n')}
-${DEEP.flatMap(s => destinations(s).map(d => stay(s, d))).join('\n')}
-${compare()}
+${STAY_OPEN ? `${DEEP.flatMap(s => destinations(s).map(d => stay(s, d))).join('\n')}\n` : ''}${compare()}
 ${sheet()}
 ${card()}
 </div>`;
