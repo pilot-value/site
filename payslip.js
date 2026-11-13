@@ -53,7 +53,7 @@
       pdfLocked: 'この PDF はパスワードで保護されています。パスワードを外して保存し直すか、開いた画面のスクリーンショットを落としてください。',
       /* ★鍵の付いた PDF は、その場でパスワードを聞いて端末の中で開く（2026-11-13 オーナー「失敗してるぞ」）。 */
       lockT: 'パスワード付きの PDF です',
-      lockMsg: 'パスワードを入れると、この端末の中で開いて読みます。パスワードは送りません。',
+      lockMsg: 'パスワードを入れると、この端末の中で開いて読みます。',
       lockBad: 'パスワードが違います。もう一度入れてください。',
       lockPh: 'PDF のパスワード',
       lockGo: '開く',
@@ -199,7 +199,7 @@
       pdfPages: function (n) { return 'Reading page 1 of ' + n + '. If your pay table is on another page, choose an image (screenshot) of that page instead.'; },
       pdfLocked: 'This PDF is password-protected. Save a copy without the password, or drop a screenshot of it instead.',
       lockT: 'This PDF has a password',
-      lockMsg: 'Enter it to open the PDF here on your device. The password is never sent.',
+      lockMsg: 'Enter it to open the PDF here on your device.',
       lockBad: 'Wrong password. Please try again.',
       lockPh: 'PDF password',
       lockGo: 'Open',
@@ -335,7 +335,7 @@
       pdfPages: function (n) { return 'Leyendo la página 1 de ' + n + '. Si tu tabla de pagos está en otra página, elige una imagen (captura de pantalla) de esa página.'; },
       pdfLocked: 'Este PDF está protegido con contraseña. Guarda una copia sin contraseña o, en su lugar, arrastra aquí una captura de pantalla.',
       lockT: 'Este PDF tiene contraseña',
-      lockMsg: 'Escríbela para abrir el PDF aquí, en tu dispositivo. La contraseña nunca se envía.',
+      lockMsg: 'Escríbela para abrir el PDF aquí, en tu dispositivo.',
       lockBad: 'Contraseña incorrecta. Inténtalo de nuevo.',
       lockPh: 'Contraseña del PDF',
       lockGo: 'Abrir',
@@ -1171,12 +1171,12 @@
       take(file, v);
     });
     box.appendChild(form);
-    /* 諦めて別の道へ行ったときだけ「読めなかった」を知らせる（ここで初めて失敗になる）。 */
+    /* 諦めて別の明細を選んだときだけ「読めなかった」を知らせる（ここで初めて失敗になる）。
+       ★「パスワードは送りません」の1文と「手で入力する」は置かない（2026-11-13 オーナー「これいらない」）。 */
     var gaveUp = false;
     function giveUp() { if (gaveUp) return; gaveUp = true; track('payslip_reject', { reason: 'pdf_locked' }); report('pdf_locked', 'file', file.size); }
     var choose = btn(T.choose, 'ps-btn-link', function () { giveUp(); readMode = 'month'; fileInput.click(); }, 'ps-choose');
-    var manual = btn(T.manual, 'ps-btn-link', function () { giveUp(); openForm(); focusForm(); }, 'ps-manual');
-    box.appendChild(bar([choose, manual]));
+    box.appendChild(bar([choose]));
     panel.appendChild(box);
     try { panel.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (e) { panel.scrollIntoView(); }
     try { inp.focus({ preventScroll: true }); } catch (e) { inp.focus(); }

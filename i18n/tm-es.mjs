@@ -14548,7 +14548,7 @@ export const TM = {
   "js:'Try other words, or clear the search.'": {"es":"js:'Prueba con otras palabras o borra la búsqueda.'","st":"validated","by":"ai","model":"claude-opus-5-5","pv":4,"gl":"","at":"2026-11-02","pages":["vote.js"]},
   "js:'Type it in'": {"es":"js:'Escribirlo a mano'","st":"manual","by":"claude-review","at":"2026-11-04","pages":["payslip.js"],"note":"明細の読み取りの作り直し（2026-11-04）。用語は glossary-es にそろえた"},
   "js:'This PDF has a password'": {"es":"js:'Este PDF tiene contraseña'","st":"manual","by":"claude","at":"2026-11-13","pages":["payslip.js"],"note":"鍵の付いた PDF のパスワードの欄（2026-11-13）"},
-  "js:'Enter it to open the PDF here on your device. The password is never sent.'": {"es":"js:'Escríbela para abrir el PDF aquí, en tu dispositivo. La contraseña nunca se envía.'","st":"manual","by":"claude","at":"2026-11-13","pages":["payslip.js"],"note":"鍵の付いた PDF のパスワードの欄（2026-11-13）"},
+  "js:'Enter it to open the PDF here on your device.'": {"es":"js:'Escríbela para abrir el PDF aquí, en tu dispositivo.'","st":"manual","by":"claude","at":"2026-11-13","pages":["payslip.js"],"note":"鍵の付いた PDF のパスワードの欄（2026-11-13）"},
   "js:'Wrong password. Please try again.'": {"es":"js:'Contraseña incorrecta. Inténtalo de nuevo.'","st":"manual","by":"claude","at":"2026-11-13","pages":["payslip.js"],"note":"鍵の付いた PDF のパスワードの欄（2026-11-13）"},
   "js:'PDF password'": {"es":"js:'Contraseña del PDF'","st":"manual","by":"claude","at":"2026-11-13","pages":["payslip.js"],"note":"鍵の付いた PDF のパスワードの欄（2026-11-13）"},
   "js:'Open'": {"es":"js:'Abrir'","st":"manual","by":"claude","at":"2026-11-13","pages":["payslip.js"],"note":"鍵の付いた PDF のパスワードの欄（2026-11-13）"},
