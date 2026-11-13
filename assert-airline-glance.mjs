@@ -102,9 +102,9 @@ const STATIC_ONLY = process.argv.includes('--static');
 /* ★2026-11-13 ステイ先を閉じているあいだ（gen-career.mjs の STAY_OPEN）も、この検査は今までどおり、ステイ先を開いた形の会社ページ（日英）と
    比較のページを見る ── 手元の検査用サーバー（serve-local.mjs）と同じ stayOpenHtml で組み直したものを、ファイルの代わりに読み・ブラウザにも配る
    （配るのは下の各 p.on('request') の OPENED の1行）。閉じた形（ファイルそのもの）は assert-rollout.mjs の E が全社で見ている。 */
-const { STAY_OPEN } = await import('./gen-career.mjs');
+const { STAY_OPEN: STAYS_SHIPPED } = await import('./gen-career.mjs');
 const OPENED = new Map();
-if (!STAY_OPEN) {
+if (!STAYS_SHIPPED) {
   const { stayOpenHtml } = await import('./serve-local.mjs');
   for (const rel of [...GLANCE.map(s => `airlines/${s}.html`), ...EN_SWITCH.map(s => `en/airlines/${s}.html`), 'career.html', 'en/career.html'])
     OPENED.set(rel, await stayOpenHtml(rel, fs.readFileSync(path.join(ROOT, rel), 'utf8')));

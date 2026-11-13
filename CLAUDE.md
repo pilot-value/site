@@ -394,6 +394,18 @@ baland_ass/                            ブランド資産（※ brand_assets の
 
 見るもの: `node db/test-proof.mjs`（門・印・画像の一生・壊す証明）／`node assert-proof.mjs`（板と管理画面）。
 
+## ステイ先（就航地・ホテル）は一旦閉じている（2026-11-13）
+
+★オーナー指示「各航空会社のステイ先を一旦全部なしにできる？隠そう。タブも」「全航空会社、一旦ステイ先のタブをなくす」。
+- **印は2つ・一緒に動かす** ── [gen-career.mjs](gen-career.mjs) の `STAY_OPEN`（会社ページ日英西のタブ・就航地の一覧・都市の面・ステイの条件・
+  「ひとつ教えて」のホテルの行・その部品の読み込み、比較ページの就航地の画面）と [pv-contrib.js](pv-contrib.js) の `STAY_OPEN`（「情報を追加」のホテル・ステイの札）。
+  false のあいだ、ページに**1文字も書かない**（隠すのではなく置かない）。古い住所 `career.html?airline=…&stay=…` は会社ページの頭へ送られる。
+- 台帳（airline-destinations.mjs）・サーバーのホテル（db/stays.sql）・運営の待ち行列は触っていない。比較ページは部品（career-stay.* ほか）を読んだまま。
+- **検査は本体を見続ける** ── 手元の検査用サーバー（[serve-local.mjs](serve-local.mjs) の `stays`・`stayOpenHtml`）だけが、生成器で開いた形に組み直して配る
+  （local-chain.mjs の `bring` は既定で開く・assert-airline-glance.mjs は同じ関数で組み直した形を読む・配る）。閉じた形は assert-rollout.mjs の E が全社で見る。
+  ⚠️ `stayOpenHtml` を呼んだプロセスの中では、生成器が開いた形を書く（`openStaysForLocal`）── そのプロセスからファイルを書かない。
+- **戻す日** ── 2つの印を true → `node gen-airline-glance.mjs` → `node gen-career.mjs` → `node gen-lang.mjs es` → `seo-normalize` → `gen-datemod` → `gen-sitemap`。
+
 ## DEEP PAY（[deep-pay.html](deep-pay.html)・2026-10-11 公開 → **2026-10-29 に本番から消した**／会社比較 [deep-pay-compare.html](deep-pay-compare.html) も同じ）
 
 ★★**2026-10-29、DEEP PAY を本番から消した**（オーナー指示「deep pay は一時会員には見せない。閉鎖するからみんなのページから消して」

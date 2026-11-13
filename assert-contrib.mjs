@@ -337,7 +337,7 @@ let local = null, browser = null;
 const supa = new Set(), blocked = new Set(), pageErrs = [];
 
 async function main() {
-  local = await start({ port: 0, dir: tmp, quiet: true });
+  local = await start({ port: 0, dir: tmp, quiet: true, stays: true });   // ステイ先を閉じているあいだも開いた形で配る（serve-local.mjs の stayOpenHtml）
   const base = local.url;
   const q = (sql, params) => local.locked(() => local.db.query(sql, params));
   const memberOf = (key) => MEMBERS.find((m) => m.key === key);

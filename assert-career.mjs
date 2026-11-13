@@ -45,7 +45,7 @@ import { BASIS, TIERS, figures } from './salary-basis.mjs';
 import { viewOf, rentCell, GLANCE, LEAD } from './pv-airline-view.mjs';
 import { PHOTOS, PHOTO_DIR, SMALL_W, needsCredit, primary, smallH, src as photoSrc } from './airline-photos.mjs';
 import * as PLACE from './place-photos.mjs';
-import { render, FIVE, PAIR, ROLES, PAGE, DEEP, cell, tabOfKey, CMP_KEYS, NEAR, PAGE_EN, WORDS as CR_WORDS, checkWords as crCheckWords } from './gen-career.mjs';
+import { render, FIVE, PAIR, ROLES, PAGE, DEEP, cell, tabOfKey, CMP_KEYS, NEAR, PAGE_EN, WORDS as CR_WORDS, checkWords as crCheckWords, STAY_OPEN } from './gen-career.mjs';
 import { curCore, bakeHtml } from './cur-core.mjs';
 import { frozenPrint, matrixPrint, qrMatrix } from './career-qr.mjs';
 /* 航空会社一覧の形（並び・地域 ── 台帳との突き合わせは assert-directory.mjs が持つ）と、投稿先だけの会社（年収を載せない会社）。 */
@@ -298,7 +298,8 @@ head('入口は航空会社一覧（会社の概要は会社ページ）');
 <p class="cr-else" id="cr-off"><a class="cr-link" href="world-airlines.html">`;
   const top = [[PAGE, blkOf(HTML), '航空会社を選ぶ'], [PAGE_EN, unbake(blkOf(EN_H)), 'Choose an airline']]
     .filter(([, b, w]) => !b.startsWith(`\n${want}${w}<svg`)).map(([p]) => p);
-  ok(common.includes('stay') && common.includes('pay') && !!head0 && !!EN_H.includes(head0[0]) && !top.length,
+  /* ★2026-11-13 ステイ先を閉じているあいだ（STAY_OPEN）は、会社ページにステイ先のタブが無い ＝ 送り先のタブにも無い */
+  ok(common.includes('stay') === STAY_OPEN && common.includes('pay') && !!head0 && !!EN_H.includes(head0[0]) && !top.length,
      `#cr の頭：送り先（航空会社一覧・会社ページ・会社ページの全部に在るタブ ${common.join(' ')}）・住所に airline= も view= も無いときに先に一覧へ送る1行（頭の cr-boot の1行と同じ決め方）・台本が動かないときの一覧へのリンク（日英）`,
      `${top.join('・') || ''}${head0 ? '' : '（頭の cr-boot の1行が読めない）'}`);
 }
@@ -1396,6 +1397,20 @@ const settle = page => page.evaluate(async () => {
 });
 /* opt.path：career.html のほかのページを開く（会社ページ ── companyPage）。opt.errs：そのページの例外と読めなかったファイルを書く先
    （会社ページには会社ページの検査が在る。ここの trouble には入れず、控えとして出す）。 */
+/* ★2026-11-13 ステイ先を閉じているあいだ（gen-career.mjs の STAY_OPEN）も、ブラウザの場面は今までどおり、ステイ先を開いた形の比較のページと会社ページ
+   （日英）を見る ── 手元の検査用サーバー（serve-local.mjs）と同じ stayOpenHtml で組み直したものを、ファイルの代わりに配る（open() の中）。
+   ⚠️ 組み直しを始めると、このプロセスの生成器は開いた形を書く（openStaysForLocal）── render() を使う上の静的な検査は、それより前に終わっている。
+   閉じた形（ファイルそのもの）は、上の #cr の頭の検査と assert-rollout.mjs の E が見る。 */
+let stayOpenHtml = null;
+const OPENED = new Map();
+async function openedOf(rel) {
+  if (STAY_OPEN || !/^(?:en\/)?(?:airlines\/[a-z0-9-]+|career)\.html$/.test(rel) || !fs.existsSync(path.join(ROOT, rel))) return null;
+  if (!OPENED.has(rel)) {
+    stayOpenHtml ||= (await import('./serve-local.mjs')).stayOpenHtml;
+    OPENED.set(rel, await stayOpenHtml(rel, read(rel)));
+  }
+  return OPENED.get(rel);
+}
 async function open(q = '', w = 390, h = 680, opt = {}) {
   const ctx = await browser.createBrowserContext();
   const page = await ctx.newPage();
@@ -1409,7 +1424,11 @@ async function open(q = '', w = 390, h = 680, opt = {}) {
      （手元で開いた回が訪問として数えられる／ネットの調子で答えが変わる、の両方を避ける）。
      生きた欄は「読めなかった」の姿で落ち着く ＝ 出荷した HTML の字だけを見ることになる。 */
   await page.setRequestInterception(true);
-  page.on('request', r => ((opt.block && r.url().includes(opt.block)) || NET_OFF.test(r.url()) ? r.abort() : r.continue()));
+  page.on('request', async r => {
+    if ((opt.block && r.url().includes(opt.block)) || NET_OFF.test(r.url())) return r.abort();
+    const u = new URL(r.url()), body = u.origin === new URL(BASE).origin ? await openedOf(u.pathname.slice(1)) : null;
+    return body ? r.respond({ status: 200, contentType: 'text/html; charset=utf-8', body }) : r.continue();
+  });
   await page.goto(`${BASE}/${opt.path || PAGE}${q}`, { waitUntil: 'load' });
   if (opt.js !== false && !opt.path) await ready(page);
   return { page, close: () => ctx.close() };

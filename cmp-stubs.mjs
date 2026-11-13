@@ -98,7 +98,7 @@ export async function startLocal() {
   const { start } = await import('./serve-local.mjs');
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pv-cmp-'));
   let local;
-  try { local = await start({ port: 0, dir: tmp, quiet: true }); }
+  try { local = await start({ port: 0, dir: tmp, quiet: true, stays: true }); }   // ステイ先を閉じているあいだも開いた形で配る（serve-local.mjs の stayOpenHtml）
   catch (e) { fs.rmSync(tmp, { recursive: true, force: true }); throw e; }
   if (local.port === 3000 || local.port === 3100) {
     await local.close();
