@@ -1463,6 +1463,8 @@
       U.busy = false;
       if (!r || r.error || !r.data || !r.data.ok) {
         var code = r && r.error && r.error.code;
+        /* ★保存で止まった理由の語だけを知らせる（運営が気づけるように・2026-11-13）。中身は送らない */
+        report(code === '54000' ? 'save_limit' : code === '22023' ? 'save_bad' : code === '42501' ? 'save_login' : 'save_failed', 'save');
         U.err = code === '54000' ? T.errLimit : code === '22023' ? T.errBad : code === '42501' ? T.errLogin : T.errSave;
         render();
         return;
@@ -1470,7 +1472,7 @@
       var done = c.done, res = { saved: !r.data.dup, dup: !!r.data.dup, days: r.data.days || days.length, ym: ymAfter };
       U = null;
       done(res);
-    }, function () { U.busy = false; U.err = T.errSave; render(); });
+    }, function () { report('save_failed', 'save'); U.busy = false; U.err = T.errSave; render(); });
   }
 
   /* ── 描く ───────────────────────────────────────────────── */

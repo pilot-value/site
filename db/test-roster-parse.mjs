@@ -12,6 +12,7 @@
      ⑥ 日付の列に在る日は何も無くても返す・捨てた記号の日は unread:true（字は残さない）・TIME の列も block（2026-11-10）
      ⑦ 日の種類 cat は毎日・決まった10語だけ／区間に role は無い（ほかの乗員の役職）／辞書に無い言葉は鍵があれば札
         '#'＋16桁（言葉はどこにも残らない）／1枚につきモデルへの頼みは1回だけ（2026-11-11）
+     ⑧ 失敗したら運営へ1通（2026-11-13）。入るのは固定の語と数だけ・1日の上限・成功と形の違う呼び出しでは送らない
    ★ここに出てくる名前・便・時刻は全部作り話。ネットワークも API キーも使わない。費用ゼロ。
    実行: node db/test-roster-parse.mjs
    ════════════════════════════════════════════════════════════════ */
@@ -669,6 +670,7 @@ console.log('\nJ 入口（ログイン・回数・読み取り）');
     { y: null, m: null, d: 2, wd: null, cut: null, code: 'OFF', cat: 'off', d_on: null, d_off: null, d_off_day: 0, row: 3, legs: [] },
   ];
   let calls = [], quota = { ok: true, n: 1, g: 1 }, quotaStatus = 200, ai = answer(GOODDAYS), aiStatus = 200;
+  let slot = { ok: true, n: 1, g: 1 }, slotStatus = 200;   // 失敗の知らせの「今日の何通目か」（同じ RPC・札が別）
   globalThis.fetch = async (url, init = {}) => {
     url = String(url);
     calls.push({ url, init, body: init.body ? JSON.parse(init.body) : null });
@@ -676,8 +678,12 @@ console.log('\nJ 入口（ログイン・回数・読み取り）');
       return init.headers.Authorization === GOOD ? Response.json({ id: UID }) : new Response('{"msg":"bad jwt"}', { status: 401 });
     }
     if (url === `${SUPA}/rest/v1/rpc/pv_parse_quota_take_v2`) {
+      if (JSON.parse(init.body).p_subject === R.FAIL_SUBJECT) {
+        return slotStatus === 200 ? Response.json(slot) : new Response('down', { status: slotStatus });
+      }
       return quotaStatus === 200 ? Response.json(quota) : new Response('down', { status: quotaStatus });
     }
+    if (url === 'https://api.resend.com/emails') return Response.json({ id: 'mail-1' });
     if (url === 'https://api.anthropic.com/v1/messages') {
       return aiStatus === 200 ? Response.json(ai)
         : new Response(JSON.stringify({ error: { type: 'api_error', message: 'echo TANAKA TARO' } }), { status: aiStatus });
@@ -819,6 +825,98 @@ console.log('\nJ 入口（ログイン・回数・読み取り）');
   const sent = calls.find((c) => c.url.includes('anthropic'));
   ok(sent && sent.body.messages[0].content[1].text.includes(`${ym}-01`) && !/Smith/.test(JSON.stringify(sent.body)),
      'prev_tail は検品してから AI に渡す（備考・氏名は渡らない）');
+
+  // ═══ K 失敗の知らせ（運営へのメール・2026-11-13） ═══════════════
+  console.log('\nK 失敗の知らせ（運営へのメール）');
+  const mails = () => calls.filter((c) => c.url.includes('api.resend.com'));
+  const slots = () => calls.filter((c) => c.url.includes('pv_parse_quota_take_v2') && c.body.p_subject === R.FAIL_SUBJECT);
+  const clean = (m) => !/TANAKA|Smith|SECRETIMAGE|NH100|HND|CTS|good-user-token/.test(JSON.stringify(m.body)) && !JSON.stringify(m.body).includes(UID);
+  let m;
+
+  aiStatus = 529; r = await post(req());
+  ok(r.j.reason === 'read_busy' && mails().length === 0 && slots().length === 0, 'メールの鍵が無ければ、失敗しても送らない・数えない（今までの動き）');
+
+  ENV.RESEND_API_KEY = 're-test-key';
+  slot = { ok: true, n: 3, g: 3 };
+  r = await post(req()); m = mails();
+  ok(r.status === 200 && r.j.ok === false && r.j.reason === 'read_busy' && m.length === 1, '★読み取りに失敗したら運営へ1通（本人への返事は今までどおり）');
+  ok(m[0] && m[0].body.to.join() === 'info@pilot-value.com' && /読み取りに失敗：AI 側が混雑している$/.test(m[0].body.subject)
+     && /こちら側（段 upstream・コード upstream_529）/.test(m[0].body.text) && /1枚目（全 2枚）/.test(m[0].body.text)
+     && /今日の失敗：3 回目/.test(m[0].body.text), '宛先は info@・理由と段と何枚目と今日の回数が入る', m[0] && m[0].body);
+  ok(m[0] && /^roster-fail:\d{4}-\d\d-\d\d:3$/.test(m[0].init.headers['Idempotency-Key']) && m[0].init.headers.Authorization === 'Bearer re-test-key',
+     '同じ1通を二度送らない鍵（日付＋今日の何通目か）');
+  ok(m[0] && clean(m[0]), '★メールに画像・勤務表の文字・氏名・本人の id が1文字も無い');
+  const sc = slots()[0];
+  ok(sc && sc.body.p_subject === 'mail:roster-fail' && sc.body.p_bucket === 'mail:roster' && sc.body.p_limit === R.FAIL_MAIL_MAX && R.FAIL_MAIL_MAX === 30,
+     '数える札は読み取りの回数（r:… / roster）と別・1日30通まで', sc && sc.body);
+
+  aiStatus = 200; ai = answer(GOODDAYS); r = await post(req());
+  ok(r.j.ok === true && mails().length === 0 && slots().length === 0, '★読めたときは送らない・数えない');
+
+  ai = answer([]); r = await post(req()); m = mails();
+  ok(r.j.reason === 'not_a_roster' && m.length === 1 && /本人側（段 reply・コード not_a_roster）/.test(m[0].body.text) && clean(m[0]),
+     'スケジュールとして読めなかった → 「本人側」として1通');
+  ai = answer([{ ...GOODDAYS[1], d: 5 }]); r = await post(req({ hint: undefined })); m = mails();
+  ok(r.j.reason === 'undated' && m.length === 1 && /月を聞き直します/.test(m[0].body.text), '月が決まらなかった → 1通（画面が聞き直すと書く）');
+  ai = answer([]);
+
+  slot = { ok: false, cap: 'subject' }; r = await post(req());
+  ok(r.j.reason === 'not_a_roster' && slots().length === 1 && mails().length === 0, '★1日の上限（30通）を超えたら送らない（受信箱を溢れさせない）');
+
+  slotStatus = 500; r = await post(req()); m = mails();
+  ok(m.length === 1 && /^roster-fail:\d{4}-\d\d-\d\d:not_a_roster:\d\d:\d$/.test(m[0].init.headers['Idempotency-Key'])
+     && /数えられませんでした/.test(m[0].body.text), '数えられないとき（DB に届かない）も失敗は知らせる（鍵は 理由＋10分の枠）', m[0] && m[0].init.headers);
+  r = await post(req());
+  ok(mails().length === 0, '数えられないあいだ、同じ理由は10分に1通まで');
+  quotaStatus = 500; r = await post(req()); m = mails();
+  ok(r.status === 503 && m.length === 1 && /回数を数える DB に届かず/.test(m[0].body.text) && /コード quota_unavailable/.test(m[0].body.text),
+     '★回数の DB に届かず読み取りを止めたときも知らせる');
+  quotaStatus = 200; slotStatus = 200; slot = { ok: true, n: 4, g: 4 };
+
+  quota = { ok: false, cap: 'subject' }; r = await post(req()); m = mails();
+  ok(r.status === 429 && m.length === 1 && /本人側（段 quota・コード rate_limited）/.test(m[0].body.text) && /上限は 60 枚/.test(m[0].body.text),
+     '1人の1日の上限に達した → 1通（上げ方も書く）');
+  quota = { ok: false, cap: 'global', trip: false }; r = await post(req());
+  ok(r.status === 429 && mails().length === 0 && slots().length === 0, '全体の上限では失敗の知らせを送らない（上限の知らせが別にある）');
+  quota = { ok: true };
+
+  r = await post({ report: { reason: 'image_decode', stage: 'file', kb: 512 } }); m = mails();
+  ok(r.status === 200 && r.j.ok && m.length === 1 && /読み取りに失敗：写真を開けなかった$/.test(m[0].body.subject)
+     && /ブラウザの中（段 file・コード image_decode）/.test(m[0].body.text) && /画像：512KB/.test(m[0].body.text) && clean(m[0]),
+     '★画面の中で止まった失敗も1通（ブラウザの中）');
+  r = await post({ report: { reason: 'save_bad', stage: 'save' } }); m = mails();
+  ok(r.status === 200 && m.length === 1 && /^\[PILOT VALUE\] スケジュールの保存に失敗：/.test(m[0].body.subject) && /コード save_bad/.test(m[0].body.text),
+     '★保存で止まった失敗は「保存に失敗」として1通');
+  r = await post({ report: { reason: 'TANAKA TARO', stage: 'save' } });
+  ok(r.status === 400 && mails().length === 0 && slots().length === 0, '白リストの外の知らせは送らない・数えない');
+  r = await post({ report: { reason: 'save_bad', stage: 'save' } }, null);
+  ok(r.status === 401 && mails().length === 0, 'ログインしていない知らせは送らない');
+  r = await post(req({ image_b64: '' }));
+  ok(r.status === 400 && mails().length === 0 && slots().length === 0, '形の違う呼び出し（400 番台）は知らせない');
+  delete ENV.RESEND_API_KEY;
+
+  /* 文面は固定の語と数だけ。語の形をしていない値は通さない（入れる口が無いことの壊す証明）。 */
+  const fm = R.failMail({ code: 'TANAKA TARO', where: 'server', stage: 'HND→CTS', ms: 1234, kb: 77, stop: 'Smith, John', status: 200, page: 2, pages: 3 },
+                        7, new Date('2026-11-13T01:02:03Z'));
+  ok(!/TANAKA|HND|CTS|Smith/.test(fm.subject + fm.text) && /段 -・コード -/.test(fm.text) && /AI の止まり方 -/.test(fm.text)
+     && /分類していない失敗/.test(fm.text), '★語の形をしていない値はメールに出ない（「-」になる）', fm);
+  ok(/2026\/11\/13 10:02:03/.test(fm.text) && /1\.2秒／画像 77KB／2枚目（全 3枚）/.test(fm.text) && /今日の失敗：7 回目（この知らせは1日 30 通まで）/.test(fm.text),
+     '時刻は日本時間・秒と大きさと何枚目と回数', fm.text);
+  for (const c of R.CLIENT_REASONS) ok(R.whyText(c) !== '分類していない失敗', `画面の理由「${c}」に運営が読む説明がある`);
+  const serverCodes = [...new Set([...SRC.matchAll(/finish\('[a-z_]+', '([a-z_]+)'\)/g)].map((x) => x[1]).concat(
+    ['upstream_timeout', 'upstream_unreachable', 'upstream_body', 'read_refused', 'read_truncated', 'read_bad_format', 'rate_limited', 'quota_unavailable']))];
+  ok(serverCodes.length >= 11, `サーバーの失敗の語は ${serverCodes.length} 個`, serverCodes);
+  for (const c of serverCodes) ok(R.whyText(c) !== '分類していない失敗', `サーバーの理由「${c}」に運営が読む説明がある`);
+  ok(R.whyText('upstream_529').includes('混雑') && R.whyText('upstream_500').includes('障害') && R.whyText('upstream_400').includes('断られた'), 'HTTP の番号つきの語も説明になる');
+
+  /* 画面（roster-upload.js）が送る語と段が、受け口の白リストに在る。 */
+  const UPJS = readFileSync(path.join(ROOT, 'roster-upload.js'), 'utf8');
+  const saveCodes = [...new Set([...UPJS.matchAll(/'(save_[a-z]+)'/g)].map((x) => x[1]))].sort();
+  eq(saveCodes, ['save_bad', 'save_failed', 'save_limit', 'save_login'], '画面は保存の失敗を4つの語で知らせる');
+  ok(saveCodes.every((c) => R.CLIENT_REASONS.has(c)) && R.CLIENT_STAGES.has('save'), '★その語と段（save）を受け口が通す');
+  const stages = [...new Set([...UPJS.matchAll(/report\([^()]*?,\s*'([a-z]+)'\)/g)].map((x) => x[1]))];
+  ok(stages.length >= 2 && stages.every((x) => R.CLIENT_STAGES.has(x)), `画面が送る段（${stages.join('・')}）は全部通る`);
+  ok((UPJS.match(/report\((?:code === '54000'|'save_failed')/g) || []).length === 2, '保存の失敗の2つの出口（サーバーが断った・通信が落ちた）の両方で知らせる');
 }
 
 console.log(`\n══ ${pass} pass / ${fail} fail ══`);

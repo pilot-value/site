@@ -635,6 +635,82 @@ const pnR = await nx.buildProofNotice('pn-1');
 ck('「証明を求める」の道は「資格確認」のタブへ案内する',
    pnR.html.includes('「資格確認」のタブ') && !pnR.html.includes('申請してきた人'), pnR.html);
 
+/* ── スケジュール（勤務表）の提出 ─────────────────────────── */
+/* ★守るのは便の区間（空港）・時刻・勤務の記号と「誰が出したか」。並べると誰のスケジュールか分かる。
+     メールに出してよいのは、いつ・会社・期間・数（日・便・画像・読めていない所・その会員の何回目か）だけ。
+   ここに出てくる空港・時刻・鍵は全部作り話（実データに出ない並び）。 */
+console.log('\n── スケジュールの提出 ───────────────────');
+{
+  const HASH = 'ab'.repeat(32), SHA = 'cd'.repeat(32);
+  const HIDE = { 鍵: HASH, ファイルの指紋: SHA, 空港1: 'ZZQ', 空港2: 'ZZR', 出頭: '07:15', 出発: '08:05', 記号: 'ZZPTN9', 場所: 'ZZTC' };
+  const hidden = (mail) => Object.entries(HIDE).filter(([, v]) => `${mail.subject}\n${mail.html}`.includes(v)).map(([k]) => k);
+  const leg = (date, kind, block) => ({ proof_hash: HASH, duty_date: date, kind, block_min: block,
+                                        orig: 'ZZQ', dest: 'ZZR', loc: 'ZZTC', t_out: '08:05', t_in: '09:40' });
+  const T = {
+    doc: { id: 'rd-1', created_at: '2026-11-13T02:00:00+00:00', proof_hash: HASH, file_sha: SHA, pages: 4,
+           date_from: '2026-11-01', date_to: '2026-11-03', days: 3, manual: false },
+    mineDocs: [{ id: 'rd-1' }],
+    profile: [{ proof_hash: HASH, airline: 'ANA', codes: { ZZPTN9: 'off' } }],
+    days: [
+      { duty_date: '2026-11-01', code: 'ZZPTN9', d_on: '07:15', d_off: '15:40' },
+      { duty_date: '2026-11-02', code: null, d_on: '07:15', d_off: null },      // 便があるのに解散の時刻が無い
+      { duty_date: '2026-11-03', code: 'ZZPTN9', d_on: null, d_off: null },     // 便の無い日（時刻が無くても数えない）
+    ],
+    legs: [
+      leg('2026-11-01', 'operating', 95), leg('2026-11-01', 'operating', null),  // ブロックタイムが分からない便 1本
+      leg('2026-11-02', 'deadhead', 80), leg('2026-11-02', 'ground', null),      // 地上の業務は便に数えない
+      leg('2026-11-09', 'operating', 60),                                       // 前の提出の日（この提出の日ではない）
+    ],
+  };
+  const asked = [];
+  const before = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    const u = decodeURIComponent(String(url));
+    asked.push(u);
+    const t = u.match(/\/rest\/v1\/([a-z_]+)/)?.[1];
+    const out = t === 'pv_roster_docs' ? (u.includes('manual=is.false') ? T.mineDocs : [T.doc])
+              : t === 'pv_roster_profile' ? T.profile
+              : t === 'pv_roster_days' ? (u.includes('or=(d_on.is.null,d_off.is.null)') ? T.days.filter((d) => !d.d_on || !d.d_off) : T.days)
+              : t === 'pv_roster_legs' ? T.legs : undefined;
+    if (out === undefined) throw new Error(`想定外のテーブル: ${t}`);
+    return { ok: true, json: async () => out };
+  };
+
+  const rd = await nx.buildRosterDoc('rd-1');
+  ck('メールができる', !!rd);
+  ck('★便の区間・時刻・記号・鍵・指紋が1文字も出ない', hidden(rd).length === 0, `漏れた: ${hidden(rd).join(' / ')}`);
+  ck('★SELECT にも空港・時刻・記号・指紋を入れていない',
+     asked.length === 6 && !asked.some((u) => (u.split('select=')[1] || '').split(',')
+       .some((c) => ['orig', 'dest', 'loc', 't_out', 't_in', 'd_on', 'd_off', 'code', 'file_sha', 'flight', '*'].includes(c))),
+     asked.join('\n      '));
+  ck('件名で会社と期間がわかる', rd.subject === '【PILOT VALUE】スケジュールの提出 — ANA / 2026-11-01〜2026-11-03', rd.subject);
+  ck('日数と便のある日', rd.html.includes('3日（便のある日 2日）'), rd.html);
+  ck('便の数（この提出の日だけ・地上の業務は数えない・便乗は内数）', rd.html.includes('3本（うち便乗 1本）'), rd.html);
+  ck('画像の枚数', rd.html.includes('4枚'), rd.html);
+  ck('読めていない所（時刻の無い便のある日・ブロックタイムの分からない便）',
+     rd.html.includes('出頭・解散の時刻が無い日 1日／ブロックタイムが分からない便 1本'), rd.html);
+  ck('初めての提出だとわかる', rd.html.includes('1回目（初めて）'), rd.html);
+
+  T.mineDocs = [{ id: 'rd-0' }, { id: 'rd-00' }, { id: 'rd-1' }];
+  T.days = T.days.map((d) => ({ ...d, d_on: '07:15', d_off: '15:40' }));
+  T.legs = T.legs.map((l) => ({ ...l, block_min: 90 }));
+  const rd3 = await nx.buildRosterDoc('rd-1');
+  ck('同じ会員の3回目は「3回目」', rd3.html.includes('3回目') && !rd3.html.includes('初めて'), rd3.html);
+  ck('欠けが無ければ「なし」', />なし</.test(rd3.html) && !rd3.html.includes('時刻が無い日'), rd3.html);
+
+  T.profile = [];
+  const rdNo = await nx.buildRosterDoc('rd-1');
+  ck('読み方の行が無くても（一覧にない会社など）メールは出る・会社は「—」',
+     !!rdNo && rdNo.subject.includes('— — /') && hidden(rdNo).length === 0, rdNo && rdNo.subject);
+
+  /* ★手で1日を直したときの置き場（manual）は提出ではない。知らせると、直すたびにメールが飛ぶ。 */
+  T.doc = { ...T.doc, manual: true };
+  ck('★手で直した日の置き場（manual）ではメールを出さない', (await nx.buildRosterDoc('rd-1')) === null);
+  T.doc = { ...T.doc, manual: false, proof_hash: 'not-a-hash' };
+  ck('鍵の形が違う行ではメールを出さない（条件に入れて引かない）', (await nx.buildRosterDoc('rd-1')) === null);
+  globalThis.fetch = before;
+}
+
 /* ════════════════════════════════════════════════════════════════
    ③ ビルダーと Webhook のトリガの顔ぶれが一致すること
    ════════════════════════════════════════════════════════════════ */
@@ -650,8 +726,9 @@ const aBlock = sql.slice(aStart, sql.indexOf('] loop', aStart));
 const tables = [...aBlock.matchAll(/'([a-z_0-9]+)'/g)].map((m) => m[1]).sort();
 
 /* 2026-10-29 pv_review_pending（ログインせずに出した口コミの預かり）を足して9つ。
-   2026-11-03 pv_proof_notice（パイロット確認の画像が届いた印）を足して10。 */
-ck('ビルダーを10持っている', builders.length === 10, builders.join(', '));
+   2026-11-03 pv_proof_notice（パイロット確認の画像が届いた印）を足して10。
+   2026-11-13 pv_roster_docs（スケジュールの提出）を足して11。 */
+ck('ビルダーを11持っている', builders.length === 11, builders.join(', '));
 ck('index.ts の builders と db/notify-admin-webhooks.sql の表が同じ',
    JSON.stringify(builders) === JSON.stringify(tables),
    `builders: ${builders.join(', ')}\n      webhooks: ${tables.join(', ')}`);
@@ -685,6 +762,9 @@ console.log('\n── SQL の形 ───────────────�
   ck('★pv_request_likes は Webhook を作らない', !live.includes("'pv_request_likes'"));
   /* ★画像の表は入れない。行に画像そのものが入っていて、Webhook が丸ごと送る。 */
   ck('★pv_proof_images は Webhook を作らない', !live.includes("'pv_proof_images'"));
+  /* ★スケジュールは「1回の提出＝1行」の表だけ。日・便の表に付けると、1回の提出で何十通も飛ぶ。 */
+  ck('★スケジュールは pv_roster_docs だけ（日・便の表には Webhook を作らない）',
+     live.includes("'pv_roster_docs'") && !live.includes("'pv_roster_days'") && !live.includes("'pv_roster_legs'"));
 }
 
 /* ════════════════════════════════════════════════════════════════

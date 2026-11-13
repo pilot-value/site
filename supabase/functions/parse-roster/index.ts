@@ -48,7 +48,8 @@
      PV_ROSTER_DAILY        … 任意。1人1日の枚数（既定 60・最大 100）
      PV_ROSTER_GLOBAL_LIMIT … 任意。全体1日の枚数（既定 100）
      PV_ROSTER_MONTH_LIMIT  … 任意。全体1か月の枚数（既定 1000・0 で見ない）
-     RESEND_API_KEY         … 任意。天井に当たった／鍵が死んだときに info@ へ1通
+     RESEND_API_KEY         … 任意。天井に当たった／鍵が死んだとき、取り込みで失敗があったときに info@ へ1通
+                              （失敗の知らせは1日30通まで・2026-11-13）
      ROSTER_WORD_KEY        … 任意。辞書に無い日の言葉を札（#＋16桁）にする鍵（長いでたらめな文字列）。
                               無ければ今までどおり unread。⚠️ 一度入れたら変えない・消さない
                               （変えると、会員が教えた札の意味が全部別の札になって使えなくなる）。
@@ -61,13 +62,13 @@ const DENO = (globalThis as any).Deno;
 const env = (k: string, d = '') => (DENO?.env?.get(k) ?? d) as string;
 
 /* ★このファイルを直したら必ず上げる（貼った版を {ping:1} で読むための札）。 */
-export const BUILD = '2026-11-11';
+export const BUILD = '2026-11-13';
 
 const ANTHROPIC_API_KEY = env('ANTHROPIC_API_KEY');
 const SUPABASE_URL = env('SUPABASE_URL');
 const SERVICE_ROLE = env('SUPABASE_SERVICE_ROLE_KEY');
 const IP_SALT = env('PV_IP_SALT');
-const RESEND_KEY = env('RESEND_API_KEY');
+const resendKey = () => env('RESEND_API_KEY');   // 呼ばれるたびに読む（secret を入れたら次の1通から）
 const ADMIN_EMAIL = env('ADMIN_EMAIL', 'info@pilot-value.com');
 const FROM_EMAIL = env('FROM_EMAIL', 'PILOT VALUE <noreply@pilot-value.com>');
 
@@ -950,11 +951,12 @@ async function takeQuota(subject: string): Promise<QuotaRes> {
 
 /* 知らせは固定の文と数だけ（画像・勤務表の文字・人は入らない）。失敗しても読み取りの動作は変えない。 */
 async function mailOwner(key: string, subject: string, text: string): Promise<void> {
-  if (!RESEND_KEY) return;
+  const rk = resendKey();
+  if (!rk) return;
   try {
     await fetch('https://api.resend.com/emails', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json', 'Idempotency-Key': key },
+      headers: { Authorization: `Bearer ${rk}`, 'Content-Type': 'application/json', 'Idempotency-Key': key },
       body: JSON.stringify({ from: FROM_EMAIL, to: [ADMIN_EMAIL], subject, text }),
     });
   } catch { /* 通知が落ちても読み取りは変えない */ }
@@ -990,12 +992,174 @@ export function isFatalKeyError(status: number, errType: string): boolean {
   return status === 400 && errType === 'invalid_request_error';
 }
 
-/* 画面の中で止まった失敗の知らせ。理由の語・段・大きさ（KB）だけを受け取り、ログに1行（DB にもメールにも行かない）。 */
+/* 画面の中で止まった失敗の知らせ。理由の語・段・大きさ（KB）だけを受け取り、ログに1行と、運営へ1通（下の「失敗の知らせ」）。
+   ★roster-upload.js の report() が送る語。save_* は保存（submit_roster）で止まったとき（2026-11-13）。 */
 export const CLIENT_REASONS = new Set([
   'network', 'timeout', 'prep_failed', 'apply_failed', 'too_large', 'bad_type',
   'image_decode', 'image_blank', 'image_timeout', 'pdf_locked', 'pdf_xfa', 'pdf_blank', 'pdf_broken', 'pdf_timeout',
+  'save_limit', 'save_bad', 'save_login', 'save_failed',
 ]);
-export const CLIENT_STAGES = new Set(['network', 'timeout', 'prep', 'apply', 'file']);
+export const CLIENT_STAGES = new Set(['network', 'timeout', 'prep', 'apply', 'file', 'save']);
+
+/* ────────────────────────────────────────────────────────────────
+   取り込みで失敗があったら、運営にすぐ知らせる（2026-11-13・オーナー「エラーがある人がいたらメール」）。
+   parse-payslip の失敗の知らせと同じ考え。
+
+   ★メールに入れるのは固定の語と数だけ（理由のコード・段・秒・画像の大きさ・何枚目・AI の止まり方・今日の回数）。
+     人・会社・画像・勤務表の文字・AI の答えは1文字も入らない（入れる口が無い）。
+   ★1日 FAIL_MAIL_MAX 通まで。数えるのは回数と同じ pv_parse_quota_take_v2（札は FAIL_SUBJECT）＝新しい SQL は無い。
+     数えられないとき（DB に届かない）は、このインスタンスの中の数と Idempotency-Key（同じ理由は10分に1通）で止める。
+   ★形の違う呼び出し（400 番台）・全体の上限は知らせない（全体の上限には alertCap がある）。
+   ★知らせは返事を返したあとに送る（EdgeRuntime.waitUntil）。本人を待たせない。知らせが落ちても返事は変えない。
+   ──────────────────────────────────────────────────────────── */
+export const FAIL_MAIL_MAX = 30;
+export const FAIL_SUBJECT = 'mail:roster-fail';   // pv_parse_quota の札（読み取りの回数の札 'r:…'・箱 'roster' と別）
+export const FAIL_BUCKET = 'mail:roster';
+
+/* 本人側の失敗（別の書類・暗い画像・1日の上限）。それ以外のサーバーの失敗は、こちら側の失敗。 */
+const USER_SIDE_CODES = new Set(['not_a_roster', 'undated', 'read_refused', 'rate_limited']);
+
+/* 理由の語 → 運営が読む日本語。件名には「（」より前だけを使う。 */
+const WHY: Record<string, string> = {
+  upstream_timeout: 'AI の返事が時間内に来なかった（時間切れ）',
+  upstream_unreachable: 'AI のサーバーにつながらなかった',
+  upstream_fatal: 'API の鍵か残高の問題（直すまで全員が失敗します）',
+  upstream_body: 'AI の返事が途中で壊れていた',
+  read_truncated: 'AI の答えが長すぎて途中で切れた',
+  read_bad_format: 'AI の答えの形が崩れていた',
+  sanitize_threw: '答えを整える所で落ちた（こちらのコードの問題）',
+  read_refused: 'AI が読むのを断った（写っている物の問題のことが多い）',
+  not_a_roster: 'スケジュールとして読める所が無かった（暗い・ぼやけている・別の書類・知らない書式）',
+  undated: '何月のスケジュールか決まらなかった（画面が月を聞き直します）',
+  rate_limited: '1人の1日の上限に達した（その人の読み取りを明日まで止めています）',
+  quota_unavailable: '回数を数える DB に届かず、読み取りを止めている（DB の障害の可能性）',
+  network: '通信が切れた（サーバーから返事が無かった）',
+  timeout: 'ブラウザが返事を待ちきれなかった',
+  prep_failed: '送る画像を作れなかった',
+  apply_failed: '読めた中身を画面に入れる所で落ちた（こちらの画面の問題）',
+  too_large: 'ファイルが大きすぎた',
+  bad_type: '受け付けない種類のファイルだった',
+  image_decode: '写真を開けなかった（HEIC などの形式の可能性）',
+  image_blank: '画像が真っ白か真っ黒に見えた',
+  image_timeout: '画像の準備に時間がかかりすぎた',
+  pdf_locked: 'パスワード付きの PDF だった',
+  pdf_xfa: '開けない形式の PDF（XFA）だった',
+  pdf_blank: 'PDF の中身が空だった',
+  pdf_broken: 'PDF を開けなかった',
+  pdf_timeout: 'PDF の準備に時間がかかりすぎた',
+  save_limit: '保存の上限に当たった（1日の取り込み回数・日数・大きさのどれか）',
+  save_bad: '読み取った中身の形を、保存の検品が通さなかった（こちらのコードの問題のことが多い）',
+  save_login: '保存のときにログインが切れていた',
+  save_failed: '保存できなかった（通信か DB の問題）',
+};
+export function whyText(code: string): string {
+  if (WHY[code]) return WHY[code];
+  const m = /^upstream_(\d{3})$/.exec(code);
+  if (m) {
+    const s = Number(m[1]);
+    if (s === 429 || s === 529) return 'AI 側が混雑している（時間で直ることが多い）';
+    if (s >= 500) return 'AI 側の障害（時間で直ることが多い）';
+    return 'AI に断られた（頼み方の問題）';
+  }
+  return '分類していない失敗';
+}
+
+/* ★欄はこれだけ（固定の語と数。中身を運ぶ欄を足さない）。 */
+export type FailInfo = {
+  code: string; where: 'server' | 'browser'; stage: string;
+  ms: number; kb: number; stop: string; status: number; page: number; pages: number;
+};
+
+/* メール1通の件名と本文。★固定の語と数だけで組む（検査が中身を見る）。n ＝ 今日の何回目か（数えられなければ null）。 */
+export function failMail(f: FailInfo, n: number | null, at: Date): { subject: string; text: string } {
+  const side = f.where === 'browser' ? 'ブラウザの中' : USER_SIDE_CODES.has(f.code) ? '本人側' : 'こちら側';
+  const jst = at.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', hour12: false });
+  const why = whyText(f.code);
+  const what = f.stage === 'save' ? '保存' : '読み取り';
+  const word = (v: string) => (/^[a-z0-9_]{1,40}$/.test(v) ? v : '-');   // 固定の語の形だけ通す
+  const L: string[] = [
+    `スケジュール（勤務表）の${what}に失敗しました（${jst}）。`,
+    '',
+    `理由：${why}`,
+    `どこで：${side}（段 ${word(f.stage)}・コード ${word(f.code)}）`,
+  ];
+  if (f.where === 'server') {
+    L.push(`かかった時間：${(f.ms / 1000).toFixed(1)}秒／画像 ${f.kb}KB／${f.page}枚目（全 ${f.pages}枚）／AI の止まり方 ${word(f.stop)}／HTTP ${f.status || '-'}`);
+    if (f.code === 'rate_limited') L.push(`1人の1日の上限は ${DAILY_LIMIT} 枚です（上げるなら Supabase → Edge Functions → Secrets の PV_ROSTER_DAILY・最大 100）。`);
+  } else if (f.kb) {
+    L.push(`画像：${f.kb}KB`);
+  }
+  L.push(
+    '',
+    n === null
+      ? '今日の回数は数えられませんでした（DB に届かない）。'
+      : `今日の失敗：${n} 回目（この知らせは1日 ${FAIL_MAIL_MAX} 通まで）`,
+    '',
+    '見るところ:',
+    '・ログ：Supabase → Edge Functions → parse-roster → Logs の「pv-roster」の行（画面の中の失敗は「pv-roster-client」）',
+    '・誰の失敗かは、メールにもログにも残していません。',
+  );
+  return { subject: `[PILOT VALUE] スケジュールの${what}に失敗：${why.replace(/（.*$/, '')}`, text: L.join('\n') };
+}
+
+/* 返事を返したあとも走らせる（Supabase の EdgeRuntime.waitUntil）。無い所（手元の検査）では待つ。 */
+function later(p: Promise<unknown>): Promise<void> {
+  // deno-lint-ignore no-explicit-any
+  const ER: any = (globalThis as any).EdgeRuntime;
+  const safe = p.then(() => {}, () => {});
+  if (ER && typeof ER.waitUntil === 'function') { ER.waitUntil(safe); return Promise.resolve(); }
+  return safe;
+}
+
+/* 今日の何通目か。上限を超えたら 'over'・数えられなければ null。 */
+async function failSlot(): Promise<number | 'over' | null> {
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), 3000);
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/pv_parse_quota_take_v2`, {
+      method: 'POST',
+      headers: { apikey: SERVICE_ROLE, Authorization: `Bearer ${SERVICE_ROLE}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        p_subject: FAIL_SUBJECT, p_limit: FAIL_MAIL_MAX, p_global_limit: 1000000, p_month_limit: 0, p_bucket: FAIL_BUCKET,
+      }),
+      signal: ac.signal,
+    });
+    if (!res.ok) return null;
+    const out = await res.json();
+    if (!isObj(out)) return null;
+    if (out.ok === true && typeof out.n === 'number' && Number.isFinite(out.n)) return out.n;
+    return out.cap === 'subject' ? 'over' : null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/* DB に届かないときだけ使う、このインスタンスの中の数（洪水よけ）。 */
+let looseDay = '';
+let looseCount = 0;
+const looseKeys = new Set<string>();
+async function sendFailMail(f: FailInfo): Promise<void> {
+  if (!resendKey()) return;
+  const at = new Date();
+  const day = at.toISOString().slice(0, 10);
+  const n = await failSlot();
+  if (n === 'over') return;
+  let key: string;
+  if (n !== null) {
+    key = `roster-fail:${day}:${n}`;
+  } else {
+    if (looseDay !== day) { looseDay = day; looseCount = 0; looseKeys.clear(); }
+    key = `roster-fail:${day}:${f.code}:${at.toISOString().slice(11, 15)}`;   // 同じ理由は10分に1通
+    if (looseKeys.has(key)) return;              // インスタンスの中はここで止め、跨ぐぶんは Idempotency-Key が止める
+    if (++looseCount > FAIL_MAIL_MAX) return;
+    looseKeys.add(key);
+  }
+  const m = failMail(f, n, at);
+  await mailOwner(key, m.subject, m.text);
+}
+const noteFail = (f: FailInfo): Promise<void> => later(sendFailMail(f));
 
 /* ════════════════════════════════════════════════════════════════
    入口
@@ -1036,6 +1200,7 @@ export async function handler(req: Request): Promise<Response> {
     if (!CLIENT_REASONS.has(why) || !CLIENT_STAGES.has(where)) return json({ ok: false, reason: 'bad_report' }, 400);
     const kb = typeof rp.kb === 'number' && Number.isFinite(rp.kb) ? Math.max(0, Math.min(99999, Math.round(rp.kb))) : 0;
     console.log('pv-roster-client', JSON.stringify({ build: BUILD, code: why, stage: where, kb }));
+    await noteFail({ code: why, where: 'browser', stage: where, ms: 0, kb, stop: '', status: 0, page: 0, pages: 0 });
     return json({ ok: true });
   }
   /* ★ここから下、受け取ったものの中身を console に出さない（画像も勤務表の文字も）。 */
@@ -1059,18 +1224,25 @@ export async function handler(req: Request): Promise<Response> {
       if (q.trip) await alertCap(q.cap);
       return json({ ok: false, reason: 'rate_limited_global' }, 429);
     }
-    if (q.cap === 'subject') return json({ ok: false, reason: 'rate_limited', limit: DAILY_LIMIT }, 429);
+    const kb0 = Math.round((b64.length * 3) / 4 / 1024);
+    const stopped = (code: string): FailInfo => ({ code, where: 'server', stage: 'quota', ms: 0, kb: kb0, stop: '', status: 0, page, pages });
+    if (q.cap === 'subject') {
+      await noteFail(stopped('rate_limited'));
+      return json({ ok: false, reason: 'rate_limited', limit: DAILY_LIMIT }, 429);
+    }
     console.error('pv-roster quota unavailable');
+    await noteFail(stopped('quota_unavailable'));
     return json({ ok: false, reason: 'quota_unavailable' }, 503);
   }
 
   /* ── 読み取り。ログは1回につき1行（readDiag の固定の欄だけ）─────── */
   const diag = readDiag(b64.length, page, pages);
   const t0 = Date.now();
-  const finish = (reason: string, code: string) => {
+  const finish = async (reason: string, code: string) => {
     diag.code = code;
     diag.ms = Date.now() - t0;
     console.log('pv-roster', JSON.stringify(diag));
+    await noteFail({ code, where: 'server', stage: diag.stage, ms: diag.ms, kb: diag.kb, stop: diag.stop, status: diag.status, page, pages });
     return json({ ok: false, reason, build: BUILD }, 200);
   };
 

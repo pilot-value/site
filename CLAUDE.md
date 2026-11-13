@@ -638,6 +638,16 @@ baland_ass/                            ブランド資産（※ brand_assets の
 - 見るもの：`node db/test-roster.mjs`（sql）／`node db/test-roster-parse.mjs`・`node db/test-report-engine.mjs`・`node db/test-roster-ui.mjs`（fast）。
   読み取りの精度は `node db/eval-roster.mjs`（**費用あり・手で流す**。作り物6形式＋`--dir` でネットの見本。check.mjs に入れない）。
 - **本番の作業（OK のあと）**：`db/roster.sql` を貼る → `parse-roster` を Deploy（secrets は parse-payslip と同じ・任意で `PV_ROSTER_DAILY` など）→ push。
+- ★**運営への知らせ2つ**（2026-11-13 オーナー「エラーがある人がいたらメール・提出した人がいたときもメール」）。どちらも info@ へ。
+  - **失敗**は `parse-roster` が送る（1回の失敗＝1通・**1日30通まで**）── 読み取りの失敗・1人の1日の上限・回数の DB に届かない・
+    画面の中の失敗・**保存の失敗**（`roster-upload.js` の `report()` が `save_limit` / `save_bad` / `save_login` / `save_failed` を段 `save` で送る）。
+    通数は読み取りの回数と同じ `pv_parse_quota_take_v2` で数える（札 `mail:roster-fail`＝新しい SQL は無い。`db/usage.mjs` は `roster`・`r:`・`mail:` の札を明細の回数に入れない）。
+    ⚠️ メールに入るのは固定の語と数だけ（`failMail`）。**人・会社・画像・勤務表の字を入れる欄を足さない。**
+    ⚠️ 画面が送る語を足したら `parse-roster` の `CLIENT_REASONS` / `CLIENT_STAGES` と `WHY` にも足す（足さないと 400 で捨てられ、知らせが黙って届かない）。
+  - **提出**は `notify-admin` の `pv_roster_docs`（1回の提出＝1行＝1通。Webhook は `db/notify-admin-webhooks.sql`）。
+    載せるのは会社・期間・数（日・便・画像・読めていない所・その会員の何回目か）だけ。⚠️ **便の区間（空港）・時刻・勤務の記号・鍵を載せない**（SELECT にも入れない）。
+    ⚠️ 日の表・便の表（`pv_roster_days` / `pv_roster_legs`）に Webhook を付けない（1回の提出で何十通も飛ぶ）。手で直した日の置き場（`manual`）では送らない。
+  - 見るもの：`node db/test-roster-parse.mjs` の K／`node assert-admin-notify.mjs`。本番に入れる順は **Deploy 2本（parse-roster・notify-admin）→ `db/notify-admin-webhooks.sql` を貼る → push**（どの順でも壊れない）。
 - ★2026-11-09 夜（オーナーが本番で見た・取り込んだあとの直し）
   - **MY PAY｜MY PAGE のタブ**は my-value.js の `pageTabs()`（main の子を2つの面へ移す・JS が落ちれば今までの縦並び）。
     ★2026-11-12 オーナー「最初に表示させるのは MY PAY・順番は MY PAY → MY PAGE」── 印が無ければ MY PAY。

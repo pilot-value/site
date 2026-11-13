@@ -79,7 +79,7 @@
        （db/test-year-report.mjs が中身と突き合わせる）。計算の部品は分析のタブも使う。 */
   var ROSTER_V = 'fd52ee85';
   var ROSTER_CSS_V = '4b57ef14';
-  var UPLOAD_V = '546270b4';
+  var UPLOAD_V = '291ef805';
   var ENGINE_V = '18e2d031';
   var AIRPORT_TZ_V = 'ec27da34';   // ★2026-11-11 空港 → タイムゾーンの表（pv-airport-tz.js・現地時刻の便の時間）
   /* ★「分析」のタブ（2026-11-09）。開いたときだけ読む2本（見た目 → 計算の部品 → 画面の順）。指紋の決まりは上と同じ */
