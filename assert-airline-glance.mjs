@@ -926,7 +926,8 @@ for (const s of FIVE) {
       for (const t of tps) {
         const views = [...new Set([...t.body.matchAll(/ data-pvc-open="([^"]*)"/g)].map(m => m[1]))];
         const rows = [...t.body.matchAll(/ data-pvc-q="([a-z0-9_]+)"/g)].map(m => m[1]);
-        const want = ASKABLE.filter(id => groupOf(id) === views[0] && !MONEY_Q.includes(id));
+        /* 続きの質問（deep）は札の下に並べない ── 答える面では親のすぐ下に出る */
+        const want = ASKABLE.filter(id => groupOf(id) === views[0] && !MONEY_Q.includes(id) && !QBY.get(id).deep);
         const lost = want.filter(id => !rows.includes(id)), extra = rows.filter(id => !want.includes(id));
         if (lost.length) bad.push(`${t.id}: 並んでいない質問 ${lost.join(' ')}`);
         if (extra.length) bad.push(`${t.id}: ほかの話題か額の質問 ${extra.join(' ')}`);
@@ -957,7 +958,9 @@ for (const s of FIVE) {
       const slot = /^<p class="pvg-askh">集まった回答<\/p><div class="crl" data-live="fact"([^>]*)><span class="crl-ph">—<\/span>$/.exec(got);
       const keys = slot ? (one(slot[1], / data-keys="([^"]*)"/) || '').split(',').filter(Boolean) : [];
       const asked = [...new Set(tps.flatMap(t => [...t.body.matchAll(/ data-pvc-q="([a-z0-9_]+)"/g)].map(m => m[1])))];
-      ok(card.split('data-live="fact"').length === 2 && !!slot && keys.length > 0 && same([...keys].sort(), [...asked].sort()),
+      /* 欄が指すのは、並ぶ質問とその続きの質問（deep）── 続きの答えは親のカードの中の1行で出る */
+      const follow = QUESTIONS.filter(q => q.deep && asked.includes(q.parent)).map(q => q.id);
+      ok(card.split('data-live="fact"').length === 2 && !!slot && keys.length > 0 && same([...keys].sort(), [...asked, ...follow].sort()),
          `${s}: 回答の数が出るのは「集まった回答」の欄1つだけ ── 「—」で出荷し、${ASK_N}つの話題の質問を全部指している`, `欄 ${card.split('data-live="fact"').length - 1}つ・指す質問 ${keys.length}・並ぶ質問 ${asked.length}`);
     }
   }
@@ -8326,6 +8329,8 @@ async function runGiveOpen(browser, s, [w, h]) {
         }, { timeout: 15000 }, want).then(() => true, () => false);
       };
       const label = id => QBY.get(id).ja.short;
+      const heads = () => ev(() => [...document.querySelectorAll('.pvg-askc .pvg-got .crl-tile-k')].map(k => k.textContent).join('|'));
+      const before = await heads();
       const came = await reread('giveCue', label('external_hiring'));
       const got = await ev(() => {
         const card = document.querySelector('.pvg-askc');
@@ -8358,8 +8363,14 @@ async function runGiveOpen(browser, s, [w, h]) {
         }
       }
       ok(!bad.length, `${tag}: 続きの質問への誘い ── 「一部」と「回答が分かれています」のカードにだけ、続きの質問を指す1行（行き先は親の行と同じ）・続きがそろえば「名前：答え」の1行・続きの無い親には出さない`, bad.slice(0, 5).join(' ／ '));
-      const back = await reread('giveOpen', QBY.get(FACT_ROWS[0].question_id).ja.short);
-      ok(back, `${tag}: 返事を戻すと、今までの行に読み直される`);
+      /* 戻ったかは、替える前のカードの見出しの並びが1文字も違わずに戻ったかで見る */
+      seen.mode = 'giveOpen';
+      await ev(() => document.dispatchEvent(new CustomEvent('pvc:saved', { detail: { topic: 'roster' } })));
+      const back = await p.waitForFunction(want => {
+        const slot = document.querySelector('.pvg-askc .pvg-got .crl[data-live="fact"]');
+        return !!slot && slot.dataset.state === 'open' && [...slot.querySelectorAll('.crl-tile-k')].map(k => k.textContent).join('|') === want;
+      }, { timeout: 15000 }, before).then(() => true, () => false);
+      ok(!!before && back, `${tag}: 返事を戻すと、今までの行に読み直される`, before);
     }
     /* 行が出た形で測る（鍵の無い会員の場面の同じ2本は、行の無い画面を測っている）。 */
     const geo = await ev(() => window.__pvg.geom(true));

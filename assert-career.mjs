@@ -55,6 +55,7 @@ import { researchCities } from './airline-rollout.mjs';
 import { atText, atTextEn } from './career-facts.mjs';
 /* 拠点の街の家賃の棒（★P12.131）の円の額は、サイトの1つの為替の表（円の行の字と同じ）から作り直す */
 import { JPY_PER } from './fx-rates.mjs';
+import { QUESTIONS as CQ } from './pv-conditions.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 /* 2026-10-21（P12.86-9）：開く先は PV_BASE で替えられる（serve-local の自分のポートで流すため。3000 は本番の DB につながる）。既定は今までどおり */
@@ -3549,10 +3550,12 @@ try {
     /* T-L5（会社ページの半分）：会社ページがタブに出す会員の回答の質問は、比較でも同じ節の下に在る（「詳しく」の先と食い違わない）。
        会社ページは直さない ── 赤くなったら直すのは gen-career.mjs の tabOfKey（決まり）。 */
     const LISTS = { work: CMP_KEYS.work, pay: CMP_KEYS.pay };
+    const FOLLOW = new Set(CQ.filter(q => q.deep).map(q => q.id));
     for (const s of FIVE) {
       const P = await companyPage(s);
       for (const T of ['work', 'pay']) {
-        const pageT = [...new Set(P.facts.filter(f => f.panes.includes(T)).flatMap(f => f.keys))];
+        /* 続きの質問（deep）はカードの中の1行だけで、比較の節には並べない ── 数えない。 */
+        const pageT = [...new Set(P.facts.filter(f => f.panes.includes(T)).flatMap(f => f.keys))].filter(k => !FOLLOW.has(k));
         ok(pageT.length > 0, `${name(s)}: 会社ページの「${T}」のタブに、会員の回答の欄が在る`, JSON.stringify(P.facts.map(f => f.panes)));
         const off = pageT.filter(k => !LISTS[T].includes(k) || Object.entries(LISTS).some(([o, l]) => o !== T && l.includes(k)));
         ok(pageT.length > 0 && !off.length, `${name(s)}: 会社ページがそのタブ（${T}）に出す質問は、比較でも同じ節の下に在る（「詳しく」の先と食い違わない）`,

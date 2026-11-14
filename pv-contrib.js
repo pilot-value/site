@@ -2949,7 +2949,8 @@
       /* 上の質問の答えで出てくる「続きの質問」には印を付ける（pv-contrib.css の .pvc-kid ＝ 左に線・1段下げる）。
          続きの続きも同じ1段（下げ幅を重ねない）。上の質問がこの項目に無い質問は、いちばん上として出るので付けない。 */
       var kid = !!q.parent && qs.some(function (o) { return o.id === q.parent; });
-      if (!(topic === 'taxi' && q.note)) {
+      /* 畳むのは「上限」の質問だけ（続きの質問 deep も補足を持つが、ふつうの行で出す） */
+      if (!(topic === 'taxi' && q.note && !q.deep)) {
         var fd = fieldFor(q, false);
         if (kid) fd.className += ' pvc-kid';
         moreFor(q, fd);
@@ -3249,7 +3250,7 @@
         var a = sm[q.id];
         if (!hasValue(a) || !chainSaved(q, sm)) return;
         sumRow(dl, q.id, loc(q).label, answerText(q, a), true);
-        if (trim(a.text)) sumRow(dl, q.id + '_note', topic === 'taxi' && q.note ? TX.capNote : TX.note, trim(a.text), true);
+        if (trim(a.text)) sumRow(dl, q.id + '_note', topic === 'taxi' && q.note && !q.deep ? TX.capNote : TX.note, trim(a.text), true);
       });
     }, function () {
       /* 「自分の回答を見る」は、いま保存した質問の所まで送る（長い項目では、保存した答えが最初の1画面の下に在り、
