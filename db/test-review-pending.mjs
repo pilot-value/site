@@ -88,7 +88,7 @@ await db.query(`insert into public.pv_admins(user_id) values($1)`, [uid(9)]);
 const MARK = '【預かりの末尾の目印】';
 const body = (head) => head + 'あ'.repeat(120) + MARK;              // 1欄 120字超
 const good = (air, extra = {}) => ({
-  airline: air, position: 'fo', tenure_bucket: '5-10', age_bucket: '30-34', fleet: 'a320', job_role: 'line',
+  airline: air, position: 'fo',          // ★聞くのは航空会社と職位だけ（2026-11-14 オーナー決定）
   culture_score: 4, salary_score: 3, benefits_score: 4, wlb_score: 3, ops_score: 4, training_score: 5,
   culture_comment: body('預かりの口コミです。'), salary_comment: body('給与の話です。'), wlb_comment: body('勤務の話です。'),
   lang: 'ja', ...extra,
@@ -105,8 +105,21 @@ let T1;
   T1 = r.claim_token;
   ok(J(Object.keys(r).sort()) === J(['claim_token', 'id', 'ok']) && /^[0-9a-f]{48}$/.test(r.claim_token),
      '未ログインで預けられる・返るのは預かり証だけ', J(r));
+  /* ★勤務年数・年代・機材・役割を送らなくても預けられる（2026-11-14）。必須に戻すと、上の1件目からここで落ちる。
+     古いページ（数時間ブラウザに残っていたもの）が値を送ってきても通る。 */
+  {
+    await asOwner();
+    const row = (await db.query(`select tenure_bucket, age_bucket, fleet, job_role from public.pv_review_pending where claim_token = $1`, [T1])).rows[0];
+    ok(row && row.tenure_bucket === null && row.age_bucket === null && row.fleet === null && row.job_role === null,
+       '★今のフォーム（航空会社と職位だけ）で預けられ、4つの列は空のまま', J(row));
+    await asAnon();
+    const legacy = await submit(good('jal', { tenure_bucket: '5-10', age_bucket: '30-34', fleet: 'a320', job_role: 'line' }));
+    const legacyBlank = await boom(`select public.submit_review_pending($1::jsonb)`, [J(good('jal', { tenure_bucket: '', age_bucket: '' }))]);
+    ok(legacy && legacy.ok === true && legacyBlank === null, '古いページが4つを送ってきても（空でも）通る', legacyBlank || J(legacy));
+    await asOwner(); await db.query(`delete from public.pv_review_pending where airline = 'jal'`); await asAnon();
+  }
   const bad = [
-    ['航空会社が空', { airline: ' ' }], ['職位が知らない値', { position: 'cadet' }], ['勤務年数が空', { tenure_bucket: '' }],
+    ['航空会社が空', { airline: ' ' }], ['職位が知らない値', { position: 'cadet' }], ['勤務年数の形が違う', { tenure_bucket: '99' }],
     ['年代の形が違う', { age_bucket: '30代' }], ['点が無い', { ops_score: null }], ['点が6', { ops_score: 6 }],
     ['1欄が300字を超える', { culture_comment: 'う'.repeat(301) }],
     ['本文の合計が300字に足りない', { culture_comment: 'え'.repeat(100), salary_comment: null, wlb_comment: null }],
@@ -248,7 +261,7 @@ const leftover = async (t) => (await one(
      '★行・預かり証・時刻・航空会社・言語は残る（出したのに登録しなかった人を数えるため）', J(kept));
   const mine = await one(`select * from public.reviews_v2 where proof_hash = $1`, [h]);
   ok(mine && String(mine.culture_comment).includes(MARK) && String(mine.wlb_comment).includes(MARK)
-       && mine.culture_score === 4 && mine.training_score === 5 && mine.position === 'fo' && mine.fleet === 'a320',
+       && mine.culture_score === 4 && mine.training_score === 5 && mine.position === 'fo' && mine.airline === 'ana',
      '★本人の口コミ（reviews_v2）は中身ごと入ったまま（消したのは預かりの写しだけ）');
   await asUser(2);
   ok((await claim(T1)).reason === 'already_claimed', '★中身を消したあとも、もう一度引き取ろうとすると「済み」（「無い」にならない）');
@@ -332,8 +345,18 @@ console.log('\n▼ 6. 既に引き取ってあった行の中身を1回で消す
      '★一覧と Vote の流れるカードは1文字も変わらない（引き取り済みの行はもともと出ていない）');
   await asOwner();
   const res = await selfCheck();
-  ok(res.length === 7 && res.every((x) => x['結果'] === '✅'), '★自己点検が7行すべて ✅',
+  ok(res.length === 9 && res.every((x) => x['結果'] === '✅'), '★自己点検が9行すべて ✅',
      res.filter((x) => x['結果'] !== '✅').map((x) => x['見るところ']).join(' | '));
+  /* 壊す証明（2026-11-14）：勤務年数を NOT NULL に戻すと 8行目が ❌ になり、貼り直すと外れる。
+     空の行があると NOT NULL にできないので、仮に埋めてから戻す（全部まとめて巻き戻す＝行は1つも変わらない） */
+  await db.exec(`begin; update public.reviews_v2 set tenure_bucket = coalesce(tenure_bucket, '1-5');
+                 alter table public.reviews_v2 alter column tenure_bucket set not null`);
+  const broken = (await selfCheck()).find((x) => x['#'] === 8);
+  await db.exec(SRC);
+  const fixed = (await selfCheck()).find((x) => x['#'] === 8);
+  await db.exec(`rollback`);
+  ok(broken && broken['結果'] === '❌' && fixed && fixed['結果'] === '✅',
+     '…（壊す証明）勤務年数が NOT NULL だと8行目が ❌・このファイルを貼ると外れる', J({ broken, fixed }));
   await db.exec(SRC);
   ok(J(await Promise.all(openToks.map(leftover))) === J(openBefore) && J(await leftover(OLD[0])) === '{}',
      'もう一度貼っても同じ（冪等）');

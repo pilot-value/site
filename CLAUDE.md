@@ -518,6 +518,11 @@ baland_ass/                            ブランド資産（※ brand_assets の
 
 ## ログインなしの口コミ（2026-10-29・給与提出と同じ「預かり → 引き取り」）
 
+- ★**口コミで聞くのは航空会社と職位だけ**（2026-11-14 オーナー決定「勤務年数と年代と機種は聞かない。役職区分も不問」）。
+  [submit-review.html](submit-review.html)（日英・es は生成）に欄を戻さない。⚠️ `pv_validate_review_payload` で勤務年数・年代を必須に戻さない
+  （今のフォームは送らない＝ログインなしの口コミが全部はじかれる）。`reviews_v2` の2列は NOT NULL を外した（`db/review-pending.sql` の 0 章）。
+  過去の口コミの勤務年数は Vote・会社ページに今までどおり出る（空なら「勤務年数 —」と出さず、その部分ごと飛ばす）。
+  見た目は給与フォームと同じ物差し（「ステップ n/3」・押すだけのボタン・緑・字は 700 まで）。
 - **書く口**：[db/review-pending.sql](db/review-pending.sql) の `submit_review_pending`（未ログイン・形をサーバーでも確かめる・同じ回線1日5件）。
   **表** `pv_review_pending` と読む側は [db/reviews-gate.sql](db/reviews-gate.sql)（**貼る順はこちらが先**）。
 - **預かった時点で一覧に出る**（オーナー決定）── `pv_reviews` / `pv_vote_latest` が引き取っていない預かりを混ぜる（`pending: true`）。本文の規則は普通の口コミと同じ。

@@ -3,8 +3,10 @@
    SSOT（pv-vocab.mjs）から入力語彙を生成する。
 
      pv-vocab.mjs ──┬─→ pv-vocab.json           （ブラウザ用・給与レポートが読む）
-                    ├─→ submit-review.html      #f-fleet / #f-jobrole
-                    └─→ en/submit-review.html   同上
+                    └─→ pay-report.html / en/pay-report.html（給与フォームの選択肢）
+
+   ★口コミのフォーム（submit-review.html）には何も配らない。2026-11-14 から口コミで聞くのは
+     航空会社と職位だけ（機種・役職・年代・勤務年数の欄はフォームごと消した。オーナー決定）。
 
    会社名は gen-airline-codes.mjs（SSOT = salary-data.mjs）が担当。
    ここは機種・職位・役職・年代・住居・契約形態・通貨。
@@ -54,21 +56,20 @@ for (const [from, to] of Object.entries(LEGACY_POSITIONS)) {
   if (POSITIONS.some((p) => p.code === from)) throw new Error(`旧職位が現役と衝突: ${from}`);
 }
 
-/* 年代の刻みの検品。口コミ（submit-review.html の #f-age）は5歳刻みで先に集めており、
+/* 年代の刻みの検品。口コミは 2026-11-13 まで5歳刻みで年代を集めていた（DB に過去の分が残っている）。
    給与レポートは10歳刻み。**5歳刻みが10歳刻みにきれいに収まる**あいだは、あとから
    2つのデータを同じ軸で並べられる。片方の境目をずらした瞬間にそれができなくなるので、
-   ずらしたことに気づける形で止める。 */
+   ずらしたことに気づける形で止める。
+   ★2026-11-14 に口コミのフォームから年代の欄を消したので、過去の口コミの刻みをここに定数で持つ（もう増えない）。 */
+const REVIEW_AGE_LEGACY = ['20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60+'];
 {
-  const rev = readFileSync(new URL('./submit-review.html', import.meta.url), 'utf8');
-  const sel = rev.match(/<select[^>]*id="f-age"[^>]*>([\s\S]*?)<\/select>/);
-  if (!sel) throw new Error('submit-review.html の #f-age が見つからない（口コミ側の年代が消えた？）');
   const span = (c) => (c.endsWith('+') ? [Number(c.slice(0, -1)), Infinity] : c.split('-').map(Number));
   const buckets = AGE_BUCKETS.map((b) => span(b.code));
   for (const [lo, hi] of buckets) if (!(hi >= lo)) throw new Error('AGE_BUCKETS: 上下が逆の段がある');
-  for (const m of sel[1].matchAll(/<option value="([^"]+)"/g)) {
-    const [lo, hi] = span(m[1]);
+  for (const code of REVIEW_AGE_LEGACY) {
+    const [lo, hi] = span(code);
     if (!buckets.some(([blo, bhi]) => lo >= blo && hi <= bhi)) {
-      throw new Error(`口コミの年代 ${m[1]} が AGE_BUCKETS のどの段にも収まらない（2つのデータを混ぜられなくなる）`);
+      throw new Error(`過去の口コミの年代 ${code} が AGE_BUCKETS のどの段にも収まらない（2つのデータを混ぜられなくなる）`);
     }
   }
 }
@@ -268,42 +269,6 @@ function patchBoxes(path, id, build, want) {
 const jsKey = (k) => (/^[A-Za-z_$][\w$]*$/.test(k) ? k : `'${k}'`);
 const jsStr = (s) => `'${s.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
 
-/* 機種を細分化した以上、ここも一緒に増やさないと確認画面に 'a220' と生で出る。
-   マーカーが無い初回は既存の定義ごと置き換える。 */
-function patchMap(path, name, list, lang) {
-  const url = new URL(path, import.meta.url);
-  const html = readFileSync(url, 'utf8');
-  const body = list.map((x) => `  ${jsKey(x.code)}: ${jsStr(x[lang])},`).join('\n');
-  const lit = [
-    `/*BEGIN:${name}*/const ${name} = {`,
-    '  // ★手で書かない。node gen-vocab.mjs が pv-vocab.mjs から生成する。',
-    body,
-    `};/*END:${name}*/`,
-  ].join('\n');
-
-  // 既存の定義は1行のものと複数行のものが混在しているので、どちらも拾う。
-  const re = new RegExp(`\\/\\*BEGIN:${name}\\*\\/[\\s\\S]*?\\/\\*END:${name}\\*\\/|const ${name} = \\{[\\s\\S]*?\\};`);
-  if (!re.test(html)) throw new Error(`${name} が見つからない: ${path}`);
-
-  // ★replace の第2引数に文字列を渡さない（関数で渡す）。文字列だと $' $& $1 が
-  //   置換パターンとして解釈され、生成物に $ が含まれた瞬間に壊れる。実際 CUR_META の
-  //   USD 記号 '$' が $' と読まれ、ファイル末尾全部が13回複製された。
-  const next = html.replace(re, () => lit);
-  const block = next.match(new RegExp(`\\/\\*BEGIN:${name}\\*\\/[\\s\\S]*?\\/\\*END:${name}\\*\\/`))[0];
-  const n = (block.match(/^  [^ /]/gm) || []).length;
-  if (n !== list.length) throw new Error(`${name} の件数が合わない: ${path} → ${n} != ${list.length}`);
-
-  writeFileSync(url, next);
-  return n;
-}
-
-for (const [path, lang] of [['./submit-review.html', 'ja'], ['./en/submit-review.html', 'en']]) {
-  const f = patch(path, 'f-fleet', (pad) => fleetOptions(lang, pad), FLEETS.length);
-  const r = patchBoxes(path, 'f-jobrole', (pad) => roleBoxes(lang, pad), JOB_ROLES.length);
-  const fl = patchMap(path, 'FLEET_LABELS', FLEETS, lang);
-  const rl = patchMap(path, 'ROLE_LABELS', JOB_ROLES, lang);
-  console.log(`✅ ${path.replace('./', '')} → #f-fleet ${f} option / #f-jobrole ${r} 択、FLEET_LABELS ${fl} / ROLE_LABELS ${rl} 件`);
-}
 
 // ── 3-2. 給与レポート（select が8本。ラベル表は持たない）──────
 // 会社（#f-airline）は gen-airline-codes.mjs の担当。ここでは触らない。

@@ -175,8 +175,8 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
         <div class="check-row">
           <div class="check-icon check-ok">✓</div>
           <div>
-            <div class="font-semibold">Airline, position, aircraft type, years of service, age band</div>
-            <div class="text-muted text-sm">The substance of the review. Used for aggregation. Years of service are stored in 5-year steps and age in 5-year bands — ranges only.</div>
+            <div class="font-semibold">Airline, position</div>
+            <div class="text-muted text-sm">The substance of the review. Used for aggregation. Reviews posted before November 2026 also keep aircraft type, years of service (5-year steps) and age band (5-year bands); we no longer ask for them.</div>
           </div>
         </div>
         <div class="check-row">
@@ -218,7 +218,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
           <div class="check-icon check-no">✕</div>
           <div>
             <div class="font-semibold" style="color:#ef4444">Any pay figure, date of birth, routes</div>
-            <div class="text-muted text-sm">The form has no input fields for these in the first place. Selection menus only — 5-year age bands and 5-year tenure bands. A review never asks for pay; that is handled separately by the payslip feature.</div>
+            <div class="text-muted text-sm">The form has no input fields for these in the first place. A review never asks for pay; that is handled separately by the payslip feature.</div>
           </div>
         </div>
       </div>
@@ -271,10 +271,10 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
   proof_hash    text    NOT NULL,      -- SHA-256 hash (cannot identify anyone)
   airline       text    NOT NULL,      -- Airline code
   position      text    NOT NULL,      -- Captain / First Officer / Trainee
-  fleet         text,                  -- Aircraft type (optional, e.g. "b787")
-  job_role      text,                  -- Role (optional, multiple, e.g. "line,instructor")
-  tenure_bucket text    NOT NULL,      -- e.g. "5-10" (years of service, 5-year steps)
-  age_bucket    text    NOT NULL,      -- e.g. "30-34" (age, 5-year bands)
+  fleet         text,                  -- Aircraft type (reviews before Nov 2026 only, e.g. "b787")
+  job_role      text,                  -- Role (reviews before Nov 2026 only, e.g. "line,instructor")
+  tenure_bucket text,                  -- Years of service, 5-year steps (reviews before Nov 2026 only, e.g. "5-10")
+  age_bucket    text,                  -- Age, 5-year bands (reviews before Nov 2026 only, e.g. "30-34")
   *_score       int,                   -- Five-point rating, seven categories
   *_comment     text,                  -- Review text, seven categories (optional)
   created_at    timestamptz            -- Submission timestamp

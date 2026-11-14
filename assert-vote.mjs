@@ -405,12 +405,13 @@ console.log('\n════ 2-D. ログインなしの口コミ（預かり → 
   await page.goto(BASE + '/submit-review.html', { waitUntil: 'networkidle0', timeout: 45000 });
   const open0 = await page.evaluate(() => ({ form: getComputedStyle(document.getElementById('form-wrap')).display, gate: getComputedStyle(document.getElementById('login-gate')).display }));
   ok(open0.form !== 'none' && open0.gate === 'none', 'ログインしていなくても口コミのフォームが開いている', J(open0));
+  /* ★2026-11-14 オーナー決定「口コミで聞くのは航空会社名と職位だけ。勤務年数・年代・機種・役職区分は聞かない」 */
+  const asks = await page.evaluate(() => ['f-tenure', 'f-age', 'f-fleet', 'f-jobrole'].filter((id) => document.getElementById(id) || document.querySelector(`[name="${id}"]`)));
+  ok(asks.length === 0, '★口コミのフォームは航空会社と職位だけを聞く（勤務年数・年代・機種・役職区分の欄が無い）', J(asks));
   /* 作り物の口コミ（実在の投稿ではない） */
   await page.evaluate(() => {
     const sel = document.getElementById('f-airline'); sel.value = 'zipair'; sel.dispatchEvent(new Event('change'));
     const r = document.querySelector('input[name="f-pos"][value="fo"]'); r.checked = true; r.dispatchEvent(new Event('change'));
-    document.getElementById('f-tenure').value = '1-5';
-    document.getElementById('f-age').value = '30-34';
     for (const k of ['culture', 'salary', 'benefits', 'wlb', 'ops', 'training']) document.querySelector(`.star-group[data-cat="${k}"]`).dataset.score = '4';
     document.getElementById('fc-culture').value = '社内の雰囲気は落ち着いていて、先輩にも相談しやすいです。若い会社なので意見が通りやすく、運航乗務員の声が経営に届く場面も多いと感じます。一方で制度の変更が早く、慣れるまでは少し戸惑いました。';
     document.getElementById('fc-wlb').value = '勤務表は月の中旬に出るので、翌月の予定は立てやすいほうです。長距離の後は休養日がきちんと入り、繁忙期以外は希望休も通りやすいです。家族との時間は以前の会社より取れています。';
