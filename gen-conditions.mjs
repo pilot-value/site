@@ -88,6 +88,12 @@ for (const q of QUESTIONS) {
     const sh = q[l].short;
     if (typeof sh !== 'string' || !sh.trim()) throw new Error(`${at}: ${l}.short が無い（会社ページのタイルの見出し）`);
     if ([...sh].length > (l === 'ja' ? 12 : 32)) throw new Error(`${at}: ${l}.short が長い（${l === 'ja' ? '12字' : '32字'}まで）→ ${sh}`);
+    /* 会社ページのカードに置く誘いの字（続きの質問だけ・2026-11-14）。カードの1行に収まる長さまで */
+    const cue = q[l].cue;
+    if (q.deep) {
+      if (typeof cue !== 'string' || !cue.trim()) throw new Error(`${at}: 続きの質問（deep）は ${l}.cue が要る（カードの誘いの字）`);
+      if ([...cue].length > (l === 'ja' ? 14 : 28)) throw new Error(`${at}: ${l}.cue が長い → ${cue}`);
+    } else if (cue != null) throw new Error(`${at}: ${l}.cue は続きの質問（deep）だけが持つ`);
   }
   if (!Number.isInteger(q.priority)) throw new Error(`${at}: priority が整数でない`);
   /* 優先順位を重複させない。同点だと DB 側の order by が不定になり、
@@ -229,6 +235,24 @@ for (const q of QUESTIONS) {
     usedRangeLow.set(q.rangeLow, q.id);
   }
 
+  // ── 続きの質問（deep・2026-11-14） ──
+  /* ★partial ＝ 親の「一部」の答えをした本人にだけ。split ＝ その会社で親の答えが分かれているときだけ（見せる門はサーバと画面）。
+     ★どちらも1つ選ぶ・補足つき・親が1つ選ぶ質問で、親に親が無い。1問枠（micro）と最初の3問（boost）には出さない。
+     ★split の parentWhen は親の「わからない」以外の全部（＝保存の検品は今の子の質問のまま通る）。 */
+  if (q.deep != null) {
+    if (!['partial', 'split'].includes(q.deep)) throw new Error(`${at}: deep は 'partial' か 'split' → ${q.deep}`);
+    const p = q.parent && seen.get(q.parent);
+    if (!p) throw new Error(`${at}: 続きの質問（deep）には親が要る`);
+    if (p.kind !== 'choice' || p.parent || p.deep) throw new Error(`${at}: 続きの質問の親は、親を持たない1つ選ぶ質問だけ（${q.parent}）`);
+    if (q.kind !== 'choice' || !q.note) throw new Error(`${at}: 続きの質問は1つ選ぶ＋補足つき`);
+    if (q.micro || q.boost || q.topicOnly || q.isOpinion) throw new Error(`${at}: 続きの質問を micro・boost・topicOnly・isOpinion にしない`);
+    const real = p.choices.map((c) => c.code).filter((c) => c !== UNKNOWN);
+    if (q.deep === 'split' && (q.parentWhen.length !== real.length || !real.every((c) => q.parentWhen.includes(c))))
+      throw new Error(`${at}: split の parentWhen は親の「わからない」以外の全部`);
+    if (q.deep === 'partial' && q.parentWhen.length === real.length)
+      throw new Error(`${at}: partial の parentWhen は親の「一部」の答えだけ（全部なら split か普通の子）`);
+  }
+
   // ── 提出直後の1問に出してよい形か ──
   /* ★ここが「10秒で終わる」という約束の実体。数値入力・複数選択・自由記述を
      1問カードに出すと、約束が嘘になる。
@@ -245,9 +269,10 @@ for (const q of QUESTIONS) {
 }
 
 const micros = QUESTIONS.filter((q) => q.micro);
-/* 一覧と1問枠に出る質問／話題の入口からだけ出る質問。
-   ★「あなたが答えた項目：N／48」の 48 は listed の数（DB の questions_total と同じ決め方）。 */
-const listed = QUESTIONS.filter((q) => !q.topicOnly);
+/* 一覧と1問枠に出る質問／話題の入口からだけ出る質問／続きの質問（deep）。
+   ★「あなたが答えた項目：N／48」の 48 は listed の数（DB の questions_total と同じ決め方）。続き（deep）は数えない。 */
+const listed = QUESTIONS.filter((q) => !q.topicOnly && !q.deep);
+const deeps = QUESTIONS.filter((q) => q.deep);
 const topicOnly = QUESTIONS.filter((q) => q.topicOnly);
 if (!micros.length) throw new Error('micro の質問が1つも無い（提出直後に出すものが無くなる）');
 
@@ -312,6 +337,8 @@ const askRank = new Map();   // id → 1, 2, …（DB の ask_rank）
       };
       /* 戻ってきた会員に聞く板だけが使う説明（その板に無い欄のことを言わないため） */
       for (const l of ['ja', 'en']) if (q[l].askHelp) o[l].askHelp = q[l].askHelp;
+      /* 続きの質問（deep）と、会社ページのカードの誘いの字 */
+      if (q.deep) { o.deep = q.deep; for (const l of ['ja', 'en']) o[l].cue = q[l].cue; }
       if (q.parent) { o.parent = q.parent; o.parentWhen = q.parentWhen; }
       if (q.choices) o.choices = q.choices.map((c) => ({ code: c.code, ja: c.ja, en: c.en }));
       if (q.num) o.num = { min: q.num.min, max: q.num.max, step: q.num.step, ja: q.num.ja, en: q.num.en };
@@ -344,7 +371,7 @@ const askRank = new Map();   // id → 1, 2, …（DB の ask_rank）
     })(json);
   }
   writeFileSync(new URL('./pv-conditions.json', import.meta.url), JSON.stringify(json));
-  console.log(`✅ pv-conditions.json 書き出し: 質問${QUESTIONS.length}（一覧に出るもの ${listed.length}・話題の入口からだけ出るもの ${topicOnly.length}・提出直後に出せるもの ${micros.length}）`);
+  console.log(`✅ pv-conditions.json 書き出し: 質問${QUESTIONS.length}（一覧に出るもの ${listed.length}・話題の入口からだけ出るもの ${topicOnly.length}・続き ${deeps.length}・提出直後に出せるもの ${micros.length}）`);
 }
 
 // ── DB の質問マスタ ───────────────────────────────────────────
@@ -404,6 +431,8 @@ create table if not exists public.pv_condition_sections (
 --   topic_only  話題の入口から来た人にだけ出す。提出直後の1問枠にも一覧にも出さず、
 --               「あなたが答えた項目：N／${listed.length}」の分母にも分子にも数えない
 --               （出さない・数えないは db/airline-conditions.sql。保存と公開集計は他の質問と同じ）
+--   deep        続きの質問（2026-11-14）。'partial' ＝ 親に「一部」の答えをした本人だけ／'split' ＝ その会社で親の答えが
+--               分かれているときだけ（見せる門は pv_condition_split）。一覧の行にも「答えた項目」の数にも入れない
 --   spec        kind ごとの付帯情報（数値の刻み、明細行の語彙）。
 --               range_low は、対になる額（低いほう・高いほう）の低いほうの id。高いほうの質問だけが持つ
 --               （読むのは db/airline-conditions.sql の pv_condition_range_other）
@@ -421,6 +450,7 @@ create table if not exists public.pv_condition_questions (
   parent_when text[],
   topic text,
   topic_only boolean not null default false,
+  deep text,
   choice_codes text[],
   num_min numeric(12,2),
   num_max numeric(12,2),
@@ -444,6 +474,8 @@ alter table public.pv_condition_questions add column if not exists topic_only bo
 -- 戻ってきた会員に聞く順（2026-10-30・pv-conditions.mjs の ASK）。null ＝ その板では聞かない。
 --   読むのは db/ask-own-airline.sql の pv_ask_next だけ。
 alter table public.pv_condition_questions add column if not exists ask_rank smallint;
+-- 続きの質問（2026-11-14）。null ＝ ふつうの質問
+alter table public.pv_condition_questions add column if not exists deep text;
 
 -- 検品の一部は DB 側にも置く。SSOT を通さず手で1行入れられたときに効く。
 -- ★毎回 drop してから付け直す。「無ければ作る」だと、条件を変えて流し直したときに
@@ -454,6 +486,7 @@ alter table public.pv_condition_questions drop constraint if exists pv_cq_parent
 alter table public.pv_condition_questions drop constraint if exists pv_cq_choice_ck;
 alter table public.pv_condition_questions drop constraint if exists pv_cq_topic_ck;
 alter table public.pv_condition_questions drop constraint if exists pv_cq_topic_only_ck;
+alter table public.pv_condition_questions drop constraint if exists pv_cq_deep_ck;
 alter table public.pv_condition_questions
   add constraint pv_cq_tier_ck check (tier in (${TIERS.map(q).join(', ')}));
 -- micro＝1タップで終わる形か。親の有無は見ない（親の答えを持つ人にだけ出す＝出す側の仕事）
@@ -469,6 +502,10 @@ alter table public.pv_condition_questions
 -- topic_only＝話題の入口からだけ出す。入口（topic）が要り、1問枠の印（micro・boost）とは同時に立たない
 alter table public.pv_condition_questions
   add constraint pv_cq_topic_only_ck check (not topic_only or (topic is not null and not micro and boost = 0));
+-- deep＝続きの質問。親が要り、1つ選ぶ形で、1問枠の印・話題の入口だけの印とは同時に立たない
+alter table public.pv_condition_questions
+  add constraint pv_cq_deep_ck check (deep is null or (deep in ('partial', 'split')
+    and parent is not null and kind = 'choice' and not micro and boost = 0 and not topic_only));
 
 insert into public.pv_condition_sections (code, name_ja, name_en, sort) values
 ${rows(SECTIONS, [(x) => q(x.code), (x) => q(x.ja), (x) => q(x.en), (x) => String(SECTIONS.indexOf(x))])}
@@ -478,7 +515,7 @@ on conflict (code) do update set name_ja = excluded.name_ja, name_en = excluded.
 -- ★親は子より先に入れる（自己参照の外部キー）。並び順は pv-conditions.mjs の並びそのまま。
 insert into public.pv_condition_questions
   (id, version, section, kind, tier, micro, priority, boost, is_opinion, parent, parent_when,
-   topic, topic_only, ask_rank,
+   topic, topic_only, deep, ask_rank,
    choice_codes, num_min, num_max, has_currency, has_note, spec, label_ja, label_en) values
 ${rows(QUESTIONS, [
   (x) => q(x.id),
@@ -494,6 +531,7 @@ ${rows(QUESTIONS, [
   (x) => arr(x.parentWhen),
   (x) => q(x.topic),
   (x) => bool(x.topicOnly),
+  (x) => q(x.deep),
   (x) => num(askRank.get(x.id)),
   (x) => arr(x.choices && x.choices.map((c) => c.code)),
   (x) => num(x.num && x.num.min),
@@ -509,7 +547,7 @@ on conflict (id) do update set
   tier = excluded.tier, micro = excluded.micro, priority = excluded.priority,
   boost = excluded.boost, is_opinion = excluded.is_opinion,
   parent = excluded.parent, parent_when = excluded.parent_when,
-  topic = excluded.topic, topic_only = excluded.topic_only, ask_rank = excluded.ask_rank,
+  topic = excluded.topic, topic_only = excluded.topic_only, deep = excluded.deep, ask_rank = excluded.ask_rank,
   choice_codes = excluded.choice_codes, num_min = excluded.num_min, num_max = excluded.num_max,
   has_currency = excluded.has_currency, has_note = excluded.has_note, spec = excluded.spec,
   label_ja = excluded.label_ja, label_en = excluded.label_en, active = true;
@@ -559,13 +597,14 @@ begin
   end loop;
 end $$;
 
--- 検算：節${SECTIONS.length} / 質問${QUESTIONS.length}（一覧に出る質問${listed.length} ＋ 話題の入口からだけ出る質問${topicOnly.length}）/ 提出直後に出せる質問${micros.length}
+-- 検算：節${SECTIONS.length} / 質問${QUESTIONS.length}（一覧に出る質問${listed.length} ＋ 話題の入口からだけ出る質問${topicOnly.length} ＋ 続き${deeps.length}）/ 提出直後に出せる質問${micros.length}
 --        Tier A${tierCount('A')} / B${tierCount('B')} / C${tierCount('C')}
 select
   (select count(*) from public.pv_condition_sections  where active)                as 節,
   (select count(*) from public.pv_condition_questions where active)                as 質問,
-  (select count(*) from public.pv_condition_questions where active and not topic_only) as 一覧に出る質問,
+  (select count(*) from public.pv_condition_questions where active and not topic_only and deep is null) as 一覧に出る質問,
   (select count(*) from public.pv_condition_questions where active and topic_only)     as 話題の入口からだけ出る質問,
+  (select count(*) from public.pv_condition_questions where active and deep is not null) as 続きの質問,
   (select count(*) from public.pv_condition_questions where active and micro)      as 直後に出せる質問,
   (select count(*) from public.pv_condition_questions where active and tier = 'A') as tier_a,
   (select count(*) from public.pv_condition_questions where active and boost > 0) as 最初の3問,
@@ -573,5 +612,5 @@ select
   (select count(*) from public.pv_condition_settings)                             as 設定;
 `;
   writeFileSync(new URL('./db/conditions.generated.sql', import.meta.url), sql);
-  console.log(`✅ db/conditions.generated.sql 書き出し: 節${SECTIONS.length} / 質問${QUESTIONS.length}（一覧${listed.length}・話題の入口だけ${topicOnly.length}）/ micro${micros.length}`);
+  console.log(`✅ db/conditions.generated.sql 書き出し: 節${SECTIONS.length} / 質問${QUESTIONS.length}（一覧${listed.length}・話題の入口だけ${topicOnly.length}・続き${deeps.length}）/ micro${micros.length}`);
 }
