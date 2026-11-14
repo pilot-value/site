@@ -2867,6 +2867,7 @@
       a.setAttribute('data-pvc-q', kid);
     }
     a.appendChild(el('span', '', V[kid].cue));
+    a.appendChild(d.createTextNode(' '));   // 読み上げで「教える」とくっつかないように（見た目の間は CSS の gap）
     a.appendChild(el('b', '', T.cueGo));
     a.appendChild(icon('arrow', 14));
     return a;

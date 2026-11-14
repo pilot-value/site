@@ -61,9 +61,12 @@ const BANK = JSON.parse(readFileSync(new URL('./pv-conditions.json', import.meta
 const N_SEC = BANK.sections.length;
 /* ★一覧に出るのは topicOnly でない質問だけ（話題の入口から来た人にだけ出す質問は数えない）。
    下の「鍵をバンクから選ぶ」所も、一覧に出る質問（LISTED）から選ぶ。 */
-const LISTED = BANK.questions.filter((q) => !q.topicOnly);
+/* ★続きの質問（deep・2026-11-14）も数えない ──「答えた項目：N／M」の M と節の札に入らない。
+     行そのものは親の下に在る（親に「一部」と答えた・答えが分かれた会社のときだけ見える）＝ 画面の行の数は N_ROWS */
+const LISTED = BANK.questions.filter((q) => !q.topicOnly && !q.deep);
 const TOPIC_ONLY = BANK.questions.filter((q) => q.topicOnly);
 const N_Q = LISTED.length;
+const N_ROWS = BANK.questions.filter((q) => !q.topicOnly).length;
 const N_ROOT = LISTED.filter((q) => !q.parent).length;
 
 let pass = 0, fail = 0;
@@ -502,7 +505,7 @@ for (const lang of (only ? [only] : ['ja', 'en'])) {
     ok(!v.dead, '「読み込めませんでした」ではなく中身が出る');
     if (hasReport) {
       ok(v.secs === N_SEC, `節が ${N_SEC} つ出る`, String(v.secs));
-      ok(v.rows === N_Q, `質問が ${N_Q} 問そろう`, String(v.rows));
+      ok(v.rows === N_ROWS, `質問が ${N_Q} 問そろう（続きの質問 ${N_ROWS - N_Q} 問は、親の下に隠れて在る）`, String(v.rows));
       ok(v.shown === N_ROOT, `親に答えていない子は出さない（見えるのは ${N_ROOT} 問）`, String(v.shown));
       ok(v.count.indexOf('0') >= 0 && v.count.indexOf(String(N_Q)) >= 0,
          `「答えた項目：0／${N_Q}」が出る`, v.count);

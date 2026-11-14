@@ -1105,6 +1105,7 @@ async function main() {
   // ═════════════════════════════════════════════════════════════
   const TAXI = ['commuting_transport', 'commuting_transport_method', 'commuting_taxi_when', 'commuting_taxi_where',
     'commuting_taxi_cost', 'commuting_taxi_cap', 'commuting_bus_when', 'commuting_bus_cost'];
+  let TAXI_DEEP = [];
   const shown = (p) => p.page.evaluate(() => {
     const o = {};
     for (const n of document.querySelectorAll('.pvc-root form [data-q]')) o[n.getAttribute('data-q')] = !n.closest('[hidden]');
@@ -1115,7 +1116,9 @@ async function main() {
   });
   await scene('通勤・タクシー ── 親と子を1回で・読み直す・上書き', async () => {
     const conds = JSON.parse(read('pv-conditions.json'));
-    const taxiIds = conds.questions.filter((x) => x.topic === 'taxi').map((x) => x.id);
+    /* 続きの質問（deep・2026-11-14「何によって違うか」）は8問に数えない。面には親のすぐ下に在り、答えが分かれた会社でだけ見える */
+    const taxiIds = conds.questions.filter((x) => x.topic === 'taxi' && !x.deep).map((x) => x.id);
+    TAXI_DEEP = conds.questions.filter((x) => x.topic === 'taxi' && x.deep).map((x) => x.id);
     ok(J([...taxiIds].sort()) === J([...TAXI].sort()), '通勤・タクシーの質問は、サイトの質問表（pv-conditions.json）の8問', J(taxiIds));
 
     await go(a, JAL);
@@ -1145,10 +1148,11 @@ async function main() {
     });
     ok(shape.title === '通勤・タクシー' && shape.line.includes(jalName) && !shape.company, '見出しは「通勤・タクシー」。会社は上に出ていて、選ぶ欄は無い', J(shape));
     ok(sh.commuting_transport && TAXI.slice(1).every((k) => !sh[k]) && !sh.fold, '最初に出るのは親の質問だけ（子は親の答えが決まってから）', J(sh));
+    ok(TAXI_DEEP.length === 1 && TAXI_DEEP.every((k) => k in sh && !sh[k]), '続きの「何によって違うか」は面に在るが、答えが分かれていない会社では出ない', J({ TAXI_DEEP, sh }));
     /* 2026-10-07 オーナー指定：選んだ答えに、任意の補足を添えられる。
        ただし自由記述は「追加の説明」で、選ぶ質問の代わりにはしない ── 8問とも選ぶ形のまま残っていること。 */
-    ok(J([...shape.choice].sort()) === J([...TAXI].sort()), '★タクシーの具体的な質問は8つとも「選ぶ質問」のまま残っている（自由記述に置き換えていない）', J(shape.choice));
-    ok(shape.text === 0 && J([...shape.ta].sort()) === J(TAXI.map((k) => k + '_note').sort()) && shape.owned && shape.req === 0,
+    ok(J([...shape.choice].sort()) === J([...TAXI, ...TAXI_DEEP].sort()), '★タクシーの具体的な質問は8つとも「選ぶ質問」のまま残っている（自由記述に置き換えていない・続きの質問も選ぶ形）', J(shape.choice));
+    ok(shape.text === 0 && J([...shape.ta].sort()) === J([...TAXI, ...TAXI_DEEP].map((k) => k + '_note').sort()) && shape.owned && shape.req === 0,
       '★自由記述は「質問ごとの補足」だけ。どれも任意で、選ぶ質問の枠の中に在る（何でも受ける独立の欄は無い）', J(shape));
     ok(shape.capInFold, '上限の補足は、今までどおり畳んだ中に在る', J(shape));
     ok(shape.fold.includes('回数・金額の上限を追加') && shape.exp === 'false' && shape.dis && shape.send === '匿名で追加する', '上限は「回数・金額の上限を追加」で畳んである。確認を入れるまで送れない', J(shape));
