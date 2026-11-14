@@ -989,7 +989,12 @@
   function goodAnswers(v, s) {
     return (Array.isArray(v) ? v : []).filter(function (x) { return x && x.question_id && (!x.airline || x.airline === s); });
   }
-  function noMine(k) { M.held = false; M.work = { k: k, rows: [] }; M.cond = { k: k, answers: [] }; M.town = { k: k, rows: [] }; }
+  /* その会社で答えが分かれている質問の id（2026-11-14）。続きの「何によって違いますか？」（deep:'split'）を出すかに使う。
+     サーバは、本人が答えた質問の分か、集計が開いている人には全部を返す（db/airline-conditions.sql の 7）。人数・答えは来ない */
+  function goodSplit(v) {
+    return (Array.isArray(v) ? v : []).filter(function (x) { return typeof x === 'string' && /^[a-z0-9_]{1,64}$/.test(x); });
+  }
+  function noMine(k) { M.held = false; M.work = { k: k, rows: [] }; M.cond = { k: k, answers: [], split: [] }; M.town = { k: k, rows: [] }; }
   /* 会員の id が読めない時の形：読みかけの返事は捨てる・一覧は2つとも「読めなかった」・印はいまの人のもの
      （id が読めるようになった時・ログアウトした時に、替わったと分かる）。 */
   function noWhoMine() { M.seq++; M.p = null; noMine('fail'); M.who = keptWho(false); }
@@ -1028,7 +1033,8 @@
     });
     var b = rpc('my_airline_conditions', { airline: s }, 9000).then(function (r) {
       if (seq !== M.seq) return;
-      M.cond = r.kind === 'ok' && Array.isArray(r.data.answers) ? { k: 'ok', answers: goodAnswers(r.data.answers, s) } : { k: bad(r), answers: [] };
+      M.cond = r.kind === 'ok' && Array.isArray(r.data.answers)
+        ? { k: 'ok', answers: goodAnswers(r.data.answers, s), split: goodSplit(r.data.split) } : { k: bad(r), answers: [], split: [] };
     });
     return Promise.all([a, b]).then(function () {
       if (seq === M.seq) M.held = false;
@@ -1046,7 +1052,7 @@
         if (r.data.known === false) { dropKey(); noMine('anon'); return; }
         M.held = true;
         M.work = { k: 'ok', rows: goodRows(r.data.rows) };
-        M.cond = { k: 'ok', answers: goodAnswers(r.data.answers, s) };
+        M.cond = { k: 'ok', answers: goodAnswers(r.data.answers, s), split: goodSplit(r.data.split) };
         M.town = { k: 'ok', rows: goodTowns(r.data.towns) };
         return;
       }
@@ -1095,7 +1101,7 @@
     var seq = ++M.seq, s = slug(), was = { work: M.work, cond: M.cond, town: M.town, held: M.held };
     var who = keptWho(false);                // 誰の分を読み始めたか（会員は id。控えの鍵は見ない）。一覧が届いた所で、今の人と比べる
     if (M.work.k !== 'ok') M.work = { k: 'loading', rows: [] };
-    if (M.cond.k !== 'ok') M.cond = { k: 'loading', answers: [] };
+    if (M.cond.k !== 'ok') M.cond = { k: 'loading', answers: [], split: [] };
     if (M.town.k !== 'ok') M.town = { k: 'loading', rows: [] };
     var mine = (logged && key ? claim() : Promise.resolve(null)).then(function () {
       if (seq !== M.seq) return null;
@@ -2606,7 +2612,7 @@
   /* ── 選んで答える質問（通勤・タクシー／Staff Travel／機長昇格／勤務スケジュール／訓練・キャリア／休暇・手当）── */
   /* 質問の文・選択肢・単位は pv-conditions.json のもの（ここに写しを持たない）。
      通勤・タクシーだけは並びを見本どおりに置く：どの制度 → いつ → どこまで →（上限）→ 誰の負担。 */
-  var TAXI_ORDER = ['commuting_transport', 'commuting_transport_method', 'commuting_taxi_when', 'commuting_bus_when',
+  var TAXI_ORDER = ['commuting_transport', 'commuting_transport_split', 'commuting_transport_method', 'commuting_taxi_when', 'commuting_bus_when',
     'commuting_taxi_where', 'commuting_taxi_cap', 'commuting_taxi_cost', 'commuting_bus_cost'];
   var UNK = 'unknown';
   /* 断りの理由の字（鍵はサーバの reason）。低いほう・高いほうの対（台帳の rangeLow）は、送る前の確かめ（sendGroup）も、
@@ -2699,8 +2705,12 @@
     if (t.noteDirty[q.id]) return str(t.notes[q.id]);
     return sm[q.id] ? str(sm[q.id].text) : '';
   }
+  function splitOn(id) { return !!(M.cond && Array.isArray(M.cond.split) && M.cond.split.indexOf(id) >= 0); }
   function visible(t, q, sm) {
     if (!q.parent) return true;
+    /* 続きの「何によって違いますか？」は、その会社で親の答えが分かれているときだけ（2026-11-14）。
+       保存の検品はサーバが今までどおり親の答えで見る（分かれているかは見ない）── ここは見せるかどうかだけ */
+    if (q.deep === 'split' && !splitOn(q.parent)) return false;
     var p = qById(q.parent);
     if (!p || !visible(t, p, sm)) return false;
     var v = cur(t, p, sm), list = Array.isArray(v) ? v : (v ? [v] : []);
@@ -3195,7 +3205,7 @@
       delete t.noteDirty[a.question_id]; delete t.notes[a.question_id];
     });
     if (kept && (M.cond.k === 'ok' || held) && !noWho()) {
-      M.cond = { k: 'ok', answers: list };
+      M.cond = { k: 'ok', answers: list, split: M.cond.k === 'ok' ? (M.cond.split || []) : [] };
       if (held) M.held = true;
     }
     /* 送れなかった回の送り直しか（端末に残した1件が、この項目のもの）。すぐ下で消すので、その前に見ておく。 */

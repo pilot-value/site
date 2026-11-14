@@ -520,6 +520,15 @@ a.crl-sum-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:-4px
 .crl-tile-s b{font-weight:400;color:var(--pv-ink-3)}
 .crl-tile-s b::after{content:'：'}
 .crl-tile-s span{font-weight:600}
+/* 続きの質問への誘い（2026-11-14）。カードの下の1行・緑の字。押す所は字の幅だけ（カードを開く所と重ねない） */
+.crl-tile-cue{justify-self:start;display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:6px 0;font-size:14px;line-height:1.4;
+  color:var(--pv-accent-ink);text-decoration:none;border-radius:8px;transition:opacity .18s cubic-bezier(.2,.8,.2,1)}
+.crl-tile-cue b{font-weight:700}
+.crl-tile-cue .crl-ic{flex:none;width:14px;height:14px;stroke-width:2.2;transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
+.crl-tile-cue:hover b{text-decoration:underline;text-underline-offset:3px}
+.crl-tile-cue:hover .crl-ic{transform:translateX(2px)}
+.crl-tile-cue:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px}
+.crl-tile-cue:active{opacity:.7}
 .crl-tile-q{display:grid;gap:8px;padding:0 20px 18px}
 .crl-tile-qt{margin:0;padding-top:12px;border-top:1px solid var(--pv-line-soft);font-size:14px;line-height:1.65;color:var(--pv-ink-2)}
 .crl-tile-qa{display:block;margin-top:2px;font-weight:600}

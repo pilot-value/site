@@ -595,7 +595,7 @@ export function tabOfKey(id) {
 }
 export const CMP_KEYS = (() => {
   const surf = q => (q.section === 'roster' ? 0 : q.topic === 'taxi' ? 1 : q.topic === 'staff_travel' ? 2 : q.section === 'career' ? 3 : 4);
-  const ids = QUESTIONS.filter(q => !q.retired && !q.currency).map((q, i) => [q, i])
+  const ids = QUESTIONS.filter(q => !q.retired && !q.currency && !q.deep).map((q, i) => [q, i])   // 続きの質問（deep）は比較に並べない
     .sort((a, b) => surf(a[0]) - surf(b[0]) || a[1] - b[1]).map(x => x[0].id);
   const out = { work: ids.filter(id => tabOfKey(id) === 'work'), pay: ids.filter(id => tabOfKey(id) === 'pay') };
   if (!out.work.length || !out.pay.length) throw new Error('比較の回答の欄に並べる質問が無い（pv-conditions.mjs）');
@@ -604,7 +604,8 @@ export const CMP_KEYS = (() => {
   return out;
 })();
 export const TOPICS = TOPIC_DEFS.map(([id, title, tp]) => {
-  const asks = QUESTIONS.filter(q => q.topic === tp && !q.retired).map(q => [q.id, ASK[q.id] || q.ja.label]);
+  /* 続きの質問（deep・2026-11-14）は入口の行にしない（答える画面で親のすぐ下に出る。行と「質問 N問」に数えない） */
+  const asks = QUESTIONS.filter(q => q.topic === tp && !q.retired && !q.deep).map(q => [q.id, ASK[q.id] || q.ja.label]);
   if (!asks.length) throw new Error(`話題 ${id}: 待遇アンケートに質問が1つも無い（pv-conditions.mjs。入口の先が無くなる）`);
   return [id, title, asks];
 });

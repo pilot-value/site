@@ -444,10 +444,17 @@ console.log('\n▼ 9. 続きの質問（2026-11-14 オーナー「一部可能�
   /* 答える画面に渡す「分かれた質問」は、本人が答えた質問の分だけ（答えていない人には、分かれていることも渡さない） */
   const mine = async (who, airline) => (await rpc(who, 'my_airline_conditions', { airline })).split;
   ok(J(await mine(crew[0], A_DEEP2)) === J([Q1]), `親に答えた人の自分の回答には split: [${Q1}] が付く`, J(await mine(crew[0], A_DEEP2)));
-  ok(J(await mine(z, A_DEEP2)) === J([]), '親に答えていない人の split は空（答えていない質問のことは言わない）', J(await mine(z, A_DEEP2)));
-  const u = await member(); await paid(u, A_DEEP2);
+  ok(J(await mine(z, A_DEEP2)) === J([Q1]), 'その会社に給与を出した（集計が開いている）人には、親に答えていなくても split が付く（カードで「分かれています」を見ている人）', J(await mine(z, A_DEEP2)));
+  /* 集計の開いていない会員（給与をまだ出していない）── 本人が答えた質問の分だけ */
+  const g = await member();
+  ok(J(await mine(g, A_DEEP2)) === J([]), '集計の開いていない会員で、親に答えていない人の split は空（答えていない質問のことは言わない）', J(await mine(g, A_DEEP2)));
+  const u = await member();
   await answer(u, A_DEEP2, [{ question_id: Q1, code: 'unknown' }]);
   ok(J(await mine(u, A_DEEP2)) === J([]), '「わからない」と答えた人の split も空', J(await mine(u, A_DEEP2)));
+  const w = await member();
+  await answer(w, A_DEEP2, [{ question_id: Q1, code: YES }]);
+  await answer(await member(), A_DEEP2, [{ question_id: Q1, code: NO }]);   // 3対3 ＝ まだ分かれている
+  ok(J(await mine(w, A_DEEP2)) === J([Q1]), '集計の開いていない会員でも、親に答えたら split が付く（3対3）', J(await mine(w, A_DEEP2)));
   ok(J(await mine(y, A_DEEP)) === J([]), '分かれていない会社では、答えた人にも split は空', J(await mine(y, A_DEEP)));
 
   /* 壊す証明：分かれた会社かを見る1行を外すと、分かれていない会社でも聞いてしまう */
@@ -461,16 +468,16 @@ console.log('\n▼ 9. 続きの質問（2026-11-14 オーナー「一部可能�
 
   /* 壊す証明：自分の回答の split から「本人が答えた質問だけ」を外すと、答えていない人にも分かれていることが渡る */
   const ac = read('db/airline-conditions.sql');
-  const leak = ac.replace(/\n\s+and exists \(select 1 from public\.airline_conditions c\n\s+where c\.proof_hash = public\.pv_condition_hash\(v_uid, v_airline, null\)\n\s+and c\.question_id = s\.question_id\n\s+and c\.answer_code is not null and c\.answer_code <> 'unknown'\)/, () => '');
+  const leak = ac.replace(/\n\s+and \(v_open or exists \(select 1 from public\.airline_conditions c\n\s+where c\.proof_hash = public\.pv_condition_hash\(v_uid, v_airline, null\)\n\s+and c\.question_id = s\.question_id\n\s+and c\.answer_code is not null and c\.answer_code <> 'unknown'\)\)/, () => '');
   ok(leak !== ac, '外す行が見つかった（my_airline_conditions）');
   await db.exec(leak);
-  ok(J(await mine(z, A_DEEP2)) === J([Q1]), '外したら、親に答えていない人にも split が渡った ＝ 上の ✅ はこの条件が効いている');
+  ok(J(await mine(g, A_DEEP2)) === J([Q1]), '外したら、集計の開いていない・親に答えていない人にも split が渡った ＝ 上の ✅ はこの条件が効いている');
   await db.exec(ac);
-  ok(J(await mine(z, A_DEEP2)) === J([]), '戻したら、また空');
+  ok(J(await mine(g, A_DEEP2)) === J([]), '戻したら、また空');
 
-  /* 同点が崩れたら（3対2）、もう聞かない ＝ カードが「回答が分かれています」と言う時だけ */
+  /* 同点が崩れたら（4対3）、もう聞かない ＝ カードが「回答が分かれています」と言う時だけ */
   await answer(await member(), A_DEEP2, [{ question_id: Q1, code: YES }]);
-  ok(!ids(await next(crew[0], notYet)).includes(SPL.id), '3対2になった会社では「何によって違うか」を聞かない（カードの「分かれています」と同じ1か所で決める）');
+  ok(!ids(await next(crew[0], notYet)).includes(SPL.id), '4対3になった会社では「何によって違うか」を聞かない（カードの「分かれています」と同じ1か所で決める）');
   ok(J(await mine(crew[0], A_DEEP2)) === J([]), '同じく split も空に戻る');
 }
 

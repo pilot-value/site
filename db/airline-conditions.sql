@@ -1000,6 +1000,7 @@ declare
   v_rows    jsonb;
   v_listed  int;   -- 一覧に出る質問への答えの数（topic_only と続きの質問を除く）
   v_split   jsonb := '[]'::jsonb;
+  v_open    boolean := false;
 begin
   if v_uid is null then
     raise exception 'ログインが必要です' using errcode = '42501';
@@ -1037,21 +1038,27 @@ begin
                       c.answer_text, c.answer_json) > 0
     join public.pv_condition_questions q on q.id = c.question_id;
 
-  /* その会社で答えが分かれている質問のうち、本人が「わからない」以外で答えた質問の id（2026-11-14）。
-     答える画面が、続きの「何によって違いますか？」を親のすぐ下に出すかを決めるのに使う。
-     ★本人が答えていない質問については返さない ＝ 答えていない人には「分かれている」ことも渡さない（Give → Get）。
+  /* その会社で答えが分かれている質問の id（2026-11-14）。答える画面が、続きの「何によって違いますか？」を
+     親のすぐ下に出すかを決めるのに使う。
+     ★返すのは、本人が「わからない」以外で答えた質問の分だけ ＝ 答えていない人には「分かれている」ことも渡さない（Give → Get）。
+       ただし、その会社の集計が開いている人（pv_contrib_sees が 'open'）には全部 ── カードで「回答が分かれています」を
+       もう見ている人で、カードの「何によって違う？ 教える ›」から来て、親に答えた所で続きを出せる。
      ★人数・答えは返さない。表は db/contrib.sql の pv_condition_split（書き込みのときに作って置く）。
-       あちらはこのファイルより後に貼る ＝ まだ無い DB では空のまま返す（止めない）。 */
+       あちらはこのファイルより後に貼る ＝ まだ無い DB では空のまま返す（止めない）。
+     ⚠️ 2つの文に分けてある（関数が無い DB で式ごと止まらないように・6 と同じ） */
   if v_airline is not null and v_airline <> 'other'
      and to_regclass('public.pv_condition_split') is not null then
+    if to_regprocedure('public.pv_contrib_sees(text)') is not null then
+      v_open := coalesce(public.pv_contrib_sees(v_airline) = 'open', false);
+    end if;
     select coalesce(jsonb_agg(s.question_id order by s.question_id collate "C"), '[]'::jsonb)
       into v_split
       from public.pv_condition_split s
      where s.airline = v_airline
-       and exists (select 1 from public.airline_conditions c
+       and (v_open or exists (select 1 from public.airline_conditions c
                     where c.proof_hash = public.pv_condition_hash(v_uid, v_airline, null)
                       and c.question_id = s.question_id
-                      and c.answer_code is not null and c.answer_code <> 'unknown');
+                      and c.answer_code is not null and c.answer_code <> 'unknown'));
   end if;
 
   return jsonb_build_object(
