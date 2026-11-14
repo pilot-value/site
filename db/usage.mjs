@@ -842,6 +842,9 @@ async function foundingReport(users, testIds, real) {
     const everyone = new Set();
     let allCalls = 0;
     for (const r of q) {
+      /* ★同じ表を、スケジュール（勤務表）の読み取りの回数（'roster'・'r:…'）と、その失敗の知らせの
+           通数（'mail:…'）も使っている。明細の回数・端末に数えない（2026-11-13。数えると端末が水増しになる）。 */
+      if (/^(roster|r:|mail:)/.test(String(r.subject))) continue;
       const isGlobal = String(r.subject).startsWith('global');
       if (r.subject === 'global') allCalls += r.n;
       if (!isGlobal) everyone.add(r.subject);

@@ -5,7 +5,7 @@
    飛んでいなかった（cron も GitHub Actions も無い）。この関数を
    Database Webhook から呼ぶことで、投稿・登録・問い合わせの瞬間に届く。
 
-   1本で10の表を捌く（顔ぶれは下の builders と db/notify-admin-webhooks.sql の配列）。主なもの：
+   1本で11の表を捌く（顔ぶれは下の builders と db/notify-admin-webhooks.sql の配列）。主なもの：
      reviews_v2          … 新着口コミ（品質フラグ付き）
      profiles            … 新規会員
      contacts            … お問い合わせ（返信先を投稿者のメールに設定）
@@ -14,6 +14,7 @@
      pv_review_pending   … ログインせずに出した口コミ（預かり・一覧には掲載中）
      airline_conditions  … 待遇アンケートの回答（1問＝1通）
      pv_proof_notice     … パイロット確認の画像が届いた印（★画像・誰が出したかは載せない・2026-11-03）
+     pv_roster_docs      … スケジュール（勤務表）の提出（★便の区間・時刻・誰が出したかは載せない・2026-11-13）
 
    ★ 金額をメールに載せないのは決めごと。給与レポートは user_id を持たない設計で
      「誰がいくら」を運営側に残さない（db/pay-reports.sql）。1件単位の報酬額を
@@ -45,12 +46,11 @@
                          x-pv-webhook-secret として同じ値を入れる。
    SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY は Supabase が自動で入れる。
 
-   ── Webhook（オーナー作業・6本つくる）──────────────────────
-   db/notify-admin-webhooks.sql を SQL Editor に貼って Run するのが早い（6本まとめて作る）。
-   画面から作る場合は Database → Webhooks → Create a new hook を6回。
+   ── Webhook（オーナー作業・表ごとに1本）────────────────────
+   db/notify-admin-webhooks.sql を SQL Editor に貼って Run するのが早い（足りない分だけまとめて作る・
+   表の顔ぶれはあのファイルの配列が正）。
+   画面から作る場合は Database → Webhooks → Create a new hook を表の数だけ。
    いずれも Events: Insert のみ ／ Type: Supabase Edge Functions → notify-admin
-     reviews_v2 ／ profiles ／ contacts ／
-     pay_reports ／ pay_reports_pending ／ airline_conditions
    ★ Insert のみに固定する。口コミの自動翻訳の UPDATE で二重に飛ぶのを防ぐのと、
      給与レポートの出し直し（on conflict do update）で通知が増えないようにするため。
    ════════════════════════════════════════════════════════════════ */
@@ -607,10 +607,69 @@ async function buildProofNotice(id: string): Promise<Mail | null> {
   };
 }
 
+/* ── pv_roster_docs ───────────────────────────────────────── */
+/* スケジュール（勤務表）が1回提出された（db/roster.sql の submit_roster・2026-11-13 オーナー「提出した人がいたらメール」）。
+   1回の提出 ＝ pv_roster_docs の1行（何枚の画像でも1行）。
+   ★載せるのは会社・期間・数だけ。便の区間（空港）・時刻・勤務の記号は1文字も載せない
+     （並べると誰のスケジュールか分かる）。SELECT にも入れない＝事故で本文に出る道を作らない。
+   ★誰が出したかは表が持っていない（鍵は proof_hash）。その鍵・ファイルの指紋も載せない。
+   ★手で1日を直したときの置き場（manual = true・edit_roster_day が作る）は提出ではない＝知らせない。
+   ★数は「読めたかどうか」の目安（時刻の欠けた日・ブロックタイムの分からない便）。失敗そのものは parse-roster が知らせる。 */
+async function buildRosterDoc(id: string): Promise<Mail | null> {
+  const r = await sbSelect('pv_roster_docs', id, 'id,created_at,proof_hash,pages,date_from,date_to,days,manual');
+  if (!r || r.manual) return null;
+  const h = String(r.proof_hash ?? '');
+  if (!/^[0-9a-f]{64}$/.test(h)) return null;
+  const isDate = (v: unknown) => typeof v === 'string' && /^\d{4}-\d\d-\d\d$/.test(v);
+  const ranged = isDate(r.date_from) && isDate(r.date_to);
+
+  /* 時刻は「無い日」を条件で数えるだけ（時刻そのものは引かない）。 */
+  const [prof, docs, days, noClk, legsAll] = await Promise.all([
+    sbList('pv_roster_profile', `proof_hash=eq.${h}`, 'airline'),
+    sbList('pv_roster_docs', `proof_hash=eq.${h}&manual=is.false`, 'id'),
+    sbList('pv_roster_days', `doc_id=eq.${encodeURIComponent(id)}`, 'duty_date'),
+    sbList('pv_roster_days', `doc_id=eq.${encodeURIComponent(id)}&or=(d_on.is.null,d_off.is.null)`, 'duty_date'),
+    ranged
+      ? sbList('pv_roster_legs', `proof_hash=eq.${h}&duty_date=gte.${r.date_from}&duty_date=lte.${r.date_to}`, 'duty_date,kind,block_min')
+      : Promise.resolve([]),
+  ]);
+
+  /* この提出の日だけを数える（同じ期間に、前の提出の日が残っていることがある）。地上の業務は便に数えない。 */
+  const mine = new Set(days.map((d: { duty_date?: string }) => String(d.duty_date)));
+  const legs = legsAll.filter((l: { duty_date?: string; kind?: string }) => mine.has(String(l.duty_date)) && l.kind !== 'ground');
+  const flyDates = new Set(legs.map((l: { duty_date?: string }) => String(l.duty_date)));
+  const dh = legs.filter((l: { kind?: string }) => l.kind === 'deadhead').length;
+  const noBlock = legs.filter((l: { block_min?: unknown }) => l.block_min === null || l.block_min === undefined).length;
+  const noClock = noClk.filter((d: { duty_date?: string }) => flyDates.has(String(d.duty_date))).length;
+
+  const air = typeof prof[0]?.airline === 'string' && prof[0].airline ? prof[0].airline : '—';
+  const span = ranged ? `${r.date_from}〜${r.date_to}` : '—';
+  const nth = Math.max(1, docs.length);
+  const gaps = [
+    noClock ? `出頭・解散の時刻が無い日 ${noClock}日` : '',
+    noBlock ? `ブロックタイムが分からない便 ${noBlock}本` : '',
+  ].filter(Boolean).join('／');
+
+  return {
+    subject: `【PILOT VALUE】スケジュールの提出 — ${air} / ${span}`,
+    html: shell('スケジュールの提出が1件あります',
+      `${esc(r.created_at)} に提出されました。便の区間・時刻・誰が出したかはメールに載せません。`,
+      table(
+        row('航空会社', esc(air)) +
+        row('期間', esc(span)) +
+        row('日数', `${days.length}日（便のある日 ${flyDates.size}日）`) +
+        row('便', `${legs.length}本${dh ? `（うち便乗 ${dh}本）` : ''}`) +
+        row('画像', `${Number(r.pages) || 0}枚`) +
+        row('読めていない所', gaps ? esc(gaps) : 'なし') +
+        row('この会員の提出', nth === 1 ? '1回目（初めて）' : `${nth}回目`),
+      )),
+  };
+}
+
 /* 手元の検査（assert-admin-notify.mjs）が実体をそのまま動かせるように出す。
    translate-review/index.ts と同じ形。Deno 側では無害。 */
 export { buildReview, buildProfile, buildContact, buildPayReport, buildPayReportPending, buildReviewPending, buildCondition, buildRequest,
-         buildRequestComment, buildProofNotice };
+         buildRequestComment, buildProofNotice, buildRosterDoc };
 
 async function send(mail: Mail, idemKey: string) {
   const res = await fetch('https://api.resend.com/emails', {
@@ -670,6 +729,7 @@ Deno.serve(async (req) => {
     pv_requests: buildRequest,
     pv_request_comments: buildRequestComment,
     pv_proof_notice: buildProofNotice,
+    pv_roster_docs: buildRosterDoc,
   };
   const build = builders[tbl];
   if (!build) return json({ ok: true, note: `unhandled table ${tbl}` });
