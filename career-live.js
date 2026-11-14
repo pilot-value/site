@@ -2867,9 +2867,11 @@
       a.setAttribute('data-pvc-q', kid);
     }
     a.appendChild(el('span', '', V[kid].cue));
-    a.appendChild(d.createTextNode(' '));   // 読み上げで「教える」とくっつかないように（見た目の間は CSS の gap）
-    a.appendChild(el('b', '', T.cueGo));
-    a.appendChild(icon('arrow', 14));
+    a.appendChild(d.createTextNode(' '));   // 読み上げで「教える」とくっつかないように（見た目の間もこの空白）
+    /* 「教える →」は1つの塊（狭いカードでも、字と矢印が別の行へ割れない） */
+    var go = el('b', '', T.cueGo);
+    go.appendChild(icon('arrow', 14));
+    a.appendChild(go);
     return a;
   }
   /* 開いている人のタイル（g ＝ いちばん上の親ごとの、答えのある質問の並び） */
