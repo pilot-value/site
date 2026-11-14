@@ -92,6 +92,9 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
 [data-theme="light"] .btn-ghost{color:#0f172a!important;border-color:rgba(0,0,0,.15)!important}
 [data-theme="light"] .btn-ghost:hover{border-color:rgba(0,0,0,.3)!important;background:rgba(0,0,0,.04)!important}
 
+/* 日本語の短い文は文節の切れ目で折る（「ため／に」で割らない）。対応していないブラウザは今までどおり折れるだけ */
+.rv-give,.rv-safe,.crew-note-title,.rv-cnt span{word-break:auto-phrase}
+
 /* ── 頭：題 → 緑の帯（Give & Get）→ 盾の1行 ── 匿名のことは1か所でだけ言う */
 .rv-head{text-align:center;margin-bottom:var(--pv-s-3)}
 .rv-h1{font-size:1.75rem;font-weight:700;letter-spacing:-.025em;line-height:1.3;color:var(--pv-ink);margin:0 0 var(--pv-s-2)}
@@ -141,13 +144,13 @@ textarea.form-input{resize:vertical;min-height:96px;line-height:1.7}
 
 /* ── 2段目の頭の説明（囲んで本文と分ける・2026-11-14 オーナー「囲ったりして区別して」） */
 .crew-note{margin:0 0 var(--pv-s-3);padding:var(--pv-s-2);border-radius:14px;background:var(--pv-accent-soft);border:1px solid var(--pv-accent-line)}
-.crew-note-title{font-size:.9rem;font-weight:700;line-height:1.5;color:var(--pv-accent-ink);margin-bottom:4px}
+.crew-note-title{font-size:.9rem;font-weight:700;line-height:1.5;color:var(--pv-accent-ink);margin-bottom:4px;text-wrap:balance}
 .crew-note-body{margin:0;font-size:.84rem;line-height:1.75;color:var(--pv-ink-2)}
 .crew-note-body b{color:var(--pv-ink);font-weight:600}
 
 /* ── 7つの評価 */
-.rv-cnt{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin:0 0 var(--pv-s-2)}
-.rv-cnt span{font-size:.8rem;line-height:1.6;color:var(--pv-ink-3)}
+.rv-cnt{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 12px;margin:0 0 var(--pv-s-2)}
+.rv-cnt span{flex:1 1 16em;font-size:.8rem;line-height:1.6;color:var(--pv-ink-3);text-wrap:pretty}
 .char-total{flex:none;white-space:nowrap;font-size:.8rem;font-weight:700;color:var(--pv-ink-2);font-variant-numeric:tabular-nums}
 .char-total.is-ok{color:var(--pv-accent-ink)}
 .cat-block{border:1px solid var(--pv-line);border-radius:16px;padding:var(--pv-s-2);background:var(--pv-surface)}
@@ -181,6 +184,9 @@ textarea.form-input{resize:vertical;min-height:96px;line-height:1.7}
 .preview-row:last-child{border-bottom:none}
 .preview-label{color:var(--pv-ink-3);font-size:.85rem}
 .preview-val{color:var(--pv-ink);font-weight:600;font-size:.9rem}
+.preview-row.is-cat{display:block}
+.pr-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.pr-text{margin:4px 0 0;font-size:.84rem;line-height:1.65;color:var(--pv-ink-2)}
 .privacy-row{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:12px;background:var(--pv-bg-sub);border:1px solid var(--pv-line);color:var(--pv-ink-2);font-size:.8rem;font-weight:600}
 .privacy-row svg{flex:none;color:var(--pv-accent-ink)}
 
@@ -1301,18 +1307,18 @@ function buildPreview(v) {
     ['職位', POS_MAP[v.pos] || v.pos],
   ];
 
-  CAT_KEYS.forEach(k => {
+  /* 会社と職位は「名前 ─ 値」の1行。評価は「項目名 ─ 点」の1行の下に、コメントの頭（60字）を左寄せで置く
+     （右寄せで何行にも折れると読めない）。字は自分が打ったものでも、入れる前に必ず逃がす。 */
+  const esc = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+  const noComment = '（コメントなし）';
+  document.getElementById('preview-content').innerHTML = rows.map(([label, val]) =>
+    '<div class="preview-row"><span class="preview-label">' + esc(label) + '</span><span class="preview-val">' + esc(val) + '</span></div>'
+  ).join('') + CAT_KEYS.map((k) => {
     const c = v.cats[k];
-    const val = `★${c.score} — ${c.comment ? (c.comment.length>60?c.comment.slice(0,60)+'…':c.comment) : '（コメントなし）'}`;
-    rows.push([CAT_LABELS[k], val]);
-  });
-
-  document.getElementById('preview-content').innerHTML = rows.map(([label, val]) => `
-    <div class="preview-row">
-      <span class="preview-label">${label}</span>
-      <span class="preview-val" style="font-size:.82rem;max-width:60%;text-align:right">${val}</span>
-    </div>
-  `).join('');
+    const text = c.comment ? (c.comment.length > 60 ? c.comment.slice(0, 60) + '…' : c.comment) : noComment;
+    return '<div class="preview-row is-cat"><div class="pr-top"><span class="preview-label">' + esc(CAT_LABELS[k]) + '</span>' +
+      '<span class="preview-val">' + (c.score ? '★' + c.score : '—') + '</span></div><p class="pr-text">' + esc(text) + '</p></div>';
+  }).join('');
 }
 
 // ── Proof hash ────────────────────────────────────────────────
