@@ -753,6 +753,17 @@ begin
        where c.key_hash = v_kh and c.kind = 'cond'
          and (v_airline is null or c.airline = v_airline)
     ), '[]'::jsonb),
+    /* その会社で答えが分かれている質問のうち、この鍵で「わからない」以外を預けた質問の id（2026-11-14）。
+       my_airline_conditions の split と同じ決まり ＝ 預けていない質問については返さない。人数・答えは返さない */
+    'split', coalesce((
+      select jsonb_agg(s.question_id order by s.question_id collate "C")
+        from public.pv_condition_split s
+       where v_airline is not null and s.airline = v_airline
+         and exists (select 1 from public.pv_contrib_pending c
+                      where c.key_hash = v_kh and c.kind = 'cond'
+                        and c.airline = v_airline and c.item_key = s.question_id
+                        and coalesce(c.payload->>'code', 'unknown') <> 'unknown')
+    ), '[]'::jsonb),
     'towns', coalesce((
       select jsonb_agg(public.pv_town_held_json(c.payload) order by c.item_key collate "C")
         from public.pv_contrib_pending c
@@ -1450,6 +1461,44 @@ comment on function public.pv_contrib_notes(jsonb) is
 
 
 -- ════════════════════════════════════════════════════════════════
+-- 7-a1. 「最多」と書いてよい答え（lead）の決め方（2026-11-14 に pv_contrib_facts から切り出した）
+-- ════════════════════════════════════════════════════════════════
+-- ★決めるのは、ここ1か所。読むのは pv_contrib_facts（カードの「最多」と「回答が分かれています」）と、
+--   7-a3 の pv_condition_split（答えが分かれた質問 ＝ 続きの「何によって違いますか？」を出す会社）。
+--   写しを作ると、カードが「回答が分かれています」と言う質問と、続きを聞く質問が黙ってずれる。
+--   もとにするのは、ビューが数えたもの（answer_dist と n）だけ ＝「わからない」・スキップだけの行・
+--   親の条件から外れた回答・社名を打った行は、ここでも数に入らない。
+--     いちばん多い答えが1つ                         → その1つ
+--     2つ以上並んだ                                 → 空の並び（画面は「回答が分かれています」）
+--     ただし「選べるだけ選ぶ」質問で並んだ時は、先に台帳を見る ──
+--       並んだ答えに台帳に無い符号が混じる（半分より多くても、少なくても） → null（画面は名前の引けない答えを出さない）
+--       どれも、答えた人の半分より多く（かつ人数以下）が選んだ             → 並んだ答えぜんぶ
+--     数の質問・数えた答えが1つも無い行             → null（数の質問は median_num）
+--   並びは符号の順（collate "C"）＝ 同じ集計からは、いつも同じ字の返事。画面は台帳の順で出す（この順に頼らない）。
+create or replace function public.pv_condition_lead(p_dist jsonb, p_n int, p_kind text, p_codes text[])
+returns jsonb
+language sql
+immutable
+set search_path = public, extensions
+as $fn$
+  select case
+           when count(*) = 0 then null
+           when count(*) = 1 then jsonb_agg(t.code)
+           when p_kind <> 'multi' then '[]'::jsonb
+           when not bool_and(t.code = any(p_codes)) then null
+           when max(t.c) * 2 > p_n and max(t.c) <= p_n
+             then jsonb_agg(t.code order by t.code collate "C")
+           else '[]'::jsonb
+         end
+    from (select e.key as code, e.value::int as c,
+                 max(e.value::int) over () as top
+            from jsonb_each_text(p_dist) as e) t
+   where t.c = t.top
+$fn$;
+revoke all on function public.pv_condition_lead(jsonb, int, text, text[]) from public, anon, authenticated;
+
+
+-- ════════════════════════════════════════════════════════════════
 -- 7-a2. 鍵の無い人にも見せる「回答が集まった質問」の id（2026-11-09）
 -- ════════════════════════════════════════════════════════════════
 -- ★オーナー指示「ログインしていない・給与を提出していない人にも質問を見せて、回答はぼかして」。
@@ -1468,6 +1517,20 @@ create table if not exists public.pv_condition_has (
 alter table public.pv_condition_has enable row level security;
 revoke all on public.pv_condition_has from public, anon, authenticated;
 
+-- ── 7-a3. 答えが分かれた質問（2026-11-14 オーナー指示「回答が分かれている場合も、もう一つ突っ込んで質問して」）──
+-- ★その会社で、カードが「回答が分かれています」と言う質問（lead が空の並び ＝ 7-a1 の1か所）のうち、
+--   続きの「何によって違いますか？」（質問マスタの deep = 'split'）を持つ親だけ。
+-- ★読むのは、続きを出すかを決める3つだけ ── pv_ask_next（戻ってきた会員の板）・my_airline_conditions と
+--   my_contrib_anon（答える画面。本人が答えた質問の分しか返さない）。答え・人数は持たない。
+-- ★作るのは pv_condition_has と同じ時（同じ文の中で、ビューを1回だけ数える）。誰にも grant しない。
+create table if not exists public.pv_condition_split (
+  airline     text not null,
+  question_id text not null,
+  primary key (airline, question_id)
+);
+alter table public.pv_condition_split enable row level security;
+revoke all on public.pv_condition_split from public, anon, authenticated;
+
 -- 作り直す（全社まとめて）。消すのは「もう当たらない行」だけ・足すのは無い行だけ
 -- ＝ 2つの書き込みが同時に走っても、同じ行を2回入れようとして止まらない。
 create or replace function public.pv_condition_has_refresh()
@@ -1477,13 +1540,31 @@ security definer
 set search_path = public, extensions
 as $$
 begin
-  with fresh as (
-    select f.airline, f.question_id
+  -- ★ビューを数えるのは1回だけ（facts）。2つの表を同じ文の中で作り直す（重くしない・2026-11-06 の教訓）。
+  with facts as materialized (
+    select f.airline, f.question_id, f.kind, f.n, f.answer_dist
       from public.airline_condition_facts f
+  ), fresh as (
+    select f.airline, f.question_id
+      from facts f
      where not exists (select 1 from public.pv_condition_links k where k.question_id = f.question_id)
+  ), split as (
+    select f.airline, f.question_id
+      from facts f
+      join public.pv_condition_questions q on q.id = f.question_id and q.active
+     where public.pv_condition_lead(f.answer_dist, f.n, f.kind, q.choice_codes) = '[]'::jsonb
+       and exists (select 1 from public.pv_condition_questions d
+                    where d.parent = f.question_id and d.deep = 'split' and d.active)
   ), gone as (
     delete from public.pv_condition_has h
      where not exists (select 1 from fresh x where x.airline = h.airline and x.question_id = h.question_id)
+  ), gone_split as (
+    delete from public.pv_condition_split h
+     where not exists (select 1 from split x where x.airline = h.airline and x.question_id = h.question_id)
+  ), add_split as (
+    insert into public.pv_condition_split (airline, question_id)
+    select airline, question_id from split
+    on conflict do nothing
   )
   insert into public.pv_condition_has (airline, question_id)
   select airline, question_id from fresh
@@ -1590,43 +1671,20 @@ begin
     raise exception '航空会社が正しくありません' using errcode = '22023';
   end if;
 
-  -- ★lead ＝ 画面が「最多」と書いてよい答え（符号の並び）。決めるのは、ここ1か所（画面は数えない・決めない）。
-  --   もとにするのは、ビューが数えたもの（answer_dist と n）だけ ＝「わからない」・スキップだけの行・
-  --   親の条件から外れた回答・社名を打った行は、ここでも数に入らない。
-  --     いちばん多い答えが1つ                         → その1つ
-  --     2つ以上並んだ                                 → 空の並び（画面は「回答が分かれています」）
-  --     ただし「選べるだけ選ぶ」質問で並んだ時は、先に台帳を見る ──
-  --       並んだ答えに台帳に無い符号が混じる（半分より多くても、少なくても） → null（画面は名前の引けない答えを出さない）
-  --       どれも、答えた人の半分より多く（かつ人数以下）が選んだ             → 並んだ答えぜんぶ
-  --     数の質問・数えた答えが1つも無い行             → null（数の質問は median_num）
-  --   並びは符号の順（collate "C"）＝ 同じ集計からは、いつも同じ字の返事。画面は台帳の順で出す（この順に頼らない）。
+  -- ★lead ＝ 画面が「最多」と書いてよい答え（符号の並び）。決めるのは 7-a1 の pv_condition_lead の1か所（画面は数えない・決めない）。
+  --   決め方の中身（並んだ・選べるだけ選ぶ質問・null になる時）は 7-a1 の注に書いてある。
   --   ⚠️ 答えごとの人数・割合・top_code は返さない。返すのは、決めた結果だけ。
   select coalesce(jsonb_agg(jsonb_build_object(
                     'question_id', f.question_id,
                     'kind',        f.kind,
                     'n',           f.n,
-                    'lead',        l.lead,
+                    'lead',        public.pv_condition_lead(f.answer_dist, f.n, f.kind, q.choice_codes),
                     'median_num',  f.median_num,
                     'ym',          to_char(f.last_confirmed_at at time zone 'utc', 'YYYY-MM'))
                   order by f.question_id), '[]'::jsonb)
     into v_facts
     from public.airline_condition_facts f
     join public.pv_condition_questions q on q.id = f.question_id and q.active
-    left join lateral (
-      select case
-               when count(*) = 0 then null
-               when count(*) = 1 then jsonb_agg(t.code)
-               when f.kind <> 'multi' then '[]'::jsonb
-               when not bool_and(t.code = any(q.choice_codes)) then null
-               when max(t.c) * 2 > f.n and max(t.c) <= f.n
-                 then jsonb_agg(t.code order by t.code collate "C")
-               else '[]'::jsonb
-             end as lead
-        from (select e.key as code, e.value::int as c,
-                     max(e.value::int) over () as top
-                from jsonb_each_text(f.answer_dist) as e) t
-       where t.c = t.top
-    ) l on true
    where f.airline = v_airline
      and f.question_id = any(v_keys);
 

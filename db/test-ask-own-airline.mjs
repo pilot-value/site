@@ -147,8 +147,8 @@ const answer = async (who, airline, answers) => {
   await db.exec(`update public.profiles set cond_answers_today = 0`);
 };
 
-const AIR = (await many(`select code from public.pv_airlines where code <> 'other' and active order by code limit 15`)).map((r) => r.code);
-const [A_PAY, A_REV, A_F, A_SPLIT, A_UNK, A_NUM, A_NUM2, A_MULTI, A_SEEN, A_KID, A_BREAK, A_OLD, A_CUR, A_CUR2, A_CUR3] = AIR;
+const AIR = (await many(`select code from public.pv_airlines where code <> 'other' and active order by code limit 17`)).map((r) => r.code);
+const [A_PAY, A_REV, A_F, A_SPLIT, A_UNK, A_NUM, A_NUM2, A_MULTI, A_SEEN, A_KID, A_BREAK, A_OLD, A_CUR, A_CUR2, A_CUR3, A_DEEP, A_DEEP2] = AIR;
 const ASK = (await many(`select id, kind, parent from public.pv_condition_questions
                           where active and ask_rank is not null order by ask_rank`));
 const ASK_IDS = ASK.map((q) => q.id);
@@ -411,6 +411,67 @@ console.log('\n▼ 8. 公開の集計は今までどおり（ビューを関数�
   ok(!!v && Number(v.n) === 3, '3人が答えた質問は集計に出る（n=3）', J(v));
   const s = await one(`select count(*)::int as c from public.airline_condition_facts where airline = $1 and question_id = $2`, [A_UNK, Q1]);
   ok(s.c === 0, '「わからない」だけの質問は集計に出ない（今までどおり）', J(s));
+}
+
+console.log('\n▼ 9. 続きの質問（2026-11-14 オーナー「一部可能にはもう一つ突っ込んで質問して。回答が分かれている場合も」）');
+{
+  const DEEP = await many(`select id, parent, deep from public.pv_condition_questions where active and deep is not null and ask_rank is not null`);
+  const PART = DEEP.find((q) => q.deep === 'partial' && q.parent === Q1);
+  const SPL = DEEP.find((q) => q.deep === 'split' && q.parent === Q1);
+  ok(!!PART && !!SPL, `いちばん目の質問（${Q1}）に、続き2つ（${PART && PART.id}・${SPL && SPL.id}）が板の順で付いている`);
+  const pw = (await one(`select parent_when from public.pv_condition_questions where id = $1`, [PART.id])).parent_when;
+  const codes = (await one(`select choice_codes from public.pv_condition_questions where id = $1`, [Q1])).choice_codes;
+  const [YES, NO] = codes.filter((c) => c !== 'unknown' && !pw.includes(c));
+  const after = { cont: true, limit: 1, not: [Q1] };
+
+  /* 一部：その答えをした本人には、親のすぐ次に続きを聞く。ほかの答えの人には聞かない */
+  const p = await member(); await paid(p, A_DEEP);
+  await answer(p, A_DEEP, [{ question_id: Q1, code: pw[0] }]);
+  ok(J(ids(await next(p, after))) === J([PART.id]), `親に「${pw[0]}」と答えた人には、次の1問がその続き（${PART.id}）`);
+  const y = await member(); await paid(y, A_DEEP);
+  await answer(y, A_DEEP, [{ question_id: Q1, code: YES }]);
+  ok(!ids(await next(y, { cont: true, limit: 5, not: [Q1] })).includes(PART.id), `親に「${YES}」と答えた人には、一部の続きを聞かない`);
+
+  /* 分かれた：その会社で親の答えが分かれているときだけ、親に答えた人に聞く */
+  const notYet = { cont: true, limit: 5, not: [Q1, PART.id] };
+  ok(!ids(await next(y, notYet)).includes(SPL.id), `分かれていない会社では「何によって違うか」（${SPL.id}）を聞かない`);
+  const crew = [];
+  for (const c of [YES, YES, NO, NO]) { const m = await member(); await paid(m, A_DEEP2); await answer(m, A_DEEP2, [{ question_id: Q1, code: c }]); crew.push(m); }
+  ok(ids(await next(crew[0], notYet)).includes(SPL.id), `2対2に分かれた会社では、親に答えた人に「何によって違うか」を聞く`);
+  const z = await member(); await paid(z, A_DEEP2);
+  ok(!ids(await next(z, { cont: true, limit: 5 })).includes(SPL.id), `分かれた会社でも、親に答えていない人には聞かない`);
+
+  /* 答える画面に渡す「分かれた質問」は、本人が答えた質問の分だけ（答えていない人には、分かれていることも渡さない） */
+  const mine = async (who, airline) => (await rpc(who, 'my_airline_conditions', { airline })).split;
+  ok(J(await mine(crew[0], A_DEEP2)) === J([Q1]), `親に答えた人の自分の回答には split: [${Q1}] が付く`, J(await mine(crew[0], A_DEEP2)));
+  ok(J(await mine(z, A_DEEP2)) === J([]), '親に答えていない人の split は空（答えていない質問のことは言わない）', J(await mine(z, A_DEEP2)));
+  const u = await member(); await paid(u, A_DEEP2);
+  await answer(u, A_DEEP2, [{ question_id: Q1, code: 'unknown' }]);
+  ok(J(await mine(u, A_DEEP2)) === J([]), '「わからない」と答えた人の split も空', J(await mine(u, A_DEEP2)));
+  ok(J(await mine(y, A_DEEP)) === J([]), '分かれていない会社では、答えた人にも split は空', J(await mine(y, A_DEEP)));
+
+  /* 壊す証明：分かれた会社かを見る1行を外すと、分かれていない会社でも聞いてしまう */
+  const src = read(MINE);
+  const cut = src.replace(/\n\s+and \(q\.deep is distinct from 'split'\n\s+or exists \(select 1 from public\.pv_condition_split s\n\s+where s\.airline = v_code and s\.question_id = q\.parent\)\)/, () => '');
+  ok(cut !== src, '外す行が見つかった');
+  await db.exec(cut);
+  ok(ids(await next(y, notYet)).includes(SPL.id), '外したら、分かれていない会社でも「何によって違うか」が出た ＝ 上の ✅ はこの1行が効いている');
+  await db.exec(src);
+  ok(!ids(await next(y, notYet)).includes(SPL.id), '戻したら、また出ない');
+
+  /* 壊す証明：自分の回答の split から「本人が答えた質問だけ」を外すと、答えていない人にも分かれていることが渡る */
+  const ac = read('db/airline-conditions.sql');
+  const leak = ac.replace(/\n\s+and exists \(select 1 from public\.airline_conditions c\n\s+where c\.proof_hash = public\.pv_condition_hash\(v_uid, v_airline, null\)\n\s+and c\.question_id = s\.question_id\n\s+and c\.answer_code is not null and c\.answer_code <> 'unknown'\)/, () => '');
+  ok(leak !== ac, '外す行が見つかった（my_airline_conditions）');
+  await db.exec(leak);
+  ok(J(await mine(z, A_DEEP2)) === J([Q1]), '外したら、親に答えていない人にも split が渡った ＝ 上の ✅ はこの条件が効いている');
+  await db.exec(ac);
+  ok(J(await mine(z, A_DEEP2)) === J([]), '戻したら、また空');
+
+  /* 同点が崩れたら（3対2）、もう聞かない ＝ カードが「回答が分かれています」と言う時だけ */
+  await answer(await member(), A_DEEP2, [{ question_id: Q1, code: YES }]);
+  ok(!ids(await next(crew[0], notYet)).includes(SPL.id), '3対2になった会社では「何によって違うか」を聞かない（カードの「分かれています」と同じ1か所で決める）');
+  ok(J(await mine(crew[0], A_DEEP2)) === J([]), '同じく split も空に戻る');
 }
 
 console.log(`\n══ ${pass} pass / ${fail} fail ══`);

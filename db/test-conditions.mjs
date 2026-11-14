@@ -19,8 +19,10 @@ import { QUESTIONS, SETTINGS, UNKNOWN } from '../pv-conditions.mjs';
 /* 一覧と1問枠に出る質問／話題の入口からだけ出る質問（2026-10-04）。
    ★「答えた項目：N／M」の M は**一覧に出る質問の数**。質問マスタの行数（QUESTIONS.length）ではない。
      マスタには話題の入口からだけ出す質問も入っているので、あちらで数えると M が増える。 */
-const LISTED = QUESTIONS.filter((q) => !q.topicOnly);
+const LISTED = QUESTIONS.filter((q) => !q.topicOnly && !q.deep);
 const TOPIC_ONLY = QUESTIONS.filter((q) => q.topicOnly);
+/* 続きの質問（deep・2026-11-14）。一覧に出る質問にも「答えた項目」の M にも入れない（話題の入口だけの質問と同じ扱い） */
+const DEEP = QUESTIONS.filter((q) => q.deep);
 
 const read = (f) => readFileSync(new URL('../' + f, import.meta.url), 'utf8');
 
@@ -77,13 +79,13 @@ for (const f of FILES) {
 console.log('\n▼ 質問マスタ（SSOT との突き合わせ）');
 const qm = await one(`select
   (select count(*) from pv_condition_questions where active) q,
-  (select count(*) from pv_condition_questions where active and not topic_only) l,
+  (select count(*) from pv_condition_questions where active and not topic_only and deep is null) l,
   (select count(*) from pv_condition_sections where active) s,
   (select count(*) from pv_condition_questions where active and micro) m,
   (select count(*) from pv_condition_questions where active and tier = 'A') a`);
 ok(Number(qm.q) === QUESTIONS.length, `質問 ${QUESTIONS.length} → ${qm.q}`);
-ok(Number(qm.l) === LISTED.length && LISTED.length + TOPIC_ONLY.length === QUESTIONS.length,
-  `   うち一覧に出る質問 ${LISTED.length} → ${qm.l}（話題の入口からだけ出る質問 ${TOPIC_ONLY.length} は別）`);
+ok(Number(qm.l) === LISTED.length && LISTED.length + TOPIC_ONLY.length + DEEP.length === QUESTIONS.length,
+  `   うち一覧に出る質問 ${LISTED.length} → ${qm.l}（話題の入口からだけ出る質問 ${TOPIC_ONLY.length}・続きの質問 ${DEEP.length} は別）`);
 /* ★この1行だけは数字で書く（2026-10-05）。冒頭の「固定値を書かない」の例外。
      上の2行は両側とも生成元から数えているので、今までの質問にうっかり topicOnly を付けても
      （4問のどれかから外しても）一緒に動いて緑のまま ＝ 「N／48 を動かさない」をどこも見ていなかった。
@@ -493,7 +495,8 @@ ok(!(await offered(84, 'peach', 'days_off_request')), '   元に戻すとまた�
       切れていないことを一緒に見る（uncut）。 */
 console.log('\n▼ ⑱ 通勤の移動 ── タクシーとクルーバスを別々に聞く（親が「複数選ぶ」質問）');
 const QBY = Object.fromEntries(QUESTIONS.map((q) => [q.id, q]));
-const kids = (pid) => QUESTIONS.filter((q) => q.parent === pid).map((q) => q.id);
+/* 続きの質問（deep）は数えない ── 下で見るのは、制度の中身を聞く子の質問の集合 */
+const kids = (pid) => QUESTIONS.filter((q) => q.parent === pid && !q.deep).map((q) => q.id);
 const same = (a, b) => JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());
 const TAXI = ['commuting_taxi_when', 'commuting_taxi_where', 'commuting_taxi_cost'];
 const BUS = ['commuting_bus_when', 'commuting_bus_cost'];

@@ -1584,7 +1584,7 @@ console.log('\n▼ TA2 預かりは、その鍵にだけ返る（towns・POST �
   const K2 = r2 && r2.key;
   must(!!K1 && !!K2 && K1 !== K2, '2本目の鍵を作れなかった');
   const m1 = await heldOf(K1), m2 = await heldOf(K2);
-  ok(m1 && keys(m1) === 'answers,known,ok,rows,towns' && m1.known === true && m1.towns.length === 1 && canon(m1.towns[0]) === canon(HELD1)
+  ok(m1 && keys(m1) === 'answers,known,ok,rows,split,towns' && m1.known === true && m1.towns.length === 1 && canon(m1.towns[0]) === canon(HELD1)
      && m2.towns.length === 1 && m2.towns[0].town === '大崎',
      'TA2 my_contrib_anon（その鍵）→ towns に預けた1件が、預けた時の post と同じ形・同じ字で返る／別の鍵には、その鍵の1件だけ', J({ m1, m2 }));
   const none = [await heldOf(undefined), await heldOf(''), await heldOf('c'.repeat(48)), await heldOf(K1, A2)];

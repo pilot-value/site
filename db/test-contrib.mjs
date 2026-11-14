@@ -169,8 +169,8 @@ const KEY  = /^[0-9a-f]{48}$/;
 const SIX  = ['block_hours', 'duty_hours', 'work_days', 'duty_days', 'days_off', 'stay_nights'];
 
 const AIR = (await many(
-  `select code from public.pv_airlines where code <> 'other' and active order by code limit 13`)).map((r) => r.code);
-const [A_ONE, A_TWO, A_WALL, A_CLAIM, A_NEW, A_NOTE, A_LIM, A_EXP, A_FLOW, A_BARE, A_HOME, A_OTH, A_FACT] = AIR;
+  `select code from public.pv_airlines where code <> 'other' and active order by code limit 14`)).map((r) => r.code);
+const [A_ONE, A_TWO, A_WALL, A_CLAIM, A_NEW, A_NOTE, A_LIM, A_EXP, A_FLOW, A_BARE, A_HOME, A_OTH, A_FACT, A_SPL] = AIR;
 
 /* ── 「誰に見せるか」の節（8-0）で使う道具 ────────────────────────
    他人の回答を読める人は、ここの paid で作る ＝ 本物の submit_pay_report を通す。
@@ -646,10 +646,11 @@ console.log('\n▼ 8-0. 誰に見せるか（自分の会社・5つ）');
   {
     const [P] = await crew(1);
     // 親子の組は表（pv_condition_links）から：親は親の無い「選ぶ」質問・「はい」（yes）で子が開く・子も「選ぶ」質問
+    // （続きの質問 deep は外す ── 「何によって違うか」は親の「わからない」以外の全部で開くので、外れる答えが無い）
     const PAIR = (await many(
       `select k.question_id as child, k.parent, k.parent_when
          from public.pv_condition_links k
-         join public.pv_condition_questions c on c.id = k.question_id and c.active and c.kind = 'choice'
+         join public.pv_condition_questions c on c.id = k.question_id and c.active and c.kind = 'choice' and c.deep is null
          join public.pv_condition_questions p on p.id = k.parent and p.active and p.kind = 'choice' and p.parent is null
         where 'yes' = any(k.parent_when)
           and (select count(*) from public.pv_condition_links z where z.question_id = k.question_id) = 1
@@ -2475,6 +2476,58 @@ console.log('\n▼ 8-3. 他人の回答の集計（立場ごとに何が返る�
       '   TH 壊す証明：書き込みの引き金を外すと、3人そろっても has は古いまま（空）。戻して作り直すと入る ＝ 新しさを守っているのは引き金',
       J({ put3, 外したとき: stale.has, 戻したあと: fresh.has }));
   }
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 8-4. 答えが分かれた質問（続きの「何によって違いますか？」を出す会社・2026-11-14）');
+// ════════════════════════════════════════════════════════════
+/* ★表（pv_condition_split）に入るのは、カードが「回答が分かれています」と言う質問（lead が空の並び）のうち、
+     続き（deep = 'split'）を持つ親だけ。作るのは書き込みの引き金（pv_condition_has と同じ文）。
+   ★未ログインで預けた人に返す split は、その鍵で「わからない」以外を預けた質問の分だけ。 */
+{
+  const Q = 'days_off_request';
+  const spl = async () => (await many(`select question_id from public.pv_condition_split where airline = $1 order by 1`, [A_SPL])).map((r) => r.question_id);
+  /* カードの lead（pv_contrib_facts が返すのと同じ関数・同じ集計）。読む人の立場はここでは見ない（8-3 で見ている） */
+  const lead = async () => { const f = await one(`select public.pv_condition_lead(f.answer_dist, f.n, f.kind, q.choice_codes) as l
+      from public.airline_condition_facts f join public.pv_condition_questions q on q.id = f.question_id
+     where f.airline = $1 and f.question_id = $2`, [A_SPL, Q]); return f ? J(f.l) : '（行が無い）'; };
+  const [S1, S2, S3, S4, S5] = await crew(5);
+  for (const [who, code] of [[S1, 'yes'], [S2, 'yes'], [S3, 'no'], [S4, 'no']]) await condM(who, { airline: A_SPL, answers: [{ question_id: Q, code }] });
+  ok(J(await spl()) === J([Q]) && await lead() === '[]',
+    `★TS1 2対2に分かれた（${Q}）→ カードは「回答が分かれています」（lead が空）・表にもその質問が入る（同じ1か所で決めている）`, J({ split: await spl(), lead: await lead() }));
+
+  /* 意見の質問は、分かれても表に入らない（続きを持たない） */
+  const OPN = (await one(`select id from public.pv_condition_questions where active and is_opinion and kind = 'choice' and parent is null order by id limit 1`)).id;
+  const oc = (await one(`select array_remove(choice_codes, 'unknown') as c from public.pv_condition_questions where id = $1`, [OPN])).c;
+  for (const [who, code] of [[S1, oc[0]], [S2, oc[0]], [S3, oc[1]], [S4, oc[1]]]) await condM(who, { airline: A_SPL, answers: [{ question_id: OPN, code }] });
+  ok(J(await spl()) === J([Q]), `   TS1 続きを持たない質問（${OPN}）は、2対2に分かれても表に入らない`, J(await spl()));
+
+  /* 未ログインで預けた人 ── 親を預けた鍵にだけ、分かれていることを返す */
+  const C = { airline: A_SPL, position: 'cap', lang: 'ja' };
+  const kYes = (await putC(null, { ...C, answers: [{ question_id: Q, code: 'partial' }] })).key;
+  const kUnk = (await putC(null, { ...C, answers: [{ question_id: Q, code: 'unknown' }] })).key;
+  const kOth = (await putC(null, { ...C, answers: [{ question_id: 'roster_changes', code: 'rare' }] })).key;
+  const sp = async (k) => J((await mineA(k, A_SPL)).split);
+  ok(await sp(kYes) === J([Q]) && await sp(kUnk) === '[]' && await sp(kOth) === '[]',
+    `★TS2 預けた鍵の split ── ${Q} を預けた鍵には [${Q}]・「わからない」を預けた鍵と、ほかの質問だけ預けた鍵には空`,
+    J({ yes: await sp(kYes), unknown: await sp(kUnk), other: await sp(kOth) }));
+  ok((await sp(kYes)) === J([Q]) && J((await mineA(kYes, A_ONE)).split) === '[]', '   TS2 同じ鍵でも、ほかの会社では空');
+
+  /* 壊す証明：預けた質問だけに絞る条件を外すと、ほかの質問だけ預けた鍵にも渡る */
+  const src = read('db/contrib.sql');
+  const cut = src.replace(/ and c\.item_key = s\.question_id\n/, () => '\n');
+  ok(cut !== src, '   TS2 外す条件が見つかった');
+  await asOwner(); await db.exec(cut);
+  const leaked = await sp(kOth);
+  await asOwner(); await db.exec(src);
+  ok(leaked === J([Q]) && await sp(kOth) === '[]',
+    '   TS2 壊す証明：預けた質問に絞る条件を外すと、ほかの質問だけ預けた鍵にも分かれていることが渡る。戻すと空', leaked);
+
+  /* 同点が崩れたら表から消える（書き込みの引き金で作り直す） */
+  await condM(S5, { airline: A_SPL, answers: [{ question_id: Q, code: 'yes' }] });
+  ok(J(await spl()) === '[]' && await lead() === J(['yes']),
+    '★TS3 3対2になった → カードは「最多 はい」・表からも消える', J({ split: await spl(), lead: await lead() }));
 }
 
 
