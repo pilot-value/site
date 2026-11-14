@@ -16653,4 +16653,5 @@ export const TM = {
   "Within the same airline, what does “Staff travel” vary by?": {"es":"Dentro de la misma aerolínea, ¿de qué depende «Pasajes para empleados»?","st":"manual","by":"claude","at":"2026-11-14","pages":["pv-conditions.json"],"note":"続きの質問（一部可能・回答が分かれた会社）2026-11-14"},
   "Within the same airline, what does “Transport to work” vary by?": {"es":"Dentro de la misma aerolínea, ¿de qué depende «Transporte al trabajo»?","st":"manual","by":"claude","at":"2026-11-14","pages":["pv-conditions.json"],"note":"続きの質問（一部可能・回答が分かれた会社）2026-11-14"},
   "Within the same airline, what does “Per diem” vary by?": {"es":"Dentro de la misma aerolínea, ¿de qué depende «Viáticos»?","st":"manual","by":"claude","at":"2026-11-14","pages":["pv-conditions.json"],"note":"続きの質問（一部可能・回答が分かれた会社）2026-11-14"},
+  "js:'Tell us'": {"es":"js:'Cuéntanos'","st":"manual","by":"claude","at":"2026-11-14","pages":["career-live.js"],"note":"カードの続きの質問への誘い「教える」2026-11-14"},
 };
