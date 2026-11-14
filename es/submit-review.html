@@ -190,6 +190,15 @@ textarea.form-input{resize:vertical;min-height:96px;line-height:1.7}
 .privacy-row{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:12px;background:var(--pv-bg-sub);border:1px solid var(--pv-line);color:var(--pv-ink-2);font-size:.8rem;font-weight:600}
 .privacy-row svg{flex:none;color:var(--pv-accent-ink)}
 
+/* ── 投稿のあとの印（絵文字をやめた・2026-11-14 オーナー「このチェックダサい。もっとスタイリッシュに」）
+   緑の丸に白いチェック＋薄い緑の輪。現れるときに少しだけ大きくなる（動かすのは transform と opacity だけ） */
+.rv-mark{width:56px;height:56px;margin:4px auto 20px;border-radius:50%;display:grid;place-items:center;color:#fff;background:var(--pv-accent-dark);
+  box-shadow:0 0 0 8px var(--pv-accent-soft),0 14px 28px -14px rgba(6,117,99,.7);animation:rvMark .55s var(--pv-ease) both}
+.rv-mark.is-soft{color:var(--pv-accent-ink);background:var(--pv-accent-soft);box-shadow:0 0 0 8px color-mix(in srgb,var(--pv-accent-soft) 50%,transparent)}
+@keyframes rvMark{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.rv-mark{animation:none}}
+#step-pending p{text-wrap:pretty;word-break:auto-phrase}
+
 /* 品質NGなど「投稿できない」フィードバックを目立たせるアラート枠 */
 .form-alert{display:block;border:1px solid rgba(239,68,68,.45);border-left:3px solid #ef4444;background:rgba(239,68,68,.10);border-radius:12px;padding:14px 16px;color:#e8edf2;font-size:.9rem;line-height:1.7;animation:formAlertIn .22s ease-out}
 .form-alert .fa-title{display:block;font-weight:700;font-size:.95rem;color:#f87171;margin-bottom:4px;letter-spacing:.01em}
@@ -301,7 +310,7 @@ textarea.form-input{resize:vertical;min-height:96px;line-height:1.7}
 
     <!-- Login gate (shown if not logged in) -->
     <div id="login-gate" class="card text-center" style="display:none">
-      <div style="font-size:2.5rem;margin-bottom:16px">🔐</div>
+      <div class="rv-mark is-soft" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>
       <h2 class="text-xl font-bold mb-2">Necesitas iniciar sesión</h2>
       <p class="text-muted text-sm mb-6">Para evitar spam, necesitas una cuenta para publicar.<br>Tu correo electrónico nunca se incluye en los datos enviados.</p>
       <a href="login.html?next=submit-review.html" class="btn-orange justify-center">Iniciar sesión y publicar →</a>
@@ -681,10 +690,10 @@ textarea.form-input{resize:vertical;min-height:96px;line-height:1.7}
            ★2026-10-29 owner instruction: reviews can be written without logging in (same structure as pay submission).
            Holding unlocks nothing (same as pay). After logging in, claimReviews() turns it into your own review. -->
       <div id="step-pending" class="card text-center" style="display:none">
-        <div style="font-size:2.2rem;margin-bottom:10px">✅</div>
+        <div class="rv-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
         <h2 class="text-2xl font-bold mb-3">Guardamos tu reseña</h2>
         <p class="text-sm mb-2"><strong class="text-text">Un paso más para terminar.</strong></p>
-        <p class="text-muted text-sm mb-6">Inicia sesión (o regístrate) y esta reseña pasará a ser tuya,<br>y tendrás acceso a las reseñas de todas las aerolíneas. Tu correo electrónico no forma parte de la reseña.</p>
+        <p class="text-muted text-sm mb-6">Inicia sesión (o regístrate) y esta reseña pasará a ser tuya, y tendrás acceso a las reseñas de todas las aerolíneas. Tu correo electrónico no forma parte de la reseña.</p>
         <a id="pending-login" href="login.html?next=submit-review.html" class="btn-orange justify-center">Iniciar sesión para terminar →</a>
       </div>
       <!-- When the claim failed (network). Never post again from here (no duplicates). -->
