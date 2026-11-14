@@ -205,6 +205,21 @@ const roles = (arr: unknown, one: unknown): string => {
 };
 
 /* ── reviews_v2 ───────────────────────────────────────────── */
+/* ★トップに出さない口コミ（2026-11-14 オーナー指示・db/reviews-gate.sql 6-0）。
+   ゲーム・下品な語の判定は DB の1か所（pv_review_ng_words）で、口コミが入った瞬間に印が付く。
+   ここは印を読むだけ（語の一覧をここに写さない）。保留中なら引っかかった語を返す。
+   読めなければ（SQL を貼る前など）印なしとして今までどおり送る ＝ 通知そのものは落とさない。 */
+const ADMIN_HOLD_URL = 'https://pilot-value.com/admin.html#top-hold';
+async function topHold(id: string): Promise<string[] | null> {
+  try {
+    const h = (await sbList('pv_review_top_hold', `review_id=eq.${encodeURIComponent(id)}`, 'words,approved_at'))[0];
+    if (!h || h.approved_at) return null;
+    return Array.isArray(h.words) ? h.words.map((w: unknown) => String(w)) : [];
+  } catch {
+    return null;
+  }
+}
+
 async function buildReview(id: string): Promise<Mail | null> {
   const select = ['id', 'airline', 'position', 'age_bucket', 'tenure_bucket', 'fleet', 'job_role',
     'monthly_salary', 'annual_salary', 'created_at', ...CAT_KEYS.map((k) => `${k}_comment`)].join(',');
@@ -215,6 +230,7 @@ async function buildReview(id: string): Promise<Mail | null> {
   const combined = comments.join(' ');
   const qText = assessReviewQuality(combined);
   const q = qText.ok ? assessReviewSet(comments) : qText;
+  const hold = await topHold(String(r.id ?? id));
 
   const salary = r.annual_salary ? `${r.annual_salary}万円/年`
     : r.monthly_salary ? `${r.monthly_salary}万円/月` : '—';
@@ -224,9 +240,18 @@ async function buildReview(id: string): Promise<Mail | null> {
     ? '<span style="color:#15803d">問題なし</span>'
     : `<span style="color:#b91c1c;font-weight:700">⚠️ ${esc(q.reason)} — 内容をご確認ください</span>`;
 
+  const holdBox = hold
+    ? `<div style="border:1px solid #fecaca;background:#fef2f2;border-radius:8px;padding:14px 16px;margin:0 0 20px">
+        <p style="margin:0 0 6px;font-size:14px;font-weight:700;color:#b91c1c">トップページには出していません（承諾待ち）</p>
+        <p style="margin:0 0 12px;font-size:13px;color:#444">引っかかった語：${esc(hold.join('・') || '—')}<br>
+          待遇の情報として問題なければ、承諾するとトップに出ます。Vote・会社ページには出ています。</p>
+        <a href="${ADMIN_HOLD_URL}" style="display:inline-block;background:#111;color:#fff;text-decoration:none;font-size:13px;font-weight:700;padding:10px 16px;border-radius:6px">承諾してトップに出す</a>
+      </div>`
+    : '';
+
   return {
-    subject: `【PILOT VALUE】新着口コミ — ${r.airline ?? '不明'}${q.ok ? '' : '（要確認）'}`,
-    html: shell('新着の口コミが1件あります', `${esc(r.created_at)} に投稿されました。`, table(
+    subject: `【PILOT VALUE】新着口コミ — ${r.airline ?? '不明'}${hold ? '（トップに出していません・承諾待ち）' : ''}${q.ok ? '' : '（要確認）'}`,
+    html: shell('新着の口コミが1件あります', `${esc(r.created_at)} に投稿されました。`, holdBox + table(
       row('航空会社', esc(r.airline)) +
       row('職位 / 年代', `${esc(POS[r.position] ?? r.position ?? '—')} / ${esc(r.age_bucket ?? '—')}`) +
       row('在籍', esc(r.tenure_bucket ?? '—')) +

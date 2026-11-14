@@ -711,6 +711,41 @@ console.log('\n── スケジュールの提出 ──────────
   globalThis.fetch = before;
 }
 
+/* ── 新着口コミ：トップに出さない口コミ（ゲーム・下品な語・2026-11-14）──────── */
+/* ★オーナー指示「その口コミがあったときは俺にメールで承諾の報告して」。判定は DB（db/reviews-gate.sql 6-0）で、
+     メールは印を読むだけ。保留中なら件名・引っかかった語・承諾のボタン（管理画面の「トップの保留」）が付く。
+     印を読めないとき（SQL を貼る前）も、通知そのものは今までどおり届く。 */
+console.log('\n── 新着口コミ（トップに出さない口コミ）─');
+{
+  const prev = globalThis.fetch;
+  globalThis.fetch = async (url) => {   // 表の名前に数字（reviews_v2）があるので、この節だけの偽物
+    const t = String(url).match(/\/rest\/v1\/([a-z0-9_]+)/)?.[1];
+    const got = ROWS[t];
+    if (got === undefined) throw new Error(`テストが用意していないテーブルを引いた: ${t}`);
+    return { ok: true, json: async () => (Array.isArray(got) ? got : [got]) };
+  };
+  const REV = { id: 'rv-1', airline: 'riyadh-air', position: 'fo', age_bucket: '30-34', tenure_bucket: '1-5',
+    fleet: 'b787', job_role: 'line', created_at: '2026-11-14T08:00:00+00:00',
+    culture_comment: 'It it very good beautiful I love it magnificent', benefits_comment: 'lets play roblox' };
+  ROWS = { reviews_v2: REV, pv_review_top_hold: { words: ['roblox', "let's play", '<b>'], approved_at: null } };
+  const h = await nx.buildReview('rv-1');
+  ck('保留中：件名に「トップに出していません・承諾待ち」', h.subject.includes('トップに出していません・承諾待ち'), h.subject);
+  ck('保留中：引っかかった語が出る（HTML は直して出す）',
+     h.html.includes('roblox・let&#39;s play・&lt;b&gt;') && !h.html.includes('<b>'), h.html.slice(0, 600));
+  ck('★保留中：承諾のボタンが管理画面の「トップの保留」へ飛ぶ',
+     h.html.includes('href="https://pilot-value.com/admin.html#top-hold"') && h.html.includes('承諾してトップに出す'), h.html.slice(0, 600));
+  ROWS.pv_review_top_hold = { words: ['roblox'], approved_at: '2026-11-14T09:00:00+00:00' };
+  const a = await nx.buildReview('rv-1');
+  ck('承諾済み：件名にも本文にも保留の字が出ない', !a.subject.includes('承諾待ち') && !a.html.includes('#top-hold'), a.subject);
+  ROWS.pv_review_top_hold = [];
+  const n = await nx.buildReview('rv-1');
+  ck('印なし：今までどおりの件名', n.subject === '【PILOT VALUE】新着口コミ — riyadh-air' && !n.html.includes('#top-hold'), n.subject);
+  delete ROWS.pv_review_top_hold;   // 偽の Supabase がこの表を引くと例外を投げる ＝ SQL を貼る前と同じ
+  const e = await nx.buildReview('rv-1');
+  ck('印を読めないとき（SQL を貼る前）も、通知は今までどおり届く', !!e && !e.subject.includes('承諾待ち'), e && e.subject);
+  globalThis.fetch = prev;
+}
+
 /* ════════════════════════════════════════════════════════════════
    ③ ビルダーと Webhook のトリガの顔ぶれが一致すること
    ════════════════════════════════════════════════════════════════ */

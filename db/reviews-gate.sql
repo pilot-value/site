@@ -538,6 +538,205 @@ select public.pv_review_card_rebuild();
 
 
 -- ════════════════════════════════════════════════════════════════
+-- 6-0. トップに出さない口コミ（ゲーム・下品な語・2026-11-14）
+--
+-- オーナー指示「ゲームや下品な言葉を含む口コミをトップに出さない仕組みを。その口コミがあったときは
+-- 俺にメールで承諾の報告して」。2026-11-14、リヤド航空の口コミ（Roblox で遊ぶ話と下品な語）が
+-- トップに出ていた（db/remove-review-2.sql で消した）。
+--   ・口コミが入った瞬間に、本文7欄を下の語の一覧と照らす（pv_review_ng_words の1か所）。
+--     当たったら表 pv_review_top_hold に印を付ける。**印の付いた口コミは、承諾されるまでトップ（6.）に出ない。**
+--   ・Vote・会社ページ・一覧には今までどおり出る（オーナーの指示はトップだけ）。行も本文も書き換えない。
+--   ・メールは notify-admin の「新着口コミ」に件名と語とボタンが付く（新しい通知は足していない）。
+--     ボタンは管理画面の「トップの保留」へ。承諾（admin_review_top_decide）は運営の名簿を見てから通す。
+--   ・このファイルを貼るたびに、今ある口コミも一覧で照らし直す（印を足す・当たらなくなった未承諾の印を外す）。
+--     このときはメールは飛ばない（承諾済みの印には触らない）。
+-- ⚠️ 語を足すときは、本物のパイロットの文を落とさないかを先に考える（db/test-reviews-gate.mjs の ▼10 に足す）。
+--    「game」「ゲーム」「among us」「GTA（トロント都市圏）」「ポケモン（機体の塗装）」「エロ（イエローに入る）」は入れていない。
+--    英字は語の頭（\m）で区切る ── cockpit・Scunthorpe・class・assessment に当たらないように。
+-- ⚠️ 照らすのは原文だけ。訳文は原文から作るので、原文に無い語は訳文にも出ない。
+-- ════════════════════════════════════════════════════════════════
+create or replace function public.pv_review_ng_words(p text)
+returns text[]
+language sql
+immutable
+set search_path = public, extensions
+as $fn$
+  select coalesce(array_agg(w.label order by w.ord), '{}'::text[])
+    from (values
+      -- ゲーム（題名と、遊びの書き込みにしか出ない言い方）
+      ( 1, 'roblox',         '\mroblox'),
+      ( 2, 'robux',          '\mrobux\M'),
+      ( 3, 'minecraft',      '\mminecraft\M|マインクラフト|マイクラ'),
+      ( 4, 'fortnite',       '\mfortnite\M|フォートナイト'),
+      ( 5, 'ptfs',           '\mptfs\M'),
+      ( 6, 'adopt me',       '\madopt\s+me\M'),
+      ( 7, 'let''s play',    '\mlet[''’]?s\s+play\M'),
+      ( 8, 'skibidi',        '\mskibidi'),
+      ( 9, 'ロブロックス',   'ロブロックス'),
+      -- 下品な語（英語）
+      (20, 'fuck',           'fuck'),
+      (21, 'shit',           '\mshit|bullshit'),
+      (22, 'poop',           '\mpoop'),
+      (23, 'asshole',        '\masshole'),
+      (24, 'bitch',          '\mbitch'),
+      (25, 'cunt',           '\mcunt'),
+      (26, 'dick',           '\mdicks?\M'),
+      (27, 'cock',           '\mcocks?\M'),
+      (28, 'pussy',          '\mpuss(y|ies)\M'),
+      (29, 'penis',          '\mpenis'),
+      (30, 'vagina',         '\mvagina'),
+      (31, 'boobs',          '\mboob|\mtits?\M'),
+      (32, 'porn',           '\mporn'),
+      (33, 'sexy',           '\msexy\M|\mhorny\M|\mnudes?\M'),
+      (34, 'dildo',          '\mdildo'),
+      (35, 'wank',           '\mwank'),
+      (36, '差別語',         '\mnigg|\mfaggot|\mretard'),
+      -- 下品な語（日本語）
+      (50, 'うんこ',         'うんこ|うんち|ウンコ|ウンチ'),
+      (51, 'ちんこ',         'ちんこ|ちんぽ|ちんちん|チンコ|チンポ'),
+      (52, 'まんこ',         'まんこ|マンコ'),
+      (53, 'おっぱい',       'おっぱい|オッパイ'),
+      (54, 'セックス',       'セックス'),
+      (55, 'クソ',           'クソ|糞'),
+      (56, '死ね',           '死ね')
+    ) as w(ord, label, re)
+   where normalize(coalesce(p, ''), NFKC) ~* w.re
+$fn$;
+
+revoke all on function public.pv_review_ng_words(text) from public, anon, authenticated;
+
+create table if not exists public.pv_review_top_hold (
+  review_id   uuid primary key references public.reviews_v2(id) on delete cascade,
+  words       text[] not null,
+  held_at     timestamptz not null default now(),
+  approved_at timestamptz,          -- 承諾してトップに出した時刻（null ＝ 保留中）
+  approved_by uuid
+);
+alter table public.pv_review_top_hold enable row level security;
+revoke all on table public.pv_review_top_hold from public, anon, authenticated;
+
+comment on table public.pv_review_top_hold is
+  'トップに出さない口コミの印（ゲーム・下品な語）。approved_at が null のあいだ pv_review_voices に出ない。';
+
+/* 本文7欄をまとめて照らす（引き金と、貼るたびの照らし直しの2か所がこれを呼ぶ）。 */
+create or replace function public.pv_review_ng_of(r public.reviews_v2)
+returns text[]
+language sql
+immutable
+set search_path = public, extensions
+as $fn$
+  select public.pv_review_ng_words(concat_ws(' ',
+           r.culture_comment, r.salary_comment, r.benefits_comment, r.wlb_comment,
+           r.ops_comment, r.training_comment, r.mgmt_comment))
+$fn$;
+revoke all on function public.pv_review_ng_of(public.reviews_v2) from public, anon, authenticated;
+
+create or replace function public.pv_review_top_hold_sync()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, extensions
+as $fn$
+declare
+  v_w text[] := public.pv_review_ng_of(new);
+begin
+  if cardinality(v_w) = 0 then
+    delete from public.pv_review_top_hold where review_id = new.id;
+  else
+    /* 本文が直って語が変わったら、承諾もやり直し（同じ語のままなら承諾は残す） */
+    insert into public.pv_review_top_hold as h (review_id, words) values (new.id, v_w)
+    on conflict (review_id) do update
+       set words       = excluded.words,
+           approved_at = case when h.words = excluded.words then h.approved_at end,
+           approved_by = case when h.words = excluded.words then h.approved_by end;
+  end if;
+  return null;
+end
+$fn$;
+revoke all on function public.pv_review_top_hold_sync() from public, anon, authenticated;
+
+drop trigger if exists pv_review_top_hold_sync on public.reviews_v2;
+create trigger pv_review_top_hold_sync
+  after insert or update of culture_comment, salary_comment, benefits_comment, wlb_comment,
+                            ops_comment, training_comment, mgmt_comment
+  on public.reviews_v2
+  for each row execute function public.pv_review_top_hold_sync();
+
+/* 今ある口コミを照らし直す（貼るたびに1回）。印を足すだけ・承諾済みには触らない・メールは飛ばない。 */
+insert into public.pv_review_top_hold (review_id, words)
+select r.id, w.w
+  from public.reviews_v2 r
+  cross join lateral (select public.pv_review_ng_of(r) as w) w
+ where cardinality(w.w) > 0
+on conflict (review_id) do nothing;
+
+delete from public.pv_review_top_hold h
+ using public.reviews_v2 r
+ where r.id = h.review_id and h.approved_at is null
+   and cardinality(public.pv_review_ng_of(r)) = 0;
+
+/* 管理画面の「トップの保留」── 運営だけ（名簿は pv_is_admin・db/admin.sql）。保留中が先・新しい順。 */
+create or replace function public.admin_list_top_holds()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $fn$
+declare v jsonb;
+begin
+  if not public.pv_is_admin() then
+    raise exception '管理者ではありません' using errcode = '42501';
+  end if;
+  select coalesce(jsonb_agg(jsonb_build_object(
+           'id',          r.id,
+           'airline',     r.airline,
+           'position',    r.position,
+           'created_at',  r.created_at,
+           'words',       to_jsonb(h.words),
+           'held_at',     h.held_at,
+           'approved_at', h.approved_at,
+           'text',        concat_ws(' / ',
+                            nullif(btrim(r.culture_comment),  ''), nullif(btrim(r.salary_comment),   ''),
+                            nullif(btrim(r.benefits_comment), ''), nullif(btrim(r.wlb_comment),      ''),
+                            nullif(btrim(r.ops_comment),      ''), nullif(btrim(r.training_comment), ''),
+                            nullif(btrim(r.mgmt_comment),     ''))
+         ) order by (h.approved_at is null) desc, r.created_at desc nulls last), '[]'::jsonb)
+    into v
+    from public.pv_review_top_hold h
+    join public.reviews_v2 r on r.id = h.review_id;
+  return v;
+end
+$fn$;
+revoke all on function public.admin_list_top_holds() from public, anon;
+grant execute on function public.admin_list_top_holds() to authenticated;
+
+/* 承諾してトップに出す（p_show = true）／トップから外して保留に戻す（false）。 */
+create or replace function public.admin_review_top_decide(p_id uuid, p_show boolean)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $fn$
+begin
+  if not public.pv_is_admin() then
+    raise exception '管理者ではありません' using errcode = '42501';
+  end if;
+  update public.pv_review_top_hold
+     set approved_at = case when p_show then now() end,
+         approved_by = case when p_show then auth.uid() end
+   where review_id = p_id;
+  if not found then
+    return jsonb_build_object('ok', false, 'reason', 'not_held');
+  end if;
+  return jsonb_build_object('ok', true, 'shown', coalesce(p_show, false));
+end
+$fn$;
+revoke all on function public.admin_review_top_decide(uuid, boolean) from public, anon;
+grant execute on function public.admin_review_top_decide(uuid, boolean) to authenticated;
+
+
+-- ════════════════════════════════════════════════════════════════
 -- 6. pv_review_voices — トップページの抜粋（ここだけ鍵なしで開けておく）
 --
 -- オーナー決定（2026-09-06）「トップページの抜粋だけは今のまま開けておく」。
@@ -555,6 +754,7 @@ select public.pv_review_card_rebuild();
 -- ⚠️ これは意図して開けてある穴。広げない（件数も字数もここの数字だけ）。
 --    ★2026-10-29 オーナー決定で、Vote の流れるカード用に 6-b（pv_vote_latest・12件・80字）を別に開けた。
 --      こちら（トップ）は 6件・80字のまま。
+--    ★2026-11-14 ゲーム・下品な語の口コミは、承諾されるまでここに出さない（6-0 の pv_review_top_hold）。
 -- ════════════════════════════════════════════════════════════════
 create or replace function public.pv_review_voices()
 returns jsonb
@@ -574,6 +774,8 @@ as $fn$
              nullif(btrim(r.ops_comment),      ''),
              nullif(btrim(r.training_comment), ''),
              nullif(btrim(r.mgmt_comment),     ''), ''), '\s', '', 'g')) >= 20
+       and not exists (select 1 from public.pv_review_top_hold h
+                        where h.review_id = r.id and h.approved_at is null)
      order by r.created_at desc nulls last
      limit 6
   )
@@ -774,7 +976,7 @@ $gate$;
 
 
 -- ════════════════════════════════════════════════════════════════
--- 8. 検算 ── 流したあと、この結果を見る（7行。④ だけ列数の報告で、ほかは ✅）
+-- 8. 検算 ── 流したあと、この結果を見る（9行。④ だけ列数の報告で、ほかは ✅）
 -- ════════════════════════════════════════════════════════════════
 select '① 本文の列に残っている読み取り権限（anon）' as 項目,
        case when count(*) = 0 then '✅ なし（これが正しい）'
@@ -871,4 +1073,17 @@ select '⑧ 鍵の無い人の一覧の作り置き（pv_review_card）',
                = (select count(*) from public.reviews_v2)
                + (select count(*) from public.pv_review_pending where claimed_at is null)
             then '✅ 口コミと預かりの数だけある（' || (select count(*) from public.pv_review_card) || '件）'
-            else '❌ 数が合わない（このファイルをもう一度貼る）' end;
+            else '❌ 数が合わない（このファイルをもう一度貼る）' end
+union all
+/* ★⑨ トップに出さない口コミ（2026-11-14・ゲーム・下品な語）。保留中の口コミがトップの抜粋に1件も混ざっていないか。 */
+select '⑨ トップに出さない口コミ（ゲーム・下品な語）',
+       case when exists (
+              select 1
+                from jsonb_array_elements(public.pv_review_voices()) e
+                join public.reviews_v2 r
+                  on r.airline = e->>'airline' and r.created_at = (e->>'created_at')::timestamptz
+                join public.pv_review_top_hold h on h.review_id = r.id and h.approved_at is null)
+            then '❌ 保留中の口コミがトップに出ている'
+            else '✅ トップには出ていない（保留中 '
+                 || (select count(*) from public.pv_review_top_hold where approved_at is null) || '件・承諾済み '
+                 || (select count(*) from public.pv_review_top_hold where approved_at is not null) || '件）' end;

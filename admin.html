@@ -195,6 +195,7 @@
     <button class="tab-btn active" onclick="switchTab('users',this)">ユーザー一覧</button>
     <button class="tab-btn" onclick="switchTab('reviews',this)">口コミ一覧</button>
     <button class="tab-btn" onclick="switchTab('proofs',this)">資格確認<span class="tab-n" id="proof-n"></span></button>
+    <button class="tab-btn" id="tab-btn-holds" onclick="switchTab('holds',this)">トップの保留<span class="tab-n" id="hold-n"></span></button>
   </div>
 
   <!-- Users tab -->
@@ -264,6 +265,23 @@
     </div>
   </div>
 
+  <!-- Holds tab（トップに出さない口コミ・2026-11-14）
+       ★ゲーム・下品な語の判定も、承諾も、サーバー（db/reviews-gate.sql 6-0）が名簿を見てから行う。
+         新着口コミの通知メールの「承諾してトップに出す」がここ（admin.html#top-hold）へ飛ぶ。 -->
+  <div id="tab-holds" style="display:none">
+    <div class="notice"><strong>トップの保留</strong> — ゲームや下品な語が入った口コミは、トップページに出していません（Vote・会社ページには出ています）。待遇の情報として問題なければ「承諾してトップに出す」を押してください。</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>状態</th><th>航空会社</th><th>職位</th><th>投稿日</th><th>引っかかった語</th><th>本文</th><th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="holds-tbody"><tr><td colspan="7" class="loading">読み込み中…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- 提出された画像を見る面。閉じたら画像を画面に残さない（proofClose） -->
   <div id="pf-view" role="dialog" aria-modal="true" aria-labelledby="pf-view-h">
     <div class="pf-sheet">
@@ -289,7 +307,13 @@
   let allReviews = [];
   let allProofs  = [];
   let proofReady = false;   // 資格確認の入口（db/pilot-proof.sql）がサーバーに在るか
+  let allHolds   = [];
+  let holdReady  = false;   // トップの保留の入口（db/reviews-gate.sql 6-0）がサーバーに在るか
   let currentTab = 'users';
+
+  /* 通知メールの「承諾してトップに出す」（admin.html#top-hold）から来たら、そのタブを開く。
+     ログイン画面を通ると # が落ちるので、このタブで来たことだけ覚えておく。 */
+  try { if (location.hash === '#top-hold') sessionStorage.setItem('pv_admin_tab', 'holds'); } catch (e) {}
 
   /* ★合言葉は持たない。ページに書いた合言葉はサイトから誰でも読めるので、
      最初から公開されているのと同じだった。判定はサーバー側だけで行う。
@@ -336,14 +360,18 @@
     document.getElementById('dashboard').style.display='block';
     loadData();
     if (window.PVAdminQueue) PVAdminQueue.start(sb);
+    let want = null;
+    try { want = sessionStorage.getItem('pv_admin_tab'); sessionStorage.removeItem('pv_admin_tab'); } catch (e) {}
+    if (want === 'holds') switchTab('holds', document.getElementById('tab-btn-holds'));
   }
 
   async function loadData() {
     /* 表を直接読まない。読める人かどうかは入口の中で判定される。 */
-    const [usersRes, reviewsRes, proofsRes] = await Promise.all([
+    const [usersRes, reviewsRes, proofsRes, holdsRes] = await Promise.all([
       sb.rpc('admin_list_profiles'),
       sb.rpc('admin_list_reviews'),
-      sb.rpc('admin_list_proofs')
+      sb.rpc('admin_list_proofs'),
+      sb.rpc('admin_list_top_holds')
     ]);
     if (usersRes.error || reviewsRes.error) {
       document.getElementById('dashboard').style.display = 'none';
@@ -361,11 +389,55 @@
          （ここを usersRes と同じ扱いにすると、SQL を貼る前の管理画面が丸ごと閉じる）。 */
     proofReady = !proofsRes.error;
     allProofs  = proofReady ? (proofsRes.data || []) : [];
+    holdReady  = !holdsRes.error;   // 資格確認と同じく、SQL を貼る前でも上の表は出す
+    allHolds   = holdReady && Array.isArray(holdsRes.data) ? holdsRes.data : [];
     renderStats();
     renderUsersTable();
     renderReviewsTable();
     renderProofsTable();
+    renderHoldsTable();
   }
+
+  /* ── トップの保留（2026-11-14）──────────────────────────────
+     ★守っているのはここではない。保留の印を付けるのも、承諾してトップに出すのも、
+       サーバー（admin_list_top_holds / admin_review_top_decide）が名簿を見てから行う。 */
+  function renderHoldsTable() {
+    const waiting = allHolds.filter(h => !h.approved_at).length;
+    document.getElementById('hold-n').textContent = waiting ? String(waiting) : '';
+    const tbody = document.getElementById('holds-tbody');
+    if (!holdReady) { tbody.innerHTML = '<tr><td colspan="7" class="loading">まだ使えません（db/reviews-gate.sql を流していません）。</td></tr>'; return; }
+    if (!allHolds.length) { tbody.innerHTML = '<tr><td colspan="7" class="loading">トップに出していない口コミはありません。</td></tr>'; return; }
+    tbody.innerHTML = allHolds.filter(h => isUuid(h.id)).map(h => {
+      const words = Array.isArray(h.words) ? h.words.map(String).join('・') : '';
+      const text = String(h.text || '');
+      const act = h.approved_at
+        ? `<button type="button" class="pf-btn" data-th="hide" data-r="${h.id}">トップから外す</button>`
+        : `<button type="button" class="pf-btn is-go" data-th="show" data-r="${h.id}">承諾してトップに出す</button>`;
+      return `<tr>
+      <td>${h.approved_at ? '<span class="pf-tag pf-ok">トップに出している</span>' : '<span class="pf-tag pf-sub">承諾待ち</span>'}</td>
+      <td style="font-weight:600;color:#f5c842">${esc(h.airline||'—')}</td>
+      <td>${h.position?`<span class="pos-tag ${POS_CLASS[h.position]||''}">${esc(POS_LABEL[h.position]||h.position)}</span>`:'—'}</td>
+      <td style="white-space:nowrap;font-size:.76rem;color:#6b7d93">${pfDate(h.created_at)}</td>
+      <td style="font-weight:700;color:#f87171">${esc(words||'—')}</td>
+      <td class="pf-why" style="font-size:.78rem;max-width:420px">${esc(text.slice(0,300))}${text.length>300?'…':''}</td>
+      <td><div class="pf-acts">${act}</div></td>
+    </tr>`;
+    }).join('');
+  }
+
+  document.addEventListener('click', async e => {
+    const b = e.target && e.target.closest ? e.target.closest('[data-th]') : null;
+    if (!b || b.disabled) return;
+    const id = b.getAttribute('data-r'), show = b.getAttribute('data-th') === 'show';
+    if (!isUuid(id)) return;
+    b.disabled = true;
+    const { data, error } = await sb.rpc('admin_review_top_decide', { p_id: id, p_show: show });
+    b.disabled = false;
+    if (error || !data || !data.ok) { alert('できませんでした：' + ((error && error.message) || (data && data.reason) || '')); return; }
+    const h = allHolds.find(x => x.id === id);
+    if (h) h.approved_at = data.shown ? new Date().toISOString() : null;
+    renderHoldsTable();
+  });
 
   function _avgScores(r){
     const s = ['culture_score','salary_score','benefits_score','wlb_score','ops_score','training_score']
@@ -627,6 +699,7 @@
     document.getElementById('tab-users').style.display   = tab==='users'   ? 'block' : 'none';
     document.getElementById('tab-reviews').style.display = tab==='reviews' ? 'block' : 'none';
     document.getElementById('tab-proofs').style.display  = tab==='proofs'  ? 'block' : 'none';
+    document.getElementById('tab-holds').style.display   = tab==='holds'   ? 'block' : 'none';
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b===btn));
   }
 

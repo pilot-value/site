@@ -1345,7 +1345,11 @@ for (const lang of ['ja', 'en']) {
         },
         /* 資格確認（2026-10-13）。ここでは「入口を1つ足しただけで、表は触っていない」
            ことだけを見る。止める・承認する・画像を消す、は assert-proof.mjs と db/test-proof.mjs */
-        admin_list_proofs: () => []
+        admin_list_proofs: () => [],
+        /* トップの保留（2026-11-14）。語と本文にタグを書いた行で、字として出ることを見る。承諾は押したときだけ */
+        admin_list_top_holds: () => [{ id: uid.slice(0, -1) + '7', airline: 'riyadh-air', position: 'fo',
+          created_at: '2026-11-14T00:00:00Z', words: ['roblox', hostile], text: 'lets play roblox ' + hostile, approved_at: null }],
+        admin_review_top_decide: (a) => ({ ok: true, shown: !!(a && a.p_show) })
       };
       function q(t) {
         const o = { data: [], error: null,
@@ -1460,7 +1464,29 @@ for (const lang of ['ja', 'en']) {
          JSON.stringify(csv.map((t) => String(t).split('\n').slice(1).join(' / ').slice(0, 200))));
       ok(/,"100","200",/.test(csv[1] || ''), "CSV の数はそのまま（' を付けない）",
          String(csv[1] || '').split('\n').slice(1).join(' / ').slice(0, 200));
-      ok(seen.rpc.join(',') === 'pv_is_admin,admin_list_profiles,admin_list_reviews,admin_list_proofs,pv_town_queue,pv_stay_queue,pv_stay_applicants,pv_stay_members',
+      /* トップの保留（2026-11-14）── 語と本文に書かれたタグは字として出る・押したときだけ承諾の入口を1回呼ぶ */
+      const th0 = await page.evaluate((h) => {
+        switchTab('holds', document.getElementById('tab-btn-holds'));
+        const tb = document.getElementById('holds-tbody'), btn = tb.querySelector('[data-th="show"]');
+        const r = { vis: getComputedStyle(document.getElementById('tab-holds')).display !== 'none',
+          n: document.getElementById('hold-n').textContent, imgs: tb.querySelectorAll('img').length,
+          asText: tb.textContent.includes(h), btn: !!btn,
+          before: window.__args.filter((x) => x[0] === 'admin_review_top_decide').length };
+        if (btn) btn.click();
+        return r;
+      }, HOSTILE);
+      await page.waitForFunction(() => !!document.querySelector('#holds-tbody [data-th="hide"]'), { timeout: 10000 }).catch(() => {});
+      const th1 = await page.evaluate(() => ({
+        sent: window.__args.filter((x) => x[0] === 'admin_review_top_decide').map((x) => x[1]),
+        n: document.getElementById('hold-n').textContent, hit: !!window.__pvHit,
+        shown: (document.querySelector('#holds-tbody .pf-tag') || {}).textContent || '' }));
+      ok(th0.vis && th0.n === '1' && th0.imgs === 0 && th0.asText && !th1.hit && th0.btn && th0.before === 0,
+         'トップの保留：承諾待ちが1件・語と本文に書かれたタグは字として出る・開いただけでは承諾しない', JSON.stringify(th0));
+      ok(th1.sent.length === 1 && th1.sent[0].p_show === true && /^[0-9a-f-]{36}$/.test(th1.sent[0].p_id)
+         && th1.n === '' && th1.shown === (lang === 'en' ? 'On the home page' : 'トップに出している'),
+         'トップの保留：「承諾してトップに出す」を押すと承諾の入口を1回呼び、表示が「トップに出している」に変わる', JSON.stringify(th1));
+      await page.evaluate(() => switchTab('users', document.querySelector('.tab-btn')));
+      ok(seen.rpc.join(',') === 'pv_is_admin,admin_list_profiles,admin_list_reviews,admin_list_proofs,admin_list_top_holds,pv_town_queue,pv_stay_queue,pv_stay_applicants,pv_stay_members',
          'サーバーの入口だけを使っている（オーナーの2つの一覧も、管理者と分かったあとに読むだけ）', seen.rpc.join(','));
       ok(seen.from.length === 0, '管理者でもテーブルは直接触らない', seen.from.join(','));
       await notOwnerChecks(page, lang).catch((e) => ok(false, 'O0 オーナーでない運営の場面が途中で止まった', String(e && e.message || e).slice(0, 200)));
@@ -1510,8 +1536,8 @@ for (const lang of ['ja', 'en']) {
       const rpc0 = await page.evaluate(() => window.__rpc.slice());
       /* 4本目の admin_list_proofs は本番の「資格確認」（db/pilot-proof.sql・運営が提出された画像を確かめる表）。運営みんなの入口で、
          オーナーだけの2つの一覧（pv_stay_applicants・pv_stay_members）とは別（deploy-checklist の 26 番） */
-      ok(rpc0.join(',') === 'pv_is_admin,admin_list_profiles,admin_list_reviews,admin_list_proofs,pv_town_queue,pv_stay_queue,pv_stay_applicants,pv_stay_members',
-         '★O7 オーナーも、開いたときに呼ぶのはこの8つだけ（資格確認の表は運営みんなの入口・申請してきた人 → 会員一覧は管理者と分かったあと・画像と verified は押したときだけ）', rpc0.join(','));
+      ok(rpc0.join(',') === 'pv_is_admin,admin_list_profiles,admin_list_reviews,admin_list_proofs,admin_list_top_holds,pv_town_queue,pv_stay_queue,pv_stay_applicants,pv_stay_members',
+         '★O7 オーナーも、開いたときに呼ぶのはこの9つだけ（資格確認とトップの保留の表は運営みんなの入口・申請してきた人 → 会員一覧は管理者と分かったあと・画像と verified は押したときだけ）', rpc0.join(','));
       await ownerChecks(page, lang).catch((e) => ok(false, 'O オーナーの場面が途中で止まった', String(e && e.message || e).slice(0, 200)));
     }
 

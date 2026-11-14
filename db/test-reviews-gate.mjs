@@ -676,5 +676,125 @@ console.log('\n▼ ★鍵の無い人の一覧は作っておいた行を引く�
   await asOwner();
 }
 
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 10. トップに出さない口コミ（ゲーム・下品な語・2026-11-14）');
+// ════════════════════════════════════════════════════════════
+{
+  await asOwner();
+  /* 本番の pv_is_admin（db/admin.sql）と同じ式。名簿に居る人だけが承諾できる。 */
+  await db.exec(`create or replace function public.pv_is_admin() returns boolean language sql stable
+                 security definer set search_path = public as $$
+                   select exists (select 1 from public.pv_admins a where a.user_id = auth.uid()) $$`);
+  await mkUser(20); await mkUser(21);
+  await db.query(`insert into public.pv_admins(user_id) values($1) on conflict do nothing`, [uid(20)]);
+  const ng = async (t) => (await one(`select public.pv_review_ng_words($1) w`, [t])).w;
+
+  /* 本物のパイロットが書きそうな文は止めない（語の頭で区切る・紛らわしい語は一覧に入れていない） */
+  const CLEAN = [
+    'The cockpit culture is professional and SOPs are well defined across the fleet.',
+    'Base pay plus flying pay; classes and assessments in the sim are thorough. Passenger loads are high.',
+    'Housing in the GTA is expensive. There is a lot of camaraderie among us pilots.',
+    'We fly the Pokemon jet sometimes. Layovers in Yellowknife and Scunthorpe, shiitake ramen in Tokyo.',
+    'Hancock and Dickson are good captains. The new roster system is a game changer.',
+    '多国籍のクルーが一緒に飛ぶ環境で、上下関係ははっきりしている。ポケモンジェットにも乗る。',
+    'イエローナイフへの便があり、ゲームチェンジャーになる制度改定だった。約束どおり手当が出る。',
+  ];
+  const clean = [];
+  for (const t of CLEAN) { const w = await ng(t); if (w.length) clean.push(`${w.join(',')} ← ${t.slice(0, 40)}`); }
+  ok(clean.length === 0, '本物のパイロットの文は止めない（cockpit・Scunthorpe・among us・GTA・ポケモン・イエロー・ゲームチェンジャー）', clean.join(' | '));
+
+  const DIRTY = [
+    ['Wow its the best guys I love it lets play roblox adopt me and ptfs lets poop', ['roblox', 'ptfs', 'adopt me', "let's play", 'poop']],
+    ['ＲＯＢＬＯＸ is fun', ['roblox']],
+    ["Let’s play Minecraft after the flight", ['minecraft', "let's play"]],
+    ['Management is bullshit and the roster is fucking awful', ['fuck', 'shit']],
+    ['POOP everywhere', ['poop']],
+    ['経営陣はクソ。うんこみたいな会社', ['うんこ', 'クソ']],
+  ];
+  const miss = [];
+  for (const [t, want] of DIRTY) { const w = await ng(t); if (JSON.stringify(w.slice().sort()) !== JSON.stringify(want.slice().sort())) miss.push(`${t.slice(0, 30)} → ${JSON.stringify(w)}`); }
+  ok(miss.length === 0, 'ゲームと下品な語は止める（全角・大文字・’ の付いた let’s も）', miss.join(' | '));
+
+  /* 投稿した瞬間に印が付き、トップに出ない（いちばん新しくても）。Vote には今までどおり出る（指示はトップだけ）。 */
+  const BAD = 'It it very good beautiful I love it magnificent and lets play roblox adopt me';
+  await post(21, 'riyadh-air', { culture_comment: BAD, salary_comment: '15k dollar a month basic + guaranteed 75 hour fly',
+                                 __at: '2026-12-01T00:00:00Z' });
+  const badId = (await one(`select id from public.reviews_v2 where airline = 'riyadh-air' and culture_comment = $1`, [BAD])).id;
+  const hold = await one(`select words, approved_at from public.pv_review_top_hold where review_id = $1`, [badId]);
+  ok(hold && hold.words.includes('roblox') && hold.approved_at === null, '★投稿した瞬間に印が付く（保留・語つき）', JSON.stringify(hold));
+  const onTop = async () => (await one(`select public.pv_review_voices() v`)).v.some((x) => x.airline === 'riyadh-air');
+  await asAnon();
+  const top = (await one(`select public.pv_review_voices() v`)).v;
+  ok(!top.some((x) => x.airline === 'riyadh-air') && top.length >= 1, `★いちばん新しくてもトップに出ない（ほかの${top.length}件は出る）`);
+  ok((await one(`select public.pv_vote_latest() v`)).v.some((x) => x.airline === 'riyadh-air'),
+     'Vote の流れるカードには今までどおり出る（オーナーの指示はトップだけ）');
+  ok(!!(await boom('select * from public.pv_review_top_hold')), '印の表は、鍵の無い人から直接は読めない');
+  ok(!!(await boom(`select public.admin_review_top_decide($1, true)`, [badId])), '★ログインしていない人は承諾できない');
+  ok(!!(await boom(`select public.admin_list_top_holds()`)), 'ログインしていない人は保留の一覧を読めない');
+  await asUser(21);
+  ok(!!(await boom(`select public.admin_review_top_decide($1, true)`, [badId])), '★運営でない会員（投稿した本人でも）は承諾できない');
+  ok(!!(await boom('select * from public.pv_review_top_hold')), '印の表は、会員からも直接は読めない');
+  await asAnon();
+  ok(!(await onTop()), '断られたあとも、トップには出ていない');
+
+  /* 運営が承諾するとトップに出る。外すとまた出ない。 */
+  await asUser(20);
+  const list = (await one(`select public.admin_list_top_holds() v`)).v;
+  const it = list.find((x) => x.id === badId);
+  ok(it && it.words.includes('roblox') && it.approved_at == null && it.text.includes('roblox'), '運営の一覧に、語と本文つきで出る（保留中が先）', JSON.stringify(list[0] || null).slice(0, 200));
+  const d1 = (await one(`select public.admin_review_top_decide($1, true) v`, [badId])).v;
+  await asAnon();
+  ok(d1.ok === true && d1.shown === true && await onTop(), '★運営が承諾するとトップに出る', JSON.stringify(d1));
+  await asUser(20);
+  await one(`select public.admin_review_top_decide($1, false) v`, [badId]);
+  await asAnon();
+  ok(!(await onTop()), '★運営が外すと、またトップに出ない');
+  await asUser(20);
+  const nh = (await one(`select public.admin_review_top_decide($1, true) v`, [uid(999)])).v;
+  ok(nh.ok === false && nh.reason === 'not_held', '印の無い口コミを承諾しようとしても何も起きない', JSON.stringify(nh));
+  await one(`select public.admin_review_top_decide($1, true) v`, [badId]);   // 承諾した状態にして続ける
+
+  /* 貼り直しても承諾は残る。引き金が無かったあいだに入った口コミも、貼り直しで拾う。 */
+  await asOwner();
+  await db.exec('drop trigger if exists pv_review_top_hold_sync on public.reviews_v2');
+  await post(21, 'emirates', { culture_comment: 'Crew life is fine but honestly this place is shit for juniors.', __at: '2026-12-02T00:00:00Z' });
+  await db.exec(read('db/reviews-gate.sql'));
+  const h2 = await rows(`select r.airline, h.approved_at from public.pv_review_top_hold h join public.reviews_v2 r on r.id = h.review_id
+                          where r.airline in ('riyadh-air', 'emirates') order by r.airline`);
+  ok(h2.length === 2 && h2[0].airline === 'emirates' && h2[0].approved_at === null && h2[1].approved_at !== null,
+     '貼り直しても承諾は残り、引き金が無かったあいだの口コミも拾う', JSON.stringify(h2));
+
+  /* 本文が直ったら：語が消えれば印も消える／別の語に変われば承諾はやり直し。 */
+  await db.query(`update public.reviews_v2 set culture_comment = 'Crew life is fine but juniors wait long for upgrades.' where airline = 'emirates' and culture_comment like '%shit%'`);
+  ok(!(await rows(`select 1 from public.pv_review_top_hold h join public.reviews_v2 r on r.id = h.review_id where r.airline = 'emirates'`)).length,
+     '本文から語が消えたら、印も消える');
+  await db.query(`update public.reviews_v2 set mgmt_comment = 'lets play fortnite' where id = $1`, [badId]);
+  const h3 = await one(`select words, approved_at from public.pv_review_top_hold where review_id = $1`, [badId]);
+  ok(h3.approved_at === null && h3.words.includes('fortnite'), '承諾のあとで別の語が足されたら、承諾はやり直し（トップから外れる）', JSON.stringify(h3));
+
+  /* 貼ったあとの検算の⑨ */
+  const chk9 = async () => (await rows(read('db/reviews-gate.sql').split('-- 8. 検算')[1].replace(/^[^\n]*\n(-- [^\n]*\n)*/, ''))).find((x) => x['項目'].startsWith('⑨'));
+  await asOwner();
+  let c9 = await chk9();
+  ok(c9 && c9['値'].startsWith('✅') && /保留中 1件/.test(c9['値']), '検算の⑨が ✅（保留中の件数つき）', JSON.stringify(c9));
+
+  /* 壊す証明：トップの抜粋から「印の付いた口コミを外す1行」を抜くと、上の検査も検算の⑨も落ちる */
+  const src = read('db/reviews-gate.sql');
+  const fn = src.slice(src.indexOf('create or replace function public.pv_review_voices()'), src.indexOf('revoke all on function public.pv_review_voices()'));
+  const broken = fn.replace(/\n\s*and not exists \(select 1 from public\.pv_review_top_hold h\n[^\n]*\n/, () => '\n');
+  ok(broken !== fn, '壊す証明の準備：外す1行が見つかる');
+  await db.exec(broken);
+  await asAnon();
+  const leaked = await onTop();
+  await asOwner();
+  c9 = await chk9();
+  ok(leaked && c9['値'].startsWith('❌'), '★壊す証明：外す1行を抜くと、保留中の口コミがトップに出て、検算の⑨も ❌ になる', JSON.stringify(c9));
+  await db.exec(read('db/reviews-gate.sql'));
+  await asAnon();
+  ok(!(await onTop()), 'ファイルを貼り直すと、また出なくなる');
+  await asOwner();
+}
+
 console.log(`\n══ ${pass} pass / ${fail} fail ══`);
 process.exit(fail ? 1 : 0);
