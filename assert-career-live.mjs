@@ -288,7 +288,8 @@ scene('static', 'ファイルの約束（口コミの読み方）', 'static', as
   const { CMP_KEYS, tabOfKey } = await import('./gen-career.mjs');
   const { QUESTIONS } = await import('./pv-conditions.mjs');
   const W = CMP_KEYS.work, P = CMP_KEYS.pay, U = [...W, ...P];
-  const want = QUESTIONS.filter((q) => !q.retired && !q.currency).map((q) => q.id);
+  /* 続きの質問（deep）は比較に並べない（会社ページのカードの中の1行だけ） */
+  const want = QUESTIONS.filter((q) => !q.retired && !q.currency && !q.deep).map((q) => q.id);
   const cur = new Set(QUESTIONS.filter((q) => q.currency).map((q) => q.id));
   ok(W.length > 0 && P.length > 0 && !W.some((k) => P.includes(k)) && new Set(U).size === U.length
     && W.every((k) => tabOfKey(k) === 'work') && P.every((k) => tabOfKey(k) === 'pay'),
