@@ -782,11 +782,12 @@ const regen = async () => {
 };
 const marks = async () => {
   const got = Object.fromEntries((await rows(
-    `select id, topic, topic_only, active from pv_condition_questions`)).map((x) => [x.id, x]));
+    `select id, topic, topic_only, active, deep from pv_condition_questions`)).map((x) => [x.id, x]));
   return {
     gap: QUESTIONS.filter((q) => (got[q.id]?.topic ?? null) !== (q.topic ?? null)
       || got[q.id]?.topic_only !== !!q.topicOnly).map((q) => q.id),
-    listed: Object.values(got).filter((x) => x.active && !x.topic_only).length,
+    /* 続きの質問（deep）は一覧の数に入れない（質問マスタの節の1行と同じ数え方） */
+    listed: Object.values(got).filter((x) => x.active && !x.topic_only && x.deep == null).length,
     only: Object.values(got).filter((x) => x.active && x.topic_only).length,
   };
 };
@@ -796,7 +797,7 @@ await db.query(`delete from pv_condition_questions where id = any($1)`, [ONLY4])
 await db.exec(`alter table pv_condition_questions drop column topic_only, drop column topic`);
 v = await rows(`select column_name from information_schema.columns
   where table_schema='public' and table_name='pv_condition_questions' and column_name in ('topic','topic_only')`);
-const oldN = Number((await one(`select count(*) n from pv_condition_questions where active`)).n);
+const oldN = Number((await one(`select count(*) n from pv_condition_questions where active and deep is null`)).n);
 ok(v.length === 0 && oldN === LISTED.length,
   `   （下ごしらえ）印の列が無く、質問は ${LISTED.length} ＝ 4問を足す前の形`, `列 ${v.length}・質問 ${oldN}`);
 /* 期待する数は LISTED / TOPIC_ONLY から取る（48 と 4 は、質問マスタの節の1行が数字で固定している） */
