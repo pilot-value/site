@@ -423,6 +423,14 @@
   function units(scope) {
     return Array.prototype.slice.call(scope.querySelectorAll('svg.ut-chart,svg.ut-pie,.ut-hb,.ut-hd,.ut-hf,' + COUNT + ',' + SUBT));
   }
+  /* 長さ 0 に縮めて待つ棒（.ut-hb）と点（.ut-hd）は、本体ではなく入れ物（縮めていない親）で見張る。
+     ★2026-11-14 オーナー「副操縦士のグラフが出ない」── 縮めた棒は幅 0 の線になる。入れ物が overflow:hidden で、
+       その左端が端数の位置（表示倍率 80% など）にあると、Chrome は「画面に入った」と一度も言わない
+       ＝ 伸びないまま 0 で残る（機長の列は整数の位置、副操縦士の列だけ端数だった）。本体で見張る形に戻さない。 */
+  function spot(u) {
+    var p = (u.classList.contains('ut-hb') || u.classList.contains('ut-hd')) ? u.parentElement : null;
+    return p && p.getClientRects().length ? p : u;
+  }
   function prepData(scope, force) {
     if (RM || !dio) return;
     glassDefs();
@@ -447,14 +455,25 @@
           Array.prototype.forEach.call(lg.children, function (r, j) { r.style.setProperty('--ut-j', String(Math.min(j, 14))); });
         }
       }
-      dio.unobserve(u);
-      dio.observe(u);
+      var t = spot(u);
+      if (t !== u) { var f = t._utFor || (t._utFor = []); if (f.indexOf(u) < 0) f.push(u); }
+      dio.unobserve(t);
+      dio.observe(t);
     });
   }
   function onData(list) {
-    var go = list.filter(function (en) {
-      return en.isIntersecting && (en.intersectionRatio >= .6 || en.intersectionRect.height >= w.innerHeight * .35);
-    }).map(function (en) { return en.target; });
+    var go = [];
+    list.forEach(function (en) {
+      if (!(en.isIntersecting && (en.intersectionRatio >= .6 || en.intersectionRect.height >= w.innerHeight * .35))) return;
+      var t = en.target;
+      if (t._utFor) {                 // 入れ物が見えた ＝ 中で待っている棒・点を全部動かす（spot）
+        dio.unobserve(t);
+        t._utFor.forEach(function (u) { if (go.indexOf(u) < 0) go.push(u); });
+        t._utFor = null;
+        if (!t._utWatch) return;      // 入れ物そのものは見張りの単位ではない
+      }
+      if (go.indexOf(t) < 0) go.push(t);
+    });
     go.sort(function (a, b) { return a.getBoundingClientRect().top - b.getBoundingClientRect().top; });
     go.forEach(function (u, n) {
       dio.unobserve(u);

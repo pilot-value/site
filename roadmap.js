@@ -376,9 +376,11 @@
     '  color:var(--pv-ink-3);line-height:1.5}',
     '.rm-ring{margin-top:10px;line-height:0}',
     '.rm-ring-s{display:block}',
-    '.rm-ring-v{font-size:26px;font-weight:900;letter-spacing:-.03em;fill:var(--pv-ink);',
+    /* ★2026-11-14 オーナー「数字が太文字のズレてる」── 900 は読み込んでいない太さ（Outfit は 700 まで）で、ブラウザが
+       無理に太らせて字がにじみ、下の「24%」に食い込んでいた。太さは字に在る 700 まで。縦の位置は ringHTML の注。 */
+    '.rm-ring-v{font-size:26px;font-weight:700;letter-spacing:-.03em;fill:var(--pv-ink);',
     '  font-variant-numeric:tabular-nums}',
-    '.rm-ring-p{font-size:10px;font-weight:800;letter-spacing:.04em;fill:var(--pv-ink-3)}',
+    '.rm-ring-p{font-size:10px;font-weight:700;letter-spacing:.04em;fill:var(--pv-ink-3)}',
     '.rm-next{margin-top:12px;font-size:.72rem;font-weight:700;line-height:1.6;',
     '  color:var(--pv-ink-2)}',
     '.rm-next b{display:block;margin-top:3px;font-weight:800;color:var(--pv-accent-ink);',
@@ -731,6 +733,12 @@
     var pct = has ? Math.max(0, Math.min(100, n / goal * 100)) : 0;
     var on = C * pct / 100;
     var mid = has ? fmt(n) : '…';
+    /* 人数と％は「字の下の線」（alphabetic）で置く。dominant-baseline="central" は字の箱の真ん中で、
+       箱の高さは字の種類ごとに違う ＝ 字が替わると人数が下へずれて「24%」に重なった（2026-11-14）。
+       字の大きさはけた数で決める（Outfit の数字は幅が広い。輪の内側は直径 58 ＝ 字は幅 50 まで）。
+       人数（字の高さ ≈ 0.72×大きさ）・間 6・％（高さ 7）の組を、輪の中心（43）に置く。 */
+    var dg = mid.replace(/\D/g, '').length, sz = Math.min(26, Math.floor(50 / (0.72 * dg + 0.3 * (mid.length - dg))));
+    var yv = +(43 - (0.72 * sz + 13) / 2 + 0.72 * sz).toFixed(1), yp = +(yv + 13).toFixed(1);
     return '<svg class="rm-ring-s" viewBox="0 0 86 86" width="86" height="86" role="img" ' +
       'aria-label="' + esc(has ? T.barLabel(fmt(n), fmt(goal)) : T.countPending) + '">' +
       '<circle cx="43" cy="43" r="' + R + '" fill="none" stroke-width="8" ' +
@@ -739,10 +747,9 @@
         'stroke-linecap="round" transform="rotate(-90 43 43)" ' +
         'stroke-dasharray="' + on.toFixed(1) + ' ' + (C - on).toFixed(1) + '" ' +
         'style="stroke:var(--pv-accent)"/>' : '') +
-      '<text class="rm-ring-v" x="43" y="' + (has ? 40 : 43) + '" text-anchor="middle" ' +
-        'dominant-baseline="central">' + esc(mid) + '</text>' +
-      (has ? '<text class="rm-ring-p" x="43" y="56" text-anchor="middle" ' +
-        'dominant-baseline="central">' + esc(Math.round(pct) + '%') + '</text>' : '') +
+      (has ? '<text class="rm-ring-v" x="43" y="' + yv + '" text-anchor="middle" style="font-size:' + sz + 'px">' + esc(mid) + '</text>' +
+        '<text class="rm-ring-p" x="43" y="' + yp + '" text-anchor="middle">' + esc(Math.round(pct) + '%') + '</text>'
+        : '<text class="rm-ring-v" x="43" y="43" text-anchor="middle" dominant-baseline="central">' + esc(mid) + '</text>') +
     '</svg>';
   }
 
