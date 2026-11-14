@@ -202,6 +202,32 @@
 .gl-msg{position:absolute;z-index:2;left:50%;top:50%;max-width:min(360px,80%);padding:12px 16px;border-radius:14px;background:var(--gl-glass);border:1px solid var(--gl-line);
   font-size:.8rem;font-weight:400;line-height:1.6;text-align:center;transform:translate(-50%,-50%);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
 
+/* ── 見本（まだスケジュールが無い人・2026-11-14）──────────────────
+   題の横の「見本」の札と、押し切ったときの知らせ。知らせは地球儀の面の上だけを覆う（下の白いカードは覆わない）。
+   カードは面のガラスと同じ灰色がかった青（#254c55）を濃くしたもの＝地球儀の上でも字が読める。ボタンは期間の札の「選んだ」と同じ白 */
+.gl-tag{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;border:1px solid var(--gl-line);background:rgba(255,255,255,.12);
+  font-size:.62rem;font-weight:600;letter-spacing:.04em;line-height:1.5;color:var(--gl-ink2);vertical-align:2px}
+.gl-gate{position:absolute;inset:0;z-index:6;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:rgba(6,34,38,.5);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);animation:glGate .3s var(--pv-ease,ease) both}
+.gl-gate-c{position:relative;width:min(400px,100%);padding:28px 24px 24px;border-radius:20px;text-align:center;color:#fff;
+  background:linear-gradient(160deg,rgba(37,76,85,.94),rgba(26,58,66,.96));border:1px solid rgba(255,255,255,.16);
+  box-shadow:0 1px 2px rgba(0,0,0,.2),0 28px 56px -24px rgba(0,0,0,.65);animation:glGateC .4s cubic-bezier(.22,1.18,.36,1) both}
+.gl-gate-h{margin:0 0 8px;padding:0 22px;font-size:1.05rem;font-weight:600;letter-spacing:-.01em;line-height:1.45;text-wrap:balance;word-break:auto-phrase}
+.gl-gate-p{margin:0 0 20px;font-size:.8rem;font-weight:400;line-height:1.7;color:var(--gl-ink2);text-wrap:balance;word-break:auto-phrase}   /* 1〜2文字だけ次の行に落とさない */
+.gl-gate-up{height:44px;padding:0 22px;border:0;border-radius:999px;background:#fff;color:#0b3d36;font-size:.86rem;font-weight:600;cursor:pointer;
+  box-shadow:0 8px 20px -10px rgba(0,0,0,.5);transition:transform .2s var(--pv-ease,ease),opacity .2s}
+.gl-gate-up:hover{opacity:.9}
+.gl-gate-up:focus-visible{outline:2px solid var(--gl-gold);outline-offset:3px}
+.gl-gate-up:active{transform:scale(.97)}
+.gl-gate-x{position:absolute;top:10px;right:10px;width:32px;height:32px;padding:0;border-radius:50%;border:1px solid var(--gl-line);background:transparent;
+  font-size:1.05rem;line-height:1;color:var(--gl-ink2);cursor:pointer;transition:transform .2s var(--pv-ease,ease),opacity .2s}
+.gl-gate-x:hover{opacity:.75}
+.gl-gate-x:focus-visible{outline:2px solid var(--gl-gold);outline-offset:2px}
+.gl-gate-x:active{transform:scale(.94)}
+@keyframes glGate{from{opacity:0}}
+@keyframes glGateC{from{opacity:0;transform:translateY(10px) scale(.97)}}
+@media (prefers-reduced-motion: reduce){.gl-gate,.gl-gate-c{animation:none}}
+
 /* ── 下の白いカード（便の一覧・月ごとの稼ぎ）────────────────────── */
 .gl-row{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:16px;align-items:start}
 .gl-card{min-width:0;padding:20px;border-radius:var(--pv-r-lg,20px);border:1px solid var(--pv-line);background:var(--pv-surface);box-shadow:var(--pv-shadow);color:var(--pv-ink)}

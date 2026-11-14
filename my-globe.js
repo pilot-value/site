@@ -8,6 +8,7 @@
    守っていること
    ・便の額は pv-report-engine.js の flightPay だけ（ここで計算し直さない）。額の出ない便は理由を書き、数字を作らない。
    ・見せるのは本人の行だけ（my_roster・my_pay_reports・my_report_items）。共有・画像の保存は付けない（日付とルートで本人に絞れる）。
+     ★スケジュールがまだ1日も無い人だけ、作り物の見本（sampleData）で動かす。題の横に「見本」の札・押せるのは5回まで（2026-11-14）。
    ・描くのは「今日まで」に飛んだ便（先の予定は描かない）。日ごとの行は24か月で畳まれる＝最長24か月。
    ・字は「目安」。「単価」「料率」と言わない（db/test-flight-pay.mjs が見ている）。
    ・動きは「動きを減らす」設定では止める。隠れている間・画面の外では描かない（電池）。
@@ -48,6 +49,7 @@
       listT: '便の一覧', all: 'すべて', allRoutes: '全ルート', more: 'もっと見る', less: '閉じる',
       monT: '月ごとの稼ぎ（目安）', monS: '便の額の合計', dayMonT: '日ごとの稼ぎ（目安）', monTip: '押すとその月だけ', dayTip: '押すとその日だけ',
       empty: 'スケジュールを取り込むと、飛んだルートがここに描かれます。',
+      tag: '見本', gateH: '続きは、あなたのスケジュールで', gateP: '取り込むと、あなたが飛んだルートと、便ごとの稼ぎ（目安）がここに出ます。', gateUp: 'スケジュールをアップロード',
       none: 'この期間に飛んだ便はありません。',
       err: '地球儀を読み込めませんでした。時間をおいて開き直してください。',
       ymS: '{n}月', dayT: '{n}月{d}日（{w}）', dayS: '{n}/{d}',
@@ -78,6 +80,7 @@
       listT: 'Flights', all: 'All flights', allRoutes: 'All routes', more: 'Show more', less: 'Show less',
       monT: 'Earnings by month (est.)', monS: 'Sum of flights', dayMonT: 'Earnings by day (est.)', monTip: 'Tap to see only that month', dayTip: 'Tap to see only that day',
       empty: 'Import your roster and every route you fly will be drawn here.',
+      tag: 'Sample', gateH: 'See it with your own roster', gateP: 'Import your roster to see every route you flew and what each flight earned (est.).', gateUp: 'Upload your roster',
       none: 'No flights in this period.',
       err: 'Could not load the globe. Please try again in a moment.',
       ymS: '{M}', dayT: '{w}, {M} {d}', dayS: '{M} {d}',
@@ -107,6 +110,7 @@
       listT: 'Vuelos', all: 'Todos', allRoutes: 'Todas las rutas', more: 'Ver más', less: 'Ver menos',
       monT: 'Ingresos por mes (est.)', monS: 'Suma de los vuelos', dayMonT: 'Ingresos por día (est.)', monTip: 'Toca para ver solo ese mes', dayTip: 'Toca para ver solo ese día',
       empty: 'Importa tu programación y aquí se dibujará cada ruta que vueles.',
+      tag: 'Ejemplo', gateH: 'Míralo con tu propia programación', gateP: 'Importa tu programación para ver cada ruta que volaste y lo que ganaste en cada vuelo (est.).', gateUp: 'Sube tu programación',
       none: 'No hay vuelos en este período.',
       err: 'No se pudo cargar el globo. Inténtalo de nuevo en un momento.',
       ymS: '{M}', dayT: '{w}, {M} {d}', dayS: '{M} {d}',
@@ -176,8 +180,9 @@
     var a = S.ctx.current ? S.ctx.current() : null;
     if (!a || !a.airline) return Promise.resolve(null);
     return S.sb.rpc('my_roster', { p_airline: a.airline, p_airline_other: a.other || null, p_from: from, p_to: to })
-      .then(function (r) { return r && !r.error && r.data && r.data.ok !== false ? r.data : null; }, function () { return null; });
+      .then(function (r) { return r && !r.error && r.data && r.data.ok !== false ? r.data : FAIL; }, function () { return FAIL; });
   }
+  var FAIL = { fail: true };   // 読めなかった（「まだ1日も無い」と分ける＝読めない人に見本を出さない）
   function load() {
     S.loading = true; S.err = false;
     render();
@@ -188,17 +193,109 @@
     return Promise.all([rosterRange(from1, to1), rosterRange(from2, to2), items]).then(function (r) {
       var byDate = {}, prof = null;
       [r[1], r[0]].forEach(function (x) {
-        if (!x) return;
+        if (!x || x.fail) return;
         prof = x.profile || prof;
         (Array.isArray(x.days) ? x.days : []).forEach(function (D) { if (D && D.date) byDate[D.date] = D; });
       });
       S.days = Object.keys(byDate).sort().map(function (k) { return byDate[k]; });
-      var it = r[2] && typeof r[2] === 'object' ? r[2] : { items: [], maps: [] };
-      S.model = R.build({ reports: S.ctx.reports || [], items: it.items || [], maps: it.maps || [],
-        roster: { days: S.days, profile: prof }, airline: a && a.airline || undefined, airlineOther: a && a.other || null });
+      /* ★まだ1日も出していない人は見本で動かす（読めなかったときは今までどおり空のまま） */
+      S.sample = !S.days.length && r[0] !== FAIL && r[1] !== FAIL;
+      if (S.sample) {
+        var smp = sampleData();
+        S.model = R.build({ reports: smp.reports, items: [], maps: [], roster: { days: smp.days, profile: smp.profile }, airline: 'sample' });
+      } else {
+        var it = r[2] && typeof r[2] === 'object' ? r[2] : { items: [], maps: [] };
+        S.model = R.build({ reports: S.ctx.reports || [], items: it.items || [], maps: it.maps || [],
+          roster: { days: S.days, profile: prof }, airline: a && a.airline || undefined, airlineOther: a && a.other || null });
+      }
       S.fp = R.flightPay(S.model);
       prepare();
-    }).catch(function () { S.err = true; }).then(function () { S.loading = false; render(); });
+    }).catch(function () { S.err = true; S.sample = false; }).then(function () { S.loading = false; render(); });
+  }
+
+  /* ── 見本（まだスケジュールを1日も出していない人）──────────────────
+     ★2026-11-14 オーナー「sample のやつにして中身いじれるようにして」「ある程度いじらせて、そこから先はスケジュールをアップロードのポップアップ」。
+     中身は shot-glass.mjs の scene=globe と同じ作り（ドバイ拠点の機長・行って泊まって帰る便・シミュレーター・スタンバイ・休み）を、
+     今月までの13か月に置き直したもの。額は本物と同じ flightPay を通すだけ（ここで計算しない）。
+     ★便も明細も全部作り物（実在の勤務・給与は1つも写していない）。どこへも送らない・保存しない。会社の名前も出さない。
+     ★見本だと分かるように題の横に札（gl-tag）。押して試せるのは SAMPLE_FREE 回まで（回す・拡大は数えない）。
+       超えたら、その操作はせずに知らせ（gl-gate）を出す。数えた回数は端末に残す（開き直しても数え直さない）。 */
+  var SAMPLE_FREE = 5, SKEY = 'pv-globe-sample-n';
+  var SAMPLE_DEST = [['LHR', '7:40', '7:15'], ['JFK', '14:05', '12:40'], ['SYD', '13:55', '14:35'], ['HND', '9:35', '9:10'], ['SIN', '7:25', '7:05'],
+    ['BKK', '6:10', '6:40'], ['MLE', '4:15', '4:30'], ['CDG', '7:20', '6:55'], ['JNB', '8:05', '8:20'], ['MAN', '7:50', '7:25'],
+    ['MEL', '13:35', '14:10'], ['GRU', '14:50', '14:05'], ['FCO', '5:55', '5:30'], ['NBO', '5:05', '5:15'], ['BOM', '3:05', '3:20'], ['CMB', '4:20', '4:35'],
+    ['MCT', '1:05', '1:10'], ['BAH', '1:20', '1:15'], ['KWI', '1:45', '1:50']];
+  var SAMPLE_FV = [5200, 6100, 4800, 7000, 3400, 7800, 5800, 6600, 4100, 7300, 6900, 5500];
+  function sampleData() {
+    var now = new Date(), v0 = now.getFullYear() * 12 + now.getMonth() - 12;     // 12か月前の月から今月まで
+    var C = w.PVCurrency, fx = ((C && C.rates && C.rates.USD) || 158.95) / 3.6725;   // AED は米ドルに固定（1 USD = 3.6725 AED）
+    var seed = 7;
+    function rnd() { return (seed = (seed * 9301 + 49297) % 233280) / 233280; }
+    function add(t0, dur) { var a = t0.split(':'), b = dur.split(':'), t = +a[0] * 60 + +a[1] + +b[0] * 60 + +b[1]; return { t: pad2(Math.floor(t / 60) % 24) + ':' + pad2(t % 60), d: Math.floor(t / 1440) }; }
+    function sub(t0, min) { var a = t0.split(':'), t = +a[0] * 60 + +a[1] - min; if (t < 0) t += 1440; return pad2(Math.floor(t / 60)) + ':' + pad2(t % 60); }
+    function leg(from, to, out, blk, kind) { var e = add(out, blk); return { seq: 1, from: from, to: to, out: out, in: e.t, in_day: e.d, block: blk, kind: kind || 'operating' }; }
+    function duty(date, l) { var off = add(l.in, '0:30'); return { date: date, code: null, d_on: sub(l.out, 90), d_off: off.t, d_off_day: l.in_day + off.d, legs: [l] }; }
+    function rest(date, code) { return { date: date, code: code, d_on: null, d_off: null, d_off_day: 0, legs: [] }; }
+    var days = {}, reports = [];
+    for (var mi = 0; mi < 13; mi++) {
+      var v = v0 + mi, y = Math.floor(v / 12), m = v % 12 + 1, n = new Date(Date.UTC(y, m, 0)).getUTCDate();
+      var ds = function (dd) { return y + '-' + pad2(m) + '-' + pad2(dd); };
+      for (var dd = 1; dd <= n; dd++) days[ds(dd)] = rest(ds(dd), 'OFF');
+      var d1 = 1 + Math.floor(rnd() * 2), trip = 0;
+      while (d1 + 2 <= n) {
+        var D = SAMPLE_DEST[(mi * 5 + trip * 3 + Math.floor(rnd() * 4)) % SAMPLE_DEST.length];
+        var out = pad2(1 + Math.floor(rnd() * 20)) + ':' + ['05', '20', '35', '50'][Math.floor(rnd() * 4)];
+        days[ds(d1)] = duty(ds(d1), leg('DXB', D[0], out, D[1]));
+        days[ds(d1 + 1)] = rest(ds(d1 + 1), 'LO');
+        var back = pad2(1 + Math.floor(rnd() * 20)) + ':' + ['10', '25', '40', '55'][Math.floor(rnd() * 4)];
+        days[ds(d1 + 2)] = duty(ds(d1 + 2), leg(D[0], 'DXB', back, D[2], trip % 5 === 4 ? 'deadhead' : 'operating'));   // ときどき帰りは便乗（DH）
+        d1 += 4 + Math.floor(rnd() * 2); trip++;
+        if (trip === 2 && d1 + 1 <= n) { days[ds(d1)] = { date: ds(d1), code: 'SIM', d_on: '08:00', d_off: '16:00', d_off_day: 0, legs: [{ seq: 1, loc: 'DXB', kind: 'ground' }] }; d1 += 1; }
+        if (trip === 4 && d1 + 1 <= n) { days[ds(d1)] = { date: ds(d1), code: 'SBY', d_on: '04:00', d_off: '16:00', d_off_day: 0, legs: [] }; d1 += 1; }
+      }
+      var fv = SAMPLE_FV[mi % 12], pd = 3600 + (mi % 4) * 400;
+      var r = { airline: 'sample', airline_other: null, position: 'cap', fleet: 'b777', job_role: null, base_iata: 'DXB',
+        period_year: y, period_month: m, period_ym: y * 12 + m, currency: 'AED', fx_to_jpy: fx, fx_to_usd: 1 / 3.6725,
+        net_pay_actual: 54600, deduction_total: 3600, base_pay: 25500, command_pay: 11000, housing_type: 'allowance', housing_amount: 12000,
+        flight_variable_pay: fv, per_diem: pd, transport: 1500, other_allowance: fv + 2200, bonus_annual: 0, profit_share_annual: 0,
+        block_hours: 86.5, duty_hours: 158.2, night_hours: 12.4, credit_hours: null, source: 'payslip', verify_level: 1,
+        created_at: y + '-' + pad2(m) + '-05T00:00:00Z' };
+      var monthly = r.base_pay + r.command_pay + r.housing_amount + r.transport + r.other_allowance + r.per_diem;
+      r.annual_total_orig = monthly * 12;
+      r.annual_total_jpy = Math.round(r.annual_total_orig * fx);
+      r.annual_total_usd = Math.round(r.annual_total_orig * r.fx_to_usd);
+      reports.push(r);
+    }
+    return { reports: reports, days: Object.keys(days).sort().map(function (k) { return days[k]; }),
+             profile: { kind: 'actual', time_ref: 'local', tz: 'Asia/Dubai', time_meaning: 'block', codes: { OFF: 'off', LO: 'off', SIM: 'training', SBY: 'standby' }, pay_lag: 0 } };
+  }
+  /* 見本を押した回数を数える。SAMPLE_FREE 回を超えたら知らせを出して true（＝その操作はしない） */
+  function sampleGate() {
+    if (!S.sample) return false;
+    var n = Math.max(S.tries || 0, +stored(SKEY) || 0) + 1;
+    if (n > SAMPLE_FREE) { openGate(); return true; }
+    S.tries = n; store(SKEY, String(n));
+    return false;
+  }
+  function openGate() {
+    var g = S.root && S.root.querySelector('.gl-gate');
+    if (!g) return;
+    g.hidden = false;
+    /* 下の一覧・月の棒から押したときは面が画面の外にある＝知らせのカードが見える所まで送る */
+    var c = g.querySelector('.gl-gate-c'), rc = c.getBoundingClientRect();
+    if (rc.top < 0 || rc.bottom > (w.innerHeight || 0)) c.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'center' });
+    var b = g.querySelector('[data-gate-up]');
+    if (b) b.focus({ preventScroll: true });
+  }
+  function closeGate() { var g = S.root && S.root.querySelector('.gl-gate'); if (g) g.hidden = true; }
+  /* スケジュールの取り込みを開く。会社がまだ決まっていない人は、下の会社の欄へ（選ぶとアップロードのボタンが押せるようになる） */
+  function openUpload() {
+    var a = w.PVRoster && w.PVRoster.current ? w.PVRoster.current() : null;
+    if (a && a.airline) { w.PVRoster.open({ upload: true }); return; }
+    var sel = d.getElementById('rs-air');
+    if (!sel) return;
+    sel.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'center' });
+    sel.focus({ preventScroll: true });
   }
   function prepare() {
     var t = today();
@@ -297,7 +394,7 @@
             '<button type="button" class="gl-zb" data-z="-1" aria-label="' + esc(T.zout) + '">−</button></div>' +
             '<div class="gl-msg" hidden></div>' +
             '<div class="gl-toast" role="status" hidden></div></div>' +
-          '<div class="gl-top"><div class="gl-hd"><h3 class="gl-t">' + esc(T.title) + '</h3><p class="gl-s"></p></div>' +
+          '<div class="gl-top"><div class="gl-hd"><h3 class="gl-t">' + esc(T.title) + '<span class="gl-tag" hidden>' + esc(T.tag) + '</span></h3><p class="gl-s"></p></div>' +
             '<div class="gl-per" role="group" aria-label="' + esc(T.perAria) + '">' +
               [['d', T.perD], ['m', T.perM], ['3', T.per3], ['12', T.per12], ['all', T.perAll]].map(function (p) {
                 return '<button type="button" class="gl-pb" data-per="' + p[0] + '" aria-pressed="false">' + esc(p[1]) + '</button>';
@@ -308,11 +405,17 @@
           '<div class="gl-foot"><span class="gl-hint">' + IC_HAND + esc(T.hint) + '</span>' +
             '<span class="gl-lg"><span><i class="gl-lg-hub"></i>' + esc(T.legHub) + '</span><span><i class="gl-lg-dst"></i>' + esc(T.legDest) +
             '</span><span><i class="gl-lg-dh"></i>' + esc(T.legDh) + '</span></span></div>' +
+          /* 見本を押し切ったときの知らせ（地球儀の面の上だけを覆う・× で閉じられる） */
+          '<div class="gl-gate" role="dialog" aria-labelledby="gl-gate-h" hidden><div class="gl-gate-c">' +
+            '<button type="button" class="gl-gate-x" data-gate-x="1" aria-label="' + esc(T.close) + '">×</button>' +
+            '<h4 class="gl-gate-h" id="gl-gate-h">' + esc(T.gateH) + '</h4><p class="gl-gate-p">' + esc(T.gateP) + '</p>' +
+            '<button type="button" class="gl-gate-up" data-gate-up="1">' + esc(T.gateUp) + '</button></div></div>' +
         '</div>' +
         '<div class="gl-row"><div class="gl-card gl-list" hidden></div><div class="gl-card gl-mon" hidden></div></div>' +
       '</section>';
     S.root = S.el.querySelector('.gl');
     S.root.addEventListener('click', onClick);
+    S.root.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !S.root.querySelector('.gl-gate').hidden) closeGate(); });
     G.init(S.el.querySelector('.gl-cv'), S.el.querySelector('.gl-cvbox'));
   }
   function render() {
@@ -320,6 +423,10 @@
     if (!S.root) shell();
     var V = S.loading || S.err ? null : view();
     S.V = V;
+    var smp = !!V && !!S.sample;
+    S.root.classList.toggle('is-sample', smp);
+    S.root.querySelector('.gl-tag').hidden = !smp;
+    if (!smp) closeGate();
     S.root.querySelectorAll('.gl-pb').forEach(function (b) {
       var on = b.getAttribute('data-per') === S.per;
       b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on));
@@ -519,7 +626,7 @@
   }
   function setLag(v) {
     var a = S.ctx.current ? S.ctx.current() : null;
-    if (!a || !a.airline || S.lagBusy) return;
+    if (S.sample || !a || !a.airline || S.lagBusy) return;   // 見本の答えは保存しない
     S.lagBusy = true; S.lagErr = false;
     Promise.resolve(S.sb.rpc('set_roster_profile', { p_airline: a.airline, p_airline_other: a.other || null, p: { pay_lag: v } })).then(function (r) {
       S.lagBusy = false;
@@ -605,10 +712,14 @@
   function onClick(e) {
     var t = e.target.closest ? e.target.closest('button,a') : null;
     if (!t || !S.root.contains(t)) return;
+    if (t.hasAttribute('data-gate-x')) { closeGate(); return; }
+    if (t.hasAttribute('data-gate-up')) { closeGate(); openUpload(); return; }
+    /* 見本：中身を替える操作（期間・送り・月や日・ルート・便・絞り込み・もっと見る）だけを数える。拡大・縮小は数えない */
+    if (gateKind(t) && sampleGate()) return;
     if (t.hasAttribute('data-per')) { S.per = t.getAttribute('data-per'); store(PKEY, S.per); S.listN = 8; S.leg = null; S.route = null; render(); G.home(); return; }
     if (t.hasAttribute('data-step')) { step(+t.getAttribute('data-step')); return; }
     if (t.hasAttribute('data-lag')) { setLag(+t.getAttribute('data-lag')); return; }
-    if (t.hasAttribute('data-roster-up')) { if (w.PVRoster && w.PVRoster.open) w.PVRoster.open({ upload: true }); return; }
+    if (t.hasAttribute('data-roster-up')) { openUpload(); return; }
     if (t.hasAttribute('data-toast-x')) { S.toastSeen = S.toastSeen || {}; S.toastSeen[t.getAttribute('data-toast-x')] = 1; render(); return; }
     if (t.hasAttribute('data-goym')) { S.per = 'm'; S.ym = t.getAttribute('data-goym'); S.leg = null; S.route = null; S.listN = 8; render(); G.focusRoute(); return; }
     if (t.hasAttribute('data-goday')) { S.per = 'd'; S.day = t.getAttribute('data-goday'); S.leg = null; S.route = null; S.listN = 8; render(); G.focusRoute(); return; }
@@ -617,6 +728,11 @@
     if (t.hasAttribute('data-filt')) { S.filt = t.getAttribute('data-filt'); S.listN = 8; render(); return; }
     if (t.hasAttribute('data-more')) { S.listN = S.listN > 8 ? 8 : 999; render(); return; }
     if (t.hasAttribute('data-z')) { G.zoomBy(+t.getAttribute('data-z') > 0 ? 1.8 : 1 / 1.8); return; }
+  }
+  function gateKind(t) {   // 見本で数える操作なら、その名前
+    var ks = ['per', 'step', 'goym', 'goday', 'route', 'leg', 'filt', 'more'];
+    for (var i = 0; i < ks.length; i++) if (t.hasAttribute('data-' + ks[i])) return ks[i];
+    return '';
   }
   function pickRoute(k) {
     /* 地球儀の線を押した（'A|B'）＝その2空港のいちばん新しい便の向きを選ぶ */
@@ -1076,7 +1192,7 @@
           if (dd < bd) { bd = dd; best = a; }
         }
       });
-      if (best) pickRoute(best.k);
+      if (best && !sampleGate()) pickRoute(best.k);
     }
     return { init: init, setData: setData, focusRoute: focusRoute, home: home, zoomBy: zoomBy, kick: kick, draw: draw };
   }());
