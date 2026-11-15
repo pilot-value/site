@@ -1760,7 +1760,7 @@ function routeCopy(lang) {
       cta: 'MY PAY を開く',
       privH: 'データの扱い',
       priv: [
-        '画像は読み取りのために送りますが、保存しません。保存するのは読み取った日付・空港・時刻だけで、便名と氏名は保存しません。2年たった日は月の合計だけになります。見られるのはあなただけで、いつでも消せます。',
+        '画像は読み取りのために送ります。2年たった日は月の合計だけになります。',
         '明細は給与の数字を読み取るためだけに使い、氏名・社員番号・口座は回答・保存の対象にしません。画像は保存しません。',
       ],
       privL: ['スケジュール', '給与明細'],
@@ -1789,7 +1789,7 @@ function routeCopy(lang) {
     cta: 'Open MY PAY',
     privH: 'How your data is handled',
     priv: [
-      'Images are sent to be read and are not stored. Only the dates, airports and times are saved — never flight numbers or names. After two years, only monthly totals are kept. Only you can see them, and you can delete them anytime.',
+      'Images are sent to be read. After two years, only monthly totals are kept.',
       'Your payslip is used only to read the pay figures; your name, staff number and bank details are not part of what is returned or stored. The image itself is never stored.',
     ],
     privL: ['Roster', 'Payslip'],

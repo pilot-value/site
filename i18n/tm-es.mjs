@@ -16661,4 +16661,6 @@ export const TM = {
   "js:function (k) { return k + ' (all time)'; }": {"es":"js:function (k) { return k + ' (todo el periodo)'; }","st":"manual","by":"claude","at":"2026-11-15","pages":["my-year.js"],"note":"給与サマリーの全期間 2026-11-15"},
   "js:function (q, a) { return q + ' · ' + a + ' in total'; }": {"es":"js:function (q, a) { return q + ' · ' + a + ' en total'; }","st":"manual","by":"claude","at":"2026-11-15","pages":["my-year.js"],"note":"給与サマリーの全期間 2026-11-15"},
   "js:function (s) { return 'Pay without a rate (all time): ' + s; }": {"es":"js:function (s) { return 'Pagos sin tarifa (todo el periodo): ' + s; }","st":"manual","by":"claude","at":"2026-11-15","pages":["my-year.js"],"note":"給与サマリーの全期間 2026-11-15"},
+  "js:'Images are sent to be read. After two years, only monthly totals are kept.'": {"es":"js:'Las imágenes se envían para leerlas. Después de dos años solo se conservan los totales mensuales.'","st":"manual","by":"claude","at":"2026-11-16","pages":["roster-upload.js"],"note":"スケジュールの画像の扱い（保存しませんを外した）2026-11-16"},
+  "js:'After two years, days are reduced to monthly totals.'": {"es":"js:'Después de dos años, los días quedan solo como totales mensuales.'","st":"manual","by":"claude","at":"2026-11-16","pages":["my-roster.js"],"note":"スケジュールの画像の扱い（保存しませんを外した）2026-11-16"},
 };
