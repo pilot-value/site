@@ -56,7 +56,12 @@
 
   var V = w.PVViz;
   if (!V) return;                       // 読み込み順が崩れたら黙って出さない
-  var esc = V.esc, num = V.num, fmt = V.fmt;
+  var esc = V.esc, num = V.num;
+  /* ★2026-11-15 オーナー「非表示ボタンを押した時に累計報酬とかも非表示にならないと意味ない」──
+       目のアイコンで隠している間は、給与サマリーの金額を全部「••••」で書く（字を作らない・null は今までどおり「—」）。
+       このファイルの金額は全部ここか exact() を通る。時間・日数・％は隠さない。 */
+  var MASK = '••••';
+  function fmt(v) { return (v != null && state && state.hide) ? MASK : V.fmt(v); }
 
   var L = (window.PV_BASE === 'en' || d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';   // スペイン語のページは英語と同じ動き（pv-session.js）
   var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -71,7 +76,7 @@
   /* ★後から読む2本にも中身の指紋を付ける（.js は配信で4時間覚えられる＝付けないと出した直後に古い部品が残る）。
        my-year.js か my-value-sample.js を直したら、db/test-year-report.mjs が示す値に書き換える（中身と一致するかを見ている）。
        そのあと profile.html（日英）の my-value.js の指紋も変わる（assert-links.mjs が示す値に写す・西は gen-lang.mjs）。 */
-  var YEAR_V = '9ee2f623';
+  var YEAR_V = '0835bdd7';
   var SAMPLE_V = '56f31187';
   var SAMPLE_URL = 'my-value-sample.js?v=' + SAMPLE_V;     // 運営の見本（運営のときだけ読む）
   var YEAR_URL = 'my-year.js?v=' + YEAR_V;                 // 「1年」の画面（押したときだけ読む）
@@ -671,11 +676,9 @@
     return sec(title, body, sub, mod).replace('</h2>', function () { return '</h2>' + tool; });
   }
 
-  /* ── 金額を隠す（2026-11-15 オーナー「最初の緑のカードに非表示の目のアイコン」）──────────
-     効くのは緑のカード（月・年・全期間の最初の1枚）の金額だけ。時間・日数・％の増減は隠さない。
-     ★隠したときは金額の字を作らない（数字を描いてからぼかさない）。紙・PDF も画面どおり。 */
-  var MASK = '••••';
-  function amt(jpy) { return state.hide ? MASK : fmt(jpy); }
+  /* ── 金額を隠す目のアイコン（2026-11-15 オーナー「最初の緑のカードに非表示の目のアイコン」）──────────
+     ボタンは月・年・全期間の緑のカードの見出しの右。効くのは給与サマリーの金額ぜんぶ（fmt() と exact() が隠す）。
+     スケジュール・分析のタブは隠さない（オーナー回答「給与サマリーの中だけ」）。紙・PDF も画面どおり。 */
   var EYE_ON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
   var EYE_OFF = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.7 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-2.8 3.8"/><path d="M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7c1.9 0 3.6-.6 5.1-1.5"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="M3 3l18 18"/></svg>';
   // 名前は「金額を隠す」のまま・押している間は aria-pressed（字が替わるボタンにしない）。指を乗せたときの字だけ次にすること
@@ -815,6 +818,7 @@
     var cur = (C && C.get) ? C.get() : 'JPY';
     var rate = (C && C.rates && C.rates[cur]) || 1;
     var sym = (C && C.symbols && C.symbols[cur]) || '¥';
+    if (state.hide) return MASK;                     // 目のアイコンで隠している（前回の明細との差・給与が変わった理由）
     return sym + Math.round(jpy / rate).toLocaleString('en-US');
   }
   // pay_benchmarks は USD 建て。サイトの表示レートで円に直す（lp.js と同じ既定値）。
@@ -901,7 +905,7 @@
 
     // 大きい数字は総支給の1つだけ
     var body = '<div class="mr-hero"><span class="mr-hero-k">' + esc(T.kGross) + '</span>' +
-      '<b class="mr-hero-v">' + esc(gross != null ? amt(jpyOf(r, gross)) : '—') + '</b>' +
+      '<b class="mr-hero-v">' + esc(gross != null ? fmt(jpyOf(r, gross)) : '—') + '</b>' +
       pill(pctOf(m, 'gross')) + '</div>';
 
     /* ★総支給の外で受け取った分（支給元＝組合）。上の「総支給」は明細に印字された
@@ -913,16 +917,16 @@
     /* ★明細とは別に受け取ったパーディアム（2026-11-04）も足し算に入る。こちらは「ほかの数字」へ。
        古い pay-viz.js が残っている端末でも落ちないように、関数があるときだけ読む。 */
     var po = typeof V.perdiemOutsideJpy === 'function' ? V.perdiemOutsideJpy(r) : 0;
-    var all = gross != null ? rl(T.kGrossAll, amt(jpyOf(r, gross) + uo + po)) : '';
+    var all = gross != null ? rl(T.kGrossAll, fmt(jpyOf(r, gross) + uo + po)) : '';
 
     /* ★年換算は「今月を12倍した」参考値であって、年収の実績ではない。名前（今月ベースの…）で言う。 */
     var ann = num(r.annual_total_orig);
     var rows =
-      (net != null ? rl(T.kNet, amt(jpyOf(r, net))) : '') +
-      (uo > 0 && gross != null ? rl(T.kUnionOut, amt(uo)) + all : '') +
-      (ann != null ? rl(hasBonus(r) ? T.kAnnualB : T.kAnnual, amt(jpyOf(r, ann))) : '') +
-      (c.hourlyBlock != null ? rl(T.perBlock, amt(c.hourlyBlock), pctOf(m, 'block')) : '') +
-      (c.hourlyDuty != null ? rl(T.perDuty, amt(c.hourlyDuty), pctOf(m, 'duty')) : '');
+      (net != null ? rl(T.kNet, fmt(jpyOf(r, net))) : '') +
+      (uo > 0 && gross != null ? rl(T.kUnionOut, fmt(uo)) + all : '') +
+      (ann != null ? rl(hasBonus(r) ? T.kAnnualB : T.kAnnual, fmt(jpyOf(r, ann))) : '') +
+      (c.hourlyBlock != null ? rl(T.perBlock, fmt(c.hourlyBlock), pctOf(m, 'block')) : '') +
+      (c.hourlyDuty != null ? rl(T.perDuty, fmt(c.hourlyDuty), pctOf(m, 'duty')) : '');
     body += rlList(rows);
 
     // 数量は1行の文で（乗務 57.1h · 総勤務 139.6h · ステイ 7泊）
@@ -945,9 +949,9 @@
 
     /* 控除は「総支給 − 手取り」でしか作れないので、手取りを書いた月にだけ出る。
        年初来の課税額は明細からしか読めない。★ 空の行を置かない。 */
-    var extra = (ded != null ? rl(T.kDeduct, amt(jpyOf(r, ded))) : '') +
-                (ytd != null ? rl(T.kYtd, amt(jpyOf(r, ytd))) : '');
-    body += moreBox((po > 0 && gross != null ? rl(T.kPerdiemOut, amt(po)) + (uo > 0 ? '' : all) : '') + extra);
+    var extra = (ded != null ? rl(T.kDeduct, fmt(jpyOf(r, ded))) : '') +
+                (ytd != null ? rl(T.kYtd, fmt(jpyOf(r, ytd))) : '');
+    body += moreBox((po > 0 && gross != null ? rl(T.kPerdiemOut, fmt(po)) + (uo > 0 ? '' : all) : '') + extra);
     /* 手取りを書かなかった月。★2026-11-11 オーナー「緑のカード・白い字に」── 緑の上にぼかした見本と橙のボタンを
        置かない。1行の文と、その月を直す画面（MY PAGE の「編集」と同じ入口）へのリンクだけ。 */
     if (!extra && net == null && r.airline && r.period_year && r.period_month) {
@@ -1408,7 +1412,7 @@
        無理に2分割すると、どちらに寄せても嘘になる。 */
   function breakdown(r) {
     var dn = V.donut(r, {
-      title: T.ym(r.period_year, r.period_month), name: SEGNAME,
+      title: T.ym(r.period_year, r.period_month), name: SEGNAME, fmt: fmt,   // 金額は目のアイコンに従う
       notes: { housing: T.housingNote, unionOut: T.unionOutNote,
                absence: T.absenceNote, noBreakdown: T.restOnly }
     });

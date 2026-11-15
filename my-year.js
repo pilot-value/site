@@ -23,7 +23,12 @@
   var d = w.document;
   var V = w.PVViz;
   if (!V) return;
-  var esc = V.esc, num = V.num, fmt = V.fmt;
+  var esc = V.esc, num = V.num;
+  /* ★2026-11-15 目のアイコン（my-value.js が o.hide で渡す）で隠している間は、金額を全部「••••」で書く（字を作らない）。
+       calc() は fmt を使わない＝計算の答えは変わらない。時間・日数・％は隠さない。 */
+  var MASK = '••••';
+  function hiding() { return !!(state && state.o && state.o.hide); }
+  function fmt(v) { return (v != null && hiding()) ? MASK : V.fmt(v); }
   var L = (w.PV_BASE === 'en' || d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';
   var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -448,6 +453,7 @@
 
   function man(v) {                                  // 縦軸の目盛り用の短い額
     if (!v) return '0';
+    if (hiding()) return MASK;
     if (L === 'ja' && !(w.PVCurrency && w.PVCurrency.get && w.PVCurrency.get() !== 'JPY')) return (Math.round(v / 1000) / 10) + '万';
     return fmt(v);
   }
@@ -455,6 +461,7 @@
   /* 小さな額（分給など）。円以外の通貨で 10 未満になる額は小数2桁で出す
      （fmt は整数に丸めるので、ドルの分給が「US$ 0」になって 0 と読まれる）。記号は fmt の書き方に合わせる。 */
   function fmtSmall(jpy) {
+    if (hiding()) return MASK;                       // 下の記号の取り出しが「••••」を記号と読まないように先に返す
     var C = w.PVCurrency, cur = C && C.get && C.get(), rate = cur && C.rates && C.rates[cur];
     if (!cur || cur === 'JPY' || !rate) return fmt(jpy);
     var v = jpy / rate;
@@ -786,16 +793,16 @@
     var tl = md.tiles, extra = (tl.bonus || 0) + (tl.profit || 0), tiles = [];
     /* 総支給の合計に、年間のボーナス・プロフィットシェアを足して出す（中身は「うち…」の行で見せる）。
        総支給が欠けた月がある年は合計を出さない（今までどおり）ので、そのときはボーナスだけを別に出す。 */
-    /* money ＝ 金額の升目（目のアイコンで隠すのはこれだけ。時間・日数は隠さない） */
+    /* 金額は fmt() が目のアイコンに従って書く（時間・日数は隠さない） */
     if (tl.gross != null) {
-      tiles.push({ k: extra ? T.tGrossB : T.tGross, v: fmt(tl.gross + extra), money: true,
+      tiles.push({ k: extra ? T.tGrossB : T.tGross, v: fmt(tl.gross + extra),
         sub: [[T.kBonus, tl.bonus], [T.kProfit, tl.profit]].filter(function (p) { return p[1]; }).map(function (p) { return [p[0], fmt(p[1])]; }) });
     } else {
-      [[T.kBonus, tl.bonus], [T.kProfit, tl.profit]].forEach(function (p) { if (p[1]) tiles.push({ k: (allMode ? T.tAllOf : T.tYearly)(p[0]), v: fmt(p[1]), money: true }); });
+      [[T.kBonus, tl.bonus], [T.kProfit, tl.profit]].forEach(function (p) { if (p[1]) tiles.push({ k: (allMode ? T.tAllOf : T.tYearly)(p[0]), v: fmt(p[1]) }); });
     }
     if (tl.bh != null) tiles.push({ k: T.tBlock, v: hh(tl.bh), u: 'h' });
     if (tl.days != null) tiles.push({ k: T.tDays, v: Math.round(tl.days), u: T.qDay });
-    if (tl.net != null) tiles.push({ k: T.tNet, v: fmt(tl.net), money: true });
+    if (tl.net != null) tiles.push({ k: T.tNet, v: fmt(tl.net) });
     box.innerHTML =
       '<div class="yr yr-g' + (two ? ' is-two' : '') + '" id="pv-year">' +
         card('<div class="yr-top"><h2 class="mr-card-t">' + esc(allMode ? T.titleAll : T.title) + '<span class="yr-pyr">' + esc(L === 'ja' ? '（' + when + '）' : ' (' + when + ')') + '</span></h2>' +
@@ -804,7 +811,7 @@
             return '<button type="button" class="pt-tab' + (y === state.year ? ' on' : '') + '" data-yr="' + y + '">' + esc(T.yr(y)) + '</button>';
           }).join('') + '</div>' : '<span class="yr-one">' + esc(when) + '</span>') +
           '<span class="yr-sp"></span><button type="button" class="yr-pdf">' + esc(T.pdf) + '</button></div>' +
-        headBody(tiles, !!o.hide), 'is-head is-wide is-green') +
+        headBody(tiles), 'is-head is-wide is-green') +
         (typeof o.lead === 'function' ? o.lead() : '') +      // 累計報酬（見出しの下・左の列）
         card(insights(md)) + card(kinkCard(md, W)) +
         card(hoursChart(md, W)) + card(payChart(md, W, o.segName || {})) +
@@ -829,19 +836,16 @@
   /* ★2026-11-12 オーナー「1年のまとめの最初のカード寂しい。月みたいにもっと目立たせよう。せっかくすごい数字なのに」：
        今月のカードと同じ緑の面（is-green）・大きい数字は1つ（いちばん上の数字＝総支給の合計）・ほかは名前が左・数字が右の行（今月と同じ .mr-hero / .mr-rl）。
        数字も並びも今までの升目と同じ（足していない・削っていない） */
-  /* hide ＝ 目のアイコンで金額を隠している（2026-11-15）。金額の字は作らず「••••」だけ置く（描いてからぼかさない） */
-  var MASK = '••••';
-  function headBody(tiles, hide) {
+  function headBody(tiles) {
     if (!tiles.length) return '';
     var unit = function (t) { return t.u ? '<i>' + esc(t.u) + '</i>' : ''; };
-    var val = function (t) { return hide && t.money ? MASK : String(t.v); };
     var h = tiles[0];
     return '<div class="yr-hd"><div class="yr-hd-m"><div class="mr-hero"><span class="mr-hero-k">' + esc(h.k) + '</span>' +
-        '<b class="mr-hero-v">' + esc(val(h)) + unit(h) + '</b></div>' +
-        ((h.sub || []).length ? '<p class="yr-hd-sub">' + h.sub.map(function (x) { return '<span>' + esc(x[0]) + ' <b>' + esc(hide ? MASK : x[1]) + '</b></span>'; }).join('') + '</p>' : '') +
+        '<b class="mr-hero-v">' + esc(String(h.v)) + unit(h) + '</b></div>' +
+        ((h.sub || []).length ? '<p class="yr-hd-sub">' + h.sub.map(function (x) { return '<span>' + esc(x[0]) + ' <b>' + esc(x[1]) + '</b></span>'; }).join('') + '</p>' : '') +
       '</div>' +
       (tiles.length > 1 ? '<ul class="mr-rl yr-hd-rl" role="list">' + tiles.slice(1).map(function (t) {
-        return '<li class="mr-rl-i"><span class="mr-rl-k">' + esc(t.k) + '</span><span class="mr-rl-v"><b>' + esc(val(t)) + unit(t) + '</b></span></li>';
+        return '<li class="mr-rl-i"><span class="mr-rl-k">' + esc(t.k) + '</span><span class="mr-rl-v"><b>' + esc(String(t.v)) + unit(t) + '</b></span></li>';
       }).join('') + '</ul>' : '') + '</div>';
   }
   function printYear() {

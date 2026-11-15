@@ -427,7 +427,7 @@
        言わないと「これで全部だ」と読まれる。 */
     if (s.noBreakdown && notes.noBreakdown) ns.push(notes.noBreakdown);
 
-    return donutFromSegs(s, { title: o.title, name: o.name, notes: ns });
+    return donutFromSegs(s, { title: o.title, name: o.name, notes: ns, fmt: o.fmt });
   }
 
   /* ── 材料（segs）から絵を作る ────────────────────────────────
@@ -437,11 +437,13 @@
      o.name    {キー: 表示名}
      o.notes   但し書きの配列（呼ぶ側が決める）
      o.amounts false にすると凡例から金額を落とす（金額を持っていないとき）
-     o.center  真ん中の文字。省くと合計の金額 */
+     o.center  真ん中の文字。省くと合計の金額
+     o.fmt     金額の書き方（省くと fmt）。MY PAY の目のアイコンで金額を隠すときに「••••」を返す関数を渡す（2026-11-15） */
   function donutFromSegs(s, o) {
     o = o || {};
     if (!s || !(s.total > 0)) return '';
     var nm = o.name || {}, showAmt = o.amounts !== false;
+    var fmt2 = (typeof o.fmt === 'function') ? o.fmt : fmt;
 
     var R = 52, SW = 20, C = 2 * Math.PI * R, acc = 0;
     var arcs = '', legend = '';
@@ -453,7 +455,7 @@
       acc += len;
       legend += '<div class="pt-leg"><i style="background:' + seg.c + '"></i>' +
         '<span class="nm">' + esc(nm[seg.k]) + '</span>' +
-        (showAmt ? '<span class="amt">' + esc(fmt(v)) + '</span>' : '') +
+        (showAmt ? '<span class="amt">' + esc(fmt2(v)) + '</span>' : '') +
         '<span class="pct">' + Math.round(v / s.total * 100) + '%</span></div>';
     });
 
@@ -467,7 +469,7 @@
         '<div class="pt-donut"><svg viewBox="0 0 132 132" width="132" height="132" aria-hidden="true">' +
           '<circle cx="66" cy="66" r="' + R + '" fill="none" stroke="rgba(128,140,160,.12)" stroke-width="' + SW + '"></circle>' +
           arcs + '</svg>' +
-          '<div class="pt-donut-c"><b>' + esc(o.center != null ? o.center : fmt(s.total)) + '</b></div></div>' +
+          '<div class="pt-donut-c"><b>' + esc(o.center != null ? o.center : fmt2(s.total)) + '</b></div></div>' +
         '<div class="pt-legend">' + legend + '</div>' +
       '</div>' + out + '</div>';
   }
