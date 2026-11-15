@@ -639,9 +639,27 @@ async function buildProofNotice(id: string): Promise<Mail | null> {
      （並べると誰のスケジュールか分かる）。SELECT にも入れない＝事故で本文に出る道を作らない。
    ★誰が出したかは表が持っていない（鍵は proof_hash）。その鍵・ファイルの指紋も載せない。
    ★手で1日を直したときの置き場（manual = true・edit_roster_day が作る）は提出ではない＝知らせない。
-   ★数は「読めたかどうか」の目安（時刻の欠けた日・ブロックタイムの分からない便）。失敗そのものは parse-roster が知らせる。 */
+   ★数は「読めたかどうか」の目安（時刻の欠けた日・ブロックタイムの分からない便）。失敗そのものは parse-roster が知らせる。
+   ★ブロックタイムは、印字（block_min）か、画面が時刻から出した時間（calc_min）のどちらかがあれば「分かる」（2026-11-15）。
+     JAL の勤務表には欄が無く、画面では出ているのに全便を「分からない」と数えていた。
+   ★表の列（layouts）は、読めない所があったページの表の形。決まった語だけ（db/roster.sql の pv_roster_layouts_clean）。 */
+const LAYOUT_JA: Record<string, string> = {
+  date: '日付', weekday: '曜日', duty_code: '勤務の記号', flight_no: '便名', from: '出発地', to: '到着地',
+  out_time: '出発時刻', in_time: '到着時刻', block_time: 'ブロックタイム', flight_time: 'フライトタイム',
+  report_time: '出頭', release_time: '解散', duty_time: '勤務時間', aircraft: '機材', hotel: 'ホテル',
+  crew: '乗員', credit: 'クレジット', remarks: '備考', other: 'その他',
+};
+export function layoutLine(v: unknown): string {
+  if (!Array.isArray(v)) return '';
+  return v.filter((x) => x && typeof x === 'object').slice(0, 10).map((x: Record<string, unknown>) => {
+    const cols = (Array.isArray(x.columns) ? x.columns : []).map((c) => LAYOUT_JA[String(c)]).filter(Boolean);
+    const ts = typeof x.time_style === 'string' && /^(HH:MM|H:MM|HHMM|HH\.MM|other|none)$/.test(x.time_style) ? x.time_style : '';
+    const p = Number(x.page) || 0;
+    return `${p}枚目：${cols.length ? cols.join('・') : '—'}${ts ? `（時刻 ${ts}）` : ''}`;
+  }).join('／');
+}
 async function buildRosterDoc(id: string): Promise<Mail | null> {
-  const r = await sbSelect('pv_roster_docs', id, 'id,created_at,proof_hash,pages,date_from,date_to,days,manual');
+  const r = await sbSelect('pv_roster_docs', id, 'id,created_at,proof_hash,pages,date_from,date_to,days,manual,layouts');
   if (!r || r.manual) return null;
   const h = String(r.proof_hash ?? '');
   if (!/^[0-9a-f]{64}$/.test(h)) return null;
@@ -655,7 +673,7 @@ async function buildRosterDoc(id: string): Promise<Mail | null> {
     sbList('pv_roster_days', `doc_id=eq.${encodeURIComponent(id)}`, 'duty_date'),
     sbList('pv_roster_days', `doc_id=eq.${encodeURIComponent(id)}&or=(d_on.is.null,d_off.is.null)`, 'duty_date'),
     ranged
-      ? sbList('pv_roster_legs', `proof_hash=eq.${h}&duty_date=gte.${r.date_from}&duty_date=lte.${r.date_to}`, 'duty_date,kind,block_min')
+      ? sbList('pv_roster_legs', `proof_hash=eq.${h}&duty_date=gte.${r.date_from}&duty_date=lte.${r.date_to}`, 'duty_date,kind,block_min,calc_min')
       : Promise.resolve([]),
   ]);
 
@@ -664,7 +682,9 @@ async function buildRosterDoc(id: string): Promise<Mail | null> {
   const legs = legsAll.filter((l: { duty_date?: string; kind?: string }) => mine.has(String(l.duty_date)) && l.kind !== 'ground');
   const flyDates = new Set(legs.map((l: { duty_date?: string }) => String(l.duty_date)));
   const dh = legs.filter((l: { kind?: string }) => l.kind === 'deadhead').length;
-  const noBlock = legs.filter((l: { block_min?: unknown }) => l.block_min === null || l.block_min === undefined).length;
+  const none = (v: unknown) => v === null || v === undefined;
+  const noBlock = legs.filter((l: { block_min?: unknown; calc_min?: unknown }) => none(l.block_min) && none(l.calc_min)).length;
+  const lay = layoutLine(r.layouts);
   const noClock = noClk.filter((d: { duty_date?: string }) => flyDates.has(String(d.duty_date))).length;
 
   const air = typeof prof[0]?.airline === 'string' && prof[0].airline ? prof[0].airline : '—';
@@ -686,6 +706,7 @@ async function buildRosterDoc(id: string): Promise<Mail | null> {
         row('便', `${legs.length}本${dh ? `（うち便乗 ${dh}本）` : ''}`) +
         row('画像', `${Number(r.pages) || 0}枚`) +
         row('読めていない所', gaps ? esc(gaps) : 'なし') +
+        (lay ? row('表の列', esc(lay)) : '') +
         row('この会員の提出', nth === 1 ? '1回目（初めて）' : `${nth}回目`),
       )),
   };

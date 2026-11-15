@@ -691,6 +691,23 @@ console.log('\n── スケジュールの提出 ──────────
      rd.html.includes('出頭・解散の時刻が無い日 1日／ブロックタイムが分からない便 1本'), rd.html);
   ck('初めての提出だとわかる', rd.html.includes('1回目（初めて）'), rd.html);
 
+  /* ★画面が時刻から出した時間（calc_min）があれば「分かる」（2026-11-15。JAL の勤務表にはブロックタイムの欄が無く、
+     画面では出ているのに全便を「分からない」と数えていた）。表の列は決まった語だけ日本語で出す。 */
+  const legs0 = T.legs;
+  T.legs = T.legs.map((l) => (l.block_min === null && l.kind === 'operating' ? { ...l, calc_min: 85 } : l));
+  const rdC = await nx.buildRosterDoc('rd-1');
+  ck('★印字が無くても画面が時刻から出した時間（calc_min）があれば「分からない便」に数えない',
+     !!rdC && !rdC.html.includes('ブロックタイムが分からない便'), rdC && rdC.html);
+  T.legs = legs0;
+  T.doc = { ...T.doc, layouts: [{ page: 2, columns: ['date', 'flight_no', 'report_time', 'YAMADA'], time_style: 'HHMM', gaps: {} }, 'junk'] };
+  const rdL = await nx.buildRosterDoc('rd-1');
+  ck('表の列は決まった語だけを日本語で出す（知らない語は出さない）',
+     !!rdL && rdL.html.includes('2枚目：日付・便名・出頭（時刻 HHMM）') && !rdL.html.includes('YAMADA'), rdL && rdL.html);
+  ck('表の列があっても便の区間・時刻・記号・鍵・指紋は出ない', !!rdL && hidden(rdL).length === 0, rdL && hidden(rdL).join(' / '));
+  T.doc = { ...T.doc, layouts: null };
+  const rdN = await nx.buildRosterDoc('rd-1');
+  ck('表の形が無い提出には「表の列」の行を出さない', !!rdN && !rdN.html.includes('表の列'), rdN && rdN.html);
+
   T.mineDocs = [{ id: 'rd-0' }, { id: 'rd-00' }, { id: 'rd-1' }];
   T.days = T.days.map((d) => ({ ...d, d_on: '07:15', d_off: '15:40' }));
   T.legs = T.legs.map((l) => ({ ...l, block_min: 90 }));

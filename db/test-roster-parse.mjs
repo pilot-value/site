@@ -432,13 +432,13 @@ console.log('\nC-6 日の種類（cat）・辞書に無い言葉の札（2026-11
   eq(rk.days.map((d) => d.cat), ['training', 'training', 'unclear', 'other', 'off', 'off', 'other', 'duty', 'off'], 'cat はそのまま運ぶ');
 
   /* 鍵が無いとき（今までどおり）。 */
-  const { roster: rn, checks: cn } = await sanitizeRead(raw, { page: 2, now: NOW }, '');
+  const { roster: rn, checks: cn, layout: ln } = await sanitizeRead(raw, { page: 2, now: NOW }, '');
   eq(rn.days.map((d) => [d.code, d.unread]), [[null, true], [null, true], [null, true], [null, true], ['OFF', false], ['OFF1', false], [null, true], [null, true], [null, true]],
      '★鍵が無ければ札にしない＝ code:null・unread:true（今までどおり）');
   ok(rn.days[7].d_on === '06:30' && rn.days[7].legs.length === 2 && rn.days[7].legs[0].flight === 'ZJ301',
      '★記号を捨てた日も、時刻と区間は残る（日を空にしない）');
   ok(!WORDS.test(JSON.stringify(rn)) && cn.code_tokens === 0, '鍵が無くても言葉は残らない・札0');
-  eq(JSON.stringify(sanitize(raw, { page: 2, now: NOW })), JSON.stringify({ roster: rn, checks: cn }), 'sanitize だけ（札の表なし）は鍵なしと同じ答え');
+  eq(JSON.stringify(sanitize(raw, { page: 2, now: NOW })), JSON.stringify({ roster: rn, checks: cn, layout: ln }), 'sanitize だけ（札の表なし）は鍵なしと同じ答え');
 
   /* 前の画像の日（こちらが前に返した札）はそのまま通す。モデルには札を見せない。 */
   const tail = sanitizeTail([{ date: '2026-10-11', code: k[0][0], cat: 'training' }, { date: '2026-10-12', code: '研修', cat: 'training' }], NOW);
@@ -587,6 +587,71 @@ console.log('\nE-2 月をまたぐ1枚（日しか無い・曜日も期間も無
   const p2 = [];
   for (let d = 3; d <= 16; d++) p2.push(d);
   eq(ends(run(only(p2), {}, { ...SEP, tail })), [14, '2026-10-03', '2026-10-16', 0], '2枚目（3〜16日・前の画像は10月2日まで）は、選んだ始まりの月（9月）に引っ張られない');
+}
+
+// ═══ E-3 JAL の実物の形（月のカレンダー・同じ空港どうしの行・灰色のマス・表の形・2026-11-15）══
+console.log('\n▼ JAL の実物の形（同じ空港どうしの行・灰色のマス・表の形）');
+{
+  // ① 同じ空港どうしの行は地上の業務（場所＝その空港）。訓練 SX09・予備 R が「TYO 09:00 ~ 17:00 TYO」と印字される。
+  const { roster: r1, checks: c1 } = run([
+    D({ d: 10, d_on: '09:00', d_off: '17:00', legs: [L({ flight: 'SX09', from: 'TYO', to: 'TYO', out: '09:00', in: '17:00' })] }),
+    D({ d: 20, legs: [L({ from: 'TYO', to: 'TYO', out: '00:00', in: '23:59', kind: 'ground' })] }),
+    D({ d: 21, legs: [L({ from: 'HND', to: '', out: '09:00', in: '15:00', kind: 'ground' })] }),
+    D({ d: 22, legs: [L({ flight: 'JL903', from: 'HND', to: 'OKA', out: '07:15', in: '10:05' })] }),
+  ]);
+  const g = (n) => ((r1.days.find((x) => x.date === `2026-10-${n}`) || {}).legs || [])[0] || {};
+  ok(g(10).kind === 'ground' && g(10).loc === 'TYO' && g(10).from === null && g(10).to === null,
+     `★TYO→TYO（訓練 SX09）は地上の業務・場所 TYO → ${g(10).kind} ${g(10).loc}`);
+  ok(g(20).kind === 'ground' && g(20).loc === 'TYO', '地上の業務の場所が出発地・到着地の欄に来たら場所へ移す（予備 R）');
+  ok(g(21).kind === 'ground' && g(21).loc === 'HND', '片方の欄だけでも場所へ移す');
+  ok(g(22).kind === 'operating' && g(22).from === 'HND' && g(22).to === 'OKA' && g(22).loc === null, '別の空港どうしの便は今までどおり');
+  ok(c1.dropped_fields === 0, `場所へ移した欄は「捨てた欄」に数えない → ${c1.dropped_fields}`);
+
+  // ② カレンダーの灰色のマス（前後の月の何も無い日）は落とす。その月の何も無い日・中身のある日は落とさない。
+  const blank = (m, d) => D({ m, d, cat: 'blank' });
+  const oct = Array.from({ length: 31 }, (_, i) => (i === 1
+    ? D({ d: 2, d_on: '07:00', d_off: '10:00', legs: [L({ flight: 'JL1', from: 'HND', to: 'CTS', out: '08:00', in: '09:30' })] })
+    : i === 2 ? blank(10, 3) : D({ d: i + 1, code: 'OFF' })));
+  const { roster: r2, checks: c2 } = run([blank(9, 29), blank(9, 30), ...oct, blank(11, 1), blank(11, 2)], { month: { y: 2026, m: 10 } });
+  const ds2 = r2.days.map((x) => x.date);
+  ok(!ds2.includes('2026-09-29') && !ds2.includes('2026-09-30') && !ds2.includes('2026-11-01') && !ds2.includes('2026-11-02'),
+     `★灰色のマス（前後の月の何も無い日）は日にしない → ${ds2.join(',')}`);
+  ok(ds2.includes('2026-10-03') && c2.dropped_days === 4, `見出しの月の何も無い日は残す・落とした4日は dropped_days に数える → ${c2.dropped_days}`);
+  const { roster: r3 } = run([D({ d: 31, code: 'H' }), D({ m: 11, d: 1, code: 'OFF' }), blank(11, 2)], { month: { y: 2026, m: 10 } });
+  ok(r3.days.map((x) => x.date).join() === '2026-10-31,2026-11-01,2026-11-02',
+     '中身のある日がある月（月をまたぐ勤務表）は、何も無い日も残す');
+  const tail2 = [D({ d: 30, code: 'OFF' }), D({ d: 31, code: 'OFF' }), blank(11, 1)];
+  ok(run(tail2, {}, { hint: { year: 2026, month: 11 } }).roster.days.some((x) => x.date === '2026-11-01')
+     && !run(tail2, {}, { hint: { year: 2026, month: 10 } }).roster.days.some((x) => x.date === '2026-11-01'),
+     '会員が選んだ月の何も無い日は残す（選んだ月でなければ落とす）');
+
+  // ③ 表の形：読めない所があったページだけ・決まった語だけ
+  const lay = { columns: ['date', 'flight_no', 'from', 'out_time', 'YAMADA', 'from', 'report_time'], time_style: 'HHMM' };
+  const good = run([D({ d: 3, d_on: '06:45', d_off: '14:55', legs: [L({ flight: 'JL907', from: 'HND', to: 'OKA', out: '08:34', in: '11:28' })] })], { layout: lay });
+  ok(good.layout === null, '読めない所が無いページは表の形を返さない');
+  const gap = run([D({ d: 3, d_on: '06:45', d_off: null, legs: [L({ from: 'HND', to: 'OKA', out: '08:34', in: '' })] })], { layout: lay });
+  ok(!!gap.layout && JSON.stringify(gap.layout.columns) === JSON.stringify(['date', 'flight_no', 'from', 'out_time', 'report_time'])
+     && gap.layout.time_style === 'HHMM' && gap.layout.gaps.no_time === 1 && gap.layout.gaps.no_onoff === 1,
+     '★読めない所があったページだけ、決まった語の表の形を返す（知らない語・重なりは捨てる）', JSON.stringify(gap.layout));
+  const cut = run([D({ d: 3, cut: 'bottom', d_on: '06:45', legs: [L({ from: 'HND', to: 'OKA', out: '08:34', partial: true })] })], { layout: lay });
+  ok(cut.layout === null, '画像の端で切れた日・行は「読めない所」に数えない（撮り方の問題）');
+  const sch = R.OUT_SCHEMA.properties.layout;
+  ok(!!sch && Array.isArray(sch.properties.columns.items.enum) && Array.isArray(sch.properties.time_style.enum)
+     && Object.keys(sch.properties).join() === 'columns,time_style',
+     '★答えの形の layout は決まった語だけ（字を書ける欄が無い）');
+  const SQL = readFileSync(path.join(ROOT, 'db/roster.sql'), 'utf8');
+  const fnL = SQL.slice(SQL.indexOf('create or replace function public.pv_roster_layouts_clean('));
+  const words = (s) => ((s.match(/array\[([^\]]*)\]/) || [, ''])[1].match(/'([^']+)'/g) || []).map((x) => x.slice(1, -1));
+  eq(words(fnL), [...R.LAYOUT_COLS], '★表の列の語は SQL（pv_roster_layouts_clean）の写しと1文字も違わない');
+  eq(words(fnL.slice(fnL.indexOf('c_ts(w)'))), [...R.TIME_STYLES], '時刻の書き方の語も SQL の写しと同じ');
+
+  // ④ 読み取りの指示
+  const P = R.systemPrompt();
+  ok(/greyed-out or dimmed cells/.test(P), 'プロンプト：カレンダーの灰色のマスは日にしない');
+  ok(/Hotel \/ layover \/ rest lines/.test(P) && /DIFFERENT airport is a\s+deadhead/.test(P),
+     'プロンプト：ホテル・送迎の行は区間にしない（別の空港へのバス移動は便乗）');
+  ok(/出頭/.test(P) && /解散/.test(P) && /show up/.test(P), 'プロンプト：出頭・解散の呼び名');
+  ok(/same station on both sides/.test(P), 'プロンプト：同じ空港を2回書いた地上の業務は、その空港が場所');
 }
 
 // ═══ F 前の画像の最後の日（prev_tail） ═════════════════════════

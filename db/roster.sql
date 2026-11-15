@@ -122,6 +122,12 @@ alter table public.pv_roster_docs add column if not exists manual boolean not nu
 alter table public.pv_roster_docs drop constraint if exists pv_roster_docs_days_check;
 alter table public.pv_roster_docs add constraint pv_roster_docs_days_check
   check (days >= 0 and (days <= 62 or manual));
+-- 読めない所があったページの表の形（2026-11-15）。決まった語と数だけ（pv_roster_layouts_clean が組み直す）。
+-- ★印字の字は入らない。運営のメール（notify-admin）が「表の列」として出す。提出を消すと一緒に消える。
+alter table public.pv_roster_docs add column if not exists layouts jsonb;
+alter table public.pv_roster_docs drop constraint if exists pv_roster_docs_layouts_check;
+alter table public.pv_roster_docs add constraint pv_roster_docs_layouts_check
+  check (layouts is null or (jsonb_typeof(layouts) = 'array' and octet_length(layouts::text) <= 16384));
 
 -- 1日1行。★主キーが (proof_hash, duty_date) ＝ 同じ人・同じ日は1行しか在り得ない（二重に数えない）。
 create table if not exists public.pv_roster_days (
@@ -163,6 +169,20 @@ create table if not exists public.pv_roster_legs (
   foreign key (proof_hash, duty_date)
     references public.pv_roster_days(proof_hash, duty_date) on delete cascade
 );
+
+-- 時刻から出したブロックタイム（分）。★印字の block_min とは混ぜない（2026-11-15）。
+-- 画面（pv-report-engine.js の legOf）が出したものを送ってくる。印字が無い便だけ・1〜1439。
+-- 運営のメールの「ブロックタイムが分からない便」と、2年後の月の合計（pv_roster_compact）が使う。
+alter table public.pv_roster_legs add column if not exists calc_min int;
+alter table public.pv_roster_legs drop constraint if exists pv_roster_legs_calc_min_check;
+alter table public.pv_roster_legs add constraint pv_roster_legs_calc_min_check
+  check (calc_min is null or (calc_min between 1 and 1439 and block_min is null));
+
+-- ★出発地と到着地が同じ行は便ではない（訓練・予備・同じ空港の送迎・2026-11-15）。地上の業務にして、場所＝その空港。
+-- pv_roster_clean_day と同じ決まり。前に保存した行も直す（誰の行かは見ない・何度流しても同じ）。
+update public.pv_roster_legs
+   set kind = 'ground', loc = coalesce(loc, orig), orig = null, dest = null
+ where orig is not null and orig = dest;
 
 -- ★便名は持たない。前に貼った版に列が残っていれば外す（何度流しても同じ）。
 alter table public.pv_roster_legs drop column if exists flight;
@@ -368,11 +388,54 @@ as $$
    where r.proof_hash = p_hash
 $$;
 
+-- 読めない所があったページの表の形を組み直す（2026-11-15）。★決まった語と数だけ。外れた値は黙って捨てる（提出を止めない）。
+-- p = [{page, columns:[…], time_style, gaps:{undated, unread, no_time, no_onoff}}]（parse-roster の layout に page を添えたもの）。
+-- ⚠️ 列の語は parse-roster/index.ts の LAYOUT_COLS・時刻の書き方は TIME_STYLES の写し（db/test-roster-parse.mjs が突き合わせる）。
+create or replace function public.pv_roster_layouts_clean(p jsonb, p_pages int)
+returns jsonb
+language sql
+immutable
+set search_path = public, extensions
+as $$
+  with c_cols(w) as (select unnest(array[
+         'date', 'weekday', 'duty_code', 'flight_no', 'from', 'to', 'out_time', 'in_time',
+         'block_time', 'flight_time', 'report_time', 'release_time', 'duty_time', 'aircraft', 'hotel',
+         'crew', 'credit', 'remarks', 'other'])),
+       c_ts(w) as (select unnest(array['HH:MM', 'H:MM', 'HHMM', 'HH.MM', 'other', 'none'])),
+       e as (
+         select x.e, x.n
+           from jsonb_array_elements(case when jsonb_typeof(p) = 'array' then p else '[]'::jsonb end)
+                with ordinality as x(e, n)
+          where jsonb_typeof(x.e) = 'object' and x.n <= 60),
+       one as (
+         select e.n,
+                jsonb_build_object(
+                  'page', (e.e->>'page')::int,
+                  'columns', coalesce((select jsonb_agg(w order by k)
+                                         from (select distinct on (c.w) c.w, c.k
+                                                 from jsonb_array_elements_text(case when jsonb_typeof(e.e->'columns') = 'array'
+                                                                                     then e.e->'columns' else '[]'::jsonb end)
+                                                      with ordinality as c(w, k)
+                                                where c.w in (select w from c_cols) and c.k <= 20
+                                                order by c.w, c.k) q), '[]'::jsonb),
+                  'time_style', case when (e.e->>'time_style') in (select w from c_ts) then e.e->>'time_style' end,
+                  'gaps', (select jsonb_object_agg(g, case when jsonb_typeof(e.e->'gaps'->g) = 'number'
+                                                               and (e.e->'gaps'->>g) ~ '^[0-9]{1,3}$'
+                                                          then (e.e->'gaps'->>g)::int else 0 end)
+                             from unnest(array['undated', 'unread', 'no_time', 'no_onoff']) g)) as o
+           from e
+          where case when (e.e->>'page') ~ '^[0-9]{1,2}$'
+                     then (e.e->>'page')::int between 1 and coalesce(p_pages, 60) else false end)
+  select case when count(*) = 0 then null else jsonb_agg(o order by n) end from one;
+$$;
+
 -- 1日を検品して組み直す。★submit_roster と edit_roster_day が同じこれを呼ぶ（決まりは1か所・検算14）。
 -- 日付は見ない（呼ぶ側が決める）。知らないキーはここで落ちる。
 -- p_pages が null（手で直した日）のときは page・row を読まずに null にする（どのページの何行目でもないため）。
 -- 勤務コードは英字の形か読み取りの印（'#'＋小文字の16進16字）。★便の乗務の区分（role）は読まない（送られてきても黙って落ちる）。
--- 返す: {code, d_on, d_off, d_off_day, page, row, legs:[{seq, from, to, loc, out, in, in_day, block_min, kind, page, row}]}
+-- ★出発地と到着地が同じ行は地上の業務（場所＝その空港）。地上の業務の場所が出発地・到着地の欄に来たら場所へ移す（2026-11-15）。
+-- ★calc_min（時刻から出した分）は、印字のブロックタイムが無い便だけ・1〜1439。外れた値は黙って捨てる（提出を止めない）。
+-- 返す: {code, d_on, d_off, d_off_day, page, row, legs:[{seq, from, to, loc, out, in, in_day, block_min, calc_min, kind, page, row}]}
 create or replace function public.pv_roster_clean_day(p_d jsonb, p_pages int)
 returns jsonb
 language plpgsql
@@ -386,8 +449,10 @@ declare
   v_kind text;
   v_orig text;
   v_dest text;
+  v_loc  text;
   v_blk  text;
   v_bmin int;
+  v_calc int;
   v_legs jsonb := '[]'::jsonb;
   c_code constant text := '^([A-Z0-9/+\-]{1,12}|#[0-9a-f]{16})$';
   c_hhmm constant text := '^(([01][0-9]|2[0-3]):[0-5][0-9]|24:00)$';
@@ -416,7 +481,12 @@ begin
       v_kind := coalesce(public.pv_roster_txt(v_l, 'kind', '^(operating|deadhead|ground|unknown)$', '便の種類'), 'unknown');
       v_orig := public.pv_roster_txt(v_l, 'from', '^[A-Z0-9]{3,4}$', '出発地');
       v_dest := public.pv_roster_txt(v_l, 'to',   '^[A-Z0-9]{3,4}$', '到着地');
+      v_loc  := public.pv_roster_txt(v_l, 'loc',  '^[A-Z0-9]{2,8}$', '場所');
+      if v_orig is not null and v_orig = v_dest then
+        v_kind := 'ground';   -- ★同じ空港どうしは便ではない
+      end if;
       if v_kind = 'ground' then
+        v_loc  := coalesce(v_loc, v_orig, v_dest);
         v_orig := null;   -- ★地上業務に空港を作らない（場所は loc だけ）
         v_dest := null;
       end if;
@@ -426,17 +496,21 @@ begin
       if v_bmin > 1440 then
         raise exception 'ロスターのブロック時間が範囲の外です' using errcode = '22023';
       end if;
+      v_calc := case when v_bmin is null and jsonb_typeof(v_l->'calc_min') = 'number'
+                          and (v_l->>'calc_min') ~ '^[0-9]{1,4}$'      -- ★形を見てから数にする（CASE の中なら順番が守られる）
+                     then case when (v_l->>'calc_min')::int between 1 and 1439 then (v_l->>'calc_min')::int end end;
 
       -- ★便名と乗務の区分は組み直しに入れない（送られてきても落ちる・検品もしない）
       v_legs := v_legs || jsonb_build_object(
         'seq',       v_seq,
         'from',      v_orig,
         'to',        v_dest,
-        'loc',       public.pv_roster_txt(v_l, 'loc', '^[A-Z0-9]{2,8}$', '場所'),
+        'loc',       v_loc,
         'out',       public.pv_roster_txt(v_l, 'out', c_hhmm, '出発時刻'),
         'in',        public.pv_roster_txt(v_l, 'in',  c_hhmm, '到着時刻'),
         'in_day',    coalesce(public.pv_roster_int(v_l, 'in_day', 0, 2, '到着の日'), 0),
         'block_min', v_bmin,
+        'calc_min',  v_calc,
         'kind',      v_kind,
         'page',      case when p_pages is null then null else public.pv_roster_int(v_l, 'page', 1, p_pages, 'ページ') end,
         'row',       case when p_pages is null then null else public.pv_roster_int(v_l, 'row', 1, 999, '行') end);
@@ -456,6 +530,7 @@ $$;
 
 revoke all on function public.pv_roster_key(uuid, text, text)                    from public, anon, authenticated;
 revoke all on function public.pv_roster_clean_day(jsonb, int)                    from public, anon, authenticated;
+revoke all on function public.pv_roster_layouts_clean(jsonb, int)                from public, anon, authenticated;
 revoke all on function public.pv_roster_txt(jsonb, text, text, text)             from public, anon, authenticated;
 revoke all on function public.pv_roster_int(jsonb, text, int, int, text)         from public, anon, authenticated;
 revoke all on function public.pv_roster_date(jsonb, text, text)                  from public, anon, authenticated;
@@ -582,10 +657,10 @@ begin
     raise exception '1日に取り込める勤務表の上限に達しました。明日また続きをどうぞ。' using errcode = '54000';
   end if;
 
-  insert into public.pv_roster_docs (proof_hash, file_sha, pages, date_from, date_to, days)
+  insert into public.pv_roster_docs (proof_hash, file_sha, pages, date_from, date_to, days, layouts)
   values (v_key, v_sha, v_pages,
           (select min(x) from unnest(v_dates) x), (select max(x) from unnest(v_dates) x),
-          cardinality(v_dates))
+          cardinality(v_dates), public.pv_roster_layouts_clean(p->'layouts', v_pages))
   returning id into v_doc;
 
   -- ★日付で入れ替える。同じ日の古い行（とその便）を消してから入れる＝二重に数えない。
@@ -600,9 +675,9 @@ begin
     from jsonb_array_elements(v_clean) as t(e);
 
   insert into public.pv_roster_legs (proof_hash, duty_date, seq, orig, dest, loc,
-                                     t_out, t_in, in_day, block_min, kind, page, "row")
+                                     t_out, t_in, in_day, block_min, calc_min, kind, page, "row")
   select v_key, (e->>'date')::date, (l->>'seq')::smallint, l->>'from', l->>'to', l->>'loc',
-         (l->>'out')::time, (l->>'in')::time, (l->>'in_day')::smallint, (l->>'block_min')::int,
+         (l->>'out')::time, (l->>'in')::time, (l->>'in_day')::smallint, (l->>'block_min')::int, (l->>'calc_min')::int,
          l->>'kind', (l->>'page')::smallint, (l->>'row')::smallint
     from jsonb_array_elements(v_clean) as t(e),
          jsonb_array_elements(e->'legs') as u(l);
@@ -722,9 +797,9 @@ begin
           null, null);
 
   insert into public.pv_roster_legs (proof_hash, duty_date, seq, orig, dest, loc,
-                                     t_out, t_in, in_day, block_min, kind, page, "row")
+                                     t_out, t_in, in_day, block_min, calc_min, kind, page, "row")
   select v_key, v_date, (l->>'seq')::smallint, l->>'from', l->>'to', l->>'loc',
-         (l->>'out')::time, (l->>'in')::time, (l->>'in_day')::smallint, (l->>'block_min')::int,
+         (l->>'out')::time, (l->>'in')::time, (l->>'in_day')::smallint, (l->>'block_min')::int, (l->>'calc_min')::int,
          l->>'kind', null, null
     from jsonb_array_elements(v_clean->'legs') as u(l);
   get diagnostics v_nlegs = row_count;
@@ -1252,6 +1327,7 @@ begin
   l2 as (
     select lg.proof_hash, lg.duty_date, lg.kind,
            case when lg.block_min is not null then lg.block_min
+                when lg.calc_min is not null then lg.calc_min        -- ★現地時刻の勤務表も 0 にしない（2026-11-15）
                 when pr.time_ref = 'utc' and t.v > 0 and t.v < 1440 then t.v
            end as bmin
       from public.pv_roster_legs lg
@@ -1601,7 +1677,8 @@ with fns(sig) as (values
        ('public.pv_roster_compact(date)'),
        ('public.pv_roster_airline_recount(text)'),
        ('public.pv_roster_airline_recount_all()'),
-       ('public.pv_roster_airline_codes_trg()')),
+       ('public.pv_roster_airline_codes_trg()'),
+       ('public.pv_roster_layouts_clean(jsonb, integer)')),
      hpo as (select sig, to_regprocedure(sig) as oid from hp),
      tb(t) as (values ('public.pv_roster_profile'), ('public.pv_roster_docs'), ('public.pv_roster_days'),
                       ('public.pv_roster_legs'), ('public.pv_line_map'), ('public.pv_roster_months'),
@@ -1631,7 +1708,7 @@ union all select 2, '未ログイン（anon）と PUBLIC は9つとも呼べな�
              and (select bool_and(has_function_privilege('authenticated', fn.oid, 'EXECUTE')) from fn where oid is not null)
             then '✅' else '❌' end
 union all select 3, '内部の道具（鍵の式・検品・1日の組み直し・読み方の形・月の合計へのまとめ・会社の辞書の数え直し）は誰からも直接呼べない',
-       case when (select count(*) from hpo where oid is not null) = 11
+       case when (select count(*) from hpo where oid is not null) = 12
              and not exists (select 1 from hpo join pg_proc q on q.oid = hpo.oid,
                                     lateral aclexplode(coalesce(q.proacl, acldefault('f', q.proowner))) a
                               where a.privilege_type = 'EXECUTE'
@@ -1801,5 +1878,19 @@ union all select 22, '読み方に「給与明細に出る月」（pay_lag：-1�
              and strpos((select s from sp), $l$(p->>'pay_lag') in ('-1', '0', '1', '2')$l$) > 0
              and strpos((select s from sp), 'pay_lag = excluded.pay_lag') > 0
              and strpos(coalesce(pg_get_functiondef(to_regprocedure('public.pv_roster_profile_json(text)')), ''), $l$'pay_lag', r.pay_lag$l$) > 0
+            then '✅' else '❌' end
+union all select 23, '時刻から出した時間（calc_min）の列と制約・1日の検品が受け取り・書く2か所と2年後のまとめが使う／同じ空港どうしは地上の業務（保存済みの行も）／表の形の列と組み直す口',
+       case when exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'pv_roster_legs' and column_name = 'calc_min')
+             and exists (select 1 from pg_constraint where conname = 'pv_roster_legs_calc_min_check')
+             and exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'pv_roster_docs' and column_name = 'layouts')
+             and exists (select 1 from pg_constraint where conname = 'pv_roster_docs_layouts_check')
+             and strpos((select s from cd), $c$'calc_min',  v_calc$c$) > 0
+             and strpos((select s from cd), 'v_orig is not null and v_orig = v_dest') > 0
+             and strpos((select s from sr), 'block_min, calc_min, kind') > 0
+             and strpos((select s from ed), 'block_min, calc_min, kind') > 0
+             and strpos((select s from sr), $c$public.pv_roster_layouts_clean(p->'layouts', v_pages)$c$) > 0
+             and strpos(coalesce(pg_get_functiondef(to_regprocedure('public.pv_roster_compact(date)')), ''),
+                        'when lg.calc_min is not null then lg.calc_min') > 0
+             and not exists (select 1 from public.pv_roster_legs where orig is not null and orig = dest)
             then '✅' else '❌' end
 order by 1;

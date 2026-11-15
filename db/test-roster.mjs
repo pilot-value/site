@@ -1112,6 +1112,85 @@ const profAs = async (n, p, a = QA, o = null) => { await asUser(n); return setPr
 }
 await asUser(1);
 
+// ── 11-b. 時刻から出した時間（calc_min）・同じ空港どうしの行・表の形（2026-11-15）──────────
+// JAL の実物の勤務表：ブロックタイムの欄が無い（画面が時刻と空港の時差から出す）・訓練 SX09 が「TYO 09:00 ~ 17:00 TYO」。
+console.log('\n▼ 時刻から出した時間・同じ空港どうしの行・表の形');
+{
+  const SQLSRC = read('db/roster.sql');
+  await db.exec('begin');
+  await asUser(9);
+  await setProfile({ time_ref: 'local' });
+  const J = (seq, x = {}) => leg(seq, { flight: null, role: null, block: null, ...x });
+  const days9 = [
+    day(4, { d_on: '14:00', d_off: '22:15', legs: [
+      J(1, { from: 'HND', to: 'CTS', out: '15:35', in: '17:05', calc_min: 90 }),
+      J(2, { from: 'CTS', to: 'HND', out: '18:00', in: '19:45', calc_min: 5000 }),
+      J(3, { from: 'HND', to: 'CTS', out: '20:40', in: '22:15', block: '1:35', calc_min: 95 }),
+    ] }),
+    day(5, { d_on: '09:00', d_off: '17:00', legs: [J(1, { from: 'TYO', to: 'TYO', out: '09:00', in: '17:00', kind: 'operating', calc_min: 480 })] }),
+    day(6, { d_on: '00:00', d_off: '23:59', legs: [J(1, { from: 'TYO', to: null, kind: 'ground', out: '00:00', in: '23:59' })] }),
+  ];
+  const lay = [
+    { page: 1, columns: ['date', 'flight_no', 'from', 'out_time', 'in_time', 'to', 'report_time', 'release_time', 'YAMADA', 'from'],
+      time_style: 'HH:MM', gaps: { undated: 0, unread: 1, no_time: 'x', no_onoff: 2 } },
+    { page: 9, columns: ['date'] }, 'junk', { page: 2, columns: 'date', time_style: '9:99' },
+  ];
+  const r9 = await submitR(roster(days9, { file_sha: sha(9001), pages: 2, layouts: lay }));
+  const L9 = await rows(`select duty_date::text d, seq, orig, dest, loc, kind, block_min, calc_min from public.pv_roster_legs
+                          where proof_hash = public.pv_roster_key($1::uuid, 'emirates', null) order by 1, 2`, [uid(9)]);
+  const at = (n, s) => L9.find((x) => x.d === D(n) && x.seq === s) || {};
+  ok(r9 && r9.ok && at(4, 1).calc_min === 90 && at(4, 1).block_min === null,
+     '★印字の無い便は、画面が時刻から出した時間（calc_min）を持つ（印字の block_min とは別の列）');
+  ok(at(4, 2).calc_min === null && r9.ok, '範囲の外（5000分）は黙って捨てる（提出は止めない）');
+  ok(at(4, 3).block_min === 95 && at(4, 3).calc_min === null, '印字があれば calc_min は持たない（混ぜない）');
+  ok(at(5, 1).kind === 'ground' && at(5, 1).loc === 'TYO' && at(5, 1).orig === null && at(5, 1).dest === null,
+     `★出発地と到着地が同じ行（TYO→TYO）は地上の業務・場所 TYO → ${at(5, 1).kind} ${at(5, 1).loc}`);
+  ok(at(6, 1).kind === 'ground' && at(6, 1).loc === 'TYO', '地上の業務の場所が出発地の欄に来たら場所へ移す');
+
+  const doc9 = await one(`select layouts from public.pv_roster_docs where id = $1::uuid`, [r9.doc_id]);
+  const lo = doc9.layouts || [];
+  ok(lo.length === 2 && lo[0].page === 1 && lo[1].page === 2,
+     '表の形はページの範囲の中だけ（9ページ目・形の違うものは捨てる）', JSON.stringify(lo));
+  ok(JSON.stringify(lo[0] && lo[0].columns) === JSON.stringify(['date', 'flight_no', 'from', 'out_time', 'in_time', 'to', 'report_time', 'release_time'])
+     && lo[0].time_style === 'HH:MM' && lo[0].gaps.unread === 1 && lo[0].gaps.no_time === 0 && lo[0].gaps.no_onoff === 2,
+     '★表の形は決まった語と数だけ（知らない語 YAMADA・重なりは捨てる）', JSON.stringify(lo[0]));
+  ok(lo[1] && JSON.stringify(lo[1].columns) === '[]' && lo[1].time_style === null, '形の違う列・時刻の書き方は空にする');
+  const plain = await submitR(roster([day(8)], { file_sha: sha(9002) }));
+  ok(plain.ok && (await one(`select layouts from public.pv_roster_docs where id = $1::uuid`, [plain.doc_id])).layouts === null,
+     '表の形が無い提出は null（今までどおり）');
+
+  // 前に保存した同じ空港どうしの行も、貼り直しで地上の業務になる（誰の行かは見ない）
+  await db.query(`update public.pv_roster_legs set kind = 'operating', orig = 'HND', dest = 'HND', loc = null
+                   where proof_hash = public.pv_roster_key($1::uuid, 'emirates', null) and duty_date = $2::date`, [uid(9), D(5)]);
+  const a = SQLSRC.indexOf('update public.pv_roster_legs\n   set kind = \'ground\'');
+  const fix = a >= 0 ? SQLSRC.slice(a, SQLSRC.indexOf(';', a) + 1) : '';
+  await db.exec(fix);
+  const f5 = (await rows(`select kind, loc, orig from public.pv_roster_legs
+                           where proof_hash = public.pv_roster_key($1::uuid, 'emirates', null) and duty_date = $2::date`, [uid(9), D(5)]))[0] || {};
+  ok(!!fix && f5.kind === 'ground' && f5.loc === 'HND' && f5.orig === null, `★保存済みの HND→HND も貼り直しで地上の業務・場所 HND → ${f5.kind} ${f5.loc}`);
+
+  // 2年後の月の合計：現地時刻の勤務表でも、時刻から出した時間が残る（印字 95 ＋ 計算 90）
+  const blockOf = async () => (await rows(
+    `select m.groups from public.pv_roster_months m where m.proof_hash = public.pv_roster_key($1::uuid, 'emirates', null)`, [uid(9)]))
+    .flatMap((m) => m.groups).reduce((s, g) => s + g.legs.operating.block_min, 0);
+  await db.exec('savepoint s9');
+  await one(`select public.pv_roster_compact($1::date) r`, [addDays(TODAY, 1000)]);
+  const b9 = await blockOf();
+  await db.exec('rollback to savepoint s9');
+  const P8 = 437 + 470;     // 表の形の無い提出（day(8)）の印字 7:17 ＋ 7:50
+  ok(b9 === 95 + 90 + P8, `★現地時刻の勤務表も、2年後の月の合計で便の時間が 0 にならない（印字 95 ＋ 計算 90 ＋ ほかの日 ${P8} → ${b9}分）`);
+  // 壊す証明：まとめが calc_min を見ないと 95 分だけになる
+  const c0 = SQLSRC.indexOf('create or replace function public.pv_roster_compact(');
+  const fnC = SQLSRC.slice(c0, SQLSRC.indexOf('\n$$;', c0) + '\n$$;'.length);
+  const CALC = '                when lg.calc_min is not null then lg.calc_min        -- ★現地時刻の勤務表も 0 にしない（2026-11-15）\n';
+  const brokenC = fnC.includes(CALC) ? fnC.replace(CALC, () => '') : '';
+  await db.exec(brokenC);
+  await one(`select public.pv_roster_compact($1::date) r`, [addDays(TODAY, 1000)]);
+  const b9x = await blockOf();
+  await db.exec('rollback');
+  ok(!!brokenC && b9x === 95 + P8, `★壊す証明：まとめが calc_min を見ないと計算の 90 分が消える → ${b9x}分`);
+}
+
 // ── 12. 検算 ───────────────────────────────────────────────────
 console.log('\n▼ 貼ったあとの検算');
 const SRC = read('db/roster.sql');
@@ -1120,7 +1199,7 @@ const TAIL = SRC.slice(SRC.indexOf('-- ── 11. 検算'));
   const before = await cnt('pv_roster_days');
   const res = await db.exec(SRC);
   const chk = res[res.length - 1].rows;
-  ok(chk.length === 22 && chk.every((x) => x['判定'] === '✅'),
+  ok(chk.length === 23 && chk.every((x) => x['判定'] === '✅'),
      `★db/roster.sql の検算 ${chk.length} 行が全部 ✅`, chk.filter((x) => x['判定'] !== '✅').map((x) => x['#'] + ' ' + x['確かめること']).join(' | '));
   ok(await cnt('pv_roster_days') === before, 'もう一度流しても、入っている勤務表は消えない');
   ok(TAIL.length > 100, '（検算の部分だけを切り出せた）');

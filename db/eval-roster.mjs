@@ -8,13 +8,14 @@
      読ませ、本物の readReply → sanitize（＋前の画像の続き・会員が選んだ月）を通した答えを1欄ずつ突き合わせる。
      Edge Function は経由しない＝本番の回数を1つも消費しない（db/eval-payslip.mjs と同じ作り）。
 
-   架空の様式（6つ・数字も名前も全部作り話）:
+   架空の様式（7つ・数字も名前も全部作り話）:
      ecrew     eCrew/Sabre 風の表（日付・記号・D-ON・便・区間・STD/STA・BLK・D-OFF・乗員の欄）
      lido      LIDO 風の一覧（UTC・ICAO 4字・行に「02.09.」）
      mobile    スマホのアプリ（1日1枚のカード・DH の札・+1）
      calendar  月のカレンダー（マスの中に OFF/VAC と便。前後の月の灰色のマス）
      jp        日本の勤務表（公休・有休・待機・訓練・便乗・翌・辞書に無い漢字・同乗者の氏名）
      split     長い勤務表を3枚のスクリーンショットに（2日の重なり・1日が画像をまたいで切れる・途中で切れた行）
+     calgrid   月のカレンダーの行の勤務表（Report／便／Release／Hotel／Shuttle・予備や訓練は同じ空港を2回・灰色の前後の月・2026-11-15）
    どれにも、答えに出てはいけない乗員の名前・社員番号・ホテル名を印字してある。
 
    出す数字:
@@ -564,7 +565,106 @@ const SPLIT = {
   },
 };
 
-const LAYOUTS = [ECREW, LIDO, MOBILE, CAL, JP, SPLIT];
+/* ═══ 7. 月のカレンダー・行の勤務表（マスの中に Report／便／Release／Shuttle／Hotel の行）═══
+   2026-11-15、日本の大手の実物（カレンダーの PDF）と同じ作りを、中身は全部作り話で写した。
+   ・便の行は「便名 出発地 時刻 ~ 時刻 到着地」。ブロックタイムの欄は無い・時刻の種類の表記も無い。
+   ・Hotel と Shuttle の行は区間ではない（同じ空港の中の送迎）。
+   ・予備（R）・訓練（SX12）・地上の業務（APO）は「SYD 09:00 ~ 17:00 SYD」と同じ空港を2回書く＝地上の勤務・場所 SYD。
+   ・前の月・次の月の灰色のマス（Dec. 27〜31・Feb. 1〜6）は勤務表の日ではない。 */
+const CALGRID = {
+  id: 'calgrid', note: '月のカレンダー（Report／便／Release／Hotel の行）',
+  hint: { year: 2027, month: 1 }, width: 1300, dpr: 1,
+  hdr: { period: null, kind: [null, 'planned'], time_ref: [null, 'local'] },
+  names: ['WINTERBOURNE', '7731842', 'FALLOWMERE'],
+  days: (() => {
+    const H = (d, c = 'H') => day(`2027-01-${pad2(d)}`, c);
+    const F = (d, on, off, legs, o = {}) => day(`2027-01-${pad2(d)}`, null, on, off, legs, { stn: o.stn, extra: o.extra || {} });
+    const G = (d, code, loc, on, off) => day(`2027-01-${pad2(d)}`, [code, null], on, off,
+      [gnd(loc, on, off, { flight: [null, code] })], { stn: [loc, loc], gcode: code });
+    return [
+      H(1), H(2),
+      F(3, '06:45', '12:30', [leg('XJ407', 'SYD', 'MEL', '08:34', '10:05', null), leg('XJ408', 'MEL', 'SYD', '10:55', '12:30', null)], { stn: ['SYD', 'SYD'] }),
+      F(4, '13:25', '19:05', [leg('XJ419', 'SYD', 'BNE', '15:11', '16:40', null), leg('XJ418', 'BNE', 'SYD', '17:30', '19:05', null)], { stn: ['SYD', 'SYD'] }),
+      H(5),
+      F(6, '12:30', '18:02', [leg('XJ417', 'SYD', 'MEL', '14:26', '15:55', null), leg('XJ2088', 'MEL', 'ADL', '16:44', '18:02', null)],
+        { stn: ['SYD', 'ADL'], extra: { after: [['Shuttle', 'ADL', '18:22', '18:47', 'ADL'], ['Hotel', 'ADL', '18:47', '', 'ADL']] } }),
+      F(7, '11:30', '16:31', [leg('XJ2087', 'ADL', 'MEL', '12:53', '14:20', null), leg('XJ416', 'MEL', 'SYD', '15:09', '16:31', null)],
+        { stn: ['ADL', 'SYD'], extra: { before: [['Hotel', 'ADL', '', '11:00', 'ADL'], ['Shuttle', 'ADL', '11:00', '11:25', 'ADL']] } }),
+      H(8), H(9),
+      G(10, 'SX12', 'SYD', '09:00', '17:00'),
+      F(11, '04:45', '10:46', [leg('XJ401', 'SYD', 'BNE', '06:29', '08:18', null), leg('XJ402', 'BNE', 'SYD', '09:06', '10:46', null)], { stn: ['SYD', 'SYD'] }),
+      H(12),
+      F(13, '06:25', '15:10', [leg('XJ307', 'SYD', 'MEL', '08:14', '09:44', null), leg('XJ310', 'MEL', 'SYD', '10:35', '12:05', null),
+        leg(null, 'SYD', 'BNE', '13:30', '15:10', null, { kind: 'deadhead', flight: [null, 'DH'] })],
+        { stn: ['SYD', 'BNE'], extra: { after: [['Shuttle', 'BNE', '15:30', '15:50', 'BNE'], ['Hotel', 'BNE', '15:50', '', 'BNE']] } }),
+      F(14, '06:25', '14:43', [leg('XJ500', 'BNE', 'SYD', '07:49', '09:30', null), leg('XJ511', 'SYD', 'BNE', '10:35', '12:20', null),
+        leg('XJ510', 'BNE', 'SYD', '13:04', '14:43', null)],
+        { stn: ['BNE', 'SYD'], extra: { before: [['Hotel', 'BNE', '', '06:05', 'BNE'], ['Shuttle', 'BNE', '06:05', '06:20', 'BNE']] } }),
+      H(15), H(16, 'HH'), H(17, 'HH'),
+      G(18, 'R', 'SYD', '00:00', '23:59'),
+      G(19, 'R', 'SYD', '11:00', '23:59'),
+      G(20, 'APO', 'SYD', '09:00', '15:00'),
+      H(21),
+      F(22, '05:40', '11:10', [leg('XJ903', 'SYD', 'MEL', '07:15', '08:45', null), leg('XJ904', 'MEL', 'SYD', '09:40', '11:10', null)], { stn: ['SYD', 'SYD'] }),
+      H(23), H(24),
+      F(25, '14:00', '22:10', [leg('XJ521', 'SYD', 'MEL', '15:35', '17:05', null), leg('XJ522', 'MEL', 'SYD', '18:00', '19:30', null),
+        leg('XJ531', 'SYD', 'MEL', '20:40', '22:10', null)],
+        { stn: ['SYD', 'MEL'], extra: { after: [['Shuttle', 'MEL', '22:35', '22:55', 'MEL'], ['Hotel', 'MEL', '22:55', '', 'MEL']] } }),
+      F(26, '14:25', '22:45', [leg('XJ516', 'MEL', 'SYD', '15:45', '17:15', null), leg('XJ527', 'SYD', 'MEL', '18:35', '20:05', null),
+        leg('XJ530', 'MEL', 'SYD', '21:15', '22:45', null)],
+        { stn: ['MEL', 'SYD'], extra: { before: [['Hotel', 'MEL', '', '14:00', 'MEL'], ['Shuttle', 'MEL', '14:00', '14:20', 'MEL']] } }),
+      H(27), H(28),
+      G(29, 'R', 'SYD', '06:00', '23:59'),
+      H(30),
+      F(31, '05:40', '11:10', [leg('XJ300', 'SYD', 'MEL', '07:00', '08:35', null), leg('XJ309', 'MEL', 'SYD', '09:40', '11:10', null)], { stn: ['SYD', 'SYD'] }),
+    ];
+  })(),
+  html(L) {
+    const by = new Map(L.days.map((d) => [d.date, d]));
+    const bar = (c) => `<i style="background:${c}"></i>`;
+    const misc = ([w, a, o, i, b]) => `<div class="ln">${bar('#5b7fa6')}<span class="g">${w}</span> ${a} ${o ? o + ' ' : ''}~${i ? ' ' + i : ''} ${b}</div>`;
+    const cell = (k, d) => {
+      let h = '';
+      if (d.extra && d.extra.before) h += d.extra.before.map(misc).join('');
+      if (d.d_on) h += `<div class="ln">${bar('#9b7b4f')}<b>Report</b> ${T(k + '|d_on', d.d_on)}&nbsp;&nbsp;${d.stn[0]}</div>`;
+      d.legs.forEach((l, j) => {
+        const lk = `${k}|L${j + 1}`;
+        if (l.kind === 'ground') {
+          h += `<div class="ln">${bar('#1f9c8f')}<span class="g">${T(k + '|code', d.gcode)}</span> ${T(lk + '|loc', l.loc)} ${T(lk + '|out', l.out)} ~ ${T(lk + '|in', l.in)} ${l.loc}</div>`;
+        } else {
+          const nm = l.kind === 'deadhead' ? `<span class="g">DH</span>` : `<span class="g">${T(lk + '|flight', first(l.flight))}</span>`;
+          h += `<div class="ln">${bar(l.kind === 'deadhead' ? '#d9772b' : '#3d4652')}${nm} ${T(lk + '|from', l.from)} ${T(lk + '|out', l.out)} ~ ${
+            T(lk + '|in', l.in)} ${T(lk + '|to', l.to)}</div>`;
+        }
+      });
+      if (d.d_off) h += `<div class="ln">${bar('#9b7b4f')}<b>Release</b> ${T(k + '|d_off', d.d_off)}&nbsp;&nbsp;${d.stn[1]}</div>`;
+      if (d.extra && d.extra.after) h += d.extra.after.map(misc).join('');
+      if (!d.d_on && first(d.code)) h += `<div class="ln">${bar('#7d4a9c')}<span class="g">${T(k + '|code', first(d.code))}</span></div>`;
+      return h;
+    };
+    const cells = [];
+    for (let i = 27; i <= 31; i++) cells.push(`<td class="o"><div class="n">${i === 27 ? 'Dec. 27' : i}</div></td>`);
+    for (let i = 1; i <= 31; i++) {
+      const k = `2027-01-${pad2(i)}`, d = by.get(k);
+      cells.push(`<td><div class="n">${T(k + '|date', String(i))}</div>${d ? cell(k, d) : ''}</td>`);
+    }
+    for (let i = 1; i <= 6; i++) cells.push(`<td class="o"><div class="n">${i === 1 ? 'Feb. 1' : i}</div></td>`);
+    const weeks = [];
+    for (let i = 0; i < cells.length; i += 7) weeks.push(`<tr>${cells.slice(i, i + 7).join('')}</tr>`);
+    return `<style>body{font:11px/1.35 Arial,Helvetica,sans-serif;margin:0;padding:12px;background:#fff;color:#3a4350}
+      h1{font-weight:400;font-size:30px;color:#4a5462;margin:4px 0 10px}.who{float:right;font-size:11px;color:#8a929c;margin-top:14px}
+      table{border-collapse:collapse;table-layout:fixed;width:1270px}th{font-weight:400;font-size:15px;text-align:left;padding:12px 14px;border:1px solid #e2e4e8;color:#4a5462}
+      td{border:1px solid #e2e4e8;vertical-align:top;height:132px;padding:6px 8px}td.o{background:#ececec}
+      .n{font-size:17px;color:#4a5462;margin:6px 0 10px}td.o .n{color:#c9cbcf}
+      .ln{white-space:nowrap;font-size:10.5px;color:#4a5462}.ln b{font-weight:400;color:#111}.g{color:#8a929c}
+      .ln i{display:inline-block;width:7px;height:10px;margin-right:3px;vertical-align:-1px}</style>
+      <div class="who">Crew T. WINTERBOURNE · 7731842 · Instructor I. FALLOWMERE</div><h1>January 2027</h1>
+      <table><thead><tr>${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((w) => `<th>${w}</th>`).join('')}</tr></thead>
+      <tbody>${weeks.join('')}</tbody></table>`;
+  },
+};
+
+const LAYOUTS = [ECREW, LIDO, MOBILE, CAL, JP, SPLIT, CALGRID];
 if (ONLY.length) {
   const unknown = ONLY.filter((id) => !LAYOUTS.some((L) => L.id === id));
   if (unknown.length && !SAMPLES) { console.error(`❌ 知らない様式: ${unknown.join(', ')}（ある様式: ${LAYOUTS.map((L) => L.id).join(' ')}）`); process.exit(1); }

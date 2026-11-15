@@ -478,6 +478,20 @@
 
   /* 暦の月ごと。勤務は D-ON の日（勤務日）の月に数える（日付をまたいでも分けない）。
      値は「その月を全部覆い、欠けも無い」ときだけ出す。欠けがあれば null、分かった分は partial に */
+  /* 時刻から出したブロックタイム（印字の無い便だけ）を「日付|順番 → 分」で返す（2026-11-15）。
+     保存のとき calc_min として添える（運営のメールと2年後の月の合計が、画面と同じ時間を使えるように）。
+     ★数え方は legOf の1か所のまま（ここは呼ぶだけ）。 */
+  function calcMins(days, profile) {
+    var out = {};
+    rosterMonths(days, profile).forEach(function (m) {
+      m.days.forEach(function (x) {
+        x.legs.forEach(function (l) {
+          if (l.blockMin != null && (l.blockSrc === 'times' || l.blockSrc === 'local')) out[x.date + '|' + l.seq] = l.blockMin;
+        });
+      });
+    });
+    return out;
+  }
   function rosterMonths(days, profile) {
     profile = profile || {};
     var codes = normCodes(profile.codes), byDate = {};
@@ -1486,7 +1500,7 @@
     VERSION: VERSION, CATEGORIES: CATEGORIES, KINDS: KINDS, KIND_ORDER: KIND_ORDER, QTY_UNIT: QTY_UNIT,
     flightPay: flightPay,
     minorDigits: minorDigits, toMinor: toMinor, fromMinor: fromMinor,
-    linesOf: linesOf, rosterMonths: rosterMonths, mergePages: mergePages, alignCandidates: alignCandidates,
+    linesOf: linesOf, rosterMonths: rosterMonths, calcMins: calcMins, mergePages: mergePages, alignCandidates: alignCandidates,
     build: build, summary: summary, cardA: cardA, cardB: cardB, cardC: cardC, checks: checks, waterfall: waterfall,
     ruleFit: ruleFit,
     helpers: { ymOf: ymOf, ymAdd: ymAdd, ymIdx: ymIdx, ymRange: ymRange, clockMin: clockMin, durMin: durMin, hoursToMin: hoursToMin, labelKey: labelKey, mapKey: mapKey, elapsed: elapsed, dayEmpty: dayEmpty }
