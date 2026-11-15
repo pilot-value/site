@@ -16,26 +16,36 @@
    ・対象は最新の会社の月だけ（会社をまたぐと契約が違う。月ごとの推移と同じ）。
    ・色：乗務 #0a8f79／総勤務 #3d9bff（ライトは validate_palette.js で確認）。支給の色は円グラフと同じ（pay-viz.js の segments）。
 
-   window.PVYear = { calc(rows, year) → 数字の模型（画面を持たない・検査が直接呼ぶ）,
+   window.PVYear = { calc(rows, year か 'all') → 数字の模型（画面を持たない・検査が直接呼ぶ）,
                      years(rows), render(box, rows, o) } */
 (function (w) {
   'use strict';
   var d = w.document;
   var V = w.PVViz;
   if (!V) return;
-  var esc = V.esc, num = V.num, fmt = V.fmt;
+  var esc = V.esc, num = V.num;
+  /* ★2026-11-15 目のアイコン（my-value.js が o.hide で渡す）で隠している間は、金額を全部「••••」で書く（字を作らない）。
+       calc() は fmt を使わない＝計算の答えは変わらない。時間・日数・％は隠さない。 */
+  var MASK = '••••';
+  function hiding() { return !!(state && state.o && state.o.hide); }
+  function fmt(v) { return (v != null && hiding()) ? MASK : V.fmt(v); }
   var L = (w.PV_BASE === 'en' || d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';
   var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
   var T = {
     ja: {
       title: '1年のまとめ',
+      /* ★2026-11-15 オーナー「月と年でしか分けられないから all もいれて」── 全期間（最新の会社の全部の月） */
+      titleAll: '全期間のまとめ',
       pdf: 'PDF を保存',
       yr: function (y) { return y + '年'; },
       mo: function (m) { return m + '月'; },
+      ym: function (y, m) { return y + '年' + m + '月'; },
+      span: function (a, b) { return a === b ? a : a + '〜' + b; },
       tGross: '総支給の合計', tBlock: '乗務時間の合計', tDays: '勤務日数の合計', tNet: '手取りの合計',
       tGrossB: '総支給の合計（ボーナス込み）', kBonus: 'ボーナス', kProfit: 'プロフィットシェア',
       tYearly: function (k) { return k + '（年）'; },
+      tAllOf: function (k) { return k + '（全期間）'; },
       insH: 'あなたの記録からわかること',
       iSlopeK: '1時間多く飛ぶと',
       iSlopeP: function (n) { return n + 'か月の乗務時間と総支給から'; },
@@ -65,7 +75,9 @@
       coEq: function (r, m) { return ['同じ会社の' + r + 'の中央値 ' + m + ' とほぼ同じ', '', '']; },
       qHrs: { bh: '時間', dh: '時間', night: '時間' },
       rlYear: function (q, a) { return '1年で ' + q + '・' + a; },
+      rlAll: function (q, a) { return '全期間で ' + q + '・' + a; },
       noRate: function (s) { return '単価が出ない手当（1年）：' + s; },
+      noRateAll: function (s) { return '単価が出ない手当（全期間）：' + s; },
       rBlock: '乗務1時間あたり', rDuty: '総勤務1時間あたり', rPayExPd: '総支給（パーディアムを除く）',
       b: { block: '乗務時間の変動給', duty: '勤務時間の変動給', night: '深夜手当', sector: '便数・着陸の手当',
            overtime: '時間外・追加勤務', reserve: '待機・スタンバイ', weekend: '週末・日曜勤務', holiday: '祝日勤務',
@@ -87,12 +99,16 @@
     },
     en: {
       title: 'Your year',
+      titleAll: 'All-time summary',
       pdf: 'Save as PDF',
       yr: function (y) { return String(y); },
       mo: function (m) { return MON[m - 1]; },
+      ym: function (y, m) { return MON[m - 1] + ' ' + y; },
+      span: function (a, b) { return a === b ? a : a + ' – ' + b; },
       tGross: 'Total gross pay', tBlock: 'Total block hours', tDays: 'Total duty days', tNet: 'Total net pay',
       tGrossB: 'Total gross pay incl. bonus', kBonus: 'Bonus', kProfit: 'Profit share',
       tYearly: function (k) { return k + ' (yearly)'; },
+      tAllOf: function (k) { return k + ' (all time)'; },
       insH: 'What your records show',
       iSlopeK: 'One more block hour adds',
       iSlopeP: function (n) { return 'From ' + n + ' months of block hours and gross pay'; },
@@ -120,7 +136,9 @@
       coEq: function (r, m) { return ['About the same as the median for ' + r + ' at your airline (' + m + ')', '', '']; },
       qHrs: { bh: ' block hours', dh: ' duty hours', night: ' night hours' },
       rlYear: function (q, a) { return q + ' · ' + a + ' in the year'; },
+      rlAll: function (q, a) { return q + ' · ' + a + ' in total'; },
       noRate: function (s) { return 'Pay without a rate (year): ' + s; },
+      noRateAll: function (s) { return 'Pay without a rate (all time): ' + s; },
       rBlock: 'Per block hour', rDuty: 'Per duty hour', rPayExPd: 'Gross pay, excluding per diem',
       b: { block: 'Variable pay on block hours', duty: 'Variable pay on duty hours', night: 'Night premium', sector: 'Sector / landing pay',
            overtime: 'Overtime / extra duty', reserve: 'Reserve / standby', weekend: 'Weekend / Sunday premium', holiday: 'Public holiday premium',
@@ -141,12 +159,16 @@
       tipGuar: 'vs guarantee', tipDays: 'Duty days', tipGross: 'Gross pay'
     }, /*PV-MSG:es*/ es: {
       title: 'Tu año',
+      titleAll: 'Resumen de todo el periodo',
       pdf: 'Guardar como PDF',
       yr: function (y) { return String(y); },
       mo: function (m) { return MON[m - 1]; },
+      ym: function (y, m) { return MON[m - 1] + ' ' + y; },
+      span: function (a, b) { return a === b ? a : a + ' – ' + b; },
       tGross: 'Sueldo bruto total', tBlock: 'Horas block totales', tDays: 'Días de servicio totales', tNet: 'Sueldo neto total',
       tGrossB: 'Sueldo bruto total con bono', kBonus: 'Bono', kProfit: 'Participación en las utilidades',
       tYearly: function (k) { return k + ' (anual)'; },
+      tAllOf: function (k) { return k + ' (todo el periodo)'; },
       insH: 'Lo que muestran tus registros',
       iSlopeK: 'Una hora block más suma',
       iSlopeP: function (n) { return 'A partir de ' + n + ' meses de horas block y sueldo bruto'; },
@@ -174,7 +196,9 @@
       coEq: function (r, m) { return ['Casi igual a la mediana de los ' + r + ' de tu aerolínea (' + m + ')', '', '']; },
       qHrs: { bh: ' horas block', dh: ' horas de servicio', night: ' horas nocturnas' },
       rlYear: function (q, a) { return q + ' · ' + a + ' en el año'; },
+      rlAll: function (q, a) { return q + ' · ' + a + ' en total'; },
       noRate: function (s) { return 'Pagos sin tarifa (año): ' + s; },
+      noRateAll: function (s) { return 'Pagos sin tarifa (todo el periodo): ' + s; },
       rBlock: 'Por hora block', rDuty: 'Por hora de servicio', rPayExPd: 'Sueldo bruto, sin viáticos',
       b: { block: 'Pago variable por horas block', duty: 'Pago variable por horas de servicio', night: 'Prima nocturna', sector: 'Pago por sector / aterrizaje', overtime: 'Horas extra / servicio adicional', reserve: 'Reserva / guardia', weekend: 'Prima de fin de semana / domingo', holiday: 'Prima de día feriado',
            other: 'Otro pago variable', unknown: 'Pago variable sin tipo indicado' },
@@ -264,11 +288,15 @@
     return { t: best.t, below: Math.max(0, below), above: above, n: P.length, nBelow: nb2, nAbove: P.length - nb2, fit: best };
   }
 
+  /* year ＝ 2026 などの年／'all' ＝ 全期間（2026-11-15・年で絞らず年月の順）。
+     各月の k は通し番号（年×12＋月−1）。図の列はこれで決める（全期間では 2025年10月と 2026年10月が別の列）。 */
   function calc(rows, year) {
-    var list = (rows || []).filter(function (r) { return num(r.period_year) === year; })
-      .sort(function (a, b) { return num(a.period_month) - num(b.period_month); });
+    var isAll = year === 'all';
+    var list = (rows || []).filter(function (r) { return isAll ? num(r.period_year) > 0 : num(r.period_year) === year; })
+      .sort(function (a, b) { return (num(a.period_year) - num(b.period_year)) || (num(a.period_month) - num(b.period_month)); });
     var M = list.map(function (r) {
       var fx = num(r.fx_to_jpy), c = V.calc(r), g = V.grossOrig(r), n = num(r.net_pay_actual);
+      var y = num(r.period_year), mo = num(r.period_month);
       var vbRaw = (r.variable_by_basis && typeof r.variable_by_basis === 'object') ? r.variable_by_basis : null, vb = null;
       if (vbRaw && fx) {
         vb = {};
@@ -276,7 +304,7 @@
       }
       var pos = function (v) { v = num(v); return v > 0 ? v : null; };
       return {
-        r: r, m: num(r.period_month),
+        r: r, m: mo, y: y, k: y * 12 + mo - 1,
         gross: (g != null && fx) ? g * fx + V.unionOutsideJpy(r) + V.perdiemOutsideJpy(r) : null,
         net: (n != null && fx) ? n * fx : null,
         pd: (num(r.per_diem) > 0 && fx) ? num(r.per_diem) * fx : null,
@@ -302,15 +330,23 @@
     /* ボーナス・プロフィットシェア（年間の申告・2026-11-08 オーナー「ボーナスも合計に入れよう」）。
        ★給与フォームは同じ年間の額を毎月の行に持ち越す＝月ごとに足さない。その年でいちばん新しい申告を1回だけ、
          その行のレートで円にする。0 は「無い」と答えた＝出さない。空の月は飛ばして前の月の申告を見る。 */
-    var lastDecl = function (k) {
-      for (var i = list.length - 1; i >= 0; i--) {
-        var v = num(list[i][k]), fx = num(list[i].fx_to_jpy);
+    var lastDecl = function (L2, k) {
+      for (var i = L2.length - 1; i >= 0; i--) {
+        var v = num(L2[i][k]), fx = num(L2[i].fx_to_jpy);
         if (v != null && fx) return v > 0 ? v * fx : null;
       }
       return null;
     };
-    tiles.bonus = lastDecl('bonus_annual');
-    tiles.profit = lastDecl('profit_share_annual');
+    /* 全期間は年ごとに「その年でいちばん新しい申告を1回」を作って足す（1年の数え方のまま） */
+    var decl = function (k) {
+      if (!isAll) return lastDecl(list, k);
+      var by = {}, tot2 = 0, any = false;
+      list.forEach(function (r) { var y = num(r.period_year); (by[y] = by[y] || []).push(r); });
+      Object.keys(by).forEach(function (y) { var v = lastDecl(by[y], k); if (v != null) { tot2 += v; any = true; } });
+      return any ? tot2 : null;
+    };
+    tiles.bonus = decl('bonus_annual');
+    tiles.profit = decl('profit_share_annual');
 
     // わかること
     var ins = {};
@@ -338,7 +374,7 @@
       var g0 = GG[GG.length - 1].guar;
       ins.guar = { g: g0, n: GG.length, over: GG.filter(function (x) { return x.bh > x.guar; }).length,
         extra: sum(GG.map(function (x) { return Math.max(0, x.bh - x.guar); })),
-        months: GG.map(function (x) { return { m: x.m, d: x.bh - x.guar }; }) };
+        months: GG.map(function (x) { return { m: x.m, k: x.k, d: x.bh - x.guar }; }) };
     }
 
     // 単価が変わる点：乗務時間の変動給（種類が分かる人）→ 無ければ変動給の合計
@@ -382,7 +418,7 @@
       if (!have.length || !have.some(function (x) { return x[k] > 0; })) return;
       var total = sum(have.map(function (x) { return x[k]; }));
       smalls.push({ k: k, name: name, complete: have.length === M.length, total: total, avg: total / have.length,
-        months: have.map(function (x) { return { m: x.m, v: x[k] }; }) });
+        months: have.map(function (x) { return { m: x.m, k: x.k, v: x[k] }; }) });
     }
     small('sectors', T.smSectors); small('off', T.smOff); small('stay', T.smStay); small('night', T.smNight);
     var bhTot = sum(M.filter(function (x) { return x.bh != null; }).map(function (x) { return x.bh; }));
@@ -403,7 +439,7 @@
     });
 
     var gLast = M.filter(function (x) { return x.guar != null; });
-    return { year: year, months: M, tiles: tiles, ins: ins, kink: kink, rates: rates, amtOnly: amtOnly,
+    return { year: year, all: isAll, months: M, tiles: tiles, ins: ins, kink: kink, rates: rates, amtOnly: amtOnly,
              smalls: smalls, guar: gLast.length ? gLast[gLast.length - 1].guar : null };
   }
 
@@ -417,6 +453,7 @@
 
   function man(v) {                                  // 縦軸の目盛り用の短い額
     if (!v) return '0';
+    if (hiding()) return MASK;
     if (L === 'ja' && !(w.PVCurrency && w.PVCurrency.get && w.PVCurrency.get() !== 'JPY')) return (Math.round(v / 1000) / 10) + '万';
     return fmt(v);
   }
@@ -424,6 +461,7 @@
   /* 小さな額（分給など）。円以外の通貨で 10 未満になる額は小数2桁で出す
      （fmt は整数に丸めるので、ドルの分給が「US$ 0」になって 0 と読まれる）。記号は fmt の書き方に合わせる。 */
   function fmtSmall(jpy) {
+    if (hiding()) return MASK;                       // 下の記号の取り出しが「••••」を記号と読まないように先に返す
     var C = w.PVCurrency, cur = C && C.get && C.get(), rate = cur && C.rates && C.rates[cur];
     if (!cur || cur === 'JPY' || !rate) return fmt(jpy);
     var v = jpy / rate;
@@ -444,30 +482,50 @@
   }
   function svgOpen(W, H) { return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" style="display:block;overflow:visible" role="img">'; }
 
-  /* 月の列の枠：12か月ぶん・縦軸1本 */
-  function monthFrame(W, H, max, ticks, tickFmt, cols) {
+  /* 並べる月の列（通し番号 k）。1年＝その年の1〜12月（12列）／全期間＝最初の月〜最後の月（出していない月も列を空ける） */
+  function slotsOf(md) {
+    var M = md.months, a, b, out = [];
+    if (md.all) { if (!M.length) return out; a = M[0].k; b = M[M.length - 1].k; }
+    else { a = md.year * 12; b = a + 11; }
+    for (var k = a; k <= b; k++) out.push(k);
+    return out;
+  }
+  /* 図の高さ。全期間は月の字の下に年の字を置くぶん高い */
+  function chartH(md) { return md.all ? 234 : 220; }
+
+  /* 月の列の枠：並べる月の数だけ・縦軸1本（1年は12列で今までと同じ絵）。
+     ★全期間で列が狭いときは月の字を間引き（1月は必ず残す）、最初の列と1月の下に年を出す。 */
+  function monthFrame(W, H, max, ticks, tickFmt, cols, md) {
     var lab = ticks.map(tickFmt), PL = Math.round(12 + Math.max.apply(null, lab.map(function (s) { return String(s).length; })) * 6.4);
-    var PB = 24, PT = 12, ih = H - PT - PB, cw = (W - PL) / 12;
+    var S = slotsOf(md), n = S.length || 12, many = n > 12;
+    var PB = md.all ? 38 : 24, PT = 12, ih = H - PT - PB, cw = (W - PL) / n;
     var y = function (v) { return PT + ih - v / max * ih; }, g = '';
     ticks.forEach(function (t, i) {
       g += '<line x1="' + PL + '" x2="' + W + '" y1="' + y(t) + '" y2="' + y(t) + '" stroke="' + LINE + '"/>' +
            '<text x="' + (PL - 8) + '" y="' + (y(t) + 3.5) + '" text-anchor="end" font-size="10.5" fill="' + INK3 + '">' + esc(lab[i]) + '</text>';
     });
     var have = {};
-    cols.forEach(function (c) { have[c.m] = c; });
-    for (var m = 1; m <= 12; m++) {
-      var x0 = PL + cw * (m - 1), cx = x0 + cw / 2, c = have[m];
+    cols.forEach(function (c) { have[c.k] = c; });
+    var step = 1;
+    if (many) [1, 2, 3, 4, 6, 12].some(function (s2) { step = s2; return cw * s2 >= 28; });
+    var gapY = Math.ceil(34 / cw);                       // 最初の列の年と、すぐ後の1月の年が重ならない間
+    var ly = H - PB + 18, yy = H - PB + 32, pad = many ? 1 : 3;
+    S.forEach(function (k, i) {
+      var m = k % 12 + 1, yr = Math.floor(k / 12), x0 = PL + cw * i, cx = x0 + cw / 2, c = have[k];
+      var showM = !many || (m - 1) % step === 0;
+      var mt = showM ? '<text x="' + cx + '" y="' + ly + '" text-anchor="middle" font-size="10.5" fill="' + INK3 + '"' + (c ? '' : ' fill-opacity=".45"') + '>' + esc(T.mo(m)) + '</text>' : '';
+      var yt = (md.all && (i === 0 || (m === 1 && i >= gapY)))
+        ? '<text x="' + (x0 + pad) + '" y="' + yy + '" font-size="10.5" font-weight="600" fill="' + INK3 + '">' + esc(T.yr(yr)) + '</text>' : '';
       if (c) {
-        g += '<g class="yr-mo" data-m="' + m + '" data-ch="' + c.ch + '">' +
-             '<rect class="yr-band" x="' + (x0 + 3) + '" y="' + (PT - 6) + '" width="' + (cw - 6) + '" height="' + (ih + 6) + '" rx="8"/>' +
-             c.draw(cx, y(0), y, cw) +
-             '<text x="' + cx + '" y="' + (H - 6) + '" text-anchor="middle" font-size="10.5" fill="' + INK3 + '">' + esc(T.mo(m)) + '</text>' +
-             '<rect class="yr-hit" x="' + x0 + '" y="0" width="' + cw + '" height="' + H + '"/></g>';
+        g += '<g class="yr-mo" data-m="' + k + '" data-ch="' + c.ch + '">' +
+             '<rect class="yr-band" x="' + (x0 + pad) + '" y="' + (PT - 6) + '" width="' + Math.max(1, cw - pad * 2) + '" height="' + (ih + 6) + '" rx="' + Math.min(8, cw / 2) + '"/>' +
+             c.draw(cx, y(0), y, cw) + mt +
+             '<rect class="yr-hit" x="' + x0 + '" y="0" width="' + cw + '" height="' + H + '"/></g>' + yt;
       } else {
-        g += '<text x="' + cx + '" y="' + (H - 6) + '" text-anchor="middle" font-size="10.5" fill="' + INK3 + '" fill-opacity=".45">' + esc(T.mo(m)) + '</text>';
+        g += mt + yt;
       }
-    }
-    return { g: g, y: y, PL: PL, cw: cw };
+    });
+    return { g: g, y: y, PL: PL, cw: cw, n: n };
   }
 
   function hoursChart(md, W) {
@@ -476,13 +534,15 @@
     var mx = Math.max.apply(null, M.map(function (x) { return Math.max(x.bh || 0, x.dh || 0, md.guar || 0); }));
     var max = Math.max(100, Math.ceil(mx / 50) * 50), step = max > 200 ? 100 : 50, ticks = [];
     for (var t = 0; t <= max; t += step) ticks.push(t);
-    var H = 220, bw = Math.max(6, Math.min(18, (W / 12 - 14) / 2));
+    /* 棒の太さは列の幅から（1年＝12列は今までと同じ式） */
+    var H = chartH(md), n = slotsOf(md).length, cwW = W / n;
+    var bw = n > 12 ? Math.max(1.5, Math.min(18, (cwW - 6) / 2)) : Math.max(6, Math.min(18, (W / 12 - 14) / 2));
     var fr = monthFrame(W, H, max, ticks, function (v) { return v + 'h'; }, M.map(function (x) {
-      return { m: x.m, ch: 'hours', draw: function (cx, base, y) {
+      return { k: x.k, ch: 'hours', draw: function (cx, base, y) {
         return (x.bh != null ? topRound(cx - bw - 1, base, bw, base - y(x.bh), 4) + ' fill="' + C_BLOCK + '"/>' : '') +
                (x.dh != null ? topRound(cx + 1, base, bw, base - y(x.dh), 4) + ' fill="' + C_DUTY + '"/>' : '');
       } };
-    }));
+    }), md);
     var g = fr.g;
     if (md.guar) {
       g += '<line x1="' + fr.PL + '" x2="' + W + '" y1="' + fr.y(md.guar) + '" y2="' + fr.y(md.guar) + '" stroke="' + INK3 +
@@ -503,9 +563,10 @@
     var order = V.SEG.map(function (s) { return s.k; }).filter(function (k) { return keys.indexOf(k) >= 0; });
     var max = niceMax(Math.max.apply(null, M.map(function (x) { return x.segs.total; })) * 1.05), ticks = [];
     for (var i = 0; i <= 4; i++) ticks.push(max * i / 4);
-    var H = 220, bw = Math.max(10, Math.min(36, W / 12 - 20));
+    var H = chartH(md), n = slotsOf(md).length, cwW = W / n;
+    var bw = n > 12 ? Math.max(2, Math.min(36, cwW - 6)) : Math.max(10, Math.min(36, W / 12 - 20));
     var fr = monthFrame(W, H, max, ticks, man, M.map(function (x) {
-      return { m: x.m, ch: 'pay', draw: function (cx, base, y) {
+      return { k: x.k, ch: 'pay', draw: function (cx, base, y) {
         var acc = 0, g = '', segs = order.map(function (k) { return x.segs.segs.filter(function (s) { return s.k === k; })[0]; }).filter(Boolean);
         segs.forEach(function (s, j) {
           var y0 = y(acc), h = y0 - y(acc + s.v), gap = j ? 2 : 0;
@@ -516,7 +577,7 @@
         });
         return g;
       } };
-    }));
+    }), md);
     return '<div class="yr-ch"><div class="yr-ch-h"><h3>' + esc(T.chPay) + '</h3><div class="yr-lg">' +
       order.map(function (k) { return '<span><em style="background:' + col[k] + '"></em>' + esc(segName[k] || k) + '</span>'; }).join('') +
       '</div></div>' + svgOpen(W, H) + fr.g + '</svg></div>';
@@ -552,11 +613,12 @@
         svgOpen(W3, 30) + bar + '</svg>');
     }
     if (I.guar) {
-      var W4 = 210, H4 = 70, mid = 40, cw4 = W4 / 12, bw4 = Math.min(14, cw4 - 4);
+      var S4 = slotsOf(md), n4 = S4.length || 12;
+      var W4 = 210, H4 = 70, mid = 40, cw4 = W4 / n4, bw4 = n4 > 12 ? Math.max(1, cw4 - 1.5) : Math.min(14, cw4 - 4);
       var dm = Math.max.apply(null, I.guar.months.map(function (p) { return Math.abs(p.d); })) || 1;
       var ob = '<line x1="0" x2="' + W4 + '" y1="' + mid + '" y2="' + mid + '" stroke="' + INK3 + '" stroke-dasharray="4 3"/>';
       I.guar.months.forEach(function (p) {
-        var h = Math.abs(p.d) / dm * 34, x = cw4 * (p.m - 1) + (cw4 - bw4) / 2;
+        var h = Math.abs(p.d) / dm * 34, x = cw4 * S4.indexOf(p.k) + (cw4 - bw4) / 2;
         ob += p.d >= 0 ? '<rect x="' + x + '" y="' + (mid - h) + '" width="' + bw4 + '" height="' + h + '" rx="3" fill="' + C_BLOCK + '"/>'
                        : '<rect x="' + x + '" y="' + mid + '" width="' + bw4 + '" height="' + h + '" rx="3" fill="' + INK3 + '" fill-opacity=".45"/>';
       });
@@ -623,10 +685,10 @@
         '<div class="yr-rl-n"><b>' + esc(x.name) + '</b>' + (x.sub ? '<small>' + esc(x.sub) + '</small>' : '') + '</div>' +
         '<div class="yr-rl-v"><b>' + esc(fmtSmall(x.rate)) + '<i>' + esc(unit(x)) + '</i></b>' +
           (x.perHour ? '<small>' + esc(fmtSmall(x.rate / 60)) + '<i>' + esc(T.uMin) + '</i></small>' : '') + '</div>' +
-        '<p class="yr-rl-c">' + cmp(x) + '<span>' + esc(T.rlYear(qtyTx(x), fmt(x.amt))) + '</span></p></li>';
+        '<p class="yr-rl-c">' + cmp(x) + '<span>' + esc((md.all ? T.rlAll : T.rlYear)(qtyTx(x), fmt(x.amt))) + '</span></p></li>';
     }).join('');
     var rest = md.amtOnly.length ? '<p class="yr-rl-x">' +
-      esc(T.noRate(md.amtOnly.map(function (x) { return x.name + ' ' + fmt(x.amt); }).join(' · '))) + '</p>' : '';
+      esc((md.all ? T.noRateAll : T.noRate)(md.amtOnly.map(function (x) { return x.name + ' ' + fmt(x.amt); }).join(' · '))) + '</p>' : '';
     return '<h3 class="yr-h">' + esc(T.ratesH) + '</h3><div class="yr-rates">' +
       (rows ? '<ul class="yr-rl" role="list">' + rows + '</ul>' : '') + rest + '</div>';
   }
@@ -634,11 +696,12 @@
   function smallsHTML(md) {
     if (!md.smalls.length) return '';
     var U = { sectors: T.qSector, off: T.qDay, stay: T.qNight, night: T.qH };
+    var S = slotsOf(md), n = S.length || 12;
     return '<div class="yr-sm">' + md.smalls.map(function (s) {
-      var W = 230, H = 64, cw = W / 12, bw = Math.min(13, cw - 4), mx = Math.max.apply(null, s.months.map(function (p) { return p.v; })) || 1, g = '';
+      var W = 230, H = 64, cw = W / n, bw = n > 12 ? Math.max(1, cw - 1.5) : Math.min(13, cw - 4), mx = Math.max.apply(null, s.months.map(function (p) { return p.v; })) || 1, g = '';
       s.months.forEach(function (p) {
-        var h = p.v / mx * (H - 8), x0 = cw * (p.m - 1);
-        g += '<g class="yr-mo" data-m="' + p.m + '" data-ch="sm" data-k="' + s.k + '"><rect class="yr-band" x="' + (x0 + 1) + '" y="0" width="' + (cw - 2) + '" height="' + H + '" rx="4"/>' +
+        var h = p.v / mx * (H - 8), x0 = cw * S.indexOf(p.k);
+        g += '<g class="yr-mo" data-m="' + p.k + '" data-ch="sm" data-k="' + s.k + '"><rect class="yr-band" x="' + (x0 + (n > 12 ? 0 : 1)) + '" y="0" width="' + Math.max(1, cw - (n > 12 ? 0 : 2)) + '" height="' + H + '" rx="' + Math.min(4, cw / 2) + '"/>' +
              topRound(x0 + (cw - bw) / 2, H, bw, h, 3) + ' fill="' + C_BLOCK + '" fill-opacity=".75"/>' +
              '<rect class="yr-hit" x="' + x0 + '" y="0" width="' + cw + '" height="' + H + '"/></g>';
       });
@@ -659,16 +722,16 @@
     ].filter(function (c) { return M.some(function (x) { return x[c[0]] != null; }); });
     return '<details class="yr-tb"><summary>' + esc(T.tableH) + '</summary><table><thead><tr><th>' + esc(T.tMonth) + '</th>' +
       cols.map(function (c) { return '<th>' + esc(c[1]) + '</th>'; }).join('') + '</tr></thead><tbody>' +
-      M.map(function (x) { return '<tr><td>' + esc(T.mo(x.m)) + '</td>' + cols.map(function (c) { return '<td>' + esc(String(c[2](x))) + '</td>'; }).join('') + '</tr>'; }).join('') +
+      M.map(function (x) { return '<tr><td>' + esc(md.all ? T.ym(x.y, x.m) : T.mo(x.m)) + '</td>' + cols.map(function (c) { return '<td>' + esc(String(c[2](x))) + '</td>'; }).join('') + '</tr>'; }).join('') +
       '</tbody></table></details>';
   }
 
   /* 吹き出し（合わせた月の細かい数字） */
-  function tipBody(ch, m, k) {
-    var md = state.model, x = md.months.filter(function (q) { return q.m === m; })[0];
+  function tipBody(ch, key, k) {
+    var md = state.model, x = md.months.filter(function (q) { return q.k === key; })[0];   // key ＝ 列の通し番号（年×12＋月−1）
     if (!x) return '';
     var p = function (a, b, c) { return '<p>' + (c ? '<em style="background:' + c + '"></em>' : '') + esc(a) + '<b>' + esc(b) + '</b></p>'; };
-    var h = '<h4>' + esc(T.yr(md.year) + (L === 'ja' ? '' : ' ') + T.mo(m)) + '</h4>';
+    var h = '<h4>' + esc(T.yr(x.y) + (L === 'ja' ? '' : ' ') + T.mo(x.m)) + '</h4>';
     if (ch === 'hours') {
       return h + (x.bh != null ? p(T.lgBlock, hh(x.bh) + 'h', C_BLOCK) : '') + (x.dh != null ? p(T.lgDuty, hh(x.dh) + 'h', C_DUTY) : '') +
         (x.guar && x.bh != null ? p(T.tipGuar, (x.bh - x.guar >= 0 ? '+' : '−') + hh(Math.abs(x.bh - x.guar)) + 'h') : '') +
@@ -714,9 +777,14 @@
     if (!box) return;
     var ys = years(rows);
     if (!ys.length) { box.innerHTML = ''; return; }
-    if (o.year && ys.indexOf(o.year) >= 0) state.year = o.year;      // ★2026-11-12 上の「‹ 2026年 ›」で選んだ年
-    if (ys.indexOf(state.year) < 0) state.year = ys[0];
-    var md = state.model = calc(rows, state.year);
+    var allMode = o.year === 'all';                                  // ★2026-11-15 全期間（上の「月｜年｜全期間」）
+    if (!allMode) {
+      if (o.year && ys.indexOf(o.year) >= 0) state.year = o.year;    // ★2026-11-12 上の「‹ 2026年 ›」で選んだ年
+      if (ys.indexOf(state.year) < 0) state.year = ys[0];
+    }
+    var md = state.model = calc(rows, allMode ? 'all' : state.year);
+    var M0 = md.months[0], M1 = md.months[md.months.length - 1];
+    var when = allMode ? (M0 ? T.span(T.ym(M0.y, M0.m), T.ym(M1.y, M1.m)) : '') : T.yr(state.year);
     /* ★2026-11-11 オーナー「1年はカードが横に長すぎて見づらい」── 中身ごとの狭いカードを2列に並べる（狭い画面は1列）。
          図はカードの中の実寸で描く（横いっぱいの幅で描いて縮めると、字が小さくなる）。 */
     var full = Math.round(box.clientWidth || 1000), two = full >= 880;
@@ -725,21 +793,23 @@
     var tl = md.tiles, extra = (tl.bonus || 0) + (tl.profit || 0), tiles = [];
     /* 総支給の合計に、年間のボーナス・プロフィットシェアを足して出す（中身は「うち…」の行で見せる）。
        総支給が欠けた月がある年は合計を出さない（今までどおり）ので、そのときはボーナスだけを別に出す。 */
+    /* 金額は fmt() が目のアイコンに従って書く（時間・日数は隠さない） */
     if (tl.gross != null) {
       tiles.push({ k: extra ? T.tGrossB : T.tGross, v: fmt(tl.gross + extra),
         sub: [[T.kBonus, tl.bonus], [T.kProfit, tl.profit]].filter(function (p) { return p[1]; }).map(function (p) { return [p[0], fmt(p[1])]; }) });
     } else {
-      [[T.kBonus, tl.bonus], [T.kProfit, tl.profit]].forEach(function (p) { if (p[1]) tiles.push({ k: T.tYearly(p[0]), v: fmt(p[1]) }); });
+      [[T.kBonus, tl.bonus], [T.kProfit, tl.profit]].forEach(function (p) { if (p[1]) tiles.push({ k: (allMode ? T.tAllOf : T.tYearly)(p[0]), v: fmt(p[1]) }); });
     }
     if (tl.bh != null) tiles.push({ k: T.tBlock, v: hh(tl.bh), u: 'h' });
     if (tl.days != null) tiles.push({ k: T.tDays, v: Math.round(tl.days), u: T.qDay });
     if (tl.net != null) tiles.push({ k: T.tNet, v: fmt(tl.net) });
     box.innerHTML =
       '<div class="yr yr-g' + (two ? ' is-two' : '') + '" id="pv-year">' +
-        card('<div class="yr-top"><h2 class="mr-card-t">' + esc(T.title) + '<span class="yr-pyr">' + esc(L === 'ja' ? '（' + T.yr(state.year) + '）' : ' (' + T.yr(state.year) + ')') + '</span></h2>' +
+        card('<div class="yr-top"><h2 class="mr-card-t">' + esc(allMode ? T.titleAll : T.title) + '<span class="yr-pyr">' + esc(L === 'ja' ? '（' + when + '）' : ' (' + when + ')') + '</span></h2>' +
+          (typeof o.eye === 'function' ? o.eye() : '') +             // ★2026-11-15 金額を隠す目のアイコン（my-value.js が作る）
           (ys.length > 1 && !o.year ? '<div class="pt-tabs yr-years">' + ys.map(function (y) {
             return '<button type="button" class="pt-tab' + (y === state.year ? ' on' : '') + '" data-yr="' + y + '">' + esc(T.yr(y)) + '</button>';
-          }).join('') + '</div>' : '<span class="yr-one">' + esc(T.yr(state.year)) + '</span>') +
+          }).join('') + '</div>' : '<span class="yr-one">' + esc(when) + '</span>') +
           '<span class="yr-sp"></span><button type="button" class="yr-pdf">' + esc(T.pdf) + '</button></div>' +
         headBody(tiles), 'is-head is-wide is-green') +
         (typeof o.lead === 'function' ? o.lead() : '') +      // 累計報酬（見出しの下・左の列）
@@ -752,6 +822,8 @@
     box.querySelectorAll('[data-yr]').forEach(function (b) {
       b.addEventListener('click', function () { state.year = +b.getAttribute('data-yr'); draw(); });
     });
+    var eye = box.querySelector('[data-eye]');
+    if (eye && typeof o.onEye === 'function') eye.addEventListener('click', o.onEye);
     var pdf = box.querySelector('.yr-pdf');
     /* PDF は印刷の画面から（ライブラリを使わない）。
        ★「1年」の部分だけを body の直下へ写してから印刷する。ほかを見えなくするだけだと、
@@ -787,7 +859,7 @@
     scope.id = 'pv-value';                         // 見た目の規則（#pv-value .yr-…）をそのまま効かせる
     scope.className = 'pv-no-cur';
     var cp = src.cloneNode(true);
-    cp.querySelectorAll('.mr-card.is-total').forEach(function (x) { x.parentNode.removeChild(x); });   // 累計のカードは PDF に入れない（今までどおり）
+    cp.querySelectorAll('.mr-card.is-total, .mr-eye').forEach(function (x) { x.parentNode.removeChild(x); });   // 累計のカードと目のボタンは PDF に入れない
     scope.appendChild(cp);
     wrap.appendChild(scope);
     var dt = wrap.querySelector('.yr-tb');

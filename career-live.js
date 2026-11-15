@@ -168,6 +168,7 @@
     top: '最多',
     median: '中央値',
     split: '回答が分かれています',
+    cueGo: '教える',
     answered: function (n) { return '回答 ' + n + '人'; }
   };
 
@@ -289,6 +290,7 @@
     top: 'Most common',
     median: 'Median',
     split: 'Answers are split',
+    cueGo: 'Tell us',
     answered: function (n) { return n === 1 ? '1 member' : n + ' members'; }
   };
   /*PV-MSG:es*/ var T_ES = {
@@ -400,6 +402,7 @@
     top: 'Más frecuente',
     median: 'Mediana',
     split: 'Las respuestas están divididas',
+    cueGo: 'Cuéntanos',
     answered: function (n) { return n === 1 ? '1 miembro' : n + ' miembros'; }
   }; /*/PV-MSG:es*/
   if (LANG === 'en') T = T_EN;
@@ -799,6 +802,11 @@
             ja: L.label || '', short: L.short || L.label || '', kind: q.kind || '',
             options: o, unit: u ? T.unitSp + u : ''
           };
+          /* 続きの質問（2026-11-14）：どの親の・どの答えの続きか、とカードの誘いの字 */
+          if (q.deep) {
+            out[q.id].deep = q.deep; out[q.id].parent = q.parent || '';
+            out[q.id].when = isArr(q.parentWhen) ? q.parentWhen : []; out[q.id].cue = L.cue || '';
+          }
         });
         return out;
       });
@@ -2832,8 +2840,42 @@
     t.appendChild(s);
     return { t: t, s: s, q: el('div', 'crl-tile-q') };
   }
+  /* 続きの質問への誘い（2026-11-14 オーナー「一部可能にはもう一つ突っ込んで質問して欲しい。あと回答が分かれている場合も」）。
+     先頭の答えが「一部」（印 p）か「回答が分かれています」で、その続き（台帳の deep）の答えがまだカードに無い
+     （3人そろっていない）ときだけ、カードの下に1行。そろえば、今までどおり「名前：答え」の1行に変わる（この行は消える）。
+     押すと「情報を追加」の面が、その続きの質問の前で開く（まだ出ていなければ親の前）。入口は、同じ欄の親の質問の行の写し
+     ＝ 行の無い欄（比較の画面など）では出さない。 */
+  function cueFor(g, V, card, keys) {
+    var head = g.rows[0];
+    if (!card || head.k !== g.top) return null;
+    var want = head.ans.split ? 'split' : (markOf(head.row, V[head.k]) === 'p' ? 'partial' : '');
+    if (!want) return null;
+    var lead = isArr(head.row.lead) ? head.row.lead : [];
+    var kid = Object.keys(V).filter(function (k) {
+      var v = V[k];
+      return v.deep === want && v.parent === head.k && !!v.cue
+        && (want === 'split' || (lead.length === 1 && isArr(v.when) && v.when.indexOf(lead[0]) >= 0));
+    })[0];
+    /* 続きがこの欄の鍵に無ければ出さない（無い ＝ 集まっていない、と読めない） */
+    if (!kid || keys.indexOf(kid) < 0 || g.rows.some(function (r) { return r.k === kid; })) return null;
+    var row = card.querySelector('a[data-pvc-q="' + head.k + '"]');
+    if (!row || !row.getAttribute('href')) return null;
+    var a = el('a', 'crl-tile-cue');
+    a.setAttribute('href', row.getAttribute('href'));
+    if (row.getAttribute('data-pvc-open')) {
+      a.setAttribute('data-pvc-open', row.getAttribute('data-pvc-open'));
+      a.setAttribute('data-pvc-q', kid);
+    }
+    a.appendChild(el('span', '', V[kid].cue));
+    a.appendChild(d.createTextNode(' '));   // 読み上げで「教える」とくっつかないように（見た目の間もこの空白）
+    /* 「教える →」は1つの塊（狭いカードでも、字と矢印が別の行へ割れない） */
+    var go = el('b', '', T.cueGo);
+    go.appendChild(icon('arrow', 14));
+    a.appendChild(go);
+    return a;
+  }
   /* 開いている人のタイル（g ＝ いちばん上の親ごとの、答えのある質問の並び） */
-  function openTile(g, V) {
+  function openTile(g, V, card, keys) {
     var head = g.rows[0].k === g.top ? g.rows[0] : g.rows[0];
     var label = head.k === g.top ? V[g.top].short : ((V[g.top] && V[g.top].short) ? V[g.top].short + ' › ' : '') + V[head.k].short;
     var mk = head.ans.split ? '' : markOf(head.row, V[head.k]);
@@ -2851,6 +2893,8 @@
       p.appendChild(el('span', 'crl-tile-qa', r.ans.text + ' · ' + tileMeta(r.ans).textContent));
       x.q.appendChild(p);
     });
+    var cue = cueFor(g, V, card, keys || []);
+    if (cue) x.s.appendChild(cue);
     x.t.appendChild(x.q);
     return x.t;
   }
@@ -2904,7 +2948,8 @@
         g.rows.sort(function (x, y) { return (x.k === g.top ? 0 : 1) - (y.k === g.top ? 0 : 1); });
       });
       var grid = el('div', 'crl-tiles');
-      groups.forEach(function (g) { grid.appendChild(openTile(g, V)); });
+      var card = box.closest ? box.closest('.pvg-card') : null;
+      groups.forEach(function (g) { grid.appendChild(openTile(g, V, card, keys)); });
       return view('open', [grid]);
     });
   };

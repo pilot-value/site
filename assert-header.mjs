@@ -387,13 +387,17 @@ const drawerSettleFn = (maxMs) => new Promise((done) => {
     const b = n.getBoundingClientRect();
     return b.left.toFixed(2) + ',' + b.right.toFixed(2) + ',' + getComputedStyle(n).visibility;
   };
+  /* ★2026-11-15「3回同じ」だけでは足りない（20px〜47px 手前で止まって見え、毎回ちがうページが赤くなった）──
+       混んだ回は画面の描き直しが止まり、そのあいだ動きの時計も止まる＝動いている途中の位置が何回読んでも同じに出る。
+       板に**動いている途中の動き**が残っていないことも条件にする。 */
+  const busy = () => (n.getAnimations ? n.getAnimations() : []).some((a) => a.playState === 'running');
   let prev = sig(), same = 0, moved = false;
   const tick = () => {
     const cur = sig();
     if (cur === prev) same += 1; else { same = 0; moved = true; }
     prev = cur;
     const el = performance.now() - t0;
-    if (same >= 3 && (moved || el >= 800)) return done('ok');
+    if (same >= 3 && !busy() && (moved || el >= 800)) return done('ok');
     if (el >= maxMs) return done('timeout');
     let fired = false;
     const go = () => { if (!fired) { fired = true; tick(); } };

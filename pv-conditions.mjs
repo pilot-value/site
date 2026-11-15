@@ -30,6 +30,11 @@
 // （48 ＝ 一覧に出す数。話題の入口からだけ出す4問は別に在る
 //   ＝ 下の 2026-10-04 の2つ目の注記。48 のうち5問は着陸手当に「あり」と答えた人にしか
 //   出ない子の質問 ＝ 下の 2026-10-09 の注記。）
+
+// ★2026-11-14、続きの質問（deep）を21問足した（オーナー指示「一部可能にはもう一つ突っ込んで質問して欲しい。
+//   あと回答が分かれている場合も」）。6問は「一部」の答えの続き、15問は答えが分かれた会社でだけ聞く「何によって違うか」
+//   （型から作る ＝ 下の withSplit）。どちらも一覧の行にも「答えた項目」の数にも入れない ＝ 上の数は変わらない。
+//   差し込む場所を空けるため priority をすべて10倍にした（並ぶ順は1つも変わらない）。下の注記にある番号は10倍する前のもの。
 //
 // ★2026-08-19、社用航空券と出退社の移動を6問だけ足して 26→32 にした（オーナー指示）。
 //   提案は15問あったが、落としたのは「誰が使えるか／路線の範囲／年間上限／自己負担額／
@@ -191,27 +196,41 @@ export const SETTINGS = {
 export const ASK = [
   // 勤務
   'days_off_request',
+  'days_off_request_partial',  // ↳ 一部可能と答えた人（続き・deep）
+  'days_off_request_split',    // ↳ 答えが分かれた会社だけ（続き・deep）
   'schedule_bidding',
+  'schedule_bidding_partial',  // ↳ 一部可能と答えた人
+  'schedule_bidding_split',    // ↳ 答えが分かれた会社だけ
   'reserve_duty',
+  'reserve_duty_who',          // ↳ 一部のパイロットのみと答えた人
+  'reserve_duty_split',        // ↳ 答えが分かれた会社だけ
   'reserve_location',          // ↳ reserve_duty
   'roster_lead_days',
   'roster_changes',
+  'roster_changes_split',      // ↳ 答えが分かれた会社だけ
   // 通勤・タクシー
   'commuting_transport',
+  'commuting_transport_split', // ↳ 答えが分かれた会社だけ
   'commuting_transport_method', // ↳ commuting_transport（複数選ぶ）
   'commuting_taxi_where',       // ↳ commuting_transport_method
   'commuting_taxi_cost',        // ↳ commuting_transport_method
   // 休暇・手当
   'annual_leave_days',
   'sick_leave',
+  'sick_leave_split',          // ↳ 答えが分かれた会社だけ
   'landing_pay',
+  'landing_pay_split',         // ↳ 答えが分かれた会社だけ
   'landing_pay_amount',         // ↳ landing_pay（1回あたり一定額の人だけ・通貨つき）
   'per_diem',
+  'per_diem_split',            // ↳ 答えが分かれた会社だけ
   'per_diem_domestic',          // ↳ per_diem（通貨つき）
   'per_diem_international',     // ↳ per_diem（通貨つき）
   'ground_duty_pay',
+  'ground_duty_pay_split',     // ↳ 答えが分かれた会社だけ
   // staff travel
   'staff_travel',
+  'staff_travel_who',          // ↳ 一部のパイロットのみと答えた人
+  'staff_travel_split',        // ↳ 答えが分かれた会社だけ
   'staff_travel_booking',       // ↳ staff_travel
   'staff_travel_family',        // ↳ staff_travel
   'staff_travel_cabin',         // ↳ staff_travel
@@ -258,6 +277,12 @@ export const ASK = [
                話題ごとの入口があり、そこから来た人には同じ topic の質問をまとめて出す。
                ★付いているだけでは、一覧と1問枠での出方は1つも変わらない。
                ★枝ごと同じ話題にする（親が持つなら子も同じ topic。gen-conditions.mjs が検査する）。
+   deep      … 続きの質問（2026-11-14 オーナー指示「一部可能にはもう一つ突っ込んで質問して欲しい。あと回答が分かれている場合も」）。
+               'partial' ＝ 親に「一部可能／一部のパイロットのみ／条件付き」と答えた本人にだけ聞く（parentWhen がその答えだけ）。
+               'split'   ＝ その会社で親の答えが分かれているときだけ、親に答えた人に聞く（下の withSplit が型から作る）。
+               ★どちらも「質問の一覧の行」「質問 N問」「答えた項目：N／◯」に数えない（DB の deep 列。数えないのは db/airline-conditions.sql）。
+               ★答える画面では親のすぐ下に出る。会社ページのカードの集計には入る（親のカードの中の1行）。
+               ★ja.cue / en.cue ＝ 会社ページのカードに置く誘いの字（「どんな形で一部可能？」）。deep の質問だけが持つ。
    topicOnly … 話題の入口から来た人に**だけ**出す。提出直後の1問枠にも一覧にも出さず、
                「あなたが答えた項目：N／48」の分母にも分子にも数えない
                （1問枠に出さない・数えないを決めているのは db/airline-conditions.sql。
@@ -265,11 +290,11 @@ export const ASK = [
                ★topic が要る。micro と boost は付けられない（gen-conditions.mjs が検査する）。
                ★今までの質問に付けない（冒頭の 2026-10-04 の2つ目の注記）。
 */
-export const QUESTIONS = [
+const BASE = [
   // ══ ROSTER 勤務スケジュール ═══════════════════════════════════════
   {
     id: 'days_off_request', version: 1, section: 'roster', kind: 'choice',
-    tier: 'A', micro: true, priority: 10, boost: 3,   // 最初の3問①。休みを自分で決められるかは、全社を横並びにできて誰にでも答えられる
+    tier: 'A', micro: true, priority: 100, boost: 3,   // 最初の3問①。休みを自分で決められるかは、全社を横並びにできて誰にでも答えられる
     /* ★「OFF2」を label にしない。日本の一部の会社の呼び名で、他社のパイロットには
        通じない。制度そのものを説明する文にして、呼び名は help に逃がす。 */
     ja: { short: '希望休の指定', label: '希望する休日の日付を指定できますか？',
@@ -285,15 +310,34 @@ export const QUESTIONS = [
   },
   {
     id: 'days_off_request_limit', version: 1, section: 'roster', kind: 'num',
-    tier: 'A', micro: false, priority: 11,
+    tier: 'A', micro: false, priority: 110,
     parent: 'days_off_request', parentWhen: ['yes', 'partial'],
     num: { min: 0, max: 31, step: 1, ja: '日／月', en: 'days / month' },
     ja: { short: '月の希望日数', label: '月に何日まで希望できますか？', help: '' },
     en: { short: 'Request limit per month', label: 'How many days per month can be requested?', help: '' },
   },
   {
+    /* ★「一部」の答えの続き（deep:'partial'・2026-11-14 オーナー指示「一部可能にはもう一つ突っ込んで質問して欲しい」）。
+       親にその答えをした本人にだけ、親のすぐ下で聞く（会社ページのカードは「どんな形で一部可能？ 教える ›」から来る）。 */
+    id: 'days_off_request_partial', version: 1, section: 'roster', kind: 'choice',
+    tier: 'A', micro: false, priority: 111, note: true, deep: 'partial',
+    parent: 'days_off_request', parentWhen: ['partial'],
+    ja: { short: '希望休の制限', label: '希望休は、どんな形で一部だけ指定できますか？',
+          help: 'いちばん近いものを1つ選んでください。', cue: 'どんな形で一部可能？' },
+    en: { short: 'Day-off request limits', label: 'How are day-off requests limited?',
+          help: 'Pick the closest one.', cue: 'Partly — how?' },
+    choices: [
+      { code: 'cap',            ja: '月に指定できる日数に上限がある',          en: 'Capped at a set number of days per month' },
+      { code: 'seniority',      ja: '先任順位（Seniority）の順に通る',         en: 'Granted in seniority order' },
+      { code: 'peak',           ja: '繁忙期（年末年始・夏など）は指定できない', en: 'Not available in peak periods (holidays, summer)' },
+      { code: 'not_guaranteed', ja: '出せるが、通るとは限らない',              en: 'You can request, but it is not guaranteed' },
+      { code: 'mixed',          ja: 'いくつか当てはまる・その他',              en: 'Several of these / other' },
+      { code: UNKNOWN,          ja: 'わからない',                              en: "Don't know" },
+    ],
+  },
+  {
     id: 'schedule_bidding', version: 1, section: 'roster', kind: 'choice',
-    tier: 'A', micro: true, priority: 12, boost: 2,   // 最初の3問②。①と混ぜない（日付の指定と、路線・時間帯の希望は別の制度）
+    tier: 'A', micro: true, priority: 120, boost: 2,   // 最初の3問②。①と混ぜない（日付の指定と、路線・時間帯の希望は別の制度）
     ja: { short: '勤務の希望提出', label: '勤務スケジュールの希望を提出できますか？',
           help: '翌月などの勤務について、路線・ステイ先・時間帯・休日の希望を出せる制度です。PBS（Preferential Bidding System）や Bidding とも呼ばれます。' },
     en: { short: 'Roster bidding', label: 'Can pilots submit preferences for their roster?',
@@ -307,7 +351,7 @@ export const QUESTIONS = [
   },
   {
     id: 'bidding_scope', version: 1, section: 'roster', kind: 'multi',
-    tier: 'A', micro: false, priority: 13,
+    tier: 'A', micro: false, priority: 130,
     parent: 'schedule_bidding', parentWhen: ['yes', 'partial'],
     ja: { short: '希望できる内容', label: 'どの希望を出せますか？', help: '当てはまるものをすべて選んでください。' },
     en: { short: 'What you can bid for', label: 'What can be bid for?', help: 'Select all that apply.' },
@@ -325,6 +369,23 @@ export const QUESTIONS = [
     ],
   },
   {
+    id: 'schedule_bidding_partial', version: 1, section: 'roster', kind: 'choice',
+    tier: 'A', micro: false, priority: 131, note: true, deep: 'partial',
+    parent: 'schedule_bidding', parentWhen: ['partial'],
+    ja: { short: '勤務の希望の制限', label: '勤務スケジュールの希望は、どんな形で一部だけ出せますか？',
+          help: 'いちばん近いものを1つ選んでください。', cue: 'どんな形で一部可能？' },
+    en: { short: 'Bidding limits', label: 'How is roster bidding limited?',
+          help: 'Pick the closest one.', cue: 'Partly — how?' },
+    choices: [
+      { code: 'few_items',      ja: '出せる項目が限られる（休日だけ など）', en: 'Only some items can be bid (e.g. days off only)' },
+      { code: 'few_bids',       ja: '出せる件数が限られる',                  en: 'Only a limited number of bids' },
+      { code: 'seniority',      ja: '先任順位（Seniority）の順に通る',       en: 'Awarded in seniority order' },
+      { code: 'not_guaranteed', ja: '出せるが、通るとは限らない',            en: 'Bids are not guaranteed' },
+      { code: 'mixed',          ja: 'いくつか当てはまる・その他',            en: 'Several of these / other' },
+      { code: UNKNOWN,          ja: 'わからない',                            en: "Don't know" },
+    ],
+  },
+  {
     /* ★全問の中で唯一「会社の事実」でない質問。制度の有無ではなく、運用の体感を聞く。
        同じ会社でも先任順位の上下で答えが割れ、しかもどちらも正しい。
        isOpinion を立てて公開集計で会社の事実と分けて出す（micro には出さない）。
@@ -332,7 +393,7 @@ export const QUESTIONS = [
        聞いておらず、「で、実際それは通るのか」が抜けるため。節を分けると
        何の話か分からなくなるので、話が続いているこの位置に置く。 */
     id: 'seniority_effect', version: 1, section: 'roster', kind: 'choice',
-    tier: 'C', micro: false, priority: 14, isOpinion: true,
+    tier: 'C', micro: false, priority: 140, isOpinion: true,
     ja: { short: '先任順位の効き方', label: '休日や路線の希望は、先任順位（Seniority）で通りやすさが変わりますか？',
           help: 'あなたの実感で構いません。会社の公式な説明ではなく、体感として集めています。' },
     en: { short: 'Seniority weight', label: 'Does seniority change how likely your day-off or route bids are granted?',
@@ -346,7 +407,7 @@ export const QUESTIONS = [
   },
   {
     id: 'reserve_duty', version: 1, section: 'roster', kind: 'choice',
-    tier: 'A', micro: true, priority: 15,
+    tier: 'A', micro: true, priority: 150,
     /* ★「ある／ない」の間に「一部のパイロットのみ」を置く。若手だけ、
        特定の基地だけ、という会社が実在し、二択にすると回答が割れて読めなくなる。 */
     ja: { short: 'Reserve 勤務', label: 'Reserve / Standby 勤務はありますか？',
@@ -362,7 +423,7 @@ export const QUESTIONS = [
   },
   {
     id: 'reserve_location', version: 1, section: 'roster', kind: 'choice',
-    tier: 'A', micro: true, priority: 16,
+    tier: 'A', micro: true, priority: 160,
     parent: 'reserve_duty', parentWhen: ['yes', 'some_pilots'],
     /* ★自宅待機と空港待機では拘束の重さが全く違う。年収が同じでも仕事の価値が変わる。 */
     ja: { short: '待機場所', label: 'Reserve は自宅待機ですか、空港待機ですか？', help: '' },
@@ -376,15 +437,33 @@ export const QUESTIONS = [
   },
   {
     id: 'reserve_days', version: 1, section: 'roster', kind: 'num',
-    tier: 'A', micro: false, priority: 17,
+    tier: 'A', micro: false, priority: 170,
     parent: 'reserve_duty', parentWhen: ['yes', 'some_pilots'],
     num: { min: 0, max: 31, step: 1, ja: '日／月', en: 'days / month' },
     ja: { short: 'Reserve の日数', label: '月に平均何日くらいですか？', help: '直近の実感で構いません。' },
     en: { short: 'Reserve days', label: 'How many days per month on average?', help: 'A recent typical month is fine.' },
   },
   {
+    id: 'reserve_duty_who', version: 1, section: 'roster', kind: 'choice',
+    tier: 'A', micro: false, priority: 171, note: true, deep: 'partial',
+    parent: 'reserve_duty', parentWhen: ['some_pilots'],
+    ja: { short: 'Reserve の対象', label: 'Reserve / Standby 勤務があるのは、どのパイロットですか？',
+          help: 'いちばん近いものを1つ選んでください。', cue: 'どのパイロット？' },
+    en: { short: 'Who does reserve', label: 'Which pilots do reserve / standby duty?',
+          help: 'Pick the closest one.', cue: 'Which pilots?' },
+    choices: [
+      { code: 'junior',   ja: '先任順位の低いパイロット',     en: 'Junior pilots (low seniority)' },
+      { code: 'rank',     ja: '機長だけ、または副操縦士だけ', en: 'Captains only, or first officers only' },
+      { code: 'fleet',    ja: '一部の機種',                   en: 'Some fleets' },
+      { code: 'base',     ja: '一部の拠点',                   en: 'Some bases' },
+      { code: 'contract', ja: '一部の契約の形',               en: 'Some contract types' },
+      { code: 'mixed',    ja: 'いくつか当てはまる・その他',   en: 'Several of these / other' },
+      { code: UNKNOWN,    ja: 'わからない',                   en: "Don't know" },
+    ],
+  },
+  {
     id: 'roster_lead_days', version: 1, section: 'roster', kind: 'num',
-    tier: 'A', micro: false, priority: 18,
+    tier: 'A', micro: false, priority: 180,
     num: { min: 1, max: 90, step: 1, ja: '日前', en: 'days before' },
     ja: { short: '勤務予定の確定', label: '翌月の勤務予定は、何日前に確定しますか？',
           help: '月末の何日前に翌月分が出るか、の目安です。' },
@@ -393,7 +472,7 @@ export const QUESTIONS = [
   },
   {
     id: 'roster_changes', version: 1, section: 'roster', kind: 'choice',
-    tier: 'A', micro: true, priority: 19,
+    tier: 'A', micro: true, priority: 190,
     /* ★給与が同じでも「1ヶ月前に確定・ほぼ変更なし」と「直前変更が多い」では
        仕事の価値が違う。年収表には絶対に出てこない差。 */
     ja: { short: '確定後の勤務変更', label: '確定後の勤務変更は多いですか？',
@@ -411,7 +490,7 @@ export const QUESTIONS = [
   // ══ CAREER キャリア ═══════════════════════════════════════════════
   {
     id: 'external_hiring', version: 1, section: 'career', kind: 'choice',
-    tier: 'A', micro: true, priority: 20, boost: 1,   // 最初の3問③。このサイトに来る理由そのもの。中途で入れるかが分からないと転職の話が始まらない
+    tier: 'A', micro: true, priority: 200, boost: 1,   // 最初の3問③。このサイトに来る理由そのもの。中途で入れるかが分からないと転職の話が始まらない
     /* ★「制度としてあるか」と「今まさに募集中か」を混ぜない。混ぜると
        募集が閉じた月に全社が「いいえ」に振れて、制度の記録として使えなくなる。 */
     ja: { short: '他社からの中途採用', label: '他社からパイロットとして中途入社できますか？',
@@ -428,7 +507,7 @@ export const QUESTIONS = [
   },
   {
     id: 'external_experience_credit', version: 1, section: 'career', kind: 'choice',
-    tier: 'A', micro: true, priority: 21,
+    tier: 'A', micro: true, priority: 210,
     parent: 'external_hiring', parentWhen: ['yes', 'conditional'],
     /* ★「入社時の待遇」と「社内の先任順位」は別物。他社で B777 機長を10年やって
        いても、Rank と給与ステップには考慮されるが Seniority は入社日から最下位、
@@ -447,7 +526,7 @@ export const QUESTIONS = [
   },
   {
     id: 'external_seniority_start', version: 1, section: 'career', kind: 'choice',
-    tier: 'A', micro: true, priority: 22,
+    tier: 'A', micro: true, priority: 220,
     parent: 'external_hiring', parentWhen: ['yes', 'conditional'],
     ja: { short: '中途の先任順位', label: '中途入社した場合、社内の先任順位（Seniority）はどこから始まりますか？',
           help: '昇格・機種選択・希望の通りやすさを決める社内の順位のことです。' },
@@ -461,8 +540,26 @@ export const QUESTIONS = [
     ],
   },
   {
+    id: 'external_hiring_conditions', version: 1, section: 'career', kind: 'choice',
+    tier: 'A', micro: false, priority: 221, note: true, deep: 'partial',
+    parent: 'external_hiring', parentWhen: ['conditional'],
+    ja: { short: '中途入社の条件', label: '他社からの中途入社には、主にどんな条件がありますか？',
+          help: 'いちばん大きい条件を1つ選んでください。', cue: 'どんな条件？' },
+    en: { short: 'Direct entry conditions', label: 'What is the main condition for joining from another airline?',
+          help: 'Pick the one that matters most.', cue: 'What conditions?' },
+    choices: [
+      { code: 'type_rating', ja: '同じ機種の資格・経験（Type Rating）', en: 'A type rating or time on type' },
+      { code: 'hours',       ja: '総飛行時間',                         en: 'Total flight hours' },
+      { code: 'command',     ja: '機長経験',                           en: 'Command experience' },
+      { code: 'license',     ja: '免許の発行国・就労資格',             en: 'Licence state of issue or right to work' },
+      { code: 'timing',      ja: '募集がある時期だけ',                 en: 'Only when a hiring round is open' },
+      { code: 'mixed',       ja: 'いくつか当てはまる・その他',         en: 'Several of these / other' },
+      { code: UNKNOWN,       ja: 'わからない',                         en: "Don't know" },
+    ],
+  },
+  {
     id: 'training_bond', version: 1, section: 'career', kind: 'choice',
-    tier: 'A', micro: true, priority: 23,
+    tier: 'A', micro: true, priority: 230,
     /* ★「年収 +500万、ただし Bond あり」を比べられるようにするための質問。
        年収だけの表では絶対に見えない条件。 */
     ja: { short: '訓練費の Bond', label: '入社時の訓練費用に、Bond・返済義務がありますか？',
@@ -478,7 +575,7 @@ export const QUESTIONS = [
   },
   {
     id: 'training_bond_years', version: 1, section: 'career', kind: 'num',
-    tier: 'A', micro: false, priority: 24,
+    tier: 'A', micro: false, priority: 240,
     parent: 'training_bond', parentWhen: ['yes', 'conditional'],
     num: { min: 0.5, max: 15, step: 0.5, ja: '年', en: 'years' },
     ja: { short: 'Bond の年数', label: '拘束期間は何年ですか？', help: '' },
@@ -486,7 +583,7 @@ export const QUESTIONS = [
   },
   {
     id: 'training_bond_amount', version: 1, section: 'career', kind: 'num',
-    tier: 'A', micro: false, priority: 25,
+    tier: 'A', micro: false, priority: 250,
     parent: 'training_bond', parentWhen: ['yes', 'conditional'],
     currency: true,
     num: { min: 0, max: 100000000, step: 1, ja: '（総額）', en: '(total)' },
@@ -494,8 +591,24 @@ export const QUESTIONS = [
     en: { short: 'Bond amount', label: 'How much is the bond?', help: 'The full amount at the time of joining is fine.' },
   },
   {
+    id: 'training_bond_conditions', version: 1, section: 'career', kind: 'choice',
+    tier: 'A', micro: false, priority: 251, note: true, deep: 'partial',
+    parent: 'training_bond', parentWhen: ['conditional'],
+    ja: { short: 'Bond が付く場合', label: '訓練費の Bond は、どんな場合に付きますか？',
+          help: 'いちばん近いものを1つ選んでください。', cue: 'どんな場合？' },
+    en: { short: 'When a bond applies', label: 'When does a training bond apply?',
+          help: 'Pick the closest one.', cue: 'When does it apply?' },
+    choices: [
+      { code: 'type_rating', ja: '機種移行（Type Rating）の訓練', en: 'Type-rating training' },
+      { code: 'cadet',       ja: '自社養成（Cadet）の訓練',       en: 'Cadet (ab initio) training' },
+      { code: 'contract',    ja: '契約の形による',                en: 'Depends on contract type' },
+      { code: 'mixed',       ja: 'いくつか当てはまる・その他',    en: 'Several of these / other' },
+      { code: UNKNOWN,       ja: 'わからない',                    en: "Don't know" },
+    ],
+  },
+  {
     id: 'upgrade_years', version: 1, section: 'career', kind: 'num',
-    tier: 'A', micro: false, priority: 26, topic: 'upgrade',
+    tier: 'A', micro: false, priority: 260, topic: 'upgrade',
     num: { min: 0.5, max: 30, step: 0.5, ja: '年', en: 'years' },
     ja: { short: '機長昇格までの年数', label: '副操縦士から機長まで、今どれくらいかかりますか？',
           help: '今の目安で構いません。会社の規定年数ではなく、実際にかかっている年数です。' },
@@ -514,7 +627,7 @@ export const QUESTIONS = [
        ★選考の中身（試験・面接・査定）は選択肢にしない。会社ごとに呼び名も段取りも違い、
          並べると選べない人が出る。書ける人は任意の補足へ（自由記述は公開集計に出ない）。 */
     id: 'upgrade_order', version: 1, section: 'career', kind: 'choice',
-    tier: 'B', micro: false, priority: 27, topic: 'upgrade', topicOnly: true, note: true,
+    tier: 'B', micro: false, priority: 270, topic: 'upgrade', topicOnly: true, note: true,
     ja: { short: '機長昇格の順番', label: '機長への昇格の順番は、どう決まりますか？',
           help: '先任順（Seniority）で順番が来るのか、会社が選ぶのか、空いた席に自分で応募するのかです。選考の中身は、書ける場合だけ補足に書いてください。' },
     en: { short: 'Command upgrade order', label: 'How is the order of upgrade to Captain decided?',
@@ -534,7 +647,7 @@ export const QUESTIONS = [
        ★聞くのは会社が決めている最低限。実際に昇格した人の時間は聞かない
          （人によって違い、1つの段に丸めると何の数か分からなくなる）。 */
     id: 'upgrade_min_hours', version: 1, section: 'career', kind: 'choice',
-    tier: 'B', micro: false, priority: 28, topic: 'upgrade', topicOnly: true,
+    tier: 'B', micro: false, priority: 280, topic: 'upgrade', topicOnly: true,
     ja: { short: '昇格に要る飛行時間', label: '機長昇格に必要な総飛行時間の条件は、どれですか？',
           help: '昇格の対象になるために会社が決めている、最低限の総飛行時間です。実際に昇格した人の時間ではありません。' },
     en: { short: 'Upgrade minimum hours', label: 'What is the minimum total flight time required for upgrade to Captain?',
@@ -550,7 +663,7 @@ export const QUESTIONS = [
   },
   {
     id: 'upgrade_min_tenure', version: 1, section: 'career', kind: 'choice',
-    tier: 'B', micro: false, priority: 29, topic: 'upgrade', topicOnly: true,
+    tier: 'B', micro: false, priority: 290, topic: 'upgrade', topicOnly: true,
     ja: { short: '昇格に要る在籍年数', label: '機長昇格に必要な在籍年数の条件は、どれですか？',
           help: '昇格の対象になるために会社が決めている、入社してからの最低限の年数です。' },
     en: { short: 'Upgrade minimum tenure', label: 'What is the minimum time with the company required for upgrade to Captain?',
@@ -566,7 +679,7 @@ export const QUESTIONS = [
   },
   {
     id: 'external_hiring_types', version: 1, section: 'career', kind: 'multi',
-    tier: 'B', micro: false, priority: 30,
+    tier: 'B', micro: false, priority: 300,
     parent: 'external_hiring', parentWhen: ['yes', 'conditional'],
     ja: { short: '中途採用の形', label: 'どの形の採用がありますか？', help: '当てはまるものをすべて選んでください。' },
     en: { short: 'Direct entry routes', label: 'What forms of external hiring exist?', help: 'Select all that apply.' },
@@ -580,7 +693,7 @@ export const QUESTIONS = [
   },
   {
     id: 'cadet_program', version: 1, section: 'career', kind: 'choice',
-    tier: 'B', micro: true, priority: 31,
+    tier: 'B', micro: true, priority: 310,
     /* ★「制度があるか」と「今も採っているか」を1問に畳んだ。2問に割ると
        タップが1回増えるだけで、分かることは同じ。 */
     ja: { short: '自社養成', label: '自社養成パイロット制度はありますか？',
@@ -597,7 +710,7 @@ export const QUESTIONS = [
   },
   {
     id: 'fo_development', version: 1, section: 'career', kind: 'choice',
-    tier: 'B', micro: true, priority: 32,
+    tier: 'B', micro: true, priority: 320,
     /* ★「班」を label にしない。会社固有語。help で例として挙げるに留める。 */
     ja: { short: '副操縦士の育成支援', label: '副操縦士の成長を継続的に支援する制度がありますか？',
           help: 'メンター・班・定期フィードバック・キャリア面談など、通常の定期訓練とは別に成長を支える仕組みです。' },
@@ -614,7 +727,7 @@ export const QUESTIONS = [
   // ══ TIME OFF 休暇 ═════════════════════════════════════════════════
   {
     id: 'annual_leave_days', version: 1, section: 'time_off', kind: 'num',
-    tier: 'A', micro: false, priority: 40,
+    tier: 'A', micro: false, priority: 400,
     num: { min: 0, max: 60, step: 1, ja: '日／年', en: 'days / year' },
     ja: { short: '年間の有給休暇', label: '年間の有給休暇は何日ですか？',
           help: '勤続年数や契約で変わる場合は、今のあなたの日数で構いません。' },
@@ -623,7 +736,7 @@ export const QUESTIONS = [
   },
   {
     id: 'sick_leave', version: 1, section: 'time_off', kind: 'choice',
-    tier: 'A', micro: true, priority: 41,
+    tier: 'A', micro: true, priority: 410,
     ja: { short: '病気休暇', label: '病気休暇（Sick Leave）はどれくらい使えますか？',
           help: '有給休暇とは別に、病気のときに使える休暇のことです。' },
     en: { short: 'Sick leave', label: 'How much sick leave is available?',
@@ -638,7 +751,7 @@ export const QUESTIONS = [
   },
   {
     id: 'sick_leave_days', version: 1, section: 'time_off', kind: 'num',
-    tier: 'A', micro: false, priority: 42,
+    tier: 'A', micro: false, priority: 420,
     parent: 'sick_leave', parentWhen: ['days'],
     num: { min: 0, max: 365, step: 1, ja: '日／年', en: 'days / year' },
     ja: { short: '病気休暇の日数', label: '年間で何日ですか？', help: '' },
@@ -648,7 +761,7 @@ export const QUESTIONS = [
   // ══ BENEFITS 手当・サポート ═══════════════════════════════════════
   {
     id: 'peer_support', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: true, priority: 49,
+    tier: 'B', micro: true, priority: 490,
     /* ★表記は Peer Support で固定（オーナー指示）。訳さない。 */
     ja: { short: 'Peer Support', label: 'パイロット向けの Peer Support 制度がありますか？',
           help: 'パイロット同士、または専門スタッフを通じて、心理的・職業上の相談ができる仕組みです。' },
@@ -667,7 +780,7 @@ export const QUESTIONS = [
     /* ★Tier C。存在しない会社が多く、世界横断で比べる軸としては弱い。
        ある会社では効くので残すが、A と B が埋まってから聞く。
        ★「あり」の人には、すぐ下の5問（額と数え方）をその場で聞く（冒頭の 2026-10-09 の注記）。 */
-    tier: 'C', micro: true, priority: 50,
+    tier: 'C', micro: true, priority: 500,
     ja: { short: '着陸手当', label: '着陸回数に応じた手当はありますか？',
           help: '1回の着陸（またはレグ）ごとに払われる手当です。' },
     en: { short: 'Landing pay', label: 'Is there a landing allowance?',
@@ -691,7 +804,7 @@ export const QUESTIONS = [
        ★micro にしない。提出直後の1問枠は1タップで終わる質問だけ。額は一覧とシートで聞く。
        ★label だけで何の話か分かるように書く（保存後の一覧では、親と離れて1行ずつ出る）。 */
     id: 'landing_pay_amount', version: 1, section: 'benefits', kind: 'num',
-    tier: 'C', micro: false, priority: 51,
+    tier: 'C', micro: false, priority: 510,
     parent: 'landing_pay', parentWhen: ['fixed'],
     currency: true,
     num: { min: 1, max: 10000000, step: 0.01, ja: '（1回あたり）', en: '(each time)' },
@@ -704,7 +817,7 @@ export const QUESTIONS = [
     id: 'landing_pay_unit', version: 1, section: 'benefits', kind: 'choice',
     /* ★「一定額」の人にだけ聞く（オーナーの判断）。一定額ではない人の数え方は、
          下の landing_pay_varies_by の補足に書ける。 */
-    tier: 'C', micro: false, priority: 52,
+    tier: 'C', micro: false, priority: 520,
     parent: 'landing_pay', parentWhen: ['fixed'],
     ja: { short: '着陸手当の数え方', label: '着陸手当は何を1回と数えますか？',
           help: '着陸の回数で数えるか、飛んだ区間（レグ）で数えるかです。' },
@@ -721,7 +834,7 @@ export const QUESTIONS = [
          別々の行として保存する（2つを1つの数字にまとめない）。低いほうが高いほうより大きい組・通貨が違う組は、
          保存のときに断る（フォームとサーバの両方。対は、高いほうの rangeLow で結ぶ）。 */
     id: 'landing_pay_from', version: 1, section: 'benefits', kind: 'num',
-    tier: 'C', micro: false, priority: 53,
+    tier: 'C', micro: false, priority: 530,
     parent: 'landing_pay', parentWhen: ['variable'],
     currency: true,
     num: { min: 1, max: 10000000, step: 0.01, ja: '（1回あたり）', en: '(each time)' },
@@ -732,7 +845,7 @@ export const QUESTIONS = [
   },
   {
     id: 'landing_pay_to', version: 1, section: 'benefits', kind: 'num',
-    tier: 'C', micro: false, priority: 54,
+    tier: 'C', micro: false, priority: 540,
     parent: 'landing_pay', parentWhen: ['variable'],
     currency: true,
     rangeLow: 'landing_pay_from',
@@ -747,7 +860,7 @@ export const QUESTIONS = [
     /* ★複数選択にしない。一覧のページ（pv-conditions.js）は、複数選択の質問に補足を保存できない。
          1つに決められない人のために「いくつかの条件で変わる・その他」を置き、細かい条件は補足へ
          （自由記述は公開集計に一切出さない）。 */
-    tier: 'C', micro: false, priority: 55, note: true,
+    tier: 'C', micro: false, priority: 550, note: true,
     parent: 'landing_pay', parentWhen: ['variable'],
     ja: { short: '着陸手当の決まり方', label: '着陸手当の額は何で変わりますか？',
           help: 'いちばん大きく効くものを1つ選んでください。細かい条件は補足に書けます。' },
@@ -767,7 +880,7 @@ export const QUESTIONS = [
     /* ★自由記述をいちばん使ってほしい質問。会社ごとに制度が複雑で、
        1つの数値に丸めると意味が失われる（地上業務1時間＝乗務◯時間相当、など）。
        ★micro にしない。1タップで終わらせると note が空のまま埋まる。 */
-    tier: 'C', micro: false, priority: 56, note: true,
+    tier: 'C', micro: false, priority: 560, note: true,
     ja: { short: '地上業務の補償', label: '乗務以外の会社業務に、手当や勤務時間上の補償がありますか？',
           help: '会議・訓練担当・事務など、乗務でない業務に対する扱いです。「地上業務1時間＝乗務◯時間相当」のような換算がある場合は、補足に書いてください。',
           /* 戻ってきた会員に聞く板には補足の欄が無い ＝ 「補足に書いて」を言わない（askHelp はその板だけが使う） */
@@ -790,7 +903,7 @@ export const QUESTIONS = [
        ★「一部のパイロットのみ」は実在する。契約形態（現地採用と Expat 契約）で
          使える範囲が変わる会社があり、二択にすると回答が割れて読めなくなる。 */
     id: 'staff_travel', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'A', micro: true, priority: 57, topic: 'staff_travel',
+    tier: 'A', micro: true, priority: 570, topic: 'staff_travel',
     ja: { short: '社員航空券', label: '自社便に割引や無料で乗れる社員向けの航空券制度がありますか？',
           help: '社員やその家族が割引・無料で乗れる制度です。ID チケット、スタッフトラベルなどと呼ばれます。' },
     en: { short: 'Staff travel', label: 'Is there a staff travel scheme — free or reduced-fare tickets on your own airline?',
@@ -806,7 +919,7 @@ export const QUESTIONS = [
     /* ★制度の価値がいちばん割れるのはここ。「ある」だけでは、12時間の路線で
        本当に家に帰れるのかが分からない。空席待ちのみと座席確保では別物。 */
     id: 'staff_travel_booking', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: true, priority: 58, topic: 'staff_travel',
+    tier: 'B', micro: true, priority: 580, topic: 'staff_travel',
     parent: 'staff_travel', parentWhen: ['yes', 'some_pilots'],
     ja: { short: '座席の取り方', label: 'その席は空席待ちですか、確保できますか？',
           help: '出発まで席が決まらない空席待ち（Standby）か、あらかじめ席を押さえられるかです。' },
@@ -821,7 +934,7 @@ export const QUESTIONS = [
   },
   {
     id: 'staff_travel_cabin', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: true, priority: 59, topic: 'staff_travel',
+    tier: 'B', micro: true, priority: 590, topic: 'staff_travel',
     parent: 'staff_travel', parentWhen: ['yes', 'some_pilots'],
     ja: { short: '上位クラス', label: 'ビジネスクラスなど上位クラスに乗れますか？',
           help: '上位クラスに乗れるか、乗れる場合に誰から優先されるかです。' },
@@ -836,7 +949,7 @@ export const QUESTIONS = [
   },
   {
     id: 'staff_travel_family', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: true, priority: 60, topic: 'staff_travel',
+    tier: 'B', micro: true, priority: 600, topic: 'staff_travel',
     parent: 'staff_travel', parentWhen: ['yes', 'some_pilots'],
     ja: { short: '家族の利用', label: '家族も使えますか？', help: '本人以外がどこまで使えるかです。' },
     en: { short: 'Family use', label: 'Can family members use it?', help: 'How far beyond the employee the scheme reaches.' },
@@ -865,7 +978,7 @@ export const QUESTIONS = [
        ★label だけで何の話か分かるように書く（「その」「それ」で親を指さない）。
          提出直後の1問枠（micro）と ?q= の入口では、親の質問が隣に無い。 */
     id: 'staff_travel_standby_trips', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: true, priority: 61, topic: 'staff_travel',
+    tier: 'B', micro: true, priority: 610, topic: 'staff_travel',
     parent: 'staff_travel_booking', parentWhen: ['standby', 'both'],
     ja: { short: '空席待ちの回数', label: '空席待ちの社員向け航空券は、1年に何回まで使えますか？',
           help: '出発まで席が決まらない券（Standby）を、あなた本人が使える回数です。往復を1回と数えます。勤続年数や契約で変わる場合は、今のあなたの回数で構いません。' },
@@ -885,7 +998,7 @@ export const QUESTIONS = [
        ★「券の種類によって違う」を置かない。種類ごとに別の質問にしたので、要らない
          （置くと、いちばん知りたい所がその1つに集まって読めなくなる）。 */
     id: 'staff_travel_standby_cost', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: true, priority: 62, topic: 'staff_travel',
+    tier: 'B', micro: true, priority: 620, topic: 'staff_travel',
     parent: 'staff_travel_booking', parentWhen: ['standby', 'both'],
     ja: { short: '空席待ちの本人負担', label: '空席待ちの社員向け航空券で乗るとき、本人が払うのはどれに近いですか？',
           help: '出発まで席が決まらない券（Standby）についてです。運賃そのものを払うのか、税金や空港使用料などの諸費用だけなのかです。' },
@@ -911,7 +1024,7 @@ export const QUESTIONS = [
          （本人が使えず、家族だけが使える券は置いていない、とは言い切れない）。
        ★人数や年齢の上限は聞かない（子の年齢など。数字を境目にすると会社ごとに違う）。 */
     id: 'staff_travel_standby_family', version: 1, section: 'benefits', kind: 'multi',
-    tier: 'B', micro: false, priority: 63, topic: 'staff_travel',
+    tier: 'B', micro: false, priority: 630, topic: 'staff_travel',
     parent: 'staff_travel_booking', parentWhen: ['standby', 'both'],
     ja: { short: '空席待ちの対象', label: '空席待ちの社員向け航空券は、誰が使えますか？',
           help: '出発まで席が決まらない券（Standby）を使える人を、すべて選んでください。' },
@@ -932,7 +1045,7 @@ export const QUESTIONS = [
          「年1〜4回」の1段にまとめると、年1回と年4回の差が消える。
          年1回・半年に1回（年2回）・四半期に1回（年4回）で切ってある。 */
     id: 'staff_travel_confirmed_trips', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: true, priority: 64, topic: 'staff_travel',
+    tier: 'B', micro: true, priority: 640, topic: 'staff_travel',
     parent: 'staff_travel_booking', parentWhen: ['both', 'confirmed'],
     ja: { short: '確保席の回数', label: '座席を確保できる社員向け航空券は、1年に何回まで使えますか？',
           help: 'あらかじめ席を押さえられる券を、あなた本人が使える回数です。往復を1回と数えます。勤続年数や契約で変わる場合は、今のあなたの回数で構いません。' },
@@ -949,7 +1062,7 @@ export const QUESTIONS = [
   },
   {
     id: 'staff_travel_confirmed_cost', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: true, priority: 65, topic: 'staff_travel',
+    tier: 'B', micro: true, priority: 650, topic: 'staff_travel',
     parent: 'staff_travel_booking', parentWhen: ['both', 'confirmed'],
     ja: { short: '確保席の本人負担', label: '座席を確保できる社員向け航空券で乗るとき、本人が払うのはどれに近いですか？',
           help: 'あらかじめ席を押さえられる券についてです。運賃そのものを払うのか、税金や空港使用料などの諸費用だけなのかです。' },
@@ -967,7 +1080,7 @@ export const QUESTIONS = [
          同じ会社の2つの券を並べて読むための質問なので、片方だけ選択肢が違うと比べられない
          （db/test-conditions.mjs が2問の選択肢を突き合わせている）。 */
     id: 'staff_travel_confirmed_family', version: 1, section: 'benefits', kind: 'multi',
-    tier: 'B', micro: false, priority: 66, topic: 'staff_travel',
+    tier: 'B', micro: false, priority: 660, topic: 'staff_travel',
     parent: 'staff_travel_booking', parentWhen: ['both', 'confirmed'],
     ja: { short: '確保席の対象', label: '座席を確保できる社員向け航空券は、誰が使えますか？',
           help: 'あらかじめ席を押さえられる券を使える人を、すべて選んでください。' },
@@ -984,13 +1097,29 @@ export const QUESTIONS = [
     ],
   },
   {
+    id: 'staff_travel_who', version: 1, section: 'benefits', kind: 'choice',
+    tier: 'A', micro: false, priority: 661, topic: 'staff_travel', note: true, deep: 'partial',
+    parent: 'staff_travel', parentWhen: ['some_pilots'],
+    ja: { short: '社員航空券の対象', label: '社員航空券を使えるのは、どのパイロットですか？',
+          help: 'いちばん近いものを1つ選んでください。', cue: 'どのパイロット？' },
+    en: { short: 'Who is eligible', label: 'Which pilots are eligible for staff travel?',
+          help: 'Pick the closest one.', cue: 'Which pilots?' },
+    choices: [
+      { code: 'contract', ja: '契約の形による（直接雇用・Expat 契約・派遣など）', en: 'Depends on contract (direct, expat, agency)' },
+      { code: 'service',  ja: '一定の在籍期間を過ぎた人',                       en: 'Only after a qualifying period of service' },
+      { code: 'base',     ja: '一部の拠点',                                     en: 'Some bases' },
+      { code: 'mixed',    ja: 'いくつか当てはまる・その他',                     en: 'Several of these / other' },
+      { code: UNKNOWN,    ja: 'わからない',                                     en: "Don't know" },
+    ],
+  },
+  {
     /* ── 出退社の移動（2026-08-19 追加・オーナー指示） ─────────────────
        ★毎月定額で出る通勤手当と混ぜない。あれは給与明細の「交通費」で
          既に集めている（payslip.js の f-transport）。同じものを2箇所で
          集めると、どちらの数字も何を指すのか分からなくなる。
        ★Tier B。日本と一部の会社に強く偏り、横断比較の軸としては社用航空券より弱い。 */
     id: 'commuting_transport', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: true, priority: 67, topic: 'taxi',
+    tier: 'B', micro: true, priority: 670, topic: 'taxi',
     ja: { short: '出社・帰宅の移動', label: '出社・帰宅の移動を、会社が用意または負担しますか？',
           help: '会社が手配するタクシー、クルーバス、あとから精算する運賃などです。毎月定額で出る通勤手当のことではありません。' },
     en: { short: 'Transport to work', label: 'Does the company provide or pay for your travel to and from work?',
@@ -1007,7 +1136,7 @@ export const QUESTIONS = [
        1つ選ばせると片方が消える。複数選択は1問枠（micro）には出ないので、
        詳細ページで集まる。 */
     id: 'commuting_transport_method', version: 1, section: 'benefits', kind: 'multi',
-    tier: 'B', micro: false, priority: 68, topic: 'taxi',
+    tier: 'B', micro: false, priority: 680, topic: 'taxi',
     parent: 'commuting_transport', parentWhen: ['always', 'conditional'],
     ja: { short: '移動の形', label: 'どの形で提供されますか？', help: '当てはまるものをすべて選んでください。' },
     en: { short: 'Transport type', label: 'How is it provided?', help: 'Select all that apply.' },
@@ -1040,7 +1169,7 @@ export const QUESTIONS = [
        ★前泊・仮眠室（hotel）と「その他」には、条件の質問を置かない。移動の手段ではなく、
          足すと5問がさらに増える。 */
     id: 'commuting_taxi_when', version: 1, section: 'benefits', kind: 'multi',
-    tier: 'B', micro: false, priority: 69, topic: 'taxi',
+    tier: 'B', micro: false, priority: 690, topic: 'taxi',
     parent: 'commuting_transport_method', parentWhen: ['company_taxi', 'reimburse'],
     ja: { short: 'タクシーが使えるとき', label: 'タクシーでの出社・帰宅は、どんなときに会社の手配や精算で使えますか？',
           help: '会社が手配するタクシーと、自分で乗ってあとから精算する場合についてです。当てはまるものをすべて選んでください。制限が無ければ「制限はない」だけを選んでください。' },
@@ -1062,7 +1191,7 @@ export const QUESTIONS = [
        ★クルーバスには「どこまで」を置かない。バスは決まった経路を走るもので、
          自宅まで届くかどうかを聞く質問がそのままは当てはまらない。 */
     id: 'commuting_taxi_where', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: true, priority: 70, topic: 'taxi',
+    tier: 'B', micro: true, priority: 700, topic: 'taxi',
     parent: 'commuting_transport_method', parentWhen: ['company_taxi', 'reimburse'],
     ja: { short: 'タクシーの範囲', label: 'タクシーでの出社・帰宅は、どこまで会社の手配や精算で使えますか？',
           help: '会社が手配するタクシーと、自分で乗ってあとから精算する場合についてです。自宅まで使えるのか、距離や地域、決められた場所までに限られるのかです。' },
@@ -1082,7 +1211,7 @@ export const QUESTIONS = [
          ここで分ける。
        ★額や上限の金額は聞かない（地域と距離で変わる。聞くなら給与明細の「交通費」の側）。 */
     id: 'commuting_taxi_cost', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: true, priority: 71, topic: 'taxi',
+    tier: 'B', micro: true, priority: 710, topic: 'taxi',
     parent: 'commuting_transport_method', parentWhen: ['company_taxi', 'reimburse'],
     ja: { short: 'タクシー代の負担', label: 'タクシーでの出社・帰宅の費用は、誰が負担しますか？',
           help: '会社が手配するタクシーと、自分で乗ってあとから精算する場合についてです。会社が全額を持つのか、本人の負担があるのかです。' },
@@ -1106,7 +1235,7 @@ export const QUESTIONS = [
        ★親と条件は commuting_taxi_cost と同じ ＝ タクシーを選んだ人にだけ開く。
        ★label だけで何の話か分かるように書く（「その」「それ」で前の質問を指さない）。 */
     id: 'commuting_taxi_cap', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: false, priority: 72, topic: 'taxi', topicOnly: true, note: true,
+    tier: 'B', micro: false, priority: 720, topic: 'taxi', topicOnly: true, note: true,
     parent: 'commuting_transport_method', parentWhen: ['company_taxi', 'reimburse'],
     ja: { short: 'タクシー代の上限', label: '通勤のタクシー代に、上限はありますか？',
           help: '会社が手配するタクシーと、自分で乗ってあとから精算する場合についてです。会社が払う額に上限があるかどうかです。上限の額は、書ける場合だけ補足に書いてください。' },
@@ -1125,7 +1254,7 @@ export const QUESTIONS = [
          並べて読むための質問なので、片方だけ選択肢が違うと比べられない
          （db/test-conditions.mjs が突き合わせている）。 */
     id: 'commuting_bus_when', version: 1, section: 'benefits', kind: 'multi',
-    tier: 'B', micro: false, priority: 73, topic: 'taxi',
+    tier: 'B', micro: false, priority: 730, topic: 'taxi',
     parent: 'commuting_transport_method', parentWhen: ['crew_bus'],
     ja: { short: 'クルーバスの利用', label: 'クルーバス（送迎バス）は、どんなときに出社・帰宅で使えますか？',
           help: '会社が走らせる送迎バス・クルーバスについてです。当てはまるものをすべて選んでください。制限が無ければ「制限はない」だけを選んでください。' },
@@ -1142,7 +1271,7 @@ export const QUESTIONS = [
   },
   {
     id: 'commuting_bus_cost', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: true, priority: 74, topic: 'taxi',
+    tier: 'B', micro: true, priority: 740, topic: 'taxi',
     parent: 'commuting_transport_method', parentWhen: ['crew_bus'],
     ja: { short: 'クルーバスの負担', label: 'クルーバス（送迎バス）の費用は、誰が負担しますか？',
           help: '会社が走らせる送迎バス・クルーバスについてです。会社が全額を持つのか、本人の負担があるのかです。' },
@@ -1163,7 +1292,7 @@ export const QUESTIONS = [
      ★並びの最後に置く（priority を詰め直すと、ほかの質問の番号が全部動くため）。一覧の画面では待遇の節の最後に出る。 */
   {
     id: 'per_diem', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: false, priority: 75,
+    tier: 'B', micro: false, priority: 750,
     ja: { short: '日当（パーディアム）', label: '乗務の日当（パーディアム）は出ますか？',
           help: 'ステイ先での食事代などとして、乗務の日数や時間に応じて出る手当です。' },
     en: { short: 'Per diem', label: 'Is per diem paid on trips?',
@@ -1178,7 +1307,7 @@ export const QUESTIONS = [
   },
   {
     id: 'per_diem_domestic', version: 1, section: 'benefits', kind: 'num',
-    tier: 'B', micro: false, priority: 76,
+    tier: 'B', micro: false, priority: 760,
     parent: 'per_diem', parentWhen: ['both', 'dom_only'],
     currency: true,
     num: { min: 1, max: 10000000, step: 0.01, ja: '（1日あたり）', en: '(per day)' },
@@ -1189,7 +1318,7 @@ export const QUESTIONS = [
   },
   {
     id: 'per_diem_international', version: 1, section: 'benefits', kind: 'num',
-    tier: 'B', micro: false, priority: 77,
+    tier: 'B', micro: false, priority: 770,
     parent: 'per_diem', parentWhen: ['both', 'intl_only'],
     currency: true,
     num: { min: 1, max: 10000000, step: 0.01, ja: '（1日あたり）', en: '(per day)' },
@@ -1199,6 +1328,52 @@ export const QUESTIONS = [
           help: 'The amount paid per day on international trips. If it varies by destination, use the one you fly to most.' },
   },
 ];
+
+/* ── 答えが分かれた会社でだけ聞く「何によって違いますか？」（deep:'split'・2026-11-14 オーナー指示）────
+   「一部可能にはもう一つ突っ込んで質問して欲しい。あと回答が分かれている場合も」。
+   会社ページのカードが「回答が分かれています」になる（db/contrib.sql の pv_condition_lead が決める1か所）質問について、
+   その親に答えた人へ、親のすぐ下で「同じ会社の中で何によって違うか」を聞く。
+   ★親は、1つ選ぶ・会社の事実の・親を持たない質問ぜんぶ（話題の入口だけの質問は除く）。型から作るので、質問を足せば続きも付く。
+   ★parentWhen は親の「わからない」以外の全部 ＝ 保存の検品と集計は、今の子の質問と同じ決まりのまま通る。
+     「分かれている会社でだけ出す」は**見せるかどうかの門**（pv_condition_split）。保存では見ない
+     （出したあとに同点が崩れても、もらった答えは捨てない）。
+   ★続きの質問（deep）は「質問の一覧の行」にも「答えた項目：N／◯」にも数えない ＝ 冒頭の「これ以上、質問を増やさない」の数は変わらない。
+   ★選ぶ答えは全部の親で同じ（並びも同じ）。並び順の番号は、親の続き（子・孫・「一部」の続き）のすぐ後ろ ＋1。 */
+const SPLIT_CHOICES = [
+  { code: 'rank',      ja: '職位（機長・副操縦士）',     en: 'Rank (captain or first officer)' },
+  { code: 'fleet',     ja: '機種',                       en: 'Fleet' },
+  { code: 'base',      ja: '拠点',                       en: 'Base' },
+  { code: 'seniority', ja: '先任順位（Seniority）',      en: 'Seniority' },
+  { code: 'contract',  ja: '契約の形',                   en: 'Contract type' },
+  { code: 'changed',   ja: '最近、制度が変わった',       en: 'The policy changed recently' },
+  { code: 'mixed',     ja: 'いくつか当てはまる・その他', en: 'Several of these / other' },
+  { code: UNKNOWN,     ja: 'わからない',                 en: "Don't know" },
+];
+const splitOf = (p) => !p.parent && p.kind === 'choice' && !p.isOpinion && !p.topicOnly && !p.retired;
+function withSplit(list) {
+  const out = [...list];
+  const under = (id, q) => { for (let x = q; x && x.parent; x = list.find((y) => y.id === x.parent)) if (x.parent === id) return true; return false; };
+  for (const p of list.filter(splitOf)) {
+    let i = out.indexOf(p) + 1;
+    while (i < out.length && under(p.id, out[i])) i++;
+    const prev = out[i - 1], next = out[i];
+    const priority = prev.priority + 1;
+    if (next && priority >= next.priority) throw new Error(`withSplit: ${p.id} の続きを置く番号が無い（${prev.id} の次 ${priority} が ${next.id} と並ぶ）`);
+    out.splice(i, 0, {
+      id: `${p.id}_split`, version: 1, section: p.section, kind: 'choice',
+      tier: p.tier, micro: false, priority, note: true, deep: 'split',
+      ...(p.topic ? { topic: p.topic } : {}),
+      parent: p.id, parentWhen: p.choices.map((c) => c.code).filter((c) => c !== UNKNOWN),
+      ja: { short: '何で違うか', label: `「${p.ja.short}」は、同じ会社の中で何によって違いますか？`,
+            help: '同じ会社でも、パイロットによって答えが違うことがあります。いちばん大きく効くものを1つ選んでください。', cue: '何によって違う？' },
+      en: { short: 'What it varies by', label: `Within the same airline, what does “${p.en.short}” vary by?`,
+            help: 'Pilots at the same airline sometimes answer differently. Pick the factor that matters most.', cue: 'What does it vary by?' },
+      choices: SPLIT_CHOICES.map((c) => ({ ...c })),
+    });
+  }
+  return out;
+}
+export const QUESTIONS = withSplit(BASE);
 
 /* 自由記述の上限。DB 側の check 制約と画面の maxlength を同じ数にするため
    ここから配る。★長い文章は個人特定の材料になるので、そもそも長く書かせない。 */

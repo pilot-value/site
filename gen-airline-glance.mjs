@@ -1257,7 +1257,8 @@ const GROUP_SAY = {
 }
 function groupAsk(g, first = []) {
   const say = Object.fromEntries([...WORK_ASK, ...BEN_ASK]);
-  const qs = QUESTIONS.filter(q => !q.retired && !q.currency && askGroup(q.id) === g);
+  /* 続きの質問（deep・2026-11-14）は行にしない・「質問 N問」に数えない（答える画面で親のすぐ下に出る。カードの集計の鍵には askCard が足す） */
+  const qs = QUESTIONS.filter(q => !q.retired && !q.currency && !q.deep && askGroup(q.id) === g);
   if (!qs.length) throw new Error(`ひとつ教えて：話題「${g}」に面で答えられる質問が1つも無い（pv-conditions.mjs）`);
   const miss = first.filter(id => !qs.some(q => q.id === id));
   if (miss.length) throw new Error(`ひとつ教えて：最初に見せる質問が話題「${g}」に無い（${miss.join('・')}）`);
@@ -1282,7 +1283,9 @@ function askCard(v) {
     return [id, name, gloss, list];
   });
   const stay = staysOn() && netOf(v) ? `<a class="pvg-topic pvg-topic-a" href="#pvg-stay">${topicHead(IC.stay, W.hotelsTopic, W.hotelsTopicSub)}${IC.next}</a>` : '';
-  const keys = [...new Set(groups.flatMap(([, , , list]) => list.map(a => a[0])))];
+  /* 集計の鍵 ＝ 行の質問 ＋ その続きの質問（deep）。続きの答えは親のカードの中の1行になり、まだ無ければカードが続きへ誘う（career-live.js の cueFor） */
+  const rowKeys = [...new Set(groups.flatMap(([, , , list]) => list.map(a => a[0])))];
+  const keys = rowKeys.flatMap(id => [id, ...QUESTIONS.filter(q => q.deep && q.parent === id && !q.retired).map(q => q.id)]);
   /* タブを持つページ：見出しの横から項目の一覧（「情報を追加」の面）を開ける。通勤・タクシーの質問はその面の中で答える。 */
   const add = tabbed(v.slug) ? `<button type="button" class="pvg-link" data-pvc-open="list">${W.addFromList}${IC.go}</button>` : '';
   /* 見出しは2つのかたまり（「…のこと、」｜「ひとつ教えて。」）。狭い画面で折れるのは、そのあいだだけ（pv-glance.css）。

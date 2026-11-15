@@ -56,7 +56,12 @@
 
   var V = w.PVViz;
   if (!V) return;                       // 読み込み順が崩れたら黙って出さない
-  var esc = V.esc, num = V.num, fmt = V.fmt;
+  var esc = V.esc, num = V.num;
+  /* ★2026-11-15 オーナー「非表示ボタンを押した時に累計報酬とかも非表示にならないと意味ない」──
+       目のアイコンで隠している間は、給与サマリーの金額を全部「••••」で書く（字を作らない・null は今までどおり「—」）。
+       このファイルの金額は全部ここか exactH() を通る。時間・日数・％は隠さない。 */
+  var MASK = '••••';
+  function fmt(v) { return (v != null && state && state.hide) ? MASK : V.fmt(v); }
 
   var L = (window.PV_BASE === 'en' || d.documentElement.getAttribute('lang') === 'en') ? 'en' : 'ja';   // スペイン語のページは英語と同じ動き（pv-session.js）
   var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -71,22 +76,22 @@
   /* ★後から読む2本にも中身の指紋を付ける（.js は配信で4時間覚えられる＝付けないと出した直後に古い部品が残る）。
        my-year.js か my-value-sample.js を直したら、db/test-year-report.mjs が示す値に書き換える（中身と一致するかを見ている）。
        そのあと profile.html（日英）の my-value.js の指紋も変わる（assert-links.mjs が示す値に写す・西は gen-lang.mjs）。 */
-  var YEAR_V = '7ee5a36e';
+  var YEAR_V = '0835bdd7';
   var SAMPLE_V = '56f31187';
   var SAMPLE_URL = 'my-value-sample.js?v=' + SAMPLE_V;     // 運営の見本（運営のときだけ読む）
   var YEAR_URL = 'my-year.js?v=' + YEAR_V;                 // 「1年」の画面（押したときだけ読む）
   /* ★「勤務ロスター」のタブ（2026-11-09）。開いたときだけ読む4本。指紋は上の2本と同じ決まり
        （db/test-year-report.mjs が中身と突き合わせる）。計算の部品は分析のタブも使う。 */
-  var ROSTER_V = 'fd52ee85';
+  var ROSTER_V = 'f5e791b0';
   var ROSTER_CSS_V = '4b57ef14';
-  var UPLOAD_V = '291ef805';
-  var ENGINE_V = '18e2d031';
+  var UPLOAD_V = '49f388e5';
+  var ENGINE_V = '93c24a4b';
   var AIRPORT_TZ_V = 'ec27da34';   // ★2026-11-11 空港 → タイムゾーンの表（pv-airport-tz.js・現地時刻の便の時間）
   /* ★「分析」のタブ（2026-11-09）。開いたときだけ読む2本（見た目 → 計算の部品 → 画面の順）。指紋の決まりは上と同じ */
   var ANALYSIS_V = 'ae699612';
   var ANALYSIS_CSS_V = '19e86be1';
   /* ★スケジュールの一番上の「飛んだルート」の地球儀（2026-11-12）。スケジュールのタブを開いたときだけ読む4本。指紋の決まりは上と同じ */
-  var GLOBE_V = '1ce4605c';
+  var GLOBE_V = 'c2a3c8fc';
   var GLOBE_CSS_V = '1f7bb4e9';
   var AIRPORT_GEO_V = '12fab2ff';   // 空港 → 位置と街の名前（pv-airport-geo.js）
   var GLOBE_COAST_V = '48ed6a23';  // 陸の縁（pv-globe-coast.js・0.25° より細かく寄ったときだけ my-globe.js が読む）
@@ -155,6 +160,9 @@
       opMine: '自分の数字',          // 運営が自分の明細も出しているとき、最後のボタンはこれ（2026-11-09）
       /* 「今月｜1年」の切り替え（2026-11-08 オーナー決定の置き場所） */
       vMonth: '月', vYear: '年',   // ★2026-11-12 オーナー「今月と1年しか見られない」→ 月も年も選べるように（「今月」「1年」から呼び名を変えた）
+      vAll: '全期間',              // ★2026-11-15 オーナー「月と年でしか分けられないから all もいれて」
+      /* 緑のカードの目のアイコン（2026-11-15 オーナー「最初の緑のカードに非表示の目のアイコン」）。押すと金額だけ「••••」に */
+      eyeHide: '金額を隠す', eyeShow: '金額を表示',
       pickM: '表示する月', pickY: '表示する年', prevM: '前の月', nextM: '次の月', prevY: '前の年', nextY: '次の年',
       yrL: function (y) { return y + '年'; },
       /* YOUR PAY の3つのタブ（2026-11-09）。期間の切り替え（今月｜1年）とは別物＝形も違える。短い字は狭い画面用。 */
@@ -334,6 +342,8 @@
       opEmpty: 'No-pay screen',
       opMine: 'My numbers',
       vMonth: 'Month', vYear: 'Year',
+      vAll: 'All time',
+      eyeHide: 'Hide amounts', eyeShow: 'Show amounts',
       pickM: 'Month shown', pickY: 'Year shown', prevM: 'Previous month', nextM: 'Next month', prevY: 'Previous year', nextY: 'Next year',
       yrL: function (y) { return String(y); },
       tabsAria: 'YOUR PAY views',
@@ -480,6 +490,8 @@
       opEmpty: 'Pantalla sin remuneración',
       opMine: 'Mis cifras',
       vMonth: 'Mes', vYear: 'Año',
+      vAll: 'Todo',
+      eyeHide: 'Ocultar importes', eyeShow: 'Mostrar importes',
       pickM: 'Mes que se muestra', pickY: 'Año que se muestra', prevM: 'Mes anterior', nextM: 'Mes siguiente', prevY: 'Año anterior', nextY: 'Año siguiente',
       yrL: function (y) { return String(y); },
       tabsAria: 'Vistas de YOUR PAY',
@@ -625,10 +637,16 @@
      rows   ＝ 全社ぶんそのまま（累計だけが使う。足し算に会社の壁は無い）
      pub    ＝ 各社の推定年収と会社ページの決まり（salary-data.json）
      meds   ＝ 会員の中央値（全社ぶん・2人以上の組だけ。pv_member_medians_all） */
+  /* 金額を隠しているか（緑のカードの目のアイコン）。この端末だけに覚える＝次に開いても隠れたまま。
+     保存領域が使えない端末では毎回「見せる」から始まる（隠せないだけで、画面は壊れない） */
+  var HIDE_KEY = 'pv-pay-hide';
+  function hideSaved() { try { return w.localStorage.getItem(HIDE_KEY) === '1'; } catch (e) { return false; } }
+
   var state = { data: null, rows: [], series: [], busy: false,
                pub: null, meds: null, name: '', pay: null,
                op: false, sample: null,           // 運営か・見本の種類（運営だけ）
-               view: 'month',                     // 「月」か「年」か
+               view: 'month',                     // 「月」か「年」か「全期間」（'all'）
+               hide: hideSaved(),                 // 緑のカードの金額を隠しているか
                mYm: null, year: null,             // ★選んだ月（'YYYY-MM'）・年。null ＝いちばん新しい（MY PAY を開いている間だけ覚える）
                tab: 'summary', sumDirty: false };  // YOUR PAY のタブ・給与サマリーを隠れている間に描き直しそびれたか
 
@@ -651,6 +669,30 @@
     return '<section class="pt-sec mr-card' + (mod ? ' ' + mod : '') + '">' +
       '<div class="mr-card-h"><h2 class="mr-card-t">' + esc(title) + '</h2>' +
       (sub ? '<span class="mr-card-s">' + esc(sub) + '</span>' : '') + '</div>' + body + '</section>';
+  }
+  /* 見出しのすぐ右に部品を置く版（緑のカードの目のアイコン）。
+     ★sec() は形を変えない（deep-pay.js・deep-pay-compare.js に写しがあり、assert-deep-pay が1文字ずつ見ている） */
+  function secWith(tool, title, body, sub, mod) {
+    return sec(title, body, sub, mod).replace('</h2>', function () { return '</h2>' + tool; });
+  }
+
+  /* ── 金額を隠す目のアイコン（2026-11-15 オーナー「最初の緑のカードに非表示の目のアイコン」）──────────
+     ボタンは月・年・全期間の緑のカードの見出しの右。効くのは給与サマリーの金額ぜんぶ（fmt() と exactH() が隠す）。
+     スケジュール・分析のタブは隠さない（オーナー回答「給与サマリーの中だけ」）。紙・PDF も画面どおり。 */
+  var EYE_ON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  var EYE_OFF = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.7 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-2.8 3.8"/><path d="M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7c1.9 0 3.6-.6 5.1-1.5"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="M3 3l18 18"/></svg>';
+  // 名前は「金額を隠す」のまま・押している間は aria-pressed（字が替わるボタンにしない）。指を乗せたときの字だけ次にすること
+  function eyeBtn() {
+    return '<button type="button" class="mr-eye" data-eye aria-pressed="' + state.hide + '" aria-label="' + esc(T.eyeHide) + '"' +
+      ' title="' + esc(state.hide ? T.eyeShow : T.eyeHide) + '">' + (state.hide ? EYE_OFF : EYE_ON) + '</button>';
+  }
+  function toggleHide() {
+    var had = d.activeElement && d.activeElement.hasAttribute && d.activeElement.hasAttribute('data-eye');
+    state.hide = !state.hide;
+    try { w.localStorage.setItem(HIDE_KEY, state.hide ? '1' : '0'); } catch (e) {}
+    render();
+    var b = root.querySelector('[data-eye]');
+    if (b && had) b.focus({ preventScroll: true });   // 描き直したボタンへ（キーボードで押した人が迷子にならない）
   }
   function note(s) { return '<div class="pt-note">' + s + '</div>'; }   // 太字を通すので esc しない
   function empty(s) { return '<div class="pt-empty">' + esc(s) + '</div>'; }
@@ -778,6 +820,9 @@
     var sym = (C && C.symbols && C.symbols[cur]) || '¥';
     return sym + Math.round(jpy / rate).toLocaleString('en-US');
   }
+  /* 目のアイコンで隠している間は「••••」（前回の明細との差・給与が変わった理由）。
+     ★exact() そのものは形を変えない（sec() と同じく deep-pay.js・deep-pay-compare.js に写しがある） */
+  function exactH(jpy) { return state.hide ? MASK : exact(jpy); }
   // pay_benchmarks は USD 建て。サイトの表示レートで円に直す（lp.js と同じ既定値）。
   function usdToJpy(usd) {
     var r = (w.PVCurrency && w.PVCurrency.rates && w.PVCurrency.rates.USD) || 158.95;
@@ -921,7 +966,7 @@
        ★2026-11-11 ページで色のついたカードはこの1枚だけ（is-green）。 */
     var prev = m ? (m.a.period_year === r.period_year ? T.ymShort(m.a.period_year, m.a.period_month)
                                                        : T.ym(m.a.period_year, m.a.period_month)) : null;
-    return sec(T.monthOf(T.ym(r.period_year, r.period_month)), body, prev ? T.momOf(prev) : '', 'is-green');
+    return secWith(eyeBtn(), T.monthOf(T.ym(r.period_year, r.period_month)), body, prev ? T.momOf(prev) : '', 'is-green');
   }
 
   /* ── 累計報酬 ──────────────────────────────────────────────
@@ -1203,7 +1248,7 @@
     }
     var body = m.pairs.length
       ? '<div class="mv-cmp">' + m.pairs.map(function (x) {
-          return x.money ? cmpRow(x.nm, exact(x.a * m.fx), exact(x.b * m.fx), x.a, x.b)
+          return x.money ? cmpRow(x.nm, exactH(x.a * m.fx), exactH(x.b * m.fx), x.a, x.b)
                          : cmpRow(x.nm, hh(x.a), hh(x.b), x.a, x.b);
         }).join('') + '</div>'
       : empty(T.cmpNoPair);
@@ -1277,7 +1322,7 @@
     var mny = function (v, sign) {
       var x = R.fromMinor(v, cur);
       if (x == null || fx == null) return '—';
-      var j = x * fx, t = exact(Math.abs(j)), z = /^\D*0$/.test(t);
+      var j = x * fx, t = exactH(Math.abs(j)), z = /^\D*0$/.test(t);
       return sign ? (z ? '±' : j > 0 ? '+' : '−') + t : (j < 0 && !z ? '−' : '') + t;
     };
     var kindNm = function (k) {
@@ -1369,7 +1414,7 @@
        無理に2分割すると、どちらに寄せても嘘になる。 */
   function breakdown(r) {
     var dn = V.donut(r, {
-      title: T.ym(r.period_year, r.period_month), name: SEGNAME,
+      title: T.ym(r.period_year, r.period_month), name: SEGNAME, fmt: fmt,   // 金額は目のアイコンに従う
       notes: { housing: T.housingNote, unionOut: T.unionOutNote,
                absence: T.absenceNote, noBreakdown: T.restOnly }
     });
@@ -1722,14 +1767,14 @@
     if (state.view === 'month') {
       var ms = monthsOf(rows).map(function (o) { return { k: o.k, t: T.ym(o.y, o.m) }; });
       if (ms.length) pk = picker('m', ms, state.mYm || ms[0].k, T.pickM, T.prevM, T.nextM);
-    } else {
+    } else if (state.view === 'year') {
       var ys = yearsOf(rows).map(function (y) { return { k: y, t: T.yrL(y) }; });
       if (ys.length) pk = picker('y', ys, state.year || ys[0].k, T.pickY, T.prevY, T.nextY);
-    }
+    }                                       // 全期間は選ぶものが無い（期間はカードの見出しに出る）
     return '<div class="mv-vrow"><div class="pt-tabs mv-view" role="tablist">' +
-      ['month', 'year'].map(function (k) {
+      ['month', 'year', 'all'].map(function (k) {
         return '<button type="button" role="tab" aria-selected="' + (state.view === k) + '" class="pt-tab' + (state.view === k ? ' on' : '') +
-          '" data-view="' + k + '">' + esc(k === 'month' ? T.vMonth : T.vYear) + '</button>';
+          '" data-view="' + k + '">' + esc(k === 'month' ? T.vMonth : k === 'year' ? T.vYear : T.vAll) + '</button>';
       }).join('') + '</div>' + pk +
       /* 「今月」だけ印刷のボタン（「1年」には自分の PDF のボタンがある） */
       (state.view === 'month' ? '<button type="button" class="mv-tool" data-print aria-label="' + esc(T.prPrintA) + '">' + PRINT_ICON + esc(T.prPrint) + '</button>' : '') +
@@ -1765,7 +1810,7 @@
   }
   /* 紙に出さない操作の部品（選ぶ欄は選んでいる字に置き換えてから外す） */
   var PR_DROP = '.mv-vrow,.mv-op,.mv-remind,.an-tools,.an-btn,.an-link,.an-ask,.an-tip,.an-thr input,.an-thr-ax,.an-need,' +
-    '.rs-hd-r,.rs-resel,.rs-tip,.rs-docs,.rs-upbox,.rs-entry,.rs-flash,.rs-hint,.mv-wf-tip,.pt-btn,.mr-mask-over,#mr-ref-slot,input,textarea';
+    '.rs-hd-r,.rs-resel,.rs-tip,.rs-docs,.rs-upbox,.rs-entry,.rs-flash,.rs-hint,.mv-wf-tip,.pt-btn,.mr-mask-over,.mr-eye,#mr-ref-slot,input,textarea';
   function printPane(period) {
     var src = panes && panes[state.tab];
     if (!src) return;
@@ -1807,6 +1852,8 @@
     setTimeout(done, 1000);                        // afterprint を出さない端末でも写しを残さない
   }
   function bindView() {
+    /* 今月の緑のカードの目（年・全期間は my-year.js がカードを描くたびに繋ぐ） */
+    if (state.view === 'month') { var eb = root.querySelector('[data-eye]'); if (eb) eb.addEventListener('click', toggleHide); }
     var pb = root.querySelector('[data-print]');
     if (pb) pb.addEventListener('click', function () {
       var r = state.sel || state.rows[state.rows.length - 1];   // ★選んでいる月の明細
@@ -2156,13 +2203,15 @@
          「今月」と同じカードを年のまとめの上に置く（全社ぶん・足し方は totals()）。PDF（#pv-year の写し）には入れない。 */
     /* 見出しの行（会社・機種・職位＋「今月｜1年」）は「今月」と同じ＝切り替えても同じ場所に居る */
     /* ★2026-11-11 累計報酬は1年のカードと同じ2列の並びの1枚目（my-year.js の lead）。1年の部品が届く前もそこに置いておく */
+    /* ★2026-11-15 全期間では累計報酬のカードを置かない（隣の緑の「総支給の合計」と同じ数字が2枚並ぶ）。累計は月・年で見られる */
+    var allV = state.view === 'all';
     root.innerHTML = opBar() + header(state.data || {}, rows[rows.length - 1], rows) +
-      '<div class="mr-stack"><div id="pv-year-box"><div class="yr yr-g">' + lifetime(rows) + '</div></div></div>';
+      '<div class="mr-stack"><div id="pv-year-box"><div class="yr yr-g">' + (allV ? '' : lifetime(rows)) + '</div></div></div>';
     drawCumChart();                        // 実寸が要るので DOM に入れてから
     bindOp();
     bindView();
     if (!w.PVYear) {
-      loadYear().then(function (ok) { if (ok && state.view === 'year') render(); });
+      loadYear().then(function (ok) { if (ok && state.view !== 'month') render(); });
       return;
     }
     /* 月をまたぐ比較と同じく、最新の会社の月だけ（会社が変われば契約が違う） */
@@ -2170,8 +2219,9 @@
     if (state.year && ysel.indexOf(state.year) < 0) state.year = null;
     w.PVYear.render(d.getElementById('pv-year-box'), sameAirline(rows, rows[rows.length - 1]), {
       segName: SEGNAME, sample: !!state.sample,
-      year: state.year || ysel[0] || null,     // ★上の「‹ 2026年 ›」で選んだ年（カードの中の年の切り替えは出さない）
-      lead: function () { return lifetime(rows); }, onDraw: drawCumChart,
+      year: allV ? 'all' : (state.year || ysel[0] || null),   // ★上の「‹ 2026年 ›」で選んだ年（カードの中の年の切り替えは出さない）・全期間は 'all'
+      lead: allV ? null : function () { return lifetime(rows); }, onDraw: drawCumChart,
+      hide: state.hide, eye: eyeBtn, onEye: toggleHide,      // 緑のカードの目のアイコン
       /* 会社の会員の単価と折れ目（db/company-rates.sql・2人以上の組だけ・人数は返らない）。
          口がまだ無い（SQL を貼る前）・失敗したときは null ＝本人の数字だけで描く。見本のときは作り物を返す。 */
       company: function (airline) {
@@ -2199,7 +2249,7 @@
     if (!sumShown()) { state.sumDirty = true; return; }   // 隠れた面に図を描かない（MY PAY が閉じているときも）
     var rows = (state.sample && w.PV_VALUE_SAMPLE) ? w.PV_VALUE_SAMPLE(state.sample) : (dat.reports || []);
     if (!rows.length) return renderEmpty();
-    if (state.view === 'year') return renderYear(rows);
+    if (state.view !== 'month') return renderYear(rows);   // 年・全期間
     var at = rows.length - 1;
     if (state.mYm) { for (var ri = rows.length - 1; ri >= 0; ri--) if (ymOfRow(rows[ri]) === state.mYm) { at = ri; break; } }
     if (ymOfRow(rows[at]) !== state.mYm) state.mYm = null;
@@ -2423,7 +2473,7 @@
       if (state.tab === 'roster' && payShown()) { if (w.PVRoster && w.PVRoster.redraw) w.PVRoster.redraw(); }
       if (!state.rows.length) return;
       if (!sumShown()) { state.sumDirty = true; return; }   // 見えたときに描き直す
-      if (state.view === 'year') { if (w.PVYear) w.PVYear.redraw(); drawCumChart(); return; }
+      if (state.view !== 'month') { if (w.PVYear) w.PVYear.redraw(); drawCumChart(); return; }
       drawCumChart();
     }, 160);
   });

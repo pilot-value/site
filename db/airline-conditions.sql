@@ -47,6 +47,12 @@ begin
                     and column_name = 'topic_only') then
     raise exception '先に db/conditions.generated.sql を実行し直してください（質問マスタに topic_only の列が無い）';
   end if;
+  -- 続きの質問（deep・2026-11-14）を「答えた項目：N／M」と「次の質問」から外すのに使う（5・6・7）
+  if not exists (select 1 from information_schema.columns
+                  where table_schema = 'public' and table_name = 'pv_condition_questions'
+                    and column_name = 'deep') then
+    raise exception '先に db/conditions.generated.sql を実行し直してください（質問マスタに deep の列が無い）';
+  end if;
   if to_regclass('public.profiles') is null then
     raise exception 'profiles がありません。先に既存のスキーマを流してください';
   end if;
@@ -788,12 +794,14 @@ begin
      （num_nonnulls = 答えの列のうち null でない数。0 なら中身はスキップの印だけ）
      ★話題の入口からだけ出す質問（topic_only）への答えも数えない（2026-10-04）。
        一覧に出ない質問を分子に入れると、分母（一覧に出る質問の数）を超える。
-       保存はしている（saved には入る）。数えないだけ */
+       保存はしている（saved には入る）。数えないだけ
+     ★続きの質問（deep・2026-11-14）も同じ。一覧の行に無く、分母にも入れていない */
   select count(*) into v_total
     from public.airline_conditions c
     join public.pv_condition_questions q on q.id = c.question_id
    where c.proof_hash = v_hash
      and not q.topic_only
+     and q.deep is null
      and num_nonnulls(c.answer_code, c.answer_codes, c.answer_num, c.answer_text, c.answer_json) > 0;
 
   return jsonb_build_object(
@@ -806,7 +814,7 @@ begin
     -- ★分母は一覧に出る質問だけ。topic_only を入れると、一覧に無い質問の数だけ「未回答」が残り続ける
     'answered_total', v_total,
     'questions_total', (select count(*) from public.pv_condition_questions
-                         where active and not topic_only));
+                         where active and not topic_only and deep is null));
 end $$;
 
 revoke all on function public.submit_airline_conditions(jsonb) from public, anon;
@@ -884,12 +892,13 @@ begin
     v_open := coalesce(public.pv_contrib_sees(v_airline) = 'open', false);
   end if;
 
-  -- その会社でこの人が実際に答えた数（スキップだけの行と、話題の入口からだけ出す質問は数えない）
+  -- その会社でこの人が実際に答えた数（スキップだけの行と、話題の入口からだけ出す質問・続きの質問は数えない）
   select count(*) into v_count
     from public.airline_conditions c
     join public.pv_condition_questions q on q.id = c.question_id
    where c.proof_hash = v_hash
      and not q.topic_only
+     and q.deep is null
      and num_nonnulls(c.answer_code, c.answer_codes, c.answer_num, c.answer_text, c.answer_json) > 0;
 
   with mine as (
@@ -922,6 +931,8 @@ begin
      where q.active
        -- 話題の入口からだけ出す質問は、1問枠にも一覧の「次の質問」にも出さない
        and not q.topic_only
+       -- 続きの質問（deep・2026-11-14）も出さない。聞くのは答える画面で、親のすぐ下だけ
+       and q.deep is null
        and (not v_micro or q.micro)
        /* 親の条件が、いちばん上まで続いている質問だけ（4b の pv_condition_links）。
           親が無い質問は段が1つも無いので、そのまま通る。
@@ -987,7 +998,9 @@ declare
   v_airline text := nullif(btrim(p->>'airline'), '');
   v_other   text := nullif(btrim(p->>'airline_other'), '');
   v_rows    jsonb;
-  v_listed  int;   -- 一覧に出る質問への答えの数（topic_only を除く）
+  v_listed  int;   -- 一覧に出る質問への答えの数（topic_only と続きの質問を除く）
+  v_split   jsonb := '[]'::jsonb;
+  v_open    boolean := false;
 begin
   if v_uid is null then
     raise exception 'ログインが必要です' using errcode = '42501';
@@ -1016,7 +1029,7 @@ begin
            'year',       c.effective_year,
            'month',      c.effective_month,
            'updated_at', c.updated_at) order by c.airline, q.priority), '[]'::jsonb),
-         count(*) filter (where not q.topic_only)
+         count(*) filter (where not q.topic_only and q.deep is null)
     into v_rows, v_listed
     from mine
     join public.airline_conditions c on c.proof_hash = mine.hash
@@ -1025,12 +1038,36 @@ begin
                       c.answer_text, c.answer_json) > 0
     join public.pv_condition_questions q on q.id = c.question_id;
 
+  /* その会社で答えが分かれている質問の id（2026-11-14）。答える画面が、続きの「何によって違いますか？」を
+     親のすぐ下に出すかを決めるのに使う。
+     ★返すのは、本人が「わからない」以外で答えた質問の分だけ ＝ 答えていない人には「分かれている」ことも渡さない（Give → Get）。
+       ただし、その会社の集計が開いている人（pv_contrib_sees が 'open'）には全部 ── カードで「回答が分かれています」を
+       もう見ている人で、カードの「何によって違う？ 教える ›」から来て、親に答えた所で続きを出せる。
+     ★人数・答えは返さない。表は db/contrib.sql の pv_condition_split（書き込みのときに作って置く）。
+       あちらはこのファイルより後に貼る ＝ まだ無い DB では空のまま返す（止めない）。
+     ⚠️ 2つの文に分けてある（関数が無い DB で式ごと止まらないように・6 と同じ） */
+  if v_airline is not null and v_airline <> 'other'
+     and to_regclass('public.pv_condition_split') is not null then
+    if to_regprocedure('public.pv_contrib_sees(text)') is not null then
+      v_open := coalesce(public.pv_contrib_sees(v_airline) = 'open', false);
+    end if;
+    select coalesce(jsonb_agg(s.question_id order by s.question_id collate "C"), '[]'::jsonb)
+      into v_split
+      from public.pv_condition_split s
+     where s.airline = v_airline
+       and (v_open or exists (select 1 from public.airline_conditions c
+                    where c.proof_hash = public.pv_condition_hash(v_uid, v_airline, null)
+                      and c.question_id = s.question_id
+                      and c.answer_code is not null and c.answer_code <> 'unknown'));
+  end if;
+
   return jsonb_build_object(
     'ok', true,
     'answers', v_rows,
+    'split', v_split,
     'answered_total', v_listed,
     'questions_total', (select count(*) from public.pv_condition_questions
-                         where active and not topic_only));
+                         where active and not topic_only and deep is null));
 end $$;
 
 revoke all on function public.my_airline_conditions(jsonb) from public, anon;

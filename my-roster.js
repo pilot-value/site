@@ -1063,11 +1063,14 @@
     return T.editErr;
   }
   function editRpc(date, day) {
+    /* 時刻から出したブロックタイム（印字の無い便だけ）も添える（取り込みと同じ・2026-11-15） */
+    var calc = day && R.calcMins ? R.calcMins([{ date: date, code: day.code, d_on: day.d_on, d_off: day.d_off, d_off_day: day.d_off_day, legs: day.legs || [] }], S.profile || {}) : {};
     var p = { date: date, day: day ? {
       code: day.code || null, d_on: day.d_on || null, d_off: day.d_off || null, d_off_day: day.d_off_day || 0,
       legs: (day.legs || []).map(function (l) {
         return { seq: l.seq, from: l.from || null, to: l.to || null, loc: l.loc || null, out: l.out || null, in: l.in || null,
-                 in_day: l.in_day || 0, block: l.block || null, kind: l.kind || 'unknown' };
+                 in_day: l.in_day || 0, block: l.block || null,
+                 calc_min: (!l.block && calc[date + '|' + l.seq]) || null, kind: l.kind || 'unknown' };
       }) } : null };
     return new Promise(function (ok, ng) {
       Promise.resolve(S.sb.rpc('edit_roster_day', { p_airline: S.airline, p_airline_other: S.other, p: p })).then(function (r) {

@@ -21,6 +21,7 @@
    ⑬ 「読めなかった日」の札は決まった5つ（OFF・VAC・SBY・TRN・GND）がいつもある。見た目からの候補は点線で示すだけで、
       押すか「この内容で決める」まで送らない。便や時刻が読めた日は、コードが読めなくても便ごと送る。
    ⑭ 便の乗務の区分（role）はどこにも持たない（送る日・直す画面・CSV）。
+   ⑯ 時刻から出したブロックタイム（calc_min）は印字の無い便にだけ添える・表の形は決まった形のものだけ取っておく（2026-11-15）。
    ⑮ 読み取りの間違いを運営に知らせる：直した所の種類と数だけ（日付・時刻・空港・便名・印を書かない）・500字まで・運営だけが見る（p_private）。 */
 import fs from 'fs';
 import vm from 'vm';
@@ -36,7 +37,7 @@ function load(ros, up, lang = 'ja') {
   win.window = win;
   const ctx = vm.createContext(win);
   for (const s of [VIZ, ENG, ros, up]) vm.runInContext(s, ctx);
-  return { P: win.PVRoster && win.PVRoster._, U: win.PVRosterUpload && win.PVRosterUpload._, W: win.PVRosterUpload };
+  return { P: win.PVRoster && win.PVRoster._, U: win.PVRosterUpload && win.PVRosterUpload._, W: win.PVRosterUpload, E: win.PVReport };
 }
 /* 画面の無い箱と、押した札（open() と onClick が触るところだけ） */
 function fakeBox() { return { innerHTML: '', querySelector() { return null; }, querySelectorAll() { return []; }, addEventListener() {}, contains() { return true; }, scrollIntoView() {} }; }
@@ -46,7 +47,7 @@ function tap(U, attrs) {
 }
 const TOK1 = '#0123456789abcdef', TOK2 = '#fedcba9876543210';
 
-function checks({ P, U, W }) {
+function checks({ P, U, W, E }) {
   const fails = [];
   const ok = (c, msg) => { if (!c) fails.push(msg); };
   if (!P || !U || !W) return ['部品が読めない'];
@@ -294,6 +295,18 @@ function checks({ P, U, W }) {
   ok(!String(ct.main + ct.sub + cu.main + cu.sub).includes('#') && P.codeText(TOK1).indexOf('#') < 0 && P.canon(TOK1.toUpperCase()) === TOK1, '⑪ カレンダー・日の板に印を出さない（意味か「' + P.fill(P.T.tokL, { k: '' }).trim() + '」）');
   const dl = P.legHTML({ seq: 1, from: 'HND', to: 'KIX', out: '08:00', in: '09:10', inDay: 0, blockMin: 70, role: 'CAP', kind: 'deadhead' });
   ok(dl.includes(P.T.kindDh) && !dl.includes('CAP'), '⑭ DH の札は「DH」だけ（乗務の区分を出さない）');
+
+  // ⑯ 時刻から出したブロックタイム（JAL の勤務表には欄が無い）と表の形
+  const D16 = { date: '2026-10-12', code: null, d_on: '07:00', d_off: '12:00', d_off_day: 0, legs: [
+    { seq: 1, from: 'HND', to: 'CTS', loc: null, out: '08:00', in: '09:30', in_day: 0, block: null, kind: 'operating' },
+    { seq: 2, from: 'CTS', to: 'HND', loc: null, out: '10:00', in: '11:40', in_day: 0, block: '1:35', kind: 'operating' }] };
+  const cm = E && E.calcMins ? E.calcMins([D16], { time_ref: 'utc' }) : null;
+  ok(!!cm && cm['2026-10-12|1'] === 90 && !('2026-10-12|2' in cm), '⑯ 時刻から出した分は印字の無い便だけ（数え方は計算の部品の1か所）');
+  const s16 = U.stripDay(D16, { '2026-10-12|1': 90, '2026-10-12|2': 100 });
+  ok(s16 && s16.legs[0].calc_min === 90 && s16.legs[1].calc_min === null, '⑯ 保存する便に calc_min を添える（印字のある便には添えない）');
+  ok(U.stripDay(D16).legs[0].calc_min === null, '⑯ 計算の答えが無ければ calc_min は null');
+  ok(!!U.layoutOf && U.layoutOf({ columns: ['date'], time_style: 'HHMM', gaps: { no_time: 1 } }).columns[0] === 'date'
+     && U.layoutOf('x') === null && U.layoutOf({ columns: 'date', gaps: {} }) === null, '⑯ 表の形は決まった形のものだけ取っておく');
   return fails;
 }
 
@@ -319,8 +332,8 @@ console.log('▼ 壊す証明');
 const BREAK = [
   ['① 答え済みの鍵も送る', "if (!pr[k] && a[k]) { p[k] = a[k]; any = true; }", "if (a[k]) { p[k] = a[k]; any = true; }", 'up'],
   ['② 前の勤務コードを捨てる', "codes[k] = pr.codes[k]; });   // ★丸ごと", "});   // ★丸ごと", 'up'],
-  ['③ 1日を丸ごと送る', 'var days = U.merged.days.map(stripDay);', 'var days = U.merged.days;', 'up',
-    (src) => src.replace('function stripDay(x) {', () => 'function stripDay(x) { return x;')],
+  ['③ 1日を丸ごと送る', 'var days = U.merged.days.map(function (x) { return stripDay(x, calc); });', 'var days = U.merged.days;', 'up',
+    (src) => src.replace('function stripDay(x, calc) {', () => 'function stripDay(x, calc) { return x;')],
   ['④ 地上の業務にも矢印を出す', "var where = l.kind === 'ground'", "var where = false", 'ros'],
   ['⑥ CSV にほかの月の日も書く', "    m.days.forEach(function (x) {\n      var on = x.dOn || x.dOff;", "    S.months.reduce(function (a, y) { return a.concat(y.days); }, []).forEach(function (x) {\n      var on = x.dOn || x.dOff;", 'ros'],
   ['⑥ 地上の業務に空港を書く', "gnd ? '' : (l.from || ''), gnd ? '' : (l.to || '')", "(l.from || ''), (l.to || '')", 'ros'],
@@ -339,7 +352,8 @@ const BREAK = [
   ['⑬ 候補を押す前に入れてしまう', "    prefill();\n    applyBlank();\n  }", "    prefill();\n    applyBlank();\n    sugRows().forEach(function (dt) { fillCode(dt, sugOf(dt)); });\n  }", 'up'],
   ['⑬ 決まった5つの札を出さない', 'var out = STD_CHIPS.slice();', 'var out = [];', 'up'],
   ['⑬ コードが読めなかった日を便ごと捨てる', "if (x.unread || x.blank) {", "if (x.unread) return true; if (x.blank) {", 'up'],
-  ['⑭ 送る便に role を戻す', "block: l.block || null,\n                 kind: l.kind || 'unknown', page", "block: l.block || null, role: 'CAP',\n                 kind: l.kind || 'unknown', page", 'up'],
+  ['⑭ 送る便に role を戻す', "block: l.block || null,\n                 calc_min:", "block: l.block || null, role: 'CAP',\n                 calc_min:", 'up'],
+  ['⑯ 印字のある便にも計算の分を添える', "calc_min: (!l.block && calc && calc[x.date + '|' + l.seq]) || null,", "calc_min: (calc && calc[x.date + '|' + l.seq]) || null,", 'up'],
   ['⑮ 要約に日付を書く', "{ airline: U.ctx.airlineLabel, build", "{ airline: Object.keys(U.edits).join(','), build", 'up'],
   ['⑮ 誰でも見える要望として送る', "p_category: 'bug', p_private: true", "p_category: 'bug', p_private: false", 'up']
 ];

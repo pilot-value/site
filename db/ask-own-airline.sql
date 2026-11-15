@@ -53,6 +53,10 @@ begin
   if to_regprocedure('public.pv_contrib_own(uuid)') is null then
     raise exception '先に db/contrib.sql を実行してください（pv_contrib_own が無い）';
   end if;
+  -- 答えが分かれた質問の表（2026-11-14・続きの「何によって違いますか？」を出す会社）
+  if to_regclass('public.pv_condition_split') is null then
+    raise exception '先に db/contrib.sql を実行し直してください（pv_condition_split が無い）';
+  end if;
 end
 $guard$;
 
@@ -261,6 +265,12 @@ begin
        and not q.topic_only
        and q.id <> all(v_not)
        and q.id <> all(v_filled)
+       /* 続きの「何によって違いますか？」（deep = 'split'・2026-11-14）は、その会社で親の答えが分かれているときだけ。
+          決めるのは db/contrib.sql の pv_condition_split（カードの「回答が分かれています」と同じ1か所）。
+          ★本人が親に答えているかは、すぐ下の親の条件が見る（parent_when は親の「わからない」以外の全部） */
+       and (q.deep is distinct from 'split'
+            or exists (select 1 from public.pv_condition_split s
+                        where s.airline = v_code and s.question_id = q.parent))
        -- 親の条件が、その人自身の答えで、いちばん上まで続いている質問だけ
        and not exists (
              select 1 from public.pv_condition_links k

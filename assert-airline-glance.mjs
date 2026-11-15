@@ -926,7 +926,8 @@ for (const s of FIVE) {
       for (const t of tps) {
         const views = [...new Set([...t.body.matchAll(/ data-pvc-open="([^"]*)"/g)].map(m => m[1]))];
         const rows = [...t.body.matchAll(/ data-pvc-q="([a-z0-9_]+)"/g)].map(m => m[1]);
-        const want = ASKABLE.filter(id => groupOf(id) === views[0] && !MONEY_Q.includes(id));
+        /* 続きの質問（deep）は札の下に並べない ── 答える面では親のすぐ下に出る */
+        const want = ASKABLE.filter(id => groupOf(id) === views[0] && !MONEY_Q.includes(id) && !QBY.get(id).deep);
         const lost = want.filter(id => !rows.includes(id)), extra = rows.filter(id => !want.includes(id));
         if (lost.length) bad.push(`${t.id}: 並んでいない質問 ${lost.join(' ')}`);
         if (extra.length) bad.push(`${t.id}: ほかの話題か額の質問 ${extra.join(' ')}`);
@@ -957,7 +958,9 @@ for (const s of FIVE) {
       const slot = /^<p class="pvg-askh">集まった回答<\/p><div class="crl" data-live="fact"([^>]*)><span class="crl-ph">—<\/span>$/.exec(got);
       const keys = slot ? (one(slot[1], / data-keys="([^"]*)"/) || '').split(',').filter(Boolean) : [];
       const asked = [...new Set(tps.flatMap(t => [...t.body.matchAll(/ data-pvc-q="([a-z0-9_]+)"/g)].map(m => m[1])))];
-      ok(card.split('data-live="fact"').length === 2 && !!slot && keys.length > 0 && same([...keys].sort(), [...asked].sort()),
+      /* 欄が指すのは、並ぶ質問とその続きの質問（deep）── 続きの答えは親のカードの中の1行で出る */
+      const follow = QUESTIONS.filter(q => q.deep && asked.includes(q.parent)).map(q => q.id);
+      ok(card.split('data-live="fact"').length === 2 && !!slot && keys.length > 0 && same([...keys].sort(), [...asked, ...follow].sort()),
          `${s}: 回答の数が出るのは「集まった回答」の欄1つだけ ── 「—」で出荷し、${ASK_N}つの話題の質問を全部指している`, `欄 ${card.split('data-live="fact"').length - 1}つ・指す質問 ${keys.length}・並ぶ質問 ${asked.length}`);
     }
   }
@@ -2390,6 +2393,20 @@ const BEN_ROWS = [
   { question_id: 'landing_pay_unit', kind: 'choice', n: 4, lead: [], median_num: null, ym: '2026-10', want: { split: true } },
   { question_id: 'landing_pay_amount', kind: 'num', n: 3, lead: null, median_num: 1500, ym: '2026-10', want: { none: true } },
 ];
+/* 続きの質問への誘い（2026-11-14 オーナー「一部可能にはもう一つ突っ込んで質問して欲しい。あと回答が分かれている場合も」）を見るための行。
+   'giveCue' の場面（runGiveOpen の中で差し替える）で、開いている人への返事にこれだけを載せる。
+   want.cue ＝ カードに出る誘いの行が指す続きの質問（無ければ誘いの行は無い）・want.line ＝ カードの中に出る続きの1行（続きの質問・答えの符号）。 */
+const CUE_ROWS = [
+  { question_id: 'days_off_request', kind: 'choice', n: 11, lead: ['partial'], median_num: null, ym: '2026-11', want: { cue: 'days_off_request_partial' } },
+  { question_id: 'schedule_bidding', kind: 'choice', n: 11, lead: ['partial'], median_num: null, ym: '2026-11', want: { line: ['schedule_bidding_partial', 'seniority'] } },
+  { question_id: 'schedule_bidding_partial', kind: 'choice', n: 3, lead: ['seniority'], median_num: null, ym: '2026-11', want: {} },
+  { question_id: 'reserve_duty', kind: 'choice', n: 3, lead: ['yes'], median_num: null, ym: '2026-08', want: {} },
+  { question_id: 'roster_changes', kind: 'choice', n: 4, lead: [], median_num: null, ym: '2026-10', want: { line: ['roster_changes_split', 'fleet'] } },
+  { question_id: 'roster_changes_split', kind: 'choice', n: 3, lead: ['fleet'], median_num: null, ym: '2026-10', want: {} },
+  { question_id: 'external_hiring', kind: 'choice', n: 10, lead: [], median_num: null, ym: '2026-11', want: { cue: 'external_hiring_split' } },
+  /* 「一部」の印（条件付きで使える）でも、続きの質問を持たない親には誘いの行を出さない */
+  { question_id: 'commuting_transport', kind: 'choice', n: 3, lead: ['conditional'], median_num: null, ym: '2026-09', want: {} },
+];
 /* サーバーが間違えて送ってきても画面が出さないことを見るための行（聞いてもいない質問）。この数字は画面に出てはいけない。 */
 const LEAK_ROW = { question_id: 'zz_not_asked', kind: 'num', n: 99, lead: null, median_num: 77.7, ym: '2026-09' };
 /* 返事に載せる形。本物の口が返す鍵（FACT_KEYS ＝ SQL から読んだもの）だけを載せる ＝ 検査の中だけの鍵（want・bogus）は落ちる。
@@ -2406,6 +2423,7 @@ const factBody = mode => (mode === 'work' || mode === 'work2' || mode === 'work0
   ? JSON.stringify({ ok: true, state: 'locked', facts: SENT.map(wire) })   // 鍵の無い会員。行が付いてきても、画面は1行も出さない
   : mode === 'give' ? JSON.stringify({ ok: true, state: 'give', facts: SENT.map(wire) })      // 自分の会社への回答が足りない人。行が付いてきても、画面は1行も出さない
   : mode === 'giveOpen' ? JSON.stringify({ ok: true, state: 'open', facts: SENT.map(wire) })  // 開いている人。欄が聞いた質問の行だけを出す
+  : mode === 'giveCue' ? JSON.stringify({ ok: true, state: 'open', facts: CUE_ROWS.map(wire) })  // 開いている人・続きの質問への誘いを見る行
   /* ★2026-11-09 鍵の無い人にも、回答が集まった質問の id（has）だけが届く。子（reserve_location）と聞いていない質問は、わざと混ぜる（画面は出さない） */
   : mode === 'maskLogin' ? JSON.stringify({ ok: true, state: 'login', has: MASK_HAS })
   : mode === 'maskRows' ? JSON.stringify({ ok: true, state: 'locked', has: MASK_HAS })
@@ -8293,6 +8311,66 @@ async function runGiveOpen(browser, s, [w, h]) {
       }
       ok(!bad.length, `${tag}: 回答が在る時 ── カードの中で人数（回答 ◯人）が出るのは「集まった回答」の欄だけ・話題の札は「質問 N問」のまま（2つの数え方を混ぜない）`, bad.slice(0, 4).join(' ／ '));
       await digestRowsOk(p, tag, '.pvg-askc .pvg-got', got.keys);
+    }
+    /* 続きの質問への誘い（2026-11-14）。返事を CUE_ROWS に替えて、保存の知らせで「集まった回答」を読み直させる。
+       c1 先頭の答えが「一部」で続きの答えがまだ無いカード・「回答が分かれています」のカードにだけ、誘いの1行
+       c2 誘いの行は、その続きの質問を指す（data-pvc-q）・行き先と開く面は、同じカードの親の質問の行と同じ
+       c3 続きの答えが3人そろったカードは、誘いではなく「短い名前：答え」の1行
+       c4 「一部」の印でも、続きを持たない親（通勤の「条件付きで使える」）には出さない
+       c5 誘いの字は、台帳の cue ＋「教える」だけ（人数・答えの数を書かない）
+       終わったら返事を戻して読み直させる（下の測り直し・給与のタブは、今までの行で見る）。 */
+    {
+      const reread = async (mode, want) => {
+        seen.mode = mode;
+        await ev(() => document.dispatchEvent(new CustomEvent('pvc:saved', { detail: { topic: 'roster' } })));
+        return p.waitForFunction(label => {
+          const slot = document.querySelector('.pvg-askc .pvg-got .crl[data-live="fact"]');
+          return !!slot && slot.dataset.state === 'open' && [...slot.querySelectorAll('.crl-tile-k')].some(k => k.textContent === label);
+        }, { timeout: 15000 }, want).then(() => true, () => false);
+      };
+      const label = id => QBY.get(id).ja.short;
+      const heads = () => ev(() => [...document.querySelectorAll('.pvg-askc .pvg-got .crl-tile-k')].map(k => k.textContent).join('|'));
+      const before = await heads();
+      const came = await reread('giveCue', label('external_hiring'));
+      const got = await ev(() => {
+        const card = document.querySelector('.pvg-askc');
+        const row = id => { const a = card.querySelector('a[data-pvc-q="' + id + '"]'); return a ? { href: a.getAttribute('href'), open: a.getAttribute('data-pvc-open') } : null; };
+        return [...card.querySelectorAll('.pvg-got .crl-tile')].map(t => {
+          const a = t.querySelector('a.crl-tile-cue');
+          return {
+            k: (t.querySelector('.crl-tile-k') || {}).textContent || '',
+            cue: a ? { text: a.textContent, q: a.getAttribute('data-pvc-q'), open: a.getAttribute('data-pvc-open'), href: a.getAttribute('href'), on: a.getClientRects().length > 0 } : null,
+            lines: [...t.querySelectorAll('.crl-tile-s')].map(x => x.textContent),
+            rows: Object.fromEntries(['days_off_request', 'external_hiring'].map(id => [id, row(id)])),
+          };
+        });
+      });
+      const bad = [];
+      if (!came) bad.push('返事を替えても「集まった回答」が読み直されない');
+      for (const f of CUE_ROWS.filter(x => !QBY.get(x.question_id).parent)) {
+        const t = got.find(x => x.k === label(f.question_id));
+        if (!t) { bad.push(`c1 「${label(f.question_id)}」のカードが無い`); continue; }
+        if (f.want.cue) {
+          const q = QBY.get(f.want.cue), r = t.rows[f.question_id];
+          if (!t.cue || !t.cue.on) { bad.push(`c1 「${t.k}」に誘いの行が無い`); continue; }
+          if (t.cue.q !== f.want.cue) bad.push(`c2 「${t.k}」の誘いが指す質問 ${t.cue.q}（あるべき ${f.want.cue}）`);
+          if (!r || t.cue.href !== r.href || t.cue.open !== r.open) bad.push(`c2 「${t.k}」の誘いの行き先 ${t.cue.href}・${t.cue.open}（親の行 ${r && r.href}・${r && r.open}）`);
+          if (t.cue.text !== q.ja.cue + ' 教える') bad.push(`c5 「${t.k}」の誘いの字「${t.cue.text}」（あるべき「${q.ja.cue} 教える」）`);
+        } else if (t.cue) bad.push(`c${f.question_id === 'commuting_transport' ? 4 : 1} 「${t.k}」に誘いの行がある（${t.cue.q}）`);
+        if (f.want.line) {
+          const [id, code] = f.want.line, q = QBY.get(id), name = q.choices.find(c => c.code === code).ja;
+          if (!t.lines.some(l => l === q.ja.short + name)) bad.push(`c3 「${t.k}」に続きの1行「${q.ja.short}：${name}」が無い（${t.lines.join('｜') || '無し'}）`);
+        }
+      }
+      ok(!bad.length, `${tag}: 続きの質問への誘い ── 「一部」と「回答が分かれています」のカードにだけ、続きの質問を指す1行（行き先は親の行と同じ）・続きがそろえば「名前：答え」の1行・続きの無い親には出さない`, bad.slice(0, 5).join(' ／ '));
+      /* 戻ったかは、替える前のカードの見出しの並びが1文字も違わずに戻ったかで見る */
+      seen.mode = 'giveOpen';
+      await ev(() => document.dispatchEvent(new CustomEvent('pvc:saved', { detail: { topic: 'roster' } })));
+      const back = await p.waitForFunction(want => {
+        const slot = document.querySelector('.pvg-askc .pvg-got .crl[data-live="fact"]');
+        return !!slot && slot.dataset.state === 'open' && [...slot.querySelectorAll('.crl-tile-k')].map(k => k.textContent).join('|') === want;
+      }, { timeout: 15000 }, before).then(() => true, () => false);
+      ok(!!before && back, `${tag}: 返事を戻すと、今までの行に読み直される`, before);
     }
     /* 行が出た形で測る（鍵の無い会員の場面の同じ2本は、行の無い画面を測っている）。 */
     const geo = await ev(() => window.__pvg.geom(true));

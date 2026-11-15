@@ -360,10 +360,14 @@ body.pv-anav-open #pv-anav-ov{opacity:1;pointer-events:auto}
   .mr-col{position:static;display:contents}
   .mv-priv{display:none}
 
+  /* ★2026-11-15 頭の帯は板と同じ地で、板の端から端まで（オーナー「トップのメニュー（スマホ）修正」）。
+       白の四角が板の余白ぶん左右 8px 内側に浮き、すりガラスの画面では板（白の 94%）と色も違っていた。
+       地は板から受け継ぐ（どの画面でも板と同じ色になる）。左上の角は板の overflow が丸く切るので書かない。 */
   .mr-side-head{display:flex;align-items:center;justify-content:space-between;
     gap:8px;position:sticky;top:0;z-index:1;
-    min-height:60px;padding:0 4px 0 10px;margin-bottom:6px;
-    background:var(--pv-bg);border-bottom:1px solid var(--pv-line-soft)}
+    min-height:60px;margin:0 calc(-8px - env(safe-area-inset-right)) 6px -8px;
+    padding:0 calc(12px + env(safe-area-inset-right)) 0 18px;
+    background:inherit;border-bottom:1px solid var(--pv-line-soft)}
 
   /* ★オーナー指示（2026-09-06）── 「絵があってその下に文字」。
        アイコンを上、ラベルを下に置いて中央で揃える。
@@ -395,6 +399,17 @@ body.pv-anav-open #pv-anav-ov{opacity:1;pointer-events:auto}
     text-align:center;font-size:.7rem}
   /* 錠前は札の右上へ。中央揃えの並びで「ラベルの右端」は意味を持たない。 */
   .mr-side-lk{position:absolute;top:6px;right:6px;margin-left:0}
+  /* ★2026-11-15「匿名で給与を追加」は行き先ではなく操作 ── 下の行き先から 10px 離す
+       （段どうしは 2px で、いま居る段の緑の板とくっついて見えた）。 */
+  .mr-side-a.is-add{margin-bottom:10px}
+  /* ★焦点の枠は段の内側に引く。開いた瞬間に焦点が先頭の段へ移るので、
+       外へ 2px 出す枠（上の素の規則）が隣の段にかぶっていた。 */
+  .mr-side-a:focus-visible{outline-offset:-2px}
+  /* ★2026-11-15 暗い画面では板を不透明に。すりガラス（pv-glass.css の 3 節）は板を地の色の 94% にしていて、
+       暗い地では下のページの明るい字（「すべての口コミを見る →」など）が板の上に透けて読めた。
+       明るい画面は 94% のまま（透けて見えない）。pv-glass.css が後に読まれるので、強さ（[data-theme] の1つ）で勝たせる。 */
+  html[data-ui][data-theme="dark"] .mr-side,
+  html[data-ui][data-theme="dark"] .mr-col .mr-side{background:var(--pv-surface)}
 
 }
 

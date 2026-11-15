@@ -19,6 +19,7 @@
       ★日付だけはこちらで決める：行に日しか無いとき、見出しの月・会員が選んだ月（hint）・
         前の画像の続き（prev_tail）・日の並び（…30, 31, 1 → 翌月）・曜日から1つに決まるときだけ置く。
         決まらない行は捨てて checks.undated に数える（AI に月を計算させない）。
+        ★月をまたぐ1枚（9/15〜10/16 など）は、月末の日と「始まりの月」でも決める（2026-11-15）。
       ★日付の列に在る日は、何も載っていなくても返す（2026-11-10。日本の勤務表で日がまるごと抜けていた）。
         記号が印字されていたが形・辞書に合わず捨てた日も、日付は残して unread:true を付ける（捨てた字はどこにも入れない）。
         unread はモデルに聞かない（答えの形に欄を足さない）。sanitize が決める。
@@ -30,6 +31,11 @@
         整えた言葉が16字を超えるもの（自由な文）は札にしない＝今までどおり捨てて unread。鍵が無いときも今までどおり。
       ★乗員の役職（CAP・FO・F/O・SO・PIC・SIC …）は読まない（2026-11-11。同じ行のほかの乗員の役職を拾っていた）。
         区間の欄に role は無い。便乗の印（DH・POS・PAX・便乗 …）は kind を決めるだけ。
+      ★出発地と到着地が同じ行（TYO→TYO・8時間など）は便ではない＝地上の勤務にする（場所＝その空港・2026-11-15）。
+        JAL の勤務表で、スタンバイが便として読まれていた。保存の口（db/roster.sql の pv_roster_clean_day）も同じ決まり。
+      ★読めない所があったページだけ、表の形（layout）を返す（2026-11-15）：列の種類（LAYOUT_COLS の決まった語）と
+        時刻の書き方（TIME_STYLES）だけ。印字の字は1文字も入らない（答えの形が決まった語しか許さない）。
+        画面が提出に添え、db/roster.sql が提出の行（pv_roster_docs.layouts）に残す＝運営のメールに「表の列」が出る。
    5. 回数を数える所が動かないときは通さない（fail closed）。
 
    ── 費用（目安）──────────────────────────────────────────
@@ -62,7 +68,7 @@ const DENO = (globalThis as any).Deno;
 const env = (k: string, d = '') => (DENO?.env?.get(k) ?? d) as string;
 
 /* ★このファイルを直したら必ず上げる（貼った版を {ping:1} で読むための札）。 */
-export const BUILD = '2026-11-13';
+export const BUILD = '2026-11-16';
 
 const ANTHROPIC_API_KEY = env('ANTHROPIC_API_KEY');
 const SUPABASE_URL = env('SUPABASE_URL');
@@ -102,6 +108,14 @@ export const CUTS = ['top', 'bottom', 'both'] as const;
 /* 日の種類（モデルが毎日かならず選ぶ・2026-11-11）。'blank' ＝ 何も印字されていない日・'unclear' ＝ 判断できない日。
    ⚠️ 語を増やすと、画面（取り込みの確認）と保存（db/roster.sql）が知らない語になる。増やすなら3か所を一緒に。 */
 export const DAY_CATS = ['off', 'leave', 'standby', 'training', 'ground', 'sick', 'duty', 'other', 'blank', 'unclear'] as const;
+/* 表の形（layout）の語。★決まった語だけ（答えの形の enum）＝印字の字は入らない。
+   ⚠️ db/roster.sql の pv_roster_layouts_clean が同じ並びを持つ（写し・db/test-roster-parse.mjs が突き合わせる）。 */
+export const LAYOUT_COLS = [
+  'date', 'weekday', 'duty_code', 'flight_no', 'from', 'to', 'out_time', 'in_time',
+  'block_time', 'flight_time', 'report_time', 'release_time', 'duty_time', 'aircraft', 'hotel',
+  'crew', 'credit', 'remarks', 'other',
+] as const;
+export const TIME_STYLES = ['HH:MM', 'H:MM', 'HHMM', 'HH.MM', 'other', 'none'] as const;
 /* 辞書に無い言葉の札。'#' ＋ 小文字の16進16桁（RE.code の記号と形が重ならない＝ '#' と小文字）。 */
 export const TOKEN_RE = /^#[0-9a-f]{16}$/;
 /* 札にする言葉の長さ（整えたあとの字数）。これより長いものは自由な文として捨てる。 */
@@ -243,6 +257,19 @@ export type Checks = {
   code_mapped: number; code_tokens: number; cut_days: number; partial_legs: number; unread_days: number;
   hint_mismatch: boolean; anchor: string | null;
 };
+/* 表の形（読めない所があったページだけ）。columns と time_style は決まった語だけ・gaps は数だけ。 */
+export type Layout = {
+  columns: string[]; time_style: string | null;
+  gaps: { undated: number; unread: number; no_time: number; no_onoff: number };
+};
+/* モデルの答えの layout を決まった語だけに絞る（外れた語・重なりは捨てる・20個まで）。 */
+function layoutOf(v: unknown, gaps: Layout['gaps']): Layout {
+  const o: Obj = isObj(v) ? v : {};
+  const cols = (Array.isArray(o.columns) ? o.columns : [])
+    .filter((c): c is string => typeof c === 'string' && (LAYOUT_COLS as readonly string[]).includes(c));
+  const ts = typeof o.time_style === 'string' && (TIME_STYLES as readonly string[]).includes(o.time_style) ? o.time_style : null;
+  return { columns: [...new Set(cols)].slice(0, 20), time_style: ts, gaps };
+}
 type Stats = Omit<Checks, 'days' | 'legs' | 'cut_days' | 'partial_legs' | 'unread_days' | 'hint_mismatch' | 'anchor'>;
 const newStats = (): Stats => ({
   undated: 0, dropped_days: 0, dropped_legs: 0, dropped_fields: 0, dup_days: 0,
@@ -330,13 +357,21 @@ function cleanLeg(src: unknown, page: number, st: Stats): Leg | null {
     if (got === null && given(raw)) st.dropped_fields++;
     return got;
   };
-  const kind: LegKind = (LEG_KINDS as readonly string[]).includes(src.kind as string) ? src.kind as LegKind : 'unknown';
+  let kind: LegKind = (LEG_KINDS as readonly string[]).includes(src.kind as string) ? src.kind as LegKind : 'unknown';
   const flight = field(src.flight, flightOf(src.flight));
   let from = field(src.from, tok(src.from, RE.apt));
   let to = field(src.to, tok(src.to, RE.apt));
   let loc = field(src.loc, tok(src.loc, RE.loc));
-  /* ★地上の業務は空港を持たない（訓練所を空港として数えない）。便は場所の欄を持たない。 */
-  if (kind === 'ground') { st.dropped_fields += (from ? 1 : 0) + (to ? 1 : 0); from = null; to = null; }
+  /* ★出発地と到着地が同じ行は便ではない（SX09 TYO 09:00 ~ 17:00 TYO の訓練・同じ空港のシャトルなど・2026-11-15）。 */
+  if (from && to && from === to) kind = 'ground';
+  /* ★地上の業務は空港を持たない（訓練所を空港として数えない）。便は場所の欄を持たない。
+     出発地・到着地の欄に書かれた場所は、場所の欄へ移す（「R TYO 06:00 ~ 23:59 TYO」の TYO・2026-11-15）。 */
+  if (kind === 'ground') {
+    const at = from ?? to;
+    if (!loc && at && RE.loc.test(at)) loc = at;
+    else st.dropped_fields += (from ? 1 : 0) + (to ? 1 : 0);
+    from = null; to = null;
+  }
   else if (kind !== 'unknown' && loc) { st.dropped_fields++; loc = null; }
   const out = parseClock(src.out); field(src.out, out);
   const inn = parseClock(src.in); field(src.in, inn);
@@ -432,8 +467,15 @@ export function sanitizeTail(v: unknown, now: Date = new Date()): Day[] {
    月をまたぐ所は日の並びで見る（…30, 31, 1, 2 → 翌月）。候補は ② の前後1か月の3つで、
      ・その日が存在しない月（9月31日）は候補から外す
      ・曜日が印字されていれば、合わない数が少ない月
-     ・前の画像の続きになっている月 → 見出しの期間に入る数 → ② の月に入る数
+     ・月末の日：日が1日ずつ並んでいて「30 → 1」と月をまたぐなら、前の月は30日で終わる月（8月30日の次は9月1日ではない）
+     ・前の画像の続きになっている月 → 見出しの期間に入る数 → ② の月が1日でも入る月
+     ・会員が選んだ月で始まる月（画面が「月をまたぐスケジュールは、始まりの月を選んでください」と言っている）
+     ・② の月に入る数
    の順に比べ、1つに決まらなければ置かない（捨てて undated に数える）。
+   ★月末の日と始まりの月は 2026-11-15。それまでは「② の月に入る数」だけで比べていて、日しか無い 9/15〜10/16 の1枚は
+     16日対16日で全部捨て、9/17〜10/16 を9月で出すと 8/17〜9/16 に黙ってずれていた。
+     始まりの月は、1枚目で、最初の月の部分が7日以上あるときだけ（カレンダーの頭に付く前の月の日は6日まで。
+     10月の表の頭の「29, 30」を10月29日にしない）。
    最後に、曜日が合わない行・日付が前の行より戻る行も置かない。
    ──────────────────────────────────────────────────────────── */
 export type DateParts = { y: number | null; m: number | null; d: number | null; wd: number | null };
@@ -499,11 +541,21 @@ export function resolveDates(parts: DateParts[], ctx: DateCtx): { dates: (string
 
   /* 3. 日だけの行。 */
   const only = parts.map((_p, i) => i).filter((i) => k[i] !== null && parts[i].m === null);
+  /* 月末の日を見るのは、日が1日ずつ並んでいるときだけ（勤務の日だけを並べる形では、抜けた日が月末とは限らない）。 */
+  let dense = only.length > 1;
+  const turns: number[] = [];                          // 月をまたぐ直前の行
+  for (let j = 1; j < only.length && dense; j++) {
+    const a = only[j - 1], b = only[j], da = parts[a].d as number, db = parts[b].d as number;
+    if (k[b] === k[a]) dense = db === da + 1;
+    else { dense = k[b] === (k[a] as number) + 1 && db === 1; turns.push(a); }
+  }
+  if (!dense) turns.length = 0;
+  const useStart = hintIdx !== null && !ctx.prevLast && only.filter((i) => k[i] === 0).length >= 7;
   if (only.length) {
     const cands = Bs.size ? [...Bs] : A !== null ? [A - 1, A, A + 1] : [];
     let best: number | null = null, bestS: number[] | null = null, tie = false;
     for (const B of cands) {
-      let ok = true, bad = 0, inA = 0, inP = 0;
+      let ok = true, bad = 0, gap = 0, inA = 0, inP = 0;
       let first: string | null = null;
       for (const i of only) {
         const { y, m } = ofIdx(B + (k[i] as number));
@@ -516,9 +568,14 @@ export function resolveDates(parts: DateParts[], ctx: DateCtx): { dates: (string
         if (ctx.period && iso >= ctx.period.from && iso <= ctx.period.to) inP++;
       }
       if (!ok) continue;
+      for (const a of turns) {
+        const { y, m } = ofIdx(B + (k[a] as number));
+        if (parts[a].d !== daysIn(y, m)) gap++;
+      }
       const cont = ctx.prevLast && first
         && dnum(first) >= dnum(ctx.prevLast) - 10 && dnum(first) <= dnum(ctx.prevLast) + 3 ? 1 : 0;
-      const s = [-bad, cont, inP, inA];
+      const start = useStart && first && isoIdx(first) === hintIdx ? 1 : 0;
+      const s = [-bad, -gap, cont, inP, inA > 0 ? 1 : 0, start, inA];
       const c = bestS ? cmpScore(s, bestS) : 1;
       if (c > 0) { best = B; bestS = s; tie = false; } else if (c === 0) tie = true;
     }
@@ -569,7 +626,7 @@ export type SanitizeCtx = {
 /* モデルの答えは信用しない。決めた欄だけを、決めた形でだけ作り直す（ほかの鍵は1つも運ばない）。
    日の欄: date・code・unread（ここで決める。捨てた記号の印）・cat・d_on・d_off・d_off_day・cut・page・row・legs。
    日付が決まった日は、何も載っていなくても返す。 */
-export function sanitize(raw: Obj, ctx: SanitizeCtx): { roster: Roster; checks: Checks } {
+export function sanitize(raw: Obj, ctx: SanitizeCtx): { roster: Roster; checks: Checks; layout: Layout | null } {
   const now = ctx.now ?? new Date();
   const page = intIn(ctx.page, 1, MAX_PAGES) ?? 1;
   const st = newStats();
@@ -620,6 +677,18 @@ export function sanitize(raw: Obj, ctx: SanitizeCtx): { roster: Roster; checks: 
   });
   if (Array.isArray(r.days) && r.days.length > src.length) st.capped_days += r.days.length - src.length;
 
+  /* ★カレンダーの灰色のマス（前後の月）は勤務表の日ではない（2026-11-15。JAL の勤務表で、次の月の 1〜5日を
+     日付だけの日として保存し、提出の期間が 12/05 まで伸びていた）。日付だけの日（bareDay）で、その月に中身のある日が
+     この画像に1日も無く、見出しの月でも会員が選んだ月でもないものは落とす（dropped_days に数える）。中身のある日は落とさない。 */
+  const live = new Set(days.filter((d) => !noContent(d)).map((d) => d.date.slice(0, 7)));
+  if (ctx.hint) live.add(`${ctx.hint.year}-${pad2(ctx.hint.month)}`);
+  const inHeader = (date: string) => !!header && Number(date.slice(5, 7)) === header.m
+    && (header.y === null || Number(date.slice(0, 4)) === header.y);
+  for (let i = days.length - 1; i >= 0; i--) {
+    const d = days[i];
+    if (bareDay(d) && !live.has(d.date.slice(0, 7)) && !inHeader(d.date)) { days.splice(i, 1); st.dropped_days++; }
+  }
+
   if (period) st.outside_period = days.filter((d) => d.date < period.from || d.date > period.to).length;
   const hintYm = ctx.hint ? `${ctx.hint.year}-${pad2(ctx.hint.month)}` : '';
   const roster: Roster = { v: 1, period, hints: { kind, time_ref: timeRef }, days };
@@ -633,12 +702,21 @@ export function sanitize(raw: Obj, ctx: SanitizeCtx): { roster: Roster; checks: 
     hint_mismatch: !!hintYm && days.length > 0 && !days.some((d) => d.date.slice(0, 7) === hintYm),
     anchor: res.anchor,
   };
-  return { roster, checks };
+  /* ★読めない所があったときだけ、表の形を返す（2026-11-15）。画像の端で切れた日・行は数えない（撮り方の問題）。 */
+  const fly = (l: Leg) => l.kind !== 'ground' && !l.partial;
+  const gaps = {
+    undated: st.undated,
+    unread: checks.unread_days,
+    no_time: days.reduce((a, d) => a + d.legs.filter((l) => fly(l) && (!l.out || !l.in) && !l.block).length, 0),
+    no_onoff: days.filter((d) => !d.cut && d.legs.some(fly) && (!d.d_on || !d.d_off)).length,
+  };
+  const layout = Object.values(gaps).some((n) => n > 0) ? layoutOf(r.layout, gaps) : null;
+  return { roster, checks, layout };
 }
 
 /* 本番と手元の作り物が呼ぶ入口：辞書に無い言葉の札を作ってから sanitize（鍵が無ければ sanitize と同じ）。
    ★モデルへの頼みは増やさない（1枚 1回のまま。札はここで作る）。 */
-export async function sanitizeRead(raw: Obj, ctx: SanitizeCtx, key: string): Promise<{ roster: Roster; checks: Checks }> {
+export async function sanitizeRead(raw: Obj, ctx: SanitizeCtx, key: string): Promise<{ roster: Roster; checks: Checks; layout: Layout | null }> {
   const words = key ? await wordTokens(raw, key) : null;
   return sanitize(raw, { ...ctx, words });
 }
@@ -662,7 +740,7 @@ export const MAX_UNION_PARAMS = 16;
 export const OUT_SCHEMA = {
   type: 'object',
   additionalProperties: false,
-  required: ['month', 'period', 'kind', 'time_ref', 'days'],
+  required: ['month', 'period', 'kind', 'time_ref', 'layout', 'days'],
   properties: {
     month: orNull({
       type: 'object', additionalProperties: false, required: ['y', 'm'],
@@ -674,6 +752,14 @@ export const OUT_SCHEMA = {
     }),
     kind: orNull({ type: 'string', enum: ['actual', 'planned'] }),
     time_ref: orNull({ type: 'string', enum: ['local', 'utc'] }),
+    /* ★表の形は決まった語だけ（字を書ける欄にしない・null 可の欄も増やさない）。 */
+    layout: {
+      type: 'object', additionalProperties: false, required: ['columns', 'time_style'],
+      properties: {
+        columns: { type: 'array', items: { type: 'string', enum: [...LAYOUT_COLS] } },
+        time_style: { type: 'string', enum: [...TIME_STYLES] },
+      },
+    },
     days: {
       type: 'array',
       items: {
@@ -746,6 +832,8 @@ export function systemPrompt(): string {
     'the order printed (for a calendar grid, read it row by row). Return EVERY such date, even if nothing else is',
     'printed for it: then code, d_on and d_off are null, legs is [] and cat is "blank". Never leave a date out',
     'because its code is unfamiliar or hard to read — give its cat and leave code null if you cannot copy it.',
+    'In a month calendar, greyed-out or dimmed cells of the previous or next month are not part of this roster:',
+    'leave those dates out.',
     'Never output the same date twice; put all lines of a date into its one entry. Ignore totals rows,',
     'summaries, crew lists, hotel blocks, remarks and messages.',
     'Some reports print one COLUMN per date (the dates run across the top and each column is a vertical stack).',
@@ -785,8 +873,8 @@ export function systemPrompt(): string {
     '  "unclear" = something is printed but you truly cannot tell what kind of day it is.',
     '  Use "blank" only when the date has nothing printed and "unclear" only as a last resort. cat is only a',
     '  category: never write the printed text into it.',
-    '- d_on: duty start (report, check-in, sign-on, C/I, D-ON, RPT) as printed. d_off: duty end (release,',
-    '  check-out, sign-off, C/O, D-OFF, REL) as printed. Times as "HH:MM" (keep a printed "+1").',
+    '- d_on: duty start (report, check-in, sign-on, show up, C/I, D-ON, RPT, 出頭, ショウアップ) as printed. d_off: duty',
+    '  end (release, check-out, sign-off, C/O, D-OFF, REL, 解散, 退勤) as printed. Times as "HH:MM" (keep a printed "+1").',
     '  null if not printed or not visible. Do not work them out from the flight times.',
     '- d_off_day: 0 if the duty ends on the same date, 1 if on the next day (printed "+1", or the release is',
     '  printed on the next date\'s line), 2 if two days later.',
@@ -794,12 +882,17 @@ export function systemPrompt(): string {
     '  table from the top).',
     '',
     'Legs — each flight or activity line of that date, in the order printed:',
+    '- Hotel / layover / rest lines, and hotel shuttle, limousine, crew transport or pick-up lines, are not legs:',
+    '  leave them out. (A bus, car or train that takes the pilot from one airport to a DIFFERENT airport is a',
+    '  deadhead leg.) Report / release lines are not legs either: they are d_on / d_off.',
     '- flight: the flight or duty number as printed, without spaces ("NH123", "EK0201", "1234"). null for an',
     '  activity without a number.',
     '- from, to: departure and arrival station codes as printed (3-letter IATA or 4-letter ICAO). ONLY for a leg',
     '  that moves between airports (operating or deadhead). For a ground activity they are null.',
     '- loc: for a ground activity (simulator, ground school, training, office, medical, standby at a place) the',
-    '  location code as printed ("HND", "TRC1"). null for flights. Never invent an airport.',
+    '  location code as printed ("HND", "TRC1"). When such a line prints the same station on both sides',
+    '  ("SBY TYO 06:00 ~ 23:59 TYO"), that station is loc and from / to are null. null for flights.',
+    '  Never invent an airport.',
     '- out, in: off-block and on-block (or start and end) times as printed, "HH:MM". in_day: 0, 1 or 2 days',
     '  after the date of the entry (a leg landing after midnight = 1).',
     '  A leg or activity that ends after midnight belongs to the date it starts: if its arrival / end is printed',
@@ -818,6 +911,11 @@ export function systemPrompt(): string {
     '- partial: true when this line itself is sliced by the top or bottom edge of the image so that some of its',
     '  fields cannot be read. Leave those fields null — never guess them. false otherwise.',
     '- row: 1-based line number of this leg on the image.',
+    '',
+    'Layout — describe the table itself, not its content:',
+    '- columns: what each column holds, left to right (for a calendar, each kind of line inside a day cell), from:',
+    `  ${LAYOUT_COLS.join(', ')}. "other" for anything else. Each kind at most once.`,
+    `- time_style: how clock times are printed: ${TIME_STYLES.join(', ')} ("none" if no clock times are printed).`,
     '',
     'All codes and times exactly as printed. Do not translate, do not expand abbreviations, and do not reformat',
     'anything except times to "HH:MM".',
@@ -1289,7 +1387,7 @@ export async function handler(req: Request): Promise<Response> {
   if (!got.ok) { diag.stage = 'reply'; return finish(got.code, got.code); }
 
   /* ★札は、ここで（モデルへの頼みを増やさずに）作る。鍵は呼ばれるたびに読む（secret を入れ替えたら次の1枚から）。 */
-  let out: { roster: Roster; checks: Checks };
+  let out: { roster: Roster; checks: Checks; layout: Layout | null };
   try {
     out = await sanitizeRead(got.raw, { page, hint, tail, now }, env('ROSTER_WORD_KEY'));
   } catch {
@@ -1308,7 +1406,7 @@ export async function handler(req: Request): Promise<Response> {
   diag.code = 'ok';
   diag.ms = Date.now() - t0;
   console.log('pv-roster', JSON.stringify(diag));
-  return json({ ok: true, roster: out.roster, checks: out.checks, build: BUILD });
+  return json({ ok: true, roster: out.roster, checks: out.checks, layout: out.layout, build: BUILD });
 }
 
 if (DENO?.serve) DENO.serve(handler);

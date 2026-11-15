@@ -750,6 +750,7 @@
     }, function () { return { ok: false, reason: 'prep_failed' }; })
       .then(function (res) {
         if (!U) return;
+        if (res && res.ok && res.roster) res.roster.layout = layoutOf(res.layout);   // 読めない所があったページの表の形（決まった語だけ）
         if (res && res.ok && res.roster) U.cache[key] = res.roster;   // 止めたあとに届いた答えも取っておく（読み直しの費用を出さない）
         if (res && typeof res.build === 'string' && /^[0-9A-Za-z.\-]{1,20}$/.test(res.build)) U.build = res.build;   // 運営に知らせるときの「読み取りの版」
         if (run !== U.run || run.stop) return;
@@ -769,8 +770,17 @@
       });
   }
   function clone(x) { return JSON.parse(JSON.stringify(x)); }
+  /* 表の形（parse-roster の layout）。決まった形のものだけ通す。中身の語を選ぶのはサーバー（pv_roster_layouts_clean）。 */
+  function layoutOf(v) {
+    if (!v || typeof v !== 'object' || !Array.isArray(v.columns) || !v.gaps || typeof v.gaps !== 'object') return null;
+    return { columns: v.columns.slice(0, 20), time_style: v.time_style || null, gaps: v.gaps };
+  }
   function finishRead(run) {
     var got = run.out.filter(Boolean);
+    /* ★ページの番号は読んだ順（run.out の位置）。mergePages の前に取る */
+    U.layouts = run.out.map(function (r, k) {
+      return r && r.layout ? { page: k + 1, columns: r.layout.columns, time_style: r.layout.time_style, gaps: r.layout.gaps } : null;
+    }).filter(Boolean);
     if (!got.length) { loadClose(); U.step = 'pick'; U.err = T.noneRead; render(); focusHead(); return; }
     loadStep(2);
     prepare(R.mergePages(got), run.n);
@@ -1396,7 +1406,8 @@
   }
 
   /* ── 保存 ───────────────────────────────────────────────── */
-  function stripDay(x) {
+  /* calc … R.calcMins の答え（日付|順番 → 時刻から出した分）。印字のブロックタイムが無い便にだけ添える（2026-11-15） */
+  function stripDay(x, calc) {
     if (empty(x)) return null;   // ★空欄・読めなかった日は送らない（本人が入れた日は、入れたときに印が外れる）。便や時刻が読めた日はコードが無くても送る
     return {
       date: x.date, code: x.code || null, d_on: x.d_on || null, d_off: x.d_off || null, d_off_day: x.d_off_day || 0,
@@ -1405,6 +1416,7 @@
         // ★便名は送らない（サーバーも保存しない。日付と便名がそろうと本人に絞れるため）
         return { seq: l.seq, from: l.from || null, to: l.to || null, loc: l.loc || null,
                  out: l.out || null, in: l.in || null, in_day: l.in_day || 0, block: l.block || null,
+                 calc_min: (!l.block && calc && calc[x.date + '|' + l.seq]) || null,
                  kind: l.kind || 'unknown', page: l.page || null, row: l.row || null };
       })
     };
@@ -1442,7 +1454,8 @@
   }
   function save() {
     if (U.busy) return;
-    var days = U.merged.days.map(stripDay);
+    var calc = R.calcMins ? R.calcMins(U.merged.days, draftProfile()) : {};
+    var days = U.merged.days.map(function (x) { return stripDay(x, calc); });
     days = days.filter(Boolean);
     if (!days.length) return;
     if (days.length > MAX_DAYS) { U.err = T.errDays; render(); return; }
@@ -1456,7 +1469,7 @@
       return first.then(function () {
         return c.sb.rpc('submit_roster', { p: {
           airline: c.airline, airline_other: c.other, file_sha: sha, pages: U.pagesSent,
-          period: periodOk(U.merged.period), days: days
+          period: periodOk(U.merged.period), days: days, layouts: (U.layouts || []).length ? U.layouts : null
         } });
       });
     }).then(function (r) {
@@ -1969,7 +1982,7 @@
 
   /* _ は検査（db/test-roster-ui.mjs）が呼ぶ。U を通す口は open() のあとだけ効く */
   w.PVRosterUpload = { open: open, editDay: editDay, _: {
-    patchOf: patchOf, stripDay: stripDay, cleanDay: cleanDay, normTime: normTime, normBlock: normBlock, draftOf: draftOf, coverage: coverage,
+    patchOf: patchOf, stripDay: stripDay, layoutOf: layoutOf, cleanDay: cleanDay, normTime: normTime, normBlock: normBlock, draftOf: draftOf, coverage: coverage,
     fixSummary: fixSummary, fixBody: fixBody, sendFix: sendFix, fixHTML: fixHTML,
     prepare: function (M, pages) { prepare(M, pages); }, asks: function () { return asks(); }, answers: function () { return U && U.answers; },
     needAsk: function () { return needAsk(); }, missHTML: function () { return missHTML(); }, askHTML: function () { return askHTML(); },

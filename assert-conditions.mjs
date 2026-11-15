@@ -61,9 +61,12 @@ const BANK = JSON.parse(readFileSync(new URL('./pv-conditions.json', import.meta
 const N_SEC = BANK.sections.length;
 /* ★一覧に出るのは topicOnly でない質問だけ（話題の入口から来た人にだけ出す質問は数えない）。
    下の「鍵をバンクから選ぶ」所も、一覧に出る質問（LISTED）から選ぶ。 */
-const LISTED = BANK.questions.filter((q) => !q.topicOnly);
+/* ★続きの質問（deep・2026-11-14）も数えない ──「答えた項目：N／M」の M と節の札に入らない。
+     行そのものは親の下に在る（親に「一部」と答えた・答えが分かれた会社のときだけ見える）＝ 画面の行の数は N_ROWS */
+const LISTED = BANK.questions.filter((q) => !q.topicOnly && !q.deep);
 const TOPIC_ONLY = BANK.questions.filter((q) => q.topicOnly);
 const N_Q = LISTED.length;
+const N_ROWS = BANK.questions.filter((q) => !q.topicOnly).length;
 const N_ROOT = LISTED.filter((q) => !q.parent).length;
 
 let pass = 0, fail = 0;
@@ -502,7 +505,7 @@ for (const lang of (only ? [only] : ['ja', 'en'])) {
     ok(!v.dead, '「読み込めませんでした」ではなく中身が出る');
     if (hasReport) {
       ok(v.secs === N_SEC, `節が ${N_SEC} つ出る`, String(v.secs));
-      ok(v.rows === N_Q, `質問が ${N_Q} 問そろう`, String(v.rows));
+      ok(v.rows === N_ROWS, `質問が ${N_Q} 問そろう（続きの質問 ${N_ROWS - N_Q} 問は、親の下に隠れて在る）`, String(v.rows));
       ok(v.shown === N_ROOT, `親に答えていない子は出さない（見えるのは ${N_ROOT} 問）`, String(v.shown));
       ok(v.count.indexOf('0') >= 0 && v.count.indexOf(String(N_Q)) >= 0,
          `「答えた項目：0／${N_Q}」が出る`, v.count);
@@ -1088,7 +1091,7 @@ if (Q_ROOT && Q_ONE && Q_DEEP) {
       let r = await openFull({ lang, query: '?airline=ana' });
       await ready(r.page);
       let ids = await rowsOf(r.page);
-      ok(TOPIC_ONLY.every((q) => !ids.includes(q.id)) && ids.length === N_Q,
+      ok(TOPIC_ONLY.every((q) => !ids.includes(q.id)) && ids.length === N_ROWS,
          `I ★ふだんの一覧に、話題の入口だけの質問が1問も無い（${N_Q} 問のまま）`, String(ids.length));
       await r.page.close();
 
@@ -1096,7 +1099,7 @@ if (Q_ROOT && Q_ONE && Q_DEEP) {
       await ready(r.page);
       ids = await rowsOf(r.page);
       const v = await look(r.page);
-      ok(SAME.every((id) => ids.includes(id)) && ids.length === N_Q + SAME.length,
+      ok(SAME.every((id) => ids.includes(id)) && ids.length === N_ROWS + SAME.length,
          `I ★入口から来た人には、その話題の ${SAME.length} 問が一緒に出る`, String(ids.length));
       ok(ELSE.every((id) => !ids.includes(id)), 'I    ほかの話題の分は出ない', ELSE.filter((id) => ids.includes(id)).join(','));
       ok(v.n === 1, 'I    目当て（か、その親）に印が1つ付く', JSON.stringify({ n: v.n, qid: v.qid }));
@@ -2545,7 +2548,7 @@ if (Q_ROOT && Q_ONE && Q_DEEP) {
               if (!d || d.text !== c[lang] || d.kids.join('|') !== want.join('|')) wrong.push(r.q + '/' + c.code + ' ' + JSON.stringify(d && d.kids));
             });
           });
-          ok(drawn.length === N_Q && nOpt > 100 && wrong.length === 0 && (lang === 'ja' ? nDot >= 20 : nDot === 0),
+          ok(drawn.length === N_ROWS && nOpt > 100 && wrong.length === 0 && (lang === 'ja' ? nDot >= 20 : nDot === 0),
              `O ★w3 選択肢 ${nOpt} 個の字は、質問表と1文字も違わない。箱に入っているのは「・」の後ろの分だけ（「・」の在る選択肢 ${nDot} 個${lang === 'en' ? ' ＝ 英語は箱なし' : ''}）`,
              JSON.stringify(wrong.slice(0, 5)));
 
@@ -2679,7 +2682,7 @@ if (Q_ROOT && Q_ONE && Q_DEEP) {
               if (!x || x.text !== bank || (ch.length > 3 ? (x.kids !== 't+pvcf-tail' || x.tail !== ch.slice(-3).join('')) : x.kids !== 't')) wrong.push(`${r.q} ${k} [${x && x.kids}｜${x && x.tail}]`);
               if (x && x.withTail !== x.plain) more.push(`${r.q} ${k} ${x.plain}行 → ${x.withTail}行`);
             }));
-            ok(kept.length === N_Q && nText > N_Q && wrong.length === 0,
+            ok(kept.length === N_ROWS && nText > N_ROWS && wrong.length === 0,
                `O ★t2 質問の名前と説明 ${nText} 文の字は、質問表と1文字も違わない。最後の3文字だけが1つの塊`, JSON.stringify(wrong.slice(0, 5)));
             ok(more.length === 0, 'O ★t2 幅320: 塊を入れたせいで行が増えた文は無い（塊を外した字だけの形と、行の数が同じ）', JSON.stringify(more.slice(0, 5)));
             if (lang === 'ja') {

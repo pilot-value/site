@@ -1359,6 +1359,9 @@
       return !q.topicOnly || (!!cameTopic && q.topic === cameTopic);
     });
     var state = {};     // question_id → { code, codes, num, currency, text }
+    /* その会社で答えが分かれている質問の id（2026-11-14・サーバの my_airline_conditions が決める）。
+       続きの「何によって違いますか？」（deep:'split'）を、その親のすぐ下に出すかに使う */
+    var split = [];
 
     /* 金額の質問があるときだけ通貨の一覧を読む（training_bond_amount と、着陸手当の額の3問） */
     var needCur = qs.some(function (q) { return q.currency; });
@@ -1378,6 +1381,7 @@
            全部が「まだ答えていない」形で並ぶ（読めなかった ≠ 0）。本当に1つも答えていない人には、
            サーバが空の一覧（answers: []）を返す ＝ それは読めているので、今までどおり 0 で描く。 */
       if (!res || res.error || !res.data || !Array.isArray(res.data.answers)) { showDead(el); return; }
+      split = (Array.isArray(res.data.split) ? res.data.split : []).filter(function (x) { return typeof x === 'string'; });
       if (res && !res.error && res.data && res.data.answers) {
         res.data.answers.forEach(function (a) {
           state[a.question_id] = {
@@ -1402,6 +1406,8 @@
          state の古い答えは消さない。親を答え直せば、前の答えのまま戻ってくる。 */
     function visible(q) {
       if (!q.parent) return true;
+      /* 続きの「何によって違いますか？」は、その会社で親の答えが分かれているときだけ（見せるかどうかだけ・保存の検品はサーバ） */
+      if (q.deep === 'split' && split.indexOf(q.parent) < 0) return false;
       var p = byId[q.parent];
       if (!p || !visible(p)) return false;
       var v = state[q.parent];
@@ -1411,7 +1417,9 @@
     }
     /* 「答えた項目」に数えるのは、いま画面に出ている質問の答えだけ。
        親を答え直して隠れた質問の古い答えを数え続けると、見えている数と合わなくなる。 */
-    function counted(q) { return answered(q.id) && visible(q); }
+    /* ★続きの質問（deep・2026-11-14）は数えない ── 分子にも分母にも（サーバの questions_total と同じ決め方） */
+    function counted(q) { return !q.deep && answered(q.id) && visible(q); }
+    function tally(list) { return list.filter(function (q) { return !q.deep; }).length; }
 
     /* ── ?q=<鍵> で来た人を、その質問まで運ぶ ──────────────────────
        ★子の質問は、親に答えるまで画面に無い。そのときは**親の行**へ運ぶ
@@ -1597,7 +1605,7 @@
 
     function countHtml() {
       var n = qs.filter(counted).length;
-      return T.fullCount(n, qs.length);
+      return T.fullCount(n, tally(qs));
     }
 
     function draw() {
@@ -1610,7 +1618,7 @@
         first = false;
         return '<details class="pvcf-sec"' + open + '>' +
           '<summary class="pvcf-sum">' + esc(sec[L]) +
-            '<span class="pvcf-badge" data-sec="' + esc(sec.code) + '">' + done + ' / ' + mine.length + '</span>' +
+            '<span class="pvcf-badge" data-sec="' + esc(sec.code) + '">' + done + ' / ' + tally(mine) + '</span>' +
           '</summary>' +
           '<div class="pvcf-body">' + mine.map(qHtml).join('') + '</div>' +
         '</details>';
@@ -1673,7 +1681,7 @@
         var b = el.querySelector('[data-sec="' + sec.code + '"]');
         if (!b) return;
         var mine = qs.filter(function (q) { return q.section === sec.code; });
-        b.textContent = mine.filter(counted).length + ' / ' + mine.length;
+        b.textContent = mine.filter(counted).length + ' / ' + tally(mine);
       });
       /* 親の答えが変わると、ぶら下がる質問の出る/出ないが変わる */
       qs.forEach(function (q) {
