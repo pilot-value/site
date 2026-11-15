@@ -21,11 +21,12 @@ process.stdin.on('end', () => {
     [new RegExp(String.raw`\b(${G}|ps)\b[^\n;]*\|[^\n;]*\bxargs\s+(-\S+\s+)*kill\b`), `${G} / ps … | xargs kill`],
   ].find(([re]) => re.test(cmd));
   // ★2026-10-24：この Mac（8GB）は、画面の検査をブラウザ4本同時に流して固まり、自動で再起動した（04:03・wdog）。
-  //   画面の検査一式（check.mjs web / all）は「-j 1」を付けたときだけ通す。
-  const suite = /\bcheck\.mjs\s+(web|all)\b/.test(cmd) && !/\bcheck\.mjs\s+(web|all)\b[^\n;&|]*\s-j\s*1(\s|$)/.test(cmd);
+  //   画面の検査一式（check.mjs web / all）は「-j 1」〜「-j 3」を付けたときだけ通す。
+  //   ★2026-11-15 オーナー「ブラウザ3本までいいよ」で 1 → 3 本まで。4本は固まった数なので通さない。
+  const suite = /\bcheck\.mjs\s+(web|all)\b/.test(cmd) && !/\bcheck\.mjs\s+(web|all)\b[^\n;&|]*\s-j\s*[123](\s|$)/.test(cmd);
   if (suite) {
-    process.stderr.write('画面の検査一式は「node check.mjs web -j 1」（ブラウザ1本ずつ）でだけ流せます（2026-10-24 の決まり・' +
-      'この Mac はブラウザを何本も同時に開くと固まって再起動する）。\n');
+    process.stderr.write('画面の検査一式は「node check.mjs web -j 3」（ブラウザ3本まで）でだけ流せます（2026-11-15 の決まり・' +
+      'この Mac はブラウザを4本同時に開くと固まって再起動する）。\n');
     process.exit(2);
   }
   // ★2026-10-25：rm -rf は確認なしで通す（オーナー「bash とか重要じゃないものはおれの許可いらない」・助手が試しの写しを消すのに毎回使う）。
