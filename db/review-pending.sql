@@ -29,6 +29,10 @@
 --     同じ会社の口コミがもうあって入れなかった（dup）行も、引き取り済みなので消す。
 --     ⚠️ 引き取っていない行（30日を過ぎたものも）は消さない。
 --     既に引き取ってあった行は、このファイルの 3-b が1回で消す（何度流しても同じ）。
+--  6. ★聞くのは航空会社と職位だけ（2026-11-14 オーナー決定「勤務年数と年代と機種は聞かない。役職区分も不問」）。
+--     勤務年数・年代・機材・役割はもう必須ではない（フォームから欄ごと消した）。
+--     古いページから値が来たときだけ、形を確かめる（変な文字を入れさせない）。
+--     ⚠️ 必須に戻さない ── 今のフォームは送らないので、ログインなしの口コミが全部はじかれる。
 -- ════════════════════════════════════════════════════════════════
 
 do $$
@@ -40,6 +44,18 @@ begin
     raise exception '先に db/reviews-gate.sql を実行してください（pv_review_hash が無い）';
   end if;
 end $$;
+
+
+-- ════════════════════════════════════════════════════════════════
+-- 0. 口コミの表で、勤務年数と年代を空でも入れられるようにする（2026-11-14）
+--
+-- 本番の reviews_v2 の定義はリポジトリに無い（作った日の SQL が残っていない）。
+-- privacy-pilot.html には NOT NULL と書いてあったので、外しておく。
+-- すでに空を許していれば何も起きない（何度流しても同じ）。
+-- ⚠️ これを貼る前に新しいフォームを出すと、ログインした人の口コミが入らない＝SQL が先・push が後。
+-- ════════════════════════════════════════════════════════════════
+alter table public.reviews_v2 alter column tenure_bucket drop not null;
+alter table public.reviews_v2 alter column age_bucket    drop not null;
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -71,11 +87,14 @@ begin
   if coalesce(p->>'position', '') not in ('captain', 'fo') then
     raise exception '職位を選んでください' using errcode = '22023';
   end if;
-  if coalesce(p->>'tenure_bucket', '') not in ('1-5', '5-10', '10-15', '15-20', '20+') then
-    raise exception '勤務年数を選んでください' using errcode = '22023';
+  -- 勤務年数と年代は聞いていない（2026-11-14）。古いページから来たときだけ形を確かめる。
+  if nullif(p->>'tenure_bucket', '') is not null
+     and (p->>'tenure_bucket') not in ('1-5', '5-10', '10-15', '15-20', '20+') then
+    raise exception '勤務年数の形が不正です' using errcode = '22023';
   end if;
-  if coalesce(p->>'age_bucket', '') !~ '^([2-5][0-9]-[2-5][0-9]|60\+)$' then
-    raise exception '年代を選んでください' using errcode = '22023';
+  if nullif(p->>'age_bucket', '') is not null
+     and (p->>'age_bucket') !~ '^([2-5][0-9]-[2-5][0-9]|60\+)$' then
+    raise exception '年代の形が不正です' using errcode = '22023';
   end if;
   if nullif(p->>'fleet', '') is not null and (p->>'fleet') !~ '^[a-z0-9-]{1,40}$' then
     raise exception '機材の形が不正です' using errcode = '22023';
@@ -159,7 +178,7 @@ begin
      limit 1;
     if v_dup_tok is not null then
       update public.pv_review_pending
-         set "position" = p->>'position', tenure_bucket = p->>'tenure_bucket', age_bucket = p->>'age_bucket',
+         set "position" = p->>'position', tenure_bucket = nullif(p->>'tenure_bucket', ''), age_bucket = nullif(p->>'age_bucket', ''),
              fleet = nullif(p->>'fleet', ''), job_role = nullif(p->>'job_role', ''),
              culture_score = (p->>'culture_score')::int, salary_score = (p->>'salary_score')::int,
              benefits_score = (p->>'benefits_score')::int, wlb_score = (p->>'wlb_score')::int,
@@ -186,7 +205,7 @@ begin
      culture_comment, salary_comment, benefits_comment, wlb_comment, ops_comment, training_comment, mgmt_comment,
      orig_lang)
   values
-    (v_token, v_iph, v_air, p->>'position', p->>'tenure_bucket', p->>'age_bucket',
+    (v_token, v_iph, v_air, p->>'position', nullif(p->>'tenure_bucket', ''), nullif(p->>'age_bucket', ''),
      nullif(p->>'fleet', ''), nullif(p->>'job_role', ''),
      (p->>'culture_score')::int, (p->>'salary_score')::int, (p->>'benefits_score')::int,
      (p->>'wlb_score')::int, (p->>'ops_score')::int, (p->>'training_score')::int,
@@ -316,7 +335,7 @@ update public.pv_review_pending q
 
 
 -- ════════════════════════════════════════════════════════════════
--- 4. 自己点検（読むだけ。1本の SELECT。期待：7行すべて ✅）
+-- 4. 自己点検（読むだけ。1本の SELECT。期待：9行すべて ✅）
 -- ════════════════════════════════════════════════════════════════
 select n as "#", case when ok then '✅' else '❌' end as 結果, 見るところ
   from (values
@@ -342,6 +361,19 @@ select n as "#", case when ok then '✅' else '❌' end as 結果, 見るとこ�
         '引き取った行に中身が残っていない（残るのは行・預かり証・時刻・回線の控え・航空会社・言語だけ）'),
     (7, to_regprocedure('public.claim_review_pending(text)') is not null
         and pg_get_functiondef('public.claim_review_pending(text)'::regprocedure) ~ 'mgmt_comment\s*=\s*null',
-        '引き取りの口が、引き取ったその場で中身を消す（新しい claim_review_pending）')
+        '引き取りの口が、引き取ったその場で中身を消す（新しい claim_review_pending）'),
+    -- 2026-11-14。勤務年数と年代を聞かなくなった。空で入れられないと、ログインした人の口コミが入らない。
+    (8, not exists (select 1 from information_schema.columns
+                     where table_schema = 'public' and table_name = 'reviews_v2'
+                       and column_name in ('tenure_bucket', 'age_bucket') and is_nullable = 'NO'),
+        '口コミの表の勤務年数・年代が空でも入る（NOT NULL が外れている）'),
+    (9, not exists (select 1 from pg_policies
+                     where schemaname = 'public' and tablename = 'reviews_v2'
+                       and coalesce(with_check, '') || coalesce(qual, '') ~ '(tenure|age)_bucket')
+        and not exists (select 1 from pg_constraint
+                         where conrelid = 'public.reviews_v2'::regclass and contype = 'c'
+                           and pg_get_constraintdef(oid) ~ '(tenure|age)_bucket'
+                           and pg_get_constraintdef(oid) ~* 'not null'),
+        '口コミの表の決まり（ポリシー・CHECK）が勤務年数・年代を求めていない')
   ) t(n, ok, 見るところ)
  order by n;

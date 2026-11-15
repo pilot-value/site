@@ -175,8 +175,8 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
         <div class="check-row">
           <div class="check-icon check-ok">✓</div>
           <div>
-            <div class="font-semibold">航空会社・職位・機種・勤務年数・年代</div>
-            <div class="text-muted text-sm">口コミの本体。集計に使用します。勤務年数は5年単位、年代は5歳単位のレンジのみ保存します。</div>
+            <div class="font-semibold">航空会社・職位</div>
+            <div class="text-muted text-sm">口コミの本体。集計に使用します。2026年11月より前の口コミには、機種・勤務年数（5年単位）・年代（5歳単位）も残っています（いまは聞いていません）。</div>
           </div>
         </div>
         <div class="check-row">
@@ -218,7 +218,7 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
           <div class="check-icon check-no">✕</div>
           <div>
             <div class="font-semibold" style="color:#ef4444">年収の金額・生年月日・路線</div>
-            <div class="text-muted text-sm">フォームに入力欄がそもそも存在しません。5歳区切り・5年区切りの選択式のみ。年収は口コミでは訊かず、給与明細の機能で別に扱います。</div>
+            <div class="text-muted text-sm">フォームに入力欄がそもそも存在しません。年収は口コミでは訊かず、給与明細の機能で別に扱います。</div>
           </div>
         </div>
       </div>
@@ -271,10 +271,10 @@ footer{background:#060809;border-top:1px solid rgba(255,255,255,.05)}
   proof_hash    text    NOT NULL,      -- SHA-256ハッシュ（身元特定不可）
   airline       text    NOT NULL,      -- 航空会社コード
   position      text    NOT NULL,      -- 機長 / 副操縦士 / 訓練生
-  fleet         text,                  -- 機種（任意・例: "b787"）
-  job_role      text,                  -- 役職・区分（任意・複数可・例: "line,instructor"）
-  tenure_bucket text    NOT NULL,      -- 例: "5-10"（勤務年数5年単位）
-  age_bucket    text    NOT NULL,      -- 例: "30-34"（年代5歳単位）
+  fleet         text,                  -- 機種（2026年11月より前の口コミだけ・例: "b787"）
+  job_role      text,                  -- 役職・区分（2026年11月より前の口コミだけ・例: "line,instructor"）
+  tenure_bucket text,                  -- 勤務年数5年単位（2026年11月より前の口コミだけ・例: "5-10"）
+  age_bucket    text,                  -- 年代5歳単位（2026年11月より前の口コミだけ・例: "30-34"）
   *_score       int,                   -- 7カテゴリの5段階評価
   *_comment     text,                  -- 7カテゴリの本文（任意）
   created_at    timestamptz            -- 投稿日時

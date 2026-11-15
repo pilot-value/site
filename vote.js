@@ -307,7 +307,10 @@
   var items = [];
   var feed = { s: 'loading' };
   function ym(s) { var m = /^(\d{4})[-.](\d{2})/.exec(String(s || '')); return m ? { t: m[1] + '.' + m[2], iso: m[1] + '-' + m[2] } : { t: '—', iso: '' }; }
-  function tenText(t) { return T.ten[t] || String(t || '—'); }
+  /* ★勤務年数は 2026-11-14 から聞いていない（オーナー決定「口コミは航空会社名と職位だけ」）。新しい口コミは空で来る。
+     空のときは「勤務年数 —」と出さず、その部分ごと飛ばす（tenLine）。過去の口コミは今までどおり出す。 */
+  function tenText(t) { return t ? (T.ten[t] || String(t)) : ''; }
+  function tenLine(it) { return it.ten && it.ten !== '—' ? T.tenure(it.ten) : ''; }
   function posText(p) { return T.pos[p] || String(p || ''); }
   function fromServer(r, i) {
     var slug = slugOf(r.airline);
@@ -472,7 +475,7 @@
   function card(it, want, list) {
     var n = nameOf(it.slug, it.code);
     var ex = excerpt(it, want);
-    var meta = esc(posText(it.pos)) + ' · ' + esc(T.tenure(it.ten));
+    var meta = [posText(it.pos), tenLine(it)].filter(Boolean).map(esc).join(' · ');
     var avg = (it.kind === 'seed' || it.kind === 'local') ? (it.rating ? Math.min(5, it.rating) : null) : rowAvg(it.row);
     var total = lenOf(it);
     /* 星と項目名は1行にまとめる（カードを低くする・2026-10-29 iPhone で大きすぎ）。 */
@@ -498,7 +501,7 @@
 
   /* 流れる帯のカード（トップの口コミの帯と同じ大きさ：幅 304px・狭い画面 268px）。
      2026-10-29 オーナー「landing page と同じくらいにしろ」。
-     中身の順：項目名・星 → 本文（鍵の無い人は先頭80字＋影絵1行）→ 会社・職位・勤務年数・年月・全 N 文字。 */
+     中身の順：項目名・星 → 本文（鍵の無い人は先頭80字＋影絵1行）→ 会社・職位・勤務年数（過去の口コミだけ）・年月・全 N 文字。 */
   function mini(it) {
     var n = nameOf(it.slug, it.code);
     var full = it.kind === 'latest' || (it.kind === 'server' && !it.body.locked);
@@ -513,7 +516,7 @@
       : '<span class="vt-rc-ex' + (ex.locked || ex.strip ? ' is-cut' : '') + '">' + ex.html + '</span>';
     if (ex.strip) { if (ex.locked && ex.more) body += ghost(Math.max(20, (total || 0) - ex.shown)); }
     else if (ex.locked && total != null) body += ghost(total - (ex.shown || 0));
-    var who = [n.main, posText(it.pos), T.tenure(it.ten), it.date.t].join(' · ');
+    var who = [n.main, posText(it.pos), tenLine(it), it.date.t].filter(Boolean).join(' · ');
     return '<a class="vt-rc vt-mini" href="#review/' + it.key + '" data-review="' + it.key + '">' + head + body +
       '<span class="vt-mini-meta"><span class="vt-mini-who">' + esc(who) + '</span>' +
       (total ? '<span class="vt-rc-len">' + esc(T.chars(total)) + '</span>' : '') + '</span></a>';
@@ -553,7 +556,7 @@
     var list = state.q ? items.concat(latest.items).filter(function (it) { return matches(it, { q: state.q }); }) : stripItems();
     if (state.q) {                                   // 同じ口コミが2つの形で入っているので、検索の答えは1つにまとめる
       var seen = {};
-      list = list.filter(function (it) { var k = it.slug + '|' + it.date.t + '|' + it.pos + '|' + it.ten; if (seen[k]) return false; seen[k] = 1; return true; });
+      list = list.filter(function (it) { var k = it.slug + '|' + ((it.row && it.row.created_at) || it.date.t) + '|' + it.pos + '|' + it.ten; /* 投稿の時刻で比べる（勤務年数が空の新しい口コミどうしを1つに潰さない） */ if (seen[k]) return false; seen[k] = 1; return true; });
     }
     var shown = list.slice(0, STRIP_N);
     if (!shown.length) {
@@ -859,7 +862,7 @@
       '<button type="button" class="vt-d-close" data-close aria-label="' + esc(T.close) + '">' + ico('close') + '</button></div>' +
       '<div class="vt-d-body"><div class="vt-d-top">' + logo(it.slug, n.main) +
       '<div><h2 id="vt-d-title">' + esc(T.reviewOf(n.main)) + '</h2><p class="vt-d-meta">' +
-      esc(posText(it.pos)) + ' · ' + esc(T.tenure(it.ten)) + ' · ' + esc(it.date.t) + '</p></div></div>' +
+      [posText(it.pos), tenLine(it), it.date.t].filter(Boolean).map(esc).join(' · ') + '</p></div></div>' +
       '<div class="vt-d-sum">' + (avg ? '<span>' + esc(T.overall) + '</span><b class="vt-rn">' + avg.toFixed(1) + '</b>' + stars(avg) : '') +
       (co ? '<a class="vt-link" href="' + coHref(it.slug, 'reviews') + '">' + esc(T.coReviews) + ico('arrow') + '</a>' : '') + '</div>';
     var locked;

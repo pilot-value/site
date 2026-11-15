@@ -869,7 +869,8 @@
     var mainCat = (body.cats[0] || {}).k || '';
     return {
       id: (typeof r.id === 'string' && RV_UUID.test(r.id)) ? r.id : '',
-      pos: r.position, years: r.tenure_bucket || '—', join: '',
+      // ★勤務年数は 2026-11-14 から聞いていない。空なら空のまま（描く側がその部分ごと飛ばす。「在籍—年目」と出さない）
+      pos: r.position, years: r.tenure_bucket || '', join: '',
       avgRating: avgRating,
       comment: body.text, en: body.text,
       translated: body.translated, origText: body.origText, from: body.from,

@@ -296,9 +296,9 @@ const COPY = {
   },
   'submit-review.html': {
     ja: { t: '口コミを投稿する｜完全匿名',
-          d: '所属航空会社・職位・勤務年数・年代と、7カテゴリの口コミを匿名で投稿できます。氏名もメールアドレスも投稿データには含まれません。1件の投稿で全社の口コミが読めます。' },
+          d: '所属航空会社・職位と、7カテゴリの口コミを匿名で投稿できます。氏名もメールアドレスも投稿データには含まれません。1件の投稿で全社の口コミが読めます。' },
     en: { t: 'Submit Your Review — Fully Anonymous',
-          d: 'Post your airline, position, years of service, age band and a review across seven categories — anonymously. Neither your name nor your email is stored with it. One review unlocks every airline\'s reviews.' },
+          d: 'Post your airline, position and a review across seven categories — anonymously. Neither your name nor your email is stored with it. One review unlocks every airline\'s reviews.' },
   },
   /* noindex のページだが、ここを直しておかないと次に seo-normalize を流した人が
      旧タイトル（「市場価値レポート／あなたの年収は世界で何位か」）に巻き戻す。
