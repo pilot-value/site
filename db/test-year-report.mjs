@@ -8,7 +8,9 @@
    ④ 書いていない項目は 0 で埋めない（カード・行・小さなグラフ・合計ごと出さない）。
    ⑤ 金額は各月のレートで円に直してから足す（累計と同じ）。
    ⑥ 年間のボーナス・プロフィットシェアは毎月の行に同じ額が持ち越される＝足さない。その年のいちばん新しい申告を1回だけ
-      （その行のレートで円に）。0 は「無い」＝出さない。 */
+      （その行のレートで円に）。0 は「無い」＝出さない。
+   ⑦ 全期間（2026-11-15・calc(rows, 'all')）は年で絞らず年月の順。2025年10月と2026年10月は別の列（k）。
+      ボーナスは年ごとに「その年のいちばん新しい申告を1回」を足す。1年の答えは今までと同じ。 */
 import fs from 'fs';
 import vm from 'vm';
 import path from 'path';
@@ -102,6 +104,20 @@ function checks(Y) {
   ok(Y.calc([row(1), row(2)], 2026).tiles.bonus == null && Y.calc([row(1), row(2)], 2026).tiles.profit == null, '⑥ 0 は出さない');
   ok(Y.calc([row(1, { profit_share_annual: 42000 })], 2026).tiles.profit === 42000 * 40, '⑥ プロフィットシェアも同じ');
 
+  // ⑦ 全期間：年をまたいで年月の順・同じ月の名前でも年が違えば別の列・ボーナスは年ごとに1回
+  const A = [
+    row(10, { period_year: 2026, bonus_annual: 2000 }), row(10, { period_year: 2025, bonus_annual: 1000 }),
+    row(2, { period_year: 2026, bonus_annual: 2000 }), row(11, { period_year: 2025, bonus_annual: 1000 })
+  ];
+  const ma = Y.calc(A, 'all');
+  const ym = ma.months.map((x) => x.y + '-' + x.m).join(',');
+  ok(ma.all === true && ym === '2025-10,2025-11,2026-2,2026-10', '⑦ 全期間は年をまたいで年月の順（' + ym + '）');
+  ok(new Set(ma.months.map((x) => x.k)).size === 4 && ma.months.every((x, i, a) => !i || x.k > a[i - 1].k), '⑦ 2025年10月と2026年10月は別の列（k が重ならず、増える）');
+  ok(ma.tiles.gross === 60000 * 40 * 4, '⑦ 総支給の合計は全部の月');
+  ok(ma.tiles.bonus === (1000 + 2000) * 40, '⑦ ボーナスは年ごとに1回ずつ足す');
+  const my = Y.calc(A, 2026);
+  ok(!my.all && my.months.length === 2 && my.tiles.bonus === 2000 * 40, '⑦ 1年の答えは今までと同じ（その年の月だけ・その年の申告1回）');
+
   return fails;
 }
 
@@ -110,7 +126,7 @@ const say = (c, m) => { if (c) { pass++; console.log('  ✅ ' + m); } else { fai
 
 console.log('▼ いまの my-year.js');
 const now = checks(load(SRC));
-say(now.length === 0, '約束①〜⑤がすべて守られている' + (now.length ? '：' + now.join(' / ') : ''));
+say(now.length === 0, '約束①〜⑦がすべて守られている' + (now.length ? '：' + now.join(' / ') : ''));
 
 /* ▼ 壊す証明：守りの1行を外すと、上の検査が赤くなること */
 console.log('▼ 壊す証明');
@@ -123,9 +139,14 @@ const BREAK = [
   ['④ 欠けた月を 0 として合計する', "days: all('days') ? tot('days') : null", "days: tot('days')"],
   ['⑤ 最後の月のレートでまとめて換算する', 'gross: (g != null && fx) ? g * fx + V.unionOutsideJpy(r) + V.perdiemOutsideJpy(r) : null,',
     'gross: (g != null && fx) ? g * num(list[list.length - 1].fx_to_jpy) + V.unionOutsideJpy(r) + V.perdiemOutsideJpy(r) : null,'],
-  ['⑥ 毎月の年間ボーナスを足し上げる', "tiles.bonus = lastDecl('bonus_annual');",
+  ['⑥ 毎月の年間ボーナスを足し上げる', "tiles.bonus = decl('bonus_annual');",
     "tiles.bonus = sum(list.map(function (r) { return (num(r.bonus_annual) || 0) * num(r.fx_to_jpy); })) || null;"],
-  ['⑥ 0 を出す', 'if (v != null && fx) return v > 0 ? v * fx : null;', 'if (v != null && fx) return v * fx;']
+  ['⑥ 0 を出す', 'if (v != null && fx) return v > 0 ? v * fx : null;', 'if (v != null && fx) return v * fx;'],
+  ['⑦ 全期間でも年で絞る', 'return isAll ? num(r.period_year) > 0 : num(r.period_year) === year;', 'return num(r.period_year) === year;'],
+  ['⑦ 年を見ずに月だけで並べる', 'return (num(a.period_year) - num(b.period_year)) || (num(a.period_month) - num(b.period_month));',
+    'return num(a.period_month) - num(b.period_month);'],
+  ['⑦ 列の番号に年を入れない', 'k: y * 12 + mo - 1,', 'k: mo,'],
+  ['⑦ 全期間のボーナスを最後の年の1回だけにする', 'if (!isAll) return lastDecl(list, k);', 'return lastDecl(list, k);']
 ];
 for (const [name, from, to] of BREAK) {
   if (SRC.split(from).length !== 2) { say(false, `${name}：差し替える1行が my-year.js に1回だけ無い（検査が古い）`); continue; }

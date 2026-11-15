@@ -16654,4 +16654,10 @@ export const TM = {
   "Within the same airline, what does “Transport to work” vary by?": {"es":"Dentro de la misma aerolínea, ¿de qué depende «Transporte al trabajo»?","st":"manual","by":"claude","at":"2026-11-14","pages":["pv-conditions.json"],"note":"続きの質問（一部可能・回答が分かれた会社）2026-11-14"},
   "Within the same airline, what does “Per diem” vary by?": {"es":"Dentro de la misma aerolínea, ¿de qué depende «Viáticos»?","st":"manual","by":"claude","at":"2026-11-14","pages":["pv-conditions.json"],"note":"続きの質問（一部可能・回答が分かれた会社）2026-11-14"},
   "js:'Tell us'": {"es":"js:'Cuéntanos'","st":"manual","by":"claude","at":"2026-11-14","pages":["career-live.js"],"note":"カードの続きの質問への誘い「教える」2026-11-14"},
+  "js:'Hide amounts'": {"es":"js:'Ocultar importes'","st":"manual","by":"claude","at":"2026-11-15","pages":["my-value.js"],"note":"給与サマリーの目のアイコン（金額を隠す）2026-11-15"},
+  "js:'Show amounts'": {"es":"js:'Mostrar importes'","st":"manual","by":"claude","at":"2026-11-15","pages":["my-value.js"],"note":"給与サマリーの目のアイコン（金額を隠す）2026-11-15"},
+  "js:'All-time summary'": {"es":"js:'Resumen de todo el periodo'","st":"manual","by":"claude","at":"2026-11-15","pages":["my-year.js"],"note":"給与サマリーの全期間 2026-11-15"},
+  "js:function (k) { return k + ' (all time)'; }": {"es":"js:function (k) { return k + ' (todo el periodo)'; }","st":"manual","by":"claude","at":"2026-11-15","pages":["my-year.js"],"note":"給与サマリーの全期間 2026-11-15"},
+  "js:function (q, a) { return q + ' · ' + a + ' in total'; }": {"es":"js:function (q, a) { return q + ' · ' + a + ' en total'; }","st":"manual","by":"claude","at":"2026-11-15","pages":["my-year.js"],"note":"給与サマリーの全期間 2026-11-15"},
+  "js:function (s) { return 'Pay without a rate (all time): ' + s; }": {"es":"js:function (s) { return 'Pagos sin tarifa (todo el periodo): ' + s; }","st":"manual","by":"claude","at":"2026-11-15","pages":["my-year.js"],"note":"給与サマリーの全期間 2026-11-15"},
 };
