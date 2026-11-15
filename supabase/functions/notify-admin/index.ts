@@ -420,7 +420,7 @@ async function buildReviewPending(id: string): Promise<Mail | null> {
   return {
     subject: `【PILOT VALUE】口コミ（登録前の預かり）— ${r.airline ?? '不明'}${q.ok ? '' : '（要確認）'}`,
     html: shell('ログインせずに出された口コミが1件あります',
-      `${esc(r.created_at)} に出されました。<b>口コミ一覧にはもう載っています</b>（預かった時点で出す決まり）。`
+      `${esc(r.created_at)} に出されました。<b>口コミ一覧にはもう載っています</b>（預かった時点で出す決まり。AI が怪しいとしたものは載せずに、別のメールでお知らせします）。`
       + 'ログインして引き取られると「新着口コミ」の通知がもう1通届きます。',
       table(
         row('航空会社', esc(r.airline)) +
