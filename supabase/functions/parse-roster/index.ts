@@ -19,6 +19,7 @@
       ★日付だけはこちらで決める：行に日しか無いとき、見出しの月・会員が選んだ月（hint）・
         前の画像の続き（prev_tail）・日の並び（…30, 31, 1 → 翌月）・曜日から1つに決まるときだけ置く。
         決まらない行は捨てて checks.undated に数える（AI に月を計算させない）。
+        ★月をまたぐ1枚（9/15〜10/16 など）は、月末の日と「始まりの月」でも決める（2026-11-15）。
       ★日付の列に在る日は、何も載っていなくても返す（2026-11-10。日本の勤務表で日がまるごと抜けていた）。
         記号が印字されていたが形・辞書に合わず捨てた日も、日付は残して unread:true を付ける（捨てた字はどこにも入れない）。
         unread はモデルに聞かない（答えの形に欄を足さない）。sanitize が決める。
@@ -62,7 +63,7 @@ const DENO = (globalThis as any).Deno;
 const env = (k: string, d = '') => (DENO?.env?.get(k) ?? d) as string;
 
 /* ★このファイルを直したら必ず上げる（貼った版を {ping:1} で読むための札）。 */
-export const BUILD = '2026-11-13';
+export const BUILD = '2026-11-15';
 
 const ANTHROPIC_API_KEY = env('ANTHROPIC_API_KEY');
 const SUPABASE_URL = env('SUPABASE_URL');
@@ -432,8 +433,15 @@ export function sanitizeTail(v: unknown, now: Date = new Date()): Day[] {
    月をまたぐ所は日の並びで見る（…30, 31, 1, 2 → 翌月）。候補は ② の前後1か月の3つで、
      ・その日が存在しない月（9月31日）は候補から外す
      ・曜日が印字されていれば、合わない数が少ない月
-     ・前の画像の続きになっている月 → 見出しの期間に入る数 → ② の月に入る数
+     ・月末の日：日が1日ずつ並んでいて「30 → 1」と月をまたぐなら、前の月は30日で終わる月（8月30日の次は9月1日ではない）
+     ・前の画像の続きになっている月 → 見出しの期間に入る数 → ② の月が1日でも入る月
+     ・会員が選んだ月で始まる月（画面が「月をまたぐスケジュールは、始まりの月を選んでください」と言っている）
+     ・② の月に入る数
    の順に比べ、1つに決まらなければ置かない（捨てて undated に数える）。
+   ★月末の日と始まりの月は 2026-11-15。それまでは「② の月に入る数」だけで比べていて、日しか無い 9/15〜10/16 の1枚は
+     16日対16日で全部捨て、9/17〜10/16 を9月で出すと 8/17〜9/16 に黙ってずれていた。
+     始まりの月は、1枚目で、最初の月の部分が7日以上あるときだけ（カレンダーの頭に付く前の月の日は6日まで。
+     10月の表の頭の「29, 30」を10月29日にしない）。
    最後に、曜日が合わない行・日付が前の行より戻る行も置かない。
    ──────────────────────────────────────────────────────────── */
 export type DateParts = { y: number | null; m: number | null; d: number | null; wd: number | null };
@@ -499,11 +507,21 @@ export function resolveDates(parts: DateParts[], ctx: DateCtx): { dates: (string
 
   /* 3. 日だけの行。 */
   const only = parts.map((_p, i) => i).filter((i) => k[i] !== null && parts[i].m === null);
+  /* 月末の日を見るのは、日が1日ずつ並んでいるときだけ（勤務の日だけを並べる形では、抜けた日が月末とは限らない）。 */
+  let dense = only.length > 1;
+  const turns: number[] = [];                          // 月をまたぐ直前の行
+  for (let j = 1; j < only.length && dense; j++) {
+    const a = only[j - 1], b = only[j], da = parts[a].d as number, db = parts[b].d as number;
+    if (k[b] === k[a]) dense = db === da + 1;
+    else { dense = k[b] === (k[a] as number) + 1 && db === 1; turns.push(a); }
+  }
+  if (!dense) turns.length = 0;
+  const useStart = hintIdx !== null && !ctx.prevLast && only.filter((i) => k[i] === 0).length >= 7;
   if (only.length) {
     const cands = Bs.size ? [...Bs] : A !== null ? [A - 1, A, A + 1] : [];
     let best: number | null = null, bestS: number[] | null = null, tie = false;
     for (const B of cands) {
-      let ok = true, bad = 0, inA = 0, inP = 0;
+      let ok = true, bad = 0, gap = 0, inA = 0, inP = 0;
       let first: string | null = null;
       for (const i of only) {
         const { y, m } = ofIdx(B + (k[i] as number));
@@ -516,9 +534,14 @@ export function resolveDates(parts: DateParts[], ctx: DateCtx): { dates: (string
         if (ctx.period && iso >= ctx.period.from && iso <= ctx.period.to) inP++;
       }
       if (!ok) continue;
+      for (const a of turns) {
+        const { y, m } = ofIdx(B + (k[a] as number));
+        if (parts[a].d !== daysIn(y, m)) gap++;
+      }
       const cont = ctx.prevLast && first
         && dnum(first) >= dnum(ctx.prevLast) - 10 && dnum(first) <= dnum(ctx.prevLast) + 3 ? 1 : 0;
-      const s = [-bad, cont, inP, inA];
+      const start = useStart && first && isoIdx(first) === hintIdx ? 1 : 0;
+      const s = [-bad, -gap, cont, inP, inA > 0 ? 1 : 0, start, inA];
       const c = bestS ? cmpScore(s, bestS) : 1;
       if (c > 0) { best = B; bestS = s; tie = false; } else if (c === 0) tie = true;
     }
