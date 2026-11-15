@@ -531,8 +531,10 @@
   /* ★鍵の無い行に出す「最初に書かれた欄の先頭40字」（2026-09-16 オーナー指示）。
      本文と同じ .rv-comment の中に素の文で置く（preview と同じ形＝新しい CSS は要らない）。
      ⚠️ これを body.text へ入れない ── 錠前の面ごと消えて全文扱いになる。 */
-  function snipHTML(t) {
-    return t ? rvEsc(t) : '';
+  function snipHTML(t, at) {
+    /* ★原文の抜粋（訳の無い外国語）だけ、dir と lang の付いた span で包む（at は review-i18n.js の attrs が作った字）。
+       .rv-comment ごとに付けない ── 同じ箱の錠前の文とボタンはページの言語なので、向きまで変わる。 */
+    return t ? (at ? '<span' + at + '>' + rvEsc(t) + '</span>' : rvEsc(t)) : '';
   }
 
   /* ★2026-10-29 オーナー「口コミは最初の80文字は見せて。他はぼかして」。鍵の無い行は、80字より先の本文がサーバから来ない
@@ -633,13 +635,14 @@
       '        <span class="rv-score">' + score + '</span>\n' +
       '      </div>' : '') + '\n' +
       '      ' + salaryTableHTML(r, locked && idx >= 1) + '\n' +
-      '      <div class="rv-comment" id="' + uid + '_text">' +
-             (r.serverLocked ? (snipHTML(r.clipText) + ghostHTML(r) + srvLockHTML(r.catKeys))
+      // ★原文（訳の無い外国語）を出すときだけ dir と lang（r.attrs）。錠前の帯が同じ箱に入る行（locked）には付けない
+      '      <div class="rv-comment"' + (locked || r.serverLocked ? '' : (r.attrs || '')) + ' id="' + uid + '_text">' +
+             (r.serverLocked ? (snipHTML(r.clipText, r.attrs) + ghostHTML(r) + srvLockHTML(r.catKeys))
                              : preview + (hasMore && !locked ? '…' : '') +
                                (locked ? lockedTailHTML(tail) : '')) + '</div>\n' +
       // 未解放で原文トグルを出すと、翻訳元の全文がその場で読めてしまいゲートが素通しになる。
       // 「自動翻訳」バッジだけ残し、トグルは解放済みのときにだけ出す。
-      '      ' + (r.translated && !r.serverLocked ? PVReviewI18n.noteHTML(r.from) + (locked ? '' : PVReviewI18n.origHTML(r.origText)) : '') + '\n' +
+      '      ' + (r.translated && !r.serverLocked ? PVReviewI18n.noteHTML(r.from) + (locked ? '' : PVReviewI18n.origHTML(r.origText, r.i18n)) : '') + '\n' +
       '      ' + (hasMore && !locked && !r.serverLocked ? '<button class="rv-read-more" id="' + uid + '_btn" data-full="' + rvEsc(comment) +
              '" onclick="pvReadMore(\'' + uid + '\',this.dataset.full)">' + L.readMore(fullLen) + '</button>' : '') + '\n' +
       '      ' + (r.src ? '<div class="rv-src">' + L.source + ': ' + (r.url
@@ -874,6 +877,9 @@
       avgRating: avgRating,
       comment: body.text, en: body.text,
       translated: body.translated, origText: body.origText, from: body.from,
+      /* ★原文を出すときに付ける dir と lang（2026-11-15）と、原文トグルに渡す pick の答え。
+           古い review-i18n.js（attrs が無い）が端末に残っていても、今までどおり何も付けない。 */
+      attrs: (w.PVReviewI18n && PVReviewI18n.attrs) ? PVReviewI18n.attrs(body) : '', i18n: body,
       // 本文がサーバから来ていない行（鍵を持っていない）。ぼかす本文が手元に無い。
       serverLocked: !!body.locked,
       /* ★鍵の無い行に付く「最初に書かれた欄の先頭40字」（2026-09-16 オーナー指示）。

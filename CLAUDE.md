@@ -539,6 +539,35 @@ baland_ass/                            ブランド資産（※ brand_assets の
 
 見るもの: `node assert-vote.mjs`（落ちたときの「なぜ」は [workflows/deploy-checklist.md](workflows/deploy-checklist.md) の 27 番）。
 
+## 口コミの AI の判定と保留（2026-11-15）
+
+★オーナー決定（A）「AI が怪しいとした口コミだけ、運営が見るまでどこにも出さない。ほかはこれまでどおりすぐ載せる。外国語は禁止しない」。
+画面の判定（連打・母音の少ない英字など）は日英西以外の文字のでたらめを素通しし、サーバーには止める所が無かった。
+
+- **判定するのは翻訳の Edge Function**（[translate-review](supabase/functions/translate-review/index.ts) の `judge`）。訳の前に1回、
+  何語か（`lang`）・載せてよいか（`ok` / `hold`）・理由・運営へのメモを答えさせる。保留でも判定が落ちても訳は続ける。
+  本文7欄の指紋（`body_sha`）が前と同じなら二度と判定しない（費用は1件 約2〜4円）。
+  ログインなしの預かり（`pv_review_pending`）は [db/review-judge-webhook.sql](db/review-judge-webhook.sql) の Webhook で**判定だけ**（訳はしない）。
+  ⚠️ 本文はデータとして渡す（`<review>` で囲み `<` を逃がす）。中の指示に従わせない。
+  ⚠️ 外国語・短い・誤字・厳しい批判・下品な語では保留にしない（下品な語はトップの承諾の仕組みが別に見る）。迷ったら ok。
+- **保留の正本は表 `pv_review_judge`**（[db/reviews-gate.sql](db/reviews-gate.sql) の 3-c）。保留中 ＝ `verdict='hold' and decided is null`、
+  判定は `pv_review_held()` の1か所。⚠️ `reviews_v2` に列を足さない（`pv_reviews()` が丸ごと返す＝公開される）。
+  保留中の口コミは、鍵（`pv_has_review_key`）・一覧・Vote・トップ・作り置きのカード・AI 要約の材料・新しい投稿順・フォローの知らせの**どこにも出ない**。
+  書いた本人の `mine` にだけ残る。引き取り（`claim_review_pending`）は判定の行を ('q', 預かり) → ('r', 口コミ) に写す。
+  ⚠️ **会員だけが見る口コミを返す関数を新しく作ったら、`pv_review_held()` を外す1行を足す**（足さないと保留中がそこだけ出る）。
+  まだ外していないもの：週のまとめ・FOUNDING の番号・会員の中央値・`pv_ask_own`・旧口コミの年収（REAL PAY の対応表）。
+- **知らせ**：新しく保留になったときだけ info@ へ1通（`pv_review_judge_put` が `mail:true` を返したとき）。**口コミの字はメールに載せない**（管理画面で読む）。
+- **運営の答え**：管理画面のタブ「口コミの確認」（`admin.html#review-holds`）で「載せる／消す」（`admin_list_review_holds` / `admin_review_hold_decide`）。
+  消すは控え `reviews_removed` に写してから。載せると口コミの表を1回だけ update する ── 要約の Webhook を鳴らして AI 要約を作り直すため（本文は変えない）。
+- 原文の言語は判定の `lang`（`und` なら文字の種類で `detectLang`）。日英西以外の原文は日英西の3つへ訳し、`orig_lang` に本当の言語を残す。
+  画面は「〇〇から自動翻訳」と書き、原文には `dir` と `lang` を付ける（`PVReviewI18n.attrs`。アラビア語などは右から左）。
+- 既存の口コミは、次にその行が update されたとき初めて判定される。⚠️ 全行を update する SQL を流すと、全件が一度に判定される（件数 × 2〜4円・保留の数だけメール）。
+- **貼る順**：`db/reviews-gate.sql` → `db/review-pending.sql` → `db/review-summary.sql` → `db/airline-activity.sql` → `db/follow.sql`
+  → translate-review と notify-admin を Deploy → `db/review-judge-webhook.sql`。SQL が先・push が後（Deploy が先でも壊れない＝判定を飛ばして訳だけする）。
+
+見るもの: `node db/test-reviews-gate.mjs`（▼11）／`node db/test-review-judge-webhook.mjs`／`node assert-translate-review.mjs`（9番）／
+`node assert-review-quality.mjs`／`node assert-admin.mjs`（タブ）。判定の頼み方を直したら、Deploy の前に `node translate-eval.mjs --judge`（課金・数十円）。
+
 ## 戻ってきた会員に聞く板「〇〇のこと、ひとつ教えて。」（2026-10-30）
 
 ★オーナー指示「登録したパイロットが戻ってきたとき、2日に1回、自分の会社について3問。大事で、まだ埋まっていない質問から。
@@ -973,7 +1002,7 @@ baland_ass/                            ブランド資産（※ brand_assets の
 | `assert-langtoggle.mjs` | 言語切替の allowlist と往復 |
 | `assert-header.mjs` | ヘッダーが日英14ページ × 10幅で正しく畳まれる／横に溢れない／入力欄が 16px 未満でない |
 | `assert-hero-fold.mjs` | トップの**帯（緑のカード・口コミ）が最初の1画面に入っている**か（日英 × 8つの大きさ）。緑は**全サイズで完全に**・口コミは PC と iPad 縦だけ完全で、iPad 横とスマホは**頭が覗けば可**（2026-09-24 オーナー判断）。中身が空でない・帯2本のあいだが 10px。⚠️ **SIZES の高さは「ブラウザのバーを引いた実寸」**（iPhone は 844 ではなく 680）。端末の仕様表の数字に戻すと、この検査は全部 ✅ のまま実機では帯が1本も見えなくなる（実際に起きた）。⚠️ ヒーローの上余白を広げるなら**同じだけ緑の面を縮める**（[lp.css](lp.css) の「★2026-09-24」の節）。⚠️ 段組みは**幅と高さの両方**で決まる（iPad 縦は2列・iPad 横は1列）|
-| `assert-review-quality.mjs` | 口コミの品質判定が**5か所で同じ答え**を返す |
+| `assert-review-quality.mjs` | 口コミの品質判定が**6か所で同じ答え**を返す（日英西の画面＋サーバーの写し3つ。式は1文字も違わない） |
 | `assert-translate-review.mjs` | 口コミ自動翻訳の形・鍵が死んだときの通知（`isFatalKeyError`）|
 | `assert-admin-notify.mjs` | 管理者通知メールに**金額・明細の項目名が1文字も出ない**・`builders` と SQL の表が一致 |
 | `db/test-announce.mjs` | お知らせメールに金額・社名・項目名が入らない |

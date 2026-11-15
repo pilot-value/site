@@ -9,6 +9,8 @@
                                  「自動翻訳」バッジと原文トグルを添える
      ・translations が無い/欠けている → その欄は原文にフォールバックする
        （＝ SQL 未適用でも Edge Function 未デプロイでもページは壊れない）
+     ・原文は日英西のほかの言語でも来る（2026-11-15）→ 札は「〇〇から自動翻訳」、
+       訳の無いまま原文を出す要素には dir と lang（attrs）
 
    利用側: community.html / en/community.html / airlines/airline-base.js /
            en-airline-reviews.js
@@ -33,13 +35,64 @@
     es: function (label, text) { return '[' + label + '] ' + text; },
   };
 
+  /* ★2026-11-15 札の見える字は「〇〇から自動翻訳」（原文が日英西のほかの言語でも来るようになった）。
+     n はページの言語での言語名（langName）。取れないときは日英西の3つだけ自前の名前、それも無ければコード。
+     原文の言語が分からない（'und'・空）ときは from を呼ばず note だけ出す（noteHTML）。 */
   var UI = {
-    ja: { note: '自動翻訳', from: function (l) { return (l === 'en' ? '英語' : l === 'es' ? 'スペイン語' : '日本語') + 'から自動翻訳'; },
+    ja: { note: '自動翻訳', from: function (l, n) { return (n || (l === 'en' ? '英語' : l === 'es' ? 'スペイン語' : l === 'ja' ? '日本語' : l)) + 'から自動翻訳'; },
           show: '原文を表示', hide: '原文を隠す' },
-    en: { note: 'Machine-translated', from: function (l) { return 'Machine-translated from ' + (l === 'ja' ? 'Japanese' : l === 'es' ? 'Spanish' : 'English'); },
-          show: 'Show original', hide: 'Hide original' }, /*PV-MSG:es*/ es: { note: 'Traducido automáticamente', from: function (l) { return 'Traducido automáticamente del ' + (l === 'ja' ? 'japonés' : l === 'es' ? 'español' : 'inglés'); },
+    en: { note: 'Machine-translated', from: function (l, n) { return 'Machine-translated from ' + (n || (l === 'ja' ? 'Japanese' : l === 'es' ? 'Spanish' : l === 'en' ? 'English' : l)); },
+          show: 'Show original', hide: 'Hide original' }, /*PV-MSG:es*/ es: { note: 'Traducido automáticamente', from: function (l, n) { return 'Traducido automáticamente del ' + (n || (l === 'ja' ? 'japonés' : l === 'es' ? 'español' : l === 'en' ? 'inglés' : l)); },
           show: 'Mostrar original', hide: 'Ocultar original' } /*/PV-MSG:es*/,
   };
+
+  /* 原文の言語の名前を、ページの言語で（ar → アラビア語 / Arabic / árabe）。
+     コードが2字でない（'und'・空）・名前が引けない（コードがそのまま返る）ときは空。 */
+  var DN = { l: '', f: null };
+  function langName(code) {
+    code = String(code || '').toLowerCase();
+    if (!/^[a-z]{2}$/.test(code)) return '';
+    var to = lang();
+    try {
+      if (DN.l !== to) DN = { l: to, f: new Intl.DisplayNames([to], { type: 'language' }) };
+      var n = DN.f.of(code);
+      return (n && n.toLowerCase() !== code) ? n : '';
+    } catch (e) { return ''; }
+  }
+
+  /* ★原文に付ける dir と lang（2026-11-15。日英西のほかの言語の原文が来るようになった）。
+     dir は本文の字で決める：アラビア文字・ヘブライ文字・シリア文字・ターナ文字の字が、字（\p{L}）全体の半分以上なら rtl。
+     lang は原文の言語が2字の正しいコードで、しかも日英西でないときだけ。
+     ⚠️ 日英西の原文には何も付けない ── 付けると、今までの口コミの字の組み方（書体の選び方・改行の位置）が変わる。
+     ⚠️ 訳文には付けない（訳文はページの言語）。どちらを出しているかは attrs が決める。 */
+  var SITE_LANG = { ja: 1, en: 1, es: 1 };
+  var RE_L = null, RE_R = null;
+  try {
+    RE_L = new RegExp('\\p{L}', 'gu');
+    RE_R = new RegExp('[\\p{Script=Arabic}\\p{Script=Hebrew}\\p{Script=Syriac}\\p{Script=Thaana}]', 'u');
+  } catch (e) { RE_L = null; }   // \p{…} を読めない古いブラウザ：dir は付けない（今までどおり）
+  function isRtl(s) {
+    if (!RE_L || !s) return false;
+    var all = String(s).match(RE_L) || [], r = 0;
+    for (var i = 0; i < all.length; i++) if (RE_R.test(all[i])) r++;
+    return all.length > 0 && r * 2 >= all.length;
+  }
+  function origAttrs(from, text) {
+    var a = isRtl(text) ? ' dir="rtl"' : '';
+    from = String(from || '').toLowerCase();
+    if (/^[a-z]{2}$/.test(from) && !SITE_LANG[from]) a += ' lang="' + from + '"';
+    return a;
+  }
+  /* 本文を出す要素に付ける属性（先頭に空白・エスケープ済み）。原文を出しているときだけ、訳文なら ''。
+       attrs(p)    … pick() の答えの本文ぜんぶ（会社ページの .rv-comment）・鍵の無い行は抜粋
+       attrs(p, c) … その1欄だけ（p.cats の1つ。vote.js のように欄ごとに出す所） */
+  function attrs(p, c) {
+    if (!p) return '';
+    if (c) return c.o ? origAttrs(p.from, c.text) : '';
+    if (p.locked) return p.clipOrig ? origAttrs(p.from, p.clipText) : '';
+    if (p.translated) return '';
+    return origAttrs(p.from, (p.cats || []).map(function (x) { return x.text; }).join(' '));
+  }
 
   function lang() {
     /* スペイン語のページはスペイン語の訳（2026-11-02 translate-review が日英西へ訳す）。
@@ -127,8 +180,9 @@
          ⚠️ translated は false のまま ── true にすると両方のテンプレートが
             「原文を表示」を出し、origHTML() が原文を丸ごと画面に出す。 */
       var cl = (row && row.clip) || null;
+      var ct = (cl && cl.k && cl.t && (cl.t[to] || (to === 'es' && from !== 'en' && cl.t.en))) || '';   // 抜粋の訳（無ければ原文の抜粋）
       var snip = (cl && cl.k)
-        ? trimMoney(flatten((cl.t && (cl.t[to] || (to === 'es' && from !== 'en' && cl.t.en))) || cl.o || '')) : '';
+        ? trimMoney(flatten(ct || cl.o || '')) : '';
       var locked = [];
       for (var c = 0; c < row.cats.length; c++) {
         var ck = row.cats[c];
@@ -139,7 +193,7 @@
       }
       return {
         lang: to, from: from, translated: false, locked: true,
-        clipped: !!snip, clipKey: (snip && cl.k) || '', clipText: snip,
+        clipped: !!snip, clipKey: (snip && cl.k) || '', clipText: snip, clipOrig: !!snip && !ct,
         cats: locked, text: '', origCats: [], origText: '',
       };
     }
@@ -153,7 +207,7 @@
       var show = (from !== to && t) ? t : orig;
       if (!show) continue;
       if (from !== to && t) usedTranslation = true;
-      cats.push({ k: k, label: lab[k], text: show });
+      cats.push({ k: k, label: lab[k], text: show, o: !(from !== to && t) });   // o ＝ この欄は原文（attrs が見る）
       if (orig) origCats.push({ k: k, label: lab[k], text: orig });
     }
     // 長い順＝カードの主カテゴリ判定と読み応えのある順に揃える（既存挙動を踏襲）
@@ -205,19 +259,31 @@
     });
   }
 
-  /* 「自動翻訳」バッジ。訳文を出しているカードにだけ添える。 */
-  function noteHTML(from) {
+  /* 「〇〇から自動翻訳」バッジ。訳文を出しているカードにだけ添える。
+     ★2026-11-15 見える字にも「〇〇から」を出す（前は title の中だけ）。title も同じ字。
+       原文の言語が分からない（'und'・空・2字でない）ときは「自動翻訳」だけ。
+     mode … 'short' ＝ 見える字は「自動翻訳」だけ（title は「〇〇から自動翻訳」）。項目名と星と1行に並べる狭い札の行
+                       （Vote の流れる帯 268/304px）用 ── 「〇〇から」を入れると英西は1つも収まらない（2026-11-15 実測）。
+            'lead'  ＝ 行の頭に置く（左の余白なし）。 */
+  function noteHTML(from, mode) {
     var u = pickT(UI, lang());
-    return '<span class="rv-tr-badge" title="' + esc(u.from(from)) + '">' + esc(u.note) + '</span>';
+    var code = String(from || '').toLowerCase();
+    var t = /^[a-z]{2}$/.test(code) ? u.from(code, langName(code)) : u.note;
+    return '<span class="rv-tr-badge' + (mode === 'lead' ? ' is-lead' : mode === 'short' ? ' is-short' : '') + '" title="' + esc(t) + '">' +
+      esc(mode === 'short' ? u.note : t) + '</span>';
   }
 
-  /* 原文トグル。原文は消さずに畳んでおく（忠実性の担保）。 */
-  function origHTML(origText) {
+  /* 原文トグル。原文は消さずに畳んでおく（忠実性の担保）。
+     p は pick() の答えか原文の言語のコード。渡すと、畳んだ原文に dir と lang が付く（origAttrs）。
+     答えを渡したときは、項目名（ページの言語）を除いた本文の字だけで向きを決める。 */
+  function origHTML(origText, p) {
     if (!origText) return '';
     var u = pickT(UI, lang());
+    var at = !p ? '' : typeof p === 'string' ? origAttrs(p, origText)
+      : origAttrs(p.from, (p.origCats || []).map(function (x) { return x.text; }).join(' '));
     return '<button type="button" class="rv-tr-toggle" data-show="' + esc(u.show) + '" data-hide="' + esc(u.hide) +
       '" onclick="PVReviewI18n.toggle(this)">' + esc(u.show) + '</button>' +
-      '<div class="rv-tr-orig" hidden>' + esc(origText) + '</div>';
+      '<div class="rv-tr-orig"' + at + ' hidden>' + esc(origText) + '</div>';
   }
 
   function toggle(btn) {
@@ -236,7 +302,12 @@
     st.textContent =
       '.rv-tr-badge{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;' +
         'font-size:.66rem;font-weight:600;letter-spacing:.02em;vertical-align:middle;' +
+        // ★「〇〇から自動翻訳」は長い言語名で枠の幅を超える。丸い札の中で2〜3行に折れないよう1行に保ち、入らない分は … （全文は title）
+        'max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;' +
         'background:rgba(107,125,147,.14);color:#6b7d93;border:1px solid rgba(107,125,147,.28)}' +
+      '.rv-tr-badge.is-lead{margin-left:0}' +
+      // 'short'（Vote の流れる帯）は 2026-11-15 より前の形のまま ── 折らない行の中で … に縮められて「Machine-transla…」にならないように
+      '.rv-tr-badge.is-short{max-width:none;white-space:normal;overflow:visible}' +
       '.rv-tr-toggle{display:inline-block;margin-top:8px;padding:0;border:0;background:none;cursor:pointer;' +
         'font-size:.72rem;font-weight:600;color:#6b7d93;text-decoration:underline;text-underline-offset:2px;' +
         'transition:color .15s cubic-bezier(.2,.8,.3,1),opacity .15s cubic-bezier(.2,.8,.3,1)}' +
@@ -259,6 +330,7 @@
   w.PVReviewI18n = {
     KEYS: KEYS, labels: function () { return pickT(LABELS, lang()); }, lang: lang,
     esc: esc, pick: pick, noteHTML: noteHTML, origHTML: origHTML, toggle: toggle,
+    attrs: attrs, langName: langName,
     EXTRA_COLS: EXTRA_COLS, fetchWithFallback: fetchWithFallback,
     fetchRows: fetchRows,
   };

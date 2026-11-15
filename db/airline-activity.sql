@@ -24,6 +24,7 @@
 --                                社名の欄はコードとは限らない（「その他」は打ち込まれた字）ので、必ず pv_airline_resolve を通す。
 --   預かりの口コミ（pv_review_pending）… 引き取っていない行だけ（claimed_at is null ＝ 一覧に出ている行）。
 --                                引き取った行は reviews_v2 の行（引き取った時刻）として数える＝2回数えない。
+--   ★AI が保留にした口コミ・預かり（db/reviews-gate.sql 3-c・2026-11-15）… 運営が載せるまで数えない（pv_reviews が一覧に出さないのと同じ）。
 --   捨てる行                    … どの会社にも当たらない社名（'other'）・会社の表に無いコード・active でない会社。
 --
 -- ── 守っている約束 ────────────────────────────────────────
@@ -69,6 +70,10 @@ begin
   end if;
   if to_regclass('public.pv_review_pending') is null then
     raise exception '先に db/reviews-gate.sql を実行してください（口コミの預かりの表 pv_review_pending が無い）';
+  end if;
+  if to_regclass('public.pv_review_judge') is null
+     or to_regprocedure('public.pv_review_held(text, uuid)') is null then
+    raise exception '先に db/reviews-gate.sql を実行してください（AI の判定 pv_review_judge / pv_review_held が無い）';
   end if;
   if to_regclass('public.pv_test_users') is null then
     raise exception '先に db/member-median.sql を実行してください（テスト用アカウントの名簿 pv_test_users が無い）';
@@ -124,18 +129,20 @@ begin
      group by 1, 2
   ),
   -- 口コミ：全部（テスト用アカウントでない）＋ 引き取っていない預かり。社名の欄ごとに最新の1つ
+  -- ★AI が保留にした口コミ・預かり（db/reviews-gate.sql 3-c）は、運営が載せるまで数えない（2026-11-15）
   rv as (
     select x.nm, max(x.at) as at
       from (
-        select v.airline as nm, v.created_at as at
+        select v.airline as nm, v.created_at as at, 'r'::text as src, v.id
           from public.reviews_v2 v
          where not exists (select 1 from public.pv_test_users t   -- ★テスト用アカウント（口コミ）
                             where encode(extensions.digest(t.uid::text || '::pv_anon::' || v.airline || '::2026', 'sha256'), 'hex') = v.proof_hash)
         union all
-        select q.airline, q.created_at
+        select q.airline, q.created_at, 'q', q.id
           from public.pv_review_pending q
          where q.claimed_at is null
       ) x
+     where not public.pv_review_held(x.src, x.id)   -- ★AI が保留にした口コミ・預かり
      group by x.nm
   ),
   -- 社名を会社コードへ（同じ字は1回だけ引く）。どこにも当たらなければ 'other'（下で捨てる）
@@ -247,6 +254,14 @@ create trigger trg_pv_airline_activity
   on public.pv_review_pending
   for each statement execute function public.pv_airline_activity_trg();
 
+-- ★AI の判定（db/reviews-gate.sql 3-c・2026-11-15）：保留中になった・運営が載せた／消した（verdict・decided が動いたとき）
+drop trigger if exists trg_pv_airline_activity on public.pv_review_judge;
+create trigger trg_pv_airline_activity
+  after insert or delete
+        or update of verdict, decided
+  on public.pv_review_judge
+  for each statement execute function public.pv_airline_activity_trg();
+
 drop trigger if exists trg_pv_airline_activity on public.pay_hidden;
 create trigger trg_pv_airline_activity
   after insert or update or delete on public.pay_hidden
@@ -297,21 +312,22 @@ union all select 6, '数え直しは誰にも実行させない（PUBLIC・未�
                               where q.oid = 'public.pv_airline_activity_refresh()'::regprocedure
                                 and a.grantee = 0 and a.privilege_type = 'EXECUTE')
             then '✅' else '❌' end
-union all select 7, '引き金が5つの表に付いている（給与・口コミ・口コミの預かり・下ろした人・テスト用アカウント）',
+union all select 7, '引き金が6つの表に付いている（給与・口コミ・口コミの預かり・AI の判定・下ろした人・テスト用アカウント）',
        case when (select count(*) from pg_trigger t
                    where t.tgname = 'trg_pv_airline_activity' and not t.tgisinternal
                      and t.tgrelid in ('public.pay_reports'::regclass, 'public.reviews_v2'::regclass,
-                                       'public.pv_review_pending'::regclass, 'public.pay_hidden'::regclass,
-                                       'public.pv_test_users'::regclass)) = 5
+                                       'public.pv_review_pending'::regclass, 'public.pv_review_judge'::regclass,
+                                       'public.pay_hidden'::regclass, 'public.pv_test_users'::regclass)) = 6
             then '✅' else '❌' end
 union all select 8, '数え直しが失敗しても書き込みは止めない（引き金が例外を握る）',
        case when (select s from g) like '%exception when others then%' and (select s from g) like '%raise warning%'
             then '✅' else '❌' end
-union all select 9, 'テスト用アカウントを給与・口コミの両方で外している・預かりは引き取っていないものだけ',
+union all select 9, 'テスト用アカウントを給与・口コミの両方で外している・預かりは引き取っていないものだけ・AI が保留にした口コミは数えない',
        case when (select s from d) like '%pv_test_users t   -- ★テスト用アカウント（給与）%'
              and (select s from d) like '%pv_test_users t   -- ★テスト用アカウント（口コミ）%'
              and (select s from d) like '%''::pv_pay::''%' and (select s from d) like '%''::pv_anon::''%'
              and (select s from d) like '%q.claimed_at is null%'
+             and (select s from d) like '%not public.pv_review_held(x.src, x.id)%'
             then '✅' else '❌' end
 union all select 10, '並びに入っている会社 ' || jsonb_array_length(public.pv_airline_activity_order()) || ' 社',
        case when jsonb_array_length(public.pv_airline_activity_order()) > 0 then '✅'

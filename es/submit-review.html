@@ -556,7 +556,7 @@ textarea.form-input{resize:vertical;min-height:96px;line-height:1.7}
                 <button type="button" class="star-btn" data-v="5" onclick="setStar(this)">5</button>
               </div>
             </div>
-            <textarea class="form-input" id="fc-culture" rows="2" maxlength="300" placeholder="Internal culture, atmosphere, how easy it is to work here, etc." oninput="updateTotalChars()"></textarea>
+            <textarea class="form-input" dir="auto" id="fc-culture" rows="2" maxlength="300" placeholder="Internal culture, atmosphere, how easy it is to work here, etc." oninput="updateTotalChars()"></textarea>
           </div>
           <!-- Salary -->
           <div class="cat-block">
@@ -570,7 +570,7 @@ textarea.form-input{resize:vertical;min-height:96px;line-height:1.7}
                 <button type="button" class="star-btn" data-v="5" onclick="setStar(this)">5</button>
               </div>
             </div>
-            <textarea class="form-input" id="fc-salary" rows="2" maxlength="300" placeholder="Base pay, the share made up by allowances, the pay structure, etc." oninput="updateTotalChars()"></textarea>
+            <textarea class="form-input" dir="auto" id="fc-salary" rows="2" maxlength="300" placeholder="Base pay, the share made up by allowances, the pay structure, etc." oninput="updateTotalChars()"></textarea>
           </div>
           <!-- Benefits -->
           <div class="cat-block">
@@ -584,7 +584,7 @@ textarea.form-input{resize:vertical;min-height:96px;line-height:1.7}
                 <button type="button" class="star-btn" data-v="5" onclick="setStar(this)">5</button>
               </div>
             </div>
-            <textarea class="form-input" id="fc-benefits" rows="2" maxlength="300" placeholder="Staff travel tickets, insurance, housing allowance, etc." oninput="updateTotalChars()"></textarea>
+            <textarea class="form-input" dir="auto" id="fc-benefits" rows="2" maxlength="300" placeholder="Staff travel tickets, insurance, housing allowance, etc." oninput="updateTotalChars()"></textarea>
           </div>
           <!-- Work-life balance -->
           <div class="cat-block">
@@ -598,7 +598,7 @@ textarea.form-input{resize:vertical;min-height:96px;line-height:1.7}
                 <button type="button" class="star-btn" data-v="5" onclick="setStar(this)">5</button>
               </div>
             </div>
-            <textarea class="form-input" id="fc-wlb" rows="2" maxlength="300" placeholder="Taking leave, rostering, duty hours, etc." oninput="updateTotalChars()"></textarea>
+            <textarea class="form-input" dir="auto" id="fc-wlb" rows="2" maxlength="300" placeholder="Taking leave, rostering, duty hours, etc." oninput="updateTotalChars()"></textarea>
           </div>
           <!-- Flight operations -->
           <div class="cat-block">
@@ -612,7 +612,7 @@ textarea.form-input{resize:vertical;min-height:96px;line-height:1.7}
                 <button type="button" class="star-btn" data-v="5" onclick="setStar(this)">5</button>
               </div>
             </div>
-            <textarea class="form-input" id="fc-ops" rows="2" maxlength="300" placeholder="Fleet, routes, operational safety standards, etc." oninput="updateTotalChars()"></textarea>
+            <textarea class="form-input" dir="auto" id="fc-ops" rows="2" maxlength="300" placeholder="Fleet, routes, operational safety standards, etc." oninput="updateTotalChars()"></textarea>
           </div>
           <!-- Training environment -->
           <div class="cat-block">
@@ -626,7 +626,7 @@ textarea.form-input{resize:vertical;min-height:96px;line-height:1.7}
                 <button type="button" class="star-btn" data-v="5" onclick="setStar(this)">5</button>
               </div>
             </div>
-            <textarea class="form-input" id="fc-training" rows="2" maxlength="300" placeholder="Simulator, check frequency, support, etc." oninput="updateTotalChars()"></textarea>
+            <textarea class="form-input" dir="auto" id="fc-training" rows="2" maxlength="300" placeholder="Simulator, check frequency, support, etc." oninput="updateTotalChars()"></textarea>
           </div>
           <!-- Suggestions to management -->
           <div class="cat-block">
@@ -640,7 +640,7 @@ textarea.form-input{resize:vertical;min-height:96px;line-height:1.7}
                 <button type="button" class="star-btn" data-v="5" onclick="setStar(this)">5</button>
               </div>
             </div>
-            <textarea class="form-input" id="fc-mgmt" rows="2" maxlength="300" placeholder="What you would like improved, your views on management decisions, etc." oninput="updateTotalChars()"></textarea>
+            <textarea class="form-input" dir="auto" id="fc-mgmt" rows="2" maxlength="300" placeholder="What you would like improved, your views on management decisions, etc." oninput="updateTotalChars()"></textarea>
           </div>
         </div>
 
@@ -905,8 +905,11 @@ function getStarScore(cat) {
 
 // ── Total char counter ────────────────────────────────────────
 const CAT_KEYS = ['culture','salary','benefits','wlb','ops','training','mgmt'];
+/* ★2026-11-15 字数はサーバー（db/review-pending.sql の char_length(btrim(…))）と同じ数え方＝前後の空白を外した字（コードポイント）の数。
+   JS の .length は UTF-16 で数えるので絵文字1つが2字になり、画面は300字でもサーバーが「合計が300字に足りません」と断っていた。 */
+const charLen = (s) => [...String(s || '')].length;
 function updateTotalChars() {
-  const total = CAT_KEYS.reduce((s,k) => s + (document.getElementById('fc-'+k)?.value.length||0), 0);
+  const total = CAT_KEYS.reduce((s,k) => s + charLen((document.getElementById('fc-'+k)?.value || '').trim()), 0);
   const el = document.getElementById('char-total-display');
   if (el) {
     el.textContent = total + ' / 300 characters';
@@ -1100,7 +1103,39 @@ function getVals() {
 }
 
 function totalCommentChars(v) {
-  return Object.values(v.cats).reduce((s,c) => s + c.comment.length, 0);
+  return Object.values(v.cats).reduce((s,c) => s + charLen(c.comment), 0);
+}
+/* 1欄300字を超えた欄があれば、その断りの文（無ければ空）。サーバーも同じ数え方で断る（コメントは1項目300字まで）。
+   maxlength は UTF-16 で数えるうえ台本で入れた値には効かないので、送る前にここでも止める。
+   スペイン語のページ（es/ はこのファイルから作る）はスペイン語の文。 */
+function overLimitMsg(v) {
+  const k = CAT_KEYS.find((x) => charLen(v.cats[x].comment) > 300);
+  if (!k) return '';
+  const n = charLen(v.cats[k].comment);
+  return window.PV_LANG === 'es'
+    ? `El comentario sobre "${CAT_LABELS[k]}" puede tener hasta 300 caracteres (actualmente ${n}).`
+    : `The comment on "${CAT_LABELS[k]}" can be up to 300 characters (currently ${n}).`;
+}
+/* ★2026-11-15 ログインせずに送ったとき、サーバー（db/review-pending.sql の raise）は日本語の文で断る。
+   英語・スペイン語の画面では、知っている文をその画面の言葉に置き換えて出す（知らない文は今までどおりそのまま）。
+   ⚠️ サーバーの文を変えたら、ここの鍵も直す（ずれるとその文だけ日本語に戻る。assert-review-quality.mjs が SQL と突き合わせる）。 */
+const SERVER_MSG = {
+  '入力の形式が不正です':             ['The form data is not in a valid format.', 'Los datos del formulario no tienen un formato válido.'],
+  '航空会社を選んでください':         ['Selecciona una aerolínea.', 'Selecciona una aerolínea.'],
+  '職位を選んでください':             ['Selecciona una categoría (puesto).', 'Selecciona una categoría (puesto).'],
+  '勤務年数の形が不正です':           ['The years of service are not in a valid format.', 'Los años de servicio no tienen un formato válido.'],
+  '年代の形が不正です':               ['The age range is not in a valid format.', 'El rango de edad no tiene un formato válido.'],
+  '機材の形が不正です':               ['The aircraft type is not in a valid format.', 'El tipo de aeronave no tiene un formato válido.'],
+  '役割の形が不正です':               ['The role is not in a valid format.', 'El rol no tiene un formato válido.'],
+  '評価（1〜5）を選んでください':     ['Please select a rating (1–5) for each category.', 'Selecciona una calificación (1–5) para cada categoría.'],
+  '評価は1〜5です':                   ['Ratings must be between 1 and 5.', 'Las calificaciones van del 1 al 5.'],
+  'コメントは1項目300字までです':     ['Each comment can be up to 300 characters.', 'Cada comentario puede tener hasta 300 caracteres.'],
+  'コメントの合計が300字に足りません': ['Your comments total fewer than 300 characters.', 'Tus comentarios suman menos de 300 caracteres.'],
+  'しばらくしてからもう一度お試しください': ['Vuelve a intentarlo en un momento.', 'Vuelve a intentarlo en un momento.'],
+};
+function serverMsg(m) {
+  const hit = SERVER_MSG[String(m || '').trim()];
+  return hit ? hit[window.PV_LANG === 'es' ? 1 : 0] : '';
 }
 
 // When "Other" is selected, the freely entered airline name becomes the effective value
@@ -1160,7 +1195,9 @@ function assessReviewQuality(raw) {
   if (len === 0) return { ok: true, reason: '' };
 
   // 1) The same character repeated (5 or more in a row), e.g. "aaaaa"
-  if (/(.)\1{4,}/u.test(t)) {
+  //    ★Only runs of letters count (2026-11-15). Digits, punctuation, symbols, spaces and ـ (U+0640, the Arabic
+  //    stretching line) are ignored — "100000 AED", "¥5000000", "。。。。。" and "ـــــ" were stopping genuine reviews.
+  if (/([^\p{N}\p{P}\p{S}\p{Z}\s\u0640])\1{4,}/u.test(t)) {
     return { ok: false, reason: 'El mismo carácter se repite demasiadas veces (p. ej., "aaaaa"). Escribe lo que realmente viviste.' };
   }
 
@@ -1180,9 +1217,14 @@ function assessReviewQuality(raw) {
   // 4) Latin-character mashing (keyboard mashing with almost no vowels), e.g. "dkdkdm", "kfmkms",
   //    "ksmkskd". 12 or more letters with a vowel ratio under 15% counts as mashing.
   //    Genuine English text (vowel ratio around 38%) and a few abbreviations (EF/WLB/OJT/PBS/CA etc.) pass.
-  const latin = t.match(/[A-Za-z]/g) || [];
+  //    ★Before counting, drop abbreviations and type names — words of 2-10 letters/digits with no lowercase,
+  //    also when joined by / or - (PC/LPC, TRI/TRE, B787-9, ATPL, A350) (2026-11-15). Genuine comments full of
+  //    abbreviations were stopped as "no vowels" (CRM, MCC, SOP inside Japanese or Arabic text too).
+  //    Lowercase mashing is still stopped.
+  const bare = t.replace(/\b[A-Z0-9]{2,10}(?:[\/-][A-Z0-9]{1,10})*\b/g, ' ');
+  const latin = bare.match(/[A-Za-z]/g) || [];
   if (latin.length >= 12) {
-    const vowels = t.match(/[AEIOUaeiou]/g) || [];
+    const vowels = bare.match(/[AEIOUaeiou]/g) || [];
     if (vowels.length / latin.length < 0.15) {
       return { ok: false, reason: 'Se determinó que es una cadena de caracteres sin sentido (teclear al azar). Describe tu experiencia real con oraciones.' };
     }
@@ -1284,6 +1326,8 @@ function goStep(n) {
       showFormAlert(err, `Selecciona una calificación (1–5) para "${labels[missingScore]}".`);
       return;
     }
+    const over = overLimitMsg(v);
+    if (over) { showFormAlert(err, over, { code: 'too_long' }); return; }
     const totalChars = totalCommentChars(v);
     if (totalChars < 300) {
       showFormAlert(err, `Tus comentarios son demasiado cortos (actualmente ${totalChars} caracteres; se requieren 300 o más).`, { code: 'too_short' });
@@ -1357,6 +1401,8 @@ async function submitReview() {
     btn.disabled = false;
     btn.textContent = 'Publicar y desbloquear 🔓';
   };
+  const over = overLimitMsg(v);
+  if (over) { showFormAlert(err, over, { code: 'too_long' }); return; }
   const setCheck = assessReviewSet(v.cats);
   if (!setCheck.ok) { reject(setCheck.reason); return; }
   for (const k of CAT_KEYS) {
@@ -1395,7 +1441,7 @@ async function submitReview() {
       }
       if (r.err) {
         const code = String(r.err.code || '');
-        showFormAlert(err, code === '54000' ? 'Vuelve a intentarlo en un momento.' : String(r.err.message || 'error').replace(/[&<>]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;' }[c])));
+        showFormAlert(err, code === '54000' ? 'Vuelve a intentarlo en un momento.' : (serverMsg(r.err.message) || String(r.err.message || 'error').replace(/[&<>]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;' }[c]))));
         btn.disabled = false;
         btn.textContent = 'Publicar y desbloquear 🔓';
         return;

@@ -78,16 +78,19 @@ const esc = (s: unknown) =>
    同一ロジックをそのまま移植している。フォームを通さず API に直接
    投稿された水増し・連打を管理者が気付けるようにするための仕掛けなので、
    即時通知に移してもここは落とさない。
-   ⚠️ 同じ関数が5か所にある（submit-review.html / en/submit-review.html /
-   mail-bot/admin-notify.mjs / mail-bot/delete-review.mjs / ここ）。直すときは5つとも直す。
-   実際に判定5だけフォーム側を直して残り4つを直し忘れ、本物の投稿に警告が付いたことがある。
+   ⚠️ 同じ関数が6か所にある（submit-review.html / en/submit-review.html / es/submit-review.html /
+   mail-bot/admin-notify.mjs / mail-bot/delete-review.mjs / ここ）。直すときは6つとも直す。
+   実際に判定5だけフォーム側を直して残りを直し忘れ、本物の投稿に警告が付いたことがある。
+   一致は node assert-review-quality.mjs が6か所すべてを実際に動かして確かめる。
+   ★2026-11-15 判定1は「字」の連続だけ（数字・句読点・記号・空白・ـ は数えない）／判定4は略語と機種の語
+     （小文字を持たない2〜10字の英数字。/ - でつながったものも）を外してから数える。
    ──────────────────────────────────────────────────────── */
 function assessReviewQuality(raw: string): { ok: boolean; reason: string } {
   const t = (raw || '').replace(/\s+/g, ' ').trim();
   const len = t.length;
   if (len === 0) return { ok: true, reason: '' };
   // 1) 同一文字の連打
-  if (/(.)\1{4,}/u.test(t)) return { ok: false, reason: '同一文字の連打' };
+  if (/([^\p{N}\p{P}\p{S}\p{Z}\s\u0640])\1{4,}/u.test(t)) return { ok: false, reason: '同一文字の連打' };
   // 2) 同一語句の反復
   const rep = t.match(/(.{2,}?)\1{2,}/u);
   if (rep && rep[0].length >= Math.max(12, len * 0.5)) return { ok: false, reason: '同一語句の反復' };
@@ -95,9 +98,10 @@ function assessReviewQuality(raw: string): { ok: boolean; reason: string } {
   const uniq = new Set(t.replace(/\s/g, '')).size;
   if (len >= 40 && uniq < 10) return { ok: false, reason: '文字種過少（水増し）' };
   // 4) ラテン乱打（母音欠落）：英字12文字以上で母音率15%未満
-  const latin = t.match(/[A-Za-z]/g) || [];
+  const bare = t.replace(/\b[A-Z0-9]{2,10}(?:[\/-][A-Z0-9]{1,10})*\b/g, ' ');
+  const latin = bare.match(/[A-Za-z]/g) || [];
   if (latin.length >= 12) {
-    const vowels = t.match(/[AEIOUaeiou]/g) || [];
+    const vowels = bare.match(/[AEIOUaeiou]/g) || [];
     if (vowels.length / latin.length < 0.15) return { ok: false, reason: 'ラテン乱打（母音欠落）' };
   }
   // 5) 二連字多様性の欠落（機械的な反復パターン）
@@ -423,7 +427,8 @@ async function buildReviewPending(id: string): Promise<Mail | null> {
         row('職位 / 年代', `${esc(POS[r.position] ?? r.position ?? '—')} / ${esc(r.age_bucket ?? '—')}`) +
         row('在籍', esc(r.tenure_bucket ?? '—')) +
         row('機種 / 区分', `${esc(r.fleet ?? '—')} / ${esc(roles(null, r.job_role))}`) +
-        row('言語', esc(r.orig_lang === 'en' ? '英語' : '日本語')) +
+        /* ★2026-11-15 スペイン語のページ（es/）からの預かりも「日本語」と出ていた。知らないコードはコードのまま出す */
+        row('言語', esc(({ ja: '日本語', en: '英語', es: 'スペイン語' } as Record<string, string>)[r.orig_lang] ?? r.orig_lang ?? '—')) +
         row('記入カテゴリ', `${comments.length} / ${CAT_KEYS.length}`) +
         row('品質チェック', flag) +
         row('本文抜粋', esc(excerpt) + (combined.length > 200 ? '…' : '')) +

@@ -33,6 +33,7 @@
 --     勤務年数・年代・機材・役割はもう必須ではない（フォームから欄ごと消した）。
 --     古いページから値が来たときだけ、形を確かめる（変な文字を入れさせない）。
 --     ⚠️ 必須に戻さない ── 今のフォームは送らないので、ログインなしの口コミが全部はじかれる。
+--  7. ★AI が保留にした預かりは、引き取ったあとも保留のまま（2026-11-15・判定を口コミの番号へ写す。下の 3）。
 -- ════════════════════════════════════════════════════════════════
 
 do $$
@@ -42,6 +43,10 @@ begin
   end if;
   if to_regprocedure('public.pv_review_hash(uuid, text)') is null then
     raise exception '先に db/reviews-gate.sql を実行してください（pv_review_hash が無い）';
+  end if;
+  -- 2026-11-15。引き取りの口が AI の判定を写す（下の 3）。古い reviews-gate.sql の上に貼ると、引き取りが全部エラーになる。
+  if to_regclass('public.pv_review_judge') is null then
+    raise exception '先に db/reviews-gate.sql を実行してください（AI の判定の表 pv_review_judge が無い）';
   end if;
 end $$;
 
@@ -62,7 +67,7 @@ alter table public.reviews_v2 alter column age_bucket    drop not null;
 -- 1. pv_validate_review_payload — 受け取れる口コミか（画面の決まりと同じ）
 --
 -- 画面（submit-review.html）が止めるものを、サーバーでも止める。
--- 品質の判定（連打・同じ語の繰り返しなど）は画面の5か所の関数のまま（ここには写さない）。
+-- 品質の判定（連打・同じ語の繰り返しなど）は画面とサーバーの写しの6か所の関数のまま（ここには写さない）。
 -- 誰にも grant しない。
 -- ════════════════════════════════════════════════════════════════
 create or replace function public.pv_validate_review_payload(p jsonb)
@@ -238,6 +243,12 @@ grant execute on function public.submit_review_pending(jsonb) to anon, authentic
 --   口コミへの書き込みが落ちれば例外でそこまで来ない＝中身は消えずに残る。
 --   ⚠️ 消す列を足し引きしたら、3-b の1回きりの掃除も同じに直す（自己点検 6 と
 --      db/test-review-pending.mjs が「残す7列以外が全部空」を見ているので、漏れると赤くなる）。
+-- ★AI の判定（db/reviews-gate.sql 3-c pv_review_judge）を、預かりの番号 ('q', 預かりの id) から
+--   口コミの番号 ('r', 新しい id) へ写す（2026-11-15）。運営の答え（decided）も一緒に。
+--   写さないと、保留中の預かりが引き取った瞬間に「判定なし」＝ どこにでも出て、鍵も開く。
+--   ★本文7欄は預かりから1文字も変えずに口コミへ写す ＝ 指紋（body_sha）が同じなので、
+--     translate-review は口コミの側で判定し直さない（同じ口コミで2通目の知らせも飛ばない）。
+--   ⚠️ 本文を写すときに整えたり（trim など）しない。指紋が変わって判定し直しになる。
 -- ════════════════════════════════════════════════════════════════
 create or replace function public.claim_review_pending(p_token text)
 returns jsonb
@@ -250,6 +261,7 @@ declare
   v_row  public.pv_review_pending%rowtype;
   v_hash text;
   v_dup  boolean;
+  v_new  uuid;
 begin
   if v_uid is null then
     raise exception 'ログインが必要です' using errcode = '42501';
@@ -286,7 +298,17 @@ begin
        v_row.culture_score, v_row.culture_comment, v_row.salary_score, v_row.salary_comment,
        v_row.benefits_score, v_row.benefits_comment, v_row.wlb_score, v_row.wlb_comment,
        v_row.ops_score, v_row.ops_comment, v_row.training_score, v_row.training_comment,
-       v_row.mgmt_score, v_row.mgmt_comment);
+       v_row.mgmt_score, v_row.mgmt_comment)
+    returning id into v_new;
+
+    /* ★AI の判定を口コミの番号へ写す（2026-11-15・上の注）。判定がまだ無ければ何も写らない
+         （translate-review が口コミの側で判定する）。写した瞬間に、作り置き・要約・新しい投稿順の引き金が置き直す。 */
+    insert into public.pv_review_judge
+           (src, rid, body_sha, lang, verdict, reason, note, judged_at, decided, decided_at, decided_by)
+    select 'r', v_new, j.body_sha, j.lang, j.verdict, j.reason, j.note, j.judged_at, j.decided, j.decided_at, j.decided_by
+      from public.pv_review_judge j
+     where j.src = 'q' and j.rid = v_row.id
+    on conflict (src, rid) do nothing;
   end if;
 
   /* ★引き取り済みにして、同じ1回の更新で中身を消す（2026-11-10）。dup も同じ（引き取り済み）。
@@ -335,7 +357,7 @@ update public.pv_review_pending q
 
 
 -- ════════════════════════════════════════════════════════════════
--- 4. 自己点検（読むだけ。1本の SELECT。期待：9行すべて ✅）
+-- 4. 自己点検（読むだけ。1本の SELECT。期待：10行すべて ✅）
 -- ════════════════════════════════════════════════════════════════
 select n as "#", case when ok then '✅' else '❌' end as 結果, 見るところ
   from (values
@@ -374,6 +396,10 @@ select n as "#", case when ok then '✅' else '❌' end as 結果, 見るとこ�
                          where conrelid = 'public.reviews_v2'::regclass and contype = 'c'
                            and pg_get_constraintdef(oid) ~ '(tenure|age)_bucket'
                            and pg_get_constraintdef(oid) ~* 'not null'),
-        '口コミの表の決まり（ポリシー・CHECK）が勤務年数・年代を求めていない')
+        '口コミの表の決まり（ポリシー・CHECK）が勤務年数・年代を求めていない'),
+    -- 2026-11-15。古い引き取りの口のままだと、AI が保留にした預かりが引き取った瞬間にどこにでも出る。
+    (10, to_regprocedure('public.claim_review_pending(text)') is not null
+         and pg_get_functiondef('public.claim_review_pending(text)'::regprocedure) ~ 'insert into public\.pv_review_judge',
+        '引き取りの口が、AI の判定（保留）を預かりから口コミへ写す（新しい claim_review_pending）')
   ) t(n, ok, 見るところ)
  order by n;

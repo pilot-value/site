@@ -30,6 +30,7 @@
 --  3. **数えるのは reviews_v2 に在る行だけ。** 見本の口コミ（airlines/airline-reviews-data.js）と
 --     海外評判のカード（overseas-rep/*.json）は DB に無いので、数えようがない。
 --     3件に満たない会社（0件を含む）は「少ない」であって、0点でも空の要約でもない（state:'few'）。
+--     ★AI が保留にした口コミ（db/reviews-gate.sql 3-c）も、運営が載せるまで数えない・材料にしない（2026-11-15・2-c）。
 --  4. **元の口コミが変わったら出さない。** 預けたときの件数 n・材料にした
 --     いちばん新しい口コミの時刻・**材料の集合の指紋**を覚えておき、
 --       ・いま読める口コミが3件を切った（→ {state:'few'}）
@@ -121,6 +122,10 @@ begin
   end if;
   if to_regprocedure('public.pv_has_review_key()') is null then
     raise exception '先に db/reviews-gate.sql を実行してください（pv_has_review_key が無い）';
+  end if;
+  -- 2026-11-15。材料から AI が保留にした口コミを外す（2-c・3-c）。古い reviews-gate.sql の上では関数が作れない。
+  if to_regprocedure('public.pv_review_held(text, uuid)') is null then
+    raise exception '先に db/reviews-gate.sql を実行してください（AI の判定 pv_review_held が無い）';
   end if;
 end
 $guard$;
@@ -217,6 +222,9 @@ comment on function public.pv_review_summary_codes(text) is
 --   ── db/reviews-gate.sql が7つの case を1か所にしか書かせないのと同じ理由。
 -- ★ 件数（2-d）と印（2-e）・指紋（2-f）は必ずこれを通す。条件を2か所に書くと、
 --   数え方と指紋の取り方が黙ってずれる。
+-- ★ AI が保留にした口コミ（db/reviews-gate.sql 3-c）は、運営が載せるまで材料にも件数にも入れない（2026-11-15）。
+--   ＝ 保留中の口コミを材料にした要約は、指紋が合わなくなって出なくなる（{state:'none'}。3件を切れば few）。
+--   載せれば元の集合に戻って、預けた要約がまた出る。
 create or replace function public.pv_review_summary_ids(p_codes text[], p_upto timestamptz)
 returns setof text
 language sql
@@ -229,6 +237,7 @@ as $fn$
    where r.airline = any (p_codes)
      and (p_upto is null
           or coalesce(r.created_at, '-infinity'::timestamptz) <= p_upto)
+     and not public.pv_review_held('r', r.id)
      and exists (
            select 1
              from unnest(public.pv_review_summary_cats()) c
@@ -550,6 +559,7 @@ as $fn$
                 and r.airline = any (p_codes)
                 and (p_upto is null
                      or coalesce(r.created_at, '-infinity'::timestamptz) <= p_upto)
+                and not public.pv_review_held('r', r.id)        -- ★保留中の口コミは点のもとにしない（2-c と同じ・2026-11-15）
                 and btrim(coalesce(to_jsonb(r) ->> ((pt.v ->> 'cat') || '_comment'), '')) <> ''));
 $fn$;
 
@@ -757,11 +767,42 @@ as $fn$
 declare
   v_codes text[] := array[]::text[];
   v_col   text   := case when tg_table_name = 'pv_airlines' then 'code' else 'airline' end;   -- 表ごとに会社の列の名前が違う（行を JSON にしてから名前で引く）
+  v_was   boolean := false;   -- 判定の表：前の行が「保留中の口コミ」だったか
+  v_is    boolean := false;   --           いまの行が「保留中の口コミ」か
+  v_orid  uuid;
+  v_nrid  uuid;
+  v_rids  uuid[] := array[]::uuid[];
   c text;
 begin
   if tg_table_name = 'reviews_v2' then
     if tg_op in ('UPDATE', 'DELETE') then v_codes := v_codes || array(select public.pv_review_summary_owners(old.airline)); end if;
     if tg_op in ('INSERT', 'UPDATE') then v_codes := v_codes || array(select public.pv_review_summary_owners(new.airline)); end if;
+  elsif tg_table_name = 'pv_review_judge' then
+    /* ★AI の判定（db/reviews-gate.sql 3-c・2026-11-15）。保留中の口コミは材料にも件数にも入らない（2-c）ので、
+         保留中になった／運営が載せた・消した、で口コミの集合が変わる。そのときだけその会社の答えを置き直す
+         （ok の判定が付いただけ・保留のまま理由が変わっただけ、では何もしない ── 重い照合を増やさない）。
+         判定の行に会社は無いので口コミの表から引く（消した口コミは、消えたときに口コミの表の引き金が置き直してある）。
+         預かり（q）は要約の材料に入らないので見ない。 */
+    if tg_op in ('UPDATE', 'DELETE') then
+      if old.src = 'r' then
+        v_orid := old.rid;
+        v_was  := old.verdict = 'hold' and old.decided is null;
+      end if;
+    end if;
+    if tg_op in ('INSERT', 'UPDATE') then
+      if new.src = 'r' then
+        v_nrid := new.rid;
+        v_is   := new.verdict = 'hold' and new.decided is null;
+      end if;
+    end if;
+    if v_orid is not distinct from v_nrid then
+      if v_was <> v_is then v_rids := array[v_nrid]; end if;
+    else
+      if v_was then v_rids := v_rids || v_orid; end if;
+      if v_is  then v_rids := v_rids || v_nrid; end if;
+    end if;
+    v_codes := v_codes || array(select public.pv_review_summary_owners(r.airline)
+                                  from public.reviews_v2 r where r.id = any (v_rids));
   else   -- pv_review_summaries ／ pv_airlines
     if tg_op in ('UPDATE', 'DELETE') then
       v_codes := v_codes || (to_jsonb(old) ->> v_col);
@@ -786,6 +827,10 @@ create trigger pv_review_summary_pub_sync after insert or update or delete on pu
   for each row execute function public.pv_review_summary_pub_sync();
 drop trigger if exists pv_review_summary_pub_sync on public.pv_airlines;
 create trigger pv_review_summary_pub_sync after insert or update or delete on public.pv_airlines
+  for each row execute function public.pv_review_summary_pub_sync();
+-- ★AI の判定（db/reviews-gate.sql 3-c・2026-11-15）。保留中になった・載せた・消したで材料が変わる。
+drop trigger if exists pv_review_summary_pub_sync on public.pv_review_judge;
+create trigger pv_review_summary_pub_sync after insert or update or delete on public.pv_review_judge
   for each row execute function public.pv_review_summary_pub_sync();
 
 /* 全部作り直す（このファイルを貼るたびに末尾で1回）。 */

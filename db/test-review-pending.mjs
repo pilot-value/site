@@ -13,6 +13,7 @@
 import { PGlite } from '@electric-sql/pglite';
 import { pgcrypto } from '@electric-sql/pglite/contrib/pgcrypto';
 import { readFileSync } from 'fs';
+import { createHash } from 'node:crypto';
 
 const read = (f) => readFileSync(new URL('../' + f, import.meta.url), 'utf8');
 const db = new PGlite({ extensions: { pgcrypto } });
@@ -345,7 +346,7 @@ console.log('\n▼ 6. 既に引き取ってあった行の中身を1回で消す
      '★一覧と Vote の流れるカードは1文字も変わらない（引き取り済みの行はもともと出ていない）');
   await asOwner();
   const res = await selfCheck();
-  ok(res.length === 9 && res.every((x) => x['結果'] === '✅'), '★自己点検が9行すべて ✅',
+  ok(res.length === 10 && res.every((x) => x['結果'] === '✅'), '★自己点検が10行すべて ✅',
      res.filter((x) => x['結果'] !== '✅').map((x) => x['見るところ']).join(' | '));
   /* 壊す証明（2026-11-14）：勤務年数を NOT NULL に戻すと 8行目が ❌ になり、貼り直すと外れる。
      空の行があると NOT NULL にできないので、仮に埋めてから戻す（全部まとめて巻き戻す＝行は1つも変わらない） */
@@ -382,6 +383,123 @@ console.log('\n▼ 6. 既に引き取ってあった行の中身を1回で消す
   await db.exec(SRC);                                   // 元に戻す（3-b がこの行の中身も消す）
   ok(J(await leftover(bt)) === '{}' && (await selfCheck()).every((x) => x['結果'] === '✅'),
      '元のファイルを貼り直すと、その行の中身も消えて自己点検は全部 ✅ に戻る');
+}
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 7. AI が保留にした預かりは、引き取ったあとも保留のまま（2026-11-15）・壊す証明');
+// ════════════════════════════════════════════════════════════
+/* なぜ要るか
+     判定（db/reviews-gate.sql 3-c pv_review_judge）は預かりの番号 ('q', id) に付く。引き取ると口コミは別の番号で
+     reviews_v2 に入るので、claim_review_pending が判定を ('r', 新しい番号) へ写さないと、保留中の預かりが
+     引き取った瞬間に「判定なし」＝ どこにでも出て、書いた本人の鍵も開く（画面は普通に動いたまま）。
+   ★判定を書くのは本番では translate-review（service_role）。ここでは持ち主として同じ関数を呼ぶ。 */
+{
+  const sha = (row) => createHash('sha256').update(
+    ['culture', 'salary', 'benefits', 'wlb', 'ops', 'training', 'mgmt'].map((k) => row[k + '_comment'] ?? '').join('␞'), 'utf8').digest('hex');
+  const SEVEN = ['culture', 'salary', 'benefits', 'wlb', 'ops', 'training', 'mgmt'].map((k) => k + '_comment');
+  const put = async (src, id, s, verdict, reason = null) =>
+    (await one(`select public.pv_review_judge_put($1, $2::uuid, $3, 'en', $4, $5, 'AI のメモ') r`, [src, id, s, verdict, reason])).r;
+  const judge = async (src, id) =>
+    (await one(`select body_sha, verdict, decided from public.pv_review_judge where src = $1 and rid = $2`, [src, id])) || null;
+  await asOwner();
+  /* 本番の pv_is_admin（db/admin.sql）と同じ式。名簿に居る人だけが答えられる。 */
+  await db.exec(`create or replace function public.pv_is_admin() returns boolean language sql stable
+                 security definer set search_path = public as $$
+                   select exists (select 1 from public.pv_admins a where a.user_id = auth.uid()) $$`);
+  await mkUser(40); await mkUser(41);
+  const inList = async (who, air) => {
+    if (who === 'anon') await asAnon(); else await asUser(who);
+    const r = (await list()).rows.some((x) => x.airline === air);
+    const v = (await latest()).some((x) => x.airline === air);
+    await asOwner();
+    return r || v;
+  };
+
+  /* 保留にした預かり → 引き取る */
+  await asAnon();
+  const HB = body('保留にする預かり。');
+  const h = await submit(good('jetstar-japan', { culture_comment: HB }));
+  await asOwner();
+  const pend = await one(`select * from public.pv_review_pending where id = $1`, [h.id]);
+  const SHA = sha(pend);
+  const p1 = await put('q', h.id, SHA, 'hold', 'spam');
+  ok(p1.ok === true && p1.mail === true, '（前提）預かりに保留を付けると mail が true', J(p1));
+  ok(!(await inList('anon', 'jetstar-japan')) && !(await inList(9, 'jetstar-japan')),
+     '★保留中の預かりは、鍵の無い人の一覧にも運営の一覧にも Vote にも出ない');
+  await asUser(40);
+  const c1 = await claim(h.claim_token);
+  await asOwner();
+  const mine = await one(`select * from public.reviews_v2 where proof_hash = (select public.pv_review_hash($1::uuid, 'jetstar-japan'))`, [uid(40)]);
+  ok(c1.ok === true && !c1.dup && !!mine, '（前提）保留中の預かりも引き取れる（口コミの表に入る）', J(c1));
+  ok(mine && SEVEN.every((k) => mine[k] === pend[k]) && sha(mine) === SHA,
+     '★本文7欄は預かりから1文字も変えずに写る（指紋が同じ ＝ translate-review は判定し直さない）',
+     J(mine && SEVEN.filter((k) => mine[k] !== pend[k])));
+  const jr = mine && await judge('r', mine.id);
+  ok(jr && jr.body_sha === SHA && jr.verdict === 'hold' && jr.decided === null,
+     '★判定が口コミの番号 (r, 新しい番号) に写る（保留中のまま）', J(jr));
+  ok(!(await inList('anon', 'jetstar-japan')) && !(await inList(9, 'jetstar-japan')),
+     '★★引き取ったあとも、一覧（鍵なし・運営）にも Vote にも出ない');
+  await asUser(40);
+  ok((await one(`select public.pv_has_review_key() v`)).v === false, '★★引き取っても、保留中の口コミでは本人の鍵が開かない');
+  const m = (await one(`select public.pv_reviews('{"mine":true}'::jsonb) r`)).r;
+  ok(m.rows.some((x) => x.airline === 'jetstar-japan'), '自分の口コミ（mine）には出る（自分の投稿が消えたように見せない）');
+  await asOwner();
+  const again = await put('q', h.id, SHA, 'hold', 'spam');
+  ok(again.ok === false && again.reason === 'not_found', '引き取った預かりにはもう判定を書けない（中身が空・判定は口コミの側へ写してある）', J(again));
+
+  /* 運営が載せると、その場で出て鍵も開く */
+  await asUser(9);                 // 9 さんは運営（冒頭で pv_admins に入れてある）
+  const d1 = (await one(`select public.admin_review_hold_decide('r', $1::uuid, 'show') r`, [mine.id])).r;
+  ok(d1.ok === true && d1.decided === 'show' && await inList('anon', 'jetstar-japan'), '運営が載せると、一覧に出る', J(d1));
+  await asUser(40);
+  ok((await one(`select public.pv_has_review_key() v`)).v === true, '運営が載せると、本人の鍵も開く');
+
+  /* 載せてから引き取った預かりは、引き取ったあとも載ったまま */
+  await asAnon();
+  const s = await submit(good('solaseed', { culture_comment: body('載せる預かり。') }));
+  await asOwner();
+  const sp = await one(`select * from public.pv_review_pending where id = $1`, [s.id]);
+  await put('q', s.id, sha(sp), 'hold', 'off_topic');
+  ok(!(await inList('anon', 'solaseed')), '（前提）保留中の預かりは出ない');
+  await asUser(9);
+  const d2 = (await one(`select public.admin_review_hold_decide('q', $1::uuid, 'show') r`, [s.id])).r;
+  ok(d2.ok === true && await inList('anon', 'solaseed'), '預かりのうちに運営が載せると、その場で出る', J(d2));
+  await asUser(41);
+  await claim(s.claim_token);
+  await asOwner();
+  const sr = await one(`select id from public.reviews_v2 where proof_hash = (select public.pv_review_hash($1::uuid, 'solaseed'))`, [uid(41)]);
+  const sj = sr && await judge('r', sr.id);
+  ok(sj && sj.verdict === 'hold' && sj.decided === 'show' && await inList('anon', 'solaseed'),
+     '★載せた預かりは、引き取ったあとも載ったまま（運営の答えも写る）', J(sj));
+  await asUser(41);
+  ok((await one(`select public.pv_has_review_key() v`)).v === true, '　（載せた預かりを引き取った人の鍵は開く）');
+  await asOwner();
+
+  /* 壊す証明：引き取りの口から「判定を写す」1文を外すと、保留中の預かりが引き取った瞬間に出て、鍵も開く */
+  const SRC = read('db/review-pending.sql');
+  const fnStart = SRC.indexOf('create or replace function public.claim_review_pending');
+  const FN = SRC.slice(fnStart, SRC.indexOf('$$;', SRC.indexOf('as $$', fnStart)) + 3);
+  const BROKEN = FN.replace(/\n\s*insert into public\.pv_review_judge[\s\S]*?on conflict \(src, rid\) do nothing;/, () => '');
+  ok(BROKEN !== FN && !BROKEN.includes('pv_review_judge'), '（壊す証明の前提）引き取りの口から判定を写す1文を外せた');
+  await db.exec(BROKEN);
+  await asAnon();
+  const b = await submit(good('ibex', { culture_comment: body('壊す証明の保留。') }));
+  await asOwner();
+  await put('q', b.id, sha(await one(`select * from public.pv_review_pending where id = $1`, [b.id])), 'hold', 'gibberish');
+  await mkUser(42);
+  await asUser(42);
+  await claim(b.claim_token);
+  const leakKey = (await one(`select public.pv_has_review_key() v`)).v;
+  await asOwner();
+  const leakList = await inList('anon', 'ibex');
+  ok(leakKey === true && leakList === true,
+     '★壊す証明：写す1文を外すと、保留中だった預かりが引き取った瞬間に一覧に出て、本人の鍵も開く（上の検査はこれを赤にする）',
+     J({ leakKey, leakList }));
+  const r10 = (await db.query(SRC.slice(SRC.lastIndexOf('select n as "#"')))).rows.find((x) => Number(x['#']) === 10);
+  ok(r10 && r10['結果'] === '❌', '★壊す証明：自己点検 10（古い引き取りの口）も ❌ になる', J(r10));
+  await db.exec(SRC);
+  const r10b = (await db.query(SRC.slice(SRC.lastIndexOf('select n as "#"')))).rows.find((x) => Number(x['#']) === 10);
+  ok(r10b && r10b['結果'] === '✅', '元のファイルを貼り直すと、自己点検 10 は ✅ に戻る');
 }
 
 await asOwner();

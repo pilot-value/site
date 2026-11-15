@@ -33,6 +33,8 @@
 -- ★2026-10-29 Vote の流れるカード（6-b pv_vote_latest）だけ、オーナー決定で **新しい12件・80字** に広げた。
 -- ★2026-10-29 ログインせずに出した口コミの預かり（3-b pv_review_pending）。一覧には預かった時点で出る。
 --   書く口は db/review-pending.sql（**このファイルのあと**に貼る）。
+-- ★2026-11-15 翻訳の AI が「怪しい」とした口コミは、運営が「載せる」を押すまでどこにも出さない（3-c pv_review_judge）。
+--   判定を書くのは translate-review、運営の画面は 6-0b（admin_list_review_holds / admin_review_hold_decide）。
 --
 -- 流す順番 … db/airlines.generated.sql → db/pay-rows.sql → **このファイル**
 -- 何度流しても同じ結果になる（create or replace ＋ 権限の入れ直し）。
@@ -134,7 +136,10 @@ begin
     select 1
       from public.reviews_v2 r
      where r.proof_hash in (select public.pv_review_hash(v_uid, c)
-                              from public.pv_review_codes() c));
+                              from public.pv_review_codes() c)
+       /* ★AI が保留にした口コミ（3-c）では鍵を開けない（2026-11-15 オーナー決定）。
+            運営が「載せる」を押した瞬間に開く（口コミそのものは書き換えない）。 */
+       and not public.pv_review_held('r', r.id));
 end
 $fn$;
 
@@ -227,6 +232,176 @@ revoke all on function public.pv_review_len(jsonb) from public, anon, authentica
 
 
 -- ════════════════════════════════════════════════════════════════
+-- 3-c. pv_review_judge — 翻訳の AI が付けた判定と、運営の答え（2026-11-15）
+--
+-- オーナー決定（2026-11-15）「AI が怪しいとした口コミだけ、運営が管理画面で『載せる』を押すまで、
+-- どこにも出さない・数にも入れない。ほかの口コミはこれまでどおりすぐ載る。外国語は禁止しない」。
+--   ・書くのは翻訳の Edge Function（translate-review）だけ。何語か・意味のある文か・
+--     パイロットの勤務の話か・宣伝でないか を判定して1行置く（pv_review_judge_put・service_role だけ）。
+--   ・**保留中 ＝ verdict = 'hold' かつ decided is null。** 出さない条件はこれだけで、
+--     式は pv_review_held の1か所。読む側の関数はどれもこれを呼ぶ（写さない）。
+--   ・運営は管理画面の「口コミの確認」（admin.html#review-holds）で「載せる／消す」を選ぶ（6-0b）。
+--   ・保留中の口コミでは、書いた本人の口コミの鍵（pv_has_review_key）も開かない。載せたら開く。
+--   ・自分の口コミ（pv_reviews の mine）には、保留中でも出す（自分の投稿が消えたように見せない）。
+--   ・src = 'r' は reviews_v2.id、'q' は預かり（pv_review_pending.id）。預かりを引き取ると、
+--     claim_review_pending が判定を ('r', 新しい id) に写す（db/review-pending.sql）。
+--   ・body_sha は本文7欄の指紋（作るのは translate-review だけ。SQL は写すだけ）。
+--     指紋が同じなら運営の答えを残し、本文が変わったら答えを外して判定し直す（pv_review_judge_put）。
+-- 保留中を出さない所（どれも pv_review_held を呼ぶ）
+--   このファイル … pv_has_review_key・pv_reviews・作り置き pv_review_card（4-b）・pv_review_voices・pv_vote_latest
+--   ほかのファイル … AI 要約の材料（db/review-summary.sql）・新しい投稿順（db/airline-activity.sql）・
+--                    フォローの知らせ（db/follow.sql）
+--   ⚠️ 口コミを読む関数を新しく作ったら、同じ1行を足す（足さないと、そこから保留中の口コミが出る）。
+--   ⚠️ 週のまとめ・FOUNDING の番号・会員の中央値は、まだ保留中も数えている（2026-11-15 の範囲の外）。
+-- ⚠️ 表は誰にも読ませない（RLS・ポリシー0本・grant 無し）。AI のメモ（note）は運営にしか見せない。
+-- ⚠️ reviews_v2 に列を足さない（足した列は pv_reviews が丸ごと返す＝公開される）。だから別の表。
+-- ════════════════════════════════════════════════════════════════
+create table if not exists public.pv_review_judge (
+  src        text not null check (src in ('r', 'q')),          -- r = reviews_v2.id ／ q = pv_review_pending.id
+  rid        uuid not null,
+  body_sha   text not null,                                    -- 本文7欄の指紋（translate-review が作る）
+  lang       text not null default 'und',                      -- 本文の言語（ISO 639-1 の2字・分からなければ und）
+  verdict    text not null check (verdict in ('ok', 'hold')),
+  reason     text check (reason in ('gibberish', 'off_topic', 'spam', 'duplicate', 'other')),   -- ok のときは null
+  note       text,                                             -- AI が運営に書く短い説明（200字まで）。運営にしか見せない
+  judged_at  timestamptz not null default now(),
+  decided    text check (decided in ('show', 'delete')),       -- 運営の答え。null ＝ まだ
+  decided_at timestamptz,
+  decided_by uuid,
+  primary key (src, rid)
+);
+
+comment on table public.pv_review_judge is
+  '翻訳の AI が付けた口コミの判定と運営の答え。verdict = hold かつ decided is null の口コミは、どこにも出さない・数えない（pv_review_held）。'
+  '書くのは pv_review_judge_put（service_role）と admin_review_hold_decide（運営）だけ。直に読めない。';
+
+create index if not exists pv_review_judge_hold_idx
+  on public.pv_review_judge (judged_at desc) where verdict = 'hold';
+
+alter table public.pv_review_judge enable row level security;
+revoke all on public.pv_review_judge from public, anon, authenticated;
+do $judge$
+declare p record;
+begin
+  for p in select policyname from pg_policies
+            where schemaname = 'public' and tablename = 'pv_review_judge' loop
+    execute format('drop policy %I on public.pv_review_judge', p.policyname);
+  end loop;
+end
+$judge$;
+
+/* ★保留中か（verdict = 'hold' かつ運営がまだ答えていない）。出さない条件はここ1か所。
+   ★誰にも grant しない（読む側の security definer の関数の中からだけ呼ぶ）。 */
+create or replace function public.pv_review_held(p_src text, p_rid uuid)
+returns boolean
+language sql
+stable
+set search_path = public, extensions
+as $fn$
+  select exists (select 1 from public.pv_review_judge j
+                  where j.src = p_src and j.rid = p_rid
+                    and j.verdict = 'hold' and j.decided is null)
+$fn$;
+revoke all on function public.pv_review_held(text, uuid) from public, anon, authenticated;
+
+/* 判定を読む（translate-review が、判定し直すかを決めるため）。無ければ null。service_role だけ。 */
+create or replace function public.pv_review_judge_get(p_src text, p_rid uuid)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public, extensions
+as $fn$
+  select jsonb_build_object('body_sha', j.body_sha, 'lang', j.lang, 'verdict', j.verdict,
+                            'reason', j.reason, 'decided', j.decided)
+    from public.pv_review_judge j
+   where j.src = p_src and j.rid = p_rid
+$fn$;
+revoke all on function public.pv_review_judge_get(text, uuid) from public, anon, authenticated;
+
+/* 判定を書く（無ければ入れる・あれば上書き）。service_role だけ。
+   ★指紋が前と同じなら運営の答え（decided）を残す・違えば答えを外す（本文が変わった＝見直してもらう）。
+   ★mail は「この書き込みで新しく保留中になった」ときだけ true ── 前が無い・前が ok・指紋が変わった、のどれかで、
+     いま verdict = 'hold' かつ decided is null。translate-review はこれが true のときだけ info@ へ1通送る。
+   ★値はここで確かめる：reason は5つのどれか（ok なら必ず null・hold で知らない語なら other）・
+     lang は2字の小文字か und・note は200字まで。口コミ（引き取っていない預かり）が無ければ not_found。 */
+create or replace function public.pv_review_judge_put(p_src text, p_rid uuid, p_sha text, p_lang text,
+                                                      p_verdict text, p_reason text, p_note text)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = public, extensions
+as $fn$
+declare
+  v_sha    text := lower(btrim(coalesce(p_sha, '')));
+  v_lang   text := lower(btrim(coalesce(p_lang, '')));
+  v_reason text := nullif(btrim(coalesce(p_reason, '')), '');
+  v_note   text := left(nullif(btrim(coalesce(p_note, '')), ''), 200);
+  v_old    public.pv_review_judge%rowtype;
+  v_had    boolean;
+  v_now    public.pv_review_judge%rowtype;
+begin
+  if p_src is null or p_src not in ('r', 'q') or p_rid is null
+     or p_verdict is null or p_verdict not in ('ok', 'hold')
+     or v_sha !~ '^[0-9a-f]{64}$' then
+    return jsonb_build_object('ok', false, 'reason', 'bad_input');
+  end if;
+  if v_lang !~ '^[a-z]{2}$' then v_lang := 'und'; end if;
+  if p_verdict = 'ok' then
+    v_reason := null;
+  elsif v_reason is null or v_reason not in ('gibberish', 'off_topic', 'spam', 'duplicate', 'other') then
+    v_reason := 'other';
+  end if;
+
+  /* 引き取った預かりは中身が消えている（db/review-pending.sql の約束 5）＝ 判定するものが無い。
+     判定は引き取ったときに口コミ（'r'）へ写してある。 */
+  if (p_src = 'r' and not exists (select 1 from public.reviews_v2 r where r.id = p_rid))
+     or (p_src = 'q' and not exists (select 1 from public.pv_review_pending q
+                                      where q.id = p_rid and q.claimed_at is null)) then
+    return jsonb_build_object('ok', false, 'reason', 'not_found');
+  end if;
+
+  -- 同じ口コミの判定が2本同時に来ても、前の行を読んでから書くまでを1本ずつにする（mail を2回 true にしない）
+  perform pg_advisory_xact_lock(hashtext('pv_review_judge'), hashtext(p_src || ':' || p_rid::text));
+  select * into v_old from public.pv_review_judge j where j.src = p_src and j.rid = p_rid;
+  v_had := found;
+
+  insert into public.pv_review_judge as j
+         (src, rid, body_sha, lang, verdict, reason, note, judged_at, decided, decided_at, decided_by)
+  values (p_src, p_rid, v_sha, v_lang, p_verdict, v_reason, v_note, now(), null, null, null)
+  on conflict (src, rid) do update
+     set body_sha   = excluded.body_sha,
+         lang       = excluded.lang,
+         verdict    = excluded.verdict,
+         reason     = excluded.reason,
+         note       = excluded.note,
+         judged_at  = excluded.judged_at,
+         decided    = case when j.body_sha = excluded.body_sha then j.decided    end,
+         decided_at = case when j.body_sha = excluded.body_sha then j.decided_at end,
+         decided_by = case when j.body_sha = excluded.body_sha then j.decided_by end
+  returning * into v_now;
+
+  return jsonb_build_object('ok', true, 'mail',
+    v_now.verdict = 'hold' and v_now.decided is null
+    and (not v_had or v_old.verdict = 'ok' or v_old.body_sha is distinct from v_sha));
+end
+$fn$;
+revoke all on function public.pv_review_judge_put(text, uuid, text, text, text, text, text) from public, anon, authenticated;
+
+-- service_role（Edge Function）にだけ配る。⚠️ 役が在るときだけ（手元の検査の DB には無いことがある。
+-- 素の grant だとファイルごと止まる。Supabase には必ず在る）。db/review-summary.sql 6-g と同じ形。
+do $grant$
+begin
+  if exists (select 1 from pg_roles where rolname = 'service_role') then
+    grant execute on function public.pv_review_judge_get(text, uuid) to service_role;
+    grant execute on function public.pv_review_judge_put(text, uuid, text, text, text, text, text) to service_role;
+  end if;
+end
+$grant$;
+
+
+-- ════════════════════════════════════════════════════════════════
 -- 4. pv_reviews — 口コミの一覧（本文は鍵を持つ人にだけ）
 --
 -- 引数 p（全部省略可）
@@ -281,7 +456,8 @@ begin
        ＝ いちばん重い処理だった（呼ばれるたびに全部の口コミを to_jsonb にし、字数・項目・先頭80字・訳の先頭80字を作り直していた）。
        行の形は 4-b の pv_review_card_of() が作る ── 下の else と同じ式。答えは1字も変わらない（db/test-reviews-gate.mjs が
        元の作り方と突き合わせている）。鍵を持つ人・自分の口コミ（mine）は今までどおり下で作る。
-     ⚠️ ここに条件を足すときは、pv_review_card_of() と下の else の両方を直す（2つは同じでなければならない）。 */
+     ⚠️ ここに条件を足すときは、pv_review_card_of() と下の else の両方を直す（2つは同じでなければならない）。
+     ★AI が保留にした口コミ（3-c）は、作り置きに最初から置かない（4-b の pv_review_card_put と rebuild）＝ 下の src と同じ行の集まり。 */
   if not v_open and not v_mine then
     select coalesce(jsonb_agg(c.card order by c.at desc nulls last), '[]'::jsonb)
       into v_rows
@@ -304,12 +480,16 @@ begin
          pending: true の印だけ付く。⚠️ 預かり証・時刻・回線の控えは落としてから混ぜる。 */
     select to_jsonb(r) as j, r.created_at as at, r.airline as air, r.proof_hash as ph
       from public.reviews_v2 r
+     /* ★AI が保留にした口コミ（3-c）は出さない（2026-11-15）。自分の口コミ（mine）にだけは残す
+          ── 出した本人の画面から投稿が消えたように見せない。本文が返るかは今までどおり鍵で決まる。 */
+     where v_mine or not public.pv_review_held('r', r.id)
     union all
     select (to_jsonb(q) - 'claim_token' - 'claimed_at' - 'ip_day_hash')
              || jsonb_build_object('pending', true),
            q.created_at, q.airline, null::text
       from public.pv_review_pending q
      where q.claimed_at is null
+       and not public.pv_review_held('q', q.id)
   ), pick as (
     select s.*
       from src s
@@ -388,7 +568,8 @@ grant execute on function public.pv_reviews(jsonb) to anon, authenticated;
 comment on function public.pv_reviews(jsonb) is
   '口コミの一覧。本文（7つの *_comment と translations）は鍵を持つ人にだけ返す。'
   '鍵の無い人には clip（先頭の1欄・80字まで）を1つだけ添える。'
-  'proof_hash は誰にも返さない。本文の文字数 n は誰にでも返す。引き取っていない預かりも混ぜる（pending: true）。';
+  'proof_hash は誰にも返さない。本文の文字数 n は誰にでも返す。引き取っていない預かりも混ぜる（pending: true）。'
+  'AI が保留にした口コミ（pv_review_held）は返さない（自分の口コミ mine にだけは残す）。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -426,6 +607,7 @@ revoke all on function public.pv_review_clip(text, int) from public, anon, authe
 -- 守ること
 --   ・行の形は pv_reviews の else（鍵の無い人）と1字も違わない。式を直すときは2か所とも直す。
 --   ・口コミ（reviews_v2）と、引き取っていない預かり（pv_review_pending）の、入る・直る・消える・引き取られる、のどれでも作り直す。
+--     ★AI の判定（3-c pv_review_judge）が変わったときも（2026-11-15）。保留中の口コミは置かない。
 --   ・表は誰にも読ませない（読むのは pv_reviews だけ）。本文そのものは持たない（先頭80字の抜粋と字数だけ ── 鍵の無い人に返す分と同じ）。
 --   ・列が増えたなどで形が変わったら、このファイルを貼り直せば末尾の pv_review_card_rebuild() が全部作り直す。
 -- ════════════════════════════════════════════════════════════════
@@ -477,7 +659,41 @@ alter table public.pv_review_card enable row level security;
 revoke all on table public.pv_review_card from public, anon, authenticated;
 create index if not exists pv_review_card_at on public.pv_review_card (at desc nulls last);
 
-/* 1行ぶん作り直す（入る・直る・消える・引き取られる）。預かりは引き取られていないものだけ置く。 */
+/* 1件ぶん作り直す（src は 'r' ＝ 口コミ／'q' ＝ 預かり）。いまの表を読み直して置く。
+   置くのは、行が在って・保留中でない（3-c）ときだけ。預かりは引き取られていないものだけ。
+   ★口コミ・預かり・判定（3-c）の3つの表の引き金が、どれもこれを呼ぶ（置く条件を1か所にする・2026-11-15）。 */
+create or replace function public.pv_review_card_put(p_src text, p_rid uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public, extensions
+as $fn$
+declare
+  v_j   jsonb;
+  v_air text;
+  v_at  timestamptz;
+begin
+  if p_rid is null or p_src is null or p_src not in ('r', 'q') then return; end if;
+  delete from public.pv_review_card where k = p_src || ':' || p_rid::text;
+  if public.pv_review_held(p_src, p_rid) then return; end if;
+  if p_src = 'r' then
+    select to_jsonb(r), r.airline, r.created_at into v_j, v_air, v_at
+      from public.reviews_v2 r where r.id = p_rid;
+  else
+    select (to_jsonb(q) - 'claim_token' - 'claimed_at' - 'ip_day_hash') || jsonb_build_object('pending', true),
+           q.airline, q.created_at
+      into v_j, v_air, v_at
+      from public.pv_review_pending q where q.id = p_rid and q.claimed_at is null;
+  end if;
+  if v_j is not null then
+    insert into public.pv_review_card(k, air, at, card)
+    values (p_src || ':' || p_rid::text, v_air, v_at, public.pv_review_card_of(v_j));
+  end if;
+end
+$fn$;
+revoke all on function public.pv_review_card_put(text, uuid) from public, anon, authenticated;
+
+/* 口コミ・預かりの1行が入る・直る・消える・引き取られる。 */
 create or replace function public.pv_review_card_sync()
 returns trigger
 language plpgsql
@@ -485,21 +701,16 @@ security definer
 set search_path = public, extensions
 as $fn$
 declare
-  v_pre text := case when tg_table_name = 'reviews_v2' then 'r:' else 'q:' end;
-  v_j   jsonb;
+  v_src text := case when tg_table_name = 'reviews_v2' then 'r' else 'q' end;
 begin
-  if tg_op in ('UPDATE', 'DELETE') then
-    delete from public.pv_review_card where k = v_pre || old.id::text;
-  end if;
-  if tg_op in ('INSERT', 'UPDATE') then
-    if tg_table_name = 'reviews_v2' then
-      v_j := to_jsonb(new);
-    elsif new.claimed_at is null then
-      v_j := (to_jsonb(new) - 'claim_token' - 'claimed_at' - 'ip_day_hash') || jsonb_build_object('pending', true);
-    end if;
-    if v_j is not null then
-      insert into public.pv_review_card(k, air, at, card)
-      values (v_pre || new.id::text, new.airline, new.created_at, public.pv_review_card_of(v_j));
+  if tg_op = 'INSERT' then
+    perform public.pv_review_card_put(v_src, new.id);
+  elsif tg_op = 'DELETE' then
+    perform public.pv_review_card_put(v_src, old.id);
+  else
+    perform public.pv_review_card_put(v_src, old.id);
+    if new.id is distinct from old.id then
+      perform public.pv_review_card_put(v_src, new.id);
     end if;
   end if;
   return null;
@@ -514,6 +725,33 @@ drop trigger if exists pv_review_card_sync on public.pv_review_pending;
 create trigger pv_review_card_sync after insert or update or delete on public.pv_review_pending
   for each row execute function public.pv_review_card_sync();
 
+/* ★AI の判定（3-c）が付く・運営が載せる／消す・本文が変わって答えが外れる、のたびに、その口コミの1件を置き直す（2026-11-15）。 */
+create or replace function public.pv_review_judge_card_sync()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, extensions
+as $fn$
+begin
+  if tg_op = 'INSERT' then
+    perform public.pv_review_card_put(new.src, new.rid);
+  elsif tg_op = 'DELETE' then
+    perform public.pv_review_card_put(old.src, old.rid);
+  else
+    perform public.pv_review_card_put(old.src, old.rid);
+    if (new.src, new.rid) is distinct from (old.src, old.rid) then
+      perform public.pv_review_card_put(new.src, new.rid);
+    end if;
+  end if;
+  return null;
+end
+$fn$;
+revoke all on function public.pv_review_judge_card_sync() from public, anon, authenticated;
+
+drop trigger if exists pv_review_card_sync on public.pv_review_judge;
+create trigger pv_review_card_sync after insert or update or delete on public.pv_review_judge
+  for each row execute function public.pv_review_judge_card_sync();
+
 /* 全部作り直す（このファイルを貼るたびに末尾で1回）。 */
 create or replace function public.pv_review_card_rebuild()
 returns void
@@ -526,11 +764,13 @@ begin
   insert into public.pv_review_card(k, air, at, card)
   select 'r:' || r.id::text, r.airline, r.created_at, public.pv_review_card_of(to_jsonb(r))
     from public.reviews_v2 r
+   where not public.pv_review_held('r', r.id)          -- ★AI が保留にした口コミは置かない（3-c）
   union all
   select 'q:' || q.id::text, q.airline, q.created_at,
          public.pv_review_card_of((to_jsonb(q) - 'claim_token' - 'claimed_at' - 'ip_day_hash') || jsonb_build_object('pending', true))
     from public.pv_review_pending q
-   where q.claimed_at is null;
+   where q.claimed_at is null
+     and not public.pv_review_held('q', q.id);
 end
 $fn$;
 revoke all on function public.pv_review_card_rebuild() from public, anon, authenticated;
@@ -737,6 +977,179 @@ grant execute on function public.admin_review_top_decide(uuid, boolean) to authe
 
 
 -- ════════════════════════════════════════════════════════════════
+-- 6-0b. 口コミの確認 ── AI が保留にした口コミを、運営が「載せる／消す」（2026-11-15）
+--
+-- 管理画面のタブ「口コミの確認」（admin.html#review-holds）が呼ぶ。運営だけ（名簿は pv_is_admin・db/admin.sql）。
+--   ・admin_list_review_holds … verdict = 'hold' の行を、保留中が先・保留にした新しい順で。本文7欄（cats）と、
+--     口コミに日本語の訳があればその7欄（cats_ja）も添える（外国語の口コミを運営が読めるように）。
+--     消した口コミは cats を {} で返す（会社・職位・投稿の時刻は控え reviews_removed から）。
+--     ★引き取った預かり（'q'）の行は出さない ── 判定は引き取ったときに口コミ（'r'）へ写してあり、預かりの中身はもう空。
+--   ・admin_review_hold_decide … 'show' ＝ 載せる（その瞬間にどこにでも出る・書いた本人の鍵も開く）。
+--     'delete' ＝ 消す。口コミ（'r'）は控え reviews_removed に写してから消す（db/remove-review-2.sql と同じ写し方・
+--     控えが取れなければ消さない）。預かり（'q'）は預かりの表から消す。
+-- ⚠️ 消すと、口コミの表の引き金がどれも動く（作り置き・トップ・要約・中央値・人数・本人の対応表）── remove-review-2.sql と同じ。
+-- ⚠️ 控えの表は誰にも読ませない（RLS・grant 無し）。
+-- ════════════════════════════════════════════════════════════════
+create table if not exists public.reviews_removed
+  (like public.reviews_v2 including all);
+alter table public.reviews_removed enable row level security;
+revoke all on public.reviews_removed from public, anon, authenticated;
+
+create or replace function public.admin_list_review_holds()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public, extensions
+as $fn$
+declare v jsonb;
+begin
+  if not public.pv_is_admin() then
+    raise exception '管理者ではありません' using errcode = '42501';
+  end if;
+  select coalesce(jsonb_agg(x.o order by x.open desc, x.at desc), '[]'::jsonb)
+    into v
+    from (
+      select (j.decided is null) as open, j.judged_at as at,
+             jsonb_build_object(
+               'src',        j.src,
+               'id',         j.rid,
+               'airline',    coalesce(r.airline, q.airline, d.airline),
+               'position',   coalesce(r."position", q."position", d."position"),
+               'created_at', coalesce(r.created_at, q.created_at, d.created_at),
+               'judged_at',  j.judged_at,
+               'lang',       j.lang,
+               'reason',     j.reason,
+               'note',       j.note,
+               'decided',    j.decided,
+               'decided_at', j.decided_at,
+               /* 本文7欄（空の欄は省く）。口コミ（r）か、引き取っていない預かり（q）から。消えた行は {}。 */
+               'cats',       coalesce((
+                               select jsonb_object_agg(k.key, t.body ->> (k.key || '_comment') order by k.ord)
+                                 from unnest(array['culture', 'salary', 'benefits', 'wlb', 'ops', 'training', 'mgmt'])
+                                      with ordinality as k(key, ord)
+                                where btrim(coalesce(t.body ->> (k.key || '_comment'), '')) <> ''), '{}'::jsonb),
+               /* 日本語の訳の7欄（口コミだけ。訳が無ければ null）。 */
+               'cats_ja',    case when jsonb_typeof(r.translations -> 'ja') = 'object' then (
+                               select jsonb_object_agg(k.key, r.translations -> 'ja' ->> k.key order by k.ord)
+                                 from unnest(array['culture', 'salary', 'benefits', 'wlb', 'ops', 'training', 'mgmt'])
+                                      with ordinality as k(key, ord)
+                                where btrim(coalesce(r.translations -> 'ja' ->> k.key, '')) <> '')
+                             end
+             ) as o
+        from public.pv_review_judge j
+        left join public.reviews_v2 r        on j.src = 'r' and r.id = j.rid
+        left join public.pv_review_pending q on j.src = 'q' and q.id = j.rid
+        left join public.reviews_removed d   on j.src = 'r' and r.id is null and d.id = j.rid
+        cross join lateral (select case when r.id is not null then to_jsonb(r)
+                                        when q.id is not null then to_jsonb(q)
+                                        else '{}'::jsonb end as body) t
+       where j.verdict = 'hold'
+         and not (j.src = 'q' and q.claimed_at is not null)
+    ) x;
+  return v;
+end
+$fn$;
+revoke all on function public.admin_list_review_holds() from public, anon;
+grant execute on function public.admin_list_review_holds() to authenticated;
+
+create or replace function public.admin_review_hold_decide(p_src text, p_id uuid, p_decision text)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = public, extensions
+as $fn$
+declare
+  v_row  public.pv_review_judge%rowtype;
+  v_cols text;
+  v_n    int;
+  c      record;
+begin
+  if not public.pv_is_admin() then
+    raise exception '管理者ではありません' using errcode = '42501';
+  end if;
+  if p_decision is null or p_decision not in ('show', 'delete') then
+    return jsonb_build_object('ok', false, 'reason', 'bad_decision');
+  end if;
+
+  select * into v_row from public.pv_review_judge j
+   where j.src = p_src and j.rid = p_id and j.verdict = 'hold'
+   for update;
+  if not found then
+    return jsonb_build_object('ok', false, 'reason', 'not_held');
+  end if;
+  -- もう消してある口コミ：もう一度「消す」は同じ答え（二度押し）・「載せる」はできない（載せる口コミが無い）
+  if v_row.decided = 'delete' then
+    if p_decision = 'delete' then
+      return jsonb_build_object('ok', true, 'decided', 'delete');
+    end if;
+    return jsonb_build_object('ok', false, 'reason', 'not_held');
+  end if;
+
+  if p_decision = 'delete' then
+    if p_src = 'r' and exists (select 1 from public.reviews_v2 r where r.id = p_id) then
+      -- 口コミの表にあって控えの表に無い列を足す（控えの表を作ったあとに口コミへ足した列）
+      for c in
+        select a.attname, format_type(a.atttypid, a.atttypmod) as typ
+          from pg_attribute a
+         where a.attrelid = 'public.reviews_v2'::regclass and a.attnum > 0 and not a.attisdropped
+           and not exists (select 1 from pg_attribute b
+                            where b.attrelid = 'public.reviews_removed'::regclass
+                              and b.attname = a.attname and b.attnum > 0 and not b.attisdropped)
+         order by a.attnum
+      loop
+        execute format('alter table public.reviews_removed add column %I %s', c.attname, c.typ);
+      end loop;
+
+      -- 列の名前で写す（並び順が違っても・自動で埋まる列があっても写せる）
+      select string_agg(quote_ident(b.attname), ', ' order by b.attnum) into v_cols
+        from pg_attribute b
+       where b.attrelid = 'public.reviews_removed'::regclass and b.attnum > 0
+         and not b.attisdropped and b.attgenerated = ''
+         and exists (select 1 from pg_attribute a
+                      where a.attrelid = 'public.reviews_v2'::regclass
+                        and a.attname = b.attname and a.attnum > 0 and not a.attisdropped);
+
+      execute format(
+        'insert into public.reviews_removed (%1$s) select %1$s from public.reviews_v2 r
+          where r.id = $1 and not exists (select 1 from public.reviews_removed x where x.id = $1)',
+        v_cols) using p_id;
+
+      if not exists (select 1 from public.reviews_removed x where x.id = p_id) then
+        raise exception '控えが取れませんでした。何も消していません。';
+      end if;
+
+      delete from public.reviews_v2 where id = p_id;
+      get diagnostics v_n = row_count;
+      if v_n <> 1 then
+        raise exception '消えた件数が % 件（1件のはず）。全部巻き戻します。', v_n;
+      end if;
+    elsif p_src = 'q' then
+      delete from public.pv_review_pending where id = p_id;
+    end if;
+  end if;
+
+  update public.pv_review_judge
+     set decided = p_decision, decided_at = now(), decided_by = auth.uid()
+   where src = p_src and rid = p_id;
+
+  /* ★載せた口コミは、口コミの表を1回だけ「変わった」ことにする（中身は1文字も変えない）。
+     要約を作り直す Webhook（summarize-reviews）は口コミの表の変化でしか鳴らないので、
+     これが無いと、保留のあいだに作り直した要約（この口コミ抜き）が「古い」まま次の口コミまで出ない。
+     翻訳の Webhook も鳴るが、指紋が同じなので判定も訳もしない（費用なし）。
+     ⚠️ 本文の列を set に入れない（トップの抜粋の引き金が本文の列の update で動く）。 */
+  if p_decision = 'show' and p_src = 'r' then
+    update public.reviews_v2 set airline = airline where id = p_id;
+  end if;
+  return jsonb_build_object('ok', true, 'decided', p_decision);
+end
+$fn$;
+revoke all on function public.admin_review_hold_decide(text, uuid, text) from public, anon;
+grant execute on function public.admin_review_hold_decide(text, uuid, text) to authenticated;
+
+
+-- ════════════════════════════════════════════════════════════════
 -- 6. pv_review_voices — トップページの抜粋（ここだけ鍵なしで開けておく）
 --
 -- オーナー決定（2026-09-06）「トップページの抜粋だけは今のまま開けておく」。
@@ -776,6 +1189,7 @@ as $fn$
              nullif(btrim(r.mgmt_comment),     ''), ''), '\s', '', 'g')) >= 20
        and not exists (select 1 from public.pv_review_top_hold h
                         where h.review_id = r.id and h.approved_at is null)
+       and not public.pv_review_held('r', r.id)        -- ★AI が保留にした口コミ（3-c・2026-11-15）
      order by r.created_at desc nulls last
      limit 6
   )
@@ -881,12 +1295,14 @@ as $fn$
   with src as (
     select to_jsonb(r) - 'proof_hash' as j, r.created_at as at
       from public.reviews_v2 r
+     where not public.pv_review_held('r', r.id)          -- ★AI が保留にした口コミ（3-c・2026-11-15）
     union all
     select (to_jsonb(q) - 'claim_token' - 'claimed_at' - 'ip_day_hash')
              || jsonb_build_object('pending', true),
            q.created_at
       from public.pv_review_pending q
      where q.claimed_at is null
+       and not public.pv_review_held('q', q.id)
   ), pick as (
     select s.*
       from src s
@@ -976,7 +1392,7 @@ $gate$;
 
 
 -- ════════════════════════════════════════════════════════════════
--- 8. 検算 ── 流したあと、この結果を見る（9行。④ だけ列数の報告で、ほかは ✅）
+-- 8. 検算 ── 流したあと、この結果を見る（10行。④ だけ列数の報告で、ほかは ✅）
 -- ════════════════════════════════════════════════════════════════
 select '① 本文の列に残っている読み取り権限（anon）' as 項目,
        case when count(*) = 0 then '✅ なし（これが正しい）'
@@ -1067,12 +1483,14 @@ select '⑦ Vote の流れるカード（12件まで・1件80字まで）',
           else '✅ 12件まで・1件80字まで・文字数つき'
         end)
 union all
-/* ★⑧ 鍵の無い人の一覧の作り置き（2026-11-06・Supabase の Disk IO 警告）。口コミと、引き取っていない預かりの数だけ作ってあるか。 */
+/* ★⑧ 鍵の無い人の一覧の作り置き（2026-11-06・Supabase の Disk IO 警告）。口コミと、引き取っていない預かりの数だけ作ってあるか。
+     ★2026-11-15 から、AI が保留にした口コミ・預かり（3-c）は数えない（作り置きに置かない）。 */
 select '⑧ 鍵の無い人の一覧の作り置き（pv_review_card）',
        case when (select count(*) from public.pv_review_card)
-               = (select count(*) from public.reviews_v2)
-               + (select count(*) from public.pv_review_pending where claimed_at is null)
-            then '✅ 口コミと預かりの数だけある（' || (select count(*) from public.pv_review_card) || '件）'
+               = (select count(*) from public.reviews_v2 r where not public.pv_review_held('r', r.id))
+               + (select count(*) from public.pv_review_pending q
+                   where q.claimed_at is null and not public.pv_review_held('q', q.id))
+            then '✅ 口コミと預かりの数だけある（保留中を除いて ' || (select count(*) from public.pv_review_card) || '件）'
             else '❌ 数が合わない（このファイルをもう一度貼る）' end
 union all
 /* ★⑨ トップに出さない口コミ（2026-11-14・ゲーム・下品な語）。保留中の口コミがトップの抜粋に1件も混ざっていないか。 */
@@ -1086,4 +1504,33 @@ select '⑨ トップに出さない口コミ（ゲーム・下品な語）',
             then '❌ 保留中の口コミがトップに出ている'
             else '✅ トップには出ていない（保留中 '
                  || (select count(*) from public.pv_review_top_hold where approved_at is null) || '件・承諾済み '
-                 || (select count(*) from public.pv_review_top_hold where approved_at is not null) || '件）' end;
+                 || (select count(*) from public.pv_review_top_hold where approved_at is not null) || '件）' end
+union all
+/* ★⑩ AI が保留にした口コミ（2026-11-15・3-c）。判定の表と書く口に会員・未ログインから触れず、
+     保留中の口コミが一覧の作り置き・Vote・トップのどこにも出ていないか。 */
+select '⑩ AI が保留にした口コミ（pv_review_judge）',
+       case when exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'pv_review_judge')
+              or exists (select 1 from information_schema.role_table_grants
+                          where table_schema = 'public' and table_name = 'pv_review_judge'
+                            and grantee in ('anon', 'authenticated'))
+              or has_function_privilege('anon', 'public.pv_review_judge_get(text, uuid)', 'execute')
+              or has_function_privilege('authenticated', 'public.pv_review_judge_get(text, uuid)', 'execute')
+              or has_function_privilege('anon', 'public.pv_review_judge_put(text, uuid, text, text, text, text, text)', 'execute')
+              or has_function_privilege('authenticated', 'public.pv_review_judge_put(text, uuid, text, text, text, text, text)', 'execute')
+            then '❌ 判定の表か読み書きの口に、会員・未ログインから触れる'
+            when exists (select 1 from public.pv_review_card k
+                           join public.pv_review_judge j on k.k = j.src || ':' || j.rid::text
+                          where j.verdict = 'hold' and j.decided is null)
+            then '❌ 保留中の口コミが一覧の作り置きに残っている（このファイルをもう一度貼る）'
+            when exists (select 1
+                           from jsonb_array_elements(public.pv_vote_latest() || public.pv_review_voices()) e
+                           join public.pv_review_judge j on j.verdict = 'hold' and j.decided is null
+                           left join public.reviews_v2 r        on j.src = 'r' and r.id = j.rid
+                           left join public.pv_review_pending q on j.src = 'q' and q.id = j.rid
+                          where coalesce(r.airline, q.airline) = e ->> 'airline'
+                            and coalesce(r.created_at, q.created_at) = (e ->> 'created_at')::timestamptz)
+            then '❌ 保留中の口コミが Vote かトップに出ている'
+            else '✅ 一覧・Vote・トップのどこにも出ていない（保留中 '
+                 || (select count(*) from public.pv_review_judge where verdict = 'hold' and decided is null) || '件・載せた '
+                 || (select count(*) from public.pv_review_judge where verdict = 'hold' and decided = 'show') || '件・消した '
+                 || (select count(*) from public.pv_review_judge where verdict = 'hold' and decided = 'delete') || '件）' end;

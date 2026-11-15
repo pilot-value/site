@@ -48,6 +48,7 @@
 --     給与＝年 $10,000〜$700,000 の幅・一覧から下ろした人でない・テスト用アカウントでない・pay_from より後
 --     ★どれも、運営（pv_admins）が出した分は数えない（2026-11-12）
 --     口コミ＝テスト用アカウントでない（引き取っていない預かりは数えない：誰の投稿か分からず、本人を外せないため）
+--            ★AI が保留にした口コミも数えない（2026-11-15・db/reviews-gate.sql 3-c）
 --     待遇の答え＝実際に答えた行だけ（スキップ・「わからない」は数えない）・テスト用アカウントでない
 --   ★知らせの数え始めは、このファイルを初めて貼った時刻（それより前の投稿では知らせない）。
 --   ★何度貼っても同じ。
@@ -60,6 +61,9 @@ begin
   end if;
   if to_regclass('public.pv_proof') is null then
     raise exception '先に db/pilot-proof.sql を貼ってください（pv_proof がまだありません）';
+  end if;
+  if to_regprocedure('public.pv_review_held(text, uuid)') is null then
+    raise exception '先に db/reviews-gate.sql を貼ってください（AI の判定 pv_review_held がまだありません）';
   end if;
   if not exists (select 1 from information_schema.columns
                   where table_schema = 'public' and table_name = 'profiles' and column_name = 'lang') then
@@ -368,6 +372,9 @@ as $$
      where v.created_at > (select at from floor_at)
        and not exists (select 1 from public.pv_test_users t where public.pv_review_hash(t.uid, v.airline) = v.proof_hash)
        and not exists (select 1 from public.pv_admins a where public.pv_review_hash(a.user_id, v.airline) = v.proof_hash)
+       -- ★AI が保留にした口コミ（db/reviews-gate.sql 3-c・2026-11-15）は知らせない ── 抜粋（下の reviews）も
+       --   ここで拾った口コミからしか作らないので、保留中の本文はメールに1文字も載らない
+       and not public.pv_review_held('r', v.id)
     union all
     select c.airline, 'cond', c.created_at, c.proof_hash, 'cond', null, null, c.question_id
       from public.airline_conditions c

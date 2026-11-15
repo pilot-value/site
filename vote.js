@@ -375,6 +375,9 @@
     return null;
   }
   function origOf(b, k) { var o = b.origCats || []; for (var i = 0; i < o.length; i++) if (o[i].k === k) return o[i].text; return ''; }
+  /* ★原文（訳の無い外国語）を出す要素に付ける dir と lang（2026-11-15・review-i18n.js の attrs）。訳文・日英西の原文には '' ＝ 今までと1文字も違わない。
+     古い review-i18n.js（attrs が無い）が端末に残っていても、何も付けないだけ。 */
+  function attrsOf(b, c) { return (w.PVReviewI18n && w.PVReviewI18n.attrs) ? w.PVReviewI18n.attrs(b, c) : ''; }
   /* 本文の文字数（7欄の合計）。サーバーの n が正。無い古い返事・見本は手元の字から数える。 */
   function lenOf(it) {
     if (it.n != null) return it.n;
@@ -410,13 +413,13 @@
       var cats = (it.row && it.row.cats) || [];
       var k = want || b.clipKey || cats[0] || '';
       var clip = (b.clipText && b.clipKey === k) ? b.clipText : '';
-      return { tag: k ? (T.cat[k] || '') : '', html: clip ? esc(clip) : null, shown: clip.replace(/…$/, '').length, locked: true };
+      return { tag: k ? (T.cat[k] || '') : '', html: clip ? esc(clip) : null, shown: clip.replace(/…$/, '').length, locked: true, at: clip ? attrsOf(b) : '' };
     }
     var c = firstCat(b, want);
     if (!c) return { tag: '', html: '', shown: 0 };
     var tr = b.translated && origOf(b, c.k) && origOf(b, c.k) !== c.text;
     var cut = it.kind === 'latest' && /…$/.test(c.text);   // 80字で切ってある欄
-    return { tag: T.cat[c.k] || '', html: esc(c.text), tr: tr, shown: c.text.replace(/…$/, '').length, locked: it.kind === 'latest', cut: cut };
+    return { tag: T.cat[c.k] || '', html: esc(c.text), tr: tr, shown: c.text.replace(/…$/, '').length, locked: it.kind === 'latest', cut: cut, at: attrsOf(b, c) };
   }
   /* 流れるカードの本文：投稿の頭から項目の順（KEYS）に、合わせて80字まで続けて出す。
      2026-10-29 オーナー指摘「80文字までなのに10文字くらいで終わっているカードがある」── 最初の1項目しか出していなかった。
@@ -426,7 +429,7 @@
   var STRIP_CHARS = 80;
   function stripBody(it) {
     var b = it.body, list = b.cats || [], written = (it.row && it.row.cats) || [];
-    var room = STRIP_CHARS, html = '', shown = 0, tag = '', tr = false, cut = false, last = -1, i;
+    var room = STRIP_CHARS, html = '', shown = 0, tag = '', tr = false, cut = false, last = -1, i, raw = '', allOrig = true;
     function catOf(k) { for (var m = 0; m < list.length; m++) if (list[m].k === k && list[m].text) return list[m]; return null; }
     for (i = 0; i < KEYS.length; i++) {
       var c = catOf(KEYS[i]);
@@ -444,11 +447,14 @@
       else html += ' <b class="vt-mini-k">' + esc(T.cat[c.k] || '') + '</b>';
       html += esc(take);
       shown += take.length; room -= take.length;
+      raw += take + ' '; if (!c.o) allOrig = false;
     }
     var more = cut;   // 見せた欄より後ろに、届いた欄か「書かれた」欄（80字に入らず本文の来ていない欄）があれば続きがある
     for (var j = last + 1; !more && j < KEYS.length; j++) if (catOf(KEYS[j]) || written.indexOf(KEYS[j]) >= 0) more = true;
     if (more) html += '…';
-    return { tag: tag, html: html, tr: tr, shown: shown, locked: it.kind === 'latest', more: more, strip: true };
+    /* dir と lang は、見せた欄が全部原文のときだけ帯の本文ごとに（訳と原文が混ざった帯には付けない） */
+    var at = (html && allOrig) ? attrsOf(b, { o: true, text: raw }) : '';
+    return { tag: tag, html: html, tr: tr, shown: shown, locked: it.kind === 'latest', more: more, strip: true, at: at };
   }
   function searchText(it) {
     var n = nameOf(it.slug, it.code);
@@ -487,7 +493,7 @@
     }
     var body = (ex.html === null)
       ? '<p class="vt-rc-ex is-locked">🔒 ' + esc(T.lockedBody) + '</p>'
-      : (ex.html ? '<p class="vt-rc-ex' + (ex.locked ? ' is-cut' : '') + '">' + ex.html + '</p>' : '');
+      : (ex.html ? '<p class="vt-rc-ex' + (ex.locked ? ' is-cut' : '') + '"' + (ex.at || '') + '>' + ex.html + '</p>' : '');
     /* 鍵の無い人：見せた字より先が残っていれば、字を持たない影絵を置く */
     if (ex.locked && total != null) body += ghost(total - (ex.shown || 0));
     return '<a class="vt-rc' + (list ? ' is-list' : '') + '" href="#review/' + it.key + '" data-review="' + it.key + '">' +
@@ -509,11 +515,12 @@
     var avg = (it.kind === 'seed' || it.kind === 'local') ? (it.rating ? Math.min(5, it.rating) : null) : rowAvg(it.row);
     var total = lenOf(it);
     var head = '<span class="vt-rc-tags">' + (ex.tag ? '<span class="vt-tag">' + esc(ex.tag) + '</span>' : '') +
-      (ex.tr ? w.PVReviewI18n.noteHTML(it.body.from) : '') +
+      /* 帯の札の行（項目名・札・星を折らずに1行）には「〇〇から自動翻訳」が入らない（英西は1つも・2026-11-15 実測）。見える字は「自動翻訳」のまま、言語は title と引き出しで */
+      (ex.tr ? w.PVReviewI18n.noteHTML(it.body.from, 'short') : '') +
       (avg ? '<span class="vt-rc-stars">' + stars(avg) + '<b>' + avg.toFixed(1) + '</b></span>' : '') + '</span>';
     var body = (ex.html === null)
       ? '<span class="vt-rc-ex is-locked">🔒 ' + esc(T.lockedBody) + '</span>'
-      : '<span class="vt-rc-ex' + (ex.locked || ex.strip ? ' is-cut' : '') + '">' + ex.html + '</span>';
+      : '<span class="vt-rc-ex' + (ex.locked || ex.strip ? ' is-cut' : '') + '"' + (ex.at || '') + '>' + ex.html + '</span>';
     if (ex.strip) { if (ex.locked && ex.more) body += ghost(Math.max(20, (total || 0) - ex.shown)); }
     else if (ex.locked && total != null) body += ghost(total - (ex.shown || 0));
     var who = [n.main, posText(it.pos), tenLine(it), it.date.t].filter(Boolean).join(' · ');
@@ -836,21 +843,22 @@
     if (it.kind === 'latest') {
       /* 届いているのは投稿の頭から80字だけ。80字に入らなかった欄は、書かれていれば影絵と錠前（cats が名前だけ運ぶ） */
       var lc = firstCat(b, k), wrote = ((r && r.cats) || []).indexOf(k) >= 0;
-      if (lc) p = '<p>' + esc(lc.text) + '</p>' + (/…$/.test(lc.text) ? ghost(60) + '<p class="is-locked">🔒 ' + esc(T.lockedBody) + '</p>' : '');
+      if (lc) p = '<p' + attrsOf(b, lc) + '>' + esc(lc.text) + '</p>' + (/…$/.test(lc.text) ? ghost(60) + '<p class="is-locked">🔒 ' + esc(T.lockedBody) + '</p>' : '');
       else if (wrote) p = ghost(60) + '<p class="is-locked">🔒 ' + esc(T.lockedBody) + '</p>';
       else p = '<p class="is-empty">' + esc(T.noComment) + '</p>';
     } else if (b.locked) {
       var written = ((r && r.cats) || []).indexOf(k) >= 0;
       if (!written) p = '<p class="is-empty">' + esc(T.noComment) + '</p>';
-      else if (b.clipText && b.clipKey === k) p = '<p>' + esc(b.clipText) + '</p><p class="is-locked">🔒 ' + esc(T.lockedBody) + '</p>';
+      else if (b.clipText && b.clipKey === k) p = '<p' + attrsOf(b) + '>' + esc(b.clipText) + '</p><p class="is-locked">🔒 ' + esc(T.lockedBody) + '</p>';
       else p = '<p class="is-locked">🔒 ' + esc(T.lockedBody) + '</p>';
     } else {
       var c = firstCat(b, k);
       if (!c) p = '<p class="is-empty">' + esc(T.noComment) + '</p>';
       else {
         var o = origOf(b, k), tr = b.translated && o && o !== c.text;
-        p = '<p>' + esc(c.text) + '</p>' + (tr ? w.PVReviewI18n.origHTML(o) : '');
-        if (tr) score = w.PVReviewI18n.noteHTML(b.from) + score;
+        /* ★「〇〇から自動翻訳」の札は本文の下、「原文を表示」の隣（2026-11-15）。見出しの行（項目名・札・点を折らずに1行）に置くと、
+           長い言語名で札が2〜3行に折れる（スマホの西語で実測）。 */
+        p = '<p' + attrsOf(b, c) + '>' + esc(c.text) + '</p>' + (tr ? w.PVReviewI18n.noteHTML(b.from, 'lead') + ' ' + w.PVReviewI18n.origHTML(o, b.from) : '');
       }
     }
     return '<section class="vt-d-sec"><h3><span>' + esc(T.cat[k]) + '</span>' + score + '</h3>' + p + '</section>';

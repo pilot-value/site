@@ -54,20 +54,22 @@ const HEADERS = { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY };
 const CATS = ['culture','salary','benefits','wlb','ops','training','mgmt'];
 
 /* ── 品質判定（submit-review.html / admin-notify.mjs と同一ロジック・reason 簡潔版）
-   ⚠️ 同じ関数が5か所にある。直すときは5つとも直す。
-   一致は node assert-review-quality.mjs が5か所すべてを実際に動かして確かめる。 ── */
+   ⚠️ 同じ関数が6か所にある。直すときは6つとも直す。
+   一致は node assert-review-quality.mjs が6か所すべてを実際に動かして確かめる。
+   ★2026-11-15 判定1は「字」の連続だけ・判定4は略語と機種の語を外してから数える（理由は admin-notify.mjs）。 ── */
 function assessReviewQuality(raw) {
   const t = (raw || '').replace(/\s+/g, ' ').trim();
   const len = t.length;
   if (len === 0) return { ok: true, reason: '' };
-  if (/(.)\1{4,}/u.test(t)) return { ok: false, reason: '同一文字の連打' };
+  if (/([^\p{N}\p{P}\p{S}\p{Z}\s\u0640])\1{4,}/u.test(t)) return { ok: false, reason: '同一文字の連打' };
   const rep = t.match(/(.{2,}?)\1{2,}/u);
   if (rep && rep[0].length >= Math.max(12, len * 0.5)) return { ok: false, reason: '同一語句の反復' };
   const uniq = new Set(t.replace(/\s/g, '')).size;
   if (len >= 40 && uniq < 10) return { ok: false, reason: '文字種過少（水増し）' };
-  const latin = t.match(/[A-Za-z]/g) || [];
+  const bare = t.replace(/\b[A-Z0-9]{2,10}(?:[\/-][A-Z0-9]{1,10})*\b/g, ' ');
+  const latin = bare.match(/[A-Za-z]/g) || [];
   if (latin.length >= 12) {
-    const vowels = t.match(/[AEIOUaeiou]/g) || [];
+    const vowels = bare.match(/[AEIOUaeiou]/g) || [];
     if (vowels.length / latin.length < 0.15) return { ok: false, reason: 'ラテン乱打（母音欠落）' };
   }
   // ⚠️ 多様性を全長で割らない（本物の長文ほど必ず比率が下がる）。固定長の窓の最悪値で見る。

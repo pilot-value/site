@@ -556,7 +556,7 @@ textarea.form-input{resize:vertical;min-height:96px;line-height:1.7}
                 <button type="button" class="star-btn" data-v="5" onclick="setStar(this)">5</button>
               </div>
             </div>
-            <textarea class="form-input" id="fc-culture" rows="2" maxlength="300" placeholder="社内文化・雰囲気・働きやすさなど" oninput="updateTotalChars()"></textarea>
+            <textarea class="form-input" dir="auto" id="fc-culture" rows="2" maxlength="300" placeholder="社内文化・雰囲気・働きやすさなど" oninput="updateTotalChars()"></textarea>
           </div>
           <!-- 給与 -->
           <div class="cat-block">
@@ -570,7 +570,7 @@ textarea.form-input{resize:vertical;min-height:96px;line-height:1.7}
                 <button type="button" class="star-btn" data-v="5" onclick="setStar(this)">5</button>
               </div>
             </div>
-            <textarea class="form-input" id="fc-salary" rows="2" maxlength="300" placeholder="基本給・手当の割合・給与体系など" oninput="updateTotalChars()"></textarea>
+            <textarea class="form-input" dir="auto" id="fc-salary" rows="2" maxlength="300" placeholder="基本給・手当の割合・給与体系など" oninput="updateTotalChars()"></textarea>
           </div>
           <!-- 福利厚生 -->
           <div class="cat-block">
@@ -584,7 +584,7 @@ textarea.form-input{resize:vertical;min-height:96px;line-height:1.7}
                 <button type="button" class="star-btn" data-v="5" onclick="setStar(this)">5</button>
               </div>
             </div>
-            <textarea class="form-input" id="fc-benefits" rows="2" maxlength="300" placeholder="優待チケット・保険・住宅補助など" oninput="updateTotalChars()"></textarea>
+            <textarea class="form-input" dir="auto" id="fc-benefits" rows="2" maxlength="300" placeholder="優待チケット・保険・住宅補助など" oninput="updateTotalChars()"></textarea>
           </div>
           <!-- ワークライフバランス -->
           <div class="cat-block">
@@ -598,7 +598,7 @@ textarea.form-input{resize:vertical;min-height:96px;line-height:1.7}
                 <button type="button" class="star-btn" data-v="5" onclick="setStar(this)">5</button>
               </div>
             </div>
-            <textarea class="form-input" id="fc-wlb" rows="2" maxlength="300" placeholder="休暇取得・スケジュール・拘束時間など" oninput="updateTotalChars()"></textarea>
+            <textarea class="form-input" dir="auto" id="fc-wlb" rows="2" maxlength="300" placeholder="休暇取得・スケジュール・拘束時間など" oninput="updateTotalChars()"></textarea>
           </div>
           <!-- 運航環境 -->
           <div class="cat-block">
@@ -612,7 +612,7 @@ textarea.form-input{resize:vertical;min-height:96px;line-height:1.7}
                 <button type="button" class="star-btn" data-v="5" onclick="setStar(this)">5</button>
               </div>
             </div>
-            <textarea class="form-input" id="fc-ops" rows="2" maxlength="300" placeholder="機材・路線・運航の安全基準など" oninput="updateTotalChars()"></textarea>
+            <textarea class="form-input" dir="auto" id="fc-ops" rows="2" maxlength="300" placeholder="機材・路線・運航の安全基準など" oninput="updateTotalChars()"></textarea>
           </div>
           <!-- 訓練環境 -->
           <div class="cat-block">
@@ -626,7 +626,7 @@ textarea.form-input{resize:vertical;min-height:96px;line-height:1.7}
                 <button type="button" class="star-btn" data-v="5" onclick="setStar(this)">5</button>
               </div>
             </div>
-            <textarea class="form-input" id="fc-training" rows="2" maxlength="300" placeholder="シミュレーター・審査頻度・サポートなど" oninput="updateTotalChars()"></textarea>
+            <textarea class="form-input" dir="auto" id="fc-training" rows="2" maxlength="300" placeholder="シミュレーター・審査頻度・サポートなど" oninput="updateTotalChars()"></textarea>
           </div>
           <!-- 経営陣への提案 -->
           <div class="cat-block">
@@ -640,7 +640,7 @@ textarea.form-input{resize:vertical;min-height:96px;line-height:1.7}
                 <button type="button" class="star-btn" data-v="5" onclick="setStar(this)">5</button>
               </div>
             </div>
-            <textarea class="form-input" id="fc-mgmt" rows="2" maxlength="300" placeholder="改善してほしいこと・経営判断への意見など" oninput="updateTotalChars()"></textarea>
+            <textarea class="form-input" dir="auto" id="fc-mgmt" rows="2" maxlength="300" placeholder="改善してほしいこと・経営判断への意見など" oninput="updateTotalChars()"></textarea>
           </div>
         </div>
 
@@ -905,8 +905,11 @@ function getStarScore(cat) {
 
 // ── Total char counter ────────────────────────────────────────
 const CAT_KEYS = ['culture','salary','benefits','wlb','ops','training','mgmt'];
+/* ★2026-11-15 字数はサーバー（db/review-pending.sql の char_length(btrim(…))）と同じ数え方＝前後の空白を外した字（コードポイント）の数。
+   JS の .length は UTF-16 で数えるので絵文字1つが2字になり、画面は300字でもサーバーが「合計が300字に足りません」と断っていた。 */
+const charLen = (s) => [...String(s || '')].length;
 function updateTotalChars() {
-  const total = CAT_KEYS.reduce((s,k) => s + (document.getElementById('fc-'+k)?.value.length||0), 0);
+  const total = CAT_KEYS.reduce((s,k) => s + charLen((document.getElementById('fc-'+k)?.value || '').trim()), 0);
   const el = document.getElementById('char-total-display');
   if (el) {
     el.textContent = total + ' / 300文字';
@@ -1100,7 +1103,13 @@ function getVals() {
 }
 
 function totalCommentChars(v) {
-  return Object.values(v.cats).reduce((s,c) => s + c.comment.length, 0);
+  return Object.values(v.cats).reduce((s,c) => s + charLen(c.comment), 0);
+}
+/* 1欄300字を超えた欄があれば、その断りの文（無ければ空）。サーバーも同じ数え方で断る（コメントは1項目300字まで）。
+   maxlength は UTF-16 で数えるうえ台本で入れた値には効かないので、送る前にここでも止める。 */
+function overLimitMsg(v) {
+  const k = CAT_KEYS.find((x) => charLen(v.cats[x].comment) > 300);
+  return k ? `「${CAT_LABELS[k]}」のコメントは300文字までです（現在${charLen(v.cats[k].comment)}文字）。` : '';
 }
 
 // 「その他」選択時は自由入力の会社名を実効値として使う（proof_hash・保存・表示すべてに反映）
@@ -1158,7 +1167,9 @@ function assessReviewQuality(raw) {
   if (len === 0) return { ok: true, reason: '' };
 
   // 1) 同一文字の連打（5文字以上の連続）例:「あああああ」「っっっっっ」
-  if (/(.)\1{4,}/u.test(t)) {
+  //    ★止めるのは「字」の連続だけ（2026-11-15）。数字・句読点・記号・空白・ـ（U+0640 アラビア文字を横に伸ばす線）は数えない。
+  //    「100000 AED」「¥5000000」「。。。。。」「ـــــ」で本物の口コミが止まっていた。
+  if (/([^\p{N}\p{P}\p{S}\p{Z}\s\u0640])\1{4,}/u.test(t)) {
     return { ok: false, reason: '同じ文字が連続しすぎています（例:「あああああ」）。実際に感じたことを書いてください。' };
   }
 
@@ -1178,9 +1189,13 @@ function assessReviewQuality(raw) {
   // 4) ラテン文字の乱打（母音がほとんど無いキーボード連打）
   //    例:「dkdkdm」「kfmkms」「ksmkskd」。英字を12文字以上含み、母音率が15%未満なら乱打。
   //    正規の英文（母音率≈38%）や少数の略語（EF/WLB/OJT/PBS/CA 等）は通過する。
-  const latin = t.match(/[A-Za-z]/g) || [];
+  //    ★数える前に、略語と機種の語（小文字を持たない2〜10字の英数字の語。/ や - でつながったものも：
+  //    PC/LPC・TRI/TRE・B787-9・ATPL・A350）を外す（2026-11-15）。略語の多い本物の欄が「母音が無い」で
+  //    止まっていた（日本語・アラビア語の欄の中の CRM・MCC・SOP も）。小文字の乱打は今までどおり止まる。
+  const bare = t.replace(/\b[A-Z0-9]{2,10}(?:[\/-][A-Z0-9]{1,10})*\b/g, ' ');
+  const latin = bare.match(/[A-Za-z]/g) || [];
   if (latin.length >= 12) {
-    const vowels = t.match(/[AEIOUaeiou]/g) || [];
+    const vowels = bare.match(/[AEIOUaeiou]/g) || [];
     if (vowels.length / latin.length < 0.15) {
       return { ok: false, reason: '意味のない文字の羅列（キーボードの連打）と判定されました。実際の経験を文章で書いてください。' };
     }
@@ -1281,6 +1296,8 @@ function goStep(n) {
       showFormAlert(err, `「${labels[missingScore]}」の評価（1〜5）を選択してください。`);
       return;
     }
+    const over = overLimitMsg(v);
+    if (over) { showFormAlert(err, over, { code: 'too_long' }); return; }
     const totalChars = totalCommentChars(v);
     if (totalChars < 300) {
       showFormAlert(err, `コメントの合計文字数が不足しています（現在${totalChars}文字・300文字以上必要）。`, { code: 'too_short' });
@@ -1352,6 +1369,8 @@ async function submitReview() {
     btn.disabled = false;
     btn.textContent = '投稿して解放する 🔓';
   };
+  const over = overLimitMsg(v);
+  if (over) { showFormAlert(err, over, { code: 'too_long' }); return; }
   const setCheck = assessReviewSet(v.cats);
   if (!setCheck.ok) { reject(setCheck.reason); return; }
   for (const k of CAT_KEYS) {

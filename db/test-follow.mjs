@@ -450,6 +450,36 @@ console.log('\n▼ C 壊す証明');
   await db.exec(FOLLOW.slice(0, FOLLOW.indexOf('-- ── 6. 1時間おきの時計')));
 }
 
+// ════════════════ B-8) AI が保留にした口コミ（2026-11-15）════════════════
+/* オーナー決定「AI が怪しいとした口コミは、運営が『載せる』を押すまで、どこにも出さない」。
+   フォローの知らせにも出さない ── 抜粋（reviews）に保留中の本文が載ると、メールから読めてしまう。 */
+console.log('\n▼ B-8 AI が保留にした口コミは知らせない（db/reviews-gate.sql 3-c）・壊す証明');
+{
+  await reset();
+  const HOLD = 'う'.repeat(40) + '保留にした口コミの本文';
+  await db.query(`insert into public.reviews_v2 (proof_hash, airline, "position", culture_score, culture_comment, created_at)
+                  values ($1, 'ana', 'fo', 2, $2, now() - interval '5 minutes')`, [reviewKey(RV, 'ana'), HOLD]);
+  const rid = (await one(`select id from public.reviews_v2 where proof_hash = $1`, [reviewKey(RV, 'ana')])).id;
+  ok(J(await kindsOf(R1, 'ana')) === '["review"]', '（前提）判定の前は、口コミが入ったと知らせる');
+  /* 判定を書くのは本番では translate-review（service_role）。ここでは持ち主として同じ関数を呼ぶ。 */
+  const pj = (await one(`select public.pv_review_judge_put('r', $1::uuid, $2, 'ja', 'hold', 'spam', null) as v`, [rid, 'a'.repeat(64)])).v;
+  ok(pj.ok === true && (await kindsOf(R1, 'ana')) === null, '★保留中の口コミでは知らせない（その会社に新着は無いことになる）', J(pj));
+  ok(!J(await due()).includes('保留にした口コミの本文'), '★★知らせの中身（抜粋）のどこにも、保留中の本文が1文字も載らない');
+  await db.query(`update public.pv_review_judge set decided = 'show' where src = 'r' and rid = $1`, [rid]);
+  const it = (await itemsOf(R1)).find((i) => i.code === 'ana');
+  ok(J(it.kinds) === '["review"]' && J(it.reviews).includes('う'.repeat(40)), '運営が載せたら、ふつうに知らせる（抜粋も付く）', J(it));
+  /* 壊す証明：保留中を外す1行を抜くと、保留中の口コミでも知らせが行き、本文がメールに載る */
+  await db.query(`update public.pv_review_judge set decided = null where src = 'r' and rid = $1`, [rid]);
+  const broken = FOLLOW.replace(/\n       and not public\.pv_review_held\('r', v\.id\)/, () => '');
+  ok(broken !== FOLLOW, '（準備）「保留中の口コミを外す」1行を抜いた版を作れた');
+  await db.exec(broken.slice(0, broken.indexOf('-- ── 6. 1時間おきの時計')));
+  ok(J(await due()).includes('保留にした口コミの本文') && J(await kindsOf(R1, 'ana')) === '["review"]',
+     '★壊す証明：抜いた版では、保留中の口コミでも知らせが行き、本文がメールに載る＝上の2つが赤くなる');
+  await db.exec(FOLLOW.slice(0, FOLLOW.indexOf('-- ── 6. 1時間おきの時計')));
+  ok((await kindsOf(R1, 'ana')) === null, '　元の版に戻すと、また知らせない');
+  await reset();
+}
+
 // ════════════════ D) 知らせのメール（本物の index.ts）════════════════
 console.log('\n▼ D 知らせのメール');
 const SUPA = 'https://example.supabase.test';

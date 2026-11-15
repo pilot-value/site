@@ -86,6 +86,10 @@
     .tab-btn{padding:8px 16px;background:none;border:none;border-bottom:2px solid transparent;color:rgba(255,255,255,.4);font-size:.85rem;font-weight:600;cursor:pointer;transition:color .2s,border-color .2s;font-family:inherit}
     .tab-btn.active{color:#f5c842;border-bottom-color:#f5c842}
     .tabs{display:flex;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:20px}
+    /* ★タブが5つになった（2026-11-15）。狭い画面で入りきらないときは、タブを1字ずつの縦に潰さず、タブの行だけを横に送る
+       （ページごとは横に動かない・入る幅では何も変わらない）。開いたタブは switchTab が行の中で見える所へ送る */
+    .tabs{overflow-x:auto;overflow-y:hidden}
+    .tabs .tab-btn{flex-shrink:0;white-space:nowrap}
     /* ── 資格確認（パイロットであることの確認・2026-10-13）── */
     .tab-n{display:inline-block;min-width:18px;margin-left:6px;padding:1px 6px;border-radius:999px;background:#f97316;color:#000;font-size:.68rem;font-weight:800;line-height:1.5;text-align:center}
     .tab-n:empty{display:none}
@@ -114,6 +118,28 @@
     .pf-fig figcaption{font-size:.72rem;font-weight:600;color:#6b7d93;font-variant-numeric:tabular-nums}
     .pf-why{max-width:260px;font-size:.76rem;line-height:1.55;color:#cbd5e1;white-space:pre-line;overflow-wrap:anywhere}
     .pf-sheet-f{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;padding:12px 18px;border-top:1px solid rgba(255,255,255,.07)}
+    /* ── 口コミの確認（翻訳の AI が保留にした口コミ・2026-11-15）── 1件1枚のカード。決めた行は下に薄く */
+    .rh-list{display:flex;flex-direction:column;gap:14px;margin-bottom:24px}
+    .rh-list > .loading{background:rgba(17,22,32,.8);border:1px solid rgba(255,255,255,.08);border-radius:14px}
+    .rh-card{display:flex;flex-direction:column;gap:12px;padding:16px 18px;background:rgba(17,22,32,.8);border:1px solid rgba(255,255,255,.08);border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.25),0 12px 32px -18px rgba(0,0,0,.6)}
+    .rh-card.is-done{opacity:.55}
+    .rh-top{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:.8rem}
+    .rh-co{font-weight:700;color:#f5c842}
+    .rh-when{font-size:.76rem;color:#6b7d93;white-space:nowrap}
+    .rh-src{padding:1px 8px;border:1px solid rgba(255,255,255,.12);border-radius:999px;font-size:.7rem;color:#9daec4;white-space:nowrap}
+    .rh-del{background:rgba(248,113,113,.1);color:#f87171}
+    .rh-facts{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:4px 14px;font-size:.78rem;line-height:1.6}
+    .rh-facts dt{color:#6b7d93;font-weight:600;white-space:nowrap}
+    .rh-facts dd{color:#cbd5e1;white-space:pre-line;overflow-wrap:anywhere}
+    .rh-body{display:flex;flex-direction:column;gap:10px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px}
+    .rh-sec h4{margin-bottom:3px;font-size:.72rem;font-weight:700;letter-spacing:.04em;color:#6b7d93}
+    .rh-sec p{font-size:.84rem;line-height:1.7;color:#e8edf2;white-space:pre-wrap;overflow-wrap:anywhere}
+    .rh-none{font-size:.78rem;color:#6b7d93}
+    .rh-ja summary{cursor:pointer;font-size:.78rem;font-weight:600;color:#9daec4;border-radius:4px;transition:color .2s,opacity .15s}
+    .rh-ja summary:hover{color:#e8edf2}
+    .rh-ja summary:focus-visible{outline:2px solid #f5c842;outline-offset:2px}
+    .rh-ja summary:active{opacity:.7}
+    .rh-ja[open] .rh-body{margin-top:8px}
   </style>
 <!-- Google tag (gtag.js) -->
 <script>
@@ -196,6 +222,7 @@
     <button class="tab-btn" onclick="switchTab('reviews',this)">口コミ一覧</button>
     <button class="tab-btn" onclick="switchTab('proofs',this)">資格確認<span class="tab-n" id="proof-n"></span></button>
     <button class="tab-btn" id="tab-btn-holds" onclick="switchTab('holds',this)">トップの保留<span class="tab-n" id="hold-n"></span></button>
+    <button class="tab-btn" id="tab-btn-rholds" onclick="switchTab('rholds',this)">口コミの確認<span class="tab-n" id="rhold-n"></span></button>
   </div>
 
   <!-- Users tab -->
@@ -282,6 +309,16 @@
     </div>
   </div>
 
+  <!-- Review holds tab（口コミの確認・2026-11-15）
+       ★「怪しい」と決めるのは翻訳の AI（translate-review）。保留の一覧も「載せる／消す」も、サーバー
+         （admin_list_review_holds / admin_review_hold_decide）が名簿を見てから行う。保留中の口コミは、ここで
+         「載せる」を押すまでどこにも出ない・数にも入らない。保留の通知メールのリンクがここ（admin.html#review-holds）へ飛ぶ。
+       ★pv-no-cur ── 運営は書かれた字のまま読む（本文の「¥…」を通貨の切替で書き換えない）。 -->
+  <div id="tab-rholds" class="pv-no-cur" style="display:none">
+    <div class="notice"><strong>口コミの確認</strong> — 翻訳の AI が「怪しい」とした口コミです。「載せる」を押すまで、どこにも出していません（件数にも入れていません）。「消す」は元に戻せません。</div>
+    <div class="rh-list" id="rh-list"><p class="loading">読み込み中…</p></div>
+  </div>
+
   <!-- 提出された画像を見る面。閉じたら画像を画面に残さない（proofClose） -->
   <div id="pf-view" role="dialog" aria-modal="true" aria-labelledby="pf-view-h">
     <div class="pf-sheet">
@@ -309,11 +346,16 @@
   let proofReady = false;   // 資格確認の入口（db/pilot-proof.sql）がサーバーに在るか
   let allHolds   = [];
   let holdReady  = false;   // トップの保留の入口（db/reviews-gate.sql 6-0）がサーバーに在るか
+  let allRHolds  = [];
+  let rhReady    = false;   // 口コミの確認の入口（admin_list_review_holds）がサーバーに在るか
   let currentTab = 'users';
 
-  /* 通知メールの「承諾してトップに出す」（admin.html#top-hold）から来たら、そのタブを開く。
-     ログイン画面を通ると # が落ちるので、このタブで来たことだけ覚えておく。 */
-  try { if (location.hash === '#top-hold') sessionStorage.setItem('pv_admin_tab', 'holds'); } catch (e) {}
+  /* 通知メールの「承諾してトップに出す」（admin.html#top-hold）・「口コミを保留しました」（admin.html#review-holds）から来たら、
+     そのタブを開く。ログイン画面を通ると # が落ちるので、このタブで来たことだけ覚えておく。 */
+  try {
+    if (location.hash === '#top-hold') sessionStorage.setItem('pv_admin_tab', 'holds');
+    else if (location.hash === '#review-holds') sessionStorage.setItem('pv_admin_tab', 'rholds');
+  } catch (e) {}
 
   /* ★合言葉は持たない。ページに書いた合言葉はサイトから誰でも読めるので、
      最初から公開されているのと同じだった。判定はサーバー側だけで行う。
@@ -363,15 +405,17 @@
     let want = null;
     try { want = sessionStorage.getItem('pv_admin_tab'); sessionStorage.removeItem('pv_admin_tab'); } catch (e) {}
     if (want === 'holds') switchTab('holds', document.getElementById('tab-btn-holds'));
+    if (want === 'rholds') switchTab('rholds', document.getElementById('tab-btn-rholds'));
   }
 
   async function loadData() {
     /* 表を直接読まない。読める人かどうかは入口の中で判定される。 */
-    const [usersRes, reviewsRes, proofsRes, holdsRes] = await Promise.all([
+    const [usersRes, reviewsRes, proofsRes, holdsRes, rholdsRes] = await Promise.all([
       sb.rpc('admin_list_profiles'),
       sb.rpc('admin_list_reviews'),
       sb.rpc('admin_list_proofs'),
-      sb.rpc('admin_list_top_holds')
+      sb.rpc('admin_list_top_holds'),
+      sb.rpc('admin_list_review_holds')
     ]);
     if (usersRes.error || reviewsRes.error) {
       document.getElementById('dashboard').style.display = 'none';
@@ -391,12 +435,84 @@
     allProofs  = proofReady ? (proofsRes.data || []) : [];
     holdReady  = !holdsRes.error;   // 資格確認と同じく、SQL を貼る前でも上の表は出す
     allHolds   = holdReady && Array.isArray(holdsRes.data) ? holdsRes.data : [];
+    takeReviewHolds(rholdsRes);   // これも SQL を貼る前でも上の表は出す
     renderStats();
     renderUsersTable();
     renderReviewsTable();
     renderProofsTable();
     renderHoldsTable();
+    renderReviewHolds();
   }
+
+  /* ── 口コミの確認（翻訳の AI が保留にした口コミ・2026-11-15）──────────────
+     ★守っているのはここではない。保留にするのは翻訳の AI（translate-review）、一覧を返すのも「載せる／消す」も
+       サーバー（admin_list_review_holds / admin_review_hold_decide）が名簿を見てから行う。
+     ★保留中 ＝ decided が空の行。運営が「載せる」を押すまで、その口コミはどこにも出ず、数にも入らない。
+     ★本文は会員が書いた字。どの欄も esc() を通してから入れる（innerHTML に生で入れない）。言語が何でも読めるよう、欄ごとに dir="auto"。 */
+  const RH_WHY  = {gibberish:'意味のない文字の並び', off_topic:'パイロットの勤務の話ではない', spam:'宣伝・リンク', duplicate:'同じ文の貼り付け', other:'そのほか'};
+  const RH_CATS = [['culture','企業文化'], ['salary','給与'], ['benefits','福利厚生'], ['wlb','WLB'], ['ops','運航環境'], ['training','訓練環境'], ['mgmt','経営陣への提案']];
+  const RH_DN   = (() => { try { return new Intl.DisplayNames(['ja'], { type: 'language' }); } catch (e) { return null; } })();
+  const rhOwn   = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+  /* 本文の言語の名前（ar → アラビア語）。2字でない（'und'）なら「不明」・名前が引けなければコードのまま */
+  const rhLang  = c => { c = String(c || '').toLowerCase(); if (!/^[a-z]{2}$/.test(c)) return '不明';
+    try { const n = RH_DN && RH_DN.of(c); if (n && n.toLowerCase() !== c) return n; } catch (e) {} return c; };
+  /* 本文7欄（空の欄は出さない）。どれも無い＝消した口コミ */
+  const rhBody  = cats => {
+    const o = cats && typeof cats === 'object' ? cats : {};
+    const secs = RH_CATS.filter(([k]) => rhOwn(o, k) && String(o[k] == null ? '' : o[k]).trim())
+      .map(([k, label]) => `<section class="rh-sec"><h4>${label}</h4><p dir="auto">${esc(o[k])}</p></section>`).join('');
+    return secs ? `<div class="rh-body">${secs}</div>` : '<p class="rh-none">本文はもうありません。</p>';
+  };
+  function takeReviewHolds(res) {
+    rhReady   = !!res && !res.error;
+    allRHolds = rhReady && Array.isArray(res.data) ? res.data : [];
+  }
+  async function loadReviewHolds() {
+    takeReviewHolds(await sb.rpc('admin_list_review_holds'));
+    renderReviewHolds();
+  }
+  function renderReviewHolds() {
+    const box  = document.getElementById('rh-list');
+    const list = allRHolds.filter(h => h && isUuid(h.id) && (h.src === 'r' || h.src === 'q'));
+    /* 保留中が先（サーバーの並びのまま・念のため手元でも分ける） */
+    const wait = list.filter(h => !h.decided), done = list.filter(h => h.decided);
+    document.getElementById('rhold-n').textContent = wait.length ? String(wait.length) : '';
+    if (!rhReady) { box.innerHTML = '<p class="loading">まだ使えません（SQL を貼ると使えます）。</p>'; return; }
+    if (!list.length) { box.innerHTML = '<p class="loading">保留中の口コミはありません。</p>'; return; }
+    box.innerHTML = (wait.length ? '' : '<p class="loading">確認待ちの口コミはありません。</p>') + wait.concat(done).map(h => {
+      const tag = !h.decided ? '<span class="pf-tag pf-sub">確認待ち</span>'
+        : h.decided === 'delete' ? '<span class="pf-tag rh-del">消しました</span>'
+        : '<span class="pf-tag pf-ok">載せました</span>';
+      const why = rhOwn(RH_WHY, h.reason) ? RH_WHY[h.reason] : esc(h.reason || '—');
+      const ja  = h.cats_ja && typeof h.cats_ja === 'object' && Object.keys(h.cats_ja).length
+        ? `<details class="rh-ja"><summary>日本語訳</summary>${rhBody(h.cats_ja)}</details>` : '';
+      const acts = h.decided ? '' : `<div class="pf-acts">
+        <button type="button" class="pf-btn is-go" data-rh="show" data-src="${h.src}" data-r="${h.id}">載せる</button>
+        <button type="button" class="pf-btn is-warn" data-rh="delete" data-src="${h.src}" data-r="${h.id}">消す</button></div>`;
+      return `<article class="rh-card${h.decided ? ' is-done' : ''}">
+      <div class="rh-top">${tag}<b class="rh-co">${esc(h.airline || '—')}</b>${h.position ? `<span class="pos-tag ${POS_CLASS[h.position] || ''}">${esc(POS_LABEL[h.position] || h.position)}</span>` : ''}
+        <span class="rh-when">投稿 ${pfDate(h.created_at)}</span>${h.src === 'q' ? '<span class="rh-src">ログインなしの投稿</span>' : ''}${h.decided ? `<span class="rh-when">${h.decided === 'delete' ? '消した日' : '載せた日'} ${pfDate(h.decided_at)}</span>` : ''}</div>
+      <dl class="rh-facts"><dt>本文の言語</dt><dd>${esc(rhLang(h.lang))}</dd><dt>理由</dt><dd>${why}</dd><dt>AI のメモ</dt><dd>${h.note ? esc(h.note) : '—'}</dd></dl>
+      ${rhBody(h.cats)}${ja}${acts}
+    </article>`;
+    }).join('');
+  }
+
+  document.addEventListener('click', async e => {
+    const b = e.target && e.target.closest ? e.target.closest('[data-rh]') : null;
+    if (!b || b.disabled) return;
+    const act = b.getAttribute('data-rh'), src = b.getAttribute('data-src'), id = b.getAttribute('data-r');
+    if (!isUuid(id) || (src !== 'r' && src !== 'q') || (act !== 'show' && act !== 'delete')) return;
+    /* 消すのは元に戻せない ── 確かめてから */
+    if (act === 'delete' && !confirm('この口コミを消します。\n\n消した口コミは、どこにも出ません。元に戻せません。\n\nよろしいですか？')) return;
+    const btns = [...b.parentNode.querySelectorAll('[data-rh]')];
+    btns.forEach(x => { x.disabled = true; });
+    const { data, error } = await sb.rpc('admin_review_hold_decide', { p_src: src, p_id: id, p_decision: act });
+    btns.forEach(x => { x.disabled = false; });
+    if (error || !data || !data.ok) alert(data && data.reason === 'not_held' ? 'この口コミは、もう確認待ちではありません。'
+      : 'できませんでした：' + ((error && error.message) || (data && data.reason) || ''));
+    await loadReviewHolds();
+  });
 
   /* ── トップの保留（2026-11-14）──────────────────────────────
      ★守っているのはここではない。保留の印を付けるのも、承諾してトップに出すのも、
@@ -700,7 +816,13 @@
     document.getElementById('tab-reviews').style.display = tab==='reviews' ? 'block' : 'none';
     document.getElementById('tab-proofs').style.display  = tab==='proofs'  ? 'block' : 'none';
     document.getElementById('tab-holds').style.display   = tab==='holds'   ? 'block' : 'none';
+    document.getElementById('tab-rholds').style.display  = tab==='rholds'  ? 'block' : 'none';
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b===btn));
+    /* 狭い画面：開いたタブを、タブの行の中で見える所へ（ページは動かさない）。字が読み終わるとタブの幅が変わるので、そのあとにもう一度 */
+    const bar = btn && btn.parentNode;
+    const show = () => { if (bar && bar.scrollWidth > bar.clientWidth) bar.scrollLeft += btn.getBoundingClientRect().left - bar.getBoundingClientRect().left - 16; };
+    show();
+    if (bar && document.fonts && document.fonts.ready) document.fonts.ready.then(show);
   }
 
   function downloadCSV(type) {

@@ -15,6 +15,7 @@
      ★ 順番だけを出す ── 未ログイン・ログイン済みは表を直接読めない・数え直しを呼べない。
        読む口が返すのは会社コード（文字列）の配列1つだけ（日付も件数も無い）
      ★ 数え直しの中で失敗が起きても、給与の書き込みは通る（表は前の中身のまま）
+     ★ AI が保留にした口コミ・預かり（2026-11-15）── 運営が載せるまで数えない・保留／載せる／消すでその場で並びが変わる
      ★ 冪等 ── ファイルをもう一度流しても中身は同じ・引き金は増えない・末尾の検算10行が全部 ✅
      ★ 壊す証明 ── テスト用アカウントを外す2行を抜いた版では、テスト用アカウントの検査が赤くなる。
        引き取っていない預かりだけに絞る1行を抜いた版では、引き取った預かりの検査が赤くなる
@@ -188,8 +189,10 @@ const port = async () => {
   await asOwner();
   const T = `(extract(epoch from created_at) * 1000000)::bigint::text`;
   const pr = await rows(`select airline, airline_other, annual_total_usd, proof_hash, ${T} as t from public.pay_reports`);
-  const rv = await rows(`select airline, proof_hash, ${T} as t from public.reviews_v2`);
-  const pd = await rows(`select airline, claimed_at, ${T} as t from public.pv_review_pending`);
+  const rv = await rows(`select id, airline, proof_hash, ${T} as t from public.reviews_v2`);
+  const pd = await rows(`select id, airline, claimed_at, ${T} as t from public.pv_review_pending`);
+  /* ★AI が保留にした口コミ・預かり（db/reviews-gate.sql 3-c・2026-11-15）は数えない */
+  const held = new Set((await rows(`select src || ':' || rid as k from public.pv_review_judge where verdict = 'hold' and decided is null`)).map((r) => r.k));
   const hidden = new Set((await rows(`select proof_hash from public.pay_hidden`)).map((r) => r.proof_hash));
   const testIds = (await rows(`select uid from public.pv_test_users`)).map((r) => r.uid);
   const live = new Set((await rows(`select code from public.pv_airlines where active and code <> 'other'`)).map((r) => r.code));
@@ -204,8 +207,8 @@ const port = async () => {
     if (usd == null || usd < 10000 || usd > 700000 || hidden.has(r.proof_hash) || testPay.has(r.proof_hash)) continue;
     put(r.airline === 'other' ? (r.airline_other == null ? null : await resolve(r.airline_other)) : r.airline, r.t);
   }
-  for (const r of rv) { if (!testRv.has(r.proof_hash)) put(await resolve(r.airline), r.t); }
-  for (const r of pd) { if (r.claimed_at == null) put(await resolve(r.airline), r.t); }
+  for (const r of rv) { if (!testRv.has(r.proof_hash) && !held.has('r:' + r.id)) put(await resolve(r.airline), r.t); }
+  for (const r of pd) { if (r.claimed_at == null && !held.has('q:' + r.id)) put(await resolve(r.airline), r.t); }
   const byTime = [...last].sort((a, b) => (BigInt(b[1]) > BigInt(a[1]) ? 1 : BigInt(b[1]) < BigInt(a[1]) ? -1 : a[0] < b[0] ? -1 : 1));
   return { order: byTime.map((x) => x[0]), table: Object.fromEntries([...last].sort((a, b) => (a[0] < b[0] ? -1 : 1))) };
 };
@@ -411,7 +414,7 @@ console.log('\n▼ A7 冪等（db/airline-activity.sql をもう一度そのま�
   catch (e) { ok(false, MINE + ' 再適用で失敗', e.message); }
   ok(J(await table()) === snap, '流し直しても表の中身（会社と時刻）は変わらない');
   const trg = (await one(`select count(*)::int as c from pg_trigger where tgname = 'trg_pv_airline_activity' and not tgisinternal`)).c;
-  ok(trg === 5, '引き金は5つの表に1つずつ（流し直しても増えない）', String(trg));
+  ok(trg === 6, '引き金は6つの表に1つずつ（流し直しても増えない・2026-11-15 に AI の判定の表を足した）', String(trg));
   const check = res && res[res.length - 1] && res[res.length - 1].rows;
   ok(Array.isArray(check) && check.length === 10 && check.every((x) => String(x.結果).startsWith('✅')),
     'ファイル末尾の検算 10行が全部 ✅', J(check && check.filter((x) => !String(x.結果).startsWith('✅'))));
@@ -465,6 +468,54 @@ console.log('\n▼ A8 壊す証明（壊した版は begin … rollback の中�
   ok(!b2.res && b2.o[b2.o.length - 1] !== CLM,
     '★壊した版では、引き取った預かりがまた数えられ、預かりを閉じた会社が前へ出て検査が赤くなる', J(b2.o));
   ok(await claimedCheck(), '（巻き戻したあと: 本物は緑）');
+}
+
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ A9 AI が保留にした口コミ・預かり（db/reviews-gate.sql 3-c・2026-11-15）は、運営が載せるまで数えない');
+// ════════════════════════════════════════════════════════════
+{
+  await asOwner();
+  const used = new Set([PAY1, REV, PEND, MOVE, BAND, EDGE, HIDE, TPAY, TREV, OFF, CLM, TYPEDA]);
+  const [HA, HQ] = AIR.slice(30).map((r) => r.code).filter((c) => !used.has(c));
+  /* 判定を書くのは本番では translate-review（service_role）。ここでは持ち主として同じ関数を呼ぶ。 */
+  const judge = async (src, id, verdict, sha = 'a'.repeat(64)) =>
+    (await one(`select public.pv_review_judge_put($1, $2::uuid, $3, 'en', $4, 'spam', null) as v`, [src, id, sha, verdict])).v;
+  const decided = async (src, id, d) => db.query(`update public.pv_review_judge set decided = $3 where src = $1 and rid = $2`, [src, id, d]);
+  const W = await member();
+  /* ほかの節の投稿より新しくするため、時刻は先に置く（'-1 hour' ＝ 1時間後） */
+  const rid = await review(W, HA, '-1 hour');
+  ok((await order())[0] === HA, '（前提）判定の前は、いちばん新しい口コミの会社が先頭');
+  const j1 = await judge('r', rid, 'hold');
+  const o1 = await order();
+  ok(j1.ok === true && !o1.includes(HA) && (await samePort()).same,
+    '★口コミが保留になった瞬間、その会社は並びから消える（ほかに投稿の無い会社）', J(o1.slice(0, 3)));
+  const q = await pending(HQ, '-2 hours');
+  ok((await order())[0] === HQ, '（前提）いちばん新しい預かりの会社が先頭');
+  await judge('q', q.id, 'hold');
+  ok(!(await order()).includes(HQ) && (await samePort()).same, '★預かりが保留になった瞬間も、並びから消える');
+  await decided('r', rid, 'show');
+  ok((await order())[0] === HA && (await samePort()).same, '★運営が載せた瞬間、元の位置（先頭）へ戻る');
+  const t0 = await stamp();
+  await db.query(`update public.pv_review_judge set note = '書き直し', judged_at = now() where src = 'r' and rid = $1`, [rid]);
+  ok(t0 === await stamp(), '保留かどうかに関係しない列（メモ・時刻）の書き換えでは数え直さない');
+
+  /* 壊す証明：保留中を外す1行を抜いた数え直しでは、保留中の預かりの会社が並びに戻る */
+  const src = read(MINE);
+  const a = src.indexOf('create or replace function public.pv_airline_activity_refresh(');
+  const fsrc = src.slice(a, src.indexOf('$fn$;', a) + '$fn$;'.length);
+  const CUT = `\n     where not public.pv_review_held(x.src, x.id)   -- ★AI が保留にした口コミ・預かり`;
+  const broken = fsrc.replace(CUT, () => '');
+  ok(fsrc.split(CUT).length === 2 && !broken.includes('pv_review_held'), '（保留中を外す1行を見つけて抜いた）');
+  await db.exec(`begin`);
+  await db.exec(broken);
+  await db.exec(`select public.pv_airline_activity_refresh()`);
+  const ob = await order();
+  await asOwner(); await db.exec(`rollback`);
+  ok(ob[0] === HQ,
+    '★壊した版では、保留中の預かりの会社が先頭に戻り、検査が赤くなる', J(ob.slice(0, 3)));
+  ok(!(await order()).includes(HQ) && (await samePort()).same, '（巻き戻したあと: 本物は緑）');
 }
 
 console.log(`\n${fail === 0 ? '✅' : '❌'} ${pass} passed, ${fail} failed\n`);

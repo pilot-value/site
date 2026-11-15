@@ -2214,5 +2214,110 @@ console.log('\n▼ ★照合の答えを置いておいても、元の作り方�
   await asOwner();
 }
 
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 20. AI が保留にした口コミ（db/reviews-gate.sql 3-c・2026-11-15）は、運営が載せるまで材料にも件数にも入らない');
+// ════════════════════════════════════════════════════════════
+/* オーナー決定「AI が怪しいとした口コミは、運営が『載せる』を押すまで、どこにも出さない・数にも入れない」。
+   要約は材料の集合の指紋で守っているので、材料にした口コミが保留になると、その要約は出なくなる（none・3件を切れば few）。
+   載せれば元の集合に戻って、預けた要約がまた出る。判定の行が変わったら、置いてある答え（pv_review_summary_pub）も置き直す。 */
+{
+  const AIR = 'solaseed';
+  for (const n of [81, 82, 83, 84]) await mkUser(n);
+  await asOwner();
+  /* 本番の pv_is_admin（db/admin.sql）と同じ式。運営（OP）が「載せる」を押すために要る。 */
+  await db.exec(`create or replace function public.pv_is_admin() returns boolean language sql stable
+                 security definer set search_path = public as $$
+                   select exists (select 1 from public.pv_admins a where a.user_id = auth.uid()) $$`);
+  const at = (i) => `2026-04-0${i}T00:00:00Z`;
+  for (const i of [1, 2, 3, 4]) {
+    await post(80 + i, AIR, { training_comment: `訓練は丁寧で教官に質問しやすい（${i}）。`, wlb_comment: `勤務の変更が直前に来ることがある（${i}）。`, __at: at(i) });
+  }
+  await asOwner();
+  const S = (await rows(`select id::text from public.reviews_v2 where airline = $1 order by created_at`, [AIR])).map((r) => r.id);
+  const payload = (over = {}) => ({ airline: AIR, lang: 'ja', n: 4, newest: at(4),
+    good: [{ text: '訓練の教え方が丁寧だという声が複数ある', cat: 'training', k: 2, ids: [S[0], S[1]] }],
+    concern: [{ text: '勤務の変更が直前に来るという声が複数ある', cat: 'wlb', k: 2, ids: [S[2], S[3]] }], ...over });
+  ok((await putAs(OP, payload())).state === 'saved', '（4件の口コミから要約を預ける）');
+  const stateOf = async () => (await getAs(KEYED, AIR)).state;
+  ok(await stateOf() === 'open', '（前提）判定の前は、鍵のある会員に要約が出る');
+
+  const putJ = async (id, verdict, s = 'a'.repeat(64)) => {
+    await asService();
+    const r = (await one(`select public.pv_review_judge_put('r', $1::uuid, $2, 'ja', $3, $4, null) r`, [id, s, verdict, verdict === 'hold' ? 'spam' : null])).r;
+    await asOwner();
+    return r;
+  };
+  const show = async (id) => { await as(OP); const r = (await one(`select public.admin_review_hold_decide('r', $1::uuid, 'show') r`, [id])).r; await asOwner(); return r; };
+  const count = async () => { await asOwner(); return (await one(`select public.pv_review_summary_count(public.pv_review_summary_codes($1), null) n`, [AIR])).n; };
+  const ids = async () => { await asOwner(); return (await rows(`select x from public.pv_review_summary_ids(public.pv_review_summary_codes($1), null) x`, [AIR])).map((r) => r.x); };
+  /* 置いてある答えが、その場で作った答えと同じか（判定の行が変わったら置き直されているか） */
+  const pubFresh = async () => {
+    await asOwner();
+    const r = await rows(`select l, (select core from public.pv_review_summary_pub p where p.airline = $1 and p.lang = l) as a,
+                                    public.pv_review_summary_core($1, l) as b
+                            from unnest(array['ja', 'en', 'es']) l`, [AIR]);
+    return r.every((x) => JSON.stringify(x.a) === JSON.stringify(x.b));
+  };
+
+  const h1 = await putJ(S[0], 'hold');
+  ok(h1.ok === true && await count() === 3 && !(await ids()).includes(S[0]),
+     '★保留中の口コミは、要約の件数にも材料の id にも入らない（4件 → 3件）', JSON.stringify({ h1, n: await count() }));
+  ok(await stateOf() === 'none' && await pubFresh(),
+     '★★材料にした口コミが保留になると、預けた要約は出なくなる（none）・置いてある答えも置き直されている');
+  ok(J((await dueOf(AIR)).due) === J([{ airline: AIR, lang: 'ja', why: 'stale' }]),
+     '自動の道は「作り直しが要る（stale）」と見る（保留中を抜いた3件で作り直す）', JSON.stringify(await dueOf(AIR)));
+  const t = await take(AIR);
+  ok(t.state === 'go' && t.n === 3 && t.rows.length === 3 && !t.rows.some((r) => r.id === S[0]),
+     '★自動の道の材料（take）にも、保留中の口コミの本文は入らない', JSON.stringify({ state: t.state, n: t.n }));
+  await done(AIR, t.basis, 'released');
+  const bi = await putAs(OP, payload({ n: 3 }));
+  ok(bi.ok === false && bi.error === 'bad_ids', '★保留中の口コミを点のもと（ids）にした要約は預からない（bad_ids）', JSON.stringify(bi));
+
+  const s1 = await show(S[0]);
+  ok(s1.ok === true && await count() === 4 && await stateOf() === 'open' && await pubFresh(),
+     '★★運営が載せると元の集合に戻り、預けた要約がまた出る（置いてある答えも置き直される）', JSON.stringify(s1));
+  await putJ(S[0], 'hold', 'b'.repeat(64));
+  await putJ(S[1], 'hold');
+  ok(await count() === 2 && await stateOf() === 'few' && await pubFresh(),
+     '★保留中で3件を切ると「少ない」（few）', String(await count()));
+  await putJ(S[2], 'ok');
+  ok(await count() === 2 && await stateOf() === 'few' && await pubFresh(), 'ok の判定が付いただけでは何も変わらない');
+
+  /* 壊す証明 a) 判定の表の引き金を外すと、載せても置いてある答えが古いまま（few のまま）＝ その場で作った答えと食い違う */
+  await db.exec('drop trigger if exists pv_review_summary_pub_sync on public.pv_review_judge');
+  await show(S[0]); await show(S[1]);
+  const fresh = await pubFresh();
+  ok(!fresh && await stateOf() === 'few',
+     '★壊す証明 a) 判定の表の引き金を外すと、載せても要約が「少ない」のまま（置いてある答えが古い）');
+  await db.exec(read('db/review-summary.sql'));
+  ok(await pubFresh() && await stateOf() === 'open', '　貼り直すと置き直されて、要約が出る');
+
+  /* 壊す証明 b) 材料の数え方（pv_review_summary_ids）から保留中を外す1行を抜くと、保留中も数えて要約が出続ける */
+  const SRC = read('db/review-summary.sql');
+  const fnOf = (head) => { const a = SRC.indexOf(head); return SRC.slice(a, SRC.indexOf('$fn$;', SRC.indexOf('as $fn$', a)) + 5); };
+  const fIds = fnOf('create or replace function public.pv_review_summary_ids(');
+  const bIds = fIds.replace(/\n\s*and not public\.pv_review_held\('r', r\.id\)/, () => '');
+  ok(bIds !== fIds, '（壊す証明の準備）材料の数え方から保留中を外す1行を見つけて抜いた');
+  await db.exec(bIds);
+  await putJ(S[0], 'hold', 'c'.repeat(64));
+  ok(await count() === 4 && (await ids()).includes(S[0]),
+     '★壊す証明 b) その1行を抜くと、保留中の口コミも件数と材料に入る（上の「4件 → 3件」の検査はこれを赤にする）');
+  await db.exec(SRC);
+  ok(await count() === 3 && await stateOf() === 'none', '　貼り直すと、また数えない・要約は出ない');
+
+  /* 壊す証明 c) 点のもとの確かめ（pv_review_summary_backed）から保留中を見る1行を抜くと、保留中の口コミを ids にした要約を預かってしまう */
+  const fB = fnOf('create or replace function public.pv_review_summary_backed(');
+  const bB = fB.replace(/\n\s*and not public\.pv_review_held\('r', r\.id\)[^\n]*/, () => '');
+  ok(bB !== fB, '（壊す証明の準備）点のもとの確かめから保留中を見る1行を見つけて抜いた');
+  await db.exec(bB);
+  const bad = await putAs(OP, payload({ n: 3 }));
+  ok(bad.ok === true && bad.state === 'saved', '★壊す証明 c) その1行を抜くと、保留中の口コミを点のもとにした要約を預かってしまう（上の bad_ids はこれを赤にする）', JSON.stringify(bad));
+  await db.exec(SRC);
+  ok(await stateOf() === 'none', '　貼り直すと、その要約は出ない（点のもとが確かめられない）');
+  await show(S[0]);
+  await putAs(OP, { airline: AIR, lang: 'ja', good: [], concern: [] });   // 後片付け
+}
+
 console.log(`\n══ ${pass} pass / ${fail} fail ══`);
 process.exit(fail ? 1 : 0);

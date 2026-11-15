@@ -84,6 +84,8 @@ const SQL = [
   ['db/test-airline-activity.mjs', 5],
   /* 2026-11-07 明細の読み取りが続けて失敗したら info@ へ（db/parse-outcome.sql ＋ parse-payslip の通し・壊す証明） */
   ['db/test-parse-outcome.mjs', 2],
+  /* 2026-11-15 ログインなしの口コミも AI が判定する Webhook（db/review-judge-webhook.sql）。ひな型の写し方・二重に作らない・壊す証明 */
+  ['db/test-review-judge-webhook.mjs', 10],
 ];
 
 // localhost:3000 が要るもの。長い順に並べてある。
