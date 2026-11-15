@@ -59,7 +59,7 @@
   var esc = V.esc, num = V.num;
   /* ★2026-11-15 オーナー「非表示ボタンを押した時に累計報酬とかも非表示にならないと意味ない」──
        目のアイコンで隠している間は、給与サマリーの金額を全部「••••」で書く（字を作らない・null は今までどおり「—」）。
-       このファイルの金額は全部ここか exact() を通る。時間・日数・％は隠さない。 */
+       このファイルの金額は全部ここか exactH() を通る。時間・日数・％は隠さない。 */
   var MASK = '••••';
   function fmt(v) { return (v != null && state && state.hide) ? MASK : V.fmt(v); }
 
@@ -677,7 +677,7 @@
   }
 
   /* ── 金額を隠す目のアイコン（2026-11-15 オーナー「最初の緑のカードに非表示の目のアイコン」）──────────
-     ボタンは月・年・全期間の緑のカードの見出しの右。効くのは給与サマリーの金額ぜんぶ（fmt() と exact() が隠す）。
+     ボタンは月・年・全期間の緑のカードの見出しの右。効くのは給与サマリーの金額ぜんぶ（fmt() と exactH() が隠す）。
      スケジュール・分析のタブは隠さない（オーナー回答「給与サマリーの中だけ」）。紙・PDF も画面どおり。 */
   var EYE_ON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
   var EYE_OFF = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.7 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-2.8 3.8"/><path d="M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7c1.9 0 3.6-.6 5.1-1.5"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="M3 3l18 18"/></svg>';
@@ -818,9 +818,11 @@
     var cur = (C && C.get) ? C.get() : 'JPY';
     var rate = (C && C.rates && C.rates[cur]) || 1;
     var sym = (C && C.symbols && C.symbols[cur]) || '¥';
-    if (state.hide) return MASK;                     // 目のアイコンで隠している（前回の明細との差・給与が変わった理由）
     return sym + Math.round(jpy / rate).toLocaleString('en-US');
   }
+  /* 目のアイコンで隠している間は「••••」（前回の明細との差・給与が変わった理由）。
+     ★exact() そのものは形を変えない（sec() と同じく deep-pay.js・deep-pay-compare.js に写しがある） */
+  function exactH(jpy) { return state.hide ? MASK : exact(jpy); }
   // pay_benchmarks は USD 建て。サイトの表示レートで円に直す（lp.js と同じ既定値）。
   function usdToJpy(usd) {
     var r = (w.PVCurrency && w.PVCurrency.rates && w.PVCurrency.rates.USD) || 158.95;
@@ -1246,7 +1248,7 @@
     }
     var body = m.pairs.length
       ? '<div class="mv-cmp">' + m.pairs.map(function (x) {
-          return x.money ? cmpRow(x.nm, exact(x.a * m.fx), exact(x.b * m.fx), x.a, x.b)
+          return x.money ? cmpRow(x.nm, exactH(x.a * m.fx), exactH(x.b * m.fx), x.a, x.b)
                          : cmpRow(x.nm, hh(x.a), hh(x.b), x.a, x.b);
         }).join('') + '</div>'
       : empty(T.cmpNoPair);
@@ -1320,7 +1322,7 @@
     var mny = function (v, sign) {
       var x = R.fromMinor(v, cur);
       if (x == null || fx == null) return '—';
-      var j = x * fx, t = exact(Math.abs(j)), z = /^\D*0$/.test(t);
+      var j = x * fx, t = exactH(Math.abs(j)), z = /^\D*0$/.test(t);
       return sign ? (z ? '±' : j > 0 ? '+' : '−') + t : (j < 0 && !z ? '−' : '') + t;
     };
     var kindNm = function (k) {
