@@ -1191,6 +1191,42 @@ console.log('\n▼ 時刻から出した時間・同じ空港どうしの行・�
   ok(!!brokenC && b9x === 95 + P8, `★壊す証明：まとめが calc_min を見ないと計算の 90 分が消える → ${b9x}分`);
 }
 
+// ── 11-c. 読めなかった勤務表の画像（2026-11-16 オーナー「読めないなら保存して今後に使え」）──────────
+console.log('\n▼ 読めなかった画像の置き場');
+{
+  await db.exec('begin');
+  const B64 = Buffer.from('x'.repeat(300)).toString('base64');
+  const SUB = 'c'.repeat(64);
+  const put = async (o = {}) => (await one(`select public.pv_roster_image_put($1, $2, $3, $4, $5::jsonb, $6, $7, $8) r`,
+    [o.subject ?? SUB, o.page ?? 1, o.pages ?? 2, o.why ?? 'gaps', JSON.stringify(o.gaps ?? { no_apt: 3 }),
+     o.mime ?? 'image/jpeg', o.b64 ?? B64, o.build ?? '2026-11-16'])).r;
+  const r1 = await put();
+  ok(r1 && r1.ok && !!r1.id, '★parse-roster（service_role）からは入れられる');
+  const row = await one(`select byte_len, why, gaps, replace(encode(bytes, 'base64'), E'\n', '') = $1 as same from public.pv_roster_images where id = $2`, [B64, r1.id]);
+  ok(row.byte_len === 300 && row.same && row.why === 'gaps' && row.gaps.no_apt === 3, '中身はそのまま（長さ・理由・欠けの数）');
+  ok((await put({ b64: '%%%' })).reason === 'bad', '壊れた base64 は断る（例外を投げない＝読み取りを止めない）');
+  ok((await put({ subject: 'nothex' })).reason === 'bad', '鍵の形が違えば断る');
+  ok((await put({ page: 3, pages: 2 })).reason === 'bad', 'ページの範囲の外は断る');
+  ok((await put({ b64: 'A'.repeat(5400004) })).reason === 'too_big', '大きすぎる画像は decode せずに断る');
+  for (let i = 0; i < 19; i++) await put();
+  ok((await put()).reason === 'cap_subject', '★1人1日20枚まで（それより先は入れない）');
+  const other = await put({ subject: 'd'.repeat(64) });
+  ok(other.ok, 'ほかの人はまだ入れられる');
+  await db.query(`update public.pv_roster_images set created_at = now() - interval '91 days' where id = $1`, [r1.id]);
+  const gone = (await one(`select public.pv_roster_images_expire() n`)).n;
+  const left = (await one(`select count(*)::int n from public.pv_roster_images where id = $1`, [r1.id])).n;
+  ok(gone === 1 && left === 0, `★90日より前の画像は毎日の片づけで消える（消した ${gone}枚）`);
+  await db.exec('rollback');
+  for (const role of ['authenticated', 'anon']) {
+    await db.exec(`set role ${role}`);
+    const e1 = await boom(`select count(*) from public.pv_roster_images`);
+    const e2 = await boom(`select public.pv_roster_image_put('${SUB}', 1, 1, 'gaps', null, 'image/jpeg', '${B64}', null)`);
+    const e3 = await boom(`select public.pv_roster_images_expire()`);
+    await db.exec('reset role');
+    ok(!!e1 && !!e2 && !!e3, `★${role} は画像を読めない・入れられない・消せない`);
+  }
+}
+
 // ── 12. 検算 ───────────────────────────────────────────────────
 console.log('\n▼ 貼ったあとの検算');
 const SRC = read('db/roster.sql');
@@ -1199,7 +1235,7 @@ const TAIL = SRC.slice(SRC.indexOf('-- ── 11. 検算'));
   const before = await cnt('pv_roster_days');
   const res = await db.exec(SRC);
   const chk = res[res.length - 1].rows;
-  ok(chk.length === 23 && chk.every((x) => x['判定'] === '✅'),
+  ok(chk.length === 24 && chk.every((x) => x['判定'] === '✅'),
      `★db/roster.sql の検算 ${chk.length} 行が全部 ✅`, chk.filter((x) => x['判定'] !== '✅').map((x) => x['#'] + ' ' + x['確かめること']).join(' | '));
   ok(await cnt('pv_roster_days') === before, 'もう一度流しても、入っている勤務表は消えない');
   ok(TAIL.length > 100, '（検算の部分だけを切り出せた）');

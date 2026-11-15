@@ -57,7 +57,7 @@ console.log('\nA 決まりごと');
   const mine = SRC.match(/const MODEL = '([a-z0-9-]+)';/), theirs = PAYSLIP.match(/const MODEL = '([a-z0-9-]+)';/);
   ok(mine && theirs && mine[1] === theirs[1], `モデルは parse-payslip と同じ（${mine && mine[1]}）`);
   ok((SRC.match(/claude-[a-z0-9-]+/g) || []).length === 1, 'モデル名は定数1か所だけ');
-  ok(/export const BUILD = '\d{4}-\d{2}-\d{2}';/.test(SRC), '版の札（BUILD）がある');
+  ok(/export const BUILD = '\d{4}-\d{2}-\d{2}(-\d)?';/.test(SRC), '版の札（BUILD）がある（同じ日の2回目は -2）');
   ok(R.BUILD >= '2026-11-11', `版の札は cat・札・role 外しの版以降（${R.BUILD}）`);
   ok(DAILY_LIMIT === 60 && GLOBAL_LIMIT === 100 && MONTH_LIMIT === 1000 && QUOTA_BUCKET === 'roster',
      `回数の既定：本人60・全体100/日・1000/月・箱は明細と別（${QUOTA_BUCKET}）`);
@@ -652,6 +652,24 @@ console.log('\n▼ JAL の実物の形（同じ空港どうしの行・灰色の
      'プロンプト：ホテル・送迎の行は区間にしない（別の空港へのバス移動は便乗）');
   ok(/出頭/.test(P) && /解散/.test(P) && /show up/.test(P), 'プロンプト：出頭・解散の呼び名');
   ok(/same station on both sides/.test(P), 'プロンプト：同じ空港を2回書いた地上の業務は、その空港が場所');
+}
+
+// ═══ E-4 読めなかった画像を残す（2026-11-16 オーナー「読めないなら保存して今後に使え」）══════
+console.log('\n▼ 読めなかった画像を残す');
+{
+  // 空港の無い便（JTA の勤務表で 49便中48便）も「読めない所」に数える → 表の形が返る（＝画像を残す）
+  const ja = run([D({ d: 4, d_on: '06:00', d_off: '15:00', legs: [L({ flight: 'NU601', out: '07:00', in: '08:40' }), L({ flight: 'NU602', from: 'OKA', to: 'ISG', out: '09:30', in: '10:30' })] })]);
+  ok(!!ja.layout && ja.layout.gaps.no_apt === 1 && ja.layout.gaps.no_time === 0, `★空港の無い便は「読めない所」（no_apt）に数える → ${JSON.stringify(ja.layout && ja.layout.gaps)}`);
+  const SQL = readFileSync(path.join(ROOT, 'db/roster.sql'), 'utf8');
+  const gk = (SQL.match(/from unnest\(array\[([^\]]*)\]\) g\)\) as o/) || [, ''])[1].match(/'([^']+)'/g) || [];
+  eq(gk.map((x) => x.slice(1, -1)), Object.keys(ja.layout ? ja.layout.gaps : {}), '欠けの種類の並びが SQL（pv_roster_layouts_clean）の写しと同じ');
+  ok(R.keepOnFail('reply') && R.keepOnFail('sanitize') && !R.keepOnFail('upstream') && !R.keepOnFail('quota') && !R.keepOnFail('done'),
+     '★残すのは AI が答えたのに読み取れなかった失敗だけ（通信・混雑・回数の上限は残さない）');
+  const base = { code: 'not_a_roster', where: 'server', stage: 'reply', ms: 1000, kb: 300, stop: 'end_turn', status: 200, page: 1, pages: 1 };
+  const m1 = R.failMail({ ...base, kept: true }, 1, NOW).text, m2 = R.failMail({ ...base, kept: false }, 1, NOW).text, m0 = R.failMail(base, 1, NOW).text;
+  ok(m1.includes('画像：残しました') && m2.includes('画像：残せませんでした') && !m0.includes('画像：残'), '失敗の知らせに、画像を残したかを書く');
+  ok(!/keepImage\(\s*uid/.test(SRC) && (SRC.match(/keepImage\(subj,/g) || []).length === 2,
+     '★画像の鍵は回数の鍵と同じ HMAC（会員の uid をそのまま渡さない）・残す所は2か所だけ');
 }
 
 // ═══ F 前の画像の最後の日（prev_tail） ═════════════════════════

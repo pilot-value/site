@@ -9,8 +9,11 @@
      ・答えは Roster の形（db/roster.sql の submit_roster に渡す items と同じ）
 
    ── 設計上の約束（ここを崩したら止める）──────────────────
-   1. 画像はメモリ内だけ。Storage にも DB にも書かない。答えにも返さない。
-      保存は会員が確かめてから、別の口（db/roster.sql の submit_roster）で。ここは読むだけ。
+   1. 画像は答えに返さない。勤務表のデータの保存は会員が確かめてから、別の口（db/roster.sql の submit_roster）で。
+      ★例外（2026-11-16 オーナー「読めないなら保存して今後に使え」）：読めない所があったページ（layout が返るとき）と、
+        AI が答えたのに読み取れなかったページ（段 reply / sanitize の失敗）の画像だけ、読み取りを直すために
+        pv_roster_images に残す（keepImage）。会員にも未ログインにも読めない・誰の画像かは持たない（回数の鍵と同じ HMAC だけ）・
+        90日で消える・1人1日20枚／全体1日200枚まで。通信や AI の混雑での失敗（段 upstream）は残さない（読み方の問題ではない）。
    2. ★勤務表にはほかの乗員の氏名が載っている。氏名・社員番号・備考などの自由な文字は1文字も返さない。
       答えの形（OUT_SCHEMA）に書く欄が無い＋ sanitize が全部の欄を正規表現で通す（通らない値は捨てる）。
    3. 画像・勤務表の文字・AI の答えを console に出さない（db/test-roster-parse.mjs が grep で見張る）。
@@ -68,7 +71,7 @@ const DENO = (globalThis as any).Deno;
 const env = (k: string, d = '') => (DENO?.env?.get(k) ?? d) as string;
 
 /* ★このファイルを直したら必ず上げる（貼った版を {ping:1} で読むための札）。 */
-export const BUILD = '2026-11-16';
+export const BUILD = '2026-11-16-2';
 
 const ANTHROPIC_API_KEY = env('ANTHROPIC_API_KEY');
 const SUPABASE_URL = env('SUPABASE_URL');
@@ -260,7 +263,7 @@ export type Checks = {
 /* 表の形（読めない所があったページだけ）。columns と time_style は決まった語だけ・gaps は数だけ。 */
 export type Layout = {
   columns: string[]; time_style: string | null;
-  gaps: { undated: number; unread: number; no_time: number; no_onoff: number };
+  gaps: { undated: number; unread: number; no_time: number; no_onoff: number; no_apt: number };
 };
 /* モデルの答えの layout を決まった語だけに絞る（外れた語・重なりは捨てる・20個まで）。 */
 function layoutOf(v: unknown, gaps: Layout['gaps']): Layout {
@@ -709,6 +712,8 @@ export function sanitize(raw: Obj, ctx: SanitizeCtx): { roster: Roster; checks: 
     unread: checks.unread_days,
     no_time: days.reduce((a, d) => a + d.legs.filter((l) => fly(l) && (!l.out || !l.in) && !l.block).length, 0),
     no_onoff: days.filter((d) => !d.cut && d.legs.some(fly) && (!d.d_on || !d.d_off)).length,
+    /* 便なのに出発地か到着地が無い（2026-11-16。JTA の勤務表で、空港が読めず時刻だけの便が並んでいた） */
+    no_apt: days.reduce((a, d) => a + d.legs.filter((l) => fly(l) && (!l.from || !l.to)).length, 0),
   };
   const layout = Object.values(gaps).some((n) => n > 0) ? layoutOf(r.layout, gaps) : null;
   return { roster, checks, layout };
@@ -1166,6 +1171,7 @@ export function whyText(code: string): string {
 export type FailInfo = {
   code: string; where: 'server' | 'browser'; stage: string;
   ms: number; kb: number; stop: string; status: number; page: number; pages: number;
+  kept?: boolean | null;   // 画像を pv_roster_images に残せたか（残さない失敗は undefined）
 };
 
 /* メール1通の件名と本文。★固定の語と数だけで組む（検査が中身を見る）。n ＝ 今日の何回目か（数えられなければ null）。 */
@@ -1184,6 +1190,8 @@ export function failMail(f: FailInfo, n: number | null, at: Date): { subject: st
   if (f.where === 'server') {
     L.push(`かかった時間：${(f.ms / 1000).toFixed(1)}秒／画像 ${f.kb}KB／${f.page}枚目（全 ${f.pages}枚）／AI の止まり方 ${word(f.stop)}／HTTP ${f.status || '-'}`);
     if (f.code === 'rate_limited') L.push(`1人の1日の上限は ${DAILY_LIMIT} 枚です（上げるなら Supabase → Edge Functions → Secrets の PV_ROSTER_DAILY・最大 100）。`);
+    if (f.kept === true) L.push('画像：残しました（運営だけが見られる表 pv_roster_images・90日で消える。取り出しは node db/roster-images.mjs）');
+    else if (f.kept === false) L.push('画像：残せませんでした（1日の上限か DB に届かない）');
   } else if (f.kb) {
     L.push(`画像：${f.kb}KB`);
   }
@@ -1259,6 +1267,36 @@ async function sendFailMail(f: FailInfo): Promise<void> {
 }
 const noteFail = (f: FailInfo): Promise<void> => later(sendFailMail(f));
 
+/* ★読めない所があった画像・読み取りに失敗した画像を残す（2026-11-16）。約束1の例外。
+   返す：残せたら true・断られた／届かなければ false。★画像も中身もログに出さない（理由の語だけ）。 */
+async function keepImage(subject: string, b64: string, mime: string, page: number, pages: number,
+                         why: string, gaps: Layout['gaps'] | null): Promise<boolean> {
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), 15000);
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/pv_roster_image_put`, {
+      method: 'POST',
+      headers: { apikey: SERVICE_ROLE, Authorization: `Bearer ${SERVICE_ROLE}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_subject: subject, p_page: page, p_pages: pages, p_why: why, p_gaps: gaps,
+                             p_mime: mime, p_b64: b64, p_build: BUILD }),
+      signal: ac.signal,
+    });
+    const st = res.status;
+    if (!res.ok) { console.log('pv-roster-keep', JSON.stringify({ ok: false, status: st })); return false; }
+    const ans = await res.json();
+    const ok = isObj(ans) && ans.ok === true;
+    const rs = ok ? null : (isObj(ans) && typeof ans.reason === 'string' && /^[a-z_]{1,20}$/.test(ans.reason) ? ans.reason : 'other');
+    console.log('pv-roster-keep', JSON.stringify({ ok, reason: rs }));   // ★理由の語だけ（画像も中身も出さない）
+    return ok;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+/* 残すのは「AI が答えたのに読み取れなかった」失敗だけ（段 reply / sanitize）。通信・混雑・回数の上限は残さない。 */
+export const keepOnFail = (stage: string): boolean => stage === 'reply' || stage === 'sanitize';
+
 /* ════════════════════════════════════════════════════════════════
    入口
    受け取る: { image_b64, mime, lang, page, pages, hint?:{year,month}, prev_tail?:[Day ≤2] }
@@ -1316,7 +1354,8 @@ export async function handler(req: Request): Promise<Response> {
   const tail = sanitizeTail(body.prev_tail, now);
 
   /* ── 回数（本人 → 全体）。数えられなければ通さない ─────────── */
-  const q = await takeQuota('r:' + (await hmac(uid)));
+  const subj = await hmac(uid);                 // ★画像を残すときの鍵もこれ（会員の鍵 proof_hash とは別物）
+  const q = await takeQuota('r:' + subj);
   if (!q.ok) {
     if (q.cap === 'global' || q.cap === 'month') {
       if (q.trip) await alertCap(q.cap);
@@ -1340,7 +1379,12 @@ export async function handler(req: Request): Promise<Response> {
     diag.code = code;
     diag.ms = Date.now() - t0;
     console.log('pv-roster', JSON.stringify(diag));
-    await noteFail({ code, where: 'server', stage: diag.stage, ms: diag.ms, kb: diag.kb, stop: diag.stop, status: diag.status, page, pages });
+    const info: FailInfo = { code, where: 'server', stage: diag.stage, ms: diag.ms, kb: diag.kb, stop: diag.stop, status: diag.status, page, pages };
+    if (keepOnFail(diag.stage)) {
+      await later(keepImage(subj, b64, mime, page, pages, code, null).then((kept) => sendFailMail({ ...info, kept })));
+    } else {
+      await noteFail(info);
+    }
     return json({ ok: false, reason, build: BUILD }, 200);
   };
 
@@ -1406,6 +1450,7 @@ export async function handler(req: Request): Promise<Response> {
   diag.code = 'ok';
   diag.ms = Date.now() - t0;
   console.log('pv-roster', JSON.stringify(diag));
+  if (out.layout) await later(keepImage(subj, b64, mime, page, pages, 'gaps', out.layout.gaps));
   return json({ ok: true, roster: out.roster, checks: out.checks, layout: out.layout, build: BUILD });
 }
 

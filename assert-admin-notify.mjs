@@ -814,6 +814,7 @@ console.log('\n── SQL の形 ───────────────�
   ck('★pv_request_likes は Webhook を作らない', !live.includes("'pv_request_likes'"));
   /* ★画像の表は入れない。行に画像そのものが入っていて、Webhook が丸ごと送る。 */
   ck('★pv_proof_images は Webhook を作らない', !live.includes("'pv_proof_images'"));
+  ck('★pv_roster_images（読めなかった勤務表の画像）も Webhook を作らない', !live.includes("'pv_roster_images'"));
   /* ★スケジュールは「1回の提出＝1行」の表だけ。日・便の表に付けると、1回の提出で何十通も飛ぶ。 */
   ck('★スケジュールは pv_roster_docs だけ（日・便の表には Webhook を作らない）',
      live.includes("'pv_roster_docs'") && !live.includes("'pv_roster_days'") && !live.includes("'pv_roster_legs'"));

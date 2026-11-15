@@ -389,7 +389,7 @@ as $$
 $$;
 
 -- 読めない所があったページの表の形を組み直す（2026-11-15）。★決まった語と数だけ。外れた値は黙って捨てる（提出を止めない）。
--- p = [{page, columns:[…], time_style, gaps:{undated, unread, no_time, no_onoff}}]（parse-roster の layout に page を添えたもの）。
+-- p = [{page, columns:[…], time_style, gaps:{undated, unread, no_time, no_onoff, no_apt}}]（parse-roster の layout に page を添えたもの）。
 -- ⚠️ 列の語は parse-roster/index.ts の LAYOUT_COLS・時刻の書き方は TIME_STYLES の写し（db/test-roster-parse.mjs が突き合わせる）。
 create or replace function public.pv_roster_layouts_clean(p jsonb, p_pages int)
 returns jsonb
@@ -422,7 +422,7 @@ as $$
                   'gaps', (select jsonb_object_agg(g, case when jsonb_typeof(e.e->'gaps'->g) = 'number'
                                                                and (e.e->'gaps'->>g) ~ '^[0-9]{1,3}$'
                                                           then (e.e->'gaps'->>g)::int else 0 end)
-                             from unnest(array['undated', 'unread', 'no_time', 'no_onoff']) g)) as o
+                             from unnest(array['undated', 'unread', 'no_time', 'no_onoff', 'no_apt']) g)) as o
            from e
           where case when (e.e->>'page') ~ '^[0-9]{1,2}$'
                      then (e.e->>'page')::int between 1 and coalesce(p_pages, 60) else false end)
@@ -1390,6 +1390,105 @@ $$;
 revoke all on function public.pv_roster_tz_ok(text)    from public, anon, authenticated;
 revoke all on function public.pv_roster_compact(date)  from public, anon, authenticated;
 
+-- ── 読めなかった勤務表の画像（2026-11-16 オーナー「読めないなら保存して今後に使え」）──────────
+-- 読み取りで読めない所があったページ・読み取りに失敗したページの画像を、読み取りを直すために残す。
+-- ★入れるのは parse-roster だけ（service_role で pv_roster_image_put を呼ぶ）。会員にも未ログインにも読めない・書けない。
+-- ★誰の画像かは持たない（subject は parse-roster の回数の鍵と同じ HMAC。会員の鍵 proof_hash とは別物で、運営にも辿れない）。
+-- ★90日で消える（pv_roster_images_expire・毎日の片づけ）。1人1日20枚・全体1日200枚まで（それより先は入れずに断る）。
+-- ★毎日の DB の書き出しには入れない（pv_proof_images と同じ扱い）。Webhook も作らない（通知メールに画像を載せない）。
+create table if not exists public.pv_roster_images (
+  id         bigint generated always as identity primary key,
+  subject    text not null check (subject ~ '^[0-9a-f]{64}$'),
+  page       smallint not null check (page between 1 and 60),
+  pages      smallint not null check (pages between 1 and 60),
+  why        text not null check (why ~ '^[a-z0-9_]{1,40}$'),
+  gaps       jsonb check (gaps is null or (jsonb_typeof(gaps) = 'object' and octet_length(gaps::text) <= 400)),
+  mime       text not null default 'image/jpeg' check (mime in ('image/jpeg', 'image/png', 'image/webp')),
+  bytes      bytea not null,
+  byte_len   integer not null check (byte_len between 100 and 4000000),
+  build      text check (build is null or build ~ '^[0-9A-Za-z.\-]{1,20}$'),
+  created_at timestamptz not null default now(),
+  check (byte_len = octet_length(bytes))
+);
+create index if not exists pv_roster_images_created on public.pv_roster_images (created_at);
+create index if not exists pv_roster_images_subject on public.pv_roster_images (subject, created_at);
+alter table public.pv_roster_images enable row level security;
+revoke all on table public.pv_roster_images from public, anon, authenticated;
+
+-- 入れる口。返す: {ok:true, id} ／ {ok:false, reason:'bad'|'too_big'|'cap_subject'|'cap_day'}。★例外を投げない（読み取りの答えを止めない）。
+create or replace function public.pv_roster_image_put(p_subject text, p_page int, p_pages int, p_why text,
+                                                     p_gaps jsonb, p_mime text, p_b64 text, p_build text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  v_bytes bytea;
+  v_id    bigint;
+begin
+  if p_subject is null or p_subject !~ '^[0-9a-f]{64}$' or p_page is null or p_pages is null
+     or p_page < 1 or p_pages < p_page or p_pages > 60 or p_why is null or p_why !~ '^[a-z0-9_]{1,40}$'
+     or coalesce(p_mime, '') not in ('image/jpeg', 'image/png', 'image/webp') or p_b64 is null then
+    return jsonb_build_object('ok', false, 'reason', 'bad');
+  end if;
+  -- 先に長さで弾く（base64 は元の約4/3）。大きいものを decode してから測らない
+  if length(p_b64) > 5400000 then
+    return jsonb_build_object('ok', false, 'reason', 'too_big');
+  end if;
+  if (select count(*) from public.pv_roster_images i
+       where i.subject = p_subject and i.created_at >= now() - interval '1 day') >= 20 then
+    return jsonb_build_object('ok', false, 'reason', 'cap_subject');
+  end if;
+  if (select count(*) from public.pv_roster_images i where i.created_at >= now() - interval '1 day') >= 200 then
+    return jsonb_build_object('ok', false, 'reason', 'cap_day');
+  end if;
+  begin
+    v_bytes := decode(p_b64, 'base64');
+  exception when others then
+    return jsonb_build_object('ok', false, 'reason', 'bad');
+  end;
+  if octet_length(v_bytes) < 100 or octet_length(v_bytes) > 4000000 then
+    return jsonb_build_object('ok', false, 'reason', case when octet_length(v_bytes) < 100 then 'bad' else 'too_big' end);
+  end if;
+  insert into public.pv_roster_images (subject, page, pages, why, gaps, mime, bytes, byte_len, build)
+  values (p_subject, p_page, p_pages, p_why,
+          case when jsonb_typeof(p_gaps) = 'object' and octet_length(p_gaps::text) <= 400 then p_gaps end,
+          p_mime, v_bytes, octet_length(v_bytes),
+          case when p_build ~ '^[0-9A-Za-z.\-]{1,20}$' then p_build end)
+  returning id into v_id;
+  return jsonb_build_object('ok', true, 'id', v_id);
+end;
+$$;
+
+-- 90日より前の画像を消す（毎日の片づけ）。返す: 消した枚数。
+create or replace function public.pv_roster_images_expire(p_today date default null)
+returns int
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  v_n int;
+begin
+  delete from public.pv_roster_images i
+   where i.created_at < coalesce(p_today::timestamptz, now()) - interval '90 days';
+  get diagnostics v_n = row_count;
+  return v_n;
+end;
+$$;
+
+revoke all on function public.pv_roster_image_put(text, int, int, text, jsonb, text, text, text) from public, anon, authenticated;
+revoke all on function public.pv_roster_images_expire(date)                                     from public, anon, authenticated;
+do $grant$
+begin
+  if exists (select 1 from pg_roles where rolname = 'service_role') then
+    grant execute on function public.pv_roster_image_put(text, int, int, text, jsonb, text, text, text) to service_role;
+    grant execute on function public.pv_roster_images_expire(date) to service_role;
+  end if;
+end
+$grant$;
+
 -- 毎日の片づけ（★pg_cron が在るときだけ登録する。手元の検査（PGlite）には無い ＝ ここは飛ばす）。
 -- 同じ名前で登録し直すだけなので、何度流しても1本のまま。止めるとき: select cron.unschedule('pv-roster-compact');
 do $cron$
@@ -1397,6 +1496,8 @@ begin
   if exists (select 1 from pg_extension where extname = 'pg_cron') then
     execute format('select cron.schedule(%L, %L, %L)',
                    'pv-roster-compact', '17 4 * * *', 'select public.pv_roster_compact()');
+    execute format('select cron.schedule(%L, %L, %L)',
+                   'pv-roster-images-expire', '23 4 * * *', 'select public.pv_roster_images_expire()');
   end if;
 end
 $cron$;
@@ -1892,5 +1993,16 @@ union all select 23, '時刻から出した時間（calc_min）の列と制約�
              and strpos(coalesce(pg_get_functiondef(to_regprocedure('public.pv_roster_compact(date)')), ''),
                         'when lg.calc_min is not null then lg.calc_min') > 0
              and not exists (select 1 from public.pv_roster_legs where orig is not null and orig = dest)
+            then '✅' else '❌' end
+union all select 24, '読めなかった画像の置き場：会員にも未ログインにも開いていない・入れる口と90日の片づけは会員から呼べない・誰の画像かを持たない（鍵の列が無い）',
+       case when to_regclass('public.pv_roster_images') is not null
+             and (select relrowsecurity from pg_class where oid = to_regclass('public.pv_roster_images'))
+             and not exists (select 1 from ro, unnest(array['SELECT', 'INSERT', 'UPDATE', 'DELETE']) pr
+                              where has_table_privilege(ro.oid, 'public.pv_roster_images', pr))
+             and not exists (select 1 from ro where has_function_privilege(ro.oid,
+                              'public.pv_roster_image_put(text, integer, integer, text, jsonb, text, text, text)', 'EXECUTE')
+                                                  or has_function_privilege(ro.oid, 'public.pv_roster_images_expire(date)', 'EXECUTE'))
+             and not exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'pv_roster_images'
+                              and column_name in ('proof_hash', 'user_id', 'uid', 'email', 'doc_id'))
             then '✅' else '❌' end
 order by 1;
