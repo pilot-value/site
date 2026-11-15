@@ -660,11 +660,15 @@
   var payHref = function () { return 'pay-report.html#ps'; };
 
   /* ── 小物 ───────────────────────────────────────────────── */
-  // tool ＝ 見出しのすぐ右に置く部品（作った HTML。緑のカードの目のアイコン）
-  function sec(title, body, sub, mod, tool) {
+  function sec(title, body, sub, mod) {
     return '<section class="pt-sec mr-card' + (mod ? ' ' + mod : '') + '">' +
-      '<div class="mr-card-h"><h2 class="mr-card-t">' + esc(title) + '</h2>' + (tool || '') +
+      '<div class="mr-card-h"><h2 class="mr-card-t">' + esc(title) + '</h2>' +
       (sub ? '<span class="mr-card-s">' + esc(sub) + '</span>' : '') + '</div>' + body + '</section>';
+  }
+  /* 見出しのすぐ右に部品を置く版（緑のカードの目のアイコン）。
+     ★sec() は形を変えない（deep-pay.js・deep-pay-compare.js に写しがあり、assert-deep-pay が1文字ずつ見ている） */
+  function secWith(tool, title, body, sub, mod) {
+    return sec(title, body, sub, mod).replace('</h2>', function () { return '</h2>' + tool; });
   }
 
   /* ── 金額を隠す（2026-11-15 オーナー「最初の緑のカードに非表示の目のアイコン」）──────────
@@ -956,7 +960,7 @@
        ★2026-11-11 ページで色のついたカードはこの1枚だけ（is-green）。 */
     var prev = m ? (m.a.period_year === r.period_year ? T.ymShort(m.a.period_year, m.a.period_month)
                                                        : T.ym(m.a.period_year, m.a.period_month)) : null;
-    return sec(T.monthOf(T.ym(r.period_year, r.period_month)), body, prev ? T.momOf(prev) : '', 'is-green', eyeBtn());
+    return secWith(eyeBtn(), T.monthOf(T.ym(r.period_year, r.period_month)), body, prev ? T.momOf(prev) : '', 'is-green');
   }
 
   /* ── 累計報酬 ──────────────────────────────────────────────
