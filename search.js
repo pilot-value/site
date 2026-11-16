@@ -554,7 +554,9 @@ var PV_SEARCH_L10N = {
       '#main-nav.pv-nav-tight .pv-nav-2nd{display:none!important}',
       '#main-nav.pv-nav-min .pv-nav-cta{display:none!important}',
       '#main-nav.pv-nav-min>div{padding-left:16px;padding-right:16px}',
-      '#main-nav.pv-nav-min .pv-nav-right{gap:8px}',
+      /* ★2026-11-16 8→7px。字が Outfit になって英語の「$ USD」「EN」が少し太り、390px の英語ページでロゴとのすき間が
+         17px（20px 未満）になっていた。右の5つのあいだを 1px ずつ詰めて、ロゴとのすき間を戻す（assert-header の 390px）。 */
+      '#main-nav.pv-nav-min .pv-nav-right{gap:7px}',
       /* 段④。320px（iPhone SE 1 / 5s の実幅）は段③でもまだ 30〜40px 足りない。
          残っているのは ロゴ・検索・テーマ・言語・通貨・≡ で、消してよいのは検索だけ
          （航空会社へは引き出しから行ける）。言語と通貨は最後まで残す ──

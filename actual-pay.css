@@ -887,6 +887,14 @@
   /* ★英語の「Within 1 month」は1行で 85px ある。折り返させて列を細くし、
        その幅を社名に渡す（3行に折れていた社名が2行になる）。 */
   .ap-tbl td:last-child .ap-age{margin-right:0;white-space:normal;text-align:center}
+  /* ★2026-11-16 字が Outfit になって英語の社名が3行・「Captain (CAP) · Boeing 787 Dreamliner」が2行に折れ、
+       1枚 180px（iPhone の1画面に3枚）になっていた。投稿時期の列をもう一段細くして、その幅を社名と職位に渡す。
+       いちばん狭い 375px だけは職位の字も少し小さくする（› の的 44px は残る）。 */
+  html[lang^="en"] .ap-tbl tbody tr.ap-r>td:nth-child(6){max-width:56px}
+  @media (max-width:380px){
+    html[lang^="en"] .ap-tbl tbody tr.ap-r>td:nth-child(6){max-width:48px}
+    html[lang^="en"] .ap-pos{font-size:.8rem}
+  }
   .ap-amt{font-size:1.05rem}
   .ap-mon{font-size:.72rem}
   /* 見出し語は値の**前**に小さく（段を1つ増やさない）。

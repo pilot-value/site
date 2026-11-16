@@ -279,7 +279,9 @@ html.vt-lock,html.vt-lock body{overflow:hidden}
 /* 1行ずつ：名前｜帯｜幅。★帯の長さを行どうしで比べられるように、名前と幅の列は固定の幅にする
    （幅の字数で帯が伸び縮みすると、同じ 0〜240 時間の目盛でも長さが合わなくなる）。 */
 /* ★2026-11-01 幅の列を 78→84px（英語と同じ）。太字の「140–165時間」が 78px ぎりぎりで、字の形がわずかに違うだけで欄からはみ出していた（assert-vote の 390px が時々赤）。 */
-.vt-wr{display:grid;grid-template-columns:var(--vt-wlw,66px) minmax(0,1fr) var(--vt-wvw,84px);align-items:center;gap:10px;margin-bottom:9px}
+/* ★2026-11-16 名前の列を 66→72px（英語 86→94px）。字が Outfit になって「Flight Time」が 68px・「Layover nights」が 89px になり、
+   スマホで「Flight Ti…」と切れていた（assert-vote の 390px が赤）。スペイン語は長い名前を折り返す（切らない）。 */
+.vt-wr{display:grid;grid-template-columns:var(--vt-wlw,72px) minmax(0,1fr) var(--vt-wvw,84px);align-items:center;gap:10px;margin-bottom:9px}
 .vt-wl{font-size:12px;font-weight:550;color:var(--vt-ink-2);line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .vt-wv{font-size:12.5px;color:var(--vt-ink);font-weight:700;font-variant-numeric:tabular-nums;line-height:1.4;white-space:nowrap;text-align:right}
 .vt-wu{font-size:.8em;font-weight:500;color:var(--vt-muted);margin-left:2px}
@@ -289,10 +291,11 @@ html.vt-lock,html.vt-lock body{overflow:hidden}
 .vt-cap{position:absolute;height:10px;width:2px;top:-2px;background:var(--vt-cap);border-radius:1px}
 .vt-over{position:absolute;right:-5px;top:-6px;color:var(--vt-jade-ink);font-size:12px;line-height:1}
 .vt-wk-note{margin:8px 0 0;font-size:10.5px;line-height:1.6;color:var(--vt-muted)}
-html[lang^="en"] .vt{--vt-wlw:86px;--vt-wvw:84px}
+html[lang^="en"] .vt{--vt-wlw:94px;--vt-wvw:84px}
 /* スペイン語（2026-11-02）：月の勤務の見出しは英語と同じ幅より少し広く・鍵の板のボタンは字が長いので折り返す（390px で 68px はみ出した） */
 html[lang^="es"] .vt{--vt-wlw:96px;--vt-wvw:84px}
 html[lang^="es"] .vt-btn{white-space:normal;text-align:center;max-width:100%}
+html[lang^="es"] .vt-wl{white-space:normal;line-height:1.25}
 .vt-wk-lock{margin:0;font-size:12px;line-height:1.7;color:var(--vt-ink-2)}
 .vt-wk-cta{display:inline-flex;margin-top:8px;font-size:12px;font-weight:650;color:var(--vt-jade-ink);text-decoration:underline!important;text-underline-offset:3px;transition:opacity .15s}
 .vt-wk-cta:hover{color:var(--vt-jade-dark)}

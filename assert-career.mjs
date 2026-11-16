@@ -3577,6 +3577,11 @@ try {
        出る前に欄が落ち着くのを待つのは、出る前と戻ったあとで同じ顔（どちらも手元の空の保存先・ゲスト）の長さを比べるため。 */
     const Q = '?view=compare&a=jal&b=ana';
     const { page: p, close: c } = await open(Q, 390, 680);
+    /* ★2026-11-16 字は display=optional（pv-glass）── 初めて開いた回は字が間に合わず代わりの字で組まれ、戻ったあと（読み込み直し）は
+       手元に来た本物の字で組まれる。顔が違うとページの長さが 10px 違い（2503 → 2493）、同じ長さを前提にした位置の比べ方が成り立たない
+       （位置を戻す仕組みは正しく動いていて、目印の高さは 2px 以内）。出る前も同じ顔にするため、先に1回読み込み直して字を手元に置く。 */
+    await p.reload({ waitUntil: 'load' });
+    await ready(p);
     const legs = [['#cr-go-work-jal', '詳しく', 'jal', 'work'], ['#cr .cr-rentb[data-airline="ana"] .cr-rentb-go a', 'ほかの街', 'ana', 'life']];
     /* 比較の生きた欄が全部読み終わり（読み込み中でも、まだ何もしていない顔でもない）、見ている画面の出る動きが終わった */
     const calmCmp = async () => {
