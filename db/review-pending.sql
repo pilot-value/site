@@ -398,8 +398,11 @@ select n as "#", case when ok then '✅' else '❌' end as 結果, 見るとこ�
                            and pg_get_constraintdef(oid) ~* 'not null'),
         '口コミの表の決まり（ポリシー・CHECK）が勤務年数・年代を求めていない'),
     -- 2026-11-15。古い引き取りの口のままだと、AI が保留にした預かりが引き取った瞬間にどこにでも出る。
+    -- ⚠️ ここの文字に「insert into ＋表の名前」を書かない（2026-11-16）。Supabase の SQL Editor は貼った文から
+    --    「insert into のあとの表の名前」を拾って先に調べるらしく、'insert into public\.…' と書いた版は
+    --    「public」を表と読んで relation "public" does not exist で全部止まった（中身は1文ずつ流すと全部通った）。
     (10, to_regprocedure('public.claim_review_pending(text)') is not null
-         and pg_get_functiondef('public.claim_review_pending(text)'::regprocedure) ~ 'insert into public\.pv_review_judge',
+         and strpos(pg_get_functiondef('public.claim_review_pending(text)'::regprocedure), 'public.pv_review_judge') > 0,
         '引き取りの口が、AI の判定（保留）を預かりから口コミへ写す（新しい claim_review_pending）')
   ) t(n, ok, 見るところ)
  order by n;
