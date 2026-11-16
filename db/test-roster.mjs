@@ -63,6 +63,11 @@ await db.exec(`
 
   create function auth.uid() returns uuid language sql stable as $$
     select nullif(current_setting('pv.uid', true), '')::uuid $$;
+
+  -- 運営の名簿。★db/admin.sql の pv_admins と pv_is_admin と同じ本体（admin.sql は auth.users が要るので手元では流せない）。
+  create table public.pv_admins (user_id uuid primary key);
+  create function public.pv_is_admin() returns boolean language sql stable security definer set search_path = public as $$
+    select exists (select 1 from public.pv_admins a where a.user_id = auth.uid()) $$;
 `);
 
 // 前提の関所：pay-reports.sql より先に貼ると、何も作らずに止まる
@@ -1227,6 +1232,37 @@ console.log('\n▼ 読めなかった画像の置き場');
   }
 }
 
+// ── 11-d. 管理画面で読めなかった画像を見る（2026-11-16 オーナー「どこで見れるの？画像」）──────────
+console.log('\n▼ 管理画面で読めなかった画像を見る');
+{
+  const B64 = Buffer.from('y'.repeat(500)).toString('base64');
+  await asUser(1);
+  const notAdmin = await boom(`select public.admin_roster_images()`);
+  const notAdmin2 = await boom(`select public.admin_roster_image(1)`);
+  const notAdmin3 = await boom(`select public.admin_roster_image_drop(1)`);
+  ok(!!notAdmin && notAdmin.code === '42501' && !!notAdmin2 && !!notAdmin3, '★名簿に無い会員は、一覧も画像も消す口も使えない（42501）');
+  await db.exec(`set role anon`);
+  const anonE = await boom(`select public.admin_roster_images()`);
+  await db.exec('reset role');
+  ok(!!anonE, '★未ログインは呼べない');
+
+  await db.exec('begin');
+  await db.query(`insert into public.pv_admins (user_id) values ($1)`, [uid(5)]);
+  const put = (await one(`select public.pv_roster_image_put($1, 1, 1, 'gaps', '{"no_apt": 2}'::jsonb, 'image/jpeg', $2, null) r`, ['e'.repeat(64), B64])).r;
+  await asUser(5);
+  const list = (await one(`select public.admin_roster_images() r`)).r;
+  const it = Array.isArray(list) ? list.find((x) => x.id === put.id) : null;
+  ok(!!it && it.why === 'gaps' && it.gaps.no_apt === 2 && it.byte_len === 500 && !('b64' in it) && !('bytes' in it) && !('subject' in it),
+     '★運営には一覧が出る（画像の中身と鍵は一覧に入れない）', JSON.stringify(it));
+  const img = (await one(`select public.admin_roster_image($1) r`, [put.id])).r;
+  ok(img.ok && String(img.b64).replace(/\s/g, '') === B64 && img.mime === 'image/jpeg', '運営は1枚ずつ画像を開ける（中身はそのまま）');
+  const dr = (await one(`select public.admin_roster_image_drop($1) r`, [put.id])).r;
+  const left = (await one(`select count(*)::int n from public.pv_roster_images where id = $1`, [put.id])).n;
+  ok(dr.ok && dr.dropped === 1 && left === 0, '運営は消せる（消した枚数を返す）');
+  await db.exec('rollback');
+  await asUser(1);
+}
+
 // ── 12. 検算 ───────────────────────────────────────────────────
 console.log('\n▼ 貼ったあとの検算');
 const SRC = read('db/roster.sql');
@@ -1235,7 +1271,7 @@ const TAIL = SRC.slice(SRC.indexOf('-- ── 11. 検算'));
   const before = await cnt('pv_roster_days');
   const res = await db.exec(SRC);
   const chk = res[res.length - 1].rows;
-  ok(chk.length === 24 && chk.every((x) => x['判定'] === '✅'),
+  ok(chk.length === 25 && chk.every((x) => x['判定'] === '✅'),
      `★db/roster.sql の検算 ${chk.length} 行が全部 ✅`, chk.filter((x) => x['判定'] !== '✅').map((x) => x['#'] + ' ' + x['確かめること']).join(' | '));
   ok(await cnt('pv_roster_days') === before, 'もう一度流しても、入っている勤務表は消えない');
   ok(TAIL.length > 100, '（検算の部分だけを切り出せた）');

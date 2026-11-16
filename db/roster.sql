@@ -1489,6 +1489,74 @@ begin
 end
 $grant$;
 
+-- 管理画面（admin.html の「読めなかった勤務表」・2026-11-16 オーナー「どこで見れるの？画像」「作って」）が読む口。
+-- ★3つとも運営の名簿（pv_is_admin・db/admin.sql）を見てから動く。会員にも未ログインにも何も返さない（42501）。
+-- ★一覧は画像の中身を返さない（番号・日時・理由・欠けの数・大きさだけ）。画像は1枚ずつ admin_roster_image で。
+create or replace function public.admin_roster_images()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public, extensions
+as $fn$
+begin
+  if not public.pv_is_admin() then
+    raise exception '管理者ではありません' using errcode = '42501';
+  end if;
+  return coalesce((
+    select jsonb_agg(jsonb_build_object('id', i.id, 'created_at', i.created_at, 'why', i.why, 'page', i.page,
+                                        'pages', i.pages, 'gaps', i.gaps, 'byte_len', i.byte_len, 'build', i.build)
+                     order by i.id desc)
+      from (select * from public.pv_roster_images order by id desc limit 200) i), '[]'::jsonb);
+end
+$fn$;
+
+create or replace function public.admin_roster_image(p_id bigint)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public, extensions
+as $fn$
+declare
+  v public.pv_roster_images%rowtype;
+begin
+  if not public.pv_is_admin() then
+    raise exception '管理者ではありません' using errcode = '42501';
+  end if;
+  select * into v from public.pv_roster_images where id = p_id;
+  if not found then
+    return jsonb_build_object('ok', false, 'status', 'none');
+  end if;
+  return jsonb_build_object('ok', true, 'mime', v.mime, 'b64', encode(v.bytes, 'base64'));
+end
+$fn$;
+
+create or replace function public.admin_roster_image_drop(p_id bigint)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $fn$
+declare
+  v_n int;
+begin
+  if not public.pv_is_admin() then
+    raise exception '管理者ではありません' using errcode = '42501';
+  end if;
+  delete from public.pv_roster_images where id = p_id;
+  get diagnostics v_n = row_count;
+  return jsonb_build_object('ok', true, 'dropped', v_n);
+end
+$fn$;
+
+revoke all on function public.admin_roster_images()             from public, anon;
+revoke all on function public.admin_roster_image(bigint)        from public, anon;
+revoke all on function public.admin_roster_image_drop(bigint)   from public, anon;
+grant execute on function public.admin_roster_images()           to authenticated;
+grant execute on function public.admin_roster_image(bigint)      to authenticated;
+grant execute on function public.admin_roster_image_drop(bigint) to authenticated;
+
 -- 毎日の片づけ（★pg_cron が在るときだけ登録する。手元の検査（PGlite）には無い ＝ ここは飛ばす）。
 -- 同じ名前で登録し直すだけなので、何度流しても1本のまま。止めるとき: select cron.unschedule('pv-roster-compact');
 do $cron$
@@ -2004,5 +2072,15 @@ union all select 24, '読めなかった画像の置き場：会員にも未ロ�
                                                   or has_function_privilege(ro.oid, 'public.pv_roster_images_expire(date)', 'EXECUTE'))
              and not exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'pv_roster_images'
                               and column_name in ('proof_hash', 'user_id', 'uid', 'email', 'doc_id'))
+            then '✅' else '❌' end
+union all select 25, '読めなかった画像を管理画面で見る3つの口：どれも運営の名簿を見てから動く・未ログインは呼べない',
+       case when (select count(*) from pg_proc
+                   where oid in (to_regprocedure('public.admin_roster_images()'), to_regprocedure('public.admin_roster_image(bigint)'),
+                                 to_regprocedure('public.admin_roster_image_drop(bigint)'))
+                     and pg_get_functiondef(oid) like '%if not public.pv_is_admin() then%') = 3
+             and not exists (select 1 from pg_roles r where r.rolname = 'anon'
+                              and (has_function_privilege(r.oid, 'public.admin_roster_images()', 'EXECUTE')
+                                or has_function_privilege(r.oid, 'public.admin_roster_image(bigint)', 'EXECUTE')
+                                or has_function_privilege(r.oid, 'public.admin_roster_image_drop(bigint)', 'EXECUTE')))
             then '✅' else '❌' end
 order by 1;

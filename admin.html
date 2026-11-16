@@ -140,6 +140,15 @@
     .rh-ja summary:focus-visible{outline:2px solid #f5c842;outline-offset:2px}
     .rh-ja summary:active{opacity:.7}
     .rh-ja[open] .rh-body{margin-top:8px}
+    /* 読めなかった勤務表（2026-11-16）：画像は押すと全体・もう一度押すと戻る */
+    .ri-zoom{display:inline-block;max-width:100%;padding:0;align-self:flex-start;background:#0b0f16;border:1px solid rgba(255,255,255,.08);border-radius:10px;overflow:hidden;cursor:zoom-in;text-align:left;transition:border-color .2s,opacity .15s}
+    .ri-zoom:hover{border-color:rgba(245,200,66,.45)}
+    .ri-zoom:focus-visible{outline:2px solid #f5c842;outline-offset:2px}
+    .ri-zoom:active{opacity:.8}
+    .ri-zoom.is-big{display:block;width:100%;cursor:zoom-out}
+    .ri-shot{display:block;max-width:100%;height:auto;max-height:420px}
+    .ri-zoom.is-big .ri-shot{width:100%;max-height:none}
+    .ri-wait{display:block;padding:28px 14px;font-size:.78rem;color:#6b7d93}
   </style>
 <!-- Google tag (gtag.js) -->
 <script>
@@ -223,6 +232,7 @@
     <button class="tab-btn" onclick="switchTab('proofs',this)">資格確認<span class="tab-n" id="proof-n"></span></button>
     <button class="tab-btn" id="tab-btn-holds" onclick="switchTab('holds',this)">トップの保留<span class="tab-n" id="hold-n"></span></button>
     <button class="tab-btn" id="tab-btn-rholds" onclick="switchTab('rholds',this)">口コミの確認<span class="tab-n" id="rhold-n"></span></button>
+    <button class="tab-btn" id="tab-btn-rimgs" onclick="switchTab('rimgs',this)">読めなかった勤務表<span class="tab-n" id="rimg-n"></span></button>
   </div>
 
   <!-- Users tab -->
@@ -319,6 +329,14 @@
     <div class="rh-list" id="rh-list"><p class="loading">読み込み中…</p></div>
   </div>
 
+  <!-- 読めなかった勤務表（2026-11-16 オーナー「どこで見れるの？画像」）
+       ★画像はサーバー（admin_roster_image）が運営の名簿を見てから1枚ずつ返す。一覧（admin_roster_images）は中身を持たない。
+       ★誰の勤務表かは記録していない（サーバーにも無い）。90日で自動で消える（db/roster.sql の pv_roster_images_expire）。 -->
+  <div id="tab-rimgs" class="pv-no-cur" style="display:none">
+    <div class="notice"><strong>読めなかった勤務表</strong> — 読み取りで読めない所があった、または読み取りに失敗した勤務表の画像です。誰の勤務表かは記録していません。90日で自動で消えます。読み取りを直したら「消す」を押してください。</div>
+    <div class="rh-list" id="ri-list"><p class="loading">読み込み中…</p></div>
+  </div>
+
   <!-- 提出された画像を見る面。閉じたら画像を画面に残さない（proofClose） -->
   <div id="pf-view" role="dialog" aria-modal="true" aria-labelledby="pf-view-h">
     <div class="pf-sheet">
@@ -348,6 +366,8 @@
   let holdReady  = false;   // トップの保留の入口（db/reviews-gate.sql 6-0）がサーバーに在るか
   let allRHolds  = [];
   let rhReady    = false;   // 口コミの確認の入口（admin_list_review_holds）がサーバーに在るか
+  let allRImgs   = [];
+  let riReady    = false;   // 読めなかった勤務表の入口（admin_roster_images・db/roster.sql）がサーバーに在るか
   let currentTab = 'users';
 
   /* 通知メールの「承諾してトップに出す」（admin.html#top-hold）・「口コミを保留しました」（admin.html#review-holds）から来たら、
@@ -355,6 +375,7 @@
   try {
     if (location.hash === '#top-hold') sessionStorage.setItem('pv_admin_tab', 'holds');
     else if (location.hash === '#review-holds') sessionStorage.setItem('pv_admin_tab', 'rholds');
+    else if (location.hash === '#roster-images') sessionStorage.setItem('pv_admin_tab', 'rimgs');
   } catch (e) {}
 
   /* ★合言葉は持たない。ページに書いた合言葉はサイトから誰でも読めるので、
@@ -406,16 +427,18 @@
     try { want = sessionStorage.getItem('pv_admin_tab'); sessionStorage.removeItem('pv_admin_tab'); } catch (e) {}
     if (want === 'holds') switchTab('holds', document.getElementById('tab-btn-holds'));
     if (want === 'rholds') switchTab('rholds', document.getElementById('tab-btn-rholds'));
+    if (want === 'rimgs') switchTab('rimgs', document.getElementById('tab-btn-rimgs'));
   }
 
   async function loadData() {
     /* 表を直接読まない。読める人かどうかは入口の中で判定される。 */
-    const [usersRes, reviewsRes, proofsRes, holdsRes, rholdsRes] = await Promise.all([
+    const [usersRes, reviewsRes, proofsRes, holdsRes, rholdsRes, rimgsRes] = await Promise.all([
       sb.rpc('admin_list_profiles'),
       sb.rpc('admin_list_reviews'),
       sb.rpc('admin_list_proofs'),
       sb.rpc('admin_list_top_holds'),
-      sb.rpc('admin_list_review_holds')
+      sb.rpc('admin_list_review_holds'),
+      sb.rpc('admin_roster_images')
     ]);
     if (usersRes.error || reviewsRes.error) {
       document.getElementById('dashboard').style.display = 'none';
@@ -436,12 +459,14 @@
     holdReady  = !holdsRes.error;   // 資格確認と同じく、SQL を貼る前でも上の表は出す
     allHolds   = holdReady && Array.isArray(holdsRes.data) ? holdsRes.data : [];
     takeReviewHolds(rholdsRes);   // これも SQL を貼る前でも上の表は出す
+    takeRosterImages(rimgsRes);   // 同じく
     renderStats();
     renderUsersTable();
     renderReviewsTable();
     renderProofsTable();
     renderHoldsTable();
     renderReviewHolds();
+    renderRosterImages();
   }
 
   /* ── 口コミの確認（翻訳の AI が保留にした口コミ・2026-11-15）──────────────
@@ -512,6 +537,90 @@
     if (error || !data || !data.ok) alert(data && data.reason === 'not_held' ? 'この口コミは、もう確認待ちではありません。'
       : 'できませんでした：' + ((error && error.message) || (data && data.reason) || ''));
     await loadReviewHolds();
+  });
+
+  /* ── 読めなかった勤務表（2026-11-16）────────────────────────────
+     ★守っているのはここではない。一覧も画像も消すのも、サーバー（admin_roster_images / admin_roster_image /
+       admin_roster_image_drop）が名簿を見てから行う。画像は見えたカードから1枚ずつ取り、画面の外には残さない。 */
+  const RI_WHY = { gaps: '読めない所があった', not_a_roster: '勤務表として読めなかった', undated: '日付が決まらなかった',
+                   sanitize_threw: '読み取りの整理で失敗' };
+  const RI_GAP = { undated: '日付が決まらない行', unread: '読めない記号の日', no_time: '時刻の無い便',
+                   no_onoff: '出頭・解散の無い日', no_apt: '空港の無い便' };
+  const riShot = new Map();
+  let riObs = null;
+  function takeRosterImages(res) {
+    riReady  = !!res && !res.error;
+    allRImgs = riReady && Array.isArray(res.data) ? res.data : [];
+  }
+  async function loadRosterImages() {
+    takeRosterImages(await sb.rpc('admin_roster_images'));
+    renderRosterImages();
+  }
+  function riWhen(v) {
+    const d = new Date(v);
+    return isNaN(d) ? '—' : d.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+  function renderRosterImages() {
+    const box  = document.getElementById('ri-list');
+    const list = allRImgs.filter(x => x && Number.isInteger(x.id));
+    document.getElementById('rimg-n').textContent = list.length ? String(list.length) : '';
+    if (!riReady) { box.innerHTML = '<p class="loading">まだ使えません（db/roster.sql を貼ると使えます）。</p>'; return; }
+    if (!list.length) { box.innerHTML = '<p class="loading">残っている画像はありません。</p>'; return; }
+    box.innerHTML = list.map(x => {
+      const why  = Object.prototype.hasOwnProperty.call(RI_WHY, x.why) ? RI_WHY[x.why] : '読み取りに失敗（' + esc(x.why) + '）';
+      const gaps = x.gaps && typeof x.gaps === 'object'
+        ? Object.keys(RI_GAP).filter(k => Number(x.gaps[k]) > 0).map(k => RI_GAP[k] + ' ' + Number(x.gaps[k])).join('・') : '';
+      return `<article class="rh-card">
+      <div class="rh-top"><span class="pf-tag pf-sub">${why}</span><span class="rh-when">${esc(riWhen(x.created_at))}</span>
+        <span class="rh-src">${Number(x.page)}/${Number(x.pages)}枚目</span><span class="rh-src">${Math.round(Number(x.byte_len) / 1024)}KB</span></div>
+      ${gaps ? `<dl class="rh-facts"><dt>読めなかった所</dt><dd>${esc(gaps)}</dd></dl>` : ''}
+      <button type="button" class="ri-zoom" data-ri="zoom" data-id="${x.id}" aria-label="画像を大きく見る"><span class="ri-wait">画像を読み込み中…</span></button>
+      <div class="pf-acts"><button type="button" class="pf-btn is-warn" data-ri="drop" data-id="${x.id}">消す</button></div>
+    </article>`;
+    }).join('');
+    riLoadShots();
+  }
+  /* 画像は、カードが画面に入ったときに1枚ずつ取る（全部を一度に取らない） */
+  function riLoadShots() {
+    if (riObs) riObs.disconnect();
+    const els = [...document.querySelectorAll('#ri-list [data-ri="zoom"]')];
+    const load = async (el) => {
+      const id = Number(el.getAttribute('data-id'));
+      if (!Number.isInteger(id) || el.dataset.loaded) return;
+      el.dataset.loaded = '1';
+      let src = riShot.get(id);
+      if (!src) {
+        const { data, error } = await sb.rpc('admin_roster_image', { p_id: id });
+        if (error || !data || !data.ok || !data.b64) { el.innerHTML = '<span class="ri-wait">画像を開けませんでした。</span>'; return; }
+        const mime = ['image/jpeg', 'image/png', 'image/webp'].includes(data.mime) ? data.mime : 'image/jpeg';
+        src = 'data:' + mime + ';base64,' + String(data.b64).replace(/[^A-Za-z0-9+/=]/g, '');
+        riShot.set(id, src);
+      }
+      const img = document.createElement('img');
+      img.className = 'ri-shot'; img.alt = '読めなかった勤務表の画像'; img.src = src;
+      el.textContent = '';
+      el.appendChild(img);
+    };
+    if (!('IntersectionObserver' in window)) { els.forEach(load); return; }
+    riObs = new IntersectionObserver(ents => ents.forEach(en => {
+      if (en.isIntersecting) { riObs.unobserve(en.target); load(en.target); }
+    }), { rootMargin: '400px' });
+    els.forEach(el => riObs.observe(el));
+  }
+  document.addEventListener('click', async e => {
+    const b = e.target && e.target.closest ? e.target.closest('[data-ri]') : null;
+    if (!b || b.disabled) return;
+    const id = Number(b.getAttribute('data-id'));
+    if (!Number.isInteger(id)) return;
+    if (b.getAttribute('data-ri') === 'zoom') { b.classList.toggle('is-big'); return; }
+    if (b.getAttribute('data-ri') !== 'drop') return;
+    if (!confirm('この画像を消します。元に戻せません。\n\nよろしいですか？')) return;
+    b.disabled = true;
+    const { data, error } = await sb.rpc('admin_roster_image_drop', { p_id: id });
+    b.disabled = false;
+    if (error || !data || !data.ok) { alert('消せませんでした：' + ((error && error.message) || '')); return; }
+    riShot.delete(id);
+    await loadRosterImages();
   });
 
   /* ── トップの保留（2026-11-14）──────────────────────────────
@@ -817,6 +926,7 @@
     document.getElementById('tab-proofs').style.display  = tab==='proofs'  ? 'block' : 'none';
     document.getElementById('tab-holds').style.display   = tab==='holds'   ? 'block' : 'none';
     document.getElementById('tab-rholds').style.display  = tab==='rholds'  ? 'block' : 'none';
+    document.getElementById('tab-rimgs').style.display   = tab==='rimgs'   ? 'block' : 'none';
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b===btn));
     /* 狭い画面：開いたタブを、タブの行の中で見える所へ（ページは動かさない）。字が読み終わるとタブの幅が変わるので、そのあとにもう一度 */
     const bar = btn && btn.parentNode;
