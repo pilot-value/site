@@ -123,7 +123,7 @@ async function open(url, reply, opts = {}) {
       }
       seen.calls++;
       seen.bodies.push(posted);
-      const r = typeof reply === 'function' ? reply(seen.calls) : reply;
+      const r = typeof reply === 'function' ? reply(seen.calls, posted) : reply;
       if (r === 'hang') { seen.hold = req; return; }
       await new Promise((res) => setTimeout(res, r.delay || 400));
       return req.respond({ status: r.status || 200, headers: JSONH, body: JSON.stringify(r.body) });
@@ -1038,14 +1038,17 @@ const vals = (page) => page.evaluate(() => {
 {
   // (4) ★2026-11-11 オーナー「普通に明細アップロードからボーナスもアップロードできるようにして」
   //     月の明細とボーナスの明細を一緒に選ぶ → 1枚ずつ読み、月の明細は月の欄へ・ボーナスの明細は年間ボーナスへ
-  const { page, seen, errs } = await open(URL_JA, (n) => ({ body: n === 1 ? BONUS_SLIP : FAKE }));
+  //     ★2026-11-16 から、写真を2〜4枚選ぶと先に1回でまとめて送る。AI が「別の明細」と答えたら（one_document:false）、
+  //       返ってきた1枚目の答えを使い、2枚目からは今までどおり1枚ずつ。
+  const { page, seen, errs } = await open(URL_JA, (n) => ({ body: n === 1 ? { ...BONUS_SLIP, one_document: false } : FAKE }));
   ok(await page.$eval('#ps-file', (n) => n.multiple === true), '明細を選ぶ欄は何枚でも選べる（multiple）');
   const files = fs.readdirSync(FIX).filter((f) => /^payslip-.*\.png$/.test(f)).slice(0, 2);
   await (await page.$('#ps-file')).uploadFile(...files.map((f) => path.join(FIX, f)));
   await page.waitForFunction(() => !!document.querySelector('#ps .ps-res:not(.ps-bo)') && !document.querySelector('.ps-load'), { timeout: 30000 });
   await new Promise((r) => setTimeout(r, 600));
   const v = await vals(page);
-  ok(seen.calls === 2, '★2枚とも読む（1枚ずつ）', String(seen.calls));
+  ok(seen.calls === 2 && (seen.bodies[0].images_b64 || []).length === 2 && !!seen.bodies[1].image_b64,
+     '★まず2枚をまとめて送り、「別の明細」と返ったら2枚目を1枚で読む（読み取りは2回）', String(seen.calls));
   ok(dg(v.gross) === String(FAKE.result.gross_total) && !dg(v.paid), '★月の明細は月の欄へ（ボーナスの明細の額は総支給に入らない）', `${v.gross} / ${v.paid}`);
   ok(dg(v.bonus) === '900000' && v.parts.some((t) => /ボーナスの明細/.test(t)), '★ボーナスの明細は年間ボーナスへ（先に読んでも、後から読んだ月の明細に消されない）', v.bonus);
   ok(errs.length === 0, '画面のエラーなし', errs.join(' | '));
@@ -1057,7 +1060,7 @@ const vals = (page) => page.evaluate(() => {
   const kinds = [['第1四半期賞与', 3, 300000], ['Performance bonus', 6, 450000], ['Signing bonus', 9, 1200000]];
   const slip = (k) => ({ ok: true, result: { currency: 'JPY', period: { year: 2026, month: kinds[k][1] }, earnings: [{ label: kinds[k][0], amount: kinds[k][2], kind: 'bonus' }],
     gross_total: kinds[k][2], deductions_total: 0, net_pay: kinds[k][2], hours: [], unmapped: [], confidence: 'high' } });
-  const { page, seen, errs } = await open(URL_JA, (n) => ({ body: slip(Math.min(n, 3) - 1) }));
+  const { page, seen, errs } = await open(URL_JA, (n) => ({ body: n === 1 ? { ...slip(0), one_document: false } : slip(Math.min(n, 3) - 1) }));
   const files = fs.readdirSync(FIX).filter((f) => /^payslip-.*\.png$/.test(f)).slice(0, 3);
   await (await page.$('#ps-file')).uploadFile(...files.map((f) => path.join(FIX, f)));
   await page.waitForFunction(() => document.querySelectorAll('#ps .ps-ex-p.is-slip').length === 3 && !document.querySelector('.ps-load'), { timeout: 40000 });
@@ -1066,6 +1069,154 @@ const vals = (page) => page.evaluate(() => {
   ok(!dg(v.gross), '★ボーナスだけの明細ばかりなら月の総支給は空のまま', v.gross);
   ok(errs.length === 0, '画面のエラーなし', errs.join(' | '));
   await page.close();
+}
+
+// ══ ⑫ 2ページに分かれた明細（2026-11-16 JAL の会員の感想「給与明細が2ページに分かれていると読み込めない」）══
+/* 前は PDF の1ページ目しか送らず、写真2枚は別々の明細として読んで後の1枚が前の1枚を消していた。
+   いまは続きのページを1回でまとめて送る（4枚まで）。AI が「別の明細」と見たら今までどおり。 */
+console.log('\n══ ⑫ 2ページに分かれた明細：続きのページを1回でまとめて送る');
+{
+  /* 見本の PDF を作る（ink＝そのページに黒い四角を描く・false＝白紙のページ）。
+     ★db/fixtures/payslip-pdf-2page.pdf は使わない：あれの2ページ目は pdf.js で描くと原寸でも真っ白（＝白紙として外れる）。 */
+  const makePdf = (inks) => {
+    const objs = ['<< /Type /Catalog /Pages 2 0 R >>', ''];
+    const kids = [];
+    inks.forEach((ink, i) => {
+      const pageNo = objs.length + 1;
+      kids.push(pageNo + ' 0 R');
+      if (ink) {
+        const draw = `0 0 0 rg 60 ${700 - i * 40} 420 60 re f 0.3 0.3 0.3 rg 60 ${500 - i * 30} 300 30 re f`;
+        objs.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents ${pageNo + 1} 0 R >>`);
+        objs.push(`<< /Length ${draw.length} >>\nstream\n${draw}\nendstream`);
+      } else {
+        objs.push('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>');
+      }
+    });
+    objs[1] = `<< /Type /Pages /Kids [${kids.join(' ')}] /Count ${inks.length} >>`;
+    let out = '%PDF-1.4\n';
+    const off = [];
+    objs.forEach((body, i) => { off.push(Buffer.byteLength(out, 'latin1')); out += (i + 1) + ' 0 obj\n' + body + '\nendobj\n'; });
+    const xref = Buffer.byteLength(out, 'latin1');
+    out += 'xref\n0 ' + (objs.length + 1) + '\n0000000000 65535 f \n';
+    off.forEach((o) => { out += String(o).padStart(10, '0') + ' 00000 n \n'; });
+    out += 'trailer\n<< /Size ' + (objs.length + 1) + ' /Root 1 0 R >>\nstartxref\n' + xref + '\n%%EOF\n';
+    const p = path.join(TMP, `pdf-pages-${inks.map((x) => (x ? 1 : 0)).join('')}.pdf`);
+    writeFileSync(p, Buffer.from(out, 'latin1'));
+    return p;
+  };
+  const done = (page) => page.waitForFunction(() => !!document.querySelector('#ps .ps-res, #ps-panel .ps-fail') && !document.querySelector('.ps-load'), { timeout: 40000 });
+  const resText = (page) => page.evaluate(() => (document.querySelector('#ps .ps-res') || {}).textContent || '');
+  const keys = (b) => Object.keys(b || {}).sort().join(',');
+  const TWO = ['payslip-jp-major.png', 'payslip-jp-full.png'].map((f) => path.join(FIX, f));
+
+  {
+    // (1) 2ページの PDF → 2ページとも1回で送る・注は出さない
+    const { page, seen, errs } = await open(URL_JA, { body: { ...FAKE, one_document: true } });
+    await (await page.$('#ps-file')).uploadFile(makePdf([true, true]));
+    await done(page);
+    const b = seen.bodies[0] || {};
+    ok(seen.calls === 1 && keys(b) === 'images_b64,lang,mime' && (b.images_b64 || []).length === 2,
+       '★2ページの PDF は2ページとも、1回の読み取りで送る', `${seen.calls}回・${keys(b)}・${(b.images_b64 || []).length}枚`);
+    ok((b.images_b64 || [])[0] !== (b.images_b64 || [])[1], '1ページ目と2ページ目は別の画像（同じページを2回送っていない）');
+    const v = await vals(page);
+    ok(dg(v.gross) === String(FAKE.result.gross_total), '読めた数字がフォームに入る', v.gross);
+    ok(!/ページあるうちの/.test(await resText(page)), '全部のページを読んだので、ページの注は出さない');
+    ok(errs.length === 0, '画面のエラーなし', errs.join(' | '));
+    await page.close();
+  }
+  {
+    // (2) 2ページ目が白紙 → 送らない（1枚のときと同じ形）
+    const { page, seen, errs } = await open(URL_JA, { body: FAKE });
+    await (await page.$('#ps-file')).uploadFile(makePdf([true, false]));
+    await done(page);
+    ok(seen.calls === 1 && keys(seen.bodies[0]) === 'image_b64,lang,mime', '★白紙のページは送らない（1ページだけなら今までと同じ形）', keys(seen.bodies[0]));
+    ok(errs.length === 0, '画面のエラーなし', errs.join(' | '));
+    await page.close();
+  }
+  {
+    // (3) 6ページ → 最初の4ページまで・「最初の4ページを読みました」
+    const { page, seen, errs } = await open(URL_JA, { body: { ...FAKE, one_document: true } });
+    await (await page.$('#ps-file')).uploadFile(makePdf([true, true, true, true, true, true]));
+    await done(page);
+    ok(seen.calls === 1 && (seen.bodies[0].images_b64 || []).length === 4, '★送るのは4ページまで', String((seen.bodies[0].images_b64 || []).length));
+    ok(/6ページあるうちの最初の4ページを読みました/.test(await resText(page)), '読まなかったページがあることを言う');
+    ok(errs.length === 0, '画面のエラーなし', errs.join(' | '));
+    await page.close();
+  }
+  {
+    // (4) PDF の各ページが別の明細だった（AI が one_document:false）→ 1ページ目の答えを入れ、1ページ目だけ読んだと言う
+    const { page, seen, errs } = await open(URL_JA, { body: { ...FAKE, one_document: false } });
+    await (await page.$('#ps-file')).uploadFile(makePdf([true, true]));
+    await done(page);
+    const v = await vals(page);
+    ok(seen.calls === 1 && dg(v.gross) === String(FAKE.result.gross_total), '★読み直さずに、返ってきた1ページ目の答えを入れる', `${seen.calls}回`);
+    ok(/2ページあるうちの1ページ目を読んでいます/.test(await resText(page)), '1ページ目だけ読んだと言う');
+    ok(errs.length === 0, '画面のエラーなし', errs.join(' | '));
+    await page.close();
+  }
+  {
+    // (5) この版より古い関数（images_b64 を知らない＝no_image）→ 1ページ目だけで読み直す
+    const { page, seen, errs } = await open(URL_JA, (n, b) => (b && b.images_b64
+      ? { status: 400, body: { ok: false, reason: 'no_image' } } : { body: FAKE }));
+    await (await page.$('#ps-file')).uploadFile(makePdf([true, true]));
+    await done(page);
+    const v = await vals(page);
+    ok(seen.calls === 2 && !!seen.bodies[1].image_b64 && dg(v.gross) === String(FAKE.result.gross_total),
+       '★古い関数のままでも、今までどおり1ページ目で読める（Deploy より先に push しても壊れない）', `${seen.calls}回`);
+    ok(/2ページあるうちの1ページ目を読んでいます/.test(await resText(page)) && !(await page.$('#ps-panel .ps-fail')), '失敗の札は出さず、1ページ目だけ読んだと言う');
+    ok(errs.length === 0, '画面のエラーなし', errs.join(' | '));
+    await page.close();
+  }
+  {
+    // (6) 写真2枚が同じ明細の続き → 1回で送り、1つの明細として入れる（後の1枚が前の1枚を消さない）
+    //     ★1枚ずつ読まれたら2枚目（控除と手取りだけのページ）が前の数字を消す ── その形を見本で作っておく
+    const PAGE2_ONLY = { ok: true, result: { currency: 'JPY', period: { year: 2026, month: 7 }, earnings: [], gross_total: null,
+      deductions_total: 221354, net_pay: 832246, hours: [], unmapped: [], confidence: 'high' } };
+    const { page, seen, errs } = await open(URL_JA, (n, b) => ({ body: b && b.images_b64 ? { ...FAKE, one_document: true } : PAGE2_ONLY }));
+    await (await page.$('#ps-file')).uploadFile(...TWO);
+    await done(page);
+    const b = seen.bodies[0] || {};
+    ok(seen.calls === 1 && keys(b) === 'images_b64,lang,mime' && (b.images_b64 || []).length === 2,
+       '★写真2枚は1回の読み取りでまとめて送る', `${seen.calls}回・${keys(b)}`);
+    const v = await vals(page);
+    ok(dg(v.gross) === String(FAKE.result.gross_total) && !!(await page.$eval('#f-base', (n) => n.value)), '★読めた数字が残る（消されない）', v.gross);
+    ok(/2枚を1つの明細として読みました/.test(await resText(page)), '2枚を1つの明細として読んだと言う');
+    ok(errs.length === 0, '画面のエラーなし', errs.join(' | '));
+    await page.close();
+  }
+  {
+    // (7) 写真2枚・古い関数 → 今までどおり1枚ずつ（失敗の札は出さない）
+    const { page, seen, errs } = await open(URL_JA, (n, b) => (b && b.images_b64
+      ? { status: 400, body: { ok: false, reason: 'no_image' } } : { body: FAKE }));
+    await (await page.$('#ps-file')).uploadFile(...TWO);
+    await page.waitForFunction(() => !!document.querySelector('#ps .ps-res') && !document.querySelector('.ps-load'), { timeout: 40000 });
+    await new Promise((r) => setTimeout(r, 900));
+    ok(seen.calls === 3 && !!seen.bodies[1].image_b64 && !!seen.bodies[2].image_b64, '★古い関数なら、1枚ずつ読み直す（1回目は断られ、2枚を1枚ずつ）', `${seen.calls}回`);
+    ok(!(await page.$('#ps-panel .ps-fail')), '失敗の札は出さない');
+    ok(errs.length === 0, '画面のエラーなし', errs.join(' | '));
+    await page.close();
+  }
+  {
+    // (8) 写真5枚（4枚より多い）→ 今までどおり1枚ずつ
+    const { page, seen, errs } = await open(URL_JA, { body: FAKE, delay: 150 });
+    const five = fs.readdirSync(FIX).filter((f) => /^payslip-.*\.png$/.test(f)).slice(0, 5).map((f) => path.join(FIX, f));
+    await (await page.$('#ps-file')).uploadFile(...five);
+    await page.waitForFunction(() => !!document.querySelector('#ps .ps-res') && !document.querySelector('.ps-load'), { timeout: 60000 });
+    await page.waitForFunction(() => (window.dataLayer || []).filter((a) => a && a[1] === 'payslip_read_ok').length >= 5 && !document.querySelector('.ps-load'), { timeout: 60000 }).catch(() => {});
+    ok(seen.calls === 5 && seen.bodies.every((x) => keys(x) === 'image_b64,lang,mime'), '★5枚以上は今までどおり1枚ずつ（まとめない）',
+       `${seen.calls}回・${(await events(page)).join(' ')}`);
+    ok(errs.length === 0, '画面のエラーなし', errs.join(' | '));
+    await page.close();
+  }
+  {
+    // (9) 英語のページの注
+    const { page, errs } = await open(URL_EN, { body: { ...FAKE, one_document: true } });
+    await (await page.$('#ps-file')).uploadFile(...TWO);
+    await done(page);
+    ok(/Read the 2 images as one payslip\./.test(await resText(page)), '英語：Read the 2 images as one payslip.');
+    ok(errs.length === 0, '画面のエラーなし', errs.join(' | '));
+    await page.close();
+  }
 }
 
 // ── コード側の約束：画像・ラベルをログに出していないこと（db/test-payslip-redact.mjs から移した）──

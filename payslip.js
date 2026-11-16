@@ -50,6 +50,9 @@
       tooLarge: 'ファイルが大きすぎます。画像は6MB、PDF は20MB までにしてください。',
       pdfReading: 'PDF を開いています…（初回だけ、読み込み用のデータを取りに行きます）',
       pdfPages: function (n) { return n + 'ページあるうちの1ページ目を読んでいます。給与の表が別のページにあるときは、そのページだけの画像（スクリーンショット）を選んでください。'; },
+      /* ★2ページに分かれた明細（2026-11-16）。続きのページは一緒に読む。MAX_PAGES を超えたときと、写真をまとめて1つにしたときだけ言う。 */
+      pdfFirstN: function (n, k) { return n + 'ページあるうちの最初の' + k + 'ページを読みました。'; },
+      groupOne: function (n) { return n + '枚を1つの明細として読みました。'; },
       pdfLocked: 'この PDF はパスワードで保護されています。パスワードを外して保存し直すか、開いた画面のスクリーンショットを落としてください。',
       /* ★鍵の付いた PDF は、その場でパスワードを聞いて端末の中で開く（2026-11-13 オーナー「失敗してるぞ」）。 */
       lockT: 'パスワード付きの PDF です',
@@ -197,6 +200,8 @@
       tooLarge: 'That file is too large. Please keep images under 6MB, PDFs under 20MB.',
       pdfReading: 'Opening the PDF… (the reader is downloaded the first time only)',
       pdfPages: function (n) { return 'Reading page 1 of ' + n + '. If your pay table is on another page, choose an image (screenshot) of that page instead.'; },
+      pdfFirstN: function (n, k) { return 'Read the first ' + k + ' of ' + n + ' pages.'; },
+      groupOne: function (n) { return 'Read the ' + n + ' images as one payslip.'; },
       pdfLocked: 'This PDF is password-protected. Save a copy without the password, or drop a screenshot of it instead.',
       lockT: 'This PDF has a password',
       lockMsg: 'Enter it to open the PDF here on your device.',
@@ -333,6 +338,8 @@
       tooLarge: 'El archivo es demasiado grande. Las imágenes deben pesar menos de 6 MB y los PDF, menos de 20 MB.',
       pdfReading: 'Abriendo el PDF… (el lector solo se descarga la primera vez)',
       pdfPages: function (n) { return 'Leyendo la página 1 de ' + n + '. Si tu tabla de pagos está en otra página, elige una imagen (captura de pantalla) de esa página.'; },
+      pdfFirstN: function (n, k) { return 'Leímos las primeras ' + k + ' de ' + n + ' páginas.'; },
+      groupOne: function (n) { return 'Leímos las ' + n + ' imágenes como un solo recibo de nómina.'; },
       pdfLocked: 'Este PDF está protegido con contraseña. Guarda una copia sin contraseña o, en su lugar, arrastra aquí una captura de pantalla.',
       lockT: 'Este PDF tiene contraseña',
       lockMsg: 'Escríbela para abrir el PDF aquí, en tu dispositivo.',
@@ -464,6 +471,10 @@
      **いちばん確実に読める入り口**を自分で塞ぐことになる。 */
   var MAX_PDF_BYTES = 20 * 1024 * 1024;
   var JPEG_Q = 0.86;
+  /* ★2ページに分かれた明細（2026-11-16・JAL の会員の感想「給与明細が2ページに分かれていると読み込めない」）。
+     PDF の続きのページと、まとめて選んだ写真を、この枚数まで1回で送る。
+     ⚠️ supabase/functions/parse-payslip/index.ts の MAX_PAGES と同じ数（db/test-payslip-flow.mjs が突き合わせる）。 */
+  var MAX_PAGES = 4;
   /* ★どの段にも上限（2026-11-04）。返事が来ないまま止まらない。
      サーバーは向こうの返事を60秒で打ち切るので、ブラウザはそれより長く待つ。 */
   var PREP_MS = 30000;        // 画像・PDF を整えるまで（PDF の部品を取りに行く時間を含む）
@@ -666,6 +677,9 @@
 
   // ── 状態 ──────────────────────────────────────────────────
   var work = null;     // 送る画像（端末で描き直した canvas・長辺 MAX_EDGE まで）
+  var more = [];       // 続きのページ（2枚目から・work と同じ形）。1枚の明細なら空
+  var group = null;    // まとめて選んだ写真（AI が「別の明細」と見たら、2枚目からを順番待ちへ戻す）
+  var pdfN = 0;        // PDF のページ数（1ページ目だけを読むことになったときの注に使う）
   var W = 0, H = 0;
   var lastHours = null;
   var busy = false;    // 読み取り中（連打・二重の読み取りを止める）
@@ -703,9 +717,17 @@
        月の給与の明細は月の欄へ（apply）。読めなかった1枚があっても、残りは続けて読む。 */
   var queue = [], batchOk = 0, qFails = 0;
   var MAX_FILES = 6;
+  function isPdfFile(f) { return f.type === 'application/pdf' || /\.pdf$/i.test(f.name); }
   function takeMany(list) {
     list = [].slice.call(list || []).filter(Boolean).slice(0, MAX_FILES);
     if (!list.length) return;
+    /* ★写真を2〜MAX_PAGES 枚まとめて選んだら、1つの明細の続きのページかもしれない（2026-11-16 オーナー回答「AI に任せる」）。
+         まず1回でまとめて読み、AI が「別の明細」と見たら今までどおり1枚ずつ（takeSeq）。PDF が混ざるときは今までどおり。 */
+    if (list.length > 1 && list.length <= MAX_PAGES && list.every(function (f) { return !isPdfFile(f) && /^image\//.test(f.type); })) return takeGroup(list);
+    takeSeq(list);
+  }
+  function takeSeq(list) {
+    group = null;
     queue = list.slice(1); batchOk = 0; qFails = 0;
     take(list[0]);
   }
@@ -732,8 +754,52 @@
     if (fs && fs.length) { if (Date.now() - readModeAt > 60000) readMode = 'month'; takeMany(fs); }
   });
 
+  /* まとめて選んだ写真を、1つの明細として1回で送る（ページの順＝選んだ順）。
+     ★1枚でも整えられなかったら（大きすぎる・開けない・一色）まとめるのをやめ、今までどおり1枚ずつ
+       ── 読めない1枚は、その1枚に合った言葉で知らせる（take の道）。 */
+  function takeGroup(list) {
+    var mine = ++readToken;
+    busy = false;
+    if (viewUrl) { try { URL.revokeObjectURL(viewUrl); } catch (e) {} viewUrl = ''; }
+    work = null; more = []; group = list; pdfN = 0;
+    queue = []; batchOk = 0; qFails = 0;
+    kindNow = 'image';
+    pageNote = '';
+    track('payslip_loaded', { kind: kindNow, n: list.length });
+    clearPanel();
+    loadOpen();
+    var t0 = now();
+    Promise.all(list.map(prepImage)).then(function (cs) {
+      if (mine !== readToken) return;
+      work = cs[0]; W = work.width; H = work.height; more = cs.slice(1);
+      makeView();
+      track('payslip_prepared', { kind: kindNow, ms: since(t0), via: 'group' });
+      startRead();
+    }, function () {
+      if (mine !== readToken) return;
+      takeSeq(list);
+    });
+  }
+  /* 写真1枚を送る形に（まとめて選んだとき用）。take() の写真の道と同じ順番 ──
+     <img> で描く → 一色なら ImageBitmap で描き直す → それでも一色なら送らない。 */
+  function prepImage(file) {
+    if (file.size > MAX_BYTES) return Promise.reject(tag('too_large'));
+    return withTimeout(loadImage(file), PREP_MS, 'image_timeout').then(function (b) {
+      var c = fit(b);
+      if (b && typeof b.close === 'function') { try { b.close(); } catch (e) {} }
+      if (!blank(c)) return c;
+      return withTimeout(altBitmap(file, c.width, c.height), PREP_MS, 'image_timeout').then(function (b2) {
+        var c2 = fit(b2);
+        try { if (b2 && b2.close) b2.close(); } catch (e) {}
+        if (blank(c2)) throw tag('image_blank');
+        return c2;
+      });
+    });
+  }
+
   function take(file, pw) {
-    var isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+    var isPdf = isPdfFile(file);
+    more = []; group = null; pdfN = 0;
     /* ★ここで弾かれた人は「明細を出そうとしたのに1歩も進めなかった人」。
        黙って戻ると、選びもしなかった人と同じ数に見えてしまう。 */
     if (file.size > (isPdf ? MAX_PDF_BYTES : MAX_BYTES)) {
@@ -765,8 +831,11 @@
     p.then(function (r) {
       if (mine !== readToken) return false;
       var bmp = isPdf ? r.canvas : r;
-      /* ★何ページ目を読むかを、読み取り中の表示に添える（初版は1ページ目だけ）。 */
-      pageNote = (isPdf && r.pages > 1) ? T.pdfPages(r.pages) : '';
+      /* ★2026-11-16 から PDF は MAX_PAGES ページまで一緒に読む（白紙のページは renderPdf が外す）。
+           注を出すのは、それより多いページがあって読まなかったときだけ。 */
+      pdfN = isPdf ? r.pages : 0;
+      more = isPdf ? (r.more || []) : [];
+      pageNote = (isPdf && r.pages > MAX_PAGES) ? T.pdfFirstN(r.pages, MAX_PAGES) : '';
       try { buildWork(bmp); } catch (e) { throw tag('image_decode'); }
       /* ★描き写したら元は閉じてよい。この先は work（送る画像）だけを使う。
          2026-11-04 までは閉じた ImageBitmap を送る段でもう一度描こうとして、
@@ -818,6 +887,23 @@
      やめた読み取り・別の明細に移ったあとの返事は1文字も画面に入れない。
      ★自動で送り直さない。時間切れでも向こうでは処理が続いているかもしれず、
        送り直すと二重に読む（回数も費用も2回分）。送り直すのは本人が「もう一度読む」を押したときだけ。 */
+  /* ★続きのページをまとめて読むのをやめ、今までどおりに読み直す理由（2026-11-16）。
+       no_image ＝ この版より古い関数（images_b64 を知らない）＝ Deploy より先に push しても壊れない。
+       枚数・大きさの上限、答えが長すぎて切れた・形が壊れた、は1枚ずつなら読めることがある。
+     ★明細でない・断られた・回数の上限・混雑では読み直さない（同じ結果になるか、回数を余計に使うだけ）。 */
+  var SPLIT = { no_image: 1, too_many_images: 1, image_too_large: 1, read_truncated: 1, read_bad_format: 1 };
+  function resplit() {
+    if (group) return takeSeq(group);
+    more = [];
+    if (pdfN > 1) pageNote = T.pdfPages(pdfN);
+    startRead();
+  }
+  /* AI が「同じ明細の続きではない」と見た：返ってきたのは1枚目の答え（サーバーがそう頼んでいる）。 */
+  function unpage() {
+    if (group) { queue = group.slice(1); batchOk = 0; qFails = 0; }
+    else if (pdfN > 1) pageNote = T.pdfPages(pdfN);
+    group = null; more = [];
+  }
   function startRead() {
     if (!work || busy) return;
     busy = true;
@@ -828,12 +914,13 @@
     loadStep(1);
     var hints = loadHints();
     var t0 = now();
-    toB64(work).then(function (b64) {
+    Promise.all([work].concat(more).map(toB64)).then(function (b64s) {
       if (mine !== readToken) return null;
       /* ★「送信を開始した」＝画像ができて、呼び出しの直前（2026-11-04 に定義を変えた）。 */
       track('payslip_sent', { kind: kindNow });
+      /* 1枚なら今までと同じ形（image_b64）。続きのページがあるときだけ images_b64 に並べる。 */
       return withTimeout(_sb.functions.invoke('parse-payslip', {
-        body: { image_b64: b64, mime: 'image/jpeg', lang: L },
+        body: b64s.length > 1 ? { images_b64: b64s, mime: 'image/jpeg', lang: L } : { image_b64: b64s[0], mime: 'image/jpeg', lang: L },
       }), READ_MS, 'timeout');
     }, function () { throw tag('prep_failed', 'prep'); })
       .then(function (r) {
@@ -851,6 +938,15 @@
            鍵が死んでいる（read_failed が1〜2秒で返る）のか、上限に当たっているのか、
            明細でない画像を送られているのかを、あとから区別できない。 */
         if (!out) throw tag('network');
+        if (more.length) {
+          /* ★続きのページを一緒に送った回（2026-11-16）。
+               まとめて読めなかった（この版より古い関数＝no_image・長すぎて切れた・形が壊れた）→ 今までどおりに読み直す。
+               AI が「同じ明細ではない」と見た → 返ってきたのは1枚目の答え。それを1枚目として入れ、
+               写真なら2枚目からを順番待ちへ・PDF なら1ページ目だけ読んだと添える。 */
+          if (!out.ok && SPLIT[out.reason]) { busy = false; return resplit(); }
+          if (out.ok && out.one_document === false) unpage();
+          else if (out.ok && group) pageNote = T.groupOne(group.length);
+        }
         if (!out.ok) throw tag(String(out.reason || 'unknown'), 'server');
         track('payslip_api_ok', { ms: since(t0) });
         loadStep(2);
@@ -1283,7 +1379,7 @@
   // ════════════════════════════════════════════════════════
   // ①-b PDF（海外の明細はメールで届く PDF がふつう）
   //
-  //    1ページ目を端末の中で画像に描き出して、それを送る（2026-11-04 から。前は黒塗りの手がかりにも
+  //    ページを端末の中で画像に描き出して、それを送る（2026-11-04 から。2026-11-16 から MAX_PAGES ページまで一緒に。前は黒塗りの手がかりにも
   //    文字の層を使っていた）。文字の層は、いまは「XFA の案内ページ」と「白紙」を見分けるためだけに読む。
   //    pdf.js は**PDF が選ばれたときにだけ**取りに行く（画像の人には読み込ませない）。
   // ════════════════════════════════════════════════════════
@@ -1361,17 +1457,7 @@
       return doc.getMetadata().then(function (m) { return (m && m.info) || {}; },
                                     function () { return {}; })
         .then(function (info) { return doc.getPage(1).then(function (page) {
-        var base = page.getViewport({ scale: 1 });
-        var s = Math.min(PDF_W / base.width, Math.sqrt(PDF_MAXPX / (base.width * base.height)));
-        var vp = page.getViewport({ scale: Math.max(1, s) });
-        var c = document.createElement('canvas');
-        c.width = Math.max(1, Math.round(vp.width));
-        c.height = Math.max(1, Math.round(vp.height));
-        var cx = c.getContext('2d');
-        /* 先に白で埋める。PDF の背景は透明なので、そのままだと
-           黒塗りの判定も、送る JPEG も、透明の扱いで崩れる。 */
-        cx.fillStyle = '#fff';
-        cx.fillRect(0, 0, c.width, c.height);
+        var pc = pageCanvas(page), vp = pc.vp, c = pc.c, cx = c.getContext('2d');
         /* ⚠️ ここを1つの catch でまとめない。**描けなかった**ことが
            「白紙の成功」に化け、真っ白な JPEG がそのまま送られていた。
            描画は致命、文字の層は致命ではない（無ければ OCR に落ちればよい）。 */
@@ -1399,10 +1485,51 @@
               e.pvReason = why;                 // take() の catch がこれで文言を選ぶ
               throw e;
             }
-            return { canvas: c, pages: pages, words: words };
+            return extraPages(doc, pages).then(function (more) {
+              return { canvas: c, pages: pages, words: words, more: more };
+            });
           });
       }); });
     });
+  }
+  /* 1ページを描く canvas と倍率。先に白で埋める ── PDF の背景は透明なので、
+     そのままだと白紙の判定も、送る JPEG も、透明の扱いで崩れる。 */
+  function pageCanvas(page) {
+    var base = page.getViewport({ scale: 1 });
+    var s = Math.min(PDF_W / base.width, Math.sqrt(PDF_MAXPX / (base.width * base.height)));
+    var vp = page.getViewport({ scale: Math.max(1, s) });
+    var c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(vp.width));
+    c.height = Math.max(1, Math.round(vp.height));
+    var cx = c.getContext('2d');
+    cx.fillStyle = '#fff';
+    cx.fillRect(0, 0, c.width, c.height);
+    return { c: c, vp: vp };
+  }
+  /* ★続きのページ（2026-11-16・JAL の会員の感想「給与明細が2ページに分かれていると読み込めない」）。
+       2ページ目から MAX_PAGES ページ目までを1枚ずつ描き、送る形（fit）に縮めて返す。
+       白紙のページ・描けなかったページは外す（1ページ目が描けていれば止めない）。
+     ★白紙と決めるのは「字の層が空」かつ「描いた絵が一様」のときだけ（1ページ目と同じ順）。
+       絵だけで決めると、字の少ないページ（年初来の合計だけ、など）が縮めた絵では白に見えて黙って落ちる（見本で実際に落ちた）。
+     ★大きく描いた canvas はすぐ手放す（iPhone は canvas の合計の大きさに上限がある）。 */
+  function extraPages(doc, pages) {
+    var out = [], last = Math.min(pages, MAX_PAGES), at = 2;
+    function next() {
+      if (at > last) return Promise.resolve(out);
+      var n = at++;
+      return doc.getPage(n).then(function (page) {
+        var pc = pageCanvas(page);
+        return page.render({ canvasContext: pc.c.getContext('2d'), viewport: pc.vp }).promise.then(function () {
+          return page.getTextContent().then(function (tc) {
+            return (tc && tc.items || []).some(function (it) { return String(it.str || '').trim(); });
+          }, function () { return false; });
+        }).then(function (hasText) {
+          if (hasText || !isBlankCanvas(pc.c)) out.push(fit(pc.c));
+          pc.c.width = pc.c.height = 0;
+        });
+      }).catch(function () {}).then(next);
+    }
+    return next();
   }
 
   /* 文字の層を、OCR の返り値と**同じ形**（画像に対する割合の矩形）に均す。
@@ -1474,14 +1601,15 @@
   /* 予備の読み込み方（<img> で描けなかったとき・W と H は1回目の buildWork が決めた大きさ）。
      縮めながら開ける端末では縮めて開く（大きな写真を原寸で開けない端末のため）。
      ★縦横が入れ替わって返ってきたら（向きを直す前に縮める端末）使わず、原寸で開き直す。 */
-  function altBitmap(file) {
+  function altBitmap(file, w, h) {
     if (typeof createImageBitmap !== 'function') return Promise.reject(tag('image_blank'));
-    var want = W / H;
+    w = w || W; h = h || H;                 // まとめて選んだ写真（prepImage）は1枚ごとの大きさを渡す
+    var want = w / h;
     var plain = function () {
       return createImageBitmap(file, { imageOrientation: 'from-image' })
         .catch(function () { return createImageBitmap(file); });
     };
-    return createImageBitmap(file, { imageOrientation: 'from-image', resizeWidth: W, resizeHeight: H, resizeQuality: 'high' })
+    return createImageBitmap(file, { imageOrientation: 'from-image', resizeWidth: w, resizeHeight: h, resizeQuality: 'high' })
       .then(function (b) {
         if (b && b.width && b.height && Math.abs(b.width / b.height - want) < 0.02) return b;
         try { if (b && b.close) b.close(); } catch (e) {}
@@ -1495,17 +1623,22 @@
        背景が透明な明細は、黒い字が黒い地に沈んで「真っ黒」になっていた。
        描けなかったときも塗った白が残るだけ＝送る前に blank() で見つけられる。 */
   function buildWork(bmp) {
+    work = fit(bmp);
+    W = work.width; H = work.height;
+  }
+  /* 送る形の canvas を1枚作る（続きのページ・まとめて選んだ写真も同じこれを通る）。 */
+  function fit(bmp) {
     var iw = bmp.width || bmp.naturalWidth, ih = bmp.height || bmp.naturalHeight;
     if (!iw || !ih) throw new Error('size');
     var s = Math.min(1, MAX_EDGE / Math.max(iw, ih));
-    W = Math.max(1, Math.round(iw * s));
-    H = Math.max(1, Math.round(ih * s));
-    work = document.createElement('canvas');
-    work.width = W; work.height = H;
-    var cx = work.getContext('2d');
+    var w = Math.max(1, Math.round(iw * s)), h = Math.max(1, Math.round(ih * s));
+    var c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    var cx = c.getContext('2d');
     cx.fillStyle = '#fff';
-    cx.fillRect(0, 0, W, H);
-    cx.drawImage(bmp, 0, 0, W, H);
+    cx.fillRect(0, 0, w, h);
+    cx.drawImage(bmp, 0, 0, w, h);
+    return c;
   }
 
   /* ★描けたかを、送る前に確かめる（2026-11-05）。一色だけの絵は明細ではありえない ──
@@ -2280,7 +2413,7 @@
     box.appendChild(el('div', 'ps-res-title', esc2(nIn > 0 ? T.resultTitleN(nIn) : T.resultTitle)));
     box.appendChild(el('p', 'ps-res-lead', T.resultLead));
     /* ★直すとき、自分の明細をその場で見比べられるように（2026-11-04）。別の明細を選び直す道もここに置く。
-       ★ページ数の注も残す（PDF の2ページ目以降は読んでいない＝足りない欄があるのはそのせい、と分かるように）。 */
+       ★ページ数の注も残す（読まなかったページがある・写真を1つの明細にまとめた、が分かるように）。 */
     if (pageNote) box.appendChild(el('p', 'ps-res-lead', esc2(pageNote)));
     if (viewUrl || fileInput) box.appendChild(bar([viewBtn(), chooseBtn()]));
     /* ★検算（サーバ側 reconcile()）が外れていたら、一般論の「自信がありません」ではなく

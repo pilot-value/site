@@ -147,7 +147,7 @@ globalThis.fetch = async (url, init = {}) => {
     if (outcomeRpc === 'missing') return new Response('{"message":"not found"}', { status: 404 });
     return Response.json(await add(db, kind));
   }
-  if (url === 'https://api.anthropic.com/v1/messages') return anthropic();
+  if (url === 'https://api.anthropic.com/v1/messages') return anthropic(init);
   if (url === 'https://api.resend.com/emails') { sent.push({ headers: init.headers, body: JSON.parse(init.body) }); return Response.json({ id: 'x' }); }
   throw new Error('想定していない通信: ' + url);
 };
@@ -273,6 +273,33 @@ ok(missing.length === 0, `payslip.js の失敗の語（${browserCodes.size}個�
 ok(/report\(why, 'file', file\.size\)/.test(PS) && /if \(stage !== 'server'\) report\(code, stage, 0\)/.test(PS),
    'payslip.js はファイルの失敗と、サーバー以外の段の失敗を知らせる（サーバーの失敗はサーバーが自分で送る）');
 ok(!/report\([^)]*(image_b64|b64|file\.name|amount)/.test(PS), 'payslip.js の知らせに画像・ファイル名・金額を渡していない');
+
+/* ★2ページに分かれた明細（2026-11-16）：続きのページは1回でまとめて頼み、「同じ明細か」を添えて返す */
+console.log('\n②-c 続きのページをまとめて送る');
+{
+  let seenReq = null;
+  const slipText = (o) => JSON.stringify({ currency: 'JPY', period: { year: 2026, month: 7 },
+    earnings: [{ label: '基本給', amount: '512345', kind: 'base' }], gross_total: '512345', deductions_total: null,
+    net_pay: null, ytd_taxable: null, hours: [], unmapped: [], confidence: 'high', ...o });
+  const asMulti = (o) => (init) => { seenReq = JSON.parse(init.body); return Response.json({ ...U, stop_reason: 'end_turn', content: [{ type: 'text', text: slipText(o) }] }); };
+  const IMG2 = Buffer.from('fake-image-bytes-page-two').toString('base64');
+  const n0 = counted.length;
+  anthropic = asMulti({ one_document: true });
+  let m = await post({ images_b64: [IMG, IMG2], mime: 'image/jpeg', lang: 'ja' });
+  const imgs = (seenReq?.messages?.[0]?.content || []).filter((c) => c.type === 'image').map((c) => c.source.data);
+  ok(m.body.ok === true && JSON.stringify(imgs) === JSON.stringify([IMG, IMG2]), '2枚を1回の頼みに、送られた順で並べる');
+  ok(m.body.one_document === true, '「同じ明細の続き」なら one_document: true を添えて返す');
+  ok(counted.length === n0 + 1, '★回数はページ数で数えない（1回の読み取りで1回）');
+  anthropic = asMulti({ one_document: false });
+  m = await post({ images_b64: [IMG, IMG2], mime: 'image/jpeg', lang: 'ja' });
+  ok(m.body.ok === true && m.body.one_document === false, '「別の明細」なら one_document: false（画面が1枚ずつに戻す）');
+  anthropic = asMulti({});
+  m = await call();
+  ok(m.body.ok === true && !('one_document' in m.body), '1枚のときは one_document を返さない（今までと同じ返事）');
+  m = await post({ images_b64: [IMG, IMG, IMG, IMG, IMG], mime: 'image/jpeg', lang: 'ja' });
+  ok(m.status === 413 && m.body.reason === 'too_many_images', '5枚は読む前に断る');
+  ok(!txt(last()).includes(IMG2), '知らせのメールに2枚目の画像が入らない');
+}
 
 // ═══ ③ 壊す証明 ════════════════════════════════════════════════
 console.log('\n③ 壊す証明');

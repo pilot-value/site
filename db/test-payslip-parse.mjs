@@ -45,7 +45,8 @@ globalThis.Deno = { env: { get: () => '' }, serve: () => {} };
 const { sanitize, periodOf, yearFromRaw, parseHours, reconcile, applyChecks, payTolerance, systemPrompt,
         EARNING_KINDS, HOUR_KINDS, VARIABLE_BASIS, isCountRow, COUNT_MAX,
         readMoneyNum, isAmbiguousMoney, detectDecMark, CUR_DEC,
-        buildRequest, readReply, readDiag, OUT_SCHEMA, MAX_TOKENS, READ_DEFAULT, READ_TIMEOUT_MS } =
+        buildRequest, readReply, readDiag, OUT_SCHEMA, MAX_TOKENS, READ_DEFAULT, READ_TIMEOUT_MS,
+        OUT_SCHEMA_MULTI, pagesNote, takeImages, MAX_PAGES } =
   await import('../supabase/functions/parse-payslip/index.ts');
 
 let pass = 0, fail = 0;
@@ -865,6 +866,66 @@ console.log('\n⑨-e ログは固定の欄だけ・どの失敗にも固定の�
      '★向こうの返事に時間切れを付けている（無いと画面が「読み取り中」のまま止まる）');
   ok(/parsed\.gross_total == null && parsed\.net_pay == null/.test(SRC),
      '★支給合計か手取りが読めていれば「明細ではない」で捨てない（一部だけ読めた分を残す）');
+}
+
+// ═══ ⑩ 2ページに分かれた明細（2026-11-16）═══════════════════════════
+/* JAL の会員の感想「給与明細が2ページに分かれていると読み込めない」。PDF は1ページ目だけ、
+   写真2枚は別々の明細として読み、後の1枚が前の1枚を消していた。続きのページを1回でまとめて送る。 */
+console.log('\n⑩ 続きのページをまとめて読む');
+{
+  const one = buildRequest('QUJD', 'image/jpeg', 'ja');
+  const t1 = one.messages[0].content.at(-1).text;
+  ok(one.messages[0].content.length === 2 && one.output_config.format.schema === OUT_SCHEMA && !/uploaded together/.test(t1),
+     '★1枚のときの頼み方は今までと同じ（画像1つ・文1つ・答えの形も同じ）');
+  const arr1 = buildRequest(['QUJD'], 'image/jpeg', 'ja');
+  ok(JSON.stringify(arr1) === JSON.stringify(one), '配列に1枚だけでも、1枚のときと1文字も違わない');
+  const two = buildRequest(['QUFB', 'QkJC'], 'image/jpeg', 'ja');
+  const c2 = two.messages[0].content;
+  ok(c2.length === 3 && c2[0].type === 'image' && c2[0].source.data === 'QUFB' && c2[1].source.data === 'QkJC' && c2[2].type === 'text',
+     '2枚：画像を送られた順に2つ並べ、最後に文を1つ');
+  ok(c2[2].text.startsWith(pagesNote(2)) && /Read this payslip and return the JSON object/.test(c2[2].text),
+     '2枚：文の頭に「続きのページ」の頼みを添え、あとは1枚のときと同じ文');
+  ok(two.output_config.format.schema === OUT_SCHEMA_MULTI, '2枚：答えの形に「同じ明細か」が入る');
+  const N = pagesNote(3);
+  ok(/^These 3 images/.test(N) && /count it once/.test(N), '★同じ行・合計が2ページに出ても1回だけ数えさせる');
+  ok(/set "one_document" to false and read ONLY the first\s+image/.test(N),
+     '★別の明細なら one_document:false で1枚目だけ読ませる（画面はそれを1枚目の答えとして使う）');
+  ok(/a monthly payslip\s+together with a separate bonus slip/.test(N), '★月の明細＋ボーナスの明細は「別の明細」だと言っている');
+
+  // 答えの形：足したのは真偽1つだけ
+  const extra = Object.keys(OUT_SCHEMA_MULTI.properties).filter((k) => !(k in OUT_SCHEMA.properties));
+  eq(extra, ['one_document'], '2枚のときの形が足すのは one_document だけ');
+  ok(OUT_SCHEMA_MULTI.properties.one_document.type === 'boolean' && OUT_SCHEMA_MULTI.required.includes('one_document')
+     && OUT_SCHEMA_MULTI.additionalProperties === false, 'one_document は真偽・必須・ほかの欄は増えない');
+  ok(JSON.stringify(OUT_SCHEMA.required).indexOf('one_document') < 0, '★1枚のときの形（OUT_SCHEMA）は変えていない');
+
+  // 受け取り
+  const T = (b) => takeImages(b);
+  eq(T({ image_b64: 'AAAA' }), { ok: true, imgs: ['AAAA'] }, '古い画面の image_b64（1枚）もそのまま受け取る');
+  eq(T({ images_b64: ['AAAA', 'BBBB'] }), { ok: true, imgs: ['AAAA', 'BBBB'] }, 'images_b64 は並びのまま受け取る');
+  eq(T({ images_b64: ['AAAA', 'BBBB'], image_b64: 'CCCC' }).imgs, ['AAAA', 'BBBB'], '両方あれば images_b64 を使う');
+  eq(T({ images_b64: Array(MAX_PAGES).fill('AA') }).ok, true, `${MAX_PAGES}枚までは受け取る`);
+  eq(T({ images_b64: Array(MAX_PAGES + 1).fill('AA') }), { ok: false, reason: 'too_many_images', status: 413 }, `${MAX_PAGES + 1}枚は断る`);
+  eq(T({}).reason, 'no_image', '画像が無ければ no_image');
+  eq(T({ images_b64: [] }).reason, 'no_image', '空の配列は no_image');
+  eq(T({ images_b64: ['AAAA', 5] }).reason, 'no_image', '文字列でないものが混ざれば no_image');
+  eq(T({ images_b64: ['AAAA', ''] }).reason, 'no_image', '空の1枚が混ざれば no_image');
+  eq(T({ image_b64: 'x'.repeat(8_500_001) }).reason, 'image_too_large', '1枚の上限（今までと同じ 8,500,000 字）');
+  eq(T({ images_b64: ['x'.repeat(8_000_000), 'x'.repeat(8_000_000), 'x'.repeat(8_000_000)] }).reason, 'image_too_large',
+     '★1枚ずつは上限の内でも、合わせて大きすぎれば断る');
+
+  // 本番の受け口がこれを通っている
+  ok(/const took = takeImages\(body\);/.test(SRC) && /if \(!took\.ok\) return json\(\{ ok: false, reason: took\.reason \}, took\.status\);/.test(SRC),
+     '★本番の受け口が takeImages を通している（試験と本番で受け取り方がずれない）');
+  ok(/const b64: string \| string\[\] = pages > 1 \? took\.imgs : took\.imgs\[0\];/.test(SRC),
+     '★1枚なら文字列で頼む（頼み方が今までと同じ）');
+  ok(/const doc = pages > 1 \? \{ one_document: \(got\.raw as Parsed\)\.one_document !== false \} : \{\};/.test(SRC),
+     '「同じ明細か」は2枚以上のときだけ返す');
+  const PS = readFileSync(path.join(ROOT, 'payslip.js'), 'utf8');
+  const psMax = PS.match(/var MAX_PAGES = (\d+);/);
+  ok(psMax && Number(psMax[1]) === MAX_PAGES, `★画面とサーバーで、まとめて送る枚数が同じ（${MAX_PAGES}）`);
+  ok(/var SPLIT = \{ no_image: 1,/.test(PS),
+     '★この版より古い関数（no_image）なら、画面は今までどおり1枚ずつ読み直す（Deploy より先に push しても壊れない）');
 }
 
 console.log(`\n${pass} pass / ${fail} fail`);

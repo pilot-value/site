@@ -63,7 +63,7 @@
       （上げ忘れると「貼り替えたのに古い日付」で、かえって判断を誤らせる）。
    ⚠️ この札そのものが貼り直しなので、**今ある本番の版の証拠にはならない**。
       次に貼った回から効く。 */
-const BUILD = '2026-11-11';
+const BUILD = '2026-11-16';
 
 const ANTHROPIC_API_KEY =
   Deno.env.get('ANTHROPIC_API_KEY_PAYSLIP') || Deno.env.get('ANTHROPIC_API_KEY') || '';
@@ -98,6 +98,11 @@ const FROM_EMAIL = Deno.env.get('FROM_EMAIL') ?? 'PILOT VALUE <noreply@pilot-val
 
 const MODEL = 'claude-sonnet-5';
 const MAX_B64 = 8_500_000;           // ≒ 6MB の画像
+/* ★2ページに分かれた明細（2026-11-16・JAL の会員の感想「給与明細が2ページに分かれていると読み込めない」）。
+   続きのページを1回でまとめて受け取る枚数と、合わせた大きさの上限（≒ 15MB）。
+   ⚠️ 1日の回数はページ数で数えない（1回の読み取りで1回）。 */
+export const MAX_PAGES = 4;
+const MAX_B64_TOTAL = 20_000_000;
 const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp'];
 
 /* こちらの語彙。ここに無いものは unmapped に落ちる。
@@ -1386,10 +1391,31 @@ export const OUT_SCHEMA = {
     confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
   },
 };
+/* ★続きのページをまとめて送ったときだけの形（2026-11-16）。1枚のときは OUT_SCHEMA のまま＝今と1文字も違わない。
+   足すのは one_document（同じ明細の続きか）の真偽1つだけ＝人を指しうる字は入らない。
+   false のとき、画面は返ってきた1枚目の答えを使い、2枚目からは今までどおり1枚ずつ読む（payslip.js）。 */
+export const OUT_SCHEMA_MULTI = {
+  ...OUT_SCHEMA,
+  required: [...OUT_SCHEMA.required, 'one_document'],
+  properties: { ...OUT_SCHEMA.properties, one_document: { type: 'boolean' } },
+};
+/* 2枚以上のときだけ、画像のあとの文の頭に添える。年初来の列を読まない・印字の合計を写す、は systemPrompt の規則のまま。 */
+export function pagesNote(n: number): string {
+  return `These ${n} images were uploaded together, in this order. Most often they are consecutive pages of ONE` +
+    ' monthly payslip (for example, the earnings on the first page and more allowances, the totals or the deductions' +
+    ' on the next). If they are pages of the same payslip for the same month, read them together as one payslip: take' +
+    ' the lines from every page, and when the same line or total is printed on more than one page, count it once.' +
+    ' Set "one_document" to true. If they are clearly NOT the same payslip — different months, a monthly payslip' +
+    ' together with a separate bonus slip, or different people — set "one_document" to false and read ONLY the first' +
+    ' image. ';
+}
 
-/* Anthropic に渡す要求。★本番（下の Deno.serve）と試験（db/eval-payslip.mjs）が同じこれを呼ぶ。 */
-export function buildRequest(b64: string, mime: string, lang: string, opt: ReadOpts = {}): Record<string, unknown> {
+/* Anthropic に渡す要求。★本番（下の Deno.serve）と試験（db/eval-payslip.mjs）が同じこれを呼ぶ。
+   b64 は1枚なら文字列、続きのページなら配列（2〜MAX_PAGES 枚・並びはページの順）。 */
+export function buildRequest(b64: string | string[], mime: string, lang: string, opt: ReadOpts = {}): Record<string, unknown> {
   const o = { ...READ_DEFAULT, ...opt };
+  const pages = Array.isArray(b64) ? b64 : [b64];
+  const many = pages.length > 1;
   const body: Record<string, unknown> = {
     model: MODEL,
     max_tokens: o.maxTokens ?? MAX_TOKENS,
@@ -1398,14 +1424,15 @@ export function buildRequest(b64: string, mime: string, lang: string, opt: ReadO
     messages: [{
       role: 'user',
       content: [
-        { type: 'image', source: { type: 'base64', media_type: mime, data: b64 } },
-        { type: 'text', text: 'Read this payslip and return the JSON object described in the system prompt. Today is ' +
+        ...pages.map((d) => ({ type: 'image', source: { type: 'base64', media_type: mime, data: d } })),
+        { type: 'text', text: (many ? pagesNote(pages.length) : '') +
+            'Read this payslip and return the JSON object described in the system prompt. Today is ' +
             new Date().toISOString().slice(0, 10) + '.' },
       ],
     }],
   };
   const oc: Record<string, unknown> = {};
-  if (o.schema !== false) oc.format = { type: 'json_schema', schema: OUT_SCHEMA };
+  if (o.schema !== false) oc.format = { type: 'json_schema', schema: many ? OUT_SCHEMA_MULTI : OUT_SCHEMA };
   if (o.effort) oc.effort = o.effort;
   if (Object.keys(oc).length) body.output_config = oc;
   return body;
@@ -1439,6 +1466,22 @@ export function readReply(reply: unknown): ReadOutcome {
   try { v = JSON.parse(String(tb.text)); } catch { return no('read_bad_format'); }
   if (!v || typeof v !== 'object' || Array.isArray(v)) return no('read_bad_format');
   return { ok: true, raw: v as Parsed, stop, it, ot };
+}
+
+/* 送られてきた画像を取り出す（2026-11-16）。続きのページは images_b64（1〜MAX_PAGES 枚）、1枚は image_b64。
+   ★image_b64 を受け続ける：古い payslip.js が Cloudflare に最長4時間残る（その間も今までどおり読める）。
+   ★逆に、この版を貼る前の古い関数は images_b64 を知らず no_image を返す ── 画面はそれを見て
+     今までどおり1枚ずつ読み直す（payslip.js の SPLIT）＝ Deploy と push の順を間違えても壊れない。 */
+export function takeImages(body: Parsed): { ok: true; imgs: string[] } | { ok: false; reason: string; status: number } {
+  const list: unknown[] = Array.isArray(body.images_b64) ? body.images_b64
+    : typeof body.image_b64 === 'string' ? [body.image_b64] : [];
+  if (!list.length || list.some((s) => typeof s !== 'string' || !s)) return { ok: false, reason: 'no_image', status: 400 };
+  if (list.length > MAX_PAGES) return { ok: false, reason: 'too_many_images', status: 413 };
+  const imgs = list as string[];
+  if (imgs.some((s) => s.length > MAX_B64) || imgs.reduce((n, s) => n + s.length, 0) > MAX_B64_TOTAL) {
+    return { ok: false, reason: 'image_too_large', status: 413 };
+  }
+  return { ok: true, imgs };
 }
 
 /* ログ1行ぶんの入れ物。★欄はこれだけ（足すときは、それが中身を運ばないかを先に考える）。 */
@@ -1485,13 +1528,16 @@ Deno.serve(async (req) => {
   }
   /* ★ここから下、body の中身を console に出さない（画像も金額もラベルも）。 */
 
-  const b64 = typeof body.image_b64 === 'string' ? body.image_b64 : '';
+  const took = takeImages(body);
   const mime = typeof body.mime === 'string' ? body.mime : 'image/jpeg';
   const lang = body.lang === 'en' ? 'en' : 'ja';
 
-  if (!b64) return json({ ok: false, reason: 'no_image' }, 400);
-  if (b64.length > MAX_B64) return json({ ok: false, reason: 'image_too_large' }, 413);
+  if (!took.ok) return json({ ok: false, reason: took.reason }, took.status);
   if (!ALLOWED_MIME.includes(mime)) return json({ ok: false, reason: 'bad_mime' }, 415);
+  /* 1枚なら文字列のまま（頼み方が今と1文字も違わない）。2枚以上は続きのページの配列。 */
+  const pages = took.imgs.length;
+  const b64: string | string[] = pages > 1 ? took.imgs : took.imgs[0];
+  const b64len = took.imgs.reduce((n, s) => n + s.length, 0);
 
   /* ── 回数制限：ログインの有無にかかわらず 1日 DAILY_LIMIT 回 ───────
      数える単位だけが違う（ログイン＝本人／未ログイン＝IP）。 */
@@ -1520,7 +1566,7 @@ Deno.serve(async (req) => {
          正直に「いま使えない」と言う。SQL より先に関数を貼るとここに来る。
        ★読み取りが止まっている＝運営に知らせる（DB に届かないことが多いので、数えずに送る道もある）。 */
     await noteOutcome('ng', {
-      code: 'quota_unavailable', where: 'server', stage: 'quota', ms: 0, kb: Math.round((b64.length * 3) / 4 / 1024), stop: '', status: 503,
+      code: 'quota_unavailable', where: 'server', stage: 'quota', ms: 0, kb: Math.round((b64len * 3) / 4 / 1024), stop: '', status: 503,
     });
     return json({ ok: false, reason: 'quota_unavailable' }, 503);
   }
@@ -1529,7 +1575,7 @@ Deno.serve(async (req) => {
   /* ★1回の読み取りにつき、ログは1行だけ（終わった所で出す）。中身は readDiag の固定の欄だけ
      ── 段階・固定コード・上流の HTTP ステータス・stop_reason・ミリ秒・トークン数・画像の大きさ・版。
      画像・明細の文字・金額・氏名・AI の生の答えは1文字も入らない（入れる口が無い）。 */
-  const diag = readDiag(b64.length);
+  const diag = readDiag(b64len);
   const t0 = Date.now();
   const finish = async (reason: string, code: string) => {
     diag.code = code;
@@ -1624,5 +1670,7 @@ Deno.serve(async (req) => {
   await noteOutcome('ok', null);
   /* ★sanitize（形を整える）と reconcile（合っているか確かめる）は別の仕事。
      混ぜると「整えるついでに黙って直す」ようになり、間違いが見えなくなる。 */
-  return json({ ok: true, result: applyChecks(parsed, reconcile(parsed)), build: BUILD });
+  /* 続きのページとして送られたときだけ、AI が「同じ明細の続き」と見たかを添える（真偽だけ）。 */
+  const doc = pages > 1 ? { one_document: (got.raw as Parsed).one_document !== false } : {};
+  return json({ ok: true, result: applyChecks(parsed, reconcile(parsed)), ...doc, build: BUILD });
 });
