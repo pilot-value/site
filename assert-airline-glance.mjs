@@ -5204,7 +5204,8 @@ async function runWork(browser, s, [w, h], only) {
         if (x.state !== 'open' || !x.on) b.push(`${nm(sf)}が ${x.state}${x.on ? '' : '・見えていない'}`);
         if (!r) b.push(`「${label(row)}」が無い`);
         else {
-          if (!r.text.includes(people(row))) b.push(`「${label(row)}」に「${people(row)}」が無い「${r.text.slice(0, 60)}」`);
+          /* 人数はカードの頭の小さい字だけ（子の1行は「名前：答え」だけ・2026-11-16 カードは押しても開かない） */
+          if (r.head && !r.text.includes(people(row))) b.push(`「${label(row)}」に「${people(row)}」が無い「${r.text.slice(0, 60)}」`);
           if (!r.tile.startsWith(short(top) + ' › ')) b.push(`「${label(row)}」のカードの名前「${r.tile}」（あるべき「${short(top)} › …」）`);
         }
         if (x.rows.some(r => r.k === label(top))) b.push(`返事に無い親の質問「${label(top)}」の答えが在る`);
