@@ -906,12 +906,11 @@
 @container crlfact (min-width:300px){.pvg-got .crl-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @container crlfact (min-width:620px){.pvg-got .crl-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @container crlfact (min-width:880px){.pvg-got .crl-tiles{grid-template-columns:repeat(4,minmax(0,1fr))}}
-.pvg-got .crl-tile-sum{row-gap:4px;padding:12px 14px}
+.pvg-got .crl-tile{row-gap:4px;padding:12px 14px}
 .pvg-got .crl-tile-k{font-size:13px}
 .pvg-got .crl-tile-v{gap:5px;font-size:16px}
 .pvg-got .crl-tile-m{font-size:12px}
 .pvg-got .crl-tile-s{font-size:13px}
-.pvg-got .crl-tile-q{padding:0 14px 12px}
 .pvg-got .crl-fact:last-child{border-bottom:0}
 /* 質問の行は、話題の札より一段軽く（枠なし・細い字・行のあいだに細い線）。話題の名前が先に目に入るように。
    ⚠️ 触れた時の地と枠は、ここで言い直す（上の行が .pvg-ask a:hover と同じ強さで後ろに在るので、言い直さないと黙って消える）。

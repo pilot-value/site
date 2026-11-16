@@ -2450,20 +2450,21 @@ const factRowBad = (r, f, at) => {
   const id = W.split ? 'r3' : W.median != null ? 'r5' : W.lead.length > 1 ? 'r4' : 'r2';
   if (!r.on) say(id, '見えていない');
   if (r.v !== v) say(id, `答えの字「${r.v}」（あるべき「${v}」）`);
-  if (how && !same(r.how, [how])) say(id, `「${how}」の字が無い（${r.how.join('・') || '無し'}）`);
+  if (how && !r.sub && !same(r.how, [how])) say(id, `「${how}」の字が無い（${r.how.join('・') || '無し'}）`);
   if (W.split) {
     if (r.how.length || /最多|中央値/.test(r.ans)) say(id, `分かれた行に「最多」「中央値」が在る（${r.ans}）`);
     const hit = names.filter(n => r.ans.includes(n));
     if (hit.length) say(id, `分かれた行に、答えの名前が在る（${hit.join('・')}）`);
   }
-  const ppl = r.m.filter(x => /人/.test(x));
-  if (ppl.length !== 1 || ppl[0] !== people) say('r7', `人数の字「${ppl.join('・')}」（あるべき「${people}」の1つだけ）`);
   const items = [...(how ? [how] : []), people, month];
-  if (!same(r.m, items)) say('r8', `小さい字「${r.m.join('｜')}」（あるべき「${items.join('｜')}」）`);
-  /* ★2026-11-10 カードの形：親（カードの頭）＝ 答え・小さい字・元の疑問文。子（カードの中の1行）＝ 短い名前・答え ＋ 元の疑問文・答え・小さい字 */
-  const own = r.sub ? q.ja.short + v + q.ja.label + v + ' · ' + items.join(' · ') : v + items.join(' · ') + q.ja.label;
+  if (!r.sub) {
+    const ppl = r.m.filter(x => /人/.test(x));
+    if (ppl.length !== 1 || ppl[0] !== people) say('r7', `人数の字「${ppl.join('・')}」（あるべき「${people}」の1つだけ）`);
+    if (!same(r.m, items)) say('r8', `小さい字「${r.m.join('｜')}」（あるべき「${items.join('｜')}」）`);
+  }
+  /* ★2026-11-16 カードの形：親（カードの頭）＝ 答え・小さい字。子（カードの中の1行）＝ 短い名前・答え（小さい字も元の疑問文も無い） */
+  const own = r.sub ? q.ja.short + v : v + items.join(' · ');
   if (squash(r.text) !== squash(own)) say('r8', `行に、質問・答え・小さい字のほかの字が在る「${r.text}」`);
-  if (r.sub && r.qaV !== v) say(id, `子の行の、開いた中の答えの字「${r.qaV}」（あるべき「${v}」）`);
   if (!r.sub && r.label !== q.ja.short && !r.label.endsWith(' › ' + q.ja.short)) say('r8', `カードの名前「${r.label}」（あるべき「${q.ja.short}」か「親 › ${q.ja.short}」）`);
   /* 属性：class（数字なし）・答えの印 data-mark（y/n/p）・分かれた印 data-split="1" のほかは置かない（印の絵 svg の中は見ない） */
   const attrs = r.attrs.filter(([n, val]) => !((n === 'class' && !/\d/.test(val)) || (n === 'data-mark' && /^[ynp]$/.test(val)) || (n === 'data-split' && val === '1')));
@@ -2480,25 +2481,24 @@ const tileOrder = (ids, keys) => {
 };
 /* ページの中で、集計の欄（sel）の行を読む。attrs ＝ 行とその中の要素が持つ属性ぜんぶ（字に出なくても、属性に数が入っていれば分かる）。 */
 /* ★2026-11-10 1問＝1枚のカード（.crl-tile）。1枚に、いちばん上の親の質問（カードの頭）と、その子の質問（カードの中の1行 .crl-tile-s）。
-   元の疑問文は押すと開く中（.crl-tile-qt。頭の質問が先・子が続く）。ここでは質問ごとの「行」に読み直して返す（k ＝ 元の疑問文）。 */
+   ★2026-11-16 カードは押しても開かない（元の疑問文はカードに無い）。質問は短い名前で見分ける（k ＝ 短い名前。
+   頭はカードの名前の「›」の後ろ・子は1行の名前）。子の1行は「名前：答え」だけ（小さい字は持たない）。 */
 const factRowsOf = (p, sel) => p.evaluate(sel => {
   const vis = el => !!el && el.getClientRects().length > 0, tx = el => (el ? el.textContent : '').trim();
-  const own = q => { const c = q.cloneNode(true); c.querySelectorAll('.crl-tile-qa').forEach(x => x.remove()); return c.textContent.trim(); };
   const HOW = ['最多', '中央値'], out = [];
   for (const t of document.querySelectorAll(sel + ' .crl-tile')) {
-    const sum = t.querySelector('.crl-tile-sum'), qts = [...t.querySelectorAll('.crl-tile-qt')], lines = [...t.querySelectorAll('.crl-tile-s')];
-    const vEl = sum && sum.querySelector('.crl-tile-v'), mEl = sum && sum.querySelector('.crl-tile-m');
+    const lines = [...t.querySelectorAll('.crl-tile-s')], label = tx(t.querySelector('.crl-tile-k'));
+    const vEl = t.querySelector('.crl-tile-v'), mEl = t.querySelector('.crl-tile-m');
     const m = tx(mEl).split(' · ').filter(Boolean);
     out.push({
-      on: vis(sum), sub: false, label: tx(t.querySelector('.crl-tile-k')), k: qts[0] ? own(qts[0]) : '', v: tx(vEl), m, how: m.filter(x => HOW.includes(x)),
-      ans: tx(vEl) + tx(mEl), text: tx(vEl) + tx(mEl) + (qts[0] ? tx(qts[0]) : ''),
+      on: vis(t), sub: false, label, k: label.split(' › ').pop(), v: tx(vEl), m, how: m.filter(x => HOW.includes(x)),
+      ans: tx(vEl) + tx(mEl), text: tx(vEl) + tx(mEl),
       attrs: [t, ...t.querySelectorAll('*')].filter(e => !e.closest('svg')).flatMap(e => [...e.attributes].map(a => [a.name, a.value])),
     });
-    lines.forEach((ln, i) => {
-      const q = qts[i + 1], parts = (q ? tx(q.querySelector('.crl-tile-qa')) : '').split(' · '), mm = parts.slice(1);
+    lines.forEach(ln => {
       out.push({
-        on: vis(ln), sub: true, label: tx(t.querySelector('.crl-tile-k')), k: q ? own(q) : '', v: tx(ln.querySelector('span')), qaV: parts[0], m: mm, how: mm.filter(x => HOW.includes(x)),
-        ans: tx(ln) + (q ? tx(q.querySelector('.crl-tile-qa')) : ''), text: tx(ln) + (q ? tx(q) : ''), attrs: [],
+        on: vis(ln), sub: true, label, k: tx(ln.querySelector('b')), v: tx(ln.querySelector('span')), m: [], how: [],
+        ans: tx(ln), text: tx(ln), attrs: [],
       });
     });
   }
@@ -2515,14 +2515,14 @@ async function digestRowsOk(p, tag, sel, keys) {
      r2〜r8 は factRowBad。 */
   const shown = want.filter(f => !f.want.none), rb = [];
   if (rows.length !== shown.length) rb.push(`r1 回答の行 ${rows.length}（あるべき ${shown.length}）：${rows.map(r => r.k.slice(0, 10)).join('｜')}`);
-  for (const f of want.filter(f => f.want.none)) if (rows.some(r => r.k === QBY.get(f.question_id).ja.label)) rb.push(`r6 出さないはずの行が在る「${QBY.get(f.question_id).ja.label}」`);
+  for (const f of want.filter(f => f.want.none)) if (rows.some(r => r.k === QBY.get(f.question_id).ja.short)) rb.push(`r6 出さないはずの行が在る「${QBY.get(f.question_id).ja.short}」`);
   for (const [i, f] of shown.entries()) {
-    const r = rows.find(x => x.k === QBY.get(f.question_id).ja.label);
-    if (!r) rb.push(`r1 ${i + 1}行め: 「${QBY.get(f.question_id).ja.label}」の行が無い`);
+    const r = rows.find(x => x.k === QBY.get(f.question_id).ja.short);
+    if (!r) rb.push(`r1 ${i + 1}行め: 「${QBY.get(f.question_id).ja.short}」の行が無い`);
     else rb.push(...factRowBad(r, f, `${i + 1}行め`));
   }
   const order = tileOrder(shown.map(f => f.question_id), keys);
-  if (rows.length === shown.length && !same(rows.map(r => r.k), order.map(id => QBY.get(id).ja.label))) rb.push('r1 行の並びが、欄が持つ質問の並び（いちばん上の親ごとのカード）と違う');
+  if (rows.length === shown.length && !same(rows.map(r => r.k), order.map(id => QBY.get(id).ja.short))) rb.push('r1 行の並びが、欄が持つ質問の並び（いちばん上の親ごとのカード）と違う');
   const of = (...ids) => rb.filter(b => ids.some(id => b.startsWith(id + ' ')));
   ok(!of('r1', 'r2', 'r3', 'r4', 'r5', 'r6').length, `${tag}: 集まった回答の行 ── いちばん多い答えが1つの時だけ、その名前に「最多」（選べるだけ選ぶ質問で並んだ時は、並んだ答えぜんぶ）・並んだ時は「${SPLIT_TEXT}」・数の質問は「中央値」・読めない行は出さない`, of('r1', 'r2', 'r3', 'r4', 'r5', 'r6').join(' ／ '));
   ok(!of('r7').length, `${tag}: 集まった回答の人数は、どの行も「回答 N人」の1つだけ（N ＝ その質問に答えた人の数）`, of('r7').join(' ／ '));
@@ -2541,10 +2541,10 @@ async function benRowsOk(p, tag) {
   const shown = BEN_ROWS.filter(f => !f.want.none), bad = [];
   if (!up) bad.push('待遇の板の集計の欄が、出てこない／落ち着かない');
   else {
-    if (!same(rows.map(r => r.k), shown.map(f => QBY.get(f.question_id).ja.label))) bad.push(`行「${rows.map(r => r.k).join('｜')}」（あるべき ${shown.length}行：${shown.map(f => f.question_id).join('・')}）`);
+    if (!same(rows.map(r => r.k), shown.map(f => QBY.get(f.question_id).ja.short))) bad.push(`行「${rows.map(r => r.k).join('｜')}」（あるべき ${shown.length}行：${shown.map(f => f.question_id).join('・')}）`);
     else for (const [i, f] of shown.entries()) bad.push(...factRowBad(rows[i], f, `${i + 1}行め`));
     for (const f of BEN_ROWS.filter(f => f.want.none)) {
-      if (all.some(r => r.k === QBY.get(f.question_id).ja.label)) bad.push(`出さないはずの行が在る「${QBY.get(f.question_id).ja.label}」`);
+      if (all.some(r => r.k === QBY.get(f.question_id).ja.short)) bad.push(`出さないはずの行が在る「${QBY.get(f.question_id).ja.short}」`);
       if (f.median_num != null && all.some(r => r.text.includes(String(f.median_num)))) bad.push(`額の数字 ${f.median_num} が、行に出ている`);
     }
   }
@@ -4976,19 +4976,18 @@ async function runWork(browser, s, [w, h], only) {
       lock: [...e.querySelectorAll('.crl-lock')].map(sq), retry: [...e.querySelectorAll('.crl-retry')].filter(vis).length,
       links: [...e.querySelectorAll('a')].map(a => ({ text: sq(a), on: vis(a), login: a.hasAttribute('data-crl-login'), cta: a.classList.contains('crl-cta'), give: a.getAttribute('data-crl-give') === '1' })),
       cards: [...e.querySelectorAll('.crl-give')].map(c => ({ on: vis(c), head: [...c.querySelectorAll('.crl-give-h')].map(tr), count: [...c.querySelectorAll('.crl-give-n')].map(tr) })),
-      /* ★2026-11-10 カードの形。rows ＝ 質問ごと（k ＝ 元の疑問文・tile ＝ そのカードの名前・head ＝ カードの頭の質問か） */
+      /* ★2026-11-10 カードの形。rows ＝ 質問ごと（k ＝ 短い名前・tile ＝ そのカードの名前・head ＝ カードの頭の質問か）。
+         ★2026-11-16 元の疑問文はカードに無い ＝ 頭はカードの名前の「›」の後ろ・子は1行の名前で見分ける */
       rows: [...e.querySelectorAll('.crl-tile')].flatMap(t => {
-        const qts = [...t.querySelectorAll('.crl-tile-qt')], lines = [...t.querySelectorAll('.crl-tile-s')], label = tr(t.querySelector('.crl-tile-k'));
-        const own = q => { const c = q.cloneNode(true); c.querySelectorAll('.crl-tile-qa').forEach(x => x.remove()); return c.textContent.trim(); };
-        const sum = t.querySelector('.crl-tile-sum');
-        return [{ head: true, tile: label, k: qts[0] ? own(qts[0]) : '', v: tr(sum && sum.querySelector('.crl-tile-v')), text: sq(sum && sum.querySelector('.crl-tile-v')) + sq(sum && sum.querySelector('.crl-tile-m')) },
-          ...lines.map((ln, i) => ({ head: false, tile: label, k: qts[i + 1] ? own(qts[i + 1]) : '', v: tr(ln.querySelector('span')), text: sq(ln) + sq(qts[i + 1]) }))];
+        const lines = [...t.querySelectorAll('.crl-tile-s')], label = tr(t.querySelector('.crl-tile-k'));
+        return [{ head: true, tile: label, k: label.split(' › ').pop(), v: tr(t.querySelector('.crl-tile-v')), text: sq(t.querySelector('.crl-tile-v')) + sq(t.querySelector('.crl-tile-m')) },
+          ...lines.map(ln => ({ head: false, tile: label, k: tr(ln.querySelector('b')), v: tr(ln.querySelector('span')), text: sq(ln) }))];
       }),
       keyList: (e.getAttribute('data-keys') || '').split(',').filter(Boolean),
       subs: (e.getAttribute('data-sub') || '').split(',').map(x => x.split(':')[0]).filter(Boolean),
       tiles: [...e.querySelectorAll('.crl-tile')].map(t => ({ label: tr(t.querySelector('.crl-tile-k')), ghost: !!t.querySelector('.crl-ghost'),
         ghostText: sq(t.querySelector('.crl-ghost')), text: sq(t), on: vis(t) })),
-      bare: (c => { c.querySelectorAll('.crl-tile-k, .crl-tile-qt').forEach(x => x.remove()); return c.textContent.replace(/\s+/g, ''); })(e.cloneNode(true)),
+      bare: (c => { c.querySelectorAll('.crl-tile-k').forEach(x => x.remove()); return c.textContent.replace(/\s+/g, ''); })(e.cloneNode(true)),
     }));
     const head = {};
     for (const f of P.querySelectorAll('.pvg-sf')) { const hd = f.querySelector('.pvg-sf-got > .pvg-askh'); if (hd) head[f.getAttribute('data-sf')] = { on: vis(hd), text: tr(hd) }; }
@@ -5121,12 +5120,12 @@ async function runWork(browser, s, [w, h], only) {
       ]);
     }
     /* B5 鍵の無い人にも質問を見せる（2026-11-09 オーナー「ログインしていない・給与を提出していない人にも質問を見せて、回答はぼかして」）。
-       サーバーが質問の id（has）を返すと、4つの集計の欄は、has のうち欄が持つ親の無い質問だけをカード（短い名前・元の疑問文・字の無い影絵）で
+       サーバーが質問の id（has）を返すと、4つの集計の欄は、has のうち欄が持つ親の無い質問だけをカード（短い名前・字の無い影絵）で
        欄の質問の並びに並べ、下に鍵の1行と入口。子の質問（サーバーが間違えて送ってきても）・欄の外の質問は出さない。答えの字・数字は1つも無い。
        黙る2つの面も見出しごと出る（各カードが自分で鍵の1行を言う ＝ 板の添え書きは出さない）。上の B1・B2 は has の無い返事（古いサーバー）の絵。 */
     for (const [mode, who, line, go] of [['maskLogin', '未ログイン', LOGIN_LINE, LOGIN_GO], ['maskRows', '鍵の無い会員', PAY_LINE, PAY_GO]]) {
       const tag = `${s} ${w}（勤務・訓練・${who}・質問だけ）`, K = await load(mode, who);
-      say(tag, `4つの集計の欄は、届いた質問のうち欄が持つ親の無い質問だけのカード（短い名前・元の疑問文・字の無い影絵）と「${line}」「${go}」── 子の質問・欄の外の質問・数字は無い`, K, R => FOUR.flatMap(sf => {
+      say(tag, `4つの集計の欄は、届いた質問のうち欄が持つ親の無い質問だけのカード（短い名前・字の無い影絵）と「${line}」「${go}」── 子の質問・欄の外の質問・数字は無い`, K, R => FOUR.flatMap(sf => {
         const x = pick(R, 'fact', sf);
         if (!x) return [`${nm(sf)}が無い`];
         const want = x.keyList.filter(k => MASK_HAS.includes(k) && !x.subs.includes(k)), b = [];
@@ -5137,7 +5136,7 @@ async function runWork(browser, s, [w, h], only) {
           const q = want[i] && QBY.get(want[i]);
           if (!t.on) b.push(`${nm(sf)}の「${t.label}」が見えていない`);
           if (!t.ghost || t.ghostText) b.push(`${nm(sf)}の「${t.label}」に字の無い影絵が無い${t.ghostText ? `（字「${t.ghostText}」）` : ''}`);
-          if (q && t.text !== squash(q.ja.short + q.ja.label)) b.push(`${nm(sf)}の「${t.label}」に、名前と疑問文のほかの字が在る「${t.text.slice(0, 50)}」`);
+          if (q && t.text !== squash(q.ja.short)) b.push(`${nm(sf)}の「${t.label}」に、名前のほかの字が在る「${t.text.slice(0, 50)}」`);
         }
         if (!same(x.lock, [line])) b.push(`${nm(sf)}の1行「${x.lock.join('｜')}」`);
         if (!x.links.some(a => a.on && a.text === go)) b.push(`${nm(sf)}に入口「${go}」が無い（${x.links.map(a => a.text).join('｜') || '無し'}）`);
@@ -5195,7 +5194,7 @@ async function runWork(browser, s, [w, h], only) {
         }
         return X;
       });
-      const label = id => QBY.get(id).ja.label, people = id => `${FACT_ROWS.find(f => f.question_id === id).n}人`;
+      const label = id => QBY.get(id).ja.short, people = id => `${FACT_ROWS.find(f => f.question_id === id).n}人`;
       /* ★2026-11-10 カードの形：親の答えが返事に無い子は、いちばん上の親の短い名前を頭に付けたカード（「親 › 子」）に入る ── 親の値は書かない */
       const short = id => QBY.get(id).ja.short;
       const under = (sf, row, top) => R => {

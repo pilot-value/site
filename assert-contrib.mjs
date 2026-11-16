@@ -6418,11 +6418,11 @@ async function main() {
     const asked = (id) => LEDGER.find((x) => x.id === id);
     /* 置く回答：2問とも、台帳のいちばん上の選択肢（符号は台帳から読む。打ち込まない） */
     const SEED = ['reserve_duty', 'staff_travel'].map((id) => ({ question_id: id, code: asked(id).choices[0].code }));
-    const DUTY = asked('reserve_duty').ja.label, TRAVEL = asked('staff_travel').ja.label;
+    const DUTY = asked('reserve_duty').ja.short, TRAVEL = asked('staff_travel').ja.short;   // カードに出る名前（元の疑問文はカードに無い・2026-11-16）
     const DUTY_SHORT = asked('reserve_duty').ja.short;
     /* ★2026-11-09 オーナー「ログインしていない・給与を提出していない人にも質問を見せて、回答はぼかして」。
        開いていない人への集計の返事 ＝ ok・has・state だけ（has ＝ 3人そろった親の無い質問の id。この会社では SEED の2問）。
-       集計の欄は、has に欄の質問があれば「質問だけのカード」（masked：短い名前・元の疑問文・字の無い影絵・鍵の1行と入口）、
+       集計の欄は、has に欄の質問があれば「質問だけのカード」（masked：短い名前・字の無い影絵・鍵の1行と入口）、
        無ければ「まだ集計がありません」（empty）。黙る2つの欄も、もう隠れない（各カードが自分で鍵の1行を言う ＝ 板の添え書きは出ない）。 */
     const HAS_CX = SEED.map((x) => x.question_id).sort(), FACT_NONE = 'まだ集計がありません';
     /* この会社で質問だけのカードになる面（has の2問を持つ面）と、そこに出る入口 */
@@ -6521,9 +6521,11 @@ async function main() {
         at: e.closest('.pvg-got') ? 'got' : ((e.closest('.pvg-panel') || {}).id || ''),
         sf: e.getAttribute('data-sf') || '', keys: (e.getAttribute('data-keys') || '').split(',').filter(Boolean),
         text: tx(e), lock: [...e.querySelectorAll('.crl-lock')].map(tx),
-        /* ★2026-11-10 カードの形：答えのあるカードを、質問ごと（頭の質問・中の子の質問）に読み直す。k ＝ 元の疑問文 */
-        rows: [...e.querySelectorAll('.crl-tile')].filter((t) => t.querySelector('.crl-tile-v')).flatMap((t) => { const own = (q) => { const c = q.cloneNode(true); c.querySelectorAll('.crl-tile-qa').forEach((x) => x.remove()); return c.textContent.trim(); }, qts = [...t.querySelectorAll('.crl-tile-qt')]; return [{ k: qts[0] ? own(qts[0]) : '', meta: tx(t.querySelector('.crl-tile-m')).split(' · ').filter(Boolean) }, ...[...t.querySelectorAll('.crl-tile-s')].map((ln, i) => ({ k: qts[i + 1] ? own(qts[i + 1]) : '', meta: (qts[i + 1] ? tx(qts[i + 1].querySelector('.crl-tile-qa')) : '').split(' · ').slice(1) }))]; }),
-        bare: ((c) => { c.querySelectorAll('.crl-tile-k, .crl-tile-qt').forEach((x) => x.remove()); return c.textContent.trim(); })(e.cloneNode(true)),
+        /* ★2026-11-10 カードの形：答えのあるカードを、質問ごと（頭の質問・中の子の質問）に読み直す。
+           ★2026-11-16 カードは押しても開かない（元の疑問文はカードに無い）＝ k は短い名前（頭はカードの名前の「›」の後ろ・子は1行の名前）。
+             子の1行は「名前：答え」だけ（小さい字を持たない ＝ meta は空） */
+        rows: [...e.querySelectorAll('.crl-tile')].filter((t) => t.querySelector('.crl-tile-v')).flatMap((t) => [{ k: tx(t.querySelector('.crl-tile-k')).split(' › ').pop(), meta: tx(t.querySelector('.crl-tile-m')).split(' · ').filter(Boolean) }, ...[...t.querySelectorAll('.crl-tile-s')].map((ln) => ({ k: tx(ln.querySelector('b')), meta: [] }))]),
+        bare: ((c) => { c.querySelectorAll('.crl-tile-k').forEach((x) => x.remove()); return c.textContent.trim(); })(e.cloneNode(true)),
         links: [...e.querySelectorAll('a')].filter(vis).map((a) => ({ text: tx(a), href: a.getAttribute('href') || '', login: a.hasAttribute('data-crl-login') })),
         retry: [...e.querySelectorAll('.crl-retry')].filter(vis).map(tx),
         /* 答えるカード（見出し・答えた数の行・入口の字） */
@@ -6612,7 +6614,7 @@ async function main() {
         if (x.state !== (x.live === 'fact' ? 'masked' : 'locked')) bad.push(`${at}：欄が ${x.state}（${x.live === 'fact' ? '質問だけのカード' : '鍵の形'}のはず）`);
         if (x.lock.length !== 1 || x.lock[0] !== line) bad.push(`${at}：1行「${x.lock.join('｜')}」（あるべき「${line}」）`);
         if (x.rows.length) bad.push(`${at}：回答の行が ${x.rows.length}つ`);
-        const face = x.live === 'fact' ? x.bare : x.text;   // カードの名前と元の疑問文を除いた字
+        const face = x.live === 'fact' ? x.bare : x.text;   // カードの名前を除いた字
         if (face !== line + x.links.map((a) => a.text).join('')) bad.push(`${at}：1行と入口のほかの字が在る「${face.slice(0, 50)}」`);
         if (/[0-9０-９]/.test(face)) bad.push(`${at}：数字が在る「${face.slice(0, 50)}」`);
       }
@@ -6953,7 +6955,7 @@ async function main() {
           const named = TABS.flatMap((id) => w[id].filter((x) => x.text.includes(DUTY) || x.text.includes(TRAVEL)).map((x) => `${TAB_NAME[id]}・${slotName(x)}`)).sort();
           const NAMED = ['勤務・訓練・' + SF_SLOT.roster, '勤務・訓練・' + SF_SLOT.travel, '概要・集まった回答'].sort();
           ok(got.length === 1 && got[0].rows.length === 0 && rows.length === 0 && J(named) === J(NAMED),
-            '★C3 会員：どのタブのどの欄にも、回答の行（答え）が1つも無い。質問（スタンバイ勤務・社員の航空券）は、その質問を持つ欄に、質問だけのカードとして名前と元の疑問文が出る', J({ rows: rows.slice(0, 4), named }));
+            '★C3 会員：どのタブのどの欄にも、回答の行（答え）が1つも無い。質問（スタンバイ勤務・社員の航空券）は、その質問を持つ欄に、質問だけのカードとして名前が出る', J({ rows: rows.slice(0, 4), named }));
           ok(replies.length >= 1 && replies.every((r) => shutLike(r, 'locked', HAS_CX)) && replies.some((r) => J(r.body.has) === J(HAS_CX)),
             '★C3 会員：集計の読み口の返事は ok・has・state だけ（has は3人そろった質問の id だけ ── 答えも、人数も、年月も付いていない）', J(replies.map((r) => [r.status, r.text])));
           ok(saw.length === 0, '★C3 会員：集計の欄にも月の勤務の欄にも、「ログイン」の字が、いっときも出ていない（未ログインの1行を、先に出していない）', J(saw.slice(0, 3)));
@@ -7179,7 +7181,7 @@ async function main() {
           const n = await nOf('reserve_duty');
           const drawn = await seen(p, (a) => [...document.querySelectorAll('.crl[data-live="fact"]')].some((e) => {
             const tx = (x) => (x ? x.textContent : '').trim();
-            return e.getClientRects().length > 0 && [...e.querySelectorAll('.crl-tile')].filter((t) => t.querySelector('.crl-tile-v')).flatMap((t) => { const own = (q) => { const c = q.cloneNode(true); c.querySelectorAll('.crl-tile-qa').forEach((x) => x.remove()); return c.textContent.trim(); }, qts = [...t.querySelectorAll('.crl-tile-qt')]; return [{ k: qts[0] ? own(qts[0]) : '', meta: tx(t.querySelector('.crl-tile-m')).split(' · ').filter(Boolean) }, ...[...t.querySelectorAll('.crl-tile-s')].map((ln, i) => ({ k: qts[i + 1] ? own(qts[i + 1]) : '', meta: (qts[i + 1] ? tx(qts[i + 1].querySelector('.crl-tile-qa')) : '').split(' · ').slice(1) }))]; }).some((r) => r.k === a.k && r.meta.includes(a.n));
+            return e.getClientRects().length > 0 && [...e.querySelectorAll('.crl-tile')].filter((t) => t.querySelector('.crl-tile-v')).flatMap((t) => [{ k: tx(t.querySelector('.crl-tile-k')).split(' › ').pop(), meta: tx(t.querySelector('.crl-tile-m')).split(' · ').filter(Boolean) }, ...[...t.querySelectorAll('.crl-tile-s')].map((ln) => ({ k: tx(ln.querySelector('b')), meta: [] }))]).some((r) => r.k === a.k && r.meta.includes(a.n));
           }), { k: DUTY, n: `回答 ${n}人` });
           if (!drawn) throw new Error('前提が崩れた（鍵が生きている人に、開いた形が描かれていない）');
           const S = await storeNow(p);
@@ -7506,7 +7508,7 @@ async function main() {
           const drawn = await seen(p, (a) => {
             const e = document.querySelector('.pvg-got .crl[data-live="fact"]');
             const tx = (x) => (x ? x.textContent : '').trim();
-            return !!e && [...e.querySelectorAll('.crl-tile')].filter((t) => t.querySelector('.crl-tile-v')).flatMap((t) => { const own = (q) => { const c = q.cloneNode(true); c.querySelectorAll('.crl-tile-qa').forEach((x) => x.remove()); return c.textContent.trim(); }, qts = [...t.querySelectorAll('.crl-tile-qt')]; return [{ k: qts[0] ? own(qts[0]) : '', meta: tx(t.querySelector('.crl-tile-m')).split(' · ').filter(Boolean) }, ...[...t.querySelectorAll('.crl-tile-s')].map((ln, i) => ({ k: qts[i + 1] ? own(qts[i + 1]) : '', meta: (qts[i + 1] ? tx(qts[i + 1].querySelector('.crl-tile-qa')) : '').split(' · ').slice(1) }))]; }).some((r) => r.k === a.k && r.meta.includes(a.n));
+            return !!e && [...e.querySelectorAll('.crl-tile')].filter((t) => t.querySelector('.crl-tile-v')).flatMap((t) => [{ k: tx(t.querySelector('.crl-tile-k')).split(' › ').pop(), meta: tx(t.querySelector('.crl-tile-m')).split(' · ').filter(Boolean) }, ...[...t.querySelectorAll('.crl-tile-s')].map((ln) => ({ k: tx(ln.querySelector('b')), meta: [] }))]).some((r) => r.k === a.k && r.meta.includes(a.n));
           }, { k: DUTY, n: `回答 ${n}人` });
           const g3 = await gotOf(p), cards = await p.page.evaluate(() => document.querySelectorAll('.crl-give').length);
           const row = g3 ? g3.rows.filter((r) => r.k === DUTY) : [];
@@ -7537,7 +7539,7 @@ async function main() {
           const sh0 = await shutSheet(p);
           const outErr = await p.page.evaluate(() => window.PVCareer.client().then((sb) => sb.auth.signOut()).then((r) => (r && r.error ? String(r.error.message || r.error) : '')));
           if (outErr) throw new Error('前提が崩れた（その場でログアウトできていない）: ' + outErr);
-          const outSeen = await seen(p, (line) => { const e = document.querySelector('.pvg-got .crl[data-live="fact"]'); return !!e && /^(locked|masked)$/.test(e.getAttribute('data-state')) && ((c) => { c.querySelectorAll('.crl-tile-k, .crl-tile-qt').forEach((x) => x.remove()); return c.textContent.trim(); })(e.cloneNode(true)) === line && !e.querySelector('.crl-tile-v, .crl-tile-s'); }, LOGIN_LINE);
+          const outSeen = await seen(p, (line) => { const e = document.querySelector('.pvg-got .crl[data-live="fact"]'); return !!e && /^(locked|masked)$/.test(e.getAttribute('data-state')) && ((c) => { c.querySelectorAll('.crl-tile-k').forEach((x) => x.remove()); return c.textContent.trim(); })(e.cloneNode(true)) === line && !e.querySelector('.crl-tile-v, .crl-tile-s'); }, LOGIN_LINE);
           await ear.all();
           const g1 = await gotOf(p), rows1 = await p.page.evaluate(() => document.querySelectorAll('.crl-tile-v, .crl-tile-s').length), outReplies = ear.replies.slice(r0), logA = await sinceMark(p, 'CM4-out');
           const bareOut = await seen(p, sheetBare), sh1 = await shutSheet(p);
@@ -7557,7 +7559,7 @@ async function main() {
           r0 = ear.replies.length;
           await markSlots(p, 'CM4-in');
           await signInTab(tab, 'pilot');
-          const inSeen = await seen(p, (line) => { const e = document.querySelector('.pvg-got .crl[data-live="fact"]'); return !!e && /^(locked|masked)$/.test(e.getAttribute('data-state')) && ((c) => { c.querySelectorAll('.crl-tile-k, .crl-tile-qt').forEach((x) => x.remove()); return c.textContent.trim(); })(e.cloneNode(true)) === line && !e.querySelector('.crl-tile-v, .crl-tile-s'); }, PAY_LINE);
+          const inSeen = await seen(p, (line) => { const e = document.querySelector('.pvg-got .crl[data-live="fact"]'); return !!e && /^(locked|masked)$/.test(e.getAttribute('data-state')) && ((c) => { c.querySelectorAll('.crl-tile-k').forEach((x) => x.remove()); return c.textContent.trim(); })(e.cloneNode(true)) === line && !e.querySelector('.crl-tile-v, .crl-tile-s'); }, PAY_LINE);
           const w = await walk(p);
           await ear.all();
           const L = lockedBad(w, PAY_LINE), inReplies = ear.replies.slice(r0), logB = await sinceMark(p, 'CM4-in');

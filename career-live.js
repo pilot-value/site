@@ -2794,7 +2794,8 @@
 
   /* ── 回答のタイル（2026-11-09 オーナー「非常に見づらい」「質問が文字薄い」「AIで作った感・文字の羅列」→ タイル）──
      1問＝1枚のカード（career-live.css）。上に質問の短い名前（pv-conditions.mjs の short）、下に答え・補足。
-     元の疑問文はカードを押すと開く（details）。子の質問は、いちばん上の親のカードの中に「名前：答え」で1行ずつ。
+     ★押しても何も開かない（2026-11-16 オーナー「はみ出てる。質問みせる機能いらないんじゃね？」── 元の疑問文は
+       同じ欄の下の質問の一覧に並んでいる）。子の質問は、いちばん上の親のカードの中に「名前：答え」で1行ずつ。
      親が出ていない子は「親 › 子」のカード。比較の画面（cmp-facts）は answerNode のまま（このカードを使わない）。 */
   /* 答えの印（Levels.fyi の福利厚生の一覧と同じ、細い線の ✓）。意味は「ある・ない・一部」だけ（良し悪しではない ──
      訓練費の Bond が「ある」にも ✓）。数・段階の答え（「4日前」「強く変わる」）には付けない */
@@ -2834,11 +2835,10 @@
     return v;
   }
   function tileShell(label, mk) {
-    var t = el('details', 'crl-tile'), s = el('summary', 'crl-tile-sum');
+    var t = el('div', 'crl-tile');
     if (mk) t.setAttribute('data-mark', mk);
-    s.appendChild(el('span', 'crl-tile-k', label));
-    t.appendChild(s);
-    return { t: t, s: s, q: el('div', 'crl-tile-q') };
+    t.appendChild(el('span', 'crl-tile-k', label));
+    return t;
   }
   /* 続きの質問への誘い（2026-11-14 オーナー「一部可能にはもう一つ突っ込んで質問して欲しい。あと回答が分かれている場合も」）。
      先頭の答えが「一部」（印 p）か「回答が分かれています」で、その続き（台帳の deep）の答えがまだカードに無い
@@ -2879,35 +2879,28 @@
     var head = g.rows[0].k === g.top ? g.rows[0] : g.rows[0];
     var label = head.k === g.top ? V[g.top].short : ((V[g.top] && V[g.top].short) ? V[g.top].short + ' › ' : '') + V[head.k].short;
     var mk = head.ans.split ? '' : markOf(head.row, V[head.k]);
-    var x = tileShell(label, mk);
-    x.s.appendChild(tileValue(head, mk));
-    x.s.appendChild(tileMeta(head.ans));
-    x.q.appendChild(el('p', 'crl-tile-qt', V[head.k].ja));
+    var t = tileShell(label, mk);
+    t.appendChild(tileValue(head, mk));
+    t.appendChild(tileMeta(head.ans));
     g.rows.forEach(function (r) {
       if (r === head) return;
       var line = el('span', 'crl-tile-s');
       line.appendChild(el('b', '', V[r.k].short));
       line.appendChild(el('span', '', r.ans.text));
-      x.s.appendChild(line);
-      var p = el('p', 'crl-tile-qt', V[r.k].ja);
-      p.appendChild(el('span', 'crl-tile-qa', r.ans.text + ' · ' + tileMeta(r.ans).textContent));
-      x.q.appendChild(p);
+      t.appendChild(line);
     });
     var cue = cueFor(g, V, card, keys || []);
-    if (cue) x.s.appendChild(cue);
-    x.t.appendChild(x.q);
-    return x.t;
+    if (cue) t.appendChild(cue);
+    return t;
   }
-  /* 鍵の無い人のタイル：見出しと元の疑問文は本物の字、答えの所は字の無い影絵（何も届いていない） */
+  /* 鍵の無い人のタイル：見出しは本物の字、答えの所は字の無い影絵（何も届いていない） */
   function maskTile(voc) {
-    var x = tileShell(voc.short);
+    var t = tileShell(voc.short);
     var g = ghost('ans');
     g.appendChild(el('i', 'crl-gh-a'));
     g.appendChild(el('i', 'crl-gh-m'));
-    x.s.appendChild(g);
-    x.q.appendChild(el('p', 'crl-tile-qt', voc.ja));
-    x.t.appendChild(x.q);
-    return x.t;
+    t.appendChild(g);
+    return t;
   }
   /* 勤務・訓練の4枚のカードの入口：ログイン → 給与の提出 の2つだけ（答えるカードは月の勤務の欄の1枚だけ） */
   var SF_ENTRY = { getAttribute: function (n) { return n === 'data-entry' ? 'login pay' : null; } };
