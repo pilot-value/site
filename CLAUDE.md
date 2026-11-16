@@ -561,7 +561,9 @@ baland_ass/                            ブランド資産（※ brand_assets の
   消すは控え `reviews_removed` に写してから。載せると口コミの表を1回だけ update する ── 要約の Webhook を鳴らして AI 要約を作り直すため（本文は変えない）。
 - 原文の言語は判定の `lang`（`und` なら文字の種類で `detectLang`）。日英西以外の原文は日英西の3つへ訳し、`orig_lang` に本当の言語を残す。
   画面は「〇〇から自動翻訳」と書き、原文には `dir` と `lang` を付ける（`PVReviewI18n.attrs`。アラビア語などは右から左）。
-- 既存の口コミは、次にその行が update されたとき初めて判定される。⚠️ 全行を update する SQL を流すと、全件が一度に判定される（件数 × 2〜4円・保留の数だけメール）。
+- **判定するのは新しく入った口コミだけ。** 本番の reviews_v2 の翻訳の Webhook（`translate-review-on-insert`）は INSERT だけで鳴る
+  （2026-11-16 に貼った直後の Webhook の一覧で確かめた）＝ 2026-11-16 より前の口コミも、あとから直された本文も判定されない。
+  既存の口コミを判定するなら、関数を1件ずつ呼ぶ別の作業になる（件数 × 2〜4円・保留の数だけメール ── オーナーに聞いてから）。
 - **貼る順**：`db/reviews-gate.sql` → `db/review-pending.sql` → `db/review-summary.sql` → `db/airline-activity.sql` → `db/follow.sql`
   → translate-review と notify-admin を Deploy → `db/review-judge-webhook.sql`。SQL が先・push が後（Deploy が先でも壊れない＝判定を飛ばして訳だけする）。
 
