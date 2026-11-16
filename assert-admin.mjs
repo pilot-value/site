@@ -1503,6 +1503,8 @@ for (const lang of ['ja', 'en']) {
           created_at: '2026-11-14T00:00:00Z', words: ['roblox', hostile], text: 'lets play roblox ' + hostile, approved_at: null }],
         admin_review_top_decide: (a) => ({ ok: true, shown: !!(a && a.p_show) }),
         /* 口コミの確認（2026-11-15）。翻訳の AI が保留にした口コミ（window.__rh）。決める入口はサーバーと同じく、保留中の行だけを書き換える */
+        /* 読めなかった勤務表（2026-11-16）。一覧だけ（画像はタブを開いて見えたときに1枚ずつ取る＝開いた直後には呼ばない） */
+        admin_roster_images: () => [],
         admin_list_review_holds: () => window.__rh.map((h) => Object.assign({}, h)),
         admin_review_hold_decide: (a) => {
           const h = window.__rh.find((x) => a && x.src === a.p_src && x.id === a.p_id && !x.decided);
@@ -1650,7 +1652,7 @@ for (const lang of ['ja', 'en']) {
          'トップの保留：「承諾してトップに出す」を押すと承諾の入口を1回呼び、表示が「トップに出している」に変わる', JSON.stringify(th1));
       await page.evaluate(() => switchTab('users', document.querySelector('.tab-btn')));
       await reviewHoldChecks(page, lang).catch((e) => ok(false, 'RH 口コミの確認の場面が途中で止まった', String(e && e.message || e).slice(0, 200)));
-      ok(seen.rpc.join(',') === 'pv_is_admin,admin_list_profiles,admin_list_reviews,admin_list_proofs,admin_list_top_holds,admin_list_review_holds,pv_town_queue,pv_stay_queue,pv_stay_applicants,pv_stay_members',
+      ok(seen.rpc.join(',') === 'pv_is_admin,admin_list_profiles,admin_list_reviews,admin_list_proofs,admin_list_top_holds,admin_list_review_holds,admin_roster_images,pv_town_queue,pv_stay_queue,pv_stay_applicants,pv_stay_members',
          'サーバーの入口だけを使っている（オーナーの2つの一覧も、管理者と分かったあとに読むだけ）', seen.rpc.join(','));
       ok(seen.from.length === 0, '管理者でもテーブルは直接触らない', seen.from.join(','));
       await notOwnerChecks(page, lang).catch((e) => ok(false, 'O0 オーナーでない運営の場面が途中で止まった', String(e && e.message || e).slice(0, 200)));
@@ -1714,8 +1716,8 @@ for (const lang of ['ja', 'en']) {
       const rpc0 = await page.evaluate(() => window.__rpc.slice());
       /* 4本目の admin_list_proofs は本番の「資格確認」（db/pilot-proof.sql・運営が提出された画像を確かめる表）。運営みんなの入口で、
          オーナーだけの2つの一覧（pv_stay_applicants・pv_stay_members）とは別（deploy-checklist の 26 番） */
-      ok(rpc0.join(',') === 'pv_is_admin,admin_list_profiles,admin_list_reviews,admin_list_proofs,admin_list_top_holds,admin_list_review_holds,pv_town_queue,pv_stay_queue,pv_stay_applicants,pv_stay_members',
-         '★O7 オーナーも、開いたときに呼ぶのはこの10だけ（資格確認・トップの保留・口コミの確認の表は運営みんなの入口・申請してきた人 → 会員一覧は管理者と分かったあと・画像と verified は押したときだけ）', rpc0.join(','));
+      ok(rpc0.join(',') === 'pv_is_admin,admin_list_profiles,admin_list_reviews,admin_list_proofs,admin_list_top_holds,admin_list_review_holds,admin_roster_images,pv_town_queue,pv_stay_queue,pv_stay_applicants,pv_stay_members',
+         '★O7 オーナーも、開いたときに呼ぶのはこの11だけ（資格確認・トップの保留・口コミの確認・読めなかった勤務表の表は運営みんなの入口・申請してきた人 → 会員一覧は管理者と分かったあと・画像と verified は押したときだけ）', rpc0.join(','));
       await ownerChecks(page, lang).catch((e) => ok(false, 'O オーナーの場面が途中で止まった', String(e && e.message || e).slice(0, 200)));
     }
 
