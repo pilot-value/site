@@ -106,7 +106,7 @@
       no_payslip: 'Agrega tu recibo de nómina de {m} para verlo', roster_partial: 'Importa el mes completo de tu programación para verlo',
       mixed_currency: 'No se muestra en meses con recibos en distintas monedas', no_duty: 'No se muestra si el mes no tiene horas de servicio',
       no_block: 'No se muestra porque este vuelo no tiene tiempo de bloque', no_pay: 'No se muestra en este mes',
-      commute: 'No se muestra: vuelo de posicionamiento de traslado fuera del período de servicio',
+      commute: 'No se muestra: vuelo de posicionamiento (traslado) fuera del período de servicio',
       fixedFrom: 'Remuneración fija de tu recibo de {m}', lagQ: '¿En la nómina de qué mes se paga lo que vuelas (pago por vuelo, viáticos)?',
       lag0: 'Mismo mes', lag1: 'Mes siguiente', lag2: 'Dos meses después', lagU: 'No lo sé', lagErr: 'No se pudo guardar. Inténtalo de nuevo.',
       addPay: 'Agregar recibo',
