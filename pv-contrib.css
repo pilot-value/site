@@ -200,6 +200,10 @@
 
 /* 当てはまるものを全部選ぶ（複数選択） */
 .pvc-root .pvc-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0}
+/* 「その他」を選んだときだけ出す1行の欄（2026-11-16・pv-contrib.js の otherFor）。選択肢のすぐ下。
+   ★[hidden] を書く ── .pvc-input の display:block が、ブラウザ既定の [hidden]{display:none} に出所の差で勝つ */
+.pvc-root .pvc-input[data-q-other]{margin-top:10px}
+.pvc-root .pvc-input[data-q-other][hidden]{display:none}
 .pvc-root .pvc-chip{position:relative;display:inline-flex;max-width:100%;min-height:44px;margin:0;padding:0;cursor:pointer}
 .pvc-root .pvc-chip input,
 .pvc-root .pvc-own input{position:absolute;inset:0;z-index:1;width:100%;height:100%;margin:0;padding:0;

@@ -104,6 +104,8 @@
       /* 戻ってきた会員に聞く板（askReturn・2026-10-30 オーナー指示）。見出しはオーナーの言葉のまま */
       askHead: function (name) { return [(name || 'あなたの会社') + 'のこと、', 'ひとつ教えて。']; },
       next: '次へ',
+      /* 「その他」を選んだ人にだけ出す1行の欄（2026-11-16）。説明の文は足さない（欄の中の薄い字だけ） */
+      otherPh: 'その他の内容',
       multiHint: 'あてはまるものを全部選んでください。',
       /* 1つの塊にする（「の続き」だけが次の行へ落ちないように。長い質問は塊の中で折り返す） */
       followUp: function (label) { return ['「' + label + '」の続き']; },
@@ -160,6 +162,7 @@
       dunno: "Don't know",
       askHead: function (name) { return ['Tell us one thing about ' + (name || 'your airline') + '.']; },
       next: 'Next',
+      otherPh: 'Please specify',
       multiHint: 'Choose all that apply.',
       followUp: function (label) { return ['Follow-up to:', '“' + label + '”']; },
       numBad: function (min, max) { return ['Please enter a number', 'from ' + min + ' to ' + max + '.']; },
@@ -207,6 +210,7 @@
       dunno: "No sé",
       askHead: function (name) { return ['Cuéntanos una cosa sobre ' + (name || 'tu aerolínea') + '.']; },
       next: 'Siguiente',
+      otherPh: 'Especifica',
       multiHint: 'Elige todas las que correspondan.',
       followUp: function (label) { return ['Pregunta de seguimiento sobre:', '“' + label + '”']; },
       numBad: function (min, max) { return ['Ingresa un número', 'del ' + min + ' al ' + max + '.']; },
@@ -348,6 +352,17 @@
     '.pvc-numrow{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:20px}',
     /* 16px 未満だと iPhone が欄に入った瞬間に画面を拡大する */
     '.pvc-num{font-size:16px;width:132px}',
+    /* 「その他」を選んだ人にだけ出す1行の欄（2026-11-16）。板と一覧のページの両方で使う。
+       ★16px 未満にしない（iPhone が欄に入った瞬間に画面を拡大する）。[hidden] は display より強くする */
+    '.pvc-other{display:block;width:100%;min-height:44px;margin-top:12px;padding:11px 14px;border-radius:12px;',
+      'font-family:inherit;font-size:16px;font-weight:600;line-height:1.5;color:#e8edf2;',
+      'background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);',
+      'transition:border-color .2s,background .2s}',
+    '.pvc-other[hidden]{display:none}',
+    '.pvc-other::placeholder{color:#6b7d93;font-weight:500}',
+    '@media (hover:hover){.pvc-other:hover{border-color:rgba(52,211,153,.5)}}',
+    '.pvc-other:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:2px}',
+    '.pvc-other:active{border-color:rgba(52,211,153,.55)}',
     /* 額の質問：通貨を選ぶ欄は1行ぜんぶ（「USD — 米ドル」が欄の中で切れないように）。額と単位と「次へ」は次の行 */
     '.pvc-numrow .pvc-cur{flex:1 1 100%;font-size:16px}',
     '.pvc-unit{font-size:.82rem;font-weight:700;color:#6b7d93}',
@@ -399,6 +414,10 @@
     '@media (hover:hover){[data-theme="light"] .pvc-opt.is-picked:not([disabled]):hover{',
       'border-color:#0d8a63;background:rgba(13,138,99,.16)}}',
     '[data-theme="light"] .pvc-more,[data-theme="light"] .pvc-warn{color:#a97e00}',
+    '[data-theme="light"] .pvc-other{color:#0f172a;background:#fff;border-color:rgba(15,23,42,.16)}',
+    '[data-theme="light"] .pvc-other::placeholder{color:#64748b}',
+    '[data-theme="light"] .pvc-other:focus-visible{outline-color:#a97e00}',
+    '@media (hover:hover){[data-theme="light"] .pvc-other:hover{border-color:rgba(13,138,99,.45)}}',
     /* ── 詳細ページ（airline-conditions.html）──────────────────
        モーダルと同じ部品を使うが、こちらは全部の質問を一度に並べる。
        進捗バーは出さない（埋めさせる圧力＝推測入力の動機になる）。 */
@@ -541,6 +560,17 @@
         return _bank;
       })
       .catch(function () { return null; });
+  }
+
+  /* 「その他」の欄の上限（2026-11-16）。正は pv-conditions.json の limits.otherMax（サーバの pv_condition_clean と同じ数） */
+  function otherMax() {
+    var lm = _bank && _bank.raw && _bank.raw.limits;
+    return (lm && lm.otherMax) || 100;
+  }
+  /* その質問に「その他」の欄があるか（複数選ぶ質問で、選択肢に other が在るときだけ） */
+  function hasOtherBox(q) {
+    return !!(q && q.otherText && q.kind === 'multi'
+      && (q.choices || []).some(function (c) { return c.code === 'other'; }));
   }
 
   /* 詳細ページへの導線。/en/ からは同じ階層の英語版を指す（相対で正しく解ける）。 */
@@ -726,13 +756,19 @@
     var goHtml = mode === 'multi'
       ? '<div class="pvc-go"><button type="button" class="pvc-btn" data-next disabled>' + esc(T.next) + '</button></div>'
       : '';
+    /* 「その他」の欄（2026-11-16 オーナー承認「自分で答えを書けるその他が欲しい」）。
+       複数選ぶ質問で「その他」を押したときだけ出し、外したら消して空にする。字は「次へ」で答えと一緒に送る。 */
+    var otherHtml = (mode === 'multi' && hasOtherBox(q))
+      ? '<input type="text" class="pvc-other" data-other hidden maxlength="' + esc(otherMax()) + '"' +
+          ' autocomplete="off" placeholder="' + esc(T.otherPh) + '" aria-label="' + esc(T.otherPh) + '">'
+      : '';
 
     /* 続きの質問は、親の質問を小さく上に添える（2日後の板の1問目に来ても、何の続きか分かるように） */
     var ctxLine = (!it.reconfirm && it.parentLabel)
       ? '<div class="pvc-ctx">' + lines(T.followUp(it.parentLabel)) + '</div>' : '';
 
     this.body.innerHTML =
-      ctxLine + '<div class="pvc-q">' + head + '</div>' + help + numHtml + optsHtml + goHtml +
+      ctxLine + '<div class="pvc-q">' + head + '</div>' + help + numHtml + optsHtml + otherHtml + goHtml +
       '<div class="pvc-foot">' + step +
         '<button type="button" class="pvc-skip">' + esc(T.skip) + '</button>' +
       '</div>';
@@ -741,11 +777,13 @@
     var next = this.body.querySelector('[data-next]');
     var input = this.body.querySelector('.pvc-num');
     var cur = this.body.querySelector('.pvc-cur');
+    var other = this.body.querySelector('[data-other]');
     var all = function () {
       var a = Array.prototype.slice.call(btns);
       if (next) a.push(next);
       if (input) a.push(input);
       if (cur) a.push(cur);
+      if (other) a.push(other);
       return a;
     };
     Array.prototype.forEach.call(btns, function (b) {
@@ -756,6 +794,11 @@
           b.classList.toggle('is-picked', on);
           b.setAttribute('aria-pressed', on ? 'true' : 'false');
           next.disabled = !self.body.querySelector('.pvc-opt.is-picked[data-multi]');
+          if (other && code === 'other') {
+            other.hidden = !on;
+            if (!on) other.value = '';
+            else { try { other.focus({ preventScroll: true }); } catch (e) { other.focus(); } }
+          }
           return;
         }
         if (mode === 'choice') { self.pick(b, btns, code); return; }
@@ -767,7 +810,15 @@
         var codes = Array.prototype.map.call(
           self.body.querySelectorAll('.pvc-opt.is-picked[data-multi]'),
           function (x) { return x.getAttribute('data-code'); });
-        if (codes.length) self.send({ codes: codes }, all(), null);
+        if (!codes.length) return;
+        /* 「その他」の字は、その他を選んでいるときだけ・空なら送らない（サーバも other が無ければ捨てる） */
+        var ans = { codes: codes };
+        var tx = (other && codes.indexOf('other') >= 0) ? String(other.value || '').trim() : '';
+        if (tx) ans.text = tx;
+        self.send(ans, all(), null);
+      });
+      if (other) other.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); if (!next.disabled) next.click(); }
       });
     }
     if (mode === 'num') {
@@ -1588,7 +1639,14 @@
             ' data-code="' + UNKNOWN + '">' + esc(T.dunno) + '</button>' +
           '</div>';
       }
-      if (q.note) {
+      /* 「その他」の欄（2026-11-16）。複数選ぶ質問で「その他」を選んでいるときだけ。補足の欄の代わり（同じ answer_text） */
+      if (hasOtherBox(q)) {
+        if ((v.codes || []).indexOf('other') >= 0) {
+          body += '<input type="text" class="pvc-other" data-other maxlength="' + esc(otherMax()) + '"' +
+            ' autocomplete="off" placeholder="' + esc(T.otherPh) + '" aria-label="' + esc(T.otherPh) + '"' +
+            ' value="' + esc(v.text || '') + '">';
+        }
+      } else if (q.note) {
         body += '<label class="pvcf-notelab" for="pvcf-n-' + esc(q.id) + '">' + esc(T.fullNote) + '</label>' +
           '<textarea class="pvcf-note" id="pvcf-n-' + esc(q.id) + '" maxlength="' +
             esc((bank.raw.limits && bank.raw.limits.textMax) || 300) + '" data-note>' +
@@ -1648,7 +1706,7 @@
     function redrawRow(q) {
       var row = el.querySelector('[data-qid="' + q.id + '"]');
       if (!row) return;
-      var KINDS = ['.pvc-opt[data-code]', '.pvcf-num', '[data-cur]', '[data-num]', '[data-note]'];
+      var KINDS = ['.pvc-opt[data-code]', '.pvcf-num', '[data-cur]', '[data-num]', '[data-note]', '[data-other]'];
       var had = d.activeElement;
       var inside = !!(had && had !== row && row.contains(had));
       var kind = -1, i;
@@ -1755,7 +1813,9 @@
               code: a.code || null, codes: a.codes || null,
               num: a.num == null ? null : Number(a.num),
               currency: a.currency || null,
-              text: a.text != null ? a.text : (old && old.text) || null
+              /* 「その他」の欄の字は、送った字だけ（その他を外した・空で送った回はサーバも捨てている） */
+              text: hasOtherBox(s.q) ? (a.text || null)
+                : (a.text != null ? a.text : (old && old.text) || null)
             };
             track('condition_answered', {
               trigger: 'detail_page', question_id: s.q.id, airline_code: ctx.airline
@@ -1788,7 +1848,11 @@
               : cur.concat([code]);
             /* 全部外したら「答えていない」に戻す。空配列はサーバが missing_code で弾く */
             if (!next.length) { state[q.id] = {}; redrawRow(q); refreshCounts(); return; }
-            save(q, { codes: next });
+            /* 「その他」の欄の字は、その他を選んだままのときだけ一緒に送る（送らないとサーバが字を空にする） */
+            var ans = { codes: next };
+            var ot = row.querySelector('[data-other]');
+            if (ot && next.indexOf('other') >= 0 && ot.value.trim()) ans.text = ot.value.trim();
+            save(q, ans);
             return;
           }
           /* 補足を書いてから選択肢を押した人の文章を捨てない
@@ -1858,6 +1922,23 @@
         /* Enter でも送れるようにする（数値欄で毎回ボタンへ手を伸ばさせない） */
         num.addEventListener('keydown', function (e) {
           if (e.key === 'Enter') { e.preventDefault(); send(); }
+        });
+      }
+
+      /* 「その他」の欄：離れたとき・Enter で保存する（答えは選んである複数の答えのまま。描き直さない ＝ 打っている欄から外れない） */
+      var other = row.querySelector('[data-other]');
+      if (other) {
+        other.addEventListener('blur', function () {
+          var v = other.value.trim();
+          var st = state[q.id] || {};
+          if (!st.codes || st.codes.indexOf('other') < 0) return;
+          if ((st.text || '') === v) return;
+          var a = { codes: st.codes.slice() };
+          if (v) a.text = v;
+          save(q, a, true);
+        });
+        other.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') { e.preventDefault(); other.blur(); }
         });
       }
 

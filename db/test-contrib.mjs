@@ -169,8 +169,8 @@ const KEY  = /^[0-9a-f]{48}$/;
 const SIX  = ['block_hours', 'duty_hours', 'work_days', 'duty_days', 'days_off', 'stay_nights'];
 
 const AIR = (await many(
-  `select code from public.pv_airlines where code <> 'other' and active order by code limit 14`)).map((r) => r.code);
-const [A_ONE, A_TWO, A_WALL, A_CLAIM, A_NEW, A_NOTE, A_LIM, A_EXP, A_FLOW, A_BARE, A_HOME, A_OTH, A_FACT, A_SPL] = AIR;
+  `select code from public.pv_airlines where code <> 'other' and active order by code limit 15`)).map((r) => r.code);
+const [A_ONE, A_TWO, A_WALL, A_CLAIM, A_NEW, A_NOTE, A_LIM, A_EXP, A_FLOW, A_BARE, A_HOME, A_OTH, A_FACT, A_SPL, A_OTX] = AIR;
 
 /* ── 「誰に見せるか」の節（8-0）で使う道具 ────────────────────────
    他人の回答を読める人は、ここの paid で作る ＝ 本物の submit_pay_report を通す。
@@ -1144,16 +1144,19 @@ console.log('\n▼ 8-2. 上の質問を答え直した人の、下の質問（�
   const none = (n) => n.state === 'open' && Array.isArray(n.notes) && n.notes.length === 0;
   const LP = (code) => ({ airline: A_CLAIM, answers: [{ question_id: 'landing_pay', code }] });
 
-  // ── 補足 ── W が「一定額ではない」を選び、「何で変わるか」に「見せます」の補足を付ける
+  // ── 補足 ── W が「一定額ではない」を選び、「何で変わるか」の「その他」に字を書く
+  //    ★2026-11-16 から「何で変わるか」は複数選ぶ＋その他の欄。字が出るのは運営が載せてから（その場面は 8-5）。ここでは載せた字で見る
   let r = await condM(W, { airline: A_CLAIM, position: 'cap', fleet: 'b787', answers: [
     { question_id: 'landing_pay', code: 'variable' },
     { question_id: 'landing_pay_from', num: 10, currency: 'USD' },
-    { question_id: 'landing_pay_varies_by', code: 'airport', text: '空港によって違う', share: true }] });
+    { question_id: 'landing_pay_varies_by', codes: ['airport', 'other'], text: '空港によって違う', share: true }] });
   ok(r.saved === 3 && r.rejected.length === 0, '着陸手当（一定額ではない）・低いほうの額・何で変わるか を1回で保存できる', J(r));
+  await db.query(`update public.airline_conditions set text_ok = true
+                   where airline = $1 and question_id = 'landing_pay_varies_by'`, [A_CLAIM]);
   let n = await notes(MEM, A_CLAIM);
   ok(n.state === 'open' && texts(n) === '空港によって違う'
      && n.notes[0].topic === 'benefits' && n.notes[0].q === 'landing_pay_varies_by',
-    '★「何で変わるか」に付けた補足は、ほかの会員に見える', J(n));
+    '★「何で変わるか」の「その他」の字（運営が載せたもの）は、ほかの会員に見える', J(n));
 
   await condM(W, LP('no'));
   n = await notes(MEM, A_CLAIM);
@@ -1478,7 +1481,7 @@ const [A_WALK, A_PAIR, A_PAIR2, A_CTX, A_HAND, A_HAND2, A_DAY] = (await many(
      会員の入口の同じ行は db/test-conditions.mjs の ㉑（d1〜d6）。
      どの回も新しい端末で、この節だけの会社（A_DAY）でやる（上の a1〜a12 が見ている預かりを動かさない）。 */
   const BOTH_LIM = `${LO}:rate_limited ${HI}:rate_limited`;
-  const VARIES = (code) => ({ question_id: 'landing_pay_varies_by', code });
+  const VARIES = (code) => ({ question_id: 'landing_pay_varies_by', codes: [code] });   // 2026-11-16 から複数選ぶ
   const dunno = (q) => ({ question_id: q, code: 'unknown' });
   const setSaves = (key, n) => db.query(
     `update public.pv_contrib_keys set saves_day = current_date, saves_today = $2
@@ -1569,11 +1572,11 @@ const [A_WALK, A_PAIR, A_PAIR2, A_CTX, A_HAND, A_HAND2, A_DAY] = (await many(
   dayN = await savesOf(k);
   a = await heldMap(k);
   ok(full5 && whyOf(r) === `${HI}:pending_full` && r.saved === 2 && now2 === '300 USD／行なし'
-     && a.landing_pay_varies_by?.code === 'aircraft' && dayN === 80 && await rowsOf(k) === 200,
+     && J(a.landing_pay_varies_by?.codes) === J(['aircraft']) && dayN === 80 && await rowsOf(k) === 200,
     '★e5 預かりが200件の端末が、残り2件の日に、低いほう 300（直す）・高いほう 400（新しい行が要る）・「何で変わるか」を送る → '
     + '断るのは高いほうだけ。理由は1日の上限ではない（pending_full）。低いほうと「何で変わるか」は預かり、1日の数は 80'
     + '（高いほうのために取っておいた1件ぶんは返して、あとの答えに使う）',
-    `下ごしらえ ${full5} ｜ ${whyOf(r)} ｜ 預かった数 ${r.saved} ｜ ${now2} ｜ 何で変わるか ${a.landing_pay_varies_by?.code} ｜ 数 ${dayN} ｜ 行 ${await rowsOf(k)}`);
+    `下ごしらえ ${full5} ｜ ${whyOf(r)} ｜ 預かった数 ${r.saved} ｜ ${now2} ｜ 何で変わるか ${J(a.landing_pay_varies_by?.codes)} ｜ 数 ${dayN} ｜ 行 ${await rowsOf(k)}`);
   await db.query(
     `delete from public.pv_contrib_pending
       where key_hash = public.pv_contrib_key_hash($1) and item_key like 'x-%'`, [k]);
@@ -2528,6 +2531,149 @@ console.log('\n▼ 8-4. 答えが分かれた質問（続きの「何によっ�
   await condM(S5, { airline: A_SPL, answers: [{ question_id: Q, code: 'yes' }] });
   ok(J(await spl()) === '[]' && await lead() === J(['yes']),
     '★TS3 3対2になった → カードは「最多 はい」・表からも消える', J({ split: await spl(), lead: await lead() }));
+}
+
+
+// ════════════════════════════════════════════════════════════
+console.log('\n▼ 8-5. 「その他」の欄の字（運営が載せるまで、誰にも出さない・2026-11-16）');
+// ════════════════════════════════════════════════════════════
+/* ★オーナー承認「その他を選んだら自分で書ける欄を（100字まで）。書いた字は運営が確認してから会社ページに載せる」。
+   見るもの ── 載せる前は誰にも返らない（書いた本人の「あなたの投稿」にも）・載せたら返る・字を直したら確認待ちに戻る・
+   同じ字のまま選び直しても載せた印は残る・その他を選んでいない字は保存しない・101字は断る・
+   古い画面の1つだけの答え（code）は複数選ぶの形で受ける（外した mixed は other）・
+   運営でない会員と未ログインは一覧も決める口も呼べない・一覧に誰の字かの手がかりが無い・
+   壊す証明（pv_contrib_notes の「載せた字だけ」の1行を外すと、確かめていない字が出る）。
+   ⚠️ 字は検査のための作りもの。どの会社の制度でもない。 */
+{
+  const [W, R, OP, MEM] = await crew(4);
+  await paid(R, A_OTX); await paid(W, A_OTX);
+  const Q = 'reserve_duty_who';   // reserve_duty に「一部のパイロットのみ」と答えた人の続き（複数選ぶ・その他の欄）
+  const PARENT = { question_id: 'reserve_duty', code: 'some_pilots' };
+  const T1 = '検査用のその他の字', T2 = '検査用のその他の字（直した）';
+  const rowOf = () => one(`select id, answer_code, answer_codes, answer_text, text_ok, text_shared
+                             from public.airline_conditions where airline = $1 and question_id = $2`, [A_OTX, Q]);
+  const shown = async (who) => ((await notes(who, A_OTX)).notes || []).filter((x) => x.q === Q).map((x) => x.text).join('|');
+  const opCall = (who, sql, params) => call(who, sql, params);
+  const list = async (who) => { const x = await opCall(who, `select public.admin_list_other_texts() as v`); return x.err ? x : x.v.v; };
+  const decide = async (who, id, okv, text) => {
+    const x = await opCall(who, `select public.admin_other_text_decide($1::uuid, $2::boolean, $3::text) as v`, [id, okv, text === undefined ? null : text]);
+    return x.err ? x : x.v.v;
+  };
+  const hasOps = await cnt(`information_schema.tables where table_schema = 'public' and table_name = 'pv_admins'`) === 1;
+  if (hasOps) await db.query(`insert into public.pv_admins (user_id, note) values ($1, 'test') on conflict do nothing`, [OP]);
+
+  let r = await condM(W, { airline: A_OTX, answers: [PARENT, { question_id: Q, codes: ['junior', 'other'], text: T1 }] });
+  let w = await rowOf();
+  ok(r.saved === 2 && r.rejected.length === 0 && J(w.answer_codes) === J(['junior', 'other']) && w.answer_text === T1
+     && w.text_shared === true && w.text_ok === null,
+    '★TO1 「その他」を選んで書いた字は、答えと一緒に保存される（見せてよい印は立つ・載せたかの印は確認待ち）', J({ r, w }));
+  ok(await shown(R) === '' && await shown(W) === '',
+    '★TO2 運営が載せる前は、ほかの会員にも、書いた本人にも返らない', J({ R: await shown(R), W: await shown(W) }));
+
+  if (hasOps) {
+    const L = await list(OP);
+    const mine = Array.isArray(L) ? L.find((x) => x.id === w.id) : null;
+    ok(!!mine && mine.text === T1 && mine.question_id === Q && mine.airline === A_OTX && mine.text_ok === null
+       && keys(mine) === 'airline,id,name_en,name_ja,question_id,text,text_ok,updated_at',
+      '★TO3 運営の一覧に、その字が確認待ちで並ぶ。返すのは id・会社・質問・字・時刻・印だけ（誰の字かの手がかりは無い）', J(mine));
+    ok(Array.isArray(L) && !/proof_hash|"position"|"fleet"|base_iata|contract_type|answer_codes|"lang"/.test(J(L)),
+      '   TO3 一覧のどこにも、proof_hash・職位・機種・基地・契約・選んだ答え・言語が無い');
+  }
+  const deniedAll = [await list(MEM), await decide(MEM, w.id, true), await list(ANON), await decide(ANON, w.id, true)];
+  ok(deniedAll.every((x) => x && x.err && /管理者ではありません|permission denied/i.test(x.err)),
+    '★TO4 運営でない会員・未ログインは、一覧も決める口も呼べない', J(deniedAll.map((x) => x && x.err)));
+  ok((await rowOf()).text_ok === null, '   TO4 断られた呼び出しで、印は動いていない');
+
+  if (hasOps) {
+    const ch = await decide(OP, w.id, true, T1 + '（違う字）');
+    ok(ch && ch.ok === false && ch.reason === 'changed' && (await rowOf()).text_ok === null,
+      '   TO5 運営が見た字といまの字が違えば、決めない（changed）', J(ch));
+    const d1 = await decide(OP, w.id, true, T1);
+    ok(d1 && d1.ok === true && (await rowOf()).text_ok === true && await shown(R) === T1 && await shown(W) === T1,
+      '★TO5 運営が「載せる」を押すと、ほかの会員にも本人にも返る', J({ d1, R: await shown(R) }));
+
+    r = await condM(W, { airline: A_OTX, answers: [{ question_id: Q, codes: ['base', 'other'], text: T1 }] });
+    ok(r.saved === 1 && (await rowOf()).text_ok === true && await shown(R) === T1,
+      '   TO6 同じ字のまま選び直しても、載せた印は残る（字が変わっていない）', J(await rowOf()));
+    r = await condM(W, { airline: A_OTX, answers: [{ question_id: Q, codes: ['base', 'other'], text: T2 }] });
+    w = await rowOf();
+    ok(r.saved === 1 && w.answer_text === T2 && w.text_ok === null && await shown(R) === '',
+      '★TO6 字を直したら、確認待ちに戻る（載せた字を書き換えて、確かめていない字を出させない）', J(w));
+    const d2 = await decide(OP, w.id, false, T2);
+    ok(d2 && d2.ok === true && (await rowOf()).text_ok === false && await shown(R) === '',
+      '   TO6 「載せない」を押した字は出ない', J(d2));
+    await decide(OP, w.id, true, T2);
+    must(await shown(R) === T2, 'TO7 の前に字を載せておく');
+
+    // 壊す証明：pv_contrib_notes の「載せた字だけ」の1行を外すと、確認待ちの字が出る
+    r = await condM(W, { airline: A_OTX, answers: [{ question_id: Q, codes: ['base', 'other'], text: T1 }] });
+    const src = read('db/contrib.sql');
+    const cut = src.replace('       and (not q.other_text or c.text_ok is true)\n', () => '');
+    ok(cut !== src, '   TO7 外す行が見つかった');
+    await asOwner(); await db.exec(cut);
+    const leaked = await shown(R);
+    await asOwner(); await db.exec(src);
+    ok(leaked === T1 && await shown(R) === '',
+      '★TO7 壊す証明：「載せた字だけ」の1行を外すと、確認待ちの字がほかの会員に出る。戻すと出ない', J({ leaked, after: await shown(R) }));
+  } else {
+    console.log('  （この器に運営の名簿 pv_admins が無い ＝ TO3・TO5〜TO7 は見ていない）');
+  }
+
+  r = await condM(W, { airline: A_OTX, answers: [{ question_id: Q, codes: ['junior'], text: T1 }] });
+  w = await rowOf();
+  ok(r.saved === 1 && J(w.answer_codes) === J(['junior']) && w.answer_text === null && w.text_ok === null,
+    '★TO8 「その他」を外して送った字は保存しない（字も印も空になる）', J(w));
+  r = await condM(W, { airline: A_OTX, answers: [{ question_id: Q, codes: ['other'], text: 'あ'.repeat(101) }] });
+  const r100 = await condM(W, { airline: A_OTX, answers: [{ question_id: Q, codes: ['other'], text: 'い'.repeat(100) }] });
+  ok(r.saved === 0 && r.rejected[0]?.reason === 'text_too_long' && r100.saved === 1 && (await rowOf()).answer_text === 'い'.repeat(100),
+    '★TO9 その他の字は100字まで（101字は text_too_long で断る・100字は通る）', J({ r, r100 }));
+  const other = await condM(W, { airline: A_OTX, answers: [
+    { question_id: 'reserve_duty_split', codes: ['tenure'] }, { question_id: 'reserve_location', code: 'home', text: 'あ'.repeat(150) }] });
+  ok(other.rejected.every((x) => x.reason !== 'text_too_long'),
+    '   TO9 その他の欄の無い質問の補足は、今までどおり300字まで（100字の線は、その他の欄だけ）', J(other.rejected));
+
+  r = await condM(W, { airline: A_OTX, answers: [{ question_id: Q, code: 'junior' }] });
+  w = await rowOf();
+  ok(r.saved === 1 && w.answer_code === null && J(w.answer_codes) === J(['junior']),
+    '★TO10 古い画面の1つだけの答え（code）は、複数選ぶの形（codes）で受ける', J(w));
+  r = await condM(W, { airline: A_OTX, answers: [{ question_id: Q, code: 'mixed', text: T1 }] });
+  w = await rowOf();
+  ok(r.saved === 0 && (r.rejected || []).length === 1 && r.rejected[0].question_id === Q && r.rejected[0].reason === 'bad_code' && J(w.answer_codes) === J(['junior']),
+    '   TO10 外した「いくつか当てはまる・その他」（mixed）は受けない（「その他」に置き換えない・前の答えのまま）', J({ r, w }));
+  r = await condM(W, { airline: A_OTX, answers: [{ question_id: Q, code: 'unknown', text: T1 }] });
+  w = await rowOf();
+  ok(r.saved === 1 && w.answer_code === 'unknown' && w.answer_codes === null && w.answer_text === null,
+    '   TO10 「わからない」は今までどおり code のまま・字は残さない', J(w));
+
+  /* 1つ選ぶ → 複数選ぶ に変えた質問の、変える前の答え（answer_code に1つ）は、db/airline-conditions.sql を貼ると
+     複数選ぶの形（answer_codes）へ直る。mixed は直さない（その他に置き換えない）。「わからない」は code のまま。字も「最後に確かめた日」も動かさない */
+  const OLD = await crew(3), legacy = ['junior', 'mixed', 'unknown'];
+  for (let i = 0; i < 3; i++) await condM(OLD[i], { airline: A_OTX, answers: [PARENT, { question_id: Q, codes: ['base'] }] });
+  const hashes = (await many(`select proof_hash from public.airline_conditions where airline = $1 and question_id = $2
+                                 and answer_codes = array['base'] order by proof_hash`, [A_OTX, Q])).map((x) => x.proof_hash);
+  must(hashes.length === 3, '移す前の答えの行が3つ');
+  /* 1件目は「見せます」の印の付いた補足（今まで会員に見せていた）・2件目は印の無い補足（本人だけ）・3件目は「わからない」 */
+  const OLDNOTE = '検査用の前の補足';
+  const legacyText = [OLDNOTE, T1, null], legacyShared = [true, false, false];
+  for (let i = 0; i < 3; i++) {
+    await db.query(`update public.airline_conditions set answer_code = $3, answer_codes = null, answer_text = $4, text_shared = $5,
+                           text_ok = null, updated_at = timestamptz '2026-11-01 00:00+00'
+                     where proof_hash = $1 and question_id = $2`, [hashes[i], Q, legacy[i], legacyText[i], legacyShared[i]]);
+  }
+  await asOwner(); await db.exec(read('db/airline-conditions.sql'));
+  const moved = await many(`select answer_code c, answer_codes cs, answer_text t, text_ok k, updated_at u from public.airline_conditions
+                             where airline = $1 and question_id = $2 and proof_hash = any($3) order by proof_hash`, [A_OTX, Q, hashes]);
+  const want = [[null, ['junior'], OLDNOTE, true], ['mixed', null, T1, null], ['unknown', null, null, null]];
+  ok(J(moved.map((x) => [x.c, x.cs, x.t, x.k])) === J(want)
+     && moved.every((x) => new Date(x.u).toISOString() === '2026-11-01T00:00:00.000Z'),
+    '★TO11 変える前の1つだけの答えは、貼り直しで複数選ぶの形に直る（mixed は直さない・わからないはそのまま・字と日付は動かさない・'
+    + '今まで見せていた補足は載せた扱い・本人だけの補足は確認待ち）', J(moved));
+  if (hasOps) await decide(OP, moved[0] && (await one(`select id from public.airline_conditions where proof_hash = $1 and question_id = $2`, [hashes[0], Q])).id, false, OLDNOTE);
+  await asOwner(); await db.exec(read('db/airline-conditions.sql'));
+  const again = await one(`select text_ok k from public.airline_conditions where proof_hash = $1 and question_id = $2`, [hashes[0], Q]);
+  ok(!hasOps || again.k === false, '   TO11 貼り直しても、運営が「載せない」にした字を載せ直さない（直すのは1回だけ）', J(again));
+
+  if (hasOps) await db.query(`delete from public.pv_admins where user_id = $1`, [OP]);
 }
 
 

@@ -227,6 +227,7 @@
     <button class="tab-btn" onclick="switchTab('proofs',this)">Pilot check<span class="tab-n" id="proof-n"></span></button>
     <button class="tab-btn" id="tab-btn-holds" onclick="switchTab('holds',this)">Home page holds<span class="tab-n" id="hold-n"></span></button>
     <button class="tab-btn" id="tab-btn-rholds" onclick="switchTab('rholds',this)">Review check<span class="tab-n" id="rhold-n"></span></button>
+    <button class="tab-btn" id="tab-btn-otx" onclick="switchTab('otx',this)">Other answers<span class="tab-n" id="otx-n"></span></button>
     <button class="tab-btn" id="tab-btn-rimgs" onclick="switchTab('rimgs',this)">Unreadable rosters<span class="tab-n" id="rimg-n"></span></button>
   </div>
 
@@ -323,6 +324,15 @@
     <div class="rh-list" id="rh-list"><p class="loading">Loading…</p></div>
   </div>
 
+  <!-- その他の答え（2026-11-16 オーナー承認「その他を選んだら自分で書ける欄を。書いた字は運営が確認してから載せる」）
+       ★一覧も「載せる／載せない」も、サーバー（admin_list_other_texts / admin_other_text_decide・db/contrib.sql 7-0）が
+         名簿を見てから行う。返ってくるのは 行の id・会社・質問・字・時刻・印 だけ（誰の字かは来ない）。en/admin.html#other-texts で開く。
+       ★pv-no-cur ── 運営は書かれた字のまま読む（字の中の「¥…」を通貨の切替で書き換えない）。 -->
+  <div id="tab-otx" class="pv-no-cur" style="display:none">
+    <div class="notice"><strong>Other answers</strong> — Text members typed after choosing “Other”. Only text you publish appears on airline pages (if a member edits it, it goes back to waiting). Who wrote it is not shown here.</div>
+    <div class="rh-list" id="otx-list"><p class="loading">Loading…</p></div>
+  </div>
+
   <!-- 読めなかった勤務表（2026-11-16 オーナー「どこで見れるの？画像」）
        ★画像はサーバー（admin_roster_image）が運営の名簿を見てから1枚ずつ返す。一覧（admin_roster_images）は中身を持たない。
        ★誰の勤務表かは記録していない（サーバーにも無い）。90日で自動で消える（db/roster.sql の pv_roster_images_expire）。 -->
@@ -362,6 +372,8 @@
   let rhReady    = false;   // 口コミの確認の入口（admin_list_review_holds）がサーバーに在るか
   let allRImgs   = [];
   let riReady    = false;   // 読めなかった勤務表の入口（admin_roster_images・db/roster.sql）がサーバーに在るか
+  let allOtx     = [];
+  let otxReady   = false;   // その他の答えの入口（admin_list_other_texts・db/contrib.sql 7-0）がサーバーに在るか
   let currentTab = 'users';
 
   /* admin.html#top-hold・#review-holds で来たら、そのタブを開く（ログイン画面を通ると # が落ちるので、来たことだけ覚えておく）。 */
@@ -369,6 +381,7 @@
     if (location.hash === '#top-hold') sessionStorage.setItem('pv_admin_tab', 'holds');
     else if (location.hash === '#review-holds') sessionStorage.setItem('pv_admin_tab', 'rholds');
     else if (location.hash === '#roster-images') sessionStorage.setItem('pv_admin_tab', 'rimgs');
+    else if (location.hash === '#other-texts') sessionStorage.setItem('pv_admin_tab', 'otx');
   } catch (e) {}
 
   /* ★No password lives in this page. Anything written here is public,
@@ -419,17 +432,19 @@
     if (want === 'holds') switchTab('holds', document.getElementById('tab-btn-holds'));
     if (want === 'rholds') switchTab('rholds', document.getElementById('tab-btn-rholds'));
     if (want === 'rimgs') switchTab('rimgs', document.getElementById('tab-btn-rimgs'));
+    if (want === 'otx') switchTab('otx', document.getElementById('tab-btn-otx'));
   }
 
   async function loadData() {
     /* Never read the tables directly — the entry point decides who may read. */
-    const [usersRes, reviewsRes, proofsRes, holdsRes, rholdsRes, rimgsRes] = await Promise.all([
+    const [usersRes, reviewsRes, proofsRes, holdsRes, rholdsRes, rimgsRes, otxRes] = await Promise.all([
       sb.rpc('admin_list_profiles'),
       sb.rpc('admin_list_reviews'),
       sb.rpc('admin_list_proofs'),
       sb.rpc('admin_list_top_holds'),
       sb.rpc('admin_list_review_holds'),
-      sb.rpc('admin_roster_images')
+      sb.rpc('admin_roster_images'),
+      sb.rpc('admin_list_other_texts')
     ]);
     if (usersRes.error || reviewsRes.error) {
       document.getElementById('dashboard').style.display = 'none';
@@ -451,6 +466,7 @@
     allHolds   = holdReady && Array.isArray(holdsRes.data) ? holdsRes.data : [];
     takeReviewHolds(rholdsRes);   // これも SQL を貼る前でも上の表は出す
     takeRosterImages(rimgsRes);   // 同じく
+    takeOtherTexts(otxRes);       // 同じく（db/contrib.sql を貼る前でも上の表は出す）
     renderStats();
     renderUsersTable();
     renderReviewsTable();
@@ -458,6 +474,7 @@
     renderHoldsTable();
     renderReviewHolds();
     renderRosterImages();
+    renderOtherTexts();
   }
 
   /* ── 口コミの確認（翻訳の AI が保留にした口コミ・2026-11-15）── 日本語の管理画面と同じ作り（字だけ英語・日本語訳の畳みは無い）。
@@ -522,6 +539,90 @@
     if (error || !data || !data.ok) alert(data && data.reason === 'not_held' ? 'This review is no longer waiting for a decision.'
       : 'That did not work: ' + ((error && error.message) || (data && data.reason) || ''));
     await loadReviewHolds();
+  });
+
+  /* ── その他の答え（2026-11-16 オーナー承認「その他を選んだら自分で書ける欄を。書いた字は運営が確認してから載せる」）──
+     ★守っているのはここではない。一覧も「載せる／載せない」も、サーバー（admin_list_other_texts / admin_other_text_decide・
+       db/contrib.sql 7-0）が名簿を見てから行う。返ってくるのは 行の id・会社・質問・字・時刻・印 だけ（誰の字かは来ない）。
+     ★字は会員が書いたもの。textContent で入れる（innerHTML に入れない）。言語が何でも読めるよう dir="auto"。
+     ★「載せる／載せない」は見た字を添えて送る（p_text）── 一覧を開いたあとに書き直された字を、見ないまま載せない。
+     ★質問の名前は質問の台帳（pv-conditions.json）の短い名前。続きの質問は「親 › 子」（「何で違うか」だけでは何の話か分からない）。 */
+  const OTX_BANK = '../pv-conditions.json';
+  let otxNames = null;   // 質問の id → 短い名前。一覧に字があるときだけ読む
+  function takeOtherTexts(res) {
+    otxReady = !!res && !res.error;
+    allOtx   = otxReady && Array.isArray(res.data) ? res.data : [];
+  }
+  async function loadOtherTexts() {
+    takeOtherTexts(await sb.rpc('admin_list_other_texts'));
+    renderOtherTexts();
+  }
+  async function otxLabels() {
+    if (otxNames) return otxNames;
+    const out = {};
+    try {
+      const j = await (await fetch(OTX_BANK, { cache: 'no-cache' })).json();
+      const by = {};
+      (j.questions || []).forEach(q => { if (q && q.id) by[q.id] = q; });
+      Object.keys(by).forEach(id => {
+        const q = by[id], p = q.parent && by[q.parent];
+        out[id] = (p && p.en ? p.en.short + ' › ' : '') + ((q.en && q.en.short) || id);
+      });
+    } catch (e) {}
+    return (otxNames = out);
+  }
+  const otxEl = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  async function renderOtherTexts() {
+    const box  = document.getElementById('otx-list');
+    const list = allOtx.filter(x => x && isUuid(x.id) && typeof x.text === 'string');
+    const wait = list.filter(x => x.text_ok == null), done = list.filter(x => x.text_ok != null);
+    document.getElementById('otx-n').textContent = wait.length ? String(wait.length) : '';
+    if (!otxReady) { box.innerHTML = '<p class="loading">Not available yet (it works once db/contrib.sql has been applied).</p>'; return; }
+    if (!list.length) { box.innerHTML = '<p class="loading">No “Other” answers.</p>'; return; }
+    const names = await otxLabels();
+    box.textContent = '';
+    if (!wait.length) box.appendChild(otxEl('p', 'loading', 'Nothing is waiting for review.'));
+    wait.concat(done).forEach(x => {
+      const card = otxEl('article', 'rh-card' + (x.text_ok == null ? '' : ' is-done'));
+      const top = otxEl('div', 'rh-top');
+      top.appendChild(otxEl('span', 'pf-tag ' + (x.text_ok == null ? 'pf-sub' : x.text_ok ? 'pf-ok' : 'rh-del'),
+        x.text_ok == null ? 'Waiting' : x.text_ok ? 'Published' : 'Not published'));
+      top.appendChild(otxEl('b', 'rh-co', x.name_en || x.airline || '—'));
+      top.appendChild(otxEl('span', 'rh-when', 'Written ' + pfDate(x.updated_at)));
+      card.appendChild(top);
+      const dl = otxEl('dl', 'rh-facts');
+      dl.appendChild(otxEl('dt', '', 'Question'));
+      dl.appendChild(otxEl('dd', '', names[x.question_id] || x.question_id || '—'));
+      card.appendChild(dl);
+      const body = otxEl('div', 'rh-body'), sec = otxEl('section', 'rh-sec'), p = otxEl('p', '', x.text);
+      p.setAttribute('dir', 'auto');
+      sec.appendChild(p); body.appendChild(sec); card.appendChild(body);
+      const acts = otxEl('div', 'pf-acts');
+      const btn = (yes, label, cls) => {
+        const b = otxEl('button', 'pf-btn ' + cls, label);
+        b.type = 'button'; b.setAttribute('data-otx', yes ? 'ok' : 'no'); b.setAttribute('data-r', x.id);
+        return b;
+      };
+      if (x.text_ok !== true) acts.appendChild(btn(true, 'Publish', 'is-go'));
+      if (x.text_ok !== false) acts.appendChild(btn(false, 'Don’t publish', 'is-warn'));
+      card.appendChild(acts);
+      box.appendChild(card);
+    });
+  }
+  document.addEventListener('click', async e => {
+    const b = e.target && e.target.closest ? e.target.closest('[data-otx]') : null;
+    if (!b || b.disabled) return;
+    const id = b.getAttribute('data-r'), yes = b.getAttribute('data-otx') === 'ok';
+    const x = allOtx.find(y => y && y.id === id);
+    if (!isUuid(id) || !x) return;
+    const btns = [...b.parentNode.querySelectorAll('[data-otx]')];
+    btns.forEach(y => { y.disabled = true; });
+    const { data, error } = await sb.rpc('admin_other_text_decide', { p_id: id, p_ok: yes, p_text: x.text });
+    btns.forEach(y => { y.disabled = false; });
+    if (error || !data || !data.ok) alert(data && data.reason === 'changed' ? 'This answer has been edited. Reloading the list.'
+      : data && data.reason === 'not_found' ? 'This answer no longer exists.'
+      : 'Could not do it: ' + ((error && error.message) || (data && data.reason) || ''));
+    await loadOtherTexts();
   });
 
   /* ── 読めなかった勤務表（2026-11-16）────────────────────────────
@@ -912,6 +1013,7 @@
     document.getElementById('tab-holds').style.display   = tab==='holds'   ? 'block' : 'none';
     document.getElementById('tab-rholds').style.display  = tab==='rholds'  ? 'block' : 'none';
     document.getElementById('tab-rimgs').style.display   = tab==='rimgs'   ? 'block' : 'none';
+    document.getElementById('tab-otx').style.display     = tab==='otx'     ? 'block' : 'none';
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b===btn));
     /* 狭い画面：開いたタブを、タブの行の中で見える所へ（ページは動かさない）。字が読み終わるとタブの幅が変わるので、そのあとにもう一度 */
     const bar = btn && btn.parentNode;

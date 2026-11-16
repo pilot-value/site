@@ -1021,9 +1021,10 @@ ok(LP_MONEY.every((id) => QBY[id]?.num.min >= 1),
   JSON.stringify(LP_MONEY.map((id) => [id, QBY[id]?.num.min])));
 ok(LP_ALL.every((id) => QBY[id]?.ja.label.includes('着陸手当') && /landing allowance/i.test(QBY[id]?.en.label)),
   '   見出しだけで「着陸手当の話」と分かる（親が隣に無い通知や一覧でも・日英）');
-ok(QBY.landing_pay_varies_by?.note === true
-   && LP_ALL.every((id) => !QBY[id]?.micro && !QBY[id]?.topic && !QBY[id]?.topicOnly),
-  '   補足の欄を持つのは「何で変わるか」。5問とも1問枠には回さない（一覧と会社ページで聞く）');
+/* ★2026-11-16 「何で変わるか」は複数選ぶ＋その他の欄（otherText）に変えた（補足の欄の代わり） */
+ok(QBY.landing_pay_varies_by?.otherText === true && QBY.landing_pay_varies_by?.kind === 'multi'
+   && LP_ALL.every((id) => !QBY[id]?.note && !QBY[id]?.micro && !QBY[id]?.topic && !QBY[id]?.topicOnly),
+  '   その他の欄を持つのは「何で変わるか」（複数選ぶ）。5問とも1問枠には回さない（一覧と会社ページで聞く）');
 v = await rows(`select id, parent, parent_when, has_currency, num_min
                   from pv_condition_questions where active and id = any($1)`, [LP_ALL]);
 const lpDb = Object.fromEntries(v.map((x) => [x.id, x]));
@@ -1108,14 +1109,14 @@ await asUser(234);
 r = await submit({ ...LC, answers: [
   { question_id: LP.id, code: 'variable' },
   { question_id: 'landing_pay_from', num: 1000, currency: 'USD' },
-  { question_id: 'landing_pay_varies_by', code: 'airport', text: '検査用の補足' }] });
+  { question_id: 'landing_pay_varies_by', codes: ['airport', 'other'], text: '検査用の補足' }] });
 ok(r.saved === 3 && r.rejected.length === 0,
   '㉑ 「一定額ではない」の人は、低いほうの額と「何で変わるか」だけで保存できる（高いほうは入れなくてよい）',
   JSON.stringify(r.rejected));
 m = await mineOf(234, LC.airline);
 ok(!m.landing_pay_to && Number(m.landing_pay_from?.num) === 1000 && m.landing_pay_from?.currency === 'USD'
-   && m.landing_pay_varies_by?.code === 'airport' && m.landing_pay_varies_by?.text === '検査用の補足',
-  '   入れていない高いほうの額は空のまま（0 でも、低いほうの額でも埋めない）・補足は残る',
+   && same(m.landing_pay_varies_by?.codes || [], ['airport', 'other']) && m.landing_pay_varies_by?.text === '検査用の補足',
+  '   入れていない高いほうの額は空のまま（0 でも、低いほうの額でも埋めない）・その他の字は残る',
   JSON.stringify([m.landing_pay_from, m.landing_pay_to, m.landing_pay_varies_by?.text]));
 o = await offer(234, LC.airline);
 r = await submit({ ...LC, answers: sendLp(LP_FIXED) });

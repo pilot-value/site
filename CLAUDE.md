@@ -625,8 +625,16 @@ baland_ass/                            ブランド資産（※ brand_assets の
   続きの質問も補足を持つので、`!q.deep` を足して「上限」だけに絞ってある。外すと「何で違うか」が2つ目の畳みとして最初から出る（`assert-contrib` が落とす）。
 - **貼る順** ── `db/conditions.generated.sql` → `db/airline-conditions.sql` → `db/contrib.sql` → `db/ask-own-airline.sql`。SQL が先・push が後
   （貼る前に push すると、画面には「一部」の続きが出るのに、DB に質問が無いので保存で弾かれる）。
+- ★**2026-11-16 から続きの21問と「着陸手当は何で変わるか」は複数選ぶ＋「その他」の1行の欄**（会員の声「いくつも当てはまるときは何を選ぶ？」
+  「選択肢を増やして」「自分で書けるその他が欲しい」→ オーナー承認）。「いくつか当てはまる・その他」（mixed）は外した・コードは足すだけ。
+  - 台帳の印は `otherText`（複数選ぶ質問だけ・選択肢に `other` が要る・`note` とは同時に立てない ── gen-conditions.mjs が止める）。DB は `other_text`。
+  - 欄は「その他」を選んだときだけ出る（板・一覧のページ・情報を追加の3か所）・100字まで（`OTHER_TEXT_MAX`）・字は `answer_text`。
+    other を選んでいない字はサーバ（`pv_condition_clean`）が捨てる。古い画面の `{code}` は `{codes:[code]}`、mixed は other として受ける。
+  - ⚠️ **会社ページに出すのは運営が「載せる」を押した字だけ**（`airline_conditions.text_ok`・管理画面の「その他の答え」＝ `admin.html#other-texts`）。
+    字が変わると引き金 `pv_condition_text_recheck` が確認待ちへ戻す。決めるのは `pv_contrib_notes` の1行（壊す証明は `db/test-contrib.mjs` ▼8-5）。
+    一覧（`admin_list_other_texts`）は誰の字かを返さない。ほかの質問の補足は今までどおり（`text_shared`）。
 
-見るもの: `node db/test-ask-own-airline.mjs`（▼ 9）／`node db/test-contrib.mjs`（▼ 8-4）／`node db/test-conditions.mjs`（数）／
+見るもの: `node db/test-ask-own-airline.mjs`（▼ 9）／`node db/test-contrib.mjs`（▼ 8-4・▼ 8-5）／`node db/test-conditions.mjs`（数）／`node assert-ask.mjs`（⑧）／
 `node assert-airline-glance.mjs`（開いている人の場面の「続きの質問への誘い」）。
 
 ## 会社ページの給与の図と、口コミ要約のぼかし（2026-10-30）

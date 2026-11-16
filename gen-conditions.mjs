@@ -10,7 +10,7 @@
 ════════════════════════════════════════════════════════════════ */
 import { writeFileSync, existsSync } from 'fs';
 import { LANGS } from './langs.mjs';
-import { SECTIONS, QUESTIONS, SETTINGS, ASK, UNKNOWN, TEXT_MAX, LINES_MAX, LINE_NAME_MAX } from './pv-conditions.mjs';
+import { SECTIONS, QUESTIONS, SETTINGS, ASK, UNKNOWN, TEXT_MAX, OTHER_TEXT_MAX, LINES_MAX, LINE_NAME_MAX } from './pv-conditions.mjs';
 
 const KINDS = ['choice', 'multi', 'num', 'lines'];
 const TIERS = ['A', 'B', 'C'];   // A から先に埋める（横断比較に効く順）
@@ -174,6 +174,16 @@ for (const q of QUESTIONS) {
   // ── 付帯フラグ ──
   if (q.currency && q.kind !== 'num') throw new Error(`${at}: currency は数値質問だけ`);
   if (q.note && q.kind !== 'choice' && q.kind !== 'multi') throw new Error(`${at}: note は選択式だけ`);
+  /* 「その他」の欄（2026-11-16）。複数選ぶ質問だけ・選択肢に other が要る（無いと欄を出す時が来ない）。
+     ★1つ選ぶ質問には付けない ── 板（pv-conditions.js の Modal）は1つ選ぶ答えを押した瞬間に保存するので、
+       欄に書く間が無い（DB の pv_cq_other_text_ck は1つ選ぶも通す。サーバの検品はどちらの形でも同じ決まり）。
+     補足（note）と同じ answer_text に入るので、両方は立てない（1つの字を2つの欄で書かせない）。 */
+  if (q.otherText != null) {
+    if (q.otherText !== true) throw new Error(`${at}: otherText は true か、書かないか`);
+    if (q.kind !== 'multi') throw new Error(`${at}: otherText は複数選ぶ質問だけ（kind=${q.kind}・1つ選ぶ板は押した瞬間に保存する）`);
+    if (!q.choices.some((c) => c.code === 'other')) throw new Error(`${at}: otherText の質問には選択肢 'other'（その他）が要る`);
+    if (q.note) throw new Error(`${at}: otherText と note を同時に立てない（どちらも answer_text に入る）`);
+  }
 
   // ── 親子 ──
   if (q.parent) {
@@ -237,14 +247,15 @@ for (const q of QUESTIONS) {
 
   // ── 続きの質問（deep・2026-11-14） ──
   /* ★partial ＝ 親の「一部」の答えをした本人にだけ。split ＝ その会社で親の答えが分かれているときだけ（見せる門はサーバと画面）。
-     ★どちらも1つ選ぶ・補足つき・親が1つ選ぶ質問で、親に親が無い。1問枠（micro）と最初の3問（boost）には出さない。
+     ★どちらも複数選ぶ・その他の欄つき（2026-11-16 に「1つ選ぶ・補足つき」から変えた）・親が1つ選ぶ質問で、親に親が無い。
+       1問枠（micro）と最初の3問（boost）には出さない。
      ★split の parentWhen は親の「わからない」以外の全部（＝保存の検品は今の子の質問のまま通る）。 */
   if (q.deep != null) {
     if (!['partial', 'split'].includes(q.deep)) throw new Error(`${at}: deep は 'partial' か 'split' → ${q.deep}`);
     const p = q.parent && seen.get(q.parent);
     if (!p) throw new Error(`${at}: 続きの質問（deep）には親が要る`);
     if (p.kind !== 'choice' || p.parent || p.deep) throw new Error(`${at}: 続きの質問の親は、親を持たない1つ選ぶ質問だけ（${q.parent}）`);
-    if (q.kind !== 'choice' || !q.note) throw new Error(`${at}: 続きの質問は1つ選ぶ＋補足つき`);
+    if (q.kind !== 'multi' || !q.otherText) throw new Error(`${at}: 続きの質問は複数選ぶ＋その他の欄（otherText）つき`);
     if (q.micro || q.boost || q.topicOnly || q.isOpinion) throw new Error(`${at}: 続きの質問を micro・boost・topicOnly・isOpinion にしない`);
     const real = p.choices.map((c) => c.code).filter((c) => c !== UNKNOWN);
     if (q.deep === 'split' && (q.parentWhen.length !== real.length || !real.every((c) => q.parentWhen.includes(c))))
@@ -322,7 +333,7 @@ const askRank = new Map();   // id → 1, 2, …（DB の ask_rank）
   const json = {
     _: '★自動生成（node gen-conditions.mjs）。手で編集しない。生成元 pv-conditions.mjs',
     unknown: UNKNOWN,
-    limits: { textMax: TEXT_MAX, linesMax: LINES_MAX, lineNameMax: LINE_NAME_MAX },
+    limits: { textMax: TEXT_MAX, otherMax: OTHER_TEXT_MAX, linesMax: LINES_MAX, lineNameMax: LINE_NAME_MAX },
     /* 出す問数と待ち時間。★DB 側（pv_condition_settings）と同じ数字がここへ来る。
        画面が「3問出すつもり」なのに DB が1問しか返さない、が起きないようにする。 */
     settings: { ...SETTINGS },
@@ -348,6 +359,8 @@ const askRank = new Map();   // id → 1, 2, …（DB の ask_rank）
          ★質問マスタの spec には range_low という名前で入る（下の spec）。同じ対を、画面とサーバが読む。 */
       if (q.rangeLow) o.rangeLow = q.rangeLow;
       if (q.note) o.note = true;
+      /* 「その他」の欄（2026-11-16）。画面は other を選んだときだけ1行の欄を出す（上限は limits.otherMax） */
+      if (q.otherText) o.otherText = true;
       /* 話題の入口。★topicOnly が立っている質問は、画面が一覧と1問枠に出さない
          （出さない・数えないを決めているのは DB。ここは運ぶだけ）。 */
       if (q.topic) o.topic = q.topic;
@@ -433,6 +446,8 @@ create table if not exists public.pv_condition_sections (
 --               （出さない・数えないは db/airline-conditions.sql。保存と公開集計は他の質問と同じ）
 --   deep        続きの質問（2026-11-14）。'partial' ＝ 親に「一部」の答えをした本人だけ／'split' ＝ その会社で親の答えが
 --               分かれているときだけ（見せる門は pv_condition_split）。一覧の行にも「答えた項目」の数にも入れない
+--   other_text  「その他」（other）を選んだ人にだけ1行の欄（${OTHER_TEXT_MAX}字まで）を出す（2026-11-16）。字は answer_text に入り、
+--               会社ページに出すのは運営が載せた字だけ（airline_conditions.text_ok・db/contrib.sql の pv_contrib_notes）
 --   spec        kind ごとの付帯情報（数値の刻み、明細行の語彙）。
 --               range_low は、対になる額（低いほう・高いほう）の低いほうの id。高いほうの質問だけが持つ
 --               （読むのは db/airline-conditions.sql の pv_condition_range_other）
@@ -451,6 +466,7 @@ create table if not exists public.pv_condition_questions (
   topic text,
   topic_only boolean not null default false,
   deep text,
+  other_text boolean not null default false,
   choice_codes text[],
   num_min numeric(12,2),
   num_max numeric(12,2),
@@ -476,6 +492,8 @@ alter table public.pv_condition_questions add column if not exists topic_only bo
 alter table public.pv_condition_questions add column if not exists ask_rank smallint;
 -- 続きの質問（2026-11-14）。null ＝ ふつうの質問
 alter table public.pv_condition_questions add column if not exists deep text;
+-- 「その他」の欄（2026-11-16）。false ＝ その他の欄を出さない
+alter table public.pv_condition_questions add column if not exists other_text boolean not null default false;
 
 -- 検品の一部は DB 側にも置く。SSOT を通さず手で1行入れられたときに効く。
 -- ★毎回 drop してから付け直す。「無ければ作る」だと、条件を変えて流し直したときに
@@ -487,6 +505,7 @@ alter table public.pv_condition_questions drop constraint if exists pv_cq_choice
 alter table public.pv_condition_questions drop constraint if exists pv_cq_topic_ck;
 alter table public.pv_condition_questions drop constraint if exists pv_cq_topic_only_ck;
 alter table public.pv_condition_questions drop constraint if exists pv_cq_deep_ck;
+alter table public.pv_condition_questions drop constraint if exists pv_cq_other_text_ck;
 alter table public.pv_condition_questions
   add constraint pv_cq_tier_ck check (tier in (${TIERS.map(q).join(', ')}));
 -- micro＝1タップで終わる形か。親の有無は見ない（親の答えを持つ人にだけ出す＝出す側の仕事）
@@ -502,10 +521,17 @@ alter table public.pv_condition_questions
 -- topic_only＝話題の入口からだけ出す。入口（topic）が要り、1問枠の印（micro・boost）とは同時に立たない
 alter table public.pv_condition_questions
   add constraint pv_cq_topic_only_ck check (not topic_only or (topic is not null and not micro and boost = 0));
--- deep＝続きの質問。親が要り、1つ選ぶ形で、1問枠の印・話題の入口だけの印とは同時に立たない
+-- deep＝続きの質問。親が要り、選ぶ形で、1問枠の印・話題の入口だけの印とは同時に立たない
+--   ★選ぶ形は1つ選ぶ・複数選ぶのどちらも通す（2026-11-16 に複数選ぶへ変えた）。この制約は下の upsert より**先に**
+--     付け直すので、kind = 'multi' だけにすると、まだ 'choice' のままの今の行で付け直しが落ちる（kind を変えるのは upsert）。
+--     「続きは複数選ぶ＋その他の欄」の決まりそのものは gen-conditions.mjs が止める。
 alter table public.pv_condition_questions
   add constraint pv_cq_deep_ck check (deep is null or (deep in ('partial', 'split')
-    and parent is not null and kind = 'choice' and not micro and boost = 0 and not topic_only));
+    and parent is not null and kind in ('choice', 'multi') and not micro and boost = 0 and not topic_only));
+-- other_text＝「その他」の欄。選ぶ形で、選択肢に 'other' が在る質問だけ
+alter table public.pv_condition_questions
+  add constraint pv_cq_other_text_ck check (not other_text or (kind in ('choice', 'multi')
+    and 'other' = any(choice_codes)));
 
 insert into public.pv_condition_sections (code, name_ja, name_en, sort) values
 ${rows(SECTIONS, [(x) => q(x.code), (x) => q(x.ja), (x) => q(x.en), (x) => String(SECTIONS.indexOf(x))])}
@@ -515,7 +541,7 @@ on conflict (code) do update set name_ja = excluded.name_ja, name_en = excluded.
 -- ★親は子より先に入れる（自己参照の外部キー）。並び順は pv-conditions.mjs の並びそのまま。
 insert into public.pv_condition_questions
   (id, version, section, kind, tier, micro, priority, boost, is_opinion, parent, parent_when,
-   topic, topic_only, deep, ask_rank,
+   topic, topic_only, deep, other_text, ask_rank,
    choice_codes, num_min, num_max, has_currency, has_note, spec, label_ja, label_en) values
 ${rows(QUESTIONS, [
   (x) => q(x.id),
@@ -532,6 +558,7 @@ ${rows(QUESTIONS, [
   (x) => q(x.topic),
   (x) => bool(x.topicOnly),
   (x) => q(x.deep),
+  (x) => bool(x.otherText),
   (x) => num(askRank.get(x.id)),
   (x) => arr(x.choices && x.choices.map((c) => c.code)),
   (x) => num(x.num && x.num.min),
@@ -547,7 +574,8 @@ on conflict (id) do update set
   tier = excluded.tier, micro = excluded.micro, priority = excluded.priority,
   boost = excluded.boost, is_opinion = excluded.is_opinion,
   parent = excluded.parent, parent_when = excluded.parent_when,
-  topic = excluded.topic, topic_only = excluded.topic_only, deep = excluded.deep, ask_rank = excluded.ask_rank,
+  topic = excluded.topic, topic_only = excluded.topic_only, deep = excluded.deep, other_text = excluded.other_text,
+  ask_rank = excluded.ask_rank,
   choice_codes = excluded.choice_codes, num_min = excluded.num_min, num_max = excluded.num_max,
   has_currency = excluded.has_currency, has_note = excluded.has_note, spec = excluded.spec,
   label_ja = excluded.label_ja, label_en = excluded.label_en, active = true;
@@ -581,7 +609,7 @@ $$;
 create or replace function public.pv_condition_limits()
 returns jsonb language sql immutable set search_path = public, pg_temp as $$
   select jsonb_build_object(
-    'text_max', ${TEXT_MAX}, 'lines_max', ${LINES_MAX}, 'line_name_max', ${LINE_NAME_MAX},
+    'text_max', ${TEXT_MAX}, 'other_max', ${OTHER_TEXT_MAX}, 'lines_max', ${LINES_MAX}, 'line_name_max', ${LINE_NAME_MAX},
     'unknown', ${q(UNKNOWN)})
 $$;
 grant execute on function public.pv_condition_limits() to anon, authenticated;
@@ -605,6 +633,7 @@ select
   (select count(*) from public.pv_condition_questions where active and not topic_only and deep is null) as 一覧に出る質問,
   (select count(*) from public.pv_condition_questions where active and topic_only)     as 話題の入口からだけ出る質問,
   (select count(*) from public.pv_condition_questions where active and deep is not null) as 続きの質問,
+  (select count(*) from public.pv_condition_questions where active and other_text) as その他の欄のある質問,
   (select count(*) from public.pv_condition_questions where active and micro)      as 直後に出せる質問,
   (select count(*) from public.pv_condition_questions where active and tier = 'A') as tier_a,
   (select count(*) from public.pv_condition_questions where active and boost > 0) as 最初の3問,

@@ -233,6 +233,56 @@ console.log('\n════ ⑦ 額（通貨つき）── 着陸手当の額�
   await page.keyboard.press('Escape');
 }
 
+console.log('\n════ ⑧ 続きの質問は複数選ぶ＋「その他」の欄（2026-11-16 オーナー承認） ════');
+{
+  /* 「いくつも当てはまるときは何を選べばいい？」「自分で答えを書けるその他が欲しい」。
+     欄は「その他」を選んだときだけ出る・外したら消えて空になる・字は「次へ」で答えと一緒に送る（その他を外したら送らない）。 */
+  const Q_D1 = 'days_off_request_partial', Q_D2 = 'days_off_request_split';
+  for (const id of [Q_D1, Q_D2]) if (!BY[id]) ok(false, `質問 ${id} が無い`);
+  ok([Q_D1, Q_D2].every((id) => BY[id].kind === 'multi' && BY[id].otherText === true
+       && BY[id].choices.at(-1).code === 'other' && !BY[id].choices.some((c) => c.code === 'mixed' || c.code === 'unknown')),
+     '続きの2問は複数選ぶ・最後が「その他」・「いくつか当てはまる・その他」と「わからない」は選択肢に無い（わからないは板が足す）',
+     [Q_D1, Q_D2].map((id) => [BY[id].kind, BY[id].choices.map((c) => c.code)]));
+  reset({ next: { ok: true, due: true, airline: 'jal', name_ja: 'JAL', name_en: 'Japan Airlines',
+                  questions: [{ id: Q_D1, kind: 'multi', mine_code: null }, { id: Q_D2, kind: 'multi', mine_code: null }] } });
+  await visit('/world-airlines.html', GAVE);
+  ok(await board(), '続きの質問でも板が出る');
+  const box = () => page.$eval('[data-other]', (el) => ({ shown: !el.hidden && getComputedStyle(el).display !== 'none',
+    v: el.value, max: el.maxLength, ph: el.placeholder, fs: parseFloat(getComputedStyle(el).fontSize) })).catch(() => null);
+  const opts = await page.$$eval('.pvc-opt', (a) => a.map((b) => b.getAttribute('data-code')));
+  ok(opts.includes('other') && opts.includes('unknown') && !opts.includes('mixed'), '板に「その他」と「わからない」が在り、mixed は無い', opts);
+  let b = await box();
+  ok(!!b && !b.shown, '「その他」を選ぶまで、その他の欄は出ない', b);
+  const d0 = BY[Q_D1].choices[0].code;
+  await page.click(`.pvc-opt[data-code="${d0}"]`);
+  ok(!(await box()).shown, 'ほかの答えを選んでも出ない', await box());
+  await page.click('.pvc-opt[data-code="other"]');
+  b = await box();
+  ok(!!b && b.shown && b.max === 100 && b.fs >= 16 && b.ph === 'その他の内容',
+     `「その他」を選ぶと1行の欄が出る（100字まで・字は ${b && b.fs}px・薄い字「その他の内容」）`, b);
+  await page.type('[data-other]', '消える字');
+  await page.click('.pvc-opt[data-code="other"]');
+  b = await box();
+  ok(!!b && !b.shown && b.v === '', '「その他」を外すと欄が消えて空になる', b);
+  await page.click('.pvc-opt[data-code="other"]');
+  await page.type('[data-other]', '検査用のその他の字');
+  await page.click('[data-next]');
+  await page.waitForFunction(() => document.querySelector('.pvc-step') && document.querySelector('.pvc-step').textContent.trim() === '2 / 2', { timeout: 5000 }).catch(() => {});
+  ok(J(server.submits[0] && server.submits[0].answers) === J([{ question_id: Q_D1, codes: [d0, 'other'], text: '検査用のその他の字' }]),
+     '「次へ」で、選んだ答えとその他の字をいっしょに保存（{ codes:[…, "other"], text }）', server.submits[0]);
+  // 2問目：その他に書いてから外す → 字は送らない
+  const e0 = BY[Q_D2].choices[0].code;
+  await page.click(`.pvc-opt[data-code="${e0}"]`);
+  await page.click('.pvc-opt[data-code="other"]');
+  await page.type('[data-other]', '送らない字');
+  await page.click('.pvc-opt[data-code="other"]');
+  await page.click('[data-next]');
+  await page.waitForSelector('.pvc-done', { timeout: 5000 }).catch(() => {});
+  ok(J(server.submits[1] && server.submits[1].answers) === J([{ question_id: Q_D2, codes: [e0] }]),
+     '「その他」を外したら、書いていた字は送らない', server.submits[1]);
+  await page.keyboard.press('Escape');
+}
+
 console.log('\n════ 英語 ════');
 reset();
 await visit('/en/world-airlines.html', GAVE);
