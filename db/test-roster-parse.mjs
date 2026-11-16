@@ -83,14 +83,18 @@ eq(tok('RJTT', RE.apt), 'RJTT', 'ICAO 4字');
 eq(tok('TOKYO HANEDA', RE.apt), null, '空港の名前（自由な文）は捨てる');
 eq(tok('HANED', RE.apt), null, '5字の空港は捨てる');
 for (const [raw, want] of [['07:15', '07:15'], ['7:15', '07:15'], ['0715', '07:15'], ['07.15', '07:15'],
-                           ['07:15Z', '07:15'], ['０７：１５', '07:15'], ['24:00', null], ['07:60', null], ['715', null], ['', null]]) {
+                           ['07:15Z', '07:15'], ['０７：１５', '07:15'], ['24:00', '00:00'], ['48:00', null], ['07:60', null], ['715', null], ['', null],
+                           ['15:30T', '15:30'], ['07:15JST', '07:15'], ['-02:15', '02:15'], ['T', null], ['-', null]]) {
   eq(parseClock(raw)?.t ?? null, want, `時刻「${raw}」→ ${want}`);
 }
-eq(parseClock('06:10+1'), { t: '06:10', plus: 1 }, '「+1」は翌日の印として読む');
-eq(parseClock('06:10⁺¹'), { t: '06:10', plus: 1 }, '上付きの ⁺¹ も');
-eq(parseClock('06:10 (+2)'), { t: '06:10', plus: 2 }, '(+2)');
+eq(parseClock('06:10+1'), { t: '06:10', plus: 1, dash: false }, '「+1」は翌日の印として読む');
+eq(parseClock('06:10⁺¹'), { t: '06:10', plus: 1, dash: false }, '上付きの ⁺¹ も');
+eq(parseClock('06:10 (+2)'), { t: '06:10', plus: 2, dash: false }, '(+2)');
+eq([parseClock('24:55'), parseClock('-02:15'), parseClock('–00:40')],
+   [{ t: '00:55', plus: 1, dash: false }, { t: '02:15', plus: 0, dash: true }, { t: '00:40', plus: 0, dash: true }],
+   '★「24:55」は翌日の 00:55・先頭の「-」は前の日付から続く便の到着の印（ANA の勤務表・2026-11-17）');
 eq([parseClock('翌06:20'), parseClock('翌々01:10'), parseClock('翌 6:05')],
-   [{ t: '06:20', plus: 1 }, { t: '01:10', plus: 2 }, { t: '06:05', plus: 1 }], '日本の勤務表の「翌」「翌々」も翌日の印として読む');
+   [{ t: '06:20', plus: 1, dash: false }, { t: '01:10', plus: 2, dash: false }, { t: '06:05', plus: 1, dash: false }], '日本の勤務表の「翌」「翌々」も翌日の印として読む');
 {
   const { roster: rj, checks: cj } = run([D({ d: 8, d_on: '22:45', d_off: '翌06:50', legs: [L({ flight: 'ZJ841', from: 'HND', to: 'SIN', out: '23:55', in: '翌06:20' })] })]);
   const dj = rj.days[0];
@@ -202,10 +206,10 @@ console.log('\nC sanitize：残すもの・捨てるもの');
   const { roster: r, checks: c } = run([D({ d: 30, code: 'OFF' }), D({ y: 2026, m: 11, d: 1, code: 'OFF' })],
     { period: { from: '2026-10-01', to: '2026-10-31' }, kind: 'planned', time_ref: 'utc' });
   eq(r.period, { from: '2026-10-01', to: '2026-10-31' }, '見出しの期間');
-  eq(r.hints, { kind: 'planned', time_ref: 'utc' }, 'hints は印字されたときだけ（語彙の中だけ）');
+  eq(r.hints, { kind: 'planned', time_ref: 'utc', tz: null }, 'hints は印字されたときだけ（語彙の中だけ）');
   eq(c.outside_period, 1, '期間の外の日を数える（捨てない・次の月の持ち越し）');
   eq(run([D({ code: 'OFF' })], { period: { from: '2026-10-31', to: '2026-10-01' }, kind: 'actual!', time_ref: 'Z' }).roster,
-     { v: 1, period: null, hints: { kind: null, time_ref: null }, days: [{ date: '2026-10-01', code: 'OFF', unread: false, cat: 'unclear', d_on: null, d_off: null, d_off_day: 0, cut: null, page: 2, row: 1, legs: [] }] },
+     { v: 1, period: null, hints: { kind: null, time_ref: null, tz: null }, days: [{ date: '2026-10-01', code: 'OFF', unread: false, cat: 'unclear', d_on: null, d_off: null, d_off_day: 0, cut: null, page: 2, row: 1, legs: [] }] },
      '逆さまの期間・語彙外の hints は null');
 }
 
@@ -655,6 +659,120 @@ console.log('\n▼ JAL の実物の形（同じ空港どうしの行・灰色の
 }
 
 // ═══ E-4 読めなかった画像を残す（2026-11-16 オーナー「読めないなら保存して今後に使え」）══════
+console.log('\n▼ ANA の勤務表（DAY・D-ON・D-OFF・STY・T・JOB・DUTY・TIME・PLACE の表・2026-11-17）');
+{
+  /* 日付の列は日だけ（見出しの月が11月）。乗員の名前・番号は答えの形に欄が無い。 */
+  const N = (d, o = {}) => D({ y: null, m: null, d, ...o });
+  const NOV = { month: { y: 2026, m: 11 } };
+  const day = (r, dd) => r.roster.days.find((x) => x.date === '2026-11-' + String(dd).padStart(2, '0'));
+  const legS = (l) => l && `${l.flight || ''} ${l.from || '—'}→${l.to || '—'} ${l.out || '—'}-${l.in || '—'}+${l.in_day}`;
+
+  /* ① 長距離便が2日に割れた形（出発の日「17:09 NRT」・翌日「-02:15 -LAX」と解散 02:50） */
+  const r1 = run([
+    N(8, { d_on: '15:20', legs: [L({ flight: '0006', from: 'NRT', out: '17:09' })] }),
+    N(9, { legs: [L({ to: '-LAX', in: '-02:15', rel: '02:50', kind: 'unknown' })] }),
+  ], NOV);
+  const d8 = day(r1, 8), d9 = day(r1, 9);
+  eq([legS(d8.legs[0]), d8.d_off, d8.d_off_day, d9.legs.length, d9.d_off],
+     ['0006 NRT→LAX 17:09-02:15+1', '02:50', 1, 0, null], '★2日に割れた長距離便を1本につなぎ、翌日の解散は出発の日の解散（+1）');
+
+  /* ② 出発の行を到着の欄に入れた形（to=NRT・in=10:08）＋翌日の到着（「-」が落ちた形） */
+  const r2 = run([
+    N(9, { d_on: '08:30', legs: [L({ flight: '0231', to: 'NRT', in: '10:08' })] }),
+    N(10, { legs: [L({ to: 'BRU', in: '00:14', rel: '00:49', kind: 'unknown' })] }),
+  ], NOV);
+  eq([legS(day(r2, 9).legs[0]), day(r2, 9).d_off], ['0231 NRT→BRU 10:08-00:14+1', '00:49'], '★出発の行を到着の欄に入れた形も出発に戻してつなぐ');
+
+  /* ③ 解散を出頭の欄に入れた形（「-07:40 -LAX」の行の 08:15 が d_on に） */
+  const r3 = run([
+    N(28, { d_on: '20:20', legs: [L({ flight: '8408', from: 'NRT', out: '21:50' })] }),
+    N(29, { d_on: '08:15', legs: [L({ to: '-LAX', in: '-07:40', kind: 'unknown' })] }),
+  ], NOV);
+  eq([day(r3, 28).d_off, day(r3, 28).d_off_day, day(r3, 29).d_on], ['08:15', 1, null], '★到着の行の解散を出頭の欄に入れた形は、前の日の解散に戻す');
+
+  /* ④ 出発地を場所の欄に入れた形（「18:24 MUC」） */
+  const r4 = run([
+    N(1, { d_on: '16:55', legs: [L({ flight: '0218', loc: 'MUC', out: '18:24', kind: 'unknown' })] }),
+    N(2, { legs: [L({ to: '-HND', in: '-06:54', rel: '07:44', kind: 'unknown' })] }),
+  ], NOV);
+  eq([legS(day(r4, 1).legs[0]), day(r4, 1).d_off], ['0218 MUC→HND 18:24-06:54+1', '07:44'], '★場所の欄に入った出発地も出発地として読む');
+
+  /* ⑤ 表の一番下の次の月の1日（到着と解散だけ）→ 30日の便につなぎ、12月1日は返さない */
+  const r5 = run([
+    N(29, { code: 'OFF1' }),
+    N(30, { d_on: '08:10', legs: [L({ flight: '0215', from: 'HND', out: '09:50' })] }),
+    N(1, { cat: 'duty', legs: [L({ to: '-CDG', in: '-00:30', rel: '01:05', kind: 'unknown' })] }),
+  ], NOV, { hint: { year: 2026, month: 11 } });
+  eq([legS(day(r5, 30).legs[0]), day(r5, 30).d_off, r5.roster.days.some((x) => x.date.startsWith('2026-12'))],
+     ['0215 HND→CDG 09:50-00:30+1', '01:05', false], '★次の月の1日の到着を30日につなぎ、切れ端の日は返さない（次の月の1日を上書きしない）');
+
+  /* ⑥ 同じ日付が2回（前の塊は前日の勤務の終わり「-00:40」と解散・後の塊が新しい勤務） */
+  const r6 = run([
+    N(3, { d_on: '14:40', code: 'ACGK', legs: [L({ flight: '0084', from: 'CTS', to: 'HND', out: '21:28', in: '23:00' }),
+                                               L({ flight: 'XX', loc: 'HND', out: '23:30', kind: 'ground' })] }),
+    N(4, { d_on: '00:40', legs: [L({ in: '-00:40', kind: 'unknown' })] }),
+    N(4, { d_on: '15:00', code: 'SB6', legs: [L({ loc: 'HND', out: '15:00', in: '16:30', kind: 'ground' }),
+                                              L({ loc: 'HND', out: '18:30', in: '19:00', kind: 'ground', rel: '19:00' })] }),
+  ], NOV);
+  const e3 = day(r6, 3), e4 = day(r6, 4);
+  eq([e3.legs[1].in, e3.legs[1].in_day, e3.d_off, e3.d_off_day, e4.d_on, e4.d_off, e4.code, r6.roster.days.length],
+     ['00:40', 1, '00:40', 1, '15:00', '19:00', 'SB6', 2], '★同じ日付の前の塊は前日の勤務の終わり・後の塊がその日の勤務（D-OFF は最後の行の欄から）');
+
+  /* ⑦ 勤務の記号に入れないもの */
+  const r7 = run([
+    N(5, { code: '0641', d_on: '06:55', legs: [L({ flight: '0641', from: 'HND', to: 'KMJ', out: '08:07', in: '10:10', rel: '10:40' })] }),
+    N(6, { code: 'JFK', legs: [L({ to: '-JFK', in: '-11:38', kind: 'unknown' })] }),
+    N(7, { code: 'S0410', d_on: '06:30', d_off: '11:00', legs: [L({ from: 'TAB', to: 'TAB', out: '06:30', in: '11:00', kind: 'ground' })] }),
+    N(8, { code: 'PH1', d_on: '13:30', legs: [L({ flight: 'PH1', loc: 'HND', out: '13:30', in: '15:30', kind: 'ground', rel: '15:30' })] }),
+    N(9, { legs: [L({ flight: 'IVL2', loc: 'JFK', kind: 'ground' })] }),
+  ], NOV);
+  eq(r7.roster.days.map((x) => x.code), [null, null, null, 'PH1', 'IVL2'],
+     '★便名・滞在先の空港・シミュレーターの枠の番号は勤務の記号にしない（PH1 のような地上の業務の記号は残す・時刻の無い「IVL2 JFK」は記号）');
+  eq([day(r7, 5).d_off, day(r7, 9).legs.length, legS(day(r7, 7).legs[0]), day(r7, 7).legs[0].loc], ['10:40', 0, ' —→— 06:30-11:00+0', 'TAB'],
+     '★行ごとの D-OFF の欄（rel）を日の解散に・場所だけの行は区間にしない・TAB-TAB は地上の業務（場所 TAB）');
+
+  /* ⑧ 出頭「24:55」「24:00」（翌日の出頭の写し）と、それを解散の欄に入れた形 */
+  const r8 = run([
+    N(9, { d_off: '24:00', code: 'IVL2' }),
+    N(10, { d_on: '00:00', legs: [L({ flight: '0011', from: 'ORD', to: 'NRT', out: '01:34', in: '15:25', rel: '16:15' })] }),
+    N(11, { d_on: '24:55', code: 'IVL2' }),
+    N(12, { legs: [L({ flight: '0232', from: 'BRU', to: 'NRT', out: '02:20', in: '15:29', rel: '16:19' })] }),
+  ], NOV);
+  eq([day(r8, 9).d_off, day(r8, 10).d_on, day(r8, 11).d_on, day(r8, 12).d_on], [null, '00:00', null, '00:55'],
+     '★「24:55」の出頭は翌日の 00:55・翌日と同じ「24:00」を解散の欄に入れた形は捨てる');
+
+  /* ⑨ 前日夜の出頭（便なし）＋日付が変わってから出る便 → 動かさない・知らせの「出頭/解散なし」に数えない */
+  const r9 = run([
+    N(3, { d_on: '22:55' }),
+    N(4, { legs: [L({ flight: '0871', from: 'HND', to: 'CGK', out: '00:24', in: '07:40', rel: '08:15' })] }),
+  ], NOV);
+  eq([day(r9, 3).d_on, day(r9, 4).d_on, day(r9, 4).d_off, r9.layout], ['22:55', null, '08:15', null],
+     '★前日夜の出頭と翌日の便は印字のまま（勤務時間は計算側がつなぐ）・読めない所として数えない');
+
+  /* ⑩ 表の上の時間帯 */
+  eq([run([N(1, { code: 'OFF' })], { ...NOV, time_zone: 'JST' }).roster.hints, run([N(1, { code: 'OFF' })], { ...NOV, time_zone: 'XYZ' }).roster.hints.tz],
+     [{ kind: null, time_ref: 'local', tz: 'Asia/Tokyo' }, null], '★表の上の「JST」＝全部の時刻が日本時間（決まった略号だけ）');
+
+  /* ⑪ 曜日を「月曜 = 0」で数えた答え・1日ずつ並ぶ表の曜日の書き間違い */
+  /* 勤務の日だけを並べる表（とびとび）でも */
+  const mon0 = [2, 5, 8, 9, 13, 17, 21, 24, 28].map((d) => N(d, { code: 'SBY', wd: (new Date(Date.UTC(2026, 10, d)).getUTCDay() + 6) % 7 }));
+  eq(run(mon0, NOV).roster.days.length, 9, '★曜日を「月曜 = 0」で数えた答えでも、日付を捨てない（全部の行が1つずれる形）');
+  const slip = [];
+  for (let d = 1; d <= 30; d++) slip.push(N(d, { code: 'OFF', wd: d % 5 === 0 ? 3 : new Date(Date.UTC(2026, 10, d)).getUTCDay() }));
+  eq(run(slip, NOV).roster.days.length, 30, '★1日ずつ並ぶ月の表は、曜日の書き間違いで日付を捨てない');
+
+  /* ⑫ 日付の無い続きの行（2つ目の便・D-OFF の行）は上の日付に足す */
+  const r12 = run([
+    N(2, { d_on: '06:55', legs: [L({ flight: '0641', from: 'HND', to: 'KMJ', out: '08:07', in: '10:10' })] }),
+    D({ y: null, m: null, d: null, d_off: '12:50', legs: [L({ flight: '0644', from: 'KMJ', to: 'HND', out: '10:48', in: '12:20' })] }),
+  ], NOV);
+  eq([day(r12, 2).legs.length, day(r12, 2).d_off, r12.checks.undated], [2, '12:50', 0], '★日付の無い続きの行は上の日付の続き（捨てない）');
+
+  /* ⑬ 「NGO-NGO」が1つの欄に入った形 */
+  const r13 = run([N(27, { d_on: '08:30', d_off: '17:30', legs: [L({ flight: '9263', loc: 'NGO-NGO', out: '14:30', in: '16:30' })] })], NOV);
+  eq([day(r13, 27).legs[0].kind, day(r13, 27).legs[0].loc], ['ground', 'NGO'], '★「NGO-NGO」は出発地と到着地に分けて読む（同じ空港どうし＝地上の業務）');
+}
+
 console.log('\n▼ 読めなかった画像を残す');
 {
   // 空港の無い便（JTA の勤務表で 49便中48便）も「読めない所」に数える → 表の形が返る（＝画像を残す）

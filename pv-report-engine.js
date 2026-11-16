@@ -363,7 +363,8 @@
 
   /* ════ ロスター ════════════════════════════════════════════ */
   var LEG_KINDS = ['operating', 'deadhead', 'ground', 'unknown'];
-  var CLASSES = { off: 1, vac: 1, duty: 1, standby: 1, training: 1, ground: 1, other: 1, unknown: 1 };
+  /* none ＝ 本人が「勤務コードではない」と答えた記号（便名・区分・枠の番号を拾った形・2026-11-17）。その日は記号が無い日として数える。 */
+  var CLASSES = { off: 1, vac: 1, duty: 1, standby: 1, training: 1, ground: 1, other: 1, unknown: 1, none: 1 };
   /* parse-roster の日の種類（DAY_CATS の写し）。'blank'・'unclear' は「分からない」。 */
   var DAY_CATS = ['off', 'leave', 'standby', 'training', 'ground', 'sick', 'duty', 'other', 'blank', 'unclear'];
   function catKnown(c) { return DAY_CATS.indexOf(c) >= 0 && c !== 'blank' && c !== 'unclear'; }
@@ -414,9 +415,19 @@
       var v = inDay * 1440 + i - o;
       if (v > 0 && v < 1440) { b = v; src = 'times'; }
     }
+    /* ★表に時間帯が印字されている（本人の読み方の tz・ANA の表の「JST」）：全部の時刻がその時間帯（2026-11-17）。
+       各空港の現地時刻とみなすと、国際線が時差ぶんずれていた。夏時間も Intl が持つ。 */
+    var ptz = profile && profile.time_ref === 'local' ? validTz(profile.tz) : null;
+    if (b == null && o != null && i != null && isDate(date) && ptz) {
+      var z0 = localMs(date, o, ptz), z1 = localMs(date, inDay * 1440 + i, ptz);
+      if (z0 != null && z1 != null) {
+        var v3 = Math.round((z1 - z0) / 60000);
+        if (v3 > 0 && v3 < 1440) { b = v3; src = 'times'; }
+      }
+    }
     /* 現地時刻（と答えた・まだ答えていない）：両方の空港のタイムゾーンが分かれば UTC に直して引く。
        ★答えていないときは、出発地と到着地が同じタイムゾーンの便だけ（UTC でも現地でも差は同じ＝取り違えても狂わない） */
-    if (b == null && o != null && i != null && isDate(date) && !(profile && profile.time_ref === 'utc')) {
+    if (b == null && o != null && i != null && isDate(date) && !ptz && !(profile && profile.time_ref === 'utc')) {
       var tf = airTz(up(L.from != null ? L.from : L.orig)), tt = airTz(up(L.to != null ? L.to : L.dest));
       if (tf && tt && ((profile && profile.time_ref === 'local') || tf === tt)) {
         var a0 = localMs(date, o, tf), a1 = localMs(date, inDay * 1440 + i, tt);
@@ -437,6 +448,7 @@
   function dayOf(D, profile, codes) {
     if (!D || !isDate(D.date)) return null;
     var code = codeUp(D.code), cls = code ? (codes[code] || null) : null;
+    if (cls === 'none') { code = null; cls = null; }
     var on = clockMin(D.d_on), off = clockMin(D.d_off), offDay = num(D.d_off_day) || 0;
     var el = elapsed(D.date, on, off == null ? null : offDay * 1440 + off, profile);
     var legs = arr(D.legs).map(function (L) { return legOf(L || {}, profile, D.date); })
@@ -496,6 +508,18 @@
     profile = profile || {};
     var codes = normCodes(profile.codes), byDate = {};
     arr(days).forEach(function (D) { if (dayEmpty(D)) return; var x = dayOf(D, profile, codes); if (x) byDate[x.date] = x; });
+    /* ★前の日付の夜に出頭だけが印字され（D-ON 22:55・便なし）、便と解散が次の日付にある勤務（日付が変わってから出る国際線・
+       ANA の表・2026-11-17）は1つの勤務。勤務時間は便のある日に付け、出頭の日は勤務日に数えない（出頭は印字のまま残す）。 */
+    Object.keys(byDate).forEach(function (dt) {
+      var x = byDate[dt];
+      if (!x.dOn || x.dOff || x.legs.length || x.isDuty) return;
+      var nx = new Date(Date.UTC(+dt.slice(0, 4), +dt.slice(5, 7) - 1, +dt.slice(8, 10) + 1)).toISOString().slice(0, 10);
+      var y = byDate[nx];
+      if (!y || y.dOn || !y.dOff || !y.isDuty) return;
+      var el = elapsed(x.date, clockMin(x.dOn), ((y.dOffDay || 0) + 1) * 1440 + clockMin(y.dOff), profile);
+      if (el.min == null) return;
+      y.dutyMin = el.min; y.elapsedBasis = el.basis; y.dOnPrev = x.dOn;
+    });
     var dates = Object.keys(byDate).sort(), byYm = {}, order = [];
     dates.forEach(function (dt) { var x = byDate[dt]; if (!byYm[x.ym]) { byYm[x.ym] = []; order.push(x.ym); } byYm[x.ym].push(x); });
     return order.map(function (ym) {
@@ -1312,6 +1336,16 @@
   var FP_LEG = { operating: 1, deadhead: 1, unknown: 1 };
   var FP_WORK_CLS = { duty: 1, standby: 1, training: 1, ground: 1 };
   var FP_REST_CLS = { off: 1, vac: 1 };
+  /* ★通勤の便乗（ANA の CM1）：D-ON〜D-OFF の外にある便乗は勤務の外。勤務時間を配らず、額も出さない（2026-11-17・オーナー回答）。 */
+  function fpOutside(x, L) {
+    if (L.kind !== 'deadhead' || x.dOn == null || x.dOff == null) return false;
+    var on = clockMin(x.dOn), end = clockMin(x.dOff) + (x.dOffDay || 0) * 1440;
+    var lo = clockMin(L.out), li = clockMin(L.in);
+    if (on == null || end == null || lo == null || li == null) return false;
+    li += (L.inDay || 0) * 1440;
+    if (li < lo) li += 1440;
+    return li <= on || lo >= end;
+  }
   function fpLegBlock(x) { return (x.blockKnown.operating || 0) + (x.blockKnown.deadhead || 0) + (x.blockKnown.unknown || 0); }
   /* 日ごとの勤務時間（分）と出どころ。勤務日でない日は入れない。
      src：times＝印字の時刻／ratio＝ブロックタイム × 本人の比／block＝ブロックタイムそのまま／code・cls・all＝同じ勤務コード・同じ種類・勤務日ぜんぶの平均／null＝補えない */
@@ -1469,12 +1503,14 @@
       legs.forEach(function (p) {
         var x = p.day, L = p.leg;
         var dayBlock = 0;
-        x.legs.forEach(function (y) { if (FP_LEG[y.kind] && y.from && y.to && y.blockMin != null) dayBlock += y.blockMin; });
+        x.legs.forEach(function (y) { if (FP_LEG[y.kind] && y.from && y.to && y.blockMin != null && !fpOutside(x, y)) dayBlock += y.blockMin; });
         var dd = dmap[x.date] ? dmap[x.date].min : null;
-        var share = L.blockMin != null && dayBlock > 0 && dd != null ? dd * L.blockMin / dayBlock : null;
+        var out = fpOutside(x, L);
+        var share = !out && L.blockMin != null && dayBlock > 0 && dd != null ? dd * L.blockMin / dayBlock : null;
         var o = { date: x.date, ym: ym, seq: L.seq, from: L.from, to: L.to, kind: L.kind, out: L.out, in: L.in, inDay: L.inDay,
                   blockMin: L.blockMin, dutyMin: share == null ? null : Math.round(share), currency: M.currency, fleet: M.fleet,
                   amount: null, fixed: null, flight: null, ratePerHour: M.ratePerHour, basis: M.basis, reason: M.reason, missing: M.missing, fixedFrom: M.fixedFrom, partial: M.partial };
+        if (!o.reason && out) o.reason = 'commute';
         if (!o.reason && share == null) o.reason = 'no_block';
         if (!o.reason) {
           var fx = (M.otMinor / duty) * share;
