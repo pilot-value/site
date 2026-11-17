@@ -3457,7 +3457,7 @@ const EN_READERS = [
     pv_work_view: () => enOk({ state: 'open', by: { cap: { block_hours: { lo: 70, hi: 85 }, days_off: { lo: 9, hi: 11 } }, fo: { block_hours: { lo: 60, hi: 260 } } } }),
     pv_contrib_facts: () => enOk({ state: 'open', facts: [
       { question_id: 'days_off_request', kind: 'choice', n: 4, lead: ['yes'], median_num: null, ym: '2026-09' },
-      { question_id: 'days_off_request_limit', kind: 'num', n: 3, lead: null, median_num: 8, ym: '2026-08' },
+      { question_id: 'reserve_days', kind: 'num', n: 3, lead: null, median_num: 8, ym: '2026-08' },
       { question_id: 'staff_travel_standby_family', kind: 'multi', n: 3, lead: ['partner', 'self'], median_num: null, ym: '2026-07' }] }),
     pv_contrib_notes: () => enOk({ state: 'open', notes: [{ topic: 'work', text: 'Rosters come out early.', mine: true }, { q: 'days_off_request', text: 'Requests are usually granted.' }] }),
     pv_town_board: () => enOk({ state: 'open', towns: [{ name: 'Shinagawa', n: 3, good: [{ text: 'Quick train to Haneda.' }], concern: [{ text: 'Rent is high.' }] }] }),

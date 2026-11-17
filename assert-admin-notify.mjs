@@ -191,12 +191,12 @@ const FIX = [
   { q: 'days_off_request',       a: { answer_code: 'yes' },              want: true,  why: 'ふつうの答え' },
   { q: 'schedule_bidding',       a: { answer_code: 'no' },               want: true,  why: 'ふつうの答え' },
   { q: 'annual_leave_days',      a: { answer_num: 20 },                  want: true,  why: '数字だけの答え（コードなし）' },
-  { q: 'days_off_request_limit', a: { answer_num: 3 },                   want: true,  why: '数字だけの続きの質問。親は yes のまま' },
+  { q: 'days_off_request_quota', a: { answer_code: 'd3_4' },             want: true,  why: '続きの質問。親は yes のまま' },
   { q: 'cadet_program',          a: { answer_text: SECRET['待遇の自由記述'] }, want: true, why: '文字だけが入っている行（ページは文字も答えに数える）' },
   // 指摘の例: 着陸手当を「一定額」→ 額 → 数え方 と答えたあとで、親を「ない」に直した
   { q: 'landing_pay',            a: { answer_code: 'no' },               want: true,  why: '答え直した親' },
   { q: 'landing_pay_amount',     a: { answer_num: Number(SECRET['待遇の金額回答']) }, want: false, why: '親を直して外れた額' },
-  { q: 'landing_pay_unit',       a: { answer_code: 'per_landing' },      want: false, why: '親を直して外れた数え方' },
+  { q: 'landing_pay_unit',       a: { answer_code: 'pf_only' },          want: false, why: '親を直して外れた数え方' },
   // 親が複数選択（2段）。タクシーを外して選び直した ＝ あいだの親を答え直した
   { q: 'commuting_transport',        a: { answer_code: 'always' },             want: true,  why: 'いちばん上の親' },
   { q: 'commuting_transport_method', a: { answer_codes: ['hotel', 'crew_bus'] }, want: true, why: '複数選択の親' },
@@ -219,7 +219,7 @@ const FIX = [
   { q: 'sick_leave_days',        a: { answer_num: 10 },                  want: false, why: '親に答えが無い' },
   // 同じ人が別の会社について答えた行（鍵が別）。会社ごとに数える
   { q: 'roster_changes',         a: { answer_code: 'yes' }, hash: ELSEWHERE, want: false, why: '別の会社の行' },
-  { q: 'fo_development',         a: { answer_code: 'yes' }, hash: ELSEWHERE, want: false, why: '別の会社の行' },
+  { q: 'loss_of_licence',        a: { answer_code: 'all_pilots' }, hash: ELSEWHERE, want: false, why: '別の会社の行' },
 ];
 const toRows = (fix) => fix.map((f, i) => ({
   id: `row-${i}`, proof_hash: f.hash ?? ME, question_id: f.q,

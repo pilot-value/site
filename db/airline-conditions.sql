@@ -215,6 +215,51 @@ update public.airline_conditions c
    and c.answer_code = any(q.choice_codes)     -- 選択肢から外れた答え（mixed）は直さない
    and c.answer_codes is null;
 
+-- ★質問の見直し（2026-11-17・段階C）で、言い換えて同じ意味の選択肢へ寄せられる今までの答えを寄せる（1回で済む・何度流しても同じ）。
+--   寄せるのは下の2つだけ。ほかに外した選択肢（着陸手当の数え方の per_landing・per_leg／乗務以外の業務の yes／
+--   中途採用の形の type_rated）は寄せない ＝ 本人が言っていない答えを作らない（選択肢から外れて会社ページに出ない）。
+--   ⚠️ 質問マスタが新しい形になってから（db/conditions.generated.sql を貼ったあと）しか当たらないよう、マスタの選択肢を見てから寄せる。
+--   ⚠️ updated_at は動かさない（「最後に確かめた日」は本人が答えた日のまま）。字（answer_text）にも触らない。
+-- (1) 待機場所（reserve_location）を1つ選ぶ → 複数選ぶにした。前の「両方ある」（both）は「自宅待機と空港待機の両方がある」
+--     （前の選択肢は 自宅待機／空港待機／両方ある の3つ）＝ 自宅と空港の2つ。自宅・空港の1つだけの答えは、すぐ上の update が直す。
+update public.airline_conditions c
+   set answer_codes = array['home', 'airport'],
+       answer_code  = null
+  from public.pv_condition_questions q
+ where q.id = c.question_id
+   and q.id = 'reserve_location'
+   and q.kind = 'multi'
+   and q.choice_codes @> array['home', 'airport']
+   and not ('both' = any(q.choice_codes))
+   and c.answer_code = 'both'
+   and c.answer_codes is null;
+-- (2) 中途採用の形（external_hiring_types・複数選ぶ）の「機長採用」（captain）は「Direct Entry Captain」（dec）と同じもの
+--     → 「機長として採用（Direct Entry Captain）」（dec）の1つにまとめた。両方を選んでいた人は1つにする（並びは最初に出てきた順）。
+--     複数選ぶの質問なので答えは answer_codes にある。answer_code に1つだけ残っている行（古い画面・手で入れた行）も同じく直す。
+update public.airline_conditions c
+   set answer_codes = (select array_agg(d.x order by d.i)
+                         from (select distinct on (u.x) u.x, u.i
+                                 from unnest(array_replace(c.answer_codes, 'captain', 'dec')) with ordinality as u(x, i)
+                                order by u.x, u.i) d)
+  from public.pv_condition_questions q
+ where q.id = c.question_id
+   and q.id = 'external_hiring_types'
+   and q.kind = 'multi'
+   and 'dec' = any(q.choice_codes)
+   and not ('captain' = any(q.choice_codes))
+   and 'captain' = any(c.answer_codes);
+update public.airline_conditions c
+   set answer_codes = array['dec'],
+       answer_code  = null
+  from public.pv_condition_questions q
+ where q.id = c.question_id
+   and q.id = 'external_hiring_types'
+   and q.kind = 'multi'
+   and 'dec' = any(q.choice_codes)
+   and not ('captain' = any(q.choice_codes))
+   and c.answer_code = 'captain'
+   and c.answer_codes is null;
+
 
 -- ════════════════════════════════════════════════════════════════
 -- 2. 権限：個票は誰にも読ませない
@@ -875,10 +920,11 @@ begin
      ★話題の入口からだけ出す質問（topic_only）への答えも数えない（2026-10-04）。
        一覧に出ない質問を分子に入れると、分母（一覧に出る質問の数）を超える。
        保存はしている（saved には入る）。数えないだけ
-     ★続きの質問（deep・2026-11-14）も同じ。一覧の行に無く、分母にも入れていない */
+     ★続きの質問（deep・2026-11-14）も同じ。一覧の行に無く、分母にも入れていない
+     ★止めた質問（active = false・2026-11-17）への答えも数えない（分母は有効な質問だけ ＝ 数えると分母を超える） */
   select count(*) into v_total
     from public.airline_conditions c
-    join public.pv_condition_questions q on q.id = c.question_id
+    join public.pv_condition_questions q on q.id = c.question_id and q.active
    where c.proof_hash = v_hash
      and not q.topic_only
      and q.deep is null
@@ -972,10 +1018,10 @@ begin
     v_open := coalesce(public.pv_contrib_sees(v_airline) = 'open', false);
   end if;
 
-  -- その会社でこの人が実際に答えた数（スキップだけの行と、話題の入口からだけ出す質問・続きの質問は数えない）
+  -- その会社でこの人が実際に答えた数（スキップだけの行と、話題の入口からだけ出す質問・続きの質問・止めた質問は数えない）
   select count(*) into v_count
     from public.airline_conditions c
-    join public.pv_condition_questions q on q.id = c.question_id
+    join public.pv_condition_questions q on q.id = c.question_id and q.active
    where c.proof_hash = v_hash
      and not q.topic_only
      and q.deep is null
@@ -1116,7 +1162,8 @@ begin
      -- スキップだけの行は「自分の回答」ではない（詳細ページに空欄として出さない）
      and num_nonnulls(c.answer_code, c.answer_codes, c.answer_num,
                       c.answer_text, c.answer_json) > 0
-    join public.pv_condition_questions q on q.id = c.question_id;
+    -- ★止めた質問（active = false・2026-11-17）への答えは返さない・数えない（画面は描けない・分母は有効な質問だけ）
+    join public.pv_condition_questions q on q.id = c.question_id and q.active;
 
   /* その会社で答えが分かれている質問の id（2026-11-14）。答える画面が、続きの「何によって違いますか？」を
      親のすぐ下に出すかを決めるのに使う。

@@ -1900,7 +1900,7 @@ async function main() {
 
     /* ── 一定額：親・額・数え方を1回で ── */
     await pick(c, 'landing_pay_amount_cur', 'JPY');
-    await pick(c, 'landing_pay_unit', 'per_landing');
+    await pick(c, 'landing_pay_unit', 'pf_only');
     await send(c);
     await waitView(c, 'saved');
     let db = await landRows('ana');
@@ -1917,11 +1917,11 @@ async function main() {
       && db.every((r) => r.y === db[0].y && r.m === db[0].m),
       '★1回の送信で保存した3行は、同じ職位・機種・適用時期を持つ', J(db.map((r) => [r.q, r.pos, r.fleet, r.y, r.m])));
     ok(db.length === 3 && db.find((r) => r.q === 'landing_pay_amount').num === 1500
-      && db.find((r) => r.q === 'landing_pay_amount').cur === 'JPY' && db.find((r) => r.q === 'landing_pay_unit').c === 'per_landing',
+      && db.find((r) => r.q === 'landing_pay_amount').cur === 'JPY' && db.find((r) => r.q === 'landing_pay_unit').c === 'pf_only',
       '   保存先の額と通貨と数え方が、画面で入れたとおり', J(db.map((r) => [r.q, r.num, r.cur, r.c])));
     ok(sm.head === '情報を追加しました' && J(famRows(sm)) === J(['landing_pay', 'landing_pay_amount', 'landing_pay_unit'])
-      && sm.rows.landing_pay_amount.v === 'JPY 1,500（1回あたり）' && sm.rows.landing_pay_unit.v === '着陸1回ごと',
-      '★保存後の画面に、自分の答えが通貨つきで出る（JPY 1,500（1回あたり）・着陸1回ごと）', J(sm.rows));
+      && sm.rows.landing_pay_amount.v === 'JPY 1,500（1回あたり）' && sm.rows.landing_pay_unit.v === '自分が操縦して着陸したときだけ（PF のとき）',
+      '★保存後の画面に、自分の答えが通貨つきで出る（JPY 1,500（1回あたり）・自分が操縦して着陸したときだけ（PF のとき））', J(sm.rows));
 
     /* ── 読み直す ── */
     await go(c, ANA + '?add=benefits');
@@ -1930,7 +1930,7 @@ async function main() {
     let tags = await c.page.evaluate(() => [...document.querySelectorAll('.pvc-root form [data-q]')]
       .filter((n) => n.querySelector('.pvc-label .pvc-mine')).map((n) => n.getAttribute('data-q')).sort());
     sh = await shown(c);
-    ok(v.landing_pay === 'fixed' && v.landing_pay_amount === '1500' && v.landing_pay_amount_cur === 'JPY' && v.landing_pay_unit === 'per_landing'
+    ok(v.landing_pay === 'fixed' && v.landing_pay_amount === '1500' && v.landing_pay_amount_cur === 'JPY' && v.landing_pay_unit === 'pf_only'
       && sh.landing_pay_amount && sh.landing_pay_unit, '★読み直すと、着陸手当・額・通貨・数え方が入った状態で開く', J(v));
     ok(J(tags) === J(['landing_pay', 'landing_pay_amount', 'landing_pay_unit']), '答えた3つに「あなたの投稿」の札が付いている', J(tags));
     ok((await benefitsCount(c, ANA)) === 'あなたの投稿 3件', '一覧の「休暇・手当」は「あなたの投稿 3件」', '');
@@ -1974,7 +1974,7 @@ async function main() {
     ok(J(famRows(sm)) === J(['landing_pay', 'landing_pay_from', 'landing_pay_varies_by', 'landing_pay_varies_by_note'])
       && sm.rows.landing_pay_from.v === 'USD 10（1回あたり）' && sm.rows.landing_pay_varies_by.v === '空港・路線、その他' && sm.rows.landing_pay_varies_by_note.v === '空港によって違う',
       '★答え直したあとの保存後の画面に、前の枝の額（JPY 1,800）と数え方が出ていない', J(sm.rows));
-    ok(db.length === 5 && db.find((r) => r.q === 'landing_pay_amount').num === 1800 && db.find((r) => r.q === 'landing_pay_unit').c === 'per_landing',
+    ok(db.length === 5 && db.find((r) => r.q === 'landing_pay_amount').num === 1800 && db.find((r) => r.q === 'landing_pay_unit').c === 'pf_only',
       '   前の額と数え方の行そのものは、保存先に残っている（消していない ＝ 答え直せば戻せる）', J(db.map((r) => r.q)));
     ok((await benefitsCount(c, ANA)) === 'あなたの投稿 3件', '★「あなたの投稿」は3件のまま（残っている前の2行を数えない。保存先は5行）', '');
 
@@ -2033,7 +2033,7 @@ async function main() {
     v = await vals(c);
     ok(v.landing_pay_amount === '1800' && v.landing_pay_amount_cur === 'JPY', '「一定額」に戻すと、前に入れた額が入った状態で出る（消していないので打ち直さずに済む）', J(v));
     await fill(c, 'landing_pay_amount', '2000');
-    await pick(c, 'landing_pay_unit', 'per_leg');
+    await pick(c, 'landing_pay_unit', 'every_sector');
     await tick(c);
     c.st.fake = { name: 'submit_airline_conditions', body: { ok: true, airline: 'ana', saved: 1, skipped: 0,
       rejected: [{ question_id: 'landing_pay_amount', reason: 'unknown_question' }, { question_id: 'landing_pay_unit', reason: 'unknown_question' }],
@@ -2045,7 +2045,7 @@ async function main() {
     ok(/保存できなかった項目があります/.test(rj) && rj.includes(labelOf('landing_pay_amount')) && rj.includes(labelOf('landing_pay_unit'))
       && /この質問はいま受け付けていません/.test(rj) && /ほかの1件は保存しました/.test(rj) && !/unknown_question/.test(rj),
       '★下の質問だけ断られたら、どの質問が保存されなかったかを普通の言葉で言い、上の1件は保存したと言う', J(rj));
-    ok(!(await c.page.$('.pvc-root [data-pvc-saved]')) && v.landing_pay_amount === '2000' && v.landing_pay_unit === 'per_leg',
+    ok(!(await c.page.$('.pvc-root [data-pvc-saved]')) && v.landing_pay_amount === '2000' && v.landing_pay_unit === 'every_sector',
       '★断られた額と数え方は画面に残っていて、保存後の画面は出さない', J(v));
     await c.st.ctx.close();
   });
@@ -2088,7 +2088,7 @@ async function main() {
     await pick(n, 'landing_pay', 'fixed');
     await fill(n, 'landing_pay_amount', '1500');
     await pick(n, 'landing_pay_amount_cur', 'HKD');
-    await pick(n, 'landing_pay_unit', 'per_leg');
+    await pick(n, 'landing_pay_unit', 'every_sector');
     await tick(n);
     await send(n);
     await waitView(n, 'saved');
@@ -2098,7 +2098,7 @@ async function main() {
       && (await snap(n)).href === CX && hits(n, 'submit_airline_conditions') === 0,
       '★ログインなしでも、着陸手当・額・数え方を1回で預けられる（ログインへ行かない・同じ会社ページのまま）', J({ kind: (sent[0] || {}).kind, ids: ids(d1) }));
     ok(sm.head === '情報を追加しました' && J(famRows(sm)) === J(['landing_pay', 'landing_pay_amount', 'landing_pay_unit'])
-      && sm.rows.landing_pay_amount.v === 'HKD 1,500（1回あたり）' && sm.rows.landing_pay_unit.v === 'レグ（区間）1つごと' && /ログインなしで保存しました/.test(sm.text),
+      && sm.rows.landing_pay_amount.v === 'HKD 1,500（1回あたり）' && sm.rows.landing_pay_unit.v === '乗務した区間（レグ）ごと（PF・PM を問わない）' && /ログインなしで保存しました/.test(sm.text),
       '★保存後の画面に、自分の答えが通貨つきで出る。「ログインなしで保存しました」と言う', J(sm.rows));
 
     /* ── 読み直す（同じ端末） ── */
@@ -2107,7 +2107,7 @@ async function main() {
     await n.page.waitForFunction(() => { const x = document.querySelector('.pvc-root [name="landing_pay_amount"]'); return !!x && x.value === '1500'; });
     let v = await vals(n);
     const sh = await shown(n);
-    ok(v.landing_pay === 'fixed' && v.landing_pay_amount === '1500' && v.landing_pay_amount_cur === 'HKD' && v.landing_pay_unit === 'per_leg' && sh.landing_pay_amount && sh.landing_pay_unit,
+    ok(v.landing_pay === 'fixed' && v.landing_pay_amount === '1500' && v.landing_pay_amount_cur === 'HKD' && v.landing_pay_unit === 'every_sector' && sh.landing_pay_amount && sh.landing_pay_unit,
       '★読み直すと、預けた額・通貨・数え方がサーバから戻っている', J(v));
     ok((await benefitsCount(n, CX)) === 'あなたの投稿 3件', '一覧の「休暇・手当」は「あなたの投稿 3件」', '');
 
@@ -2141,7 +2141,7 @@ async function main() {
     await pick(n, 'landing_pay', 'fixed');
     await fill(n, 'landing_pay_amount', '1500');
     await pick(n, 'landing_pay_amount_cur', 'HKD');
-    await pick(n, 'landing_pay_unit', 'per_leg');
+    await pick(n, 'landing_pay_unit', 'every_sector');
     await tick(n);
     await send(n);
     await waitView(n, 'saved');
@@ -4860,14 +4860,14 @@ async function main() {
         '★そのあと一覧から同じ項目を開き直すと、頭から出る（指した質問を覚えたままにしない）', J(s3));
 
       /* 続きの質問だけを、あとから答える（上の質問は前に保存済み ＝ 送るのは続きの1問だけ） */
-      await pick(p, 'landing_pay_unit', 'per_landing');
+      await pick(p, 'landing_pay_unit', 'pf_only');
       await tick(p);
       await send(p);
       await waitView(p, 'saved');
       await seeMine(p, 'benefits');
       const got2 = await seen(p, inView, 'landing_pay_unit');
       const s2 = await spot(p, 'landing_pay_unit');
-      ok(got2 && s2.val === 'per_landing' && s2.mine && J(sent[1]) === J(['landing_pay_unit']),
+      ok(got2 && s2.val === 'pf_only' && s2.mine && J(sent[1]) === J(['landing_pay_unit']),
         '★続きの質問だけをあとから保存した回も、その続きの質問の所へ出る（送ったのは続きの1問だけ）', J({ s2, sent: sent[1] }));
 
       /* 畳んである質問（通勤・タクシーの「回数・金額の上限」）。上の2問を先に保存し、上限だけをあとから答える。
@@ -5752,7 +5752,7 @@ async function main() {
       }
       await fill(p, 'landing_pay_amount', '1500');
       await pick(p, 'landing_pay_amount_cur', 'JPY');
-      await pick(p, 'landing_pay_unit', 'per_landing');
+      await pick(p, 'landing_pay_unit', 'pf_only');
       await tick(p);
       await send(p);
       await waitView(p, 'saved');

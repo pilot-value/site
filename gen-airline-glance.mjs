@@ -1243,12 +1243,14 @@ ${live('hotels', { airline: v.slug, stay: '', city: '' })}
    ・額の質問（通貨つき）は行に出さない ── 親の質問に答えた先で面が聞く。上の「集まった回答」の欄は並ぶ質問を全部指し、通貨を付けずに数字だけを出す。
    ・日本語の行の字は短い名前（WORK_ASK・BEN_ASK・GROUP_SAY）。無い質問は質問の文そのもの。英語は台帳の英語の問い（askName）。 */
 const GROUP_SAY = {
-  schedule_bidding: '勤務の希望を出せるか', seniority_effect: '希望の通りやすさと先任順位', days_off_request_limit: '希望休は月に何日までか',
-  bidding_scope: '出せる希望の種類', reserve_location: 'スタンバイは自宅か空港か', reserve_days: 'スタンバイは月に何日か',
-  external_hiring: '中途入社できるか', training_bond: '訓練費の返済義務（Bond）', cadet_program: '自社養成の制度', fo_development: '副操縦士の育成の支援',
+  schedule_bidding: '勤務の希望を出せるか', seniority_effect: '希望の通りやすさと先任順位', days_off_request_quota: '希望休は月に何日までか',
+  bidding_scope: '出せる希望の種類', reserve_location: 'スタンバイの待機場所', reserve_days: 'スタンバイは月に何日か',
+  reserve_report_time: '自宅スタンバイの出頭までの時間', base_commuting: 'Commuting（拠点へ通う働き方）を認めているか',
+  external_hiring: '中途入社できるか', training_bond: '訓練費の返済義務（Bond）', cadet_program: '自社養成の制度', retirement_age: 'パイロットの定年',
   external_experience_credit: '前職の経験が待遇に効くか', external_seniority_start: '中途入社の先任順位の起点', external_hiring_types: '採用の形',
   training_bond_years: 'Bond の拘束年数',
-  peer_support: 'Peer Support の制度', landing_pay: '着陸手当があるか', ground_duty_pay: '乗務以外の業務の手当',
+  peer_support: 'Peer Support の制度', loss_of_licence: 'Loss of Licence の補償', landing_pay: '着陸手当があるか', ground_duty_pay: '乗務以外の業務の手当',
+  per_diem_basis: '日当が何に応じて出るか',
   sick_leave_days: '病気休暇の年間日数', landing_pay_unit: '着陸手当の数え方', landing_pay_varies_by: '着陸手当の額が何で変わるか',
 };
 {

@@ -14,7 +14,7 @@ import { pgcrypto } from '@electric-sql/pglite/contrib/pgcrypto';
 import { readFileSync } from 'fs';
 /* 質問の期待値は SSOT から取る。固定値を書くと、質問を1つ足すたびに
    「SQL は正しいのにテストだけ落ちる」になり、落ちたテストを疑わなくなる。 */
-import { QUESTIONS, SETTINGS, UNKNOWN } from '../pv-conditions.mjs';
+import { QUESTIONS, SETTINGS, UNKNOWN, RETIRED } from '../pv-conditions.mjs';
 
 /* 一覧と1問枠に出る質問／話題の入口からだけ出る質問（2026-10-04）。
    ★「答えた項目：N／M」の M は**一覧に出る質問の数**。質問マスタの行数（QUESTIONS.length）ではない。
@@ -92,9 +92,11 @@ ok(Number(qm.l) === LISTED.length && LISTED.length + TOPIC_ONLY.length + DEEP.le
      一覧に出る質問を本当に足した回は、この1行と、48 を字で持っている所を一緒に直す
      （assert-admin-notify.mjs・roadmap-config.js・workflows/deploy-checklist.md）。
    ★2026-10-09、着陸手当の額と数え方の5問を足して 43 → 48 にした（見るのは ㉑）。
-   ★2026-10-30、日当（パーディアム）の3問を足して 48 → 51 にした（オーナー指示・戻ってきた会員に聞く板）。 */
-ok(LISTED.length === 51 && TOPIC_ONLY.length === 4,
-  '   ★一覧に出る質問は 51・話題の入口からだけ出る質問は 4（ここだけ数字で固定）',
+   ★2026-10-30、日当（パーディアム）の3問を足して 48 → 51 にした（オーナー指示・戻ってきた会員に聞く板）。
+   ★2026-11-17、質問の見直しで 51 → 54 にした（オーナー判断。家族の1問を止めて −1、定年・Commuting・自宅待機の出頭時間・日当の出方で ＋4、
+     月の希望日数・上位クラス・Loss of Licence は入れ替え）。 */
+ok(LISTED.length === 54 && TOPIC_ONLY.length === 4,
+  '   ★一覧に出る質問は 54・話題の入口からだけ出る質問は 4（ここだけ数字で固定）',
   `一覧 ${LISTED.length}・入口だけ ${TOPIC_ONLY.length}`);
 ok(Number(qm.m) === QUESTIONS.filter((q) => q.micro).length,
   `★（1問だけ出せる）${QUESTIONS.filter((q) => q.micro).length} → ${qm.m}`);
@@ -180,10 +182,10 @@ ok(r.saved === 0 && r.rejected[0]?.reason === 'out_of_range', '範囲外の数�
 r = await submit({ ...CTX, answers: [{ question_id: 'roster_lead_days', num: 'abc' }] });
 ok(r.saved === 0 && r.rejected[0]?.reason === 'bad_number', '数値でない文字列を弾く（取引ごと落ちない）');
 r = await submit({ ...CTX, answers: [
-  { question_id: 'ground_duty_pay', code: 'yes', text: 'あ'.repeat(301) }] });
+  { question_id: 'ground_duty_pay', code: 'allowance', text: 'あ'.repeat(301) }] });
 ok(r.saved === 0 && r.rejected[0]?.reason === 'text_too_long', '301字の自由記述を弾く');
 r = await submit({ ...CTX, answers: [
-  { question_id: 'ground_duty_pay', code: 'yes', text: '地上業務1時間＝乗務0.5時間' }] });
+  { question_id: 'ground_duty_pay', code: 'allowance', text: '地上業務1時間＝乗務0.5時間' }] });
 ok(r.saved === 1, '300字までの自由記述は受ける');
 
 // ⑨ 親に答えていない人の子は受けない／出さない
@@ -667,7 +669,7 @@ ok((await factN(CM.airline, 'commuting_bus_cost'))?.n === 3, '   元に戻すと
 /* ⑲ 社員向け航空券を使える人 ── 券の種類ごとに分けて聞く（2026-10-04）。
    「空席待ちは親まで・座席を確保できる券は本人だけ」のように、券によって使える人が違う会社を
    1つの質問で聞くと、どちらの話か分からない答えが残る。
-   共通の1問（staff_travel_family）は本番に在るので触っていない。 */
+   共通の1問（staff_travel_family）は本番に在ったので触らずにいたが、2026-11-17 に止めた（オーナー判断）。 */
 console.log('\n▼ ⑲ 社員向け航空券を使える人 ── 空席待ちと座席確保を別々に聞く');
 const FAM_S = 'staff_travel_standby_family', FAM_C = 'staff_travel_confirmed_family';
 const ST = QBY.staff_travel, BOOK = QBY.staff_travel_booking;
@@ -680,8 +682,8 @@ ok(choiceSig(FAM_S) === choiceSig(FAM_C), '   使える人の選択肢は、2つ
 ok(same(QBY[FAM_S].choices.map((c) => c.code),
         ['self', 'partner', 'children', 'parents', 'siblings', 'nominee', 'other']),
   '   選択肢は 本人・配偶者／パートナー・子・親・きょうだい・指名した人・その他');
-ok(QBY.staff_travel_family && !QBY.staff_travel_family.parentWhen.includes(UNKNOWN)
-   && QBY.staff_travel_family.parent === ST.id, '   共通の1問（staff_travel_family）は今までどおり在る');
+ok(!QBY.staff_travel_family && RETIRED.includes('staff_travel_family'),
+  '   共通の1問（staff_travel_family）は 2026-11-17 に止めた（家族のことはこの2問だけで聞く・止めた答えの扱いは ㉒）');
 
 const FT = { airline: 'airdo', year: 2026, month: 8 };
 const ST_IN = BOOK.parentWhen[0];
@@ -1042,7 +1044,7 @@ const lpRows = async (n) => rows(
   [uid(n), LC.airline, [LP.id, ...LP_ALL]]);
 const sendLp = (pick) => [
   { question_id: 'landing_pay_amount', num: 1500, currency: 'JPY' },
-  { question_id: 'landing_pay_unit', code: 'per_landing' },
+  { question_id: 'landing_pay_unit', code: 'pf_only' },
   { question_id: 'landing_pay_from', num: 1000, currency: 'JPY' },
   { question_id: 'landing_pay_to', num: 3000, currency: 'JPY' },
   { question_id: 'landing_pay_varies_by', code: 'aircraft' }].filter((a) => pick.includes(a.question_id));
@@ -1069,7 +1071,7 @@ for (const [n, code, word] of [[232, 'no', 'ない'], [233, UNKNOWN, 'わから�
 // 「1回あたり一定額」の人 ── 親・額・数え方を1回で送る
 await asUser(231);
 r = await submit({ ...LC, answers: [
-  { question_id: 'landing_pay_unit', code: 'per_landing' },            // 子を先に置いても
+  { question_id: 'landing_pay_unit', code: 'pf_only' },            // 子を先に置いても
   { question_id: 'landing_pay_amount', num: 1500, currency: 'JPY' },
   { question_id: LP.id, code: 'fixed' }] });                           // 親が先に保存される
 ok(r.saved === 3 && r.rejected.length === 0,
@@ -1080,7 +1082,7 @@ ok(lp.length === 3 && lp.every((x) => x.position === LC.position && x.fleet === 
   '㉑ ★1回の保存で送った3行は、同じ職位・機種・適用時期を持つ', JSON.stringify(lp));
 m = await mineOf(231, LC.airline);
 ok(Number(m.landing_pay_amount?.num) === 1500 && m.landing_pay_amount?.currency === 'JPY'
-   && m.landing_pay_unit?.code === 'per_landing',
+   && m.landing_pay_unit?.code === 'pf_only',
   '   自分の回答に、額・通貨・数え方がそのまま返る（読み込み直した画面が元に戻せる）',
   JSON.stringify([m.landing_pay_amount, m.landing_pay_unit?.code]));
 o = await offer(231, LC.airline);
@@ -1340,7 +1342,7 @@ ok(setOf(fx.row) === '—/—/KIX/—' && setOf(fx5.row) === '—/—/—/agency
 
 // あとから足す（親を先に答えて、続きの質問を別の保存で送る）
 const AMT = { question_id: 'landing_pay_amount', num: 1500, currency: 'JPY' };
-const UNIT = { question_id: 'landing_pay_unit', code: 'per_landing' };
+const UNIT = { question_id: 'landing_pay_unit', code: 'pf_only' };
 const LP3 = [LP.id, AMT.question_id, UNIT.question_id];
 const storeLpParent = async (n, airline = XC.airline, set = SET_A) => {
   await asUser(n);
@@ -1785,6 +1787,103 @@ f = await factOf(CTL.id);
 ok(ctlLost.length === 0 && f && f.n === 3 && f.median_num !== null && Number(f.median_num) === CTL.num.min + 2,
   `   対照: 通貨の無い数値質問（${CTL.id}）は、同じ3人の形で中央値が出る → ${f?.median_num}`,
   JSON.stringify([ctlLost, f]));
+
+
+/* ㉒ 止めた質問と、寄せた答え（2026-11-17・質問の見直し）。
+   本番の DB には、台帳から外した質問の行（active = false）と、その答えがそのまま残る（gen-conditions.mjs は消さずに止めるだけ）。
+   ・止めた質問の答えは、公開の集計にも・「答えた項目：N／M」にも・次に聞く質問の「答えた数」にも・自分の回答の一覧にも入らない
+   ・待機場所の「両方ある」は {自宅, 空港} へ・中途採用の形の「機長採用」は DEC へ、貼り直しで1回だけ寄せる
+     （何度流しても同じ・「最後に確かめた日」は動かさない・マスタがまだ古い形のうちは寄せない） */
+console.log('\n▼ ㉒ 止めた質問と、寄せた答え（2026-11-17）');
+const RT = { airline: 'skymark', year: 2026, month: 8 };
+const RQ = 'staff_travel_family';
+ok(!QBY[RQ] && RETIRED.includes(RQ), `   ${RQ} は台帳に無く、止めた id の一覧（RETIRED）に在る`);
+/* 本番と同じ形を作る：止めた質問の行を active = false で置く（親は今も在る staff_travel） */
+await db.query(`insert into pv_condition_questions (id, section, kind, tier, priority, parent, parent_when, topic,
+                  choice_codes, label_ja, label_en, active)
+                values ($1, 'benefits', 'choice', 'B', 600, 'staff_travel', array['yes', 'some_pilots'], 'staff_travel',
+                        array['self', 'partner', 'family', 'unknown'], '家族も使えますか？', 'Can family members use it?', false)
+                on conflict (id) do update set active = false`, [RQ]);
+const RU = [9601, 9602, 9603];
+for (const n of RU) {
+  await asUser(n);
+  await submit({ ...RT, answers: [{ question_id: 'staff_travel', code: 'yes' }] });
+  await db.query(`insert into airline_conditions (proof_hash, airline, question_id, answer_code, effective_year, effective_month)
+                  values (pv_condition_hash($1::uuid, $2, null), $2, $3, 'partner', 2026, 8)`, [uid(n), RT.airline, RQ]);
+}
+const retiredSeen = async () => {
+  await asUser(RU[0]);
+  const me = await mine({ airline: RT.airline });
+  const rs = await submit({ ...RT, answers: [{ question_id: 'staff_travel', code: 'yes' }] });
+  const nq = await next({ airline: RT.airline, limit: 3 });
+  const fct = await rows(`select n from airline_condition_facts where airline = $1 and question_id = $2`, [RT.airline, RQ]);
+  return { mineHas: me.answers.some((a) => a.question_id === RQ), mineTotal: me.answered_total,
+           saveTotal: rs.answered_total, nextCount: nq.mine_count, fact: fct.length ? fct[0].n : null };
+};
+let rv = await retiredSeen();
+ok(!rv.mineHas && rv.mineTotal === 1 && rv.saveTotal === 1 && rv.nextCount === 1 && rv.fact === null,
+  '★㉒ 止めた質問に3人が答えていても、集計に出ない・「答えた項目」にも次に聞く質問の「答えた数」にも数えない・自分の回答の一覧にも返さない',
+  JSON.stringify(rv));
+/* 壊す証明：同じ行のまま質問を有効に戻すと、全部に出てくる（上の緑は q.active で外しているから） */
+await db.query(`update pv_condition_questions set active = true where id = $1`, [RQ]);
+rv = await retiredSeen();
+ok(rv.mineHas && rv.mineTotal === 2 && rv.saveTotal === 2 && rv.nextCount === 2 && rv.fact === 3,
+  '   壊す証明: 有効のままなら、同じ3人の答えが集計・答えた項目・自分の回答に出る（＝ 外しているのは q.active）', JSON.stringify(rv));
+await db.query(`update pv_condition_questions set active = false where id = $1`, [RQ]);
+
+/* 寄せる答え。今の画面からは古いコードを送れないので、保存したあとで行を古い形へ戻してから、貼り直す */
+const RL = 'reserve_location', EH = 'external_hiring_types';
+ok(QBY[RL].kind === 'multi' && !QBY[RL].choices.some((c) => c.code === 'both')
+   && ['home', 'airport'].every((c) => QBY[RL].choices.some((x) => x.code === c)),
+  '   待機場所は複数選ぶ・「両方ある」は選択肢に無い・自宅と空港は在る');
+ok(QBY[EH].choices.some((c) => c.code === 'dec') && !QBY[EH].choices.some((c) => c.code === 'captain'),
+  '   中途採用の形に「機長採用」（captain）は無く、DEC（dec）が在る');
+const OLD_AT = '2026-10-01 00:00+00';
+const toOld = (n, q, code, codes) => db.query(
+  `update airline_conditions set answer_code = $3, answer_codes = $4, updated_at = timestamptz '${OLD_AT}'
+    where proof_hash = pv_condition_hash($1::uuid, $5, null) and question_id = $2`, [uid(n), q, code, codes, RT.airline]);
+const rowOfQ = async (n, q) => one(
+  `select answer_code c, answer_codes cs, updated_at u from airline_conditions
+    where proof_hash = pv_condition_hash($1::uuid, $3, null) and question_id = $2`, [uid(n), q, RT.airline]);
+await asUser(9611); await submit({ ...RT, answers: [{ question_id: 'reserve_duty', code: 'yes' }, { question_id: RL, codes: ['home'] }] });
+await asUser(9612); await submit({ ...RT, answers: [{ question_id: 'reserve_duty', code: 'yes' }, { question_id: RL, codes: ['home'] }] });
+for (const n of [9613, 9614, 9615, 9616]) {
+  await asUser(n);
+  await submit({ ...RT, answers: [{ question_id: 'external_hiring', code: 'yes' }, { question_id: EH, codes: ['fo'] }] });
+}
+await toOld(9611, RL, 'both', null);                         // 前の1つ選ぶ「両方ある」
+await toOld(9612, RL, 'home', null);                         // 前の1つ選ぶ「自宅待機」
+await toOld(9613, EH, null, ['captain', 'fo']);              // 機長採用＋副操縦士採用
+await toOld(9614, EH, null, ['dec', 'captain', 'other']);    // 両方選んでいた人 → 1つに
+await toOld(9615, EH, 'captain', null);                      // 1つだけの形で残っていた行
+await toOld(9616, EH, null, ['type_rated']);                 // 止めた選択肢（寄せない）
+const pasteConditions = async () => { await db.exec('reset role'); await db.exec(read('db/airline-conditions.sql')); };
+const moved = async () => ({
+  both: await rowOfQ(9611, RL), home: await rowOfQ(9612, RL),
+  capFo: await rowOfQ(9613, EH), dup: await rowOfQ(9614, EH), single: await rowOfQ(9615, EH), typeRated: await rowOfQ(9616, EH) });
+const shape = (x) => [x.c, x.cs, new Date(x.u).toISOString()];
+const OLD_ISO = new Date(OLD_AT).toISOString();
+const WANT = {
+  both: [null, ['home', 'airport'], OLD_ISO], home: [null, ['home'], OLD_ISO],
+  capFo: [null, ['dec', 'fo'], OLD_ISO], dup: [null, ['dec', 'other'], OLD_ISO], single: [null, ['dec'], OLD_ISO],
+  typeRated: [null, ['type_rated'], OLD_ISO] };
+const sameMoved = (m) => Object.keys(WANT).every((k) => JSON.stringify(shape(m[k])) === JSON.stringify(WANT[k]));
+/* マスタが古い形（captain がまだ選択肢に在る ＝ db/conditions.generated.sql を貼る前）のうちは、中途採用の形を寄せない */
+await db.query(`update pv_condition_questions set choice_codes = array_append(choice_codes, 'captain') where id = $1`, [EH]);
+await pasteConditions();
+let mv = await moved();
+/* 1つだけの形の行は、古いマスタでは「1つ選ぶ → 複数選ぶ」の update が {captain} にする（その時点では captain も選択肢）── 寄せないのは DEC へ */
+ok(JSON.stringify(shape(mv.capFo)) === JSON.stringify([null, ['captain', 'fo'], OLD_ISO]) && JSON.stringify(mv.single.cs || [mv.single.c]) === '["captain"]',
+  '   ★㉒ 質問マスタがまだ古い形（機長採用が選択肢に在る）のうちは、機長採用を寄せない', JSON.stringify([mv.capFo, mv.single]));
+await db.exec(read('db/conditions.generated.sql'));
+await pasteConditions();
+mv = await moved();
+ok(sameMoved(mv),
+  '★㉒ 貼り直すと、待機場所の「両方ある」は {自宅, 空港}・「自宅待機」は {自宅}・機長採用は DEC へ（両方選んでいた人は1つ）・'
+  + '止めた「型式限定保持者のみ」は書き換えない・最後に確かめた日は動かない', JSON.stringify(mv));
+await pasteConditions();
+mv = await moved();
+ok(sameMoved(mv), '   ㉒ もう一度貼っても同じ（1回で済む・何度流しても同じ）', JSON.stringify(mv));
 
 
 /* オーナーが SQL Editor で見る検算表そのものを、ここで先に回しておく。

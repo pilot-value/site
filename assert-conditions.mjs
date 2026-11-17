@@ -564,9 +564,12 @@ const Q_DEEP = LISTED.find((q) => q.parent && BY[q.parent].parent
    Q_MULTI ＝ 目当て。Q_OTHER ＝ 同じ親の下で、別の選択肢のときにだけ開く質問。 */
 const MULTI_KIDS = LISTED.filter((q) => q.parent && q.kind === 'choice'
   && BY[q.parent].kind === 'multi' && BY[q.parent].parent && BY[BY[q.parent].parent].kind === 'choice');
-const Q_MULTI = MULTI_KIDS.filter((q) => q.parentWhen.join() === MULTI_KIDS[0].parentWhen.join()).pop();
-const Q_OTHER = Q_MULTI && MULTI_KIDS.find((q) => q.parent === Q_MULTI.parent
-  && !q.parentWhen.some((c) => Q_MULTI.parentWhen.includes(c)));
+/* ★選ぶのは「同じ親の下に、別の選択肢で開く質問が在る」組だけ（2026-11-17 に待機場所を複数選ぶにして、子が1つしかない組が先頭に来た） */
+const otherKid = (m) => MULTI_KIDS.find((q) => q.parent === m.parent && !q.parentWhen.some((c) => m.parentWhen.includes(c)));
+const MULTI_HEAD = MULTI_KIDS.find((q) => otherKid(q));
+const Q_MULTI = MULTI_HEAD && MULTI_KIDS.filter((q) => q.parent === MULTI_HEAD.parent
+  && q.parentWhen.join() === MULTI_HEAD.parentWhen.join()).pop();
+const Q_OTHER = Q_MULTI && otherKid(Q_MULTI);
 
 console.log('\n════ 質問へ直接来る入口（?q=）の下ごしらえ ════');
 ok(!!Q_ROOT, '閉じて出る節に、親を持たない質問が在る', '');
@@ -1377,9 +1380,18 @@ if (Q_ROOT && Q_ONE && Q_DEEP) {
           ok(await page.evaluate((id) => { const r = document.querySelector('[data-qid="' + id + '"]'); return !!r && !r.hidden; }, L_NUM.id),
              `L    d1 続きの質問（${L_NUM.id}）が下に出ている`);
           const AFTER = L_P.choices.slice(L_P.choices.findIndex((c) => c.code === L_CODE) + 1).map((c) => c.code);
+          /* 親の行と数の欄のあいだに、同じ答えで開いたほかの質問（例：Reserve の待機場所）が在れば、その部品の数だけ Tab が増える */
+          const between = await page.evaluate((pid, nid) => {
+            const p = document.querySelector('[data-qid="' + pid + '"]'), n = document.querySelector('[data-qid="' + nid + '"]');
+            if (!p || !n) return 0;
+            const F = Node.DOCUMENT_POSITION_FOLLOWING;
+            const shown = (el) => !el.closest('[hidden]') && !el.disabled && el.getClientRects().length > 0;
+            return [...document.querySelectorAll('[data-qid]')].filter((r) => (p.compareDocumentPosition(r) & F) && (r.compareDocumentPosition(n) & F) && shown(r))
+              .reduce((k, r) => k + [...r.querySelectorAll('button, input, select, textarea, a[href]')].filter(shown).length, 0);
+          }, L_P.id, L_NUM.id);
           await page.keyboard.press('Tab');
           f = await focusNow(page);
-          const more = await tabTo(page, numSel, AFTER.length + 3);
+          const more = await tabTo(page, numSel, AFTER.length + 3 + between);
           ok((AFTER.length ? f.qid === L_P.id && f.code === AFTER[0] : f.qid !== L_P.id) && more >= 0,
              'L ★d1 次の Tab は続きから（同じ行の次の選択肢 → 出てきた質問の欄。行の頭へ戻らない）',
              JSON.stringify({ f, more }));

@@ -99,7 +99,7 @@ await page.evaluateOnNewDocument((scene, theme) => {
   }, o);
   const MINE = [
     A('days_off_request', { code: 'yes' }),
-    A('days_off_request_limit', { num: 4 }),
+    A('days_off_request_quota', { code: 'd3_4' }),
     A('reserve_duty', { code: 'no' }),
     A('training_bond', { code: 'yes' }),
     A('training_bond_years', { num: 5 }),

@@ -1178,13 +1178,13 @@ console.log('\n▼ 8-2. 上の質問を答え直した人の、下の質問（�
   const FIXED = [
     { question_id: 'landing_pay', code: 'fixed' },
     { question_id: 'landing_pay_amount', num: 1500, currency: 'JPY' },
-    { question_id: 'landing_pay_unit', code: 'per_landing' }];
+    { question_id: 'landing_pay_unit', code: 'pf_only' }];
   const a = await putC(null, { ...C, answers: FIXED });
   ok(a.saved === 3 && a.rejected.length === 0 && KEY.test(a.key || ''),
     '★未ログインのまま、着陸手当（一定額）・額・数え方を1回で預けられる', J(a));
   let m = Object.fromEntries((await mineA(a.key, A_CLAIM)).answers.map((x) => [x.question_id, x]));
   ok(m.landing_pay.code === 'fixed' && m.landing_pay_amount.num === 1500 && m.landing_pay_amount.currency === 'JPY'
-     && m.landing_pay_unit.code === 'per_landing',
+     && m.landing_pay_unit.code === 'pf_only',
     '★読み直すと、額・通貨・数え方が同じ内容で返る', J(m));
 
   let c = await claim(P1, a.key);
