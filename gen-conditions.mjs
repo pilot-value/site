@@ -10,7 +10,7 @@
 ════════════════════════════════════════════════════════════════ */
 import { writeFileSync, existsSync } from 'fs';
 import { LANGS } from './langs.mjs';
-import { SECTIONS, QUESTIONS, SETTINGS, ASK, UNKNOWN, TEXT_MAX, OTHER_TEXT_MAX, LINES_MAX, LINE_NAME_MAX } from './pv-conditions.mjs';
+import { SECTIONS, QUESTIONS, SETTINGS, ASK, RETIRED, UNKNOWN, TEXT_MAX, OTHER_TEXT_MAX, LINES_MAX, LINE_NAME_MAX } from './pv-conditions.mjs';
 
 const KINDS = ['choice', 'multi', 'num', 'lines'];
 const TIERS = ['A', 'B', 'C'];   // A から先に埋める（横断比較に効く順）
@@ -71,10 +71,16 @@ const usedBoost = new Map();   // boost → id（回答ゼロの人に出す順�
 const usedRangeLow = new Map();   // 低いほうの id → それを指した高いほうの id（1つの低いほうに、高いほうは1つ）
 let lastPriority = -1;
 
+/* 止めた質問の id（2026-11-17・pv-conditions.mjs の RETIRED）。★台帳に戻さない・別の意味の質問に使い回さない
+   ── DB には同じ id の行と答えが active = false で残っているので、戻した瞬間に古い答えが新しい質問の答えとして数えられる。 */
+if (!Array.isArray(RETIRED) || new Set(RETIRED).size !== RETIRED.length) throw new Error('RETIRED: 配列で・重複なく');
+for (const id of RETIRED) if (!ID_RE.test(String(id || ''))) throw new Error(`RETIRED: id の形が不正 → ${id}`);
+
 for (const q of QUESTIONS) {
   const at = `QUESTIONS[${q.id}]`;
   if (!ID_RE.test(String(q.id || ''))) throw new Error(`${at}: id の形が不正（小文字英数と _ で3〜40字）`);
   if (seen.has(q.id)) throw new Error(`${at}: id が重複`);
+  if (RETIRED.includes(q.id)) throw new Error(`${at}: 止めた質問の id（RETIRED）を使っている ── 新しい id にする`);
   if (!KINDS.includes(q.kind)) throw new Error(`${at}: kind が不正 → ${q.kind}`);
   if (!SECTIONS.some((s) => s.code === q.section)) throw new Error(`${at}: section が SECTIONS に無い → ${q.section}`);
   if (!Number.isInteger(q.version) || q.version < 1) throw new Error(`${at}: version は1以上の整数`);

@@ -2379,7 +2379,7 @@ const STAY_RE = /\/rest\/v1\/rpc\/pv_stays$/, STAY_MOD_RE = /\/rest\/v1\/rpc\/pv
 const FACT_RE = /\/rest\/v1\/rpc\/pv_contrib_facts$/;
 const FACT_ROWS = [
   { question_id: 'commuting_taxi_cost', kind: 'choice', n: 3, lead: ['company_full'], median_num: null, ym: '2026-08', want: { lead: ['company_full'] } },
-  { question_id: 'staff_travel_cabin', kind: 'choice', n: 6, lead: ['if_available'], median_num: null, ym: '2026-09', want: { lead: ['if_available'] } },
+  { question_id: 'staff_travel_premium', kind: 'multi', n: 6, lead: ['if_available'], median_num: null, ym: '2026-09', want: { lead: ['if_available'] } },
   { question_id: 'upgrade_years', kind: 'num', n: 11, lead: null, median_num: 9.5, ym: '2026-09', want: { median: 9.5 } },
   { question_id: 'commuting_taxi_where', kind: 'choice', n: 3, lead: [], median_num: null, ym: '2026-10', want: { split: true } },
   { question_id: 'staff_travel_booking', kind: 'choice', n: 4, lead: [], median_num: null, ym: '2026-09', want: { split: true } },
@@ -5213,7 +5213,7 @@ async function runWork(browser, s, [w, h], only) {
         return b;
       };
       say(tag, '通勤の面：「タクシーでの出社・帰宅の費用」（回答 3人）は、親の名前を頭に付けたカード（出社・帰宅の移動 › …）に入る・親の値は書かない', O, under('commute', 'commuting_taxi_cost', 'commuting_transport'));
-      say(tag, 'Staff Travel の面：「上位クラスに乗れるか」（回答 6人）は、親の名前を頭に付けたカード（社員航空券 › …）に入る・親の値は書かない', O, under('travel', 'staff_travel_cabin', 'staff_travel'));
+      say(tag, 'Staff Travel の面：「上位クラスに乗れるか」（回答 6人）は、親の名前を頭に付けたカード（社員航空券 › …）に入る・親の値は書かない', O, under('travel', 'staff_travel_premium', 'staff_travel'));
       /* B3' 月の勤務の6つの枠（ruling E・addendum A1）。枠ごとに機長と副操縦士の1行ずつ：職位の名前｜軸と帯｜数字｜単位。
          字と帯の位置は、偽のサーバーの返事（WORK_FIX）からここで作り直して突き合わせる（返事の数字をここへ書き写さない）。
          目盛は単位ごとに固定（時間 0〜240・日と泊 0〜31 ── ruling D。会社の決まりの数字ではない）。帯の左端は CSS と同じ

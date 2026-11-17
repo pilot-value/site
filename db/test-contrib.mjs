@@ -1178,13 +1178,13 @@ console.log('\n▼ 8-2. 上の質問を答え直した人の、下の質問（�
   const FIXED = [
     { question_id: 'landing_pay', code: 'fixed' },
     { question_id: 'landing_pay_amount', num: 1500, currency: 'JPY' },
-    { question_id: 'landing_pay_unit', code: 'per_landing' }];
+    { question_id: 'landing_pay_unit', code: 'pf_only' }];
   const a = await putC(null, { ...C, answers: FIXED });
   ok(a.saved === 3 && a.rejected.length === 0 && KEY.test(a.key || ''),
     '★未ログインのまま、着陸手当（一定額）・額・数え方を1回で預けられる', J(a));
   let m = Object.fromEntries((await mineA(a.key, A_CLAIM)).answers.map((x) => [x.question_id, x]));
   ok(m.landing_pay.code === 'fixed' && m.landing_pay_amount.num === 1500 && m.landing_pay_amount.currency === 'JPY'
-     && m.landing_pay_unit.code === 'per_landing',
+     && m.landing_pay_unit.code === 'pf_only',
     '★読み直すと、額・通貨・数え方が同じ内容で返る', J(m));
 
   let c = await claim(P1, a.key);
@@ -2341,8 +2341,10 @@ console.log('\n▼ 8-3. 他人の回答の集計（立場ごとに何が返る�
         `update public.airline_conditions set answer_codes = array['zz_gone']
           where ctid = (select ctid from public.airline_conditions where airline = $1 and question_id = $2 order by created_at limit 1)`, [A_FACT, MQ[1].id]);
       const gone = fact(await facts(GIVE5, A_FACT, [MQ[1].id]), MQ[1].id);
-      ok(!!gone && gone.n === 3 && Object.hasOwn(gone, 'lead') && gone.lead === null,
-        '★TL8 並んだ答えに、台帳に無い符号が混じる → lead の欄は在って null（名前の引けない答えを「最多」と書かせない）', J(gone));
+      // ★2026-11-17 から、選択肢に無い符号だけの答えは人数にも数えない（db/airline-conditions.sql の pv_condition_ans）
+      //   ＝ 3人のうち1人が外れて2人 → 公開の線（3人）に届かず、この質問は返らない
+      ok(!gone,
+        '★TL8 並んだ答えに、台帳に無い符号が混じる → その答えは数えない（2人）＝ 返さない（名前の引けない答えを「最多」とも人数とも書かせない）', J(gone));
 
       // TL9 答えごとの人数が、答えた人数を超える（製品が書けない行。持ち主の役で作る）
       [m0, m1] = MQ[0].c;
