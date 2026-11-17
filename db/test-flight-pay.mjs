@@ -301,6 +301,37 @@ function suite(R) {
       '★輪は便ごと（日）・ルートごと（それより長い期間）の割合で、固定給と変動給の割合を出さない');
     ok(!/segName|パーディアム|perdiem/.test(g), '★便のカードの内訳は固定給と変動給の2つだけ（手当ごと・日当を分けて書かない）');
   }
+  /* ★2026-11-17 ANA の勤務表（全部の時刻が日本時間・前日夜の出頭・通勤の便乗・「勤務コードではない」） */
+  {
+    const JST = { kind: 'actual', time_ref: 'local', tz: 'Asia/Tokyo', codes: {} };
+    const cdg = [{ date: '2026-11-30', code: null, d_on: '08:10', d_off: '01:05', d_off_day: 1,
+                   legs: [{ seq: 1, flight: '0215', from: 'HND', to: 'CDG', out: '09:50', in: '00:30', in_day: 1, kind: 'operating' }] }];
+    const b1 = R.rosterMonths(cdg, JST)[0].days[0].legs[0].blockMin;
+    const b0 = R.rosterMonths(cdg, { ...JST, tz: null })[0].days[0].legs[0].blockMin;
+    ok(b1 === 880 && b0 !== 880, `★表が日本時間なら国際線のブロックタイムを日本時間で数える（HND 09:50 → CDG 00:30+1 ＝ 14:40・現地時刻とみなすと ${b0} 分）`);
+
+    const pair = R.rosterMonths([
+      { date: '2026-11-03', code: null, d_on: '22:55', d_off: null, d_off_day: 0, legs: [] },
+      { date: '2026-11-04', code: null, d_on: null, d_off: '08:15', d_off_day: 0,
+        legs: [{ seq: 1, flight: '0871', from: 'HND', to: 'CGK', out: '00:24', in: '07:40', in_day: 0, kind: 'operating' }] },
+    ], JST)[0].days;
+    const d3 = pair.find((x) => x.date === '2026-11-03'), d4 = pair.find((x) => x.date === '2026-11-04');
+    ok(d4.dutyMin === 560 && !d3.isDuty && d4.dOnPrev === '22:55', '★前日夜の出頭（22:55）と翌日の便・解散（08:15）を1つの勤務として数え、勤務時間は便のある日に付ける');
+
+    const cm = run(R, [OCT()], month('2026-10', D10, S10, { 5: { code: null, d_on: '18:30', d_off: '22:51', d_off_day: 0, legs: [
+      { seq: 1, from: 'ITM', to: 'HND', out: '15:50', in: '17:04', in_day: 0, block: '1:14', kind: 'deadhead' },
+      { seq: 2, from: 'HND', to: 'GMP', out: '19:58', in: '22:16', in_day: 0, block: '2:18', kind: 'operating' }] } }));
+    const c1 = cm.legs.find((l) => l.date === '2026-10-05' && l.kind === 'deadhead');
+    const c2 = cm.legs.find((l) => l.date === '2026-10-05' && l.kind === 'operating');
+    ok(c1 && c1.reason === 'commute' && c1.amount === null && c2 && c2.dutyMin === 261,
+       '★通勤の便乗（D-ON より前の便乗）には勤務時間を配らず額も出さない・その日の勤務時間 4:21 は乗務の便に全部付く');
+
+    const nm = R.rosterMonths([{ date: '2026-11-17', code: 'S4', d_on: '16:50', d_off: '22:55', d_off_day: 0,
+      legs: [{ seq: 1, flight: '0267', from: 'HND', to: 'FUK', out: '18:00', in: '20:00', in_day: 0, kind: 'operating' }] }],
+      { codes: { S4: 'none' } })[0];
+    ok(nm.days[0].code === null && !(nm.unclassifiedCodes || []).includes('S4') && nm.days[0].isDuty,
+       '★本人が「勤務コードではない」と答えた記号は、記号の無い日として数える（聞き直さない・勤務日のまま）');
+  }
   return res;
 }
 
@@ -326,7 +357,12 @@ const BREAK = [
   ['補った値を次の補いの材料にする', "map[y.date].src === 'times'", 'map[y.date].min != null', '補った日を材料にしていない'],
   ['補えない勤務日を0時間のまま配る', "else if (est.unresolved) M.reason = 'no_duty';", '', '0時間のまま配り切らない'],
   ['同じ勤務コードを先に見ない', "if (x.code) { v = mean(near(x, function (y) { return y.code === x.code; })); if (v != null) src = 'code'; }", '', '根拠が「同じ勤務コード」'],
-  ['スタンバイの手当を便に載せる', "l.basis === 'reserve'", 'false', '待機の行は便に載らない']
+  ['スタンバイの手当を便に載せる', "l.basis === 'reserve'", 'false', '待機の行は便に載らない'],
+  /* ★2026-11-17 ANA の勤務表 */
+  ['表の時間帯（JST）を使わない', "var ptz = profile && profile.time_ref === 'local' ? validTz(profile.tz) : null;", 'var ptz = null;', '国際線のブロックタイムを日本時間'],
+  ['前日夜の出頭をつながない', 'y.dutyMin = el.min; y.elapsedBasis = el.basis; y.dOnPrev = x.dOn;', '', '前日夜の出頭'],
+  ['通勤の便乗にも勤務時間を配る', 'return li <= on || lo >= end;', 'return false;', '通勤の便乗'],
+  ['「勤務コードではない」を記号のまま数える', "if (cls === 'none') { code = null; cls = null; }", '', '勤務コードではない']
 ];
 for (const [name, from, to, must] of BREAK) {
   if (SRC.split(from).length !== 2) { say(false, `${name}：差し替える1行が pv-report-engine.js に1回だけ無い（検査が古い）`); continue; }

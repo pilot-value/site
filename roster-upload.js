@@ -104,7 +104,7 @@
       qRef: '時刻は', qRefL: '現地時刻', qRefU: 'UTC',
       qMean: '便の TIME の欄は', qMeanB: 'ブロックタイム（チョックオフ〜チョックオン）', qMeanF: 'フライトタイム（離陸〜着陸）', qMeanO: 'ほかの意味・わからない',
       qCodes: '勤務コードの意味', qCodesS: '答えると、休日と勤務日を正しく数えます。',
-      codeOpt: { off: '休日', vac: '有休', duty: '勤務', standby: 'スタンバイ', training: '訓練', ground: '地上業務', other: 'その他', unknown: 'わからない' },
+      codeOpt: { off: '休日', vac: '有休', duty: '勤務', standby: 'スタンバイ', training: '訓練', ground: '地上業務', other: 'その他', none: '勤務コードではない', unknown: 'わからない' },
       codePick: '選ぶ',
       printed: '原本の表記から',
       next: '次へ', prevStep: '戻る',
@@ -212,7 +212,7 @@
       qRef: 'Times are in', qRefL: 'Local time', qRefU: 'UTC',
       qMean: 'The TIME column on legs is', qMeanB: 'Block time (chocks off to chocks on)', qMeanF: 'Flight time (takeoff to landing)', qMeanO: 'Something else / not sure',
       qCodes: 'What these duty codes mean', qCodesS: 'Your answers let us count days off and duty days correctly.',
-      codeOpt: { off: 'Day off', vac: 'Annual leave', duty: 'Duty', standby: 'Standby', training: 'Training', ground: 'Ground duty', other: 'Other', unknown: 'Not sure' },
+      codeOpt: { off: 'Day off', vac: 'Annual leave', duty: 'Duty', standby: 'Standby', training: 'Training', ground: 'Ground duty', other: 'Other', none: 'Not a duty code', unknown: 'Not sure' },
       codePick: 'Choose',
       printed: 'as printed',
       next: 'Next', prevStep: 'Back',
@@ -318,7 +318,7 @@
       qRef: 'Las horas están en', qRefL: 'Hora local', qRefU: 'UTC',
       qMean: 'La columna TIME de los tramos es', qMeanB: 'Tiempo block (de calzos fuera a calzos dentro)', qMeanF: 'Tiempo de vuelo (del despegue al aterrizaje)', qMeanO: 'Otra cosa / no estoy seguro',
       qCodes: 'Qué significan estos códigos de servicio', qCodesS: 'Con tus respuestas contamos bien los días libres y los días de servicio.',
-      codeOpt: { off: 'Día libre', vac: 'Vacaciones anuales', duty: 'Servicio', standby: 'Standby', training: 'Entrenamiento', ground: 'Actividad en tierra', other: 'Otro', unknown: 'No estoy seguro' },
+      codeOpt: { off: 'Día libre', vac: 'Vacaciones anuales', duty: 'Servicio', standby: 'Standby', training: 'Entrenamiento', ground: 'Actividad en tierra', other: 'Otro', none: 'No es un código de servicio', unknown: 'No estoy seguro' },
       codePick: 'Elegir',
       printed: 'según lo impreso',
       next: 'Siguiente', prevStep: 'Volver',
@@ -837,6 +837,8 @@
     ['kind', 'time_ref', 'time_meaning', 'blank'].forEach(function (k) { if (!pr[k] && !a[k] && lr[k]) a[k] = lr[k]; });
     if (!pr.kind && !a.kind && h.kind) { a.kind = h.kind; U.printed.kind = true; }
     if (!pr.time_ref && !a.time_ref && h.time_ref) { a.time_ref = h.time_ref; U.printed.time_ref = true; }
+    /* ★表に時間帯が印字されている（ANA の「JST」）＝全部の時刻がその時間帯。tz も入れ、時刻の基準は聞かない（2026-11-17） */
+    if (h.tz && !pr.tz && !a.tz) { a.tz = h.tz; if (!pr.time_ref) { a.time_ref = 'local'; U.printed.time_ref = true; } }
     a.codes = a.codes || {};
     unknownCodes().forEach(function (c) {
       if (c in a.codes) return;
@@ -905,15 +907,27 @@
     var pr = U.ctx.profile || {}, a = U.answers, codes = {};
     Object.keys(pr.codes || {}).forEach(function (k) { codes[k] = pr.codes[k]; });
     Object.keys(a.codes || {}).forEach(function (k) { if (a.codes[k]) codes[k] = a.codes[k]; });
-    return { kind: pr.kind || a.kind || null, time_ref: pr.time_ref || a.time_ref || null, tz: pr.tz || null,
+    return { kind: pr.kind || a.kind || null, time_ref: pr.time_ref || a.time_ref || null, tz: pr.tz || a.tz || null,
              time_meaning: pr.time_meaning || a.time_meaning || null, blank: blankMode(), codes: codes };
   }
   /* 本人の読み方で意味の決まっていないコード（会社の辞書で埋まるものも含む・印は小文字にそろえる）。
      自動で入れた OFF（何も書いていない日）は数えない */
   function unknownCodes() {
     var pr = U.ctx.profile || {}, days = U.merged.days.filter(function (x) { return !x.filled; });
-    var months = R.rosterMonths(days, { codes: pr.codes || {} }), seen = {}, out = [];
-    months.forEach(function (m) { (m.unclassifiedCodes || []).forEach(function (c) { c = P.canon(c); if (!seen[c]) { seen[c] = 1; out.push(c); } }); });
+    var months = R.rosterMonths(days, { codes: pr.codes || {} }), seen = {}, out = [], fl = {};
+    /* ★数字だけのコード・便名と同じコードは聞かない（便名を勤務コードとして聞いていた・2026-11-17）。
+       地上の行の頭（JOB の「MT83」）は便名ではない＝地上の業務の日のコードは聞く */
+    days.forEach(function (x) { (x.legs || []).forEach(function (l) { if (l && l.flight && l.kind !== 'ground') fl[P.canon(l.flight)] = 1; }); });
+    /* ★意味が計算に効く日（便の無い日・前の夜に出頭するだけの日でない日）に出てくるコードだけを聞く（2026-11-17）。
+       便のある日はその便で乗務の日と決まり、出頭だけの日は翌日の勤務の頭＝どちらもコードの意味で数字が変わらない
+       （T の欄の区分「M」・組の番号を聞いていた）。 */
+    var need = {};
+    days.forEach(function (x) {
+      var legs = x.legs || [];
+      if (!x.code || legs.some(function (l) { return l && l.kind !== 'ground'; }) || (x.d_on && !x.d_off && !legs.length)) return;
+      need[P.canon(x.code)] = 1;
+    });
+    months.forEach(function (m) { (m.unclassifiedCodes || []).forEach(function (c) { c = P.canon(c); if (/^\d+$/.test(c) || fl[c] || !need[c]) return; if (!seen[c]) { seen[c] = 1; out.push(c); } }); });
     return out.slice(0, 40);
   }
   /* 知らない言葉の印 → 「勤務表の言葉 A」。字は出てきた順に A・B…（印そのもの '#…' は画面に出さない） */
@@ -1079,10 +1093,10 @@
   }
 
   /* ── はじめに聞く（その会社で初めてのときだけ・分からないものだけ）──────── */
-  var CODE_OPTS = ['off', 'vac', 'standby', 'training', 'ground', 'duty', 'other', 'unknown'];   // ★2026-11-12 オーナー「わからないの他にその他」
+  var CODE_OPTS = ['off', 'vac', 'standby', 'training', 'ground', 'duty', 'other', 'none', 'unknown'];   // ★2026-11-12 オーナー「わからないの他にその他」／★2026-11-17「勤務コードではない」（便名・区分・枠の番号を拾ったとき）
   function asks() {
     var pr = U.ctx.profile || {}, lr = learned();
-    return { kind: !pr.kind && !lr.kind, ref: !pr.time_ref && !lr.time_ref, mean: !pr.time_meaning && !lr.time_meaning,
+    return { kind: !pr.kind && !lr.kind, ref: !pr.time_ref && !lr.time_ref && !(U.answers && U.answers.tz), mean: !pr.time_meaning && !lr.time_meaning,
              blank: !pr.blank && !lr.blank && blankDates().length > 0,
              lag: pr.pay_lag == null,                        // ★2026-11-11 明細に出る月（会社ごとに1回・答えは -1〜2）
              codes: unknownCodes().filter(function (c) { return !lr.codes[c]; }) };
@@ -1441,6 +1455,7 @@
     pr = pr || {}; a = a || {};
     var p = {}, any = false;
     ['kind', 'time_ref', 'time_meaning', 'blank'].forEach(function (k) { if (!pr[k] && a[k]) { p[k] = a[k]; any = true; } });
+    if (!pr.tz && a.tz) { p.tz = a.tz; any = true; }   // ★表に印字された時間帯（2026-11-17）
     if (pr.pay_lag == null && /^(-1|0|1|2)$/.test(String(a.pay_lag))) { p.pay_lag = Number(a.pay_lag); any = true; }   // ★明細に出る月（2026-11-11）
     var add = {};
     Object.keys(a.codes || {}).forEach(function (k) { if (a.codes[k]) add[k] = a.codes[k]; });

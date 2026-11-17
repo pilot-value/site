@@ -83,14 +83,18 @@ eq(tok('RJTT', RE.apt), 'RJTT', 'ICAO 4字');
 eq(tok('TOKYO HANEDA', RE.apt), null, '空港の名前（自由な文）は捨てる');
 eq(tok('HANED', RE.apt), null, '5字の空港は捨てる');
 for (const [raw, want] of [['07:15', '07:15'], ['7:15', '07:15'], ['0715', '07:15'], ['07.15', '07:15'],
-                           ['07:15Z', '07:15'], ['０７：１５', '07:15'], ['24:00', null], ['07:60', null], ['715', null], ['', null]]) {
+                           ['07:15Z', '07:15'], ['０７：１５', '07:15'], ['24:00', '00:00'], ['48:00', null], ['07:60', null], ['715', null], ['', null],
+                           ['15:30T', '15:30'], ['07:15JST', '07:15'], ['-02:15', '02:15'], ['T', null], ['-', null]]) {
   eq(parseClock(raw)?.t ?? null, want, `時刻「${raw}」→ ${want}`);
 }
-eq(parseClock('06:10+1'), { t: '06:10', plus: 1 }, '「+1」は翌日の印として読む');
-eq(parseClock('06:10⁺¹'), { t: '06:10', plus: 1 }, '上付きの ⁺¹ も');
-eq(parseClock('06:10 (+2)'), { t: '06:10', plus: 2 }, '(+2)');
+eq(parseClock('06:10+1'), { t: '06:10', plus: 1, dash: false }, '「+1」は翌日の印として読む');
+eq(parseClock('06:10⁺¹'), { t: '06:10', plus: 1, dash: false }, '上付きの ⁺¹ も');
+eq(parseClock('06:10 (+2)'), { t: '06:10', plus: 2, dash: false }, '(+2)');
+eq([parseClock('24:55'), parseClock('-02:15'), parseClock('–00:40')],
+   [{ t: '00:55', plus: 1, dash: false }, { t: '02:15', plus: 0, dash: true }, { t: '00:40', plus: 0, dash: true }],
+   '★「24:55」は翌日の 00:55・先頭の「-」は前の日付から続く便の到着の印（ANA の勤務表・2026-11-17）');
 eq([parseClock('翌06:20'), parseClock('翌々01:10'), parseClock('翌 6:05')],
-   [{ t: '06:20', plus: 1 }, { t: '01:10', plus: 2 }, { t: '06:05', plus: 1 }], '日本の勤務表の「翌」「翌々」も翌日の印として読む');
+   [{ t: '06:20', plus: 1, dash: false }, { t: '01:10', plus: 2, dash: false }, { t: '06:05', plus: 1, dash: false }], '日本の勤務表の「翌」「翌々」も翌日の印として読む');
 {
   const { roster: rj, checks: cj } = run([D({ d: 8, d_on: '22:45', d_off: '翌06:50', legs: [L({ flight: 'ZJ841', from: 'HND', to: 'SIN', out: '23:55', in: '翌06:20' })] })]);
   const dj = rj.days[0];
@@ -202,10 +206,10 @@ console.log('\nC sanitize：残すもの・捨てるもの');
   const { roster: r, checks: c } = run([D({ d: 30, code: 'OFF' }), D({ y: 2026, m: 11, d: 1, code: 'OFF' })],
     { period: { from: '2026-10-01', to: '2026-10-31' }, kind: 'planned', time_ref: 'utc' });
   eq(r.period, { from: '2026-10-01', to: '2026-10-31' }, '見出しの期間');
-  eq(r.hints, { kind: 'planned', time_ref: 'utc' }, 'hints は印字されたときだけ（語彙の中だけ）');
+  eq(r.hints, { kind: 'planned', time_ref: 'utc', tz: null }, 'hints は印字されたときだけ（語彙の中だけ）');
   eq(c.outside_period, 1, '期間の外の日を数える（捨てない・次の月の持ち越し）');
   eq(run([D({ code: 'OFF' })], { period: { from: '2026-10-31', to: '2026-10-01' }, kind: 'actual!', time_ref: 'Z' }).roster,
-     { v: 1, period: null, hints: { kind: null, time_ref: null }, days: [{ date: '2026-10-01', code: 'OFF', unread: false, cat: 'unclear', d_on: null, d_off: null, d_off_day: 0, cut: null, page: 2, row: 1, legs: [] }] },
+     { v: 1, period: null, hints: { kind: null, time_ref: null, tz: null }, days: [{ date: '2026-10-01', code: 'OFF', unread: false, cat: 'unclear', d_on: null, d_off: null, d_off_day: 0, cut: null, page: 2, row: 1, legs: [] }] },
      '逆さまの期間・語彙外の hints は null');
 }
 
@@ -655,6 +659,231 @@ console.log('\n▼ JAL の実物の形（同じ空港どうしの行・灰色の
 }
 
 // ═══ E-4 読めなかった画像を残す（2026-11-16 オーナー「読めないなら保存して今後に使え」）══════
+console.log('\n▼ ANA の勤務表（DAY・D-ON・D-OFF・STY・T・JOB・DUTY・TIME・PLACE の表・2026-11-17）');
+{
+  /* 日付の列は日だけ（見出しの月が11月）。乗員の名前・番号は答えの形に欄が無い。 */
+  const N = (d, o = {}) => D({ y: null, m: null, d, ...o });
+  const NOV = { month: { y: 2026, m: 11 } };
+  const day = (r, dd) => r.roster.days.find((x) => x.date === '2026-11-' + String(dd).padStart(2, '0'));
+  const legS = (l) => l && `${l.flight || ''} ${l.from || '—'}→${l.to || '—'} ${l.out || '—'}-${l.in || '—'}+${l.in_day}`;
+
+  /* ① 長距離便が2日に割れた形（出発の日「17:09 NRT」・翌日「-02:15 -LAX」と解散 02:50） */
+  const r1 = run([
+    N(8, { d_on: '15:20', legs: [L({ flight: '0006', from: 'NRT', out: '17:09' })] }),
+    N(9, { legs: [L({ to: '-LAX', in: '-02:15', rel: '02:50', kind: 'unknown' })] }),
+  ], NOV);
+  const d8 = day(r1, 8), d9 = day(r1, 9);
+  eq([legS(d8.legs[0]), d8.d_off, d8.d_off_day, d9.legs.length, d9.d_off],
+     ['0006 NRT→LAX 17:09-02:15+1', '02:50', 1, 0, null], '★2日に割れた長距離便を1本につなぎ、翌日の解散は出発の日の解散（+1）');
+
+  /* ② 出発の行を到着の欄に入れた形（to=NRT・in=10:08）＋翌日の到着（「-」が落ちた形） */
+  const r2 = run([
+    N(9, { d_on: '08:30', legs: [L({ flight: '0231', to: 'NRT', in: '10:08' })] }),
+    N(10, { legs: [L({ to: 'BRU', in: '00:14', rel: '00:49', kind: 'unknown' })] }),
+  ], NOV);
+  eq([legS(day(r2, 9).legs[0]), day(r2, 9).d_off], ['0231 NRT→BRU 10:08-00:14+1', '00:49'], '★出発の行を到着の欄に入れた形も出発に戻してつなぐ');
+
+  /* ③ 解散を出頭の欄に入れた形（「-07:40 -LAX」の行の 08:15 が d_on に） */
+  const r3 = run([
+    N(28, { d_on: '20:20', legs: [L({ flight: '8408', from: 'NRT', out: '21:50' })] }),
+    N(29, { d_on: '08:15', legs: [L({ to: '-LAX', in: '-07:40', kind: 'unknown' })] }),
+  ], NOV);
+  eq([day(r3, 28).d_off, day(r3, 28).d_off_day, day(r3, 29).d_on], ['08:15', 1, null], '★到着の行の解散を出頭の欄に入れた形は、前の日の解散に戻す');
+
+  /* ④ 出発地を場所の欄に入れた形（「18:24 MUC」） */
+  const r4 = run([
+    N(1, { d_on: '16:55', legs: [L({ flight: '0218', loc: 'MUC', out: '18:24', kind: 'unknown' })] }),
+    N(2, { legs: [L({ to: '-HND', in: '-06:54', rel: '07:44', kind: 'unknown' })] }),
+  ], NOV);
+  eq([legS(day(r4, 1).legs[0]), day(r4, 1).d_off], ['0218 MUC→HND 18:24-06:54+1', '07:44'], '★場所の欄に入った出発地も出発地として読む');
+
+  /* ⑤ 表の一番下の次の月の1日（到着と解散だけ）→ 30日の便につなぎ、12月1日は返さない */
+  const r5 = run([
+    N(29, { code: 'OFF1' }),
+    N(30, { d_on: '08:10', legs: [L({ flight: '0215', from: 'HND', out: '09:50' })] }),
+    N(1, { cat: 'duty', legs: [L({ to: '-CDG', in: '-00:30', rel: '01:05', kind: 'unknown' })] }),
+  ], NOV, { hint: { year: 2026, month: 11 } });
+  eq([legS(day(r5, 30).legs[0]), day(r5, 30).d_off, r5.roster.days.some((x) => x.date.startsWith('2026-12'))],
+     ['0215 HND→CDG 09:50-00:30+1', '01:05', false], '★次の月の1日の到着を30日につなぎ、切れ端の日は返さない（次の月の1日を上書きしない）');
+
+  /* ⑥ 同じ日付が2回（前の塊は前日の勤務の終わり「-00:40」と解散・後の塊が新しい勤務） */
+  const r6 = run([
+    N(3, { d_on: '14:40', code: 'ACGK', legs: [L({ flight: '0084', from: 'CTS', to: 'HND', out: '21:28', in: '23:00' }),
+                                               L({ flight: 'XX', loc: 'HND', out: '23:30', kind: 'ground' })] }),
+    N(4, { d_on: '00:40', legs: [L({ in: '-00:40', kind: 'unknown' })] }),
+    N(4, { d_on: '15:00', code: 'SB6', legs: [L({ loc: 'HND', out: '15:00', in: '16:30', kind: 'ground' }),
+                                              L({ loc: 'HND', out: '18:30', in: '19:00', kind: 'ground', rel: '19:00' })] }),
+  ], NOV);
+  const e3 = day(r6, 3), e4 = day(r6, 4);
+  eq([e3.legs[1].in, e3.legs[1].in_day, e3.d_off, e3.d_off_day, e4.d_on, e4.d_off, e4.code, r6.roster.days.length],
+     ['00:40', 1, '00:40', 1, '15:00', '19:00', 'SB6', 2], '★同じ日付の前の塊は前日の勤務の終わり・後の塊がその日の勤務（D-OFF は最後の行の欄から）');
+
+  /* ⑦ 勤務の記号に入れないもの */
+  const r7 = run([
+    N(5, { code: '0641', d_on: '06:55', legs: [L({ flight: '0641', from: 'HND', to: 'KMJ', out: '08:07', in: '10:10', rel: '10:40' })] }),
+    N(6, { code: 'JFK', legs: [L({ to: '-JFK', in: '-11:38', kind: 'unknown' })] }),
+    N(7, { code: 'S0410', d_on: '06:30', d_off: '11:00', legs: [L({ from: 'TAB', to: 'TAB', out: '06:30', in: '11:00', kind: 'ground' })] }),
+    N(8, { code: 'PH1', d_on: '13:30', legs: [L({ flight: 'PH1', loc: 'HND', out: '13:30', in: '15:30', kind: 'ground', rel: '15:30' })] }),
+    N(9, { legs: [L({ flight: 'IVL2', loc: 'JFK', kind: 'ground' })] }),
+  ], NOV);
+  eq(r7.roster.days.map((x) => x.code), [null, null, null, 'PH1', 'IVL2'],
+     '★便名・滞在先の空港・シミュレーターの枠の番号は勤務の記号にしない（PH1 のような地上の業務の記号は残す・時刻の無い「IVL2 JFK」は記号）');
+  eq([day(r7, 5).d_off, day(r7, 9).legs.length, legS(day(r7, 7).legs[0]), day(r7, 7).legs[0].loc], ['10:40', 0, ' —→— 06:30-11:00+0', 'TAB'],
+     '★行ごとの D-OFF の欄（rel）を日の解散に・場所だけの行は区間にしない・TAB-TAB は地上の業務（場所 TAB）');
+
+  /* ⑧ 出頭「24:55」「24:00」（翌日の出頭の写し）と、それを解散の欄に入れた形 */
+  const r8 = run([
+    N(9, { d_off: '24:00', code: 'IVL2' }),
+    N(10, { d_on: '00:00', legs: [L({ flight: '0011', from: 'ORD', to: 'NRT', out: '01:34', in: '15:25', rel: '16:15' })] }),
+    N(11, { d_on: '24:55', code: 'IVL2' }),
+    N(12, { legs: [L({ flight: '0232', from: 'BRU', to: 'NRT', out: '02:20', in: '15:29', rel: '16:19' })] }),
+  ], NOV);
+  eq([day(r8, 9).d_off, day(r8, 10).d_on, day(r8, 11).d_on, day(r8, 12).d_on], [null, '00:00', null, '00:55'],
+     '★「24:55」の出頭は翌日の 00:55・翌日と同じ「24:00」を解散の欄に入れた形は捨てる');
+
+  /* ⑨ 前日夜の出頭（便なし）＋日付が変わってから出る便 → 動かさない・知らせの「出頭/解散なし」に数えない */
+  const r9 = run([
+    N(3, { d_on: '22:55' }),
+    N(4, { legs: [L({ flight: '0871', from: 'HND', to: 'CGK', out: '00:24', in: '07:40', rel: '08:15' })] }),
+  ], NOV);
+  eq([day(r9, 3).d_on, day(r9, 4).d_on, day(r9, 4).d_off, r9.layout], ['22:55', null, '08:15', null],
+     '★前日夜の出頭と翌日の便は印字のまま（勤務時間は計算側がつなぐ）・読めない所として数えない');
+
+  /* ⑩ 表の上の時間帯 */
+  eq([run([N(1, { code: 'OFF' })], { ...NOV, time_zone: 'JST' }).roster.hints, run([N(1, { code: 'OFF' })], { ...NOV, time_zone: 'XYZ' }).roster.hints.tz],
+     [{ kind: null, time_ref: 'local', tz: 'Asia/Tokyo' }, null], '★表の上の「JST」＝全部の時刻が日本時間（決まった略号だけ）');
+
+  /* ⑪ 曜日を「月曜 = 0」で数えた答え・1日ずつ並ぶ表の曜日の書き間違い */
+  /* 勤務の日だけを並べる表（とびとび）でも */
+  const mon0 = [2, 5, 8, 9, 13, 17, 21, 24, 28].map((d) => N(d, { code: 'SBY', wd: (new Date(Date.UTC(2026, 10, d)).getUTCDay() + 6) % 7 }));
+  eq(run(mon0, NOV).roster.days.length, 9, '★曜日を「月曜 = 0」で数えた答えでも、日付を捨てない（全部の行が1つずれる形）');
+  const slip = [];
+  for (let d = 1; d <= 30; d++) slip.push(N(d, { code: 'OFF', wd: d % 5 === 0 ? 3 : new Date(Date.UTC(2026, 10, d)).getUTCDay() }));
+  eq(run(slip, NOV).roster.days.length, 30, '★1日ずつ並ぶ月の表は、曜日の書き間違いで日付を捨てない');
+
+  /* ⑫ 日付の無い続きの行（2つ目の便・D-OFF の行）は上の日付に足す */
+  const r12 = run([
+    N(2, { d_on: '06:55', legs: [L({ flight: '0641', from: 'HND', to: 'KMJ', out: '08:07', in: '10:10' })] }),
+    D({ y: null, m: null, d: null, d_off: '12:50', legs: [L({ flight: '0644', from: 'KMJ', to: 'HND', out: '10:48', in: '12:20' })] }),
+  ], NOV);
+  eq([day(r12, 2).legs.length, day(r12, 2).d_off, r12.checks.undated], [2, '12:50', 0], '★日付の無い続きの行は上の日付の続き（捨てない）');
+
+  /* ⑬ 「NGO-NGO」が1つの欄に入った形 */
+  const r13 = run([N(27, { d_on: '08:30', d_off: '17:30', legs: [L({ flight: '9263', loc: 'NGO-NGO', out: '14:30', in: '16:30' })] })], NOV);
+  eq([day(r13, 27).legs[0].kind, day(r13, 27).legs[0].loc], ['ground', 'NGO'], '★「NGO-NGO」は出発地と到着地に分けて読む（同じ空港どうし＝地上の業務）');
+
+  /* ⑭ D-OFF の欄の写し（releases）：行ごとの読み取りが落とした解散だけを補う */
+  const G = (flight, out, inn, o = {}) => L({ flight, loc: 'HND', out, in: inn, kind: 'ground', ...o });
+  const r14 = run([
+    N(1, { code: 'OFF1' }),
+    N(25, { code: 'MT83', d_on: '12:00', legs: [G('MT83', '12:00', '15:00'), G('ANZN', '15:00', '15:30')] }),
+    D({ y: null, m: null, d: null, legs: [G('ACIS', '16:30', '17:00')] }),
+    N(26, { code: 'MT83', d_on: '10:00', d_off: '17:00', legs: [G('MT83', '10:00', '17:00')] }),
+    N(27, { code: 'MT83', d_on: '10:00', legs: [G('MT83', '10:00', '17:00', { rel: '17:00' })] }),
+    N(28, { code: 'SB5', d_on: '10:30', legs: [G('SB5', '10:30', '15:30')] }),
+    N(30, { d_on: '07:20', legs: [L({ flight: '0771', from: 'ITM', to: 'CTS', out: '08:30', in: '10:20' })] }),
+    N(1, { d_on: '06:00', legs: [L({ flight: '0001', from: 'HND', to: 'ITM', out: '07:00', in: '08:10' })] }),
+  ], { ...NOV, releases: [{ d: 25, t: '17:00' }, { d: 26, t: '18:00' }, { d: 27, t: '18:00' }, { d: 28, t: '10:30' },
+                           { d: 30, t: '16:40' }, { d: 1, t: '09:00' }] });
+  eq([day(r14, 25).d_off, day(r14, 26).d_off, day(r14, 27).d_off, day(r14, 28).d_off, day(r14, 30).d_off, day(r14, 1).d_off],
+     ['17:00', '17:00', '17:00', null, '16:40', null],
+     '★D-OFF の欄の写しで、落とした解散だけを補う（読んだ解散は上書きしない・出頭と同じ時刻は使わない・表の一番上の休みの 1日には当てない）');
+  const r14c = run([
+    N(1, { code: 'OFF1' }),
+    N(30, { code: 'OFF1' }),
+    N(1, { d_on: '06:00', legs: [L({ flight: '0001', from: 'HND', to: 'ITM', out: '07:00', in: '08:10' })] }),
+  ], { ...NOV, releases: [{ d: 1, t: '09:00' }] });
+  const dec1 = r14c.roster.days.find((x) => x.date === '2026-12-01');
+  eq([day(r14c, 1).d_off, dec1 && dec1.d_off], [null, '09:00'], '★写しの「1日」は、表の一番上の休みの 1日ではなく、一番下の勤務のある次の月の 1日に当てる');
+  const r14b = run([N(25, { d_on: '12:00', legs: [G('MT83', '12:00', '17:00')] })], { ...NOV, releases: 'x' });
+  eq(day(r14b, 25).d_off, null, '写しが無い・形が違うときは何も補わない（推測で埋めない）');
+
+  /* ⑮ SIM の日の DUTY の役割（OMAE）・訓練飛行の日の役割（OUTR）は勤務コードにしない。1行目の頭が空なら JOB を移した形として残す */
+  const r15 = run([
+    N(9, { code: 'GS', d_on: '09:00', d_off: '18:30', legs: [G('', '09:00', '12:00', { loc: 'TAB' }), G('MT99', '13:00', '15:00', { loc: 'TAB' })] }),
+    N(19, { code: 'OMAE', d_on: '06:00', d_off: '12:50', legs: [G('S0410', '06:00', '12:50', { loc: 'TAB' })] }),
+    N(20, { code: 'OUTR', d_on: '08:00', d_off: '13:00', legs: [L({ flight: '9262', from: 'NGO', to: 'NGO', out: '09:00', in: '12:00' })] }),
+    N(25, { code: 'MT83', d_on: '12:00', d_off: '17:00', legs: [G('MT83', '12:00', '15:00'), G('ANZN', '15:00', '17:00')] }),
+  ], NOV);
+  eq([day(r15, 19).code, day(r15, 20).code, day(r15, 9).code, day(r15, 25).code], [null, null, 'GS', 'MT83'],
+     '★DUTY の欄の役割は勤務コードにしない（1行目の JOB が空のときの「GS」・JOB と同じ「MT83」は残す）');
+
+  /* ⑯ T の欄の区分（M・S4N）は、便のある日・出頭だけの日では勤務コードにしない */
+  const r16 = run([
+    N(2, { code: 'S4N', d_on: '06:55', d_off: '12:50', legs: [L({ flight: '0641', from: 'HND', to: 'KMJ', out: '08:07', in: '10:10' })] }),
+    N(17, { code: 'S4', d_on: '16:50', d_off: '22:55', legs: [L({ flight: '0267', from: 'HND', to: 'FUK', out: '18:00', in: '20:00' })] }),
+    N(18, { code: 'M', d_on: '23:30' }),
+  ], NOV);
+  eq([day(r16, 2).code, day(r16, 17).code, day(r16, 18).code], [null, null, null], '★T の欄の区分（S4N・S4・M）は勤務コードにしない');
+
+  /* ⑰ 前の夜に出頭するだけの日（翌日に便と解散・出頭なし）のコードは組の番号＝勤務コードにしない */
+  const r17 = run([
+    N(3, { code: 'P123', d_on: '22:55' }),
+    N(4, { d_off: '08:15', legs: [L({ flight: '0871', from: 'HND', to: 'CGK', out: '00:24', in: '07:40' })] }),
+    N(10, { code: 'SB3', d_on: '22:00' }),
+  ], NOV);
+  eq([day(r17, 3).code, day(r17, 3).d_on, day(r17, 10).code], [null, '22:55', 'SB3'],
+     '★前の夜に出頭するだけの日のコードは外す（出頭の時刻は残す・翌日に便の無い日のコードは残す）');
+
+  /* ⑱ 見直しの読み取り：出頭か解散が欠けた日だけ、その日付の行を聞き直す（日をまたぐ便は次の日付の行も） */
+  const { recheckTargets, applyRecheck, buildRecheck, RECHECK_MAX } = R;
+  const F = (flight, from, to, out, inn, o = {}) => L({ flight, from, to, out, in: inn, ...o });
+  const RAW = [
+    N(1, { d_off: '23:40' }),                                                              // 前の夜の出頭を解散の欄に
+    N(2, { d_off: '16:13', legs: [F('0113', 'IAH', 'HND', '01:23', '15:23')] }),
+    N(9, { code: 'OFF1' }),
+    N(10, { code: 'GS', d_on: '11:00', legs: [G('', '11:00', '13:00'), G('GS', '15:00', '19:00')] }),   // 続きの行の解散を落とした
+    N(17, { d_on: '15:20', legs: [F('0008', 'NRT', '', '17:00', '')] }),                     // 日をまたぐ便（解散は 18日の行）
+    N(18, { d_on: '02:55' }),                                                              // 解散を出頭の欄に
+    N(19, { code: 'OFF1' }),
+    N(20, { d_on: '13:30', legs: [F('0033', 'HND', 'ITM', '15:57', '17:04', { kind: 'deadhead' })] }),   // 解散のあとの通勤の便乗
+    N(21, { d_on: '07:00', d_off: '18:00', legs: [G('MT83', '07:00', '17:00')] }),
+    N(22, { d_on: '08:00', cut: 'bottom', legs: [G('MT83', '08:00', '12:00')] }),
+    N(26, { d_on: '15:40', legs: [F('0105', 'LAX', '', '17:15', '')] }),                     // 日をまたぐ便（翌日の行の到着だけ読めた）
+    N(27, { legs: [L({ to: '-HND', in: '-05:12', kind: 'unknown' })] }),
+  ];
+  const s18 = run(RAW, NOV);
+  eq(recheckTargets(s18.roster.days), [1, 2, 10, 17, 18, 20, 26, 27], '★聞き直すのは出頭か解散が欠けた日だけ（日をまたぐ便は次の日付も・切れた日と揃った日は聞かない）');
+  const ans = { dates: [
+    { d: 1, lines: [{ on: '23:40', off: '' }] },
+    { d: 2, lines: [{ on: '', off: '16:13' }, { on: '', off: '' }] },
+    { d: 10, lines: [{ on: '11:00', off: '' }, { on: '19:00', off: '' }] },
+    { d: 17, lines: [{ on: '15:20', off: '' }, { on: '', off: '' }] },
+    { d: 18, lines: [{ on: '02:55', off: '' }] },
+    { d: 20, lines: [{ on: '13:30', off: '' }, { on: '', off: '15:30T' }] },
+    { d: 21, lines: [{ on: '07:00', off: '' }, { on: '', off: '19:00' }] },
+    { d: 26, lines: [{ on: '15:40', off: '' }] },
+    { d: 27, lines: [{ on: '06:02', off: '' }] },
+  ] };
+  const p18 = applyRecheck({ month: NOV.month, period: null, kind: null, time_ref: null, days: RAW }, ans);
+  const a18 = run(p18.days, NOV);
+  const sum = (dd) => { const x = day(a18, dd); return x && `${x.d_on || '—'}〜${x.d_off || '—'}${x.d_off_day ? '+' + x.d_off_day : ''}`; };
+  eq([sum(1), sum(2), sum(10), sum(17), sum(20), sum(21), sum(26)],
+     ['23:40〜—', '—〜16:13', '11:00〜19:00', '15:20〜02:55+1', '13:30〜15:30', '07:00〜18:00', '15:40〜06:02+1'],
+     '★AI が D-ON と返した続きの行・前の日の便の解散だけの行・到着のあとの時刻は解散（D-OFF と返した「15:30T」は通勤の便乗の前でもそのまま・読めた解散は上書きしない）');
+  eq(recheckTargets(a18.roster.days), [], '当てたあとは聞き直す日が無い');
+  /* 前の夜に出頭し、翌日の便の行に解散だけがある日（「08:15」を D-ON と返した）→ 便の終わり以後の時刻は解散 */
+  const RAW2 = [N(4, { d_on: '22:55' }), N(5, { legs: [F('0871', 'HND', 'CGK', '00:24', '07:40')] }), N(6, { code: 'OFF1' })];
+  eq(recheckTargets(run(RAW2, NOV).roster.days), [4, 5], '★前の夜の出頭の翌日の便の日で解散が無い日も聞く');
+  eq(recheckTargets(run([N(8, { d_on: '06:00', d_off: '14:00', legs: [F('0641', 'HND', 'KMJ', '08:07', '10:10')] }),
+                         N(9, { legs: [F('0644', 'KMJ', 'HND', '10:48', '12:20')] })], NOV).roster.days),
+     [9], '★出頭・解散の欄のある表で、どちらも読めなかった便の日を聞く');
+  const p18b = applyRecheck({ days: RAW2 }, { dates: [{ d: 4, lines: [{ on: '22:55', off: '' }] }, { d: 5, lines: [{ on: '08:15', off: '' }] }] });
+  eq([day(run(p18b.days, NOV), 5).d_on, day(run(p18b.days, NOV), 5).d_off], [null, '08:15'], '★便の終わりより後の時刻は、D-ON と返っても解散');
+  /* 出頭も解散も印字の無い様式（便の日の半分以上に無い）では、便の日を聞かない */
+  eq(recheckTargets(run([N(5, { legs: [F('0871', 'HND', 'CGK', '00:24', '07:40')] }), N(6, { legs: [F('0872', 'CGK', 'HND', '09:13', '16:25')] })], NOV).roster.days),
+     [], '出頭・解散の欄の無い様式では聞き直さない');
+  eq([applyRecheck({ days: RAW }, { dates: 'x' }), applyRecheck({ days: RAW }, null), applyRecheck({ days: RAW }, { dates: [{ d: 9, lines: [{ on: '06:00', off: '' }] }] })],
+     [null, null, null], '形の違う答え・中身の無い日への答えは何も変えない');
+  const many = [];
+  for (let d = 1; d <= 12; d++) many.push(N(d, { d_on: '08:00', legs: [G('MT83', '08:00', '12:00')] }));
+  eq(recheckTargets(run(many, NOV).roster.days).length, RECHECK_MAX, `聞き直すのは ${RECHECK_MAX} 日まで`);
+  const rb = buildRecheck('IMG', 'image/jpeg', [10, 17]);
+  ok(!rb.system && rb.messages[0].content[0].source.data === 'IMG' && /10, 17/.test(rb.messages[0].content[1].text)
+     && JSON.stringify(rb.output_config.format.schema) === JSON.stringify(R.RECHECK_SCHEMA) && !/name/.test(JSON.stringify(R.RECHECK_SCHEMA)),
+     '聞き直しは同じ画像・聞く日付だけ・答えの形は日付と D-ON/D-OFF の字だけ（名前を書く欄が無い）');
+}
+
 console.log('\n▼ 読めなかった画像を残す');
 {
   // 空港の無い便（JTA の勤務表で 49便中48便）も「読めない所」に数える → 表の形が返る（＝画像を残す）
@@ -760,7 +989,7 @@ console.log('\nH 返事の読み方');
   eq(readReply({ ...U, stop_reason: 'refusal', content: [] }).code, 'read_refused', '断られたら read_refused');
   eq(readReply({ ...U, stop_reason: 'end_turn', content: [{ type: 'text', text: 'Sorry' }] }).code, 'read_bad_format', 'JSON でなければ read_bad_format');
   eq(readReply(null).code, 'read_bad_format', '空の返事でも落ちない');
-  eq(Object.keys(readDiag(4096, 1, 2)).sort(), ['build', 'code', 'days', 'it', 'kb', 'legs', 'ms', 'ot', 'page', 'pages', 'stage', 'status', 'stop'],
+  eq(Object.keys(readDiag(4096, 1, 2)).sort(), ['build', 'code', 'days', 'it', 'kb', 'legs', 'ms', 'ot', 'page', 'pages', 're', 'stage', 'status', 'stop'],
      '★ログの欄は 版・段階・固定コード・ステータス・終了理由・時間・トークン数・大きさ・ページ・日数・区間数 だけ');
   eq(hintOf({ year: 2026, month: 10 }, NOW), { year: 2026, month: 10 }, 'hint を読む');
   eq([hintOf({ year: 2026, month: 13 }, NOW), hintOf({ year: 2099, month: 1 }, NOW), hintOf('2026-10', NOW)], [null, null, null], '変な hint は無いものとして扱う');
@@ -803,6 +1032,7 @@ console.log('\nJ 入口（ログイン・回数・読み取り）');
   ];
   let calls = [], quota = { ok: true, n: 1, g: 1 }, quotaStatus = 200, ai = answer(GOODDAYS), aiStatus = 200;
   let slot = { ok: true, n: 1, g: 1 }, slotStatus = 200;   // 失敗の知らせの「今日の何通目か」（同じ RPC・札が別）
+  let reAi = null, reAiStatus = 200;                        // 見直しの読み取り（system の無い頼み）の答え
   globalThis.fetch = async (url, init = {}) => {
     url = String(url);
     calls.push({ url, init, body: init.body ? JSON.parse(init.body) : null });
@@ -817,6 +1047,10 @@ console.log('\nJ 入口（ログイン・回数・読み取り）');
     }
     if (url === 'https://api.resend.com/emails') return Response.json({ id: 'mail-1' });
     if (url === 'https://api.anthropic.com/v1/messages') {
+      if (init.body && !JSON.parse(init.body).system) {
+        if (reAiStatus === 0) throw new TypeError('network down');
+        return reAiStatus === 200 ? Response.json(reAi ?? answer([])) : new Response('{"error":{"type":"api_error"}}', { status: reAiStatus });
+      }
       return aiStatus === 200 ? Response.json(ai)
         : new Response(JSON.stringify({ error: { type: 'api_error', message: 'echo TANAKA TARO' } }), { status: aiStatus });
     }
@@ -867,7 +1101,7 @@ console.log('\nJ 入口（ログイン・回数・読み取り）');
      && ac.init.headers['x-api-key'] === 'test-key', 'AI への要求は buildRequest の形');
   eq(r.j.roster.days.map((d) => [d.date, d.code, d.cat, d.legs.map((l) => [l.flight, 'role' in l])]),
      [[`${ym}-01`, null, 'duty', [['NH100', false]]], [`${ym}-02`, 'OFF', 'off', []]], '答え：日付は hint の月・氏名は欄ごと捨てる・cat は運ぶ・role は無い');
-  ok(calls.filter((c) => c.url.includes('anthropic')).length === 1, '★1枚につきモデルへの頼みは1回だけ');
+  ok(calls.filter((c) => c.url.includes('anthropic')).length === 1, '★出頭・解散の欠けが無い1枚は、モデルへの頼みは1回だけ');
   ok(typeof r.j.checks.days === 'number' && r.j.checks.anchor === 'hint', 'checks を一緒に返す');
   ok(r.j.roster.days[0].unread === true && r.j.roster.days[1].unread === false && r.j.checks.unread_days === 1,
      '氏名の入った記号の日は unread:true（字は返さない）');
@@ -875,6 +1109,31 @@ console.log('\nJ 入口（ログイン・回数・読み取り）');
   ok(!JSON.stringify(r.j).includes(B64), '画像を返さない');
   ok(logs.length === 1 && logs[0].startsWith('pv-roster {') && !/TANAKA|Smith|SECRETIMAGE|NH100|HND/.test(logs.join('\n')),
      '★ログは1行だけ・画像も勤務表の文字も出ない', logs);
+
+  /* ★見直しの読み取り（2026-11-17）：解散が欠けた日だけ、同じ画像でその日付の行を聞き直して埋める */
+  const GL = (flight, out, inn, row) => ({ flight, from: null, to: null, loc: 'HND', out, in: inn, in_day: 0, block: null, rel: '',
+                                          kind: 'ground', partial: false, row });
+  ai = answer([
+    { ...GOODDAYS[1], d: 1 },
+    { y: null, m: null, d: 2, wd: null, cut: null, code: 'MT83', cat: 'ground', d_on: '12:00', d_off: null, d_off_day: 0, row: 2,
+      legs: [GL('MT83', '12:00', '15:00', 2), GL('ACIS', '15:00', '17:00', 3)] },
+  ]);
+  reAi = { stop_reason: 'end_turn', usage: { input_tokens: 2000, output_tokens: 60 },
+           content: [{ type: 'text', text: JSON.stringify({ dates: [{ d: 2, lines: [{ on: '12:00', off: '' }, { on: '17:00', off: '' }] }] }) }] };
+  r = await post(req());
+  let an = calls.filter((c) => c.url.includes('anthropic'));
+  const rd2 = r.j.roster && r.j.roster.days.find((d) => d.date === `${ym}-02`);
+  ok(r.j.ok && rd2 && rd2.d_off === '17:00' && an.length === 2 && !an[1].body.system && an[1].body.messages[0].content[0].source.data === B64
+     && /dates: 2\b/.test(an[1].body.messages[0].content[1].text),
+     '★解散が欠けた日だけ同じ画像で聞き直し、埋めて返す（揃えば2回目の聞き直しはしない）', { n: an.length, d: rd2 });
+  ok(logs.length === 1 && /"re":1/.test(logs[0]) && /"it":6000/.test(logs[0]), 'ログに聞き直した日の数（re）・費用は2回の合計');
+  reAiStatus = 500; r = await post(req());
+  an = calls.filter((c) => c.url.includes('anthropic'));
+  ok(r.j.ok && r.j.roster.days.find((d) => d.date === `${ym}-02`).d_off === null && an.length === 2,
+     '★聞き直しが失敗しても、1回目の結果をそのまま返す（止めない・もう1回は頼まない）');
+  reAiStatus = 0; r = await post(req());
+  ok(r.j && r.j.ok && r.j.roster.days.find((d) => d.date === `${ym}-02`).d_off === null, '★聞き直しの通信が落ちても、1回目の結果をそのまま返す');
+  reAiStatus = 200; reAi = null; ai = answer(GOODDAYS);
 
   quotaStatus = 500; r = await post(req());
   ok(r.status === 503 && r.j.reason === 'quota_unavailable' && !hit('anthropic'), '★回数を数えられなければ通さない（fail closed）');

@@ -1103,7 +1103,7 @@ begin
     elsif exists (select 1 from jsonb_each(p->'codes') e
                    where e.key !~ '^([A-Z0-9/+\-]{1,12}|#[0-9a-f]{16})$'
                       or jsonb_typeof(e.value) <> 'string'
-                      or (e.value #>> '{}') not in ('off', 'vac', 'duty', 'standby', 'training', 'ground', 'other', 'unknown')) then   -- ★2026-11-12 other（その他）
+                      or (e.value #>> '{}') not in ('off', 'vac', 'duty', 'standby', 'training', 'ground', 'other', 'none', 'unknown')) then   -- ★2026-11-12 other（その他）・2026-11-17 none（勤務コードではない）
       raise exception 'ロスターの勤務コードが不正です' using errcode = '22023';
     else
       v_codes := p->'codes';
