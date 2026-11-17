@@ -16689,4 +16689,7 @@ export const TM = {
   "Not during training or probation": {"es":"No durante el entrenamiento ni el periodo de prueba","st":"manual","by":"claude","at":"2026-11-16","pages":["pv-conditions.json"],"note":"続きの質問を複数選ぶ＋その他に（2026-11-16）"},
   "js:'Please specify'": {"es":"js:'Especifica'","st":"manual","by":"claude","at":"2026-11-16","pages":["pv-conditions.js","pv-contrib.js"],"note":"続きの質問の「その他」の欄（2026-11-16）"},
   "js:'Other (details)'": {"es":"js:'Otro (detalle)'","st":"manual","by":"claude","at":"2026-11-16","pages":["pv-contrib.js"],"note":"続きの質問の「その他」の欄（2026-11-16）"},
+  "js:'Report'": {"es":"js:'Presentación'","st":"manual","by":"claude","at":"2026-11-17","pages":["my-roster.js"],"note":"スケジュールの升：前の夜に出頭するだけの日（2026-11-17）"},
+  "js:'Arr. {a}'": {"es":"js:'Lleg. {a}'","st":"manual","by":"claude","at":"2026-11-17","pages":["my-roster.js"],"note":"スケジュールの升：日をまたぐ便が着く日（2026-11-17）"},
+  "js:'prev. day'": {"es":"js:'día ant.'","st":"manual","by":"claude","at":"2026-11-17","pages":["my-roster.js"],"note":"スケジュールの日の板：前の夜の出頭（2026-11-17）"},
 };

@@ -62,6 +62,7 @@
       calHint: '日付を選ぶと、その日の便と勤務が出ます',
       lgDuty: '勤務', lgVac: 'VAC 有休',
       dOn: 'D-ON', dOff: 'D-OFF',
+      repS: '出頭', arrS: '{a}着', prevDayS: '前日',
       dDuty: '勤務時間', dLegsT: 'フライトタイムの合計', dLegsN: '便・業務', inclDh: 'DH 含む',
       legsH: '便・業務', asPrinted: '空港コードは原本の表記',
       nItems: '{n}件',
@@ -121,6 +122,7 @@
       calHint: 'Pick a date to see its flights and duty',
       lgDuty: 'Duty', lgVac: 'VAC leave',
       dOn: 'D-ON', dOff: 'D-OFF',
+      repS: 'Report', arrS: 'Arr. {a}', prevDayS: 'prev. day',
       dDuty: 'Duty time', dLegsT: 'Total flight time', dLegsN: 'Legs & duties', inclDh: 'incl. DH',
       legsH: 'Legs & duties', asPrinted: 'Airport codes as printed',
       nItems: '{n}',
@@ -177,6 +179,7 @@
       calHint: 'Elige una fecha para ver sus vuelos y servicios',
       lgDuty: 'Servicio', lgVac: 'VAC vacaciones',
       dOn: 'D-ON', dOff: 'D-OFF',
+      repS: 'Presentación', arrS: 'Lleg. {a}', prevDayS: 'día ant.',
       dDuty: 'Tiempo de servicio', dLegsT: 'Tiempo de vuelo total', dLegsN: 'Tramos y actividades', inclDh: 'incl. DH',
       legsH: 'Tramos y actividades', asPrinted: 'Códigos de aeropuerto tal como aparecen',
       nItems: '{n}',
@@ -289,7 +292,22 @@
     }
     if (c === 'vac') return { k: 'is-vac', main: cd, sub: T.clsS.vac };
     if (c === 'off') return { k: 'is-off', main: cd || (tok ? T.clsS.off : ''), sub: '' };
+    /* ★前の夜に出頭するだけの日（翌日の便の出頭）は、出頭の時刻を出す（升が空だった・2026-11-17 オーナー） */
+    if (x.dOn && !x.dOff && !(x.legs || []).length) return { k: 'is-duty is-rep', main: x.dOn, sub: T.repS };
     return { k: 'is-code', main: cd || (tok ? '•' : ''), sub: c ? T.clsS[c] : '' };
+  }
+  /* ★前の日付の勤務がこの日に終わる（日をまたぐ便が着く・解散が +1）。記録の無い日の升に、解散（無ければ着いた時刻）と
+     着いた空港を出し、押すと前の日の勤務を開く（「?」・空の升に見えていた・2026-11-17 オーナー）。 */
+  function contOf(px) {
+    if (!px || !px.isDuty) return null;
+    var ov = (px.legs || []).filter(function (l) { return l.kind !== 'ground' && l.inDay > 0; }), l = ov[ov.length - 1];
+    if (!l && !(px.dOffDay > 0)) return null;
+    var main = px.dOffDay > 0 && px.dOff ? px.dOff : (l && l.in) || '';
+    return { k: 'is-duty is-cont', main: main, sub: l && l.to ? fill(T.arrS, { a: l.to }) : '' };
+  }
+  function prevDate(date) {
+    var d = new Date(Date.UTC(+date.slice(0, 4), +date.slice(5, 7) - 1, +date.slice(8, 10) - 1));
+    return d.getUTCFullYear() + '-' + pad2(d.getUTCMonth() + 1) + '-' + pad2(d.getUTCDate());
   }
   function calHTML(ym, byDate, o) {
     o = o || {};
@@ -299,6 +317,8 @@
     for (var i = 0; i < lead; i++) h += '<span class="rs-cell is-pad"></span>';
     for (var dd = 1; dd <= dim; dd++) {
       var date = ym + '-' + pad2(dd), x = byDate[date], p = cellParts(x), sel = o.sel === date, ask = !x && !!(o.ask && o.ask[date]);
+      var cont = !x && !ask ? contOf(byDate[prevDate(date)]) : null, to = cont ? prevDate(date) : date;
+      if (cont) p = cont;
       if (ask) p = { k: 'is-none is-ask', main: '?', sub: '' };
       var prv = !!(o.prev && o.prev[date] && x);
       var k = p.k + (o.flag && o.flag[date] ? ' has-iss' : '') + (prv ? ' is-prev' : '');
@@ -310,7 +330,7 @@
       } else if (o.interactive) {
         var lab = ask ? dayTitle(date) + (o.askLabel ? ' · ' + o.askLabel : '')
           : dayTitle(date) + (p.main ? ' · ' + p.main : '') + (p.sub ? ' · ' + p.sub + (p.more ? ' +' + p.more : '') : '');
-        h += '<button type="button" class="rs-cell ' + k + (sel ? ' is-sel' : '') + '" data-date="' + date + '"' + (o.edit ? '' : ' aria-pressed="' + sel + '"') +
+        h += '<button type="button" class="rs-cell ' + k + (sel ? ' is-sel' : '') + '" data-date="' + to + '"' + (o.edit ? '' : ' aria-pressed="' + sel + '"') +
           ' tabindex="' + ((sel || (!o.sel && dd === 1)) ? 0 : -1) + '" aria-label="' + esc(lab) + '">' + inner + '</button>';
       } else {
         h += '<span class="rs-cell ' + k + '">' + inner + '</span>';
@@ -594,7 +614,9 @@
     if (!x) return h + '<p class="rs-muted">' + esc(T.noRec) + '</p>' + editBtn(date, false) + reselect();
     var codeLine = x.code ? '<p class="rs-day-code"><span class="rs-tag">' + esc(codeText(x.code)) + '</span>' + (x.cls ? '<span>' + esc(T.cls[x.cls]) + '</span>' : '') + '</p>' : '';
     if (x.dOn || x.dOff) {
-      h += '<div class="rs-don"><div><b class="rs-big">' + esc(x.dOn || '—') + '</b><span>' + esc(T.dOn) + '</span></div>' +
+      /* ★出頭が前の夜（翌日の便の日）なら、その時刻を「前日」付きで出す（D-ON「—」に見えていた・2026-11-17 オーナー） */
+      var don = x.dOn ? esc(x.dOn) : x.dOnPrev ? esc(x.dOnPrev) + '<sup>' + esc(T.prevDayS) + '</sup>' : '—';
+      h += '<div class="rs-don"><div><b class="rs-big">' + don + '</b><span>' + esc(T.dOn) + '</span></div>' +
         '<i class="rs-don-l" aria-hidden="true"></i>' +
         '<div class="r"><b class="rs-big">' + esc(x.dOff || '—') + (x.dOffDay ? '<sup>+' + x.dOffDay + '</sup>' : '') + '</b><span>' + esc(T.dOff) + '</span></div></div>';
       var lt = legsTime(x);
@@ -864,7 +886,7 @@
     var rows = '<b>' + esc(dayTitle(date)) + '</b>';
     if (!x) rows += '<span>' + esc(T.noRec) + '</span>';
     else {
-      if (x.dOn || x.dOff) rows += '<span>' + esc((x.dOn || '—') + ' – ' + (x.dOff || '—') + (x.dOffDay ? ' +' + x.dOffDay : '')) + '</span>';
+      if (x.dOn || x.dOff) rows += '<span>' + esc((x.dOn || (x.dOnPrev ? x.dOnPrev + ' (' + T.prevDayS + ')' : '—')) + ' – ' + (x.dOff || '—') + (x.dOffDay ? ' +' + x.dOffDay : '')) + '</span>';
       if (x.dutyMin != null) rows += '<span>' + esc(T.tipDuty) + ' <b>' + hm(x.dutyMin) + '</b></span>';
       if (x.blockKnown.operating) rows += '<span>' + esc(timeLabel(S.profile)) + ' <b>' + hm(x.blockKnown.operating) + '</b></span>';
       if (x.blockKnown.deadhead) rows += '<span>' + esc(T.tipDh) + ' <b>' + hm(x.blockKnown.deadhead) + '</b></span>';

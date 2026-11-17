@@ -1000,6 +1000,11 @@
     return R.helpers.dayEmpty(x);
   }
   function dayAt(date) { return U.merged ? U.merged.days.filter(function (x) { return x.date === date; })[0] || null : null; }
+  /* ★前の日付の勤務の続きの日（日をまたぐ便がこの日に着く・解散が +1）。中身は前の日に入っているので「読めなかった日」ではない
+     （帰り便の日が「?」で並んでいた・2026-11-17 オーナー）。px は前の日付の日 */
+  function contDay(px) {
+    return !!px && (px.d_off_day > 0 || (px.legs || []).some(function (l) { return l && l.kind !== 'ground' && l.in_day > 0; }));
+  }
   function addDays(date, k) {
     var x = new Date(Date.UTC(+date.slice(0, 4), +date.slice(5, 7) - 1, +date.slice(8, 10) + k));
     return x.getUTCFullYear() + '-' + P.pad2(x.getUTCMonth() + 1) + '-' + P.pad2(x.getUTCDate());
@@ -1022,13 +1027,13 @@
     (days || []).forEach(function (x) { if (x && x.date && !by[x.date]) { by[x.date] = x; dates.push(x.date); } });
     dates.sort();
     var range = coverOf(dates, period);
-    if (range) eachDate(range.from, range.to, function (dt) { total++; if (empty(by[dt])) missing.push(dt); else read++; });
+    if (range) eachDate(range.from, range.to, function (dt) { total++; if (empty(by[dt]) && !contDay(by[addDays(dt, -1)])) missing.push(dt); else read++; });
     return { range: range, missing: missing, read: read, total: total };
   }
   /* いま（本人が直したあと）の読めなかった日：読み取ったときの範囲の中だけ */
   function missingNow() {
     var out = [], m = blankMode();
-    if (U.range) eachDate(U.range.from, U.range.to, function (dt) { if (empty(dayAt(dt)) && !(m && isBlankDay(dt))) out.push(dt); });
+    if (U.range) eachDate(U.range.from, U.range.to, function (dt) { if (empty(dayAt(dt)) && !contDay(dayAt(addDays(dt, -1))) && !(m && isBlankDay(dt))) out.push(dt); });
     return out;
   }
   /* 「読めなかった日」の一覧に並べる日：読み取ったときに中身の無かった日（何も書いていない日は、答えがあれば並べない） */
