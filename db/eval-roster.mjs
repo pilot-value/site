@@ -84,7 +84,8 @@ if (SAMPLES && inRepo(SAMPLES)) { console.error('❌ --dir はリポジトリの
 /* ── 本体をそのまま読み込む（写経した複製を測らない）── */
 globalThis.Deno = { env: { get: (k) => process.env[k] ?? '' }, serve: () => {} };
 const RD = await import('../supabase/functions/parse-roster/index.ts');
-const { sanitize, sanitizeTail, buildRequest, readReply, dayCodeOf, parseClock, parseBlock, flightOf, tok, RE } = RD;
+const { sanitize, sanitizeTail, buildRequest, readReply, dayCodeOf, parseClock, parseBlock, flightOf, tok, RE,
+        recheckTargets, buildRecheck, applyRecheck } = RD;
 
 /* ── エンジン（分割スクショをまとめる）。db/test-year-report.mjs と同じ読み方 ── */
 function loadEngine() {
@@ -103,8 +104,9 @@ function loadEngine() {
 const ENGINE = loadEngine();
 
 /* ── 鍵（eval-payslip.mjs と同じ読み方。値は表示しない）── */
+/* 採点し直し（--rescore）でも、見直しの読み取り（本番と同じ2回目）は保存に無ければ読む＝鍵があれば読む */
 const needKey = !DRY && !RESCORE;
-if (needKey) {
+if (!DRY) {
   /* 作業用の別の作業場（worktree）には .env が無いので、--env で本体の mail-bot/.env を指せる */
   const envPath = opt('--env', path.join(ROOT, 'mail-bot/.env'));
   if (existsSync(envPath)) {
@@ -115,7 +117,7 @@ if (needKey) {
       if (k && v.length) process.env[k.trim()] = v.join('=').trim();
     }
   }
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (needKey && !process.env.ANTHROPIC_API_KEY) {
     console.error('❌ ANTHROPIC_API_KEY がありません。mail-bot/.env に開発用のキーを1行足してください（gitignore 済み）。');
     process.exit(1);
   }
@@ -1118,6 +1120,18 @@ async function runDir(browser, dir) {
       const rep = await readOne(`dir:${imgs[i].f}`, body);
       if (!rep || !rep.raw) { pagesOut.push({ f: imgs[i].f, rep, err: rep ? rep.code : 'dry', px: `${pr.w}×${pr.h}` }); tail = []; continue; }
       let res = sanitize(rep.raw, { page: i + 1, hint, tail, now });
+      /* ★本番と同じ見直しの読み取り（出頭か解散が欠けた日だけ・2026-11-17） */
+      let re = null;
+      for (let round = 0; round < RD.RECHECK_ROUNDS; round++) {
+        const ds = recheckTargets(res.roster.days);
+        if (!ds.length) break;
+        const rr = await readOne(`re${round ? round + 1 : ''}:${imgs[i].f}`, buildRecheck(pr.b64, 'image/jpeg', ds));
+        const patched = rr && rr.raw ? applyRecheck(rep.raw, rr.raw) : null;
+        re = { ds: [...(re ? re.ds : []), ...(round ? ['/'] : []), ...ds], code: rr ? rr.code : 'dry', applied: !!patched || !!(re && re.applied),
+               usd: (re ? re.usd : 0) + (rr ? rr.usd || 0 : 0) };
+        if (!rr || !rr.raw) break;
+        if (patched) { rep.raw = patched; res = sanitize(patched, { page: i + 1, hint, tail, now }); }
+      }
       let shifted = false;
       /* 古い見本は ±400日の窓の外に落ちる。答えの月が無いときは、印字された年の月に窓を合わせて読み直す（数え方は同じ） */
       const ym = rep.raw.month && rep.raw.month.y ? rep.raw.month
@@ -1128,7 +1142,7 @@ async function runDir(browser, dir) {
         shifted = true;
       }
       tail = sanitizeTail(res.roster.days, now);
-      pagesOut.push({ f: imgs[i].f, rep, out: res, px: `${pr.w}×${pr.h}`, shifted });
+      pagesOut.push({ f: imgs[i].f, rep, out: res, px: `${pr.w}×${pr.h}`, shifted, re });
     }
     out.push({ key, ans, pagesOut });
   }));
@@ -1144,6 +1158,7 @@ async function runDir(browser, dir) {
       console.log(`  ${p.f} (${p.px}) 日 ${r.days.length}（${span}）区間 ${ch.legs} ／ 日付なし ${ch.undated} 捨てた日/区間/欄 ${ch.dropped_days}/${ch.dropped_legs}/${ch.dropped_fields}`
         + ` cut ${ch.cut_days} partial ${ch.partial_legs} 記号の置き換え ${ch.code_mapped} anchor=${ch.anchor} hints=${JSON.stringify(r.hints)}${p.shifted ? '（窓を印字の年へ）' : ''}  $${(p.rep.usd || 0).toFixed(4)} ${((p.rep.ms || 0) / 1000).toFixed(0)}s`);
       console.log(`      記号 ${codes.join(' ') || '—'} ／ 便・役割・場所 ${toks.slice(0, 24).join(' ') || '—'}`);
+      if (p.re) console.log(`      見直し ${p.re.ds.join('・')}日 → ${p.re.code}${p.re.applied ? '（当てた）' : '（変えなかった）'} $${p.re.usd.toFixed(4)}`);
     }
     const okPages = pagesOut.filter((p) => p.out);
     let R = null;

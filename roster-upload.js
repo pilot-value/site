@@ -915,9 +915,19 @@
   function unknownCodes() {
     var pr = U.ctx.profile || {}, days = U.merged.days.filter(function (x) { return !x.filled; });
     var months = R.rosterMonths(days, { codes: pr.codes || {} }), seen = {}, out = [], fl = {};
-    /* ★数字だけのコード・その日の便名と同じコードは聞かない（便名を勤務コードとして聞いていた・2026-11-17） */
-    days.forEach(function (x) { (x.legs || []).forEach(function (l) { if (l && l.flight) fl[P.canon(l.flight)] = 1; }); });
-    months.forEach(function (m) { (m.unclassifiedCodes || []).forEach(function (c) { c = P.canon(c); if (/^\d+$/.test(c) || fl[c]) return; if (!seen[c]) { seen[c] = 1; out.push(c); } }); });
+    /* ★数字だけのコード・便名と同じコードは聞かない（便名を勤務コードとして聞いていた・2026-11-17）。
+       地上の行の頭（JOB の「MT83」）は便名ではない＝地上の業務の日のコードは聞く */
+    days.forEach(function (x) { (x.legs || []).forEach(function (l) { if (l && l.flight && l.kind !== 'ground') fl[P.canon(l.flight)] = 1; }); });
+    /* ★意味が計算に効く日（便の無い日・前の夜に出頭するだけの日でない日）に出てくるコードだけを聞く（2026-11-17）。
+       便のある日はその便で乗務の日と決まり、出頭だけの日は翌日の勤務の頭＝どちらもコードの意味で数字が変わらない
+       （T の欄の区分「M」・組の番号を聞いていた）。 */
+    var need = {};
+    days.forEach(function (x) {
+      var legs = x.legs || [];
+      if (!x.code || legs.some(function (l) { return l && l.kind !== 'ground'; }) || (x.d_on && !x.d_off && !legs.length)) return;
+      need[P.canon(x.code)] = 1;
+    });
+    months.forEach(function (m) { (m.unclassifiedCodes || []).forEach(function (c) { c = P.canon(c); if (/^\d+$/.test(c) || fl[c] || !need[c]) return; if (!seen[c]) { seen[c] = 1; out.push(c); } }); });
     return out.slice(0, 40);
   }
   /* 知らない言葉の印 → 「勤務表の言葉 A」。字は出てきた順に A・B…（印そのもの '#…' は画面に出さない） */

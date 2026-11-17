@@ -71,7 +71,7 @@ const DENO = (globalThis as any).Deno;
 const env = (k: string, d = '') => (DENO?.env?.get(k) ?? d) as string;
 
 /* ★このファイルを直したら必ず上げる（貼った版を {ping:1} で読むための札）。 */
-export const BUILD = '2026-11-17';
+export const BUILD = '2026-11-17-2';
 
 const ANTHROPIC_API_KEY = env('ANTHROPIC_API_KEY');
 const SUPABASE_URL = env('SUPABASE_URL');
@@ -411,6 +411,8 @@ function cleanLeg(src: unknown, page: number, st: Stats): Leg | null {
     arr = true;
     if (!to && from) to = from;
     from = null;
+    /* 到着の空港が場所の欄に返ってきた形（「-11:38」と JFK）も到着地 */
+    if (!to && loc && RE.apt.test(loc)) { to = loc; loc = null; }
   }
   /* ★出発地と到着地が同じ行は便ではない（SX09 TYO 09:00 ~ 17:00 TYO の訓練・同じ空港のシャトルなど・2026-11-15）。 */
   if (from && to && from === to) kind = 'ground';
@@ -499,6 +501,15 @@ function cleanDay(src: Obj, date: string, page: number, st: Stats, opt: CleanOpt
       legs.splice(j, 1); st.dropped_legs++;
     }
   }
+  /* ★到着だけの切れ端を2つに割った形（時刻だけの行「-11:38」と空港だけの行「-JFK」・2026-11-17）→ 1つにまとめる */
+  for (let j = legs.length - 2; j >= 0; j--) {
+    const a = legs[j], b = legs[j + 1];
+    if (!a.arr || !b.arr || (a.to && b.to && a.to !== b.to) || (a.in && b.in)) continue;
+    if (!a.in && b.in) { a.in = b.in; a.in_day = b.in_day; }
+    a.to = a.to ?? b.to;
+    a.flight = a.flight ?? b.flight; a.block = a.block ?? b.block; a.rel = a.rel ?? b.rel;
+    legs.splice(j + 1, 1); st.dropped_legs++;
+  }
   legs.forEach((l, j) => { l.seq = j + 1; });
   /* ★D-OFF はその日の最後の行に印字される表が多い（ANA）。日の d_off が空なら、行ごとの D-OFF の欄の最後のものを使う。 */
   const rels = legs.map((l) => l.rel).filter((x): x is { t: string; plus: number } => !!x);
@@ -513,6 +524,14 @@ function cleanDay(src: Obj, date: string, page: number, st: Stats, opt: CleanOpt
   if (code && legs.length && (/^\d+$/.test(code) || legs.some((l) => l.kind !== 'ground' && l.flight === code))) { code = null; st.dropped_fields++; }
   /* ★その日の空港・場所と同じ記号は、滞在先の欄（STY）の空港で、勤務の記号ではない（「JFK」を記号として聞いていた）。 */
   if (code && legs.some((l) => l.from === code || l.to === code || l.loc === code)) { code = null; st.dropped_fields++; }
+  /* ★地上の行だけの日で、日付の行（1行目）の頭（JOB の欄）に記号・番号が入っているのに、日の記号がどの行の頭とも違う →
+     日の記号は別の欄（DUTY の役割「OMAE」「OUTR」・SIM の枠「S0410」や訓練飛行「9262」の日）から来ている。勤務の記号ではない
+     （2026-11-17）。1行目の頭が空なら、その頭を日の記号に移した形（「GS」）なので残す。 */
+  if (code && legs.length && legs.every((l) => l.kind === 'ground')
+      && !!legs[0].flight && !legs.some((l) => l.flight === code)) { code = null; st.dropped_fields++; }
+  /* ★T の欄の区分（M・S4・S4N・S4K）は勤務の記号ではない。便のある日・出頭だけの日に限る（2026-11-17）。 */
+  if (code && /^(?:M|S\d[A-Z]{0,2})$/.test(code)
+      && (legs.some((l) => l.kind !== 'ground') || (on && !off && !legs.length))) { code = null; st.dropped_fields++; }
   /* 日の種類。決まった10語の外は 'unclear'。何か印字されている日（記号・時刻・区間）を 'blank' と言ったら 'unclear'。 */
   let cat: DayCat = (DAY_CATS as readonly string[]).includes(src.cat as string) ? src.cat as DayCat : 'unclear';
   if (cat === 'blank' && (given(src.code) || given(src.d_on) || given(src.d_off) || legs.length > 0)) cat = 'unclear';
@@ -752,6 +771,213 @@ export type SanitizeCtx = {
 /* モデルの答えは信用しない。決めた欄だけを、決めた形でだけ作り直す（ほかの鍵は1つも運ばない）。
    日の欄: date・code・unread（ここで決める。捨てた記号の印）・cat・d_on・d_off・d_off_day・cut・page・row・legs。
    日付が決まった日は、何も載っていなくても返す。 */
+/* ★D-OFF の欄の写し（答えの releases）で、行ごとの読み取りが解散を落とした日付だけを補う（2026-11-17。地上業務の日の
+   最後の行の解散を、14枚で4か所落としていた）。印字の順に、同じ日付の塊（その日付の行＋日付の無い続きの行）へ当てる。
+   解散を持っている塊は触らない（写しは落とした所を埋めるだけで、読んだ値を上書きしない）。中身（出頭・行）の無い塊には
+   当てない（表の一番上の 1日と一番下の次の月の 1日を取り違えない）。出頭と同じ時刻は、出頭の欄の写し間違いなので使わない。 */
+const legsOf = (g: Obj): Obj[] => Array.isArray(g.legs) ? g.legs.filter(isObj) : [];
+const hasOffIn = (grp: Obj[]) => grp.some((g) => given(g.d_off) || legsOf(g).some((l) => given(l.rel)));
+/* 答えの塊の並び src の at 番目から、日付 d の塊（その日付の行＋日付の無い続きの行）で ok を満たす最初のもの。 */
+function groupOf(src: unknown[], at: number, d: number, ok: (grp: Obj[]) => boolean): { k: number; end: number; grp: Obj[] } | null {
+  for (let k = at; k < src.length; k++) {
+    const s = src[k];
+    if (!isObj(s) || intIn(s.d, 1, 31) !== d) continue;
+    let end = k + 1;
+    while (end < src.length && !(isObj(src[end]) && intIn((src[end] as Obj).d, 1, 31) !== null)) end++;
+    const grp = src.slice(k, end).filter(isObj);
+    if (ok(grp)) return { k, end, grp };
+  }
+  return null;
+}
+function fillReleases(src: unknown[], v: unknown): void {
+  if (!Array.isArray(v)) return;
+  let at = 0;
+  for (const x of v.slice(0, 100)) {
+    if (!isObj(x)) continue;
+    const d = intIn(x.d, 1, 31), t = parseClock(x.t);
+    if (d === null || !t) continue;
+    const g = groupOf(src, at, d, (grp) => grp.some((s) => given(s.d_on) || legsOf(s).length));
+    if (!g) continue;
+    at = g.end;
+    const onT = g.grp.map((s) => parseClock(s.d_on)).filter((c) => !!c).map((c) => c!.t);
+    if (!hasOffIn(g.grp) && !onT.includes(t.t)) src[g.k] = { ...(src[g.k] as Obj), d_off: x.t };
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────
+   ★見直しの読み取り（2026-11-17）。出頭か解散が欠けた日だけ、その日付の行の D-ON と D-OFF の欄を
+   もう一度読ませる（全体を読む1回目は、同じ画像でも毎回どこか1〜2か所を落とす＝14枚で実測）。
+   答えは欠けた欄を埋めるだけ（読めた値は上書きしない）。失敗しても1回目の結果を返す。
+   ──────────────────────────────────────────────────────────── */
+export const RECHECK_MAX = 8;
+export const RECHECK_ROUNDS = 2;     // 見直しでも落とすことがある（同じ行を2回目は読めた＝実測）。2回まで
+export const RECHECK_TIMEOUT_MS = 30_000;
+/* 聞き直す日（日の数字）。画像の端で切れた日は聞かない（写っていない）。 */
+export function recheckTargets(days: Day[]): number[] {
+  const fly = (d: Day) => d.legs.some((l) => l.kind !== 'ground');
+  const near = (a: Day | undefined, b: Day, n: number) => !!a && dnum(a.date) - dnum(b.date) === n;
+  const out: number[] = [];
+  /* 出頭も解散も無い便の日を聞くのは、便の日の半分以上に出頭か解散が印字されている表だけ（その欄の無い様式で毎回聞かない） */
+  const fdays = days.filter(fly);
+  const cols = fdays.length > 0 && fdays.filter((d) => d.d_on || d.d_off).length * 2 >= fdays.length;
+  days.forEach((d, i) => {
+    if (d.cut) return;
+    const P = near(days[i - 1], d, -1) ? days[i - 1] : undefined, N = near(days[i + 1], d, 1) ? days[i + 1] : undefined;
+    const reportOnly = (x?: Day) => !!x && !!x.d_on && !x.d_off && !x.legs.length;
+    const miss =
+      ((d.d_on || reportOnly(P)) && !d.d_off && d.legs.length > 0)              // 解散が無い勤務の日（出頭は前の夜でも）
+      || (!d.d_on && d.d_off && fly(d) && !reportOnly(P))                        // 出頭が無い便の日（前の夜の出頭ではない）
+      || (cols && !d.d_on && !d.d_off && fly(d) && !reportOnly(P))               // 出頭も解散も無い便の日
+      || (!d.d_on && d.d_off && !d.legs.length && !!N && fly(N) && !N.d_on)    // 出頭を解散の欄に入れた形
+      || (reportOnly(d) && !(N && !N.d_on && N.d_off));                          // 翌日につながらない出頭だけの日
+    const n = Number(d.date.slice(8, 10));
+    if (miss && !out.includes(n)) out.push(n);
+    /* 日をまたぐ便（着くのが次の日付）の日は、解散が次の日付の行に印字される → 次の日付の行も聞く */
+    const over = d.legs.some((l) => l.kind !== 'ground' && (l.in_day > 0 || (!!l.out && !l.in)));
+    if (miss && d.d_on && !d.d_off && over) {
+      const n2 = Number(new Date(Date.parse(d.date + 'T00:00:00Z') + 86400000).toISOString().slice(8, 10));
+      if (!out.includes(n2)) out.push(n2);
+    }
+  });
+  return out.slice(0, RECHECK_MAX);
+}
+export const RECHECK_SCHEMA = {
+  type: 'object', additionalProperties: false, required: ['dates'],
+  properties: {
+    dates: {
+      type: 'array',
+      items: {
+        type: 'object', additionalProperties: false, required: ['d', 'lines'],
+        properties: {
+          d: { type: 'integer' },
+          lines: {
+            type: 'array',
+            items: { type: 'object', additionalProperties: false, required: ['on', 'off'], properties: { on: { type: 'string' }, off: { type: 'string' } } },
+          },
+        },
+      },
+    },
+  },
+};
+export function buildRecheck(b64: string, mime: string, ds: number[]): Record<string, unknown> {
+  const text = [
+    `Look at the duty roster table in this image. For each of these dates: ${ds.join(', ')}`,
+    'take the line that shows that date number in the date column, together with the lines directly below it that show',
+    'no date (up to the next line with a date). Return one entry per date: d = the date number, and lines = EVERY one',
+    'of those lines, top to bottom (also lines that print only crew), each with:',
+    '- on: the cell of the report / duty-start column (D-ON, Report, C/I, 出頭) on that line.',
+    '- off: the cell of the release / duty-end column (D-OFF, Release, C/O, 解散) on that line.',
+    'Copy each cell exactly as printed, "" when that cell is empty. Never take a time from the activity / flight time',
+    'column (TIME, STD, STA). If a date number appears twice in the table, return an entry for each, top to bottom.',
+    'Output nothing else: no names, no staff numbers, no other text.',
+  ].join('\n');
+  return {
+    model: MODEL,
+    max_tokens: 1500,
+    thinking: { type: 'disabled' },
+    messages: [{ role: 'user', content: [
+      { type: 'image', source: { type: 'base64', media_type: mime, data: b64 } },
+      { type: 'text', text },
+    ] }],
+    output_config: { format: { type: 'json_schema', schema: RECHECK_SCHEMA } },
+  };
+}
+/* 見直しの答えを1回目の答えに当てる。変えた所が無ければ null。
+   ★1行に時刻が1つだけのとき、AI は D-OFF の値を D-ON と返すことがある（隣り合う欄の片方だけに字がある形・14枚で実測：
+   続きの行の解散「19:00」「15:00」・前の日の便の解散だけの行「02:55」）。逆向き（D-ON を D-OFF と返す）は見ていない。
+   なので D-ON と返した値だけを、次のときに解散と読み直す ── 日付の下の続きの行の2つ目の時刻（出頭は日付の行で1回）・
+   その日付の業務の終わり以後の時刻・業務の行が無く前の日付の勤務が閉じていない日の時刻。D-OFF と返した値はそのまま
+   （「15:30T」のように、通勤の便乗の前に解散する日がある）。 */
+export function applyRecheck(raw: Obj, v: unknown): Obj | null {
+  const list = isObj(v) && Array.isArray(v.dates) ? v.dates.slice(0, RECHECK_MAX * 2) : [];
+  const src: unknown[] = Array.isArray(raw.days) ? raw.days.slice(0, 100) : [];
+  const dated = (s: unknown) => isObj(s) && intIn(s.d, 1, 31) !== null;
+  /* 塊の行の数（日の行・便の行の row の数）。row が無ければ 1 */
+  const rowsOf = (grp: Obj[]) => {
+    const r = new Set<number>();
+    for (const s of grp) { const a = intIn(s.row, 1, 999); if (a !== null) r.add(a); for (const l of legsOf(s)) { const b = intIn(l.row, 1, 999); if (b !== null) r.add(b); } }
+    return Math.max(r.size, 1);
+  };
+  /* 1つの塊に、その塊の行の写しを当てる。変えた欄の数を返す */
+  const fix = (g: { k: number; end: number; grp: Obj[] }, lines: Obj[]): number => {
+    /* その日付の行の業務の始まりと終わり（到着の切れ端「-02:15」は前の日付からの続きで、始まりを持たない） */
+    let first: number | null = null, last: number | null = null;
+    for (const l of g.grp.flatMap(legsOf)) {
+      const o = parseClock(l.out), i = parseClock(l.in);
+      if (o && !o.dash) first = first === null ? hm(o.t) : Math.min(first, hm(o.t));
+      if (i) {
+        const e = hm(i.t) + (i.dash ? 0 : (intIn(l.in_day, 0, 2) ?? 0) * 1440);
+        last = last === null ? e : Math.max(last, e);
+      }
+    }
+    /* 前の日付の勤務が閉じていない（出頭だけ・出発だけの便） */
+    let p = g.k - 1;
+    while (p >= 0 && !dated(src[p])) p--;
+    const prev = p >= 0 ? src.slice(p, g.k).filter(isObj) : [];
+    const prevOpen = prev.length > 0 && !hasOffIn(prev) && (prev.some((s) => given(s.d_on))
+      || prev.flatMap(legsOf).some((l) => given(l.out) && !given(l.in)));
+    let onS: string | null = null, offS: string | null = null;
+    lines.forEach((l, j) => {
+      const a = parseClock(l.on), b = parseClock(l.off);
+      if (a && b) { if (onS === null) onS = String(l.on); offS = String(l.off); return; }
+      const c = a || b;
+      if (!c) return;
+      const s = String(a ? l.on : l.off), t = hm(c.t);
+      let kind = a ? 'on' : 'off';
+      if (kind === 'on') {
+        if (j > 0 && onS !== null) kind = 'off';
+        else if (last !== null && t >= last && (first === null || t > first)) kind = 'off';
+        else if (first === null && last === null && prevOpen) kind = 'off';
+      }
+      if (kind === 'on') { if (onS === null) onS = s; } else offS = s;
+    });
+    const on = parseClock(onS), off = parseClock(offS);
+    if (!on && !off) return 0;
+    const head: Obj = { ...(src[g.k] as Obj) };
+    const hasOn = g.grp.some((s) => given(s.d_on)), hasOff = hasOffIn(g.grp);
+    const headOn = parseClock(head.d_on), headOff = parseClock(head.d_off);
+    const lone = g.grp.length === 1 && !legsOf(head).length;
+    let n = 0;
+    /* 1回目が出頭を解散の欄に（または解散を出頭の欄に）入れていた形は入れ替える */
+    if (on && !off && !hasOn && lone && headOff && headOff.t === on.t) { head.d_off = null; head.d_off_day = 0; head.d_on = onS; n++; }
+    else if (off && !on && !hasOff && headOn && headOn.t === off.t && g.grp.length === 1) { head.d_on = null; head.d_off = offS; n++; }
+    else {
+      if (on && !hasOn) { head.d_on = onS; n++; }
+      if (off && !hasOff && !(on && off.t === on.t)) { head.d_off = offS; n++; }
+    }
+    if (n) src[g.k] = head;
+    return n;
+  };
+  let at = 0, changed = 0;
+  for (const x of list) {
+    if (!isObj(x)) continue;
+    const d = intIn(x.d, 1, 31);
+    const lines = Array.isArray(x.lines) ? x.lines.slice(0, 20).filter(isObj) : [];
+    if (d === null || !lines.length) continue;
+    /* 中身の無い塊（表の一番上の休みの 1日）には当てない。ただし前の答えの日付より下（日をまたぐ便の次の日付の行）は当てる */
+    const g = groupOf(src, at, d, (grp) => at > 0 || grp.some((s) => given(s.d_on) || given(s.d_off) || legsOf(s).length));
+    if (!g) continue;
+    /* ★同じ日付が続けて2回印字された表（前の夜からの勤務の解散だけの行と、その日の新しい勤務・2026-11-17 d01 の 4日）。
+       答えが2つをまとめて返したら、行の数が塊ごとの行の数の合計と合うときだけ、上から順に分けて当てる。
+       答えの行の数が最初の塊と合えば、その答えは最初の塊だけ（次の答えが次の塊）。どちらでもなければ当てない（推測しない）。 */
+    const gs = [g];
+    for (;;) {
+      const e = gs[gs.length - 1].end;
+      if (e >= src.length || !isObj(src[e]) || intIn((src[e] as Obj).d, 1, 31) !== d) break;
+      const nx = groupOf(src, e, d, () => true);
+      if (!nx || nx.k !== e) break;
+      gs.push(nx);
+    }
+    if (gs.length === 1) { changed += fix(g, lines); at = g.end; continue; }
+    const cnt = gs.map((x2) => rowsOf(x2.grp));
+    if (lines.length === cnt[0]) { changed += fix(g, lines); at = g.end; continue; }
+    if (lines.length !== cnt.reduce((a, b) => a + b, 0)) { at = gs[gs.length - 1].end; continue; }
+    let o = 0;
+    gs.forEach((x2, i) => { changed += fix(x2, lines.slice(o, o + cnt[i])); o += cnt[i]; });
+    at = gs[gs.length - 1].end;
+  }
+  return changed ? { ...raw, days: src } : null;
+}
 /* 同じ日付の続きの塊 b を a に足す（便は印字の順に後ろへ・D-OFF は後の塊のもの・空の欄だけ埋める）。 */
 function mergeDay(a: Day, b: Day, st: Stats): void {
   if (!a.code && b.code) { a.code = b.code; a.unread = false; }
@@ -845,6 +1071,7 @@ export function sanitize(raw: Obj, ctx: SanitizeCtx): { roster: Roster; checks: 
     return p;
   });
   const res = resolveDates(parts, { header, period, hint: ctx.hint ?? null, prevLast: prev ? prev.date : null, now });
+  fillReleases(src, r.releases);
 
   /* 1. 印字の順に1塊ずつ読む。★日付の無い塊は、上の日付の続きの行（D-OFF の行・2つ目の便・2026-11-17）。
         前に日付のある塊があれば、それに足す（今までは捨てていた）。 */
@@ -921,6 +1148,13 @@ export function sanitize(raw: Obj, ctx: SanitizeCtx): { roster: Roster; checks: 
     const gone = bareDay(d) || (consumed.has(d) && noContent(d));
     if (gone && !live.has(d.date.slice(0, 7)) && !inHeader(d.date)) { days.splice(i, 1); st.dropped_days++; }
   }
+  /* ★前の夜に出頭するだけの日（翌日に便と解散があり、出頭が無い）の記号は、組の番号や区分で、勤務の記号ではない
+     （1つの勤務の頭＝意味を聞いても計算は変わらない・2026-11-17）。 */
+  days.forEach((P, i) => {
+    const E = days[i + 1];
+    if (P.code && P.d_on && !P.d_off && !P.legs.length && E && dnum(E.date) - dnum(P.date) === 1
+        && !E.d_on && E.d_off && E.legs.some((l) => l.kind !== 'ground')) { P.code = null; st.dropped_fields++; }
+  });
   /* 読み直しの間だけの印を消す。つなげなかった到着だけの切れ端は「切れた便」として返す（画面が本人に聞く）。 */
   for (const d of days) {
     delete d.on_next;
@@ -982,7 +1216,7 @@ export const MAX_UNION_PARAMS = 16;
 export const OUT_SCHEMA = {
   type: 'object',
   additionalProperties: false,
-  required: ['month', 'period', 'kind', 'time_ref', 'time_zone', 'layout', 'days'],
+  required: ['month', 'period', 'kind', 'time_ref', 'time_zone', 'layout', 'days', 'releases'],
   properties: {
     month: orNull({
       type: 'object', additionalProperties: false, required: ['y', 'm'],
@@ -1033,6 +1267,15 @@ export const OUT_SCHEMA = {
         },
       },
     },
+    /* ★D-OFF の欄だけを上から下へ写したもの（日付と時刻だけ・null 可の欄を増やさない）。行ごとの読み取りが落とした
+       解散を補うためだけに使う（fillReleases）。時刻は parseClock を通る形しか使わない。 */
+    releases: {
+      type: 'array',
+      items: {
+        type: 'object', additionalProperties: false, required: ['d', 't'],
+        properties: { d: INT, t: LSTR },
+      },
+    },
   },
 };
 
@@ -1058,7 +1301,8 @@ export function systemPrompt(): string {
     '   "d_on":string|null,"d_off":string|null,"d_off_day":int,"row":int,',
     '   "legs":[{"flight":string,"from":string,"to":string,"loc":string,',
     '     "out":string,"in":string,"in_day":int,"block":string,"rel":string,',
-    '     "kind":"operating"|"deadhead"|"ground"|"unknown","partial":boolean,"row":int}]}]}',
+    '     "kind":"operating"|"deadhead"|"ground"|"unknown","partial":boolean,"row":int}]}],',
+    ' "releases":[{"d":int,"t":string}]}',
     'Use null for anything you cannot read or cannot see (cat is never null). Never fill a gap with a guess,',
     'and never calculate a value that is not printed. Inside a leg the text fields are strings:',
     'write "" (an empty string) wherever this prompt says null for a leg field.',
@@ -1209,6 +1453,13 @@ export function systemPrompt(): string {
     `  ${LAYOUT_COLS.join(', ')}. "other" for anything else. Each kind at most once.`,
     `- time_style: how clock times are printed: ${TIME_STYLES.join(', ')} ("none" if no clock times are printed).`,
     '',
+    'Releases — a second, separate pass over ONE column:',
+    '- If the table has its own release / duty-end column (D-OFF, RLS, Release, Check-out, 解散), go down that column',
+    '  from the first line to the last and list EVERY non-empty cell, in order: d = the date of the line it is',
+    '  printed on (for a line without a date, the nearest date printed above it), t = the time exactly as printed',
+    '  (keep a trailing letter or a leading minus). Do not skip lines that continue a date. Copy, never compute.',
+    '- [] if there is no such column (for example a calendar grid).',
+    '',
     'All codes and times exactly as printed. Do not translate, do not expand abbreviations, and do not reformat',
     'anything except times to "HH:MM".',
   ].join('\n');
@@ -1289,7 +1540,7 @@ export function readReply(reply: unknown): ReadOutcome {
 export function readDiag(b64len: number, page: number, pages: number) {
   return {
     build: BUILD, stage: 'read', code: '', status: 0, stop: '', ms: 0, it: 0, ot: 0,
-    kb: Math.round((b64len * 3) / 4 / 1024), page, pages, days: 0, legs: 0,
+    kb: Math.round((b64len * 3) / 4 / 1024), page, pages, days: 0, legs: 0, re: 0,
   };
 }
 
@@ -1724,6 +1975,36 @@ export async function handler(req: Request): Promise<Response> {
   } catch {
     diag.stage = 'sanitize';
     return finish('read_bad_format', 'sanitize_threw');
+  }
+  /* ★見直しの読み取り：出頭か解散が欠けた日だけ、その日付の行をもう一度読ませる（2026-11-17・2回まで）。
+     費用は1回目の1〜2割。失敗・時間切れ・形の壊れた答えは黙ってそれまでの結果のまま。 */
+  let cur = got.raw;
+  for (let round = 0; round < RECHECK_ROUNDS; round++) {
+    const ds = recheckTargets(out.roster.days);
+    if (!ds.length) break;
+    diag.re += ds.length;
+    const ac2 = new AbortController();
+    const t2 = setTimeout(() => ac2.abort(), RECHECK_TIMEOUT_MS);
+    try {
+      const res2 = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
+        body: JSON.stringify(buildRecheck(b64, mime, ds)),
+        signal: ac2.signal,
+      });
+      if (!res2.ok) break;
+      const g2 = readReply(await res2.json());
+      diag.it += g2.it;
+      diag.ot += g2.ot;
+      const patched = g2.ok ? applyRecheck(cur, g2.raw) : null;
+      if (patched) {
+        const o2 = await sanitizeRead(patched, { page, hint, tail, now }, env('ROSTER_WORD_KEY'));
+        cur = patched;
+        out = o2;
+      }
+    } catch { break; } finally {
+      clearTimeout(t2);
+    }
   }
   diag.days = out.checks.days;
   diag.legs = out.checks.legs;

@@ -215,7 +215,14 @@ function checks({ P, U, W, E }) {
       day(8, { unread: true, cat: 'off' }),
       day(9, { unread: true, cat: 'duty', d_on: '07:00', d_off: '15:00', legs: [{ seq: 1, from: 'HND', to: 'KIX', out: '08:00', in: '09:10', in_day: 0, block: '1:10', kind: 'operating', role: 'CAP' }] }),
       day(10, { cat: 'unclear', blank: true }),
-      day(12, { code: 'OFF', cat: 'off' })
+      day(12, { code: 'OFF', cat: 'off' }),
+      /* ★2026-11-17 便のある日・前の夜に出頭するだけの日のコードは聞かない（便の無い日にも出るコードは聞く） */
+      day(13, { code: 'S4N', cat: 'duty', d_on: '07:00', d_off: '15:00', legs: [{ seq: 1, from: 'HND', to: 'FUK', out: '08:00', in: '10:00', in_day: 0, kind: 'operating' }] }),
+      day(14, { code: 'M', cat: 'duty', d_on: '23:00' }),
+      day(15, { cat: 'duty', d_off: '08:00', legs: [{ seq: 1, from: 'HND', to: 'CGK', out: '00:30', in: '07:30', in_day: 0, kind: 'operating' }] }),
+      day(16, { code: 'PX1', cat: 'duty', d_on: '07:00', d_off: '15:00', legs: [{ seq: 1, from: 'HND', to: 'ITM', out: '08:00', in: '09:10', in_day: 0, kind: 'operating' }] }),
+      day(17, { code: 'PX1', cat: 'ground', d_on: '09:00', d_off: '12:00', legs: [{ seq: 1, loc: 'TAB', out: '09:00', in: '12:00', in_day: 0, kind: 'ground' }] }),
+      day(18, { code: 'MT83', cat: 'ground', d_on: '12:00', d_off: '17:00', legs: [{ seq: 1, flight: 'MT83', loc: 'HND', out: '12:00', in: '17:00', in_day: 0, kind: 'ground' }] })
     ], issues: [], period: null, hints: {} });
     const box = fakeBox();
     W.open(box, { sb: null, airline: 'xx', other: null, airlineLabel: 'X Air', done() {},
@@ -224,6 +231,8 @@ function checks({ P, U, W, E }) {
     U.prepare(M(), 2);
     const q = U.asks(), a = U.answers();
     ok(!q.codes.includes('RDO') && a.codes.RDO === 'off' && !q.kind && !q.ref && !q.mean, '⑪ 会社の辞書にあるコード（と本人が答え済みの読み方）は聞かない：' + q.codes.join());
+    ok(!q.codes.includes('S4N') && !q.codes.includes('M') && q.codes.includes('PX1') && q.codes.includes('MT83'),
+       '★⑪ 便のある日・前の夜に出頭するだけの日にしか出ないコードは聞かない（便の無い日にも出るコード・地上の行の頭と同じコードは聞く）：' + q.codes.join());
     ok(q.codes.includes(TOK1) && q.codes.includes(TOK2) && q.codes.every((c) => c === c.trim() && (!c.startsWith('#') || c === c.toLowerCase())), '⑪ 知らない言葉の印は小文字のまま聞く');
     ok(a.codes[TOK1] === 'off' && !(TOK2 in a.codes), '⑪ 見た目の多い方（休み）を選んでおく・病欠などは選ばない');
     U.setStep('ask');
@@ -334,6 +343,8 @@ console.log('▼ ⑤ 画像の扱いの言い方');
 /* ▼ 壊す証明：守りの1行を外すと、上の検査が赤くなること */
 console.log('▼ 壊す証明');
 const BREAK = [
+  ['★⑪ 地上の行の頭と同じコードを聞かない', "if (l && l.flight && l.kind !== 'ground') fl[P.canon(l.flight)] = 1;", "if (l && l.flight) fl[P.canon(l.flight)] = 1;", 'up'],
+  ['★⑪ 便のある日・出頭だけの日のコードも聞く', "if (/^\\d+$/.test(c) || fl[c] || !need[c]) return;", "if (/^\\d+$/.test(c) || fl[c]) return;", 'up'],
   ['① 答え済みの鍵も送る', "if (!pr[k] && a[k]) { p[k] = a[k]; any = true; }", "if (a[k]) { p[k] = a[k]; any = true; }", 'up'],
   ['② 前の勤務コードを捨てる', "codes[k] = pr.codes[k]; });   // ★丸ごと", "});   // ★丸ごと", 'up'],
   ['③ 1日を丸ごと送る', 'var days = U.merged.days.map(function (x) { return stripDay(x, calc); });', 'var days = U.merged.days;', 'up',
