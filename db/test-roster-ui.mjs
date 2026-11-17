@@ -196,6 +196,26 @@ function checks({ P, U, W, E }) {
     const cal = P.calHTML('2026-07', {}, { interactive: true, edit: true, ask: { '2026-07-05': 1 }, flag: { '2026-07-06': 1 }, askLabel: 'X' });
     ok(/data-date="2026-07-05"[^>]*>.*?<span class="rs-c-m">\?<\/span>/.test(cal) && /class="rs-cell is-none is-ask"/.test(cal) && /has-iss[^"]*" data-date="2026-07-06"/.test(cal) && !cal.includes('aria-pressed'),
        '⑩ 確かめる画面のカレンダー：読めなかった日は「?」・確かめてほしい日に印・押す札ではない（aria-pressed なし）');
+    /* ★2026-11-17 前の夜の出頭・日をまたぐ便が着く日（オーナー「帰り便が読めてない」「D-ON が読めない」） */
+    P.S.profile = { kind: 'actual', time_ref: 'local', tz: 'Asia/Tokyo', codes: {} };
+    P.S.days = [
+      { date: '2026-10-02', code: null, d_on: '14:50', d_off: '05:27', d_off_day: 1, legs: [L({ from: 'NRT', to: 'MEX', out: '16:31', in: '04:52', in_day: 1 })] },
+      { date: '2026-10-29', code: null, d_on: '23:10', d_off: null, d_off_day: 0, legs: [] },
+      { date: '2026-10-30', code: null, d_on: null, d_off: '10:52', d_off_day: 0, legs: [L({ from: 'HND', to: 'LAX', out: '00:50', in: '10:17' })] }
+    ];
+    P.S.ym = null; P.compute();
+    const obd = {}; P.S.byYm['2026-10'].days.forEach((x) => { obd[x.date] = x; });
+    const oc = P.calHTML('2026-10', obd, { interactive: true });
+    ok(oc.includes('<span class="rs-c-d">3</span><span class="rs-c-m">05:27</span><span class="rs-c-s">' + P.fill(P.T.arrS, { a: 'MEX' }))
+       && (oc.match(/data-date="2026-10-02"/g) || []).length === 2,
+       '★⑩ 日をまたぐ便が着く日の升に、解散の時刻と着いた空港（押すと前の日の勤務）');
+    ok(oc.includes('<span class="rs-c-d">29</span><span class="rs-c-m">23:10</span><span class="rs-c-s">' + P.T.repS), '★⑩ 前の夜に出頭するだけの日の升に、出頭の時刻');
+    ok(P.dayHTML('2026-10-30').includes('23:10<sup>' + P.T.prevDayS + '</sup>'), '★⑩ 翌日の板の D-ON に、前の夜の出頭（「前日」付き）');
+    ok(U.coverage && JSON.stringify(U.coverage([
+      { date: '2026-10-02', code: null, d_on: '14:50', d_off: '05:27', d_off_day: 1, legs: [{ kind: 'operating', from: 'NRT', to: 'MEX', out: '16:31', in: '04:52', in_day: 1 }] },
+      { date: '2026-10-03', code: null, d_on: null, d_off: null, d_off_day: 0, legs: [] },
+      { date: '2026-10-04', code: 'OFF1', d_on: null, d_off: null, d_off_day: 0, legs: [] }], null).missing) === "[]",
+       '★⑦ 日をまたぐ便が着く日は「読めなかった日」に並べない（中身は前の日に入っている）');
     /* ★2026-11-12 前に出した日（prev）は薄く・押せない（data-date を付けない） */
     const pd = { date: '2026-07-07', ym: '2026-07', isDuty: false, cls: 'off', code: 'OFF', legs: [] };
     const cp = P.calHTML('2026-07', { '2026-07-07': pd }, { interactive: true, edit: true, prev: { '2026-07-07': 1 }, prevLabel: 'P' });
@@ -343,6 +363,10 @@ console.log('▼ ⑤ 画像の扱いの言い方');
 /* ▼ 壊す証明：守りの1行を外すと、上の検査が赤くなること */
 console.log('▼ 壊す証明');
 const BREAK = [
+  ['★⑦ 着く日も読めなかった日に並べる', "if (empty(by[dt]) && !contDay(by[addDays(dt, -1)])) missing.push(dt);", "if (empty(by[dt])) missing.push(dt);", 'up'],
+  ['★⑩ 着く日の升を空にする', "      if (cont) p = cont;\n", "", 'ros'],
+  ['★⑩ 出頭だけの日の升を空にする', "    if (x.dOn && !x.dOff && !(x.legs || []).length) return { k: 'is-duty is-rep', main: x.dOn, sub: T.repS };", "", 'ros'],
+  ['★⑩ 前の夜の出頭を板に出さない', "x.dOnPrev ? esc(x.dOnPrev) + '<sup>' + esc(T.prevDayS) + '</sup>' : '—'", "'—'", 'ros'],
   ['★⑪ 地上の行の頭と同じコードを聞かない', "if (l && l.flight && l.kind !== 'ground') fl[P.canon(l.flight)] = 1;", "if (l && l.flight) fl[P.canon(l.flight)] = 1;", 'up'],
   ['★⑪ 便のある日・出頭だけの日のコードも聞く', "if (/^\\d+$/.test(c) || fl[c] || !need[c]) return;", "if (/^\\d+$/.test(c) || fl[c]) return;", 'up'],
   ['① 答え済みの鍵も送る', "if (!pr[k] && a[k]) { p[k] = a[k]; any = true; }", "if (a[k]) { p[k] = a[k]; any = true; }", 'up'],

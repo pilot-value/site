@@ -63,6 +63,7 @@ const ROOT = path.resolve(DIR, '..');
 const argv = process.argv.slice(2);
 const opt = (k, d) => { const i = argv.indexOf(k); return i >= 0 && argv[i + 1] ? argv[i + 1] : d; };
 const DRY = argv.includes('--dry');
+const THINK = argv.includes('--think');   // 1回目を考える設定で読む（崩れる画像の試し）
 const ONLY = (opt('--only', '') || '').split(',').map((s) => s.trim()).filter(Boolean);
 const SAMPLES = opt('--dir', null);
 const BUDGET = Number(opt('--budget', '3'));
@@ -1116,15 +1117,15 @@ async function runDir(browser, dir) {
       const fp = path.join(dir, imgs[i].f);
       const mime = /\.png$/i.test(fp) ? 'image/png' : /\.webp$/i.test(fp) ? 'image/webp' : 'image/jpeg';
       const pr = await prepImage(browser, readFileSync(fp), mime);
-      const body = buildRequest(pr.b64, 'image/jpeg', { page: i + 1, pages: imgs.length, tail });
+      const body = buildRequest(pr.b64, 'image/jpeg', { page: i + 1, pages: imgs.length, tail }, THINK ? { thinking: 'adaptive', maxTokens: 32000 } : {});
       const rep = await readOne(`dir:${imgs[i].f}`, body);
       if (!rep || !rep.raw) { pagesOut.push({ f: imgs[i].f, rep, err: rep ? rep.code : 'dry', px: `${pr.w}×${pr.h}` }); tail = []; continue; }
       let res = sanitize(rep.raw, { page: i + 1, hint, tail, now });
       /* ★本番と同じ見直しの読み取り（出頭か解散が欠けた日だけ・2026-11-17） */
       let re = null;
       for (let round = 0; round < RD.RECHECK_ROUNDS; round++) {
-        const ds = recheckTargets(res.roster.days);
-        if (!ds.length) break;
+        const need = RD.recheckNeed(res.roster), ds = need.ds;
+        if (!ds.length && !(need.tz && round === 0)) break;
         const rr = await readOne(`re${round ? round + 1 : ''}:${imgs[i].f}`, buildRecheck(pr.b64, 'image/jpeg', ds));
         const patched = rr && rr.raw ? applyRecheck(rep.raw, rr.raw) : null;
         re = { ds: [...(re ? re.ds : []), ...(round ? ['/'] : []), ...ds], code: rr ? rr.code : 'dry', applied: !!patched || !!(re && re.applied),
