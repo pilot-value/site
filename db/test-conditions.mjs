@@ -1885,6 +1885,27 @@ await pasteConditions();
 mv = await moved();
 ok(sameMoved(mv), '   ㉒ もう一度貼っても同じ（1回で済む・何度流しても同じ）', JSON.stringify(mv));
 
+/* 選択肢から外した答えは、人数にも「最多」にも数えない（行は消さない）。
+   中途採用の形：上の4人のうち「型式限定保持者のみ」だけの1人は数えない ＝ 3人 */
+await db.exec('reset role');
+const factRT = async (q) => (await rows(
+  `select n, answer_dist d from airline_condition_facts where airline = $1 and question_id = $2`, [RT.airline, q]))[0] || null;
+let rfx = await factRT(EH);
+ok(rfx && rfx.n === 3 && !('type_rated' in rfx.d) && rfx.d.dec === 3,
+  '★㉒ 外した選択肢（型式限定保持者のみ）だけの答えは人数に入らず、答えごとの人数にも出ない', JSON.stringify(rfx));
+/* 1つ選ぶ質問：地上業務の補償に3人が答え、1人の答えを外した「はい」に戻すと、2人 ＝ 公開の線（3人）に届かない */
+const GD = 'ground_duty_pay';
+for (const n of [9621, 9622, 9623]) { await asUser(n); await submit({ ...RT, answers: [{ question_id: GD, code: 'allowance' }] }); }
+await db.exec('reset role');
+ok((await factRT(GD))?.n === 3, '   地上業務の補償に3人が「手当が出る」と答えると、集計に出る');
+await toOld(9621, GD, 'yes', null);
+rfx = await factRT(GD);
+ok(rfx === null, '★㉒ 1人の答えが外した「はい」なら2人 ＝ 集計に出ない（外した答えを人数に数えない）', JSON.stringify(rfx));
+/* 壊す証明：「はい」を選択肢に戻すと、同じ行のまま3人に戻る（＝ 外しているのは選択肢の照合） */
+await db.query(`update pv_condition_questions set choice_codes = array_append(choice_codes, 'yes') where id = $1`, [GD]);
+ok((await factRT(GD))?.n === 3, '   壊す証明: 「はい」が選択肢に在れば、同じ3行がまた3人として数えられる');
+await db.query(`update pv_condition_questions set choice_codes = array_remove(choice_codes, 'yes') where id = $1`, [GD]);
+
 
 /* オーナーが SQL Editor で見る検算表そのものを、ここで先に回しておく。
    本番で ❌ が出たときに「SQL が悪いのか検算が悪いのか」を迷わないため。 */

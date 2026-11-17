@@ -1282,11 +1282,20 @@ set search_path = public, extensions
 as $fn$
   select c.airline, c.question_id, c.proof_hash, c.updated_at,
          c.answer_code, c.answer_num::numeric,
-         case when q.kind = 'multi' then c.answer_codes end,
+         -- ★選択肢から外した答えは数えない（2026-11-17）。複数選ぶ質問は、今ある選択肢だけを残す
+         case when q.kind = 'multi' and c.answer_codes is not null
+              then array(select x from unnest(c.answer_codes) x where x = any(q.choice_codes)) end,
          q.section, q.tier::text, q.kind, q.is_opinion, q.has_currency
     from public.airline_conditions c
     join public.pv_condition_questions q on q.id = c.question_id and q.active
    where c.airline_other is null
+     -- ★選択肢を作り直した質問で、外した答え（「はい」を3つに分けた前の「はい」、
+     --   「いくつか当てはまる・その他」など）を人数にも「埋まった」にも数えない（2026-11-17）。
+     --   行は消していないので、答え直せばまた数える。「わからない」は今までどおり n_unknown へ
+     and (c.answer_code is null or c.answer_code = 'unknown'
+          or c.answer_code = any(q.choice_codes))
+     and (c.answer_codes is null or q.kind <> 'multi'
+          or c.answer_codes && q.choice_codes)
      -- ★スキップだけの行は1人として数えない（answer_code が null なので
      --   下の n の filter（<> 'unknown'）をすり抜けてしまう）
      and num_nonnulls(c.answer_code, c.answer_codes, c.answer_num,
