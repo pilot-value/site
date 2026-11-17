@@ -1119,6 +1119,8 @@ async function main() {
     /* 続きの質問（deep・2026-11-14「何によって違うか」）は8問に数えない。面には親のすぐ下に在り、答えが分かれた会社でだけ見える */
     const taxiIds = conds.questions.filter((x) => x.topic === 'taxi' && !x.deep).map((x) => x.id);
     TAXI_DEEP = conds.questions.filter((x) => x.topic === 'taxi' && x.deep).map((x) => x.id);
+    /* ★2026-11-16 続きの質問は複数選ぶ＋「その他」の1行の欄（otherText）。補足の欄の代わりにその欄が在る */
+    const TAXI_OTHER = conds.questions.filter((x) => x.topic === 'taxi' && x.otherText).map((x) => x.id);
     ok(J([...taxiIds].sort()) === J([...TAXI].sort()), '通勤・タクシーの質問は、サイトの質問表（pv-conditions.json）の8問', J(taxiIds));
 
     await go(a, JAL);
@@ -1130,7 +1132,12 @@ async function main() {
       const ta = [...f.querySelectorAll('textarea')];
       return {
         title: document.querySelector('.pvc-root .pvc-title').textContent, line: f.querySelector('.pvc-ctx-line').textContent,
-        text: f.querySelectorAll('input[type="text"], input:not([type])').length,
+        text: [...f.querySelectorAll('input[type="text"], input:not([type])')].map((n) => n.name),
+        /* 「その他」の1行の欄も、その質問の枠の中に在る（独りで立っていない）・任意 */
+        textOwned: [...f.querySelectorAll('input[type="text"], input:not([type])')].every((n) => {
+          const q = f.querySelector('[data-q="' + n.name.replace(/_other$/, '') + '"]');
+          return !!q && q.contains(n) && !n.required && !!q.querySelector('input[type="checkbox"][value="other"]');
+        }),
         ta: ta.map((n) => n.name), req: ta.filter((n) => n.required).length,
         /* 補足は必ず、選ぶ質問に付いている（その質問の枠の中か、同じ畳みの中。補足だけが独りで立っていない） */
         owned: ta.every((n) => {
@@ -1152,8 +1159,9 @@ async function main() {
     /* 2026-10-07 オーナー指定：選んだ答えに、任意の補足を添えられる。
        ただし自由記述は「追加の説明」で、選ぶ質問の代わりにはしない ── 8問とも選ぶ形のまま残っていること。 */
     ok(J([...shape.choice].sort()) === J([...TAXI, ...TAXI_DEEP].sort()), '★タクシーの具体的な質問は8つとも「選ぶ質問」のまま残っている（自由記述に置き換えていない・続きの質問も選ぶ形）', J(shape.choice));
-    ok(shape.text === 0 && J([...shape.ta].sort()) === J([...TAXI, ...TAXI_DEEP].map((k) => k + '_note').sort()) && shape.owned && shape.req === 0,
-      '★自由記述は「質問ごとの補足」だけ。どれも任意で、選ぶ質問の枠の中に在る（何でも受ける独立の欄は無い）', J(shape));
+    ok(J([...shape.text].sort()) === J(TAXI_OTHER.map((k) => k + '_other').sort()) && shape.textOwned
+       && J([...shape.ta].sort()) === J([...TAXI, ...TAXI_DEEP.filter((k) => !TAXI_OTHER.includes(k))].map((k) => k + '_note').sort()) && shape.owned && shape.req === 0,
+      '★自由記述は「質問ごとの補足」と、続きの質問の「その他」の1行の欄だけ。どれも任意で、選ぶ質問の枠の中に在る（何でも受ける独立の欄は無い）', J({ shape, TAXI_OTHER }));
     ok(shape.capInFold, '上限の補足は、今までどおり畳んだ中に在る', J(shape));
     ok(shape.fold.includes('回数・金額の上限を追加') && shape.exp === 'false' && shape.dis && shape.send === '匿名で追加する', '上限は「回数・金額の上限を追加」で畳んである。確認を入れるまで送れない', J(shape));
 
@@ -1866,9 +1874,11 @@ async function main() {
     ok(LAND.every((k) => !sh[k]), '★「わからない」を選んでも出ない', J(sh));
     await pick(c, 'landing_pay', 'variable');
     sh = await shown(c);
-    const noteOpen = await c.page.$eval('.pvc-root textarea[name="landing_pay_varies_by_note"]', (n) => n.getClientRects().length > 0);
+    /* ★2026-11-16 「何で変わるか」は複数選ぶ＋「その他」の1行の欄（補足の欄の代わり・「その他」を選ぶまで出ない） */
+    const noteOpen = await c.page.$eval('.pvc-root input[name="landing_pay_varies_by_other"]', (n) => n.getClientRects().length === 0).catch(() => false)
+      && !(await c.page.$('.pvc-root textarea[name="landing_pay_varies_by_note"]'));
     ok(sh.landing_pay_from && sh.landing_pay_to && sh.landing_pay_varies_by && !sh.landing_pay_amount && !sh.landing_pay_unit && noteOpen,
-      '★「あり・一定額ではない」→ 低いほう・高いほう・何で変わるか と、その補足の欄がその場に出る（一定額の質問は出ない）', J(sh));
+      '★「あり・一定額ではない」→ 低いほう・高いほう・何で変わるか がその場に出る（一定額の質問は出ない）。「その他」の欄は、その他を選ぶまで出ない', J(sh));
     await pick(c, 'landing_pay', 'fixed');
     sh = await shown(c);
     ok(sh.landing_pay_amount && sh.landing_pay_unit && !sh.landing_pay_from && !sh.landing_pay_to && !sh.landing_pay_varies_by,
@@ -1946,8 +1956,11 @@ async function main() {
     v = await vals(c);
     ok(v.landing_pay_from_cur === 'USD' && v.landing_pay_to_cur === 'USD',
       '★通貨は1回選べば足りる ── 低いほうで選んだ通貨が、高いほうにも入っている', J({ from: v.landing_pay_from_cur, to: v.landing_pay_to_cur }));
-    await pick(c, 'landing_pay_varies_by', 'airport');
-    await fill(c, 'landing_pay_varies_by_note', '空港によって違う');
+    await chip(c, 'landing_pay_varies_by', 'airport');
+    await chip(c, 'landing_pay_varies_by', 'other');
+    const otherShown = await c.page.$eval('.pvc-root input[name="landing_pay_varies_by_other"]', (n) => n.getClientRects().length > 0 && n.maxLength === 100);
+    ok(otherShown, '★「その他」にチェックを入れると、1行の欄（100字まで）がその場に出る', String(otherShown));
+    await fill(c, 'landing_pay_varies_by_other', '空港によって違う');
     await tick(c);
     await send(c);
     await waitView(c, 'saved');
@@ -1955,10 +1968,11 @@ async function main() {
     sm = await summary(c);
     const p3 = sent[2] || {};
     const vb = (p3.answers || []).find((x) => x.question_id === 'landing_pay_varies_by') || {};
-    ok(sent.length === 3 && J(ids(p3)) === J(['landing_pay', 'landing_pay_from', 'landing_pay_varies_by']) && vb.text === '空港によって違う' && vb.share === true,
-      '★額は片方だけでも送れる（入れていない「高いほう」は送らない ＝ 0 や同じ額で埋めない）。補足も一緒に送る', J(p3.answers));
+    ok(sent.length === 3 && J(ids(p3)) === J(['landing_pay', 'landing_pay_from', 'landing_pay_varies_by']) && vb.text === '空港によって違う' && vb.share === true
+       && J(vb.codes) === J(['airport', 'other']),
+      '★額は片方だけでも送れる（入れていない「高いほう」は送らない ＝ 0 や同じ額で埋めない）。「その他」の字も答えと一緒に送る', J(p3.answers));
     ok(J(famRows(sm)) === J(['landing_pay', 'landing_pay_from', 'landing_pay_varies_by', 'landing_pay_varies_by_note'])
-      && sm.rows.landing_pay_from.v === 'USD 10（1回あたり）' && sm.rows.landing_pay_varies_by.v === '空港・路線' && sm.rows.landing_pay_varies_by_note.v === '空港によって違う',
+      && sm.rows.landing_pay_from.v === 'USD 10（1回あたり）' && sm.rows.landing_pay_varies_by.v === '空港・路線、その他' && sm.rows.landing_pay_varies_by_note.v === '空港によって違う',
       '★答え直したあとの保存後の画面に、前の枝の額（JPY 1,800）と数え方が出ていない', J(sm.rows));
     ok(db.length === 5 && db.find((r) => r.q === 'landing_pay_amount').num === 1800 && db.find((r) => r.q === 'landing_pay_unit').c === 'per_landing',
       '   前の額と数え方の行そのものは、保存先に残っている（消していない ＝ 答え直せば戻せる）', J(db.map((r) => r.q)));

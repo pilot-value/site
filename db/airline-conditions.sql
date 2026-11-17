@@ -53,6 +53,12 @@ begin
                     and column_name = 'deep') then
     raise exception '先に db/conditions.generated.sql を実行し直してください（質問マスタに deep の列が無い）';
   end if;
+  -- 「その他」の欄（2026-11-16）。検品（4c）と、運営が載せるまで字を出さない印（1）が読む
+  if not exists (select 1 from information_schema.columns
+                  where table_schema = 'public' and table_name = 'pv_condition_questions'
+                    and column_name = 'other_text') then
+    raise exception '先に db/conditions.generated.sql を実行し直してください（質問マスタに other_text の列が無い）';
+  end if;
   if to_regclass('public.profiles') is null then
     raise exception 'profiles がありません。先に既存のスキーマを流してください';
   end if;
@@ -110,6 +116,12 @@ alter table public.airline_conditions add column if not exists skipped_at timest
 -- 補足（answer_text）を、資格のある会員に見せてよいか。既定は false ＝ 今までの補足は本人だけ。
 -- 「見せます」と書いた画面（会社ページの「情報を追加」）から送られたときだけ true になる。
 alter table public.airline_conditions add column if not exists text_shared boolean not null default false;
+-- ★「その他」の欄（質問マスタの other_text）の字を、会社ページに出してよいか（2026-11-16 オーナー承認
+--   「その他の字は運営が確認してから載せる」）。null ＝ 運営の確認待ち／true ＝ 載せる／false ＝ 載せない。
+--   書くのは運営の admin_other_text_decide（db/contrib.sql）だけ。字が変わったら下の引き金が null へ戻す
+--   （載せた字を書き換えて、確かめていない字を出させない）。読むのは pv_contrib_notes だけ。
+--   ⚠️ ほかの質問の補足には効かない（そちらは今までどおり text_shared）。
+alter table public.airline_conditions add column if not exists text_ok boolean;
 
 -- 1人1社1質問で1行。答え直すと on conflict で上書き＋updated_at 更新。
 -- unique 制約は張り直すと索引を作り直すので「無ければ作る」にする。
@@ -155,6 +167,53 @@ comment on column public.airline_conditions.skipped_at is
   '「今回はスキップ」を押した時刻。答えが1つも無い行はこれが立っている。公開・自分の回答一覧のどちらにも出さない。';
 comment on column public.airline_conditions.answer_code is
   '''unknown''（わからない）はどの kind でも入る。公開の n には数えないが、同じ人に再度聞かないために保存する。';
+comment on column public.airline_conditions.text_ok is
+  '「その他」の欄の字を会社ページに出してよいか。null＝運営の確認待ち・true＝載せる・false＝載せない。字が変わると null に戻る。';
+
+-- ★「その他」の字が変わったら、運営の確認をやり直す（2026-11-16）。
+--   行ごと・保存の前。同じ字のまま保存し直した（ほかの選択肢を押し直した）回は、載せた印を残す。
+--   字が消えたら印も消す（確かめる字が無い）。その他の欄の無い質問の行は触らない。
+create or replace function public.pv_condition_text_recheck()
+returns trigger
+language plpgsql
+set search_path = public, extensions
+as $$
+begin
+  if (tg_op = 'INSERT' or new.answer_text is distinct from old.answer_text)
+     and exists (select 1 from public.pv_condition_questions q
+                  where q.id = new.question_id and q.other_text) then
+    new.text_ok := null;
+  end if;
+  return new;
+end;
+$$;
+revoke all on function public.pv_condition_text_recheck() from public, anon, authenticated;
+drop trigger if exists pv_condition_text_recheck on public.airline_conditions;
+create trigger pv_condition_text_recheck
+  before insert or update of answer_text on public.airline_conditions
+  for each row execute function public.pv_condition_text_recheck();
+
+-- ★1つ選ぶ → 複数選ぶ に変えた質問の、今までの答えを複数選ぶの形へ直す（2026-11-16・1回で済む・何度流しても同じ）。
+--   変える前は answer_code に1つだけ入っていた。複数選ぶの画面（answer_codes を読む）では「答えていない」に見え、
+--   答え直すまで戻らない。
+--   ⚠️「いくつか当てはまる・その他」（mixed）は**直さない**（answer_code のまま残す）。複数当てはまった人を
+--     「その他」と数えると、本人が言っていない答えになる。選択肢から外れたので会社ページにも集計にも出ない。
+--   ⚠️「わからない」（unknown）は、複数選ぶでも answer_code のまま（画面もサーバもその形で読む）。
+--   ⚠️ updated_at は動かさない（「最後に確かめた日」は本人が答えた日のまま）。字は消さない。
+--   ★変える前から会員に見せていた補足（「見せます」の印 text_shared が付いたもの）は、載せた扱いにする
+--     （オーナー「ほかの補足は今までどおり」＝ 今日まで出ていた字を、この変更で消さない）。印の無い補足は本人だけのまま。
+--     直す行はこの1回だけ（直したあとは answer_codes が入る ＝ 流し直しても、運営が「載せない」にした字を載せ直さない）。
+update public.airline_conditions c
+   set answer_codes = array[c.answer_code],
+       answer_code  = null,
+       text_ok      = case when q.other_text and c.answer_text is not null and c.text_shared then true else c.text_ok end
+  from public.pv_condition_questions q
+ where q.id = c.question_id
+   and q.kind = 'multi'
+   and c.answer_code is not null
+   and c.answer_code <> 'unknown'
+   and c.answer_code = any(q.choice_codes)     -- 選択肢から外れた答え（mixed）は直さない
+   and c.answer_codes is null;
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -260,6 +319,11 @@ revoke all on public.pv_condition_links from public, anon, authenticated;
 -- ★share … この補足を、資格のある会員に見せてよいか。「見せます」と書いた画面から
 --   送られたときだけ true（db/contrib.sql の pv_contrib_notes が、この印の行だけを返す）。
 --   印を付けずに送る古い画面の補足は、今までどおり本人しか読めない。
+-- ★「その他」の欄のある質問（other_text・2026-11-16）── 字は other を選んだときだけ残す（選んでいなければ捨てる）・
+--   100字まで（pv_condition_limits() の other_max）。share は立てる（答えの一部）。会社ページに出すかは運営が決める（1 の text_ok）。
+-- ★複数選ぶ質問に、1つだけの答え { code } が来たら { codes:[code] } として受ける（2026-11-16 に1つ選ぶから変えた
+--   質問へ、読み込み直していない古い画面・未ログインの預かりが送ってくる形）。外した「いくつか当てはまる・その他」
+--   （mixed）は選択肢に無いので bad_code（「その他」に置き換えない ＝ 本人が言っていない答えを作らない）。
 create or replace function public.pv_condition_clean(v_qid text, v_ans jsonb)
 returns jsonb
 language plpgsql
@@ -275,8 +339,9 @@ declare
   v_text  text;
   v_json  jsonb;
   v_bad   text;
+  v_omax  int := coalesce((public.pv_condition_limits()->>'other_max')::int, 100);
 begin
-  select q.id, q.kind, q.choice_codes, q.num_min, q.num_max, q.has_currency
+  select q.id, q.kind, q.choice_codes, q.num_min, q.num_max, q.has_currency, q.other_text
     into v_q
     from public.pv_condition_questions q
    where q.id = v_qid and q.active;
@@ -320,6 +385,10 @@ begin
       v_codes := null; v_num := null; v_cur := null; v_json := null;
 
     elsif v_q.kind = 'multi' then
+      -- 1つだけの答え（古い画面・預かり）を、複数選ぶの形へ（上の ★）
+      if coalesce(array_length(v_codes, 1), 0) = 0 and v_code is not null then
+        v_codes := array[v_code];
+      end if;
       if coalesce(array_length(v_codes, 1), 0) = 0 then v_bad := 'missing_code';
       elsif exists (select 1 from unnest(v_codes) x where not (x = any(v_q.choice_codes)))
         then v_bad := 'bad_code';
@@ -352,6 +421,14 @@ begin
   if v_bad is null and v_text is not null and char_length(v_text) > 300 then
     v_bad := 'text_too_long';
   end if;
+  -- 「その他」の欄のある質問：字は other を選んだときだけ（選んでいなければ捨てる）・100字まで
+  if v_bad is null and v_q.other_text and v_text is not null then
+    if not ('other' = any(coalesce(v_codes, array[v_code]))) then
+      v_text := null;
+    elsif char_length(v_text) > v_omax then
+      v_bad := 'text_too_long';
+    end if;
+  end if;
 
   if v_bad is not null then
     return jsonb_build_object('ok', false, 'reason', v_bad);
@@ -361,7 +438,10 @@ begin
     'ok', true,
     'code', v_code, 'codes', to_jsonb(v_codes), 'num', v_num, 'currency', v_cur,
     'text', v_text,
-    'share', (v_text is not null and coalesce(v_ans->>'share', '') = 'true'),
+    -- ★「その他」の欄の字は答えの一部 ＝ どの画面から来ても見せてよい印を立てる（2026-11-16）。
+    --   会社ページに出すのは、運営が載せた字だけ（1 の text_ok・pv_contrib_notes）。
+    --   ⚠️ 変える前に書かれた補足（印の無いもの）には、ここを通らない限り印は付かない ＝ 本人だけのまま。
+    'share', (v_text is not null and (coalesce(v_ans->>'share', '') = 'true' or v_q.other_text)),
     'json', v_json);
 end;
 $$;

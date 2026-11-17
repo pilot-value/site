@@ -174,7 +174,7 @@
       unk: 'わからない', sep: '、', share: null,
       commuteFrom: function (town) { return town + 'からの通勤'; },
       selectAll: '当てはまるものをすべて選んでください。',
-      saysAll: function (help) { return help.indexOf('すべて') >= 0; },
+      saysAll: function (help) { return help.indexOf('すべて') >= 0 || help.indexOf('全部') >= 0; },   // 「全部」は 2026-11-16 の続きの質問
       chooseCur: '通貨を選ぶ',
       curOpt: function (code, name) { return code + (name ? '（' + name + '）' : ''); },
       curOf: function (label) { return label + 'の通貨'; },
@@ -184,6 +184,7 @@
       noteOf: function (label) { return label + 'の補足（任意）'; },
       notePhTown: function (town) { return town + 'から通う場合のことなど、選択肢で言い切れないことがあれば'; },
       notePhAny: '条件や例外など、選択肢で言い切れないことがあれば',
+      otherPh: 'その他の内容',   // 「その他」を選んだときだけ出す1行の欄（2026-11-16）
       capAdd: '回数・金額の上限を追加', capNoteOpt: '上限についての補足（任意）', capPh: '回数の上限や、決まりごとがあれば',
       failCond: 'これまでの投稿を読み込めませんでした。このまま送れます（同じ質問の答えがあれば、今回の内容に置き換わります）。',
       qName: function (label) { return '「' + label + '」'; },
@@ -199,7 +200,7 @@
       keptOthers: function (n) { return 'ほかの' + n + '件は保存しました。'; },
       rejLine: function (label, why) { return (label ? '「' + label + '」' : 'この項目') + '：' + why; },
       rejWhy: '保存できませんでした。',
-      capNote: '上限についての補足', note: '補足'
+      capNote: '上限についての補足', note: '補足', otherNote: 'その他の内容'
     },
     en: {
       gTaxi: 'Commuting and taxis', gUpgrade: 'Upgrade to captain', gRoster: 'Roster', gCareer: 'Training and career', gBenefits: 'Leave and allowances',
@@ -286,7 +287,7 @@
       unk: 'Don’t know', sep: ', ', share: 'If you add a note, it is shown with the question to members who have submitted pay (your name is not shown).',
       commuteFrom: function (town) { return 'Commuting from ' + town; },
       selectAll: 'Select all that apply.',
-      saysAll: function (help) { return /\b(all|everyone)\b/i.test(help); },
+      saysAll: function (help) { return /\b(all|everyone|todas|todos)\b/i.test(help); },   // todas/todos はスペイン語の説明（es は gen-msg.mjs がこの写しを置く）
       chooseCur: 'Choose currency',
       curOpt: function (code, name) { return code + (name ? ' (' + name + ')' : ''); },
       curOf: function (label) { return 'Currency for: ' + label; },
@@ -296,6 +297,7 @@
       noteOf: function (label) { return 'Note on: ' + label + ' (optional)'; },
       notePhTown: function (town) { return 'Anything the options can’t capture, such as commuting from ' + town; },
       notePhAny: 'Conditions, exceptions or anything the options can’t capture',
+      otherPh: 'Please specify',
       capAdd: 'Add a limit on uses or amount', capNoteOpt: 'Note on the limit (optional)', capPh: 'Any limit on the number of uses, or rules',
       failCond: 'Your earlier posts could not be loaded. You can still send (if you already answered a question, this replaces it).',
       qName: function (label) { return '“' + label + '”'; },
@@ -311,7 +313,7 @@
       keptOthers: function (n) { return 'The other ' + n + (n === 1 ? ' item was' : ' items were') + ' saved.'; },
       rejLine: function (label, why) { return (label ? '“' + label + '”' : 'This item') + ': ' + why; },
       rejWhy: 'Could not be saved.',
-      capNote: 'Note on the limit', note: 'Note'
+      capNote: 'Note on the limit', note: 'Note', otherNote: 'Other (details)'
     }, /*PV-MSG:es*/ es: {
       gTaxi: 'Traslados y taxis', gUpgrade: 'Ascenso a capitán', gRoster: 'Programación (rol de vuelo)', gCareer: 'Formación y carrera', gBenefits: 'Vacaciones y asignaciones',
       tWork: 'Tu mes de servicio', tTown: 'Ciudades populares entre los pilotos',
@@ -397,7 +399,7 @@
       unk: 'No sé', sep: ', ', share: 'Si agregas una nota, se mostrará junto con la pregunta a los miembros que hayan enviado los datos de su remuneración (no se muestra tu nombre).',
       commuteFrom: function (town) { return 'Traslado desde ' + town; },
       selectAll: 'Selecciona todas las opciones que correspondan.',
-      saysAll: function (help) { return /\b(all|everyone)\b/i.test(help); },
+      saysAll: function (help) { return /\b(all|everyone|todas|todos)\b/i.test(help); },   // todas/todos はスペイン語の説明（es は gen-msg.mjs がこの写しを置く）
       chooseCur: 'Elegir moneda',
       curOpt: function (code, name) { return code + (name ? ' (' + name + ')' : ''); },
       curOf: function (label) { return 'Moneda de: ' + label; },
@@ -407,6 +409,7 @@
       noteOf: function (label) { return 'Nota sobre: ' + label + ' (opcional)'; },
       notePhTown: function (town) { return 'Cualquier cosa que las opciones no cubran, como el traslado desde ' + town; },
       notePhAny: 'Condiciones, excepciones o cualquier cosa que las opciones no cubran',
+      otherPh: 'Especifica',
       capAdd: 'Agregar un límite de usos o de monto', capNoteOpt: 'Nota sobre el límite (opcional)', capPh: 'Límite en el número de usos o reglas, si los hay',
       failCond: 'No se pudieron cargar tus publicaciones anteriores. Aun así puedes enviar (si ya respondiste una pregunta, esto reemplazará tu respuesta anterior).',
       qName: function (label) { return '“' + label + '”'; },
@@ -422,7 +425,7 @@
       keptOthers: function (n) { return 'Se guardó el resto (' + n + (n === 1 ? ' dato' : ' datos') + ').'; },
       rejLine: function (label, why) { return (label ? '“' + label + '”' : 'Este dato') + ': ' + why; },
       rejWhy: 'No se pudo guardar.',
-      capNote: 'Nota sobre el límite', note: 'Nota'
+      capNote: 'Nota sobre el límite', note: 'Nota', otherNote: 'Otro (detalle)'
     } /*/PV-MSG:es*/
   };
   var TX = (window.PV_T && window.PV_T(T, LANG)) || T[LANG];   // スペイン語の辞書があればそれ
@@ -2659,6 +2662,11 @@
     return null;
   }
   function unkCode() { return (V.conds && V.conds.unknown) || UNK; }
+  /* 「その他」の欄のある質問か（2026-11-16・台帳の otherText。複数選ぶ質問で、選択肢に other が在るときだけ） */
+  function otherBox(q) {
+    return !!(q && q.otherText && q.kind === 'multi'
+      && (q.choices || []).some(function (c) { return c.code === 'other'; }));
+  }
   /* 答えが入っているか（補足だけの行は「答えた」に数えない） */
   function hasValue(a) {
     return !!a && (!!a.code || (Array.isArray(a.codes) && a.codes.length > 0) || (a.num != null && a.num !== ''));
@@ -2782,8 +2790,9 @@
     var t = gs(topic), logged = hasToken();
     /* 読み込み中かどうかは、ログインでは決めない（ログインしていない人も、控えの鍵で自分の分を読む） */
     var loading = (M.cond.k === 'loading' || M.cond.k === 'idle') && !M.soft;
-    var sm = savedMap(), qs = groupQs(topic), E = t.els = { f: {}, ctl: {}, loading: loading };
+    var sm = savedMap(), qs = groupQs(topic), E = t.els = { f: {}, ctl: {}, other: {}, loading: loading };
     var max = (V.conds.limits && V.conds.limits.textMax) || 300;
+    var omax = (V.conds.limits && V.conds.limits.otherMax) || 100;   // 「その他」の欄の上限（サーバの pv_condition_clean と同じ数）
     var unk = unkCode();
     clear(S.main);
 
@@ -2913,8 +2922,23 @@
       E.f[q.id] = fd;
       return fd;
     }
+    /* 「その他」の欄（2026-11-16 オーナー承認「自分で答えを書けるその他が欲しい」）── 補足の欄の代わり。
+       「その他」にチェックがあるときだけ出す（外したら下の sync が消して空にする）。字は補足と同じ所（t.notes）に置く
+       ＝ 送る道・下書きの残し方は補足と同じ。100字まで。★会社ページに出すのは運営が載せた字だけ（db/contrib.sql の pv_contrib_notes）。 */
+    function otherFor(q, fd) {
+      var inp = el('input', 'pvc-input', null, {
+        type: 'text', name: q.id + '_other', id: 'pvc-o-' + q.id, autocomplete: 'off', maxlength: String(omax),
+        placeholder: TX.otherPh, 'aria-label': TX.otherPh, 'data-q-other': q.id
+      });
+      inp.value = curNote(t, q, sm);
+      inp.hidden = cur(t, q, sm).indexOf('other') < 0;
+      inp.addEventListener('input', function () { t.notes[q.id] = inp.value; t.noteDirty[q.id] = true; });
+      fd.appendChild(inp);
+      E.other[q.id] = inp;
+    }
     /* どの質問にも、選んだ答えに添える補足を残せる（任意）。答えの代わりにはならない。 */
     function moreFor(q, fd) {
+      if (otherBox(q)) return otherFor(q, fd);
       var tx0 = curNote(t, q, sm);
       var open = !!(t.noteOpen[q.id] || trim(tx0) || q.note);
       var wrap = el('div', 'pvc-more');
@@ -3006,6 +3030,13 @@
         var on = visible(t, q, sm);
         if (E.fold && E.foldQ === q) E.fold.hidden = !on;
         else if (E.f[q.id]) E.f[q.id].hidden = !on;
+        /* 「その他」の欄は、その他にチェックがあるときだけ。外したら字も消す（その他を選んでいない字は送らない・サーバも捨てる） */
+        var ob = E.other[q.id];
+        if (ob) {
+          var pick = cur(t, q, sm).indexOf('other') >= 0;
+          if (!pick && !ob.hidden && ob.value !== '') { ob.value = ''; t.notes[q.id] = ''; t.noteDirty[q.id] = true; }
+          ob.hidden = !pick;
+        }
       });
       E.send.disabled = !t.own || t.busy || loading;
       E.send.textContent = t.busy ? TX.sending : (qs.some(function (q) { return hasValue(sm[q.id]); }) ? TX.update : TX.add);
@@ -3092,6 +3123,8 @@
     qs.forEach(function (q) {
       if (stop || !visible(t, q, sm)) return;
       var v = cur(t, q, sm), a = sm[q.id], one = null, tx = trim(curNote(t, q, sm)), cc = '', nm = TX.qName(loc(q).label);
+      /* 「その他」の欄の字は、その他を選んでいるときだけ送る（2026-11-16） */
+      if (otherBox(q) && v.indexOf('other') < 0) tx = '';
       function halt(text, key) { stop = text; stopQ = key || q.id; }
       if (q.kind === 'multi') {
         if (v.length) one = v.length === 1 && v[0] === unk ? { question_id: q.id, code: unk } : { question_id: q.id, codes: v.slice() };
@@ -3250,7 +3283,7 @@
         var a = sm[q.id];
         if (!hasValue(a) || !chainSaved(q, sm)) return;
         sumRow(dl, q.id, loc(q).label, answerText(q, a), true);
-        if (trim(a.text)) sumRow(dl, q.id + '_note', topic === 'taxi' && q.note && !q.deep ? TX.capNote : TX.note, trim(a.text), true);
+        if (trim(a.text)) sumRow(dl, q.id + '_note', otherBox(q) ? TX.otherNote : topic === 'taxi' && q.note && !q.deep ? TX.capNote : TX.note, trim(a.text), true);
       });
     }, function () {
       /* 「自分の回答を見る」は、いま保存した質問の所まで送る（長い項目では、保存した答えが最初の1画面の下に在り、

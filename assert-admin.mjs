@@ -1309,6 +1309,78 @@ async function reviewHoldChecks(page, lang) {
   }
 }
 
+/* その他の答え（2026-11-16 オーナー承認「その他を選んだら自分で書ける欄を。書いた字は運営が確認してから載せる」）──
+   会員が書いた字は字として出るだけ（textContent・dir="auto"）・確認待ちが先で、数の札は確認待ちの数・質問は台帳の短い名前（「親 › 子」）・
+   「載せる／載せない」は見た字（p_text）を添えて1回だけ呼び、一覧を読み直す・書き直されていた字（changed）は知らせて読み直す */
+async function otherTextChecks(page, lang) {
+  const EN = lang === 'en';
+  const OTX = 'dddddddd-0000-4000-8000-00000000000';
+  const B = JSON.parse(read('pv-conditions.json')), Q = B.questions.find((q) => q.id === 'reserve_duty_who'), P = B.questions.find((q) => q.id === Q.parent);
+  const W = EN ? { tab: 'Other answers', wait: 'Waiting', yes: 'Published', no: 'Not published', pub: 'Publish', unpub: 'Don’t publish', co: 'Japan Airlines',
+                   q: P.en.short + ' › ' + Q.en.short, changed: 'This answer has been edited. Reloading the list.' }
+               : { tab: 'その他の答え', wait: '確認待ち', yes: '載せています', no: '載せていません', pub: '載せる', unpub: '載せない', co: '日本航空',
+                   q: P.ja.short + ' › ' + Q.ja.short, changed: 'この答えは書き直されています。一覧を読み直します。' };
+  const look = () => page.evaluate(() => {
+    const box = document.getElementById('otx-list');
+    return {
+      n: document.getElementById('otx-n').textContent,
+      cards: [...box.querySelectorAll('.rh-card')].map((c) => ({
+        done: c.classList.contains('is-done'), tag: (c.querySelector('.pf-tag') || {}).textContent || '', co: (c.querySelector('.rh-co') || {}).textContent || '',
+        q: [...c.querySelectorAll('.rh-facts dd')].map((d) => d.textContent),
+        text: [...c.querySelectorAll('.rh-sec p')].map((p) => [p.getAttribute('dir'), p.textContent]),
+        btns: [...c.querySelectorAll('[data-otx]')].map((b) => [b.getAttribute('data-otx'), b.getAttribute('data-r'), b.textContent]) })),
+      bad: box.querySelectorAll('img, script, iframe, svg').length, hit: !!window.__pvHit,
+      decide: window.__args.filter((x) => x[0] === 'admin_other_text_decide').map((x) => x[1]),
+      lists: window.__rpc.filter((x) => x === 'admin_list_other_texts').length
+    };
+  });
+  const v0 = await page.evaluate(() => {
+    const btn = document.getElementById('tab-btn-otx'), tab = document.getElementById('tab-otx');
+    const before = getComputedStyle(tab).display;
+    if (btn) switchTab('otx', btn);
+    return { label: btn ? btn.firstChild.textContent : null, before, vis: getComputedStyle(tab).display !== 'none',
+      active: !!btn && btn.classList.contains('active'), noCur: tab.classList.contains('pv-no-cur') };
+  });
+  ok(v0.label === W.tab && v0.before === 'none' && v0.vis && v0.active && v0.noCur,
+     `OT1 タブ「${W.tab}」：最初は閉じていて、押すとそのタブだけが開く（中身は pv-no-cur）`, JSON.stringify(v0));
+  await page.waitForFunction(() => document.querySelectorAll('#otx-list .rh-card').length >= 2, { timeout: 10000 }).catch(() => {});
+  const a = await look();
+  ok(a.n === '1' && a.cards.length === 2 && !a.cards[0].done && a.cards[0].tag === W.wait && a.cards[1].done && a.cards[1].tag === W.yes,
+     `OT2 確認待ちが先（サーバーが逆に返しても）・数の札は確認待ちの1件だけ・載せた字は下に薄く「${W.yes}」`, JSON.stringify(a.cards.map((c) => [c.tag, c.done])));
+  ok(a.bad === 0 && !a.hit && JSON.stringify(a.cards[0].text) === JSON.stringify([['auto', '書いた字 ' + HOSTILE]])
+     && a.cards.every((c) => c.co === W.co && JSON.stringify(c.q) === JSON.stringify([W.q])),
+     `OT3 ★会員が書いた字のタグは字として出るだけ（要素が生えない・動かない・dir="auto"）・会社の名前・質問は「${W.q}」`, JSON.stringify(a.cards));
+  ok(JSON.stringify(a.cards[0].btns) === JSON.stringify([['ok', OTX + '1', W.pub], ['no', OTX + '1', W.unpub]])
+     && JSON.stringify(a.cards[1].btns) === JSON.stringify([['no', OTX + '2', W.unpub]]),
+     `OT4 確認待ちには「${W.pub}」「${W.unpub}」・載せた字には「${W.unpub}」だけ`, JSON.stringify(a.cards.map((c) => c.btns)));
+
+  const says = [];
+  const onDlg = (d) => { says.push({ type: d.type(), text: d.message() }); d.accept().catch(() => {}); };
+  page.on('dialog', onDlg);
+  try {
+    await page.evaluate((id) => document.querySelector(`#otx-list [data-otx="ok"][data-r="${id}"]`).click(), OTX + '1');
+    await page.waitForFunction(() => window.__rpc.filter((x) => x === 'admin_list_other_texts').length >= 2 && document.getElementById('otx-n').textContent === '', { timeout: 10000 }).catch(() => {});
+    const b = await look();
+    ok(says.length === 0 && b.decide.length === 1 && canon(b.decide[0]) === canon({ p_id: OTX + '1', p_ok: true, p_text: '書いた字 ' + HOSTILE })
+       && b.lists === a.lists + 1 && b.n === '' && b.cards.every((c) => c.done && c.tag === W.yes),
+       `OT5 「${W.pub}」は admin_other_text_decide を1回（{p_id, p_ok:true, p_text ＝ 見た字}）・一覧を読み直し、数の札は消える`,
+       JSON.stringify({ says, decide: b.decide, lists: [a.lists, b.lists], n: b.n }));
+    /* 運営が見たあとに、会員が字を書き直した（サーバーの字だけが変わる）→「載せない」はサーバーが changed で断る */
+    await page.evaluate((id) => { const x = window.__otx.find((y) => y.id === id); x.text = '書き直した字'; }, OTX + '1');
+    await page.evaluate((id) => document.querySelector(`#otx-list [data-otx="no"][data-r="${id}"]`).click(), OTX + '1');
+    await page.waitForFunction((n) => window.__rpc.filter((x) => x === 'admin_list_other_texts').length >= n, { timeout: 10000 }, b.lists + 1).catch(() => {});
+    await page.waitForFunction(() => [...document.querySelectorAll('#otx-list .rh-sec p')].some((p) => p.textContent === '書き直した字'), { timeout: 10000 }).catch(() => {});
+    const c = await look();
+    ok(says.length === 1 && says[0].text === W.changed && c.decide.length === 2 && c.decide[1].p_text === '書いた字 ' + HOSTILE && c.decide[1].p_ok === false
+       && c.cards.some((x) => JSON.stringify(x.text) === JSON.stringify([['auto', '書き直した字']])),
+       '★OT6 一覧を開いたあとに書き直された字は、見ないまま決めない（サーバーが changed で断る）── 知らせて一覧を読み直す（新しい字が出る）',
+       JSON.stringify({ says, decide: c.decide, cards: c.cards.map((x) => x.text) }));
+  } finally {
+    page.off('dialog', onDlg);
+    await page.evaluate(() => switchTab('users', document.querySelector('.tab-btn')));
+  }
+}
+
 /* 保留の通知メールのリンク（admin.html#review-holds）── ログイン済みならそのタブで開く。ログインしていなければ、
    ログイン画面を通ると # が落ちるので「このタブで来た」だけを覚え、戻ってきたときに開く（#top-hold と同じ作り） */
 async function reviewHoldHash(page, lang, url) {
@@ -1393,6 +1465,11 @@ for (const lang of ['ja', 'en']) {
       };
       /* 口コミの確認（2026-11-15）── 1件目はアラビア語（本文と AI のメモに HOSTILE と <script>）、2件目はログインなしの預かり（言語は分からない）、
          3件目はもう載せた行（下に薄く出る）。サーバーの並びは保留中が先だが、ここではわざと混ぜて返す（画面が保留中を先にすることを見る） */
+      /* その他の答え（2026-11-16）── 1件目はもう載せた字、2件目は確認待ちで HOSTILE 入り（サーバーの並びは確認待ちが先だが、わざと逆に返す） */
+      const OTX = 'dddddddd-0000-4000-8000-00000000000';
+      window.__otx = [
+        { id: OTX + '2', airline: 'jal', name_ja: '日本航空', name_en: 'Japan Airlines', question_id: 'reserve_duty_who', text: '載せた字', updated_at: '2026-11-15T00:00:00Z', text_ok: true },
+        { id: OTX + '1', airline: 'jal', name_ja: '日本航空', name_en: 'Japan Airlines', question_id: 'reserve_duty_who', text: '書いた字 ' + hostile, updated_at: '2026-11-16T00:00:00Z', text_ok: null }];
       const RH = 'cccccccc-0000-4000-8000-00000000000';
       window.__rh = [
         { src: 'r', id: RH + '1', airline: 'riyadh-air', position: 'captain', created_at: '2026-11-15T01:00:00Z', judged_at: '2026-11-15T01:00:05Z',
@@ -1505,6 +1582,15 @@ for (const lang of ['ja', 'en']) {
         /* 口コミの確認（2026-11-15）。翻訳の AI が保留にした口コミ（window.__rh）。決める入口はサーバーと同じく、保留中の行だけを書き換える */
         /* 読めなかった勤務表（2026-11-16）。一覧だけ（画像はタブを開いて見えたときに1枚ずつ取る＝開いた直後には呼ばない） */
         admin_roster_images: () => [],
+        /* その他の答え（2026-11-16）。決める入口はサーバーと同じく、見た字（p_text）がいまの字と違えば changed で断る */
+        admin_list_other_texts: () => window.__otx.map((x) => Object.assign({}, x)),
+        admin_other_text_decide: (a) => {
+          const x = window.__otx.find((y) => a && y.id === a.p_id);
+          if (!x) return { ok: false, reason: 'not_found' };
+          if (a.p_text != null && a.p_text !== x.text) return { ok: false, reason: 'changed' };
+          x.text_ok = a.p_ok;
+          return { ok: true, text_ok: a.p_ok };
+        },
         admin_list_review_holds: () => window.__rh.map((h) => Object.assign({}, h)),
         admin_review_hold_decide: (a) => {
           const h = window.__rh.find((x) => a && x.src === a.p_src && x.id === a.p_id && !x.decided);
@@ -1536,7 +1622,7 @@ for (const lang of ['ja', 'en']) {
           const isList = n === 'admin_list_profiles' || n === 'admin_list_reviews';
           /* 7. の場面：その入口だけ、決めた status で断る（refuse）／日本語の文の例外で止まる（raise） */
           const refuse = window.__q.refuse && window.__q.refuse[n], raise = window.__q.raise && window.__q.raise[n];
-          const res = (cfg.rh === 'off' && /^admin_(list_review_holds|review_hold_decide)$/.test(n))
+          const res = (cfg.rh === 'off' && /^admin_(list_review_holds|review_hold_decide|list_other_texts|other_text_decide)$/.test(n))
             ? { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.' + n }, status: 404 }
             : raise ? { data: null, error: { code: '22023', message: raise } }
             : refuse ? { data: { ok: false, status: refuse }, error: null }
@@ -1652,7 +1738,8 @@ for (const lang of ['ja', 'en']) {
          'トップの保留：「承諾してトップに出す」を押すと承諾の入口を1回呼び、表示が「トップに出している」に変わる', JSON.stringify(th1));
       await page.evaluate(() => switchTab('users', document.querySelector('.tab-btn')));
       await reviewHoldChecks(page, lang).catch((e) => ok(false, 'RH 口コミの確認の場面が途中で止まった', String(e && e.message || e).slice(0, 200)));
-      ok(seen.rpc.join(',') === 'pv_is_admin,admin_list_profiles,admin_list_reviews,admin_list_proofs,admin_list_top_holds,admin_list_review_holds,admin_roster_images,pv_town_queue,pv_stay_queue,pv_stay_applicants,pv_stay_members',
+      await otherTextChecks(page, lang).catch((e) => ok(false, 'OT その他の答えの場面が途中で止まった', String(e && e.message || e).slice(0, 200)));
+      ok(seen.rpc.join(',') === 'pv_is_admin,admin_list_profiles,admin_list_reviews,admin_list_proofs,admin_list_top_holds,admin_list_review_holds,admin_roster_images,admin_list_other_texts,pv_town_queue,pv_stay_queue,pv_stay_applicants,pv_stay_members',
          'サーバーの入口だけを使っている（オーナーの2つの一覧も、管理者と分かったあとに読むだけ）', seen.rpc.join(','));
       ok(seen.from.length === 0, '管理者でもテーブルは直接触らない', seen.from.join(','));
       await notOwnerChecks(page, lang).catch((e) => ok(false, 'O0 オーナーでない運営の場面が途中で止まった', String(e && e.message || e).slice(0, 200)));
@@ -1691,6 +1778,19 @@ for (const lang of ['ja', 'en']) {
       ok(rh.btn && rh.vis && rh.cards === 0 && rh.n === '' && rh.holds === 1
          && rh.text === (lang === 'en' ? 'Not available yet (it works once the SQL has been applied).' : 'まだ使えません（SQL を貼ると使えます）。'),
          'RH0 口コミの確認の入口がまだ無い：タブは出て、中身は「まだ使えません」の1行だけ（ボタンも数も出さない）・トップの保留は今までどおり', JSON.stringify(rh));
+      /* その他の答えの入口も無い（db/contrib.sql を貼る前）── 同じく、タブは出て中身は1行だけ */
+      const ot = await page.evaluate(() => {
+        const btn = document.getElementById('tab-btn-otx');
+        if (btn) switchTab('otx', btn);
+        const r = { btn: !!btn, vis: getComputedStyle(document.getElementById('tab-otx')).display !== 'none',
+          text: document.getElementById('otx-list').textContent.trim(), cards: document.querySelectorAll('#otx-list .rh-card, #otx-list [data-otx]').length,
+          n: document.getElementById('otx-n').textContent };
+        switchTab('users', document.querySelector('.tab-btn'));
+        return r;
+      });
+      ok(ot.btn && ot.vis && ot.cards === 0 && ot.n === ''
+         && ot.text === (lang === 'en' ? 'Not available yet (it works once db/contrib.sql has been applied).' : 'まだ使えません（db/contrib.sql を貼ると使えます）。'),
+         'OT0 その他の答えの入口がまだ無い：タブは出て、中身は「まだ使えません」の1行だけ（ボタンも数も出さない）', JSON.stringify(ot));
     }
     if (c.key === 'rhash') await reviewHoldHash(page, lang, url).catch((e) => ok(false, 'RH 保留の通知メールのリンクの場面が途中で止まった', String(e && e.message || e).slice(0, 200)));
     if (c.key === 'usd') {
@@ -1716,8 +1816,8 @@ for (const lang of ['ja', 'en']) {
       const rpc0 = await page.evaluate(() => window.__rpc.slice());
       /* 4本目の admin_list_proofs は本番の「資格確認」（db/pilot-proof.sql・運営が提出された画像を確かめる表）。運営みんなの入口で、
          オーナーだけの2つの一覧（pv_stay_applicants・pv_stay_members）とは別（deploy-checklist の 26 番） */
-      ok(rpc0.join(',') === 'pv_is_admin,admin_list_profiles,admin_list_reviews,admin_list_proofs,admin_list_top_holds,admin_list_review_holds,admin_roster_images,pv_town_queue,pv_stay_queue,pv_stay_applicants,pv_stay_members',
-         '★O7 オーナーも、開いたときに呼ぶのはこの11だけ（資格確認・トップの保留・口コミの確認・読めなかった勤務表の表は運営みんなの入口・申請してきた人 → 会員一覧は管理者と分かったあと・画像と verified は押したときだけ）', rpc0.join(','));
+      ok(rpc0.join(',') === 'pv_is_admin,admin_list_profiles,admin_list_reviews,admin_list_proofs,admin_list_top_holds,admin_list_review_holds,admin_roster_images,admin_list_other_texts,pv_town_queue,pv_stay_queue,pv_stay_applicants,pv_stay_members',
+         '★O7 オーナーも、開いたときに呼ぶのはこの12だけ（資格確認・トップの保留・口コミの確認・読めなかった勤務表・その他の答えの表は運営みんなの入口・申請してきた人 → 会員一覧は管理者と分かったあと・画像と verified は押したときだけ）', rpc0.join(','));
       await ownerChecks(page, lang).catch((e) => ok(false, 'O オーナーの場面が途中で止まった', String(e && e.message || e).slice(0, 200)));
     }
 

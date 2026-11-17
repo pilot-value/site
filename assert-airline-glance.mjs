@@ -2398,11 +2398,12 @@ const BEN_ROWS = [
    want.cue ＝ カードに出る誘いの行が指す続きの質問（無ければ誘いの行は無い）・want.line ＝ カードの中に出る続きの1行（続きの質問・答えの符号）。 */
 const CUE_ROWS = [
   { question_id: 'days_off_request', kind: 'choice', n: 11, lead: ['partial'], median_num: null, ym: '2026-11', want: { cue: 'days_off_request_partial' } },
-  { question_id: 'schedule_bidding', kind: 'choice', n: 11, lead: ['partial'], median_num: null, ym: '2026-11', want: { line: ['schedule_bidding_partial', 'seniority'] } },
-  { question_id: 'schedule_bidding_partial', kind: 'choice', n: 3, lead: ['seniority'], median_num: null, ym: '2026-11', want: {} },
+  /* ★2026-11-16 続きの質問は複数選ぶ（オーナー承認）。最多が2つ並んだ続きは、台帳の並びで「、」でつないだ1行 */
+  { question_id: 'schedule_bidding', kind: 'choice', n: 11, lead: ['partial'], median_num: null, ym: '2026-11', want: { line: ['schedule_bidding_partial', ['few_bids', 'seniority']] } },
+  { question_id: 'schedule_bidding_partial', kind: 'multi', n: 3, lead: ['seniority', 'few_bids'], median_num: null, ym: '2026-11', want: {} },
   { question_id: 'reserve_duty', kind: 'choice', n: 3, lead: ['yes'], median_num: null, ym: '2026-08', want: {} },
   { question_id: 'roster_changes', kind: 'choice', n: 4, lead: [], median_num: null, ym: '2026-10', want: { line: ['roster_changes_split', 'fleet'] } },
-  { question_id: 'roster_changes_split', kind: 'choice', n: 3, lead: ['fleet'], median_num: null, ym: '2026-10', want: {} },
+  { question_id: 'roster_changes_split', kind: 'multi', n: 3, lead: ['fleet'], median_num: null, ym: '2026-10', want: {} },
   { question_id: 'external_hiring', kind: 'choice', n: 10, lead: [], median_num: null, ym: '2026-11', want: { cue: 'external_hiring_split' } },
   /* 「一部」の印（条件付きで使える）でも、続きの質問を持たない親には誘いの行を出さない */
   { question_id: 'commuting_transport', kind: 'choice', n: 3, lead: ['conditional'], median_num: null, ym: '2026-09', want: {} },
@@ -8358,7 +8359,8 @@ async function runGiveOpen(browser, s, [w, h]) {
           if (t.cue.text !== q.ja.cue + ' 教える') bad.push(`c5 「${t.k}」の誘いの字「${t.cue.text}」（あるべき「${q.ja.cue} 教える」）`);
         } else if (t.cue) bad.push(`c${f.question_id === 'commuting_transport' ? 4 : 1} 「${t.k}」に誘いの行がある（${t.cue.q}）`);
         if (f.want.line) {
-          const [id, code] = f.want.line, q = QBY.get(id), name = q.choices.find(c => c.code === code).ja;
+          const [id, code] = f.want.line, q = QBY.get(id), want = [].concat(code);
+          const name = q.choices.filter(c => want.includes(c.code)).map(c => c.ja).join('、');
           if (!t.lines.some(l => l === q.ja.short + name)) bad.push(`c3 「${t.k}」に続きの1行「${q.ja.short}：${name}」が無い（${t.lines.join('｜') || '無し'}）`);
         }
       }

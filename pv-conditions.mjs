@@ -36,6 +36,15 @@
 //   （型から作る ＝ 下の withSplit）。どちらも一覧の行にも「答えた項目」の数にも入れない ＝ 上の数は変わらない。
 //   差し込む場所を空けるため priority をすべて10倍にした（並ぶ順は1つも変わらない）。下の注記にある番号は10倍する前のもの。
 //
+// ★2026-11-16、続きの質問21問と着陸手当の「何で変わるか」を**複数選ぶ**にした（オーナー承認。会員の声
+//   「いくつも当てはまるときは何を選べばいい？」「答えの選択肢をもっと増やして」「自分で答えを書けるその他が欲しい」）。
+//   ・「いくつか当てはまる・その他」（mixed）は外した。当てはまるものを全部選んでもらう（「わからない」は画面が足す）。
+//   ・どの問も最後に「その他」（other）を置き、選んだ人にだけ1行の欄（100字まで）を出す（otherText）。
+//     書いた字は答えと一緒に answer_text へ入る。会社ページに出すのは**運営が「載せる」を押した字だけ**
+//     （admin.html の「その他の答え」・db/contrib.sql の admin_other_text_decide）。ほかの補足は今までどおり。
+//   ・選択肢を足した（コードは足すだけ・今までのコードは1つも変えていない）。mixed で入っていた答えは other として読む
+//     （db/airline-conditions.sql の pv_condition_clean と、既存の行を直す1回の update）。
+//
 // ★2026-08-19、社用航空券と出退社の移動を6問だけ足して 26→32 にした（オーナー指示）。
 //   提案は15問あったが、落としたのは「誰が使えるか／路線の範囲／年間上限／自己負担額／
 //   タクシーが使える条件」。転職の判断が変わるのは、制度の有無・座席が確保できるか・
@@ -283,6 +292,12 @@ export const ASK = [
                ★どちらも「質問の一覧の行」「質問 N問」「答えた項目：N／◯」に数えない（DB の deep 列。数えないのは db/airline-conditions.sql）。
                ★答える画面では親のすぐ下に出る。会社ページのカードの集計には入る（親のカードの中の1行）。
                ★ja.cue / en.cue ＝ 会社ページのカードに置く誘いの字（「どんな形で一部可能？」）。deep の質問だけが持つ。
+               ★2026-11-16 から全部「複数選ぶ＋その他の欄」（multi・otherText）。gen-conditions.mjs が検査する。
+   otherText … 「その他」（other）を選んだ人にだけ、1行の欄（100字まで・OTHER_TEXT_MAX）を出す（2026-11-16 オーナー承認
+               「自分で答えを書けるその他が欲しい」）。書いた字は answer_text に入る（other を選んでいないときは保存しない）。
+               ★会社ページに出すのは、運営が管理画面の「その他の答え」で「載せる」を押した字だけ（airline_conditions.text_ok）。
+               ★この印のある質問には補足（note）の欄を出さない（同じ answer_text を2つの欄で書かせない）。
+               ★選ぶ質問だけ・選択肢に other が要る（gen-conditions.mjs と DB の pv_cq_other_text_ck が止める）。
    topicOnly … 話題の入口から来た人に**だけ**出す。提出直後の1問枠にも一覧にも出さず、
                「あなたが答えた項目：N／48」の分母にも分子にも数えない
                （1問枠に出さない・数えないを決めているのは db/airline-conditions.sql。
@@ -319,20 +334,22 @@ const BASE = [
   {
     /* ★「一部」の答えの続き（deep:'partial'・2026-11-14 オーナー指示「一部可能にはもう一つ突っ込んで質問して欲しい」）。
        親にその答えをした本人にだけ、親のすぐ下で聞く（会社ページのカードは「どんな形で一部可能？ 教える ›」から来る）。 */
-    id: 'days_off_request_partial', version: 1, section: 'roster', kind: 'choice',
-    tier: 'A', micro: false, priority: 111, note: true, deep: 'partial',
+    id: 'days_off_request_partial', version: 1, section: 'roster', kind: 'multi',
+    tier: 'A', micro: false, priority: 111, otherText: true, deep: 'partial',
     parent: 'days_off_request', parentWhen: ['partial'],
     ja: { short: '希望休の制限', label: '希望休は、どんな形で一部だけ指定できますか？',
-          help: 'いちばん近いものを1つ選んでください。', cue: 'どんな形で一部可能？' },
+          help: '当てはまるものを全部選んでください。', cue: 'どんな形で一部可能？' },
     en: { short: 'Day-off request limits', label: 'How are day-off requests limited?',
-          help: 'Pick the closest one.', cue: 'Partly — how?' },
+          help: 'Pick all that apply.', cue: 'Partly — how?' },
+    /* ★2026-11-16 複数選ぶ＋その他の欄に（冒頭の注記）。mixed は外した・コードは足すだけ */
     choices: [
       { code: 'cap',            ja: '月に指定できる日数に上限がある',          en: 'Capped at a set number of days per month' },
       { code: 'seniority',      ja: '先任順位（Seniority）の順に通る',         en: 'Granted in seniority order' },
       { code: 'peak',           ja: '繁忙期（年末年始・夏など）は指定できない', en: 'Not available in peak periods (holidays, summer)' },
       { code: 'not_guaranteed', ja: '出せるが、通るとは限らない',              en: 'You can request, but it is not guaranteed' },
-      { code: 'mixed',          ja: 'いくつか当てはまる・その他',              en: 'Several of these / other' },
-      { code: UNKNOWN,          ja: 'わからない',                              en: "Don't know" },
+      { code: 'no_consecutive', ja: '連休にする指定はできない',                en: "Consecutive days off can't be requested" },
+      { code: 'early_deadline', ja: '申し込みの期限が早い',                    en: 'The request deadline is early' },
+      { code: 'other',          ja: 'その他',                                  en: 'Other' },
     ],
   },
   {
@@ -369,20 +386,21 @@ const BASE = [
     ],
   },
   {
-    id: 'schedule_bidding_partial', version: 1, section: 'roster', kind: 'choice',
-    tier: 'A', micro: false, priority: 131, note: true, deep: 'partial',
+    id: 'schedule_bidding_partial', version: 1, section: 'roster', kind: 'multi',
+    tier: 'A', micro: false, priority: 131, otherText: true, deep: 'partial',
     parent: 'schedule_bidding', parentWhen: ['partial'],
     ja: { short: '勤務の希望の制限', label: '勤務スケジュールの希望は、どんな形で一部だけ出せますか？',
-          help: 'いちばん近いものを1つ選んでください。', cue: 'どんな形で一部可能？' },
+          help: '当てはまるものを全部選んでください。', cue: 'どんな形で一部可能？' },
     en: { short: 'Bidding limits', label: 'How is roster bidding limited?',
-          help: 'Pick the closest one.', cue: 'Partly — how?' },
+          help: 'Pick all that apply.', cue: 'Partly — how?' },
     choices: [
       { code: 'few_items',      ja: '出せる項目が限られる（休日だけ など）', en: 'Only some items can be bid (e.g. days off only)' },
       { code: 'few_bids',       ja: '出せる件数が限られる',                  en: 'Only a limited number of bids' },
       { code: 'seniority',      ja: '先任順位（Seniority）の順に通る',       en: 'Awarded in seniority order' },
       { code: 'not_guaranteed', ja: '出せるが、通るとは限らない',            en: 'Bids are not guaranteed' },
-      { code: 'mixed',          ja: 'いくつか当てはまる・その他',            en: 'Several of these / other' },
-      { code: UNKNOWN,          ja: 'わからない',                            en: "Don't know" },
+      { code: 'some_bases',     ja: '一部の拠点・機種だけ出せる',            en: 'Only at some bases or fleets' },
+      { code: 'some_periods',   ja: '決まった時期だけ出せる',                en: 'Only in certain periods' },
+      { code: 'other',          ja: 'その他',                                en: 'Other' },
     ],
   },
   {
@@ -444,21 +462,22 @@ const BASE = [
     en: { short: 'Reserve days', label: 'How many days per month on average?', help: 'A recent typical month is fine.' },
   },
   {
-    id: 'reserve_duty_who', version: 1, section: 'roster', kind: 'choice',
-    tier: 'A', micro: false, priority: 171, note: true, deep: 'partial',
+    id: 'reserve_duty_who', version: 1, section: 'roster', kind: 'multi',
+    tier: 'A', micro: false, priority: 171, otherText: true, deep: 'partial',
     parent: 'reserve_duty', parentWhen: ['some_pilots'],
     ja: { short: 'Reserve の対象', label: 'Reserve / Standby 勤務があるのは、どのパイロットですか？',
-          help: 'いちばん近いものを1つ選んでください。', cue: 'どのパイロット？' },
+          help: '当てはまるものを全部選んでください。', cue: 'どのパイロット？' },
     en: { short: 'Who does reserve', label: 'Which pilots do reserve / standby duty?',
-          help: 'Pick the closest one.', cue: 'Which pilots?' },
+          help: 'Pick all that apply.', cue: 'Which pilots?' },
     choices: [
-      { code: 'junior',   ja: '先任順位の低いパイロット',     en: 'Junior pilots (low seniority)' },
-      { code: 'rank',     ja: '機長だけ、または副操縦士だけ', en: 'Captains only, or first officers only' },
-      { code: 'fleet',    ja: '一部の機種',                   en: 'Some fleets' },
-      { code: 'base',     ja: '一部の拠点',                   en: 'Some bases' },
-      { code: 'contract', ja: '一部の契約の形',               en: 'Some contract types' },
-      { code: 'mixed',    ja: 'いくつか当てはまる・その他',   en: 'Several of these / other' },
-      { code: UNKNOWN,    ja: 'わからない',                   en: "Don't know" },
+      { code: 'junior',      ja: '先任順位の低いパイロット',     en: 'Junior pilots (low seniority)' },
+      { code: 'rank',        ja: '機長だけ、または副操縦士だけ', en: 'Captains only, or first officers only' },
+      { code: 'fleet',       ja: '一部の機種',                   en: 'Some fleets' },
+      { code: 'base',        ja: '一部の拠点',                   en: 'Some bases' },
+      { code: 'contract',    ja: '一部の契約の形',               en: 'Some contract types' },
+      { code: 'new_joiners', ja: '入社・昇格して間もない人',     en: 'Pilots who recently joined or upgraded' },
+      { code: 'volunteers',  ja: '本人が希望した人',             en: 'Pilots who volunteer' },
+      { code: 'other',       ja: 'その他',                       en: 'Other' },
     ],
   },
   {
@@ -540,21 +559,23 @@ const BASE = [
     ],
   },
   {
-    id: 'external_hiring_conditions', version: 1, section: 'career', kind: 'choice',
-    tier: 'A', micro: false, priority: 221, note: true, deep: 'partial',
+    id: 'external_hiring_conditions', version: 1, section: 'career', kind: 'multi',
+    tier: 'A', micro: false, priority: 221, otherText: true, deep: 'partial',
     parent: 'external_hiring', parentWhen: ['conditional'],
-    ja: { short: '中途入社の条件', label: '他社からの中途入社には、主にどんな条件がありますか？',
-          help: 'いちばん大きい条件を1つ選んでください。', cue: 'どんな条件？' },
-    en: { short: 'Direct entry conditions', label: 'What is the main condition for joining from another airline?',
-          help: 'Pick the one that matters most.', cue: 'What conditions?' },
+    /* ★2026-11-16 複数選ぶにしたので「主に」「いちばん大きい条件」をやめた（質問の id は同じ） */
+    ja: { short: '中途入社の条件', label: '他社からの中途入社には、どんな条件がありますか？',
+          help: '当てはまるものを全部選んでください。', cue: 'どんな条件？' },
+    en: { short: 'Direct entry conditions', label: 'What are the conditions for joining from another airline?',
+          help: 'Pick all that apply.', cue: 'What conditions?' },
     choices: [
       { code: 'type_rating', ja: '同じ機種の資格・経験（Type Rating）', en: 'A type rating or time on type' },
       { code: 'hours',       ja: '総飛行時間',                         en: 'Total flight hours' },
       { code: 'command',     ja: '機長経験',                           en: 'Command experience' },
       { code: 'license',     ja: '免許の発行国・就労資格',             en: 'Licence state of issue or right to work' },
       { code: 'timing',      ja: '募集がある時期だけ',                 en: 'Only when a hiring round is open' },
-      { code: 'mixed',       ja: 'いくつか当てはまる・その他',         en: 'Several of these / other' },
-      { code: UNKNOWN,       ja: 'わからない',                         en: "Don't know" },
+      { code: 'age',         ja: '年齢',                               en: 'Age' },
+      { code: 'english',     ja: '英語力（ICAO の英語能力など）',      en: 'English proficiency (e.g. ICAO level)' },
+      { code: 'other',       ja: 'その他',                             en: 'Other' },
     ],
   },
   {
@@ -591,19 +612,20 @@ const BASE = [
     en: { short: 'Bond amount', label: 'How much is the bond?', help: 'The full amount at the time of joining is fine.' },
   },
   {
-    id: 'training_bond_conditions', version: 1, section: 'career', kind: 'choice',
-    tier: 'A', micro: false, priority: 251, note: true, deep: 'partial',
+    id: 'training_bond_conditions', version: 1, section: 'career', kind: 'multi',
+    tier: 'A', micro: false, priority: 251, otherText: true, deep: 'partial',
     parent: 'training_bond', parentWhen: ['conditional'],
     ja: { short: 'Bond が付く場合', label: '訓練費の Bond は、どんな場合に付きますか？',
-          help: 'いちばん近いものを1つ選んでください。', cue: 'どんな場合？' },
+          help: '当てはまるものを全部選んでください。', cue: 'どんな場合？' },
     en: { short: 'When a bond applies', label: 'When does a training bond apply?',
-          help: 'Pick the closest one.', cue: 'When does it apply?' },
+          help: 'Pick all that apply.', cue: 'When does it apply?' },
     choices: [
       { code: 'type_rating', ja: '機種移行（Type Rating）の訓練', en: 'Type-rating training' },
       { code: 'cadet',       ja: '自社養成（Cadet）の訓練',       en: 'Cadet (ab initio) training' },
       { code: 'contract',    ja: '契約の形による',                en: 'Depends on contract type' },
-      { code: 'mixed',       ja: 'いくつか当てはまる・その他',    en: 'Several of these / other' },
-      { code: UNKNOWN,       ja: 'わからない',                    en: "Don't know" },
+      { code: 'upgrade',     ja: '機長昇格の訓練',                en: 'Command upgrade training' },
+      { code: 'initial',     ja: '入社時の初期訓練',              en: 'Initial training on joining' },
+      { code: 'other',       ja: 'その他',                        en: 'Other' },
     ],
   },
   {
@@ -856,23 +878,24 @@ const BASE = [
           help: 'Optional. Filling in just one end is fine.' },
   },
   {
-    id: 'landing_pay_varies_by', version: 1, section: 'benefits', kind: 'choice',
-    /* ★複数選択にしない。一覧のページ（pv-conditions.js）は、複数選択の質問に補足を保存できない。
-         1つに決められない人のために「いくつかの条件で変わる・その他」を置き、細かい条件は補足へ
-         （自由記述は公開集計に一切出さない）。 */
-    tier: 'C', micro: false, priority: 550, note: true,
+    id: 'landing_pay_varies_by', version: 1, section: 'benefits', kind: 'multi',
+    /* ★2026-11-16 複数選ぶ＋その他の欄にした（冒頭の注記）。それまでは「一覧のページが複数選ぶ質問に補足を保存できない」
+         ので1つ選ぶにして「いくつかの条件で変わる・その他」を置いていた。いまは一覧のページもその他の字を保存する。
+         ★細かい条件は「その他」の欄へ（会社ページに出すのは運営が載せた字だけ）。 */
+    tier: 'C', micro: false, priority: 550, otherText: true,
     parent: 'landing_pay', parentWhen: ['variable'],
     ja: { short: '着陸手当の決まり方', label: '着陸手当の額は何で変わりますか？',
-          help: 'いちばん大きく効くものを1つ選んでください。細かい条件は補足に書けます。' },
+          help: '当てはまるものを全部選んでください。' },
     en: { short: 'Landing pay varies by', label: 'What does the landing allowance vary by?',
-          help: 'Pick the one that matters most. You can add details in the note.' },
+          help: 'Pick all that apply.' },
     choices: [
-      { code: 'aircraft', ja: '機種',                           en: 'Aircraft type' },
-      { code: 'airport',  ja: '空港・路線',                     en: 'Airport or route' },
-      { code: 'rank',     ja: '職位',                           en: 'Rank' },
-      { code: 'count',    ja: '月の着陸回数',                   en: 'Number of landings in the month' },
-      { code: 'mixed',    ja: 'いくつかの条件で変わる・その他', en: 'Several of these / other' },
-      { code: UNKNOWN,    ja: 'わからない',                     en: "Don't know" },
+      { code: 'aircraft',    ja: '機種',                   en: 'Aircraft type' },
+      { code: 'airport',     ja: '空港・路線',             en: 'Airport or route' },
+      { code: 'rank',        ja: '職位',                   en: 'Rank' },
+      { code: 'count',       ja: '月の着陸回数',           en: 'Number of landings in the month' },
+      { code: 'time_of_day', ja: '時間帯（深夜・早朝）',   en: 'Time of day (late night, early morning)' },
+      { code: 'seniority',   ja: '在籍年数・先任順位',     en: 'Years of service or seniority' },
+      { code: 'other',       ja: 'その他',                 en: 'Other' },
     ],
   },
   {
@@ -1097,19 +1120,20 @@ const BASE = [
     ],
   },
   {
-    id: 'staff_travel_who', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'A', micro: false, priority: 661, topic: 'staff_travel', note: true, deep: 'partial',
+    id: 'staff_travel_who', version: 1, section: 'benefits', kind: 'multi',
+    tier: 'A', micro: false, priority: 661, topic: 'staff_travel', otherText: true, deep: 'partial',
     parent: 'staff_travel', parentWhen: ['some_pilots'],
     ja: { short: '社員航空券の対象', label: '社員航空券を使えるのは、どのパイロットですか？',
-          help: 'いちばん近いものを1つ選んでください。', cue: 'どのパイロット？' },
+          help: '当てはまるものを全部選んでください。', cue: 'どのパイロット？' },
     en: { short: 'Who is eligible', label: 'Which pilots are eligible for staff travel?',
-          help: 'Pick the closest one.', cue: 'Which pilots?' },
+          help: 'Pick all that apply.', cue: 'Which pilots?' },
     choices: [
-      { code: 'contract', ja: '契約の形による（直接雇用・Expat 契約・派遣など）', en: 'Depends on contract (direct, expat, agency)' },
-      { code: 'service',  ja: '一定の在籍期間を過ぎた人',                       en: 'Only after a qualifying period of service' },
-      { code: 'base',     ja: '一部の拠点',                                     en: 'Some bases' },
-      { code: 'mixed',    ja: 'いくつか当てはまる・その他',                     en: 'Several of these / other' },
-      { code: UNKNOWN,    ja: 'わからない',                                     en: "Don't know" },
+      { code: 'contract',  ja: '契約の形による（直接雇用・Expat 契約・派遣など）', en: 'Depends on contract (direct, expat, agency)' },
+      { code: 'service',   ja: '一定の在籍期間を過ぎた人',                       en: 'Only after a qualifying period of service' },
+      { code: 'base',      ja: '一部の拠点',                                     en: 'Some bases' },
+      { code: 'rank',      ja: '職位（機長だけ など）',                          en: 'By rank (e.g. captains only)' },
+      { code: 'probation', ja: '訓練中・試用期間中は使えない',                   en: 'Not during training or probation' },
+      { code: 'other',     ja: 'その他',                                         en: 'Other' },
     ],
   },
   {
@@ -1339,15 +1363,19 @@ const BASE = [
      （出したあとに同点が崩れても、もらった答えは捨てない）。
    ★続きの質問（deep）は「質問の一覧の行」にも「答えた項目：N／◯」にも数えない ＝ 冒頭の「これ以上、質問を増やさない」の数は変わらない。
    ★選ぶ答えは全部の親で同じ（並びも同じ）。並び順の番号は、親の続き（子・孫・「一部」の続き）のすぐ後ろ ＋1。 */
+/* ★2026-11-16 複数選ぶ＋その他の欄にした（冒頭の注記）。足したコードは tenure・route・no_rule・other。
+     mixed（いくつか当てはまる・その他）と unknown は外した（複数選ぶ質問の「わからない」は画面が足す）。 */
 const SPLIT_CHOICES = [
   { code: 'rank',      ja: '職位（機長・副操縦士）',     en: 'Rank (captain or first officer)' },
   { code: 'fleet',     ja: '機種',                       en: 'Fleet' },
   { code: 'base',      ja: '拠点',                       en: 'Base' },
   { code: 'seniority', ja: '先任順位（Seniority）',      en: 'Seniority' },
-  { code: 'contract',  ja: '契約の形',                   en: 'Contract type' },
+  { code: 'tenure',    ja: '在籍年数',                   en: 'Years of service' },
+  { code: 'contract',  ja: '契約の形（直接雇用・Expat・派遣など）', en: 'Contract type (direct, expat, agency, etc.)' },
+  { code: 'route',     ja: '路線（国内線・国際線など）', en: 'Route (domestic, international, etc.)' },
   { code: 'changed',   ja: '最近、制度が変わった',       en: 'The policy changed recently' },
-  { code: 'mixed',     ja: 'いくつか当てはまる・その他', en: 'Several of these / other' },
-  { code: UNKNOWN,     ja: 'わからない',                 en: "Don't know" },
+  { code: 'no_rule',   ja: '決まった基準が無い（その時々で違う）', en: 'No fixed rule (case by case)' },
+  { code: 'other',     ja: 'その他',                     en: 'Other' },
 ];
 const splitOf = (p) => !p.parent && p.kind === 'choice' && !p.isOpinion && !p.topicOnly && !p.retired;
 function withSplit(list) {
@@ -1360,14 +1388,14 @@ function withSplit(list) {
     const priority = prev.priority + 1;
     if (next && priority >= next.priority) throw new Error(`withSplit: ${p.id} の続きを置く番号が無い（${prev.id} の次 ${priority} が ${next.id} と並ぶ）`);
     out.splice(i, 0, {
-      id: `${p.id}_split`, version: 1, section: p.section, kind: 'choice',
-      tier: p.tier, micro: false, priority, note: true, deep: 'split',
+      id: `${p.id}_split`, version: 1, section: p.section, kind: 'multi',
+      tier: p.tier, micro: false, priority, otherText: true, deep: 'split',
       ...(p.topic ? { topic: p.topic } : {}),
       parent: p.id, parentWhen: p.choices.map((c) => c.code).filter((c) => c !== UNKNOWN),
       ja: { short: '何で違うか', label: `「${p.ja.short}」は、同じ会社の中で何によって違いますか？`,
-            help: '同じ会社でも、パイロットによって答えが違うことがあります。いちばん大きく効くものを1つ選んでください。', cue: '何によって違う？' },
+            help: '同じ会社でも、パイロットによって答えが違うことがあります。当てはまるものを全部選んでください。', cue: '何によって違う？' },
       en: { short: 'What it varies by', label: `Within the same airline, what does “${p.en.short}” vary by?`,
-            help: 'Pilots at the same airline sometimes answer differently. Pick the factor that matters most.', cue: 'What does it vary by?' },
+            help: 'Pilots at the same airline sometimes answer differently. Pick all that apply.', cue: 'What does it vary by?' },
       choices: SPLIT_CHOICES.map((c) => ({ ...c })),
     });
   }
@@ -1378,6 +1406,10 @@ export const QUESTIONS = withSplit(BASE);
 /* 自由記述の上限。DB 側の check 制約と画面の maxlength を同じ数にするため
    ここから配る。★長い文章は個人特定の材料になるので、そもそも長く書かせない。 */
 export const TEXT_MAX = 300;
+
+/* 「その他」の欄（otherText）の上限（2026-11-16）。1行で書けるだけ ＝ 画面の maxlength とサーバの断り（pv_condition_clean）を
+   同じ数にする（gen-conditions.mjs が pv-conditions.json の limits と pv_condition_limits() へ配る）。 */
+export const OTHER_TEXT_MAX = 100;
 
 /* 明細行（kind:'lines'）の上限。★今この形の質問は無い（手当の明細は見送り）。
    縦持ちなので、足すときは DB を変えずにこのファイルの編集だけで済む。

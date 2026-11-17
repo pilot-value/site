@@ -44,6 +44,7 @@
 --        給与の鍵が生きている ＋ ほかの会社          … 自分の会社に5つ答えた人にだけ、全部
 --      決めるのは 6-b の pv_contrib_sees の1か所。
 --      「見せます」と書いた画面から送られた補足（text_shared）だけ。昔の補足は本人だけのまま。
+--      ★「その他」の欄の字（質問マスタの other_text・2026-11-16）は、そのうえ運営が「載せる」を押した字だけ（text_ok・7-0）。
 --   7. **他人の回答の集計も、同じ決まりで返す。** 集計のビュー（airline_condition_facts）は
 --      誰にも直接読ませない。読む口は pv_contrib_facts の1つで、「誰に何を見せるか」は
 --      補足と同じ pv_contrib_sees の1か所。3人の壁はその上に乗ったまま（代わりにはしない）。
@@ -83,6 +84,12 @@ begin
      or to_regprocedure('public.pv_town_held_json(jsonb)') is null
      or to_regprocedure('public.pv_town_newer(uuid, jsonb, timestamp with time zone)') is null then
     raise exception '先に db/towns.sql を実行してください（pv_town_clean / submit_town_post / pv_town_held_json / pv_town_newer が無い）';
+  end if;
+  -- 「その他」の字を運営が載せたかの印（2026-11-16・7 と 7-0）。★いちばん最後に探す（前の案内の順を変えない）
+  if not exists (select 1 from information_schema.columns
+                  where table_schema = 'public' and table_name = 'airline_conditions'
+                    and column_name = 'text_ok') then
+    raise exception '先に db/airline-conditions.sql を実行し直してください（airline_conditions に text_ok の列が無い）';
   end if;
 end $$;
 
@@ -1383,6 +1390,10 @@ comment on function public.pv_contrib_give(jsonb) is
 --   並びも時刻にしない（新しい順にすると「さっき出した人」が分かる）。
 -- ★返すのは会員の行だけ（預かり＝未ログインのままの回答は出さない）。自由入力の社名も出さない。
 -- ★1社につき40件まで（並びは行ごとに決まった順 ＝ 開くたびに入れ替わらない）。
+-- ★「その他」の欄の字（質問マスタの other_text・2026-11-16 オーナー承認「その他の字は運営が確認してから載せる」）は、
+--   運営が管理画面の「その他の答え」で「載せる」を押した字だけ（airline_conditions.text_ok が true）。
+--   書いた本人にも、載るまでは返さない（「あなたの投稿」と並ぶと、もう載ったと読める）。
+--   ⚠️ この1行を外すと、確かめていない字がそのまま会社ページに出る（壊す証明が db/test-contrib.mjs ▼8-5 にある）。
 create or replace function public.pv_contrib_notes(p jsonb default '{}'::jsonb)
 returns jsonb
 language plpgsql
@@ -1421,6 +1432,7 @@ begin
        and c.airline_other is null
        and c.text_shared
        and c.answer_text is not null
+       and (not q.other_text or c.text_ok is true)
        -- ★親の条件が、いちばん上まで続いている回答の補足だけを見せる（2026-10-09）。
        --   上の質問を「ない」に答え直した人の、その下の質問への古い補足を見せ続けない
        --   （公開集計と同じ決め方 ＝ db/airline-conditions.sql の 9）。行は消していないので、
@@ -1458,6 +1470,100 @@ grant execute on function public.pv_contrib_notes(jsonb) to anon, authenticated;
 
 comment on function public.pv_contrib_notes(jsonb) is
   '他人の補足。見せてよいかは pv_contrib_sees が決める（開いていない人には状態の1語だけ）。返すのは文と質問の id だけ。';
+
+
+-- ════════════════════════════════════════════════════════════════
+-- 7-0. 「その他」の答えの字を、運営が「載せる／載せない」（2026-11-16）
+-- ════════════════════════════════════════════════════════════════
+-- ★オーナー承認「その他を選んだら自分で書ける欄を。書いた字は運営が確認してから会社ページに載せる」。
+--   管理画面のタブ「その他の答え」（admin.html#other-texts）が呼ぶ。運営だけ（名簿は pv_is_admin・db/admin.sql）。
+--   ・admin_list_other_texts … その他の欄のある質問（other_text）の字を、確認待ちが先・新しい順で200件まで。
+--     返すのは 行の id・会社・質問の id・字・書いた（直した）時刻・載せたかの印 だけ。
+--     ⚠️ proof_hash・職位・機種・基地・契約・選んだ答え・言語は返さない（誰の字かを運営にも辿らせない）。
+--     ⚠️ 載せられない字は並べない ── 見せてよい印の無い昔の補足（本人だけ）・社名を打った行（社名そのものが印）。
+--   ・admin_other_text_decide … true ＝ 載せる／false ＝ 載せない（どちらも、あとから押し直せる）。
+--     p_text を渡したときは、いまの字がそれと同じときだけ決める（一覧を開いたあとに本人が書き直した字を、
+--     見ないまま載せない）。違えば { ok:false, reason:'changed' }。
+--   字が変わると、引き金（db/airline-conditions.sql の pv_condition_text_recheck）が印を確認待ちへ戻す。
+create or replace function public.admin_list_other_texts()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public, extensions
+as $fn$
+declare v jsonb;
+begin
+  if not public.pv_is_admin() then
+    raise exception '管理者ではありません' using errcode = '42501';
+  end if;
+  select coalesce(jsonb_agg(x.o order by x.open desc, x.at desc, x.id), '[]'::jsonb)
+    into v
+    from (
+      select (c.text_ok is null) as open, c.updated_at as at, c.id,
+             jsonb_build_object(
+               'id',          c.id,
+               'airline',     c.airline,
+               'name_ja',     a.name_ja,
+               'name_en',     a.name_en,
+               'question_id', c.question_id,
+               'text',        c.answer_text,
+               'updated_at',  c.updated_at,
+               'text_ok',     c.text_ok
+             ) as o
+        from public.airline_conditions c
+        join public.pv_condition_questions q on q.id = c.question_id and q.other_text
+        left join public.pv_airlines a on a.code = c.airline
+       where c.answer_text is not null
+         and c.text_shared
+         and c.airline_other is null
+       order by (c.text_ok is null) desc, c.updated_at desc, c.id
+       limit 200
+    ) x;
+  return v;
+end
+$fn$;
+revoke all on function public.admin_list_other_texts() from public, anon;
+grant execute on function public.admin_list_other_texts() to authenticated;
+
+create or replace function public.admin_other_text_decide(p_id uuid, p_ok boolean, p_text text default null)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = public, extensions
+as $fn$
+declare v_text text;
+begin
+  if not public.pv_is_admin() then
+    raise exception '管理者ではありません' using errcode = '42501';
+  end if;
+  if p_id is null or p_ok is null then
+    return jsonb_build_object('ok', false, 'reason', 'bad_decision');
+  end if;
+  select c.answer_text into v_text
+    from public.airline_conditions c
+    join public.pv_condition_questions q on q.id = c.question_id and q.other_text
+   where c.id = p_id and c.answer_text is not null and c.text_shared and c.airline_other is null
+   for update of c;
+  if not found then
+    return jsonb_build_object('ok', false, 'reason', 'not_found');
+  end if;
+  if p_text is not null and v_text is distinct from p_text then
+    return jsonb_build_object('ok', false, 'reason', 'changed');
+  end if;
+  -- ★印だけを書く（字・答え・updated_at は触らない ＝ 「最後に確かめた日」は本人の日のまま）
+  update public.airline_conditions set text_ok = p_ok where id = p_id;
+  return jsonb_build_object('ok', true, 'text_ok', p_ok);
+end
+$fn$;
+revoke all on function public.admin_other_text_decide(uuid, boolean, text) from public, anon;
+grant execute on function public.admin_other_text_decide(uuid, boolean, text) to authenticated;
+
+comment on function public.admin_list_other_texts() is
+  '運営だけ。「その他」の欄の字（確認待ちが先）。返すのは行の id・会社・質問の id・字・時刻・載せたかの印だけ（誰の字かは返さない）。';
+comment on function public.admin_other_text_decide(uuid, boolean, text) is
+  '運営だけ。「その他」の欄の字を載せる（true）／載せない（false）。p_text を渡すと、いまの字が同じときだけ決める。';
 
 
 -- ════════════════════════════════════════════════════════════════

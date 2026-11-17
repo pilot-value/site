@@ -2272,6 +2272,50 @@ if (Q_ROOT && Q_ONE && Q_DEEP) {
       }
     }
 
+    /* P. 「その他」の1行の欄（2026-11-16 オーナー承認「自分で答えを書けるその他が欲しい」）── 一覧のページ。
+          ★それまで、複数選ぶ質問の補足は一覧のページから保存できなかった（離れたときの保存が1つ選ぶ答えしか見ていなかった）。
+          見ること: 「その他」を選ぶまで欄は無い／選ぶと出る（100字まで・16px 以上）／離れたら {codes, text} で保存／
+          ほかの答えを足しても字は一緒に送る（送らないとサーバが字を空にする）／「その他」を外すと欄が消え、字は送らない */
+    {
+      const leaks0 = LEAKS.length;
+      const VB = BY.landing_pay_varies_by, LP = BY.landing_pay;
+      const pOk = !!VB && !!LP && VB.kind === 'multi' && VB.otherText === true && VB.choices.some((c) => c.code === 'other');
+      ok(pOk, 'P 「何で変わるか」は複数選ぶ＋その他の欄（バンクから選べる）', JSON.stringify(VB && { kind: VB.kind, otherText: VB.otherText }));
+      if (pOk) {
+        const { page, errs } = await openFull({ lang, query: '?airline=ana', answers: [A(LP.id, VB.parentWhen[0])], judge: true });
+        await ready(page);
+        await page.evaluate(() => { Array.prototype.forEach.call(document.querySelectorAll('details.pvcf-sec'), (x) => { x.open = true; }); });
+        const ROW = '[data-qid="' + VB.id + '"]';
+        const box = () => page.$eval(ROW, (r) => { const i = r.querySelector('[data-other]');
+          return i ? { v: i.value, max: i.maxLength, fs: parseFloat(getComputedStyle(i).fontSize), shown: i.getClientRects().length > 0 } : null; });
+        const sent = () => page.evaluate(() => window.__rpc.filter((x) => x.name === 'submit_airline_conditions').map((x) => x.args.p.answers));
+        const seenP = (n) => page.waitForFunction((n) => (window.__seen || 0) >= n, { timeout: 8000 }, n).then(() => true, () => false);
+        const click = async (code) => { await page.$eval(ROW + ' .pvc-opt[data-code="' + code + '"]', (b) => b.scrollIntoView({ block: 'center' })); await page.click(ROW + ' .pvc-opt[data-code="' + code + '"]'); };
+        ok(await box() === null, 'P 「その他」を選ぶまで、その他の欄は無い');
+        await click('other');
+        let got = await seenP(1), b = await box(), s = await sent();
+        ok(got && !!b && b.shown && b.max === 100 && b.fs >= 16 && JSON.stringify(s.at(-1)) === JSON.stringify([{ codes: ['other'], question_id: VB.id }]),
+           `P 「その他」を選ぶと保存され、1行の欄が出る（100字まで・${b && b.fs}px）`, JSON.stringify({ got, b, s: s.at(-1) }));
+        await page.click(ROW + ' [data-other]');
+        await page.keyboard.type('検査用のその他の字');
+        await page.keyboard.press('Enter');
+        got = await seenP(2); s = await sent();
+        ok(got && JSON.stringify(s.at(-1)) === JSON.stringify([{ codes: ['other'], text: '検査用のその他の字', question_id: VB.id }]),
+           'P ★欄を離れると（Enter）、その他の字を答えと一緒に保存する（{ codes, text }）', JSON.stringify(s.at(-1)));
+        const c0 = VB.choices[0].code;
+        await click(c0);
+        got = await seenP(3); s = await sent();
+        ok(got && JSON.stringify(s.at(-1)) === JSON.stringify([{ codes: ['other', c0], text: '検査用のその他の字', question_id: VB.id }]) && (await box() || {}).v === '検査用のその他の字',
+           'P ほかの答えを足しても、その他の字を一緒に送る（送らないとサーバが字を空にする）・欄の字は残る', JSON.stringify(s.at(-1)));
+        await click('other');
+        got = await seenP(4); s = await sent();
+        ok(got && JSON.stringify(s.at(-1)) === JSON.stringify([{ codes: [c0], question_id: VB.id }]) && await box() === null,
+           'P 「その他」を外すと欄が消え、字は送らない', JSON.stringify(s.at(-1)));
+        ok(errs.length === 0 && LEAKS.length === leaks0, 'P ページのエラーが無い・本物のサーバへは出していない', errs.join(' | '));
+        await page.close();
+      }
+    }
+
     /* O. 一覧の仕上げ ── 置いたとき・押したときの見た目／選択肢と、質問の名前の折り返し（2026-10-12）
           ★額の欄と通貨の欄には、フォーカスの輪しか無かった（置いても押しても見た目が同じ）。選んだ選択肢は、置いても動かなかった。
           ★幅 320 で、選択肢が「いくつかの条件で変わる・そ／の他」と語の途中で折れ、
@@ -2302,19 +2346,25 @@ if (Q_ROOT && Q_ONE && Q_DEEP) {
       const leaks0 = LEAKS.length;
       const LAND = BY.landing_pay, VARY = BY.landing_pay_varies_by;
       const LAND_ALL = LAND ? [LAND.id, ...under(LAND)] : [];
-      const MIXED = VARY && (VARY.choices || []).find((c) => c.code === 'mixed');
+      /* 折り返しを見る選択肢（w1・h4 の「選んでいない選択肢」）。★2026-11-16 までは「何で変わるか」の「いくつかの条件で変わる・その他」
+         （mixed）だったが、続きの質問と「何で変わるか」を複数選ぶにして外した（オーナー承認）。いまは、いつも一覧に出る
+         （親の無い）1つ選ぶ質問のうち、「・」の入ったいちばん長い選択肢（幅 320 で2行になる長さ）。 */
+      const WIDE = LISTED.filter((q) => !q.parent && q.kind === 'choice')
+        .flatMap((q) => (q.choices || []).filter((c) => c.ja.indexOf('・') > 0).map((c) => ({ q, c })))
+        .sort((a, b) => Array.from(b.c.ja).length - Array.from(a.c.ja).length)[0];
+      const MIXED = WIDE && WIDE.c;
       /* 選択肢の親の答え（「一定額ではない」の枝）と、同じ枝で出る額の質問（通貨つき） */
       const BRANCH = VARY && VARY.parentWhen[0];
       const AMT = LAND && LISTED.find((q) => q.parent === LAND.id && q.kind === 'num' && q.currency && q.parentWhen.includes(BRANCH));
       const LAST = MIXED ? MIXED.ja.slice(MIXED.ja.lastIndexOf('・') + 1) : '';
-      const landOk = !!LAND && !!VARY && VARY.parent === LAND.id && !!MIXED && !!AMT && LAND_ALL.length >= 6
+      const landOk = !!LAND && !!VARY && VARY.parent === LAND.id && !!MIXED && Array.from(MIXED.ja).length >= 16 && !!AMT && LAND_ALL.length >= 6
         && MIXED.ja.indexOf('・') > 0 && LAST.length > 0 && (LAND.choices || []).some((c) => c.code === BRANCH && c.ja.indexOf('・') > 0);
-      ok(landOk, `O 着陸手当の質問（親と、続きの ${Math.max(LAND_ALL.length - 1, 0)} 問・「・」の入った選択肢・通貨つきの額）を、バンクから選べる（無くなったら、この節が黙って空振りになる）`,
-         JSON.stringify({ all: LAND_ALL, mixed: MIXED && MIXED.ja, amt: AMT && AMT.id }));
+      ok(landOk, `O 着陸手当の質問（親と、続きの ${Math.max(LAND_ALL.length - 1, 0)} 問・通貨つきの額）と、「・」の入った長い選択肢（${WIDE ? WIDE.q.id : '—'}）を、バンクから選べる（無くなったら、この節が黙って空振りになる）`,
+         JSON.stringify({ all: LAND_ALL, wide: MIXED && MIXED.ja, amt: AMT && AMT.id }));
       if (landOk) {
         const row = (qid) => '[data-qid="' + qid + '"]';
         const NUM = row(AMT.id) + ' .pvcf-num', CUR = row(AMT.id) + ' [data-cur]';
-        const PICKED = row(LAND.id) + ' .pvc-opt.is-picked', PLAIN = row(VARY.id) + ' .pvc-opt[data-code="' + MIXED.code + '"]';
+        const PICKED = row(LAND.id) + ' .pvc-opt.is-picked', PLAIN = row(WIDE.q.id) + ' .pvc-opt[data-code="' + MIXED.code + '"]';
         const openO = async (answers, opt = {}) => {
           const r = await openFull({ lang, query: '?airline=ana', answers, judge: true, ...opt });
           await ready(r.page);

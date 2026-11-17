@@ -428,6 +428,15 @@ console.log('\n▼ 9. 続きの質問（2026-11-14 オーナー「一部可能�
   const p = await member(); await paid(p, A_DEEP);
   await answer(p, A_DEEP, [{ question_id: Q1, code: pw[0] }]);
   ok(J(ids(await next(p, after))) === J([PART.id]), `親に「${pw[0]}」と答えた人には、次の1問がその続き（${PART.id}）`);
+  /* ★2026-11-16 続きは複数選ぶ＋「その他」の欄（オーナー承認）。板からは { codes, text } で届く。答えたら、もう聞かない */
+  const pq = await one(`select kind, other_text, choice_codes from public.pv_condition_questions where id = $1`, [PART.id]);
+  const two = [pq.choice_codes[0], 'other'];
+  const r9 = await answer(p, A_DEEP, [{ question_id: PART.id, codes: two, text: '検査用のその他の字' }]);
+  const kept = await one(`select answer_codes, answer_text from public.airline_conditions where airline = $1 and question_id = $2`, [A_DEEP, PART.id]);
+  ok(pq.kind === 'multi' && pq.other_text === true && !pq.choice_codes.includes('mixed') && !pq.choice_codes.includes('unknown')
+     && J([...kept.answer_codes].sort()) === J([...two].sort()) && kept.answer_text === '検査用のその他の字'
+     && !ids(await next(p, after)).includes(PART.id),
+    `   続き（${PART.id}）は複数選ぶ＋その他の欄。2つ選んで字を書いた答えがそのまま残り、もう聞かない`, J({ pq, r9, kept }));
   const y = await member(); await paid(y, A_DEEP);
   await answer(y, A_DEEP, [{ question_id: Q1, code: YES }]);
   ok(!ids(await next(y, { cont: true, limit: 5, not: [Q1] })).includes(PART.id), `親に「${YES}」と答えた人には、一部の続きを聞かない`);
