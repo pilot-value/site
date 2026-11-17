@@ -31,6 +31,10 @@ import { readFileSync } from 'fs';
 import { SQL_FILES } from '../serve-local.mjs';
 
 const read = (f) => readFileSync(new URL('../' + f, import.meta.url), 'utf8');
+/* 会員の入口の1日の上限（db/airline-conditions.sql の c_day_cap の1か所から読む・2026-11-17 に 60 → 150）。
+   数を写すと、上限を変えた回に「上限の近く」を試す行が黙って上限に届かなくなる */
+const DAY_CAP = Number((read('db/airline-conditions.sql').match(/c_day_cap\s+constant\s+int\s*:=\s*(\d+)\s*;/) || [])[1]);
+if (!(DAY_CAP > 2)) throw new Error('db/airline-conditions.sql の c_day_cap が読めない');
 const MINE = 'db/contrib.sql';
 const FILES = SQL_FILES.includes(MINE) ? [...SQL_FILES] : [...SQL_FILES, MINE];
 const CONTRIB_SQL = read(MINE);
@@ -1827,8 +1831,8 @@ const [A_WALK, A_PAIR, A_PAIR2, A_CTX, A_HAND, A_HAND2, A_DAY] = (await many(
     '★n6 預けたあとで、会員として上の質問を「ない」と答えた人 → 上の質問は kept・下の額は stale（どちらも、本人の新しい答えのため）', say(x.c));
   sumOk(x, 'n6');
 
-  /* n7 会員の入口は、1日の上限（60件）を、親の筋より先に見る。上の質問を「ない」に直した人の引き継ぎで、
-     その「ない」がちょうど60件目になると、下の古い額は parent_missing ではなく rate_limited で返ってくる。
+  /* n7 会員の入口は、1日の上限（DAY_CAP 件）を、親の筋より先に見る。上の質問を「ない」に直した人の引き継ぎで、
+     その「ない」がちょうど上限の最後の1件になると、下の古い額は parent_missing ではなく rate_limited で返ってくる。
      それを left に数えて残すと、画面は「まだ引き継げていません。次に…続きを引き継ぎます」と告げ、次の回には
      黙って stale にすることになる（引き継がれることは無い答え）。行き先がもう決まっている答えは、その場で数える。
      対照は、上の質問を直していない人（下の額は、上限が明けたら本当に入る ＝ 残す）。 */
@@ -1837,7 +1841,7 @@ const [A_WALK, A_PAIR, A_PAIR2, A_CTX, A_HAND, A_HAND2, A_DAY] = (await many(
   [P] = await crew(1);
   k = await hold([FIX, AMT]);
   await hold([NONE], A_HAND, CTX, k);
-  await dayAt(P, 59);
+  await dayAt(P, DAY_CAP - 1);
   x = await hand(P, k);
   m = await mineOf(P);
   ok(x.n === 2 && is(x.c, 1, 0, 0, 1, 0) && !(await keyLives(k)) && Object.keys(m).length === 1 && m.landing_pay.c === 'no',
@@ -1847,7 +1851,7 @@ const [A_WALK, A_PAIR, A_PAIR2, A_CTX, A_HAND, A_HAND2, A_DAY] = (await many(
 
   [P] = await crew(1);
   k = await hold([FIX, AMT]);
-  await dayAt(P, 59);
+  await dayAt(P, DAY_CAP - 1);
   x = await hand(P, k);
   m = await mineOf(P);
   ok(x.n === 2 && is(x.c, 1, 0, 0, 0, 1) && await keyLives(k) && Object.keys(m).length === 1 && m.landing_pay.c === 'fixed',
@@ -1874,7 +1878,7 @@ const [A_WALK, A_PAIR, A_PAIR2, A_CTX, A_HAND, A_HAND2, A_DAY] = (await many(
   await ageMine(P, 4);
   k = await hold([FIX, AMT]);
   await patch(k, 'landing_pay', { year: 1900 });
-  await dayAt(P, 60);
+  await dayAt(P, DAY_CAP);
   x = await hand(P, k);
   m = await mineOf(P);
   ok(x.n === 2 && is(x.c, 0, 0, 2, 0, 0) && !(await keyLives(k)) && Object.keys(m).length === 1 && m.landing_pay.c === 'no',
@@ -1947,7 +1951,7 @@ const [A_WALK, A_PAIR, A_PAIR2, A_CTX, A_HAND, A_HAND2, A_DAY] = (await many(
     `${say(x.c)} ｜ ${await pairOf(P)}`);
   sumOk(x, 'h4（高いほうが新しい）');
 
-  /* h5 会員の入口の1日の上限（60件）に、対の2件ぶんの空きが無い（上の質問で1件使うと、残り1件）。
+  /* h5 会員の入口の1日の上限（DAY_CAP 件）に、対の2件ぶんの空きが無い（上の質問で1件使うと、残り1件）。
      会員の入口は、同じ呼び出しの2つの端を「1組」として、2つとも rate_limited で断る
      （db/airline-conditions.sql の「★1組」）＝ 引き継ぎは、2件とも残して止まる。
      入口が片方だけ入れて返す形（低いほうは同じ呼び出しの高いほう 400 と比べて入り、高いほうは上限で断られる ＝
@@ -1955,7 +1959,7 @@ const [A_WALK, A_PAIR, A_PAIR2, A_CTX, A_HAND, A_HAND2, A_DAY] = (await many(
      取り消して、2件とも残す（claim_contrib の PVC01。入口の決まりが外れたときの、2つ目の網）。 */
   P = await memberWith(100, 200);
   k = await hold([VAR, low(300), high(400)]);
-  await db.query(`update public.profiles set cond_answers_day = current_date, cond_answers_today = 58 where id = $1`, [P]);
+  await db.query(`update public.profiles set cond_answers_day = current_date, cond_answers_today = $2 where id = $1`, [P, DAY_CAP - 2]);
   x = await hand(P, k);
   ok(x.n === 3 && is(x.c, 1, 0, 0, 0, 2) && (await pairOf(P)) === '100 USD／200 USD' && await keyLives(k),
     '★h5 1日の上限に、対の2件ぶんの空きが無い会員 → 会員の入口が2件とも断り、2件とも left（片方だけ入れて、会員の額を 300／200 にしない）。残りが在るので、鍵は残る',
@@ -2034,15 +2038,15 @@ const [A_WALK, A_PAIR, A_PAIR2, A_CTX, A_HAND, A_HAND2, A_DAY] = (await many(
     `${say(x.c)} ｜ ${await pairOf(P)} ｜ X ${await heldN(X)} 件`);
   sumOk(x, 'h9');
 
-  /* 上の h の行は、決めた形だけ。こちらは「性質」を見る ── 会員の1日の数が上限の近く（56〜60件め）に在るとき、
+  /* 上の h の行は、決めた形だけ。こちらは「性質」を見る ── 会員の1日の数が上限の近く（DAY_CAP−4〜DAY_CAP 件め）に在るとき、
      端末が対の2問をどう預けていても、引き継いだあと (1) 会員の2つの額が食い違わない・(2) 5つの数を足すと
-     預けていた件数になる・(3) 会員の1日の数が 60 を超えない。
+     預けていた件数になる・(3) 会員の1日の数が DAY_CAP を超えない。
      1回ごとに、新しい端末が「一定額ではない」・300／400 USD を預け、決まった種から作った呼び出しを0〜3回足す
      （文脈は hold と同じ ＝ 2つの端は組にできるまま。足す呼び出しは断られてもよい）。引き継ぐのは、
      前から 100／200 USD を持つ新しい会員。
      ⚠️ 端末の初めの額は、会員の 100／200 ではなく 300／400。片方だけ入った形が食い違いになるのは、預かりの
         低いほうが、会員の高いほう（200）に収まらないときだけ（100／200 どうしでは、片方だけ入っても 100／200）。
-     ⚠️ 数だけで緑にしない: 残した回・2つの端とも moved の回・「切れ目の回」（会員の数が 58 ＝ 上の質問で1件
+     ⚠️ 数だけで緑にしない: 残した回・2つの端とも moved の回・「切れ目の回」（会員の数が DAY_CAP−2 ＝ 上の質問で1件
         使うと残り1件 で、預かりの低いほうが 200 を超えるか USD でない）が1回も無い並びでは、何も試していない。
         0 になったら、決まりではなく種を替える。 */
   {
@@ -2073,7 +2077,7 @@ const [A_WALK, A_PAIR, A_PAIR2, A_CTX, A_HAND, A_HAND2, A_DAY] = (await many(
         await putC(key, { airline: A_DAY, ...CTX, answers: Array.from({ length: 1 + int(2) }, draw) });
       }
       const who = await memberWith(100, 200, [A_DAY]);
-      const start = 56 + int(5);
+      const start = DAY_CAP - 4 + int(5);
       await dayAt(who, start);
       const h = await heldOf(key);
       const y = await hand(who, key);
@@ -2085,17 +2089,17 @@ const [A_WALK, A_PAIR, A_PAIR2, A_CTX, A_HAND, A_HAND2, A_DAY] = (await many(
       const sumBad = !!y.c.__err || y.c.moved + y.c.kept + y.c.dropped + y.c.stale + y.c.left !== y.n;
       if (clash) handBroken++;
       if (sumBad) handSumBad++;
-      if (end > 60) handOver++;
+      if (end > DAY_CAP) handOver++;
       if (!y.c.__err && y.c.left > 0) handLeft++;
       if (!y.c.__err && h[LO] && h[HI] && y.c.moved === y.n) handMovedPair++;
-      if (start === 58 && h[LO] && h[HI] && h[LO].num != null && (Number(h[LO].num) > 200 || h[LO].currency !== 'USD')) handCut++;
-      if ((clash || sumBad || end > 60) && !first) {
+      if (start === DAY_CAP - 2 && h[LO] && h[HI] && h[LO].num != null && (Number(h[LO].num) > 200 || h[LO].currency !== 'USD')) handCut++;
+      if ((clash || sumBad || end > DAY_CAP) && !first) {
         first = `${i + 1}回め: 会員の数 ${start} → ${end} ｜ 預かり ${sayHeld(h[LO])}／${sayHeld(h[HI])} ｜ ${say(y.c)}（預けていた ${y.n} 件）｜ 会員 ${await pairOf(who, A_DAY)}`;
       }
     }
     ok(handBroken === 0 && handSumBad === 0 && handOver === 0 && handLeft > 0 && handMovedPair > 0 && handCut > 0,
-      '★会員の1日の数が上限の近く（56〜60件め）でも、引き継いだあと、会員の2つの額は食い違わない・5つの数は預けていた件数になる・1日の数は 60 を超えない'
-      + `（決まった並びの ${rounds} 回: 食い違い ${handBroken}・数が合わない ${handSumBad}・60超え ${handOver} ｜ 残した回 ${handLeft}・2つの端とも moved の回 ${handMovedPair}・切れ目の回 ${handCut}）`,
+      `★会員の1日の数が上限の近く（${DAY_CAP - 4}〜${DAY_CAP}件め）でも、引き継いだあと、会員の2つの額は食い違わない・5つの数は預けていた件数になる・1日の数は ${DAY_CAP} を超えない`
+      + `（決まった並びの ${rounds} 回: 食い違い ${handBroken}・数が合わない ${handSumBad}・${DAY_CAP}超え ${handOver} ｜ 残した回 ${handLeft}・2つの端とも moved の回 ${handMovedPair}・切れ目の回 ${handCut}）`,
       first);
   }
 

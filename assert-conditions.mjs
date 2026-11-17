@@ -40,6 +40,8 @@
      ・O  一覧の仕上げ ── 額の欄・通貨の欄・選んだ選択肢に、置いたとき／押したときの見た目が在る（大きさは変わらない・
           指で触る端末では残らない）・選択肢が「・」の後ろの語の途中で折れない・質問の名前と説明の最後の行に1〜2文字だけ残らない
      ・版スタンプ（ブラウザを立ち上げる前）── pv-conditions.js を読む4枚が、今の中身の指紋を付けて読んでいる
+     ・p1〜p5（2026-11-17・モーダルの節の最後）「← 前の質問」── 1問目に無い・2問目に在る・戻ると保存した答えの札に印
+          （再確認の問でも普通の選択肢）・選び直しは上書きの1本・戻った問のスキップは何も送らない
 
    実行: node assert-conditions.mjs            日英 × 初回/2回目 の4通り
          node assert-conditions.mjs ja 0       1通りだけ（lang, 既に答えている数）
@@ -421,6 +423,60 @@ for (const kase of CASES) {
     ok(!r.err && saved(r) === want && skipped(r) === 0 && whole(r),
        `t3 ★${want}問とも答える ── 全部の行が出る`, r.err || JSON.stringify({ card: r.card, sent: r.sent }));
     ok(net.length === 0, 't    この回の画面は、本物のサーバへ向かう要求を1本も出していない（答えたのは全部この検査の偽物）', net.join(' | '));
+  }
+
+  /* ── 「← 前の質問」（2026-11-17 オーナー指示「前の質問に戻れるように」）──
+     給与のあとの板も同じ板（Modal）。1問目に無い・2問目に在る・戻ると保存した答えの札に印（再確認の問でも普通の選択肢で）・
+     選び直しは上書きの保存が1本・戻った問の「今回はスキップ」は何も送らない。 */
+  if (want > 1) {
+    const PREV = lang === 'en' ? '← Previous question' : '← 前の質問';
+    const gone = await page.waitForFunction(() => !document.querySelector('[data-pvc]'), { timeout: 8000 }).then(() => true, () => false);
+    ok(gone, 'p0 前の板が閉じている');
+    await page.evaluate(() => {
+      window.__rpc = [];
+      const sb = window.supabase.createClient();
+      window.PVConditions.afterReport({ sb: sb, airline: 'zipair', airline_other: null, airlineName: 'ZIPAIR Tokyo',
+        year: 2026, month: 8, position: 'cap', fleet: 'a380', base_iata: 'ITM', contract_type: 'direct' });
+    });
+    const stepIs = (n) => page.waitForFunction((n) => {
+      const m = document.querySelector('[data-pvc]');
+      return !!m && !!m.querySelector('.pvc-opt:not([disabled])')
+        && ((m.querySelector('.pvc-step') || {}).textContent || '').replace(/\s+/g, '') === n + '/3';
+    }, { timeout: 8000 }, n).then(() => true, () => false);
+    const look = () => page.evaluate(() => {
+      const m = document.querySelector('[data-pvc]');
+      const pv = m && m.querySelector('.pvc-prevq');
+      return { prev: pv ? pv.textContent : null, same: !!(m && m.querySelector('.pvc-opt[data-code="__same"]')),
+               picked: m ? [...m.querySelectorAll('.pvc-opt.is-picked')].map((b) => b.getAttribute('data-code')) : null };
+    });
+    const saves = () => page.evaluate(() => window.__rpc.filter((r) => r.name === 'submit_airline_conditions').map((r) => r.args.p.answers[0]));
+    ok(await stepIs(1), 'p1 板が開く（1 / 3）');
+    let lk = await look();
+    ok(lk.prev === null, 'p1 1問目には「← 前の質問」が無い', JSON.stringify(lk));
+    const first = lk.same ? '__same' : BANK.questions.find((q) => q.id === 'days_off_request').choices[0].code;
+    await page.evaluate((c) => document.querySelector(`[data-pvc] .pvc-opt[data-code="${c}"]`).click(), first);
+    ok(await stepIs(2), 'p2 1問目を答えて2問目へ');
+    const kept = (await saves())[0];
+    lk = await look();
+    ok(lk.prev === PREV, `p2 2問目には「${PREV}」が在る`, JSON.stringify(lk));
+    await page.evaluate(() => document.querySelector('[data-pvc] .pvc-prevq').click());
+    ok(await stepIs(1), 'p3 押すと1問目へ戻る');
+    lk = await look();
+    ok(!lk.same && JSON.stringify(lk.picked) === JSON.stringify([kept && kept.code]) && lk.prev === null,
+       `p3 ★戻った1問目は普通の選択肢で、保存した答え（${kept && kept.code}）の札に印${mine >= 3 ? '（再確認の問でも「今も同じ？」は出さない）' : ''}`, JSON.stringify(lk));
+    await page.evaluate((c) => document.querySelector(`[data-pvc] .pvc-opt[data-code="${c}"]`).click(), kept.code);
+    ok(await stepIs(2), 'p4 同じ札を選び直して2問目へ');
+    let sv = await saves();
+    ok(sv.length === 2 && JSON.stringify(sv[1]) === JSON.stringify({ question_id: 'days_off_request', code: kept.code }),
+       'p4 ★上書きの保存が1本だけ出る', JSON.stringify(sv));
+    await page.evaluate(() => document.querySelector('[data-pvc] .pvc-prevq').click());
+    await stepIs(1);
+    await page.evaluate(() => document.querySelector('[data-pvc] .pvc-skip').click());
+    ok(await stepIs(2), 'p5 戻った1問目で「今回はスキップ」→ 2問目へ');
+    sv = await saves();
+    ok(sv.length === 2, 'p5 ★戻った・答えてある問のスキップは何も送らない', JSON.stringify(sv));
+    await page.evaluate(() => { const x = document.querySelector('[data-pvc] .pvc-x'); if (x) x.click(); });
+    await page.waitForFunction(() => !document.querySelector('[data-pvc]'), { timeout: 8000 }).catch(() => {});
   }
 
   await page.close();

@@ -16774,4 +16774,9 @@ export const TM = {
   "Per duty day (a daily rate)": {"es":"Por día de servicio (una tarifa diaria)","st":"manual","by":"claude","at":"2026-11-17","pages":["pv-conditions.json"],"note":"待遇の質問の見直し（段階C・2026-11-17）"},
   "Per hour away from base (an hourly rate)": {"es":"Por hora fuera de la base (una tarifa por hora)","st":"manual","by":"claude","at":"2026-11-17","pages":["pv-conditions.json"],"note":"待遇の質問の見直し（段階C・2026-11-17）"},
   "Per layover (each night away)": {"es":"Por pernocta (cada noche fuera)","st":"manual","by":"claude","at":"2026-11-17","pages":["pv-conditions.json"],"note":"待遇の質問の見直し（段階C・2026-11-17）"},
+  "Pay for non-flying duties": {"es":"Pago por tareas que no son de vuelo","st":"manual","by":"claude","at":"2026-11-17","pages":["pv-conditions.json"],"note":"質問の短い名前（会社ページのタイル）2026-11-17「地上業務の補償」→「乗務以外の業務の手当」"},
+  "Within the same airline, what does “Pay for non-flying duties” vary by?": {"es":"Dentro de la misma aerolínea, ¿de qué depende «Pago por tareas que no son de vuelo»?","st":"manual","by":"claude","at":"2026-11-17","pages":["pv-conditions.json"],"note":"続きの質問（回答が分かれた会社）2026-11-17"},
+  "Grandparents and grandchildren": {"es":"Abuelos y nietos","st":"manual","by":"claude","at":"2026-11-17","pages":["pv-conditions.json"],"note":"社員航空券の対象に足した選択肢 2026-11-17"},
+  "Parents-in-law": {"es":"Suegros","st":"manual","by":"claude","at":"2026-11-17","pages":["pv-conditions.json"],"note":"社員航空券の対象に足した選択肢 2026-11-17"},
+  "js:'← Previous question'": {"es":"js:'← Anterior'","st":"manual","by":"claude","at":"2026-11-17","pages":["pv-conditions.js"],"note":"板の下の段「← 前の質問」2026-11-17（スマホの幅で1行に収まる短い形）"},
 };
