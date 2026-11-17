@@ -2341,8 +2341,10 @@ console.log('\n▼ 8-3. 他人の回答の集計（立場ごとに何が返る�
         `update public.airline_conditions set answer_codes = array['zz_gone']
           where ctid = (select ctid from public.airline_conditions where airline = $1 and question_id = $2 order by created_at limit 1)`, [A_FACT, MQ[1].id]);
       const gone = fact(await facts(GIVE5, A_FACT, [MQ[1].id]), MQ[1].id);
-      ok(!!gone && gone.n === 3 && Object.hasOwn(gone, 'lead') && gone.lead === null,
-        '★TL8 並んだ答えに、台帳に無い符号が混じる → lead の欄は在って null（名前の引けない答えを「最多」と書かせない）', J(gone));
+      // ★2026-11-17 から、選択肢に無い符号だけの答えは人数にも数えない（db/airline-conditions.sql の pv_condition_ans）
+      //   ＝ 3人のうち1人が外れて2人 → 公開の線（3人）に届かず、この質問は返らない
+      ok(!gone,
+        '★TL8 並んだ答えに、台帳に無い符号が混じる → その答えは数えない（2人）＝ 返さない（名前の引けない答えを「最多」とも人数とも書かせない）', J(gone));
 
       // TL9 答えごとの人数が、答えた人数を超える（製品が書けない行。持ち主の役で作る）
       [m0, m1] = MQ[0].c;
