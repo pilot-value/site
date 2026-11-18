@@ -362,7 +362,9 @@ const lineLabels = key => (LINE_LABELS ??= (() => {
 })()).get(key) || new Set();
 const shortJa = t => String(t).replace(/^ボーイング\s*/, () => 'B').replace(/^エアバス\s*/, () => '').replace(/^エンブラエル\s*/, () => 'E');
 const siteLabel = (r, t) => !!r && t === r.label_ja
-  && ((!!ITEM[r.key] && ITEM[r.key].label === t) || lineLabels(r.key).has(t) || (!!fleetJa(r) && shortJa(fleetJa(r)) === t));
+  && ((!!ITEM[r.key] && ITEM[r.key].label === t) || lineLabels(r.key).has(t) || (!!fleetJa(r) && shortJa(fleetJa(r)) === t)
+    /* 2026-11-18：say() が作る見出しそのもの（「機長の年次休暇」＝ 職位＋ITEM の名前）。調べの道具の label_ja が、たまたまサイトの見出しと同じ字になる */
+    || (!!ITEM[r.key] && (() => { try { const d = say(r); return !!d && d.label === t; } catch { return false; } })()));
 {
   const st = lineLabels('staff_travel').has('社員の航空券');
   ok(siteLabel({ key: 'fleet_total', label_ja: '運航している機材' }, '運航している機材')
@@ -727,7 +729,8 @@ const A2N = { hq: 0, days: 0, pr: 0 };
    （台帳に行が入ったら赤くなる ＝ この一覧から外して、ほかの会社と同じ強さに戻す）。 */
 /* ★2026-11-02 米国の貨物5社も同じ（米国20社の統合調査は給与表だけを pay-scales.mjs に入れた。調べの台帳にはまだ行が無い） */
 /* ★2026-11-03 北米追加20社の5社も同じ（給与表は pay-scales.mjs・条件は us-terms.mjs・暮らしは us-housing.mjs。調べの台帳には行が無い） */
-const NO_RESEARCH_YET = ['flydubai', 'air-peace', 'juneyao-airlines', 'fedex-express', 'ups-airlines', 'atlas-air', 'abx-air', 'kalitta-air', 'avelo-airlines', 'gojet', 'northern-air-cargo', 'contour', 'jazz'];
+/* 2026-11-18 フライドバイ・吉祥航空は ChatGPT の穴の調べ（11-08 の答え）が台帳に入ったので外した */
+const NO_RESEARCH_YET = ['air-peace', 'fedex-express', 'ups-airlines', 'atlas-air', 'abx-air', 'kalitta-air', 'avelo-airlines', 'gojet', 'northern-air-cargo', 'contour', 'jazz'];
 const O1N = { n: 0 };
 for (const s of ROLLED) {
   const b = ORIG[s], g = block(b, 'PV-GLANCE'), v = viewOf(s);

@@ -1806,7 +1806,7 @@ as $fn$
       SYD MEL ATH VIE JED
     ', E' \n'), '\s+'),
     'vietjet', regexp_split_to_array(btrim('
-      NGO SGN CGK HAN
+      NGO CGK
     ', E' \n'), '\s+'),
     'vietnam-airlines', regexp_split_to_array(btrim('
       NGO CXR TPE KHH VII
