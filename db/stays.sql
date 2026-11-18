@@ -1742,20 +1742,20 @@ as $fn$
       HAC MYE OIM
     ', E' \n'), '\s+'),
     'singapore-airlines', regexp_split_to_array(btrim('
-      NGO KIX SIN BKK BLR BOM CAN CGK CMB COK DAD DEL DPS HAN HKG HKT HYD ICN KNO KTI
-      MAA MLE MNL PEN PVG RGN SGN SUB TPE ADL BNE MEL PER BCN MAD CDG FRA MXP JNB
+      NGO KIX BKK BLR BOM CAN CGK CMB COK DAD DEL DPS HAN HKG HKT HYD ICN KNO KTI MAA
+      MLE MNL PEN PVG RGN SGN SUB TPE ADL BNE MEL PER BCN MAD CDG FRA MXP JNB
     ', E' \n'), '\s+'),
     'korean-air', regexp_split_to_array(btrim('
       NGO GUM ORD HNL SEA IAD BOS SFO ATL LAS LAX JFK DFW
     ', E' \n'), '\s+'),
     'asiana', regexp_split_to_array(btrim('
-      KMI SDJ HND NGO FUK NRT UKB KIX OKA CTS MNL XIY UBN YNZ ICN PVG HAN CKG CSX KTI
-      CRK HKT HGH CAN CGQ TPE TAS CGK BKK YNJ TSN ALA HKG NKG SZX SGN DAD DLC PEK HRB
-      TFU SIN SYD SEA SFO JFK LAX BCN FCO PRG CDG IST LHR MXP FRA BUD
+      KMI SDJ HND NGO FUK NRT UKB KIX OKA CTS MNL XIY UBN YNZ PVG HAN CKG CSX KTI CRK
+      HKT HGH CAN CGQ TPE TAS CGK BKK YNJ TSN ALA HKG NKG SZX SGN DAD DLC PEK HRB TFU
+      SIN SYD SEA SFO JFK LAX BCN FCO PRG CDG IST LHR MXP FRA BUD
     ', E' \n'), '\s+'),
     'starlux', regexp_split_to_array(btrim('
-      KMJ NGO UKB FUK NRT SDJ SHI CTS HKD OKA TAK KIX KUL RMQ HAN TPE HKG CEB CGK MFM
-      PQC DAD BKK SGN MNL DPS CNX SIN CRK PUS LAX ONT SFO PHX SEA PRG
+      KMJ NGO UKB FUK NRT SDJ SHI CTS HKD OKA TAK KIX KUL RMQ HAN HKG CEB CGK MFM PQC
+      DAD BKK SGN MNL DPS CNX SIN CRK PUS LAX ONT SFO PHX SEA PRG
     ', E' \n'), '\s+'),
     'china-airlines', regexp_split_to_array(btrim('
       NGO TPE PHX ONT SEA JFK SFO LAX
@@ -1828,7 +1828,7 @@ as $fn$
       KUL HKT MLE YUL LHR ELQ ZNZ
     ', E' \n'), '\s+'),
     'gulf-air', regexp_split_to_array(btrim('
-      KUL KWI BAH
+      KUL KWI
     ', E' \n'), '\s+'),
     'kuwait-airways', regexp_split_to_array(btrim('
       KTM BLR ISB HKT CAN MAA DAC BKK AMD MNL HYD LHE CMB TRV DEL BOM COK LHR MAD CDG
@@ -1844,19 +1844,19 @@ as $fn$
       JFK DFW ORD DTW IAD
     ', E' \n'), '\s+'),
     'saudia', regexp_split_to_array(btrim('
-      IAD JFK RUH JED DMM ELQ MED
+      IAD JFK DMM ELQ MED
     ', E' \n'), '\s+'),
     'egyptair', regexp_split_to_array(btrim('
-      LAX CAI KWI
+      LAX KWI
     ', E' \n'), '\s+'),
     'ethiopian-airlines', regexp_split_to_array(btrim('
-      EWR ORD ATL JFK IAD ADD LFW
+      EWR ORD ATL JFK IAD LFW
     ', E' \n'), '\s+'),
     'kenya-airways', regexp_split_to_array(btrim('
       JFK EDL KIS MBA
     ', E' \n'), '\s+'),
     'south-african-airways', regexp_split_to_array(btrim('
-      PER GRU CPT JNB DAR MRU LOS VFA FIH ABJ HRE DUR WDH PLZ LUN ACC FBM GBE
+      PER GRU CPT DAR MRU LOS VFA FIH ABJ HRE DUR WDH PLZ LUN ACC FBM GBE
     ', E' \n'), '\s+'),
     'klm', regexp_split_to_array(btrim('
       IAH LAX ORD PDX BOS SFO MSP SAN JFK ATL IAD AUS SLC MIA LAS

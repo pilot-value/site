@@ -22,6 +22,12 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   "air-india": [
    "gurugram"
   ],
+  "air-peace": [
+   "lagos"
+  ],
+  "airasia": [
+   "kuala-lumpur"
+  ],
   "airjapan": [
    "narita"
   ],
@@ -71,6 +77,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   "bamboo-airways": [
    "ha-noi",
    "ho-chi-minh-city"
+  ],
+  "batik-air": [
+   "jakarta"
   ],
   "breeze-airways": [
    "akron-canton",
@@ -139,8 +148,14 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "rome",
    "southend-on-sea"
   ],
+  "egyptair": [
+   "cairo"
+  ],
   "emirates": [
    "dubai"
+  ],
+  "ethiopian-airlines": [
+   "addis-ababa"
   ],
   "eurowings": [
    "cologne",
@@ -151,6 +166,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   "fda": [
    "nagoya",
    "shizuoka"
+  ],
+  "flydubai": [
+   "dubai"
   ],
   "frontier": [
    "atlanta",
@@ -167,8 +185,12 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "san-juan",
    "tampa"
   ],
+  "garuda-indonesia": [
+   "jakarta"
+  ],
   "gulf-air": [
-   "manama"
+   "manama",
+   "muharraq"
   ],
   "hac": [
    "sapporo"
@@ -180,6 +202,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "sendai"
   ],
   "indigo": [
+   "delhi",
    "gurugram"
   ],
   "ita-airways": [
@@ -207,6 +230,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   "jta": [
    "naha"
   ],
+  "kenya-airways": [
+   "nairobi"
+  ],
   "klm": [
    "amsterdam"
   ],
@@ -215,6 +241,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   ],
   "lot": [
    "warsaw"
+  ],
+  "malaysia-airlines": [
+   "kuala-lumpur"
   ],
   "norwegian": [
    "fornebu",
@@ -231,6 +260,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   "peach": [
    "izumisano",
    "narita"
+  ],
+  "philippine-airlines": [
+   "manila"
   ],
   "porter": [
    "montreal",
@@ -252,6 +284,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   "royal-brunei": [
    "bandar-seri-begawan"
   ],
+  "royal-jordanian": [
+   "amman"
+  ],
   "ryanair": [
    "tirana"
   ],
@@ -262,6 +297,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "oslo",
    "stockholm"
   ],
+  "saudia": [
+   "jeddah"
+  ],
   "scoot": [
    "singapore"
   ],
@@ -271,6 +309,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   "solairus": [
    "austin",
    "van-nuys"
+  ],
+  "south-african-airways": [
+   "johannesburg"
   ],
   "southwest": [
    "atlanta",
@@ -289,6 +330,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   ],
   "starflyer": [
    "kitakyushu"
+  ],
+  "starlux": [
+   "taoyuan"
   ],
   "tap": [
    "lisbon",
@@ -316,6 +360,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "orlando",
    "san-francisco",
    "washington"
+  ],
+  "vietjet": [
+   "ho-chi-minh-city"
   ],
   "vietnam-airlines": [
    "han",
@@ -8611,6 +8658,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "Mumbai",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-india",
+     "cond_ja": "2025年資料の限定的な確認：2025年Flexi Contract for PilotsのB777 commander/first-officer Bases；会社名を本文に明記しない写しをANI報道で同定；現行全基地一覧ではない。補足: 【写し】本文はB777機長及びFOの基地にBOMを明記（都市名からの推測ではない）。会社名と発行日は本文にないため、ANI配信2025-11-06の同一制度・同一機種/基地/枠数報道 https://hr.economictimes.indiatimes.com/amp/news/industry/air-india-introduces-flexible-contract-model-for-pilots-to-balance-work-and-operations/125133879 と照合してAir Indiaの同制度の写しと同定した。文中はJan25/Mar25の計画。BOM=छत्रपति शिवाजी महाराज इंटरनेशनल एयरपोर्ट は公式Hindi https://www.airindia.com/in/hi/travel-information/airport-information/mumbai.html で別途確認。会社発行原本は未取得。同一制度の報道と写しの機種・基地・募集枠の一致を照合した参考値で、現行の全機種・全職位の基地に一般化しない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "2 B777 BOM, BLR 30",
+       "source_id": "src-scribd-com-621770d4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "75fcf7ffec0aa150",
+     "id": "air-india.base.pilot-base.18c30a41",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261118-cg-air-india",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scribd",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-scribd-com-621770d4",
+       "source_type": "third_party_reference",
+       "title": "Flexi Contract Note (uploaded by Aditya Gulati), Bases tables",
+       "url": "https://www.scribd.com/document/979091003/Flexi-Contract-Note"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BOM",
+     "value_text": null
     }
    ],
    "benefits": [
@@ -8667,6 +8765,210 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "家財・HOTAC・学校入学支援と一回の転居手当を案内。金額・対象基地・家族資格・継続家賃補助は不明。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-india",
+     "cond_ja": "過去の規程写し（2024-12-01発効）; standby呼出し時に会社送迎が用意できず、乗員が代替交通で出勤する場合。補足: 【写し】2.4.6、PDF p10。会社送迎を確保できない場合の代替交通の会社償還を明記。一般の毎日の通勤費を全額支給する制度とは区別。会社発行原本は未取得、2026年の同条件継続も未確認。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2024-12-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "alternate mode which shall be reimbursed by the company.",
+       "source_id": "src-scribd-com-cab94692",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2a9cdc51879f3e1d",
+     "id": "air-india.benefits.commuting.1e0ce858",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261118-cg-air-india",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-12-01",
+       "publisher": "Scribd",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-scribd-com-cab94692",
+       "source_type": "third_party_reference",
+       "title": "Air India Rostering Practices Policy OPS-01 Version 1.1, 2.4.6",
+       "url": "https://www.scribd.com/document/832098661/Rostering-Practices-Policy-V1-1-Signed"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "reimbursed by the company",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-india",
+     "cond_ja": "Air India Groupの乗員向け。パイロット専用制度ではない。送迎の費用・自宅送迎範囲・全拠点での適用は記載なし。補足: 2024年の2周年更新資料（2023-24決算と2024年10〜11月の統合予定を掲載）、厳密な発行日は記載なし。乗員送迎アプリの導入の事実のみ。無料送迎・タクシー代支給を意味するものとして掲載しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Launched Cadet Pilot program and a new crew transport app",
+       "source_id": "src-airindia-com-cdfe7284",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8482ef0e9a766f5a",
+     "id": "air-india.benefits.commuting.87fc6cf5",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261118-cg-air-india",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air India Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airindia-com-cdfe7284",
+       "source_type": "official_package",
+       "title": "Vihaan.AI, second anniversary transformation update",
+       "url": "https://www.airindia.com/content/dam/air-india/newsroom/press-kits/pdfs/Vihaan.AI-Infographic.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "new crew transport app",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-india",
+     "cond_ja": "過去の規程写し（2024-12-01発効）; standbyから運航へ呼び出す際に会社が送迎確保へ最大限努力する条件; 無条件の常時送迎保証ではない。補足: 【写し】2.4.6、PDF p10。文書本文にAir India、署名者・版・発効日を明記。運航乗務員と客室乗務員に適用する規程で、パイロットを含む。会社が公表した原本ではなく第三者掲載写し。次回改訂予定は2025-11-30で、現行同条件の継続は未確認。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2024-12-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "provide Company Transport to crew",
+       "source_id": "src-scribd-com-cab94692",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bc07129973bf3b99",
+     "id": "air-india.benefits.commuting.c46f7c61",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261118-cg-air-india",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-12-01",
+       "publisher": "Scribd",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-scribd-com-cab94692",
+       "source_type": "third_party_reference",
+       "title": "Air India Rostering Practices Policy OPS-01 Version 1.1, 2.4.6",
+       "url": "https://www.scribd.com/document/832098661/Rostering-Practices-Policy-V1-1-Signed"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Company Transport",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-india",
+     "cond_ja": "Mumbai所属パイロットのDelhiでの訓練に限る。2023年公表の実施計画で、現在の一般通勤制度・無料条件は未確認。補足: 会社幹部の発言に基づく報道。会社は記事への公式回答をしていない。通常の自宅送迎や全拠点共通の制度へ一般化しない。公式2024年Vihaan.AI更新資料のnew crew transport appも確認したが送迎の支給条件までは書かれていない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2023-09-27",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "pilots based out of Mumbai will be provided with company transport for training sessions in Delhi.",
+       "source_id": "src-business-standard-com-d0329f40",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "05504e402ac88d7b",
+     "id": "air-india.benefits.commuting.f8c713b2",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261118-cg-air-india",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-09-27",
+       "publisher": "Business Standard",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-business-standard-com-d0329f40",
+       "source_type": "third_party_reference",
+       "title": "Air India crafts action plan to resolve spectrum of pilot concerns",
+       "url": "https://www.business-standard.com/amp/companies/news/air-india-crafts-action-plan-to-resolve-spectrum-of-pilot-concerns-123092701303_1.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "company transport",
      "value_text": null
     },
     {
@@ -11012,6 +11314,1623 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ]
   },
+  "air-peace": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "base LOS。補足: ラゴス。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "base in Lagos, Nigeria",
+       "source_id": "src-flyairpeace-com-41aaaadd",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1146cee34d72a3e6",
+     "id": "air-peace.base.pilot-base-city.12c8aee6",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air Peace",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-flyairpeace-com-41aaaadd",
+       "source_type": "official_package",
+       "title": "About Us",
+       "url": "https://flyairpeace.com/about-us/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Lagos",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "補足: 【第三者】パイロット求人票の拠点空港コード（公式サイト https://flyairpeace.com/about-us/ でもLagosベースと明記）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "LOS - Lagos",
+       "source_id": "src-pilotsglobal-com-176b79d0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "731c5d119774f036",
+     "id": "air-peace.base.pilot-base.5b5cce27",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-176b79d0",
+       "source_type": "third_party_reference",
+       "title": "Air Peace E170/190 Captains",
+       "url": "https://pilotsglobal.com/job/E-Jet-family-E170-190-captain-air_peace-NG-67bf18f782"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "LOS",
+     "value_text": null
+    }
+   ],
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "全社員の制度 (working days vacation in a year; commuting pilot contracts use 8 weeks ON / 3 weeks OFF)。補足: 【口コミ】社員による年間有給休暇日数の回答（外航契約パイロットの求人票 https://www.scribd.com/document/957484600/Air-Peace-E195-Captains-Salary-Benefits-package では8週ON/3週OFFのローテーション制および年最大12日の病気休暇「Maximum of 12 certified sick days per year」）。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2023-11-16",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "20 working days vacation in a year.",
+       "source_id": "src-ng-indeed-com-d3cb74ce",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6063e59cb2fcba0b",
+     "id": "air-peace.benefits.annual-leave.6551cf97",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "年次休暇",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": "year",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-11-16",
+       "publisher": "Indeed",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-ng-indeed-com-d3cb74ce",
+       "source_type": "community_reference",
+       "title": "What is the vacation policy like at Air Peace Limited?",
+       "url": "https://ng.indeed.com/cmp/Air-Peace-Limited/faq/what-is-the-vacation-policy-like-at-air-peace-limited-how-many-vacation-days-do-you-get-per-year?quid=1he03f7bmkbbk801"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 20,
+     "value_text": "20"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "Plus positioning flight tickets and flight tickets to home country。補足: 【第三者】Rishworth Aviation求人票（https://rishworthaviation.com/pilot-jobs/airline/air-peace-pilot-jobs）でも地上送迎および帰国航空券支給を明記。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Ground transport from HQ to the airport and back",
+       "source_id": "src-pilotsdb-brookfieldav-com-0b53c6b0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "58a12a14bdee863c",
+     "id": "air-peace.benefits.commuting.3896da43",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Brookfield Aviation Jobs",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsdb-brookfieldav-com-0b53c6b0",
+       "source_type": "third_party_reference",
+       "title": "Air Peace",
+       "url": "https://pilotsdb.brookfieldav.com/showjob/01292/E190-195-First-Officers---Air-Peace"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Ground transport from HQ to the airport and back",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "Fully furnished apartment at LOS base and layover hotels。補足: 【第三者】Rishworth求人票およびFCI資料でも家具・光熱費・警備付きアパート無償提供を明記。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Accommodation provided at the operating base",
+       "source_id": "src-pilotsdb-brookfieldav-com-0b53c6b0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0d02e70e32f2ba40",
+     "id": "air-peace.benefits.housing.c165c791",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "housing",
+     "label_ja": "住宅手当・社宅",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Brookfield Aviation Jobs",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsdb-brookfieldav-com-0b53c6b0",
+       "source_type": "third_party_reference",
+       "title": "Air Peace",
+       "url": "https://pilotsdb.brookfieldav.com/showjob/01292/E190-195-First-Officers---Air-Peace"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Accommodation provided at the operating base",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "Provided free of charge。補足: 【第三者】FCI求人資料（https://www.scribd.com/document/957484600/Air-Peace-E195-Captains-Salary-Benefits-package）でも米国・カナダ含む無料医療保険と明記。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Global medical insurance",
+       "source_id": "src-rishworthaviation-com-94ba70f9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7ffb42c7afaf88d2",
+     "id": "air-peace.benefits.medical.fa694d05",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "医療の保険・補助",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rishworthaviation-com-94ba70f9",
+       "source_type": "third_party_reference",
+       "title": "Air Peace Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/air-peace-pilot-jobs"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Global medical insurance",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "Registered employer under Nigeria's Contributory Pension Scheme (PenCom)。補足: ナイジェリア国家年金委員会（PenCom）の確定拠出年金制度（CPS）登録事業主リスト第983番に掲載。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2023-09-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "983 Air Peace Ltd.",
+       "source_id": "src-pencom-gov-ng-517753c4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7261ed6279919fdf",
+     "id": "air-peace.benefits.pension.470faf2a",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-09-01",
+       "publisher": "National Pension Commission (PenCom)",
+       "publisher_kind": "government",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pencom-gov-ng-517753c4",
+       "source_type": "government",
+       "title": "Employer List",
+       "url": "https://www.pencom.gov.ng/wp-content/uploads/2023/09/NLPC-PFA-1.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Air Peace Ltd.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "E190/195 contract benefits。補足: 【第三者】国内線・リージョナル線・国際線の優待航空券およびオフ期間中の帰国航空券支給。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Beneficiary ticket: Local, Regional and International",
+       "source_id": "src-pilotsdb-brookfieldav-com-0b53c6b0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3c3b5e8a05421368",
+     "id": "air-peace.benefits.staff-travel.1e521ca4",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Brookfield Aviation Jobs",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsdb-brookfieldav-com-0b53c6b0",
+       "source_type": "third_party_reference",
+       "title": "Air Peace",
+       "url": "https://pilotsdb.brookfieldav.com/showjob/01292/E190-195-First-Officers---Air-Peace"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Beneficiary ticket: Local, Regional and International",
+     "value_text": null
+    }
+   ],
+   "fleet": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "Boeing 737-700, as of 2025-06。補足: 【Wikipedia】運航中機数。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-11-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 737-700|In service:1",
+       "source_id": "src-en-wikipedia-org-b49b2709",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "716904de079b368b",
+     "id": "air-peace.fleet.boeing-737-700.7ca08651",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "boeing_737_700",
+     "label_ja": "機種ごとの機数（Boeing 737-700）",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-11",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-b49b2709",
+       "source_type": "third_party_reference",
+       "title": "Air Peace",
+       "url": "https://en.wikipedia.org/wiki/Air_Peace"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 1,
+     "value_text": "1"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "Boeing 777-200ER, as of 2025-06。補足: 【Wikipedia】運航中機数。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-11-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 777-200ER|In service:1",
+       "source_id": "src-en-wikipedia-org-b49b2709",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "46f1b7408a440e6a",
+     "id": "air-peace.fleet.boeing-777-200er.85710cb7",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "boeing_777_200er",
+     "label_ja": "機種ごとの機数（Boeing 777-200ER）",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-11",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-b49b2709",
+       "source_type": "third_party_reference",
+       "title": "Air Peace",
+       "url": "https://en.wikipedia.org/wiki/Air_Peace"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 1,
+     "value_text": "1"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "Embraer 175, as of 2025-06。補足: 【Wikipedia】運航中機数。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-11-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Embraer 175|In service:1",
+       "source_id": "src-en-wikipedia-org-b49b2709",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1fbcb5afd9d31419",
+     "id": "air-peace.fleet.embraer-175.78246fad",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "embraer_175",
+     "label_ja": "機種ごとの機数（Embraer 175）",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-11",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-b49b2709",
+       "source_type": "third_party_reference",
+       "title": "Air Peace",
+       "url": "https://en.wikipedia.org/wiki/Air_Peace"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 1,
+     "value_text": "1"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "Embraer 195-E2, as of 2025-06。補足: 【Wikipedia】発注中8機を除く運航中機数。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-11-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Embraer 195-E2|In service:5",
+       "source_id": "src-en-wikipedia-org-b49b2709",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "22b39c029b506105",
+     "id": "air-peace.fleet.embraer-195-e2.6206628b",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "embraer_195_e2",
+     "label_ja": "機種ごとの機数（Embraer 195-E2）",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-11",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-b49b2709",
+       "source_type": "third_party_reference",
+       "title": "Air Peace",
+       "url": "https://en.wikipedia.org/wiki/Air_Peace"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 5,
+     "value_text": "5"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "Embraer ERJ 145, as of 2025-06。補足: 【Wikipedia】Air Peace Hopperによる運航中機数。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-11-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Embraer ERJ 145|In service:8",
+       "source_id": "src-en-wikipedia-org-b49b2709",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bf4138fa53fae018",
+     "id": "air-peace.fleet.embraer-erj-145.3296cca3",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "embraer_erj_145",
+     "label_ja": "機種ごとの機数（Embraer ERJ 145）",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-11",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-b49b2709",
+       "source_type": "third_party_reference",
+       "title": "Air Peace",
+       "url": "https://en.wikipedia.org/wiki/Air_Peace"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 8,
+     "value_text": "8"
+    }
+   ],
+   "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "E170/E190/E195 Captains (ICAO ELP Level 4+)。補足: 【第三者】Rishworth求人票でも有効なICAOライセンスおよびClass 1 Medical必須。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-11-14",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Current FAA/ICAO/JAA/EASA ATPL and Medical",
+       "source_id": "src-jobs-flightglobal-com-64f0b678",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2c4c07aefe1fd83b",
+     "id": "air-peace.jobs.cap-license-cap.05d325d6",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "cap_license",
+     "label_ja": "機長の応募に要る免許",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-14",
+       "publisher": "FlightJobs",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jobs-flightglobal-com-64f0b678",
+       "source_type": "third_party_reference",
+       "title": "Embraer Pilots for Air Peace",
+       "url": "https://jobs.flightglobal.com/jobs/embraer-pilots-5"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Current FAA/ICAO/JAA/EASA ATPL and Medical",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "Immediate start; closing 2026-12-12 on FlightJobs (FCI)。補足: 【第三者】Rishworth AviationおよびFlightJobs（https://jobs.flightglobal.com/jobs/embraer-pilots-5）、FCI（https://fci.aero/jobs/e145-captains-fo-tr-pilots-air-peace-436916/）にて募集中。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Air Peace E170/175/190/195 Captains",
+       "source_id": "src-rishworthaviation-com-94ba70f9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ceb766f65a7f70f4",
+     "id": "air-peace.jobs.cap-posting-cap.6e48dfdd",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "cap_posting",
+     "label_ja": "機長の募集している職",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rishworthaviation-com-94ba70f9",
+       "source_type": "third_party_reference",
+       "title": "Air Peace Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/air-peace-pilot-jobs"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Air Peace E170/175/190/195 Captains",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "Open to expatriate and local pilots。補足: 【写し】外国人パイロット応募可（ビザ・就労許可は会社手配または費用精算）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Visa Air Peace will arrange / or pilots will be reimbursed",
+       "source_id": "src-scribd-com-583aaf09",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "775050d79ddc4a30",
+     "id": "air-peace.jobs.cap-right-to-work-cap.8be804d1",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "cap_right_to_work",
+     "label_ja": "機長の国籍・就労の資格",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scribd",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-scribd-com-583aaf09",
+       "source_type": "third_party_reference",
+       "title": "Pilot Recruitment for Air Peace (FCI)",
+       "url": "https://www.scribd.com/document/957484600/Air-Peace-E195-Captains-Salary-Benefits-package"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Visa Air Peace will arrange / or pilots will be reimbursed",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "E170/175/190/195 Captains (at least 1000 PIC hours on type)。補足: 【第三者】FlightJobs（https://jobs.flightglobal.com/jobs/embraer-pilots-5）およびPilotsGlobalでも総飛行時間5000時間以上。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "minimum of 5,000 total flight hours",
+       "source_id": "src-rishworthaviation-com-94ba70f9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c10df19226b9fc54",
+     "id": "air-peace.jobs.cap-total-hours-cap.914257d5",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "cap_total_hours",
+     "label_ja": "機長の応募に要る総飛行時間",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rishworthaviation-com-94ba70f9",
+       "source_type": "third_party_reference",
+       "title": "Air Peace Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/air-peace-pilot-jobs"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 5000,
+     "value_text": "5,000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "E170/175/190/195 Captains。補足: 【第三者】型式証明必須（All Flying Jobs https://www.allflyingjobs.com/jobs/e190-captains-fo-ntr-pilots-air-peace にはE190 NTR枠も掲載）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Valid ICAO licence with a suitable Embraer type rating",
+       "source_id": "src-rishworthaviation-com-94ba70f9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "165d33fa599c08ef",
+     "id": "air-peace.jobs.cap-type-rating-cap.120b8e90",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "cap_type_rating",
+     "label_ja": "機長の型式限定の要否",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rishworthaviation-com-94ba70f9",
+       "source_type": "third_party_reference",
+       "title": "Air Peace Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/air-peace-pilot-jobs"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Valid ICAO licence with a suitable Embraer type rating",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "Plus Valid Medical class 1 and EPL 4+。補足: 【第三者】FlightJobsでも「Current FAA/ICAO/JAA/EASA ATPL and Medical」と記載。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATP Licence with valid E175/195 rating",
+       "source_id": "src-pilotsdb-brookfieldav-com-0b53c6b0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "85bb0a95cb68e2a1",
+     "id": "air-peace.jobs.fo-license-fo.166df7a5",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Brookfield Aviation Jobs",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsdb-brookfieldav-com-0b53c6b0",
+       "source_type": "third_party_reference",
+       "title": "Air Peace",
+       "url": "https://pilotsdb.brookfieldav.com/showjob/01292/E190-195-First-Officers---Air-Peace"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ATP Licence with valid E175/195 rating",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "Immediate start; closing 2026-12-12 on FlightJobs (FCI)。補足: 【第三者】Rishworth Aviation、Brookfield Aviation、FlightJobsにて募集中。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "E170/190 First Officer",
+       "source_id": "src-rishworthaviation-com-94ba70f9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6ec21190d2dbe2de",
+     "id": "air-peace.jobs.fo-posting-fo.ab3bf94f",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "fo_posting",
+     "label_ja": "副操縦士の募集している職",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rishworthaviation-com-94ba70f9",
+       "source_type": "third_party_reference",
+       "title": "Air Peace Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/air-peace-pilot-jobs"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "E170/190 First Officer",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "We accept all licences; open to expatriates。補足: 【第三者】外国人パイロット向けにビザ・労働許可証を支給。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Visa and Work Permit",
+       "source_id": "src-pilotsdb-brookfieldav-com-0b53c6b0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5e54d2a19e78a4be",
+     "id": "air-peace.jobs.fo-right-to-work-fo.ea0cc21a",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Brookfield Aviation Jobs",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsdb-brookfieldav-com-0b53c6b0",
+       "source_type": "third_party_reference",
+       "title": "Air Peace",
+       "url": "https://pilotsdb.brookfieldav.com/showjob/01292/E190-195-First-Officers---Air-Peace"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Visa and Work Permit",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "E170/190 First Officer (at least 500 hours on type)。補足: 【第三者】Rishworth Aviation求人は2000時間（Brookfield AviationおよびFlightJobsでは3000時間）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "minimum of 2,000 total flight hours",
+       "source_id": "src-rishworthaviation-com-94ba70f9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "43e874b42271d8b9",
+     "id": "air-peace.jobs.fo-total-hours-fo.500c2b67",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rishworthaviation-com-94ba70f9",
+       "source_type": "third_party_reference",
+       "title": "Air Peace Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/air-peace-pilot-jobs"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 2000,
+     "value_text": "2,000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "E170/190 First Officer。補足: 【第三者】Brookfield Aviationでも「ATP Licence with valid E175/195 rating」と型式証明必須。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Valid ICAO licence with a suitable Embraer type rating",
+       "source_id": "src-rishworthaviation-com-94ba70f9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c3df69f94e3c8fa8",
+     "id": "air-peace.jobs.fo-type-rating-fo.4d3d83a4",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rishworthaviation-com-94ba70f9",
+       "source_type": "third_party_reference",
+       "title": "Air Peace Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/air-peace-pilot-jobs"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Valid ICAO licence with a suitable Embraer type rating",
+     "value_text": null
+    }
+   ],
+   "profile": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "補足: 会社公式発表の設立年。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": "2025-02-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "founded in 2013",
+       "source_id": "src-flyairpeace-com-1279a98f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "35a188b8b31b7d96",
+     "id": "air-peace.profile.founded.78421320",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "founded",
+     "label_ja": "設立",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-02-18",
+       "publisher": "Air Peace",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-flyairpeace-com-1279a98f",
+       "source_type": "official_package",
+       "title": "Official Blog",
+       "url": "https://flyairpeace.com/blog/air-peace-to-showcase-london-connection-through-european-market-at-itb-berlin-2025/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "2013",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "25, Sobo Arobiodu Street GRA, Ikeja。補足: 本社所在地（ラゴス州イケジャGRA）。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Ikeja, Lagos.",
+       "source_id": "src-flyairpeace-com-41aaaadd",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "02b4fe7e1d8a551d",
+     "id": "air-peace.profile.headquarters-city.88c84939",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "headquarters_city",
+     "label_ja": "本社の都市",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air Peace",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-flyairpeace-com-41aaaadd",
+       "source_type": "official_package",
+       "title": "About Us",
+       "url": "https://flyairpeace.com/about-us/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Lagos",
+     "value_text": null
+    }
+   ],
+   "scale": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "as of 2025-06, in service。補足: 【Wikipedia】機種別内訳と一致する運航中機数（2026-01-26付の公式ブログ https://flyairpeace.com/blog/emirates-and-air-peace-activate-bilateral-interline-agreement-enhancing-seamless-global-connectivity/ では「over 50 aircraft」と記載）。",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": "2026-11-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Fleet size 16",
+       "source_id": "src-en-wikipedia-org-b49b2709",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1f39aed4e5616cf1",
+     "id": "air-peace.scale.fleet-total.bcdccdd8",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "fleet_total",
+     "label_ja": "運航している機材",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-11",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-b49b2709",
+       "source_type": "third_party_reference",
+       "title": "Air Peace",
+       "url": "https://en.wikipedia.org/wiki/Air_Peace"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 16,
+     "value_text": "16"
+    }
+   ],
+   "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "after every 8 weeks on (8 weeks on / 3 weeks off commuting roster)。補足: 【第三者】Brookfield AviationおよびFCI求人資料でも8週乗務につき3週間のオフ（帰国航空券支給）と明記。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Terms: 8 weeks on / 3 weeks off, with flights to and from home provided",
+       "source_id": "src-rishworthaviation-com-94ba70f9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e616e5c7ee78b9b6",
+     "id": "air-peace.work.days-off.cda9bb8b",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "休日（月）",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rishworthaviation-com-94ba70f9",
+       "source_type": "third_party_reference",
+       "title": "Air Peace Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/air-peace-pilot-jobs"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "3 weeks off",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "Commuting contract (E170/E190/E195/E145)。補足: 【第三者】Brookfield Aviation（https://pilotsdb.brookfieldav.com/showjob/01292/E190-195-First-Officers---Air-Peace）およびFCI求人票（https://fci.aero/jobs/e145-captains-fo-tr-pilots-air-peace-436916/）でも同一条件。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "8 weeks on / 3 weeks off",
+       "source_id": "src-rishworthaviation-com-94ba70f9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "76f8d3656399259a",
+     "id": "air-peace.work.roster-pattern.04afd6f1",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rishworthaviation-com-94ba70f9",
+       "source_type": "third_party_reference",
+       "title": "Air Peace Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/air-peace-pilot-jobs"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "8 weeks on / 3 weeks off",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "Cost to train and bond one pilot; CEO stated Air Peace stopped bonding new pilots。補足: Allen Onyema会長兼CEOの発言引用（1人あたり5000万ナイラ超の訓練ボンド）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-12-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "cost you over N50 million and you bond the person",
+       "source_id": "src-thisdaylive-com-8cd5d6a4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cfb26021e8297147",
+     "id": "air-peace.work.training-bond.6d607158",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "訓練費の拘束",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-12-05",
+       "publisher": "THISDAYLIVE",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-thisdaylive-com-8cd5d6a4",
+       "source_type": "third_party_reference",
+       "title": "Ensuring Aircraft Safety in Nigeria",
+       "url": "https://www.thisdaylive.com/2025/12/05/ensuring-aircraft-safety-in-nigeria/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "over N50 million",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "In-house academy progression to Captain (vs. industry average of 4 years)。補足: 【第三者】社内養成による昇格目安年数（2026-11-06付 Daily African Times https://dailyafricantimes.com/air-peace-elevates-two-pilots-to-captains-reaffirms-commitment-to-safety/ でも自社養成パイロットのE195-E2機長昇格を報道）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-09-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "pilots upgrade in 2 years",
+       "source_id": "src-ijebuloaded-com-28d75cae",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "49ae17105cc94832",
+     "id": "air-peace.work.upgrade-years.73babc20",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長昇格までの年数の目安",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-09-20",
+       "publisher": "IjebuLoaded",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-ijebuloaded-com-28d75cae",
+       "source_type": "third_party_reference",
+       "title": "Air Peace Salary Structure",
+       "url": "https://ijebuloaded.com/air-peace-salary-structure-in-nigeria-pilot-cabin-crew-staff-breakdown/"
+      }
+     ],
+     "unit": "years",
+     "use": "条件つき",
+     "value": 2,
+     "value_text": "2"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-peace",
+     "cond_ja": "Calendar year limit under Nig. CARs 8.12 (100 hrs/28 days; 1,000 hrs/12 consecutive months)。補足: 【写し】ナイジェリア民間航空局（NCAA）規定 Nig. CARs 8.12 の年間飛行時間上限（28日間100時間・12連続月1,000時間）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2023-09-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "900 hours of flight time in any calendar year",
+       "source_id": "src-scribd-com-f7b64bc5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d8331eef8b01f2af",
+     "id": "air-peace.work.working-time.474487ab",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "working_time",
+     "label_ja": "勤務・乗務時間の上限",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": "year",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-09-01",
+       "publisher": "Scribd",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-scribd-com-f7b64bc5",
+       "source_type": "third_party_reference",
+       "title": "NCAA Nig. CARs 8.12",
+       "url": "https://www.scribd.com/document/967943636/Chapter-12-Approval-and-Acceptance-of-a-Cabin-Crew-Manual-Amended-2023-01092023"
+      }
+     ],
+     "unit": "hours",
+     "use": "条件つき",
+     "value": 900,
+     "value_text": "900"
+    }
+   ]
+  },
   "airasia": {
    "benefits": [
     {
@@ -11068,6 +12987,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "本人・家族・友人のfree/unlimited discounted flightsを案内するが法人により異なる。pilot用確定権利・座席保証・税/手数料・人数は未確認。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "airasia",
+     "cond_ja": "2025年Crew Controller求人に記載されたFlight/Cabin Crewの業務移動手配; Roster Planningによる予約と発表済みロスター変更への対応; 自宅通勤・区間・車種・費用負担は未確認。補足: 【写し】部分確認。運航乗務員と客室乗務員のロスター管理業務における移動手配を確認。採用する地上職自身の交通手当をパイロットへ移したものではない。自宅への無料送迎・通勤交通費支給を証明する記述はない。募集終了後の求人本文であり、2026年の実施継続は未確認。従来は通勤制度全体を未確認としたが、業務移動手配まで除外していた判断を修正。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-03-13",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Confirming all accommodation and transport requirements as booked by Roster Planning",
+       "source_id": "src-my-joblum-com-f708b027",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a2889808f6babf83",
+     "id": "airasia.benefits.commuting.8caf0035",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261118-cg-airasia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-03-13",
+       "publisher": "Joblum",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-my-joblum-com-f708b027",
+       "source_type": "third_party_reference",
+       "title": "AirAsia, Executive Crew Controller",
+       "url": "https://my.joblum.com/job/executive-crew-controller/1895946"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "transport requirements",
      "value_text": null
     }
    ],
@@ -11487,6 +13457,161 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": 250,
      "value_text": "250"
+    }
+   ],
+   "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "airasia",
+     "cond_ja": "公式Pilot Self-Service Dashboardの案内; AIMSで扱えない休暇の手動申請導線; 対象AOC・休暇種類・申請期限・承認条件は未記載。補足: 新規発見の会社公式公開ページの案内を確認。2026-11-18にHTTP 200で本文取得。HTTP Last-Modifiedは2023-09-27（正確な公表日とは区別）。リンク先Google Formsは401・ログイン要求で、申請本文・利用条件・現在の受付稼働までは未確認。申請・送信・ログインはしていない。公開ページにこの休暇申請窓口が案内される事実だけを採用。年休の日数や希望が承認される保証にはしない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Apply for leave not available via AIMS",
+       "source_id": "src-flightops-airasia-com-50e51ccd",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5ebebadd16f32a4b",
+     "id": "airasia.work.roster-pattern.0d43d27f",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261118-cg-airasia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AirAsia",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-flightops-airasia-com-50e51ccd",
+       "source_type": "official_package",
+       "title": "Pilot Self-Service Dashboard",
+       "url": "https://flightops.airasia.com/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Apply for leave not available via AIMS",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "airasia",
+     "cond_ja": "AirAsia Malaysia; 2025年Crew Controller求人に記載された乗員スタンバイの計画運用; 固定周期・ビッド・割当頻度は未確認。補足: 【写し】会社のCrew Controller求人の転載。本文冒頭でFlight and Cabin Crewを対象にする配員業務と確認。地上職自身のシフト条件をパイロットへ転用したものではない。募集自体は終了。スタンバイ運用の存在を示す限定的な情報で、勤務周期や休日保証を意味しない。PJNの5 ON/2 OFFは2009年のため不採用。 最終監査: 部分確認。スタンバイがあるという事実だけで、スタンバイ配置方法や通常の勤務周期まで確認済みとは数えない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-03-13",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "forward planning of standby coverage, duty blocks",
+       "source_id": "src-my-joblum-com-f708b027",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ff415ff4eee6d34a",
+     "id": "airasia.work.roster-pattern.3926155e",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261118-cg-airasia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-03-13",
+       "publisher": "Joblum",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-my-joblum-com-f708b027",
+       "source_type": "third_party_reference",
+       "title": "AirAsia, Executive Crew Controller",
+       "url": "https://my.joblum.com/job/executive-crew-controller/1895946"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "standby coverage",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "airasia",
+     "cond_ja": "2024年AirAsia Cadet Pilot Batch16本人の入校手続き; 一般の機長/副操縦士雇用条件ではない。補足: 【第三者】部分確認: 2024-09-19本人がbond signingに招かれた事実のみ。拘束年数・金額・返還条件はnot_found。2011契約のbondを扱う2025判決のten years/RM100,000は現行条件に転用しない。 【部分確認】勤務型全体・拘束期間全体・自宅通勤制度全体を確定した情報ではない。記載範囲の事実だけを採用する。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2024-11-15",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Bond Signing & Reporting as Cadet Pilot",
+       "source_id": "src-blog-leonardlouis-dev-d98b205e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "558d0539c4a64ec1",
+     "id": "airasia.work.training-bond.32cd6e73",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "訓練費の拘束",
+     "pack": "pvr-20261118-cg-airasia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-11-15",
+       "publisher": "Leonard Louis",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-blog-leonardlouis-dev-d98b205e",
+       "source_type": "third_party_reference",
+       "title": "Chasing the Horizon: My AirAsia Cadet Pilot Adventure",
+       "url": "https://blog.leonardlouis.dev/blog/airasia-cadet"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Bond Signing",
+     "value_text": null
     }
    ]
   },
@@ -28977,6 +31102,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "asiana": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "asiana",
+     "cond_ja": "過去の求人（2025-02-06掲載・2025-02-23締切）; 軍経歴新入操縦士の勤務地서울 강서구と現行提携採用ページのBased in Seoulを照合; 空港基地は未確定。補足: 【第三者】現行提携採用ページの都市表記。補強根拠は2025年の操縦士求人写し https://linkareer.com/activity/222976 の근무지역 서울 강서구（勤務地ソウル江西区）。日本語表記: ソウル。職位や全てのパイロットの基地空港・配置を推定しない。初回not_foundは都市にも空港基地並みの明示を求め過度に除外していたため、勤務地の範囲を明記して置換候補にする。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Based in Seoul",
+       "source_id": "src-rishworthaviation-com-4275f461",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ec15de3540a592a7",
+     "id": "asiana.base.pilot-base-city.88f42ca6",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261118-cg-asiana",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rishworthaviation-com-4275f461",
+       "source_type": "third_party_reference",
+       "title": "Asiana Airlines Pilot Jobs",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/asiana-airlines-pilot-jobs"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Seoul",
+     "value_text": null
+    }
+   ],
    "benefits": [
     {
      "amount": null,
@@ -29531,6 +31709,110 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "B777-200ER",
      "value_text": null
+    }
+   ],
+   "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "asiana",
+     "cond_ja": "過去の求人（2025-02-06掲載・2025-02-23締切）; 軍経歴新入操縦士求人のみ; 職位区分未記載; DEC/一般FOへ流用不可; 国内資格証; 取得予定での条件付き応募可能; MEL/IFR等も要求; 職位区分は原文に記載なし。補足: 【写し】The Teamsの同一求人写しでも照合。軍経歴新入操縦士以外には一般化しない。 再調査では求人の画像全体 https://media-cdn.linkareer.com//se2editor/image/504250 も開いて確認。職位不明を理由に、この限定された求人の確認事実自体を捨てる必要はない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-02-06",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "국내 자격증명 (CPL, MEL, IFR,",
+       "source_id": "src-linkareer-com-880eab6f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ed50c21954163cb0",
+     "id": "asiana.jobs.pilot-license.2e012e86",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_license",
+     "label_ja": "応募に要る免許",
+     "pack": "pvr-20261118-cg-asiana",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-02-06",
+       "publisher": "Linkareer",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-linkareer-com-880eab6f",
+       "source_type": "third_party_reference",
+       "title": "[아시아나항공] 신입 조종사(군경력) 채용",
+       "url": "https://linkareer.com/activity/222976"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "CPL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "asiana",
+     "cond_ja": "過去の求人（2025-02-06掲載・2025-02-23締切）; 軍経歴新入操縦士求人のみ; 職位区分未記載; DEC/一般FOへ流用不可; 固定翼総飛行時間・後席飛行時間除外; captain/first_officerの区分は原文に記載なし。補足: 【写し】同内容の求人写しをThe Teams https://www.theteams.kr/recruit_big/detail/952794 でも確認。valueは原文の桁区切りのみ除去、quoteは原文の1,000を保持。公式原本URL https://flyasiana.recruiter.co.kr は取得不可。現在の一般FO/DEC要件には転用不可。 再調査では求人の画像全体 https://media-cdn.linkareer.com//se2editor/image/504250 も開いて確認。職位不明を理由に、この限定された求人の確認事実自体を捨てる必要はない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-02-06",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "고정익 비행시간 총 1,000시간 이상인 자",
+       "source_id": "src-linkareer-com-880eab6f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8916a8760ddd0867",
+     "id": "asiana.jobs.pilot-total-hours.2c5852f8",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_total_hours",
+     "label_ja": "応募に要る総飛行時間",
+     "pack": "pvr-20261118-cg-asiana",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-02-06",
+       "publisher": "Linkareer",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-linkareer-com-880eab6f",
+       "source_type": "third_party_reference",
+       "title": "[아시아나항공] 신입 조종사(군경력) 채용",
+       "url": "https://linkareer.com/activity/222976"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1000,
+     "value_text": "1,000"
     }
    ],
    "profile": [
@@ -31601,6 +33883,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "value_text": null
     }
    ],
+   "fleet": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "bamboo-airways",
+     "cond_ja": "Airbus A321-200; 2026-09-30時点の記事に記載された運航中機材; VN-A227。補足: 記事はPlanespottersの運航中集計を引用。会社公式の機材発表ではない。機材紹介ページに残るA320CEO/A320NEOの機数を推測して加えていない。 追加確認:2026-08-30のNgười Quan Sát記事はPlanespottersのcurrent fleet=1・In Serviceと明記し、機材リスト画像も1機のみ（https://nguoiquansat.vn/bat-ngo-quy-mo-doi-bay-cac-hang-hang-khong-viet-nam-vietjet-vuot-100-chiec-tan-binh-da-co-18-con-bamboo-airways-lui-ve-1-313496.html）。ただし2026-11-15の同媒体はFlightAwareを引用し、VN-A227が11/6以来飛行していないと報道（https://nguoiquansat.vn/chiec-may-bay-cuoi-cung-cua-bamboo-airways-da-nhieu-ngay-chua-cat-canh-328307.html）。9月の稼働分類を11/18現在の飛行継続と読み替えない。自社所有数・登録総数としても扱わない。 機体追跡のAirNav Radarでも当該登録機の直近記録が2026-11-06であることを再確認。https://www.airnavradar.com/data/registration/VN-A227。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-09-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1 máy bay trong đội bay, là chiếc Airbus A321-200",
+       "source_id": "src-cafef-vn-599d8f5f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "62ab9384c9c6d84a",
+     "id": "bamboo-airways.fleet.airbus-a321-200.f0614551",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "airbus_a321_200",
+     "label_ja": "機種ごとの機数（Airbus A321-200）",
+     "pack": "pvr-20261118-cg-bamboo-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-09-30",
+       "publisher": "CafeF / Nhịp sống thị trường",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-cafef-vn-599d8f5f",
+       "source_type": "third_party_reference",
+       "title": "Ông Lê Thái Sâm quay trở lại làm Chủ tịch, Bamboo Airways bất ngờ đăng ký thêm ngành hậu kỳ phim điện ảnh",
+       "url": "https://cafef.vn/ong-le-thai-sam-quay-tro-lai-lam-chu-tich-bamboo-airways-bat-ngo-dang-ky-them-nganh-hau-ky-phim-dien-anh-188260930141743649.chn"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 1,
+     "value_text": "1"
+    }
+   ],
    "jobs": [
     {
      "amount": null,
@@ -32037,6 +34372,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "value_text": null
     }
    ],
+   "scale": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "bamboo-airways",
+     "cond_ja": "2026-09-30時点の記事に記載された運航中機材数。第三者機材データベースの集計であり会社発表ではない。補足: 記事はPlanespottersを出典としている。2026-08-27付Tạp chí Hàng không記事も運航中1機と報道（https://tapchihangkhong.vn/bamboo-airways-chi-con-1-tau-bay-dang-khai-thac-d14429.html）。公式機材ページは機種紹介のみで機数の記載なし。Planespotters本体は403で閲覧できなかったためニュースを直接出典とした。登録機数・累計導入数・発注数ではない。 追加確認:2026-08-30のNgười Quan Sát記事はPlanespottersのcurrent fleet=1・In Serviceと明記し、機材リスト画像も1機のみ（https://nguoiquansat.vn/bat-ngo-quy-mo-doi-bay-cac-hang-hang-khong-viet-nam-vietjet-vuot-100-chiec-tan-binh-da-co-18-con-bamboo-airways-lui-ve-1-313496.html）。ただし2026-11-15の同媒体はFlightAwareを引用し、VN-A227が11/6以来飛行していないと報道（https://nguoiquansat.vn/chiec-may-bay-cuoi-cung-cua-bamboo-airways-da-nhieu-ngay-chua-cat-canh-328307.html）。9月の稼働分類を11/18現在の飛行継続と読み替えない。自社所有数・登録総数としても扱わない。 機体追跡のAirNav Radarでも当該登録機の直近記録が2026-11-06であることを再確認。https://www.airnavradar.com/data/registration/VN-A227。",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": "2026-09-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1 máy bay trong đội bay",
+       "source_id": "src-cafef-vn-599d8f5f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4e732f209305cd5f",
+     "id": "bamboo-airways.scale.fleet-total.c715fb75",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "fleet_total",
+     "label_ja": "運航している機材",
+     "pack": "pvr-20261118-cg-bamboo-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-09-30",
+       "publisher": "CafeF / Nhịp sống thị trường",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-cafef-vn-599d8f5f",
+       "source_type": "third_party_reference",
+       "title": "Ông Lê Thái Sâm quay trở lại làm Chủ tịch, Bamboo Airways bất ngờ đăng ký thêm ngành hậu kỳ phim điện ảnh",
+       "url": "https://cafef.vn/ong-le-thai-sam-quay-tro-lai-lam-chu-tich-bamboo-airways-bat-ngo-dang-ky-them-nganh-hau-ky-phim-dien-anh-188260930141743649.chn"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 1,
+     "value_text": "1"
+    }
+   ],
    "work": [
     {
      "amount": null,
@@ -32416,6 +34804,212 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "HLP",
      "value_text": null
+    }
+   ],
+   "fleet": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "batik-air",
+     "cond_ja": "Airbus 320-200CEO; 2026年3–4月号掲載（機材基準日の日付は記載なし）。補足: 会社機内誌のBATIK AIR (INDONESIA)欄。マレーシア法人と発注機は含めない。資料はfleet表で稼働/保管の区分なし；2026-11現在の稼働機数と解釈しない。政府登録簿は別の時点・登録基準のため数字を混合しない。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Airbus 320-200CEO • 47 Units",
+       "source_id": "src-lionmag-id-7490c1a5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c1aa7ee1a7b8dd7d",
+     "id": "batik-air.fleet.airbus-320-200ceo.39c69309",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "airbus_320_200ceo",
+     "label_ja": "機種ごとの機数（Airbus 320-200CEO）",
+     "pack": "pvr-20261118-cg-batik-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Lion Air Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-lionmag-id-7490c1a5",
+       "source_type": "official_package",
+       "title": "LIONMAG March–April 2026 / fleet",
+       "url": "https://lionmag.id/assets/uploads/magazine/lionairgroup-maret-april-2026.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 47,
+     "value_text": "47"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "batik-air",
+     "cond_ja": "Airbus 320-200NEO; 2026年3–4月号掲載（機材基準日の日付は記載なし）。補足: 会社機内誌のBATIK AIR (INDONESIA)欄。マレーシア法人と発注機は含めない。資料はfleet表で稼働/保管の区分なし；2026-11現在の稼働機数と解釈しない。政府登録簿は別の時点・登録基準のため数字を混合しない。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Airbus 320-200NEO • 1 Unit",
+       "source_id": "src-lionmag-id-7490c1a5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2901124ec2707444",
+     "id": "batik-air.fleet.airbus-320-200neo.5dc90be4",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "airbus_320_200neo",
+     "label_ja": "機種ごとの機数（Airbus 320-200NEO）",
+     "pack": "pvr-20261118-cg-batik-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Lion Air Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-lionmag-id-7490c1a5",
+       "source_type": "official_package",
+       "title": "LIONMAG March–April 2026 / fleet",
+       "url": "https://lionmag.id/assets/uploads/magazine/lionairgroup-maret-april-2026.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 1,
+     "value_text": "1"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "batik-air",
+     "cond_ja": "Airbus 330-300CEO; 2026年3–4月号掲載（機材基準日の日付は記載なし）。補足: 会社機内誌のBATIK AIR (INDONESIA)欄。マレーシア法人と発注機は含めない。資料はfleet表で稼働/保管の区分なし；2026-11現在の稼働機数と解釈しない。政府登録簿は別の時点・登録基準のため数字を混合しない。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Airbus 330-300CEO • 1 Unit",
+       "source_id": "src-lionmag-id-7490c1a5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a99621335b116567",
+     "id": "batik-air.fleet.airbus-330-300ceo.06e2a073",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "airbus_330_300ceo",
+     "label_ja": "機種ごとの機数（Airbus 330-300CEO）",
+     "pack": "pvr-20261118-cg-batik-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Lion Air Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-lionmag-id-7490c1a5",
+       "source_type": "official_package",
+       "title": "LIONMAG March–April 2026 / fleet",
+       "url": "https://lionmag.id/assets/uploads/magazine/lionairgroup-maret-april-2026.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 1,
+     "value_text": "1"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "batik-air",
+     "cond_ja": "Boeing 737-800NG; 2026年3–4月号掲載（機材基準日の日付は記載なし）。補足: 会社機内誌のBATIK AIR (INDONESIA)欄。マレーシア法人と発注機は含めない。資料はfleet表で稼働/保管の区分なし；2026-11現在の稼働機数と解釈しない。政府登録簿は別の時点・登録基準のため数字を混合しない。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 737-800NG • 14 Units",
+       "source_id": "src-lionmag-id-7490c1a5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ecfc1e4d3d65aa9e",
+     "id": "batik-air.fleet.boeing-737-800ng.abae3041",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "boeing_737_800ng",
+     "label_ja": "機種ごとの機数（Boeing 737-800NG）",
+     "pack": "pvr-20261118-cg-batik-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Lion Air Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-lionmag-id-7490c1a5",
+       "source_type": "official_package",
+       "title": "LIONMAG March–April 2026 / fleet",
+       "url": "https://lionmag.id/assets/uploads/magazine/lionairgroup-maret-april-2026.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 14,
+     "value_text": "14"
     }
    ],
    "jobs": [
@@ -52843,7 +55437,162 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "egyptair": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "egyptair",
+     "cond_ja": "base CAI。補足: カイロ。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Cairo International Airport",
+       "source_id": "src-training-egyptair-com-9d15e5af",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0c851c93c1d4b930",
+     "id": "egyptair.base.pilot-base-city.c0a05e96",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261118-gm-egyptair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "EGYPTAIR Training Academy",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-training-egyptair-com-9d15e5af",
+       "source_type": "job_posting",
+       "title": "EGYPTAIR Group",
+       "url": "https://training.egyptair.com/General/EGYPTAIR-Group"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Cairo",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "egyptair",
+     "cond_ja": "補足: 公式グループ概要にてメインベースと明記。Ready For Take-Off Book（https://readyfortakeoffbook.com/blogs/pilot-conditions/egyptair）でも全パイロットがCAI拠点と確認。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Cairo International Airport (CAI)",
+       "source_id": "src-training-egyptair-com-9d15e5af",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cf58d64191ae8625",
+     "id": "egyptair.base.pilot-base.d160be1f",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261118-gm-egyptair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "EGYPTAIR Training Academy",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-training-egyptair-com-9d15e5af",
+       "source_type": "job_posting",
+       "title": "EGYPTAIR Group",
+       "url": "https://training.egyptair.com/General/EGYPTAIR-Group"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CAI",
+     "value_text": null
+    }
+   ],
    "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "egyptair",
+     "cond_ja": "Up to 45 days for senior pilots (30 to 45 day range)。補足: 【第三者】シニオリティに応じ年30〜45日（最大45日）。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-05-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "annual leave of up to 45 days for senior pilots",
+       "source_id": "src-readyfortakeoffbook-com-c1832fb0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cfc4fd45ed7a184b",
+     "id": "egyptair.benefits.annual-leave.bcfc8196",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "年次休暇",
+     "pack": "pvr-20261118-gm-egyptair",
+     "per": "year",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-05-11",
+       "publisher": "Ready For Take-Off Book",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-readyfortakeoffbook-com-c1832fb0",
+       "source_type": "third_party_reference",
+       "title": "EgyptAir Pilot Conditions",
+       "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/egyptair"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 45,
+     "value_text": "45"
+    },
     {
      "amount": null,
      "applies_to": {
@@ -52954,6 +55703,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "employees and their families向けmedical insurance",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "egyptair",
+     "cond_ja": "EgyptAir and Star Alliance carriers for pilot and family。補足: 【第三者】自社便およびスターアライアンス加盟社でのID90割引（パイロットおよび家族対象）。Indeed口コミ（https://www.indeed.com/cmp/Egyptair）でも無料航空券の言及あり。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-05-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Staff Travel (ID90)",
+       "source_id": "src-readyfortakeoffbook-com-c1832fb0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "924e64896fb5927a",
+     "id": "egyptair.benefits.staff-travel.fe5befc5",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261118-gm-egyptair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-05-11",
+       "publisher": "Ready For Take-Off Book",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-readyfortakeoffbook-com-c1832fb0",
+       "source_type": "third_party_reference",
+       "title": "EgyptAir Pilot Conditions",
+       "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/egyptair"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ID90",
      "value_text": null
     }
    ],
@@ -53635,6 +56435,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "egyptair",
+     "cond_ja": "minimum in any 4 consecutive weeks (ECAR 121 Subpart Q regulatory floor for Egyptian airlines)。補足: 【第三者】エジプト民間航空局（ECAA）ECAR 121 Subpart Qによる14日間で連続2日以上・4週間で最低6日の法定下限（なお https://readyfortakeoffbook.com/blogs/pilot-conditions/egyptair の28日間サンプルロスターでは月11日オフ、会社独自の保証休日数は外部非公開）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-07-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Days Off Floor ≥ 6 in any 4 weeks",
+       "source_id": "src-readyfortakeoffbook-com-2c73450a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7f85502dda1bdb11",
+     "id": "egyptair.work.days-off.21c11a4d",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "休日（月）",
+     "pack": "pvr-20261118-gm-egyptair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-07-04",
+       "publisher": "Ready For Take-Off Book",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-readyfortakeoffbook-com-2c73450a",
+       "source_type": "third_party_reference",
+       "title": "Air Cairo Pilots: EgyptAir Backing, Fast A320 Growth & Benefits",
+       "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/air-cairo"
+      }
+     ],
+     "unit": "days/4 weeks",
+     "use": "条件つき",
+     "value": 6,
+     "value_text": "6"
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true
      },
@@ -53685,6 +56536,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "EGYPTAIR TRAINING ACADEMY / Cairo International Airport, Cairo, Egypt",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "egyptair",
+     "cond_ja": "Narrowbody operation。補足: 【第三者】ナローボディ機は15日周期、長距離ワイドボディ機は目的地で2〜4日間のレイオーバーを伴うローテーション。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-05-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "centred on a 15 day pattern on the narrowbody operation",
+       "source_id": "src-readyfortakeoffbook-com-c1832fb0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b14579115a8715de",
+     "id": "egyptair.work.roster-pattern.26939dd7",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261118-gm-egyptair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-05-11",
+       "publisher": "Ready For Take-Off Book",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-readyfortakeoffbook-com-c1832fb0",
+       "source_type": "third_party_reference",
+       "title": "EgyptAir Pilot Conditions",
+       "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/egyptair"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "15 day pattern",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "egyptair",
+     "cond_ja": "Typical Block Hours / Month (annual max ~900 hrs/year under ECAA/ICAO)。補足: 【第三者】月間標準ブロック時間70〜85時間（年間上限はICAO/ECAA基準の約900時間）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-05-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Typical Block Hours / Month 70 to 85 hrs",
+       "source_id": "src-readyfortakeoffbook-com-c1832fb0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e0bd29c87acdc32e",
+     "id": "egyptair.work.working-time.c45b711f",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "working_time",
+     "label_ja": "勤務・乗務時間の上限",
+     "pack": "pvr-20261118-gm-egyptair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-05-11",
+       "publisher": "Ready For Take-Off Book",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-readyfortakeoffbook-com-c1832fb0",
+       "source_type": "third_party_reference",
+       "title": "EgyptAir Pilot Conditions",
+       "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/egyptair"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "70 to 85",
      "value_text": null
     }
    ]
@@ -53740,6 +56693,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "Dubai",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "emirates",
+     "cond_ja": "Emirates passenger fleet; First Officer vacancy。補足: 【第三者】2026-09-06掲載の会社求人転載。Base Location欄で確認。会社採用サイトへのリンクあり（確認時は個別求人から一般の求人検索画面へ遷移するため、個別求人本文の公式照合とは区別）。公式の現行pilot FAQも全パイロットのDubai配置を確認 https://www.emiratesgroupcareers.com/pilots/ 。空港コード表示は第三者資料として採用し、会社公式のコード公表とはしていない。PJNの2021年の拠点行は採用せず。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-09-06",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Dubai International Airport (DXB / OMDB)",
+       "source_id": "src-jobs-hud-sonic-com-40357ae8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1f94a1b21eab919b",
+     "id": "emirates.base.pilot-base.cd113f9e",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261118-cg-emirates",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-09-06",
+       "publisher": "HUD SONiC Jobs",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jobs-hud-sonic-com-40357ae8",
+       "source_type": "third_party_reference",
+       "title": "Emirates First Officer B777/A380/A350 (NTR)",
+       "url": "https://jobs.hud-sonic.com/jobs/7b40ead6-0784-45f6-9d55-9e62cb5a8fe0"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DXB",
      "value_text": null
     }
    ],
@@ -55424,6 +58428,110 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "ethiopian-airlines": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "ethiopian-airlines",
+     "cond_ja": "base ADD。補足: アディスアベバ。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2024-05-06",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Addis Ababa Bole International Airport (ADD)",
+       "source_id": "src-corporate-ethiopianairlines-com-b972b2f4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "84bd9bb417ade2f2",
+     "id": "ethiopian-airlines.base.pilot-base-city.f899bb06",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261118-gm-ethiopian-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-05-06",
+       "publisher": "Ethiopian Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-corporate-ethiopianairlines-com-b972b2f4",
+       "source_type": "job_posting",
+       "title": "Press Release",
+       "url": "https://corporate.ethiopianairlines.com/Press-release-open-page/ethiopian-launches-a-new-flight-to-maun-botswana"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Addis Ababa",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "ethiopian-airlines",
+     "cond_ja": "補足: PilotsGlobalのB777機長求人票（https://pilotsglobal.com/job/B777-captain-ethiopian_airlines-ET-701hrz5244）でも「ADD - Addis Ababa」と明記。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2024-05-06",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Addis Ababa Bole International Airport (ADD)",
+       "source_id": "src-corporate-ethiopianairlines-com-b972b2f4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cd3b760485b73eaf",
+     "id": "ethiopian-airlines.base.pilot-base.8deaa17e",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261118-gm-ethiopian-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-05-06",
+       "publisher": "Ethiopian Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-corporate-ethiopianairlines-com-b972b2f4",
+       "source_type": "job_posting",
+       "title": "Press Release",
+       "url": "https://corporate.ethiopianairlines.com/Press-release-open-page/ethiopian-launches-a-new-flight-to-maun-botswana"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ADD",
+     "value_text": null
+    }
+   ],
    "benefits": [
     {
      "amount": null,
@@ -62423,6 +65531,110 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "flydubai": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "flydubai",
+     "cond_ja": "Base of Operations; First Officer Non Type Rated。補足: ドバイ。会社自身のLinkedIn掲載。相対表示8か月前・募集終了表示、正確な発行日は不明。就航地ではなく乗務開始・終了の拠点として明記。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Base of Operations in Dubai",
+       "source_id": "src-ae-linkedin-com-c6069939",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "40918de7630d25b1",
+     "id": "flydubai.base.pilot-base-city.37b1073c",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261118-cg-flydubai",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "flydubai",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-ae-linkedin-com-c6069939",
+       "source_type": "job_posting",
+       "title": "First Officer Non Type Rated, employer LinkedIn job",
+       "url": "https://ae.linkedin.com/jobs/view/first-officer-non-type-rated-at-flydubai-4218101022"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Dubai",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "flydubai",
+     "cond_ja": "B737 First Officer vacancy。補足: 【第三者】個別求人Base欄。日付はListed since、元求人の発行日とは区別。公式パイロット採用案内にもoperating out of Dubai International (DXB)の記載あり https://ae.linkedin.com/company/flydubai/life/bd8834bf-5bda-4ac4-b3e3-48b6895ee85f 。公式会社掲載FO求人はBase of Operations in Dubaiを明記 https://ae.linkedin.com/jobs/view/first-officer-non-type-rated-at-flydubai-4218101022 。空港コードまで含む拠点欄は第三者資料。PJNのDXB/DWCは2016年のためDWCを追加しない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-11-08",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Dubai (DXB)",
+       "source_id": "src-pilotjobsinternational-com-df50d4b2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0b7b56a773a7bb21",
+     "id": "flydubai.base.pilot-base.42d908e4",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261118-cg-flydubai",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-08",
+       "publisher": "Pilot Jobs International",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotjobsinternational-com-df50d4b2",
+       "source_type": "third_party_reference",
+       "title": "flydubai First Officer B737",
+       "url": "https://pilotjobsinternational.com/jobs/flydubai-b737-fo/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DXB",
+     "value_text": null
+    }
+   ],
    "benefits": [
     {
      "amount": null,
@@ -67153,6 +70365,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "applies_to": {
       "pilot_specific": true
      },
+     "checked_at": "2026-11-18",
+     "company": "garuda-indonesia",
+     "cond_ja": "2023年報に記載されたGaruda運航乗員の自宅から空港への送迎; 対象居住範囲・費用負担・2026年の適用範囲は記載なし。補足: Garudaグループ公式資料。p.235のPre-Flightにcockpit crewを明示。2025年Garuda年報にもGA crew向けtransportationの事業継続記載を確認したが、2023年の具体的送迎範囲が現時点も同一とは断定しない。発行年月日は特定できず空欄。 2025年報p177/183はGA Crew交通事業の継続とサービス方針改定を記載。改定内容・現行の自宅送迎範囲は不明。https://www.garuda-indonesia.com/static/content/dam/garuda/hubungan-investor/AR-GARUDA-2025_Final.pdf。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Aerowisata transports air crew, including cabin crew and cockpit crew, from their residence to the airport.",
+       "source_id": "src-aerowisata-com-a11320ae",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "547ef5e8e3bbc630",
+     "id": "garuda-indonesia.benefits.commuting.7f3da718",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261118-cg-garuda-indonesia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "PT Aero Wisata",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-aerowisata-com-a11320ae",
+       "source_type": "regulatory_filing",
+       "title": "Annual Report 2023, p.235",
+       "url": "https://www.aerowisata.com/wp-content/uploads/2024/10/AWSAR2023LowrestFINAL.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "from their residence to the airport",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
      "checked_at": "2026-10-29",
      "company": "garuda-indonesia",
      "cond_ja": "2025年; Garuda Indonesiaの操縦士を含む社員と家族の健康保険; 眼鏡・出産の保障も含む; 個別保障額は未掲載。補足: PDF p173（本文173）福利厚生列挙でemployees and their familiesと明示。一般法の医療保険だけから推定していない。",
@@ -67814,7 +71077,162 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "gulf-air": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "gulf-air",
+     "cond_ja": "verified pilot_base BAH; airport administrative city（空港所在地側の市。大都市圏はManama）。補足: ムハッラク。基地BAHは現行パイロット求人 https://pilotjobsinternational.com/jobs/gulf-air-direct-entry-pilots/ と公式GF1972 https://gulfairgroup.sniperhire.net/vacancy/175079 で別途照合。AIPの飛行場運営者住所を用いて確認済み基地空港と所在地を対応付けたもので、本社所在地から基地を推定していない。ManamaはAIPに最寄り都市として別記（3.3 NM NE of Manama）。2025-07-10はAIP該当頁の日付・AIRAC発効日で、PDF原本 https://aim.mtt.gov.bh/eAIP/2025-07-10-AIRAC/pdf/OB-amdt-en-BH.pdf も実読。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-07-10",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Muharraq Bahrain",
+       "source_id": "src-aim-mtt-gov-bh-d9c79fd2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ce649094313e523d",
+     "id": "gulf-air.base.pilot-base-city.2a110602",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261118-cg-gulf-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-07-10",
+       "publisher": "Bahrain Civil Aviation Affairs",
+       "publisher_kind": "government",
+       "retrieved": "2026-11-18",
+       "source_id": "src-aim-mtt-gov-bh-d9c79fd2",
+       "source_type": "government",
+       "title": "AIP OBBI AD 2.2 (AIRAC 01/25)",
+       "url": "https://aim.mtt.gov.bh/eAIP/2025-07-10-AIRAC/html/eAIP/OB-AD-2.OBBI-en-BH.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Muharraq",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "gulf-air",
+     "cond_ja": "現行A320 First Officer求人の拠点。補足: 【第三者】公開日は不明。2026年掲載中の求人ミラー。公式GF1972（https://gulfairgroup.sniperhire.net/vacancy/175079、締切2026-12-31）も実際に開き、勤務地Bahrain - Head Quarterと求人条件の一致を照合。公式本文にはBAH表記なし。PJIの掲載開始2026-10-31は会社側求人の発行日と同一とは扱わない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Base BAH · Bahrain",
+       "source_id": "src-pilotjobsinternational-com-3cca8d76",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5585c040f256d808",
+     "id": "gulf-air.base.pilot-base.ed1da57c",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261118-cg-gulf-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Pilot Jobs International",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotjobsinternational-com-3cca8d76",
+       "source_type": "third_party_reference",
+       "title": "First Officer A320 (direct entry, A320 experience)",
+       "url": "https://pilotjobsinternational.com/jobs/gulf-air-direct-entry-pilots/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BAH",
+     "value_text": null
+    }
+   ],
    "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "gulf-air",
+     "cond_ja": "全社員の制度（乗員送迎・社員バスの運用を確認。パイロット個人の自宅送迎権利・対象範囲・費用は未公表）。補足: 2026-10-20締切の公式求人。Job purposeにGulf Airの日常輸送運用と明記。乗員送迎と社員バスの運用が存在する根拠として採用し、全パイロットに無料の自宅送迎があるとは解釈しない。求人締切は発行日ではないためpublished_date空欄。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Coordinate crew transportation, staff bus services",
+       "source_id": "src-gulfairgroup-sniperhire-net-3f017088",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c4c953651d4787ce",
+     "id": "gulf-air.benefits.commuting.137f3219",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261118-cg-gulf-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Gulf Air Group Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-gulfairgroup-sniperhire-net-3f017088",
+       "source_type": "official_package",
+       "title": "GF2140 OFFICER – TRANSPORT",
+       "url": "https://gulfairgroup.sniperhire.net/vacancy/176367"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "crew transportation",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -70406,6 +73824,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "Hong Kong",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "hong-kong-express",
+     "cond_ja": "Second Officer (A320)求人に示された勤務地。補足: 【第三者】PCC求人転載。本文のJob based in Hong Kongも確認。SO求人の勤務地の根拠であり全機種・全職位の基地一覧を証明するものではない。現行募集の確認には使用しない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-03-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "HK Express S/O's - A320 - HKG",
+       "source_id": "src-recncy-com-e2eadeb1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fe64a021b7c86a4c",
+     "id": "hong-kong-express.base.pilot-base.7927b8ab",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261118-cg-hong-kong-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-03-20",
+       "publisher": "Recncy",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-recncy-com-e2eadeb1",
+       "source_type": "third_party_reference",
+       "title": "Second Officers - Airbus A320 - Hong Kong (PilotCareerCenter転載)",
+       "url": "https://www.recncy.com/jobs/second-officers-airbus-a320-hong-kong-hk-express-pcc-20174"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HKG",
+     "value_text": null
     }
    ],
    "benefits": [
@@ -70462,6 +73931,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "Relocation Assistanceの記載あり。金額・支給回数・家族条件・継続住宅補助は未記載。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "hong-kong-express",
+     "cond_ja": "2024年記事が対象とする中国本土出身パイロット。珠海・深圳等GBA居住から香港への通勤選択。2026年の制度継続・対象者個別条件は未確認。補足: HK Expressの会社タイアップ(sponsored)記事。Kelvin Lo（General Manager, People Experience）が登場。媒体上の記事として分類し、会社公式採用条件とは区別する。記事本文はpilotsを明記するが、その後の直接引用の成果数値はcabin crewのみのため使用しない。通勤補助額・送迎車・通勤所要時間の条件は明記なし。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2024-07-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "pilots from Mainland China are given an opportunity to live in nearby Greater Bay Area (GBA) cities such as Zhuhai, Shenzhen",
+       "source_id": "src-humanresourcesonline-net-e521cf1d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "20a0f8221e197e7b",
+     "id": "hong-kong-express.benefits.commuting.0f9151cb",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261118-cg-hong-kong-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-07-17",
+       "publisher": "Human Resources Online",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-humanresourcesonline-net-e521cf1d",
+       "source_type": "third_party_reference",
+       "title": "HK Express is taking the scenic route in enhancing talent attraction and employee experience",
+       "url": "https://www.humanresourcesonline.net/hk-express-is-taking-the-scenic-route-in-enhancing-talent-attraction-and-employee-experience"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "live in nearby Greater Bay Area (GBA) cities",
      "value_text": null
     },
     {
@@ -74463,7 +77983,217 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "indigo": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "indigo",
+     "cond_ja": "base DEL；A320 family Senior First Officer求人。補足: 【第三者】デリー。PJNの基地欄（2023-06-21）でもDelhiを記載。 https://www.pilotjobsnetwork.com/jobs/Indigo。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DEL - Delhi",
+       "source_id": "src-pilotsglobal-com-ab32f335",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0b5730bd0cd71743",
+     "id": "indigo.base.pilot-base-city.58903057",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261118-cg-indigo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-ab32f335",
+       "source_type": "third_party_reference",
+       "title": "IndiGo Senior First Officer - A320 family",
+       "url": "https://pilotsglobal.com/job/A320-family-senior-first-officer-indigo-IN-c5mns88sh3"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Delhi",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "indigo",
+     "cond_ja": "A320 family Senior First Officer求人のBase location；全基地一覧ではない。補足: 【第三者】求人代理掲載のBase locationを実ページで確認。掲載日不明、確認日には閲覧可能。公式求人本文は403。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DEL - Delhi",
+       "source_id": "src-pilotsglobal-com-ab32f335",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2309ecad61a05263",
+     "id": "indigo.base.pilot-base.a2ef3d95",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261118-cg-indigo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-ab32f335",
+       "source_type": "third_party_reference",
+       "title": "IndiGo Senior First Officer - A320 family",
+       "url": "https://pilotsglobal.com/job/A320-family-senior-first-officer-indigo-IN-c5mns88sh3"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DEL",
+     "value_text": null
+    }
+   ],
    "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "indigo",
+     "cond_ja": "過去資料（2025-02-25）; 現行値としての掲載不可; 2025-02-25時点のprivilege leave；pilots in command；現在の全契約共通値ではない。補足: 【写し】新聞紙面を実読。後の2025年12月に休暇削減・買上げが報道されており、現在値として断定しない。PJNの2026更新プラン値とは職位・契約・時点が異なる可能性がある。 2026-04-22更新のPJN Leave欄には22/30/84日の選択制情報もあるが、投稿者・職位・契約区分・年休/休日分類を確認できず数値行へ不採用。https://www.pilotjobsnetwork.com/jobs/Indigo 。現行制度の確定には最新の会社規程・契約の照合が必要。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-02-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "provides 42 PLs to pilots in command",
+       "source_id": "src-cms-rguktrkv-ac-in-0e98e874",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e12249a181a0d82f",
+     "id": "indigo.benefits.annual-leave-cap.5ea890e7",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "機長の年次休暇",
+     "pack": "pvr-20261118-cg-indigo",
+     "per": "year",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-02-25",
+       "publisher": "The Hindu",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-cms-rguktrkv-ac-in-0e98e874",
+       "source_type": "third_party_reference",
+       "title": "Why are pilots asking for more rest hours?, 2025-02-25 p8（大学サイト所蔵紙面写し）",
+       "url": "https://cms.rguktrkv.ac.in/notices/files/All%20English%20Editorial%2025-02_1740468857.pdf"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 42,
+     "value_text": "42"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "indigo",
+     "cond_ja": "過去資料（2025-02-25）; 現行値としての掲載不可; 2025-02-25時点のprivilege leave；First Officers；現在の全契約共通値ではない。補足: 【写し】新聞紙面を実読。2026年の職位別現行規程は未取得。 2026-04-22更新のPJN Leave欄には22/30/84日の選択制情報もあるが、投稿者・職位・契約区分・年休/休日分類を確認できず数値行へ不採用。https://www.pilotjobsnetwork.com/jobs/Indigo 。現行制度の確定には最新の会社規程・契約の照合が必要。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-02-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "22 to First Oﬃcers",
+       "source_id": "src-cms-rguktrkv-ac-in-0e98e874",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "21818b5a544d4fa4",
+     "id": "indigo.benefits.annual-leave-fo.22d593b2",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "副操縦士の年次休暇",
+     "pack": "pvr-20261118-cg-indigo",
+     "per": "year",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-02-25",
+       "publisher": "The Hindu",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-cms-rguktrkv-ac-in-0e98e874",
+       "source_type": "third_party_reference",
+       "title": "Why are pilots asking for more rest hours?, 2025-02-25 p8（大学サイト所蔵紙面写し）",
+       "url": "https://cms.rguktrkv.ac.in/notices/files/All%20English%20Editorial%2025-02_1740468857.pdf"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 22,
+     "value_text": "22"
+    },
     {
      "amount": null,
      "applies_to": {
@@ -75709,6 +79439,269 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "India",
      "value_text": null
+    }
+   ],
+   "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "indigo",
+     "cond_ja": "IndiGo Cadet Pilot ProgrammeのFAQにある勤務の見込み；固定勤務・月休日の保証ではない。補足: 【第三者】IndiGo提携訓練校の現行FAQ。発行・更新日不明。勤務時間の一般上限には転用しない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "working 5-6 days a week",
+       "source_id": "src-insightflyer-com-19505467",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "313d7f40d87f2b4f",
+     "id": "indigo.work.roster-pattern.b0a35365",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261118-cg-indigo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Insight Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-insightflyer-com-19505467",
+       "source_type": "third_party_reference",
+       "title": "IndiGo Cadet Pilot Programme FAQ",
+       "url": "https://www.insightflyer.com/indigo-cadet-pilot-programme/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "5-6",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "indigo",
+     "cond_ja": "2025年12月の記事が説明する通常の公表周期。通常前月25日公表；危機時は短期ロスターに変更したとの報道。補足: 2026年現在も前月25日公表かは未確認。2025年の通常運用と、同年の例外を区別。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-12-08",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "IndiGo usually publishes monthly pilot rosters on the 25th.",
+       "source_id": "src-economictimes-indiatimes-com-b930faac",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c9cb5bf2239fc7bf",
+     "id": "indigo.work.roster-pattern.e5bdf44c",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261118-cg-indigo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-12-08",
+       "publisher": "The Economic Times",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-economictimes-indiatimes-com-b930faac",
+       "source_type": "third_party_reference",
+       "title": "IndiGo’s rule shocker: Probe asks if airline ignored warnings before crisis hit",
+       "url": "https://economictimes.indiatimes.com/industry/transportation/airlines-/-aviation/indigos-rule-shocker-probe-asks-if-airline-ignored-warnings-before-crisis-hit/articleshow/125825556.cms"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "monthly pilot rosters",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "indigo",
+     "cond_ja": "同cadet契約；LOI署名時に差し入れる日付未記入小切手。契約違反時に換金され得る金額；通貨換算・桁換算なし。補足: 【第三者】小切手は契約違反に備えるものとFAQに記載。発行日不明の現行FAQ。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "undated cheque of 30 lacs",
+       "source_id": "src-insightflyer-com-19505467",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "83cc98a4dc5b4a9c",
+     "id": "indigo.work.training-bond-fo.5f8141ef",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "副操縦士の訓練費の拘束",
+     "pack": "pvr-20261118-cg-indigo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Insight Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-insightflyer-com-19505467",
+       "source_type": "third_party_reference",
+       "title": "IndiGo Cadet Pilot Programme FAQ",
+       "url": "https://www.insightflyer.com/indigo-cadet-pilot-programme/"
+      }
+     ],
+     "unit": "lacs",
+     "use": "条件つき",
+     "value": 30,
+     "value_text": "30"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "indigo",
+     "cond_ja": "Insight AviationのIndiGo Cadet Pilot Programme。訓練後にIndiGoへ入社して勤務する最低期間。補足: 【第三者】同校経由のcadet契約の説明。全採用区分・全パイロットへ一般化しない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "work for a minimum period of 5 years",
+       "source_id": "src-insightflyer-com-19505467",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1949ecb0bd281fc5",
+     "id": "indigo.work.training-bond-fo.af0f7afc",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "副操縦士の訓練費の拘束",
+     "pack": "pvr-20261118-cg-indigo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Insight Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-insightflyer-com-19505467",
+       "source_type": "third_party_reference",
+       "title": "IndiGo Cadet Pilot Programme FAQ",
+       "url": "https://www.insightflyer.com/indigo-cadet-pilot-programme/"
+      }
+     ],
+     "unit": "years",
+     "use": "条件つき",
+     "value": 5,
+     "value_text": "5"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "indigo",
+     "cond_ja": "約；Senior First Officer→Captainの段階のみ。2026 Analyst Day p51のPilot Career Progression Pipeline；入社からの総所要年数ではない。補足: 段階別の図を確認。JFO→FO、FO→SFO、Cadet段階の期間を加算していない。 published_dateは表紙Event PassのAnalyst Day開催日（08 June 2026）で、ウェブへの公開日時は不明。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-06-08",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "c. 4 years",
+       "source_id": "src-goindigo-in-e25b1c1f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a660c16419cadbe5",
+     "id": "indigo.work.upgrade-years-fo.cb3d598e",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "副操縦士の機長昇格までの年数の目安",
+     "pack": "pvr-20261118-cg-indigo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-08",
+       "publisher": "IndiGo",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-goindigo-in-e25b1c1f",
+       "source_type": "official_package",
+       "title": "Analyst Day 2026 Company Presentation, p51",
+       "url": "https://www.goindigo.in/content/dam/s6web/in/en/assets/investor-relations/presentation/2025-26/IndiGo_Company_Presentation_2026_v1.pdf"
+      }
+     ],
+     "unit": "years",
+     "use": "条件つき",
+     "value": 4,
+     "value_text": "4"
     }
    ]
   },
@@ -84955,9 +88948,224 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "Nairobi",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "kenya-airways",
+     "cond_ja": "base NBO。補足: ナイロビ。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2024-08-28",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Nairobi, Kenya (Jomo Kenyatta International Airport)",
+       "source_id": "src-corporate-kenya-airways-com-a1c5b4eb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "84180e77397ec35a",
+     "id": "kenya-airways.base.pilot-base-city.8e2f7472",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261118-gm-kenya-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-08-28",
+       "publisher": "Kenya Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-corporate-kenya-airways-com-a1c5b4eb",
+       "source_type": "job_posting",
+       "title": "Official Press Release",
+       "url": "https://corporate.kenya-airways.com/globalassets/corporate/news--press-releases/2024/september/press-release--the-aviation-challenge-2024.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Nairobi",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "kenya-airways",
+     "cond_ja": "補足: 公式採用ポータルのFirst Officer求人票（https://careers.kenya-airways.com/anonymous/listing/9cc26f51-1967-4fac-ab39-41269b506fd3/details?division=7f4b2df9-2649-4e4d-a510-22a6fdc0b518）でもNairobi拠点と明記。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2024-08-28",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "NBO – JFK: Nairobi, Kenya (Jomo Kenyatta International Airport)",
+       "source_id": "src-corporate-kenya-airways-com-a1c5b4eb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "de6caddad34885e0",
+     "id": "kenya-airways.base.pilot-base.9ae87462",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261118-gm-kenya-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-08-28",
+       "publisher": "Kenya Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-corporate-kenya-airways-com-a1c5b4eb",
+       "source_type": "job_posting",
+       "title": "Official Press Release",
+       "url": "https://corporate.kenya-airways.com/globalassets/corporate/news--press-releases/2024/september/press-release--the-aviation-challenge-2024.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "NBO",
+     "value_text": null
     }
    ],
    "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "kenya-airways",
+     "cond_ja": "accumulated over the last two years per KALPA Secretary General statement。補足: KALPA事務局長Paul Gichinga氏の発言引用（2年間未取得で少なくとも70日の有給休暇が累積）。またIndeedのKenya Airways休暇FAQ（https://www.indeed.com/cmp/Kenya-Airways/faq/what-is-the-vacation-policy-like-at-kenya-airways-how-many-vacation-days-do-you-get-per-year?quid=1dfu9k84b0mt5001、2023-01-21）では全社員・シフト勤務者の有給休暇として「15」「Minimum 28 days vacation period」「36 days per year for shift workers」との回答あり。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2024-08-13",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "We do not have enough staff, most pilots have accumulated at least 70 leave days showing they have not gone on a break for the last two years",
+       "source_id": "src-africanews-com-57c8ee32",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6017a220eb257fa3",
+     "id": "kenya-airways.benefits.annual-leave.7b9d561c",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "年次休暇",
+     "pack": "pvr-20261118-gm-kenya-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-08-13",
+       "publisher": "Africanews",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-africanews-com-57c8ee32",
+       "source_type": "third_party_reference",
+       "title": "Kenya Airways pilots issue strike notice",
+       "url": "https://www.africanews.com/2016/04/26/kenya-airways-pilots-issue-strike-notice/"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 70,
+     "value_text": "70"
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "通勤の手当・送迎（1か月）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "kenya-airways",
+     "cond_ja": "transport allowance under KALPA CBA (First Officer, B767 fleet)。補足: 2026年労働裁判所判決で引用されたKALPA労働協約（CBA）のFirst Officer月額通勤手当（Second Officer初期契約はKshs. 5,350）。",
+     "currency": "KES",
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-10-27",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "transport allowance of Kshs. 13,949",
+       "source_id": "src-sheriaplex-com-c0d88eb8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a1f62e003f964af5",
+     "id": "kenya-airways.benefits.commuting-fo.f8d02d36",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "副操縦士の通勤の手当・送迎",
+     "pack": "pvr-20261118-gm-kenya-airways",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-27",
+       "publisher": "Employment and Labour Relations Court",
+       "publisher_kind": "government",
+       "retrieved": "2026-11-18",
+       "source_id": "src-sheriaplex-com-c0d88eb8",
+       "source_type": "government",
+       "title": "KALPA v Kenya Airways [2026] KEELRC 14787",
+       "url": "https://www.sheriaplex.com/case-summaries/3003-kenya-airline-pilots-association-kalpa-v-kenya-airways-ltd-2026-keelrc-14787-klr"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 13949,
+     "value_text": "13,949"
+    },
     {
      "amount": null,
      "applies_to": {
@@ -85170,6 +89378,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "参考",
      "value": "2024報告は全社員にhealthcare/parental leave、permanent社員にretirement benefitsと記載。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "kenya-airways",
+     "cond_ja": "Buddy pass complimentary ticket scheme; ID tickets via iSafari。補足: 社員および家族・友人向けの無料航空券制度（Buddy Pass：年2回、各回最大4名同伴可）。FlyZED Directory（https://staffairlines.com/airlines/kenya-airways）にiSafari経由のIDチケット規定あり。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2024-06-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "two free flights a year, each accompanied by up to four other passengers",
+       "source_id": "src-ntvkenya-co-ke-02c25c75",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "02a427dd16c7c819",
+     "id": "kenya-airways.benefits.staff-travel.6150094a",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261118-gm-kenya-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-06-05",
+       "publisher": "NTV Kenya",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-ntvkenya-co-ke-02c25c75",
+       "source_type": "third_party_reference",
+       "title": "Kenya Airways complimentary tickets",
+       "url": "https://ntvkenya.co.ke/news/kenya-airways-extends-freeze-on-complimentary-tickets-amid-abuse-probe/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "two free flights a year, each accompanied by up to four other passengers",
      "value_text": null
     }
    ],
@@ -86286,6 +90545,271 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "1977",
+     "value_text": null
+    }
+   ],
+   "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "kenya-airways",
+     "cond_ja": "minimum, planned in a 28-day roster。補足: 【写し】28日ロスターあたり最低8日の休日。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2024-02-07",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "minimum of 8 days off is planned in a 28-day roster",
+       "source_id": "src-myjobmag-co-ke-4bb60e67",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5f2af57f480509d9",
+     "id": "kenya-airways.work.days-off-fo.8a7270ef",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "副操縦士の休日（月）",
+     "pack": "pvr-20261118-gm-kenya-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-02-07",
+       "publisher": "MyJobMag",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-myjobmag-co-ke-4bb60e67",
+       "source_type": "third_party_reference",
+       "title": "Pilot at Kenya Airways",
+       "url": "https://www.myjobmag.co.ke/job/pilot-kenya-airways"
+      }
+     ],
+     "unit": "days/28 days",
+     "use": "条件つき",
+     "value": 8,
+     "value_text": "8"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "kenya-airways",
+     "cond_ja": "International and domestic duties from Nairobi base。補足: 【写し】Kenya AirwaysのDirect Entry First Officer求人票の写し。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2024-02-07",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "planned in a 28-day roster",
+       "source_id": "src-myjobmag-co-ke-4bb60e67",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "aaa235a0a09ca26f",
+     "id": "kenya-airways.work.roster-pattern-fo.eeec53b2",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "副操縦士のロスターの型",
+     "pack": "pvr-20261118-gm-kenya-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-02-07",
+       "publisher": "MyJobMag",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-myjobmag-co-ke-4bb60e67",
+       "source_type": "third_party_reference",
+       "title": "Pilot at Kenya Airways",
+       "url": "https://www.myjobmag.co.ke/job/pilot-kenya-airways"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "28-day roster",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "kenya-airways",
+     "cond_ja": "for type rating course。補足: 【写し】タイプレーティング訓練コースに対し2年間のボンド適用。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2024-02-07",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "2-year bond will apply for type rating course",
+       "source_id": "src-myjobmag-co-ke-4bb60e67",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d062d7bb7383e719",
+     "id": "kenya-airways.work.training-bond-fo.2085d06a",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "副操縦士の訓練費の拘束",
+     "pack": "pvr-20261118-gm-kenya-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-02-07",
+       "publisher": "MyJobMag",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-myjobmag-co-ke-4bb60e67",
+       "source_type": "third_party_reference",
+       "title": "Pilot at Kenya Airways",
+       "url": "https://www.myjobmag.co.ke/job/pilot-kenya-airways"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "2-year bond",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "kenya-airways",
+     "cond_ja": "From First Officer to Captain。補足: 【第三者】Kenya Airways提携訓練校の記載。2026年労働裁判所判決（https://www.sheriaplex.com/case-summaries/3003-kenya-airline-pilots-association-kalpa-v-kenya-airways-ltd-2026-keelrc-14787-klr）でも入社約7年半で機長昇格訓練へ進行。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "From First Officer to Captain in 5-7 years",
+       "source_id": "src-harmonicsaircentre-com-06508510",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c75b2866ed29d43a",
+     "id": "kenya-airways.work.upgrade-years.93dc1f55",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長昇格までの年数の目安",
+     "pack": "pvr-20261118-gm-kenya-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Harmonics Air Centre",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-harmonicsaircentre-com-06508510",
+       "source_type": "third_party_reference",
+       "title": "Pilot Training",
+       "url": "https://www.harmonicsaircentre.com/courses/pilot-training"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "5-7",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "kenya-airways",
+     "cond_ja": "achievable annual flight hours。補足: 【写し】Direct Entry First Officer求人票の写し（またKALPA CBA第2条(b)(iv)の上位機種路線審査訓練上限は250時間：https://www.sheriaplex.com/case-summaries/3003-kenya-airline-pilots-association-kalpa-v-kenya-airways-ltd-2026-keelrc-14787-klr）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2024-02-07",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "800 to 900 hours can be achieved in a year",
+       "source_id": "src-myjobmag-co-ke-4bb60e67",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0131130b39532f63",
+     "id": "kenya-airways.work.working-time-fo.c23f2c6f",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "working_time",
+     "label_ja": "副操縦士の勤務・乗務時間の上限",
+     "pack": "pvr-20261118-gm-kenya-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-02-07",
+       "publisher": "MyJobMag",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-myjobmag-co-ke-4bb60e67",
+       "source_type": "third_party_reference",
+       "title": "Pilot at Kenya Airways",
+       "url": "https://www.myjobmag.co.ke/job/pilot-kenya-airways"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "800 to 900",
      "value_text": null
     }
    ]
@@ -87849,9 +92373,111 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "Seoul",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "korean-air",
+     "cond_ja": "外国人契約パイロットのSeoul/Incheon運航基地。居住国のcommuting home baseとは別。補足: 【第三者】採用代理店TASのパイロット募集ページに運航基地を明記。https://kal-ccl.com/Benefits のSeoul (ICN)と整合。TAS https://flytas.com/interviews/ は2025年募集日程を掲載。発行日不明のため現行掲載内容として採用し、国内採用者の全基地一覧に一般化しない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "As Incheon/Seoul is your operating base, ... ICN airport",
+       "source_id": "src-flytas-com-c52a684e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a14e92e78b1129fa",
+     "id": "korean-air.base.pilot-base.148579ef",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261118-cg-korean-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Total Aviation Service",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-flytas-com-c52a684e",
+       "source_type": "third_party_reference",
+       "title": "Korean Air Pilot Jobs / Does Korean Air provide my accommodation?",
+       "url": "https://flytas.com/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ICN",
+     "value_text": null
     }
    ],
    "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "korean-air",
+     "cond_ja": "外国人契約パイロット。通常Business Class、Korean Air手配。一般の市内自宅送迎の範囲・手当額の記載ではない。補足: 【第三者】採用代理店が示す外国人契約の条件。https://flytas.com/benefits/ および https://rishworthaviation.com/pilot-jobs/airline/korean-air-pilot-jobs もBusiness Class commutingを記載。公表日不明、現行掲載を確認。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Commuting on Korean Air's route network. Typically, Business class, arranged by Korean Air",
+       "source_id": "src-kal-ccl-com-881e2f8a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "50d7b85d9075d285",
+     "id": "korean-air.benefits.commuting.e36b169f",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261118-cg-korean-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "CCL Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-kal-ccl-com-881e2f8a",
+       "source_type": "third_party_reference",
+       "title": "Korean Air pilot benefits",
+       "url": "https://kal-ccl.com/Benefits"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Commuting on Korean Air's route network",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -90244,6 +94870,212 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "kuwait-airways": {
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "kuwait-airways",
+     "cond_ja": "2024-04-09報道のパイロット・技術者向け交通手当（従来未支給の該当区分を含む）。補足: Al-Seyassahが情報筋の話として会長の承認を報道。現時点の支給額・適用条件や自宅送迎の有無は未確認。組合による3月の要求とは別の承認報道。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2024-04-09",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "بدلات الهاتف والمواصلات المستحقة للطيارين والمهندسين",
+       "source_id": "src-nabd-com-6671e1aa",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "dc56b19d3020916e",
+     "id": "kuwait-airways.benefits.commuting.cbb162f7",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261118-cg-kuwait-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-04-09",
+       "publisher": "\"Al-Seyassah (السياسة)",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-nabd-com-6671e1aa",
+       "source_type": "third_party_reference",
+       "title": "بدلات الهاتف والمواصلات وترصيد الاجازات.. \"\"عيدية\"\" \"\"الخطوط الكويتية\"\" لموظفيها (Nabd掲載)\"",
+       "url": "https://nabd.com/s/135451289-86a755/%D8%A8%D8%AF%D9%84%D8%A7%D8%AA-%D8%A7%D9%84%D9%87%D8%A7%D8%AA%D9%81-%D9%88%D8%A7%D9%84%D9%85%D9%88%D8%A7%D8%B5%D9%84%D8%A7%D8%AA-%D9%88%D8%AA%D8%B1%D8%B5%D9%8A%D8%AF-%D8%A7%D9%84%D8%A7%D8%AC%D8%A7%D8%B2%D8%A7%D8%AA..-%D8%B9%D9%8A%D8%AF%D9%8A%D8%A9-%D9%84%D9%85%D9%88%D8%B8%D9%81%D9%8A%D9%87%D8%A7"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "المواصلات",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "kuwait-airways",
+     "cond_ja": "KAC MedicalCenterによるflyingstaffの診療・治療；医療保険料の負担及び家族対象は未公表。補足: 雇用主が掲載する航空医求人のBasicFunction、適性検査だけでなく日常疾患の治療を明記。公式掲載は1yearagoの相対表示のみで発行日空欄。同一求人転載https://www.professionalpyramid.com/jobs/ohn5bj7htculiiuavpd4ozam に2025-08-12掲載とあるが公式求人の日付として転記していない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Provides routine medical treatment to KAC flying staff.",
+       "source_id": "src-kw-linkedin-com-54fb75b4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f54155ffd96bb171",
+     "id": "kuwait-airways.benefits.medical.5363d489",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "医療の保険・補助",
+     "pack": "pvr-20261118-cg-kuwait-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-kw-linkedin-com-54fb75b4",
+       "source_type": "official_package",
+       "title": "Specialist, Aviation Medicine（会社掲載LinkedIn求人）",
+       "url": "https://kw.linkedin.com/jobs/view/specialist-aviation-medicine-at-kuwait-airways-4270892264"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "routine medical treatment",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "kuwait-airways",
+     "cond_ja": "2025連結決算注記18；パイロット・技術者向け年金制度の存在のみ、対象国籍/給付計算/新規加入可否は不明。補足: CompaniesHouse公開提出2026-11-13、監査報告日2026-05-10。実読PDFは検索インデックス経由のCompaniesHouseAmazonS3署名URL。最終リンクは実際に開いた安定した提出一覧、FY2025PDF注記18を参照。短命署名URLは非掲載。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-11-13",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Pilots and engineers pension plan",
+       "source_id": "src-find-and-update-company-information-serv-505c43d0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f37f085f006fbf90",
+     "id": "kuwait-airways.benefits.pension.b63d9735",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261118-cg-kuwait-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-13",
+       "publisher": "Kuwait Airways Company K.S.C. and subsidiaries",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-find-and-update-company-information-serv-505c43d0",
+       "source_type": "official_package",
+       "title": "Consolidated financial statements FY2025, Note18",
+       "url": "https://find-and-update.company-information.service.gov.uk/company/FC005764/filing-history"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Pilots and engineers pension plan",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "kuwait-airways",
+     "cond_ja": "全社員の制度（社員航空券の券種。発券条件・確約回数は未確認）。補足: 公式の現行マイレージ規約が社員航空券を積算対象外の券種として列挙。2023-03-31のAl-Anba報道には当時の家族向け譲渡条件もある https://www.alanba.com.kw/1176506 。2024年に報道された廃止は退職者向け。現役社員の現在の家族適用・確約便の回数は確認できない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "contracted fares, duty travel, staff tickets, group tickets",
+       "source_id": "src-kuwaitairways-com-8a74b923",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a16b6a64f6eb6fb9",
+     "id": "kuwait-airways.benefits.staff-travel.703ac675",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261118-cg-kuwait-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kuwait Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-kuwaitairways-com-8a74b923",
+       "source_type": "official_package",
+       "title": "Oasis Club Terms and Conditions",
+       "url": "https://kuwaitairways.com/en/Oasis/Pages/TermsAndConditions.aspx"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "staff tickets",
+     "value_text": null
+    }
+   ],
    "fleet": [
     {
      "amount": null,
@@ -95561,6 +100393,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "applies_to": {
       "pilot_specific": true
      },
+     "checked_at": "2026-11-18",
+     "company": "malaysia-airlines",
+     "cond_ja": "全社員の制度; 2022報告・2023年作成版; 2026年のパイロット個別契約への継続適用は未確認。補足: 報告対象年と発行年は別。本文末尾に2023-06-14付VERIFAVIA保証書、May–June 2023の検証実施を収録するため、この版は2023年より前の資料ではないと判断。正確な公表日は不明のためpublished_date空欄（保証署名日を発行日へ流用しない）。パイロット個別協約ではなく全社員の制度。2023/2024/2025報告に同日数の再記載はなく、2026年の保証値と断定しない。 原本PDFを取得して64ページを抽出確認。PDF作成・更新メタデータは2023-06-15。正確な公表日とは区別する。 最終監査: 2023年作成資料の全社員制度の確認として数える。2026年のパイロット年休を確認済みとは数えない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "21 days of annual leave",
+       "source_id": "src-malaysiaairlines-com-365232ae",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ce2c2f65f4ffb3ae",
+     "id": "malaysia-airlines.benefits.annual-leave.8faeba79",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "年次休暇",
+     "pack": "pvr-20261118-cg-malaysia-airlines",
+     "per": "year",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Malaysia Aviation Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-malaysiaairlines-com-365232ae",
+       "source_type": "regulatory_filing",
+       "title": "Sustainability Report 2022, Supporting Policies / Paid Time Off",
+       "url": "https://www.malaysiaairlines.com/content/dam/mas/about-us/sustainability/MAG-SUSTAINABILITY-REPORT.pdf"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 21,
+     "value_text": "21"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "malaysia-airlines",
+     "cond_ja": "positioning dutyに伴うstationでの乗員移動について追加・取消を手配; 自宅通勤の手当・送迎適用・車種・費用負担は未確認。補足: 部分確認。対象は勤務に伴う乗員のホテル・transport・positioning ticketの追加/取消。本文でFlight crewとCabin crewの管理を区別して確認。通常の自宅通勤を確認済みと扱わない。閲覧時は2か月前との相対表示で、正確な発行日は不明。別求人4028699240にはFirefly flight operationと明示されるため、その求人をMalaysia Airlines本体の制度に転用していない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "organize any additional or cancellation of crew hotel, transport",
+       "source_id": "src-my-linkedin-com-4caeda1c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c11c5ebeea29d98d",
+     "id": "malaysia-airlines.benefits.commuting.ac6fb4c2",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261118-cg-malaysia-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Malaysia Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-my-linkedin-com-4caeda1c",
+       "source_type": "official_package",
+       "title": "Senior Officer, Crew Tracking Control（同社LinkedIn求人）",
+       "url": "https://my.linkedin.com/jobs/view/senior-officer-crew-tracking-control-at-malaysia-airlines-4466168207"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "transport",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
      "checked_at": "2026-10-29",
      "company": "malaysia-airlines",
      "cond_ja": "2024年; Malaysia Airlinesを含むMAG社員向け早期退職制度; 申請・退職時期等の資格条件あり; 操縦士独自制度ではない。補足: 本文46 Employee Benefits。原文のthree monthsを3に変換しないため、制度名のみ採用。給付の月数や金額はこの行に入れない。",
@@ -96197,6 +101131,110 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "Malaysia",
+     "value_text": null
+    }
+   ],
+   "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "malaysia-airlines",
+     "cond_ja": "ロスター発表後の臨時休暇申請にはCTC責任者等の承認が必要; Flight/Cabin Crewのロスター管理; 通常勤務周期・休日最低数は未確認。補足: ロスター発表後のad-hoc leave requestの承認手続きを確認。本文の承認先はManager CTC、Chief Pilot Operations Control Centre、Fleet Operations、In-Flight Services Unit。休暇申請が必ず認められることや、年休・休日の日数を意味しない。地上職の勤務条件ではなく、その求人が明記する乗員スケジュールの管理手順。閲覧時2か月前の掲載で正確な発行日は不明。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ad-hoc leave request after roster published. Note: Approval must be obtained",
+       "source_id": "src-my-linkedin-com-4caeda1c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6ec0f5f14aeea796",
+     "id": "malaysia-airlines.work.roster-pattern.83968f5b",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261118-cg-malaysia-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Malaysia Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-my-linkedin-com-4caeda1c",
+       "source_type": "official_package",
+       "title": "Senior Officer, Crew Tracking Control（同社LinkedIn求人）",
+       "url": "https://my.linkedin.com/jobs/view/senior-officer-crew-tracking-control-at-malaysia-airlines-4466168207"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Approval must be obtained",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "malaysia-airlines",
+     "cond_ja": "運航乗務員と客室乗務員のcrew管理運用。standbyの存在のみ確認。固定周期・ビッド・配置頻度は未確認。補足: 閲覧時は数か月前の掲載との相対表示。正確な掲載日は不明のためpublished_date空欄。同本文にFlight crewとCabin crewを区別した訓練・OBS割当業務があり、地上職自身の勤務条件を転用した行ではない。固定周期・ビッド・standbyの配置頻度は未公表。 最終監査: 部分確認。スタンバイがあるという事実だけで、スタンバイ配置方法や通常の勤務周期まで確認済みとは数えない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Analyzing crew standby utilization.",
+       "source_id": "src-my-linkedin-com-4caeda1c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "00bbcc115f5efa06",
+     "id": "malaysia-airlines.work.roster-pattern.b365c0a4",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261118-cg-malaysia-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Malaysia Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-my-linkedin-com-4caeda1c",
+       "source_type": "official_package",
+       "title": "Senior Officer, Crew Tracking Control（同社LinkedIn求人）",
+       "url": "https://my.linkedin.com/jobs/view/senior-officer-crew-tracking-control-at-malaysia-airlines-4466168207"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "standby",
      "value_text": null
     }
    ]
@@ -97580,6 +102618,212 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "travel privileges",
      "value_text": null
+    }
+   ],
+   "fleet": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "oman-air",
+     "cond_ja": "Boeing 737-8 MAX; as of 2026-07-01; aircraft in service。補足: CEOインタビュー記事。typeは直前の737-8を指す。発注分は除外。公式新fleetページはセキュリティチェックで本文を取得できず、旧servicesの機材表は明白に旧版のため不採用。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-07-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "the carrier now operates 18 of the type",
+       "source_id": "src-aviationweek-com-9484a95e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fb312ed4803becc6",
+     "id": "oman-air.fleet.boeing-737-8-max.8ad8d560",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "boeing_737_8_max",
+     "label_ja": "機種ごとの機数（Boeing 737-8 MAX）",
+     "pack": "pvr-20261118-cg-oman-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-07-01",
+       "publisher": "Aviation Week",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-aviationweek-com-9484a95e",
+       "source_type": "third_party_reference",
+       "title": "Oman Air CEO Sees Profits Coming In 2027",
+       "url": "https://aviationweek.com/air-transport/airlines-lessors/oman-air-ceo-sees-profits-coming-2027"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 18,
+     "value_text": "18"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "oman-air",
+     "cond_ja": "Boeing 737-800; ADS-Bで運航を観測した機数; 2026-07-26時点の記録。補足: 【第三者】運航記録から集計された原資料の4機。A4O-BAA、A4O-BAB、A4O-BAC、A4O-BAEに2026-07-21〜26の観測記録あり。2026-11-18現在の同型の運航機数は未確認。7月の記録として使用。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BOEING 737-800 | 4",
+       "source_id": "src-apparatus-run-af280554",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2df2cf0e7e29aa41",
+     "id": "oman-air.fleet.boeing-737-800.43999966",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "boeing_737_800",
+     "label_ja": "機種ごとの機数（Boeing 737-800）",
+     "pack": "pvr-20261118-cg-oman-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Apparatus",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-apparatus-run-af280554",
+       "source_type": "third_party_reference",
+       "title": "Oman Air, Fleet Breakdown",
+       "url": "https://apparatus.run/flights/airlines/OMA"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 4,
+     "value_text": "4"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "oman-air",
+     "cond_ja": "Boeing 737-900ER; 2026-11-18閲覧時の運航一覧。補足: 【第三者】一覧の両機は737-91M(ER)。A4O-BTは11月17日WY673、A4O-BYは11月18日WY202の着陸記録を個機別に照合。https://www.flightradar24.com/data/aircraft/a4o-bt と https://www.flightradar24.com/data/aircraft/a4o-by 。発注分を含まない。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 737-900 B739 2 aircraft",
+       "source_id": "src-flightradar24-com-8811ad24",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "dd22fea2ebe6042f",
+     "id": "oman-air.fleet.boeing-737-900er.0db109d2",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "boeing_737_900er",
+     "label_ja": "機種ごとの機数（Boeing 737-900ER）",
+     "pack": "pvr-20261118-cg-oman-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Flightradar24",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-flightradar24-com-8811ad24",
+       "source_type": "third_party_reference",
+       "title": "Oman Air Fleet",
+       "url": "https://www.flightradar24.com/data/airlines/wy-oma/fleet"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 2,
+     "value_text": "739 2"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "oman-air",
+     "cond_ja": "Boeing 787-9; Plane Finder live fleet listing checked 2026-11-18。補足: 【第三者】ライブ機材データベースの型式別一覧。発注表ではない。ただし機体別の稼働・駐機状態を明示しないため厳密な当日運航可能数ではない。Aviation Week 2026-07-01のCEO取材もnine 787-9s in serviceと一致する（同記事の数詞nineは指定の数字表記条件に合わないため数値の直接出典にしない）。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 787-9 Dreamliner | 9",
+       "source_id": "src-planefinder-net-a61fa9f6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "13d938379803a26f",
+     "id": "oman-air.fleet.boeing-787-9.23b46c80",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "boeing_787_9",
+     "label_ja": "機種ごとの機数（Boeing 787-9）",
+     "pack": "pvr-20261118-cg-oman-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Plane Finder",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-planefinder-net-a61fa9f6",
+       "source_type": "third_party_reference",
+       "title": "Oman Air fleet",
+       "url": "https://planefinder.net/data/airline/OMA/fleet"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 9,
+     "value_text": "9"
     }
    ],
    "jobs": [
@@ -101089,6 +106333,161 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "philippine-airlines",
+     "cond_ja": "Senior first officerの匿名口コミ; ロスターの周期・最低休日数は非確認。補足: 【口コミ】休日希望が保証されないとの自己申告は副操縦士2人。別のFirst officer・在籍10年以上のレビュー(2025-05-04)も休日が保証されないと記載: https://www.glassdoor.co.uk/Reviews/Employee-Review-Philippine-Air-E7557-RVW97105846.htm 。会社の制度や法令違反を確定する根拠ではない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2024-09-15",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "No guaranteed Off and route bidding.",
+       "source_id": "src-glassdoor-co-in-9bb7fdc2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0123e043bfe81bc3",
+     "id": "philippine-airlines.work.roster-pattern-fo.dc7bcb83",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "副操縦士のロスターの型",
+     "pack": "pvr-20261118-cg-philippine-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-09-15",
+       "publisher": "Glassdoor",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-glassdoor-co-in-9bb7fdc2",
+       "source_type": "community_reference",
+       "title": "Philippine Air / Changing Culture (Senior First Officer)",
+       "url": "https://www.glassdoor.co.in/Reviews/Employee-Review-Philippine-Air-E7557-RVW91024760.htm"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "No guaranteed Off and route bidding.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "philippine-airlines",
+     "cond_ja": "正月・クリスマスの乗務を自主的に引き受ける制度; 通常の勤務周期・最低休日数は非確認。補足: World Aviation Festival討論の取材記事。PAL Crew Planning Division管理者Rossann Domingoが、祝日勤務に応募するパイロットのため配偶者向けholiday passesを含む追加特典があると説明。会社サイトの公表ではなく同社管理者発言の報道。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2024-11-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "That encourages our pilots to volunteer for these duties, whether it is New Year or Christmas.",
+       "source_id": "src-venaripartners-com-276744e7",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fd492e6b187784f2",
+     "id": "philippine-airlines.work.roster-pattern.2998c056",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261118-cg-philippine-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-11-05",
+       "publisher": "Venari Partners",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-venaripartners-com-276744e7",
+       "source_type": "third_party_reference",
+       "title": "10 Insights, World Aviation Festival Tech Panel",
+       "url": "https://www.venaripartners.com/stories/10-things-we-learned-from-jenny-walsh-s-tech-panel-at-the-world-aviation-festival/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "volunteer for these duties",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "philippine-airlines",
+     "cond_ja": "運航乗務員と客室乗務員の発表後スケジュール変更; 通常の固定勤務周期・休日数は別途非確認。補足: 求人は地上職Crew Schedulerだが、記述の対象はflight deck and cabin crew personnelの発表済みスケジュール。地上職本人のシフト条件をパイロット待遇へ転用したものではない。運航混乱・機材変更時に乗員管理システムを更新し影響する乗員へ通知するとの会社記述。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Monitors flight disruptions or aircraft changes and makes the necessary adjustments in the concerned crew’s schedule",
+       "source_id": "src-ph-linkedin-com-fd8ef131",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6416ff745f8cc4cf",
+     "id": "philippine-airlines.work.roster-pattern.e5ad4d99",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261118-cg-philippine-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Philippine Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-ph-linkedin-com-fd8ef131",
+       "source_type": "official_package",
+       "title": "Crew Scheduler求人（LinkedIn会社掲載）",
+       "url": "https://ph.linkedin.com/jobs/view/crew-scheduler-at-philippine-airlines-4354424625"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Monitors flight disruptions or aircraft changes and makes the necessary adjustments in the concerned crew’s schedule",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true,
       "rank": "trainee"
@@ -104124,9 +109523,224 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "Doha",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "qatar-airways",
+     "cond_ja": "運航乗務員の基地。補足: 【第三者】操縦士向け基地欄。匿名投稿者数・在籍資格の個別確認不可。公式採用サイトは406で本文取得不可。路線就航地からの推定ではない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-07-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DOH",
+       "source_id": "src-pilotjobsnetwork-com-81ce3c13",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a2b7ced8ca3dddda",
+     "id": "qatar-airways.base.pilot-base.f1c098ee",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261118-cg-qatar-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-07-26",
+       "publisher": "Pilot Jobs Network",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotjobsnetwork-com-81ce3c13",
+       "source_type": "third_party_reference",
+       "title": "Qatar Airways / Bases",
+       "url": "https://www.pilotjobsnetwork.com/jobs/Qatar_Airways"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DOH",
+     "value_text": null
     }
    ],
    "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "qatar-airways",
+     "cond_ja": "年次休暇；PJNの操縦士条件欄。補足: 【第三者】匿名投稿者数不明。別資料IndeedではCaptain・Dohaの2023-06-25体験記も42日と記述（具体的職位の確認1人）。追加URL: https://qa.indeed.com/cmp/Qatar-Airways/reviews?fcountry=QA&fjobcat=management&floc=Doha 。会社公表の保証値ではない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2023-12-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "42 days of leave",
+       "source_id": "src-pilotjobsnetwork-com-81ce3c13",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e6dca9ea5d5734e8",
+     "id": "qatar-airways.benefits.annual-leave.730d6761",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "年次休暇",
+     "pack": "pvr-20261118-cg-qatar-airways",
+     "per": "year",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-07-26",
+       "publisher": "Pilot Jobs Network",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotjobsnetwork-com-81ce3c13",
+       "source_type": "third_party_reference",
+       "title": "Qatar Airways / Bases",
+       "url": "https://www.pilotjobsnetwork.com/jobs/Qatar_Airways"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 42,
+     "value_text": "42"
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "通勤の手当・送迎（1か月）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "qatar-airways",
+     "cond_ja": "777 FOのTransport Allowance；2025-02-24時点。補足: 【掲示板】777 FOの具体的条件を説明する投稿。人数1人。PJNの2026-05-28 FO明細欄にも同額記載があるが匿名データで独立人数は確認不可。追加URL: https://www.pilotjobsnetwork.com/jobs/Qatar_Airways 。給与本体ではなく指定項目の通勤手当。",
+     "currency": "QAR",
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-02-24",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Transport Allowance 2000QAR",
+       "source_id": "src-pprune-org-d1f1de46",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e5f3fe2743851d90",
+     "id": "qatar-airways.benefits.commuting-fo.ac57d116",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "副操縦士の通勤の手当・送迎",
+     "pack": "pvr-20261118-cg-qatar-airways",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-02-24",
+       "publisher": "PPRuNe",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pprune-org-d1f1de46",
+       "source_type": "community_reference",
+       "title": "Joining Qatar airways (Master thread)-2 / AceG",
+       "url": "https://www.pprune.org/middle-east/printthread-643473-joining-qatar-airways-master-thread-2-a-80.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 2000,
+     "value_text": "2000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "qatar-airways",
+     "cond_ja": "他国等から通うための特別なコミューティング・ロスターの有無。補足: 【第三者】特別ロスターの不存在という報告。休日中の私的帰省が不可という意味には拡張しない。2024-03-10の操縦士投稿には自宅への帰省体験があるが、制度上のコミューター契約を示すものではない。追加URL: https://www.pprune.org/middle-east/printthread-643473-joining-qatar-airways-master-thread-2-a-59.html 独立した操縦士文脈の投稿LandCruiserFTW（2026-01-05）もnon-commuting contractと明記： https://www.pprune.org/middle-east/printthread-643473-joining-qatar-airways-master-thread-2-a-90.html 。PJNと別の2情報源で照合。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-12-06",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "They do NOT provide commuting rosters.",
+       "source_id": "src-pilotjobsnetwork-com-81ce3c13",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "98048195838ccf61",
+     "id": "qatar-airways.benefits.commuting.a6f81f07",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261118-cg-qatar-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-07-26",
+       "publisher": "Pilot Jobs Network",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotjobsnetwork-com-81ce3c13",
+       "source_type": "third_party_reference",
+       "title": "Qatar Airways / Bases",
+       "url": "https://www.pilotjobsnetwork.com/jobs/Qatar_Airways"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "NOT provide commuting rosters",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -104278,6 +109892,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "Government Pension Fund",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "qatar-airways",
+     "cond_ja": "全社員の制度；2023/24年度に福利厚生の改善対象として記載。補足: 対象期間2023-04-01〜2024-03-31の会社年報。会社による社員旅行制度の存在の根拠。パイロット限定の券種・人数・枚数はこの箇所にない。発行日の確定値なし。PDF直接openはサイズ制限、検索資料のfind展開で年報本文を閲覧。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "including staff travel",
+       "source_id": "src-d21buns5ku92am-cloudfront-net-3a5baca6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1b775ea5eab2c3d9",
+     "id": "qatar-airways.benefits.staff-travel.2b521215",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261118-cg-qatar-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Qatar Airways Group Annual Report 2023/24",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-d21buns5ku92am-cloudfront-net-3a5baca6",
+       "source_type": "regulatory_filing",
+       "title": "Our People p.37",
+       "url": "https://d21buns5ku92am.cloudfront.net/69647/documents/54686-1719916085-3345_Annual%20Report%202023%2024_V24%201-7cb0c9.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "staff travel",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "qatar-airways",
+     "cond_ja": "本人・配偶者・子のcomplimentary annual leave ticket；PJNの2026-10-03更新。補足: 【第三者】操縦士向け待遇欄の報告。通常の年次無料航空券枠。家族ごとの個別発券数や10年勤続時の追加特典を別途推定しない。投稿者人数不明。公式制度本文未取得。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-10-03",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1 complimentary annual leave ticket",
+       "source_id": "src-pilotjobsnetwork-com-81ce3c13",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3d846423626c3f6a",
+     "id": "qatar-airways.benefits.staff-travel.481e8986",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261118-cg-qatar-airways",
+     "per": "year",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-07-26",
+       "publisher": "Pilot Jobs Network",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotjobsnetwork-com-81ce3c13",
+       "source_type": "third_party_reference",
+       "title": "Qatar Airways / Bases",
+       "url": "https://www.pilotjobsnetwork.com/jobs/Qatar_Airways"
+      }
+     ],
+     "unit": "tickets",
+     "use": "条件つき",
+     "value": 1,
+     "value_text": "1"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "qatar-airways",
+     "cond_ja": "Buddy Pass（友人向け）の券種；2026-10-03更新。補足: 【第三者】友人向けID90は撤廃されたという更新注記。本人・配偶者・子の券種までID50限定と解釈しない。投稿者人数不明。公式制度本文未取得。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-10-03",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "leaving only ID50",
+       "source_id": "src-pilotjobsnetwork-com-81ce3c13",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b4c178272d75d7e7",
+     "id": "qatar-airways.benefits.staff-travel.d7c80cdd",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261118-cg-qatar-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-07-26",
+       "publisher": "Pilot Jobs Network",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotjobsnetwork-com-81ce3c13",
+       "source_type": "third_party_reference",
+       "title": "Qatar Airways / Bases",
+       "url": "https://www.pilotjobsnetwork.com/jobs/Qatar_Airways"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ID50",
      "value_text": null
     }
    ],
@@ -105040,6 +110807,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "qatar-airways",
+     "cond_ja": "PJNが平均として報告したレンジ12-14日の上限；会社が保証する最低/最大日数ではない。補足: 【第三者】操縦士向け条件欄の匿名報告。777 FOの2025-02-24投稿は8-10日と異なるため、会社共通の保証値として統合しない。追加URL: https://www.pprune.org/middle-east/printthread-643473-joining-qatar-airways-master-thread-2-a-80.html 単独の777 FO報告8-10日（2025-02-24）は独立照合が不足するため値の行には採らず、差異の候補としてここに記録。2023-01-31別投稿の8日はレンジ全体の照合にはならない。月単位公表の同一人物による転載も独立人数に数えない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-02-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "12-14",
+       "source_id": "src-pilotjobsnetwork-com-81ce3c13",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e1f65def3214fa7c",
+     "id": "qatar-airways.work.days-off.3338aa81",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "休日（月）",
+     "pack": "pvr-20261118-cg-qatar-airways",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-07-26",
+       "publisher": "Pilot Jobs Network",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotjobsnetwork-com-81ce3c13",
+       "source_type": "third_party_reference",
+       "title": "Qatar Airways / Bases",
+       "url": "https://www.pilotjobsnetwork.com/jobs/Qatar_Airways"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 14,
+     "value_text": "14"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "qatar-airways",
+     "cond_ja": "PJNが平均として報告したレンジ12-14日の下限；会社が保証する最低/最大日数ではない。補足: 【第三者】操縦士向け条件欄の匿名報告。777 FOの2025-02-24投稿は8-10日と異なるため、会社共通の保証値として統合しない。追加URL: https://www.pprune.org/middle-east/printthread-643473-joining-qatar-airways-master-thread-2-a-80.html 単独の777 FO報告8-10日（2025-02-24）は独立照合が不足するため値の行には採らず、差異の候補としてここに記録。2023-01-31別投稿の8日はレンジ全体の照合にはならない。月単位公表の同一人物による転載も独立人数に数えない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-02-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "12-14",
+       "source_id": "src-pilotjobsnetwork-com-81ce3c13",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d9159197c45d6e45",
+     "id": "qatar-airways.work.days-off.694ab833",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "休日（月）",
+     "pack": "pvr-20261118-cg-qatar-airways",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-07-26",
+       "publisher": "Pilot Jobs Network",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotjobsnetwork-com-81ce3c13",
+       "source_type": "third_party_reference",
+       "title": "Qatar Airways / Bases",
+       "url": "https://www.pilotjobsnetwork.com/jobs/Qatar_Airways"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 12,
+     "value_text": "12"
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "contract": "Scholarship Contract",
       "employer": "Qatar Airways",
       "hire_route": "Cadet Pilot Training Programme Scholarship; Qatari or Qatari mother",
@@ -105152,6 +111021,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": 5,
      "value_text": "5"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "qatar-airways",
+     "cond_ja": "希望を申請するビッド制度；公表周期の確定値は採らない。補足: 【掲示板】ビッド制度は操縦士としての勤務体験を記す別投稿者CecilGreat（2024-03-10）も確認。計2人。追加URL: https://www.pprune.org/middle-east/printthread-643473-joining-qatar-airways-master-thread-2-a-59.html 。複製・同じ投稿の引用を別人の独立確認には数えない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-06-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Bidding System",
+       "source_id": "src-pprune-org-5933f68a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "57b97a758edcfca0",
+     "id": "qatar-airways.work.roster-pattern.173bb842",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261118-cg-qatar-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-17",
+       "publisher": "PPRuNe",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pprune-org-5933f68a",
+       "source_type": "community_reference",
+       "title": "Joining Qatar airways (Master thread)-2, post #1950",
+       "url": "https://www.pprune.org/middle-east/643473-joining-qatar-airways-master-thread-2-a-98.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Bidding System",
+     "value_text": null
     }
    ]
   },
@@ -105831,6 +111751,214 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "Riyadh",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "riyadh-air",
+     "cond_ja": "Riyadh; A321NEO XLR Check Pilot求人。補足: 【第三者】現行求人のBase location欄。発行日不明、現行募集として確認。リンク先公式iCIMS求人でもRiyadh baseを確認：https://pilots-riyadhair.icims.com/jobs/5434/first-officer-a321/job?in_iframe=1。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "RUH",
+       "source_id": "src-pilotsglobal-com-7a1dbe6b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "977524b7e8ef81b4",
+     "id": "riyadh-air.base.pilot-base.79d2dd78",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261118-cg-riyadh-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-7a1dbe6b",
+       "source_type": "third_party_reference",
+       "title": "Riyadh Air A321NEO XLR Check Pilot",
+       "url": "https://pilotsglobal.com/job/A321NEO-XLR-check-pilot-riyadh_air-SA-bt5Ot8rhky?c=0"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "RUH",
+     "value_text": null
+    }
+   ],
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "riyadh-air",
+     "cond_ja": "サウジ国籍の雇用付き副操縦士奨学金プログラム採用者のみ。留学開始前に雇用され、留学期間も社会保険の経験年数として登録。補足: 会社リリースの転載本文を確認。公式ページは同日付・同タイトルまで開いて確認できたが本文が抽出されないため、本文が読めた転載URLを根拠とする：https://www.riyadhair.com/en-sa/media-hub/riyadh-air-launches-scholarship-programs。外国人経験者採用への適用や企業年金の有無を示す行ではない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-08-03",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "registered with the General Organization for Social Insurance (GOSI)",
+       "source_id": "src-zawya-com-5510356e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b1a23e5c2ad84174",
+     "id": "riyadh-air.benefits.pension-fo.f4e41027",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "副操縦士の年金・退職金の制度",
+     "pack": "pvr-20261118-cg-riyadh-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-08-03",
+       "publisher": "ZAWYA",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-zawya-com-5510356e",
+       "source_type": "third_party_reference",
+       "title": "Riyadh Air launches three employment-linked scholarship programs（会社プレスリリース転載）",
+       "url": "https://www.zawya.com/en/press-release/companies-news/riyadh-air-launches-three-employment-linked-scholarship-programs-419086"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "GOSI",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "riyadh-air",
+     "cond_ja": "全社員の制度; Riyadh Air便の社員向け搭乗登録・予約手順。補足: 【第三者】航空会社別の公開搭乗案内で予約手順を確認。搭乗登録は全staff travellersで必須。優先順位は別行。具体的な券種・家族条件・付与枚数は未確認。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "myIDTravel is a self-service tool",
+       "source_id": "src-flyzed-info-d0083d7e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b020cda2e6d78a62",
+     "id": "riyadh-air.benefits.staff-travel.38920303",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261118-cg-riyadh-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "FlyZED",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-flyzed-info-d0083d7e",
+       "source_type": "third_party_reference",
+       "title": "Aviation Services Company (Riyadh Air, RX), Boarding policy",
+       "url": "https://www.flyzed.info/RX"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "myIDTravel",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "riyadh-air",
+     "cond_ja": "全社員の制度; Riyadh Air便の社員向け搭乗順位。補足: 【第三者】ZED MIBA Forumが案内するFlyZEDの航空会社別搭乗ルール。Riyadh Air社員券で他社社員より優先。配偶者・子の対象、無償枠、付与枚数、提携会社別適用はこの公開資料で未確認。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Riyadh Air employees have priority above employees of other airlines",
+       "source_id": "src-flyzed-info-d0083d7e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c520768a77b53f6a",
+     "id": "riyadh-air.benefits.staff-travel.7b6a318d",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261118-cg-riyadh-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "FlyZED",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-flyzed-info-d0083d7e",
+       "source_type": "third_party_reference",
+       "title": "Aviation Services Company (Riyadh Air, RX), Boarding policy",
+       "url": "https://www.flyzed.info/RX"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "priority above employees of other airlines",
      "value_text": null
     }
    ],
@@ -108545,6 +114673,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "Amman",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "royal-jordanian",
+     "cond_ja": "2026年A320 Captain (Type Rated)求人のBase。補足: 【第三者】実読の公式求人 https://careers.royaljordanian.com/en/jordan/jobs/a320-captain-type-rated-5496790/ で勤務地Amman, Jordan、会社のmain airportがQueen Alia International Airportであることを照合。公式本文にはAMM表記なし。公式求人Posted 2026/10/19、Expires 2026-12-18。第三者ミラーで明示された基地コードとして採用。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-10-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Base Amman (AMM), Jordan",
+       "source_id": "src-pilotjobsinternational-com-8b72e8dd",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1a6ddc9a2081da2d",
+     "id": "royal-jordanian.base.pilot-base.8a0c6b90",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261118-cg-royal-jordanian",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-19",
+       "publisher": "Pilot Jobs International",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotjobsinternational-com-8b72e8dd",
+       "source_type": "third_party_reference",
+       "title": "A320 Captain (Type Rated) at Royal Jordanian",
+       "url": "https://pilotjobsinternational.com/jobs/royal-jordanian-a320-cpt-tr-direct/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "AMM",
+     "value_text": null
     }
    ],
    "benefits": [
@@ -109897,6 +116076,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "8 days OFF per month - Not consecutive",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "royal-jordanian",
+     "cond_ja": "Embraer 190/195 E1型式を持つ機長をE2へ転換するBrookfield契約。全社の初期訓練制度ではない。補足: 【第三者】採用代理店自身の現行求人。公開日は不明。日付のある同一求人写しも実読: All Flying Jobs posted/obtained 2026-10-31 https://www.allflyingjobs.com/jobs/embraer-190195-e1-e2-captains-required-royal-jordanian-airlines ; SkyBound.Jobs 2026-11-05 https://skybound.jobs/jobs/Brookfield-Aviation-Captain-66281 。機長昇格ではなく機種転換の訓練免除条件。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Upgrade training to E2 provided by the airline without any bond",
+       "source_id": "src-pilotsdb-brookfieldav-com-4a454ac4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "601b0e95c94beb8d",
+     "id": "royal-jordanian.work.training-bond-cap.b9fbb99e",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "機長の訓練費の拘束",
+     "pack": "pvr-20261118-cg-royal-jordanian",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Brookfield Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsdb-brookfieldav-com-4a454ac4",
+       "source_type": "third_party_reference",
+       "title": "Embraer 190/195 (E1 & E2) Captains required for Royal Jordanian Airlines",
+       "url": "https://pilotsdb.brookfieldav.com/showjob/01190/Embraer-170-190--E1---E2--Captains-required-in-the-Middle-east"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "without any bond",
      "value_text": null
     }
    ]
@@ -112800,6 +119032,161 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "saudia": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "saudia",
+     "cond_ja": "base RUH; Saudia乗員基地に関する2024年の掲示板記述。補足: 【掲示板】2024-12-20のkungfu panda投稿がSaudia勤務を述べるba77wの投稿を引用。2投稿者がJeddah/Riyadhの乗員基地の存在に一致。移転が任意か強制かは不一致のため不採用。別投稿URL=https://www.pprune.org/middle-east/printthread-648658-ria-saudi-airlines-35.html。現行公式求人による基地確認は未了。 リヤド。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2024-12-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "based in Riyadh",
+       "source_id": "src-pprune-org-3ec17d0d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7c75a17bf2ffa62c",
+     "id": "saudia.base.pilot-base-city.239db28f",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261118-cg-saudia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-12-20",
+       "publisher": "PPRuNe",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pprune-org-3ec17d0d",
+       "source_type": "community_reference",
+       "title": "RIA Saudi Airlines?, post 692",
+       "url": "https://www.pprune.org/11791110-post692.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Riyadh",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "saudia",
+     "cond_ja": "Saudia乗員基地に関する2024年の掲示板記述; IATAはこの出典に未記載。補足: 【掲示板】2024-12-20のkungfu panda投稿がSaudia勤務を述べるba77wの投稿を引用。2投稿者がJeddah/Riyadhの乗員基地の存在に一致。移転が任意か強制かは不一致のため不採用。別投稿URL=https://www.pprune.org/middle-east/printthread-648658-ria-saudi-airlines-35.html。現行公式求人による基地確認は未了。 ジェッダ。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2024-12-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "based in Jeddah",
+       "source_id": "src-pprune-org-3ec17d0d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6ad54ae95df1da2a",
+     "id": "saudia.base.pilot-base-city.57225b81",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261118-cg-saudia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-12-20",
+       "publisher": "PPRuNe",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pprune-org-3ec17d0d",
+       "source_type": "community_reference",
+       "title": "RIA Saudi Airlines?, post 692",
+       "url": "https://www.pprune.org/11791110-post692.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Jeddah",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "saudia",
+     "cond_ja": "Riyadh; Saudia乗員基地に関する2024年の掲示板記述。補足: 【掲示板】2024-12-20のkungfu panda投稿がSaudia勤務を述べるba77wの投稿を引用。2投稿者がJeddah/Riyadhの乗員基地の存在に一致。移転が任意か強制かは不一致のため不採用。別投稿URL=https://www.pprune.org/middle-east/printthread-648658-ria-saudi-airlines-35.html。現行公式求人による基地確認は未了。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2024-12-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "RUH base",
+       "source_id": "src-pprune-org-3ec17d0d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "84fd051cda469562",
+     "id": "saudia.base.pilot-base.c082f9e5",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261118-cg-saudia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-12-20",
+       "publisher": "PPRuNe",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pprune-org-3ec17d0d",
+       "source_type": "community_reference",
+       "title": "RIA Saudi Airlines?, post 692",
+       "url": "https://www.pprune.org/11791110-post692.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "RUH",
+     "value_text": null
+    }
+   ],
    "benefits": [
     {
      "amount": null,
@@ -112851,6 +119238,520 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "health insurance services",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "saudia",
+     "cond_ja": "2024-09-24機長口コミ; off-season onlyという当人評価; 券種・枚数・家族範囲未確認。補足: 【口コミ】機長2名の2024-09-24および2024-03-11投稿が航空券待遇の存在に言及。2人目は同じページのBad and greedy upper and middle managementレビュー。具体条件は会社保証とみなさない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2024-09-24",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Health and ticket benefits (off-season only)",
+       "source_id": "src-api-glassdoor-com-88d31603",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4c2b0e15d32ba042",
+     "id": "saudia.benefits.staff-travel-cap.37febc63",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "機長の社員の航空券",
+     "pack": "pvr-20261118-cg-saudia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-09-24",
+       "publisher": "Glassdoor",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-api-glassdoor-com-88d31603",
+       "source_type": "community_reference",
+       "title": "Saudi Arabian Airlines Captain reviews",
+       "url": "https://api.glassdoor.com/Reviews/Saudi-Arabian-Airlines-Captain-Reviews-EI_IE309269.0,22_KO23,30.htm"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ticket benefits",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "saudia",
+     "cond_ja": "R/Z券を持つpilot/first officer家族; アップグレード資格に本人同伴は不要とする2023年写しの記載。補足: 【写し】文書内日付2023-02-27。pilots and first officers familiesの条項。第三者が公開した写しで真正性と現在の有効性は未確認。Saudia公表URLではない。ScribdのAI-enhanced descriptionではなく日付・文書番号付き本文を参照。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2023-02-27",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "it is not mandatory for them to be accompanied to be eligible for upgrading.",
+       "source_id": "src-scribd-com-cd9fe1bc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "edc08eb7428bdbe4",
+     "id": "saudia.benefits.staff-travel.82511e1f",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261118-cg-saudia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-02-27",
+       "publisher": "Scribd",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-scribd-com-cd9fe1bc",
+       "source_type": "third_party_reference",
+       "title": "Saudia Ground Operations Bulletin B2023022701, Usage of Authorities in DCS Update 9（写し）",
+       "url": "https://www.scribd.com/document/961217917/Usage-of-Authorities-in-DCS-Update-9"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "not mandatory",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "saudia",
+     "cond_ja": "S券を持つpilot/first officer家族; 有効なupgrade券を持つ本人同伴がない場合という2023年写しの記載。補足: 【写し】文書内日付2023-02-27。pilots and first officers familiesの条項。第三者が公開した写しで真正性と現在の有効性は未確認。Saudia公表URLではない。ScribdのAI-enhanced descriptionではなく日付・文書番号付き本文を参照。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2023-02-27",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "they are not eligible for upgrading unless they are accompanied",
+       "source_id": "src-scribd-com-cd9fe1bc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9bf963aa5ac6de85",
+     "id": "saudia.benefits.staff-travel.f8cc66ef",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261118-cg-saudia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-02-27",
+       "publisher": "Scribd",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-scribd-com-cd9fe1bc",
+       "source_type": "third_party_reference",
+       "title": "Saudia Ground Operations Bulletin B2023022701, Usage of Authorities in DCS Update 9（写し）",
+       "url": "https://www.scribd.com/document/961217917/Usage-of-Authorities-in-DCS-Update-9"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "not eligible for upgrading",
+     "value_text": null
+    }
+   ],
+   "fleet": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "saudia",
+     "cond_ja": "Airbus A320-200; as of September 2025; in service; Saudia旅客機材表。補足: 【Wikipedia】2025-09時点のIn service列。発注列を除外。2026年現在機数とはみなさない。Saudia公式Fleetページはbot制限。AACO2026/CAPA2024の貨物・VIP混在表は非採用。 published_dateは記事全体の最終更新日。機材表の時点はconditionの2025-09。B777-300ERの37機には表注記でVIP構成を含む。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-11-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Airbus A320-200 37",
+       "source_id": "src-en-wikipedia-org-93543482",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b2b86b362dae11b5",
+     "id": "saudia.fleet.airbus-a320-200.9cae4904",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "airbus_a320_200",
+     "label_ja": "機種ごとの機数（Airbus A320-200）",
+     "pack": "pvr-20261118-cg-saudia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-17",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-93543482",
+       "source_type": "third_party_reference",
+       "title": "Saudia, Current fleet",
+       "url": "https://en.wikipedia.org/wiki/Saudia"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 37,
+     "value_text": "200 37"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "saudia",
+     "cond_ja": "Airbus A321-200; as of September 2025; in service; Saudia旅客機材表。補足: 【Wikipedia】2025-09時点のIn service列。発注列を除外。2026年現在機数とはみなさない。Saudia公式Fleetページはbot制限。AACO2026/CAPA2024の貨物・VIP混在表は非採用。 published_dateは記事全体の最終更新日。機材表の時点はconditionの2025-09。B777-300ERの37機には表注記でVIP構成を含む。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-11-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Airbus A321-200 15",
+       "source_id": "src-en-wikipedia-org-93543482",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f19bdf6490637401",
+     "id": "saudia.fleet.airbus-a321-200.4bc0e7df",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "airbus_a321_200",
+     "label_ja": "機種ごとの機数（Airbus A321-200）",
+     "pack": "pvr-20261118-cg-saudia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-17",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-93543482",
+       "source_type": "third_party_reference",
+       "title": "Saudia, Current fleet",
+       "url": "https://en.wikipedia.org/wiki/Saudia"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 15,
+     "value_text": "200 15"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "saudia",
+     "cond_ja": "Airbus A321neo; as of September 2025; in service; Saudia旅客機材表。補足: 【Wikipedia】2025-09時点のIn service列。発注列を除外。2026年現在機数とはみなさない。Saudia公式Fleetページはbot制限。AACO2026/CAPA2024の貨物・VIP混在表は非採用。 published_dateは記事全体の最終更新日。機材表の時点はconditionの2025-09。B777-300ERの37機には表注記でVIP構成を含む。 2026年にはA321XLRが就航しており、別行の調査記録を参照。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-11-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Airbus A321neo 12",
+       "source_id": "src-en-wikipedia-org-93543482",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5707a542a936c872",
+     "id": "saudia.fleet.airbus-a321neo.ef434a71",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "airbus_a321neo",
+     "label_ja": "機種ごとの機数（Airbus A321neo）",
+     "pack": "pvr-20261118-cg-saudia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-17",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-93543482",
+       "source_type": "third_party_reference",
+       "title": "Saudia, Current fleet",
+       "url": "https://en.wikipedia.org/wiki/Saudia"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 12,
+     "value_text": "12"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "saudia",
+     "cond_ja": "Airbus A330-300; as of September 2025; in service; Saudia旅客機材表。補足: 【Wikipedia】2025-09時点のIn service列。発注列を除外。2026年現在機数とはみなさない。Saudia公式Fleetページはbot制限。AACO2026/CAPA2024の貨物・VIP混在表は非採用。 published_dateは記事全体の最終更新日。機材表の時点はconditionの2025-09。B777-300ERの37機には表注記でVIP構成を含む。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-11-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Airbus A330-300 31",
+       "source_id": "src-en-wikipedia-org-93543482",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "09a48394699cac4c",
+     "id": "saudia.fleet.airbus-a330-300.b97b8c80",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "airbus_a330_300",
+     "label_ja": "機種ごとの機数（Airbus A330-300）",
+     "pack": "pvr-20261118-cg-saudia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-17",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-93543482",
+       "source_type": "third_party_reference",
+       "title": "Saudia, Current fleet",
+       "url": "https://en.wikipedia.org/wiki/Saudia"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 31,
+     "value_text": "300 31"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "saudia",
+     "cond_ja": "Boeing 777-300ER; as of September 2025; in service; Saudia旅客機材表。補足: 【Wikipedia】2025-09時点のIn service列。発注列を除外。2026年現在機数とはみなさない。Saudia公式Fleetページはbot制限。AACO2026/CAPA2024の貨物・VIP混在表は非採用。 published_dateは記事全体の最終更新日。機材表の時点はconditionの2025-09。B777-300ERの37機には表注記でVIP構成を含む。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-11-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 777-300ER 37",
+       "source_id": "src-en-wikipedia-org-93543482",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "560e72f27511e769",
+     "id": "saudia.fleet.boeing-777-300er.cc61729c",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "boeing_777_300er",
+     "label_ja": "機種ごとの機数（Boeing 777-300ER）",
+     "pack": "pvr-20261118-cg-saudia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-17",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-93543482",
+       "source_type": "third_party_reference",
+       "title": "Saudia, Current fleet",
+       "url": "https://en.wikipedia.org/wiki/Saudia"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 37,
+     "value_text": "37"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "saudia",
+     "cond_ja": "Boeing 787-10; as of September 2025; in service; Saudia旅客機材表。補足: 【Wikipedia】2025-09時点のIn service列。発注列を除外。2026年現在機数とはみなさない。Saudia公式Fleetページはbot制限。AACO2026/CAPA2024の貨物・VIP混在表は非採用。 published_dateは記事全体の最終更新日。機材表の時点はconditionの2025-09。B777-300ERの37機には表注記でVIP構成を含む。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-11-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 787-10 8",
+       "source_id": "src-en-wikipedia-org-93543482",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "056e4e80466f57f8",
+     "id": "saudia.fleet.boeing-787-10.90c08717",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "boeing_787_10",
+     "label_ja": "機種ごとの機数（Boeing 787-10）",
+     "pack": "pvr-20261118-cg-saudia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-17",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-93543482",
+       "source_type": "third_party_reference",
+       "title": "Saudia, Current fleet",
+       "url": "https://en.wikipedia.org/wiki/Saudia"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 8,
+     "value_text": "10 8"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "saudia",
+     "cond_ja": "Boeing 787-9; as of September 2025; in service; Saudia旅客機材表。補足: 【Wikipedia】2025-09時点のIn service列。発注列を除外。2026年現在機数とはみなさない。Saudia公式Fleetページはbot制限。AACO2026/CAPA2024の貨物・VIP混在表は非採用。 published_dateは記事全体の最終更新日。機材表の時点はconditionの2025-09。B777-300ERの37機には表注記でVIP構成を含む。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-11-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 787-9 13",
+       "source_id": "src-en-wikipedia-org-93543482",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d0c7ee20d61db064",
+     "id": "saudia.fleet.boeing-787-9.8c78e9bd",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "boeing_787_9",
+     "label_ja": "機種ごとの機数（Boeing 787-9）",
+     "pack": "pvr-20261118-cg-saudia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-17",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-93543482",
+       "source_type": "third_party_reference",
+       "title": "Saudia, Current fleet",
+       "url": "https://en.wikipedia.org/wiki/Saudia"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 13,
+     "value_text": "9 13"
     }
    ],
    "jobs": [
@@ -113343,6 +120244,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "SINGAPORE",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "scoot",
+     "cond_ja": "2025年募集のAir IndiaからScootへの任意出向; Captain・First Officer; 出向期間1〜2年; 全運航乗務員の現行基地一覧ではない。補足: Hindu BusinessLine取材の二次報道。原報は閲覧制限で本文の同一表記を独立確認できず。具体的な出向募集の配置空港として当該記事の本文を確認。会社の公式公表や2026年の全基地一覧と同義には扱わない。2023協約によるSingapore基地の記載とは別の2025年資料。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-06-09",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "based in Singapore Changi Airport (SIN)",
+       "source_id": "src-aviationa2z-com-d0405a83",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "70a1f2c0d269d46e",
+     "id": "scoot.base.pilot-base.33ccb350",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261118-cg-scoot",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-06-09",
+       "publisher": "Aviation A2Z",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-aviationa2z-com-d0405a83",
+       "source_type": "third_party_reference",
+       "title": "Singapore Airlines Offering Jobs to Over 100 Air India Pilots, But Here's A Catch",
+       "url": "https://aviationa2z.com/index.php/2025/06/09/singapore-airlines-offering-jobs-to-over-100-air-india-pilots-but-heres-a-catch/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SIN",
      "value_text": null
     }
    ],
@@ -115696,7 +122648,268 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "singapore-airlines": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "singapore-airlines",
+     "cond_ja": "base SIN; A350/A380 First Officers・Captains向け求人紹介。補足: 【第三者】シンガポール。航空訓練会社の求人紹介。閲覧時表示「2 Wochen」; 絶対日付不明。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Base: Singapore (SIN)",
+       "source_id": "src-de-linkedin-com-13a1a0cc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cadf14cf055abde0",
+     "id": "singapore-airlines.base.pilot-base-city.c88e6ed4",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261118-cg-singapore-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AET Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-de-linkedin-com-13a1a0cc",
+       "source_type": "third_party_reference",
+       "title": "Singapore Airlines A350/A380 pilot recruitment post",
+       "url": "https://de.linkedin.com/company/aet-aviation-gmbh"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Singapore",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "singapore-airlines",
+     "cond_ja": "A350/A380 First Officers・Captains向け求人紹介; 契約条件は求人ごと。補足: 【第三者】航空訓練会社の求人紹介。閲覧時表示は「2 Wochen」で絶対日付不明。公式求人本文は空港コードを記載していないため、基地の直接表記のある第三者資料を採用。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Base: Singapore (SIN)",
+       "source_id": "src-de-linkedin-com-13a1a0cc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "46701bc3cf444e6e",
+     "id": "singapore-airlines.base.pilot-base.73a079c2",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261118-cg-singapore-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AET Aviation",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-de-linkedin-com-13a1a0cc",
+       "source_type": "third_party_reference",
+       "title": "Singapore Airlines A350/A380 pilot recruitment post",
+       "url": "https://de.linkedin.com/company/aet-aviation-gmbh"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SIN",
+     "value_text": null
+    }
+   ],
    "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "singapore-airlines",
+     "cond_ja": "Direct Entry Captain; 公式中国語ロケール内の英語求人本文。補足: 公開中の公式採用ページ。更新日不明。2023協約clause60の職位別日数とも一致。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "36 days of annual leave",
+       "source_id": "src-singaporeair-com-677018d1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "141ec1796e11570b",
+     "id": "singapore-airlines.benefits.annual-leave-cap.89b95790",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "機長の年次休暇",
+     "pack": "pvr-20261118-cg-singapore-airlines",
+     "per": "year",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Singapore Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-singaporeair-com-677018d1",
+       "source_type": "official_package",
+       "title": "Pilots / Direct Entry Captain",
+       "url": "https://www.singaporeair.com/zh_CN/sg/careers/cadet-pilots-career/"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 36,
+     "value_text": "36"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "singapore-airlines",
+     "cond_ja": "Direct Entry First Officer; 公式中国語ロケール内の英語求人本文。補足: 公開中の公式採用ページ。更新日不明。英語SGページは新テンプレートとなり日数を掲載しないためロケール差に留意。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "32 days of annual leave",
+       "source_id": "src-singaporeair-com-677018d1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "39e1ac117b70af01",
+     "id": "singapore-airlines.benefits.annual-leave-fo.b69e73ac",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "副操縦士の年次休暇",
+     "pack": "pvr-20261118-cg-singapore-airlines",
+     "per": "year",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Singapore Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-singaporeair-com-677018d1",
+       "source_type": "official_package",
+       "title": "Pilots / Direct Entry Captain",
+       "url": "https://www.singaporeair.com/zh_CN/sg/careers/cadet-pilots-career/"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 32,
+     "value_text": "32"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "singapore-airlines",
+     "cond_ja": "Direct Entry First Officer・Captain; variable allowanceの支給項目; 金額非公表。補足: 通勤関連の交通手当の記載。定額・実費精算・送迎車・コミューター制度はこの求人から確認できない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Variable allowances for productivity, meals, and transport",
+       "source_id": "src-singaporeair-com-677018d1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "82c2aba32b8236ad",
+     "id": "singapore-airlines.benefits.commuting.2a35c799",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261118-cg-singapore-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Singapore Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-singaporeair-com-677018d1",
+       "source_type": "official_package",
+       "title": "Pilots / Direct Entry Captain",
+       "url": "https://www.singaporeair.com/zh_CN/sg/careers/cadet-pilots-career/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "transport",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -117462,6 +124675,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "singapore-airlines",
+     "cond_ja": "national pilot; 基地での最低年間休日; 年休・訓練・病休等による減算規定あり; 協約期間2022-08-01〜2025-07-31; 2025-07-31満了; 履歴資料・現行掲載不可。補足: 【写し】旧協約値（2025-07-31満了）。後継CA409/2025は2025-08-01〜2028-07-31、2025-12-05認証とIACで確認。後継本文未入手のため本値を現行値として掲載不可。後継の存在・期間: https://www.iac.gov.sg/-/media/iac-new/about-us/annual-reports/annual-report-2025.pdf PDF99ページ（印刷96）。 最終監査: この会社・項目を「現行条件を確認済み」とする集計から除外する。旧協約での値を記録した履歴行であり、現行条件としては未確認。 追加探索: https://www.alpas.org/member-benefits はIndustrial Bytes等の全文に会員登録が必要と明記。公開FlipHTML5出版者一覧は6冊を案内し、取得できた最新号は2026年7月号。https://www.iac.gov.sg/related-resources/recently-certified-ca も2025年以降の協約には書面でのアクセスを案内しているが、問い合わせは送っていない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2023-04-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "106 days off",
+       "source_id": "src-sgpbusiness-com-fb7a5a07",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6dbe5748377bb80c",
+     "id": "singapore-airlines.work.annual-days-off.7fc658fc",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "annual_days_off",
+     "label_ja": "年間の休日",
+     "pack": "pvr-20261118-cg-singapore-airlines",
+     "per": "year",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-04-11",
+       "publisher": "Singapore Airlines (Pilots) Agreement 2023",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-sgpbusiness-com-fb7a5a07",
+       "source_type": "third_party_reference",
+       "title": "Annex II(a) 5(5)(g)-(i)",
+       "url": "https://www.sgpbusiness.com/get-pdf/egirs/5628e5e6-d849-11ed-90bf-f48e38c3a128"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 106,
+     "value_text": "106"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "singapore-airlines",
+     "cond_ja": "expatriate pilot; 基地での最低年間休日; 年休・訓練・病休等による減算規定あり; 協約期間2022-08-01〜2025-07-31; 2025-07-31満了; 履歴資料・現行掲載不可。補足: 【写し】旧協約値（2025-07-31満了）。後継CA409/2025は2025-08-01〜2028-07-31、2025-12-05認証とIACで確認。後継本文未入手のため本値を現行値として掲載不可。後継の存在・期間: https://www.iac.gov.sg/-/media/iac-new/about-us/annual-reports/annual-report-2025.pdf PDF99ページ（印刷96）。 最終監査: この会社・項目を「現行条件を確認済み」とする集計から除外する。旧協約での値を記録した履歴行であり、現行条件としては未確認。 追加探索: https://www.alpas.org/member-benefits はIndustrial Bytes等の全文に会員登録が必要と明記。公開FlipHTML5出版者一覧は6冊を案内し、取得できた最新号は2026年7月号。https://www.iac.gov.sg/related-resources/recently-certified-ca も2025年以降の協約には書面でのアクセスを案内しているが、問い合わせは送っていない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2023-04-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "104 days off",
+       "source_id": "src-sgpbusiness-com-fb7a5a07",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0e094b054f4f5e5a",
+     "id": "singapore-airlines.work.annual-days-off.9ce324c3",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "annual_days_off",
+     "label_ja": "年間の休日",
+     "pack": "pvr-20261118-cg-singapore-airlines",
+     "per": "year",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-04-11",
+       "publisher": "Singapore Airlines (Pilots) Agreement 2023",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-sgpbusiness-com-fb7a5a07",
+       "source_type": "third_party_reference",
+       "title": "Annex II(a) 5(5)(g)-(i)",
+       "url": "https://www.sgpbusiness.com/get-pdf/egirs/5628e5e6-d849-11ed-90bf-f48e38c3a128"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 104,
+     "value_text": "104"
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "hire_route": "Ab Initio Cadet Pilot",
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true,
@@ -117514,6 +124829,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "訓練期間および副操縦士就任から7年間",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "singapore-airlines",
+     "cond_ja": "OFF day中の会社通知・許可取得; 2026年7月号が報告するCrew Administration Manualの既存方針; 呼出し免除や国際渡航の包括許可までを意味しない。補足: 【写し】2026-05-06の会社との会合に関する組合報告（印刷6ページ）。OFF day中のnotification requirementsについて既存のCrew Administration Manualが引き続き適用されると記載。原文にない国内外の移動範囲・連絡待機免除を付加しない。2026-11-18時点の追加改訂までは確認していない。従来の休日表示トライアル・Crew Requestsに加え、通知/許可に関する具体的運用を抽出。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-07-31",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Pilots are not required to inform the Company or seek permission while on an OFF day",
+       "source_id": "src-fliphtml5-com-20d0f189",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ed7fe545fa413b01",
+     "id": "singapore-airlines.work.roster-pattern.398e841f",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261118-cg-singapore-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-07-31",
+       "publisher": "ALPA-S",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-fliphtml5-com-20d0f189",
+       "source_type": "third_party_reference",
+       "title": "Newsletter Issue 6, July 2026, p6: Meeting with Company on 6 May 2026",
+       "url": "https://fliphtml5.com/eqvrf/Newsletter-Issue-6/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "not required to inform the Company or seek permission",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "singapore-airlines",
+     "cond_ja": "希望するCrew Operating Patternの申請機能; Pattern Labelによる検索; B777の職位別COPが具体例; 2026年7月時点。補足: 【写し】希望勤務パターンをCrew Requestsで申請する仕組み。会員から希望COPが得られないとの声もあり、申請がそのまま確定する意味ではない。固定勤務周期や月休日数はこの資料から確認できない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-07-31",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "using Crew Requests",
+       "source_id": "src-fliphtml5-com-20d0f189",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0d9e7237803c1010",
+     "id": "singapore-airlines.work.roster-pattern.578361e2",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261118-cg-singapore-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-07-31",
+       "publisher": "ALPA-S",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-fliphtml5-com-20d0f189",
+       "source_type": "third_party_reference",
+       "title": "Newsletter Issue 6, July 2026, p6: Meeting with Company on 6 May 2026",
+       "url": "https://fliphtml5.com/eqvrf/Newsletter-Issue-6/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Crew Requests",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "singapore-airlines",
+     "cond_ja": "全機種（B744F除外）; 2026年9月開始予定の休日ラベル明示トライアル; 2026年7月号時点の合意。補足: 【写し】ALPA-Sニュースレターの公開掲載。編集者名は本文と掲載者名で一致。9月開始トライアルの合意を報告; 2026-11-18時点の実施継続は未確認。休日表示方法の情報であり固定勤務周期・月休日数を示す資料ではない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-07-31",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "clearly labelled OFF days",
+       "source_id": "src-fliphtml5-com-20d0f189",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c7d07ae967ffdc0a",
+     "id": "singapore-airlines.work.roster-pattern.fdb47277",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261118-cg-singapore-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-07-31",
+       "publisher": "ALPA-S",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-fliphtml5-com-20d0f189",
+       "source_type": "third_party_reference",
+       "title": "Newsletter Issue 6, July 2026, p6: Meeting with Company on 6 May 2026",
+       "url": "https://fliphtml5.com/eqvrf/Newsletter-Issue-6/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "clearly labelled OFF days",
      "value_text": null
     },
     {
@@ -117572,6 +125040,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": "Singapore Flying College（シンガポールと海外）",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "singapore-airlines",
+     "cond_ja": "飛行時間上限; 任意の連続28日; Annex II(a)旅客運航; 協約期間2022-08-01〜2025-07-31; 2025-07-31満了; 履歴資料・現行掲載不可。補足: 【写し】旧協約値（2025-07-31満了）。後継CA409/2025は2025-08-01〜2028-07-31、2025-12-05認証とIACで確認。後継本文未入手のため本値を現行値として掲載不可。後継の存在・期間: https://www.iac.gov.sg/-/media/iac-new/about-us/annual-reports/annual-report-2025.pdf PDF99ページ（印刷96）。 最終監査: この会社・項目を「現行条件を確認済み」とする集計から除外する。旧協約での値を記録した履歴行であり、現行条件としては未確認。 追加探索: https://www.alpas.org/member-benefits はIndustrial Bytes等の全文に会員登録が必要と明記。公開FlipHTML5出版者一覧は6冊を案内し、取得できた最新号は2026年7月号。https://www.iac.gov.sg/related-resources/recently-certified-ca も2025年以降の協約には書面でのアクセスを案内しているが、問い合わせは送っていない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2023-04-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "100 hours",
+       "source_id": "src-sgpbusiness-com-fb7a5a07",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "505e465abfcaa6be",
+     "id": "singapore-airlines.work.working-time.b25f4bea",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "working_time",
+     "label_ja": "勤務・乗務時間の上限",
+     "pack": "pvr-20261118-cg-singapore-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-04-11",
+       "publisher": "Singapore Airlines (Pilots) Agreement 2023",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-sgpbusiness-com-fb7a5a07",
+       "source_type": "third_party_reference",
+       "title": "Annex II(a) 5(5)(g)-(i)",
+       "url": "https://www.sgpbusiness.com/get-pdf/egirs/5628e5e6-d849-11ed-90bf-f48e38c3a128"
+      }
+     ],
+     "unit": "hours/28days",
+     "use": "条件つき",
+     "value": 100,
+     "value_text": "100"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "singapore-airlines",
+     "cond_ja": "勤務時間上限; 任意の連続28日; Annex II(a)旅客運航; 協約期間2022-08-01〜2025-07-31; 2025-07-31満了; 履歴資料・現行掲載不可。補足: 【写し】旧協約値（2025-07-31満了）。後継CA409/2025は2025-08-01〜2028-07-31、2025-12-05認証とIACで確認。後継本文未入手のため本値を現行値として掲載不可。後継の存在・期間: https://www.iac.gov.sg/-/media/iac-new/about-us/annual-reports/annual-report-2025.pdf PDF99ページ（印刷96）。 最終監査: この会社・項目を「現行条件を確認済み」とする集計から除外する。旧協約での値を記録した履歴行であり、現行条件としては未確認。 追加探索: https://www.alpas.org/member-benefits はIndustrial Bytes等の全文に会員登録が必要と明記。公開FlipHTML5出版者一覧は6冊を案内し、取得できた最新号は2026年7月号。https://www.iac.gov.sg/related-resources/recently-certified-ca も2025年以降の協約には書面でのアクセスを案内しているが、問い合わせは送っていない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2023-04-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "176 hours",
+       "source_id": "src-sgpbusiness-com-fb7a5a07",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f7ad5b30e95faf90",
+     "id": "singapore-airlines.work.working-time.f285d622",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "working_time",
+     "label_ja": "勤務・乗務時間の上限",
+     "pack": "pvr-20261118-cg-singapore-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-04-11",
+       "publisher": "Singapore Airlines (Pilots) Agreement 2023",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-sgpbusiness-com-fb7a5a07",
+       "source_type": "third_party_reference",
+       "title": "Annex II(a) 5(5)(g)-(i)",
+       "url": "https://www.sgpbusiness.com/get-pdf/egirs/5628e5e6-d849-11ed-90bf-f48e38c3a128"
+      }
+     ],
+     "unit": "hours/28days",
+     "use": "条件つき",
+     "value": 176,
+     "value_text": "176"
     }
    ]
   },
@@ -120837,7 +128407,162 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "south-african-airways": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "south-african-airways",
+     "cond_ja": "base JNB。補足: ヨハネスブルグ。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "based in Johannesburg, South Africa",
+       "source_id": "src-flysaa-com-3584d4d3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d7c15e1123a0914f",
+     "id": "south-african-airways.base.pilot-base-city.bc077461",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261118-gm-south-african-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "South African Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-flysaa-com-3584d4d3",
+       "source_type": "job_posting",
+       "title": "SAA Careers",
+       "url": "https://www.flysaa.com/about-us/leading-carrier/careers/lets-talk-about-talent"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Johannesburg",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "south-african-airways",
+     "cond_ja": "補足: SAA公式プライバシーポリシー（https://www.flysaa.com/help/legal/privacy-policy）でもOR Tambo International Airport (JNB) 拠点と明記。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Johannesburg (JNB)",
+       "source_id": "src-flysaa-com-2a7c36e9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "44abfb8d8ae416cc",
+     "id": "south-african-airways.base.pilot-base.68233c87",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261118-gm-south-african-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "South African Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-flysaa-com-2a7c36e9",
+       "source_type": "job_posting",
+       "title": "Check-in",
+       "url": "https://www.flysaa.com/manage-fly/manage/check-in"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "JNB",
+     "value_text": null
+    }
+   ],
    "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "south-african-airways",
+     "cond_ja": "Shuttle operations for crew in Gauteng (OR Tambo International Airport) and airport transfers in Cape Town and Durban。補足: SAA公式の乗員・スタッフ送迎シャトル仕様書（RFP GS018/25）。また2020年12月のSAA事業再生報告書（https://matusonassociates.co.za/wp-content/uploads/2019/12/Tenth-Update-Report-South-African-Airways-SOC-Limited_FINAL.pdf）にはパイロット報酬項目として「car allowance」の記載あり。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-09-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "7) Shuttle Operations: Service to be operated 365 days per year. Crew members on duty must always be given priority to the transportation services. SAA to designate pick-up and drop off points. Drivers to be at pick up location 10 minutes prior to pick-up time. Service to be operated to accommodate",
+       "source_id": "src-etenders-gov-za-15aecf63",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3c99bf915edc64e1",
+     "id": "south-african-airways.benefits.commuting.33a7c712",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261118-gm-south-african-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-09-30",
+       "publisher": "South African Government eTenders Portal",
+       "publisher_kind": "government",
+       "retrieved": "2026-11-18",
+       "source_id": "src-etenders-gov-za-15aecf63",
+       "source_type": "government",
+       "title": "SAA RFP GS018/25 Supply of Staff Transportation Services",
+       "url": "https://www.etenders.gov.za/home/Download/?blobName=a37bcb6a-7132-421b-b8c8-ee86b93311c0.pdf&downloadedFileName=RFP+-+GS01825+-+Supply+of+Staff+Transportation+Services+-+Final.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Service to be operated 365 days per year. Crew members on duty must always be given priority to the transportation services. SAA to designate pick-up and drop off points.",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -121631,6 +129356,161 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": 10,
      "value_text": "10"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "south-african-airways",
+     "cond_ja": "Cadet Pilot Development Programme; duration and amount not publicly specified。補足: Cadet Pilot募集要項にて訓練ボンド署名が必須要件として明記（年数・金額は非公表）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Sign a training bond",
+       "source_id": "src-flysaa-com-431dec33",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "274582f3b903e7cd",
+     "id": "south-african-airways.work.training-bond.2da65333",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "訓練費の拘束",
+     "pack": "pvr-20261118-gm-south-african-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "South African Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-flysaa-com-431dec33",
+       "source_type": "official_package",
+       "title": "Youth Development",
+       "url": "https://www.flysaa.com/about-us/leading-carrier/careers/youth-development"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Sign a training bond",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "south-african-airways",
+     "cond_ja": "Maximum period from employment to obtain ATPL (5 years linked to SFO status under prior Regulating Agreement)。補足: 【写し】2025年10月副操縦士求人票におけるATPL取得期限4年（Politicsweb報道 https://www.politicsweb.co.za/news/sacaa-looks-at-how-saa-pilot-got-away-with-flying-with-fake-licence では旧Regulating Agreement上のSenior First Officer昇格連動要件は5年以内）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-10-13",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "obtained within 4 years from date of employment with SAA",
+       "source_id": "src-vacancieswithcollen-co-za-1cd7591f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d4833e8d55169aba",
+     "id": "south-african-airways.work.upgrade-years-fo.42b59552",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "副操縦士の機長昇格までの年数の目安",
+     "pack": "pvr-20261118-gm-south-african-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-10-13",
+       "publisher": "Vacancies With Collen",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-vacancieswithcollen-co-za-1cd7591f",
+       "source_type": "third_party_reference",
+       "title": "SAA First Officer Vacancy",
+       "url": "https://vacancieswithcollen.co.za/2025/10/13/south-african-airways-saa-vacancies-2/"
+      }
+     ],
+     "unit": "years",
+     "use": "条件つき",
+     "value": 4,
+     "value_text": "4"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "south-african-airways",
+     "cond_ja": "years spent with SAA at time of promotion from A330 First Officer to Captain (Captain Yvette Walsh, post-October 2024)。補足: シニオリティ制による機長昇格実例（またUnique Speaker Bureau https://www.uniquespeakerbureauint.com/speakers/annabel-vundla では2010年入社のAnnabel Vundla氏が2022年に12年でA319/320機長昇格、2025年副操縦士求人票 https://pilotassessments.com/jobs/first-officer-fleet-assignment-by-seniority-ntr-training-provided/ では入社後4年以内のATPL取得「A valid ATPL with multi‑engine instrument rating must be obtained within 4 years from the date of employment with SAA」を規定）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-10-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The dispute has taken a personal toll on Walsh, who has spent more than 23 years with SAA. Despite being promoted to captain after the incident, she has reportedly undergone treatment for stress, anxiety and depression and declared herself temporarily unfit for duty in November 2024.",
+       "source_id": "src-newsroom-co-za-c113fdb3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ddf8aa84dfd8dc14",
+     "id": "south-african-airways.work.upgrade-years.b96d1cf2",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長昇格までの年数の目安",
+     "pack": "pvr-20261118-gm-south-african-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-19",
+       "publisher": "Newsroom",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-newsroom-co-za-c113fdb3",
+       "source_type": "third_party_reference",
+       "title": "SAA Captain Takes Airline to Court Over 2024 Airbus A330 Incident",
+       "url": "https://www.newsroom.co.za/saa-captain-takes-airline-to-court-over-2024-airbus-a330-incident/"
+      }
+     ],
+     "unit": "years",
+     "use": "条件つき",
+     "value": 23,
+     "value_text": "23"
     }
    ]
   },
@@ -125766,7 +133646,162 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "starlux": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "starlux",
+     "cond_ja": "base TPE;2026-08-11付の機長・副操縦士求人。補足: 【第三者】桃園。ページ内のSTARLUX副操縦士求人の所在地表記。空港の所在都市を採用し、都市圏名Taipeiとは区別。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-08-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Taiwan, Taoyuan",
+       "source_id": "src-jobs-hud-sonic-com-23cce5dc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "471b8ef1bac5aa1e",
+     "id": "starlux.base.pilot-base-city.466cd5ba",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261118-cg-starlux",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-08-11",
+       "publisher": "HUD SONiC Jobs",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jobs-hud-sonic-com-23cce5dc",
+       "source_type": "third_party_reference",
+       "title": "STARLUX Captain A321neo/A330neo/A350",
+       "url": "https://jobs.hud-sonic.com/jobs/efb705fd-65c6-48f5-abe0-db2640aca0cf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Taoyuan",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "starlux",
+     "cond_ja": "A321neo/A330neo/A350;2026-08-11付の機長・副操縦士求人。補足: 【第三者】パイロット求人のBase Location欄。FO求人にも同一空港を確認:https://jobs.hud-sonic.com/jobs/91436147-5230-4074-a0ff-2259f87ce5fa 。会社公式Experienced Pilot頁 https://careers.jx-starlux.com/Pilot/ExpPilot は実際に開いたが空港基地の記載なし。全拠点一覧を意味しない。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-08-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Base Location Taiwan Taoyuan International Airport (TPE / RCTP)",
+       "source_id": "src-jobs-hud-sonic-com-23cce5dc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e686a56119c215d9",
+     "id": "starlux.base.pilot-base.762fb72a",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261118-cg-starlux",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-08-11",
+       "publisher": "HUD SONiC Jobs",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jobs-hud-sonic-com-23cce5dc",
+       "source_type": "third_party_reference",
+       "title": "STARLUX Captain A321neo/A330neo/A350",
+       "url": "https://jobs.hud-sonic.com/jobs/efb705fd-65c6-48f5-abe0-db2640aca0cf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "TPE",
+     "value_text": null
+    }
+   ],
    "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "starlux",
+     "cond_ja": "2025年度;飛航員・客艙組員の排班制度;詳細な適用資格・日数は非公表。補足: 公式報告書の4.3飛航組員管理に記載。通勤配慮型班表の存在だけを収録し、航空券付与・交通車・海外居住可否を推定しない。APASの個別募集にはNon-commutingとあるため、全操縦士一律の権利とは断定しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "包括指定休假、指定任務、Commute Pattern 班表、HDO 與獎勵計點制度",
+       "source_id": "src-sustainability-jx-starlux-com-4cbc4798",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c7101231a6e360aa",
+     "id": "starlux.benefits.commuting.9632c29a",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261118-cg-starlux",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "STARLUX",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-sustainability-jx-starlux-com-4cbc4798",
+       "source_type": "regulatory_filing",
+       "title": "2025 Sustainability Report, p.65 人力規劃與排班管理",
+       "url": "https://sustainability.jx-starlux.com/public_html/upload/2025%20STARLUX%20Airlines%20Sustainability%20Report.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Commute Pattern 班表",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -131561,6 +139596,110 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "Thailand",
+     "value_text": null
+    }
+   ],
+   "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "thai-airways",
+     "cond_ja": "運航乗務員のロスター交換機能。固定ローテーション・希望入札・休日保証はこの資料では不明。補足: 【第三者】運航システム供給者による一次発表。flight crew duty plansを対象に記載。THAI運航管制部長の実名コメントを含む。機能の利用を示す資料であり、交換が必ず承認される権利・入札制度の保証ではない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-09-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "roster planning, trip trade, and aircraft assignment",
+       "source_id": "src-cdn-lhsystems-com-ff3106fa",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c5fffe5bf9ce5a32",
+     "id": "thai-airways.work.roster-pattern.0a32d8ce",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261118-cg-thai-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-09-17",
+       "publisher": "Lufthansa Systems",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-cdn-lhsystems-com-ff3106fa",
+       "source_type": "third_party_reference",
+       "title": "THAI speeds up decision-making processes with new solutions from Lufthansa Systems",
+       "url": "https://cdn.lhsystems.com/2025-09/PressNews_Thai_Airways_NLOps.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "trip trade",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "thai-airways",
+     "cond_ja": "Student Pilotの旧募集FAQ（URL sp2024-faq、選考最終回は2025年2月予定）。訓練中に本人が退校する場合の学費返還。2026年度の新規募集への適用は未確認。補足: 会社が負担した発生済学費と前払学費を全額一括で会社に返還する規定。本人都合の退校時。事故・疾病・訓練不合格は個別判断。拘束年数・固定違約金額はこの資料にない。FAQは2024募集に対応する旧ページとして扱い、現役パイロット全体の離職条件に一般化しない。 旧FAQの取得時ページ表現で原文を確認。再取得では404も発生し、現行公開状態は不安定。独立した写しの本文も照合: https://www.tutorferry.com/2026/03/faq-for-student-pilot-tg.html （記事日2026-03-02だが内文の選考時期は2025年2月）。2026新規契約の根拠にはしない。 最終監査: 旧募集の本人都合退校時の返還規則の部分確認。2026年度の訓練拘束年数・金額を確認済みとは数えない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "โดยนำส่งคืนบริษัทฯทั้งหมดในงวดเดียว",
+       "source_id": "src-career-thaiairways-com-214171f4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9d35282a13ee80bd",
+     "id": "thai-airways.work.training-bond.aaa3d6b0",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "訓練費の拘束",
+     "pack": "pvr-20261118-cg-thai-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Thai Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-career-thaiairways-com-214171f4",
+       "source_type": "official_package",
+       "title": "Student Pilot FAQ (sp2024-faq)",
+       "url": "https://career.thaiairways.com/sp2024-faq/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ทั้งหมดในงวดเดียว",
      "value_text": null
     }
    ]
@@ -138315,6 +146454,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "vietjet",
+     "cond_ja": "VietJet Air Vietnamの外国人A320機長。2025年12月のインタビューでハノイ居住時の会社送迎に言及。補足: 航空業界向けの公開インタビューの52:20。会社送迎を利用できると語った機長の事例。路線、対象者の範囲、頻度は資料に明記されない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-12-15",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "есть развозка от компании",
+       "source_id": "src-t-me-c3fff438",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d51952f07a5bcf10",
+     "id": "vietjet.benefits.commuting-cap.c40eb91a",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "機長の通勤の手当・送迎",
+     "pack": "pvr-20261118-cg-vietjet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-12-15",
+       "publisher": "Inside Avia / RocketMan",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-t-me-c3fff438",
+       "source_type": "third_party_reference",
+       "title": "Как попасть в VietJet: кейс Кирилла",
+       "url": "https://t.me/s/inside_avia/9857"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "развозка от компании",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "pilot_specific": true
      },
      "checked_at": "2026-10-29",
@@ -139752,6 +147944,114 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": 87,
      "value_text": "87"
+    }
+   ],
+   "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "vietjet",
+     "cond_ja": "VietJet Air Vietnamの外国人A320機長が2025年12月に説明した選択肢。原文は6/2。補足: 航空業界向けの公開インタビューの57:17。3週勤務・1週休みの説明に続く選択肢。契約別の適用要件は未確認。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-12-15",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Есть вариант 6/2",
+       "source_id": "src-t-me-c3fff438",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "585f3de67dae62c8",
+     "id": "vietjet.work.roster-pattern-cap.17aea365",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "機長のロスターの型",
+     "pack": "pvr-20261118-cg-vietjet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-12-15",
+       "publisher": "Inside Avia / RocketMan",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-t-me-c3fff438",
+       "source_type": "third_party_reference",
+       "title": "Как попасть в VietJet: кейс Кирилла",
+       "url": "https://t.me/s/inside_avia/9857"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "6/2",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "vietjet",
+     "cond_ja": "VietJet Air Vietnamの外国人A320機長が2025年12月に説明した勤務例。3週勤務・1週休み。補足: 航空業界向けの公開インタビューの57:17。Inside Aviaの投稿画面にある日付と、掲載本文の肩書・会社名を確認。対象はこの機長の経験。休週の有給区分は資料に明記されない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-12-15",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "График: 3 недели работаешь, 1 отдыхаешь.",
+       "source_id": "src-t-me-c3fff438",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e6ccce614e1f7943",
+     "id": "vietjet.work.roster-pattern-cap.46322d04",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "機長のロスターの型",
+     "pack": "pvr-20261118-cg-vietjet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-12-15",
+       "publisher": "Inside Avia / RocketMan",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-t-me-c3fff438",
+       "source_type": "third_party_reference",
+       "title": "Как попасть в VietJet: кейс Кирилла",
+       "url": "https://t.me/s/inside_avia/9857"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "3 недели работаешь, 1 отдыхаешь",
+     "value_text": null
     }
    ]
   },
@@ -141847,6 +150147,379 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "Vietnam",
+     "value_text": null
+    }
+   ],
+   "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "vietnam-airlines",
+     "cond_ja": "A320機長; FCI経由の契約パイロット向け; 選択可能なcommuting roster; 2026年12月/2027年訓練開始募集。月間・年間休日への換算なし。補足: 【第三者】FCIがVietnam Airlinesの代理で掲載した実求人。締切2026-12-13を本文で確認。会社全体の統一制度ではない。掲載日は相対表示のため空欄。4x4等の略記は原文どおり。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "6x2, 6x3, 4x2",
+       "source_id": "src-jobs-flightglobal-com-9c9871a5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "375b913f32850806",
+     "id": "vietnam-airlines.work.roster-pattern-cap.57bdaa54",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "機長のロスターの型",
+     "pack": "pvr-20261118-cg-vietnam-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "FlightGlobal FlightJobs",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jobs-flightglobal-com-9c9871a5",
+       "source_type": "third_party_reference",
+       "title": "FCI Vietnam Airlines A320 Captains",
+       "url": "https://jobs.flightglobal.com/jobs/a320-captains-4-weeks-on-4-weeks-off-roster-pattern?src=similar-jobs"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "6x3",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "vietnam-airlines",
+     "cond_ja": "A320機長; FCI経由の契約パイロット向け; 選択可能なcommuting roster; 2026年12月/2027年訓練開始募集。月間・年間休日への換算なし。補足: 【第三者】FCIがVietnam Airlinesの代理で掲載した実求人。締切2026-12-13を本文で確認。会社全体の統一制度ではない。掲載日は相対表示のため空欄。4x4等の略記は原文どおり。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Commuting roster – 4x4",
+       "source_id": "src-jobs-flightglobal-com-9c9871a5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6a4e1566c238c44d",
+     "id": "vietnam-airlines.work.roster-pattern-cap.61c6464b",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "機長のロスターの型",
+     "pack": "pvr-20261118-cg-vietnam-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "FlightGlobal FlightJobs",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jobs-flightglobal-com-9c9871a5",
+       "source_type": "third_party_reference",
+       "title": "FCI Vietnam Airlines A320 Captains",
+       "url": "https://jobs.flightglobal.com/jobs/a320-captains-4-weeks-on-4-weeks-off-roster-pattern?src=similar-jobs"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "4x4",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "vietnam-airlines",
+     "cond_ja": "A320機長; FCI経由の契約パイロット向け; 選択可能なcommuting roster; 2026年12月/2027年訓練開始募集。月間・年間休日への換算なし。補足: 【第三者】FCIがVietnam Airlinesの代理で掲載した実求人。締切2026-12-13を本文で確認。会社全体の統一制度ではない。掲載日は相対表示のため空欄。4x4等の略記は原文どおり。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "4x4, 6x2, 6x3",
+       "source_id": "src-jobs-flightglobal-com-9c9871a5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c97e3bcde2e46cf0",
+     "id": "vietnam-airlines.work.roster-pattern-cap.7251e26c",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "機長のロスターの型",
+     "pack": "pvr-20261118-cg-vietnam-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "FlightGlobal FlightJobs",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jobs-flightglobal-com-9c9871a5",
+       "source_type": "third_party_reference",
+       "title": "FCI Vietnam Airlines A320 Captains",
+       "url": "https://jobs.flightglobal.com/jobs/a320-captains-4-weeks-on-4-weeks-off-roster-pattern?src=similar-jobs"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "6x2",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "vietnam-airlines",
+     "cond_ja": "A320機長; FCI経由の契約パイロット向け; 選択可能なcommuting roster; 2026年12月/2027年訓練開始募集。月間・年間休日への換算なし。補足: 【第三者】FCIがVietnam Airlinesの代理で掲載した実求人。締切2026-12-13を本文で確認。会社全体の統一制度ではない。掲載日は相対表示のため空欄。4x4等の略記は原文どおり。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "6x3, 4x2, 3x1",
+       "source_id": "src-jobs-flightglobal-com-9c9871a5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bf4f4f2a59ffc638",
+     "id": "vietnam-airlines.work.roster-pattern-cap.a14ec02b",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "機長のロスターの型",
+     "pack": "pvr-20261118-cg-vietnam-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "FlightGlobal FlightJobs",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jobs-flightglobal-com-9c9871a5",
+       "source_type": "third_party_reference",
+       "title": "FCI Vietnam Airlines A320 Captains",
+       "url": "https://jobs.flightglobal.com/jobs/a320-captains-4-weeks-on-4-weeks-off-roster-pattern?src=similar-jobs"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "4x2",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "vietnam-airlines",
+     "cond_ja": "A320機長; FCI経由の契約パイロット向け; 選択可能なcommuting roster; 2026年12月/2027年訓練開始募集。月間・年間休日への換算なし。補足: 【第三者】FCIがVietnam Airlinesの代理で掲載した実求人。締切2026-12-13を本文で確認。会社全体の統一制度ではない。掲載日は相対表示のため空欄。4x4等の略記は原文どおり。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "4x2, 3x1 and more!",
+       "source_id": "src-jobs-flightglobal-com-9c9871a5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "766c6946852e3f08",
+     "id": "vietnam-airlines.work.roster-pattern-cap.f3b6ca50",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "機長のロスターの型",
+     "pack": "pvr-20261118-cg-vietnam-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "FlightGlobal FlightJobs",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jobs-flightglobal-com-9c9871a5",
+       "source_type": "third_party_reference",
+       "title": "FCI Vietnam Airlines A320 Captains",
+       "url": "https://jobs.flightglobal.com/jobs/a320-captains-4-weeks-on-4-weeks-off-roster-pattern?src=similar-jobs"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "3x1",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "vietnam-airlines",
+     "cond_ja": "A350; FCI経由の外国人契約パイロット向け; 選択可能なcommuting roster。全員固定のロスターではない。2026年12月/2027年訓練開始募集。補足: 【第三者】FCIがVietnam Airlinesの代理で掲載した実求人。締切2026-11-26を本文で確認。掲載日が相対表示のためpublished_dateは空欄。月間休日や年間休日への換算なし。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "4 weeks ON / 4 weeks OFF",
+       "source_id": "src-jobs-flightglobal-com-df793175",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ac0265c8853ff486",
+     "id": "vietnam-airlines.work.roster-pattern-fo.ac1c461c",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "副操縦士のロスターの型",
+     "pack": "pvr-20261118-cg-vietnam-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "FlightGlobal FlightJobs",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jobs-flightglobal-com-df793175",
+       "source_type": "third_party_reference",
+       "title": "FCI Vietnam Airlines A350 First Officers",
+       "url": "https://jobs.flightglobal.com/jobs/a350-first-officers-4-weeks-on-4-weeks-off"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "4 weeks ON / 4 weeks OFF",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "vietnam-airlines",
+     "cond_ja": "A350機長; Rishworth 2025求人票の写し。十分な事前通知なく契約終了し、終了前90日以内に定期SIMを受けた場合に関係する保証。金額・拘束年数・返還計算式は非掲載。補足: 【写し】求人票原文フッターに2025。Scribd上部のAI要約は使わず、2ページの原文部分を確認。第三者アップロードのため現在の契約でも同一かは未確認。全パイロット共通の訓練費用や年数とみなさない。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "A bond will be required as security",
+       "source_id": "src-scribd-com-b9aebf82",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "144705570a2f5e7f",
+     "id": "vietnam-airlines.work.training-bond-cap.aa47e9fc",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "機長の訓練費の拘束",
+     "pack": "pvr-20261118-cg-vietnam-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rishworth Aviation 2025",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-scribd-com-b9aebf82",
+       "source_type": "third_party_reference",
+       "title": "VNA A350 PIC Job Brief (Scribd copy)",
+       "url": "https://www.scribd.com/document/1021668452/Vna-a350-Pic-Job-Brief"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "A bond will be required as security",
      "value_text": null
     }
    ]
@@ -200724,6 +209397,302 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   }
  ],
  "LIVING": {
+  "addis-ababa": {
+   "airlines": [
+    "ethiopian-airlines"
+   ],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Addis Ababa",
+      "note_ja": "街「Addis Ababa」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "addis-ababa",
+     "company": "ethiopian-airlines",
+     "cond_ja": "Emperial Hotel (Bole 8/9) → Bole Bridge (ADD)。手段: bus, Sheger Bus Sh092。補足: 【地図】Bole地区（Emperial Hotelバス停）〜Addis Ababa Airport（Bole Bridgeバス停）間のSheger Bus Sh092系統。",
+     "currency": null,
+     "district": "Emperial Hotel (Bole 8/9) → Bole Bridge (ADD)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "bus Sh092 6 min",
+       "source_id": "src-rome2rio-com-92842b55",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cb03325c91ca34e7",
+     "id": "ethiopian-airlines.living.commute.3ee2e70e",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Emperial Hotel → Bole Bridge）",
+     "pack": "pvr-20261118-gm-ethiopian-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rome2Rio",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rome2rio-com-92842b55",
+       "source_type": "third_party_reference",
+       "title": "Addis Ababa Airport (ADD) to Bole 8/9",
+       "url": "https://www.rome2rio.com/s/Addis-Ababa-Airport-ADD/Bole-8-9-Addis-Ababa-Ethiopia"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 6,
+     "value_text": "092 6"
+    }
+   ],
+   "name": "Addis Ababa",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Addis Ababa",
+      "note_ja": "街「Addis Ababa」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 ETB の国（エチオピア）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "addis-ababa",
+     "company": "ethiopian-airlines",
+     "cond_ja": "英: undefined。原部屋表記「1 bedroom apartments」。数字の種類: Addis Ababa, Bole。家具: undefined。補足: 【第三者】Bole地区の1ベッドルーム平均家賃統計（66件）。",
+     "currency": "ETB",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-11-15",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Br 150,000 a month",
+       "source_id": "src-ethiopiapropertycentre-com-d3b0bf0a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "72dd6319cbfe9be5",
+     "id": "ethiopian-airlines.living.rent-1bed.2f74a5a0",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1 bedroom apartments",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261118-gm-ethiopian-airlines",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-15",
+       "publisher": "Ethiopia Property Centre",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-ethiopiapropertycentre-com-d3b0bf0a",
+       "source_type": "third_party_reference",
+       "title": "Bole 1 Bed",
+       "url": "https://ethiopiapropertycentre.com/for-rent/flats-apartments/addis-ababa/bole/showtype?bedrooms=1"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 150000
+     },
+     "value_text": {
+      "1bed": "150,000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Addis Ababa",
+      "note_ja": "街「Addis Ababa」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 ETB の国（エチオピア）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "addis-ababa",
+     "company": "ethiopian-airlines",
+     "cond_ja": "英: undefined。原部屋表記「2 bedroom apartments」。数字の種類: Addis Ababa, Bole。家具: undefined。補足: 【第三者】Bole地区の2ベッドルーム平均家賃統計（184件）。",
+     "currency": "ETB",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-11-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Br 80,000 a month",
+       "source_id": "src-ethiopiapropertycentre-com-d3264acb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f3e9a4238aadffa6",
+     "id": "ethiopian-airlines.living.rent-2bed.0b9d669f",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2 bedroom apartments",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261118-gm-ethiopian-airlines",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-11",
+       "publisher": "Ethiopia Property Centre",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-ethiopiapropertycentre-com-d3264acb",
+       "source_type": "third_party_reference",
+       "title": "Bole 2 Bed",
+       "url": "https://ethiopiapropertycentre.com/for-rent/flats-apartments/addis-ababa/bole/showtype?bedrooms=2"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 80000
+     },
+     "value_text": {
+      "2bed": "80,000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Addis Ababa",
+      "note_ja": "街「Addis Ababa」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 ETB の国（エチオピア）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "addis-ababa",
+     "company": "ethiopian-airlines",
+     "cond_ja": "英: undefined。原部屋表記「3 bedroom apartments」。数字の種類: Addis Ababa, Bole。家具: undefined。補足: 【第三者】Bole地区の3ベッドルーム平均家賃統計（333件）。",
+     "currency": "ETB",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-11-06",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Br 120,000 a month",
+       "source_id": "src-ethiopiapropertycentre-com-799eacf1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c77e06e934580730",
+     "id": "ethiopian-airlines.living.rent-3bed.83478a6e",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3 bedroom apartments",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261118-gm-ethiopian-airlines",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-06",
+       "publisher": "Ethiopia Property Centre",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-ethiopiapropertycentre-com-799eacf1",
+       "source_type": "third_party_reference",
+       "title": "Bole 3 Bed",
+       "url": "https://ethiopiapropertycentre.com/for-rent/flats-apartments/addis-ababa/bole/showtype?bedrooms=3"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 120000
+     },
+     "value_text": {
+      "3bed": "120,000"
+     }
+    }
+   ],
+   "towns": []
+  },
   "akron-canton": {
    "airlines": [
     "breeze-airways"
@@ -201395,6 +210364,245 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "value_text": {
       "3bed": "6万円"
+     }
+    }
+   ],
+   "towns": []
+  },
+  "amman": {
+   "airlines": [
+    "royal-jordanian"
+   ],
+   "commute": [],
+   "name": "Amman",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Amman",
+      "note_ja": "街「Amman」は--city royal-jordanian=… で指定から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 JOD の国（ヨルダン）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "amman",
+     "company": "royal-jordanian",
+     "cond_ja": "家具付き。原部屋表記「Bedrooms: 1（عدد غرف النوم）」。数字の種類: Amman, Sweifieh (الصويفية)。家具: undefined。補足: 【第三者】西アンマン・スワイフィエの家具付き賃貸募集。間取り別月額平均の表、1寝室は2件。2・3寝室も同じ表を使用。掲載賃料の集計で、成約賃料ではない。発行日表示なし、確認日時点の掲載集計。",
+     "currency": "JOD",
+     "district": "家具付き",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "425 دينار",
+       "source_id": "src-waseetjo-com-2ed3b9f8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3ac13433c5ab84da",
+     "id": "royal-jordanian.living.rent-1bed.5906c616",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "Bedrooms: 1（عدد غرف النوم）",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261118-cg-royal-jordanian",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "وسيط جو (Waseet Jo)",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-waseetjo-com-2ed3b9f8",
+       "source_type": "third_party_reference",
+       "title": "شقق مفروشة للإيجار في الصويفية، عمان",
+       "url": "https://waseetjo.com/properties/furnished-apartments/rent/amman/%D8%A7%D9%84%D8%B5%D9%88%D9%8A%D9%81%D9%8A%D8%A9/"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "1bed": 425
+     },
+     "value_text": {
+      "1bed": "425"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Amman",
+      "note_ja": "街「Amman」は--city royal-jordanian=… で指定から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 JOD の国（ヨルダン）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "amman",
+     "company": "royal-jordanian",
+     "cond_ja": "家具付き。原部屋表記「Bedrooms: 2（عدد غرف النوم）」。数字の種類: Amman, Sweifieh (الصويفية)。家具: undefined。補足: 【第三者】西アンマン・スワイフィエの家具付き賃貸募集。間取り別月額平均の表、2寝室は21件。掲載賃料の集計で、成約賃料ではない。発行日表示なし、確認日時点の掲載集計。",
+     "currency": "JOD",
+     "district": "家具付き",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "500 دينار",
+       "source_id": "src-waseetjo-com-2ed3b9f8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f58475e64ccc5ae6",
+     "id": "royal-jordanian.living.rent-2bed.f40b525f",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "Bedrooms: 2（عدد غرف النوم）",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261118-cg-royal-jordanian",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "وسيط جو (Waseet Jo)",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-waseetjo-com-2ed3b9f8",
+       "source_type": "third_party_reference",
+       "title": "شقق مفروشة للإيجار في الصويفية، عمان",
+       "url": "https://waseetjo.com/properties/furnished-apartments/rent/amman/%D8%A7%D9%84%D8%B5%D9%88%D9%8A%D9%81%D9%8A%D8%A9/"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "2bed": 500
+     },
+     "value_text": {
+      "2bed": "500"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Amman",
+      "note_ja": "街「Amman」は--city royal-jordanian=… で指定から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 JOD の国（ヨルダン）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "amman",
+     "company": "royal-jordanian",
+     "cond_ja": "家具付き。原部屋表記「Bedrooms: 3（عدد غرف النوم）」。数字の種類: Amman, Sweifieh (الصويفية)。家具: undefined。補足: 【第三者】西アンマン・スワイフィエの家具付き賃貸募集。間取り別月額平均の表、3寝室は17件。掲載賃料の集計で、成約賃料ではない。発行日表示なし、確認日時点の掲載集計。",
+     "currency": "JOD",
+     "district": "家具付き",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "650 دينار",
+       "source_id": "src-waseetjo-com-2ed3b9f8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a4a931df5414c5ee",
+     "id": "royal-jordanian.living.rent-3bed.302fd534",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "Bedrooms: 3（عدد غرف النوم）",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261118-cg-royal-jordanian",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "وسيط جو (Waseet Jo)",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-waseetjo-com-2ed3b9f8",
+       "source_type": "third_party_reference",
+       "title": "شقق مفروشة للإيجار في الصويفية، عمان",
+       "url": "https://waseetjo.com/properties/furnished-apartments/rent/amman/%D8%A7%D9%84%D8%B5%D9%88%D9%8A%D9%81%D9%8A%D8%A9/"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "3bed": 650
+     },
+     "value_text": {
+      "3bed": "650"
      }
     }
    ],
@@ -203519,7 +212727,64 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "airlines": [
     "thai-airways"
    ],
-   "commute": [],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Bangkok",
+      "note_ja": "街「Bangkok」は取り込み済みの台帳（research-ledger.mjs の CITY_OF）の街のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "bangkok",
+     "company": "thai-airways",
+     "cond_ja": "Phaya Thai Station (Bangkok, Ratchathewi/Phaya Thai駅周辺) → Suvarnabhumi Airport passenger terminal basement。手段: train, Airport Rail Link City Line・所要時間上限。補足: 上限30分。駅から駅の乗車時間で徒歩・待ち時間を含まない。記事は2023-03-13公開、2023-07-21更新。拠点自体は厳格な所属資料が得られないため未確定だが、本社都市Bangkokを住宅地区選定の基準とする。",
+     "currency": null,
+     "district": "Phaya Thai Station (Bangkok, Ratchathewi/Phaya Thai駅周辺) → Suvarnabhumi Airport passenger terminal basement",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2023-07-21",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ใช้เวลาเดินทางจากต้นทางถึงปลายทางไม่เกิน 30 นาที",
+       "source_id": "src-thailand-go-th-40ce724a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4f1b717d1b0081c8",
+     "id": "thai-airways.living.commute.2801804c",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Phaya Thai Station → Suvarnabhumi Airport passeng…",
+     "pack": "pvr-20261118-cg-thai-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-07-21",
+       "publisher": "Thailand.go.th",
+       "publisher_kind": "government",
+       "retrieved": "2026-11-18",
+       "source_id": "src-thailand-go-th-40ce724a",
+       "source_type": "government",
+       "title": "รถไฟฟ้าแอร์พอร์ต เรล ลิงก์ จากท่าอากาศยานสุวรรณภูมิ ไปไหนได้บ้าง",
+       "url": "https://thailand.go.th/public/issue-focus-detail/001_01_107-2-2?hl=th"
+      }
+     ],
+     "unit": "分",
+     "use": "条件つき",
+     "value": 30,
+     "value_text": "30"
+    }
+   ],
    "name": "Bangkok",
    "name_en": null,
    "rents": [
@@ -206270,6 +215535,302 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "1bed": "£1,225",
       "2bed": "£1,544",
       "3bed": "£1,759"
+     }
+    }
+   ],
+   "towns": []
+  },
+  "cairo": {
+   "airlines": [
+    "egyptair"
+   ],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Cairo",
+      "note_ja": "街「Cairo」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "cairo",
+     "company": "egyptair",
+     "cond_ja": "Zamalek (Safaa Hegazy) → Cairo Airport (CAI)。手段: train/bus, Cairo Metro Line 3 and line 111 bus。補足: 【地図】カイロメトロ3号線（Safaa Hegazy〜Cairo Fair駅）およびMwasalat Misr 111系統バス。",
+     "currency": null,
+     "district": "Zamalek (Safaa Hegazy) → Cairo Airport (CAI)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "line 111 bus and Metro which takes 37 min",
+       "source_id": "src-rome2rio-com-2074f124",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5e4c5fb45a610781",
+     "id": "egyptair.living.commute.69002c4e",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Zamalek → Cairo Airport）",
+     "pack": "pvr-20261118-gm-egyptair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rome2Rio",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rome2rio-com-2074f124",
+       "source_type": "third_party_reference",
+       "title": "Cairo Airport (CAI) to Zamalek",
+       "url": "https://www.rome2rio.com/s/Cairo-Airport-CAI/Next-to-the-Marriott-Hotel-Zamalek-Cairo"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 37,
+     "value_text": "37"
+    }
+   ],
+   "name": "Cairo",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Cairo",
+      "note_ja": "街「Cairo」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 EGP の国（エジプト）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "cairo",
+     "company": "egyptair",
+     "cond_ja": "英: undefined。原部屋表記「1 bedroom」。数字の種類: Cairo, Zamalek。家具: undefined。補足: 【第三者】カイロの高級住宅地区Zamalekの間取り別家賃相場表。",
+     "currency": "EGP",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1 bedroom EGP 59,000",
+       "source_id": "src-regypt-com-1f57d114",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "01edf1bbf7f2fb65",
+     "id": "egyptair.living.rent-1bed.5b9be4d9",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1 bedroom",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261118-gm-egyptair",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Regypt",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-regypt-com-1f57d114",
+       "source_type": "third_party_reference",
+       "title": "Zamalek Apartments for Rent",
+       "url": "https://regypt.com/en/properties?offeringType=rent&regionSlug=zamalek&type=apartment"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "1bed": 59000
+     },
+     "value_text": {
+      "1bed": "59,000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Cairo",
+      "note_ja": "街「Cairo」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 EGP の国（エジプト）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "cairo",
+     "company": "egyptair",
+     "cond_ja": "英: undefined。原部屋表記「2 bedrooms」。数字の種類: Cairo, Zamalek。家具: undefined。補足: 【第三者】カイロの高級住宅地区Zamalekの間取り別家賃相場表。",
+     "currency": "EGP",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "2 bedrooms EGP 78,000",
+       "source_id": "src-regypt-com-1f57d114",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a54e7bc8bed6f0b6",
+     "id": "egyptair.living.rent-2bed.7c8bb494",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2 bedrooms",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261118-gm-egyptair",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Regypt",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-regypt-com-1f57d114",
+       "source_type": "third_party_reference",
+       "title": "Zamalek Apartments for Rent",
+       "url": "https://regypt.com/en/properties?offeringType=rent&regionSlug=zamalek&type=apartment"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "2bed": 78000
+     },
+     "value_text": {
+      "2bed": "78,000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Cairo",
+      "note_ja": "街「Cairo」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 EGP の国（エジプト）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "cairo",
+     "company": "egyptair",
+     "cond_ja": "英: undefined。原部屋表記「3 bedrooms」。数字の種類: Cairo, Zamalek。家具: undefined。補足: 【第三者】カイロの高級住宅地区Zamalekの間取り別家賃相場表。",
+     "currency": "EGP",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "3 bedrooms EGP 100,000",
+       "source_id": "src-regypt-com-1f57d114",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2b3a69f3c3829c13",
+     "id": "egyptair.living.rent-3bed.8c3a4908",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3 bedrooms",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261118-gm-egyptair",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Regypt",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-regypt-com-1f57d114",
+       "source_type": "third_party_reference",
+       "title": "Zamalek Apartments for Rent",
+       "url": "https://regypt.com/en/properties?offeringType=rent&regionSlug=zamalek&type=apartment"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "3bed": 100000
+     },
+     "value_text": {
+      "3bed": "100,000"
      }
     }
    ],
@@ -210828,6 +220389,73 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ]
   },
+  "delhi": {
+   "airlines": [
+    "indigo"
+   ],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Delhi",
+      "note_ja": "街「Delhi」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "delhi",
+     "company": "indigo",
+     "cond_ja": "Vasant Vihar Station（Delhi, Vasant Vihar） → DEL Terminal 1-IGI Airport Metro Station。手段: train, Delhi Metro Magenta Line・平日（月〜金、時刻指定なし）。補足: 【地図】地図・経路検索の駅間乗車時間。自宅から駅、待ち時間、T1駅から乗員集合場所への移動は含まない。公式DMRC・空港サイトではこの区間の所要時間を確認できず代替。",
+     "currency": null,
+     "district": "Vasant Vihar Station（Delhi, Vasant Vihar） → DEL Terminal 1-IGI Airport Metro Station",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The journey takes approximately 6 min.",
+       "source_id": "src-rome2rio-com-26ca8c38",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d0abc617074d48ea",
+     "id": "indigo.living.commute.b802312d",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Vasant Vihar Station（Delhi, Vasant Vihar） → DEL T…",
+     "pack": "pvr-20261118-cg-indigo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rome2Rio",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rome2rio-com-26ca8c38",
+       "source_type": "third_party_reference",
+       "title": "Vasant Vihar to Terminal 1 IGI Airport Station",
+       "url": "https://www.rome2rio.com/s/Vasant-Vihar/Terminal-1-IGI-Airport-Station"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 6,
+     "value_text": "6"
+    }
+   ],
+   "name": "Delhi",
+   "name_en": null,
+   "rents": [],
+   "towns": []
+  },
   "denver": {
    "airlines": [
     "frontier",
@@ -212011,7 +221639,64 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "airlines": [
     "qatar-airways"
    ],
-   "commute": [],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Doha",
+      "note_ja": "街「Doha」は取り込み済みの台帳（research-ledger.mjs の CITY_OF）の街のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "doha",
+     "company": "qatar-airways",
+     "cond_ja": "West Bay station (Doha, West Bay) → Hamad Intl Airport T1 (DOH)。手段: train, Doha Metro Red Line・通常ダイヤ・時刻指定なし。補足: 【地図】駅間の列車区間。自宅から駅・空港駅から乗員報告地点への徒歩および待ち時間は別。逆向き経路22分と混同しない。Hamad空港の現行公式Metro案内は路線接続を示すが、この区間の分数はない。Qatar Rail/Metrotramのサイト取得はタイムアウト。発行日不明の現行経路表示。",
+     "currency": null,
+     "district": "West Bay station (Doha, West Bay) → Hamad Intl Airport T1 (DOH)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The Metro from West Bay to Hamad Intl Airport T1 takes 23 min",
+       "source_id": "src-rome2rio-com-942694eb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "90ad7dc95fd2f63e",
+     "id": "qatar-airways.living.commute.f538ace0",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（West Bay station → Hamad Intl Airport T1）",
+     "pack": "pvr-20261118-cg-qatar-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rome2Rio",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rome2rio-com-942694eb",
+       "source_type": "third_party_reference",
+       "title": "West Bay (Station) to Doha Airport (DOH)",
+       "url": "https://www.rome2rio.com/s/West-Bay-Station/Doha-Airport-DOH"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 23,
+     "value_text": "23"
+    }
+   ],
    "name": "Doha",
    "name_en": null,
    "rents": [
@@ -212248,9 +221933,73 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "dubai": {
    "airlines": [
-    "emirates"
+    "emirates",
+    "flydubai"
    ],
    "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Dubai",
+      "note_ja": "街「Dubai」は取り込み済みの台帳（research-ledger.mjs の CITY_OF）の街のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "dubai",
+     "company": "emirates",
+     "cond_ja": "DMCC Metro Station 1 (Dubai Marina) → DXB Airport Terminal 3 Metro Station 1。手段: train, Dubai Metro Red Line MRed2・時刻指定なし・通常運行の経路案内。補足: 【地図】住宅地区の代表駅から旅客ターミナル駅まで。乗務員出頭場所までの時間ではない。空港公式でRed LineのT1/T3接続、RTA公式でDMCCとAirport Terminal 3各駅の存在を確認。一般公開ページに発行日はない現行経路案内。",
+     "currency": null,
+     "district": "DMCC Metro Station 1 (Dubai Marina) → DXB Airport Terminal 3 Metro Station 1",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "53 min Average Duration",
+       "source_id": "src-rome2rio-com-5c915596",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "929aa3a13f97e7dc",
+     "id": "emirates.living.commute.0e21aac1",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（DMCC Metro Station 1 → DXB Airport Terminal 3 Met…",
+     "pack": "pvr-20261118-cg-emirates",
+     "per": null,
+     "rev": 1,
+     "seen": [
+      {
+       "company": "flydubai",
+       "id": "flydubai.living.commute.5e9b79f4",
+       "pack": "pvr-20261118-cg-flydubai"
+      }
+     ],
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rome2Rio",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rome2rio-com-5c915596",
+       "source_type": "third_party_reference",
+       "title": "Dubai Marina to Dubai Airport (DXB)",
+       "url": "https://www.rome2rio.com/s/Dubai-Marina/Dubai-Airport-DXB"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 53,
+     "value_text": "53"
+    },
     {
      "amount": null,
      "applies_to": {
@@ -217307,7 +227056,64 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "air-india",
     "indigo"
    ],
-   "commute": [],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Gurugram",
+      "note_ja": "街「Gurugram」は取り込み済みの台帳（research-ledger.mjs の CITY_OF）の街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "gurugram",
+     "company": "air-india",
+     "cond_ja": "Bandra-Kurla Complex Metro Station (Mumbai, Bandra East/BKC) → Mumbai Chhatrapati Shivaji Maharaj International Airport T2 Metro Station。手段: train, Mumbai Metro Line 3 (Aqua)・時間帯指定なし。補足: 【地図】乗換案内に表示された地下鉄乗車区間の所要分数。公式MMRCLは403で閲覧不可、空港公式には地区別の所要分数なし。待ち時間・住宅から駅・空港駅からターミナルの徒歩は含めない。特定の平日朝時刻を指定した検索ではないためピーク時間のドアツードア通勤時間として使わない。Bandra East/BKC周辺住宅向けの駅アクセス例で、Bandra West/Juhuの住宅から13分との意味ではない。発行日不明、現行の経路案内。",
+     "currency": null,
+     "district": "Bandra-Kurla Complex Metro Station (Mumbai, Bandra East/BKC) → Mumbai Chhatrapati Shivaji Maharaj International Airport T2 Metro Station",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The subway from Bandra-Kurla Complex to CSMI-Airport - T2 takes 13 min",
+       "source_id": "src-rome2rio-com-f204a8d9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "58ab1d354fc8e4b8",
+     "id": "air-india.living.commute.265207e9",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Bandra-Kurla Complex Metro Station → Mumbai Chhat…",
+     "pack": "pvr-20261118-cg-air-india",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rome2Rio",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rome2rio-com-f204a8d9",
+       "source_type": "third_party_reference",
+       "title": "Bandra Kurla Complex to Chhatrapati Shivaji Maharaj International Airport - T2 Station",
+       "url": "https://www.rome2rio.com/s/Bandra-Kurla-Complex/Chhatrapati-Shivaji-Maharaj-International-Airport-T2-Station"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 13,
+     "value_text": "13"
+    }
+   ],
    "name": "Gurugram",
    "name_en": null,
    "rents": [
@@ -218751,9 +228557,137 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "ho-chi-minh-city": {
    "airlines": [
-    "bamboo-airways"
+    "bamboo-airways",
+    "vietjet"
    ],
-   "commute": [],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "HO CHI MINH CITY",
+      "note_ja": "街「HO CHI MINH CITY」は取り込み済みの台帳（research-ledger.mjs の CITY_OF）の街のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "ho-chi-minh-city",
+     "company": "bamboo-airways",
+     "cond_ja": "Khu dân cư Trung Sơnバス始発（Ho Chi Minh City, Trung Sơn, Đường số 10） → タンソンニャット国際空港国際線ターミナル（SGN T2）。手段: bus, 152系統・2026年運行案内の所要時間下限。補足: 2026-01-01からの市公共交通管理センターによる路線案内を報道。始発から国際線終点までの車内時間。自宅からの徒歩、待ち時間、他のターミナルへの移動は別。始発と国際線終点の詳細を https://vietnammoi.vn/lich-trinh-cac-tuyen-xe-buyt-tphcm-moi-nhat-2025-thoi-gian-gia-ve-lo-trinh-chi-tiet-202552415731119.htm と https://mia.vn/cam-nang-du-lich/cac-tuyen-xe-buyt-tp-hcm-17419 で照合。",
+     "currency": null,
+     "district": "Khu dân cư Trung Sơnバス始発（Ho Chi Minh City, Trung Sơn, Đường số 10） → タンソンニャット国際空港国際線ターミナル（SGN T2）",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2026-01-10",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "50 - 55 phút/chuyến",
+       "source_id": "src-nld-com-vn-db14665d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1f9138255c946053",
+     "id": "bamboo-airways.living.commute.243658f8",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Khu dân cư Trung Sơnバス始発（Ho Chi Minh City, Trung …",
+     "pack": "pvr-20261118-cg-bamboo-airways",
+     "per": null,
+     "rev": 1,
+     "seen": [
+      {
+       "company": "vietjet",
+       "id": "vietjet.living.commute.45238da6",
+       "pack": "pvr-20261118-cg-vietjet"
+      }
+     ],
+     "src": [
+      {
+       "published": "2026-01-10",
+       "publisher": "Người Lao Động",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-nld-com-vn-db14665d",
+       "source_type": "third_party_reference",
+       "title": "Điều chỉnh 6 tuyến xe buýt trợ giá tại TPHCM từ đầu năm 2026",
+       "url": "https://nld.com.vn/dieu-chinh-6-tuyen-xe-buyt-tro-gia-tai-tphcm-tu-dau-nam-2026-196260110184810179.htm"
+      }
+     ],
+     "unit": "分",
+     "use": "条件つき",
+     "value": 50,
+     "value_text": "50"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "HO CHI MINH CITY",
+      "note_ja": "街「HO CHI MINH CITY」は取り込み済みの台帳（research-ledger.mjs の CITY_OF）の街のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "ho-chi-minh-city",
+     "company": "bamboo-airways",
+     "cond_ja": "Khu dân cư Trung Sơnバス始発（Ho Chi Minh City, Trung Sơn, Đường số 10） → タンソンニャット国際空港国際線ターミナル（SGN T2）。手段: bus, 152系統・2026年運行案内の所要時間上限。補足: 2026-01-01からの市公共交通管理センターによる路線案内を報道。始発から国際線終点までの車内時間。自宅からの徒歩、待ち時間、他のターミナルへの移動は別。始発と国際線終点の詳細を https://vietnammoi.vn/lich-trinh-cac-tuyen-xe-buyt-tphcm-moi-nhat-2025-thoi-gian-gia-ve-lo-trinh-chi-tiet-202552415731119.htm と https://mia.vn/cam-nang-du-lich/cac-tuyen-xe-buyt-tp-hcm-17419 で照合。",
+     "currency": null,
+     "district": "Khu dân cư Trung Sơnバス始発（Ho Chi Minh City, Trung Sơn, Đường số 10） → タンソンニャット国際空港国際線ターミナル（SGN T2）",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2026-01-10",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "50 - 55 phút/chuyến",
+       "source_id": "src-nld-com-vn-db14665d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "217c5395312869b4",
+     "id": "bamboo-airways.living.commute.ac261c53",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Khu dân cư Trung Sơnバス始発（Ho Chi Minh City, Trung …",
+     "pack": "pvr-20261118-cg-bamboo-airways",
+     "per": null,
+     "rev": 1,
+     "seen": [
+      {
+       "company": "vietjet",
+       "id": "vietjet.living.commute.b18710f8",
+       "pack": "pvr-20261118-cg-vietjet"
+      }
+     ],
+     "src": [
+      {
+       "published": "2026-01-10",
+       "publisher": "Người Lao Động",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-nld-com-vn-db14665d",
+       "source_type": "third_party_reference",
+       "title": "Điều chỉnh 6 tuyến xe buýt trợ giá tại TPHCM từ đầu năm 2026",
+       "url": "https://nld.com.vn/dieu-chinh-6-tuyen-xe-buyt-tro-gia-tai-tphcm-tu-dau-nam-2026-196260110184810179.htm"
+      }
+     ],
+     "unit": "分",
+     "use": "条件つき",
+     "value": 55,
+     "value_text": "55"
+    }
+   ],
    "name": "HO CHI MINH CITY",
    "name_en": null,
    "rents": [
@@ -220868,6 +230802,1006 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ],
    "towns": []
   },
+  "jakarta": {
+   "airlines": [
+    "batik-air",
+    "garuda-indonesia"
+   ],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Jakarta",
+      "note_ja": "街「Jakarta」は--city batik-air=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "jakarta",
+     "company": "batik-air",
+     "cond_ja": "BNI City / Sudirman Baru駅（Jakarta, Sudirman–Thamrin） → Soekarno-Hatta空港鉄道駅（CGK、旅客ターミナル行Skytrainは別）。手段: train, Commuter Line Basoetta・2025-07-01からの公表所要時間。補足: KAI Commuter社長の公式発表を引用した報道。KCI公式はアクセス制限で本文確認できず、本文を開けた報道を出典とした。自宅から駅まで、待ち時間、空港駅からターミナルまでを含まない。HLPへの所要時間ではない。",
+     "currency": null,
+     "district": "BNI City / Sudirman Baru駅（Jakarta, Sudirman–Thamrin） → Soekarno-Hatta空港鉄道駅（CGK、旅客ターミナル行Skytrainは別）",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2025-07-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "menjadi 39 menit dari Stasiun BNI City menuju Bandara Soekarno-Hatta",
+       "source_id": "src-ekonomi-bisnis-com-3118aec8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "dafb94de50c1920e",
+     "id": "batik-air.living.commute.b35d9593",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（BNI City / Sudirman Baru駅（Jakarta, Sudirman–Thamr…",
+     "pack": "pvr-20261118-cg-batik-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-07-01",
+       "publisher": "Bisnis.com",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-ekonomi-bisnis-com-3118aec8",
+       "source_type": "third_party_reference",
+       "title": "Basoetta airport rail travel time",
+       "url": "https://ekonomi.bisnis.com/read/20250701/98/1889462/waktu-tempuh-kereta-bandara-dari-bni-city-lebih-singkat-jadi-39-menit"
+      }
+     ],
+     "unit": "分",
+     "use": "条件つき",
+     "value": 39,
+     "value_text": "39"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Jakarta",
+      "note_ja": "街「Jakarta」は--city garuda-indonesia=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "jakarta",
+     "company": "garuda-indonesia",
+     "cond_ja": "BNI City/Sudirman Baru駅（Jakarta, Sudirman/Thamrin） → Soekarno-Hatta空港駅CGK（旅客ターミナル移動時間は含まない）。手段: train, Commuter Line Basoetta。補足: 鉄道会社KAI Commuter幹部の2025-07-01公式発表を引用する報道。公式KCI該当記事は検索で確認したがopen403、本文を開いて読めた報道を出典にした。パイロット基地未確認のため本社都市Jakartaを基準。住居から駅への時間・空港駅からターミナルへの時間・待ち時間は含めない。 本社都市の根拠：公式2025 Sustainability ReportのHead Office AddressはJakarta（Management Office所在地Tangerangとは別）。https://www.garuda-indonesia.com/static/content/dam/garuda/hubungan-investor/SR_GARUDA%202025_120526_FINAL.pdf。",
+     "currency": null,
+     "district": "BNI City/Sudirman Baru駅（Jakarta, Sudirman/Thamrin） → Soekarno-Hatta空港駅CGK（旅客ターミナル移動時間は含まない）",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2025-07-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "menjadi 39 menit dari Stasiun BNI City menuju Bandara Soekarno-Hatta",
+       "source_id": "src-ekonomi-bisnis-com-3118aec8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f51d1d42ef394e6e",
+     "id": "garuda-indonesia.living.commute.3f617354",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（BNI City/Sudirman Baru駅（Jakarta, Sudirman/Thamrin…",
+     "pack": "pvr-20261118-cg-garuda-indonesia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-07-01",
+       "publisher": "Bisnis.com",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-ekonomi-bisnis-com-3118aec8",
+       "source_type": "third_party_reference",
+       "title": "Waktu Tempuh Kereta Bandara dari BNI City Lebih Singkat jadi 39 Menit",
+       "url": "https://ekonomi.bisnis.com/read/20250701/98/1889462/waktu-tempuh-kereta-bandara-dari-bni-city-lebih-singkat-jadi-39-menit"
+      }
+     ],
+     "unit": "分",
+     "use": "条件つき",
+     "value": 39,
+     "value_text": "39"
+    }
+   ],
+   "name": "Jakarta",
+   "name_en": null,
+   "rents": [],
+   "towns": []
+  },
+  "jeddah": {
+   "airlines": [
+    "saudia"
+   ],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Jeddah",
+      "note_ja": "街「Jeddah」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "jeddah",
+     "company": "saudia",
+     "cond_ja": "Al-Faisaliyah 6A (Jeddah, Al Faisaliyyah) → King Abdulaziz Airport Terminal 1 (JED)。手段: bus, SAPTCO L14・平日11:45発・12:10着（現地時刻表示）。補足: 【地図】Google Maps乗換案内の停留所間の直行便。地区は現地不動産資料でジェッダの地区別賃料単価21位／101地区。https://insights.kw-saudiarabia.com/ar/districts/jeddah/al-faisaliyah 。家賃の掲載地区Al Hamraとは別。Al Hamraの地区中心からは徒歩とL7・L14の乗り継ぎで11:42〜13:40（地図表示1 時間 58 分）。Al Hamraは時間と分で表示されるため注記に原表記で掲載。Google Maps経路: https://www.google.com/maps/dir/Al+Hamraa,+Al-Hamra'a,+Jeddah+%E3%82%B5%E3%82%A6%E3%82%B8%E3%82%A2%E3%82%A2%E3%83%A9%E3%83%93%E3%82%A2/King+Abdulaziz+International+Airport,+M5M8%2B5M,+King+Abdulaziz+International+Airport,+Jeddah+23635+%E3%82%B5%E3%82%A6%E3%82%B8%E3%82%A2%E3%82%A2%E3%83%A9%E3%83%93%E3%82%A2/@21.580836,39.1133197,12z/am=t/data=!4m14!4m13!1m5!1m1!1s0x15c3cfe8a00d121b:0x27b374b963e732a2!2m2!1d39.1687637!2d21.5322512!1m5!1m1!1s0x15c3d781e8e6e2ad:0x340366416b99128c!2m2!1d39.1667146!2d21.6829992!3e3。",
+     "currency": null,
+     "district": "Al-Faisaliyah 6A (Jeddah, Al Faisaliyyah) → King Abdulaziz Airport Terminal 1 (JED)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "25 分",
+       "source_id": "src-google-com-6ec4bf5c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f39a421832a8a352",
+     "id": "saudia.living.commute.a4c0bae3",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Al-Faisaliyah 6A → King Abdulaziz Airport Termina…",
+     "pack": "pvr-20261118-cg-saudia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Google Maps",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-google-com-6ec4bf5c",
+       "source_type": "third_party_reference",
+       "title": "Al-Faisaliyah 6A to King Abdulaziz International Airport",
+       "url": "https://www.google.com/maps/dir/Al-Faisaliyah+6A,+Al+Faisaliyyah,+Jeddah+23447+%E3%82%B5%E3%82%A6%E3%82%B8%E3%82%A2%E3%83%A9%E3%83%93%E3%82%A2/King+Abdulaziz+International+Airport,+M5M8%2B5M,+King+Abdulaziz+International+Airport,+Jeddah+23635+%E3%82%B5%E3%82%A6%E3%82%B8%E3%82%A2%E3%83%A9%E3%83%93%E3%82%A2/@21.6315155,39.1363655,13z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x15c3d0f90138ae9b:0xbe605d9e611efbf5!2m2!1d39.188416!2d21.580055!1m5!1m1!1s0x15c3d781e8e6e2ad:0x340366416b99128c!2m2!1d39.1667146!2d21.6829992!3e3"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 25,
+     "value_text": "25"
+    }
+   ],
+   "name": "Jeddah",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Jeddah",
+      "note_ja": "街「Jeddah」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 SAR の国（サウジアラビア）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "jeddah",
+     "company": "saudia",
+     "cond_ja": "英: undefined。原部屋表記「1 Bedroom」。数字の種類: Jeddah, Al Hamra。家具: undefined。補足: 【第三者】Jeddah, Al Hamraの同一出所Kite間取り別募集平均。対象117件。value欄は桁区切りのみ除去。原資料の月額をそのまま採用、当方換算なし。サイト自身が月額表示した募集平均であり契約価格ではない。下部の全間取り中央値表は別なので混同しない。集計方法 https://platform.kite.sa/data は元出所・重複除去・30日更新・外れ値除外を説明。",
+     "currency": "SAR",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-11-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "3,188 SAR/month",
+       "source_id": "src-kite-sa-7f0bcd23",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5e5ae9fa92190e8f",
+     "id": "saudia.living.rent-1bed.58830142",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1 Bedroom",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261118-cg-saudia",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-18",
+       "publisher": "Kite",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-kite-sa-7f0bcd23",
+       "source_type": "third_party_reference",
+       "title": "1 Bedroom Apartments for Rent in Al Hamra",
+       "url": "https://kite.sa/en/jeddah/apartments-for-rent/al-hamra/1-bedroom"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 3188
+     },
+     "value_text": {
+      "1bed": "3,188"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Jeddah",
+      "note_ja": "街「Jeddah」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 SAR の国（サウジアラビア）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "jeddah",
+     "company": "saudia",
+     "cond_ja": "英: undefined。原部屋表記「2 Bedroom」。数字の種類: Jeddah, Al Hamra。家具: undefined。補足: 【第三者】Jeddah, Al Hamraの同一出所Kite間取り別募集平均。対象57件。value欄は桁区切りのみ除去。原資料の月額をそのまま採用、当方換算なし。サイト自身が月額表示した募集平均であり契約価格ではない。下部の全間取り中央値表は別なので混同しない。集計方法 https://platform.kite.sa/data は元出所・重複除去・30日更新・外れ値除外を説明。",
+     "currency": "SAR",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-11-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "4,750 SAR/month",
+       "source_id": "src-kite-sa-20b56087",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9f1862d8fa9001c6",
+     "id": "saudia.living.rent-2bed.8f833f20",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2 Bedroom",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261118-cg-saudia",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-18",
+       "publisher": "Kite",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-kite-sa-20b56087",
+       "source_type": "third_party_reference",
+       "title": "2 Bedroom Apartments for Rent in Al Hamra",
+       "url": "https://kite.sa/en/jeddah/apartments-for-rent/al-hamra/2-bedroom"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 4750
+     },
+     "value_text": {
+      "2bed": "4,750"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Jeddah",
+      "note_ja": "街「Jeddah」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 SAR の国（サウジアラビア）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "jeddah",
+     "company": "saudia",
+     "cond_ja": "英: undefined。原部屋表記「3 Bedroom」。数字の種類: Jeddah, Al Hamra。家具: undefined。補足: 【第三者】Jeddah, Al Hamraの同一出所Kite間取り別募集平均。対象39件。value欄は桁区切りのみ除去。原資料の月額をそのまま採用、当方換算なし。サイト自身が月額表示した募集平均であり契約価格ではない。下部の全間取り中央値表は別なので混同しない。集計方法 https://platform.kite.sa/data は元出所・重複除去・30日更新・外れ値除外を説明。",
+     "currency": "SAR",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-11-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "4,607 SAR/month",
+       "source_id": "src-kite-sa-0df533d5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5bc3d49bef4733fd",
+     "id": "saudia.living.rent-3bed.2d98a55e",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3 Bedroom",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261118-cg-saudia",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-18",
+       "publisher": "Kite",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-kite-sa-0df533d5",
+       "source_type": "third_party_reference",
+       "title": "3 Bedroom Apartments for Rent in Al Hamra",
+       "url": "https://kite.sa/en/jeddah/apartments-for-rent/al-hamra/3-bedroom"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 4607
+     },
+     "value_text": {
+      "3bed": "4,607"
+     }
+    }
+   ],
+   "towns": []
+  },
+  "johannesburg": {
+   "airlines": [
+    "south-african-airways"
+   ],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Johannesburg",
+      "note_ja": "街「Johannesburg」は同じ表の拠点の街（2 の pilot_base_city）から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "johannesburg",
+     "company": "south-african-airways",
+     "cond_ja": "Sandton station → OR Tambo International Airport。手段: train, Gautrain。補足: Gautrain公式パンフレットによるSandton駅〜OR Tambo International Airport駅間の所要時間。",
+     "currency": null,
+     "district": "Sandton station → OR Tambo International Airport",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "in less than 15 minutes",
+       "source_id": "src-bombelacontent-s3-eu-west-1-amazonaws-co-dda5a772",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8365e1190c8209df",
+     "id": "south-african-airways.living.commute.363b91ff",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Sandton station → OR Tambo International Airport）",
+     "pack": "pvr-20261118-gm-south-african-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Bombela Concession Company / Gautrain Brochure",
+       "publisher_kind": "government",
+       "retrieved": "2026-11-18",
+       "source_id": "src-bombelacontent-s3-eu-west-1-amazonaws-co-dda5a772",
+       "source_type": "government",
+       "title": "Bombela Concession Company / Gautrain Brochure",
+       "url": "https://bombelacontent.s3.eu-west-1.amazonaws.com/13573+BOMBELA-+GAUTRAIN+FARES+AND+SCHEDULE+BROCHURE+2023_Final.pdf"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 15,
+     "value_text": "15"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Johannesburg",
+      "note_ja": "街「Johannesburg」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "johannesburg",
+     "company": "south-african-airways",
+     "cond_ja": "Bedfordview → Johannesburg Airport (JNB)。手段: bus, Airport Shuttle。補足: 【地図】Bedfordview〜O.R. Tambo国際空港（JNB）間のシャトルバス所要時間12分（タクシーは11分）。",
+     "currency": null,
+     "district": "Bedfordview → Johannesburg Airport (JNB)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "shuttle. 12 min.",
+       "source_id": "src-rome2rio-com-0a9d79da",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3a744e60d8f2549e",
+     "id": "south-african-airways.living.commute.a756df91",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Bedfordview → Johannesburg Airport）",
+     "pack": "pvr-20261118-gm-south-african-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rome2Rio",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rome2rio-com-0a9d79da",
+       "source_type": "third_party_reference",
+       "title": "O.R. Tambo International Airport to Bedfordview",
+       "url": "https://www.rome2rio.com/s/O-R-Tambo-International-Airport/Bedfordview"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 12,
+     "value_text": "12"
+    }
+   ],
+   "name": "Johannesburg",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Johannesburg",
+      "note_ja": "街「Johannesburg」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 ZAR の国（南アフリカ）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "johannesburg",
+     "company": "south-african-airways",
+     "cond_ja": "英: undefined。原部屋表記「1 bedroom rentals」。数字の種類: Johannesburg, Sandton。家具: undefined。補足: 【第三者】Sandton地区の1ベッドルーム月額家賃中央値。",
+     "currency": "ZAR",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1 bedroom rentals at R9,920",
+       "source_id": "src-myproperty-co-za-714501c8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "106517d26e76b690",
+     "id": "south-african-airways.living.rent-1bed.03899a0a",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1 bedroom rentals",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261118-gm-south-african-airways",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "MyProperty",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-myproperty-co-za-714501c8",
+       "source_type": "third_party_reference",
+       "title": "Sandton Property Guide",
+       "url": "https://www.myproperty.co.za/en-za/property/gauteng/sandton"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "1bed": 9920
+     },
+     "value_text": {
+      "1bed": "9,920"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Johannesburg",
+      "note_ja": "街「Johannesburg」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 ZAR の国（南アフリカ）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "johannesburg",
+     "company": "south-african-airways",
+     "cond_ja": "英: undefined。原部屋表記「1 bedroom rentals」。数字の種類: Johannesburg, Bedfordview。家具: undefined。補足: 【第三者】Bedfordview地区の1ベッドルーム月額家賃中央値。",
+     "currency": "ZAR",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "median rent of R14,000 per month",
+       "source_id": "src-myproperty-co-za-bf9fb8f5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2fccceea2286897d",
+     "id": "south-african-airways.living.rent-1bed.3ad4c95b",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1 bedroom rentals",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261118-gm-south-african-airways",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "MyProperty",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-myproperty-co-za-bf9fb8f5",
+       "source_type": "third_party_reference",
+       "title": "Bedfordview Property Guide",
+       "url": "https://www.myproperty.co.za/en-za/property/gauteng/bedfordview"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "1bed": 14000
+     },
+     "value_text": {
+      "1bed": "14,000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Johannesburg",
+      "note_ja": "街「Johannesburg」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 ZAR の国（南アフリカ）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "johannesburg",
+     "company": "south-african-airways",
+     "cond_ja": "英: undefined。原部屋表記「2 bedrooms」。数字の種類: Johannesburg, Sandton。家具: undefined。補足: 【第三者】Sandton地区の2ベッドルーム月額家賃中央値。",
+     "currency": "ZAR",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "2 bedrooms at R15,500",
+       "source_id": "src-myproperty-co-za-714501c8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c66a44d16c7f10a5",
+     "id": "south-african-airways.living.rent-2bed.81889f07",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2 bedrooms",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261118-gm-south-african-airways",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "MyProperty",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-myproperty-co-za-714501c8",
+       "source_type": "third_party_reference",
+       "title": "Sandton Property Guide",
+       "url": "https://www.myproperty.co.za/en-za/property/gauteng/sandton"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "2bed": 15500
+     },
+     "value_text": {
+      "2bed": "15,500"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Johannesburg",
+      "note_ja": "街「Johannesburg」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 ZAR の国（南アフリカ）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "johannesburg",
+     "company": "south-african-airways",
+     "cond_ja": "英: undefined。原部屋表記「2 bedroom rentals」。数字の種類: Johannesburg, Bedfordview。家具: undefined。補足: 【第三者】Bedfordview地区の2ベッドルーム月額家賃中央値。",
+     "currency": "ZAR",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "2 bedroom rentals at R15,000 per month",
+       "source_id": "src-myproperty-co-za-bf9fb8f5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2500f61904ab1ae3",
+     "id": "south-african-airways.living.rent-2bed.e610b627",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2 bedroom rentals",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261118-gm-south-african-airways",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "MyProperty",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-myproperty-co-za-bf9fb8f5",
+       "source_type": "third_party_reference",
+       "title": "Bedfordview Property Guide",
+       "url": "https://www.myproperty.co.za/en-za/property/gauteng/bedfordview"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "2bed": 15000
+     },
+     "value_text": {
+      "2bed": "15,000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Johannesburg",
+      "note_ja": "街「Johannesburg」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 ZAR の国（南アフリカ）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "johannesburg",
+     "company": "south-african-airways",
+     "cond_ja": "英: undefined。原部屋表記「3 bedrooms」。数字の種類: Johannesburg, Sandton。家具: undefined。補足: 【第三者】Sandton地区の3ベッドルーム月額家賃中央値。",
+     "currency": "ZAR",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "3 bedrooms at R25,000",
+       "source_id": "src-myproperty-co-za-714501c8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d78348a6f571f85a",
+     "id": "south-african-airways.living.rent-3bed.9227ad83",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3 bedrooms",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261118-gm-south-african-airways",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "MyProperty",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-myproperty-co-za-714501c8",
+       "source_type": "third_party_reference",
+       "title": "Sandton Property Guide",
+       "url": "https://www.myproperty.co.za/en-za/property/gauteng/sandton"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "3bed": 25000
+     },
+     "value_text": {
+      "3bed": "25,000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Johannesburg",
+      "note_ja": "街「Johannesburg」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 ZAR の国（南アフリカ）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "johannesburg",
+     "company": "south-african-airways",
+     "cond_ja": "英: undefined。原部屋表記「3 bedroom rentals」。数字の種類: Johannesburg, Bedfordview。家具: undefined。補足: 【第三者】Bedfordview地区の3ベッドルーム月額家賃中央値。",
+     "currency": "ZAR",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "3 bedroom rentals at R19,500 per month",
+       "source_id": "src-myproperty-co-za-bf9fb8f5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2992bfc41b7026a0",
+     "id": "south-african-airways.living.rent-3bed.fe2dc536",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3 bedroom rentals",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261118-gm-south-african-airways",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "MyProperty",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-myproperty-co-za-bf9fb8f5",
+       "source_type": "third_party_reference",
+       "title": "Bedfordview Property Guide",
+       "url": "https://www.myproperty.co.za/en-za/property/gauteng/bedfordview"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "3bed": 19500
+     },
+     "value_text": {
+      "3bed": "19,500"
+     }
+    }
+   ],
+   "towns": []
+  },
   "kirishima": {
    "airlines": [
     "jac"
@@ -222272,6 +233206,960 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "value_text": {
       "studio": "6.93万円"
+     }
+    }
+   ],
+   "towns": []
+  },
+  "kuala-lumpur": {
+   "airlines": [
+    "airasia",
+    "malaysia-airlines"
+   ],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Kuala Lumpur",
+      "note_ja": "街「Kuala Lumpur」は--city airasia=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "kuala-lumpur",
+     "company": "airasia",
+     "cond_ja": "KL Sentral Station (Kuala Lumpur, KL Sentral / Brickfields) → Kuala Lumpur International Airport Terminal 2。手段: train, KLIA Ekspres。補足: 駅間の公表所要時間。住居から駅・空港駅から乗員報告地点への徒歩、待ち時間は含まない。発行日不明の現行運行案内を閲覧。AirAsia Malaysiaの就航地であるKLIA T2への経路であり、pilot_base空港の確定とは別。",
+     "currency": null,
+     "district": "KL Sentral Station (Kuala Lumpur, KL Sentral / Brickfields) → Kuala Lumpur International Airport Terminal 2",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "33 minutes from KLIA T2",
+       "source_id": "src-kliaekspres-com-4c6a26bd",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "65c2c026593e66b2",
+     "id": "airasia.living.commute.ff412461",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（KL Sentral Station → Kuala Lumpur International A…",
+     "pack": "pvr-20261118-cg-airasia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Express Rail Link",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-kliaekspres-com-4c6a26bd",
+       "source_type": "official_package",
+       "title": "FAQ on Airport Transfer by Train to Kuala Lumpur City",
+       "url": "https://www.kliaekspres.com/plan-your-trip/plan/faq-on-airport-transfer-by-train-to-kuala-lumpur-city/"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 33,
+     "value_text": "33"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Kuala Lumpur",
+      "note_ja": "街「Kuala Lumpur」は--city malaysia-airlines=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "kuala-lumpur",
+     "company": "malaysia-airlines",
+     "cond_ja": "KL Sentral station（Kuala Lumpur, KL Sentral） → Kuala Lumpur International Airport KLIA T1。手段: train, KLIA Ekspres（日中の通常直通サービス）。補足: 駅から空港ターミナルまでの列車所要時間。住居→駅、待ち時間、乗員ブリーフィング施設までを含まない。深夜の各駅停車便は異なる。2でpilot domicileを厳密確認できないため本社都市Kuala Lumpur基準の調査。",
+     "currency": null,
+     "district": "KL Sentral station（Kuala Lumpur, KL Sentral） → Kuala Lumpur International Airport KLIA T1",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2025-12-08",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "KL Sentral - KLIA T1: 28 minit | 28 minutes",
+       "source_id": "src-kliaekspres-com-df549d5c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f60aac48c32429bb",
+     "id": "malaysia-airlines.living.commute.43085c5e",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（KL Sentral station（Kuala Lumpur, KL Sentral） → Ku…",
+     "pack": "pvr-20261118-cg-malaysia-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-12-08",
+       "publisher": "Express Rail Link",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-kliaekspres-com-df549d5c",
+       "source_type": "official_package",
+       "title": "KLIA Ekspres Service Schedule effective 8 December 2025",
+       "url": "https://www.kliaekspres.com/media/14uietk1/train-schedule-08-dec-25-onwards-ke.pdf"
+      }
+     ],
+     "unit": "分",
+     "use": "条件つき",
+     "value": 28,
+     "value_text": "28"
+    }
+   ],
+   "name": "Kuala Lumpur",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Kuala Lumpur",
+      "note_ja": "街「Kuala Lumpur」は--city airasia=… で指定から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 MYR の国（マレーシア）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "kuala-lumpur",
+     "company": "airasia",
+     "cond_ja": "Mitula表示Average price（コンドミニアム募集家賃）。原部屋表記「1 bedroom」。数字の種類: Kuala Lumpur, KL Sentral。家具: undefined。補足: 【第三者】KL Sentral地区のコンドミニアム賃貸ページにある寝室数別Average priceを本文で確認。月額募集賃料であり成約賃料ではない。統計算出法・標本数・集計期間は非記載。比較欄に2026年9月・2025年10月の表示あり。桁区切りのみ除去。通貨・期間の換算や平均計算は未実施。商業物件が混在したapartment検索ページとは区別し、本文物件名・地区ラベルがKL Sentralのコンドミニアムであることを再確認。",
+     "currency": "MYR",
+     "district": "Mitula表示Average price（コンドミニアム募集家賃）",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "RM 3,300",
+       "source_id": "src-homes-mitula-my-4a8be816",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a9d96d02ca27b04b",
+     "id": "airasia.living.rent-1bed.7e71b97a",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1 bedroom",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261118-cg-airasia",
+     "per": "month",
+     "rev": 1,
+     "seen": [
+      {
+       "company": "malaysia-airlines",
+       "id": "malaysia-airlines.living.rent-1bed.dc5ca07c",
+       "pack": "pvr-20261118-cg-malaysia-airlines"
+      }
+     ],
+     "src": [
+      {
+       "published": null,
+       "publisher": "Mitula Homes",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-homes-mitula-my-4a8be816",
+       "source_type": "third_party_reference",
+       "title": "KL Sentral condominium rental prices by number of bedrooms",
+       "url": "https://homes.mitula.my/homes/condominium-for-rent-kl-sentral"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "1bed": 3300
+     },
+     "value_text": {
+      "1bed": "3,300"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Kuala Lumpur",
+      "note_ja": "街「Kuala Lumpur」は--city airasia=… で指定から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 MYR の国（マレーシア）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "kuala-lumpur",
+     "company": "airasia",
+     "cond_ja": "Mitula表示Average price（コンドミニアム募集家賃）。原部屋表記「2 bedrooms」。数字の種類: Kuala Lumpur, KL Sentral。家具: undefined。補足: 【第三者】KL Sentral地区のコンドミニアム賃貸ページにある寝室数別Average priceを本文で確認。月額募集賃料であり成約賃料ではない。統計算出法・標本数・集計期間は非記載。比較欄に2026年9月・2025年10月の表示あり。桁区切りのみ除去。通貨・期間の換算や平均計算は未実施。商業物件が混在したapartment検索ページとは区別し、本文物件名・地区ラベルがKL Sentralのコンドミニアムであることを再確認。",
+     "currency": "MYR",
+     "district": "Mitula表示Average price（コンドミニアム募集家賃）",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "RM 4,000",
+       "source_id": "src-homes-mitula-my-4a8be816",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2b95fc873e8e7218",
+     "id": "airasia.living.rent-2bed.e9b6b91e",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2 bedrooms",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261118-cg-airasia",
+     "per": "month",
+     "rev": 1,
+     "seen": [
+      {
+       "company": "malaysia-airlines",
+       "id": "malaysia-airlines.living.rent-2bed.dde57e05",
+       "pack": "pvr-20261118-cg-malaysia-airlines"
+      }
+     ],
+     "src": [
+      {
+       "published": null,
+       "publisher": "Mitula Homes",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-homes-mitula-my-4a8be816",
+       "source_type": "third_party_reference",
+       "title": "KL Sentral condominium rental prices by number of bedrooms",
+       "url": "https://homes.mitula.my/homes/condominium-for-rent-kl-sentral"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "2bed": 4000
+     },
+     "value_text": {
+      "2bed": "4,000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Kuala Lumpur",
+      "note_ja": "街「Kuala Lumpur」は--city airasia=… で指定から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 MYR の国（マレーシア）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "kuala-lumpur",
+     "company": "airasia",
+     "cond_ja": "Mitula表示Average price（コンドミニアム募集家賃）。原部屋表記「3 bedrooms」。数字の種類: Kuala Lumpur, KL Sentral。家具: undefined。補足: 【第三者】KL Sentral地区のコンドミニアム賃貸ページにある寝室数別Average priceを本文で確認。月額募集賃料であり成約賃料ではない。統計算出法・標本数・集計期間は非記載。比較欄に2026年9月・2025年10月の表示あり。桁区切りのみ除去。通貨・期間の換算や平均計算は未実施。商業物件が混在したapartment検索ページとは区別し、本文物件名・地区ラベルがKL Sentralのコンドミニアムであることを再確認。",
+     "currency": "MYR",
+     "district": "Mitula表示Average price（コンドミニアム募集家賃）",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "RM 4,800",
+       "source_id": "src-homes-mitula-my-4a8be816",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "49f6c26ccb9dc9dc",
+     "id": "airasia.living.rent-3bed.ffdf724b",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3 bedrooms",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261118-cg-airasia",
+     "per": "month",
+     "rev": 1,
+     "seen": [
+      {
+       "company": "malaysia-airlines",
+       "id": "malaysia-airlines.living.rent-3bed.023d8804",
+       "pack": "pvr-20261118-cg-malaysia-airlines"
+      }
+     ],
+     "src": [
+      {
+       "published": null,
+       "publisher": "Mitula Homes",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-homes-mitula-my-4a8be816",
+       "source_type": "third_party_reference",
+       "title": "KL Sentral condominium rental prices by number of bedrooms",
+       "url": "https://homes.mitula.my/homes/condominium-for-rent-kl-sentral"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "3bed": 4800
+     },
+     "value_text": {
+      "3bed": "4,800"
+     }
+    }
+   ],
+   "towns": []
+  },
+  "lagos": {
+   "airlines": [
+    "air-peace"
+   ],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Lagos",
+      "note_ja": "街「Lagos」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "lagos",
+     "company": "air-peace",
+     "cond_ja": "Oshodi Transport Interchange (Ikeja) → LOS Airport。手段: bus, LAMATA Bus。補足: 【第三者】Oshodi Transport InterchangeからLOS空港までのLAMATA路線バス所要時間（Ikeja GRAからは乗合バスDanfoで10〜25分：https://lagos.cool/transport/ikeja-to-airport）。",
+     "currency": null,
+     "district": "Oshodi Transport Interchange (Ikeja) → LOS Airport",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "30 minutes if you travel on the LAMATA Bus",
+       "source_id": "src-skyscanner-pk-7e8a78c5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "adb2ef00d972542d",
+     "id": "air-peace.living.commute.1cfe78a1",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Oshodi Transport Interchange → LOS Airport）",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Skyscanner",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-skyscanner-pk-7e8a78c5",
+       "source_type": "third_party_reference",
+       "title": "Lagos (LOS) Arrivals",
+       "url": "https://www.skyscanner.pk/flights/arrivals-departures/los/lagos-arrivals-departures"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 30,
+     "value_text": "30"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Lagos",
+      "note_ja": "街「Lagos」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "lagos",
+     "company": "air-peace",
+     "cond_ja": "Ikoyi (via Oyingbo) → Ikeja (LOS area)。手段: train/taxi, LAMATA Red Line train and taxi。補足: 【地図】IkoyiからOyingbo駅経由でLAMATA Red Line（Ikeja駅まで）を利用する所要時間36分（Ikoyi〜LOS空港直行タクシーは18分：https://www.rome2rio.com/s/Ikoyi/Lagos-Airport-LOS）。",
+     "currency": null,
+     "district": "Ikoyi (via Oyingbo) → Ikeja (LOS area)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "taxi and train which takes 36 min",
+       "source_id": "src-rome2rio-com-b4d7ddc3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8d159698cbc19051",
+     "id": "air-peace.living.commute.6e78a29f",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Ikoyi → Ikeja）",
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rome2Rio",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rome2rio-com-b4d7ddc3",
+       "source_type": "third_party_reference",
+       "title": "Ikoyi to Ikeja",
+       "url": "https://www.rome2rio.com/s/Ikoyi/Ikeja"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 36,
+     "value_text": "36"
+    }
+   ],
+   "name": "Lagos",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Lagos",
+      "note_ja": "街「Lagos」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "lagos",
+     "company": "air-peace",
+     "cond_ja": "英: undefined。原部屋表記「1-bedroom flat, Rent (monthly equivalent)」。数字の種類: Lagos, Ikoyi。家具: undefined。補足: 【第三者】富裕層・駐在員に人気のIkoyi地区の2026年月額換算家賃表。",
+     "currency": "NGN",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-06-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "₦1,250,000",
+       "source_id": "src-expertlisting-ng-269b40be",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "13efe2aabb5fd13b",
+     "id": "air-peace.living.rent-1bed.2fa68c77",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1-bedroom flat, Rent (monthly equivalent)",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-04",
+       "publisher": "Expert Listing",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-expertlisting-ng-269b40be",
+       "source_type": "third_party_reference",
+       "title": "Cost of Living in Ikoyi (2026)",
+       "url": "https://www.expertlisting.ng/blog/cost-of-living/lagos/ikoyi"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 1250000
+     },
+     "value_text": {
+      "1bed": "1,250,000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Lagos",
+      "note_ja": "街「Lagos」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "lagos",
+     "company": "air-peace",
+     "cond_ja": "英: undefined。原部屋表記「1-Bed, Rent (Monthly Equiv.)」。数字の種類: Lagos, Ikeja。家具: undefined。補足: 【第三者】本社およびLOS空港が立地するIkeja地区の2026年月額換算家賃表。",
+     "currency": "NGN",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-06-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "₦291,667",
+       "source_id": "src-expertlisting-ng-27e60908",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "dd9ad8166b569e5c",
+     "id": "air-peace.living.rent-1bed.71fba2cf",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1-Bed, Rent (Monthly Equiv.)",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-01",
+       "publisher": "Expert Listing",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-expertlisting-ng-27e60908",
+       "source_type": "third_party_reference",
+       "title": "Cost of Living in Ikeja (2026)",
+       "url": "https://www.expertlisting.ng/blog/cost-of-living/lagos/ikeja"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 291667
+     },
+     "value_text": {
+      "1bed": "291,667"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Lagos",
+      "note_ja": "街「Lagos」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "lagos",
+     "company": "air-peace",
+     "cond_ja": "英: undefined。原部屋表記「2-Bed, Rent (Monthly Equiv.)」。数字の種類: Lagos, Ikeja。家具: undefined。補足: 【第三者】Ikeja地区の2026年月額換算家賃表。",
+     "currency": "NGN",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-06-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "₦541,667",
+       "source_id": "src-expertlisting-ng-27e60908",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "75d414c86481a203",
+     "id": "air-peace.living.rent-2bed.77c6aced",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2-Bed, Rent (Monthly Equiv.)",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-01",
+       "publisher": "Expert Listing",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-expertlisting-ng-27e60908",
+       "source_type": "third_party_reference",
+       "title": "Cost of Living in Ikeja (2026)",
+       "url": "https://www.expertlisting.ng/blog/cost-of-living/lagos/ikeja"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 541667
+     },
+     "value_text": {
+      "2bed": "541,667"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Lagos",
+      "note_ja": "街「Lagos」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "lagos",
+     "company": "air-peace",
+     "cond_ja": "英: undefined。原部屋表記「2-bedroom flat, Rent (monthly equivalent)」。数字の種類: Lagos, Ikoyi。家具: undefined。補足: 【第三者】Ikoyi地区の2026年月額換算家賃表。",
+     "currency": "NGN",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-06-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "₦2,000,000",
+       "source_id": "src-expertlisting-ng-269b40be",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "48e2d2a88a729b6c",
+     "id": "air-peace.living.rent-2bed.abd217d9",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2-bedroom flat, Rent (monthly equivalent)",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-04",
+       "publisher": "Expert Listing",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-expertlisting-ng-269b40be",
+       "source_type": "third_party_reference",
+       "title": "Cost of Living in Ikoyi (2026)",
+       "url": "https://www.expertlisting.ng/blog/cost-of-living/lagos/ikoyi"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 2000000
+     },
+     "value_text": {
+      "2bed": "2,000,000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Lagos",
+      "note_ja": "街「Lagos」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "lagos",
+     "company": "air-peace",
+     "cond_ja": "英: undefined。原部屋表記「3-bedroom flat, Rent (monthly equivalent)」。数字の種類: Lagos, Ikoyi。家具: undefined。補足: 【第三者】Ikoyi地区の2026年月額換算家賃表。",
+     "currency": "NGN",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-06-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "₦2,916,666",
+       "source_id": "src-expertlisting-ng-269b40be",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e348314941f5542c",
+     "id": "air-peace.living.rent-3bed.1d7d613c",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3-bedroom flat, Rent (monthly equivalent)",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-04",
+       "publisher": "Expert Listing",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-expertlisting-ng-269b40be",
+       "source_type": "third_party_reference",
+       "title": "Cost of Living in Ikoyi (2026)",
+       "url": "https://www.expertlisting.ng/blog/cost-of-living/lagos/ikoyi"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 2916666
+     },
+     "value_text": {
+      "3bed": "2,916,666"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Lagos",
+      "note_ja": "街「Lagos」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "lagos",
+     "company": "air-peace",
+     "cond_ja": "英: undefined。原部屋表記「3-Bed, Rent (Monthly Equiv.)」。数字の種類: Lagos, Ikeja。家具: undefined。補足: 【第三者】Ikeja地区の2026年月額換算家賃表。",
+     "currency": "NGN",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-06-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "₦1,000,000",
+       "source_id": "src-expertlisting-ng-27e60908",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0309ac2f5d839830",
+     "id": "air-peace.living.rent-3bed.2128ba46",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3-Bed, Rent (Monthly Equiv.)",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261118-gm-air-peace",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-01",
+       "publisher": "Expert Listing",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-expertlisting-ng-27e60908",
+       "source_type": "third_party_reference",
+       "title": "Cost of Living in Ikeja (2026)",
+       "url": "https://www.expertlisting.ng/blog/cost-of-living/lagos/ikeja"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 1000000
+     },
+     "value_text": {
+      "3bed": "1,000,000"
      }
     }
    ],
@@ -226520,6 +238408,586 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ],
    "towns": []
   },
+  "manila": {
+   "airlines": [
+    "philippine-airlines"
+   ],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Manila",
+      "note_ja": "街「Manila」は--city philippine-airlines=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "manila",
+     "company": "philippine-airlines",
+     "cond_ja": "One Parkade (Taguig, Bonifacio Global City) → NAIA Terminal 1 Arrivals。手段: bus, BGC Weekend Route → Bagong Silang–NAIA via Maligaya Park/EDSA・週末・時刻指定なし。補足: 【地図】BGC地区内One Parkade発・EDSA Ayala経由のバス乗継検索値。週末ルート表示であり平日朝の保証値ではない。パイロット拠点を確認できなかったため本社都市圏の住宅候補地区を対象。ページの推奨32分は出発駅が地区外MRT-3 Buendiaで、BGC内発の所要時間としては採用しない。",
+     "currency": null,
+     "district": "One Parkade (Taguig, Bonifacio Global City) → NAIA Terminal 1 Arrivals",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The journey, including transfers, takes approximately 59 min.",
+       "source_id": "src-rome2rio-com-9022452e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9a5bafa0d2a0faab",
+     "id": "philippine-airlines.living.commute.308708ab",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（One Parkade → NAIA Terminal 1 Arrivals）",
+     "pack": "pvr-20261118-cg-philippine-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rome2Rio",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rome2rio-com-9022452e",
+       "source_type": "third_party_reference",
+       "title": "Bonifacio Global City to NAIA Terminal 1",
+       "url": "https://www.rome2rio.com/s/Bonifacio-Global-City/NAIA-Terminal-1"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 59,
+     "value_text": "59"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Manila",
+      "note_ja": "街「Manila」は--city philippine-airlines=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "manila",
+     "company": "philippine-airlines",
+     "cond_ja": "Ayala Ave停留所（Makati, Salcedo Village・Salcedo Square/L.P.Leviste Street起点の検索） → MNL Terminal 1 Arrivals。手段: bus, Baclaran–Montalban via EDSA + Bagong Silang–NAIA via Maligaya Park/EDSA・検索時刻指定なし。補足: 【地図】当該起点からAyala Ave、Roxas Blvd/C.Riveraを経てT1へ至るサイト表示の乗換込み概算。平日朝・特定出発時刻の実測値ではない。停留所までの徒歩アクセスの内訳は資料から確定できず、時間を足し引きしていない。",
+     "currency": null,
+     "district": "Ayala Ave停留所（Makati, Salcedo Village・Salcedo Square/L.P.Leviste Street起点の検索） → MNL Terminal 1 Arrivals",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "approximately 52 min",
+       "source_id": "src-rome2rio-com-90fa7fd1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "52afaa9601990102",
+     "id": "philippine-airlines.living.commute.a276b842",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Ayala Ave停留所（Makati, Salcedo Village・Salcedo Squa…",
+     "pack": "pvr-20261118-cg-philippine-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rome2Rio",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rome2rio-com-90fa7fd1",
+       "source_type": "third_party_reference",
+       "title": "Salcedo Village (Salcedo Square) to Manila Airport (MNL)",
+       "url": "https://www.rome2rio.com/s/Salcedo-Village-Salcedo-Square-L-P-Leviste-Street-Makati-City-1277-Metro-Manila-Philippines/Manila-Airport-MNL"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 52,
+     "value_text": "52"
+    }
+   ],
+   "name": "Manila",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Manila",
+      "note_ja": "街「Manila」は--city philippine-airlines=… で指定から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 PHP の国（フィリピン）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "manila",
+     "company": "philippine-airlines",
+     "cond_ja": "Lamudi表示Average price（募集家賃）。原部屋表記「1 bedroom」。数字の種類: Taguig, Fort Bonifacio。家具: undefined。補足: 【第三者】2026年10月の地区別・寝室数別Average price表示を本文で確認。算出法・標本数は非記載。桁区切りのみ除去。通貨・期間の換算や平均計算は未実施。地区範囲はBGC限定ではなくMcKinley West等を含むFort Bonifacio。Salcedo Villageとは区別して比較する。公共交通の行は地区内BGCのOne Parkadeを起点とする例。",
+     "currency": "PHP",
+     "district": "Lamudi表示Average price（募集家賃）",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "₱ 55,000",
+       "source_id": "src-lamudi-com-ph-9649e715",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "110557e38fac26b1",
+     "id": "philippine-airlines.living.rent-1bed.9faf9928",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1 bedroom",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261118-cg-philippine-airlines",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Lamudi",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-lamudi-com-ph-9649e715",
+       "source_type": "third_party_reference",
+       "title": "Fort Bonifacio condo rental prices by number of bedrooms",
+       "url": "https://www.lamudi.com.ph/rent/metro-manila/taguig/fort-bonifacio-1/condo/"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "1bed": 55000
+     },
+     "value_text": {
+      "1bed": "55,000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Manila",
+      "note_ja": "街「Manila」は--city philippine-airlines=… で指定から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 PHP の国（フィリピン）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "manila",
+     "company": "philippine-airlines",
+     "cond_ja": "Lamudi表示Average price（募集家賃）。原部屋表記「1 bedroom」。数字の種類: Makati, Salcedo Village。家具: undefined。補足: 【第三者】2026年10月の地区別・寝室数別Average price表示を本文で確認。算出法・標本数は非記載。桁区切りのみ除去。通貨・期間の換算や平均計算は未実施。前回の403は今回の実際の本文閲覧で解消。同地区を起点とする公共交通の概算は別のcommute行に記載。",
+     "currency": "PHP",
+     "district": "Lamudi表示Average price（募集家賃）",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "₱ 45,000",
+       "source_id": "src-lamudi-com-ph-d21f58ed",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d483fb3e0a5fc280",
+     "id": "philippine-airlines.living.rent-1bed.b0073367",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1 bedroom",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261118-cg-philippine-airlines",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Lamudi",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-lamudi-com-ph-d21f58ed",
+       "source_type": "third_party_reference",
+       "title": "Salcedo Village condo rental prices by number of bedrooms",
+       "url": "https://www.lamudi.com.ph/rent/metro-manila/makati/salcedo-village-1/condo/"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "1bed": 45000
+     },
+     "value_text": {
+      "1bed": "45,000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Manila",
+      "note_ja": "街「Manila」は--city philippine-airlines=… で指定から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 PHP の国（フィリピン）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "manila",
+     "company": "philippine-airlines",
+     "cond_ja": "Lamudi表示Average price（募集家賃）。原部屋表記「2 bedrooms」。数字の種類: Makati, Salcedo Village。家具: undefined。補足: 【第三者】2026年10月の地区別・寝室数別Average price表示を本文で確認。算出法・標本数は非記載。桁区切りのみ除去。通貨・期間の換算や平均計算は未実施。前回の403は今回の実際の本文閲覧で解消。同地区を起点とする公共交通の概算は別のcommute行に記載。",
+     "currency": "PHP",
+     "district": "Lamudi表示Average price（募集家賃）",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "₱ 100,000",
+       "source_id": "src-lamudi-com-ph-d21f58ed",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c59fab71029466bf",
+     "id": "philippine-airlines.living.rent-2bed.1e7bc425",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2 bedrooms",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261118-cg-philippine-airlines",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Lamudi",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-lamudi-com-ph-d21f58ed",
+       "source_type": "third_party_reference",
+       "title": "Salcedo Village condo rental prices by number of bedrooms",
+       "url": "https://www.lamudi.com.ph/rent/metro-manila/makati/salcedo-village-1/condo/"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "2bed": 100000
+     },
+     "value_text": {
+      "2bed": "100,000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Manila",
+      "note_ja": "街「Manila」は--city philippine-airlines=… で指定から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 PHP の国（フィリピン）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "manila",
+     "company": "philippine-airlines",
+     "cond_ja": "Lamudi表示Average price（募集家賃）。原部屋表記「2 bedrooms」。数字の種類: Taguig, Fort Bonifacio。家具: undefined。補足: 【第三者】2026年10月の地区別・寝室数別Average price表示を本文で確認。算出法・標本数は非記載。桁区切りのみ除去。通貨・期間の換算や平均計算は未実施。地区範囲はBGC限定ではなくMcKinley West等を含むFort Bonifacio。Salcedo Villageとは区別して比較する。公共交通の行は地区内BGCのOne Parkadeを起点とする例。",
+     "currency": "PHP",
+     "district": "Lamudi表示Average price（募集家賃）",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "₱ 110,000",
+       "source_id": "src-lamudi-com-ph-9649e715",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "36388b602ff63734",
+     "id": "philippine-airlines.living.rent-2bed.f686cd40",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2 bedrooms",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261118-cg-philippine-airlines",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Lamudi",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-lamudi-com-ph-9649e715",
+       "source_type": "third_party_reference",
+       "title": "Fort Bonifacio condo rental prices by number of bedrooms",
+       "url": "https://www.lamudi.com.ph/rent/metro-manila/taguig/fort-bonifacio-1/condo/"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "2bed": 110000
+     },
+     "value_text": {
+      "2bed": "110,000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Manila",
+      "note_ja": "街「Manila」は--city philippine-airlines=… で指定から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 PHP の国（フィリピン）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "manila",
+     "company": "philippine-airlines",
+     "cond_ja": "Lamudi表示Average price（募集家賃）。原部屋表記「3 bedrooms」。数字の種類: Makati, Salcedo Village。家具: undefined。補足: 【第三者】2026年10月の地区別・寝室数別Average price表示を本文で確認。算出法・標本数は非記載。桁区切りのみ除去。通貨・期間の換算や平均計算は未実施。前回の403は今回の実際の本文閲覧で解消。同地区を起点とする公共交通の概算は別のcommute行に記載。",
+     "currency": "PHP",
+     "district": "Lamudi表示Average price（募集家賃）",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "₱ 130,000",
+       "source_id": "src-lamudi-com-ph-d21f58ed",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "dce56b27a2233285",
+     "id": "philippine-airlines.living.rent-3bed.abce32cc",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3 bedrooms",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261118-cg-philippine-airlines",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Lamudi",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-lamudi-com-ph-d21f58ed",
+       "source_type": "third_party_reference",
+       "title": "Salcedo Village condo rental prices by number of bedrooms",
+       "url": "https://www.lamudi.com.ph/rent/metro-manila/makati/salcedo-village-1/condo/"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "3bed": 130000
+     },
+     "value_text": {
+      "3bed": "130,000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Manila",
+      "note_ja": "街「Manila」は--city philippine-airlines=… で指定から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 PHP の国（フィリピン）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "manila",
+     "company": "philippine-airlines",
+     "cond_ja": "Lamudi表示Average price（募集家賃）。原部屋表記「3 bedrooms」。数字の種類: Taguig, Fort Bonifacio。家具: undefined。補足: 【第三者】2026年10月の地区別・寝室数別Average price表示を本文で確認。算出法・標本数は非記載。桁区切りのみ除去。通貨・期間の換算や平均計算は未実施。地区範囲はBGC限定ではなくMcKinley West等を含むFort Bonifacio。Salcedo Villageとは区別して比較する。公共交通の行は地区内BGCのOne Parkadeを起点とする例。",
+     "currency": "PHP",
+     "district": "Lamudi表示Average price（募集家賃）",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "₱ 260,000",
+       "source_id": "src-lamudi-com-ph-9649e715",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "082e79de0c9d7be9",
+     "id": "philippine-airlines.living.rent-3bed.c2ef9cfa",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3 bedrooms",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261118-cg-philippine-airlines",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Lamudi",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-lamudi-com-ph-9649e715",
+       "source_type": "third_party_reference",
+       "title": "Fort Bonifacio condo rental prices by number of bedrooms",
+       "url": "https://www.lamudi.com.ph/rent/metro-manila/taguig/fort-bonifacio-1/condo/"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "3bed": 260000
+     },
+     "value_text": {
+      "3bed": "260,000"
+     }
+    }
+   ],
+   "towns": []
+  },
   "melbourne": {
    "airlines": [
     "qantas"
@@ -228148,11 +240616,135 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ],
    "towns": []
   },
+  "muharraq": {
+   "airlines": [
+    "gulf-air"
+   ],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Muharraq",
+      "note_ja": "街「Muharraq」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "muharraq",
+     "company": "gulf-air",
+     "cond_ja": "Muharraq Welfare Center (Muharraq市街) → Bahrain International Airport (BAH) 旅客ターミナル。手段: bus, Bahrain Bus 10 (clockwise)・公式通常ダイヤの乗車時間。補足: 停留所別の公式路線図で、Muharraq市街の停留所から旅客ターミナルまでの標準所要。待ち時間と歩行は含まない。現行運行告知 https://www.bahrainbus.bh/disruption-info-service-changes は10番線の当該方面を一部区間運行・60分間隔と表示。臨時運行時のターミナル停車と実所要は未確認。前回候補のSeef/Juffair発はA1・A2の空港非経由などにより現行の所要を未確認。",
+     "currency": null,
+     "district": "Muharraq Welfare Center (Muharraq市街) → Bahrain International Airport (BAH) 旅客ターミナル",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-13",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "9m",
+       "source_id": "src-tt-bahrainbus-bh-b4b5de28",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bd5cf53f5da1adb8",
+     "id": "gulf-air.living.commute.116f5f60",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Muharraq Welfare Center → Bahrain International A…",
+     "pack": "pvr-20261118-cg-gulf-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-09-13",
+       "publisher": "Bahrain Public Transport Company",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-tt-bahrainbus-bh-b4b5de28",
+       "source_type": "official_package",
+       "title": "Muharraq Welfare Center stop timetable (Route 10)",
+       "url": "https://tt.bahrainbus.bh/timetable/203A61E2.pdf"
+      }
+     ],
+     "unit": "分",
+     "use": "条件つき",
+     "value": 9,
+     "value_text": "9"
+    }
+   ],
+   "name": "Muharraq",
+   "name_en": null,
+   "rents": [],
+   "towns": []
+  },
   "muscat": {
    "airlines": [
     "oman-air"
    ],
-   "commute": [],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Muscat",
+      "note_ja": "街「Muscat」は取り込み済みの台帳（research-ledger.mjs の CITY_OF）の街のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "muscat",
+     "company": "oman-air",
+     "cond_ja": "Azaibah bus station (Muscat, Al Azaiba) → Muscat International Airport (MCT), terminal not specified。手段: bus, Mwasalat line 41・通常ダイヤ・時刻指定なし。補足: 【地図】停留所間の乗車区間の表示値。自宅からの徒歩・待ち時間・乗員報告地点までの移動は含めない。1日4便との表示があるため便接続を要確認。公式空港はMwasalatの運行を案内するが、区間分数なし。Mwasalat現行路線一覧とPDFは取得タイムアウト。Al AzaibaはAlfardanの現行住宅紹介で高級住宅の立地を確認（https://www.alfardanproperties.com.om/）。発行日不明の現行経路表示。 操縦士基地空港の採用資料による厳密確認は別行not_foundのため、依頼文指定のMuscatを基準都市としてこの空港アクセスを記録。",
+     "currency": null,
+     "district": "Azaibah bus station (Muscat, Al Azaiba) → Muscat International Airport (MCT), terminal not specified",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The line 41 bus from Azaibah to Muscat International Airport takes 10 min",
+       "source_id": "src-rome2rio-com-006d5e97",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5affe9cbb6dfcaca",
+     "id": "oman-air.living.commute.c8342a6a",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Azaibah bus station → Muscat International Airpor…",
+     "pack": "pvr-20261118-cg-oman-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rome2Rio",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rome2rio-com-006d5e97",
+       "source_type": "third_party_reference",
+       "title": "Al Azaiba to Muscat Airport (MCT)",
+       "url": "https://www.rome2rio.com/s/Al-Azaiba/Muscat-Airport-MCT"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 10,
+     "value_text": "10"
+    }
+   ],
    "name": "Muscat",
    "name_en": null,
    "rents": [
@@ -229966,6 +242558,586 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "value_text": {
       "studio": "7.10万"
+     }
+    }
+   ],
+   "towns": []
+  },
+  "nairobi": {
+   "airlines": [
+    "kenya-airways"
+   ],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Nairobi",
+      "note_ja": "街「Nairobi」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "nairobi",
+     "company": "kenya-airways",
+     "cond_ja": "Westlands (CFC / Delta) → NBO Airport。手段: bus, Route 33Utw / 34J via Odeon。補足: 【地図】Westlands〜NBO空港間のバス乗り継ぎ所要時間（ComeToGuide https://cometoguide.com/nairobi-jomo-kenyatta-international-airport-nbo-to-westlands ではKenya Railways経由120分）。",
+     "currency": null,
+     "district": "Westlands (CFC / Delta) → NBO Airport",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "takes approximately 54 min",
+       "source_id": "src-rome2rio-com-b5fa7c7d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "aff6d270438e2a43",
+     "id": "kenya-airways.living.commute.6ad8b733",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Westlands → NBO Airport）",
+     "pack": "pvr-20261118-gm-kenya-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rome2Rio",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rome2rio-com-b5fa7c7d",
+       "source_type": "third_party_reference",
+       "title": "NBO to Westlands",
+       "url": "https://www.rome2rio.com/s/Jomo-Kenyatta-International-Airport-NBO-Embakasi-Nairobi-Kenya/Westlands"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 54,
+     "value_text": "54"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Nairobi",
+      "note_ja": "街「Nairobi」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "nairobi",
+     "company": "kenya-airways",
+     "cond_ja": "Kilimani → NBO Airport。手段: train/bus, Kenya Railways Feeder Bus and Commuter Rail。補足: 【地図】Kenya Railways空港フィーダーバス＋Nairobi Commuter Rail＋路線バス乗り継ぎ。",
+     "currency": null,
+     "district": "Kilimani → NBO Airport",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "90 Min.",
+       "source_id": "src-cometoguide-com-a73f6034",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4d1aff638e8cba81",
+     "id": "kenya-airways.living.commute.c6987a61",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Kilimani → NBO Airport）",
+     "pack": "pvr-20261118-gm-kenya-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-30",
+       "publisher": "ComeToGuide",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-cometoguide-com-a73f6034",
+       "source_type": "third_party_reference",
+       "title": "NBO to Kilimani",
+       "url": "https://cometoguide.com/de/nairobi-jomo-kenyatta-flughafen-nbo-nach-kilimani"
+      }
+     ],
+     "unit": "分",
+     "use": "条件つき",
+     "value": 90,
+     "value_text": "90"
+    }
+   ],
+   "name": "Nairobi",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Nairobi",
+      "note_ja": "街「Nairobi」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 KES の国（ケニア）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "nairobi",
+     "company": "kenya-airways",
+     "cond_ja": "英: undefined。原部屋表記「1 bedroom Property」。数字の種類: Nairobi, Kilimani。家具: undefined。補足: 【第三者】PropertyPro KenyaによるKilimani地区の1ベッドルーム平均家賃。",
+     "currency": "KES",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-11-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "KSh 70,000",
+       "source_id": "src-propertypro-co-ke-db2ad531",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0a99d9e553318064",
+     "id": "kenya-airways.living.rent-1bed.a462fcc0",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1 bedroom Property",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261118-gm-kenya-airways",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-05",
+       "publisher": "PropertyPro Kenya",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-propertypro-co-ke-db2ad531",
+       "source_type": "third_party_reference",
+       "title": "Kilimani 1 Bed",
+       "url": "https://www.propertypro.co.ke/property-for-rent/in/nairobi/kilimani/1-bedroom"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 70000
+     },
+     "value_text": {
+      "1bed": "70,000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Nairobi",
+      "note_ja": "街「Nairobi」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 KES の国（ケニア）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "nairobi",
+     "company": "kenya-airways",
+     "cond_ja": "英: undefined。原部屋表記「1 bedroom Property」。数字の種類: Nairobi, Westlands。家具: undefined。補足: 【第三者】PropertyPro KenyaによるWestlands地区の1ベッドルーム平均家賃。",
+     "currency": "KES",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-11-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "KSh 80,000",
+       "source_id": "src-propertypro-co-ke-8cb1992b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "179120be52911d4d",
+     "id": "kenya-airways.living.rent-1bed.db1e407e",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1 bedroom Property",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261118-gm-kenya-airways",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-01",
+       "publisher": "PropertyPro Kenya",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-propertypro-co-ke-8cb1992b",
+       "source_type": "third_party_reference",
+       "title": "Westlands 1 Bed",
+       "url": "https://www.propertypro.co.ke/property-for-rent/null/in/nairobi/westlands/1-bedroom"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 80000
+     },
+     "value_text": {
+      "1bed": "80,000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Nairobi",
+      "note_ja": "街「Nairobi」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 KES の国（ケニア）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "nairobi",
+     "company": "kenya-airways",
+     "cond_ja": "英: undefined。原部屋表記「2 bedroom Property」。数字の種類: Nairobi, Kilimani。家具: undefined。補足: 【第三者】PropertyPro KenyaによるKilimani地区の2ベッドルーム平均家賃。",
+     "currency": "KES",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-07-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "KSh 95,000",
+       "source_id": "src-propertypro-co-ke-4dfe6d38",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "123355bd3145648f",
+     "id": "kenya-airways.living.rent-2bed.2387895c",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2 bedroom Property",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261118-gm-kenya-airways",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-07-26",
+       "publisher": "PropertyPro Kenya",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-propertypro-co-ke-4dfe6d38",
+       "source_type": "third_party_reference",
+       "title": "Kilimani 2 Bed",
+       "url": "https://www.propertypro.co.ke/property-for-rent/properties/industrial-property/bungalow/in/nairobi/kilimani/2-bedroom?page=1"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 95000
+     },
+     "value_text": {
+      "2bed": "95,000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Nairobi",
+      "note_ja": "街「Nairobi」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 KES の国（ケニア）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "nairobi",
+     "company": "kenya-airways",
+     "cond_ja": "英: undefined。原部屋表記「2 bedroom Property」。数字の種類: Nairobi, Westlands。家具: undefined。補足: 【第三者】PropertyPro KenyaによるWestlands地区の2ベッドルーム平均家賃。",
+     "currency": "KES",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-11-07",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "KSh 137,500",
+       "source_id": "src-propertypro-co-ke-6549c795",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0ae7adee64c73836",
+     "id": "kenya-airways.living.rent-2bed.8953e7a8",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2 bedroom Property",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261118-gm-kenya-airways",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-07",
+       "publisher": "PropertyPro Kenya",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-propertypro-co-ke-6549c795",
+       "source_type": "third_party_reference",
+       "title": "Westlands 2 Bed",
+       "url": "https://www.propertypro.co.ke/property-for-rent/in/nairobi/westlands/2-bedroom"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 137500
+     },
+     "value_text": {
+      "2bed": "137,500"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Nairobi",
+      "note_ja": "街「Nairobi」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 KES の国（ケニア）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "nairobi",
+     "company": "kenya-airways",
+     "cond_ja": "英: undefined。原部屋表記「3 bedroom Property」。数字の種類: Nairobi, Kilimani。家具: undefined。補足: 【第三者】PropertyPro KenyaによるKilimani地区の3ベッドルーム平均家賃。",
+     "currency": "KES",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-07-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "KSh 130,000",
+       "source_id": "src-propertypro-co-ke-07cb2cea",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8003533eabc0d367",
+     "id": "kenya-airways.living.rent-3bed.69ed64e2",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3 bedroom Property",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261118-gm-kenya-airways",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-07-26",
+       "publisher": "PropertyPro Kenya",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-propertypro-co-ke-07cb2cea",
+       "source_type": "third_party_reference",
+       "title": "Kilimani 3 Bed",
+       "url": "https://www.propertypro.co.ke/property-for-rent/property-fo/in/nairobi/kilimani/3-bedroom?page=2"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 130000
+     },
+     "value_text": {
+      "3bed": "130,000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Nairobi",
+      "note_ja": "街「Nairobi」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 KES の国（ケニア）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "nairobi",
+     "company": "kenya-airways",
+     "cond_ja": "英: undefined。原部屋表記「3 bedroom Property」。数字の種類: Nairobi, Westlands。家具: undefined。補足: 【第三者】PropertyPro KenyaによるWestlands地区の3ベッドルーム平均家賃。",
+     "currency": "KES",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-11-08",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "KSh 210,000",
+       "source_id": "src-propertypro-co-ke-23ba6832",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3d2051778c193a65",
+     "id": "kenya-airways.living.rent-3bed.6b26b251",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3 bedroom Property",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261118-gm-kenya-airways",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-08",
+       "publisher": "PropertyPro Kenya",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-propertypro-co-ke-23ba6832",
+       "source_type": "third_party_reference",
+       "title": "Westlands 3 Bed",
+       "url": "https://www.propertypro.co.ke/property-for-rent/blog/in/nairobi/westlands/3-bedroom"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 210000
+     },
+     "value_text": {
+      "3bed": "210,000"
      }
     }
    ],
@@ -237873,7 +251045,64 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "airlines": [
     "riyadh-air"
    ],
-   "commute": [],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Riyadh",
+      "note_ja": "街「Riyadh」は取り込み済みの台帳（research-ledger.mjs の CITY_OF）の街のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "riyadh",
+     "company": "riyadh-air",
+     "cond_ja": "Kafd station (Riyadh, King Abdullah Financial District) → Airport T3-4 (RUH)。手段: train, Riyadh Metro Line 4 Yellow・通常ダイヤ・時刻指定なし。補足: 【地図】駅間の列車区間。自宅から駅・空港駅から乗員報告地点への徒歩および待ち時間は別。KAFDの高級住宅は開発会社現行公式ページ https://www.kafd.sa/en/residential で確認。RPT公式サイトは403。非公式riyadhmetro.orgの独自推計39分は公式と誤認せず不採用。発行日不明の現行経路表示。",
+     "currency": null,
+     "district": "Kafd station (Riyadh, King Abdullah Financial District) → Airport T3-4 (RUH)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The line 4 subway from Kafd to Airport T3-4 takes 37 min",
+       "source_id": "src-rome2rio-com-0fdda797",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fb07cec2f12fdbad",
+     "id": "riyadh-air.living.commute.82eee28d",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Kafd station → Airport T3-4）",
+     "pack": "pvr-20261118-cg-riyadh-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rome2Rio",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rome2rio-com-0fdda797",
+       "source_type": "third_party_reference",
+       "title": "Kafd to Riyadh Airport (RUH)",
+       "url": "https://www.rome2rio.com/s/Kafd/Riyadh-Airport-RUH"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 37,
+     "value_text": "37"
+    }
+   ],
    "name": "Riyadh",
    "name_en": null,
    "rents": [
@@ -242065,6 +255294,118 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "参考",
      "value": 65,
      "value_text": "65"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Seoul",
+      "note_ja": "街「Seoul」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "seoul",
+     "company": "asiana",
+     "cond_ja": "COEX City Airport（Seoul, Samseong-dong/Gangnam-gu） → Incheon International Airport Terminal 2。手段: bus, CALT 6103・運行会社の推定所要時間。補足: 基地空港は未確定のため、指示の代替規定に沿って本社都市Seoulの住宅地区からの空港アクセス参考値。Asianaのpilot_baseをICNと認定する根拠ではない。現行ページに26.11.19まで/26.11.20からの時刻表あり。道路混雑で遅延し得る。住宅から乗場までの徒歩/待ち時間を含まない。",
+     "currency": null,
+     "district": "COEX City Airport（Seoul, Samseong-dong/Gangnam-gu） → Incheon International Airport Terminal 2",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "제 2여객터미널: 약 85분",
+       "source_id": "src-caltlogis-co-kr-31b6086c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6ecee7b950842ede",
+     "id": "asiana.living.commute.b5a5c640",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（COEX City Airport（Seoul, Samseong-dong/Gangnam-gu…",
+     "pack": "pvr-20261118-cg-asiana",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "CALTロジス",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-caltlogis-co-kr-31b6086c",
+       "source_type": "official_package",
+       "title": "6103（코엑스 도심공항 ↔ 인천공항）",
+       "url": "https://www.caltlogis.co.kr/limousine/04.php"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 85,
+     "value_text": "85"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Seoul",
+      "note_ja": "街「Seoul」は取り込み済みの台帳（research-ledger.mjs の CITY_OF）の街のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "seoul",
+     "company": "korean-air",
+     "cond_ja": "COEX City Airport Terminal (Seoul, Gangnam-gu/Samseong-dong住宅地区) → Incheon International Airport Terminal 2。手段: bus, CALT Limousine 6103。補足: 公式の想定所要時間（約85分）。道路事情で遅延する旨が明記される。Samseong-dong地区内の住宅玄関からCOEX乗場までの移動や待ち時間を含まない。2026-11-19まで/2026-11-20以降の時刻表が掲載された現行ページ。",
+     "currency": null,
+     "district": "COEX City Airport Terminal (Seoul, Gangnam-gu/Samseong-dong住宅地区) → Incheon International Airport Terminal 2",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "제 2여객터미널: 약 85분",
+       "source_id": "src-caltlogis-co-kr-31b6086c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bc8a8d9d8f0b3b71",
+     "id": "korean-air.living.commute.4b6ad249",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（COEX City Airport Terminal → Incheon Internationa…",
+     "pack": "pvr-20261118-cg-korean-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "CALT Logis",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-caltlogis-co-kr-31b6086c",
+       "source_type": "official_package",
+       "title": "6103 (COEX City Airport ↔ Incheon Airport)",
+       "url": "https://www.caltlogis.co.kr/limousine/04.php"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 85,
+     "value_text": "85"
     }
    ],
    "name": "Seoul",
@@ -242985,7 +256326,71 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "scoot",
     "singapore-airlines"
    ],
-   "commute": [],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Singapore",
+      "note_ja": "街「Singapore」は取り込み済みの台帳（research-ledger.mjs の CITY_OF）の街のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "singapore",
+     "company": "scoot",
+     "cond_ja": "Marine Parade（具体駅・停留所未記載） → Changi Airport（ターミナル未記載）。手段: bus（路線未記載）。補足: 2025年時点のToday欄。住宅地区→空港の概算例。具体停留所・路線・時刻は資料にない。将来TELeの30分は採用しない。Go-AheadのService36路線は別途確認: https://go-aheadsingapore.com/bus-services/service-36/ ; 40分をその路線・特定停留所の値と断定しない。",
+     "currency": null,
+     "district": "Marine Parade（具体駅・停留所未記載） → Changi Airport（ターミナル未記載）",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2025-07-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "40 min (via Bus)",
+       "source_id": "src-lta-gov-sg-22b5a9a4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "51d925cfbffc6dcb",
+     "id": "scoot.living.commute.6f8dbf5f",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Marine Parade（具体駅・停留所未記載） → Changi Airport（ターミナル未…",
+     "pack": "pvr-20261118-cg-scoot",
+     "per": null,
+     "rev": 1,
+     "seen": [
+      {
+       "company": "singapore-airlines",
+       "id": "singapore-airlines.living.commute.40fe8781",
+       "pack": "pvr-20261118-cg-singapore-airlines"
+      }
+     ],
+     "src": [
+      {
+       "published": "2025-07-25",
+       "publisher": "Land Transport Authority",
+       "publisher_kind": "government",
+       "retrieved": "2026-11-18",
+       "source_id": "src-lta-gov-sg-22b5a9a4",
+       "source_type": "government",
+       "title": "Annex C: Travel time savings examples",
+       "url": "https://www.lta.gov.sg/content/dam/ltagov/news/press/2025/250725_TELe_travel_time_savings_eg_AnnexC.pdf"
+      }
+     ],
+     "unit": "分",
+     "use": "条件つき",
+     "value": 40,
+     "value_text": "40"
+    }
+   ],
    "name": "Singapore",
    "name_en": null,
    "rents": [
@@ -245374,6 +258779,73 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      }
     }
    ],
+   "towns": []
+  },
+  "taoyuan": {
+   "airlines": [
+    "starlux"
+   ],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Taoyuan",
+      "note_ja": "街「Taoyuan」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "taoyuan",
+     "company": "starlux",
+     "cond_ja": "高鐵桃園站（Taoyuan, Qingpu A18） → 桃園國際機場第一航廈（TPE T1）。手段: train, 桃園機場捷運普通車・駅間所要時間。補足: 自治体公式ページが「現行」として掲載。住居から駅までの徒歩・列車待ち・ターミナル内移動を含まない。桃園捷運の現行A18時刻表 https://www.tymetro.com.tw/tymetro-new/tw/_pages/travel-guide/timetable-A18 も確認。公表日の記載なし。",
+     "currency": null,
+     "district": "高鐵桃園站（Taoyuan, Qingpu A18） → 桃園國際機場第一航廈（TPE T1）",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "於桃園高鐵站至桃園國際機場第一航廈僅需19分鐘",
+       "source_id": "src-travel-tycg-gov-tw-083c1a70",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7b22e754e3b2c34f",
+     "id": "starlux.living.commute.c890a3a8",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（高鐵桃園站（Taoyuan, Qingpu A18） → 桃園國際機場第一航廈（TPE T1））",
+     "pack": "pvr-20261118-cg-starlux",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "桃園市政府観光旅遊局",
+       "publisher_kind": "government",
+       "retrieved": "2026-11-18",
+       "source_id": "src-travel-tycg-gov-tw-083c1a70",
+       "source_type": "government",
+       "title": "機場捷運",
+       "url": "https://travel.tycg.gov.tw/zh-tw/Traffic/AirportMRT"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 19,
+     "value_text": "19"
+    }
+   ],
+   "name": "Taoyuan",
+   "name_en": null,
+   "rents": [],
    "towns": []
   },
   "tirana": {
@@ -566267,6 +579739,433 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    },
    "revision": 1,
    "sha": "sha256:ed35489e9e0b1745"
+  },
+  "pvr-20261118-cg-air-india": {
+   "records": {
+    "air-india.base.pilot-base.18c30a41": "75fcf7ffec0aa150",
+    "air-india.benefits.commuting.1e0ce858": "2a9cdc51879f3e1d",
+    "air-india.benefits.commuting.87fc6cf5": "8482ef0e9a766f5a",
+    "air-india.benefits.commuting.c46f7c61": "bc07129973bf3b99",
+    "air-india.benefits.commuting.f8c713b2": "05504e402ac88d7b",
+    "air-india.living.commute.265207e9": "58ab1d354fc8e4b8"
+   },
+   "revision": 1,
+   "sha": "sha256:d765df0e7bb3ff0a"
+  },
+  "pvr-20261118-cg-airasia": {
+   "records": {
+    "airasia.benefits.commuting.8caf0035": "a2889808f6babf83",
+    "airasia.living.commute.ff412461": "65c2c026593e66b2",
+    "airasia.living.rent-1bed.7e71b97a": "a9d96d02ca27b04b",
+    "airasia.living.rent-2bed.e9b6b91e": "2b95fc873e8e7218",
+    "airasia.living.rent-3bed.ffdf724b": "49f6c26ccb9dc9dc",
+    "airasia.work.roster-pattern.0d43d27f": "5ebebadd16f32a4b",
+    "airasia.work.roster-pattern.3926155e": "ff415ff4eee6d34a",
+    "airasia.work.training-bond.32cd6e73": "558d0539c4a64ec1"
+   },
+   "revision": 1,
+   "sha": "sha256:9c41670bb2127d43"
+  },
+  "pvr-20261118-cg-asiana": {
+   "records": {
+    "asiana.base.pilot-base-city.88f42ca6": "ec15de3540a592a7",
+    "asiana.jobs.pilot-license.2e012e86": "ed50c21954163cb0",
+    "asiana.jobs.pilot-total-hours.2c5852f8": "8916a8760ddd0867",
+    "asiana.living.commute.b5a5c640": "6ecee7b950842ede"
+   },
+   "revision": 1,
+   "sha": "sha256:7608151217c16776"
+  },
+  "pvr-20261118-cg-bamboo-airways": {
+   "records": {
+    "bamboo-airways.fleet.airbus-a321-200.f0614551": "62ab9384c9c6d84a",
+    "bamboo-airways.living.commute.243658f8": "1f9138255c946053",
+    "bamboo-airways.living.commute.ac261c53": "217c5395312869b4",
+    "bamboo-airways.scale.fleet-total.c715fb75": "4e732f209305cd5f"
+   },
+   "revision": 1,
+   "sha": "sha256:9bdae5f0166e20af"
+  },
+  "pvr-20261118-cg-batik-air": {
+   "records": {
+    "batik-air.fleet.airbus-320-200ceo.39c69309": "c1aa7ee1a7b8dd7d",
+    "batik-air.fleet.airbus-320-200neo.5dc90be4": "2901124ec2707444",
+    "batik-air.fleet.airbus-330-300ceo.06e2a073": "a99621335b116567",
+    "batik-air.fleet.boeing-737-800ng.abae3041": "ecfc1e4d3d65aa9e",
+    "batik-air.living.commute.b35d9593": "dafb94de50c1920e"
+   },
+   "revision": 1,
+   "sha": "sha256:14a8a7de97ff8b1a"
+  },
+  "pvr-20261118-cg-emirates": {
+   "records": {
+    "emirates.base.pilot-base.cd113f9e": "1f94a1b21eab919b",
+    "emirates.living.commute.0e21aac1": "929aa3a13f97e7dc"
+   },
+   "revision": 1,
+   "sha": "sha256:611828d9820f548c"
+  },
+  "pvr-20261118-cg-flydubai": {
+   "records": {
+    "flydubai.base.pilot-base-city.37b1073c": "40918de7630d25b1",
+    "flydubai.base.pilot-base.42d908e4": "0b7b56a773a7bb21",
+    "flydubai.living.commute.5e9b79f4": "b15ae3ddbe1ab6e7"
+   },
+   "revision": 1,
+   "sha": "sha256:8db9ff260f220434"
+  },
+  "pvr-20261118-cg-garuda-indonesia": {
+   "records": {
+    "garuda-indonesia.benefits.commuting.7f3da718": "547ef5e8e3bbc630",
+    "garuda-indonesia.living.commute.3f617354": "f51d1d42ef394e6e"
+   },
+   "revision": 1,
+   "sha": "sha256:26a518e0e724c91b"
+  },
+  "pvr-20261118-cg-gulf-air": {
+   "records": {
+    "gulf-air.base.pilot-base-city.2a110602": "ce649094313e523d",
+    "gulf-air.base.pilot-base.ed1da57c": "5585c040f256d808",
+    "gulf-air.benefits.commuting.137f3219": "c4c953651d4787ce",
+    "gulf-air.living.commute.116f5f60": "bd5cf53f5da1adb8"
+   },
+   "revision": 1,
+   "sha": "sha256:cf9da9babbca40a7"
+  },
+  "pvr-20261118-cg-hong-kong-express": {
+   "records": {
+    "hong-kong-express.base.pilot-base.7927b8ab": "fe64a021b7c86a4c",
+    "hong-kong-express.benefits.commuting.0f9151cb": "20a0f8221e197e7b"
+   },
+   "revision": 1,
+   "sha": "sha256:8480dba593314d29"
+  },
+  "pvr-20261118-cg-indigo": {
+   "records": {
+    "indigo.base.pilot-base-city.58903057": "0b5730bd0cd71743",
+    "indigo.base.pilot-base.a2ef3d95": "2309ecad61a05263",
+    "indigo.benefits.annual-leave-cap.5ea890e7": "e12249a181a0d82f",
+    "indigo.benefits.annual-leave-fo.22d593b2": "21818b5a544d4fa4",
+    "indigo.living.commute.b802312d": "d0abc617074d48ea",
+    "indigo.work.roster-pattern.b0a35365": "313d7f40d87f2b4f",
+    "indigo.work.roster-pattern.e5bdf44c": "c9cb5bf2239fc7bf",
+    "indigo.work.training-bond-fo.5f8141ef": "83cc98a4dc5b4a9c",
+    "indigo.work.training-bond-fo.af0f7afc": "1949ecb0bd281fc5",
+    "indigo.work.upgrade-years-fo.cb3d598e": "a660c16419cadbe5"
+   },
+   "revision": 1,
+   "sha": "sha256:2b27a11f2aa7c1ab"
+  },
+  "pvr-20261118-cg-korean-air": {
+   "records": {
+    "korean-air.base.pilot-base.148579ef": "a14e92e78b1129fa",
+    "korean-air.benefits.commuting.e36b169f": "50d7b85d9075d285",
+    "korean-air.living.commute.4b6ad249": "bc8a8d9d8f0b3b71"
+   },
+   "revision": 1,
+   "sha": "sha256:39c8e738595962f8"
+  },
+  "pvr-20261118-cg-kuwait-airways": {
+   "records": {
+    "kuwait-airways.benefits.commuting.cbb162f7": "dc56b19d3020916e",
+    "kuwait-airways.benefits.medical.5363d489": "f54155ffd96bb171",
+    "kuwait-airways.benefits.pension.b63d9735": "f37f085f006fbf90",
+    "kuwait-airways.benefits.staff-travel.703ac675": "a16b6a64f6eb6fb9"
+   },
+   "revision": 1,
+   "sha": "sha256:33d4e7bb643d9a84"
+  },
+  "pvr-20261118-cg-malaysia-airlines": {
+   "records": {
+    "malaysia-airlines.benefits.annual-leave.8faeba79": "ce2c2f65f4ffb3ae",
+    "malaysia-airlines.benefits.commuting.ac6fb4c2": "c11c5ebeea29d98d",
+    "malaysia-airlines.living.commute.43085c5e": "f60aac48c32429bb",
+    "malaysia-airlines.living.rent-1bed.dc5ca07c": "faf4891b9903bc9f",
+    "malaysia-airlines.living.rent-2bed.dde57e05": "c62374ed7f45a79d",
+    "malaysia-airlines.living.rent-3bed.023d8804": "87723198eb3a4a76",
+    "malaysia-airlines.work.roster-pattern.83968f5b": "6ec0f5f14aeea796",
+    "malaysia-airlines.work.roster-pattern.b365c0a4": "00bbcc115f5efa06"
+   },
+   "revision": 1,
+   "sha": "sha256:ba40972a7eef5b6c"
+  },
+  "pvr-20261118-cg-oman-air": {
+   "records": {
+    "oman-air.fleet.boeing-737-8-max.8ad8d560": "fb312ed4803becc6",
+    "oman-air.fleet.boeing-737-800.43999966": "2df2cf0e7e29aa41",
+    "oman-air.fleet.boeing-737-900er.0db109d2": "dd22fea2ebe6042f",
+    "oman-air.fleet.boeing-787-9.23b46c80": "13d938379803a26f",
+    "oman-air.living.commute.c8342a6a": "5affe9cbb6dfcaca"
+   },
+   "revision": 1,
+   "sha": "sha256:5dd7f27747ed357c"
+  },
+  "pvr-20261118-cg-philippine-airlines": {
+   "records": {
+    "philippine-airlines.living.commute.308708ab": "9a5bafa0d2a0faab",
+    "philippine-airlines.living.commute.a276b842": "52afaa9601990102",
+    "philippine-airlines.living.rent-1bed.9faf9928": "110557e38fac26b1",
+    "philippine-airlines.living.rent-1bed.b0073367": "d483fb3e0a5fc280",
+    "philippine-airlines.living.rent-2bed.1e7bc425": "c59fab71029466bf",
+    "philippine-airlines.living.rent-2bed.f686cd40": "36388b602ff63734",
+    "philippine-airlines.living.rent-3bed.abce32cc": "dce56b27a2233285",
+    "philippine-airlines.living.rent-3bed.c2ef9cfa": "082e79de0c9d7be9",
+    "philippine-airlines.work.roster-pattern-fo.dc7bcb83": "0123e043bfe81bc3",
+    "philippine-airlines.work.roster-pattern.2998c056": "fd492e6b187784f2",
+    "philippine-airlines.work.roster-pattern.e5ad4d99": "6416ff745f8cc4cf"
+   },
+   "revision": 1,
+   "sha": "sha256:58109e1659490a3a"
+  },
+  "pvr-20261118-cg-qatar-airways": {
+   "records": {
+    "qatar-airways.base.pilot-base.f1c098ee": "a2b7ced8ca3dddda",
+    "qatar-airways.benefits.annual-leave.730d6761": "e6dca9ea5d5734e8",
+    "qatar-airways.benefits.commuting-fo.ac57d116": "e5f3fe2743851d90",
+    "qatar-airways.benefits.commuting.a6f81f07": "98048195838ccf61",
+    "qatar-airways.benefits.staff-travel.2b521215": "1b775ea5eab2c3d9",
+    "qatar-airways.benefits.staff-travel.481e8986": "3d846423626c3f6a",
+    "qatar-airways.benefits.staff-travel.d7c80cdd": "b4c178272d75d7e7",
+    "qatar-airways.living.commute.f538ace0": "90ad7dc95fd2f63e",
+    "qatar-airways.work.days-off.3338aa81": "e1f65def3214fa7c",
+    "qatar-airways.work.days-off.694ab833": "d9159197c45d6e45",
+    "qatar-airways.work.roster-pattern.173bb842": "57b97a758edcfca0"
+   },
+   "revision": 1,
+   "sha": "sha256:b1ba1c330c153811"
+  },
+  "pvr-20261118-cg-riyadh-air": {
+   "records": {
+    "riyadh-air.base.pilot-base.79d2dd78": "977524b7e8ef81b4",
+    "riyadh-air.benefits.pension-fo.f4e41027": "b1a23e5c2ad84174",
+    "riyadh-air.benefits.staff-travel.38920303": "b020cda2e6d78a62",
+    "riyadh-air.benefits.staff-travel.7b6a318d": "c520768a77b53f6a",
+    "riyadh-air.living.commute.82eee28d": "fb07cec2f12fdbad"
+   },
+   "revision": 1,
+   "sha": "sha256:20e9e76f5387f514"
+  },
+  "pvr-20261118-cg-royal-jordanian": {
+   "records": {
+    "royal-jordanian.base.pilot-base.8a0c6b90": "1a6ddc9a2081da2d",
+    "royal-jordanian.living.rent-1bed.5906c616": "3ac13433c5ab84da",
+    "royal-jordanian.living.rent-2bed.f40b525f": "f58475e64ccc5ae6",
+    "royal-jordanian.living.rent-3bed.302fd534": "a4a931df5414c5ee",
+    "royal-jordanian.work.training-bond-cap.b9fbb99e": "601b0e95c94beb8d"
+   },
+   "revision": 1,
+   "sha": "sha256:5658c77e278bb0bb"
+  },
+  "pvr-20261118-cg-saudia": {
+   "records": {
+    "saudia.base.pilot-base-city.239db28f": "7c75a17bf2ffa62c",
+    "saudia.base.pilot-base-city.57225b81": "6ad54ae95df1da2a",
+    "saudia.base.pilot-base.c082f9e5": "84fd051cda469562",
+    "saudia.benefits.staff-travel-cap.37febc63": "4c2b0e15d32ba042",
+    "saudia.benefits.staff-travel.82511e1f": "edc08eb7428bdbe4",
+    "saudia.benefits.staff-travel.f8cc66ef": "9bf963aa5ac6de85",
+    "saudia.fleet.airbus-a320-200.9cae4904": "b2b86b362dae11b5",
+    "saudia.fleet.airbus-a321-200.4bc0e7df": "f19bdf6490637401",
+    "saudia.fleet.airbus-a321neo.ef434a71": "5707a542a936c872",
+    "saudia.fleet.airbus-a330-300.b97b8c80": "09a48394699cac4c",
+    "saudia.fleet.boeing-777-300er.cc61729c": "560e72f27511e769",
+    "saudia.fleet.boeing-787-10.90c08717": "056e4e80466f57f8",
+    "saudia.fleet.boeing-787-9.8c78e9bd": "d0c7ee20d61db064",
+    "saudia.living.commute.a4c0bae3": "f39a421832a8a352",
+    "saudia.living.rent-1bed.58830142": "5e5ae9fa92190e8f",
+    "saudia.living.rent-2bed.8f833f20": "9f1862d8fa9001c6",
+    "saudia.living.rent-3bed.2d98a55e": "5bc3d49bef4733fd"
+   },
+   "revision": 1,
+   "sha": "sha256:0690dfb9184f5ba6"
+  },
+  "pvr-20261118-cg-scoot": {
+   "records": {
+    "scoot.base.pilot-base.33ccb350": "70a1f2c0d269d46e",
+    "scoot.living.commute.6f8dbf5f": "51d925cfbffc6dcb"
+   },
+   "revision": 1,
+   "sha": "sha256:84e08e3ce5e716bc"
+  },
+  "pvr-20261118-cg-singapore-airlines": {
+   "records": {
+    "singapore-airlines.base.pilot-base-city.c88e6ed4": "cadf14cf055abde0",
+    "singapore-airlines.base.pilot-base.73a079c2": "46701bc3cf444e6e",
+    "singapore-airlines.benefits.annual-leave-cap.89b95790": "141ec1796e11570b",
+    "singapore-airlines.benefits.annual-leave-fo.b69e73ac": "39e1ac117b70af01",
+    "singapore-airlines.benefits.commuting.2a35c799": "82c2aba32b8236ad",
+    "singapore-airlines.living.commute.40fe8781": "4f3d55f328c29ef4",
+    "singapore-airlines.work.annual-days-off.7fc658fc": "6dbe5748377bb80c",
+    "singapore-airlines.work.annual-days-off.9ce324c3": "0e094b054f4f5e5a",
+    "singapore-airlines.work.roster-pattern.398e841f": "ed7fe545fa413b01",
+    "singapore-airlines.work.roster-pattern.578361e2": "0d9e7237803c1010",
+    "singapore-airlines.work.roster-pattern.fdb47277": "c7d07ae967ffdc0a",
+    "singapore-airlines.work.working-time.b25f4bea": "505e465abfcaa6be",
+    "singapore-airlines.work.working-time.f285d622": "f7ad5b30e95faf90"
+   },
+   "revision": 1,
+   "sha": "sha256:af36a713467e09da"
+  },
+  "pvr-20261118-cg-starlux": {
+   "records": {
+    "starlux.base.pilot-base-city.466cd5ba": "471b8ef1bac5aa1e",
+    "starlux.base.pilot-base.762fb72a": "e686a56119c215d9",
+    "starlux.benefits.commuting.9632c29a": "c7101231a6e360aa",
+    "starlux.living.commute.c890a3a8": "7b22e754e3b2c34f"
+   },
+   "revision": 1,
+   "sha": "sha256:3409f9fa837a9af8"
+  },
+  "pvr-20261118-cg-thai-airways": {
+   "records": {
+    "thai-airways.living.commute.2801804c": "4f1b717d1b0081c8",
+    "thai-airways.work.roster-pattern.0a32d8ce": "c5fffe5bf9ce5a32",
+    "thai-airways.work.training-bond.aaa3d6b0": "9d35282a13ee80bd"
+   },
+   "revision": 1,
+   "sha": "sha256:6e99759ad91664d4"
+  },
+  "pvr-20261118-cg-vietjet": {
+   "records": {
+    "vietjet.benefits.commuting-cap.c40eb91a": "d51952f07a5bcf10",
+    "vietjet.living.commute.45238da6": "207d0f23ac62f152",
+    "vietjet.living.commute.b18710f8": "82c14781b363439f",
+    "vietjet.work.roster-pattern-cap.17aea365": "585f3de67dae62c8",
+    "vietjet.work.roster-pattern-cap.46322d04": "e6ccce614e1f7943"
+   },
+   "revision": 1,
+   "sha": "sha256:58e5f17e9c81078d"
+  },
+  "pvr-20261118-cg-vietnam-airlines": {
+   "records": {
+    "vietnam-airlines.work.roster-pattern-cap.57bdaa54": "375b913f32850806",
+    "vietnam-airlines.work.roster-pattern-cap.61c6464b": "6a4e1566c238c44d",
+    "vietnam-airlines.work.roster-pattern-cap.7251e26c": "c97e3bcde2e46cf0",
+    "vietnam-airlines.work.roster-pattern-cap.a14ec02b": "bf4f4f2a59ffc638",
+    "vietnam-airlines.work.roster-pattern-cap.f3b6ca50": "766c6946852e3f08",
+    "vietnam-airlines.work.roster-pattern-fo.ac1c461c": "ac0265c8853ff486",
+    "vietnam-airlines.work.training-bond-cap.aa47e9fc": "144705570a2f5e7f"
+   },
+   "revision": 1,
+   "sha": "sha256:2d07c93f0dd3bb7e"
+  },
+  "pvr-20261118-gm-air-peace": {
+   "records": {
+    "air-peace.base.pilot-base-city.12c8aee6": "1146cee34d72a3e6",
+    "air-peace.base.pilot-base.5b5cce27": "731c5d119774f036",
+    "air-peace.benefits.annual-leave.6551cf97": "6063e59cb2fcba0b",
+    "air-peace.benefits.commuting.3896da43": "58a12a14bdee863c",
+    "air-peace.benefits.housing.c165c791": "0d02e70e32f2ba40",
+    "air-peace.benefits.medical.fa694d05": "7ffb42c7afaf88d2",
+    "air-peace.benefits.pension.470faf2a": "7261ed6279919fdf",
+    "air-peace.benefits.staff-travel.1e521ca4": "3c3b5e8a05421368",
+    "air-peace.fleet.boeing-737-700.7ca08651": "716904de079b368b",
+    "air-peace.fleet.boeing-777-200er.85710cb7": "46f1b7408a440e6a",
+    "air-peace.fleet.embraer-175.78246fad": "1fbcb5afd9d31419",
+    "air-peace.fleet.embraer-195-e2.6206628b": "22b39c029b506105",
+    "air-peace.fleet.embraer-erj-145.3296cca3": "bf4138fa53fae018",
+    "air-peace.jobs.cap-license-cap.05d325d6": "2c4c07aefe1fd83b",
+    "air-peace.jobs.cap-posting-cap.6e48dfdd": "ceb766f65a7f70f4",
+    "air-peace.jobs.cap-right-to-work-cap.8be804d1": "775050d79ddc4a30",
+    "air-peace.jobs.cap-total-hours-cap.914257d5": "c10df19226b9fc54",
+    "air-peace.jobs.cap-type-rating-cap.120b8e90": "165d33fa599c08ef",
+    "air-peace.jobs.fo-license-fo.166df7a5": "85bb0a95cb68e2a1",
+    "air-peace.jobs.fo-posting-fo.ab3bf94f": "6ec21190d2dbe2de",
+    "air-peace.jobs.fo-right-to-work-fo.ea0cc21a": "5e54d2a19e78a4be",
+    "air-peace.jobs.fo-total-hours-fo.500c2b67": "43e874b42271d8b9",
+    "air-peace.jobs.fo-type-rating-fo.4d3d83a4": "c3df69f94e3c8fa8",
+    "air-peace.living.commute.1cfe78a1": "adb2ef00d972542d",
+    "air-peace.living.commute.6e78a29f": "8d159698cbc19051",
+    "air-peace.living.rent-1bed.2fa68c77": "13efe2aabb5fd13b",
+    "air-peace.living.rent-1bed.71fba2cf": "dd9ad8166b569e5c",
+    "air-peace.living.rent-2bed.77c6aced": "75d414c86481a203",
+    "air-peace.living.rent-2bed.abd217d9": "48e2d2a88a729b6c",
+    "air-peace.living.rent-3bed.1d7d613c": "e348314941f5542c",
+    "air-peace.living.rent-3bed.2128ba46": "0309ac2f5d839830",
+    "air-peace.profile.founded.78421320": "35a188b8b31b7d96",
+    "air-peace.profile.headquarters-city.88c84939": "02b4fe7e1d8a551d",
+    "air-peace.scale.fleet-total.bcdccdd8": "1f39aed4e5616cf1",
+    "air-peace.work.days-off.cda9bb8b": "e616e5c7ee78b9b6",
+    "air-peace.work.roster-pattern.04afd6f1": "76f8d3656399259a",
+    "air-peace.work.training-bond.6d607158": "cfb26021e8297147",
+    "air-peace.work.upgrade-years.73babc20": "49ae17105cc94832",
+    "air-peace.work.working-time.474487ab": "d8331eef8b01f2af"
+   },
+   "revision": 1,
+   "sha": "sha256:fca84549fb24dfdc"
+  },
+  "pvr-20261118-gm-egyptair": {
+   "records": {
+    "egyptair.base.pilot-base-city.c0a05e96": "0c851c93c1d4b930",
+    "egyptair.base.pilot-base.d160be1f": "cf58d64191ae8625",
+    "egyptair.benefits.annual-leave.bcfc8196": "cfc4fd45ed7a184b",
+    "egyptair.benefits.staff-travel.fe5befc5": "924e64896fb5927a",
+    "egyptair.living.commute.69002c4e": "5e4c5fb45a610781",
+    "egyptair.living.rent-1bed.5b9be4d9": "01edf1bbf7f2fb65",
+    "egyptair.living.rent-2bed.7c8bb494": "a54e7bc8bed6f0b6",
+    "egyptair.living.rent-3bed.8c3a4908": "2b3a69f3c3829c13",
+    "egyptair.work.days-off.21c11a4d": "7f85502dda1bdb11",
+    "egyptair.work.roster-pattern.26939dd7": "b14579115a8715de",
+    "egyptair.work.working-time.c45b711f": "e0bd29c87acdc32e"
+   },
+   "revision": 1,
+   "sha": "sha256:38b713512b2dd930"
+  },
+  "pvr-20261118-gm-ethiopian-airlines": {
+   "records": {
+    "ethiopian-airlines.base.pilot-base-city.f899bb06": "84bd9bb417ade2f2",
+    "ethiopian-airlines.base.pilot-base.8deaa17e": "cd3b760485b73eaf",
+    "ethiopian-airlines.living.commute.3ee2e70e": "cb03325c91ca34e7",
+    "ethiopian-airlines.living.rent-1bed.2f74a5a0": "72dd6319cbfe9be5",
+    "ethiopian-airlines.living.rent-2bed.0b9d669f": "f3e9a4238aadffa6",
+    "ethiopian-airlines.living.rent-3bed.83478a6e": "c77e06e934580730"
+   },
+   "revision": 1,
+   "sha": "sha256:8bac3b2bad7ee682"
+  },
+  "pvr-20261118-gm-kenya-airways": {
+   "records": {
+    "kenya-airways.base.pilot-base-city.8e2f7472": "84180e77397ec35a",
+    "kenya-airways.base.pilot-base.9ae87462": "de6caddad34885e0",
+    "kenya-airways.benefits.annual-leave.7b9d561c": "6017a220eb257fa3",
+    "kenya-airways.benefits.commuting-fo.f8d02d36": "a1f62e003f964af5",
+    "kenya-airways.benefits.staff-travel.6150094a": "02a427dd16c7c819",
+    "kenya-airways.living.commute.6ad8b733": "aff6d270438e2a43",
+    "kenya-airways.living.commute.c6987a61": "4d1aff638e8cba81",
+    "kenya-airways.living.rent-1bed.a462fcc0": "0a99d9e553318064",
+    "kenya-airways.living.rent-1bed.db1e407e": "179120be52911d4d",
+    "kenya-airways.living.rent-2bed.2387895c": "123355bd3145648f",
+    "kenya-airways.living.rent-2bed.8953e7a8": "0ae7adee64c73836",
+    "kenya-airways.living.rent-3bed.69ed64e2": "8003533eabc0d367",
+    "kenya-airways.living.rent-3bed.6b26b251": "3d2051778c193a65",
+    "kenya-airways.work.days-off-fo.8a7270ef": "5f2af57f480509d9",
+    "kenya-airways.work.roster-pattern-fo.eeec53b2": "aaa235a0a09ca26f",
+    "kenya-airways.work.training-bond-fo.2085d06a": "d062d7bb7383e719",
+    "kenya-airways.work.upgrade-years.93dc1f55": "c75b2866ed29d43a",
+    "kenya-airways.work.working-time-fo.c23f2c6f": "0131130b39532f63"
+   },
+   "revision": 1,
+   "sha": "sha256:344bd6ac190edbc4"
+  },
+  "pvr-20261118-gm-south-african-airways": {
+   "records": {
+    "south-african-airways.base.pilot-base-city.bc077461": "d7c15e1123a0914f",
+    "south-african-airways.base.pilot-base.68233c87": "44abfb8d8ae416cc",
+    "south-african-airways.benefits.commuting.33a7c712": "3c99bf915edc64e1",
+    "south-african-airways.living.commute.363b91ff": "8365e1190c8209df",
+    "south-african-airways.living.commute.a756df91": "3a744e60d8f2549e",
+    "south-african-airways.living.rent-1bed.03899a0a": "106517d26e76b690",
+    "south-african-airways.living.rent-1bed.3ad4c95b": "2fccceea2286897d",
+    "south-african-airways.living.rent-2bed.81889f07": "c66a44d16c7f10a5",
+    "south-african-airways.living.rent-2bed.e610b627": "2500f61904ab1ae3",
+    "south-african-airways.living.rent-3bed.9227ad83": "d78348a6f571f85a",
+    "south-african-airways.living.rent-3bed.fe2dc536": "2992bfc41b7026a0",
+    "south-african-airways.work.training-bond.2da65333": "274582f3b903e7cd",
+    "south-african-airways.work.upgrade-years-fo.42b59552": "d4833e8d55169aba",
+    "south-african-airways.work.upgrade-years.b96d1cf2": "ddf8aa84dfd8dc14"
+   },
+   "revision": 1,
+   "sha": "sha256:7eb46e95b41f35f9"
   },
   "pvr-city-rent": {
    "records": {

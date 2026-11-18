@@ -32,6 +32,7 @@ const CC0     = { licence: 'CC0',          licence_url: 'https://creativecommons
    この2つにもクレジットが出る（出しても問題は無い）。 */
 const BY_2    = { licence: 'CC BY 2.0',    licence_url: 'https://creativecommons.org/licenses/by/2.0' };
 const BY_SA_4 = { licence: 'CC BY-SA 4.0', licence_url: 'https://creativecommons.org/licenses/by-sa/4.0' };
+const BY_SA_3 = { licence: 'CC BY-SA 3.0', licence_url: 'https://creativecommons.org/licenses/by-sa/3.0' };
 const PD_MARK = { licence: 'Public domain', licence_url: 'https://creativecommons.org/publicdomain/mark/1.0/' };
 const PD_SELF = { licence: 'Public domain', licence_url: 'https://commons.wikimedia.org/wiki/Template:PD-self' };
 
@@ -591,6 +592,86 @@ export const PHOTOS = {
     { file: 'westjet-b737', orig: 'airline-westjet.jpg', aircraft: 'Boeing 737-700', w: 1280, h: 853,
       author: 'DUNCAN KIRK', ...BY_4, changes: CHANGES,
       source: 'https://commons.wikimedia.org/wiki/File:C-GQWJ_B737-700,_WestJet,_Las_Vegas_07-22-26.jpg' },
+  ],
+  /* ★2026-11-18 機体写真の調べ（ChatGPT・Wikimedia Commons）で写真の無かった14社。作者とライセンスは Commons の元のページで確かめた */
+  'shin-nihon': [
+    { file: 'shin-nihon-bn2', orig: 'airline-shin-nihon.jpg', aircraft: 'Britten-Norman BN-2B-20 Islander', w: 1200, h: 800,
+      author: 'Cp9asngf', ...BY_SA_3, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:NJA-JA80CT-Britten-Norman-BN-2B-20-Islander-KIJ-361286_src_361286.jpg' },
+  ],
+  'juneyao-airlines': [
+    { file: 'juneyao-airlines-a321', orig: 'airline-juneyao-airlines.jpg', aircraft: 'Airbus A321', w: 1280, h: 852,
+      author: 'Benlisquare', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Juneyao_Air_Airbus_A321_(B-8036)_on_final_approach_towards_SHA.jpg' },
+    { file: 'juneyao-airlines-b787', orig: 'airline-juneyao-airlines-b787.jpg', aircraft: 'Boeing 787-9', w: 1280, h: 720,
+      author: 'S5A-0043', ...BY_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:(CHN-Shanghai)_Juneyao_Air_Boeing_787-9_B-1115_@_ZSPD_2025-12-23.jpg' },
+  ],
+  'air-peace': [
+    { file: 'air-peace-b777', orig: 'airline-air-peace.jpg', aircraft: 'Boeing 777-21HER', w: 1280, h: 853,
+      author: 'Colin Cooke Photo', ...BY_SA_2, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:5N-BVE_Boeing_777-21HER_Air_Peace.jpg' },
+  ],
+  flydubai: [
+    { file: 'flydubai-b737-8', orig: 'airline-flydubai.jpg', aircraft: 'Boeing 737 MAX 8', w: 1280, h: 854,
+      author: 'DUNCAN KIRK', ...BY_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:A6-FPM_B737_MAX_8,_flydubai,_Boeing_Field_09-15-26.jpg' },
+  ],
+  'fedex-express': [
+    { file: 'fedex-express-b767', orig: 'airline-fedex-express.jpg', aircraft: 'Boeing 767-3S2F', w: 1280, h: 720,
+      author: 'S5A-0043', ...BY_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:(SGP-Singapore)_FedEx_Express_Boeing_767-3S2F_N104FE_@_WSSS_2026-09-03.jpg' },
+  ],
+  'ups-airlines': [
+    { file: 'ups-airlines-b747', orig: 'airline-ups-airlines.jpg', aircraft: 'Boeing 747-8F', w: 1280, h: 855,
+      author: 'Windmemories', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:20250307_Boeing_747-8F_of_UPS_(N617UP)_on_final_approach_at_SYD.jpg' },
+  ],
+  'atlas-air': [
+    { file: 'atlas-air-b747', orig: 'airline-atlas-air.jpg', aircraft: 'Boeing 747-443', w: 1280, h: 650,
+      author: 'Acroterion', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Atlas_Air_Boeing_747-400_N481MC_BWI_MD21.jpg' },
+  ],
+  'abx-air': [
+    { file: 'abx-air-b767', orig: 'airline-abx-air.jpg', aircraft: 'Boeing 767-338ER(BDSF)', w: 1280, h: 720,
+      author: 'Mark Bess', ...BY_SA_2, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:N317CM_JFK_Landing_4R_GB_B767_338_ER_BDSF_Small_(52700155316).png' },
+  ],
+  'kalitta-air': [
+    { file: 'kalitta-air-b747', orig: 'airline-kalitta-air.jpg', aircraft: 'Boeing 747-4B5F', w: 1280, h: 853,
+      author: 'Liam Thompson', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:N716CK.jpg' },
+  ],
+  'avelo-airlines': [
+    { file: 'avelo-airlines-b737', orig: 'airline-avelo-airlines.jpg', aircraft: 'Boeing 737-752', w: 1280, h: 854,
+      author: 'Piemags Aviation', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Boeing_737-700_N706VL_of_Avelo_Airlines_landing_at_Palm_Springs_International_Airport,_March_2023.jpg' },
+    { file: 'avelo-airlines-b737-8', orig: 'airline-avelo-airlines-b737-8.jpg', aircraft: 'Boeing 737-8EH', w: 1280, h: 675,
+      author: 'Acroterion', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Avelo_Boeing_737-800_N806VL_BWI_MD1.jpg' },
+  ],
+  gojet: [
+    { file: 'gojet-crj550', orig: 'airline-gojet.jpg', aircraft: 'Bombardier CRJ-550', w: 1280, h: 531,
+      author: 'Acroterion', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:GoJet_United_Express_Bombardier_CRJ-550_N578GJ_IAD_VA1.jpg' },
+  ],
+  'northern-air-cargo': [
+    { file: 'northern-air-cargo-b767', orig: 'airline-northern-air-cargo.jpg', aircraft: 'Boeing 767-323ER(BDSF)', w: 1280, h: 806,
+      author: 'Colin Cooke Photo', ...BY_SA_2, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:N379CX_Boeing_767-323ER_(BDSF)_Northern_Air_Cargo_MIA_21.1.23_(52833475677).jpg' },
+  ],
+  contour: [
+    { file: 'contour-erj135', orig: 'airline-contour.jpg', aircraft: 'Embraer ERJ-135ER', w: 1280, h: 594,
+      author: 'Acroterion', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Contour_Embraer_ERJ-135ER_N16511_IAD_VA1.jpg' },
+  ],
+  jazz: [
+    { file: 'jazz-q400', orig: 'airline-jazz.jpg', aircraft: 'De Havilland Canada Dash 8-400', w: 1280, h: 720,
+      author: 'AVA Navigate', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Air_Canada_Express_Dash_8_C-GSJZ_YYZ.jpg' },
+    { file: 'jazz-crj900', orig: 'airline-jazz-crj900.jpg', aircraft: 'Bombardier CRJ900LR', w: 1280, h: 854,
+      author: 'Piemags Aviation', ...BY_SA_4, changes: CHANGES,
+      source: 'https://commons.wikimedia.org/wiki/File:Bombardier_CRJ900LR_C-GDJZ_of_Air_Canada_Express_landing_at_San_Diego_International_Airport,_March_2023.jpg' },
   ],
 };
 

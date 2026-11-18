@@ -451,6 +451,8 @@ function fact(x, T = TX_JA) {
     checked: x.as_of || '',
     /* 会社ぜんたいの決まり（パイロットに限らない）は false。 */
     pilot: x.pilot !== false,
+    /* 第三者の資料の行（airline-rollout.mjs の FIRST_HAND の注）。「会社が公表している」の見出しと出典の欄に入れない印 */
+    third: !!x.third,
   };
 }
 const facts = (list, T = TX_JA) => (list || []).map(x => fact(x, T));

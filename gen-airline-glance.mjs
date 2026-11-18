@@ -264,9 +264,13 @@ const whole = f => (f.pilot === false ? `<span class="pvg-tag pvg-tag-q">${W.who
    札の字は WORDS の agree（日本語「労働協約」）。 */
 const isAgree = f => !!(f && f.src && f.src.kind === 'agreement');
 const agreeTag = f => (isAgree(f) ? `<span class="pvg-tag pvg-tag-q" data-src-kind="agreement">${W.agree}</span>` : '');
-/* 公表の一覧：会社自身の資料の行は「会社が公表している条件」、労働協約の行は「労働協約」の見出しの下（同じ1つの一覧に混ぜない） */
+/* 会社自身の資料でも労働協約でもない行（政府の資料・第三者の資料 ── 口コミ・掲示板・APC・報道・写しなど。airline-rollout.mjs の FIRST_HAND の注） */
+const notCo = f => !!(f && f.src && f.src.kind !== 'company' && !isAgree(f));
+/* 公表の一覧：会社自身の資料の行は「会社が公表している条件」、労働協約の行は「労働協約」の見出しの下（同じ1つの一覧に混ぜない）。
+   ★2026-11-18 オーナー：第三者の資料の行も同じ一覧に混ぜて出す（見出しを分けない）。その行が1つでも入った一覧には
+   「会社が公表している条件」の見出しを付けない（会社が出していないことを「会社が公表している」と書かない） */
 const pubLists = (items, wrap = x => x) => [[items.filter(f => !isAgree(f)), W.pubTerms], [items.filter(isAgree), W.agree]]
-  .filter(([l]) => l.length).map(([l, h]) => wrap(`<p class="pvg-askh">${h}</p>${factList(l)}`)).join('');
+  .filter(([l]) => l.length).map(([l, h]) => wrap(`${h === W.pubTerms && l.some(notCo) ? '' : `<p class="pvg-askh">${h}</p>`}${factList(l)}`)).join('');
 /* 過去・参考の行の札（先行5社ではない会社の調べの台帳の行だけ。言葉は airline-display.mjs の TAG）。過去の行は日付も前提に出る（premise）。 */
 const useTag = f => (f.tag ? `<span class="pvg-tag pvg-tag-q" data-use="${esc(f.use)}">${esc(f.tag)}</span>` : '');
 /* カードの1行め・小さい2行に置いてよい行（過去・参考の行は置かない ── 開いた板の一覧にだけ、札と日付つきで出す） */
@@ -280,7 +284,8 @@ const plain = f => !f.tag;
 function sources(items, fold = false, dated = false, label = W.srcLabel) {
   const seen = new Map();
   for (const f of items) {
-    if (!f || !f.src || !f.src.url) continue;
+    /* 第三者の資料（口コミ・掲示板・APC など）の名前とリンクは出さない（2026-11-18 オーナー「それらの出典もいらねえよ」）。台帳には残っている */
+    if (!f || !f.src || !f.src.url || f.third) continue;
     const o = seen.get(f.src.url) || { src: f.src, checked: f.checked || '' };
     if ((f.checked || '') < o.checked) o.checked = f.checked || '';
     seen.set(f.src.url, o);
@@ -631,7 +636,7 @@ function surface(v, S, all) {
 function workPanel(v, all) {
   for (const f of all) {
     if (!SURFACES.some(S => S.facts && S.facts.includes(f.key))) throw new Error(`勤務・訓練の面：台帳の ${f.key} を、どの面に出すか決めていない（${v.slug}）`);
-    if (f.src && f.src.kind !== 'company' && !isAgree(f)) throw new Error(`勤務・訓練の面：${f.key} の出典が会社の公表ではない・労働協約でもない（${v.slug}）。「会社が公表している条件」の下には置けない`);
+    /* 出どころの種類では止めない（2026-11-18 から第三者の資料の行も出す。見出しは pubLists が決める） */
   }
   return `<p class="pvg-quiet pvg-sfs-note">${W.sfsNote}</p><div class="pvg-sfs">${SURFACES.map(S => surface(v, S, all)).join('')}</div>`;
 }
@@ -957,7 +962,7 @@ function companyCard(v) {
   const photo = p ? `<figure class="pvg-photo"><img src="${UP}${photoSrc(p, true)}" srcset="${UP}${photoSrc(p, true)} ${SMALL_W}w, ${UP}${photoSrc(p, false)} ${p.w}w" sizes="(min-width:1100px) 400px, (min-width:700px) 34vw, 92vw" width="${SMALL_W}" height="${smallH(p)}" loading="lazy" decoding="async" alt="${W.photoAlt(esc(v.name), esc(p.aircraft))}">${credit}</figure>` : '';
   const facts = [...c.profile, ...c.scale];
   /* 先行5社ではない会社の機材は型式だけ（会社の資料に載っている型式。機数は作らない・型式の数を「◯機種」と言わない ── 全部の型式とは限らない） */
-  const fleet = c.fleet.length ? `<div class="pvg-fleet"><p class="pvg-askh">${W.fleet}<small>${v.rollout ? W.fleetTypes : join(W.types(c.fleet.length), c.fleet[0].when)}</small></p>
+  const fleet = c.fleet.length ? `<div class="pvg-fleet"><p class="pvg-askh">${W.fleet}${v.rollout && c.fleet.some(notCo) ? '' : `<small>${v.rollout ? W.fleetTypes : join(W.types(c.fleet.length), c.fleet[0].when)}</small>`}</p>
 <ul class="pvg-chips">${c.fleet.map(f => `<li title="${esc(f.label)}">${esc(shortType(f.label))}${f.value === '' ? '' : `<b>${esc(f.value)}</b>`}</li>`).join('')}</ul></div>` : '';
   /* 紹介の本文（2026-10-08 オーナーのご指示「会社紹介の規模・空港名・古い機材／訓練地も台帳と公式資料にそろえる」）。
      字は台帳の項目から組み立てたものだけ（pv-airline-view.mjs の introOf。型と決まりは career-facts.mjs の checkIntro）。
@@ -1071,7 +1076,7 @@ ${rvCta(v, 'reviews')}
    食い違う（JAL は、上が「免許を持つ人は自社養成へ応募できない」・下が「経験者を随時採用」だった）。
    右上の入口は会社の募集ページへ直接（台帳のいちばん上の行の資料）。資料ごとの確認日は「出どころ」の中。 */
 function jobsCard(v) {
-  const first = v.jobs.find(f => f.src && f.src.url);
+  const first = v.jobs.find(f => f.src && f.src.url && f.src.kind === 'company');   // 「会社の募集ページ」は会社自身の資料だけ
   const link = first ? `<a class="pvg-link" href="${esc(first.src.url)}" target="_blank" rel="noopener">${W.jobsPage}${IC.out}</a>` : '';
   return `<article class="pvg-card pvg-jobs"${pane(v.slug, 'overview')}>
 ${head(IC.jobs, W.jobs, link)}

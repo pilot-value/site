@@ -282,8 +282,6 @@ export function readFieldMap(file) {
 
 /* ════════════ 分類 ════════════ */
 const FACT_DOMAINS = ['profile', 'base', 'scale', 'fleet', 'work', 'benefits', 'jobs'];
-const SECONDARY = new Set(['third_party_reference', 'community_reference']);
-const PRIMARY_FOR_LIVING = new Set(['portal', 'operator', 'government']);
 
 /**
  * 利用者がアップロードした写し（2026-10-21 リード P12.90）── 証拠にしない。
@@ -291,8 +289,10 @@ const PRIMARY_FOR_LIVING = new Set(['portal', 'operator', 'government']);
  *   ・資料の発行元・題・注の字が「user-uploaded」（利用者がアップロードした）と言っている
  *   ・発行元の字が「public copy」（公開の写し）で、その写しを出したのが会社・労働組合・政府のどれでもない
  *     （フィジー航空の年次報告のように、議会が載せた会社自身の報告は写しではない ── 発行元の種類が airline）
- * この写しに値を支えさせている記録は「根拠不足」（決まりでは入れない・承認されても入れない・台帳に在れば verify が赤）。
- * ROUND5（2026-10-21）では14件：アビアンカの ACDAC 協約の写し・ウェストジェットの「WELCOME TO WESTJET」の案内。
+ * ★2026-11-18 オーナー：写しも二次情報（口コミ・掲示板・APC・Wikipedia など）も使ってよい（「落とすなよ」）。
+ *   それまでは写しに値を支えさせた記録を「根拠不足」にして入れなかった（ROUND5 の14件など）。いまは入れる。
+ *   写しは労働協約の登録（airline-display.mjs の AGREEMENTS）にだけ使えない＝「労働協約」の見出しの下には出ない。
+ *   会社が出していないことを「会社が公表している」と書かないのは、画面の側（gen-airline-glance.mjs の pubLists）が守る。
  */
 export const UPLOAD_HOSTS = Object.freeze(['scribd.com']);
 const hostOf = u => String(u || '').replace(/^[a-z][a-z0-9+.-]*:\/\/([^/?#]+).*$/i, '$1').toLowerCase();
@@ -302,11 +302,6 @@ export function userUploaded(s) {
   if (host && UPLOAD_HOSTS.some(h => host === h || host.endsWith(`.${h}`))) return true;
   if (/user[\s-]*uploaded|利用者(が|の)?アップロード|ユーザー(が|の)?アップロード/i.test([s.publisher, s.title, s.published_note, s.scope_ja].filter(Boolean).join(' '))) return true;
   return /public copy|公開(の)?写し/i.test(String(s.publisher || '')) && !['airline', 'union', 'government'].includes(s.publisher_kind);
-}
-/** 記録（台帳の行の形）の値を支える資料に、利用者がアップロードした写しが在るか。 */
-export function restsOnUpload(e) {
-  const srcs = new Map((e.src || []).map(s => [s.source_id, s]));
-  return (e.evidence || []).some(v => (v.supports || []).some(s => s === 'value' || s === 'estimate_input' || s === 'absence') && userUploaded(srcs.get(v.source_id)));
 }
 
 function fieldRow(fm, r) {
@@ -578,11 +573,7 @@ export function classify(packs, L, store, fm, opts = {}) {
       if ((r.verification || {}).status !== 'confirmed') setCat('weak_evidence', `確認の状態が confirmed でない（${(r.verification || {}).status}）`);
       if (!valueEv.length || valueEv.some(e => !String(e.quote || '').trim())) setCat('weak_evidence', '値を支える引用が無い');
       if (!valueEv.length || valueEv.some(e => !urlOk((srcById.get(e.source_id) || {}).url))) setCat('weak_evidence', '値を支える資料に URL が無い');
-      const upl = valueEv.map(e => srcById.get(e.source_id)).filter(userUploaded);
-      if (upl.length) setCat('weak_evidence', `値を支える資料が、利用者がアップロードした写し（${[...new Set(upl.map(s => hostOf(s.url) || s.publisher))].join('・')}）── 写しは証拠にしない`);
-      if (['published_policy', 'published_statistic'].includes(r.info_kind) && evSrc.length && evSrc.every(s => SECONDARY.has(s.source_type))
-          && !(r.domain === 'living' && evSrc.every(s => PRIMARY_FOR_LIVING.has(s.publisher_kind))))
-        setCat('weak_evidence', '二次情報だけで「公表された」と名乗っている');
+      /* 写し・二次情報だけの記録も根拠不足にしない（2026-11-18 オーナー。上の userUploaded の注） */
       if (r.domain === 'living' && r.item === 'rent' && isObj(r.value)) {
         const layout = {};
         const terms = [...String(r.cond_ja || '').matchAll(/原部屋表記「([^」]*)」/g)].map(m => m[1]);
@@ -1206,7 +1197,6 @@ export function gate(x, pi, root, args, L) {
   const retract = (x.entry.relation || {}).type === 'retracts';
   if (!retract && (x.use === '空欄' || x.entry.value === null || x.entry.value === undefined)) return '値が無い（空は削除の指示ではない）';
   if (!retract && !hasQuoteAndUrl(x.entry)) return '引用と URL の無い記録は入れない';
-  if (!retract && restsOnUpload(x.entry)) return '利用者がアップロードした写しを根拠にした記録は入れない';
   /* 取り込み済みの行が「未指定」（調べた側の判断が無くなった）に付け直されたときは通す ── 前の使い方のまま画面に残さないため（出さない側へ動くだけ） */
   if (!USES.has(x.use) && !(x.relabel !== undefined && x.use === '未指定')) return `使い方（${x.use}）が決まっていない`;
   if (x.domain === 'pay' && x.target !== `SOURCES.${x.company}`) return '給与は出所の台帳（候補）にだけ入る';
@@ -1320,7 +1310,6 @@ export function verifyStore(store, L) {
       if (!USES.has(e.use) && e.use !== '未指定') bad.push(`${w}: use が「${e.use}」`);
       if (e.use === '空欄' || e.value === null || e.value === undefined) bad.push(`${w}: 値の無い行（空は削除の指示ではない・行を作らない）`);
       if (!hasQuoteAndUrl(e)) bad.push(`${w}: 引用と URL の無い行`);
-      if (restsOnUpload(e)) bad.push(`${w}: 利用者がアップロードした写しを根拠にした行（写しは証拠にしない）`);
       if (e.checked_at !== null && !ISO.test(String(e.checked_at))) bad.push(`${w}: checked_at の形`);
       if (!ISO.test(String(e.imported_on))) bad.push(`${w}: imported_on が無い`);
     }

@@ -791,7 +791,7 @@ export const LINES = Object.freeze({
   'virgin-atlantic.benefits.pub-paid-leave-existence': { h: '4b22ab66e7ef009f', label: '休暇', value: '有給の年次休暇（日数は書かれていない）', cond: 'パイロットの採用ページ', en: { label: 'Leave', value: 'Paid annual leave (the number of days is not stated)', cond: 'Pilot recruitment page' } },
   'virgin-atlantic.benefits.pub-pilot-travel': { h: 'c77f012aa68c83a2', label: '社員の航空券', value: '自社と一部の他社の航空券の特典', cond: 'パイロットの採用ページ', en: { label: 'Staff travel', value: 'Staff travel on the company’s own and selected other airlines', cond: 'Pilot recruitment page' } },
   'virgin-atlantic.jobs.c-future-flyers-paused': { h: '73b8846d3b5a30cd', label: '養成コースの募集', value: '作り直しのため、いまは休止', cond: 'パイロットのQ&A', en: { label: 'Cadet recruitment', value: 'Currently paused while the program is redesigned', cond: 'Pilot FAQs' } },
-  'virgin-atlantic.work.c-trip-nights': { h: '72b349497e8cb194', label: '泊まりの勤務', value: 'ふつう1回の乗務で少なくとも1泊、2〜3泊のこともある', cond: 'パイロットのQ&A', en: { label: 'Overnights', value: 'A typical trip includes at least one night away, sometimes two or three', cond: 'Pilot FAQs' } },
+  'virgin-atlantic.work.c-trip-nights': { h: '72b349497e8cb194', label: '泊まりの勤務', value: '1回の乗務で1泊以上（2〜3泊もある）', cond: 'パイロットのQ&A', en: { label: 'Overnights', value: 'A typical trip includes at least one night away, sometimes two or three', cond: 'Pilot FAQs' } },
   'virgin-atlantic.work.command-time': { h: '22c1f02ed7e788c7', label: '機長への昇格の目安', value: '8〜10年（運航の必要に応じて）', cond: 'パイロットの採用ページ（約束された年数ではない）', en: { label: 'Time to command', value: '8–10 years (subject to operational needs)', cond: 'Pilot recruitment page (not a guaranteed timeline)' } },
   /* ブエリング航空 */
   'vueling.jobs.pilot-open': { h: '8bb6dc0a16b7924b', label: '募集の受付', value: '「採用中」の見出しはあるが、該当する求人は無い（確認した時点）', cond: '会社のパイロットの採用ページ', en: { label: 'Applications', value: 'A “We are hiring” heading, but no matching jobs (when checked)', cond: 'Company pilot recruitment page' } },
@@ -866,7 +866,7 @@ export const LINES = Object.freeze({
   'westjet.benefits.mainline-pension': { h: 'b9ac80409ad179b5', label: '年金', value: '会社が対象の給与の10%を拠出（本人の1%が条件）', cond: 'パイロットの採用ページ（ウエストジェット本体のパイロット）', lead: true, en: { label: 'Pension', value: 'The company contributes 10% of eligible earnings (with a 1% employee contribution)', cond: 'Pilot recruitment page (WestJet mainline pilots)' } },
   'westjet.benefits.resume-health-day1': { h: 'cf6c7fb29f3479dd', label: '保険', value: '入社の日から対象', cond: '福利厚生の案内（パイロットと一部の職種）', en: { label: 'Insurance', value: 'Coverage from day one', cond: 'Benefits guide (pilots and some specialty roles)' } },
   'westjet.benefits.resume-travel': { h: 'c842873f06cb3e4a', label: '社員の航空券', value: '空席待ちの航空券（運賃は無料・税は別）。6か月後から提携社の割引も', cond: '福利厚生の案内（社員ぜんたい）', en: { label: 'Staff travel', value: 'Standby travel (no base fare; taxes extra), plus partner-airline discounts after six months', cond: 'Benefits guide (all employees)' } },
-  'westjet.work.days-mainline': { h: '3c9e7e84dbac9053', label: '月の勤務の日数', value: 'ふつうのラインで月16日まで、待機のラインで18日まで', cond: 'パイロットの採用ページ（ウエストジェット本体）', en: { label: 'Duty days per month', value: 'Up to 16 duty days on a regular line and 18 on a reserve line', cond: 'Pilot recruitment page (WestJet mainline)' } },
+  'westjet.work.days-mainline': { h: '3c9e7e84dbac9053', label: '月の勤務の日数', value: '定期のラインで月16日まで、スタンバイのラインで18日まで', cond: 'パイロットの採用ページ（ウエストジェット本体）', en: { label: 'Duty days per month', value: 'Up to 16 duty days on a regular line and 18 on a reserve line', cond: 'Pilot recruitment page (WestJet mainline)' } },
   'westjet.work.resume-bidding': { h: 'f200d39efa25ca70', label: '勤務の希望', value: '勤務の希望は先任順ではない方式で割り当てる', cond: 'パイロットの採用ページ', en: { label: 'Schedule bidding', value: 'Scheduling bids are not awarded by seniority', cond: 'Pilot recruitment page' } },
   /* ── 全社へ広げる e（2026-10-22）：d2 の会社の労働協約の行（AGREEMENTS に登録した協約）。cond は、どの協約の・誰の条件か。
      字に外貨の額を書かない（額は money: true ＝ 台帳の数・通貨・期間のまま、円の目安つき）。
@@ -937,7 +937,7 @@ export const LINES = Object.freeze({
   'tap.benefits.r8-cbe-mandatory-relocation': { h: '74c81ad0133d97b2', label: '国内の拠点の縮小でリスボンへ移るとき', value: '引っ越しの実費（上限あり）と、着任時の一時金（再定住費）を出す', cond: 'TAPポルトガル航空のパイロットの労働協約（2023年）。自分から移るとき・昇格や機種の移行で移るときは別', en: { label: 'Move to Lisbon when a domestic base shrinks', value: 'Actual removal costs (up to a cap) and an initial resettlement payment', cond: 'TAP Air Portugal pilots’ collective agreement (2023). Different rules for voluntary moves and moves for promotion or a type change' } },
   'tap.benefits.r8-cbe-mandatory-transfer-temporary-lodging': { h: '068e1aae472e6b24', label: '会社の命令で配置が変わるとき', value: '続けて5日の休みのあいだ、望めば宿も用意', cond: 'TAPポルトガル航空のパイロットの労働協約（2023年）。ふだんの住まいの支援ではない', en: { label: 'Company-ordered reassignment', value: 'Accommodation on request during the five consecutive days off', cond: 'TAP Air Portugal pilots’ collective agreement (2023). Not support for everyday housing' } },
   'tap.benefits.r8-cbe-operational-base-duty-transport': { h: 'c12a7fedc06ab0b3', label: '業務の移動', value: '会社の指示の審査・訓練・身体検査などの移動は、会社が交通・宿・日当を用意', cond: 'TAPポルトガル航空のパイロットの労働協約（2023年）。ふだんの通勤ではない', en: { label: 'Duty travel', value: 'For company-directed travel to checks, training, medicals and similar, the company provides transport, accommodation and per diem', cond: 'TAP Air Portugal pilots’ collective agreement (2023). Not everyday commuting' } },
-  'tap.work.pub-annual-off-days': { h: '698eb5336810846f', label: '休日', value: '暦年で111日以上（ふつうの月は10日）', cond: 'TAPポルトガル航空のパイロットの労働協約（2023年）。年次休暇を取った月などは減る', lead: true, en: { label: 'Days off', value: 'At least 111 per calendar year (10 in a normal month)', cond: 'TAP Air Portugal pilots’ collective agreement (2023). Fewer in months with annual leave and similar cases' } },
+  'tap.work.pub-annual-off-days': { h: '698eb5336810846f', label: '休日', value: '暦年で111日以上（月10日が基本）', cond: 'TAPポルトガル航空のパイロットの労働協約（2023年）。年次休暇を取った月などは減る', lead: true, en: { label: 'Days off', value: 'At least 111 per calendar year (10 in a normal month)', cond: 'TAP Air Portugal pilots’ collective agreement (2023). Fewer in months with annual leave and similar cases' } },
   'tap.work.pub-training-cost-commitment': { h: '09c6cacb3ce34509', label: '訓練費の約束', value: 'ひとりで乗務できるようになってから3年。途中で辞めると訓練費を返す（2年を過ぎると減る）', cond: 'TAPポルトガル航空のパイロットの労働協約（2023年）', en: { label: 'Training cost commitment', value: 'Three years from your release to the line; if you leave earlier you repay training costs (reduced after two years)', cond: 'TAP Air Portugal pilots’ collective agreement (2023)' } },
   /* ターキッシュ エアラインズ */
   'turkish-airlines.benefits.pub-cba-leave': { h: '7c8cacfd7eaec1a7', label: '年次休暇', value: '勤続1〜5年は20勤務日・5年を超え15年未満は22勤務日・15年以上は30勤務日（1999年6月15日以降に入社した人）', cond: 'ターキッシュ エアラインズの社員の労働協約（第29期・2026〜2027年）。組合員が対象', lead: true, en: { label: 'Annual leave', value: '20 working days for 1–5 years of service, 22 for over 5 and under 15 years, and 30 for 15 years or more (for staff who joined on or after 15 June 1999)', cond: 'Turkish Airlines’ collective agreement for staff (29th term, 2026–2027). Covers union members' } },
@@ -1054,7 +1054,7 @@ export const LINES = Object.freeze({
   'j-air.work.roster-pattern-fo.d4bc4c3e': { h: '0cec5227cec9b243', label: '勤務の形', value: '不規則な勤務（土日祝日・早朝深夜・年末年始を含む。泊まりの勤務あり）', cond: '2023年の副操縦士候補生の募集要項', en: { label: 'Roster', value: 'Irregular duty (including weekends, holidays, early mornings, late nights and New Year; overnight trips)', cond: '2023 first officer candidate recruitment' } },
   'korean-air.benefits.housing.38231e2a': { h: '6bc7e489dd21c36d', label: '住まい', value: '社宅と、住宅の購入・チョンセ（保証金）の資金の融資', cond: '会社の2025年の ESG 報告書（社員ぜんたい）', en: { label: 'Housing', value: 'Company housing and loans for buying a home or a jeonse deposit', cond: 'Company 2025 ESG report (all employees)' } },
   'korean-air.benefits.medical.1729c751': { h: 'c83474c07877fadb', label: '保険', value: '健康保険に加入', cond: '会社の2025年の ESG 報告書（社員ぜんたい）', en: { label: 'Insurance', value: 'Health insurance', cond: 'Company 2025 ESG report (all employees)' } },
-  'korean-air.benefits.pension.a3aeaada': { h: '05d92f5c3d72c8dd', label: '年金', value: '個人年金に会社が月5万ウォンを支援', cond: '会社の2025年の ESG 報告書（社員ぜんたい）', en: { label: 'Pension', value: 'Company support of KRW 50,000 a month toward a personal pension', cond: 'Company 2025 ESG report (all employees)' } },
+  'korean-air.benefits.pension.a3aeaada': { h: '05d92f5c3d72c8dd', label: '個人年金への会社の補助', money: { cur: 'KRW', n: 50000, per: 'month' }, cond: '2025年・社員ぜんたい', en: { label: 'Company contribution to a personal pension', cond: '2025, all employees' } },
   'korean-air.work.sick-leave.574d856a': { h: '63a684c7fb4f25d8', label: '病気休暇', value: '業務の外の病気やけがでも、必要な有給の休暇（日数は書かれていない）', cond: '会社の2025年の ESG 報告書（社員ぜんたい）', en: { label: 'Sick leave', value: 'Paid leave as needed for illness or injury outside work (number of days not stated)', cond: 'Company 2025 ESG report (all employees)' } },
   'latam.work.sick-leave.7d4fc11e': { h: '385a54d37c3842bc', label: '病気休暇', value: '病気で国の給付を受けるあいだ、固定給との差額の50%を180日まで会社が補う（業務上の病気・けがは100%）', cond: 'パイロットの労働協約（2025〜2027年）', en: { label: 'Sick leave', value: 'While on state sickness benefit, the company tops up 50% of the gap to fixed pay for up to 180 days (100% for work-related illness or injury)', cond: 'Pilots’ collective agreement (2025–2027)' } },
   'lufthansa.benefits.pension.0d9ab1f8': { h: '25b64b2a00bd6b18', label: '年金', value: '本体（Lufthansa Classic）のパイロットに企業年金', cond: '会社の役員のストライキについての発表', en: { label: 'Pension', value: 'Company pension for Lufthansa Classic pilots', cond: 'Company statement by a board member on the pilots’ strike' } },
@@ -1132,6 +1132,153 @@ export const LINES = Object.freeze({
   'malaysia-airlines.benefits.staff-travel.c7bde63b': { h: 'c23997b3fd534716', label: '社員の航空券', value: '空席待ちの券は90%引き', cond: 'グループの2025年のサステナビリティ報告書（社員ぜんたい）', same: 'malaysia-airlines.benefits.staff-travel.9a8abac4', en: { label: 'Staff travel', value: 'Standby tickets at 90% off', cond: 'Group 2025 sustainability report (all employees)' } },
   'malaysia-airlines.benefits.staff-travel.3bf940eb': { h: 'd7c462e1258cfa2d', label: '社員の航空券', value: '提携の航空会社の空席待ちの割引の券', cond: 'グループの2025年のサステナビリティ報告書（社員ぜんたい）', same: 'malaysia-airlines.benefits.staff-travel.9a8abac4', en: { label: 'Staff travel', value: 'Discounted standby travel on partner airlines', cond: 'Group 2025 sustainability report (all employees)' } },
   'thai-airways.benefits.commuting.1d2a420a': { h: '15cdc65fa9f5371e', label: '通勤', value: '社員の送迎に電気のシャトルバス（4台）', cond: '会社の持続可能な開発の目標のページ（社員ぜんたい）', en: { label: 'Commuting', value: 'Electric shuttle buses for staff transport (4 buses)', cond: 'Company sustainable development goals page (all employees)' } },
+  /* ★2026-11-18 調べの答え6本と、前から台帳に在った第三者の資料の行 ── 比べられる条件の形に直した字（off は出さない理由） */
+  'aeromexico.jobs.fo-total-hours-fo.356db004': { h: 'c739d067e87c11cd', label: '応募に要る飛行時間', value: '1,800時間以上', cond: '副操縦士・B737・2026年10月', en: { label: 'Minimum total time', value: '1,800 hours', cond: 'First Officer, B737, October 2026' } },
+  'air-india.benefits.commuting.1e0ce858': { h: '2a9cdc51879f3e1d', off: '重複（同じ話を別の行が言っている）' },
+  'air-india.benefits.commuting.87fc6cf5': { h: '8482ef0e9a766f5a', off: '中身が無い（乗員の送迎アプリを入れたとだけ）' },
+  'air-india.benefits.commuting.c46f7c61': { h: 'bc07129973bf3b99', label: '家からの送迎', value: 'スタンバイで呼ばれたとき会社が送迎（用意できなければ交通費を精算）', lead: true, en: { label: 'Crew transport from home', value: 'Company transport when called out from standby (alternate transport reimbursed)' } },
+  'air-india.benefits.commuting.f8c713b2': { h: '05504e402ac88d7b', off: '訓練のときの移動で、通勤の条件ではない' },
+  'air-peace.base.pilot-base-city.12c8aee6': { h: '1146cee34d72a3e6', off: '重複（同じ拠点を空港の行が言っている）' },
+  'air-peace.benefits.annual-leave.6551cf97': { h: '6063e59cb2fcba0b', label: '年次休暇', value: '年20日（勤務日）', cond: '社員全体', en: { label: 'Annual leave', value: '20 working days a year', cond: 'All staff' } },
+  'air-peace.benefits.commuting.3896da43': { h: '58a12a14bdee863c', off: '家からの通勤ではない（本社と空港のあいだの送迎）' },
+  'air-peace.benefits.housing.c165c791': { h: '0d02e70e32f2ba40', label: '住宅', value: '会社が用意（家具つき）', cond: '契約のパイロット・2026年', lead: true, en: { label: 'Housing', value: 'Furnished apartment provided', cond: 'Contract pilots, 2026' } },
+  'air-peace.benefits.medical.fa694d05': { h: '7ffb42c7afaf88d2', label: '医療保険', value: 'あり（世界で使える・本人負担なし）', cond: '契約のパイロット・2026年', en: { label: 'Medical insurance', value: 'Global coverage, free of charge', cond: 'Contract pilots, 2026' } },
+  'air-peace.benefits.pension.470faf2a': { h: '7261ed6279919fdf', off: '国の年金制度への事業主の登録で、パイロットの条件と言えない' },
+  'air-peace.benefits.staff-travel.1e521ca4': { h: '3c3b5e8a05421368', label: '社員の航空券', value: 'あり（国内線・地域路線・国際線）', cond: '契約のパイロット・2026年', en: { label: 'Staff travel', value: 'Domestic, regional and international', cond: 'Contract pilots, 2026' } },
+  'air-peace.fleet.embraer-erj-145.3296cca3': { h: 'bf4138fa53fae018', fleet: 'エンブラエル ERJ145', en: { fleet: 'Embraer ERJ145' } },
+  'air-peace.jobs.cap-license-cap.05d325d6': { h: '2c4c07aefe1fd83b', label: '応募に要る免許', value: 'ATPL・第1種の身体検査・英語レベル4以上', cond: '機長・副操縦士・エンブラエル', en: { label: 'License required', value: 'ATPL, Class 1 medical, ICAO English Level 4+', cond: 'Captains and First Officers, Embraer' } },
+  'air-peace.jobs.cap-posting-cap.6e48dfdd': { h: 'ceb766f65a7f70f4', label: '募集', value: '機長・副操縦士を募集中', cond: 'エンブラエル E170〜E195・2026年12月12日締切', en: { label: 'Hiring', value: 'Captains and First Officers', cond: 'Embraer E170–E195, closes December 12, 2026' } },
+  'air-peace.jobs.cap-right-to-work-cap.8be804d1': { h: '775050d79ddc4a30', label: '外国籍の応募', value: '可（ビザは会社が手配か費用を精算）', cond: '機長・副操縦士・2026年', en: { label: 'Expat applicants', value: 'Accepted (visa arranged or reimbursed by the company)', cond: 'Captains and First Officers, 2026' } },
+  'air-peace.jobs.cap-total-hours-cap.914257d5': { h: 'c10df19226b9fc54', label: '応募に要る飛行時間', value: '5,000時間以上', cond: '機長・エンブラエル・2026年', en: { label: 'Minimum total time', value: '5,000 hours', cond: 'Captain, Embraer, 2026' } },
+  'air-peace.jobs.cap-type-rating-cap.120b8e90': { h: '165d33fa599c08ef', label: '型式限定', value: 'エンブラエルの型式限定が必要', cond: '機長・副操縦士・2026年', en: { label: 'Type rating', value: 'Embraer type rating required', cond: 'Captains and First Officers, 2026' } },
+  'air-peace.jobs.fo-license-fo.166df7a5': { h: '85bb0a95cb68e2a1', off: '重複（同じ話を別の行が言っている）' },
+  'air-peace.jobs.fo-posting-fo.ab3bf94f': { h: '6ec21190d2dbe2de', off: '重複（同じ話を別の行が言っている）' },
+  'air-peace.jobs.fo-right-to-work-fo.ea0cc21a': { h: '5e54d2a19e78a4be', off: '重複（同じ話を別の行が言っている）' },
+  'air-peace.jobs.fo-total-hours-fo.500c2b67': { h: '43e874b42271d8b9', label: '応募に要る飛行時間', value: '2,000時間以上', cond: '副操縦士・エンブラエル・2026年', en: { label: 'Minimum total time', value: '2,000 hours', cond: 'First Officer, Embraer, 2026' } },
+  'air-peace.jobs.fo-type-rating-fo.4d3d83a4': { h: 'c3df69f94e3c8fa8', off: '重複（同じ話を別の行が言っている）' },
+  'air-peace.scale.fleet-total.bcdccdd8': { h: '1f39aed4e5616cf1', label: '運航している機材', value: '16機', cond: '2025年6月', en: { label: 'Aircraft in service', value: '16', cond: 'June 2025' } },
+  'air-peace.work.days-off.cda9bb8b': { h: 'e616e5c7ee78b9b6', off: '重複（同じ話を別の行が言っている）' },
+  'air-peace.work.roster-pattern.04afd6f1': { h: '76f8d3656399259a', label: 'ロスター', value: '8週勤務・3週休み', cond: '契約のパイロット・2026年', lead: true, en: { label: 'Roster', value: '8 weeks on, 3 weeks off', cond: 'Contract pilots, 2026' } },
+  'air-peace.work.training-bond.6d607158': { h: 'cfb26021e8297147', off: '会長の発言で、額は訓練にかかる費用（パイロットの条件として言えない）' },
+  'air-peace.work.upgrade-years.73babc20': { h: '49ae17105cc94832', label: '機長への昇格', value: '2年', cond: '自社養成のパイロット', en: { label: 'Upgrade to captain', value: '2 years', cond: 'Cadet-trained pilots' } },
+  'air-peace.work.working-time.474487ab': { h: 'd8331eef8b01f2af', label: 'フライトタイムの上限', value: '暦年で900時間', en: { label: 'Flight time limit', value: '900 hours per calendar year' } },
+  'airasia.benefits.commuting.8caf0035': { h: 'a2889808f6babf83', off: 'パイロットの条件ではない（地上職の業務の説明）' },
+  'airasia.work.roster-pattern.0d43d27f': { h: '5ebebadd16f32a4b', off: '手続きの話（休暇の申請の窓口）' },
+  'airasia.work.roster-pattern.3926155e': { h: 'ff415ff4eee6d34a', off: 'パイロットの条件ではない（地上職の業務の説明・スタンバイがあるとだけ）' },
+  'airasia.work.training-bond.32cd6e73': { h: '558d0539c4a64ec1', label: '勤続の約束（ボンド）', value: 'あり', cond: '訓練生', en: { label: 'Training bond', value: 'Yes', cond: 'Cadets' } },
+  'alaska-airlines.work.days-off.12fb6db9': { h: '2c9bfe56bf18767a', label: '休日', value: '月12日以上（31日の月は13日以上）', cond: 'スタンバイ要員を除く・2025年', lead: true, en: { label: 'Days off', value: 'At least 12 a month (13 in 31-day months)', cond: 'Lineholders, 2025' } },
+  'alaska-airlines.work.days-off.c47b0a40': { h: '80ce2626916c0604', off: '重複（同じ話を別の行が言っている）' },
+  'alaska-airlines.work.roster-pattern.5ff7078c': { h: 'b2fbf29c1d72ec0c', label: '勤務の希望（ビッド）', value: 'あり（勤続の長い順に割り当て）', cond: '2022年から', en: { label: 'Bidding', value: 'Yes (PBS, awarded by seniority)', cond: 'Since 2022' } },
+  'alaska-airlines.work.sick-leave.0a3595bc': { h: 'f5af88996714046a', label: '有給の病気休暇', value: '月5.5時間ずつ積み立て', cond: '2025年', en: { label: 'Paid sick leave', value: 'Accrues 5.5 hours a month', cond: '2025' } },
+  'allegiant.base.r2x-bli-closing-november': { h: 'ddc1512f763a16e5', off: '2026年11月に閉じる拠点（今の拠点として出せない）' },
+  'allegiant.benefits.r8-annual-leave-1': { h: 'd2fa4fc9ed151c4e', label: '年次休暇', value: '年7日（1年目）〜28日（9年目以上）', lead: true, en: { label: 'Annual leave', value: '7 days (year 1) to 28 days (year 9 and later)' } },
+  'allegiant.benefits.r8-annual-leave-2to4': { h: 'e4ca417873711707', off: '重複（同じ話を別の行が言っている）' },
+  'allegiant.benefits.r8-annual-leave-5to8': { h: 'f25126bb23044d4c', off: '重複（同じ話を別の行が言っている）' },
+  'allegiant.benefits.r8-annual-leave-9plus': { h: '152f21698ab67383', off: '重複（同じ話を別の行が言っている）' },
+  'american.base.pilot-base-city.a2ac86f3': { h: 'ae64412b70b0370c', label: '拠点', value: 'ダラス・フォートワース', en: { label: 'Base', value: 'Dallas/Fort Worth' } },
+  'asiana.jobs.pilot-license.2e012e86': { h: 'ed50c21954163cb0', label: '応募に要る免許', value: '事業用操縦士・多発限定・計器飛行証明（韓国の免許）', cond: '軍出身の新人パイロット', en: { label: 'License required', value: 'Korean CPL with multi-engine and instrument ratings', cond: 'Ex-military new-hire pilots' } },
+  'asiana.jobs.pilot-total-hours.2c5852f8': { h: '8916a8760ddd0867', label: '応募に要る飛行時間', value: '1,000時間以上（固定翼）', cond: '軍出身の新人パイロット', en: { label: 'Minimum total time', value: '1,000 hours fixed-wing', cond: 'Ex-military new-hire pilots' } },
+  'bamboo-airways.scale.fleet-total.c715fb75': { h: '4e732f209305cd5f', label: '運航している機材', value: '1機', cond: '2026年9月', en: { label: 'Aircraft in service', value: '1', cond: 'September 2026' } },
+  'delta.base.pilot-base.4578a66e': { h: '54a9936455ed0c68', off: '拠点ではない（LAX の拠点に属する発着空港）' },
+  'delta.base.pilot-base.5410478a': { h: '154c11a938d60717', off: '拠点ではない（LAX の拠点に属する発着空港）' },
+  'delta.base.pilot-base.6d14f81d': { h: '3a7a31a68165e850', off: '拠点ではない（LAX の拠点に属する発着空港）' },
+  'delta.base.pilot-base.9887e692': { h: 'c041f13ad230a157', off: '拠点ではない（ニューヨークの拠点に属する発着空港）' },
+  'delta.base.pilot-base.bbaf970e': { h: 'c01af5549e4da123', off: '拠点ではない（LAX の拠点に属する発着空港）' },
+  'egyptair.base.pilot-base-city.c0a05e96': { h: '0c851c93c1d4b930', off: '重複（同じ拠点を空港の行が言っている）' },
+  'egyptair.benefits.annual-leave.bcfc8196': { h: 'cfc4fd45ed7a184b', label: '年次休暇', value: '最大年45日', cond: '勤続の長いパイロット', lead: true, en: { label: 'Annual leave', value: 'Up to 45 days a year', cond: 'Senior pilots' } },
+  'egyptair.benefits.staff-travel.fe5befc5': { h: '924e64896fb5927a', label: '社員の航空券', value: '90%割引（ID90）・自社便とスターアライアンス', cond: '本人と家族', en: { label: 'Staff travel', value: 'ID90 on EgyptAir and Star Alliance carriers', cond: 'Pilots and family' } },
+  'egyptair.work.days-off.21c11a4d': { h: '7f85502dda1bdb11', label: '休日', value: '4週で6日以上', en: { label: 'Days off', value: 'At least 6 in any 4 weeks' } },
+  'egyptair.work.roster-pattern.26939dd7': { h: 'b14579115a8715de', off: '意味が取れない（何の15日か引用でわからない）' },
+  'egyptair.work.working-time.c45b711f': { h: 'e0bd29c87acdc32e', label: '月のブロックタイム', value: '月70〜85時間', lead: true, en: { label: 'Monthly block hours', value: '70–85 hours a month' } },
+  'ethiopian-airlines.base.pilot-base-city.f899bb06': { h: '84bd9bb417ade2f2', off: '重複（同じ拠点を空港の行が言っている）' },
+  'ethiopian-airlines.benefits.r12-cba-firstyear-leave': { h: '0127e5034d86d653', label: '年次休暇', value: '年16日（勤務日）', cond: '勤続1年目', lead: true, en: { label: 'Annual leave', value: '16 working days a year', cond: 'First year of service' } },
+  'fiji-airways.jobs.cap-total-hours-cap.58046d7b': { h: '7e1ca18e7e591791', label: '応募に要る飛行時間', value: '3,500時間以上', cond: '契約の機長・B737 MAX', en: { label: 'Minimum total time', value: '3,500 hours', cond: 'Contract captain, B737 MAX' } },
+  'fiji-airways.jobs.fo-license-fo.b461e218': { h: '7abb416fa4589f15', label: '応募に要る免許', value: 'ATPL（ICAO）', cond: '契約の副操縦士・A350/A330', en: { label: 'License required', value: 'ICAO ATPL', cond: 'Contract first officer, A350/A330' } },
+  'flydubai.base.pilot-base-city.37b1073c': { h: '40918de7630d25b1', off: '重複（同じ拠点を空港の行が言っている）' },
+  'garuda-indonesia.benefits.commuting.7f3da718': { h: '547ef5e8e3bbc630', label: '家からの送迎', value: 'あり', cond: '2023年', lead: true, en: { label: 'Crew transport from home', value: 'Yes', cond: '2023' } },
+  'gulf-air.base.pilot-base-city.2a110602': { h: 'ce649094313e523d', off: '重複（同じ拠点を空港の行が言っている）' },
+  'gulf-air.benefits.commuting.137f3219': { h: 'c4c953651d4787ce', off: 'パイロットの条件ではない（地上職の業務の説明）' },
+  'hong-kong-express.benefits.commuting.0f9151cb': { h: '20a0f8221e197e7b', label: '本土からの通勤', value: '深圳・珠海などに住んで通える', cond: '中国本土出身のパイロット', lead: true, en: { label: 'Commuting from mainland China', value: 'May live in Shenzhen, Zhuhai or other Greater Bay Area cities', cond: 'Pilots from mainland China' } },
+  'indigo.base.pilot-base-city.58903057': { h: '0b5730bd0cd71743', off: '重複（同じ拠点を空港の行が言っている）' },
+  'indigo.benefits.annual-leave-cap.5ea890e7': { h: 'e12249a181a0d82f', label: '年次休暇', value: '年42日', cond: '機長', lead: true, en: { label: 'Annual leave', value: '42 days a year', cond: 'Captain' } },
+  'indigo.benefits.annual-leave-fo.22d593b2': { h: '21818b5a544d4fa4', label: '年次休暇', value: '年22日', cond: '副操縦士', en: { label: 'Annual leave', value: '22 days a year', cond: 'First Officer' } },
+  'indigo.work.roster-pattern.b0a35365': { h: '313d7f40d87f2b4f', label: '勤務日数', value: '週5〜6日', cond: '自社養成の課程から入るパイロット', en: { label: 'Workdays', value: '5–6 days a week', cond: 'Cadet program graduates' } },
+  'indigo.work.roster-pattern.e5bdf44c': { h: 'c9cb5bf2239fc7bf', label: 'ロスターの発表', value: '毎月25日（翌月分）', en: { label: 'Roster publication', value: '25th of each month (for the next month)' } },
+  'indigo.work.training-bond-fo.5f8141ef': { h: '83cc98a4dc5b4a9c', label: '訓練の保証金（日付なしの小切手）', money: { cur: 'INR', n: 3000000, per: 'once' }, cond: '訓練生・契約に反したときだけ換金', en: { label: 'Training security (undated check)', cond: 'Cadets; cashed only if the contract is breached' } },
+  'indigo.work.training-bond-fo.af0f7afc': { h: '1949ecb0bd281fc5', label: '勤続の約束（ボンド）', value: '5年', cond: '訓練生', en: { label: 'Training bond', value: '5 years', cond: 'Cadets' } },
+  'indigo.work.upgrade-years-fo.cb3d598e': { h: 'a660c16419cadbe5', label: '機長への昇格', value: '約4年（上級副操縦士から）', lead: true, en: { label: 'Upgrade to captain', value: 'About 4 years from senior first officer' } },
+  'kenya-airways.base.pilot-base-city.8e2f7472': { h: '84180e77397ec35a', off: '重複（同じ拠点を空港の行が言っている）' },
+  'kenya-airways.benefits.annual-leave.7b9d561c': { h: '6017a220eb257fa3', off: '逸話（休めずにたまった休暇の話）' },
+  'kenya-airways.benefits.commuting-fo.f8d02d36': { h: 'a1f62e003f964af5', label: '通勤の手当', money: { cur: 'KES', n: 13949, per: 'month' }, cond: '副操縦士・B767', lead: true, en: { label: 'Transport allowance', cond: 'First Officer, B767' } },
+  'kenya-airways.benefits.staff-travel.6150094a': { h: '02a427dd16c7c819', label: '社員の航空券', value: '年2回まで無料（各回4人まで同行可）', cond: '社員全体', en: { label: 'Staff travel', value: '2 free trips a year, each with up to 4 companions', cond: 'All staff' } },
+  'kenya-airways.work.days-off-fo.8a7270ef': { h: '5f2af57f480509d9', label: '休日', value: '28日で8日以上', cond: '副操縦士', lead: true, en: { label: 'Days off', value: 'At least 8 in a 28-day roster', cond: 'First Officer' } },
+  'kenya-airways.work.roster-pattern-fo.eeec53b2': { h: 'aaa235a0a09ca26f', off: '重複（同じ話を別の行が言っている）' },
+  'kenya-airways.work.training-bond-fo.2085d06a': { h: 'd062d7bb7383e719', label: '勤続の約束（ボンド）', value: '2年（型式限定の訓練）', cond: '副操縦士', en: { label: 'Training bond', value: '2 years (type rating course)', cond: 'First Officer' } },
+  'kenya-airways.work.upgrade-years.93dc1f55': { h: 'c75b2866ed29d43a', label: '機長への昇格', value: '副操縦士から5〜7年', en: { label: 'Upgrade to captain', value: '5–7 years from first officer' } },
+  'kenya-airways.work.working-time-fo.c23f2c6f': { h: '0131130b39532f63', label: '年のフライトタイム', value: '年800〜900時間', cond: '副操縦士', en: { label: 'Annual flight time', value: '800–900 hours a year', cond: 'First Officer' } },
+  'korean-air.benefits.commuting.e36b169f': { h: '50d7b85d9075d285', label: '通勤の航空券', value: '自社便で会社が手配（ビジネスクラスが基本）', cond: '外国人契約のパイロット', lead: true, en: { label: 'Commuting tickets', value: 'On Korean Air flights, arranged by the company (typically business class)', cond: 'Expat contract pilots' } },
+  'korean-air.work.r2d-tas-captain-sick-days': { h: '84ebf531977c088f', label: '有給の病気休暇', value: '年14日', cond: '外国人契約の機長', lead: true, en: { label: 'Paid sick leave', value: '14 days a year', cond: 'Expat contract captain' } },
+  'kuwait-airways.benefits.commuting.cbb162f7': { h: 'dc56b19d3020916e', label: '通勤の手当', value: 'あり', en: { label: 'Transport allowance', value: 'Yes' } },
+  'kuwait-airways.benefits.medical.5363d489': { h: 'f54155ffd96bb171', label: '社内の診療', value: 'あり（乗員向けの医療センター）', en: { label: 'In-house medical care', value: 'Yes (in-house aeromedical center)' } },
+  'kuwait-airways.benefits.pension.b63d9735': { h: 'f37f085f006fbf90', label: '年金', value: 'あり（パイロットと技術者の年金制度）', cond: '2025年', lead: true, en: { label: 'Pension', value: 'Yes (pilots and engineers pension plan)', cond: '2025' } },
+  'kuwait-airways.benefits.staff-travel.703ac675': { h: 'a16b6a64f6eb6fb9', label: '社員の航空券', value: 'あり', cond: '社員全体', en: { label: 'Staff travel', value: 'Yes', cond: 'All staff' } },
+  'malaysia-airlines.benefits.annual-leave.8faeba79': { h: 'ce2c2f65f4ffb3ae', label: '年次休暇', value: '年21日', cond: '社員全体・2022年', lead: true, en: { label: 'Annual leave', value: '21 days a year', cond: 'All staff, 2022' } },
+  'malaysia-airlines.benefits.commuting.ac6fb4c2': { h: 'c11c5ebeea29d98d', off: 'パイロットの条件ではない（地上職の業務の説明）' },
+  'malaysia-airlines.work.roster-pattern.83968f5b': { h: '6ec0f5f14aeea796', off: '手続きの話（臨時の休暇の承認）' },
+  'malaysia-airlines.work.roster-pattern.b365c0a4': { h: '00bbcc115f5efa06', off: 'パイロットの条件ではない（地上職の業務の説明・スタンバイがあるとだけ）' },
+  'peach.jobs.cap-age-cap.4aeea870': { h: 'b058342a5b78ddb0', label: '応募の年齢', value: '60歳未満', cond: '機長（型式限定あり）', en: { label: 'Age limit', value: 'Under 60', cond: 'Type-rated captain' } },
+  'philippine-airlines.work.roster-pattern-fo.dc7bcb83': { h: '0123e043bfe81bc3', off: '口コミの不満で、決まりとして言えない' },
+  'philippine-airlines.work.roster-pattern.2998c056': { h: 'fd492e6b187784f2', off: '逸話（祝日の乗務を進んで引き受ける話）' },
+  'philippine-airlines.work.roster-pattern.e5ad4d99': { h: '6416ff745f8cc4cf', off: 'パイロットの条件ではない（地上職の業務の説明）' },
+  'qatar-airways.benefits.commuting-fo.ac57d116': { h: 'e5f3fe2743851d90', label: '通勤の手当', money: { cur: 'QAR', n: 2000, per: 'month' }, cond: '副操縦士・B777', en: { label: 'Transport allowance', cond: 'First Officer, B777' } },
+  'qatar-airways.benefits.commuting.a6f81f07': { h: '98048195838ccf61', label: '自宅から通う形のロスター', value: 'なし', en: { label: 'Commuting roster', value: 'Not offered' } },
+  'qatar-airways.benefits.staff-travel.2b521215': { h: '1b775ea5eab2c3d9', off: '重複（中身は別の行が具体的に言っている）' },
+  'qatar-airways.benefits.staff-travel.481e8986': { h: '3d846423626c3f6a', label: '休暇の航空券', value: '年1回無料（本人・配偶者・子）', en: { label: 'Leave ticket', value: '1 free ticket a year (pilot, spouse and children)' } },
+  'qatar-airways.benefits.staff-travel.d7c80cdd': { h: 'b4c178272d75d7e7', label: '友人の航空券', value: '50%割引（ID50）', en: { label: 'Buddy passes', value: 'ID50' } },
+  'qatar-airways.work.days-off.3338aa81': { h: 'e1f65def3214fa7c', off: '重複（同じ話を別の行が言っている）' },
+  'qatar-airways.work.days-off.694ab833': { h: 'd9159197c45d6e45', label: '休日', value: '月12〜14日', lead: true, en: { label: 'Days off', value: '12–14 a month' } },
+  'qatar-airways.work.roster-pattern.173bb842': { h: '57b97a758edcfca0', label: '勤務の希望（ビッド）', value: 'あり', en: { label: 'Bidding', value: 'Yes' } },
+  'riyadh-air.benefits.pension-fo.f4e41027': { h: 'b1a23e5c2ad84174', label: '年金', value: '国の社会保険に加入（留学中の訓練も加入期間に入る）', cond: '奨学金で採用された自国籍の訓練生', en: { label: 'Pension', value: 'Enrolled in GOSI social insurance, including training abroad', cond: 'Saudi cadets on scholarship' } },
+  'riyadh-air.benefits.staff-travel.38920303': { h: 'b020cda2e6d78a62', off: '手続きの話（予約の方法）' },
+  'riyadh-air.benefits.staff-travel.7b6a318d': { h: 'c520768a77b53f6a', off: '手続きの話（搭乗の優先順）' },
+  'royal-jordanian.work.training-bond-cap.b9fbb99e': { h: '601b0e95c94beb8d', label: '勤続の約束（ボンド）', value: 'なし（E2 への移行訓練）', cond: 'E190/E195 の型式限定を持つ機長・2026年', lead: true, en: { label: 'Training bond', value: 'None for the E2 transition course', cond: 'Captains rated on the E190/E195, 2026' } },
+  'saudia.base.pilot-base-city.239db28f': { h: '7c75a17bf2ffa62c', off: '重複（同じ拠点を空港の行が言っている）' },
+  'saudia.base.pilot-base-city.57225b81': { h: '6ad54ae95df1da2a', label: '拠点', value: 'ジェッダ', en: { label: 'Base', value: 'Jeddah' } },
+  'saudia.benefits.staff-travel-cap.37febc63': { h: '4c2b0e15d32ba042', off: '口コミで中身が具体でない（閑散期だけという感想）' },
+  'saudia.benefits.staff-travel.82511e1f': { h: 'edc08eb7428bdbe4', off: '手続きの細かい話（家族の券のアップグレード）' },
+  'saudia.benefits.staff-travel.f8cc66ef': { h: '9bf963aa5ac6de85', off: '手続きの細かい話（家族の券のアップグレード）' },
+  'singapore-airlines.base.pilot-base-city.c88e6ed4': { h: 'cadf14cf055abde0', off: '重複（同じ拠点を空港の行が言っている）' },
+  'singapore-airlines.benefits.annual-leave-cap.89b95790': { h: '141ec1796e11570b', label: '年次休暇', value: '年36日', cond: '経験者採用の機長', lead: true, en: { label: 'Annual leave', value: '36 days a year', cond: 'Direct-entry captain' } },
+  'singapore-airlines.benefits.annual-leave-fo.b69e73ac': { h: '39e1ac117b70af01', label: '年次休暇', value: '年32日', cond: '経験者採用の副操縦士', en: { label: 'Annual leave', value: '32 days a year', cond: 'Direct-entry first officer' } },
+  'singapore-airlines.benefits.commuting.2a35c799': { h: '82c2aba32b8236ad', off: '中身が無い（変動の手当の1つとだけ）' },
+  'singapore-airlines.work.annual-days-off.7fc658fc': { h: '6dbe5748377bb80c', label: '休日', value: '年106日以上', cond: '自国籍のパイロット・2022〜2025年', lead: true, en: { label: 'Days off', value: 'At least 106 a year', cond: 'Local pilots, 2022–2025' } },
+  'singapore-airlines.work.annual-days-off.9ce324c3': { h: '0e094b054f4f5e5a', label: '休日', value: '年104日以上', cond: '外国籍のパイロット・2022〜2025年', en: { label: 'Days off', value: 'At least 104 a year', cond: 'Expat pilots, 2022–2025' } },
+  'singapore-airlines.work.roster-pattern.398e841f': { h: 'ed7fe545fa413b01', off: '手続きの話（休日の連絡の要否）' },
+  'singapore-airlines.work.roster-pattern.578361e2': { h: '0d9e7237803c1010', label: '勤務の希望（ビッド）', value: '希望の勤務パターンを申請できる', en: { label: 'Bidding', value: 'Preferred patterns can be requested' } },
+  'singapore-airlines.work.roster-pattern.fdb47277': { h: 'c7d07ae967ffdc0a', off: '手続きの話（休日の表示の仕方の試み）' },
+  'singapore-airlines.work.working-time.b25f4bea': { h: '505e465abfcaa6be', label: 'フライトタイムの上限', value: '28日で100時間', cond: '2022〜2025年', en: { label: 'Flight time limit', value: '100 hours in any 28 days', cond: '2022–2025' } },
+  'singapore-airlines.work.working-time.f285d622': { h: 'f7ad5b30e95faf90', label: '勤務時間の上限', value: '28日で176時間', cond: '2022〜2025年', en: { label: 'Duty time limit', value: '176 hours in any 28 days', cond: '2022–2025' } },
+  'skymark.benefits.r10-jpc-housing': { h: '40c5c46bcb71bfc7', label: '住宅手当', money: { cur: 'JPY', n: 300000, per: 'month' }, cond: '契約の機長・B737・2025年', lead: true, en: { label: 'Housing allowance', cond: 'Contract captain, B737, 2025' } },
+  'south-african-airways.base.pilot-base-city.bc077461': { h: 'd7c15e1123a0914f', off: '重複（同じ拠点を空港の行が言っている）' },
+  'south-african-airways.benefits.commuting.33a7c712': { h: '3c99bf915edc64e1', off: '家からの送迎と言えない（調達の仕様書・決まった乗り場から空港へ）' },
+  'south-african-airways.work.training-bond.2da65333': { h: '274582f3b903e7cd', label: '勤続の約束（ボンド）', value: 'あり', cond: '訓練生', en: { label: 'Training bond', value: 'Yes', cond: 'Cadets' } },
+  'south-african-airways.work.upgrade-years-fo.42b59552': { h: 'd4833e8d55169aba', label: 'ATPL を取る期限', value: '入社から4年以内', cond: '副操縦士', en: { label: 'ATPL deadline', value: 'Within 4 years of joining', cond: 'First Officer' } },
+  'south-african-airways.work.upgrade-years.b96d1cf2': { h: 'ddf8aa84dfd8dc14', off: '一人の体験で一般化できない（昇格までの年数とも言えない）' },
+  'starlux.base.pilot-base-city.466cd5ba': { h: '471b8ef1bac5aa1e', off: '重複（同じ拠点を空港の行が言っている）' },
+  'starlux.benefits.commuting.9632c29a': { h: 'c7101231a6e360aa', label: '自宅から通う形のロスター', value: 'あり', cond: '2025年', lead: true, en: { label: 'Commuting roster', value: 'Yes', cond: '2025' } },
+  'tap.jobs.fo-total-hours-fo.26fdecac': { h: '21b4319cf846cc34', label: '応募に要る飛行時間', value: '500時間以上', cond: '副操縦士・2026年9月', en: { label: 'Minimum total time', value: '500 hours', cond: 'First Officer, September 2026' } },
+  'thai-airways.work.roster-pattern.0a32d8ce': { h: 'c5fffe5bf9ce5a32', off: 'システムの機能の紹介で、制度として言えない' },
+  'thai-airways.work.training-bond.aaa3d6b0': { h: '9d35282a13ee80bd', label: '訓練費の返還', value: '自己都合で辞めたら全額を一括で返す', cond: '訓練生・2024年', en: { label: 'Training cost repayment', value: 'Full repayment in one lump sum if the cadet quits', cond: 'Cadets, 2024' } },
+  'vietjet.benefits.commuting-cap.c40eb91a': { h: 'd51952f07a5bcf10', label: '家からの送迎', value: 'あり', cond: '外国人の機長・ハノイ', lead: true, en: { label: 'Crew transport from home', value: 'Yes', cond: 'Expat captain, Hanoi' } },
+  'vietjet.work.roster-pattern-cap.17aea365': { h: '585f3de67dae62c8', off: '意味が取れない（6/2 が週か日か引用でわからない）' },
+  'vietjet.work.roster-pattern-cap.46322d04': { h: 'e6ccce614e1f7943', label: 'ロスター', value: '3週勤務・1週休み', cond: '外国人の機長・A320', lead: true, en: { label: 'Roster', value: '3 weeks on, 1 week off', cond: 'Expat captain, A320' } },
+  'vietnam-airlines.work.roster-pattern-cap.57bdaa54': { h: '375b913f32850806', label: '自宅から通う形のロスター', value: 'あり（複数の形から選べる）', cond: '外国人契約の機長・A320・2026年', lead: true, en: { label: 'Commuting roster', value: 'Yes (choice of several patterns)', cond: 'Expat contract captain, A320, 2026' } },
+  'vietnam-airlines.work.roster-pattern-cap.61c6464b': { h: '6a4e1566c238c44d', off: '重複（同じ話を別の行が言っている）' },
+  'vietnam-airlines.work.roster-pattern-cap.7251e26c': { h: 'c97e3bcde2e46cf0', off: '重複（同じ話を別の行が言っている）' },
+  'vietnam-airlines.work.roster-pattern-cap.a14ec02b': { h: 'bf4f4f2a59ffc638', off: '重複（同じ話を別の行が言っている）' },
+  'vietnam-airlines.work.roster-pattern-cap.f3b6ca50': { h: '766c6946852e3f08', off: '重複（同じ話を別の行が言っている）' },
+  'vietnam-airlines.work.roster-pattern-fo.ac1c461c': { h: 'ac0265c8853ff486', label: 'ロスター', value: '4週勤務・4週休みを選べる', cond: '外国人契約の副操縦士・A350・2026年', en: { label: 'Roster', value: 'Option of 4 weeks on, 4 weeks off', cond: 'Expat contract first officer, A350, 2026' } },
+  'vietnam-airlines.work.training-bond-cap.aa47e9fc': { h: '144705570a2f5e7f', label: '訓練の保証金', value: 'あり', cond: '外国人契約の機長・A350・2025年', en: { label: 'Security bond', value: 'Yes', cond: 'Expat contract captain, A350, 2025' } },
 });
 
 /* ── 資料の名前（出どころのリンクの字）── 資料の ID ごと。資料自身の題は「」の中（資料の言葉）。 */
@@ -1993,6 +2140,13 @@ function itemValueEn(r) {
    数・通貨・年か月がそろわない行（期間の無い額・単位つきの数）は言わない。 */
 const moneyOf = (r, en = false) => (typeof r.value === 'number' && r.value > 0 && r.currency && !r.unit && PER[r.per]
   ? { per: en ? r.per : PER[r.per], cur: r.currency, n: r.value } : '');
+/* money に { cur, n, per } を書いた行（台帳の通貨の欄が空・単位が「만원」など）── 額は引用の額を通貨の単位に直したもの（2026-11-18）
+   per: 'once' は1回きりの額（期間の字を付けない ── 例「訓練の保証金 INR 3,000,000（約◯万円）」） */
+const moneyIn = (L, r, en = false) => {
+  if (!(L.money && typeof L.money === 'object')) return moneyOf(r, en);
+  const m = L.money, once = m.per === 'once';
+  return m.n > 0 && /^[A-Z]{3}$/.test(m.cur) && (once || PER[m.per]) ? { per: once ? '' : en ? m.per : PER[m.per], cur: m.cur, n: m.n } : '';
+};
 
 /** 英語の字（say(r, 'en') の中身）。対の無い LINES の行・英語で言えない行は null。形は say と同じ（per は 'year' か 'month'） */
 function sayEn(r) {
@@ -2003,7 +2157,7 @@ function sayEn(r) {
     const E = L.en;
     if (!E) return null;
     if (L.fleet) { const ft = E.fleet || fleetEn(L.fleet); return ft ? { fleet: ft, label: ft, value: '', cond: '', tag, lead: false } : null; }
-    const v = E.value || (L.value ? '' : L.money ? moneyOf(r, true) : itemValueEn(r));
+    const v = E.value || (L.value ? '' : L.money ? moneyIn(L, r, true) : itemValueEn(r));
     if (!E.label || !v || (L.cond && !E.cond)) return null;
     return typeof v === 'object'
       ? { label: E.label, value: v.n, cur: v.cur, per: v.per, cond: E.cond || '', lead: !!L.lead && !tag, tag, mode: L.mode || '' }
@@ -2031,7 +2185,7 @@ export function say(r, lang = 'ja') {
   const tag = TAG[r.use] || '';
   if (L) {
     if (L.fleet) return { fleet: L.fleet, label: L.fleet, value: '', cond: '', tag, lead: false };
-    const v = L.value || (L.money ? moneyOf(r) : itemValue(r));
+    const v = L.value || (L.money ? moneyIn(L, r) : itemValue(r));
     if (!L.label || !v) return null;
     return typeof v === 'object'
       ? { label: L.label, value: v.n, cur: v.cur, per: v.per, cond: L.cond || '', lead: !!L.lead && !tag, tag, mode: L.mode || '' }
@@ -2077,6 +2231,10 @@ export function agreementCheck(store) {
 }
 
 /** 古い字・名前の無い資料（store ＝ 調べの台帳）。[{ what, id, why }]。 */
+/* LINES の名前と値に入れない語（check の注） */
+export const HEDGE = /ふつう|普通は|多くの|たいてい|だいたい|試み|という声|とされる|らしい/;
+/* 数のすぐ後ろに書いた通貨の名前（「300万ルピー」「13,949ケニア・シリング」「月5万ウォン」）。地名の「フィンランド」「サンフランシスコ」は当たらない */
+export const CUR_WORDS = /\d[\d,.]*\s*[万億]?\s*[ァ-ヶー・]*?(?:ルピー|シリング|ナイラ|リヤル|リヤール|ディルハム|ディナール|ウォン|バーツ|リンギット|ペソ|ランド|ルピア|人民元|元|ドル|ユーロ|ポンド|フラン|ラク|クロール)/;
 export function check(store) {
   const bad = [...agreementCheck(store)];
   const words = [...Object.entries(LINES).flatMap(([id, L]) => [L.label, L.value, L.cond, L.fleet].map(t => [id, t])),
@@ -2094,6 +2252,18 @@ export function check(store) {
     if (L.fleet) { en('LINES', id, E.fleet, L.fleet); continue; }
     en('LINES', id, E.label, L.label); en('LINES', id, E.value, L.value); en('LINES', id, E.cond, L.cond);
     if (!L.value && E.value) bad.push({ what: 'LINES（英語）', id, why: '日本語に無い値を英語だけに書いている' });
+  }
+  /* ★2026-11-18 オーナーが突き返した字（「ふつう70〜85」「多くのパイロットが少なくとも70日」「月13,949ケニア・シリング」「300万ルピー」）：
+     LINES の名前と値に、ぼかし・逸話の語と、字で書いた通貨の名前を入れない。額は money: true（通貨・額・期間は台帳・円の目安つき）。
+     off … 画面に出さない行と、その理由（逸話・手続きの細かい話・意味の取れない記号など）。理由は必ず書く */
+  for (const [id, L] of Object.entries(LINES)) {
+    if ('off' in L) { if (!(typeof L.off === 'string' && L.off.trim())) bad.push({ what: 'LINES', id, why: 'off には出さない理由を書く' }); continue; }
+    for (const t of [L.label, L.value]) {
+      if (typeof t !== 'string') continue;
+      const h = HEDGE.exec(t), c = CUR_WORDS.exec(t);
+      if (h) bad.push({ what: 'LINES', id, why: `ぼかし・逸話の語「${h[0]}」を字に入れない（${t}）` });
+      if (c) bad.push({ what: 'LINES', id, why: `通貨の名前「${c[0]}」を字で書かない ── 額は money: true（${t}）` });
+    }
   }
   for (const [k, I] of Object.entries(ITEM)) en('ITEM', k, I.label_en, I.label);
   for (const [k, v] of Object.entries(SOURCES)) en('SOURCES', k, SOURCES_EN[k], v);

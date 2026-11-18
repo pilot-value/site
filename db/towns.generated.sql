@@ -50,7 +50,13 @@ select v.airline, v.base, public.pv_town_key(v.name), v.name, 'ledger', 'public'
     ('starflyer', 'HND', '横浜'),
     ('ana-wings', 'HND', '品川'),
     ('ana-wings', 'HND', '豊洲'),
-    ('ana-wings', 'HND', '横浜')
+    ('ana-wings', 'HND', '横浜'),
+    ('starlux', 'TPE', '南崁'),
+    ('starlux', 'TPE', '青埔'),
+    ('starlux', 'TPE', '林口'),
+    ('hong-kong-express', 'HKG', '東涌'),
+    ('hong-kong-express', 'HKG', '愉景灣'),
+    ('hong-kong-express', 'HKG', '青衣')
   ) as v(airline, base, name)
 on conflict (airline, base_iata, tkey) do update set
   name = excluded.name, origin = 'ledger', state = 'public', alias_of = null,
@@ -100,7 +106,13 @@ select v.airline, v.base, public.pv_town_key(v.alias), v.alias, 'ledger', 'publi
     ('starflyer', 'HND', '横浜', 'Yokohama'),
     ('ana-wings', 'HND', '品川', 'Shinagawa'),
     ('ana-wings', 'HND', '豊洲', 'Toyosu'),
-    ('ana-wings', 'HND', '横浜', 'Yokohama')
+    ('ana-wings', 'HND', '横浜', 'Yokohama'),
+    ('starlux', 'TPE', '南崁', 'Nankan'),
+    ('starlux', 'TPE', '青埔', 'Qingpu'),
+    ('starlux', 'TPE', '林口', 'Linkou'),
+    ('hong-kong-express', 'HKG', '東涌', 'Tung Chung'),
+    ('hong-kong-express', 'HKG', '愉景灣', 'Discovery Bay'),
+    ('hong-kong-express', 'HKG', '青衣', 'Tsing Yi')
   ) as v(airline, base, name, alias)
   join public.pv_towns t
     on t.airline = v.airline and t.base_iata = v.base and t.tkey = public.pv_town_key(v.name) and t.alias_of is null
