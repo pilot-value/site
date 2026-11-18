@@ -958,8 +958,8 @@ for (const s of ROLLED) {
        （読み口の答えを使わない）：台帳のその欄の、使い方が募集で why を通り、言い方が在り、資料が会社自身の行。 */
     const FA = (R2.FACTS || {})[s] || {};
     const adOf = k => (FA[k] || []).filter(r => r.use === '募集' && !why(r) && say(r) && r.src && r.src[0] && r.src[0].publisher_kind === 'airline' && /^https:\/\//.test(r.src[0].url || ''));
-    /* ★2026-11-18 から第三者の資料の条件つきの行も「今の公表」と同じく1行めに立つ（B-3 の注）── 資料の種類では分けない */
-    const curOf = k => (FA[k] || []).some(r => r.use === '条件つき' && !why(r) && say(r) && (rankOf(r) !== 'trainee' || /^訓練/.test(say(r).label)));
+    /* 「今の公表」と数えるのは会社自身の資料か労働協約の行だけ（第三者の資料の行は数えない ── 2026-11-18 に数えて、募集要項の行が消えたのを見逃した） */
+    const curOf = k => (FA[k] || []).some(r => r.use === '条件つき' && !why(r) && say(r) && (((r.src || [])[0] || {}).publisher_kind === 'airline' || !!AGREEMENTS[((r.src || [])[0] || {}).source_id]) && (rankOf(r) !== 'trainee' || /^訓練/.test(say(r).label)));
     const adMiss = ['work', 'benefits'].filter(k => adOf(k).length && !curOf(k)).filter(k => {
       const c = cellOf2(g, k);
       return /<p class="pvg-v">確認できていません<\/p>/.test(c) || !/<p class="pvg-k">[^]*?<span class="pvg-tag pvg-tag-q" data-use="募集">募集<\/span>[^]*?<\/p>/.test(c) || !/<p class="pvg-note">[^<]+<\/p>/.test(c);
