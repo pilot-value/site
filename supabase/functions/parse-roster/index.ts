@@ -71,7 +71,7 @@ const DENO = (globalThis as any).Deno;
 const env = (k: string, d = '') => (DENO?.env?.get(k) ?? d) as string;
 
 /* ★このファイルを直したら必ず上げる（貼った版を {ping:1} で読むための札）。 */
-export const BUILD = '2026-11-17-3';
+export const BUILD = '2026-11-18-1';
 
 const ANTHROPIC_API_KEY = env('ANTHROPIC_API_KEY');
 const SUPABASE_URL = env('SUPABASE_URL');
@@ -257,11 +257,13 @@ export type LegKind = typeof LEG_KINDS[number];
 export type Cut = typeof CUTS[number];
 export type DayCat = typeof DAY_CATS[number];
 /* arr … 読み直しの間だけの印（返す前に消す）：先頭の「-」で印字された、前の日付から続く便の到着だけの切れ端。
+   apt1 … 読み直しの間だけの印（返す前に消す）：時刻が1つ・空港が1つだけの便の行で、場所の欄に返ってきた空港。
+          出発か到着かは次の日付の行で決まる（joinNext が出発地にする）ので、ここでは決めない。
    rel … その行の D-OFF の欄の時刻（cleanDay が日の d_off にして消す）。 */
 export type Leg = {
   seq: number; flight: string | null; from: string | null; to: string | null; loc: string | null;
   out: string | null; in: string | null; in_day: number; block: string | null;
-  kind: LegKind; partial: boolean; page: number; row: number | null; arr?: boolean;
+  kind: LegKind; partial: boolean; page: number; row: number | null; arr?: boolean; apt1?: string;
   rel?: { t: string; plus: number } | null;
 };
 /* code … 英字の記号（RE.code）か、辞書に無い言葉の札（TOKEN_RE ＝ '#'＋16桁・鍵があるときだけ）。
@@ -431,11 +433,15 @@ function cleanLeg(src: unknown, page: number, st: Stats): Leg | null {
     from = loc; loc = null;
   }
   else if (kind !== 'unknown' && loc) {
-    /* ★出発だけの行の出発地が場所の欄に返ってきた（「18:24 MUC」・2026-11-17）→ 出発地に戻す。それ以外は捨てる。 */
+    /* ★出発だけの行の出発地が場所の欄に返ってきた（「18:24 MUC」・2026-11-17）→ 出発地に戻す。
+       ★時刻を到着の欄に入れた形（「23:34」と BOM・2026-11-18）は、出発か到着かを次の日付の行で決める（apt1 に預ける）。
+       それ以外は捨てる。 */
     if (!from && !to && !arr && RE.apt.test(loc) && out0 && !in0) from = loc;
-    else st.dropped_fields++;
-    loc = null;
+    else if (!from && !to && !arr && RE.apt.test(loc) && !out0 && in0 && !in0.dash) { /* 下で apt1 に */ }
+    else { st.dropped_fields++; loc = null; }
   }
+  const apt1 = kind !== 'ground' && kind !== 'unknown' && loc ? loc : null;
+  if (apt1) loc = null;
   field(src.out, out0); field(src.in, in0);
   const out = arr ? null : out0;
   const inn = arr ? (in0 ?? out0) : in0;
@@ -455,6 +461,7 @@ function cleanLeg(src: unknown, page: number, st: Stats): Leg | null {
     block, kind, partial: src.partial === true, page, row: intIn(src.row, 1, 999),
   };
   if (arr) leg.arr = true;
+  if (apt1) leg.apt1 = apt1;
   /* その行の D-OFF の欄（rel）。日の d_off が空のとき、cleanDay が最後の行のものを使う。 */
   const rel = parseClock(src.rel);
   if (rel) leg.rel = rel;
@@ -530,7 +537,7 @@ function cleanDay(src: Obj, date: string, page: number, st: Stats, opt: CleanOpt
   /* ★便のある日の、数字だけの記号・その日の便名と同じ記号は勤務の記号ではない（便名を記号として聞いていた・2026-11-17）。 */
   if (code && legs.length && (/^\d+$/.test(code) || legs.some((l) => l.kind !== 'ground' && l.flight === code))) { code = null; st.dropped_fields++; }
   /* ★その日の空港・場所と同じ記号は、滞在先の欄（STY）の空港で、勤務の記号ではない（「JFK」を記号として聞いていた）。 */
-  if (code && legs.some((l) => l.from === code || l.to === code || l.loc === code)) { code = null; st.dropped_fields++; }
+  if (code && legs.some((l) => l.from === code || l.to === code || l.loc === code || l.apt1 === code)) { code = null; st.dropped_fields++; }
   /* ★日付の行と同じ行の頭（JOB の欄・便名）に記号・番号が入っているのに、日の記号がどの行の頭とも違う →
      日の記号はその行の別の欄（DUTY の役割「OMAE」「OUTR」「AOCE」・SIM の枠「S0410」や訓練飛行「9262」の日）から来ている。
      勤務の記号ではない（2026-11-17・便のある日も同じ）。1行目の頭が空なら、その頭を日の記号に移した形（「GS」）なので残す。
@@ -805,7 +812,10 @@ function groupOf(src: unknown[], at: number, d: number, ok: (grp: Obj[]) => bool
 export const RECHECK_MAX = 8;
 export const RECHECK_ROUNDS = 2;     // 見直しでも落とすことがある（同じ行を2回目は読めた＝実測）。2回まで
 export const RECHECK_TIMEOUT_MS = 30_000;
-/* 聞き直す日（日の数字）。画像の端で切れた日は聞かない（写っていない）。 */
+/* 月の最後の日か（次の日が1日） */
+const monthEnd = (date: string) => new Date(Date.parse(date + 'T00:00:00Z') + 86400000).toISOString().slice(8, 10) === '01';
+/* 聞き直す日（日の数字）。画像の端で切れた日は聞かない（写っていない）。
+   ★ただし月の最後の日の「下が切れた」は聞く（日付の行は写っている。表の終わりの行を AI が画像の端と取り違える・2026-11-18）。 */
 export function recheckTargets(days: Day[]): number[] {
   const fly = (d: Day) => d.legs.some((l) => l.kind !== 'ground');
   const near = (a: Day | undefined, b: Day, n: number) => !!a && dnum(a.date) - dnum(b.date) === n;
@@ -814,7 +824,7 @@ export function recheckTargets(days: Day[]): number[] {
   const fdays = days.filter(fly);
   const cols = fdays.length > 0 && fdays.filter((d) => d.d_on || d.d_off).length * 2 >= fdays.length;
   days.forEach((d, i) => {
-    if (d.cut) return;
+    if (d.cut && !(d.cut === 'bottom' && monthEnd(d.date))) return;
     const P = near(days[i - 1], d, -1) ? days[i - 1] : undefined, N = near(days[i + 1], d, 1) ? days[i + 1] : undefined;
     const reportOnly = (x?: Day) => !!x && !!x.d_on && !x.d_off && !x.legs.length;
     const miss =
@@ -897,8 +907,13 @@ export function buildRecheck(b64: string, mime: string, ds: number[]): Record<st
    なので D-ON と返した値だけを、次のときに解散と読み直す ── 日付の下の続きの行の2つ目の時刻（出頭は日付の行で1回）・
    その日付の業務の終わり以後の時刻・業務の行が無く前の日付の勤務が閉じていない日の時刻。D-OFF と返した値はそのまま
    （「15:30T」のように、通勤の便乗の前に解散する日がある）。 */
-export function applyRecheck(raw: Obj, v: unknown): Obj | null {
-  const list = isObj(v) && Array.isArray(v.dates) ? v.dates.slice(0, RECHECK_MAX * 2) : [];
+/* ★asked … 聞いた日の数字。答えはそれ以外の日付も返すことがある（30日だけ聞いて1〜30日を全部返し、頭から切った
+   16件に 30日が入らず、読めていた解散が当たらなかった・2026-11-18）。聞いた日付の答えだけを使う。 */
+export function applyRecheck(raw: Obj, v: unknown, asked?: number[]): Obj | null {
+  const want = asked ? new Set(asked) : null;
+  const list = (isObj(v) && Array.isArray(v.dates) ? v.dates : [])
+    .filter((x: unknown) => !want || (isObj(x) && want.has(intIn(x.d, 1, 31) ?? 0)))
+    .slice(0, RECHECK_MAX * 2);
   const src: unknown[] = Array.isArray(raw.days) ? raw.days.slice(0, 100) : [];
   const dated = (s: unknown) => isObj(s) && intIn(s.d, 1, 31) !== null;
   /* 塊の行の数（日の行・便の行の row の数）。row が無ければ 1 */
@@ -1003,8 +1018,15 @@ export function applyRecheck(raw: Obj, v: unknown): Obj | null {
   return changed ? { ...raw, days: src } : null;
 }
 /* 同じ日付の続きの塊 b を a に足す（便は印字の順に後ろへ・D-OFF は後の塊のもの・空の欄だけ埋める）。 */
+/* ★時刻の付いた行だけの塊で、記号がその行の名前そのもの（「IVL3 21:29-23:29」の勤務のあとの休息の行）は、その日の勤務ではない。
+   同じ日付の勤務（出頭・解散・便のある塊）と合わせるとき、その記号を日の記号にしない（同じ日付が2回印字され、休息の行の
+   記号が便のある日・SIM の日の記号になり、辞書で「休み」の記号のせいで勤務の日が休みに見えていた・2026-11-18 ANA の11月）。 */
+const workBlock = (x: Day) => !!(x.d_on || x.d_off || x.legs.some((l) => l.kind !== 'ground'));
+const labelBlock = (x: Day) => !workBlock(x) && !!x.code && x.legs.length > 0 && x.legs.every((l) => l.kind === 'ground' && l.flight === x.code);
 function mergeDay(a: Day, b: Day, st: Stats): void {
-  if (!a.code && b.code) { a.code = b.code; a.unread = false; }
+  if (labelBlock(a) && workBlock(b)) { a.code = b.code; a.unread = b.unread; a.cat = b.cat; st.dropped_fields++; }
+  else if (labelBlock(b) && workBlock(a)) { if (!a.code) st.dropped_fields++; }
+  else if (!a.code && b.code) { a.code = b.code; a.unread = false; }
   else if (!a.code && b.unread) a.unread = true;
   if ((a.cat === 'blank' || a.cat === 'unclear') && b.cat !== 'blank' && b.cat !== 'unclear') a.cat = b.cat;
   if (!a.d_on && b.d_on) { a.d_on = b.d_on; if (b.on_next) a.on_next = true; }
@@ -1030,9 +1052,10 @@ function joinNext(P: Day, E: Day, st: Stats): boolean {
     /* 出発だけの行：空港は1つまで・時刻は1つまで。空港・時刻がどの欄に入っていても出発として読む
        （モデルは「18:24 MUC」の MUC を到着の欄や場所の欄に入れることがある）。到着の欄に時刻も空港も入った形は、
        E の頭が「-」付きか、到着の時刻と空港がそろった切れ端のときだけ。 */
-    const apt = L.kind !== 'ground' && L.loc && RE.apt.test(L.loc) ? L.loc : null;
+    const apt = L.kind !== 'ground' && L.loc && RE.apt.test(L.loc) ? L.loc : L.apt1 ?? null;
     const st1 = [L.from, L.to, apt].filter(Boolean).length, tm1 = [L.out, L.in].filter(Boolean).length;
-    const arrSide = !L.from && !L.out && !apt;
+    /* 時刻が到着の欄にある形（場所の欄に預けた空港 apt1 も、どちらの空港かは決まっていない） */
+    const arrSide = !L.from && !L.out && (!apt || apt === L.apt1);
     const dep = st1 <= 1 && tm1 <= 1 && st1 + tm1 + (L.loc ? 1 : 0) >= 1 && (!arrSide || !!F.arr || !!(F.to && F.in));
     if (dep) {
       const nl: Leg = {
@@ -1042,7 +1065,7 @@ function joinNext(P: Day, E: Day, st: Stats): boolean {
         block: L.block ?? F.block, flight: L.flight ?? F.flight,
         kind: L.kind !== 'unknown' ? L.kind : F.kind, partial: false,
       };
-      delete nl.arr;
+      delete nl.arr; delete nl.apt1;
       P.legs[P.legs.length - 1] = nl;
       E.legs.shift();
       E.legs.forEach((l, i) => { l.seq = i + 1; });
@@ -1178,10 +1201,22 @@ export function sanitize(raw: Obj, ctx: SanitizeCtx): { roster: Roster; checks: 
     if (P.code && P.d_on && !P.d_off && !P.legs.length && E && dnum(E.date) - dnum(P.date) === 1
         && !E.d_on && E.d_off && E.legs.some((l) => l.kind !== 'ground')) { P.code = null; st.dropped_fields++; }
   });
+  /* ★月の最後の日の「下が切れた」は、解散まで写っていれば外す（表の下の枠と注記まで写っているのに、AI が表の終わりの行を
+     画像の端と取り違え、30日に「画像の端で切れています」と出ていた・2026-11-18 ANA の11月）。休みの日（出頭も行も無い）も外す。
+     出頭だけで解散の無い日は外さない（本当に切れているかもしれない）。 */
+  for (const d of days) {
+    if (d.cut === 'bottom' && monthEnd(d.date) && (d.d_off || (!d.d_on && !d.legs.length))) d.cut = null;
+  }
   /* 読み直しの間だけの印を消す。つなげなかった到着だけの切れ端は「切れた便」として返す（画面が本人に聞く）。 */
   for (const d of days) {
     delete d.on_next;
-    for (const l of d.legs) { if (l.arr) l.partial = true; delete l.arr; }
+    for (const l of d.legs) {
+      if (l.arr) l.partial = true;
+      delete l.arr;
+      /* つなげなかった行の空港（出発か到着か決まらない）は、今までどおり捨てる */
+      if (l.apt1) st.dropped_fields++;
+      delete l.apt1;
+    }
   }
 
   if (period) st.outside_period = days.filter((d) => d.date < period.from || d.date > period.to).length;
@@ -2002,7 +2037,7 @@ export async function handler(req: Request): Promise<Response> {
       const g2 = readReply(await res2.json());
       diag.it += g2.it;
       diag.ot += g2.ot;
-      const patched = g2.ok ? applyRecheck(cur, g2.raw) : null;
+      const patched = g2.ok ? applyRecheck(cur, g2.raw, ds) : null;
       if (patched) {
         const o2 = await sanitizeRead(patched, { page, hint, tail, now }, env('ROSTER_WORD_KEY'));
         cur = patched;

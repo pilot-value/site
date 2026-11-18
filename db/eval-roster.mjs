@@ -1127,7 +1127,7 @@ async function runDir(browser, dir) {
         const need = RD.recheckNeed(res.roster), ds = need.ds;
         if (!ds.length && !(need.tz && round === 0)) break;
         const rr = await readOne(`re${round ? round + 1 : ''}:${imgs[i].f}`, buildRecheck(pr.b64, 'image/jpeg', ds));
-        const patched = rr && rr.raw ? applyRecheck(rep.raw, rr.raw) : null;
+        const patched = rr && rr.raw ? applyRecheck(rep.raw, rr.raw, ds) : null;
         re = { ds: [...(re ? re.ds : []), ...(round ? ['/'] : []), ...ds], code: rr ? rr.code : 'dry', applied: !!patched || !!(re && re.applied),
                usd: (re ? re.usd : 0) + (rr ? rr.usd || 0 : 0) };
         if (!rr || !rr.raw) break;

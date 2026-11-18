@@ -897,6 +897,56 @@ console.log('\n▼ ANA の勤務表（DAY・D-ON・D-OFF・STY・T・JOB・DUTY�
   ok(!rb.system && rb.messages[0].content[0].source.data === 'IMG' && /10, 17/.test(rb.messages[0].content[1].text)
      && JSON.stringify(rb.output_config.format.schema) === JSON.stringify(R.RECHECK_SCHEMA) && !/name/.test(JSON.stringify(R.RECHECK_SCHEMA)),
      '聞き直しは同じ画像・聞く日付だけ・答えの形は日付と D-ON/D-OFF の字だけ（名前を書く欄が無い）');
+  /* ★聞いた日付の答えだけを使う（30日だけ聞いて1〜30日を全部返し、頭から切った16件に 30日が入らなかった・2026-11-18） */
+  const RAW5 = [N(5, { code: 'MT83', d_off: '17:00', legs: [G('MT83', '12:00', '17:00')] }),
+                N(30, { code: 'MP35', d_on: '10:00', legs: [G('MP35', '10:00', '12:00', { row: 1 }), G('MP35', '13:00', '18:00', { row: 2 })] })];
+  const all30 = [];
+  for (let d = 1; d <= 30; d++) all30.push({ d, lines: d === 30 ? [{ on: '10:00', off: '' }, { on: '18:00', off: '' }] : [{ on: '12:00', off: '' }] });
+  const p18e = applyRecheck({ ...NOV, days: RAW5 }, { dates: all30 }, [30]);
+  eq([day(run(p18e.days, NOV), 30).d_off, day(run(p18e.days, NOV), 5).d_on], ['18:00', null],
+     '★聞いた日付の答えだけを当てる（答えが全部の日付を返しても、聞いた日は後ろでも当たる・聞いていない日には当てない）');
+  eq(applyRecheck({ ...NOV, days: RAW5 }, { dates: all30 }, []), null, '時間帯だけ聞いた回は、日付の答えを1つも当てない');
+
+  /* ★月の最後の日の「下が切れた」（表の終わりの行を AI が画像の端と取り違える・2026-11-18 ANA の11月） */
+  const cut30 = (o) => day(run([N(30, { cut: 'bottom', ...o })], NOV), 30);
+  const c30 = cut30({ d_on: '10:00', legs: [G('CRM', '10:00', '13:00'), G('EMG', '14:00', '17:00', { rel: '17:00' })] });
+  const c30o = cut30({ d_on: '10:00', legs: [G('MP35', '10:00', '12:00'), G('MP35', '13:00', '18:00')] });
+  eq([c30.cut, c30.d_off, cut30({ code: 'OFF1' }).cut, c30o.cut, day(run([N(14, { d_on: '08:00', d_off: '12:00', cut: 'bottom', legs: [G('MT83', '08:00', '12:00')] })], NOV), 14).cut,
+      day(run([N(30, { d_on: '10:00', d_off: '17:00', cut: 'both', legs: [G('CRM', '10:00', '17:00')] })], NOV), 30).cut],
+     [null, '17:00', null, 'bottom', 'bottom', 'both'],
+     '★月の最後の日の「下が切れた」は、解散まで写っていれば・休みの日なら外す（解散の無い日・月の途中・上も切れた日は残す）');
+  eq([recheckTargets([c30o]), recheckTargets(run([N(14, { d_on: '08:00', cut: 'bottom', legs: [G('MT83', '08:00', '12:00')] })], NOV).roster.days),
+      recheckTargets(run([N(30, { d_on: '10:00', cut: 'top', legs: [G('MT83', '08:00', '12:00')] })], NOV).roster.days)],
+     [[30], [], []], '★月の最後の日の「下が切れた」日は聞き直す（日付の行は写っている）・月の途中の下の切れ・上の切れは聞かない');
+
+  /* ★出発だけの行の時刻を到着の欄に・空港を場所の欄に返した形（「23:34」と BOM・2026-11-18）→ 次の日付の「-」付きの到着とつなぐ */
+  const r20 = run([
+    N(4, { d_on: '22:00', legs: [L({ flight: '0830', loc: 'BOM', in: '23:34' })] }),
+    N(5, { d_off: '08:33', legs: [L({ to: '-NRT', in: '-07:43', kind: 'unknown', rel: '08:33' })] }),
+    N(10, { d_on: '07:00', legs: [L({ flight: '0500', loc: 'HND', in: '09:00' })] }),
+    N(11, { legs: [L({ in: '14:00', kind: 'unknown' })] }),                               // 「-」の無い時刻だけの行（到着の切れ端と決められない）
+    N(21, { d_on: '19:45', legs: [L({ flight: '0179', loc: 'MEX', in: '21:15' })] }),
+    N(22, { d_on: '12:50', legs: [L({ to: '-NRT', in: '-12:00', kind: 'unknown' })] }),
+    N(25, { d_on: '10:00', d_off: '20:00', legs: [L({ flight: '0101', loc: 'FUK', in: '19:00' })] }),
+  ], NOV);
+  const d20 = (dd) => { const x = day(r20, dd); return `${legS(x.legs[0])} ${x.d_on || '—'}〜${x.d_off || '—'}+${x.d_off_day}`; };
+  eq([d20(4), d20(21), legS(day(r20, 10).legs[0]), legS(day(r20, 25).legs[0]), /FUK|"apt1"/.test(JSON.stringify(r20.roster))],
+     ['0830 BOM→NRT 23:34-07:43+1 22:00〜08:33+1', '0179 MEX→NRT 21:15-12:00+1 19:45〜12:50+1', '0500 —→— —-09:00+0', '0101 —→— —-19:00+0', false],
+     '★時刻が到着の欄・空港が場所の欄の出発だけの行も、次の日付の「-」付きの到着とつなぐ（つなげなければ空港は今までどおり捨てる）');
+
+  /* ★同じ日付が2回印字され、片方が休息の行だけ（「IVL3 21:29-23:29」）→ その記号を勤務の日の記号にしない（2026-11-18） */
+  const r21 = run([
+    N(15, { d_on: '12:15', d_off: '21:29', legs: [F('0252', 'FUK', 'HND', '12:22', '14:05')] }),
+    N(15, { code: 'IVL3', legs: [G('IVL3', '21:29', '23:29')] }),
+    N(17, { code: 'IVL3', legs: [G('IVL3', '00:00', '00:01')] }),
+    N(17, { code: 'S0540', cat: 'training', d_on: '17:10', d_off: '23:59', legs: [G('', '17:10', '23:59', { loc: 'TAB' })] }),
+    N(20, { code: 'IVL3', legs: [G('IVL3', '00:00', '23:59')] }),
+    N(23, { d_on: '09:00', legs: [G('', '09:00', '12:00')] }),
+    N(23, { code: 'MT99', legs: [G('', '13:00', '15:00')] }),
+  ], NOV);
+  eq([day(r21, 15).code, day(r21, 15).legs.length, day(r21, 17).code, day(r21, 17).cat, day(r21, 20).code, day(r21, 23).code],
+     [null, 2, null, 'training', 'IVL3', 'MT99'],
+     '★休息の行だけの塊の記号は、同じ日付の勤務（便・SIM）の記号にしない（その塊だけの日・記号が行の名前と違う塊は今までどおり）');
 }
 
 console.log('\n▼ 読めなかった画像を残す');
@@ -1174,6 +1224,26 @@ console.log('\nJ 入口（ログイン・回数・読み取り）');
            content: [{ type: 'text', text: JSON.stringify({ time_zone: '', dates: [{ d: 2, lines: [{ on: '12:00', off: '' }, { on: '17:00', off: '' }] }] }) }] };
   reAiStatus = 0; r = await post(req());
   ok(r.j && r.j.ok && r.j.roster.days.find((d) => d.date === `${ym}-02`).d_off === null, '★聞き直しの通信が落ちても、1回目の結果をそのまま返す');
+  /* ★聞いたのが1日だけでも、答えは全部の日付を返すことがある → 聞いた日付の答えだけを当てる（2026-11-18） */
+  reAiStatus = 200;
+  const day20 = [];
+  for (let d = 1; d <= 20; d++) {
+    day20.push(d === 20
+      ? { y: null, m: null, d, wd: null, cut: null, code: 'MP35', cat: 'ground', d_on: '10:00', d_off: null, d_off_day: 0, row: d,
+          legs: [GL('MP35', '10:00', '12:00', 20), GL('MP35', '13:00', '18:00', 21)] }
+      : d === 5
+        ? { y: null, m: null, d, wd: null, cut: null, code: 'MT83', cat: 'ground', d_on: null, d_off: '17:00', d_off_day: 0, row: d, legs: [GL('MT83', '12:00', '17:00', 5)] }
+        : { ...GOODDAYS[1], d, row: d });
+  }
+  ai = answer(day20);
+  reAi = { stop_reason: 'end_turn', usage: { input_tokens: 2000, output_tokens: 300 },
+           content: [{ type: 'text', text: JSON.stringify({ time_zone: '', dates: day20.map((x) => ({ d: x.d, lines: x.d === 20
+             ? [{ on: '10:00', off: '' }, { on: '18:00', off: '' }] : [{ on: '12:00', off: '' }] })) }) }] };
+  r = await post(req());
+  an = calls.filter((c) => c.url.includes('anthropic'));
+  const rd20 = r.j.roster && r.j.roster.days.find((d) => d.date === `${ym}-20`), rd5 = r.j.roster && r.j.roster.days.find((d) => d.date === `${ym}-05`);
+  ok(r.j.ok && rd20 && rd20.d_off === '18:00' && rd5 && rd5.d_on === null && an.length === 2 && /dates: 20\b/.test(an[1].body.messages[0].content[1].text),
+     '★答えが聞いていない日付まで返しても、聞いた日付（20日）だけを当てる（後ろの日付でも当たる・聞いていない5日には当てない）', { n: an.length, d20: rd20, d5: rd5 });
   reAiStatus = 200; reAi = null; ai = answer(GOODDAYS);
 
   quotaStatus = 500; r = await post(req());
