@@ -268,16 +268,11 @@ function factsJa(slug, R) {
   for (const k of ['work', 'benefits']) {
     /* ★2026-11-18：「今の公表」と数えるのは会社自身の資料か労働協約の行だけ。第三者の資料（口コミなど）の行が欄に在っても、
        募集要項の行は出す（数えていた日は、シンガポール航空・香港エクスプレスの募集要項の行がカードから消えた）。1行めは募集要項の行 */
-    /* 同じ項目に会社自身の資料・労働協約の今の行があれば、その項目の募集要項の行は出さない（項目ごとに見る ── 欄ごとに見ていた日は、
-       シンガポール航空の年次休暇の行が入っただけで Staff Travel の募集要項の行が消えた） */
-    const have = new Set(out[k].filter(f => !f.third && !f.tag).map(f => f.key));
-    const add = ads[k].filter(f => !have.has(f.key)).map(f => ({ ...f, tag: AD_TAG, lead: false }));
-    if (!add.length) continue;
-    if (!out[k].some(f => f.lead && !f.third)) {
-      for (const f of out[k]) f.lead = false;
-      /* 訓練生の行しか無いときは、その行が1行め（募集の札と前提の1行が、誰の募集の条件かを言う） */
-      (add.find(f => f.rank !== 'trainee' || /^訓練/.test(f.ja)) || add[0]).lead = true;
-    }
+    if (out[k].some(f => f.lead && !f.third) || !ads[k].length) continue;
+    for (const f of out[k]) f.lead = false;
+    const add = ads[k].map(f => ({ ...f, tag: AD_TAG, lead: false }));
+    /* 訓練生の行しか無いときは、その行が1行め（募集の札と前提の1行が、誰の募集の条件かを言う） */
+    (add.find(f => f.rank !== 'trainee' || /^訓練/.test(f.ja)) || add[0]).lead = true;
     out[k] = [...add, ...out[k]];
   }
   /* 本社は1行だけ（会社の欄）：都市が言えれば都市（国は重ねない）・無ければ国。同じ項目が2行あれば最初の1行（並びは上の順）。 */

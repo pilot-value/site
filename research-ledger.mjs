@@ -122780,7 +122780,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
        ]
       }
      ],
-     "h": "141ec1796e11570b",
+     "h": "142cb299b0564e1a",
      "id": "singapore-airlines.benefits.annual-leave-cap.89b95790",
      "imported_on": "2026-11-18",
      "info_kind": "published_policy",
@@ -122802,7 +122802,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       }
      ],
      "unit": "days",
-     "use": "条件つき",
+     "use": "募集",
      "value": 36,
      "value_text": "36"
     },
@@ -122833,7 +122833,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
        ]
       }
      ],
-     "h": "39e1ac117b70af01",
+     "h": "a7ad913e3e8cd124",
      "id": "singapore-airlines.benefits.annual-leave-fo.b69e73ac",
      "imported_on": "2026-11-18",
      "info_kind": "published_policy",
@@ -122855,7 +122855,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       }
      ],
      "unit": "days",
-     "use": "条件つき",
+     "use": "募集",
      "value": 32,
      "value_text": "32"
     },
@@ -122884,7 +122884,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
        ]
       }
      ],
-     "h": "82c2aba32b8236ad",
+     "h": "d66b2f7fe4cfaa7e",
      "id": "singapore-airlines.benefits.commuting.2a35c799",
      "imported_on": "2026-11-18",
      "info_kind": "published_policy",
@@ -122906,7 +122906,7 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       }
      ],
      "unit": null,
-     "use": "条件つき",
+     "use": "募集",
      "value": "transport",
      "value_text": null
     },
@@ -209394,6 +209394,190 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "value_text": "15,271"
    },
    "why": "取り込み済み（中身は同じ・使い方だけ 過去→未指定）"
+  },
+  {
+   "by": {
+    "id": "singapore-airlines.benefits.annual-leave-cap.89b95790",
+    "pack": "pvr-20261118-cg-singapore-airlines",
+    "rev": 1
+   },
+   "on": "2026-11-18",
+   "replaced": {
+    "amount": null,
+    "applies_to": {
+     "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+     "pilot_specific": true,
+     "rank": "cap"
+    },
+    "checked_at": "2026-11-18",
+    "company": "singapore-airlines",
+    "cond_ja": "Direct Entry Captain; 公式中国語ロケール内の英語求人本文。補足: 公開中の公式採用ページ。更新日不明。2023協約clause60の職位別日数とも一致。",
+    "currency": null,
+    "domain": "benefits",
+    "effective": {
+     "from": null,
+     "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "調査の表に、資料の中の場所の記録なし",
+      "quote": "36 days of annual leave",
+      "source_id": "src-singaporeair-com-677018d1",
+      "supports": [
+       "value"
+      ]
+     }
+    ],
+    "h": "141ec1796e11570b",
+    "id": "singapore-airlines.benefits.annual-leave-cap.89b95790",
+    "imported_on": "2026-11-18",
+    "info_kind": "published_policy",
+    "key": "annual_leave",
+    "label_ja": "機長の年次休暇",
+    "pack": "pvr-20261118-cg-singapore-airlines",
+    "per": "year",
+    "rev": 1,
+    "src": [
+     {
+      "published": null,
+      "publisher": "Singapore Airlines",
+      "publisher_kind": "airline",
+      "retrieved": "2026-11-18",
+      "source_id": "src-singaporeair-com-677018d1",
+      "source_type": "official_package",
+      "title": "Pilots / Direct Entry Captain",
+      "url": "https://www.singaporeair.com/zh_CN/sg/careers/cadet-pilots-career/"
+     }
+    ],
+    "unit": "days",
+    "use": "条件つき",
+    "value": 36,
+    "value_text": "36"
+   },
+   "why": "取り込み済み（中身は同じ・使い方だけ 条件つき→募集）"
+  },
+  {
+   "by": {
+    "id": "singapore-airlines.benefits.annual-leave-fo.b69e73ac",
+    "pack": "pvr-20261118-cg-singapore-airlines",
+    "rev": 1
+   },
+   "on": "2026-11-18",
+   "replaced": {
+    "amount": null,
+    "applies_to": {
+     "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+     "pilot_specific": true,
+     "rank": "fo"
+    },
+    "checked_at": "2026-11-18",
+    "company": "singapore-airlines",
+    "cond_ja": "Direct Entry First Officer; 公式中国語ロケール内の英語求人本文。補足: 公開中の公式採用ページ。更新日不明。英語SGページは新テンプレートとなり日数を掲載しないためロケール差に留意。",
+    "currency": null,
+    "domain": "benefits",
+    "effective": {
+     "from": null,
+     "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "調査の表に、資料の中の場所の記録なし",
+      "quote": "32 days of annual leave",
+      "source_id": "src-singaporeair-com-677018d1",
+      "supports": [
+       "value"
+      ]
+     }
+    ],
+    "h": "39e1ac117b70af01",
+    "id": "singapore-airlines.benefits.annual-leave-fo.b69e73ac",
+    "imported_on": "2026-11-18",
+    "info_kind": "published_policy",
+    "key": "annual_leave",
+    "label_ja": "副操縦士の年次休暇",
+    "pack": "pvr-20261118-cg-singapore-airlines",
+    "per": "year",
+    "rev": 1,
+    "src": [
+     {
+      "published": null,
+      "publisher": "Singapore Airlines",
+      "publisher_kind": "airline",
+      "retrieved": "2026-11-18",
+      "source_id": "src-singaporeair-com-677018d1",
+      "source_type": "official_package",
+      "title": "Pilots / Direct Entry Captain",
+      "url": "https://www.singaporeair.com/zh_CN/sg/careers/cadet-pilots-career/"
+     }
+    ],
+    "unit": "days",
+    "use": "条件つき",
+    "value": 32,
+    "value_text": "32"
+   },
+   "why": "取り込み済み（中身は同じ・使い方だけ 条件つき→募集）"
+  },
+  {
+   "by": {
+    "id": "singapore-airlines.benefits.commuting.2a35c799",
+    "pack": "pvr-20261118-cg-singapore-airlines",
+    "rev": 1
+   },
+   "on": "2026-11-18",
+   "replaced": {
+    "amount": null,
+    "applies_to": {
+     "pilot_specific": true
+    },
+    "checked_at": "2026-11-18",
+    "company": "singapore-airlines",
+    "cond_ja": "Direct Entry First Officer・Captain; variable allowanceの支給項目; 金額非公表。補足: 通勤関連の交通手当の記載。定額・実費精算・送迎車・コミューター制度はこの求人から確認できない。",
+    "currency": null,
+    "domain": "benefits",
+    "effective": {
+     "from": null,
+     "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+     "to": null
+    },
+    "evidence": [
+     {
+      "locator": "調査の表に、資料の中の場所の記録なし",
+      "quote": "Variable allowances for productivity, meals, and transport",
+      "source_id": "src-singaporeair-com-677018d1",
+      "supports": [
+       "value"
+      ]
+     }
+    ],
+    "h": "82c2aba32b8236ad",
+    "id": "singapore-airlines.benefits.commuting.2a35c799",
+    "imported_on": "2026-11-18",
+    "info_kind": "published_policy",
+    "key": "commuting",
+    "label_ja": "通勤の手当・送迎",
+    "pack": "pvr-20261118-cg-singapore-airlines",
+    "per": null,
+    "rev": 1,
+    "src": [
+     {
+      "published": null,
+      "publisher": "Singapore Airlines",
+      "publisher_kind": "airline",
+      "retrieved": "2026-11-18",
+      "source_id": "src-singaporeair-com-677018d1",
+      "source_type": "official_package",
+      "title": "Pilots / Direct Entry Captain",
+      "url": "https://www.singaporeair.com/zh_CN/sg/careers/cadet-pilots-career/"
+     }
+    ],
+    "unit": null,
+    "use": "条件つき",
+    "value": "transport",
+    "value_text": null
+   },
+   "why": "取り込み済み（中身は同じ・使い方だけ 条件つき→募集）"
   }
  ],
  "LIVING": {
@@ -579991,9 +580175,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "records": {
     "singapore-airlines.base.pilot-base-city.c88e6ed4": "cadf14cf055abde0",
     "singapore-airlines.base.pilot-base.73a079c2": "46701bc3cf444e6e",
-    "singapore-airlines.benefits.annual-leave-cap.89b95790": "141ec1796e11570b",
-    "singapore-airlines.benefits.annual-leave-fo.b69e73ac": "39e1ac117b70af01",
-    "singapore-airlines.benefits.commuting.2a35c799": "82c2aba32b8236ad",
+    "singapore-airlines.benefits.annual-leave-cap.89b95790": "142cb299b0564e1a",
+    "singapore-airlines.benefits.annual-leave-fo.b69e73ac": "a7ad913e3e8cd124",
+    "singapore-airlines.benefits.commuting.2a35c799": "d66b2f7fe4cfaa7e",
     "singapore-airlines.living.commute.40fe8781": "4f3d55f328c29ef4",
     "singapore-airlines.work.annual-days-off.7fc658fc": "6dbe5748377bb80c",
     "singapore-airlines.work.annual-days-off.9ce324c3": "0e094b054f4f5e5a",
