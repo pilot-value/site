@@ -30,6 +30,7 @@ import { fileURLToPath } from 'node:url';
 import { PLACES } from './airline-destinations.mjs';
 import { COUNTRIES } from './airline-countries.mjs';
 import { UPLOAD_HOSTS } from './import-research-pack.mjs';
+import { TERMS } from './us-terms.mjs';
 
 /* 使い方の札。条件つき・募集は札なし（募集は募集の1枚に置くこと自体が言い方）。 */
 export const TAG = Object.freeze({ 過去: '過去', 参考: '参考' });
@@ -2233,6 +2234,8 @@ export function agreementCheck(store) {
 /** 古い字・名前の無い資料（store ＝ 調べの台帳）。[{ what, id, why }]。 */
 /* LINES の名前と値に入れない語（check の注） */
 export const NOT_JA = /ロスター|書かれていない|書いていない|記載(?:が)?な|先任|ラインを持つ|の(?:ライン)(?:で|を|は|が)|リザーブ/;
+/* 米国の協約の業界の言い方（日本の読者に通じない）── us-terms.mjs の字に入れない */
+export const US_JARGON = /リザーブ|クレジット時間|ALV|デッドヘッド|ロングコール|ショートコール|コンポジット|典型/;
 export const HEDGE = /ふつう|普通は|多くの|たいてい|だいたい|試み|という声|とされる|らしい/;
 /* 数のすぐ後ろに書いた通貨の名前（「300万ルピー」「13,949ケニア・シリング」「月5万ウォン」）。地名の「フィンランド」「サンフランシスコ」は当たらない */
 export const CUR_WORDS = /\d[\d,.]*\s*[万億]?\s*[ァ-ヶー・]*?(?:ルピー|シリング|ナイラ|リヤル|リヤール|ディルハム|ディナール|ウォン|バーツ|リンギット|ペソ|ランド|ルピア|人民元|元|ドル|ユーロ|ポンド|フラン|ラク|クロール)/;
@@ -2267,6 +2270,12 @@ export function check(store) {
     }
     /* オーナー「日本人にロスターって言ってもわかんねー」「日数は書かれてないっているか？」（2026-11-18）── 名前・値・前提のどれにも */
     for (const t of [L.label, L.value, L.cond]) { const u = typeof t === 'string' && NOT_JA.exec(t); if (u) bad.push({ what: 'LINES', id, why: `「${u[0]}」を字に入れない（${t}）` }); }
+  }
+  /* 米国の会社の「勤務の条件（調べ）」のカードの字（us-terms.mjs）も同じ決まり（2026-11-18 オーナー「ライン？なにそれ？」） */
+  for (const [slug, T] of Object.entries(TERMS)) for (const rows of Object.values(T)) for (const r of rows || []) for (const t of [r.ja && r.ja.label, r.ja && r.ja.value, r.ja && r.ja.note]) {
+    if (typeof t !== 'string') continue;
+    const u = NOT_JA.exec(t) || US_JARGON.exec(t) || HEDGE.exec(t);
+    if (u) bad.push({ what: 'TERMS', id: `${slug}.${r.key}`, why: `「${u[0]}」を字に入れない（${t.slice(0, 60)}）` });
   }
   for (const [k, I] of Object.entries(ITEM)) en('ITEM', k, I.label_en, I.label);
   for (const [k, v] of Object.entries(SOURCES)) en('SOURCES', k, SOURCES_EN[k], v);

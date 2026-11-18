@@ -17,7 +17,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "通常は月65クレジット時間",
+     "value": "月65時間分",
      "note": ""
     },
     "en": {
@@ -30,8 +30,8 @@ export const TERMS = Object.freeze({
     "key": "reserve_guarantee",
     "ref": false,
     "ja": {
-     "label": "リザーブの保証",
-     "value": "月の平均ラインの時間（ALV）に連動して72〜80時間",
+     "label": "スタンバイ（待機）の月の保証",
+     "value": "その月の勤務表の平均の時間に連動して72〜80時間",
      "note": ""
     },
     "en": {
@@ -207,7 +207,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "勤務の自動割り当て（PBS）で付いたクレジットが70時間未満なら70時間に引き上げ",
+     "value": "希望をもとに勤務を割り当てる仕組み（PBS）で決まった勤務が70時間分に満たなければ、70時間分に引き上げ",
      "note": "2024年5月から"
     },
     "en": {
@@ -220,8 +220,8 @@ export const TERMS = Object.freeze({
     "key": "reserve_guarantee",
     "ref": true,
     "ja": {
-     "label": "リザーブの保証",
-     "value": "通常は73時間・6月・7月・8月・12月は77時間",
+     "label": "スタンバイ（待機）の月の保証",
+     "value": "6月・7月・8月・12月は77時間・ほかの月は73時間",
      "note": "比較資料の値"
     },
     "en": {
@@ -277,7 +277,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "労働協約",
-     "value": "改定できる日 2027年9月30日。2027年1月の期間に約3%の昇給の予定",
+     "value": "改定できる日 2027年9月30日。2027年1月の勤務表の期間から約3%の昇給の予定",
      "note": "2023年の協約（UPA23）"
     },
     "en": {
@@ -307,7 +307,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "ORD への鉄道",
-     "value": "CTA ブルーラインが24時間運行。都心から約40〜45分",
+     "value": "CTA の青線（Blue Line）が24時間運行。都心から約40〜45分",
      "note": "旅客向けの一般の案内"
     },
     "en": {
@@ -325,7 +325,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "月の平均ラインの時間（ALV）の下限と65時間の、大きいほう",
+     "value": "その月の勤務表の平均の時間の下限か65時間の、大きいほう",
      "note": ""
     },
     "en": {
@@ -338,8 +338,8 @@ export const TERMS = Object.freeze({
     "key": "reserve_guarantee",
     "ref": true,
     "ja": {
-     "label": "リザーブの保証",
-     "value": "ロングコール 73時間・ショートコール 76時間",
+     "label": "スタンバイ（待機）の月の保証",
+     "value": "前もって知らされるスタンバイ 73時間・すぐ呼ばれるスタンバイ 76時間",
      "note": "2025年の比較資料の値"
     },
     "en": {
@@ -528,8 +528,8 @@ export const TERMS = Object.freeze({
     "key": "deadhead_pay",
     "ref": false,
     "ja": {
-     "label": "デッドヘッドの支払い",
-     "value": "デッドヘッド（移動のための便乗）は1区間ごとに 100% のクレジット",
+     "label": "便乗の支払い",
+     "value": "便乗（移動のための搭乗）は1区間ごとに、その区間の時間の 100% を給与に数える",
      "note": "パイロットの採用ページ"
     },
     "en": {
@@ -643,7 +643,7 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "月の休日（平均）",
-     "value": "ラインホルダー 17.6日・リザーブ 15日",
+     "value": "決まった勤務表の月 17.6日・スタンバイの月 15日",
      "note": "2021年の平均。パイロットの採用ページ"
     },
     "en": {
@@ -677,8 +677,8 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "最低保証",
-     "value": "ライン 月70時間・リザーブ 月75時間（ロングコール）・84時間（ショートコール）",
-     "note": "会社の採用ページ。労組の比較資料ではライン月75時間"
+     "value": "決まった勤務表の月 70時間。スタンバイの月は、前もって知らされるスタンバイ 75時間・すぐ呼ばれるスタンバイ 84時間",
+     "note": "会社の採用ページ。労組の比較資料では決まった勤務表の月 75時間"
     },
     "en": {
      "label": "Monthly guarantee",
@@ -811,7 +811,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "ライン 月70時間・リザーブ 月75時間",
+     "value": "決まった勤務表の月 70時間・スタンバイの月 75時間",
      "note": "労組の比較資料"
     },
     "en": {
@@ -895,7 +895,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "転居の支援",
-     "value": "新しい基地の開設・押し出し（displacement）・別基地への呼び戻し・基地の閉鎖で転居するときに支援がある",
+     "value": "新しい基地の開設・今の基地の枠から外れたとき（displacement）・別基地への呼び戻し・基地の閉鎖で転居するときに支援がある",
      "note": "労働協約。50マイル以上の転居・12か月以内などの条件"
     },
     "en": {
@@ -941,7 +941,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "駐車場",
-     "value": "基地の駐車場は無料（コベースを選んだ人はその空港も無料か精算）。使わないなら月 USD 55 の手当",
+     "value": "基地の駐車場は無料。同じ基地に含まれる別の空港（コベース）を選んだ人は、その空港も無料か精算。使わないなら月 USD 55 の手当",
      "note": "労働協約"
     },
     "en": {
@@ -975,7 +975,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "ライン・リザーブとも月75時間",
+     "value": "決まった勤務表の月・スタンバイの月とも75時間",
      "note": ""
     },
     "en": {
@@ -989,7 +989,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "超過分の割増",
-     "value": "月82.5クレジット時間を超えた分は125%",
+     "value": "給与に数える時間が月82.5時間を超えた分は125%",
      "note": "会社の採用ページの案内"
     },
     "en": {
@@ -1095,7 +1095,7 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "最低保証",
-     "value": "ライン月70時間・リザーブ月72時間",
+     "value": "決まった勤務表の月 70時間・スタンバイの月 72時間",
      "note": "比較表の参考値"
     },
     "en": {
@@ -1109,7 +1109,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "1乗務の最低支給",
-     "value": "1回の飛行勤務（FDP）ごとに最低5クレジット時間",
+     "value": "1回の飛行勤務（FDP）ごとに最低5時間分",
      "note": "2026年の新協約"
     },
     "en": {
@@ -1123,7 +1123,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "追加乗務の割増",
-     "value": "Premium Open Time 1.5〜3倍、追加乗務の募集に応じた分（VFN）2〜3倍、ジュニアアサイン 2倍",
+     "value": "割増が付く空いた乗務（Premium Open Time）1.5〜3倍、追加乗務の募集に応じた分（VFN）2〜3倍、休日に勤続の短い人から指名される乗務（ジュニアアサイン）2倍",
      "note": ""
     },
     "en": {
@@ -1239,7 +1239,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "4週の期間で68・5週で85・6週で102クレジット時間",
+     "value": "4週の期間で68時間分・5週で85時間分・6週で102時間分",
      "note": "需要が落ちたときの減額、休職・初期訓練中などの例外あり"
     },
     "en": {
@@ -1254,7 +1254,7 @@ export const TERMS = Object.freeze({
     "ja": {
      "label": "国際線の加算",
      "value": "機長 1時間 USD 10・副操縦士 USD 8。超長距離（ULR）はさらに機長 USD 24・副操縦士 USD 17",
-     "note": "対象トリップのクレジット時間に付く"
+     "note": "対象の乗務の、給与に数える時間に付く"
     },
     "en": {
      "label": "International override",
@@ -1310,7 +1310,7 @@ export const TERMS = Object.freeze({
     "ja": {
      "label": "予定されている昇給",
      "value": "2028年1月・2029年1月・2030年1月にそれぞれ3%",
-     "note": "1月のビッド期間から全体に"
+     "note": "1月の勤務表の期間（ビッド期間）から全員に"
     },
     "en": {
      "label": "Scheduled raises",
@@ -1367,7 +1367,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "年休の支給",
-     "value": "年休1日につき6クレジット時間",
+     "value": "年休1日を6時間分として給与に数える",
      "note": "2026年の協約"
     },
     "en": {
@@ -1380,8 +1380,8 @@ export const TERMS = Object.freeze({
     "key": "reserve_lines",
     "ref": false,
     "ja": {
-     "label": "リザーブのライン",
-     "value": "公開されるリザーブのラインのうち R-24 型を20%以上に（従来は13%）",
+     "label": "スタンバイの勤務表",
+     "value": "公開されるスタンバイの勤務表のうち、R-24 型を20%以上に（従来は13%）",
      "note": "2026年の新協約"
     },
     "en": {
@@ -1415,7 +1415,7 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "最低保証",
-     "value": "28日の給与期間ごとに75クレジット時間",
+     "value": "28日の給与期間ごとに75時間分",
      "note": "比較資料の値"
     },
     "en": {
@@ -1533,7 +1533,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "月64時間（クレジット時間）",
+     "value": "月64時間分",
      "note": "2021年の協約（Teamsters Local 2750）"
     },
     "en": {
@@ -1589,7 +1589,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "社員の航空券",
-     "value": "本人と対象の家族が空席待ち（スタンバイ）で搭乗できる",
+     "value": "本人と対象の家族が空席待ちで搭乗できる",
      "note": "社員ぜんたいの制度（会社の案内）。業務のゲートウェイ移動とは別"
     },
     "en": {
@@ -1632,8 +1632,8 @@ export const TERMS = Object.freeze({
     "key": "commuter",
     "ref": false,
     "ja": {
-     "label": "ゲートウェイ方式",
-     "value": "ゲートウェイ空港から乗務までの移動は会社が手配（対象になる条件あり）",
+     "label": "指定空港からの移動（ゲートウェイ方式）",
+     "value": "指定の空港（ゲートウェイ空港）から乗務までの移動は会社が手配（対象になる条件あり）",
      "note": "2021年の協約と会社の案内"
     },
     "en": {
@@ -1665,7 +1665,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "ホテル",
-     "value": "訓練中・ベースでの滞在中・乗務の前後・リザーブ中は会社負担のホテル。協約で個室",
+     "value": "訓練中・基地での滞在中・乗務の前後・スタンバイ（待機）中は会社負担のホテル。協約で個室",
      "note": "会社の乗員案内と2021年の協約"
     },
     "en": {
@@ -1683,7 +1683,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "2週間の給与期間ごとに 29.92 クレジット時間",
+     "value": "2週間の給与期間ごとに 29.92時間分",
      "note": "組合（APA Teamsters Local 1224）の2026年の採用資料"
     },
     "en": {
@@ -1711,7 +1711,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "追加乗務の割増",
-     "value": "プレミアムデーは 6時間か150%・7時間か175%・8時間か200% の高い方。オープントリップは最低 4〜8時間",
+     "value": "割増の日（プレミアムデー）は 6時間か150%・7時間か175%・8時間か200% の高い方。空いている乗務（オープントリップ）は最低 4〜8時間",
      "note": "組合の2026年の採用資料"
     },
     "en": {
@@ -1782,8 +1782,8 @@ export const TERMS = Object.freeze({
     "key": "days_off",
     "ref": false,
     "ja": {
-     "label": "月の最低休日",
-     "value": "ライン 14日・リザーブ 13日・コンポジット 14日。1週間の年休がかかる月は 21日・20日・21日",
+     "label": "月の休日（最低）",
+     "value": "決まった勤務表の月 14日・スタンバイの月 13日・混ざった月 14日。1週間の年休がかかる月は 21日・20日・21日",
      "note": "組合の2026年の採用資料"
     },
     "en": {
@@ -1797,8 +1797,8 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "勤務の型",
-     "value": "7日勤務・7日休み、8日・6日、9日・5日 などの例。月の乗務は 45〜50 ブロック時間が典型",
-     "note": "組合の2026年の採用資料にある例と典型値"
+     "value": "7日勤務・7日休み、8日勤務・6日休み、9日勤務・5日休み。月のブロックタイムは 45〜50時間",
+     "note": "組合の2026年の採用資料"
     },
     "en": {
      "label": "Typical schedule",
@@ -1825,8 +1825,8 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "航空通勤",
-     "value": "他社機のジャンプシートに乗れる仕組み（CASS）あり。国内は出頭前に着く便に1便リストすれば保護",
-     "note": "組合の採用資料。業務のデッドヘッドとは別"
+     "value": "他社機のジャンプシートに乗れる仕組み（CASS）あり。国内は、出頭前に着く便を1便、空席待ちで登録しておけば、乗れなかったときも保護される",
+     "note": "組合の採用資料。業務の便乗とは別"
     },
     "en": {
      "label": "Commuting",
@@ -1869,7 +1869,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "ホテル・食事",
-     "value": "乗務中は個室のホテル。空港でリザーブ待機する間も会社のホテル。乗務中はクルーミールが出る",
+     "value": "乗務中は個室のホテル。空港でスタンバイ（待機）する間も会社のホテル。乗務中はクルーミールが出る",
      "note": "組合の採用資料"
     },
     "en": {
@@ -1973,7 +1973,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "勤務と休みの型",
-     "value": "16日勤務・15日休み（30日の月は14日）。可能なときは16日連続か 8日勤務・15日休み・8日勤務などをビッドできる",
+     "value": "16日勤務・15日休み（30日の月は14日）。可能なときは16日連続か、8日勤務・15日休み・8日勤務などの分け方を勤務の希望として出せる（ビッド）",
      "note": ""
     },
     "en": {
@@ -2005,7 +2005,7 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "最低保証",
-     "value": "ライン・リザーブとも月70時間",
+     "value": "決まった勤務表の月・スタンバイの月とも70時間",
      "note": "参考の値"
     },
     "en": {
@@ -2051,7 +2051,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "ライン・リザーブとも月70時間",
+     "value": "決まった勤務表の月・スタンバイの月とも70時間",
      "note": "会社の公開値"
     },
     "en": {
@@ -2065,7 +2065,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "割増",
-     "value": "月75時間を超えた分と、休日に飛んだ分は通常の単価の125%",
+     "value": "月75時間を超えた分と、休日に飛んだ分は基本の単価の125%",
      "note": "会社の公開値"
     },
     "en": {
@@ -2122,8 +2122,8 @@ export const TERMS = Object.freeze({
     "key": "days_off",
     "ref": false,
     "ja": {
-     "label": "月の最低休日",
-     "value": "ライン・リザーブとも月12日",
+     "label": "月の休日（最低）",
+     "value": "決まった勤務表の月・スタンバイの月とも12日",
      "note": "会社の公開値"
     },
     "en": {
@@ -2287,7 +2287,7 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "最低保証",
-     "value": "ライン・リザーブとも月65クレジット時間",
+     "value": "決まった勤務表の月・スタンバイの月とも65時間分",
      "note": "参考の条件"
     },
     "en": {
@@ -2301,7 +2301,7 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "割増",
-     "value": "オープンタイムは150%。ジュニアマン（指名の追加乗務）は1回目200%・2回目250%、90日に2回まで",
+     "value": "空いている乗務（オープンタイム）は150%。休日に指名される追加乗務（ジュニアマン）は1回目200%・2回目250%、90日に2回まで",
      "note": "参考の条件"
     },
     "en": {
@@ -2343,7 +2343,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "社員の航空券",
-     "value": "他社の航空券の割引（インターライン）",
+     "value": "他社の航空券の社員割引（航空会社どうしの取り決め）",
      "note": "社員ぜんたいの制度"
     },
     "en": {
@@ -2481,7 +2481,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "入社から2年間の副操縦士は月75時間以上。その後は機材・ライン・リザーブで変わる。年900時間の調整もある",
+     "value": "入社から2年間の副操縦士は月75時間以上。その後は機材と、決まった勤務表の月かスタンバイの月かで変わる。年900時間の調整もある",
      "note": "2023〜2027年の協約"
     },
     "en": {
@@ -2585,7 +2585,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "割増",
-     "value": "85クレジット時間を超えた分は割増",
+     "value": "給与に数える時間が85時間を超えた分は割増",
      "note": "会社の案内"
     },
     "en": {
@@ -2615,7 +2615,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "勤務の希望",
-     "value": "ソーシャライズド・ビッド（先任順位だけで決めない）。勤務の交換・削除・追加ができる",
+     "value": "勤続の長さの順だけで決めない勤務の希望の出し方（ソーシャライズド・ビッド）。勤務の交換・削除・追加ができる",
      "note": ""
     },
     "en": {
@@ -2628,8 +2628,8 @@ export const TERMS = Object.freeze({
     "key": "reserve",
     "ref": false,
     "ja": {
-     "label": "リザーブ",
-     "value": "短い呼び出し（ショートコール）と長い呼び出し（ロングコール）のリザーブがある",
+     "label": "スタンバイ（待機）",
+     "value": "すぐ呼ばれるスタンバイと、前もって知らされるスタンバイがある",
      "note": ""
     },
     "en": {
@@ -2643,7 +2643,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "ジャンプシート",
-     "value": "他社と相互のジャンプシート（レシプロカル）",
+     "value": "他社と相互にジャンプシートを使える取り決めがある",
      "note": "会社の案内"
     },
     "en": {
@@ -2747,7 +2747,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "勤務の希望",
-     "value": "先任順位で希望を出す。アプリで出せる",
+     "value": "勤続の長さの順で希望が通る。アプリで出せる",
      "note": "会社の案内"
     },
     "en": {
