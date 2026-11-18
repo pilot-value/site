@@ -1406,9 +1406,12 @@ ok(O1N.n >= 10, `E 切り替えた会社のページに、勤務・待遇の「�
       const card = (h.match(new RegExp(`<article class="pvg-card pvg-tm" data-tm-tab="${tab}">[\\s\\S]*?</article>`)) || [''])[0];
       if (!card) { bad2.push(`${slug} ${lang}: ${tab} の札が無い`); continue; }
       for (const r of list) {
+        /* hide ＝ 出さない行（理由つき）。rows の行は、対象と値の字がどれも札に在る（2026-11-18） */
+        if (r.hide) { if (card.includes(`data-tm="${r.key}"`)) bad2.push(`${slug} ${lang}: ${tab}.${r.key} は出さない行なのに在る`); continue; }
         rows++;
-        if (!card.includes(`data-tm="${r.key}"`) || !card.includes(esc2(r[lang].value))) bad2.push(`${slug} ${lang}: ${tab}.${r.key} が無い`);
-        const all = `${r[lang].label} ${r[lang].value} ${r[lang].note}`;
+        const parts = r[lang].rows && r[lang].rows.length ? r[lang].rows.flat() : [r[lang].value];
+        if (!card.includes(`data-tm="${r.key}"`) || parts.some(t => !card.includes(esc2(t)))) bad2.push(`${slug} ${lang}: ${tab}.${r.key} が無い`);
+        const all = `${r[lang].label} ${parts.join(' ')} ${r[lang].note}`;
         if (/[¥円]|\$|本人負担|payroll contribution|未確認|unconfirmed/.test(all)) bad2.push(`${slug} ${lang}: ${tab}.${r.key} に書いてはいけない字`);
       }
     }

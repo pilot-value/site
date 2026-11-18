@@ -2277,6 +2277,11 @@ export function check(store) {
     const u = NOT_JA.exec(t) || US_JARGON.exec(t) || HEDGE.exec(t);
     if (u) bad.push({ what: 'TERMS', id: `${slug}.${r.key}`, why: `「${u[0]}」を字に入れない（${t.slice(0, 60)}）` });
   }
+  /* 対象の違う値を「・」でつないで1つの値に詰めない（rows で「対象｜値」の行にする ── オーナー「どれがどれを対象に言ってるのかわかんない」） */
+  for (const [slug, T] of Object.entries(TERMS)) for (const rows of Object.values(T)) for (const r of rows || []) {
+    const v = r.ja && r.ja.value;
+    if (!r.hide && typeof v === 'string' && (v.match(/・/g) || []).length >= 3) bad.push({ what: 'TERMS', id: `${slug}.${r.key}`, why: `値に「・」が${(v.match(/・/g) || []).length}つ ── 対象ごとの行（rows）にする（${v.slice(0, 50)}）` });
+  }
   for (const [k, I] of Object.entries(ITEM)) en('ITEM', k, I.label_en, I.label);
   for (const [k, v] of Object.entries(SOURCES)) en('SOURCES', k, SOURCES_EN[k], v);
   for (const [k, v] of Object.entries(SOURCE_URL)) en('SOURCE_URL', k, SOURCE_URL_EN[k], v);

@@ -508,15 +508,18 @@ ${payDetails(v)}
    額は外貨の字のまま（円に直さない・通貨切替に読ませない ── prose）。 */
 const TM_ICON = { pay: 'benefits', work: 'work', life: 'living', stay: 'stay' };
 function termsCard(v, tab) {
-  const rows = ((TERMS[v.slug] || {})[tab] || []);
+  /* hide ＝ 出さない行（理由つき・2026-11-18）。rows ＝ 対象ごとに値が違う欄の「対象｜値」の小さい行（「・」でつながない ── オーナー「どれがどれを対象に言ってるのかわかんない」） */
+  const rows = ((TERMS[v.slug] || {})[tab] || []).filter(r => !r.hide);
   if (!rows.length) return '';
   const L = LANG === 'en' ? 'en' : 'ja';
-  const dl = rows.map(r => `<div data-tm="${esc(r.key)}"><dt>${esc(r[L].label)}${r.ref ? `<span class="pvg-tag pvg-tag-q">${W.tmRef}</span>` : ''}</dt><dd><b>${prose(r[L].value)}</b>${r[L].note ? `<small>${prose(r[L].note)}</small>` : ''}</dd></div>`).join('');
+  const cell = x => (x.rows && x.rows.length
+    ? `<ul class="pvg-tm-rows">${x.rows.map(([k, val]) => `<li><span>${prose(k)}</span><b>${prose(val)}</b></li>`).join('')}</ul>`
+    : `<b>${prose(x.value)}</b>`);
+  const dl = rows.map(r => `<div data-tm="${esc(r.key)}"><dt>${esc(r[L].label)}${r.ref ? `<span class="pvg-tag pvg-tag-q">${W.tmRef}</span>` : ''}</dt><dd>${cell(r[L])}${r[L].note ? `<small>${prose(r[L].note)}</small>` : ''}</dd></div>`).join('');
   return `<!--PV-USTERMS--><div class="pvg-more-grid pvg-g-tm"${pane(v.slug, tab)}>
 <article class="pvg-card pvg-tm" data-tm-tab="${tab}">
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true">${IC[TM_ICON[tab]]}</span><h2 class="pvg-eyebrow">${W.tm[tab]}</h2><span class="pvg-chip">${W.tmChip(esc(dateJa(TERMS_AT)))}</span></header>
 <dl class="pvg-dl">${dl}</dl>
-<p class="pvg-tm-src">${W.tmSrc}</p>
 </article>
 </div><!--/PV-USTERMS-->`;
 }
