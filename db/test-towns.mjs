@@ -1674,7 +1674,10 @@ console.log('\n▼ TA6 引き継ぎの上限は、街と、月の勤務・質問
 
   // c 答えの1日の上限に当たっている会員：答えは残り、同じ鍵の候補の街は引き継がれる
   const Mc = await member();
-  await db.query(`update public.profiles set cond_answers_day = current_date, cond_answers_today = 60 where id = $1`, [Mc]);
+  /* 上限の数は db/airline-conditions.sql の c_day_cap の1か所から読む（2026-11-17 に 60 → 150。数を写すと、上限を変えた回にここだけ黙って外れる） */
+  const DAY_CAP = Number((read('db/airline-conditions.sql').match(/c_day_cap\s+constant\s+int\s*:=\s*(\d+)\s*;/) || [])[1]);
+  ok(DAY_CAP > 0, `TA6 c （前提）答えの1日の上限を SQL から読めた（${DAY_CAP}件）`);
+  await db.query(`update public.profiles set cond_answers_day = current_date, cond_answers_today = $2 where id = $1`, [Mc, DAY_CAP]);
   const kc = await holdMix(['品川']);
   const cc = await claimT(Mc, kc);
   const rc = (await rowsOf(Mc)).map((x) => x.tname);

@@ -680,8 +680,9 @@ ok(same(QBY[FAM_S].parentWhen, ['standby', 'both']) && same(QBY[FAM_C].parentWhe
   '   空席待ちの券を持つ人・座席確保の券を持つ人に、それぞれだけ開く');
 ok(choiceSig(FAM_S) === choiceSig(FAM_C), '   使える人の選択肢は、2つの券で同じ（券どうしを比べられる）');
 ok(same(QBY[FAM_S].choices.map((c) => c.code),
-        ['self', 'partner', 'children', 'parents', 'siblings', 'nominee', 'other']),
-  '   選択肢は 本人・配偶者／パートナー・子・親・きょうだい・指名した人・その他');
+        ['self', 'partner', 'children', 'parents', 'siblings', 'grandparents_grandchildren', 'parents_in_law', 'nominee', 'other']),
+  '   選択肢は 本人・配偶者／パートナー・子・親・きょうだい・祖父母と孫（2親等）・配偶者の親・指名した人・その他'
+  + '（祖父母と孫・配偶者の親は 2026-11-17 に足した）');
 ok(!QBY.staff_travel_family && RETIRED.includes('staff_travel_family'),
   '   共通の1問（staff_travel_family）は 2026-11-17 に止めた（家族のことはこの2問だけで聞く・止めた答えの扱いは ㉒）');
 
@@ -1580,92 +1581,104 @@ ok(whyOf(r) === BOTH_ORDER && r.saved === 2 && now2 === '50 USD／600 USD',
   '㉑ ★c2 両方の端を2回ずつ入れた送信（低い 50・低い 500・高い 600・高い 60）→ 最後の答えどうし（500・60）を比べて2つとも断る。'
   + '先の 50 と 600 が残る（相手の「最初の」答えと比べて、500／60 を通さない）', `${whyOf(r)} ｜ ${now2}`);
 
-/* ★1日の上限（60件）が、対の2つのあいだで切れるとき（2026-10-11）。
+/* ★1日の上限（DAY_CAP 件）が、対の2つのあいだで切れるとき（2026-10-11）。
+   ★上限は db/airline-conditions.sql の c_day_cap（2026-11-17 に 60 → 150・オーナー判断）。ここの DAY_CAP と同じ数にする
+     （下の「上限の近く」は DAY_CAP の手前から始めるので、数がずれると上限に1度も届かず、cut が 0 で落ちる）。
    前は、先に回る低いほうだけが入り（同じ送信の高いほうと比べて通る）、高いほうは上限で断られて、
    「低いほう 300・高いほう 200」が残った。食い違う2つを受け取らない、という決まりの、最後の抜け道。
    同じ送信の2つの端は「1組」── **2つとも書くか、2つとも書かない**（額の無い「わからない」の端も、組に入る）。
    上限に2件ぶんの空きが無ければ、2つとも rate_limited で返る（新しい理由は作らない）。
    ⚠️ submit は、最後に asUser した会員として送る（pairUser も asUser を呼ぶ）。数を置く setDay と、
       読むだけの pairRows・pairNow・day は、会員を切り替えない。 */
+const DAY_CAP = 150;
+ok(/c_day_cap\s+constant\s+int\s*:=\s*150\s*;/.test(read('db/airline-conditions.sql')),
+  '㉑ （前提）1日の上限は db/airline-conditions.sql の c_day_cap の1か所で 150（ここの DAY_CAP と同じ）');
 const BOTH_LIM = `${LO}:rate_limited ${HI}:rate_limited`;
 const setDay = (n, k) => db.query(
   `update profiles set cond_answers_day = current_date, cond_answers_today = $2 where id = $1`, [uid(n), k]);
 let dayN;
 
 await pairUser(431);
-await setDay(431, 59);
+await setDay(431, DAY_CAP - 1);
 r = await submit({ ...PC, answers: [low(300), high(400)] });
 now2 = await pairNow(431);
 dayN = await day(431);
-ok(whyOf(r) === BOTH_LIM && r.saved === 0 && now2 === '100 USD／200 USD' && dayN === 59,
+ok(whyOf(r) === BOTH_LIM && r.saved === 0 && now2 === '100 USD／200 USD' && dayN === DAY_CAP - 1,
   '㉑ ★d1 100／200 USD を持つ人が、残り1件の日に、1回の送信で 300／400 に直す → 2つとも断る（rate_limited）。'
   + '何も変わらない（低いほうだけ入って 300／200 にならない）・1日の数も増えない', `${whyOf(r)} ｜ 保存 ${r.saved} ｜ ${now2} ｜ 数 ${dayN}`);
 r = await submit({ ...PC, answers: [low(150)] });
 now2 = await pairNow(431);
 dayN = await day(431);
-ok(r.rejected.length === 0 && r.saved === 1 && now2 === '150 USD／200 USD' && dayN === 60,
+ok(r.rejected.length === 0 && r.saved === 1 && now2 === '150 USD／200 USD' && dayN === DAY_CAP,
   '   d1 のつづき: 同じ人が、低いほうだけ 150 を送る → 保存（1件だけの答えは、今までどおり、残りの1件で入る）',
   `${whyOf(r)} ｜ 保存 ${r.saved} ｜ ${now2} ｜ 数 ${dayN}`);
 await pairUser(432);
-await setDay(432, 59);
+await setDay(432, DAY_CAP - 1);
 r = await submit({ ...PC, answers: [high(400), low(300)] });
 now2 = await pairNow(432);
 dayN = await day(432);
-ok(whyOf(r) === BOTH_LIM && r.saved === 0 && now2 === '100 USD／200 USD' && dayN === 59,
+ok(whyOf(r) === BOTH_LIM && r.saved === 0 && now2 === '100 USD／200 USD' && dayN === DAY_CAP - 1,
   '㉑ ★d1b 高いほうを先に並べた送信でも同じ（2つとも rate_limited・100／200 のまま・数も増えない）',
   `${whyOf(r)} ｜ 保存 ${r.saved} ｜ ${now2} ｜ 数 ${dayN}`);
 await pairUser(433);
-await setDay(433, 58);
+await setDay(433, DAY_CAP - 2);
 r = await submit({ ...PC, answers: [low(300), high(400)] });
 now2 = await pairNow(433);
 dayN = await day(433);
-ok(r.rejected.length === 0 && r.saved === 2 && now2 === '300 USD／400 USD' && dayN === 60,
-  '㉑ d2 対照: 残り2件の日なら、300／400 は2つとも保存（1日の数は 60 ちょうど）',
+ok(r.rejected.length === 0 && r.saved === 2 && now2 === '300 USD／400 USD' && dayN === DAY_CAP,
+  `㉑ d2 対照: 残り2件の日なら、300／400 は2つとも保存（1日の数は ${DAY_CAP} ちょうど）`,
   `${whyOf(r)} ｜ 保存 ${r.saved} ｜ ${now2} ｜ 数 ${dayN}`);
 await pairUser(434);
-await setDay(434, 59);
+await setDay(434, DAY_CAP - 1);
 r = await submit({ ...PC, answers: [low(300), dunno(HI)] });
 now2 = await pairNow(434);
 ok(whyOf(r) === BOTH_LIM && r.saved === 0 && now2 === '100 USD／200 USD',
   '㉑ ★d3 残り1件の日に、低いほう 300・高いほう「わからない」→ 2つとも断る（額の無い端も、組に入る）。100／200 のまま',
   `${whyOf(r)} ｜ 保存 ${r.saved} ｜ ${now2}`);
 await pairUser(435);
-await setDay(435, 59);
+await setDay(435, DAY_CAP - 1);
 r = await submit({ ...PC, answers: [dunno(LO), high(50)] });
 now2 = await pairNow(435);
 ok(whyOf(r) === BOTH_LIM && r.saved === 0 && now2 === '100 USD／200 USD',
   '㉑ ★d3\' 残り1件の日に、低いほう「わからない」・高いほう 50 → 2つとも断る。100／200 のまま',
   `${whyOf(r)} ｜ 保存 ${r.saved} ｜ ${now2}`);
 await pairUser(436);
-await setDay(436, 58);
+await setDay(436, DAY_CAP - 2);
 r = await submit({ ...PC, answers: [low(300), skipOf(LO), high(400)] });
 now2 = await pairNow(436);
 dayN = await day(436);
-ok(whyOf(r) === `${LO}:rate_limited` && r.saved === 2 && r.skipped === 0 && now2 === '300 USD／400 USD' && dayN === 60,
+ok(whyOf(r) === `${LO}:rate_limited` && r.saved === 2 && r.skipped === 0 && now2 === '300 USD／400 USD' && dayN === DAY_CAP,
   '㉑ ★d4 残り2件の日に、低いほう 300・低いほうをスキップ・高いほう 400 → 断るのは、あいだのスキップだけ。'
-  + '300／400 が入り、スキップの印は付かない・1日の数は 60（高いほうのために取っておいた1件ぶんを、スキップに使わせない）',
+  + `300／400 が入り、スキップの印は付かない・1日の数は ${DAY_CAP}（高いほうのために取っておいた1件ぶんを、スキップに使わせない）`,
   `${whyOf(r)} ｜ 保存 ${r.saved}・スキップ ${r.skipped} ｜ ${now2} ｜ 数 ${dayN}`);
 await pairUser(437);
-await setDay(437, 57);
+await setDay(437, DAY_CAP - 3);
 r = await submit({ ...PC, answers: [low(300), high(400), { question_id: 'landing_pay_varies_by', code: 'aircraft' }] });
 now2 = await pairNow(437);
 dayN = await day(437);
-ok(r.rejected.length === 0 && r.saved === 3 && now2 === '300 USD／400 USD' && dayN === 60,
+ok(r.rejected.length === 0 && r.saved === 3 && now2 === '300 USD／400 USD' && dayN === DAY_CAP,
   '㉑ ★d5 残り3件の日に、300／400 と「何で変わるか」→ 3件とも保存（取っておいた1件ぶんは、高いほうを書いたら使い終わり）',
   `${whyOf(r)} ｜ 保存 ${r.saved} ｜ ${now2} ｜ 数 ${dayN}`);
 await asUser(438);
-await setDay(438, 58);
+await setDay(438, DAY_CAP - 2);
 r = await submit({ ...PC, answers: [VAR, low(300), high(400)] });
 now2 = await pairNow(438);
 dayN = await day(438);
 m = await mineOf(438, PC.airline);
-ok(whyOf(r) === BOTH_LIM && r.saved === 1 && m[LP.id]?.code === 'variable' && now2 === '行なし／行なし' && dayN === 59,
+ok(whyOf(r) === BOTH_LIM && r.saved === 1 && m[LP.id]?.code === 'variable' && now2 === '行なし／行なし' && dayN === DAY_CAP - 1,
   '㉑ ★d6 対をまだ持たない人が、残り2件の日に「一定額ではない」・300・400 → 親だけ保存し、2つの端は2つとも断る'
-  + '（親で1件使ったあとの空きは1件。どちらの行もできない・1日の数は 59）',
+  + `（親で1件使ったあとの空きは1件。どちらの行もできない・1日の数は ${DAY_CAP - 1}）`,
   `${whyOf(r)} ｜ 保存 ${r.saved} ｜ ${now2} ｜ 数 ${dayN}`);
+/* 前の上限（60件）で止まっていた所（2026-11-17 オーナーが板で1社ぶん全部答えて「保存できませんでした」になった） */
+await asUser(439);
+await setDay(439, 60);
+r = await submit({ ...PC, answers: [VAR] });
+dayN = await day(439);
+ok(r.saved === 1 && r.rejected.length === 0 && dayN === 61,
+  '㉑ ★その日 61件めの答えも保存できる（前の上限 60 では rate_limited で断っていた）', `${whyOf(r)} ｜ 保存 ${r.saved} ｜ 数 ${dayN}`);
 
-/* 上の8行は、決めた形だけ。こちらは「性質」を見る ── 上限の近く（55〜60件め）で、対の2問に何をどう
-   並べて送っても、(1) 額を持つ2つが食い違って残らない・(2) 1日の数が 60 を超えない。
+/* 上の8行は、決めた形だけ。こちらは「性質」を見る ── 上限の近く（DAY_CAP−5〜DAY_CAP 件め）で、対の2問に何をどう
+   並べて送っても、(1) 額を持つ2つが食い違って残らない・(2) 1日の数が DAY_CAP を超えない。
    送信は、決まった種から作る（Math.random を使わない ＝ 毎回同じ 400 回）。1回に1〜4件、中身は
    低いほう／高いほうの額（6つの額 × USD が多め・ときどき EUR）・「わからない」・スキップ。
    ⚠️ 数だけで緑にしない: 「2つとも上限で断った回」と「2件以上保存した回」が1回も無い並びでは、
@@ -1688,11 +1701,11 @@ ok(whyOf(r) === BOTH_LIM && r.saved === 1 && m[LP.id]?.code === 'variable' && no
     return k === 6 ? dunno(pick([LO, HI])) : skipOf(pick([LO, HI]));
   };
   const said = (a) => `${a.question_id === LO ? '低' : '高'}${a.skip ? 'スキップ' : a.code ? '?' : `${a.num}${a.currency}`}`;
-  let calls = 0, broken = 0, over60 = 0, cut = 0, both = 0, first = '';
+  let calls = 0, broken = 0, over = 0, cut = 0, both = 0, first = '';
   for (const n of [441, 442, 443, 444]) {
     await pairUser(n);
     for (let i = 0; i < 100; i++) {
-      const start = 55 + int(6);
+      const start = DAY_CAP - 5 + int(6);
       const answers = Array.from({ length: 1 + int(4) }, draw);
       await setDay(n, start);
       const res = await submit({ ...PC, answers });
@@ -1703,17 +1716,17 @@ ok(whyOf(r) === BOTH_LIM && r.saved === 1 && m[LP.id]?.code === 'variable' && no
       const clash = !!(x[LO] && x[HI] && x[LO].answer_num !== null && x[HI].answer_num !== null
         && (x[LO].answer_currency !== x[HI].answer_currency || Number(x[LO].answer_num) > Number(x[HI].answer_num)));
       if (clash) broken++;
-      if (end > 60) over60++;
-      if (start < 60 && why.includes(`${LO}:rate_limited`) && why.includes(`${HI}:rate_limited`)) cut++;
+      if (end > DAY_CAP) over++;
+      if (start < DAY_CAP && why.includes(`${LO}:rate_limited`) && why.includes(`${HI}:rate_limited`)) cut++;
       if (res.saved >= 2) both++;
-      if ((clash || end > 60) && !first) {
+      if ((clash || end > DAY_CAP) && !first) {
         first = `会員 ${n}・${i + 1}回め: 数 ${start} → ${end} ｜ ${answers.map(said).join('・')} ｜ ${why || '断りなし'} ｜ ${sayEnd(x[LO])}／${sayEnd(x[HI])}`;
       }
     }
   }
-  ok(broken === 0 && over60 === 0 && cut > 0 && both > 0,
-    '㉑ ★上限の近く（55〜60件め）で、対の2問に何を並べて送っても、食い違う2つは残らない・1日の数は 60 を超えない'
-    + `（決まった並びの ${calls} 回: 食い違い ${broken}・60超え ${over60} ｜ 2つとも上限で断った回 ${cut}・2件以上保存した回 ${both}）`,
+  ok(broken === 0 && over === 0 && cut > 0 && both > 0,
+    `㉑ ★上限の近く（${DAY_CAP - 5}〜${DAY_CAP}件め）で、対の2問に何を並べて送っても、食い違う2つは残らない・1日の数は ${DAY_CAP} を超えない`
+    + `（決まった並びの ${calls} 回: 食い違い ${broken}・${DAY_CAP}超え ${over} ｜ 2つとも上限で断った回 ${cut}・2件以上保存した回 ${both}）`,
     first);
 }
 /* 相手の額は、この人の・この会社の行からだけ読む。同じ人がほかの会社で持っている額とは比べない
@@ -1893,11 +1906,11 @@ const factRT = async (q) => (await rows(
 let rfx = await factRT(EH);
 ok(rfx && rfx.n === 3 && !('type_rated' in rfx.d) && rfx.d.dec === 3,
   '★㉒ 外した選択肢（型式限定保持者のみ）だけの答えは人数に入らず、答えごとの人数にも出ない', JSON.stringify(rfx));
-/* 1つ選ぶ質問：地上業務の補償に3人が答え、1人の答えを外した「はい」に戻すと、2人 ＝ 公開の線（3人）に届かない */
+/* 1つ選ぶ質問：乗務以外の業務の手当に3人が答え、1人の答えを外した「はい」に戻すと、2人 ＝ 公開の線（3人）に届かない */
 const GD = 'ground_duty_pay';
 for (const n of [9621, 9622, 9623]) { await asUser(n); await submit({ ...RT, answers: [{ question_id: GD, code: 'allowance' }] }); }
 await db.exec('reset role');
-ok((await factRT(GD))?.n === 3, '   地上業務の補償に3人が「手当が出る」と答えると、集計に出る');
+ok((await factRT(GD))?.n === 3, '   乗務以外の業務の手当に3人が「手当が出る」と答えると、集計に出る');
 await toOld(9621, GD, 'yes', null);
 rfx = await factRT(GD);
 ok(rfx === null, '★㉒ 1人の答えが外した「はい」なら2人 ＝ 集計に出ない（外した答えを人数に数えない）', JSON.stringify(rfx));
@@ -1905,6 +1918,35 @@ ok(rfx === null, '★㉒ 1人の答えが外した「はい」なら2人 ＝ 集
 await db.query(`update pv_condition_questions set choice_codes = array_append(choice_codes, 'yes') where id = $1`, [GD]);
 ok((await factRT(GD))?.n === 3, '   壊す証明: 「はい」が選択肢に在れば、同じ3行がまた3人として数えられる');
 await db.query(`update pv_condition_questions set choice_codes = array_remove(choice_codes, 'yes') where id = $1`, [GD]);
+
+/* 「何によって違いますか？」を外した4つ（2026-11-17・オーナー「意味が分からない」）。親の4問はそのまま。
+   本番には前の台帳で作った続きの行（active = true）と、その答えが在る ── 貼り直すと止まる（行も答えも消さない）。
+   止めた質問の答えを数えないことは、上の staff_travel_family の3人が見ている（同じ q.active）。 */
+const SPLIT_OFF = ['cadet_program', 'retirement_age', 'peer_support', 'loss_of_licence'];
+ok(SPLIT_OFF.every((p) => QBY[p] && !QBY[p].parent && QBY[p].split === false && !QBY[p + '_split'] && RETIRED.includes(p + '_split'))
+   && !QUESTIONS.some((q) => q.deep === 'split' && SPLIT_OFF.includes(q.parent)),
+  '   ★㉒ 自社養成・定年・Peer Support・ライセンス喪失の補償には「何によって違うか」を作らない（4つの続きの id は RETIRED）');
+await db.exec('reset role');
+const SPLIT_TPL = QUESTIONS.find((q) => q.deep === 'split').id;   // 今も在る続きの行を型にして、前の台帳の行を作る
+for (const p of SPLIT_OFF) {
+  await db.query(`insert into pv_condition_questions
+                  select (jsonb_populate_record(null::pv_condition_questions,
+                            to_jsonb(q) || jsonb_build_object('id', $1::text, 'parent', $2::text, 'active', true))).*
+                    from pv_condition_questions q where q.id = $3
+                  on conflict (id) do update set active = true`, [p + '_split', p, SPLIT_TPL]);
+  await db.query(`insert into airline_conditions (proof_hash, airline, question_id, answer_codes, effective_year, effective_month)
+                  values (pv_condition_hash($1::uuid, $2, null), $2, $3, array['rank'], 2026, 8)
+                  on conflict (proof_hash, question_id) do nothing`, [uid(9601), RT.airline, p + '_split']);
+}
+const splitOff = async () => rows(
+  `select q.id, q.active, (select count(*)::int from airline_conditions c where c.question_id = q.id) n
+     from pv_condition_questions q where q.id = any($1) order by q.id`, [SPLIT_OFF.map((p) => p + '_split')]);
+let so = await splitOff();
+ok(so.length === 4 && so.every((x) => x.active && x.n === 1), '   （前提）前の台帳の形：4つの続きが有効で、答えが1件ずつ在る', JSON.stringify(so));
+await db.exec(read('db/conditions.generated.sql'));
+so = await splitOff();
+ok(so.length === 4 && so.every((x) => !x.active && x.n === 1),
+  '★㉒ db/conditions.generated.sql を貼ると、4つの続きは止まる（active = false）・行も答えも消さない', JSON.stringify(so));
 
 
 /* オーナーが SQL Editor で見る検算表そのものを、ここで先に回しておく。

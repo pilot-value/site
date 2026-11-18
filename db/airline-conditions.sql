@@ -591,6 +591,9 @@ security definer
 set search_path = public, extensions
 as $$
 declare
+  /* 1人1日に保存できる答えの数（スキップも1件）。★数字はここの1か所だけ。
+     2026-11-17 オーナー判断で 60 → 150（質問が増え、1社ぶんを全部答えると 60 を超えて「保存できませんでした」で止まった）。 */
+  c_day_cap constant int := 150;
   v_uid     uuid := auth.uid();
   v_airline text := nullif(btrim(p->>'airline'), '');
   v_other   text := nullif(btrim(p->>'airline_other'), '');
@@ -707,13 +710,13 @@ begin
       continue;
     end if;
 
-    /* 1日の上限（60件）。
+    /* 1日の上限（c_day_cap ＝ 150件）。
        ★v_held … 対になる額の「あとから回ってくる端」のために取っておいた1件ぶん（下の「★1組」）。
          ・取っておいた端そのものは、ここを通す（その1件ぶんは、先の端を書くときに空きを確かめてある）。
          ・ほかの答えは、取っておいた分を使えない（あいだに入ったスキップや重ねた答えに使わせると、
            取っておいた端が上限で落ちて、先の端だけが残る）。 */
     if not (v_a.ord = any(v_held))
-       and v_prof.cond_answers_today + v_saved + cardinality(v_held) >= 60 then
+       and v_prof.cond_answers_today + v_saved + cardinality(v_held) >= c_day_cap then
       v_rej := v_rej || jsonb_build_array(jsonb_build_object(
         'question_id', v_a.id, 'reason', 'rate_limited'));
       continue;
@@ -840,7 +843,7 @@ begin
 
       -- ★1組の先の端。2件ぶんの空きが無ければ、この端を書かない（相手も、あとで同じ所で断られる）
       if v_punit and not (v_a.ord = any(v_held)) then
-        if v_prof.cond_answers_today + v_saved + cardinality(v_held) + 2 > 60 then
+        if v_prof.cond_answers_today + v_saved + cardinality(v_held) + 2 > c_day_cap then
           v_rej := v_rej || jsonb_build_array(jsonb_build_object(
             'question_id', v_a.id, 'reason', 'rate_limited'));
           continue;

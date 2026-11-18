@@ -90,6 +90,8 @@
       eyebrow: ['あと10秒だけ、', '教えてください'],
       close: '閉じる',
       skip: '今回はスキップ',
+      /* 板の下の段の左（2問目から・2026-11-17 オーナー指示「前の質問に戻れるように」）。戻ると前に保存した答えを選んだ形で出す */
+      prev: '← 前の質問',
       more: 'もっと詳しく答える →',
       step: function (i, n) { return i + ' / ' + n; },
       thanks: function (name) {
@@ -150,6 +152,7 @@
       eyebrow: ['Ten more seconds,', 'if you have them'],
       close: 'Close',
       skip: 'Skip this one',
+      prev: '← Previous question',
       more: 'Tell us more →',
       step: function (i, n) { return i + ' / ' + n; },
       thanks: function (name) {
@@ -198,6 +201,7 @@
       eyebrow: ['Diez segundos más,', 'si los tienes'],
       close: 'Cerrar',
       skip: 'Omitir esta pregunta',
+      prev: '← Anterior',
       more: 'Cuéntanos más →',
       step: function (i, n) { return i + ' / ' + n; },
       thanks: function (name) {
@@ -337,15 +341,26 @@
        枠は選んだ字の色・地は1段濃く。押せないあいだ（1問だけ聞くカードで、保存の返事を待つあいだ）は動かさない。
        置ける端末だけ（hover:hover）＝ 指で触る端末で、押したばかりの選択肢だけが濃いまま残らない。 */
     '@media (hover:hover){.pvc-opt.is-picked:not([disabled]):hover{border-color:#34d399;background:rgba(52,211,153,.18)}}',
-    '.pvc-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:22px;',
+    /* 下の段は3つの枠（左＝前の質問・真ん中＝「2 / 5」・右＝今回はスキップ）。1問目は左が空の枠 ＝ 「2 / 5」の位置が問ごとに動かない。
+       スマホの幅（〜360px）でも1行に収まる字の大きさ・押せる高さ 44px（2026-11-17） */
+    '.pvc-foot{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-gap:14px;margin-top:22px;',
       'padding-top:4px;border-top:1px solid rgba(255,255,255,.06)}',
-    '.pvc-step{font-size:.72rem;font-weight:700;letter-spacing:.08em;color:#6b7d93}',
-    '.pvc-skip{min-height:44px;padding:11px 2px;border:0;background:none;font-size:.78rem;font-weight:700;',
+    '.pvc-step{justify-self:center;white-space:nowrap;font-size:.72rem;font-weight:700;letter-spacing:.08em;color:#6b7d93}',
+    '.pvc-skip{justify-self:end;white-space:nowrap;min-height:44px;padding:11px 2px;border:0;background:none;font-size:.78rem;font-weight:700;',
       'color:#6b7d93;cursor:pointer;text-decoration:underline;text-decoration-thickness:1px;',
       'text-underline-offset:4px;text-decoration-color:rgba(107,125,147,.35);',
-      'transition:color .2s,text-decoration-color .2s}',
+      'transition:color .2s,text-decoration-color .2s,transform .18s cubic-bezier(.16,1,.3,1)}',
     '.pvc-skip:hover{color:#e8edf2;text-decoration-color:rgba(232,237,242,.6)}',
     '.pvc-skip:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:3px;border-radius:6px}',
+    '.pvc-skip:active{transform:translateY(1px)}',
+    /* 「← 前の質問」。スキップと同じ静かな字（下線は付けない ＝ 2つの役目を見分ける）。保存の返事を待つあいだは押せない */
+    '.pvc-prevq{justify-self:start;white-space:nowrap;min-height:44px;padding:11px 8px 11px 0;border:0;background:none;',
+      'font-size:.78rem;font-weight:700;color:#6b7d93;cursor:pointer;border-radius:6px;',
+      'transition:color .2s,transform .18s cubic-bezier(.16,1,.3,1)}',
+    '.pvc-prevq:hover{color:#e8edf2}',
+    '.pvc-prevq:focus-visible{outline:2px solid rgba(245,200,66,.6);outline-offset:3px}',
+    '.pvc-prevq:active{transform:translateX(-2px)}',
+    '.pvc-prevq[disabled],.pvc-skip[disabled]{cursor:default;opacity:.45}',
     '.pvc-nb{display:inline-block}',
     /* 戻ってきた会員に聞く板（2026-10-30）。見出しが主役の1行目、数字の欄、「次へ」 */
     '.pvc-eyebrow.is-ask{font-size:1rem;font-weight:800;letter-spacing:-.01em;line-height:1.5}',
@@ -405,8 +420,8 @@
     '[data-theme="light"] .pvc-q,[data-theme="light"] .pvc-cta-t{color:#0f172a}',
     '[data-theme="light"] .pvc-help,[data-theme="light"] .pvc-air,',
       '[data-theme="light"] .pvc-step,[data-theme="light"] .pvc-cta-s{color:#64748b}',
-    '[data-theme="light"] .pvc-x,[data-theme="light"] .pvc-skip{color:#64748b}',
-    '[data-theme="light"] .pvc-x:hover,[data-theme="light"] .pvc-skip:hover{color:#0f172a}',
+    '[data-theme="light"] .pvc-x,[data-theme="light"] .pvc-skip,[data-theme="light"] .pvc-prevq{color:#64748b}',
+    '[data-theme="light"] .pvc-x:hover,[data-theme="light"] .pvc-skip:hover,[data-theme="light"] .pvc-prevq:hover{color:#0f172a}',
     '[data-theme="light"] .pvc-foot{border-top-color:rgba(15,23,42,.1)}',
     '[data-theme="light"] .pvc-opt{color:#0f172a;background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.14)}',
     '[data-theme="light"] .pvc-opt:hover{border-color:rgba(13,138,99,.45);background:rgba(13,138,99,.07)}',
@@ -625,6 +640,9 @@
     this.trigger = trigger;
     this.i = 0;
     this.answered = 0;
+    /* この板で保存できた答え（質問の id → 送った答え）。「← 前の質問」で戻った問に、その答えを選んだ形で出す。
+       ★答え直しは同じ口で上書きするだけ ＝ answered と「答えた」の計測は、その問の最初の保存でしか数えない */
+    this.given = {};
     this.closed = false;
 
     ensureStyle();
@@ -697,7 +715,9 @@
 
     /* 再確認：前回の答えを見せて「今も同じか」だけを聞く。
        ★「わからない」だった質問は普通に聞き直す（“以前わからないと回答しました”は意味がない）。 */
-    it.reconfirm = !!(it.mine_code && it.mine_code !== UNKNOWN && !it.expanded);
+    /* ★この板で答えた問へ「← 前の質問」で戻ったときは、再確認ではなく普通の選択肢で、保存した答えを選んだ形で出す */
+    var given = this.given.hasOwnProperty(q.id) ? this.given[q.id] : null;
+    it.reconfirm = !!(it.mine_code && it.mine_code !== UNKNOWN && !it.expanded && !given);
 
     /* 形は3つ。給与の後の板・マイページの1問は「1つ選ぶ」だけ（fetchItems が選択肢の無い質問を外している）。
        数字と複数選ぶを描くのは、戻ってきた会員に聞く板（askReturn）だけ。 */
@@ -742,7 +762,7 @@
       numHtml = '<div class="pvc-numrow">' +
           (q.currency
             ? '<select class="pvcf-sel pvc-cur" data-cur aria-label="' + esc(T.fullCur) + '">' +
-                curOptions(this.lastCur || '') + '</select>'
+                curOptions((given && given.currency) || this.lastCur || '') + '</select>'
             : '') +
           '<input type="number" class="pvcf-num pvc-num" inputmode="' +
             (Number(nm.step || 1) < 1 ? 'decimal' : 'numeric') + '"' +
@@ -767,9 +787,13 @@
     var ctxLine = (!it.reconfirm && it.parentLabel)
       ? '<div class="pvc-ctx">' + lines(T.followUp(it.parentLabel)) + '</div>' : '';
 
+    /* 「← 前の質問」は2問目から（1問目は空の枠）。1問だけの板には出ない */
+    var prev = this.i > 0
+      ? '<button type="button" class="pvc-prevq">' + esc(T.prev) + '</button>' : '<span></span>';
+
     this.body.innerHTML =
       ctxLine + '<div class="pvc-q">' + head + '</div>' + help + numHtml + optsHtml + otherHtml + goHtml +
-      '<div class="pvc-foot">' + step +
+      '<div class="pvc-foot">' + prev + step +
         '<button type="button" class="pvc-skip">' + esc(T.skip) + '</button>' +
       '</div>';
 
@@ -786,6 +810,27 @@
       if (other) a.push(other);
       return a;
     };
+    /* 戻ってきた問：前に保存した答えを選んだ形にする（1つ選ぶ＝その札／複数＝選んだ札とその他の字／数字＝数と通貨） */
+    if (given) {
+      var mark = function (code) {
+        Array.prototype.forEach.call(btns, function (b) {
+          if (b.getAttribute('data-code') !== code) return;
+          b.classList.add('is-picked');
+          if (b.getAttribute('data-multi')) b.setAttribute('aria-pressed', 'true');
+        });
+      };
+      if (given.code != null) mark(given.code);
+      if (mode === 'multi' && given.codes) {
+        given.codes.forEach(mark);
+        if (next) next.disabled = !this.body.querySelector('.pvc-opt.is-picked[data-multi]');
+        if (other && given.codes.indexOf('other') >= 0) { other.hidden = false; other.value = given.text || ''; }
+      }
+      if (mode === 'num' && given.num != null && input) {
+        input.value = String(given.num);
+        if (cur && given.currency) cur.value = given.currency;
+        if (next) next.disabled = false;
+      }
+    }
     Array.prototype.forEach.call(btns, function (b) {
       b.addEventListener('click', function () {
         var code = b.getAttribute('data-code');
@@ -850,6 +895,8 @@
       next.addEventListener('click', submit);
     }
     this.body.querySelector('.pvc-skip').addEventListener('click', function () { self.skip(); });
+    var pv = this.body.querySelector('.pvc-prevq');
+    if (pv) pv.addEventListener('click', function () { self.prev(); });
 
     /* 開いたことは1回だけ数える（1問ごとに数えると開封率が3倍に見える）。
        どの質問を出したかは question_number と question_id で追える。 */
@@ -883,21 +930,25 @@
     var it = this.items[this.i];
     var a = { question_id: it.q.id };
     for (var k in answer) if (answer.hasOwnProperty(k)) a[k] = answer[k];
+    var had = this.given[it.q.id];
+    var foot = this.footBtns();
     els.forEach(function (x) { x.disabled = true; });
+    foot.forEach(function (x) { x.disabled = true; });
     if (btn) btn.classList.add('is-picked');
     this.warn(null);
     this.ctx.sb.rpc('submit_airline_conditions', { p: payload(this.ctx, [a]) })
       .then(function (res) {
         if (res.error || !res.data || res.data.saved !== 1) throw new Error('not saved');
-        self.answered++;
         if (a.currency) self.lastCur = a.currency;
-        self.evt(a.code === UNKNOWN ? 'condition_unknown' : 'condition_answered');
-        self.advance();
+        var again = !!had && sameAnswer(had, answer);
+        if (self.keep(it, answer)) self.evt(a.code === UNKNOWN ? 'condition_unknown' : 'condition_answered');
+        self.advance(!again);
       })
       .catch(function () {
         self.warn(T.failed);
-        if (btn) btn.classList.remove('is-picked');
+        if (btn && !(had && had.code === btn.getAttribute('data-code'))) btn.classList.remove('is-picked');
         els.forEach(function (x) { x.disabled = false; });
+        foot.forEach(function (x) { x.disabled = false; });
         /* 「次へ」は、押せる中身があるときだけ押せる形に戻す */
         var nx = self.body.querySelector('[data-next]');
         if (nx) {
@@ -911,11 +962,14 @@
   /* 答えが保存できたあと、次の1問へ。
      戻ってきた会員に聞く板（ctx.refill がある）だけ、残りをサーバに聞き直す ──
      いま「ある」と答えた制度の中身（子の質問）を、同じ板の中で続けて聞くため。
-     聞き直せなくても、最初にもらった残りのまま進む（止めない）。 */
-  Modal.prototype.advance = function () {
+     聞き直せなくても、最初にもらった残りのまま進む（止めない）。
+     ★「← 前の質問」で戻った問を、前と同じ答えで選び直したときは聞き直さない（refresh = false）──
+       子の質問は変わらないので、さっきの続き（答えた問は、その答えを選んだ形）へそのまま進む。
+       聞き直すと、答えた問はサーバが返さないので飛ばされ、1回の板で聞く数（3問）を超えて新しい問が足される。 */
+  Modal.prototype.advance = function (refresh) {
     var self = this;
     var go = function () { if (self.closed) return; self.i++; self.step(); };
-    if (typeof this.ctx.refill !== 'function') { go(); return; }
+    if (refresh === false || typeof this.ctx.refill !== 'function') { go(); return; }
     this.ctx.refill(this).then(go, go);
   };
 
@@ -931,8 +985,12 @@
       return;
     }
     var save = (code === '__same') ? it.mine_code : code;
+    var had = this.given[it.q.id];
+    var foot = this.footBtns();
 
-    Array.prototype.forEach.call(btns, function (x) { x.disabled = true; });
+    /* 選び直し（戻ってきた問）：前の札の印を外し、押した札だけに付ける */
+    Array.prototype.forEach.call(btns, function (x) { x.disabled = true; x.classList.remove('is-picked'); });
+    foot.forEach(function (x) { x.disabled = true; });
     btn.classList.add('is-picked');
     var warn = this.body.querySelector('.pvc-warn');
     if (warn) warn.parentNode.removeChild(warn);
@@ -942,10 +1000,12 @@
       { p: payload(this.ctx, [{ question_id: it.q.id, code: save }]) })
       .then(function (res) {
         if (res.error || !res.data || res.data.saved !== 1) throw new Error('not saved');
-        self.answered++;
-        if (code === '__same') self.evt('condition_reconfirmed', { changed: false });
-        self.evt(save === UNKNOWN ? 'condition_unknown' : 'condition_answered');
-        self.advance();
+        var again = !!had && sameAnswer(had, { code: save });
+        if (self.keep(it, { code: save })) {
+          if (code === '__same') self.evt('condition_reconfirmed', { changed: false });
+          self.evt(save === UNKNOWN ? 'condition_unknown' : 'condition_answered');
+        }
+        self.advance(!again);
       })
       .catch(function () {
         var el = d.createElement('div');
@@ -953,14 +1013,63 @@
         el.innerHTML = lines(T.failed);
         self.body.appendChild(el);
         btn.classList.remove('is-picked');
-        Array.prototype.forEach.call(btns, function (x) { x.disabled = false; });
+        Array.prototype.forEach.call(btns, function (x) {
+          x.disabled = false;
+          if (had && had.code === x.getAttribute('data-code')) x.classList.add('is-picked');   // 前の答えの印は戻す
+        });
+        foot.forEach(function (x) { x.disabled = false; });
       });
+  };
+
+  /* 2つの答えが同じか（戻った問を同じ答えで選び直したか）。複数選ぶの並びは板の札の順なので、そのまま比べてよい */
+  function sameAnswer(a, b) {
+    var k = function (x) {
+      return JSON.stringify([x.code == null ? null : x.code, x.codes || null, x.text || '',
+                             x.num == null ? null : Number(x.num), x.currency || null]);
+    };
+    return k(a) === k(b);
+  }
+
+  /* 保存できた答えを覚える。この問をこの板で初めて保存したときだけ true（＝ answered と「答えた」の計測を1回だけ数える） */
+  Modal.prototype.keep = function (it, answer) {
+    var first = !this.given.hasOwnProperty(it.q.id);
+    var c = {};
+    for (var k in answer) if (answer.hasOwnProperty(k)) c[k] = Array.isArray(answer[k]) ? answer[k].slice() : answer[k];
+    this.given[it.q.id] = c;
+    if (first) this.answered++;
+    return first;
+  };
+
+  /* 下の段のボタン（前の質問・スキップ）。保存の返事を待つあいだは押せなくする（返事のあとの「次へ」と二重に進まない） */
+  Modal.prototype.footBtns = function () {
+    return Array.prototype.slice.call(this.body.querySelectorAll('.pvc-foot button'));
+  };
+
+  /* 「← 前の質問」（2026-11-17 オーナー指示）。1つ前の問へ戻り、保存した答えを選んだ形で出す（step が given を読む）。
+     ★戻るだけでは何も送らない。選び直せば同じ口で上書き → 次へ（戻ってきた会員の板は、答えが変わったときだけ残りを
+       サーバに聞き直す ＝ 親の答えを変えたら子の質問もそれに付いてくる。同じ答えなら、さっきの続きのまま ── advance）。
+     ★戻った問の「今回はスキップ」と × は何も送らない（skip）。答え直しは answered にも計測にも数えない（keep）。 */
+  Modal.prototype.prev = function () {
+    if (this.closed || this.i <= 0) return;
+    this.i--;
+    this.step();
+    /* キーボードの人の位置：続けて戻れるように「← 前の質問」へ。1問目なら選んである札へ */
+    var f = this.body.querySelector('.pvc-prevq') || this.body.querySelector('.pvc-opt.is-picked');
+    if (f) { try { f.focus({ preventScroll: true }); } catch (e) { f.focus(); } }
   };
 
   /* 「今回はスキップ」＝この1問だけ飛ばして次へ進む（× は残り全部を終わらせる）。
      いつ飛ばしたかを DB に残す。残さないと次の提出でまた同じ質問が出る。 */
   Modal.prototype.skip = function (thenClose) {
     var it = this.items[this.i];
+    /* ★「← 前の質問」で戻った、この板で答えた問：何も送らずに次へ（答えを消さない・スキップの印も付けない）。
+         × で閉じたときも同じ（スキップの印を付けると、次に聞く時期が「答えた」から「飛ばした」へ変わる） */
+    if (it && this.given.hasOwnProperty(it.q.id)) {
+      if (thenClose) return;
+      this.i++;
+      this.step();
+      return;
+    }
     this.evt('condition_skipped');
     try {
       this.ctx.sb.rpc('submit_airline_conditions',

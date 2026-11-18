@@ -62,6 +62,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "itami",
    "nagoya"
   ],
+  "asiana": [
+   "seoul"
+  ],
   "austrian": [
    "vienna"
   ],
@@ -163,6 +166,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "phoenix",
    "san-juan",
    "tampa"
+  ],
+  "gulf-air": [
+   "manama"
   ],
   "hac": [
    "sapporo"
@@ -5850,6 +5856,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "applies_to": {
       "pilot_specific": true
      },
+     "checked_at": "2026-11-08",
+     "company": "air-china",
+     "cond_ja": "北京の飛行員公寓2号楼での乗務に伴う送迎；本文で飛行員を対象者に明記；客室乗務員も含む乗員向け、パイロット専用ではない。補足: 自宅からの通勤手当の証拠ではなく、乗員送迎車を会社が手配することの証拠。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-04-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "机组接送车辆由国航自行负责。",
+       "source_id": "src-pur-airchina-com-cn-7c27fe59",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "89e2a2ea7b86fc1d",
+     "id": "air-china.benefits.commuting.e9554e5d",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261108-cg-air-china",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-04-19",
+       "publisher": "Air China",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-pur-airchina-com-cn-7c27fe59",
+       "source_type": "official_package",
+       "title": "关于国航飞行员公寓2号楼驻组采购项目拟单一来源公示",
+       "url": "https://pur.airchina.com.cn/001/001001/20250419/ca9fe33e-589c-4aad-bf62-5b0779ddd8a3.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "机组接送车辆由国航自行负责",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
      "checked_at": "2026-10-29",
      "company": "air-china",
      "cond_ja": "全社員向け法定拠出・補足福利厚生；FY2025。補足: FY2025報告書をダウンロードしてEmployee Welfare本文確認。保険一般を医療保険に読み替えない。",
@@ -5946,6 +6003,467 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "enterprise annuities",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "air-china",
+     "cond_ja": "全社員の制度；浙江分公司の人事業務に含まれる私用免票サービス；家族・枚数・運賃条件は未確認。補足: 人事業務としての制度の存在のみを記録。パイロット固有の優遇としては扱わない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-07-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "因私免票服务",
+       "source_id": "src-pur-airchina-com-cn-203742db",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2cfea6bea14bc2cc",
+     "id": "air-china.benefits.staff-travel.4614621d",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261108-cg-air-china",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-07-29",
+       "publisher": "Air China",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-pur-airchina-com-cn-203742db",
+       "source_type": "official_package",
+       "title": "关于浙江分公司人力资源业务外包服务采购项目拟单一来源公示",
+       "url": "https://pur.airchina.com.cn/001/001001/20250729/fa035e3c-9ebd-4753-9bd7-c335d6c4239a.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "因私免票",
+     "value_text": null
+    }
+   ],
+   "fleet": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "air-china",
+     "cond_ja": "A320; as of 2023-12-31; Air China単体、機種系列での開示。補足: 2023年以降の公式資料。グループ合計ではなく「机队-国航」の小計を使用。追加実読した2025年報 https://static.cninfo.com.cn/finalpage/2026-03-27/1225039287.PDF は単体総数533機・型式表はグループ964機のため混用せず。2025/2026決算説明会の公開ページも探索したが新しい単体内訳を取得できず、2023年末の歴史値を維持。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "A320 220",
+       "source_id": "src-webresource-airchina-com-cn-553d908a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a0653d6b28340b3a",
+     "id": "air-china.fleet.a320.48580b79",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "a320",
+     "label_ja": "機種ごとの機数（A320）",
+     "pack": "pvr-20261108-cg-air-china",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air China",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-webresource-airchina-com-cn-553d908a",
+       "source_type": "official_package",
+       "title": "2023年度业绩发布（PDF p.24 机队-国航）",
+       "url": "https://webresource.airchina.com.cn/airchinacms/2/upload/resources/file/4095.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 220,
+     "value_text": "320 220"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "air-china",
+     "cond_ja": "A330; as of 2023-12-31; Air China単体、機種系列での開示。補足: 2023年以降の公式資料。グループ合計ではなく「机队-国航」の小計を使用。追加実読した2025年報 https://static.cninfo.com.cn/finalpage/2026-03-27/1225039287.PDF は単体総数533機・型式表はグループ964機のため混用せず。2025/2026決算説明会の公開ページも探索したが新しい単体内訳を取得できず、2023年末の歴史値を維持。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "A330 51",
+       "source_id": "src-webresource-airchina-com-cn-553d908a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "48efb3d9521472aa",
+     "id": "air-china.fleet.a330.23e78907",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "a330",
+     "label_ja": "機種ごとの機数（A330）",
+     "pack": "pvr-20261108-cg-air-china",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air China",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-webresource-airchina-com-cn-553d908a",
+       "source_type": "official_package",
+       "title": "2023年度业绩发布（PDF p.24 机队-国航）",
+       "url": "https://webresource.airchina.com.cn/airchinacms/2/upload/resources/file/4095.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 51,
+     "value_text": "330 51"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "air-china",
+     "cond_ja": "A350; as of 2023-12-31; Air China単体、機種系列での開示。補足: 2023年以降の公式資料。グループ合計ではなく「机队-国航」の小計を使用。追加実読した2025年報 https://static.cninfo.com.cn/finalpage/2026-03-27/1225039287.PDF は単体総数533機・型式表はグループ964機のため混用せず。2025/2026決算説明会の公開ページも探索したが新しい単体内訳を取得できず、2023年末の歴史値を維持。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "A350 30",
+       "source_id": "src-webresource-airchina-com-cn-553d908a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3e557b3016e6dfac",
+     "id": "air-china.fleet.a350.be6838cd",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "a350",
+     "label_ja": "機種ごとの機数（A350）",
+     "pack": "pvr-20261108-cg-air-china",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air China",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-webresource-airchina-com-cn-553d908a",
+       "source_type": "official_package",
+       "title": "2023年度业绩发布（PDF p.24 机队-国航）",
+       "url": "https://webresource.airchina.com.cn/airchinacms/2/upload/resources/file/4095.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 30,
+     "value_text": "350 30"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "air-china",
+     "cond_ja": "ARJ21; as of 2023-12-31; Air China単体、機種系列での開示。補足: 2023年以降の公式資料。グループ合計ではなく「机队-国航」の小計を使用。追加実読した2025年報 https://static.cninfo.com.cn/finalpage/2026-03-27/1225039287.PDF は単体総数533機・型式表はグループ964機のため混用せず。2025/2026決算説明会の公開ページも探索したが新しい単体内訳を取得できず、2023年末の歴史値を維持。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ARJ21 24",
+       "source_id": "src-webresource-airchina-com-cn-553d908a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ed6e8eaa14f2b284",
+     "id": "air-china.fleet.arj21.642df371",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "arj21",
+     "label_ja": "機種ごとの機数（ARJ21）",
+     "pack": "pvr-20261108-cg-air-china",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air China",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-webresource-airchina-com-cn-553d908a",
+       "source_type": "official_package",
+       "title": "2023年度业绩发布（PDF p.24 机队-国航）",
+       "url": "https://webresource.airchina.com.cn/airchinacms/2/upload/resources/file/4095.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 24,
+     "value_text": "21 24"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "air-china",
+     "cond_ja": "B737; as of 2023-12-31; Air China単体、機種系列での開示。補足: 2023年以降の公式資料。グループ合計ではなく「机队-国航」の小計を使用。追加実読した2025年報 https://static.cninfo.com.cn/finalpage/2026-03-27/1225039287.PDF は単体総数533機・型式表はグループ964機のため混用せず。2025/2026決算説明会の公開ページも探索したが新しい単体内訳を取得できず、2023年末の歴史値を維持。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "B737 118",
+       "source_id": "src-webresource-airchina-com-cn-553d908a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7192cbbe358435d8",
+     "id": "air-china.fleet.b737.12a6a486",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "b737",
+     "label_ja": "機種ごとの機数（B737）",
+     "pack": "pvr-20261108-cg-air-china",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air China",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-webresource-airchina-com-cn-553d908a",
+       "source_type": "official_package",
+       "title": "2023年度业绩发布（PDF p.24 机队-国航）",
+       "url": "https://webresource.airchina.com.cn/airchinacms/2/upload/resources/file/4095.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 118,
+     "value_text": "737 118"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "air-china",
+     "cond_ja": "B747; as of 2023-12-31; Air China単体、機種系列での開示。補足: 2023年以降の公式資料。グループ合計ではなく「机队-国航」の小計を使用。追加実読した2025年報 https://static.cninfo.com.cn/finalpage/2026-03-27/1225039287.PDF は単体総数533機・型式表はグループ964機のため混用せず。2025/2026決算説明会の公開ページも探索したが新しい単体内訳を取得できず、2023年末の歴史値を維持。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "B747 10",
+       "source_id": "src-webresource-airchina-com-cn-553d908a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2093126ab9393a2d",
+     "id": "air-china.fleet.b747.f8b07b44",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "b747",
+     "label_ja": "機種ごとの機数（B747）",
+     "pack": "pvr-20261108-cg-air-china",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air China",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-webresource-airchina-com-cn-553d908a",
+       "source_type": "official_package",
+       "title": "2023年度业绩发布（PDF p.24 机队-国航）",
+       "url": "https://webresource.airchina.com.cn/airchinacms/2/upload/resources/file/4095.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 10,
+     "value_text": "747 10"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "air-china",
+     "cond_ja": "B777; as of 2023-12-31; Air China単体、機種系列での開示。補足: 2023年以降の公式資料。グループ合計ではなく「机队-国航」の小計を使用。追加実読した2025年報 https://static.cninfo.com.cn/finalpage/2026-03-27/1225039287.PDF は単体総数533機・型式表はグループ964機のため混用せず。2025/2026決算説明会の公開ページも探索したが新しい単体内訳を取得できず、2023年末の歴史値を維持。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "B777 28",
+       "source_id": "src-webresource-airchina-com-cn-553d908a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3614827025d98e0c",
+     "id": "air-china.fleet.b777.dcea3351",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "b777",
+     "label_ja": "機種ごとの機数（B777）",
+     "pack": "pvr-20261108-cg-air-china",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air China",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-webresource-airchina-com-cn-553d908a",
+       "source_type": "official_package",
+       "title": "2023年度业绩发布（PDF p.24 机队-国航）",
+       "url": "https://webresource.airchina.com.cn/airchinacms/2/upload/resources/file/4095.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 28,
+     "value_text": "777 28"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "air-china",
+     "cond_ja": "B787; as of 2023-12-31; Air China単体、機種系列での開示。補足: 2023年以降の公式資料。グループ合計ではなく「机队-国航」の小計を使用。追加実読した2025年報 https://static.cninfo.com.cn/finalpage/2026-03-27/1225039287.PDF は単体総数533機・型式表はグループ964機のため混用せず。2025/2026決算説明会の公開ページも探索したが新しい単体内訳を取得できず、2023年末の歴史値を維持。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "B787 14",
+       "source_id": "src-webresource-airchina-com-cn-553d908a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fb794600d185bff1",
+     "id": "air-china.fleet.b787.16127ffe",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "b787",
+     "label_ja": "機種ごとの機数（B787）",
+     "pack": "pvr-20261108-cg-air-china",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air China",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-webresource-airchina-com-cn-553d908a",
+       "source_type": "official_package",
+       "title": "2023年度业绩发布（PDF p.24 机队-国航）",
+       "url": "https://webresource.airchina.com.cn/airchinacms/2/upload/resources/file/4095.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 14,
+     "value_text": "787 14"
     }
    ],
    "jobs": [
@@ -10551,6 +11069,263 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": "本人・家族・友人のfree/unlimited discounted flightsを案内するが法人により異なる。pilot用確定権利・座席保証・税/手数料・人数は未確認。",
      "value_text": null
+    }
+   ],
+   "fleet": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "airasia",
+     "cond_ja": "A320 CEO; as of 2025-11; enlarged group including AAX and TAAX; existing fleet, active-only breakdown not provided。補足: 資料p11の機材別図表。発注数ではなく既存機材。マレーシア単独の数字ではない。稼働中と休止中の機材別内訳は示されていない。発行月は2025-12（日付不詳）。 quoteは機種別図表の該当機数セルを抜粋。型式との対応は同ページの列見出しによる。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "169",
+       "source_id": "src-capitala-com-541e47fb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "552e7a399a390a02",
+     "id": "airasia.fleet.a320-ceo.b99ebd3e",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "a320_ceo",
+     "label_ja": "機種ごとの機数（A320 CEO）",
+     "pack": "pvr-20261108-cg-airasia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Capital A / AirAsia",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-capitala-com-541e47fb",
+       "source_type": "official_package",
+       "title": "Investor Presentation, December 2025",
+       "url": "https://www.capitala.com/misc/AirAsia-NDR-presentation-December-2025.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 169,
+     "value_text": "169"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "airasia",
+     "cond_ja": "A320 NEO; as of 2025-11; enlarged group including AAX and TAAX; existing fleet, active-only breakdown not provided。補足: 資料p11の機材別図表。発注数ではなく既存機材。マレーシア単独の数字ではない。稼働中と休止中の機材別内訳は示されていない。発行月は2025-12（日付不詳）。 quoteは機種別図表の該当機数セルを抜粋。型式との対応は同ページの列見出しによる。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "40",
+       "source_id": "src-capitala-com-541e47fb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b99eefdd3a44fe54",
+     "id": "airasia.fleet.a320-neo.a555ab3b",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "a320_neo",
+     "label_ja": "機種ごとの機数（A320 NEO）",
+     "pack": "pvr-20261108-cg-airasia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Capital A / AirAsia",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-capitala-com-541e47fb",
+       "source_type": "official_package",
+       "title": "Investor Presentation, December 2025",
+       "url": "https://www.capitala.com/misc/AirAsia-NDR-presentation-December-2025.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 40,
+     "value_text": "40"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "airasia",
+     "cond_ja": "A321 NEO; as of 2025-11; enlarged group including AAX and TAAX; existing fleet, active-only breakdown not provided。補足: 資料p11の機材別図表。発注数ではなく既存機材。マレーシア単独の数字ではない。稼働中と休止中の機材別内訳は示されていない。発行月は2025-12（日付不詳）。 quoteは機種別図表の該当機数セルを抜粋。型式との対応は同ページの列見出しによる。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "15",
+       "source_id": "src-capitala-com-541e47fb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b60d3409d6e49c8d",
+     "id": "airasia.fleet.a321-neo.055ae08d",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "a321_neo",
+     "label_ja": "機種ごとの機数（A321 NEO）",
+     "pack": "pvr-20261108-cg-airasia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Capital A / AirAsia",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-capitala-com-541e47fb",
+       "source_type": "official_package",
+       "title": "Investor Presentation, December 2025",
+       "url": "https://www.capitala.com/misc/AirAsia-NDR-presentation-December-2025.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 15,
+     "value_text": "15"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "airasia",
+     "cond_ja": "A321 P2F; as of 2025-11; enlarged group including AAX and TAAX; existing fleet, active-only breakdown not provided; wet leased to Teleport; excluded from passenger fleet total。補足: 資料p11の機材別図表。発注数ではなく既存機材。マレーシア単独の数字ではない。稼働中と休止中の機材別内訳は示されていない。発行月は2025-12（日付不詳）。 旅客機の合計から除外され、Teleportへウェットリースされる貨物機。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "A321 P2F(e): 3",
+       "source_id": "src-capitala-com-541e47fb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cb7d9be8c37fc479",
+     "id": "airasia.fleet.a321-p2f.d3e83306",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "a321_p2f",
+     "label_ja": "機種ごとの機数（A321 P2F）",
+     "pack": "pvr-20261108-cg-airasia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Capital A / AirAsia",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-capitala-com-541e47fb",
+       "source_type": "official_package",
+       "title": "Investor Presentation, December 2025",
+       "url": "https://www.capitala.com/misc/AirAsia-NDR-presentation-December-2025.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 3,
+     "value_text": "3"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "airasia",
+     "cond_ja": "A330 CEO; as of 2025-11; enlarged group including AAX and TAAX; existing fleet, active-only breakdown not provided。補足: 資料p11の機材別図表。発注数ではなく既存機材。マレーシア単独の数字ではない。稼働中と休止中の機材別内訳は示されていない。発行月は2025-12（日付不詳）。 quoteは機種別図表の該当機数セルを抜粋。型式との対応は同ページの列見出しによる。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "29",
+       "source_id": "src-capitala-com-541e47fb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ea98dbae3308dc19",
+     "id": "airasia.fleet.a330-ceo.7ff24693",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "a330_ceo",
+     "label_ja": "機種ごとの機数（A330 CEO）",
+     "pack": "pvr-20261108-cg-airasia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Capital A / AirAsia",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-capitala-com-541e47fb",
+       "source_type": "official_package",
+       "title": "Investor Presentation, December 2025",
+       "url": "https://www.capitala.com/misc/AirAsia-NDR-presentation-December-2025.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 29,
+     "value_text": "29"
     }
    ],
    "profile": [
@@ -28208,6 +28983,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "applies_to": {
       "pilot_specific": true
      },
+     "checked_at": "2026-11-08",
+     "company": "asiana",
+     "cond_ja": "全社員の制度。2025 ESG ReportのEmployee Welfare。補足: 2025 ESG報告書。https://flyasiana.com/C/US/EN/contents/sustainability-report-esg1 のENGボタンから公式PDFを開いて取得し本文を確認。Gimpo Airport、Gimpo、Ilsan、Siheung、Magok等を結ぶ社員バス。操縦士専用制度とは書いていない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "shuttle buses serving routes",
+       "source_id": "src-flyasiana-com-cb26c2a3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1cadc2299c60eaba",
+     "id": "asiana.benefits.commuting.0ac32112",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261108-cg-asiana",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Asiana Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-flyasiana-com-cb26c2a3",
+       "source_type": "official_package",
+       "title": "2025 ESG Report, p.57",
+       "url": "https://flyasiana.com/C/KR/KO/common/file/download-static/files/company/sustainable_management/sustainability_report/2025_Asiana_Airlines_ESG_Report_ENG.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "shuttle buses",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
      "checked_at": "2026-10-29",
      "company": "asiana",
      "cond_ja": "2025年事業報告; Asiana Airlines単体の従業員退職年金制度; 操縦士を含む社員一般; 個人の加入区分・給付条件は未掲載。補足: 取引所公開の会社提出資料、個別財務諸表2.22③퇴직급여。韓国語の原制度名をvalueに保持。確定拠出と確定給付を別行に分けた。",
@@ -28303,6 +29129,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "확정기여제도",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "asiana",
+     "cond_ja": "全社員の制度。従業員と直近の家族向け。補足: 公式ESGページのENGボタンから取得して本文確認。2024年実績に2025年上期の重要事項を含む報告書。操縦士だけの条件とは書いていない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "discounted airline tickets for employees and their immediate family members",
+       "source_id": "src-flyasiana-com-cb26c2a3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8ddb71a05371c907",
+     "id": "asiana.benefits.staff-travel.760efc57",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261108-cg-asiana",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Asiana Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-flyasiana-com-cb26c2a3",
+       "source_type": "official_package",
+       "title": "2025 ESG Report, p.57",
+       "url": "https://flyasiana.com/C/KR/KO/common/file/download-static/files/company/sustainable_management/sustainability_report/2025_Asiana_Airlines_ESG_Report_ENG.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "discounted airline tickets",
      "value_text": null
     }
    ],
@@ -31541,6 +32418,61 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "value_text": null
     }
    ],
+   "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-08",
+     "company": "batik-air",
+     "cond_ja": "Captain Pilot; 型式・direct-entry区分は求人に明記なし。補足: 過去の求人（掲載日不明。ページ表示「1 tahun yang lalu」、応募受付終了）。掲載から約1年の表示により2023年以降と確認。現在の募集・要件としては扱わない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Commercial Pilot License (CPL) with Airline Transport Pilot License (ATPL) theory",
+       "source_id": "src-id-linkedin-com-1a8b124c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "60f171783213e1dd",
+     "id": "batik-air.jobs.cap-license-cap.b5b994f7",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "cap_license",
+     "label_ja": "機長の応募に要る免許",
+     "pack": "pvr-20261108-cg-batik-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Batik Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-id-linkedin-com-1a8b124c",
+       "source_type": "job_posting",
+       "title": "Captain Pilot (LinkedIn official company posting, closed)",
+       "url": "https://id.linkedin.com/jobs/view/captain-pilot-at-batik-air-4072577564"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Commercial Pilot License (CPL) with Airline Transport Pilot License (ATPL) theory",
+     "value_text": null
+    }
+   ],
    "profile": [
     {
      "amount": null,
@@ -31694,6 +32626,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "Indonesia",
      "value_text": null
+    }
+   ],
+   "scale": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "batik-air",
+     "cond_ja": "as of 2023; 2023年の運航機材数（現在値ではない）。補足: 本文29頁/PDF36頁。年列2019・2020・2021・2022・2023の最後の欄を採用。表題Beroperasi（運航中）で、前頁のMaintenance表とは区別。前書きはJakarta, 2024、発行月日は不明。2025/2026のCivil Aircraft Registerは登録機材であり運航中の証明がなく、PDFも開くと502。2026年現在の運航機材数への読み替えはしない。",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "4 Batik Air 49 64 48 63 66",
+       "source_id": "src-hubud-kemenhub-go-id-615c27c9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5414bd6a9b793ba5",
+     "id": "batik-air.scale.fleet-total.7feacf22",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "fleet_total",
+     "label_ja": "運航している機材",
+     "pack": "pvr-20261108-cg-batik-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Indonesia DGCA",
+       "publisher_kind": "government",
+       "retrieved": "2026-11-08",
+       "source_id": "src-hubud-kemenhub-go-id-615c27c9",
+       "source_type": "government",
+       "title": "Laporan Kinerja Tahun 2023, Tabel 3.5 Jumlah Pesawat ... yang beroperasi",
+       "url": "https://hubud.kemenhub.go.id/hubud/website/assets/file/lakip/LAKIP_2023.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 66,
+     "value_text": "49 64 48 63 66"
     }
    ],
    "work": [
@@ -61437,6 +62422,1056 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ]
   },
+  "flydubai": {
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-08",
+     "company": "flydubai",
+     "cond_ja": "paid leave; captain。補足: 確認日に公式サイト本文をブラウザーで直接閲覧。現行の要件・待遇案内であり、求人一覧に現在の同職募集があることを意味しない。発行・更新日は記載なし（フッター2024）。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "42 days per year",
+       "source_id": "src-careers-flydubai-com-d6faa09b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "26de37085943665b",
+     "id": "flydubai.benefits.annual-leave-cap.92b4354b",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "機長の年次休暇",
+     "pack": "pvr-20261108-cg-flydubai",
+     "per": "year",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "flydubai",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-careers-flydubai-com-d6faa09b",
+       "source_type": "official_package",
+       "title": "Captain Vacancies Page",
+       "url": "https://careers.flydubai.com/captain"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 42,
+     "value_text": "42"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-08",
+     "company": "flydubai",
+     "cond_ja": "paid leave; first_officer。補足: 確認日に公式サイト本文をブラウザーで直接閲覧。現行の要件・待遇案内であり、求人一覧に現在の同職募集があることを意味しない。発行・更新日は記載なし（フッター2024）。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "42 days per year",
+       "source_id": "src-careers-flydubai-com-fc2ed013",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "27352b74d88978f2",
+     "id": "flydubai.benefits.annual-leave-fo.62540518",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "副操縦士の年次休暇",
+     "pack": "pvr-20261108-cg-flydubai",
+     "per": "year",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "flydubai",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-careers-flydubai-com-fc2ed013",
+       "source_type": "official_package",
+       "title": "First Officer Vacancies Page",
+       "url": "https://careers.flydubai.com/first-officer"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 42,
+     "value_text": "42"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "flydubai",
+     "cond_ja": "Captain/First Officer共通; 手当の存在のみ、金額は記録しない。補足: 確認日に公式サイト本文をブラウザーで直接閲覧。現行の要件・待遇案内であり、求人一覧に現在の同職募集があることを意味しない。発行・更新日は記載なし（フッター2024）。 住宅・交通手当を含む報酬の合計額から交通手当単独の金額を算出しない。Captainページにも同じ手当名あり。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Transportation allowance",
+       "source_id": "src-careers-flydubai-com-fc2ed013",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e26cf1f2bdd18a1e",
+     "id": "flydubai.benefits.commuting.c78378e5",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261108-cg-flydubai",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "flydubai",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-careers-flydubai-com-fc2ed013",
+       "source_type": "official_package",
+       "title": "First Officer Vacancies Page",
+       "url": "https://careers.flydubai.com/first-officer"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Transportation allowance",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "flydubai",
+     "cond_ja": "Captain/First Officer共通; 手当の存在のみ、金額は記録しない。補足: 確認日に公式サイト本文をブラウザーで直接閲覧。現行の要件・待遇案内であり、求人一覧に現在の同職募集があることを意味しない。発行・更新日は記載なし（フッター2024）。 合計額から住宅手当単独の金額を算出しない。Captainページにも同じ手当名あり。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Housing allowance",
+       "source_id": "src-careers-flydubai-com-fc2ed013",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6c59ebea122f2c31",
+     "id": "flydubai.benefits.housing.33c00c88",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "housing",
+     "label_ja": "住宅手当・社宅",
+     "pack": "pvr-20261108-cg-flydubai",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "flydubai",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-careers-flydubai-com-fc2ed013",
+       "source_type": "official_package",
+       "title": "First Officer Vacancies Page",
+       "url": "https://careers.flydubai.com/first-officer"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Housing allowance",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "flydubai",
+     "cond_ja": "Captain/First Officer共通。補足: 確認日に公式サイト本文をブラウザーで直接閲覧。現行の要件・待遇案内であり、求人一覧に現在の同職募集があることを意味しない。発行・更新日は記載なし（フッター2024）。 First Officerページにも同条件あり。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Medical insurance",
+       "source_id": "src-careers-flydubai-com-d6faa09b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "534eb3c02075453c",
+     "id": "flydubai.benefits.medical.d9742648",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "医療の保険・補助",
+     "pack": "pvr-20261108-cg-flydubai",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "flydubai",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-careers-flydubai-com-d6faa09b",
+       "source_type": "official_package",
+       "title": "Captain Vacancies Page",
+       "url": "https://careers.flydubai.com/captain"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Medical insurance",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "flydubai",
+     "cond_ja": "Captain/First Officer共通; 退職時給付の存在のみ。補足: 確認日に公式サイト本文をブラウザーで直接閲覧。現行の要件・待遇案内であり、求人一覧に現在の同職募集があることを意味しない。発行・更新日は記載なし（フッター2024）。 ブラウザー本文の2つの空白を保持。年金基金の拠出率や退職金の算式は未確認。Captainページにも同じ待遇あり。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "End of service  benefit",
+       "source_id": "src-careers-flydubai-com-fc2ed013",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "39c5ea3e62bbb5bf",
+     "id": "flydubai.benefits.pension.857c6a74",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261108-cg-flydubai",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "flydubai",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-careers-flydubai-com-fc2ed013",
+       "source_type": "official_package",
+       "title": "First Officer Vacancies Page",
+       "url": "https://careers.flydubai.com/first-officer"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "End of service  benefit",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "flydubai",
+     "cond_ja": "Captain/First Officer共通; 家族・友人の優待航空券。補足: 確認日に公式サイト本文をブラウザーで直接閲覧。現行の要件・待遇案内であり、求人一覧に現在の同職募集があることを意味しない。発行・更新日は記載なし（フッター2024）。 Captainページにも同じ待遇あり。利用回数・料金・予約優先順位は未記載。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Concessional tickets for family and friends",
+       "source_id": "src-careers-flydubai-com-fc2ed013",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "15e4bd953485bfe6",
+     "id": "flydubai.benefits.staff-travel.d4d24f13",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261108-cg-flydubai",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "flydubai",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-careers-flydubai-com-fc2ed013",
+       "source_type": "official_package",
+       "title": "First Officer Vacancies Page",
+       "url": "https://careers.flydubai.com/first-officer"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Concessional tickets for family and friends",
+     "value_text": null
+    }
+   ],
+   "fleet": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "flydubai",
+     "cond_ja": "B737-800; 現行ページ確認時点2026-11-08; 機材数の基準日は記載なし。補足: 現行の公式ページにcurrently operateと明記。機材の基準日・更新日は記載なしのため確認時点として記録。発注機は含めない。公式採用サイトの旧機材数や2025年末の97機とは混在させない。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "25 Next-Generation Boeing 737-800",
+       "source_id": "src-flydubai-com-8e5ad6ae",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d472f347111f9a25",
+     "id": "flydubai.fleet.b737-800.ed578961",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "b737_800",
+     "label_ja": "機種ごとの機数（B737-800）",
+     "pack": "pvr-20261108-cg-flydubai",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "flydubai",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-flydubai-com-8e5ad6ae",
+       "source_type": "official_package",
+       "title": "Our fleet",
+       "url": "https://www.flydubai.com/en/help/our-fleet/"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 25,
+     "value_text": "25"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "flydubai",
+     "cond_ja": "B737 MAX 8; 現行ページ確認時点2026-11-08; 機材数の基準日は記載なし。補足: 現行の公式ページにcurrently operateと明記。機材の基準日・更新日は記載なしのため確認時点として記録。発注機は含めない。公式採用サイトの旧機材数や2025年末の97機とは混在させない。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "69 Boeing 737 MAX 8",
+       "source_id": "src-flydubai-com-8e5ad6ae",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2e162e88a1f6d2e0",
+     "id": "flydubai.fleet.b737-max-8.2386872e",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "b737_max_8",
+     "label_ja": "機種ごとの機数（B737 MAX 8）",
+     "pack": "pvr-20261108-cg-flydubai",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "flydubai",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-flydubai-com-8e5ad6ae",
+       "source_type": "official_package",
+       "title": "Our fleet",
+       "url": "https://www.flydubai.com/en/help/our-fleet/"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 69,
+     "value_text": "69"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "flydubai",
+     "cond_ja": "B737 MAX 9; 現行ページ確認時点2026-11-08; 機材数の基準日は記載なし。補足: 現行の公式ページにcurrently operateと明記。機材の基準日・更新日は記載なしのため確認時点として記録。発注機は含めない。公式採用サイトの旧機材数や2025年末の97機とは混在させない。 原文の04をそのまま保持。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "04 Boeing 737 MAX 9 aircraft.",
+       "source_id": "src-flydubai-com-8e5ad6ae",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4f3d9d403c52091c",
+     "id": "flydubai.fleet.b737-max-9.7c27c3d7",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "b737_max_9",
+     "label_ja": "機種ごとの機数（B737 MAX 9）",
+     "pack": "pvr-20261108-cg-flydubai",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "flydubai",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-flydubai-com-8e5ad6ae",
+       "source_type": "official_package",
+       "title": "Our fleet",
+       "url": "https://www.flydubai.com/en/help/our-fleet/"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 4,
+     "value_text": "04"
+    }
+   ],
+   "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-08",
+     "company": "flydubai",
+     "cond_ja": "Valid ICAO ATPL; Captain/First Officerの最低免許要件。補足: 確認日に公式サイト本文をブラウザーで直接閲覧。現行の要件・待遇案内であり、求人一覧に現在の同職募集があることを意味しない。発行・更新日は記載なし（フッター2024）。 現在募集中のCaptain/First Officer求人は各求人一覧で0 Results。要件の案内ページは現在も掲載されているが個別求人の掲載日は不明。現行の常設要件案内として記録し、現在の個別募集としては扱わない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATPL",
+       "source_id": "src-careers-flydubai-com-d6faa09b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "699a77eb81952a8a",
+     "id": "flydubai.jobs.cap-license-cap.ccdb6420",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "cap_license",
+     "label_ja": "機長の応募に要る免許",
+     "pack": "pvr-20261108-cg-flydubai",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "flydubai",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-careers-flydubai-com-d6faa09b",
+       "source_type": "official_package",
+       "title": "Captain Vacancies Page",
+       "url": "https://careers.flydubai.com/captain"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ATPL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-08",
+     "company": "flydubai",
+     "cond_ja": "direct entry captain; Non Type Ratedの代替経路; 50 tonnes超の現代的EFIS多人数・多発ジェット(EMB 190/195等); 同区分で1500 hours in commandも必要。補足: 確認日に公式サイト本文をブラウザーで直接閲覧。現行の要件・待遇案内であり、求人一覧に現在の同職募集があることを意味しない。発行・更新日は記載なし（フッター2024）。 現在募集中のCaptain/First Officer求人は各求人一覧で0 Results。要件の案内ページは現在も掲載されているが個別求人の掲載日は不明。現行の常設要件案内として記録し、現在の個別募集としては扱わない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "6000 hours total flying time",
+       "source_id": "src-careers-flydubai-com-d6faa09b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b83fe6de4084d0d0",
+     "id": "flydubai.jobs.cap-total-hours-cap.93efad69",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "cap_total_hours",
+     "label_ja": "機長の応募に要る総飛行時間",
+     "pack": "pvr-20261108-cg-flydubai",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "flydubai",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-careers-flydubai-com-d6faa09b",
+       "source_type": "official_package",
+       "title": "Captain Vacancies Page",
+       "url": "https://careers.flydubai.com/captain"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 6000,
+     "value_text": "6000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-08",
+     "company": "flydubai",
+     "cond_ja": "direct entry captain; Non Type Rated; 55 tonnes超の現代的EFIS多人数・多発ジェット(A318以上); 同区分で1500 hours in commandも必要。補足: 確認日に公式サイト本文をブラウザーで直接閲覧。現行の要件・待遇案内であり、求人一覧に現在の同職募集があることを意味しない。発行・更新日は記載なし（フッター2024）。 現在募集中のCaptain/First Officer求人は各求人一覧で0 Results。要件の案内ページは現在も掲載されているが個別求人の掲載日は不明。現行の常設要件案内として記録し、現在の個別募集としては扱わない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "5000 hours total flying time",
+       "source_id": "src-careers-flydubai-com-d6faa09b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3fd5f67df489f004",
+     "id": "flydubai.jobs.cap-total-hours-cap.f79128a6",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "cap_total_hours",
+     "label_ja": "機長の応募に要る総飛行時間",
+     "pack": "pvr-20261108-cg-flydubai",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "flydubai",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-careers-flydubai-com-d6faa09b",
+       "source_type": "official_package",
+       "title": "Captain Vacancies Page",
+       "url": "https://careers.flydubai.com/captain"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 5000,
+     "value_text": "5000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-08",
+     "company": "flydubai",
+     "cond_ja": "B737型式未保有者向け経路あり; 型式保有者向け経路も別にある。補足: 確認日に公式サイト本文をブラウザーで直接閲覧。現行の要件・待遇案内であり、求人一覧に現在の同職募集があることを意味しない。発行・更新日は記載なし（フッター2024）。 現在募集中のCaptain/First Officer求人は各求人一覧で0 Results。要件の案内ページは現在も掲載されているが個別求人の掲載日は不明。現行の常設要件案内として記録し、現在の個別募集としては扱わない。 Type Rated側はB737 300 to 900 (EFIS/NG/MAX)の直近24か月以内のendorsementを要求。未保有者向け経路の存在を記録し、型式保有者の追加要件を省略可能とはしない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Non Type Rated",
+       "source_id": "src-careers-flydubai-com-d6faa09b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6999ae945fec0d71",
+     "id": "flydubai.jobs.cap-type-rating-cap.f1865c16",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "cap_type_rating",
+     "label_ja": "機長の型式限定の要否",
+     "pack": "pvr-20261108-cg-flydubai",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "flydubai",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-careers-flydubai-com-d6faa09b",
+       "source_type": "official_package",
+       "title": "Captain Vacancies Page",
+       "url": "https://careers.flydubai.com/captain"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Non Type Rated",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-08",
+     "company": "flydubai",
+     "cond_ja": "Valid ICAO ATPL; Captain/First Officerの最低免許要件。補足: 確認日に公式サイト本文をブラウザーで直接閲覧。現行の要件・待遇案内であり、求人一覧に現在の同職募集があることを意味しない。発行・更新日は記載なし（フッター2024）。 現在募集中のCaptain/First Officer求人は各求人一覧で0 Results。要件の案内ページは現在も掲載されているが個別求人の掲載日は不明。現行の常設要件案内として記録し、現在の個別募集としては扱わない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATPL",
+       "source_id": "src-careers-flydubai-com-fc2ed013",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fdbf4bcad8edb726",
+     "id": "flydubai.jobs.fo-license-fo.00f53374",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261108-cg-flydubai",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "flydubai",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-careers-flydubai-com-fc2ed013",
+       "source_type": "official_package",
+       "title": "First Officer Vacancies Page",
+       "url": "https://careers.flydubai.com/first-officer"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ATPL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-08",
+     "company": "flydubai",
+     "cond_ja": "B737型式未保有者向け経路あり; 型式保有者向け経路も別にある。補足: 確認日に公式サイト本文をブラウザーで直接閲覧。現行の要件・待遇案内であり、求人一覧に現在の同職募集があることを意味しない。発行・更新日は記載なし（フッター2024）。 現在募集中のCaptain/First Officer求人は各求人一覧で0 Results。要件の案内ページは現在も掲載されているが個別求人の掲載日は不明。現行の常設要件案内として記録し、現在の個別募集としては扱わない。 Type Rated側はB737 300 to 900 (EFIS/NG/MAX)の直近24か月以内のendorsementを要求。未保有者向け経路の存在を記録し、型式保有者の追加要件を省略可能とはしない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Non Type Rated",
+       "source_id": "src-careers-flydubai-com-fc2ed013",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bbe253c52b036723",
+     "id": "flydubai.jobs.fo-type-rating-fo.516ddf0f",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261108-cg-flydubai",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "flydubai",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-careers-flydubai-com-fc2ed013",
+       "source_type": "official_package",
+       "title": "First Officer Vacancies Page",
+       "url": "https://careers.flydubai.com/first-officer"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Non Type Rated",
+     "value_text": null
+    }
+   ],
+   "profile": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "flydubai",
+     "cond_ja": "補足: 会社自身が掲載するFounded欄。営業開始年2009とは区別。公式2025-11-17発表にもEstablished in 2008と明記: https://news.flydubai.com/flydubai-inks-deal-with-ge-aerospace-for-genx-1b-engines-and-services-to-power-its-first-widebody-fleet。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Founded 2008",
+       "source_id": "src-linkedin-com-7b33aea4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5c43f2f48669c2a6",
+     "id": "flydubai.profile.founded.801c633e",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "founded",
+     "label_ja": "設立",
+     "pack": "pvr-20261108-cg-flydubai",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "flydubai",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-linkedin-com-7b33aea4",
+       "source_type": "official_package",
+       "title": "LinkedIn official company profile",
+       "url": "https://www.linkedin.com/company/flydubai/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "2008",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "flydubai",
+     "cond_ja": "公式企業プロフィールのHeadquarters欄。補足: 現行の公式企業プロフィールを開いて確認。更新日の記載なし。直近の2026年の投稿がある企業アカウント。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Headquarters Dubai",
+       "source_id": "src-linkedin-com-7b33aea4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "53d79430fc818bf6",
+     "id": "flydubai.profile.headquarters-city.5658fa34",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "headquarters_city",
+     "label_ja": "本社の都市",
+     "pack": "pvr-20261108-cg-flydubai",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "flydubai",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-linkedin-com-7b33aea4",
+       "source_type": "official_package",
+       "title": "LinkedIn official company profile",
+       "url": "https://www.linkedin.com/company/flydubai/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Dubai",
+     "value_text": null
+    }
+   ],
+   "scale": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "flydubai",
+     "cond_ja": "現行ページ確認時点2026-11-08; 機材数の基準日は記載なし。補足: 現行の公式ページにcurrently operateと明記。機材の基準日・更新日は記載なしのため確認時点として記録。発注機は含めない。公式採用サイトの旧機材数や2025年末の97機とは混在させない。",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "single fleet-type of 98 Boeing 737 aircraft",
+       "source_id": "src-flydubai-com-8e5ad6ae",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c89fee78f2f22303",
+     "id": "flydubai.scale.fleet-total.0b43bc37",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "fleet_total",
+     "label_ja": "運航している機材",
+     "pack": "pvr-20261108-cg-flydubai",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "flydubai",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-flydubai-com-8e5ad6ae",
+       "source_type": "official_package",
+       "title": "Our fleet",
+       "url": "https://www.flydubai.com/en/help/our-fleet/"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 98,
+     "value_text": "98"
+    }
+   ],
+   "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "flydubai",
+     "cond_ja": "Captain/First Officer共通; Type Rated/Non Type Rated共通。補足: 確認日に公式サイト本文をブラウザーで直接閲覧。現行の要件・待遇案内であり、求人一覧に現在の同職募集があることを意味しない。発行・更新日は記載なし（フッター2024）。 First Officerページにも同じ期間を確認。金額と返還ルールは別行。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Training Bond 3 Years",
+       "source_id": "src-careers-flydubai-com-d6faa09b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7d57f6286901b9d1",
+     "id": "flydubai.work.training-bond.79500b9c",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "訓練費の拘束",
+     "pack": "pvr-20261108-cg-flydubai",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "flydubai",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-careers-flydubai-com-d6faa09b",
+       "source_type": "official_package",
+       "title": "Captain Vacancies Page",
+       "url": "https://careers.flydubai.com/captain"
+      }
+     ],
+     "unit": "years",
+     "use": "条件つき",
+     "value": 3,
+     "value_text": "3"
+    }
+   ]
+  },
   "frontier": {
    "base": [
     {
@@ -65721,6 +67756,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "1950",
+     "value_text": null
+    }
+   ],
+   "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "garuda-indonesia",
+     "cond_ja": "cockpit crew; 2023年の制度説明。機長／副操縦士共通の申請機能。補足: Cockpit Mobile Applicationのスケジュールのビッド申請機能。所定の乗務日・休日パターンまでは書かれていない。資料は2023年度年報（発行日の明示未確認）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "for submitting requests for bidding schedules, leaves, and schedule changes, which can be reviewed by the chief pilot/management.",
+       "source_id": "src-garuda-indonesia-com-b57ef35f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7049119a40d76589",
+     "id": "garuda-indonesia.work.roster-pattern.516ecc9d",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261108-cg-garuda-indonesia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Garuda Indonesia",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-garuda-indonesia-com-b57ef35f",
+       "source_type": "regulatory_filing",
+       "title": "Annual Report 2023, p.355, Information Technology Governance",
+       "url": "https://www.garuda-indonesia.com/static/content/dam/garuda/hubungan-investor/20240726_AR%20Garuda%202023.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "bidding schedules",
      "value_text": null
     }
    ]
@@ -82140,6 +84228,679 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ]
   },
+  "juneyao-airlines": {
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "juneyao-airlines",
+     "cond_ja": "全社員の制度; 2026年新卒採用資料; パイロットの利用路線・対象範囲は未確認。補足: 会社配布の募集要項に記載された共通福利。運航乗務員専用送迎制度とは断定しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-10-09",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "指定路线班车",
+       "source_id": "src-zhjyb-zua-edu-cn-0fc578dd",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "54ef235ee32d8d71",
+     "id": "juneyao-airlines.benefits.commuting.4d4d82ea",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261108-cg-juneyao-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-10-09",
+       "publisher": "吉祥航空",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-zhjyb-zua-edu-cn-0fc578dd",
+       "source_type": "official_package",
+       "title": "2026年校园招聘简章（鄭州航空工業管理学院掲載）",
+       "url": "https://zhjyb.zua.edu.cn/module/position_brief_detail/id-107546/nid-5121"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "指定路线班车",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "juneyao-airlines",
+     "cond_ja": "全社員向け福利資料の制度; 対象者限定; パイロットの適格性は未確認。補足: 共通福利資料に掲載。全パイロットへの無条件提供を意味しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-10-09",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "人才公寓（限定人群）",
+       "source_id": "src-zhjyb-zua-edu-cn-0fc578dd",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f62944193f678654",
+     "id": "juneyao-airlines.benefits.housing.2cbe16f6",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "housing",
+     "label_ja": "住宅手当・社宅",
+     "pack": "pvr-20261108-cg-juneyao-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-10-09",
+       "publisher": "吉祥航空",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-zhjyb-zua-edu-cn-0fc578dd",
+       "source_type": "official_package",
+       "title": "2026年校园招聘简章（鄭州航空工業管理学院掲載）",
+       "url": "https://zhjyb.zua.edu.cn/module/position_brief_detail/id-107546/nid-5121"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "人才公寓（限定人群）",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "juneyao-airlines",
+     "cond_ja": "全社員の制度; 2024年連結財務諸表の社会保険; パイロット固有の追加補償は未確認。補足: PDF p172の応付職工薪酬・社会保険欄。医療保険料の計上により制度の存在のみを記録し、保険料支出を個人給付額として記録しない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-04-22",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "其中：医疗保险费",
+       "source_id": "src-static-cninfo-com-cn-0650ae2b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6d8daa3cd147f0d1",
+     "id": "juneyao-airlines.benefits.medical.e090c307",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "医療の保険・補助",
+     "pack": "pvr-20261108-cg-juneyao-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-04-22",
+       "publisher": "吉祥航空",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-static-cninfo-com-cn-0650ae2b",
+       "source_type": "official_package",
+       "title": "2024年年度报告",
+       "url": "https://static.cninfo.com.cn/finalpage/2025-04-22/1223195419.PDF"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "医疗保险",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "juneyao-airlines",
+     "cond_ja": "全社員の制度; 2024年連結財務諸表; 政府機関の確定拠出型社会保険。補足: PDF p172。パイロット独自の年金・退職金制度は未確認。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-04-22",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "本公司按规定参加由政府机构设立的养老保险、失业保险计划",
+       "source_id": "src-static-cninfo-com-cn-0650ae2b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "053fac878b3f921f",
+     "id": "juneyao-airlines.benefits.pension.cbf97966",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261108-cg-juneyao-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-04-22",
+       "publisher": "吉祥航空",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-static-cninfo-com-cn-0650ae2b",
+       "source_type": "official_package",
+       "title": "2024年年度报告",
+       "url": "https://static.cninfo.com.cn/finalpage/2025-04-22/1223195419.PDF"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "养老保险",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "juneyao-airlines",
+     "cond_ja": "全社員の制度; 2026年新卒採用資料; 家族・割引率・枚数は未確認。補足: 会社配布の募集要項に記載された共通福利。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-10-09",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "员工优惠票",
+       "source_id": "src-zhjyb-zua-edu-cn-0fc578dd",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6100fcfc39edb6bc",
+     "id": "juneyao-airlines.benefits.staff-travel.877a7a69",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261108-cg-juneyao-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-10-09",
+       "publisher": "吉祥航空",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-zhjyb-zua-edu-cn-0fc578dd",
+       "source_type": "official_package",
+       "title": "2026年校园招聘简章（鄭州航空工業管理学院掲載）",
+       "url": "https://zhjyb.zua.edu.cn/module/position_brief_detail/id-107546/nid-5121"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "员工优惠票",
+     "value_text": null
+    }
+   ],
+   "fleet": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "juneyao-airlines",
+     "cond_ja": "A320ceo; as of 2024-12-31; 吉祥航空単体。補足: 型式別数を直接確認できた時点。2026年9月資料のA320系列総数から残差計算していない。PDFの改行・空白は引用欄で維持できる範囲を使用。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2025-04-22",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "30架为A320ceo",
+       "source_id": "src-static-cninfo-com-cn-0650ae2b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "414cd0fb262427f0",
+     "id": "juneyao-airlines.fleet.a320ceo.791afee3",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "a320ceo",
+     "label_ja": "機種ごとの機数（A320ceo）",
+     "pack": "pvr-20261108-cg-juneyao-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-04-22",
+       "publisher": "吉祥航空",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-static-cninfo-com-cn-0650ae2b",
+       "source_type": "official_package",
+       "title": "2024年年度报告",
+       "url": "https://static.cninfo.com.cn/finalpage/2025-04-22/1223195419.PDF"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 30,
+     "value_text": "30"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "juneyao-airlines",
+     "cond_ja": "A320neo; as of 2026-09-30; 吉祥航空単体。補足: 第3節。A321は資料でneoと別に開示。B787の内訳は資料の系列単位で記録。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-10-16",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "22 架为 A320neo 机型",
+       "source_id": "src-static-cninfo-com-cn-3fdca3e6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b444c512bf11ff6c",
+     "id": "juneyao-airlines.fleet.a320neo.3ecb49ad",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "a320neo",
+     "label_ja": "機種ごとの機数（A320neo）",
+     "pack": "pvr-20261108-cg-juneyao-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-16",
+       "publisher": "吉祥航空",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-static-cninfo-com-cn-3fdca3e6",
+       "source_type": "official_package",
+       "title": "2026年9月主要运营数据公告",
+       "url": "https://static.cninfo.com.cn/finalpage/2026-10-16/1225606307.PDF"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 22,
+     "value_text": "22"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "juneyao-airlines",
+     "cond_ja": "A321; as of 2026-09-30; 吉祥航空単体。補足: 第3節。A321は資料でneoと別に開示。B787の内訳は資料の系列単位で記録。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-10-16",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "27 架为 A321",
+       "source_id": "src-static-cninfo-com-cn-3fdca3e6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0e28eead9424e274",
+     "id": "juneyao-airlines.fleet.a321.736c8e5b",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "a321",
+     "label_ja": "機種ごとの機数（A321）",
+     "pack": "pvr-20261108-cg-juneyao-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-16",
+       "publisher": "吉祥航空",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-static-cninfo-com-cn-3fdca3e6",
+       "source_type": "official_package",
+       "title": "2026年9月主要运营数据公告",
+       "url": "https://static.cninfo.com.cn/finalpage/2026-10-16/1225606307.PDF"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 27,
+     "value_text": "27"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "juneyao-airlines",
+     "cond_ja": "A321neo; as of 2026-09-30; 吉祥航空単体。補足: 第3節。A321は資料でneoと別に開示。B787の内訳は資料の系列単位で記録。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-10-16",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "16 架为 A321neo 机型",
+       "source_id": "src-static-cninfo-com-cn-3fdca3e6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4b49493e260b160c",
+     "id": "juneyao-airlines.fleet.a321neo.b4c0b526",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "a321neo",
+     "label_ja": "機種ごとの機数（A321neo）",
+     "pack": "pvr-20261108-cg-juneyao-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-16",
+       "publisher": "吉祥航空",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-static-cninfo-com-cn-3fdca3e6",
+       "source_type": "official_package",
+       "title": "2026年9月主要运营数据公告",
+       "url": "https://static.cninfo.com.cn/finalpage/2026-10-16/1225606307.PDF"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 16,
+     "value_text": "16"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "juneyao-airlines",
+     "cond_ja": "B787系列; as of 2026-09-30; 吉祥航空単体。補足: 第3節。A321は資料でneoと別に開示。B787の内訳は資料の系列単位で記録。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-10-16",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "10 架波音 787 系列飞机",
+       "source_id": "src-static-cninfo-com-cn-3fdca3e6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8a9d9864ef741d75",
+     "id": "juneyao-airlines.fleet.b787.929e7065",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "b787",
+     "label_ja": "機種ごとの機数（B787系列）",
+     "pack": "pvr-20261108-cg-juneyao-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-16",
+       "publisher": "吉祥航空",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-static-cninfo-com-cn-3fdca3e6",
+       "source_type": "official_package",
+       "title": "2026年9月主要运营数据公告",
+       "url": "https://static.cninfo.com.cn/finalpage/2026-10-16/1225606307.PDF"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 10,
+     "value_text": "10"
+    }
+   ],
+   "profile": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "juneyao-airlines",
+     "cond_ja": "会社主催の業績説明会に掲載された会社紹介。補足: 主催者は本文で同社と明記。2005年は親会社資料の設立準備認可年、2006年は会社紹介に記載された設立年。2011年の株式会社化とは区別。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": "2026-06-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "上海吉祥航空股份有限公司成立于2006年",
+       "source_id": "src-roadshow-cnstock-com-776aa9c3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "100fbd0db13b007a",
+     "id": "juneyao-airlines.profile.founded.32671626",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "founded",
+     "label_ja": "設立",
+     "pack": "pvr-20261108-cg-juneyao-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-04",
+       "publisher": "吉祥航空",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-roadshow-cnstock-com-776aa9c3",
+       "source_type": "official_package",
+       "title": "2025年度・2026年第1四半期業績説明会",
+       "url": "https://roadshow.cnstock.com/fbh/jxhk2025"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "2006",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "juneyao-airlines",
+     "cond_ja": "補足: 上海。政府観光機関の会社紹介。発行日表示09/10/2024は日月順を確定できずpublished_dateは空欄。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "headquartered in Shanghai.",
+       "source_id": "src-cnto-org-uk-40a6ad2f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4883ac9f5631058d",
+     "id": "juneyao-airlines.profile.headquarters-city.9d3e2f88",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "headquarters_city",
+     "label_ja": "本社の都市",
+     "pack": "pvr-20261108-cg-juneyao-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "China National Tourist Office London",
+       "publisher_kind": "government",
+       "retrieved": "2026-11-08",
+       "source_id": "src-cnto-org-uk-40a6ad2f",
+       "source_type": "government",
+       "title": "Juneyao Airlines",
+       "url": "https://www.cnto.org.uk/travel-trades/airline/juneyao-airline/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Shanghai",
+     "value_text": null
+    }
+   ],
+   "scale": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "company": "juneyao-airlines",
+     "cond_ja": "as of 2026-11-08閲覧時の現行公式会社紹介; 吉祥航空単体。補足: 発注数・九元航空の機数を含めない。資料自体の更新日は不明。",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "105架",
+       "source_id": "src-juneyaoair-com-d556c472",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c703cf5d32ae6dd4",
+     "id": "juneyao-airlines.scale.fleet-total.1496a757",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "fleet_total",
+     "label_ja": "運航している機材",
+     "pack": "pvr-20261108-cg-juneyao-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "吉祥航空",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-juneyaoair-com-d556c472",
+       "source_type": "official_package",
+       "title": "公司简介",
+       "url": "https://www.juneyaoair.com/about/company-profile"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 105,
+     "value_text": "105"
+    }
+   ]
+  },
   "kenya-airways": {
    "base": [
     {
@@ -92845,6 +95606,210 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "MAG Early Retirement Application (MYRA)",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "malaysia-airlines",
+     "cond_ja": "全社員の制度; ZED; global airline partners。補足: 資料p76。グループ全社員向けの制度であり、パイロット専用の条件ではない。公式PDFを直接ダウンロードし本文・図を確認。公表日は同社2026-05-25の2025年報告書発表記事による。 公表日確認先: https://malaysiaaviationgroup.com.my/en/MAG-media-centre/news-releases/2026/mag-sustainability-report-2025.html?id=1308。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-05-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "discounted standby tickets with our global airline partners",
+       "source_id": "src-malaysiaaviationgroup-com-my-502c45f3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d7c462e1258cfa2d",
+     "id": "malaysia-airlines.benefits.staff-travel.3bf940eb",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261108-cg-malaysia-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-05-25",
+       "publisher": "Malaysia Aviation Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-malaysiaaviationgroup-com-my-502c45f3",
+       "source_type": "regulatory_filing",
+       "title": "Sustainability Report 2025, Employee Wellbeing",
+       "url": "https://malaysiaaviationgroup.com.my/content/dam/mag/en/sustainability/sustainability-publications/sustainability-reports/MAG-SUSTAINABILITY-REPORT-2025.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "discounted standby tickets",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "malaysia-airlines",
+     "cond_ja": "全社員の制度; ID00。補足: 資料p76。グループ全社員向けの制度であり、パイロット専用の条件ではない。公式PDFを直接ダウンロードし本文・図を確認。公表日は同社2026-05-25の2025年報告書発表記事による。 公表日確認先: https://malaysiaaviationgroup.com.my/en/MAG-media-centre/news-releases/2026/mag-sustainability-report-2025.html?id=1308。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-05-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "free annual confirmed ticket",
+       "source_id": "src-malaysiaaviationgroup-com-my-502c45f3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6a381aa356daaf0f",
+     "id": "malaysia-airlines.benefits.staff-travel.9a8abac4",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261108-cg-malaysia-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-05-25",
+       "publisher": "Malaysia Aviation Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-malaysiaaviationgroup-com-my-502c45f3",
+       "source_type": "regulatory_filing",
+       "title": "Sustainability Report 2025, Employee Wellbeing",
+       "url": "https://malaysiaaviationgroup.com.my/content/dam/mag/en/sustainability/sustainability-publications/sustainability-reports/MAG-SUSTAINABILITY-REPORT-2025.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "free annual confirmed ticket",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "malaysia-airlines",
+     "cond_ja": "全社員の制度; ID90 Subload; standby ticket discount。補足: 資料p76。グループ全社員向けの制度であり、パイロット専用の条件ではない。公式PDFを直接ダウンロードし本文・図を確認。公表日は同社2026-05-25の2025年報告書発表記事による。 公表日確認先: https://malaysiaaviationgroup.com.my/en/MAG-media-centre/news-releases/2026/mag-sustainability-report-2025.html?id=1308。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-05-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "standby ticket at 90% discount",
+       "source_id": "src-malaysiaaviationgroup-com-my-502c45f3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c23997b3fd534716",
+     "id": "malaysia-airlines.benefits.staff-travel.c7bde63b",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261108-cg-malaysia-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-05-25",
+       "publisher": "Malaysia Aviation Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-malaysiaaviationgroup-com-my-502c45f3",
+       "source_type": "regulatory_filing",
+       "title": "Sustainability Report 2025, Employee Wellbeing",
+       "url": "https://malaysiaaviationgroup.com.my/content/dam/mag/en/sustainability/sustainability-publications/sustainability-reports/MAG-SUSTAINABILITY-REPORT-2025.pdf"
+      }
+     ],
+     "unit": "percent",
+     "use": "条件つき",
+     "value": 90,
+     "value_text": "90"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "malaysia-airlines",
+     "cond_ja": "全社員の制度; ID75 Firm; confirmed ticket discount。補足: 資料p76。グループ全社員向けの制度であり、パイロット専用の条件ではない。公式PDFを直接ダウンロードし本文・図を確認。公表日は同社2026-05-25の2025年報告書発表記事による。 公表日確認先: https://malaysiaaviationgroup.com.my/en/MAG-media-centre/news-releases/2026/mag-sustainability-report-2025.html?id=1308。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-05-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "confirmed ticket at 75% discount",
+       "source_id": "src-malaysiaaviationgroup-com-my-502c45f3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "55e31b67bb60e91e",
+     "id": "malaysia-airlines.benefits.staff-travel.f9d92d9f",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261108-cg-malaysia-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-05-25",
+       "publisher": "Malaysia Aviation Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-malaysiaaviationgroup-com-my-502c45f3",
+       "source_type": "regulatory_filing",
+       "title": "Sustainability Report 2025, Employee Wellbeing",
+       "url": "https://malaysiaaviationgroup.com.my/content/dam/mag/en/sustainability/sustainability-publications/sustainability-reports/MAG-SUSTAINABILITY-REPORT-2025.pdf"
+      }
+     ],
+     "unit": "percent",
+     "use": "条件つき",
+     "value": 75,
+     "value_text": "75"
     }
    ],
    "fleet": [
@@ -104460,6 +107425,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-08",
+     "company": "royal-brunei",
+     "cond_ja": "Airbus A320 Captain; 2026開始; コミューター契約ではない。補足: 発行日不明。採用一覧にも現行求人として掲載: https://www.flyroyalbrunei.com/brunei/en/about-rb/careers-and-rfp/。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Non-commuting",
+       "source_id": "src-flyroyalbrunei-com-53ae1fee",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "dd565af2e3dae47c",
+     "id": "royal-brunei.benefits.commuting-cap.6df6fdd5",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "機長の通勤の手当・送迎",
+     "pack": "pvr-20261108-cg-royal-brunei",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Royal Brunei Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-flyroyalbrunei-com-53ae1fee",
+       "source_type": "official_package",
+       "title": "Airbus A320 Captain – Career Vacancy",
+       "url": "https://www.flyroyalbrunei.com/japan/en/about-rb/careers-and-rfp/airbus-a320-captain-career-vacancy/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Non-commuting",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "aircraft": [
        "A320"
       ],
@@ -110334,6 +113352,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "applies_to": {
       "pilot_specific": true
      },
+     "checked_at": "2026-11-08",
+     "company": "scoot",
+     "cond_ja": "Flight Crew（操縦士。客室乗務員にも同条件を適用）; CBA適用期間2023-04-01〜2025-03-31の過去条件; turnaround flights; reporting 0000–0730 or scheduled arrival 2200–0530 local inclusive。補足: 第27条(2)、PDF p11。適用時刻をconditionに記載。後継協約の現行額は未確認。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-06-10",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "transport allowance of $20 per duty",
+       "source_id": "src-assets-egazette-gov-sg-4bdf60cb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "536c4843730458fb",
+     "id": "scoot.benefits.commuting.07800db8",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261108-cg-scoot",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-06-10",
+       "publisher": "Singapore Government Gazette",
+       "publisher_kind": "government",
+       "retrieved": "2026-11-08",
+       "source_id": "src-assets-egazette-gov-sg-4bdf60cb",
+       "source_type": "government",
+       "title": "Scoot Employees Agreement 2023, cl27(1)",
+       "url": "https://assets.egazette.gov.sg/2025/Other%20Supplements/Industrial%20Relations%20Supplement/303.pdf"
+      }
+     ],
+     "unit": "SGD/duty",
+     "use": "条件つき",
+     "value": 20,
+     "value_text": "20"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "scoot",
+     "cond_ja": "Flight Crew（操縦士。客室乗務員にも同条件を適用）; CBA適用期間2023-04-01〜2025-03-31の過去条件; layover flights。補足: 第27条(1)、PDF p10。2025-06-10官報初出。後継2025年協約の本文・現行額は未確認。この額を2026年現在の制度と扱わない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-06-10",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "transport allowance of $40 per round duty.",
+       "source_id": "src-assets-egazette-gov-sg-4bdf60cb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "35183d1ad6dc437b",
+     "id": "scoot.benefits.commuting.7615adc0",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261108-cg-scoot",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-06-10",
+       "publisher": "Singapore Government Gazette",
+       "publisher_kind": "government",
+       "retrieved": "2026-11-08",
+       "source_id": "src-assets-egazette-gov-sg-4bdf60cb",
+       "source_type": "government",
+       "title": "Scoot Employees Agreement 2023, cl27(1)",
+       "url": "https://assets.egazette.gov.sg/2025/Other%20Supplements/Industrial%20Relations%20Supplement/303.pdf"
+      }
+     ],
+     "unit": "SGD/round duty",
+     "use": "条件つき",
+     "value": 40,
+     "value_text": "40"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
      "checked_at": "2026-10-29",
      "company": "scoot",
      "cond_ja": "FY2024–25; ScootがMindNationを通じて全社員に提供するメンタルヘルス相談支援; 操縦士を含む; 医療保険の保障条件とは区別。補足: 本文108。Scootのall employeesが対象と明示される。直前のSIA Employee Health BenefitsはScootに転用しない。",
@@ -110378,6 +113498,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "live counsellor support",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "scoot",
+     "cond_ja": "全社員の制度（協約適用対象者、適用除外あり）; CBA適用期間2023-04-01〜2025-03-31の過去条件; prevailing policyに従う。補足: 第58条、PDF p20。具体的な割引率・家族範囲は未記載。後継2025年協約の本文は未確認。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-06-10",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Employees may enjoy Staff Concessional Travel",
+       "source_id": "src-assets-egazette-gov-sg-4bdf60cb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c6a911bc99196ab3",
+     "id": "scoot.benefits.staff-travel.90110c0a",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261108-cg-scoot",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-06-10",
+       "publisher": "Singapore Government Gazette",
+       "publisher_kind": "government",
+       "retrieved": "2026-11-08",
+       "source_id": "src-assets-egazette-gov-sg-4bdf60cb",
+       "source_type": "government",
+       "title": "Scoot Employees Agreement 2023, cl27(1)",
+       "url": "https://assets.egazette.gov.sg/2025/Other%20Supplements/Industrial%20Relations%20Supplement/303.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Staff Concessional Travel",
      "value_text": null
     }
    ],
@@ -127143,6 +130314,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "applies_to": {
       "pilot_specific": true
      },
+     "checked_at": "2026-11-08",
+     "company": "thai-airways",
+     "cond_ja": "全社員の制度; electric shuttle buses for employee transportation; 2026-11-08時点の現行公式ページ; 路線・利用対象の詳細は未記載。補足: 公式ページのGoal7。公表日の表示なし。同ページに2025年の取組を掲載する現行SDG説明。パイロット専用の送迎とはしない。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "4 Electric shuttle buses for employee transportation are provided.",
+       "source_id": "src-thaiairways-com-66a107a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "15cdc65fa9f5371e",
+     "id": "thai-airways.benefits.commuting.1d2a420a",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261108-cg-thai-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Thai Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-thaiairways-com-66a107a6",
+       "source_type": "official_package",
+       "title": "Sustainable Development Goals, Goal7",
+       "url": "https://www.thaiairways.com/en-th/content/sustainable-development/sdg-targets/"
+      }
+     ],
+     "unit": "buses",
+     "use": "条件つき",
+     "value": 4,
+     "value_text": "4"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
      "checked_at": "2026-10-29",
      "company": "thai-airways",
      "cond_ja": "タイで社員身分を有する社員；保険期間2025-07-15～2026-07-14。補足: 過去。FY2025会社公式報告書を取得し本文確認。発行日明記なし。記載時点の制度であり確認日現在の更新を意味しない。",
@@ -134679,6 +137901,416 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "vietjet": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "vietjet",
+     "cond_ja": "base DAD; A320/321機長・副操縦士求人の所属勤務地（原文Work location。Baseという表記ではない）; 募集期間2025-07-01〜2026-12-31。補足: ダナン。公式の運航部パイロット求人の勤務地欄を引用。機長求人443と副操縦士求人444の本文で同じ4空港を確認。全機種共通の基地一覧とは確認していない。副操縦士の同一勤務地を確認したURL: https://careers.vietjetair.com/jobdetail/444 。published_dateは求人のStart date（募集開始日）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-07-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Da Nang",
+       "source_id": "src-careers-vietjetair-com-4bf8d88f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "23d4bd07f87b6d4e",
+     "id": "vietjet.base.pilot-base-city.0e208522",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261108-cg-vietjet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-07-01",
+       "publisher": "Vietjet",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-careers-vietjetair-com-4bf8d88f",
+       "source_type": "job_posting",
+       "title": "A320/321 Captain",
+       "url": "https://careers.vietjetair.com/jobdetail/443"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Da Nang",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "vietjet",
+     "cond_ja": "base CXR; A320/321機長・副操縦士求人の所属勤務地（原文Work location。Baseという表記ではない）; 募集期間2025-07-01〜2026-12-31。補足: カムラン。公式の運航部パイロット求人の勤務地欄を引用。機長求人443と副操縦士求人444の本文で同じ4空港を確認。全機種共通の基地一覧とは確認していない。副操縦士の同一勤務地を確認したURL: https://careers.vietjetair.com/jobdetail/444 。published_dateは求人のStart date（募集開始日）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-07-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Cam Ranh",
+       "source_id": "src-careers-vietjetair-com-4bf8d88f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2c5db70101aaa624",
+     "id": "vietjet.base.pilot-base-city.6c0a5ec8",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261108-cg-vietjet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-07-01",
+       "publisher": "Vietjet",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-careers-vietjetair-com-4bf8d88f",
+       "source_type": "job_posting",
+       "title": "A320/321 Captain",
+       "url": "https://careers.vietjetair.com/jobdetail/443"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Cam Ranh",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "vietjet",
+     "cond_ja": "base HAN; A320/321機長・副操縦士求人の所属勤務地（原文Work location。Baseという表記ではない）; 募集期間2025-07-01〜2026-12-31。補足: ハノイ。公式の運航部パイロット求人の勤務地欄を引用。機長求人443と副操縦士求人444の本文で同じ4空港を確認。全機種共通の基地一覧とは確認していない。副操縦士の同一勤務地を確認したURL: https://careers.vietjetair.com/jobdetail/444 。published_dateは求人のStart date（募集開始日）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-07-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Ha Noi",
+       "source_id": "src-careers-vietjetair-com-4bf8d88f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "517863dca3dfa572",
+     "id": "vietjet.base.pilot-base-city.a3cb4690",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261108-cg-vietjet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-07-01",
+       "publisher": "Vietjet",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-careers-vietjetair-com-4bf8d88f",
+       "source_type": "job_posting",
+       "title": "A320/321 Captain",
+       "url": "https://careers.vietjetair.com/jobdetail/443"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Ha Noi",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "vietjet",
+     "cond_ja": "base SGN; A320/321機長・副操縦士求人の所属勤務地（原文Work location。Baseという表記ではない）; 募集期間2025-07-01〜2026-12-31。補足: ホーチミン市。公式の運航部パイロット求人の勤務地欄を引用。機長求人443と副操縦士求人444の本文で同じ4空港を確認。全機種共通の基地一覧とは確認していない。副操縦士の同一勤務地を確認したURL: https://careers.vietjetair.com/jobdetail/444 。published_dateは求人のStart date（募集開始日）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-07-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Ho Chi Minh City",
+       "source_id": "src-careers-vietjetair-com-4bf8d88f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f8ca6c3d2574e7f5",
+     "id": "vietjet.base.pilot-base-city.c86195f5",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261108-cg-vietjet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-07-01",
+       "publisher": "Vietjet",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-careers-vietjetair-com-4bf8d88f",
+       "source_type": "job_posting",
+       "title": "A320/321 Captain",
+       "url": "https://careers.vietjetair.com/jobdetail/443"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Ho Chi Minh City",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "vietjet",
+     "cond_ja": "A320/321機長・副操縦士求人の所属勤務地（原文Work location。Baseという表記ではない）; 募集期間2025-07-01〜2026-12-31。補足: 公式の運航部パイロット求人の勤務地欄を引用。機長求人443と副操縦士求人444の本文で同じ4空港を確認。全機種共通の基地一覧とは確認していない。副操縦士の同一勤務地を確認したURL: https://careers.vietjetair.com/jobdetail/444 。published_dateは求人のStart date（募集開始日）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-07-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Da Nang (DAD)",
+       "source_id": "src-careers-vietjetair-com-4bf8d88f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "449ca252cb501728",
+     "id": "vietjet.base.pilot-base.114425af",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261108-cg-vietjet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-07-01",
+       "publisher": "Vietjet",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-careers-vietjetair-com-4bf8d88f",
+       "source_type": "job_posting",
+       "title": "A320/321 Captain",
+       "url": "https://careers.vietjetair.com/jobdetail/443"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DAD",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "vietjet",
+     "cond_ja": "A320/321機長・副操縦士求人の所属勤務地（原文Work location。Baseという表記ではない）; 募集期間2025-07-01〜2026-12-31。補足: 公式の運航部パイロット求人の勤務地欄を引用。機長求人443と副操縦士求人444の本文で同じ4空港を確認。全機種共通の基地一覧とは確認していない。副操縦士の同一勤務地を確認したURL: https://careers.vietjetair.com/jobdetail/444 。published_dateは求人のStart date（募集開始日）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-07-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Ho Chi Minh City (SGN)",
+       "source_id": "src-careers-vietjetair-com-4bf8d88f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3c03c0271ed69009",
+     "id": "vietjet.base.pilot-base.6fb1a543",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261108-cg-vietjet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-07-01",
+       "publisher": "Vietjet",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-careers-vietjetair-com-4bf8d88f",
+       "source_type": "job_posting",
+       "title": "A320/321 Captain",
+       "url": "https://careers.vietjetair.com/jobdetail/443"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SGN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "vietjet",
+     "cond_ja": "A320/321機長・副操縦士求人の所属勤務地（原文Work location。Baseという表記ではない）; 募集期間2025-07-01〜2026-12-31。補足: 公式の運航部パイロット求人の勤務地欄を引用。機長求人443と副操縦士求人444の本文で同じ4空港を確認。全機種共通の基地一覧とは確認していない。副操縦士の同一勤務地を確認したURL: https://careers.vietjetair.com/jobdetail/444 。published_dateは求人のStart date（募集開始日）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-07-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Ha Noi (HAN)",
+       "source_id": "src-careers-vietjetair-com-4bf8d88f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3120b0f83f4d5e77",
+     "id": "vietjet.base.pilot-base.9e2919f0",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261108-cg-vietjet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-07-01",
+       "publisher": "Vietjet",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-careers-vietjetair-com-4bf8d88f",
+       "source_type": "job_posting",
+       "title": "A320/321 Captain",
+       "url": "https://careers.vietjetair.com/jobdetail/443"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HAN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-08",
+     "company": "vietjet",
+     "cond_ja": "A320/321機長・副操縦士求人の所属勤務地（原文Work location。Baseという表記ではない）; 募集期間2025-07-01〜2026-12-31。補足: 公式の運航部パイロット求人の勤務地欄を引用。機長求人443と副操縦士求人444の本文で同じ4空港を確認。全機種共通の基地一覧とは確認していない。副操縦士の同一勤務地を確認したURL: https://careers.vietjetair.com/jobdetail/444 。published_dateは求人のStart date（募集開始日）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-07-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Cam Ranh Airport (CXR)",
+       "source_id": "src-careers-vietjetair-com-4bf8d88f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a24df950d58605db",
+     "id": "vietjet.base.pilot-base.f67951c0",
+     "imported_on": "2026-11-18",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261108-cg-vietjet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-07-01",
+       "publisher": "Vietjet",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-careers-vietjetair-com-4bf8d88f",
+       "source_type": "job_posting",
+       "title": "A320/321 Captain",
+       "url": "https://careers.vietjetair.com/jobdetail/443"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CXR",
+     "value_text": null
+    }
+   ],
    "benefits": [
     {
      "amount": null,
@@ -222494,6 +226126,245 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ],
    "towns": []
   },
+  "manama": {
+   "airlines": [
+    "gulf-air"
+   ],
+   "commute": [],
+   "name": "Manama",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Manama",
+      "note_ja": "街「Manama」は--city gulf-air=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "city": "manama",
+     "company": "gulf-air",
+     "cond_ja": "英: undefined。原部屋表記「1-bed」。数字の種類: Manama, Seef。家具: undefined。補足: 2023年夏資料。p.1「Average Apartment Rents」図のSeefの数値ラベルをPDF画像で確認。縦軸の単位はBD/Month、凡例は1-bed/2-bed/3-bed。quoteは原図の数値ラベルそのまま。発行年月日は不明。平均を算出せず掲載値を転記。国・市の地区別かつ寝室数別月額平均の公表表は見つからなかった。2025年ASK報告も確認したが棒グラフに厳密な数値ラベルがなく推定しなかった（https://askre.com/wp-content/uploads/2026/03/Bahrain-property-report-year-end-2025.pdf）。",
+     "currency": "BHD",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "415",
+       "source_id": "src-content-knightfrank-com-64a0462e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "26a1bc67799a1214",
+     "id": "gulf-air.living.rent-1bed.a6a989ab",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1-bed",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261108-cg-gulf-air",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Knight Frank",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-08",
+       "source_id": "src-content-knightfrank-com-64a0462e",
+       "source_type": "third_party_reference",
+       "title": "Bahrain Real Estate Market Review Summer 2023, Average Apartment Rents",
+       "url": "https://content.knightfrank.com/research/2587/documents/en/bahrain-real-estate-market-review-summer-2023-10279.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "1bed": 415
+     },
+     "value_text": {
+      "1bed": "415"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Manama",
+      "note_ja": "街「Manama」は--city gulf-air=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "city": "manama",
+     "company": "gulf-air",
+     "cond_ja": "英: undefined。原部屋表記「2-bed」。数字の種類: Manama, Seef。家具: undefined。補足: 2023年夏資料。p.1「Average Apartment Rents」図のSeefの数値ラベルをPDF画像で確認。縦軸の単位はBD/Month、凡例は1-bed/2-bed/3-bed。quoteは原図の数値ラベルそのまま。発行年月日は不明。平均を算出せず掲載値を転記。国・市の地区別かつ寝室数別月額平均の公表表は見つからなかった。2025年ASK報告も確認したが棒グラフに厳密な数値ラベルがなく推定しなかった（https://askre.com/wp-content/uploads/2026/03/Bahrain-property-report-year-end-2025.pdf）。",
+     "currency": "BHD",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "540",
+       "source_id": "src-content-knightfrank-com-64a0462e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3d5af002ea6c032f",
+     "id": "gulf-air.living.rent-2bed.3aca965d",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2-bed",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261108-cg-gulf-air",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Knight Frank",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-08",
+       "source_id": "src-content-knightfrank-com-64a0462e",
+       "source_type": "third_party_reference",
+       "title": "Bahrain Real Estate Market Review Summer 2023, Average Apartment Rents",
+       "url": "https://content.knightfrank.com/research/2587/documents/en/bahrain-real-estate-market-review-summer-2023-10279.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "2bed": 540
+     },
+     "value_text": {
+      "2bed": "540"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Manama",
+      "note_ja": "街「Manama」は--city gulf-air=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "city": "manama",
+     "company": "gulf-air",
+     "cond_ja": "英: undefined。原部屋表記「3-bed」。数字の種類: Manama, Seef。家具: undefined。補足: 2023年夏資料。p.1「Average Apartment Rents」図のSeefの数値ラベルをPDF画像で確認。縦軸の単位はBD/Month、凡例は1-bed/2-bed/3-bed。quoteは原図の数値ラベルそのまま。発行年月日は不明。平均を算出せず掲載値を転記。国・市の地区別かつ寝室数別月額平均の公表表は見つからなかった。2025年ASK報告も確認したが棒グラフに厳密な数値ラベルがなく推定しなかった（https://askre.com/wp-content/uploads/2026/03/Bahrain-property-report-year-end-2025.pdf）。",
+     "currency": "BHD",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "800",
+       "source_id": "src-content-knightfrank-com-64a0462e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e74b8bdb91fd53e1",
+     "id": "gulf-air.living.rent-3bed.d25b77b3",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3-bed",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261108-cg-gulf-air",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Knight Frank",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-08",
+       "source_id": "src-content-knightfrank-com-64a0462e",
+       "source_type": "third_party_reference",
+       "title": "Bahrain Real Estate Market Review Summer 2023, Average Apartment Rents",
+       "url": "https://content.knightfrank.com/research/2587/documents/en/bahrain-real-estate-market-review-summer-2023-10279.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "参考",
+     "value": {
+      "3bed": 800
+     },
+     "value_text": {
+      "3bed": "800"
+     }
+    }
+   ],
+   "towns": []
+  },
   "manchester": {
    "airlines": [
     "easyjet",
@@ -238065,9 +241936,137 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "seoul": {
    "airlines": [
+    "asiana",
     "korean-air"
    ],
-   "commute": [],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Seoul",
+      "note_ja": "街「Seoul」は--city asiana=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "city": "seoul",
+     "company": "asiana",
+     "cond_ja": "COEX City Airport (Seoul, Gangnam-gu, Samseong-dong) → Incheon International Airport Terminal 2。手段: bus, CALT 6103。補足: バス会社公式の現行路線案内の概算所要時間。道路状況により遅延あり。Asianaは操縦士拠点未確認のため本社都市Seoulを基準に地区選定。 パイロット拠点空港の確認とは別の交通資料。仁川空港を到着空港として明示し、拠点と推定するためには使用しない。",
+     "currency": null,
+     "district": "COEX City Airport (Seoul, Gangnam-gu, Samseong-dong) → Incheon International Airport Terminal 2",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "제 2여객터미널: 약 85분",
+       "source_id": "src-calt-co-kr-7cbaefd1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4a35b6d36d14b6eb",
+     "id": "asiana.living.commute.28bc896e",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（COEX City Airport → Incheon International Airport…",
+     "pack": "pvr-20261108-cg-asiana",
+     "per": null,
+     "rev": 1,
+     "seen": [
+      {
+       "company": "korean-air",
+       "id": "korean-air.living.commute.b4d43441",
+       "pack": "pvr-20261108-cg-korean-air"
+      }
+     ],
+     "src": [
+      {
+       "published": null,
+       "publisher": "CALT",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-calt-co-kr-7cbaefd1",
+       "source_type": "official_package",
+       "title": "6103 (COEX City Airport ↔ Incheon Airport)",
+       "url": "https://www.calt.co.kr/limousine/04.php"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 85,
+     "value_text": "85"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Seoul",
+      "note_ja": "街「Seoul」は--city asiana=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-08",
+     "city": "seoul",
+     "company": "asiana",
+     "cond_ja": "COEX City Airport (Seoul, Gangnam-gu, Samseong-dong) → Incheon International Airport Terminal 1。手段: bus, CALT 6103。補足: バス会社公式の現行路線案内の概算所要時間。道路状況により遅延あり。Asianaは操縦士拠点未確認のため本社都市Seoulを基準に地区選定。 パイロット拠点空港の確認とは別の交通資料。仁川空港を到着空港として明示し、拠点と推定するためには使用しない。",
+     "currency": null,
+     "district": "COEX City Airport (Seoul, Gangnam-gu, Samseong-dong) → Incheon International Airport Terminal 1",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "제 1여객터미널: 약 65분",
+       "source_id": "src-calt-co-kr-7cbaefd1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5f05953a7f878439",
+     "id": "asiana.living.commute.85c9a9ae",
+     "imported_on": "2026-11-18",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（COEX City Airport → Incheon International Airport…",
+     "pack": "pvr-20261108-cg-asiana",
+     "per": null,
+     "rev": 1,
+     "seen": [
+      {
+       "company": "korean-air",
+       "id": "korean-air.living.commute.485181a3",
+       "pack": "pvr-20261108-cg-korean-air"
+      }
+     ],
+     "src": [
+      {
+       "published": null,
+       "publisher": "CALT",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-08",
+       "source_id": "src-calt-co-kr-7cbaefd1",
+       "source_type": "official_package",
+       "title": "6103 (COEX City Airport ↔ Incheon Airport)",
+       "url": "https://www.calt.co.kr/limousine/04.php"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 65,
+     "value_text": "65"
+    }
+   ],
    "name": "Seoul",
    "name_en": null,
    "rents": [
@@ -562107,6 +566106,167 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    },
    "revision": 5,
    "sha": "sha256:d7896569f41f528f"
+  },
+  "pvr-20261108-cg-air-china": {
+   "records": {
+    "air-china.benefits.commuting.e9554e5d": "89e2a2ea7b86fc1d",
+    "air-china.benefits.staff-travel.4614621d": "2cfea6bea14bc2cc",
+    "air-china.fleet.a320.48580b79": "a0653d6b28340b3a",
+    "air-china.fleet.a330.23e78907": "48efb3d9521472aa",
+    "air-china.fleet.a350.be6838cd": "3e557b3016e6dfac",
+    "air-china.fleet.arj21.642df371": "ed6e8eaa14f2b284",
+    "air-china.fleet.b737.12a6a486": "7192cbbe358435d8",
+    "air-china.fleet.b747.f8b07b44": "2093126ab9393a2d",
+    "air-china.fleet.b777.dcea3351": "3614827025d98e0c",
+    "air-china.fleet.b787.16127ffe": "fb794600d185bff1"
+   },
+   "revision": 1,
+   "sha": "sha256:8bbed6abeaeb0faa"
+  },
+  "pvr-20261108-cg-airasia": {
+   "records": {
+    "airasia.fleet.a320-ceo.b99ebd3e": "552e7a399a390a02",
+    "airasia.fleet.a320-neo.a555ab3b": "b99eefdd3a44fe54",
+    "airasia.fleet.a321-neo.055ae08d": "b60d3409d6e49c8d",
+    "airasia.fleet.a321-p2f.d3e83306": "cb7d9be8c37fc479",
+    "airasia.fleet.a330-ceo.7ff24693": "ea98dbae3308dc19"
+   },
+   "revision": 1,
+   "sha": "sha256:facb1d42ac0b767f"
+  },
+  "pvr-20261108-cg-asiana": {
+   "records": {
+    "asiana.benefits.commuting.0ac32112": "1cadc2299c60eaba",
+    "asiana.benefits.staff-travel.760efc57": "8ddb71a05371c907",
+    "asiana.living.commute.28bc896e": "4a35b6d36d14b6eb",
+    "asiana.living.commute.85c9a9ae": "5f05953a7f878439"
+   },
+   "revision": 1,
+   "sha": "sha256:5716f1300816ea7b"
+  },
+  "pvr-20261108-cg-batik-air": {
+   "records": {
+    "batik-air.jobs.cap-license-cap.b5b994f7": "60f171783213e1dd",
+    "batik-air.scale.fleet-total.7feacf22": "5414bd6a9b793ba5"
+   },
+   "revision": 1,
+   "sha": "sha256:d8dc066dbd0fba65"
+  },
+  "pvr-20261108-cg-flydubai": {
+   "records": {
+    "flydubai.benefits.annual-leave-cap.92b4354b": "26de37085943665b",
+    "flydubai.benefits.annual-leave-fo.62540518": "27352b74d88978f2",
+    "flydubai.benefits.commuting.c78378e5": "e26cf1f2bdd18a1e",
+    "flydubai.benefits.housing.33c00c88": "6c59ebea122f2c31",
+    "flydubai.benefits.medical.d9742648": "534eb3c02075453c",
+    "flydubai.benefits.pension.857c6a74": "39c5ea3e62bbb5bf",
+    "flydubai.benefits.staff-travel.d4d24f13": "15e4bd953485bfe6",
+    "flydubai.fleet.b737-800.ed578961": "d472f347111f9a25",
+    "flydubai.fleet.b737-max-8.2386872e": "2e162e88a1f6d2e0",
+    "flydubai.fleet.b737-max-9.7c27c3d7": "4f3d9d403c52091c",
+    "flydubai.jobs.cap-license-cap.ccdb6420": "699a77eb81952a8a",
+    "flydubai.jobs.cap-total-hours-cap.93efad69": "b83fe6de4084d0d0",
+    "flydubai.jobs.cap-total-hours-cap.f79128a6": "3fd5f67df489f004",
+    "flydubai.jobs.cap-type-rating-cap.f1865c16": "6999ae945fec0d71",
+    "flydubai.jobs.fo-license-fo.00f53374": "fdbf4bcad8edb726",
+    "flydubai.jobs.fo-type-rating-fo.516ddf0f": "bbe253c52b036723",
+    "flydubai.profile.founded.801c633e": "5c43f2f48669c2a6",
+    "flydubai.profile.headquarters-city.5658fa34": "53d79430fc818bf6",
+    "flydubai.scale.fleet-total.0b43bc37": "c89fee78f2f22303",
+    "flydubai.work.training-bond.79500b9c": "7d57f6286901b9d1"
+   },
+   "revision": 1,
+   "sha": "sha256:bf60ebbd292e63ea"
+  },
+  "pvr-20261108-cg-garuda-indonesia": {
+   "records": {
+    "garuda-indonesia.work.roster-pattern.516ecc9d": "7049119a40d76589"
+   },
+   "revision": 1,
+   "sha": "sha256:8cf145dbce044b89"
+  },
+  "pvr-20261108-cg-gulf-air": {
+   "records": {
+    "gulf-air.living.rent-1bed.a6a989ab": "26a1bc67799a1214",
+    "gulf-air.living.rent-2bed.3aca965d": "3d5af002ea6c032f",
+    "gulf-air.living.rent-3bed.d25b77b3": "e74b8bdb91fd53e1"
+   },
+   "revision": 1,
+   "sha": "sha256:d039e9d201682387"
+  },
+  "pvr-20261108-cg-juneyao-airlines": {
+   "records": {
+    "juneyao-airlines.benefits.commuting.4d4d82ea": "54ef235ee32d8d71",
+    "juneyao-airlines.benefits.housing.2cbe16f6": "f62944193f678654",
+    "juneyao-airlines.benefits.medical.e090c307": "6d8daa3cd147f0d1",
+    "juneyao-airlines.benefits.pension.cbf97966": "053fac878b3f921f",
+    "juneyao-airlines.benefits.staff-travel.877a7a69": "6100fcfc39edb6bc",
+    "juneyao-airlines.fleet.a320ceo.791afee3": "414cd0fb262427f0",
+    "juneyao-airlines.fleet.a320neo.3ecb49ad": "b444c512bf11ff6c",
+    "juneyao-airlines.fleet.a321.736c8e5b": "0e28eead9424e274",
+    "juneyao-airlines.fleet.a321neo.b4c0b526": "4b49493e260b160c",
+    "juneyao-airlines.fleet.b787.929e7065": "8a9d9864ef741d75",
+    "juneyao-airlines.profile.founded.32671626": "100fbd0db13b007a",
+    "juneyao-airlines.profile.headquarters-city.9d3e2f88": "4883ac9f5631058d",
+    "juneyao-airlines.scale.fleet-total.1496a757": "c703cf5d32ae6dd4"
+   },
+   "revision": 1,
+   "sha": "sha256:56f5111ef15663e3"
+  },
+  "pvr-20261108-cg-korean-air": {
+   "records": {
+    "korean-air.living.commute.485181a3": "f05fcf99e21bd78e",
+    "korean-air.living.commute.b4d43441": "91d4256c409a4b7f"
+   },
+   "revision": 1,
+   "sha": "sha256:0731d9606fb8734e"
+  },
+  "pvr-20261108-cg-malaysia-airlines": {
+   "records": {
+    "malaysia-airlines.benefits.staff-travel.3bf940eb": "d7c462e1258cfa2d",
+    "malaysia-airlines.benefits.staff-travel.9a8abac4": "6a381aa356daaf0f",
+    "malaysia-airlines.benefits.staff-travel.c7bde63b": "c23997b3fd534716",
+    "malaysia-airlines.benefits.staff-travel.f9d92d9f": "55e31b67bb60e91e"
+   },
+   "revision": 1,
+   "sha": "sha256:370d5a91ed71b4c7"
+  },
+  "pvr-20261108-cg-royal-brunei": {
+   "records": {
+    "royal-brunei.benefits.commuting-cap.6df6fdd5": "dd565af2e3dae47c"
+   },
+   "revision": 1,
+   "sha": "sha256:e1f8687a427a90b3"
+  },
+  "pvr-20261108-cg-scoot": {
+   "records": {
+    "scoot.benefits.commuting.07800db8": "536c4843730458fb",
+    "scoot.benefits.commuting.7615adc0": "35183d1ad6dc437b",
+    "scoot.benefits.staff-travel.90110c0a": "c6a911bc99196ab3"
+   },
+   "revision": 1,
+   "sha": "sha256:3ad817ef14883401"
+  },
+  "pvr-20261108-cg-thai-airways": {
+   "records": {
+    "thai-airways.benefits.commuting.1d2a420a": "15cdc65fa9f5371e"
+   },
+   "revision": 1,
+   "sha": "sha256:43397d3d0785b5d3"
+  },
+  "pvr-20261108-cg-vietjet": {
+   "records": {
+    "vietjet.base.pilot-base-city.0e208522": "23d4bd07f87b6d4e",
+    "vietjet.base.pilot-base-city.6c0a5ec8": "2c5db70101aaa624",
+    "vietjet.base.pilot-base-city.a3cb4690": "517863dca3dfa572",
+    "vietjet.base.pilot-base-city.c86195f5": "f8ca6c3d2574e7f5",
+    "vietjet.base.pilot-base.114425af": "449ca252cb501728",
+    "vietjet.base.pilot-base.6fb1a543": "3c03c0271ed69009",
+    "vietjet.base.pilot-base.9e2919f0": "3120b0f83f4d5e77",
+    "vietjet.base.pilot-base.f67951c0": "a24df950d58605db"
+   },
+   "revision": 1,
+   "sha": "sha256:ed35489e9e0b1745"
   },
   "pvr-city-rent": {
    "records": {

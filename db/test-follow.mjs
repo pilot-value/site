@@ -337,7 +337,9 @@ ok((await itemsOf(US, new Date(usAt.getTime() - 60e3))) === null && J(await kind
    '★アメリカの会員には、向こうの次の日の17時に送る（日の区切りも向こうの0時）');
 
 await reset();
-await news(RV, 'ana', { at: '30 minutes' });
+/* ★入る時刻は「いま」ではなく1日目（2026-11-18）。いまに置くと、水曜に流した回だけ9日目の木曜が15日の窓（floor_at）の外になり、
+   「次の木曜にもう一度送る」が落ちた（製品は正しい・検査の時計が曜日で動いていた）。 */
+await news(RV, 'ana', { at: T1 });
 await mark(R2, false); await mark(R2, false);
 ok((await itemsOf(R2)) !== null, '2回失敗：まだ送る');
 await mark(R2, false);

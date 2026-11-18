@@ -38,6 +38,8 @@
 //   ・足した：パイロットの定年・Loss of Licence の補償・Commuting（＋「一部」の続き）・自宅待機の出頭までの時間（待機場所の続き）・
 //     日当の出方（日当の続き）。入れ替えの2つ（月の希望日数・上位クラス）は数が変わらない。続きの質問は今までどおり数えない。
 //   増やすのはこの回が最後のつもりで足した。次に足したくなったら、先に1問減らせないか考える。
+//   ・同じ日のあと（オーナーが板で全部答えてみた結果）：「何によって違いますか？」を、自社養成・定年・Peer Support・
+//     ライセンス喪失の補償の4つの親から外した（split: false・外した続きは RETIRED）。続きの質問は 24 → 20。一覧の 54 は変わらない。
 
 // ★2026-11-14、続きの質問（deep）を21問足した（オーナー指示「一部可能にはもう一つ突っ込んで質問して欲しい。
 //   あと回答が分かれている場合も」）。6問は「一部」の答えの続き、15問は答えが分かれた会社でだけ聞く「何によって違うか」
@@ -158,6 +160,12 @@ export const RETIRED = [
   'staff_travel_family',      // 2026-11-17 券ごとの「誰が使えますか？」（staff_travel_standby_family / staff_travel_confirmed_family）に任せる
   'fo_development',           // 2026-11-17 Loss of Licence の補償（loss_of_licence）と入れ替え
   'fo_development_split',     // ↳ 上の続き（withSplit が作っていた）
+  /* 2026-11-17 オーナー「何によって違うかの4つは意味が分からない」→ 外す（親の質問は残す・下の split: false）。
+     行と答えは消さず active = false（台帳から消えた id は db/conditions.generated.sql が止める）。 */
+  'cadet_program_split',      // 自社養成は、同じ会社の中で何によって違うか
+  'retirement_age_split',     // パイロットの定年は、同じ会社の中で何によって違うか
+  'peer_support_split',       // Peer Support は、同じ会社の中で何によって違うか
+  'loss_of_licence_split',    // ライセンス喪失の補償は、同じ会社の中で何によって違うか
 ];
 
 /* 詳細ページの節。並ぶ順もこの順。
@@ -827,7 +835,7 @@ const BASE = [
   },
   {
     id: 'cadet_program', version: 1, section: 'career', kind: 'choice',
-    tier: 'B', micro: true, priority: 310,
+    tier: 'B', micro: true, priority: 310, split: false,
     /* ★「制度があるか」と「今も採っているか」を1問に畳んだ。2問に割ると
        タップが1回増えるだけで、分かることは同じ。 */
     ja: { short: '自社養成', label: '自社養成パイロット制度はありますか？',
@@ -848,7 +856,7 @@ const BASE = [
          （「制度」と「文化」の境目があいまいで答えが割れやすかった ── 入れ替え先は benefits の loss_of_licence）。
        ★段はどの会社の規定とも無関係な切り方（60歳・65歳は多くの国の法律の線）。 */
     id: 'retirement_age', version: 1, section: 'career', kind: 'choice',
-    tier: 'B', micro: true, priority: 320,
+    tier: 'B', micro: true, priority: 320, split: false,
     ja: { short: 'パイロットの定年', label: 'この会社のパイロットの定年は何歳ですか？',
           help: '定年のあとも契約や再雇用で乗務を続けられる場合も、定年の歳を選んでください。' },
     en: { short: 'Retirement age', label: 'What is the retirement age for pilots at this airline?',
@@ -904,7 +912,7 @@ const BASE = [
   // ══ BENEFITS 手当・サポート ═══════════════════════════════════════
   {
     id: 'peer_support', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: true, priority: 490,
+    tier: 'B', micro: true, priority: 490, split: false,
     /* ★表記は Peer Support で固定（オーナー指示）。訳さない。 */
     ja: { short: 'Peer Support', label: 'パイロット向けの Peer Support 制度がありますか？',
           help: 'パイロット同士、または専門スタッフを通じて、心理的・職業上の相談ができる仕組みです。' },
@@ -925,7 +933,7 @@ const BASE = [
     /* ★2026-11-17 足した（オーナー判断・見直し案21。「副操縦士の育成支援」と入れ替え）。医学的な理由で職を失うのは
          パイロットだけが抱える危険で、会社によって有無がはっきり分かれる。 */
     id: 'loss_of_licence', version: 1, section: 'benefits', kind: 'choice',
-    tier: 'B', micro: true, priority: 495,
+    tier: 'B', micro: true, priority: 495, split: false,
     ja: { short: 'ライセンス喪失の補償', label: '身体検査（Medical）に通らず乗務できなくなったときの補償（Loss of Licence）が、会社の制度にありますか？',
           help: '一時金や収入の補償が出る制度・保険です。組合などの保険に自分で入っている場合は「会社の制度は無い」を選んでください。' },
     en: { short: 'Loss of license cover', label: 'If you lose your medical and can no longer fly, does the company provide loss of license cover?',
@@ -1047,11 +1055,12 @@ const BASE = [
        1つの数値に丸めると意味が失われる（地上業務1時間＝乗務◯時間相当、など）。
        ★micro にしない。1タップで終わらせると note が空のまま埋まる。 */
     tier: 'C', micro: false, priority: 560, note: true,
-    ja: { short: '地上業務の補償', label: '乗務以外の会社業務に、手当や勤務時間上の補償がありますか？',
+    /* ★2026-11-17 短い名前「地上業務の補償」→「乗務以外の業務の手当」（オーナー「地上業務の補償ってなに？」）。質問文はそのまま。 */
+    ja: { short: '乗務以外の業務の手当', label: '乗務以外の会社業務に、手当や勤務時間上の補償がありますか？',
           help: '会議・訓練担当・事務など、乗務でない業務に対する扱いです。「地上業務1時間＝乗務◯時間相当」のような換算がある場合は、補足に書いてください。',
           /* 戻ってきた会員に聞く板には補足の欄が無い ＝ 「補足に書いて」を言わない（askHelp はその板だけが使う） */
           askHelp: '会議・訓練担当・事務など、乗務でない業務に対する扱いです。' },
-    en: { short: 'Ground duty pay', label: 'Is non-flying company work compensated, in pay or in duty credit?',
+    en: { short: 'Pay for non-flying duties', label: 'Is non-flying company work compensated, in pay or in duty credit?',
           help: 'Meetings, training duties, office work. If ground time converts into credited flying time at some ratio, please describe it in the note.',
           askHelp: 'Meetings, training duties, office work.' },
     /* ★2026-11-17「はい」（yes）を3つに分けた（オーナー判断・見直し案16）。お金で払う会社と、勤務時間に数える会社が
@@ -1202,6 +1211,9 @@ const BASE = [
       { code: 'children', ja: '子',                             en: 'Children' },
       { code: 'parents',  ja: '親',                             en: 'Parents' },
       { code: 'siblings', ja: 'きょうだい',                     en: 'Brothers and sisters' },
+      /* ★2026-11-17 足した（オーナー「祖父母・孫（2親等）まで使える会社もある」「配偶者の親も」）。コードは足すだけ */
+      { code: 'grandparents_grandchildren', ja: '祖父母・孫（2親等）', en: 'Grandparents and grandchildren' },
+      { code: 'parents_in_law', ja: '配偶者の親',               en: 'Parents-in-law' },
       { code: 'nominee',  ja: '本人が指名した人（家族以外）',   en: 'Someone you nominate (not family)' },
       { code: 'other',    ja: 'その他',                         en: 'Other' },
     ],
@@ -1258,6 +1270,9 @@ const BASE = [
       { code: 'children', ja: '子',                             en: 'Children' },
       { code: 'parents',  ja: '親',                             en: 'Parents' },
       { code: 'siblings', ja: 'きょうだい',                     en: 'Brothers and sisters' },
+      /* ★2026-11-17 足した（オーナー「祖父母・孫（2親等）まで使える会社もある」「配偶者の親も」）。コードは足すだけ */
+      { code: 'grandparents_grandchildren', ja: '祖父母・孫（2親等）', en: 'Grandparents and grandchildren' },
+      { code: 'parents_in_law', ja: '配偶者の親',               en: 'Parents-in-law' },
       { code: 'nominee',  ja: '本人が指名した人（家族以外）',   en: 'Someone you nominate (not family)' },
       { code: 'other',    ja: 'その他',                         en: 'Other' },
     ],
@@ -1536,7 +1551,9 @@ const SPLIT_CHOICES = [
   { code: 'no_rule',   ja: '決まった基準が無い（その時々で違う）', en: 'No fixed rule (case by case)' },
   { code: 'other',     ja: 'その他',                     en: 'Other' },
 ];
-const splitOf = (p) => !p.parent && p.kind === 'choice' && !p.isOpinion && !p.topicOnly && !p.retired;
+/* ★split: false ＝ その親には「何によって違うか」を作らない（2026-11-17 オーナー判断。自社養成・定年・Peer Support・
+     ライセンス喪失の補償の4つは、聞かれても意味が分からなかった）。外した続きの id は RETIRED に入れる（使い回さない）。 */
+const splitOf = (p) => !p.parent && p.kind === 'choice' && !p.isOpinion && !p.topicOnly && !p.retired && p.split !== false;
 function withSplit(list) {
   const out = [...list];
   const under = (id, q) => { for (let x = q; x && x.parent; x = list.find((y) => y.id === x.parent)) if (x.parent === id) return true; return false; };
