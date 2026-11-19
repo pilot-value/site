@@ -603,13 +603,13 @@ head('英語の1枚（en/career.html）');
   const got = (EN_HTML.match(/<script type="application\/json" id="crl-cats">([\s\S]*?)<\/script>/) || [])[1];
   ok(!!catsEn && !!got && same(JSON.parse(got), JSON.parse(catsEn.replace(/'/g, '"'))), `${PAGE_EN} の口コミの6分類の名前は CAT_FULL_EN`, `${got} ／ ${catsEn}`);
 }
-/* T-C4：カードの評価の1行の字は、会社ページ・比較の「n件の評価」と同じ字（2つのファイルに1つずつ）。星は形で描く（字にしない）。
+/* T-C4：カードの評価の1行の字は、会社ページ・比較の「n人の評価」と同じ字（2つのファイルに1つずつ）。星は形で描く（字にしない）。
    カードは実データの欄（.crl）を読まない ── 欄を避ける inLive の1か所のほかに、.crl の選び方も 'crl-' を探す口も持たない（評価は PVCareer.rating から来る）。 */
 {
   const CC = read('career-card.js'), LIVE = read('career-live.js');
   const cardW = (CC.match(/\n {4}[^\n]*\brated: '([^']*)'\n {2}\};/) || [])[1];
   const liveW = (LIVE.match(/\n {4}revRated: function \(n\) \{ return n \+ '([^']*)'; \},\n/) || [])[1];
-  ok(cardW === '件の評価' && liveW === cardW, 'カードの評価件数の字は、会社ページ・比較と同じ「件の評価」（career-card.js の WORD.rated ＝ career-live.js の revRated）',
+  ok(cardW === '人の評価' && liveW === cardW, 'カードの評価件数の字は、会社ページ・比較と同じ「人の評価」（career-card.js の WORD.rated ＝ career-live.js の revRated）',
      JSON.stringify({ card: cardW, live: liveW }));
   /* ★2026-10-25 英語の EN-9：英語のカード（WORD_EN）も、英語の比較・会社ページ（career-live.js の英語の revRated）と同じ字 ── 1件は単数 */
   const cardEn = (CC.match(/\n {2}var WORD_EN = \{[\s\S]*?\n {4}rated1: '([^']*)'[\s\S]*?\brated: '([^']*)'\n {2}\};/) || []).slice(1);

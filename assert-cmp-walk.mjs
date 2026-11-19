@@ -469,10 +469,10 @@ const steady = async (page, fn, arg) => {
   return a;
 };
 const footSel = (s) => `#cr-go-rev-${s}`;                     // その会社の口コミの「詳しく」（比較の口コミの箱の足）
-/* 保存先の数から、画面に出るはずの字（評価の平均・「n件の評価」・投稿の数）を作る ── stored() はこの検査の数え方 */
+/* 保存先の数から、画面に出るはずの字（評価の平均・「n人の評価」・投稿の数）を作る ── stored() はこの検査の数え方 */
 const want = async (slug) => {
   const S = await stored(slug);
-  return { avg: S.rate ? S.rate.avg.toFixed(1) : null, cnt: S.rate ? `${S.rate.n}件の評価` : null, posts: String(S.posts) };
+  return { avg: S.rate ? S.rate.avg.toFixed(1) : null, cnt: S.rate ? `${S.rate.n}人の評価` : null, posts: String(S.posts) };
 };
 /* 会社ページ airlines/{slug}.html の公開の数（社名の横の評価の欄が読み終わり、投稿の数が出てから） */
 const coRead = async (page, slug) => {
@@ -491,7 +491,7 @@ const coRead = async (page, slug) => {
 };
 /* 会社ページは、点数の付いた投稿が無い会社に平均を描かず、評価件数の場所に「評価未取得」と書く（career-live.js の会社ページの星の欄） */
 const sameCo = (c, w) => (w.cnt ? c.avg === w.avg && c.cnt === w.cnt : c.avg === null && c.cnt === '評価未取得') && c.posts === w.posts;
-/* 比較の口コミの欄：会社の札の順・会社ごとのマス（平均・「n件の評価」・投稿の数・読めない）・1行だけの時の字・「やり直す」・本文の印・口コミの Give & Get・錠の1行 */
+/* 比較の口コミの欄：会社の札の順・会社ごとのマス（平均・「n人の評価」・投稿の数・読めない）・1行だけの時の字・「やり直す」・本文の印・口コミの Give & Get・錠の1行 */
 const cmpStars = (page) => page.evaluate((re) => {
   const x = document.querySelector('#cr [data-view="compare"] .crl[data-live="cmp-stars"]');
   if (!x) return null;
@@ -514,7 +514,7 @@ const cmpStars = (page) => page.evaluate((re) => {
 }, READ_MARK.source);
 /* その会社のマス（札の名前で引く ── 列の順は並べた順） */
 const cellOf = (S, slug) => (S && S.heads.indexOf(AIR[slug].ja) >= 0 ? S.cells[S.heads.indexOf(AIR[slug].ja)] || null : null);
-/* マスが保存先の数と同じか（点数の付いた投稿が無い会社は、平均も「n件の評価」も描かない ── 2社とも投稿が無ければマスそのものが無い） */
+/* マスが保存先の数と同じか（点数の付いた投稿が無い会社は、平均も「n人の評価」も描かない ── 2社とも投稿が無ければマスそのものが無い） */
 const sameCell = (c, w) => (w.cnt ? !!c && c.avg === w.avg && c.cnt === w.cnt && c.posts === `会員の投稿 ${w.posts}件`
   : !c || (!c.avg && !c.cnt && (c.posts === null || c.posts === `会員の投稿 ${w.posts}件`)));
 /* 比較の推定年収の字（会社と職位で引く） */

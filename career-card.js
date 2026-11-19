@@ -79,8 +79,8 @@
     brand: 'PILOT VALUE', head: 'パイロットの年収', cap: '機長', fo: '副操縦士', max: '上限',
     photo: '写真（縮小・トリミング）',
     one: '1社', two: '2社', count: '会社の数', co: '会社', coA: '1社目', coB: '2社目', pic: '写真',
-    rated1: '件の評価', lp: '（', rp: '）', mid: '・',
-    design: 'デザイン', color: 'カラフル', gold: '黒×金', save: '画像を保存', share: '共有', preview: 'カードの見本', rated: '件の評価'
+    rated1: '人の評価', lp: '（', rp: '）', mid: '・',
+    design: 'デザイン', color: 'カラフル', gold: '黒×金', save: '画像を保存', share: '共有', preview: 'カードの見本', rated: '人の評価'
   };
   /* 英語の字。サイトに在る英語を先に（Captain・First Officer・1 airline ＝ 航空会社一覧・Save card の画面の字・photo の断り ＝ 写真の台帳の英語）。
      ★「上限」の英語は、英語の会社ページの上限の印と同じく maximum（斜線の棒と「〜」の DOM の字 ── 英語は up to ── と必ず一緒に出る）。 */

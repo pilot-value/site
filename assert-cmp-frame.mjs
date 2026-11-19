@@ -99,9 +99,9 @@ const SC = ['culture_score', 'salary_score', 'benefits_score', 'wlb_score', 'ops
 const rated = (id, v, extra = {}) => ({ id, airline: 'x', created_at: '2026-09-01T00:00:00Z', cats: ['salary'],
   ...Object.fromEntries(SC.map((k) => [k, v])), ...extra });
 const ROWS = {
-  jal: [rated('j1', 3)],                       // → 「3.0」・「1件の評価」
-  ana: [rated('a1', 5), rated('a2', 4)],       // → 「4.5」・「2件の評価」
-  etihad: [rated('e1', 4), rated('e2', 4)],    // → 「4.0」・「2件の評価」
+  jal: [rated('j1', 3)],                       // → 「3.0」・「1人の評価」
+  ana: [rated('a1', 5), rated('a2', 4)],       // → 「4.5」・「2人の評価」
+  etihad: [rated('e1', 4), rated('e2', 4)],    // → 「4.0」・「2人の評価」
 };
 const work = (lo, hi) => ({ ok: true, state: 'open', by: { cap: { block_hours: { lo, hi } }, fo: {} } });
 const WORK = { jal: work(70, 80), ana: work(50, 55), etihad: work(61, 66) };
@@ -326,13 +326,13 @@ scene('stall', '返事の来ない読みは上限で「いま読み出せませ�
   }), { timeout: 8000, polling: 100 }, CARD_KINDS.map(CARD)).then(() => true, () => false);
   const lr = await starsLR(A.page), wk2 = await faceOf(A.page, CMP('cmp-work')), sc = await faceOf(B.page, CARD('score'));
   ok(fillA && callsOf(A.st, 'pv_reviews', 'jal') === 2 && callsOf(A.st, 'pv_work_view', 'jal') === 2
-    && lr.length === 2 && lr[0].avg === '3.0' && lr[0].cnt === '1件の評価' && lr[1].avg === '4.5'
+    && lr.length === 2 && lr[0].avg === '3.0' && lr[0].cnt === '1人の評価' && lr[1].avg === '4.5'
     && !!wk2 && wk2.state === 'open' && wk2.errs === 0 && wk2.text.includes('70〜80'),
-    `比較：「${RETRY}」を押すと1本ずつ聞き直し（JAL の口コミ・月の勤務とも2本目）、JAL の値で埋まる（3.0・1件の評価・乗務時間 70〜80）`,
+    `比較：「${RETRY}」を押すと1本ずつ聞き直し（JAL の口コミ・月の勤務とも2本目）、JAL の値で埋まる（3.0・1人の評価・乗務時間 70〜80）`,
     J({ fillA, rev: callsOf(A.st, 'pv_reviews', 'jal'), work: callsOf(A.st, 'pv_work_view', 'jal'), lr, wk: wk2 && wk2.text.slice(0, 120) }));
   ok(fillB && callsOf(B.st, 'pv_reviews', 'jal') === revB0 + 1 && callsOf(B.st, 'pv_review_summary', 'jal') === sumB0 + 1
-    && !!sc && sc.state === 'open' && sc.text.includes('3.0') && sc.text.includes('1件の評価'),
-    `会社ページ：「${RETRY}」を押すと、口コミと要約を1本ずつ聞き直し、評価スコアが JAL の値で埋まる（3.0・1件の評価）`,
+    && !!sc && sc.state === 'open' && sc.text.includes('3.0') && sc.text.includes('1人の評価'),
+    `会社ページ：「${RETRY}」を押すと、口コミと要約を1本ずつ聞き直し、評価スコアが JAL の値で埋まる（3.0・1人の評価）`,
     J({ fillB, rev: callsOf(B.st, 'pv_reviews', 'jal'), sum: callsOf(B.st, 'pv_review_summary', 'jal'), sc: sc && sc.text.slice(0, 80) }));
   await shot(A.page, '#cr [data-view="compare"] .cr-cmp-rev', 'compare-filled-rev');
   await shot(B.page, '#pvg-score', 'card-filled');
@@ -381,9 +381,9 @@ async function raceLeg(leg) {
     ok(faces.every((f) => !!f && f.state !== 'error' && f.errs === 0), `${leg}：去った会社の失敗で、比較の欄に「${ERR}」が出ない`,
       J(faces.map((f, i) => f && `${kinds[i]}:${f.state}:${f.errs}`)));
   }
-  ok(lr.length === 2 && lr[0].co.includes('エティハド') && lr[0].avg === '4.0' && lr[0].cnt === '2件の評価'
-    && lr[1].co.includes('JAL') && lr[1].avg === '3.0' && lr[1].cnt === '1件の評価',
-    `${leg}：評価の欄は、左がエティハド（4.0・2件の評価）・右が JAL（3.0・1件の評価）`, J(lr));
+  ok(lr.length === 2 && lr[0].co.includes('エティハド') && lr[0].avg === '4.0' && lr[0].cnt === '2人の評価'
+    && lr[1].co.includes('JAL') && lr[1].avg === '3.0' && lr[1].cnt === '1人の評価',
+    `${leg}：評価の欄は、左がエティハド（4.0・2人の評価）・右が JAL（3.0・1人の評価）`, J(lr));
 }
 scene('race', '読み込みの途中で選び直し・入れ替えても、去った会社の返事（値も失敗も）は新しい2社の欄に出ない', async () => {
   ok(Number.isFinite(LIMIT) && LIMIT >= 5000, `上限が読める（${LIMIT}ms ── 返事を止めておくあいだに、上限で切れないことの前提）`);
@@ -467,8 +467,8 @@ const CARD_BEFORE = `(${RECORDER})();(${CATCHER})();`;
 const RATE_MARK = 'RATE-PLANTED-731';
 const planted = (id, v, extra = {}) => rated(id, v, { pros: RATE_MARK, cons: RATE_MARK, clip: { k: 'salary', o: RATE_MARK, t: {} }, author_hash: RATE_MARK, ...extra });
 const RATE_ROWS = {
-  jal: [planted('j1', 3), planted('j2', 4), planted('j3', null, { salary_score: 4 })],   // 1行ずつの平均 3・4・4 → 3.666… → 「3.7」・「3件の評価」
-  ana: [planted('a1', 5), planted('a2', 4)],                                              // → 「4.5」・「2件の評価」
+  jal: [planted('j1', 3), planted('j2', 4), planted('j3', null, { salary_score: 4 })],   // 1行ずつの平均 3・4・4 → 3.666… → 「3.7」・「3人の評価」
+  ana: [planted('a1', 5), planted('a2', 4)],                                              // → 「4.5」・「2人の評価」
   etihad: [],                                                                               // 投稿が無い
   'eva-air': [planted('v1', null), planted('v2', 0)],                                       // 投稿は在るが、点数が無い
 };
@@ -488,7 +488,7 @@ const expectRate = (rows) => {
   return n ? { avg: tot / n, n } : null;
 };
 /* カードの材料の評価（字・塗る幅・件数）── 平均は小数1けた、塗る幅は 平均 ÷ 5 を 1000 分の1で丸める（会社ページ・比較の星と同じ決め方） */
-const cardRate = (r) => (r ? { avg: Math.min(5, r.avg).toFixed(1), fill: Math.round(Math.min(5, r.avg) / 5 * 1000) / 1000, n: r.n, text: `${r.n}件の評価` } : null);
+const cardRate = (r) => (r ? { avg: Math.min(5, r.avg).toFixed(1), fill: Math.round(Math.min(5, r.avg) / 5 * 1000) / 1000, n: r.n, text: `${r.n}人の評価` } : null);
 /* カードの画面の道具（材料は career-card.js の PVCareerCard.model()・描いた回の印は #crc-root の data-drawn） */
 const SAVE = '#crc-root .crc-act .crc-btn:not(.is-ghost)';
 const cardModel = (page) => page.evaluate(() => (window.PVCareerCard && window.PVCareerCard.model ? window.PVCareerCard.model() : null));
@@ -541,7 +541,7 @@ scene('rate', 'カードの評価 ── ページの外へ渡すのは2つの�
     const okA = !!m && m.cards.map((c) => c.slug).join('|') === 'jal|ana' && lr.length === 2
       && m.cards.every((c, i) => J(c.rating) === J(want[i]) && c.rating.avg === lr[i].avg && c.rating.text === lr[i].cnt
         && drawn.includes(c.rating.avg) && drawn.includes(c.rating.text));
-    ok(calm && okA, 'カードの評価は、比較の欄と同じ字（平均・「n件の評価」）── 材料は、この検査が行から数え直した {avg, fill, n, text}・描かれた字にも在る（比較 →「カードを保存」）',
+    ok(calm && okA, 'カードの評価は、比較の欄と同じ字（平均・「n人の評価」）── 材料は、この検査が行から数え直した {avg, fill, n, text}・描かれた字にも在る（比較 →「カードを保存」）',
       J({ calm, lr, card: m && m.cards.map((c) => c.rating), want }));
     await shot(page, '#crc-root canvas', 'card-two-rated');
   }
@@ -556,8 +556,8 @@ scene('rate', 'カードの評価 ── ページの外へ渡すのは2つの�
     const s1 = await page.waitForFunction(() => (window.__saved || []).length === 1, { timeout: 8000 }).then(() => true, () => false);
     const saved1 = await page.evaluate(() => (window.__saved || [])[0] || null);
     ok(up && held && !!m0 && m0.cards.every((c) => c.rating === null) && !!d0 && s1 && !!saved1 && saved1.blob
-      && saved1.text.length > 0 && !saved1.text.some((t) => t.includes('件の評価')),
-      'カードを直接開き、口コミの返事を止めたまま：評価なしで描かれ、「画像を保存」はその見本のまま（「件の評価」の字が1つも無い）── 保存は返事を待たない',
+      && saved1.text.length > 0 && !saved1.text.some((t) => t.includes('人の評価')),
+      'カードを直接開き、口コミの返事を止めたまま：評価なしで描かれ、「画像を保存」はその見本のまま（「人の評価」の字が1つも無い）── 保存は返事を待たない',
       J({ up, held, ratings: m0 && m0.cards.map((c) => c.rating), drawn: d0, saved: saved1 && { n: saved1.text.length, blob: saved1.blob } }));
     releaseAll(st, (name, p) => rateStub().pv_reviews(p));
     const m1 = await cardRated(page, 2), d1 = await drawnAttr(page);
@@ -578,11 +578,11 @@ scene('rate', 'カードの評価 ── ページの外へ渡すのは2つの�
     await calmCard(page);
     const m = await cardModel(page), drawn = await drawnText(page);
     const axis = new Set(((m && m.cards) || []).flatMap((c) => c.axis || []));
-    const counts = drawn.filter((t) => t.includes('件の評価'));
-    const zero = drawn.filter((t) => !axis.has(t) && /^(0|0\.0|0件の評価)$/.test(t));
+    const counts = drawn.filter((t) => t.includes('人の評価'));
+    const zero = drawn.filter((t) => !axis.has(t) && /^(0|0\.0|0人の評価)$/.test(t));
     ok(one && !!m && m.cards[1].slug === 'eva-air' && m.cards[1].rating === null && !!m.cards[0].rating
       && counts.length > 0 && counts.every((t) => t === m.cards[0].rating.text) && !zero.length,
-      '点数の付いた投稿が無い会社（エバー航空）は評価の行を描かない ── 材料は null・描かれた「件の評価」は JAL の1つだけ・「0」「0.0」を描かない（目盛の字のほか）',
+      '点数の付いた投稿が無い会社（エバー航空）は評価の行を描かない ── 材料は null・描かれた「人の評価」は JAL の1つだけ・「0」「0.0」を描かない（目盛の字のほか）',
       J({ one, ratings: m && m.cards.map((c) => c.rating), counts: [...new Set(counts)], zero }));
     await shot(page, '#crc-root canvas', 'card-one-side');
   }
@@ -933,7 +933,7 @@ const factsBy = (map) => (p) => {
 const coOf = (p) => (p && Array.isArray(p.airlines) ? p.airlines[0] : (p && p.airline)) || '';
 /* 種類ごと：読む関数・JAL と ANA の値（その列に在るはずの字）・口が無いことを見分けるか */
 const SIDE = [
-  { kind: 'cmp-stars', fn: 'pv_reviews', jal: ['4.0', '3件の評価'], ana: ['4.5', '2件の評価'], off: false },
+  { kind: 'cmp-stars', fn: 'pv_reviews', jal: ['4.0', '3人の評価'], ana: ['4.5', '2人の評価'], off: false },
   { kind: 'cmp-summary', fn: 'pv_review_summary', jal: ['JAL 良い点その一'], ana: ['ANA 良い点その一'], off: true },
   { kind: 'cmp-work', fn: 'pv_work_view', jal: ['70〜80'], ana: ['50〜55'], off: true },
   { kind: 'cmp-facts', fn: 'pv_contrib_facts', jal: ['37'], ana: ['64'], off: true },
