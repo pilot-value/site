@@ -48,6 +48,11 @@ begin
   if to_regclass('public.reviews_v2') is null then
     raise exception 'reviews_v2 がありません（口コミの表）';
   end if;
+  -- ★2026-11-19 保留中の口コミでは付けない（下の 5-b）。保留の表と判定は db/reviews-gate.sql に在る。
+  if to_regprocedure('public.pv_review_held(text, uuid)') is null
+     or to_regclass('public.pv_review_judge') is null then
+    raise exception '先に db/reviews-gate.sql を実行してください（pv_review_held / pv_review_judge が無い）';
+  end if;
 end $$;
 
 
@@ -120,7 +125,53 @@ create policy founding_select_self on public.founding_members
 --   落とすことは絶対にしない。
 -- ★ 同じ月の出し直しは on conflict do update なので INSERT トリガは鳴らない
 --   （＝1人が何度出しても番号は1つ）。
+-- ★ 番号を振るのは pv_founding_grant の1か所だけ（2026-11-19 に切り出した。
+--   保留が解けた口コミで付け直す 5-b も同じものを呼ぶ＝採番の書き方が2つにならない）。
 -- ════════════════════════════════════════════════════════════════
+create or replace function public.pv_founding_grant(p_uid uuid, p_src text)
+returns void
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  v_max int;
+begin
+  if p_uid is null then
+    return;
+  end if;
+
+  -- ロックを取る前に一度見る。ほとんどの投稿は既に番号を持つ人か満枠なので、
+  -- そのときはロックを取らずに抜ける（毎回の投稿を直列化しない）。
+  if exists (select 1 from public.founding_members where user_id = p_uid) then
+    return;
+  end if;
+
+  -- ここから先は1本ずつ通す。番号の採番が同時に走ると同じ番号が2人に出る。
+  perform pg_advisory_xact_lock(8093311477);
+
+  -- ロックを取ってからもう一度見る（取る前の判定は同時実行でずれている）。
+  if exists (select 1 from public.founding_members where user_id = p_uid) then
+    return;
+  end if;
+
+  -- ★ count(*) ではなく max(no)。行を消したときに番号を使い回さない。
+  select coalesce(max(no), 0) into v_max from public.founding_members;
+  if v_max >= 100 then
+    return;                            -- 101人目。黙って何もしない（例外にしない）
+  end if;
+
+  -- profiles 行が無い人（トリガーの取りこぼし）でも詰まらせない。
+  insert into public.profiles (id) values (p_uid) on conflict (id) do nothing;
+
+  insert into public.founding_members (user_id, no, first_source, awarded_at)
+  values (p_uid, v_max + 1, coalesce(p_src, 'pay'), now())
+  on conflict (user_id) do nothing;
+end;
+$$;
+
+revoke all on function public.pv_founding_grant(uuid, text) from public, anon, authenticated;
+
 create or replace function public.pv_award_founding()
 returns trigger
 language plpgsql
@@ -129,40 +180,11 @@ set search_path = public, extensions
 as $$
 declare
   v_uid uuid := auth.uid();
-  v_src text := coalesce(tg_argv[0], 'pay');
-  v_max int;
 begin
   if v_uid is null then
     return null;                       -- サーバ側の手作業（service_role）では付けない
   end if;
-
-  -- ロックを取る前に一度見る。ほとんどの投稿は既に番号を持つ人か満枠なので、
-  -- そのときはロックを取らずに抜ける（毎回の投稿を直列化しない）。
-  if exists (select 1 from public.founding_members where user_id = v_uid) then
-    return null;
-  end if;
-
-  -- ここから先は1本ずつ通す。番号の採番が同時に走ると同じ番号が2人に出る。
-  perform pg_advisory_xact_lock(8093311477);
-
-  -- ロックを取ってからもう一度見る（取る前の判定は同時実行でずれている）。
-  if exists (select 1 from public.founding_members where user_id = v_uid) then
-    return null;
-  end if;
-
-  -- ★ count(*) ではなく max(no)。行を消したときに番号を使い回さない。
-  select coalesce(max(no), 0) into v_max from public.founding_members;
-  if v_max >= 100 then
-    return null;                       -- 101人目。黙って何もしない（例外にしない）
-  end if;
-
-  -- profiles 行が無い人（トリガーの取りこぼし）でも詰まらせない。
-  insert into public.profiles (id) values (v_uid) on conflict (id) do nothing;
-
-  insert into public.founding_members (user_id, no, first_source, awarded_at)
-  values (v_uid, v_max + 1, v_src, now())
-  on conflict (user_id) do nothing;
-
+  perform public.pv_founding_grant(v_uid, coalesce(tg_argv[0], 'pay'));
   return null;
 exception when others then
   -- 称号のために投稿を落とさない。
@@ -300,11 +322,130 @@ comment on function public.pv_backfill_founding(uuid[]) is
 
 
 -- ════════════════════════════════════════════════════════════════
+-- 5-b. 保留中の口コミでは付けない（2026-11-19 オーナー決定「保留が解けたときだけ付ける」）
+--
+-- 口コミの保留は、口コミが入った**数秒後**に translate-review が pv_review_judge に書く
+-- （db/reviews-gate.sql 3-c）。上の INSERT の引き金の時点では、どの口コミもまだ保留ではない。
+-- だから付けるのは今までどおり INSERT のとき。判定の表に引き金を置いて、
+--   保留になった瞬間 … その人に「数えるもの」が残っていなければ外す
+--   保留が解けた瞬間（運営が「出す」・判定し直して ok）… 番号が無ければ付ける（100まで）
+-- 数えるもの ＝ 給与（pay_reports）か、保留中でない口コミ（pv_review_held の1か所で決める）。
+-- ★給与を出した人は、口コミが保留になっても外れない（オーナー「給与提出した人にも出して」）。
+-- ★判定に失敗して行が無い口コミは保留ではない＝今までどおり付いたまま。
+-- ★外した番号がいちばん大きい番号なら、次の人がそのまま使う（max(no)+1）。途中なら欠番になる
+--   （番号は本人にも見せないので困らない）。
+-- ★運営が「消す」にした口コミは、判定の表に答えを書く前に行ごと消える＝誰の口コミか分からない。
+--   その人の称号は、保留になった時点で（数えるものが無ければ）もう外れている。
+-- ★書いた人は profiles × proof_hash で探す（pv_backfill_founding と同じ手）。判定を書くときだけ走る。
+-- ★何が起きても判定の書き込みは通す（例外を握りつぶす。称号のために保留を落とさない）。
+-- ════════════════════════════════════════════════════════════════
+create or replace function public.pv_founding_review_author(p_rid uuid)
+returns uuid
+language sql
+stable
+security definer
+set search_path = public, extensions
+as $fn$
+  select p.id
+    from public.reviews_v2 r
+    join public.profiles p on r.proof_hash = public.pv_review_hash(p.id, r.airline)
+   where r.id = p_rid
+   limit 1
+$fn$;
+
+revoke all on function public.pv_founding_review_author(uuid) from public, anon, authenticated;
+
+-- その人に、称号の元になる投稿が残っているか（給与か、保留中でない口コミ）。
+create or replace function public.pv_founding_counts(p_uid uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, extensions
+as $fn$
+  select exists (
+           select 1 from public.pay_reports r
+            where r.proof_hash = encode(extensions.digest(
+                    p_uid::text || '::pv_pay::' || r.airline
+                    || coalesce('::' || lower(r.airline_other), ''), 'sha256'), 'hex'))
+      or exists (
+           select 1 from public.reviews_v2 r
+            where r.proof_hash = public.pv_review_hash(p_uid, r.airline)
+              and not public.pv_review_held('r', r.id))
+$fn$;
+
+revoke all on function public.pv_founding_counts(uuid) from public, anon, authenticated;
+
+-- 数え直す。p_may_grant = true のときだけ付ける側にも動く（保留が解けたときだけ）。
+-- ★付ける側を「保留が解けたとき」に絞るのは、運営が SQL で外した番号（試験用の口座など）を
+--   口コミの判定し直しのたびに生き返らせないため。
+create or replace function public.pv_founding_recheck(p_uid uuid, p_may_grant boolean)
+returns void
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+begin
+  if p_uid is null then
+    return;
+  end if;
+  if public.pv_founding_counts(p_uid) then
+    if p_may_grant then
+      perform public.pv_founding_grant(p_uid, 'review');
+    end if;
+  else
+    delete from public.founding_members where user_id = p_uid;
+  end if;
+end;
+$$;
+
+revoke all on function public.pv_founding_recheck(uuid, boolean) from public, anon, authenticated;
+
+create or replace function public.pv_founding_on_judge()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  v_now  boolean := new.verdict = 'hold' and new.decided is null;
+  v_was  boolean := tg_op = 'UPDATE' and old.verdict = 'hold' and old.decided is null;
+begin
+  if new.src <> 'r' or v_now = v_was then
+    return null;                       -- 預かり（q）は会員ではない・保留の状態が変わっていない
+  end if;
+  perform public.pv_founding_recheck(public.pv_founding_review_author(new.rid), not v_now);
+  return null;
+exception when others then
+  return null;                         -- 称号のために判定の書き込みを落とさない
+end;
+$$;
+
+revoke all on function public.pv_founding_on_judge() from public, anon, authenticated;
+
+drop trigger if exists pv_founding_on_judge on public.pv_review_judge;
+create trigger pv_founding_on_judge
+  after insert or update on public.pv_review_judge
+  for each row execute function public.pv_founding_on_judge();
+
+-- いま保留中の口コミで付いてしまった分を直す（2026-11-16〜この貼り付けまでの分）。
+-- 同じ数え直しを呼ぶだけ＝何度流しても同じ。付ける側には動かない。
+do $$
+declare r record;
+begin
+  for r in select j.rid from public.pv_review_judge j
+            where j.src = 'r' and j.verdict = 'hold' and j.decided is null loop
+    perform public.pv_founding_recheck(public.pv_founding_review_author(r.rid), false);
+  end loop;
+end $$;
+
+
+-- ════════════════════════════════════════════════════════════════
 -- 6. 自己点検（読むだけ。何も書き換えない）
 --
 -- ★1本の SELECT にしてある。Supabase の SQL Editor は複数文を流すと
 --   最後の1本の結果しか出さないので、分けて書くと上から順に消えていく。
--- 期待：10行すべて ✅。1つでも ❌ なら、そこが効いていない。
+-- 期待：12行すべて ✅。1つでも ❌ なら、そこが効いていない。
 --
 -- 特に 3・4 は「静かに壊れる」種類のもの。update を1本開けただけで、
 -- 本人が自分の番号を 1 に書き換えられるようになり、画面には何も出ない。
@@ -365,6 +506,15 @@ from (
                     on k.constraint_name = rc.constraint_name
                  where k.table_schema='public' and k.table_name='founding_members'
                    and k.column_name='user_id' and rc.delete_rule='SET NULL') from f
+  union all
+  select 12, '保留中の口コミでは付けない（判定の表に引き金がある・数え直しの関数は誰にも渡っていない）',
+         exists (select 1 from pg_trigger
+                  where tgname = 'pv_founding_on_judge'
+                    and tgrelid = to_regclass('public.pv_review_judge') and not tgisinternal)
+     and not has_function_privilege('authenticated',
+               to_regprocedure('public.pv_founding_recheck(uuid, boolean)'), 'execute')
+     and not has_function_privilege('authenticated',
+               to_regprocedure('public.pv_founding_grant(uuid, text)'), 'execute') from f
   union all
   select 10, '名簿に金額・メール・氏名・会社の列が無い',
          not exists (select 1 from information_schema.columns
