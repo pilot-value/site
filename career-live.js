@@ -142,7 +142,8 @@
     revNone: '会員からの投稿はまだありません',       // 会社ページと比較で使う。同じページの「口コミ」のタブは海外の評判なども数えるので、言い分ける
     revNo: '評価未取得',                              // 会社ページ用。点数の付いた投稿がまだ無い（0点ではない）
     revPosts: function (n) { return '会員の投稿 ' + n + '件'; },    // 口コミ件数（本文を書いた項目1つ＝1件・revItems）。評価件数（revRated）と同じ行に置かない
-    revRated: function (n) { return n + '件の評価'; },    // ★の横の数 ＝ 口コミの件数（本文を書いた項目1つ＝1件・revItems）。2026-11-19 オーナー「人を辞めて件に」「25件の評価」
+    /* ★の横の数 ＝ 口コミの件数（本文を書いた項目1つ＝1件・revItems）。2026-11-19 オーナー「人を辞めて件に」「25件の評価」 */
+    revRated: function (n) { return n + '件の評価'; },
     sumHead: '口コミの要約',
     sumOvHead: 'まとめ',                              // 全体の傾向の段落の枠の見出し（2026-10-30）
     sumGood: '良い点',
@@ -2166,7 +2167,8 @@
   function postsLine(n) { return el('p', 'crl-posts', T.revPosts(n)); }
   /* ★口コミの件数は「本文を書いた項目1つ＝1件」（2026-11-19 オーナー指示・OpenWork と同じ）。7項目に書いた投稿は7件・点数だけの投稿は0件。
      数えるのはサーバーが行ごとに付ける cats（本文のある項目の名前・鍵の有無にかかわらず来る）。★の横の「n件の評価」もこの数（★の平均の分母＝1人1票とは別）。 */
-  var REV_CMT = ['culture', 'salary', 'benefits', 'wlb', 'ops', 'training', 'mgmt'];
+  /* 7項目 ＝ 6つの点数の分類（SCORES）＋ 経営陣への提案。区分の名前を自前で並べない（assert-airline-glance の「見せる決まりの写し」） */
+  var REV_CMT = SCORES.map(function (k) { return k.replace(/_score$/, ''); }).concat(['mgmt']);
   function revItems(rows) {
     return (rows || []).reduce(function (s, r) {
       return s + (isArr(r && r.cats) ? r.cats.length

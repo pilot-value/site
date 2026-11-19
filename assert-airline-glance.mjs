@@ -4546,20 +4546,22 @@ async function runRated(browser, s, [w, h, kind]) {
     if (process.env.PV_GLANCE_SHOT) await p.screenshot({ path: `${process.env.PV_GLANCE_SHOT.replace(/\/$/, '')}/rated-${s}-${w}.png`, clip: { x: 0, y: 0, width: w, height: w < 700 ? 2000 : 1500 } });
     if (process.env.PV_GLANCE_SHOT && w === 390) await sumShot(p, [w, h], `sum-key-${s}-${w}-overview`);
     {
-      /* 口コミの一覧（口コミのタブ）のカード。届いた2件が描かれるまで待つ ── 字として出たか、タグとして働いたかのどちらか。 */
+      /* 口コミの一覧（口コミのタブ）のカード。届いた行が描かれるまで待つ ── 字として出たか、タグとして働いたかのどちらか。
+         ★2026-11-19 から在籍年数は画面に出さない（サーバーも返さない）。古いサーバーを装って返しておき、
+         職位にタグを書いた1枚だけが字として出る（在籍年数にタグを書いた1枚には出ない）ことを見る。 */
       const META = '#airline-review-section .rv-reviewer-meta';
-      const drawn = await p.waitForFunction((sel, mark) => [...document.querySelectorAll(sel)].filter(e => e.textContent.includes(mark)).length >= 2 || !!document.querySelector(`${sel} img`),
+      const drawn = await p.waitForFunction((sel, mark) => [...document.querySelectorAll(sel)].filter(e => e.textContent.includes(mark)).length >= 1 || !!document.querySelector(`${sel} img`),
         { timeout: 8000 }, META, HOSTILE).then(() => true, () => false);
       const x = await ev((sel, mark) => {
         const m = [...document.querySelectorAll(sel)];
         return { shown: m.filter(e => e.textContent.includes(mark)).length, tags: m.reduce((n, e) => n + e.querySelectorAll(':not(.rv-meta-sep)').length, 0), hit: !!window.__pvgHit };
       }, META, HOSTILE);
       const bad = [];
-      if (!drawn) bad.push('タグを書いた2件が、一覧に描かれていない');
-      if (x.shown !== 2) bad.push(`書かれたタグが字として出ているカードが ${x.shown}枚（あるべき 2枚）`);
+      if (!drawn) bad.push('職位にタグを書いた1件が、一覧に描かれていない');
+      if (x.shown !== 1) bad.push(`書かれたタグが字として出ているカードが ${x.shown}枚（あるべき 1枚 ＝ 職位だけ。在籍年数は出さない）`);
       if (x.tags) bad.push(`職位・年数の所で、書かれたタグが ${x.tags}つ働いている`);
       if (x.hit) bad.push('書かれたタグの中の命令が動いた');
-      ok(!bad.length, `${tag}: 口コミのカードの職位・在籍年数に書かれたタグは、字として出るだけ（働かない）`, bad.join(' ／ '));
+      ok(!bad.length, `${tag}: 口コミのカードの職位に書かれたタグは、字として出るだけ（働かない）・在籍年数は届いても出さない`, bad.join(' ／ '));
     }
     /* ruling H3（A3）と Z11 b：鍵の無い会員。概要と口コミのタブの両方で、要約の欄は「鍵」の1行だけ（欄の中にリンクが無い）・
        カードの中で見えている錠前の1行はその1つ・ログインの入口は無い・口コミのタブでは、書く入口がそのタブの2行のボタン1つ（見えている・44px 以上）。
