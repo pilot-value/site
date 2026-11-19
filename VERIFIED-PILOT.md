@@ -450,6 +450,17 @@ profiles.access_until                 90日  ← サーバ（給与明細を出�
 
 ## 3-2. A. Verified Pilot の付与
 
+> ★**2026-11-19 に実装したのは、この節の計画とは別の形**（オーナー決定）。下の A-1〜A-4 は当時の計画として残す。
+> - 付くのは**人ではなく行**（REAL PAY の「出典」の ✓ Verified）。プロフィールの `verify_level` は今も誰も書かない。
+> - 意味は「**その月の総支給が、本人が出した給与明細の印字と一致した**」まで。本物の明細だとは保証しない（上手な偽物は通りうる）。
+> - 仕組みは**一度きりの引換券**：`parse-payslip` が明細を読み、①AI が「パイロットの給与明細」と答え・乗務時間か乗務手当・保証給がある
+>   ②明細の中の計算が合う（`ticketEligible`）ときだけ券を作る → 画面の隠し欄 `f-psticket` → 提出の `payslip_ticket` →
+>   `submit_pay_report` が `pv_payslip_redeem` で**年・月・通貨・総支給**を照合（[db/payslip-verify.sql](db/payslip-verify.sql)）。
+>   読んだあとで総支給を書き換えたら付かない・券は一度きり・7日で切れる・同じ明細（指紋 `verify_fp`）で2人目には付かない。
+> - 券の表に人は入らない（uid も行の id も持たない）。運営は `pv_payslip_unverify(行の id)` で外せる（外した行は出し直しても戻らない）。
+> - 公開年収から大きく外れた額の ⚠ は、Verified の行には今までどおり出さない（`db/pay-rows.sql` の `where not p.verified`・オーナー判断）。
+> - 見るもの：`node db/test-payslip-verify.mjs`／`node db/test-payslip-parse.mjs` の ⑪。
+
 ### A-1. 付与は `parse-payslip` でやる（★設計の要）
 
 **`submit_pay_report` で付与してはいけない。** あの RPC は `source` を

@@ -8,6 +8,24 @@
 
 ---
 
+## ★2026-11-19 ── 明細の Verified（一度きりの引換券）
+REAL PAY の「出典」の ✓ Verified を、明細を読んで出した行にだけ付ける（オーナー決定）。意味は
+「**その月の総支給が、本人が出した明細の印字と一致した**」まで。本物の明細だとは保証しない。
+- 流れ：`parse-payslip` の `ticketEligible` が通った明細にだけ券（48字の16進）→ `payslip.js` が隠し欄 `#f-psticket` へ
+  （`writeHidden` ＝次の明細で消える）→ 提出の `payslip_ticket` → `submit_pay_report` が `pv_payslip_redeem`
+  （[db/payslip-verify.sql](../db/payslip-verify.sql)）で年・月・通貨・総支給を照合。
+- ⚠️ **券の総支給と、画面が入れる総支給は同じ `Math.round`**（`putTicket` と `apply()`）。片方だけ丸め方を変えると誰にも付かなくなる
+  （`db/test-payslip-parse.mjs` の ⑪ が見ている）。
+- ⚠️ **`f-psticket` を CARRY・下書き・`loadEdit` に入れない。** 券は一度きりで、使ったら DB から消える。
+  券なしの出し直しは「総支給と通貨が前のままなら前の印を残す」（`submit_pay_report` の「①の手前」）。
+- ⚠️ フォームにも MY PAY にも Verified の字を出さない（今までどおり）。
+- 運営が外すとき（SQL Editor）：
+  `select id, airline, period_year, period_month, gross_monthly, currency from pay_reports where verify_level >= 1 order by created_at desc;`
+  で行を見つけて `select pv_payslip_unverify('<id>');`。外した行は何を出し直しても戻らない。
+- 貼る順：`db/pay-reports.sql` → `db/payslip-verify.sql`（末尾の検算5行が ✅）→ Edge Function `parse-payslip` を Deploy → push。
+  どの順でも壊れない（券が来なければ付かないだけ）。
+- 見るもの：`node db/test-payslip-verify.mjs`／`node db/test-payslip-parse.mjs` の ⑪。
+
 ## ★2026-11-08（夜）── 明細の年・「別の月を出す」・もう出した月・提出後の3問（オーナーが自分の明細で踏んだ）
 
 オーナーが info@ で自分の明細を入れて3つ踏んだ：①2026年1月の明細が「2023年1月」になった ②別の月を出そうとしたら前の月が残っていて出せなかった・
