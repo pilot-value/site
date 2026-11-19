@@ -1230,10 +1230,11 @@ for (const [name, file] of [['ja', 'actual-pay.html'], ['en', 'en/actual-pay.htm
   /* ⑤ VERIFIED だけが「準備中」（ページが無いのに「開きます」と書かない）。
        DEEP PAY は 2026-10-11 に公開し、2026-10-29 に閉じた（オーナー指示「閉鎖するから
        みんなのページから消して」）── 'off' の段は表に行ごと描かない。 */
+  /* ★2026-11-19、VERIFIED PAY の段も 'off'（オーナー「verified pay もとりあえずなしでいい」）。表は REAL PAY の1段。 */
   ok(/key: 'real',\s+state: 'live'/.test(GATES) && /key: 'deep',\s+state: 'off'/.test(GATES)
-     && /key: 'verified', state: 'soon'/.test(GATES)
-     && (GATES.match(/state: 'soon'/g) || []).length === 1,
-     '★REAL PAY は live・DEEP PAY は off（閉じている）・VERIFIED だけが準備中');
+     && /key: 'verified', state: 'off'/.test(GATES)
+     && (GATES.match(/state: 'soon'/g) || []).length === 0,
+     '★REAL PAY は live・DEEP PAY と VERIFIED PAY は off（表に出ない）');
   /* ⑤-b 3段の表は入口ではない・条件を言わない・人数を聞かない（2026-10-11）。
        ★この表は全ページの板（pv-give-first.js）と登録完了の画面にも出る。 */
   ok(!/deep-pay/.test(GATES), '★★pv-gates.js に DEEP PAY への住所が無い（表から繋がない）');
@@ -2253,7 +2254,8 @@ for (const lang of ['ja', 'en']) {
        VERIFIED PAY は今までどおり「準備中」。 */
   {
     const g = v.give;
-    ok(g.length === 2, `${lang}: ★Give → Get は2段（REAL PAY と VERIFIED PAY）`, JSON.stringify(g));
+    /* ★2026-11-19、VERIFIED PAY の段も外した（オーナー「verified pay もとりあえずなしでいい」）＝ REAL PAY の1段。 */
+    ok(g.length === 1, `${lang}: ★Give → Get は REAL PAY の1段`, JSON.stringify(g));
     ok(!g.some((r) => /DEEP PAY/.test(r.t + r.g + r.s)) && !/DEEP PAY/.test(v.giveText),
        `${lang}: ★★表に DEEP PAY の段が無い（名前も出ない）`, v.giveText.slice(0, 160));
     ok(g[0] && g[0].t === 'REAL PAY' && g[0].live && g[0].p === 1,
@@ -2267,13 +2269,7 @@ for (const lang of ['ja', 'en']) {
     ok(g[0] && !openNow.test(g[0].s),
        `${lang}: ★REAL PAY の札が「もう開いている」と読めない`, JSON.stringify(g[0] || {}));
 
-    const vp = g[1] || {};
-    ok(vp.t === 'VERIFIED PAY' && !vp.live && soonWord.test(vp.s) && vp.p === 1,
-       `${lang}: ★VERIFIED PAY は「準備中」のまま（ページが無いのに開くと書かない）`,
-       JSON.stringify(vp));
-    ok(vp.nameC !== '' && vp.nameC !== (g[0] || {}).nameC,
-       `${lang}: ★VERIFIED PAY の名前は薄いまま（REAL PAY と見た目で区別が付く）`,
-       `${vp.nameC} / ${(g[0] || {}).nameC}`);
+    ok(!/VERIFIED PAY/.test(v.giveText), `${lang}: ★表に VERIFIED PAY の段が無い（名前も出ない）`, v.giveText.slice(0, 160));
 
     /* ★表のどこも押せない・どこにも繋がらない。 */
     ok(g.every((r) => r.press === 0) && v.pills.length === 0,
@@ -2570,9 +2566,10 @@ for (const lang of ['ja', 'en']) {
   ok(g.filter === 'none', `${lang}: ★説明にぼかしを掛けない`, g.filter);
   ok(g.closeBtn === 1, `${lang}: ★× で閉じられる`, String(g.closeBtn));
   ok(g.focused === true, `${lang}: ★開いたら読み上げの位置が説明へ移る`, String(g.focused));
-  ok(g.give === 2, `${lang}: ★同じ Give → Get の表（2段）が出る（2か所に書き写していない）`,
+  /* ★2026-11-19 から表は REAL PAY の1段（VERIFIED PAY の段も 'off'）。パネルの仕掛けは眠ったまま残す。 */
+  ok(g.give === 1, `${lang}: ★同じ Give → Get の表（REAL PAY の1段）が出る（2か所に書き写していない）`,
      String(g.give));
-  ok((g.names || []).join('|') === 'REAL PAY|VERIFIED PAY' && g.press === 0,
+  ok((g.names || []).join('|') === 'REAL PAY' && g.press === 0,
      `${lang}: ★パネルの中の表も、DEEP PAY の段が無い・押せるものが無い`,
      JSON.stringify(g.names) + ' / ' + g.press);
   ok(/pay-report\.html#ps/.test(g.cta || ''),

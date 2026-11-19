@@ -175,9 +175,17 @@ console.log('\n市場価値レポート（my-value）');
   ok(newHits === 0, `?new=1 はレポートの中身に効いていない`, `isNew×${newHits}`);
 
   /* ④ 検証していないものを Verified と表示しない（VISION）。
-     付与は parse-payslip 側の仕事で、まだ動いていない。
+     ★2026-11-19 から明細の Verified を MY PAY に出す（オーナー決定）。出すかを決めるのはサーバーが引換券で立てる
+       verify_level だけ（db/payslip-verify.sql）。印を作るのは vfMark の1か所で、ほかの場所に Verified の字を置かない。
      source はクライアントの自己申告なので、ここで分岐させてもいけない。 */
-  ok(!/verified/i.test(MV), `my-value.js は Verified を表示しない`);
+  {
+    const i0 = MV.indexOf('function vfMark('), i1 = MV.indexOf('function note(', i0);
+    const vf = i0 >= 0 && i1 > i0 ? MV.slice(i0, i1) : '';
+    ok(/num\(r && r\.verify_level\) >= 1/.test(vf), `my-value.js の Verified は verify_level が立った月だけ（vfMark）`);
+    ok(!/verified/i.test(MV.replace(vf, '')), `my-value.js は vfMark の外で Verified を出さない`);
+    ok((MV.match(/\+ vfMark\(r\)/g) || []).length === 1 && /T\.kGross\) \+ vfMark\(r\)/.test(MV),
+       `印は今月の緑のカードの「総支給」の横の1か所だけ`);
+  }
   ok(!/\bsource\b/.test(MV), `my-value.js は source（自己申告）で分岐していない`);
 
   /* ⑤ 控除は合計だけ。項目名まで残すと、そこから所属組合が割れる

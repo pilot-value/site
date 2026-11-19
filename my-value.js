@@ -133,6 +133,8 @@
       monthOf: function (t) { return '{t}の給与'.replace('{t}', function () { return t; }); },
       noNet: 'この月は手取りを書いていません。書くと控除の合計も出ます。', noNetA: '手取りを書く',
       kGross: '総支給', kNet: '差引支給額',
+      /* ★明細の Verified（2026-11-19）。印に指を乗せたときの1行 */
+      vfTip: '総支給が給与明細の印字と一致した月',
       perBlock: '乗務1時間あたり', perDuty: '勤務1時間あたり',
       /* 数量の1行（「乗務 57.1h · 総勤務 139.6h · ステイ 7泊」）の短い名前 */
       mBlockH: '乗務', mDutyH: '総勤務', mDays: '稼働',
@@ -326,6 +328,7 @@
       monthOf: function (t) { return '{t} pay'.replace('{t}', function () { return t; }); },
       noNet: 'Net pay isn’t entered for this month. Add it and your deductions show too.', noNetA: 'Add net pay',
       kGross: 'Gross pay', kNet: 'Net pay',
+      vfTip: 'Gross pay matches your payslip',
       perBlock: 'Per block hour', perDuty: 'Per duty hour',
       mBlockH: 'Block', mDutyH: 'Duty', mDays: 'Duty days',
       mStay: 'Layovers',
@@ -474,6 +477,7 @@
       monthOf: function (t) { return 'Remuneración de {t}'.replace('{t}', function () { return t; }); },
       noNet: 'No ingresaste tu sueldo neto de este mes. Si lo agregas, también verás tus deducciones.', noNetA: 'Agregar sueldo neto',
       kGross: 'Sueldo bruto', kNet: 'Sueldo neto',
+      vfTip: 'El sueldo bruto coincide con tu recibo de nómina',
       perBlock: 'Por hora block', perDuty: 'Por hora de servicio',
       mBlockH: 'Horas block', mDutyH: 'Servicio', mDays: 'Días de servicio',
       mStay: 'Pernoctas',
@@ -694,6 +698,15 @@
     var b = root.querySelector('[data-eye]');
     if (b && had) b.focus({ preventScroll: true });   // 描き直したボタンへ（キーボードで押した人が迷子にならない）
   }
+  /* ★明細の Verified（2026-11-19 オーナー「my pay と my page に出して」）。その月の総支給が、本人が出した明細の印字と
+       一致した月だけ、「総支給」の右に小さく出す。決めるのはサーバー（verify_level・db/payslip-verify.sql）だけ。
+       ★source（自己申告）では出さない。⚠️ REAL PAY・会社ページにはまだ出さない（actual-pay.js の VF_OPEN）。 */
+  function vfMark(r) {
+    if (!(num(r && r.verify_level) >= 1)) return '';
+    return '<span class="mr-vf" title="' + esc(T.vfTip) + '"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"' +
+      ' stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<path d="M20 6 9 17l-5-5"/></svg>Verified</span>';
+  }
   function note(s) { return '<div class="pt-note">' + s + '</div>'; }   // 太字を通すので esc しない
   function empty(s) { return '<div class="pt-empty">' + esc(s) + '</div>'; }
   function row(k, v, sub) {
@@ -906,7 +919,7 @@
     if (ded == null && gross != null && net != null) ded = gross - net;
 
     // 大きい数字は総支給の1つだけ
-    var body = '<div class="mr-hero"><span class="mr-hero-k">' + esc(T.kGross) + '</span>' +
+    var body = '<div class="mr-hero"><span class="mr-hero-k">' + esc(T.kGross) + vfMark(r) + '</span>' +
       '<b class="mr-hero-v">' + esc(gross != null ? fmt(jpyOf(r, gross)) : '—') + '</b>' +
       pill(pctOf(m, 'gross')) + '</div>';
 

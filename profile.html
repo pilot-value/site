@@ -127,6 +127,8 @@
     .mine-when{font-size:.72rem;color:#6b7d93}
     .mine-body{font-size:.82rem;line-height:1.6;color:#c9d4e0}
     .mine-fix{margin-left:8px;font-weight:700;color:var(--pv-accent);text-decoration:none;white-space:nowrap}
+    /* ★明細の Verified（2026-11-19）。押せない札＝線も影も付けない静かな緑の字 */
+    .mine-vf{display:inline-flex;align-items:center;gap:3px;margin-left:8px;font-size:.72rem;font-weight:700;color:var(--pv-green-ink);white-space:nowrap;vertical-align:1px}
     .mine-fix:hover{text-decoration:underline}
     .mine-fix:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2px;border-radius:4px}
     .mine-fix:active{opacity:.7}
@@ -226,7 +228,7 @@
        my-value / actual-pay / airline-conditions と共有する。
        ★ 2層目の #pv-value .pt-* は id で閉じているので、このページの図には効かない。 -->
   <link rel="stylesheet" href="pv-give.css">
-  <link rel="stylesheet" href="my-value.css?v=20ae9eaf">
+  <link rel="stylesheet" href="my-value.css?v=fc16eb19">
   <link rel="stylesheet" href="app-nav.css">
   <!-- 明細まわりの図の見た目。my-value.js と給与フォームの完了カードが共有する -->
   <link rel="stylesheet" href="pay-viz.css">
@@ -1033,8 +1035,11 @@
           ((r.airline === 'other' && r.airline_other) ? '&other=' + encodeURIComponent(r.airline_other) : '');
         const can = !!(r.airline && r.period_year && r.period_month);
         const fix = can ? ' <a class="mine-fix" href="' + esc(fixHref) + '">編集</a>' : '';
+        /* ★明細の Verified（2026-11-19 オーナー「my pay と my page に出して」）。総支給が明細の印字と一致した月だけ。
+             決めるのはサーバー（verify_level）。REAL PAY・会社ページにはまだ出さない。 */
+        const vf = Number(r.verify_level) >= 1 ? ' <span class="mine-vf" title="総支給が給与明細の印字と一致した月"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Verified</span>' : '';
         const del = can ? ' <button type="button" class="mine-del" data-pay-del="' + i + '"' + (payAsk === i ? ' hidden' : '') + '>削除</button>' : '';
-        return postRow(name, fmtDate(r.created_at), period ? esc(period) + 'を提出' + fix + del : '', payAsk === i ? payAskHTML(r, i) : '');
+        return postRow(name, fmtDate(r.created_at), period ? esc(period) + 'を提出' + vf + fix + del : '', payAsk === i ? payAskHTML(r, i) : '');
       }).join('');
     }
 
@@ -1261,7 +1266,7 @@
 <!-- ③ YOUR PAY の中身（旧マイレポート）。★pay-viz.js の **後**に読む。
      2026-09-06、pay-tracker.js（462行）を廃止してこの1本に寄せた ──
      同じ my_pay_reports() を叩き、同じ pay-viz.js で図を描く実装が2つあった。 -->
-<script src="my-value.js?v=c6692a8e"></script>
+<script src="my-value.js?v=4aea4c15"></script>
 <script src="pv-app.js?v=a95c64dd"></script>
 <script src="pv-follow.js?v=46151d34"></script>
 <!-- 出し直しのお願い。提出した給与に「手取り ＞ 総支給」の月がある**本人にだけ**出る。

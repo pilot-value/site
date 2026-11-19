@@ -880,7 +880,7 @@
       '</div>';
     }).join('');
     return '<div class="lt-in">' +
-      '<div class="lt-span lt-r lt-rp-hd"><b class="lt-rp-t">REAL PAY</b><span class="lt-rp-t2">VERIFIED PAY</span>' +
+      '<div class="lt-span lt-r lt-rp-hd"><b class="lt-rp-t">REAL PAY</b>' +
         '<span class="lt-chipf">' + esc(TT.rpFilter) + '</span></div>' +
       '<div class="lt-span lt-tbl"><div class="lt-th lt-r"><span>' + esc(TT.rpAir) + '</span><span>' + esc(TT.rpPos) + '</span><span>' + esc(TT.rpYrs) + '</span>' +
         '<span>' + esc(TT.rpAmt) + '</span><span>' + esc(TT.rpComp) + '</span></div>' + rows + '</div>' +
@@ -1254,7 +1254,7 @@
         '<span class="lt-td lt-td-cb">' + heroBar('hero-c-cb', partsOf(i)) + '</span></div>';
     }).join('');
     go.innerHTML = '<div class="lt-in">' +
-      '<div class="lt-span lt-r lt-rp-hd"><b class="lt-rp-t">REAL PAY</b><span class="lt-rp-t2">VERIFIED PAY</span><span class="lt-chipf">' + esc(TT.rpFilter) + '</span></div>' +
+      '<div class="lt-span lt-r lt-rp-hd"><b class="lt-rp-t">REAL PAY</b><span class="lt-chipf">' + esc(TT.rpFilter) + '</span></div>' +
       '<div class="lt-span lt-tbl"><div class="lt-th lt-r"><span>' + esc(TT.rpAir) + '</span><span>' + esc(TT.rpPos) + '</span><span>' + esc(TT.rpYrs) + '</span>' +
         '<span>' + esc(TT.rpAmt) + '</span><span>' + esc(TT.rpComp) + '</span></div>' + rows + '</div></div>';
     var rail = pc.querySelector('.lt-rail');

@@ -14709,6 +14709,7 @@ export const TM = {
   "js:'Grab the “Sent area” tab to move the frame. The four corners resize it.'": {"es":"js:'Toma la pestaña “Área que se envía” para mover el marco. Las cuatro esquinas cambian su tamaño.'","st":"validated","by":"ai","model":"claude-opus-5-5","pv":4,"gl":"","at":"2026-11-02","pages":["payslip.js"]},
   "js:'Gross pay breakdown'": {"es":"js:'Desglose del sueldo bruto'","st":"manual","by":"claude-review","at":"2026-11-08","pages":["my-year.js"],"note":"マイレポート 2026-11-08"},
   "js:'Gross pay'": {"es":"js:'Sueldo bruto'","st":"validated","by":"ai","model":"claude-opus-5-5","pv":4,"gl":"gross-pay:acca3d,pay-salary:4d4435","at":"2026-11-02","pages":["my-value.js"]},
+  "js:'Gross pay matches your payslip'": {"es":"js:'El sueldo bruto coincide con tu recibo de nómina'","st":"manual","by":"claude-review","at":"2026-11-19","pages":["my-value.js"],"note":"明細の Verified の印に指を乗せたときの1行（2026-11-19）。用語は glossary-es（sueldo bruto・recibo de nómina）にそろえた"},
   "js:'Gross pay, excluding per diem'": {"es":"js:'Sueldo bruto, sin viáticos'","st":"manual","by":"claude-review","at":"2026-11-08","pages":["my-year.js"],"note":"マイレポート 2026-11-08"},
   "js:'Gross'": {"es":"js:'Bruto'","st":"manual","by":"claude-review","at":"2026-11-08","pages":["my-year.js"],"note":"マイレポート 2026-11-08"},
   "js:'Gross, total'": {"es":"js:'Total bruto'","st":"validated","by":"ai","model":"claude-opus-5-5","pv":4,"gl":"","at":"2026-11-02","pages":["my-value.js"]},

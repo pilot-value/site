@@ -944,6 +944,12 @@
   background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size:160px}
 #pv-value .mr-card.is-green .mr-d{color:#fff;background:rgba(255,255,255,.16)}
+/* ★明細の Verified（2026-11-19）。総支給が明細の印字と一致した月だけ、「総支給」の右に小さく。
+   緑の面の上なので増減のピル（.mr-d）と同じ白い作り。ページで色を足さない（色つきの面はこの1枚だけ）。 */
+#pv-value .mr-vf{display:inline-flex;align-items:center;gap:3px;margin-left:8px;padding:1px 7px;border-radius:999px;
+  font-size:.7rem;font-weight:700;letter-spacing:.01em;vertical-align:1px;white-space:nowrap;
+  color:var(--pv-green-ink);background:rgba(4,120,87,.1)}
+#pv-value .mr-card.is-green .mr-vf{color:#fff;background:rgba(255,255,255,.16)}
 #pv-value .mr-card.is-green :focus-visible{outline-color:#fff}
 /* ★2026-11-15 緑のカードの目のアイコン（押すと金額だけ「••••」）。緑の上の白い線・押せる範囲 36px・見出しの高さは変えない */
 #pv-value .mr-eye{display:inline-flex;align-items:center;justify-content:center;flex:none;width:36px;height:36px;margin:-8px 0 -8px -6px;padding:0;
