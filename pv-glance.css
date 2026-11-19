@@ -1419,6 +1419,10 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
    us-terms.mjs の行を、タブごとに1枚。一覧の見た目は「会社が公表している条件」と同じ（.pvg-dl）。
    下の1行は、行ごとの出典リンクが無いことの代わりに、誰が何からまとめたかを言う。 */
 .pvg-tm .pvg-dl{margin-top:4px}
+.pvg-what{margin:2px 0 8px;font-size:13px;line-height:1.6;color:var(--pv-ink-2)}
+.pvg-what summary{cursor:pointer;font-weight:600;color:var(--pv-accent,#0a8f79);list-style:revert}
+.pvg-what summary:hover,.pvg-what summary:focus-visible{text-decoration:underline;outline:none}
+.pvg-what p{margin:6px 0 0}
 .pvg-tm-rows{list-style:none;margin:2px 0 0;padding:0;display:grid;gap:4px}
 .pvg-tm-rows li{display:grid;grid-template-columns:minmax(0,40%) minmax(0,1fr);align-items:baseline;gap:10px;padding-bottom:4px;border-bottom:1px solid var(--pv-line,rgba(15,23,42,.08))}
 .pvg-tm-rows li:last-child{border-bottom:0;padding-bottom:0}

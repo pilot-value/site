@@ -507,6 +507,10 @@ ${payDetails(v)}
    「会社が公表している条件」の一覧には入れない（会社自身の資料だと言えない）。今と言い切れない値は「参考」の札。
    額は外貨の字のまま（円に直さない・通貨切替に読ませない ── prose）。 */
 const TM_ICON = { pay: 'benefits', work: 'work', life: 'living', stay: 'stay' };
+/* 「乗務が決まっている月／スタンバイ要員の月」の説明（★2026-11-19 オーナー「説明つけるのはいいけど、押すと開くように」）。
+   その言い方が出るカード・面の見出しのすぐ下に、押すと開く1行で1回だけ。字は WORDS の lineWhat の1か所 */
+const LINE_TERMS = () => (LANG === 'en' ? /line[- ]?holders?|\breserves?\b/i : /乗務が決まっている月|スタンバイ要員の月/);
+const lineWhat = text => (LINE_TERMS().test(text) ? `<details class="pvg-what"><summary>${esc(W.lineWhat.q)}</summary><p>${esc(W.lineWhat.a)}</p></details>` : '');
 function termsCard(v, tab) {
   /* hide ＝ 出さない行（理由つき・2026-11-18）。rows ＝ 対象ごとに値が違う欄の「対象｜値」の小さい行（「・」でつながない ── オーナー「どれがどれを対象に言ってるのかわかんない」） */
   const rows = ((TERMS[v.slug] || {})[tab] || []).filter(r => !r.hide);
@@ -519,7 +523,7 @@ function termsCard(v, tab) {
   return `<!--PV-USTERMS--><div class="pvg-more-grid pvg-g-tm"${pane(v.slug, tab)}>
 <article class="pvg-card pvg-tm" data-tm-tab="${tab}">
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true">${IC[TM_ICON[tab]]}</span><h2 class="pvg-eyebrow">${W.tm[tab]}</h2><span class="pvg-chip">${W.tmChip(esc(dateJa(TERMS_AT)))}</span></header>
-<dl class="pvg-dl">${dl}</dl>
+${lineWhat(rows.map(r => [r[L].label, r[L].value, ...(r[L].rows || []).flat()].join(' ')).join(' '))}<dl class="pvg-dl">${dl}</dl>
 </article>
 </div><!--/PV-USTERMS-->`;
 }
@@ -634,7 +638,7 @@ function surface(v, S, all) {
   const pub = items.length ? pubLists(items, x => `<div class="pvg-sf-pub">${x}</div>`) : `<p class="pvg-quiet pvg-sf-none">${W.sfNone}</p>`;
   const keys = tree(factKeys(S.topics)), sub = subOf(keys);
   const got = `<div class="pvg-sf-got"><p class="pvg-askh">${W.pilotAns}</p>${live('fact', { airline: v.slug, keys: keys.join(','), sf: S.id, ...(sub ? { sub } : {}), ...(S.quiet ? { quiet: '1' } : {}), ...(S.entry ? { entry: S.entry } : {}) })}${live('notes', { airline: v.slug, keys: noteKeys(S.topics).join(','), sf: S.id })}</div>`;
-  return `${open}${pub}${got}${add}${items.length ? sources(items, true, false, W.cite) : ''}</section>`;
+  return `${open}${lineWhat(items.map(f => `${f.label} ${f.value}`).join(' '))}${pub}${got}${add}${items.length ? sources(items, true, false, W.cite) : ''}</section>`;
 }
 function workPanel(v, all) {
   for (const f of all) {
@@ -1394,7 +1398,7 @@ export const WORDS = Object.freeze({
     saveCard: 'カードを保存', compare: '他社と比較', compareShort: '比較する', makeCard: 'カードにする', follow: 'フォロー',
     member: (a, x) => (x ? `${a}加盟（${x}）` : `${a}加盟`),
     pay: '給与', realPay: '提出された年収', estBy: '当サイトの推定', medBy: '会員が出した年収の中央値',
-    tm: { pay: '給与と待遇の条件', work: '勤務の条件', life: '通勤の条件', stay: 'ステイの条件' }, tmRef: '参考',
+    tm: { pay: '給与と待遇の条件', work: '勤務の条件', life: '通勤の条件', stay: 'ステイの条件' }, tmRef: '参考', lineWhat: { q: '乗務が決まっている月・スタンバイ要員の月とは', a: '北米の会社では、勤務表が月ごとに「乗務が決まっている月」と「スタンバイ要員の月」の2つに分かれます。パイロットが毎月希望を出し、勤続の長い人の希望から順に通ります。勤続の短い人ほど、スタンバイ要員の月になりやすくなります。' },
     tmChip: d => `${d}の調べ`, tmSrc: '労働協約・会社・労働組合の公開資料をもとに、PILOT VALUE がまとめた条件です。',
     ps: '勤続年数ごとの基本給', psFleet: '機種', psYear: n => `${n}年目`, psOver: n => `${n}年で`, psPrev: '前の年から',
     psAxis: '勤続年数（年目）', psTap: '年を押すと額が出ます',
@@ -1465,7 +1469,7 @@ export const WORDS = Object.freeze({
     saveCard: 'Save card', compare: 'Compare', compareShort: 'Compare', makeCard: 'Make a card', follow: 'Follow',
     member: (a, x) => (x ? `${a} member (${x})` : `${a} member`),
     pay: 'Pay', realPay: 'Submitted pay', estBy: 'Our estimate', medBy: 'Median of pay submitted by members',
-    tm: { pay: 'Pay and benefit terms', work: 'Work rules', life: 'Getting to work', stay: 'Layover rules' }, tmRef: 'Reference',
+    tm: { pay: 'Pay and benefit terms', work: 'Work rules', life: 'Getting to work', stay: 'Layover rules' }, tmRef: 'Reference', lineWhat: { q: 'Line-holder and reserve months', a: 'At North American airlines, each month is either a line-holder month (your trips are set in advance) or a reserve month (you are on call). Pilots bid every month and awards go in seniority order, so junior pilots sit reserve more often.' },
     tmChip: d => `Researched ${d}`, tmSrc: 'Summarized by PILOT VALUE from public union contracts and company and union materials.',
     ps: 'Base pay by year of service', psFleet: 'Aircraft', psYear: n => `Year ${n}`, psOver: n => `over ${n} years`, psPrev: 'vs. the year before',
     psAxis: 'Year of service', psTap: 'Tap a year to see the pay',
