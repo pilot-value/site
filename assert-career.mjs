@@ -694,6 +694,8 @@ for (const p of PLACES) {
     'CC BY-SA 2.0': 'https://creativecommons.org/licenses/by-sa/2.0',
     'CC BY 2.0': 'https://creativecommons.org/licenses/by/2.0',
     'CC BY-SA 4.0': 'https://creativecommons.org/licenses/by-sa/4.0',
+    /* ★2026-11-19 新日本航空の BN-2（写真の台帳に足した）。商用・改変ができ、作者名とライセンスを示せば使える＝画面のクレジットが条件を満たす（下の画面の一覧と同じ） */
+    'CC BY-SA 3.0': 'https://creativecommons.org/licenses/by-sa/3.0',
   };
   const PD = ['https://creativecommons.org/publicdomain/mark/1.0/', 'https://commons.wikimedia.org/wiki/Template:PD-self'];
   const odd = LEDGER.filter(p => !(p.licence === 'Public domain' ? PD.includes(p.licence_url) : Object.hasOwn(LICENCES, p.licence) && LICENCES[p.licence] === p.licence_url));
@@ -1026,8 +1028,9 @@ head('掲載している全社（比較の材料）');
     const held = nb.length ? ((nb[0].match(/ data-held="([^"]*)"/) || [])[1] || '').split(' ').filter(Boolean) : null;
     const RENT_NONE = { ja: '家賃の資料を確認できていません', en: 'We have not been able to confirm rent sources' };
     const words = { ja: (nb[0] || '').includes(`<p class="cr-rentn-t">${RENT_NONE.ja}</p>`), en: EN_HTML.split(`<p class="cr-rentn-t">${RENT_NONE.en}</p>`).length === 2,
-      jaCo: read('airlines/kalitta-air.html').includes(`>${RENT_NONE.ja}</p>`), enCo: read('en/airlines/kalitta-air.html').includes(`>${RENT_NONE.en}</p>`) };
+      jaCo: read('airlines/icelandair.html').includes(`>${RENT_NONE.ja}</p>`), enCo: read('en/airlines/icelandair.html').includes(`>${RENT_NONE.en}</p>`) };
     /* ★2026-11-02：米国13社に拠点の近くの住宅地の家賃が付いた（アメリカン航空も）── 家賃の無い会社の見本はカリッタ航空（決まった基地を持たない） */
+    /* ★2026-11-19：カリッタ航空にも拠点（イプシランティ）の近くの住宅地の家賃が付いた → 見本はアイスランド航空（家賃も公表額も無い・写真は CC0・課税（アイスランド）） */
     /* ★2026-10-29：ユナイテッド航空はデンバーの拠点と家賃が台帳につながり、家賃の箱を持つようになった ── 家賃の無い会社の見本はアメリカン航空 */
     ok(nb.length === 1 && / hidden>/.test(nb[0].split('\n')[0]) && !/data-airline=/.test(nb[0]) && /<b class="cr-rentn-n"><\/b>/.test(nb[0])
        && held !== null && same(sorted(held), sorted(HELD)) && Object.values(words).every(Boolean),
@@ -2551,18 +2554,19 @@ try {
         && noneAt(g, 'emirates', 'a')],
       /* ★2026-10-29：家賃の箱の無い会社の見本を united → american（ユナイテッド航空はデンバーの家賃の箱を持つようになった） */
       /* ★2026-11-02：american → kalitta-air（アメリカン航空に住宅地の家賃の箱が付いた） */
-      ['jal', 'kalitta-air', g => left(g.rents, 'jal') && g.wrap && gone(g.cards) && noneAt(g, 'kalitta-air', 'b')],
+      ['jal', 'icelandair', g => left(g.rents, 'jal') && g.wrap && gone(g.cards) && noneAt(g, 'icelandair', 'b')],
       ['emirates', 'cathay-pacific', g => right(g.cards, 'cathay-pacific') && right(g.rents, 'cathay-pacific') && noneAt(g, 'emirates', 'a')],
-      ['cathay-pacific', 'kalitta-air', g => left(g.cards, 'cathay-pacific') && left(g.rents, 'cathay-pacific') && noneAt(g, 'kalitta-air', 'b')],
+      ['cathay-pacific', 'icelandair', g => left(g.cards, 'cathay-pacific') && left(g.rents, 'cathay-pacific') && noneAt(g, 'icelandair', 'b')],
       /* ★2026-10-26 段階5 compare-all-14（P12.122・同じ強さの当て直し）：united と delta に台帳の写真が付いた ── united は CC0（クレジットを出さない）・
          delta は示すことが条件の写真（Public domain）なので、写真のクレジットは delta の1つだけが見える。2社とも条件のある写真が無いときに段ごと
          出さないことは、条件の無い写真の2社（united|american ── どちらも CC0）で見る。 */
       /* ★2026-10-29 段階5 compare-all-26（同じ強さの当て直し）：united と delta に税の扱い（課税（米国））が付いた ── 2社とも税の字が並びの順に出る。
          2社とも税の扱いを持たないときに税の字を出さないことは、税の扱いの無い2社（lufthansa|air-france）で見る。 */
       /* ★2026-10-29：家賃も公表額も無い2社の見本を united|delta → american|delta（アメリカン航空も CC0 の写真・課税（米国）── 同じ強さ） */
+      /* ★2026-11-19：kalitta-air → icelandair（カリッタ航空に家賃の箱が付いた。アイスランド航空も写真のクレジットが要らず・税の扱いあり・公表額の一覧なし＝同じ強さ） */
       /* ★2026-11-02：american|delta → kalitta-air|singapore-airlines（米国13社に家賃の箱が付いた。カリッタ航空は写真のクレジットが要らず・課税（米国）、
          シンガポール航空は示すことが条件の写真・課税（シンガポール）── 家賃も公表額も無い2社・クレジットは片方だけ、で同じ強さ） */
-      ['kalitta-air', 'singapore-airlines', g => gone(g.cards) && gone(g.rents) && !g.wrap && g.taxes.shown && same(g.taxes.kids.map(k => k.s), ['kalitta-air', 'singapore-airlines']) && !g.taxes.only
+      ['icelandair', 'singapore-airlines', g => gone(g.cards) && gone(g.rents) && !g.wrap && g.taxes.shown && same(g.taxes.kids.map(k => k.s), ['icelandair', 'singapore-airlines']) && !g.taxes.only
         && !!g.credits && g.credits.shown && same(g.credits.kids.map(k => k.s), ['singapore-airlines']) && g.none === null],
       /* ★2026-10-29：KLM に税の扱い（課税（オランダ））が付いた ── 税の扱いの無い2社の見本を klm|air-france → lufthansa|air-france（同じ強さ）
          ★2026-10-30：エールフランスに税の扱い（課税（フランス））が付いた ── lufthansa|british-airways（同じ強さ・どちらも税の扱いが無い） */
@@ -3431,7 +3435,7 @@ try {
     for (const [a, b, want, label] of [
       ['jal', 'cathay-pacific', ['jal', 'cathay-pacific'], '円の街と外貨の街（東京・香港）'],
       ['etihad', 'british-airways', ['etihad', 'british-airways'], '外貨の街どうし（アブダビ・ロンドン）'],
-      ['jal', 'kalitta-air', ['jal'], '片方の会社にだけ箱（カリッタは「資料を確認できていません」）── その箱だけの物差し'],
+      ['jal', 'icelandair', ['jal'], '片方の会社にだけ箱（アイスランド航空は「資料を確認できていません」）── その箱だけの物差し'],
       ['alaska-airlines', 'peach', ['alaska-airlines', 'peach'], '大きい額の街と小さい額の街（シアトル・大阪）'],
     ]) {
       await go(p, `?view=compare&a=${a}&b=${b}`);

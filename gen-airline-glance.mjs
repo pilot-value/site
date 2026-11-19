@@ -297,9 +297,12 @@ function sources(items, fold = false, dated = false, label = W.srcLabel) {
     : `<p class="pvg-srcs"><span>${esc(label)}</span>${links}</p>`;
 }
 /* 会社が公表している条件の一覧。勤務・訓練の4枚のカードと待遇の欄では「募集要項」の表の形になる（pv-glance.css・2026-11-09） */
-/* 行の値の中の {{EUR 25}} ＝ 外貨の額（★2026-11-19 オーナー「EUR25,50,75ってなに？」）。字は「EUR 25」・すぐ後ろに円の目安（ほかの額の行と同じ形） */
+/* 行の値の中の {{EUR 25}} ＝ 外貨の額（★2026-11-19 オーナー「EUR25,50,75ってなに？」）。字は「EUR 25」・すぐ後ろに円の目安（ほかの額の行と同じ形）
+ * {{JPY 20000}} ＝ 円の額。pv-no-cur の外に標準の円表記で置き、通貨切替と英語ページの焼き込みに任せる（行の字を pv-no-cur で包むと ¥ が円のまま残る） */
+const yenText = n => (LANG !== 'en' && n % 10000 === 0 ? `${(n / 10000).toLocaleString('ja-JP')}万円` : `¥${n.toLocaleString('en-US')}`);
 const rowVal = x => String(x).split(/\{\{([A-Z]{3}) ([\d,.]+)\}\}/).map((p, i, a) => (i % 3 === 0 ? (p ? prose(p) : '')
-  : i % 3 === 1 ? `<span class="pv-no-cur">${esc(p)} ${esc(a[i + 1])}</span>${approx(p, yenOf(p, Number(a[i + 1].replace(/,/g, '')), LANG === 'en' ? 'en' : 'ja'))}` : '')).join('');
+  : i % 3 === 1 ? (p === 'JPY' ? esc(yenText(Number(a[i + 1].replace(/,/g, ''))))
+    : `<span class="pv-no-cur">${esc(p)} ${esc(a[i + 1])}</span>${approx(p, yenOf(p, Number(a[i + 1].replace(/,/g, '')), LANG === 'en' ? 'en' : 'ja'))}`) : '')).join('');
 /* 値がどれも短い表（「12日」「70時間分」）は対象と値を左右に、長い値がある表（募集の要件など）は対象の下に値（狭い欄で対象の名前が途中で折れない） */
 const shortRows = rows => rows.every(([, x]) => String(x).replace(/\{\{[A-Z]{3} [\d,.]+\}\}/g, 'EUR 00000').length <= 8);
 const rowsList = (rows, v) => `<ul class="pvg-tm-rows${shortRows(rows) ? ' is-short' : ''}">${rows.map(([k, x]) => `<li><span>${prose(k)}</span><b>${v(x)}</b></li>`).join('')}</ul>`;

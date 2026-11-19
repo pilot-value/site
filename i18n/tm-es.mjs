@@ -15937,6 +15937,7 @@ export const TM = {
   "Zurich Airport": {"es":"Aeropuerto de Zúrich","st":"validated","by":"ai","model":"claude-opus-5-5","pv":4,"gl":"standby:08030a","at":"2026-11-02","pages":["en/airlines/swiss.html"]},
   "Zurich Old Town and the Limmat": {"es":"Casco antiguo de Zúrich y el Limmat","st":"validated","by":"ai","model":"claude-opus-5-5","pv":4,"gl":"","at":"2026-11-02","pages":["en/airlines/united.html"]},
   "a month": {"es":"al mes","st":"validated","by":"ai","model":"claude-opus-5-5","pv":4,"gl":"","at":"2026-11-02","pages":["en/airlines/zipair.html"]},
+  "a month from salary": {"es":"al mes, descontado del sueldo","st":"validated","by":"ai","model":"claude-opus-5-5","pv":4,"gl":"pay-salary:4d4435","at":"2026-11-19","pages":["en/airlines/fda.html"]},
   "ab initio cadets · requirements for 2027 entry": {"es":"pilotos en formación ab initio · requisitos para ingreso en 2027","st":"validated","by":"ai","model":"claude-opus-5-5","pv":4,"gl":"","at":"2026-11-02","pages":["en/airlines/jal.html"]},
   "about": {"es":"aprox.","st":"validated","by":"ai","model":"claude-opus-5-5","pv":4,"gl":"","at":"2026-11-02","pages":["en/pilot-salary-guide.html"]},
   "about <x1/> (Standard)": {"es":"aprox. <x1/> (Standard)","st":"validated","by":"ai","model":"claude-opus-5-5","pv":4,"gl":"","at":"2026-11-02","pages":["en/pilot-salary-guide.html"]},

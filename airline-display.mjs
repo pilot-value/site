@@ -364,7 +364,7 @@ export const LINES = Object.freeze({
   'fda.benefits.cont-general-housing': { h: '990e053fd590a1c8', label: '住宅の補助', value: '住宅手当', cond: '採用サイトの福利厚生（全職種）', en: { label: 'Housing support', value: 'Housing allowance', cond: 'Benefits on the recruitment site (all roles)' } },
   'fda.benefits.missing-annual-leave': { h: '5483daad32c9124f', label: '休暇', value: '有給休暇、リフレッシュ休暇、育児休暇', cond: '採用サイトの福利厚生（全職種）', en: { label: 'Leave', value: 'Paid leave, refresh leave (extra leave for rest) and childcare leave', cond: 'Benefits on the recruitment site (all roles)' } },
   'fda.benefits.missing-medical': { h: '24587dd210cab51c', label: '保険', value: '健康保険', cond: '他社経験者の機長候補の求人', en: { label: 'Insurance', value: 'Health insurance', cond: 'Vacancy for captain candidates with experience at another airline' } },
-  'fda.benefits.missing-pension': { h: '6f6ae266e09b3385', label: '年金', cond: '他社経験者の機長候補の求人', rows: [['制度', '選択制の確定拠出年金'], ['積み立て', '月給の中から月2万円まで'], ['積み立てない分', '毎月支給']], en: { label: 'Pension', rows: [['Scheme', 'Optional defined-contribution pension'], ['Contributions', 'Up to ¥20,000 a month from salary'], ['Amount you don’t contribute', 'Paid to you monthly']], cond: 'Vacancy for captain candidates with experience at another airline' } },
+  'fda.benefits.missing-pension': { h: '6f6ae266e09b3385', label: '年金', cond: '他社経験者の機長候補の求人', rows: [['制度', '選択制の確定拠出年金'], ['積み立て', '月給の中から月{{JPY 20,000}}まで'], ['積み立てない分', '毎月支給']], en: { label: 'Pension', rows: [['Scheme', 'Optional defined-contribution pension'], ['Contributions', 'Up to {{JPY 20,000}} a month from salary'], ['Amount you don’t contribute', 'Paid to you monthly']], cond: 'Vacancy for captain candidates with experience at another airline' } },
   'fda.jobs.missing-entry-open': { h: '19bbdaaafd7ac456', label: '募集の受付', value: '他社経験者の機長候補と副操縦士候補の2件を募集中', cond: '会社の採用サイトの一覧（2026年10月19日に確認）', en: { label: 'Applications', value: 'Two openings: captain candidates and first officer candidates with experience at another airline', cond: 'The company’s recruitment site list (checked 19 October 2026)' } },
   /* AirJapan（海外に住む機長・副操縦士の、派遣会社を通した募集） */
   'airjapan.benefits.missing-commuting': { h: 'c525d4964c6ca435', label: '通勤', cond: '海外に住む機長・副操縦士の、派遣会社を通した募集', rows: [['手当', '通勤の手当'], ['航空券', '会社が手配（他社便のエコノミーか ANA 運航便のビジネス）']], en: { label: 'Commuting', rows: [['Allowance', 'Commuting allowance'], ['Tickets', 'Arranged by the company (economy on other airlines or business on ANA-operated flights)']], cond: 'Agency recruitment of captains and first officers living abroad' } },
@@ -2481,7 +2481,7 @@ function itemValue(r) {
 
 /* 行の値の中の外貨の額の印 {{EUR 25}}（画面の表は gen-airline-glance.mjs の rowVal が円の目安つきで描く）── つないだ字では「EUR 25」 */
 export const AMT_RE = /\{\{([A-Z]{3}) ([\d,.]+)\}\}/g;
-const plainAmt = x => String(x).replace(AMT_RE, (_, c, n) => `${c} ${n}`);
+const plainAmt = x => String(x).replace(AMT_RE, (_, c, n) => (c === 'JPY' ? `¥${n}` : `${c} ${n}`));
 
 /* ITEM の言い方の英語（言えなければ ''）。決まりは itemValue と同じ
    （日本の会社の本社の街は、日本語と同じ街を英語で ── jpPlaceEn。2026-10-23 EN-8 まで「Japan」だった。街の無い所在地は今までどおり国） */
