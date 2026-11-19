@@ -424,6 +424,18 @@ $grant$;
 --    このリポジトリから見えないため。列名を並べると、本番に在る列を1つ
 --    書き落とした瞬間に画面から黙って消える。
 -- ════════════════════════════════════════════════════════════════
+/* ★人に見せない口コミの属性（2026-11-19 オーナー指示「勤務年数とか、プライバシーと特定を避けるために全部削除」）。
+     勤務年数・年代・機種・役職区分。2026-11-14 からは聞いてもいない（過去の口コミにだけ値がある）。
+     DB には残す（運営は admin_list_reviews と通知メールで見る）。会員・未ログインへは、どの口からも返さない ──
+     pv_reviews・一覧の作り置き（pv_review_card_of）・表の列の権限（7.）の3か所がこの1つを引く。
+   ⚠️ 本文の8列（v_hide）とは別の表にしてある。v_hide は review-i18n.js の「本文」と同じでなければならない（assert-unlock）。 */
+create or replace function public.pv_review_unshown()
+returns text[]
+language sql
+immutable
+as $fn$ select array['tenure_bucket', 'age_bucket', 'fleet', 'job_role'] $fn$;
+revoke all on function public.pv_review_unshown() from public, anon, authenticated;
+
 create or replace function public.pv_reviews(p jsonb default '{}'::jsonb)
 returns jsonb
 language plpgsql
@@ -479,13 +491,13 @@ begin
     /* ★口コミの行と、引き取っていない預かり（3-b）を同じ形にそろえる（2026-10-29）。
          預かりの行は自分の口コミ（mine）には入らない（誰のものか、まだ決まっていない）。
          pending: true の印だけ付く。⚠️ 預かり証・時刻・回線の控えは落としてから混ぜる。 */
-    select to_jsonb(r) as j, r.created_at as at, r.airline as air, r.proof_hash as ph
+    select to_jsonb(r) - public.pv_review_unshown() as j, r.created_at as at, r.airline as air, r.proof_hash as ph
       from public.reviews_v2 r
      /* ★AI が保留にした口コミ（3-c）は出さない（2026-11-15）。自分の口コミ（mine）にだけは残す
           ── 出した本人の画面から投稿が消えたように見せない。本文が返るかは今までどおり鍵で決まる。 */
      where v_mine or not public.pv_review_held('r', r.id)
     union all
-    select (to_jsonb(q) - 'claim_token' - 'claimed_at' - 'ip_day_hash')
+    select (to_jsonb(q) - 'claim_token' - 'claimed_at' - 'ip_day_hash' - public.pv_review_unshown())
              || jsonb_build_object('pending', true),
            q.created_at, q.airline, null::text
       from public.pv_review_pending q
@@ -621,7 +633,8 @@ as $fn$
   select (j - 'proof_hash'
             - array['culture_comment', 'salary_comment', 'benefits_comment', 'wlb_comment',
                     'ops_comment', 'training_comment', 'mgmt_comment', 'translations']
-            - 'id')
+            - 'id'
+            - public.pv_review_unshown())
          || jsonb_build_object('cats', to_jsonb(ck.a), 'n', ck.n)
          || case when ck.a[1] is null then '{}'::jsonb
                  else jsonb_build_object('clip', jsonb_build_object(
@@ -1200,7 +1213,6 @@ as $fn$
            'id',               case when public.pv_has_review_key() then pick.id end,
            'airline',          pick.airline,
            'position',         pick.position,
-           'tenure_bucket',    pick.tenure_bucket,
            'created_at',       pick.created_at,
            'culture_score',    pick.culture_score,
            'salary_score',     pick.salary_score,
@@ -1318,7 +1330,6 @@ as $fn$
            'id',               case when public.pv_has_review_key() then pick.j -> 'id' end,
            'airline',          pick.j -> 'airline',
            'position',         pick.j -> 'position',
-           'tenure_bucket',    pick.j -> 'tenure_bucket',
            'created_at',       pick.j -> 'created_at',
            'culture_score',    pick.j -> 'culture_score',
            'salary_score',     pick.j -> 'salary_score',
@@ -1380,7 +1391,7 @@ begin
     from information_schema.columns
    where table_schema = 'public'
      and table_name   = 'reviews_v2'
-     and not (column_name = any (v_hide));
+     and not (column_name = any (v_hide || public.pv_review_unshown()));   -- ★勤務年数など4列も表から読ませない（2026-11-19）
 
   if v_cols is null then
     raise exception 'reviews_v2 の列が読めませんでした（権限を変更していません）';
@@ -1393,7 +1404,7 @@ $gate$;
 
 
 -- ════════════════════════════════════════════════════════════════
--- 8. 検算 ── 流したあと、この結果を見る（10行。④ だけ列数の報告で、ほかは ✅）
+-- 8. 検算 ── 流したあと、この結果を見る（11行。④ だけ列数の報告で、ほかは ✅）
 -- ════════════════════════════════════════════════════════════════
 select '① 本文の列に残っている読み取り権限（anon）' as 項目,
        case when count(*) = 0 then '✅ なし（これが正しい）'
@@ -1534,4 +1545,20 @@ select '⑩ AI が保留にした口コミ（pv_review_judge）',
             else '✅ 一覧・Vote・トップのどこにも出ていない（保留中 '
                  || (select count(*) from public.pv_review_judge where verdict = 'hold' and decided is null) || '件・載せた '
                  || (select count(*) from public.pv_review_judge where verdict = 'hold' and decided = 'show') || '件・消した '
-                 || (select count(*) from public.pv_review_judge where verdict = 'hold' and decided = 'delete') || '件）' end;
+                 || (select count(*) from public.pv_review_judge where verdict = 'hold' and decided = 'delete') || '件）' end
+union all
+/* ★⑪ 勤務年数・年代・機種・役職区分（2026-11-19 オーナー指示・特定を避ける）。表からも、一覧・作り置き・Vote・トップの口からも読めないか。 */
+select '⑪ 勤務年数・年代・機種・役職区分（会員・未ログインから読めない）',
+       case when exists (select 1 from information_schema.column_privileges
+                          where table_schema = 'public' and table_name = 'reviews_v2'
+                            and grantee in ('anon', 'authenticated') and privilege_type = 'SELECT'
+                            and column_name = any (public.pv_review_unshown()))
+            then '❌ 表から直接読める（このファイルをもう一度貼る）'
+            when exists (select 1 from public.pv_review_card k where k.card ?| public.pv_review_unshown())
+            then '❌ 一覧の作り置きに残っている（このファイルをもう一度貼る）'
+            when exists (select 1 from jsonb_array_elements(public.pv_reviews('{"limit":500}'::jsonb) -> 'rows') x
+                          where x ?| public.pv_review_unshown())
+              or exists (select 1 from jsonb_array_elements(public.pv_vote_latest() || public.pv_review_voices()) x
+                          where x ?| public.pv_review_unshown())
+            then '❌ 一覧・Vote・トップのどれかが返している'
+            else '✅ どこからも読めない（DB には残っている：運営の画面だけ）' end;

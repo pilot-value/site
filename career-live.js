@@ -144,7 +144,7 @@
     revEmpty: '口コミはまだありません',
     revNone: '会員からの投稿はまだありません',       // 会社ページと比較で使う。同じページの「口コミ」のタブは海外の評判なども数えるので、言い分ける
     revNo: '評価未取得',                              // 会社ページ用。点数の付いた投稿がまだ無い（0点ではない）
-    revPosts: function (n) { return '会員の投稿 ' + n + '件'; },    // 口コミ件数（点数の有無を問わず、投稿ぜんぶ）。評価件数（revRated）と同じ行に置かない
+    revPosts: function (n) { return '会員の投稿 ' + n + '件'; },    // 口コミ件数（本文を書いた項目1つ＝1件・revItems）。評価件数（revRated）と同じ行に置かない
     revRated: function (n) { return n + '件の評価'; },
     sumHead: '口コミの要約',
     sumOvHead: 'まとめ',                              // 全体の傾向の段落の枠の見出し（2026-10-30）
@@ -2163,6 +2163,15 @@
   }
   /* 口コミ件数（投稿ぜんぶ）。評価件数の隣ではなく、次の行に置く ── 2つの数を同じ数に見せない。 */
   function postsLine(n) { return el('p', 'crl-posts', T.revPosts(n)); }
+  /* ★口コミの件数は「本文を書いた項目1つ＝1件」（2026-11-19 オーナー指示・OpenWork と同じ）。7項目に書いた投稿は7件・点数だけの投稿は0件。
+     数えるのはサーバーが行ごとに付ける cats（本文のある項目の名前・鍵の有無にかかわらず来る）。★の平均の分母（realRated の n ＝ 評価した人の数）は別のまま。 */
+  var REV_CMT = ['culture', 'salary', 'benefits', 'wlb', 'ops', 'training', 'mgmt'];
+  function revItems(rows) {
+    return (rows || []).reduce(function (s, r) {
+      return s + (isArr(r && r.cats) ? r.cats.length
+        : REV_CMT.filter(function (k) { return r && String(r[k + '_comment'] || '').trim(); }).length);
+    }, 0);
+  }
   function svgEl(tag, cls, attrs) {
     var n = d.createElementNS(NS, tag);
     if (cls) n.setAttribute('class', cls);
@@ -2241,7 +2250,7 @@
         return view('empty', [msg(T.revEmpty),
           foot([link(T.revGive, UP + 'submit-review.html?airline=' + enc(slug))])]);
       }
-      return view('open', [rateInto(el('p', 'crl-score'), R), postsLine(res.rows.length)]);
+      return view('open', [rateInto(el('p', 'crl-score'), R), postsLine(revItems(res.rows))]);
     });
   };
 
@@ -2370,7 +2379,8 @@
   function sumFoot(x) {
     var by = el('p', 'crl-sum-by');
     by.appendChild(el('span', 'crl-sum-ai', T.sumAi));
-    var n = Number(x.n);
+    /* ★件数は「本文を書いた項目1つ＝1件」の items（2026-11-19）。SQL を貼る前の答えには無いので、そのときは今までの n（人の数）のまま。 */
+    var n = Number(x.items != null ? x.items : x.n);
     if (isFinite(n) && n > 0) by.appendChild(el('span', 'crl-sum-n', T.sumFrom(n)));     // 件数が読めなければ書かない
     var day = sumDay(x);
     if (day) by.appendChild(el('span', 'crl-sum-d', T.sumWhen(day)));
@@ -2528,7 +2538,7 @@
     if (!o) { c.appendChild(sideFail(s)); return c; }
     if (!o.rows.length) { c.appendChild(el('span', 'crl-none', T.revNone)); return c; }
     c.appendChild(rateInto(el('p', 'crl-score'), o.R, true));
-    c.appendChild(postsLine(o.rows.length));
+    c.appendChild(postsLine(revItems(o.rows)));
     return c;
   }
   /* 評価の格子の続きの行（6角形・口コミの抜粋）。比べる1項目の行（.crl-cmp-row）とは別の印で置く ── 評価の行は2社の評価のマスだけ
@@ -2570,7 +2580,8 @@
      ★ 決めるのはサーバーの答えの1語（pv_reviews の unlocked）だけ ── 給与の鍵では開かない（給与の答えをここで見ない）。
        鍵の無い人には、そもそも本文が届かない（上の clipsOf の抜粋だけ）。
      ★ 行はすでに受け取った分（reviews() の1回）から、REV_PAGE 件ずつ描く。続きは「続きを見る（全n件）」── 給与の一覧の畳みと同じ言葉。
-       n は、この枠に並ぶ字のある投稿の数（点数だけの投稿は並べない・数えない）。押したら、新しく出た1件目へフォーカスを移す。
+       めくるのは、この枠に並ぶ字のある投稿（点数だけの投稿は並べない）。n の字だけは、その投稿に書かれた項目の数の合計（revItems と同じ数え方）。
+       押したら、新しく出た1件目へフォーカスを移す。
      ★ 枠はキーボードで入れる（tabindex 0）・読み上げはその会社の名前の区切り（role region）。保存領域には何も書かない。 */
   var REV_PAGE = 5;
   /* 口コミの抜粋・本文のマスの頭に、その会社の札（★2026-10-25 WP-compare-all-13 F1）。スマホ（〜759px）では口コミのカードを2社の上下に
@@ -2612,7 +2623,7 @@
     if (shown < items.length) {
       more = el('button', 'crl-link crl-rv-more');          // 押せる形は今までの「crl-link」（新しい押せる形を足さない）
       more.type = 'button';
-      more.appendChild(el('span', '', T.payMore(items.length)));
+      more.appendChild(el('span', '', T.payMore(revItems(items.map(function (x) { return x[1]; })))));
       more.appendChild(icon('down', 14));
       more.addEventListener('click', function () {
         var first = next();

@@ -362,10 +362,6 @@
     ja: { captain: '機長', fo: '副操縦士', cadet: '訓練生' },
     en: { captain: 'Captain', fo: 'First Officer', cadet: 'Trainee' }, /*PV-MSG:es*/ es: { captain: 'Capitán', fo: 'Primer oficial', cadet: 'Piloto en formación' } /*/PV-MSG:es*/,
   });
-  var TENURE_LABEL = (function (D) { return (window.PV_T && window.PV_T(D, L)) || D[L]; })({
-    ja: { '1-5': '1〜5年', '5-10': '5〜10年', '10-15': '10〜15年', '15-20': '15〜20年', '20+': '20年以上' },
-    en: { '1-5': '1–5 yrs', '5-10': '5–10 yrs', '10-15': '10–15 yrs', '15-20': '15–20 yrs', '20+': '20+ yrs' }, /*PV-MSG:es*/ es: { '1-5': '1–5 años', '5-10': '5–10 años', '10-15': '10–15 años', '15-20': '15–20 años', '20+': '20+ años' } /*/PV-MSG:es*/,
-  });
 
   /* ══════════════════════════════════════════════════════════════
      ★PV_DEMO — 実在しないサンプル値。2026-08-11 のオーナー判断で、このまま公開する。
@@ -575,10 +571,10 @@
       cat = picked.label; text = picked.text;
     }
     if (!text || text.replace(/\s/g, '').length < 20) return null;   // 空カードを出さない
-    // DB が持っているのは符号（ana / captain / 10-15）。そのまま出すと符号が画面に見えるので言葉に直す。
+    // DB が持っているのは符号（ana / captain）。そのまま出すと符号が画面に見えるので言葉に直す。
+    // ★勤務年数は出さない（2026-11-19 オーナー指示「プライバシーと特定を避けるため全部削除」）。
     var meta = [r.airline ? airlineName(r.airline, r.airline) : '',
                 POS_LABEL[r.position] || r.position || '',
-                TENURE_LABEL[r.tenure_bucket] || r.tenure_bucket || '',
                 r.created_at ? r.created_at.slice(0, 7).replace('-', '.') : '']
                .filter(Boolean).join(T.sep);
     return { cat: cat, text: clip(text, 80), meta: meta, translated: translated, avg: avgScore(r) };   // §10：3〜4行で切る

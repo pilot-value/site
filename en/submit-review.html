@@ -233,6 +233,7 @@ textarea.form-input{resize:vertical;min-height:96px;line-height:1.7}
 </script>
 <!--/PV-3P-->
 <script src="../pv-session.js?v=c5cd5bac"></script>
+<link rel="stylesheet" href="../air-search.css?v=5c058016">
   <!-- PV-NAV: site-wide navigation (left rail on wide screens, left drawer on narrow).
        Written by patch-side-nav.mjs. app-nav.css loads last (after my-value.css). -->
   <link rel="stylesheet" href="../pv-tokens.css">
@@ -329,6 +330,12 @@ textarea.form-input{resize:vertical;min-height:96px;line-height:1.7}
         <div class="rv-flds">
           <div>
             <label class="rv-lab" for="f-airline">Airline</label>
+            <!-- ★会社を名前で探す（2026-11-19 オーナー指示「給与投稿と同じ形にして」）。動きは air-search.js・見た目は air-search.css。
+                 検索は任意。触らなければ今までどおり下の一覧から選べる。⚠️ <select> は消しも隠しもしない（送る値はこれ）。 -->
+            <input type="search" id="f-airline-q" class="air-q" autocomplete="off"
+                   placeholder="Search by company name" aria-label="Search by company name">
+            <p id="f-airline-qn" class="air-qn" aria-live="polite"></p>
+            <div id="f-airline-hits" class="air-hits" hidden></div>
             <select class="form-input" id="f-airline" onchange="toggleOtherAirline()">
               <option value="">Please select</option>
               <optgroup label="Middle East">
@@ -1548,6 +1555,7 @@ async function submitReview() {
      4行に折れて本文へ垂れる（2026-08-27 に実際そうなっていた）。
      lang-toggle.js より前に置く ── index.html と同じ並び。 -->
 <script src="../search.js"></script>
+<script src="../air-search.js?v=5661ded7"></script>
 <script src="../lang-toggle.js"></script>
 <script src="../currency.js"></script>
 <!-- PV-NAV: opens and closes the navigation. Loads AFTER search.js so it can adopt
