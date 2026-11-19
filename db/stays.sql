@@ -1866,8 +1866,7 @@ as $fn$
       PTP
     ', E' \n'), '\s+'),
     'lufthansa', regexp_split_to_array(btrim('
-      AUS JFK SFO SEA ATL RDU DEN CLT ORD DFW BOS LAX SAN MIA EWR IAH DTW STL IAD MUC
-      FRA
+      AUS JFK SFO SEA ATL RDU DEN CLT ORD DFW BOS LAX SAN MIA EWR IAH DTW STL IAD
     ', E' \n'), '\s+'),
     'british-airways', regexp_split_to_array(btrim('
       JFK MCO BWI ORD SFO CVG TPA PHX AUS BNA MSY LAS IAH EWR SEA DFW PDX LAX PIT PHL
@@ -1925,7 +1924,7 @@ as $fn$
       ICN LAX SFO ORD JFK SEA BOS ATL IAD EWR
     ', E' \n'), '\s+'),
     'swiss', regexp_split_to_array(btrim('
-      ICN ORD SFO EWR BOS IAD LAX MIA JFK GVA ZRH
+      ICN ORD SFO EWR BOS IAD LAX MIA JFK
     ', E' \n'), '\s+'),
     'tap', regexp_split_to_array(btrim('
       MIA JFK SFO IAD BOS ORD LAX EWR CWB GIG TER

@@ -301,7 +301,7 @@ function sources(items, fold = false, dated = false, label = W.srcLabel) {
 const rowVal = x => String(x).split(/\{\{([A-Z]{3}) ([\d,.]+)\}\}/).map((p, i, a) => (i % 3 === 0 ? (p ? prose(p) : '')
   : i % 3 === 1 ? `<span class="pv-no-cur">${esc(p)} ${esc(a[i + 1])}</span>${approx(p, yenOf(p, Number(a[i + 1].replace(/,/g, '')), LANG === 'en' ? 'en' : 'ja'))}` : '')).join('');
 /* 値がどれも短い表（「12日」「70時間分」）は対象と値を左右に、長い値がある表（募集の要件など）は対象の下に値（狭い欄で対象の名前が途中で折れない） */
-const shortRows = rows => rows.every(([, x]) => String(x).replace(/\{\{[A-Z]{3} [\d,.]+\}\}/g, 'EUR 00000').length <= 12);
+const shortRows = rows => rows.every(([, x]) => String(x).replace(/\{\{[A-Z]{3} [\d,.]+\}\}/g, 'EUR 00000').length <= 8);
 const rowsList = (rows, v) => `<ul class="pvg-tm-rows${shortRows(rows) ? ' is-short' : ''}">${rows.map(([k, x]) => `<li><span>${prose(k)}</span><b>${v(x)}</b></li>`).join('')}</ul>`;
 const tmRows = rows => rowsList(rows, rowVal);
 const factList = items => `<dl class="pvg-dl">${items.map(f =>
@@ -620,16 +620,18 @@ const quick = (slug, list) => (list.length ? `<div class="pvg-qs"><p class="pvg-
 const SLOTS = 3;
 /* 値が長いとき（「本人と対象の家族に割引の航空券」）は字を1段小さくして、狭い画面でも1行に収める。円の目安（small）は数えない */
 const isLong = html => html.replace(/<small[\s\S]*?<\/small>/g, '').replace(/<[^>]*>/g, '').length > 13;
+/* 欄の1つ目の条件の値。「対象｜値」の表（rows）は表のまま（2026-11-19 オーナー「どれがどれを対象に言ってるのかわかんない」） */
+const leadVal = f => (f.rows && f.rows.length ? tmRows(f.rows) : val(f));
 function cell(id, title, icon, { slug, k, v: value, note, also = [], ask = [], count, body, empty, more: say }) {
   const more = say || (empty ? W.answer : count > 1 ? W.moreSrc(count - 1) : W.seeSrc);
   return `<article class="pvg-card pvg-cell" data-cell="${id}"${pane(slug, 'overview')}>
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true">${icon}</span><h2 class="pvg-eyebrow">${title}</h2></header>
 <div class="pvg-lead">
 <p class="pvg-k">${k}</p>
-<p class="pvg-v${isLong(value) ? ' is-long' : ''}">${value}</p>
+${value.startsWith('<ul') ? value.replace('<ul class="pvg-tm-rows', '<ul class="pvg-v pvg-v-rows pvg-tm-rows') : `<p class="pvg-v${isLong(value) ? ' is-long' : ''}">${value}</p>`}
 ${note ? `<p class="pvg-note">${note}</p>` : ''}
 </div>
-${also.length ? `<ul class="pvg-also">${also.map(f => `<li><span>${esc(f.label)}</span><b>${val(f)}</b></li>`).join('')}</ul>` : ''}
+${also.length ? `<ul class="pvg-also">${also.map(f => `<li><span>${esc(f.label)}</span>${f.rows && f.rows.length ? tmRows(f.rows) : `<b>${val(f)}</b>`}</li>`).join('')}</ul>` : ''}
 ${quick(slug, ask.slice(0, SLOTS - also.length))}
 <button type="button" class="pvg-more" aria-expanded="false" aria-controls="pvg-p-${id}"><span>${more}</span>${IC.down}</button>
 </article>
@@ -674,7 +676,7 @@ function workCell(v) {
   /* 1行めは札の無い行か、今の公表が無い欄に出す会社の募集の行（「募集」の札つき・airline-rollout.mjs が lead を付ける） */
   const lead = v.work.find(f => f.lead && all.includes(f)) || (v.rollout ? null : work[0]);
   if (!lead) return cell('work', W.work, IC.work, { slug: v.slug, k: W.coPub, v: W.unconfirmed, empty: true, ask: WORK_ASK, note: esc(W.workNone), body });
-  return cell('work', W.work, IC.work, { slug: v.slug, k: esc(lead.label) + whole(lead), v: val(lead), note: esc(premise(lead)), also: work.filter(f => f !== lead).slice(0, 2), ask: WORK_ASK,
+  return cell('work', W.work, IC.work, { slug: v.slug, k: esc(lead.label) + whole(lead), v: leadVal(lead), note: esc(premise(lead)), also: work.filter(f => f !== lead).slice(0, 2), ask: WORK_ASK,
     more: all.length > 1 ? W.moreCite(all.length - 1) : W.seeCite, body });
 }
 /* 概要の「待遇」のカード。カードの行は台帳の待遇ぜんぶから（面へ移した公表も、カードからは減らさない）。
@@ -690,7 +692,7 @@ function benCell(v) {
   const past = v.rollout && items.length ? `${moved}${pubLists(items)}${sources(items)}` : '';
   if (!lead) return cell('benefits', W.benefits, IC.benefits, { slug: v.slug, k: W.coPub, v: W.unconfirmed, empty: true, ask: BEN_ASK, note: esc(W.benNone), body: past + answers + asks(v.slug, BEN_ASK) });
   const others = items.filter(f => f !== lead).length;
-  return cell('benefits', W.benefits, IC.benefits, { slug: v.slug, k: esc(lead.label) + whole(lead), v: val(lead), note: esc(premise(lead)), also: card.filter(f => f !== lead && plain(f)).slice(0, 2), ask: BEN_ASK,
+  return cell('benefits', W.benefits, IC.benefits, { slug: v.slug, k: esc(lead.label) + whole(lead), v: leadVal(lead), note: esc(premise(lead)), also: card.filter(f => f !== lead && plain(f)).slice(0, 2), ask: BEN_ASK,
     more: others ? W.moreSrc(others) : W.seeSrc,
     body: `${moved}${items.length ? `${pubLists(items)}${sources(items)}` : ''}${answers}${asks(v.slug, BEN_ASK)}` });
 }
@@ -1417,7 +1419,7 @@ export const WORDS = Object.freeze({
     pay: '給与', realPay: '提出された年収', estBy: '当サイトの推定', medBy: '会員が出した年収の中央値',
     tm: { pay: '給与と待遇の条件', work: '勤務の条件', life: '通勤の条件', stay: 'ステイの条件' }, tmRef: '参考', what: {
       line: { q: 'Line・Reserve・Long call・Short call とは', a: '北米の会社では、勤務表が月ごとに分かれます。Line は、月の初めから乗る便が決まっている月。Reserve は STBY 要員の月で、待機して呼ばれたら乗ります。Reserve のうち Long call は前もって（半日ほど前までに）知らされる待機、Short call は呼ばれてから2時間ほどで空港に着く待機です（時間は会社の協約で決まります）。Composite は、同じ月に乗務の決まった日と待機の日が混ざる月です。どの月になるかは毎月の希望で決まり、勤続の長い人の希望から順に通ります。' },
-      pay: { q: '最低保証・割増とは', a: '1時間の単価で払う会社の決まりです。給与は「給与に数える時間 × 1時間の単価」。最低保証は、その月に飛んだ時間が少なくても、決まった時間分は払うという下限です。割増は、その時間の単価が上がることで、25%増しなら単価の1.25倍、150%なら1.5倍で払います。加算は、国際線などの1時間ごとに単価へ足す額です。' },
+      pay: { q: '最低保証・割増とは', a: '時間あたりの単価で払う会社の決まりです。給与は「給与に数える時間 × 時間あたりの単価」。最低保証は、その月に飛んだ時間が少なくても、決まった時間分は払うという下限です。割増は、その時間の単価が上がることで、25%増しなら単価の1.25倍、150%なら1.5倍で払います。加算は、国際線などで時間あたりの単価に足す額です。' },
       pension: { q: '会社の年金の積み立てとは', a: '給与とは別に、会社が本人の年金の口座に入れるお金です（米国の 401(k) などの確定拠出年金）。「会社が給与の◯%を積み立てる」は、本人が何もしなくても入る分。「本人の積み立てに会社が足す」は、本人が給与から積み立てたときだけ、その割合に応じて会社も入れる分です（例：本人が3%を積み立てると、会社も3%を入れる）。' },
       bond: { q: 'ボンド（訓練費の返還の約束）とは', a: '会社が型式限定などの訓練の費用を払う代わりに、決まった年数のあいだ勤める約束です。その年数より前に辞めると、決めた額の訓練費を会社に返します。' },
       bid: { q: 'Bid（勤務の希望を出す仕組み）とは', a: '毎月、乗りたい便・休みたい日などの希望をシステムで出し、それをもとに勤務表が組まれる仕組みです。希望が重なったときにどちらが通るかは会社が決めます（北米の会社は勤続の長い人から）。' },

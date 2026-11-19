@@ -185,6 +185,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   "fiji-airways": [
    "nadi"
   ],
+  "finnair": [
+   "helsinki"
+  ],
   "flydubai": [
    "dubai"
   ],
@@ -269,6 +272,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   ],
   "lot": [
    "warsaw"
+  ],
+  "lufthansa": [
+   "frankfurt"
   ],
   "malaysia-airlines": [
    "kuala-lumpur"
@@ -361,6 +367,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   ],
   "starlux": [
    "taoyuan"
+  ],
+  "swiss": [
+   "zurich"
   ],
   "tap": [
    "lisbon",
@@ -37501,6 +37510,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "beitragsorientierte",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-19",
+     "company": "austrian",
+     "cond_ja": "All flight crew (Bordpersonal); details regulated by works agreement (Betriebsvereinbarung)。補足: Free flights and flight discounts for employees and family; free cockpit jumpseat for LHG staff, family, and travel partners (excl. airport taxes). Base KV-Bord (eff. 2018-05-01) remains in force as amended in 2024/2025 through 2026.",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2018-05-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "7.1 Der Dienstgeber gewährt seinen Dienstnehmern und deren Familienangehörigen Freiflüge sowie Flugvergünstigungen, deren Art und Ausmaß durch Betriebsvereinbarung zu regeln sind. 7.2 Der Pilot in Command hat das Recht, Austrian Airlines Group-Personal und deren Angehörige sowie Travelpartner im Coc",
+       "source_id": "src-wko-at-038918eb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1d4275a666634edd",
+     "id": "austrian.benefits.staff-travel.8885432b",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261119-gm-austrian",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2018-05-01",
+       "publisher": "WKO / Gewerkschaft vida",
+       "publisher_kind": "union",
+       "retrieved": "2026-11-19",
+       "source_id": "src-wko-at-038918eb",
+       "source_type": "union_cba",
+       "title": "Kollektivvertrag Austrian Airlines AG, Bordpersonal",
+       "url": "https://www.wko.at/kollektivvertrag/kv-bordpersonal-austrian-airlines-2018"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Freiflüge sowie Flugvergünstigungen",
      "value_text": null
     }
    ],
@@ -76151,6 +76211,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": "開始時Denmark行きと海外課程終了時の帰国便は会社手配、その他Finland–Denmark往復は本人責任",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-19",
+     "company": "finnair",
+     "cond_ja": "via myIDTravel; AY-marketed scheduled flights (excl. codeshares, charters, buses, PSO routes)。補足: 【第三者】Reproduces Finnair staff travel rules from FlyZED directory; tickets issued via myIDTravel (105); employee/family quota and discount % not publicly disclosed. Also confirmed on StaffTraveler (https://stafftraveler.com/notes/FIN).",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Routes from Helsinki (HEL) to Kajaani (KAJ), Joensuu (JOE), Jyväskylä (JYV), Kokkola (KOK) and Kemi (KEM) are embargoed for ID leisure travel, both standby (R2) and confirmed (R1).",
+       "source_id": "src-staffairlines-com-eb6819c8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "875e3d5bf39b520e",
+     "id": "finnair.benefits.staff-travel.3df2717b",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261119-gm-finnair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Staff Airlines",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-19",
+       "source_id": "src-staffairlines-com-eb6819c8",
+       "source_type": "third_party_reference",
+       "title": "Finnair (AY) staff travel & standby rules",
+       "url": "https://staffairlines.com/airlines/finnair"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "standby (R2) and confirmed (R1)",
+     "value_text": null
     }
    ],
    "fleet": [
@@ -76743,6 +76854,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "最初18–20か月CenterAir/Roskilde、最終A320simはFinnairFlightAcademy/Vantaa",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-19",
+     "company": "finnair",
+     "cond_ja": "rostered standby duty; full roster pattern not publicly disclosed。補足: In the June 2025 SLL-Palta CBA settlement (FlightForum 2025-06-10, https://www.flightforum.fi/topic/50974-finnairin-lent%C3%A4jien-ty%C3%B6ehtosopimusneuvottelut-20242025/page/8/), rostered standby hours are paid regardless of call-out.",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-02-07",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "we are now preparing to include standby duty in the employment contracts of all pilots in order to secure regular and reliable flight operations",
+       "source_id": "src-paddleyourownkanoo-com-a4697b97",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "57ee36ccb267156c",
+     "id": "finnair.work.roster-pattern.dea3b769",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261119-gm-finnair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-02-07",
+       "publisher": "Paddle Your Own Kanoo",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-19",
+       "source_id": "src-paddleyourownkanoo-com-a4697b97",
+       "source_type": "third_party_reference",
+       "title": "Finnair Says 90 Pilots Could Lose Their Jobs Unless Flight Crew Agree to Work Standby Duties and Overtime",
+       "url": "https://www.paddleyourownkanoo.com/2025/02/07/finnair-says-90-pilots-could-lose-their-jobs-unless-flight-crew-agree-to-work-standby-duties-and-overtime/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "standby duty",
      "value_text": null
     },
     {
@@ -87170,6 +87332,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "Madrid",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-19",
+     "company": "iberia",
+     "cond_ja": "補足: 【Wikipedia】Iberia's pilot base in Madrid is also confirmed in BOE X Convenio Colectivo (https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-25500) and Fly News 2025-07-09 (https://fly-news.es/aviacion-comercial/aerolineas/nueva-convocatoria-de-pilotos-de-iberia/) (\"pilotos de nuevo ingreso con base en Madrid\").",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-11-07",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Adolfo Suárez Madrid–Barajas Airport (IATA: MAD, ICAO: LEMD) is the main international airport serving Madrid, the capital of Spain, and its metropolitan area.",
+       "source_id": "src-en-wikipedia-org-cfd45837",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ab65d2e1abdf85ae",
+     "id": "iberia.base.pilot-base.c0c4bf22",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-iberia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-07",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-19",
+       "source_id": "src-en-wikipedia-org-cfd45837",
+       "source_type": "third_party_reference",
+       "title": "Madrid–Barajas Airport",
+       "url": "https://en.wikipedia.org/wiki/Madrid%E2%80%93Barajas_Airport"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MAD",
      "value_text": null
     }
    ],
@@ -116884,6 +117097,212 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "lufthansa": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-19",
+     "company": "lufthansa",
+     "cond_ja": "base MUC。補足: ミュンヘン。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2023-08-10",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "LH's bases, Frankfurt (FRA) and Munich (MUC)",
+       "source_id": "src-airwaysmag-com-9529f87e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "49232bc7123df036",
+     "id": "lufthansa.base.pilot-base-city.6ffa49eb",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-lufthansa",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-08-10",
+       "publisher": "Airways Magazine",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-19",
+       "source_id": "src-airwaysmag-com-9529f87e",
+       "source_type": "third_party_reference",
+       "title": "Lufthansa, Pilot Union Reach Labor Deal",
+       "url": "https://www.airwaysmag.com/legacy-posts/lufthansa-reaches-labor-deal-pilots"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Munich",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-19",
+     "company": "lufthansa",
+     "cond_ja": "base FRA。補足: フランクフルト。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2023-08-10",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "LH's bases, Frankfurt (FRA) and Munich (MUC)",
+       "source_id": "src-airwaysmag-com-9529f87e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cd03efc30986bfea",
+     "id": "lufthansa.base.pilot-base-city.dde4bc69",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-lufthansa",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-08-10",
+       "publisher": "Airways Magazine",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-19",
+       "source_id": "src-airwaysmag-com-9529f87e",
+       "source_type": "third_party_reference",
+       "title": "Lufthansa, Pilot Union Reach Labor Deal",
+       "url": "https://www.airwaysmag.com/legacy-posts/lufthansa-reaches-labor-deal-pilots"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Frankfurt",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-19",
+     "company": "lufthansa",
+     "cond_ja": "補足: Mainline Lufthansa (LH); distinct from CityLine / Discover / City Airlines。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2023-08-10",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "LH's bases, Frankfurt (FRA) and Munich (MUC)",
+       "source_id": "src-airwaysmag-com-9529f87e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bf167748ceae8ad2",
+     "id": "lufthansa.base.pilot-base.25c62bc4",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-lufthansa",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-08-10",
+       "publisher": "Airways Magazine",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-19",
+       "source_id": "src-airwaysmag-com-9529f87e",
+       "source_type": "third_party_reference",
+       "title": "Lufthansa, Pilot Union Reach Labor Deal",
+       "url": "https://www.airwaysmag.com/legacy-posts/lufthansa-reaches-labor-deal-pilots"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "FRA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-19",
+     "company": "lufthansa",
+     "cond_ja": "補足: Mainline Lufthansa (LH); distinct from CityLine / Discover / City Airlines。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2023-08-10",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "LH's bases, Frankfurt (FRA) and Munich (MUC)",
+       "source_id": "src-airwaysmag-com-9529f87e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0a6f011f88670a52",
+     "id": "lufthansa.base.pilot-base.c6488887",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-lufthansa",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-08-10",
+       "publisher": "Airways Magazine",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-19",
+       "source_id": "src-airwaysmag-com-9529f87e",
+       "source_type": "third_party_reference",
+       "title": "Lufthansa, Pilot Union Reach Labor Deal",
+       "url": "https://www.airwaysmag.com/legacy-posts/lufthansa-reaches-labor-deal-pilots"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MUC",
+     "value_text": null
+    }
+   ],
    "benefits": [
     {
      "amount": null,
@@ -116990,6 +117409,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "company pension scheme",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-19",
+     "company": "lufthansa",
+     "cond_ja": "全社員の制度 (Lufthansa Group)。補足: 全社員共通の制度として記載。具体的な利用条件は求人票・社内規定による。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Von Flugvergünstigungen über Gesundheitsangebote bis hin zu bezuschussten Kantinen genießt du in den Unternehmen der Lufthansa Group eine Vielzahl von Benefits.",
+       "source_id": "src-lufthansagroup-careers-5078c4c4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b60f9b8ab113bc06",
+     "id": "lufthansa.benefits.staff-travel.de26388d",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261119-gm-lufthansa",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Lufthansa Group Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-19",
+       "source_id": "src-lufthansagroup-careers-5078c4c4",
+       "source_type": "official_package",
+       "title": "FAQ",
+       "url": "https://lufthansagroup.careers/de/faq"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Flugvergünstigungen",
+     "value_text": null
     }
    ],
    "fleet": [
@@ -117049,6 +117519,61 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "Airbus A350-900",
+     "value_text": null
+    }
+   ],
+   "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-19",
+     "company": "lufthansa",
+     "cond_ja": "ab-initio cadet route (European Flight Academy)。補足: Ab-initio cadet route via EFA (graduates may apply to all LHG airlines; no direct-entry mainline FO posting)。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The prerequisite is EU or Swiss citizenship or citizenship of an EFTA member state",
+       "source_id": "src-apply-lufthansagroup-careers-b44f0fb4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6bc1a7679a83ffe3",
+     "id": "lufthansa.jobs.fo-right-to-work-fo.1c7c56d8",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261119-gm-lufthansa",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Lufthansa Group Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-19",
+       "source_id": "src-apply-lufthansagroup-careers-b44f0fb4",
+       "source_type": "job_posting",
+       "title": "Training for commercial pilot (m/f/d) ATPL program",
+       "url": "https://apply.lufthansagroup.careers/index.php?ac=jobad&id=84539"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "EU or Swiss citizenship or citizenship of an EFTA member state",
      "value_text": null
     }
    ],
@@ -117211,6 +117736,110 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": 5200,
      "value_text": "5,200"
+    }
+   ],
+   "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-19",
+     "company": "lufthansa",
+     "cond_ja": "average wait time, seniority-based。補足: 【第三者】Average command upgrade wait time for Lufthansa Mainline based on seniority list。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-04-24",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Bei der Lufthansa Mainline beträgt die durchschnittliche Wartezeit 12 bis 15 Jahre.",
+       "source_id": "src-stellenmarkt-de-420de085",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "324ede513705ba28",
+     "id": "lufthansa.work.upgrade-years.4e401971",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-lufthansa",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04-24",
+       "publisher": "Stellenmarkt.de",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-19",
+       "source_id": "src-stellenmarkt-de-420de085",
+       "source_type": "third_party_reference",
+       "title": "Pilot-Gehalt in Deutschland",
+       "url": "https://www.stellenmarkt.de/karrieremagazin/pilot-gehalt"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "12 bis 15",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-19",
+     "company": "lufthansa",
+     "cond_ja": "overtime threshold (+16% overtime bonus)。補足: 【第三者】Overtime threshold for Lufthansa mainline; hard company/MTV maximum monthly or annual block-hour cap not publicly found。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-04-24",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ab 75 monatlichen Blockstunden einen Überstundenzuschlag von 16 Prozent aus",
+       "source_id": "src-stellenmarkt-de-420de085",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "440b284ca6eaa9b3",
+     "id": "lufthansa.work.working-time.025e51e3",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "working_time",
+     "label_ja": "勤務・乗務時間の上限",
+     "pack": "pvr-20261119-gm-lufthansa",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04-24",
+       "publisher": "Stellenmarkt.de",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-19",
+       "source_id": "src-stellenmarkt-de-420de085",
+       "source_type": "third_party_reference",
+       "title": "Pilot-Gehalt in Deutschland",
+       "url": "https://www.stellenmarkt.de/karrieremagazin/pilot-gehalt"
+      }
+     ],
+     "unit": "hours",
+     "use": "条件つき",
+     "value": 75,
+     "value_text": "75"
     }
    ]
   },
@@ -153663,7 +154292,264 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "swiss": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-19",
+     "company": "swiss",
+     "cond_ja": "base GVA。補足: ジュネーブ。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "It operates a global flight network from Zurich and Geneva.",
+       "source_id": "src-swiss-com-81e9e2ce",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "074dcc86f688fc8a",
+     "id": "swiss.base.pilot-base-city.2b523e66",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-swiss",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "SWISS",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-19",
+       "source_id": "src-swiss-com-81e9e2ce",
+       "source_type": "job_posting",
+       "title": "Company profile",
+       "url": "https://www.swiss.com/corporate/en/company/about-us/company-profile"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Geneva",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-19",
+     "company": "swiss",
+     "cond_ja": "base ZRH。補足: チューリッヒ。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "It operates a global flight network from Zurich and Geneva.",
+       "source_id": "src-swiss-com-81e9e2ce",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e344a436df3835b4",
+     "id": "swiss.base.pilot-base-city.6ff5f64c",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-swiss",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "SWISS",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-19",
+       "source_id": "src-swiss-com-81e9e2ce",
+       "source_type": "job_posting",
+       "title": "Company profile",
+       "url": "https://www.swiss.com/corporate/en/company/about-us/company-profile"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Zurich",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-19",
+     "company": "swiss",
+     "cond_ja": "補足: Secondary base (Geneva); also confirmed by SWISS Newsroom (2026-08-17)。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "When not taking off for New York from his home base in Geneva, he commutes between French-speaking Switzerland and Zurich to fly other long-haul assignments three or four times a month.",
+       "source_id": "src-swiss-com-20fe8f8a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "10dfc5450ecacda8",
+     "id": "swiss.base.pilot-base.6d88746c",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-swiss",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "SWISS Magazine",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-19",
+       "source_id": "src-swiss-com-20fe8f8a",
+       "source_type": "job_posting",
+       "title": "Flight captain by passion",
+       "url": "https://www.swiss.com/content/swiss-magazine/en/inside-swiss/behind-the-scenes/flight-captain-by-passion"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "GVA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-19",
+     "company": "swiss",
+     "cond_ja": "補足: Primary hub and pilot base (Zurich)。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "It operates a global flight network from Zurich and Geneva.",
+       "source_id": "src-swiss-com-81e9e2ce",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "84019f030b796489",
+     "id": "swiss.base.pilot-base.9e692e18",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-swiss",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "SWISS",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-19",
+       "source_id": "src-swiss-com-81e9e2ce",
+       "source_type": "job_posting",
+       "title": "Company profile",
+       "url": "https://www.swiss.com/corporate/en/company/about-us/company-profile"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ZRH",
+     "value_text": null
+    }
+   ],
    "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-19",
+     "company": "swiss",
+     "cond_ja": "minimum, increases with seniority。補足: Exceeds Swiss statutory 4-week (28-day) minimum; up to 4 days eligible for voluntary buyback。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2023-02-28",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Swiss-Piloten bekommen jährlich insgesamt mindestens 32 Tage Ferien – sie könnten also 4 davon verkaufen.",
+       "source_id": "src-travelnews-ch-b7bd1526",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a03e1de45df52c17",
+     "id": "swiss.benefits.annual-leave.8b070e1c",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "年次休暇",
+     "pack": "pvr-20261119-gm-swiss",
+     "per": "year",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-02-28",
+       "publisher": "travelnews.ch",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-19",
+       "source_id": "src-travelnews-ch-b7bd1526",
+       "source_type": "third_party_reference",
+       "title": "Zustupf für Swiss-Personal dank Verkauf von Ferientagen",
+       "url": "https://www.travelnews.ch/flug/23475-zustupf-fuer-swiss-personal-dank-verkauf-von-ferientagen.html"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 32,
+     "value_text": "32"
+    },
     {
      "amount": null,
      "applies_to": {
@@ -155486,6 +156372,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-19",
+     "company": "swiss",
+     "cond_ja": "補足: Compared against 146 off-days/year at easyJet random roster (p. 9)。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-10-21",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "stehen bei der SWISS nur 128 Tage.",
+       "source_id": "src-aeropers-ch-58ecdc75",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "08a29b7a1d3c7ed2",
+     "id": "swiss.work.annual-days-off.64fde384",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "annual_days_off",
+     "label_ja": "年間の休日",
+     "pack": "pvr-20261119-gm-swiss",
+     "per": "year",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-21",
+       "publisher": "Aeropers",
+       "publisher_kind": "union",
+       "retrieved": "2026-11-19",
+       "source_id": "src-aeropers-ch-58ecdc75",
+       "source_type": "union_cba",
+       "title": "Rundschau 4/2026 (Arbeitsbedingungen von gestern)",
+       "url": "https://aeropers.ch/archiv/file/RS%202026/Rundschau_4-26.pdf"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 128,
+     "value_text": "128"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-19",
+     "company": "swiss",
+     "cond_ja": "rolling 3-month minimum。補足: Article (p. 8) also notes a minimum of 9 days off per month on short-haul under the current GAV。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-10-21",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "arbeiten – und trotzdem die Summe der rollenden 32 freien Tage",
+       "source_id": "src-aeropers-ch-58ecdc75",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9b8c8dbbab071665",
+     "id": "swiss.work.days-off.f7a3f7d4",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "休日（月）",
+     "pack": "pvr-20261119-gm-swiss",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-21",
+       "publisher": "Aeropers",
+       "publisher_kind": "union",
+       "retrieved": "2026-11-19",
+       "source_id": "src-aeropers-ch-58ecdc75",
+       "source_type": "union_cba",
+       "title": "Rundschau 4/2026 (Arbeitsbedingungen von gestern)",
+       "url": "https://aeropers.ch/archiv/file/RS%202026/Rundschau_4-26.pdf"
+      }
+     ],
+     "unit": "days/3 months",
+     "use": "条件つき",
+     "value": 32,
+     "value_text": "32"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-19",
+     "company": "swiss",
+     "cond_ja": "part-time 40%-95% possible。補足: Bidding system used for roster requests; GAV 2023 moved roster publication one week earlier (travelnews.ch, 2023-02-28)。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Irregular shifts mean you often have several days off in a row",
+       "source_id": "src-swiss-com-19fda4ce",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a45b706ca4141d98",
+     "id": "swiss.work.roster-pattern.40274382",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261119-gm-swiss",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "SWISS",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-19",
+       "source_id": "src-swiss-com-19fda4ce",
+       "source_type": "official_package",
+       "title": "Pilots",
+       "url": "https://www.swiss.com/corporate/en/careers/professional-fields/pilots"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Irregular shifts",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -173688,6 +174727,263 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "value_text": null
     }
    ],
+   "fleet": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-19",
+     "company": "vueling",
+     "cond_ja": "A319-100, as of 2025-08-31。補足: 【Wikipedia】Source states \"As of August 2025\"; official Vueling fleet page lacks per-type counts and IAG 2025 Annual Report fleet table was truncated in PDF browse; excludes 50 Boeing 737 MAX on order.",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-10-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Airbus A319-100 6 — 144",
+       "source_id": "src-en-wikipedia-org-b9439fcf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4c17566cf82a7894",
+     "id": "vueling.fleet.a319-100.a8ab653a",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "a319_100",
+     "label_ja": "機種ごとの機数（A319-100）",
+     "pack": "pvr-20261119-gm-vueling",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-26",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-19",
+       "source_id": "src-en-wikipedia-org-b9439fcf",
+       "source_type": "third_party_reference",
+       "title": "Vueling",
+       "url": "https://en.wikipedia.org/wiki/Vueling"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 6,
+     "value_text": "100 6"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-19",
+     "company": "vueling",
+     "cond_ja": "A320-200, as of 2025-08-31。補足: 【Wikipedia】Source states \"As of August 2025\"; excludes aircraft on order.",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-10-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Airbus A320-200 92 — 180 186",
+       "source_id": "src-en-wikipedia-org-b9439fcf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fb354dfcd82b5739",
+     "id": "vueling.fleet.a320-200.e75d8645",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "a320_200",
+     "label_ja": "機種ごとの機数（A320-200）",
+     "pack": "pvr-20261119-gm-vueling",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-26",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-19",
+       "source_id": "src-en-wikipedia-org-b9439fcf",
+       "source_type": "third_party_reference",
+       "title": "Vueling",
+       "url": "https://en.wikipedia.org/wiki/Vueling"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 92,
+     "value_text": "200 92"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-19",
+     "company": "vueling",
+     "cond_ja": "A320neo, as of 2025-08-31。補足: 【Wikipedia】Source states \"As of August 2025\"; excludes aircraft on order.",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-10-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Airbus A320neo 22 — 186",
+       "source_id": "src-en-wikipedia-org-b9439fcf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1bdd692fd947b094",
+     "id": "vueling.fleet.a320neo.26eb3e10",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "a320neo",
+     "label_ja": "機種ごとの機数（A320neo）",
+     "pack": "pvr-20261119-gm-vueling",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-26",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-19",
+       "source_id": "src-en-wikipedia-org-b9439fcf",
+       "source_type": "third_party_reference",
+       "title": "Vueling",
+       "url": "https://en.wikipedia.org/wiki/Vueling"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 22,
+     "value_text": "22"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-19",
+     "company": "vueling",
+     "cond_ja": "A321-200, as of 2025-08-31。補足: 【Wikipedia】Source states \"As of August 2025\"; excludes aircraft on order.",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-10-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Airbus A321-200 18 — 220",
+       "source_id": "src-en-wikipedia-org-b9439fcf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1a235457f9631d2f",
+     "id": "vueling.fleet.a321-200.db618dd1",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "a321_200",
+     "label_ja": "機種ごとの機数（A321-200）",
+     "pack": "pvr-20261119-gm-vueling",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-26",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-19",
+       "source_id": "src-en-wikipedia-org-b9439fcf",
+       "source_type": "third_party_reference",
+       "title": "Vueling",
+       "url": "https://en.wikipedia.org/wiki/Vueling"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 18,
+     "value_text": "200 18"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-19",
+     "company": "vueling",
+     "cond_ja": "A321neo, as of 2025-08-31。補足: 【Wikipedia】Source states \"As of August 2025\"; excludes aircraft on order.",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-10-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Airbus A321neo 4 — 236",
+       "source_id": "src-en-wikipedia-org-b9439fcf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3faf80e304e3f3e2",
+     "id": "vueling.fleet.a321neo.0d60e1c9",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "a321neo",
+     "label_ja": "機種ごとの機数（A321neo）",
+     "pack": "pvr-20261119-gm-vueling",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-26",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-19",
+       "source_id": "src-en-wikipedia-org-b9439fcf",
+       "source_type": "third_party_reference",
+       "title": "Vueling",
+       "url": "https://en.wikipedia.org/wiki/Vueling"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 4,
+     "value_text": "4"
+    }
+   ],
    "jobs": [
     {
      "amount": null,
@@ -173951,6 +175247,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": 124,
      "value_text": "124"
+    }
+   ],
+   "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-19",
+     "company": "vueling",
+     "cond_ja": "self-funded A320 type rating; no bond。補足: 【掲示板】No training bond; pilots must self-fund their A320 type rating (posted by user 21pilots in reply to question on whether Vueling offers type rating with a bond or salary deduction).",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-11-03",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Y lo de la HT, ídem. Te sacas la habilitación por tu cuenta donde más rabia te dé",
+       "source_id": "src-pprune-org-7c297dc6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7481538bf081422e",
+     "id": "vueling.work.training-bond.8e8b3a02",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "訓練費の拘束",
+     "pack": "pvr-20261119-gm-vueling",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-11-03",
+       "publisher": "PPRuNe",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-19",
+       "source_id": "src-pprune-org-7c297dc6",
+       "source_type": "community_reference",
+       "title": "Vueling 2026 (Spanish Forum)",
+       "url": "https://www.pprune.org/spanish-forum/668860-vueling-2026-a.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Te sacas la habilitación por tu cuenta",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-19",
+     "company": "vueling",
+     "cond_ja": "internal upgrade only (approximate)。補足: 【第三者】Pilot-reported figure citing pilotjobsnetwork.com; IV Convenio Colectivo (BOE-A-2026-5693) defines Commander as company designation without a fixed year threshold.",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-05-15",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "command by internal upgrade only, in about 10 years",
+       "source_id": "src-forallpilots-com-acb0fdd3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1e9db6a21369b1b8",
+     "id": "vueling.work.upgrade-years-fo.1af89327",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "副操縦士の機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-vueling",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-05-15",
+       "publisher": "ForAllPilots",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-19",
+       "source_id": "src-forallpilots-com-acb0fdd3",
+       "source_type": "third_party_reference",
+       "title": "Vueling",
+       "url": "https://forallpilots.com/airlines/vueling"
+      }
+     ],
+     "unit": "years",
+     "use": "条件つき",
+     "value": 10,
+     "value_text": "10"
     }
    ]
   },
@@ -235500,6 +236902,118 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "amount": null,
      "applies_to": {
       "base": "Barcelona",
+      "note_ja": "街「Barcelona」は--city vueling=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-19",
+     "city": "barcelona",
+     "company": "vueling",
+     "cond_ja": "Plaça Catalunya (Eixample) → Barcelona-El Prat Airport (BCN) T1/T2。手段: bus, Aerobús A1/A2。補足: Official Aerobús shuttle; A1 serves Terminal 1 and A2 serves Terminal 2B/2C from Plaça Catalunya (Eixample).",
+     "currency": null,
+     "district": "Plaça Catalunya (Eixample) → Barcelona-El Prat Airport (BCN) T1/T2",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The journey takes approximately 30 to 35 minutes, depending on the time slot when you take the bus.",
+       "source_id": "src-aerobusbarcelona-es-23f87680",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b72bcad18a90353a",
+     "id": "vueling.living.commute.647535c3",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Plaça Catalunya → Barcelona-El Prat Airport）",
+     "pack": "pvr-20261119-gm-vueling",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Monbus Aerobús",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-19",
+       "source_id": "src-aerobusbarcelona-es-23f87680",
+       "source_type": "official_package",
+       "title": "FAQs",
+       "url": "https://aerobusbarcelona.es/en/faqs/"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 35,
+     "value_text": "35"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Barcelona",
+      "note_ja": "街「Barcelona」は--city vueling=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-19",
+     "city": "barcelona",
+     "company": "vueling",
+     "cond_ja": "Zona Universitària (Les Corts / Pedralbes) → Barcelona-El Prat Airport (BCN) T1/T2。手段: train, TMB Metro L9 Sud。補足: Official TMB Metro L9 Sud connecting Aeroport T1/T2 to Zona Universitària (Les Corts / Pedralbes).",
+     "currency": null,
+     "district": "Zona Universitària (Les Corts / Pedralbes) → Barcelona-El Prat Airport (BCN) T1/T2",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The journey from the airport to Barcelona city center by metro takes you 32 minutes.",
+       "source_id": "src-tmb-cat-811814c0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "72269201fecfe71d",
+     "id": "vueling.living.commute.9e848c24",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Zona Universitària → Barcelona-El Prat Airport）",
+     "pack": "pvr-20261119-gm-vueling",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "TMB",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-19",
+       "source_id": "src-tmb-cat-811814c0",
+       "source_type": "official_package",
+       "title": "From the airport by metro",
+       "url": "https://www.tmb.cat/en/visit-barcelona/public-transport/metro-airport"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 32,
+     "value_text": "32"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Barcelona",
       "note_ja": "会社の制度ではなく、拠点都市の一般交通・地区の事実。乗員居住実績・人気は確認していない。",
       "pilot_specific": false
      },
@@ -247983,6 +249497,73 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ],
    "towns": []
   },
+  "frankfurt": {
+   "airlines": [
+    "lufthansa"
+   ],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Frankfurt",
+      "note_ja": "街「Frankfurt」は--city lufthansa=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-19",
+     "city": "frankfurt",
+     "company": "lufthansa",
+     "cond_ja": "Bad Homburg → Frankfurt (M) Flughafen Regionalbf (FRA)。手段: train, S-Bahn (1 transfer)。補足: Fastest rail connection via S-Bahn with 1 transfer; approx. 51 connections per day。",
+     "currency": null,
+     "district": "Bad Homburg → Frankfurt (M) Flughafen Regionalbf (FRA)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2026-11-15",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "beträgt 0 Stunden und 40 Minuten",
+       "source_id": "src-bahn-de-43f45dc4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a71c3278d263ffba",
+     "id": "lufthansa.living.commute.aac1b939",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Bad Homburg → Frankfurt）",
+     "pack": "pvr-20261119-gm-lufthansa",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-15",
+       "publisher": "Deutsche Bahn",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-19",
+       "source_id": "src-bahn-de-43f45dc4",
+       "source_type": "official_package",
+       "title": "Bad Homburg - Frankfurt (M) Flughafen Regionalbf",
+       "url": "https://www.bahn.de/reisen/view/verbindung/bad-homburg/flughafen-frankfurt.shtml"
+      }
+     ],
+     "unit": "分",
+     "use": "条件つき",
+     "value": 40,
+     "value_text": "40"
+    }
+   ],
+   "name": "Frankfurt",
+   "name_en": null,
+   "rents": [],
+   "towns": []
+  },
   "fukuoka": {
    "airlines": [
     "ana-wings",
@@ -251267,9 +252848,67 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "helsinki": {
    "airlines": [
+    "finnair",
     "norwegian"
    ],
-   "commute": [],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Helsinki",
+      "note_ja": "街「Helsinki」は--city finnair=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-19",
+     "city": "helsinki",
+     "company": "finnair",
+     "cond_ja": "Helsinki Central Railway Station (Kamppi / City Center) → Helsinki Airport (HEL)。手段: train, HSL I line。補足: P train takes about 32 minutes via Myyrmäki; ABC zone ticket required.",
+     "currency": null,
+     "district": "Helsinki Central Railway Station (Kamppi / City Center) → Helsinki Airport (HEL)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The I train journey time is about 27 minutes (Helsinki–Tikkurila–Airport–Myyrmäki–Helsinki).",
+       "source_id": "src-hsl-fi-446824f4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "88dc4d42c2dd2bcd",
+     "id": "finnair.living.commute.cb37da50",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Helsinki Central Railway Station → Helsinki Airpo…",
+     "pack": "pvr-20261119-gm-finnair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HSL",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-19",
+       "source_id": "src-hsl-fi-446824f4",
+       "source_type": "official_package",
+       "title": "Airport train",
+       "url": "https://www.hsl.fi/en/travelling/visitors/airport-train"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 27,
+     "value_text": "27"
+    }
+   ],
    "name": "Helsinki",
    "name_en": null,
    "rents": [
@@ -260463,6 +262102,62 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "AenaはChamartínとAeropuertoT4を結ぶCercanías鉄道を案内",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Madrid",
+      "note_ja": "街「Madrid」は--city iberia=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-19",
+     "city": "madrid",
+     "company": "iberia",
+     "cond_ja": "Nuevos Ministerios (Chamberí / Chamartín) → Adolfo Suárez Madrid-Barajas Airport (MAD) Terminal 4。手段: metro, Metro de Madrid Line 8。補足: Official Aena airport transit guide for Metro de Madrid Line 8 (Nuevos Ministerios – Aeropuerto T4); Terminal 4 is Iberia's main hub terminal.",
+     "currency": null,
+     "district": "Nuevos Ministerios (Chamberí / Chamartín) → Adolfo Suárez Madrid-Barajas Airport (MAD) Terminal 4",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Aeropuerto T4. Terminal 4. Planta -1 18 minutos desde Nuevos Ministerios",
+       "source_id": "src-aena-es-bfed7300",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d825c0670ea104fa",
+     "id": "iberia.living.commute.a9fae7f7",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Nuevos Ministerios → Adolfo Suárez Madrid-Barajas…",
+     "pack": "pvr-20261119-gm-iberia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Aena",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-19",
+       "source_id": "src-aena-es-bfed7300",
+       "source_type": "official_package",
+       "title": "Cómo llegar en metro al Aeropuerto Adolfo Suárez Madrid-Barajas",
+       "url": "https://www.aena.es/es/adolfo-suarez-madrid-barajas/como-llegar/metro.html"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 18,
+     "value_text": "1 18"
     }
    ],
    "name": "Madrid(city; airport未確定)",
@@ -286102,7 +287797,64 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "airlines": [
     "austrian"
    ],
-   "commute": [],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Vienna",
+      "note_ja": "街「Vienna」は--city austrian=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-19",
+     "city": "vienna",
+     "company": "austrian",
+     "cond_ja": "Wien Hauptbahnhof (Wieden / 4th district area) → Vienna International Airport (VIE)。手段: train, ÖBB Railjet / Intercity。補足: Half-hourly nonstop service 05:42–22:42 from Wien Hbf (bordering Wieden / 4th district). Note: CAT by bus from Wien Mitte (adjacent to Innere Stadt / 1st district) takes 21 minutes during Stammstrecke construction through Oct 2027.",
+     "currency": null,
+     "district": "Wien Hauptbahnhof (Wieden / 4th district area) → Vienna International Airport (VIE)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Die ÖBB Railjets und Intercity-Züge bringen Sie ab 15 Minuten nonstop von Wien Hauptbahnhof zum Flughafen Wien.",
+       "source_id": "src-oebb-at-76b82205",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "94f864c1bf4b5745",
+     "id": "austrian.living.commute.2f6e0b2b",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Wien Hauptbahnhof → Vienna International Airport）",
+     "pack": "pvr-20261119-gm-austrian",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ÖBB",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-19",
+       "source_id": "src-oebb-at-76b82205",
+       "source_type": "official_package",
+       "title": "Anreise aus Wien",
+       "url": "https://www.oebb.at/de/regionale-angebote/ueberregionale-angebote/anreise-zum-flughafen/anreise-wien"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 15,
+     "value_text": "15"
+    }
+   ],
    "name": "Vienna",
    "name_en": null,
    "rents": [
@@ -288120,6 +289872,302 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "value_text": {
       "3bed": "4,082"
+     }
+    }
+   ],
+   "towns": []
+  },
+  "zurich": {
+   "airlines": [
+    "swiss"
+   ],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Zurich",
+      "note_ja": "街「Zurich」は--city swiss=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-19",
+     "city": "zurich",
+     "company": "swiss",
+     "cond_ja": "Küsnacht ZH → Zurich Airport (ZRH)。手段: train, SBB S16。補足: 【地図】Direct SBB S16 train every 30 minutes。",
+     "currency": null,
+     "district": "Küsnacht ZH → Zurich Airport (ZRH)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Take the train from Küsnacht ZH to Zürich Flughafen train S16 28 min",
+       "source_id": "src-rome2rio-com-e92bc74b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a47793944d395270",
+     "id": "swiss.living.commute.4d494732",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Küsnacht ZH → Zurich Airport）",
+     "pack": "pvr-20261119-gm-swiss",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rome2Rio",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-19",
+       "source_id": "src-rome2rio-com-e92bc74b",
+       "source_type": "third_party_reference",
+       "title": "Küsnacht to Zurich Airport (ZRH)",
+       "url": "https://www.rome2rio.com/s/K%C3%BCsnacht/Zurich-Airport-ZRH"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 28,
+     "value_text": "16 28"
+    }
+   ],
+   "name": "Zurich",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Zurich",
+      "note_ja": "街「Zurich」は--city swiss=… で指定から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 CHF の国（スイス）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-19",
+     "city": "zurich",
+     "company": "swiss",
+     "cond_ja": "英: undefined。原部屋表記「Bedrooms: 1（Wohnung: 2 Zi）」。数字の種類: Zurich, Küsnacht (ZH)。家具: undefined。補足: 【第三者】Swiss 2-Zimmer (2 rooms) corresponds to 1-bedroom apartment; October 2026 data。",
+     "currency": "CHF",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Wohnung: 2 Zi CHF 2'207",
+       "source_id": "src-realadvisor-ch-15fc8cdb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ffd8a9e68f868330",
+     "id": "swiss.living.rent-1bed.9525aa3c",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "Bedrooms: 1（Wohnung: 2 Zi）",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261119-gm-swiss",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-01",
+       "publisher": "RealAdvisor",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-19",
+       "source_id": "src-realadvisor-ch-15fc8cdb",
+       "source_type": "third_party_reference",
+       "title": "Immobilienpreise in Küsnacht (ZH)",
+       "url": "https://realadvisor.ch/de/immobilienpreise-pro-m2/stadt-kusnacht-zh"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 2207
+     },
+     "value_text": {
+      "1bed": "2'207"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Zurich",
+      "note_ja": "街「Zurich」は--city swiss=… で指定から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 CHF の国（スイス）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-19",
+     "city": "zurich",
+     "company": "swiss",
+     "cond_ja": "英: undefined。原部屋表記「Bedrooms: 2（Wohnung: 3 Zi）」。数字の種類: Zurich, Küsnacht (ZH)。家具: undefined。補足: 【第三者】Swiss 3-Zimmer (3 rooms) corresponds to 2-bedroom apartment; October 2026 data。",
+     "currency": "CHF",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Wohnung: 3 Zi CHF 3'038",
+       "source_id": "src-realadvisor-ch-15fc8cdb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bc563ec198e9bf6d",
+     "id": "swiss.living.rent-2bed.3a99dfeb",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "Bedrooms: 2（Wohnung: 3 Zi）",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261119-gm-swiss",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-01",
+       "publisher": "RealAdvisor",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-19",
+       "source_id": "src-realadvisor-ch-15fc8cdb",
+       "source_type": "third_party_reference",
+       "title": "Immobilienpreise in Küsnacht (ZH)",
+       "url": "https://realadvisor.ch/de/immobilienpreise-pro-m2/stadt-kusnacht-zh"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 3038
+     },
+     "value_text": {
+      "2bed": "3'038"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Zurich",
+      "note_ja": "街「Zurich」は--city swiss=… で指定から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 CHF の国（スイス）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-19",
+     "city": "zurich",
+     "company": "swiss",
+     "cond_ja": "英: undefined。原部屋表記「Bedrooms: 3（Wohnung: 4 Zi）」。数字の種類: Zurich, Küsnacht (ZH)。家具: undefined。補足: 【第三者】Swiss 4-Zimmer (4 rooms) corresponds to 3-bedroom apartment; October 2026 data。",
+     "currency": "CHF",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Wohnung: 4 Zi CHF 3'887",
+       "source_id": "src-realadvisor-ch-15fc8cdb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "dbde82b457b9b96c",
+     "id": "swiss.living.rent-3bed.a352d42f",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "Bedrooms: 3（Wohnung: 4 Zi）",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261119-gm-swiss",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-01",
+       "publisher": "RealAdvisor",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-19",
+       "source_id": "src-realadvisor-ch-15fc8cdb",
+       "source_type": "third_party_reference",
+       "title": "Immobilienpreise in Küsnacht (ZH)",
+       "url": "https://realadvisor.ch/de/immobilienpreise-pro-m2/stadt-kusnacht-zh"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 3887
+     },
+     "value_text": {
+      "3bed": "3'887"
      }
     }
    ],
@@ -605530,6 +607578,14 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "revision": 1,
    "sha": "sha256:21e1724946889249"
   },
+  "pvr-20261119-gm-austrian": {
+   "records": {
+    "austrian.benefits.staff-travel.8885432b": "1d4275a666634edd",
+    "austrian.living.commute.2f6e0b2b": "94f864c1bf4b5745"
+   },
+   "revision": 1,
+   "sha": "sha256:e6cb4c8cf242448e"
+  },
   "pvr-20261119-gm-avelo-airlines": {
    "records": {
     "avelo-airlines.benefits.staff-travel.453a409d": "69a563e183bed37a",
@@ -605695,6 +607751,15 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "revision": 1,
    "sha": "sha256:1f3a4cb341e8c633"
   },
+  "pvr-20261119-gm-finnair": {
+   "records": {
+    "finnair.benefits.staff-travel.3df2717b": "875e3d5bf39b520e",
+    "finnair.living.commute.cb37da50": "88dc4d42c2dd2bcd",
+    "finnair.work.roster-pattern.dea3b769": "57ee36ccb267156c"
+   },
+   "revision": 1,
+   "sha": "sha256:a7c16e4e998c67ae"
+  },
   "pvr-20261119-gm-gojet": {
    "records": {
     "gojet.benefits.annual-leave.63453823": "e425113289023699",
@@ -605721,6 +607786,14 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    },
    "revision": 1,
    "sha": "sha256:fefba55784ab8ed1"
+  },
+  "pvr-20261119-gm-iberia": {
+   "records": {
+    "iberia.base.pilot-base.c0c4bf22": "ab65d2e1abdf85ae",
+    "iberia.living.commute.a9fae7f7": "d825c0670ea104fa"
+   },
+   "revision": 1,
+   "sha": "sha256:faa6e4ff07817eaa"
   },
   "pvr-20261119-gm-icelandair": {
    "records": {
@@ -605874,6 +607947,21 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "revision": 1,
    "sha": "sha256:15067847c82e991a"
   },
+  "pvr-20261119-gm-lufthansa": {
+   "records": {
+    "lufthansa.base.pilot-base-city.6ffa49eb": "49232bc7123df036",
+    "lufthansa.base.pilot-base-city.dde4bc69": "cd03efc30986bfea",
+    "lufthansa.base.pilot-base.25c62bc4": "bf167748ceae8ad2",
+    "lufthansa.base.pilot-base.c6488887": "0a6f011f88670a52",
+    "lufthansa.benefits.staff-travel.de26388d": "b60f9b8ab113bc06",
+    "lufthansa.jobs.fo-right-to-work-fo.1c7c56d8": "6bc1a7679a83ffe3",
+    "lufthansa.living.commute.aac1b939": "a71c3278d263ffba",
+    "lufthansa.work.upgrade-years.4e401971": "324ede513705ba28",
+    "lufthansa.work.working-time.025e51e3": "440b284ca6eaa9b3"
+   },
+   "revision": 1,
+   "sha": "sha256:534cba7ad58c6087"
+  },
   "pvr-20261119-gm-northern-air-cargo": {
    "records": {
     "northern-air-cargo.benefits.annual-leave.b56e144a": "1bacfc013d9799e0",
@@ -605956,6 +608044,24 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "revision": 1,
    "sha": "sha256:b4aa59b93cd6c5bb"
   },
+  "pvr-20261119-gm-swiss": {
+   "records": {
+    "swiss.base.pilot-base-city.2b523e66": "074dcc86f688fc8a",
+    "swiss.base.pilot-base-city.6ff5f64c": "e344a436df3835b4",
+    "swiss.base.pilot-base.6d88746c": "10dfc5450ecacda8",
+    "swiss.base.pilot-base.9e692e18": "84019f030b796489",
+    "swiss.benefits.annual-leave.8b070e1c": "a03e1de45df52c17",
+    "swiss.living.commute.4d494732": "a47793944d395270",
+    "swiss.living.rent-1bed.9525aa3c": "ffd8a9e68f868330",
+    "swiss.living.rent-2bed.3a99dfeb": "bc563ec198e9bf6d",
+    "swiss.living.rent-3bed.a352d42f": "dbde82b457b9b96c",
+    "swiss.work.annual-days-off.64fde384": "08a29b7a1d3c7ed2",
+    "swiss.work.days-off.f7a3f7d4": "9b8c8dbbab071665",
+    "swiss.work.roster-pattern.40274382": "a45b706ca4141d98"
+   },
+   "revision": 1,
+   "sha": "sha256:6d12fdcabbfff57d"
+  },
   "pvr-20261119-gm-tap": {
    "records": {
     "tap.base.pilot-base.63f761f4": "22b1288c6d18703b",
@@ -606019,6 +608125,21 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    },
    "revision": 1,
    "sha": "sha256:1aaaf47bbed95218"
+  },
+  "pvr-20261119-gm-vueling": {
+   "records": {
+    "vueling.fleet.a319-100.a8ab653a": "4c17566cf82a7894",
+    "vueling.fleet.a320-200.e75d8645": "fb354dfcd82b5739",
+    "vueling.fleet.a320neo.26eb3e10": "1bdd692fd947b094",
+    "vueling.fleet.a321-200.db618dd1": "1a235457f9631d2f",
+    "vueling.fleet.a321neo.0d60e1c9": "3faf80e304e3f3e2",
+    "vueling.living.commute.647535c3": "b72bcad18a90353a",
+    "vueling.living.commute.9e848c24": "72269201fecfe71d",
+    "vueling.work.training-bond.8e8b3a02": "7481538bf081422e",
+    "vueling.work.upgrade-years-fo.1af89327": "1e9db6a21369b1b8"
+   },
+   "revision": 1,
+   "sha": "sha256:0ccf767191272863"
   },
   "pvr-20261119-gm-westjet": {
    "records": {
