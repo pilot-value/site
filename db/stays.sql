@@ -1874,13 +1874,13 @@ as $fn$
       BOS IAD ATL MIA SAN STL DEN LGW
     ', E' \n'), '\s+'),
     'turkish-airlines', regexp_split_to_array(btrim('
-      SIN MIA DFW LAX SFO DTW BOS EWR IAD ORD ATL JFK IAH SEA DEN IST
+      SIN MIA DFW LAX SFO DTW BOS EWR IAD ORD ATL JFK IAH SEA DEN
     ', E' \n'), '\s+'),
     'aegean', regexp_split_to_array(btrim('
-      ATH DXB
+      DXB
     ', E' \n'), '\s+'),
     'aer-lingus', regexp_split_to_array(btrim('
-      CLE IAD BOS DEN ORD SEA LAX MCO JFK PIT BDL MSP IND PHL SFO EWR RDU BNA SNN DUB
+      CLE IAD BOS DEN ORD SEA LAX MCO JFK PIT BDL MSP IND PHL SFO EWR RDU BNA
     ', E' \n'), '\s+'),
     'austrian', regexp_split_to_array(btrim('
       BOS EWR JFK LAX ORD LHR ZRH FRA CDG MUC
@@ -1895,18 +1895,18 @@ as $fn$
       JFK MIA BOS SFO LAX DFW IAD MCO ORD EWR SJU
     ', E' \n'), '\s+'),
     'icelandair', regexp_split_to_array(btrim('
-      BWI BNA MSP RDU BOS DEN SEA EWR IAD PIT PDX MCO ORD JFK YHZ YVR YYZ KEF AGP ALC
-      AMS ARN BCN BER BGO BRU CDG CPH DUB EDI FAE FAO FCO FRA GDN GLA GOH HEL LGW LHR
-      LIS LPA MAN MUC MXP NCE OSL PRG RKV TFS ZRH
+      BWI BNA MSP RDU BOS DEN SEA EWR IAD PIT PDX MCO ORD JFK YHZ YVR YYZ AGP ALC AMS
+      ARN BCN BER BGO BRU CDG CPH DUB EDI FAE FAO FCO FRA GDN GLA GOH HEL LGW LHR LIS
+      LPA MAN MUC MXP NCE OSL PRG TFS ZRH
     ', E' \n'), '\s+'),
     'ita-airways', regexp_split_to_array(btrim('
-      IAH FLR MAD CDG LIN FCO NAP
+      IAH FLR MAD CDG NAP
     ', E' \n'), '\s+'),
     'lot', regexp_split_to_array(btrim('
       JFK LAX EWR MIA ORD SFO KRK RZE ARN BRU CDG FCO IST LHR MXP ORY OSL
     ', E' \n'), '\s+'),
     'norwegian', regexp_split_to_array(btrim('
-      BGO TOS SVG CPH BLL TRD ARN LGW AAL
+      TOS BLL LGW AAL
     ', E' \n'), '\s+'),
     'ryanair', regexp_split_to_array(btrim('
       ZAZ AAR SPU CPH OSL SCQ CFU PMI DUB FCO FSC PED BRU ABZ MAH AMS DLM MRS TSF VRN
@@ -1928,7 +1928,7 @@ as $fn$
       ICN ORD SFO EWR BOS IAD LAX MIA JFK GVA ZRH
     ', E' \n'), '\s+'),
     'tap', regexp_split_to_array(btrim('
-      MIA JFK SFO IAD BOS ORD LAX EWR CWB GIG TER LIS
+      MIA JFK SFO IAD BOS ORD LAX EWR CWB GIG TER
     ', E' \n'), '\s+')
   ) || jsonb_build_object(
     'virgin-atlantic', regexp_split_to_array(btrim('
@@ -2031,11 +2031,8 @@ as $fn$
       IAH LAX PSP AUS FLL BOS SLC ORD RSW BNA SEA OGG YQR SFO TPA PDX HNL YHZ DTW SAN
       PHX MCO DEN ANC JFK SNA MSP IAD LAS ATL YXE KEF
     ', E' \n'), '\s+'),
-    'aeromexico', regexp_split_to_array(btrim('
-      MEX
-    ', E' \n'), '\s+'),
     'avianca', regexp_split_to_array(btrim('
-      BOS FLL TPA DFW MIA JFK IAD MCO ORD BOG LIM SJU MDE CLO BAQ PEI
+      BOS FLL TPA DFW MIA JFK IAD MCO ORD LIM SJU CLO BAQ PEI
     ', E' \n'), '\s+'),
     'copa-airlines', regexp_split_to_array(btrim('
       DEN SAN LAX LAS MIA AUS SFO BOS RDU IAD ORD ATL BWI FLL TPA JFK MCO SJU

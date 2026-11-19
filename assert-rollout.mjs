@@ -777,7 +777,8 @@ const A2N = { hq: 0, days: 0, pr: 0 };
 /* ★2026-11-02 米国の貨物5社も同じ（米国20社の統合調査は給与表だけを pay-scales.mjs に入れた。調べの台帳にはまだ行が無い） */
 /* ★2026-11-03 北米追加20社の5社も同じ（給与表は pay-scales.mjs・条件は us-terms.mjs・暮らしは us-housing.mjs。調べの台帳には行が無い） */
 /* 2026-11-18 フライドバイ・吉祥航空は ChatGPT の穴の調べ（11-08 の答え）が台帳に入ったので外した */
-const NO_RESEARCH_YET = ['fedex-express', 'ups-airlines', 'atlas-air', 'abx-air', 'kalitta-air', 'avelo-airlines', 'gojet', 'northern-air-cargo', 'contour', 'jazz'];
+/* 2026-11-19 北米-1・北米-2 の調べで、ここに並べていた10社にも台帳の行が入った（調べの無い会社は、いま無い） */
+const NO_RESEARCH_YET = [];
 const O1N = { n: 0 };
 for (const s of ROLLED) {
   const b = ORIG[s], g = block(b, 'PV-GLANCE'), v = viewOf(s);

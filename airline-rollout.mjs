@@ -269,7 +269,7 @@ function factsJa(slug, R) {
   for (const k of ['work', 'benefits']) {
     /* ★2026-11-18：「今の公表」と数えるのは会社自身の資料か労働協約の行だけ。第三者の資料（口コミなど）の行が欄に在っても、
        募集要項の行は出す（数えていた日は、シンガポール航空・香港エクスプレスの募集要項の行がカードから消えた）。1行めは募集要項の行 */
-    if (out[k].some(f => f.lead && !f.third) || !ads[k].length) continue;
+    if (out[k].some(f => f.lead && f.src && ['company', 'agreement'].includes(f.src.kind)) || !ads[k].length) continue;   // 「今の公表」は会社自身の資料か労働協約の行（政府・第三者の行は数えない ── assert-rollout の E と同じ）
     for (const f of out[k]) f.lead = false;
     const add = ads[k].map(f => ({ ...f, tag: AD_TAG, lead: false }));
     /* 訓練生の行しか無いときは、その行が1行め（募集の札と前提の1行が、誰の募集の条件かを言う） */
