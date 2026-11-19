@@ -30,14 +30,14 @@ export const TERMS = Object.freeze({
     "key": "reserve_guarantee",
     "ref": false,
     "ja": {
-     "label": "スタンバイ勤務の月の最低保証",
-     "value": "72〜80時間分（その月の通常勤務の平均時間に連動）",
-     "note": ""
+     "label": "スタンバイ要員の月の最低保証",
+     "value": "72〜80時間分（その月の、乗務が決まっている人の勤務表の平均時間に連動）",
+     "note": "北米の会社では、月ごとに「乗務が決まっている月」と「スタンバイ要員の月」に分かれる。パイロットが希望を出し、勤続の長い人の希望から順に通る"
     },
     "en": {
      "label": "Reserve guarantee",
      "value": "72–80 credit hours, tied to the month's ALV",
-     "note": ""
+     "note": "North American carriers split each month into line-holder and reserve months, awarded by seniority from pilots’ bids"
     }
    },
    {
@@ -388,7 +388,7 @@ export const TERMS = Object.freeze({
     "key": "reserve_guarantee",
     "ref": true,
     "ja": {
-     "label": "スタンバイ勤務の月の最低保証",
+     "label": "スタンバイ要員の月の最低保証",
      "value": "",
      "rows": [
       [
@@ -400,7 +400,7 @@ export const TERMS = Object.freeze({
        "73時間分"
       ]
      ],
-     "note": ""
+     "note": "北米の会社では、月ごとに「乗務が決まっている月」と「スタンバイ要員の月」に分かれる。パイロットが希望を出し、勤続の長い人の希望から順に通る"
     },
     "en": {
      "label": "Reserve guarantee",
@@ -415,7 +415,7 @@ export const TERMS = Object.freeze({
        "73 hours"
       ]
      ],
-     "note": ""
+     "note": "North American carriers split each month into line-holder and reserve months, awarded by seniority from pilots’ bids"
     }
    },
    {
@@ -601,20 +601,20 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "65時間分か、その月の通常勤務の平均時間から決まる下限の、多いほう",
-     "note": ""
+     "value": "65時間分か、その月の、乗務が決まっている人の勤務表の平均時間から決まる下限の、多いほう",
+     "note": "北米の会社では、月ごとに「乗務が決まっている月」と「スタンバイ要員の月」に分かれる。パイロットが希望を出し、勤続の長い人の希望から順に通る"
     },
     "en": {
      "label": "Minimum guarantee",
      "value": "The greater of the ALV floor or 65 credit hours",
-     "note": ""
+     "note": "North American carriers split each month into line-holder and reserve months, awarded by seniority from pilots’ bids"
     }
    },
    {
     "key": "reserve_guarantee",
     "ref": true,
     "ja": {
-     "label": "スタンバイ勤務の月の最低保証",
+     "label": "スタンバイ要員の月の最低保証",
      "value": "",
      "rows": [
       [
@@ -1230,15 +1230,15 @@ export const TERMS = Object.freeze({
      "value": "",
      "rows": [
       [
-       "通常勤務の月",
+       "乗務が決まっている月",
        "17.6日"
       ],
       [
-       "スタンバイ勤務の月",
+       "スタンバイ要員の月",
        "15日"
       ]
      ],
-     "note": "2021年の平均"
+     "note": "北米の会社では、月ごとに「乗務が決まっている月」と「スタンバイ要員の月」に分かれる。パイロットが希望を出し、勤続の長い人の希望から順に通る。2021年の平均"
     },
     "en": {
      "label": "Days off per month (average)",
@@ -1253,7 +1253,7 @@ export const TERMS = Object.freeze({
        "15 days"
       ]
      ],
-     "note": "2021 averages"
+     "note": "North American carriers split each month into line-holder and reserve months, awarded by seniority from pilots’ bids. 2021 averages"
     }
    }
   ],
@@ -1304,19 +1304,19 @@ export const TERMS = Object.freeze({
      "value": "",
      "rows": [
       [
-       "通常勤務の月",
+       "乗務が決まっている月",
        "70時間分"
       ],
       [
-       "前もって呼ばれるスタンバイの月",
+       "スタンバイ要員の月（前もって呼ばれる）",
        "75時間分"
       ],
       [
-       "すぐ呼ばれるスタンバイの月",
+       "スタンバイ要員の月（すぐ呼ばれる）",
        "84時間分"
       ]
      ],
-     "note": ""
+     "note": "北米の会社では、月ごとに「乗務が決まっている月」と「スタンバイ要員の月」に分かれる。パイロットが希望を出し、勤続の長い人の希望から順に通る"
     },
     "en": {
      "label": "Monthly guarantee",
@@ -1335,7 +1335,7 @@ export const TERMS = Object.freeze({
        "84 hours"
       ]
      ],
-     "note": ""
+     "note": "North American carriers split each month into line-holder and reserve months, awarded by seniority from pilots’ bids"
     }
    },
    {
@@ -1610,15 +1610,15 @@ export const TERMS = Object.freeze({
      "value": "",
      "rows": [
       [
-       "通常勤務の月",
+       "乗務が決まっている月",
        "70時間分"
       ],
       [
-       "スタンバイ勤務の月",
+       "スタンバイ要員の月",
        "75時間分"
       ]
      ],
-     "note": ""
+     "note": "北米の会社では、月ごとに「乗務が決まっている月」と「スタンバイ要員の月」に分かれる。パイロットが希望を出し、勤続の長い人の希望から順に通る"
     },
     "en": {
      "label": "Minimum guarantee",
@@ -1633,7 +1633,7 @@ export const TERMS = Object.freeze({
        "75 hours"
       ]
      ],
-     "note": ""
+     "note": "North American carriers split each month into line-holder and reserve months, awarded by seniority from pilots’ bids"
     }
    },
    {
@@ -1999,13 +1999,13 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "通常勤務の月もスタンバイ勤務の月も75時間分",
-     "note": ""
+     "value": "乗務が決まっている月もスタンバイ要員の月も75時間分",
+     "note": "北米の会社では、月ごとに「乗務が決まっている月」と「スタンバイ要員の月」に分かれる。パイロットが希望を出し、勤続の長い人の希望から順に通る"
     },
     "en": {
      "label": "Minimum guarantee",
      "value": "75 hours a month, lineholders and reserve",
-     "note": ""
+     "note": "North American carriers split each month into line-holder and reserve months, awarded by seniority from pilots’ bids"
     }
    },
    {
@@ -2170,15 +2170,15 @@ export const TERMS = Object.freeze({
      "value": "",
      "rows": [
       [
-       "通常勤務の月",
+       "乗務が決まっている月",
        "70時間分"
       ],
       [
-       "スタンバイ勤務の月",
+       "スタンバイ要員の月",
        "72時間分"
       ]
      ],
-     "note": ""
+     "note": "北米の会社では、月ごとに「乗務が決まっている月」と「スタンバイ要員の月」に分かれる。パイロットが希望を出し、勤続の長い人の希望から順に通る"
     },
     "en": {
      "label": "Minimum guarantee",
@@ -2193,7 +2193,7 @@ export const TERMS = Object.freeze({
        "72 hours"
       ]
      ],
-     "note": ""
+     "note": "North American carriers split each month into line-holder and reserve months, awarded by seniority from pilots’ bids"
     }
    },
    {
@@ -3587,23 +3587,31 @@ export const TERMS = Object.freeze({
      "value": "",
      "rows": [
       [
-       "通常勤務の月",
+       "乗務が決まっている月",
        "14日"
       ],
       [
-       "スタンバイ勤務の月",
+       "スタンバイ要員の月",
        "13日"
       ],
       [
-       "両方がある月",
+       "両方が混ざる月",
        "14日"
       ],
       [
-       "1週間の年休を取る月",
-       "通常21日・スタンバイ20日・両方21日"
+       "1週間の年休を取る月（乗務が決まっている月）",
+       "21日"
+      ],
+      [
+       "1週間の年休を取る月（スタンバイ要員の月）",
+       "20日"
+      ],
+      [
+       "1週間の年休を取る月（両方が混ざる月）",
+       "21日"
       ]
      ],
-     "note": ""
+     "note": "北米の会社では、月ごとに「乗務が決まっている月」と「スタンバイ要員の月」に分かれる。パイロットが希望を出し、勤続の長い人の希望から順に通る"
     },
     "en": {
      "label": "Minimum days off",
@@ -3626,7 +3634,7 @@ export const TERMS = Object.freeze({
        "Line 21, reserve 20, composite 21"
       ]
      ],
-     "note": ""
+     "note": "North American carriers split each month into line-holder and reserve months, awarded by seniority from pilots’ bids"
     }
    },
    {
@@ -4086,13 +4094,13 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "最低保証",
-     "value": "通常勤務の月もスタンバイ勤務の月も70時間分",
-     "note": ""
+     "value": "乗務が決まっている月もスタンバイ要員の月も70時間分",
+     "note": "北米の会社では、月ごとに「乗務が決まっている月」と「スタンバイ要員の月」に分かれる。パイロットが希望を出し、勤続の長い人の希望から順に通る"
     },
     "en": {
      "label": "Minimum guarantee",
      "value": "70 hours a month, line and reserve",
-     "note": ""
+     "note": "North American carriers split each month into line-holder and reserve months, awarded by seniority from pilots’ bids"
     }
    },
    {
@@ -4152,13 +4160,13 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "通常勤務の月もスタンバイ勤務の月も70時間分",
-     "note": ""
+     "value": "乗務が決まっている月もスタンバイ要員の月も70時間分",
+     "note": "北米の会社では、月ごとに「乗務が決まっている月」と「スタンバイ要員の月」に分かれる。パイロットが希望を出し、勤続の長い人の希望から順に通る"
     },
     "en": {
      "label": "Minimum guarantee",
      "value": "70 hours a month, line and reserve",
-     "note": ""
+     "note": "North American carriers split each month into line-holder and reserve months, awarded by seniority from pilots’ bids"
     }
    },
    {
@@ -4280,7 +4288,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "月の休日（最低）",
-     "value": "通常勤務の月もスタンバイ勤務の月も12日",
+     "value": "乗務が決まっている月もスタンバイ要員の月も12日",
      "note": ""
     },
     "en": {
@@ -4492,13 +4500,13 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "最低保証",
-     "value": "通常勤務の月もスタンバイ勤務の月も65時間分",
-     "note": ""
+     "value": "乗務が決まっている月もスタンバイ要員の月も65時間分",
+     "note": "北米の会社では、月ごとに「乗務が決まっている月」と「スタンバイ要員の月」に分かれる。パイロットが希望を出し、勤続の長い人の希望から順に通る"
     },
     "en": {
      "label": "Minimum guarantee",
      "value": "65 credit hours a month, line and reserve",
-     "note": ""
+     "note": "North American carriers split each month into line-holder and reserve months, awarded by seniority from pilots’ bids"
     }
    },
    {
@@ -4850,14 +4858,14 @@ export const TERMS = Object.freeze({
       ],
       [
        "その後",
-       "機材と、通常勤務かスタンバイ勤務かで変わる"
+       "機材と、乗務が決まっている月かスタンバイ要員の月かで変わる"
       ],
       [
        "1年での調整",
        "年900時間を基準に調整する仕組みがある"
       ]
      ],
-     "note": "2023〜2027年の協約"
+     "note": "北米の会社では、月ごとに「乗務が決まっている月」と「スタンバイ要員の月」に分かれる。パイロットが希望を出し、勤続の長い人の希望から順に通る。2023〜2027年の協約"
     },
     "en": {
      "label": "Minimum guarantee",
@@ -4876,7 +4884,7 @@ export const TERMS = Object.freeze({
        "900-hour annual adjustment"
       ]
      ],
-     "note": "2023–2027 contract"
+     "note": "North American carriers split each month into line-holder and reserve months, awarded by seniority from pilots’ bids. 2023–2027 contract"
     }
    },
    {
