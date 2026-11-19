@@ -409,10 +409,16 @@ baland_ass/                            ブランド資産（※ brand_assets の
 ## 明細の Verified と、FOUNDING を保留中の口コミに付けない（2026-11-19）
 
 ★オーナー決定「明細提出で Verified をつける」「本物かどうかは 100% は確かめられないので5つの条件」「保留が解けたときだけ FOUNDING」
-「founding 100 は給与提出した人にも」。
+「founding 100 は給与提出した人にも」「my pay と my page に出して。real pay にはまだ出さなくていいや。目立ちすぎる」
+「verified pay もとりあえずなしでいい」「verified のマークとかはいるけどね」。
 
-- **Verified は行に付く**（REAL PAY の「出典」の ✓ Verified）。意味は「**その月の総支給が、本人が出した明細の印字と一致した**」まで。
-  画面にもそれ以上を書かない（`actual-pay.js` の説明の1行・個人情報のページの1段落）。
+- **Verified は行（月）に付く**。意味は「**その月の総支給が、本人が出した明細の印字と一致した**」まで。画面にもそれ以上を書かない。
+- **出すのは本人の画面だけ** ── MY PAY の月の緑のカードの「総支給」の横（`my-value.js` の `vfMark`）と、
+  MY PAGE の「あなたが出したもの」の給与の行（`profile.html` の `mine-vf`）。
+  ⚠️ **REAL PAY と会社ページにはまだ出さない**（`actual-pay.js` と `career-live.js` の `VF_OPEN = false`）。出す日は2つを一緒に true にし、
+  REAL PAY の「見えること」の説明の1行（とお知らせメールの写し `mail-bot/announce-mail.mjs`・`db/test-announce.mjs` の数）も戻す。
+- **Give & Get の表は REAL PAY の1段**（`pv-gates.js` の `TIERS` で DEEP PAY と VERIFIED PAY は `off`）。トップの見本の見出しからも VERIFIED PAY を外した。
+  ✓ Verified の印と「VERIFIED PAY」（明細の裏付けのある数字だけを集める、まだ無い画面）は別物。
 - 仕組みは一度きりの引換券 ── `parse-payslip` の `ticketEligible`（AI が「パイロットの給与明細」＋乗務時間か乗務手当・保証給＋明細の計算が合う）
   → 隠し欄 `f-psticket` → `submit_pay_report` が [db/payslip-verify.sql](db/payslip-verify.sql) の `pv_payslip_redeem` で年・月・通貨・総支給を照合。
   詳細と罠は [workflows/pay-form.md](workflows/pay-form.md) の冒頭。

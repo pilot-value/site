@@ -18,7 +18,8 @@ REAL PAY の「出典」の ✓ Verified を、明細を読んで出した行に
   （`db/test-payslip-parse.mjs` の ⑪ が見ている）。
 - ⚠️ **`f-psticket` を CARRY・下書き・`loadEdit` に入れない。** 券は一度きりで、使ったら DB から消える。
   券なしの出し直しは「総支給と通貨が前のままなら前の印を残す」（`submit_pay_report` の「①の手前」）。
-- ⚠️ フォームにも MY PAY にも Verified の字を出さない（今までどおり）。
+- 出すのは本人の画面だけ：MY PAY の月の緑のカードの「総支給」の横（`my-value.js` の `vfMark`）と MY PAGE の給与の行（`profile.html` の `mine-vf`）。
+  フォームには出さない。⚠️ REAL PAY と会社ページにはまだ出さない（`VF_OPEN = false`・オーナー「目立ちすぎる」）。
 - 運営が外すとき（SQL Editor）：
   `select id, airline, period_year, period_month, gross_monthly, currency from pay_reports where verify_level >= 1 order by created_at desc;`
   で行を見つけて `select pv_payslip_unverify('<id>');`。外した行は何を出し直しても戻らない。
