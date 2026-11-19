@@ -46,7 +46,7 @@ const { sanitize, periodOf, yearFromRaw, parseHours, reconcile, applyChecks, pay
         EARNING_KINDS, HOUR_KINDS, VARIABLE_BASIS, isCountRow, COUNT_MAX,
         readMoneyNum, isAmbiguousMoney, detectDecMark, CUR_DEC,
         buildRequest, readReply, readDiag, OUT_SCHEMA, MAX_TOKENS, READ_DEFAULT, READ_TIMEOUT_MS,
-        OUT_SCHEMA_MULTI, pagesNote, takeImages, MAX_PAGES } =
+        OUT_SCHEMA_MULTI, pagesNote, takeImages, MAX_PAGES, ticketEligible } =
   await import('../supabase/functions/parse-payslip/index.ts');
 
 let pass = 0, fail = 0;
@@ -766,8 +766,9 @@ console.log('\n⑧-b 約束1・4・5');
 ok(!/storage\.from\(/.test(SRC) && !/from\('pay_reports'\)/.test(SRC),
    '★画像も結果も Storage / DB に書いていない');
 ok(!/image_b64[^\n]*json\(/.test(SRC), '画像をレスポンスに返していない');
-ok(/return json\(\{ ok: true, result: applyChecks\(/.test(SRC),
-   '返すのはフォームの下書きだけ（投稿は本人が確認してから）');
+ok(/const result = applyChecks\(parsed, reconcile\(parsed\)\);/.test(SRC)
+   && /return json\(\{ ok: true, result, \.\.\.doc, \.\.\.\(ticket \? \{ ticket \} : \{\}\), build: BUILD \}\);/.test(SRC),
+   '返すのはフォームの下書きと（条件を満たせば）引換券だけ（投稿は本人が確認してから）');
 ok(/reason: 'quota_unavailable' \}, 503\)/.test(SRC),
    '★回数を数える所が動かないときは通さない（fail closed）');
 ok(/const MODEL = '[a-z0-9-]+';/.test(SRC) && (SRC.match(/claude-[a-z0-9-]+/g) || []).length === 1,
@@ -926,6 +927,45 @@ console.log('\n⑩ 続きのページをまとめて読む');
   ok(psMax && Number(psMax[1]) === MAX_PAGES, `★画面とサーバーで、まとめて送る枚数が同じ（${MAX_PAGES}）`);
   ok(/var SPLIT = \{ no_image: 1,/.test(PS),
      '★この版より古い関数（no_image）なら、画面は今までどおり1枚ずつ読み直す（Deploy より先に push しても壊れない）');
+}
+
+// ═══ ⑪ 明細の Verified の引換券（2026-11-19）═══════════════════════════
+console.log('\n⑪ 引換券を出してよい明細か（ticketEligible）');
+{
+  /* 印字どおりに計算が合う、パイロットの明細1枚（モデルの生の答えと、整えて検算した答え）。 */
+  const RAW = { pilot_payslip: true };
+  const good = (o = {}) => {
+    const p = slip({ earnings: [E('基本給', 900000, 'base'), E('乗務手当', 600000, 'flight_variable')],
+                     gross_total: 1500000, deductions_total: 300000, net_pay: 1200000,
+                     hours: [{ label: '乗務時間', raw: '72:30', value: 72.5, kind: 'block' }], ...o });
+    return applyChecks(p, reconcile(p));
+  };
+  ok(ticketEligible(RAW, good()) === true, 'パイロットの明細・計算が合う・年月と通貨と総支給が読める → 出す');
+  ok(ticketEligible({ pilot_payslip: false }, good()) === false, '★AI が「パイロットの給与明細ではない」と答えた → 出さない');
+  ok(ticketEligible({}, good()) === false && ticketEligible(null, good()) === false, '答えが無い（古い形）→ 出さない');
+  ok(ticketEligible(RAW, good({ net_pay: 1250000 })) === false, '★総支給−控除が手取りと合わない → 出さない');
+  ok(ticketEligible(RAW, good({ gross_total: 1600000 })) === false, '★支給の合計が印字の総支給と合わない → 出さない');
+  ok(ticketEligible(RAW, good({ deductions_total: null })) === false, '控除が読めず手取りを確かめられない → 出さない');
+  ok(ticketEligible(RAW, good({ confidence: 'medium' })) === false, 'AI の確かさが high でない → 出さない');
+  ok(ticketEligible(RAW, good({ period: null })) === false, '対象月が読めない → 出さない');
+  ok(ticketEligible(RAW, good({ currency: null })) === false, '通貨が読めない → 出さない');
+  ok(ticketEligible(RAW, good({ hours: [], earnings: [E('基本給', 1500000, 'base')] })) === false,
+     '乗務時間も乗務手当・保証給も無い → 出さない（パイロットの明細の印が無い）');
+  ok(ticketEligible(RAW, good({ hours: [], earnings: [E('Basic', 900000, 'base'), E('Min Guarantee', 600000, 'guarantee')] })) === true,
+     '時間の印字が無くても保証給があれば出す');
+  /* 本番の受け口：券は result の外・条件を通ったときだけ・失敗しても読み取りは止めない */
+  ok(/const ticket = ticketEligible\(got\.raw as Parsed, result\) \? await putTicket\(result\) : null;/.test(SRC),
+     '★本番の受け口は ticketEligible を通ったときだけ券を作る');
+  ok(/p_gross: Math\.round\(res\.gross_total as number\)/.test(SRC)
+     && /setField\('f-gross', String\(Math\.round\(res\.gross_total\)\)\)/.test(readFileSync(path.join(ROOT, 'payslip.js'), 'utf8')),
+     '★券の総支給と、画面が入力欄に入れる総支給は同じ丸め方（照合で1円もずれない）');
+  const put = SRC.slice(SRC.indexOf('async function putTicket'), SRC.indexOf('\n}\n', SRC.indexOf('async function putTicket')));
+  ok(/catch \{\s*return null;\s*\}/.test(put) && /if \(!r\.ok\) return null;/.test(put),
+     '券が作れなくても読み取りは失敗させない（null を返すだけ）');
+  ok(OUT_SCHEMA.properties.pilot_payslip.type === 'boolean' && OUT_SCHEMA.required.includes('pilot_payslip'),
+     '答えの形に「パイロットの給与明細か」が真偽で1つ（人を指す字は入らない）');
+  ok(/"pilot_payslip": true only when/.test(systemPrompt('ja')) && /This never changes how you read the amounts/.test(systemPrompt('ja')),
+     'プロンプトで判定の基準を言い、読み方は変えさせない');
 }
 
 console.log(`\n${pass} pass / ${fail} fail`);

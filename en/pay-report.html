@@ -1620,6 +1620,9 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
            送った瞬間に内訳が消える。あとで欄を分けたくなった日に遡って埋められるよう、
            読めたものだけは残しておく。控除の内訳は入れない（組合名は極めて機微）。 -->
       <input type="hidden" id="f-psdetail">
+      <!-- ★明細の Verified の引換券（2026-11-19）。payslip.js が読めた明細にだけ入れ、提出で payslip_ticket として送る。
+           DB が年・月・通貨・総支給を照合する（db/payslip-verify.sql）。画面には出さない・下書きにも入れない（CARRY に無い）。 -->
+      <input type="hidden" id="f-psticket">
       <!-- ★時給は人に聞かない（昼夜・国内国際で単価が割れるので「1つの数字」に
            ならない）。欄は畳んだのではなく消した。列と RPC は残っているので、
            明細から単価が読めるようになったらここへ入れれば、そのまま送られる。
@@ -6015,6 +6018,8 @@ function buildPayload(airline) {
        2026-09-11, unc() stripped the commas and broke the JSON). */
     pay_items:           $('f-payitems').value ? JSON.parse($('f-payitems').value) : null,
     source:              val('f-source') || 'web',
+    /* ★明細の Verified の引換券（2026-11-19）。val() を通さない（16進の文字列をそのまま）。 */
+    payslip_ticket:      $('f-psticket').value || null,
     /* The Spanish page (es/, generated from this file) records 'es' so Spanish submissions can be counted.
        The server keeps any value as-is (pay_reports.lang has no list). This page sends 'en' as before. */
     lang:                window.PV_LANG === 'es' ? 'es' : LANG,

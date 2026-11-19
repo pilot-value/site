@@ -960,7 +960,13 @@
                  月の欄に1つも書かず、年間ボーナスに足す（月の総支給にボーナスを入れて ×12 しない）。 */
             if (readMode === 'bonus') applyBonus(out.result, false);
             else if (isBonusOnly(out.result)) applyBonus(out.result, true);
-            else apply(out.result);
+            else {
+              apply(out.result);
+              /* ★明細の Verified の引換券（2026-11-19）。サーバーが「券を出してよい明細」と決めたときだけ来る。
+                   提出のときに payslip_ticket として送り、DB が年・月・通貨・総支給を照合する（db/payslip-verify.sql）。
+                   writeHidden なので、次の明細を読めば clearPrevFilled が消す。画面には何も出さない。 */
+              writeHidden('f-psticket', typeof out.ticket === 'string' ? out.ticket : null);
+            }
           } catch (e) { throw tag('apply_failed', 'apply'); }
           busy = false;
           batchOk++;
