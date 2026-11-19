@@ -150,6 +150,7 @@ function asFact(r) {
     key: r.key, ja: d.label, value: d.value, unit: '', cur: d.cur || '', per: d.per || '', at: dateOf(r), as_of: r.checked_at || '',
     cond_ja: d.cond || (ag ? ag.cond : ''), src, pilot: !(r.applies_to && r.applies_to.pilot_specific === false),
     use: r.use, tag: d.tag, id: r.id, h: r.h, lead: !!d.lead, fleet: d.fleet || '', rank: rankOf(r), order: (LINES[r.id] && LINES[r.id].order) || 0,
+    ...(d.rows ? { rows: d.rows } : {}),
     third: !FIRST_HAND.includes(src.kind),
   };
 }
@@ -180,7 +181,7 @@ function factsEn(J, slug, R) {
     const e = r && say(r, 'en'), src = r && srcOf(r, 'en');
     if (!e || !src || !src.name) { held.push({ id: f.id, why: '英語の言い方がまだ無い（airline-display.mjs の英語の対）', sec: sec || '' }); return null; }
     const ag = agreementOf((r.src || [])[0]);
-    return { ...f, ja: e.label, value: e.value, cur: e.cur || '', per: e.per || '', cond_ja: e.cond || (ag ? ag.cond_en || '' : ''), src,
+    return { ...f, ja: e.label, value: e.value, cur: e.cur || '', per: e.per || '', cond_ja: e.cond || (ag ? ag.cond_en || '' : ''), src, rows: e.rows || undefined,
       tag: f.tag === AD_TAG ? AD_TAG_EN : e.tag, fleet: e.fleet || '' };
   };
   const list = l => l.map(one).filter(Boolean);

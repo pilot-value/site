@@ -453,6 +453,8 @@ function fact(x, T = TX_JA) {
     pilot: x.pilot !== false,
     /* 第三者の資料の行（airline-rollout.mjs の FIRST_HAND の注）。「会社が公表している」の見出しと出典の欄に入れない印 */
     third: !!x.third,
+    /* 対象で値が違う行の「対象｜値」（airline-display.mjs の LINES の rows） */
+    ...(x.rows ? { rows: x.rows } : {}),
   };
 }
 const facts = (list, T = TX_JA) => (list || []).map(x => fact(x, T));

@@ -297,8 +297,9 @@ function sources(items, fold = false, dated = false, label = W.srcLabel) {
     : `<p class="pvg-srcs"><span>${esc(label)}</span>${links}</p>`;
 }
 /* 会社が公表している条件の一覧。勤務・訓練の4枚のカードと待遇の欄では「募集要項」の表の形になる（pv-glance.css・2026-11-09） */
+const tmRows = rows => `<ul class="pvg-tm-rows">${rows.map(([k, x]) => `<li><span>${prose(k)}</span><b>${prose(x)}</b></li>`).join('')}</ul>`;
 const factList = items => `<dl class="pvg-dl">${items.map(f =>
-  `<div><dt>${esc(f.label)}${whole(f)}</dt><dd><b>${val(f)}</b>${premise(f) ? `<small>${esc(premise(f))}</small>` : ''}</dd></div>`).join('')}</dl>`;
+  `<div><dt>${esc(f.label)}${whole(f)}</dt><dd>${f.rows && f.rows.length ? tmRows(f.rows) : `<b>${val(f)}</b>`}${premise(f) ? `<small>${esc(premise(f))}</small>` : ''}</dd></div>`).join('')}</dl>`;
 /* 質問の名前。日本語は表に書いた短い名前・英語は質問の台帳の英語の問い（pv-conditions.mjs の QUESTIONS の en ── 面で開く問いと同じ字） */
 const askName = (q, label) => {
   if (LANG !== 'en') return label;

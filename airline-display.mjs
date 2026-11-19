@@ -1772,12 +1772,12 @@ export const CITY = Object.freeze({
     measure: '不動産会社の調べの平均家賃', site: 'ISRP/OECD・ユーロスタット', per: 'month', measure_en: 'Average rent from an estate-agency survey', site_en: 'ISRP/OECD and Eurostat',
     scope: 'ベルリンの選ばれた住宅地区の、家具なしのアパート（質の良いもの。豪華な物件は除く）の平均の月額（国際機関の職員の生計費をくらべるための2025年の不動産会社の調べ。光熱費・管理費は含まない）。街ぜんたいの平均ではない。1-Bed・2-Bed・3-Bed は寝室の数',
     scope_en: 'Average monthly rent of unfurnished flats (good quality; luxury excluded) in selected residential districts of Berlin, from the 2025 estate-agency survey used to compare living costs for international civil servants (excludes utilities and service charges). Not a city-wide average. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
-  paris: { h: '38bd4e947404fcc1', ja: 'パリ', en: 'Paris', iata: 'CDG', airport: 'シャルル・ド・ゴール空港', airport_en: 'Paris Charles de Gaulle Airport',
+  paris: { h: '5991c253d125f9d6', ja: 'パリ', en: 'Paris', iata: 'CDG', airport: 'シャルル・ド・ゴール空港', airport_en: 'Paris Charles de Gaulle Airport',
     measure: '不動産会社の調べの平均家賃', site: 'ISRP/OECD・ユーロスタット', per: 'month', measure_en: 'Average rent from an estate-agency survey', site_en: 'ISRP/OECD and Eurostat',
     scope: 'パリの選ばれた住宅地区の、家具なしのアパート（質の良いもの。豪華な物件は除く）の平均の月額（国際機関の職員の生計費をくらべるための2025年の不動産会社の調べ。光熱費・管理費は含まない）。街ぜんたいの平均ではない。1-Bed・2-Bed・3-Bed は寝室の数',
     scope_en: 'Average monthly rent of unfurnished flats (good quality; luxury excluded) in selected residential districts of Paris, from the 2025 estate-agency survey used to compare living costs for international civil servants (excludes utilities and service charges). Not a city-wide average. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
   /* 2026-10-29 WP-28：同じ資料（Market Rents 2025）の 2-Bed・3-Bed の行が ITA エアウェイズの調べからも入った（額は今の行と同じ）── 字はそのまま正しい */
-  rome: { h: '42a9333d516b3f26', ja: 'ローマ', en: 'Rome', iata: 'FCO', airport: 'フィウミチーノ空港', airport_en: 'Rome Fiumicino Airport',
+  rome: { h: 'd32846d52c4094ed', ja: 'ローマ', en: 'Rome', iata: 'FCO', airport: 'フィウミチーノ空港', airport_en: 'Rome Fiumicino Airport',
     measure: '不動産会社の調べの平均家賃', site: 'ISRP/OECD・ユーロスタット', per: 'month', measure_en: 'Average rent from an estate-agency survey', site_en: 'ISRP/OECD and Eurostat',
     scope: 'ローマの選ばれた住宅地区の、家具なしのアパート（質の良いもの。豪華な物件は除く）の平均の月額（国際機関の職員の生計費をくらべるための2025年の不動産会社の調べ。光熱費・管理費は含まない）。街ぜんたいの平均ではない。1-Bed・2-Bed・3-Bed は寝室の数',
     scope_en: 'Average monthly rent of unfurnished flats (good quality; luxury excluded) in selected residential districts of Rome, from the 2025 estate-agency survey used to compare living costs for international civil servants (excludes utilities and service charges). Not a city-wide average. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
@@ -1789,7 +1789,7 @@ export const CITY = Object.freeze({
     measure: '家具つきの募集家賃の中央値', site: 'HousingAnywhere', per: 'month', measure_en: 'Median asking rent (furnished)', site_en: 'HousingAnywhere',
     scope: 'バルセロナで HousingAnywhere（中期の賃貸の掲載サイト）に載った、家具つきのStudioの募集家賃の中央値（2026年第3四半期の家賃の指数）。学生などの中期の賃貸が中心で、成約した家賃ではない',
     scope_en: 'Median asking rent of furnished studios listed on HousingAnywhere (a mid-term rental platform) in Barcelona (Q3 2026 rent index). Mostly mid-term lets (for example, students); not agreed rents' },
-  milan: { h: '1cdb0c82997ba6ed', ja: 'ミラノ', en: 'Milan', iata: 'MXP', airport: 'ミラノ・マルペンサ空港', airport_en: 'Milan Malpensa Airport',
+  milan: { h: 'f7bab90bf7fb1ff2', ja: 'ミラノ', en: 'Milan', iata: 'MXP', airport: 'ミラノ・マルペンサ空港', airport_en: 'Milan Malpensa Airport',
     measure: '家具つきの募集家賃の中央値', site: 'HousingAnywhere', per: 'month', measure_en: 'Median asking rent (furnished)', site_en: 'HousingAnywhere',
     scope: 'ミラノで HousingAnywhere（中期の賃貸の掲載サイト）に載った、家具つきのStudioの募集家賃の中央値（2026年第3四半期の家賃の指数）。学生などの中期の賃貸が中心で、成約した家賃ではない',
     scope_en: 'Median asking rent of furnished studios listed on HousingAnywhere (a mid-term rental platform) in Milan (Q3 2026 rent index). Mostly mid-term lets (for example, students); not agreed rents' },
@@ -1801,7 +1801,7 @@ export const CITY = Object.freeze({
     measure: '長期賃貸の募集家賃の中央値', site: 'idealista', per: 'month', measure_en: 'Median asking rent (long-term lets)', site_en: 'idealista',
     scope: 'リスボン市で idealista（不動産の掲載サイト）に載った、寝室1つ（T1）の長期賃貸の募集家賃の中央値。成約した家賃ではない。1-Bed は寝室の数',
     scope_en: 'Median asking rent of one-bedroom (T1) long-term lets listed on idealista (a property portal) in the city of Lisbon. Not agreed rents. 1-Bed is the number of bedrooms' },
-  porto: { h: '823a94b0f0c9dfb6', ja: 'ポルト', en: 'Porto', iata: 'OPO', airport: 'ポルト空港', airport_en: 'Porto Airport',
+  porto: { h: '43f564a61eb9db63', ja: 'ポルト', en: 'Porto', iata: 'OPO', airport: 'ポルト空港', airport_en: 'Porto Airport',
     measure: '長期賃貸の募集家賃の中央値', site: 'idealista', per: 'month', measure_en: 'Median asking rent (long-term lets)', site_en: 'idealista',
     scope: 'ポルト市で idealista（不動産の掲載サイト）に載った、寝室1つ（T1）の長期賃貸の募集家賃の中央値。成約した家賃ではない。1-Bed は寝室の数',
     scope_en: 'Median asking rent of one-bedroom (T1) long-term lets listed on idealista (a property portal) in the city of Porto. Not agreed rents. 1-Bed is the number of bedrooms' },
@@ -1896,7 +1896,7 @@ export const CITY = Object.freeze({
     measure: '募集家賃の平均', site: 'Zumper', per: 'month', measure_en: 'Average asking rent', site_en: 'Zumper',
     scope: 'トロントで Zumper（賃貸の掲載サイト）に過去30日に載った物件の、間取りごとの平均の家賃（2026年10月19日の表示）。成約した家賃・住んでいる人の家賃ではない。1-Bed・2-Bed・3-Bed は寝室の数',
     scope_en: 'Average rent by unit type of listings on Zumper (a rental listings site) in the past 30 days in Toronto (as shown on 19 October 2026). Not agreed rents or what residents pay. 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
-  perth: { h: 'a344d124e17f8857', ja: 'パース', en: 'Perth', iata: 'PER', airport: 'パース空港', airport_en: 'Perth Airport',
+  perth: { h: 'f6c81efc05cb91a6', ja: 'パース', en: 'Perth', iata: 'PER', airport: 'パース空港', airport_en: 'Perth Airport',
     measure: 'ユニットの家賃の中央値', site: '西オーストラリア州不動産協会（REIWA）', per: 'week', measure_en: 'Median unit rent', site_en: 'Real Estate Institute of Western Australia (REIWA)',
     scope: 'パース都市圏（Perth Metro）のユニット（集合住宅）の、寝室の数ごとの週の家賃の中央値（3か月の移動の集計）。1-Bed・2-Bed・3-Bed は寝室の数',
     scope_en: 'Median weekly rent of units (apartments) in Perth Metro by number of bedrooms (rolling three-month figures). 1-Bed, 2-Bed and 3-Bed are the number of bedrooms' },
@@ -1955,7 +1955,7 @@ export const CITY = Object.freeze({
     measure: '平均家賃（生活費の案内）', site: 'HousingAnywhere', per: 'month', measure_en: 'Average rent (cost-of-living guide)', site_en: 'HousingAnywhere',
     scope: 'HousingAnywhere（中期の賃貸の掲載サイト）の生活費の案内（2026年10月6日更新）に載った、シュトゥットガルトのStudioと家具つきの寝室1つ（1-Bed）の平均の月額（光熱費込みと書かれている）。集計の期間・件数は書かれていない。成約した家賃ではない',
     scope_en: 'Average monthly rent of a Studio and a furnished one-bedroom flat (1-Bed) in Stuttgart from the cost-of-living guide of HousingAnywhere (a mid-term rental platform; updated 6 October 2026), stated as including utilities. The period and number of listings are not stated; not agreed rents' },
-  amsterdam: { h: '3d3b1adda6c121a3', ja: 'アムステルダム', en: 'Amsterdam', iata: 'AMS', airport: 'アムステルダム・スキポール空港', airport_en: 'Amsterdam Airport Schiphol',
+  amsterdam: { h: '08b2e63ad85faede', ja: 'アムステルダム', en: 'Amsterdam', iata: 'AMS', airport: 'アムステルダム・スキポール空港', airport_en: 'Amsterdam Airport Schiphol',
     measure: '平均家賃（生活費の案内）', site: 'HousingAnywhere', per: 'month', measure_en: 'Average rent (cost-of-living guide)', site_en: 'HousingAnywhere',
     scope: 'HousingAnywhere（中期の賃貸の掲載サイト）の生活費の案内（2026年10月6日更新）に載った、アムステルダムのStudioの平均の月額。家具つきが中心の中期の賃貸で、集計の期間・件数は書かれていない。成約した家賃ではない',
     scope_en: 'Average monthly rent of a Studio in Amsterdam from the cost-of-living guide of HousingAnywhere (a mid-term rental platform; updated 6 October 2026). Mostly furnished mid-term lets; the period and number of listings are not stated; not agreed rents' },
@@ -2158,11 +2158,12 @@ function sayEn(r) {
     const E = L.en;
     if (!E) return null;
     if (L.fleet) { const ft = E.fleet || fleetEn(L.fleet); return ft ? { fleet: ft, label: ft, value: '', cond: '', tag, lead: false } : null; }
-    const v = E.value || (L.value ? '' : L.money ? moneyIn(L, r, true) : itemValueEn(r));
+    if (L.rows && !(E.rows && E.rows.length === L.rows.length)) return null;
+    const v = E.value || (E.rows ? E.rows.map(([k, x]) => `${k} ${x}`).join(' / ') : L.value ? '' : L.money ? moneyIn(L, r, true) : itemValueEn(r));
     if (!E.label || !v || (L.cond && !E.cond)) return null;
     return typeof v === 'object'
       ? { label: E.label, value: v.n, cur: v.cur, per: v.per, cond: E.cond || '', lead: !!L.lead && !tag, tag, mode: L.mode || '' }
-      : { label: E.label, value: v, cond: E.cond || '', lead: !!L.lead && !tag, tag, mode: L.mode || '' };
+      : { label: E.label, value: v, cond: E.cond || '', lead: !!L.lead && !tag, tag, mode: L.mode || '', ...(E.rows ? { rows: E.rows } : {}) };
   }
   if (r.domain === 'fleet') { const ft = fleetEn(fleetJa(r)); return ft ? { fleet: ft, label: ft, value: '', cond: '', tag, lead: false } : null; }
   const it = ITEM[r.key], v = itemValueEn(r);
@@ -2186,11 +2187,12 @@ export function say(r, lang = 'ja') {
   const tag = TAG[r.use] || '';
   if (L) {
     if (L.fleet) return { fleet: L.fleet, label: L.fleet, value: '', cond: '', tag, lead: false };
-    const v = L.value || (L.money ? moneyIn(L, r) : itemValue(r));
+    /* rows ＝ 対象で値が違う行の「対象｜値」（2026-11-19）。value は短いまとめ（無ければ rows をつないだ字）── 画面の一覧は rows を表で出す */
+    const v = L.value || (L.rows ? L.rows.map(([k, x]) => `${k} ${x}`).join(' / ') : L.money ? moneyIn(L, r) : itemValue(r));
     if (!L.label || !v) return null;
     return typeof v === 'object'
       ? { label: L.label, value: v.n, cur: v.cur, per: v.per, cond: L.cond || '', lead: !!L.lead && !tag, tag, mode: L.mode || '' }
-      : { label: L.label, value: v, cond: L.cond || '', lead: !!L.lead && !tag, tag, mode: L.mode || '' };
+      : { label: L.label, value: v, cond: L.cond || '', lead: !!L.lead && !tag, tag, mode: L.mode || '', ...(L.rows ? { rows: L.rows } : {}) };
   }
   /* 機材の行（LINES に字が無い行）は、型式の書き方から（fleetJa。読めなければ言わない） */
   if (r.domain === 'fleet') { const ft = fleetJa(r); return ft ? { fleet: ft, label: ft, value: '', cond: '', tag, lead: false } : null; }
@@ -2262,14 +2264,15 @@ export function check(store) {
      off … 画面に出さない行と、その理由（逸話・手続きの細かい話・意味の取れない記号など）。理由は必ず書く */
   for (const [id, L] of Object.entries(LINES)) {
     if ('off' in L) { if (!(typeof L.off === 'string' && L.off.trim())) bad.push({ what: 'LINES', id, why: 'off には出さない理由を書く' }); continue; }
-    for (const t of [L.label, L.value]) {
+    for (const t of [L.label, L.value, ...(L.rows || []).flat()]) {
       if (typeof t !== 'string') continue;
       const h = HEDGE.exec(t), c = CUR_WORDS.exec(t);
       if (h) bad.push({ what: 'LINES', id, why: `ぼかし・逸話の語「${h[0]}」を字に入れない（${t}）` });
       if (c) bad.push({ what: 'LINES', id, why: `通貨の名前「${c[0]}」を字で書かない ── 額は money: true（${t}）` });
     }
     /* オーナー「日本人にロスターって言ってもわかんねー」「日数は書かれてないっているか？」（2026-11-18）── 名前・値・前提のどれにも */
-    for (const t of [L.label, L.value, L.cond]) { const u = typeof t === 'string' && NOT_JA.exec(t); if (u) bad.push({ what: 'LINES', id, why: `「${u[0]}」を字に入れない（${t}）` }); }
+    if (L.rows && !(L.en && L.en.rows && L.en.rows.length === L.rows.length)) bad.push({ what: 'LINES', id, why: 'rows の英語の対（en.rows・同じ行数）が無い' });
+    for (const t of [L.label, L.value, L.cond, ...(L.rows || []).flat()]) { const u = typeof t === 'string' && NOT_JA.exec(t); if (u) bad.push({ what: 'LINES', id, why: `「${u[0]}」を字に入れない（${t}）` }); }
   }
   /* 米国の会社の「勤務の条件（調べ）」のカードの字（us-terms.mjs）も同じ決まり（2026-11-18 オーナー「ライン？なにそれ？」） */
   for (const [slug, T] of Object.entries(TERMS)) for (const rows of Object.values(T)) for (const r of rows || []) for (const t of [r.ja && r.ja.label, r.ja && r.ja.value, r.ja && r.ja.note]) {

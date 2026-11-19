@@ -7,6 +7,9 @@
    見るもの: node import-research-pack.mjs verify */
 export const LEDGER = /*PV-IMPORT-JSON*/{
  "CITY_OF": {
+  "aegean": [
+   "athens"
+  ],
   "aer-lingus": [
    "dublin"
   ],
@@ -19,8 +22,14 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "vancouver",
    "winnipeg"
   ],
+  "air-france": [
+   "paris"
+  ],
   "air-india": [
    "gurugram"
+  ],
+  "air-new-zealand": [
+   "auckland"
   ],
   "air-peace": [
    "lagos"
@@ -30,6 +39,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   ],
   "airjapan": [
    "narita"
+  ],
+  "airx-charter": [
+   "malta"
   ],
   "alaska-airlines": [
    "anchorage",
@@ -73,6 +85,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   ],
   "austrian": [
    "vienna"
+  ],
+  "avianca": [
+   "bogota"
   ],
   "bamboo-airways": [
    "ha-noi",
@@ -167,6 +182,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "nagoya",
    "shizuoka"
   ],
+  "fiji-airways": [
+   "nadi"
+  ],
   "flydubai": [
    "dubai"
   ],
@@ -201,11 +219,15 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   "ibex": [
    "sendai"
   ],
+  "icelandair": [
+   "reykjavik"
+  ],
   "indigo": [
    "delhi",
    "gurugram"
   ],
   "ita-airways": [
+   "milan",
    "rome"
   ],
   "j-air": [
@@ -230,6 +252,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   "jta": [
    "naha"
   ],
+  "kalitta-air": [
+   "ypsilanti"
+  ],
   "kenya-airways": [
    "nairobi"
   ],
@@ -238,6 +263,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   ],
   "korean-air": [
    "seoul"
+  ],
+  "latam": [
+   "sao-paulo"
   ],
   "lot": [
    "warsaw"
@@ -348,6 +376,9 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "sapporo",
    "sendai"
   ],
+  "turkish-airlines": [
+   "istanbul"
+  ],
   "united": [
    "chicago",
    "cleveland",
@@ -428,6 +459,742 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
  ],
  "CORRECTIONS": [],
  "FACTS": {
+  "abx-air": {
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "abx-air",
+     "cond_ja": "Worldwide scheduled airline jumpseating and company-paid CASS/KCM。補足: 【APC】世界の定期航空会社でのジャンプシート利用および会社負担でのCASS・KCM参加を明記。またID90 Travel（https://www.id90travel.com/members/eligible-companies/）およびmyIDTravel（https://support.myidtravel.com/）の対象企業一覧にもABX Airが掲載されている。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Enjoy our no-risk commuter policy, whether driving to work or jump seating on any scheduled airline from anywhere in the world. CASS and KCM participant (company paid).",
+       "source_id": "src-airlinepilotcentral-com-ce4015f6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5b37d62b875c0d20",
+     "id": "abx-air.benefits.staff-travel.6e4da0e1",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261119-gm-abx-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Airline Pilot Central",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlinepilotcentral-com-ce4015f6",
+       "source_type": "community_reference",
+       "title": "ABX Air",
+       "url": "https://www.airlinepilotcentral.com/airlines/cargo/abx_air"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "jump seating on any scheduled airline from anywhere in the world. CASS and KCM participant (company paid).",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "abx-air",
+     "cond_ja": "CASS and KCM participation; jump seat and ID-90 interline discount travel supported。補足: ATSG公式UKG求人票（https://recruiting.ultipro.com/AIR1013ATSG/JobBoard/7f7953dc-22ab-4b56-ad7a-2fe1ad00de22/OpportunityDetail?opportunityId=3c667b57-6b06-4e38-a0e9-bf439eb8778b）でも「Support crew travel, jump seat administration, and related operational activities. ... Experience with airline or travel reservation systems such as Netline, CASS, ID-90, and UKG.」と明記。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Member of CASS and the Known Crew Member Programs",
+       "source_id": "src-abxair-com-cd234e9b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fe4a03d087b24002",
+     "id": "abx-air.benefits.staff-travel.be7b8bf6",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261119-gm-abx-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ABX Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-abxair-com-cd234e9b",
+       "source_type": "official_package",
+       "title": "Pilots Careers",
+       "url": "https://www.abxair.com/careers/abx-air-pilots"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Member of CASS and the Known Crew Member Programs",
+     "value_text": null
+    }
+   ],
+   "fleet": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "abx-air",
+     "cond_ja": "BOEING 767-200, as of 2026-11-18。補足: 現行運航中のBoeing 767-200貨物機数。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BOEING 767-200 7 FREIGHTERS IN SERVICE",
+       "source_id": "src-abxair-com-0a47df72",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f0415f4d8c0988f7",
+     "id": "abx-air.fleet.boeing-767-200.7cc3c6f9",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "boeing_767_200",
+     "label_ja": "機種ごとの機数（BOEING 767-200）",
+     "pack": "pvr-20261119-gm-abx-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ABX Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-abxair-com-0a47df72",
+       "source_type": "official_package",
+       "title": "Our Fleet",
+       "url": "https://www.abxair.com/our-fleet"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 7,
+     "value_text": "200 7"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "abx-air",
+     "cond_ja": "BOEING 767-300, as of 2026-11-18。補足: 現行運航中のBoeing 767-300貨物機数（親会社ATSG 2024 Form 10-K https://www.sec.gov/Archives/edgar/data/894081/000143774925005937/atsg20241231_10k.htm でも一致）。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BOEING 767-300 26 FREIGHTERS IN SERVICE",
+       "source_id": "src-abxair-com-0a47df72",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0da1b44de19d66cf",
+     "id": "abx-air.fleet.boeing-767-300.01446141",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "boeing_767_300",
+     "label_ja": "機種ごとの機数（BOEING 767-300）",
+     "pack": "pvr-20261119-gm-abx-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ABX Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-abxair-com-0a47df72",
+       "source_type": "official_package",
+       "title": "Our Fleet",
+       "url": "https://www.abxair.com/our-fleet"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 26,
+     "value_text": "300 26"
+    }
+   ],
+   "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "abx-air",
+     "cond_ja": "Plus First Class Medical, FCC radio/telephone permit, and ICAO English proficiency endorsement。補足: 公式採用ページ（https://www.abxair.com/careers/abx-air-pilots）でも「Unrestricted ATP (Airline Transport Pilot) Rating with an Airplane category multi-engine class rating and English proficiency endorsement」「First Class Medical」「FCC radio/telephone permit」と記載。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-09-03",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Unrestricted FAA ATP (Airline Transport Rating) with an Airline category multi-engine class rating ... First Class Medical ... FCC radio/telephone permit English proficiency in accordance with ICAO standards (Airman Certificate must state English proficiency)",
+       "source_id": "src-recruiting-ultipro-com-dcaba7d3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1aea701fb5b5593a",
+     "id": "abx-air.jobs.fo-license-fo.df7ad6b8",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261119-gm-abx-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-09-03",
+       "publisher": "ATSG / ABX Air Recruiting Portal (UKG)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-recruiting-ultipro-com-dcaba7d3",
+       "source_type": "job_posting",
+       "title": "ATSG / ABX Air Recruiting Portal (UKG)",
+       "url": "https://recruiting.ultipro.com/AIR1013ATSG/JobBoard/7f7953dc-22ab-4b56-ad7a-2fe1ad00de22/OpportunityDetail?opportunityId=a9d32136-0a3e-40d5-8a7c-1705fefdcd7d"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Unrestricted FAA ATP (Airline Transport Rating) with an Airline category multi-engine class rating",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "abx-air",
+     "cond_ja": "open / no closing date listed (posted 2026-09-03, Requisition: ABX76004863)。補足: 公式採用ページの応募リンク先（ATSG UKGポータル）で現在募集中。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-09-03",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ABX 767 First Officer ... Opportunity.Opportunities.RequisitionNumber: ABX76004863 ... Opportunity.OpportunityDetail.PostedLabel: September 3, 2026",
+       "source_id": "src-recruiting-ultipro-com-dcaba7d3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fc600a14d73e1d05",
+     "id": "abx-air.jobs.fo-posting-fo.e3764a0e",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_posting",
+     "label_ja": "副操縦士の募集している職",
+     "pack": "pvr-20261119-gm-abx-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-09-03",
+       "publisher": "ATSG / ABX Air Recruiting Portal (UKG)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-recruiting-ultipro-com-dcaba7d3",
+       "source_type": "job_posting",
+       "title": "ATSG / ABX Air Recruiting Portal (UKG)",
+       "url": "https://recruiting.ultipro.com/AIR1013ATSG/JobBoard/7f7953dc-22ab-4b56-ad7a-2fe1ad00de22/OpportunityDetail?opportunityId=a9d32136-0a3e-40d5-8a7c-1705fefdcd7d"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ABX 767 First Officer",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "abx-air",
+     "cond_ja": "Plus current passport with 1 year validity remaining (or 2 years on abxair.com) and no restrictions on international travel。補足: 公式採用ページ（https://www.abxair.com/careers/abx-air-pilots）でも「Legally authorized to work worldwide」「Current passport with 2 years validity remaining and no restrictions on international travel」と記載。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-09-03",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Legally authorized to work worldwide Current passport with 1 year validity remaining and no restrictions on international travel",
+       "source_id": "src-recruiting-ultipro-com-dcaba7d3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2ddbeed7918de193",
+     "id": "abx-air.jobs.fo-right-to-work-fo.2819be83",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261119-gm-abx-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-09-03",
+       "publisher": "ATSG / ABX Air Recruiting Portal (UKG)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-recruiting-ultipro-com-dcaba7d3",
+       "source_type": "job_posting",
+       "title": "ATSG / ABX Air Recruiting Portal (UKG)",
+       "url": "https://recruiting.ultipro.com/AIR1013ATSG/JobBoard/7f7953dc-22ab-4b56-ad7a-2fe1ad00de22/OpportunityDetail?opportunityId=a9d32136-0a3e-40d5-8a7c-1705fefdcd7d"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Legally authorized to work worldwide",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "abx-air",
+     "cond_ja": "minimum hours of multi-engine or turbine airplane time (alongside 1,500 hours total fixed-wing time and 1,000 hours Part 121/135/military PIC or SIC)。補足: 公式UKG求人票および公式採用ページ（https://www.abxair.com/careers/abx-air-pilots）にて多発機またはタービン固定翼機500時間以上（総飛行時間1,500時間以上・Part 121/135/軍でのPIC/SIC 1,000時間以上と併せて必須）と明記。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-09-03",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1,500 minimum hours total fixed-wing flying time 500 minimum hours of multi-engine or turbine airplane time 1,000 minimum hours PIC or SIC in part 121, 135 or military",
+       "source_id": "src-recruiting-ultipro-com-dcaba7d3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0ef22dc93276cd78",
+     "id": "abx-air.jobs.fo-total-hours-fo.4ae3d27f",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-abx-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-09-03",
+       "publisher": "ATSG / ABX Air Recruiting Portal (UKG)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-recruiting-ultipro-com-dcaba7d3",
+       "source_type": "job_posting",
+       "title": "ATSG / ABX Air Recruiting Portal (UKG)",
+       "url": "https://recruiting.ultipro.com/AIR1013ATSG/JobBoard/7f7953dc-22ab-4b56-ad7a-2fe1ad00de22/OpportunityDetail?opportunityId=a9d32136-0a3e-40d5-8a7c-1705fefdcd7d"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 500,
+     "value_text": "500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "abx-air",
+     "cond_ja": "Type rating not required at application; provided during company training。補足: 応募時のB767型式証明は不要で、入社後の訓練にて767型式証明とETOPS証明を取得。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-09-03",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "You will receive a 767 type rating with ETOPS certification.",
+       "source_id": "src-recruiting-ultipro-com-dcaba7d3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f0950962ef8adea1",
+     "id": "abx-air.jobs.fo-type-rating-fo.5ad51d4a",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261119-gm-abx-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-09-03",
+       "publisher": "ATSG / ABX Air Recruiting Portal (UKG)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-recruiting-ultipro-com-dcaba7d3",
+       "source_type": "job_posting",
+       "title": "ATSG / ABX Air Recruiting Portal (UKG)",
+       "url": "https://recruiting.ultipro.com/AIR1013ATSG/JobBoard/7f7953dc-22ab-4b56-ad7a-2fe1ad00de22/OpportunityDetail?opportunityId=a9d32136-0a3e-40d5-8a7c-1705fefdcd7d"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "You will receive a 767 type rating with ETOPS certification.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "abx-air",
+     "cond_ja": "open / no closing date listed (posted 2026-10-26, Requisition: ABX76005027)。補足: ATSG UKGポータルで現在募集中のB767シミュレーター教官求人。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ABX 767 SIM INSTRUCTOR (Casual) Home Based ... Opportunity.Opportunities.RequisitionNumber: ABX76005027 ... Opportunity.OpportunityDetail.PostedLabel: October 26, 2026",
+       "source_id": "src-recruiting-ultipro-com-ade0742a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "466ef62d4a14caa7",
+     "id": "abx-air.jobs.pilot-posting.ba672b62",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_posting",
+     "label_ja": "募集している職",
+     "pack": "pvr-20261119-gm-abx-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-26",
+       "publisher": "ATSG / ABX Air Recruiting Portal (UKG)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-recruiting-ultipro-com-ade0742a",
+       "source_type": "job_posting",
+       "title": "ATSG / ABX Air Recruiting Portal (UKG)",
+       "url": "https://recruiting.ultipro.com/AIR1013ATSG/JobBoard/7f7953dc-22ab-4b56-ad7a-2fe1ad00de22/OpportunityDetail?opportunityId=b11cf532-906e-42c5-93a8-9a1a363f0c8b"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ABX 767 SIM INSTRUCTOR (Casual) Home Based",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "abx-air",
+     "cond_ja": "Minimum total hours for mandatory FAA ATP requirement (plus 500 hours multi-engine or turbine airplane time and 1000 hours PIC or SIC in part 121, 135 or military for First Officer)。補足: 【写し】公式UKG求人票（https://recruiting.ultipro.com/AIR1013ATSG/JobBoard/7f7953dc-22ab-4b56-ad7a-2fe1ad00de22/OpportunityDetail?utm_source=circa&utm_medium=ref&utm_campaign=abx&opportunityId=a9d32136-0a3e-40d5-8a7c-1705fefdcd7d）および公式採用ページ（https://www.abxair.com/careers/abx-air-pilots）ではカンマ入りで「1,500 minimum hours total fixed-wing flying time 500 minimum hours of multi-engine or turbine airplane time 1,000 minimum hours PIC or SIC in part 121, 135 or military」と記載されており、桁区切りなし表記の1500を含むPilotsGlobalと併せて確認。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Minimum 1500 hours is indicated due to mandatory ATPL requirements for this position; actual time required may vary. Preferred: 2 years or 500 hours flight time on B-767.",
+       "source_id": "src-pilotsglobal-com-730a20ea",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9f1a21675f1ec727",
+     "id": "abx-air.jobs.pilot-total-hours.22733f98",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_total_hours",
+     "label_ja": "応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-abx-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-730a20ea",
+       "source_type": "third_party_reference",
+       "title": "ABX Air B767 Flight Instructor / Pilot Jobs",
+       "url": "https://pilotsglobal.com/job/B767-flight-instructor-abx_air-US-f454aadc9e"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1500,
+     "value_text": "1500"
+    }
+   ],
+   "profile": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "abx-air",
+     "cond_ja": "Founded under the Airborne Express name in April 1980 (reorganized as ABX Air in August 2003)。補足: 親会社ATSGの2024年Form 10-K（https://www.sec.gov/Archives/edgar/data/894081/000143774925005937/atsg20241231_10k.htm）でも「Originally incorporated in 1980, ABX Air Inc (\"ABX\") was reorganized in 2007 into a holding company structure with ABX becoming a wholly-owned subsidiary of ATSG.」と記載。前身のMidwest Air Charterは1970年設立で、1980年4月にAirborne Freightに買収されAirborne Expressとなり、2003年8月にABX Airへ社名変更。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "April 1980 ABX AIR FOUNDED UNDER THE AIRBORNE EXPRESS NAME",
+       "source_id": "src-abxair-com-989b9e51",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8a952f336526d49e",
+     "id": "abx-air.profile.founded.636389cc",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "founded",
+     "label_ja": "設立",
+     "pack": "pvr-20261119-gm-abx-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ABX Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-abxair-com-989b9e51",
+       "source_type": "official_package",
+       "title": "History Timeline",
+       "url": "https://www.abxair.com/about/history-timeline"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "1980",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "abx-air",
+     "cond_ja": "145 Hunter Drive, Wilmington, Ohio 45177。補足: 親会社ATSGの2024年Form 10-K（https://www.sec.gov/Archives/edgar/data/894081/000143774925005937/atsg20241231_10k.htm）でもオハイオ州Wilmington（Wilmington Air Park）に本社を置く旨を明記。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ABX AIR, INC. 145 Hunter Drive Wilmington, Ohio 45177",
+       "source_id": "src-abxair-com-cd234e9b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "72b0cfa075925bbb",
+     "id": "abx-air.profile.headquarters-city.4a2c7382",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "headquarters_city",
+     "label_ja": "本社の都市",
+     "pack": "pvr-20261119-gm-abx-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ABX Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-abxair-com-cd234e9b",
+       "source_type": "official_package",
+       "title": "Pilots Careers",
+       "url": "https://www.abxair.com/careers/abx-air-pilots"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Wilmington",
+     "value_text": null
+    }
+   ],
+   "scale": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "abx-air",
+     "cond_ja": "as of 2026-09 (7 Boeing 767-200BDSF and 26 Boeing 767-300BDSF in service; 0 on order)。補足: 【Wikipedia】公式機材ページ（https://www.abxair.com/our-fleet）には「BOEING 767-300 26 FREIGHTERS IN SERVICE」「BOEING 767-200 7 FREIGHTERS IN SERVICE」と型式別の機数のみ書かれており合計「33」の数字表記がないため、計算禁止ルールに従い合計値「33」を明記しているWikipediaを採用（Flight Innovation https://flightinnovation.com/airline-insights/abx-air でも「33 freighters: 7 B767-200 and 26 B767-300」と一致）。",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": "2026-11-16",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "As of September 2026, the ABX Air fleet consists of the following aircraft: Aircraft In fleet Boeing 767-200BDSF 7 Boeing 767-300BDSF 26 Total 33",
+       "source_id": "src-en-wikipedia-org-b5b533a9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "81f2232320c7fc33",
+     "id": "abx-air.scale.fleet-total.2f15583f",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "fleet_total",
+     "label_ja": "運航している機材",
+     "pack": "pvr-20261119-gm-abx-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-16",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-b5b533a9",
+       "source_type": "third_party_reference",
+       "title": "ABX Air",
+       "url": "https://en.wikipedia.org/wiki/ABX_Air"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 33,
+     "value_text": "33"
+    }
+   ]
+  },
   "aegean": {
    "base": [
     {
@@ -481,6 +1248,210 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "Spata",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aegean",
+     "cond_ja": "テッサロニキ拠点（Macedonia International Airport）。補足: 【第三者】Aegean公式プレスリリース（https://en.about.aegeanair.com/media-center/press-releases/2024/aegean_thessaloniki%E2%80%93amsterdam/）でも「its base at Thessaloniki Airport \"Macedonia\"」と公式確認。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-11-14",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The airline's main operational bases and hubs are Athens International Airport (ATH), Macedonia International Airport (SKG) in Thessaloniki, and Larnaca International Airport (LCA) in Cyprus.",
+       "source_id": "src-airportroutes-com-f4e0c549",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e762556bd65a7116",
+     "id": "aegean.base.pilot-base.54830515",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-aegean",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-14",
+       "publisher": "AirportRoutes",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airportroutes-com-f4e0c549",
+       "source_type": "third_party_reference",
+       "title": "Aegean Airlines (AEE) Routes & Network",
+       "url": "https://www.airportroutes.com/airlines/AEE/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SKG",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aegean",
+     "cond_ja": "イラクリオン拠点（Heraklion International Airport）。補足: 【第三者】Wikipedia（https://en.wikipedia.org/wiki/Aegean_Airlines）でもSecondary hubs（Chania, Heraklion, Kalamata, Larnaca, Rhodes）として記載。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-11-14",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Primary hub Spata-Artemida · ATH Secondary hubs SKG, HER",
+       "source_id": "src-airportroutes-com-f4e0c549",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ec827668570a164e",
+     "id": "aegean.base.pilot-base.88f41568",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-aegean",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-14",
+       "publisher": "AirportRoutes",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airportroutes-com-f4e0c549",
+       "source_type": "third_party_reference",
+       "title": "Aegean Airlines (AEE) Routes & Network",
+       "url": "https://www.airportroutes.com/airlines/AEE/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HER",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aegean",
+     "cond_ja": "ラルナカ拠点（Larnaca International Airport）。補足: 【第三者】Wikipedia（https://en.wikipedia.org/wiki/Aegean_Airlines）でもATH・SKG・LCAが主要ハブ・ベースとして記載。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-11-14",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The airline's main operational bases and hubs are Athens International Airport (ATH), Macedonia International Airport (SKG) in Thessaloniki, and Larnaca International Airport (LCA) in Cyprus.",
+       "source_id": "src-airportroutes-com-f4e0c549",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8a140ce9b7a90df3",
+     "id": "aegean.base.pilot-base.ec183ef2",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-aegean",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-14",
+       "publisher": "AirportRoutes",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airportroutes-com-f4e0c549",
+       "source_type": "third_party_reference",
+       "title": "Aegean Airlines (AEE) Routes & Network",
+       "url": "https://www.airportroutes.com/airlines/AEE/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "LCA",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aegean",
+     "cond_ja": "メイン拠点（Athens International Airport）。補足: 【第三者】Aegean公式求人（https://jobs.aegeanair.com/job/Type-Rated-Captains-for-A320/1347735255/）のAthens International Airport拠点と一致。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Base location icon ATH - Athens",
+       "source_id": "src-pilotsglobal-com-111456e9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "73a7252244c7537d",
+     "id": "aegean.base.pilot-base.ffc2ee71",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-aegean",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-111456e9",
+       "source_type": "third_party_reference",
+       "title": "Aegean Airlines is hiring A320 First Officers",
+       "url": "https://pilotsglobal.com/job/A320-first-officer-aegean_airlines-GR-eb357c5d20"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ATH",
      "value_text": null
     }
    ],
@@ -654,6 +1625,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "世界のstaff travel benefitsを案内",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aegean",
+     "cond_ja": "コミューティング契約（通勤乗員向け特別シフト配慮）なし。補足: 【口コミ】現役A320副操縦士によるコミューティング契約なしの証言。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2024-08-21",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Minimum rest with early starts after late finishes. No commuting contract.",
+       "source_id": "src-pilotsglobal-com-1307742e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0a48ebf59c0157df",
+     "id": "aegean.benefits.commuting.258b4b3d",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261119-gm-aegean",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04-23",
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-1307742e",
+       "source_type": "community_reference",
+       "title": "Aegean Airlines Pilot Reviews",
+       "url": "https://pilotsglobal.com/airlines/aegean-airlines/pilot-reviews"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "No commuting contract",
      "value_text": null
     },
     {
@@ -1909,6 +2931,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-19",
+     "company": "aegean",
+     "cond_ja": "月間休日数の上限目安（8〜11日/月）。補足: 【口コミ】CrewReport掲載のAegean運航乗務員条件データ（2024-06-17更新）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2024-06-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "8 to 11 days off per month. 40-60hr during winter and 70-90hr during summer. Mostly low hours for FO and high hours for Captains as of Jun 17, 2024",
+       "source_id": "src-galenie-com-6aa30099",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c96b0d87cc23bf91",
+     "id": "aegean.work.days-off.924c30db",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "休日（月）",
+     "pack": "pvr-20261119-gm-aegean",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-06-17",
+       "publisher": "CrewReport (Galenie)",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-19",
+       "source_id": "src-galenie-com-6aa30099",
+       "source_type": "community_reference",
+       "title": "Aegean Airlines crew reviews and pay",
+       "url": "https://galenie.com/airlines/aegean-airlines"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 11,
+     "value_text": "11"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aegean",
+     "cond_ja": "月間休日数の下限目安（8〜11日/月）。補足: 【掲示板】CrewReport（https://galenie.com/airlines/aegean-airlines 2024-06-17「8 to 11 days off per month.」）と下限8日で一致。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-04-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "With a roster of 5 on 4 off, not with 8 days off a month and random roster.",
+       "source_id": "src-pprune-org-4f644091",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "174b43760cdc4f4d",
+     "id": "aegean.work.days-off.b851c5d6",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "休日（月）",
+     "pack": "pvr-20261119-gm-aegean",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04-19",
+       "publisher": "PPRuNe Forums",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pprune-org-4f644091",
+       "source_type": "community_reference",
+       "title": "Aegean Airlines Fly for Food (Page 4)",
+       "url": "https://www.pprune.org/terms-endearment/636430-aegean-airlines-fly-food-4.html"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 8,
+     "value_text": "8"
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "hire_route": "Greek/Cypriot scholarship Jan2027",
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true
@@ -1961,11 +3085,578 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": "AthensのGlobal Aviation AcademyとKavalaのEgnatia Aviation Academy",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aegean",
+     "cond_ja": "固定パターンなしの変動ロスター（1日4レグの国内・国際線混在乗務や深夜便を含む）。補足: 【掲示板】PilotsGlobalの現役A320機長口コミ（https://pilotsglobal.com/airlines/aegean-airlines/pilot-reviews 2026-04-23「Many 4 sectors days (sometimes mixed international/domestic) and very long night flights.」）と一致。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-04-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "With a roster of 5 on 4 off, not with 8 days off a month and random roster.",
+       "source_id": "src-pprune-org-4f644091",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7fdf80459a5c9cb5",
+     "id": "aegean.work.roster-pattern.ea83a3d6",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261119-gm-aegean",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04-19",
+       "publisher": "PPRuNe Forums",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pprune-org-4f644091",
+       "source_type": "community_reference",
+       "title": "Aegean Airlines Fly for Food (Page 4)",
+       "url": "https://www.pprune.org/terms-endearment/636430-aegean-airlines-fly-food-4.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "random roster",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "aegean",
+     "cond_ja": "機長の年間平均飛行時間（800〜850飛行時間/年、勤務時間はその約2倍）。補足: 【口コミ】PPRuNe（https://www.pprune.org/terms-endearment/636430-aegean-airlines-fly-food-4.html 2026-04-23「flying 800 hours a year in Europe in 2026」）の2件で年間800飛行時間が一致。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-04-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Concerning the roster it is quite heavy, especially for Captains, with an average of 800-850 flight hours/year (duty time is twice that number).",
+       "source_id": "src-pilotsglobal-com-1307742e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3eba9295101e7ea7",
+     "id": "aegean.work.working-time-cap.996f0297",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "working_time",
+     "label_ja": "機長の勤務・乗務時間の上限",
+     "pack": "pvr-20261119-gm-aegean",
+     "per": "year",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04-23",
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-1307742e",
+       "source_type": "community_reference",
+       "title": "Aegean Airlines Pilot Reviews",
+       "url": "https://pilotsglobal.com/airlines/aegean-airlines/pilot-reviews"
+      }
+     ],
+     "unit": "hours",
+     "use": "条件つき",
+     "value": 800,
+     "value_text": "800"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "aegean",
+     "cond_ja": "機長の年間平均飛行時間の上限目安（800〜850飛行時間/年）。補足: 【口コミ】現役A320機長による年間飛行時間の証言（CrewReport https://galenie.com/airlines/aegean-airlines 2024-06-17では夏季月70〜90時間・冬季月40〜60時間とも記載）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-04-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Concerning the roster it is quite heavy, especially for Captains, with an average of 800-850 flight hours/year (duty time is twice that number).",
+       "source_id": "src-pilotsglobal-com-1307742e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7a28d3050bc9a5cf",
+     "id": "aegean.work.working-time-cap.dba76779",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "working_time",
+     "label_ja": "機長の勤務・乗務時間の上限",
+     "pack": "pvr-20261119-gm-aegean",
+     "per": "year",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04-23",
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-1307742e",
+       "source_type": "community_reference",
+       "title": "Aegean Airlines Pilot Reviews",
+       "url": "https://pilotsglobal.com/airlines/aegean-airlines/pilot-reviews"
+      }
+     ],
+     "unit": "hours",
+     "use": "条件つき",
+     "value": 850,
+     "value_text": "850"
     }
    ]
   },
   "aer-lingus": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aer-lingus",
+     "cond_ja": "base MAN。補足: マンチェスター。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Thank you for your interest in joining Aer Lingus at our Manchester base.",
+       "source_id": "src-aerlingus-com-fe970b37",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fd1b3293872571e3",
+     "id": "aer-lingus.base.pilot-base-city.437e548c",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-aer-lingus",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-01-01",
+       "publisher": "Aer Lingus Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-aerlingus-com-fe970b37",
+       "source_type": "job_posting",
+       "title": "Manchester Based Pilots",
+       "url": "https://www.aerlingus.com/careers/careers-in-the-air/manchester-based-pilots/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Manchester",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aer-lingus",
+     "cond_ja": "base SNN。補足: シャノン。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "This includes our bases in Dublin, Cork, Shannon and Belfast Airports.",
+       "source_id": "src-aerlingus-com-5e36d8ca",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2b17a7a7d5323fd5",
+     "id": "aer-lingus.base.pilot-base-city.7c6fd0f4",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-aer-lingus",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Aer Lingus Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-aerlingus-com-5e36d8ca",
+       "source_type": "job_posting",
+       "title": "Recruitment Process",
+       "url": "https://www.aerlingus.com/careers/life-at-aer-lingus/recruitment-process/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Shannon",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aer-lingus",
+     "cond_ja": "base ORK。補足: コーク。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "This includes our bases in Dublin, Cork, Shannon and Belfast Airports.",
+       "source_id": "src-aerlingus-com-5e36d8ca",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cc6d4cc6325d5916",
+     "id": "aer-lingus.base.pilot-base-city.ac93727c",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-aer-lingus",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Aer Lingus Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-aerlingus-com-5e36d8ca",
+       "source_type": "job_posting",
+       "title": "Recruitment Process",
+       "url": "https://www.aerlingus.com/careers/life-at-aer-lingus/recruitment-process/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Cork",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aer-lingus",
+     "cond_ja": "base DUB。補足: ダブリン。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-10-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "As we expand our network and welcome new next-generation aircraft to our fleet, we invite applications from Direct Entry First Officers for our Dublin base.",
+       "source_id": "src-aerlingus-com-91ee835f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9e3b3207f0dd06d4",
+     "id": "aer-lingus.base.pilot-base-city.f0011b86",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-aer-lingus",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-10-01",
+       "publisher": "Aer Lingus Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-aerlingus-com-91ee835f",
+       "source_type": "official_package",
+       "title": "Direct Entry Pilots",
+       "url": "https://www.aerlingus.com/careers/careers-in-the-air/direct-entry-pilots/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Dublin",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aer-lingus",
+     "cond_ja": "コーク拠点（Cork Airport）。補足: Aer Lingus公式採用ページに記載のコーク空港拠点（IATAコード：ORK）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "This includes our bases in Dublin, Cork, Shannon and Belfast Airports.",
+       "source_id": "src-aerlingus-com-5e36d8ca",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d688663fb4509a08",
+     "id": "aer-lingus.base.pilot-base.080b2841",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-aer-lingus",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Aer Lingus Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-aerlingus-com-5e36d8ca",
+       "source_type": "job_posting",
+       "title": "Recruitment Process",
+       "url": "https://www.aerlingus.com/careers/life-at-aer-lingus/recruitment-process/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ORK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aer-lingus",
+     "cond_ja": "マンチェスター拠点（Manchester Airport / Aer Lingus UK）。補足: Aer Lingus UKのマンチェスター空港拠点（IATAコード：MAN）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Thank you for your interest in joining Aer Lingus at our Manchester base.",
+       "source_id": "src-aerlingus-com-fe970b37",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8b03ad2eb93addac",
+     "id": "aer-lingus.base.pilot-base.1fa1129e",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-aer-lingus",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-01-01",
+       "publisher": "Aer Lingus Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-aerlingus-com-fe970b37",
+       "source_type": "job_posting",
+       "title": "Manchester Based Pilots",
+       "url": "https://www.aerlingus.com/careers/careers-in-the-air/manchester-based-pilots/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MAN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aer-lingus",
+     "cond_ja": "ダブリン拠点（Dublin Airport）。補足: 【地図】Aer Lingus公式採用ページ（https://www.aerlingus.com/careers/careers-in-the-air/direct-entry-pilots/「we invite applications from Direct Entry First Officers for our Dublin base」）でDublin拠点を確認、IATAコードはDUB。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Dublin Airport (DUB) to Malahide",
+       "source_id": "src-rome2rio-com-0910c858",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5a194487b5f203ea",
+     "id": "aer-lingus.base.pilot-base.28aecfc5",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-aer-lingus",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rome2Rio",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rome2rio-com-0910c858",
+       "source_type": "third_party_reference",
+       "title": "Dublin Airport (DUB) to Malahide",
+       "url": "https://www.rome2rio.com/s/Dublin-Airport-DUB/Malahide"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "DUB",
+     "value_text": null
+    }
+   ],
    "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aer-lingus",
+     "cond_ja": "ダブリン空港でのパイロット無料駐車場提供。補足: パイロット採用ページに明記された通勤特典（全社員向けにTaxSaver公共交通通勤パス制度・Cycle to Work制度もあり）。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-10-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Free parking at Dublin Airport.",
+       "source_id": "src-aerlingus-com-91ee835f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1cc8d59c52c656c5",
+     "id": "aer-lingus.benefits.commuting.8316243e",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261119-gm-aer-lingus",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-10-01",
+       "publisher": "Aer Lingus Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-aerlingus-com-91ee835f",
+       "source_type": "official_package",
+       "title": "Direct Entry Pilots",
+       "url": "https://www.aerlingus.com/careers/careers-in-the-air/direct-entry-pilots/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Free parking at Dublin Airport.",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -2015,6 +3706,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "Irish Airlines (Pilots) Superannuation Scheme",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aer-lingus",
+     "cond_ja": "勤続6か月後から利用可能な本人・家族・パートナー向けの割引Staff Travel制度。補足: Direct Entry Pilots公式採用ページに明記されたパイロット福利厚生。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-10-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Extensive concession Staff Travel for you and your loved ones offering opportunities to see the world after only 6 months service!",
+       "source_id": "src-aerlingus-com-91ee835f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9d0d874919827895",
+     "id": "aer-lingus.benefits.staff-travel.b416e1a2",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261119-gm-aer-lingus",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-10-01",
+       "publisher": "Aer Lingus Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-aerlingus-com-91ee835f",
+       "source_type": "official_package",
+       "title": "Direct Entry Pilots",
+       "url": "https://www.aerlingus.com/careers/careers-in-the-air/direct-entry-pilots/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Extensive concession Staff Travel for you and your loved ones offering opportunities to see the world after only 6 months service!",
      "value_text": null
     }
    ],
@@ -2938,7 +4680,417 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "aeromexico": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aeromexico",
+     "cond_ja": "base GDL。補足: グアダラハラ。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-08-22",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Aeroméxico is our principal commercial airline subsidiary operating mainly on high-density routes, such as international routes and among the Mexican business triangle between Mexico City, Guadalajara and Monterrey.",
+       "source_id": "src-sec-gov-be9cd721",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "08455cd13dd9a347",
+     "id": "aeromexico.base.pilot-base-city.31e13293",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-aeromexico",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-08-22",
+       "publisher": "Grupo Aeroméxico, S.A.B. de C.V.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-sec-gov-be9cd721",
+       "source_type": "job_posting",
+       "title": "SEC Form F-1/A (Amendment No. 3)",
+       "url": "https://www.sec.gov/Archives/edgar/data/1561861/000119312525186482/d11281df1a.htm"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Guadalajara",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aeromexico",
+     "cond_ja": "base MEX。補足: メキシコシティ。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-08-22",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "In addition, we are the largest carrier in Mexico City, the commercial and political capital of Mexico, through our hub at MEX, the largest airport in Mexico.",
+       "source_id": "src-sec-gov-be9cd721",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b38b013fe261f0b0",
+     "id": "aeromexico.base.pilot-base-city.9a16b8d9",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-aeromexico",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-08-22",
+       "publisher": "Grupo Aeroméxico, S.A.B. de C.V.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-sec-gov-be9cd721",
+       "source_type": "job_posting",
+       "title": "SEC Form F-1/A (Amendment No. 3)",
+       "url": "https://www.sec.gov/Archives/edgar/data/1561861/000119312525186482/d11281df1a.htm"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Mexico City",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aeromexico",
+     "cond_ja": "base MTY。補足: モンテレイ。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-08-22",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Aeroméxico is our principal commercial airline subsidiary operating mainly on high-density routes, such as international routes and among the Mexican business triangle between Mexico City, Guadalajara and Monterrey.",
+       "source_id": "src-sec-gov-be9cd721",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f80d47da21039cfb",
+     "id": "aeromexico.base.pilot-base-city.c82adb53",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-aeromexico",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-08-22",
+       "publisher": "Grupo Aeroméxico, S.A.B. de C.V.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-sec-gov-be9cd721",
+       "source_type": "job_posting",
+       "title": "SEC Form F-1/A (Amendment No. 3)",
+       "url": "https://www.sec.gov/Archives/edgar/data/1561861/000119312525186482/d11281df1a.htm"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Monterrey",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aeromexico",
+     "cond_ja": "補足: メキシコシティ（ベニート・フアレス国際空港）。Rotate Pilot（https://rotatepilot.com/airlines/aeromexico/recruitment）でも「Aeromexico pilot bases include: MEX, GDL, MTY.」を確認。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-08-22",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "In addition, we are the largest carrier in Mexico City, the commercial and political capital of Mexico, through our hub at MEX, the largest airport in Mexico.",
+       "source_id": "src-sec-gov-be9cd721",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d4085e9b91bafefd",
+     "id": "aeromexico.base.pilot-base.0f0ae23e",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-aeromexico",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-08-22",
+       "publisher": "Grupo Aeroméxico, S.A.B. de C.V.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-sec-gov-be9cd721",
+       "source_type": "job_posting",
+       "title": "SEC Form F-1/A (Amendment No. 3)",
+       "url": "https://www.sec.gov/Archives/edgar/data/1561861/000119312525186482/d11281df1a.htm"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MEX",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aeromexico",
+     "cond_ja": "補足: 【第三者】モンテレイ（ヘネラル・マリアーノ・エスコベド国際空港）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-08-22",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Where are Aeromexico pilot bases? Aeromexico pilot bases include: MEX, GDL, MTY.",
+       "source_id": "src-rotatepilot-com-a6e9d5bb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ba4a35e202364b45",
+     "id": "aeromexico.base.pilot-base.27913f44",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-aeromexico",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-08-22",
+       "publisher": "Rotate Pilot",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rotatepilot-com-a6e9d5bb",
+       "source_type": "third_party_reference",
+       "title": "Aeromexico Pilot Recruitment 2026",
+       "url": "https://rotatepilot.com/airlines/aeromexico/recruitment"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MTY",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aeromexico",
+     "cond_ja": "補足: 【第三者】グアダラハラ（ドン・ミゲル・イダルゴ・イ・コスティージャ国際空港）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-08-22",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Where are Aeromexico pilot bases? Aeromexico pilot bases include: MEX, GDL, MTY.",
+       "source_id": "src-rotatepilot-com-a6e9d5bb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7932364892e8d64d",
+     "id": "aeromexico.base.pilot-base.7453cf5b",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-aeromexico",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-08-22",
+       "publisher": "Rotate Pilot",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rotatepilot-com-a6e9d5bb",
+       "source_type": "third_party_reference",
+       "title": "Aeromexico Pilot Recruitment 2026",
+       "url": "https://rotatepilot.com/airlines/aeromexico/recruitment"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "GDL",
+     "value_text": null
+    }
+   ],
    "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aeromexico",
+     "cond_ja": "statutory base annual vacation for aeronautical crews, increasing by 1 day per year of service up to 60 days (Ley Federal del Trabajo Art. 233)。補足: 【第三者】メキシコ連邦労働法（Ley Federal del Trabajo 第233条・航空乗務員特別章）により年間30暦日（勤続1年ごとに1日加算、最大60日）。Scribd上の2025年法規解説（https://id.scribd.com/document/854038649/Trabajos-Especiales-Tripulaciones-Aeronauticas）でも「30 días de calendario no acumulables... hasta un máximo de 60 días」を確認。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-06-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "On the positive side, the Labor Law grants aeronautical crews a substantial annual vacation entitlement of 30 calendar days, rising by one day per year of service up to 60 days, which is well above the Mexican statutory norm for most workers.",
+       "source_id": "src-readyfortakeoffbook-com-e5ee6d05",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cf2216aadd764d11",
+     "id": "aeromexico.benefits.annual-leave.f3c36521",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "年次休暇",
+     "pack": "pvr-20261119-gm-aeromexico",
+     "per": "year",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-26",
+       "publisher": "Ready For Take-Off Book",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-readyfortakeoffbook-com-e5ee6d05",
+       "source_type": "third_party_reference",
+       "title": "Volaris: Rapid Command Opportunities On a Young A320-Only Fleet (Mexican Federal Labor Law Aeronautical Crew Chapter)",
+       "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/volaris"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 30,
+     "value_text": "30"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aeromexico",
+     "cond_ja": "all pilots。補足: 基地外での国内・国際線ステイ時の日当（viáticos）およびホテル手配支給。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-11-09",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Viáticos: para pernoctas fuera de la base, nacionales e internacionales.",
+       "source_id": "src-aeronotas-com-33dad996",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5d6ccb619739d209",
+     "id": "aeromexico.benefits.commuting.d58b072c",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261119-gm-aeromexico",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-09",
+       "publisher": "Aeronotas",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-aeronotas-com-33dad996",
+       "source_type": "third_party_reference",
+       "title": "Sueldo de un piloto aviador en México: salario por aerolínea",
+       "url": "https://aeronotas.com/aerolineas/sueldo-piloto-aviador-mexico/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Viáticos: para pernoctas fuera de la base, nacionales e internacionales.",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -2989,6 +5141,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "seniority premiums",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aeromexico",
+     "cond_ja": "Boletos sujetos a espacio on Aeroméxico & Aeroméxico Connect, plus 2 Continental passes, 1 Intercontinental pass, ZED on 80+ airlines, and ZED 0 DELTA (zero-fare on 325 Delta destinations)。補足: 【写し】社内航空券規程の写し。年間30枚の空席待ち航空券に加え、対象家族1人あたり米州確約パス2枚・大陸間確約パス1枚、80社以上の無制限ZED、およびデルタ航空325就航地の運賃無料特典（ZED 0 DELTA）を提供。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2024-01-12",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boletos sujetos a espacio** (La reservación esta sujeta a espacio): 30 en total | Cualquier ruta | No aplica periodo de embargo, excepto para rutas a Europa y Asia | Empleado, cónyuge o concubino(a), hijos e hijastros, padres y padrastros, suegros, hermanos y hasta 3 boletos para amigos registrados",
+       "source_id": "src-es-scribd-com-e09ee9bb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7c14abbd3bfe596b",
+     "id": "aeromexico.benefits.staff-travel.4318e586",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261119-gm-aeromexico",
+     "per": "year",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-01-12",
+       "publisher": "Grupo Aeroméxico",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-es-scribd-com-e09ee9bb",
+       "source_type": "third_party_reference",
+       "title": "Manual de Prestaciones de Boletos (Nivel 1 - 8)",
+       "url": "https://es.scribd.com/document/698534456/Manual-Travel-Benefits-L1-8"
+      }
+     ],
+     "unit": "tickets",
+     "use": "条件つき",
+     "value": 30,
+     "value_text": "30"
     }
    ],
    "fleet": [
@@ -3948,6 +6151,212 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": 136,
      "value_text": "136"
+    }
+   ],
+   "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-19",
+     "company": "aeromexico",
+     "cond_ja": "PBS bid in 1 block (8 consecutive days) or 2 blocks (7+1, 6+2, 5+3, or 4+4); 8 days in month 1 and 0 in month 2 when 30-day vacation spans 2 consecutive months。補足: 【写し】Aerovías de México–ASPA労働協約（CC-890/88-XXIII）解説資料より月8日休（PBSで連続8日または2ブロック取得）。El Universal（2026-01-19 https://www.eluniversal.com.mx/cartera/mejoran-prestaciones-para-maternidad-en-sector-aereo/）でも「las pilotos tienen ocho días de descanso al mes」と確認。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2024-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "El descanso de 8 días se solicita en 1 bloque (8 días consecutivos) o 2 bloques (combinaciones de 7+1, 6+2, 5+3 o 4+4).",
+       "source_id": "src-bbmnetworking-com-a1a0ec48",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4cbe0958f7845f2f",
+     "id": "aeromexico.work.days-off.938cb558",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "休日（月）",
+     "pack": "pvr-20261119-gm-aeromexico",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-01-01",
+       "publisher": "Aerosistema / Nancy Moyeda",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-19",
+       "source_id": "src-bbmnetworking-com-a1a0ec48",
+       "source_type": "third_party_reference",
+       "title": "Análisis del Contrato Colectivo de Trabajo Aerovías de México – ASPA (CC-890/88-XXIII)",
+       "url": "https://www.bbmnetworking.com/aerosistema"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 8,
+     "value_text": "8"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aeromexico",
+     "cond_ja": "all pilots (rotations with 3-4 consecutive nights away on long-haul, early morning shifts, and reserve/standby days)。補足: 【口コミ】長距離路線で3〜4連泊のローテーション、早朝シフト、および自宅待機のリザーブ／スタンバイ（días de guardia / reserva）の組み合わせ。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-04-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "La vida de un piloto de Aeroméxico implica rotaciones que pueden incluir tres o cuatro noches consecutivas fuera de casa, sobre todo en rutas de largo radio hacia Europa o Asia. Los turnos de madrugada son frecuentes, y los días de guardia, en los que el piloto debe estar disponible pero no necesari",
+       "source_id": "src-esim-holafly-com-23a6fd5d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b8734860bb03db98",
+     "id": "aeromexico.work.roster-pattern.5a0e6ef3",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261119-gm-aeromexico",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04-20",
+       "publisher": "Holafly",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-esim-holafly-com-23a6fd5d",
+       "source_type": "community_reference",
+       "title": "Opiniones sobre Aeroméxico de pilotos y azafatas",
+       "url": "https://esim.holafly.com/es/blog/tripulacion-aerea/aeromexico-opiniones/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "rotaciones que pueden incluir tres o cuatro noches consecutivas fuera de casa",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aeromexico",
+     "cond_ja": "type rating provided by airline; some initial ratings deducted via payroll (ciertas habilitaciones te las descuentan del sueldo)。補足: 【口コミ】配属機材のType Ratingは会社が手配するが、同記事内のパイロット証言で「ciertas habilitaciones te las descuentan del sueldo」（一部の資格訓練費は給与天引き）との言及あり。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-04-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Para pilotos, Aeroméxico contrata candidatos que ya cuentan con su licencia de Piloto Privado Comercial y habilitación de instrumento, la aerolínea se encarga de la habilitación de tipo en la flota asignada, aunque las condiciones exactas pueden variar según convocatoria.",
+       "source_id": "src-esim-holafly-com-23a6fd5d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3f035f78a444a8db",
+     "id": "aeromexico.work.training-bond.5db54163",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "訓練費の拘束",
+     "pack": "pvr-20261119-gm-aeromexico",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04-20",
+       "publisher": "Holafly",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-esim-holafly-com-23a6fd5d",
+       "source_type": "community_reference",
+       "title": "Opiniones sobre Aeroméxico de pilotos y azafatas",
+       "url": "https://esim.holafly.com/es/blog/tripulacion-aerea/aeromexico-opiniones/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "la aerolínea se encarga de la habilitación de tipo en la flota asignada",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "aeromexico",
+     "cond_ja": "maximum continuous flight duty period (jornadas de vuelo de hasta 14 o 15 horas continuas)。補足: ASPA労組が公表した連続乗務時間上限（14〜15時間）。またメキシコ公式規格NOM-117-SCT3-2016および連邦労働法Art. 224-226（https://dof.gob.mx/normasOficiales/6865/sct11_C/sct11_C.html）の上限は月間実飛行90時間・年間1000時間・月間勤務（servicio）180時間。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2023-02-28",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ASPA explicó que las demoras y cancelaciones se deben a que quienes planean los vuelos quieren forzarlos a aceptar jornadas de vuelo de hasta 14 o 15 horas continuas o cambiar descansos.",
+       "source_id": "src-grupoanimal-mx-a2e7d120",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "637d7d8d9474a46b",
+     "id": "aeromexico.work.working-time.d54c7cf5",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "working_time",
+     "label_ja": "勤務・乗務時間の上限",
+     "pack": "pvr-20261119-gm-aeromexico",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-02-28",
+       "publisher": "Animal Político",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-grupoanimal-mx-a2e7d120",
+       "source_type": "third_party_reference",
+       "title": "Diferencias entre Aeroméxico y pilotos por jornada laboral afectan decenas de vuelos",
+       "url": "https://grupoanimal.mx/sociedad/diferencias-aeromexico-pilotos-vuelos-cancelados-jornada-laboral"
+      }
+     ],
+     "unit": "hours",
+     "use": "条件つき",
+     "value": 14,
+     "value_text": "14"
     }
    ]
   },
@@ -7601,6 +10010,210 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": 294,
      "value_text": "294 euros"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-france",
+     "cond_ja": "全社員の制度（座席確約のR1割引航空券および優先度引き上げスタンバイのR3ジョーカー航空券）。補足: 【掲示板】同一スレッド（https://forum.aeronet-fr.org/viewtopic.php?t=47876）でSAINTKITTS、Dubble、Air France Oneら現役パイロット複数名が証言。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-05-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "- R2: pas cher mais tu montes à bord que si t'as de la place. Priorité en fonction de l'ancienneté - R1: réservé, environ 30% de reduc par rapport au prix le plus bas sur le marché - R3 : sorte de R2 joker avec priorité boostee. Pas de quotas, sauf compagnons de voyage (4 à/R par an il me semble) et",
+       "source_id": "src-forum-aeronet-fr-org-8fe3b235",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5feb52402996e05c",
+     "id": "air-france.benefits.staff-travel.002796a0",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261119-gm-air-france",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-05-01",
+       "publisher": "Aeronet",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-forum-aeronet-fr-org-8fe3b235",
+       "source_type": "community_reference",
+       "title": "GP Air France",
+       "url": "https://forum.aeronet-fr.org/viewtopic.php?t=47876"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "R1: réservé, environ 30% de reduc par rapport au prix le plus bas sur le marché",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-france",
+     "cond_ja": "全社員の制度（GPNetでのGP航空券購入時のマイル積算および25歳以上の子どものR2単独搭乗枠）。補足: Air France全社員共通のGPNet規定改定の組合通知。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2024-08-10",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Depuis le 1er juin, tous les salariés d'AF ont la possibilité de cumuler des miles en achetant des billets GP. Les enfants de salariés de + 25 ans pourront voyager seuls en R2 sur le quota partenaire de voyage",
+       "source_id": "src-snpnc-org-64ee3f24",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5ad6814d081b9d30",
+     "id": "air-france.benefits.staff-travel.15dd5e23",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261119-gm-air-france",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-08-10",
+       "publisher": "SNPNC-FO",
+       "publisher_kind": "union",
+       "retrieved": "2026-11-18",
+       "source_id": "src-snpnc-org-64ee3f24",
+       "source_type": "union_cba",
+       "title": "Check-list juillet 2024",
+       "url": "https://snpnc.org/check-list-juillet-2024/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Depuis le 1er juin, tous les salariés d'AF ont la possibilité de cumuler des miles en achetant des billets GP",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-france",
+     "cond_ja": "全社員の制度（社員・配偶者・同居パートナー・子ども・両親・同行者対象の年功順スタンバイ割引航空券）。補足: 【Wikipedia】現役パイロット掲示板Aeronet（https://forum.aeronet-fr.org/viewtopic.php?t=47876）でも複数パイロットがR1/R2/R3の運用を証言。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-10-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "R2 : billet à tarif très bas, également sans réservation, accessibles à tous les salariés ainsi que sous certaines conditions à leur conjoint, et leurs enfants, R1 : billet avec réservation, à tarif réduit en fonction du remplissage de l'avion (medium ou low).",
+       "source_id": "src-fr-wikipedia-org-1a677bb1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "82c9391eefcd4086",
+     "id": "air-france.benefits.staff-travel.3afef06d",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261119-gm-air-france",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-17",
+       "publisher": "Wikipédia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-fr-wikipedia-org-1a677bb1",
+       "source_type": "third_party_reference",
+       "title": "Billet GP",
+       "url": "https://fr.wikipedia.org/wiki/Billet_GP"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "R2 : billet à tarif très bas, également sans réservation, accessibles à tous les salariés ainsi que sous certaines conditions à leur conjoint, et leurs enfants",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-france",
+     "cond_ja": "運航・客室乗務員（navigants）対象の中距離線無料・座席非確約航空券（空港税別）。補足: 【Wikipedia】Air FranceのGP（Gratuité Partielle）社員航空券制度における乗務員専用RN区分。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-10-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "RN : billet gratuit (hors taxes d'aéroport), non réservé, attribué aux seuls navigants, sur moyen-courrier, R2 : billet à tarif très bas, également sans réservation, accessibles à tous les salariés ainsi que sous certaines conditions à leur conjoint, et leurs enfants, R1 : billet avec réservation, à",
+       "source_id": "src-fr-wikipedia-org-1a677bb1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e11fe19bceaaaa9b",
+     "id": "air-france.benefits.staff-travel.ec96ab29",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261119-gm-air-france",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-17",
+       "publisher": "Wikipédia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-fr-wikipedia-org-1a677bb1",
+       "source_type": "third_party_reference",
+       "title": "Billet GP",
+       "url": "https://fr.wikipedia.org/wiki/Billet_GP"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "RN : billet gratuit (hors taxes d'aéroport), non réservé, attribué aux seuls navigants, sur moyen-courrier",
+     "value_text": null
     }
    ],
    "fleet": [
@@ -9989,6 +12602,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "applies_to": {
       "pilot_specific": true
      },
+     "checked_at": "2026-11-18",
+     "company": "air-new-zealand",
+     "cond_ja": "base CHC。補足: クライストチャーチ。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-02-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Its main bases were Auckland, Christchurch, and Wellington, operating domestic flights throughout the country.",
+       "source_id": "src-flightradar24-com-01cc6b3c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1c0d7774a73f9dac",
+     "id": "air-new-zealand.base.pilot-base-city.53984984",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-air-new-zealand",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-02-25",
+       "publisher": "Flightradar24",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-flightradar24-com-01cc6b3c",
+       "source_type": "third_party_reference",
+       "title": "Propped up: New Zealand's turboprop connections",
+       "url": "https://www.flightradar24.com/blog/aircraft-stories/propped-up-new-zealand-turboprop-connections/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Christchurch",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-new-zealand",
+     "cond_ja": "base WLG。補足: ウェリントン。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-02-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Its main bases were Auckland, Christchurch, and Wellington, operating domestic flights throughout the country.",
+       "source_id": "src-flightradar24-com-01cc6b3c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f1a430d181a3e65f",
+     "id": "air-new-zealand.base.pilot-base-city.90a5ff31",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-air-new-zealand",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-02-25",
+       "publisher": "Flightradar24",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-flightradar24-com-01cc6b3c",
+       "source_type": "third_party_reference",
+       "title": "Propped up: New Zealand's turboprop connections",
+       "url": "https://www.flightradar24.com/blog/aircraft-stories/propped-up-new-zealand-turboprop-connections/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Wellington",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-new-zealand",
+     "cond_ja": "base AKL。補足: オークランド。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-11-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Location Auckland, NZ",
+       "source_id": "src-careers-airnewzealand-co-nz-49acf7a5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7506fcd4840d3c4c",
+     "id": "air-new-zealand.base.pilot-base-city.ef877cd3",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-air-new-zealand",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-18",
+       "publisher": "Air New Zealand Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-airnewzealand-co-nz-49acf7a5",
+       "source_type": "job_posting",
+       "title": "Expression of Interest - Jet Fleet Pilot",
+       "url": "https://careers.airnewzealand.co.nz/job/expression-of-interest-jet-fleet-pilot-in-auckland-nz-jid-171"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Auckland",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
      "checked_at": "2026-10-29",
      "company": "air-new-zealand",
      "cond_ja": "Expression of Interest – Jet Fleet Pilotの勤務地欄。B787/B777 Second Officer、A320/A321 First Officerの外部募集。補足: オークランド。公式求人のLocation欄（本文89–91行相当）を実読。採用試験会場がAucklandという別段落は拠点証拠に使わず、職務自体の勤務地欄を採用。ターボプロップの別求人はa number of bases around the countryとするが基地名は列挙せず、全基地の一覧としては扱わない。空港名/コードは未確認。",
@@ -10037,6 +12803,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-new-zealand",
+     "cond_ja": "全社員の制度（公共交通機関の税引前給与天引き制度Extraordinaryおよび自転車通勤制度Workride）。補足: 【第三者】全社員12,000人以上対象の通勤補助制度。またパイロットのジャンプシート通勤についてReddit（https://www.reddit.com/r/flying/comments/1ww9bni/air_new_zealand_pilots/）にて「Sorry but jump seat travel is limited to air Nz staff only.」と記載あり。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-10-02",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "By partnering with Workride for bike salary sacrifice and Extraordinary for pre-tax public transport, Air New Zealand gave their people genuine choice: pedal, take public transport, or a mix of both.",
+       "source_id": "src-workride-co-nz-4a666ed3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c553567b54701995",
+     "id": "air-new-zealand.benefits.commuting.da33eb32",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261119-gm-air-new-zealand",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-02",
+       "publisher": "WorkRide",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-workride-co-nz-4a666ed3",
+       "source_type": "third_party_reference",
+       "title": "How Air New Zealand Powered Smarter Commutes By Bike",
+       "url": "https://www.workride.co.nz/workride-waffle/air-new-zealand"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Workride for bike salary sacrifice and Extraordinary for pre-tax public transport",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -11311,6 +14128,216 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": "part-time options / sabbatical application",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-new-zealand",
+     "cond_ja": "Training Bond where airline covers type rating cost up front (pro-rated repayment if leaving early)。補足: 【第三者】Air New Zealand認定訓練校（Preferred FTO）のSouthern Wingsによる解説。また2024年開始のMangōpare Pilot Cadetshipについては公式発表（https://www.airnewzealandnewsroom.com/press-release-2024-the-skys-the-limit-launching-the-mangopare-air-new-zealand-pilot-cadetship）にて「with the majority of costs, including training and living expenses, funded by Air New Zealand (subject to conditions)」と公表。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-05-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "If you are hired by a major local operator such as Air New Zealand (A320) or Jetstar (A320) the airline fully sponsors your ground school and simulator training. Instead of paying upfront, you pay with time via a 'Training Bond' (typically 12 to 36 months) where the airline covers the cost up front.",
+       "source_id": "src-southernwings-co-nz-dbdda449",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c74eb00bb65bef0f",
+     "id": "air-new-zealand.work.training-bond.85889b37",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "訓練費の拘束",
+     "pack": "pvr-20261119-gm-air-new-zealand",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-05-23",
+       "publisher": "Southern Wings (Air New Zealand Aviation Institute Preferred FTO)",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-southernwings-co-nz-dbdda449",
+       "source_type": "third_party_reference",
+       "title": "What Is A Type Rating And How Do Airline Pilots Qualify For Specific Aircraft?",
+       "url": "https://www.southernwings.co.nz/what-is-a-type-rating-and-how-do-airline-pilots-qualify-for-specific-aircraft/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "12 to 36",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-new-zealand",
+     "cond_ja": "widebody command from date of joining。補足: 【掲示板】ワイドボディ（B777/B787）機長昇格までの年数。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-10-03",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Widebody command is sitting at around 22 years from date of joining currently, this will likely blow out as a result of the push to allow age restricted pilots (those above 65) retain the ability to fly to as many of the international ports as possible as countries adjust their regulations.",
+       "source_id": "src-reddit-com-bfd69af2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "309ce709f556a069",
+     "id": "air-new-zealand.work.upgrade-years-cap.917377d2",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長の機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-air-new-zealand",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-03",
+       "publisher": "Reddit r/flying",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-reddit-com-bfd69af2",
+       "source_type": "community_reference",
+       "title": "Air New Zealand pilots",
+       "url": "https://www.reddit.com/r/flying/comments/1ww9bni/air_new_zealand_pilots/"
+      }
+     ],
+     "unit": "years",
+     "use": "条件つき",
+     "value": 22,
+     "value_text": "22"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-new-zealand",
+     "cond_ja": "narrow body command minimum。補足: 【口コミ】現職副操縦士による投稿。Reddit（https://www.reddit.com/r/flying/comments/1ww9bni/air_new_zealand_pilots/）でも2人以上のパイロットが短距離機長昇格まで約8〜10年（RPPP加算で+4〜5年）、ワイドボディ機長昇格まで約22年と報告。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2024-03-12",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Anticipate minimum narrow body command time of 10-12 years.",
+       "source_id": "src-pilotsglobal-com-ee432325",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "de2141c8fe4882fc",
+     "id": "air-new-zealand.work.upgrade-years-cap.b923a742",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長の機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-air-new-zealand",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-03-12",
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-ee432325",
+       "source_type": "community_reference",
+       "title": "Air New Zealand Pilot Reviews",
+       "url": "https://pilotsglobal.com/airlines/air-new-zealand/pilot-reviews"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "10-12",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "air-new-zealand",
+     "cond_ja": "most recent A320 commands (pushing out to 10 years)。補足: 【掲示板】同スレッド内の別パイロットも「considering it already takes 9 years to get a short haul command , add another 4-5 years on top of that as a result of the RPPP. Widebody command is sitting at around 22 years from date of joining currently」と記述（2人以上が8〜12年と報告、他URL：https://pilotsglobal.com/airlines/air-new-zealand/pilot-reviews）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-10-03",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Most recent 320 commands were hired in 2018, so about 8 years, however that is going to push out back to 10 years as the upgrades have slowed right down and there was a big hiring wave in 2018.",
+       "source_id": "src-reddit-com-bfd69af2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7e3631819f369217",
+     "id": "air-new-zealand.work.upgrade-years-cap.bf3ede25",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長の機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-air-new-zealand",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-03",
+       "publisher": "Reddit r/flying",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-reddit-com-bfd69af2",
+       "source_type": "community_reference",
+       "title": "Air New Zealand pilots",
+       "url": "https://www.reddit.com/r/flying/comments/1ww9bni/air_new_zealand_pilots/"
+      }
+     ],
+     "unit": "years",
+     "use": "条件つき",
+     "value": 8,
+     "value_text": "8"
     }
    ]
   },
@@ -16345,6 +19372,318 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "airx-charter": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "airx-charter",
+     "cond_ja": "A340 First Officer vacancy location。補足: 【第三者】YourPilotInterview（https://yourpilotinterview.com/jobs/airx-first-officer-airbus-a340-malta-malta/）およびPilot Assessments（https://pilotassessments.com/job_company/airx/）でも「Malta | Malta」と記載。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-11-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "First Officer - A340 AirX | Corporate / Biz Av Airbus A340 Malta flag Malta | Malta Flight time 2000 In type 500 ATPL EASA Type-Rated",
+       "source_id": "src-pilotsglobal-com-6a1fb3af",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0bd3c0bf0a5e48a2",
+     "id": "airx-charter.base.pilot-base-city-fo.985119ae",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "副操縦士のパイロットの拠点の街",
+     "pack": "pvr-20261119-gm-airx-charter",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-01",
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-6a1fb3af",
+       "source_type": "third_party_reference",
+       "title": "Aviation jobs in Malta",
+       "url": "https://pilotsglobal.com/jobs/europe/malta"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Malta",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "airx-charter",
+     "cond_ja": "Malta airport pilot vacancy city。補足: 【第三者】マルタ国際空港所在都市（Luqa）および本社所在地（Smart City）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-11-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Where is AirX based? AirX lists its headquarters as Smart City, Malta. Current pilot vacancies are based in Luqa and Smart City.",
+       "source_id": "src-bestpilotjobs-com-26a6fd61",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2d5e942727a04455",
+     "id": "airx-charter.base.pilot-base-city.6ba7878c",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-airx-charter",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-01",
+       "publisher": "bestpilotjobs",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-bestpilotjobs-com-26a6fd61",
+       "source_type": "third_party_reference",
+       "title": "AirX Pilot Jobs & Pay Scale",
+       "url": "https://bestpilotjobs.com/airlines/airx"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Luqa",
+     "value_text": null
+    }
+   ],
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "airx-charter",
+     "cond_ja": "全社員の制度（マルタ法定年次有給休暇：週40時間勤務のフルタイム労働者で年192時間＝24労働日＋土日と重なる祝祭日分を加算、S.L. 452.90 第4条により航空乗務員にも適用）。補足: マルタ労働法に基づく年次有給休暇の法定最低基準（192時間＝4週間＋32時間、1日8時間換算で24労働日＋週末に当たる祝祭日分が追加付与）。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Entitlement – Every employee with a 40-hour working week is entitled to paid annual leave of at least the equivalent in hours of four weeks and thirty-two hours (192 hours):",
+       "source_id": "src-dier-gov-mt-8668db18",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7e84a7241323820e",
+     "id": "airx-charter.benefits.annual-leave.0933ef61",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "年次休暇",
+     "pack": "pvr-20261119-gm-airx-charter",
+     "per": "year",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Department for Industrial and Employment Relations (DIER Malta)",
+       "publisher_kind": "government",
+       "retrieved": "2026-11-18",
+       "source_id": "src-dier-gov-mt-8668db18",
+       "source_type": "government",
+       "title": "Vacation Leave",
+       "url": "https://dier.gov.mt/en/services/employment-conditions/leave/vacation-leave/"
+      }
+     ],
+     "unit": "hours",
+     "use": "条件つき",
+     "value": 192,
+     "value_text": "192"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "airx-charter",
+     "cond_ja": "charter duty destination hotel and ground transfers (permanent home-to-base commuting policy not published)。補足: チャーター運航中のクルー宿泊および地上移動手配は会社負担で実施。自宅〜ベース間のポジショニング航空券や通勤手当に関する公式公表はなし。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-11-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Previously, when a charter flight was booked, the operations team had to coordinate everything from fuel and catering to crew accommodation and ground transportation.",
+       "source_id": "src-avi-go-com-27c924c2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fde978bedf7969c6",
+     "id": "airx-charter.benefits.commuting.e1cdfd1a",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261119-gm-airx-charter",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-17",
+       "publisher": "Avi-Go",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-avi-go-com-27c924c2",
+       "source_type": "third_party_reference",
+       "title": "AirX's Strategic Leap with MedAire for Global Charter Excellence",
+       "url": "https://avi-go.com/news/articles/ce66ed3fa34c7e6e57324a0e4b9190bc"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "crew accommodation and ground transportation",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "airx-charter",
+     "cond_ja": "全社員の制度（マルタ社会保障法に基づき社会保障拠出金を納付する被雇用者に対する公的無償医療制度）。補足: マルタの社会保障制度（Class 1 Contributions）対象被雇用者はマルタ国内の公的医療サービスを無償で利用可能。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-10-06",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Healthcare services may be accessed by: ... Persons covered by Maltese Social Security legislation ... Persons entitled to free public healthcare under Maltese legislation",
+       "source_id": "src-s2-eessi-gov-mt-b38dee54",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b97c844c3176de32",
+     "id": "airx-charter.benefits.medical.65122850",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "医療の保険・補助",
+     "pack": "pvr-20261119-gm-airx-charter",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-06",
+       "publisher": "Government of Malta Healthcare Entitlement Unit (EESSI)",
+       "publisher_kind": "government",
+       "retrieved": "2026-11-18",
+       "source_id": "src-s2-eessi-gov-mt-b38dee54",
+       "source_type": "government",
+       "title": "Information regarding Healthcare in Malta",
+       "url": "https://s2.eessi.gov.mt/entitlement/information-regarding-healthcare-in-malta/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "free public healthcare",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "airx-charter",
+     "cond_ja": "全社員の制度（マルタ社会保障法に基づくClass 1法定社会保障年金拠出率：労働者10%・雇用主10%の労使折半、上限額あり、年金受給開始年齢65歳）。補足: マルタ法定のClass 1社会保障拠出金（基本週給の10%を被雇用者、同額の10%を雇用主が拠出。1962年以降生まれの法定年金受給年齢は65歳：https://socialsecurity.gov.mt/en/information-and-applications-for-benefits-and-services/contributory-pensions/retirement-pension/pensions-information/）。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Social Security Contributions paid by employed persons are called Class 1 Contributions and are paid by direct deductions from the same employees' wages/salary. In a normal case scenario, an equivalent rate paid or deducted from the employee's wage/salary, is also paid by the employer. ... default C",
+       "source_id": "src-socialsecurity-gov-mt-6f6bb31c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "387ed6398f1e4d54",
+     "id": "airx-charter.benefits.pension.9de15ba8",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261119-gm-airx-charter",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-01-01",
+       "publisher": "Department of Social Security Malta",
+       "publisher_kind": "government",
+       "retrieved": "2026-11-18",
+       "source_id": "src-socialsecurity-gov-mt-6f6bb31c",
+       "source_type": "government",
+       "title": "Social Security Contributions",
+       "url": "https://socialsecurity.gov.mt/en/information-and-applications-for-benefits-and-services/social-security-contributions/social-security-contributions/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "10%",
+     "value_text": null
+    }
+   ],
    "fleet": [
     {
      "amount": null,
@@ -17207,6 +20546,61 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "Malta",
+     "value_text": null
+    }
+   ],
+   "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "airx-charter",
+     "cond_ja": "Challenger 850 Non-Type Rated First Officer permanent position (specific bond amount/duration not published)。補足: 【第三者】CL-850およびCL-604（https://pilotassessments.com/jobs/first-officer-bombardier-challenger-604-type-rating-provided/ ：「Structured CL‑604 type rating and line training provided for the right candidates.」）の非型式限定（NTR）副操縦士採用において、型式限定訓練およびライントレーニングが会社提供されることを確認。ボンド金額・拘束年数の数値は非公表。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "We're hiring Non-Type Rated First Officers for permanent positions, with full type rating and line training provided.",
+       "source_id": "src-pilotassessments-com-9f99c343",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "76a4b057b6f0910a",
+     "id": "airx-charter.work.training-bond-fo.82f21692",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "副操縦士の訓練費の拘束",
+     "pack": "pvr-20261119-gm-airx-charter",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Pilot Assessments",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotassessments-com-9f99c343",
+       "source_type": "third_party_reference",
+       "title": "Challenger 850 First Officer (Non-Type Rated) AirX",
+       "url": "https://pilotassessments.com/jobs/challenger-850-first-officer-non-type-rated/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "full type rating and line training provided",
      "value_text": null
     }
    ]
@@ -21202,6 +24596,377 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": 5.5,
      "value_text": "5.5"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "alaska-airlines",
+     "cond_ja": "Horizon Air Pilot Development Program ($12,500 stipend) minimum service commitment before repayment applies。補足: 【掲示板】2人以上が同じ話を記載（同スレッドおよび https://www.reddit.com/r/flying/comments/108my0n/alaska_ascend_pilot_program_academy_is_it_worth_it/）。公式ページ（https://careers.alaskaair.com/career-opportunities/pilots/pdp/）で案内されている傘下Horizon Air経由のAlaska進学パイプライン（Pilot Development Program、奨学金12,500 USD支給、Ascendは最大27,000 USD支給）では、Horizonに2年間在籍しない場合に返還義務がある。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-03-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The horizon program is fine, if you don't end up staying for two years, or you accept the money and don't go to Horizon, you have to pay it back.",
+       "source_id": "src-reddit-com-6ac0e92f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4125f31b9d9f4400",
+     "id": "alaska-airlines.work.training-bond-fo.37e50bd5",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "副操縦士の訓練費の拘束",
+     "pack": "pvr-20261119-gm-alaska-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-03-17",
+       "publisher": "Reddit",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-reddit-com-6ac0e92f",
+       "source_type": "community_reference",
+       "title": "r/flying (Horizon Pilot Development Program)",
+       "url": "https://www.reddit.com/r/flying/comments/1jd08ql/am_i_putting_a_limit_on_my_future_career_be_for/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "two years",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "alaska-airlines",
+     "cond_ja": "Mainline First Officer initial type rating training provided by company without training bond。補足: 【第三者】本線（Mainline）First Officerは型式証明不要・会社負担で訓練が提供され、訓練費拘束ボンドはない。また傘下Horizon Airでも公式ページ（https://careers.alaskaair.com/career-opportunities/pilots/horizon-compensation/）にて「Horizon includes an in-house ATP-CTP course in our First Officer training footprint, with all expenses covered.」と全額会社負担を明記。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Type rating: Not required — training provided.",
+       "source_id": "src-pilotassessments-com-3bd3c152",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "38be7251403490a5",
+     "id": "alaska-airlines.work.training-bond-fo.c0115362",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "副操縦士の訓練費の拘束",
+     "pack": "pvr-20261119-gm-alaska-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "PASS (Pilot Assessments)",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotassessments-com-3bd3c152",
+       "source_type": "third_party_reference",
+       "title": "Alaska Airlines First Officer Posting",
+       "url": "https://pilotassessments.com/jobs/airline-first-officer-fleet-assigned-by-seniority/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Not required — training provided.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "alaska-airlines",
+     "cond_ja": "True North university partner pilot development program flight lab fee reimbursement。補足: 4年制提携大学向けのTrue Northプログラムでは飛行訓練実習費の最大80%を補助（Pilot Development Programでは「A stipend up to $12,500」を支給）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "True North. Aspiring pilots who are enrolled in our four-year university partner schools are eligible for this program. If selected, participants receive: Reimbursement for up to 80% of all flight lab fees. Mentorship with a professional pilot.",
+       "source_id": "src-careers-alaskaair-com-30d11e57",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "060d4457b25d2c90",
+     "id": "alaska-airlines.work.training-bond-fo.d26bfb7a",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "副操縦士の訓練費の拘束",
+     "pack": "pvr-20261119-gm-alaska-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Alaska Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-alaskaair-com-30d11e57",
+       "source_type": "official_package",
+       "title": "Pilots Jobs",
+       "url": "https://careers.alaskaair.com/career-opportunities/pilot-jobs/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Reimbursement for up to 80% of all flight lab fees.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "alaska-airlines",
+     "cond_ja": "As of September 2023 major airlines comparison grid。補足: 業界誌Aero Crew Newsの主要航空会社比較表（2023年9月改定時点）における機長昇格年数。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2023-09-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Upgrade Time: 4.5 Years",
+       "source_id": "src-aerocrewnews-com-4ffee186",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9fc45275a207a814",
+     "id": "alaska-airlines.work.upgrade-years-cap.31fa2709",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長の機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-alaska-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-09-01",
+       "publisher": "Aero Crew News",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-aerocrewnews-com-4ffee186",
+       "source_type": "third_party_reference",
+       "title": "USA Major Airlines Grid",
+       "url": "https://aerocrewnews.com/aviationbrands/us-major-airlines/"
+      }
+     ],
+     "unit": "years",
+     "use": "条件つき",
+     "value": 4.5,
+     "value_text": "4.5"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "alaska-airlines",
+     "cond_ja": "Recent position bid upgrade timeline on the Alaska side。補足: 【掲示板】同一スレッド内で4人のパイロットが昇格年数に言及（6-7年、5-6年、拠点により8-12年、直近の降格影響で約9年）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-10-06",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "AS is looming about 6-7 but we just had our position bid for the 1st time in almost 19 months so upgrade times were higher in that I'd bet it would settle in 6-7 year mark.",
+       "source_id": "src-reddit-com-a84eab80",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0b83842f4208172f",
+     "id": "alaska-airlines.work.upgrade-years-cap.32b00d57",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長の機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-alaska-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-10-06",
+       "publisher": "Reddit",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-reddit-com-a84eab80",
+       "source_type": "community_reference",
+       "title": "r/AirlinePilots (Alaska Airlines)",
+       "url": "https://www.reddit.com/r/AirlinePilots/comments/1nz911o/alaska_airlines/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "6-7",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "alaska-airlines",
+     "cond_ja": "Alaska side upgrade timeline depending on base。補足: 【掲示板】同スレッド（https://www.reddit.com/r/AirlinePilots/comments/1nz911o/alaska_airlines/）にて拠点別の目安として複数名が言及。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-10-06",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Upgrade is 8-12 years on the Alaska side, depending on base.",
+       "source_id": "src-reddit-com-a84eab80",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "944c52309edc4392",
+     "id": "alaska-airlines.work.upgrade-years-cap.6bb101ae",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長の機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-alaska-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-10-06",
+       "publisher": "Reddit",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-reddit-com-a84eab80",
+       "source_type": "community_reference",
+       "title": "r/AirlinePilots (Alaska Airlines)",
+       "url": "https://www.reddit.com/r/AirlinePilots/comments/1nz911o/alaska_airlines/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "8-12",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "alaska-airlines",
+     "cond_ja": "Most junior Captain date of hire listed on Airline Pilot Central。補足: 【APC】最若手機長の入社年月（2018年1月）を明記。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The most junior captain hired in January 2018.",
+       "source_id": "src-airlinepilotcentral-com-0fdf4cb2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "db96c4f22f1df300",
+     "id": "alaska-airlines.work.upgrade-years-cap.a1e06acc",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長の機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-alaska-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Airline Pilot Central",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlinepilotcentral-com-0fdf4cb2",
+       "source_type": "community_reference",
+       "title": "Alaska Airlines",
+       "url": "https://www.airlinepilotcentral.com/airlines/legacy/alaska_airlines"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "The most junior captain hired in January 2018.",
+     "value_text": null
     }
    ]
   },
@@ -28722,6 +32487,428 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "value_text": "33"
     }
    ],
+   "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "american",
+     "cond_ja": "Unrestricted Airline Transport Pilot minimum requirements。補足: American Airlines公式採用チーム（（メールアドレス））の公式イベント応募要項にてUnrestricted ATP要件の充足を必須と明記。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-02-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Please refrain from registering to meet with a member of the Pilot Hiring team unless you meet the Unrestricted ATP minimum requirements",
+       "source_id": "src-platform-eventboost-com-b0a9965d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6eb5ad1775a0d2fe",
+     "id": "american.jobs.fo-license-fo.4f3108a1",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261119-gm-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-02-01",
+       "publisher": "American Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-platform-eventboost-com-b0a9965d",
+       "source_type": "job_posting",
+       "title": "WAI 2025 Meet and Greet Official Registration",
+       "url": "https://platform.eventboost.com/e/american-airlines-wai-2025-meet-and-greet/42098"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Unrestricted ATP",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "american",
+     "cond_ja": "Plus Valid FCC Restricted Radio Telephone Operator permit and Valid First Class Medical Certificate。補足: 【写し】American Airlines公式求人要項の写し（Epic Flight Academy https://epicflightacademy.com/hiring-requirements-american-airlines/ およびAviationfly https://www.aviationfly.com/how-to-become-a-pilot-with-american-airlines/ でも一字一句同一の文言を掲載）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Current Unrestricted Airline Transport Pilot (ATP) rating (multi-engine) Valid FCC Restricted Radio Telephone Operator permit Valid First Class Medical Certificate",
+       "source_id": "src-pilotsglobal-com-93889da0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "efcc963f47dec7f9",
+     "id": "american.jobs.fo-license-fo.8862b564",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261119-gm-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-93889da0",
+       "source_type": "third_party_reference",
+       "title": "American Airlines First Officer - A320",
+       "url": "https://pilotsglobal.com/job/A320-family-first-officer-american_airlines-US-435f2a4a83"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Current Unrestricted Airline Transport Pilot (ATP) rating (multi-engine)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "american",
+     "cond_ja": "CLOSED (past posting)。補足: 【写し】過去の求人（2026年掲載）。通年応募ポータル（https://pilots.aa.com/）とは別に掲載された個別求人票の写し。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "First Officer - A320 ... This vacancy has been closed. CLOSED",
+       "source_id": "src-pilotsglobal-com-93889da0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9eb0c49dc3bf901a",
+     "id": "american.jobs.fo-posting-fo.017f7faf",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_posting",
+     "label_ja": "副操縦士の募集している職",
+     "pack": "pvr-20261119-gm-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-93889da0",
+       "source_type": "third_party_reference",
+       "title": "American Airlines First Officer - A320",
+       "url": "https://pilotsglobal.com/job/A320-family-first-officer-american_airlines-US-435f2a4a83"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "First Officer - A320",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "american",
+     "cond_ja": "Plus valid passport and documentation allowing for entry into the United States after an international flight。補足: 【写し】American Airlines公式パイロット求人要項の写し（Epic Flight Academy https://epicflightacademy.com/hiring-requirements-american-airlines/ およびAviationfly https://www.aviationfly.com/how-to-become-a-pilot-with-american-airlines/ でも一字一句同一の文言を掲載）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Must have the right to work in the United States Additionally, we require all of our pilots to have a valid passport and documentation allowing for entry into the United States after an international flight.",
+       "source_id": "src-pilotsglobal-com-93889da0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7ec7105d1c0296f9",
+     "id": "american.jobs.fo-right-to-work-fo.3696747b",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261119-gm-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-93889da0",
+       "source_type": "third_party_reference",
+       "title": "American Airlines First Officer - A320",
+       "url": "https://pilotsglobal.com/job/A320-family-first-officer-american_airlines-US-435f2a4a83"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Must have the right to work in the United States",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "american",
+     "cond_ja": "Total time (mandatory FAA Unrestricted ATP requirement)。補足: 【写し】公式求人票の写し（Epic Flight Academy https://epicflightacademy.com/hiring-requirements-american-airlines/ やAviationfly https://www.aviationfly.com/how-to-become-a-pilot-with-american-airlines/ 等でも「Flight time in accordance with all FAA requirements」と一致）。また公式イベント登録ページ（https://platform.eventboost.com/e/american-airlines-wai-2025-meet-and-greet/42098）にて「Unrestricted ATP minimum requirements」（FAA 14 CFR §61.159の1,500時間）が必須と明記。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Total time 1500 hours ... Flight time in accordance with all FAA requirements",
+       "source_id": "src-pilotsglobal-com-93889da0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fa9ca0fd2a7f74a5",
+     "id": "american.jobs.fo-total-hours-fo.f565b4df",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-93889da0",
+       "source_type": "third_party_reference",
+       "title": "American Airlines First Officer - A320",
+       "url": "https://pilotsglobal.com/job/A320-family-first-officer-american_airlines-US-435f2a4a83"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1500,
+     "value_text": "1500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "american",
+     "cond_ja": "NTR (Non Type-Rated accepted; type rating training provided by company)。補足: 【写し】応募時の型式証明は不要で、採用後にCharlotte等の自社訓練センターにて会社負担で型式証明を取得。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Type rating Not required (Training Provided)",
+       "source_id": "src-pilotsglobal-com-93889da0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "742686888e4972f9",
+     "id": "american.jobs.fo-type-rating-fo.86c9d77a",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261119-gm-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-93889da0",
+       "source_type": "third_party_reference",
+       "title": "American Airlines First Officer - A320",
+       "url": "https://pilotsglobal.com/job/A320-family-first-officer-american_airlines-US-435f2a4a83"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Not required (Training Provided)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "american",
+     "cond_ja": "open / continuous application portal (no closing date listed)。補足: 公式採用ページ（https://jobs.aa.com/go/Pilot/9286400/）から専用応募ポータル（https://pilots.aa.com/）へ案内されており、通年でFirst Officerの応募を受け付けている（APC https://www.airlinepilotcentral.com/airlines/legacy/american_airlines でも「Is Hiring?: Yes」と明記）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "American Airlines Pilot | Welcome to Pilot Hiring | Login to edit an existing application",
+       "source_id": "src-pilots-aa-com-2ca85a38",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2f257e9b9dc0244c",
+     "id": "american.jobs.pilot-posting.0aadb1f3",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_posting",
+     "label_ja": "募集している職",
+     "pack": "pvr-20261119-gm-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "American Airlines Pilot Hiring Portal",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilots-aa-com-2ca85a38",
+       "source_type": "job_posting",
+       "title": "American Airlines Pilot Hiring Portal",
+       "url": "https://pilots.aa.com/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "American Airlines Pilot",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "american",
+     "cond_ja": "U.S. work authorization required across American Airlines U.S. positions。補足: jobs.aa.comの米国採用共通要件。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Must be authorized to work in the U.S.",
+       "source_id": "src-jobs-aa-com-046f9975",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "19bfad60fe6656d8",
+     "id": "american.jobs.pilot-right-to-work.ea6132cf",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_right_to_work",
+     "label_ja": "国籍・就労の資格",
+     "pack": "pvr-20261119-gm-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-01",
+       "publisher": "American Airlines Careers (jobs.aa.com)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jobs-aa-com-046f9975",
+       "source_type": "job_posting",
+       "title": "American Airlines Careers (jobs.aa.com)",
+       "url": "https://jobs.aa.com/job/Customer-Assistance-Representative-Part-Time/89098-en_US"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Must be authorized to work in the U.S.",
+     "value_text": null
+    }
+   ],
    "profile": [
     {
      "amount": null,
@@ -31971,6 +36158,1107 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ]
   },
+  "atlas-air": {
+   "fleet": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "atlas-air",
+     "cond_ja": "747-400 (Passenger), as of 2025-05。補足: 旅客仕様のBoeing 747-400。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2025-05-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Passenger 5 747-400s",
+       "source_id": "src-atlasairworldwide-com-6f8ce835",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8395217879d88164",
+     "id": "atlas-air.fleet.747-400-passenger.68b7a8c9",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "747_400_passenger",
+     "label_ja": "機種ごとの機数（747-400 (Passenger)）",
+     "pack": "pvr-20261119-gm-atlas-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-05-01",
+       "publisher": "Atlas Air Worldwide",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-atlasairworldwide-com-6f8ce835",
+       "source_type": "official_package",
+       "title": "Introduction to Atlas Air Worldwide (May 2025, Slide 6)",
+       "url": "https://www.atlasairworldwide.com/wp-content/uploads/2025/05/Introduction-to-Atlas-Air-Worldwide-May-2025-1.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 5,
+     "value_text": "5 747"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "atlas-air",
+     "cond_ja": "747-400F (Widebody Cargo), as of 2025-05。補足: Boeing 747-400F貨物機。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2025-05-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Widebody Cargo ... 39 747-400Fs",
+       "source_id": "src-atlasairworldwide-com-6f8ce835",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d86eeb011b2ef92b",
+     "id": "atlas-air.fleet.747-400f-widebody-cargo.efa2cddd",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "747_400f_widebody_cargo",
+     "label_ja": "機種ごとの機数（747-400F (Widebody Cargo)）",
+     "pack": "pvr-20261119-gm-atlas-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-05-01",
+       "publisher": "Atlas Air Worldwide",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-atlasairworldwide-com-6f8ce835",
+       "source_type": "official_package",
+       "title": "Introduction to Atlas Air Worldwide (May 2025, Slide 6)",
+       "url": "https://www.atlasairworldwide.com/wp-content/uploads/2025/05/Introduction-to-Atlas-Air-Worldwide-May-2025-1.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 39,
+     "value_text": "39 747"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "atlas-air",
+     "cond_ja": "747-8F (Widebody Cargo), as of 2025-05。補足: Boeing 747-8F貨物機。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2025-05-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Widebody Cargo 17 747-8Fs",
+       "source_id": "src-atlasairworldwide-com-6f8ce835",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "501eafdfffb68605",
+     "id": "atlas-air.fleet.747-8f-widebody-cargo.922b93f5",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "747_8f_widebody_cargo",
+     "label_ja": "機種ごとの機数（747-8F (Widebody Cargo)）",
+     "pack": "pvr-20261119-gm-atlas-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-05-01",
+       "publisher": "Atlas Air Worldwide",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-atlasairworldwide-com-6f8ce835",
+       "source_type": "official_package",
+       "title": "Introduction to Atlas Air Worldwide (May 2025, Slide 6)",
+       "url": "https://www.atlasairworldwide.com/wp-content/uploads/2025/05/Introduction-to-Atlas-Air-Worldwide-May-2025-1.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 17,
+     "value_text": "17 747"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "atlas-air",
+     "cond_ja": "767-300 (Passenger), as of 2025-05。補足: 旅客仕様のBoeing 767-300。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2025-05-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Passenger ... 5 767-300s",
+       "source_id": "src-atlasairworldwide-com-6f8ce835",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "70a75ed3e815000e",
+     "id": "atlas-air.fleet.767-300-passenger.ae06f977",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "767_300_passenger",
+     "label_ja": "機種ごとの機数（767-300 (Passenger)）",
+     "pack": "pvr-20261119-gm-atlas-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-05-01",
+       "publisher": "Atlas Air Worldwide",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-atlasairworldwide-com-6f8ce835",
+       "source_type": "official_package",
+       "title": "Introduction to Atlas Air Worldwide (May 2025, Slide 6)",
+       "url": "https://www.atlasairworldwide.com/wp-content/uploads/2025/05/Introduction-to-Atlas-Air-Worldwide-May-2025-1.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 5,
+     "value_text": "5 767"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "atlas-air",
+     "cond_ja": "767-300F (Titan Dry Lease), as of 2025-05。補足: 113機の内訳に含まれるTitan Dry Lease分のBoeing 767-300F（Widebody Cargo運航分20機と合わせて計25機）。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2025-05-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Titan Dry Lease ... 5 767-300Fs",
+       "source_id": "src-atlasairworldwide-com-6f8ce835",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fb62775f4386f531",
+     "id": "atlas-air.fleet.767-300f-titan-dry-lease.028c1867",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "767_300f_titan_dry_lease",
+     "label_ja": "機種ごとの機数（767-300F (Titan Dry Lease)）",
+     "pack": "pvr-20261119-gm-atlas-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-05-01",
+       "publisher": "Atlas Air Worldwide",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-atlasairworldwide-com-6f8ce835",
+       "source_type": "official_package",
+       "title": "Introduction to Atlas Air Worldwide (May 2025, Slide 6)",
+       "url": "https://www.atlasairworldwide.com/wp-content/uploads/2025/05/Introduction-to-Atlas-Air-Worldwide-May-2025-1.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 5,
+     "value_text": "5 767"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "atlas-air",
+     "cond_ja": "767-300F (Widebody Cargo operated), as of 2025-05。補足: Widebody Cargo運航分のBoeing 767-300F。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2025-05-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Widebody Cargo ... 20 767-300Fs",
+       "source_id": "src-atlasairworldwide-com-6f8ce835",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3758c5c316bca85d",
+     "id": "atlas-air.fleet.767-300f-widebody-cargo-operated.62fce64d",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "767_300f_widebody_cargo_operated",
+     "label_ja": "機種ごとの機数（767-300F (Widebody Cargo operated)）",
+     "pack": "pvr-20261119-gm-atlas-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-05-01",
+       "publisher": "Atlas Air Worldwide",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-atlasairworldwide-com-6f8ce835",
+       "source_type": "official_package",
+       "title": "Introduction to Atlas Air Worldwide (May 2025, Slide 6)",
+       "url": "https://www.atlasairworldwide.com/wp-content/uploads/2025/05/Introduction-to-Atlas-Air-Worldwide-May-2025-1.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 20,
+     "value_text": "20 767"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "atlas-air",
+     "cond_ja": "777-200F (Titan Dry Lease), as of 2025-05。補足: 113機の内訳に含まれるTitan Dry Lease分のBoeing 777-200F（Widebody Cargo運航分13機と合わせて計18機）。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2025-05-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Titan Dry Lease 5 777-200Fs",
+       "source_id": "src-atlasairworldwide-com-6f8ce835",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e143a9f760d31243",
+     "id": "atlas-air.fleet.777-200f-titan-dry-lease.9814f6af",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "777_200f_titan_dry_lease",
+     "label_ja": "機種ごとの機数（777-200F (Titan Dry Lease)）",
+     "pack": "pvr-20261119-gm-atlas-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-05-01",
+       "publisher": "Atlas Air Worldwide",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-atlasairworldwide-com-6f8ce835",
+       "source_type": "official_package",
+       "title": "Introduction to Atlas Air Worldwide (May 2025, Slide 6)",
+       "url": "https://www.atlasairworldwide.com/wp-content/uploads/2025/05/Introduction-to-Atlas-Air-Worldwide-May-2025-1.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 5,
+     "value_text": "5 777"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "atlas-air",
+     "cond_ja": "777-200F (Widebody Cargo operated), as of 2025-05。補足: Widebody Cargo運航分のBoeing 777-200F（APC https://www.airlinepilotcentral.com/airlines/cargo/atlas_air でも「777: 13」と記載）。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2025-05-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Widebody Cargo ... 13 777-200Fs",
+       "source_id": "src-atlasairworldwide-com-6f8ce835",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "08e368e745dff9b9",
+     "id": "atlas-air.fleet.777-200f-widebody-cargo-operated.5da1513f",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "777_200f_widebody_cargo_operated",
+     "label_ja": "機種ごとの機数（777-200F (Widebody Cargo operated)）",
+     "pack": "pvr-20261119-gm-atlas-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-05-01",
+       "publisher": "Atlas Air Worldwide",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-atlasairworldwide-com-6f8ce835",
+       "source_type": "official_package",
+       "title": "Introduction to Atlas Air Worldwide (May 2025, Slide 6)",
+       "url": "https://www.atlasairworldwide.com/wp-content/uploads/2025/05/Introduction-to-Atlas-Air-Worldwide-May-2025-1.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 13,
+     "value_text": "13 777"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "atlas-air",
+     "cond_ja": "Large Cargo Freighter (LCF / Boeing 747-400LCF Dreamlifter), as of 2025-05。補足: Boeing 747-400LCF Dreamlifter（CMI運航）。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2025-05-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "4 Large Cargo Freighters (LCF)",
+       "source_id": "src-atlasairworldwide-com-6f8ce835",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7b6a68847a9f11f0",
+     "id": "atlas-air.fleet.large-cargo-freighter-lcf-boeing-747-400.73035006",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "large_cargo_freighter_lcf_boeing_747_400lcf_dreamlifter",
+     "label_ja": "機種ごとの機数（Large Cargo Freighter (LCF / Boeing 747-400LCF Drea…",
+     "pack": "pvr-20261119-gm-atlas-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-05-01",
+       "publisher": "Atlas Air Worldwide",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-atlasairworldwide-com-6f8ce835",
+       "source_type": "official_package",
+       "title": "Introduction to Atlas Air Worldwide (May 2025, Slide 6)",
+       "url": "https://www.atlasairworldwide.com/wp-content/uploads/2025/05/Introduction-to-Atlas-Air-Worldwide-May-2025-1.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 4,
+     "value_text": "4"
+    }
+   ],
+   "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "atlas-air",
+     "cond_ja": "Plus Current FAA Class 1 Medical Certificate and FCC Restricted Radiotelephone Operator Permit (ATP with CIRC APCH-VMC Only limitation acceptable)。補足: APC（https://www.airlinepilotcentral.com/airlines/cargo/atlas_air）でも同要件を掲載。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-01-12",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Hold a current restricted or unrestricted FAA ATP certificate with an airplane category multi-engine class rating and English proficiency endorsement • Current FAA Class 1 Medical Certificate • Hold an FCC Restricted Radiotelephone Operator Permit",
+       "source_id": "src-assets-nationbuilder-com-816d62f4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2616dcc1dcc2bde5",
+     "id": "atlas-air.jobs.fo-license-fo.0f983229",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261119-gm-atlas-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-01-12",
+       "publisher": "Atlas Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-assets-nationbuilder-com-816d62f4",
+       "source_type": "job_posting",
+       "title": "2024 First Officer Requirements (NGPA Official Handout)",
+       "url": "https://assets.nationbuilder.com/ngpa/pages/1940/attachments/original/1705078386/2024_First_Officer_Req_NGPA.pdf?1705078386"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Hold a current restricted or unrestricted FAA ATP certificate with an airplane category multi-engine class rating and English proficiency endorsement",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "atlas-air",
+     "cond_ja": "open / no closing date listed (posted 2026-03-24)。補足: 【写し】Atlas Air公式キャリアページのFirst Officer Talent Community求人写し（Vaia https://talents.vaia.com/companies/atlas-air/miami-springs/first-officer-talent-community-131560075/ でも「First Officer Talent Community in Miami Springs at Atlas Air」として掲載）。なおGreenhouse上の個別クラス枠（https://job-boards.greenhouse.io/atlasairfirstofficer6242026）は不定期開放制。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-03-24",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "First Officer - Talent Community - Miami base ... Posted 24 March 2026",
+       "source_id": "src-forallpilots-com-31a4608a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "91cd14f8a6d7da8d",
+     "id": "atlas-air.jobs.fo-posting-fo.63e5b56e",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_posting",
+     "label_ja": "副操縦士の募集している職",
+     "pack": "pvr-20261119-gm-atlas-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-03-24",
+       "publisher": "ForAllPilots",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-forallpilots-com-31a4608a",
+       "source_type": "third_party_reference",
+       "title": "Atlas Air First Officer - Talent Community - Miami base",
+       "url": "https://forallpilots.com/pilot-jobs/atlas-air-first-officer-talent-community-cabacb"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "First Officer - Talent Community - Miami base",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "atlas-air",
+     "cond_ja": "open / no closing date listed (published 2026-11-18)。補足: 【第三者】採用情報サイトPASSに掲載された求人票（PilotsGlobal https://pilotsglobal.com/job/Various-Boeing-Aircraft-first-officer-atlas_air-US-mq1is6uq3o でも「First Officer - Various Boeing Aircraft」および https://pilotsglobal.com/job/Various-Boeing-Aircraft-simulator-instructor-atlas_air-US-ZlJAse0i40 「Simulator Instructor - Various Boeing Aircraft」を掲載）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-11-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Airline First Officer – Boeing Widebody Fleet (Miami)",
+       "source_id": "src-pilotassessments-com-578d1702",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "584be8fa418f8d59",
+     "id": "atlas-air.jobs.fo-posting-fo.a08169e7",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_posting",
+     "label_ja": "副操縦士の募集している職",
+     "pack": "pvr-20261119-gm-atlas-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-18",
+       "publisher": "PASS (Pilot Assessments)",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotassessments-com-578d1702",
+       "source_type": "third_party_reference",
+       "title": "Atlas Air Job Posting",
+       "url": "https://pilotassessments.com/jobs/airline-first-officer-boeing-widebody-fleet-miami/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Airline First Officer – Boeing Widebody Fleet (Miami)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "atlas-air",
+     "cond_ja": "Plus valid passport with minimum 24 months validity, no restrictions on international travel, and ability to obtain a CANPASS permit。補足: APC（https://www.airlinepilotcentral.com/airlines/cargo/atlas_air）でも一字一句同一の文言を掲載。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-01-12",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Legally authorized to work in the United States and possess proper working documents (meaning you are a U.S. citizen, you have a permanent resident 'green card,' an EAD, or other basis to work legally within the U.S.) • Hold a valid passport with a minimum of 24 months validity remaining and with no",
+       "source_id": "src-assets-nationbuilder-com-816d62f4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "87afb4d0cf76ae8b",
+     "id": "atlas-air.jobs.fo-right-to-work-fo.1157d394",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261119-gm-atlas-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-01-12",
+       "publisher": "Atlas Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-assets-nationbuilder-com-816d62f4",
+       "source_type": "job_posting",
+       "title": "2024 First Officer Requirements (NGPA Official Handout)",
+       "url": "https://assets.nationbuilder.com/ngpa/pages/1940/attachments/original/1705078386/2024_First_Officer_Req_NGPA.pdf?1705078386"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Legally authorized to work in the United States and possess proper working documents (meaning you are a U.S. citizen, you have a permanent resident 'green card,' an EAD, or other basis to work legally within the U.S.)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "atlas-air",
+     "cond_ja": "Required minimum Total Flight Time (plus 1000 hours fixed wing, or 500 hours Part 121/135, or 250 hours fixed-wing PIC with military rotary wing; 2500 hours total time preferred)。補足: 【APC】公式NGPA採用要件シート（https://assets.nationbuilder.com/ngpa/pages/1940/attachments/original/1705078386/2024_First_Officer_Req_NGPA.pdf?1705078386）でも「Meet the required minimum hours of 1,500 total time (plus, 1000 hours of fixed wing or 500 hours with a 121 or 135 carriers or 250 hours of fixed wing PIC along with military rotary wing experience)」と完全一致。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1500 Total Flight Time 250 Pilot-In-Command (PIC) hours fixed wing ... Minimum of 1000 hours of fixed wing, OR; 500 hours of fixed wing under FAA FAR part 121 or 135 (or equivalent foreign operations – e.g. 705 Canadian) OR 250 PIC hours of fixed wing for rotary Military flight-training graduates",
+       "source_id": "src-airlinepilotcentral-com-4adbfb7b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "099ac72ef79f523d",
+     "id": "atlas-air.jobs.fo-total-hours-fo.60806580",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-atlas-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Airline Pilot Central",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlinepilotcentral-com-4adbfb7b",
+       "source_type": "community_reference",
+       "title": "Atlas Air",
+       "url": "https://www.airlinepilotcentral.com/airlines/cargo/atlas_air"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1500,
+     "value_text": "1500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "atlas-air",
+     "cond_ja": "Required minimum hours of fixed-wing flight time (alongside 1,500 hours total time, or 500 hours with a Part 121/135 carrier, or 250 hours fixed-wing PIC with military rotary wing)。補足: 公式NGPA採用要件シートに記載された固定翼機最低飛行時間（1000時間、総飛行時間1,500時間と併せて必須）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-01-12",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Meet the required minimum hours of 1,500 total time (plus, 1000 hours of fixed wing or 500 hours with a 121 or 135 carriers or 250 hours of fixed wing PIC along with military rotary wing experience)",
+       "source_id": "src-assets-nationbuilder-com-816d62f4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d84d7aa856bc7a2e",
+     "id": "atlas-air.jobs.fo-total-hours-fo.7fa5c2fa",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-atlas-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-01-12",
+       "publisher": "Atlas Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-assets-nationbuilder-com-816d62f4",
+       "source_type": "job_posting",
+       "title": "2024 First Officer Requirements (NGPA Official Handout)",
+       "url": "https://assets.nationbuilder.com/ngpa/pages/1940/attachments/original/1705078386/2024_First_Officer_Req_NGPA.pdf?1705078386"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1000,
+     "value_text": "1000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "atlas-air",
+     "cond_ja": "Type rating not required at application; company provides type rating training。補足: 【写し】PASS（https://pilotassessments.com/jobs/first-officer-boeing-widebody-fleet/）でも「Type Rating: Not required — training provided (NTR)」と一致。公式NGPA採用要件シート（https://assets.nationbuilder.com/ngpa/pages/1940/attachments/original/1705078386/2024_First_Officer_Req_NGPA.pdf?1705078386）でも型式証明の保有要件なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Type rating Not required (Training Provided)",
+       "source_id": "src-pilotsglobal-com-1356853c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "96a4876af1ac65f3",
+     "id": "atlas-air.jobs.fo-type-rating-fo.6eb3d458",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261119-gm-atlas-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-1356853c",
+       "source_type": "third_party_reference",
+       "title": "First Officer - Various Boeing Aircraft at Atlas Air",
+       "url": "https://pilotsglobal.com/job/Various-Boeing-Aircraft-first-officer-atlas_air-US-mq1is6uq3o"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Not required (Training Provided)",
+     "value_text": null
+    }
+   ],
+   "profile": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "atlas-air",
+     "cond_ja": "Founded by Michael Chowdry in 1992 (began first B747-200 ACMI contract operations in 1993)。補足: 公式沿革ページおよびWikipedia（https://en.wikipedia.org/wiki/Atlas_Air）にて1992年設立と明記（China Airlines向け初号機ACMI運航開始は1993年）。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Atlas Air began operations in 1992.",
+       "source_id": "src-atlasairworldwide-com-57062983",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "39e27461ded6c041",
+     "id": "atlas-air.profile.founded.92c9e164",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "founded",
+     "label_ja": "設立",
+     "pack": "pvr-20261119-gm-atlas-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Atlas Air Worldwide",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-atlasairworldwide-com-57062983",
+       "source_type": "official_package",
+       "title": "Company History Interactive Timeline",
+       "url": "https://www.atlasairworldwide.com/about-us/interactive-timeline/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "1992",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "atlas-air",
+     "cond_ja": "1 North Lexington Avenue, White Plains, NY 10601。補足: 2023年10月19日の公式発表（https://www.atlasairworldwide.com/2023/10/atlas-air-worldwide-announces-new-corporate-headquarters-in-white-plains-new-york/）によりWhite Plainsに本社を設置（APC https://www.airlinepilotcentral.com/airlines/cargo/atlas_air でも「White Plains, NY」と明記）。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Atlas Air 1 North Lexington Avenue White Plains, NY 10601",
+       "source_id": "src-atlasairworldwide-com-4e627642",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "211fb0d2014a1374",
+     "id": "atlas-air.profile.headquarters-city.afa4e13c",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "headquarters_city",
+     "label_ja": "本社の都市",
+     "pack": "pvr-20261119-gm-atlas-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Atlas Air Worldwide",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-atlasairworldwide-com-4e627642",
+       "source_type": "official_package",
+       "title": "Contact Us",
+       "url": "https://www.atlasairworldwide.com/contact-us/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "White Plains",
+     "value_text": null
+    }
+   ],
+   "scale": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "atlas-air",
+     "cond_ja": "as of 2025-05 (excludes Titan-Bain JV dry leasing portfolio, retiring Amazon CMI 737-800Fs, and 20 Airbus A350F on order)。補足: 公式会社紹介資料（2025年5月版）の総機材数。Wikipedia（https://en.wikipedia.org/wiki/Atlas_Air 2026年3月時点）でも総数113機で一致（2026年3月発表の発注中Airbus A350F 20機 https://www.atlasairworldwide.com/about-us/our-fleet/ はルールに従い除外）。",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": "2025-05-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "113 TOTAL FLEET1 Aircraft ... 1) Fleet size as of May 2025. Excludes Titan-Bain JV dry leasing portfolio, remaining 737-800Fs operated for Amazon on a CMI basis which will leave fleet by end of 2Q25 and includes two additional 777-200Fs will enter Atlas fleet in 2025.",
+       "source_id": "src-atlasairworldwide-com-6f8ce835",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "26f377489f6bbc1e",
+     "id": "atlas-air.scale.fleet-total.8ba6a0d8",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "fleet_total",
+     "label_ja": "運航している機材",
+     "pack": "pvr-20261119-gm-atlas-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-05-01",
+       "publisher": "Atlas Air Worldwide",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-atlasairworldwide-com-6f8ce835",
+       "source_type": "official_package",
+       "title": "Introduction to Atlas Air Worldwide (May 2025, Slide 6)",
+       "url": "https://www.atlasairworldwide.com/wp-content/uploads/2025/05/Introduction-to-Atlas-Air-Worldwide-May-2025-1.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 113,
+     "value_text": "113"
+    }
+   ],
+   "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "atlas-air",
+     "cond_ja": "Company-funded initial type rating without financial training bond (subject to 2-year fleet seat lock)。補足: 【写し】型式証明取得費用は会社全額負担で金銭的な返還ボンド（training bond）はなし（PASS https://pilotassessments.com/jobs/first-officer-boeing-widebody-fleet/ でも「Type Rating: Not required — training provided (NTR)」と一致）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Type rating Not required (Training Provided)",
+       "source_id": "src-pilotsglobal-com-1356853c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "79c1c676b421dace",
+     "id": "atlas-air.work.training-bond-fo.a4b5f552",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "副操縦士の訓練費の拘束",
+     "pack": "pvr-20261119-gm-atlas-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-1356853c",
+       "source_type": "third_party_reference",
+       "title": "First Officer - Various Boeing Aircraft at Atlas Air",
+       "url": "https://pilotsglobal.com/job/Various-Boeing-Aircraft-first-officer-atlas_air-US-mq1is6uq3o"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Not required (Training Provided)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "atlas-air",
+     "cond_ja": "Approximate widebody Captain upgrade time (15 years for 747 Captain)。補足: 【掲示板】2人以上が同じ話を記載（Reddit https://www.reddit.com/r/flying/comments/1d2qen4/atlas_767737/ でも「747 is 15 years. It was at 6 here. Some southern guys upgraded on the 777 after 3 years.」と報告）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2023-12-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "About 6 years.",
+       "source_id": "src-airlinepilotforums-com-fb4d7333",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "870b4b904f7d92b4",
+     "id": "atlas-air.work.upgrade-years-cap.598936fc",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長の機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-atlas-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-12-11",
+       "publisher": "Airline Pilot Central Forums",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlinepilotforums-com-fb4d7333",
+       "source_type": "community_reference",
+       "title": "Upgrade times at Atlas",
+       "url": "https://www.airlinepilotforums.com/atlas-polar/145512-upgrade-times-atlas.html"
+      }
+     ],
+     "unit": "years",
+     "use": "条件つき",
+     "value": 6,
+     "value_text": "6"
+    }
+   ]
+  },
   "austrian": {
    "base": [
     {
@@ -33233,7 +38521,1565 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ]
   },
+  "avelo-airlines": {
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "avelo-airlines",
+     "cond_ja": "CASS and KCM participant; unlimited free standby on Avelo flights and myIDTravel partner discounts。補足: 公式採用ページ（https://www.aveloair.com/careers）にも「Fly unlimited standby free, plus discounted airfare on myIDTravel partners!」と明記。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2023-10-31",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CASS and KCM participant Reduced Rate Travel Available On: Air Canada, Air France, Alaska, British Airways, Delta, Etihad, Frontier, GOL, Hawaiian, Icelandair, JetBlue, Lufthansa, Qantas, Southwest, United and many others Jumpseat Agreements: All US carriers",
+       "source_id": "src-aveloair-com-c5ab54bc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "69a563e183bed37a",
+     "id": "avelo-airlines.benefits.staff-travel.453a409d",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261119-gm-avelo-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-10-31",
+       "publisher": "Avelo Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-aveloair-com-c5ab54bc",
+       "source_type": "official_package",
+       "title": "Pilots",
+       "url": "https://www.aveloair.com/pilots"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Reduced Rate Travel Available On: Air Canada, Air France, Alaska, British Airways, Delta, Etihad, Frontier, GOL, Hawaiian, Icelandair, JetBlue, Lufthansa, Qantas, Southwest, United and many others Jumpseat Agreements: All US carriers",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "avelo-airlines",
+     "cond_ja": "Family and companion eligibility on Avelo standby and ~50 myIDTravel ZED partner airlines。補足: 【掲示板】3人以上が同じ話を記載（同スレッド内の2名および https://www.reddit.com/r/Avelo/comments/158ib3r/i_use_to_work_for_the_avelo_airlines_call_center/ にて、両親・子供・配偶者または指定友人1名がZED協定を利用可能と証言）。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2024-03-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "As for Avelo flights it cost 1.50 a person per flight. They also have just shy of 50 airlines you can ZED on. The bigger ones are delta, united, southwest, alaskan, hawaiian, jet blue, qatar, allegiant, frontier, spirit... parents, children and spouse can use the ZED agreements. If you don't have a",
+       "source_id": "src-reddit-com-6b720fa0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d1f5b2a106f86ad8",
+     "id": "avelo-airlines.benefits.staff-travel.c221fbd8",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261119-gm-avelo-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-03-23",
+       "publisher": "Reddit",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-reddit-com-6b720fa0",
+       "source_type": "community_reference",
+       "title": "r/Avelo (FA flight benefits)",
+       "url": "https://www.reddit.com/r/Avelo/comments/1bm0xb4/fa_flight_benefits/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "parents, children and spouse can use the ZED agreements. If you don't have a spouse you can opt in one friend.",
+     "value_text": null
+    }
+   ],
+   "fleet": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "avelo-airlines",
+     "cond_ja": "Boeing 737-700, as of 2026-05。補足: 149席仕様のBoeing 737-700。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-04-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing Next-Generation 737-700 Number of Aircraft 1 Seats 149",
+       "source_id": "src-aveloair-com-b43aaadc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f23512df174058eb",
+     "id": "avelo-airlines.fleet.boeing-737-700.e1fba290",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "boeing_737_700",
+     "label_ja": "機種ごとの機数（Boeing 737-700）",
+     "pack": "pvr-20261119-gm-avelo-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04-01",
+       "publisher": "Avelo Airlines Fleet Guide",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-aveloair-com-b43aaadc",
+       "source_type": "official_package",
+       "title": "Avelo Airlines Fleet Guide",
+       "url": "https://www.aveloair.com/help/avelo-airlines-fleet"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 1,
+     "value_text": "1"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "avelo-airlines",
+     "cond_ja": "Boeing 737-800, as of 2026-05。補足: 189席仕様のBoeing 737-800。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-04-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing Next-Generation 737-800 Number of Aircraft 14 Seats 189",
+       "source_id": "src-aveloair-com-b43aaadc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cb58d7ed212dbd75",
+     "id": "avelo-airlines.fleet.boeing-737-800.2774ae06",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "boeing_737_800",
+     "label_ja": "機種ごとの機数（Boeing 737-800）",
+     "pack": "pvr-20261119-gm-avelo-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04-01",
+       "publisher": "Avelo Airlines Fleet Guide",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-aveloair-com-b43aaadc",
+       "source_type": "official_package",
+       "title": "Avelo Airlines Fleet Guide",
+       "url": "https://www.aveloair.com/help/avelo-airlines-fleet"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 14,
+     "value_text": "14"
+    }
+   ],
+   "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "avelo-airlines",
+     "cond_ja": "open / no closing date listed。補足: 公式パイロットページ（https://www.aveloair.com/pilots）からリンクされている公式応募窓口AirlineAppsにて現在募集中。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Direct Entry Captain Avelo Airlines",
+       "source_id": "src-airlineapps-com-8d2df923",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b2e150bd6168eea1",
+     "id": "avelo-airlines.jobs.cap-posting-cap.1cf6b578",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_posting",
+     "label_ja": "機長の募集している職",
+     "pack": "pvr-20261119-gm-avelo-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Avelo Airlines Pilot Careers and Programs (AirlineApps)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlineapps-com-8d2df923",
+       "source_type": "job_posting",
+       "title": "Avelo Airlines Pilot Careers and Programs (AirlineApps)",
+       "url": "https://www.airlineapps.com/jobs/details.aspx?emp=Avelo-Airlines&job=Direct-Entry-Captain"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Direct Entry Captain",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "avelo-airlines",
+     "cond_ja": "Total fixed wing time (preferred); 2000 turbine PIC, 1000 PIC part 121, and 14 CFR §121.436(a)(3) required。補足: Direct Entry Captain求人票の飛行時間要件。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "5000 total fixed wing time (preferred) 2000 turbine PIC 1000 PIC part 121 Meets 14 CFR §121.436(a)(3)",
+       "source_id": "src-airlineapps-com-8d2df923",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "81e702911d29dd10",
+     "id": "avelo-airlines.jobs.cap-total-hours-cap.18f7d278",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_total_hours",
+     "label_ja": "機長の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-avelo-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Avelo Airlines Pilot Careers and Programs (AirlineApps)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlineapps-com-8d2df923",
+       "source_type": "job_posting",
+       "title": "Avelo Airlines Pilot Careers and Programs (AirlineApps)",
+       "url": "https://www.airlineapps.com/jobs/details.aspx?emp=Avelo-Airlines&job=Direct-Entry-Captain"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 5000,
+     "value_text": "5000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "avelo-airlines",
+     "cond_ja": "Direct Entry Captain B737NG type rating requirement。補足: 【第三者】PASSのDirect Entry Captain求人票およびAeroScout（https://www.aeroscout.net/jobs/direct-entry-captain-b737ng-avelo-airlines-4629）にてDirect Entry CaptainはB737NG型式証明必須と明記。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-11-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Type Rating: B737NG required",
+       "source_id": "src-pilotassessments-com-45f51184",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "63ab4d89a65009a3",
+     "id": "avelo-airlines.jobs.cap-type-rating-cap.55b8a452",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_type_rating",
+     "label_ja": "機長の型式限定の要否",
+     "pack": "pvr-20261119-gm-avelo-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-17",
+       "publisher": "PASS (Pilot Assessments)",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotassessments-com-45f51184",
+       "source_type": "third_party_reference",
+       "title": "Avelo Airlines Direct Entry Captain",
+       "url": "https://pilotassessments.com/jobs/boeing-737ng-direct-entry-captain-avelo-airlines-usa/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "B737NG required",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "avelo-airlines",
+     "cond_ja": "open / no closing date listed。補足: 公式応募窓口AirlineAppsにて現在募集中。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "First Officer Avelo Airlines",
+       "source_id": "src-airlineapps-com-21229676",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "acc3bc19dd73585a",
+     "id": "avelo-airlines.jobs.fo-posting-fo.3e4fdc3c",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_posting",
+     "label_ja": "副操縦士の募集している職",
+     "pack": "pvr-20261119-gm-avelo-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Avelo Airlines Pilot Careers and Programs (AirlineApps)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlineapps-com-21229676",
+       "source_type": "job_posting",
+       "title": "Avelo Airlines Pilot Careers and Programs (AirlineApps)",
+       "url": "https://www.airlineapps.com/jobs/details.aspx?emp=Avelo-Airlines&job=First-Officer"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "First Officer",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "avelo-airlines",
+     "cond_ja": "21 years old with all ATP requirements (or R-ATP: 1250 hours Aviation Associate degree, 1000 hours Aviation Bachelor's degree, 750 hours Military; 1000 turbine preferred)。補足: AirlineAppsのFirst Officer求人票（https://www.airlineapps.com/jobs/details.aspx?emp=Avelo-Airlines&job=First-Officer）でも同一の時間要件を明記。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2023-10-31",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Aviation Bachelor's degree under 141 programs: 1000 total time or Aviation Associate degree under 141 programs: 1250 total time or 21 years old with all ATP requirements: 1500 total time",
+       "source_id": "src-aveloair-com-c5ab54bc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "040e888e7205b565",
+     "id": "avelo-airlines.jobs.fo-total-hours-fo.63626aac",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-avelo-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-10-31",
+       "publisher": "Avelo Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-aveloair-com-c5ab54bc",
+       "source_type": "official_package",
+       "title": "Pilots",
+       "url": "https://www.aveloair.com/pilots"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1500,
+     "value_text": "1500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "avelo-airlines",
+     "cond_ja": "First Officer Non Type-Rated accepted (type rating provided in training)。補足: 【第三者】PASSのFirst Officer求人票（https://pilotassessments.com/jobs/boeing-737ng-first-officer-avelo-airlines/ および https://pilotassessments.com/jobs/boeing-737ng-first-officer-type-rating-provided/）にてFirst Officerは型式証明不要（NTR / Type Rating Provided）と明記。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-11-10",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Type Rated: NTR",
+       "source_id": "src-pilotassessments-com-b13e100d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6a382f0d36aac68f",
+     "id": "avelo-airlines.jobs.fo-type-rating-fo.2ce6079e",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261119-gm-avelo-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-11-10",
+       "publisher": "PASS (Pilot Assessments)",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotassessments-com-b13e100d",
+       "source_type": "third_party_reference",
+       "title": "Avelo Airlines First Officer",
+       "url": "https://pilotassessments.com/jobs/boeing-737ng-first-officer-avelo-airlines/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "NTR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "avelo-airlines",
+     "cond_ja": "Plus ATP-CTP course with ATP written complete and Current FAA First Class Medical Certificate (with 3 months remaining when starting class)。補足: 公式パイロット採用ページおよびAirlineApps求人票にて明記。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2023-10-31",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Unrestricted ATP with airplane multi-engine class rating or Military R-ATP or for highly exceptional candidates with non-military R-ATP applicability: Aviation Bachelor's degree under 141 programs: 1000 total time or Aviation Associate degree under 141 programs: 1250 total time or 21 years old with",
+       "source_id": "src-aveloair-com-c5ab54bc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4a150a584d2fd134",
+     "id": "avelo-airlines.jobs.pilot-license.f1745f05",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_license",
+     "label_ja": "応募に要る免許",
+     "pack": "pvr-20261119-gm-avelo-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-10-31",
+       "publisher": "Avelo Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-aveloair-com-c5ab54bc",
+       "source_type": "official_package",
+       "title": "Pilots",
+       "url": "https://www.aveloair.com/pilots"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Unrestricted ATP with airplane multi-engine class rating or Military R-ATP",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "avelo-airlines",
+     "cond_ja": "U.S. citizenship and valid U.S. passport with at least 6 months validity。補足: AirlineAppsのDirect Entry CaptainおよびFirst Officer求人票でも同一要件を明記。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2023-10-31",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Must be a U.S. Citizen with a valid and current (at least six months validity) U.S. passport.",
+       "source_id": "src-aveloair-com-c5ab54bc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9c7c91fa5074e0e0",
+     "id": "avelo-airlines.jobs.pilot-right-to-work.e9cd9fc2",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_right_to_work",
+     "label_ja": "国籍・就労の資格",
+     "pack": "pvr-20261119-gm-avelo-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-10-31",
+       "publisher": "Avelo Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-aveloair-com-c5ab54bc",
+       "source_type": "official_package",
+       "title": "Pilots",
+       "url": "https://www.aveloair.com/pilots"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Must be a U.S. Citizen with a valid and current (at least six months validity) U.S. passport.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "avelo-airlines",
+     "cond_ja": "Official pilot page preference statement。補足: 公式パイロット採用ページおよびAPC（https://www.airlinepilotcentral.com/airlines/major-national-lcc/avelo_airlines）ではB737型式証明は優遇（preferred）と記載。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2023-10-31",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Heavy jet/Boeing experience or B737 type preferred.",
+       "source_id": "src-aveloair-com-c5ab54bc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9f2c79abab67b512",
+     "id": "avelo-airlines.jobs.pilot-type-rating.806ede3c",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_type_rating",
+     "label_ja": "型式限定の要否",
+     "pack": "pvr-20261119-gm-avelo-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-10-31",
+       "publisher": "Avelo Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-aveloair-com-c5ab54bc",
+       "source_type": "official_package",
+       "title": "Pilots",
+       "url": "https://www.aveloair.com/pilots"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Heavy jet/Boeing experience or B737 type preferred.",
+     "value_text": null
+    }
+   ],
+   "profile": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "avelo-airlines",
+     "cond_ja": "Inaugural flight under the Avelo Airlines name on April 28, 2021 (brand announced 2021-04-08)。補足: 前身は1987年7月20日に設立されたチャーター航空会社「Casino Express Airlines」で、2005年12月8日に「Xtra Airways」へ社名変更。2018年8月にAndrew Levy氏が買収し、2021年4月8日に「Avelo Airlines」へリブランドして2021年4月28日に定期便運航を開始した。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": "2026-05-02",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "When Avelo took flight on April 28, 2021, it became the first new airline in the U.S. in nearly 15 years – introducing a new era of affordable, convenient, and reliable air service for millions of American travelers.",
+       "source_id": "src-aveloair-com-c3a9ec39",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "51e6a89a2d25fb1d",
+     "id": "avelo-airlines.profile.founded.0b62990b",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "founded",
+     "label_ja": "設立",
+     "pack": "pvr-20261119-gm-avelo-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-05-02",
+       "publisher": "Avelo Airlines Celebrates Fifth Anniversary",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-aveloair-com-c3a9ec39",
+       "source_type": "official_package",
+       "title": "Avelo Airlines Celebrates Fifth Anniversary",
+       "url": "https://www.aveloair.com/company-news/avelo-airlines-celebrates-fifth-anniversary"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "2021",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "avelo-airlines",
+     "cond_ja": "Founded as predecessor Casino Express Airlines (renamed Xtra Airways on 2005-12-08 and Avelo Airlines on 2021-04-08)。補足: 【Wikipedia】前身Casino Express Airlinesとしての設立日（1987-07-20）、Xtra Airwaysへの改称日（2005-12-08）、Avelo Airlinesとしての発表日（2021-04-08）を明記。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": "2026-11-12",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "July 20, 1987; 39 years ago (1987-07-20) (as Casino Express Airlines) December 8, 2005; 20 years ago (2005-12-08) (as Xtra Airways) April 8, 2021; 5 years ago (2021-04-08) (as Avelo Airlines)",
+       "source_id": "src-en-wikipedia-org-abd4c1d0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "45316a98bd1b027b",
+     "id": "avelo-airlines.profile.founded.d306d904",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "founded",
+     "label_ja": "設立",
+     "pack": "pvr-20261119-gm-avelo-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-12",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-abd4c1d0",
+       "source_type": "third_party_reference",
+       "title": "Avelo Airlines",
+       "url": "https://en.wikipedia.org/wiki/Avelo_Airlines"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "1987-07-20",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "avelo-airlines",
+     "cond_ja": "12 Greenway Plaza, Suite 400, Houston, TX 77046。補足: 公式プライバシーポリシー（https://www.aveloair.com/privacy-policy）でも同一の本社所在地を明記。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": "2026-01-21",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Write to us at: Avelo Airlines. Customer Solutions. 12 Greenway Plaza, Suite 400. Houston, TX 77046.",
+       "source_id": "src-aveloair-com-045bfd60",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d274ff09dee34836",
+     "id": "avelo-airlines.profile.headquarters-city.dff63459",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "headquarters_city",
+     "label_ja": "本社の都市",
+     "pack": "pvr-20261119-gm-avelo-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-21",
+       "publisher": "Avelo Airlines Terms and Conditions",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-aveloair-com-045bfd60",
+       "source_type": "official_package",
+       "title": "Avelo Airlines Terms and Conditions",
+       "url": "https://www.aveloair.com/terms-and-conditions"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Houston",
+     "value_text": null
+    }
+   ],
+   "scale": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "avelo-airlines",
+     "cond_ja": "as of 2026-05 (14 Boeing 737-800 and 1 Boeing 737-700 in service; Embraer 195-E2 on order excluded)。補足: 公式パイロット採用ページ（https://www.aveloair.com/pilots）および2026年5月2日の公式5周年プレスリリース（https://www.aveloair.com/company-news/avelo-airlines-celebrates-fifth-anniversary）でも「15 aircraft today (14 189-seat NG 737-800s and 1 149-seat NG 737-700)」と一致（発注中のEmbraer 195-E2は除外）。",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": "2026-04-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Avelo Airlines operates 15 Boeing Next-Generation (NG) 737 aircraft – distinguished by their superior fuel efficiency, reliability, safety and comfort.",
+       "source_id": "src-aveloair-com-b43aaadc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cd83169097a1a52a",
+     "id": "avelo-airlines.scale.fleet-total.5462450d",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "fleet_total",
+     "label_ja": "運航している機材",
+     "pack": "pvr-20261119-gm-avelo-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04-01",
+       "publisher": "Avelo Airlines Fleet Guide",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-aveloair-com-b43aaadc",
+       "source_type": "official_package",
+       "title": "Avelo Airlines Fleet Guide",
+       "url": "https://www.aveloair.com/help/avelo-airlines-fleet"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 15,
+     "value_text": "15"
+    }
+   ]
+  },
   "avianca": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "avianca",
+     "cond_ja": "base BOG。補足: 【写し】ボゴタ（公式採用票ID 32138の写しおよびv1prep https://v1prep.com/airline-pilot-jobs.html でも確認）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2024-11-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ID de solicitud de puesto 32138 - Publicado 19/11/2024 - Colombia - Pilotos / Ubicación de la vacante: Bogotá",
+       "source_id": "src-es-scribd-com-8f8df195",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "423232a73a3adcc6",
+     "id": "avianca.base.pilot-base-city.06a17b62",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-avianca",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-11-19",
+       "publisher": "Avianca",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-es-scribd-com-8f8df195",
+       "source_type": "third_party_reference",
+       "title": "Puestos vacantes: Copiloto Inicial A320 - COL (2025) (32138) (Scribd)",
+       "url": "https://es.scribd.com/document/823437461/Puestos-Vacantes-Copiloto-Inicial-A320-COL-2025-32138"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Bogotá",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "avianca",
+     "cond_ja": "base UIO (Avianca Ecuador)。補足: 【第三者】キト（Avianca Ecuador拠点）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Company: Avianca Location: Ecuador | Quito Employment: Permanent Type Rated: NTR",
+       "source_id": "src-pilotassessments-com-2fceca50",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b69bfd7cfc052cd5",
+     "id": "avianca.base.pilot-base-city.12d1552c",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-avianca",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Pilot Assessments",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotassessments-com-2fceca50",
+       "source_type": "third_party_reference",
+       "title": "Airbus A320 First Officer — Type Rating Provided (Permanent)",
+       "url": "https://pilotassessments.com/jobs/airbus-a320-first-officer-type-rating-provided-permanent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Quito",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "avianca",
+     "cond_ja": "base GUA (Avianca Guatemala)。補足: 【第三者】グアテマラシティ。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-10-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Avianca Not recruiting Colombia · Bogotá · Medellín · San Salvador · Guatemala City",
+       "source_id": "src-v1prep-com-be43d3d3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "856dad7e8baf490f",
+     "id": "avianca.base.pilot-base-city.2520d550",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-avianca",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-30",
+       "publisher": "v1prep",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-v1prep-com-be43d3d3",
+       "source_type": "third_party_reference",
+       "title": "Airline Pilot Jobs 2026: Who's Hiring Pilots Worldwide (Avianca)",
+       "url": "https://v1prep.com/airline-pilot-jobs.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Guatemala City",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "avianca",
+     "cond_ja": "base SAL。補足: 【第三者】サンサルバドル。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-10-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Avianca Not recruiting Colombia · Bogotá · Medellín · San Salvador · Guatemala City",
+       "source_id": "src-v1prep-com-be43d3d3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b36624990544a723",
+     "id": "avianca.base.pilot-base-city.64166676",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-avianca",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-30",
+       "publisher": "v1prep",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-v1prep-com-be43d3d3",
+       "source_type": "third_party_reference",
+       "title": "Airline Pilot Jobs 2026: Who's Hiring Pilots Worldwide (Avianca)",
+       "url": "https://v1prep.com/airline-pilot-jobs.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "San Salvador",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "avianca",
+     "cond_ja": "base MDE。補足: 【第三者】メデジン。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-10-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Avianca Not recruiting Colombia · Bogotá · Medellín · San Salvador · Guatemala City",
+       "source_id": "src-v1prep-com-be43d3d3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bb44c57ca35830dd",
+     "id": "avianca.base.pilot-base-city.80fd39ee",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-avianca",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-30",
+       "publisher": "v1prep",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-v1prep-com-be43d3d3",
+       "source_type": "third_party_reference",
+       "title": "Airline Pilot Jobs 2026: Who's Hiring Pilots Worldwide (Avianca)",
+       "url": "https://v1prep.com/airline-pilot-jobs.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Medellín",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "avianca",
+     "cond_ja": "補足: 【第三者】メデジン（ホセ・マリア・コルドバ国際空港）。v1prep（https://v1prep.com/airline-pilot-jobs.html）およびEpic Flight Academy（https://epicflightacademy.com/hiring-requirements-avianca-cargo/）でも確認。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-08-16",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Bogotá (BOG) is the dominant pilot base and where the overwhelming majority of Colombian flight crew are assigned. Medellín (MDE) supports a growing secondary operation.",
+       "source_id": "src-readyfortakeoffbook-com-2d97c815",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "db27efa41a3514f7",
+     "id": "avianca.base.pilot-base.362a6ad9",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-avianca",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-08-16",
+       "publisher": "Ready For Take-Off Book",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-readyfortakeoffbook-com-2d97c815",
+       "source_type": "third_party_reference",
+       "title": "Avianca: Pilot Careers, Pay, Rosters and Fleet Overview",
+       "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/avianca"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "MDE",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "avianca",
+     "cond_ja": "補足: メインハブ（ボゴタ・エルドラド国際空港）。Ready For Take-Off Book（https://readyfortakeoffbook.com/blogs/pilot-conditions/avianca）にも「Bogotá (BOG) is the dominant pilot base」と明記。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-11-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Semillero Almacenista temporal MDE 1 BOG, CO | Ingeniería y Mantenimiento | BOG, CO",
+       "source_id": "src-jobs-avianca-com-40fa1b1e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1eb4556aeb23ca1f",
+     "id": "avianca.base.pilot-base.d9b14bff",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-avianca",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-17",
+       "publisher": "Avianca Jobs",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jobs-avianca-com-40fa1b1e",
+       "source_type": "job_posting",
+       "title": "Oportunidades laborales para pilotos",
+       "url": "https://jobs.avianca.com/go/Pilotos/2845201/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BOG",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "avianca",
+     "cond_ja": "Avianca El Salvador。補足: 【第三者】サンサルバドル（エルサルバドル国際空港）。Avion Revue（https://www.avionrevue.com/aviacion-comercial/avianca-se-revitaliza-con-su-rebranding-desde-el-salvador/）でもパイロット拠点増強を確認。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-08-16",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "San Salvador (SAL) is a genuine hub, but it is normally crewed through the Avianca El Salvador entity rather than being an available posting for a Colombia-based pilot.",
+       "source_id": "src-readyfortakeoffbook-com-2d97c815",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0c4151893086a7bc",
+     "id": "avianca.base.pilot-base.f0f5e5ab",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-avianca",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-08-16",
+       "publisher": "Ready For Take-Off Book",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-readyfortakeoffbook-com-2d97c815",
+       "source_type": "third_party_reference",
+       "title": "Avianca: Pilot Careers, Pay, Rosters and Fleet Overview",
+       "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/avianca"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SAL",
+     "value_text": null
+    }
+   ],
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "avianca",
+     "cond_ja": "全社員の制度。補足: 移動補助（auxilios monetarios para apoyar movilidad）および労働協約Cláusula 13（https://acavcol.com/wp-content/uploads/2025/02/Convencion-actual-.pdf）に基づく会社提供の集団送迎（transporte colectivo）と日当（viáticos）。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "auxilios Dependiendo del país donde trabajes tendrás a tu alcance un conjunto de auxilios monetarios para apoyar movilidad, salud, educación, conectividad y alimentación.",
+       "source_id": "src-jobs-avianca-com-e019c82a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bc923028e783dcb8",
+     "id": "avianca.benefits.commuting.ef292378",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261119-gm-avianca",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-01-01",
+       "publisher": "Avianca Jobs",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jobs-avianca-com-e019c82a",
+       "source_type": "official_package",
+       "title": "Beneficios",
+       "url": "https://jobs.avianca.com/content/Beneficios/?locale=es_ES"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "un conjunto de auxilios monetarios para apoyar movilidad",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "avianca",
+     "cond_ja": "全社員の制度; Cláusula 16 Traslado de base (loan, 20 days per diem, and household goods transport upon base transfer)。補足: 恒常的な月額住宅手当の公開記載はなし。労働協約第16条により基地異動時には住宅ローン（préstamo para vivienda）、家財道具輸送、20日間の日当を支給。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-02-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "La Empresa, si el trabajador trasladado así lo solicitare, concederá a éste un préstamo para vivienda. En estos casos se pagarán los mismos viáticos de que trata la Cláusula trece y ademas se trasladarán los enseres domésticos normales del trabajador.",
+       "source_id": "src-acavcol-com-d7e2d1b0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "dfc21a14ed108964",
+     "id": "avianca.benefits.housing.c9aaa343",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "housing",
+     "label_ja": "住宅手当・社宅",
+     "pack": "pvr-20261119-gm-avianca",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-02-01",
+       "publisher": "ACAV / SINTRAVA",
+       "publisher_kind": "union",
+       "retrieved": "2026-11-18",
+       "source_id": "src-acavcol-com-d7e2d1b0",
+       "source_type": "union_cba",
+       "title": "Convención Colectiva de Trabajo Avianca",
+       "url": "https://acavcol.com/wp-content/uploads/2025/02/Convencion-actual-.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "préstamo para vivienda",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "avianca",
+     "cond_ja": "全社員の制度。補足: 家族まで拡張可能な医療保険・医療補助（plan de salud）および生命保険（póliza de vida）。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "plan de salud Cuidarte está en nuestros planes, tenemos para ti pólizas y auxilios que puedes extender a tu familia.",
+       "source_id": "src-jobs-avianca-com-e019c82a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "48987cdbf647fbf3",
+     "id": "avianca.benefits.medical.6285d57a",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "medical",
+     "label_ja": "医療の保険・補助",
+     "pack": "pvr-20261119-gm-avianca",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-01-01",
+       "publisher": "Avianca Jobs",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jobs-avianca-com-e019c82a",
+       "source_type": "official_package",
+       "title": "Beneficios",
+       "url": "https://jobs.avianca.com/content/Beneficios/?locale=es_ES"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "tenemos para ti pólizas y auxilios que puedes extender a tu familia",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "avianca",
+     "cond_ja": "mandatory Colombian pension contribution (12% employer and 4% employee); legacy pilots covered under CAXDAC。補足: 【第三者】コロンビア法定年金拠出率16%（会社負担12%・本人負担4%、Colpensionesまたは民間年金基金）に加え、法定退職積立金（cesantías：年1ヶ月分＋年利12%）。旧制度対象パイロットはCAXDAC（https://www.caxdac.com/）が管理。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-08-16",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Colombian mandatory pension contribution is 16% of the contribution base: 12% employer and 4% employee, subject to ceilings and solidarity-fund surcharges at higher salaries.",
+       "source_id": "src-readyfortakeoffbook-com-2d97c815",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5979fd6f8e336585",
+     "id": "avianca.benefits.pension.7a3302b8",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "pension",
+     "label_ja": "年金・退職金の制度",
+     "pack": "pvr-20261119-gm-avianca",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-08-16",
+       "publisher": "Ready For Take-Off Book",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-readyfortakeoffbook-com-2d97c815",
+       "source_type": "third_party_reference",
+       "title": "Avianca: Pilot Careers, Pay, Rosters and Fleet Overview",
+       "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/avianca"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "16%",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "avianca",
+     "cond_ja": "全社員の制度。補足: 社員・家族向け優待航空券（boletos beneficio）およびStar Alliance各社・myIDTravelでのZED優待搭乗。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "boletos beneficio Acercarte a la familia, conocer el mundo, experimentar diferentes culturas, o simplemente disfrutar las vacaciones fuera de tu ciudad.",
+       "source_id": "src-jobs-avianca-com-e019c82a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f7a9ec55b0cfe123",
+     "id": "avianca.benefits.staff-travel.ead4bc01",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261119-gm-avianca",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-01-01",
+       "publisher": "Avianca Jobs",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jobs-avianca-com-e019c82a",
+       "source_type": "official_package",
+       "title": "Beneficios",
+       "url": "https://jobs.avianca.com/content/Beneficios/?locale=es_ES"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "boletos beneficio",
+     "value_text": null
+    }
+   ],
    "fleet": [
     {
      "amount": null,
@@ -33619,6 +40465,110 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "itinerary programmingに調整を加えwellbeing/healthへ寄与すると説明。月休日/連続勤務上限/勤務実績の日数は示さない。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "avianca",
+     "cond_ja": "Airbus A320 First Officer。補足: 【第三者】A320副操縦士採用ではType Ratingおよび路線訓練を会社が提供（拘束年数・違約金額は非公開）。また女性パイロット奨学金「El Cielo es de Ellas」（https://jobs.avianca.com/content/Informacion/?locale=es_ES）ではPCA取得訓練費用の100%を会社が負担。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Full Airbus A320 type rating and line training provided (NTR welcome).",
+       "source_id": "src-pilotassessments-com-2fceca50",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a4ddb986a5413c1b",
+     "id": "avianca.work.training-bond-fo.b0308571",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "副操縦士の訓練費の拘束",
+     "pack": "pvr-20261119-gm-avianca",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Pilot Assessments",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotassessments-com-2fceca50",
+       "source_type": "third_party_reference",
+       "title": "Airbus A320 First Officer — Type Rating Provided (Permanent)",
+       "url": "https://pilotassessments.com/jobs/airbus-a320-first-officer-type-rating-provided-permanent/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Full Airbus A320 type rating and line training provided (NTR welcome).",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "avianca",
+     "cond_ja": "regional industry benchmark for A320 Captain upgrade (seniority-driven internal promotion)。補足: 【第三者】会社公式の昇格年数統計は非公開だが、コロンビア業界およびA320ファミリー機長昇格の目安として5〜8年（v1prep https://v1prep.com/airline-pilot-jobs.html でも社内セニョリティ昇格のみ・DEC募集なしと確認）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-08-16",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Captain upgrade, A320 family | ~5 to 8 years (regional benchmark) | No Avianca-specific published figure. Subject to command course, simulator assessment and line check.",
+       "source_id": "src-readyfortakeoffbook-com-2d97c815",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c7bcabb228aac8f4",
+     "id": "avianca.work.upgrade-years.9c4ee4fc",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-avianca",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-08-16",
+       "publisher": "Ready For Take-Off Book",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-readyfortakeoffbook-com-2d97c815",
+       "source_type": "third_party_reference",
+       "title": "Avianca: Pilot Careers, Pay, Rosters and Fleet Overview",
+       "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/avianca"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "5 to 8",
      "value_text": null
     }
    ]
@@ -39375,6 +46325,212 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "United States",
      "value_text": null
+    }
+   ],
+   "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "breeze-airways",
+     "cond_ja": "pilot training (ATP/CTP paid by company)。補足: 【掲示板】Confirmed by 2+ posts (also https://www.airlinepilotforums.com/breeze/114461-breeze-airways-414-print.html stating ATP/CTP Paid and No contract to my knowledge)。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-01-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "It's a very very personal choice, but if it were me, I'd go to breeze. No training contract either.",
+       "source_id": "src-reddit-com-cfc6c65b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "de2a098c366112d2",
+     "id": "breeze-airways.work.training-bond.c3157215",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "訓練費の拘束",
+     "pack": "pvr-20261119-gm-breeze-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-30",
+       "publisher": "Reddit r/flying",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-reddit-com-cfc6c65b",
+       "source_type": "community_reference",
+       "title": "CJO at breeze and frontier, which would you choose?",
+       "url": "https://www.reddit.com/r/flying/comments/1qr8trp/cjo_at_breeze_and_frontier_which_would_you_choose/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "No training contract",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "breeze-airways",
+     "cond_ja": "maximum, First Officers close to FAR Part 121 upgrade minimums (6 to 12 months)。補足: 【掲示板】Confirmed by 2+ posts (also https://www.reddit.com/r/flying/comments/1wgc305/breeze/ and https://www.airlinepilotforums.com/breeze/151718-can-i-upgrade-within-year.html)。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2023-03-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "$105 1st year. $122 2nd year for Ejet. $132 2nd year for A220. I mean you won't be an FO for more than 6 to 12 months if you're close to 121 upgrade mins. Upgrades are immediate if you have the time.",
+       "source_id": "src-airlinepilotforums-com-01f12184",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5436b373e386f0a3",
+     "id": "breeze-airways.work.upgrade-years.3c449ee9",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-breeze-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-03-29",
+       "publisher": "Airline Pilot Central Forums",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlinepilotforums-com-01f12184",
+       "source_type": "community_reference",
+       "title": "[Breeze] Airways (Page 399)",
+       "url": "https://www.airlinepilotforums.com/breeze/114461-breeze-airways-399.html"
+      }
+     ],
+     "unit": "months",
+     "use": "条件つき",
+     "value": 12,
+     "value_text": "12"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "breeze-airways",
+     "cond_ja": "seniority-based upgrade trend; most junior PVU Captain as of Nov 2026 is a 07/2024 hire。補足: 【掲示板】Confirmed by 2+ posts (also https://www.reddit.com/r/flying/comments/1xeokj6/questions_for_breeze_pilots/ stating most junior PVU Captain is a 07/2024 hire, and https://www.reddit.com/r/flying/comments/1qhj7dr/breeze_experienced_fo_app/ stating former SkyWest captain upgraded at 170 hours at Breeze with Chief Pilot waiver)。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-12-07",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Upgrade is driven sby seniority, not previous flight time. There are currently approximately 625 pilots on the seniority list, which means a new hire FO effectively has about 300 FOs ahead of them before upgrade becomes realistic. Based on recent trends, typical upgrade time is running around two ye",
+       "source_id": "src-airlinepilotforums-com-e1a781a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2e1e443a1d66025b",
+     "id": "breeze-airways.work.upgrade-years.91c89323",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-breeze-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-12-07",
+       "publisher": "Airline Pilot Central Forums",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlinepilotforums-com-e1a781a6",
+       "source_type": "community_reference",
+       "title": "Can I upgrade within a year?",
+       "url": "https://www.airlinepilotforums.com/breeze/151718-can-i-upgrade-within-year.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "typical upgrade time is running around two years (seniority-driven; approximately 300 FOs ahead of a new hire FO on a 625-pilot seniority list)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "breeze-airways",
+     "cond_ja": "minimum, First Officers close to FAR Part 121 upgrade minimums (6 to 12 months; immediate at junior bases CAK and MSY once minimums are met)。補足: 【掲示板】Confirmed by 2+ posts (also https://www.reddit.com/r/flying/comments/1wgc305/breeze/ and https://www.reddit.com/r/flying/comments/1qhj7dr/breeze_experienced_fo_app/)。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2023-03-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "$105 1st year. $122 2nd year for Ejet. $132 2nd year for A220. I mean you won't be an FO for more than 6 to 12 months if you're close to 121 upgrade mins. Upgrades are immediate if you have the time.",
+       "source_id": "src-airlinepilotforums-com-01f12184",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7c565283fb3d2082",
+     "id": "breeze-airways.work.upgrade-years.e688c508",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-breeze-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-03-29",
+       "publisher": "Airline Pilot Central Forums",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlinepilotforums-com-01f12184",
+       "source_type": "community_reference",
+       "title": "[Breeze] Airways (Page 399)",
+       "url": "https://www.airlinepilotforums.com/breeze/114461-breeze-airways-399.html"
+      }
+     ],
+     "unit": "months",
+     "use": "条件つき",
+     "value": 6,
+     "value_text": "6"
     }
    ]
   },
@@ -46700,6 +53856,1784 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ]
   },
+  "contour": {
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "maximum residence report time from dispatch call during assigned duty period。補足: 【第三者】Confirmed in First Officer posting as well (https://www.ziprecruiter.com/c/corporate-flight-management-group/Job/First-Officer-Bombardier-Canadair-Regional-Jet-(CRJ200)/-in-Smyrna,TN?jid=c65e4ba897e5bb86)。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-10-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Must have a residence that will ensure you are able to report to work within 120 minutes of dispatch call during your assigned duty period.",
+       "source_id": "src-avianation-com-0ae53f89",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1510b96c69dc3734",
+     "id": "contour.benefits.commuting.ee3cc917",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-25",
+       "publisher": "AviaNation",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-avianation-com-0ae53f89",
+       "source_type": "third_party_reference",
+       "title": "Captain - Bombardier Canadair Regional Jet (CRJ200) at Contour",
+       "url": "https://www.avianation.com/jobs/captain-bombardier-canadair-regional-jet-crj200-bd0f8979"
+      }
+     ],
+     "unit": "minutes",
+     "use": "条件つき",
+     "value": 120,
+     "value_text": "120"
+    }
+   ],
+   "fleet": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "Bombardier CRJ-100/200, as of 2025-05-05。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2025-05-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Operating a fleet of 34 regional jets—12 Bombardier CRJ-100/200s and 22 Embraer ERJ-135/145s—Contour maintains its EAS commitments under US Department of Transportation contracts, providing subsidized air service to these underserved markets.",
+       "source_id": "src-avgeekery-com-94aa662b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4bae5485735f3cb9",
+     "id": "contour.fleet.bombardier-crj-100-200.50d30c1f",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "bombardier_crj_100_200",
+     "label_ja": "機種ごとの機数（Bombardier CRJ-100/200）",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-05-05",
+       "publisher": "Avgeekery",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-avgeekery-com-94aa662b",
+       "source_type": "third_party_reference",
+       "title": "Contour, Spirit Team Up To Enhance Air Service To EAS Communities",
+       "url": "https://avgeekery.com/contour-spirit-to-enhance-service-to-eas-communities/"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 12,
+     "value_text": "12"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "Bombardier CRJ200, as of September 2025。補足: 【Wikipedia】。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-10-27",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Aircraft:Bombardier CRJ200|In service:10|Orders:—|Passengers:30",
+       "source_id": "src-en-wikipedia-org-27982ed8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2a60cde20556a671",
+     "id": "contour.fleet.bombardier-crj200.e4ea8ea7",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "bombardier_crj200",
+     "label_ja": "機種ごとの機数（Bombardier CRJ200）",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-27",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-27982ed8",
+       "source_type": "third_party_reference",
+       "title": "Contour Airlines",
+       "url": "https://en.wikipedia.org/wiki/Contour_Airlines"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 10,
+     "value_text": "10"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "CRJ200, as of 2026-11-18。補足: 【APC】。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "FLEET Citation XL/XLS: 2 CRJ200: 11 ERJ 145: 22 Legacy: 1",
+       "source_id": "src-airlinepilotcentral-com-a7f886e8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c404e8a940095860",
+     "id": "contour.fleet.crj200.31f2d215",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "crj200",
+     "label_ja": "機種ごとの機数（CRJ200）",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Airline Pilot Central",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlinepilotcentral-com-a7f886e8",
+       "source_type": "community_reference",
+       "title": "Contour Aviation",
+       "url": "https://www.airlinepilotcentral.com/airlines/part-135/contour_aviation"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 11,
+     "value_text": "11"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "Embraer ERJ-135/145, as of 2025-05-05。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2025-05-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Operating a fleet of 34 regional jets—12 Bombardier CRJ-100/200s and 22 Embraer ERJ-135/145s—Contour maintains its EAS commitments under US Department of Transportation contracts, providing subsidized air service to these underserved markets.",
+       "source_id": "src-avgeekery-com-94aa662b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e05f7f0a74b8245f",
+     "id": "contour.fleet.embraer-erj-135-145.97981068",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "embraer_erj_135_145",
+     "label_ja": "機種ごとの機数（Embraer ERJ-135/145）",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-05-05",
+       "publisher": "Avgeekery",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-avgeekery-com-94aa662b",
+       "source_type": "third_party_reference",
+       "title": "Contour, Spirit Team Up To Enhance Air Service To EAS Communities",
+       "url": "https://avgeekery.com/contour-spirit-to-enhance-service-to-eas-communities/"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 22,
+     "value_text": "22"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "Embraer ERJ 135, as of September 2025。補足: 【Wikipedia】。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-10-27",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Aircraft:Embraer ERJ 135|In service:10|Orders:—|Passengers:30",
+       "source_id": "src-en-wikipedia-org-27982ed8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a1acfbdf691e9033",
+     "id": "contour.fleet.embraer-erj-135.65a53805",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "embraer_erj_135",
+     "label_ja": "機種ごとの機数（Embraer ERJ 135）",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-27",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-27982ed8",
+       "source_type": "third_party_reference",
+       "title": "Contour Airlines",
+       "url": "https://en.wikipedia.org/wiki/Contour_Airlines"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 10,
+     "value_text": "10"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "Embraer ERJ 140, as of September 2025。補足: 【Wikipedia】。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-10-27",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Aircraft:Embraer ERJ 140|In service:8|Orders:—|Passengers:30",
+       "source_id": "src-en-wikipedia-org-27982ed8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "569c485a1ee805a2",
+     "id": "contour.fleet.embraer-erj-140.c2b2a1b7",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "embraer_erj_140",
+     "label_ja": "機種ごとの機数（Embraer ERJ 140）",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-27",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-27982ed8",
+       "source_type": "third_party_reference",
+       "title": "Contour Airlines",
+       "url": "https://en.wikipedia.org/wiki/Contour_Airlines"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 8,
+     "value_text": "8"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "Embraer ERJ 145, as of September 2025。補足: 【Wikipedia】。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-10-27",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Aircraft:Embraer ERJ 145|In service:3|Orders:—|Passengers:30",
+       "source_id": "src-en-wikipedia-org-27982ed8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "236a31469d744131",
+     "id": "contour.fleet.embraer-erj-145.77ae1f06",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "embraer_erj_145",
+     "label_ja": "機種ごとの機数（Embraer ERJ 145）",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-27",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-27982ed8",
+       "source_type": "third_party_reference",
+       "title": "Contour Airlines",
+       "url": "https://en.wikipedia.org/wiki/Contour_Airlines"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 3,
+     "value_text": "3"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "Embraer Legacy 600, as of 2026-11-18。補足: 【APC】。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "FLEET Citation XL/XLS: 2 CRJ200: 11 ERJ 145: 22 Legacy: 1",
+       "source_id": "src-airlinepilotcentral-com-a7f886e8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "94b865ff08375d2f",
+     "id": "contour.fleet.embraer-legacy-600.4939ca35",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "embraer_legacy_600",
+     "label_ja": "機種ごとの機数（Embraer Legacy 600）",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Airline Pilot Central",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlinepilotcentral-com-a7f886e8",
+       "source_type": "community_reference",
+       "title": "Contour Aviation",
+       "url": "https://www.airlinepilotcentral.com/airlines/part-135/contour_aviation"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 1,
+     "value_text": "1"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "ERJ 145, as of 2026-11-18。補足: 【APC】。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "FLEET Citation XL/XLS: 2 CRJ200: 11 ERJ 145: 22 Legacy: 1",
+       "source_id": "src-airlinepilotcentral-com-a7f886e8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "283ae1224f6e805f",
+     "id": "contour.fleet.erj-145.c8edd8e3",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "erj_145",
+     "label_ja": "機種ごとの機数（ERJ 145）",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Airline Pilot Central",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlinepilotcentral-com-a7f886e8",
+       "source_type": "community_reference",
+       "title": "Contour Aviation",
+       "url": "https://www.airlinepilotcentral.com/airlines/part-135/contour_aviation"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 22,
+     "value_text": "22"
+    }
+   ],
+   "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "open as of 2026-11-18 (Based location will be discussed during interview)。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Captain - Bombardier Canadair Regional Jet (CRJ200) Based location will be discussed during interview. Apply Now",
+       "source_id": "src-careers-contourairlines-com-51449acf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0dee220e7018cb74",
+     "id": "contour.jobs.cap-posting-cap.54f007b5",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_posting",
+     "label_ja": "機長の募集している職",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Contour Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-contourairlines-com-51449acf",
+       "source_type": "job_posting",
+       "title": "Captains",
+       "url": "https://www.careers.contourairlines.com/captain-careers"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Captain - Bombardier Canadair Regional Jet (CRJ200)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "open as of 2026-11-18 (Based location will be discussed during interview)。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Captain - Cessna Citation XLS Based location will be discussed during interview. Apply Now",
+       "source_id": "src-careers-contourairlines-com-51449acf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "88a6dce73cc33f47",
+     "id": "contour.jobs.cap-posting-cap.650ba62d",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_posting",
+     "label_ja": "機長の募集している職",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Contour Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-contourairlines-com-51449acf",
+       "source_type": "job_posting",
+       "title": "Captains",
+       "url": "https://www.careers.contourairlines.com/captain-careers"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Captain - Cessna Citation XLS",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "Captain (must also possess a current passport)。補足: 【第三者】Confirmed also on https://talents.vaia.com/companies/corporate-flight-management/captain-embraer-legacy-600-jet-98728700/。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Possess a current passport. ... Be authorized to work in the United States and able to travel in and out of the United States.",
+       "source_id": "src-avianation-com-0ae53f89",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4a86bbd45f615657",
+     "id": "contour.jobs.cap-right-to-work-cap.c913bfaf",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_right_to_work",
+     "label_ja": "機長の国籍・就労の資格",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-25",
+       "publisher": "AviaNation",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-avianation-com-0ae53f89",
+       "source_type": "third_party_reference",
+       "title": "Captain - Bombardier Canadair Regional Jet (CRJ200) at Contour",
+       "url": "https://www.avianation.com/jobs/captain-bombardier-canadair-regional-jet-crj200-bd0f8979"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Be authorized to work in the United States and able to travel in and out of the United States.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "minimum, Embraer Legacy 600 Jet Captain (1,500 hours PIC, 250 hours PIC in Type)。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Embraer Legacy 600 Jet - Captain Minimum and/or Recommended Flight Times: Total Time: 3,000 Pilot in Command Time: 1,500 Pilot in Command in Type: 250 Must be current and proficient in type",
+       "source_id": "src-careers-contourairlines-com-51449acf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1273e095680a213f",
+     "id": "contour.jobs.cap-total-hours-cap.339be2cc",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_total_hours",
+     "label_ja": "機長の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Contour Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-contourairlines-com-51449acf",
+       "source_type": "job_posting",
+       "title": "Captains",
+       "url": "https://www.careers.contourairlines.com/captain-careers"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 3000,
+     "value_text": "3,000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "minimum, CRJ and ERJ Captain (2,500 hours recommended; 500 hours PIC minimum / 1,000 recommended; 500 hours Multi-Engine minimum / 1,000 recommended)。補足: Same 1,500 minimum / 2,500 recommended total hours apply to ERJ - Captain on the same page。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CRJ - Captain Minimum and/or Recommended Flight Times: Total Time: 1,500 minimum / 2,500 recommended Pilot in Command Time: 500 minimum / 1,000 recommended Multi-Engine Hours: 500 minimum / 1,000 recommended",
+       "source_id": "src-careers-contourairlines-com-51449acf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "446a8d307268bd9c",
+     "id": "contour.jobs.cap-total-hours-cap.4252dbaa",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_total_hours",
+     "label_ja": "機長の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Contour Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-contourairlines-com-51449acf",
+       "source_type": "job_posting",
+       "title": "Captains",
+       "url": "https://www.careers.contourairlines.com/captain-careers"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1500,
+     "value_text": "1,500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "minimum, Cessna Citation XLS Captain (2,000 hours PIC, 2,000 hours Turbine, 250 hours PIC in Type)。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Cessna Citation XLS - Captain Minimum and/or Recommended Flight Times: Total Time: 3,500 Pilot in Command Time: 2,000 Turbine Time: 2,000 Pilot in Command Time in Type: 250",
+       "source_id": "src-careers-contourairlines-com-51449acf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "90fccf3d4fd99d43",
+     "id": "contour.jobs.cap-total-hours-cap.6ddfd457",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_total_hours",
+     "label_ja": "機長の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Contour Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-contourairlines-com-51449acf",
+       "source_type": "job_posting",
+       "title": "Captains",
+       "url": "https://www.careers.contourairlines.com/captain-careers"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 3500,
+     "value_text": "3,500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "Embraer Legacy 600 Jet and Cessna Citation XLS Captain (250 hours PIC in type required)。補足: Confirmed also on https://talents.vaia.com/companies/corporate-flight-management/captain-embraer-legacy-600-jet-98728700/。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Embraer Legacy 600 Jet - Captain Minimum and/or Recommended Flight Times: Total Time: 3,000 Pilot in Command Time: 1,500 Pilot in Command in Type: 250 Must be current and proficient in type",
+       "source_id": "src-careers-contourairlines-com-51449acf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0c2b89a84f0d680d",
+     "id": "contour.jobs.cap-type-rating-cap.ac245505",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_type_rating",
+     "label_ja": "機長の型式限定の要否",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Contour Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-contourairlines-com-51449acf",
+       "source_type": "job_posting",
+       "title": "Captains",
+       "url": "https://www.careers.contourairlines.com/captain-careers"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Must be current and proficient in type",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "CRJ and ERJ Captain ($10,000 signing bonus for pilots with previous type rating in aircraft being recruited for)。補足: $10,000 type-rating signing bonus confirmed on https://www.airlinepilotcentral.com/airlines/part-135/contour_aviation。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CRJ - Captain ... Type Rating and Currency Recommended ... ERJ - Captain ... Type Rating and Currency Recommended",
+       "source_id": "src-careers-contourairlines-com-51449acf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2a0859e39fabf985",
+     "id": "contour.jobs.cap-type-rating-cap.c6b4187c",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_type_rating",
+     "label_ja": "機長の型式限定の要否",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Contour Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-contourairlines-com-51449acf",
+       "source_type": "job_posting",
+       "title": "Captains",
+       "url": "https://www.careers.contourairlines.com/captain-careers"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Type Rating and Currency Recommended",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "posted 2026-11-12。補足: 【第三者】過去の求人（2026-11-12 掲載。公式ページ https://www.careers.contourairlines.com/first-officer-careers では 2026-11-18 時点で新規募集停止中）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-11-12",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "First Officer – Regional Airline Pilot Opportunity Contour Airlines United States On-site USD 36,000 - 71,000 Full time",
+       "source_id": "src-jobleads-com-4d87d2f0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "680ee19c5221831a",
+     "id": "contour.jobs.fo-posting-fo.3d680b3f",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_posting",
+     "label_ja": "副操縦士の募集している職",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-12",
+       "publisher": "JobLeads",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jobleads-com-4d87d2f0",
+       "source_type": "third_party_reference",
+       "title": "First Officer – Regional Airline Pilot Opportunity | Contour Airlines",
+       "url": "https://www.jobleads.com/us/job/first-officer-regional-airline-pilot-opportunity--united-states--ed655e40bb5e58b6465f448df547a90d0"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "First Officer – Regional Airline Pilot Opportunity",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "First Officer (must also possess a current passport)。補足: 【第三者】過去の求人（Confirmed also on https://www.jobleads.com/us/job/first-officer-regional-airline-pilot-opportunity--united-states--ed655e40bb5e58b6465f448df547a90d0）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-11-15",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Possess a current passport. ... Be authorized to work in the United States and able to travel in and out of the United States.",
+       "source_id": "src-ziprecruiter-com-92e20430",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8476ccabb93e3754",
+     "id": "contour.jobs.fo-right-to-work-fo.690e6cf5",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-15",
+       "publisher": "ZipRecruiter",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-ziprecruiter-com-92e20430",
+       "source_type": "third_party_reference",
+       "title": "First Officer - Bombardier Canadair Regional Jet (CRJ200)",
+       "url": "https://www.ziprecruiter.com/c/corporate-flight-management-group/Job/First-Officer-Bombardier-Canadair-Regional-Jet-(CRJ200)/-in-Smyrna,TN?jid=c65e4ba897e5bb86"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Be authorized to work in the United States and able to travel in and out of the United States.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "minimum, Embraer Legacy 600 Jet First Officer (500 hours PIC, 25 hours Multi-Engine Land, 75 hours Instrument)。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Embraer Legacy 600 Jet - First Officer Minimum and/or Recommended Flight Times: Total Time: 1,000 minimum Pilot in Command Time: 500 Multi-Engine Land: 25 minimum Instrument: 75",
+       "source_id": "src-careers-contourairlines-com-c3cfadb9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c583878282d1063f",
+     "id": "contour.jobs.fo-total-hours-fo.3c10ebb6",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Contour Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-contourairlines-com-c3cfadb9",
+       "source_type": "job_posting",
+       "title": "First Officers",
+       "url": "https://www.careers.contourairlines.com/first-officer-careers"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1000,
+     "value_text": "1,000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "minimum, Cessna Citation XLS First Officer (250 hours PIC, 25 hours Multi-Engine, 75 hours Instrument)。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Cessna Citation XLS - First Officer Minimum and/or Recommended Flight Times: Total Time: 1,200 minimum Pilot in Command Time: 250 Multi-Engine Hours: 25 minimum Instrument: 75",
+       "source_id": "src-careers-contourairlines-com-c3cfadb9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8f9b469be87ad0e7",
+     "id": "contour.jobs.fo-total-hours-fo.70cd6b22",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Contour Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-contourairlines-com-c3cfadb9",
+       "source_type": "job_posting",
+       "title": "First Officers",
+       "url": "https://www.careers.contourairlines.com/first-officer-careers"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1200,
+     "value_text": "1,200"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "minimum, CRJ and ERJ First Officer (25 hours Multi-Engine minimum; 750 hours total time and 50 hours Multi-Engine preferred)。補足: Confirmed also on https://www.careers.contourairlines.com/pilot-pathway-program。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CRJ - First Officer Minimum and/or Recommended Flight Times: Total Time: 500 minimum Multi-Engine Hours: 25 minimum ERJ - First Officer Minimum and/or Recommended Flight Times: Total Time: 500 minimum Multi-Engine Hours: 25 minimum",
+       "source_id": "src-careers-contourairlines-com-c3cfadb9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "728a32824a11d62f",
+     "id": "contour.jobs.fo-total-hours-fo.a55c7926",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Contour Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-contourairlines-com-c3cfadb9",
+       "source_type": "job_posting",
+       "title": "First Officers",
+       "url": "https://www.careers.contourairlines.com/first-officer-careers"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 500,
+     "value_text": "500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "ERJ/CRJ First Officer (SIC Type Rating recommended for Cessna Citation XLS First Officer)。補足: 【第三者】過去の求人（Official page https://www.careers.contourairlines.com/first-officer-careers lists SIC Type Rating under Recommended Certificates and Ratings for Cessna Citation XLS First Officer）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Type rating Not required (Training Provided)",
+       "source_id": "src-pilotsglobal-com-4d4e1b07",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2a3bb1db4f4fd29f",
+     "id": "contour.jobs.fo-type-rating-fo.163896b0",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-4d4e1b07",
+       "source_type": "third_party_reference",
+       "title": "First Officer - ERJ family / EMB-145 at Contour Aviation",
+       "url": "https://pilotsglobal.com/job/ERJ-family-EMB-145-first-officer-contour_aviation-US-639dfd7e11"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Not required (Training Provided)",
+     "value_text": null
+    }
+   ],
+   "profile": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "founded as Corporate Flight Management Inc. (parent company Contour Aviation)。補足: Parent company Corporate Flight Management Inc. (d/b/a Contour Aviation) founded in 1982; scheduled regional airline brand Contour Airlines launched in 2016 (https://en.wikipedia.org/wiki/Contour_Airlines)。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Contour Airlines is the regional airline brand of Contour Aviation, based in Smyrna, TN. Contour Aviation was founded in 1982 as Corporate Flight Management, a private jet charter company.",
+       "source_id": "src-contourairlines-com-281ceb71",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "51e7b01f82713e19",
+     "id": "contour.profile.founded.8bbc32d1",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "founded",
+     "label_ja": "設立",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Contour Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-contourairlines-com-281ceb71",
+       "source_type": "official_package",
+       "title": "About Us",
+       "url": "https://www.contourairlines.com/corporate/about-us"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "1982",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "Tennessee, US (808 Blue Angel Way, Smyrna, TN 37167)。補足: Confirmed also on https://www.careers.contourairlines.com/about-us and https://www.contourairlines.com/need-help/contact-us。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Contour Airlines is the regional airline brand of Contour Aviation, based in Smyrna, TN.",
+       "source_id": "src-contourairlines-com-281ceb71",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "00e7ccff26e3027d",
+     "id": "contour.profile.headquarters-city.723d3221",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "headquarters_city",
+     "label_ja": "本社の都市",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Contour Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-contourairlines-com-281ceb71",
+       "source_type": "official_package",
+       "title": "About Us",
+       "url": "https://www.contourairlines.com/corporate/about-us"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Smyrna",
+     "value_text": null
+    }
+   ],
+   "scale": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "approximately, as of 2026。補足: Official company fleet total statement。",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Our fleet of approximately 30 aircraft operate almost 20,000 flight segments annually and the company is now ranked as one of the ten largest Part 135 operators in the country.",
+       "source_id": "src-careers-contourairlines-com-678cb98f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6bb565ac8bb5a174",
+     "id": "contour.scale.fleet-total.6ad577bd",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "fleet_total",
+     "label_ja": "運航している機材",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Contour Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-contourairlines-com-678cb98f",
+       "source_type": "official_package",
+       "title": "About Us",
+       "url": "https://www.careers.contourairlines.com/about-us"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 30,
+     "value_text": "30"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "regional jets, as of September 2025。補足: 【Wikipedia】。",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": "2026-10-27",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "As of September 2025, Contour uses a variety of regional jets in a 30-seat configuration under the Corporate Flight Management certificate. ... Fleet total 31",
+       "source_id": "src-en-wikipedia-org-27982ed8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ad5d4ab380396ce3",
+     "id": "contour.scale.fleet-total.8630121b",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "fleet_total",
+     "label_ja": "運航している機材",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-27",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-27982ed8",
+       "source_type": "third_party_reference",
+       "title": "Contour Airlines",
+       "url": "https://en.wikipedia.org/wiki/Contour_Airlines"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 31,
+     "value_text": "31"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "regional jets, as of 2025-05-05。補足: Regional jet breakdown cited from Contour partnership announcement。",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": "2025-05-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Operating a fleet of 34 regional jets—12 Bombardier CRJ-100/200s and 22 Embraer ERJ-135/145s—Contour maintains its EAS commitments under US Department of Transportation contracts, providing subsidized air service to these underserved markets.",
+       "source_id": "src-avgeekery-com-94aa662b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8060e50e02bd8935",
+     "id": "contour.scale.fleet-total.9387d2df",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "fleet_total",
+     "label_ja": "運航している機材",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-05-05",
+       "publisher": "Avgeekery",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-avgeekery-com-94aa662b",
+       "source_type": "third_party_reference",
+       "title": "Contour, Spirit Team Up To Enhance Air Service To EAS Communities",
+       "url": "https://avgeekery.com/contour-spirit-to-enhance-service-to-eas-communities/"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 34,
+     "value_text": "34"
+    }
+   ],
+   "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "days off per 14-day rotation (8-on / 6-off rotation; base salary covers 18 work days per month)。補足: 【第三者】Confirmed also on https://www.reddit.com/r/flying/comments/1t11c3c/contour_citation_charter_job_questions/ and https://www.airlinepilotcentral.com/airlines/part-135/contour_aviation (18 work days/month covered by base salary)。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-11-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The schedule is an 8-on / 6-off rotation. Requested schedule preferences are not available during normal schedule construction",
+       "source_id": "src-talents-vaia-com-5b866783",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "328a030187e85ab2",
+     "id": "contour.work.days-off.69533b0f",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "休日（月）",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-01",
+       "publisher": "Vaia Talents",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-talents-vaia-com-5b866783",
+       "source_type": "third_party_reference",
+       "title": "Captain - Embraer Legacy 600 Jet at Corporate Flight Management",
+       "url": "https://talents.vaia.com/companies/corporate-flight-management/captain-embraer-legacy-600-jet-98728700/"
+      }
+     ],
+     "unit": "days/rotation",
+     "use": "条件つき",
+     "value": 6,
+     "value_text": "6"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "Embraer Legacy 600 Jet and home-based Captain rotation; requested schedule preferences not available during normal schedule construction。補足: 【第三者】Confirmed also on Reddit r/flying (https://www.reddit.com/r/flying/comments/1t11c3c/contour_citation_charter_job_questions/)。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-11-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The schedule is an 8-on / 6-off rotation. Requested schedule preferences are not available during normal schedule construction",
+       "source_id": "src-talents-vaia-com-5b866783",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "36bf3172a15ba1c3",
+     "id": "contour.work.roster-pattern-cap.3690cd3d",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "機長のロスターの型",
+     "pack": "pvr-20261119-gm-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-01",
+       "publisher": "Vaia Talents",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-talents-vaia-com-5b866783",
+       "source_type": "third_party_reference",
+       "title": "Captain - Embraer Legacy 600 Jet at Corporate Flight Management",
+       "url": "https://talents.vaia.com/companies/corporate-flight-management/captain-embraer-legacy-600-jet-98728700/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "8-on / 6-off rotation",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "monthly base salary guarantee work days (duty days above 18 days/month paid at 150% daily rate)。補足: 【APC】。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Pilots are paid by the day rather than the hour. A pilot's day rate is calculated by dividing current year base pay by 18 (days base salary covers) and then 12 (months in the year). Example: $118000/18/12= $546 per day. Duty days above 18 days a month, open time or junior manned status paid at 150%",
+       "source_id": "src-airlinepilotcentral-com-a7f886e8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "88a652c6e4ca982b",
+     "id": "contour.work.working-time.704af64c",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "working_time",
+     "label_ja": "勤務・乗務時間の上限",
+     "pack": "pvr-20261119-gm-contour",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Airline Pilot Central",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlinepilotcentral-com-a7f886e8",
+       "source_type": "community_reference",
+       "title": "Contour Aviation",
+       "url": "https://www.airlinepilotcentral.com/airlines/part-135/contour_aviation"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 18,
+     "value_text": "18"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "maximum typical monthly flight hours on ERJ/CRJ (30 to 80 hours/month; 80 to 100+ hours/month in busy times)。補足: 【掲示板】Confirmed by 2+ posts (also https://www.reddit.com/r/flying/comments/1khzbxx/any_contour_pic_or_sics_on_here_i_have_some/ stating 80-100+ hours a month)。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-05-28",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Flight time quantity: if you have a school that can fly you 80-100hrs a month you would probably fly more there. Contour can be anywhere from 30-80hrs a month, sometimes more in busy times.",
+       "source_id": "src-reddit-com-7ce04f67",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d99cfcc74a2f1127",
+     "id": "contour.work.working-time.8e6fab79",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "working_time",
+     "label_ja": "勤務・乗務時間の上限",
+     "pack": "pvr-20261119-gm-contour",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-05-28",
+       "publisher": "Reddit r/flying",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-reddit-com-7ce04f67",
+       "source_type": "community_reference",
+       "title": "Opinions on contour",
+       "url": "https://www.reddit.com/r/flying/comments/1tqbemw/opinions_on_contour/"
+      }
+     ],
+     "unit": "hours",
+     "use": "条件つき",
+     "value": 80,
+     "value_text": "80"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "contour",
+     "cond_ja": "minimum typical monthly flight hours on ERJ/CRJ (30 to 80 hours/month; 80 to 100+ hours/month in busy times)。補足: 【掲示板】Confirmed by 2+ posts (also https://www.reddit.com/r/flying/comments/1khzbxx/any_contour_pic_or_sics_on_here_i_have_some/ stating 80-100+ hours a month)。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-05-28",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Flight time quantity: if you have a school that can fly you 80-100hrs a month you would probably fly more there. Contour can be anywhere from 30-80hrs a month, sometimes more in busy times.",
+       "source_id": "src-reddit-com-7ce04f67",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e48808a081b24983",
+     "id": "contour.work.working-time.bd51d8e0",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "working_time",
+     "label_ja": "勤務・乗務時間の上限",
+     "pack": "pvr-20261119-gm-contour",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-05-28",
+       "publisher": "Reddit r/flying",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-reddit-com-7ce04f67",
+       "source_type": "community_reference",
+       "title": "Opinions on contour",
+       "url": "https://www.reddit.com/r/flying/comments/1tqbemw/opinions_on_contour/"
+      }
+     ],
+     "unit": "hours",
+     "use": "条件つき",
+     "value": 30,
+     "value_text": "30"
+    }
+   ]
+  },
   "copa-airlines": {
    "base": [
     {
@@ -46815,6 +55749,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "copa-airlines",
+     "cond_ja": "paid calendar days after every 11 months of continuous service (Panamanian Labour Code Art. 54 & UNPAC-Copa CBA)。補足: パナマ労働法第54条およびUNPAC-Copa労働協約（https://readyfortakeoffbook.com/blogs/pilot-conditions/copa-airlines でも「30 paid calendar days after every 11 months of continuous service」と確認）。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-11-10",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Con respecto a las vacaciones, se establece que se dan 30 días por cada once meses continuos de trabajo, un día por cada once días al servicio de un empleador.",
+       "source_id": "src-exteriores-gob-es-73b6f501",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c4deeb25556283d2",
+     "id": "copa-airlines.benefits.annual-leave.f198d708",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "年次休暇",
+     "pack": "pvr-20261119-gm-copa-airlines",
+     "per": "year",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-10",
+       "publisher": "Ministerio de Asuntos Exteriores de España (Embajada en Panamá)",
+       "publisher_kind": "government",
+       "retrieved": "2026-11-18",
+       "source_id": "src-exteriores-gob-es-73b6f501",
+       "source_type": "government",
+       "title": "Trabajar en Panamá",
+       "url": "https://www.exteriores.gob.es/Embajadas/panama/es/ViajarA/Paginas/Trabajar-en-Panam%C3%A1.aspx"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 30,
+     "value_text": "30"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "copa-airlines",
+     "cond_ja": "crew ground transport, hotel, and meal standards under UNPAC-Copa CBA; single base at PTY with no formal commuter policy。補足: 労働協約に基づきクルー送迎（transporte）・宿泊（hoteles）・食事（alimentación）・日当（viáticos）を支給（旧協約写し https://es.scribd.com/doc/102370228/Convencion-Colectiva-UNPAC-COPA2012-2016 Cláusula 4.2.B/Dでは自宅〜空港間送迎または自己移動時$15〜$25支給）。PTY単一拠点のため他都市からのコミューター制度はなし（https://readyfortakeoffbook.com/blogs/pilot-conditions/copa-airlines）。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2023-02-02",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Comité de Hoteles: Para realizar reportes relacionados con hoteles, transporte o alimentación que no cumplan con lo establecido en la convención colectiva, por favor, utilice el siguiente enlace",
+       "source_id": "src-unpac-panama-org-459b5f99",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fc95a4f90c68c5c0",
+     "id": "copa-airlines.benefits.commuting.1c61e2f2",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261119-gm-copa-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-02-02",
+       "publisher": "UNPAC",
+       "publisher_kind": "union",
+       "retrieved": "2026-11-18",
+       "source_id": "src-unpac-panama-org-459b5f99",
+       "source_type": "union_cba",
+       "title": "Sección de Reportes Copa Airlines",
+       "url": "https://www.unpac-panama.org/reportes"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Comité de Hoteles: Para realizar reportes relacionados con hoteles, transporte o alimentación que no cumplan con lo establecido en la convención colectiva",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -47570,6 +56606,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "copa-airlines",
+     "cond_ja": "minimum monthly days off (10 to 11 days/month typical)。補足: 【掲示板】2人以上が同じ月最低9日休を報告（Ready For Take-Off Book https://readyfortakeoffbook.com/blogs/pilot-conditions/copa-airlines でも「Days Off / Month: 9 minimum reported, 10 to 11 typical」、Scribd上のUNPAC労働協約 https://es.scribd.com/doc/102370228/Convencion-Colectiva-UNPAC-COPA2012-2016 Cláusula 6.4.A/7.3.Aでもライン最低9日［7L+2SA］・リザーブ最低10日［7L+3SA］を確認）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-12-10",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Tienes 9 días libres AL MES. Puedes hacer tu horario, pero lo reparten en orden de antigüedad, así que si quería estar libre un sábado pero hay pilotos con más antigüedad lo pidieron te fregaste y te toca trabajar.",
+       "source_id": "src-reddit-com-153945db",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8557cf4449262c3c",
+     "id": "copa-airlines.work.days-off.b9953c72",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "休日（月）",
+     "pack": "pvr-20261119-gm-copa-airlines",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-12-10",
+       "publisher": "Reddit r/Panama",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-reddit-com-153945db",
+       "source_type": "community_reference",
+       "title": "¿ser piloto en copa airlines es pesado?",
+       "url": "https://www.reddit.com/r/Panama/comments/1piuj9t/ser_piloto_en_copa_airlines_es_pesado/"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 9,
+     "value_text": "9"
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "contract": "会社年次報告のpilottraining",
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true
@@ -47622,6 +56709,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "過去",
      "value": "Panama CityのCiudad del SaberにFSTD/fullmotionsimulator施設",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "copa-airlines",
+     "cond_ja": "all pilots (66 block hours monthly guarantee; typical 80 to 83 block hours/month; heavy junior reserve with 2-hour callout across a 14-hour window)。補足: 【第三者】毎月20日頃に翌月分が発表されるセニョリティ順のPBS（Preferential Bidding System）。PilotsGlobal（https://pilotsglobal.com/airlines/copa-airlines/pilot-reviews）の2025-11-26機長レビューでもセニョリティに応じ希望休の約80%が通る旨を確認。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-08-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Roster TypeMonthly PBS bid, published ~20th of prior month",
+       "source_id": "src-readyfortakeoffbook-com-a9f425ac",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9a5a9dbcd2fee1c0",
+     "id": "copa-airlines.work.roster-pattern.074b3242",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261119-gm-copa-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-08-11",
+       "publisher": "Ready For Take-Off Book",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-readyfortakeoffbook-com-a9f425ac",
+       "source_type": "third_party_reference",
+       "title": "Copa Airlines: Pilot Pay, Rosters, Fleet and Benefits",
+       "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/copa-airlines"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Monthly PBS bid, published ~20th of prior month",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "copa-airlines",
+     "cond_ja": "monthly minimum block hour guarantee under UNPAC-Copa CBA (typical line 80 to 83 hours/month, 90+ hours/month for maximum pay; RACP statutory cap 100 hours/30 days and 1000 hours/12 months)。補足: 【第三者】労働協約（UNPAC-Copa CBA）上の月間最低保証乗務時間は66時間（66時間超は割増支給、実態は月80〜90時間以上：https://pilotsglobal.com/airlines/copa-airlines/pilot-reviews）。パナマ航空法規RACP Apéndice 16（https://www.gacetaoficial.gob.pa/pdfTemp/27301_B/GacetaNo_27301b_20130604.pdf）の法定上限は30日100時間・12ヶ月1000時間。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-08-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The single most important structural fact is that Copa pays against a 66-hour monthly guarantee. Pilots are paid for at least 66 block hours whether they fly them or not, and hours flown above 66 attract premium rates established in the 2017 collective agreement, alongside a separate night-flying pr",
+       "source_id": "src-readyfortakeoffbook-com-a9f425ac",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "33838966a4036106",
+     "id": "copa-airlines.work.working-time.24287fff",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "working_time",
+     "label_ja": "勤務・乗務時間の上限",
+     "pack": "pvr-20261119-gm-copa-airlines",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-08-11",
+       "publisher": "Ready For Take-Off Book",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-readyfortakeoffbook-com-a9f425ac",
+       "source_type": "third_party_reference",
+       "title": "Copa Airlines: Pilot Pay, Rosters, Fleet and Benefits",
+       "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/copa-airlines"
+      }
+     ],
+     "unit": "hours",
+     "use": "条件つき",
+     "value": 66,
+     "value_text": "66"
     }
    ]
   },
@@ -62753,6 +71942,1254 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ]
   },
+  "fedex-express": {
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "fedex-express",
+     "cond_ja": "2026 ALPA TA Section 8 Deadheading & Deviation Bank (full bank value preserved for 3 additional bid periods, then 50% deposited into Hotel Room Cancelation Bank; rental car reimbursable to/from base or field location)。補足: Rental car is also an allowable/reimbursable expense to/from base or field location。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-02-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "You are now able to preserve the full value of your bank for three additional bid periods (The bank will not be immediately cut in half in the next bid period (as is current practice). Following the third bid period, the Company will reduce the bank value by 50% and then deposit this 50% balance in",
+       "source_id": "src-fdxta-com-c6f4c07d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6c2800e19bd91485",
+     "id": "fedex-express.benefits.commuting.2ed03f9c",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261119-gm-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-02-05",
+       "publisher": "FedEx ALPA",
+       "publisher_kind": "union",
+       "retrieved": "2026-11-18",
+       "source_id": "src-fdxta-com-c6f4c07d",
+       "source_type": "union_cba",
+       "title": "2026 Tentative Agreement Section 8: Deadheading",
+       "url": "https://fdxta.com/VIEW-BY-SECTION/Section-8-Deadheading"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HRC Bank limit will increase from $10,000 to $15,000.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "fedex-express",
+     "cond_ja": "2026 ALPA TA Section 26.J commuting protections (\"no harm / no foul\" rule includes commercial air carrier ticket with backup plan; jumpseat block-in to showtime reduced from 1:30 to 1:00)。補足: CASS participant (listing 24 to 2 hours prior via 866-357-5711 per https://www.airlinepilotcentral.com/airlines/cargo/fedex_express)。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-01-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Do we have new commuting protections? (26.J) Pilots will be able to use BP4 status from anywhere, to base for trips and for activities other than trips (e.g., reserve availability period). The “no harm / no foul” rules have expanded as 13:30 criteria now included having a ticket on a commercial air",
+       "source_id": "src-fdxta-com-ae0a220b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fc962f3ab142c2f7",
+     "id": "fedex-express.benefits.commuting.d73a253f",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261119-gm-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-26",
+       "publisher": "FedEx ALPA",
+       "publisher_kind": "union",
+       "retrieved": "2026-11-18",
+       "source_id": "src-fdxta-com-ae0a220b",
+       "source_type": "union_cba",
+       "title": "2026 Tentative Agreement Section 26: General",
+       "url": "https://fdxta.com/VIEW-BY-SECTION/Section-26-General"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Pilots will be able to use BP4 status from anywhere, to base for trips and for activities other than trips (e.g., reserve availability period).",
+     "value_text": null
+    }
+   ],
+   "fleet": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "fedex-express",
+     "cond_ja": "Airbus A300-600, as of 2026-05-31, trunk aircraft。補足: Page 18。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-06-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Airbus A300-600 106,600 65 58 57",
+       "source_id": "src-s21-q4cdn-com-3ad94a94",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d37e459a9129c25a",
+     "id": "fedex-express.fleet.airbus-a300-600.57348535",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "airbus_a300_600",
+     "label_ja": "機種ごとの機数（Airbus A300-600）",
+     "pack": "pvr-20261119-gm-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-23",
+       "publisher": "FedEx Corporation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-s21-q4cdn-com-3ad94a94",
+       "source_type": "official_package",
+       "title": "Q4 Fiscal 2026 Statistics",
+       "url": "https://s21.q4cdn.com/665674268/files/doc_financials/2026/q4/FedEx-Q4-FY26-Stat-Book.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 57,
+     "value_text": "600 106,600 65 58 57"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "fedex-express",
+     "cond_ja": "ATR-42, as of 2026-05-31, feeder aircraft。補足: Page 18, feeder fleet owned by FedEx。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-06-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATR-42 12,070 18 16 16",
+       "source_id": "src-s21-q4cdn-com-3ad94a94",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cccf3902d33b71c6",
+     "id": "fedex-express.fleet.atr-42.29c231f2",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "atr_42",
+     "label_ja": "機種ごとの機数（ATR-42）",
+     "pack": "pvr-20261119-gm-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-23",
+       "publisher": "FedEx Corporation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-s21-q4cdn-com-3ad94a94",
+       "source_type": "official_package",
+       "title": "Q4 Fiscal 2026 Statistics",
+       "url": "https://s21.q4cdn.com/665674268/files/doc_financials/2026/q4/FedEx-Q4-FY26-Stat-Book.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 16,
+     "value_text": "42 12,070 18 16 16"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "fedex-express",
+     "cond_ja": "ATR-72 600F, as of 2026-05-31, feeder aircraft。補足: Page 18, feeder fleet owned by FedEx。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-06-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATR-72 600F4 19,290 20 24 27",
+       "source_id": "src-s21-q4cdn-com-3ad94a94",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "eae5b1e48e802f5a",
+     "id": "fedex-express.fleet.atr-72-600f.362c4c0b",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "atr_72_600f",
+     "label_ja": "機種ごとの機数（ATR-72 600F）",
+     "pack": "pvr-20261119-gm-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-23",
+       "publisher": "FedEx Corporation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-s21-q4cdn-com-3ad94a94",
+       "source_type": "official_package",
+       "title": "Q4 Fiscal 2026 Statistics",
+       "url": "https://s21.q4cdn.com/665674268/files/doc_financials/2026/q4/FedEx-Q4-FY26-Stat-Book.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 27,
+     "value_text": "4 19,290 20 24 27"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "fedex-express",
+     "cond_ja": "ATR-72, as of 2026-05-31, feeder aircraft。補足: Page 18, feeder fleet owned by FedEx。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-06-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATR-72 17,970 19 19 19",
+       "source_id": "src-s21-q4cdn-com-3ad94a94",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "94a7f6707b4f9b65",
+     "id": "fedex-express.fleet.atr-72.d2ee387a",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "atr_72",
+     "label_ja": "機種ごとの機数（ATR-72）",
+     "pack": "pvr-20261119-gm-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-23",
+       "publisher": "FedEx Corporation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-s21-q4cdn-com-3ad94a94",
+       "source_type": "official_package",
+       "title": "Q4 Fiscal 2026 Statistics",
+       "url": "https://s21.q4cdn.com/665674268/files/doc_financials/2026/q4/FedEx-Q4-FY26-Stat-Book.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 19,
+     "value_text": "72 17,970 19 19 19"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "fedex-express",
+     "cond_ja": "Boeing 757-200, as of 2026-05-31, trunk aircraft。補足: Page 18。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-06-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 757-200 63,000 92 90 86",
+       "source_id": "src-s21-q4cdn-com-3ad94a94",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5d3257e6e099bb7a",
+     "id": "fedex-express.fleet.boeing-757-200.6a68cb6f",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "boeing_757_200",
+     "label_ja": "機種ごとの機数（Boeing 757-200）",
+     "pack": "pvr-20261119-gm-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-23",
+       "publisher": "FedEx Corporation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-s21-q4cdn-com-3ad94a94",
+       "source_type": "official_package",
+       "title": "Q4 Fiscal 2026 Statistics",
+       "url": "https://s21.q4cdn.com/665674268/files/doc_financials/2026/q4/FedEx-Q4-FY26-Stat-Book.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 86,
+     "value_text": "200 63,000 92 90 86"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "fedex-express",
+     "cond_ja": "Boeing 767F, as of 2026-05-31, trunk aircraft。補足: Page 18。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-06-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 767F 127,100 138 145 152",
+       "source_id": "src-s21-q4cdn-com-3ad94a94",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0b667c1ddb0b99ea",
+     "id": "fedex-express.fleet.boeing-767f.17a94971",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "boeing_767f",
+     "label_ja": "機種ごとの機数（Boeing 767F）",
+     "pack": "pvr-20261119-gm-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-23",
+       "publisher": "FedEx Corporation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-s21-q4cdn-com-3ad94a94",
+       "source_type": "official_package",
+       "title": "Q4 Fiscal 2026 Statistics",
+       "url": "https://s21.q4cdn.com/665674268/files/doc_financials/2026/q4/FedEx-Q4-FY26-Stat-Book.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 152,
+     "value_text": "127,100 138 145 152"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "fedex-express",
+     "cond_ja": "Boeing 777F, as of 2026-05-31, trunk aircraft。補足: Page 18。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-06-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 777F2 233,300 57 59 59",
+       "source_id": "src-s21-q4cdn-com-3ad94a94",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6717ce6a502a08fe",
+     "id": "fedex-express.fleet.boeing-777f.a26a7bd0",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "boeing_777f",
+     "label_ja": "機種ごとの機数（Boeing 777F）",
+     "pack": "pvr-20261119-gm-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-23",
+       "publisher": "FedEx Corporation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-s21-q4cdn-com-3ad94a94",
+       "source_type": "official_package",
+       "title": "Q4 Fiscal 2026 Statistics",
+       "url": "https://s21.q4cdn.com/665674268/files/doc_financials/2026/q4/FedEx-Q4-FY26-Stat-Book.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 59,
+     "value_text": "2 233,300 57 59 59"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "fedex-express",
+     "cond_ja": "Boeing MD11, as of 2026-05-31, trunk aircraft。補足: Page 18。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-06-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing MD111 192,600 37 34 29",
+       "source_id": "src-s21-q4cdn-com-3ad94a94",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a8392ae8a02bfb1b",
+     "id": "fedex-express.fleet.boeing-md11.71c74aaa",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "boeing_md11",
+     "label_ja": "機種ごとの機数（Boeing MD11）",
+     "pack": "pvr-20261119-gm-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-23",
+       "publisher": "FedEx Corporation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-s21-q4cdn-com-3ad94a94",
+       "source_type": "official_package",
+       "title": "Q4 Fiscal 2026 Statistics",
+       "url": "https://s21.q4cdn.com/665674268/files/doc_financials/2026/q4/FedEx-Q4-FY26-Stat-Book.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 29,
+     "value_text": "111 192,600 37 34 29"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "fedex-express",
+     "cond_ja": "Cessna 208B, as of 2026-05-31, feeder aircraft。補足: Page 18, feeder fleet owned by FedEx。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-06-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Cessna 208B 2,830 233 226 216",
+       "source_id": "src-s21-q4cdn-com-3ad94a94",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5d92757b5f712549",
+     "id": "fedex-express.fleet.cessna-208b.bcec2f19",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "cessna_208b",
+     "label_ja": "機種ごとの機数（Cessna 208B）",
+     "pack": "pvr-20261119-gm-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-23",
+       "publisher": "FedEx Corporation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-s21-q4cdn-com-3ad94a94",
+       "source_type": "official_package",
+       "title": "Q4 Fiscal 2026 Statistics",
+       "url": "https://s21.q4cdn.com/665674268/files/doc_financials/2026/q4/FedEx-Q4-FY26-Stat-Book.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 216,
+     "value_text": "2,830 233 226 216"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "fedex-express",
+     "cond_ja": "Cessna 408 SkyCourier, as of 2026-05-31, feeder aircraft。補足: Page 18, feeder fleet owned by FedEx。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-06-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Cessna 4083 6,000 19 27 39",
+       "source_id": "src-s21-q4cdn-com-3ad94a94",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e17f0f0e7344d3ac",
+     "id": "fedex-express.fleet.cessna-408-skycourier.f454fe41",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "cessna_408_skycourier",
+     "label_ja": "機種ごとの機数（Cessna 408 SkyCourier）",
+     "pack": "pvr-20261119-gm-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-23",
+       "publisher": "FedEx Corporation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-s21-q4cdn-com-3ad94a94",
+       "source_type": "official_package",
+       "title": "Q4 Fiscal 2026 Statistics",
+       "url": "https://s21.q4cdn.com/665674268/files/doc_financials/2026/q4/FedEx-Q4-FY26-Stat-Book.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 39,
+     "value_text": "4083 6,000 19 27 39"
+    }
+   ],
+   "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "fedex-express",
+     "cond_ja": "Mandatory certificates and permits。補足: Unrestricted multi-engine ATP required。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Airline Transport Pilot (ATP) Certificate Current First Class Medical Certificate Radiotelephone Operators Permit",
+       "source_id": "src-careers-fedex-com-bbad833b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3c49fde5723aad4a",
+     "id": "fedex-express.jobs.fo-license-fo.9bf0a85e",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261119-gm-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "FedEx Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-fedex-com-bbad833b",
+       "source_type": "job_posting",
+       "title": "Pilot Careers",
+       "url": "https://careers.fedex.com/career-areas/pilot/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Airline Transport Pilot (ATP) Certificate Current First Class Medical Certificate Radiotelephone Operators Permit",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "fedex-express",
+     "cond_ja": "Pilot Candidate Profile Pool (invitations sent from profile pool at careers.fedex.com/career-areas/pilot/ when positions open)。補足: Direct Entry Captain is not offered; PilotsGlobal also lists past postings \"First Officer - B777\" (https://pilotsglobal.com/job/B777-first-officer-fedex_express-US-2f3fac8828) and \"First Officer - MD-11\" (https://pilotsglobal.com/job/MD-11-first-officer-fedex_express-US-481a4f3961)。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Q1: How do I apply? A1: Pilots seeking to join the FedEx Express team may create or update a profile at https://careers.fedex.com/career-areas/pilot/. When an applicant's profile is selected from the pool for further employment consideration, an email is sent with a link to apply to an open crew mem",
+       "source_id": "src-careers-fedex-com-bbad833b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "39739bf444614a8e",
+     "id": "fedex-express.jobs.fo-posting-fo.c4cd4660",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_posting",
+     "label_ja": "副操縦士の募集している職",
+     "pack": "pvr-20261119-gm-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "FedEx Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-fedex-com-bbad833b",
+       "source_type": "job_posting",
+       "title": "Pilot Careers",
+       "url": "https://careers.fedex.com/career-areas/pilot/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "open crew member position",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "fedex-express",
+     "cond_ja": "U.S. Citizen or Permanent Resident Card holder; valid U.S. passport and SIDA badge eligibility (No work visa sponsorship)。補足: Valid U.S. passport also mandatory。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Q2: Does FedEx provide work visa sponsorships for pilot applicants? A2: No, all non-U.S. citizens must possess a Permanent Resident Card for employment with FedEx.",
+       "source_id": "src-careers-fedex-com-bbad833b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "97d921dab9ba38be",
+     "id": "fedex-express.jobs.fo-right-to-work-fo.3043ef56",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261119-gm-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "FedEx Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-fedex-com-bbad833b",
+       "source_type": "job_posting",
+       "title": "Pilot Careers",
+       "url": "https://careers.fedex.com/career-areas/pilot/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "all non-U.S. citizens must possess a Permanent Resident Card for employment with FedEx.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "fedex-express",
+     "cond_ja": "total fixed-wing time (minimum 500 hours PIC required; 1000 hours PIC preferred in jet or multi-engine turboprop >=12,500 lbs)。補足: All regulatory/minimum hours are mandatory。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1500 hours total fixed-wing. 1000 hours PIC in jet aircraft is preferred; multi-engine turbo-prop aircraft, 12,500 pounds or greater; certain single engine turbo-prop aircraft, or combination thereof. A minimum of 500 hours PIC as described is required.",
+       "source_id": "src-careers-fedex-com-bbad833b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8d3384762b40ffad",
+     "id": "fedex-express.jobs.fo-total-hours-fo.5bf97f8d",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "FedEx Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-fedex-com-bbad833b",
+       "source_type": "job_posting",
+       "title": "Pilot Careers",
+       "url": "https://careers.fedex.com/career-areas/pilot/"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1500,
+     "value_text": "1500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "fedex-express",
+     "cond_ja": "First Officer entry。補足: 【第三者】過去の求人（Confirmed by FedEx Pilot Careers minimum qualifications at https://careers.fedex.com/career-areas/pilot/ where no specific aircraft type rating is required）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Type rating Not required (Training Provided)",
+       "source_id": "src-pilotsglobal-com-668f8812",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bb3c2fab07a4f501",
+     "id": "fedex-express.jobs.fo-type-rating-fo.634d7784",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261119-gm-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-668f8812",
+       "source_type": "third_party_reference",
+       "title": "First Officer - B777 at FedEx Express",
+       "url": "https://pilotsglobal.com/job/B777-first-officer-fedex_express-US-2f3fac8828"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Not required (Training Provided)",
+     "value_text": null
+    }
+   ],
+   "profile": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "fedex-express",
+     "cond_ja": "incorporated 1971-06-24; operations commenced 1973-04-17。補足: Operations began April 17, 1973 in Memphis, TN (confirmed also on https://investors.fedex.com/company-overview/financial-timeline/default.aspx)。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1971 Mr. Smith founded Federal Express Corporation in Little Rock, Arkansas.",
+       "source_id": "src-fedex-com-c7069ecf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "499398f93ffc8d75",
+     "id": "fedex-express.profile.founded.81186d94",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "founded",
+     "label_ja": "設立",
+     "pack": "pvr-20261119-gm-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "FedEx",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-fedex-com-c7069ecf",
+       "source_type": "official_package",
+       "title": "Our History",
+       "url": "https://www.fedex.com/en-us/about/history.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "1971",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "fedex-express",
+     "cond_ja": "Corporate Headquarters (942 S. Shady Grove Road, Memphis, TN 38120)。補足: Page 2。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": "2026-06-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Corporate Headquarters 942 S. Shady Grove Road Memphis, TN 38120",
+       "source_id": "src-s21-q4cdn-com-3ad94a94",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "458e587d9608ddf3",
+     "id": "fedex-express.profile.headquarters-city.9cc92dd8",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "headquarters_city",
+     "label_ja": "本社の都市",
+     "pack": "pvr-20261119-gm-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-23",
+       "publisher": "FedEx Corporation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-s21-q4cdn-com-3ad94a94",
+       "source_type": "official_package",
+       "title": "Q4 Fiscal 2026 Statistics",
+       "url": "https://s21.q4cdn.com/665674268/files/doc_financials/2026/q4/FedEx-Q4-FY26-Stat-Book.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Memphis",
+     "value_text": null
+    }
+   ],
+   "scale": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "fedex-express",
+     "cond_ja": "as of 2026-05-31, total fleet (383 trunk jet aircraft + 317 feeder turboprop aircraft)。補足: FY26 Form 10-K (https://s21.q4cdn.com/665674268/files/doc_financials/2026/ar/v2/FedEx-Corp-FY26-Annual-Report.pdf, 2026-07-20) also confirms 700 aircraft as of May 31, 2026。",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": "2026-06-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Aircraft Fleet Statistics FY 2024 - FY 2032 ... As of May 31, 2024 2025 2026 ... Subtotal - Trunk Aircraft 389 386 383 ... Subtotal - Feeder Aircraft 309 312 317 Aircraft Fleet Total 698 698 700",
+       "source_id": "src-s21-q4cdn-com-3ad94a94",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a662f0197a194d97",
+     "id": "fedex-express.scale.fleet-total.2ceeb413",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "fleet_total",
+     "label_ja": "運航している機材",
+     "pack": "pvr-20261119-gm-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-23",
+       "publisher": "FedEx Corporation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-s21-q4cdn-com-3ad94a94",
+       "source_type": "official_package",
+       "title": "Q4 Fiscal 2026 Statistics",
+       "url": "https://s21.q4cdn.com/665674268/files/doc_financials/2026/q4/FedEx-Q4-FY26-Stat-Book.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 700,
+     "value_text": "698 698 700"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "fedex-express",
+     "cond_ja": "as of 2026-05-31, trunk jet aircraft operated by FedEx Express。補足: Excludes 317 feeder turboprop aircraft operated by partner feeder carriers。",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": "2026-06-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Subtotal - Trunk Aircraft 389 386 383",
+       "source_id": "src-s21-q4cdn-com-3ad94a94",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "de1a62813ecff734",
+     "id": "fedex-express.scale.fleet-total.45db90ff",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "fleet_total",
+     "label_ja": "運航している機材",
+     "pack": "pvr-20261119-gm-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-23",
+       "publisher": "FedEx Corporation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-s21-q4cdn-com-3ad94a94",
+       "source_type": "official_package",
+       "title": "Q4 Fiscal 2026 Statistics",
+       "url": "https://s21.q4cdn.com/665674268/files/doc_financials/2026/q4/FedEx-Q4-FY26-Stat-Book.pdf"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 383,
+     "value_text": "389 386 383"
+    }
+   ],
+   "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "fedex-express",
+     "cond_ja": "Mainline direct hire (no monetary training bond; 2-year equipment seat lock applies)。補足: 【掲示板】2-year equipment seat lock confirmed at https://pilotmathtreasurebath.com/2023/05/02/scope-and-career-decisions/。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2024-02-14",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "UPS, FedEx, and airlines do the same thing just in a different manner. The increase in pay on day one after your first year is immense. Is it because all of a sudden you're a better pilot? No, the companies recoup their training costs in the first year lower salary. The unions know it and have agree",
+       "source_id": "src-reddit-com-0778bb83",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4ff02d9716297cb6",
+     "id": "fedex-express.work.training-bond.33ccb400",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "訓練費の拘束",
+     "pack": "pvr-20261119-gm-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-02-14",
+       "publisher": "Reddit r/flying",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-reddit-com-0778bb83",
+       "source_type": "community_reference",
+       "title": "Don't knock Part 135 gigs in this hiring environment",
+       "url": "https://www.reddit.com/r/flying/comments/1aqrnv7/dont_knock_part_135_gigs_in_this_hiring/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "recoup their training costs in the first year lower salary",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "fedex-express",
+     "cond_ja": "Purple Runway Pathways Program feeder service commitment (minimum 500 hours PIC for multi-engine turboprop after program admittance)。補足: Applies to feeder pilots flowing via Purple Runway。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Complete minimum service and hour obligation to feeder operators: at least 36 months of active service and a minimum of 500 hours as PIC for multi-engine turbo prop aircraft after program admittance",
+       "source_id": "src-fedexpurplerunway-com-24a72176",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "22c6e3e618e547c3",
+     "id": "fedex-express.work.training-bond.9ec34598",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "訓練費の拘束",
+     "pack": "pvr-20261119-gm-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "FedEx Purple Runway",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-fedexpurplerunway-com-24a72176",
+       "source_type": "official_package",
+       "title": "FedEx Purple Runway",
+       "url": "https://www.fedexpurplerunway.com/"
+      }
+     ],
+     "unit": "months",
+     "use": "条件つき",
+     "value": 36,
+     "value_text": "36"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "fedex-express",
+     "cond_ja": "Narrowbody B757 Captain (Widebody Captain 9-12 years)。補足: 【掲示板】Confirmed by 2+ posts in thread and https://www.airlinepilotforums.com/fedex/153842-seniority-progression-fdx.html (2026-11-10: \"777 Capt was never at 5 years, try 10.\")。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2023-03-02",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Before COVID and the rapid expansion, it took 9-10 years for a wide body captain. 7-8 for 757 Captain.",
+       "source_id": "src-airlinepilotforums-com-645f56ee",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4b21fc39381f7816",
+     "id": "fedex-express.work.upgrade-years.2c1bd069",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-03-02",
+       "publisher": "Airline Pilot Central Forums",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlinepilotforums-com-645f56ee",
+       "source_type": "community_reference",
+       "title": "\"Normal\" Upgrade Times",
+       "url": "https://www.airlinepilotforums.com/fedex/141866-normal-upgrade-times.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "7-8",
+     "value_text": null
+    }
+   ]
+  },
   "fiji-airways": {
    "base": [
     {
@@ -62807,9 +73244,374 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "Nadi",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "fiji-airways",
+     "cond_ja": "base NAN。補足: ナンディ。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-03-31",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Fiji Airways, with its hub at Nadi International Airport (NAN), serves 25 destinations in 14 countries and territories globally.",
+       "source_id": "src-fijiairways-com-016b5eef",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "04b7f918e825bb3b",
+     "id": "fiji-airways.base.pilot-base-city.3fa2863b",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-fiji-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-03-31",
+       "publisher": "Fiji Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-fijiairways-com-016b5eef",
+       "source_type": "job_posting",
+       "title": "American Airlines expands AAdvantage as Fiji Airways joins the award-winning travel rewards program",
+       "url": "https://www.fijiairways.com/en-us/media-center/american-airlines-expands-aadvantage-as-fiji-airways-joins-the-award-winning-travel-rewards-program"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Nadi",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "fiji-airways",
+     "cond_ja": "Operating Base Nadi, Fiji (Contract Bases: SYD, BNE, AKL, MEL, LAX, HKG)。補足: Fiji Airways公式プレスリリースおよび2024年年次報告書（https://www.parliament.gov.fj/wp-content/uploads/2026/03/11Fiji-Airways-Annual-Report-2024-2.pdf）、IAC Global求人要項（https://www.scribd.com/document/937436683/IAC-Fiji-Airways-A330-350-B737-Captain-Pre-cis-2025、「Operating Base Nadi, Fiji」）で確認。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-03-31",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Fiji Airways, with its hub at Nadi International Airport (NAN), serves 25 destinations in 14 countries and territories globally.",
+       "source_id": "src-fijiairways-com-016b5eef",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3fa854c5506a2042",
+     "id": "fiji-airways.base.pilot-base.70817823",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-fiji-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-03-31",
+       "publisher": "Fiji Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-fijiairways-com-016b5eef",
+       "source_type": "job_posting",
+       "title": "American Airlines expands AAdvantage as Fiji Airways joins the award-winning travel rewards program",
+       "url": "https://www.fijiairways.com/en-us/media-center/american-airlines-expands-aadvantage-as-fiji-airways-joins-the-award-winning-travel-rewards-program"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "NAN",
+     "value_text": null
     }
    ],
    "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "fiji-airways",
+     "cond_ja": "Years 1 & 2。補足: 【写し】Pacific Aircrew Servicesの機長求人票でも「24 Days Annual Leave increasing to 35 days in Year 3」と記載。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Annual Leave Years 1 & 2: 24 days per annum Year 3+: 35 days per annum",
+       "source_id": "src-scribd-com-500e1a31",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1695af94ade22b0e",
+     "id": "fiji-airways.benefits.annual-leave-cap.0c8cf15f",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "機長の年次休暇",
+     "pack": "pvr-20261119-gm-fiji-airways",
+     "per": "year",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-01-01",
+       "publisher": "IAC Global",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-scribd-com-500e1a31",
+       "source_type": "third_party_reference",
+       "title": "Fiji Airways A330/A350/B737NG/MAX Captain Précis 2025",
+       "url": "https://www.scribd.com/document/937436683/IAC-Fiji-Airways-A330-350-B737-Captain-Pre-cis-2025"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 24,
+     "value_text": "24"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "fiji-airways",
+     "cond_ja": "Year 3+。補足: 【写し】勤続3年目以降は年35日の年次有給休暇を付与。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Annual Leave Years 1 & 2: 24 days per annum Year 3+: 35 days per annum",
+       "source_id": "src-scribd-com-500e1a31",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8521a6e8dfc80453",
+     "id": "fiji-airways.benefits.annual-leave-cap.40b28ad8",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "機長の年次休暇",
+     "pack": "pvr-20261119-gm-fiji-airways",
+     "per": "year",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-01-01",
+       "publisher": "IAC Global",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-scribd-com-500e1a31",
+       "source_type": "third_party_reference",
+       "title": "Fiji Airways A330/A350/B737NG/MAX Captain Précis 2025",
+       "url": "https://www.scribd.com/document/937436683/IAC-Fiji-Airways-A330-350-B737-Captain-Pre-cis-2025"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 35,
+     "value_text": "35"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "fiji-airways",
+     "cond_ja": "補足: 【第三者】Pacific Aircrew ServicesのA350/A330副操縦士およびB737 MAX副操縦士求人票で年24日を明記。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2024-04-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "24 Days Annual Leave",
+       "source_id": "src-pacificaircrew-zohorecruit-com-7d86e93d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5e5ebe1a6dd56383",
+     "id": "fiji-airways.benefits.annual-leave-fo.84a013fe",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "副操縦士の年次休暇",
+     "pack": "pvr-20261119-gm-fiji-airways",
+     "per": "year",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-04-30",
+       "publisher": "Pacific Aircrew Services",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pacificaircrew-zohorecruit-com-7d86e93d",
+       "source_type": "third_party_reference",
+       "title": "Airbus A350/A330 First Officer in Nadi",
+       "url": "https://pacificaircrew.zohorecruit.com/jobs/careers/706885000000606117/Airbus-A350-A330-First-Officer?source=CareerSite"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 24,
+     "value_text": "24"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "fiji-airways",
+     "cond_ja": "Commuting contract (Contract bases: SYD, BNE, AKL, MEL, LAX or HKG); plus ground transportation and NZ$2,240/month accommodation allowance provided whilst at operating base。補足: 【写し】連続休日ごとの契約拠点（SYD, BNE, AKL, MEL, LAX, HKG）への確約エコノミー航空券（空席状況によりビジネスクラスへアップグレード可）支給、およびNadi滞在中の地上送迎と住宅手当（月NZ$2,240）を支給。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Confirmed economy tickets (upgradeable to Business Class according to availability) for travel coinciding with any period of rostered consecutive days off to and from contract base.",
+       "source_id": "src-scribd-com-500e1a31",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "685026b7995b6359",
+     "id": "fiji-airways.benefits.commuting-cap.4039675c",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "機長の通勤の手当・送迎",
+     "pack": "pvr-20261119-gm-fiji-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-01-01",
+       "publisher": "IAC Global",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-scribd-com-500e1a31",
+       "source_type": "third_party_reference",
+       "title": "Fiji Airways A330/A350/B737NG/MAX Captain Précis 2025",
+       "url": "https://www.scribd.com/document/937436683/IAC-Fiji-Airways-A330-350-B737-Captain-Pre-cis-2025"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Confirmed economy tickets (upgradeable to Business Class according to availability) for travel coinciding with any period of rostered consecutive days off to and from contract base.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "fiji-airways",
+     "cond_ja": "company motor vehicle fleet at Nadi Airport。補足: Fiji Airways公式2024年年次報告書（p.21）：自社送迎車両フリートにより運航乗務員等のナンディ空港への毎日の通勤送迎を実施。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-03-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The new motor vehicle fleet forms a critical part of the company's operational infrastructure, supporting the daily movement of flight and cabin crew, engineers, and other staff to and from the Nadi Airport precinct.",
+       "source_id": "src-parliament-gov-fj-3c3ce394",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0d5707efede9eb38",
+     "id": "fiji-airways.benefits.commuting.9441fb8c",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261119-gm-fiji-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-03-01",
+       "publisher": "Fiji Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-parliament-gov-fj-3c3ce394",
+       "source_type": "regulatory_filing",
+       "title": "Annual Report 2024",
+       "url": "https://www.parliament.gov.fj/wp-content/uploads/2026/03/11Fiji-Airways-Annual-Report-2024-2.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "supporting the daily movement of flight and cabin crew, engineers, and other staff to and from the Nadi Airport precinct",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -62910,6 +73712,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "retirement plan",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "fiji-airways",
+     "cond_ja": "from day 1 (includes dependent children under age of 24 if undertaking full time tertiary study)。補足: 【第三者】IAC Globalの2025年Précis（https://www.scribd.com/document/937436683/IAC-Fiji-Airways-A330-350-B737-Captain-Pre-cis-2025）でも「Crew member and spouse and dependent children under age of 24 if undertaking full time tertiary study are entitled to receive recreational travel in accordance with Fiji Airways Staff Travel Policy from Day 1.」と明記。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2024-01-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Staff travel benefits for Pilot, Spouse and immediate dependants from day 1. Other limited wider staff travel benefits available",
+       "source_id": "src-pacificaircrew-zohorecruit-com-842a2f87",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e97ca5b152858c14",
+     "id": "fiji-airways.benefits.staff-travel.ab672c8f",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261119-gm-fiji-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-01-05",
+       "publisher": "Pacific Aircrew Services",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pacificaircrew-zohorecruit-com-842a2f87",
+       "source_type": "third_party_reference",
+       "title": "Airbus A350/A330 Captain in Nadi",
+       "url": "https://pacificaircrew.zohorecruit.com/jobs/careers/706885000000441009/Airbus-A350-A330-Captain?source=CareerSite"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Staff travel benefits for Pilot, Spouse and immediate dependants from day 1.",
      "value_text": null
     }
    ],
@@ -64599,6 +75452,214 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "fiji-airways",
+     "cond_ja": "Standard Rotation 20 on / 10 off; block of 10 days off per month available after initial 3 months。補足: 【写し】Pacific Aircrew Servicesの機長求人票（https://pacificaircrew.zohorecruit.com/jobs/careers/706885000000441009/Airbus-A350-A330-Captain?source=CareerSite）でも「Standard Rotation 20 on / 10 off」と記載。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Roster Pattern Intention of block of 10 days off per month available after initial 3 months",
+       "source_id": "src-scribd-com-500e1a31",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1c1be372aa665443",
+     "id": "fiji-airways.work.days-off-cap.4b50c713",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "機長の休日（月）",
+     "pack": "pvr-20261119-gm-fiji-airways",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-01-01",
+       "publisher": "IAC Global",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-scribd-com-500e1a31",
+       "source_type": "third_party_reference",
+       "title": "Fiji Airways A330/A350/B737NG/MAX Captain Précis 2025",
+       "url": "https://www.scribd.com/document/937436683/IAC-Fiji-Airways-A330-350-B737-Captain-Pre-cis-2025"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 10,
+     "value_text": "10"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "fiji-airways",
+     "cond_ja": "Standard Rotation 20 on / 10 off。補足: 【第三者】年次休暇を月2日充当するオプション選択時は月12日休日（18 on / 12 off）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2024-04-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Standard Rotation 20 on / 10 off Optional 18 on / 12 off (utilising 2 days AL per month)",
+       "source_id": "src-pacificaircrew-zohorecruit-com-7d86e93d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6c764d8a2bfff16c",
+     "id": "fiji-airways.work.days-off-fo.cce1188f",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "副操縦士の休日（月）",
+     "pack": "pvr-20261119-gm-fiji-airways",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-04-30",
+       "publisher": "Pacific Aircrew Services",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pacificaircrew-zohorecruit-com-7d86e93d",
+       "source_type": "third_party_reference",
+       "title": "Airbus A350/A330 First Officer in Nadi",
+       "url": "https://pacificaircrew.zohorecruit.com/jobs/careers/706885000000606117/Airbus-A350-A330-First-Officer?source=CareerSite"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 10,
+     "value_text": "10"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "fiji-airways",
+     "cond_ja": "Optional 18 on / 12 off rotation utilising 2 days Annual Leave per month。補足: 【第三者】年次休暇（AL）を月2日使用することで月12日休日のローテーションを選択可能（IAC Globalの現役A330機長インタビュー https://www.iacglobal.com/whats-it-like-to-fly-for-fiji-airways でも「I take two days' annual leave each month with my ten days off」と記載）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2024-01-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Standard Rotation 20 on / 10 off Optional 18 on / 12 off (utilising 2 days AL per month)",
+       "source_id": "src-pacificaircrew-zohorecruit-com-842a2f87",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7a6b92aef633f040",
+     "id": "fiji-airways.work.days-off.033a843c",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "休日（月）",
+     "pack": "pvr-20261119-gm-fiji-airways",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-01-05",
+       "publisher": "Pacific Aircrew Services",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pacificaircrew-zohorecruit-com-842a2f87",
+       "source_type": "third_party_reference",
+       "title": "Airbus A350/A330 Captain in Nadi",
+       "url": "https://pacificaircrew.zohorecruit.com/jobs/careers/706885000000441009/Airbus-A350-A330-Captain?source=CareerSite"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 12,
+     "value_text": "12"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "fiji-airways",
+     "cond_ja": "statutory minimum free of all duty (CAAF International Operations)。補足: フィジー民間航空局（CAAF）規則Section 9.2による連続28日あたり最低8暦日の法定休日下限。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2024-10-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1) 8 local days in each 28 consecutive days free of all duty; and either",
+       "source_id": "src-caaf-org-fj-a89670fd",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b63f3de8786aa432",
+     "id": "fiji-airways.work.days-off.5d823c00",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "休日（月）",
+     "pack": "pvr-20261119-gm-fiji-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-10-01",
+       "publisher": "Civil Aviation Authority of Fiji (CAAF)",
+       "publisher_kind": "government",
+       "retrieved": "2026-11-18",
+       "source_id": "src-caaf-org-fj-a89670fd",
+       "source_type": "government",
+       "title": "Standards Document: Avoidance of Fatigue in Aircrew Part 2 – International Operations",
+       "url": "https://www.caaf.org.fj/wp-content/uploads/2024/10/SD-Avoidance-of-Fatigue-in-Aircrew-Part-2-International.pdf"
+      }
+     ],
+     "unit": "days/28 days",
+     "use": "条件つき",
+     "value": 8,
+     "value_text": "8"
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "aircraft": [
        "A350"
       ],
@@ -64653,6 +75714,218 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": "Fiji Airways Aviation Academy / 41 trained by December 2024",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "fiji-airways",
+     "cond_ja": "Standard Rotation; Optional 18 on / 12 off (utilising 2 days AL per month)。補足: 【第三者】指定採用代理店Pacific Aircrew ServicesのA350/A330機長求人票およびB737 MAX機長求人票（https://pacificaircrew.zohorecruit.com/jobs/Careers/706885000000606011/Boeing-737-Max-Captain?source=CareerSite）、IAC Global 2025年Précis（https://www.scribd.com/document/937436683/IAC-Fiji-Airways-A330-350-B737-Captain-Pre-cis-2025、「Intention of block of 10 days off per month available after initial 3 months」）で確認。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2024-01-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Standard Rotation 20 on / 10 off Optional 18 on / 12 off (utilising 2 days AL per month)",
+       "source_id": "src-pacificaircrew-zohorecruit-com-842a2f87",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "75dede98727a9d31",
+     "id": "fiji-airways.work.roster-pattern-cap.8628c482",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "機長のロスターの型",
+     "pack": "pvr-20261119-gm-fiji-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-01-05",
+       "publisher": "Pacific Aircrew Services",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pacificaircrew-zohorecruit-com-842a2f87",
+       "source_type": "third_party_reference",
+       "title": "Airbus A350/A330 Captain in Nadi",
+       "url": "https://pacificaircrew.zohorecruit.com/jobs/careers/706885000000441009/Airbus-A350-A330-Captain?source=CareerSite"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "20 on / 10 off",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "fiji-airways",
+     "cond_ja": "Standard Rotation; Optional 18 on / 12 off (utilising 2 days AL per month)。補足: 【第三者】指定採用代理店Pacific Aircrew ServicesのA350/A330副操縦士求人票およびB737 MAX副操縦士求人票（https://pacificaircrew.zohorecruit.com/jobs/Careers/706885000000606146/Boeing-737-Max-First-Officer?source=CareerSite）で確認。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2024-04-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Standard Rotation 20 on / 10 off Optional 18 on / 12 off (utilising 2 days AL per month)",
+       "source_id": "src-pacificaircrew-zohorecruit-com-7d86e93d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5964279357b68f57",
+     "id": "fiji-airways.work.roster-pattern-fo.876c507b",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "副操縦士のロスターの型",
+     "pack": "pvr-20261119-gm-fiji-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-04-30",
+       "publisher": "Pacific Aircrew Services",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pacificaircrew-zohorecruit-com-7d86e93d",
+       "source_type": "third_party_reference",
+       "title": "Airbus A350/A330 First Officer in Nadi",
+       "url": "https://pacificaircrew.zohorecruit.com/jobs/careers/706885000000606117/Airbus-A350-A330-First-Officer?source=CareerSite"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "20 on / 10 off",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "fiji-airways",
+     "cond_ja": "standard monthly block hours threshold before Excess Flying Pay ($311 NZD/hr)。補足: 【第三者】月間標準ブロック時間閾値（70時間超に対してExcess Flying Pay支給）。なおCAAF法定上限（https://www.caaf.org.fj/wp-content/uploads/2024/10/SD-Avoidance-of-Fatigue-in-Aircrew-Part-2-International.pdf Section 3.3 & 12.1）は乗務時間が7日40時間・28日100時間・365日1000時間、勤務時間（Duty Time）が14日100時間・28日190時間。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2024-01-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Excess Flying Pay > 70 block hrs/mth @ $311 NZD/hr",
+       "source_id": "src-pacificaircrew-zohorecruit-com-842a2f87",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d2257fb3cd57da05",
+     "id": "fiji-airways.work.working-time-cap.e0ff5528",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "working_time",
+     "label_ja": "機長の勤務・乗務時間の上限",
+     "pack": "pvr-20261119-gm-fiji-airways",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-01-05",
+       "publisher": "Pacific Aircrew Services",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pacificaircrew-zohorecruit-com-842a2f87",
+       "source_type": "third_party_reference",
+       "title": "Airbus A350/A330 Captain in Nadi",
+       "url": "https://pacificaircrew.zohorecruit.com/jobs/careers/706885000000441009/Airbus-A350-A330-Captain?source=CareerSite"
+      }
+     ],
+     "unit": "hours",
+     "use": "条件つき",
+     "value": 70,
+     "value_text": "70"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "fiji-airways",
+     "cond_ja": "standard monthly block hours threshold before Excess Flying Pay (from $182 NZD/hr)。補足: 【第三者】FlightDeckFriend（https://www.flightdeckfriend.com/why-you-should-work-for-fiji-airways/）でも月70時間超で時間外手当支給と記載。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2024-04-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Excess Flying Pay > 70 block hrs/mth from $182 NZD/hr",
+       "source_id": "src-pacificaircrew-zohorecruit-com-7d86e93d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "381a42e9892c2eb9",
+     "id": "fiji-airways.work.working-time-fo.0e311560",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "working_time",
+     "label_ja": "副操縦士の勤務・乗務時間の上限",
+     "pack": "pvr-20261119-gm-fiji-airways",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-04-30",
+       "publisher": "Pacific Aircrew Services",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pacificaircrew-zohorecruit-com-7d86e93d",
+       "source_type": "third_party_reference",
+       "title": "Airbus A350/A330 First Officer in Nadi",
+       "url": "https://pacificaircrew.zohorecruit.com/jobs/careers/706885000000606117/Airbus-A350-A330-First-Officer?source=CareerSite"
+      }
+     ],
+     "unit": "hours",
+     "use": "条件つき",
+     "value": 70,
+     "value_text": "70"
     }
    ]
   },
@@ -71076,6 +82349,1113 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ]
   },
+  "gojet": {
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "gojet",
+     "cond_ja": "After 1 year of service (3 weeks after 5 years of service)。補足: 【掲示板】Official GoJet page (https://gojetairlines.com/first-officer/) confirms \"Vacation accrued with length of service\"。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2023-01-12",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Vacation: 2 weeks after 1 year, 3 weeks after 5 years.",
+       "source_id": "src-airlinepilotforums-com-b7a33ece",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e425113289023699",
+     "id": "gojet.benefits.annual-leave.63453823",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "年次休暇",
+     "pack": "pvr-20261119-gm-gojet",
+     "per": "year",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-01-12",
+       "publisher": "Airline Pilot Central Forums",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlinepilotforums-com-b7a33ece",
+       "source_type": "community_reference",
+       "title": "A few questions about gojets current state",
+       "url": "https://www.airlinepilotforums.com/gojet/141140-few-questions-about-gojets-current-state.html"
+      }
+     ],
+     "unit": "weeks",
+     "use": "条件つき",
+     "value": 2,
+     "value_text": "2"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "gojet",
+     "cond_ja": "Commuter allowance; plus 6 commuter hotel rooms/month; United Flight Benefits & ZED Options; CASS jumpseat via UA App/Flying Together。補足: 【掲示板】6 commuter hotel rooms/month confirmed in the same thread (\"As a commuting captain, you get 6 hotels a month\"); United Flight Benefits & ZED Options confirmed on https://gojetairlines.com/first-officer/。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-09-22",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "They also offer positive space commuting up to $1000.",
+       "source_id": "src-reddit-com-d6a559f0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c029876c4d6a155f",
+     "id": "gojet.benefits.commuting.597cb67b",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261119-gm-gojet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-09-22",
+       "publisher": "Reddit r/flying",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-reddit-com-d6a559f0",
+       "source_type": "community_reference",
+       "title": "Gojet QoL, seniority, reserve, junior bases, etc",
+       "url": "https://www.reddit.com/r/flying/comments/1nnseu0/gojet_qol_seniority_reserve_junior_bases_etc/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "positive space commuting up to $1000",
+     "value_text": null
+    }
+   ],
+   "fleet": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "gojet",
+     "cond_ja": "CRJ550, as of 2024-08-08 official fleet announcement (and APC profile)。補足: Confirmed also on APC (https://www.airlinepilotcentral.com/airlines/regional/gojet_airlines, 2025-06-12: \"FLEET CRJ 550: 56\")。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2024-08-08",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Following these fleet adjustments, GoJet Airlines will operate 56 aircraft, with potential growth to 74 CRJ550s in the United program.",
+       "source_id": "src-gojetairlines-com-41db7725",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2f4019b366ce2d1e",
+     "id": "gojet.fleet.crj550.41214cdd",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "crj550",
+     "label_ja": "機種ごとの機数（CRJ550）",
+     "pack": "pvr-20261119-gm-gojet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-08-08",
+       "publisher": "GoJet Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-gojetairlines-com-41db7725",
+       "source_type": "official_package",
+       "title": "Taking Flight into Growth: GoJet Airlines' Summer of Success",
+       "url": "https://gojetairlines.com/gojet-airlines-summer-of-success/"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 56,
+     "value_text": "56"
+    }
+   ],
+   "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "gojet",
+     "cond_ja": "Direct Entry Captain license requirements。補足: FAA Multi-Engine ATP required。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATP Pilot's License Instrument Rating Current First Class Medical FCC Radio Operator's Permit",
+       "source_id": "src-gojetairlines-com-033ce1a5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "17e5833b62fd4c8a",
+     "id": "gojet.jobs.cap-license-cap.188f588a",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_license",
+     "label_ja": "機長の応募に要る免許",
+     "pack": "pvr-20261119-gm-gojet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "GoJet Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-gojetairlines-com-033ce1a5",
+       "source_type": "job_posting",
+       "title": "Direct Entry Captain",
+       "url": "https://gojetairlines.com/direct-entry-captain/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ATP Pilot's License Instrument Rating Current First Class Medical FCC Radio Operator's Permit",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "gojet",
+     "cond_ja": "Active Captain recruitment (STL, ORD, EWR, IAD, IAH bases)。補足: Also active on Airline Apps (https://www.airlineapps.com/jobs/details.aspx?emp=GoJet-Airlines&job=Direct-Entry-Captain)。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Direct Entry Captain GoJet is the home of aviation's most innovative aircraft: the Bombardier CRJ-550.",
+       "source_id": "src-gojetairlines-com-033ce1a5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5f635b71e4998f0f",
+     "id": "gojet.jobs.cap-posting-cap.15df19b3",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_posting",
+     "label_ja": "機長の募集している職",
+     "pack": "pvr-20261119-gm-gojet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "GoJet Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-gojetairlines-com-033ce1a5",
+       "source_type": "job_posting",
+       "title": "Direct Entry Captain",
+       "url": "https://gojetairlines.com/direct-entry-captain/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Direct Entry Captain",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "gojet",
+     "cond_ja": "Direct Entry Captain work authorization。補足: Also eligible under E-3 Visa program for qualified Australian citizens。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Eligible to work in the US & travel in/out of the USA freely Current & Valid Passport",
+       "source_id": "src-gojetairlines-com-033ce1a5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ad3e7a26e08d0123",
+     "id": "gojet.jobs.cap-right-to-work-cap.da618cef",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_right_to_work",
+     "label_ja": "機長の国籍・就労の資格",
+     "pack": "pvr-20261119-gm-gojet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "GoJet Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-gojetairlines-com-033ce1a5",
+       "source_type": "job_posting",
+       "title": "Direct Entry Captain",
+       "url": "https://gojetairlines.com/direct-entry-captain/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Eligible to work in the US & travel in/out of the USA freely Current & Valid Passport",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "gojet",
+     "cond_ja": "Total fixed-wing time (plus 1,000h multi-engine, 1,000h air carrier, 1,000h turbine)。補足: Confirmed on Airline Apps Direct Entry Captain posting。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1,750 hours, of which 100% must be fixed wing 1,000 hours multi-engine time 1,000 hours air carrier experience 1,000 hours turbine time",
+       "source_id": "src-gojetairlines-com-033ce1a5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c799a489e3b34210",
+     "id": "gojet.jobs.cap-total-hours-cap.98e3b21f",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_total_hours",
+     "label_ja": "機長の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-gojet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "GoJet Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-gojetairlines-com-033ce1a5",
+       "source_type": "job_posting",
+       "title": "Direct Entry Captain",
+       "url": "https://gojetairlines.com/direct-entry-captain/"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1750,
+     "value_text": "1,750"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "gojet",
+     "cond_ja": "Direct Entry Captain entry (no CRJ type rating required prior to hire; training provided)。補足: No CRJ type rating required prior to hire。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATP Pilot's License Instrument Rating Current First Class Medical FCC Radio Operator's Permit",
+       "source_id": "src-gojetairlines-com-033ce1a5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e6c3fe027332ef33",
+     "id": "gojet.jobs.cap-type-rating-cap.ef6377f7",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_type_rating",
+     "label_ja": "機長の型式限定の要否",
+     "pack": "pvr-20261119-gm-gojet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "GoJet Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-gojetairlines-com-033ce1a5",
+       "source_type": "job_posting",
+       "title": "Direct Entry Captain",
+       "url": "https://gojetairlines.com/direct-entry-captain/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ATP Pilot's License Instrument Rating Current First Class Medical FCC Radio Operator's Permit",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "gojet",
+     "cond_ja": "First Officer license requirements。補足: Confirmed on Airline Apps First Officer posting。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATP, Restricted ATP, or Commercial Multi-Engine Land Pilot's License Instrument Rating Current First Class Medical FCC Radio Operator's Permit ATP-CTP Certificate with successful completion of FAA ATP Written Exam",
+       "source_id": "src-gojetairlines-com-ab6ee714",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "900ddd7714780b1c",
+     "id": "gojet.jobs.fo-license-fo.aa11ee90",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261119-gm-gojet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "GoJet Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-gojetairlines-com-ab6ee714",
+       "source_type": "job_posting",
+       "title": "First Officer",
+       "url": "https://gojetairlines.com/first-officer/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ATP, Restricted ATP, or Commercial Multi-Engine Land Pilot's License Instrument Rating Current First Class Medical FCC Radio Operator's Permit ATP-CTP Certificate with successful completion of FAA ATP Written Exam",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "gojet",
+     "cond_ja": "Active First Officer recruitment (STL, ORD, EWR, IAD, IAH bases)。補足: Also active on Airline Apps (https://www.airlineapps.com/jobs/details.aspx?emp=GoJet-Airlines&job=First-Officer) and listed as \"First Officer - CRJ Series\" on PilotsGlobal (https://pilotsglobal.com/job/CRJ-Series-first-officer-gojet_airlines-US-45a2f4d32c)。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "First Officer GoJet is the home of aviation's most innovative aircraft: the Bombardier CRJ-550.",
+       "source_id": "src-gojetairlines-com-ab6ee714",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1bdd942ef2a343b6",
+     "id": "gojet.jobs.fo-posting-fo.61864547",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_posting",
+     "label_ja": "副操縦士の募集している職",
+     "pack": "pvr-20261119-gm-gojet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "GoJet Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-gojetairlines-com-ab6ee714",
+       "source_type": "job_posting",
+       "title": "First Officer",
+       "url": "https://gojetairlines.com/first-officer/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "First Officer",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "gojet",
+     "cond_ja": "First Officer work authorization (including E-3 Visa sponsorship for Australian Nationals)。補足: E-3 Visa sponsorship confirmed at https://gojetairlines.com/e3/ (\"Gojet Airlines is now accepting applications from Australian pilots eligible for an E-3 Visa.\")。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Eligible to work in the US & travel in/out of the USA freely Current & Valid Passport",
+       "source_id": "src-gojetairlines-com-ab6ee714",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b32898155f343ce2",
+     "id": "gojet.jobs.fo-right-to-work-fo.7bc99e3a",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261119-gm-gojet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "GoJet Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-gojetairlines-com-ab6ee714",
+       "source_type": "job_posting",
+       "title": "First Officer",
+       "url": "https://gojetairlines.com/first-officer/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Eligible to work in the US & travel in/out of the USA freely Current & Valid Passport",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "gojet",
+     "cond_ja": "R-ATP Military / E-3 Australian Pilot Program (R-ATP Bachelor's: 1000 hours; R-ATP Associate's: 1250 hours)。補足: R-ATP hour tiers (750 / 1,000 / 1,250 hours) also detailed on https://pilotsglobal.com/job/CRJ-Series-first-officer-gojet_airlines-US-45a2f4d32c。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "First Officers with as little as 750 hours of qualifying time can join GoJet Airlines with Captain upgrade guaranteed within their first year!",
+       "source_id": "src-gojetairlines-com-7bbb49bf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "30d773b93f810555",
+     "id": "gojet.jobs.fo-total-hours-fo.0847fa47",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-gojet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "GoJet Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-gojetairlines-com-7bbb49bf",
+       "source_type": "job_posting",
+       "title": "E3 Program",
+       "url": "https://gojetairlines.com/e3/"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 750,
+     "value_text": "750"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "gojet",
+     "cond_ja": "Standard ATP / Civilian Rotor Transition (includes 250h PIC and 25h multi-engine)。補足: 【第三者】Corroborated by https://gojetairlines.com/rotor-transition/ (\"1,500 total time, which must include 250 hours of PIC time\")。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Total time 1500 hours PIC time 250 hours Multi-engine 25 hours",
+       "source_id": "src-pilotsglobal-com-3c5fa140",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "54a4eceb4bd9013e",
+     "id": "gojet.jobs.fo-total-hours-fo.6ce93413",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-gojet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-3c5fa140",
+       "source_type": "third_party_reference",
+       "title": "First Officer - CRJ Series at GoJet Airlines",
+       "url": "https://pilotsglobal.com/job/CRJ-Series-first-officer-gojet_airlines-US-b7cd03cd2f"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1500,
+     "value_text": "1500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "gojet",
+     "cond_ja": "First Officer entry。補足: 【第三者】GoJet provides full ATP/type rating training。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Type rating Not required (Training Provided)",
+       "source_id": "src-pilotsglobal-com-f42bb15b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "79a8722b8b5f2ca9",
+     "id": "gojet.jobs.fo-type-rating-fo.5e1db87f",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261119-gm-gojet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-f42bb15b",
+       "source_type": "third_party_reference",
+       "title": "First Officer - CRJ Series at GoJet Airlines",
+       "url": "https://pilotsglobal.com/job/CRJ-Series-first-officer-gojet_airlines-US-45a2f4d32c"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Not required (Training Provided)",
+     "value_text": null
+    }
+   ],
+   "profile": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "gojet",
+     "cond_ja": "established late 2004; Air Carrier Certificate Sep 2005; scheduled ops Oct 4, 2005。補足: Founded by Trans States Holdings (https://en.wikipedia.org/wiki/GoJet_Airlines)。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Established in 2005 and headquartered in St. Louis, MO, GoJet operates crew bases out of Newark (EWR), Washington Dulles (IAD), Houston (IAH), Chicago (ORD), and St. Louis (STL).",
+       "source_id": "src-gojetairlines-com-7f93638f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9ef4c927a5b484ad",
+     "id": "gojet.profile.founded.a0150887",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "founded",
+     "label_ja": "設立",
+     "pack": "pvr-20261119-gm-gojet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "GoJet Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-gojetairlines-com-7f93638f",
+       "source_type": "official_package",
+       "title": "About Us",
+       "url": "https://gojetairlines.com/about-us/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "2005",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "gojet",
+     "cond_ja": "Corporate Headquarters (11495 Navaid Rd, Bridgeton / St. Louis, MO)。補足: Located in Bridgeton, MO (St. Louis Lambert International Airport area)。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Established in 2005 and headquartered in St. Louis, MO, GoJet operates crew bases out of Newark (EWR), Washington Dulles (IAD), Houston (IAH), Chicago (ORD), and St. Louis (STL).",
+       "source_id": "src-gojetairlines-com-7f93638f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "afa4a3ad659dad91",
+     "id": "gojet.profile.headquarters-city.8605bdc6",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "headquarters_city",
+     "label_ja": "本社の都市",
+     "pack": "pvr-20261119-gm-gojet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "GoJet Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-gojetairlines-com-7f93638f",
+       "source_type": "official_package",
+       "title": "About Us",
+       "url": "https://gojetairlines.com/about-us/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "St. Louis",
+     "value_text": null
+    }
+   ],
+   "scale": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "gojet",
+     "cond_ja": "as of 2024-08-08 official fleet announcement (and APC profile)。補足: Wikipedia (https://en.wikipedia.org/wiki/GoJet_Airlines) reports 57 CRJ-550s as of August 2025 and 54 frames as of March 4, 2026。",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": "2024-08-08",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Following these fleet adjustments, GoJet Airlines will operate 56 aircraft, with potential growth to 74 CRJ550s in the United program.",
+       "source_id": "src-gojetairlines-com-41db7725",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8d98cfa67907d01f",
+     "id": "gojet.scale.fleet-total.297c5622",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "fleet_total",
+     "label_ja": "運航している機材",
+     "pack": "pvr-20261119-gm-gojet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-08-08",
+       "publisher": "GoJet Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-gojetairlines-com-41db7725",
+       "source_type": "official_package",
+       "title": "Taking Flight into Growth: GoJet Airlines' Summer of Success",
+       "url": "https://gojetairlines.com/gojet-airlines-summer-of-success/"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 56,
+     "value_text": "56"
+    }
+   ],
+   "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "gojet",
+     "cond_ja": "Line holder typical days off per month。補足: 【掲示板】75 credit hours/month yields ~17 days off; 93 credit hours/month yields ~13 days off。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-09-03",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "We get only 11 days off on reserve but most of it is long call, no airport reserve. Line holders get 12-18 days off depending on how much you want to fly and how you pick your trips.",
+       "source_id": "src-reddit-com-9102fa67",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "653cac78d984a988",
+     "id": "gojet.work.days-off.96c2a08a",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "休日（月）",
+     "pack": "pvr-20261119-gm-gojet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-09-03",
+       "publisher": "Reddit r/flying",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-reddit-com-9102fa67",
+       "source_type": "community_reference",
+       "title": "GoJet pay and days off",
+       "url": "https://www.reddit.com/r/flying/comments/1n7dedn/gojet_pay_and_days_off/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "12-18",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "gojet",
+     "cond_ja": "Reserve minimum guaranteed days off per month。補足: 【掲示板】Confirmed by 2+ posts (also https://www.reddit.com/r/flying/comments/1nnseu0/gojet_qol_seniority_reserve_junior_bases_etc/)。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-09-03",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "We get only 11 days off on reserve but most of it is long call, no airport reserve. Line holders get 12-18 days off depending on how much you want to fly and how you pick your trips.",
+       "source_id": "src-reddit-com-9102fa67",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e490b306d107c846",
+     "id": "gojet.work.days-off.9f52cb48",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "休日（月）",
+     "pack": "pvr-20261119-gm-gojet",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-09-03",
+       "publisher": "Reddit r/flying",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-reddit-com-9102fa67",
+       "source_type": "community_reference",
+       "title": "GoJet pay and days off",
+       "url": "https://www.reddit.com/r/flying/comments/1n7dedn/gojet_pay_and_days_off/"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 11,
+     "value_text": "11"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "gojet",
+     "cond_ja": "Monthly bid (min or max credit); Long Call Reserve (12h minimum callout) with convertible Short Call Reserve (2h callout)。補足: 【掲示板】Confirmed by 2+ posts (also https://www.reddit.com/r/flying/comments/1n7dedn/gojet_pay_and_days_off/)。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-09-22",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "On reserve, expect 11 days off, all long call but they can convert a number of days to short call. No airport standby. As a line holder expect anywhere from 12-18 days off depending on seniority and what trips you bid for.",
+       "source_id": "src-reddit-com-d6a559f0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a8cc78d2b598a74a",
+     "id": "gojet.work.roster-pattern.0c4ef37f",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261119-gm-gojet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-09-22",
+       "publisher": "Reddit r/flying",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-reddit-com-d6a559f0",
+       "source_type": "community_reference",
+       "title": "Gojet QoL, seniority, reserve, junior bases, etc",
+       "url": "https://www.reddit.com/r/flying/comments/1nnseu0/gojet_qol_seniority_reserve_junior_bases_etc/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "On reserve, expect 11 days off, all long call but they can convert a number of days to short call. No airport standby. As a line holder expect anywhere from 12-18 days off depending on seniority and what trips you bid for.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "gojet",
+     "cond_ja": "Minimum monthly flight pay guarantee (FAA Part 117 limits apply)。補足: Line holders can bid min or max credit (e.g., 75 to 93+ credit hours/month)。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Minimum Guarantee: 75 hours per month",
+       "source_id": "src-airlineapps-com-43d0423e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ca775e60e41ac626",
+     "id": "gojet.work.working-time.178811c1",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "working_time",
+     "label_ja": "勤務・乗務時間の上限",
+     "pack": "pvr-20261119-gm-gojet",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "GoJet Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlineapps-com-43d0423e",
+       "source_type": "official_package",
+       "title": "First Officer - Airline Apps",
+       "url": "https://www.airlineapps.com/jobs/details.aspx?emp=GoJet-Airlines&job=First-Officer"
+      }
+     ],
+     "unit": "hours",
+     "use": "条件つき",
+     "value": 75,
+     "value_text": "75"
+    }
+   ]
+  },
   "gulf-air": {
    "base": [
     {
@@ -77327,7 +89707,315 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "icelandair": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "icelandair",
+     "cond_ja": "base RKV。補足: 【Wikipedia】レイキャビク。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-10-08",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Hubs | Keflavík International Airport Reykjavik Airport",
+       "source_id": "src-en-wikipedia-org-d35ae787",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "65afb78fd83d8ace",
+     "id": "icelandair.base.pilot-base-city.23c6c994",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-icelandair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-08",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-d35ae787",
+       "source_type": "third_party_reference",
+       "title": "Icelandair",
+       "url": "https://en.wikipedia.org/wiki/Icelandair"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Reykjavik",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "icelandair",
+     "cond_ja": "base KEF。補足: ケプラヴィーク。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Flights to Nuuk, Greenland (GOH) depart from Iceland's Keflavik International Airport (KEF)",
+       "source_id": "src-icelandair-com-8d9a6f1a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "31e849da0f8fca26",
+     "id": "icelandair.base.pilot-base-city.5d1c44c4",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-icelandair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Icelandair",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-icelandair-com-8d9a6f1a",
+       "source_type": "job_posting",
+       "title": "Flybus airport transfer between Keflavik and Reykjavik",
+       "url": "https://www.icelandair.com/vacations/tours/flybus-transfer-from-keflavik/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Keflavik",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "icelandair",
+     "cond_ja": "国際線メイン拠点（Keflavík International Airport）。補足: Staff Airlines（https://staffairlines.com/airlines/icelandair「Keflavík KEF, Reykjavík RKV」）およびWikipedia（https://en.wikipedia.org/wiki/Icelandair）でもKEF拠点を確認。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Flights to Nuuk, Greenland (GOH) depart from Iceland's Keflavik International Airport (KEF)",
+       "source_id": "src-icelandair-com-8d9a6f1a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "283b7c7382d1bd48",
+     "id": "icelandair.base.pilot-base.737a5f86",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-icelandair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Icelandair",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-icelandair-com-8d9a6f1a",
+       "source_type": "job_posting",
+       "title": "Flybus airport transfer between Keflavik and Reykjavik",
+       "url": "https://www.icelandair.com/vacations/tours/flybus-transfer-from-keflavik/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "KEF",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "icelandair",
+     "cond_ja": "国内線拠点（Reykjavík Airport）。補足: 【第三者】Wikipedia（https://en.wikipedia.org/wiki/Icelandair「Its smaller domestic-only hub is located at Reykjavík Airport.」）でも国内線拠点として確認。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Iceland 3 Akureyri AEY, Keflavík KEF, Reykjavík RKV",
+       "source_id": "src-staffairlines-com-15f186b3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c9ae007df1033413",
+     "id": "icelandair.base.pilot-base.b6c0e20a",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-icelandair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Staff Airlines",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-staffairlines-com-15f186b3",
+       "source_type": "third_party_reference",
+       "title": "Icelandair (FI) staff travel & standby rules",
+       "url": "https://staffairlines.com/airlines/icelandair"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "RKV",
+     "value_text": null
+    }
+   ],
    "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "icelandair",
+     "cond_ja": "パイロットに支給される車両・通勤手当（bílastyrkur）。補足: Morgunblaðið紙によるIcelandairパイロット報酬報道で確認された車両手当（bílastyrkur）。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-06-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Dagpeningar sem flugmenn fá jafnframt greidda meðan á vaktinni stendur eru þó ekki inni í framangreindri tölu og heldur ekki bílastyrkur sem flugmenn njóta.",
+       "source_id": "src-mbl-is-510cb62d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "de846352eacc337a",
+     "id": "icelandair.benefits.commuting.2aa8f95e",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261119-gm-icelandair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-11",
+       "publisher": "Morgunblaðið (mbl.is)",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-mbl-is-510cb62d",
+       "source_type": "third_party_reference",
+       "title": "Flugstjórar með tæpar þrjár milljónir",
+       "url": "https://www.mbl.is/frettir/innlent/2026/06/11/flugstjorar_med_taepar_thrjar_milljonir/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "bílastyrkur sem flugmenn njóta",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "icelandair",
+     "cond_ja": "首都圏（レイキャビク等）とケプラヴィーク国際空港（KEF）を結ぶIcelandair契約の空港職員・乗員専用シャトルバス（Shuttle4u）。補足: 運行会社Bus4u公式ページで確認されたIcelandair向けKEF通勤シャトルサービス。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Shuttle4u is a dedicated shuttle service for people working at Keflavík International Airport, operated by Bus4u. We provide reliable transport for employees of airlines and airport companies across multiple work zones — including KEF airport, Ásbrú, Njarðvík, the Capital Area, and the Blue Lagoon.",
+       "source_id": "src-bus4u-is-0ef2e313",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c709e5a826496c0a",
+     "id": "icelandair.benefits.commuting.c1cd5131",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261119-gm-icelandair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Bus4u",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-bus4u-is-0ef2e313",
+       "source_type": "official_package",
+       "title": "Services (Shuttle4u)",
+       "url": "https://www.bus4u.is/services"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Shuttle4u is a dedicated shuttle service for people working at Keflavík International Airport, operated by Bus4u.",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -77480,6 +90168,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": 16,
      "value_text": "16"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "icelandair",
+     "cond_ja": "全社員の制度（myIDTravelを通じたスタンバイ・ZED社員航空券制度、受託手荷物23kg×1個・機内持込手荷物1個無料）。補足: 【第三者】FlyZED（http://www.flyzed.info/FI）およびStaff Airlines（https://staffairlines.com/airlines/icelandair）でもmyIDTravel経由のZED社員航空券制度を確認。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1 piece of checked in luggage with a max 23 KG (50 LBS), 1 cabin bag with a max 55 x 40 x 20cm (21.6 x 15.7 x 7.8in), and 1 personal item per staff member will be allowed. ... Listing only via MYIDTravel",
+       "source_id": "src-stafftraveler-com-1ab0d9b7",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ea6a9ed36f8436d2",
+     "id": "icelandair.benefits.staff-travel.4ea26815",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261119-gm-icelandair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "StaffTraveler",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-stafftraveler-com-1ab0d9b7",
+       "source_type": "third_party_reference",
+       "title": "Icelandair Staff Travel Information",
+       "url": "https://stafftraveler.com/notes/ICE"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Listing only via MYIDTravel",
+     "value_text": null
     }
    ],
    "fleet": [
@@ -77826,6 +90565,220 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "value_text": null
     }
    ],
+   "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "icelandair",
+     "cond_ja": "アイスランド運輸庁（Samgöngustofa）または他のEASA加盟国航空当局が発行した事業用・定期運送用操縦士免許。補足: 過去の求人（2025-12-15掲載）。Flugvarpiðが報じた2025年12月副操縦士求人票の免許要件。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-12-15",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Þar kemur einnig fram að atvinnuflugmannsskírteini umsækjenda skal hafa verið gefið út af Samgöngustofu eða sambærilegri stofnun í öðru aðildarríki Flugöryggisstofnunar Evrópu (EASA).",
+       "source_id": "src-flugvarpid-is-59e387de",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9566df317b08448f",
+     "id": "icelandair.jobs.fo-license-fo.4c918d9d",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261119-gm-icelandair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-12-15",
+       "publisher": "Flugvarpið",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-flugvarpid-is-59e387de",
+       "source_type": "third_party_reference",
+       "title": "Icelandair auglýsir eftir flugmönnum með 500 tíma á þotu",
+       "url": "https://www.flugvarpid.is/frettir/icelandair-auglysir-eftir-flugmoennum-med-500-tima-a-thotu"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "atvinnuflugmannsskírteini umsækjenda skal hafa verið gefið út af Samgöngustofu eða sambærilegri stofnun í öðru aðildarríki Flugöryggisstofnunar Evrópu (EASA)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "icelandair",
+     "cond_ja": "優れた英語力必須、アイスランド語能力歓迎（EASA加盟国免許保持者対象）。補足: Icelandair公式パイロット採用案内ページの語学・応募資格規定。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Umsækjendur þurfa að hafa lokið stúdentsprófi eða sambærilegu námi, búa yfir góðri enskukunnáttu og íslenskukunnátta er æskileg.",
+       "source_id": "src-icelandair-com-1ca41619",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "37415b784c20403a",
+     "id": "icelandair.jobs.fo-right-to-work-fo.d336b71e",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261119-gm-icelandair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Icelandair",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-icelandair-com-1ca41619",
+       "source_type": "job_posting",
+       "title": "Flugmenn til framtíðar",
+       "url": "https://www.icelandair.com/is-is/flug/kynning/flugmenn-til-framtidar/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "búa yfir góðri enskukunnáttu og íslenskukunnátta er æskileg",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "icelandair",
+     "cond_ja": "ジェット機での最低飛行時間（500 fartíma á þotu）。補足: 過去の求人（2025-12-15掲載）。アイスランド航空専門ニュース誌Flugvarpiðが報じたIcelandairの2025年12月副操縦士求人票の応募要件。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-12-15",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Icelandair auglýsir nú eftir flugmönnum til starfa í millilandaflug í leiðakerfi félagsins og þurfa umsækjendur að hafa að lágmarki 500 fartíma á þotu.",
+       "source_id": "src-flugvarpid-is-59e387de",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "15f799dcf426e8fd",
+     "id": "icelandair.jobs.fo-total-hours-fo.ee5ae542",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-icelandair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-12-15",
+       "publisher": "Flugvarpið",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-flugvarpid-is-59e387de",
+       "source_type": "third_party_reference",
+       "title": "Icelandair auglýsir eftir flugmönnum með 500 tíma á þotu",
+       "url": "https://www.flugvarpid.is/frettir/icelandair-auglysir-eftir-flugmoennum-med-500-tima-a-thotu"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 500,
+     "value_text": "500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-19",
+     "company": "icelandair",
+     "cond_ja": "応募時に型式証明不要（選考通過後に会社がAirbus A321・Boeing 737の3か月間Type Rating訓練を実施）。補足: IcelandairチーフパイロットLinda Gunnarsdóttir氏の取材発言（同記事で「The three-month course qualified the pilots to operate the airline's Airbus A321 and Boeing 737 passenger aircraft.」と明記）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-07-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "They then go through an extensive recruitment process, which concludes with what's known as type rating training for each aircraft type, Gunnarsdóttir said.",
+       "source_id": "src-icelandmonitor-mbl-is-b98d615d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7cd93bf6138fd671",
+     "id": "icelandair.jobs.fo-type-rating-fo.d108168e",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261119-gm-icelandair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-07-26",
+       "publisher": "Iceland Monitor (mbl.is)",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-19",
+       "source_id": "src-icelandmonitor-mbl-is-b98d615d",
+       "source_type": "third_party_reference",
+       "title": "Icelandair adds 31 new pilots to its flight crew",
+       "url": "https://icelandmonitor.mbl.is/news/nature_and_travel/2026/07/26/icelandair_adds_31_new_pilots_to_its_flight_crew/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "type rating training for each aircraft type",
+     "value_text": null
+    }
+   ],
    "profile": [
     {
      "amount": null,
@@ -77978,6 +90931,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "Iceland",
+     "value_text": null
+    }
+   ],
+   "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "icelandair",
+     "cond_ja": "不規則なシフト勤務で月9日休日（うち週末休1回）、休日の配置に対する裁量が小さいロスター。補足: アイスランド航空パイロット協会（FÍA）Jón Þór Þorvaldsson会長がMorgunblaðið紙の取材で証言したIcelandairパイロットの勤務体制。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-05-24",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "„Flugmenn vinna óreglulega vaktavinnu og eru með níu frídaga á mánuði og þar af eitt helgarfrí og við stjórnum ekki hvenær þessir frídagar eru eða hvenær við fáum helgarfríið þannig að menn hafa afskaplega litla stjórn á því hvenær þeir geta ráðstafað frídögum. Það er svona svolítið stóra málið í þe",
+       "source_id": "src-mbl-is-59f3644d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "77312b0ccc466ca1",
+     "id": "icelandair.work.roster-pattern.1ea24d5a",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261119-gm-icelandair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-05-24",
+       "publisher": "Morgunblaðið (mbl.is)",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-mbl-is-59f3644d",
+       "source_type": "third_party_reference",
+       "title": "„Icelandair ber algjörlega ábyrgð“",
+       "url": "https://www.mbl.is/frettir/innlent/2026/05/24/icelandair_ber_algjorlega_abyrgd/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Flugmenn vinna óreglulega vaktavinnu og eru með níu frídaga á mánuði og þar af eitt helgarfrí",
      "value_text": null
     }
    ]
@@ -79706,6 +92712,212 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "ita-airways": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "ita-airways",
+     "cond_ja": "base FCO。補足: 【第三者】ローマ（ITA Airways公式求人 https://career.ita-airways.com/job/Direct-Entry-Pilots-Rated/941-it_IT/ では自治体名Fiumicino, RMと表記）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-11-10",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Job Overview Airline ITA Airways Position First Officer Bases LIN Milan FCO Rome Aircraft All Fleet",
+       "source_id": "src-skyreer-aero-774cddd2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cbca822fdac1d981",
+     "id": "ita-airways.base.pilot-base-city.49b2d9cf",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-ita-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-10",
+       "publisher": "Skyreer",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-skyreer-aero-774cddd2",
+       "source_type": "third_party_reference",
+       "title": "ITA Airways All Fleet First Officer Job",
+       "url": "https://www.skyreer.aero/job-offers/cmwanbe6j00uevgzt6ho2pte5"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Rome",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "ita-airways",
+     "cond_ja": "base LIN。補足: 【第三者】ミラノ（ITA Airways公式求人 https://career.ita-airways.com/job/Direct-Entry-Pilots-Rated/941-it_IT/ では自治体名Linate, MIと表記）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-11-10",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Job Overview Airline ITA Airways Position First Officer Bases LIN Milan FCO Rome Aircraft All Fleet",
+       "source_id": "src-skyreer-aero-774cddd2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e1dbd3964e18f66a",
+     "id": "ita-airways.base.pilot-base-city.a792eda5",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-ita-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-10",
+       "publisher": "Skyreer",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-skyreer-aero-774cddd2",
+       "source_type": "third_party_reference",
+       "title": "ITA Airways All Fleet First Officer Job",
+       "url": "https://www.skyreer.aero/job-offers/cmwanbe6j00uevgzt6ho2pte5"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Milan",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "ita-airways",
+     "cond_ja": "ミラノ・リナーテ拠点（Milan Linate Airport）。補足: ITA Airways公式求人（https://career.ita-airways.com/job/Direct-Entry-Pilots-Rated/941-it_IT/「Location Fiumicino, RM. Linate, MI.」）およびSkyreer求人（https://www.skyreer.aero/job-offers/cmwanbe6j00uevgzt6ho2pte5「Bases LIN Milan FCO Rome」）とも一致。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CONTATTI RRSSAA ANPAV ITA AIRWAYS AMATI CARLO Segreteria Nazionale +393484066726 CAVALLERO ANGELICA (Base LIN) +393358487866 CERAVOLO MASSIMO (Base FCO)",
+       "source_id": "src-anpav-com-06addeac",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9417e284b22b2099",
+     "id": "ita-airways.base.pilot-base.3a0121e6",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-ita-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ANPAV",
+       "publisher_kind": "union",
+       "retrieved": "2026-11-18",
+       "source_id": "src-anpav-com-06addeac",
+       "source_type": "union_cba",
+       "title": "Contatti RRSSAA ITA Airways",
+       "url": "https://www.anpav.com/contatti/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "LIN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "ita-airways",
+     "cond_ja": "ローマ・フィウミチーノ拠点（Rome Fiumicino Airport）。補足: ITA Airways公式求人（https://career.ita-airways.com/job/Direct-Entry-Pilots-Rated/941-it_IT/「Location Fiumicino, RM. Linate, MI.」）およびSkyreer求人（https://www.skyreer.aero/job-offers/cmwanbe6j00uevgzt6ho2pte5「Bases LIN Milan FCO Rome」）とも一致。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CONTATTI RRSSAA ANPAV ITA AIRWAYS AMATI CARLO Segreteria Nazionale +393484066726 CAVALLERO ANGELICA (Base LIN) +393358487866 CERAVOLO MASSIMO (Base FCO)",
+       "source_id": "src-anpav-com-06addeac",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9d38c7697e3f824d",
+     "id": "ita-airways.base.pilot-base.96d69316",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-ita-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ANPAV",
+       "publisher_kind": "union",
+       "retrieved": "2026-11-18",
+       "source_id": "src-anpav-com-06addeac",
+       "source_type": "union_cba",
+       "title": "Contatti RRSSAA ITA Airways",
+       "url": "https://www.anpav.com/contatti/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "FCO",
+     "value_text": null
+    }
+   ],
    "benefits": [
     {
      "amount": null,
@@ -79973,6 +93185,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "会社命令転勤で旅費と事前合意した家財/身辺荷物搬送費、家族転居時1か月・本人だけの転居20日のmission処遇。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "ita-airways",
+     "cond_ja": "myIDTravelプラットフォームによるAnnual Leave航空券（機長2枚、副操縦士1枚・勤続5年で2枚）、家族・両親向け確約およびスタンバイ航空券、追加15枚のSupplementary航空券（確約・スタンバイ、プレミアムエコノミー予約可）。補足: 組合ANPAV公式のITA Airways Staff Travel Policy会合報告（ID90 Travel https://www.id90travel.com/members/eligible-companies/ でもITA Airwaysのインターライン割引対象を確認）。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Nella 1o fase verranno rilasciati sulla piattaforma Myidtravel ai propri dipendenti: • Tickets \"Annual Leave\": – 2 TKT CPT – 1 F/O, SCM, CM (2 con 5 anni di anzianità) – 1 AV • Tickets per il proprio nucleo familiare e genitori : Confirmed e Standby. Nella 2o fase verranno caricati 15 tickets supple",
+       "source_id": "src-anpav-com-8a0b6988",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "19c080c02131cbfe",
+     "id": "ita-airways.benefits.staff-travel.37f80b89",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261119-gm-ita-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ANPAV",
+       "publisher_kind": "union",
+       "retrieved": "2026-11-18",
+       "source_id": "src-anpav-com-8a0b6988",
+       "source_type": "union_cba",
+       "title": "ITA AIRWAYS incontro su CONCESSIONI DI VIAGGIO – STAFF TRAVEL POLICY",
+       "url": "https://www.anpav.com/ita-airways-ccnl-ta-vettori-2-2-2-2-2-2-2-2/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Nella 1o fase verranno rilasciati sulla piattaforma Myidtravel ai propri dipendenti: • Tickets \"Annual Leave\": – 2 TKT CPT – 1 F/O, SCM, CM (2 con 5 anni di anzianità) – 1 AV • Tickets per il proprio nucleo familiare e genitori : Confirmed e Standby. Nella 2o fase verranno caricati 15 tickets supplementary (confirmed & standby), inoltre sarà possibi- le prenotare la classe Premium economy.",
      "value_text": null
     }
    ],
@@ -80478,6 +93741,70 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "Italy",
      "value_text": null
+    }
+   ],
+   "work": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "訓練費の拘束（額）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "ita-airways",
+     "cond_ja": "ITA AirwaysとUrbe AeroによるMPL（Multi-Crew Pilot Licence）養成コースの訓練生自己負担総額（付加価値税非課税、訓練修了後にITA AirwaysでA320副操縦士として最低24か月の有期雇用契約）。補足: 【掲示板】Direct Entry（既免許保持者）についてはSkyreer求人票（https://www.skyreer.aero/job-offers/cmwanbe6j00uevgzt6ho2pte5）でType Rating不要での応募および会社によるType Rating訓練提供が確認され、PPRuNe（https://www.pprune.org/italian-forum/650146-ita-al-via-il-piano-assunzioni-2023-oltre-1200-posti-5.html）でも「Type Rating pagato da ITA, senza bond.」と複数名が証言。",
+     "currency": "EUR",
+     "domain": "work",
+     "effective": {
+      "from": "2026-07-21",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Il costo complessivo del corso è pari a 135.000 euro, IVA esente, comprensivo di addestramento teorico e pratico, divise e materiale didattico (iPad incluso).",
+       "source_id": "src-pprune-org-7dc41deb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0dc297bfa831e851",
+     "id": "ita-airways.work.training-bond-fo.32d58b1d",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "副操縦士の訓練費の拘束",
+     "pack": "pvr-20261119-gm-ita-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-07-21",
+       "publisher": "PPRuNe Forums",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pprune-org-7dc41deb",
+       "source_type": "community_reference",
+       "title": "ITA Airways rilancia l'MPL, al via la nuova Flight Academy",
+       "url": "https://www.pprune.org/italian-forum/673043-ita-airways-rilancia-limpl-al-via-la-nuova-flight-academy.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 135000,
+     "value_text": "135.000"
     }
    ]
   },
@@ -82789,6 +96116,950 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "鹿児島",
+     "value_text": null
+    }
+   ]
+  },
+  "jazz": {
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "jazz",
+     "cond_ja": "Collective Agreement Section 3-12 Commuting Policy & Section 11-4 Transportation and Parking。補足: カナダ連邦政府（ESDC Negotech）収録の労働協約（2035年までのCPA延長に伴い現在も有効）。第3-12条にてチェックイン30分前までに到着する2便の確保による免責ルール、第11-4条にて基地駐車場およびレイオーバー送迎の提供を規定。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2022-06-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "i) The commuting Pilot must have two (2) flights available, the later of which must be scheduled to arrive at least thirty (30) minutes prior to the",
+       "source_id": "src-negotech-service-canada-ca-b2b195a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a3c42122cbd20e7a",
+     "id": "jazz.benefits.commuting.6cdd4ab7",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261119-gm-jazz",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2022-06-30",
+       "publisher": "Jazz Aviation LP & ALPA Collective Agreement No. 5 (ESDC Negotech)",
+       "publisher_kind": "government",
+       "retrieved": "2026-11-18",
+       "source_id": "src-negotech-service-canada-ca-b2b195a6",
+       "source_type": "government",
+       "title": "Jazz Aviation LP & ALPA Collective Agreement No. 5 (ESDC Negotech)",
+       "url": "https://negotech.service.canada.ca/eng/agreements/12/1271907a.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "The commuting Pilot must have two (2) flights available, the later of which must be scheduled to arrive at least thirty (30) minutes prior",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "jazz",
+     "cond_ja": "Commuting standby travel privileges from week 1 of training。補足: 訓練開始第1週目から通勤（コミューティング）目的でのAir Canadaおよび提携他社便スタンバイ搭乗が可能。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "An extensive employee travel benefits program on the Air Canada network (after a wait period of 28 weeks of active, continuous service). Within the first week of training, standby travel on Air Canada and other airlines will be available to pilots for commuting purpose only.",
+       "source_id": "src-jazz-taleo-net-38105162",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c3eb025f44fd11b3",
+     "id": "jazz.benefits.commuting.95ff7427",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261119-gm-jazz",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jazz Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jazz-taleo-net-38105162",
+       "source_type": "official_package",
+       "title": "Pilot (First Officer) Job Posting (Taleo)",
+       "url": "https://jazz.taleo.net/careersection/2+M/jobdetail.ftl?job=141354"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Within the first week of training, standby travel on Air Canada and other airlines will be available to pilots for commuting purpose only.",
+     "value_text": null
+    }
+   ],
+   "fleet": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "jazz",
+     "cond_ja": "CRJ900, as of 2026-11-18。補足: Bombardier CRJ900（76席仕様。フランス語公式ページ https://flyjazz.com/fr/exploitation/air-canada-express/ でも「Nombre d'avions : 30」と明記）。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CRJ900 ... Number of aircraft in Air Canada Express fleet: 30",
+       "source_id": "src-flyjazz-com-65fe4c98",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "611d3764418ba948",
+     "id": "jazz.fleet.crj900.0c98fd16",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "crj900",
+     "label_ja": "機種ごとの機数（CRJ900）",
+     "pack": "pvr-20261119-gm-jazz",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jazz Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-flyjazz-com-65fe4c98",
+       "source_type": "official_package",
+       "title": "Air Canada Express",
+       "url": "https://flyjazz.com/en/operations/air-canada-express/"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 30,
+     "value_text": "30"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "jazz",
+     "cond_ja": "Dash 8-400, as of 2026-11-18。補足: De Havilland Dash 8-400（78席仕様。フランス語公式ページ https://flyjazz.com/fr/exploitation/air-canada-express/ でも「Nombre d'avions: 33」と明記）。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Dash 8-400 ... Number of aircraft in Air Canada Express fleet: 33",
+       "source_id": "src-flyjazz-com-65fe4c98",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1810a0b0601f5ff3",
+     "id": "jazz.fleet.dash-8-400.b6112f35",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "dash_8_400",
+     "label_ja": "機種ごとの機数（Dash 8-400）",
+     "pack": "pvr-20261119-gm-jazz",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jazz Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-flyjazz-com-65fe4c98",
+       "source_type": "official_package",
+       "title": "Air Canada Express",
+       "url": "https://flyjazz.com/en/operations/air-canada-express/"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 33,
+     "value_text": "33"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "jazz",
+     "cond_ja": "E175, as of 2026-11-18。補足: Embraer E175（76席仕様。フランス語公式ページ https://flyjazz.com/fr/exploitation/air-canada-express/ でも「Nombre d'avions : 25」と明記）。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "E175 ... Number of aircraft in Air Canada Express fleet: 25",
+       "source_id": "src-flyjazz-com-65fe4c98",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "35d19b03400aa124",
+     "id": "jazz.fleet.e175.bf418307",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "e175",
+     "label_ja": "機種ごとの機数（E175）",
+     "pack": "pvr-20261119-gm-jazz",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jazz Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-flyjazz-com-65fe4c98",
+       "source_type": "official_package",
+       "title": "Air Canada Express",
+       "url": "https://flyjazz.com/en/operations/air-canada-express/"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 25,
+     "value_text": "25"
+    }
+   ],
+   "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "jazz",
+     "cond_ja": "Plus Multi-Engine rating, Group 1 Instrument Rating, Class 1 Medical, and IATRA (within 24 months) or ATPL written examination (Canadian ATPL preferred)。補足: カナダ運輸省（Transport Canada）発行のCPL・多発限定・Group 1計器飛行証明・Class 1身体検査証明・IATRAまたはATPL学科試験合格が必須（カナダATPL保持者は優遇：Candidats qui possèdent une licence canadienne de pilote de ligne (ATPL)）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Valid Transport Canada Commercial Pilots License. Valid Transport Canada Multi-Engine rating. Valid and Current Transport Canada Group 1 Instrument Rating; must currently meet the instrument recency requirements. Must have passed the IATRA within the preceding 24 months or have passed the ATPL writt",
+       "source_id": "src-jazz-taleo-net-38105162",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "89191f27e07a5317",
+     "id": "jazz.jobs.fo-license-fo.355d672c",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261119-gm-jazz",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jazz Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jazz-taleo-net-38105162",
+       "source_type": "official_package",
+       "title": "Pilot (First Officer) Job Posting (Taleo)",
+       "url": "https://jazz.taleo.net/careersection/2+M/jobdetail.ftl?job=141354"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Valid Transport Canada Commercial Pilots License",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "jazz",
+     "cond_ja": "closing 2026-12-18 (bases: YYZ, YUL, YYC, YVR)。補足: 一般応募枠のFirst Officer求人（外部からのDirect Entry Captain求人はなく全員First Officerとして採用）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Pilot (First Officer) Apply by Date: Dec 18, 2026 Primary Location: CA-ON-Toronto Other Locations: CA-QC-Montréal, CA-AB-Calgary, CA-BC-Vancouver",
+       "source_id": "src-jazz-taleo-net-38105162",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4da2e6fa9b120074",
+     "id": "jazz.jobs.fo-posting-fo.a4aa90fe",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_posting",
+     "label_ja": "副操縦士の募集している職",
+     "pack": "pvr-20261119-gm-jazz",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jazz Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jazz-taleo-net-38105162",
+       "source_type": "official_package",
+       "title": "Pilot (First Officer) Job Posting (Taleo)",
+       "url": "https://jazz.taleo.net/careersection/2+M/jobdetail.ftl?job=141354"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Pilot (First Officer)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "jazz",
+     "cond_ja": "closing 2026-12-31。補足: 提携航空大学・カレッジ卒業生およびカデット向けのFirst Officer求人。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Jazz Direct, Jazz Awards and Seneca Cadets (Pilot Student) Apply by Date: Dec 31, 2026",
+       "source_id": "src-jazz-taleo-net-2b50563a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bebc4f756eb705a7",
+     "id": "jazz.jobs.fo-posting-fo.ed5e550d",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_posting",
+     "label_ja": "副操縦士の募集している職",
+     "pack": "pvr-20261119-gm-jazz",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jazz Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jazz-taleo-net-2b50563a",
+       "source_type": "job_posting",
+       "title": "Jazz Direct Job Posting (Taleo)",
+       "url": "https://jazz.taleo.net/careersection/2/jobdetail.ftl?lang=en&job=JAZZDIRECT-570-25"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Jazz Direct, Jazz Awards and Seneca Cadets (Pilot Student)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "jazz",
+     "cond_ja": "General Pilot Application minimum total flying time。補足: 一般応募枠の最低総飛行時間。英語・フランス語公式採用ページ（https://flyjazz.com/en/pilot-recruitment/ / https://flyjazz.com/fr/recrutement-de-pilotes/）でも「Minimum 500 hours total flight time.」「Satisfait aux exigences + 500 heures」と記載。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Minimum of 500 hours total flying time.",
+       "source_id": "src-jazz-taleo-net-38105162",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "09295b51237cbe81",
+     "id": "jazz.jobs.fo-total-hours-fo.42ee43a1",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-jazz",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jazz Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jazz-taleo-net-38105162",
+       "source_type": "official_package",
+       "title": "Pilot (First Officer) Job Posting (Taleo)",
+       "url": "https://jazz.taleo.net/careersection/2+M/jobdetail.ftl?job=141354"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 500,
+     "value_text": "500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "jazz",
+     "cond_ja": "Jazz Direct pathway (graduates from affiliated aviation colleges/universities)。補足: 提携航空大学・カレッジ枠（Jazz Direct）の最低総飛行時間。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Pilots selected for Jazz Direct will be qualified to fly Jazz aircraft directly from an integrated ATPL program or by having a minimum of 250 hours total flying time with a commercial pilot license, multi-IFR and successful completion of the IATRA exam.",
+       "source_id": "src-jazz-taleo-net-2b50563a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "92cece48a740c8f0",
+     "id": "jazz.jobs.fo-total-hours-fo.88832d18",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-jazz",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jazz Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jazz-taleo-net-2b50563a",
+       "source_type": "job_posting",
+       "title": "Jazz Direct Job Posting (Taleo)",
+       "url": "https://jazz.taleo.net/careersection/2/jobdetail.ftl?lang=en&job=JAZZDIRECT-570-25"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 250,
+     "value_text": "250"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "jazz",
+     "cond_ja": "Type rating not required at application; initial type training provided by company。補足: 応募時の型式証明は不要（採用後にJazz Initial Pilot Training / Formation initiale des pilotes de Jazzを提供）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "General Pilot Application: Meets requirements + 500 hours, Interview, Flight simulator evaluation, Hiring process, Jazz Initial Pilot Training. ... Preference will be given to candidates with qualifications beyond the basic requirements: Applicants who possess a Canadian ATPL. Applicants with two cr",
+       "source_id": "src-flyjazz-com-d137b6ec",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d265da2e50fedd66",
+     "id": "jazz.jobs.fo-type-rating-fo.6f97d094",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261119-gm-jazz",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jazz Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-flyjazz-com-d137b6ec",
+       "source_type": "job_posting",
+       "title": "Pilot Recruitment",
+       "url": "https://flyjazz.com/en/pilot-recruitment/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Jazz Initial Pilot Training",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "jazz",
+     "cond_ja": "Must also hold a current passport, obtain a RAIC, and if Permanent Resident, obtain and maintain US crew visa documentation。補足: 制限のないカナダ市民権または永住権が必須。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Must hold a current passport at time of hire. Must be a Canadian Citizen or Permanent Resident without restrictions. If you are a Permanent Resident, you must be able to obtain and maintain crew visa documentation required to operate aircraft within the USA.",
+       "source_id": "src-jazz-taleo-net-38105162",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0065e8464e424568",
+     "id": "jazz.jobs.pilot-right-to-work.40303346",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_right_to_work",
+     "label_ja": "国籍・就労の資格",
+     "pack": "pvr-20261119-gm-jazz",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jazz Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jazz-taleo-net-38105162",
+       "source_type": "official_package",
+       "title": "Pilot (First Officer) Job Posting (Taleo)",
+       "url": "https://jazz.taleo.net/careersection/2+M/jobdetail.ftl?job=141354"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Canadian Citizen or Permanent Resident without restrictions",
+     "value_text": null
+    }
+   ],
+   "profile": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "jazz",
+     "cond_ja": "Establishment of Air Canada Regional Inc.補足: 【Wikipedia】2001年に地域航空会社4社の統合によりAir Canada Regional Inc.として設立され、2002年にAir Canada Jazzブランドが創設された。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": "2026-11-15",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Air Canada Regional Inc. was established in 2001 from the consolidation of the Air Canada Connector carriers Air BC, Air Nova, Air Ontario, and Canadian Regional Airlines (shortly after the merger between Canadian Airlines and Air Canada). The merger was finalized in 2002 with the creation of a new",
+       "source_id": "src-en-wikipedia-org-a822f0f7",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bd32249a68530a49",
+     "id": "jazz.profile.founded.a0432535",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "founded",
+     "label_ja": "設立",
+     "pack": "pvr-20261119-gm-jazz",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-15",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-a822f0f7",
+       "source_type": "third_party_reference",
+       "title": "Jazz Aviation",
+       "url": "https://en.wikipedia.org/wiki/Jazz_Aviation"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "2001",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "jazz",
+     "cond_ja": "Launch of the Air Canada Jazz brand。補足: 前身は1937年設立のAustin Airwaysに遡り、2001年にAir BC・Air Nova・Air Ontario・Canadian Regional Airlinesの4社が統合してAir Canada Regional Inc.が設立され、2002年にAir Canada Jazzブランドが発足。2010年11月の法人改組によりChorus Aviation Inc.およびJazz Aviation LPとなった。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "2002 The Air Canada Jazz brand is launched. This newly branded company has a long history comprised of regional airlines from coast to coast.",
+       "source_id": "src-flyjazz-com-45f72677",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8d262a3126bdca3f",
+     "id": "jazz.profile.founded.b92cf5b6",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "founded",
+     "label_ja": "設立",
+     "pack": "pvr-20261119-gm-jazz",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jazz Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-flyjazz-com-45f72677",
+       "source_type": "official_package",
+       "title": "About Us",
+       "url": "https://flyjazz.com/en/about/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "2002",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "jazz",
+     "cond_ja": "310 Goudey Drive, Enfield, NS (Halifax Stanfield International Airport)。補足: 親会社Chorus Aviationの会社紹介ページ（https://chorusaviation.com/company/jazz-aviation/）でも「Headquarters Halifax, NS」と記載。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Halifax Head Office and Operations Centre 310 Goudey Drive Enfield, NS B2T 1M6 Canada",
+       "source_id": "src-flyjazz-com-23537102",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3bb3e92e838cd623",
+     "id": "jazz.profile.headquarters-city.a64e314e",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "headquarters_city",
+     "label_ja": "本社の都市",
+     "pack": "pvr-20261119-gm-jazz",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jazz Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-flyjazz-com-23537102",
+       "source_type": "official_package",
+       "title": "Contacts",
+       "url": "https://flyjazz.com/en/contacts/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Halifax",
+     "value_text": null
+    }
+   ],
+   "scale": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "jazz",
+     "cond_ja": "Air Canada Express operating fleet, as of 2026-11-18。補足: Air Canada Expressとして運航中の機材総数（フランス語公式ページ https://flyjazz.com/fr/exploitation/air-canada-express/ でもE175: 25、CRJ900: 30、Dash 8-400: 33の計88機で一致）。",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Operating Fleet Aircraft E175 25 CRJ900 30 Dash 8-400 33 Total 88",
+       "source_id": "src-flyjazz-com-65fe4c98",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "75228964371ed5c8",
+     "id": "jazz.scale.fleet-total.4332f1fd",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "fleet_total",
+     "label_ja": "運航している機材",
+     "pack": "pvr-20261119-gm-jazz",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jazz Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-flyjazz-com-65fe4c98",
+       "source_type": "official_package",
+       "title": "Air Canada Express",
+       "url": "https://flyjazz.com/en/operations/air-canada-express/"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 88,
+     "value_text": "88"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "jazz",
+     "cond_ja": "Chorus Aviation total Jazz fleet including leased/CPA aircraft, as of 2026-05。補足: 親会社Chorus Aviationが公表しているリース・CPA対象機を含む総保有機数。",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": "2026-05-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Aircraft 103 ... Note: The data above is effective May 2026",
+       "source_id": "src-chorusaviation-com-a9a44482",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b63de5364a9dddb4",
+     "id": "jazz.scale.fleet-total.c5d97219",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "fleet_total",
+     "label_ja": "運航している機材",
+     "pack": "pvr-20261119-gm-jazz",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-05-01",
+       "publisher": "Chorus Aviation",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-chorusaviation-com-a9a44482",
+       "source_type": "official_package",
+       "title": "Jazz Aviation",
+       "url": "https://chorusaviation.com/company/jazz-aviation/"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 103,
+     "value_text": "103"
+    }
+   ],
+   "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "jazz",
+     "cond_ja": "Jazz Approach cadet program post-graduation employment commitment。補足: CAE提携のJazz Approachカデットプログラムでは卒業後の最低勤続拘束期間はなし（訓練費自体は訓練生自己負担で税前143,647 CAD）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "As a Jazz Approach cadet there is no minimum required time to work at Jazz after graduation. You can leave at any time.",
+       "source_id": "src-cae-com-96c3eee8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4d5a3cc0b8470a75",
+     "id": "jazz.work.training-bond.56f7bdcc",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "訓練費の拘束",
+     "pack": "pvr-20261119-gm-jazz",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "CAE",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-cae-com-96c3eee8",
+       "source_type": "official_package",
+       "title": "Jazz Approach FAQ",
+       "url": "https://www.cae.com/civil-aviation/become-a-pilot/our-pilot-training-programmes/jazz-approach/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "no minimum required time to work at Jazz after graduation",
      "value_text": null
     }
    ]
@@ -85205,6 +99476,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "会社指示の業務旅行中の緊急医療・歯科・救援搬送を含む旅行保障",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "jetstar",
+     "cond_ja": "全社員の制度（partner, kids, mates対象、スタンドバイ割引航空券およびホテル・レンタカー等の割引）。補足: 全社員対象の制度。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "access to significantly discounted standby flights. Your partner. Your kids. Your mates. You can all takeoff more with our famous Qantas Group Staff Travel discount.",
+       "source_id": "src-careers-jetstar-com-54148c7b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "09dd44539d17178b",
+     "id": "jetstar.benefits.staff-travel.16ff4010",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261119-gm-jetstar",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-jetstar-com-54148c7b",
+       "source_type": "official_package",
+       "title": "Perks and Benefits",
+       "url": "https://careers.jetstar.com/employee-benefits/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Qantas Group Staff Travel discount",
+     "value_text": null
     }
    ],
    "fleet": [
@@ -85703,6 +100025,432 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "value_text": null
     }
    ],
+   "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "jetstar",
+     "cond_ja": "internal Narrow Body Command requirement。補足: 社内機長昇格要件（外部Direct Entry Captain公募なし）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-09-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Meet Command Requirements - which is currently 4000 hours TT, 1500 hours Company aircraft or equivalent plus ATPL.",
+       "source_id": "src-afap-org-au-610edc14",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a079c4c0d04ecc36",
+     "id": "jetstar.jobs.cap-license-cap.661f546f",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_license",
+     "label_ja": "機長の応募に要る免許",
+     "pack": "pvr-20261119-gm-jetstar",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-09-05",
+       "publisher": "Australian Federation of Air Pilots",
+       "publisher_kind": "union",
+       "retrieved": "2026-11-18",
+       "source_id": "src-afap-org-au-610edc14",
+       "source_type": "union_cba",
+       "title": "Jetstar EA 2025 Update #16 - AFAP Base Salary Proposal",
+       "url": "https://www.afap.org.au/membership/join-afap/qantas/ArtMID/4267/ArticleID/1071/jetstar-ea-2025-update-16-afap-base-salary-proposal"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ATPL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "jetstar",
+     "cond_ja": "Jetstar Australia / New Zealand pilot employment requirement。補足: 豪州・NZ拠点のパイロット共通就労資格要件（外部Direct Entry Captain公募はなく社内昇格制）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Hold, or be eligible to hold, relevant Australian permanent residency status or an unrestricted right to work in Australia.",
+       "source_id": "src-careers-jetstar-com-1211d9ee",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "648b8b63b872f7ff",
+     "id": "jetstar.jobs.cap-right-to-work-cap.edbd0dd1",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_right_to_work",
+     "label_ja": "機長の国籍・就労の資格",
+     "pack": "pvr-20261119-gm-jetstar",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-jetstar-com-1211d9ee",
+       "source_type": "job_posting",
+       "title": "Pilots and Flying Operations",
+       "url": "https://careers.jetstar.com/teams/pilots/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Australian permanent residency status or an unrestricted right to work in Australia",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "jetstar",
+     "cond_ja": "internal Narrow Body Command requirement (plus 1500 hours Company aircraft or equivalent)。補足: 豪州Jetstar Airwaysでは外部Direct Entry Captain公募を行っておらず社内昇格基準を適用（AFAP Update 2025-06-24 https://www.afap.org.au/membership/join-afap/qantas/ArtMID/4267/ArticleID/990/afap-jetstar-update-latest-fso-and-afap-payroll-deduction でも「4000 total flying hours and or 1500 Jetstar FO hours or equivalent」と記載）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-09-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Meet Command Requirements - which is currently 4000 hours TT, 1500 hours Company aircraft or equivalent plus ATPL.",
+       "source_id": "src-afap-org-au-610edc14",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cf983ae23a168f79",
+     "id": "jetstar.jobs.cap-total-hours-cap.66a87e2b",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_total_hours",
+     "label_ja": "機長の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-jetstar",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-09-05",
+       "publisher": "Australian Federation of Air Pilots",
+       "publisher_kind": "union",
+       "retrieved": "2026-11-18",
+       "source_id": "src-afap-org-au-610edc14",
+       "source_type": "union_cba",
+       "title": "Jetstar EA 2025 Update #16 - AFAP Base Salary Proposal",
+       "url": "https://www.afap.org.au/membership/join-afap/qantas/ArtMID/4267/ArticleID/1071/jetstar-ea-2025-update-16-afap-base-salary-proposal"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 4000,
+     "value_text": "4000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "jetstar",
+     "cond_ja": "internal Narrow Body Command requirement (1500 hours Company aircraft or equivalent)。補足: 豪州Jetstar Airwaysでは外部Direct Entry Captain公募を行っておらず社内A320副操縦士からの昇格要件（1500 hours Company aircraft or equivalent）を規定。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-09-05",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Meet Command Requirements - which is currently 4000 hours TT, 1500 hours Company aircraft or equivalent plus ATPL.",
+       "source_id": "src-afap-org-au-610edc14",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "902f6f5ce0d82ddf",
+     "id": "jetstar.jobs.cap-type-rating-cap.c1b23481",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_type_rating",
+     "label_ja": "機長の型式限定の要否",
+     "pack": "pvr-20261119-gm-jetstar",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-09-05",
+       "publisher": "Australian Federation of Air Pilots",
+       "publisher_kind": "union",
+       "retrieved": "2026-11-18",
+       "source_id": "src-afap-org-au-610edc14",
+       "source_type": "union_cba",
+       "title": "Jetstar EA 2025 Update #16 - AFAP Base Salary Proposal",
+       "url": "https://www.afap.org.au/membership/join-afap/qantas/ArtMID/4267/ArticleID/1071/jetstar-ea-2025-update-16-afap-base-salary-proposal"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Company aircraft or equivalent",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "jetstar",
+     "cond_ja": "Direct Entry First Officer A320/1 (plus Australian Multi-Engine Aeroplane Instrument Rating with 2D and 3D endorsements, CASA Class 1 medical, ICAO ELP Level 6)。補足: NZリストでは豪州またはNZのATPL学科合格およびTrans-Tasman Mutual Recognition Actによる転換が可能。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "An Australian ATPL (A) or an Australian CPL (A) with passes in all Australian ATPL Theory subjects.",
+       "source_id": "src-careers-jetstar-com-1211d9ee",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "312940eb044b5d44",
+     "id": "jetstar.jobs.fo-license-fo.f89da036",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261119-gm-jetstar",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-jetstar-com-1211d9ee",
+       "source_type": "job_posting",
+       "title": "Pilots and Flying Operations",
+       "url": "https://careers.jetstar.com/teams/pilots/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "An Australian ATPL (A) or an Australian CPL (A) with passes in all Australian ATPL Theory subjects",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "jetstar",
+     "cond_ja": "Direct Entry First Officer A320/1 (no visa sponsorship)。補足: ビザスポンサーなし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Hold, or be eligible to hold, relevant Australian permanent residency status or an unrestricted right to work in Australia.",
+       "source_id": "src-careers-jetstar-com-1211d9ee",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "10728ba6ebd4424b",
+     "id": "jetstar.jobs.fo-right-to-work-fo.f3a0e563",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261119-gm-jetstar",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-jetstar-com-1211d9ee",
+       "source_type": "job_posting",
+       "title": "Pilots and Flying Operations",
+       "url": "https://careers.jetstar.com/teams/pilots/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Australian permanent residency status or an unrestricted right to work in Australia",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "jetstar",
+     "cond_ja": "Direct Entry First Officer A320/1 (fixed wing aircraft; plus 200 hours multi-engine PIC excluding PICUS, 200 hours turbine fixed-wing PIC, or 200 hours multi-crew)。補足: Qantas CareersのJetstarページ（https://careers.qantas.com/teams/pilots-flying-operations/jetstar/）でも同一要件を掲載。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Minimum 500 hours flight time in fixed wing aircraft",
+       "source_id": "src-careers-jetstar-com-1211d9ee",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6c7cf8f46be62b9b",
+     "id": "jetstar.jobs.fo-total-hours-fo.8c46981a",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-jetstar",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-jetstar-com-1211d9ee",
+       "source_type": "job_posting",
+       "title": "Pilots and Flying Operations",
+       "url": "https://careers.jetstar.com/teams/pilots/"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 500,
+     "value_text": "500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "jetstar",
+     "cond_ja": "Direct Entry First Officer A320/1 (A320 type rating not required on application)。補足: 応募時のA320型式限定は不要（2025-11-10掲載のJetstar NZ A320 FO求人 https://pilotassessments.com/jobs/a320-first-officer-jetstar-new-zealand-non%E2%80%91type-rated-welcome/ でも「Type rating: Not required (Training Provided)」と明記）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Experience in a multi-crew operation or successful completion of a multi-crew cooperation course.",
+       "source_id": "src-careers-jetstar-com-1211d9ee",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "097e3557735697e5",
+     "id": "jetstar.jobs.fo-type-rating-fo.2cd3a2bc",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261119-gm-jetstar",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-jetstar-com-1211d9ee",
+       "source_type": "job_posting",
+       "title": "Pilots and Flying Operations",
+       "url": "https://careers.jetstar.com/teams/pilots/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Experience in a multi-crew operation or successful completion of a multi-crew cooperation course",
+     "value_text": null
+    }
+   ],
    "profile": [
     {
      "amount": null,
@@ -85964,6 +100712,267 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "temporary base swap formalised / FTCL conditions",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "jetstar",
+     "cond_ja": "Australian based pilots (placed on level 1 salary for 4 years)。補足: 【写し】豪州拠点はボンドなし（Level 1給与期間あり）。なおAFAPのJetstar EA 2025 Update #26（2026-02-16、https://www.afap.org.au/membership/join-afap/qantas/ArtMID/4267/ArticleID/2207/jetstar-ea-2025-update-26-joint-union-position）では過去の「paid $35,000–$50,000 upfront; entered into a Jetstar loan arrangement repayable over three years; or more recently been restricted to Level 1 First Officer rates for 3 additional years」から2026年新協約で訓練初日からの給与支給へ移行と記載。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Our Australian based pilots are not bonded to the company. You are placed on the level 1 salary for a period of 4 years.",
+       "source_id": "src-scribd-com-ab59db91",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "97a6e07595136386",
+     "id": "jetstar.work.training-bond.76ce27cb",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "訓練費の拘束",
+     "pack": "pvr-20261119-gm-jetstar",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scribd",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-scribd-com-ab59db91",
+       "source_type": "third_party_reference",
+       "title": "Jetstar Pilot Recruitment Process Guide",
+       "url": "https://www.scribd.com/document/662357334/jetstar-au-nz-faqs"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "not bonded to the company",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "jetstar",
+     "cond_ja": "New Zealand based pilots, linear reducing basis per completed calendar month。補足: 【写し】ニュージーランド拠点パイロットの訓練ボンド条件。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Our New Zealand based pilots are bonded for 3 years and are expected to pay money back to the business if you leave within this time on a linear reducing basis per completed calendar month.",
+       "source_id": "src-scribd-com-ab59db91",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0b0b054e29d96b6b",
+     "id": "jetstar.work.training-bond.feebee23",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "訓練費の拘束",
+     "pack": "pvr-20261119-gm-jetstar",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Scribd",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-scribd-com-ab59db91",
+       "source_type": "third_party_reference",
+       "title": "Jetstar Pilot Recruitment Process Guide",
+       "url": "https://www.scribd.com/document/662357334/jetstar-au-nz-faqs"
+      }
+     ],
+     "unit": "years",
+     "use": "条件つき",
+     "value": 3,
+     "value_text": "3"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "jetstar",
+     "cond_ja": "typical time to command discussed by pilots。補足: 【掲示板】同スレッド内で3人が12か月〜2年〜3.5年と言及（他URL：https://www.pprune.org/australia-new-zealand-pacific/668300-jetstar-eba-2025-a-13.html）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-03-12",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "What's the time to command at JQ these days? 2 years?",
+       "source_id": "src-pprune-org-fe58492c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1d334e3d1ab330ab",
+     "id": "jetstar.work.upgrade-years-cap.4c98eac5",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長の機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-jetstar",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-03-12",
+       "publisher": "PPRuNe Forums",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pprune-org-fe58492c",
+       "source_type": "community_reference",
+       "title": "Jetstar EBA 2025 (Page 9, Post #200 by checked_and_set)",
+       "url": "https://www.pprune.org/australia-new-zealand-pacific/668300-jetstar-eba-2025-a-9.html"
+      }
+     ],
+     "unit": "years",
+     "use": "条件つき",
+     "value": 2,
+     "value_text": "2"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "jetstar",
+     "cond_ja": "narrowbody command comparison。補足: 【掲示板】同スレッド内で3人が12か月〜2年〜3.5年と言及（他URL：https://www.pprune.org/australia-new-zealand-pacific/668300-jetstar-eba-2025-a-13.html）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-03-24",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "the comparison of quick commands is a moot point now anyway as 321 commands in SYD at QF went down to something like 3.5 years. Which is pretty much on par with JQ",
+       "source_id": "src-pprune-org-fe58492c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b960c163e3ea68b7",
+     "id": "jetstar.work.upgrade-years-cap.543cbee3",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長の機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-jetstar",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-03-12",
+       "publisher": "PPRuNe Forums",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pprune-org-fe58492c",
+       "source_type": "community_reference",
+       "title": "Jetstar EBA 2025 (Page 9, Post #200 by checked_and_set)",
+       "url": "https://www.pprune.org/australia-new-zealand-pacific/668300-jetstar-eba-2025-a-9.html"
+      }
+     ],
+     "unit": "years",
+     "use": "条件つき",
+     "value": 3.5,
+     "value_text": "3.5"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "jetstar",
+     "cond_ja": "if meeting minimum command requirements on entry。補足: 【掲示板】同スレッド内で3人のパイロットが12か月〜2年〜3.5年と報告（他URL：https://www.pprune.org/australia-new-zealand-pacific/668300-jetstar-eba-2025-a-9.html）。社内機長昇格要件は総飛行時間4000時間・社内機1500時間・ATPL（https://www.afap.org.au/membership/join-afap/qantas/ArtMID/4267/ArticleID/1071/jetstar-ea-2025-update-16-afap-base-salary-proposal）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-03-24",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "JQ is about 12 months now. If you meet the min req on entry",
+       "source_id": "src-pprune-org-7a819f52",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "307b760ba82eb524",
+     "id": "jetstar.work.upgrade-years-cap.dcb799e3",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長の機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-jetstar",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-03-24",
+       "publisher": "PPRuNe Forums",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pprune-org-7a819f52",
+       "source_type": "community_reference",
+       "title": "Jetstar EBA 2025 (Page 13, Post #221 by chickoroll)",
+       "url": "https://www.pprune.org/australia-new-zealand-pacific/668300-jetstar-eba-2025-a-13.html"
+      }
+     ],
+     "unit": "months",
+     "use": "条件つき",
+     "value": 12,
+     "value_text": "12"
     }
    ]
   },
@@ -88891,6 +103900,1468 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": 105,
      "value_text": "105"
+    }
+   ]
+  },
+  "kalitta-air": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "base YIP (Willow Run Airport)。補足: イプシランティ（デトロイト都市圏）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "All training, from day one of company orientation through the type-rating simulator ride is conducted at company headquarters in Ypsilanti, Michigan.",
+       "source_id": "src-kalittaair-com-d51e675b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f1c0b70cfa0a0ad0",
+     "id": "kalitta-air.base.pilot-base-city.8523d395",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kalitta Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-kalittaair-com-d51e675b",
+       "source_type": "official_package",
+       "title": "Pilots",
+       "url": "https://www.kalittaair.com/teams/pilots"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Ypsilanti",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "base HNL (Home Basing in Hawaii)。補足: ホノルル。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Kalitta Air flies around the Globe with destinations such as Sydney, Australia; Honolulu, Hawaii; Hong Kong, China; Los Angeles, California; and Anchorage, Alaska.",
+       "source_id": "src-kalittaair-com-d51e675b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e1d171c9c4fcbceb",
+     "id": "kalitta-air.base.pilot-base-city.b1c17202",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kalitta Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-kalittaair-com-d51e675b",
+       "source_type": "official_package",
+       "title": "Pilots",
+       "url": "https://www.kalittaair.com/teams/pilots"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Honolulu",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "base ANC (Home Basing in Alaska)。補足: アンカレッジ。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Kalitta Air flies around the Globe with destinations such as Sydney, Australia; Honolulu, Hawaii; Hong Kong, China; Los Angeles, California; and Anchorage, Alaska.",
+       "source_id": "src-kalittaair-com-d51e675b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0e24de677a1be3af",
+     "id": "kalitta-air.base.pilot-base-city.dba076eb",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kalitta Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-kalittaair-com-d51e675b",
+       "source_type": "official_package",
+       "title": "Pilots",
+       "url": "https://www.kalittaair.com/teams/pilots"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Anchorage",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "Home Basing designated gateway airport (Lower 48 commercial airports, ANC, and HNL)。補足: 【APC】Corroborated by official Kalitta Air Pilots page (https://www.kalittaair.com/teams/pilots: \"Our pilots may live virtually anywhere in the country including Alaska and Hawaii.\")。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2024-03-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Pilots are home based, allowed to pick any airport with regular commercial service in the Lower 48, ANC and HNL.",
+       "source_id": "src-airlinepilotcentral-com-337c7e21",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9684b84f6e348a7e",
+     "id": "kalitta-air.base.pilot-base.6ac8d24e",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-03-29",
+       "publisher": "Airline Pilot Central",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlinepilotcentral-com-337c7e21",
+       "source_type": "community_reference",
+       "title": "Kalitta Air",
+       "url": "https://www.airlinepilotcentral.com/airlines/cargo/kalitta_air"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HNL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "Home Basing designated gateway airport (Lower 48 commercial airports, ANC, and HNL)。補足: 【APC】Corroborated by official Kalitta Air Pilots page (https://www.kalittaair.com/teams/pilots: \"Our pilots may live virtually anywhere in the country including Alaska and Hawaii.\")。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2024-03-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Pilots are home based, allowed to pick any airport with regular commercial service in the Lower 48, ANC and HNL.",
+       "source_id": "src-airlinepilotcentral-com-337c7e21",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "39c6e7c245382817",
+     "id": "kalitta-air.base.pilot-base.a8bce7dc",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-03-29",
+       "publisher": "Airline Pilot Central",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlinepilotcentral-com-337c7e21",
+       "source_type": "community_reference",
+       "title": "Kalitta Air",
+       "url": "https://www.airlinepilotcentral.com/airlines/cargo/kalitta_air"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ANC",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "official domicile & training center (pilots are home based across Lower 48, ANC, and HNL)。補足: 【APC】Corroborated by PilotsGlobal (https://pilotsglobal.com/job/Various-Boeing-Aircraft-first-officer-kalitta_air-US-f2fe01e2af: \"Base location YIP - Detroit\") and official Kalitta Air Pilots page (https://www.kalittaair.com/teams/pilots: \"Kalitta Air offers pilots 100% company-paid travel to/from work. Our pilots may live virtually anywhere in the country including Alaska and Hawaii.\")。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2024-03-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DOMICILES YIP",
+       "source_id": "src-airlinepilotcentral-com-337c7e21",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1200fd3dc0e3b849",
+     "id": "kalitta-air.base.pilot-base.b4772b77",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-03-29",
+       "publisher": "Airline Pilot Central",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlinepilotcentral-com-337c7e21",
+       "source_type": "community_reference",
+       "title": "Kalitta Air",
+       "url": "https://www.airlinepilotcentral.com/airlines/cargo/kalitta_air"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "YIP",
+     "value_text": null
+    }
+   ],
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "supernumerary and jumpseat travel on Kalitta Air aircraft (request form 24 hours in advance)。補足: Official Pilots page (https://www.kalittaair.com/teams/pilots) also provides \"100% company-paid travel to/from work\"。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Jumpseats are assigned where space is available. Supernumeraries may be “bumped” up to the time of actual departure to accommodate Kalitta Air travel requirements.",
+       "source_id": "src-kalittaair-com-a260456d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8e5222be74fa568e",
+     "id": "kalitta-air.benefits.staff-travel.233eb0bf",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kalitta Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-kalittaair-com-a260456d",
+       "source_type": "official_package",
+       "title": "Supernumerary Travel",
+       "url": "https://www.kalittaair.com/employees/supernumerary-travel"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Jumpseats are assigned where space is available.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "pilots retain airline frequent flyer miles/points earned on company-paid commercial positioning flights。補足: 【掲示板】Corroborated by https://www.airlinepilotcentral.com/airlines/cargo/kalitta_air (\"CASS participant\", jumpseat cutoff 1 hr domestic / 12 hrs international) and FlyZED / ID90 Travel eligibility (https://www.flyzed.info/, https://www.id90travel.com/members/eligible-companies/)。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2024-07-03",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Yes you get to keep the airline mileage/points. Hotel stay credits and points are a big \"maybe\".",
+       "source_id": "src-airlinepilotforums-com-a57a2835",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6d12a8bde95ddd1a",
+     "id": "kalitta-air.benefits.staff-travel.bcd9f998",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-07-03",
+       "publisher": "Airline Pilot Central Forums",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlinepilotforums-com-a57a2835",
+       "source_type": "community_reference",
+       "title": "Kalitta Air (K4) Information (Page 436)",
+       "url": "https://www.airlinepilotforums.com/kalitta-companies/115277-kalitta-air-k4-information-436-print.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Yes you get to keep the airline mileage/points.",
+     "value_text": null
+    }
+   ],
+   "fleet": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "Boeing 747-400 cargo jets, as of 2025-09-15。補足: APC (https://www.airlinepilotcentral.com/airlines/cargo/kalitta_air, updated 2024-03-29) lists \"747-400: 23\" and \"777-200: 5\"。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2025-09-15",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Headquartered in Ypsilanti, Michigan, Kalitta Air operates 21 Boeing 747-400 cargo jets and 10 factory-built 777 freighters, according to aviation databases.",
+       "source_id": "src-freightwaves-com-1d0dce76",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "131dde9ddfb60575",
+     "id": "kalitta-air.fleet.boeing-747-400-cargo-jets.47d17fe8",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "boeing_747_400_cargo_jets",
+     "label_ja": "機種ごとの機数（Boeing 747-400 cargo jets）",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-09-15",
+       "publisher": "FreightWaves",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-freightwaves-com-1d0dce76",
+       "source_type": "third_party_reference",
+       "title": "Kalitta Air prepares to fly first-ever converted 777 cargo jet",
+       "url": "https://www.freightwaves.com/news/kalitta-air-prepares-to-fly-first-ever-converted-777-cargo-jet"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 21,
+     "value_text": "21"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "Boeing 747-400BCF, as of 2026-06。補足: 【Wikipedia】As of June 2026 fleet table。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-11-16",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 747-400BCF 8",
+       "source_id": "src-en-wikipedia-org-19955de1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cf6cb59a89856779",
+     "id": "kalitta-air.fleet.boeing-747-400bcf.a03a4a1b",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "boeing_747_400bcf",
+     "label_ja": "機種ごとの機数（Boeing 747-400BCF）",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-16",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-19955de1",
+       "source_type": "third_party_reference",
+       "title": "Kalitta Air",
+       "url": "https://en.wikipedia.org/wiki/Kalitta_Air"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 8,
+     "value_text": "8"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "Boeing 747-400ERF, as of 2026-06。補足: 【Wikipedia】As of June 2026 fleet table。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-11-16",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 747-400ERF 1",
+       "source_id": "src-en-wikipedia-org-19955de1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4a8e8589ce21ebfd",
+     "id": "kalitta-air.fleet.boeing-747-400erf.f3d100dc",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "boeing_747_400erf",
+     "label_ja": "機種ごとの機数（Boeing 747-400ERF）",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-16",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-19955de1",
+       "source_type": "third_party_reference",
+       "title": "Kalitta Air",
+       "url": "https://en.wikipedia.org/wiki/Kalitta_Air"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 1,
+     "value_text": "1"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "Boeing 747-400F, as of 2026-06。補足: 【Wikipedia】As of June 2026 fleet table。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-11-16",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 747-400F 13",
+       "source_id": "src-en-wikipedia-org-19955de1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c196559784d265ef",
+     "id": "kalitta-air.fleet.boeing-747-400f.e3c81c59",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "boeing_747_400f",
+     "label_ja": "機種ごとの機数（Boeing 747-400F）",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-16",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-19955de1",
+       "source_type": "third_party_reference",
+       "title": "Kalitta Air",
+       "url": "https://en.wikipedia.org/wiki/Kalitta_Air"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 13,
+     "value_text": "13"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "Boeing 777-300ERSF, as of 2026-06 (Launch customer)。補足: 【Wikipedia】As of June 2026 fleet table。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-11-16",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 777-300ERSF 7 — Launch customer.",
+       "source_id": "src-en-wikipedia-org-19955de1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "67c39235563d6f3f",
+     "id": "kalitta-air.fleet.boeing-777-300ersf.fe93bb66",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "boeing_777_300ersf",
+     "label_ja": "機種ごとの機数（Boeing 777-300ERSF）",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-16",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-19955de1",
+       "source_type": "third_party_reference",
+       "title": "Kalitta Air",
+       "url": "https://en.wikipedia.org/wiki/Kalitta_Air"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 7,
+     "value_text": "7"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "Boeing 777 factory-built freighters, as of 2025-09-15。補足: Excludes converted 777-300ERSFs delivered from September 2025 onward。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2025-09-15",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Headquartered in Ypsilanti, Michigan, Kalitta Air operates 21 Boeing 747-400 cargo jets and 10 factory-built 777 freighters, according to aviation databases.",
+       "source_id": "src-freightwaves-com-1d0dce76",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3cafffbc2281379b",
+     "id": "kalitta-air.fleet.boeing-777-factory-built-freighters.00e4798d",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "boeing_777_factory_built_freighters",
+     "label_ja": "機種ごとの機数（Boeing 777 factory-built freighters）",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-09-15",
+       "publisher": "FreightWaves",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-freightwaves-com-1d0dce76",
+       "source_type": "third_party_reference",
+       "title": "Kalitta Air prepares to fly first-ever converted 777 cargo jet",
+       "url": "https://www.freightwaves.com/news/kalitta-air-prepares-to-fly-first-ever-converted-777-cargo-jet"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 10,
+     "value_text": "10"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "Boeing 777F, as of 2026-06 (5 operated for DHL Aviation)。補足: 【Wikipedia】As of June 2026 fleet table。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-11-16",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 777F 8 — 5 operated for DHL Aviation.",
+       "source_id": "src-en-wikipedia-org-19955de1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5b1a93ea870a2198",
+     "id": "kalitta-air.fleet.boeing-777f.bd79a428",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "boeing_777f",
+     "label_ja": "機種ごとの機数（Boeing 777F）",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-16",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-19955de1",
+       "source_type": "third_party_reference",
+       "title": "Kalitta Air",
+       "url": "https://en.wikipedia.org/wiki/Kalitta_Air"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 8,
+     "value_text": "8"
+    }
+   ],
+   "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "FAA ATP, Class 1 Medical, FCC Radio License (Assistant Chief Pilot - B747)。補足: 【第三者】。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "License Required ATP Accepted Licenses FAA Medical Class 1",
+       "source_id": "src-pilotsglobal-com-aad69ed6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b037670ef72c3dc6",
+     "id": "kalitta-air.jobs.cap-license-cap.7d85e724",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_license",
+     "label_ja": "機長の応募に要る免許",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-aad69ed6",
+       "source_type": "third_party_reference",
+       "title": "Kalitta Air is hiring B747 Assistant Chief Pilots",
+       "url": "https://pilotsglobal.com/job/B747-assistant-chief-pilot-kalitta_air-US-jnHNsocbs0"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "ATP",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "management/check captain role (requires completion of Kalitta Air Captain upgrade program on B747 or B777)。補足: 【第三者】Corroborated by Indeed (https://www.indeed.com/viewjob?jk=c797f1d759963f68: \"Job Title: Assistant Chief Pilot\") and PilotsGlobal \"Assistant Director of Flight Operations - Various Boeing Aircraft\" (https://pilotsglobal.com/job/Various-Boeing-Aircraft-assistant-director-of-flight-operations-kalitta_air-US-5Mm1t95tua); standard line Captains are upgraded internally from First Officer。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Assistant Chief Pilot - B747",
+       "source_id": "src-pilotsglobal-com-aad69ed6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "eb89d89588fc52c7",
+     "id": "kalitta-air.jobs.cap-posting-cap.8b312a41",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_posting",
+     "label_ja": "機長の募集している職",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-aad69ed6",
+       "source_type": "third_party_reference",
+       "title": "Kalitta Air is hiring B747 Assistant Chief Pilots",
+       "url": "https://pilotsglobal.com/job/B747-assistant-chief-pilot-kalitta_air-US-jnHNsocbs0"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Assistant Chief Pilot - B747",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "Visa sponsorship: Not provided; No restrictions on International Travel (Assistant Director of Flight Operations / Assistant Chief Pilot)。補足: 【第三者】Also states \"Visa sponsorship Not provided\"。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "No restrictions on International Travel Current US Passport",
+       "source_id": "src-pilotsglobal-com-c10511e9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "730790d45954cd1b",
+     "id": "kalitta-air.jobs.cap-right-to-work-cap.7cb73e26",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_right_to_work",
+     "label_ja": "機長の国籍・就労の資格",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-c10511e9",
+       "source_type": "third_party_reference",
+       "title": "Kalitta Air is hiring Various Boeing Aircraft Assistant Director of Flight Operations",
+       "url": "https://pilotsglobal.com/job/Various-Boeing-Aircraft-assistant-director-of-flight-operations-kalitta_air-US-5Mm1t95tua"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Current US Passport",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "minimum total time for Assistant Chief Pilot - B747 (1500 hours jet minimum, 4000 hours total time preferred; >1000 hours if Military)。補足: 【第三者】Same 2500 hours total / 1500 hours jet requirement in Assistant Director of Flight Operations posting (https://pilotsglobal.com/job/Various-Boeing-Aircraft-assistant-director-of-flight-operations-kalitta_air-US-5Mm1t95tua)。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Total time 2500 hours Jet 1500 hours",
+       "source_id": "src-pilotsglobal-com-aad69ed6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "eecfeae8d6b1e671",
+     "id": "kalitta-air.jobs.cap-total-hours-cap.86d46e02",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_total_hours",
+     "label_ja": "機長の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-aad69ed6",
+       "source_type": "third_party_reference",
+       "title": "Kalitta Air is hiring B747 Assistant Chief Pilots",
+       "url": "https://pilotsglobal.com/job/B747-assistant-chief-pilot-kalitta_air-US-jnHNsocbs0"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 2500,
+     "value_text": "2500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "must complete Kalitta Air's Captain upgrade program on B747 or B777 (Assistant Chief Pilot - B747)。補足: 【第三者】Additional requirements: \"Ability to successfully complete Kalitta Air's Captain upgrade program on one of the following airframes B747 or B777.\"。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Type rating Not required (Training Provided)",
+       "source_id": "src-pilotsglobal-com-aad69ed6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bb91b0a221edca68",
+     "id": "kalitta-air.jobs.cap-type-rating-cap.9ef5b2b7",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_type_rating",
+     "label_ja": "機長の型式限定の要否",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-aad69ed6",
+       "source_type": "third_party_reference",
+       "title": "Kalitta Air is hiring B747 Assistant Chief Pilots",
+       "url": "https://pilotsglobal.com/job/B747-assistant-chief-pilot-kalitta_air-US-jnHNsocbs0"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Not required (Training Provided)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "plus Current FAA First Class Medical Certificate and FCC Radio License。補足: Official Pilots page (https://www.kalittaair.com/teams/pilots) states \"FAA Multi-Engine Airline Transport Certificate-Unrestricted\" and \"Current FAA Class 1 Medical Certificate FCC Radio License\"。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "FAA Multi-Engine Airline Transport Certificate or Restricted Multi-Engine Airline Pilot Certificate",
+       "source_id": "src-workforcenow-adp-com-02b571ac",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3edd21fab325e34a",
+     "id": "kalitta-air.jobs.fo-license-fo.7553bc61",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kalitta Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-workforcenow-adp-com-02b571ac",
+       "source_type": "job_posting",
+       "title": "ADP Workforce Now Career Center: First Officer",
+       "url": "https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?ccId=19000101_000001&cid=17b87f3e-11d6-434a-b3df-0d83d72f832b&lang=en_US&type=MP&jobId=550062"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "FAA Multi-Engine Airline Transport Certificate or Restricted Multi-Engine Airline Pilot Certificate",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "Requisition ID: 2392, Regular Full-Time, Ypsilanti, MI。補足: Also active on Kalitta Air Careers (https://www.kalittaair.com/careers), AirlineApps (https://www.airlineapps.com/jobs/details.aspx?emp=Kalitta-Air&job=First-Officer), and PilotsGlobal as \"First Officer - Various Boeing Aircraft\" (https://pilotsglobal.com/job/Various-Boeing-Aircraft-first-officer-kalitta_air-US-f2fe01e2af)。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Job Title: First Officer Department: Flight Operations Reports To: Chief Pilot",
+       "source_id": "src-workforcenow-adp-com-02b571ac",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9909cfbdd4ca361a",
+     "id": "kalitta-air.jobs.fo-posting-fo.0d0fb23c",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_posting",
+     "label_ja": "副操縦士の募集している職",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kalitta Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-workforcenow-adp-com-02b571ac",
+       "source_type": "job_posting",
+       "title": "ADP Workforce Now Career Center: First Officer",
+       "url": "https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?ccId=19000101_000001&cid=17b87f3e-11d6-434a-b3df-0d83d72f832b&lang=en_US&type=MP&jobId=550062"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "First Officer",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "No restrictions on International Travel, Current US Passport, 10-year security background check。補足: Official Pilots page (https://www.kalittaair.com/teams/pilots) also specifies \"Current US Passport\"。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "No restrictions on International Travel Legal to work in the U.S. Ability to pass a 10-year security background check and pre-employment Drug and Alcohol test",
+       "source_id": "src-workforcenow-adp-com-02b571ac",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4711763275290692",
+     "id": "kalitta-air.jobs.fo-right-to-work-fo.323a6e19",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kalitta Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-workforcenow-adp-com-02b571ac",
+       "source_type": "job_posting",
+       "title": "ADP Workforce Now Career Center: First Officer",
+       "url": "https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?ccId=19000101_000001&cid=17b87f3e-11d6-434a-b3df-0d83d72f832b&lang=en_US&type=MP&jobId=550062"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Legal to work in the U.S.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "minimum total time (2000+ hours preferred; 1000 turbine jet preferred; 500 PIC turbine jet preferred; military flexible)。補足: Corroborated by official ADP posting (https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?ccId=19000101_000001&cid=17b87f3e-11d6-434a-b3df-0d83d72f832b&lang=en_US&type=MP&jobId=550062)。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1500+ hours of total time, 2000+ total time preferred 1000 turbine (Jet) flight time preferred 500 PIC turbine (Jet) flight time preferred If Military: Turbine and PIC are flexible.",
+       "source_id": "src-kalittaair-com-d51e675b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f50d0f391f332138",
+     "id": "kalitta-air.jobs.fo-total-hours-fo.b55d9591",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kalitta Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-kalittaair-com-d51e675b",
+       "source_type": "official_package",
+       "title": "Pilots",
+       "url": "https://www.kalittaair.com/teams/pilots"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1500,
+     "value_text": "1500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "company provides type-rating training in-house at Ypsilanti headquarters。補足: 【第三者】Corroborated by official Kalitta Air Pilots page (https://www.kalittaair.com/teams/pilots: \"All training, from day one of company orientation through the type-rating simulator ride is conducted at company headquarters in Ypsilanti, Michigan.\")。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Type rating Not required (Training Provided)",
+       "source_id": "src-pilotsglobal-com-a1200494",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9c4c92cea180483b",
+     "id": "kalitta-air.jobs.fo-type-rating-fo.af67fc89",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-a1200494",
+       "source_type": "third_party_reference",
+       "title": "Kalitta Air is hiring Various Boeing Aircraft First Officers",
+       "url": "https://pilotsglobal.com/job/Various-Boeing-Aircraft-first-officer-kalitta_air-US-f2fe01e2af"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Not required (Training Provided)",
+     "value_text": null
+    }
+   ],
+   "profile": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "as Kalitta Air (November 2000)。補足: Predecessor Connie Kalitta Services was founded in 1967 by Conrad \"Connie\" Kalitta, renamed American International Airways (AIA) in 1984, merged into Kitty Hawk International in 1997, and re-established as Kalitta Air in November 2000 (https://en.wikipedia.org/wiki/Kalitta_Air)。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": "2026-09-15",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Kalitta Air began service in November 2000 with three Boeing 747 aircraft and the fleet has grown to almost forty planes, comprised of 777 freighters and B747-400 freighters.",
+       "source_id": "src-kalittaair-com-fe406318",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d72edd75a3a48596",
+     "id": "kalitta-air.profile.founded.2cb2cad4",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "founded",
+     "label_ja": "設立",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-09-15",
+       "publisher": "Kalitta Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-kalittaair-com-fe406318",
+       "source_type": "official_package",
+       "title": "Kalitta Air and Air Atlanta Icelandic leverage CHAMP's Cargospot Weight & Balance solution",
+       "url": "https://www.kalittaair.com/post/kalitta-air-and-air-atlanta-icelandic-leverage-champs-cargospot-weight-balance-solution-to-streamline-load-planning-for-new-boeing-777-300ersf-freighter-aircraft"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "2000",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "818 Willow Run Airport, Ypsilanti, MI 48198。補足: Mailing address: 818 Willow Run Airport, Ypsilanti, MI 48198。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "All training, from day one of company orientation through the type-rating simulator ride is conducted at company headquarters in Ypsilanti, Michigan.",
+       "source_id": "src-kalittaair-com-d51e675b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a22d1c31ff411e68",
+     "id": "kalitta-air.profile.headquarters-city.04ccc1a8",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "headquarters_city",
+     "label_ja": "本社の都市",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kalitta Air",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-kalittaair-com-d51e675b",
+       "source_type": "official_package",
+       "title": "Pilots",
+       "url": "https://www.kalittaair.com/teams/pilots"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Ypsilanti",
+     "value_text": null
+    }
+   ],
+   "scale": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "kalitta-air",
+     "cond_ja": "as of 2026-06。補足: 【Wikipedia】As of June 2026 fleet table (8 B747-400BCF + 1 B747-400ERF + 13 B747-400F + 8 B777F + 7 B777-300ERSF = 37); corroborated by PilotsGlobal (https://pilotsglobal.com/airlines/kalitta-air: \"Current: 37\")。",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": "2026-11-16",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Total 37",
+       "source_id": "src-en-wikipedia-org-19955de1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "42e65160e76fd606",
+     "id": "kalitta-air.scale.fleet-total.ac469137",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "fleet_total",
+     "label_ja": "運航している機材",
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-16",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-19955de1",
+       "source_type": "third_party_reference",
+       "title": "Kalitta Air",
+       "url": "https://en.wikipedia.org/wiki/Kalitta_Air"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 37,
+     "value_text": "37"
     }
    ]
   },
@@ -95549,6 +112020,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "applies_to": {
       "pilot_specific": true
      },
+     "checked_at": "2026-11-18",
+     "company": "latam",
+     "cond_ja": "base GRU。補足: サンパウロ（グアルーリョス国際空港）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-06-09",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "São cerca de 150 vagas para copilotos e 10 para comandantes, com base operacional em São Paulo (aeroportos de Congonhas e Guarulhos).",
+       "source_id": "src-latamairlines-com-e132ad54",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7aa2a17677cef6a8",
+     "id": "latam.base.pilot-base-city.8839401e",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-latam",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-06-09",
+       "publisher": "LATAM Airlines Brasil",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-latamairlines-com-e132ad54",
+       "source_type": "job_posting",
+       "title": "LATAM abre mais de 160 vagas para pilotos no Brasil",
+       "url": "https://www.latamairlines.com/br/pt/imprensa/noticias/vagas-pilotos-latam-2025"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "São Paulo",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "latam",
+     "cond_ja": "base CGH。補足: サンパウロ（コンゴーニャス空港）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2025-06-09",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "São cerca de 150 vagas para copilotos e 10 para comandantes, com base operacional em São Paulo (aeroportos de Congonhas e Guarulhos).",
+       "source_id": "src-latamairlines-com-e132ad54",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6e4951c39517b3da",
+     "id": "latam.base.pilot-base-city.f0d7472e",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-latam",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-06-09",
+       "publisher": "LATAM Airlines Brasil",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-latamairlines-com-e132ad54",
+       "source_type": "job_posting",
+       "title": "LATAM abre mais de 160 vagas para pilotos no Brasil",
+       "url": "https://www.latamairlines.com/br/pt/imprensa/noticias/vagas-pilotos-latam-2025"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "São Paulo",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
      "checked_at": "2026-10-29",
      "company": "latam",
      "cond_ja": "LATAM Airlines Brasil（TAM Linhas Aéreas）の契約上の操縦士拠点空港。補足: 現物PDF p.1 §3はpilotosの訓練、p.2 §5は勤務開始終了のAeroporto de sua base contratual、§7はGRU/CGHとの送迎を明記。翌日記事もsuas bases nos aeroportos de Congonhas e Guarulhosと明記：https://aeronautas.org.br/latam-sna-requer-transporte-para-treinamento-dos-tripulantes-e-contabilizacao-do-tempo-de-deslocamento-na-jornada-de-trabalho/ 。書簡の番号39/2024と本文日付2025の差は原文どおり、日付は本文の2025-02-04。",
@@ -98820,9 +115393,111 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "Warsaw",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "lot",
+     "cond_ja": "Warsaw Chopin Airport main base。補足: 【第三者】ワルシャワ・ショパン空港（WAW）単一ハブ拠点。ポーランド語のLOT Crew公式求人（https://www.pracuj.pl/praca/pilot-statku-powietrznego-warszawa,oferta,1001904362 ：「Gwarantujemy stałą bazę w Warszawie.」）およびLOT公式サイト（https://www.lot.com/us/en/explore/inspirations/aviation-trivia/what-an-airline-pilot-job-is-like-aviation-trivia ：「LOT offers a stable base in Warsaw」）とも一致。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-11-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Base location Poland flag Poland | Warsaw Base location icon WAW - Warsaw",
+       "source_id": "src-pilotsglobal-com-f6a4a04d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3b36a2d1b7732092",
+     "id": "lot.base.pilot-base.4cdf6af9",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-lot",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-01",
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-f6a4a04d",
+       "source_type": "third_party_reference",
+       "title": "B787 Dreamliner First Officer LOT Polish Airlines",
+       "url": "https://pilotsglobal.com/job/B787-Dreamliner-first-officer-lot_polish_airlines-PL-b7c52324db"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "WAW",
+     "value_text": null
     }
    ],
    "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "lot",
+     "cond_ja": "commuting roster option (70% or 85% part-time rosters and block-off requests for commuters)。補足: 【第三者】通勤パイロット向けに月最低4日の希望休日指定が可能なコミューティング・ロスターや、勤続2年以降のパートタイムロスター（70%・85%）、IDチケット（ZED・myIDTravel）を提供。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-03-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "A commuting roster is available with a minimum of four specific requested days off per month, and part-time rosters (70% or 85%) can be arranged after two years with the company, making LOT viable for pilots living elsewhere in Europe.",
+       "source_id": "src-readyfortakeoffbook-com-a9d2bf60",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7f99808f63f5ad0b",
+     "id": "lot.benefits.commuting.5c96007f",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261119-gm-lot",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-03-29",
+       "publisher": "Ready For Take-Off Book",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-readyfortakeoffbook-com-a9d2bf60",
+       "source_type": "third_party_reference",
+       "title": "Working at LOT Polish Airlines as a Pilot: Salary, Roster & Application (2026)",
+       "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/lot-polish-airlines"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "minimum of four specific requested days off per month",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -100052,6 +116727,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": "翌月開始の2週間前にmonthly rosterを公表",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "lot",
+     "cond_ja": "LOT Crew sp. z o.o. official Polish job posting (pilots are not charged for aircraft type rating training)。補足: 【第三者】LOTグループ乗務員雇用会社（LOT Crew sp. z o.o.）のポーランド語求人原典（「パイロットに航空機型式証明訓練の費用を負担させません」）。Ready For Take-Off Book（https://readyfortakeoffbook.com/blogs/pilot-conditions/lot-polish-airlines ：「Type rating is fully funded by LOT for pilots hired through the official process.」）とも一致。なおv1prep（https://v1prep.com/lot-polish-airlines-pilot-requirements.html）では過去のB737求人に5年ボンドの記載があった旨も言及。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2024-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Pilotów nie obciążamy kosztami szkolenia na typ samolotu.",
+       "source_id": "src-pracuj-pl-dfe07c24",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f68ca35858d7b42d",
+     "id": "lot.work.training-bond.3a616530",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "訓練費の拘束",
+     "pack": "pvr-20261119-gm-lot",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-01-01",
+       "publisher": "Pracuj.pl",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pracuj-pl-dfe07c24",
+       "source_type": "third_party_reference",
+       "title": "Pilot Statku Powietrznego LOT Crew sp. z o.o.",
+       "url": "https://www.pracuj.pl/praca/pilot-statku-powietrznego-warszawa,oferta,1001904362"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Pilotów nie obciążamy kosztami szkolenia na typ samolotu.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "lot",
+     "cond_ja": "Widebody (B787) Captain upgrade timeline。補足: 【第三者】ワイドボディ（B787）機長への昇格目安は5〜8年以上。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-03-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Widebody (B787) Captain: Typically 5–8+ years depending on seniority and vacancies",
+       "source_id": "src-readyfortakeoffbook-com-a9d2bf60",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "571dab61de024cf9",
+     "id": "lot.work.upgrade-years.436e7e39",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-lot",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-03-29",
+       "publisher": "Ready For Take-Off Book",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-readyfortakeoffbook-com-a9d2bf60",
+       "source_type": "third_party_reference",
+       "title": "Working at LOT Polish Airlines as a Pilot: Salary, Roster & Application (2026)",
+       "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/lot-polish-airlines"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "5–8",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "lot",
+     "cond_ja": "First Officer to Narrowbody Captain upgrade timeline。補足: 【第三者】ナローボディ機の機長昇格目安は2〜3年。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-03-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "First Officer to Narrowbody Captain: 2–3 years (rapid due to fleet expansion)",
+       "source_id": "src-readyfortakeoffbook-com-a9d2bf60",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "15f85fc7569ddade",
+     "id": "lot.work.upgrade-years.81421f48",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-lot",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-03-29",
+       "publisher": "Ready For Take-Off Book",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-readyfortakeoffbook-com-a9d2bf60",
+       "source_type": "third_party_reference",
+       "title": "Working at LOT Polish Airlines as a Pilot: Salary, Roster & Application (2026)",
+       "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/lot-polish-airlines"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "2–3",
+     "value_text": null
     }
    ]
   },
@@ -101239,6 +118067,1001 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ]
   },
+  "northern-air-cargo": {
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "northern-air-cargo",
+     "cond_ja": "全社員の制度 (Paid Time Off and Paid Holidays for regular full-time employees)。補足: Indeed FAQ (https://www.indeed.com/cmp/northern-air-cargo/faq/benefits, updated 2024-03-04) notes \"14 Each year\"。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Regular full-time employees are eligible for a comprehensive package of benefits which include: Medical/Dental/Vision/Prescription Drug health plan 401(k) plan with company-matched contributions Company-paid life insurance Paid Time Off Paid Holidays",
+       "source_id": "src-nac-aero-c2d3f5ee",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1bacfc013d9799e0",
+     "id": "northern-air-cargo.benefits.annual-leave.b56e144a",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "annual_leave",
+     "label_ja": "年次休暇",
+     "pack": "pvr-20261119-gm-northern-air-cargo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Northern Air Cargo",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-nac-aero-c2d3f5ee",
+       "source_type": "official_package",
+       "title": "Employment",
+       "url": "https://www.nac.aero/employment/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Paid Time Off",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "northern-air-cargo",
+     "cond_ja": "KCM, jumpseat listing via Flight Ops (907-771-6183), myIDTravel, ZED/ID90, and deadhead from base on 17-day Lower 48 lines。補足: 【APC】Official Employment page (https://www.nac.aero/employment/) also lists \"Interline discounts on travel and freight\"; Northern Air Cargo is an eligible carrier on FlyZED (https://www.flyzed.info/) and ID90 Travel (https://www.id90travel.com/members/eligible-companies/)。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2024-02-02",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Under Jump Seats we have Known Crew Member and we have myIDtravel for American, South West, Jet Blue, Allegiant.",
+       "source_id": "src-airlinepilotcentral-com-caab48be",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "28be8633d0639d4f",
+     "id": "northern-air-cargo.benefits.commuting.56e34c12",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261119-gm-northern-air-cargo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-02-02",
+       "publisher": "Airline Pilot Central",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlinepilotcentral-com-caab48be",
+       "source_type": "community_reference",
+       "title": "Northern Air Cargo",
+       "url": "https://www.airlinepilotcentral.com/airlines/cargo/northern_air_cargo"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Under Jump Seats we have Known Crew Member and we have myIDtravel for American, South West, Jet Blue, Allegiant.",
+     "value_text": null
+    }
+   ],
+   "fleet": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "northern-air-cargo",
+     "cond_ja": "Boeing 737-300(SF), as of 2025-09。補足: 【Wikipedia】As of September 2025; APC (https://www.airlinepilotcentral.com/airlines/cargo/northern_air_cargo, 2024-02-02) previously listed \"737-300: 5\" across combined NAC/Aloha Air Cargo operations。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-10-03",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 737-300(SF) 1",
+       "source_id": "src-en-wikipedia-org-8551470f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f881443ecb3b7408",
+     "id": "northern-air-cargo.fleet.boeing-737-300-sf.43e2fe99",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "boeing_737_300_sf",
+     "label_ja": "機種ごとの機数（Boeing 737-300(SF)）",
+     "pack": "pvr-20261119-gm-northern-air-cargo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-03",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-8551470f",
+       "source_type": "third_party_reference",
+       "title": "Northern Air Cargo",
+       "url": "https://en.wikipedia.org/wiki/Northern_Air_Cargo"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 1,
+     "value_text": "1"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "northern-air-cargo",
+     "cond_ja": "Boeing 737-400(SF), as of 2025-09。補足: 【Wikipedia】As of September 2025; APC (https://www.airlinepilotcentral.com/airlines/cargo/northern_air_cargo, 2024-02-02) listed \"737-400: 4\"。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-10-03",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 737-400(SF) 3",
+       "source_id": "src-en-wikipedia-org-8551470f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e581085ce874e546",
+     "id": "northern-air-cargo.fleet.boeing-737-400-sf.fc726913",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "boeing_737_400_sf",
+     "label_ja": "機種ごとの機数（Boeing 737-400(SF)）",
+     "pack": "pvr-20261119-gm-northern-air-cargo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-03",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-8551470f",
+       "source_type": "third_party_reference",
+       "title": "Northern Air Cargo",
+       "url": "https://en.wikipedia.org/wiki/Northern_Air_Cargo"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 3,
+     "value_text": "3"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "northern-air-cargo",
+     "cond_ja": "Boeing 737-800(SF), as of 2025-09 (doubled to 2 aircraft in September 2026 with N3160G)。補足: 【Wikipedia】Corroborated by FreightWaves (https://www.freightwaves.com/news/northern-air-cargo-challenges-alaska-airlines, 2025-09-15) and Airways Magazine (https://www.airwaysmag.com/new-post/northern-air-cargo-second-boeing-737-800sf-retro-livery, 2026-09-05)。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-10-03",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 737-800(SF) 1",
+       "source_id": "src-en-wikipedia-org-8551470f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d7d9ce89af06845e",
+     "id": "northern-air-cargo.fleet.boeing-737-800-sf.6c32212e",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "boeing_737_800_sf",
+     "label_ja": "機種ごとの機数（Boeing 737-800(SF)）",
+     "pack": "pvr-20261119-gm-northern-air-cargo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-03",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-8551470f",
+       "source_type": "third_party_reference",
+       "title": "Northern Air Cargo",
+       "url": "https://en.wikipedia.org/wiki/Northern_Air_Cargo"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 1,
+     "value_text": "1"
+    }
+   ],
+   "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "northern-air-cargo",
+     "cond_ja": "minimum total time for Assistant Chief Pilot on shared NAC/AAC seniority list (1500 hours PIC time; past posting)。補足: 【第三者】過去の求人（shared NAC/AAC pilot group management role）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Total time 3000 hours PIC time 1500 hours",
+       "source_id": "src-pilotsglobal-com-94c8f18a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "45b2196d4f67491f",
+     "id": "northern-air-cargo.jobs.cap-total-hours-cap.dfaa9504",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_total_hours",
+     "label_ja": "機長の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-northern-air-cargo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-94c8f18a",
+       "source_type": "third_party_reference",
+       "title": "Aloha Air Cargo is hiring Various Aircraft Assistant Chief Pilots",
+       "url": "https://pilotsglobal.com/job/Various-Aircraft-assistant-chief-pilot-aloha_air_cargo-US-de0325063e"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 3000,
+     "value_text": "3000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "northern-air-cargo",
+     "cond_ja": "plus FAA First-Class Medical Certificate and FCC Restricted Radiotelephone Operator Permit。補足: 【第三者】Corroborated by JobLeads (https://www.jobleads.com/us/job/nac-737-first-officer--anchorage--e0d6cec2a29576a4c324cece30172d492) and APC (https://www.airlinepilotcentral.com/airlines/cargo/northern_air_cargo: \"Unrestricted ATP\")。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-11-10",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "FAA Airline Transport Pilot (ATP) Certificate with Multi-Engine Rating. FAA First-Class Medical Certificate. FCC Restricted Radiotelephone Operator Permit.",
+       "source_id": "src-tallo-com-fc0ed0b3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b9dd73072b4da582",
+     "id": "northern-air-cargo.jobs.fo-license-fo.7f0e8f5a",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261119-gm-northern-air-cargo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-10",
+       "publisher": "Tallo",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-tallo-com-fc0ed0b3",
+       "source_type": "third_party_reference",
+       "title": "Northern Air Cargo: NAC 737 First Officer",
+       "url": "https://tallo.com/talent/job/transportation/pilot/ak/anchorage/nac-737-first-officer-89edf508"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "FAA Airline Transport Pilot (ATP) Certificate with Multi-Engine Rating.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "northern-air-cargo",
+     "cond_ja": "Anchorage, AK, Full-Time, expires 2026-12-10。補足: 【第三者】Also active on JobLeads (https://www.jobleads.com/us/job/nac-737-first-officer--anchorage--e0d6cec2a29576a4c324cece30172d492 and https://www.jobleads.com/us/job/first-officer-cargo-jet-your-path-to-pic--anchorage--ee24f1626793a71f0db9c019bd0e7b7ab, 2026-11-04) and PilotsGlobal (https://pilotsglobal.com/job/B737-Classic-first-officer-nac_northern_air_cargo-US-1ae58abb72: \"First Officer - B737 Classic\")。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-11-10",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Northern Air Cargo NAC 737 First Officer",
+       "source_id": "src-tallo-com-fc0ed0b3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "00b0812fc3f066b2",
+     "id": "northern-air-cargo.jobs.fo-posting-fo.8eec387e",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_posting",
+     "label_ja": "副操縦士の募集している職",
+     "pack": "pvr-20261119-gm-northern-air-cargo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-10",
+       "publisher": "Tallo",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-tallo-com-fc0ed0b3",
+       "source_type": "third_party_reference",
+       "title": "Northern Air Cargo: NAC 737 First Officer",
+       "url": "https://tallo.com/talent/job/transportation/pilot/ak/anchorage/nac-737-first-officer-89edf508"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "NAC 737 First Officer",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "northern-air-cargo",
+     "cond_ja": "Visa sponsorship: Not provided; 5-year employment background investigation, 10-year criminal history check, Security Threat Assessment (STA); US citizenship or Green Card per shared seniority list APC page。補足: 【第三者】PilotsGlobal (https://pilotsglobal.com/job/B737-Classic-first-officer-nac_northern_air_cargo-US-1ae58abb72) explicitly states \"Visa sponsorship Not provided\"; APC shared seniority list page (https://www.airlinepilotcentral.com/airlines/cargo/aloha_air_cargo/1000, 2024-02-02) states \"United States citizenship or resident alien status with a work permit (Green Card)\"。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-11-10",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "5-year employment background investigation 10-year criminal history records check Security Threat Assessment (STA) Ability to travel internationally without restriction.",
+       "source_id": "src-tallo-com-fc0ed0b3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9687dafe49906e38",
+     "id": "northern-air-cargo.jobs.fo-right-to-work-fo.484f511d",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261119-gm-northern-air-cargo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-10",
+       "publisher": "Tallo",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-tallo-com-fc0ed0b3",
+       "source_type": "third_party_reference",
+       "title": "Northern Air Cargo: NAC 737 First Officer",
+       "url": "https://tallo.com/talent/job/transportation/pilot/ak/anchorage/nac-737-first-officer-89edf508"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Ability to travel internationally without restriction.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "northern-air-cargo",
+     "cond_ja": "minimum total flight time (plus 500 hrs cross-country, 100 hrs night, 75 hrs instrument, 250 hrs PIC)。補足: 【第三者】Corroborated by PilotsGlobal (https://pilotsglobal.com/job/B737-Classic-first-officer-nac_northern_air_cargo-US-1ae58abb72: \"Total time 1500 hours\") and APC (https://www.airlinepilotcentral.com/airlines/cargo/northern_air_cargo: \"Unrestricted ATP 1500TT with 500 multi preferred\")。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-11-10",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "1,500 hours total flight time. 500 hours cross-country flight time. 100 hours night flight time. 75 hours instrument flight time. 250 hours Pilot-in-Command (PIC) time.",
+       "source_id": "src-tallo-com-fc0ed0b3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bc3775e8af22f828",
+     "id": "northern-air-cargo.jobs.fo-total-hours-fo.833f346a",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-northern-air-cargo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-10",
+       "publisher": "Tallo",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-tallo-com-fc0ed0b3",
+       "source_type": "third_party_reference",
+       "title": "Northern Air Cargo: NAC 737 First Officer",
+       "url": "https://tallo.com/talent/job/transportation/pilot/ak/anchorage/nac-737-first-officer-89edf508"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1500,
+     "value_text": "1,500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "northern-air-cargo",
+     "cond_ja": "B737 First Officer (marked \"Type rating: Required\" on PilotsGlobal B737 Classic FO posting; previous B767 FO posting was \"Not required (Training Provided)\")。補足: 【第三者】Corroborated by PilotsGlobal B737 Classic FO (https://pilotsglobal.com/job/B737-Classic-first-officer-nac_northern_air_cargo-US-1ae58abb72: \"Type rating Required\") and closed B767 FO posting (https://pilotsglobal.com/job/B767-first-officer-nac_northern_air_cargo-US-17f0a996be: \"Type rating Not required (Training Provided)\")。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-11-10",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Appropriate aircraft type rating and Airplane Multi-Engine Land class rating when conducting Part 121 operations. Previous turbojet experience preferred.",
+       "source_id": "src-tallo-com-fc0ed0b3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "62c5ee663f91cf97",
+     "id": "northern-air-cargo.jobs.fo-type-rating-fo.36005737",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261119-gm-northern-air-cargo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-10",
+       "publisher": "Tallo",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-tallo-com-fc0ed0b3",
+       "source_type": "third_party_reference",
+       "title": "Northern Air Cargo: NAC 737 First Officer",
+       "url": "https://tallo.com/talent/job/transportation/pilot/ak/anchorage/nac-737-first-officer-89edf508"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Appropriate aircraft type rating and Airplane Multi-Engine Land class rating when conducting Part 121 operations.",
+     "value_text": null
+    }
+   ],
+   "profile": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "northern-air-cargo",
+     "cond_ja": "補足: Purchased by Saltchuk Resources in March 2006。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Originally founded in 1956 as a partnership between Robert “Bobby” Sholton and Maurice Carlton, the airline was established as a charter airfreight service, utilizing two C-82 “Flying Boxcars.”",
+       "source_id": "src-nac-aero-144124f6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ce551553b7a8c602",
+     "id": "northern-air-cargo.profile.founded.6ed93301",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "founded",
+     "label_ja": "設立",
+     "pack": "pvr-20261119-gm-northern-air-cargo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Northern Air Cargo",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-nac-aero-144124f6",
+       "source_type": "official_package",
+       "title": "About NAC",
+       "url": "https://www.nac.aero/about-nac/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "1956",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "northern-air-cargo",
+     "cond_ja": "3900 Old International Airport Road, Anchorage, AK 99502。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Northern Air Cargo, LLC (NAC) is headquartered in Anchorage, Alaska, and serves communities across the state and beyond.",
+       "source_id": "src-nac-aero-144124f6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1ea75236c327936d",
+     "id": "northern-air-cargo.profile.headquarters-city.2d1fcacc",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "headquarters_city",
+     "label_ja": "本社の都市",
+     "pack": "pvr-20261119-gm-northern-air-cargo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Northern Air Cargo",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-nac-aero-144124f6",
+       "source_type": "official_package",
+       "title": "About NAC",
+       "url": "https://www.nac.aero/about-nac/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Anchorage",
+     "value_text": null
+    }
+   ],
+   "scale": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "northern-air-cargo",
+     "cond_ja": "as of 2025-09。補足: 【Wikipedia】As of September 2025 (citing Airliner World Global Airline Guide 2025: 1 B737-300SF + 3 B737-400SF + 1 B737-800SF = 5); corroborated by PilotsGlobal (https://pilotsglobal.com/airlines/nac-northern-air-cargo: \"Current: 5\"). A second B737-800SF (N3160G) was added in September 2026 (https://www.airwaysmag.com/new-post/northern-air-cargo-second-boeing-737-800sf-retro-livery)。",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": "2026-10-03",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Total 5",
+       "source_id": "src-en-wikipedia-org-8551470f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "74390a3b32c87d3a",
+     "id": "northern-air-cargo.scale.fleet-total.2febf652",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "fleet_total",
+     "label_ja": "運航している機材",
+     "pack": "pvr-20261119-gm-northern-air-cargo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-03",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-8551470f",
+       "source_type": "third_party_reference",
+       "title": "Northern Air Cargo",
+       "url": "https://en.wikipedia.org/wiki/Northern_Air_Cargo"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 5,
+     "value_text": "5"
+    }
+   ],
+   "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-19",
+     "company": "northern-air-cargo",
+     "cond_ja": "approximately 13 days off per month under structured line-bidding (typical 4 on / 3 off pattern; active 2019 NAC/AAC Joint CBA)。補足: 【第三者】Corroborated by Airline Pilot Central Forums (https://www.airlinepilotforums.com/3192457-post312.html, 2021-02-08: \"schedules are line bidding, with 13 days off a month.\") under the active 2019 Teamsters Local 769 / NAC-AAC Joint CBA (https://teamsterslocal769.org/airline/CompleteNAC-JCBA%20-28-2019.pdf, confirmed in Section 6 negotiations on APC https://www.airlinepilotcentral.com/airlines/cargo/aloha_air_cargo/1000 as of 2024-02-02)。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-03-28",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Pilots typically receive approximately 13 days off per month under structured line-bidding systems, where schedules are bid and awarded before each operational period.",
+       "source_id": "src-readyfortakeoffbook-com-21e18b17",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a2ed626a08778df1",
+     "id": "northern-air-cargo.work.days-off.70e9f0fd",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "days_off",
+     "label_ja": "休日（月）",
+     "pack": "pvr-20261119-gm-northern-air-cargo",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-03-28",
+       "publisher": "Ready For Take-Off Book",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-19",
+       "source_id": "src-readyfortakeoffbook-com-21e18b17",
+       "source_type": "third_party_reference",
+       "title": "Northern Air Cargo Pilot Conditions",
+       "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/northern-air-cargo"
+      }
+     ],
+     "unit": "days",
+     "use": "条件つき",
+     "value": 13,
+     "value_text": "13"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "northern-air-cargo",
+     "cond_ja": "Lower 48 B737 lines (start and end with deadhead from base); Reserve: Short Call (2 hrs) & Long Call (12 hrs); up to 20 consecutive days away for ACMI。補足: 【APC】Active NAC 737 First Officer job posting (https://tallo.com/talent/job/transportation/pilot/ak/anchorage/nac-737-first-officer-89edf508, 2026-11-10) states: \"May be required to support ACMI operations for up to 20 consecutive days away from domicile, in accordance with the applicable Collective Bargaining Agreement.\"。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2024-02-02",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Occasional lines of flying on 737 in lower 48, with 17-day trips, (start and end with DH from base)",
+       "source_id": "src-airlinepilotcentral-com-caab48be",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3377a25ed58a6e6e",
+     "id": "northern-air-cargo.work.roster-pattern.002eb54d",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "roster_pattern",
+     "label_ja": "ロスターの型",
+     "pack": "pvr-20261119-gm-northern-air-cargo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-02-02",
+       "publisher": "Airline Pilot Central",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlinepilotcentral-com-caab48be",
+       "source_type": "community_reference",
+       "title": "Northern Air Cargo",
+       "url": "https://www.airlinepilotcentral.com/airlines/cargo/northern_air_cargo"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "17-day trips",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-19",
+     "company": "northern-air-cargo",
+     "cond_ja": "aircraft type lock-in period (seat lock before bidding for aircraft transition; NAC provides B737 type rating training; no monetary repayment bond published)。補足: 【第三者】Corroborated by Airline Pilot Central Forums (https://www.airlinepilotforums.com/3192457-post312.html, 2021-02-08: \"you will have a two year seat lock before you can bid off the aircraft you are on.\") under the active 2019 Teamsters Local 769 / NAC-AAC Joint CBA (https://teamsterslocal769.org/airline/CompleteNAC-JCBA%20-28-2019.pdf, confirmed in Section 6 negotiations on APC 2024-02-02)。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-03-28",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Aircraft type lock-in period ~2 years Must remain on assigned aircraft type before bidding for transition (if applicable).",
+       "source_id": "src-readyfortakeoffbook-com-21e18b17",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2dcc067a9f8a0c83",
+     "id": "northern-air-cargo.work.training-bond.697ac912",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "訓練費の拘束",
+     "pack": "pvr-20261119-gm-northern-air-cargo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-03-28",
+       "publisher": "Ready For Take-Off Book",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-19",
+       "source_id": "src-readyfortakeoffbook-com-21e18b17",
+       "source_type": "third_party_reference",
+       "title": "Northern Air Cargo Pilot Conditions",
+       "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/northern-air-cargo"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "~2 years",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "northern-air-cargo",
+     "cond_ja": "shared NAC / Aloha Air Cargo single pilot seniority list。補足: 【APC】APC Forum (https://www.airlinepilotforums.com/3192457-post312.html) notes ~2 years on 767 and longer in ANC; NAC ended B767 operations in July–October 2025 (https://www.freightwaves.com/news/northern-air-cargo-abandons-big-freighter-aircraft-cuts-staff)。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2024-02-02",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Saltchuk Aviation operates two 121 Air Carriers under one Pilot Seniority List – Aloha Air Cargo & Northern Air Cargo. CBA currently in Section 6 Negotiations 99% of Daily Flights do not include layovers. Rapid Captain Upgrades opportunities available all Fleet all Bases",
+       "source_id": "src-airlinepilotcentral-com-b6b3541e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1a5dd2118509cbb4",
+     "id": "northern-air-cargo.work.upgrade-years.c3af265a",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-northern-air-cargo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-02-02",
+       "publisher": "Airline Pilot Central",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlinepilotcentral-com-b6b3541e",
+       "source_type": "community_reference",
+       "title": "Aloha Air Cargo / Northern Air Cargo",
+       "url": "https://www.airlinepilotcentral.com/airlines/cargo/aloha_air_cargo/1000"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Rapid Captain Upgrades opportunities available all Fleet all Bases",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "northern-air-cargo",
+     "cond_ja": "Monthly Pay Guarantee for Line Holders and Reserves (65 PCH / pay credit hours)。補足: 【APC】Corroborated by NAC B767 First Officer job posting on PilotsGlobal (https://pilotsglobal.com/job/B767-first-officer-nac_northern_air_cargo-US-17f0a996be: \"The position pays $96.69 per hour with a minimum of 65 hours per month starting with training.\")。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2024-02-02",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Monthly Pay Guarantee for Line Holders: 65 PCH Monthly Pay Guarantee for Reserves: 65 PCH",
+       "source_id": "src-airlinepilotcentral-com-caab48be",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "98d65a35d79a47f5",
+     "id": "northern-air-cargo.work.working-time.460f0076",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "working_time",
+     "label_ja": "勤務・乗務時間の上限",
+     "pack": "pvr-20261119-gm-northern-air-cargo",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-02-02",
+       "publisher": "Airline Pilot Central",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlinepilotcentral-com-caab48be",
+       "source_type": "community_reference",
+       "title": "Northern Air Cargo",
+       "url": "https://www.airlinepilotcentral.com/airlines/cargo/northern_air_cargo"
+      }
+     ],
+     "unit": "hours",
+     "use": "条件つき",
+     "value": 65,
+     "value_text": "65"
+    }
+   ]
+  },
   "norwegian": {
    "base": [
     {
@@ -101409,6 +119232,414 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "Riga",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "norwegian",
+     "cond_ja": "Finland base (Helsinki Vantaa)。補足: 【第三者】フィンランド・ヘルシンキ拠点（HEL）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-10-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The network centers on the Nordics: Oslo (OSL), Bergen (BGO), Trondheim (TRD), Stavanger (SVG), Copenhagen (CPH), Stockholm Arlanda (ARN) and Helsinki (HEL).",
+       "source_id": "src-v1prep-com-f4b05988",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4dc06ed0dc35f8c5",
+     "id": "norwegian.base.pilot-base.1687df3f",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-norwegian",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-30",
+       "publisher": "v1prep",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-v1prep-com-f4b05988",
+       "source_type": "third_party_reference",
+       "title": "Norwegian Air Shuttle Pilot Interview Prep",
+       "url": "https://v1prep.com/norwegian-pilot-interview-prep.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "HEL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "norwegian",
+     "cond_ja": "Norway base (Trondheim)。補足: 【第三者】ノルウェー・トロンハイム拠点（TRD）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-04-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Current base options include Oslo (OSL), Bergen (BGO), Stavanger (SVG), Trondheim (TRD) in Norway, plus Stockholm (ARN), Copenhagen (CPH), Helsinki, Malaga, Alicante, and Riga for international operations.",
+       "source_id": "src-readyfortakeoffbook-com-6f28859c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "701e2a07466ac3cf",
+     "id": "norwegian.base.pilot-base.1fbdd747",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-norwegian",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04-01",
+       "publisher": "Ready For Take-Off Book",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-readyfortakeoffbook-com-6f28859c",
+       "source_type": "third_party_reference",
+       "title": "Working at Norwegian as a Pilot: Salary, Roster & Application (2026)",
+       "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/norwegian-air-shuttle"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "TRD",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "norwegian",
+     "cond_ja": "Sweden base (Stockholm Arlanda)。補足: 【第三者】スウェーデン・ストックホルム拠点（ARN）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-04-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Current base options include Oslo (OSL), Bergen (BGO), Stavanger (SVG), Trondheim (TRD) in Norway, plus Stockholm (ARN), Copenhagen (CPH), Helsinki, Malaga, Alicante, and Riga for international operations.",
+       "source_id": "src-readyfortakeoffbook-com-6f28859c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5d8074aeddb11b9d",
+     "id": "norwegian.base.pilot-base.294ce4a5",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-norwegian",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04-01",
+       "publisher": "Ready For Take-Off Book",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-readyfortakeoffbook-com-6f28859c",
+       "source_type": "third_party_reference",
+       "title": "Working at Norwegian as a Pilot: Salary, Roster & Application (2026)",
+       "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/norwegian-air-shuttle"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "ARN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "norwegian",
+     "cond_ja": "Norway base (Stavanger)。補足: 【第三者】ノルウェー・スタヴァンゲル拠点（SVG）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-04-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Current base options include Oslo (OSL), Bergen (BGO), Stavanger (SVG), Trondheim (TRD) in Norway, plus Stockholm (ARN), Copenhagen (CPH), Helsinki, Malaga, Alicante, and Riga for international operations.",
+       "source_id": "src-readyfortakeoffbook-com-6f28859c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "94c35018df958e9c",
+     "id": "norwegian.base.pilot-base.5e3d2923",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-norwegian",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04-01",
+       "publisher": "Ready For Take-Off Book",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-readyfortakeoffbook-com-6f28859c",
+       "source_type": "third_party_reference",
+       "title": "Working at Norwegian as a Pilot: Salary, Roster & Application (2026)",
+       "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/norwegian-air-shuttle"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SVG",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "norwegian",
+     "cond_ja": "Norway base (Bergen)。補足: 【第三者】ノルウェー・ベルゲン拠点（BGO）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-04-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Current base options include Oslo (OSL), Bergen (BGO), Stavanger (SVG), Trondheim (TRD) in Norway, plus Stockholm (ARN), Copenhagen (CPH), Helsinki, Malaga, Alicante, and Riga for international operations.",
+       "source_id": "src-readyfortakeoffbook-com-6f28859c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "10366f9c6d70d1d4",
+     "id": "norwegian.base.pilot-base.a7d41228",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-norwegian",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04-01",
+       "publisher": "Ready For Take-Off Book",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-readyfortakeoffbook-com-6f28859c",
+       "source_type": "third_party_reference",
+       "title": "Working at Norwegian as a Pilot: Salary, Roster & Application (2026)",
+       "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/norwegian-air-shuttle"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "BGO",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "norwegian",
+     "cond_ja": "Norway primary base (Oslo Gardermoen)。補足: 【第三者】ノルウェー・オスロ拠点（OSL）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-04-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Current base options include Oslo (OSL), Bergen (BGO), Stavanger (SVG), Trondheim (TRD) in Norway, plus Stockholm (ARN), Copenhagen (CPH), Helsinki, Malaga, Alicante, and Riga for international operations.",
+       "source_id": "src-readyfortakeoffbook-com-6f28859c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "da9abafb6a43d4ac",
+     "id": "norwegian.base.pilot-base.c821508d",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-norwegian",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04-01",
+       "publisher": "Ready For Take-Off Book",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-readyfortakeoffbook-com-6f28859c",
+       "source_type": "third_party_reference",
+       "title": "Working at Norwegian as a Pilot: Salary, Roster & Application (2026)",
+       "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/norwegian-air-shuttle"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "OSL",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "norwegian",
+     "cond_ja": "Latvia base (Riga Airport)。補足: ラトビア公共放送（LSM.lv）によるリガ空港（RIX）拠点開設報道（Ready For Take-Off BookでもMalaga・Alicante・Rigaの国際拠点を記載）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2024-04-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Norwegian opened its base at RIX Riga Airport on Tuesday, April 30, in the presence of Latvian and Norwegian officials.",
+       "source_id": "src-eng-lsm-lv-2fbede62",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b8ce6b4ee8f4def7",
+     "id": "norwegian.base.pilot-base.cafb2088",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-norwegian",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-04-30",
+       "publisher": "LSM.lv (Public Broadcasting of Latvia)",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-eng-lsm-lv-2fbede62",
+       "source_type": "third_party_reference",
+       "title": "Norwegian opens base at Rīga Airport",
+       "url": "https://eng.lsm.lv/article/economy/transport/30.04.2024-norwegian-opens-base-at-riga-airport.a552377/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "RIX",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "norwegian",
+     "cond_ja": "Denmark base (Copenhagen)。補足: 【第三者】デンマーク・コペンハーゲン拠点（CPH）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-04-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Current base options include Oslo (OSL), Bergen (BGO), Stavanger (SVG), Trondheim (TRD) in Norway, plus Stockholm (ARN), Copenhagen (CPH), Helsinki, Malaga, Alicante, and Riga for international operations.",
+       "source_id": "src-readyfortakeoffbook-com-6f28859c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d61be71d236aef17",
+     "id": "norwegian.base.pilot-base.d8aec5c6",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-norwegian",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04-01",
+       "publisher": "Ready For Take-Off Book",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-readyfortakeoffbook-com-6f28859c",
+       "source_type": "third_party_reference",
+       "title": "Working at Norwegian as a Pilot: Salary, Roster & Application (2026)",
+       "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/norwegian-air-shuttle"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "CPH",
+     "value_text": null
     }
    ],
    "benefits": [
@@ -101466,6 +119697,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "Group Norwegianの航空券policyを当該pilotへ適用",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "norwegian",
+     "cond_ja": "home-to-base commuting service tickets and ~NOK 10,000/month travel allowance。補足: 【第三者】自宅〜ベース間の通勤用にS2サービスチケットを支給。同ページに「Travel allowance: ~NOK 10,000/month depending on base and commute.」との記載あり。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-04-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Service tickets (S2) are provided for commuting between home and base.",
+       "source_id": "src-readyfortakeoffbook-com-6f28859c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bec8cd3583c3d22b",
+     "id": "norwegian.benefits.commuting.5a5df079",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261119-gm-norwegian",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04-01",
+       "publisher": "Ready For Take-Off Book",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-readyfortakeoffbook-com-6f28859c",
+       "source_type": "third_party_reference",
+       "title": "Working at Norwegian as a Pilot: Salary, Roster & Application (2026)",
+       "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/norwegian-air-shuttle"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Service tickets (S2) are provided for commuting between home and base",
      "value_text": null
     },
     {
@@ -108186,6 +126468,110 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "Canada",
+     "value_text": null
+    }
+   ],
+   "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "porter",
+     "cond_ja": "Destination Porter: Cadet Program post-graduation employment commitment。補足: CAE提携のDestination Porterカデットプログラムでは卒業後の最低勤続拘束期間はなし（養成コース学費は訓練生自己負担で税前143,647 CAD）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "As a Destination Porter: Cadet Program cadet there is no minimum required time to work at Porter Airlines after graduation. You can leave at any time.",
+       "source_id": "src-cae-com-98d3dcc9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a3f6b251e2685fcd",
+     "id": "porter.work.training-bond.85c13b0e",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "訓練費の拘束",
+     "pack": "pvr-20261119-gm-porter",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "CAE",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-cae-com-98d3dcc9",
+       "source_type": "official_package",
+       "title": "Destination Porter: Cadet Program FAQ",
+       "url": "https://www.cae.com/civil-aviation/become-a-pilot/our-pilot-training-programmes/porter-cadet-program/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "no minimum required time to work at Porter Airlines after graduation",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "porter",
+     "cond_ja": "Official First Officer E195-E2 / Dash 8 job postings statement (rapid seniority progression with 1,200+ new pilots over 4 years)。補足: 英語・フランス語公式求人票（https://careers.flyporter.com/jobs/5312?lang=fr-ca および https://careers.flyporter.com/jobs/5320?lang=en-us）でも共通して明記。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Quickly moving up in seniority as we welcome over 1,200 new pilots in the next 4 years. The fastest upgrade possible to a narrow-body jet Captain role in Canada.",
+       "source_id": "src-careers-flyporter-com-6e2ac2a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ab2c3cd93aaa1c05",
+     "id": "porter.work.upgrade-years.bd7b2122",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-porter",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Porter Airlines",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-flyporter-com-6e2ac2a6",
+       "source_type": "official_package",
+       "title": "First Officer - Embraer E195-E2 (Toronto) YYZ",
+       "url": "https://careers.flyporter.com/jobs/5312?lang=en-us"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "The fastest upgrade possible to a narrow-body jet Captain role in Canada.",
      "value_text": null
     }
    ]
@@ -117418,6 +135804,333 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "5勤務/4休日、訓練例外あり",
      "value_text": null
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "訓練費の拘束（額）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "ryanair",
+     "cond_ja": "B737 Type Ratingプログラムの自己負担前払い訓練費用（Ab-initio、Gateway 1、UKスキームを除く）。補足: 【第三者】Ryanair公式パートナー訓練校Airline Flight Academy（ダブリン）のType Rating費用規定。",
+     "currency": "EUR",
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Type Rating fee: €30,000 upfront excluding Future Flyer Academy Ab-initio & Gateway 1, and UK scheme",
+       "source_id": "src-airline-flightacademy-com-908698ad",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "781c64bf7de922f0",
+     "id": "ryanair.work.training-bond-fo.065ba3aa",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "副操縦士の訓練費の拘束",
+     "pack": "pvr-20261119-gm-ryanair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Airline Flight Academy (AFA)",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airline-flightacademy-com-908698ad",
+       "source_type": "third_party_reference",
+       "title": "Boeing 737 Type Rating Programme",
+       "url": "https://www.airline-flightacademy.com/b737typeratingprogramme"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 30000,
+     "value_text": "30,000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "ryanair",
+     "cond_ja": "EUスキームのカデット訓練契約におけるボンド拘束年数（4年ボンド、EU拠点配属）。補足: 【第三者】Ryanair公式提携訓練校Bartolini AirによるEUスキーム4年ボンド規定。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "EU Scheme cadets sign a training agreement and a 4-year bond and will be based in EU countries.",
+       "source_id": "src-bartoliniair-com-38521365",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ee56cdec4cc5a49b",
+     "id": "ryanair.work.training-bond-fo.73580910",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "副操縦士の訓練費の拘束",
+     "pack": "pvr-20261119-gm-ryanair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Bartolini Air",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-bartoliniair-com-38521365",
+       "source_type": "third_party_reference",
+       "title": "Ryanair Future Flyer Academy",
+       "url": "https://bartoliniair.com/ryanair-future-flyer-academy/"
+      }
+     ],
+     "unit": "years",
+     "use": "条件つき",
+     "value": 4,
+     "value_text": "4"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "ryanair",
+     "cond_ja": "UKスキームのカデット訓練契約におけるボンド拘束年数（5年ボンド、前払いType Rating費用なしでUK拠点5年勤務）。補足: 【第三者】Ryanair公式提携訓練校Bartolini AirによるUKスキーム5年ボンド規定。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "To be eligible for this program, you must hold the unrestricted right to live and work in the UK and be willing to be based in the UK with Ryanair for at least five years (5-year bond).",
+       "source_id": "src-bartoliniair-com-38521365",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5381fd56dc2b375d",
+     "id": "ryanair.work.training-bond-fo.cc6b811a",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "副操縦士の訓練費の拘束",
+     "pack": "pvr-20261119-gm-ryanair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Bartolini Air",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-bartoliniair-com-38521365",
+       "source_type": "third_party_reference",
+       "title": "Ryanair Future Flyer Academy",
+       "url": "https://bartoliniair.com/ryanair-future-flyer-academy/"
+      }
+     ],
+     "unit": "years",
+     "use": "条件つき",
+     "value": 5,
+     "value_text": "5"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "ryanair",
+     "cond_ja": "Future Flyer Academy卒業生の最短機長昇格トラック（3〜4年）。補足: 【第三者】Ryanair公式提携訓練校Bartolini Airによる機長昇格期間記載。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Fastest track to a command upgrade – 3 to 4 years",
+       "source_id": "src-bartoliniair-com-38521365",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3e71e0d8672f7a40",
+     "id": "ryanair.work.upgrade-years-fo.2f8c7a46",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "副操縦士の機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-ryanair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Bartolini Air",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-bartoliniair-com-38521365",
+       "source_type": "third_party_reference",
+       "title": "Ryanair Future Flyer Academy",
+       "url": "https://bartoliniair.com/ryanair-future-flyer-academy/"
+      }
+     ],
+     "unit": "years",
+     "use": "条件つき",
+     "value": 3,
+     "value_text": "3"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "ryanair",
+     "cond_ja": "カデット（初期Type Ratingコース修了）から機長（Commander）昇格までの標準年数（4〜5年）。補足: Ryanair公式カデット採用ページに記載の機長昇格年数（4〜5年の上限）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "See below how we can develop you from a low hour cadet to a commander in as little as 4/5 years from your initial type rating course.",
+       "source_id": "src-careers-ryanair-com-d7d2c4f2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5ce88255c93dd070",
+     "id": "ryanair.work.upgrade-years-fo.c2f6675c",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "副操縦士の機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-ryanair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Ryanair Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-ryanair-com-d7d2c4f2",
+       "source_type": "official_package",
+       "title": "Cadets",
+       "url": "https://careers.ryanair.com/cadets/"
+      }
+     ],
+     "unit": "years",
+     "use": "条件つき",
+     "value": 5,
+     "value_text": "5"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "ryanair",
+     "cond_ja": "カデット（初期Type Ratingコース修了）から機長（Commander）昇格までの標準最短年数（4〜5年）。補足: Ryanair公式カデット採用ページに記載の機長昇格年数（4〜5年の下限）。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "See below how we can develop you from a low hour cadet to a commander in as little as 4/5 years from your initial type rating course.",
+       "source_id": "src-careers-ryanair-com-d7d2c4f2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4aa93852a1e28494",
+     "id": "ryanair.work.upgrade-years-fo.db118aea",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "副操縦士の機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-ryanair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Ryanair Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-ryanair-com-d7d2c4f2",
+       "source_type": "official_package",
+       "title": "Cadets",
+       "url": "https://careers.ryanair.com/cadets/"
+      }
+     ],
+     "unit": "years",
+     "use": "条件つき",
+     "value": 4,
+     "value_text": "4"
     }
    ]
   },
@@ -117819,6 +136532,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "必要なlayoverでhotelと交通を会社が用意",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "sas",
+     "cond_ja": "layover hotel/transport and discounted employee ID tickets; multi-base structure (CPH/ARN/OSL)。補足: 公式Pilot FAQではレイオーバー時のホテル・移動手配および個人旅行用IDチケット（「ID tickets are a benefit provided to SAS employees, offering discounted flight tickets for personal travel.」）を明記。Ready For Take-Off Book（https://readyfortakeoffbook.com/blogs/pilot-conditions/sas-scandinavian-airlines）ではCPH/ARN/OSLのマルチベース体制により自宅近くのベースを選択しやすい点およびSkyTeamスタンバイ搭乗制度を記載。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SAS provides hotel accommodation and transportation when required during layovers, in accordance with operational demands and industry standards.",
+       "source_id": "src-sasgroup-net-30a41bd1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0f63f79e8f03661b",
+     "id": "sas.benefits.commuting.c662e6bb",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261119-gm-sas",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "SAS Group",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-sasgroup-net-30a41bd1",
+       "source_type": "official_package",
+       "title": "Pilot FAQ",
+       "url": "https://www.sasgroup.net/career/teams/operations/pilot-jobs/pilot-faq-2-2-2/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "SAS provides hotel accommodation and transportation when required during layovers",
      "value_text": null
     },
     {
@@ -126777,6 +145541,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "PC24機長の特定募集をCommutableと案内し、主要商業空港から車2時間以内に住む又は転居できることを求める。",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "solairus",
+     "cond_ja": "Company-arranged commercial travel, hotels, and rental cars for flight crew duty positioning (Part 91/135 business jet operator without scheduled passenger standby pass program; commutable Captain/CAM roles available on select managed accounts)。補足: Commutable accounts confirmed on https://careers-solairus.icims.com/jobs/2503/challenger-604-captain---commutable/job (\"Challenger 604 Captain - Commutable\")。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2026-11-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Arrange trip logistics and service items as necessary to support the client and crew, including: Make travel arrangements for flight crew (hotels, rental cars, etc)",
+       "source_id": "src-careers-solairus-icims-com-133466b7",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "00916d2a7c41d7c1",
+     "id": "solairus.benefits.staff-travel.1b1a01c6",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261119-gm-solairus",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-18",
+       "publisher": "Solairus Aviation Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-solairus-icims-com-133466b7",
+       "source_type": "official_package",
+       "title": "Dedicated Flight Coordinator - South Florida (ID 2026-2441)",
+       "url": "https://careers-solairus.icims.com/jobs/2441/dedicated-flight-coordinator---south-florida/job"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Make travel arrangements for flight crew (hotels, rental cars, etc)",
+     "value_text": null
     }
    ],
    "fleet": [
@@ -127500,6 +146315,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "on-callを含む不定期の勤務要請",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "solairus",
+     "cond_ja": "Account-specific training and compensation terms (crew trained at external contractors such as CAE/FlightSafety and in-house FAR Part 135 procedures; job postings generally recruit type-rated pilots and set compensation/training terms per assigned account)。補足: Corroborated by https://www.solairus.aero/light-jet-and-turboprop-management-program/ (\"Your crew will be trained by our Training and Safety Officers in FAR Part 135 procedures, along with thorough instruction on Solairus Aviation Operations and Maintenance Manuals.\")。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-11-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Coordinates, schedules and reviews applicable crew and maintenance personnel training with the appropriate training contractor. ... Solairus crewmembers are paid $50,000 to $500,000 based on geographic area, experience, equipment type/aircraft, job duties, training, and the assigned account.",
+       "source_id": "src-careers-solairus-icims-com-40658b8a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9eec7f6092f29a2a",
+     "id": "solairus.work.training-bond.fc5973e8",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "訓練費の拘束",
+     "pack": "pvr-20261119-gm-solairus",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-18",
+       "publisher": "Solairus Aviation Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-solairus-icims-com-40658b8a",
+       "source_type": "official_package",
+       "title": "Challenger 604 Client Aviation Manager - Commutable (ID 2026-2458)",
+       "url": "https://careers-solairus.icims.com/jobs/2458/challenger-604-client-aviation-manager---commutable/job"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Coordinates, schedules and reviews applicable crew and maintenance personnel training with the appropriate training contractor.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "solairus",
+     "cond_ja": "Account-specific management structure (no company-wide seniority upgrade timeline; Captains and SICs are hired or promoted per managed aircraft account by the aircraft owner and Client Aviation Manager / lead pilot; direct Captain postings require 3000 hours total time / 1500 hours PIC)。補足: 【掲示板】Confirmed by 2+ Reddit threads (https://www.reddit.com/r/flying/comments/1g6lsqf/solairus_ejm_clay_lacy/ and https://www.reddit.com/r/flying/comments/1xcy2z4/anyone_here_flown_for_solairus/) and official Solairus iCIMS Captain/CAM postings (https://careers-solairus.icims.com/jobs/2458/challenger-604-client-aviation-manager---commutable/job: \"Total time = 3000 hours PIC = 1500 hours\")。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-12-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Been a while since I worked there, but 90% of the pay decisions and quality of life factors depend on the owner and the lead pilot. Things can vary greatly from department to department.",
+       "source_id": "src-airlinepilotforums-com-4365871b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b4426995bbedb731",
+     "id": "solairus.work.upgrade-years.139a4431",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-solairus",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-12-01",
+       "publisher": "Airline Pilot Central Forums",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlinepilotforums-com-4365871b",
+       "source_type": "community_reference",
+       "title": "Solairus",
+       "url": "https://www.airlinepilotforums.com/part-135/151710-solairus.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "90% of the pay decisions and quality of life factors depend on the owner and the lead pilot.",
      "value_text": null
     }
    ]
@@ -136683,6 +155600,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "tap",
+     "cond_ja": "Lisbon primary hub and main pilot base。補足: 【第三者】リスボン（LIS）メインハブ拠点。v1prep（https://v1prep.com/tap-air-portugal-pilot-requirements.html ：「Bases: Lisbon (LIS) - primary hub and main pilot base · Porto (OPO) - secondary hub」）とも一致。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-09-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Bases LIS OPO 25/09/2026",
+       "source_id": "src-pilotwise-co-4f00083b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "22b1288c6d18703b",
+     "id": "tap.base.pilot-base.63f761f4",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-tap",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-09-25",
+       "publisher": "PilotWise",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotwise-co-4f00083b",
+       "source_type": "third_party_reference",
+       "title": "TAP Air Portugal Pilot Career Profile",
+       "url": "https://www.pilotwise.co/airlines/tap-air-portugal-mugn2pp1"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "LIS",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "tap",
+     "cond_ja": "Porto secondary hub and pilot base。補足: 【第三者】ポルト（OPO）セカンダリーハブ拠点。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-09-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Bases LIS OPO 25/09/2026",
+       "source_id": "src-pilotwise-co-4f00083b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0b4b04c632f5ee48",
+     "id": "tap.base.pilot-base.9c4e3b8a",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-tap",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-09-25",
+       "publisher": "PilotWise",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotwise-co-4f00083b",
+       "source_type": "third_party_reference",
+       "title": "TAP Air Portugal Pilot Career Profile",
+       "url": "https://www.pilotwise.co/airlines/tap-air-portugal-mugn2pp1"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "OPO",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "contract": "TAP–SPACAE2023",
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true
@@ -142382,6 +161401,110 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ]
   },
   "turkish-airlines": {
+   "base": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "turkish-airlines",
+     "cond_ja": "Istanbul main hub city。補足: 【第三者】イスタンブール（Istanbul）。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-03-21",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Main Hub / Base: Istanbul Airport (IST), with secondary operations at Sabiha Gökçen (SAW)",
+       "source_id": "src-readyfortakeoffbook-com-e60294d3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b34ae82675f7060e",
+     "id": "turkish-airlines.base.pilot-base-city.a408a15e",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base_city",
+     "label_ja": "パイロットの拠点の街",
+     "pack": "pvr-20261119-gm-turkish-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-03-21",
+       "publisher": "Ready For Take-Off Book",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-readyfortakeoffbook-com-e60294d3",
+       "source_type": "third_party_reference",
+       "title": "Working at Turkish Airlines as a Pilot: Salary, Roster & Application (2026)",
+       "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/turkish-airlines"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Istanbul",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "turkish-airlines",
+     "cond_ja": "Istanbul Airport main hub base。補足: 【第三者】イスタンブール空港（IST）拠点。Ready For Take-Off Book（https://readyfortakeoffbook.com/blogs/pilot-conditions/turkish-airlines）およびv1prep（https://v1prep.com/turkish-airlines-pilot-requirements.html）とも一致。",
+     "currency": null,
+     "domain": "base",
+     "effective": {
+      "from": "2026-11-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Base location Türkiye flag Türkiye | Istanbul Base location icon IST - Istanbul",
+       "source_id": "src-pilotsglobal-com-05725308",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "72b7e17728fe4467",
+     "id": "turkish-airlines.base.pilot-base.d7dbf478",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "パイロットの拠点（空港）",
+     "pack": "pvr-20261119-gm-turkish-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-01",
+       "publisher": "PilotsGlobal",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pilotsglobal-com-05725308",
+       "source_type": "third_party_reference",
+       "title": "B777 Captain Turkish Airlines",
+       "url": "https://pilotsglobal.com/job/B777-captain-turkish_airlines-TR-68f11a252c"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "IST",
+     "value_text": null
+    }
+   ],
    "benefits": [
     {
      "amount": null,
@@ -142921,6 +162044,591 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "value_text": null
     }
    ],
+   "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "turkish-airlines",
+     "cond_ja": "past posting (2024-11-04): Expat Captain license & ICAO Level 4 English requirement。補足: 過去の公式募集（2024-11-04）：有効なDGCA/EASA/FAA/ICAO ATPL(A)およびICAO英語航空無線通信士レベル4以上。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-11-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Current ATPL(A) from DGCA / EASA / FAA / ICAO",
+       "source_id": "src-apply-turkishairlines-com-9d3afb3a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4fc6b6ff70a17964",
+     "id": "turkish-airlines.jobs.cap-license-cap.bf9863d4",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_license",
+     "label_ja": "機長の応募に要る免許",
+     "pack": "pvr-20261119-gm-turkish-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-11-04",
+       "publisher": "Turkish Airlines Application Portal",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-apply-turkishairlines-com-9d3afb3a",
+       "source_type": "job_posting",
+       "title": "Captain (Expat Pilots)",
+       "url": "https://apply.turkishairlines.com/KEPR6EBGUZJUWEL8AE2BHXXMKS.JOB"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Current ATPL(A) from DGCA / EASA / FAA / ICAO",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-19",
+     "company": "turkish-airlines",
+     "cond_ja": "not_found。補足: 2026-11-19時点で英語版（https://careers.turkishairlines.com/en-us/vacant-positions）およびトルコ語版（https://careers.turkishairlines.com/acik-pozisyonlar）ともにコックピット求人の掲載なし（v1prep 2026-11-15確認「No experienced-pilot campaign found in 2026」とも一致）。過去の公式募集（2024-11-04、https://apply.turkishairlines.com/KEPR6EBGUZJUWEL8AE2BHXXMKS.JOB）ではExpat Captainを募集。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "not_found",
+       "source_id": "src-careers-turkishairlines-com-1dad358b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b68a4c97ce7ae6a9",
+     "id": "turkish-airlines.jobs.cap-posting-cap.34960f9c",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_posting",
+     "label_ja": "機長の募集している職",
+     "pack": "pvr-20261119-gm-turkish-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Turkish Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-19",
+       "source_id": "src-careers-turkishairlines-com-1dad358b",
+       "source_type": "job_posting",
+       "title": "Açık Pozisyonlar / Vacant Positions",
+       "url": "https://careers.turkishairlines.com/acik-pozisyonlar"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "not_found",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "turkish-airlines",
+     "cond_ja": "past posting (2024-11-04): open to foreign/expat pilots holding ICAO/EASA/FAA/DGCA ATPL。補足: 過去の公式募集（2024-11-04）：外国籍（Expat）パイロット応募可。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-11-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CAPTAIN (Expat Pilots)",
+       "source_id": "src-apply-turkishairlines-com-9d3afb3a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7f780558e251e587",
+     "id": "turkish-airlines.jobs.cap-right-to-work-cap.895506ae",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_right_to_work",
+     "label_ja": "機長の国籍・就労の資格",
+     "pack": "pvr-20261119-gm-turkish-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-11-04",
+       "publisher": "Turkish Airlines Application Portal",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-apply-turkishairlines-com-9d3afb3a",
+       "source_type": "job_posting",
+       "title": "Captain (Expat Pilots)",
+       "url": "https://apply.turkishairlines.com/KEPR6EBGUZJUWEL8AE2BHXXMKS.JOB"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Expat Pilots",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "turkish-airlines",
+     "cond_ja": "past posting (2024-11-04): Expat Captain total flight hours requirement (or 4500 total hours with 3000 hours on narrow/wide body and 1500 PIC hours on the applied type)。補足: 過去の公式募集（2024-11-04）：総飛行時間5500時間以上（または総飛行時間4500時間以上かつ応募機種PIC 1500時間以上）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-11-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Minimum 5.500 total flight hours, Minimum 3.000 flight hours on airplanes over 27 tonnes MTOW, Minimum 1000 PIC flight hours on the applied aircraft type",
+       "source_id": "src-apply-turkishairlines-com-9d3afb3a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "64c96e8f9495f7f1",
+     "id": "turkish-airlines.jobs.cap-total-hours-cap.e929c4b8",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_total_hours",
+     "label_ja": "機長の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-turkish-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-11-04",
+       "publisher": "Turkish Airlines Application Portal",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-apply-turkishairlines-com-9d3afb3a",
+       "source_type": "job_posting",
+       "title": "Captain (Expat Pilots)",
+       "url": "https://apply.turkishairlines.com/KEPR6EBGUZJUWEL8AE2BHXXMKS.JOB"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 5500,
+     "value_text": "5.500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "turkish-airlines",
+     "cond_ja": "past posting (2024-11-04): Expat Captain valid type rating on applied aircraft type (B737/B777/B787/A320/A330/A350)。補足: 過去の公式募集（2024-11-04）：応募機種（B737/B777/B787/A320/A330/A350）の有効な型式限定証明が必須。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-11-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Applicants must have valid B737 type rating on their license and minimum 500 hours of B737 flight experience as PIC",
+       "source_id": "src-apply-turkishairlines-com-9d3afb3a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bdf3c63fc77f38cd",
+     "id": "turkish-airlines.jobs.cap-type-rating-cap.0a7cf8f1",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_type_rating",
+     "label_ja": "機長の型式限定の要否",
+     "pack": "pvr-20261119-gm-turkish-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-11-04",
+       "publisher": "Turkish Airlines Application Portal",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-apply-turkishairlines-com-9d3afb3a",
+       "source_type": "job_posting",
+       "title": "Captain (Expat Pilots)",
+       "url": "https://apply.turkishairlines.com/KEPR6EBGUZJUWEL8AE2BHXXMKS.JOB"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "valid B737 type rating",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "turkish-airlines",
+     "cond_ja": "past posting (2024-11-04): Expat First Officer license requirement。補足: 過去の公式募集（2024-11-04）：ATPL学科合格済みのCPL/IR(A)またはATPL(A)、およびICAO英語レベル4以上。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-11-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Current EASA/FAA/ICAO CPL/IR (A) with ATPL theoretical credit or ATPL (A) from SHGM/EASA/FAA/ICAO",
+       "source_id": "src-apply-turkishairlines-com-0a4b01f7",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "25133791789a4399",
+     "id": "turkish-airlines.jobs.fo-license-fo.661b0f9e",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261119-gm-turkish-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-11-04",
+       "publisher": "Turkish Airlines Application Portal",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-apply-turkishairlines-com-0a4b01f7",
+       "source_type": "job_posting",
+       "title": "First Officer (Expat Pilots)",
+       "url": "https://apply.turkishairlines.com/AWRDGXGV64DLYENF6HP2BFM6Q3.JOB"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "EASA/FAA/ICAO CPL/IR (A) with ATPL theoretical credit or ATPL (A)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-19",
+     "company": "turkish-airlines",
+     "cond_ja": "not_found。補足: 2026-11-19時点で英語版・トルコ語版ともに副操縦士求人の掲載なし。過去の公式募集（2024-11-04、https://apply.turkishairlines.com/AWRDGXGV64DLYENF6HP2BFM6Q3.JOB）ではExpat First Officerを募集。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "not_found",
+       "source_id": "src-careers-turkishairlines-com-1dad358b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ad15636bd2123c2d",
+     "id": "turkish-airlines.jobs.fo-posting-fo.a70569f9",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_posting",
+     "label_ja": "副操縦士の募集している職",
+     "pack": "pvr-20261119-gm-turkish-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Turkish Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-19",
+       "source_id": "src-careers-turkishairlines-com-1dad358b",
+       "source_type": "job_posting",
+       "title": "Açık Pozisyonlar / Vacant Positions",
+       "url": "https://careers.turkishairlines.com/acik-pozisyonlar"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "not_found",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "turkish-airlines",
+     "cond_ja": "past posting (2024-11-04): open to foreign/expat type-rated First Officers。補足: 過去の公式募集（2024-11-04）：型式限定保持の外国籍（Expat）副操縦士は応募可。一方、未経験訓練生（Take-Off Cadet、2025-01-02、https://apply.turkishairlines.com/PPES8BG5XNS9YNZERGZ22KDDQW.JOB）はトルコ市民またはMavi Kart保持者限定（「T.C. vatandaşı olmak veya mavi kart sahibi olmak」）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-11-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "FIRST OFFICER (Expat Pilots)",
+       "source_id": "src-apply-turkishairlines-com-0a4b01f7",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "07e327f572d02972",
+     "id": "turkish-airlines.jobs.fo-right-to-work-fo.7c2e3965",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261119-gm-turkish-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-11-04",
+       "publisher": "Turkish Airlines Application Portal",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-apply-turkishairlines-com-0a4b01f7",
+       "source_type": "job_posting",
+       "title": "First Officer (Expat Pilots)",
+       "url": "https://apply.turkishairlines.com/AWRDGXGV64DLYENF6HP2BFM6Q3.JOB"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Expat Pilots",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "turkish-airlines",
+     "cond_ja": "past posting (2024-11-04): Expat First Officer total flight hours requirement for EASA license holders on airplanes over 27t MTOW。補足: 過去の公式募集（2024-11-04）：最大離陸重量27トン超の航空機で1000時間以上（EASAライセンス保持者）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-11-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "For ICAO and FAA license holders: Minimum 1.500 flight hours on airplanes over 27 tonnes of MTOW, For EASA license holders: Minimum 1000 flight hours on airplanes over 27 tonnes of MTOW",
+       "source_id": "src-apply-turkishairlines-com-0a4b01f7",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ccceb7ef3e7ff2ef",
+     "id": "turkish-airlines.jobs.fo-total-hours-fo.299acbcd",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-turkish-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-11-04",
+       "publisher": "Turkish Airlines Application Portal",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-apply-turkishairlines-com-0a4b01f7",
+       "source_type": "job_posting",
+       "title": "First Officer (Expat Pilots)",
+       "url": "https://apply.turkishairlines.com/AWRDGXGV64DLYENF6HP2BFM6Q3.JOB"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1000,
+     "value_text": "1000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "turkish-airlines",
+     "cond_ja": "past posting (2024-11-04): Expat First Officer total flight hours requirement for ICAO/FAA license holders on airplanes over 27t MTOW。補足: 過去の公式募集（2024-11-04）：最大離陸重量27トン超の航空機で1500時間以上（ICAO/FAAライセンス保持者）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-11-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "For ICAO and FAA license holders: Minimum 1.500 flight hours on airplanes over 27 tonnes of MTOW, For EASA license holders: Minimum 1000 flight hours on airplanes over 27 tonnes of MTOW",
+       "source_id": "src-apply-turkishairlines-com-0a4b01f7",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "407f9734a63a53ac",
+     "id": "turkish-airlines.jobs.fo-total-hours-fo.6f7ef711",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-turkish-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-11-04",
+       "publisher": "Turkish Airlines Application Portal",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-apply-turkishairlines-com-0a4b01f7",
+       "source_type": "job_posting",
+       "title": "First Officer (Expat Pilots)",
+       "url": "https://apply.turkishairlines.com/AWRDGXGV64DLYENF6HP2BFM6Q3.JOB"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1500,
+     "value_text": "1.500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "turkish-airlines",
+     "cond_ja": "past posting (2024-11-04): Expat First Officer valid type rating & min 500 hours on applied type (A320/B737/A330/B777/B787/A350)。補足: 過去の公式募集（2024-11-04）：応募機種の有効な型式限定証明および当該機種で最低500時間の飛行経験が必須。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-11-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Applicants must have a valid type rating on the applied aircraft type (A320, B737, A330, B777, B787, A350) and minimum 500 flight hours on the applied aircraft type.",
+       "source_id": "src-apply-turkishairlines-com-0a4b01f7",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f0d65e09ff97d1e5",
+     "id": "turkish-airlines.jobs.fo-type-rating-fo.a3591105",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261119-gm-turkish-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-11-04",
+       "publisher": "Turkish Airlines Application Portal",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-apply-turkishairlines-com-0a4b01f7",
+       "source_type": "job_posting",
+       "title": "First Officer (Expat Pilots)",
+       "url": "https://apply.turkishairlines.com/AWRDGXGV64DLYENF6HP2BFM6Q3.JOB"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "valid type rating on the applied aircraft type",
+     "value_text": null
+    }
+   ],
    "profile": [
     {
      "amount": null,
@@ -143193,6 +162901,228 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": 8,
      "value_text": "8"
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "訓練費の拘束（額）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "turkish-airlines",
+     "cond_ja": "Cadets（訓練生）; Take-Off Cadet (II. Pilot Aday Adayı) Model-2 training cost repaid over 10 years via salary deductions。補足: トルコ航空公式トルコ語FAQ。訓練生（Take-Off Cadet）Model-2契約の訓練費用は120000 EURで、10年間の給与天引きにより返済。",
+     "currency": "EUR",
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "*Eğitim Sözleşmesi (Model-1)'i imzalayan adayların eğitim maliyeti 170.000 Euro, *Eğitim Sözleşmesi (Model-2)'yi imzalayan adayların eğitim maliyeti ise 120.000 Euro olarak belirlenmiştir, 10 yıl boyunca maaştan kesinti şeklinde geri ödenir.",
+       "source_id": "src-careers-turkishairlines-com-3526e0f3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d888e629d9ef9b1f",
+     "id": "turkish-airlines.work.training-bond.5e14354d",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "訓練費の拘束",
+     "pack": "pvr-20261119-gm-turkish-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Turkish Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-turkishairlines-com-3526e0f3",
+       "source_type": "official_package",
+       "title": "Sıkça Sorulan Sorular (FAQ)",
+       "url": "https://careers.turkishairlines.com/sikca-sorulan-sorular"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 120000,
+     "value_text": "120.000"
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "訓練費の拘束（額）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "turkish-airlines",
+     "cond_ja": "Cadets（訓練生）; Take-Off Cadet (II. Pilot Aday Adayı) Model-1 training cost repaid over 10 years via salary deductions。補足: トルコ航空公式トルコ語FAQ。訓練生（Take-Off Cadet）Model-1契約の訓練費用は170000 EURで、副操縦士着任後10年間の給与天引きにより返済。",
+     "currency": "EUR",
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "*Eğitim Sözleşmesi (Model-1)'i imzalayan adayların eğitim maliyeti 170.000 Euro, *Eğitim Sözleşmesi (Model-2)'yi imzalayan adayların eğitim maliyeti ise 120.000 Euro olarak belirlenmiştir, 10 yıl boyunca maaştan kesinti şeklinde geri ödenir.",
+       "source_id": "src-careers-turkishairlines-com-3526e0f3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b8aa28440d8e6ef2",
+     "id": "turkish-airlines.work.training-bond.c99f0400",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "訓練費の拘束",
+     "pack": "pvr-20261119-gm-turkish-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Turkish Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-turkishairlines-com-3526e0f3",
+       "source_type": "official_package",
+       "title": "Sıkça Sorulan Sorular (FAQ)",
+       "url": "https://careers.turkishairlines.com/sikca-sorulan-sorular"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 170000,
+     "value_text": "170.000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "turkish-airlines",
+     "cond_ja": "First Officer to Narrowbody Captain upgrade timeline。補足: 【第三者】副操縦士からナローボディ機長への昇格目安は8〜12年。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-03-21",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "First Officer to Narrowbody Captain: Approximately 8–12 years depending on fleet growth and seniority",
+       "source_id": "src-readyfortakeoffbook-com-e60294d3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0bf40b9a2f5488ec",
+     "id": "turkish-airlines.work.upgrade-years.ca961b1b",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-turkish-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-03-21",
+       "publisher": "Ready For Take-Off Book",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-readyfortakeoffbook-com-e60294d3",
+       "source_type": "third_party_reference",
+       "title": "Working at Turkish Airlines as a Pilot: Salary, Roster & Application (2026)",
+       "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/turkish-airlines"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "8–12",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "turkish-airlines",
+     "cond_ja": "Widebody Captain upgrade timeline。補足: 【第三者】ワイドボディ機長への昇格目安は12〜18年以上。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-03-21",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Widebody Captain: Typically 12–18+ years",
+       "source_id": "src-readyfortakeoffbook-com-e60294d3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "abae98f8f05c18c9",
+     "id": "turkish-airlines.work.upgrade-years.eaac4ebf",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-turkish-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-03-21",
+       "publisher": "Ready For Take-Off Book",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-readyfortakeoffbook-com-e60294d3",
+       "source_type": "third_party_reference",
+       "title": "Working at Turkish Airlines as a Pilot: Salary, Roster & Application (2026)",
+       "url": "https://readyfortakeoffbook.com/blogs/pilot-conditions/turkish-airlines"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "12–18",
+     "value_text": null
     }
    ]
   },
@@ -146036,6 +165966,1264 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "real-time bid feedback tied to seniority",
      "value_text": null
+    }
+   ]
+  },
+  "ups-airlines": {
+   "benefits": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "ups-airlines",
+     "cond_ja": "Commuter protection on UPS aircraft (\"brown tail\") or purchased commercial ticket (no pay protection; jumpseats reservable 12 days prior on first-come basis as Priority 7; passenger airline ID90 travel benefits)。補足: 【掲示板】Confirmed by 2+ posts (also Page 1 https://www.airlinepilotforums.com/ups/150630-ups-jumpseat-policies.html and https://www.reddit.com/r/UPSers/comments/1t1umhl/flight_benefits/ stating \"We get travel benefits on passenger airlines via ID90.\")。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-08-16",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "If you commute on a brown tail or a purchased ticket you are protected from punishment if you don't make it. Otherwise you are not. Other airline jumpseats don't protect you. ... What he said. Additionally, you are not pay protected. ... Can reserve 12 days prior. Based on when you reserve—not senio",
+       "source_id": "src-airlinepilotforums-com-e1fd6e93",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b2d00754aeb4d085",
+     "id": "ups-airlines.benefits.commuting.706306f0",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261119-gm-ups-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-08-16",
+       "publisher": "Airline Pilot Central Forums",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlinepilotforums-com-e1fd6e93",
+       "source_type": "community_reference",
+       "title": "UPS Jumpseat policies (Page 2)",
+       "url": "https://www.airlinepilotforums.com/ups/150630-ups-jumpseat-policies-2.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "If you commute on a brown tail or a purchased ticket you are protected from punishment if you don't make it.",
+     "value_text": null
+    }
+   ],
+   "fleet": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "ups-airlines",
+     "cond_ja": "Airbus A300-600, as of 2026-06-30。補足: UPS owned/operated fleet。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-06-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Airbus A300-600 52 — — —",
+       "source_id": "src-sec-gov-c22e352a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c16c358b0a8c273b",
+     "id": "ups-airlines.fleet.airbus-a300-600.4818affc",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "airbus_a300_600",
+     "label_ja": "機種ごとの機数（Airbus A300-600）",
+     "pack": "pvr-20261119-gm-ups-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-30",
+       "publisher": "United Parcel Service, Inc.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-sec-gov-c22e352a",
+       "source_type": "official_package",
+       "title": "Form 8-K Exhibit 99.2 (Q2 2026 Financial Statement Schedules)",
+       "url": "https://www.sec.gov/Archives/edgar/data/1090727/000162828026049912/exhibit992-financialstatem.htm"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 52,
+     "value_text": "600 52"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "ups-airlines",
+     "cond_ja": "Boeing 747-400BCF, as of 2026-06-30。補足: UPS owned/operated fleet。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-06-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 747-400BCF 2 — — —",
+       "source_id": "src-sec-gov-c22e352a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "10496c42a39048c1",
+     "id": "ups-airlines.fleet.boeing-747-400bcf.acbed920",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "boeing_747_400bcf",
+     "label_ja": "機種ごとの機数（Boeing 747-400BCF）",
+     "pack": "pvr-20261119-gm-ups-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-30",
+       "publisher": "United Parcel Service, Inc.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-sec-gov-c22e352a",
+       "source_type": "official_package",
+       "title": "Form 8-K Exhibit 99.2 (Q2 2026 Financial Statement Schedules)",
+       "url": "https://www.sec.gov/Archives/edgar/data/1090727/000162828026049912/exhibit992-financialstatem.htm"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 2,
+     "value_text": "2"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "ups-airlines",
+     "cond_ja": "Boeing 747-400F, as of 2026-06-30。補足: UPS owned/operated fleet。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-06-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 747-400F 11 — — —",
+       "source_id": "src-sec-gov-c22e352a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0a51fdd0f0d6ccc5",
+     "id": "ups-airlines.fleet.boeing-747-400f.37fea6b2",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "boeing_747_400f",
+     "label_ja": "機種ごとの機数（Boeing 747-400F）",
+     "pack": "pvr-20261119-gm-ups-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-30",
+       "publisher": "United Parcel Service, Inc.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-sec-gov-c22e352a",
+       "source_type": "official_package",
+       "title": "Form 8-K Exhibit 99.2 (Q2 2026 Financial Statement Schedules)",
+       "url": "https://www.sec.gov/Archives/edgar/data/1090727/000162828026049912/exhibit992-financialstatem.htm"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 11,
+     "value_text": "11"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "ups-airlines",
+     "cond_ja": "Boeing 747-8F, as of 2026-06-30。補足: UPS owned/operated fleet。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-06-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 747-8F 30 — — —",
+       "source_id": "src-sec-gov-c22e352a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a47155c30ba41a20",
+     "id": "ups-airlines.fleet.boeing-747-8f.4a2afed8",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "boeing_747_8f",
+     "label_ja": "機種ごとの機数（Boeing 747-8F）",
+     "pack": "pvr-20261119-gm-ups-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-30",
+       "publisher": "United Parcel Service, Inc.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-sec-gov-c22e352a",
+       "source_type": "official_package",
+       "title": "Form 8-K Exhibit 99.2 (Q2 2026 Financial Statement Schedules)",
+       "url": "https://www.sec.gov/Archives/edgar/data/1090727/000162828026049912/exhibit992-financialstatem.htm"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 30,
+     "value_text": "30"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "ups-airlines",
+     "cond_ja": "Boeing 757-200, as of 2026-06-30。補足: UPS owned/operated fleet。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-06-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 757-200 75 — — —",
+       "source_id": "src-sec-gov-c22e352a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "02f1d78ddeb93f3e",
+     "id": "ups-airlines.fleet.boeing-757-200.e9a76dcc",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "boeing_757_200",
+     "label_ja": "機種ごとの機数（Boeing 757-200）",
+     "pack": "pvr-20261119-gm-ups-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-30",
+       "publisher": "United Parcel Service, Inc.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-sec-gov-c22e352a",
+       "source_type": "official_package",
+       "title": "Form 8-K Exhibit 99.2 (Q2 2026 Financial Statement Schedules)",
+       "url": "https://www.sec.gov/Archives/edgar/data/1090727/000162828026049912/exhibit992-financialstatem.htm"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 75,
+     "value_text": "200 75"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "ups-airlines",
+     "cond_ja": "Boeing 767-300, as of 2026-06-30 (excludes 13 on order)。補足: UPS owned/operated fleet。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-06-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 767-300 94 — 13 —",
+       "source_id": "src-sec-gov-c22e352a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8554303b0fd41ef8",
+     "id": "ups-airlines.fleet.boeing-767-300.b6d9eb18",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "boeing_767_300",
+     "label_ja": "機種ごとの機数（Boeing 767-300）",
+     "pack": "pvr-20261119-gm-ups-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-30",
+       "publisher": "United Parcel Service, Inc.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-sec-gov-c22e352a",
+       "source_type": "official_package",
+       "title": "Form 8-K Exhibit 99.2 (Q2 2026 Financial Statement Schedules)",
+       "url": "https://www.sec.gov/Archives/edgar/data/1090727/000162828026049912/exhibit992-financialstatem.htm"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 94,
+     "value_text": "300 94"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "ups-airlines",
+     "cond_ja": "Boeing 767-300BCF, as of 2026-06-30。補足: UPS owned/operated fleet。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-06-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 767-300BCF 6 — — —",
+       "source_id": "src-sec-gov-c22e352a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4a36642aadbfb957",
+     "id": "ups-airlines.fleet.boeing-767-300bcf.3472b66c",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "boeing_767_300bcf",
+     "label_ja": "機種ごとの機数（Boeing 767-300BCF）",
+     "pack": "pvr-20261119-gm-ups-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-30",
+       "publisher": "United Parcel Service, Inc.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-sec-gov-c22e352a",
+       "source_type": "official_package",
+       "title": "Form 8-K Exhibit 99.2 (Q2 2026 Financial Statement Schedules)",
+       "url": "https://www.sec.gov/Archives/edgar/data/1090727/000162828026049912/exhibit992-financialstatem.htm"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 6,
+     "value_text": "6"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "ups-airlines",
+     "cond_ja": "Boeing 767-300BDSF, as of 2026-06-30。補足: UPS owned/operated fleet。",
+     "currency": null,
+     "domain": "fleet",
+     "effective": {
+      "from": "2026-06-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 767-300BDSF 4 — — —",
+       "source_id": "src-sec-gov-c22e352a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5ca190344f39e32f",
+     "id": "ups-airlines.fleet.boeing-767-300bdsf.15763676",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "boeing_767_300bdsf",
+     "label_ja": "機種ごとの機数（Boeing 767-300BDSF）",
+     "pack": "pvr-20261119-gm-ups-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-30",
+       "publisher": "United Parcel Service, Inc.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-sec-gov-c22e352a",
+       "source_type": "official_package",
+       "title": "Form 8-K Exhibit 99.2 (Q2 2026 Financial Statement Schedules)",
+       "url": "https://www.sec.gov/Archives/edgar/data/1090727/000162828026049912/exhibit992-financialstatem.htm"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 4,
+     "value_text": "4"
+    }
+   ],
+   "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "ups-airlines",
+     "cond_ja": "Flight Qualified Leader license requirements (plus current FAA First Class Medical Certificate and FCC Restricted Radiotelephone Operator Permit)。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-11-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Current unrestricted ATP certificate with an airplane category multi-engine class rating and English proficiency endorsement",
+       "source_id": "src-jobs-ups-com-82e7e99e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3ce3df0f9e4af7ac",
+     "id": "ups-airlines.jobs.cap-license-cap.7f082de5",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_license",
+     "label_ja": "機長の応募に要る免許",
+     "pack": "pvr-20261119-gm-ups-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-18",
+       "publisher": "UPS Jobs",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jobs-ups-com-82e7e99e",
+       "source_type": "job_posting",
+       "title": "Flight Qualified Leader (R26035312)",
+       "url": "https://www.jobs-ups.com/us/en/job/UPBUPSGLOBALR26035312EXTERNALENUS/Flight-Qualified-Leader-Assistant-Chief-Pilot-Check-Airman-Daily-Operations-Training"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Current unrestricted ATP certificate with an airplane category multi-engine class rating and English proficiency endorsement",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "ups-airlines",
+     "cond_ja": "Job ID: R26035312, 911 Grade Lane, Louisville, KY 40213 (open as of 2026-11-18; certifies as Flight Qualified Captain or First Officer on B747, B757/B767, or A300)。補足: Management/Check Captain posting; line Captains are upgraded internally by seniority。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-11-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Flight Qualified Leader (Assistant Chief Pilot, Check Airman, Daily Operations, Training)",
+       "source_id": "src-jobs-ups-com-82e7e99e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1ecd3f9c59c04cd8",
+     "id": "ups-airlines.jobs.cap-posting-cap.046fef2e",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_posting",
+     "label_ja": "機長の募集している職",
+     "pack": "pvr-20261119-gm-ups-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-18",
+       "publisher": "UPS Jobs",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jobs-ups-com-82e7e99e",
+       "source_type": "job_posting",
+       "title": "Flight Qualified Leader (R26035312)",
+       "url": "https://www.jobs-ups.com/us/en/job/UPBUPSGLOBALR26035312EXTERNALENUS/Flight-Qualified-Leader-Assistant-Chief-Pilot-Check-Airman-Daily-Operations-Training"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Flight Qualified Leader (Assistant Chief Pilot, Check Airman, Daily Operations, Training)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "ups-airlines",
+     "cond_ja": "U.S. Citizen or National, lawful permanent resident, or alien authorized to work in the U.S.",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-11-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Authorization to work in the U.S. ... Basic Qualifications: Must be a U.S. Citizen or National of the U.S., an alien lawfully admitted for permanent residence, or an alien authorized to work in the U.S. for this employer.",
+       "source_id": "src-jobs-ups-com-82e7e99e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "70e034c0ab0cf96a",
+     "id": "ups-airlines.jobs.cap-right-to-work-cap.b6754324",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_right_to_work",
+     "label_ja": "機長の国籍・就労の資格",
+     "pack": "pvr-20261119-gm-ups-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-18",
+       "publisher": "UPS Jobs",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jobs-ups-com-82e7e99e",
+       "source_type": "job_posting",
+       "title": "Flight Qualified Leader (R26035312)",
+       "url": "https://www.jobs-ups.com/us/en/job/UPBUPSGLOBALR26035312EXTERNALENUS/Flight-Qualified-Leader-Assistant-Chief-Pilot-Check-Airman-Daily-Operations-Training"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Authorization to work in the U.S.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "ups-airlines",
+     "cond_ja": "minimum total flight hours for Flight Qualified Leader (plus minimum 1,000 hours PIC in fixed-wing jet and/or fixed-wing multi-engine turboprop)。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-11-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Must have a minimum of 4,000 total flight hours Minimum of 1,000 hours Pilot in Command (PIC) hours in fixed-wing jet and/or fixed-wing multi-engine turboprop per 14 CFR §1.1 and 14 CFR §121.436",
+       "source_id": "src-jobs-ups-com-82e7e99e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cd790cd93a1273f9",
+     "id": "ups-airlines.jobs.cap-total-hours-cap.4c73854d",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_total_hours",
+     "label_ja": "機長の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-ups-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-18",
+       "publisher": "UPS Jobs",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jobs-ups-com-82e7e99e",
+       "source_type": "job_posting",
+       "title": "Flight Qualified Leader (R26035312)",
+       "url": "https://www.jobs-ups.com/us/en/job/UPBUPSGLOBALR26035312EXTERNALENUS/Flight-Qualified-Leader-Assistant-Chief-Pilot-Check-Airman-Daily-Operations-Training"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 4000,
+     "value_text": "4,000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-18",
+     "company": "ups-airlines",
+     "cond_ja": "Flight Qualified Leader entry (certified on B747, B757/B767, or A300 after hire)。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-11-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Join them and you'll certify as a Flight Qualified Captain or First Officer, depending on experience, on one of the UPS aircraft fleet types (B747, B757/B767, or A300), where you'll be assigned a position based on your experience, qualifications, and available openings.",
+       "source_id": "src-jobs-ups-com-82e7e99e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "03da32f9e1992e53",
+     "id": "ups-airlines.jobs.cap-type-rating-cap.f6764df7",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "cap_type_rating",
+     "label_ja": "機長の型式限定の要否",
+     "pack": "pvr-20261119-gm-ups-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-18",
+       "publisher": "UPS Jobs",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jobs-ups-com-82e7e99e",
+       "source_type": "job_posting",
+       "title": "Flight Qualified Leader (R26035312)",
+       "url": "https://www.jobs-ups.com/us/en/job/UPBUPSGLOBALR26035312EXTERNALENUS/Flight-Qualified-Leader-Assistant-Chief-Pilot-Check-Airman-Daily-Operations-Training"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Join them and you'll certify as a Flight Qualified Captain or First Officer, depending on experience, on one of the UPS aircraft fleet types (B747, B757/B767, or A300)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "ups-airlines",
+     "cond_ja": "First Officer license requirements。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-11-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Hold a current unrestricted ATP certificate with an Airplane category multi-engine class rating and English proficiency endorsement. Hold a current FAA First Class Medical Certificate. Hold an FCC Restricted Radiotelephone Operator Permit.",
+       "source_id": "src-jobs-ups-com-8a2e0e1e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7a5ddc2cbee48cc9",
+     "id": "ups-airlines.jobs.fo-license-fo.8f709d48",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_license",
+     "label_ja": "副操縦士の応募に要る免許",
+     "pack": "pvr-20261119-gm-ups-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-18",
+       "publisher": "UPS Jobs",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jobs-ups-com-8a2e0e1e",
+       "source_type": "job_posting",
+       "title": "First Officer (R26031861)",
+       "url": "https://www.jobs-ups.com/us/en/job/UPBUPSGLOBALR26031861EXTERNALENUS/First-Officer"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Hold a current unrestricted ATP certificate with an Airplane category multi-engine class rating and English proficiency endorsement. Hold a current FAA First Class Medical Certificate. Hold an FCC Restricted Radiotelephone Operator Permit.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "ups-airlines",
+     "cond_ja": "Job ID: R26031861, 911 Grade Lane, Louisville, KY 40213 (open as of 2026-11-18)。補足: Active line First Officer posting。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-11-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "First Officer in 911 GRADE LANE, LOUISVILLE, KY 40213, United States of America",
+       "source_id": "src-jobs-ups-com-8a2e0e1e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bd45e30c834ab4a6",
+     "id": "ups-airlines.jobs.fo-posting-fo.7a562a52",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_posting",
+     "label_ja": "副操縦士の募集している職",
+     "pack": "pvr-20261119-gm-ups-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-18",
+       "publisher": "UPS Jobs",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jobs-ups-com-8a2e0e1e",
+       "source_type": "job_posting",
+       "title": "First Officer (R26031861)",
+       "url": "https://www.jobs-ups.com/us/en/job/UPBUPSGLOBALR26031861EXTERNALENUS/First-Officer"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "First Officer",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "ups-airlines",
+     "cond_ja": "U.S. Citizen or National, lawful permanent resident, or alien authorized to work in the U.S. (valid passport authorizing unrestricted entry/exit required)。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-11-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Must be authorized to work in the U.S. Sponsorship is not available for this position. ... Basic Qualifications: Must be a U.S. Citizen or National of the U.S., an alien lawfully admitted for permanent residence, or an alien authorized to work in the U.S. for this employer.",
+       "source_id": "src-jobs-ups-com-8a2e0e1e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2f0ca7bc49a26464",
+     "id": "ups-airlines.jobs.fo-right-to-work-fo.2f175ff8",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_right_to_work",
+     "label_ja": "副操縦士の国籍・就労の資格",
+     "pack": "pvr-20261119-gm-ups-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-18",
+       "publisher": "UPS Jobs",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jobs-ups-com-8a2e0e1e",
+       "source_type": "job_posting",
+       "title": "First Officer (R26031861)",
+       "url": "https://www.jobs-ups.com/us/en/job/UPBUPSGLOBALR26031861EXTERNALENUS/First-Officer"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Must be authorized to work in the U.S. Sponsorship is not available for this position.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "ups-airlines",
+     "cond_ja": "minimum total fixed-wing pilot time (plus minimum 1000 hours PIC in fixed-wing jet and/or fixed-wing multi-engine turboprop per 14 CFR 1.1)。補足: Military conversion factor of +0.3 hours per sortie applies。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-11-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Have a minimum of 1500 hours of total fixed-wing pilot time. Minimum of 1000 hours Pilot in Command (PIC) hours in fixed-wing jet and/or fixed-wing multi-engine turboprop per 14 CFR 1.1.",
+       "source_id": "src-jobs-ups-com-8a2e0e1e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "170c08d1d4dd8841",
+     "id": "ups-airlines.jobs.fo-total-hours-fo.7f5a27e7",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_total_hours",
+     "label_ja": "副操縦士の応募に要る総飛行時間",
+     "pack": "pvr-20261119-gm-ups-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-18",
+       "publisher": "UPS Jobs",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jobs-ups-com-8a2e0e1e",
+       "source_type": "job_posting",
+       "title": "First Officer (R26031861)",
+       "url": "https://www.jobs-ups.com/us/en/job/UPBUPSGLOBALR26031861EXTERNALENUS/First-Officer"
+      }
+     ],
+     "unit": "hours",
+     "use": "募集",
+     "value": 1500,
+     "value_text": "1500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "ups-airlines",
+     "cond_ja": "First Officer entry (type rating on UPS fleet types B747, B757/B767, or A300 provided after hire)。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-11-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Holds the appropriate category, class, and type rating, if appropriate, for the conduct of the flight.",
+       "source_id": "src-jobs-ups-com-8a2e0e1e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "61c55044172cf5bc",
+     "id": "ups-airlines.jobs.fo-type-rating-fo.64ac4cb3",
+     "imported_on": "2026-11-19",
+     "info_kind": "recruitment_condition",
+     "key": "fo_type_rating",
+     "label_ja": "副操縦士の型式限定の要否",
+     "pack": "pvr-20261119-gm-ups-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-18",
+       "publisher": "UPS Jobs",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-jobs-ups-com-8a2e0e1e",
+       "source_type": "job_posting",
+       "title": "First Officer (R26031861)",
+       "url": "https://www.jobs-ups.com/us/en/job/UPBUPSGLOBALR26031861EXTERNALENUS/First-Officer"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Holds the appropriate category, class, and type rating, if appropriate, for the conduct of the flight.",
+     "value_text": null
+    }
+   ],
+   "profile": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "ups-airlines",
+     "cond_ja": "launch of UPS Airlines subsidiary。補足: 【Wikipedia】Parent company United Parcel Service, Inc. was founded in 1907 (confirmed in 2025 Form 10-K https://investors.ups.com/sec-filings/all-sec-filings/content/0001628280-26-008432/0001628280-26-008432.pdf: \"UPS, founded in 1907, is a global package delivery and logistics provider.\")。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": "2026-10-28",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "It has been a wholly owned subsidiary of United Parcel Service since its launch in 1988.",
+       "source_id": "src-en-wikipedia-org-14c9dcc7",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e937f5b8639f30a8",
+     "id": "ups-airlines.profile.founded.e86a8e8f",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "founded",
+     "label_ja": "設立",
+     "pack": "pvr-20261119-gm-ups-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-28",
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-en-wikipedia-org-14c9dcc7",
+       "source_type": "third_party_reference",
+       "title": "UPS Airlines",
+       "url": "https://en.wikipedia.org/wiki/UPS_Airlines"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "1988",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "ups-airlines",
+     "cond_ja": "Global air operations hub / Worldport (Louisville, KY)。補足: Corroborated by https://en.wikipedia.org/wiki/UPS_Airlines (\"UPS Airlines is a major American cargo airline based in Louisville, Kentucky.\")。",
+     "currency": null,
+     "domain": "profile",
+     "effective": {
+      "from": "2026-02-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Our global air operations hub is located in Louisville, Kentucky, and is supported by air hubs across the United States (\"U.S.\") and internationally.",
+       "source_id": "src-investors-ups-com-9d836dea",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5905f022a58cbf1c",
+     "id": "ups-airlines.profile.headquarters-city.7532f263",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "headquarters_city",
+     "label_ja": "本社の都市",
+     "pack": "pvr-20261119-gm-ups-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-02-17",
+       "publisher": "United Parcel Service, Inc.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-investors-ups-com-9d836dea",
+       "source_type": "regulatory_filing",
+       "title": "2025 Form 10-K",
+       "url": "https://investors.ups.com/sec-filings/all-sec-filings/content/0001628280-26-008432/0001628280-26-008432.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Louisville",
+     "value_text": null
+    }
+   ],
+   "scale": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "company": "ups-airlines",
+     "cond_ja": "as of 2026-06-30, UPS owned and operated aircraft (excluding 213 chartered/leased aircraft and 13 on order)。補足: 2025 Form 10-K (https://investors.ups.com/sec-filings/all-sec-filings/content/0001628280-26-008432/0001628280-26-008432.pdf, p. 20) reported 295 owned/operated aircraft as of December 31, 2025 following the Q4 2025 retirement of the MD-11 fleet。",
+     "currency": null,
+     "domain": "scale",
+     "effective": {
+      "from": "2026-06-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "United Parcel Service, Inc. Aircraft Fleet - As of June 30, 2026 (unaudited) ... Total 274 213 13 —",
+       "source_id": "src-sec-gov-c22e352a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "083495a547ab914b",
+     "id": "ups-airlines.scale.fleet-total.a6ca181d",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "fleet_total",
+     "label_ja": "運航している機材",
+     "pack": "pvr-20261119-gm-ups-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-30",
+       "publisher": "United Parcel Service, Inc.",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-sec-gov-c22e352a",
+       "source_type": "official_package",
+       "title": "Form 8-K Exhibit 99.2 (Q2 2026 Financial Statement Schedules)",
+       "url": "https://www.sec.gov/Archives/edgar/data/1090727/000162828026049912/exhibit992-financialstatem.htm"
+      }
+     ],
+     "unit": "機",
+     "use": "条件つき",
+     "value": 274,
+     "value_text": "274 213 13"
+    }
+   ],
+   "work": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "ups-airlines",
+     "cond_ja": "new-hire aircraft seat lock from Day 1 of indoc (no monetary training repayment bond; base transfers within same aircraft type are not locked)。補足: 【掲示板】Confirmed by 2+ posts (also https://www.airlinepilotforums.com/ups/120119-regarding-aircraft-assignment.html stating \"Initial seat lock is 18 months. ... Training is free.\")。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-10-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Seat lock vs. base transfer. The new-hire seat lock is 18 months from Day 1 of indoc, so \"two years before you can even think about another aircraft\" isn't accurate. Your actual timing depends on when the next bid opens after the 18 months. Important distinction: a base transfer is not part of the s",
+       "source_id": "src-airlinepilotforums-com-c94d8c2a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7aa4c2bbc74aff8a",
+     "id": "ups-airlines.work.training-bond.dabe0c87",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "訓練費の拘束",
+     "pack": "pvr-20261119-gm-ups-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-30",
+       "publisher": "Airline Pilot Central Forums",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-airlinepilotforums-com-c94d8c2a",
+       "source_type": "community_reference",
+       "title": "UPS 2026 Hiring Info (Post 353)",
+       "url": "https://www.airlinepilotforums.com/4077432-post353.html"
+      }
+     ],
+     "unit": "months",
+     "use": "条件つき",
+     "value": 18,
+     "value_text": "18"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "ups-airlines",
+     "cond_ja": "current Captain upgrade timeline (6 to 8 years to first available upgrade award)。補足: 【掲示板】Confirmed by 2+ posts in thread (\"I've seen 6-7 years\") and APC Forums (https://www.airlinepilotforums.com/ups/147345-july-class-8.html, 2024-07-31: \"6-8 years to first available upgrade award.\")。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2025-06-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Current upgrades are right around 6 years but, I think the ball will move further and further down.",
+       "source_id": "src-reddit-com-f9301f05",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6dbb2a6bc7d6398b",
+     "id": "ups-airlines.work.upgrade-years.90adbee5",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-ups-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-06-11",
+       "publisher": "Reddit r/flying",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-reddit-com-f9301f05",
+       "source_type": "community_reference",
+       "title": "Long-time corporate pilot... should I look at UPS?",
+       "url": "https://www.reddit.com/r/flying/comments/1l8qr9u/longtime_corporate_pilot_should_i_look_at_ups/"
+      }
+     ],
+     "unit": "years",
+     "use": "条件つき",
+     "value": 6,
+     "value_text": "6"
     }
    ]
   },
@@ -153705,6 +174893,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "westjet",
+     "cond_ja": "Official pilot careers standby and jump seat travel privileges。補足: 公式パイロット採用ページにてWestJetグループ便での非セニョリティ順スタンバイ搭乗および他社とのジャンプシート協定を明記。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Non-seniority based standby travel privileges with the WestJet Group, including jump seat agreements with other airlines.",
+       "source_id": "src-westjet-com-5234c7a9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8f5115747c59424f",
+     "id": "westjet.benefits.commuting.473fc047",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261119-gm-westjet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "WestJet",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-westjet-com-5234c7a9",
+       "source_type": "official_package",
+       "title": "Pilot Careers",
+       "url": "https://www.westjet.com/en-us/careers/pilot"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Non-seniority based standby travel privileges with the WestJet Group, including jump seat agreements with other airlines.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "westjet",
+     "cond_ja": "WestJet Pilot Briefing Guide (Page 10: Base and Commuting) — active pilots in uniform get first standby access to the Jump Seat; unlimited $0 base-fare standby travel within 10 days of start date。補足: 【写し】WestJet社内採用ブリーフィング資料（WestJet Pilot Briefing Guide）の写し。制服着用の現役パイロットは客室満席時にジャンプシート最優先アクセス権あり、入社10日以内から基本運賃0ドルの自社便無制限スタンバイ搭乗が可能。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2024-08-28",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "• All Pairings begin and end in the Pilot's assigned base • Pilots who choose to commute are expected to show up for work on time, rested and fit for duty • Costs associated with commuting, such as accommodations and meals, are the responsibility of the commuter • Active Pilots in uniform will be af",
+       "source_id": "src-scribd-com-1108c0ff",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2a4e7bfc836d79ae",
+     "id": "westjet.benefits.commuting.5bfd713e",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261119-gm-westjet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-08-28",
+       "publisher": "Scribd",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-scribd-com-1108c0ff",
+       "source_type": "third_party_reference",
+       "title": "WestJet Pilot Briefing Guide",
+       "url": "https://www.scribd.com/document/763591254/WestJet-Pilot-Briefing-Guide-6"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Costs associated with commuting, such as accommodations and meals, are the responsibility of the commuter",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "westjet",
+     "cond_ja": "WestJet Pilot Briefing Guide (Page 14: Additional Notes) — company-paid parking at Home Base or alternative Domicile Airport of choice (capped at Home Base monthly cost)。補足: 【写し】WestJet Pilot Briefing Guide 14ページ。所属基地または希望する居住地空港の駐車場を会社負担で提供（居住地空港の場合は所属基地の月額駐車料金が上限）。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2024-08-28",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "WestJet shall provide parking to a Pilot at their Base or Domicile Airport of their choice while in the performance of their required duties. The cost of such alternative parking shall not exceed the Company's monthly cost of providing parking at the Pilots Home Base. Parking is a taxable benefit.",
+       "source_id": "src-scribd-com-1108c0ff",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "aeeb370eb2ac9489",
+     "id": "westjet.benefits.commuting.e9d76ca2",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "commuting",
+     "label_ja": "通勤の手当・送迎",
+     "pack": "pvr-20261119-gm-westjet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-08-28",
+       "publisher": "Scribd",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-scribd-com-1108c0ff",
+       "source_type": "third_party_reference",
+       "title": "WestJet Pilot Briefing Guide",
+       "url": "https://www.scribd.com/document/763591254/WestJet-Pilot-Briefing-Guide-6"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "WestJet shall provide parking to a Pilot at their Base or Domicile Airport of their choice while in the performance of their required duties.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true,
       "rank": "crew"
@@ -154699,6 +176040,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "non-seniority scheduling bids",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "westjet",
+     "cond_ja": "Official pilot careers seniority-based upgrade policy。補足: 公式採用ページにてWestJetグループ内の機種移行および機長昇格はセニョリティ（勤続序列）順で行われる旨を明記。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Once you have been hired into the WestJet Group, fleet movement and upgrades are honored based on seniority.",
+       "source_id": "src-westjet-com-5234c7a9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1392c7ba2c0afe18",
+     "id": "westjet.work.upgrade-years.672d6dbe",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-westjet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "WestJet",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-westjet-com-5234c7a9",
+       "source_type": "official_package",
+       "title": "Pilot Careers",
+       "url": "https://www.westjet.com/en-us/careers/pilot"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "Once you have been hired into the WestJet Group, fleet movement and upgrades are honored based on seniority.",
+     "value_text": null
     }
    ]
   },
@@ -154983,6 +176375,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "勤務期間中は会社方針に従う日当を提供",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-18",
+     "company": "wizz-air",
+     "cond_ja": "全社員の制度（社員向け無制限の座席確約1区間25/50/75 EUR固定運賃、勤続年数に応じた無料ボーナス航空券、年間最大5名のTravel Partnerに対するWizz Discount Club運賃25%割引）。補足: 【写し】Scribdに公開されたWizz Air公式パイロット採用パンフレット（2026年版）のEmployee Travel Benefits規定。",
+     "currency": null,
+     "domain": "benefits",
+     "effective": {
+      "from": "2025-11-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BONUS TICKETS (FREE OF CHARGE) BASED ON YEARS OF SERVICE UNLIMITED WITH A FIXED PRICE OF 25€/50€/75€ PER SEGMENT (ALL INCLUSIVE) FOR EMPLOYEES, EXCEPT IN BLACK OUT PERIOD WITH SEAT CONFIRMED TICKET PRICE FOR TRAVEL PARTNERS IS 25% OFF THE WIZZ DISCOUNT CLUB FARE UP TO 5 TRAVEL PARTNERS MAY BE NOMINA",
+       "source_id": "src-scribd-com-9b4b8de3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "02f1e829ab3bb7fa",
+     "id": "wizz-air.benefits.staff-travel.69567465",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "staff_travel",
+     "label_ja": "社員の航空券",
+     "pack": "pvr-20261119-gm-wizz-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-11-01",
+       "publisher": "Scribd",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-scribd-com-9b4b8de3",
+       "source_type": "third_party_reference",
+       "title": "Wizz Air Pilot Information Package 2026 (Wizz Brochure 2026 April Flight Crew)",
+       "url": "https://www.scribd.com/document/1056756128/Wizz-Brochure-2026-April-Flight-Crew"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "UNLIMITED WITH A FIXED PRICE OF 25€/50€/75€ PER SEGMENT (ALL INCLUSIVE) FOR EMPLOYEES, EXCEPT IN BLACK OUT PERIOD WITH SEAT CONFIRMED",
      "value_text": null
     }
    ],
@@ -155473,6 +176916,280 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": "LGW/LTNに5/4、flexible local、Captain14on/14offを案内",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "wizz-air",
+     "cond_ja": "Wizz Air UK A320 Non-Type Ratedパイロットの訓練ボンド額（総訓練費用35K EURのうち20K EURを36か月拘束、36か月勤務後に50%をロイヤルティボーナスとして支給）。補足: 【掲示板】同一スレッド（https://www.pprune.org/terms-endearment/642354-wizzair-45.html）でMax Coaxialおよびenzinoの2名がWizz Air UKの20kボンドと36か月条件を証言。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2024-08-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Re Bonding A320 at Wizzair UK : the T&C bonding is mentioned as: Bond amount €20K Total cost: €35K",
+       "source_id": "src-pprune-org-02abd5a8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "78761cc95f49cb75",
+     "id": "wizz-air.work.training-bond-fo.23bc2e24",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "副操縦士の訓練費の拘束",
+     "pack": "pvr-20261119-gm-wizz-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-08-17",
+       "publisher": "PPRuNe Forums",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pprune-org-02abd5a8",
+       "source_type": "community_reference",
+       "title": "Wizzair (Page 45)",
+       "url": "https://www.pprune.org/terms-endearment/642354-wizzair-45.html"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": "20K",
+     "value_text": null
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "訓練費の拘束（額）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "wizz-air",
+     "cond_ja": "Wizz AirグループWAPA（Pathway）訓練ボンド額（総費用40,000 EUR、拘束5年、月額415 EUR給与控除）。補足: Wizz Air公式採用サイトのWAPA訓練ボンド規定（Rishworth Aviation資料 https://www.scribd.com/document/709179285/Wizz-Air-Captain ではType Ratingボンド15,000 EUR・3年・月415 EUR控除）。",
+     "currency": "EUR",
+     "domain": "work",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Total cost Bond amount Bond duration Bond deduction 40,000 EUR 25,000 EUR 5 years 415 EUR / month",
+       "source_id": "src-careers-wizzair-com-e4b007f7",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "36d9446d2803ea0d",
+     "id": "wizz-air.work.training-bond-fo.26182338",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "副操縦士の訓練費の拘束",
+     "pack": "pvr-20261119-gm-wizz-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Wizz Air Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-careers-wizzair-com-e4b007f7",
+       "source_type": "official_package",
+       "title": "WAPA Brochure",
+       "url": "https://careers.wizzair.com/content/WAPA_Brochure/?locale=en_US"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": 25000,
+     "value_text": "25,000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "wizz-air",
+     "cond_ja": "Wizz Air UK A320訓練ボンドの拘束および50%ロイヤルティボーナス支給期間。補足: 【掲示板】同一スレッド（https://www.pprune.org/terms-endearment/642354-wizzair-45.html）でMax Coaxialおよびenzinoの2名が証言。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2024-08-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "20k. And you should get 50% of that amount as a gross loyalty bonus after 36 months in the company.",
+       "source_id": "src-pprune-org-02abd5a8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "15b65c393d894062",
+     "id": "wizz-air.work.training-bond-fo.48a1f478",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "training_bond",
+     "label_ja": "副操縦士の訓練費の拘束",
+     "pack": "pvr-20261119-gm-wizz-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-08-17",
+       "publisher": "PPRuNe Forums",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-pprune-org-02abd5a8",
+       "source_type": "community_reference",
+       "title": "Wizzair (Page 45)",
+       "url": "https://www.pprune.org/terms-endearment/642354-wizzair-45.html"
+      }
+     ],
+     "unit": "months",
+     "use": "条件つき",
+     "value": 36,
+     "value_text": "36"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "wizz-air",
+     "cond_ja": "ファクター換算飛行時間3,500時間超の経験者First Officerが機長昇格申請可能となる雇用期間。補足: 【第三者】Wizz Air UKのパイロット求人票。PPRuNe（https://www.pprune.org/terms-endearment/642354-wizzair-52.html）でも現役パイロットpedrothepilotが「upgrade within 6-12 months is a reality」と証言。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-01-15",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Experienced First Officers with over 3,500 factorised hours are eligible to apply for command upgrade within 12 months of employment. This timeframe reduces to 6 months for First Officers with prior Airbus Fly-By-Wire experience.",
+       "source_id": "src-skybound-jobs-650c96b7",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "671bc97bd55e515f",
+     "id": "wizz-air.work.upgrade-years-fo.b692bc3f",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "副操縦士の機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-wizz-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-15",
+       "publisher": "SkyBound.Jobs",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-skybound-jobs-650c96b7",
+       "source_type": "third_party_reference",
+       "title": "Wizz Air UK A320 Pilot",
+       "url": "https://skybound.jobs/jobs/Wizz-Air-UK-A320-Pilot-56829"
+      }
+     ],
+     "unit": "months",
+     "use": "条件つき",
+     "value": 12,
+     "value_text": "12"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-18",
+     "company": "wizz-air",
+     "cond_ja": "Airbus Fly-By-Wire経験および3,500ファクター時間超を持つFirst Officerが機長昇格申請可能となる最短雇用期間。補足: 【第三者】FCIのWizz Air UK求人票（https://fci.aero/jobs/a320-tr-ntr-first-officers-uk-nationals-wizz-air-immediate-assessments-373113/）およびPPRuNe（https://www.pprune.org/terms-endearment/642354-wizzair-52.html）と一致。",
+     "currency": null,
+     "domain": "work",
+     "effective": {
+      "from": "2026-01-15",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Experienced First Officers with over 3,500 factorised hours are eligible to apply for command upgrade within 12 months of employment. This timeframe reduces to 6 months for First Officers with prior Airbus Fly-By-Wire experience.",
+       "source_id": "src-skybound-jobs-650c96b7",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7d0acd2bcfd459bd",
+     "id": "wizz-air.work.upgrade-years-fo.bb4a14f0",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_policy",
+     "key": "upgrade_years",
+     "label_ja": "副操縦士の機長昇格までの年数の目安",
+     "pack": "pvr-20261119-gm-wizz-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-15",
+       "publisher": "SkyBound.Jobs",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-skybound-jobs-650c96b7",
+       "source_type": "third_party_reference",
+       "title": "Wizz Air UK A320 Pilot",
+       "url": "https://skybound.jobs/jobs/Wizz-Air-UK-A320-Pilot-56829"
+      }
+     ],
+     "unit": "months",
+     "use": "条件つき",
+     "value": 6,
+     "value_text": "6"
     }
    ]
   },
@@ -210856,6 +232573,118 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": 17,
      "value_text": "17"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Amsterdam",
+      "note_ja": "街「Amsterdam」は取り込み済みの台帳（research-ledger.mjs の CITY_OF）の街のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "amsterdam",
+     "company": "klm",
+     "cond_ja": "Amsterdam Zuid → Schiphol Airport (AMS)。手段: train, NS。補足: オランダ国鉄（NS）公式ルート情報。アムステルダム南駅（Zuid）からスキポール空港駅まで最速6分。",
+     "currency": null,
+     "district": "Amsterdam Zuid → Schiphol Airport (AMS)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The fastest train from Amsterdam Zuid to Schiphol Airport takes 6 minutes.",
+       "source_id": "src-ns-nl-3bd62390",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f406c2c0f9b7cee7",
+     "id": "klm.living.commute.5c3f61f9",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Amsterdam Zuid → Schiphol Airport）",
+     "pack": "pvr-20261119-gm-klm",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "NS (Nederlandse Spoorwegen)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-ns-nl-3bd62390",
+       "source_type": "official_package",
+       "title": "Train Amsterdam Zuid to Schiphol Airport",
+       "url": "https://www.ns.nl/en/routes/amsterdam-zuid-to-schiphol-airport"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 6,
+     "value_text": "6"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Amsterdam",
+      "note_ja": "街「Amsterdam」は取り込み済みの台帳（research-ledger.mjs の CITY_OF）の街のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "amsterdam",
+     "company": "klm",
+     "cond_ja": "Amsterdam Central Station → Schiphol Airport (AMS)。手段: train, NS。補足: スキポール空港公式ページ。アムステルダム中央駅からスキポール空港まで電車で17分。",
+     "currency": null,
+     "district": "Amsterdam Central Station → Schiphol Airport (AMS)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Take the train from Amsterdam CS to Schiphol and reach the heart of the airport in 17 minutes.",
+       "source_id": "src-schiphol-nl-2691332d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5b7ddb5210090150",
+     "id": "klm.living.commute.75a9f8c1",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Amsterdam Central Station → Schiphol Airport）",
+     "pack": "pvr-20261119-gm-klm",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Amsterdam Airport Schiphol",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-schiphol-nl-2691332d",
+       "source_type": "official_package",
+       "title": "Train from and to Schiphol",
+       "url": "https://www.schiphol.nl/en/from-to-schiphol/by-public-transport/train/"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 17,
+     "value_text": "17"
     }
    ],
    "name": "Amsterdam",
@@ -211676,6 +233505,185 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ],
    "towns": []
   },
+  "athens": {
+   "airlines": [
+    "aegean"
+   ],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Athens",
+      "note_ja": "街「Athens」は--city aegean=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "athens",
+     "company": "aegean",
+     "cond_ja": "Halandri Station (Athens, Halandri) → Athens International Airport (ATH)。手段: train, Athens Metro Line 3。補足: アテネ地下鉄運行会社STASY公式の3号線区間所要時間表（ハランドリ駅〜アテネ国際空港駅22分）。",
+     "currency": null,
+     "district": "Halandri Station (Athens, Halandri) → Athens International Airport (ATH)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "STATION MINUTES: AIRPORT - KOROPI 06 PEANIA - KANTZA 12 PALLINI 14 DOUK. PLAKENTIAS 20 HALANDRI 22",
+       "source_id": "src-stasy-gr-00d5aa83",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c5dc3b9764aa018e",
+     "id": "aegean.living.commute.63ba18e5",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Halandri Station → Athens International Airport）",
+     "pack": "pvr-20261119-gm-aegean",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "STASY (Urban Rail Transport S.A.)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-stasy-gr-00d5aa83",
+       "source_type": "official_package",
+       "title": "Line 3 Timetables & Trip Duration",
+       "url": "https://www.stasy.gr/en/timetables/line-3/"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 22,
+     "value_text": "22"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Athens",
+      "note_ja": "街「Athens」は--city aegean=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "athens",
+     "company": "aegean",
+     "cond_ja": "Evangelismos Station (Athens, Kolonaki) → Athens International Airport (ATH)。手段: train, Athens Metro Line 3。補足: アテネ地下鉄運行会社STASY公式の3号線区間所要時間表（コロナキ最寄りのエヴァンゲリスモス駅〜アテネ国際空港駅38分）。",
+     "currency": null,
+     "district": "Evangelismos Station (Athens, Kolonaki) → Athens International Airport (ATH)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "STATION MINUTES: AIRPORT - KOROPI 06 ... HALANDRI 22 ... EVANGELISMOS 38 SYNTAGMA 40",
+       "source_id": "src-stasy-gr-00d5aa83",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "784c4c3f46d389c1",
+     "id": "aegean.living.commute.8586cf2d",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Evangelismos Station → Athens International Airpo…",
+     "pack": "pvr-20261119-gm-aegean",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "STASY (Urban Rail Transport S.A.)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-stasy-gr-00d5aa83",
+       "source_type": "official_package",
+       "title": "Line 3 Timetables & Trip Duration",
+       "url": "https://www.stasy.gr/en/timetables/line-3/"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 38,
+     "value_text": "38"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Athens",
+      "note_ja": "街「Athens」は--city aegean=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "athens",
+     "company": "aegean",
+     "cond_ja": "Glyfada (Athens, Glyfada) → Athens International Airport (ATH)。手段: bus, OASA Express Bus X96。補足: 【地図】グリファダ地区からアテネ国際空港までの空港急行バスX96系統の所要時間。",
+     "currency": null,
+     "district": "Glyfada (Athens, Glyfada) → Athens International Airport (ATH)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Take the X96 express bus directly from the airport to Glyfada, which operates 24/7 and takes about 50 minutes.",
+       "source_id": "src-trip-com-47cceca9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bb66af28fb3c0300",
+     "id": "aegean.living.commute.bcdb50a1",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Glyfada → Athens International Airport）",
+     "pack": "pvr-20261119-gm-aegean",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Trip.com",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-trip-com-47cceca9",
+       "source_type": "third_party_reference",
+       "title": "How to get to Glyfada from the 5 nearby airports",
+       "url": "https://www.trip.com/transport/nearby-airports/glyfada.html"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 50,
+     "value_text": "50"
+    }
+   ],
+   "name": "Athens",
+   "name_en": null,
+   "rents": [],
+   "towns": []
+  },
   "atlanta": {
    "airlines": [
     "delta",
@@ -212164,6 +234172,150 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "value_text": {
       "studio": "$1,521"
+     }
+    }
+   ],
+   "towns": []
+  },
+  "auckland": {
+   "airlines": [
+    "air-new-zealand"
+   ],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Auckland",
+      "note_ja": "街「Auckland」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "auckland",
+     "company": "air-new-zealand",
+     "cond_ja": "Parnell Station (Parnell) → Auckland Airport (AKL) Stop A International Airport。手段: train (South City Line S-C to Puhinui Train Station, 45 min) + bus (AirportLink AIR to Stop A International Airport, 15 min)・平日朝8時（8am traffic）。補足: 【地図】Parnell駅からSouth City Line（S-C）でPuhinui駅まで45分、乗換を含めPuhinui駅からAirportLink（AIR）バスで15分、合計77分。なおAuckland CBD（SkyCity）から空港への直行バスSkyDrive Expressは公式FAQ（https://www.skydrive.co.nz/help/）で35分（ピーク時最大55分）。",
+     "currency": null,
+     "district": "Parnell Station (Parnell) → Auckland Airport (AKL) Stop A International Airport",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The fastest way takes 77 minutes, using Train line S-C, Bus line AIR.",
+       "source_id": "src-moovitapp-com-e3a01f1e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b6dfd39a2309708c",
+     "id": "air-new-zealand.living.commute.fbfcc7d2",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Parnell Station → Auckland Airport）",
+     "pack": "pvr-20261119-gm-air-new-zealand",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-17",
+       "publisher": "Moovit",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-moovitapp-com-e3a01f1e",
+       "source_type": "third_party_reference",
+       "title": "Parnell Station to Auckland Airport (AKL) with public transportation",
+       "url": "https://moovitapp.com/index/en-gb/dir/Auckland_Airport_AKL-site_198729794-site_84679808-784"
+      }
+     ],
+     "unit": "分",
+     "use": "条件つき",
+     "value": 77,
+     "value_text": "77"
+    }
+   ],
+   "name": "Auckland",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Auckland",
+      "note_ja": "街「Auckland」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 NZD の国（ニュージーランド）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "auckland",
+     "company": "air-new-zealand",
+     "cond_ja": "英: undefined。原部屋表記「1 Bedroom (Second-Hand Rent $2,500 - $2,900/mo, First-Hand Rent $2,300 - $2,700/mo)」。数字の種類: Auckland, Parnell。家具: undefined。補足: 【第三者】公的住宅統計を基に月額公表されているParnell地区（オークランド中心部東側の富裕層に人気の住宅地区）の2026年1月時点の月額家賃統計（Global Property Guide https://www.globalpropertyguide.com/pacific/new-zealand/rent ではAuckland 1-Bed apartments中央値がUSD 1,165/月）。",
+     "currency": "NZD",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-01-15",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Within AffordWhere's Auckland dataset, a one-bedroom here averages about $2,700/month — close to the city median, and mid-priced of the 8 areas we track.",
+       "source_id": "src-affordwhere-com-1c383c4d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "17556ac2fbe598c7",
+     "id": "air-new-zealand.living.rent-1bed.17b1622a",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1 Bedroom (Second-Hand Rent $2,500 - $2,900/mo, First-Hand Rent $2,300 - $2,700/mo)",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261119-gm-air-new-zealand",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-15",
+       "publisher": "AffordWhere",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-affordwhere-com-1c383c4d",
+       "source_type": "third_party_reference",
+       "title": "Living in Parnell, Auckland 2026",
+       "url": "https://affordwhere.com/new-zealand/auckland/neighborhood/parnell"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 2700
+     },
+     "value_text": {
+      "1bed": "2,700"
      }
     }
    ],
@@ -214866,6 +237018,302 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "value_text": {
       "3bed": "£1,141"
+     }
+    }
+   ],
+   "towns": []
+  },
+  "bogota": {
+   "airlines": [
+    "avianca"
+   ],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Bogotá",
+      "note_ja": "街「Bogotá」は--city avianca=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "bogota",
+     "company": "avianca",
+     "cond_ja": "K7 - Cl51 (Chapinero) → Aeropuerto Eldorado (BOG)。手段: bus, SITP / TransMilenio Ruta M86 / K86。補足: 【地図】Chapinero（Carrera 7 - Calle 51）からエル・ドラド国際空港（BOG）までの直通バス（SITP / TransMilenio K86・M86系統）所要時間54分。",
+     "currency": null,
+     "district": "K7 - Cl51 (Chapinero) → Aeropuerto Eldorado (BOG)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SITP operates a bus from K7 - Cl51 to Aeropuerto Eldorado every 10 minutes, and the journey takes 54 min.",
+       "source_id": "src-rome2rio-com-ce22be55",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6fa841da8c9c79ce",
+     "id": "avianca.living.commute.5830a7b3",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（K7 - Cl51 → Aeropuerto Eldorado）",
+     "pack": "pvr-20261119-gm-avianca",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Rome2Rio",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rome2rio-com-ce22be55",
+       "source_type": "third_party_reference",
+       "title": "Chapinero to El Dorado International Airport (BOG)",
+       "url": "https://www.rome2rio.com/s/Chapinero/Aeropuerto-Internacional-El-Dorado"
+      }
+     ],
+     "unit": "分",
+     "use": "条件つき",
+     "value": 54,
+     "value_text": "54"
+    }
+   ],
+   "name": "Bogotá",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Bogotá",
+      "note_ja": "街「Bogotá」は--city avianca=… で指定から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 COP の国（コロンビア）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "bogota",
+     "company": "avianca",
+     "cond_ja": "英: undefined。原部屋表記「Bedrooms: 1（1 habitación）」。数字の種類: Bogotá, Zona Chapinero。家具: undefined。補足: 【第三者】ボゴタ高級住宅街Chapinero地区の1寝室平均家賃（原文表記$ 2.741.000）。",
+     "currency": "COP",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "$ 2.741.000 $ 71.428/m² Precio medio con 1 habitación Apartamentos con 1 habitación",
+       "source_id": "src-properati-com-co-0092a87e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b65b42ecfb187ae9",
+     "id": "avianca.living.rent-1bed.82825440",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "Bedrooms: 1（1 habitación）",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261119-gm-avianca",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-26",
+       "publisher": "Properati Colombia",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-properati-com-co-0092a87e",
+       "source_type": "third_party_reference",
+       "title": "Apartamentos en Arriendo en Zona Chapinero, Bogotá D.C.",
+       "url": "https://www.properati.com.co/s/zona-chapinero/apartamento/arriendo"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 2741000
+     },
+     "value_text": {
+      "1bed": "2.741.000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Bogotá",
+      "note_ja": "街「Bogotá」は--city avianca=… で指定から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 COP の国（コロンビア）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "bogota",
+     "company": "avianca",
+     "cond_ja": "英: undefined。原部屋表記「Bedrooms: 2（2 habitaciones）」。数字の種類: Bogotá, Zona Chapinero。家具: undefined。補足: 【第三者】ボゴタ高級住宅街Chapinero地区の2寝室平均家賃（原文表記$ 5.900.000）。Zona Norte / Usaquén地区（https://www.properati.com.co/s/zona-norte/apartamento/arriendo）では4100000 COP/month（原文表記$ 4.100.000）。",
+     "currency": "COP",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "$ 5.900.000 $ 63.492/m² Precio medio con 2 habitaciones Apartamentos con 2 habitaciones",
+       "source_id": "src-properati-com-co-0092a87e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9bdeabd01d51150a",
+     "id": "avianca.living.rent-2bed.30fc6346",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "Bedrooms: 2（2 habitaciones）",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261119-gm-avianca",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-26",
+       "publisher": "Properati Colombia",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-properati-com-co-0092a87e",
+       "source_type": "third_party_reference",
+       "title": "Apartamentos en Arriendo en Zona Chapinero, Bogotá D.C.",
+       "url": "https://www.properati.com.co/s/zona-chapinero/apartamento/arriendo"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 5900000
+     },
+     "value_text": {
+      "2bed": "5.900.000"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Bogotá",
+      "note_ja": "街「Bogotá」は--city avianca=… で指定から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 COP の国（コロンビア）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "bogota",
+     "company": "avianca",
+     "cond_ja": "英: undefined。原部屋表記「Bedrooms: 3（3 habitaciones）」。数字の種類: Bogotá, Zona Chapinero。家具: undefined。補足: 【第三者】ボゴタ高級住宅街Chapinero地区の3寝室平均家賃（原文表記$ 10.000.000）。",
+     "currency": "COP",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "$ 10.000.000 $ 57.931/m² Precio medio con 3 habitaciones Apartamentos con 3 habitaciones",
+       "source_id": "src-properati-com-co-0092a87e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4981d2230f61c3ee",
+     "id": "avianca.living.rent-3bed.ec88da48",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "Bedrooms: 3（3 habitaciones）",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261119-gm-avianca",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-26",
+       "publisher": "Properati Colombia",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-properati-com-co-0092a87e",
+       "source_type": "third_party_reference",
+       "title": "Apartamentos en Arriendo en Zona Chapinero, Bogotá D.C.",
+       "url": "https://www.properati.com.co/s/zona-chapinero/apartamento/arriendo"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 10000000
+     },
+     "value_text": {
+      "3bed": "10.000.000"
      }
     }
    ],
@@ -218229,7 +240677,64 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "airlines": [
     "copa-airlines"
    ],
-   "commute": [],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Ciudad de Panamá",
+      "note_ja": "街「Ciudad de Panamá」は取り込み済みの台帳（research-ledger.mjs の CITY_OF）の街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "ciudad-de-panama",
+     "company": "copa-airlines",
+     "cond_ja": "Estación Corredor Sur, Panama City → Estación Aeropuerto (Aeropuerto Internacional de Tocumen, PTY)。手段: train, Metro de Panamá Línea 2 (Ramal Aeropuerto)。補足: パナマメトロ2号線空港支線（Ramal Línea 2）でCorredor Sur駅からAeropuerto駅（トクメン国際空港）まで5分（メトロ公社公式発表 https://elmetrodepanama.com/puesta-en-marcha-de-ramal-linea-2-facilita-la-movilidad-de-los-viajeros/ も参照）。",
+     "currency": null,
+     "district": "Estación Corredor Sur, Panama City → Estación Aeropuerto (Aeropuerto Internacional de Tocumen, PTY)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2023-03-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "l director general del Metro de Panamá Héctor Ortega, explicó en la inauguración de la extensión Metro Ramal que el tiempo que toma el trayecto de la estación Corredor Sur a la estación Aeropuerto es de un total de 5 minutos, con la frecuencia de llegada o pase de de los trenes de 10 minutos máximo.",
+       "source_id": "src-telemetro-com-09dc7543",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "33b856bd795a2335",
+     "id": "copa-airlines.living.commute.b6dbfa5e",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Estación Corredor Sur, Panama City → Estación Aer…",
+     "pack": "pvr-20261119-gm-copa-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-03-20",
+       "publisher": "Telemetro",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-telemetro-com-09dc7543",
+       "source_type": "third_party_reference",
+       "title": "¿Cuánto tiempo toma del Metro Corredor Sur al Aeropuerto?",
+       "url": "https://www.telemetro.com/nacionales/cuanto-tiempo-toma-del-metro-corredor-sur-al-aeropuerto-n5860557"
+      }
+     ],
+     "unit": "分",
+     "use": "条件つき",
+     "value": 5,
+     "value_text": "5"
+    }
+   ],
    "name": "Ciudad de Panamá",
    "name_en": null,
    "rents": [
@@ -222508,7 +245013,176 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "airlines": [
     "aer-lingus"
    ],
-   "commute": [],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Dublin",
+      "note_ja": "街「Dublin」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "dublin",
+     "company": "aer-lingus",
+     "cond_ja": "Sussex Road (Dublin 6, Ranelagh) → Dublin Airport (DUB) Terminal 2 Zone 20。手段: bus, Aircoach Route 700。補足: 【地図】ダブリン南部Ranelagh地区（Sussex Road）からDublin Airport Terminal 2までのAircoach直通バス所要時間。",
+     "currency": null,
+     "district": "Sussex Road (Dublin 6, Ranelagh) → Dublin Airport (DUB) Terminal 2 Zone 20",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Aircoach operates a bus from Terminal 2 Zone 20 to Sussex Road every 30 minutes. Tickets cost €8–12 and the journey takes 47 min.",
+       "source_id": "src-rome2rio-com-64b47c57",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d79af48ab027d603",
+     "id": "aer-lingus.living.commute.249d6ae9",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Sussex Road → Dublin Airport）",
+     "pack": "pvr-20261119-gm-aer-lingus",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rome2Rio",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rome2rio-com-64b47c57",
+       "source_type": "third_party_reference",
+       "title": "Dublin Airport (DUB) to Ranelagh",
+       "url": "https://www.rome2rio.com/s/Dublin-Airport-DUB/Ranelagh-Ireland"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 47,
+     "value_text": "47"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Dublin",
+      "note_ja": "街「Dublin」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "dublin",
+     "company": "aer-lingus",
+     "cond_ja": "Swords Village (Dublin, Swords) → Dublin Airport (DUB)。手段: bus, Dublin Bus Route 41。補足: Dublin Bus公式時刻表によるSwords VillageからDublin Airportまでの所要時間（24時間運行）。",
+     "currency": null,
+     "district": "Swords Village (Dublin, Swords) → Dublin Airport (DUB)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Swords Manor » 12 mins » Swords Village » 16 mins » Dublin Airport",
+       "source_id": "src-dublinbus-ie-86cfb640",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "daf0953d588df4a9",
+     "id": "aer-lingus.living.commute.ad83aa14",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Swords Village → Dublin Airport）",
+     "pack": "pvr-20261119-gm-aer-lingus",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Dublin Bus",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-dublinbus-ie-86cfb640",
+       "source_type": "official_package",
+       "title": "Revised Route 41 Timetable",
+       "url": "https://www.dublinbus.ie/getmedia/32dbb874-dbcb-42f6-963b-75d61751d820/Revised-Route-41.pdf?ext=.pdf"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 16,
+     "value_text": "16"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Dublin",
+      "note_ja": "街「Dublin」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "dublin",
+     "company": "aer-lingus",
+     "cond_ja": "Malahide Station (Dublin, Malahide) → Dublin Airport (DUB) Zone 15。手段: bus, Go-Ahead Ireland Route 102。補足: 【地図】ダブリン北部沿岸の高級住宅地Malahide駅からDublin Airportまでの102系統直通バス所要時間。",
+     "currency": null,
+     "district": "Malahide Station (Dublin, Malahide) → Dublin Airport (DUB) Zone 15",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The line 102 bus from Airport Zone 15 to Malahide Stn takes 39 min including transfers and departs every 30 minutes.",
+       "source_id": "src-rome2rio-com-0910c858",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5bceec7db3257118",
+     "id": "aer-lingus.living.commute.e3df3609",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Malahide Station → Dublin Airport）",
+     "pack": "pvr-20261119-gm-aer-lingus",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rome2Rio",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rome2rio-com-0910c858",
+       "source_type": "third_party_reference",
+       "title": "Dublin Airport (DUB) to Malahide",
+       "url": "https://www.rome2rio.com/s/Dublin-Airport-DUB/Malahide"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 39,
+     "value_text": "39"
+    }
+   ],
    "name": "Dublin",
    "name_en": null,
    "rents": [
@@ -229906,6 +252580,73 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "name": "石垣市 / Ishigaki",
+   "name_en": null,
+   "rents": [],
+   "towns": []
+  },
+  "istanbul": {
+   "airlines": [
+    "turkish-airlines"
+   ],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Istanbul",
+      "note_ja": "街「Istanbul」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "istanbul",
+     "company": "turkish-airlines",
+     "cond_ja": "Gayrettepe Metro Station (Beşiktaş/Şişli) → Istanbul Airport (IST)。手段: train, M11 Metro。補足: 【地図】欧州側中心部（ベシクタシュ／シシュリ地区のGayrettepe駅）からイスタンブール空港駅（IST）まで地下鉄M11号線直通で47分。",
+     "currency": null,
+     "district": "Gayrettepe Metro Station (Beşiktaş/Şişli) → Istanbul Airport (IST)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "47 mins (35.5 km) via M11 Metro from Gayrettepe to İstanbul Havalimanı (Airport)",
+       "source_id": "src-google-com-0b5cfcf4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "79ea49d3a5082b71",
+     "id": "turkish-airlines.living.commute.7ef9aec2",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Gayrettepe Metro Station → Istanbul Airport）",
+     "pack": "pvr-20261119-gm-turkish-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Google Maps",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-google-com-0b5cfcf4",
+       "source_type": "third_party_reference",
+       "title": "Google Maps",
+       "url": "https://www.google.com/maps/dir/Gayrettepe/%C4%B0stanbul+Havaliman%C4%B1+(Airport)/data=!4m5!4m4!2m2!6e0!8j1795075200!3e3"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 47,
+     "value_text": "47"
+    }
+   ],
+   "name": "Istanbul",
    "name_en": null,
    "rents": [],
    "towns": []
@@ -238198,6 +260939,302 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ],
    "towns": []
   },
+  "malta": {
+   "airlines": [
+    "airx-charter"
+   ],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Malta",
+      "note_ja": "街「Malta」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "malta",
+     "company": "airx-charter",
+     "cond_ja": "Ferries 3 (Sliema) → Malta International Airport (Airport 3, MLA)。手段: bus, TD3。補足: 【地図】スリーマ中心部（Ferries 3）からマルタ国際空港（Airport 3 / MLA）まで直通バスTD3系統で35分。",
+     "currency": null,
+     "district": "Ferries 3 (Sliema) → Malta International Airport (Airport 3, MLA)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "35 mins (10.7 km) via Bus TD3 from Ferries 3 to Airport 3",
+       "source_id": "src-google-com-950a2ab8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "813e5e2840a4789b",
+     "id": "airx-charter.living.commute.8fcd2855",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Ferries 3 → Malta International Airport）",
+     "pack": "pvr-20261119-gm-airx-charter",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Google Maps",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-google-com-950a2ab8",
+       "source_type": "third_party_reference",
+       "title": "Google Maps",
+       "url": "https://www.google.com/maps/dir/Ferries+3/Airport+3/data=!4m5!4m4!2m2!6e0!8j1795075200!3e3"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 35,
+     "value_text": "35"
+    }
+   ],
+   "name": "Malta",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Malta",
+      "note_ja": "街「Malta」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "malta",
+     "company": "airx-charter",
+     "cond_ja": "英: undefined。原部屋表記「1-Bed」。数字の種類: Malta, Sliema (2026)。家具: undefined。補足: 【第三者】マルタ駐在員・専門職の主要居住エリアであるスリーマ（Sliema）の1ベッドルーム平均家賃（セントジュリアンズ St. Julian's & Paceville では1850 EUR/month）。",
+     "currency": "EUR",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Sliema: 1-Bed: €1,300/mo | 2-Bed: €1,800/mo | 3-Bed: €3,000/mo.",
+       "source_id": "src-letmalta-com-9d884638",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "29ebe305748cbcb7",
+     "id": "airx-charter.living.rent-1bed.48ffe4fe",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "1-Bed",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261119-gm-airx-charter",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-01",
+       "publisher": "LetMalta",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-letmalta-com-9d884638",
+       "source_type": "third_party_reference",
+       "title": "Average Rent in Malta (2026 Price Breakdown)",
+       "url": "https://letmalta.com/blog/average-rent-in-malta-2026-price-breakdown"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 1300
+     },
+     "value_text": {
+      "1bed": "1,300"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Malta",
+      "note_ja": "街「Malta」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "malta",
+     "company": "airx-charter",
+     "cond_ja": "英: undefined。原部屋表記「2-Bed」。数字の種類: Malta, Sliema (2026)。家具: undefined。補足: 【第三者】マルタ・スリーマ（Sliema）の2ベッドルーム平均家賃（セントジュリアンズ St. Julian's & Paceville では2000 EUR/month）。",
+     "currency": "EUR",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Sliema: 1-Bed: €1,300/mo | 2-Bed: €1,800/mo | 3-Bed: €3,000/mo.",
+       "source_id": "src-letmalta-com-9d884638",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9004888dc3167b19",
+     "id": "airx-charter.living.rent-2bed.a1a39fa2",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "2-Bed",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261119-gm-airx-charter",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-01",
+       "publisher": "LetMalta",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-letmalta-com-9d884638",
+       "source_type": "third_party_reference",
+       "title": "Average Rent in Malta (2026 Price Breakdown)",
+       "url": "https://letmalta.com/blog/average-rent-in-malta-2026-price-breakdown"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 1800
+     },
+     "value_text": {
+      "2bed": "1,800"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Malta",
+      "note_ja": "街「Malta」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "malta",
+     "company": "airx-charter",
+     "cond_ja": "英: undefined。原部屋表記「3-Bed」。数字の種類: Malta, Sliema (2026)。家具: undefined。補足: 【第三者】マルタ・スリーマ（Sliema）の3ベッドルーム平均家賃（セントジュリアンズ St. Julian's & Paceville では2500 EUR/month）。",
+     "currency": "EUR",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Sliema: 1-Bed: €1,300/mo | 2-Bed: €1,800/mo | 3-Bed: €3,000/mo.",
+       "source_id": "src-letmalta-com-9d884638",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e04cb2d0e6031992",
+     "id": "airx-charter.living.rent-3bed.78c3c589",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "3-Bed",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261119-gm-airx-charter",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-01",
+       "publisher": "LetMalta",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-letmalta-com-9d884638",
+       "source_type": "third_party_reference",
+       "title": "Average Rent in Malta (2026 Price Breakdown)",
+       "url": "https://letmalta.com/blog/average-rent-in-malta-2026-price-breakdown"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 3000
+     },
+     "value_text": {
+      "3bed": "3,000"
+     }
+    }
+   ],
+   "towns": []
+  },
   "manama": {
    "airlines": [
     "gulf-air"
@@ -239246,7 +262283,64 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "airlines": [
     "aeromexico"
    ],
-   "commute": [],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Mexico City",
+      "note_ja": "街「Mexico City」は--city aeromexico=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "mexico-city",
+     "company": "aeromexico",
+     "cond_ja": "San Lázaro → Aeropuerto Internacional de la Ciudad de México (MEX) Terminal 1。手段: bus, Metrobús Línea 4 Ruta Aeropuerto。補足: San Lázaro駅からメキシコシティ国際空港（MEX）第1ターミナルまでMetrobús Línea 4で約15分（第2ターミナルまで追加で約10分）。またPolanco駅から地下鉄（Metro CDMX）Terminal Aérea駅までは約40分（https://www.rome2rio.com/es/s/Aeropuerto-Internacional-Benito-Ju%C3%A1rez-De-La-Ciudad-De-M%C3%A9xico-MEX/Polanco-estaci%C3%B3n）。",
+     "currency": null,
+     "district": "San Lázaro → Aeropuerto Internacional de la Ciudad de México (MEX) Terminal 1",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2026-05-06",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "El viaje desde San Lázaro hasta la Terminal 1 tiene un tiempo estimado de 15 minutos, según Google Maps, después, seguirá su camino hacia la Terminal 2 en un tiempo de unos 10 minutos adicionales.",
+       "source_id": "src-milenio-com-5681871a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5715ab2ad70fccaf",
+     "id": "aeromexico.living.commute.3e566287",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（San Lázaro → Aeropuerto Internacional de la Ciuda…",
+     "pack": "pvr-20261119-gm-aeromexico",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-05-06",
+       "publisher": "Milenio",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-milenio-com-5681871a",
+       "source_type": "third_party_reference",
+       "title": "Guía completa para llegar a las Terminales 1 y 2 del AICM en Metrobús de CdMx",
+       "url": "https://www.milenio.com/comunidad/llegar-terminales-1-2-del-aicm-metrobus-cdmx"
+      }
+     ],
+     "unit": "分",
+     "use": "条件つき",
+     "value": 15,
+     "value_text": "15"
+    }
+   ],
    "name": "Mexico City",
    "name_en": null,
    "rents": [
@@ -239777,9 +262871,67 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "milan": {
    "airlines": [
-    "easyjet"
+    "easyjet",
+    "ita-airways"
    ],
-   "commute": [],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Milan",
+      "note_ja": "街「Milan」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "milan",
+     "company": "ita-airways",
+     "cond_ja": "San Babila (Milan, Centro Storico / Città Studi / Dateo corridor) → Linate Aeroporto (LIN)。手段: train, ATM Metro Linea M4。補足: ミラノ市交通局（ATM）公式の地下鉄M4線（San Babila〜Dateo〜Città Studi〜Linate Aeroporto）の所要時間。",
+     "currency": null,
+     "district": "San Babila (Milan, Centro Storico / Città Studi / Dateo corridor) → Linate Aeroporto (LIN)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Collega l'aeroporto di Linate al centro di Milano in 12 minuti",
+       "source_id": "src-atm-it-6dbd0dbf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b0fcba39095e20f5",
+     "id": "ita-airways.living.commute.04979526",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（San Babila → Linate Aeroporto）",
+     "pack": "pvr-20261119-gm-ita-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ATM Milano",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-atm-it-6dbd0dbf",
+       "source_type": "official_package",
+       "title": "M4: informazioni sul servizio passeggeri",
+       "url": "https://www.atm.it/it/AtmNews/AtmInforma/Pagine/M4informazionisulserviziopasseggeribis.aspx"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 12,
+     "value_text": "12"
+    }
+   ],
    "name": "Milan",
    "name_en": null,
    "rents": [
@@ -241009,6 +264161,185 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      }
     }
    ],
+   "towns": []
+  },
+  "nadi": {
+   "airlines": [
+    "fiji-airways"
+   ],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Nadi",
+      "note_ja": "街「Nadi」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "nadi",
+     "company": "fiji-airways",
+     "cond_ja": "Nadi → Nadi International Airport (NAN)。手段: bus, Sunbeam Transport FJ / Pacific Transport FJ (Queen's Highway)。補足: 【地図】Queen's Highway（Namaka / Martintar経由）の路線バスで10分。",
+     "currency": null,
+     "district": "Nadi → Nadi International Airport (NAN)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Sunbeam Transport FJ operates a bus from Nadi to Nadi Airport every 3 hours. Tickets cost $3–5 and the journey takes 10 min. Pacific Transport FJ also services this route every 4 hours.",
+       "source_id": "src-rome2rio-com-703f6766",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2ee5eb6e92e05d78",
+     "id": "fiji-airways.living.commute.1c6d9051",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Nadi → Nadi International Airport）",
+     "pack": "pvr-20261119-gm-fiji-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Rome2Rio",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rome2rio-com-703f6766",
+       "source_type": "third_party_reference",
+       "title": "Nadi to Nadi International Airport",
+       "url": "https://www.rome2rio.com/s/Nadi/6FW2-V9H-Nadi-Int-l-Airport-Nadi-Fiji"
+      }
+     ],
+     "unit": "分",
+     "use": "条件つき",
+     "value": 10,
+     "value_text": "10"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Nadi",
+      "note_ja": "街「Nadi」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "nadi",
+     "company": "fiji-airways",
+     "cond_ja": "Denarau Island → Nadi International Airport (NAN)。手段: bus, Public bus (Westbus via Nadi Town)。補足: 【地図】富裕層・駐在員に人気のDenarau IslandからNadi International Airport（NAN）までの公共バス所要時間（45分〜1時間）。",
+     "currency": null,
+     "district": "Denarau Island → Nadi International Airport (NAN)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Public bus Cheapest 45 minutes - 1 hour FJD 2-5 Budget",
+       "source_id": "src-trip-com-ae2058ba",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c0eff809203f2fca",
+     "id": "fiji-airways.living.commute.6a44de7b",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Denarau Island → Nadi International Airport）",
+     "pack": "pvr-20261119-gm-fiji-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Trip.com",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-trip-com-ae2058ba",
+       "source_type": "third_party_reference",
+       "title": "How to get to Denarau Island from the 3 nearby airports",
+       "url": "https://www.trip.com/transport/nearby-airports/denarau-island.html"
+      }
+     ],
+     "unit": "分",
+     "use": "条件つき",
+     "value": 45,
+     "value_text": "45"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Nadi",
+      "note_ja": "街「Nadi」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "nadi",
+     "company": "fiji-airways",
+     "cond_ja": "Nadi Town Centre → Nadi International Airport (NAN)。手段: bus, Local Bus。補足: Fiji Airways公式のNadi空港アクセス案内（5分間隔で運行するローカルバスで約20分）。",
+     "currency": null,
+     "district": "Nadi Town Centre → Nadi International Airport (NAN)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2026-01-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "As the main international airport in Fiji, Nadi International Airport is well served by public transport. A local bus runs every 5 minutes from the airport to the town centre, and the journey takes about 20 minutes.",
+       "source_id": "src-fijiairways-com-196e07f8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6274d513910d430a",
+     "id": "fiji-airways.living.commute.79a9f25d",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Nadi Town Centre → Nadi International Airport）",
+     "pack": "pvr-20261119-gm-fiji-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-01",
+       "publisher": "Fiji Airways",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-fijiairways-com-196e07f8",
+       "source_type": "official_package",
+       "title": "Nadi Destination Guide",
+       "url": "https://www.fijiairways.com/en-us/experience/destinations/nadi"
+      }
+     ],
+     "unit": "分",
+     "use": "条件つき",
+     "value": 20,
+     "value_text": "20"
+    }
+   ],
+   "name": "Nadi",
+   "name_en": null,
+   "rents": [],
    "towns": []
   },
   "nagoya": {
@@ -247528,6 +270859,230 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "amount": null,
      "applies_to": {
       "base": "Oslo",
+      "note_ja": "街「Oslo」は--city norwegian=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "oslo",
+     "company": "norwegian",
+     "cond_ja": "Skøyen Station (Frogner/Skøyen) → Oslo Airport (OSL)。手段: train, Flytoget。補足: オスロ西部の人気住宅街Skøyen駅からオスロ空港（OSL）までFlytoget空港特急で29分。",
+     "currency": null,
+     "district": "Skøyen Station (Frogner/Skøyen) → Oslo Airport (OSL)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Skøyen Station ... Travel time to Oslo Airport: 29 minutes",
+       "source_id": "src-flytoget-no-6649895e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c39a17fa9dea9c9e",
+     "id": "norwegian.living.commute.13a109a8",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Skøyen Station → Oslo Airport）",
+     "pack": "pvr-20261119-gm-norwegian",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Flytoget",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-flytoget-no-6649895e",
+       "source_type": "official_package",
+       "title": "Train from Oslo Airport to Oslo City Center",
+       "url": "https://flytoget.no/en/to-and-from-airport/train-from-oslo-airport-to-city/"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 29,
+     "value_text": "29"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Oslo",
+      "note_ja": "街「Oslo」は--city norwegian=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "oslo",
+     "company": "norwegian",
+     "cond_ja": "Helsinki Central Railway Station → Helsinki Airport (HEL)。手段: train, HSL I。補足: ヘルシンキ地域交通局（HSL）公式。ヘルシンキ中央駅からヘルシンキ・ヴァンター空港（HEL）まで近郊列車I系統で27分（P系統で32分）。",
+     "currency": null,
+     "district": "Helsinki Central Railway Station → Helsinki Airport (HEL)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The I train takes 27 minutes from the Central Railway Station to the airport and the P train 32 minutes.",
+       "source_id": "src-hsl-fi-446824f4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9e59e6e18690d6fd",
+     "id": "norwegian.living.commute.17118e05",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Helsinki Central Railway Station → Helsinki Airpo…",
+     "pack": "pvr-20261119-gm-norwegian",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "HSL (Helsinki Regional Transport Authority)",
+       "publisher_kind": "government",
+       "retrieved": "2026-11-18",
+       "source_id": "src-hsl-fi-446824f4",
+       "source_type": "government",
+       "title": "Airport train",
+       "url": "https://www.hsl.fi/en/travelling/visitors/airport-train"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 27,
+     "value_text": "27"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Oslo",
+      "note_ja": "街「Oslo」は--city norwegian=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "oslo",
+     "company": "norwegian",
+     "cond_ja": "Riga city centre → Riga Airport (RIX)。手段: bus, No. 22。補足: リガ国際空港公式。リガ市内中心部からリガ空港（RIX）まで22番バスで約40分（Google Maps経路検索ではAutoostaからLidosta Rīgaまで30分）。",
+     "currency": null,
+     "district": "Riga city centre → Riga Airport (RIX)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The journey to the city centre takes about 40 minutes.",
+       "source_id": "src-riga-airport-com-3729abcc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2b90091c64e1639e",
+     "id": "norwegian.living.commute.5d3f5f06",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Riga city centre → Riga Airport）",
+     "pack": "pvr-20261119-gm-norwegian",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Riga Airport",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-riga-airport-com-3729abcc",
+       "source_type": "official_package",
+       "title": "Public Transport",
+       "url": "https://www.riga-airport.com/en/transport-0"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 40,
+     "value_text": "40"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Oslo",
+      "note_ja": "街「Oslo」は--city norwegian=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "oslo",
+     "company": "norwegian",
+     "cond_ja": "Oslo Central Station (Oslo S) → Oslo Airport (OSL)。手段: train, Flytoget。補足: オスロ中央駅（Oslo S）からオスロ空港（OSL）までFlytoget空港特急で19分。",
+     "currency": null,
+     "district": "Oslo Central Station (Oslo S) → Oslo Airport (OSL)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Oslo Central Station (Oslo S) ... Travel time to Oslo Airport: 19 minutes",
+       "source_id": "src-flytoget-no-6649895e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6ccaa7babf82065c",
+     "id": "norwegian.living.commute.b10b8143",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Oslo Central Station → Oslo Airport）",
+     "pack": "pvr-20261119-gm-norwegian",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Flytoget",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-flytoget-no-6649895e",
+       "source_type": "official_package",
+       "title": "Train from Oslo Airport to Oslo City Center",
+       "url": "https://flytoget.no/en/to-and-from-airport/train-from-oslo-airport-to-city/"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 19,
+     "value_text": "19"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Oslo",
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": false
      },
@@ -248283,9 +271838,179 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
   },
   "paris": {
    "airlines": [
+    "air-france",
     "easyjet"
    ],
-   "commute": [],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Paris",
+      "note_ja": "街「Paris」は--city air-france=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "paris",
+     "company": "air-france",
+     "cond_ja": "Neuilly - Porte Maillot (Neuilly-sur-Seine) → Aéroport Paris-Charles-De-Gaulle (CDG)。手段: train, RER E / RER C + RER B (via Gare du Nord)。補足: 【地図】ヌイイ＝シュル＝セーヌ（Neuilly - Porte Maillot駅）からCDG空港までの鉄道乗換所要時間。",
+     "currency": null,
+     "district": "Neuilly - Porte Maillot (Neuilly-sur-Seine) → Aéroport Paris-Charles-De-Gaulle (CDG)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Le trajet, y compris les correspondances, prend approximativement 45 min.",
+       "source_id": "src-rome2rio-com-77871389",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c9a67386fc321b5b",
+     "id": "air-france.living.commute.50fbf9a5",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Neuilly - Porte Maillot → Aéroport Paris-Charles-…",
+     "pack": "pvr-20261119-gm-air-france",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rome2Rio",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rome2rio-com-77871389",
+       "source_type": "third_party_reference",
+       "title": "Neuilly - Porte Maillot à Aéroport Paris-Charles-De-Gaulle (CDG)",
+       "url": "https://www.rome2rio.com/fr/s/Neuilly-Porte-Maillot/A%C3%A9roport-Paris-Charles-De-Gaulle-CDG"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 45,
+     "value_text": "45"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Paris",
+      "note_ja": "街「Paris」は--city air-france=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "paris",
+     "company": "air-france",
+     "cond_ja": "Gare du Nord (Paris) → Aéroport Paris-Charles de Gaulle (CDG)。手段: train, RER B。補足: 空港会社Paris Aéroport公式のRER B線所要時間。",
+     "currency": null,
+     "district": "Gare du Nord (Paris) → Aéroport Paris-Charles de Gaulle (CDG)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "environ 25 minutes depuis la Gare du Nord, 35 minutes depuis Denfert-Rochereau, 40 minutes depuis Châtelet-Les Halles",
+       "source_id": "src-parisaeroport-fr-e26f5eff",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b2cc3c8e2b332b33",
+     "id": "air-france.living.commute.51fe6918",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Gare du Nord → Aéroport Paris-Charles de Gaulle）",
+     "pack": "pvr-20261119-gm-air-france",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Paris Aéroport",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-parisaeroport-fr-e26f5eff",
+       "source_type": "official_package",
+       "title": "Accès RER B à Paris-Charles de Gaulle",
+       "url": "https://www.parisaeroport.fr/fr/passagers/transports-parking/transports-publics-paris/rer-b/cdg"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 25,
+     "value_text": "25"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Paris",
+      "note_ja": "街「Paris」は--city air-france=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "paris",
+     "company": "air-france",
+     "cond_ja": "Charles de Gaulle - Étoile (Paris 16e) → Aéroport Paris-Charles-De-Gaulle (CDG)。手段: train, RER A + RER B (via Châtelet-Les Halles)。補足: 【地図】パリ16区（Charles de Gaulle - Étoile駅）からCDG空港までのRER A線・RER B線乗換所要時間。",
+     "currency": null,
+     "district": "Charles de Gaulle - Étoile (Paris 16e) → Aéroport Paris-Charles-De-Gaulle (CDG)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Le trajet, y compris les correspondances, prend approximativement 49 min.",
+       "source_id": "src-rome2rio-com-0fdfb369",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4ed00c898d36b95e",
+     "id": "air-france.living.commute.cc9343f1",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Charles de Gaulle - Étoile → Aéroport Paris-Charl…",
+     "pack": "pvr-20261119-gm-air-france",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rome2Rio",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rome2rio-com-0fdfb369",
+       "source_type": "third_party_reference",
+       "title": "Gare de Charles-de-Gaulle - Étoile à Aéroport Paris-Charles-De-Gaulle (CDG)",
+       "url": "https://www.rome2rio.com/fr/s/Gare-de-Charles-de-Gaulle-%C3%89toile/A%C3%A9roport-Paris-Charles-De-Gaulle-CDG"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 49,
+     "value_text": "49"
+    }
+   ],
    "name": "Paris",
    "name_en": null,
    "rents": [
@@ -248690,7 +272415,176 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "airlines": [
     "jetstar"
    ],
-   "commute": [],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Perth",
+      "note_ja": "街「Perth」は取り込み済みの台帳（research-ledger.mjs の CITY_OF）の街のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "perth",
+     "company": "jetstar",
+     "cond_ja": "Perth Station (Perth CBD) → Perth Airport Terminal 1 / Terminal 2 (Airport Central Train Station)。手段: train, Transperth Airport Line。補足: Jetstarが発着するTerminal 1 / Terminal 2直結のAirport Central駅までの公式所要時間（Transperth公式時刻表 https://www.transperth.wa.gov.au/timetablepdfs/Airport%20Line%2020251013.pdf でもPerth駅〜Airport Central駅は18分）。",
+     "currency": null,
+     "district": "Perth Station (Perth CBD) → Perth Airport Terminal 1 / Terminal 2 (Airport Central Train Station)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Airport Central Train Station on the Airport Line is just 18 minutes from Perth Station in the CBD.",
+       "source_id": "src-perthairport-com-au-f081d799",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e534e943a009591e",
+     "id": "jetstar.living.commute.0dde12a7",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Perth Station → Perth Airport Terminal 1 / Termin…",
+     "pack": "pvr-20261119-gm-jetstar",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Perth Airport",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-perthairport-com-au-f081d799",
+       "source_type": "official_package",
+       "title": "Public transport",
+       "url": "https://www.perthairport.com.au/to-and-from-the-airport/transport-options/public-transport"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 18,
+     "value_text": "18"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Perth",
+      "note_ja": "街「Perth」は取り込み済みの台帳（research-ledger.mjs の CITY_OF）の街のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "perth",
+     "company": "jetstar",
+     "cond_ja": "Claremont Station (Claremont) → Perth Airport Terminal 1 / Terminal 2 (Airport Central Stn)。手段: train, Transperth Airport Line。補足: 【地図】富裕層に人気の住宅地区Claremont（Airport Line始発駅）から直通（Transperth公式時刻表 https://www.transperth.wa.gov.au/timetablepdfs/Airport%20Line%2020251013.pdf でもClaremont駅7:29発→Airport Central駅8:03着の34〜35分）。",
+     "currency": null,
+     "district": "Claremont Station (Claremont) → Perth Airport Terminal 1 / Terminal 2 (Airport Central Stn)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Transperth operates a train from Claremont Stn Platform 1 to Airport Central Stn Platform 2 every 20 minutes. Tickets cost $3–4 and the journey takes 35 min.",
+       "source_id": "src-rome2rio-com-e1676344",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f94b2592801ca469",
+     "id": "jetstar.living.commute.4ca90f12",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Claremont Station → Perth Airport Terminal 1 / Te…",
+     "pack": "pvr-20261119-gm-jetstar",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rome2Rio",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rome2rio-com-e1676344",
+       "source_type": "third_party_reference",
+       "title": "Claremont (Station) to Perth Airport (PER) Trains",
+       "url": "https://www.rome2rio.com/Train/Claremont-Station-WA-Australia/Perth-Airport-PER"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 35,
+     "value_text": "35"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Perth",
+      "note_ja": "街「Perth」は取り込み済みの台帳（research-ledger.mjs の CITY_OF）の街のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "perth",
+     "company": "jetstar",
+     "cond_ja": "Subiaco Station (Subiaco) → Perth Airport Terminal 1 / Terminal 2 (Airport Central Stn)。手段: train, Transperth Airport Line。補足: 【地図】富裕層に人気の住宅地区SubiacoからAirport Line直通（Transperth公式時刻表 https://www.transperth.wa.gov.au/timetablepdfs/Airport%20Line%2020251013.pdf でもSubiaco駅7:37発→Airport Central駅8:03着の26〜27分）。",
+     "currency": null,
+     "district": "Subiaco Station (Subiaco) → Perth Airport Terminal 1 / Terminal 2 (Airport Central Stn)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Transperth operates a train from Subiaco Stn Platform 1 to Airport Central Stn Platform 2 every 20 minutes. Tickets cost $2–4 and the journey takes 27 min.",
+       "source_id": "src-rome2rio-com-22f1c997",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a5cb5129e211595b",
+     "id": "jetstar.living.commute.5230dabc",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Subiaco Station → Perth Airport Terminal 1 / Term…",
+     "pack": "pvr-20261119-gm-jetstar",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rome2Rio",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rome2rio-com-22f1c997",
+       "source_type": "third_party_reference",
+       "title": "Subiaco to Perth Airport (PER) Trains",
+       "url": "https://www.rome2rio.com/Train/Subiaco/Perth-Airport-PER"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 27,
+     "value_text": "27"
+    }
+   ],
    "name": "Perth",
    "name_en": null,
    "rents": [
@@ -249807,6 +273701,118 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "tap"
    ],
    "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Porto",
+      "note_ja": "街「Porto」は取り込み済みの台帳（research-ledger.mjs の CITY_OF）の街のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "porto",
+     "company": "tap",
+     "cond_ja": "Trindade (Porto city centre) → Francisco Sá Carneiro Airport (OPO)。手段: train, Metro Line E。補足: 【地図】ポルト中心部の主要乗換駅Trindadeからポルト国際空港（Aeroporto駅 / OPO）までメトロE線直通で34分。",
+     "currency": null,
+     "district": "Trindade (Porto city centre) → Francisco Sá Carneiro Airport (OPO)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "34 mins (13.3 km) via Metro Line E (Violet) from Trindade to Aeroporto",
+       "source_id": "src-google-com-ae17b893",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bdd140f956e619fd",
+     "id": "tap.living.commute.1d69938d",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Trindade → Francisco Sá Carneiro Airport）",
+     "pack": "pvr-20261119-gm-tap",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Google Maps",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-google-com-ae17b893",
+       "source_type": "third_party_reference",
+       "title": "Google Maps",
+       "url": "https://www.google.com/maps/dir/Trindade/Aeroporto/data=!4m5!4m4!2m2!6e0!8j1795075200!3e3"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 34,
+     "value_text": "34"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Porto",
+      "note_ja": "街「Porto」は取り込み済みの台帳（research-ledger.mjs の CITY_OF）の街のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "porto",
+     "company": "tap",
+     "cond_ja": "Casa da Música (Boavista) → Francisco Sá Carneiro Airport (OPO)。手段: train, Metro Line E。補足: 【地図】ポルトの人気住宅街ボアヴィスタ地区（Casa da Música駅）からポルト国際空港（Aeroporto駅 / OPO）までメトロE線直通で29分。",
+     "currency": null,
+     "district": "Casa da Música (Boavista) → Francisco Sá Carneiro Airport (OPO)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "29 mins (11.5 km) via Metro Line E (Violet) from Casa da Música to Aeroporto",
+       "source_id": "src-google-com-c481c80a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d58244be095e31fe",
+     "id": "tap.living.commute.58b803ff",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Casa da Música → Francisco Sá Carneiro Airport）",
+     "pack": "pvr-20261119-gm-tap",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Google Maps",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-google-com-c481c80a",
+       "source_type": "third_party_reference",
+       "title": "Google Maps",
+       "url": "https://www.google.com/maps/dir/Casa+da+M%C3%BAsica/Aeroporto/data=!4m5!4m4!2m2!6e0!8j1795075200!3e3"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 29,
+     "value_text": "29"
+    },
     {
      "amount": null,
      "applies_to": {
@@ -251225,6 +275231,129 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    ],
    "towns": []
   },
+  "reykjavik": {
+   "airlines": [
+    "icelandair"
+   ],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Reykjavik",
+      "note_ja": "街「Reykjavik」は--city icelandair=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "reykjavik",
+     "company": "icelandair",
+     "cond_ja": "Ráðhúsið / Háskóli Íslands (Reykjavík, Miðborg / Vesturbær) → Keflavík International Airport (KEF)。手段: bus, Strætó Route 55。補足: 【地図】レイキャビク市庁舎・アイスランド大学前からKEF空港までの公共路線バスStrætó 55番の所要時間（75〜80分の下限）。",
+     "currency": null,
+     "district": "Ráðhúsið / Háskóli Íslands (Reykjavík, Miðborg / Vesturbær) → Keflavík International Airport (KEF)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The full Line 55 journey from Kjóavellir (KEF) to Ráðhúsið (City Hall) or Háskóli Íslands takes approximately 75–80 minutes.",
+       "source_id": "src-icelandbusmap-com-0b65e23b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "19034337d2c785d1",
+     "id": "icelandair.living.commute.2e9bde7c",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Ráðhúsið / Háskóli Íslands → Keflavík Internation…",
+     "pack": "pvr-20261119-gm-icelandair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Iceland Bus Map",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-icelandbusmap-com-0b65e23b",
+       "source_type": "third_party_reference",
+       "title": "Keflavík Airport Bus (Route 55 & Flybus)",
+       "url": "https://www.icelandbusmap.com/keflavik-airport-bus/"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 75,
+     "value_text": "75"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Reykjavik",
+      "note_ja": "街「Reykjavik」は--city icelandair=… で指定から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "reykjavik",
+     "company": "icelandair",
+     "cond_ja": "BSÍ Bus Terminal (Reykjavík, Miðborg / City Centre) → Keflavík International Airport (KEF)。手段: bus, Reykjavik Excursions Flybus。補足: 空港運営会社Isavia公式およびIcelandair公式（https://www.icelandair.com/vacations/tours/flybus-transfer-from-keflavik/）によるレイキャビク中心部BSÍバスターミナル〜KEF空港間のFlybus所要時間。",
+     "currency": null,
+     "district": "BSÍ Bus Terminal (Reykjavík, Miðborg / City Centre) → Keflavík International Airport (KEF)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2024-06-27",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Duration: 45 minutes from BSÍ",
+       "source_id": "src-kefairport-com-bc97038d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "72733db343cbc5de",
+     "id": "icelandair.living.commute.6f3b2941",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（BSÍ Bus Terminal → Keflavík International Airport）",
+     "pack": "pvr-20261119-gm-icelandair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-06-27",
+       "publisher": "Keflavík Airport (Isavia)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-kefairport-com-bc97038d",
+       "source_type": "official_package",
+       "title": "Various routes to and from KEF Airport",
+       "url": "https://www.kefairport.com/news/various-routes-to-and-from-kef-airport"
+      }
+     ],
+     "unit": "分",
+     "use": "条件つき",
+     "value": 45,
+     "value_text": "45"
+    }
+   ],
+   "name": "Reykjavik",
+   "name_en": null,
+   "rents": [],
+   "towns": []
+  },
   "riyadh": {
    "airlines": [
     "riyadh-air"
@@ -251382,7 +275511,120 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     "easyjet",
     "ita-airways"
    ],
-   "commute": [],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Rome",
+      "note_ja": "街「Rome」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "rome",
+     "company": "ita-airways",
+     "cond_ja": "Roma Termini (Rome, City Centre) → Fiumicino Aeroporto (FCO)。手段: train, Trenitalia Leonardo express。補足: Trenitalia公式のローマ・テルミニ駅〜フィウミチーノ空港（FCO）直通特急Leonardo expressの所要時間（15分間隔運行）。",
+     "currency": null,
+     "district": "Roma Termini (Rome, City Centre) → Fiumicino Aeroporto (FCO)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Wait no longer: Leonardo express takes just 32 minutes!",
+       "source_id": "src-trenitalia-com-d48d7a49",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c14917263db32e6a",
+     "id": "ita-airways.living.commute.24c63c53",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Roma Termini → Fiumicino Aeroporto）",
+     "pack": "pvr-20261119-gm-ita-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Trenitalia",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-trenitalia-com-d48d7a49",
+       "source_type": "official_package",
+       "title": "Leonardo express",
+       "url": "https://www.trenitalia.com/en/services/leonardo-express.html"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 32,
+     "value_text": "32"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Rome",
+      "note_ja": "街「Rome」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "rome",
+     "company": "ita-airways",
+     "cond_ja": "Stazione Roma Trastevere (Rome, Trastevere / Monteverde) → Fiumicino Aeroporto (FCO)。手段: train, Trenitalia Regional Line FL1。補足: 【地図】ローマ・トラステヴェレ駅からFL1線直通列車によるフィウミチーノ空港（FCO）までの所要時間（ローマ・オスティエンセ駅からは31分、ティブルティーナ駅からはTrenitalia公式 https://www.trenitalia.com/en/services/connections-to-and-from-rome-fiumicino-airport.html により48分）。",
+     "currency": null,
+     "district": "Stazione Roma Trastevere (Rome, Trastevere / Monteverde) → Fiumicino Aeroporto (FCO)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2026-09-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Treno diretto da Roma Trastevere a Fiumicino Aeroporto con un tempo di percorrenza medio di 26 minuti.",
+       "source_id": "src-moovitapp-com-518630f9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ea0942025e3c353c",
+     "id": "ita-airways.living.commute.5703e593",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Stazione Roma Trastevere → Fiumicino Aeroporto）",
+     "pack": "pvr-20261119-gm-ita-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-09-19",
+       "publisher": "Moovit",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-moovitapp-com-518630f9",
+       "source_type": "third_party_reference",
+       "title": "Da Stazione Roma Trastevere a Aeroporto Internazionale Leonardo Da Vinci (FCO)",
+       "url": "https://moovitapp.com/index/it/dir/Stazione_Roma_Trastevere-site_195924513-site_195943672-61"
+      }
+     ],
+     "unit": "分",
+     "use": "条件つき",
+     "value": 26,
+     "value_text": "26"
+    }
+   ],
    "name": "Rome",
    "name_en": null,
    "rents": [
@@ -253257,6 +277499,302 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "value_text": {
       "studio": "592"
+     }
+    }
+   ],
+   "towns": []
+  },
+  "sao-paulo": {
+   "airlines": [
+    "latam"
+   ],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "São Paulo",
+      "note_ja": "街「São Paulo」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "sao-paulo",
+     "company": "latam",
+     "cond_ja": "Estação da Luz, São Paulo → Estação Aeroporto-Guarulhos (GRU)。手段: train, CPTM Linha 13-Jade (Expresso Aeroporto)。補足: CPTM Linha 13-Jade（Expresso Aeroporto）でLuz駅からAeroporto-Guarulhos駅まで約30分（Palmeiras-Barra Funda駅からは約35分）。",
+     "currency": null,
+     "district": "Estação da Luz, São Paulo → Estação Aeroporto-Guarulhos (GRU)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": "2023-08-31",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Inaugurado em 2018, o expresso vai até o Aeroporto Internacional de São Paulo e já realiza viagens de aproximadamente 30 minutos entre as estações Luz e Aeroporto-Guarulhos, da Linha 13 - Jade, com paradas apenas nas estações Guarulhos-CECAP (em ambos os sentidos) e Brás (somente no sentido Luz).",
+       "source_id": "src-g1-globo-com-25b35df1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e9aaef1bea32751a",
+     "id": "latam.living.commute.5b8d0470",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Estação da Luz, São Paulo → Estação Aeroporto-Gua…",
+     "pack": "pvr-20261119-gm-latam",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-08-31",
+       "publisher": "G1 Globo",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-18",
+       "source_id": "src-g1-globo-com-25b35df1",
+       "source_type": "third_party_reference",
+       "title": "Expresso Aeroporto da CPTM, que liga São Paulo a Guarulhos, começa a operar a partir da estação Barra Funda nesta sexta-feira",
+       "url": "https://g1.globo.com/sp/sao-paulo/noticia/2023/08/31/expresso-aeroporto-da-cptm-que-liga-sao-paulo-a-guarulhos-comeca-a-operar-a-partir-da-estacao-barra-funda-nesta-sexta-feira.ghtml"
+      }
+     ],
+     "unit": "分",
+     "use": "条件つき",
+     "value": 30,
+     "value_text": "30"
+    }
+   ],
+   "name": "São Paulo",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "São Paulo",
+      "note_ja": "街「São Paulo」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 BRL の国（ブラジル）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "sao-paulo",
+     "company": "latam",
+     "cond_ja": "英: undefined。原部屋表記「Bedrooms: 1（apartamentos de 1 dormitório）」。数字の種類: São Paulo, Vila Mariana。家具: undefined。補足: 【第三者】サンパウロ南部Vila Mariana地区の1寝室マンション月額家賃中央値（原文表記R$ 3.300）。Livingcost.org（https://livingcost.org/cost/brazil/sao-paulo）のサンパウロ都心1 bedroom（40 m2）は649 USD/month。",
+     "currency": "BRL",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Em outubro de 2026, as medianas observadas ficaram próximas de R$ 3.000 para studios, R$ 3.300 para apartamentos de 1 dormitório, R$ 5.400 para 2 dormitórios e R$ 13.500 para 3 ou mais dormitórios em uma amostra agregada.",
+       "source_id": "src-ghar-com-br-c95371ee",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "af6967bf7079c323",
+     "id": "latam.living.rent-1bed.a2185108",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "Bedrooms: 1（apartamentos de 1 dormitório）",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261119-gm-latam",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-01",
+       "publisher": "Ghar Imóveis",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-ghar-com-br-c95371ee",
+       "source_type": "third_party_reference",
+       "title": "Aluguel Médio na Vila Mariana: Preços e Rentabilidade 2026",
+       "url": "https://ghar.com.br/imoveis/sp/sao-paulo/vila-mariana/aluguel-medio-vila-mariana/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 3300
+     },
+     "value_text": {
+      "1bed": "3.300"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "São Paulo",
+      "note_ja": "街「São Paulo」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 BRL の国（ブラジル）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "sao-paulo",
+     "company": "latam",
+     "cond_ja": "英: undefined。原部屋表記「Bedrooms: 2（2 dormitórios）」。数字の種類: São Paulo, Vila Mariana。家具: undefined。補足: 【第三者】サンパウロ南部Vila Mariana地区の2寝室マンション月額家賃中央値（原文表記R$ 5.400）。ZAP Imóveis FipeZAP（https://www.zapimoveis.com.br/blog/lugares/quanto-custa-aluguel-em-sp/）の2 quartos（60 m²）は3817 BRL/month（原文表記R$ 3.817）。",
+     "currency": "BRL",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Em outubro de 2026, as medianas observadas ficaram próximas de R$ 3.000 para studios, R$ 3.300 para apartamentos de 1 dormitório, R$ 5.400 para 2 dormitórios e R$ 13.500 para 3 ou mais dormitórios em uma amostra agregada.",
+       "source_id": "src-ghar-com-br-c95371ee",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "96858b7484d850f3",
+     "id": "latam.living.rent-2bed.537257e9",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "Bedrooms: 2（2 dormitórios）",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261119-gm-latam",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-01",
+       "publisher": "Ghar Imóveis",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-ghar-com-br-c95371ee",
+       "source_type": "third_party_reference",
+       "title": "Aluguel Médio na Vila Mariana: Preços e Rentabilidade 2026",
+       "url": "https://ghar.com.br/imoveis/sp/sao-paulo/vila-mariana/aluguel-medio-vila-mariana/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 5400
+     },
+     "value_text": {
+      "2bed": "5.400"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "São Paulo",
+      "note_ja": "街「São Paulo」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。家賃の通貨 BRL の国（ブラジル）と街の国が合う。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "sao-paulo",
+     "company": "latam",
+     "cond_ja": "英: undefined。原部屋表記「Bedrooms: 3（3 ou mais dormitórios）」。数字の種類: São Paulo, Vila Mariana。家具: undefined。補足: 【第三者】サンパウロ南部Vila Mariana地区の3寝室以上マンション月額家賃中央値（原文表記R$ 13.500）。",
+     "currency": "BRL",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Em outubro de 2026, as medianas observadas ficaram próximas de R$ 3.000 para studios, R$ 3.300 para apartamentos de 1 dormitório, R$ 5.400 para 2 dormitórios e R$ 13.500 para 3 ou mais dormitórios em uma amostra agregada.",
+       "source_id": "src-ghar-com-br-c95371ee",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8e24294b5313f969",
+     "id": "latam.living.rent-3bed.c26d5cb9",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "Bedrooms: 3（3 ou mais dormitórios）",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261119-gm-latam",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-01",
+       "publisher": "Ghar Imóveis",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-ghar-com-br-c95371ee",
+       "source_type": "third_party_reference",
+       "title": "Aluguel Médio na Vila Mariana: Preços e Rentabilidade 2026",
+       "url": "https://ghar.com.br/imoveis/sp/sao-paulo/vila-mariana/aluguel-medio-vila-mariana/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 13500
+     },
+     "value_text": {
+      "3bed": "13.500"
      }
     }
    ],
@@ -259036,7 +283574,120 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    "airlines": [
     "ryanair"
    ],
-   "commute": [],
+   "commute": [
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Tirana",
+      "note_ja": "街「Tirana」は取り込み済みの台帳（research-ledger.mjs の CITY_OF）の街のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "tirana",
+     "company": "ryanair",
+     "cond_ja": "South-North Terminal (Tirana) → Tirana International Airport (TIA)。手段: bus, Luna Travel Rinas Express Airport Shuttle。補足: ティラナ国際空港公式ページ（https://www.tirana-airport.com/en/transport-and-directions/15/By-Bus「The journey takes 30-40 minutes.」）でも30〜40分と案内。",
+     "currency": null,
+     "district": "South-North Terminal (Tirana) → Tirana International Airport (TIA)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The Tirana Centre – TIA Airport journey takes about 45 minutes. From the South-North Terminal it takes about 30 minutes.",
+       "source_id": "src-luna-al-e63e56c0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9b7d9208dd0b6d3a",
+     "id": "ryanair.living.commute.aac9c03e",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（South-North Terminal → Tirana International Airpo…",
+     "pack": "pvr-20261119-gm-ryanair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Luna Travel",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-luna-al-e63e56c0",
+       "source_type": "official_package",
+       "title": "Official Tirana–Rinas Airport Bus Service",
+       "url": "https://luna.al/en/airport"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 30,
+     "value_text": "30"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Tirana",
+      "note_ja": "街「Tirana」は取り込み済みの台帳（research-ledger.mjs の CITY_OF）の街のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "tirana",
+     "company": "ryanair",
+     "cond_ja": "Tirana Centre / Behind Palace of Opera and Ballet (Tirana, City Centre / Blloku area) → Tirana International Airport (TIA)。手段: bus, Luna Travel Rinas Express Airport Shuttle。補足: 空港シャトル運行会社Luna Travel公式ページによるティラナ中心部（オペラ・バレエ劇場裏）〜TIA空港間の所要時間（24時間毎時運行）。",
+     "currency": null,
+     "district": "Tirana Centre / Behind Palace of Opera and Ballet (Tirana, City Centre / Blloku area) → Tirana International Airport (TIA)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The Tirana Centre – TIA Airport journey takes about 45 minutes. From the South-North Terminal it takes about 30 minutes.",
+       "source_id": "src-luna-al-e63e56c0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cc5537a060698f18",
+     "id": "ryanair.living.commute.b5b28375",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Tirana Centre / Behind Palace of Opera and Ballet…",
+     "pack": "pvr-20261119-gm-ryanair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Luna Travel",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-luna-al-e63e56c0",
+       "source_type": "official_package",
+       "title": "Official Tirana–Rinas Airport Bus Service",
+       "url": "https://luna.al/en/airport"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 45,
+     "value_text": "45"
+    }
+   ],
    "name": "Tirana",
    "name_en": null,
    "rents": [
@@ -261658,6 +286309,118 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "S2がChopin空港、Służewiec、Rakowiec、Ochota、Śródmieścieなどに停車",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Warsaw",
+      "note_ja": "街「Warsaw」は取り込み済みの台帳（research-ledger.mjs の CITY_OF）の街のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "warsaw",
+     "company": "lot",
+     "cond_ja": "CENTRUM stop (Warsaw city centre) → Warsaw Chopin Airport (WAW)。手段: bus, 175。補足: ワルシャワ・ショパン空港公式ページ。空港から市内中心部（CENTRUM停留所）まで直通バスで約30分（SKM S2/S3列車ではワルシャワ中央駅まで約20分）。",
+     "currency": null,
+     "district": "CENTRUM stop (Warsaw city centre) → Warsaw Chopin Airport (WAW)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Time of direct journey from the airport to the bus stop CENTRUM takes about 30 minutes.",
+       "source_id": "src-lotnisko-chopina-pl-5e0b58a5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5f505ad328a42cee",
+     "id": "lot.living.commute.8a97e942",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（CENTRUM stop → Warsaw Chopin Airport）",
+     "pack": "pvr-20261119-gm-lot",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Warsaw Chopin Airport",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-18",
+       "source_id": "src-lotnisko-chopina-pl-5e0b58a5",
+       "source_type": "official_package",
+       "title": "Public transport (Buses)",
+       "url": "https://lotnisko-chopina.pl/en/to-and-from-the-airport/"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 30,
+     "value_text": "30"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "base": "Warsaw",
+      "note_ja": "街「Warsaw」は取り込み済みの台帳（research-ledger.mjs の CITY_OF）の街のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "warsaw",
+     "company": "lot",
+     "cond_ja": "Dw. Centralny 02 (Warsaw Central) → Chopin Airport - Departures 01 (WAW)。手段: bus, 175。補足: 【地図】ワルシャワ中央駅（Dw. centralny 02）からワルシャワ・ショパン空港（WAW）まで175番バスで27分。",
+     "currency": null,
+     "district": "Dw. Centralny 02 (Warsaw Central) → Chopin Airport - Departures 01 (WAW)",
+     "district_en": null,
+     "domain": "living",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "27 mins (8.2 km) via Bus 175 from Dw. centralny 02 to Chopin Airport - Departures 01",
+       "source_id": "src-google-com-df847ad5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c66cdf4f05cd9e81",
+     "id": "lot.living.commute.c976fe2a",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "commute",
+     "label_ja": "空港までの公共交通（Dw. Centralny 02 → Chopin Airport - Departures 01）",
+     "pack": "pvr-20261119-gm-lot",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Google Maps",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-google-com-df847ad5",
+       "source_type": "third_party_reference",
+       "title": "Google Maps",
+       "url": "https://www.google.com/maps/dir/Dw.+centralny+02/Chopin+Airport+-+Departures+01/data=!4m5!4m4!2m2!6e0!8j1795075200!3e3"
+      }
+     ],
+     "unit": "分",
+     "use": "参考",
+     "value": 27,
+     "value_text": "27"
     }
    ],
    "name": "Warsaw",
@@ -263118,6 +287881,245 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      },
      "value_text": {
       "studio": "5.59万円"
+     }
+    }
+   ],
+   "towns": []
+  },
+  "ypsilanti": {
+   "airlines": [
+    "kalitta-air"
+   ],
+   "commute": [],
+   "name": "Ypsilanti",
+   "name_en": null,
+   "rents": [
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・1-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Ypsilanti",
+      "note_ja": "街「Ypsilanti」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "ypsilanti",
+     "company": "kalitta-air",
+     "cond_ja": "英: undefined。原部屋表記「One-bedroom apartments」。数字の種類: Ann Arbor, Downtown Ann Arbor (near Ypsilanti YIP headquarters)。家具: undefined。補足: 【第三者】Affluent district adjacent to Ypsilanti (YIP); Apartments.com (https://www.apartments.com/rent-market-trends/downtown-ann-arbor-ann-arbor-mi/, Nov 2026) reports $2,329/month for Downtown Ann Arbor 1-bedroom。",
+     "currency": "USD",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-31",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "One-bedroom apartments provide 563 square feet for $2,250, balancing privacy and affordability.",
+       "source_id": "src-rentcafe-com-0ac064f0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "11aa520369734fe1",
+     "id": "kalitta-air.living.rent-1bed.6406c77d",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（1-Bed）",
+     "layout": {
+      "bed1": {
+       "pack_key": "1bed",
+       "term": "One-bedroom apartments",
+       "word": "1-Bed"
+      }
+     },
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-31",
+       "publisher": "RentCafe",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rentcafe-com-0ac064f0",
+       "source_type": "third_party_reference",
+       "title": "Average Rent in Downtown Ann Arbor, MI",
+       "url": "https://www.rentcafe.com/average-rent-market-trends/us/mi/ann-arbor/downtown-ann-arbor/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "1bed": 2250
+     },
+     "value_text": {
+      "1bed": "2,250"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・2-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Ypsilanti",
+      "note_ja": "街「Ypsilanti」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "ypsilanti",
+     "company": "kalitta-air",
+     "cond_ja": "英: undefined。原部屋表記「Two-bedroom units」。数字の種類: Ann Arbor, Downtown Ann Arbor (near Ypsilanti YIP headquarters)。家具: undefined。補足: 【第三者】Apartments.com (https://www.apartments.com/rent-market-trends/downtown-ann-arbor-ann-arbor-mi/, Nov 2026) reports $3,330/month for Downtown Ann Arbor 2-bedroom。",
+     "currency": "USD",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-31",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Two-bedroom units at $3,251 offer 791 square feet, perfect for roommates or small families.",
+       "source_id": "src-rentcafe-com-0ac064f0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "eb56f5521d7ae282",
+     "id": "kalitta-air.living.rent-2bed.9411374f",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（2-Bed）",
+     "layout": {
+      "bed2": {
+       "pack_key": "2bed",
+       "term": "Two-bedroom units",
+       "word": "2-Bed"
+      }
+     },
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-31",
+       "publisher": "RentCafe",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rentcafe-com-0ac064f0",
+       "source_type": "third_party_reference",
+       "title": "Average Rent in Downtown Ann Arbor, MI",
+       "url": "https://www.rentcafe.com/average-rent-market-trends/us/mi/ann-arbor/downtown-ann-arbor/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "2bed": 3251
+     },
+     "value_text": {
+      "2bed": "3,251"
+     }
+    },
+    {
+     "amount": {
+      "assumed_hours": null,
+      "excludes": [],
+      "includes": [],
+      "kind": "other",
+      "kind_note_ja": "家賃（1か月・3-Bed）",
+      "stat": "unknown",
+      "tax": "unknown",
+      "unclear": []
+     },
+     "applies_to": {
+      "base": "Ypsilanti",
+      "note_ja": "街「Ypsilanti」は同じ表の拠点の街（2 の pilot_base_city）のうち、行が名前を挙げている街から決めた（家賃の行そのものには街の欄が無い）。街の国は確かめられなかった。",
+      "pilot_specific": false
+     },
+     "checked_at": "2026-11-18",
+     "city": "ypsilanti",
+     "company": "kalitta-air",
+     "cond_ja": "英: undefined。原部屋表記「Three-bedroom apartments」。数字の種類: Ann Arbor, Downtown Ann Arbor (near Ypsilanti YIP headquarters)。家具: undefined。補足: 【第三者】Apartments.com (https://www.apartments.com/rent-market-trends/downtown-ann-arbor-ann-arbor-mi/, Nov 2026) reports $4,101/month for Downtown Ann Arbor 3-bedroom。",
+     "currency": "USD",
+     "district": "undefined",
+     "district_en": "undefined",
+     "domain": "living",
+     "effective": {
+      "from": "2026-10-31",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Three-bedroom apartments deliver maximum space (1,021 sq ft) for $4,082, suitable for larger households.",
+       "source_id": "src-rentcafe-com-0ac064f0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "05d802cef8e8e268",
+     "id": "kalitta-air.living.rent-3bed.82a7008b",
+     "imported_on": "2026-11-19",
+     "info_kind": "published_statistic",
+     "key": "rent",
+     "label_ja": "拠点の街の家賃（3-Bed）",
+     "layout": {
+      "bed3": {
+       "pack_key": "3bed",
+       "term": "Three-bedroom apartments",
+       "word": "3-Bed"
+      }
+     },
+     "pack": "pvr-20261119-gm-kalitta-air",
+     "per": "month",
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-31",
+       "publisher": "RentCafe",
+       "publisher_kind": "portal",
+       "retrieved": "2026-11-18",
+       "source_id": "src-rentcafe-com-0ac064f0",
+       "source_type": "third_party_reference",
+       "title": "Average Rent in Downtown Ann Arbor, MI",
+       "url": "https://www.rentcafe.com/average-rent-market-trends/us/mi/ann-arbor/downtown-ann-arbor/"
+      }
+     ],
+     "unit": null,
+     "use": "条件つき",
+     "value": {
+      "3bed": 4082
+     },
+     "value_text": {
+      "3bed": "4,082"
      }
     }
    ],
@@ -580350,6 +605352,695 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    },
    "revision": 1,
    "sha": "sha256:7eb46e95b41f35f9"
+  },
+  "pvr-20261119-gm-abx-air": {
+   "records": {
+    "abx-air.benefits.staff-travel.6e4da0e1": "5b37d62b875c0d20",
+    "abx-air.benefits.staff-travel.be7b8bf6": "fe4a03d087b24002",
+    "abx-air.fleet.boeing-767-200.7cc3c6f9": "f0415f4d8c0988f7",
+    "abx-air.fleet.boeing-767-300.01446141": "0da1b44de19d66cf",
+    "abx-air.jobs.fo-license-fo.df7ad6b8": "1aea701fb5b5593a",
+    "abx-air.jobs.fo-posting-fo.e3764a0e": "fc600a14d73e1d05",
+    "abx-air.jobs.fo-right-to-work-fo.2819be83": "2ddbeed7918de193",
+    "abx-air.jobs.fo-total-hours-fo.4ae3d27f": "0ef22dc93276cd78",
+    "abx-air.jobs.fo-type-rating-fo.5ad51d4a": "f0950962ef8adea1",
+    "abx-air.jobs.pilot-posting.ba672b62": "466ef62d4a14caa7",
+    "abx-air.jobs.pilot-total-hours.22733f98": "9f1a21675f1ec727",
+    "abx-air.profile.founded.636389cc": "8a952f336526d49e",
+    "abx-air.profile.headquarters-city.4a2c7382": "72b0cfa075925bbb",
+    "abx-air.scale.fleet-total.2f15583f": "81f2232320c7fc33"
+   },
+   "revision": 1,
+   "sha": "sha256:c7fa0903b6fc55ad"
+  },
+  "pvr-20261119-gm-aegean": {
+   "records": {
+    "aegean.base.pilot-base.54830515": "e762556bd65a7116",
+    "aegean.base.pilot-base.88f41568": "ec827668570a164e",
+    "aegean.base.pilot-base.ec183ef2": "8a140ce9b7a90df3",
+    "aegean.base.pilot-base.ffc2ee71": "73a7252244c7537d",
+    "aegean.benefits.commuting.258b4b3d": "0a48ebf59c0157df",
+    "aegean.living.commute.63ba18e5": "c5dc3b9764aa018e",
+    "aegean.living.commute.8586cf2d": "784c4c3f46d389c1",
+    "aegean.living.commute.bcdb50a1": "bb66af28fb3c0300",
+    "aegean.work.days-off.924c30db": "c96b0d87cc23bf91",
+    "aegean.work.days-off.b851c5d6": "174b43760cdc4f4d",
+    "aegean.work.roster-pattern.ea83a3d6": "7fdf80459a5c9cb5",
+    "aegean.work.working-time-cap.996f0297": "3eba9295101e7ea7",
+    "aegean.work.working-time-cap.dba76779": "7a28d3050bc9a5cf"
+   },
+   "revision": 1,
+   "sha": "sha256:a584a818d7f0362d"
+  },
+  "pvr-20261119-gm-aer-lingus": {
+   "records": {
+    "aer-lingus.base.pilot-base-city.437e548c": "fd1b3293872571e3",
+    "aer-lingus.base.pilot-base-city.7c6fd0f4": "2b17a7a7d5323fd5",
+    "aer-lingus.base.pilot-base-city.ac93727c": "cc6d4cc6325d5916",
+    "aer-lingus.base.pilot-base-city.f0011b86": "9e3b3207f0dd06d4",
+    "aer-lingus.base.pilot-base.080b2841": "d688663fb4509a08",
+    "aer-lingus.base.pilot-base.1fa1129e": "8b03ad2eb93addac",
+    "aer-lingus.base.pilot-base.28aecfc5": "5a194487b5f203ea",
+    "aer-lingus.benefits.commuting.8316243e": "1cc8d59c52c656c5",
+    "aer-lingus.benefits.staff-travel.b416e1a2": "9d0d874919827895",
+    "aer-lingus.living.commute.249d6ae9": "d79af48ab027d603",
+    "aer-lingus.living.commute.ad83aa14": "daf0953d588df4a9",
+    "aer-lingus.living.commute.e3df3609": "5bceec7db3257118"
+   },
+   "revision": 1,
+   "sha": "sha256:94589a4df2b088b8"
+  },
+  "pvr-20261119-gm-aeromexico": {
+   "records": {
+    "aeromexico.base.pilot-base-city.31e13293": "08455cd13dd9a347",
+    "aeromexico.base.pilot-base-city.9a16b8d9": "b38b013fe261f0b0",
+    "aeromexico.base.pilot-base-city.c82adb53": "f80d47da21039cfb",
+    "aeromexico.base.pilot-base.0f0ae23e": "d4085e9b91bafefd",
+    "aeromexico.base.pilot-base.27913f44": "ba4a35e202364b45",
+    "aeromexico.base.pilot-base.7453cf5b": "7932364892e8d64d",
+    "aeromexico.benefits.annual-leave.f3c36521": "cf2216aadd764d11",
+    "aeromexico.benefits.commuting.d58b072c": "5d6ccb619739d209",
+    "aeromexico.benefits.staff-travel.4318e586": "7c14abbd3bfe596b",
+    "aeromexico.living.commute.3e566287": "5715ab2ad70fccaf",
+    "aeromexico.work.days-off.938cb558": "4cbe0958f7845f2f",
+    "aeromexico.work.roster-pattern.5a0e6ef3": "b8734860bb03db98",
+    "aeromexico.work.training-bond.5db54163": "3f035f78a444a8db",
+    "aeromexico.work.working-time.d54c7cf5": "637d7d8d9474a46b"
+   },
+   "revision": 1,
+   "sha": "sha256:62e81933beb9f2a4"
+  },
+  "pvr-20261119-gm-air-france": {
+   "records": {
+    "air-france.benefits.staff-travel.002796a0": "5feb52402996e05c",
+    "air-france.benefits.staff-travel.15dd5e23": "5ad6814d081b9d30",
+    "air-france.benefits.staff-travel.3afef06d": "82c9391eefcd4086",
+    "air-france.benefits.staff-travel.ec96ab29": "e11fe19bceaaaa9b",
+    "air-france.living.commute.50fbf9a5": "c9a67386fc321b5b",
+    "air-france.living.commute.51fe6918": "b2cc3c8e2b332b33",
+    "air-france.living.commute.cc9343f1": "4ed00c898d36b95e"
+   },
+   "revision": 1,
+   "sha": "sha256:a27046dea9f645a8"
+  },
+  "pvr-20261119-gm-air-new-zealand": {
+   "records": {
+    "air-new-zealand.base.pilot-base-city.53984984": "1c0d7774a73f9dac",
+    "air-new-zealand.base.pilot-base-city.90a5ff31": "f1a430d181a3e65f",
+    "air-new-zealand.base.pilot-base-city.ef877cd3": "7506fcd4840d3c4c",
+    "air-new-zealand.benefits.commuting.da33eb32": "c553567b54701995",
+    "air-new-zealand.living.commute.fbfcc7d2": "b6dfd39a2309708c",
+    "air-new-zealand.living.rent-1bed.17b1622a": "17556ac2fbe598c7",
+    "air-new-zealand.work.training-bond.85889b37": "c74eb00bb65bef0f",
+    "air-new-zealand.work.upgrade-years-cap.917377d2": "309ce709f556a069",
+    "air-new-zealand.work.upgrade-years-cap.b923a742": "de2141c8fe4882fc",
+    "air-new-zealand.work.upgrade-years-cap.bf3ede25": "7e3631819f369217"
+   },
+   "revision": 1,
+   "sha": "sha256:1ddff200b32a49e6"
+  },
+  "pvr-20261119-gm-airx-charter": {
+   "records": {
+    "airx-charter.base.pilot-base-city-fo.985119ae": "0bd3c0bf0a5e48a2",
+    "airx-charter.base.pilot-base-city.6ba7878c": "2d5e942727a04455",
+    "airx-charter.benefits.annual-leave.0933ef61": "7e84a7241323820e",
+    "airx-charter.benefits.commuting.e1cdfd1a": "fde978bedf7969c6",
+    "airx-charter.benefits.medical.65122850": "b97c844c3176de32",
+    "airx-charter.benefits.pension.9de15ba8": "387ed6398f1e4d54",
+    "airx-charter.living.commute.8fcd2855": "813e5e2840a4789b",
+    "airx-charter.living.rent-1bed.48ffe4fe": "29ebe305748cbcb7",
+    "airx-charter.living.rent-2bed.a1a39fa2": "9004888dc3167b19",
+    "airx-charter.living.rent-3bed.78c3c589": "e04cb2d0e6031992",
+    "airx-charter.work.training-bond-fo.82f21692": "76a4b057b6f0910a"
+   },
+   "revision": 1,
+   "sha": "sha256:6b89f0519f6818e7"
+  },
+  "pvr-20261119-gm-alaska-airlines": {
+   "records": {
+    "alaska-airlines.work.training-bond-fo.37e50bd5": "4125f31b9d9f4400",
+    "alaska-airlines.work.training-bond-fo.c0115362": "38be7251403490a5",
+    "alaska-airlines.work.training-bond-fo.d26bfb7a": "060d4457b25d2c90",
+    "alaska-airlines.work.upgrade-years-cap.31fa2709": "9fc45275a207a814",
+    "alaska-airlines.work.upgrade-years-cap.32b00d57": "0b83842f4208172f",
+    "alaska-airlines.work.upgrade-years-cap.6bb101ae": "944c52309edc4392",
+    "alaska-airlines.work.upgrade-years-cap.a1e06acc": "db96c4f22f1df300"
+   },
+   "revision": 1,
+   "sha": "sha256:7c6e241bfd7bfa79"
+  },
+  "pvr-20261119-gm-american": {
+   "records": {
+    "american.jobs.fo-license-fo.4f3108a1": "6eb5ad1775a0d2fe",
+    "american.jobs.fo-license-fo.8862b564": "efcc963f47dec7f9",
+    "american.jobs.fo-posting-fo.017f7faf": "9eb0c49dc3bf901a",
+    "american.jobs.fo-right-to-work-fo.3696747b": "7ec7105d1c0296f9",
+    "american.jobs.fo-total-hours-fo.f565b4df": "fa9ca0fd2a7f74a5",
+    "american.jobs.fo-type-rating-fo.86c9d77a": "742686888e4972f9",
+    "american.jobs.pilot-posting.0aadb1f3": "2f257e9b9dc0244c",
+    "american.jobs.pilot-right-to-work.ea6132cf": "19bfad60fe6656d8"
+   },
+   "revision": 1,
+   "sha": "sha256:9ed4e4e1c5fe2a11"
+  },
+  "pvr-20261119-gm-atlas-air": {
+   "records": {
+    "atlas-air.fleet.747-400-passenger.68b7a8c9": "8395217879d88164",
+    "atlas-air.fleet.747-400f-widebody-cargo.efa2cddd": "d86eeb011b2ef92b",
+    "atlas-air.fleet.747-8f-widebody-cargo.922b93f5": "501eafdfffb68605",
+    "atlas-air.fleet.767-300-passenger.ae06f977": "70a75ed3e815000e",
+    "atlas-air.fleet.767-300f-titan-dry-lease.028c1867": "fb62775f4386f531",
+    "atlas-air.fleet.767-300f-widebody-cargo-operated.62fce64d": "3758c5c316bca85d",
+    "atlas-air.fleet.777-200f-titan-dry-lease.9814f6af": "e143a9f760d31243",
+    "atlas-air.fleet.777-200f-widebody-cargo-operated.5da1513f": "08e368e745dff9b9",
+    "atlas-air.fleet.large-cargo-freighter-lcf-boeing-747-400.73035006": "7b6a68847a9f11f0",
+    "atlas-air.jobs.fo-license-fo.0f983229": "2616dcc1dcc2bde5",
+    "atlas-air.jobs.fo-posting-fo.63e5b56e": "91cd14f8a6d7da8d",
+    "atlas-air.jobs.fo-posting-fo.a08169e7": "584be8fa418f8d59",
+    "atlas-air.jobs.fo-right-to-work-fo.1157d394": "87afb4d0cf76ae8b",
+    "atlas-air.jobs.fo-total-hours-fo.60806580": "099ac72ef79f523d",
+    "atlas-air.jobs.fo-total-hours-fo.7fa5c2fa": "d84d7aa856bc7a2e",
+    "atlas-air.jobs.fo-type-rating-fo.6eb3d458": "96a4876af1ac65f3",
+    "atlas-air.profile.founded.92c9e164": "39e27461ded6c041",
+    "atlas-air.profile.headquarters-city.afa4e13c": "211fb0d2014a1374",
+    "atlas-air.scale.fleet-total.8ba6a0d8": "26f377489f6bbc1e",
+    "atlas-air.work.training-bond-fo.a4b5f552": "79c1c676b421dace",
+    "atlas-air.work.upgrade-years-cap.598936fc": "870b4b904f7d92b4"
+   },
+   "revision": 1,
+   "sha": "sha256:21e1724946889249"
+  },
+  "pvr-20261119-gm-avelo-airlines": {
+   "records": {
+    "avelo-airlines.benefits.staff-travel.453a409d": "69a563e183bed37a",
+    "avelo-airlines.benefits.staff-travel.c221fbd8": "d1f5b2a106f86ad8",
+    "avelo-airlines.fleet.boeing-737-700.e1fba290": "f23512df174058eb",
+    "avelo-airlines.fleet.boeing-737-800.2774ae06": "cb58d7ed212dbd75",
+    "avelo-airlines.jobs.cap-posting-cap.1cf6b578": "b2e150bd6168eea1",
+    "avelo-airlines.jobs.cap-total-hours-cap.18f7d278": "81e702911d29dd10",
+    "avelo-airlines.jobs.cap-type-rating-cap.55b8a452": "63ab4d89a65009a3",
+    "avelo-airlines.jobs.fo-posting-fo.3e4fdc3c": "acc3bc19dd73585a",
+    "avelo-airlines.jobs.fo-total-hours-fo.63626aac": "040e888e7205b565",
+    "avelo-airlines.jobs.fo-type-rating-fo.2ce6079e": "6a382f0d36aac68f",
+    "avelo-airlines.jobs.pilot-license.f1745f05": "4a150a584d2fd134",
+    "avelo-airlines.jobs.pilot-right-to-work.e9cd9fc2": "9c7c91fa5074e0e0",
+    "avelo-airlines.jobs.pilot-type-rating.806ede3c": "9f2c79abab67b512",
+    "avelo-airlines.profile.founded.0b62990b": "51e6a89a2d25fb1d",
+    "avelo-airlines.profile.founded.d306d904": "45316a98bd1b027b",
+    "avelo-airlines.profile.headquarters-city.dff63459": "d274ff09dee34836",
+    "avelo-airlines.scale.fleet-total.5462450d": "cd83169097a1a52a"
+   },
+   "revision": 1,
+   "sha": "sha256:ee8c3a2ff96685a8"
+  },
+  "pvr-20261119-gm-avianca": {
+   "records": {
+    "avianca.base.pilot-base-city.06a17b62": "423232a73a3adcc6",
+    "avianca.base.pilot-base-city.12d1552c": "b69bfd7cfc052cd5",
+    "avianca.base.pilot-base-city.2520d550": "856dad7e8baf490f",
+    "avianca.base.pilot-base-city.64166676": "b36624990544a723",
+    "avianca.base.pilot-base-city.80fd39ee": "bb44c57ca35830dd",
+    "avianca.base.pilot-base.362a6ad9": "db27efa41a3514f7",
+    "avianca.base.pilot-base.d9b14bff": "1eb4556aeb23ca1f",
+    "avianca.base.pilot-base.f0f5e5ab": "0c4151893086a7bc",
+    "avianca.benefits.commuting.ef292378": "bc923028e783dcb8",
+    "avianca.benefits.housing.c9aaa343": "dfc21a14ed108964",
+    "avianca.benefits.medical.6285d57a": "48987cdbf647fbf3",
+    "avianca.benefits.pension.7a3302b8": "5979fd6f8e336585",
+    "avianca.benefits.staff-travel.ead4bc01": "f7a9ec55b0cfe123",
+    "avianca.living.commute.5830a7b3": "6fa841da8c9c79ce",
+    "avianca.living.rent-1bed.82825440": "b65b42ecfb187ae9",
+    "avianca.living.rent-2bed.30fc6346": "9bdeabd01d51150a",
+    "avianca.living.rent-3bed.ec88da48": "4981d2230f61c3ee",
+    "avianca.work.training-bond-fo.b0308571": "a4ddb986a5413c1b",
+    "avianca.work.upgrade-years.9c4ee4fc": "c7bcabb228aac8f4"
+   },
+   "revision": 1,
+   "sha": "sha256:a9d7dc9b6e00b51d"
+  },
+  "pvr-20261119-gm-breeze-airways": {
+   "records": {
+    "breeze-airways.work.training-bond.c3157215": "de2a098c366112d2",
+    "breeze-airways.work.upgrade-years.3c449ee9": "5436b373e386f0a3",
+    "breeze-airways.work.upgrade-years.91c89323": "2e1e443a1d66025b",
+    "breeze-airways.work.upgrade-years.e688c508": "7c565283fb3d2082"
+   },
+   "revision": 1,
+   "sha": "sha256:6ab52a0e35d15b60"
+  },
+  "pvr-20261119-gm-contour": {
+   "records": {
+    "contour.benefits.commuting.ee3cc917": "1510b96c69dc3734",
+    "contour.fleet.bombardier-crj-100-200.50d30c1f": "4bae5485735f3cb9",
+    "contour.fleet.bombardier-crj200.e4ea8ea7": "2a60cde20556a671",
+    "contour.fleet.crj200.31f2d215": "c404e8a940095860",
+    "contour.fleet.embraer-erj-135-145.97981068": "e05f7f0a74b8245f",
+    "contour.fleet.embraer-erj-135.65a53805": "a1acfbdf691e9033",
+    "contour.fleet.embraer-erj-140.c2b2a1b7": "569c485a1ee805a2",
+    "contour.fleet.embraer-erj-145.77ae1f06": "236a31469d744131",
+    "contour.fleet.embraer-legacy-600.4939ca35": "94b865ff08375d2f",
+    "contour.fleet.erj-145.c8edd8e3": "283ae1224f6e805f",
+    "contour.jobs.cap-posting-cap.54f007b5": "0dee220e7018cb74",
+    "contour.jobs.cap-posting-cap.650ba62d": "88a6dce73cc33f47",
+    "contour.jobs.cap-right-to-work-cap.c913bfaf": "4a86bbd45f615657",
+    "contour.jobs.cap-total-hours-cap.339be2cc": "1273e095680a213f",
+    "contour.jobs.cap-total-hours-cap.4252dbaa": "446a8d307268bd9c",
+    "contour.jobs.cap-total-hours-cap.6ddfd457": "90fccf3d4fd99d43",
+    "contour.jobs.cap-type-rating-cap.ac245505": "0c2b89a84f0d680d",
+    "contour.jobs.cap-type-rating-cap.c6b4187c": "2a0859e39fabf985",
+    "contour.jobs.fo-posting-fo.3d680b3f": "680ee19c5221831a",
+    "contour.jobs.fo-right-to-work-fo.690e6cf5": "8476ccabb93e3754",
+    "contour.jobs.fo-total-hours-fo.3c10ebb6": "c583878282d1063f",
+    "contour.jobs.fo-total-hours-fo.70cd6b22": "8f9b469be87ad0e7",
+    "contour.jobs.fo-total-hours-fo.a55c7926": "728a32824a11d62f",
+    "contour.jobs.fo-type-rating-fo.163896b0": "2a3bb1db4f4fd29f",
+    "contour.profile.founded.8bbc32d1": "51e7b01f82713e19",
+    "contour.profile.headquarters-city.723d3221": "00e7ccff26e3027d",
+    "contour.scale.fleet-total.6ad577bd": "6bb565ac8bb5a174",
+    "contour.scale.fleet-total.8630121b": "ad5d4ab380396ce3",
+    "contour.scale.fleet-total.9387d2df": "8060e50e02bd8935",
+    "contour.work.days-off.69533b0f": "328a030187e85ab2",
+    "contour.work.roster-pattern-cap.3690cd3d": "36bf3172a15ba1c3",
+    "contour.work.working-time.704af64c": "88a652c6e4ca982b",
+    "contour.work.working-time.8e6fab79": "d99cfcc74a2f1127",
+    "contour.work.working-time.bd51d8e0": "e48808a081b24983"
+   },
+   "revision": 1,
+   "sha": "sha256:b3bd735085663944"
+  },
+  "pvr-20261119-gm-copa-airlines": {
+   "records": {
+    "copa-airlines.benefits.annual-leave.f198d708": "c4deeb25556283d2",
+    "copa-airlines.benefits.commuting.1c61e2f2": "fc95a4f90c68c5c0",
+    "copa-airlines.living.commute.b6dbfa5e": "33b856bd795a2335",
+    "copa-airlines.work.days-off.b9953c72": "8557cf4449262c3c",
+    "copa-airlines.work.roster-pattern.074b3242": "9a5a9dbcd2fee1c0",
+    "copa-airlines.work.working-time.24287fff": "33838966a4036106"
+   },
+   "revision": 1,
+   "sha": "sha256:8bc88ef2c931b72c"
+  },
+  "pvr-20261119-gm-fedex-express": {
+   "records": {
+    "fedex-express.benefits.commuting.2ed03f9c": "6c2800e19bd91485",
+    "fedex-express.benefits.commuting.d73a253f": "fc962f3ab142c2f7",
+    "fedex-express.fleet.airbus-a300-600.57348535": "d37e459a9129c25a",
+    "fedex-express.fleet.atr-42.29c231f2": "cccf3902d33b71c6",
+    "fedex-express.fleet.atr-72-600f.362c4c0b": "eae5b1e48e802f5a",
+    "fedex-express.fleet.atr-72.d2ee387a": "94a7f6707b4f9b65",
+    "fedex-express.fleet.boeing-757-200.6a68cb6f": "5d3257e6e099bb7a",
+    "fedex-express.fleet.boeing-767f.17a94971": "0b667c1ddb0b99ea",
+    "fedex-express.fleet.boeing-777f.a26a7bd0": "6717ce6a502a08fe",
+    "fedex-express.fleet.boeing-md11.71c74aaa": "a8392ae8a02bfb1b",
+    "fedex-express.fleet.cessna-208b.bcec2f19": "5d92757b5f712549",
+    "fedex-express.fleet.cessna-408-skycourier.f454fe41": "e17f0f0e7344d3ac",
+    "fedex-express.jobs.fo-license-fo.9bf0a85e": "3c49fde5723aad4a",
+    "fedex-express.jobs.fo-posting-fo.c4cd4660": "39739bf444614a8e",
+    "fedex-express.jobs.fo-right-to-work-fo.3043ef56": "97d921dab9ba38be",
+    "fedex-express.jobs.fo-total-hours-fo.5bf97f8d": "8d3384762b40ffad",
+    "fedex-express.jobs.fo-type-rating-fo.634d7784": "bb3c2fab07a4f501",
+    "fedex-express.profile.founded.81186d94": "499398f93ffc8d75",
+    "fedex-express.profile.headquarters-city.9cc92dd8": "458e587d9608ddf3",
+    "fedex-express.scale.fleet-total.2ceeb413": "a662f0197a194d97",
+    "fedex-express.scale.fleet-total.45db90ff": "de1a62813ecff734",
+    "fedex-express.work.training-bond.33ccb400": "4ff02d9716297cb6",
+    "fedex-express.work.training-bond.9ec34598": "22c6e3e618e547c3",
+    "fedex-express.work.upgrade-years.2c1bd069": "4b21fc39381f7816"
+   },
+   "revision": 1,
+   "sha": "sha256:7c1fa59e69861332"
+  },
+  "pvr-20261119-gm-fiji-airways": {
+   "records": {
+    "fiji-airways.base.pilot-base-city.3fa2863b": "04b7f918e825bb3b",
+    "fiji-airways.base.pilot-base.70817823": "3fa854c5506a2042",
+    "fiji-airways.benefits.annual-leave-cap.0c8cf15f": "1695af94ade22b0e",
+    "fiji-airways.benefits.annual-leave-cap.40b28ad8": "8521a6e8dfc80453",
+    "fiji-airways.benefits.annual-leave-fo.84a013fe": "5e5ebe1a6dd56383",
+    "fiji-airways.benefits.commuting-cap.4039675c": "685026b7995b6359",
+    "fiji-airways.benefits.commuting.9441fb8c": "0d5707efede9eb38",
+    "fiji-airways.benefits.staff-travel.ab672c8f": "e97ca5b152858c14",
+    "fiji-airways.living.commute.1c6d9051": "2ee5eb6e92e05d78",
+    "fiji-airways.living.commute.6a44de7b": "c0eff809203f2fca",
+    "fiji-airways.living.commute.79a9f25d": "6274d513910d430a",
+    "fiji-airways.work.days-off-cap.4b50c713": "1c1be372aa665443",
+    "fiji-airways.work.days-off-fo.cce1188f": "6c764d8a2bfff16c",
+    "fiji-airways.work.days-off.033a843c": "7a6b92aef633f040",
+    "fiji-airways.work.days-off.5d823c00": "b63f3de8786aa432",
+    "fiji-airways.work.roster-pattern-cap.8628c482": "75dede98727a9d31",
+    "fiji-airways.work.roster-pattern-fo.876c507b": "5964279357b68f57",
+    "fiji-airways.work.working-time-cap.e0ff5528": "d2257fb3cd57da05",
+    "fiji-airways.work.working-time-fo.0e311560": "381a42e9892c2eb9"
+   },
+   "revision": 1,
+   "sha": "sha256:1f3a4cb341e8c633"
+  },
+  "pvr-20261119-gm-gojet": {
+   "records": {
+    "gojet.benefits.annual-leave.63453823": "e425113289023699",
+    "gojet.benefits.commuting.597cb67b": "c029876c4d6a155f",
+    "gojet.fleet.crj550.41214cdd": "2f4019b366ce2d1e",
+    "gojet.jobs.cap-license-cap.188f588a": "17e5833b62fd4c8a",
+    "gojet.jobs.cap-posting-cap.15df19b3": "5f635b71e4998f0f",
+    "gojet.jobs.cap-right-to-work-cap.da618cef": "ad3e7a26e08d0123",
+    "gojet.jobs.cap-total-hours-cap.98e3b21f": "c799a489e3b34210",
+    "gojet.jobs.cap-type-rating-cap.ef6377f7": "e6c3fe027332ef33",
+    "gojet.jobs.fo-license-fo.aa11ee90": "900ddd7714780b1c",
+    "gojet.jobs.fo-posting-fo.61864547": "1bdd942ef2a343b6",
+    "gojet.jobs.fo-right-to-work-fo.7bc99e3a": "b32898155f343ce2",
+    "gojet.jobs.fo-total-hours-fo.0847fa47": "30d773b93f810555",
+    "gojet.jobs.fo-total-hours-fo.6ce93413": "54a4eceb4bd9013e",
+    "gojet.jobs.fo-type-rating-fo.5e1db87f": "79a8722b8b5f2ca9",
+    "gojet.profile.founded.a0150887": "9ef4c927a5b484ad",
+    "gojet.profile.headquarters-city.8605bdc6": "afa4a3ad659dad91",
+    "gojet.scale.fleet-total.297c5622": "8d98cfa67907d01f",
+    "gojet.work.days-off.96c2a08a": "653cac78d984a988",
+    "gojet.work.days-off.9f52cb48": "e490b306d107c846",
+    "gojet.work.roster-pattern.0c4ef37f": "a8cc78d2b598a74a",
+    "gojet.work.working-time.178811c1": "ca775e60e41ac626"
+   },
+   "revision": 1,
+   "sha": "sha256:fefba55784ab8ed1"
+  },
+  "pvr-20261119-gm-icelandair": {
+   "records": {
+    "icelandair.base.pilot-base-city.23c6c994": "65afb78fd83d8ace",
+    "icelandair.base.pilot-base-city.5d1c44c4": "31e849da0f8fca26",
+    "icelandair.base.pilot-base.737a5f86": "283b7c7382d1bd48",
+    "icelandair.base.pilot-base.b6c0e20a": "c9ae007df1033413",
+    "icelandair.benefits.commuting.2aa8f95e": "de846352eacc337a",
+    "icelandair.benefits.commuting.c1cd5131": "c709e5a826496c0a",
+    "icelandair.benefits.staff-travel.4ea26815": "ea6a9ed36f8436d2",
+    "icelandair.jobs.fo-license-fo.4c918d9d": "9566df317b08448f",
+    "icelandair.jobs.fo-right-to-work-fo.d336b71e": "37415b784c20403a",
+    "icelandair.jobs.fo-total-hours-fo.ee5ae542": "15f799dcf426e8fd",
+    "icelandair.jobs.fo-type-rating-fo.d108168e": "7cd93bf6138fd671",
+    "icelandair.living.commute.2e9bde7c": "19034337d2c785d1",
+    "icelandair.living.commute.6f3b2941": "72733db343cbc5de",
+    "icelandair.work.roster-pattern.1ea24d5a": "77312b0ccc466ca1"
+   },
+   "revision": 1,
+   "sha": "sha256:b16df5c4c7f77138"
+  },
+  "pvr-20261119-gm-ita-airways": {
+   "records": {
+    "ita-airways.base.pilot-base-city.49b2d9cf": "cbca822fdac1d981",
+    "ita-airways.base.pilot-base-city.a792eda5": "e1dbd3964e18f66a",
+    "ita-airways.base.pilot-base.3a0121e6": "9417e284b22b2099",
+    "ita-airways.base.pilot-base.96d69316": "9d38c7697e3f824d",
+    "ita-airways.benefits.staff-travel.37f80b89": "19c080c02131cbfe",
+    "ita-airways.living.commute.04979526": "b0fcba39095e20f5",
+    "ita-airways.living.commute.24c63c53": "c14917263db32e6a",
+    "ita-airways.living.commute.5703e593": "ea0942025e3c353c",
+    "ita-airways.work.training-bond-fo.32d58b1d": "0dc297bfa831e851"
+   },
+   "revision": 1,
+   "sha": "sha256:18b4364e2614fba4"
+  },
+  "pvr-20261119-gm-jazz": {
+   "records": {
+    "jazz.benefits.commuting.6cdd4ab7": "a3c42122cbd20e7a",
+    "jazz.benefits.commuting.95ff7427": "c3eb025f44fd11b3",
+    "jazz.fleet.crj900.0c98fd16": "611d3764418ba948",
+    "jazz.fleet.dash-8-400.b6112f35": "1810a0b0601f5ff3",
+    "jazz.fleet.e175.bf418307": "35d19b03400aa124",
+    "jazz.jobs.fo-license-fo.355d672c": "89191f27e07a5317",
+    "jazz.jobs.fo-posting-fo.a4aa90fe": "4da2e6fa9b120074",
+    "jazz.jobs.fo-posting-fo.ed5e550d": "bebc4f756eb705a7",
+    "jazz.jobs.fo-total-hours-fo.42ee43a1": "09295b51237cbe81",
+    "jazz.jobs.fo-total-hours-fo.88832d18": "92cece48a740c8f0",
+    "jazz.jobs.fo-type-rating-fo.6f97d094": "d265da2e50fedd66",
+    "jazz.jobs.pilot-right-to-work.40303346": "0065e8464e424568",
+    "jazz.profile.founded.a0432535": "bd32249a68530a49",
+    "jazz.profile.founded.b92cf5b6": "8d262a3126bdca3f",
+    "jazz.profile.headquarters-city.a64e314e": "3bb3e92e838cd623",
+    "jazz.scale.fleet-total.4332f1fd": "75228964371ed5c8",
+    "jazz.scale.fleet-total.c5d97219": "b63de5364a9dddb4",
+    "jazz.work.training-bond.56f7bdcc": "4d5a3cc0b8470a75"
+   },
+   "revision": 1,
+   "sha": "sha256:e5d5fc6df0545279"
+  },
+  "pvr-20261119-gm-jetstar": {
+   "records": {
+    "jetstar.benefits.staff-travel.16ff4010": "09dd44539d17178b",
+    "jetstar.jobs.cap-license-cap.661f546f": "a079c4c0d04ecc36",
+    "jetstar.jobs.cap-right-to-work-cap.edbd0dd1": "648b8b63b872f7ff",
+    "jetstar.jobs.cap-total-hours-cap.66a87e2b": "cf983ae23a168f79",
+    "jetstar.jobs.cap-type-rating-cap.c1b23481": "902f6f5ce0d82ddf",
+    "jetstar.jobs.fo-license-fo.f89da036": "312940eb044b5d44",
+    "jetstar.jobs.fo-right-to-work-fo.f3a0e563": "10728ba6ebd4424b",
+    "jetstar.jobs.fo-total-hours-fo.8c46981a": "6c7cf8f46be62b9b",
+    "jetstar.jobs.fo-type-rating-fo.2cd3a2bc": "097e3557735697e5",
+    "jetstar.living.commute.0dde12a7": "e534e943a009591e",
+    "jetstar.living.commute.4ca90f12": "f94b2592801ca469",
+    "jetstar.living.commute.5230dabc": "a5cb5129e211595b",
+    "jetstar.work.training-bond.76ce27cb": "97a6e07595136386",
+    "jetstar.work.training-bond.feebee23": "0b0b054e29d96b6b",
+    "jetstar.work.upgrade-years-cap.4c98eac5": "1d334e3d1ab330ab",
+    "jetstar.work.upgrade-years-cap.543cbee3": "b960c163e3ea68b7",
+    "jetstar.work.upgrade-years-cap.dcb799e3": "307b760ba82eb524"
+   },
+   "revision": 1,
+   "sha": "sha256:ebd0ab925b825bcd"
+  },
+  "pvr-20261119-gm-kalitta-air": {
+   "records": {
+    "kalitta-air.base.pilot-base-city.8523d395": "f1c0b70cfa0a0ad0",
+    "kalitta-air.base.pilot-base-city.b1c17202": "e1d171c9c4fcbceb",
+    "kalitta-air.base.pilot-base-city.dba076eb": "0e24de677a1be3af",
+    "kalitta-air.base.pilot-base.6ac8d24e": "9684b84f6e348a7e",
+    "kalitta-air.base.pilot-base.a8bce7dc": "39c6e7c245382817",
+    "kalitta-air.base.pilot-base.b4772b77": "1200fd3dc0e3b849",
+    "kalitta-air.benefits.staff-travel.233eb0bf": "8e5222be74fa568e",
+    "kalitta-air.benefits.staff-travel.bcd9f998": "6d12a8bde95ddd1a",
+    "kalitta-air.fleet.boeing-747-400-cargo-jets.47d17fe8": "131dde9ddfb60575",
+    "kalitta-air.fleet.boeing-747-400bcf.a03a4a1b": "cf6cb59a89856779",
+    "kalitta-air.fleet.boeing-747-400erf.f3d100dc": "4a8e8589ce21ebfd",
+    "kalitta-air.fleet.boeing-747-400f.e3c81c59": "c196559784d265ef",
+    "kalitta-air.fleet.boeing-777-300ersf.fe93bb66": "67c39235563d6f3f",
+    "kalitta-air.fleet.boeing-777-factory-built-freighters.00e4798d": "3cafffbc2281379b",
+    "kalitta-air.fleet.boeing-777f.bd79a428": "5b1a93ea870a2198",
+    "kalitta-air.jobs.cap-license-cap.7d85e724": "b037670ef72c3dc6",
+    "kalitta-air.jobs.cap-posting-cap.8b312a41": "eb89d89588fc52c7",
+    "kalitta-air.jobs.cap-right-to-work-cap.7cb73e26": "730790d45954cd1b",
+    "kalitta-air.jobs.cap-total-hours-cap.86d46e02": "eecfeae8d6b1e671",
+    "kalitta-air.jobs.cap-type-rating-cap.9ef5b2b7": "bb91b0a221edca68",
+    "kalitta-air.jobs.fo-license-fo.7553bc61": "3edd21fab325e34a",
+    "kalitta-air.jobs.fo-posting-fo.0d0fb23c": "9909cfbdd4ca361a",
+    "kalitta-air.jobs.fo-right-to-work-fo.323a6e19": "4711763275290692",
+    "kalitta-air.jobs.fo-total-hours-fo.b55d9591": "f50d0f391f332138",
+    "kalitta-air.jobs.fo-type-rating-fo.af67fc89": "9c4c92cea180483b",
+    "kalitta-air.living.rent-1bed.6406c77d": "11aa520369734fe1",
+    "kalitta-air.living.rent-2bed.9411374f": "eb56f5521d7ae282",
+    "kalitta-air.living.rent-3bed.82a7008b": "05d802cef8e8e268",
+    "kalitta-air.profile.founded.2cb2cad4": "d72edd75a3a48596",
+    "kalitta-air.profile.headquarters-city.04ccc1a8": "a22d1c31ff411e68",
+    "kalitta-air.scale.fleet-total.ac469137": "42e65160e76fd606"
+   },
+   "revision": 1,
+   "sha": "sha256:e02c293074ddda14"
+  },
+  "pvr-20261119-gm-klm": {
+   "records": {
+    "klm.living.commute.5c3f61f9": "f406c2c0f9b7cee7",
+    "klm.living.commute.75a9f8c1": "5b7ddb5210090150"
+   },
+   "revision": 1,
+   "sha": "sha256:eb56de5e3cc9f9ef"
+  },
+  "pvr-20261119-gm-latam": {
+   "records": {
+    "latam.base.pilot-base-city.8839401e": "7aa2a17677cef6a8",
+    "latam.base.pilot-base-city.f0d7472e": "6e4951c39517b3da",
+    "latam.living.commute.5b8d0470": "e9aaef1bea32751a",
+    "latam.living.rent-1bed.a2185108": "af6967bf7079c323",
+    "latam.living.rent-2bed.537257e9": "96858b7484d850f3",
+    "latam.living.rent-3bed.c26d5cb9": "8e24294b5313f969"
+   },
+   "revision": 1,
+   "sha": "sha256:b4edb7b02d161d42"
+  },
+  "pvr-20261119-gm-lot": {
+   "records": {
+    "lot.base.pilot-base.4cdf6af9": "3b36a2d1b7732092",
+    "lot.benefits.commuting.5c96007f": "7f99808f63f5ad0b",
+    "lot.living.commute.8a97e942": "5f505ad328a42cee",
+    "lot.living.commute.c976fe2a": "c66cdf4f05cd9e81",
+    "lot.work.training-bond.3a616530": "f68ca35858d7b42d",
+    "lot.work.upgrade-years.436e7e39": "571dab61de024cf9",
+    "lot.work.upgrade-years.81421f48": "15f85fc7569ddade"
+   },
+   "revision": 1,
+   "sha": "sha256:15067847c82e991a"
+  },
+  "pvr-20261119-gm-northern-air-cargo": {
+   "records": {
+    "northern-air-cargo.benefits.annual-leave.b56e144a": "1bacfc013d9799e0",
+    "northern-air-cargo.benefits.commuting.56e34c12": "28be8633d0639d4f",
+    "northern-air-cargo.fleet.boeing-737-300-sf.43e2fe99": "f881443ecb3b7408",
+    "northern-air-cargo.fleet.boeing-737-400-sf.fc726913": "e581085ce874e546",
+    "northern-air-cargo.fleet.boeing-737-800-sf.6c32212e": "d7d9ce89af06845e",
+    "northern-air-cargo.jobs.cap-total-hours-cap.dfaa9504": "45b2196d4f67491f",
+    "northern-air-cargo.jobs.fo-license-fo.7f0e8f5a": "b9dd73072b4da582",
+    "northern-air-cargo.jobs.fo-posting-fo.8eec387e": "00b0812fc3f066b2",
+    "northern-air-cargo.jobs.fo-right-to-work-fo.484f511d": "9687dafe49906e38",
+    "northern-air-cargo.jobs.fo-total-hours-fo.833f346a": "bc3775e8af22f828",
+    "northern-air-cargo.jobs.fo-type-rating-fo.36005737": "62c5ee663f91cf97",
+    "northern-air-cargo.profile.founded.6ed93301": "ce551553b7a8c602",
+    "northern-air-cargo.profile.headquarters-city.2d1fcacc": "1ea75236c327936d",
+    "northern-air-cargo.scale.fleet-total.2febf652": "74390a3b32c87d3a",
+    "northern-air-cargo.work.days-off.70e9f0fd": "a2ed626a08778df1",
+    "northern-air-cargo.work.roster-pattern.002eb54d": "3377a25ed58a6e6e",
+    "northern-air-cargo.work.training-bond.697ac912": "2dcc067a9f8a0c83",
+    "northern-air-cargo.work.upgrade-years.c3af265a": "1a5dd2118509cbb4",
+    "northern-air-cargo.work.working-time.460f0076": "98d65a35d79a47f5"
+   },
+   "revision": 1,
+   "sha": "sha256:718b914ad2efb4e9"
+  },
+  "pvr-20261119-gm-norwegian": {
+   "records": {
+    "norwegian.base.pilot-base.1687df3f": "4dc06ed0dc35f8c5",
+    "norwegian.base.pilot-base.1fbdd747": "701e2a07466ac3cf",
+    "norwegian.base.pilot-base.294ce4a5": "5d8074aeddb11b9d",
+    "norwegian.base.pilot-base.5e3d2923": "94c35018df958e9c",
+    "norwegian.base.pilot-base.a7d41228": "10366f9c6d70d1d4",
+    "norwegian.base.pilot-base.c821508d": "da9abafb6a43d4ac",
+    "norwegian.base.pilot-base.cafb2088": "b8ce6b4ee8f4def7",
+    "norwegian.base.pilot-base.d8aec5c6": "d61be71d236aef17",
+    "norwegian.benefits.commuting.5a5df079": "bec8cd3583c3d22b",
+    "norwegian.living.commute.13a109a8": "c39a17fa9dea9c9e",
+    "norwegian.living.commute.17118e05": "9e59e6e18690d6fd",
+    "norwegian.living.commute.5d3f5f06": "2b90091c64e1639e",
+    "norwegian.living.commute.b10b8143": "6ccaa7babf82065c"
+   },
+   "revision": 1,
+   "sha": "sha256:0b88a669d2ce13af"
+  },
+  "pvr-20261119-gm-porter": {
+   "records": {
+    "porter.work.training-bond.85c13b0e": "a3f6b251e2685fcd",
+    "porter.work.upgrade-years.bd7b2122": "ab2c3cd93aaa1c05"
+   },
+   "revision": 1,
+   "sha": "sha256:0cb472d24821f01e"
+  },
+  "pvr-20261119-gm-ryanair": {
+   "records": {
+    "ryanair.living.commute.aac9c03e": "9b7d9208dd0b6d3a",
+    "ryanair.living.commute.b5b28375": "cc5537a060698f18",
+    "ryanair.work.training-bond-fo.065ba3aa": "781c64bf7de922f0",
+    "ryanair.work.training-bond-fo.73580910": "ee56cdec4cc5a49b",
+    "ryanair.work.training-bond-fo.cc6b811a": "5381fd56dc2b375d",
+    "ryanair.work.upgrade-years-fo.2f8c7a46": "3e71e0d8672f7a40",
+    "ryanair.work.upgrade-years-fo.c2f6675c": "5ce88255c93dd070",
+    "ryanair.work.upgrade-years-fo.db118aea": "4aa93852a1e28494"
+   },
+   "revision": 1,
+   "sha": "sha256:d3be903089f4a829"
+  },
+  "pvr-20261119-gm-sas": {
+   "records": {
+    "sas.benefits.commuting.c662e6bb": "0f63f79e8f03661b"
+   },
+   "revision": 1,
+   "sha": "sha256:bab461155a53cd8d"
+  },
+  "pvr-20261119-gm-solairus": {
+   "records": {
+    "solairus.benefits.staff-travel.1b1a01c6": "00916d2a7c41d7c1",
+    "solairus.work.training-bond.fc5973e8": "9eec7f6092f29a2a",
+    "solairus.work.upgrade-years.139a4431": "b4426995bbedb731"
+   },
+   "revision": 1,
+   "sha": "sha256:b4aa59b93cd6c5bb"
+  },
+  "pvr-20261119-gm-tap": {
+   "records": {
+    "tap.base.pilot-base.63f761f4": "22b1288c6d18703b",
+    "tap.base.pilot-base.9c4e3b8a": "0b4b04c632f5ee48",
+    "tap.living.commute.1d69938d": "bdd140f956e619fd",
+    "tap.living.commute.58b803ff": "d58244be095e31fe"
+   },
+   "revision": 1,
+   "sha": "sha256:6326fc268496d3b4"
+  },
+  "pvr-20261119-gm-turkish-airlines": {
+   "records": {
+    "turkish-airlines.base.pilot-base-city.a408a15e": "b34ae82675f7060e",
+    "turkish-airlines.base.pilot-base.d7dbf478": "72b7e17728fe4467",
+    "turkish-airlines.jobs.cap-license-cap.bf9863d4": "4fc6b6ff70a17964",
+    "turkish-airlines.jobs.cap-posting-cap.34960f9c": "b68a4c97ce7ae6a9",
+    "turkish-airlines.jobs.cap-right-to-work-cap.895506ae": "7f780558e251e587",
+    "turkish-airlines.jobs.cap-total-hours-cap.e929c4b8": "64c96e8f9495f7f1",
+    "turkish-airlines.jobs.cap-type-rating-cap.0a7cf8f1": "bdf3c63fc77f38cd",
+    "turkish-airlines.jobs.fo-license-fo.661b0f9e": "25133791789a4399",
+    "turkish-airlines.jobs.fo-posting-fo.a70569f9": "ad15636bd2123c2d",
+    "turkish-airlines.jobs.fo-right-to-work-fo.7c2e3965": "07e327f572d02972",
+    "turkish-airlines.jobs.fo-total-hours-fo.299acbcd": "ccceb7ef3e7ff2ef",
+    "turkish-airlines.jobs.fo-total-hours-fo.6f7ef711": "407f9734a63a53ac",
+    "turkish-airlines.jobs.fo-type-rating-fo.a3591105": "f0d65e09ff97d1e5",
+    "turkish-airlines.living.commute.7ef9aec2": "79ea49d3a5082b71",
+    "turkish-airlines.work.training-bond.5e14354d": "d888e629d9ef9b1f",
+    "turkish-airlines.work.training-bond.c99f0400": "b8aa28440d8e6ef2",
+    "turkish-airlines.work.upgrade-years.ca961b1b": "0bf40b9a2f5488ec",
+    "turkish-airlines.work.upgrade-years.eaac4ebf": "abae98f8f05c18c9"
+   },
+   "revision": 1,
+   "sha": "sha256:926847e6f543dc9b"
+  },
+  "pvr-20261119-gm-ups-airlines": {
+   "records": {
+    "ups-airlines.benefits.commuting.706306f0": "b2d00754aeb4d085",
+    "ups-airlines.fleet.airbus-a300-600.4818affc": "c16c358b0a8c273b",
+    "ups-airlines.fleet.boeing-747-400bcf.acbed920": "10496c42a39048c1",
+    "ups-airlines.fleet.boeing-747-400f.37fea6b2": "0a51fdd0f0d6ccc5",
+    "ups-airlines.fleet.boeing-747-8f.4a2afed8": "a47155c30ba41a20",
+    "ups-airlines.fleet.boeing-757-200.e9a76dcc": "02f1d78ddeb93f3e",
+    "ups-airlines.fleet.boeing-767-300.b6d9eb18": "8554303b0fd41ef8",
+    "ups-airlines.fleet.boeing-767-300bcf.3472b66c": "4a36642aadbfb957",
+    "ups-airlines.fleet.boeing-767-300bdsf.15763676": "5ca190344f39e32f",
+    "ups-airlines.jobs.cap-license-cap.7f082de5": "3ce3df0f9e4af7ac",
+    "ups-airlines.jobs.cap-posting-cap.046fef2e": "1ecd3f9c59c04cd8",
+    "ups-airlines.jobs.cap-right-to-work-cap.b6754324": "70e034c0ab0cf96a",
+    "ups-airlines.jobs.cap-total-hours-cap.4c73854d": "cd790cd93a1273f9",
+    "ups-airlines.jobs.cap-type-rating-cap.f6764df7": "03da32f9e1992e53",
+    "ups-airlines.jobs.fo-license-fo.8f709d48": "7a5ddc2cbee48cc9",
+    "ups-airlines.jobs.fo-posting-fo.7a562a52": "bd45e30c834ab4a6",
+    "ups-airlines.jobs.fo-right-to-work-fo.2f175ff8": "2f0ca7bc49a26464",
+    "ups-airlines.jobs.fo-total-hours-fo.7f5a27e7": "170c08d1d4dd8841",
+    "ups-airlines.jobs.fo-type-rating-fo.64ac4cb3": "61c55044172cf5bc",
+    "ups-airlines.profile.founded.e86a8e8f": "e937f5b8639f30a8",
+    "ups-airlines.profile.headquarters-city.7532f263": "5905f022a58cbf1c",
+    "ups-airlines.scale.fleet-total.a6ca181d": "083495a547ab914b",
+    "ups-airlines.work.training-bond.dabe0c87": "7aa4c2bbc74aff8a",
+    "ups-airlines.work.upgrade-years.90adbee5": "6dbb2a6bc7d6398b"
+   },
+   "revision": 1,
+   "sha": "sha256:1aaaf47bbed95218"
+  },
+  "pvr-20261119-gm-westjet": {
+   "records": {
+    "westjet.benefits.commuting.473fc047": "8f5115747c59424f",
+    "westjet.benefits.commuting.5bfd713e": "2a4e7bfc836d79ae",
+    "westjet.benefits.commuting.e9d76ca2": "aeeb370eb2ac9489",
+    "westjet.work.upgrade-years.672d6dbe": "1392c7ba2c0afe18"
+   },
+   "revision": 1,
+   "sha": "sha256:7d99e510c4b4a85b"
+  },
+  "pvr-20261119-gm-wizz-air": {
+   "records": {
+    "wizz-air.benefits.staff-travel.69567465": "02f1e829ab3bb7fa",
+    "wizz-air.work.training-bond-fo.23bc2e24": "78761cc95f49cb75",
+    "wizz-air.work.training-bond-fo.26182338": "36d9446d2803ea0d",
+    "wizz-air.work.training-bond-fo.48a1f478": "15b65c393d894062",
+    "wizz-air.work.upgrade-years-fo.b692bc3f": "671bc97bd55e515f",
+    "wizz-air.work.upgrade-years-fo.bb4a14f0": "7d0acd2bcfd459bd"
+   },
+   "revision": 1,
+   "sha": "sha256:54cf476c6e15fdd3"
   },
   "pvr-city-rent": {
    "records": {
