@@ -51,6 +51,7 @@ export const SQL_FILES = [
   'db/pay-edit.sql',          // MY PAGE の「編集」で出した月を戻す読む口（2026-11-09）。pay-reports.sql の後
   'db/roster.sql',            // ロスターの取り込みとマイレポートの読む口（2026-11-09）。pay-edit.sql の後
   'db/pay-report-pending.sql',
+  'db/payslip-verify.sql',    // 明細の Verified の引換券（2026-11-19）。pay-reports.sql の後
   'db/pay-rows.sql',
   'db/admin.sql',
   'db/profile-lang.sql',      // 会員の言語（2026-11-02・多言語化）。profiles の後ならどこでもよい

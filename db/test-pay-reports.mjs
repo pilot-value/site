@@ -1984,10 +1984,14 @@ console.log('\n▼ MY PAGE の「編集」── 出した月の1行を本人に
   /* 給与フォームが送る鍵（buildPayload）を pay-report.html から読んで突き合わせる（表を写さない）。lang は画面の言語なので外す。 */
   const html = read('pay-report.html');
   const a0 = html.indexOf('function buildPayload('), b0 = html.indexOf('return payload;', a0);
-  const sent = [...html.slice(a0, b0).matchAll(/^\s{4}([a-z_]+):/gm)].map((x) => x[1]).filter((k) => k !== 'lang');
+  /* ★payslip_ticket（明細の Verified の引換券・2026-11-19）も外す。券は一度きりで、使った時点で DB から消える
+       ＝読み返す値が無い。編集して送り直したときの印は submit_pay_report が前の行から決める。 */
+  const sent = [...html.slice(a0, b0).matchAll(/^\s{4}([a-z_]+):/gm)].map((x) => x[1])
+    .filter((k) => k !== 'lang' && k !== 'payslip_ticket');
   const lack = sent.filter((k) => !(k in (mine || {})));
   ok(sent.length >= 45 && lack.length === 0,
      `★給与フォームが送る鍵 ${sent.length} 個が全部そろう（欠け: ${lack.join(', ') || 'なし'}）`);
+  ok(mine && !('payslip_ticket' in mine) && !('verify_fp' in mine), '★引換券も明細の指紋も読み返さない');
   const bad = ['proof_hash', 'id', 'created_at', 'ip_day_hash', 'user_id'].filter((k) => k in (mine || {}));
   ok(mine && bad.length === 0, `★proof_hash・id・時刻を返さない（返していた鍵: ${bad.join(', ') || 'なし'}）`);
 

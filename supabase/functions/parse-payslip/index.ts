@@ -63,7 +63,7 @@
       （上げ忘れると「貼り替えたのに古い日付」で、かえって判断を誤らせる）。
    ⚠️ この札そのものが貼り直しなので、**今ある本番の版の証拠にはならない**。
       次に貼った回から効く。 */
-const BUILD = '2026-11-16';
+const BUILD = '2026-11-19';
 
 const ANTHROPIC_API_KEY =
   Deno.env.get('ANTHROPIC_API_KEY_PAYSLIP') || Deno.env.get('ANTHROPIC_API_KEY') || '';
@@ -619,7 +619,7 @@ export function systemPrompt(lang: string): string {
     ' "deductions_total":number|null,"net_pay":number|null,"ytd_taxable":number|null,',
     ' "hours":[{"label":string,"raw":string,"value":number,"kind":string}],',
     ' "unmapped":[{"label":string,"amount":number}],"decimal_mark":"."|","|null,',
-    ' "confidence":"high"|"medium"|"low"}',
+    ' "confidence":"high"|"medium"|"low","pilot_payslip":boolean}',
     'Use null for any value you cannot read. Never fill a gap with 0 or with a guess.',
     '',
     `"kind" for earnings MUST be one of: ${EARNING_KINDS.join(', ')}.`,
@@ -783,6 +783,13 @@ export function systemPrompt(lang: string): string {
     '  (keep era years such as 令和8年 or R08 as they are; do not convert them).',
     '- Never take the year from other dates on the slip (支給日, 入社日, 生年月日, 年末調整, 基準日).',
     '- If no year is printed for the period, set period.year to 0. Do not guess a year.',
+    /* ★明細の Verified（2026-11-19）。券を出す条件の1つ（ticketEligible）。読み取りの答えそのものは変えない。
+       ⚠️ 給与ポータルの画面のスクリーンショットは本物の明細として扱う（上の「大きなページの一部かもしれない」と同じ）。 */
+    '"pilot_payslip": true only when the image is a payslip document issued by an employer to an airline',
+    '  pilot (it shows pay items such as flying / duty / block-hour pay, or flight hours). A screenshot of a',
+    '  payroll portal showing the payslip counts. Set it to false for anything else: a spreadsheet or table',
+    '  someone typed, a handwritten note, a salary calculator or a pay form someone filled in, a job advert,',
+    '  or a payslip for a job that is not a pilot. This never changes how you read the amounts.',
     'If parts of the slip are blacked out, ignore those regions — they are redacted on purpose.',
     `The user reads ${lang === 'en' ? 'English' : 'Japanese'}; keep "label" exactly as printed on the slip.`,
   ].join('\n');
@@ -1302,6 +1309,53 @@ export function applyChecks(parsed: Parsed, checks: Checks): Parsed {
   return { ...parsed, checks, confidence: bad ? 'low' : parsed.confidence };
 }
 
+/* ────────────────────────────────────────────────────────────────
+   明細の Verified の引換券（2026-11-19 オーナー決定）。
+   REAL PAY の ✓ Verified は「その月の総支給が、本人が出した明細の印字と一致した」行にだけ付く。
+   ここは券を出してよい明細かを決める1か所。満たさなければ券を出さないだけで、読み取りの答えは1文字も変えない。
+     ① AI が「パイロットの給与明細」と答えた（pilot_payslip）＋乗務時間か乗務手当・保証給が載っている
+     ② 明細の中の計算が合う（支給の合計＝印字の総支給・総支給−控除＝手取り）＋読み方の検査が全部 ok
+     ③ 年・月・通貨・総支給が読めている
+   照合（年・月・通貨・総支給が1文字も違わないか）と一度きりは DB 側（db/payslip-verify.sql）。
+   ★本物の明細だとは保証しない。上手に作った偽物は通りうる（オーナーはそれを承知で決めた）。 */
+export function ticketEligible(raw: Parsed | null | undefined, res: Parsed): boolean {
+  if (!raw || typeof raw !== 'object' || raw.pilot_payslip !== true) return false;
+  if (res.confidence !== 'high') return false;
+  const c = (res.checks ?? {}) as Partial<Checks>;
+  if (c.gross !== 'ok' || c.net !== 'ok' || c.currency !== 'ok' || c.money !== 'ok'
+      || c.scale !== 'ok' || c.order !== 'ok') return false;
+  const p = res.period as { year?: unknown; month?: unknown } | null;
+  if (!p || !Number.isInteger(p.year) || !Number.isInteger(p.month)) return false;
+  if (typeof res.currency !== 'string' || !res.currency) return false;
+  if (typeof res.gross_total !== 'number' || !(res.gross_total > 0)) return false;
+  const hours = Array.isArray(res.hours) ? res.hours : [];
+  const earn = (Array.isArray(res.earnings) ? res.earnings : []) as Array<{ kind?: string }>;
+  return hours.length > 0 || earn.some((e) => e && (e.kind === 'flight_variable' || e.kind === 'guarantee'));
+}
+
+/* 券を1枚作る（service_role）。★失敗しても読み取りは失敗させない（券が無いだけ＝印が付かないだけ）。
+   総支給はブラウザが入力欄に入れるのと同じ Math.round（payslip.js の apply）＝照合で1円もずれない。 */
+async function putTicket(res: Parsed): Promise<string | null> {
+  const p = res.period as { year: number; month: number };
+  const n = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/pv_payslip_ticket_put`, {
+      method: 'POST',
+      headers: { apikey: SERVICE_ROLE, Authorization: `Bearer ${SERVICE_ROLE}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        p_year: p.year, p_month: p.month, p_cur: res.currency,
+        p_gross: Math.round(res.gross_total as number),
+        p_net: n(res.net_pay), p_deduct: n(res.deductions_total), p_ytd: n(res.ytd_taxable),
+      }),
+    });
+    if (!r.ok) return null;
+    const t = await r.json();
+    return typeof t === 'string' && /^[0-9a-f]{48}$/.test(t) ? t : null;
+  } catch {
+    return null;
+  }
+}
+
 /* ════════════════════════════════════════════════════════════════
    AI への頼み方（2026-11-04 作り直し）
    ★それまでの公開サイトでは、9/12 を最後に読み取りが1回も成功していなかった
@@ -1345,7 +1399,7 @@ export const OUT_SCHEMA = {
   type: 'object',
   additionalProperties: false,
   required: ['currency', 'period', 'earnings', 'gross_total', 'deductions_total', 'net_pay',
-             'ytd_taxable', 'hours', 'unmapped', 'decimal_mark', 'confidence'],
+             'ytd_taxable', 'hours', 'unmapped', 'decimal_mark', 'confidence', 'pilot_payslip'],
   properties: {
     currency: orNull({ type: 'string' }),
     period: orNull({
@@ -1389,6 +1443,8 @@ export const OUT_SCHEMA = {
     },
     decimal_mark: orNull({ type: 'string', enum: ['.', ','] }),
     confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
+    /* ★明細の Verified（2026-11-19）。真偽1つだけ＝人を指しうる字は入らない。 */
+    pilot_payslip: { type: 'boolean' },
   },
 };
 /* ★続きのページをまとめて送ったときだけの形（2026-11-16）。1枚のときは OUT_SCHEMA のまま＝今と1文字も違わない。
@@ -1672,5 +1728,9 @@ Deno.serve(async (req) => {
      混ぜると「整えるついでに黙って直す」ようになり、間違いが見えなくなる。 */
   /* 続きのページとして送られたときだけ、AI が「同じ明細の続き」と見たかを添える（真偽だけ）。 */
   const doc = pages > 1 ? { one_document: (got.raw as Parsed).one_document !== false } : {};
-  return json({ ok: true, result: applyChecks(parsed, reconcile(parsed)), ...doc, build: BUILD });
+  const result = applyChecks(parsed, reconcile(parsed));
+  /* ★明細の Verified の引換券（2026-11-19）。条件を満たした明細にだけ1枚。result の中には入れない
+     （payslip.js が result を控えの JSON に写すので、券がそこへ紛れないように）。 */
+  const ticket = ticketEligible(got.raw as Parsed, result) ? await putTicket(result) : null;
+  return json({ ok: true, result, ...doc, ...(ticket ? { ticket } : {}), build: BUILD });
 });

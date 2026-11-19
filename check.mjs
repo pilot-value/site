@@ -86,6 +86,8 @@ const SQL = [
   ['db/test-parse-outcome.mjs', 2],
   /* 2026-11-15 ログインなしの口コミも AI が判定する Webhook（db/review-judge-webhook.sql）。ひな型の写し方・二重に作らない・壊す証明 */
   ['db/test-review-judge-webhook.mjs', 10],
+  /* 2026-11-19 明細の Verified（db/payslip-verify.sql ＋ submit_pay_report）。券が合えば付く・書き換えたら付かない・一度きり・同じ明細で2人目は付かない・運営が外す・壊す証明 */
+  ['db/test-payslip-verify.mjs', 5],
 ];
 
 // localhost:3000 が要るもの。長い順に並べてある。

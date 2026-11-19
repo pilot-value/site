@@ -150,7 +150,9 @@ for (const dir of ['', '/en']) {
   ok(got.title.trim() === WANT.title, `${L}: 見出しは「${WANT.title}」`, got.title);
   /* ★2026-10-29、DEEP PAY を閉じた（オーナー指示「閉鎖するからみんなのページから消して」）。
        表から DEEP PAY の段が消えて、REAL PAY と VERIFIED PAY の2段になった。 */
-  ok(got.rows === 2, `${L}: Give → Get は2段（REAL PAY と VERIFIED PAY）`, got.rows);
+  /* ★2026-11-19、VERIFIED PAY の段も外した（オーナー「verified pay もとりあえずなしでいい」）＝ REAL PAY の1段。 */
+  ok(got.rows === 1, `${L}: Give → Get は REAL PAY の1段`, got.rows);
+  ok(!/VERIFIED PAY/.test(got.text), `${L}: ★板に VERIFIED PAY の段が無い`, got.text.slice(0, 120));
   ok(!/DEEP PAY/.test(got.text) && got.deep === 0,
      `${L}: ★★板に DEEP PAY の段も、DEEP PAY へのリンクも無い`, got.text.slice(0, 120));
   ok(got.press === 0, `${L}: ★表の札は1つも押せない（下にもう1枚パネルを開かせない）`, got.press);

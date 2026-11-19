@@ -406,8 +406,9 @@ console.log('\n════ ① 入口（決めた所にだけ在る・黙って
        ★公開前の案内（札・「N / 100人」・説明のパネル・人数を聞く通信）が戻っていない。 */
   const gates = decomment(read('pv-gates.js'));
   const soon = gates.match(/state:\s*'soon'/g) || [];
-  ok(soon.length === 1 && /key:\s*'verified',\s*state:\s*'soon'/.test(gates),
-     '★pv-gates.js の soon はちょうど1つ（VERIFIED だけ）', `今 ${soon.length}`);
+  /* ★2026-11-19、VERIFIED PAY の段も 'off' にした（オーナー「verified pay もとりあえずなしでいい」）＝ soon は0。 */
+  ok(soon.length === 0 && /key:\s*'verified',\s*state:\s*'off'/.test(gates),
+     '★pv-gates.js に soon の段が無い（VERIFIED PAY も off）', `今 ${soon.length}`);
   /* ★2026-10-29、DEEP PAY を閉じた日に deep の段を 'off'（表に描かない）にした。
        開け直す日は 'live' に戻して、ここも戻す。 */
   ok(/key:\s*'deep',\s*state:\s*'off'/.test(gates) && /key:\s*'real',\s*state:\s*'live'/.test(gates)

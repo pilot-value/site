@@ -264,6 +264,14 @@ alter table public.pay_reports
   --       在籍年数で代用しないこと（それが今回直した嘘そのもの）。
   add column if not exists rank_years          smallint;
 
+-- ★2026-11-19 追加。明細の Verified の指紋（db/payslip-verify.sql の引換券から来る）。
+--   明細の年・月・通貨・総支給・手取り・控除・累計の sha256 ＝ 同じ明細で2人目に Verified を付けないため。
+--   ⚠️ 人は指さない（金額の並びのハッシュ）。my_pay_reports などの jsonb_build_object に載せない。
+alter table public.pay_reports
+  add column if not exists verify_fp           text;
+create index if not exists pay_reports_verify_fp on public.pay_reports (verify_fp)
+  where verify_fp is not null;
+
 do $$
 begin
   -- 年代の外部キー。既存行は全部 null なので、いま張っても1行も落ちない。
@@ -1122,6 +1130,12 @@ declare
   v_guar      numeric := nullif(p->>'guaranteed_hours', '')::numeric;
   v_htype     text    := nullif(btrim(p->>'housing_type'), '');
   v_src       text    := lower(nullif(btrim(p->>'source'), ''));
+  -- ★明細の Verified（2026-11-19）。決めるのは下の「①の手前」の1か所だけ。
+  v_old       record;              -- 同じ社・同じ月の前の行（出し直しのとき）
+  v_vlv       smallint := 0;
+  v_vmeth     text;
+  v_vat       timestamptz;
+  v_vfp       text;
   v_detail    jsonb;   -- 読めた手当の内訳（画面には出さない。下で検品する）
   v_items     jsonb;   -- 本人が書いた内訳の行（同上。下で検品する）
   v_roles     text[];  -- 役職・区分（複数）。job_role 単数は先頭を入れる
@@ -1390,6 +1404,44 @@ begin
   v_net := case when v_jpy is not null and v_tax is not null
                 then round(v_jpy * (1 - v_tax / 100), 2) end;
 
+  -- ── 明細の Verified を決める（2026-11-19 オーナー決定）────────────
+  -- 付けるのは「parse-payslip が読んで出した一度きりの引換券」が、この提出の
+  -- 年・月・通貨・総支給と1文字も違わないときだけ（照合は db/payslip-verify.sql の
+  -- pv_payslip_redeem）。★source = 'payslip' では決めない（ブラウザが書ける字）。
+  -- ★意味は「月の総支給が明細の印字と一致」まで。本物の明細だとは保証しない。
+  -- 4つの形：
+  --   運営が外した行（'revoked'）… 何を出し直しても戻さない
+  --   引換券が合った … 付ける。ただし同じ明細（指紋）で、ほかの人・ほかの月が先に付いていたら付けない
+  --   券なしの出し直し … 総支給と通貨が前のままなら前の印を残す（年数だけ直した人から外さない）
+  --   それ以外 … 0（読んだあとで総支給を書き換えた・手で入れた）
+  select r.verify_level, r.verify_method, r.verified_at, r.verify_fp, r.gross_monthly, r.currency
+    into v_old
+    from public.pay_reports r
+   where r.proof_hash = v_hash and r.period_year = v_year and r.period_month = v_month;
+  if nullif(btrim(p->>'payslip_ticket'), '') is not null
+     and to_regprocedure('public.pv_payslip_redeem(text,integer,integer,text,numeric)') is not null then
+    -- 券は合っても合わなくても使い切る（同じ券で2回目は無い）。
+    v_vfp := public.pv_payslip_redeem(p->>'payslip_ticket', v_year, v_month, v_cur, v_gross);
+    if v_vfp is not null and exists (
+         select 1 from public.pay_reports x
+          where x.verify_fp = v_vfp
+            and not (x.proof_hash = v_hash and x.period_year = v_year and x.period_month = v_month)) then
+      v_vfp := null;
+    end if;
+  end if;
+  if v_old.verify_method = 'revoked' then
+    v_vlv := 0;  v_vmeth := 'revoked';  v_vat := null;  v_vfp := v_old.verify_fp;
+  elsif v_vfp is not null then
+    v_vlv := 1;  v_vmeth := 'payslip';  v_vat := now();
+  elsif coalesce(v_old.verify_level, 0) >= 1
+        and v_old.gross_monthly is not distinct from v_gross
+        and v_old.currency is not distinct from v_cur then
+    v_vlv := v_old.verify_level;  v_vmeth := v_old.verify_method;
+    v_vat := v_old.verified_at;   v_vfp := v_old.verify_fp;
+  else
+    v_vlv := 0;  v_vmeth := null;  v_vat := null;  v_vfp := null;
+  end if;
+
   -- ── ① 行を作る（user_id は入れない）────────────────────
   insert into public.pay_reports (
     proof_hash, airline, airline_other, base_iata,
@@ -1409,7 +1461,8 @@ begin
     net_pay_actual, ytd_taxable, flight_variable_pay, deduction_total,
     duty_hours, night_hours, credit_hours,
     payslip_detail, pay_items,
-    lang, source
+    lang, source,
+    verify_level, verify_method, verified_at, verify_fp
   ) values (
     v_hash, v_airline, v_other, upper(nullif(btrim(p->>'base_iata'), '')),
     v_year, v_month, v_pos, v_fleet, v_cat, v_role, v_roles,
@@ -1439,7 +1492,8 @@ begin
     nullif(p->>'duty_hours','')::numeric,          nullif(p->>'night_hours','')::numeric,
     nullif(p->>'credit_hours','')::numeric,
     v_detail, v_items,
-    coalesce(nullif(btrim(p->>'lang'), ''), 'en'), v_src
+    coalesce(nullif(btrim(p->>'lang'), ''), 'en'), v_src,
+    v_vlv, v_vmeth, v_vat, v_vfp
   )
   on conflict on constraint pay_reports_uniq do update set
     -- 同じ社・同じ月の出し直しは「訂正」として扱う（弾かずに上書き）。
@@ -1501,7 +1555,10 @@ begin
     /* ★同じ理由で内訳の行も上書きする。残すと、合計は新しく行は前回のまま、
        という食い違った1行ができる。 */
     pay_items = excluded.pay_items,
-    lang = excluded.lang, source = excluded.source
+    lang = excluded.lang, source = excluded.source,
+    -- ★明細の Verified は上の「①の手前」で前の行も見て決めてある。ここは写すだけ。
+    verify_level = excluded.verify_level, verify_method = excluded.verify_method,
+    verified_at = excluded.verified_at, verify_fp = excluded.verify_fp
   -- xmax=0 は「今この文で新規に挿入された行」の目印。訂正（update）と区別する。
   -- この事業が追う唯一の指標が月間コントリビューション数なので、
   -- 打ち直しで件数が水増しされると指標そのものが嘘になる。
