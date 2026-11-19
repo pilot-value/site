@@ -100,6 +100,9 @@
     .info-label{font-size:.75rem;color:#6b7d93;font-weight:600;letter-spacing:.03em}
     .info-value{font-size:.9rem;font-weight:600}
     .pos-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:999px;font-size:.78rem;font-weight:700;letter-spacing:.04em}
+    /* ★明細の Verified（2026-11-19 オーナー「もっとマイページは上に。Twitterみたいに」）。名前のすぐ右の緑の印。押せない＝影も動きも付けない */
+    .name-vf{display:inline-flex;vertical-align:-3px;margin-left:6px;color:var(--pv-accent)}
+    .name-vf svg{display:block}
     .pos-captain{background:rgba(245,200,66,.12);color:#f5c842;border:1px solid rgba(245,200,66,.25)}
     .pos-fo{background:rgba(99,179,237,.1);color:#63b3ed;border:1px solid rgba(99,179,237,.2)}
     .pos-cadet{background:rgba(154,230,180,.1);color:#68d391;border:1px solid rgba(154,230,180,.2)}
@@ -884,6 +887,7 @@
       const letter = (profile.name || currentUser.email || '?')[0].toUpperCase();
       document.getElementById('avatar-letter').textContent = letter;
       document.getElementById('display-name').textContent  = profile.name || '—';
+      paintNameVf();
       document.getElementById('display-email').textContent = currentUser.email || '—';
       if (profile.position) {
         document.getElementById('display-pos-badge').innerHTML =
@@ -1003,7 +1007,31 @@
       }).join('');
     }
 
+    /* ★明細の Verified を名前の右に（2026-11-19 オーナー「verified をもっとマイページは上に欲しい。ほら、Twitterみたいに」）。
+         出すのは、本人の給与に明細と一致した月（verify_level が立った行・db/payslip-verify.sql）が1つでもあるときだけ。
+         この画面は本人にしか見えない。⚠️ REAL PAY・会社ページにはまだ出さない（actual-pay.js の VF_OPEN）。 */
+    let nameVf = false;
+    const nameVfTip = 'Verified: tu sueldo bruto coincidió con tu recibo de nómina';
+    function paintNameVf() {
+      const el = document.getElementById('display-name');
+      if (!el || el.querySelector('.skeleton')) return;
+      const old = el.querySelector('.name-vf');
+      if (old) old.remove();
+      if (!nameVf) return;
+      const b = document.createElement('span');
+      b.className = 'name-vf';
+      b.setAttribute('role', 'img');
+      b.setAttribute('aria-label', nameVfTip);
+      b.title = nameVfTip;
+      b.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">'
+        + '<path fill="currentColor" d="M23 12l-2.44-2.79.34-3.69-3.61-.82-1.89-3.2L12 2.96 8.6 1.5 6.71 4.69 3.1 5.5l.34 3.7L1 12l2.44 2.79-.34 3.7 3.61.82L8.6 22.5l3.4-1.47 3.4 1.46 1.89-3.19 3.61-.82-.34-3.69L23 12z"/>'
+        + '<path fill="#fff" d="M10 17l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>';
+      el.appendChild(b);
+    }
+
     function renderMyPay(reports) {
+      /* ★名前の横の Verified（明細と一致した月が1つでもあれば）。一覧が引けなかったときは前の答えのまま */
+      if (reports) { nameVf = reports.some((r) => Number(r.verify_level) >= 1); paintNameVf(); }
       const el = document.getElementById('my-pay-list');
       if (!el) return;
       if (!reports) { el.textContent = 'No pudimos cargar esta lista. Vuelve a abrir la página en un momento'; return; }
