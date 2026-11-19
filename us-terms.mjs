@@ -83,8 +83,8 @@ export const TERMS = Object.freeze({
        "150% or 200%"
       ],
       [
-       "Holidays",
-       "Holiday pay"
+       "Holiday flying",
+       "Paid at a premium"
       ]
      ],
      "note": ""
@@ -135,7 +135,7 @@ export const TERMS = Object.freeze({
        "USD 3.55/hr"
       ]
      ],
-     "note": "January 2025 rates, reset every year"
+     "note": "January 2025 rates, adjusted every year"
     }
    },
    {
@@ -195,7 +195,7 @@ export const TERMS = Object.freeze({
      "note": ""
     },
     "en": {
-     "label": "Health cover",
+     "label": "Health insurance",
      "value": "Medical, dental and vision",
      "note": ""
     }
@@ -219,7 +219,7 @@ export const TERMS = Object.freeze({
      "note": ""
     },
     "en": {
-     "label": "Disability cover",
+     "label": "Disability insurance",
      "value": "",
      "rows": [
       [
@@ -329,11 +329,11 @@ export const TERMS = Object.freeze({
       ],
       [
        "平日",
-       "4:45〜1:00"
+       "4:45〜翌1:00"
       ],
       [
        "週末",
-       "6:00〜1:00"
+       "6:00〜翌1:00"
       ],
       [
        "運賃",
@@ -352,11 +352,11 @@ export const TERMS = Object.freeze({
       ],
       [
        "Weekdays",
-       "4:45–1:00"
+       "4:45 a.m.–1:00 a.m."
       ],
       [
        "Weekends",
-       "6:00–1:00"
+       "6:00 a.m.–1:00 a.m."
       ],
       [
        "Fare",
@@ -470,7 +470,7 @@ export const TERMS = Object.freeze({
     },
     "en": {
      "label": "Profit sharing",
-     "value": "Yes; a pool funded at 10% and 20% of profits by formula, not a fixed percentage added to pay",
+     "value": "Yes: a pool funded from profits at 10% and 20% under a set formula; not a flat percentage added to your pay",
      "note": ""
     }
    },
@@ -731,7 +731,7 @@ export const TERMS = Object.freeze({
        "USD 4.07/hr"
       ]
      ],
-     "note": "January 2025 rates, reset yearly with the federal M&IE rate"
+     "note": "January 2025 rates, adjusted yearly in line with the federal M&IE rate"
     }
    },
    {
@@ -1108,7 +1108,7 @@ export const TERMS = Object.freeze({
       ],
       [
        "Unpaid weeks",
-       "Can be covered with unused sick and vacation"
+       "Can be paid with unused sick leave and vacation"
       ]
      ],
      "note": ""
@@ -1123,7 +1123,7 @@ export const TERMS = Object.freeze({
      "note": ""
     },
     "en": {
-     "label": "Life & disability cover",
+     "label": "Life & disability insurance",
      "value": "Company-provided life and disability coverage",
      "note": ""
     }
@@ -1430,14 +1430,14 @@ export const TERMS = Object.freeze({
        "交渉中"
       ]
      ],
-     "note": "統合協約は最後に発表された時点の状況"
+     "note": "2026年11月時点"
     },
     "en": {
      "label": "Contract",
      "value": "",
      "rows": [
       [
-       "Sept 1, 2026 raise",
+       "Raise on 1 September 2026",
        "4% or a market-based adjustment, whichever is higher"
       ],
       [
@@ -1445,7 +1445,7 @@ export const TERMS = Object.freeze({
        "Under negotiation"
       ]
      ],
-     "note": "JCBA status as last announced"
+     "note": "As of November 2026"
     }
    },
    {
@@ -1732,7 +1732,7 @@ export const TERMS = Object.freeze({
        "2025年2月"
       ],
       [
-       "いま",
+       "状況",
        "新しい協約を交渉中"
       ]
      ],
@@ -1747,7 +1747,7 @@ export const TERMS = Object.freeze({
        "Since February 2025"
       ],
       [
-       "Now",
+       "Status",
        "New contract under negotiation"
       ]
      ],
@@ -1983,11 +1983,11 @@ export const TERMS = Object.freeze({
        "Single rooms"
       ],
       [
-       "5-hour breaks between legs, training, TDY",
+       "5-hour sits between legs, training, TDY",
        "Single rooms, with conditions"
       ]
      ],
-     "note": "Exception for recurrent training (CQT) at MCO"
+     "note": "Exceptions apply to recurrent training (CQT) at MCO"
     }
    }
   ]
@@ -2357,7 +2357,7 @@ export const TERMS = Object.freeze({
      "note": "2026年の協約から"
     },
     "en": {
-     "label": "Disability cover",
+     "label": "Disability insurance",
      "value": "Company-paid long-term disability (LTD) to age 65",
      "note": "From the 2026 contract"
     }
@@ -2522,7 +2522,7 @@ export const TERMS = Object.freeze({
        "1時間 USD 3.85"
       ],
       [
-       "24か月後",
+       "協約から24か月後",
        "国内線 USD 3.00・国際線 USD 4.05"
       ]
      ],
@@ -2541,7 +2541,7 @@ export const TERMS = Object.freeze({
        "USD 3.85/hr"
       ],
       [
-       "After 24 months",
+       "24 months into the contract",
        "USD 3.00 domestic, USD 4.05 international"
       ]
      ],
@@ -2725,7 +2725,7 @@ export const TERMS = Object.freeze({
      "rows": [
       [
        "1年目",
-       "毎月1.5日ずつ（年18日）"
+       "毎月1.5日ずつ（最大10か月）"
       ],
       [
        "勤続1〜4年未満",
@@ -2745,7 +2745,7 @@ export const TERMS = Object.freeze({
       ],
       [
        "決まり方",
-       "12月31日の勤続年数で決まり、翌年に使う（区切りの年は日割り）"
+       "12月31日の勤続年数で決まり、翌年に使う（4〜5年・9〜10年・19〜20年の区切りの年は日割り）"
       ]
      ],
      "note": ""
@@ -2755,19 +2755,19 @@ export const TERMS = Object.freeze({
      "value": "",
      "rows": [
       [
-       "Year one",
-       "1.5 days a month (18 days a year)"
+       "First year",
+       "1.5 days a month, for up to 10 months"
       ],
       [
-       "1 to <4 years",
+       "1 to under 4 years",
        "15 days"
       ],
       [
-       "5 to <9 years",
+       "5 to under 9 years",
        "22 days"
       ],
       [
-       "10 to <19 years",
+       "10 to under 19 years",
        "29 days"
       ],
       [
@@ -2776,7 +2776,7 @@ export const TERMS = Object.freeze({
       ],
       [
        "How it works",
-       "Set by Dec 31 seniority and used the next year; prorated in transition years"
+       "Based on seniority on 31 December and used the following year; prorated in the transition years (4–5, 9–10 and 19–20)"
       ]
      ],
      "note": ""
@@ -2901,7 +2901,7 @@ export const TERMS = Object.freeze({
       ],
       [
        "Extra flying",
-       "Premium pay such as 150%"
+       "Premium pay, e.g. 150%"
       ]
      ],
      "note": ""
@@ -3003,15 +3003,15 @@ export const TERMS = Object.freeze({
        "2025年9月1日"
       ],
       [
-       "いま",
+       "状況",
        "新しい協約を交渉中"
       ],
       [
-       "最後に確認できた全員の昇給",
+       "最後の全員の昇給",
        "2025年9月に3.25%"
       ]
      ],
-     "note": ""
+     "note": "2026年11月時点"
     },
     "en": {
      "label": "Contract",
@@ -3019,18 +3019,18 @@ export const TERMS = Object.freeze({
      "rows": [
       [
        "Amendable",
-       "Since September 1, 2025"
+       "Since 1 September 2025"
       ],
       [
-       "Now",
-       "New contract in negotiation"
+       "Status",
+       "New contract under negotiation"
       ],
       [
-       "Last confirmed across-the-board raise",
+       "Last across-the-board raise",
        "3.25% in September 2025"
       ]
      ],
-     "note": ""
+     "note": "As of November 2026"
     }
    },
    {
@@ -3162,7 +3162,7 @@ export const TERMS = Object.freeze({
        "USD 4.00/hr"
       ]
      ],
-     "note": "2026 rate (contract steps of USD 0.10 a year added)"
+     "note": "2026 rate (includes the contract's USD 0.10 yearly increases)"
     }
    },
    {
@@ -3244,7 +3244,7 @@ export const TERMS = Object.freeze({
      "note": ""
     },
     "en": {
-     "label": "Health cover",
+     "label": "Health insurance",
      "value": "Medical, dental and vision",
      "note": ""
     }
@@ -3467,15 +3467,15 @@ export const TERMS = Object.freeze({
      "rows": [
       [
        "Premium day (150% tier)",
-       "Greater of 6 hours or 150%"
+       "Greater of 6 hours' pay or 150% pay"
       ],
       [
        "Premium day (175% tier)",
-       "Greater of 7 hours or 175%"
+       "Greater of 7 hours' pay or 175% pay"
       ],
       [
        "Premium day (200% tier)",
-       "Greater of 8 hours or 200%"
+       "Greater of 8 hours' pay or 200% pay"
       ],
       [
        "Open trips",
@@ -3520,8 +3520,8 @@ export const TERMS = Object.freeze({
        "14% company DC contribution"
       ],
       [
-       "2027–30",
-       "15%, plus 1% on performance"
+       "2027–2030",
+       "15%, plus 1% more based on performance"
       ],
       [
        "Your own contribution",
@@ -3568,7 +3568,7 @@ export const TERMS = Object.freeze({
      "note": ""
     },
     "en": {
-     "label": "Health cover",
+     "label": "Health insurance",
      "value": "",
      "rows": [
       [
@@ -3769,7 +3769,7 @@ export const TERMS = Object.freeze({
       ],
       [
        "Domestic commuters",
-       "Protected after listing for one flight due in before report"
+       "Protected if you list for one flight scheduled to arrive before report time"
       ]
      ],
      "note": ""
@@ -3798,12 +3798,12 @@ export const TERMS = Object.freeze({
      "value": "",
      "rows": [
       [
-       "Month 13",
+       "13th month of employment",
        "12 days"
       ],
       [
        "After that",
-       "1 day a month, no cap"
+       "1 more day a month, no cap"
       ]
      ],
      "note": ""
@@ -3933,7 +3933,7 @@ export const TERMS = Object.freeze({
       ],
       [
        "Junior manning",
-       "None"
+       "Not used"
       ]
      ],
      "note": ""
@@ -4500,7 +4500,7 @@ export const TERMS = Object.freeze({
      "note": ""
     },
     "en": {
-     "label": "Health cover",
+     "label": "Health insurance",
      "value": "",
      "rows": [
       [
@@ -4662,8 +4662,8 @@ export const TERMS = Object.freeze({
        "Yes"
       ],
       [
-       "Older rates",
-       "4%, rising to 8% after three years"
+       "Previous rate",
+       "4%, rising to 8% after 3 years"
       ]
      ],
      "note": ""
@@ -4688,7 +4688,7 @@ export const TERMS = Object.freeze({
      "note": ""
     },
     "en": {
-     "label": "Health cover",
+     "label": "Health & life insurance",
      "value": "",
      "rows": [
       [
@@ -4760,7 +4760,7 @@ export const TERMS = Object.freeze({
      "value": "",
      "rows": [
       [
-       "Duty beyond 18 days a month, among others",
+       "More than 18 duty days a month, and other cases",
        "1.5 times the day rate"
       ],
       [
@@ -4973,7 +4973,7 @@ export const TERMS = Object.freeze({
       ],
       [
        "Annual adjustment",
-       "900-hour annual adjustment"
+       "Minimum guarantee adjusted against 900 hours a year"
       ]
      ],
      "note": "2023–2027 contract"
@@ -5003,11 +5003,11 @@ export const TERMS = Object.freeze({
      "rows": [
       [
        "Canada/US",
-       "85% of the NJC regional daily rate ÷ 24, paid by the hour"
+       "85% of the Canadian government (NJC) regional daily rate, divided by 24 and paid per hour"
       ],
       [
        "International",
-       "65%, 70% or 75% by region"
+       "Varies by region (e.g. 65%, 70%, 75%)"
       ]
      ],
      "note": "Updated every six months"
@@ -5023,7 +5023,7 @@ export const TERMS = Object.freeze({
     },
     "en": {
      "label": "Pension",
-     "value": "DB, MEPP or DC, depending on when you were hired",
+     "value": "Defined benefit (DB), multi-employer plan (MEPP) or defined contribution (DC), depending on when you were hired",
      "note": ""
     }
    },
@@ -5070,8 +5070,8 @@ export const TERMS = Object.freeze({
      "note": ""
     },
     "en": {
-     "label": "Health cover",
-     "value": "Medical, dental and other cover",
+     "label": "Health insurance",
+     "value": "Medical, dental and other coverage",
      "note": ""
     }
    }
@@ -5101,11 +5101,11 @@ export const TERMS = Object.freeze({
      "rows": [
       [
        "Lodging",
-       "Hotel and meals; stay options based on distance"
+       "Hotel and meals; lodging options depend on distance criteria"
       ],
       [
        "Taxis",
-       "Receipted fares reimbursed when no transport is provided"
+       "Fares reimbursed with receipts when no transportation is provided"
       ]
      ],
      "note": ""
@@ -5252,8 +5252,8 @@ export const TERMS = Object.freeze({
        "年平均 約 CAD 9,000"
       ],
       [
-       "求人の例",
-       "月 CAD 800〜1,000"
+       "1か月あたりの例",
+       "CAD 800〜1,000"
       ]
      ],
      "note": ""
@@ -5267,8 +5267,8 @@ export const TERMS = Object.freeze({
        "About CAD 9,000 a year on average"
       ],
       [
-       "Job-ad examples",
-       "CAD 800–1,000 a month"
+       "Example per month",
+       "CAD 800–1,000"
       ]
      ],
      "note": ""
