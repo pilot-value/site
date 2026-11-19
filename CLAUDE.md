@@ -414,7 +414,8 @@ baland_ass/                            ブランド資産（※ brand_assets の
 
 - **Verified は行（月）に付く**。意味は「**その月の総支給が、本人が出した明細の印字と一致した**」まで。画面にもそれ以上を書かない。
 - **出すのは本人の画面だけ** ── MY PAY の月の緑のカードの「総支給」の横（`my-value.js` の `vfMark`）と、
-  MY PAGE の「あなたが出したもの」の給与の行（`profile.html` の `mine-vf`）。
+  MY PAGE の「あなたが出したもの」の給与の行（`profile.html` の `mine-vf`）と、
+  MY PAGE のいちばん上の**名前の右**（Twitter の認証バッジの形・`profile.html` の `paintNameVf`。明細と一致した月が1つでもある人だけ）。
   ⚠️ **REAL PAY と会社ページにはまだ出さない**（`actual-pay.js` と `career-live.js` の `VF_OPEN = false`）。出す日は2つを一緒に true にし、
   REAL PAY の「見えること」の説明の1行（とお知らせメールの写し `mail-bot/announce-mail.mjs`・`db/test-announce.mjs` の数）も戻す。
 - **Give & Get の表は REAL PAY の1段**（`pv-gates.js` の `TIERS` で DEEP PAY と VERIFIED PAY は `off`）。トップの見本の見出しからも VERIFIED PAY を外した。
