@@ -2774,7 +2774,10 @@ const ratedRows = slug => RATED.map((sc, i) => ({
   ...Object.fromEntries(SCORE_KEYS.map((k, j) => [k, sc[j]])),
 }));
 const ratedBody = slug => JSON.stringify({ unlocked: false, rows: ratedRows(slug) });
-const VF_TEXT = v => (v ? '明細で確認済み' : '本人申告');
+/* ★2026-11-19 「明細で確認済み」は career-live.js の VF_OPEN が true の日だけ（オーナー「real pay にはまだ出さなくていいや」）。
+   閉じているあいだは、サーバーが verified を返しても「本人申告」と出る。 */
+const VF_OPEN = /\bvar VF_OPEN = true;/.test(read('career-live.js'));
+const VF_TEXT = v => (VF_OPEN && v ? '明細で確認済み' : '本人申告');
 const AGE_TEXT = ['3日以内', '7日以内', '14日以内', '1ヶ月以内', '3ヶ月以内', '6ヶ月以内', '1年以内', 'それより前'];   // サーバの段 0〜7（2026-11-04 に8段）
 /* ★2026-10-30 会社 × 職位の中央値（pv_company_pay）と月の給与の内訳（pv_company_comp）── 給与の鍵の開いた人の画面だけが呼ぶ。
    〔検査用の見本。実データではない〕機長は 25%・75% つき（人数のそろった区分の形）・副操縦士は中央値だけ（3〜4人の形）。人数（people）を植えてある（出さないことを見る）。
