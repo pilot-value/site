@@ -30,13 +30,13 @@ export const TERMS = Object.freeze({
     "key": "reserve_guarantee",
     "ref": false,
     "ja": {
-     "label": "スタンバイ要員の月の最低保証",
-     "value": "72〜80時間分（その月の、乗務が決まっている人の勤務表の平均時間に連動）",
+     "label": "最低保証（Reserve - STBY要員の月）",
+     "value": "72〜80時間分（その月の Line（乗務が決まっている月）の平均時間に連動）",
      "note": ""
     },
     "en": {
      "label": "Reserve guarantee",
-     "value": "72–80 credit hours, tied to the month's ALV",
+     "value": "72–80 hours, tied to the month's average line value (ALV)",
      "note": ""
     }
    },
@@ -57,7 +57,7 @@ export const TERMS = Object.freeze({
       ],
       [
        "対象の追加の乗務",
-       "時間単価の150%か200%"
+       "1時間の単価の1.5倍か2倍"
       ],
       [
        "祝日の乗務",
@@ -388,7 +388,7 @@ export const TERMS = Object.freeze({
     "key": "reserve_guarantee",
     "ref": true,
     "ja": {
-     "label": "スタンバイ要員の月の最低保証",
+     "label": "最低保証（Reserve - STBY要員の月）",
      "value": "",
      "rows": [
       [
@@ -435,7 +435,7 @@ export const TERMS = Object.freeze({
       ],
       [
        "決められた追加の乗務",
-       "時間単価の150〜225%"
+       "1時間の単価の1.5〜2.25倍"
       ]
      ],
      "note": ""
@@ -601,12 +601,12 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "65時間分か、その月の、乗務が決まっている人の勤務表の平均時間から決まる下限の、多いほう",
+     "value": "65時間分か、その月の Line（乗務が決まっている月）の平均時間から決まる下限の、多いほう",
      "note": ""
     },
     "en": {
      "label": "Minimum guarantee",
-     "value": "The greater of the ALV floor or 65 credit hours",
+     "value": "65 hours, or a floor set from the month's average line value (ALV), whichever is greater",
      "note": ""
     }
    },
@@ -614,15 +614,15 @@ export const TERMS = Object.freeze({
     "key": "reserve_guarantee",
     "ref": true,
     "ja": {
-     "label": "スタンバイ要員の月の最低保証",
+     "label": "最低保証（Reserve - STBY要員の月）",
      "value": "",
      "rows": [
       [
-       "前もって呼ばれるスタンバイ",
+       "Long call - STBY要員の月（前もって呼ばれる）",
        "73時間分"
       ],
       [
-       "すぐ呼ばれるスタンバイ",
+       "Short call - STBY要員の月（すぐ呼ばれる）",
        "76時間分"
       ]
      ],
@@ -661,7 +661,7 @@ export const TERMS = Object.freeze({
       ],
       [
        "決められた追加の乗務",
-       "時間単価の150%・175%・200%"
+       "1時間の単価の1.5倍・1.75倍・2倍"
       ]
      ],
      "note": ""
@@ -967,19 +967,19 @@ export const TERMS = Object.freeze({
      "rows": [
       [
        "追加の乗務",
-       "時間単価の150%・200%・300%"
+       "1時間の単価の1.5倍・2倍・3倍"
       ],
       [
        "国際線の乗務",
-       "3%の加算"
+       "1時間の単価の3%増し"
       ],
       [
        "ETOPS の乗務",
-       "5%の加算"
+       "1時間の単価の5%増し"
       ],
       [
        "深夜の乗務",
-       "3%の加算"
+       "1時間の単価の3%増し"
       ]
      ],
      "note": ""
@@ -1230,11 +1230,11 @@ export const TERMS = Object.freeze({
      "value": "",
      "rows": [
       [
-       "乗務が決まっている月",
+       "Line - 乗務が決まっている月",
        "17.6日"
       ],
       [
-       "スタンバイ要員の月",
+       "Reserve - STBY要員の月",
        "15日"
       ]
      ],
@@ -1304,15 +1304,15 @@ export const TERMS = Object.freeze({
      "value": "",
      "rows": [
       [
-       "乗務が決まっている月",
+       "Line - 乗務が決まっている月",
        "70時間分"
       ],
       [
-       "スタンバイ要員の月（前もって呼ばれる）",
+       "Long call - STBY要員の月（前もって呼ばれる）",
        "75時間分"
       ],
       [
-       "スタンバイ要員の月（すぐ呼ばれる）",
+       "Short call - STBY要員の月（すぐ呼ばれる）",
        "84時間分"
       ]
      ],
@@ -1389,7 +1389,7 @@ export const TERMS = Object.freeze({
       ],
       [
        "追加の乗務",
-       "時間単価の150%か200%"
+       "1時間の単価の1.5倍か2倍"
       ]
      ],
      "note": ""
@@ -1610,11 +1610,11 @@ export const TERMS = Object.freeze({
      "value": "",
      "rows": [
       [
-       "乗務が決まっている月",
+       "Line - 乗務が決まっている月",
        "70時間分"
       ],
       [
-       "スタンバイ要員の月",
+       "Reserve - STBY要員の月",
        "75時間分"
       ]
      ],
@@ -1691,7 +1691,7 @@ export const TERMS = Object.freeze({
       ],
       [
        "追加の乗務",
-       "時間単価の150%か200%"
+       "1時間の単価の1.5倍か2倍"
       ]
      ],
      "note": ""
@@ -1999,13 +1999,33 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "乗務が決まっている月もスタンバイ要員の月も75時間分",
-     "note": ""
+     "value": "",
+     "note": "",
+     "rows": [
+      [
+       "Line - 乗務が決まっている月",
+       "75時間分"
+      ],
+      [
+       "Reserve - STBY要員の月",
+       "75時間分"
+      ]
+     ]
     },
     "en": {
      "label": "Minimum guarantee",
-     "value": "75 hours a month, lineholders and reserve",
-     "note": ""
+     "value": "",
+     "note": "",
+     "rows": [
+      [
+       "Lineholders",
+       "75 hours"
+      ],
+      [
+       "Reserve",
+       "75 hours"
+      ]
+     ]
     }
    },
    {
@@ -2013,12 +2033,12 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "超過分の割増",
-     "value": "給与に数える時間が月82.5時間を超えた分は125%",
+     "value": "月82.5時間を超えた分は、1時間の単価の1.25倍（給与に数える時間）",
      "note": ""
     },
     "en": {
      "label": "Overtime premium",
-     "value": "125% for credit above 82.5 hours a month",
+     "value": "1.25 times the hourly rate for credit above 82.5 hours a month",
      "note": ""
     }
    },
@@ -2170,11 +2190,11 @@ export const TERMS = Object.freeze({
      "value": "",
      "rows": [
       [
-       "乗務が決まっている月",
+       "Line - 乗務が決まっている月",
        "70時間分"
       ],
       [
-       "スタンバイ要員の月",
+       "Reserve - STBY要員の月",
        "72時間分"
       ]
      ],
@@ -2219,15 +2239,15 @@ export const TERMS = Object.freeze({
      "rows": [
       [
        "割増つきで募集された空いた乗務",
-       "1.5〜3倍"
+       "1時間の単価の1.5〜3倍"
       ],
       [
        "会社の追加乗務の呼びかけに応じた分",
-       "2〜3倍"
+       "1時間の単価の2〜3倍"
       ],
       [
        "休みの日に、勤続の短い順に会社が割り当てる乗務",
-       "2倍"
+       "1時間の単価の2倍"
       ]
      ],
      "note": ""
@@ -2862,7 +2882,7 @@ export const TERMS = Object.freeze({
       ],
       [
        "追加の乗務",
-       "時間単価の150%など"
+       "1時間の単価の1.5倍など"
       ]
      ],
      "note": ""
@@ -3423,16 +3443,16 @@ export const TERMS = Object.freeze({
      "value": "",
      "rows": [
       [
-       "割増の日（150%の段）",
-       "6時間分か150%の、高いほう"
+       "割増の日（1.5倍の段）",
+       "6時間分か、単価の1.5倍の、高いほう"
       ],
       [
-       "割増の日（175%の段）",
-       "7時間分か175%の、高いほう"
+       "割増の日（1.75倍の段）",
+       "7時間分か、単価の1.75倍の、高いほう"
       ],
       [
-       "割増の日（200%の段）",
-       "8時間分か200%の、高いほう"
+       "割増の日（2倍の段）",
+       "8時間分か、単価の2倍の、高いほう"
       ],
       [
        "空いている乗務",
@@ -3587,27 +3607,27 @@ export const TERMS = Object.freeze({
      "value": "",
      "rows": [
       [
-       "乗務が決まっている月",
+       "Line - 乗務が決まっている月",
        "14日"
       ],
       [
-       "スタンバイ要員の月",
+       "Reserve - STBY要員の月",
        "13日"
       ],
       [
-       "両方が混ざる月",
+       "Composite - Line と Reserve が混ざる月",
        "14日"
       ],
       [
-       "1週間の年休を取る月（乗務が決まっている月）",
+       "1週間の年休を取る月（Line）",
        "21日"
       ],
       [
-       "1週間の年休を取る月（スタンバイ要員の月）",
+       "1週間の年休を取る月（Reserve）",
        "20日"
       ],
       [
-       "1週間の年休を取る月（両方が混ざる月）",
+       "1週間の年休を取る月（Composite）",
        "21日"
       ]
      ],
@@ -3894,7 +3914,7 @@ export const TERMS = Object.freeze({
      "rows": [
       [
        "休日に飛んだ分",
-       "時間単価の150%"
+       "1時間の単価の1.5倍"
       ],
       [
        "休日に会社が勤続の短い人へ乗務を割り当てること",
@@ -4094,13 +4114,33 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "最低保証",
-     "value": "乗務が決まっている月もスタンバイ要員の月も70時間分",
-     "note": ""
+     "value": "",
+     "note": "",
+     "rows": [
+      [
+       "Line - 乗務が決まっている月",
+       "70時間分"
+      ],
+      [
+       "Reserve - STBY要員の月",
+       "70時間分"
+      ]
+     ]
     },
     "en": {
      "label": "Minimum guarantee",
-     "value": "70 hours a month, line and reserve",
-     "note": ""
+     "value": "",
+     "note": "",
+     "rows": [
+      [
+       "Lineholders",
+       "70 hours"
+      ],
+      [
+       "Reserve",
+       "70 hours"
+      ]
+     ]
     }
    },
    {
@@ -4160,13 +4200,33 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "乗務が決まっている月もスタンバイ要員の月も70時間分",
-     "note": ""
+     "value": "",
+     "note": "",
+     "rows": [
+      [
+       "Line - 乗務が決まっている月",
+       "70時間分"
+      ],
+      [
+       "Reserve - STBY要員の月",
+       "70時間分"
+      ]
+     ]
     },
     "en": {
      "label": "Minimum guarantee",
-     "value": "70 hours a month, line and reserve",
-     "note": ""
+     "value": "",
+     "note": "",
+     "rows": [
+      [
+       "Lineholders",
+       "70 hours"
+      ],
+      [
+       "Reserve",
+       "70 hours"
+      ]
+     ]
     }
    },
    {
@@ -4177,12 +4237,12 @@ export const TERMS = Object.freeze({
      "value": "",
      "rows": [
       [
-       "月75時間を超えた分",
-       "時間単価の125%"
+       "月75時間を超えて飛んだ時間",
+       "1時間の単価の1.25倍（25%増し）"
       ],
       [
-       "休日に飛んだ分",
-       "時間単価の125%"
+       "休みの日に飛んだ時間",
+       "1時間の単価の1.25倍（25%増し）"
       ]
      ],
      "note": ""
@@ -4193,11 +4253,11 @@ export const TERMS = Object.freeze({
      "rows": [
       [
        "Hours over 75 a month",
-       "125%"
+       "1.25 times the hourly rate"
       ],
       [
        "Flying on days off",
-       "125%"
+       "1.25 times the hourly rate"
       ]
      ],
      "note": ""
@@ -4235,24 +4295,20 @@ export const TERMS = Object.freeze({
     "key": "retirement",
     "ref": false,
     "ja": {
-     "label": "会社の年金の積み立て",
+     "label": "会社の年金の積み立て（本人の積み立てに会社が足す）",
      "value": "",
      "rows": [
       [
-       "本人が給与の3%まで積み立てた分",
-       "会社も同じ額を出す"
+       "本人が給与の3%を積み立てる",
+       "会社も3%を入れる"
       ],
       [
-       "その次の2%",
-       "会社がその半分を出す"
+       "本人が給与の5%を積み立てる",
+       "会社は4%を入れる（会社が入れるのはここまで）"
       ],
       [
-       "本人が5%積み立てたとき",
-       "会社は4%"
-      ],
-      [
-       "会社が出した分",
-       "すぐに本人のものになる"
+       "会社が入れたお金",
+       "すぐに本人のもの（辞めても返さない）"
       ]
      ],
      "note": ""
@@ -4262,20 +4318,16 @@ export const TERMS = Object.freeze({
      "value": "",
      "rows": [
       [
-       "First 3% you put in",
-       "100% company match"
+       "You put in 3% of pay",
+       "The company adds 3%"
       ],
       [
-       "Next 2%",
-       "50% match"
+       "You put in 5% of pay",
+       "The company adds 4% (the maximum)"
       ],
       [
-       "At 5% from you",
-       "4% from the company"
-      ],
-      [
-       "Vesting",
-       "Immediate"
+       "Company money",
+       "Yours immediately (fully vested)"
       ]
      ],
      "note": ""
@@ -4288,13 +4340,33 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "月の休日（最低）",
-     "value": "乗務が決まっている月もスタンバイ要員の月も12日",
-     "note": ""
+     "value": "",
+     "note": "",
+     "rows": [
+      [
+       "Line - 乗務が決まっている月",
+       "12日"
+      ],
+      [
+       "Reserve - STBY要員の月",
+       "12日"
+      ]
+     ]
     },
     "en": {
      "label": "Minimum days off",
-     "value": "12 a month, line and reserve",
-     "note": ""
+     "value": "",
+     "note": "",
+     "rows": [
+      [
+       "Lineholders",
+       "12"
+      ],
+      [
+       "Reserve",
+       "12"
+      ]
+     ]
     }
    },
    {
@@ -4500,13 +4572,33 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "最低保証",
-     "value": "乗務が決まっている月もスタンバイ要員の月も65時間分",
-     "note": ""
+     "value": "",
+     "note": "",
+     "rows": [
+      [
+       "Line - 乗務が決まっている月",
+       "65時間分"
+      ],
+      [
+       "Reserve - STBY要員の月",
+       "65時間分"
+      ]
+     ]
     },
     "en": {
      "label": "Minimum guarantee",
-     "value": "65 credit hours a month, line and reserve",
-     "note": ""
+     "value": "",
+     "note": "",
+     "rows": [
+      [
+       "Lineholders",
+       "65 credit hours"
+      ],
+      [
+       "Reserve",
+       "65 credit hours"
+      ]
+     ]
     }
    },
    {
@@ -4518,11 +4610,11 @@ export const TERMS = Object.freeze({
      "rows": [
       [
        "空いた乗務に手を挙げた分",
-       "時間単価の150%"
+       "1時間の単価の1.5倍"
       ],
       [
        "休みの日に会社から指名された乗務",
-       "1回目 200%・2回目 250%（90日に2回まで）"
+       "1回目は単価の2倍、2回目は2.5倍（90日に2回まで）"
       ]
      ],
      "note": ""
@@ -4653,11 +4745,11 @@ export const TERMS = Object.freeze({
      "value": "",
      "rows": [
       [
-       "月18勤務日を超えた勤務など",
-       "150%"
+       "月18日を超えて勤務した分など",
+       "1日の額の1.5倍"
       ],
       [
-       "1日あたりの額",
+       "1日の額",
        "年俸 ÷ 216"
       ]
      ],
@@ -4669,7 +4761,7 @@ export const TERMS = Object.freeze({
      "rows": [
       [
        "Duty beyond 18 days a month, among others",
-       "150%"
+       "1.5 times the day rate"
       ],
       [
        "Day rate",
@@ -4858,7 +4950,7 @@ export const TERMS = Object.freeze({
       ],
       [
        "その後",
-       "機材と、乗務が決まっている月かスタンバイ要員の月かで変わる"
+       "機材と、Line か Reserve かで変わる"
       ],
       [
        "1年での調整",
