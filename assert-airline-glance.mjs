@@ -3010,7 +3010,7 @@ function LIB() {
       want: { short: (u.cats || {}).short || [], full: ((u.cats || {}).full || []).map(s => String(s).split('|').join('')) },
       hero: { avg: t('.pvg-hero .crl-avg'), cnt: t('.pvg-hero .crl-cnt'), fill: fill('.pvg-hero .crl-stars'), none: $$('.pvg-hero .crl-stars[data-none]').some(on) },
       card: !c || !on(c) ? null : {
-        title: t('.pvg-head', c) || t('h2', c) || t('h3', c), avg: t('.crl-sc-avg b', c), cnt: t('.crl-sc-cnt', c), posts: t('.crl-sc .crl-posts', c), fill: fill('#pvg-score .crl-sc-sum .crl-stars'),
+        title: t('.pvg-head', c) || t('h2', c) || t('h3', c), avg: t('.crl-sc-avg b', c), cnt: t('.crl-sc-cnt', c), fill: fill('#pvg-score .crl-sc-sum .crl-stars'),
         stars: $$('.crl-stars', c).filter(on).length, msg: t('.crl[data-live="score"] .crl-msg', c),
         /* 口コミを書く入口（見えているもの全部）。カードの中に1つだけのはず。k ＝ 上の行・m ＝ 下の行・stacked ＝ 2行に積んである */
         /* ★2026-10-30 要約の欄の板にも「匿名で口コミを書く」が在る（オーナー）── カードの書く入口（2行のボタン）は、要約の欄の外のものだけ */
@@ -3502,13 +3502,12 @@ function scoreBad(s, sc, slots, rows, sum) {
     if (c.msg !== '会員からの投稿はまだありません') bad.push(`カードの知らせが「${c.msg}」`);
     if (c.give) bad.push(`口コミの欄の中に、入口がもう ${c.give}つ在る`);
   } else {
-    const fill = `${Math.round(W.avg / 5 * 1000) / 10}%`, cnt = `${W.n}人の評価`;
+    /* ★2026-11-19 ★の横の「n件の評価」は口コミの件数（書いた項目1つ＝1件・行の cats の数）。本文の無い投稿しか無いときだけ点数を付けた投稿の数 */
+    const items = rows.reduce((x, r) => x + (Array.isArray(r.cats) ? r.cats.length : RV_ITEMS.filter(k => String(r[k + '_comment'] || '').trim()).length), 0);
+    const fill = `${Math.round(W.avg / 5 * 1000) / 10}%`, cnt = `${items > 0 ? items : W.n}件の評価`;
     if (sc.hero.avg !== one(W.avg) || c.avg !== one(W.avg)) bad.push(`総合点が違う（社名の行 ${sc.hero.avg}・カード ${c.avg}・あるべき ${one(W.avg)}）`);
     if (sc.hero.fill !== fill || c.fill !== fill) bad.push(`星の塗りが違う（社名の行 ${sc.hero.fill}・カード ${c.fill}・あるべき ${fill}）`);
     if (sc.hero.cnt !== cnt || c.cnt !== cnt) bad.push(`件数が違う（社名の行「${sc.hero.cnt}」・カード「${c.cnt}」・あるべき「${cnt}」）`);
-    /* ★2026-11-19 ★の行の下に口コミの件数（本文を書いた項目1つ＝1件）。★の横の「n人の評価」とは別の数 */
-    const posts = `会員の投稿 ${rows.reduce((x, r) => x + (Array.isArray(r.cats) ? r.cats.length : RV_ITEMS.filter(k => String(r[k + '_comment'] || '').trim()).length), 0)}件`;
-    if (c.posts !== posts) bad.push(`評価スコアの欄の口コミの件数が「${c.posts}」（あるべき「${posts}」＝書いた項目の数）`);
     if (!W.ratings) { /* 下限に満たない・誰も点数を付けていない分類が在る：上の「3.0 の淡い面・数字なし」 */ }
     else if (sc.want.full.length !== 6) bad.push('分類の名前（PVReviewUI）を読めない');
     else {

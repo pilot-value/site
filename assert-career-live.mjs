@@ -10,7 +10,7 @@
      ・新しい投稿の抜粋は誰にでも。続きは口コミの Give & Get（給与の入口と混ぜない）── 鍵の無い人にだけ1つ（場面 clip）。
      ・投稿が無い2社に、数字も2つの文も出さない。1つの文の下に、会社ごとの 3.0 の淡い6角形（数字なし）（場面 zero）。
      ・会社ページと比較が、同じ上限の件数で口コミを数え、同じ1つの数え方（realRated）で評価を出す（static）。
-     ・比較の評価は会社ページと同じ数（星・点数・「n人の評価」、次の行に「会員の投稿 n件」）。点の低い投稿も数える（場面 rate）。
+     ・比較の評価は会社ページと同じ数（星・点数・「n件の評価」＝口コミの件数・書いた項目ごと。★が出ているマスに「会員の投稿」の行は無い・2026-11-19）。点の低い投稿も数える（場面 rate）。
      ・点数の無い会社・投稿の無い会社に、0 も空の星も置かない（場面 unrated）。
      ・片方の会社が読めなくても、もう片方は出す。やり直すのは読めなかった方だけ（場面 side）。
      ・1社の概要（career.html?airline=…）は無い ── 1社の評価の欄を career.html に置かない（場面 overview ── ★2026-10-26 P12.130 当て直し。
@@ -180,15 +180,15 @@ const row = (id, [c, s, b, w, o, t], extra = {}) => ({
 });
 const NUL = [null, null, null, null, null, null];
 const FIX = {
-  /* → 「3.5」・星 70%・「2人の評価」・「会員の投稿 3件」 */
+  /* → 「3.5」・星 70%・「3件の評価」（書いた項目の数・2026-11-19） */
   JAL: [row(1, [5, 4, 3, 4, 5, 3]), row(2, [3, 3, 3, 3, 3, 3]), row(3, NUL)],
-  /* → 「4.2」・星 84%・「1人の評価」・「会員の投稿 1件」（1つの分類に点が無い） */
+  /* → 「4.2」・星 84%・「1件の評価」（1つの分類に点が無い） */
   ANA: [row(4, [4, null, 4, 5, 4, 4])],
   /* → 「評価未取得」・「会員の投稿 2件」・星の形は無い */
   EVA: [row(5, NUL), row(6, NUL)],
   /* → 「会員からの投稿はまだありません」 */
   ETD: [],
-  /* → 「3.0」・「2人の評価」・「会員の投稿 2件」（点の低い行も数える） */
+  /* → 「3.0」・「2件の評価」（点の低い行も数える） */
   TWO: [row(7, [5, 5, 5, 5, 5, 5]), row(8, [1, 1, 1, 1, 1, 1])],
 };
 const CLIP_MARK = 'PLANTED-CLIP-TEXT';
@@ -492,16 +492,16 @@ const cells = (page) => page.evaluate(() => {
 const NAME = { jal: '日本航空（JAL）', ana: '全日本空輸（ANA）', 'eva-air': 'エバー航空', etihad: 'エティハド航空' };
 const OLD_COUNT = /(?<!会員の)口コミ \d/;                 // 昔の「口コミ n件」（要約の「会員の口コミ N件から」は別の数・別の言葉）
 
-scene('rate', '比較の評価は会社ページと同じ数え方（星・点数・「n人の評価」、次の行に「会員の投稿 n件」）', 'mock', async () => {
+scene('rate', '比較の評価は会社ページと同じ数え方（星・点数・「n件の評価」＝口コミの件数・★の出ているマスに「会員の投稿」の行は無い）', 'mock', async () => {
   const { page } = await open('pc', { url: PAIR_URL('jal', 'ana'), stub: { pv_reviews: reviewsBy({ jal: FIX.JAL, ana: FIX.ANA }) } });
   ok(await settled(page, 'cmp-stars', 'jal|ana'), '口コミの欄が読み終わった');
   const C = await cells(page), [A, B] = C.cells.length === 2 ? C.cells : [{}, {}];
-  ok(A.avg === '3.5' && A.fill === '70%' && A.cnt === '2人の評価' && A.posts === '会員の投稿 3件',
-    'JAL：点数 3.5・星 70%・「2人の評価」・次の行に「会員の投稿 3件」（点の無い投稿は評価に数えず、投稿には数える）', JSON.stringify(A));
-  ok(B.avg === '4.2' && B.fill === '84%' && B.cnt === '1人の評価' && B.posts === '会員の投稿 1件',
-    'ANA：点数 4.2・星 84%・「1人の評価」・次の行に「会員の投稿 1件」', JSON.stringify(B));
-  ok([A, B].every((c) => c.below && !c.postsInScore && !/会員の投稿/.test(c.scoreText || '')),
-    '「会員の投稿 n件」は、星と点数の行の下の別の行（同じ行に並べない）', JSON.stringify([A, B].map((c) => [c.below, c.postsInScore, c.scoreText])));
+  ok(A.avg === '3.5' && A.fill === '70%' && A.cnt === '3件の評価' && A.posts === null,
+    'JAL：点数 3.5・星 70%・「3件の評価」（★の横は口コミの件数 ＝ 書いた項目の数。点の無い投稿も、書いた項目は数える）', JSON.stringify(A));
+  ok(B.avg === '4.2' && B.fill === '84%' && B.cnt === '1件の評価' && B.posts === null,
+    'ANA：点数 4.2・星 84%・「1件の評価」', JSON.stringify(B));
+  ok([A, B].every((c) => c.posts === null && !/会員の投稿/.test(c.text || '')),
+    '★が出ているマスに「会員の投稿 n件」の行を置かない（★の横と同じ数を2度並べない・2026-11-19）', JSON.stringify([A, B].map((c) => [c.posts, c.text])));
   ok(!OLD_COUNT.test(C.view), '比較の画面のどこにも、昔の「口コミ n件」が無い', (C.view.match(/.{0,12}口コミ \d.{0,6}/) || [''])[0]);
   ok(A.first === `span.crl-sr|${NAME.jal}` && B.first === `span.crl-sr|${NAME.ana}`, '各社のマスは、読み上げ用の社名から始まる', JSON.stringify([A.first, B.first]));
   ok(C.rated === '11', '評価の格子の印 data-rated は "11"（2社とも点数の付いた投稿が在る）', C.rated);
@@ -510,7 +510,7 @@ scene('rate', '比較の評価は会社ページと同じ数え方（星・点�
   const t = await open('pc', { url: PAIR_URL('jal', 'ana'), stub: { pv_reviews: reviewsBy({ jal: FIX.TWO, ana: FIX.ANA }) } });
   ok(await settled(t.page, 'cmp-stars', 'jal|ana'), '（点の高い投稿と低い投稿の2件）口コミの欄が読み終わった');
   const T2 = (await cells(t.page)).cells[0] || {};
-  ok(T2.avg === '3.0' && T2.cnt === '2人の評価' && T2.posts === '会員の投稿 2件', '5点と1点の2件 → 点数 3.0・「2人の評価」・「会員の投稿 2件」（どの投稿も数える）', JSON.stringify(T2));
+  ok(T2.avg === '3.0' && T2.cnt === '2件の評価' && T2.posts === null, '5点と1点の2件 → 点数 3.0・「2件の評価」（どの投稿も数える）', JSON.stringify(T2));
 });
 
 scene('unrated', '点数の無い会社・投稿の無い会社に、0 も空の星も置かない', 'mock', async () => {
@@ -673,7 +673,7 @@ scene('side', '片方の会社が読めなくても、もう片方は出す（�
   ok(!!s && s.state === 'open' && s.part === '1', '欄は開いた顔のまま、片方だけ読めなかった印（data-part="1"）', JSON.stringify(s && [s.state, s.part]));
   ok((A.text || '').split('いま読み出せません').length === 2 && !/\d/.test(A.text || '') && !/会員からの投稿はまだありません/.test(A.text || ''),
     'JAL（読めなかった）：マスに「いま読み出せません」が1回だけ・数字も「投稿はまだありません」も無い', JSON.stringify(A));
-  ok(B.avg === '4.2' && B.cnt === '1人の評価' && B.posts === '会員の投稿 1件', 'ANA（読めた）：いつもどおり描く', JSON.stringify(B));
+  ok(B.avg === '4.2' && B.cnt === '1件の評価' && B.posts === null, 'ANA（読めた）：いつもどおり描く', JSON.stringify(B));
   ok(C.retry.length === 1 && C.retry[0] >= 44, '「やり直す」は欄に1つだけ（高さ 44px 以上）', JSON.stringify(C.retry));
   /* ★2026-10-31：要約の下の口コミの畳みは、読めなかったことを言わない（印だけ）── 「やり直す」は評価の欄の1つだけ */
   ok(await settled(page, 'cmp-revs', 'jal|ana'), '口コミの畳みの欄も読み終わった');
@@ -2369,12 +2369,13 @@ scene('local-back', '「戻る」で手元から戻った比較：投稿で変�
       CUR.pages.push(o);
       const { page } = o;
       const before = await bfWait(page, (sel) => { const b = document.querySelector(sel);
-        return !!b && b.getAttribute('data-state') === 'open' && b.getAttribute('data-for') === 'jal|ana' && b.innerText.includes('2人の評価'); }, STARS);
+        return !!b && b.getAttribute('data-state') === 'open' && b.getAttribute('data-for') === 'jal|ana' && b.innerText.includes('3件の評価'); }, STARS);
       await H.watch(page, 'cmp-stars');
       await page.evaluate(() => { window.__l7 = 'L7-1'; if (window.__crlSeen) window.__crlSeen.length = 0; });
       await H.bfLeave(page, BF_OFF);
-      const id = (await env.q(`insert into public.reviews_v2 (proof_hash, airline, culture_score, salary_score, benefits_score, wlb_score, ops_score, training_score)
-        values (public.pv_review_hash(gen_random_uuid(), 'jal'), 'jal', 4, 4, 4, 4, 4, 4) returning id`)).rows[0].id;
+      /* ★2026-11-19 ★の横は書いた項目の数 ── 点数だけでは数が動かないので、1項目書いた口コミにする（3件 → 4件） */
+      const id = (await env.q(`insert into public.reviews_v2 (proof_hash, airline, culture_score, salary_score, benefits_score, wlb_score, ops_score, training_score, culture_comment)
+        values (public.pv_review_hash(gen_random_uuid(), 'jal'), 'jal', 4, 4, 4, 4, 4, 4, '手元の検査で足したひとことです（実在の投稿ではありません）。') returning id`)).rows[0].id;
       const b = await H.bfBack(page);
       const kept = await page.evaluate(() => window.__l7 === 'L7-1').catch(() => false);
       if (!b.persisted || !kept) {
@@ -2382,14 +2383,14 @@ scene('local-back', '「戻る」で手元から戻った比較：投稿で変�
         return { restored: false, why: b.why || 'mark gone' };
       }
       const three = await bfWait(page, (sel) => { const x = document.querySelector(sel);
-        return !!x && x.getAttribute('data-state') === 'open' && x.innerText.includes('3人の評価'); }, STARS);
+        return !!x && x.getAttribute('data-state') === 'open' && x.innerText.includes('4件の評価'); }, STARS);
       const face = await slot(page, 'cmp-stars');
-      return { restored: true, before, three, posts: !!face && face.text.includes('会員の投稿 4件'), seen: await H.seen(page) };
+      return { restored: true, before, three, posts: !!face && face.text.includes('4件の評価') && !face.text.includes('会員の投稿'), seen: await H.seen(page) };
     });
     bfNote('ゲスト', r1);
     const sk = (r1.seen || []).filter((s) => /^(loading|idle)\|/.test(s));
     ok(r1.restored && r1.before && r1.three && r1.posts,
-      bfNotProven('★L7 ゲスト：比較 → リンクでほかのページ → JAL に口コミ1件（手元の SQL）→「戻る」で手元から戻った（離れる前の印が残る・pageshow の persisted）：読み込み直さずに「3人の評価」・会員の投稿 4件', r1),
+      bfNotProven('★L7 ゲスト：比較 → リンクでほかのページ → JAL に口コミ1件（手元の SQL）→「戻る」で手元から戻った（離れる前の印が残る・pageshow の persisted）：読み込み直さずに「3件の評価」・会員の投稿 4件', r1),
       J({ restored: r1.restored, tries: r1.tries, why: r1.why, before: r1.before, three: r1.three, posts: r1.posts }));
     ok(r1.restored && r1.three && (r1.seen || []).length > 0 && sk.length === 0,
       bfNotProven('★L7 取り直すあいだ、評価の欄は骨組み（loading）にも空（idle）にもならない（前の数を出したまま次の数へ）', r1),
@@ -2600,7 +2601,7 @@ const reply = async (o, fn, air) => {
   const e = pick();
   return e ? e.text : null;
 };
-/* 会社ページの評価と要約：社名の横の星（点数・星の塗り・「n人の評価」）・評価スコアの箱の6つの点・「会員の投稿 n 件」・要約の欄。 */
+/* 会社ページの評価と要約：社名の横の星（点数・星の塗り・「n件の評価」）・評価スコアの箱の6つの点・「会員の投稿 n 件」・要約の欄。 */
 const coFace = (page) => page.evaluate(() => {
   const q = (s) => document.querySelector(s), tx = (e) => (e ? e.textContent.trim() : null);
   const hero = q('.pvg-hero .crl[data-live="stars"]'), sc = q('#pvg-score .crl[data-live="score"]'), sum = q('#pvg-score .crl[data-live="summary"]');
@@ -2636,16 +2637,16 @@ const cmpDone = (page, want) => page.waitForFunction((want) => {
   const b = document.querySelector('#cr [data-view="compare"] .crl[data-live="cmp-stars"]');
   return !!b && b.getAttribute('data-for') === want && !['idle', 'loading'].includes(b.getAttribute('data-state'));
 }, { timeout: 20000, polling: 100 }, want).then(() => true, () => false);
-/* 比較のマスと会社ページが、同じ点数・星の塗り・「n人の評価」・投稿の数・6つの点を出している */
+/* 比較のマスと会社ページが、同じ点数・星の塗り・「n件の評価」・投稿の数・6つの点を出している */
 const sameRate = (m, c) => !!m && !!c && m.avg === c.avg && m.fill === c.fill && m.cnt === c.cnt
-  && m.posts === `会員の投稿 ${c.posts[0]}件` && c.posts.length === 1 && J(m.vals) === J(c.vals);
+  && m.posts === null && m.cnt === `${c.posts[0]}件の評価` && c.posts.length === 1 && J(m.vals) === J(c.vals);   // ★の横 ＝ 会社ページの「会員の投稿」の数（2026-11-19）
 
 /* ── L1 ───────────────────────────────────────────────────── */
 localScene('local-eq', '比較で選べる主要5社：評価と件数が、比較と会社ページで同じ（ゲスト・手元の SQL）', 'eq', async () => {
   const LIT = {
-    jal: { avg: '3.5', fill: '70%', cnt: '2人の評価', posts: '会員の投稿 3件', vals: ['4.0', '3.5', '3.0', '3.5', '4.0', '3.0'] },
-    ana: { avg: '4.2', fill: '84%', cnt: '1人の評価', posts: '会員の投稿 1件', vals: [] },
-    'cathay-pacific': { avg: '4.0', fill: '80%', cnt: '2人の評価', posts: '会員の投稿 2件', vals: ['4.0', '4.0', '4.0', '4.0', '4.0', '4.0'] },
+    jal: { avg: '3.5', fill: '70%', cnt: '3件の評価', posts: null, vals: ['4.0', '3.5', '3.0', '3.5', '4.0', '3.0'] },
+    ana: { avg: '4.2', fill: '84%', cnt: '1件の評価', posts: null, vals: [] },
+    'cathay-pacific': { avg: '4.0', fill: '80%', cnt: '2件の評価', posts: null, vals: ['4.0', '4.0', '4.0', '4.0', '4.0', '4.0'] },
   };
   const isLit = (m, s) => !!m && m.avg === LIT[s].avg && m.fill === LIT[s].fill && m.cnt === LIT[s].cnt && m.posts === LIT[s].posts && J(m.vals) === J(LIT[s].vals);
   const co = {};
@@ -2659,10 +2660,10 @@ localScene('local-eq', '比較で選べる主要5社：評価と件数が、比�
   ok(await cmpDone(cmp.page, 'jal|ana'), '（前提）比較 JAL｜ANA の評価の欄が読み終わった');
   const [J1, A1] = await cmpRate(cmp.page);
   ok(isLit(J1, 'jal') && sameRate(J1, co.jal),
-    '★L1 主要5社 JAL：比較と会社ページが同じ ── 3.5・星 70%・「2人の評価」・会員の投稿 3件・6つの点 4.0/3.5/3.0/3.5/4.0/3.0',
+    '★L1 主要5社 JAL：比較と会社ページが同じ ── 3.5・星 70%・「3件の評価」（＝会員の投稿 3件）・6つの点 4.0/3.5/3.0/3.5/4.0/3.0',
     J({ cmp: J1, co: co.jal && { avg: co.jal.avg, fill: co.jal.fill, cnt: co.jal.cnt, posts: co.jal.posts, vals: co.jal.vals } }));
   ok(isLit(A1, 'ana') && sameRate(A1, co.ana),
-    '★L1 主要5社 ANA：比較と会社ページが同じ ── 4.2・星 84%・「1人の評価」・会員の投稿 1件・6つの点は無い（点の無い分類がある）',
+    '★L1 主要5社 ANA：比較と会社ページが同じ ── 4.2・星 84%・「1件の評価」（＝会員の投稿 1件）・6つの点は無い（点の無い分類がある）',
     J({ cmp: A1, co: co.ana && { avg: co.ana.avg, fill: co.ana.fill, cnt: co.ana.cnt, posts: co.ana.posts, vals: co.ana.vals } }));
   /* ページの中で2社を選び直す：エティハド｜キャセイパシフィック、続けてエバー｜キャセイパシフィック */
   await H.choose(cmp.page, 'a', 'etihad');
@@ -2673,7 +2674,7 @@ localScene('local-eq', '比較で選べる主要5社：評価と件数が、比�
     '★L1 主要5社 エティハド：比較は「会員からの投稿はまだありません」・点数なし（会社ページも点数なし・会員の投稿 0 件）',
     J({ cmp: E1, co: co.etihad && { avg: co.etihad.avg, posts: co.etihad.posts } }));
   ok(isLit(C1, 'cathay-pacific') && sameRate(C1, co['cathay-pacific']),
-    '★L1 主要5社 キャセイパシフィック（古い会社コード cathay の1件を含む）：比較と会社ページが同じ ── 4.0・星 80%・「2人の評価」・会員の投稿 2件・6つの点 4.0',
+    '★L1 主要5社 キャセイパシフィック（古い会社コード cathay の1件を含む）：比較と会社ページが同じ ── 4.0・星 80%・「2件の評価」（＝会員の投稿 2件）・6つの点 4.0',
     J({ cmp: C1, co: co['cathay-pacific'] && { avg: co['cathay-pacific'].avg, fill: co['cathay-pacific'].fill, cnt: co['cathay-pacific'].cnt,
       posts: co['cathay-pacific'].posts, vals: co['cathay-pacific'].vals } }));
   await H.choose(cmp.page, 'a', 'eva-air');
@@ -2695,25 +2696,25 @@ localScene('local-post', '投稿の追加・修正・削除のあと、比較と
   };
   const show = (x) => J({ cmp: x.cmp, co: { avg: x.co.avg, fill: x.co.fill, cnt: x.co.cnt, posts: x.co.posts, vals: x.co.vals } });
   const x0 = await both();
-  ok(x0.ready && !!x0.cmp && x0.cmp.cnt === '2人の評価' && sameRate(x0.cmp, x0.co), '（前提）変える前：JAL は「2人の評価」・会員の投稿 3件で、2つの画面が同じ', show(x0));
+  ok(x0.ready && !!x0.cmp && x0.cmp.cnt === '3件の評価' && sameRate(x0.cmp, x0.co), '（前提）変える前：JAL は「3件の評価」（＝会員の投稿 3件）で、2つの画面が同じ', show(x0));
   /* 追加：pilot が JAL に [4,4,4,4,4,4]（via） */
   await postAs('pilot', 'jal', [4, 4, 4, 4, 4, 4]);
   await reload(co); await reload(cmp);
   const x1 = await both();
-  ok(x1.ready && !!x1.cmp && x1.cmp.avg === '3.7' && x1.cmp.fill === '73.3%' && x1.cmp.cnt === '3人の評価' && x1.cmp.posts === '会員の投稿 4件' && sameRate(x1.cmp, x1.co),
-    '★L2 追加（pilot が JAL に1件・via）→ 読み直すと2つの画面が同じ：3.7・星 73.3%・「3人の評価」・会員の投稿 4件', show(x1));
+  ok(x1.ready && !!x1.cmp && x1.cmp.avg === '3.7' && x1.cmp.fill === '73.3%' && x1.cmp.cnt === '4件の評価' && sameRate(x1.cmp, x1.co),
+    '★L2 追加（pilot が JAL に1件・via）→ 読み直すと2つの画面が同じ：3.7・星 73.3%・「4件の評価」（＝会員の投稿 4件）', show(x1));
   /* 修正：b の行を全部 5 に（会員の画面が無い ── q() で直接） */
   await CUR.env.q(`update public.reviews_v2 set ${L_SCORES.map((k) => `${k} = 5`).join(', ')} where id = $1`, [ids.b]);
   await reload(co); await reload(cmp);
   const x2 = await both();
-  ok(x2.ready && !!x2.cmp && x2.cmp.avg === '4.3' && x2.cmp.fill === '86.7%' && x2.cmp.cnt === '3人の評価' && x2.cmp.posts === '会員の投稿 4件' && sameRate(x2.cmp, x2.co),
+  ok(x2.ready && !!x2.cmp && x2.cmp.avg === '4.3' && x2.cmp.fill === '86.7%' && x2.cmp.cnt === '4件の評価' && sameRate(x2.cmp, x2.co),
     '★L2 修正（b の行の点数を全部 5 に・q()）→ 読み直すと2つの画面が同じ：4.3・星 86.7%', show(x2));
   /* 削除：a の行（q() で直接） */
   await CUR.env.q('delete from public.reviews_v2 where id = $1', [ids.a]);
   await reload(co); await reload(cmp);
   const x3 = await both();
-  ok(x3.ready && !!x3.cmp && x3.cmp.avg === '4.5' && x3.cmp.cnt === '2人の評価' && x3.cmp.posts === '会員の投稿 3件' && sameRate(x3.cmp, x3.co),
-    '★L2 削除（a の行・q()）→ 読み直すと2つの画面が同じ：4.5・「2人の評価」・会員の投稿 3件', show(x3));
+  ok(x3.ready && !!x3.cmp && x3.cmp.avg === '4.5' && x3.cmp.cnt === '3件の評価' && sameRate(x3.cmp, x3.co),
+    '★L2 削除（a の行・q()）→ 読み直すと2つの画面が同じ：4.5・「3件の評価」（＝会員の投稿 3件）', show(x3));
   console.log('  ・修正・削除は会員の画面が無いので、手元のデータベースを直接書き換えて確かめた');
 });
 
@@ -2831,7 +2832,7 @@ localScene('local-change', '要約は口コミの変化に付いてくる（a �
     const C = await coFace(co.page), F = await sumFace(cmp.page), R = (await cmpRate(cmp.page))[0];
     return { ready, C, F, A: F && F.cells.length === 2 ? F.cells[0] : {}, R };
   };
-  const show = (x) => J({ co: x.C.sum, cmp: x.A && { good: x.A.good, concern: x.A.concern, foot: x.A.foot, seen: x.A.seen }, posts: x.R && x.R.posts });
+  const show = (x) => J({ co: x.C.sum, cmp: x.A && { good: x.A.good, concern: x.A.concern, foot: x.A.foot, seen: x.A.seen }, cnt: x.R && x.R.cnt });
   const has = (x, S) => SUM_TXT(S).some((t) => x.C.view.includes(t) || (x.F && x.F.html.includes(t)));
   const x0 = await read2();
   ok(x0.ready && !!x0.C.sum && x0.C.sum.state === 'open' && J(x0.A.good) === J(GATES.good.slice(0, 2)), '（前提）変える前：2つの画面に JAL の要約（GATES）が出ている', show(x0));
@@ -2840,8 +2841,8 @@ localScene('local-change', '要約は口コミの変化に付いてくる（a �
   await reload(co); await reload(cmp);
   const x1 = await read2();
   ok(x1.ready && x1.C.sum.state === 'open' && J(x1.C.sum.good.slice(0, 2)) === J(GATES.good.slice(0, 2)) && x1.C.sum.foot.includes('会員の口コミ 3件から')
-    && J(x1.A.good) === J(GATES.good.slice(0, 2)) && x1.A.foot.includes('会員の口コミ 3件から') && !!x1.R && x1.R.posts === '会員の投稿 4件' && J(x1.C.posts) === '["4"]',
-  '★L5 (0) 追加（pilot・via）のあと：2つの画面とも要約はそのまま・足元は「会員の口コミ 3件から」・評価の側は会員の投稿 4件', show(x1));
+    && J(x1.A.good) === J(GATES.good.slice(0, 2)) && x1.A.foot.includes('会員の口コミ 3件から') && !!x1.R && x1.R.cnt === '4件の評価' && J(x1.C.posts) === '["4"]',
+  '★L5 (0) 追加（pilot・via）のあと：2つの画面とも要約はそのまま・足元は「会員の口コミ 3件から」・評価の側は「4件の評価」（＝会員の投稿 4件）', show(x1));
   console.log('  ・追加のあと、要約が作り直されるまで「会員の口コミ N件から」は前の件数のまま。');
   /* (1) a の JAL の給与のひとことを書き換える（会員の画面が無い ── q()）→ 2つの画面とも「まだありません」 */
   await CUR.env.q("update public.reviews_v2 set salary_comment = '手元の検査で書き換えたひとことです（実在の投稿ではありません）。' where id = $1", [await rowOf('a', 'jal')]);

@@ -142,7 +142,7 @@
     revNone: '会員からの投稿はまだありません',       // 会社ページと比較で使う。同じページの「口コミ」のタブは海外の評判なども数えるので、言い分ける
     revNo: '評価未取得',                              // 会社ページ用。点数の付いた投稿がまだ無い（0点ではない）
     revPosts: function (n) { return '会員の投稿 ' + n + '件'; },    // 口コミ件数（本文を書いた項目1つ＝1件・revItems）。評価件数（revRated）と同じ行に置かない
-    revRated: function (n) { return n + '人の評価'; },    // ★の平均の分母＝点数を付けた人の数（2026-11-19 から「件」でなく「人」── 口コミの件数は項目ごとに数えるので、同じ「件」だと別の数が同じ物に見える）
+    revRated: function (n) { return n + '件の評価'; },    // ★の横の数 ＝ 口コミの件数（本文を書いた項目1つ＝1件・revItems）。2026-11-19 オーナー「人を辞めて件に」「25件の評価」
     sumHead: '口コミの要約',
     sumOvHead: 'まとめ',                              // 全体の傾向の段落の枠の見出し（2026-10-30）
     sumGood: '良い点',
@@ -2144,23 +2144,28 @@
     st.setAttribute('data-none', '');
     return st;
   }
-  /* 評価の1行の中身（星・点数・「n人の評価」）。会社ページ・1社の概要・比較が同じ部品を使う ── 数えるのは realRated() の1つだけ。
+  /* 評価の1行の中身（星・点数・「n件の評価」）。会社ページ・1社の概要・比較が同じ部品を使う ── 点数は realRated() の1つだけ。
+     ★2026-11-19 から「n件」は口コミの件数（items ＝ revItems(rows)・書いた項目1つ＝1件。オーナー「人を辞めて件に」）。
+     ★の平均そのものは今までどおり1人1票（realRated の n は平均の分母で、字にはしない）。
      点数の付いた投稿が無ければ「評価未取得」（0 を置かない）。bare ＝ 輪郭の星も置かない（比較：隣の会社の星と並ぶと 0点に見える）。 */
-  function rateInto(node, R, bare) {
+  /* ★の横の数。点数だけで本文の無い投稿しか無い会社で「0件の評価」と出さない ── そのときだけ点数を付けた投稿の数。 */
+  function rateN(R, items) { return items > 0 ? items : R.n; }
+  function rateInto(node, R, bare, items) {
     if (R) {
       node.appendChild(starsEl(R.avg));
       node.appendChild(el('b', 'crl-avg', R.avg.toFixed(1)));
-      node.appendChild(el('span', 'crl-cnt', T.revRated(R.n)));
+      node.appendChild(el('span', 'crl-cnt', T.revRated(rateN(R, items))));
     } else {
       if (!bare) node.appendChild(noStars());
       node.appendChild(el('span', 'crl-cnt', T.revNo));
     }
     return node;
   }
-  /* 口コミ件数（投稿ぜんぶ）。評価件数の隣ではなく、次の行に置く ── 2つの数を同じ数に見せない。 */
+  /* 口コミ件数の行。★の横の「n件の評価」と同じ数なので、★が出ている所には置かない（同じ数を2度並べない）。
+     点数の付いた投稿が無い（「評価未取得」）ときだけ、件数はこの行で出す。 */
   function postsLine(n) { return el('p', 'crl-posts', T.revPosts(n)); }
   /* ★口コミの件数は「本文を書いた項目1つ＝1件」（2026-11-19 オーナー指示・OpenWork と同じ）。7項目に書いた投稿は7件・点数だけの投稿は0件。
-     数えるのはサーバーが行ごとに付ける cats（本文のある項目の名前・鍵の有無にかかわらず来る）。★の平均の分母（realRated の n ＝ 評価した人の数）は別のまま。 */
+     数えるのはサーバーが行ごとに付ける cats（本文のある項目の名前・鍵の有無にかかわらず来る）。★の横の「n件の評価」もこの数（★の平均の分母＝1人1票とは別）。 */
   var REV_CMT = ['culture', 'salary', 'benefits', 'wlb', 'ops', 'training', 'mgmt'];
   function revItems(rows) {
     return (rows || []).reduce(function (s, r) {
@@ -2236,7 +2241,7 @@
       if (GL) {
         /* 会社ページ：社名の横と口コミのカードの右上。押すと同じページの「口コミ」のタブが開く。
            点数は下の「評価スコア」の箱と同じ realRated() の答え。 */
-        var a = rateInto(el('a', 'crl-score crl-score-a'), R);
+        var a = rateInto(el('a', 'crl-score crl-score-a'), R, false, revItems(res.rows));
         a.setAttribute('href', '#reviews');
         a.appendChild(icon('arrow', 14));
         return view(R ? 'open' : 'empty', [a]);
@@ -2246,7 +2251,8 @@
         return view('empty', [msg(T.revEmpty),
           foot([link(T.revGive, UP + 'submit-review.html?airline=' + enc(slug))])]);
       }
-      return view('open', [rateInto(el('p', 'crl-score'), R), postsLine(revItems(res.rows))]);
+      var nItems = revItems(res.rows);
+      return view('open', R ? [rateInto(el('p', 'crl-score'), R, false, nItems)] : [rateInto(el('p', 'crl-score'), R), postsLine(nItems)]);
     });
   };
 
@@ -2270,11 +2276,8 @@
       big.appendChild(el('span', '', '/ 5.0'));
       sum.appendChild(big);
       sum.appendChild(starsEl(R.avg));
-      sum.appendChild(el('p', 'crl-sc-cnt', T.revRated(R.n)));
+      sum.appendChild(el('p', 'crl-sc-cnt', T.revRated(rateN(R, revItems(res.rows)))));   // ★2026-11-19 口コミの件数（書いた項目ごと）
       wrap.appendChild(sum);
-      /* ★口コミの件数（書いた項目1つ＝1件）を★の行の下に（2026-11-19 オーナー「数字変わってねーぞ、5件のままじゃん」）。
-         ★の横は人の数・この行は口コミの数 ── 2つを同じ行に並べない（postsLine と同じ決まり）。 */
-      wrap.appendChild(postsLine(revItems(res.rows)));
       /* 6角形の図は欄の中に HTML で在る（会社ページ ── gen-airline-glance.mjs の radarFrame）。ここは塗る点数を渡すだけ
          （塗るのは paint ── 古い答えで図を塗らない）。★塗るかどうかは社名の行の星と同じ realRated() の答えだけ（2026-10-22
          オーナー P12.97：点数は誰にでも出ている ── 鍵の有無で変えない・2つめの下限を作らない）。点数の無い分類が在る時（ratings が
@@ -2527,7 +2530,7 @@
     });
   };
 
-  /* 比較の口コミ。数えるのは realRated() の1つだけ ── 星・点数の横は評価件数（点数の付いた投稿）、次の行が口コミ件数（投稿ぜんぶ）。
+  /* 比較の口コミ。点数は realRated() の1つだけ ── 星・点数の横は口コミの件数（書いた項目ごと・2026-11-19）。点数の無い会社だけ、次の行に口コミ件数。
      ⚠️ 行（rows）から読むのは 6つの点数 と 行数 だけ。ほかの列（昔の口コミに書かれた給与・抜粋・職位）を画面に出さない。
      ⚠️ 投稿が無い・点数が無い・読めなかった を、同じ顔にしない。どれにも 0 も、空の星も置かない。 */
   function sideOf(s) { return s.ok ? { rows: s.v.rows, R: realRated(s.v.rows) } : null; }
@@ -2536,8 +2539,8 @@
     c.appendChild(el('span', 'crl-sr', coName(slug)));
     if (!o) { c.appendChild(sideFail(s)); return c; }
     if (!o.rows.length) { c.appendChild(el('span', 'crl-none', T.revNone)); return c; }
-    c.appendChild(rateInto(el('p', 'crl-score'), o.R, true));
-    c.appendChild(postsLine(revItems(o.rows)));
+    c.appendChild(rateInto(el('p', 'crl-score'), o.R, true, revItems(o.rows)));
+    if (!o.R) c.appendChild(postsLine(revItems(o.rows)));
     return c;
   }
   /* 評価の格子の続きの行（6角形・口コミの抜粋）。比べる1項目の行（.crl-cmp-row）とは別の印で置く ── 評価の行は2社の評価のマスだけ
@@ -3186,12 +3189,13 @@
 
   var PC = w.PVCareer = w.PVCareer || {};
   PC.client = client;
-  /* 保存カード用：公開の評価（平均と評価件数の2つの数だけ）。口コミの行そのものは渡さない。 */
+  /* 保存カード用：公開の評価（平均と件数の2つの数だけ）。口コミの行そのものは渡さない。
+     n は会社ページの★の横と同じ「口コミの件数」（書いた項目ごと・2026-11-19）。 */
   PC.rating = function (slug) {
     if (!okSlug(slug)) return Promise.resolve(null);
     return reviews(slug).then(function (res) {
       var R = realRated(res && res.rows);
-      return R ? { avg: R.avg, n: R.n } : null;
+      return R ? { avg: R.avg, n: rateN(R, revItems(res && res.rows)) } : null;
     });
   };
 
