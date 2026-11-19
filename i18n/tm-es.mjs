@@ -16440,6 +16440,7 @@ export const TM = {
   "jsl:'Submit as a company not on the list'": {"es":"jsl:'Enviar como empresa que no está en la lista'","st":"validated","by":"ai","model":"claude-opus-5-5","pv":4,"gl":"submit:a480e6","at":"2026-11-02","pages":["en/pay-report.html"]},
   "jsl:'Submit this amount'": {"es":"jsl:'Enviar este monto'","st":"validated","by":"ai","model":"claude-opus-5-5","pv":4,"gl":"submit:a480e6","at":"2026-11-02","pages":["en/pay-report.html"]},
   "jsl:'Submitted for '": {"es":"jsl:'Enviado: '","st":"manual","by":"claude-review","at":"2026-11-08","pages":["en/profile.html"],"note":"マイレポート 2026-11-08"},
+  "jsl:'Gross pay matches your payslip'": {"es":"jsl:'El sueldo bruto coincide con tu recibo de nómina'","st":"manual","by":"claude-review","at":"2026-11-19","pages":["en/profile.html"],"note":"MY PAGE の Verified の印に指を乗せたときの1行（2026-11-19）。MY PAY（my-value.js）の訳と同じ字"},
   "jsl:'Submitting…'": {"es":"jsl:'Enviando…'","st":"validated","by":"ai","model":"claude-opus-5-5","pv":4,"gl":"","at":"2026-11-02","pages":["en/pay-report.html"]},
   "jsl:'Subscribed: we only send useful updates.'": {"es":"jsl:'Suscrito: solo enviamos novedades útiles.'","st":"validated","by":"ai","model":"claude-opus-5-5","pv":4,"gl":"","at":"2026-11-02","pages":["en/profile.html"]},
   "jsl:'Suggestions to management'": {"es":"jsl:'Sugerencias a la dirección'","st":"validated","by":"ai","model":"claude-opus-5-5","pv":4,"gl":"management-leadership-role:1885bd","at":"2026-11-02","pages":["en/submit-review.html"]},
