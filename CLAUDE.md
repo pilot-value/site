@@ -406,6 +406,32 @@ baland_ass/                            ブランド資産（※ brand_assets の
   ⚠️ `stayOpenHtml` を呼んだプロセスの中では、生成器が開いた形を書く（`openStaysForLocal`）── そのプロセスからファイルを書かない。
 - **戻す日** ── 2つの印を true → `node gen-airline-glance.mjs` → `node gen-career.mjs` → `node gen-lang.mjs es` → `seo-normalize` → `gen-datemod` → `gen-sitemap`。
 
+## 明細の Verified と、FOUNDING を保留中の口コミに付けない（2026-11-19）
+
+★オーナー決定「明細提出で Verified をつける」「本物かどうかは 100% は確かめられないので5つの条件」「保留が解けたときだけ FOUNDING」
+「founding 100 は給与提出した人にも」「my pay と my page に出して。real pay にはまだ出さなくていいや。目立ちすぎる」
+「verified pay もとりあえずなしでいい」「verified のマークとかはいるけどね」。
+
+- **Verified は行（月）に付く**。意味は「**その月の総支給が、本人が出した明細の印字と一致した**」まで。画面にもそれ以上を書かない。
+- **出すのは本人の画面だけ** ── MY PAY の月の緑のカードの「総支給」の横（`my-value.js` の `vfMark`）と、
+  MY PAGE の「あなたが出したもの」の給与の行（`profile.html` の `mine-vf`）と、
+  MY PAGE のいちばん上の**名前の右**（Twitter の認証バッジの形・`profile.html` の `paintNameVf`。明細と一致した月が1つでもある人だけ）。
+  ⚠️ **REAL PAY と会社ページにはまだ出さない**（`actual-pay.js` と `career-live.js` の `VF_OPEN = false`）。出す日は2つを一緒に true にし、
+  REAL PAY の「見えること」の説明の1行（とお知らせメールの写し `mail-bot/announce-mail.mjs`・`db/test-announce.mjs` の数）も戻す。
+- **Give & Get の表は REAL PAY の1段**（`pv-gates.js` の `TIERS` で DEEP PAY と VERIFIED PAY は `off`）。トップの見本の見出しからも VERIFIED PAY を外した。
+  ✓ Verified の印と「VERIFIED PAY」（明細の裏付けのある数字だけを集める、まだ無い画面）は別物。
+- 仕組みは一度きりの引換券 ── `parse-payslip` の `ticketEligible`（AI が「パイロットの給与明細」＋乗務時間か乗務手当・保証給＋明細の計算が合う）
+  → 隠し欄 `f-psticket` → `submit_pay_report` が [db/payslip-verify.sql](db/payslip-verify.sql) の `pv_payslip_redeem` で年・月・通貨・総支給を照合。
+  詳細と罠は [workflows/pay-form.md](workflows/pay-form.md) の冒頭。
+  ⚠️ `source = 'payslip'` で決めない（今までどおり）。⚠️ 券の表に人を入れない（uid・行の id を持たない）。
+  ⚠️ 公開年収から外れた額の ⚠ は Verified の行に出さない（オーナー判断。`db/pay-rows.sql` の `where not p.verified` を外さない）。
+- **FOUNDING は保留中の口コミでは付けない**（[db/founding.sql](db/founding.sql) 5-b）。保留は口コミの数秒後に判定の表へ書かれるので、
+  判定の表の引き金で「保留になったら外す（給与か保留でない口コミがあれば外さない）・解けたら付け直す」。
+  番号を振るのは `pv_founding_grant` の1か所。⚠️ `founding.sql` は `reviews-gate.sql` の後に貼る（関所あり）。
+- **貼る順**：`db/pay-reports.sql` → `db/payslip-verify.sql`（検算5行）→ `db/founding.sql`（自己点検12行）→ Edge Function `parse-payslip` を Deploy → push。
+
+見るもの：`node db/test-payslip-verify.mjs`／`node db/test-payslip-parse.mjs`（⑪）／`node db/test-founding.mjs`。
+
 ## DEEP PAY（[deep-pay.html](deep-pay.html)・2026-10-11 公開 → **2026-10-29 に本番から消した**／会社比較 [deep-pay-compare.html](deep-pay-compare.html) も同じ）
 
 ★★**2026-10-29、DEEP PAY を本番から消した**（オーナー指示「deep pay は一時会員には見せない。閉鎖するからみんなのページから消して」

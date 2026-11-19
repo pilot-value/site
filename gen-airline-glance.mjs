@@ -30,7 +30,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { GLANCE, LEAD, SWITCH, RANKS, scaleOf, viewOf, width, yen, rentCell, coSay, coText, placeCountryEn } from './pv-airline-view.mjs';
+import { GLANCE, LEAD, SWITCH, RANKS, scaleOf, viewOf, width, yen, yenOf, rentCell, coSay, coText, placeCountryEn } from './pv-airline-view.mjs';
 import { barGroup } from './pv-bars.mjs';
 import { fxNote, BASIS } from './salary-basis.mjs';
 import { SALARY } from './salary-data.mjs';
@@ -264,9 +264,13 @@ const whole = f => (f.pilot === false ? `<span class="pvg-tag pvg-tag-q">${W.who
    札の字は WORDS の agree（日本語「労働協約」）。 */
 const isAgree = f => !!(f && f.src && f.src.kind === 'agreement');
 const agreeTag = f => (isAgree(f) ? `<span class="pvg-tag pvg-tag-q" data-src-kind="agreement">${W.agree}</span>` : '');
-/* 公表の一覧：会社自身の資料の行は「会社が公表している条件」、労働協約の行は「労働協約」の見出しの下（同じ1つの一覧に混ぜない） */
+/* 会社自身の資料でも労働協約でもない行（政府の資料・第三者の資料 ── 口コミ・掲示板・APC・報道・写しなど。airline-rollout.mjs の FIRST_HAND の注） */
+const notCo = f => !!(f && f.src && f.src.kind !== 'company' && !isAgree(f));
+/* 公表の一覧：会社自身の資料の行は「会社が公表している条件」、労働協約の行は「労働協約」の見出しの下（同じ1つの一覧に混ぜない）。
+   ★2026-11-18 オーナー：第三者の資料の行も同じ一覧に混ぜて出す（見出しを分けない）。その行が1つでも入った一覧には
+   「会社が公表している条件」の見出しを付けない（会社が出していないことを「会社が公表している」と書かない） */
 const pubLists = (items, wrap = x => x) => [[items.filter(f => !isAgree(f)), W.pubTerms], [items.filter(isAgree), W.agree]]
-  .filter(([l]) => l.length).map(([l, h]) => wrap(`<p class="pvg-askh">${h}</p>${factList(l)}`)).join('');
+  .filter(([l]) => l.length).map(([l, h]) => wrap(`${h === W.pubTerms && l.some(notCo) ? '' : `<p class="pvg-askh">${h}</p>`}${factList(l)}`)).join('');
 /* 過去・参考の行の札（先行5社ではない会社の調べの台帳の行だけ。言葉は airline-display.mjs の TAG）。過去の行は日付も前提に出る（premise）。 */
 const useTag = f => (f.tag ? `<span class="pvg-tag pvg-tag-q" data-use="${esc(f.use)}">${esc(f.tag)}</span>` : '');
 /* カードの1行め・小さい2行に置いてよい行（過去・参考の行は置かない ── 開いた板の一覧にだけ、札と日付つきで出す） */
@@ -280,7 +284,8 @@ const plain = f => !f.tag;
 function sources(items, fold = false, dated = false, label = W.srcLabel) {
   const seen = new Map();
   for (const f of items) {
-    if (!f || !f.src || !f.src.url) continue;
+    /* 第三者の資料（口コミ・掲示板・APC など）の名前とリンクは出さない（2026-11-18 オーナー「それらの出典もいらねえよ」）。台帳には残っている */
+    if (!f || !f.src || !f.src.url || f.third) continue;
     const o = seen.get(f.src.url) || { src: f.src, checked: f.checked || '' };
     if ((f.checked || '') < o.checked) o.checked = f.checked || '';
     seen.set(f.src.url, o);
@@ -292,8 +297,18 @@ function sources(items, fold = false, dated = false, label = W.srcLabel) {
     : `<p class="pvg-srcs"><span>${esc(label)}</span>${links}</p>`;
 }
 /* 会社が公表している条件の一覧。勤務・訓練の4枚のカードと待遇の欄では「募集要項」の表の形になる（pv-glance.css・2026-11-09） */
+/* 行の値の中の {{EUR 25}} ＝ 外貨の額（★2026-11-19 オーナー「EUR25,50,75ってなに？」）。字は「EUR 25」・すぐ後ろに円の目安（ほかの額の行と同じ形）
+ * {{JPY 20000}} ＝ 円の額。pv-no-cur の外に標準の円表記で置き、通貨切替と英語ページの焼き込みに任せる（行の字を pv-no-cur で包むと ¥ が円のまま残る） */
+const yenText = n => (LANG !== 'en' && n % 10000 === 0 ? `${(n / 10000).toLocaleString('ja-JP')}万円` : `¥${n.toLocaleString('en-US')}`);
+const rowVal = x => String(x).split(/\{\{([A-Z]{3}) ([\d,.]+)\}\}/).map((p, i, a) => (i % 3 === 0 ? (p ? prose(p) : '')
+  : i % 3 === 1 ? (p === 'JPY' ? esc(yenText(Number(a[i + 1].replace(/,/g, ''))))
+    : `<span class="pv-no-cur">${esc(p)} ${esc(a[i + 1])}</span>${approx(p, yenOf(p, Number(a[i + 1].replace(/,/g, '')), LANG === 'en' ? 'en' : 'ja'))}`) : '')).join('');
+/* 値がどれも短い表（「12日」「70時間分」）は対象と値を左右に、長い値がある表（募集の要件など）は対象の下に値（狭い欄で対象の名前が途中で折れない） */
+const shortRows = rows => rows.every(([, x]) => String(x).replace(/\{\{[A-Z]{3} [\d,.]+\}\}/g, 'EUR 00000').length <= 8);
+const rowsList = (rows, v) => `<ul class="pvg-tm-rows${shortRows(rows) ? ' is-short' : ''}">${rows.map(([k, x]) => `<li><span>${prose(k)}</span><b>${v(x)}</b></li>`).join('')}</ul>`;
+const tmRows = rows => rowsList(rows, rowVal);
 const factList = items => `<dl class="pvg-dl">${items.map(f =>
-  `<div><dt>${esc(f.label)}${whole(f)}</dt><dd><b>${val(f)}</b>${premise(f) ? `<small>${esc(premise(f))}</small>` : ''}</dd></div>`).join('')}</dl>`;
+  `<div><dt>${esc(f.label)}${whole(f)}</dt><dd>${f.rows && f.rows.length ? tmRows(f.rows) : `<b>${val(f)}</b>`}${premise(f) ? `<small>${esc(premise(f))}</small>` : ''}</dd></div>`).join('')}</dl>`;
 /* 質問の名前。日本語は表に書いた短い名前・英語は質問の台帳の英語の問い（pv-conditions.mjs の QUESTIONS の en ── 面で開く問いと同じ字） */
 const askName = (q, label) => {
   if (LANG !== 'en') return label;
@@ -502,16 +517,33 @@ ${payDetails(v)}
    「会社が公表している条件」の一覧には入れない（会社自身の資料だと言えない）。今と言い切れない値は「参考」の札。
    額は外貨の字のまま（円に直さない・通貨切替に読ませない ── prose）。 */
 const TM_ICON = { pay: 'benefits', work: 'work', life: 'living', stay: 'stay' };
+/* 押すと開く言葉の説明（★2026-11-19 オーナー「説明つけるのはいいけど、押すと開くように」「他の国のパイロットが見てもわかるようにタブかなんかで説明つけて」）。
+   その言葉が出るカード・面の見出しのすぐ下に、押すと開く1行で、言葉ごとに1回だけ。字は WORDS の what の1か所（スペイン語も同じ道で訳される）。
+   どの言葉で開くかは WHAT_RE（日本語の字・英語の字）。言葉を足すときは WORDS の日英の what と、ここの両方に足す。 */
+const WHAT_RE = {
+  line: { ja: /Line - |Reserve - |Long call|Short call|Composite - /, en: /line[- ]?holders?|\breserves?\b|long[- ]call|short[- ]call|\bcomposite\b/i },
+  pay: { ja: /最低保証|割増|加算/, en: /\bguarantee\b|\bpremium\b|\boverride\b/i },
+  pension: { ja: /年金の積み立て|積み立てに会社|会社も同じ額|会社も.{0,4}%を足す/, en: /\bretirement\b|401\(k\)|\bmatch\b/i },
+  bond: { ja: /ボンド|訓練費の返還/, en: /\bbond\b/i },
+  bid: { ja: /\bBid\b/, en: /\bbid(?:s|ding)?\b/i },
+};
+const what = text => Object.keys(WHAT_RE).filter(k => WHAT_RE[k][LANG === 'en' ? 'en' : 'ja'].test(text))
+  .map(k => `<details class="pvg-what" data-what="${k}"><summary>${esc(W.what[k].q)}</summary><p>${esc(W.what[k].a)}</p></details>`).join('');
+/* 説明を探す字：名前・値・前提・対象ごとの行ぜんぶ */
+const whatText = list => list.map(x => [x.label, x.value, x.cond, x.note, ...(x.rows || []).flat()].filter(v => typeof v === 'string').join(' ')).join(' ');
 function termsCard(v, tab) {
-  const rows = ((TERMS[v.slug] || {})[tab] || []);
+  /* hide ＝ 出さない行（理由つき・2026-11-18）。rows ＝ 対象ごとに値が違う欄の「対象｜値」の小さい行（「・」でつながない ── オーナー「どれがどれを対象に言ってるのかわかんない」） */
+  const rows = ((TERMS[v.slug] || {})[tab] || []).filter(r => !r.hide);
   if (!rows.length) return '';
   const L = LANG === 'en' ? 'en' : 'ja';
-  const dl = rows.map(r => `<div data-tm="${esc(r.key)}"><dt>${esc(r[L].label)}${r.ref ? `<span class="pvg-tag pvg-tag-q">${W.tmRef}</span>` : ''}</dt><dd><b>${prose(r[L].value)}</b>${r[L].note ? `<small>${prose(r[L].note)}</small>` : ''}</dd></div>`).join('');
+  const cell = x => (x.rows && x.rows.length
+    ? rowsList(x.rows, prose)
+    : `<b>${prose(x.value)}</b>`);
+  const dl = rows.map(r => `<div data-tm="${esc(r.key)}"><dt>${esc(r[L].label)}${r.ref ? `<span class="pvg-tag pvg-tag-q">${W.tmRef}</span>` : ''}</dt><dd>${cell(r[L])}${r[L].note ? `<small>${prose(r[L].note)}</small>` : ''}</dd></div>`).join('');
   return `<!--PV-USTERMS--><div class="pvg-more-grid pvg-g-tm"${pane(v.slug, tab)}>
 <article class="pvg-card pvg-tm" data-tm-tab="${tab}">
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true">${IC[TM_ICON[tab]]}</span><h2 class="pvg-eyebrow">${W.tm[tab]}</h2><span class="pvg-chip">${W.tmChip(esc(dateJa(TERMS_AT)))}</span></header>
-<dl class="pvg-dl">${dl}</dl>
-<p class="pvg-tm-src">${W.tmSrc}</p>
+${what(whatText(rows.map(r => r[L])))}<dl class="pvg-dl">${dl}</dl>
 </article>
 </div><!--/PV-USTERMS-->`;
 }
@@ -591,16 +623,18 @@ const quick = (slug, list) => (list.length ? `<div class="pvg-qs"><p class="pvg-
 const SLOTS = 3;
 /* 値が長いとき（「本人と対象の家族に割引の航空券」）は字を1段小さくして、狭い画面でも1行に収める。円の目安（small）は数えない */
 const isLong = html => html.replace(/<small[\s\S]*?<\/small>/g, '').replace(/<[^>]*>/g, '').length > 13;
+/* 欄の1つ目の条件の値。「対象｜値」の表（rows）は表のまま（2026-11-19 オーナー「どれがどれを対象に言ってるのかわかんない」） */
+const leadVal = f => (f.rows && f.rows.length ? tmRows(f.rows) : val(f));
 function cell(id, title, icon, { slug, k, v: value, note, also = [], ask = [], count, body, empty, more: say }) {
   const more = say || (empty ? W.answer : count > 1 ? W.moreSrc(count - 1) : W.seeSrc);
   return `<article class="pvg-card pvg-cell" data-cell="${id}"${pane(slug, 'overview')}>
 <header class="pvg-hd"><span class="pvg-ico" aria-hidden="true">${icon}</span><h2 class="pvg-eyebrow">${title}</h2></header>
 <div class="pvg-lead">
 <p class="pvg-k">${k}</p>
-<p class="pvg-v${isLong(value) ? ' is-long' : ''}">${value}</p>
+${value.startsWith('<ul') ? value.replace('<ul class="pvg-tm-rows', '<ul class="pvg-v pvg-v-rows pvg-tm-rows') : `<p class="pvg-v${isLong(value) ? ' is-long' : ''}">${value}</p>`}
 ${note ? `<p class="pvg-note">${note}</p>` : ''}
 </div>
-${also.length ? `<ul class="pvg-also">${also.map(f => `<li><span>${esc(f.label)}</span><b>${val(f)}</b></li>`).join('')}</ul>` : ''}
+${also.length ? `<ul class="pvg-also">${also.map(f => `<li><span>${esc(f.label)}</span>${f.rows && f.rows.length ? tmRows(f.rows) : `<b>${val(f)}</b>`}</li>`).join('')}</ul>` : ''}
 ${quick(slug, ask.slice(0, SLOTS - also.length))}
 <button type="button" class="pvg-more" aria-expanded="false" aria-controls="pvg-p-${id}"><span>${more}</span>${IC.down}</button>
 </article>
@@ -626,12 +660,12 @@ function surface(v, S, all) {
   const pub = items.length ? pubLists(items, x => `<div class="pvg-sf-pub">${x}</div>`) : `<p class="pvg-quiet pvg-sf-none">${W.sfNone}</p>`;
   const keys = tree(factKeys(S.topics)), sub = subOf(keys);
   const got = `<div class="pvg-sf-got"><p class="pvg-askh">${W.pilotAns}</p>${live('fact', { airline: v.slug, keys: keys.join(','), sf: S.id, ...(sub ? { sub } : {}), ...(S.quiet ? { quiet: '1' } : {}), ...(S.entry ? { entry: S.entry } : {}) })}${live('notes', { airline: v.slug, keys: noteKeys(S.topics).join(','), sf: S.id })}</div>`;
-  return `${open}${pub}${got}${add}${items.length ? sources(items, true, false, W.cite) : ''}</section>`;
+  return `${open}${what(whatText(items))}${pub}${got}${add}${items.length ? sources(items, true, false, W.cite) : ''}</section>`;
 }
 function workPanel(v, all) {
   for (const f of all) {
     if (!SURFACES.some(S => S.facts && S.facts.includes(f.key))) throw new Error(`勤務・訓練の面：台帳の ${f.key} を、どの面に出すか決めていない（${v.slug}）`);
-    if (f.src && f.src.kind !== 'company' && !isAgree(f)) throw new Error(`勤務・訓練の面：${f.key} の出典が会社の公表ではない・労働協約でもない（${v.slug}）。「会社が公表している条件」の下には置けない`);
+    /* 出どころの種類では止めない（2026-11-18 から第三者の資料の行も出す。見出しは pubLists が決める） */
   }
   return `<p class="pvg-quiet pvg-sfs-note">${W.sfsNote}</p><div class="pvg-sfs">${SURFACES.map(S => surface(v, S, all)).join('')}</div>`;
 }
@@ -645,7 +679,7 @@ function workCell(v) {
   /* 1行めは札の無い行か、今の公表が無い欄に出す会社の募集の行（「募集」の札つき・airline-rollout.mjs が lead を付ける） */
   const lead = v.work.find(f => f.lead && all.includes(f)) || (v.rollout ? null : work[0]);
   if (!lead) return cell('work', W.work, IC.work, { slug: v.slug, k: W.coPub, v: W.unconfirmed, empty: true, ask: WORK_ASK, note: esc(W.workNone), body });
-  return cell('work', W.work, IC.work, { slug: v.slug, k: esc(lead.label) + whole(lead), v: val(lead), note: esc(premise(lead)), also: work.filter(f => f !== lead).slice(0, 2), ask: WORK_ASK,
+  return cell('work', W.work, IC.work, { slug: v.slug, k: esc(lead.label) + whole(lead), v: leadVal(lead), note: esc(premise(lead)), also: work.filter(f => f !== lead).slice(0, 2), ask: WORK_ASK,
     more: all.length > 1 ? W.moreCite(all.length - 1) : W.seeCite, body });
 }
 /* 概要の「待遇」のカード。カードの行は台帳の待遇ぜんぶから（面へ移した公表も、カードからは減らさない）。
@@ -661,7 +695,7 @@ function benCell(v) {
   const past = v.rollout && items.length ? `${moved}${pubLists(items)}${sources(items)}` : '';
   if (!lead) return cell('benefits', W.benefits, IC.benefits, { slug: v.slug, k: W.coPub, v: W.unconfirmed, empty: true, ask: BEN_ASK, note: esc(W.benNone), body: past + answers + asks(v.slug, BEN_ASK) });
   const others = items.filter(f => f !== lead).length;
-  return cell('benefits', W.benefits, IC.benefits, { slug: v.slug, k: esc(lead.label) + whole(lead), v: val(lead), note: esc(premise(lead)), also: card.filter(f => f !== lead && plain(f)).slice(0, 2), ask: BEN_ASK,
+  return cell('benefits', W.benefits, IC.benefits, { slug: v.slug, k: esc(lead.label) + whole(lead), v: leadVal(lead), note: esc(premise(lead)), also: card.filter(f => f !== lead && plain(f)).slice(0, 2), ask: BEN_ASK,
     more: others ? W.moreSrc(others) : W.seeSrc,
     body: `${moved}${items.length ? `${pubLists(items)}${sources(items)}` : ''}${answers}${asks(v.slug, BEN_ASK)}` });
 }
@@ -957,7 +991,7 @@ function companyCard(v) {
   const photo = p ? `<figure class="pvg-photo"><img src="${UP}${photoSrc(p, true)}" srcset="${UP}${photoSrc(p, true)} ${SMALL_W}w, ${UP}${photoSrc(p, false)} ${p.w}w" sizes="(min-width:1100px) 400px, (min-width:700px) 34vw, 92vw" width="${SMALL_W}" height="${smallH(p)}" loading="lazy" decoding="async" alt="${W.photoAlt(esc(v.name), esc(p.aircraft))}">${credit}</figure>` : '';
   const facts = [...c.profile, ...c.scale];
   /* 先行5社ではない会社の機材は型式だけ（会社の資料に載っている型式。機数は作らない・型式の数を「◯機種」と言わない ── 全部の型式とは限らない） */
-  const fleet = c.fleet.length ? `<div class="pvg-fleet"><p class="pvg-askh">${W.fleet}<small>${v.rollout ? W.fleetTypes : join(W.types(c.fleet.length), c.fleet[0].when)}</small></p>
+  const fleet = c.fleet.length ? `<div class="pvg-fleet"><p class="pvg-askh">${W.fleet}${v.rollout && c.fleet.some(notCo) ? '' : `<small>${v.rollout ? W.fleetTypes : join(W.types(c.fleet.length), c.fleet[0].when)}</small>`}</p>
 <ul class="pvg-chips">${c.fleet.map(f => `<li title="${esc(f.label)}">${esc(shortType(f.label))}${f.value === '' ? '' : `<b>${esc(f.value)}</b>`}</li>`).join('')}</ul></div>` : '';
   /* 紹介の本文（2026-10-08 オーナーのご指示「会社紹介の規模・空港名・古い機材／訓練地も台帳と公式資料にそろえる」）。
      字は台帳の項目から組み立てたものだけ（pv-airline-view.mjs の introOf。型と決まりは career-facts.mjs の checkIntro）。
@@ -1071,7 +1105,7 @@ ${rvCta(v, 'reviews')}
    食い違う（JAL は、上が「免許を持つ人は自社養成へ応募できない」・下が「経験者を随時採用」だった）。
    右上の入口は会社の募集ページへ直接（台帳のいちばん上の行の資料）。資料ごとの確認日は「出どころ」の中。 */
 function jobsCard(v) {
-  const first = v.jobs.find(f => f.src && f.src.url);
+  const first = v.jobs.find(f => f.src && f.src.url && f.src.kind === 'company');   // 「会社の募集ページ」は会社自身の資料だけ
   const link = first ? `<a class="pvg-link" href="${esc(first.src.url)}" target="_blank" rel="noopener">${W.jobsPage}${IC.out}</a>` : '';
   return `<article class="pvg-card pvg-jobs"${pane(v.slug, 'overview')}>
 ${head(IC.jobs, W.jobs, link)}
@@ -1386,7 +1420,13 @@ export const WORDS = Object.freeze({
     saveCard: 'カードを保存', compare: '他社と比較', compareShort: '比較する', makeCard: 'カードにする', follow: 'フォロー',
     member: (a, x) => (x ? `${a}加盟（${x}）` : `${a}加盟`),
     pay: '給与', realPay: '提出された年収', estBy: '当サイトの推定', medBy: '会員が出した年収の中央値',
-    tm: { pay: '給与と待遇の条件', work: '勤務の条件', life: '通勤の条件', stay: 'ステイの条件' }, tmRef: '参考',
+    tm: { pay: '給与と待遇の条件', work: '勤務の条件', life: '通勤の条件', stay: 'ステイの条件' }, tmRef: '参考', what: {
+      line: { q: 'Line・Reserve・Long call・Short call とは', a: '北米の会社では、勤務表が月ごとに分かれます。Line は、月の初めから乗る便が決まっている月。Reserve は STBY 要員の月で、待機して呼ばれたら乗ります。Reserve のうち Long call は前もって（半日ほど前までに）知らされる待機、Short call は呼ばれてから2時間ほどで空港に着く待機です（時間は会社の協約で決まります）。Composite は、同じ月に乗務の決まった日と待機の日が混ざる月です。どの月になるかは毎月の希望で決まり、勤続の長い人の希望から順に通ります。' },
+      pay: { q: '最低保証・割増とは', a: '時間あたりの単価で払う会社の決まりです。給与は「給与に数える時間 × 時間あたりの単価」。最低保証は、その月に飛んだ時間が少なくても、決まった時間分は払うという下限です。割増は、その時間の単価が上がることで、25%増しなら単価の1.25倍、150%なら1.5倍で払います。加算は、国際線などで時間あたりの単価に足す額です。' },
+      pension: { q: '会社の年金の積み立てとは', a: '給与とは別に、会社が本人の年金の口座に入れるお金です（米国の 401(k) などの確定拠出年金）。「会社が給与の◯%を積み立てる」は、本人が何もしなくても入る分。「本人の積み立てに会社が足す」は、本人が給与から積み立てたときだけ、その割合に応じて会社も入れる分です（例：本人が3%を積み立てると、会社も3%を入れる）。' },
+      bond: { q: 'ボンド（訓練費の返還の約束）とは', a: '会社が型式限定などの訓練の費用を払う代わりに、決まった年数のあいだ勤める約束です。その年数より前に辞めると、決めた額の訓練費を会社に返します。' },
+      bid: { q: 'Bid（勤務の希望を出す仕組み）とは', a: '毎月、乗りたい便・休みたい日などの希望をシステムで出し、それをもとに勤務表が組まれる仕組みです。希望が重なったときにどちらが通るかは会社が決めます（北米の会社は勤続の長い人から）。' },
+    },
     tmChip: d => `${d}の調べ`, tmSrc: '労働協約・会社・労働組合の公開資料をもとに、PILOT VALUE がまとめた条件です。',
     ps: '勤続年数ごとの基本給', psFleet: '機種', psYear: n => `${n}年目`, psOver: n => `${n}年で`, psPrev: '前の年から',
     psAxis: '勤続年数（年目）', psTap: '年を押すと額が出ます',
@@ -1457,7 +1497,13 @@ export const WORDS = Object.freeze({
     saveCard: 'Save card', compare: 'Compare', compareShort: 'Compare', makeCard: 'Make a card', follow: 'Follow',
     member: (a, x) => (x ? `${a} member (${x})` : `${a} member`),
     pay: 'Pay', realPay: 'Submitted pay', estBy: 'Our estimate', medBy: 'Median of pay submitted by members',
-    tm: { pay: 'Pay and benefit terms', work: 'Work rules', life: 'Getting to work', stay: 'Layover rules' }, tmRef: 'Reference',
+    tm: { pay: 'Pay and benefit terms', work: 'Work rules', life: 'Getting to work', stay: 'Layover rules' }, tmRef: 'Reference', what: {
+      line: { q: 'Line, reserve, long call and short call', a: 'At North American airlines, each month is either a line month or a reserve month. On a line, your trips are set at the start of the month. On reserve, you are on call and fly when called. Long-call reserve gives you advance notice (around half a day or more); short-call reserve means reporting to the airport within about two hours of the call (the exact times are set by each contract). A composite month mixes trip days and reserve days. Pilots bid every month and awards go in seniority order.' },
+      pay: { q: 'Guarantees and premium pay', a: 'These apply at airlines that pay by the hour: pay is credit hours times the hourly rate. A minimum guarantee pays a set number of hours even if you fly less that month. A premium raises the hourly rate for those hours: 25% more means 1.25 times the rate, 150% means 1.5 times. An override is a fixed amount added to the hourly rate, for example on international flying.' },
+      pension: { q: 'Company retirement contributions', a: 'Money the company puts into your retirement account on top of your pay (a defined contribution plan such as a US 401(k)). "The company contributes X% of pay" is paid whether or not you contribute. A "match" is paid only when you put in part of your own pay, in proportion to what you put in (for example, you put in 3% and the company adds 3%).' },
+      bond: { q: 'Training bond', a: 'The company pays for your type rating or other training, and in return you agree to stay for a set number of years. If you leave before then, you pay back the agreed amount of the training cost.' },
+      bid: { q: 'Bidding', a: 'Each month you submit the trips and days off you want through a system, and the roster is built from those requests. Who gets priority when requests clash is set by the company (seniority order at North American airlines).' },
+    },
     tmChip: d => `Researched ${d}`, tmSrc: 'Summarized by PILOT VALUE from public union contracts and company and union materials.',
     ps: 'Base pay by year of service', psFleet: 'Aircraft', psYear: n => `Year ${n}`, psOver: n => `over ${n} years`, psPrev: 'vs. the year before',
     psAxis: 'Year of service', psTap: 'Tap a year to see the pay',

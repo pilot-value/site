@@ -134,6 +134,11 @@ const srcOf = (r, lang = 'ja') => {
   return { name: srcName(s, lang), url: s.url, kind: agreementOf(s) ? 'agreement' : KIND[s.publisher_kind] || s.publisher_kind || '' };
 };
 
+/* 会社・政府の資料と労働協約のほかは「第三者の資料」（口コミ・掲示板・APC・報道・写し・不動産・採用の代理店など）。
+   ★2026-11-18 オーナー：第三者の資料の行も落とさず、同じ一覧に混ぜて出す（見出しを分けない・出典の名前は画面に出さない）。
+   印 third の行が入った一覧には「会社が公表している条件」と書かない・出典の欄に載せない ── gen-airline-glance.mjs が守る。 */
+export const FIRST_HAND = Object.freeze(['company', 'gov', 'agreement']);
+
 /* 調べの1行 → 画面の部品が読む事実の形（airline-facts.mjs の行と同じ鍵）。字は airline-display.mjs の say() だけ
    （調べた側の名前・値・条件の字は通さない）。言えない行・資料の住所が無い行は null。 */
 function asFact(r) {
@@ -145,6 +150,8 @@ function asFact(r) {
     key: r.key, ja: d.label, value: d.value, unit: '', cur: d.cur || '', per: d.per || '', at: dateOf(r), as_of: r.checked_at || '',
     cond_ja: d.cond || (ag ? ag.cond : ''), src, pilot: !(r.applies_to && r.applies_to.pilot_specific === false),
     use: r.use, tag: d.tag, id: r.id, h: r.h, lead: !!d.lead, fleet: d.fleet || '', rank: rankOf(r), order: (LINES[r.id] && LINES[r.id].order) || 0,
+    ...(d.rows ? { rows: d.rows } : {}),
+    third: !FIRST_HAND.includes(src.kind),
   };
 }
 
@@ -174,7 +181,7 @@ function factsEn(J, slug, R) {
     const e = r && say(r, 'en'), src = r && srcOf(r, 'en');
     if (!e || !src || !src.name) { held.push({ id: f.id, why: '英語の言い方がまだ無い（airline-display.mjs の英語の対）', sec: sec || '' }); return null; }
     const ag = agreementOf((r.src || [])[0]);
-    return { ...f, ja: e.label, value: e.value, cur: e.cur || '', per: e.per || '', cond_ja: e.cond || (ag ? ag.cond_en || '' : ''), src,
+    return { ...f, ja: e.label, value: e.value, cur: e.cur || '', per: e.per || '', cond_ja: e.cond || (ag ? ag.cond_en || '' : ''), src, rows: e.rows || undefined,
       tag: f.tag === AD_TAG ? AD_TAG_EN : e.tag, fleet: e.fleet || '' };
   };
   const list = l => l.map(one).filter(Boolean);
@@ -201,6 +208,8 @@ function factsJa(slug, R) {
   for (const [sec, rows] of Object.entries(F)) {
     const hold = (r, w) => out.held.push({ id: r.id, why: w, sec });
     for (const r of rows || []) {
+      /* 字の表（LINES）が「出さない」と決めた行（off ＝ 理由。逸話・手続きの細かい話・意味の取れない記号など ── 2026-11-18） */
+      if (LINES[r.id] && 'off' in LINES[r.id]) { hold(r, `出さない（${LINES[r.id].off}）`); continue; }
       const w = why(r);
       if (w) { hold(r, w); continue; }
       if (!WORDED.includes(r.use)) { hold(r, `「${r.use}」の行の言い方が無い`); continue; }
@@ -209,8 +218,6 @@ function factsJa(slug, R) {
       if (sec === 'fleet') {
         if (!f.fleet) { hold(r, '機材の型式の字が無い（airline-display.mjs の LINES の fleet）'); continue; }
         if (r.use !== '条件つき') { hold(r, `機材は条件つきの行だけ（「${r.use}」）`); continue; }
-        /* 会社の1枚の「会社の資料に載っている型式」── 会社か政府の資料の行だけ（2026-10-21 d1） */
-        if (!['company', 'gov'].includes(f.src.kind)) { hold(r, '機材は会社か政府の資料の行だけ'); continue; }
         /* 同じ型式は1つだけ（型式の数を作らない・同じ札を2つ並べない） */
         if (out.fleet.some(x => x.fleet === f.fleet)) { hold(r, `同じ型式がもう在る（${f.fleet}）`); continue; }
         out.fleet.push(f);
@@ -218,7 +225,6 @@ function factsJa(slug, R) {
       }
       if (sec === 'base') {
         if (!['条件つき', '募集'].includes(r.use)) { hold(r, `拠点に「${r.use}」の行は使わない`); continue; }
-        if (!['company', 'gov', 'agreement'].includes(f.src.kind)) { hold(r, '拠点は会社か政府の資料・労働協約の行だけ'); continue; }
         if (r.key === 'pilot_base_city') { if (!cities.includes(f.value)) cities.push(f.value); cityRows.push([r, f]); continue; }
         if (!/^[A-Z]{3}$/.test(String(r.value))) { hold(r, '拠点の値が空港の3字ではない'); continue; }
         if (!iata.includes(r.value)) iata.push(r.value);
@@ -227,11 +233,8 @@ function factsJa(slug, R) {
       }
       const place = r.use === '募集' ? 'jobs' : sec;
       if (!(place in out) || place === 'held' || place === 'base') { hold(r, `置き場が無い（${sec}）`); continue; }
-      const company = f.src.kind === 'company', agreement = f.src.kind === 'agreement';
-      /* 勤務・待遇の欄は、会社自身の資料か労働協約（リードの決め d）の行だけ。募集の1枚は会社自身の資料の行だけ */
-      if (place === 'jobs' && !company) { hold(r, '募集の1枚には、会社自身の資料の行だけ'); continue; }
-      if (['work', 'benefits'].includes(place) && !company && !agreement) { hold(r, '勤務・待遇の欄には、会社自身の資料か労働協約の行だけ'); continue; }
-      if (['profile', 'scale'].includes(place) && !['company', 'gov'].includes(f.src.kind)) { hold(r, '会社の数字は、会社か政府の資料の行だけ'); continue; }
+      /* 2026-11-18 まで：勤務・待遇は会社自身の資料か労働協約・募集は会社自身・会社の数字と機材と拠点は会社か政府の資料の行だけを出していた。
+         いまは第三者の資料の行も出す（上の FIRST_HAND の注） */
       out[place].push(f);
       if (place === 'jobs' && sec in ads) ads[sec].push(f);
     }
@@ -264,7 +267,10 @@ function factsJa(slug, R) {
      その募集の前提（誰の・どの募集か・日付）つきでカードに出す（2026-10-21 リード d2「確認できていません」と言わない）。
      行は募集の1枚にも残る（募集の全部はあちらが並べる）。札の字は airline-display.mjs の AD_TAG。 */
   for (const k of ['work', 'benefits']) {
-    if (out[k].some(f => f.lead) || !ads[k].length) continue;
+    /* ★2026-11-18：「今の公表」と数えるのは会社自身の資料か労働協約の行だけ。第三者の資料（口コミなど）の行が欄に在っても、
+       募集要項の行は出す（数えていた日は、シンガポール航空・香港エクスプレスの募集要項の行がカードから消えた）。1行めは募集要項の行 */
+    if (out[k].some(f => f.lead && f.src && ['company', 'agreement'].includes(f.src.kind)) || !ads[k].length) continue;   // 「今の公表」は会社自身の資料か労働協約の行（政府・第三者の行は数えない ── assert-rollout の E と同じ）
+    for (const f of out[k]) f.lead = false;
     const add = ads[k].map(f => ({ ...f, tag: AD_TAG, lead: false }));
     /* 訓練生の行しか無いときは、その行が1行め（募集の札と前提の1行が、誰の募集の条件かを言う） */
     (add.find(f => f.rank !== 'trainee' || /^訓練/.test(f.ja)) || add[0]).lead = true;

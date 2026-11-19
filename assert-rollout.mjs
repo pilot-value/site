@@ -263,6 +263,53 @@ ok(LEAD.every(s => SWITCH.includes(s)) && GLANCE === SWITCH && same([...TABBED],
   ok(/SWITCH に無い/.test(refused), 'A 生成器は SWITCH に無い会社のページを作らない（断る）', refused || '作ってしまった');
 }
 
+/* ═══ B-3) 第三者の資料の行（★2026-11-18 オーナー「落とすなよ」「見出しも分けない」「それらの出典もいらねえよ」）═══
+   口コミ・掲示板・APC・報道・写しなどの行（airline-rollout.mjs の FIRST_HAND の外 ＝ 印 third）も、同じ一覧に混ぜて出す。そのとき
+     ・その行が入った一覧の上に「会社が公表している条件」と書かない（会社が出していないことを「会社が公表している」と言わない）
+     ・その資料の住所をページに出さない（会社自身の資料の行が同じ住所を使うときは別）
+   生成器の関数は使わず、ページの字と読み口（researchFacts）だけで見る。
+   推定年収の出どころ（salary-basis.mjs の BASIS の src）に同じ資料が在るときは、その住所は給与の出どころとして前から出ている（例外）。 */
+const unesc = t => String(t).replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&');
+const factsOf = F => [...F.work, ...F.benefits, ...F.jobs, ...F.profile, ...F.scale, ...F.fleet, ...(F.base ? F.base.rows : [])];
+export function thirdLeak(html, facts, pubTerms, allow = new Set()) {
+  const bad = [];
+  const firstUrls = new Set(facts.filter(f => !f.third && f.src).map(f => f.src.url));
+  const firstLabels = new Set(facts.filter(f => !f.third).map(f => f.ja));
+  const thirdLabels = new Set(facts.filter(f => f.third && !firstLabels.has(f.ja)).map(f => f.ja));
+  for (const f of facts) if (f.third && f.src && f.src.url && !firstUrls.has(f.src.url) && !allow.has(f.src.url)
+    && (html.includes(`"${f.src.url}"`) || html.includes(`"${f.src.url.replace(/&/g, '&amp;')}"`))) bad.push(`出典の住所が出ている: ${f.id} ${f.src.url}`);
+  const head = `<p class="pvg-askh">${pubTerms}</p><dl class="pvg-dl">`;
+  for (let i = html.indexOf(head); i >= 0; i = html.indexOf(head, i + 1)) {
+    const dl = html.slice(i + head.length, html.indexOf('</dl>', i));
+    for (const m of dl.matchAll(/<dt>([^<]*)/g)) if (thirdLabels.has(unesc(m[1]))) bad.push(`「${pubTerms}」の下に第三者の資料の行: ${unesc(m[1])}`);
+  }
+  return bad;
+}
+{
+  const bad = [], seen = { n: 0, slugs: new Set() };
+  let probe = null;
+  for (const s of SWITCH.filter(x => !LEAD.includes(x))) for (const lang of ['ja', 'en']) {
+    const html = lang === 'ja' ? ORIG[s] : ORIG_EN[s];
+    if (!html || (lang === 'en' && !EN_SWITCH.includes(s))) continue;
+    const facts = factsOf(researchFacts(s, undefined, lang)), third = facts.filter(f => f.third);
+    const firstLabels = new Set(facts.filter(f => !f.third).map(f => f.ja));
+    if (third.length) { seen.n += third.length; seen.slugs.add(s); if (!probe && lang === 'ja' && third.some(f => !firstLabels.has(f.ja) && html.includes(`<dt>${f.ja.replace(/&/g, '&amp;')}`))) probe = { s, html, facts }; }
+    const allow = new Set(((BASIS[s] || {}).src || []).map(x => x.url).filter(Boolean));
+    for (const b of thirdLeak(html, facts, WORDS[lang].pubTerms, allow)) bad.push(`${lang}/${s}: ${b}`);
+  }
+  ok(seen.n > 0 && !bad.length, `B-3 第三者の資料の行（${seen.slugs.size}社・${seen.n}行）は「会社が公表している条件」の下に出ない・その資料の住所もページに出ない`, bad.slice(0, 8).join(' ／ '));
+  /* 壊す証明：見出しを足したページ・住所を足したページは赤になる */
+  if (probe) {
+    const t = probe.facts.find(f => f.third && !probe.facts.some(g => !g.third && g.ja === f.ja) && probe.html.includes(`<dt>${f.ja.replace(/&/g, '&amp;')}`));
+    const dlAt = probe.html.indexOf(`<dt>${t.ja.replace(/&/g, '&amp;')}`);
+    const dlStart = probe.html.lastIndexOf('<dl class="pvg-dl">', dlAt);
+    const withHead = dlAt > 0 ? probe.html.slice(0, dlStart) + `<p class="pvg-askh">${WORDS.ja.pubTerms}</p>` + probe.html.slice(dlStart) : '';
+    const withUrl = probe.html + `<a href="${t.src.url.replace(/&/g, '&amp;')}">x</a>`;
+    ok(dlAt > 0 && thirdLeak(withHead, probe.facts, WORDS.ja.pubTerms).length > 0 && thirdLeak(withUrl, probe.facts, WORDS.ja.pubTerms).length > 0,
+      `B-3 壊す証明：${probe.s} のページの第三者の行の一覧に「${WORDS.ja.pubTerms}」を足す・その資料の住所を足すと赤になる`, `${t && t.id} dlAt=${dlAt}`);
+  } else ok(false, 'B-3 壊す証明：第三者の行が出ているページが見つからない（試せない）');
+}
+
 /* ═══ B) 画面に出してよい行（本物の台帳）═══ */
 const R = research();
 const rowsOf = slug => Object.values(R.FACTS[slug] || {}).flat();
@@ -730,7 +777,8 @@ const A2N = { hq: 0, days: 0, pr: 0 };
 /* ★2026-11-02 米国の貨物5社も同じ（米国20社の統合調査は給与表だけを pay-scales.mjs に入れた。調べの台帳にはまだ行が無い） */
 /* ★2026-11-03 北米追加20社の5社も同じ（給与表は pay-scales.mjs・条件は us-terms.mjs・暮らしは us-housing.mjs。調べの台帳には行が無い） */
 /* 2026-11-18 フライドバイ・吉祥航空は ChatGPT の穴の調べ（11-08 の答え）が台帳に入ったので外した */
-const NO_RESEARCH_YET = ['air-peace', 'fedex-express', 'ups-airlines', 'atlas-air', 'abx-air', 'kalitta-air', 'avelo-airlines', 'gojet', 'northern-air-cargo', 'contour', 'jazz'];
+/* 2026-11-19 北米-1・北米-2 の調べで、ここに並べていた10社にも台帳の行が入った（調べの無い会社は、いま無い） */
+const NO_RESEARCH_YET = [];
 const O1N = { n: 0 };
 for (const s of ROLLED) {
   const b = ORIG[s], g = block(b, 'PV-GLANCE'), v = viewOf(s);
@@ -911,6 +959,7 @@ for (const s of ROLLED) {
        （読み口の答えを使わない）：台帳のその欄の、使い方が募集で why を通り、言い方が在り、資料が会社自身の行。 */
     const FA = (R2.FACTS || {})[s] || {};
     const adOf = k => (FA[k] || []).filter(r => r.use === '募集' && !why(r) && say(r) && r.src && r.src[0] && r.src[0].publisher_kind === 'airline' && /^https:\/\//.test(r.src[0].url || ''));
+    /* 「今の公表」と数えるのは会社自身の資料か労働協約の行だけ（第三者の資料の行は数えない ── 2026-11-18 に数えて、募集要項の行が消えたのを見逃した） */
     const curOf = k => (FA[k] || []).some(r => r.use === '条件つき' && !why(r) && say(r) && (((r.src || [])[0] || {}).publisher_kind === 'airline' || !!AGREEMENTS[((r.src || [])[0] || {}).source_id]) && (rankOf(r) !== 'trainee' || /^訓練/.test(say(r).label)));
     const adMiss = ['work', 'benefits'].filter(k => adOf(k).length && !curOf(k)).filter(k => {
       const c = cellOf2(g, k);
@@ -1358,9 +1407,12 @@ ok(O1N.n >= 10, `E 切り替えた会社のページに、勤務・待遇の「�
       const card = (h.match(new RegExp(`<article class="pvg-card pvg-tm" data-tm-tab="${tab}">[\\s\\S]*?</article>`)) || [''])[0];
       if (!card) { bad2.push(`${slug} ${lang}: ${tab} の札が無い`); continue; }
       for (const r of list) {
+        /* hide ＝ 出さない行（理由つき）。rows の行は、対象と値の字がどれも札に在る（2026-11-18） */
+        if (r.hide) { if (card.includes(`data-tm="${r.key}"`)) bad2.push(`${slug} ${lang}: ${tab}.${r.key} は出さない行なのに在る`); continue; }
         rows++;
-        if (!card.includes(`data-tm="${r.key}"`) || !card.includes(esc2(r[lang].value))) bad2.push(`${slug} ${lang}: ${tab}.${r.key} が無い`);
-        const all = `${r[lang].label} ${r[lang].value} ${r[lang].note}`;
+        const parts = r[lang].rows && r[lang].rows.length ? r[lang].rows.flat() : [r[lang].value];
+        if (!card.includes(`data-tm="${r.key}"`) || parts.some(t => !card.includes(esc2(t)))) bad2.push(`${slug} ${lang}: ${tab}.${r.key} が無い`);
+        const all = `${r[lang].label} ${parts.join(' ')} ${r[lang].note}`;
         if (/[¥円]|\$|本人負担|payroll contribution|未確認|unconfirmed/.test(all)) bad2.push(`${slug} ${lang}: ${tab}.${r.key} に書いてはいけない字`);
       }
     }

@@ -533,7 +533,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
             <label class="rolebox"><input type="checkbox" name="f-jobrole" value="examiner"><span>Examinador / piloto inspector</span></label>
             <label class="rolebox"><input type="checkbox" name="f-jobrole" value="union"><span>Sindicato / representante de pilotos</span></label>
             <label class="rolebox"><input type="checkbox" name="f-jobrole" value="management"><span>Cargo de gestión / mando</span></label>
-            <label class="rolebox"><input type="checkbox" name="f-jobrole" value="nonline"><span>Otras funciones / funciones en tierra</span></label>
+            <label class="rolebox"><input type="checkbox" name="f-jobrole" value="nonline"><span>Otras funciones / funciones distintas al vuelo de línea</span></label>
             <!--END:BOXES:f-jobrole-->
           </div>
           <input type="hidden" id="f-jobrole"/>
@@ -988,7 +988,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
 
               <div class="fld">
                 <label class="form-label" for="f-exam-label">Denominación del puesto en tu aerolínea</label>
-                <input type="text" id="f-exam-label" class="form-input" maxlength="60" placeholder="p. ej., TRE, piloto inspector, capitán de line check"/>
+                <input type="text" id="f-exam-label" class="form-input" maxlength="60" placeholder="p. ej., TRE, piloto inspector, capitán de verificación en línea"/>
               </div>
 
               <div class="fld">
@@ -1181,7 +1181,7 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
           <details class="pay-detail" id="nonline-detail">
             <summary tabindex="-1">Compensación por otras funciones / funciones en tierra</summary>
             <div class="pay-detail-b">
-              <p class="fld-hint" style="margin:0 0 16px">Solo si tienes una asignación continua además de volar en línea. <b>No preguntamos en qué departamento, en qué empresa ni en qué consistió el trabajo.</b></p>
+              <p class="fld-hint" style="margin:0 0 16px">Solo si desempeñas de forma continua otra función además de volar como piloto de línea. <b>No preguntamos el departamento, la empresa ni en qué consiste el trabajo.</b></p>
 
               <div class="fld">
                 <div class="form-label">Área asignada</div>
@@ -1620,6 +1620,9 @@ tailwind.config={theme:{extend:{colors:{bg:'#0a0c0f',surface:'#111620',raised:'#
            送った瞬間に内訳が消える。あとで欄を分けたくなった日に遡って埋められるよう、
            読めたものだけは残しておく。控除の内訳は入れない（組合名は極めて機微）。 -->
       <input type="hidden" id="f-psdetail">
+      <!-- ★明細の Verified の引換券（2026-11-19）。payslip.js が読めた明細にだけ入れ、提出で payslip_ticket として送る。
+           DB が年・月・通貨・総支給を照合する（db/payslip-verify.sql）。画面には出さない・下書きにも入れない（CARRY に無い）。 -->
+      <input type="hidden" id="f-psticket">
       <!-- ★時給は人に聞かない（昼夜・国内国際で単価が割れるので「1つの数字」に
            ならない）。欄は畳んだのではなく消した。列と RPC は残っているので、
            明細から単価が読めるようになったらここへ入れれば、そのまま送られる。
@@ -6015,6 +6018,8 @@ function buildPayload(airline) {
        2026-09-11, unc() stripped the commas and broke the JSON). */
     pay_items:           $('f-payitems').value ? JSON.parse($('f-payitems').value) : null,
     source:              val('f-source') || 'web',
+    /* ★明細の Verified の引換券（2026-11-19）。val() を通さない（16進の文字列をそのまま）。 */
+    payslip_ticket:      $('f-psticket').value || null,
     /* The Spanish page (es/, generated from this file) records 'es' so Spanish submissions can be counted.
        The server keeps any value as-is (pay_reports.lang has no list). This page sends 'en' as before. */
     lang:                window.PV_LANG === 'es' ? 'es' : LANG,
@@ -6540,7 +6545,7 @@ addEventListener('scroll', () => {
   });
 })();
 </script>
-<script src="../payslip.js?v=b2dec7f0"></script>
+<script src="../payslip.js?v=49b04fd1"></script>
 <script src="../pv-app.js?v=a95c64dd"></script>
 <script src="../confetti.js"></script>
 <script src="../pay-login.js"></script>

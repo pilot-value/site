@@ -17,12 +17,12 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "通常は月65クレジット時間",
+     "value": "月65時間分",
      "note": ""
     },
     "en": {
      "label": "Minimum guarantee",
-     "value": "65 credit hours a month (normal)",
+     "value": "65 credit hours a month",
      "note": ""
     }
    },
@@ -30,13 +30,13 @@ export const TERMS = Object.freeze({
     "key": "reserve_guarantee",
     "ref": false,
     "ja": {
-     "label": "リザーブの保証",
-     "value": "月の平均ラインの時間（ALV）に連動して72〜80時間",
+     "label": "最低保証（Reserve - STBY要員の月）",
+     "value": "72〜80時間分（その月の Line（乗務が決まっている月）の平均時間に連動）",
      "note": ""
     },
     "en": {
      "label": "Reserve guarantee",
-     "value": "72–80 hours, tied to ALV",
+     "value": "72–80 hours, tied to the month's average line value (ALV)",
      "note": ""
     }
    },
@@ -45,12 +45,48 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "加算・割増",
-     "value": "国際線の加算 機長 1時間 USD 6.50・副操縦士 USD 4.50。追加乗務などは150%・200%。休日加算あり",
+     "value": "",
+     "rows": [
+      [
+       "国際線の加算（機長）",
+       "1時間 USD 6.50"
+      ],
+      [
+       "国際線の加算（副操縦士）",
+       "1時間 USD 4.50"
+      ],
+      [
+       "対象の追加の乗務",
+       "1時間の単価の1.5倍か2倍"
+      ],
+      [
+       "祝日の乗務",
+       "割増あり"
+      ]
+     ],
      "note": ""
     },
     "en": {
      "label": "Override & premiums",
-     "value": "International override USD 6.50/hr CA, USD 4.50/hr FO; 150% or 200% for eligible extra flying; holiday pay",
+     "value": "",
+     "rows": [
+      [
+       "International override (CA)",
+       "USD 6.50/hr"
+      ],
+      [
+       "International override (FO)",
+       "USD 4.50/hr"
+      ],
+      [
+       "Eligible extra flying",
+       "150% or 200%"
+      ],
+      [
+       "Holiday flying",
+       "Paid at a premium"
+      ]
+     ],
      "note": ""
     }
    },
@@ -72,28 +108,48 @@ export const TERMS = Object.freeze({
     "key": "per_diem",
     "ref": true,
     "ja": {
-     "label": "パーディアム（日当）",
-     "value": "国内線 1時間 USD 3.30・国際線 1時間 USD 3.55",
+     "label": "日当",
+     "value": "",
+     "rows": [
+      [
+       "国内線",
+       "1時間 USD 3.30"
+      ],
+      [
+       "国際線",
+       "1時間 USD 3.55"
+      ]
+     ],
      "note": "2025年1月の額。毎年見直し"
     },
     "en": {
      "label": "Per diem",
-     "value": "USD 3.30 an hour domestic, USD 3.55 international",
-     "note": "January 2025 rates, reset every year"
+     "value": "",
+     "rows": [
+      [
+       "Domestic",
+       "USD 3.30/hr"
+      ],
+      [
+       "International",
+       "USD 3.55/hr"
+      ]
+     ],
+     "note": "January 2025 rates, adjusted every year"
     }
    },
    {
     "key": "retirement",
     "ref": false,
     "ja": {
-     "label": "会社の退職拠出",
-     "value": "会社の確定拠出（DC）18%",
-     "note": "給与とは別枠"
+     "label": "会社の年金の積み立て",
+     "value": "給与とは別に、会社が給与の18%を確定拠出年金（DC）に積み立てる",
+     "note": ""
     },
     "en": {
      "label": "Retirement",
-     "value": "18% company DC contribution",
-     "note": "On top of pay"
+     "value": "18% company DC contribution, on top of pay",
+     "note": ""
     }
    },
    {
@@ -101,12 +157,32 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "労働協約",
-     "value": "改定できる日 2026年12月31日。2026年1月に4%の昇給（実施済み）",
+     "value": "",
+     "rows": [
+      [
+       "改定交渉に入れる日",
+       "2026年12月31日"
+      ],
+      [
+       "2026年1月1日",
+       "4%の昇給（実施済み）"
+      ]
+     ],
      "note": ""
     },
     "en": {
-     "label": "Contract status",
-     "value": "Amendable Dec 31, 2026; 4% raise took effect Jan 1, 2026",
+     "label": "Contract",
+     "value": "",
+     "rows": [
+      [
+       "Amendable",
+       "Dec 31, 2026"
+      ],
+      [
+       "Jan 1, 2026",
+       "4% raise (in effect)"
+      ]
+     ],
      "note": ""
     }
    },
@@ -116,26 +192,46 @@ export const TERMS = Object.freeze({
     "ja": {
      "label": "医療保険",
      "value": "医療・歯科・眼科の保険",
-     "note": "社員ぜんたいの制度"
+     "note": ""
     },
     "en": {
-     "label": "Health cover",
+     "label": "Health insurance",
      "value": "Medical, dental and vision",
-     "note": "Company-wide employee benefit"
+     "note": ""
     }
    },
    {
     "key": "disability",
     "ref": false,
     "ja": {
-     "label": "所得補償",
-     "value": "長期の所得補償（LTD）は会社負担・短期（STD）は任意で加入",
-     "note": "社員ぜんたいの制度"
+     "label": "働けなくなったときの補償",
+     "value": "",
+     "rows": [
+      [
+       "長期の所得補償（LTD）",
+       "会社負担"
+      ],
+      [
+       "短期の所得補償（STD）",
+       "希望者が加入"
+      ]
+     ],
+     "note": ""
     },
     "en": {
-     "label": "Disability cover",
-     "value": "Company-paid long-term disability (LTD); optional short-term disability (STD)",
-     "note": "Company-wide employee benefit"
+     "label": "Disability insurance",
+     "value": "",
+     "rows": [
+      [
+       "Long-term disability (LTD)",
+       "Company-paid"
+      ],
+      [
+       "Short-term disability (STD)",
+       "Optional"
+      ]
+     ],
+     "note": ""
     }
    },
    {
@@ -143,13 +239,13 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "家族の支援",
-     "value": "家族のケア・養子縁組などの支援",
-     "note": "社員ぜんたいの制度"
+     "value": "家族のケアと養子縁組の支援",
+     "note": ""
     },
     "en": {
      "label": "Family support",
      "value": "Family care and adoption support",
-     "note": "Company-wide employee benefit"
+     "note": ""
     }
    },
    {
@@ -158,12 +254,12 @@ export const TERMS = Object.freeze({
     "ja": {
      "label": "パイロット数",
      "value": "17,281人",
-     "note": "パイロットの労組の掲載値"
+     "note": ""
     },
     "en": {
      "label": "Pilot group size",
      "value": "17,281 pilots",
-     "note": "Figure posted by the pilots' union"
+     "note": ""
     }
    }
   ],
@@ -173,13 +269,49 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "年休",
-     "value": "2年目 14日・5年目 21日・12年目 28日・20年目 35日",
-     "note": "2025年9月の比較表の値。休日とは別"
+     "value": "",
+     "rows": [
+      [
+       "2年目",
+       "年14日"
+      ],
+      [
+       "5年目",
+       "年21日"
+      ],
+      [
+       "12年目",
+       "年28日"
+      ],
+      [
+       "20年目",
+       "年35日"
+      ]
+     ],
+     "note": "2025年9月時点"
     },
     "en": {
      "label": "Vacation",
-     "value": "14 days at year 2, 21 at year 5, 28 at year 12, 35 at year 20",
-     "note": "September 2025 comparison table; separate from days off"
+     "value": "",
+     "rows": [
+      [
+       "Year 2",
+       "14 days"
+      ],
+      [
+       "Year 5",
+       "21 days"
+      ],
+      [
+       "Year 12",
+       "28 days"
+      ],
+      [
+       "Year 20",
+       "35 days"
+      ]
+     ],
+     "note": "As of September 2025"
     }
    }
   ],
@@ -189,13 +321,49 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "ATL への鉄道",
-     "value": "MARTA（赤・金線）で国内線ターミナルへ。平日 4:45〜1:00・週末 6:00〜1:00",
-     "note": "旅客向けの一般の案内。運賃 USD 2.50"
+     "value": "",
+     "rows": [
+      [
+       "路線",
+       "MARTA の赤線・金線で国内線ターミナルへ"
+      ],
+      [
+       "平日",
+       "4:45〜翌1:00"
+      ],
+      [
+       "週末",
+       "6:00〜翌1:00"
+      ],
+      [
+       "運賃",
+       "USD 2.50"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Rail to ATL",
-     "value": "MARTA Red/Gold lines to the domestic terminal; 4:45–1:00 weekdays, 6:00–1:00 weekends",
-     "note": "Public passenger info; standard fare USD 2.50"
+     "value": "",
+     "rows": [
+      [
+       "Route",
+       "MARTA Red/Gold lines to the domestic terminal"
+      ],
+      [
+       "Weekdays",
+       "4:45 a.m.–1:00 a.m."
+      ],
+      [
+       "Weekends",
+       "6:00 a.m.–1:00 a.m."
+      ],
+      [
+       "Fare",
+       "USD 2.50"
+      ]
+     ],
+     "note": ""
     }
    }
   ]
@@ -207,12 +375,12 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "勤務の自動割り当て（PBS）で付いたクレジットが70時間未満なら70時間に引き上げ",
+     "value": "月70時間分。割り当てられた勤務がそれより少なくても、70時間分を払う",
      "note": "2024年5月から"
     },
     "en": {
      "label": "Minimum guarantee",
-     "value": "PBS awards under 70 credit hours are raised to 70",
+     "value": "70 credit hours; PBS awards below 70 are raised to 70",
      "note": "Since May 2024"
     }
    },
@@ -220,14 +388,34 @@ export const TERMS = Object.freeze({
     "key": "reserve_guarantee",
     "ref": true,
     "ja": {
-     "label": "リザーブの保証",
-     "value": "通常は73時間・6月・7月・8月・12月は77時間",
-     "note": "比較資料の値"
+     "label": "最低保証（Reserve - STBY要員の月）",
+     "value": "",
+     "rows": [
+      [
+       "6月・7月・8月・12月",
+       "77時間分"
+      ],
+      [
+       "ほかの月",
+       "73時間分"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Reserve guarantee",
-     "value": "73 hours; 77 in June, July, August and December",
-     "note": "From comparison tables"
+     "value": "",
+     "rows": [
+      [
+       "June, July, August, December",
+       "77 hours"
+      ],
+      [
+       "Other months",
+       "73 hours"
+      ]
+     ],
+     "note": ""
     }
    },
    {
@@ -235,12 +423,40 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "加算・割増",
-     "value": "国際線の加算 機長 1時間 USD 7・副操縦士 USD 5。指定の追加乗務は150〜225%など",
+     "value": "",
+     "rows": [
+      [
+       "国際線の加算（機長）",
+       "1時間 USD 7"
+      ],
+      [
+       "国際線の加算（副操縦士）",
+       "1時間 USD 5"
+      ],
+      [
+       "決められた追加の乗務",
+       "1時間の単価の1.5〜2.25倍"
+      ]
+     ],
      "note": ""
     },
     "en": {
      "label": "Override & premiums",
-     "value": "International override USD 7/hr CA, USD 5/hr FO; 150–225% for designated extra flying",
+     "value": "",
+     "rows": [
+      [
+       "International override (CA)",
+       "USD 7/hr"
+      ],
+      [
+       "International override (FO)",
+       "USD 5/hr"
+      ],
+      [
+       "Designated extra flying",
+       "150–225%"
+      ]
+     ],
      "note": ""
     }
    },
@@ -249,26 +465,46 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "利益分配",
-     "value": "あり。会社の利益の10%・20%を原資にする式",
-     "note": "給与への上乗せ率ではない"
+     "value": "あり。会社の利益の10%と20%を元手に、決まった式で分ける（給与に一定の率を足す形ではない）",
+     "note": ""
     },
     "en": {
      "label": "Profit sharing",
-     "value": "Yes; pool funded at 10% and 20% of profits by formula",
-     "note": "Not a percentage added to pay"
+     "value": "Yes: a pool funded from profits at 10% and 20% under a set formula; not a flat percentage added to your pay",
+     "note": ""
     }
    },
    {
     "key": "per_diem",
     "ref": false,
     "ja": {
-     "label": "パーディアム（日当）",
-     "value": "国内線 1時間 USD 3.04・国際線 1時間 USD 3.63",
-     "note": "2026年の協約の表"
+     "label": "日当",
+     "value": "",
+     "rows": [
+      [
+       "国内線",
+       "1時間 USD 3.04"
+      ],
+      [
+       "国際線",
+       "1時間 USD 3.63"
+      ]
+     ],
+     "note": "2026年の協約の額"
     },
     "en": {
      "label": "Per diem",
-     "value": "USD 3.04 an hour domestic, USD 3.63 international",
+     "value": "",
+     "rows": [
+      [
+       "Domestic",
+       "USD 3.04/hr"
+      ],
+      [
+       "International",
+       "USD 3.63/hr"
+      ]
+     ],
      "note": "2026 contract rates"
     }
    },
@@ -277,13 +513,33 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "労働協約",
-     "value": "改定できる日 2027年9月30日。2027年1月の期間に約3%の昇給の予定",
-     "note": "2023年の協約（UPA23）"
+     "value": "",
+     "rows": [
+      [
+       "改定交渉に入れる日",
+       "2027年9月30日"
+      ],
+      [
+       "2027年1月の勤務の期間から",
+       "約3%の昇給の予定"
+      ]
+     ],
+     "note": "2023年の協約"
     },
     "en": {
-     "label": "Contract status",
-     "value": "Amendable Sep 30, 2027; about 3% raise due with the January 2027 bid period",
-     "note": "UPA 2023"
+     "label": "Contract",
+     "value": "",
+     "rows": [
+      [
+       "Amendable",
+       "Sep 30, 2027"
+      ],
+      [
+       "January 2027 bid period",
+       "About 3% raise due"
+      ]
+     ],
+     "note": "UPA 2023 contract"
     }
    },
    {
@@ -292,12 +548,12 @@ export const TERMS = Object.freeze({
     "ja": {
      "label": "パイロット数",
      "value": "18,864人",
-     "note": "パイロットの労組の掲載値"
+     "note": ""
     },
     "en": {
      "label": "Pilot group size",
      "value": "18,864 pilots",
-     "note": "Figure posted by the pilots' union"
+     "note": ""
     }
    }
   ],
@@ -307,13 +563,33 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "ORD への鉄道",
-     "value": "CTA ブルーラインが24時間運行。都心から約40〜45分",
-     "note": "旅客向けの一般の案内"
+     "value": "",
+     "rows": [
+      [
+       "路線",
+       "CTA の青線（Blue Line）が24時間運行"
+      ],
+      [
+       "都心から",
+       "約40〜45分"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Rail to ORD",
-     "value": "CTA Blue Line runs 24 hours; about 40–45 min from downtown",
-     "note": "Public passenger info"
+     "value": "",
+     "rows": [
+      [
+       "Route",
+       "CTA Blue Line, 24 hours"
+      ],
+      [
+       "From downtown",
+       "About 40–45 min"
+      ]
+     ],
+     "note": ""
     }
    }
   ]
@@ -325,12 +601,12 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "月の平均ラインの時間（ALV）の下限と65時間の、大きいほう",
+     "value": "65時間分か、その月の Line（乗務が決まっている月）の平均時間から決まる下限の、多いほう",
      "note": ""
     },
     "en": {
      "label": "Minimum guarantee",
-     "value": "Greater of the ALV floor or 65 hours",
+     "value": "65 hours, or a floor set from the month's average line value (ALV), whichever is greater",
      "note": ""
     }
    },
@@ -338,14 +614,34 @@ export const TERMS = Object.freeze({
     "key": "reserve_guarantee",
     "ref": true,
     "ja": {
-     "label": "リザーブの保証",
-     "value": "ロングコール 73時間・ショートコール 76時間",
-     "note": "2025年の比較資料の値"
+     "label": "最低保証（Reserve - STBY要員の月）",
+     "value": "",
+     "rows": [
+      [
+       "Long call - STBY要員の月（前もって呼ばれる）",
+       "73時間分"
+      ],
+      [
+       "Short call - STBY要員の月（すぐ呼ばれる）",
+       "76時間分"
+      ]
+     ],
+     "note": "2025年時点"
     },
     "en": {
      "label": "Reserve guarantee",
-     "value": "Long-call 73 hours, short-call 76 hours",
-     "note": "2025 comparison tables"
+     "value": "",
+     "rows": [
+      [
+       "Long-call reserve",
+       "73 hours"
+      ],
+      [
+       "Short-call reserve",
+       "76 hours"
+      ]
+     ],
+     "note": "As of 2025"
     }
    },
    {
@@ -353,12 +649,40 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "加算・割増",
-     "value": "国際線の加算 機長 1時間 USD 7・副操縦士 USD 5。指定の追加乗務は150%・175%・200%など",
+     "value": "",
+     "rows": [
+      [
+       "国際線の加算（機長）",
+       "1時間 USD 7"
+      ],
+      [
+       "国際線の加算（副操縦士）",
+       "1時間 USD 5"
+      ],
+      [
+       "決められた追加の乗務",
+       "1時間の単価の1.5倍・1.75倍・2倍"
+      ]
+     ],
      "note": ""
     },
     "en": {
      "label": "Override & premiums",
-     "value": "International override USD 7/hr CA, USD 5/hr FO; 150%, 175% or 200% for designated extra flying",
+     "value": "",
+     "rows": [
+      [
+       "International override (CA)",
+       "USD 7/hr"
+      ],
+      [
+       "International override (FO)",
+       "USD 5/hr"
+      ],
+      [
+       "Designated extra flying",
+       "150%, 175% or 200%"
+      ]
+     ],
      "note": ""
     }
    },
@@ -380,28 +704,48 @@ export const TERMS = Object.freeze({
     "key": "per_diem",
     "ref": true,
     "ja": {
-     "label": "パーディアム（日当）",
-     "value": "国内線 1時間 USD 3.41・国際線 1時間 USD 4.07",
-     "note": "2025年1月の額。政府の出張日当（M&IE）に連動し毎年見直し"
+     "label": "日当",
+     "value": "",
+     "rows": [
+      [
+       "国内線",
+       "1時間 USD 3.41"
+      ],
+      [
+       "国際線",
+       "1時間 USD 4.07"
+      ]
+     ],
+     "note": "2025年1月の額。毎年、政府の出張の日当（M&IE）に合わせて見直し"
     },
     "en": {
      "label": "Per diem",
-     "value": "USD 3.41 an hour domestic, USD 4.07 international",
-     "note": "January 2025 rates, reset yearly with the federal M&IE rate"
+     "value": "",
+     "rows": [
+      [
+       "Domestic",
+       "USD 3.41/hr"
+      ],
+      [
+       "International",
+       "USD 4.07/hr"
+      ]
+     ],
+     "note": "January 2025 rates, adjusted yearly in line with the federal M&IE rate"
     }
    },
    {
     "key": "retirement",
     "ref": true,
     "ja": {
-     "label": "会社の退職拠出",
-     "value": "会社の確定拠出（DC）18%",
-     "note": "労組の比較資料の値"
+     "label": "会社の年金の積み立て",
+     "value": "給与とは別に、会社が給与の18%を確定拠出年金（DC）に積み立てる",
+     "note": ""
     },
     "en": {
      "label": "Retirement",
-     "value": "18% company DC contribution",
-     "note": "Union comparison table"
+     "value": "18% company DC contribution, on top of pay",
+     "note": ""
     }
    },
    {
@@ -409,12 +753,32 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "労働協約",
-     "value": "改定できる日 2027年8月1日。2026年8月に改定の交渉（Section 6）が始まった",
+     "value": "",
+     "rows": [
+      [
+       "改定交渉に入れる日",
+       "2027年8月1日"
+      ],
+      [
+       "改定の交渉",
+       "2026年8月に始まった"
+      ]
+     ],
      "note": ""
     },
     "en": {
-     "label": "Contract status",
-     "value": "Amendable Aug 1, 2027; Section 6 talks opened in August 2026",
+     "label": "Contract",
+     "value": "",
+     "rows": [
+      [
+       "Amendable",
+       "Aug 1, 2027"
+      ],
+      [
+       "Section 6 talks",
+       "Opened August 2026"
+      ]
+     ],
      "note": ""
     }
    },
@@ -422,14 +786,14 @@ export const TERMS = Object.freeze({
     "key": "pay_raise",
     "ref": true,
     "ja": {
-     "label": "予定の昇給",
+     "label": "予定されている昇給",
      "value": "2027年に約3%",
-     "note": "2027年時点の比較表の値"
+     "note": ""
     },
     "en": {
      "label": "Scheduled raise",
      "value": "About 3% in 2027",
-     "note": "2027 comparison table"
+     "note": ""
     }
    },
    {
@@ -437,13 +801,13 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "パイロット数",
-     "value": "16,000人",
-     "note": "パイロットの労組の説明にある概数"
+     "value": "約16,000人",
+     "note": ""
     },
     "en": {
      "label": "Pilot group size",
-     "value": "16,000 pilots",
-     "note": "Approximate figure from the pilots' union"
+     "value": "About 16,000 pilots",
+     "note": ""
     }
    }
   ],
@@ -453,13 +817,49 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "年休",
-     "value": "2年目 21日・5年目 21日・12年目 28日・20年目 35日",
-     "note": "2025年9月の比較表の値。休日とは別"
+     "value": "",
+     "rows": [
+      [
+       "2年目",
+       "年21日"
+      ],
+      [
+       "5年目",
+       "年21日"
+      ],
+      [
+       "12年目",
+       "年28日"
+      ],
+      [
+       "20年目",
+       "年35日"
+      ]
+     ],
+     "note": "2025年9月時点"
     },
     "en": {
      "label": "Vacation",
-     "value": "21 days at years 2 and 5, 28 at year 12, 35 at year 20",
-     "note": "September 2025 comparison table; separate from days off"
+     "value": "",
+     "rows": [
+      [
+       "Year 2",
+       "21 days"
+      ],
+      [
+       "Year 5",
+       "21 days"
+      ],
+      [
+       "Year 12",
+       "28 days"
+      ],
+      [
+       "Year 20",
+       "35 days"
+      ]
+     ],
+     "note": "As of September 2025"
     }
    }
   ],
@@ -469,13 +869,13 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "DFW への鉄道",
-     "value": "DART オレンジ線でターミナル A へ",
-     "note": "旅客向けの一般の案内"
+     "value": "DART のオレンジ線でターミナル A へ",
+     "note": ""
     },
     "en": {
      "label": "Rail to DFW",
      "value": "DART Orange Line to Terminal A",
-     "note": "Public passenger info"
+     "note": ""
     }
    }
   ]
@@ -487,27 +887,75 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "28・29日の月 84 TFP・30日 87 TFP・31日 89 TFP（TFP＝Southwest の支払い単位）",
-     "note": "労組の比較資料"
+     "value": "",
+     "rows": [
+      [
+       "28日・29日の月",
+       "84 TFP"
+      ],
+      [
+       "30日の月",
+       "87 TFP"
+      ],
+      [
+       "31日の月",
+       "89 TFP"
+      ]
+     ],
+     "note": "TFP は Southwest 独自の給与の単位"
     },
     "en": {
      "label": "Monthly guarantee",
-     "value": "84 TFP in 28/29-day months, 87 TFP in 30-day months, 89 TFP in 31-day months",
-     "note": "Union comparison data"
+     "value": "",
+     "rows": [
+      [
+       "28/29-day months",
+       "84 TFP"
+      ],
+      [
+       "30-day months",
+       "87 TFP"
+      ],
+      [
+       "31-day months",
+       "89 TFP"
+      ]
+     ],
+     "note": "TFP is Southwest's own pay unit"
     }
    },
    {
     "key": "per_diem",
     "ref": true,
     "ja": {
-     "label": "パーディアム（日当）",
-     "value": "国内線 1時間 USD 3.04・国際線 1時間 USD 3.63",
-     "note": "2026年の額（2025年の額に協約の2.5%を足した算定値）"
+     "label": "日当",
+     "value": "",
+     "rows": [
+      [
+       "国内線",
+       "1時間 USD 3.04"
+      ],
+      [
+       "国際線",
+       "1時間 USD 3.63"
+      ]
+     ],
+     "note": "2026年の額（2025年の額に2.5%を足した）"
     },
     "en": {
      "label": "Per diem",
-     "value": "USD 3.04 an hour domestic, USD 3.63 international",
-     "note": "2026 rates, worked out as 2025 rates plus the 2.5% contract increase"
+     "value": "",
+     "rows": [
+      [
+       "Domestic",
+       "USD 3.04/hr"
+      ],
+      [
+       "International",
+       "USD 3.63/hr"
+      ]
+     ],
+     "note": "2026 rate (2025 rate plus 2.5%)"
     }
    },
    {
@@ -515,27 +963,63 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "加算・割増",
-     "value": "追加乗務 150%・200%・300% など。国際線 3%・ETOPS など 5%・深夜 3% などの加算",
-     "note": "対象の乗務だけに付く（全乗務に一律ではない）"
+     "value": "",
+     "rows": [
+      [
+       "追加の乗務",
+       "1時間の単価の1.5倍・2倍・3倍"
+      ],
+      [
+       "国際線の乗務",
+       "1時間の単価の3%増し"
+      ],
+      [
+       "ETOPS の乗務",
+       "1時間の単価の5%増し"
+      ],
+      [
+       "深夜の乗務",
+       "1時間の単価の3%増し"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Premiums",
-     "value": "Premium flying at 150%, 200% or 300%. Add-ons such as 3% international, 5% ETOPS, 3% night",
-     "note": "Qualifying trips only, not across all TFP"
+     "value": "",
+     "rows": [
+      [
+       "Premium flying",
+       "150%, 200% or 300%"
+      ],
+      [
+       "International trips",
+       "+3%"
+      ],
+      [
+       "ETOPS trips",
+       "+5%"
+      ],
+      [
+       "Night flying",
+       "+3%"
+      ]
+     ],
+     "note": ""
     }
    },
    {
     "key": "deadhead_pay",
     "ref": false,
     "ja": {
-     "label": "デッドヘッドの支払い",
-     "value": "デッドヘッド（移動のための便乗）は1区間ごとに 100% のクレジット",
-     "note": "パイロットの採用ページ"
+     "label": "便乗の支払い",
+     "value": "1区間ごとに、その区間の時間の100%を給与に数える",
+     "note": ""
     },
     "en": {
      "label": "Deadhead pay",
      "value": "100% credit for every deadhead leg",
-     "note": "Pilot careers page"
+     "note": ""
     }
    },
    {
@@ -543,12 +1027,40 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "労働協約",
-     "value": "2027年1月1日に4%、2028年1月1日に3.25%の一律昇給。改定できる日は2029年1月1日",
+     "value": "",
+     "rows": [
+      [
+       "2027年1月1日",
+       "全員 4%の昇給"
+      ],
+      [
+       "2028年1月1日",
+       "全員 3.25%の昇給"
+      ],
+      [
+       "改定交渉に入れる日",
+       "2029年1月1日"
+      ]
+     ],
      "note": ""
     },
     "en": {
      "label": "Contract",
-     "value": "Across-the-board raises of 4% on Jan 1, 2027 and 3.25% on Jan 1, 2028. Amendable Jan 1, 2029",
+     "value": "",
+     "rows": [
+      [
+       "Jan 1, 2027",
+       "4% across the board"
+      ],
+      [
+       "Jan 1, 2028",
+       "3.25% across the board"
+      ],
+      [
+       "Amendable",
+       "Jan 1, 2029"
+      ]
+     ],
      "note": ""
     }
    },
@@ -557,55 +1069,91 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "産休・育休",
-     "value": "出産休暇は有給6週（帝王切開は8週）。育児休暇は有給2週＋無給で最大10週。出生・養子の受け入れから1年まで無給で延ばせる",
-     "note": "パイロットの採用ページ。無給の分は残っている病休・年休で補える"
+     "value": "",
+     "rows": [
+      [
+       "出産休暇",
+       "有給6週（帝王切開は8週）"
+      ],
+      [
+       "育児休暇",
+       "有給2週＋無給で最大10週"
+      ],
+      [
+       "無給の育児休暇",
+       "出生・養子の受け入れから1年まで延ばせる"
+      ],
+      [
+       "無給の期間",
+       "残っている病気休暇・年休で埋められる"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Parental leave",
-     "value": "Maternity: 6 paid weeks (8 after a C-section). Parental: 2 paid weeks plus up to 10 unpaid. Unpaid bonding leave can run to 1 year after birth or placement",
-     "note": "Pilot careers page. Unused sick and vacation can cover the unpaid weeks"
+     "value": "",
+     "rows": [
+      [
+       "Maternity leave",
+       "6 paid weeks (8 after a C-section)"
+      ],
+      [
+       "Parental leave",
+       "2 paid weeks plus up to 10 unpaid"
+      ],
+      [
+       "Unpaid bonding leave",
+       "Up to 1 year after birth or placement"
+      ],
+      [
+       "Unpaid weeks",
+       "Can be paid with unused sick leave and vacation"
+      ]
+     ],
+     "note": ""
     }
    },
    {
     "key": "disability",
     "ref": false,
     "ja": {
-     "label": "所得補償",
-     "value": "会社が用意する生命保険と所得補償（働けなくなったときの補償）がある",
-     "note": "パイロットの採用ページ"
+     "label": "生命保険・働けなくなったときの補償",
+     "value": "会社が生命保険と所得補償を用意している",
+     "note": ""
     },
     "en": {
-     "label": "Disability cover",
+     "label": "Life & disability insurance",
      "value": "Company-provided life and disability coverage",
-     "note": "Pilot careers page"
+     "note": ""
     }
    },
    {
     "key": "medical_exam",
     "ref": false,
     "ja": {
-     "label": "身体検査の費用",
-     "value": "FAA の身体検査（必要なときの心電図も）の費用の大部分を会社が補助",
-     "note": "パイロットの採用ページ"
+     "label": "航空身体検査の費用",
+     "value": "FAA の航空身体検査の費用の大部分を会社が出す（心電図が要るときはその分も）",
+     "note": ""
     },
     "en": {
      "label": "Medical exam costs",
      "value": "Company covers most of the cost of FAA medicals, plus an EKG when required",
-     "note": "Pilot careers page"
+     "note": ""
     }
    },
    {
     "key": "passport",
     "ref": false,
     "ja": {
-     "label": "旅券の更新",
-     "value": "旅券（パスポート）の更新費用を会社が補助",
-     "note": "パイロットの採用ページ"
+     "label": "パスポートの更新",
+     "value": "更新の費用を会社が補助",
+     "note": ""
     },
     "en": {
      "label": "Passport renewal",
-     "value": "Company helps pay for passport renewal",
-     "note": "Pilot careers page"
+     "value": "Company helps pay for renewal",
+     "note": ""
     }
    },
    {
@@ -613,13 +1161,13 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "パイロット数",
-     "value": "11,000人を超える",
-     "note": "労組の説明に載っている人数"
+     "value": "11,000人超",
+     "note": ""
     },
     "en": {
      "label": "Pilot group size",
      "value": "More than 11,000 pilots",
-     "note": "As stated by the pilots' union"
+     "note": ""
     }
    }
   ],
@@ -629,13 +1177,49 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "年休",
-     "value": "2年目 14日・5年目 21日・12年目 28日・20年目 35日",
-     "note": "2025年9月の業界の比較表の値"
+     "value": "",
+     "rows": [
+      [
+       "2年目",
+       "年14日"
+      ],
+      [
+       "5年目",
+       "年21日"
+      ],
+      [
+       "12年目",
+       "年28日"
+      ],
+      [
+       "20年目",
+       "年35日"
+      ]
+     ],
+     "note": "2025年9月時点"
     },
     "en": {
      "label": "Vacation",
-     "value": "14 days at year 2, 21 at year 5, 28 at year 12, 35 at year 20",
-     "note": "From a September 2025 industry comparison table"
+     "value": "",
+     "rows": [
+      [
+       "Year 2",
+       "14 days"
+      ],
+      [
+       "Year 5",
+       "21 days"
+      ],
+      [
+       "Year 12",
+       "28 days"
+      ],
+      [
+       "Year 20",
+       "35 days"
+      ]
+     ],
+     "note": "As of September 2025"
     }
    },
    {
@@ -643,13 +1227,33 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "月の休日（平均）",
-     "value": "ラインホルダー 17.6日・リザーブ 15日",
-     "note": "2021年の平均。パイロットの採用ページ"
+     "value": "",
+     "rows": [
+      [
+       "Line - 乗務が決まっている月",
+       "17.6日"
+      ],
+      [
+       "Reserve - STBY要員の月",
+       "15日"
+      ]
+     ],
+     "note": "2021年の平均"
     },
     "en": {
-     "label": "Days off per month",
-     "value": "17.6 for lineholders, 15 on reserve (average)",
-     "note": "2021 averages from the pilot careers page"
+     "label": "Days off per month (average)",
+     "value": "",
+     "rows": [
+      [
+       "Lineholders",
+       "17.6 days"
+      ],
+      [
+       "Reserve",
+       "15 days"
+      ]
+     ],
+     "note": "2021 averages"
     }
    }
   ],
@@ -659,13 +1263,33 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "駐車場",
-     "value": "指定の社員駐車場は会社負担。ほかの駐車場は年 USD 720 まで補助",
-     "note": "パイロットの採用ページ"
+     "value": "",
+     "rows": [
+      [
+       "会社が決めた社員駐車場",
+       "会社負担"
+      ],
+      [
+       "ほかの駐車場",
+       "年 USD 720 まで補助"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Parking",
-     "value": "Designated employee parking paid by the company; other lots reimbursed up to USD 720 a year",
-     "note": "Pilot careers page"
+     "value": "",
+     "rows": [
+      [
+       "Designated employee parking",
+       "Paid by the company"
+      ],
+      [
+       "Other lots",
+       "Reimbursed up to USD 720 a year"
+      ]
+     ],
+     "note": ""
     }
    }
   ]
@@ -677,26 +1301,74 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "最低保証",
-     "value": "ライン 月70時間・リザーブ 月75時間（ロングコール）・84時間（ショートコール）",
-     "note": "会社の採用ページ。労組の比較資料ではライン月75時間"
+     "value": "",
+     "rows": [
+      [
+       "Line - 乗務が決まっている月",
+       "70時間分"
+      ],
+      [
+       "Long call - STBY要員の月（前もって呼ばれる）",
+       "75時間分"
+      ],
+      [
+       "Short call - STBY要員の月（すぐ呼ばれる）",
+       "84時間分"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Monthly guarantee",
-     "value": "70 hours for lineholders; reserve 75 hours (long call) or 84 (short call)",
-     "note": "Company careers page; union comparison data shows 75 for lines"
+     "value": "",
+     "rows": [
+      [
+       "Lineholders",
+       "70 hours"
+      ],
+      [
+       "Long-call reserve",
+       "75 hours"
+      ],
+      [
+       "Short-call reserve",
+       "84 hours"
+      ]
+     ],
+     "note": ""
     }
    },
    {
     "key": "per_diem",
     "ref": true,
     "ja": {
-     "label": "パーディアム（日当）",
-     "value": "国内線 1時間 USD 2.65・国際線 1時間 USD 3.10",
+     "label": "日当",
+     "value": "",
+     "rows": [
+      [
+       "国内線",
+       "1時間 USD 2.65"
+      ],
+      [
+       "国際線",
+       "1時間 USD 3.10"
+      ]
+     ],
      "note": "2025年1月の額"
     },
     "en": {
      "label": "Per diem",
-     "value": "USD 2.65 an hour domestic, USD 3.10 international",
+     "value": "",
+     "rows": [
+      [
+       "Domestic",
+       "USD 2.65/hr"
+      ],
+      [
+       "International",
+       "USD 3.10/hr"
+      ]
+     ],
      "note": "January 2025 rates"
     }
    },
@@ -705,12 +1377,40 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "加算・割増",
-     "value": "国際線・ETOPS 機長 1時間 USD 6.25・副操縦士 USD 5.25。追加乗務 150% か 200% など",
+     "value": "",
+     "rows": [
+      [
+       "国際線・ETOPS の加算（機長）",
+       "1時間 USD 6.25"
+      ],
+      [
+       "国際線・ETOPS の加算（副操縦士）",
+       "1時間 USD 5.25"
+      ],
+      [
+       "追加の乗務",
+       "1時間の単価の1.5倍か2倍"
+      ]
+     ],
      "note": ""
     },
     "en": {
      "label": "Premiums",
-     "value": "International/ETOPS pay: Captain USD 6.25/hr, FO USD 5.25/hr. Premium flying at 150% or 200%",
+     "value": "",
+     "rows": [
+      [
+       "International/ETOPS pay (CA)",
+       "USD 6.25/hr"
+      ],
+      [
+       "International/ETOPS pay (FO)",
+       "USD 5.25/hr"
+      ],
+      [
+       "Premium flying",
+       "150% or 200%"
+      ]
+     ],
      "note": ""
     }
    },
@@ -719,27 +1419,47 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "労働協約",
-     "value": "2026年9月1日の昇給は4%か市場連動の調整の高いほう。ハワイアン航空との統合協約（JCBA）は交渉中",
-     "note": "統合協約の状況は公表された時点のもの"
+     "value": "",
+     "rows": [
+      [
+       "2026年9月1日の昇給",
+       "4%か、市場の水準に合わせた調整の、高いほう"
+      ],
+      [
+       "ハワイアン航空との統合協約",
+       "交渉中"
+      ]
+     ],
+     "note": "2026年11月時点"
     },
     "en": {
      "label": "Contract",
-     "value": "Sept 1, 2026 raise of 4% or a market-based adjustment, whichever is higher. Joint contract (JCBA) with Hawaiian under negotiation",
-     "note": "JCBA status as last announced"
+     "value": "",
+     "rows": [
+      [
+       "Raise on 1 September 2026",
+       "4% or a market-based adjustment, whichever is higher"
+      ],
+      [
+       "Joint contract (JCBA) with Hawaiian",
+       "Under negotiation"
+      ]
+     ],
+     "note": "As of November 2026"
     }
    },
    {
     "key": "retirement",
     "ref": true,
     "ja": {
-     "label": "会社の退職拠出",
-     "value": "会社の DC（確定拠出年金）拠出 17%",
-     "note": "比較資料の値。2010年1月以降に入社したパイロット（それより前は別の制度）"
+     "label": "会社の年金の積み立て",
+     "value": "会社が給与の17%を確定拠出年金（DC）に積み立てる",
+     "note": "2010年1月以降に入社したパイロット。それより前の人は別の制度"
     },
     "en": {
      "label": "Retirement",
      "value": "17% company DC contribution",
-     "note": "Comparison data. Pilots hired from January 2010; earlier hires are on a different plan"
+     "note": "Pilots hired from January 2010; earlier hires are on a different plan"
     }
    },
    {
@@ -747,13 +1467,33 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "社員の航空券（家族）",
-     "value": "配偶者など・扶養の子・親2人が対象。親の枠は別の2人に付け替えられる",
-     "note": "2024年の社員向けの発表（社員ぜんたいの制度）"
+     "value": "",
+     "rows": [
+      [
+       "対象",
+       "配偶者・パートナー、扶養の子、親2人"
+      ],
+      [
+       "親の2枠",
+       "ほかの2人に付け替えられる"
+      ]
+     ],
+     "note": "2024年に発表"
     },
     "en": {
      "label": "Staff travel: family",
-     "value": "Spouse or partner, dependent children and 2 parents. The parent slots can go to up to 2 other people instead",
-     "note": "2024 announcement to employees (company-wide benefit)"
+     "value": "",
+     "rows": [
+      [
+       "Eligible",
+       "Spouse or partner, dependent children and 2 parents"
+      ],
+      [
+       "Parent slots",
+       "Can go to 2 other people instead"
+      ]
+     ],
+     "note": "Announced in 2024"
     }
    },
    {
@@ -762,12 +1502,12 @@ export const TERMS = Object.freeze({
     "ja": {
      "label": "パイロット数",
      "value": "3,350人",
-     "note": "労組の説明に載っている人数"
+     "note": ""
     },
     "en": {
      "label": "Pilot group size",
      "value": "3,350 pilots",
-     "note": "As stated by the pilots' union"
+     "note": ""
     }
    }
   ],
@@ -777,13 +1517,49 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "年休",
-     "value": "2年目 15日・5年目 21日・12年目 24日・20年目 35日",
-     "note": "2025年9月の業界の比較表の値"
+     "value": "",
+     "rows": [
+      [
+       "2年目",
+       "年15日"
+      ],
+      [
+       "5年目",
+       "年21日"
+      ],
+      [
+       "12年目",
+       "年24日"
+      ],
+      [
+       "20年目",
+       "年35日"
+      ]
+     ],
+     "note": "2025年9月時点"
     },
     "en": {
      "label": "Vacation",
-     "value": "15 days at year 2, 21 at year 5, 24 at year 12, 35 at year 20",
-     "note": "From a September 2025 industry comparison table"
+     "value": "",
+     "rows": [
+      [
+       "Year 2",
+       "15 days"
+      ],
+      [
+       "Year 5",
+       "21 days"
+      ],
+      [
+       "Year 12",
+       "24 days"
+      ],
+      [
+       "Year 20",
+       "35 days"
+      ]
+     ],
+     "note": "As of September 2025"
     }
    }
   ],
@@ -793,13 +1569,33 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "深夜の空港への足",
-     "value": "シアトル都心から空港へライトレール（1 Line）で約38分。運行が終わった後は空港と都心を結ぶ深夜バスがある",
-     "note": "SEA（シアトル）の公共交通"
+     "value": "",
+     "rows": [
+      [
+       "シアトル都心から空港",
+       "ライトレール（1 Line）で約38分"
+      ],
+      [
+       "電車が終わった後",
+       "空港と都心を結ぶ深夜バス"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Late-night airport access",
-     "value": "Link 1 Line runs from downtown Seattle to SEA in about 38 minutes; a Night Bus links the airport and downtown after trains stop",
-     "note": "Public transit at SEA"
+     "value": "",
+     "rows": [
+      [
+       "Downtown Seattle to SEA",
+       "Link 1 Line, about 38 min"
+      ],
+      [
+       "After trains stop",
+       "Night Bus between the airport and downtown"
+      ]
+     ],
+     "note": ""
     }
    }
   ]
@@ -811,26 +1607,66 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "ライン 月70時間・リザーブ 月75時間",
-     "note": "労組の比較資料"
+     "value": "",
+     "rows": [
+      [
+       "Line - 乗務が決まっている月",
+       "70時間分"
+      ],
+      [
+       "Reserve - STBY要員の月",
+       "75時間分"
+      ]
+     ],
+     "note": ""
     },
     "en": {
-     "label": "Monthly guarantee",
-     "value": "70 hours for lineholders, 75 on reserve",
-     "note": "Union comparison data"
+     "label": "Minimum guarantee",
+     "value": "",
+     "rows": [
+      [
+       "Lineholders",
+       "70 hours"
+      ],
+      [
+       "Reserve",
+       "75 hours"
+      ]
+     ],
+     "note": ""
     }
    },
    {
     "key": "per_diem",
     "ref": true,
     "ja": {
-     "label": "パーディアム（日当）",
-     "value": "国内線 1時間 USD 2.70・国際線 1時間 USD 3.25",
+     "label": "日当",
+     "value": "",
+     "rows": [
+      [
+       "国内線",
+       "1時間 USD 2.70"
+      ],
+      [
+       "国際線",
+       "1時間 USD 3.25"
+      ]
+     ],
      "note": "2025年1月の額"
     },
     "en": {
      "label": "Per diem",
-     "value": "USD 2.70 an hour domestic, USD 3.25 international",
+     "value": "",
+     "rows": [
+      [
+       "Domestic",
+       "USD 2.70/hr"
+      ],
+      [
+       "International",
+       "USD 3.25/hr"
+      ]
+     ],
      "note": "January 2025 rates"
     }
    },
@@ -839,12 +1675,48 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "加算・割増",
-     "value": "1時間あたり 国際線 機長 USD 6・副操縦士 USD 5、深夜便（01〜05時）USD 13。追加乗務 150%・200% など",
+     "value": "",
+     "rows": [
+      [
+       "国際線の加算（機長）",
+       "1時間 USD 6"
+      ],
+      [
+       "国際線の加算（副操縦士）",
+       "1時間 USD 5"
+      ],
+      [
+       "深夜便（01〜05時）の加算",
+       "1時間 USD 13"
+      ],
+      [
+       "追加の乗務",
+       "1時間の単価の1.5倍か2倍"
+      ]
+     ],
      "note": ""
     },
     "en": {
      "label": "Premiums",
-     "value": "International: Captain USD 6/hr, FO USD 5/hr. Red-eye flying (0100–0500) USD 13/hr. Premium flying at 150% or 200%",
+     "value": "",
+     "rows": [
+      [
+       "International (CA)",
+       "USD 6/hr"
+      ],
+      [
+       "International (FO)",
+       "USD 5/hr"
+      ],
+      [
+       "Red-eye flying (0100–0500)",
+       "USD 13/hr"
+      ],
+      [
+       "Premium flying",
+       "150% or 200%"
+      ]
+     ],
      "note": ""
     }
    },
@@ -853,12 +1725,32 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "労働協約",
-     "value": "2025年2月に改定できる時期に入り、新しい協約を交渉中",
-     "note": "2026年11月の調べ"
+     "value": "",
+     "rows": [
+      [
+       "改定交渉に入れる日",
+       "2025年2月"
+      ],
+      [
+       "状況",
+       "新しい協約を交渉中"
+      ]
+     ],
+     "note": "2026年11月時点"
     },
     "en": {
      "label": "Contract",
-     "value": "Amendable since February 2025; new contract under negotiation",
+     "value": "",
+     "rows": [
+      [
+       "Amendable",
+       "Since February 2025"
+      ],
+      [
+       "Status",
+       "New contract under negotiation"
+      ]
+     ],
      "note": "As of November 2026"
     }
    },
@@ -867,13 +1759,33 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "社員の航空券",
-     "value": "自社便は無料の空席待ち。選ばれた他社便は割引の空席待ち",
-     "note": "社員ぜんたいの制度"
+     "value": "",
+     "rows": [
+      [
+       "自社便",
+       "無料で空席待ち"
+      ],
+      [
+       "一部の他社便",
+       "割引で空席待ち"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Staff travel",
-     "value": "Free standby on JetBlue; discounted standby on selected other airlines",
-     "note": "Company-wide employee benefit"
+     "value": "",
+     "rows": [
+      [
+       "JetBlue",
+       "Free standby"
+      ],
+      [
+       "Selected other airlines",
+       "Discounted standby"
+      ]
+     ],
+     "note": ""
     }
    },
    {
@@ -881,13 +1793,41 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "育児休暇",
-     "value": "出産・養子・里子の受け入れから原則30日以内に始めて連続180日。さらに180日延ばせる",
-     "note": "労働協約。休んでいる間も勤続は保たれる"
+     "value": "",
+     "rows": [
+      [
+       "期間",
+       "連続180日（さらに180日延ばせる）"
+      ],
+      [
+       "始める時期",
+       "出産・養子・里子の受け入れから原則30日以内"
+      ],
+      [
+       "休んでいる間",
+       "勤続の順位はそのまま"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Parental leave",
-     "value": "180 consecutive days after birth, adoption or foster placement, normally starting within 30 days; can be extended by another 180",
-     "note": "Pilot contract. Seniority is retained during leave"
+     "value": "",
+     "rows": [
+      [
+       "Length",
+       "180 consecutive days, extendable by another 180"
+      ],
+      [
+       "Start",
+       "Normally within 30 days of birth, adoption or foster placement"
+      ],
+      [
+       "During leave",
+       "Seniority is retained"
+      ]
+     ],
+     "note": ""
     }
    },
    {
@@ -895,13 +1835,13 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "転居の支援",
-     "value": "新しい基地の開設・押し出し（displacement）・別基地への呼び戻し・基地の閉鎖で転居するときに支援がある",
-     "note": "労働協約。50マイル以上の転居・12か月以内などの条件"
+     "value": "新しい基地の開設、今の基地の席を失ったとき、別の基地への呼び戻し、基地の閉鎖で転居するときに支援がある",
+     "note": "12か月以内に50マイル以上引っ越す人などが対象"
     },
     "en": {
      "label": "Relocation",
-     "value": "Moving support when a pilot relocates because of a new base opening, displacement, recall to another base or a base closure",
-     "note": "Pilot contract. Conditions apply, e.g. a move of 50+ miles within 12 months"
+     "value": "Moving support when you relocate because of a new base opening, displacement, recall to another base or a base closure",
+     "note": "Conditions apply, e.g. a move of 50+ miles within 12 months"
     }
    },
    {
@@ -910,12 +1850,12 @@ export const TERMS = Object.freeze({
     "ja": {
      "label": "パイロット数",
      "value": "4,687人",
-     "note": "労組の説明に載っている人数"
+     "note": ""
     },
     "en": {
      "label": "Pilot group size",
      "value": "4,687 pilots",
-     "note": "As stated by the pilots' union"
+     "note": ""
     }
    }
   ],
@@ -925,13 +1865,49 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "年休",
-     "value": "2年目 14日・5年目 14日・12年目 21日・20年目 28日",
-     "note": "2025年9月の業界の比較表の値"
+     "value": "",
+     "rows": [
+      [
+       "2年目",
+       "年14日"
+      ],
+      [
+       "5年目",
+       "年14日"
+      ],
+      [
+       "12年目",
+       "年21日"
+      ],
+      [
+       "20年目",
+       "年28日"
+      ]
+     ],
+     "note": "2025年9月時点"
     },
     "en": {
      "label": "Vacation",
-     "value": "14 days at year 2, 14 at year 5, 21 at year 12, 28 at year 20",
-     "note": "From a September 2025 industry comparison table"
+     "value": "",
+     "rows": [
+      [
+       "Year 2",
+       "14 days"
+      ],
+      [
+       "Year 5",
+       "14 days"
+      ],
+      [
+       "Year 12",
+       "21 days"
+      ],
+      [
+       "Year 20",
+       "28 days"
+      ]
+     ],
+     "note": "As of September 2025"
     }
    }
   ],
@@ -941,13 +1917,41 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "駐車場",
-     "value": "基地の駐車場は無料（コベースを選んだ人はその空港も無料か精算）。使わないなら月 USD 55 の手当",
-     "note": "労働協約"
+     "value": "",
+     "rows": [
+      [
+       "自分の基地の空港",
+       "無料"
+      ],
+      [
+       "同じ基地扱いの別の空港",
+       "無料か精算"
+      ],
+      [
+       "駐車場を使わない人",
+       "代わりに月 USD 55"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Parking",
-     "value": "Free parking at your base (co-base airports free or reimbursed too). Waive it and get USD 55 a month instead",
-     "note": "Pilot contract"
+     "value": "",
+     "rows": [
+      [
+       "Your base",
+       "Free"
+      ],
+      [
+       "Co-base airports",
+       "Free or reimbursed"
+      ],
+      [
+       "If you waive it",
+       "USD 55 a month instead"
+      ]
+     ],
+     "note": ""
     }
    }
   ],
@@ -957,13 +1961,33 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "ステイのホテル",
-     "value": "業務での基地外の宿泊は個室。区間の間に5時間の休憩があるとき・訓練・臨時勤務（TDY）にも条件つきで",
-     "note": "労働協約。オーランド（MCO）の定期訓練（CQT）は例外あり"
+     "value": "",
+     "rows": [
+      [
+       "基地の外で泊まるとき",
+       "個室"
+      ],
+      [
+       "区間の間の5時間の休憩・訓練・臨時勤務（TDY）",
+       "条件つきで個室"
+      ]
+     ],
+     "note": "オーランド（MCO）の定期訓練は例外あり"
     },
     "en": {
      "label": "Hotel rooms",
-     "value": "Single rooms for overnights away from base; with conditions, also for 5-hour breaks between legs, training and TDY",
-     "note": "Pilot contract. Exception for recurrent training (CQT) at MCO"
+     "value": "",
+     "rows": [
+      [
+       "Overnights away from base",
+       "Single rooms"
+      ],
+      [
+       "5-hour sits between legs, training, TDY",
+       "Single rooms, with conditions"
+      ]
+     ],
+     "note": "Exceptions apply to recurrent training (CQT) at MCO"
     }
    }
   ]
@@ -975,13 +1999,33 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "ライン・リザーブとも月75時間",
-     "note": ""
+     "value": "",
+     "note": "",
+     "rows": [
+      [
+       "Line - 乗務が決まっている月",
+       "75時間分"
+      ],
+      [
+       "Reserve - STBY要員の月",
+       "75時間分"
+      ]
+     ]
     },
     "en": {
      "label": "Minimum guarantee",
-     "value": "75 hours a month for lineholders and reserves",
-     "note": ""
+     "value": "",
+     "note": "",
+     "rows": [
+      [
+       "Lineholders",
+       "75 hours"
+      ],
+      [
+       "Reserve",
+       "75 hours"
+      ]
+     ]
     }
    },
    {
@@ -989,27 +2033,27 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "超過分の割増",
-     "value": "月82.5クレジット時間を超えた分は125%",
-     "note": "会社の採用ページの案内"
+     "value": "月82.5時間を超えた分は、1時間の単価の1.25倍（給与に数える時間）",
+     "note": ""
     },
     "en": {
      "label": "Overtime premium",
-     "value": "125% for credit above 82.5 hours a month",
-     "note": "Company pilot recruiting page"
+     "value": "1.25 times the hourly rate for credit above 82.5 hours a month",
+     "note": ""
     }
    },
    {
     "key": "per_diem",
     "ref": true,
     "ja": {
-     "label": "パーディアム（日当）",
+     "label": "日当",
      "value": "1時間 USD 2.15（国内線・国際線とも）",
-     "note": "過去の参考値。別の資料では USD 2.20"
+     "note": "以前の額"
     },
     "en": {
      "label": "Per diem",
      "value": "USD 2.15 an hour, domestic and international",
-     "note": "Older reference rate; another source shows USD 2.20"
+     "note": "Earlier rate"
     }
    },
    {
@@ -1017,12 +2061,32 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "労働協約",
-     "value": "改定できる日 2024年1月16日。2023年7月から改定の交渉（Section 6）中",
-     "note": "2026年11月の調べ"
+     "value": "",
+     "rows": [
+      [
+       "改定交渉に入れる日",
+       "2024年1月16日"
+      ],
+      [
+       "改定の交渉",
+       "2023年7月から続いている"
+      ]
+     ],
+     "note": "2026年11月時点"
     },
     "en": {
-     "label": "Contract status",
-     "value": "Amendable since January 16, 2024; Section 6 talks since July 2023",
+     "label": "Contract",
+     "value": "",
+     "rows": [
+      [
+       "Amendable",
+       "Since Jan 16, 2024"
+      ],
+      [
+       "Section 6 talks",
+       "Ongoing since July 2023"
+      ]
+     ],
      "note": "As of November 2026"
     }
    },
@@ -1032,12 +2096,12 @@ export const TERMS = Object.freeze({
     "ja": {
      "label": "社員の航空券",
      "value": "本人と家族に無料・割引の航空券",
-     "note": "会社の案内"
+     "note": ""
     },
     "en": {
      "label": "Travel benefits",
      "value": "Free and discounted travel for you and your family",
-     "note": "Company information"
+     "note": ""
     }
    },
    {
@@ -1046,12 +2110,12 @@ export const TERMS = Object.freeze({
     "ja": {
      "label": "パイロット数",
      "value": "2,260人",
-     "note": "パイロットの労組の掲載値"
+     "note": ""
     },
     "en": {
-     "label": "Pilot group",
+     "label": "Pilot group size",
      "value": "2,260 pilots",
-     "note": "Figure posted by the union"
+     "note": ""
     }
    }
   ],
@@ -1062,12 +2126,12 @@ export const TERMS = Object.freeze({
     "ja": {
      "label": "勤務の形",
      "value": "日帰りの乗務が中心",
-     "note": "会社の採用ページの説明"
+     "note": ""
     },
     "en": {
      "label": "Trip pattern",
      "value": "Mostly day trips (turns)",
-     "note": "Company pilot recruiting page"
+     "note": ""
     }
    }
   ],
@@ -1076,14 +2140,42 @@ export const TERMS = Object.freeze({
     "key": "airport_transit",
     "ref": false,
     "ja": {
-     "label": "空港への電車",
-     "value": "DEN へは RTD A Line で Union Station から約37分。早朝・深夜もおおむね30分おき",
-     "note": "デンバー基地。運賃は1日 USD 10・1か月 USD 88"
+     "label": "DEN への電車",
+     "value": "",
+     "rows": [
+      [
+       "路線",
+       "Union Station から RTD の A線で約37分"
+      ],
+      [
+       "早朝・深夜",
+       "おおむね30分おき"
+      ],
+      [
+       "運賃",
+       "空港までの1日券 USD 10・1か月券 USD 88"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Rail to DEN",
-     "value": "RTD A Line from Union Station, about 37 min; roughly every 30 min early and late",
-     "note": "Denver base. Airport Day Pass USD 10, Monthly Pass USD 88"
+     "value": "",
+     "rows": [
+      [
+       "Route",
+       "RTD A Line from Union Station, about 37 min"
+      ],
+      [
+       "Early and late",
+       "Roughly every 30 min"
+      ],
+      [
+       "Fares",
+       "Airport Day Pass USD 10, Monthly Pass USD 88"
+      ]
+     ],
+     "note": ""
     }
    }
   ]
@@ -1095,27 +2187,47 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "最低保証",
-     "value": "ライン月70時間・リザーブ月72時間",
-     "note": "比較表の参考値"
+     "value": "",
+     "rows": [
+      [
+       "Line - 乗務が決まっている月",
+       "70時間分"
+      ],
+      [
+       "Reserve - STBY要員の月",
+       "72時間分"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Minimum guarantee",
-     "value": "70 hours a month for lineholders, 72 for reserves",
-     "note": "Reference figures from a comparison table"
+     "value": "",
+     "rows": [
+      [
+       "Lineholders",
+       "70 hours"
+      ],
+      [
+       "Reserve",
+       "72 hours"
+      ]
+     ],
+     "note": ""
     }
    },
    {
     "key": "duty_period_min",
     "ref": false,
     "ja": {
-     "label": "1乗務の最低支給",
-     "value": "1回の飛行勤務（FDP）ごとに最低5クレジット時間",
-     "note": "2026年の新協約"
+     "label": "1回の勤務の最低支給",
+     "value": "1回の乗務の勤務（FDP）ごとに、最低5時間分",
+     "note": "2026年の協約から"
     },
     "en": {
      "label": "Duty period minimum",
-     "value": "Minimum 5 credit hours per flight duty period (FDP)",
-     "note": "2026 CBA"
+     "value": "5 credit hours minimum per flight duty period (FDP)",
+     "note": "From the 2026 contract"
     }
    },
    {
@@ -1123,12 +2235,40 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "追加乗務の割増",
-     "value": "Premium Open Time 1.5〜3倍、追加乗務の募集に応じた分（VFN）2〜3倍、ジュニアアサイン 2倍",
+     "value": "",
+     "rows": [
+      [
+       "割増つきで募集された空いた乗務",
+       "1時間の単価の1.5〜3倍"
+      ],
+      [
+       "会社の追加乗務の呼びかけに応じた分",
+       "1時間の単価の2〜3倍"
+      ],
+      [
+       "休みの日に、勤続の短い順に会社が割り当てる乗務",
+       "1時間の単価の2倍"
+      ]
+     ],
      "note": ""
     },
     "en": {
      "label": "Premium pay",
-     "value": "Premium Open Time 1.5–3x, Voluntary Flying Notification 2–3x, junior assignment 2x",
+     "value": "",
+     "rows": [
+      [
+       "Premium Open Time",
+       "1.5–3x"
+      ],
+      [
+       "Voluntary Flying Notification",
+       "2–3x"
+      ],
+      [
+       "Junior assignment",
+       "2x"
+      ]
+     ],
      "note": ""
     }
    },
@@ -1136,27 +2276,27 @@ export const TERMS = Object.freeze({
     "key": "per_diem",
     "ref": true,
     "ja": {
-     "label": "パーディアム（日当）",
+     "label": "日当",
      "value": "1時間 USD 2.00（国内線・国際線とも）",
-     "note": "2026年の参考値"
+     "note": "2026年の額"
     },
     "en": {
      "label": "Per diem",
      "value": "USD 2.00 an hour, domestic and international",
-     "note": "2026 reference rate"
+     "note": "2026 rate"
     }
    },
    {
     "key": "retirement",
     "ref": false,
     "ja": {
-     "label": "会社の退職拠出",
-     "value": "2027年1月1日から DC（確定拠出）15% に変わる予定",
+     "label": "会社の年金の積み立て",
+     "value": "2027年1月1日から、会社が給与の15%を確定拠出年金（DC）に積み立てる",
      "note": ""
     },
     "en": {
-     "label": "Company retirement",
-     "value": "Moving to a 15% DC contribution on January 1, 2027",
+     "label": "Retirement",
+     "value": "15% company DC contribution from January 1, 2027",
      "note": ""
     }
    },
@@ -1165,13 +2305,33 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "労働協約",
-     "value": "2026年7月31日に2年の新協約を批准。給与は7月1日にさかのぼって適用",
-     "note": "労組は Teamsters"
+     "value": "",
+     "rows": [
+      [
+       "新しい協約",
+       "2026年7月31日に批准（2年間）"
+      ],
+      [
+       "給与",
+       "2026年7月1日にさかのぼって適用"
+      ]
+     ],
+     "note": ""
     },
     "en": {
-     "label": "Contract status",
-     "value": "Two-year CBA ratified July 31, 2026; pay retroactive to July 1, 2026",
-     "note": "Teamsters-represented pilots"
+     "label": "Contract",
+     "value": "",
+     "rows": [
+      [
+       "New CBA",
+       "Two-year deal ratified July 31, 2026"
+      ],
+      [
+       "Pay",
+       "Retroactive to July 1, 2026"
+      ]
+     ],
+     "note": ""
     }
    },
    {
@@ -1179,27 +2339,27 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "予定されている昇給",
-     "value": "2027年1月1日と2028年1月1日に新しい給与表",
-     "note": "上がり幅は年数と職位で違う"
+     "value": "2027年1月1日と2028年1月1日に新しい給与表（上がり幅は年数と職位で違う）",
+     "note": ""
     },
     "en": {
      "label": "Scheduled raises",
-     "value": "New pay scales on January 1, 2027 and January 1, 2028",
-     "note": "Increase varies by step and seat"
+     "value": "New pay scales on January 1, 2027 and January 1, 2028; the increase varies by year and seat",
+     "note": ""
     }
    },
    {
     "key": "disability",
     "ref": false,
     "ja": {
-     "label": "所得補償",
-     "value": "会社負担の長期所得補償（LTD）を65歳まで",
-     "note": "2026年の新協約"
+     "label": "働けなくなったときの補償",
+     "value": "長期の所得補償（LTD）を65歳まで、会社負担で",
+     "note": "2026年の協約から"
     },
     "en": {
-     "label": "Disability",
+     "label": "Disability insurance",
      "value": "Company-paid long-term disability (LTD) to age 65",
-     "note": "2026 CBA"
+     "note": "From the 2026 contract"
     }
    },
    {
@@ -1207,13 +2367,33 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "社員の航空券",
-     "value": "本人と扶養家族は自社便に空席待ちで無制限。一部の他社便と友人・家族のパスは少額の費用",
-     "note": "社員ぜんたいの制度"
+     "value": "",
+     "rows": [
+      [
+       "自社便（本人と扶養家族）",
+       "空席待ちで回数の制限なし"
+      ],
+      [
+       "一部の他社便・友人や家族向けのパス",
+       "少額の費用"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Travel benefits",
-     "value": "Unlimited space-available on Allegiant for you and dependents; small fees for select other airlines and buddy passes",
-     "note": "Company-wide employee benefit"
+     "value": "",
+     "rows": [
+      [
+       "Allegiant (you and dependents)",
+       "Unlimited space-available"
+      ],
+      [
+       "Select other airlines, buddy passes",
+       "Small fees"
+      ]
+     ],
+     "note": ""
     }
    },
    {
@@ -1222,12 +2402,12 @@ export const TERMS = Object.freeze({
     "ja": {
      "label": "パイロット数",
      "value": "約1,300人",
-     "note": "パイロットの労組の掲載値"
+     "note": ""
     },
     "en": {
-     "label": "Pilot group",
+     "label": "Pilot group size",
      "value": "About 1,300 pilots",
-     "note": "Figure posted by the union"
+     "note": ""
     }
    }
   ]
@@ -1239,13 +2419,41 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "4週の期間で68・5週で85・6週で102クレジット時間",
-     "note": "需要が落ちたときの減額、休職・初期訓練中などの例外あり"
+     "value": "",
+     "rows": [
+      [
+       "4週の期間",
+       "68時間分"
+      ],
+      [
+       "5週の期間",
+       "85時間分"
+      ],
+      [
+       "6週の期間",
+       "102時間分"
+      ]
+     ],
+     "note": "需要が落ちたとき・休職中・初期訓練中などは例外"
     },
     "en": {
      "label": "Minimum guarantee",
-     "value": "68 credit hours per 4-week period, 85 per 5-week, 102 per 6-week",
-     "note": "Exceptions incl. reductions when demand drops, leave, initial training"
+     "value": "",
+     "rows": [
+      [
+       "4-week period",
+       "68 credit hours"
+      ],
+      [
+       "5-week period",
+       "85 credit hours"
+      ],
+      [
+       "6-week period",
+       "102 credit hours"
+      ]
+     ],
+     "note": "Exceptions include demand-driven reductions, leave and initial training"
     }
    },
    {
@@ -1253,41 +2461,133 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "国際線の加算",
-     "value": "機長 1時間 USD 10・副操縦士 USD 8。超長距離（ULR）はさらに機長 USD 24・副操縦士 USD 17",
-     "note": "対象トリップのクレジット時間に付く"
+     "value": "",
+     "rows": [
+      [
+       "機長",
+       "1時間 USD 10"
+      ],
+      [
+       "副操縦士",
+       "1時間 USD 8"
+      ],
+      [
+       "超長距離（ULR）の上乗せ（機長）",
+       "1時間 USD 24"
+      ],
+      [
+       "超長距離（ULR）の上乗せ（副操縦士）",
+       "1時間 USD 17"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "International override",
-     "value": "CA USD 10/hr, FO USD 8/hr; qualifying ULR adds CA USD 24/hr, FO USD 17/hr",
-     "note": "Paid on credit for qualifying trips"
+     "value": "",
+     "rows": [
+      [
+       "Captain",
+       "USD 10/hr"
+      ],
+      [
+       "First officer",
+       "USD 8/hr"
+      ],
+      [
+       "ULR add-on (CA)",
+       "USD 24/hr"
+      ],
+      [
+       "ULR add-on (FO)",
+       "USD 17/hr"
+      ]
+     ],
+     "note": ""
     }
    },
    {
     "key": "per_diem",
     "ref": false,
     "ja": {
-     "label": "パーディアム（日当）",
-     "value": "国内線 1時間 USD 2.85・国際線 1時間 USD 3.85",
-     "note": "2026年の新協約。24か月後に USD 3.00・4.05 の予定"
+     "label": "日当",
+     "value": "",
+     "rows": [
+      [
+       "国内線",
+       "1時間 USD 2.85"
+      ],
+      [
+       "国際線",
+       "1時間 USD 3.85"
+      ],
+      [
+       "協約から24か月後",
+       "国内線 USD 3.00・国際線 USD 4.05"
+      ]
+     ],
+     "note": "2026年の協約から"
     },
     "en": {
      "label": "Per diem",
-     "value": "USD 2.85 an hour domestic, USD 3.85 international",
-     "note": "2026 CBA; rising to USD 3.00 / 4.05 after 24 months"
+     "value": "",
+     "rows": [
+      [
+       "Domestic",
+       "USD 2.85/hr"
+      ],
+      [
+       "International",
+       "USD 3.85/hr"
+      ],
+      [
+       "24 months into the contract",
+       "USD 3.00 domestic, USD 4.05 international"
+      ]
+     ],
+     "note": "From the 2026 contract"
     }
    },
    {
     "key": "retirement",
     "ref": false,
     "ja": {
-     "label": "退職給付",
-     "value": "在籍者は従来の確定給付（DB）と DC などから選ぶ。新しく入る人は従来の DB の対象外",
-     "note": "2026年時点。2028年以降は MBCB（市場連動型の給付）と DC"
+     "label": "退職の年金",
+     "value": "",
+     "rows": [
+      [
+       "いま在籍している人",
+       "従来の確定給付年金（DB）か、確定拠出（DC）などを選ぶ"
+      ],
+      [
+       "新しく入る人",
+       "従来の確定給付年金は対象外"
+      ],
+      [
+       "2028年から",
+       "市場に連動する給付（MBCB）と確定拠出（DC）"
+      ]
+     ],
+     "note": "2026年時点"
     },
     "en": {
      "label": "Retirement",
-     "value": "Current pilots choose between the legacy DB plan and DC options; new hires are not eligible for the legacy DB",
-     "note": "As of 2026; from 2028, a market-based cash balance (MBCB) plan and DC"
+     "value": "",
+     "rows": [
+      [
+       "Current pilots",
+       "Choose the legacy DB plan or DC options"
+      ],
+      [
+       "New hires",
+       "Not eligible for the legacy DB"
+      ],
+      [
+       "From 2028",
+       "Market-based cash balance (MBCB) plan and DC"
+      ]
+     ],
+     "note": "As of 2026"
     }
    },
    {
@@ -1295,13 +2595,33 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "労働協約",
-     "value": "2026年6月29日発効。改定できる日 2030年12月",
-     "note": "労組は ALPA"
+     "value": "",
+     "rows": [
+      [
+       "発効",
+       "2026年6月29日"
+      ],
+      [
+       "改定交渉に入れる日",
+       "2030年12月"
+      ]
+     ],
+     "note": ""
     },
     "en": {
-     "label": "Contract status",
-     "value": "Effective June 29, 2026; amendable December 2030",
-     "note": "ALPA-represented pilots"
+     "label": "Contract",
+     "value": "",
+     "rows": [
+      [
+       "Effective",
+       "June 29, 2026"
+      ],
+      [
+       "Amendable",
+       "December 2030"
+      ]
+     ],
+     "note": ""
     }
    },
    {
@@ -1309,13 +2629,41 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "予定されている昇給",
-     "value": "2028年1月・2029年1月・2030年1月にそれぞれ3%",
-     "note": "1月のビッド期間から全体に"
+     "value": "",
+     "rows": [
+      [
+       "2028年1月",
+       "全員 3%"
+      ],
+      [
+       "2029年1月",
+       "全員 3%"
+      ],
+      [
+       "2030年1月",
+       "全員 3%"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Scheduled raises",
-     "value": "3% each in January 2028, 2029 and 2030",
-     "note": "Across the board, from the January bid period"
+     "value": "",
+     "rows": [
+      [
+       "January 2028",
+       "3% across the board"
+      ],
+      [
+       "January 2029",
+       "3% across the board"
+      ],
+      [
+       "January 2030",
+       "3% across the board"
+      ]
+     ],
+     "note": ""
     }
    },
    {
@@ -1323,13 +2671,13 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "社員の航空券",
-     "value": "本人と対象の扶養家族が空席待ちで搭乗できる（personal standby travel）",
-     "note": "労組（ALPA）の公開案内"
+     "value": "本人と対象の扶養家族が空席待ちで乗れる",
+     "note": ""
     },
     "en": {
      "label": "Travel benefits",
      "value": "Personal standby travel for you and eligible dependents",
-     "note": "ALPA public guidance"
+     "note": ""
     }
    },
    {
@@ -1337,13 +2685,33 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "パイロット数",
-     "value": "4,876人（労組 ALPA の掲載）・5,800人以上（会社の採用ページ）",
-     "note": "掲載元ごとに数が違う"
+     "value": "",
+     "rows": [
+      [
+       "労組（ALPA）の数",
+       "4,876人"
+      ],
+      [
+       "会社の数",
+       "5,800人以上"
+      ]
+     ],
+     "note": ""
     },
     "en": {
-     "label": "Pilot group",
-     "value": "4,876 (ALPA); 5,800+ (company careers page)",
-     "note": "Sources differ"
+     "label": "Pilot group size",
+     "value": "",
+     "rows": [
+      [
+       "ALPA figure",
+       "4,876"
+      ],
+      [
+       "Company figure",
+       "5,800+"
+      ]
+     ],
+     "note": ""
     }
    }
   ],
@@ -1353,41 +2721,94 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "年休",
-     "value": "勤続1〜4年未満 15日・5〜9年未満 22日・10〜19年未満 29日・20年以上 36日",
-     "note": "12月31日の勤続で決まり翌年に使う。境目の年は按分、初年は月1.5日"
+     "value": "",
+     "rows": [
+      [
+       "1年目",
+       "毎月1.5日ずつ（最大10か月）"
+      ],
+      [
+       "勤続1〜4年未満",
+       "年15日"
+      ],
+      [
+       "5〜9年未満",
+       "年22日"
+      ],
+      [
+       "10〜19年未満",
+       "年29日"
+      ],
+      [
+       "20年以上",
+       "年36日"
+      ],
+      [
+       "決まり方",
+       "12月31日の勤続年数で決まり、翌年に使う（4〜5年・9〜10年・19〜20年の区切りの年は日割り）"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Vacation",
-     "value": "15 days (1 to <4 yrs), 22 (5 to <9), 29 (10 to <19), 36 (20+)",
-     "note": "Set by Dec 31 seniority, used the next year; prorated in transition years, 1.5 days a month in year one"
+     "value": "",
+     "rows": [
+      [
+       "First year",
+       "1.5 days a month, for up to 10 months"
+      ],
+      [
+       "1 to under 4 years",
+       "15 days"
+      ],
+      [
+       "5 to under 9 years",
+       "22 days"
+      ],
+      [
+       "10 to under 19 years",
+       "29 days"
+      ],
+      [
+       "20+ years",
+       "36 days"
+      ],
+      [
+       "How it works",
+       "Based on seniority on 31 December and used the following year; prorated in the transition years (4–5, 9–10 and 19–20)"
+      ]
+     ],
+     "note": ""
     }
    },
    {
     "key": "vacation_pay",
     "ref": false,
     "ja": {
-     "label": "年休の支給",
-     "value": "年休1日につき6クレジット時間",
-     "note": "2026年の協約"
+     "label": "年休の日の給与",
+     "value": "年休1日を6時間分として給与に数える",
+     "note": "2026年の協約から"
     },
     "en": {
      "label": "Vacation pay",
      "value": "6 credit hours per vacation day",
-     "note": "2026 CBA"
+     "note": "From the 2026 contract"
     }
    },
    {
     "key": "reserve_lines",
     "ref": false,
+    "hide": "スタンバイの勤務表の型（R-24）の割合という細かい決まりで、日本の読者には意味が通じにくく、比べる意味も薄い",
     "ja": {
-     "label": "リザーブのライン",
-     "value": "公開されるリザーブのラインのうち R-24 型を20%以上に（従来は13%）",
-     "note": "2026年の新協約"
+     "label": "スタンバイの勤務表",
+     "value": "公開されるスタンバイの勤務表のうち、R-24 型を20%以上に（これまでは13%）",
+     "note": "2026年の協約から"
     },
     "en": {
      "label": "Reserve lines",
      "value": "At least 20% of published reserve lines are R-24 (up from 13%)",
-     "note": "2026 CBA"
+     "note": "From the 2026 contract"
     }
    }
   ],
@@ -1396,14 +2817,34 @@ export const TERMS = Object.freeze({
     "key": "hotel",
     "ref": false,
     "ja": {
-     "label": "途中停止での休養",
-     "value": "MEM・IND などの短い途中停止は、条件付きでホテルの代わりに休養室（sleep room）",
-     "note": "2026年の新協約で IND の日中の国内線にも拡大"
+     "label": "途中の短い停止での休み方",
+     "value": "",
+     "rows": [
+      [
+       "メンフィス（MEM）・インディアナポリス（IND）などの短い停止",
+       "条件つきで、ホテルの代わりに仮眠室"
+      ],
+      [
+       "2026年の協約から",
+       "IND の日中の国内線にも広げた"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Sleep rooms",
-     "value": "On short en-route stops (MEM, IND, etc.), sleep rooms can replace hotels under set conditions",
-     "note": "2026 CBA extends this to daytime domestic flying at IND"
+     "value": "",
+     "rows": [
+      [
+       "Short en-route stops (MEM, IND, etc.)",
+       "Sleep rooms can replace hotels, with conditions"
+      ],
+      [
+       "2026 contract",
+       "Extended to daytime domestic flying at IND"
+      ]
+     ],
+     "note": ""
     }
    }
   ]
@@ -1415,40 +2856,104 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "最低保証",
-     "value": "28日の給与期間ごとに75クレジット時間",
-     "note": "比較資料の値"
+     "value": "28日の給与期間ごとに75時間分",
+     "note": ""
     },
     "en": {
      "label": "Minimum guarantee",
      "value": "75 credit hours per 28-day pay period",
-     "note": "Comparison-table figure"
+     "note": ""
     }
    },
    {
     "key": "premiums",
     "ref": true,
     "ja": {
-     "label": "国際線の加算",
-     "value": "機長 1時間 USD 6.50・副操縦士 USD 4.50。追加乗務には150%などの割増",
-     "note": "比較資料の値"
+     "label": "加算・割増",
+     "value": "",
+     "rows": [
+      [
+       "国際線の加算（機長）",
+       "1時間 USD 6.50"
+      ],
+      [
+       "国際線の加算（副操縦士）",
+       "1時間 USD 4.50"
+      ],
+      [
+       "追加の乗務",
+       "1時間の単価の1.5倍など"
+      ]
+     ],
+     "note": ""
     },
     "en": {
-     "label": "International override",
-     "value": "CA USD 6.50/hr, FO USD 4.50/hr; premium pay such as 150% for extra flying",
-     "note": "Comparison-table figures"
+     "label": "Override & premiums",
+     "value": "",
+     "rows": [
+      [
+       "International override (CA)",
+       "USD 6.50/hr"
+      ],
+      [
+       "International override (FO)",
+       "USD 4.50/hr"
+      ],
+      [
+       "Extra flying",
+       "Premium pay, e.g. 150%"
+      ]
+     ],
+     "note": ""
     }
    },
    {
     "key": "per_diem",
     "ref": true,
     "ja": {
-     "label": "パーディアム（日当）",
-     "value": "国内線 1時間 USD 3.35・国際線 USD 4.10（太平洋 USD 3.65・欧州 USD 3.40）",
+     "label": "日当",
+     "value": "",
+     "rows": [
+      [
+       "国内線",
+       "1時間 USD 3.35"
+      ],
+      [
+       "国際線",
+       "1時間 USD 4.10"
+      ],
+      [
+       "太平洋",
+       "1時間 USD 3.65"
+      ],
+      [
+       "欧州",
+       "1時間 USD 3.40"
+      ]
+     ],
      "note": "2025年1月の額"
     },
     "en": {
      "label": "Per diem",
-     "value": "USD 3.35 an hour domestic, USD 4.10 international (Pacific USD 3.65, Europe USD 3.40)",
+     "value": "",
+     "rows": [
+      [
+       "Domestic",
+       "USD 3.35/hr"
+      ],
+      [
+       "International",
+       "USD 4.10/hr"
+      ],
+      [
+       "Pacific",
+       "USD 3.65/hr"
+      ],
+      [
+       "Europe",
+       "USD 3.40/hr"
+      ]
+     ],
      "note": "January 2025 rates"
     }
    },
@@ -1456,14 +2961,34 @@ export const TERMS = Object.freeze({
     "key": "retirement",
     "ref": true,
     "ja": {
-     "label": "退職給付",
-     "value": "会社の DC（確定拠出）拠出12%と確定給付年金（DB）の両方",
-     "note": "労組の比較資料"
+     "label": "会社の年金",
+     "value": "",
+     "rows": [
+      [
+       "確定拠出（DC）",
+       "会社が給与の12%を積み立てる"
+      ],
+      [
+       "確定給付（DB）",
+       "年金がある"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Retirement",
-     "value": "12% company DC contribution plus a defined benefit (DB) pension",
-     "note": "Union comparison data"
+     "value": "",
+     "rows": [
+      [
+       "DC plan",
+       "12% company contribution"
+      ],
+      [
+       "DB pension",
+       "Yes"
+      ]
+     ],
+     "note": ""
     }
    },
    {
@@ -1471,13 +2996,41 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "労働協約",
-     "value": "改定できる日 2025年9月1日。新協約を交渉中",
-     "note": "確認できた最後の全体昇給は2025年9月の3.25%"
+     "value": "",
+     "rows": [
+      [
+       "改定交渉に入れる日",
+       "2025年9月1日"
+      ],
+      [
+       "状況",
+       "新しい協約を交渉中"
+      ],
+      [
+       "最後の全員の昇給",
+       "2025年9月に3.25%"
+      ]
+     ],
+     "note": "2026年11月時点"
     },
     "en": {
-     "label": "Contract status",
-     "value": "Amendable since September 1, 2025; new contract in negotiation",
-     "note": "Last confirmed across-the-board raise: 3.25% in September 2025"
+     "label": "Contract",
+     "value": "",
+     "rows": [
+      [
+       "Amendable",
+       "Since 1 September 2025"
+      ],
+      [
+       "Status",
+       "New contract under negotiation"
+      ],
+      [
+       "Last across-the-board raise",
+       "3.25% in September 2025"
+      ]
+     ],
+     "note": "As of November 2026"
     }
    },
    {
@@ -1485,13 +3038,13 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "ジャンプシート",
-     "value": "本人が私用でジャンプシートを使える",
-     "note": "公的な資料"
+     "value": "私用の移動で、本人がジャンプシートに乗れる",
+     "note": ""
     },
     "en": {
      "label": "Jumpseat",
      "value": "Personal jumpseat travel for yourself",
-     "note": "Public records"
+     "note": ""
     }
    },
    {
@@ -1500,12 +3053,12 @@ export const TERMS = Object.freeze({
     "ja": {
      "label": "パイロット数",
      "value": "3,400人超",
-     "note": "パイロットの労組の掲載値"
+     "note": ""
     },
     "en": {
-     "label": "Pilot group",
+     "label": "Pilot group size",
      "value": "More than 3,400 pilots",
-     "note": "Figure posted by the union"
+     "note": ""
     }
    }
   ],
@@ -1515,13 +3068,49 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "年休",
-     "value": "2年目 14日・5年目 21日・12年目 28日・20年目 35日",
-     "note": "2025年9月の比較表の値。休日とは別"
+     "value": "",
+     "rows": [
+      [
+       "2年目",
+       "年14日"
+      ],
+      [
+       "5年目",
+       "年21日"
+      ],
+      [
+       "12年目",
+       "年28日"
+      ],
+      [
+       "20年目",
+       "年35日"
+      ]
+     ],
+     "note": "2025年9月時点"
     },
     "en": {
      "label": "Vacation",
-     "value": "14 days at year 2, 21 at year 5, 28 at year 12, 35 at year 20",
-     "note": "September 2025 comparison table; separate from days off"
+     "value": "",
+     "rows": [
+      [
+       "Year 2",
+       "14 days"
+      ],
+      [
+       "Year 5",
+       "21 days"
+      ],
+      [
+       "Year 12",
+       "28 days"
+      ],
+      [
+       "Year 20",
+       "35 days"
+      ]
+     ],
+     "note": "As of September 2025"
     }
    }
   ]
@@ -1533,55 +3122,103 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "月64時間（クレジット時間）",
-     "note": "2021年の協約（Teamsters Local 2750）"
+     "value": "月64時間分",
+     "note": "2021年の協約"
     },
     "en": {
      "label": "Minimum guarantee",
      "value": "64 credit hours a month",
-     "note": "2021 CBA (Teamsters Local 2750)"
+     "note": "2021 contract"
     }
    },
    {
     "key": "per_diem",
     "ref": true,
     "ja": {
-     "label": "パーディアム（日当）",
-     "value": "対象の1時間あたり 国内 USD 3.25・国際 USD 4.00",
-     "note": "2021年協約の額（USD 2.75・3.50）に毎年 USD 0.10 を足した2026年の額"
+     "label": "日当",
+     "value": "",
+     "rows": [
+      [
+       "国内",
+       "1時間 USD 3.25"
+      ],
+      [
+       "国際",
+       "1時間 USD 4.00"
+      ]
+     ],
+     "note": "2026年の額（協約で毎年 USD 0.10 ずつ上がった分を足した）"
     },
     "en": {
      "label": "Per diem",
-     "value": "USD 3.25 an hour domestic, USD 4.00 international",
-     "note": "2026 rate worked out from the 2021 CBA: USD 2.75 / 3.50 plus USD 0.10 a year, 2022–26"
+     "value": "",
+     "rows": [
+      [
+       "Domestic",
+       "USD 3.25/hr"
+      ],
+      [
+       "International",
+       "USD 4.00/hr"
+      ]
+     ],
+     "note": "2026 rate (includes the contract's USD 0.10 yearly increases)"
     }
    },
    {
     "key": "retirement",
     "ref": true,
     "ja": {
-     "label": "会社の退職拠出",
-     "value": "確定拠出（DC）に会社が 16%（2026年）",
-     "note": "外部の給与比較表に載る2026年の率"
+     "label": "会社の年金の積み立て",
+     "value": "会社が給与の16%を確定拠出年金（DC）に積み立てる",
+     "note": "2026年の率"
     },
     "en": {
      "label": "Retirement",
-     "value": "16% company DC contribution (2026)",
-     "note": "2026 rate from a third-party pay table"
+     "value": "16% company DC contribution",
+     "note": "2026 rate"
     }
    },
    {
     "key": "contract",
     "ref": false,
     "ja": {
-     "label": "協約の状況",
-     "value": "2021年の協約。最後の定期昇給は2025年9月1日の 3%。2026年9月10日から改定できる",
-     "note": "Teamsters Local 2750"
+     "label": "労働協約",
+     "value": "",
+     "rows": [
+      [
+       "いまの協約",
+       "2021年の協約"
+      ],
+      [
+       "最後の定期昇給",
+       "2025年9月1日に3%"
+      ],
+      [
+       "改定交渉に入れる日",
+       "2026年9月10日"
+      ]
+     ],
+     "note": ""
     },
     "en": {
-     "label": "Contract status",
-     "value": "2021 CBA; last scheduled raise was 3% on September 1, 2025; amendable from September 10, 2026",
-     "note": "Teamsters Local 2750"
+     "label": "Contract",
+     "value": "",
+     "rows": [
+      [
+       "Current contract",
+       "2021 CBA"
+      ],
+      [
+       "Last scheduled raise",
+       "3% on September 1, 2025"
+      ],
+      [
+       "Amendable",
+       "From September 10, 2026"
+      ]
+     ],
+     "note": ""
     }
    },
    {
@@ -1589,27 +3226,27 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "社員の航空券",
-     "value": "本人と対象の家族が空席待ち（スタンバイ）で搭乗できる",
-     "note": "社員ぜんたいの制度（会社の案内）。業務のゲートウェイ移動とは別"
+     "value": "本人と対象の家族が空席待ちで乗れる",
+     "note": ""
     },
     "en": {
      "label": "Staff travel",
      "value": "Standby travel for you and eligible family members",
-     "note": "Company-wide employee benefit; separate from gateway travel for work"
+     "note": ""
     }
    },
    {
     "key": "health",
     "ref": false,
     "ja": {
-     "label": "保険",
+     "label": "医療保険",
      "value": "医療・歯科・眼科の保険",
-     "note": "社員ぜんたいの制度（会社の案内）"
+     "note": ""
     },
     "en": {
-     "label": "Health cover",
-     "value": "Medical, dental and vision plans",
-     "note": "Company-wide employee benefit"
+     "label": "Health insurance",
+     "value": "Medical, dental and vision",
+     "note": ""
     }
    }
   ],
@@ -1619,27 +3256,63 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "年休",
-     "value": "勤続6年未満 14日・6〜11年 21日・12年以上 28日（1年あたり）",
-     "note": "2021年の協約。月に15日以上の在籍（active）などが付与の条件"
+     "value": "",
+     "rows": [
+      [
+       "勤続6年未満",
+       "年14日"
+      ],
+      [
+       "6〜11年",
+       "年21日"
+      ],
+      [
+       "12年以上",
+       "年28日"
+      ],
+      [
+       "付く条件",
+       "その月に15日以上、勤務についていることなど"
+      ]
+     ],
+     "note": "2021年の協約"
     },
     "en": {
      "label": "Vacation",
-     "value": "14 days under 6 years, 21 days at 6–11 years, 28 days from 12 years",
-     "note": "2021 CBA; accrual requires at least 15 active days in the month, among other conditions"
+     "value": "",
+     "rows": [
+      [
+       "Under 6 years",
+       "14 days"
+      ],
+      [
+       "6–11 years",
+       "21 days"
+      ],
+      [
+       "12+ years",
+       "28 days"
+      ],
+      [
+       "Accrual",
+       "Requires at least 15 active days in the month, among other conditions"
+      ]
+     ],
+     "note": "2021 contract"
     }
    },
    {
     "key": "commuter",
     "ref": false,
     "ja": {
-     "label": "ゲートウェイ方式",
-     "value": "ゲートウェイ空港から乗務までの移動は会社が手配（対象になる条件あり）",
-     "note": "2021年の協約と会社の案内"
+     "label": "出発の空港からの移動",
+     "value": "自分が登録した出発の空港から乗務の場所までの移動は、会社が手配する（条件あり）",
+     "note": ""
     },
     "en": {
      "label": "Gateway travel",
      "value": "Company-arranged travel from your gateway airport to the trip, subject to eligibility",
-     "note": "2021 CBA and company crew information"
+     "note": ""
     }
    }
   ],
@@ -1648,14 +3321,14 @@ export const TERMS = Object.freeze({
     "key": "parking",
     "ref": false,
     "ja": {
-     "label": "空港までの交通費",
-     "value": "自宅からゲートウェイ空港までの移動・有料道路・駐車は自分で払う",
-     "note": "2021年の協約"
+     "label": "出発の空港までの交通費",
+     "value": "自宅から登録した出発の空港までの車の費用・有料道路・駐車場は自分で払う",
+     "note": ""
     },
     "en": {
      "label": "Getting to the gateway",
-     "value": "Mileage, tolls and parking between home and the gateway airport are paid by the pilot",
-     "note": "2021 CBA"
+     "value": "Mileage, tolls and parking between home and your gateway airport are paid by the pilot",
+     "note": ""
     }
    }
   ],
@@ -1665,13 +3338,33 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "ホテル",
-     "value": "訓練中・ベースでの滞在中・乗務の前後・リザーブ中は会社負担のホテル。協約で個室",
-     "note": "会社の乗員案内と2021年の協約"
+     "value": "",
+     "rows": [
+      [
+       "会社負担のホテル",
+       "訓練中・基地での滞在中・乗務の前後・スタンバイ中"
+      ],
+      [
+       "部屋",
+       "個室（協約で決まっている）"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Hotels",
-     "value": "Company-paid hotels in training, in base, before and after trips and on reserve; single rooms under the CBA",
-     "note": "Company crew information and 2021 CBA"
+     "value": "",
+     "rows": [
+      [
+       "Company-paid hotels",
+       "Training, in base, before and after trips, and on reserve"
+      ],
+      [
+       "Rooms",
+       "Single rooms under the contract"
+      ]
+     ],
+     "note": ""
     }
    }
   ]
@@ -1683,27 +3376,63 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "2週間の給与期間ごとに 29.92 クレジット時間",
-     "note": "組合（APA Teamsters Local 1224）の2026年の採用資料"
+     "value": "2週間の給与期間ごとに29.92時間分",
+     "note": ""
     },
     "en": {
      "label": "Minimum guarantee",
      "value": "29.92 credit hours per biweekly pay period",
-     "note": "2026 hiring material from the union (APA Teamsters Local 1224)"
+     "note": ""
     }
    },
    {
     "key": "per_diem",
     "ref": false,
     "ja": {
-     "label": "パーディアム（日当）",
-     "value": "1日あたり 国内 USD 71.00・国際 USD 93.00・太平洋 USD 94.75・米領カリブ／カナダ／メキシコ USD 78.50",
-     "note": "2026年1月1日からの日額（時間単位ではない）"
+     "label": "日当",
+     "value": "",
+     "rows": [
+      [
+       "国内",
+       "1日 USD 71.00"
+      ],
+      [
+       "国際",
+       "1日 USD 93.00"
+      ],
+      [
+       "太平洋",
+       "1日 USD 94.75"
+      ],
+      [
+       "米領カリブ・カナダ・メキシコ",
+       "1日 USD 78.50"
+      ]
+     ],
+     "note": "2026年1月1日から"
     },
     "en": {
      "label": "Per diem",
-     "value": "USD 71.00 a day domestic, USD 93.00 international, USD 94.75 Pacific, USD 78.50 US Caribbean/Canada/Mexico",
-     "note": "Daily rates from January 1, 2026, not hourly"
+     "value": "",
+     "rows": [
+      [
+       "Domestic",
+       "USD 71.00/day"
+      ],
+      [
+       "International",
+       "USD 93.00/day"
+      ],
+      [
+       "Pacific",
+       "USD 94.75/day"
+      ],
+      [
+       "US Caribbean, Canada, Mexico",
+       "USD 78.50/day"
+      ]
+     ],
+     "note": "From January 1, 2026"
     }
    },
    {
@@ -1711,41 +3440,113 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "追加乗務の割増",
-     "value": "プレミアムデーは 6時間か150%・7時間か175%・8時間か200% の高い方。オープントリップは最低 4〜8時間",
-     "note": "組合の2026年の採用資料"
+     "value": "",
+     "rows": [
+      [
+       "割増の日（1.5倍の段）",
+       "6時間分か、単価の1.5倍の、高いほう"
+      ],
+      [
+       "割増の日（1.75倍の段）",
+       "7時間分か、単価の1.75倍の、高いほう"
+      ],
+      [
+       "割増の日（2倍の段）",
+       "8時間分か、単価の2倍の、高いほう"
+      ],
+      [
+       "空いている乗務",
+       "最低4〜8時間分"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Premium pay",
-     "value": "Premium days pay the greater of 6 hours or 150%, 7 hours or 175%, 8 hours or 200%; open trips carry a 4–8 hour minimum",
-     "note": "Union's 2026 hiring material"
+     "value": "",
+     "rows": [
+      [
+       "Premium day (150% tier)",
+       "Greater of 6 hours' pay or 150% pay"
+      ],
+      [
+       "Premium day (175% tier)",
+       "Greater of 7 hours' pay or 175% pay"
+      ],
+      [
+       "Premium day (200% tier)",
+       "Greater of 8 hours' pay or 200% pay"
+      ],
+      [
+       "Open trips",
+       "4–8 hour minimum"
+      ]
+     ],
+     "note": ""
     }
    },
    {
     "key": "retirement",
     "ref": false,
     "ja": {
-     "label": "会社の退職拠出",
-     "value": "会社の DC 拠出 2026年 14%・2027〜30年 15%（業績で +1%）。本人の拠出は不要。IRS の上限を超える分は現金",
-     "note": "組合（APA Teamsters Local 1224）の採用資料"
+     "label": "会社の年金の積み立て（確定拠出）",
+     "value": "",
+     "rows": [
+      [
+       "2026年",
+       "会社が給与の14%"
+      ],
+      [
+       "2027〜30年",
+       "会社が給与の15%（業績で +1%）"
+      ],
+      [
+       "本人の積み立て",
+       "要らない"
+      ],
+      [
+       "国の上限（IRS）を超える分",
+       "現金で支払う"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Retirement",
-     "value": "Company DC contribution of 14% in 2026, 15% in 2027–30, plus 1% on performance; no match required; amounts over the IRS cap paid in cash",
-     "note": "Union hiring material (APA Teamsters Local 1224)"
+     "value": "",
+     "rows": [
+      [
+       "2026",
+       "14% company DC contribution"
+      ],
+      [
+       "2027–2030",
+       "15%, plus 1% more based on performance"
+      ],
+      [
+       "Your own contribution",
+       "Not required"
+      ],
+      [
+       "Above the IRS cap",
+       "Paid in cash"
+      ]
+     ],
+     "note": ""
     }
    },
    {
     "key": "contract",
     "ref": false,
     "ja": {
-     "label": "協約の昇給予定",
-     "value": "2027〜2030年の毎年1月1日に約3%の昇給（各年の給与表あり）",
-     "note": "組合（APA Teamsters Local 1224）の採用資料"
+     "label": "予定されている昇給",
+     "value": "2027〜2030年の毎年1月1日に約3%（年ごとの給与表あり）",
+     "note": ""
     },
     "en": {
      "label": "Scheduled raises",
      "value": "About 3% every January 1 from 2027 to 2030, with a pay table for each year",
-     "note": "Union hiring material (APA Teamsters Local 1224)"
+     "note": ""
     }
    },
    {
@@ -1753,27 +3554,47 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "医療保険",
-     "value": "医療は UnitedHealthcare で保険料の75%を会社が負担。歯科・眼科の保険あり",
-     "note": "組合の採用案内"
+     "value": "",
+     "rows": [
+      [
+       "医療（UnitedHealthcare）",
+       "保険料の75%を会社が負担"
+      ],
+      [
+       "歯科・眼科",
+       "保険あり"
+      ]
+     ],
+     "note": ""
     },
     "en": {
-     "label": "Health cover",
-     "value": "UnitedHealthcare medical with 75% of the premium paid by the company; dental and vision",
-     "note": "Union hiring material"
+     "label": "Health insurance",
+     "value": "",
+     "rows": [
+      [
+       "Medical (UnitedHealthcare)",
+       "75% of the premium paid by the company"
+      ],
+      [
+       "Dental and vision",
+       "Yes"
+      ]
+     ],
+     "note": ""
     }
    },
    {
     "key": "disability",
     "ref": false,
     "ja": {
-     "label": "所得補償・生命保険",
-     "value": "短期・長期の所得補償（disability）と生命保険",
-     "note": "組合の採用案内"
+     "label": "働けなくなったときの補償・生命保険",
+     "value": "短期・長期の所得補償と生命保険",
+     "note": ""
     },
     "en": {
-     "label": "Disability, life",
+     "label": "Disability & life",
      "value": "Short- and long-term disability and life insurance",
-     "note": "Union hiring material"
+     "note": ""
     }
    }
   ],
@@ -1782,14 +3603,58 @@ export const TERMS = Object.freeze({
     "key": "days_off",
     "ref": false,
     "ja": {
-     "label": "月の最低休日",
-     "value": "ライン 14日・リザーブ 13日・コンポジット 14日。1週間の年休がかかる月は 21日・20日・21日",
-     "note": "組合の2026年の採用資料"
+     "label": "月の休日（最低）",
+     "value": "",
+     "rows": [
+      [
+       "Line - 乗務が決まっている月",
+       "14日"
+      ],
+      [
+       "Reserve - STBY要員の月",
+       "13日"
+      ],
+      [
+       "Composite - Line と Reserve が混ざる月",
+       "14日"
+      ],
+      [
+       "1週間の年休を取る月（Line）",
+       "21日"
+      ],
+      [
+       "1週間の年休を取る月（Reserve）",
+       "20日"
+      ],
+      [
+       "1週間の年休を取る月（Composite）",
+       "21日"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Minimum days off",
-     "value": "14 for lineholders, 13 on reserve, 14 composite; 21, 20 and 21 in a month with a vacation week",
-     "note": "Union's 2026 hiring material"
+     "value": "",
+     "rows": [
+      [
+       "Lineholders",
+       "14"
+      ],
+      [
+       "Reserve",
+       "13"
+      ],
+      [
+       "Composite",
+       "14"
+      ],
+      [
+       "Month with a vacation week",
+       "Line 21, reserve 20, composite 21"
+      ]
+     ],
+     "note": ""
     }
    },
    {
@@ -1797,13 +3662,33 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "勤務の型",
-     "value": "7日勤務・7日休み、8日・6日、9日・5日 などの例。月の乗務は 45〜50 ブロック時間が典型",
-     "note": "組合の2026年の採用資料にある例と典型値"
+     "value": "",
+     "rows": [
+      [
+       "勤務と休みの組み方",
+       "7日勤務・7日休み、8日勤務・6日休み、9日勤務・5日休みなど"
+      ],
+      [
+       "月のブロックタイム",
+       "45〜50時間ほど"
+      ]
+     ],
+     "note": ""
     },
     "en": {
-     "label": "Typical schedule",
-     "value": "Patterns such as 7 on/7 off, 8/6 and 9/5; typically 45–50 block hours a month",
-     "note": "Examples and typical figure from the union's 2026 hiring material"
+     "label": "Schedule",
+     "value": "",
+     "rows": [
+      [
+       "Patterns",
+       "7 on/7 off, 8/6, 9/5 and similar"
+      ],
+      [
+       "Block hours",
+       "Typically 45–50 a month"
+      ]
+     ],
+     "note": ""
     }
    },
    {
@@ -1811,27 +3696,83 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "年休",
-     "value": "1年未満は月1日・1〜4年 14日・5〜14年 21日・15年以上 28日（1年あたり）",
-     "note": "組合の採用資料"
+     "value": "",
+     "rows": [
+      [
+       "1年目",
+       "毎月1日ずつ（年12日）"
+      ],
+      [
+       "1〜4年",
+       "年14日"
+      ],
+      [
+       "5〜14年",
+       "年21日"
+      ],
+      [
+       "15年以上",
+       "年28日"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Vacation",
-     "value": "1 day a month in the first year; 14 days at 1–4 years, 21 at 5–14, 28 from 15 years",
-     "note": "Union hiring material"
+     "value": "",
+     "rows": [
+      [
+       "First year",
+       "1 day a month (12 a year)"
+      ],
+      [
+       "1–4 years",
+       "14 days"
+      ],
+      [
+       "5–14 years",
+       "21 days"
+      ],
+      [
+       "15+ years",
+       "28 days"
+      ]
+     ],
+     "note": ""
     }
    },
    {
     "key": "commuter",
     "ref": false,
     "ja": {
-     "label": "航空通勤",
-     "value": "他社機のジャンプシートに乗れる仕組み（CASS）あり。国内は出頭前に着く便に1便リストすれば保護",
-     "note": "組合の採用資料。業務のデッドヘッドとは別"
+     "label": "飛行機での通勤",
+     "value": "",
+     "rows": [
+      [
+       "他社機のジャンプシート",
+       "乗れる（CASS という仕組み）"
+      ],
+      [
+       "国内の通勤で乗れなかったとき",
+       "出頭の前に着く便を1便、空席待ちで申し込んでいれば、間に合わなくても不利に扱われない"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Commuting",
-     "value": "CASS jumpseat access; domestic commuters are protected after listing for one flight due in before report",
-     "note": "Union hiring material; separate from company deadheads"
+     "value": "",
+     "rows": [
+      [
+       "Jumpseat",
+       "CASS access"
+      ],
+      [
+       "Domestic commuters",
+       "Protected if you list for one flight scheduled to arrive before report time"
+      ]
+     ],
+     "note": ""
     }
    },
    {
@@ -1839,13 +3780,33 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "病気休暇",
-     "value": "勤続13か月目に 12日、その後は月1日ずつ・上限なし",
-     "note": "組合の採用資料"
+     "value": "",
+     "rows": [
+      [
+       "勤続13か月目",
+       "12日"
+      ],
+      [
+       "その後",
+       "毎月1日ずつ増える（上限なし）"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Sick leave",
-     "value": "12 days in month 13, then 1 a month with no cap",
-     "note": "Union hiring material"
+     "value": "",
+     "rows": [
+      [
+       "13th month of employment",
+       "12 days"
+      ],
+      [
+       "After that",
+       "1 more day a month, no cap"
+      ]
+     ],
+     "note": ""
     }
    },
    {
@@ -1853,13 +3814,33 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "初期訓練",
-     "value": "約60日。訓練中も 65時間の保証・パーディアム・個室のホテル",
-     "note": "組合の採用資料"
+     "value": "",
+     "rows": [
+      [
+       "期間",
+       "約60日"
+      ],
+      [
+       "訓練中",
+       "65時間分の保証・日当・個室のホテル"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Initial training",
-     "value": "About 60 days, with a 65-hour guarantee, per diem and a single room",
-     "note": "Union hiring material"
+     "value": "",
+     "rows": [
+      [
+       "Length",
+       "About 60 days"
+      ],
+      [
+       "During training",
+       "65-hour guarantee, per diem and a single room"
+      ]
+     ],
+     "note": ""
     }
    }
   ],
@@ -1869,13 +3850,41 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "ホテル・食事",
-     "value": "乗務中は個室のホテル。空港でリザーブ待機する間も会社のホテル。乗務中はクルーミールが出る",
-     "note": "組合の採用資料"
+     "value": "",
+     "rows": [
+      [
+       "乗務中",
+       "個室のホテル"
+      ],
+      [
+       "空港でのスタンバイ中",
+       "会社のホテル"
+      ],
+      [
+       "勤務中の食事",
+       "クルーミールが出る"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Hotels, meals",
-     "value": "Single rooms on trips; a company hotel during airport reserve standby; crew meals on duty",
-     "note": "Union hiring material"
+     "value": "",
+     "rows": [
+      [
+       "On trips",
+       "Single rooms"
+      ],
+      [
+       "Airport reserve standby",
+       "Company hotel"
+      ],
+      [
+       "On duty",
+       "Crew meals"
+      ]
+     ],
+     "note": ""
     }
    }
   ]
@@ -1887,7 +3896,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "月64時間",
+     "value": "月64時間分",
      "note": ""
     },
     "en": {
@@ -1901,12 +3910,32 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "休日の乗務",
-     "value": "休日に飛ぶと 150%。休日への強制アサイン（ジュニアマンニング）は無い",
+     "value": "",
+     "rows": [
+      [
+       "休日に飛んだ分",
+       "1時間の単価の1.5倍"
+      ],
+      [
+       "休日に会社が勤続の短い人へ乗務を割り当てること",
+       "無い"
+      ]
+     ],
      "note": ""
     },
     "en": {
      "label": "Days-off flying",
-     "value": "150% for flying on a day off; no junior manning",
+     "value": "",
+     "rows": [
+      [
+       "Flying on a day off",
+       "150%"
+      ],
+      [
+       "Junior manning",
+       "Not used"
+      ]
+     ],
      "note": ""
     }
    },
@@ -1914,36 +3943,56 @@ export const TERMS = Object.freeze({
     "key": "retirement",
     "ref": false,
     "ja": {
-     "label": "会社の退職拠出",
-     "value": "401(k) の確定拠出（DC）に会社が 12%",
-     "note": "本人の拠出へのマッチとは別枠"
+     "label": "会社の年金の積み立て",
+     "value": "会社が給与の12%を 401(k)（確定拠出年金）に積み立てる。本人の積み立てに応じて会社が足す分とは別",
+     "note": ""
     },
     "en": {
      "label": "Retirement",
-     "value": "12% company DC contribution to the 401(k)",
-     "note": "Separate from any match on your own contributions"
+     "value": "12% company DC contribution to the 401(k), separate from any match on your own contributions",
+     "note": ""
     }
    },
    {
     "key": "per_diem",
     "ref": true,
     "ja": {
-     "label": "パーディアム（日当）",
-     "value": "対象の1時間あたり 国内 USD 2.65・国際 USD 3.55",
-     "note": "外部の給与比較表に載る参考値"
+     "label": "日当",
+     "value": "",
+     "rows": [
+      [
+       "国内",
+       "1時間 USD 2.65"
+      ],
+      [
+       "国際",
+       "1時間 USD 3.55"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Per diem",
-     "value": "USD 2.65 an hour domestic, USD 3.55 international",
-     "note": "Figure from a third-party pay table"
+     "value": "",
+     "rows": [
+      [
+       "Domestic",
+       "USD 2.65/hr"
+      ],
+      [
+       "International",
+       "USD 3.55/hr"
+      ]
+     ],
+     "note": ""
     }
    },
    {
     "key": "health",
     "ref": false,
     "ja": {
-     "label": "保険",
-     "value": "医療・歯科・眼科は Blue Cross Blue Shield（BCBS）",
+     "label": "医療保険",
+     "value": "医療・歯科・眼科の保険（Blue Cross Blue Shield）",
      "note": ""
     },
     "en": {
@@ -1958,14 +4007,34 @@ export const TERMS = Object.freeze({
     "key": "commuter",
     "ref": false,
     "ja": {
-     "label": "航空通勤（ホーム方式）",
-     "value": "米国内のほぼどこに住んでもよい（アラスカ・ハワイ含む）。乗務への往復は会社が買う確定席",
-     "note": "業務の割当てへの移動。私用の旅行とは別"
+     "label": "自宅からの通勤",
+     "value": "",
+     "rows": [
+      [
+       "住む場所",
+       "米国内ならほぼどこでも（アラスカ・ハワイも）"
+      ],
+      [
+       "乗務への行き帰り",
+       "会社が確定席を買う（私用の旅行は対象外）"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Home-based commuting",
-     "value": "Live almost anywhere in the US, Alaska and Hawaii included; the company buys positive-space travel to and from each assignment",
-     "note": "Covers travel to work assignments, not personal travel"
+     "value": "",
+     "rows": [
+      [
+       "Where you live",
+       "Almost anywhere in the US, Alaska and Hawaii included"
+      ],
+      [
+       "Travel to and from assignments",
+       "Positive-space tickets bought by the company (not personal travel)"
+      ]
+     ],
+     "note": ""
     }
    },
    {
@@ -1973,12 +4042,32 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "勤務と休みの型",
-     "value": "16日勤務・15日休み（30日の月は14日）。可能なときは16日連続か 8日勤務・15日休み・8日勤務などをビッドできる",
+     "value": "",
+     "rows": [
+      [
+       "基本",
+       "16日勤務・15日休み（30日の月は14日休み）"
+      ],
+      [
+       "希望で選べる型",
+       "16日続けて、または8日勤務・15日休み・8日勤務のような分け方（できるとき）"
+      ]
+     ],
      "note": ""
     },
     "en": {
      "label": "Schedule",
-     "value": "16 on/15 off (14 off in 30-day months); when possible, bid 16 straight or splits such as 8 on/15 off/8 on",
+     "value": "",
+     "rows": [
+      [
+       "Standard",
+       "16 on/15 off (14 off in 30-day months)"
+      ],
+      [
+       "Bid options",
+       "16 straight, or splits such as 8 on/15 off/8 on, when possible"
+      ]
+     ],
      "note": ""
     }
    },
@@ -1987,12 +4076,32 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "訓練",
-     "value": "B747・B777 の訓練はミシガン州イプシランティの本部。訓練の初日から満額の乗務給",
+     "value": "",
+     "rows": [
+      [
+       "場所",
+       "ミシガン州イプシランティの本社（B747・B777）"
+      ],
+      [
+       "給与",
+       "訓練の初日から乗務の給与を満額"
+      ]
+     ],
      "note": ""
     },
     "en": {
      "label": "Training",
-     "value": "B747/B777 training at the Ypsilanti, Michigan headquarters, with full flight pay from day one",
+     "value": "",
+     "rows": [
+      [
+       "Location",
+       "Ypsilanti, Michigan headquarters (B747/B777)"
+      ],
+      [
+       "Pay",
+       "Full flight pay from day one"
+      ]
+     ],
      "note": ""
     }
    }
@@ -2005,27 +4114,47 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "最低保証",
-     "value": "ライン・リザーブとも月70時間",
-     "note": "参考の値"
+     "value": "",
+     "note": "",
+     "rows": [
+      [
+       "Line - 乗務が決まっている月",
+       "70時間分"
+      ],
+      [
+       "Reserve - STBY要員の月",
+       "70時間分"
+      ]
+     ]
     },
     "en": {
      "label": "Minimum guarantee",
-     "value": "70 hours a month, line and reserve",
-     "note": "Reference figure"
+     "value": "",
+     "note": "",
+     "rows": [
+      [
+       "Lineholders",
+       "70 hours"
+      ],
+      [
+       "Reserve",
+       "70 hours"
+      ]
+     ]
     }
    },
    {
     "key": "per_diem",
     "ref": true,
     "ja": {
-     "label": "パーディアム（日当）",
+     "label": "日当",
      "value": "国内線 1時間 USD 2.00",
-     "note": "参考の掲載値"
+     "note": ""
     },
     "en": {
      "label": "Per diem",
      "value": "USD 2.00 an hour domestic",
-     "note": "Reference figure"
+     "note": ""
     }
    },
    {
@@ -2033,12 +4162,32 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "労働協約",
-     "value": "初めての協約を交渉中。パイロットの労組は ALPA（2022年から）",
+     "value": "",
+     "rows": [
+      [
+       "協約",
+       "初めての協約を交渉中"
+      ],
+      [
+       "労組",
+       "ALPA（2022年から）"
+      ]
+     ],
      "note": ""
     },
     "en": {
-     "label": "Contract status",
-     "value": "Negotiating a first contract; pilots represented by ALPA since 2022",
+     "label": "Contract",
+     "value": "",
+     "rows": [
+      [
+       "Contract",
+       "Negotiating a first contract"
+      ],
+      [
+       "Union",
+       "ALPA since 2022"
+      ]
+     ],
      "note": ""
     }
    }
@@ -2051,13 +4200,33 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "ライン・リザーブとも月70時間",
-     "note": "会社の公開値"
+     "value": "",
+     "note": "",
+     "rows": [
+      [
+       "Line - 乗務が決まっている月",
+       "70時間分"
+      ],
+      [
+       "Reserve - STBY要員の月",
+       "70時間分"
+      ]
+     ]
     },
     "en": {
      "label": "Minimum guarantee",
-     "value": "70 hours a month, line and reserve",
-     "note": "Company-published"
+     "value": "",
+     "note": "",
+     "rows": [
+      [
+       "Lineholders",
+       "70 hours"
+      ],
+      [
+       "Reserve",
+       "70 hours"
+      ]
+     ]
     }
    },
    {
@@ -2065,13 +4234,33 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "割増",
-     "value": "月75時間を超えた分と、休日に飛んだ分は通常の単価の125%",
-     "note": "会社の公開値"
+     "value": "",
+     "rows": [
+      [
+       "月75時間を超えて飛んだ時間",
+       "1時間の単価の1.25倍（25%増し）"
+      ],
+      [
+       "休みの日に飛んだ時間",
+       "1時間の単価の1.25倍（25%増し）"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Premium pay",
-     "value": "125% for hours over 75 a month and for flying on days off",
-     "note": "Company-published"
+     "value": "",
+     "rows": [
+      [
+       "Hours over 75 a month",
+       "1.25 times the hourly rate"
+      ],
+      [
+       "Flying on days off",
+       "1.25 times the hourly rate"
+      ]
+     ],
+     "note": ""
     }
    },
    {
@@ -2079,7 +4268,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "利益分配",
-     "value": "あり。会社の利益目標を達成したとき",
+     "value": "あり（会社が利益の目標を達成したとき）",
      "note": ""
     },
     "en": {
@@ -2092,28 +4281,56 @@ export const TERMS = Object.freeze({
     "key": "per_diem",
     "ref": true,
     "ja": {
-     "label": "パーディアム（日当）",
+     "label": "日当",
      "value": "国内線 1時間 USD 2.25",
-     "note": "参考の掲載値"
+     "note": ""
     },
     "en": {
      "label": "Per diem",
      "value": "USD 2.25 an hour domestic",
-     "note": "Reference figure"
+     "note": ""
     }
    },
    {
     "key": "retirement",
     "ref": false,
     "ja": {
-     "label": "会社の退職拠出",
-     "value": "本人拠出の最初の3%に100%・次の2%に50%を会社が上乗せ。本人5%で会社は最大4%",
-     "note": "すぐに権利が確定（即時ベスティング）"
+     "label": "会社の年金の積み立て（本人の積み立てに会社が足す）",
+     "value": "",
+     "rows": [
+      [
+       "本人が給与の3%を積み立てる",
+       "会社も3%を入れる"
+      ],
+      [
+       "本人が給与の5%を積み立てる",
+       "会社は4%を入れる（会社が入れるのはここまで）"
+      ],
+      [
+       "会社が入れたお金",
+       "すぐに本人のもの（辞めても返さない）"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Retirement match",
-     "value": "100% on the first 3% you put in, 50% on the next 2% — up to 4% from the company at 5%",
-     "note": "Immediate vesting"
+     "value": "",
+     "rows": [
+      [
+       "You put in 3% of pay",
+       "The company adds 3%"
+      ],
+      [
+       "You put in 5% of pay",
+       "The company adds 4% (the maximum)"
+      ],
+      [
+       "Company money",
+       "Yours immediately (fully vested)"
+      ]
+     ],
+     "note": ""
     }
    }
   ],
@@ -2122,14 +4339,34 @@ export const TERMS = Object.freeze({
     "key": "days_off",
     "ref": false,
     "ja": {
-     "label": "月の最低休日",
-     "value": "ライン・リザーブとも月12日",
-     "note": "会社の公開値"
+     "label": "月の休日（最低）",
+     "value": "",
+     "note": "",
+     "rows": [
+      [
+       "Line - 乗務が決まっている月",
+       "12日"
+      ],
+      [
+       "Reserve - STBY要員の月",
+       "12日"
+      ]
+     ]
     },
     "en": {
      "label": "Minimum days off",
-     "value": "12 a month, line and reserve",
-     "note": "Company-published"
+     "value": "",
+     "note": "",
+     "rows": [
+      [
+       "Lineholders",
+       "12"
+      ],
+      [
+       "Reserve",
+       "12"
+      ]
+     ]
     }
    },
    {
@@ -2138,26 +4375,26 @@ export const TERMS = Object.freeze({
     "ja": {
      "label": "訓練中の給与",
      "value": "月 USD 6,020",
-     "note": "今の採用案内の額"
+     "note": ""
     },
     "en": {
      "label": "Training pay",
      "value": "USD 6,020 a month",
-     "note": "Current recruiting information"
+     "note": ""
     }
    },
    {
     "key": "commuter",
     "ref": true,
     "ja": {
-     "label": "航空通勤",
-     "value": "他社機のジャンプシート（CASS）を使える",
-     "note": "参考の情報"
+     "label": "飛行機での通勤",
+     "value": "他社機のジャンプシートに乗れる（CASS という仕組み）",
+     "note": ""
     },
     "en": {
      "label": "Commuting",
      "value": "Jumpseat access through CASS",
-     "note": "Reference information"
+     "note": ""
     }
    }
   ]
@@ -2169,27 +4406,27 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "最低保証",
-     "value": "月75時間",
-     "note": "2026年の求人の転載にある参考の値"
+     "value": "月75時間分",
+     "note": "2026年時点"
     },
     "en": {
      "label": "Minimum guarantee",
      "value": "75 hours a month",
-     "note": "Reference figure from a 2026 job-ad repost"
+     "note": "As of 2026"
     }
    },
    {
     "key": "retirement",
     "ref": false,
     "ja": {
-     "label": "会社の退職拠出",
-     "value": "本人の拠出に会社が50%を上乗せ（マッチ）",
-     "note": "会社のページ"
+     "label": "会社の年金の積み立て",
+     "value": "本人が積み立てた額の半分を、会社も出す",
+     "note": ""
     },
     "en": {
      "label": "Retirement match",
      "value": "50% company match on your contributions",
-     "note": "Company website"
+     "note": ""
     }
    },
    {
@@ -2211,41 +4448,89 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "社員の航空券",
-     "value": "United の航空券の優待。他社は ZED 運賃（航空会社の社員向けの割引運賃）",
-     "note": "社員ぜんたいの制度"
+     "value": "",
+     "rows": [
+      [
+       "ユナイテッド航空",
+       "社員向けの航空券の優待"
+      ],
+      [
+       "他社",
+       "航空会社の社員向けの割引運賃（ZED）"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Staff travel",
-     "value": "United travel privileges; ZED fares on other airlines",
-     "note": "Company-wide employee benefit"
+     "value": "",
+     "rows": [
+      [
+       "United",
+       "Travel privileges"
+      ],
+      [
+       "Other airlines",
+       "ZED fares"
+      ]
+     ],
+     "note": ""
     }
    },
    {
     "key": "health",
     "ref": false,
     "ja": {
-     "label": "保険",
-     "value": "医療 UnitedHealthcare・歯科 Delta Dental・眼科 VSP",
-     "note": "社員ぜんたいの制度"
+     "label": "医療保険",
+     "value": "",
+     "rows": [
+      [
+       "医療",
+       "UnitedHealthcare"
+      ],
+      [
+       "歯科",
+       "Delta Dental"
+      ],
+      [
+       "眼科",
+       "VSP"
+      ]
+     ],
+     "note": ""
     },
     "en": {
-     "label": "Health cover",
-     "value": "Medical (UnitedHealthcare), dental (Delta Dental), vision (VSP)",
-     "note": "Company-wide employee benefit"
+     "label": "Health insurance",
+     "value": "",
+     "rows": [
+      [
+       "Medical",
+       "UnitedHealthcare"
+      ],
+      [
+       "Dental",
+       "Delta Dental"
+      ],
+      [
+       "Vision",
+       "VSP"
+      ]
+     ],
+     "note": ""
     }
    },
    {
     "key": "disability",
     "ref": false,
     "ja": {
-     "label": "所得補償・生命保険",
-     "value": "長期の所得補償（LTD）・事故の死亡傷害（AD&D）・生命保険",
-     "note": "社員ぜんたいの制度"
+     "label": "働けなくなったときの補償・生命保険",
+     "value": "長期の所得補償（LTD）・事故の死亡や障害の保険（AD&D）・生命保険",
+     "note": ""
     },
     "en": {
      "label": "Disability & life",
      "value": "Long-term disability, AD&D and life insurance",
-     "note": "Company-wide employee benefit"
+     "note": ""
     }
    },
    {
@@ -2268,14 +4553,14 @@ export const TERMS = Object.freeze({
     "key": "training",
     "ref": false,
     "ja": {
-     "label": "直接入社の機長",
+     "label": "機長で直接入る人の訓練",
      "value": "初期訓練の移動とホテルは会社負担",
-     "note": "機長での直接入社（DEC）の場合"
+     "note": ""
     },
     "en": {
      "label": "Direct-entry captains",
      "value": "Company-paid travel and hotels for initial training",
-     "note": "Direct-entry captain (DEC) hires"
+     "note": ""
     }
    }
   ]
@@ -2287,13 +4572,33 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "最低保証",
-     "value": "ライン・リザーブとも月65クレジット時間",
-     "note": "参考の条件"
+     "value": "",
+     "note": "",
+     "rows": [
+      [
+       "Line - 乗務が決まっている月",
+       "65時間分"
+      ],
+      [
+       "Reserve - STBY要員の月",
+       "65時間分"
+      ]
+     ]
     },
     "en": {
      "label": "Minimum guarantee",
-     "value": "65 credit hours a month, line and reserve",
-     "note": "Reference terms"
+     "value": "",
+     "note": "",
+     "rows": [
+      [
+       "Lineholders",
+       "65 credit hours"
+      ],
+      [
+       "Reserve",
+       "65 credit hours"
+      ]
+     ]
     }
    },
    {
@@ -2301,41 +4606,101 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "割増",
-     "value": "オープンタイムは150%。ジュニアマン（指名の追加乗務）は1回目200%・2回目250%、90日に2回まで",
-     "note": "参考の条件"
+     "value": "",
+     "rows": [
+      [
+       "空いた乗務に手を挙げた分",
+       "1時間の単価の1.5倍"
+      ],
+      [
+       "休みの日に会社から指名された乗務",
+       "1回目は単価の2倍、2回目は2.5倍（90日に2回まで）"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Premium pay",
-     "value": "Open time 150%; junior man 200% the first time and 250% the second, max twice in 90 days",
-     "note": "Reference terms"
+     "value": "",
+     "rows": [
+      [
+       "Open time",
+       "150%"
+      ],
+      [
+       "Junior man",
+       "200% the first time, 250% the second; max twice in 90 days"
+      ]
+     ],
+     "note": ""
     }
    },
    {
     "key": "retirement",
     "ref": true,
     "ja": {
-     "label": "会社の退職拠出",
-     "value": "会社の上乗せ（マッチ）あり。以前の表では 4%、3年後から 8%",
-     "note": "率は以前の表の値"
+     "label": "会社の年金の積み立て",
+     "value": "",
+     "rows": [
+      [
+       "本人の積み立てに会社が足す分",
+       "あり"
+      ],
+      [
+       "以前の率",
+       "4%、3年後から8%"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Retirement",
-     "value": "Company match; an older table shows 4%, rising to 8% after three years",
-     "note": "Rates from an older table"
+     "value": "",
+     "rows": [
+      [
+       "Company match",
+       "Yes"
+      ],
+      [
+       "Previous rate",
+       "4%, rising to 8% after 3 years"
+      ]
+     ],
+     "note": ""
     }
    },
    {
     "key": "health",
     "ref": false,
     "ja": {
-     "label": "保険",
-     "value": "医療・歯科・眼科・処方薬、生命保険",
-     "note": "社員ぜんたいの制度"
+     "label": "医療保険・生命保険",
+     "value": "",
+     "rows": [
+      [
+       "保険",
+       "医療・歯科・眼科・処方薬"
+      ],
+      [
+       "生命保険",
+       "あり"
+      ]
+     ],
+     "note": ""
     },
     "en": {
-     "label": "Health cover",
-     "value": "Medical, dental, vision, prescription and life insurance",
-     "note": "Company-wide employee benefit"
+     "label": "Health & life insurance",
+     "value": "",
+     "rows": [
+      [
+       "Insurance",
+       "Medical, dental, vision, prescription"
+      ],
+      [
+       "Life insurance",
+       "Yes"
+      ]
+     ],
+     "note": ""
     }
    },
    {
@@ -2343,13 +4708,13 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "社員の航空券",
-     "value": "他社の航空券の割引（インターライン）",
-     "note": "社員ぜんたいの制度"
+     "value": "航空会社どうしの取り決めで、他社の航空券が社員割引になる",
+     "note": ""
     },
     "en": {
      "label": "Staff travel",
      "value": "Interline discounts on other airlines",
-     "note": "Company-wide employee benefit"
+     "note": ""
     }
    }
   ],
@@ -2359,13 +4724,13 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "ジャンプシート",
-     "value": "他社機のジャンプシート（CASS）を使える",
-     "note": "参考の情報"
+     "value": "他社機のジャンプシートに乗れる（CASS という仕組み）",
+     "note": ""
     },
     "en": {
      "label": "Jumpseat",
      "value": "Jumpseat access through CASS",
-     "note": "Reference information"
+     "note": ""
     }
    }
   ]
@@ -2377,41 +4742,97 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "割増",
-     "value": "月18勤務日を超えた勤務などは150%。日額は年俸を216で割った額",
-     "note": "参考の条件"
+     "value": "",
+     "rows": [
+      [
+       "月18日を超えて勤務した分など",
+       "1日の額の1.5倍"
+      ],
+      [
+       "1日の額",
+       "年俸 ÷ 216"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Premium pay",
-     "value": "150% for duty beyond 18 days a month, among others; day rate is annual salary ÷ 216",
-     "note": "Reference terms"
+     "value": "",
+     "rows": [
+      [
+       "More than 18 duty days a month, and other cases",
+       "1.5 times the day rate"
+      ],
+      [
+       "Day rate",
+       "Annual salary ÷ 216"
+      ]
+     ],
+     "note": ""
     }
    },
    {
     "key": "per_diem",
     "ref": false,
     "ja": {
-     "label": "パーディアム（日当）",
-     "value": "定期便 国内 USD 2.08・国際 USD 3.14、チャーター 国内 USD 3.08・国際 USD 4.14",
-     "note": "1時間あたりの額。会社の公開値"
+     "label": "日当",
+     "value": "",
+     "rows": [
+      [
+       "定期便・国内",
+       "1時間 USD 2.08"
+      ],
+      [
+       "定期便・国際",
+       "1時間 USD 3.14"
+      ],
+      [
+       "チャーター・国内",
+       "1時間 USD 3.08"
+      ],
+      [
+       "チャーター・国際",
+       "1時間 USD 4.14"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Per diem",
-     "value": "Scheduled: USD 2.08 domestic, USD 3.14 international; charter: USD 3.08 and USD 4.14",
-     "note": "Hourly rates; company-published"
+     "value": "",
+     "rows": [
+      [
+       "Scheduled, domestic",
+       "USD 2.08/hr"
+      ],
+      [
+       "Scheduled, international",
+       "USD 3.14/hr"
+      ],
+      [
+       "Charter, domestic",
+       "USD 3.08/hr"
+      ],
+      [
+       "Charter, international",
+       "USD 4.14/hr"
+      ]
+     ],
+     "note": ""
     }
    },
    {
     "key": "retirement",
     "ref": false,
     "ja": {
-     "label": "会社の退職拠出",
-     "value": "401(k)（確定拠出年金）に会社が最大6%を上乗せ（マッチ）。入社日から",
-     "note": "会社の採用ページ"
+     "label": "会社の年金の積み立て",
+     "value": "401(k)（確定拠出年金）に、本人の積み立てに応じて会社が最大6%を足す。入社日から",
+     "note": ""
     },
     "en": {
      "label": "Retirement match",
      "value": "401(k) match up to 6%, from your first day",
-     "note": "Company careers page"
+     "note": ""
     }
    },
    {
@@ -2419,27 +4840,47 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "社員の航空券",
-     "value": "Contour の便と他社の優待（MyIDTravel）。対象の家族も",
-     "note": "社員ぜんたいの制度"
+     "value": "Contour の便と、他社便（MyIDTravel）に乗れる。対象の家族も",
+     "note": ""
     },
     "en": {
      "label": "Staff travel",
-     "value": "Travel on Contour and other airlines via MyIDTravel, including eligible family",
-     "note": "Company-wide employee benefit"
+     "value": "Contour and other airlines via MyIDTravel, including eligible family",
+     "note": ""
     }
    },
    {
     "key": "health",
     "ref": false,
     "ja": {
-     "label": "保険",
-     "value": "医療・歯科・眼科、短期・長期の所得補償",
-     "note": "社員ぜんたいの制度"
+     "label": "医療保険・働けなくなったときの補償",
+     "value": "",
+     "rows": [
+      [
+       "保険",
+       "医療・歯科・眼科"
+      ],
+      [
+       "所得補償",
+       "短期・長期"
+      ]
+     ],
+     "note": ""
     },
     "en": {
-     "label": "Health cover",
-     "value": "Medical, dental and vision; short- and long-term disability",
-     "note": "Company-wide employee benefit"
+     "label": "Health & disability",
+     "value": "",
+     "rows": [
+      [
+       "Insurance",
+       "Medical, dental, vision"
+      ],
+      [
+       "Disability",
+       "Short- and long-term"
+      ]
+     ],
+     "note": ""
     }
    }
   ],
@@ -2449,13 +4890,33 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "初期訓練",
-     "value": "7〜8週間。初日から給与、個室のホテル・移動・パーディアム",
-     "note": "参考の条件"
+     "value": "",
+     "rows": [
+      [
+       "期間",
+       "7〜8週間"
+      ],
+      [
+       "訓練中",
+       "初日から給与。個室のホテル・移動・日当"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Initial training",
-     "value": "7–8 weeks; paid from day one, with single hotel rooms, travel and per diem",
-     "note": "Reference terms"
+     "value": "",
+     "rows": [
+      [
+       "Length",
+       "7–8 weeks"
+      ],
+      [
+       "During training",
+       "Paid from day one, with single hotel rooms, travel and per diem"
+      ]
+     ],
+     "note": ""
     }
    },
    {
@@ -2463,7 +4924,7 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "ジャンプシート",
-     "value": "他社機のジャンプシート（CASS）を使える",
+     "value": "他社機のジャンプシートに乗れる（CASS という仕組み）",
      "note": ""
     },
     "en": {
@@ -2481,27 +4942,75 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "最低保証",
-     "value": "入社から2年間の副操縦士は月75時間以上。その後は機材・ライン・リザーブで変わる。年900時間の調整もある",
+     "value": "",
+     "rows": [
+      [
+       "入社から2年間の副操縦士",
+       "月75時間以上"
+      ],
+      [
+       "その後",
+       "機材と、Line か Reserve かで変わる"
+      ],
+      [
+       "1年での調整",
+       "年900時間を基準に調整する仕組みがある"
+      ]
+     ],
      "note": "2023〜2027年の協約"
     },
     "en": {
      "label": "Minimum guarantee",
-     "value": "75+ hours a month for first officers in their first two years; after that it varies by fleet and line or reserve, with a 900-hour annual adjustment",
-     "note": "2023–2027 CBA"
+     "value": "",
+     "rows": [
+      [
+       "First officers, first two years",
+       "75+ hours a month"
+      ],
+      [
+       "After that",
+       "Varies by fleet and by line or reserve"
+      ],
+      [
+       "Annual adjustment",
+       "Minimum guarantee adjusted against 900 hours a year"
+      ]
+     ],
+     "note": "2023–2027 contract"
     }
    },
    {
     "key": "per_diem",
     "ref": false,
     "ja": {
-     "label": "パーディアム（日当）",
-     "value": "カナダ・米国は政府の出張基準（NJC）の地域の日額の85%を24で割った時間額。海外は地域で65%・70%・75%など",
-     "note": "協約の決め方。半年ごとに見直し"
+     "label": "日当",
+     "value": "",
+     "rows": [
+      [
+       "カナダ・米国",
+       "政府の出張の日当（NJC）の地域ごとの日額の85%を、24で割って1時間ごとに支払う"
+      ],
+      [
+       "海外",
+       "地域ごとに65%・70%・75%など"
+      ]
+     ],
+     "note": "半年ごとに見直し"
     },
     "en": {
      "label": "Per diem",
-     "value": "Canada/US: 85% of the NJC regional daily rate ÷ 24, paid by the hour; international: 65%, 70% or 75% by region",
-     "note": "Contract formula; updated every six months"
+     "value": "",
+     "rows": [
+      [
+       "Canada/US",
+       "85% of the Canadian government (NJC) regional daily rate, divided by 24 and paid per hour"
+      ],
+      [
+       "International",
+       "Varies by region (e.g. 65%, 70%, 75%)"
+      ]
+     ],
+     "note": "Updated every six months"
     }
    },
    {
@@ -2509,12 +5018,12 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "会社の年金",
-     "value": "入社の時期で確定給付（DB）・複数事業主の年金（MEPP）・確定拠出（DC）などに分かれる",
+     "value": "入社の時期で、確定給付（DB）・複数の会社でつくる年金（MEPP）・確定拠出（DC）に分かれる",
      "note": ""
     },
     "en": {
      "label": "Pension",
-     "value": "DB, MEPP or DC plans, depending on when you were hired",
+     "value": "Defined benefit (DB), multi-employer plan (MEPP) or defined contribution (DC), depending on when you were hired",
      "note": ""
     }
    },
@@ -2523,27 +5032,47 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "労働協約",
-     "value": "2023年9月30日〜2027年9月29日。今の給与表は2026年9月30日から",
-     "note": "ALPA"
+     "value": "",
+     "rows": [
+      [
+       "協約の期間",
+       "2023年9月30日〜2027年9月29日"
+      ],
+      [
+       "いまの給与表",
+       "2026年9月30日から"
+      ]
+     ],
+     "note": ""
     },
     "en": {
-     "label": "Contract status",
-     "value": "CBA runs Sep 30, 2023 – Sep 29, 2027; current pay rates effective Sep 30, 2026",
-     "note": "ALPA"
+     "label": "Contract",
+     "value": "",
+     "rows": [
+      [
+       "Term",
+       "Sep 30, 2023 – Sep 29, 2027"
+      ],
+      [
+       "Current pay rates",
+       "Effective Sep 30, 2026"
+      ]
+     ],
+     "note": ""
     }
    },
    {
     "key": "health",
     "ref": false,
     "ja": {
-     "label": "保険",
+     "label": "医療保険",
      "value": "医療・歯科などの保険",
-     "note": "社員ぜんたいの制度"
+     "note": ""
     },
     "en": {
-     "label": "Health cover",
-     "value": "Medical, dental and other cover",
-     "note": "Company-wide employee benefit"
+     "label": "Health insurance",
+     "value": "Medical, dental and other coverage",
+     "note": ""
     }
    }
   ],
@@ -2553,13 +5082,33 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "訓練中",
-     "value": "ホテルと食事。距離の条件で滞在を選べる。会社の送迎が無いときはタクシー代を領収書で精算",
-     "note": "訓練のときの決まり。ふだんの通勤とは別"
+     "value": "",
+     "rows": [
+      [
+       "宿泊",
+       "ホテルと食事（距離によって泊まり方を選べる）"
+      ],
+      [
+       "タクシー",
+       "会社の送迎が無いときは、領収書で精算"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "During training",
-     "value": "Hotel and meals, with stay options based on distance; receipted taxi fares reimbursed when no transport is provided",
-     "note": "Training only — not your regular commute"
+     "value": "",
+     "rows": [
+      [
+       "Lodging",
+       "Hotel and meals; lodging options depend on distance criteria"
+      ],
+      [
+       "Taxis",
+       "Fares reimbursed with receipts when no transportation is provided"
+      ]
+     ],
+     "note": ""
     }
    }
   ]
@@ -2571,13 +5120,13 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "最低保証",
-     "value": "月77.5時間",
-     "note": "参考の値"
+     "value": "月77.5時間分",
+     "note": ""
     },
     "en": {
      "label": "Minimum guarantee",
      "value": "77.5 hours a month",
-     "note": "Reference figure"
+     "note": ""
     }
    },
    {
@@ -2585,13 +5134,13 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "割増",
-     "value": "85クレジット時間を超えた分は割増",
-     "note": "会社の案内"
+     "value": "給与に数える時間が85時間を超えた分は割増",
+     "note": ""
     },
     "en": {
      "label": "Premium pay",
      "value": "Premium pay above 85 credit hours",
-     "note": "Company information"
+     "note": ""
     }
    },
    {
@@ -2599,13 +5148,13 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "労働協約",
-     "value": "WestJet 本体（Mainline）の協約は2023年1月1日〜2026年12月31日",
-     "note": "ALPA。Encore は別"
+     "value": "本体の協約は2023年1月1日〜2026年12月31日",
+     "note": "グループの Encore は別の協約"
     },
     "en": {
-     "label": "Contract status",
+     "label": "Contract",
      "value": "Mainline CBA runs Jan 1, 2023 – Dec 31, 2026",
-     "note": "ALPA; Encore is separate"
+     "note": "Encore, in the same group, has a separate contract"
     }
    }
   ],
@@ -2614,22 +5163,43 @@ export const TERMS = Object.freeze({
     "key": "bidding",
     "ref": false,
     "ja": {
-     "label": "勤務の希望",
-     "value": "ソーシャライズド・ビッド（先任順位だけで決めない）。勤務の交換・削除・追加ができる",
+     "label": "勤務の希望の出し方",
+     "value": "",
+     "rows": [
+      [
+       "決め方",
+       "勤続の長さの順だけでは決めない"
+      ],
+      [
+       "決まった後",
+       "乗務の交換・取りやめ・追加ができる"
+      ]
+     ],
      "note": ""
     },
     "en": {
      "label": "Bidding",
-     "value": "Socialized bidding (not seniority-only); trips can be traded, dropped and picked up",
+     "value": "",
+     "rows": [
+      [
+       "System",
+       "Socialized bidding, not seniority-only"
+      ],
+      [
+       "After awards",
+       "Trips can be traded, dropped and picked up"
+      ]
+     ],
      "note": ""
     }
    },
    {
     "key": "reserve",
     "ref": false,
+    "hide": "スタンバイに2種類あるというだけで、時間も条件も無く、比べる意味が薄い",
     "ja": {
-     "label": "リザーブ",
-     "value": "短い呼び出し（ショートコール）と長い呼び出し（ロングコール）のリザーブがある",
+     "label": "スタンバイ",
+     "value": "すぐ呼ばれるスタンバイと、前もって呼ばれるスタンバイの2種類",
      "note": ""
     },
     "en": {
@@ -2643,13 +5213,13 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "ジャンプシート",
-     "value": "他社と相互のジャンプシート（レシプロカル）",
-     "note": "会社の案内"
+     "value": "他社とお互いにジャンプシートに乗れる取り決めがある",
+     "note": ""
     },
     "en": {
      "label": "Jumpseat",
      "value": "Reciprocal jumpseat agreements",
-     "note": "Company information"
+     "note": ""
     }
    }
   ]
@@ -2661,41 +5231,61 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "最低保証",
-     "value": "月75時間",
-     "note": "参考の条件"
+     "value": "月75時間分",
+     "note": ""
     },
     "en": {
      "label": "Minimum guarantee",
      "value": "75 hours a month",
-     "note": "Reference terms"
+     "note": ""
     }
    },
    {
     "key": "per_diem",
     "ref": false,
     "ja": {
-     "label": "パーディアムなど",
-     "value": "給与とは別の手当が年平均 約 CAD 9,000。求人の例では月 CAD 800〜1,000",
-     "note": "会社の例。勤務で変わる"
+     "label": "日当などの手当",
+     "value": "",
+     "rows": [
+      [
+       "給与とは別の手当（乗務の量で変わる）",
+       "年平均 約 CAD 9,000"
+      ],
+      [
+       "1か月あたりの例",
+       "CAD 800〜1,000"
+      ]
+     ],
+     "note": ""
     },
     "en": {
      "label": "Per diem & allowances",
-     "value": "Non-salary allowances average about CAD 9,000 a year; job ads cite CAD 800–1,000 a month",
-     "note": "Company examples; varies with flying"
+     "value": "",
+     "rows": [
+      [
+       "Non-salary allowances (vary with flying)",
+       "About CAD 9,000 a year on average"
+      ],
+      [
+       "Example per month",
+       "CAD 800–1,000"
+      ]
+     ],
+     "note": ""
     }
    },
    {
     "key": "retirement",
     "ref": false,
     "ja": {
-     "label": "会社の退職拠出",
-     "value": "確定拠出（DC）の年金に会社が最大8%を上乗せ（マッチ）。在籍などで変わる",
-     "note": "会社の案内"
+     "label": "会社の年金の積み立て",
+     "value": "確定拠出年金（DC）に、本人の積み立てに応じて会社が最大8%を足す。勤続年数とともに上がる",
+     "note": ""
     },
     "en": {
      "label": "Retirement match",
-     "value": "Company match to the defined contribution pension of up to 8%, rising with years of service",
-     "note": "Company information"
+     "value": "Company match to the DC pension of up to 8%, rising with years of service",
+     "note": ""
     }
    },
    {
@@ -2703,13 +5293,13 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "身体検査などの手当",
-     "value": "身体検査・パスポート・制服などの手当が年 CAD 1,600 超",
-     "note": "会社の例"
+     "value": "身体検査・パスポート・制服などに、年 CAD 1,600 を超える手当",
+     "note": ""
     },
     "en": {
      "label": "Medicals & other allowances",
      "value": "Over CAD 1,600 a year for medicals, passport, uniforms and more",
-     "note": "Company example"
+     "note": ""
     }
    },
    {
@@ -2731,13 +5321,13 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "社員の航空券",
-     "value": "Air Canada の社員の航空券の優待",
-     "note": "社員ぜんたいの制度"
+     "value": "エア・カナダの社員向けの航空券の優待",
+     "note": ""
     },
     "en": {
      "label": "Staff travel",
      "value": "Air Canada staff travel privileges",
-     "note": "Company-wide employee benefit"
+     "note": ""
     }
    }
   ],
@@ -2746,14 +5336,14 @@ export const TERMS = Object.freeze({
     "key": "bidding",
     "ref": false,
     "ja": {
-     "label": "勤務の希望",
-     "value": "先任順位で希望を出す。アプリで出せる",
-     "note": "会社の案内"
+     "label": "勤務の希望の出し方",
+     "value": "勤続の長さの順に希望が通る。アプリで出せる",
+     "note": ""
     },
     "en": {
      "label": "Bidding",
-     "value": "Seniority-based bidding, done through an app",
-     "note": "Company information"
+     "value": "Seniority-based, done through an app",
+     "note": ""
     }
    },
    {
@@ -2762,12 +5352,12 @@ export const TERMS = Object.freeze({
     "ja": {
      "label": "支給の機器",
      "value": "iPad と Bose のヘッドセット",
-     "note": "会社の案内"
+     "note": ""
     },
     "en": {
      "label": "Equipment",
      "value": "iPad and Bose headset provided",
-     "note": "Company information"
+     "note": ""
     }
    }
   ]
@@ -2779,13 +5369,13 @@ export const TERMS = Object.freeze({
     "ref": true,
     "ja": {
      "label": "最低保証",
-     "value": "月77.5時間",
-     "note": "第三者の参考の値"
+     "value": "月77.5時間分",
+     "note": ""
     },
     "en": {
      "label": "Minimum guarantee",
      "value": "77.5 hours a month",
-     "note": "Third-party reference figure"
+     "note": ""
     }
    },
    {
@@ -2793,12 +5383,32 @@ export const TERMS = Object.freeze({
     "ref": false,
     "ja": {
      "label": "労働協約",
-     "value": "2025年8月12日に ALPA の組合ができた。初めての協約を交渉中",
+     "value": "",
+     "rows": [
+      [
+       "労組",
+       "2025年8月12日に ALPA に加わった"
+      ],
+      [
+       "協約",
+       "初めての協約を交渉中"
+      ]
+     ],
      "note": ""
     },
     "en": {
-     "label": "Contract status",
-     "value": "Pilots joined ALPA on Aug 12, 2025; first ALPA contract under negotiation",
+     "label": "Contract",
+     "value": "",
+     "rows": [
+      [
+       "Union",
+       "Joined ALPA on Aug 12, 2025"
+      ],
+      [
+       "Contract",
+       "First ALPA contract under negotiation"
+      ]
+     ],
      "note": ""
     }
    }

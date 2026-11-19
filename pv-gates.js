@@ -143,8 +143,7 @@
   };
   T = (window.PV_T && window.PV_T(T, L)) || T[L];   // スペイン語の辞書（gen-msg.mjs が足す）があればそれ
 
-  /* 段の状態。★REAL PAY と DEEP PAY が live（DEEP PAY は 2026-10-11 に公開）。
-       VERIFIED PAY だけが 'soon' ── ページを作った回に 'live' へ変える。
+  /* 段の状態。★いま表に出るのは REAL PAY の1段だけ（DEEP PAY は 2026-10-29・VERIFIED PAY は 2026-11-19 に 'off'）。
      ★live は「ページが在る」という意味で、**見ている人に開いている**という意味ではない。
        開くかどうかはサーバが決める（REAL PAY ＝ pv_pay_rows()・DEEP PAY ＝ pv_deep_pay()）。
      ⚠️ 並びを変えない。文言（T.tiers）と同じ番号で引いている。 */
@@ -154,7 +153,10 @@
          'off' の段は表に描かない（下の giveGetHTML）。文言（T.tiers）は番号をそろえるために残す。
          開け直す日に 'live' へ戻す。 */
     { key: 'deep',     state: 'off' },
-    { key: 'verified', state: 'soon' }
+    /* ★2026-11-19、VERIFIED PAY の段も外した（オーナー「verified pay もとりあえずなしでいい」「verified のマークとかはいるけどね」）。
+         明細と一致した月の ✓ Verified は本人の MY PAY と MY PAGE に出す（my-value.js・profile.html）── 段とは別物。
+         表に描かないだけで、文言（T.tiers）と説明パネルは番号をそろえるために残す。出す日に 'soon' へ戻す。 */
+    { key: 'verified', state: 'off' }
   ];
   function isSoon(key) {
     for (var i = 0; i < TIERS.length; i++) {

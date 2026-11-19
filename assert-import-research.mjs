@@ -115,7 +115,7 @@ try {
     R('notopen', 'qantas', 'benefits', 'housing', '住宅手当あり', { r: { verification: { status: 'not_opened', checked_at: null } } }),   // 根拠不足
     R('noquote', 'qantas', 'jobs', 'fo-a320', 'A320 FO 募集', { r: { evidence: [{ source_id: 'src-a', locator: 'p', quote: '', supports: ['value'] }] } }), // 根拠不足
     R('nourl', 'qantas', 'jobs', 'cap-a330', 'A330 機長 募集', { src: 'src-nourl' }),                  // 根拠不足（URL なし）
-    R('second', 'qantas', 'benefits', 'staff_travel', '無料航空券', { src: 'src-2nd' }),               // 根拠不足（二次情報だけで「公表」）
+    R('second', 'qantas', 'benefits', 'staff_travel', '無料航空券', { src: 'src-2nd' }),               // 二次情報だけでも入る（2026-11-18 オーナー）
     R('cf-a', 'qantas', 'fleet', 'b787_9', 14, { r: { unit: '機' } }),                                 // 競合（食い違い）
     R('cf-b', 'qantas', 'fleet', 'b787_9-b', 15, { r: { unit: '機' } }),                               // 競合（食い違い）
     R('pay-big', 'qantas', 'pay', 'cash_y', 700000, { r: { currency: 'AUD', per: 'year', value_text: 'AUD 700,000', applies_to: { rank: 'cap', pilot_specific: true },
@@ -218,7 +218,7 @@ try {
   const want = {
     'qantas.work.days-off': 'addition', 'qantas.profile.founded': 'addition', 'qantas.destinations.syd': 'addition',
     'qantas.destinations.zzz': 'target_unknown', 'qantas.work.roster': 'target_unknown', 'qantas.benefits.missing': 'target_unknown',
-    'qantas.benefits.notopen': 'weak_evidence', 'qantas.jobs.noquote': 'weak_evidence', 'qantas.jobs.nourl': 'weak_evidence', 'qantas.benefits.second': 'weak_evidence',
+    'qantas.benefits.notopen': 'weak_evidence', 'qantas.jobs.noquote': 'weak_evidence', 'qantas.jobs.nourl': 'weak_evidence', 'qantas.benefits.second': 'addition',
     'fiji-airways.fleet.recerr': 'format_error', 'qantas.fleet.cf-a': 'conflict', 'qantas.fleet.cf-b': 'conflict',
     'qantas.pay.pay-big': 'addition', 'qantas.pay.pay-ok': 'addition', 'qantas.work.held': 'addition',
     'qantas.living.rent-bondi': 'matches', 'qantas.living.rent-bad': 'weak_evidence', 'qantas.living.town': 'addition',
@@ -572,9 +572,9 @@ try {
       rowless.slice(0, 6).map(([c, v]) => `${c} ${v[1]}（台帳に行が無い）`).join(' ／ '));
   }
 
-  /* ── A13 利用者がアップロードした写しは証拠にしない（2026-10-21 リード P12.90）──
-     scribd.com の写し・発行元が「user-uploaded」と言う写し・会社でも組合でも政府でもない「public copy」は、値を支えさせても根拠不足
-     （決まりでは入れない・承認されても入れない・台帳に在れば verify が赤）。会社の報告を議会が載せた「public copy」は写しではない。 */
+  /* ── A13 利用者がアップロードした写し（scribd.com・「user-uploaded」・「public copy」）も入れる（2026-11-18 オーナー「落とすなよ」）──
+     2026-10-21（リード P12.90）から 11-18 までは根拠不足にして入れなかった。いまは写しでも二次情報でも、ほかの記録と同じ決まりで入る。
+     写しが「労働協約」の見出しの下に出ないのは airline-display.mjs の AGREEMENTS の検査（UPLOAD_HOSTS）が守る。 */
   {
     const PA = PACK('pvr-test-upload', 1, [
       R('upl-scribd', 'westjet', 'benefits', 'housing', '住宅手当あり', { src: 'src-scribd' }),
@@ -599,24 +599,25 @@ try {
     const P13 = p13.status === 0 ? JSON.parse(fs.readFileSync(path.join(OUT13, 'import-plan.json'), 'utf8')) : { records: [] };
     const r13 = id => P13.records.find(x => x.id === `westjet.${id}`) || {};
     const upl = ['benefits.upl-scribd', 'benefits.upl-text', 'work.upl-pubcopy', 'benefits.upl-mixed'];
-    ok(p13.status === 0 && upl.every(id => r13(id).cat === 'weak_evidence' && !r13(id).auto && /利用者がアップロードした写し/.test(r13(id).why.join('')))
+    ok(p13.status === 0 && upl.every(id => r13(id).cat && r13(id).cat !== 'weak_evidence' && !/写し/.test((r13(id).why || []).join('')))
        && r13('profile.ok-parliament').cat === 'addition' && r13('profile.ok-parliament').auto,
-      '★A13 plan: 利用者がアップロードした写し（scribd.com・「user-uploaded」・会社でも組合でも政府でもない「public copy」・ほかの資料と並べても）に値を支えさせた記録は根拠不足で、決まりでは入れない／議会が載せた会社の報告は写しではない',
+      '★A13 plan: 利用者がアップロードした写しに値を支えさせた記録も、根拠不足にしない（2026-11-18 オーナー）',
       p13.stderr + JSON.stringify([...upl, 'profile.ok-parliament'].map(id => [id, r13(id).cat, r13(id).auto, r13(id).why])));
-    /* 承認の一覧に写しの記録を全部書いても入らない */
+    /* 承認すれば、写しの記録も台帳に入る */
     const APP13 = path.join(T, 'approved-upload.txt');
-    fs.writeFileSync(APP13, P13.records.map(x => `${x.pack} ${x.id}`).join('\n') + '\n');
+    const IN13 = ['benefits.upl-text', 'work.upl-pubcopy', 'profile.ok-parliament'];
+    fs.writeFileSync(APP13, IN13.map(id => `pvr-test-upload westjet.${id}`).join('\n') + '\n');
     const a13 = run('apply', path.join(OUT13, 'import-plan.json'), '--approved', APP13, '--root', ROOT13, '--test');
     const J13 = JSON.stringify(I.readStore(ROOT13).store);
-    ok(a13.status === 0 && upl.every(id => !J13.includes(`westjet.${id}`) && a13.stdout.includes(`入れない: westjet.${id}`)) && J13.includes('westjet.profile.ok-parliament'),
-      '★A13 apply: 承認されても、写しを根拠にした記録は台帳に入らない（議会が載せた会社の報告は入る）', a13.stdout.slice(-600) + a13.stderr);
-    /* 台帳に写しの行が在れば verify が赤（手で書き足した行も通さない） */
+    ok(a13.status === 0 && IN13.every(id => J13.includes(`westjet.${id}`)),
+      '★A13 apply: 承認された写しの記録は台帳に入る', a13.stdout.slice(-600) + a13.stderr);
+    /* 台帳に写しの行が在っても verify は赤くしない。写しの置き場の見分け方（userUploaded）は労働協約の登録の検査が使う */
     const L13 = await I.loadLedgers(HERE);
     const row = { id: 'westjet.benefits.hand', pack: 'pvr-test-upload', use: '条件つき', value: 'x', imported_on: '2026-10-21', checked_at: '2026-10-21',
       evidence: [{ source_id: 's1', quote: 'q', supports: ['value'] }], src: [{ source_id: 's1', url: 'https://es.scribd.com/document/1/x', publisher: 'Scribd', publisher_kind: 'other' }] };
     const bad13 = I.verifyStore({ FACTS: { westjet: { benefits: [row] } }, NETWORK: {}, LIVING: {}, CITY_OF: {}, SOURCES: {} }, L13);
-    ok(bad13.some(b => /利用者がアップロードした写し/.test(b)) && I.userUploaded({ url: 'https://es.scribd.com/x' }) && !I.userUploaded({ url: 'https://scribd.com.example.invalid/x', publisher: 'x' }),
-      '★A13 verify: 台帳に写しを根拠にした行が在れば赤（scribd.com の下の名前も写し・似た名前の別の住所は写しではない）', bad13.join(' ／ '));
+    ok(!bad13.some(b => /写し/.test(b)) && I.userUploaded({ url: 'https://es.scribd.com/x' }) && !I.userUploaded({ url: 'https://scribd.com.example.invalid/x', publisher: 'x' }),
+      '★A13 verify: 台帳の写しの行を赤くしない（scribd.com の下の名前は写しと見分ける・似た名前の別の住所は写しではない）', bad13.join(' ／ '));
   }
 
   /* ── A14 街ごとの家賃の台帳（2026-10-21 a3・リード P12.90）：台帳の行 → 記録 → 取り込みの台帳 → 会社ページの読み口 ──
