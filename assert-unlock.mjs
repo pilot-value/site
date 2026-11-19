@@ -352,7 +352,9 @@ function stub(page, { hasReview, accessUntil, preset, gated }) {
            画面は従来の proof_hash 総当たりに落ちる（貼る前と同じ動き）。 */
         if (name === 'pv_reviews' && gated) {
           /* 職位と在籍年数は、投稿した人が書いた文字列がそのまま届く。タグを書いた形で返して、
-             画面が字として出すだけか（働かないか）を下の口コミ一覧で見る。 */
+             画面が字として出すだけか（働かないか）を下の口コミ一覧で見る。
+             ★2026-11-19 から在籍年数は画面に出さない（サーバも返さない）。古いサーバを装って
+               返しておき、職位の1か所だけが字として出る＝在籍年数は描かれない、を見る。 */
           data = { ok: true, unlocked: hasReview,
                    rows: hasReview ? [{ id: 'r1', airline: 'ana', cats: [],
                      position: '<img src=x onerror=__pvHit=1>',
@@ -477,7 +479,7 @@ for (const [lang, url] of [['ja', '/airlines/spirit.html'], ['en', '/en/airlines
                asText: el.textContent.split(H).length - 1, hit: !!window.__pvHit };
     }, H);
     ok(h.imgs === 0 && h.asText >= 1 && !h.hit,
-       'A3 ★職位・在籍年数に書かれたタグは、会社ページでも字として出るだけ（働かない）', JSON.stringify(h));
+       'A3 ★職位に書かれたタグは、会社ページでも字として出るだけ（働かない）', JSON.stringify(h));
     await page.close();
   }
 
@@ -567,8 +569,8 @@ for (const [lang, url] of [['ja', '/community.html'], ['en', '/en/community.html
       return { imgs: f ? f.querySelectorAll('img').length : -1,
                asText: f ? f.textContent.split(H).length - 1 : -1, hit: !!window.__pvHit };
     });
-    ok(h.imgs === 0 && h.asText === 2 && !h.hit,
-       '職位・在籍年数に書かれたタグは、字として出るだけ（働かない）', JSON.stringify(h));
+    ok(h.imgs === 0 && h.asText === 1 && !h.hit,
+       '職位に書かれたタグは、字として出るだけ（働かない）・在籍年数は届いても出さない', JSON.stringify(h));
     await page.close();
   }
 
