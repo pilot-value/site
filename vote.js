@@ -43,6 +43,13 @@
       gateTitle: '全ての口コミを見るには',
       gateText: '口コミを1件投稿すると<br>全社の口コミを<strong>無料で</strong>読めます',
       gateNote: '完全無料・匿名・個人情報不要', gateLogin: 'ログイン（投稿済みの方）',
+      /* ★2026-11-20 書きかけの会員（口コミを1項目ずつ聞く板・pv-review-board.js）。{n} {k} {l} は差し込み */
+      rbHead: '{n}の口コミ', rbHead0: '口コミ', rbLead: '書いた項目は、全社ぶん読めます', rbCount: '{k} / 7 項目',
+      rbLeft: 'あと<b>{n}項目</b>で、全社の口コミが全部読めます。',
+      rbGo: '続きを書く（約30秒）', rbGo0: '1項目書く（約30秒）',
+      /* マスの中の字（| は折れてよい所） */
+      tile: { culture: '企業文化', salary: '給与', benefits: '福利厚生', wlb: 'ワークライフ|バランス', ops: '運航環境', training: '訓練環境', mgmt: '経営陣への|提案' },
+      rbLock: '{l}を書くと、全社のこの項目が読めます。', rbWrite: '書く（約30秒）',
       noComment: 'この項目へのコメントはありません。',
       loading: '読み込み中…', retry: 'やり直す',
       feedFail: '口コミを読み出せませんでした。', noReviews: 'まだ口コミがありません。',
@@ -94,6 +101,11 @@
       gateTitle: 'To see every review',
       gateText: 'Post one review of your own<br>and you can read every airline&rsquo;s reviews <strong>for free</strong>',
       gateNote: 'Completely free · anonymous · no personal details needed', gateLogin: 'Log in (already posted)',
+      rbHead: 'Your {n} review', rbHead0: 'Your review', rbLead: 'Each topic you write opens that topic for every airline', rbCount: '{k} / 7 topics',
+      rbLeft: '<b>{n} more</b> to open every airline’s reviews in full.',
+      rbGo: 'Keep writing (about 30 sec)', rbGo0: 'Write one topic (about 30 sec)',
+      tile: { culture: 'Culture', salary: 'Pay', benefits: 'Benefits', wlb: 'Work-life', ops: 'Flight ops', training: 'Training', mgmt: 'Management' },
+      rbLock: 'Write about {l} to read this topic for every airline.', rbWrite: 'Write (about 30 sec)',
       noComment: 'No comment on this item.',
       loading: 'Loading…', retry: 'Try again',
       feedFail: 'We could not load the reviews.', noReviews: 'No reviews yet.',
@@ -144,6 +156,11 @@
       gateTitle: 'Para ver todas las reseñas',
       gateText: 'Publica una reseña propia<br>y podrás leer las reseñas de todas las aerolíneas <strong>gratis</strong>',
       gateNote: 'Totalmente gratis · anónimo · sin datos personales', gateLogin: 'Iniciar sesión (si ya publicaste)',
+      rbHead: 'Tu reseña de {n}', rbHead0: 'Tu reseña', rbLead: 'Cada tema que escribas se abre en todas las aerolíneas', rbCount: '{k} / 7 temas',
+      rbLeft: 'Te faltan <b>{n}</b> para abrir todas las reseñas completas.',
+      rbGo: 'Seguir escribiendo (unos 30 s)', rbGo0: 'Escribir un tema (unos 30 s)',
+      tile: { culture: 'Cultura', salary: 'Remuneración', benefits: 'Beneficios', wlb: 'Vida y trabajo', ops: 'Operaciones', training: 'Entrenamiento', mgmt: 'Dirección' },
+      rbLock: 'Escribe sobre {l} para leer este tema en todas las aerolíneas.', rbWrite: 'Escribir (unos 30 s)',
       noComment: 'No hay comentarios sobre este punto.',
       loading: 'Cargando…', retry: 'Intentar de nuevo',
       feedFail: 'No pudimos cargar las reseñas.', noReviews: 'Aún no hay reseñas.',
@@ -250,6 +267,20 @@
   }
   function isUnlocked() {
     try { var e = localStorage.getItem('pv_unlock_expiry'); return !!e && Date.now() < parseInt(e, 10); } catch (x) { return false; }
+  }
+  /* ★2026-11-20 書きかけの会員（口コミを1項目ずつ聞く板）。ME ＝ サーバの pv_review_board（自分で開く形）の答え
+       { airline, name_ja, name_en, done:[書いた項目] }。ログインしていない・全部読める・止められている人は null（今までの画面）。
+       どの項目が読めるかはサーバが決め、行の本文として送ってくる（pick の part）。ここは書く入口を出すだけ。 */
+  var ME = null;
+  function fmt(t, o) { return String(t).replace(/\{(\w)\}/g, function (_, k) { return o[k] == null ? '' : String(o[k]); }); }
+  function loggedIn() {
+    var P = w.PVSession;
+    try { return !!P && P.isLoggedIn() && P.hasToken(); } catch (e) { return false; }
+  }
+  function lockBox(k) {
+    if (!ME) return '<p class="is-locked">🔒 ' + esc(T.lockedBody) + '</p>';
+    return '<div class="vt-rbl"><p>' + esc(fmt(T.rbLock, { l: T.cat[k] })) + '</p>' +
+      '<button type="button" class="vt-btn vt-rbl-go" data-rb="' + k + '">' + esc(T.rbWrite) + '</button></div>';
   }
   function rescanMoney(el) {
     /* 本文の「¥3,500万」も通貨切替で換算する（currency.js の observer は innerHTML の差し替えを取りこぼす） */
@@ -358,7 +389,14 @@
   }
   function byKey(k) {
     var all = items.concat(latest.items);
-    for (var i = 0; i < all.length; i++) if (all[i].key === k) return all[i];
+    for (var i = 0; i < all.length; i++) if (all[i].key === k) {
+      /* ★書きかけの会員（2026-11-20）：流れるカード（80字）から開いても、読める項目の本文が入った一覧の行（同じ投稿）を使う */
+      if (ME && all[i].kind === 'latest') {
+        var twin = 'c' + k.slice(1);
+        for (var j = 0; j < items.length; j++) if (items[j].key === twin && (items[j].body.part || !items[j].body.locked)) return items[j];
+      }
+      return all[i];
+    }
     return null;
   }
 
@@ -372,6 +410,15 @@
     var list = b.cats || [];
     if (want) { for (var i = 0; i < list.length; i++) if (list[i].k === want) return list[i]; return null; }
     for (var j = 0; j < KEYS.length; j++) for (var m = 0; m < list.length; m++) if (list[m].k === KEYS[j]) return list[m];
+    return null;
+  }
+  /* ★書きかけの会員が読める欄（review-i18n.js の pick が part の行に付ける・lock の無い欄）。want が無ければ KEYS 順で最初の1つ。 */
+  function openCat(b, want) {
+    var list = (b && b.cats) || [];
+    for (var j = 0; j < KEYS.length; j++) {
+      if (want && KEYS[j] !== want) continue;
+      for (var m = 0; m < list.length; m++) if (list[m].k === KEYS[j] && !list[m].lock && list[m].text) return list[m];
+    }
     return null;
   }
   function origOf(b, k) { var o = b.origCats || []; for (var i = 0; i < o.length; i++) if (o[i].k === k) return o[i].text; return ''; }
@@ -409,6 +456,9 @@
       return { tag: '', html: esc(t), shown: t.length };
     }
     var b = it.body;
+    /* ★書きかけの会員が読める項目（part）は、その項目の本文をそのまま出す */
+    var oc = (it.kind === 'server' && b.locked && b.part) ? openCat(b, want) : null;
+    if (oc) return { tag: T.cat[oc.k] || '', html: esc(oc.text), shown: oc.text.length, at: attrsOf(b, oc) };
     if (it.kind === 'server' && b.locked) {
       var cats = (it.row && it.row.cats) || [];
       var k = want || b.clipKey || cats[0] || '';
@@ -539,8 +589,10 @@
   /* 帯に出す口コミ。鍵のある人は全文（pv_reviews）から・鍵の無い人は pv_vote_latest（80字）から。
      pv_vote_latest がまだ無い（SQL を貼る前）・読めないときは、今までの並び（9件・先頭の1欄の80字）に戻る。 */
   function stripItems() {
-    var open = items.filter(function (it) { return it.kind === 'server' && !it.body.locked; });
-    if (open.length) {   // 足切りはサーバー（pv_vote_latest）と同じ：本文が合わせて20字以上（空白を除く）
+    var srv = items.filter(function (it) { return it.kind === 'server'; });
+    var open = srv.filter(function (it) { return !it.body.locked; });
+    /* ★全部読める人だけ（2026-11-20）。書きかけの会員は自分の口コミや一部の行だけが開いている ── それで帯を組むと、帯が自分の1件だけになる */
+    if (open.length && open.length === srv.length) {   // 足切りはサーバー（pv_vote_latest）と同じ：本文が合わせて20字以上（空白を除く）
       return open.filter(function (it) {
         return (it.body.cats || []).map(function (c) { return c.text; }).join('').replace(/\s/g, '').length >= 20;
       }).slice(0, STRIP_N);
@@ -611,7 +663,20 @@
     var slot = $('vt-gate-slot'); if (!slot) return;
     var g = $('gate-panel');
     if (isUnlocked()) { if (g) g.remove(); return; }
-    if (g) return;
+    /* 書きかけの会員には、同じ場所に7つのマスと「続きを書く」（押すとこのページの上に板が開く・7日を待たない） */
+    if (ME) {
+      var n = (ME.done || []).length, nm = EN ? ME.name_en : ME.name_ja;
+      slot.innerHTML = '<div id="gate-panel" class="vt-gate vt-rbg">' +
+        '<p class="vt-rbg-t">' + esc(nm ? fmt(T.rbHead, { n: nm }) : T.rbHead0) + '</p>' +
+        '<div class="vt-rbg-head"><span>' + esc(T.rbLead) + '</span><span class="vt-rbg-n">' + esc(fmt(T.rbCount, { k: n })) + '</span></div>' +
+        '<div class="vt-rbg-tiles">' + KEYS.map(function (k) {
+          return '<span class="vt-rbg-tile' + ((ME.done || []).indexOf(k) >= 0 ? ' on' : '') + '">' + esc(T.tile[k]).replace(/\|/g, '<wbr>') + '</span>';
+        }).join('') + '</div>' +
+        '<p class="vt-rbg-left">' + fmt(T.rbLeft, { n: 7 - n }) + '</p>' +
+        '<button type="button" class="vt-btn vt-rbg-go" data-rb="">' + esc(n ? T.rbGo : T.rbGo0) + '</button></div>';
+      return;
+    }
+    if (g && !g.classList.contains('vt-rbg')) return;
     slot.innerHTML = '<div id="gate-panel" class="vt-gate">' +
       '<div><p class="vt-gate-t">🔒 ' + esc(T.gateTitle) + '</p><p class="vt-gate-p">' + T.gateText + '</p>' +
       '<span class="vt-gate-note">' + esc(T.gateNote) + '</span></div>' +
@@ -844,14 +909,20 @@
     if (it.kind === 'latest') {
       /* 届いているのは投稿の頭から80字だけ。80字に入らなかった欄は、書かれていれば影絵と錠前（cats が名前だけ運ぶ） */
       var lc = firstCat(b, k), wrote = ((r && r.cats) || []).indexOf(k) >= 0;
-      if (lc) p = '<p' + attrsOf(b, lc) + '>' + esc(lc.text) + '</p>' + (/…$/.test(lc.text) ? ghost(60) + '<p class="is-locked">🔒 ' + esc(T.lockedBody) + '</p>' : '');
-      else if (wrote) p = ghost(60) + '<p class="is-locked">🔒 ' + esc(T.lockedBody) + '</p>';
+      if (lc) p = '<p' + attrsOf(b, lc) + '>' + esc(lc.text) + '</p>' + (/…$/.test(lc.text) ? ghost(60) + lockBox(k) : '');
+      else if (wrote) p = ghost(60) + lockBox(k);
       else p = '<p class="is-empty">' + esc(T.noComment) + '</p>';
     } else if (b.locked) {
       var written = ((r && r.cats) || []).indexOf(k) >= 0;
+      var oc = b.part ? openCat(b, k) : null;
       if (!written) p = '<p class="is-empty">' + esc(T.noComment) + '</p>';
-      else if (b.clipText && b.clipKey === k) p = '<p' + attrsOf(b) + '>' + esc(b.clipText) + '</p><p class="is-locked">🔒 ' + esc(T.lockedBody) + '</p>';
-      else p = '<p class="is-locked">🔒 ' + esc(T.lockedBody) + '</p>';
+      else if (oc) {   // 書きかけの会員が読める項目（訳した欄には「自動翻訳」の札と原文）
+        var oo = origOf(b, k);
+        p = '<p' + attrsOf(b, oc) + '>' + esc(oc.text) + '</p>' + (!oc.o && oo && oo !== oc.text ? w.PVReviewI18n.noteHTML(b.from, 'lead') + ' ' + w.PVReviewI18n.origHTML(oo, b.from) : '');
+      }
+      /* 抜粋で全文が見えている（80字に収まった）欄には、書きかけの会員へ「書くと読めます」を出さない（隠している字が無い） */
+      else if (b.clipText && b.clipKey === k) p = '<p' + attrsOf(b) + '>' + esc(b.clipText) + '</p>' + (ME ? (/…$/.test(b.clipText) ? ghost(60) + lockBox(k) : '') : lockBox(k));
+      else p = (ME ? ghost(60) : '') + lockBox(k);
     } else {
       var c = firstCat(b, k);
       if (!c) p = '<p class="is-empty">' + esc(T.noComment) + '</p>';
@@ -884,7 +955,7 @@
       html += '<section class="vt-d-sec"><p>' + esc(t.slice(0, v)) + (t.length > v ? '<span class="vt-blur" aria-hidden="true">' + esc(t.slice(v)) + '</span>' : '') + '</p></section>';
       locked = !open && t.length > v;
     }
-    if (locked) {
+    if (locked && !ME) {
       html += '<div class="vt-d-gate"><p>' + esc(T.lockedBody) + '<br><a class="vt-gate-login" href="' + esc(loginHref()) + '">' + esc(T.gateLogin) + '</a></p>' +
         '<a class="vt-btn" href="submit-review.html' + (co ? '?airline=' + it.slug : '') + '">' + ico('pen') + esc(T.unlockBtn) + '</a></div>';
     }
@@ -913,6 +984,45 @@
     d.title = T.reviewOf(nameOf(it.slug, it.code).main) + ' | Vote';
     var x = dlg.querySelector('[data-close]'); if (x) x.focus({ preventScroll: true });
   }
+  /* ── 口コミを1項目ずつ聞く板（pv-review-board.js）を、このページの上で開く（2026-11-20）──
+     会員が自分で押した板なので7日を待たない（サーバの manual）。引き出しが開いていたら先に閉じる（<dialog> の上には重ねられない）。
+     書いたら一覧を読み直す（読める項目が増える）。 */
+  var RB = null;
+  function openBoard(cat) {
+    if (M.open) { history.replaceState(null, '', location.pathname + location.search + (M.ret || '')); M.fromUI = false; closeDialog(); }
+    var go = function () {
+      if (!w.PVReviewBoard) return;
+      w.PVReviewBoard.open({ cat: KEYS.indexOf(cat) >= 0 ? cat : '', from: 'vote' });   // 書いたら pv-review-change が来る（下の boot）
+    };
+    if (w.PVReviewBoard) { go(); return; }
+    if (!RB) RB = new Promise(function (res) {
+      var sc = d.createElement('script');
+      sc.src = ROOT + 'pv-review-board.js';
+      sc.onload = res; sc.onerror = res;
+      (d.head || d.documentElement).appendChild(sc);
+    });
+    RB.then(go);
+  }
+  function loadMe() {
+    if (!sb || !loggedIn() || isUnlocked()) { if (ME) { ME = null; syncGate(); } return Promise.resolve(); }
+    return rpc('pv_review_board', { manual: true }).then(function (r) {
+      var v = r && !r.error ? r.data : null;
+      ME = (v && v.due === true) ? v : null;
+      syncGate();
+      if (M.open && M.key) { var it = byKey(M.key); if (it) { $('vt-dialog-body').innerHTML = drawerHTML(it); rescanMoney($('vt-dialog-body')); } }
+    });
+  }
+  /* 板の「〇〇の口コミを読む」：ページを移らずに、すべての口コミをその項目で絞る */
+  w.PVVote = {
+    showCat: function (cat) {
+      state.f.cat = KEYS.indexOf(cat) >= 0 ? cat : '';
+      state.limit = 60;
+      if (location.hash !== '#all') location.hash = 'all';
+      else { fillSelects(); renderAll(); }
+      w.scrollTo(0, 0);
+    }
+  };
+
   function closeDialog() {
     var dlg = $('vt-dialog');
     if (dlg && dlg.open) dlg.close();
@@ -1022,6 +1132,7 @@
       var b = t.closest && t.closest('button');
       if (!b) return;
       if (b.hasAttribute('data-close')) { if (b.closest('#vt-info')) $('vt-info').close(); else closeReview(); }
+      else if (b.hasAttribute('data-rb')) openBoard(b.getAttribute('data-rb'));
       else if (b.hasAttribute('data-role')) setRole(b.getAttribute('data-role'));
       else if (b.hasAttribute('data-clear') || b.hasAttribute('data-q-clear')) { setQuery(''); var q = d.querySelector((view === 'all' ? '#vt-all' : '#vt-home') + ' [data-q]'); if (q) q.focus(); }
       else if (b.id === 'vt-more') { state.limit += 60; renderAll(); }
@@ -1080,13 +1191,22 @@
     try { sb = (w.supabase && w.supabase.createClient) ? w.supabase.createClient(SB_URL, SB_KEY) : null; } catch (e) { sb = null; }
     bind();
     rebuild([]);
+    /* ?cat=salary … 板の「給与の口コミを読む」から来た（すべての口コミをその項目で絞って開く） */
+    var qc = /[?&]cat=([a-z]+)/.exec(location.search);
+    if (qc && KEYS.indexOf(qc[1]) >= 0) {
+      state.f.cat = qc[1];
+      if (!location.hash) history.replaceState(null, '', location.pathname + location.search + '#all');
+    }
     route();
+    /* 板（7日に1回の板も、ここで開いた板も）で書いたら、読める項目が増える ＝ 一覧と壁を読み直す */
+    w.addEventListener('pv-review-change', function () { loadFeed(); loadMe(); });
     getJSON(ROOT + 'pv-airlines.json').then(function (j) { DIR = (j && j.airlines) || {}; }, function () { DIR = {}; })
       .then(function () {
         if (view === 'home') { renderFeed(); renderCompanies(); }
         loadPopular();
         loadLatest();
         loadFeed();
+        loadMe();
       });
   }
   if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', boot); else boot();

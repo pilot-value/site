@@ -626,7 +626,8 @@
       '      ' + salaryTableHTML(r, locked && idx >= 1) + '\n' +
       // ★原文（訳の無い外国語）を出すときだけ dir と lang（r.attrs）。錠前の帯が同じ箱に入る行（locked）には付けない
       '      <div class="rv-comment"' + (locked || r.serverLocked ? '' : (r.attrs || '')) + ' id="' + uid + '_text">' +
-             (r.serverLocked ? (snipHTML(r.clipText, r.attrs) + ghostHTML(r) + srvLockHTML(r.catKeys))
+             (r.serverLocked && r.openText ? rvEsc(r.openText) + srvLockHTML(r.lockKeys)
+              : r.serverLocked ? (snipHTML(r.clipText, r.attrs) + ghostHTML(r) + srvLockHTML(r.catKeys))
                              : preview + (hasMore && !locked ? '…' : '') +
                                (locked ? lockedTailHTML(tail) : '')) + '</div>\n' +
       // 未解放で原文トグルを出すと、翻訳元の全文がその場で読めてしまいゲートが素通しになる。
@@ -873,6 +874,9 @@
       /* ★鍵の無い行に付く「最初に書かれた欄の先頭40字」（2026-09-16 オーナー指示）。
            本文（comment）とは別の入れ物のまま運ぶ ── 混ぜると錠前の面ごと消える。 */
       clipText: body.clipText || '',
+      /* ★書きかけの会員（2026-11-20・口コミを1項目ずつ聞く板）：読める欄の本文（openText）と、まだ読めない欄（lockKeys）。
+           本文は書いた項目の分だけサーバが送る。錠前（serverLocked）はそのまま ── 読めない欄が残っているから */
+      openText: body.part ? (body.openText || '') : '', lockKeys: body.part ? (body.lockKeys || []) : null,
       // 7欄の本文の合計字数（サーバの n。鍵の有無にかかわらず来る・本文ではない）。影絵の行数に使う
       total: (typeof r.n === 'number' && r.n >= 0) ? r.n : null,
       // 総額の優先順位：総額(annual_salary) ＞ 成分合算(基本給+乗務手当+賞与) ＞ 月給×12+賞与
