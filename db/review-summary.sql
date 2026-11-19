@@ -645,7 +645,8 @@ comment on function public.pv_review_summary_lead(text, text) is
 -- ★ few と none は鍵を見る**前**に返す（冒頭の罠）。鍵の有無で few / none の出方は変わらない。
 -- ★ few・none は {ok, state} の2つだけ。login・locked は ok・state・lead・good（lead と good は在るときだけ）。
 --   どちらにも overview・concern・n・as_of・as_of_at・ids の鍵は無い（段落の全文と気になる点を返すのは open だけ）。
---   open で返すのは n・as_of・as_of_at・overview と、点の text・cat・ids。k・書いた人は1つも入らない。
+--   open で返すのは n・items・as_of・as_of_at・overview と、点の text・cat・ids。k・書いた人は1つも入らない。
+--   （items ＝ 材料にした口コミの、本文のある分類の数の合計。画面の「会員の口コミ N件から」はこれ・2026-11-19）
 /* ★見る人に左右されない部分（2026-11-06・Supabase の Disk IO 警告）。3件あるか・保存した要約が今の口コミと食い違っていないか・
      段落の先頭と良い点・鍵のある人への返事、を作る。照合（sig・bad・backed）が重く、会社ページを開くたびに 0.26 秒かかっていた
      （10-31〜11-06 で 9,294 回）。答えは書き込みのときに pv_review_summary_pub へ置き、pv_review_summary は引くだけ。
@@ -704,6 +705,14 @@ begin
   return jsonb_build_object('state', 'ok', 'lead', v_lead, 'good', v_good, 'open', jsonb_build_object(
     'ok', true, 'state', 'open',
     'n', v_row.n,
+    /* ★items（2026-11-19 オーナー指示「口コミは各項目を1と数えて・OpenWork と同じ」）── 画面の「会員の口コミ N件から」に出す数。
+         材料にした口コミ（n と同じ集合）の、本文のある分類の数の合計。人の数 n は下限（3件）と照合のためにそのまま残す。
+         ここ（書き込みのときに作って pv_review_summary_pub に置く答え）で数える ＝ 会社ページを開くたびには数えない。 */
+    'items', (select count(*)::int
+                from public.reviews_v2 r
+                cross join unnest(public.pv_review_summary_cats()) c
+               where r.id::text in (select public.pv_review_summary_ids(v_codes, v_row.newest_at))
+                 and btrim(coalesce(to_jsonb(r) ->> (c || '_comment'), '')) <> ''),
     'overview', coalesce(v_row.overview, ''),
     'as_of', to_char(v_row.made_at at time zone 'utc', 'YYYY-MM-DD'),
     'as_of_at', to_char(date_trunc('hour', v_row.made_at at time zone 'utc')

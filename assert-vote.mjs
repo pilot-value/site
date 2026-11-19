@@ -199,7 +199,9 @@ console.log('\n════ 2-A. 未ログイン（鍵なし）════');
   /* 会社ページと同じ数え方で、作り物の点数から作り直す */
   const rr = REV.filter((r) => r[0] === 'ana').map((r) => r[3].filter((x) => x > 0)).map((a) => a.reduce((x, y) => x + y, 0) / a.length);
   const want = (rr.reduce((x, y) => x + y, 0) / rr.length).toFixed(1);
-  ok(v.ana === want && /口コミ 3件/.test(v.anaN || ''), `ANA の総合評価は ${want}・口コミ 3件（点数は誰にでも見える列）`, J(v));
+  /* ★口コミの件数は「本文を書いた項目1つ＝1件」（2026-11-19 オーナー指示・OpenWork と同じ）。ANA は3人・書いた項目は 3＋2＋1 ＝ 6 */
+  const wantN = REV.filter((r) => r[0] === 'ana').reduce((x, r) => x + Object.keys(r[5]).length, 0);
+  ok(v.ana === want && new RegExp('口コミ ' + wantN + '件').test(v.anaN || ''), `ANA の総合評価は ${want}・口コミ ${wantN}件（書いた項目ごとに数える・3人ではない）`, J(v));
   ok(!leaks(await html(page)).length, '★ホームのどこにも、先頭80字より先の本文が無い', leaks(await html(page)).join(' '));
   const strip = await page.evaluate(() => ({
     n: document.querySelectorAll('#review-feed .vt-rc').length,
@@ -280,7 +282,7 @@ console.log('\n════ 2-B. 運営（本文も勤務も開いている）�
   ok(em.length === 3 && em.every((r) => r.v === '未取得' && !r.track), '2人しか答えていない会社は3本とも「未取得」で棒を描かない（0 にしない）', J(em));
   ok(!(await page.$('#gate-panel')), '運営には鍵の壁が出ない');
   /* 引き出し：7項目が並びどおり・経営陣への提案に点が付かない・本文が全部ある */
-  const key = await page.evaluate(() => [...document.querySelectorAll('#review-feed [data-review]')].find((a) => /ANA/.test(a.textContent) && /副操縦士/.test(a.textContent) && /5〜10年/.test(a.textContent)).dataset.review);
+  const key = await page.evaluate(() => [...document.querySelectorAll('#review-feed [data-review]')].find((a) => /ANA/.test(a.textContent) && /副操縦士/.test(a.textContent) && /手取りに波/.test(a.textContent)).dataset.review);
   await page.evaluate((k) => { location.hash = '#review/' + k; }, key);
   await page.waitForFunction(() => document.getElementById('vt-dialog').open);
   const d = await page.evaluate(() => ({
@@ -290,6 +292,10 @@ console.log('\n════ 2-B. 運営（本文も勤務も開いている）�
   }));
   ok(J(d.h) === J(['企業文化', '給与', '福利厚生', 'ワークライフバランス', '運航環境', '訓練環境', '経営陣への提案']), '引き出しは同じ投稿の7項目を見出しつきで並べる', J(d.h));
   ok(!d.mgmtScore, '経営陣への提案には点を付けない（総合評価に入れない）');
+  /* ★勤務年数は画面に出さない（2026-11-19 オーナー指示「プライバシーと特定を避けるため全部削除」）。作り物の口コミは DB に 5-10 などを持っている。 */
+  const TEN_RE = /勤務年数|〜\d+年|\d+年以上|of service|de antigüedad/;
+  const tenCards = await page.evaluate((src) => [...document.querySelectorAll('[data-review]')].filter((a) => new RegExp(src).test(a.textContent)).length, TEN_RE.source);
+  ok(tenCards === 0 && !TEN_RE.test(d.text), '★流れるカード・一覧のカード・引き出しのどこにも勤務年数が出ない', `${tenCards}枚`);
   ok(d.text.includes(TAIL('0wlb')) && d.text.includes(TAIL('0mgmt')), '鍵のある人には本文が最後まで出る');
   await page.evaluate(() => history.back());
   await page.waitForFunction(() => !document.getElementById('vt-dialog').open);
@@ -408,6 +414,26 @@ console.log('\n════ 2-D. ログインなしの口コミ（預かり → 
   /* ★2026-11-14 オーナー決定「口コミで聞くのは航空会社名と職位だけ。勤務年数・年代・機種・役職区分は聞かない」 */
   const asks = await page.evaluate(() => ['f-tenure', 'f-age', 'f-fleet', 'f-jobrole'].filter((id) => document.getElementById(id) || document.querySelector(`[name="${id}"]`)));
   ok(asks.length === 0, '★口コミのフォームは航空会社と職位だけを聞く（勤務年数・年代・機種・役職区分の欄が無い）', J(asks));
+  /* ★会社名で探す（2026-11-19 オーナー指示「給与投稿と同じ形にして」・air-search.js）。
+     略称で探せて、押すと一覧が選ばれる／一覧に無い名前は「一覧にない会社として送る」で自由入力の欄へ入る。 */
+  const typeQ = async (q) => {
+    await page.$eval('#f-airline-q', (el) => { el.value = ''; });
+    await page.type('#f-airline-q', q);
+    await page.waitForFunction(() => !document.getElementById('f-airline-hits').hidden, { timeout: 5000 });
+    return page.evaluate(() => [...document.querySelectorAll('#f-airline-hits .air-hit')].map((b) => b.getAttribute('data-v')));
+  };
+  const h1 = await typeQ('全日空');
+  await page.click('#f-airline-hits .air-hit');
+  const p1 = await page.evaluate(() => ({ v: document.getElementById('f-airline').value, q: document.getElementById('f-airline-q').value,
+    open: !document.getElementById('f-airline-hits').hidden }));
+  ok(h1[0] === 'ana' && h1[h1.length - 1] === 'other' && p1.v === 'ana' && p1.q === '' && !p1.open,
+     '★会社名で探す：「全日空」で ANA が先頭に出て、押すと一覧が ANA になる（最後の行は必ず「一覧にない会社」）', J({ h1, p1 }));
+  const h2 = await typeQ('Rian Air');
+  await page.click('#f-airline-hits .air-hit--other');
+  const p2 = await page.evaluate(() => { const o = document.getElementById('f-airline-other');
+    return { v: document.getElementById('f-airline').value, other: o.value, shown: o.style.display !== 'none', focus: document.activeElement === o }; });
+  ok(h2[h2.length - 1] === 'other' && p2.v === 'other' && p2.other === 'Rian Air' && p2.shown && p2.focus,
+     '★一覧に無い名前は「一覧にない会社として送る」で、打った名前のまま会社名の欄へ入る', J({ h2, p2 }));
   /* 作り物の口コミ（実在の投稿ではない） */
   await page.evaluate(() => {
     const sel = document.getElementById('f-airline'); sel.value = 'zipair'; sel.dispatchEvent(new Event('change'));

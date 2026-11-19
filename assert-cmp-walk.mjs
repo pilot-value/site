@@ -293,13 +293,16 @@ const SC = ['culture_score', 'salary_score', 'benefits_score', 'wlb_score', 'ops
 /* 決まりの書き直し（この検査の言葉）：1行の平均は、点数の付いた分類（0 より大きい・5 で頭打ち）だけの平均。
    評価の平均はその行の平均の平均、評価件数は点数の付いた行の数。行が無い・点数が1つも無い → null（0 にしない） */
 async function stored(slug) {
-  const rows = (await CUR.env.q(`select ${SC.join(', ')} from public.reviews_v2 where airline = any($1::text[])`, [codesOf(slug)])).rows;
-  let tot = 0, n = 0;
+  /* ★「会員の投稿 n件」は本文を書いた項目1つ＝1件（2026-11-19 オーナー指示・OpenWork と同じ）。7項目の本文の数を足す。 */
+  const CM = ['culture', 'salary', 'benefits', 'wlb', 'ops', 'training', 'mgmt'].map((k) => k + '_comment');
+  const rows = (await CUR.env.q(`select ${SC.concat(CM).join(', ')} from public.reviews_v2 where airline = any($1::text[])`, [codesOf(slug)])).rows;
+  let tot = 0, n = 0, items = 0;
   for (const r of rows) {
     const v = SC.map((k) => Number(r[k])).filter((x) => Number.isFinite(x) && x > 0).map((x) => Math.min(5, x));
     if (v.length) { tot += v.reduce((x, y) => x + y, 0) / v.length; n++; }
+    items += CM.filter((k) => String(r[k] || '').trim()).length;
   }
-  return { posts: rows.length, rate: n ? { avg: tot / n, n } : null };
+  return { posts: items, rate: n ? { avg: tot / n, n } : null };
 }
 
 /* ── 場面 ─────────────────────────────────────────────────── */

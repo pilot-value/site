@@ -34,8 +34,6 @@
     ja: {
       latest: '最新の口コミ', seeAll: 'すべての口コミを見る', prev: '前の口コミ', next: '次の口コミ',
       read: 'この投稿を読む',
-      tenure: function (t) { return '勤務年数 ' + t; }, yearsWord: '年',
-      ten: { '1-5': '1〜5年', '5-10': '5〜10年', '10-15': '10〜15年', '15-20': '15〜20年', '20+': '20年以上' },
       pos: { captain: '機長', fo: '副操縦士', cadet: '訓練生', former: '元乗務員' },
       cat: { culture: '企業文化', salary: '給与', benefits: '福利厚生', wlb: 'ワークライフバランス', ops: '運航環境', training: '訓練環境', mgmt: '経営陣への提案' },
       radar: [['企業文化'], ['給与'], ['福利厚生'], ['ワークライフバランス'], ['運航環境'], ['訓練環境']],
@@ -87,8 +85,6 @@
     en: {
       latest: 'Latest reviews', seeAll: 'See all reviews', prev: 'Previous review', next: 'Next review',
       read: 'Read this review',
-      tenure: function (t) { return t + ' of service'; }, yearsWord: 'years',
-      ten: { '1-5': '1–5 years', '5-10': '5–10 years', '10-15': '10–15 years', '15-20': '15–20 years', '20+': '20+ years' },
       pos: { captain: 'Captain', fo: 'First Officer', cadet: 'Trainee', former: 'Former crew' },
       cat: { culture: 'Culture', salary: 'Pay', benefits: 'Benefits', wlb: 'Work-life balance', ops: 'Flight operations', training: 'Training', mgmt: 'Suggestions for management' },
       radar: [['Culture'], ['Pay'], ['Benefits'], ['Work-life balance'], ['Operations'], ['Training']],
@@ -139,8 +135,6 @@
     }, /*PV-MSG:es*/ es: {
       latest: 'Últimas reseñas', seeAll: 'Ver todas las reseñas', prev: 'Reseña anterior', next: 'Reseña siguiente',
       read: 'Leer esta reseña',
-      tenure: function (t) { return t + ' de antigüedad'; }, yearsWord: 'años',
-      ten: { '1-5': '1–5 años', '5-10': '5–10 años', '10-15': '10–15 años', '15-20': '15–20 años', '20+': '20 años o más' },
       pos: { captain: 'Capitán', fo: 'Primer oficial', cadet: 'Piloto en formación', former: 'Extripulante' },
       cat: { culture: 'Cultura', salary: 'Remuneración', benefits: 'Beneficios', wlb: 'Equilibrio vida-trabajo', ops: 'Operaciones de vuelo', training: 'Entrenamiento', mgmt: 'Sugerencias para la dirección' },
       radar: [['Cultura'], ['Remuneración'], ['Beneficios'], ['Equilibrio vida-trabajo'], ['Operaciones'], ['Entrenamiento']],
@@ -307,11 +301,19 @@
   var items = [];
   var feed = { s: 'loading' };
   function ym(s) { var m = /^(\d{4})[-.](\d{2})/.exec(String(s || '')); return m ? { t: m[1] + '.' + m[2], iso: m[1] + '-' + m[2] } : { t: '—', iso: '' }; }
-  /* ★勤務年数は 2026-11-14 から聞いていない（オーナー決定「口コミは航空会社名と職位だけ」）。新しい口コミは空で来る。
-     空のときは「勤務年数 —」と出さず、その部分ごと飛ばす（tenLine）。過去の口コミは今までどおり出す。 */
-  function tenText(t) { return t ? (T.ten[t] || String(t)) : ''; }
-  function tenLine(it) { return it.ten && it.ten !== '—' ? T.tenure(it.ten) : ''; }
+  /* ★勤務年数は画面のどこにも出さない（2026-11-19 オーナー指示「プライバシーと特定を避けるため全部削除」）。
+     2026-11-14 から聞いてもいない。ten は検索の答えの重複を見分ける目印にだけ使う（字にしない）。 */
   function posText(p) { return T.pos[p] || String(p || ''); }
+  /* ★口コミの件数は「本文を書いた項目1つ＝1件」（2026-11-19 オーナー指示・OpenWork と同じ）。
+     7項目に書いた投稿は7件・点数だけの投稿は0件。数えるのはサーバーが行ごとに付ける cats（本文のある項目の名前・鍵の有無にかかわらず来る）。
+     見本・この端末の口コミは項目に分かれていないので1つ1件。項目で絞っているときは、残った1枚が1件。 */
+  function rowItems(r) {
+    if (r && Array.isArray(r.cats)) return r.cats.length;
+    return KEYS.filter(function (k) { return r && String(r[k + '_comment'] || '').trim(); }).length;
+  }
+  function itemsIn(list, cat) {
+    return list.reduce(function (s, it) { return s + ((cat || it.kind === 'seed' || it.kind === 'local') ? 1 : rowItems(it.row)); }, 0);
+  }
   function fromServer(r, i) {
     var slug = slugOf(r.airline);
     var t = Date.parse(r.created_at || '');
@@ -319,12 +321,12 @@
       ? 'r' + String(r.id).replace(/[^A-Za-z0-9_-]/g, '')
       : (isFinite(t) ? 'c' + t.toString(36) + '-' + slug.replace(/[^a-z0-9-]/g, '') : 'i' + i);
     var b = w.PVReviewI18n.pick(r);
-    return { key: key, kind: 'server', slug: slug, code: r.airline || '', pos: r.position || '', ten: tenText(r.tenure_bucket),
+    return { key: key, kind: 'server', slug: slug, code: r.airline || '', pos: r.position || '', ten: String(r.tenure_bucket || ''),
              date: ym(r.created_at), row: r, body: b };
   }
   function fromSeed(r) {
     return { key: 's' + String(r.id).replace(/[^A-Za-z0-9_-]/g, ''), kind: 'seed', slug: slugOf(r.airline), code: r.airline || '',
-             pos: r.position || '', ten: yearsIn(r.exp || '—'), date: ym(r.date), text: String(r.comment || ''), rating: num(Number(r.rating)) };
+             pos: r.position || '', ten: String(r.exp || ''), date: ym(r.date), text: String(r.comment || ''), rating: num(Number(r.rating)) };
   }
   function fromLocal(r) {
     var text = [r.payText, r.evalText, r.benefitText, r.scheduleText, r.opsText].filter(Boolean).join('　') || r.comment || '';
@@ -332,10 +334,8 @@
     var iso = isFinite(dt) ? dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') : '';
     var rt = r.avgRating ? Math.round(r.avgRating) : (r.rating || null);
     return { key: 'u' + String(r.ts).replace(/[^0-9]/g, ''), kind: 'local', slug: slugOf(r.airline), code: r.airline || '',
-             pos: r.position || '', ten: yearsIn(r.years || r.experience || '—'), date: ym(iso), text: String(text), rating: num(Number(rt)) };
+             pos: r.position || '', ten: String(r.years || r.experience || ''), date: ym(iso), text: String(text), rating: num(Number(rt)) };
   }
-  /* 見本・この端末の口コミの年数は英語の字（'16+ years'）で来る。英語の動きのページ（スペイン語も）では、その言語の語に（英語は同じ字のまま） */
-  function yearsIn(s) { s = String(s); return EN && T.yearsWord ? s.replace(/ years$/, function () { return ' ' + T.yearsWord; }) : s; }
   function localItems() {
     var out = [];
     try { (JSON.parse(localStorage.getItem('pv_reviews') || '[]') || []).forEach(function (r) { if (r) out.push(fromLocal(r)); }); } catch (e) {}
@@ -353,7 +353,7 @@
     var slug = slugOf(r.airline);
     var t = Date.parse(r.created_at || '');
     return { key: 'v' + (isFinite(t) ? t.toString(36) : String(i)) + '-' + slug.replace(/[^a-z0-9-]/g, ''), kind: 'latest',
-             slug: slug, code: r.airline || '', pos: r.position || '', ten: tenText(r.tenure_bucket),
+             slug: slug, code: r.airline || '', pos: r.position || '', ten: String(r.tenure_bucket || ''),
              date: ym(r.created_at), row: r, body: w.PVReviewI18n.pick(r), n: num(r.n) };
   }
   function byKey(k) {
@@ -481,7 +481,7 @@
   function card(it, want, list) {
     var n = nameOf(it.slug, it.code);
     var ex = excerpt(it, want);
-    var meta = [posText(it.pos), tenLine(it)].filter(Boolean).map(esc).join(' · ');
+    var meta = esc(posText(it.pos));
     var avg = (it.kind === 'seed' || it.kind === 'local') ? (it.rating ? Math.min(5, it.rating) : null) : rowAvg(it.row);
     var total = lenOf(it);
     /* 星と項目名は1行にまとめる（カードを低くする・2026-10-29 iPhone で大きすぎ）。 */
@@ -507,7 +507,7 @@
 
   /* 流れる帯のカード（トップの口コミの帯と同じ大きさ：幅 304px・狭い画面 268px）。
      2026-10-29 オーナー「landing page と同じくらいにしろ」。
-     中身の順：項目名・星 → 本文（鍵の無い人は先頭80字＋影絵1行）→ 会社・職位・勤務年数（過去の口コミだけ）・年月・全 N 文字。 */
+     中身の順：項目名・星 → 本文（鍵の無い人は先頭80字＋影絵1行）→ 会社・職位・年月・全 N 文字。 */
   function mini(it) {
     var n = nameOf(it.slug, it.code);
     var full = it.kind === 'latest' || (it.kind === 'server' && !it.body.locked);
@@ -523,7 +523,7 @@
       : '<span class="vt-rc-ex' + (ex.locked || ex.strip ? ' is-cut' : '') + '"' + (ex.at || '') + '>' + ex.html + '</span>';
     if (ex.strip) { if (ex.locked && ex.more) body += ghost(Math.max(20, (total || 0) - ex.shown)); }
     else if (ex.locked && total != null) body += ghost(total - (ex.shown || 0));
-    var who = [n.main, posText(it.pos), tenLine(it), it.date.t].filter(Boolean).join(' · ');
+    var who = [n.main, posText(it.pos), it.date.t].filter(Boolean).join(' · ');
     return '<a class="vt-rc vt-mini" href="#review/' + it.key + '" data-review="' + it.key + '">' + head + body +
       '<span class="vt-mini-meta"><span class="vt-mini-who">' + esc(who) + '</span>' +
       (total ? '<span class="vt-rc-len">' + esc(T.chars(total)) + '</span>' : '') + '</span></a>';
@@ -579,7 +579,7 @@
     rescanMoney(box);
     if (mq) mq.classList.toggle('is-static', !!state.q || shown.length < 2);
     flow(!state.q && shown.length >= 2);
-    if (state.q) say(T.live(list.length));
+    if (state.q) say(T.live(itemsIn(list, '')));
   }
   /* 流す。トラック ＝ [本物の1組][写し…]。写しは読み上げにもタブ移動にも入れない（aria-hidden・tabindex=-1）。
      前半と後半を同じ幅にして translate3d(-50%) で継ぎ目なく回す（速さは 20px/秒・トップと同じ）。
@@ -642,7 +642,7 @@
     if (!c.revP) {
       var codes = [slug]; if (LEGACY[slug]) codes.push(LEGACY[slug]);
       c.revP = (sb && w.PVReviewI18n ? w.PVReviewI18n.fetchRows(sb, { airlines: codes, limit: 500 }) : Promise.resolve(null)).then(function (res) {
-        c.rev = res ? { s: 'ok', n: res.rows.length, R: realRated(res.rows) } : { s: 'error' };   // 取れなかった ≠ 0件
+        c.rev = res ? { s: 'ok', n: res.rows.reduce(function (s, r) { return s + rowItems(r); }, 0), R: realRated(res.rows) } : { s: 'error' };   // 取れなかった ≠ 0件
         paintCo(slug);
       });
     }
@@ -819,7 +819,8 @@
     if (feed.s === 'loading') { box.innerHTML = '<p class="vt-status">' + esc(T.loading) + '</p>'; if (cnt) cnt.textContent = ''; if (more) more.hidden = true; return; }
     var f = { q: state.q, co: state.f.co, cat: state.f.cat, role: state.f.role };
     var list = items.filter(function (it) { return matches(it, f); });
-    if (cnt) cnt.textContent = T.count(list.length);
+    var nItems = itemsIn(list, f.cat);
+    if (cnt) cnt.textContent = T.count(nItems);
     if (!list.length) {
       box.innerHTML = '<div class="vt-empty"><strong>' + esc(T.noMatch) + '</strong>' + esc(T.noMatchSub) +
         (state.q ? '<br><button type="button" class="vt-btn-line" data-clear>' + esc(T.clear) + '</button>' : '') + '</div>';
@@ -830,7 +831,7 @@
     var fs = $('vt-feed-status2');
     if (fs) fs.innerHTML = feed.s === 'error' ? esc(T.feedFail) + ' <button type="button" class="vt-retry" data-retry="feed">' + esc(T.retry) + '</button>' : '';
     rescanMoney(box);
-    say(T.live(list.length));
+    say(T.live(nItems));
   }
 
   /* ── D. 口コミの引き出し ─────────────────────────────────── */
@@ -870,7 +871,7 @@
       '<button type="button" class="vt-d-close" data-close aria-label="' + esc(T.close) + '">' + ico('close') + '</button></div>' +
       '<div class="vt-d-body"><div class="vt-d-top">' + logo(it.slug, n.main) +
       '<div><h2 id="vt-d-title">' + esc(T.reviewOf(n.main)) + '</h2><p class="vt-d-meta">' +
-      [posText(it.pos), tenLine(it), it.date.t].filter(Boolean).map(esc).join(' · ') + '</p></div></div>' +
+      [posText(it.pos), it.date.t].filter(Boolean).map(esc).join(' · ') + '</p></div></div>' +
       '<div class="vt-d-sum">' + (avg ? '<span>' + esc(T.overall) + '</span><b class="vt-rn">' + avg.toFixed(1) + '</b>' + stars(avg) : '') +
       (co ? '<a class="vt-link" href="' + coHref(it.slug, 'reviews') + '">' + esc(T.coReviews) + ico('arrow') + '</a>' : '') + '</div>';
     var locked;

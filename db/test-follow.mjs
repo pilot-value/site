@@ -359,7 +359,7 @@ await db.query(`insert into public.reviews_v2 (proof_hash, airline, "position", 
 const rvi = (await itemsOf(R1)).find((i) => i.code === 'ana').reviews[0];
 const ORDER = ['culture', 'salary', 'benefits', 'wlb', 'ops', 'training', 'mgmt'];
 const txt = ORDER.map((k) => rvi.text[k + '_comment'] || '').join('');
-ok(rvi.score === 4 && rvi.pos_ja && rvi.tenure === '5-10', '評価（3つの点の平均）・職位・在籍年数を返す', J(rvi));
+ok(rvi.score === 4 && rvi.pos_ja && !('tenure' in rvi), '評価（3つの点の平均）・職位を返す・★在籍年数は返さない（2026-11-19）', J(rvi));
 ok(txt.replace(/…$/, '').length <= 80 && txt.startsWith('あ'.repeat(60)) && !txt.includes('い'.repeat(30)),
    '★本文は最初の80字まで（それより先は1文字も返さない）', txt.length + ' ' + txt.slice(0, 90));
 const site80 = (await one(`select public.pv_review_fill(to_jsonb(v), '_comment', 80) as j from public.reviews_v2 v where v.proof_hash = $1`, [reviewKey(RV, 'ana')])).j;
@@ -506,8 +506,8 @@ for (const l of ['ja', 'en', 'es']) {
     const tag = `${l}${hasKey ? '・鍵あり' : '・鍵なし'}`;
     ok(s0.page === `${site}/${F.airlinePath(l, 'ana')}` && exists(s0.page) && s1.page === '' && s0.reviews[0].more === s0.page + '#reviews',
        `${tag}：会社のページがある会社だけリンク（先が在る）・口コミの「続きを見る」は口コミの欄へ`);
-    ok(s0.reviews[0].meta.startsWith('★4.0') && s0.reviews[0].meta.includes(l === 'ja' ? '機長（CAP）' : 'Captain (CAP)') && /5/.test(s0.reviews[0].meta),
-       `${tag}：口コミの見出しは評価・職位・在籍年数（サイトで見せている範囲）`, s0.reviews[0].meta);
+    ok(s0.reviews[0].meta.startsWith('★4.0') && s0.reviews[0].meta.includes(l === 'ja' ? '機長（CAP）' : 'Captain (CAP)') && !/5|在籍|yrs|años/.test(s0.reviews[0].meta),
+       `${tag}：口コミの見出しは評価・職位だけ（★古い SQL が在籍年数を送ってきても書かない）`, s0.reviews[0].meta);
     ok(s0.reviews[0].text === (l === 'ja' ? '自由な社風で、若手でも意見が通りやすい。' : 'Open culture; juniors get heard.'),
        `${tag}：口コミの抜粋は受け取る人の言語の訳（無ければ元の字）`, s0.reviews[0].text);
     ok(hasKey ? (s0.pay.note === '' && exists(s0.pay.link) && c.all === null) : (s0.pay.note !== '' && s0.pay.link === '' && c.all && exists(c.all.cta.href)),
@@ -522,7 +522,6 @@ ok(F.followCopy('ja', items.slice(0, 1), false, site).subject === '全日本空�
    && F.followCopy('ja', items, false, site).subject === '全日本空輸（ANA）など、気になる会社に新しい情報が入りました'
    && F.followCopy('ja', items.slice(1), false, site).subject === '運航会社に新しい情報が入りました', '件名：口コミが入った1社／2社以上／口コミ以外');
 ok(F.followCopy('ja', items, false, site).all.cta.label === '自分の給与を匿名で共有する', '共有のボタンの字は2通目と同じオーナーの字');
-ok(F.tenureText('20+', 'ja') === '在籍20年以上' && F.tenureText('', 'ja') === '' && F.tenureText('1-5', 'en') === '1–5 yrs at airline', '在籍年数の書き方');
 const mailBoth = F.buildFollow({ lang: 'en', unsub_token: 'tok', items }, { siteUrl: site, supabaseUrl: SUPA });
 ok(mailBoth.lang === 'both' && mailBoth.oneClickUrl === `${SUPA}/functions/v1/remind-payslip?u=tok` && /unsubscribe\.html\?token=tok/.test(mailBoth.unsubUrl),
    '英語で登録した人は英語＋日本語の1通・解除の口がある');
