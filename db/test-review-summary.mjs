@@ -485,7 +485,9 @@ let today;
 
   const open = await getAs(KEYED, 'ana');
   ok(open.state === 'open' && open.ok === true, '口コミを出した会員には中身が返る', J(open));
-  ok(J(Object.keys(open).sort()) === J(['as_of', 'as_of_at', 'concern', 'good', 'n', 'ok', 'overview', 'state']), '返る鍵は ok・state・n・as_of・as_of_at・overview・good・concern の8つだけ', J(Object.keys(open)));
+  ok(J(Object.keys(open).sort()) === J(['as_of', 'as_of_at', 'concern', 'good', 'items', 'n', 'ok', 'overview', 'state']), '返る鍵は ok・state・n・items・as_of・as_of_at・overview・good・concern の9つだけ', J(Object.keys(open)));
+  /* ★items（2026-11-19）＝ 材料にした口コミの、本文のある分類の数の合計。人の数 n 以上・n×6 以下（1人で最大6分類）。 */
+  ok(Number.isInteger(open.items) && open.items >= open.n && open.items <= open.n * 6, '件数（items）は本文を書いた分類の数で数える（人の数 n 以上・6倍以下）', J({ n: open.n, items: open.items }));
   /* ★overview の鍵を付けずに預けた（anaPayload は overview を持たない）→ 表には ''、読むと ''（null にしない）。 */
   const ovStored = (await one(`select overview from public.pv_review_summaries where airline = 'ana' and lang = 'ja'`)).overview;
   ok(ovStored === '' && open.overview === '', 'overview の鍵を付けずに預けると、表には \'\'（null ではない）・読むと \'\'', J({ ovStored, read: open.overview }));
@@ -579,8 +581,8 @@ let today;
                              && !['concern', 'overview', 'n', 'as_of', 'as_of_at', 'ids'].some((k) => J(r).includes(`"${k}"`))),
        '段落の61字目から先・気になる点の字・口コミの id・件数・時刻はどこにも無い', J([lg, lk]));
     ok(op.state === 'open' && op.overview === OV_ANA && !has(op, 'lead') && op.good?.length === 3 && op.good.every((p) => has(p, 'ids'))
-       && J(Object.keys(op).sort()) === J(['as_of', 'as_of_at', 'concern', 'good', 'n', 'ok', 'overview', 'state']),
-       '鍵のある人の open は今までどおり（段落は丸ごと・点は ids つき・lead の鍵は無い・鍵は8つ）', J(op));
+       && J(Object.keys(op).sort()) === J(['as_of', 'as_of_at', 'concern', 'good', 'items', 'n', 'ok', 'overview', 'state']),
+       '鍵のある人の open は今までどおり（段落は丸ごと・点は ids つき・lead の鍵は無い・鍵は9つ）', J(op));
     const fw = [await getAs('anon', 'etihad'), await getAs(NOKEY, 'etihad'), await getAs('anon', 'ana', 'en'), await getAs(NOKEY, 'ana', 'en')];
     ok(J(fw) === J([{ ok: true, state: 'few' }, { ok: true, state: 'few' }, { ok: true, state: 'none' }, { ok: true, state: 'none' }]),
        'few・none には lead も good も無い（{ok, state} の2つだけ ── 鍵を見る前に返す）', J(fw));
@@ -1108,8 +1110,8 @@ console.log('\n▼ 12. どの返り値にも、書いた人・k が1つも出て
   ok(!all.some((s) => /[0-9a-f]{32}/.test(s)), '指紋（md5 の32字）の形の字がどこにも無い');
   const keys = new Set();
   for (const x of RETURNS) for (const k of Object.keys(x.r || {})) keys.add(k);
-  ok(J([...keys].sort()) === J(['airline', 'as_of', 'as_of_at', 'concern', 'error', 'good', 'lang', 'lead', 'n', 'ok', 'overview', 'state']),
-     '2つの関数が返す鍵は全部で12種類だけ（lead ＝ 鍵の無い人へ返す段落の先頭・2026-10-30）', J([...keys].sort()));
+  ok(J([...keys].sort()) === J(['airline', 'as_of', 'as_of_at', 'concern', 'error', 'good', 'items', 'lang', 'lead', 'n', 'ok', 'overview', 'state']),
+     '2つの関数が返す鍵は全部で13種類だけ（lead ＝ 鍵の無い人へ返す段落の先頭・2026-10-30／items ＝ 項目の数・2026-11-19）', J([...keys].sort()));
   const shutTexts = RETURNS.filter((x) => x.r && x.r.state !== 'open' && (has(x.r, 'lead') || has(x.r, 'good')));
   const shutOk = (x) => x.fn === 'pv_review_summary' && ['login', 'locked'].includes(x.r.state)
     && Object.keys(x.r).every((k) => ['ok', 'state', 'lead', 'good'].includes(k))
@@ -1927,7 +1929,7 @@ console.log('\n▼ 19. 全体の傾向の段落（overview・2026-10-30）──
               || r.good.some((p) => Object.keys(p || {}).sort().join() !== 'cat,text' || ![LG.text].includes(p.text))))
         || [LC.text, TAIL60(OV), OV2].some((t) => t && J(r).includes(t)));
   const LGP = { text: LG.text, cat: LG.cat };
-  const OPEN_KEYS = J(['as_of', 'as_of_at', 'concern', 'good', 'n', 'ok', 'overview', 'state']);
+  const OPEN_KEYS = J(['as_of', 'as_of_at', 'concern', 'good', 'items', 'n', 'ok', 'overview', 'state']);
   ok([...OV].length >= 40 && [...OV].length <= 220 && [...OV2].length >= 40 && [...OV2].length <= 220,
      '（見本の段落2つは、日本語の字数の内側）', `${[...OV].length} / ${[...OV2].length}`);
 
@@ -1938,7 +1940,7 @@ console.log('\n▼ 19. 全体の傾向の段落（overview・2026-10-30）──
   const o1 = await getAs(KEYED, LH);
   ok(o1.state === 'open' && o1.overview === OV && J(Object.keys(o1).sort()) === OPEN_KEYS
      && o1.good?.[0]?.text === LG.text && o1.concern?.[0]?.text === LC.text,
-     '鍵のある会員には、預けた段落が同じ字で返る（返る鍵は8つ・点もそのまま）', J(o1));
+     '鍵のある会員には、預けた段落が同じ字で返る（返る鍵は9つ・点もそのまま）', J(o1));
   ok(J(await getAs(OP, LH)) === J(o1) && J(await getAs(71, LH)) === J(o1), '運営にも、その会社に口コミを出した本人にも同じものが返る');
 
   console.log('  ── 鍵の無い返事には、段落の鍵そのものが無い（login・locked には段落の先頭と良い点の字だけ）──');
@@ -2161,7 +2163,7 @@ console.log('\n▼ 19. 全体の傾向の段落（overview・2026-10-30）──
    読む関数の答えが、元の作り方（REF ＝ 2026-11-06 時点の pv_review_summary の写し）と1字も違わないこと。
    全部の会社 × 3言語 × 未ログイン・鍵なし・鍵あり。口コミが入る・消える・訳が付く・要約が変わる、のあとも。
    ⚠️ 要約の返事の形をわざと変えるときは、pv_review_summary_core とこの REF を一緒に直す。 */
-const SUM_REF = "create or replace function public.pv_review_summary_ref(p jsonb)\nreturns jsonb\nlanguage plpgsql\nstable\nsecurity definer\nset search_path = public, extensions\nas $fn$\ndeclare\n  v_air   text := lower(btrim(coalesce(p ->> 'airline', '')));\n  v_lang  text := coalesce(p ->> 'lang', '');\n  v_row   public.pv_review_summaries%rowtype;\n  v_codes text[];\n  v_lead  text;\n  v_good  jsonb;\nbegin\n  if not exists (select 1 from public.pv_airlines a\n                  where a.code = v_air and a.code <> 'other') then\n    return jsonb_build_object('ok', false, 'error', 'bad_airline');\n  end if;\n  if v_lang not in ('ja', 'en', 'es') then\n    return jsonb_build_object('ok', false, 'error', 'bad_lang');\n  end if;\n  v_codes := public.pv_review_summary_codes(v_air);\n  if public.pv_review_summary_count(v_codes, null) < 3 then\n    return jsonb_build_object('ok', true, 'state', 'few');\n  end if;\n  select * into v_row\n    from public.pv_review_summaries s\n   where s.airline = v_air and s.lang = v_lang;\n  if not found then\n    return jsonb_build_object('ok', true, 'state', 'none');\n  end if;\n  if public.pv_review_summary_sig(v_codes, v_row.newest_at, v_lang) is distinct from v_row.sig\n     or public.pv_review_summary_bad(v_row.good,    v_row.lang, v_row.n) is not null\n     or public.pv_review_summary_bad(v_row.concern, v_row.lang, v_row.n) is not null\n     or (v_row.good || v_row.concern) = '[]'::jsonb\n     or (v_row.overview is not null\n         and public.pv_review_summary_overview_bad(v_row.overview, v_row.lang) is not null)\n     or not public.pv_review_summary_backed(v_row.good,    v_codes, v_row.newest_at)\n     or not public.pv_review_summary_backed(v_row.concern, v_codes, v_row.newest_at) then\n    return jsonb_build_object('ok', true, 'state', 'none');\n  end if;\n  v_lead := public.pv_review_summary_lead(v_row.overview, v_row.lang);\n  v_good := (select jsonb_agg(jsonb_build_object('text', e.v ->> 'text', 'cat', e.v ->> 'cat') order by e.i)\n               from jsonb_array_elements(v_row.good) with ordinality e(v, i));\n  if auth.uid() is null then\n    return jsonb_strip_nulls(jsonb_build_object('ok', true, 'state', 'login', 'lead', v_lead, 'good', v_good));\n  end if;\n  if not public.pv_has_review_key() then\n    return jsonb_strip_nulls(jsonb_build_object('ok', true, 'state', 'locked', 'lead', v_lead, 'good', v_good));\n  end if;\n  return jsonb_build_object(\n    'ok', true, 'state', 'open',\n    'n', v_row.n,\n    'overview', coalesce(v_row.overview, ''),\n    'as_of', to_char(v_row.made_at at time zone 'utc', 'YYYY-MM-DD'),\n    'as_of_at', to_char(date_trunc('hour', v_row.made_at at time zone 'utc')\n                        + floor(extract(minute from v_row.made_at at time zone 'utc') / 15) * interval '15 minutes',\n                        'YYYY-MM-DD\"T\"HH24:MI\":00Z\"'),\n    'good',    public.pv_review_summary_out(v_row.good),\n    'concern', public.pv_review_summary_out(v_row.concern));\nend;\n$fn$;";
+const SUM_REF = "create or replace function public.pv_review_summary_ref(p jsonb)\nreturns jsonb\nlanguage plpgsql\nstable\nsecurity definer\nset search_path = public, extensions\nas $fn$\ndeclare\n  v_air   text := lower(btrim(coalesce(p ->> 'airline', '')));\n  v_lang  text := coalesce(p ->> 'lang', '');\n  v_row   public.pv_review_summaries%rowtype;\n  v_codes text[];\n  v_lead  text;\n  v_good  jsonb;\nbegin\n  if not exists (select 1 from public.pv_airlines a\n                  where a.code = v_air and a.code <> 'other') then\n    return jsonb_build_object('ok', false, 'error', 'bad_airline');\n  end if;\n  if v_lang not in ('ja', 'en', 'es') then\n    return jsonb_build_object('ok', false, 'error', 'bad_lang');\n  end if;\n  v_codes := public.pv_review_summary_codes(v_air);\n  if public.pv_review_summary_count(v_codes, null) < 3 then\n    return jsonb_build_object('ok', true, 'state', 'few');\n  end if;\n  select * into v_row\n    from public.pv_review_summaries s\n   where s.airline = v_air and s.lang = v_lang;\n  if not found then\n    return jsonb_build_object('ok', true, 'state', 'none');\n  end if;\n  if public.pv_review_summary_sig(v_codes, v_row.newest_at, v_lang) is distinct from v_row.sig\n     or public.pv_review_summary_bad(v_row.good,    v_row.lang, v_row.n) is not null\n     or public.pv_review_summary_bad(v_row.concern, v_row.lang, v_row.n) is not null\n     or (v_row.good || v_row.concern) = '[]'::jsonb\n     or (v_row.overview is not null\n         and public.pv_review_summary_overview_bad(v_row.overview, v_row.lang) is not null)\n     or not public.pv_review_summary_backed(v_row.good,    v_codes, v_row.newest_at)\n     or not public.pv_review_summary_backed(v_row.concern, v_codes, v_row.newest_at) then\n    return jsonb_build_object('ok', true, 'state', 'none');\n  end if;\n  v_lead := public.pv_review_summary_lead(v_row.overview, v_row.lang);\n  v_good := (select jsonb_agg(jsonb_build_object('text', e.v ->> 'text', 'cat', e.v ->> 'cat') order by e.i)\n               from jsonb_array_elements(v_row.good) with ordinality e(v, i));\n  if auth.uid() is null then\n    return jsonb_strip_nulls(jsonb_build_object('ok', true, 'state', 'login', 'lead', v_lead, 'good', v_good));\n  end if;\n  if not public.pv_has_review_key() then\n    return jsonb_strip_nulls(jsonb_build_object('ok', true, 'state', 'locked', 'lead', v_lead, 'good', v_good));\n  end if;\n  return jsonb_build_object(\n    'ok', true, 'state', 'open',\n    'n', v_row.n,\n    'items', (select count(*)::int from public.reviews_v2 r cross join unnest(public.pv_review_summary_cats()) c where r.id::text in (select public.pv_review_summary_ids(v_codes, v_row.newest_at)) and btrim(coalesce(to_jsonb(r) ->> (c || '_comment'), '')) <> ''),\n    'overview', coalesce(v_row.overview, ''),\n    'as_of', to_char(v_row.made_at at time zone 'utc', 'YYYY-MM-DD'),\n    'as_of_at', to_char(date_trunc('hour', v_row.made_at at time zone 'utc')\n                        + floor(extract(minute from v_row.made_at at time zone 'utc') / 15) * interval '15 minutes',\n                        'YYYY-MM-DD\"T\"HH24:MI\":00Z\"'),\n    'good',    public.pv_review_summary_out(v_row.good),\n    'concern', public.pv_review_summary_out(v_row.concern));\nend;\n$fn$;";
 console.log('\n▼ ★照合の答えを置いておいても、元の作り方と1字も違わない');
 {
   await asOwner();

@@ -429,13 +429,13 @@ as $$
            jsonb_build_object('code', g.code, 'ja', a.name_ja, 'en', a.name_en, 'page', a.cap_lo is not null, 'why', g.why,
              'kinds', (select jsonb_agg(k order by case k when 'pay' then 1 when 'review' then 2 else 3 end)
                          from (select distinct h.kind as k from hits h where h.id = g.id and h.code = g.code) kk),
-             -- ★口コミはサイトで誰にでも見せている範囲だけ（評価・職位・在籍年数・最初の80字。訳も80字）。新しい3件まで
+             -- ★口コミはサイトで誰にでも見せている範囲だけ（評価・職位・最初の80字。訳も80字）。新しい3件まで
+             -- ★在籍年数は返さない（2026-11-19 オーナー指示「プライバシーと特定を避けるため全部削除」）
              'reviews', (select jsonb_agg(rv.j order by rv.at desc) from (
                 select h.at, jsonb_strip_nulls(jsonb_build_object(
                          'score', (select round(avg(x)::numeric, 1) from unnest(array[v.culture_score, v.salary_score, v.benefits_score,
                                      v.wlb_score, v.ops_score, v.training_score]) x where x is not null),
                          'pos_ja', ps.name_ja, 'pos_en', ps.name_en,
-                         'tenure', v.tenure_bucket,
                          'orig', v.orig_lang,
                          'text', public.pv_review_fill(to_jsonb(v), '_comment', 80),
                          'tr', case when jsonb_typeof(v.translations) = 'object' then (

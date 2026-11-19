@@ -85,7 +85,7 @@ const unsubPath = (l: Lang) => (l === 'ja' ? 'unsubscribe.html' : 'en/unsubscrib
    給与の鍵が無い人には、最後に「すべての給与と口コミを見るには」＋ボタン（ボタンの字は2通目と同じオーナーの字）。
    ★書くのはサイトで誰にでも見せている範囲だけ（SQL もそれ以上は返さない）。 */
 export type Review = {
-  score?: number | null; pos_ja?: string | null; pos_en?: string | null; tenure?: string | null; orig?: string | null;
+  score?: number | null; pos_ja?: string | null; pos_en?: string | null; orig?: string | null;
   text?: Record<string, string> | null; tr?: Record<string, Record<string, string>> | null;
 };
 export type Item = {
@@ -101,12 +101,6 @@ export function excerptOf(r: Review, l: Lang): string {
   if (orig === l || (!orig && l === 'ja')) return pick(r?.text, '_comment');
   const tr = r?.tr && (r.tr[l] || (l === 'es' ? r.tr.en : null));
   return (tr && pick(tr, '')) || pick(r?.text, '_comment');
-}
-export function tenureText(b: string | null | undefined, l: Lang): string {
-  const m = /^(\d+)-(\d+)$/.exec(String(b || '')), p = /^(\d+)\+$/.exec(String(b || ''));
-  if (m) return l === 'ja' ? `在籍${m[1]}〜${m[2]}年` : l === 'es' ? `${m[1]}–${m[2]} años en la aerolínea` : `${m[1]}–${m[2]} yrs at airline`;
-  if (p) return l === 'ja' ? `在籍${p[1]}年以上` : l === 'es' ? `${p[1]}+ años en la aerolínea` : `${p[1]}+ yrs at airline`;
-  return '';
 }
 const W = {
   ja: {
@@ -173,7 +167,8 @@ export function followCopy(l: Lang, items: Item[], hasKey: boolean, site = SITE_
     const page = it.page ? `${site}/${airlinePath(l, it.code)}` : '';
     const reviews = (it.reviews || []).map((r) => {
       const pos = l === 'ja' ? r.pos_ja : r.pos_en;
-      const meta = [typeof r.score === 'number' ? `★${r.score.toFixed(1)}` : '', [pos, tenureText(r.tenure, l)].filter(Boolean).join(w.sep)]
+      /* ★在籍年数は書かない（2026-11-19 オーナー指示・投稿者の特定を避ける）。古い SQL が送ってきても読まない。 */
+      const meta = [typeof r.score === 'number' ? `★${r.score.toFixed(1)}` : '', pos || '']
         .filter(Boolean).join('　');
       return { meta, text: excerptOf(r, l), more: page ? `${page}#reviews` : '' };
     }).filter((x) => x.text || x.meta);

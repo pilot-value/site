@@ -52,9 +52,6 @@
       catFallback: '口コミ',
       pilot: 'パイロット',
       POS: { captain: '機長', fo: '副操縦士', cadet: '訓練生', former: '元乗務員', pilot: 'パイロット' },
-      JOIN: { new: '新卒', mid: '中途' },
-      joined: function (j) { return j + '入社'; },
-      tenure: function (y) { return '在籍' + y + '年目'; },
       postedOn: '口コミ投稿日: ',
       readMore: function (n) { return '続きを見る（全' + n + '文字）'; },
       source: '出典',
@@ -111,9 +108,6 @@
       catFallback: 'Review',
       pilot: 'Pilot',
       POS: { captain: 'Captain', fo: 'First Officer', cadet: 'Trainee', former: 'Former crew', pilot: 'Pilot' },
-      JOIN: { new: 'New graduate', mid: 'Mid-career' },
-      joined: function (j) { return 'Joined: ' + j; },
-      tenure: function (y) { return y + ' yrs tenure'; },
       postedOn: 'Posted: ',
       readMore: function (n) { return 'Read more (' + n + ' chars)'; },
       source: 'Source',
@@ -166,9 +160,6 @@
       catFallback: 'Reseña',
       pilot: 'Piloto',
       POS: { captain: 'Capitán', fo: 'Primer oficial', cadet: 'Piloto en formación', former: 'Extripulante', pilot: 'Piloto' },
-      JOIN: { new: 'Recién egresado', mid: 'Con experiencia previa' },
-      joined: function (j) { return 'Ingreso: ' + j; },
-      tenure: function (y) { return y + ' años de antigüedad'; },
       postedOn: 'Fecha de publicación: ',
       readMore: function (n) { return 'Leer más (' + n + ' caracteres)'; },
       source: 'Fuente',
@@ -610,12 +601,11 @@
       return '<span class="' + (i < filled ? 'rv-stars' : 'rv-star-empty') + '">★</span>';
     }).join('') : '';
     // pos:'pilot' は職位不明の意味なので、頭の「パイロット」と重ねて出さない
-    /* 職位・入社の区分・在籍年数は、投稿した人が書いた文字列がそのまま届く。決まった鍵（L.POS / L.JOIN）に
-       無い値は、本文と同じく rvEsc を通してから置く（通さないと、書かれたタグがそのまま働く）。 */
+    /* 職位は、投稿した人が書いた文字列がそのまま届く。決まった鍵（L.POS）に
+       無い値は、本文と同じく rvEsc を通してから置く（通さないと、書かれたタグがそのまま働く）。
+       ★在籍年数と入社の区分は出さない（2026-11-19 オーナー指示「プライバシーと特定を避けるため全部削除」。見本の口コミも同じ）。 */
     var own   = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k) ? o[k] : ''; };
     var pos   = r.pos === 'pilot' ? '' : (own(L.POS, r.pos) || rvEsc(r.pos) || '—');
-    var join  = own(L.JOIN, r.join) || rvEsc(r.join) || '';
-    var years = rvEsc(r.years || '');
     var uid   = 'rv_' + Math.random().toString(36).slice(2);
     var catLabel = (REVIEW_CATS.filter(function (c) { return c.key === r.cat; })[0] || { label: L.catFallback }).label;
     return '<div class="detail-review-card">\n' +
@@ -624,8 +614,7 @@
       '        <span class="rv-card-type">' + catHTML(catLabel) + '</span>\n' +
       '        <span class="rv-reviewer-meta">' + L.pilot +
              (pos ? '<span class="rv-meta-sep"> | </span>' + pos : '') +
-             (years ? '<span class="rv-meta-sep"> | </span>' + L.tenure(years) : '') +
-             (join ? '<span class="rv-meta-sep"> | </span>' + L.joined(join) : '') + '</span>\n' +
+             '</span>\n' +
       '      </div>\n' +
       '      <span class="rv-date">' + L.postedOn + (r.date || '') + '</span>\n' +
       '    </div>\n' +
@@ -872,8 +861,7 @@
     var mainCat = (body.cats[0] || {}).k || '';
     return {
       id: (typeof r.id === 'string' && RV_UUID.test(r.id)) ? r.id : '',
-      // ★勤務年数は 2026-11-14 から聞いていない。空なら空のまま（描く側がその部分ごと飛ばす。「在籍—年目」と出さない）
-      pos: r.position, years: r.tenure_bucket || '', join: '',
+      pos: r.position,
       avgRating: avgRating,
       comment: body.text, en: body.text,
       translated: body.translated, origText: body.origText, from: body.from,
@@ -917,7 +905,7 @@
         .map(function (r) {
           var t = r.payText || r.comment || '';
           return {
-            pos: r.position, years: r.years || r.experience || '—', join: r.join || '',
+            pos: r.position,
             avgRating: r.avgRating || r.rating || (isTabbed() ? 0 : 3),
             comment: t, en: t,
             salaryTotal: r.salary || 0, monthly: r.monthly || 0, overtime: r.overtime || 0, bonus: r.bonus || 0,
@@ -944,6 +932,12 @@
     return r.cat ? [r.cat] : [];
   }
   function inCat(r, key) { return reviewCatKeys(r).indexOf(key) !== -1; }
+  /* ★口コミの件数は「本文を書いた項目1つ＝1件」（2026-11-19 オーナー指示・OpenWork と同じ）。
+     投稿口コミは catKeys（本文のある項目・7項目）の数で、点数だけの投稿は0件。見本・この端末の口コミは1つ1件。
+     項目で絞っているときは、残った1枚がその項目の1件。★の平均の分母（評価した人の数）はこれと別のまま。 */
+  function itemsIn(list, cat) {
+    return list.reduce(function (s, r) { return s + ((cat && cat !== 'all') ? 1 : (r.catKeys ? r.catKeys.length : 1)); }, 0);
+  }
 
   /* 海外評判のうち、この言語で実際に本文が出るカテゴリだけ。件数はこれで数える。 */
   function overseasCatKeys() {
@@ -1045,6 +1039,7 @@
         '" onclick="pvSetReviewCat(\'' + c.key + '\')">' + catHTML(c.label) + '</button>';
     }).join('');
     var shown = filtered.length + overseasShownKeys().length;
+    var shownItems = itemsIn(filtered, pvReviewCatFilter) + overseasShownKeys().length;   // 件数の字だけ（出す・出さないは shown のまま）
     var emptyMsg = shown === 0
       ? '<div style="text-align:center;padding:32px 0;color:#6b7d93;font-size:.85rem">' + L.empty + '</div>' : '';
     var loginHref = '../login.html?return=' + encodeURIComponent(location.pathname + location.search + (isTabbed() ? '#reviews' : ''));
@@ -1056,7 +1051,7 @@
       '\n      <div class="rv-post-gate">\n' +
       '        <div class="rv-gate-lock">🔒</div>\n' +
       '        <div class="rv-gate-title">' + L.gateTitle + '</div>\n' +
-      '        <div class="rv-gate-remain">' + L.gateAll(shown) + '</div>\n' +
+      '        <div class="rv-gate-remain">' + L.gateAll(shownItems) + '</div>\n' +
       '        <p class="rv-gate-desc">' + L.gateDesc + '</p>\n' +
       '        ' + unlockBtn('<button class="btn-review-post" onclick="openReviewModal()">' + L.gateBtn + '</button>') + '\n' +
       '        <a href="' + loginHref + '" class="rv-gate-login">' + L.gateLogin + '</a>\n' +
@@ -1115,7 +1110,7 @@
   /* 主要5社：投稿の件数と引用の件数を、ページ側の置き場（[data-pvg-n]）へ別々に書く。
      取れるまでは「—」のまま（0 と書かない）。 */
   function paintGlanceCount() {
-    var posts = _v2Rows ? _v2Rows.length : null;
+    var posts = _v2Rows ? itemsIn(_v2Rows.map(mapV2), 'all') : null;
     var quotes = getSeedReviews().length + overseasCatKeys().length;
     d.querySelectorAll('[data-pvg-n="posts"]').forEach(function (el) {
       el.textContent = posts === null ? '—' : String(posts);
@@ -1154,7 +1149,7 @@
      ANA が実際は7件あるのにタブも見出しも「3件」のままだった。
      数える源は paint() が描く源と完全に同じにする。 */
   function reviewCount() {
-    return currentReviewList().length + overseasCatKeys().length;
+    return itemsIn(currentReviewList(), 'all') + overseasCatKeys().length;
   }
 
   function categoryCounts() {
