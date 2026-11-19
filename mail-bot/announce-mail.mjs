@@ -753,7 +753,6 @@ function realPayCopy(lang) {
             'その人が乗っている機材',
             '報酬の内訳（固定給・変動給・手当など）を帯で',
             '乗務時間・乗務日数・休日を帯で',
-            '月の総支給が給与明細と一致した行に付く Verified の印',
             'その記録がだいたいいつ出されたか'],
       tail: [
         /* ★「まだ多くはありません」と正直に書く。件数は書かない
@@ -798,7 +797,6 @@ function realPayCopy(lang) {
           'The aircraft each pilot flies',
           'How the pay breaks down — base, variable pay, allowances — as ranges',
           'Block hours, duty days and days off, as ranges',
-          'The Verified mark on rows whose monthly gross pay matches the payslip',
           'Roughly when each record was submitted'],
     tail: [
       'There is not much yet. But with each pilot who shares anonymously, pay that used to travel only by word of mouth takes a clearer shape.',

@@ -248,7 +248,6 @@
             'その人が乗っている機材',
             '報酬の内訳（固定給・変動給・手当など）を帯で',
             '乗務時間・乗務日数・休日を帯で',
-            '月の総支給が給与明細と一致した行に付く Verified の印',
             'その記録がだいたいいつ出されたか'],
       seeN: '金額はすべて帯です。1円単位の数字は誰の行にも出ません。',
       emptyT: 'まだ1行もありません',
@@ -339,7 +338,6 @@
             'The aircraft each pilot flies',
             'How the pay breaks down — base, variable pay, allowances — as ranges',
             'Block hours, duty days and days off, as ranges',
-            'The Verified mark on rows whose monthly gross pay matches the payslip',
             'Roughly when each record was submitted'],
       seeN: 'Every figure is a range. No exact amount appears on any row.',
       emptyT: 'No rows yet',
@@ -429,7 +427,6 @@
             'La aeronave que vuela cada piloto',
             'El desglose de la remuneración —sueldo base, remuneración variable, asignaciones— en rangos',
             'Horas block (calzo a calzo), días de servicio y días libres, en rangos',
-            'La marca Verified en las filas cuyo salario bruto mensual coincide con el recibo de nómina',
             'Cuándo se envió aproximadamente cada registro'],
       seeN: 'Todas las cifras son rangos. Ninguna fila muestra un monto exacto.',
       emptyT: 'Aún no hay filas',
@@ -875,7 +872,7 @@
          + '<td class="ap-num"><span class="ap-cl" aria-hidden="true">' + esc(T.thMon) + '</span>'
          +   '<span class="ap-mon">' + esc(moneyMonth(r.annual_usd)) + '</span></td>'
          + '<td>' + cardCompHTML(r)
-         +   (r.verified ? vfMark() : '<span class="ap-vf-no">' + esc(T.vfNo) + '</span>')
+         +   (showVf(r) ? vfMark() : '<span class="ap-vf-no">' + esc(T.vfNo) + '</span>')
          +   warnMark(r) + '</td>'
          /* ★投稿時期。サーバから来るのは 0〜4 の段の番号だけ。
               段が読めない行（古いサーバ）は空欄にする＝そこだけ黙って空く。
@@ -973,6 +970,12 @@
     }
     return h + '</div>';
   }
+
+  /* ★明細の Verified（2026-11-19）。サーバーは行ごとに verified を返すが、REAL PAY には**まだ出さない**
+       （オーナー「real pay にはまだ出さなくていいや。目立ちすぎる」）。出すのは本人の MY PAY と MY PAGE だけ。
+       出す日はこの1つを true にする（会社ページは career-live.js の VF_OPEN）。説明の行（see）も一緒に戻す。 */
+  var VF_OPEN = false;
+  function showVf(r) { return VF_OPEN && !!(r && r.verified); }
 
   function vfMark() {
     return '<span class="ap-vf"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"'
@@ -1540,7 +1543,7 @@
            ★伏せた面では**出す**。本物の投稿なので「誰かが実際に出した」は
              事実であり、オーナーが読めると決めた4つのうちの2つ。 */
       + (pv ? '' : '<p class="ap-dw-src">'
-      +   (r.verified ? vfMark() : '<span class="ap-vf-no">' + esc(T.vfNo) + '</span>')
+      +   (showVf(r) ? vfMark() : '<span class="ap-vf-no">' + esc(T.vfNo) + '</span>')
       +   '<span class="ap-dw-age">' + esc(ageName(r.age)) + '</span></p>')
       + bd + work
       + (miss ? '<p class="ap-dw-miss">' + esc(miss) + '</p>' : '')
@@ -1893,7 +1896,7 @@
          +   maskedPlate(0) + '</td>'
          + '<td class="ap-num"><span class="ap-cl" aria-hidden="true">' + esc(T.thMon) + '</span>'
          +   maskedPlate(1) + '</td>'
-         + '<td>' + (r.verified ? vfMark()
+         + '<td>' + (showVf(r) ? vfMark()
                                 : '<span class="ap-vf-no">' + esc(T.vfNo) + '</span>') + '</td>'
          + '<td><span class="ap-age">' + esc(ageName(r.age)) + '</span>'
          +   '<button type="button" class="ap-go" aria-label="' + esc(openLabel(r))

@@ -24,6 +24,9 @@
   var root = d.getElementById('cr') || (GL ? d.body : null);
   if (!root) return;
   var UP = GL ? '../' : '';
+  /* ★明細の Verified（2026-11-19）。会社ページの「提出された数字」にも**まだ出さない**
+     （オーナー「real pay にはまだ出さなくていいや。目立ちすぎる」）。出す日は actual-pay.js の VF_OPEN と一緒に true にする。 */
+  var VF_OPEN = false;
 
   var me = d.currentScript;
   var BASE = '';
@@ -848,8 +851,9 @@
   function srcLine(r) {
     var p = el('div', 'crl-row-c');
     var vf = el('span', 'crl-vf');
-    if (r.verified) { vf.setAttribute('data-v', '1'); vf.appendChild(icon('check', 12)); }
-    vf.appendChild(el('span', '', r.verified ? T.vfYes : T.vfNo));
+    var shown = VF_OPEN && r.verified;
+    if (shown) { vf.setAttribute('data-v', '1'); vf.appendChild(icon('check', 12)); }
+    vf.appendChild(el('span', '', shown ? T.vfYes : T.vfNo));
     p.appendChild(vf);
     var age = (isNum(r.age) && T.age[r.age]) ? T.age[r.age] : '';
     if (age) p.appendChild(el('span', 'crl-age', age));
@@ -1679,7 +1683,7 @@
             var spread = Math.min(2.2, 6 / Math.max(1, xs.length - 1));
             var left = band * 100 / YD_BANDS + (one ? 10 : col ? 13.5 : 6.5) + (xs.length > 1 ? (i - (xs.length - 1) / 2) * spread : 0);
             var amt = C.fmt(x.v * rate);
-            var tip = (one ? '' : coName(ids[col]) + ' · ') + T.ydX[band] + ' · ' + amt + (x.r.verified ? ' · ' + T.vfYes : '') + (x.r.far === true ? ' · ⚠︎ ' + T.ydFar : '');
+            var tip = (one ? '' : coName(ids[col]) + ' · ') + T.ydX[band] + ' · ' + amt + (VF_OPEN && x.r.verified ? ' · ' + T.vfYes : '') + (x.r.far === true ? ' · ⚠︎ ' + T.ydFar : '');
             var dot = el('button', 'crl-yd-d pv-no-cur');
             dot.type = 'button';
             dot.setAttribute('data-col', String(col + 1));

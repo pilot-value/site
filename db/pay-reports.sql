@@ -1434,7 +1434,8 @@ begin
   elsif v_vfp is not null then
     v_vlv := 1;  v_vmeth := 'payslip';  v_vat := now();
   elsif coalesce(v_old.verify_level, 0) >= 1
-        and v_old.gross_monthly = v_gross and v_old.currency = v_cur then
+        and v_old.gross_monthly is not distinct from v_gross
+        and v_old.currency is not distinct from v_cur then
     v_vlv := v_old.verify_level;  v_vmeth := v_old.verify_method;
     v_vat := v_old.verified_at;   v_vfp := v_old.verify_fp;
   else

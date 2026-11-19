@@ -519,7 +519,7 @@ for (const [k, b] of FALL) ok(b.subject.length <= 78, `founding/${k}: 件名が 
    buildRealPay()。④と同じく登録者全員へ送るので、勧誘・人数・金額の
    見張りをそのまま継ぐ。加えてこのメール特有の約束が3つある。
 
-   ・★主張の出どころは actual-pay.js ただ1つ。見えること7つと列の見出し6つを
+   ・★主張の出どころは actual-pay.js ただ1つ。見えること6つ（2026-11-19 まで7つ）と列の見出し6つを
      1文字違わず写しているかを見る。画面を直したのにメールが古いままだと、
      開いた人が「メールにあった列が無い」と探すことになる。
    ・★「個人が特定されない形に加工しています」と書かない。
@@ -598,9 +598,10 @@ for (const [k, b] of RALL) {
   const [seeJa, seeEn] = seeBlocks;
   const bJa = buildRealPay(RP.ja, O), bEn = buildRealPay(RP.en, O);
   for (const [nm, arr, b] of [['ja', seeJa, bJa], ['en', seeEn, bEn]]) {
-    ok(arr.length === 7, `realpay/${nm}: 画面の「見えること」が7つ`, String(arr.length));
+    /* ★2026-11-19 「Verified の印」の1行を外した（REAL PAY にはまだ印を出さない・オーナー決定）。7つ → 6つ。 */
+    ok(arr.length === 6, `realpay/${nm}: 画面の「見えること」が6つ`, String(arr.length));
     const miss = arr.find((line) => !b.html.includes(line) || !b.text.includes(line));
-    ok(!miss, `realpay/${nm}: 7つとも actual-pay.js と1文字違わない`, miss || '');
+    ok(!miss, `realpay/${nm}: 6つとも actual-pay.js と1文字違わない`, miss || '');
   }
   /* 列の見出し6つ。骨組みの表と画面で違う言葉を出さない。 */
   const th = (key) => pick(new RegExp('\\b' + key + ":\\s*'([^']*)'", 'g'));
