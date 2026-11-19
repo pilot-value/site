@@ -2035,7 +2035,8 @@ function maskedRows(v, lang, tag, n) {
      `${v.logoImgs}枚 / ${n}行`);
   ok(v.ages.length === n && v.ages.every((t) => AGE_WORDS[lang].includes(t)),
      `${tag}: ★投稿時期がどの行でも読める`, v.ages.join(','));
-  ok(v.vf >= 1, `${tag}: ★Verified の印も伏せない（読める3つのうちの1つ）`, String(v.vf));
+  /* ★2026-11-19 オーナー「real pay にはまだ出さなくていいや。目立ちすぎる」── Verified の印は REAL PAY に出さない（actual-pay.js の VF_OPEN）。 */
+  ok(v.vf === 0, `${tag}: ★Verified の印は出さない（verified の行があっても）`, String(v.vf));
   ok(JSON.stringify(v.ths) === JSON.stringify(TH6[lang]),
      `${tag}: ★列は開いている表と同じ6つ`, v.ths.join(','));
   /* ── 読ませない2つ ───────────────────────────────── */
@@ -2090,7 +2091,8 @@ function maskedDrawer(d, tag, vf) {
      `${tag}: ★内訳の帯は項目名ごと出さない（受け取っていないので）`,
      `${d.keys.length}項目 / ${JSON.stringify(d.plates)}`);
   ok(d.tag === 0, `${tag}: ★「プレビュー」の札は付けない（本物の投稿だから）`, String(d.tag));
-  ok(d.srcDw === (vf ? 3 : 2),
+  /* ★2026-11-19 オーナー「real pay にはまだ出さなくていいや。目立ちすぎる」── Verified の印は REAL PAY に出さない（actual-pay.js の VF_OPEN）。 面の出典も「本人申告」の字だけ（✓ の印の要素が増えない）。 */
+  ok(d.srcDw === 2,
      `${tag}: ★出典と投稿時期は面でも読める（オーナーが読めると決めた4つのうち2つ）`,
      String(d.srcDw));
   ok(d.sim === 0, `${tag}: ★「同じ会社のほかの記録」は出さない（金額を並べる節）`,
@@ -2351,8 +2353,9 @@ for (const lang of ['ja', 'en']) {
     /* ★2026-09-03、4行 → 7行（機材・報酬の内訳・勤務が増えた）。
          この7行は mail-bot/announce-mail.mjs にも1文字違わず写してあり、
          db/test-announce.mjs が突き合わせている＝メールだけ古い主張が残らない。 */
-    ok(v.seeItems.length === 7 && v.seeNote !== '',
-       `${lang}: ★「REAL PAY で見えること」7行＋「1円単位は出ない」の1文`,
+    /* ★2026-11-19 オーナー「real pay にはまだ出さなくていいや。目立ちすぎる」── Verified の印は REAL PAY に出さない（actual-pay.js の VF_OPEN）。 説明の「Verified の印」の1行も外した＝ 7行 → 6行。 */
+    ok(v.seeItems.length === 6 && v.seeNote !== '',
+       `${lang}: ★「REAL PAY で見えること」6行＋「1円単位は出ない」の1文`,
        `${v.seeItems.length} / ${v.seeNote}`);
     /* ★「機種は表示しません」の1文は 2026-09-03 に消した ── 嘘になったため。
          代わりに置いたのが「金額はすべて帯」。**言い換えではなく差し替え**。 */
@@ -2411,8 +2414,9 @@ for (const lang of ['ja', 'en']) {
        給与を出した人数（contributors ＝ 21）は、この画面のどこにも出ない。
      ★2026-10-29 から DEEP PAY の段そのものが無い（閉じた）。 */
   {
-    ok(v.give.length === 2 && !v.give.some((r) => /DEEP PAY/.test(r.t)),
-       `${lang}: ★★数え上げが来ても DEEP PAY の段は出ない（表は2段のまま）`,
+    /* ★2026-11-19 オーナー「verified pay もとりあえずなしでいい」── Give & Get の表は REAL PAY の1段。 */
+    ok(v.give.length === 1 && !v.give.some((r) => /DEEP PAY|VERIFIED PAY/.test(r.t)),
+       `${lang}: ★★数え上げが来ても DEEP PAY・VERIFIED PAY の段は出ない（表は REAL PAY の1段のまま）`,
        JSON.stringify(v.give.map((r) => r.t)));
     const real = v.give[0] || {};
     ok(real.t === 'REAL PAY' && real.live && real.p === 1,
@@ -2732,7 +2736,8 @@ for (const lang of ['ja', 'en']) {
      JSON.stringify(v.rowsText).slice(0, 160));
 
   /* 検証済みは1人だけ。★verified の無い人に ✓ を付けない。 */
-  ok(v.vf === 1, '★✓ Verified は verified:true の1人だけ', String(v.vf));
+  /* ★2026-11-19 オーナー「real pay にはまだ出さなくていいや。目立ちすぎる」── Verified の印は REAL PAY に出さない（actual-pay.js の VF_OPEN）。 作り物の行には verified:true の1人が居るが、✓ は1つも出ない。 */
+  ok(v.vf === 0, '★✓ Verified は REAL PAY に出さない（verified:true の行があっても）', String(v.vf));
 
   /* ★数字カード3枚（2026-08-24 オーナー判断「本当の数字だけ出す」）。
      1枚は rows を数えるだけ。残り2枚は pv_pay_rows() の stats から来る。
@@ -3320,16 +3325,17 @@ for (const lang of ['ja', 'en']) {
       const rows0 = nRpc(before, 'pv_pay_rows');
 
       const g = await poke(page);
-      ok(!g.no && (g.names || []).join('|') === 'REAL PAY|VERIFIED PAY',
-         `${lang}/${name}: 前提：表は REAL PAY と VERIFIED PAY の2段（DEEP PAY の段は無い）`,
+      /* ★2026-11-19 オーナー「verified pay もとりあえずなしでいい」── Give & Get の表は REAL PAY の1段。 */
+      ok(!g.no && (g.names || []).join('|') === 'REAL PAY',
+         `${lang}/${name}: 前提：表は REAL PAY の1段（DEEP PAY・VERIFIED PAY の段は無い）`,
          JSON.stringify(g.names || g));
       ok(nRpc(g.calls, 'pv_give_progress') === 0,
          `${lang}/${name}: ★★段を押しても、口から呼んでも、人数を1回も聞かない`,
          g.calls.join(','));
       ok(nRpc(g.calls, 'pv_pay_rows') === rows0,
          `${lang}/${name}: ★一覧も引き直さない`, g.calls.join(','));
-      ok(!/\d/.test(g.table) && g.pills.length === 2,
-         `${lang}/${name}: ★★表に数字が1つも無い（札は REAL PAY と VERIFIED PAY の2つだけ）`,
+      ok(!/\d/.test(g.table) && g.pills.length === 1,
+         `${lang}/${name}: ★★表に数字が1つも無い（札は REAL PAY の1つだけ）`,
          JSON.stringify(g.pills) + ' / ' + g.table.slice(0, 120));
       ok(g.panels === 0 && /actual-pay\.html$/.test(g.path),
          `${lang}/${name}: ★説明は出ない・画面も動かない`, `${g.panels} / ${g.path}`);

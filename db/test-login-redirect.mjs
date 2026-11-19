@@ -132,8 +132,9 @@ for (const dir of ['', '/en']) {
     ok([got.cta, got.lead].every((t) => t && t.includes(exp.word)) && got.later === exp.later,
        `${desc}  見出し・ボタン・あとでの3行が「${exp.word}」で揃っている`,
        [got.cta, got.lead, got.later]);
-    ok(got.give === 2 && !got.giveDeep && got.givePress === 0,
-       `${desc}  Give → Get の2段（DEEP PAY の段は無い）が出て、押せる札が1つも無い`,
+    /* ★2026-11-19、VERIFIED PAY の段も外した（オーナー「verified pay もとりあえずなしでいい」）＝ REAL PAY の1段。 */
+    ok(got.give === 1 && !got.giveDeep && got.givePress === 0,
+       `${desc}  Give → Get は REAL PAY の1段（DEEP PAY・VERIFIED PAY の段は無い）が出て、押せる札が1つも無い`,
        [got.give, got.giveDeep, got.givePress]);
     /* ★「いま開きます」と書かない（2026-09-15 オーナー指示）。まだ出していない人には
          もう見られると読めてしまう。札には**開くための条件**を書く。 */

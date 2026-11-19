@@ -3875,7 +3875,9 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
     /* ★2026-11-11 明細に印字されたその月のボーナス・プロフィットシェア（見えない欄 f-bonus-paid）。
        明細から読んだときだけ入る＝手入力では null（下で確かめる）。 */
     'bonus_month',
-    'source'];
+    'source',
+    /* ★2026-11-19 明細の Verified の引換券（隠し欄 f-psticket）。明細を読めたときだけ入る＝手入力では null。 */
+    'payslip_ticket'];
 
   const missing = KEYS_BEFORE.concat(KEYS_PAYSLIP).filter((k) => !(k in p));
   ok(missing.length === 0,
@@ -3883,6 +3885,7 @@ for (const [lang, url] of [['ja', 'http://localhost:3000/pay-report.html'],
      missing.join(','));
   const extra = Object.keys(p).filter((k) => !KEYS_BEFORE.includes(k) && !KEYS_PAYSLIP.includes(k));
   ok(extra.length === 0, `知らないキーが増えていない`, extra.join(','));
+  ok(p.payslip_ticket === null, `★手入力では引換券を送らない（null）`, String(p.payslip_ticket));
 
   /* ★この画面は手入力。明細は1枚も出していない。
      ・5列は null であること（0 を送ると「深夜0時間・控除0円」という嘘の実データになる）
