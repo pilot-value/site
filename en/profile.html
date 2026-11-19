@@ -1037,7 +1037,8 @@
         const fix = can ? ' <a class="mine-fix" href="' + esc(fixHref) + '">' + 'Edit' + '</a>' : '';
         /* ★明細の Verified（2026-11-19 オーナー「my pay と my page に出して」）。総支給が明細の印字と一致した月だけ。
              決めるのはサーバー（verify_level）。REAL PAY・会社ページにはまだ出さない。 */
-        const vf = Number(r.verify_level) >= 1 ? ' <span class="mine-vf" title="Gross pay matches your payslip"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Verified</span>' : '';
+        const vfTip = 'Gross pay matches your payslip';
+        const vf = Number(r.verify_level) >= 1 ? ' <span class="mine-vf" title="' + esc(vfTip) + '"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Verified</span>' : '';
         const del = can ? ' <button type="button" class="mine-del" data-pay-del="' + i + '"' + (payAsk === i ? ' hidden' : '') + '>' + 'Delete' + '</button>' : '';
         return postRow(name, fmtDate(r.created_at), period ? 'Submitted for ' + esc(period) + vf + fix + del : '', payAsk === i ? payAskHTML(r, i, period) : '');
       }).join('');
