@@ -281,14 +281,35 @@ const plain = f => !f.tag;
    dated ＝ 資料ごとに、当サイトがその資料を読んで確かめた日を添える（募集は腐る。確認日 ≠ 掲載日）。
            同じ資料から取った行の確認日が違うときは、古いほうを出す（どの行も、その日には確かめてある）。
            ⚠️ 確認日は台帳の値。読み直していない資料の日付を、ここで新しくしない。 */
+/* 調べた人が読んだ「機械向けの住所」（開くと記号の羅列）→ 同じ求人の人が読むページ（2026-11-20・本物のブラウザで開いて確かめた）。台帳の住所はそのまま */
+const SEE = {
+  'https://www.emiratesgroupcareers.com/api/v1/jobs/186': { url: 'https://www.emiratesgroupcareers.com/pilots/our-role-details/?name=dir', name: 'Emirates Group Careers「Direct Entry Captains」', name_en: 'Emirates Group Careers “Direct Entry Captains”' },
+  'https://www.emiratesgroupcareers.com/api/v1/jobs/5': { url: 'https://www.emiratesgroupcareers.com/pilots/our-role-details/?name=fir', name: 'Emirates Group Careers「First Officer」', name_en: 'Emirates Group Careers “First Officer”' },
+  'https://www.emiratesgroupcareers.com/api/v1/jobs/3': { url: 'https://www.emiratesgroupcareers.com/pilots/our-role-details/?name=acc', name: 'Emirates Group Careers「Accelerated Command」', name_en: 'Emirates Group Careers “Accelerated Command”' },
+  'https://www.emiratesgroupcareers.com/api/v1/jobs/134': { url: 'https://www.emiratesgroupcareers.com/pilots/our-role-details/?name=nat', name: 'Emirates Group Careers「National Cadet Pilot Programme」', name_en: 'Emirates Group Careers “National Cadet Pilot Programme”' },
+  'https://ats-entry-backend.hito-link.jp/tenants/fda-recruit/api/matter/matters/100104': { url: 'https://ats-entry.hito-link.jp/sites/fda-recruit/matter/matters/100104', name: '株式会社フジドリームエアラインズ「【他社経験者】機長候補」', name_en: 'Fuji Dream Airlines (FDA) “【他社経験者】機長候補”' },
+  'https://ats-entry-backend.hito-link.jp/tenants/fda-recruit/api/matter/matters/100103': { url: 'https://ats-entry.hito-link.jp/sites/fda-recruit/matter/matters/100103', name: '株式会社フジドリームエアラインズ「【他社経験者】副操縦士候補」', name_en: 'Fuji Dream Airlines (FDA) “【他社経験者】副操縦士候補”' },
+  'https://jobsapi.staffcv.com/api/job?Organization=2052&limit=100': { url: 'https://vacancy.fijiairways.com/', name: 'Fiji Airways Careers「Job Search」', name_en: 'Fiji Airways Careers “Job Search”' },
+  /* 名前だけ直すもの（調べた人のメモが名前に入っていた） */
+  'https://recrutement.airfrance.com/offre-de-emploi/emploi-pilote-de-ligne-f-h_23622.aspx?LCID=1036': { name: 'Air France「Pilote de ligne (F/H)」', name_en: 'Air France “Pilote de ligne (F/H)”' },
+  'https://www.bjeea.cn/uploads/soft/241122/104-241122152339.pdf': { name: 'www.bjeea.cn「常见问题解答」（PDF）', name_en: 'www.bjeea.cn “常见问题解答” (PDF)' },
+  'https://api-irec-prod.kenya-airways.com/api/Jobs/9cc26f51-1967-4fac-ab39-41269b506fd3': { url: 'https://careers.kenya-airways.com/anonymous/listing/9cc26f51-1967-4fac-ab39-41269b506fd3/details?division=7f4b2df9-2649-4e4d-a510-22a6fdc0b518', name: 'Kenya Airways「First Officer」', name_en: 'Kenya Airways “First Officer”' },
+};
+/* 名前に残った調べた人のメモ（「公式BambooHR原データ」「会社名義LinkedIn原求人」など）は出さない */
+const srcName = n => String(n || '')
+  .replace(/（(?:公式BambooHR原データ|会社本人名義LinkedIn広告|会社名義LinkedIn原求人|会社公式採用ATS|現行受付は停止|現行\d{4}版)）/g, '')
+  .replace(/（JAPA掲載原資料）/g, '（JAPA に掲載）')
+  .replace(/ \/ public job (?:detail )?data/g, '');
 function sources(items, fold = false, dated = false, label = W.srcLabel) {
   const seen = new Map();
   for (const f of items) {
     /* 第三者の資料（口コミ・掲示板・APC など）の名前とリンクは出さない（2026-11-18 オーナー「それらの出典もいらねえよ」）。台帳には残っている */
     if (!f || !f.src || !f.src.url || f.third) continue;
-    const o = seen.get(f.src.url) || { src: f.src, checked: f.checked || '' };
+    const see = SEE[f.src.url], nm = see && (LANG === 'en' ? see.name_en : see.name);
+    const src = { ...f.src, url: (see && see.url) || f.src.url, name: srcName(nm || f.src.name) };
+    const o = seen.get(src.url) || { src, checked: f.checked || '' };
     if ((f.checked || '') < o.checked) o.checked = f.checked || '';
-    seen.set(f.src.url, o);
+    seen.set(src.url, o);
   }
   if (!seen.size) return '';
   const links = [...seen.values()].map(o => ext(o.src.url, o.src.name) + (dated && o.checked ? `<small>${W.checked(esc(dateJa(o.checked)))}</small>` : '')).join('');
@@ -1472,7 +1493,7 @@ export const WORDS = Object.freeze({
     fleet: '機材', fleetTypes: '会社の資料に載っている型式', types: n => `${n}機種`, coMore: '会社情報', figures: n => `数字${n}つ`, company: '会社',
     rvCta: Object.freeze({ ...RV_CTA }), anonFree: '匿名・無料', score: 'パイロットによる評価スコア',
     jobsPage: '会社の募集ページ', jobs: '募集', jobsNone: '会社が公表している募集を確認できていません。',
-    postFleet: '機種', postLink: '募集要項を見る', postLinkOld: '募集のページを見る', postState: { open: '募集中', none: 'いま募集なし', past: '過去の募集' },
+    postFleet: '機種', postLink: '募集要項を見る', postLinkOld: '募集のページを見る', postState: { open: '募集中', none: 'いま募集なし', past: '過去の募集', '': '確認できず' },   // '' ＝ 今日の状態を確かめられなかった（札を空けると本文を読まないと分からない）
     seasonal: '季節運航', hotelsTips: 'ホテル・おすすめ', base: '拠点', stay: 'ステイ',
     stayNone: '就航地ごとのホテル・レストランは、会社が公表する就航地の一覧を確認してから開きます。', official: '公式の就航地',
     netPartial: (n, d) => `調べで確かめた就航地・${n}空港・${d}時点です。全部の就航地とは限りません。`, netWhole: '会社全体の就航地です。',
@@ -1558,7 +1579,7 @@ export const WORDS = Object.freeze({
     fleet: 'Fleet', fleetTypes: 'Types listed by the airline', types: n => pl(n, 'type', 'types'), coMore: 'Company details', figures: n => pl(n, 'fact', 'facts'), company: 'Company',
     rvCta: Object.freeze({ ...RV_CTA_EN }), anonFree: 'Anonymous · free', score: 'Pilot ratings',
     jobsPage: 'Airline’s careers page', jobs: 'Jobs', jobsNone: 'We have not been able to confirm any vacancies published by the airline.',
-    postFleet: 'Aircraft', postLink: 'View the posting', postLinkOld: 'View the recruitment page', postState: { open: 'Hiring', none: 'No current openings', past: 'Past posting' },
+    postFleet: 'Aircraft', postLink: 'View the posting', postLinkOld: 'View the recruitment page', postState: { open: 'Hiring', none: 'No current openings', past: 'Past posting', '': 'Unconfirmed' },
     seasonal: 'Seasonal', hotelsTips: 'Hotels &amp; tips', base: 'Base', stay: 'Layovers',
     stayNone: 'Hotels and restaurants by destination open once we have confirmed the airline’s published list of destinations.', official: 'Official destinations',
     netPartial: (n, d) => `Destinations confirmed in our research: ${pl(n, 'airport', 'airports')}, as of ${d}. This may not be every destination.`,
