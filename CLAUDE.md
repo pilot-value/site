@@ -229,6 +229,7 @@ baland_ass/                            ブランド資産（※ brand_assets の
 | [assert-founding.mjs](assert-founding.mjs) の除外リスト | FOUNDING の板は `profile.html` の最上部だけ |
 | [pv-session.js](pv-session.js) の `PROOF_SKIP` | **止められている会員にも開けておくページなら足す**（運営に連絡する道・規約）。足さなければ板が覆う＝ふつうのページは何もしなくてよい |
 | [pv-session.js](pv-session.js) の `ASK_SKIP` | **入力の途中・規約・質問の一覧の画面なら足す。** 足さないと、戻ってきた会員に聞く板がそのページの上に出る |
+| [pv-session.js](pv-session.js) の `RV_SKIP` | **入力の途中・規約の画面なら足す。** 足さないと、口コミを1項目ずつ聞く板がそのページの上に出る |
 | [pv-session.js](pv-session.js) の `GF_SKIP` | **入力の途中の画面なら足す。** 足さないと、登録だけの会員がそのページを開いた瞬間に Give → Get の板が入力を覆う |
 | [assert-pay-rows.mjs](assert-pay-rows.mjs) の左メニューの枚数 | `<nav class="mr-side">` を持つページなら**合計と内訳を1つ足す**（`id="main-nav"` が在れば公開側・無ければアプリ側）。足さないと `check.mjs web` まで流した回にだけ赤くなる |
 | [seo-normalize.mjs](seo-normalize.mjs) と [assert-seo.mjs](assert-seo.mjs) の `JA_ONLY` | **英語版を置かないページなら両方に足す**（2つで対）。足さないと在りもしない `en/` への hreflang が出る。英語版を置いたら両方から外す |
@@ -579,6 +580,29 @@ baland_ass/                            ブランド資産（※ brand_assets の
 - 見るもの：`node db/test-review-pending.mjs`（SQL）／`node assert-vote.mjs` の 2-D（画面の通し）／`node assert-my-posts.mjs`（フォームの形）。
 
 見るもの: `node assert-vote.mjs`（落ちたときの「なぜ」は [workflows/deploy-checklist.md](workflows/deploy-checklist.md) の 27 番）。
+
+## 口コミを1項目ずつ聞く板（[pv-review-board.js](pv-review-board.js)・2026-11-20）
+
+★オーナー決定「**書いた項目は、全社ぶん読める。7項目書けば全部読める。**」（7項目×300字のフォームが重い → 1項目40字・約30秒に下げる）。
+- ⚠️ **段階の特典（1/3/7 で何かが開く・会社を選べる・月の勤務）を足さない**（オーナーが「複雑すぎ」で却下）。会員の気になる会社も保存しない。
+- **読める項目を決めるのは [db/reviews-gate.sql](db/reviews-gate.sql) 3-d の `pv_review_my_cats()` の1か所だけ。** 鍵 `pv_has_review_key` は「7つそろった」。
+  フォームで出した口コミ・前からある口コミは今までどおり1件で全部読める（`pv_review_partial` に id が無い ＝ 書きかけではない）。
+  書いていない項目の本文と訳は `pv_reviews` が**1文字も返さない**（ぼかさない）。画面は返ってきた `open` を読むだけ。
+  ⚠️ 口コミの本文を返す口を新しく作ったら `pv_review_my_cats()` を通す（通さないと、その口だけ書いていない項目が読める）。
+- **出す相手と間隔はサーバ**（[db/review-items.sql](db/review-items.sql) の `pv_review_board`）── ログインしていて・止められていなくて・まだ全部読めない会員に、
+  **7日に1回**。待遇の板（「〇〇のこと、ひとつ教えて。」）とは**同じ日に出さない**（両方向・`pv_board_gap` の24時間）。
+  会社は書きかけの口コミ → 無ければ最新の給与の会社（**給与を出した人には会社を聞かない**）。どちらも無い人にだけ、板が会社と職位を1回聞く。
+- **1項目40字以上・その場で保存して載せる**（`submit_review_item`・1日30回まで）。本文が変わったら訳を消し、Webhook（`db/review-items-webhook.sql`）が翻訳と AI の判定をやり直す。
+  7つそろうか、フォームで続きを出し切る（`submit_review_finish`・フォームの決まりのまま）と書きかけの印が外れる。
+- 板（日英西で1本）：「← 前の質問」「今回はスキップ」「×」・書きかけは端末だけ（`pv_rvdraft`・ログアウトで消える）・「二度と出さない」は置かない。
+  出してよいページかは [pv-session.js](pv-session.js) の `rvDue` の1か所 ── 端末の写し `pv_rvask` の時刻まで**通信ゼロ**。同じページに板は1枚（パイロット確認 → Give & Get → 待遇の板 → この板）。出さない画面は `RV_SKIP`。
+- **Vote**：書きかけの会員には「全ての口コミを見るには」の枠の代わりに7つのマスと「続きを書く（約30秒）」。引き出しは、書いた項目は全文・書いていない項目は
+  「〇〇を書くと、全社のこの項目が読めます。」＋「書く（約30秒）」。**自分で押して開いた板は7日を待たない**（`manual`・窓も延ばさない）。未ログインは今のフォーム（預かり → 引き取り）のまま。
+- 口コミの品質判定（`assessReviewQuality`）の写しは**7か所**になった（`assert-review-quality.mjs`）。
+- **貼る順** ── `db/reviews-gate.sql` → `db/ask-own-airline.sql` → `db/review-items.sql` → `db/review-items-webhook.sql`（どれも末尾の検算が ✅）→ Edge Function `translate-review` の Deploy。
+  SQL が先・push が後（貼る前の本番では `pv_review_board` が無い ＝ 板は黙って出ず、端末は12時間後にもう一度聞く）。
+
+見るもの: `node db/test-review-items.mjs`／`node db/test-review-items-webhook.mjs`／`node assert-review-board.mjs`（落ちたときの「なぜ」は [workflows/deploy-checklist.md](workflows/deploy-checklist.md) の 31 番）。
 
 ## 口コミの AI の判定と保留（2026-11-15）
 
@@ -1122,6 +1146,7 @@ baland_ass/                            ブランド資産（※ brand_assets の
 | `db/test-member-median.mjs` / `assert-member-median.mjs` | 会員の中央値 ── **書き込みのたびに数えて保存・読むだけの口は人数を返さない・2人以上だけ**・テストアカウントが外れる／ページが ANA・JAL はいつも中央値・ほかは推定を超えたときだけ差し替える・返事が無ければ1文字も変えない・通貨の切替に付いてくる |
 | `db/test-parse-outcome.mjs` | 明細の読み取りの失敗の知らせ ── **失敗のたびに info@ へ1通・理由を日本語で**（成功では送らない・1日30通まで・成功0が続けば件名に印）・回数を数える表に人・画像・金額の欄が無い・会員から読めない・**知らせに画像・金額・明細の文字が入らない**・ブラウザからの知らせは白リストの語だけ・payslip.js の失敗の語が全部受け取れる・数える口が無くても読み取りの返事は変わらない・壊す証明 |
 | `assert-app.mjs` | スマホのホーム画面に置ける形 ── **全ページ（日英西）に PV-APP の塊がちょうど1つ**・言語ごとの manifest（start_url に utm_source=homescreen）・アイコンの大きさ・塊を取り除けば元のファイル（page-dates.mjs が直した日に数えない）／「ホーム画面に追加」の案内は**PC とアプリの中では出さない**・iPhone は共有の手順・Android はボタン1つ・出し終えた画面は1回だけ・日英西・320px ではみ出さない |
+| `db/test-review-items.mjs` / `assert-review-board.mjs` | 口コミを1項目ずつ聞く板 ── **書いた項目だけ全社ぶん読める・書いていない項目の本文はどの口からも返らない**・7つで鍵が開く・フォームで出した人は今までどおり全部・7日に1回で待遇の板と同じ日に出さない・給与を出した人には会社を聞かない・40字・1項目ずつ保存／画面が書いていない項目の字を1文字も受け取らない・自分で開いた板は7日を待たない |
 | `assert-ask.mjs` | 戻ってきた会員に聞く板（画面側）── 未ログイン・48時間の窓の中は**読み込みもしない**・出さない画面と Give & Get の板のページでは聞かない・見出し「〇〇のこと、ひとつ教えて。」・3つの形（1つ選ぶ・数字・複数選ぶ）を1問ごとに保存・範囲の外の数字を送らない・× は見せていた1問だけスキップ・本物のサーバへは1本も出さない |
 | `assert-proof.mjs` | パイロットであることの確認（画面側）── 未ログインには何も読み込まない・止まっていない会員に聞くのは1回だけ・**止まっている会員には聞く前に板が出る**・閉じる手段が無い（×・外・ESC）・下のページを触れない・**例はオーナーが挙げた7つ**・**確認後の画像の扱いを書いていない**・**運営が書いた理由が字のまま出る**・JPEG に焼き直してから送る・**複数枚は1枚ずつ p_n の順に送る（古いサーバーには1枚だけ）**・スペイン語の板・承認されたら自分で消える・管理画面が「破棄しました」と言うのはサーバーが消したときだけ・SQL を貼る前でも会員の表は出る |
 | `npm run test:sql` | Supabase 側（`db/*.sql`）を触ったとき。`check.mjs sql` が同じものを並列で回す |

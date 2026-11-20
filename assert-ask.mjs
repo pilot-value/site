@@ -76,6 +76,8 @@ page.on('request', (req) => {
   if (name === 'pv_ask_seen') { server.seen++; return say({ ok: true, next_at: new Date(Date.now() + 48 * 3600e3).toISOString() }); }
   if (name === 'submit_airline_conditions') { server.submits.push(body.p); return say({ ok: true, saved: 1 }); }
   if (name === 'pv_proof_state') return say({ state: 'none' });
+  /* 待遇の板を出さなかったページでは、口コミの板（pv-review-board.js）が聞きに来る。ここでは「まだ」と答える（板そのものは assert-review-board.mjs） */
+  if (name === 'pv_review_board') return say({ ok: true, due: false, why: 'wait', next_at: new Date(Date.now() + 7 * 86400e3).toISOString() });
   REAL.push(u);          // 答えを用意していない要求は止める（本物へは出さない）
   req.abort();
 });

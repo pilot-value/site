@@ -177,7 +177,7 @@
     if (len === 0) return { ok: true, reason: '' };
 
     // 1) 同一文字の連打（5文字以上の連続）例:「あああああ」「っっっっっ」
-    if (/([^\p{N}\p{P}\p{S}\p{Z}\sـ])\1{4,}/u.test(t)) {
+    if (/([^\p{N}\p{P}\p{S}\p{Z}\s\u0640])\1{4,}/u.test(t)) {
       return { ok: false, reason: '同じ文字が連続しすぎています（例:「あああああ」）。実際に感じたことを書いてください。' };
     }
 
@@ -643,7 +643,10 @@
         gt('review_item_submit', { cat: cat, items: self.count() });
         if (r.full === true) {
           self.full = true;
-          try { if (w.PVUnlock && typeof w.PVUnlock.reviewUntil === 'function') w.localStorage.setItem('pv_unlock_expiry', String(w.PVUnlock.reviewUntil())); } catch (e) { /* 鍵はサーバが決める。端末の印は飾り */ }
+          try {   // 鍵はサーバが決める。端末の印は飾り（ほかの書き手と同じく、PVUnlock が無くても遠い未来を書く）
+            var until = (w.PVUnlock && typeof w.PVUnlock.reviewUntil === 'function') ? w.PVUnlock.reviewUntil() : Date.now() + 100 * 365 * 24 * 60 * 60 * 1000;
+            w.localStorage.setItem('pv_unlock_expiry', String(until));
+          } catch (e) { /* 書けなくても次のページでサーバに聞き直す */ }
           self.all();
         } else {
           self.sent(cat);
