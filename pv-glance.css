@@ -1486,3 +1486,25 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
 @media (max-width:399.98px){
   .pvg-hero-t .pvg-acts-3 .pvg-btn > svg,.pvg-hero-t .pvg-acts-3 .pvg-btn > .pvg-ic{display:none}
 }
+/* 募集の1枚：求人1件ずつ（★2026-11-20 オーナー「結局どの機種でどう募集してるの？」）。
+   見出し ＝ 職位・乗る機種・拠点・いま出ているか。その下に状況の1行（日付つき）と、応募の条件の表（名前｜値）。
+   道が分かれる求人（型式限定がある人／無い人 など）は、道の名前の下に同じ表。字は gen-airline-glance.mjs の postHTML。 */
+.pvg-posts{display:grid;gap:0 28px}
+.pvg-post{padding:14px 0 12px;border-top:1px solid var(--pv-line-soft);min-width:0}
+.pvg-post-h{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:0}
+.pvg-post-h > b{font-size:15.5px;font-weight:700;line-height:1.4;color:var(--pv-ink);letter-spacing:-.01em}
+.pvg-post-c{font-size:12px;font-weight:600;line-height:20px;padding:0 8px;border-radius:999px;background:var(--pv-bg-sub);border:1px solid var(--pv-line-soft);color:var(--pv-ink-2)}
+.pvg-post-st{font-size:12px;font-weight:700;line-height:20px;padding:0 8px;border-radius:999px;margin-left:auto;color:var(--pv-ink-3);background:var(--pv-bg-sub)}
+.pvg-post-st[data-state="open"]{color:var(--pv-accent-ink);background:var(--pv-accent-soft)}
+.pvg-post-s{margin:4px 0 6px!important;font-size:12.5px;line-height:1.5;color:var(--pv-ink-3);overflow-wrap:anywhere}
+.pvg-post-r{margin:12px 0 2px!important;font-size:12.5px;font-weight:700;line-height:1.5;color:var(--pv-ink-2)}
+.pvg-req{list-style:none;margin:0;padding:0}
+.pvg-req li{display:grid;grid-template-columns:6.5em minmax(0,1fr);gap:12px;padding:6px 0;border-bottom:1px solid var(--pv-line-soft)}
+.pvg-req li:last-child{border-bottom:0}
+.pvg-req li > span{font-size:12.5px;line-height:1.55;color:var(--pv-ink-2);min-width:0}
+.pvg-req li > b{font-weight:600;line-height:1.55;min-width:0;overflow-wrap:anywhere}
+.pvg-req b small{display:inline;margin:0 0 0 2px}
+/* 広い画面では求人を横に並べる（1件が 320px を割る幅では1列のまま） */
+@container pvg (min-width:640px){
+  .pvg-posts{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+}

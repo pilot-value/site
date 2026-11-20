@@ -38,7 +38,8 @@ import { FACTS as EYF, introText as eyIntro, EN as EY_EN, introTextEn as eyIntro
 import { LIVING, CITY_OF, ABUDHABI, SITES, FAMILY, MODES, BAR_STATS, EN as LV_EN } from './living-facts.mjs';
 import { primary } from './airline-photos.mjs';
 import { axisEnd } from './pv-bars.mjs';
-import { LEAD, SWITCH, researchFacts, researchNetwork, researchCities } from './airline-rollout.mjs';
+import { LEAD, SWITCH, researchFacts, researchNetwork, researchCities, rowSource } from './airline-rollout.mjs';
+import { JOBS } from './airline-jobs.mjs';
 import { REGIONS, PLACES, networkOf, placeCountry } from './airline-destinations.mjs';
 import * as US from './us-housing.mjs';
 import { ABOUT as US_ABOUT } from './us-town-notes.mjs';
@@ -679,7 +680,28 @@ export function rentCell(cur, v, lang = 'ja') {
 }
 
 /** 1社ぶん。lang 'en' ＝ 英語の会社ページの読み口（形・並び・数字は日本語と同じで、字だけ英語。lang: 'en' を持つ）。 */
+/* 募集の1枚の求人（airline-jobs.mjs ── ★2026-11-20 オーナー「結局どの機種でどう募集してるの？」）。
+   字は JOBS の日本語か英語の側のまま。出どころと確かめた日は、求人が使った行から引き直す
+   （先行5社は募集の行の key・ほかは調べの台帳の行の id）。引けない行が在れば止める（字だけ在って根拠の無い求人を出さない）。 */
+function postsOf(slug, lang, jobs) {
+  const byKey = new Map(jobs.map(f => [f.key, f]));
+  return (JOBS[slug] || []).map((p, i) => {
+    const x = p[lang === 'en' ? 'en' : 'ja'];
+    const srcs = p.ids.map(id => {
+      const f = LEAD.includes(slug) ? byKey.get(id) : rowSource(slug, id, lang);
+      if (!f || !f.src) throw new Error(`${slug}: 募集の求人 ${i + 1} の行 ${id} の資料が引けない（airline-jobs.mjs）`);
+      return { src: f.src, checked: f.checked || '', third: !!f.third };
+    });
+    const two = rows => (rows || []).map(r => [r[0], r[1]]);
+    return { state: p.state || '', who: x.who, fleet: x.fleet || '', base: x.base || '', status: x.status || '',
+      rows: two(x.rows), routes: (x.routes || []).map(r => ({ name: r.name, rows: two(r.rows) })), srcs };
+  });
+}
 export function viewOf(slug, lang = 'ja') {
+  const v = viewBase(slug, lang);
+  return { ...v, posts: postsOf(slug, lang, v.jobs || []) };
+}
+function viewBase(slug, lang = 'ja') {
   if (!SALARY[slug]) throw new Error(`${slug}: 年収の正本（SALARY）に無い`);
   if (!LEAD.includes(slug)) return rolloutView(slug, lang);
   const S = SALARY[slug], B = BASIS[slug], T = txOf(lang), en = lang === 'en';

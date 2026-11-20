@@ -1061,10 +1061,13 @@ for (const s of FIVE) {
        `${s}: 募集の出どころは台帳の資料と同じ並び・資料ごとに確かめた日（いちばん古い日）が付いている`, got.map(x => x[1]).join(' ／ '));
     ok(!/data-pvg-tab="jobs"|募集要項を開く/.test(PAGES[s]), `${s}: 古い節へ寄る入口（「募集要項を開く」）を残していない`);
     if (s === 'etihad') {
-      /* エティハドは求人票の応募の条件を、行ごとに出す（年収の根拠の台帳に在る字のまま）。 */
-      const rows = [...jobs.matchAll(/<div><dt>[^<]*<\/dt><dd><b>[^<]*<\/b><small>([^<]*)<\/small><\/dd><\/div>/g)].map(m => unesc(m[1]));
+      /* エティハドは求人票の応募の条件を、求人1件ずつ・項目ごとの表で出す（★2026-11-20 airline-jobs.mjs）。
+         年収の根拠の台帳（BASIS の req）に在る数（時間・年齢・英語のレベル・か月）が、その職位の求人の表に全部在る */
+      const posts = [...jobs.matchAll(/<section class="pvg-post">([\s\S]*?)<\/section>/g)].map(m => unesc(text(m[1])).replace(/,/g, ''));
       const req = led.map(x => (BASIS.etihad[x.rank] && BASIS.etihad[x.rank].groups && BASIS.etihad[x.rank].groups[0] && BASIS.etihad[x.rank].groups[0].req) || '');
-      ok(rows.length === led.length && req.every((r, i) => r.length > 10 && rows[i].startsWith(`応募条件：${r}`)), `${s}: 募集の行に、求人票の応募の条件が台帳の字のまま出ている`, rows.map(x => x.slice(0, 30)).join(' ／ '));
+      const nums = r => (r.replace(/,/g, '').match(/\d+/g) || []).filter(n => !/^(320)$/.test(n));
+      ok(posts.length === led.length && req.every((r, i) => r.length > 10 && nums(r).length >= 4 && nums(r).every(n => posts[i].includes(n))),
+         `${s}: 募集の求人ごとに、求人票の応募の条件の数が全部出ている（年収の根拠の台帳の req）`, posts.map(x => x.slice(0, 40)).join(' ／ '));
     }
   }
   /* タブ：6つ・この順・この名前。出荷する HTML では「概要」だけが今の場所（JS が無くても全部読める）。 */

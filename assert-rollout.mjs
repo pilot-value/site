@@ -355,16 +355,16 @@ const V = Object.fromEntries(OTHER.map(s => [s, viewOf(s)]));
   let shownPR = 0;
   for (const s of OTHER) {
     const v = V[s];
-    /* 札の付いてよい行は、過去・参考の行と、今の公表（条件つきの1行め）が無い勤務・待遇の欄に出す会社の募集の行（「募集」の札・
-       同じ行が募集の1枚にも在る ── 2026-10-21 リード d2）だけ。ほかの使い方の行・ほかの欄の行に札は付かない */
-    const adOk = (f, list) => f.use === '募集' && f.tag === '募集' && v.jobs.some(j => j.id === f.id && !j.tag)
-      && !list.some(x => x.lead && x.use === '条件つき');
+    /* 札の付いてよい行は、過去・参考の行と、勤務・待遇の欄に出す会社の募集の行（「募集」の札 ── 2026-10-21 リード d2）だけ。
+       ほかの使い方の行・ほかの欄の行に札は付かない。★2026-11-20 から、募集の行のうち勤務・待遇の話はその欄にだけ出す
+       （今の公表が在る欄でも、公表の行の後ろに。募集の1枚には出さない ── オーナー「募集って求人のことでしょ？」） */
+    const adOk = f => f.use === '募集' && f.tag === '募集' && !v.jobs.some(j => j.id === f.id);
     for (const [k, list] of [['work', v.work], ['benefits', v.benefits], ['jobs', v.jobs], ['profile', v.company.profile], ['scale', v.company.scale], ['fleet', v.company.fleet]]) for (const f of list) {
       if (f.use === '過去' || f.use === '参考') {
         shownPR++;
         if (f.tag !== f.use || f.lead) leak.push(`${s}:${f.id}（${f.use}・札「${f.tag}」${f.lead ? '・1行め' : ''}）`);
         if (f.use === '過去' && !/\d{4}年/.test(f.when || '')) leak.push(`${s}:${f.id}（過去なのに日付が無い）`);
-      } else if (f.tag && !((k === 'work' || k === 'benefits') && adOk(f, list))) leak.push(`${s}:${f.id}（${f.use}に札「${f.tag}」・${k}）`);
+      } else if (f.tag && !((k === 'work' || k === 'benefits') && adOk(f))) leak.push(`${s}:${f.id}（${f.use}に札「${f.tag}」・${k}）`);
     }
     for (const f of v.base.rows) if (f.use !== '条件つき' && f.use !== '募集') leak.push(`${s}:${f.id}（拠点に${f.use}）`);
   }
@@ -472,6 +472,47 @@ const cardText = h => textOf(h.replace(/<(p|dd) class="pvg-srcs">[\s\S]*?<\/\1>/
   }
 }
 
+/* ═══ 募集の1枚の求人（airline-jobs.mjs ── ★2026-11-20 オーナー「結局どの機種でどう募集してるの？」「募集って求人のことでしょ？」）═══
+   ・台帳の募集の行（分野が募集の行）は、どれも求人の ids・DROP・MOVE のどこか1か所に在る（調べの行が増えたら、足すまで赤）。
+   ・MOVE の行は、行き先の欄（勤務・待遇）に本当に出ている（言い方が無くて黙って消える、を作らない）。
+   ・求人は日英で同じ形（行・道・空の欄）・英語の字に日本語の字が無い・状況の1行に日付が在る。
+   ・求人の字に、調べた側の字（label_ja・cond_ja・値の文）をそのまま置かない（下の L1 と同じ決まり）。 */
+{
+  const { JOBS, DROP, MOVE } = await import('./airline-jobs.mjs');
+  const JA = /[ぁ-んァ-ヶ一-龥]/, miss = [], twice = [], gone = [], shape = [], word = [], moved = [];
+  for (const s of Object.keys(R.FACTS)) {
+    const rows = R.FACTS[s].jobs || [], byId = new Map(Object.values(R.FACTS[s]).flat().map(r => [r.id, r]));
+    const used = new Map();
+    const put = (id, w) => used.set(id, [...(used.get(id) || []), w]);
+    (JOBS[s] || []).forEach((p, i) => p.ids.forEach(id => put(id, `求人${i + 1}`)));
+    for (const r of rows) if (!(LINES[r.id] && 'off' in LINES[r.id])) {
+      if (DROP[r.id]) put(r.id, 'DROP');
+      if (MOVE[r.id]) put(r.id, 'MOVE');
+      const u = used.get(r.id) || [];
+      if (!u.length) miss.push(`${s}:${r.id}`);
+      else if (u.some(w => !w.startsWith('求人')) && u.length > 1) twice.push(`${s}:${r.id}（${u.join('・')}）`);
+    }
+    for (const id of [...used.keys()]) if (!byId.has(id) && !LEAD.includes(s)) gone.push(`${s}:${id}`);
+    if (OTHER.includes(s)) for (const [id, to] of Object.entries(MOVE)) if (byId.has(id) && !V[s][to].some(f => f.id === id)) moved.push(`${s}:${id}→${to}`);
+    /* 過去の行を使った求人は、過去の募集か締め切った募集（いま出ている求人の条件に、過去の募集の字を混ぜない） */
+    for (const [i, p] of (JOBS[s] || []).entries()) if (p.ids.some(id => (byId.get(id) || {}).use === '過去') && !['past', 'none'].includes(p.state)) shape.push(`${s} 求人${i + 1}（過去の行を使ったのに ${p.state || '状態なし'}）`);
+    if (OTHER.includes(s)) for (const p of JOBS[s] || []) {
+      const txt = [p.ja.who, p.ja.fleet, p.ja.base, p.ja.status, ...[...p.ja.rows, ...p.ja.routes.flatMap(r => [[r.name], ...r.rows])].flatMap(r => [r[0], r[1]])].join('\n');
+      for (const id of p.ids) { const r = byId.get(id); for (const t of r ? RESEARCHER(r) : []) if (txt.includes(t) && !sourceWord(r, t) && !siteLabel(r, t)) word.push(`${s}:${id}「${t.slice(0, 24)}」`); }
+    }
+  }
+  for (const [s, list] of Object.entries(JOBS)) list.forEach((p, i) => {
+    const sh = x => [x.rows.length, ...x.routes.map(r => r.rows.length), !!x.fleet, !!x.base, !!x.status].join(',');
+    const en = [p.en.who, p.en.fleet, p.en.base, p.en.status, ...p.en.rows.flat(), ...p.en.routes.flatMap(r => [r.name, ...r.rows.flat()])].join(' ');
+    if (!['open', 'none', 'past', ''].includes(p.state) || !p.ja.who || !p.en.who || sh(p.ja) !== sh(p.en) || JA.test(en)
+      || (p.ja.status && !/\d{4}年/.test(p.ja.status)) || (p.en.status && !/\d{4}/.test(p.en.status))) shape.push(`${s} 求人${i + 1}`);
+  });
+  const all = Object.values(R.FACTS).reduce((n, F) => n + (F.jobs || []).length, 0);
+  ok(!miss.length && !twice.length && !gone.length, `募集の1枚：台帳の募集の行（${all}行）は、どれも求人・DROP・MOVE のどこか1か所に在る（airline-jobs.mjs）`, [...miss, ...twice, ...gone].slice(0, 6).join(' ／ '));
+  ok(!moved.length, `募集の1枚：MOVE の行（${Object.keys(MOVE).length}行）は、行き先の勤務・待遇の欄に出ている`, moved.slice(0, 6).join(' ／ '));
+  ok(!shape.length && Object.keys(JOBS).length >= 5, `募集の1枚：求人（${Object.values(JOBS).flat().length}件）は日英で同じ形・英語に日本語の字が無い・状況の1行に日付が在る・過去の行を使った求人は過去か締め切った募集`, shape.slice(0, 6).join(' ／ '));
+  ok(!word.length, '募集の1枚：求人の字に、調べた側の字（label_ja・cond_ja・値の文）をそのまま置いていない（L1）', word.slice(0, 6).join(' ／ '));
+}
 /* ═══ C) 古い節の台帳（107枚ぜんぶ）・どの会社も読み口が通る ═══ */
 {
   const unknown = [], faqDrop = [], kept = [], wrong = [], view = [];
@@ -632,7 +673,8 @@ try {
     {
       const gt = cardText(g), rs = rowsOf(s).filter(r => !why(r)), seen = rs.flatMap(r => RESEARCHER(r).filter(t => hasText(gt, t) && !sourceWord(r, t) && !placeWord(r, t) && !siteLabel(r, t)).map(t => `${r.id}「${t.slice(0, 24)}」`));
       ok(!seen.length, `D ${s}: 新しい部品の字に、調べた側の字（label_ja・cond_ja・調べた側の値の文）が1つも無い（L1）`, seen.slice(0, 4).join(' ／ '));
-      const v = viewOf(s), pr = [...v.work, ...v.benefits, ...v.jobs, ...v.company.profile, ...v.company.scale].filter(f => f.use === '過去' || f.use === '参考');
+      /* 募集の行は、求人の1件ずつの形（airline-jobs.mjs）で出る会社では、行ごとの札ではなく求人の「過去の募集」「いま募集なし」で言う（下の「募集の1枚」の段） */
+      const v = viewOf(s), pr = [...v.work, ...v.benefits, ...(v.posts.length ? [] : v.jobs), ...v.company.profile, ...v.company.scale].filter(f => f.use === '過去' || f.use === '参考');
       const untagged = pr.filter(f => !g.includes(`${htmlEsc(f.label)}${f.pilot === false ? '<span class="pvg-tag pvg-tag-q">会社全体の制度</span>' : ''}<span class="pvg-tag pvg-tag-q" data-use="${f.use}">${f.use}</span>`));
       ok(!untagged.length, `D ${s}: 過去・参考の行（${pr.length}行）は、ページで名前のすぐ後ろに「過去」「参考」の札が付いている`, untagged.map(f => `${f.use}：${f.label}`).join(' ／ '));
     }
@@ -792,7 +834,7 @@ for (const s of ROLLED) {
   /* 過去・参考の行は、ページで名前のすぐ後ろに「過去」「参考」の札（2026-10-22 d2・同じ強さの当て直し ── リード L2：写しで切り替える3社で
      見ていた段を、切り替えた会社ぜんぶのページへ。調べた側の名前の字が無いことは、上の L1 の段が同じ行で見ている） */
   {
-    const pr = [...v.work, ...v.benefits, ...v.jobs, ...v.company.profile, ...v.company.scale].filter(f => f.use === '過去' || f.use === '参考');
+    const pr = [...v.work, ...v.benefits, ...(v.posts.length ? [] : v.jobs), ...v.company.profile, ...v.company.scale].filter(f => f.use === '過去' || f.use === '参考');
     const untagged = pr.filter(f => !g.includes(`${htmlEsc(f.label)}${f.pilot === false ? '<span class="pvg-tag pvg-tag-q">会社全体の制度</span>' : ''}<span class="pvg-tag pvg-tag-q" data-use="${f.use}">${f.use}</span>`));
     A2N.pr += pr.length;
     ok(!untagged.length, `E ${s}: 過去・参考の行（${pr.length}行）は、ページで名前のすぐ後ろに「過去」「参考」の札が付いている`, untagged.map(f => `${f.use}：${f.label}`).join(' ／ '));

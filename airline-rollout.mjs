@@ -10,7 +10,9 @@
  *
  * ★ 画面に出してよい行（オーナー 2026-10-19／リード 2026-10-20）
  *   ・使い方が 条件つき／募集／過去／参考 のどれかの行だけ。保留・空欄・未指定は出さない（使い方の無い行も出さない）。
- *   ・募集の行は募集として（募集の1枚にだけ）。過去の行は、その日付と一緒にだけ（日付の無い過去の行は出さない）。
+ *   ・募集の行は募集として（募集の1枚 ── 求人1件ずつの字は airline-jobs.mjs）。ただし台帳の分野が勤務・待遇の行は、その欄へ
+ *     （★2026-11-20 オーナー「募集って求人のことでしょ？」── 採用ページに在る住まい・休暇・年金を募集の1枚に並べない）。
+ *     過去の行は、その日付と一緒にだけ（日付の無い過去の行は出さない）。
  *     参考の行は、最初の1画面の1行（lead）にしない。
  *   ・過去の行は「過去」の札と日付・参考の行は「参考」の札つきでだけ出す（言い方は airline-display.mjs の TAG）。
  *     どちらもカードの1行め（lead）にしない・カードの小さい2行（also）にも置かない（gen-airline-glance.mjs）。
@@ -28,6 +30,7 @@ import { fileURLToPath } from 'node:url';
 import { readStore } from './import-research-pack.mjs';
 import { PLACES } from './airline-destinations.mjs';
 import { say, srcName, NET, CITY, LINES, digest, agreementOf, rankOf, AD_TAG, AD_TAG_EN, countryEn } from './airline-display.mjs';
+import { MOVE } from './airline-jobs.mjs';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 
@@ -155,6 +158,16 @@ function asFact(r) {
   };
 }
 
+/* 募集の1枚の求人（airline-jobs.mjs）が引いた行の、資料と確かめた日。行が無い・資料の住所が無い行は null */
+export function rowSource(slug, id, lang = 'ja', R = research()) {
+  for (const rows of Object.values((R.FACTS || {})[slug] || {})) for (const r of rows || []) {
+    if (r.id !== id) continue;
+    const src = srcOf(r, lang);
+    return src ? { src, checked: r.checked_at || '', third: !FIRST_HAND.includes(src.kind) } : null;
+  }
+  return null;
+}
+
 /**
  * 先行5社ではない会社の「会社の事実」（調べの台帳から）。
  *   base     … 拠点の空港（3字）と街。使い方が 条件つき・募集 で、会社か政府の資料の行だけ。
@@ -231,12 +244,14 @@ function factsJa(slug, R) {
         baseRows.push(f);
         continue;
       }
-      const place = r.use === '募集' ? 'jobs' : sec;
+      /* 募集の行は募集の1枚へ。ただし勤務・待遇の話（台帳の分野が勤務・待遇の行と、airline-jobs.mjs の MOVE が名指す行）は、その欄へ
+         （★2026-11-20 オーナー「エミレーツの募集に住まい・休暇・年金が並ぶ。これは待遇。募集って求人のことでしょ？」） */
+      const place = MOVE[r.id] || (r.use === '募集' && !(sec in ads) ? 'jobs' : sec);
       if (!(place in out) || place === 'held' || place === 'base') { hold(r, `置き場が無い（${sec}）`); continue; }
       /* 2026-11-18 まで：勤務・待遇は会社自身の資料か労働協約・募集は会社自身・会社の数字と機材と拠点は会社か政府の資料の行だけを出していた。
          いまは第三者の資料の行も出す（上の FIRST_HAND の注） */
+      if (r.use === '募集' && place in ads) { ads[place].push(f); continue; }   // 勤務・待遇の欄の募集の行は、下で並べる
       out[place].push(f);
-      if (place === 'jobs' && sec in ads) ads[sec].push(f);
     }
   }
   /* 同じ話は1行だけ（2026-10-23）：字の表（LINES）の same が名指す行が同じ欄に出ているときは、same を持つ行を出さない
@@ -244,7 +259,7 @@ function factsJa(slug, R) {
      名指した行が出ない日（台帳の行が変わって字が古い など）は外さない ＝ 話題を無くさない。台帳の行は消さない。 */
   for (const k of ['work', 'benefits']) out[k] = out[k].filter(f => {
     const by = LINES[f.id] && LINES[f.id].same;
-    if (!by || !out[k].some(x => x.id === by)) return true;
+    if (!by || ![...out[k], ...ads[k]].some(x => x.id === by)) return true;
     out.held.push({ id: f.id, why: `同じ話を、ほかの行（${by}）が言う`, sec: k });
     return false;
   });
@@ -263,15 +278,21 @@ function factsJa(slug, R) {
     const first = (said[0] && said[0].use === '条件つき' && whose(said[0]) ? said[0] : null) || out[k].find(f => f.use === '条件つき' && whose(f));
     if (first && (k === 'work' || k === 'benefits')) first.lead = true;
   }
-  /* ★今の公表が無い欄（勤務・待遇のカードの1行めが選べない）に、会社自身の募集の行だけが在るときは、その行を「募集」の札と
-     その募集の前提（誰の・どの募集か・日付）つきでカードに出す（2026-10-21 リード d2「確認できていません」と言わない）。
-     行は募集の1枚にも残る（募集の全部はあちらが並べる）。札の字は airline-display.mjs の AD_TAG。 */
+  /* ★勤務・待遇の欄の募集の行（採用ページの住まい・休暇・年金など）は、その欄に「募集」の札と、その募集の前提（誰の・どの募集か・日付）つきで出す。
+     今の公表が無い欄（勤務・待遇のカードの1行めが選べない）では、その行が先頭（2026-10-21 リード d2「確認できていません」と言わない）。
+     今の公表が在る欄では、公表の行の後ろ（★2026-11-20 までは募集の1枚にだけ在った）。札の字は airline-display.mjs の AD_TAG。 */
   for (const k of ['work', 'benefits']) {
+    const add = ads[k].map(f => ({ ...f, tag: AD_TAG, lead: false })).filter(f => {
+      const by = LINES[f.id] && LINES[f.id].same;
+      if (!by || ![...out[k], ...ads[k]].some(x => x.id === by)) return true;
+      out.held.push({ id: f.id, why: `同じ話を、ほかの行（${by}）が言う`, sec: k });
+      return false;
+    });
+    if (!add.length) continue;
     /* ★2026-11-18：「今の公表」と数えるのは会社自身の資料か労働協約の行だけ。第三者の資料（口コミなど）の行が欄に在っても、
        募集要項の行は出す（数えていた日は、シンガポール航空・香港エクスプレスの募集要項の行がカードから消えた）。1行めは募集要項の行 */
-    if (out[k].some(f => f.lead && f.src && ['company', 'agreement'].includes(f.src.kind)) || !ads[k].length) continue;   // 「今の公表」は会社自身の資料か労働協約の行（政府・第三者の行は数えない ── assert-rollout の E と同じ）
+    if (out[k].some(f => f.lead && f.src && ['company', 'agreement'].includes(f.src.kind))) { out[k] = [...out[k], ...add]; continue; }   // 「今の公表」は会社自身の資料か労働協約の行（政府・第三者の行は数えない ── assert-rollout の E と同じ）
     for (const f of out[k]) f.lead = false;
-    const add = ads[k].map(f => ({ ...f, tag: AD_TAG, lead: false }));
     /* 訓練生の行しか無いときは、その行が1行め（募集の札と前提の1行が、誰の募集の条件かを言う） */
     (add.find(f => f.rank !== 'trainee' || /^訓練/.test(f.ja)) || add[0]).lead = true;
     out[k] = [...add, ...out[k]];

@@ -406,9 +406,11 @@ let faqOf = null;
     };
     const walk = (v) => {
       if (v == null) return;
-      /* 台帳の字は乗員の略語でも書く（「5000TT・1000PIC」＝総飛行5,000時間・機長1,000時間／「command150」＝機長として150時間） */
+      /* 台帳の字は乗員の略語でも書く（「5000TT・1000PIC」＝総飛行5,000時間・機長1,000時間／「command150」＝機長として150時間）。
+         ★2026-11-20 募集の求人（airline-jobs.mjs）：数のすぐ後ろに機体の種類を書いた字（「500multi-crew jets」「800jet」「250A320FBW」
+         「4000turboprop」「1500total」）と、全角の数（「１０００時間」）も時間の数 */
       if (typeof v === 'string') {
-        for (const m of num(v).matchAll(/(\d+)\s*(?:\+\s*)?(?:時間|hours?\b|hrs?\b|h\b|H\b|TT\b|PIC\b)|(?:command|PIC|TT)\s*(\d+)/g)) set.add(m[1] || m[2]);
+        for (const m of num(v.normalize('NFKC')).matchAll(/(\d+)\s*(?:\+\s*)?(?:時間|hours?\b|hrs?\b|h\b|H\b|TT\b|PIC\b|total\b|jets?\b|turboprop|multi-crew|A3\d\d\s*FBW)|(?:command|PIC|TT)\s*(\d+)/g)) set.add(m[1] || m[2]);
         return;
       }
       if (typeof v !== 'object') return;
