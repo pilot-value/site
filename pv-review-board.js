@@ -288,7 +288,7 @@
     '.pvrb-tile:active{transform:scale(.97)}',
     '.pvrb-tile.on{background:var(--pv-accent-soft,#e7f5f1);border-color:var(--pv-accent-line,#bfe6db);color:var(--pv-accent-ink,#067563)}',
     '.pvrb-tile.on::before{content:"\\2713\\a0"}',
-    '.pvrb-tile.cur{background:var(--pv-surface,#fff);border-color:transparent;box-shadow:inset 0 0 0 1.5px var(--pv-text,#111);color:var(--pv-text,#111);font-weight:700}',
+    '.pvrb-tile.cur{background:var(--pv-accent,#0a8f79);border-color:transparent;color:#fff;font-weight:700}',
     '.pvrb-item{margin-top:20px;font-size:1rem;font-weight:700;letter-spacing:-.01em}',
     '.pvrb-stars{display:flex;gap:8px;margin-top:10px}',
     '.pvrb-star{width:44px;height:44px;display:grid;place-items:center;border-radius:10px;border:1px solid var(--pv-border,#e7e7e3);',
