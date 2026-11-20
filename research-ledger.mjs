@@ -685,6 +685,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "fo"
      },
+     "checked_at": "2026-11-20",
+     "company": "abx-air",
+     "cond_ja": "B767 First Officer ad (job-board copy of the ABX ad); the ad states the domicile。補足: 会社の求人ページ（UltiPro）は「unsupported browser」で本文が読めず、同じ職種の転載求人の記載を採用。勤務地欄は Erlanger（CVG 空港の所在地）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Domicile: CVG",
+       "source_id": "src-talents-vaia-com-0f18d608",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "dd237ae397c8e496",
+     "id": "abx-air.jobs.fo-base-fo.48204946",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-abx-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Vaia Talents (copy of ABX Air ad)",
+       "publisher_kind": "recruiter",
+       "retrieved": "2026-11-20",
+       "source_id": "src-talents-vaia-com-0f18d608",
+       "source_type": "job_posting",
+       "title": "Vaia Talents (copy of ABX Air ad)",
+       "url": "https://talents.vaia.com/companies/abx-air/abx-767-first-officer-27798614/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Cincinnati/Northern Kentucky (CVG)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "abx-air",
+     "cond_ja": "Pilot profile; the airline has one domicile。補足: 【APC】 Domiciles 欄も「CVG」だけ。新人訓練は Wilmington（OH）の Airborne Training Services（会社のパイロット採用ページ）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Our domicile is the Cincinnati Northern Kentucky Airport.",
+       "source_id": "src-airlinepilotcentral-com-ce4015f6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1f70f6ffdad801c5",
+     "id": "abx-air.jobs.fo-base-fo.f0132cc0",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-abx-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Airline Pilot Central",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-airlinepilotcentral-com-ce4015f6",
+       "source_type": "community_reference",
+       "title": "Airline Pilot Central",
+       "url": "https://www.airlinepilotcentral.com/airlines/cargo/abx_air"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Cincinnati/Northern Kentucky (CVG) - single domicile",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
      "checked_at": "2026-11-18",
      "company": "abx-air",
      "cond_ja": "Plus First Class Medical, FCC radio/telephone permit, and ICAO English proficiency endorsement。補足: 公式採用ページ（https://www.abxair.com/careers/abx-air-pilots）でも「Unrestricted ATP (Airline Transport Pilot) Rating with an Airplane category multi-engine class rating and English proficiency endorsement」「First Class Medical」「FCC radio/telephone permit」と記載。",
@@ -2035,6 +2141,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "fo"
      },
+     "checked_at": "2026-11-20",
+     "company": "aegean",
+     "cond_ja": "Type Rated First Officers A320 posting; location field of the posting (no separate line-base sentence)。補足: 求人の勤務地欄の住所（アテネ空港内の本社）。乗務の拠点として書いた文は無い。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Athens International Airport, Building 57, Spata",
+       "source_id": "src-jobs-aegeanair-com-3e1eb85e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ec547c74b2f39607",
+     "id": "aegean.jobs.fo-base-fo.8aac2800",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-aegean",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AEGEAN Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-jobs-aegeanair-com-3e1eb85e",
+       "source_type": "job_posting",
+       "title": "AEGEAN Careers",
+       "url": "https://jobs.aegeanair.com/job/Type-Rated-First-Officers-for-A320/1353411355"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Athens (Athens International Airport, Spata)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
      "checked_at": "2026-10-29",
      "company": "aegean",
      "cond_ja": "AEGEAN A320型式保有副操縦士、締切2026-12-31、応募用免許・医療は有効であること；最低レベル。補足: 現行の個別求人本文とApply now・締切を実読。発行日表示なし。総時間にA320限定500hを転用せず。",
@@ -2565,6 +2724,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "fo"
      },
+     "checked_at": "2026-11-20",
+     "company": "aegean",
+     "cond_ja": "Type Rated First Officers A320 posting; deadline shown on posting。補足: 現状の open を 2026-11-20 に再確認（掲載日の記載なし・締切 31/12/2026）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Your application shall contain CV in English language and is to be submitted until December 31, 2026.",
+       "source_id": "src-jobs-aegeanair-com-3e1eb85e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "88629785238f8b47",
+     "id": "aegean.jobs.fo-status-fo.1cec8124",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_status",
+     "label_ja": "副操縦士の求人の状況",
+     "pack": "pvr-20261120-cl-aegean",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AEGEAN Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-jobs-aegeanair-com-3e1eb85e",
+       "source_type": "job_posting",
+       "title": "AEGEAN Careers",
+       "url": "https://jobs.aegeanair.com/job/Type-Rated-First-Officers-for-A320/1353411355"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (deadline 31 December 2026)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
      "checked_at": "2026-10-29",
      "company": "aegean",
      "cond_ja": "AEGEAN/Olympic共同求人のA320応募の副操縦士条件。ATR運航をAEGEAN本体へ転用しない。締切2026-12-31；A320型式未保有応募の区分。補足: A320/ATR共同公募の共通要件として明記。自社養成cadetではなくCPL等保有者の直接応募。発行日表示なし。",
@@ -2722,6 +2934,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "Athens International Airport, Building 57, Spata",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "aegean",
+     "cond_ja": "Company fleet evidence: AEGEAN mainline jets are Airbus (A320 type rating required for its FOs)。補足: 自社の求人で AEGEAN 本体の機材が Airbus（A320 系）であることの裏付け。公式の機材ページは403。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "We are currently looking for Type Rated First Officers, to join our Airbus Fleet. … EASA ATPL(A) with a valid A320 Type Rating",
+       "source_id": "src-jobs-aegeanair-com-3e1eb85e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "64852d2a657b1705",
+     "id": "aegean.jobs.pilot-aircraft.814d3fd9",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-aegean",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AEGEAN Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-jobs-aegeanair-com-3e1eb85e",
+       "source_type": "job_posting",
+       "title": "AEGEAN Careers",
+       "url": "https://jobs.aegeanair.com/job/Type-Rated-First-Officers-for-A320/1353411355"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: Airbus fleet (A320 family) at AEGEAN",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "aegean",
+     "cond_ja": "Company fleet evidence: Olympic Air (where cadets may also be placed) flies ATR turboprops。補足: 訓練生の就職先にオリンピック航空が含まれるため。機材は複数（Airbus A320 系か ATR）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-10-08",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Olympic Air currently operates 15 ATR aircraft. The fleet is made up of 12 ATR 72-600s and three ATR 42-600s.",
+       "source_id": "src-avitrader-com-6333a85b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0bb9cf2ede7f833a",
+     "id": "aegean.jobs.pilot-aircraft.b9a08a10",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-aegean",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-10-08",
+       "publisher": "AviTrader",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-20",
+       "source_id": "src-avitrader-com-6333a85b",
+       "source_type": "third_party_reference",
+       "title": "AviTrader",
+       "url": "https://www.avitrader.com/2025/10/08/aegean-expands-regional-fleet-with-new-atr-72-600/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: ATR 72-600, ATR 42-600 at Olympic Air",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "aegean",
+     "cond_ja": "Scholarship cadets 2027 cycle; type rating on the type they are assigned; employment with AEGEAN and Olympic Air (no type named)。補足: 会社の発表（el.about.aegeanair.com）は403で読めず、同じ発表を載せた報道で確認。機種名は書いていない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-06-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "the aircraft type they will be assigned to fly … immediate employment with AEGEAN and Olympic Air flight crews",
+       "source_id": "src-cyprus-mail-com-29dc756f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "be6c0539e4a0de77",
+     "id": "aegean.jobs.pilot-aircraft.bdded111",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-aegean",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-30",
+       "publisher": "Cyprus Mail",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-20",
+       "source_id": "src-cyprus-mail-com-29dc756f",
+       "source_type": "third_party_reference",
+       "title": "Cyprus Mail",
+       "url": "https://cyprus-mail.com/2026/06/30/aegean-continues-to-shape-next-generation-of-greeces-pilots"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: Type assigned by company (AEGEAN or Olympic Air)",
      "value_text": null
     },
     {
@@ -4414,6 +4779,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "A340",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "aer-lingus",
+     "cond_ja": "Future Pilot Programme graduates; A320 type rating then right-hand seat on Aer Lingus A320 (article on the 2024 intake)。補足: 2024年募集の記事。2025年募集の会社発表（mediacentre 2025-01-29）は機種名を書いていない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-03-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Following is then an intensive 12 week A320 type rating course held at Aer Lingus head quarters in Dublin. … a position in the right-hand seat of an Aer Lingus A320 Aircraft.",
+       "source_id": "src-ftnonline-co-uk-f946a92f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "393f28ce437bf75a",
+     "id": "aer-lingus.jobs.pilot-aircraft.ce3200b6",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-aer-lingus",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-03-25",
+       "publisher": "FTN (Flight Training News)",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-20",
+       "source_id": "src-ftnonline-co-uk-f946a92f",
+       "source_type": "third_party_reference",
+       "title": "FTN (Flight Training News)",
+       "url": "https://ftnonline.co.uk/?p=4446"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320",
      "value_text": null
     }
    ],
@@ -7982,6 +8398,414 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": 2000,
      "value_text": "2000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "air-canada",
+     "cond_ja": "Posting names no type; Air Canada mainline fleet has several types (corporate profile)。補足: 会社概要（機材表は「Fleet As of March 31, 2026」・「Revised by Air Canada Corporate Communications, July 2026」）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Air Canada operates 44 A220-300 aircraft and is expecting delivery of another 20 A220-300s.",
+       "source_id": "src-aircanada-com-46a19193",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f9a0e983d4687536",
+     "id": "air-canada.jobs.pilot-aircraft.338feabf",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-air-canada",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air Canada Corporate Profile",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-aircanada-com-46a19193",
+       "source_type": "job_posting",
+       "title": "Air Canada Corporate Profile",
+       "url": "https://www.aircanada.com/aco/home/about/corporate-profile.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A220-300",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "air-canada",
+     "cond_ja": "Posting names no type; widebody types in the corporate profile。補足: プレミアムエコノミーを載せた機種の列挙。787 は同じページに「Air Canada’s long-range workhorse is the Boeing 787 Dreamliner, with 40 of them」。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "787 Dreamliners, Boeing 777-300ERs and -200LRs, and Airbus A330-300s.",
+       "source_id": "src-aircanada-com-46a19193",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e54fd07c35ad4e77",
+     "id": "air-canada.jobs.pilot-aircraft.4c33cbbf",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-air-canada",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air Canada Corporate Profile",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-aircanada-com-46a19193",
+       "source_type": "job_posting",
+       "title": "Air Canada Corporate Profile",
+       "url": "https://www.aircanada.com/aco/home/about/corporate-profile.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: B787, B777-300ER, B777-200LR, A330-300",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "air-canada",
+     "cond_ja": "Posting names no type; narrowbody in the corporate profile。補足: 機材表には Airbus A319-100・A320-200・A321-200・Boeing 767 Freighter も載るが、表の列が崩れていて本体／Express／Rouge の割り当てと機数は読めない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The A321XLR entered scheduled passenger service for Air Canada on June 9, 2026",
+       "source_id": "src-aircanada-com-46a19193",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "23412119dc1a27d6",
+     "id": "air-canada.jobs.pilot-aircraft.6bddd9dd",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-air-canada",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air Canada Corporate Profile",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-aircanada-com-46a19193",
+       "source_type": "job_posting",
+       "title": "Air Canada Corporate Profile",
+       "url": "https://www.aircanada.com/aco/home/about/corporate-profile.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A321XLR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "air-canada",
+     "cond_ja": "General pilot entry described on the Air Canada careers page; no type named for new pilots。補足: 続きは「or as a Relief Pilot on long-range, international flights」。機種名は書かれていない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Pilots typically begin their career as a First Officer on domestic aircraft",
+       "source_id": "src-aircanada-com-7748137a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ce142c8a7eaf67e4",
+     "id": "air-canada.jobs.pilot-aircraft.c399aa1a",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-air-canada",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air Canada Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-aircanada-com-7748137a",
+       "source_type": "job_posting",
+       "title": "Air Canada Careers",
+       "url": "https://www.aircanada.com/content/aircanada/ca/en/aco/home/about/careers/career-opportunities.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: First Officer on domestic aircraft or Relief Pilot on long-range (types not named)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "air-canada",
+     "cond_ja": "Location in the posting title。補足: 求人の勤務地表示。乗務のベースは4つの中から先任順（上の行）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Pilot (for non AC-Express Pilots only) in TORONTO, ONTARIO, CANADA",
+       "source_id": "src-careers-aircanada-com-3fd0a345",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4e2a99f86b6e9e97",
+     "id": "air-canada.jobs.pilot-base.140af636",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-air-canada",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air Canada Careers (posting)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-aircanada-com-3fd0a345",
+       "source_type": "job_posting",
+       "title": "Air Canada Careers (posting)",
+       "url": "https://careers.aircanada.com/ca/en/job/AIPACICA38766EXTERNALENCA/Pilot-for-non-AC-Express-Pilots-only"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Toronto (posting location)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "air-canada",
+     "cond_ja": "Air Canada pilot crew bases (careers page); applies to all pilot hires。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Air Canada pilots operate out of one of our four crew bases: Montreal, Toronto, Winnipeg or Vancouver.",
+       "source_id": "src-aircanada-com-7748137a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b9a04bea09704641",
+     "id": "air-canada.jobs.pilot-base.47e75c1a",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-air-canada",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air Canada Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-aircanada-com-7748137a",
+       "source_type": "job_posting",
+       "title": "Air Canada Careers",
+       "url": "https://www.aircanada.com/content/aircanada/ca/en/aco/home/about/careers/career-opportunities.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Montreal, Toronto, Winnipeg, Vancouver",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "air-canada",
+     "cond_ja": "How the base is decided for pilots (careers page)。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Base preferences are awarded by seniority, so pilots must be willing to relocate as assigned.",
+       "source_id": "src-aircanada-com-7748137a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3001c6eb04ca97b2",
+     "id": "air-canada.jobs.pilot-base.594997aa",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-air-canada",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air Canada Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-aircanada-com-7748137a",
+       "source_type": "job_posting",
+       "title": "Air Canada Careers",
+       "url": "https://www.aircanada.com/content/aircanada/ca/en/aco/home/about/careers/career-opportunities.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Base awarded by seniority",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "air-canada",
+     "cond_ja": "Pilot (for non AC-Express Pilots only) posting。補足: 掲載日・締切日の表示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "This job posting is no longer active.",
+       "source_id": "src-careers-aircanada-com-3fd0a345",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "694246f1e753e6cd",
+     "id": "air-canada.jobs.pilot-status.8ca9ef72",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-air-canada",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air Canada Careers (posting)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-aircanada-com-3fd0a345",
+       "source_type": "job_posting",
+       "title": "Air Canada Careers (posting)",
+       "url": "https://careers.aircanada.com/ca/en/job/AIPACICA38766EXTERNALENCA/Pilot-for-non-AC-Express-Pilots-only"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: no longer active (checked 2026-11-20)",
+     "value_text": null
     }
    ],
    "profile": [
@@ -8985,6 +9809,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "卒業後、飛行条件を満たす者を受け入れ、国航本部又は分・子会社へ配属して飛行業務に従事させる",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "air-china",
+     "cond_ja": "Cadet (high-school) intake 2026; brochure names no type; Air China official aircraft-type list (several types, new pilots could go to any)。補足: 公式の機材紹介ページ（機種名の一覧で機数・日付なし）。簡章には機種の記載なし（「截至2025年6月30日，国航（含控股公司）共拥有各型飞机934架」のみ）。B747-400 は貨物機の可能性あり。卒業後の配属は本社・分公司・子会社のどこでもありうる。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "波音系列 B777-300ER B747-8 B747-400 B737-800 B737-700 B737-800 B737-800 B777-300ER B787-9 B737MAX8 空客系列 A350-900 A330-200 A330-200 A330-300 A330-200 A330-300 A321 A321 A321-200 A320 A319 A321NEO 中国商飞 C919 C909",
+       "source_id": "src-m-airchina-com-cn-0570caf2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "71a626965987c594",
+     "id": "air-china.jobs.pilot-aircraft.d311e567",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-air-china",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air China (official mobile site, 机型介绍)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-m-airchina-com-cn-0570caf2",
+       "source_type": "job_posting",
+       "title": "Air China (official mobile site, 机型介绍)",
+       "url": "https://m.airchina.com.cn/c/invoke/jxjsList@pg"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: Several types: A319, A320, A321, A321neo, A330-200, A330-300, A350-900, B737-700, B737-800, B737 MAX 8, B747-8, B747-400, B777-300ER, B787-9, C919, C909",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "air-china",
+     "cond_ja": "2026 cadet brochure: graduates are assigned to Air China HQ or a branch/subsidiary company。補足: 拠点は「本社（北京）か分公司・子会社に配属」。どこになるかは会社が決める。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-11-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "国航总部位于北京，下辖西南、浙江、重庆、天津、上海、湖北、新疆、广东、贵州、西藏、温州分公司 … 学生毕业后符合飞行条件由国航接收录用，分配到国航总部或分、子公司从事飞行工作。",
+       "source_id": "src-et-airchina-com-cn-4388f4b5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3ab76aa4cfd1c722",
+     "id": "air-china.jobs.pilot-base.a2f2e3da",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-air-china",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-11-04",
+       "publisher": "Air China Recruitment (国航官网 招飞信息)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-et-airchina-com-cn-4388f4b5",
+       "source_type": "job_posting",
+       "title": "Air China Recruitment (国航官网 招飞信息)",
+       "url": "https://et.airchina.com.cn/cn/about_us/recruitment/184813.shtml"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Beijing (HQ) or a branch/subsidiary, assigned by Air China",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "air-china",
+     "cond_ja": "2026 high-school cadet intake brochure; the 2026 intake cycle (gaokao 2026) has passed。補足: 簡章に締切日の記載なし。国航サイトの招聘一覧（公告欄）と検索で2027年の招飛簡章は見つからず（南京航空航天大学の2027年簡章には国航が委託先として載る）。2027年分が今後出る可能性あり。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-11-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "欢迎广大考生踊跃报考国航飞行学员！ 中国国际航空股份有限公司 招飞办公室 2025年11月4日",
+       "source_id": "src-et-airchina-com-cn-4388f4b5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c5cfe0710ebf291b",
+     "id": "air-china.jobs.pilot-status.2982ca58",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-air-china",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-11-04",
+       "publisher": "Air China Recruitment (国航官网 招飞信息)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-et-airchina-com-cn-4388f4b5",
+       "source_type": "job_posting",
+       "title": "Air China Recruitment (国航官网 招飞信息)",
+       "url": "https://et.airchina.com.cn/cn/about_us/recruitment/184813.shtml"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: past (2026 intake brochure dated 2025-11-04; no 2027 brochure found)",
      "value_text": null
     }
    ],
@@ -10904,6 +11881,165 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "air-france",
+     "cond_ja": "Air France medium-haul fleet: A220-300 progressively replacing A318 and A319 (A320/A321 also in ledger)。補足: 中距離の機材は複数（A220 と A320 系）。公式の機材ページ corporate.airfrance.com / airfranceklm.com は403。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-02-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "qui remplace progressivement ses A318 et A319 par des Airbus A220‑300",
+       "source_id": "src-air-journal-fr-f2baf119",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "22f68aaadbe48989",
+     "id": "air-france.jobs.fo-aircraft-fo.9c767a28",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-air-france",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-02-20",
+       "publisher": "Air Journal",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-20",
+       "source_id": "src-air-journal-fr-f2baf119",
+       "source_type": "third_party_reference",
+       "title": "Air Journal",
+       "url": "https://www.air-journal.fr/2026-02-20-fin-de-regne-pour-la318-air-france-cede-sept-airbus-a-ftai-aviation-5273247.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A220-300 (replacing A318/A319); medium-haul fleet has several types",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "air-france",
+     "cond_ja": "Experienced pilot posting 2026-23622 names the medium-haul network, not a type。補足: 求人は「中距離路線網」とだけ書き、機種名なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Air France recrute des pilotes professionnels qui débuteront en tant qu’officier pilote de ligne … au sein de notre groupe sur le réseau moyen-courrier.",
+       "source_id": "src-recrutement-airfrance-com-5c585044",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "95a43edc3e34446f",
+     "id": "air-france.jobs.fo-aircraft-fo.f59c7c47",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-air-france",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air France Recrutement",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-recrutement-airfrance-com-5c585044",
+       "source_type": "job_posting",
+       "title": "Air France Recrutement",
+       "url": "https://recrutement.airfrance.com/offre-de-emploi/emploi-pilote-de-ligne-f-h_23622.aspx?LCID=1036"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: Medium-haul network (A220-300 or A320 family)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "air-france",
+     "cond_ja": "Experienced pilot posting 2026-23622 still online with apply button。補足: 現状の open を 2026-11-20 に再確認。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Je postule à cette offre … Date de prise de poste souhaitée 01/01/2027",
+       "source_id": "src-recrutement-airfrance-com-5c585044",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3d9350835fec22dd",
+     "id": "air-france.jobs.fo-status-fo.fd1e1f1d",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_status",
+     "label_ja": "副操縦士の求人の状況",
+     "pack": "pvr-20261120-cl-air-france",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air France Recrutement",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-recrutement-airfrance-com-5c585044",
+       "source_type": "job_posting",
+       "title": "Air France Recrutement",
+       "url": "https://recrutement.airfrance.com/offre-de-emploi/emploi-pilote-de-ligne-f-h_23622.aspx?LCID=1036"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (live on 2026-11-20; desired start 01/01/2027; no closing date shown)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true,
       "rank": "fo"
@@ -10955,6 +12091,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "45 rue de Paris 95747 ROISSY CHARLES DE GAULLE CEDEX",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "air-france",
+     "cond_ja": "Cadet programme 2026 announcement names the types cadets fly as First Officers。補足: Air France 自身が JobTeaser に出した告知。air-france#0（中距離の経験者）の機材の裏付けにも使う。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-06-15",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "jusqu'à leur prise de poste en tant qu'Officiers Pilotes de Ligne sur Airbus A220 ou A320 chez Air France, ou sur Boeing 737 et A320neo chez Transavia.",
+       "source_id": "src-jobteaser-com-1968a006",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e70cf2dff57f765a",
+     "id": "air-france.jobs.pilot-aircraft.642f3fcf",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-air-france",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-15",
+       "publisher": "Air France on JobTeaser",
+       "publisher_kind": "recruiter",
+       "retrieved": "2026-11-20",
+       "source_id": "src-jobteaser-com-1968a006",
+       "source_type": "job_posting",
+       "title": "Air France on JobTeaser",
+       "url": "https://www.jobteaser.com/fr/companies/air-france/newsfeed/32038207-ef41-4dfc-a7c3-a9710d1b87b1-devenez-pilote-la-campagne-de-recrutement-du-programme-cadets-est-ouverte"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A220 or A320 (Air France); B737 or A320neo (Transavia)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "air-france",
+     "cond_ja": "Cadet programme 2026 campaign; application window。補足: 2026年の募集は 7/31 で締切。次の募集の告知は見つからない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-06-15",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "les candidatures seront ouvertes du 15 juin au 31 juillet 2026",
+       "source_id": "src-jobteaser-com-1968a006",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "82676165bcf48c98",
+     "id": "air-france.jobs.pilot-status.4c2273e1",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-air-france",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-15",
+       "publisher": "Air France on JobTeaser",
+       "publisher_kind": "recruiter",
+       "retrieved": "2026-11-20",
+       "source_id": "src-jobteaser-com-1968a006",
+       "source_type": "job_posting",
+       "title": "Air France on JobTeaser",
+       "url": "https://www.jobteaser.com/fr/companies/air-france/newsfeed/32038207-ef41-4dfc-a7c3-a9710d1b87b1-devenez-pilote-la-campagne-de-recrutement-du-programme-cadets-est-ouverte"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: closed (2026 applications 15 June – 31 July 2026)",
      "value_text": null
     }
    ],
@@ -12276,6 +13514,210 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "紹介・オンライン応募手順は存在するが冒頭はStay Tuned。今すぐのcadet受付・入校枠は確定できない。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "air-india",
+     "cond_ja": "Cadet Pilot Programme pages reachable name no line type; company fleet has several types, so graduates could go to any (assignment not stated)。補足: 【Wikipedia】 公式（pilotcareers.airindia.com / cadetpilot.airindia.com / airindia.com の機材ページ）は 2026-11-20 に何度もタイムアウトで開けず。afm.aero（2024-02-19・2025-10-19）と newswire（2024-02-22）の訓練記事は「type rating with Air India」までで機種名なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "As of November 2025, Air India operates a fleet of 189 aircraft, both narrowbody and widebody aircraft ... with a fleet composed of Airbus A319, A320, A320neo, A321, A321neo, A350 as well as the Boeing 777 and Boeing 787.",
+       "source_id": "src-en-wikipedia-org-a0243c7b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "689d76aa85b23146",
+     "id": "air-india.jobs.pilot-aircraft.ab35a51a",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-air-india",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-en-wikipedia-org-a0243c7b",
+       "source_type": "third_party_reference",
+       "title": "Wikipedia",
+       "url": "https://en.wikipedia.org/wiki/Air_India"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A319, A320, A320neo, A321, A321neo, A350, B777, B787 (several types)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "air-india",
+     "cond_ja": "No line base stated for cadets; company hubs (not confirmed pilot bases). Training: Air India Flying Training Academy, Amravati, then type rating at Gurugram。補足: 【Wikipedia】 ハブであって訓練生の配属拠点ではない。台帳の Mumbai は Wikipedia の本文の引用には出ない（インフォボックスにはある）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Its primary hub is located at Indira Gandhi International Airport, New Delhi ... it has secondary hubs at Kempegowda International Airport, Bengaluru",
+       "source_id": "src-en-wikipedia-org-a0243c7b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f53da0834f6e9068",
+     "id": "air-india.jobs.pilot-base.52aa6165",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-air-india",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-en-wikipedia-org-a0243c7b",
+       "source_type": "third_party_reference",
+       "title": "Wikipedia",
+       "url": "https://en.wikipedia.org/wiki/Air_India"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Delhi (primary hub), Bengaluru (secondary hub)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "air-india",
+     "cond_ja": "Cadet Pilot Programme 2026 application window (news report)。補足: 2026年度の募集は 2026-04-20 締切。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-04-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Air India has invited applications to its Cadet Pilot Programme for 2026. ... The last date for receipt of applications is 20th April, 2026.",
+       "source_id": "src-eduadvice-in-3dd1ee67",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "73605448446f6ad9",
+     "id": "air-india.jobs.pilot-status.14ac4eff",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-air-india",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04-18",
+       "publisher": "EduAdvice",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-20",
+       "source_id": "src-eduadvice-in-3dd1ee67",
+       "source_type": "third_party_reference",
+       "title": "EduAdvice",
+       "url": "https://eduadvice.in/educational-news-details/air-india-cadet-pilot-programme/10586"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: closed: 2026 intake applications closed 20 April 2026",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "air-india",
+     "cond_ja": "Cadet Pilot Program listing on Air India Careers; no date shown。補足: 求人ページに日付の表示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Sorry, this position has been filled.",
+       "source_id": "src-careers-airindia-com-0676e917",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2417a7c830e97d02",
+     "id": "air-india.jobs.pilot-status.cddd7b2c",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-air-india",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air India Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-airindia-com-0676e917",
+       "source_type": "job_posting",
+       "title": "Air India Careers",
+       "url": "https://careers.airindia.com/job-invite/21712/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: careers listing closed (\"position has been filled\")",
      "value_text": null
     }
    ],
@@ -13704,6 +15146,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "air-new-zealand",
+     "cond_ja": "Expression of Interest - Jet Fleet Pilot posting is located in Auckland; assessment centre in Auckland (Christchurch/Wellington not mentioned)。補足: 同じページに「Entry as a pilot into our jet fleet is as a second officer on B787 or B777 aircraft, or first officer on our A320/A321s.」。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Expression of Interest - Jet Fleet Pilot ... Auckland, NZ ... 2-day Assessment Centre held in Auckland",
+       "source_id": "src-careers-airnewzealand-co-nz-49acf7a5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0f86a2abdd673e3e",
+     "id": "air-new-zealand.jobs.pilot-base.560bedcf",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-air-new-zealand",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air New Zealand Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-airnewzealand-co-nz-49acf7a5",
+       "source_type": "job_posting",
+       "title": "Air New Zealand Careers",
+       "url": "https://careers.airnewzealand.co.nz/job/expression-of-interest-jet-fleet-pilot-in-auckland-nz-jid-171"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Auckland",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true
      },
@@ -15028,6 +16521,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "cap"
      },
+     "checked_at": "2026-11-20",
+     "company": "air-peace",
+     "cond_ja": "Air Peace E170/175/190/195 Captains ad (Rishworth); recruiter ad states the base。補足: 一覧ページの「Air Peace E170/175/190/195 Captains」の本文。日付の表示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Rishworth is proud to partner with Air Peace to offer E170/190 Captain positions based in Lagos.",
+       "source_id": "src-rishworthaviation-com-94ba70f9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "39458826f8181bee",
+     "id": "air-peace.jobs.cap-base-cap.6b7277d6",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "recruiter",
+       "retrieved": "2026-11-20",
+       "source_id": "src-rishworthaviation-com-94ba70f9",
+       "source_type": "job_posting",
+       "title": "Rishworth Aviation",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/air-peace-pilot-jobs"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Lagos",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
      "checked_at": "2026-11-18",
      "company": "air-peace",
      "cond_ja": "E170/E190/E195 Captains (ICAO ELP Level 4+)。補足: 【第三者】Rishworth求人票でも有効なICAOライセンスおよびClass 1 Medical必須。",
@@ -15284,6 +16830,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "Valid ICAO licence with a suitable Embraer type rating",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "air-peace",
+     "cond_ja": "E170/190 First Officer ad (Rishworth); recruiter ad states the base。補足: 一覧ページの「E170/190 First Officer」の本文。日付の表示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Rishworth is proud to partner with Air Peace to offer E170/190 First Officer positions based in Lagos.",
+       "source_id": "src-rishworthaviation-com-94ba70f9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "aa67cd7562507b93",
+     "id": "air-peace.jobs.fo-base-fo.ac799692",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-air-peace",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "recruiter",
+       "retrieved": "2026-11-20",
+       "source_id": "src-rishworthaviation-com-94ba70f9",
+       "source_type": "job_posting",
+       "title": "Rishworth Aviation",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/air-peace-pilot-jobs"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Lagos",
      "value_text": null
     },
     {
@@ -17150,6 +18749,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "cap"
      },
+     "checked_at": "2026-11-20",
+     "company": "airdo",
+     "cond_ja": "Captain-candidate (B737) posting PDF of May 2026; posting names the main work location。補足: 福利厚生欄に「北海道居住制度（新千歳空港近郊、旭川空港近郊、帯広空港近郊に居住可）」もある。募集一覧では2026年9月1日から募集停止のまま（status_now どおり）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "・主な勤務地：羽田空港、その他当社就航空港および国内訓練施設。",
+       "source_id": "src-airdo-jp-dd71e385",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d82cb9c0a16eae1d",
+     "id": "airdo.jobs.cap-base-cap.c1850c13",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-airdo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "AIRDO 採用情報（運航乗務員募集要項 PDF）",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-airdo-jp-dd71e385",
+       "source_type": "job_posting",
+       "title": "AIRDO 採用情報（運航乗務員募集要項 PDF）",
+       "url": "https://www.airdo.jp/corporate/recruit/files/airdo_entry_captain_2605.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Tokyo Haneda (main); other company airports and training facilities",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
      "checked_at": "2026-10-29",
      "company": "airdo",
      "cond_ja": null,
@@ -18511,6 +20163,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "cap"
      },
+     "checked_at": "2026-11-20",
+     "company": "airjapan",
+     "cond_ja": "Captain (Japan residents) posting; posting names the type (plus types the company designates)。補足: 募集期間は2026年7月1日～2026年7月31日、ページには「エントリーの受付は終了いたしました。」。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "業務内容 ボーイング787型機および会社の指定する型機の操縦ならびに運航関連業務",
+       "source_id": "src-air-japan-co-jp-2fb80b3a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c2182e51f85f2d30",
+     "id": "airjapan.jobs.cap-aircraft-cap.7b50a5e6",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_aircraft",
+     "label_ja": "機長の求人の機種",
+     "pack": "pvr-20261120-cl-airjapan",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air Japan 採用情報（運航乗務職）",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-air-japan-co-jp-2fb80b3a",
+       "source_type": "job_posting",
+       "title": "Air Japan 採用情報（運航乗務職）",
+       "url": "https://www.air-japan.co.jp/recruit/pilot/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: B787",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "airjapan",
+     "cond_ja": "Captain (Japan residents) posting; posting names the main work locations。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "主な勤務地 成田国際空港、東京国際空港（羽田）、その他会社の指定する場所",
+       "source_id": "src-air-japan-co-jp-2fb80b3a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e6649e110b7e7d87",
+     "id": "airjapan.jobs.cap-base-cap.e3373ec0",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-airjapan",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air Japan 採用情報（運航乗務職）",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-air-japan-co-jp-2fb80b3a",
+       "source_type": "job_posting",
+       "title": "Air Japan 採用情報（運航乗務職）",
+       "url": "https://www.air-japan.co.jp/recruit/pilot/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Narita, Haneda",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
      "checked_at": "2026-10-29",
      "company": "airjapan",
      "cond_ja": "以上；2026-10-20までにJCAB取得。補足: 過去。応募期間2026-07-01～2026-07-31・受付終了と明記。ANAブランド便を運航する株式会社エアージャパンの求人。",
@@ -19144,6 +20902,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "派遣会社との契約",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "airjapan",
+     "cond_ja": "Agency contract summary (effective 1 February 2026) for Captain and First Officer, Boeing 787。補足: 同ページに「Contract Type: Commuting contract, Japanese residency not allowed.」。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BASE Both Narita and Haneda airports are considered part of one base, which is Tokyo.",
+       "source_id": "src-crewresourcesworldwide-com-28a35ba1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a38b20639b0f91cf",
+     "id": "airjapan.jobs.pilot-base.0d084297",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-airjapan",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Crew Resources Worldwide",
+       "publisher_kind": "recruiter",
+       "retrieved": "2026-11-20",
+       "source_id": "src-crewresourcesworldwide-com-28a35ba1",
+       "source_type": "job_posting",
+       "title": "Crew Resources Worldwide",
+       "url": "https://crewresourcesworldwide.com/benefits"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Tokyo (Narita and Haneda count as one base)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "airjapan",
+     "cond_ja": "Overseas-resident contract Captain/First Officer via agency; company recruitment page says pilots commute to Tokyo。補足: 同じページに「5 years renewable contract」「Commuting roster - 10 days off consecutively each month, plus 2 days for commuting」。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Commuting to Tokyo, Japan.",
+       "source_id": "src-air-japan-co-jp-1fd469c6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "96fae043e25600d7",
+     "id": "airjapan.jobs.pilot-base.16bd0317",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-airjapan",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Air Japan Recruitment (overseas residents)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-air-japan-co-jp-1fd469c6",
+       "source_type": "job_posting",
+       "title": "Air Japan Recruitment (overseas residents)",
+       "url": "https://www.air-japan.co.jp/en/recruit/pilot/overseas-residents.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Tokyo (commuting contract)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "airjapan",
+     "cond_ja": "Agency careers page lists Air Japan B787 Direct Entry Captain and First Officer (type-rated, non-type-rated, non-ATPL FO)。補足: 日付の表示なし。要件ページ（crewresourcesworldwide.com/requirements）には「Air Japan recruits on an ongoing basis」。会社側の旧 URL（ajxcapmins / ajxnonatpl）は /requirements に転送される。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Applications are open for experienced pilots to join the Boeing 787 Dreamliner fleet at Air Japan",
+       "source_id": "src-crewresourcesworldwide-com-11bf7091",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5e2d4d99c5bf02f3",
+     "id": "airjapan.jobs.pilot-status.c2f26074",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-airjapan",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Crew Resources Worldwide",
+       "publisher_kind": "recruiter",
+       "retrieved": "2026-11-20",
+       "source_id": "src-crewresourcesworldwide-com-11bf7091",
+       "source_type": "job_posting",
+       "title": "Crew Resources Worldwide",
+       "url": "https://crewresourcesworldwide.com/careers"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (no date shown)",
      "value_text": null
     }
    ],
@@ -23879,6 +25790,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "fo"
      },
+     "checked_at": "2026-11-20",
+     "company": "alaska-airlines",
+     "cond_ja": "New-hire FOs on the Alaska list take the Alaska (737) class; pilot forum, Dec 2025。補足: 【掲示板】 投稿者 Thrill。会社の求人・採用ページには新人の機種が書かれていない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-12-07",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "All 737 of you take an \"Alaska\" class, vacancies in mostly SFO with some LAX",
+       "source_id": "src-airlinepilotforums-com-a532efe9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fa7a4d151af5fa9c",
+     "id": "alaska-airlines.jobs.fo-aircraft-fo.aedb9d85",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-alaska-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-12-07",
+       "publisher": "Airline Pilot Central Forums",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-airlinepilotforums-com-a532efe9",
+       "source_type": "community_reference",
+       "title": "Airline Pilot Central Forums",
+       "url": "https://www.airlinepilotforums.com/alaska/151756-new-hires-class-dates-print.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: B737",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "alaska-airlines",
+     "cond_ja": "Alaska seniority list requirements in the First Officer posting。補足: Hawaiian 名簿の行は「Seattle, WA; Honolulu, HI; Cincinnati, OH」。求人の勤務地欄には San Diego・Hebron(KY)・Honolulu も並ぶ。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Must be comfortable with a domicile in Seattle, WA; Los Angeles, CA; Anchorage, AK; Portland, OR; San Francisco, CA.",
+       "source_id": "src-pilotjobs-alaskaair-icims-com-9161eacf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "946b0243f46e0aa5",
+     "id": "alaska-airlines.jobs.fo-base-fo.63f547fa",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-alaska-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Alaska Airlines Pilot Jobs (iCIMS)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-pilotjobs-alaskaair-icims-com-9161eacf",
+       "source_type": "job_posting",
+       "title": "Alaska Airlines Pilot Jobs (iCIMS)",
+       "url": "https://pilotjobs-alaskaair.icims.com/jobs/21163/first-officer---alaska-airlines-hawaiian-airlines/job?in_iframe=1"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Seattle, Los Angeles, Anchorage, Portland, San Francisco",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
      "checked_at": "2026-10-29",
      "company": "alaska-airlines",
      "cond_ja": "Alaska Seniority List; strong written/verbal communication skills; ICAO等級は明記なし。補足: 公式個別求人ページの公開配信JSONから実際のiCIMS応募先へ進み、同サイトが指定する本文iframeをGET/Webで実読。Alaska Seniority List節のみ要件に採用しHawaiian別リストを混在させない。Apply表示と締切2026-12-31を確認。必須最少PIC時間は未記載。",
@@ -24144,6 +26161,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "fo"
      },
+     "checked_at": "2026-11-20",
+     "company": "alaska-airlines",
+     "cond_ja": "First Officer - Alaska Airlines/Hawaiian Airlines posting。補足: 掲載日の表示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Apply by 7:00 PM Pacific Time on 12/31/2026",
+       "source_id": "src-pilotjobs-alaskaair-icims-com-9161eacf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5a414230b8744b83",
+     "id": "alaska-airlines.jobs.fo-status-fo.5658dfba",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_status",
+     "label_ja": "副操縦士の求人の状況",
+     "pack": "pvr-20261120-cl-alaska-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Alaska Airlines Pilot Jobs (iCIMS)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-pilotjobs-alaskaair-icims-com-9161eacf",
+       "source_type": "job_posting",
+       "title": "Alaska Airlines Pilot Jobs (iCIMS)",
+       "url": "https://pilotjobs-alaskaair.icims.com/jobs/21163/first-officer---alaska-airlines-hawaiian-airlines/job?in_iframe=1"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (closes 2026-12-31)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
      "checked_at": "2026-10-29",
      "company": "alaska-airlines",
      "cond_ja": "total documented flight time。補足: 更新日不明。現行Alaska Seniority List Requirements。Hawaiian別条件は除外。",
@@ -24189,6 +26259,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": 1500,
      "value_text": "1,500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "alaska-airlines",
+     "cond_ja": "Alaska + Hawaiian combined fleet on the pilot careers page; page does not say which list flies which type。補足: 「Our Combined Fleet」の一覧（改行を空白にした）。どちらの名簿がどの機種を飛ぶかは書かれていない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "326 Aircraft 4 Boeing 787 24 Airbus A330 18 Airbus A321neo 235 Boeing 737 19 Boeing 717",
+       "source_id": "src-careers-alaskaair-com-daab564b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4c027b1e70e98fed",
+     "id": "alaska-airlines.jobs.pilot-aircraft.23773849",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-alaska-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Alaska Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-alaskaair-com-daab564b",
+       "source_type": "job_posting",
+       "title": "Alaska Airlines Careers",
+       "url": "https://careers.alaskaair.com/career-opportunities/pilots/alaska-hawaiian-airlines/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: Combined fleet: B737, B717, A321neo, A330, B787",
+     "value_text": null
     }
    ],
    "profile": [
@@ -27826,6 +29947,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "allegiant",
+     "cond_ja": "First Officer requisition on Allegiant Lever board; location field only, no domicile or type in the text。補足: 勤務地欄＝本社所在地。本文に機種・ベースの記載なし（時給 $107.28 などのみ）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Las Vegas, NV",
+       "source_id": "src-jobs-lever-co-bc6b0611",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "73de2dba32e968ab",
+     "id": "allegiant.jobs.fo-base-fo.5c5cb0e7",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-allegiant",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air (Lever job board)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-jobs-lever-co-bc6b0611",
+       "source_type": "job_posting",
+       "title": "Allegiant Air (Lever job board)",
+       "url": "https://jobs.lever.co/allegiantair/e1be967a-c15e-4d40-a73b-d6d5509fb326"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Las Vegas, NV (posting location field)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true,
       "rank": "fo"
@@ -27877,6 +30051,265 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "closed",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "allegiant",
+     "cond_ja": "Allegiant Lever job board, Flight Ops section, checked 2026-11-20。補足: 2026-11-20 時点で一覧に「First Officer」（Pilots）が載っていて開ける。日付の表示なし。下の APC は「window closed」と書いており食い違う。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "On-site — Full-TimeLas Vegas, NV",
+       "source_id": "src-jobs-lever-co-d9026585",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b4643f3071625350",
+     "id": "allegiant.jobs.fo-status-fo.34231426",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_status",
+     "label_ja": "副操縦士の求人の状況",
+     "pack": "pvr-20261120-cl-allegiant",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air (Lever job board)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-jobs-lever-co-d9026585",
+       "source_type": "job_posting",
+       "title": "Allegiant Air (Lever job board)",
+       "url": "https://jobs.lever.co/allegiantair"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: First Officer requisition listed (no posted or closing date)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "allegiant",
+     "cond_ja": "Pilot profile hiring note。補足: 【APC】 同じ欄に「Is Hiring?: Yes」。更新日の表示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Our First Officer application window is currently closed.",
+       "source_id": "src-airlinepilotcentral-com-2ed38f23",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3dec64626695233e",
+     "id": "allegiant.jobs.fo-status-fo.568b7f54",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_status",
+     "label_ja": "副操縦士の求人の状況",
+     "pack": "pvr-20261120-cl-allegiant",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Airline Pilot Central",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-airlinepilotcentral-com-2ed38f23",
+       "source_type": "community_reference",
+       "title": "Airline Pilot Central",
+       "url": "https://www.airlinepilotcentral.com/airlines/major-national-lcc/allegiant_air"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: FO application window closed (per APC)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "allegiant",
+     "cond_ja": "Postings name no type; Allegiant fleet table 3Q26 has several types。補足: 第3四半期決算の表のセル（3Q26列）をつないだもの。Sun Country は別の運航証明のまま（APC）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-11-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Aircraft Fleet Plan by End of Period ... Airbus A320 76 ... Airbus A319 27 ... Boeing 737 MAX-8 21 ... Boeing 737-800 (Sun Country) 43",
+       "source_id": "src-finviz-com-695bd95b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "55a7db69291004a5",
+     "id": "allegiant.jobs.pilot-aircraft.6ce13bd9",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-allegiant",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-04",
+       "publisher": "Allegiant Travel Company (PR Newswire, reprinted on Finviz)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-finviz-com-695bd95b",
+       "source_type": "job_posting",
+       "title": "Allegiant Travel Company (PR Newswire, reprinted on Finviz)",
+       "url": "https://finviz.com/news/415748/allegiant-travel-company-third-quarter-2026-financial-results"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320, A319, B737 MAX 8 (Allegiant); Sun Country B737-800/-900ER listed separately",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "allegiant",
+     "cond_ja": "First Accelerate Pilot Pathway graduate; one example only。補足: 2023年の1人の例。記事に機種名なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2023-12-28",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Ultimately, he'll be based in Cincinnati,",
+       "source_id": "src-allegiantair-com-c9c83b08",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0686c675c38abc84",
+     "id": "allegiant.jobs.pilot-base.7a43bc38",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-allegiant",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-12-28",
+       "publisher": "Allegiant Nonstop Life",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-allegiantair-com-c9c83b08",
+       "source_type": "job_posting",
+       "title": "Allegiant Nonstop Life",
+       "url": "https://www.allegiantair.com/nonstoplife/community/allegiant-first-graduate-from-accelerate-pilot-pathway/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Cincinnati (first Accelerate graduate, 2023 example)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "allegiant",
+     "cond_ja": "Allegiant pilot careers page。補足: 日付の表示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The Allegiant Pilot Pathway Program application window is now closed.",
+       "source_id": "src-allegiantair-jobs-acba2e3e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e1c820513d874f11",
+     "id": "allegiant.jobs.pilot-status.5cf851fb",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-allegiant",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Allegiant Air Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-allegiantair-jobs-acba2e3e",
+       "source_type": "job_posting",
+       "title": "Allegiant Air Careers",
+       "url": "https://www.allegiantair.jobs/careers/pilots/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: Pilot Pathway Program application window closed",
      "value_text": null
     },
     {
@@ -32504,6 +34937,218 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "fo"
      },
+     "checked_at": "2026-11-20",
+     "company": "american",
+     "cond_ja": "How new hires are placed into base/fleet; pilot forum。補足: 【掲示板】 投稿者 tallpilot。同じ投稿に「bid the airplane you want and the base will come soon after.」。クラス内の順番の決め方は書かれていない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "If a qualified MIA 73 pilot is waiting to get into ORD 73 then no new hires can be placed in that status.",
+       "source_id": "src-airlinepilotforums-com-63c62683",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "35db60d43a41cf6e",
+     "id": "american.jobs.fo-aircraft-fo.92f86271",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-18",
+       "publisher": "Airline Pilot Central Forums",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-airlinepilotforums-com-63c62683",
+       "source_type": "community_reference",
+       "title": "Airline Pilot Central Forums",
+       "url": "https://www.airlinepilotforums.com/american/151864-2026-class-drops-5-print.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: New hires fill FO slots that no current pilot is waiting for (seat locks/entitlements)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "american",
+     "cond_ja": "New-hire class drop for the 21 Jan 2026 class lists FO slots by base and fleet; pilot forum。補足: 【掲示板】 投稿者 IFR Cx Rcvd（クラス「1/21」）。続けて「57 total again, same base and equip distribution as the last two classes.」。改行を空白にした。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BOS 737 - 3 DCA 737 - 6 LAX 737 - 5 LGA 737 - 5 MIA 737 - 7 ORD 737 - 5 CLT 320 - 6 MIA 320 - 10 PHL 320 - 9",
+       "source_id": "src-airlinepilotforums-com-63c62683",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5f76e7aefb5f3030",
+     "id": "american.jobs.fo-aircraft-fo.cdd36c62",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-18",
+       "publisher": "Airline Pilot Central Forums",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-airlinepilotforums-com-63c62683",
+       "source_type": "community_reference",
+       "title": "Airline Pilot Central Forums",
+       "url": "https://www.airlinepilotforums.com/american/151864-2026-class-drops-5-print.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: B737 or A320 family",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "american",
+     "cond_ja": "Same 21 Jan 2026 class drop; pilot forum。補足: 【掲示板】 投稿者 IFR Cx Rcvd。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BOS 737 - 3 DCA 737 - 6 LAX 737 - 5 LGA 737 - 5 MIA 737 - 7 ORD 737 - 5 CLT 320 - 6 MIA 320 - 10 PHL 320 - 9",
+       "source_id": "src-airlinepilotforums-com-63c62683",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "be3b62473a31e6b4",
+     "id": "american.jobs.fo-base-fo.189e4a18",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-18",
+       "publisher": "Airline Pilot Central Forums",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-airlinepilotforums-com-63c62683",
+       "source_type": "community_reference",
+       "title": "Airline Pilot Central Forums",
+       "url": "https://www.airlinepilotforums.com/american/151864-2026-class-drops-5-print.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: BOS, DCA, LAX, LGA, MIA, ORD (737); CLT, MIA, PHL (A320)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "american",
+     "cond_ja": "Feb 2026 class drop; pilot forum。補足: 【掲示板】 投稿者 Setspeed。2026-02-21 の回も「LGA/FO/737 2」「MIA/FO/737 10」「PHX/FO/320 7」（GunnF16）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-02-07",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BOS/FO/737 1 LAX/FO/320 8 PHX/FO/320 7",
+       "source_id": "src-airlinepilotforums-com-deef3dbf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ffe0f2048815c6d1",
+     "id": "american.jobs.fo-base-fo.1ff4a044",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-american",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-02-07",
+       "publisher": "Airline Pilot Central Forums",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-airlinepilotforums-com-deef3dbf",
+       "source_type": "community_reference",
+       "title": "Airline Pilot Central Forums",
+       "url": "https://www.airlinepilotforums.com/american/151864-2026-class-drops-2-print.html?pp=40"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Feb 2026 classes also PHX (A320), LAX (A320)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
      "checked_at": "2026-11-18",
      "company": "american",
      "cond_ja": "Unrestricted Airline Transport Pilot minimum requirements。補足: American Airlines公式採用チーム（（メールアドレス））の公式イベント応募要項にてUnrestricted ATP要件の充足を必須と明記。",
@@ -33503,6 +36148,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "cap"
      },
+     "checked_at": "2026-11-20",
+     "company": "amx",
+     "cond_ja": "Posting names no type; company fleet is a single ATR42-600。補足: 会社の保有機材は1機種1機だけ。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "保有機材 ATR42-600型機 1機（客席数48名）",
+       "source_id": "src-amx-co-jp-dc11ef87",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "706f6ef052329d66",
+     "id": "amx.jobs.cap-aircraft-cap.cb5e3dce",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_aircraft",
+     "label_ja": "機長の求人の機種",
+     "pack": "pvr-20261120-cl-amx",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "天草エアライン 会社案内",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-amx-co-jp-dc11ef87",
+       "source_type": "job_posting",
+       "title": "天草エアライン 会社案内",
+       "url": "https://www.amx.co.jp/campany/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: ATR 42-600",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "amx",
+     "cond_ja": "Captain posting; posting names the work location。補足: 待遇欄にも「②勤務地　　　天草空港」。2026-11-20 時点でも掲載中（締切の記載なし）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "5. 勤務地 本社（天草空港：熊本県天草市五和町）",
+       "source_id": "src-amx-co-jp-89128b1d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "69b118a24ff01b23",
+     "id": "amx.jobs.cap-base-cap.ad33e9c0",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-amx",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "天草エアライン 採用情報",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-amx-co-jp-89128b1d",
+       "source_type": "job_posting",
+       "title": "天草エアライン 採用情報",
+       "url": "https://www.amx.co.jp/campany/qujin.php"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Amakusa Airport (head office)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
      "checked_at": "2026-10-29",
      "company": "amx",
      "cond_ja": "補足: 現行公式採用ページ下部の運航乗務員（機長）募集を確認。発行日記載なし。同ページ上部の回転翼募集とは別条件。",
@@ -33713,6 +36464,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "機長の応募方法を現掲載、締切日/募集年は未記載",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "amx",
+     "cond_ja": "Helicopter pilot (fire/disaster response) posting; posting names the work location。補足: 業務は「防災消防ヘリコプター操縦」（AS365型資格保持者歓迎）。締切日 2026年10月31日（期限切れ・status_now どおり）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "3. 勤務地 熊本県菊池郡菊陽町戸次1698（熊本空港内） 熊本県防災消防航空センター",
+       "source_id": "src-amx-co-jp-89128b1d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "970bb7508a0155c7",
+     "id": "amx.jobs.pilot-base.a584877c",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-amx",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "天草エアライン 採用情報",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-amx-co-jp-89128b1d",
+       "source_type": "job_posting",
+       "title": "天草エアライン 採用情報",
+       "url": "https://www.amx.co.jp/campany/qujin.php"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Kumamoto Airport (Kumamoto Prefecture Disaster Prevention and Firefighting Aviation Center)",
      "value_text": null
     },
     {
@@ -34842,6 +37644,165 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "ana-wings",
+     "cond_ja": "Experienced Captain announcement; posting names the types。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "対象機材 ボーイング737型機、またはDHC8-400型機",
+       "source_id": "src-anawings-co-jp-b4333b10",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b502df57ae46e0a4",
+     "id": "ana-wings.jobs.cap-aircraft-cap.889a4496",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_aircraft",
+     "label_ja": "機長の求人の機種",
+     "pack": "pvr-20261120-cl-ana-wings",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ANAウイングス お知らせ（パイロット経験者採用実施のお知らせ）",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-anawings-co-jp-b4333b10",
+       "source_type": "job_posting",
+       "title": "ANAウイングス お知らせ（パイロット経験者採用実施のお知らせ）",
+       "url": "https://www.anawings.co.jp/news/261001.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: B737 or DHC-8-400",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "ana-wings",
+     "cond_ja": "Experienced Captain announcement; posting names the main work locations。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "主な勤務地 羽田空港、中部国際空港、伊丹空港など（会社の定める事業所）",
+       "source_id": "src-anawings-co-jp-b4333b10",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "456cdedc7de7a245",
+     "id": "ana-wings.jobs.cap-base-cap.f641d365",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-ana-wings",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ANAウイングス お知らせ（パイロット経験者採用実施のお知らせ）",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-anawings-co-jp-b4333b10",
+       "source_type": "job_posting",
+       "title": "ANAウイングス お知らせ（パイロット経験者採用実施のお知らせ）",
+       "url": "https://www.anawings.co.jp/news/261001.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Haneda, Chubu (Nagoya), Itami (Osaka) etc.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "ana-wings",
+     "cond_ja": "Experienced Captain announcement; pre-registration available, main entry not yet open。補足: ページに掲載日の表示なし（URL は 261001）。2026-11-20 時点でもこの文のまま＝本エントリーはまだ。プレエントリー（事前登録）のボタンはある。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "なお、本エントリー（応募受付サイト）のOPENは11月末を予定しております。",
+       "source_id": "src-anawings-co-jp-b4333b10",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2addd919cf59895d",
+     "id": "ana-wings.jobs.cap-status-cap.6434a805",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_status",
+     "label_ja": "機長の求人の状況",
+     "pack": "pvr-20261120-cl-ana-wings",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ANAウイングス お知らせ（パイロット経験者採用実施のお知らせ）",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-anawings-co-jp-b4333b10",
+       "source_type": "job_posting",
+       "title": "ANAウイングス お知らせ（パイロット経験者採用実施のお知らせ）",
+       "url": "https://www.anawings.co.jp/news/261001.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: pre-entry open; application site due to open end of November 2026",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true,
       "rank": "cap"
@@ -35007,6 +37968,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "受付終了",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "ana-wings",
+     "cond_ja": "Cadet posting names no type (only the company aircraft); company fleet page lists two types, so cadets could go to either。補足: 募集要項の業務内容は「当社使用機材の定期運航業務、及びこれに付随する業務」だけ。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "機材紹介 ボーイング737-800 … デ・ハビランド・カナダ DHC-8-400",
+       "source_id": "src-anawings-co-jp-9e597257",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "88d6bde21de67b7e",
+     "id": "ana-wings.jobs.pilot-aircraft.121c168d",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-ana-wings",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ANAウイングス 機材・路線図",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-anawings-co-jp-9e597257",
+       "source_type": "job_posting",
+       "title": "ANAウイングス 機材・路線図",
+       "url": "https://www.anawings.co.jp/fleet/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: B737-800, DHC-8-400 (two types)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "ana-wings",
+     "cond_ja": "FY2027 cadet posting; posting names the work locations right after hiring。補足: ページには「2027年度入社の本エントリー受付を終了いたしました。」（status_now どおり）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "雇入れ直後：羽田空港（成田空港への出退社を含む）、中部国際空港、伊丹空港（関西空港、神戸空港への出退社を含む）、福岡空港または会社の定めるANAグループ各社の事業所",
+       "source_id": "src-anawings-co-jp-4bea14fe",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e6c7a264e0f9cd50",
+     "id": "ana-wings.jobs.pilot-base.9a7b12d0",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-ana-wings",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ANAウイングス 運航乗務職掌（自社養成パイロット）募集要項",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-anawings-co-jp-4bea14fe",
+       "source_type": "job_posting",
+       "title": "ANAウイングス 運航乗務職掌（自社養成パイロット）募集要項",
+       "url": "https://www.anawings.co.jp/recruit/entry/pilot/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Haneda (incl. Narita), Chubu, Itami (incl. Kansai, Kobe), Fukuoka",
      "value_text": null
     }
    ],
@@ -35908,6 +38971,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "asiana",
+     "cond_ja": "New-hire pilot (military background) posting names no type; Asiana passenger fleet (Oct 2026) has several types。補足: 【Wikipedia】 公式の機材ページ（flyasiana.com の about-the-aircraft、韓国語・英語とも）は取得が毎回タイムアウトで読めず。新人の配属機種を書いた出典は見つからず。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "2026년 10월 66대의 항공기를 보유하고 있으며 평균 기령은 약 10.6년이다. … 에어버스 A321-200 10 / 에어버스 A321neo 13 / 에어버스 A330-300 14 / 에어버스 A350-900 15 / 에어버스 A380-800 6 / 보잉 777-200ER 8",
+       "source_id": "src-ko-wikipedia-org-49e39dba",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "da6ecaac298d3dd7",
+     "id": "asiana.jobs.pilot-aircraft.fc4edadb",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-asiana",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Wikipedia (Korean)",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-ko-wikipedia-org-49e39dba",
+       "source_type": "third_party_reference",
+       "title": "Wikipedia (Korean)",
+       "url": "https://ko.wikipedia.org/wiki/아시아나항공"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: Several types: A321-200, A321neo, A330-300, A350-900, A380-800, B777-200ER",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -37906,6 +41020,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "選考はドイツ語、ドイツ語と英語の十分な能力が必要",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "austrian",
+     "cond_ja": "Ready Entry page: after passing selection steps 1-4 the type rating is on the Airbus A320。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Gratuliere, wenn Sie die Schritte 1-4 erfolgreich bestanden haben beginnen Sie im nächsten Schritt Ihr Typerating am Airbus A320.",
+       "source_id": "src-austrianpilot-at-36b4ff67",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "558fa651513984a4",
+     "id": "austrian.jobs.pilot-aircraft.23e4167c",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-austrian",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Austrian Airlines (austrianpilot.at)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-austrianpilot-at-36b4ff67",
+       "source_type": "job_posting",
+       "title": "Austrian Airlines (austrianpilot.at)",
+       "url": "https://www.austrianpilot.at/readyentry/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "austrian",
+     "cond_ja": "Ready Entry page invites applications by e-mail; no deadline or date on page。補足: 締切も日付も無い常設の案内。今まさに採っているかは書いていない（弱い）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Nutzen Sie die Gelegenheit und bewerben Sie sich als Ready Entry!",
+       "source_id": "src-austrianpilot-at-36b4ff67",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5551ca25542b4ee6",
+     "id": "austrian.jobs.pilot-status.1b4a0bd3",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-austrian",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Austrian Airlines (austrianpilot.at)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-austrianpilot-at-36b4ff67",
+       "source_type": "job_posting",
+       "title": "Austrian Airlines (austrianpilot.at)",
+       "url": "https://www.austrianpilot.at/readyentry/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (rolling e-mail applications; no dates shown)",
+     "value_text": null
     }
    ],
    "profile": [
@@ -38957,6 +42173,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "fo"
      },
+     "checked_at": "2026-11-20",
+     "company": "avelo-airlines",
+     "cond_ja": "FO posting names no type; company fleet is one family (B737NG)。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Avelo currently operates 15 B737s (800SFPs and 700s) with additional aircraft and bases planned with future expansion.",
+       "source_id": "src-aveloair-com-c5ab54bc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "29955205d82aab02",
+     "id": "avelo-airlines.jobs.fo-aircraft-fo.718aff41",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-avelo-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Avelo Airlines Pilots",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-aveloair-com-c5ab54bc",
+       "source_type": "job_posting",
+       "title": "Avelo Airlines Pilots",
+       "url": "https://www.aveloair.com/pilots"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: B737NG (737-800, 737-700)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "avelo-airlines",
+     "cond_ja": "Fleet after the Jan 2026 restructuring。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-06",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "leaving the airline primarily operating its more efficient Boeing Next-Generation 737-800 aircraft",
+       "source_id": "src-aveloair-com-b41eee3b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2f98104d2df87b1f",
+     "id": "avelo-airlines.jobs.fo-aircraft-fo.904c54bd",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-avelo-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-06",
+       "publisher": "Avelo Airlines Newsroom",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-aveloair-com-b41eee3b",
+       "source_type": "job_posting",
+       "title": "Avelo Airlines Newsroom",
+       "url": "https://www.aveloair.com/?p=16054"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: B737-800 (737-700s being removed)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
      "checked_at": "2026-11-18",
      "company": "avelo-airlines",
      "cond_ja": "open / no closing date listed。補足: 公式応募窓口AirlineAppsにて現在募集中。",
@@ -39114,6 +42436,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "applies_to": {
       "pilot_specific": true
      },
+     "checked_at": "2026-11-20",
+     "company": "avelo-airlines",
+     "cond_ja": "Avelo's four current bases after the Jan 2026 restructuring; postings name no base。補足: 同じ発表で「will close its bases in Mesa, Ariz. (AZA); Raleigh-Durham, N.C. (RDU); and Wilmington, N.C. (ILM)」。APC の Domiciles 欄（MCO, RDU, LAL, HVN, ELP, BDL, IWA, ILG）は閉鎖前の古い一覧なので使っていない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-06",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "streamlining its network around four current bases ... New Haven, Conn. (HVN); Philadelphia / Delaware Valley (ILG) ... Charlotte / Concord, N.C. (USA); and Central Florida / Lakeland (LAL)",
+       "source_id": "src-aveloair-com-b41eee3b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "63964fc7612fe0a9",
+     "id": "avelo-airlines.jobs.pilot-base.15635189",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-avelo-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-06",
+       "publisher": "Avelo Airlines Newsroom",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-aveloair-com-b41eee3b",
+       "source_type": "job_posting",
+       "title": "Avelo Airlines Newsroom",
+       "url": "https://www.aveloair.com/?p=16054"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: New Haven (HVN), Philadelphia/Delaware Valley (ILG), Charlotte/Concord (USA), Lakeland (LAL)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
      "checked_at": "2026-11-18",
      "company": "avelo-airlines",
      "cond_ja": "Plus ATP-CTP course with ATP written complete and Current FAA First Class Medical Certificate (with 3 months remaining when starting class)。補足: 公式パイロット採用ページおよびAirlineApps求人票にて明記。",
@@ -39209,6 +42582,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "Must be a U.S. Citizen with a valid and current (at least six months validity) U.S. passport.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "avelo-airlines",
+     "cond_ja": "Avelo pilot careers page。補足: 「Recruitment Calendar」の見出しはあるが日付は無い。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Constantly hiring First Officers and Direct Entry Captains",
+       "source_id": "src-aveloair-com-c5ab54bc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8054ce9e08f3bb82",
+     "id": "avelo-airlines.jobs.pilot-status.d3ef5b2f",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-avelo-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Avelo Airlines Pilots",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-aveloair-com-c5ab54bc",
+       "source_type": "job_posting",
+       "title": "Avelo Airlines Pilots",
+       "url": "https://www.aveloair.com/pilots"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: hiring FOs and Direct Entry Captains (no dates)",
      "value_text": null
     },
     {
@@ -40259,6 +43683,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "avianca",
+     "cond_ja": "Avianca long-haul passenger type。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-02-16",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 787-8, su único avión de largo alcance para vuelos de pasajeros",
+       "source_id": "src-aviacionline-com-7daa443b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9daa4a80170f5664",
+     "id": "avianca.jobs.pilot-aircraft.79e51833",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-avianca",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-02-16",
+       "publisher": "Aviacionline",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-20",
+       "source_id": "src-aviacionline-com-7daa443b",
+       "source_type": "third_party_reference",
+       "title": "Aviacionline",
+       "url": "https://aviacionline.com/las-rutas-mas-largas-de-avianca"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: B787-8",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "avianca",
+     "cond_ja": "Generic pilot page names no type; Avianca passenger fleet = A320 family + B787-8 (several types)。補足: 公式の機材ページ（avianca.com）は 403 で読めず、航空専門の報道を使用。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-02-16",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "destacan dos rutas operadas con Airbus A320ceo y A320neo",
+       "source_id": "src-aviacionline-com-7daa443b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d4f58e972aff0545",
+     "id": "avianca.jobs.pilot-aircraft.f4e19075",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-avianca",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-02-16",
+       "publisher": "Aviacionline",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-20",
+       "source_id": "src-aviacionline-com-7daa443b",
+       "source_type": "third_party_reference",
+       "title": "Aviacionline",
+       "url": "https://aviacionline.com/las-rutas-mas-largas-de-avianca"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320ceo, A320neo",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "avianca",
+     "cond_ja": "Avianca jobs site, Pilotos category。補足: 下に出ている5件は運航・整備の別職種（19 nov 2026 など）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "En este momento, no hay ninguna vacante acorde a esta categoría o ubicación.",
+       "source_id": "src-jobs-avianca-com-40fa1b1e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cb8d55aa139bf983",
+     "id": "avianca.jobs.pilot-status.b4c3233a",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-avianca",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Avianca Empleos",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-jobs-avianca-com-40fa1b1e",
+       "source_type": "job_posting",
+       "title": "Avianca Empleos",
+       "url": "https://jobs.avianca.com/go/Pilotos/2845201/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: no pilot vacancies listed (checked 2026-11-20)",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -42023,6 +45600,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "batik-air",
+     "cond_ja": "Captain posting could not be read (LinkedIn returned 404 on 2026-11-20); company fleet is mixed Airbus/Boeing。補足: 【Wikipedia】 求人（LinkedIn 4072577564）は 404。公式 batikair.co.id は接続拒否、batikair.com はマレーシア側へ転送。表の数字は Wikipedia の表をそのまま。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "As of July 2026, Batik Air operates the following aircraft: [table] Airbus A320-200 47 / Airbus A320neo 1 / Airbus A330-300 1 / Boeing 737-800 12",
+       "source_id": "src-en-wikipedia-org-d933a775",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "26d3fde6e8e2376c",
+     "id": "batik-air.jobs.cap-aircraft-cap.732e7e79",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_aircraft",
+     "label_ja": "機長の求人の機種",
+     "pack": "pvr-20261120-cl-batik-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-en-wikipedia-org-d933a775",
+       "source_type": "third_party_reference",
+       "title": "Wikipedia",
+       "url": "https://en.wikipedia.org/wiki/Batik_Air"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320-200, A320neo, A330-300, B737-800 (several types)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "batik-air",
+     "cond_ja": "No posting text; company hubs (secondary hubs: Jakarta-Halim, Denpasar, Surabaya)。補足: 【Wikipedia】 インフォボックスのハブ。機長の配属拠点としての記載ではない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Hubs Jakarta–Soekarno-Hatta Makassar Secondary hubs Jakarta–Halim Perdanakusuma Denpasar Surabaya",
+       "source_id": "src-en-wikipedia-org-d933a775",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "487b60b8f5c47267",
+     "id": "batik-air.jobs.cap-base-cap.c6a9bb31",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-batik-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-en-wikipedia-org-d933a775",
+       "source_type": "third_party_reference",
+       "title": "Wikipedia",
+       "url": "https://en.wikipedia.org/wiki/Batik_Air"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Jakarta Soekarno-Hatta, Makassar (hubs)",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -45896,6 +49579,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "fo"
      },
+     "checked_at": "2026-11-20",
+     "company": "breeze-airways",
+     "cond_ja": "Workday posting could not be read (403); all Breeze domiciles per pilot profile, not split A220/E190。補足: 【APC】 Domiciles 欄の値をつないだもの。A220 と E190 のどちらのベースかは書かれていない。同じページに「Currently hiring A220 Direct Entry Captains and A220 First Officers」。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "CHS ORF PVU MSY MCO TPA BDL CAK FLL PVD RDU RSW VRB",
+       "source_id": "src-airlinepilotcentral-com-477731be",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "55ea6c67ea7db71f",
+     "id": "breeze-airways.jobs.fo-base-fo.0324cf02",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-breeze-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Airline Pilot Central",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-airlinepilotcentral-com-477731be",
+       "source_type": "community_reference",
+       "title": "Airline Pilot Central",
+       "url": "https://www.airlinepilotcentral.com/airlines/major-national-lcc/breeze_airways"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: CHS, ORF, PVU, MSY, MCO, TPA, BDL, CAK, FLL, PVD, RDU, RSW, VRB",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
      "checked_at": "2026-10-29",
      "company": "breeze-airways",
      "cond_ja": "Airbus A220直接採用FO; read/write/speak/understandの能力が必要; ICAO等級は明記なし。補足: 公式careersのPilotsリンクからWorkdayへ接続。公開GETのjobPostingInfo本文を実読。startDate=2026-10-23、canApply=true、posted=true。直採用FO。",
@@ -48165,6 +51901,165 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "fo"
      },
+     "checked_at": "2026-11-20",
+     "company": "british-airways",
+     "cond_ja": "Names of BA twin-aisle (long-haul) types; table as of October 2025。補足: 【Wikipedia】 4つの長距離機材の名前の裏付け（表は2025年10月時点：A350-1000 18・A380-800 12・777-200ER 43・777-300ER 16・787-8 12・787-9 18・787-10 13）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "It also operates a twin-aisle fleet of Airbus A350, Airbus A380, Boeing 777, and Boeing 787 aircraft.",
+       "source_id": "src-en-wikipedia-org-9d298dec",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "513868741fbfffeb",
+     "id": "british-airways.jobs.fo-aircraft-fo.cea257db",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-british-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Wikipedia (British Airways fleet)",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-en-wikipedia-org-9d298dec",
+       "source_type": "third_party_reference",
+       "title": "Wikipedia (British Airways fleet)",
+       "url": "https://en.wikipedia.org/wiki/British_Airways_fleet"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A350, A380, B777, B787 (the long-haul types)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "british-airways",
+     "cond_ja": "Direct Entry SFO posting: starts on one of 4 long-haul fleets; short-haul role may be offered if long-haul requirements not met (fleet set by simulator assessment)。補足: 求人は「4つの長距離機材のどれか」とだけ書き、機種名なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Starting on one of our 4 long-haul fleets you will be able to choose if you want to transfer to another long-haul fleet or our short-haul fleet to become a Captain. … If you do not meet the long haul requirements you may be offered a role on our short-haul fleet.",
+       "source_id": "src-careers-ba-com-bd678cbe",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f85acec74e1a9236",
+     "id": "british-airways.jobs.fo-aircraft-fo.e9f4b3b5",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-british-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "British Airways Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-ba-com-bd678cbe",
+       "source_type": "job_posting",
+       "title": "British Airways Careers",
+       "url": "https://careers.ba.com/job/heathrow/direct-entry-pilot-senior-first-officer-uk-caa-licence-holder/22348/101080647488"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: Long-haul fleet (one of 4); short-haul possible",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "british-airways",
+     "cond_ja": "Direct Entry SFO posting; location field。補足: 求人の勤務地欄。採用ページの一覧でも Heathrow, England。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Heathrow Airport, London",
+       "source_id": "src-careers-ba-com-bd678cbe",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "596e62f3b9d7d241",
+     "id": "british-airways.jobs.fo-base-fo.5c4d4eee",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-british-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "British Airways Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-ba-com-bd678cbe",
+       "source_type": "job_posting",
+       "title": "British Airways Careers",
+       "url": "https://careers.ba.com/job/heathrow/direct-entry-pilot-senior-first-officer-uk-caa-licence-holder/22348/101080647488"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: London Heathrow",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
      "checked_at": "2026-10-29",
      "company": "british-airways",
      "cond_ja": "ICAO English Language Proficiency。補足: 更新日不明。現行公式採用ページ。direct entry captain案内は子会社BA Cityflyer/Euroflyerのためmainlineに転用せず。",
@@ -48377,6 +52272,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "fo"
      },
+     "checked_at": "2026-11-20",
+     "company": "british-airways",
+     "cond_ja": "Direct Entry SFO posting still listed under latest jobs。補足: 日付は英国式の日/月/年と読んだ（11/20 時点で掲載中なので 12月6日）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Closing date 6/12/2026",
+       "source_id": "src-careers-ba-com-bd678cbe",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "393b6182f8f28eca",
+     "id": "british-airways.jobs.fo-status-fo.cde3690b",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_status",
+     "label_ja": "副操縦士の求人の状況",
+     "pack": "pvr-20261120-cl-british-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "British Airways Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-ba-com-bd678cbe",
+       "source_type": "job_posting",
+       "title": "British Airways Careers",
+       "url": "https://careers.ba.com/job/heathrow/direct-entry-pilot-senior-first-officer-uk-caa-licence-holder/22348/101080647488"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (closing date 6/12/2026 as printed = 6 December 2026)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
      "checked_at": "2026-10-29",
      "company": "british-airways",
      "cond_ja": "British Airways本体、Senior First Officer直接採用。relevant aeroplane typeの有効型式が必要。CS-25等の複数操縦士ターボジェット、又は10 tonnes以上/19席超の複数操縦士ターボプロップ。型式がUK免許上にある必要はないがUK免許は保持。補足: 会社名義の原求人を実読。3,000ではなく原文3000時間は該当機材限定経験で総時間へ転用しない。Cityflyer/Euroflyer機長条件は不採用。公開日は1週間前の相対表示のみで空欄。",
@@ -48421,6 +52369,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "Current type rating",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "british-airways",
+     "cond_ja": "Speedbird Pilot Academy graduates join the A320 short-haul fleet as First Officers。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Successful candidates will join as a First Officer on board our A320 short-haul fleet at Gatwick or Heathrow.",
+       "source_id": "src-careers-ba-com-926d8771",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ecb01cb85dc3e512",
+     "id": "british-airways.jobs.pilot-aircraft.dc944d0b",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-british-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "British Airways Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-ba-com-926d8771",
+       "source_type": "job_posting",
+       "title": "British Airways Careers",
+       "url": "https://careers.ba.com/future-pilots"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320 (short-haul)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "british-airways",
+     "cond_ja": "Speedbird Pilot Academy graduates; page names the two bases。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Successful candidates will join as a First Officer on board our A320 short-haul fleet at Gatwick or Heathrow.",
+       "source_id": "src-careers-ba-com-926d8771",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1702a37fa9bb0226",
+     "id": "british-airways.jobs.pilot-base.d294ce43",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-british-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "British Airways Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-ba-com-926d8771",
+       "source_type": "job_posting",
+       "title": "British Airways Careers",
+       "url": "https://careers.ba.com/future-pilots"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: London Gatwick or London Heathrow",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "british-airways",
+     "cond_ja": "Speedbird Pilot Academy page。補足: 現状の none を 2026-11-20 に再確認。2027年の募集の記載なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Applications for 2026 have now closed.",
+       "source_id": "src-careers-ba-com-926d8771",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "93584e8b58c6933f",
+     "id": "british-airways.jobs.pilot-status.8b8655bf",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-british-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "British Airways Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-ba-com-926d8771",
+       "source_type": "job_posting",
+       "title": "British Airways Careers",
+       "url": "https://careers.ba.com/future-pilots"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: applications for 2026 closed",
      "value_text": null
     }
    ],
@@ -49438,6 +53539,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "160人超を採用予定と3月7日に発表。採用実績や新人クラス実施数とは別。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "china-airlines",
+     "cond_ja": "Experienced Captain recruitment page names no type; China Airlines fleet as of 2026-10-31 has several types。補足: 求人ページ（calcfec）は機種名を出さない。2026-03-07 の報道では今年787を受領予定とあるが、10-31 時点の公式の機材表に787は無い。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "波音、空中巴士等各型航機共86架，客機68架/貨機18架 (至2026年10月31日止) … A350-900數量：18 A330-300數量：11 777-300ER數量：10 737-800數量：6 A321neo數量：23 … 747-400F數量：8 777F數量：10",
+       "source_id": "src-china-airlines-com-6efc817b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "390e371a5c07a762",
+     "id": "china-airlines.jobs.cap-aircraft-cap.e3279756",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_aircraft",
+     "label_ja": "機長の求人の機種",
+     "pack": "pvr-20261120-cl-china-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "China Airlines (官網 營運概況)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-china-airlines-com-6efc817b",
+       "source_type": "job_posting",
+       "title": "China Airlines (官網 營運概況)",
+       "url": "https://www.china-airlines.com/tw/zh/about-china-airlines/about-us/operations"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: Several types: A321neo, A350-900, A330-300, B777-300ER, B737-800 (passenger); B747-400F, B777F (freighter)",
      "value_text": null
     },
     {
@@ -51112,6 +55266,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "2026-09-28から2026-12-31 23:59（中国標準時）まで。PRC国籍等の大学卒向け選抜。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "china-eastern",
+     "cond_ja": "University-graduate cadet programme (2nd intake): posting names no type and assigns trainees to Shanghai HQ units; company fleet as of end-June 2026 has several types。補足: 求人（job.ceair.com）は「统一安排至上海总部相关单位」「取得相应飞行资质后，公司将安排学员参与航班运行」で機種なし。機材表は会社全体の数（上海本部の機種だけには絞れない）。英語の開示文書を PDF から抽出。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-07-15",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "As of the end of June 2026, the Company operated a total of 833 aircraft. … B777-300ER … 20 … B787 series … 18 … A350-900 … 20 … A330 series … 56 … A320 series … 393 … B737 series … 277 … C919 … 17 … C909 … 32",
+       "source_id": "src-ceair-com-56c7680c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b39d2c4cdb464709",
+     "id": "china-eastern.jobs.pilot-aircraft.904bf31b",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-china-eastern",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-07-15",
+       "publisher": "China Eastern Airlines (HKEX announcement: operating data for June 2026)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-ceair-com-56c7680c",
+       "source_type": "job_posting",
+       "title": "China Eastern Airlines (HKEX announcement: operating data for June 2026)",
+       "url": "https://www.ceair.com/global/en_static/AboutChinaEasternAirlines/intoEasternAirlines/InvestorRelations/announcement/HongKongStockExchange/hkExcReleased2026/202607/P020260716322654885397.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: Several types: A320 series, B737 series, A330 series, A350-900, B777-300ER, B787 series, C919, C909",
      "value_text": null
     }
    ],
@@ -53691,6 +57896,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "過去",
      "value": "三亚",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "china-southern",
+     "cond_ja": "2025 Beijing high-school cadet brochure lists the company fleet; no type is named for cadets。補足: 南航の簡章そのもの（北京市教育考試院のサイトに掲載された PDF、本文を抽出）。会社の機材の説明で、学生がどの機種に乗るかは書かれていない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-11-22",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "南航运营包括波音787、777、737系列，空客A350、A330、A320系列，中国商飞ARJ21、C919等型号客货运输飞机超过900架。",
+       "source_id": "src-bjeea-cn-31548af7",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "36dc91709e4d8121",
+     "id": "china-southern.jobs.pilot-aircraft.d3764489",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-china-southern",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-11-22",
+       "publisher": "China Southern Airlines (2025年度招飞简章（北京市）, posted by Beijing Education Examinations Authority)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-bjeea-cn-31548af7",
+       "source_type": "job_posting",
+       "title": "China Southern Airlines (2025年度招飞简章（北京市）, posted by Beijing Education Examinations Authority)",
+       "url": "https://www.bjeea.cn/uploads/soft/241122/104-241122152339.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: Several types: B787, B777, B737 series, A350, A330, A320 series, ARJ21, C919",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "china-southern",
+     "cond_ja": "2025 Beijing cadet brochure FAQ: where graduates can work; company assigns。補足: 北京の高校生枠でも配属先は北京に限らない（会社の規定で配分）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-11-22",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "7.飞行学员毕业后有哪些工作地点可供选择？目前南航可选基地为：广州、北京、深圳、乌鲁木齐、哈尔滨、长春、大连、沈阳、西安、郑州、武汉、长沙、上海、贵阳、重庆、南宁、珠海、汕头、海口、三亚，将按照公司相关规定给予分配。",
+       "source_id": "src-bjeea-cn-31548af7",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b4cadb625e25c723",
+     "id": "china-southern.jobs.pilot-base.9af34dc6",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-china-southern",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-11-22",
+       "publisher": "China Southern Airlines (2025年度招飞简章（北京市）, posted by Beijing Education Examinations Authority)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-bjeea-cn-31548af7",
+       "source_type": "job_posting",
+       "title": "China Southern Airlines (2025年度招飞简章（北京市）, posted by Beijing Education Examinations Authority)",
+       "url": "https://www.bjeea.cn/uploads/soft/241122/104-241122152339.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Assigned by the company to one of 20 bases: Guangzhou, Beijing, Shenzhen, Urumqi, Harbin, Changchun, Dalian, Shenyang, Xi'an, Zhengzhou, Wuhan, Changsha, Shanghai, Guiyang, Chongqing, Nanning, Zhuhai, Shantou, Haikou, Sanya",
+     "value_text": null
     }
    ],
    "profile": [
@@ -54439,6 +58746,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "cap"
      },
+     "checked_at": "2026-11-20",
+     "company": "contour",
+     "cond_ja": "Contour captain careers page (CRJ200 and Citation XLS sections)。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Based location will be discussed during interview.",
+       "source_id": "src-careers-contourairlines-com-51449acf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "572aa414b1f40341",
+     "id": "contour.jobs.cap-base-cap.743462ce",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Contour Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-contourairlines-com-51449acf",
+       "source_type": "job_posting",
+       "title": "Contour Airlines Careers",
+       "url": "https://www.careers.contourairlines.com/captain-careers"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Based location discussed at interview",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "contour",
+     "cond_ja": "CRJ200 Captain ad (job-board copy)。補足: 勤務地欄は「Smyrna, GA, USA」（原文のまま）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Contour's current domicile and potential base assignments will be discussed during the interview process.",
+       "source_id": "src-avianation-com-0ae53f89",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "70efb3c71dd08832",
+     "id": "contour.jobs.cap-base-cap.d87148dd",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-25",
+       "publisher": "AviaNation (copy of Contour ad)",
+       "publisher_kind": "recruiter",
+       "retrieved": "2026-11-20",
+       "source_id": "src-avianation-com-0ae53f89",
+       "source_type": "job_posting",
+       "title": "AviaNation (copy of Contour ad)",
+       "url": "https://www.avianation.com/jobs/captain-bombardier-canadair-regional-jet-crj200-bd0f8979"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Not stated; domicile discussed at interview (listing location Smyrna)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
      "checked_at": "2026-11-18",
      "company": "contour",
      "cond_ja": "open as of 2026-11-18 (Based location will be discussed during interview)。",
@@ -54589,6 +59002,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "Be authorized to work in the United States and able to travel in and out of the United States.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "contour",
+     "cond_ja": "Contour captain careers page, Legacy 600 section。補足: 日付の表示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "There are currently no open job postings available, but please check back for future opportunities!",
+       "source_id": "src-careers-contourairlines-com-51449acf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b485ffc8260b2a42",
+     "id": "contour.jobs.cap-status-cap.0fe2e901",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_status",
+     "label_ja": "機長の求人の状況",
+     "pack": "pvr-20261120-cl-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Contour Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-contourairlines-com-51449acf",
+       "source_type": "job_posting",
+       "title": "Contour Airlines Careers",
+       "url": "https://www.careers.contourairlines.com/captain-careers"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: no current opening (Legacy 600 and ERJ Captain)",
      "value_text": null
     },
     {
@@ -54960,6 +59426,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "Be authorized to work in the United States and able to travel in and out of the United States.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "contour",
+     "cond_ja": "Contour first officer careers page, every section。補足: 4つの欄すべてに同じ文。日付の表示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "There are currently no open job postings available, but please check back for future opportunities!",
+       "source_id": "src-careers-contourairlines-com-c3cfadb9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "969d9e212f2cd6c5",
+     "id": "contour.jobs.fo-status-fo.56d3849c",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_status",
+     "label_ja": "副操縦士の求人の状況",
+     "pack": "pvr-20261120-cl-contour",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Contour Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-contourairlines-com-c3cfadb9",
+       "source_type": "job_posting",
+       "title": "Contour Airlines Careers",
+       "url": "https://www.careers.contourairlines.com/first-officer-careers"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: no current openings (CRJ, ERJ, Citation XLS, Legacy 600 FO)",
      "value_text": null
     },
     {
@@ -57200,6 +61719,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "applies_to": {
       "pilot_specific": true
      },
+     "checked_at": "2026-11-20",
+     "company": "daiichi-air",
+     "cond_ja": "Company fixed-wing fleet as of 31 March 2026 (several types); posting names no type。補足: 固定翼は4機種。どの機体がどの営業所に置かれているかは資料に書かれていない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "飛行機 機数合計 ８ 機 平均機齢 ２９ 年 令和８年３月３１日現在 … セスナ式１７２型 ２ … セスナ式２０６型 ２ … セスナ式２０８型 ２ … バイキング式ＤＨＣ６型 ２",
+       "source_id": "src-dai1air-com-c3266560",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a70524a9bf0c51a1",
+     "id": "daiichi-air.jobs.pilot-aircraft.89fa709b",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-daiichi-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "第一航空 2025年度 安全報告書",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-dai1air-com-c3266560",
+       "source_type": "job_posting",
+       "title": "第一航空 2025年度 安全報告書",
+       "url": "https://www.dai1air.com/images/company/safe.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: Company fixed-wing fleet: Cessna 172, Cessna 206, Cessna 208, Viking DHC-6 (2 each)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "daiichi-air",
+     "cond_ja": "Posting names no type; the safety report says the Naha and Ishigaki charter operations are flown with the Viking DHC-6-400。補足: 求人に機種の記載なし。勤務地（那覇・石垣）の運航が DHC-6-400 だという会社資料からの推定。報告書は2026年3月31日現在の情報。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "２０２１年度に VIKING 式ＤＨＣ－６―４００型機による那覇－粟国間のチャ－タ－運航を開始し、２０２３年度には石垣－多良間及び石垣－波照間の間のチャ－タ－運航を開始し、現在に至っております。",
+       "source_id": "src-dai1air-com-c3266560",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4ded10f42db4cb3f",
+     "id": "daiichi-air.jobs.pilot-aircraft.9f2d84fc",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-daiichi-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "第一航空 2025年度 安全報告書",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-dai1air-com-c3266560",
+       "source_type": "job_posting",
+       "title": "第一航空 2025年度 安全報告書",
+       "url": "https://www.dai1air.com/images/company/safe.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: Viking DHC-6-400 (Okinawa charter operations)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "daiichi-air",
+     "cond_ja": "Fixed-wing commercial pilot (with dispatch duties) posting; posting names the planned work location。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "予定勤務地 沖縄県（那覇空港・石垣空港）",
+       "source_id": "src-dai1air-com-fb0354ff",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d9d9c8ae58503067",
+     "id": "daiichi-air.jobs.pilot-base.0feec637",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-daiichi-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "第一航空 採用情報",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-dai1air-com-fb0354ff",
+       "source_type": "job_posting",
+       "title": "第一航空 採用情報",
+       "url": "https://www.dai1air.com/recruit/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Okinawa (Naha Airport, Ishigaki Airport)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
      "checked_at": "2026-10-29",
      "company": "daiichi-air",
      "cond_ja": "固定翼；職位未記載。補足: 更新日不明。急募・応募先を掲載の現行公式求人。固定翼事業用操縦士以上（運航管理兼務）は職位未記載。",
@@ -57295,6 +61967,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "第１種航空身体検査",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "daiichi-air",
+     "cond_ja": "Fixed-wing pilot posting still on the recruitment page; no closing date。補足: 2026-11-20 時点で掲載中。回転翼操縦士・整備士の求人には［急募］が付くが、この固定翼の求人の見出しには付いていない（status_now は「Urgent vacancy」）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "固定翼 事業用操縦士以上（運航管理兼務） … 採用予定日 応相談",
+       "source_id": "src-dai1air-com-fb0354ff",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ca422a8af46ab332",
+     "id": "daiichi-air.jobs.pilot-status.babe3f23",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-daiichi-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "第一航空 採用情報",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-dai1air-com-fb0354ff",
+       "source_type": "job_posting",
+       "title": "第一航空 採用情報",
+       "url": "https://www.dai1air.com/recruit/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (still listed, no closing date)",
      "value_text": null
     },
     {
@@ -60085,6 +64808,218 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "fo"
      },
+     "checked_at": "2026-11-20",
+     "company": "delta",
+     "cond_ja": "Base/equipment list given to the 9 June 2026 new-hire class (forum, \"verified official drop\")。補足: 【掲示板】 FangsF15 の訂正版（元の投稿は TOCTOD「June 9 Drop」「This is the verified official drop.」）。7er=767-300ER、73n=737NG、220=A220、b=副操縦士。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-06-03",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "nyc7erb nyc320b nyc73nb msp220b atl717b dtw320b lax7erb lax73nb sea320b",
+       "source_id": "src-airlinepilotforums-com-c53346ff",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8a200152b5a55706",
+     "id": "delta.jobs.fo-aircraft-fo.80539819",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-delta",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-03",
+       "publisher": "Airline Pilot Central Forums",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-airlinepilotforums-com-c53346ff",
+       "source_type": "community_reference",
+       "title": "Airline Pilot Central Forums",
+       "url": "https://www.airlinepilotforums.com/delta/133776-new-hire-class-drops-660.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: B767-300ER, A320, B737NG, A220, B717 (June 2026 class options)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "delta",
+     "cond_ja": "Base/equipment list for the 10 Mar 2026 class (forum)。補足: 【掲示板】 投稿者 rjbusdriver。改行を空白にした。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-03-03",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "3/10 Class drop NYC7ER ATL73N LAX73N SLC73N ATL717 DTW717 DTW320 ATL320",
+       "source_id": "src-airlinepilotforums-com-52198fc7",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "341216a89c2d9006",
+     "id": "delta.jobs.fo-aircraft-fo.afa67245",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-delta",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-03-03",
+       "publisher": "Airline Pilot Central Forums",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-airlinepilotforums-com-52198fc7",
+       "source_type": "community_reference",
+       "title": "Airline Pilot Central Forums",
+       "url": "https://www.airlinepilotforums.com/delta/133776-new-hire-class-drops-640.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: B767-300ER, B737NG, B717, A320 (March 2026 class options)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "delta",
+     "cond_ja": "Delta pilot domiciles (pilot profile)。補足: 【APC】 求人の「seven pilot domiciles」と数が合う。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "LAX, MSP, NYC, SEA, SLC, ATL, DTW",
+       "source_id": "src-airlinepilotcentral-com-d96ea889",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "69ac96b610c2a6df",
+     "id": "delta.jobs.fo-base-fo.623a5f89",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-delta",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Airline Pilot Central",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-airlinepilotcentral-com-d96ea889",
+       "source_type": "community_reference",
+       "title": "Airline Pilot Central",
+       "url": "https://airlinepilotcentral.com/airlines/legacy/delta_air_lines"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: ATL, DTW, LAX, MSP, NYC, SEA, SLC",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "delta",
+     "cond_ja": "First Officer posting Ref 28088。補足: 掲載日「22-Apr-2025」。締切なし・「Apply」ボタンあり。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-04-22",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "seven pilot domiciles that offer both domestic and international flying options across a diverse fleet type.",
+       "source_id": "src-delta-avature-net-36e472bb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "25d1f7382cd00296",
+     "id": "delta.jobs.fo-base-fo.e1d96d05",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-delta",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-04-22",
+       "publisher": "Delta Pilot Careers (Avature)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-delta-avature-net-36e472bb",
+       "source_type": "job_posting",
+       "title": "Delta Pilot Careers (Avature)",
+       "url": "https://delta.avature.net/pilotcareers/JobDetail/First-Officer/28088"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Seven pilot domiciles (not named in the posting)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
      "checked_at": "2026-10-29",
      "company": "delta",
      "cond_ja": "Instrument-Airplane、ATPwritten必要。補足: 更新日不明。現行公式採用FAQに掲載のfirst officer要件。",
@@ -60796,6 +65731,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "fo"
      },
+     "checked_at": "2026-11-20",
+     "company": "eagle-jet",
+     "cond_ja": "Program page names only unnamed European EASA partner airlines。補足: 都市名・会社名は書いていない（仲介の訓練＋就業プログラム）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "one of our contracted reputable & established European EASA certified partner airlines",
+       "source_id": "src-eaglejet-net-9009e690",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "71ee6f33838ce038",
+     "id": "eagle-jet.jobs.fo-base-fo.9fd71e05",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-eagle-jet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Eagle Jet International",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-eaglejet-net-9009e690",
+       "source_type": "job_posting",
+       "title": "Eagle Jet International",
+       "url": "https://www.eaglejet.net/EASA-A320.asp"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Europe (partner airline and base not named)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
      "checked_at": "2026-10-29",
      "company": "eagle-jet",
      "cond_ja": "Eagle Jet仲介／雇用主は社名非公表の欧州EASA提携航空会社。A320 FO経験又は雇用プログラムであり、Eagle Jetの直接雇用求人ではない。European EASA Frozen ATPLの保有が必要。補足: 2026年現行サイトからリンクされたプログラム原文を実読。訓練・経験提供と雇用は選択的表現のため雇用保証と扱わない。",
@@ -60893,6 +65881,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "EU Passport Holders",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "eagle-jet",
+     "cond_ja": "Eagle Jet ad for the same EASA A320 First Officer program on a pilot job board。補足: 掲載日は確認した日（2026-11-20）。Eagle Jet 自身のページには日付も締切も無い。地域欄は「Europe」。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-11-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Published today … Expiring in less than 4 weeks",
+       "source_id": "src-aviationcv-com-26d667a8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "36facd78885f7412",
+     "id": "eagle-jet.jobs.fo-status-fo.43189068",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_status",
+     "label_ja": "副操縦士の求人の状況",
+     "pack": "pvr-20261120-cl-eagle-jet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-20",
+       "publisher": "AviationCV",
+       "publisher_kind": "recruiter",
+       "retrieved": "2026-11-20",
+       "source_id": "src-aviationcv-com-26d667a8",
+       "source_type": "job_posting",
+       "title": "AviationCV",
+       "url": "https://www.aviationcv.com/job/easa-a320-type-rating-courses-starting-september-2026-a320-first-officer-experience-and-employment-58963"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (AviationCV ad published 2026-11-20, expiring in less than 4 weeks)",
      "value_text": null
     },
     {
@@ -64138,6 +69179,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "easyjet",
+     "cond_ja": "easyJet fleet at 30 September 2025 is a single family (A320 family)。補足: 年次報告書の機材表。PDF 由来の字間の乱れ（\"A32 0neo\" など）だけ詰めて引用。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Aircraft in the fleet at 30 September 2025 … Total Owned Leased A319 82 18 64 A320 180 107 73 A320neo 75 70 5 A321neo 19 10 9 Total 356 205 151",
+       "source_id": "src-filings-xbrl-org-2ab63c5b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "64758da7fe893217",
+     "id": "easyjet.jobs.cap-aircraft-cap.a9655fbc",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_aircraft",
+     "label_ja": "機長の求人の機種",
+     "pack": "pvr-20261120-cl-easyjet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "easyJet plc Annual Report and Accounts 2025 (ESEF filing)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-filings-xbrl-org-2ab63c5b",
+       "source_type": "job_posting",
+       "title": "easyJet plc Annual Report and Accounts 2025 (ESEF filing)",
+       "url": "https://filings.xbrl.org/2138001S47XKWIB7TH90/2025-09-30/ESEF/GB/0/2138001S47XKWIB7TH90-2025-09-30/reports/2138001S47XKWIB7TH90-2025-09-30-T01.xhtml.gz"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320 family only (A319, A320, A320neo, A321neo)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "easyjet",
+     "cond_ja": "Same 2027 London Gatwick captain intake, A320-rated posting (job 17123): new captains complete easyJet OCC on A319/A320/A321。補足: 本求人（型式限定なし・17124）は 11/20 時点で「掲載終了」の画面になり本文を読めないので、同じ期・同じ拠点の型式限定ありの求人で確認。掲載日は求人一覧の日付。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-07-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "We now have exciting opportunities for existing A320 Rated Captains to join us on a permanent contract in London Gatwick . … A319/A320/A321 Captains will complete a standard easyJet OCC upon joining.",
+       "source_id": "src-easyjet-taleo-net-71ce28ed",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "84dd49f8fb200535",
+     "id": "easyjet.jobs.cap-aircraft-cap.b645da10",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_aircraft",
+     "label_ja": "機長の求人の機種",
+     "pack": "pvr-20261120-cl-easyjet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-07-17",
+       "publisher": "easyJet Careers (Taleo)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-easyjet-taleo-net-71ce28ed",
+       "source_type": "job_posting",
+       "title": "easyJet Careers (Taleo)",
+       "url": "https://easyjet.taleo.net/careersection/8/jobdetail.ftl?job=17123&lang=en"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320 family (A319/A320/A321)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true,
       "rank": "fo"
@@ -64189,6 +69336,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "A320飛行時間最低500時間",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "easyjet",
+     "cond_ja": "Pilots careers page: bases not listed means not recruiting there now。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "If you can't find the base you want, it means we're not recruiting there right now.",
+       "source_id": "src-careers-easyjet-com-43e11d98",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "26867060f3560176",
+     "id": "easyjet.jobs.fo-status-fo.1e1aac50",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_status",
+     "label_ja": "副操縦士の求人の状況",
+     "pack": "pvr-20261120-cl-easyjet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "easyJet Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-easyjet-com-43e11d98",
+       "source_type": "job_posting",
+       "title": "easyJet Careers",
+       "url": "https://careers.easyjet.com/en/career-areas/pilots"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: no current vacancy",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "easyjet",
+     "cond_ja": "easyJet careers job board (all 57 jobs) searched on 2026-11-20; no co-pilot posting。補足: 一覧のパイロットの求人はこの4本（掲載日 02/11, 23/10, 16/10, 17/07/2026）だけ。副操縦士の募集は無い。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Captains: A320 Rated (2027) – London Southend … Captains: A320 Rated (2027) – Newcastle … Captains: A320 Rated (2027) – Manchester … Captains: A320 Rated (2027) – London Gatwick",
+       "source_id": "src-easyjet-taleo-net-18038324",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "38bf4f0ded81493f",
+     "id": "easyjet.jobs.fo-status-fo.68303a54",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_status",
+     "label_ja": "副操縦士の求人の状況",
+     "pack": "pvr-20261120-cl-easyjet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "easyJet Careers (Taleo job board)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-easyjet-taleo-net-18038324",
+       "source_type": "job_posting",
+       "title": "easyJet Careers (Taleo job board)",
+       "url": "https://easyjet.taleo.net/careersection/8/jobsearch.ftl?lang=en"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: no current vacancy (only Captain A320 Rated 2027 postings listed on 2026-11-20)",
      "value_text": null
     },
     {
@@ -65466,6 +70719,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "A-31/2026 / Posted2026-09-15 / Expire2026-11-01",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "egyptair",
+     "cond_ja": "Pilot under training A-31/2026; no source names the type for trainees; company in-house fleet has several types (as of Aug 2025), so graduates could go to any of them。補足: 会社の公式機材ページが見つからず（egyptair.com の fleet の URL は 404）、業界ニュースで代用。2025-08 時点。B737-800(SF) は貨物機。2026 年に B737-8 受領予定と同記事見出し。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-08-08",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The airline's in-house fleet comprises eight A320-200Ns, seven A321-200NXs, five A330-200s, four A330-300s, thirty B737-800s … one B737-800(SF), five B777-300ERs, and eight B787-9s.",
+       "source_id": "src-ch-aviation-com-561bf490",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d5657320cb50ab5c",
+     "id": "egyptair.jobs.pilot-aircraft.8cd9fbbc",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-egyptair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-08-08",
+       "publisher": "ch-aviation",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-20",
+       "source_id": "src-ch-aviation-com-561bf490",
+       "source_type": "third_party_reference",
+       "title": "ch-aviation",
+       "url": "https://www.ch-aviation.com/news/156868-egyptair-to-receive-first-b737-8s-in-early-1q26"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320neo, A321neo, A330-200, A330-300, B737-800, B777-300ER, B787-9",
      "value_text": null
     },
     {
@@ -67063,6 +72367,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "type-rating",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "emirates",
+     "cond_ja": "Direct Entry First Officer posting; posting lists separate requirements for B777 and for A380 & A350 (type follows the candidate's current Boeing or Airbus FBW experience; posting does not say how the type is assigned)。補足: 求人データ（API）の要件の見出しが「B777」と「A380 & A350:」。掲載日 2024-05-28（1716854400000）、締切は null、勤務地は Dubai。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-05-28",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "B777 … Minimum of 1,000 hours on Boeing Type … A380 & A350: … Minimum of 1,000 hours on Airbus FBW",
+       "source_id": "src-emiratesgroupcareers-com-9a514617",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "65029dcd459036bd",
+     "id": "emirates.jobs.fo-aircraft-fo.b4b2c8e6",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-emirates",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-05-28",
+       "publisher": "Emirates Group Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-emiratesgroupcareers-com-9a514617",
+       "source_type": "job_posting",
+       "title": "Emirates Group Careers",
+       "url": "https://www.emiratesgroupcareers.com/api/v1/jobs/5"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: B777, A380, A350",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "emirates",
+     "cond_ja": "Direct Entry First Officer role page; names the fleet (supporting row)。補足: 役職紹介ページ。応募条件は「Current Boeing or Airbus FBW experience」。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Take command of one of the youngest fleet in the skies, from our iconic Emirates A380 to our game-changing Boeing 777.",
+       "source_id": "src-emiratesgroupcareers-com-ff56c32c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "17ebf6cb240de488",
+     "id": "emirates.jobs.fo-aircraft-fo.fc87b78f",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-emirates",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Emirates Group Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-emiratesgroupcareers-com-ff56c32c",
+       "source_type": "job_posting",
+       "title": "Emirates Group Careers",
+       "url": "https://www.emiratesgroupcareers.com/pilots/our-role-details/?name=first-officers"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A380, B777",
      "value_text": null
     },
     {
@@ -68725,6 +74135,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "cap"
      },
+     "checked_at": "2026-11-20",
+     "company": "ethiopian-airlines",
+     "cond_ja": "Expat Captain A350 / B777/787 / B737 postings name no base (only weekly screening in Addis Ababa); base taken from the company's stated main hub。補足: 求人本文に勤務地の記載なし（「Screening is held every week, Monday to Friday in Addis Abeba」のみ）。会社の主たるハブから。外部の求人掲載（Flightdeck Friend の B737/B757・B767 機長「to be based at Addis Ababa」）は 403 で開けず使っていない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Addis Ababa (Ethiopia) - Ethiopian Main Hub",
+       "source_id": "src-corporate-ethiopianairlines-com-25704e7f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8f9ba4f4b0bc53ed",
+     "id": "ethiopian-airlines.jobs.cap-base-cap.882857ca",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-ethiopian-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Ethiopian Airlines Corporate",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-corporate-ethiopianairlines-com-25704e7f",
+       "source_type": "job_posting",
+       "title": "Ethiopian Airlines Corporate",
+       "url": "https://corporate.ethiopianairlines.com/AboutEthiopian/Overview"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Addis Ababa",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
      "checked_at": "2026-10-29",
      "company": "ethiopian-airlines",
      "cond_ja": "Expat Captain A350; 以上。補足: 更新日不明。Expat Captain A350のRegistration/Closing DateともOpen。",
@@ -68929,6 +74392,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": 2500,
      "value_text": "2500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "ethiopian-airlines",
+     "cond_ja": "Expat Captain A350, B777/787, B737 postings on the company vacancy page。補足: 2026-11-20 も掲載が続いている（A350／B777/787／B737 の3件とも）。掲載日の表示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Closing Date: Open",
+       "source_id": "src-corporate-ethiopianairlines-com-c6f2f010",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c2eba22270d93d4d",
+     "id": "ethiopian-airlines.jobs.cap-status-cap.d4cc8967",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_status",
+     "label_ja": "機長の求人の状況",
+     "pack": "pvr-20261120-cl-ethiopian-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Ethiopian Airlines Corporate",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-corporate-ethiopianairlines-com-c6f2f010",
+       "source_type": "job_posting",
+       "title": "Ethiopian Airlines Corporate",
+       "url": "https://corporate.ethiopianairlines.com/AboutEthiopian/careers/vacancies/5"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (closing date shown as Open)",
+     "value_text": null
     },
     {
      "amount": null,
@@ -71887,6 +77403,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": "機長候補100104・副操縦士候補100103の2求人を公開一覧に掲載",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "fda",
+     "cond_ja": "Captain and First Officer candidate postings name no type; company says it operates Embraer 170/175 only。補足: 求人（HITO-Link の案件 100104・100103）に機種の記載なし（業務は「国内線定期便、チャーター便の運航に関する業務」、応募資格は「ジェット機」の機長／副操縦士経験）。会社紹介文の「15機」はいつの時点か書かれていない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "現在は15機の小型ジェット旅客機、エンブラエル170/175を用いて運航",
+       "source_id": "src-fujidream-co-jp-77468e09",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bf3f08311808c2f6",
+     "id": "fda.jobs.pilot-aircraft.5f62f734",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-fda",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "フジドリームエアラインズ 会社情報",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-fujidream-co-jp-77468e09",
+       "source_type": "job_posting",
+       "title": "フジドリームエアラインズ 会社情報",
+       "url": "https://www.fujidream.co.jp/company/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: Embraer E170/E175",
+     "value_text": null
     }
    ],
    "profile": [
@@ -72627,6 +78194,218 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "fo"
      },
+     "checked_at": "2026-11-20",
+     "company": "fedex-express",
+     "cond_ja": "New-hire training slots on the 757 through Oct/Nov 2026 (forum citing the 757 Training Letter)。補足: 【掲示板】。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-07-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "According to the 757 Training Letter, new hires have 40 training slots thru October/November.",
+       "source_id": "src-airlinepilotforums-com-cfe77e7e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9da8c9da43aaa01a",
+     "id": "fedex-express.jobs.fo-aircraft-fo.34947adb",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-07-24",
+       "publisher": "Airline Pilot Central Forums (Thrust Hold, post #414)",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-airlinepilotforums-com-cfe77e7e",
+       "source_type": "community_reference",
+       "title": "Airline Pilot Central Forums (Thrust Hold, post #414)",
+       "url": "https://www.airlinepilotforums.com/fedex/152499-any-hiring-2026-a-42.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: B757",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "fedex-express",
+     "cond_ja": "How new hires get seats: vacancies left after the system bid may be offered to the new-hire class, which bids at indoc by seniority (source: forum)。補足: 【掲示板】 割り当ての仕組み（クラス内の先任順で入社時に入札）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-07-25",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "In the past, the company has chosen to make those vacancies available to new hire classes … and those pilots get to bid at the start of indoc in seniority order. … There is usually a mix of wide body and 757 assignments.",
+       "source_id": "src-airlinepilotforums-com-cfe77e7e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8ce27fc2eb615970",
+     "id": "fedex-express.jobs.fo-aircraft-fo.7d085d13",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-07-24",
+       "publisher": "Airline Pilot Central Forums (Thrust Hold, post #414)",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-airlinepilotforums-com-cfe77e7e",
+       "source_type": "community_reference",
+       "title": "Airline Pilot Central Forums (Thrust Hold, post #414)",
+       "url": "https://www.airlinepilotforums.com/fedex/152499-any-hiring-2026-a-42.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: B757 or widebody (mix); bid at start of indoc in seniority order",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "fedex-express",
+     "cond_ja": "New-hire First Officers 2026; class in training assigned 757 FO at class start, then awarded MEM 767/777 FO in a later system bid (source: forum)。補足: 【掲示板】 2026年7月の書き込み。会社の公式発表ではない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-07-24",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The New Hires that are currently in class were awarded MEM 767 FO and MEM 777 FO in this practice bid … after being assigned 757 FO when they started class.",
+       "source_id": "src-airlinepilotforums-com-cfe77e7e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e772ceff06660907",
+     "id": "fedex-express.jobs.fo-aircraft-fo.a3379068",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-07-24",
+       "publisher": "Airline Pilot Central Forums (Thrust Hold, post #414)",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-airlinepilotforums-com-cfe77e7e",
+       "source_type": "community_reference",
+       "title": "Airline Pilot Central Forums (Thrust Hold, post #414)",
+       "url": "https://www.airlinepilotforums.com/fedex/152499-any-hiring-2026-a-42.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: B757 (initial seat); later bid to B767/B777 possible",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "fedex-express",
+     "cond_ja": "Careers page names no base; FedEx pilot domiciles per APC profile (2026 forum post says the class in training was awarded MEM seats)。補足: 【APC】 APC のページに更新日の表示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DOMICILES LAX MEM ANC IND OAK",
+       "source_id": "src-airlinepilotcentral-com-3ebe2a7c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cb3c42f584fcce8e",
+     "id": "fedex-express.jobs.fo-base-fo.305848bb",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Airline Pilot Central",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-airlinepilotcentral-com-3ebe2a7c",
+       "source_type": "community_reference",
+       "title": "Airline Pilot Central",
+       "url": "https://www.airlinepilotcentral.com/airlines/cargo/fedex_express"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Memphis, Indianapolis, Anchorage, Oakland, Los Angeles",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
      "checked_at": "2026-11-18",
      "company": "fedex-express",
      "cond_ja": "Mandatory certificates and permits。補足: Unrestricted multi-engine ATP required。",
@@ -72777,6 +78556,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "all non-U.S. citizens must possess a Permanent Resident Card for employment with FedEx.",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "fedex-express",
+     "cond_ja": "Careers page: pilots create/update a profile; when chosen, an email with a link to apply to an open crew member position is sent; no dates shown。補足: 応募は「プロフィール登録→会社から応募リンク」の形。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "create or update a profile at https://careers.fedex.com/career-areas/pilot/ … an email is sent with a link to apply to an open crew member position.",
+       "source_id": "src-careers-fedex-com-bbad833b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0c21546444ff86ce",
+     "id": "fedex-express.jobs.fo-status-fo.31267661",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_status",
+     "label_ja": "副操縦士の求人の状況",
+     "pack": "pvr-20261120-cl-fedex-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "FedEx Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-fedex-com-bbad833b",
+       "source_type": "job_posting",
+       "title": "FedEx Careers",
+       "url": "https://careers.fedex.com/career-areas/pilot/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (profile pool; selected candidates emailed a link to apply)",
      "value_text": null
     },
     {
@@ -74668,6 +80500,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "cap"
      },
+     "checked_at": "2026-11-20",
+     "company": "fiji-airways",
+     "cond_ja": "Boeing 737 Max Captain posting (Pacific Aircrew Services for Fiji Airways); Date Opened 2023-06-01, still published。補足: 掲載継続（Publish: true）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2023-06-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 737 Max Captain in Nadi (With commuting options) ... Commuting Options within airline network on confirmed tickets ... Nadi Domicile Option available",
+       "source_id": "src-pacificaircrew-zohorecruit-com-33b8b09d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6c5a866b2a670da2",
+     "id": "fiji-airways.jobs.cap-base-cap.8c0b93f8",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-fiji-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-06-01",
+       "publisher": "Pacific Aircrew Services",
+       "publisher_kind": "recruiter",
+       "retrieved": "2026-11-20",
+       "source_id": "src-pacificaircrew-zohorecruit-com-33b8b09d",
+       "source_type": "job_posting",
+       "title": "Pacific Aircrew Services",
+       "url": "https://pacificaircrew.zohorecruit.com/jobs/careers/706885000000606011/Boeing-737-Max-Captain?source=CareerSite"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Nadi (commuting or Nadi domicile)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "fiji-airways",
+     "cond_ja": "Airbus A350/A330 Captain posting (Pacific Aircrew Services for Fiji Airways); Date Opened 2024-05-01, still published。補足: 掲載継続（Publish: true）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-05-01",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Airbus A350/A330 Captain in Nadi (With commuting options)",
+       "source_id": "src-pacificaircrew-zohorecruit-com-842a2f87",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b6fd6673b6be70ec",
+     "id": "fiji-airways.jobs.cap-base-cap.cc0e7600",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-fiji-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-05-01",
+       "publisher": "Pacific Aircrew Services",
+       "publisher_kind": "recruiter",
+       "retrieved": "2026-11-20",
+       "source_id": "src-pacificaircrew-zohorecruit-com-842a2f87",
+       "source_type": "job_posting",
+       "title": "Pacific Aircrew Services",
+       "url": "https://pacificaircrew.zohorecruit.com/jobs/careers/706885000000441009/Airbus-A350-A330-Captain?source=CareerSite"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Nadi (commuting options)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
      "checked_at": "2026-10-29",
      "company": "fiji-airways",
      "cond_ja": "A350/A330契約機長; Level 5以上; 原文はEnglish Language Proficiency。補足: Fiji AirwaysのDirect Entry Command契約求人。原採用代理店の公開求人HTML/一覧内Job_Descriptionを実読。Date_Opened=2024-05-01、Publish=true、本文Currently accepting expressions of interest。日付は原求人日として記録し発行日は空欄。",
@@ -75136,6 +81074,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "B737 NG/Max rating",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "fiji-airways",
+     "cond_ja": "Airbus A350/A330 First Officer posting (Pacific Aircrew Services for Fiji Airways); Date Opened 2024-04-30, still published。補足: 掲載継続（Publish: true）。Fiji Airways 自社の求人一覧（staffcv API）には 2026-11-20 時点でパイロット職なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-04-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "the successful candidate can choose to commute or domicile in Nadi, Fiji.",
+       "source_id": "src-pacificaircrew-zohorecruit-com-7d86e93d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ce1e9ab7e2fc285e",
+     "id": "fiji-airways.jobs.fo-base-fo.fb5fe15c",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-fiji-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-04-30",
+       "publisher": "Pacific Aircrew Services",
+       "publisher_kind": "recruiter",
+       "retrieved": "2026-11-20",
+       "source_id": "src-pacificaircrew-zohorecruit-com-7d86e93d",
+       "source_type": "job_posting",
+       "title": "Pacific Aircrew Services",
+       "url": "https://pacificaircrew.zohorecruit.com/jobs/careers/706885000000606117/Airbus-A350-A330-First-Officer?source=CareerSite"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Nadi (commuting or Nadi domicile)",
      "value_text": null
     },
     {
@@ -76590,6 +82581,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "finnair",
+     "cond_ja": "Finnair Blue Wings article on the MPL program: co-pilot on the Airbus A320 family。補足: 記事の更新日 2026-08-05。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-04-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "valmistaa oppilaan suoraan toisen ohjaajan tehtävään Airbus A320-koneperheeseen",
+       "source_id": "src-finnair-com-cc7f784a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "108a7fb45db35a48",
+     "id": "finnair.jobs.pilot-aircraft.5fc92bba",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-finnair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04-19",
+       "publisher": "Finnair Blue Wings",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-finnair-com-cc7f784a",
+       "source_type": "job_posting",
+       "title": "Finnair Blue Wings",
+       "url": "https://www.finnair.com/fi-fi/bluewings/finnairin-maailma/matka-kohti-ohjaamoa--finnairin-lent%C3%A4j%C3%A4n-mikon-matka-mpl-ohjelmasta-a350-lent%C3%A4j%C3%A4ksi-4241002"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320 family",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "finnair",
+     "cond_ja": "MPL program trains cadets directly as Airbus A320 pilots (A320 type rating)。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Finnair’s MPL training prepares students directly for the role of an Airbus A320 pilot.",
+       "source_id": "src-company-finnair-com-c49e718d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "82c1999b0376c794",
+     "id": "finnair.jobs.pilot-aircraft.c2959789",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-finnair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Finnair",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-company-finnair-com-c49e718d",
+       "source_type": "job_posting",
+       "title": "Finnair",
+       "url": "https://company.finnair.com/en/careers/mpl-program"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320 family",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "finnair",
+     "cond_ja": "MPL program page。補足: 現状の none を 2026-11-20 に再確認。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The application period for the MPL program has been closed.",
+       "source_id": "src-company-finnair-com-c49e718d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "39607bf6bb40e3ac",
+     "id": "finnair.jobs.pilot-status.42c60c33",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-finnair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Finnair",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-company-finnair-com-c49e718d",
+       "source_type": "job_posting",
+       "title": "Finnair",
+       "url": "https://company.finnair.com/en/careers/mpl-program"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: applications closed (no date shown)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "hire_route": "FinnairMPL",
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true
@@ -77596,6 +83740,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "cap"
      },
+     "checked_at": "2026-11-20",
+     "company": "flydubai",
+     "cond_ja": "Direct Entry Captain; careers pages blocked (403), no posting text read; base taken from the company's own statement of its home and operating terminal。補足: 会社のニュース頁の定型文（「From its home in Dubai, flydubai has created a network of more than 120 destinations served by a fleet of 99 aircraft.」も同頁）。頁に日付なし・古い記事。careers.flydubai.com は 403。第三者の rotatepilot.com は「2 bases · DXB, DWC」と書くが AI 生成の疑いがあり使っていない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "flydubai operates from the modernised Terminal 2 building on the north side of Dubai International Airport.",
+       "source_id": "src-news-flydubai-com-981fadd1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a270a97a12e31c13",
+     "id": "flydubai.jobs.cap-base-cap.0d981926",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-flydubai",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "flydubai Newsroom",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-news-flydubai-com-981fadd1",
+       "source_type": "job_posting",
+       "title": "flydubai Newsroom",
+       "url": "https://news.flydubai.com/flydubai-to-hire-600-pilots-by-2016"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Dubai (Dubai International, Terminal 2)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
      "checked_at": "2026-11-08",
      "company": "flydubai",
      "cond_ja": "Valid ICAO ATPL; Captain/First Officerの最低免許要件。補足: 確認日に公式サイト本文をブラウザーで直接閲覧。現行の要件・待遇案内であり、求人一覧に現在の同職募集があることを意味しない。発行・更新日は記載なし（フッター2024）。 現在募集中のCaptain/First Officer求人は各求人一覧で0 Results。要件の案内ページは現在も掲載されているが個別求人の掲載日は不明。現行の常設要件案内として記録し、現在の個別募集としては扱わない。",
@@ -77799,6 +83996,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "Non Type Rated",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "flydubai",
+     "cond_ja": "First Officer; careers pages blocked (403), no posting text read; base taken from the company's own statement of its home and operating terminal。補足: 同じ頁に「flydubai operates from the modernised Terminal 2 building on the north side of Dubai International Airport.」。careers.flydubai.com/first-officer は 403。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "From its home in Dubai, flydubai has created a network of more than 120 destinations served by a fleet of 99 aircraft.",
+       "source_id": "src-news-flydubai-com-981fadd1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "638c08bb546f07f4",
+     "id": "flydubai.jobs.fo-base-fo.b57fe41b",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-flydubai",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "flydubai Newsroom",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-news-flydubai-com-981fadd1",
+       "source_type": "job_posting",
+       "title": "flydubai Newsroom",
+       "url": "https://news.flydubai.com/flydubai-to-hire-600-pilots-by-2016"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Dubai (Dubai International, Terminal 2)",
      "value_text": null
     },
     {
@@ -81027,6 +87277,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "frontier",
+     "cond_ja": "Posting names no type; company fleet is A320 family only (single family): fleet table A320neo 68, A321neo 69, A320ceo 6, A321ceo 21 as of 2026-09-30。補足: ; 機種の内訳は同じ表（A320neo 68／A321neo 69／A320ceo 6／A321ceo 21）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-28",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "As of September 30, 2026, Frontier had a fleet of 164 Airbus single-aisle aircraft, as scheduled below,",
+       "source_id": "src-sec-gov-521a2a83",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c035c0b0909a658a",
+     "id": "frontier.jobs.fo-aircraft-fo.4691df55",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-frontier",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-28",
+       "publisher": "Frontier Group Holdings (Q3 2026 earnings release, SEC Form 8-K)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-sec-gov-521a2a83",
+       "source_type": "job_posting",
+       "title": "Frontier Group Holdings (Q3 2026 earnings release, SEC Form 8-K)",
+       "url": "https://www.sec.gov/Archives/edgar/data/0001670076/000167007626000102/frontier_earningsreleasexq.htm"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320 family (A320ceo, A320neo, A321ceo, A321neo)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "frontier",
+     "cond_ja": "Pilot careers page (First Officer and University applications); base list given under willingness to relocate; page does not say which base a new hire gets。補足: ;。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Our bases are Atlanta, GA; Chicago IL; Cincinnati, OH; Cleveland, OH; Dallas, TX; Denver, CO; Las Vegas, NV; Miami, FL … Orlando, FL; Phoenix, AZ; San Juan, PR; Tampa, FL; & the Trenton/Philadelphia area and more to come soon!",
+       "source_id": "src-flyfrontier-com-0982ea53",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6739a747495fc816",
+     "id": "frontier.jobs.fo-base-fo.5f97e936",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-frontier",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Frontier Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-flyfrontier-com-0982ea53",
+       "source_type": "job_posting",
+       "title": "Frontier Airlines Careers",
+       "url": "https://www.flyfrontier.com/careers/pilot/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Atlanta, Chicago, Cincinnati, Cleveland, Dallas, Denver, Las Vegas, Miami, Orlando, Phoenix, San Juan, Tampa, Trenton/Philadelphia",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true,
       "rank": "fo"
@@ -81078,6 +87434,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "open",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "frontier",
+     "cond_ja": "University program leads to a Frontier First Officer role; type follows company fleet (A320 family only)。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "with a direct pathway into a First Officer role at Frontier Airlines.",
+       "source_id": "src-flyfrontier-com-0982ea53",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a8e89fb243e1c3a0",
+     "id": "frontier.jobs.pilot-aircraft.56f761e0",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-frontier",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Frontier Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-flyfrontier-com-0982ea53",
+       "source_type": "job_posting",
+       "title": "Frontier Airlines Careers",
+       "url": "https://www.flyfrontier.com/careers/pilot/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320 family (as a Frontier First Officer after the program)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "frontier",
+     "cond_ja": "Careers page says First Officer and University applications are open。補足: ; 2026-11-20 時点でも同じ文言。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Our First Officer and University applications are open.",
+       "source_id": "src-flyfrontier-com-0982ea53",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7014315bc937106b",
+     "id": "frontier.jobs.pilot-status.8d156dac",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-frontier",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Frontier Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-flyfrontier-com-0982ea53",
+       "source_type": "job_posting",
+       "title": "Frontier Airlines Careers",
+       "url": "https://www.flyfrontier.com/careers/pilot/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (no dates shown)",
      "value_text": null
     },
     {
@@ -82346,6 +88804,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "当該公式公開求人一覧にNo open vacancyと表示",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "garuda-indonesia",
+     "cond_ja": "No posting (job list empty); company fleet per ch-aviation data, July 2025。補足: 公式の機材ページは 403。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-07-17",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ch-aviation data shows the state-owned carrier operates a fleet of 79 aircraft: five A330-200s, sixteen A330-300s, five A330-900Ns, forty-five B737-800s, and eight B777-300ERs.",
+       "source_id": "src-ch-aviation-com-eefe0880",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1359a7c6979b7eda",
+     "id": "garuda-indonesia.jobs.pilot-aircraft.b4bdae7f",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-garuda-indonesia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-07-17",
+       "publisher": "ch-aviation",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-20",
+       "source_id": "src-ch-aviation-com-eefe0880",
+       "source_type": "third_party_reference",
+       "title": "ch-aviation",
+       "url": "https://www.ch-aviation.com/news/156118-indonesia-to-buy-50-boeing-aircraft-amid-us-trade-deal"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A330-200, A330-300, A330-900, B737-800, B777-300ER (several types)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "garuda-indonesia",
+     "cond_ja": "No posting; company primary hub (secondary hubs Denpasar, Makassar)。補足: 【Wikipedia】 ハブ。パイロットの拠点としての明記ではない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Primary hub Jakarta–Soekarno-Hatta ... headquartered at Soekarno–Hatta International Airport near Jakarta",
+       "source_id": "src-en-wikipedia-org-33dce690",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0b3895c63933709d",
+     "id": "garuda-indonesia.jobs.pilot-base.1348bd76",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-garuda-indonesia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-en-wikipedia-org-33dce690",
+       "source_type": "third_party_reference",
+       "title": "Wikipedia",
+       "url": "https://en.wikipedia.org/wiki/Garuda_Indonesia"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Jakarta (Soekarno-Hatta)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "garuda-indonesia",
+     "cond_ja": "Garuda careers vacancy table。補足: 現状の none を再確認。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "No open vacancy",
+       "source_id": "src-career-garuda-indonesia-com-6ea98490",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "89e51af5fecbfa30",
+     "id": "garuda-indonesia.jobs.pilot-status.4667b703",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-garuda-indonesia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Garuda Indonesia Career",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-career-garuda-indonesia-com-6ea98490",
+       "source_type": "job_posting",
+       "title": "Garuda Indonesia Career",
+       "url": "https://career.garuda-indonesia.com/home"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: no current vacancy (checked 2026-11-20)",
      "value_text": null
     }
    ],
@@ -84009,6 +90620,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "gulf-air",
+     "cond_ja": "GF1972 First Officer – Airbus A320 posting; Location field of the posting。補足: 求人の「Location」欄。題は「GF1972 - Join Gulf Air as a First Officer – Airbus A320」、締切「31-Dec-2026」、掲載日の表示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Bahrain - Head Quarter",
+       "source_id": "src-gulfairgroup-sniperhire-net-d2ebda9f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e8b46ad2cd6af69d",
+     "id": "gulf-air.jobs.fo-base-fo.b3258264",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-gulf-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Gulf Air Group Careers (SniperHire)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-gulfairgroup-sniperhire-net-d2ebda9f",
+       "source_type": "job_posting",
+       "title": "Gulf Air Group Careers (SniperHire)",
+       "url": "https://gulfairgroup.sniperhire.net/vacancy/175079"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Bahrain (headquarters)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "gulf-air",
+     "cond_ja": "GF1853 First Officer – Airbus A320 posting (previous vacancy); Location field of the posting。補足: 求人の「Location」欄。題は「GF1853 - Join Gulf Air as a First Officer – Airbus A320」、締切「01-Jan-2026」。締切後も頁に応募ボタンが残っているが締切日は過ぎている。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Bahrain - Head Quarter",
+       "source_id": "src-gulfairgroup-sniperhire-net-90df7208",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b888dee14a2879db",
+     "id": "gulf-air.jobs.fo-base-fo.bfdbcc82",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-gulf-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Gulf Air Group Careers (SniperHire)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-gulfairgroup-sniperhire-net-90df7208",
+       "source_type": "job_posting",
+       "title": "Gulf Air Group Careers (SniperHire)",
+       "url": "https://gulfairgroup.sniperhire.net/vacancy/174313"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Bahrain (headquarters)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "aircraft": [
        "Airbus A320"
       ],
@@ -85101,6 +91818,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": 1,
      "value_text": "1"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "hac",
+     "cond_ja": "Postings name no type; company fleet is ATR42-600 only。補足: 会社の保有機材は1機種だけ。採用ページの運航乗務員欄は「現在、募集しておりません。」（hac#0 の status_now どおり）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "保有機材 ATR42-600型機（客席数48） 4機",
+       "source_id": "src-info-hac-air-co-jp-e704e377",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ed61a177c9091fef",
+     "id": "hac.jobs.pilot-aircraft.a0e3e032",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-hac",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "北海道エアシステム 会社情報",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-info-hac-air-co-jp-e704e377",
+       "source_type": "job_posting",
+       "title": "北海道エアシステム 会社情報",
+       "url": "https://www.info.hac-air.co.jp/company/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: ATR 42-600",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "hac",
+     "cond_ja": "HAC section of the JAL Group joint First Officer trainee recruitment (Sept 2023); for hac#0 used as another source。補足: 資料は「2023 年 9 月」付。hac#0 には今の求人が無いので、この資料を other として使う。同じ欄に「入社日時点で札幌市内に居住または居住可能であること。」。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "【勤務地】 札幌丘珠空港（訓練中は札幌および鹿児島の訓練施設、海外での訓練の可能性もあり） 乗務開始後は札幌丘珠空港",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ede6af72f3e15b94",
+     "id": "hac.jobs.pilot-base.72221b97",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-hac",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "JALグループ パイロット合同採用（2023年度）",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "source_type": "job_posting",
+       "title": "JALグループ パイロット合同採用（2023年度）",
+       "url": "https://www.job-jal.com/recruit/requirement/pdf/new-graduate/pilot_recruit.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Sapporo Okadama",
+     "value_text": null
     }
    ],
    "profile": [
@@ -87065,6 +93884,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": "HKCAD受入可能な有効MultiEngineICAOCPL/IR（250時間以上）またはHKCAD承認IntegratedCourseCPL、Class1/ICAO4等。",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（second_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "so"
+     },
+     "checked_at": "2026-11-20",
+     "company": "hong-kong-express",
+     "cond_ja": "Second Officer posting names no type (\"one of the youngest and most modern aircraft fleets\"); company fleet is A320 family only。補足: 機材はA320系だけなので機種はA320系。機数は2024-11時点（公式の機材ページは 404）。求人（careers.hkexpress.com）は 2026-11-20 時点も「Advertised: 03 Sep 2025 China Standard Time」「Applications close:」空欄のまま掲載中。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-11-11",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "HK Express currently has a fleet of 39 aircraft, including six Airbus A320ceo, 10 A320neo, 13 A321ceo and 10 A321neo.",
+       "source_id": "src-hkexpress-com-cdc9989b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ccb9cf0401a66cd6",
+     "id": "hong-kong-express.jobs.so-aircraft-so.71c8e18b",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "so_aircraft",
+     "label_ja": "セカンドオフィサーの求人の機種",
+     "pack": "pvr-20261120-cl-hong-kong-express",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-11-11",
+       "publisher": "HK Express",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-hkexpress-com-cdc9989b",
+       "source_type": "job_posting",
+       "title": "HK Express news release",
+       "url": "https://www.hkexpress.com/en/About-Us/Media-Centre/HK-Express-Welcomes-Its-10th-A321neo-Aircraft"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320 family (A320ceo, A320neo, A321ceo, A321neo)",
+     "value_text": null
     }
    ],
    "profile": [
@@ -88173,6 +95045,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "fo"
      },
+     "checked_at": "2026-11-20",
+     "company": "iberia",
+     "cond_ja": "Posting names no type; Iberia fleet has several Airbus types (new hires could go to any)。補足: 【Wikipedia】 iberia.com の機材ページ・grupo.iberia.com は403。求人本文は掲載終了で読めず、報道（aviationnews-online・aviacionline）にも機種の記載なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "As of December 2025, Iberia operates an all-Airbus fleet composed of the following aircraft: Airbus A319-100 3 Airbus A320-200 11 Airbus A320neo 21 Airbus A321-200 14 Airbus A321XLR 7 Airbus A330-200 12 Airbus A330-300 8 Airbus A350-900 23",
+       "source_id": "src-en-wikipedia-org-bdda1718",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "aa63bb695a6a23a9",
+     "id": "iberia.jobs.fo-aircraft-fo.a5fbf750",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-iberia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Wikipedia (Iberia (airline))",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-en-wikipedia-org-bdda1718",
+       "source_type": "third_party_reference",
+       "title": "Wikipedia (Iberia (airline))",
+       "url": "https://en.wikipedia.org/wiki/Iberia_(airline)"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: All-Airbus, several types: A319, A320, A320neo, A321, A321XLR, A330-200, A330-300, A350-900",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "iberia",
+     "cond_ja": "Entry-level pilot recruitment call of July 2025。補足: 会社の発表（grupo.iberia.com）は403で読めず、報道で確認。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-07-10",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Iberia has commenced a new recruitment drive for entry level pilots based in Madrid",
+       "source_id": "src-aviationnews-online-com-88a64ec9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0b0ad57d0b454118",
+     "id": "iberia.jobs.fo-base-fo.16dc3710",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-iberia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-07-10",
+       "publisher": "Aviation News Online",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-20",
+       "source_id": "src-aviationnews-online-com-88a64ec9",
+       "source_type": "third_party_reference",
+       "title": "Aviation News Online",
+       "url": "https://aviationnews-online.com/public/article/iberia-recruiting-more-pilots-to-facilitate-operational-growth"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Madrid",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
      "checked_at": "2026-10-29",
      "company": "iberia",
      "cond_ja": "Spanish Level5も必要。補足: 過去。2025-07-09公表の新規採用操縦士募集。",
@@ -88376,6 +95354,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "Right to work in the European Union",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "iberia",
+     "cond_ja": "2025 entry-level pilot posting。補足: 現状の past を 2026-11-20 に再確認。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "No puede ver este puesto porque no está disponible en este momento.",
+       "source_id": "src-trabajaconnosotros-iberia-es-a59fe0b6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "62dfe77a2d28e699",
+     "id": "iberia.jobs.fo-status-fo.d40d6f4f",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_status",
+     "label_ja": "副操縦士の求人の状況",
+     "pack": "pvr-20261120-cl-iberia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Iberia Trabaja con nosotros",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-trabajaconnosotros-iberia-es-a59fe0b6",
+       "source_type": "job_posting",
+       "title": "Iberia Trabaja con nosotros",
+       "url": "https://trabajaconnosotros.iberia.es/job/Espa%C3%B1a-Nueva-convocatoria-Pilotos-de-nuevo-ingreso-2025-ES-es_ES/824701902/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: closed (job page no longer available on 2026-11-20)",
      "value_text": null
     }
    ],
@@ -89585,6 +96616,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "2026年10月30日必着、2027年4月1日以降入社予定",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "ibex",
+     "cond_ja": "First Officer trainee posting; posting names the work location。補足: 応募資格に「仙台空港まで公共交通機関を利用して60分以内で通勤可能な圏内に居住している、または入社までにその圏内に転居可能である方。」。応募締切 2026年10月30日（金）当社必着（status_now どおり）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "勤務地 仙台空港",
+       "source_id": "src-ibexair-co-jp-546ec790",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d54edea7a223448c",
+     "id": "ibex.jobs.fo-base-fo.b7f67a76",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-ibex",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "IBEXエアラインズ 採用情報（副操縦士要員）",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-ibexair-co-jp-546ec790",
+       "source_type": "job_posting",
+       "title": "IBEXエアラインズ 採用情報（副操縦士要員）",
+       "url": "https://www.ibexair.co.jp/recruit/recruitment/career/detail-co-mpilot.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Sendai Airport",
      "value_text": null
     },
     {
@@ -91976,6 +99060,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "cap"
      },
+     "checked_at": "2026-11-20",
+     "company": "indigo",
+     "cond_ja": "Posting names no base (LinkedIn location field shows 'Mengio, Arunachal Pradesh, India', not an IndiGo base); company bases。補足: 【Wikipedia】 求人本文に拠点の記載なし。LinkedIn の所在地欄は誤表示と見られる。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Its main hub is at Delhi, with additional bases at Bengaluru, Chennai, Hyderabad, Kolkata, Mumbai, and Kochi.",
+       "source_id": "src-en-wikipedia-org-87cd4654",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "14d2bcd43280c92f",
+     "id": "indigo.jobs.cap-base-cap.c7418815",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-indigo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-en-wikipedia-org-87cd4654",
+       "source_type": "third_party_reference",
+       "title": "Wikipedia",
+       "url": "https://en.wikipedia.org/wiki/IndiGo"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Delhi (main hub); other bases Bengaluru, Chennai, Hyderabad, Kolkata, Mumbai, Kochi",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
      "checked_at": "2026-10-29",
      "company": "indigo",
      "cond_ja": "IndiGo (InterGlobe Aviation Ltd); A320 Captain – Non-Type Rated; 有効なDGCA-issued ATPLが必要。補足: IndiGo会社アカウント名義の求人原文をwebで実読。Apply表示あり。公開HTML内JobPosting.datePosted=2026-09-29、hiringOrganization=IndiGo (InterGlobe Aviation Ltd)を実読。LinkedInの自動勤務地Mengio・Employment type Internshipは本文と整合が不明であり採用しない。本文のJet PIC500/Turbo-prop PIC2000にはORの接続が明示されず、数字と対象は各行に採録するが、代替/併課関係は不明と明記する。",
@@ -92391,6 +99528,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "Non-Type Rated",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "indigo",
+     "cond_ja": "Fly High program text could not be opened; company fleet is A320 family + ATR 72-600 (plus wet-leased widebodies), so trainees could go to either。補足: 【Wikipedia】 公式ページは開けず。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "It has a majority-Airbus fleet with ATR 72-600 turboprop aircraft and narrow-body aircraft Airbus A320 family.",
+       "source_id": "src-en-wikipedia-org-87cd4654",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ee879b270cedfd26",
+     "id": "indigo.jobs.pilot-aircraft.45201644",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-indigo",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-en-wikipedia-org-87cd4654",
+       "source_type": "third_party_reference",
+       "title": "Wikipedia",
+       "url": "https://en.wikipedia.org/wiki/IndiGo"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320 family, ATR 72-600 (several types)",
      "value_text": null
     },
     {
@@ -95131,6 +102319,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": 1,
      "value_text": "1"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "j-air",
+     "cond_ja": "Postings name no type; company fleet page lists only the E170 and the E190 (a stretched E170)。補足: 機数はこのページに無い。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "エンブラエル170（E170） … 最新鋭の装備を搭載したE170のキャビンを6.3m延長したエンブラエル190（以下E190）。",
+       "source_id": "src-jair-co-jp-81ea22df",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "18a5df2f780a4f80",
+     "id": "j-air.jobs.pilot-aircraft.51072529",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-j-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ジェイエア 機材情報",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-jair-co-jp-81ea22df",
+       "source_type": "job_posting",
+       "title": "ジェイエア 機材情報",
+       "url": "https://www.jair.co.jp/about/kizai.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: Embraer E170, E190 (E-Jet family)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "j-air",
+     "cond_ja": "J-AIR section of the JAL Group joint First Officer trainee recruitment (Sept 2023); posting names the base。補足: 資料は「2023 年 9 月」付。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "【勤務地】 大阪伊丹空港（訓練中は大阪および東京の訓練施設）乗務開始後は大阪伊丹空港。",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0c12f3de8eeb287e",
+     "id": "j-air.jobs.pilot-base.1365eff0",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-j-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "JALグループ パイロット合同採用（2023年度）",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-job-jal-com-5b8b2bf3",
+       "source_type": "job_posting",
+       "title": "JALグループ パイロット合同採用（2023年度）",
+       "url": "https://www.job-jal.com/recruit/requirement/pdf/new-graduate/pilot_recruit.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Osaka Itami",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "j-air",
+     "cond_ja": "Cadet posting (previous terms shown for reference); posting names the base after line start。補足: ページには「*募集は終了しております。前回分を参考までに掲載します。」。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "勤務地 訓練中は日本国内および海外の訓練施設。 乗務開始後は大阪国際空港（伊丹）または当社が指定する場所。",
+       "source_id": "src-jair-co-jp-7baff4be",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e74dc88df2731e45",
+     "id": "j-air.jobs.pilot-base.d4c431d9",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-j-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ジェイエア 運航乗務員訓練生（自社養成パイロット）募集要項",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-jair-co-jp-7baff4be",
+       "source_type": "job_posting",
+       "title": "ジェイエア 運航乗務員訓練生（自社養成パイロット）募集要項",
+       "url": "https://www.jair.co.jp/about/recruit/pilot/apply02.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Osaka Itami",
+     "value_text": null
     }
    ],
    "profile": [
@@ -96104,6 +103445,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": "第1種航空身体検査証明書",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "jac",
+     "cond_ja": "Posting says only the company aircraft; company operates ATR42-600 and ATR72-600 only。補足: 募集要項の業務内容は「当社機の操縦、ならびに運航関連業務」だけ。会社情報に「現在ではATR600型機11機により」。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "運航機材数 ATR42-600型機 9機 ATR72-600型機 2機",
+       "source_id": "src-jac-co-jp-f47179a5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "30fe30650dbf4ae3",
+     "id": "jac.jobs.pilot-aircraft.8fe378a2",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-jac",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "日本エアコミューター 会社情報",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-jac-co-jp-f47179a5",
+       "source_type": "job_posting",
+       "title": "日本エアコミューター 会社情報",
+       "url": "https://www.jac.co.jp/company/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: ATR 42-600, ATR 72-600 (ATR -600 family)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "jac",
+     "cond_ja": "Pilot (CPL holders, FO candidate) posting, past terms shown for reference; posting names the work location。補足: ページには「本年度の募集は終了いたしました。参考に過去の募集要項を掲載しております。」、提出書類締切 2025年11月10日（月）必着（status_now どおり）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "3.勤務地 鹿児島空港 ただし、将来住所変更を伴う転勤の可能性あり",
+       "source_id": "src-jac-co-jp-0a78cad8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fa6f0fdde931c9fa",
+     "id": "jac.jobs.pilot-base.3e121fdc",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-jac",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "日本エアコミューター 運航乗務員募集要項",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-jac-co-jp-0a78cad8",
+       "source_type": "job_posting",
+       "title": "日本エアコミューター 運航乗務員募集要項",
+       "url": "https://www.jac.co.jp/recruit/pilot/guideline.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Kagoshima Airport",
+     "value_text": null
     }
    ],
    "profile": [
@@ -96594,6 +104037,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "jazz",
+     "cond_ja": "Posting names no type; company fleet has three types, so new hires could go to any of them。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "We operate a fleet of Embraer 175, CRJ900 and Dash 8-400 aircraft across North America.",
+       "source_id": "src-flyjazz-com-d137b6ec",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "430b48d9a1521080",
+     "id": "jazz.jobs.fo-aircraft-fo.cd925ad9",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-jazz",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jazz Aviation (pilot recruitment page)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-flyjazz-com-d137b6ec",
+       "source_type": "job_posting",
+       "title": "Jazz Aviation (pilot recruitment page)",
+       "url": "https://flyjazz.com/en/pilot-recruitment/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: E175, CRJ900, Dash 8-400",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "jazz",
+     "cond_ja": "First Officer posting (Req 141354, TBD-PILOT-5800-26); base assigned by company per operational requirements, told on day 2 of ground school。補足: 求人の主な勤務地は Toronto、他に Montréal・Calgary・Vancouver の表記。Apply by Date は Dec 18, 2026。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Jazz operates from four bases: Montreal (YUL), Toronto (YYZ), Calgary (YYC), and Vancouver (YVR). New hires will be assigned to any one of these locations based on operational requirements. Base assignments are communicated on the second day of Jazz’s ground school.",
+       "source_id": "src-jazz-taleo-net-38105162",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2cc4e3a0616c76f6",
+     "id": "jazz.jobs.fo-base-fo.9d022b28",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-jazz",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jazz Aviation Careers (Taleo)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-jazz-taleo-net-38105162",
+       "source_type": "job_posting",
+       "title": "Jazz Aviation Careers (Taleo)",
+       "url": "https://jazz.taleo.net/careersection/2+M/jobdetail.ftl?job=141354"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Montreal, Toronto, Calgary, Vancouver (company assigns)",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -98351,6 +105900,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "jetblue",
+     "cond_ja": "New-hire First Officers; aircraft assigned on the first day by seniority within the class (source: forum, 2023)。補足: 【掲示板】; 2023年の書き込みで古い。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2023-01-09",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "You get assigned an aircraft on your first day, based on seniority within your class.",
+       "source_id": "src-airlinepilotforums-com-80a8702d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2b19c2c9e14b0e72",
+     "id": "jetblue.jobs.fo-aircraft-fo.22f79bc2",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-jetblue",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-01-09",
+       "publisher": "Airline Pilot Central Forums (ComanchePilot, post #11)",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-airlinepilotforums-com-80a8702d",
+       "source_type": "community_reference",
+       "title": "Airline Pilot Central Forums (ComanchePilot, post #11)",
+       "url": "https://www.airlinepilotforums.com/jetblue/141042-new-hire-questions-2.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: Aircraft assigned on day 1 by seniority within class (type not named)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "jetblue",
+     "cond_ja": "Postings name no type; company fleet has A220 and A320-family types (several), so new hires could go to any。補足: ;。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Our fleet of 280+ aircraft includes A320, A321, A321neo, A321LR, A220.",
+       "source_id": "src-pilots-jetblue-com-ee07a2e3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6cddcff7027f05bd",
+     "id": "jetblue.jobs.fo-aircraft-fo.8b19c93a",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-jetblue",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "JetBlue Pilots (pilots.jetblue.com)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-pilots-jetblue-com-ee07a2e3",
+       "source_type": "job_posting",
+       "title": "JetBlue Pilots (pilots.jetblue.com)",
+       "url": "https://pilots.jetblue.com"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A220, A320, A321 (incl. A321neo, A321LR)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true,
       "rank": "fo"
@@ -98402,6 +106057,161 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "First Officer",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "jetblue",
+     "cond_ja": "First Officer requisition 58773 live with Apply button; datePosted in page metadata。補足: 掲載日はページのメタデータ（datePosted）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-11-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Title: First Officer Location: Orlando, FL, US, 32827 Req ID: 58773 | datePosted\" content=\"Wed Nov 04 08:00:00 UTC 2026\"",
+       "source_id": "src-careers-jetblue-com-c14ac462",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ea7ea43567583241",
+     "id": "jetblue.jobs.fo-status-fo.c6be1fd3",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_status",
+     "label_ja": "副操縦士の求人の状況",
+     "pack": "pvr-20261120-cl-jetblue",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-04",
+       "publisher": "JetBlue Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-jetblue-com-c14ac462",
+       "source_type": "job_posting",
+       "title": "JetBlue Careers",
+       "url": "https://careers.jetblue.com/job/Orlando-First-Officer-FL-32827/1437544500/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (posted 2026-11-04)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "jetblue",
+     "cond_ja": "Gateway Select graduates go to JetBlue First Officer new-hire training; type follows company fleet。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Upon successful completion of all program requirements, including obtaining an unrestricted Airline Transport Pilot (ATP) certificate, participants transition to JetBlue's First Officer new hire training program before beginning their careers as JetBlue pilots.",
+       "source_id": "src-careers-jetblue-com-5eeca8c2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e37e15a60700b339",
+     "id": "jetblue.jobs.pilot-aircraft.e7dbf854",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-jetblue",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-29",
+       "publisher": "JetBlue Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-jetblue-com-5eeca8c2",
+       "source_type": "job_posting",
+       "title": "JetBlue Careers",
+       "url": "https://careers.jetblue.com/job/Orlando-Gateway-Select-Training-Program-FL-32827/1425620800/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: JetBlue First Officer fleet after program (type not named)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "jetblue",
+     "cond_ja": "Gateway Select requisition 58581 live with Apply button; datePosted in page metadata。補足: 掲載日はページのメタデータ（datePosted）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Title: Gateway Select Training Program Location: Orlando, FL, US, 32827 Req ID: 58581 | datePosted\" content=\"Thu Oct 29 07:00:00 UTC 2026\"",
+       "source_id": "src-careers-jetblue-com-5eeca8c2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "36802eb3ac102176",
+     "id": "jetblue.jobs.pilot-status.7ac9c188",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-jetblue",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-29",
+       "publisher": "JetBlue Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-jetblue-com-5eeca8c2",
+       "source_type": "job_posting",
+       "title": "JetBlue Careers",
+       "url": "https://careers.jetblue.com/job/Orlando-Gateway-Select-Training-Program-FL-32827/1425620800/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (posted 2026-10-29)",
      "value_text": null
     },
     {
@@ -101658,6 +109468,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "cap"
      },
+     "checked_at": "2026-11-20",
+     "company": "jetstar-japan",
+     "cond_ja": "A320 Captain listing at agency Rishworth; agency page says the airline is based in Narita (company base, not a posting field)。補足: エージェントの会社紹介文。求人の勤務地欄ではない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Jetstar Japan is a low cost carrier based in Narita.",
+       "source_id": "src-rishworthaviation-com-a991afc3",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "83ca113a47083181",
+     "id": "jetstar-japan.jobs.cap-base-cap.ad869fda",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-jetstar-japan",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "recruiter",
+       "retrieved": "2026-11-20",
+       "source_id": "src-rishworthaviation-com-a991afc3",
+       "source_type": "job_posting",
+       "title": "Rishworth Aviation",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/jetstar-japan"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Narita",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
      "checked_at": "2026-10-29",
      "company": "jetstar-japan",
      "cond_ja": "A320機長／上記総時間と併せたPIC最低値。補足: 過去。求人充足済み。原採用仲介会社の更新済み広告。",
@@ -102187,6 +110050,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "応募期限経過",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "jetstar-japan",
+     "cond_ja": "FOUG pilot-candidate posting names no type; company news release: 22 Airbus aircraft, mainstay A320 plus A321LR being added (two types; new hires could go to either)。補足: 同じリリースに「22 機のエアバス機で 1 日最大 108 便運航する予定」。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-08-28",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "なお、10 月以降、保有機材の更新に合わせてエアバス A321LR 型機の新造機を 2 機導入する予定で、需要が旺盛な国内外の路線に投入します。新造機の座席数は 232 席と、当社主力機である エアバス A320 型機の 180 席に比べ 52 席（約 30%）多く",
+       "source_id": "src-files-jetstar-com-78492bac",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7f6ac3fb176b5dc2",
+     "id": "jetstar-japan.jobs.pilot-aircraft.318b234b",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-jetstar-japan",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-08-28",
+       "publisher": "Jetstar Japan News Release",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-files-jetstar-com-78492bac",
+       "source_type": "job_posting",
+       "title": "Jetstar Japan News Release",
+       "url": "https://files.jetstar.com/api/public/content/20260828"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320, A321LR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "jetstar-japan",
+     "cond_ja": "FOUG pilot-candidate posting; posting states the base after line flying starts (training in Japan and abroad, e.g. Seoul, Kuala Lumpur)。補足: 入社後の地上実習も成田空港。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "乗務開始後は成田空港を勤務地とする",
+       "source_id": "src-cdn-01-cms-ap-v2i-applyflow-com-cecc179c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6db42cbb7f46a93d",
+     "id": "jetstar-japan.jobs.pilot-base.e88370a3",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-jetstar-japan",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Jetstar Japan 運航乗務員候補者 募集要項 (PDF)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-cdn-01-cms-ap-v2i-applyflow-com-cecc179c",
+       "source_type": "job_posting",
+       "title": "Jetstar Japan 運航乗務員候補者 募集要項 (PDF)",
+       "url": "https://cdn-01.cms-ap-v2i.applyflow.com/jetstar-japan/wp-content/uploads/2026/04/FOUG%E5%8B%9F%E9%9B%86%E8%A6%81%E9%A0%85_%E4%B8%80%E8%88%AC%E5%85%AC%E5%8B%9F.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Narita",
      "value_text": null
     }
    ],
@@ -102894,6 +110859,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "jta",
+     "cond_ja": "Captain-candidate (B737 type-rated) posting; posting names the work location。補足: 応募資格に「訓練中は那覇空港へ公共交通機関で60分通勤圏内に居住可能であること」。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "【勤務地】 那覇空港等",
+       "source_id": "src-jta-okinawa-com-3ee185cd",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d3c8e882068f6e56",
+     "id": "jta.jobs.cap-base-cap.5375555a",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-jta",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "JTA 採用情報（募集職種一覧）",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-jta-okinawa-com-3ee185cd",
+       "source_type": "job_posting",
+       "title": "JTA 採用情報（募集職種一覧）",
+       "url": "https://jta-okinawa.com/recruit/joblist/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Naha Airport (and other places)",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -104896,6 +112914,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "cap"
      },
+     "checked_at": "2026-11-20",
+     "company": "kalitta-air",
+     "cond_ja": "Kalitta Air Assistant Chief Pilot ad (B747 or B777 captain upgrade) carried on career.com; location Ypsilanti。補足: 元の PilotsGlobal（B747版）は 403 で開けず。career.com 版は「B747 or B777」の機長昇格を要件とする同職。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-10",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Assistant Chief Pilot Kalitta Air, LLC Ypsilanti, MI Full Time POSTED ON 10/10/2026 AVAILABLE BEFORE 12/10/2026",
+       "source_id": "src-career-com-3cc0097e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "78fe4c5a76bba298",
+     "id": "kalitta-air.jobs.cap-base-cap.f2efd2e9",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-10",
+       "publisher": "Career.com (Kalitta Air, LLC ad)",
+       "publisher_kind": "recruiter",
+       "retrieved": "2026-11-20",
+       "source_id": "src-career-com-3cc0097e",
+       "source_type": "job_posting",
+       "title": "Career.com (Kalitta Air, LLC ad)",
+       "url": "https://www.career.com/job/kalitta-air-llc/assistant-chief-pilot/j202412052128227799395"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Ypsilanti, MI (YIP)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
      "checked_at": "2026-11-18",
      "company": "kalitta-air",
      "cond_ja": "FAA ATP, Class 1 Medical, FCC Radio License (Assistant Chief Pilot - B747)。補足: 【第三者】。",
@@ -105046,6 +113117,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "Current US Passport",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "kalitta-air",
+     "cond_ja": "Assistant Chief Pilot ad dates on career.com。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-10",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "POSTED ON 10/10/2026 … AVAILABLE BEFORE 12/10/2026",
+       "source_id": "src-career-com-3cc0097e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d3264bfd8fa7f0f2",
+     "id": "kalitta-air.jobs.cap-status-cap.81de33c5",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_status",
+     "label_ja": "機長の求人の状況",
+     "pack": "pvr-20261120-cl-kalitta-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-10",
+       "publisher": "Career.com (Kalitta Air, LLC ad)",
+       "publisher_kind": "recruiter",
+       "retrieved": "2026-11-20",
+       "source_id": "src-career-com-3cc0097e",
+       "source_type": "job_posting",
+       "title": "Career.com (Kalitta Air, LLC ad)",
+       "url": "https://www.career.com/job/kalitta-air-llc/assistant-chief-pilot/j202412052128227799395"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (posted 2026-10-10, available before 2026-12-10)",
      "value_text": null
     },
     {
@@ -106630,6 +114754,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": 18,
      "value_text": "18"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "kenya-airways",
+     "cond_ja": "First Officer (licensed pilots) 2025 posting names no type (\"our fleet of modern aircraft\", no type rating required); company fleet has several types, so new First Officers could go to any of them。補足: 会社の「Our aircraft」頁の機種名（頁に日付なし）。B737-300F は貨物機。求人本体（API）は「The Job is based in Kenya Airways Nairobi」で機種名なし、型式限定も求めていない。締切 2025-12-31。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 777-300ER … Boeing 787-8 … Boeing 737-800 … Boeing 737-300F … Embraer-E190",
+       "source_id": "src-kenya-airways-com-37c91ece",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e99d65caf4ae01ab",
+     "id": "kenya-airways.jobs.fo-aircraft-fo.8d5fb9b6",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-kenya-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Kenya Airways (Our aircraft)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-kenya-airways-com-37c91ece",
+       "source_type": "job_posting",
+       "title": "Kenya Airways (Our aircraft)",
+       "url": "https://www.kenya-airways.com/en/experience/our-aircraft/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: B787-8, B777-300ER, B737-800, B737-300F, E190",
+     "value_text": null
     },
     {
      "amount": null,
@@ -108520,6 +116697,210 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "klm",
+     "cond_ja": "KLM Flight Academy FAQ: graduates join KLM as Second Officer B777。補足: 【写し】 2025-10-28 の写し（それ以降の写しなし）。2026-10 の訓練ページは B777/787 か Embraer 170 と書いており、こちらは古い可能性。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Na afronding van de opleiding ontvang jij je vliegbrevet en stroom je door naar KLM in de functie van second officer B777.",
+       "source_id": "src-web-archive-org-e679d8a6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "07668345af8c9302",
+     "id": "klm.jobs.pilot-aircraft.564d38a1",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-klm",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "KLM Flight Academy (Wayback Machine copy)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-web-archive-org-e679d8a6",
+       "source_type": "job_posting",
+       "title": "KLM Flight Academy (Wayback Machine copy)",
+       "url": "https://web.archive.org/web/20251028225232/https://klmflightacademy.nl/over-ons/f-a-q/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: B777 (Second Officer)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "klm",
+     "cond_ja": "KLM Flight Academy cadet program page; final MCC + type rating phase names the types。補足: 【写し】 公式サイトは Cloudflare で直接読めず、2026-10-13 の Wayback 写しを読んだ。Embraer 170 は KLM Cityhopper の型式。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Bij ons leer je in een Full Flight Simulator van KLM vliegen op het vliegtuigtype Boeing 777/787 of de Embraer 170.",
+       "source_id": "src-web-archive-org-7ae93ebe",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "023482a4396510e3",
+     "id": "klm.jobs.pilot-aircraft.b8ff6a5d",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-klm",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "KLM Flight Academy (Wayback Machine copy)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-web-archive-org-7ae93ebe",
+       "source_type": "job_posting",
+       "title": "KLM Flight Academy (Wayback Machine copy)",
+       "url": "https://web.archive.org/web/20261013124633/https://klmflightacademy.nl/opleiding/praktische-vliegopleiding-schiphol/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: B777/B787 or Embraer 170",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "klm",
+     "cond_ja": "Academy news list shows the latest intake。補足: 【写し】 2026年の3クラス目が9月に開始。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-09-03",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Start klas 26-3! 2026-09-03 10:33:21",
+       "source_id": "src-web-archive-org-6148215b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "db8f551e36c65d4e",
+     "id": "klm.jobs.pilot-status.21ede538",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-klm",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "KLM Flight Academy (Wayback Machine copy)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-web-archive-org-6148215b",
+       "source_type": "job_posting",
+       "title": "KLM Flight Academy (Wayback Machine copy)",
+       "url": "https://web.archive.org/web/20261017062222/https://klmflightacademy.nl/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: class 26-3 started 2026-09-03",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "klm",
+     "cond_ja": "Academy home page invites applicants; application (\"Aanmelden\") and open days listed into December 2026。補足: 【写し】 2026-10-17 の写し。締切の記載はなく、随時受付の様子からの判断（弱い）。同ページのオンライン説明会は 11/5・11/19 が満席、12/3 まで予定。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Wil jij piloot worden? Wij zoeken jongens en meiden met ambitie en talent. Zoeken wij jou? Ja!",
+       "source_id": "src-web-archive-org-6148215b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e4885ec4d1de8e75",
+     "id": "klm.jobs.pilot-status.4d5d03bc",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-klm",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "KLM Flight Academy (Wayback Machine copy)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-web-archive-org-6148215b",
+       "source_type": "job_posting",
+       "title": "KLM Flight Academy (Wayback Machine copy)",
+       "url": "https://web.archive.org/web/20261017062222/https://klmflightacademy.nl/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (rolling admissions)",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -110687,6 +119068,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "cap"
      },
+     "checked_at": "2026-11-20",
+     "company": "korean-air",
+     "cond_ja": "Expat Captain recruitment (incl. B787) via agency; all expat pilots fly from the Seoul hub。補足: 求人の所在地は「Korea」だけ。拠点はソウル（仁川）・休日は自分の住む国へ戻る通勤契約。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "All expat pilots operate to and from the Seoul hub, with pilots choosing a home base for monthly days off on the extensive Korean Air network. … As your operating base, your home in Seoul is the Grand Hyatt Incheon, the 5-star accommodation provided to all expat flight crew.",
+       "source_id": "src-rishworthaviation-com-0efcc553",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ffe3a6023a96f876",
+     "id": "korean-air.jobs.cap-base-cap.ae74d858",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-korean-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "recruiter",
+       "retrieved": "2026-11-20",
+       "source_id": "src-rishworthaviation-com-0efcc553",
+       "source_type": "job_posting",
+       "title": "Rishworth Aviation",
+       "url": "https://rishworthaviation.com/pilot-jobs/countries/pilot-jobs-in-korea"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Seoul hub (Incheon; crew hotel Grand Hyatt Incheon); commuting contract, home base of choice for days off",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
      "checked_at": "2026-10-29",
      "company": "korean-air",
      "cond_ja": "Korean Air B787機長; Rishworth経由外国人・5年更新通勤契約; 公式Korean Air掲載の具体要件が得られず、当該仲介者が直接扱う募集条件を採用; ICAO英語レベル最低5。補足: JSON-LD dateModified=2025-11-13。公式仲介会社の自社募集条件。別仲介者CCL https://kal-ccl.com/Vacancies は2025-12-23付で応募保留、2026-09-07更新トップも就労許可再開待ちを明示するため、現在の採用再開や入社可否は本行から断定しない。",
@@ -110891,6 +119325,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": 500,
      "value_text": "500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "korean-air",
+     "cond_ja": "CCL Aviation (the other agency) main page for Korean Air。補足: 2社の代理店がそろって募集中・2027年1月から毎月の選考と書いている。※このページの中に AI 向けの指示文が埋め込まれていた（無視した）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Seeking B787 Captains now … NEXT KAL SCREENING January 2027 Korean Air have resumed recruitment. With monthly screenings planned from January 2027",
+       "source_id": "src-kal-ccl-com-baaebfff",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4cfb68bd15887f40",
+     "id": "korean-air.jobs.cap-status-cap.54001414",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_status",
+     "label_ja": "機長の求人の状況",
+     "pack": "pvr-20261120-cl-korean-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "CCL Aviation",
+       "publisher_kind": "recruiter",
+       "retrieved": "2026-11-20",
+       "source_id": "src-kal-ccl-com-baaebfff",
+       "source_type": "job_posting",
+       "title": "CCL Aviation",
+       "url": "https://www.kal-ccl.com/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (Korean Air resumed recruitment; monthly screenings planned from January 2027)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "korean-air",
+     "cond_ja": "Rishworth listing for Korean Air B787 Captains。補足: 掲載日・締切日の表示なし。B787 の個別ページ（/korean-air-pilot-jobs/korean-air-b787）は「Screening: December - dates TBA」で古い表示が残る。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Rishworth Aviation is recruiting B787 Captains for Korean Air. … Timeline Screening will take place in Seoul every month from January 2027. We review applications as they come in, so we encourage you to apply early.",
+       "source_id": "src-rishworthaviation-com-58e7932c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e51130a67d74a868",
+     "id": "korean-air.jobs.cap-status-cap.a987e8bc",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_status",
+     "label_ja": "機長の求人の状況",
+     "pack": "pvr-20261120-cl-korean-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Rishworth Aviation",
+       "publisher_kind": "recruiter",
+       "retrieved": "2026-11-20",
+       "source_id": "src-rishworthaviation-com-58e7932c",
+       "source_type": "job_posting",
+       "title": "Rishworth Aviation",
+       "url": "https://rishworthaviation.com/pilot-jobs/airline/korean-air-pilot-jobs"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (agency recruiting B787 Captains; monthly screenings in Seoul from January 2027)",
+     "value_text": null
     },
     {
      "amount": null,
@@ -111167,6 +119707,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "新人操縦士教育期間中は契約職。試用操縦士任命時に正規職へ転換。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "korean-air",
+     "cond_ja": "Entry-level pilot (civil background) posting; body not readable and no assignment source found; Korean Air fleet as of 2026-06-30 has several types。補足: 公式の求人（koreanair.recruiter.co.kr/career/jobs/120213）は本文が JS で読み込まれ、表題「신입 조종사(민경력) 모집」しか読めなかった。新人をどの機種に入れるかの出典は見つからず。IR 資料の PDF から本文を抽出（大韓航空単体の機材）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "항공기 보유 현황 (단위 : 대) … 2026. 6. 30 … B747-8i 4 B777 30 B787-9 14 B787-10 16 A380 5 A350 3 A330 17 소 계 89 … B737-800/900 17 B737-8 6 A321Neo 20 A220 10 소 계 53 여객기 계 142 화물기 B747F 4 B747-8F 7 B777F 12 화물기 계 23 총 계 165",
+       "source_id": "src-kr-img-news-koreanair-com-b0942d85",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "adfb5a122aaa1793",
+     "id": "korean-air.jobs.pilot-aircraft.71a54ff6",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-korean-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Korean Air IR (2026년 2분기 잠정 실적)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-kr-img-news-koreanair-com-b0942d85",
+       "source_type": "job_posting",
+       "title": "Korean Air IR (2026년 2분기 잠정 실적)",
+       "url": "https://kr.img.news.koreanair.com/wp-content/uploads/2026/07/2026%EB%85%84-2%EB%B6%84%EA%B8%B0-%EC%9E%A0%EC%A0%95%EC%8B%A4%EC%A0%81-IR-%EC%9E%90%EB%A3%8C-1.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: Several types: B747-8i, B777, B787-9, B787-10, A380, A350, A330, B737-800/900, B737-8, A321neo, A220 (passenger); B747F, B747-8F, B777F (freighter)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "korean-air",
+     "cond_ja": "Job-aggregator copy of the entry-level pilot (civil) posting; closing date field。補足: 【第三者】 締切の欄の値。公式ページの本文は読めず未確認。サイトの現状（open）と矛盾しない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-03-31",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "2026.12.31 오전 12:00",
+       "source_id": "src-yugacrew-com-1b1a961f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "49b0703d9d01b77a",
+     "id": "korean-air.jobs.pilot-status.2a333d05",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-korean-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-03-31",
+       "publisher": "육아크루 (yugacrew) job listing",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-yugacrew-com-1b1a961f",
+       "source_type": "third_party_reference",
+       "title": "육아크루 (yugacrew) job listing",
+       "url": "https://www.yugacrew.com/careertalk/jobs/4347"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (closing 2026-12-31 per aggregator)",
      "value_text": null
     }
    ],
@@ -112053,6 +120695,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "kuwait-airways",
+     "cond_ja": "Generic \"Pilots\" entry; no pilot posting on the careers site, no source names a type; company current fleet has several types, so new pilots could go to any of them。補足: 会社概要の「CURRENT FLEET」節。頁の更新表示は「Last upated:July, 2025」（月まで）。careers.kuwaitairways.com/jobs/Careers は見出し「Jobs at Careers」だけで求人の表示なし（2026-11-20）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-07",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing B777-300ER aircraft … Airbus A320neo aircraft … Airbus A330-800neo aircraft … Airbus A330-900 aircraft … Airbus A321 aircraft",
+       "source_id": "src-kuwaitairways-com-ccacbcb1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "81d08aac35156723",
+     "id": "kuwait-airways.jobs.pilot-aircraft.652b1ca9",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-kuwait-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-07",
+       "publisher": "Kuwait Airways Corporate Profile",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-kuwaitairways-com-ccacbcb1",
+       "source_type": "job_posting",
+       "title": "Kuwait Airways Corporate Profile",
+       "url": "https://kuwaitairways.com/en/about/corporate-profile"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: B777-300ER, A320neo, A330-800neo, A330-900, A321",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "kuwait-airways",
+     "cond_ja": "Generic \"Pilots\" entry; no posting; base taken from the company's stated home terminal (single hub)。補足: 拠点を明記した求人は無い。会社の専用ターミナルの記述から。第三者の求人（Flightdeck Friend「based in Kuwait City」）は検索結果の抜粋のみで開いていないため使っていない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-07",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Terminal 4 (T4) of the Kuwait International Airport was inaugurated as Kuwait Airways' dedicated terminal",
+       "source_id": "src-kuwaitairways-com-ccacbcb1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1e8f032435f8fabb",
+     "id": "kuwait-airways.jobs.pilot-base.41a70ee8",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-kuwait-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-07",
+       "publisher": "Kuwait Airways Corporate Profile",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-kuwaitairways-com-ccacbcb1",
+       "source_type": "job_posting",
+       "title": "Kuwait Airways Corporate Profile",
+       "url": "https://kuwaitairways.com/en/about/corporate-profile"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Kuwait (Kuwait International Airport, Terminal 4)",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -114178,6 +122922,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "latam",
+     "cond_ja": "Earlier LATAM Brasil pilot intake (June 2025) names the operating base; the Nov 2025 process articles name no base。補足: 2025年6月の別の募集回の記述。2025年11月の回の基地は未確認。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-06-09",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "São cerca de 150 vagas para copilotos e 10 para comandantes, com base operacional em São Paulo (Congonhas e Guarulhos).",
+       "source_id": "src-panrotas-com-br-4b3bbdfc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f39ebb595ede1267",
+     "id": "latam.jobs.fo-base-fo.0eca0601",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-latam",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-06-09",
+       "publisher": "PANROTAS",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-20",
+       "source_id": "src-panrotas-com-br-4b3bbdfc",
+       "source_type": "third_party_reference",
+       "title": "PANROTAS",
+       "url": "https://www.panrotas.com.br/aviacao/empresas/2025/06/latam-abre-mais-de-160-vagas-para-pilotos-no-brasil_218349.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: São Paulo (Congonhas, Guarulhos)",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -117575,6 +126372,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": "EU or Swiss citizenship or citizenship of an EFTA member state",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "lufthansa",
+     "cond_ja": "European Flight Academy graduates; EFA career-entry page says the first type rating is usually a short/medium-haul type like the A320, depending on the LHG airline joined。補足: 文頭は「Das erste Type Rating (…) wird in der Regel …」。求人そのものは「apply for a cockpit seat with all LHG airlines」で機種名なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "wird in der Regel für eine Kurz- und Mittelstreckenmaschine wie den Airbus A320 ausgestellt. Nach einigen Jahren erfolgt dann die Umschulung auf einen Wide-Body-Typ, mit dem der Einsatz auf der Langstrecke beginnt. Dieser Prozess hängt von der Fluggesellschaft ab, bei der du startest.",
+       "source_id": "src-lufthansa-aviation-training-com-ad630e0e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d64bb62aa42d03ad",
+     "id": "lufthansa.jobs.pilot-aircraft.0ea4ef94",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-lufthansa",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "European Flight Academy (Lufthansa Aviation Training)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-lufthansa-aviation-training-com-ad630e0e",
+       "source_type": "job_posting",
+       "title": "European Flight Academy (Lufthansa Aviation Training)",
+       "url": "https://www.lufthansa-aviation-training.com/de/web/european-flight-academy/berufseinstieg"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320 family (first type rating usually short/medium-haul such as A320; airline-dependent)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "lufthansa",
+     "cond_ja": "EFA ab-initio job ad lists the training locations; no line base named。補足: 訓練地。修了後は LHG 各社へ応募する形で、乗務拠点は入社する会社次第。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-10-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Location: Bremen / Zurich",
+       "source_id": "src-apply-lufthansagroup-careers-b44f0fb4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "840d7c3f8e458bf6",
+     "id": "lufthansa.jobs.pilot-base.548b5fa7",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-lufthansa",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-10-04",
+       "publisher": "Lufthansa Group Careers (EFA job ad)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-apply-lufthansagroup-careers-b44f0fb4",
+       "source_type": "job_posting",
+       "title": "Lufthansa Group Careers (EFA job ad)",
+       "url": "https://apply.lufthansagroup.careers/index.php?ac=jobad&id=84539"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Bremen / Zurich (training locations); line base depends on the LHG airline",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "lufthansa",
+     "cond_ja": "EFA ab-initio job ad is live and invites applications。補足: 日付はページ内 JSON-LD の \"datePosted\":\"2024-10-04\" と \"validThrough\":\"2027-04-07\"。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-10-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Then we look forward to receiving your online application for the European Flight Academy's commercial pilot training program!",
+       "source_id": "src-apply-lufthansagroup-careers-b44f0fb4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ffef4dd1c69fd7d8",
+     "id": "lufthansa.jobs.pilot-status.e688f0cf",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-lufthansa",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-10-04",
+       "publisher": "Lufthansa Group Careers (EFA job ad)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-apply-lufthansagroup-careers-b44f0fb4",
+       "source_type": "job_posting",
+       "title": "Lufthansa Group Careers (EFA job ad)",
+       "url": "https://apply.lufthansagroup.careers/index.php?ac=jobad&id=84539"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (posted 2024-10-04, valid through 2027-04-07)",
+     "value_text": null
     }
    ],
    "profile": [
@@ -118433,6 +127383,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "募集検索で該当役割を選びオンライン申込。speculative CVは受け付けないと案内。pilot個別ポスト受付中の確認とは別。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "malaysia-airlines",
+     "cond_ja": "Join-us page has no pilot posting; company fleet page lists several types (\"and more\")。補足: 公式の機材ページ。「and more」なので全機種ではない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Airbus A330neo ... Browse through options like the Airbus A350-900, Boeing B737-800, and more.",
+       "source_id": "src-malaysiaairlines-com-911ade8e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "49e1e5844ad03314",
+     "id": "malaysia-airlines.jobs.pilot-aircraft.21443cf1",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-malaysia-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Malaysia Airlines (Our Fleet)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-malaysiaairlines-com-911ade8e",
+       "source_type": "job_posting",
+       "title": "Malaysia Airlines (Our Fleet)",
+       "url": "https://www.malaysiaairlines.com/my/en/experience/our-fleet.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A330neo, A350-900, B737-800 and others (several types)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "malaysia-airlines",
+     "cond_ja": "No posting; company hub (secondary hub Kota Kinabalu)。補足: 【Wikipedia】。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Hubs Kuala Lumpur International Airport ... Secondary hubs Kota Kinabalu International Airport",
+       "source_id": "src-en-wikipedia-org-a2e4c882",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "97da97eff13da940",
+     "id": "malaysia-airlines.jobs.pilot-base.dc14ed4a",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-malaysia-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-en-wikipedia-org-a2e4c882",
+       "source_type": "third_party_reference",
+       "title": "Wikipedia",
+       "url": "https://en.wikipedia.org/wiki/Malaysia_Airlines"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Kuala Lumpur (KLIA)",
      "value_text": null
     }
    ],
@@ -121741,6 +130793,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "oman-air",
+     "cond_ja": "Cadet Pilot scheme (career-path text only); no source names the type cadets join; company fleet page lists several types, so graduates could go to any of them。補足: 会社の機材頁（日付なし、© 2026）。台帳には B737-800 もあるがこの頁には出ていない。2026-01 のプレスリリースは「total fleet to 33 aircraft」。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BOEING 787-9 … Total Aircraft: 10 … BOEING 737-8 MAX … Total Aircraft: 18 … BOEING 737-900 … Total Aircraft: 2",
+       "source_id": "src-omanair-com-2789f502",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b12d73df3fc0fb4a",
+     "id": "oman-air.jobs.pilot-aircraft.46ab13d5",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-oman-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Oman Air (Our Fleet)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-omanair-com-2789f502",
+       "source_type": "job_posting",
+       "title": "Oman Air (Our Fleet)",
+       "url": "https://www.omanair.com/en/our-fleet"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: B787-9, B737-8 MAX, B737-900",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "oman-air",
+     "cond_ja": "Cadet Pilot scheme; careers page names no base; taken from the company profile (single home base)。補足: 会社概要頁（© 2023）。採用頁は「overseas postings」に触れるが場所の記載なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Oman Air (WY), based in the beautiful capital city of Muscat, began operations in 1993.",
+       "source_id": "src-services-omanair-com-99769df5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8303ba2058c0ccff",
+     "id": "oman-air.jobs.pilot-base.22ae00d1",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-oman-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Oman Air Profile",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-services-omanair-com-99769df5",
+       "source_type": "job_posting",
+       "title": "Oman Air Profile",
+       "url": "https://services.omanair.com/gbl/en/oman-air-profile"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Muscat",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true
      },
@@ -122295,6 +131449,324 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "cap"
      },
+     "checked_at": "2026-11-20",
+     "company": "orc",
+     "cond_ja": "2023 fixed-wing Captain posting; only hint at type is a preference for DHC8 rating。補足: 機種の指定ではなく「尚可」。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "応募資格 :1. 国土交通省航空局(J-CAB)が発行する定期運送用操縦士技能証明 保有者(DHC8限定保有者は尚可)",
+       "source_id": "src-japa-or-jp-265dcb39",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9f138f4667484f16",
+     "id": "orc.jobs.cap-aircraft-cap.5af02c5d",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_aircraft",
+     "label_ja": "機長の求人の機種",
+     "pack": "pvr-20261120-cl-orc",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ORC 機長要員募集要項（2023年・JAPA掲載PDF）",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-japa-or-jp-265dcb39",
+       "source_type": "job_posting",
+       "title": "ORC 機長要員募集要項（2023年・JAPA掲載PDF）",
+       "url": "https://www.japa.or.jp/wp-content/uploads/2023/09/1ad0ec88f9b55fb7585b6f1edc290cf1.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: DHC8 type rating preferred (not required)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "orc",
+     "cond_ja": "2023 fixed-wing Captain posting names no type; company fleet = DHC-8-400 x4 and ATR42-600 x2 (two types)。補足: 会社概要の2行を / でつないだもの。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ボンバルディア式　DHC－8－400型（客席数 74席）4機 / ATR42-600型　（客席数　48席）2機",
+       "source_id": "src-orc-air-co-jp-92605318",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8a0f8f8cca690c9d",
+     "id": "orc.jobs.cap-aircraft-cap.9ad748e1",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_aircraft",
+     "label_ja": "機長の求人の機種",
+     "pack": "pvr-20261120-cl-orc",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ORC 会社概要",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-orc-air-co-jp-92605318",
+       "source_type": "job_posting",
+       "title": "ORC 会社概要",
+       "url": "https://www.orc-air.co.jp/company/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: DHC-8-400, ATR42-600",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "orc",
+     "cond_ja": "Company page: ORC's helicopter division operates the prefectural helicopter 'Nagasaki' under contract。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "オリエンタルエアブリッジ株式会社（防災ヘリ運航部）では、平成5年4月1日より長崎県防災ヘリコプター“ながさき”の運航整備を受託しています。",
+       "source_id": "src-orc-air-co-jp-5b922d03",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "767ccdba1a5826e3",
+     "id": "orc.jobs.cap-aircraft-cap.a0bfe803",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_aircraft",
+     "label_ja": "機長の求人の機種",
+     "pack": "pvr-20261120-cl-orc",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ORC 防災ヘリ受託運航事業",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-orc-air-co-jp-5b922d03",
+       "source_type": "job_posting",
+       "title": "ORC 防災ヘリ受託運航事業",
+       "url": "https://www.orc-air.co.jp/company/heli/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: Helicopter: Nagasaki Prefecture disaster-prevention helicopter 'Nagasaki' (model not confirmed)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "orc",
+     "cond_ja": "Helicopter Captain posting; news says ORC is recruiting the captain of the prefectural disaster-prevention helicopter it operates under contract。補足: 記事の続き（勤務地など）は会員限定で読めず。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-12-30",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "オリエンタルエアブリッジ（ORC、NGK）は、同社が運航受託している長崎県防災ヘリコプターの機長を募集している。",
+       "source_id": "src-aviationwire-jp-b2123605",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "83e18c70d1067350",
+     "id": "orc.jobs.cap-aircraft-cap.f1fdc097",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_aircraft",
+     "label_ja": "機長の求人の機種",
+     "pack": "pvr-20261120-cl-orc",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-12-30",
+       "publisher": "Aviation Wire",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-20",
+       "source_id": "src-aviationwire-jp-b2123605",
+       "source_type": "third_party_reference",
+       "title": "Aviation Wire",
+       "url": "https://www.aviationwire.jp/?p=335574"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: Helicopter: Nagasaki Prefecture disaster-prevention helicopter (model not confirmed)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "orc",
+     "cond_ja": "Posting PDF not readable; company profile lists the office of its disaster-prevention helicopter division (防災ヘリ運航部事務所)。補足: 会社概要で「防災ヘリ運航部事務所」の住所として載っている。求人の勤務地欄ではない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "〒856-0818 長崎県大村市今津町201番地",
+       "source_id": "src-orc-air-co-jp-92605318",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ea646815b06087a6",
+     "id": "orc.jobs.cap-base-cap.7b877f18",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-orc",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ORC 会社概要",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-orc-air-co-jp-92605318",
+       "source_type": "job_posting",
+       "title": "ORC 会社概要",
+       "url": "https://www.orc-air.co.jp/company/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Omura, Nagasaki (ORC disaster-prevention helicopter operations office)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "orc",
+     "cond_ja": "2023 fixed-wing Captain posting; posting names the work location。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "■ 勤 務 地 : 福岡空港もしくは長崎空港",
+       "source_id": "src-japa-or-jp-265dcb39",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "834227f1724aff12",
+     "id": "orc.jobs.cap-base-cap.bd2d3b5b",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-orc",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ORC 機長要員募集要項（2023年・JAPA掲載PDF）",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-japa-or-jp-265dcb39",
+       "source_type": "job_posting",
+       "title": "ORC 機長要員募集要項（2023年・JAPA掲載PDF）",
+       "url": "https://www.japa.or.jp/wp-content/uploads/2023/09/1ad0ec88f9b55fb7585b6f1edc290cf1.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Fukuoka or Nagasaki",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
      "checked_at": "2026-10-29",
      "company": "orc",
      "cond_ja": "固定翼の機長要員／国内定期航空運送事業者での乗務経験。国土交通省航空局発行の資格。補足: 過去。応募締切２０２３年１０月２０日、入社２０２４年２月以降。発行日の日付は本文にないため空欄。",
@@ -122393,6 +131865,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": 1,
      "value_text": "1"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "orc",
+     "cond_ja": "Careers page lists the Helicopter Captain posting (PDF under /uploads/2026/11/)。補足: 現状どおり。操縦士の募集は回転翼のこれ1件だけ。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "回転翼操縦士（機長）",
+       "source_id": "src-orc-air-co-jp-78c9a1e9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e20d182625b6666f",
+     "id": "orc.jobs.cap-status-cap.508b5d8b",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_status",
+     "label_ja": "機長の求人の状況",
+     "pack": "pvr-20261120-cl-orc",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ORC 採用情報",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-orc-air-co-jp-78c9a1e9",
+       "source_type": "job_posting",
+       "title": "ORC 採用情報",
+       "url": "https://www.orc-air.co.jp/recruit/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: listed on careers page (no date shown; checked 2026-11-20)",
+     "value_text": null
     },
     {
      "amount": null,
@@ -123517,6 +133042,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "cap"
      },
+     "checked_at": "2026-11-20",
+     "company": "peach",
+     "cond_ja": "Captain posting on company careers site; posting names the bases。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "関西国際空港・成田国際空港をベースとし、訓練委託先、その他業務内容に応じ会社が定める場所",
+       "source_id": "src-job-axol-jp-b0a7f52d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "dec6fd3135cb68c1",
+     "id": "peach.jobs.cap-base-cap.0e498ee4",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-peach",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Peach 採用サイト（axol）",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-job-axol-jp-b0a7f52d",
+       "source_type": "job_posting",
+       "title": "Peach 採用サイト（axol）",
+       "url": "https://job.axol.jp/pm/c/flypeach/job/category/d9mlF9a7cS09-"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Kansai, Narita",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
      "checked_at": "2026-10-29",
      "company": "peach",
      "cond_ja": "以上。",
@@ -124106,6 +133684,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "機長は充足次第受付終了、チャレンジ生プレエントリーは終了",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "peach",
+     "cond_ja": "Pilot Challenge page names no type; the company's own Captain posting on the same careers site says its pilots fly the A320 type。補足: 機長求人の業務内容。flypeach.com の機材ページは応答せず開けず（台帳は A320/A320neo/A321LR）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "A320型機の操縦、ならびに運航関連業務",
+       "source_id": "src-job-axol-jp-b0a7f52d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8c23349276f4b420",
+     "id": "peach.jobs.pilot-aircraft.de6fa8d7",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-peach",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Peach 採用サイト（axol）",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-job-axol-jp-b0a7f52d",
+       "source_type": "job_posting",
+       "title": "Peach 採用サイト（axol）",
+       "url": "https://job.axol.jp/pm/c/flypeach/job/category/d9mlF9a7cS09-"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "peach",
+     "cond_ja": "Pilot Challenge first cohort promoted to First Officer flew from Kansai (news)。補足: 2024年の1期生の話。今回の募集の勤務地ではない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-01-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "4人の副操縦士デビューは2月上旬でいずれも関空発便に乗務する",
+       "source_id": "src-aviationwire-jp-3d55c06c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ba83898330765d3e",
+     "id": "peach.jobs.pilot-base.55a5b722",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-peach",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-01-29",
+       "publisher": "Aviation Wire",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-20",
+       "source_id": "src-aviationwire-jp-3d55c06c",
+       "source_type": "third_party_reference",
+       "title": "Aviation Wire",
+       "url": "https://www.aviationwire.jp/?p=293608"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Kansai (first cohort of graduates)",
      "value_text": null
     }
    ],
@@ -124972,6 +134652,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": "students",
      "use": "条件つき",
      "value": "Twenty-one",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "philippine-airlines",
+     "cond_ja": "No pilot posting; combined PAL/PAL Express fleet per ch-aviation data (Q400 and A320 mostly PAL Express)。補足: 公式の機材ページは開けず。抜粋に 777-300ER は出ない（台帳には 10機）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-04-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Per ch-aviation data, PAL and PAL Express operate a combined fleet of eighteen A320-200s, twenty-two A321-200s, six A321-200Ns, two A321-200NX, eleven A330-300s, two A350-900s, and one A350-1000 ... as well as thirteen DHC-8-Q400s.",
+       "source_id": "src-ch-aviation-com-e3186138",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "484e994017691bb9",
+     "id": "philippine-airlines.jobs.pilot-aircraft.095aec6d",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-philippine-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04-23",
+       "publisher": "ch-aviation",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-20",
+       "source_id": "src-ch-aviation-com-e3186138",
+       "source_type": "third_party_reference",
+       "title": "ch-aviation",
+       "url": "https://www.ch-aviation.com/news/166270-philippine-airlines-to-take-9-jets-in-2026-sees-no-delays"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320-200, A321-200, A321neo, A330-300, A350-900, A350-1000, DHC-8-Q400 (PAL + PAL Express; several types)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "philippine-airlines",
+     "cond_ja": "No posting; company main operations base (secondary hub Cebu)。補足: 【Wikipedia】。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The airline's main flight operations are based at Ninoy Aquino International Airport in Metro Manila.",
+       "source_id": "src-en-wikipedia-org-2f48873f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1bb65cb076faf26f",
+     "id": "philippine-airlines.jobs.pilot-base.f0141396",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-philippine-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-en-wikipedia-org-2f48873f",
+       "source_type": "third_party_reference",
+       "title": "Wikipedia",
+       "url": "https://en.wikipedia.org/wiki/Philippine_Airlines"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Manila (NAIA)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "philippine-airlines",
+     "cond_ja": "PAL careers, Pilot and Cabin category。補足: 現状の none を再確認（\"pilot\" 検索も Flight Dispatcher のみ）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "There are currently no open positions matching this category or location.",
+       "source_id": "src-careers-philippineairlines-com-fc330c8f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9e73a564d8b237ea",
+     "id": "philippine-airlines.jobs.pilot-status.28c89111",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-philippine-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Philippine Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-philippineairlines-com-fc330c8f",
+       "source_type": "job_posting",
+       "title": "Philippine Airlines Careers",
+       "url": "https://careers.philippineairlines.com/go/Pilot-And-Cabin/734544/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: no current vacancy (checked 2026-11-20)",
      "value_text": null
     }
    ],
@@ -128153,6 +137986,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "qantas",
+     "cond_ja": "Training location of the Qantas Group Pilot Academy (run by FTA); no line base after graduation stated。補足: 訓練の場所であって乗務の拠点ではない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "The Academy is based in Toowoomba, Queensland, at Wellcamp Airport.",
+       "source_id": "src-qantas-com-d9dda144",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "155027a63b1e0393",
+     "id": "qantas.jobs.pilot-base.bc38edc7",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-qantas",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Qantas (Pilot Academy)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-qantas-com-d9dda144",
+       "source_type": "job_posting",
+       "title": "Qantas (Pilot Academy)",
+       "url": "https://www.qantas.com/en-au/about-us/pilot-academy"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Toowoomba (Wellcamp Airport) - academy location",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "qantas",
+     "cond_ja": "Qantas Group Pilot Academy course dates。補足: QG63（2026-11-15 締切）もまだ表示されているが締切済み。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Applications are now open for the following courses: ... QG64 Applications close: 20 December 2026 Start date: 26 April 2027 ... QG67 Applications close: 28 March 2027 Start date: 2 August 2027",
+       "source_id": "src-qantas-com-d9dda144",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8862a243ee62be40",
+     "id": "qantas.jobs.pilot-status.f6d958cd",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-qantas",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Qantas (Pilot Academy)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-qantas-com-d9dda144",
+       "source_type": "job_posting",
+       "title": "Qantas (Pilot Academy)",
+       "url": "https://www.qantas.com/en-au/about-us/pilot-academy"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (next courses: QG64 closes 20 Dec 2026, start 26 Apr 2027; up to QG67 closing 28 Mar 2027)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true
      },
@@ -130313,6 +140248,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "2026年5月15日締切・7月1日以降会社指定入社予定",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "rac",
+     "cond_ja": "Trainee posting names no type; company fleet is a single type (5 aircraft)。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DHC-8-400カーゴコンビ（50席仕様） 5機保有",
+       "source_id": "src-rac-okinawa-com-68763844",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "638d1f43ae33bea5",
+     "id": "rac.jobs.pilot-aircraft.ce1a35a0",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-rac",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "RAC 企業情報",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-rac-okinawa-com-68763844",
+       "source_type": "job_posting",
+       "title": "RAC 企業情報",
+       "url": "https://rac-okinawa.com/profile/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: DHC-8-400 Cargo Combi",
+     "value_text": null
     }
    ],
    "profile": [
@@ -131038,6 +141024,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "riyadh-air",
+     "cond_ja": "Direct Entry Captain B787 posting; posting states the base。補足: 求人の Location 欄は「SA-Riyadh」。掲載日・締切の表示なし、募集終了の表示もなし（2026-11-20）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "This position is based in Riyadh",
+       "source_id": "src-pilots-riyadhair-icims-com-c01d0337",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "34b29f88ec037d9d",
+     "id": "riyadh-air.jobs.cap-base-cap.e3a8ae90",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-riyadh-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Riyadh Air Pilot Careers (iCIMS)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-pilots-riyadhair-icims-com-c01d0337",
+       "source_type": "job_posting",
+       "title": "Riyadh Air Pilot Careers (iCIMS)",
+       "url": "https://pilots-riyadhair.icims.com/jobs/1123/direct-entry-captain-b787/job?in_iframe=1"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Riyadh",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -134643,6 +144682,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "royal-jordanian",
+     "cond_ja": "Cadet Pilot (DLR test page) names no type; company fleet menu lists several types, so graduates could go to any of them。補足: rj.com トップの「Experience RJ」→「Fleet」メニュー。頁に日付なし。会社概要頁（rj.com/en/meet-rj/our-standards/profile）のメニューにも Boeing 787-8 / 787-9 / A320neo / A321neo / A320 / Embraer 190-E2・195-E2。2026-07-30 のリリースは 2026 年上期に 787-9 を2機・A320neo を4機・Embraer を1機受領と書く。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Boeing 787 … Boeing 787-9 … Airbus A320neo … Airbus A321 neo … Airbus A320 … Embraer 190-E2 … Embraer 195-E2",
+       "source_id": "src-rj-com-638f68fd",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9145e02d4c2b3050",
+     "id": "royal-jordanian.jobs.pilot-aircraft.c74c25e3",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-royal-jordanian",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Royal Jordanian (rj.com)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-rj-com-638f68fd",
+       "source_type": "job_posting",
+       "title": "Royal Jordanian (rj.com)",
+       "url": "https://www.rj.com/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: B787, B787-9, A320neo, A321neo, A320, E190-E2, E195-E2",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "royal-jordanian",
+     "cond_ja": "Cadet Pilot page names no base (registration at RJ Head Office - Human Resources Department); base taken from the company profile。補足: 同じ頁に「Headquartered in the heart of Amman, RJ further supports passenger convenience through its City Terminal services.」。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Its operations are based at Queen Alia International Airport,",
+       "source_id": "src-rj-com-8ad3859c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5056f882e07c3edc",
+     "id": "royal-jordanian.jobs.pilot-base.8e7318a7",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-royal-jordanian",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Royal Jordanian (About RJ)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-rj-com-8ad3859c",
+       "source_type": "job_posting",
+       "title": "Royal Jordanian (About RJ)",
+       "url": "https://www.rj.com/en/meet-rj/our-standards/profile"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Amman (Queen Alia International Airport)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "aircraft": [
        "A320"
       ],
@@ -135947,6 +146088,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": 60,
      "value_text": "€60"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "ryanair",
+     "cond_ja": "UK Partly-Sponsored Type Rating Programme listing shows location United Kingdom。補足: 一覧ページの表示。求人の個別ページ（job/59）は HTTP 500 で本文を読めず。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "AFA B737 Cadet Pilots - UK Partly-Sponsored Type Rating Programme (DAC EASA) Cadet Pilots United Kingdom",
+       "source_id": "src-pilotjobs-ryanair-com-e62eb94a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ce807db02b8d2973",
+     "id": "ryanair.jobs.pilot-base.19ff56af",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-ryanair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Ryanair Pilot Jobs",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-pilotjobs-ryanair-com-e62eb94a",
+       "source_type": "job_posting",
+       "title": "Ryanair Pilot Jobs",
+       "url": "https://pilotjobs.ryanair.com/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: United Kingdom (UK base; specific airport not named)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "ryanair",
+     "cond_ja": "Ryanair partner school describes the UK programme: type rating part-sponsored for cadets who will be based in the UK。補足: Ryanair 提携の訓練校のページ（更新 2026-09-01）。英国内のどの空港かは書いていない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-07-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "As Ryanair seek to expand their pool of EASA-licensed students in the UK, they have introduced a new UK Future Flyer Programme, they are part sponsoring the Type Rating for cadets who will be based in the UK.",
+       "source_id": "src-afta-ie-2234e1b5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c5e398d09a67321e",
+     "id": "ryanair.jobs.pilot-base.991f1be4",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-ryanair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-07-23",
+       "publisher": "Atlantic Flight Training Academy (AFTA)",
+       "publisher_kind": "recruiter",
+       "retrieved": "2026-11-20",
+       "source_id": "src-afta-ie-2234e1b5",
+       "source_type": "job_posting",
+       "title": "Atlantic Flight Training Academy (AFTA)",
+       "url": "https://afta.ie/mentorship-ryanair/uk-future-flyer-academy-gateway-1/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: UK",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "ryanair",
+     "cond_ja": "Posting appears in the current vacancy list (6 vacancies found)。補足: 一覧の見出しは「6 vacancies found」。掲載日・締切は表示なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "AFA B737 Cadet Pilots - UK Partly-Sponsored Type Rating Programme (DAC EASA)",
+       "source_id": "src-pilotjobs-ryanair-com-e62eb94a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2b599d2ec1e0949d",
+     "id": "ryanair.jobs.pilot-status.9f1286df",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-ryanair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Ryanair Pilot Jobs",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-pilotjobs-ryanair-com-e62eb94a",
+       "source_type": "job_posting",
+       "title": "Ryanair Pilot Jobs",
+       "url": "https://pilotjobs.ryanair.com/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (listed on 2026-11-20; no date shown)",
+     "value_text": null
     }
    ],
    "profile": [
@@ -137843,6 +148137,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "fo"
      },
+     "checked_at": "2026-11-20",
+     "company": "sas",
+     "cond_ja": "Experienced First Officer posting lists bases and fleet per base。補足: 求人の City 表示は Kastrup。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "We are currently recruiting to all bases. BGO - E195 ARN - A320 OSL - E195 and A320 CPH - E195 and A320",
+       "source_id": "src-careers-sasgroup-net-3e59c8a5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7fbc704a03063471",
+     "id": "sas.jobs.fo-base-fo.b4059683",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-sas",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "SAS Group Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-sasgroup-net-3e59c8a5",
+       "source_type": "job_posting",
+       "title": "SAS Group Careers",
+       "url": "https://careers.sasgroup.net/job/Kastrup-EXPERIENCED-FIRST-OFFICER/1288107401/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: CPH, OSL, ARN, BGO (all bases; E195 at BGO/OSL/CPH, A320 at ARN/OSL/CPH)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
      "checked_at": "2026-10-29",
      "company": "sas",
      "cond_ja": "ICAO；認められるレベルを別行に記載。補足: 現行公式求人。E195/A320。SAS Groupの募集。",
@@ -138152,6 +148499,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "right to live and work in the EU",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "sas",
+     "cond_ja": "Experienced First Officer posting is live; continuous review。補足: ページのメタ情報は validThrough 2026-12-31（datePosted は確認日と同じ日付で自動更新とみられる）。status_now の open は現在も正しい。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "We review applications continuously and may close the ad at short notice. We are recruiting for summer 2027, and our first courses are planned for the Fall 2026",
+       "source_id": "src-careers-sasgroup-net-3e59c8a5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8c0ff4ced052808a",
+     "id": "sas.jobs.fo-status-fo.e91d289d",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_status",
+     "label_ja": "副操縦士の求人の状況",
+     "pack": "pvr-20261120-cl-sas",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "SAS Group Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-sasgroup-net-3e59c8a5",
+       "source_type": "job_posting",
+       "title": "SAS Group Careers",
+       "url": "https://careers.sasgroup.net/job/Kastrup-EXPERIENCED-FIRST-OFFICER/1288107401/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (valid through 2026-12-31)",
      "value_text": null
     }
    ],
@@ -139268,6 +149668,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "saudia",
+     "cond_ja": "Saudia Cadet Program posting names no type (\"fly one of most modern fleets\"); company fleet has several types, so graduates could go to any of them。補足: 【Wikipedia】 機材表の前文は「As of September 2025, Saudia operates the following aircraft:」。会社の機材頁（saudia.com/pages/experience/about-us/our-fleet）はボット判定で開けず。Wikipedia の機材表の就航中: Airbus A320-200 37 / A321-200 15 / A321neo 12 / A330-300 31 / Boeing 777-300ER 37 / 787-9 13 / 787-10 8（台帳と同じ）。求人本文は「Candidates accepted into the program will be trained to the highest standards and fly one of most modern fleets.」。検索結果の抜粋に pilotsglobal の「Pilot Cadet - AC on Seniority」（機種は先任順）があったが頁が 403 で開けず使っていない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Airbus A320-200 … Airbus A321-200 … Airbus A321neo … Airbus A330-300 … Boeing 777-300ER … Boeing 787-9 … Boeing 787-10",
+       "source_id": "src-en-wikipedia-org-93543482",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "15326865ca9c2075",
+     "id": "saudia.jobs.pilot-aircraft.91d52449",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-saudia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Wikipedia (Saudia)",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-en-wikipedia-org-93543482",
+       "source_type": "third_party_reference",
+       "title": "Wikipedia (Saudia)",
+       "url": "https://en.wikipedia.org/wiki/Saudia"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320-200, A321-200, A321neo, A330-300, B777-300ER, B787-9, B787-10",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "saudia",
+     "cond_ja": "Saudia Cadet Program posting gives location only as \"02, SA\" (no city); base taken from the airline's listed hub; Riyadh, Dammam and Medina are listed as focus cities。補足: 【Wikipedia】 Wikipedia の infobox「Hubs」の値。「Focus cities」は Jeddah / Riyadh / Dammam / Medina。パイロットの所属拠点を直接書いた資料ではないので弱い。求人の「Location: 02, SA」は都市名なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "King Abdulaziz International Airport",
+       "source_id": "src-en-wikipedia-org-93543482",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8fe9a9fd22ebf4cf",
+     "id": "saudia.jobs.pilot-base.02189ea8",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-saudia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Wikipedia (Saudia)",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-en-wikipedia-org-93543482",
+       "source_type": "third_party_reference",
+       "title": "Wikipedia (Saudia)",
+       "url": "https://en.wikipedia.org/wiki/Saudia"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Jeddah (hub)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "saudia",
+     "cond_ja": "Saudia Cadet Program posting is still live; the date on the page has changed from 17 Oct 2026 to 15 Nov 2026。補足: 掲載日か更新日かは頁に書いていない。締切の表示なし。同じ募集を報じた求人サイト（ewdifh.com 86154、2026-10-18）は「التقديم مُتاح الآن بدأ اليوم يوم الأحد بتاريخ 1448/05/07هـ الموافق 2026/10/18م.」。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-11-15",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Date: 15 Nov 2026",
+       "source_id": "src-careers-saudia-com-caf400b2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "693e01d18637aeb1",
+     "id": "saudia.jobs.pilot-status.6b0e0dd9",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-saudia",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-11-15",
+       "publisher": "Saudia Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-saudia-com-caf400b2",
+       "source_type": "job_posting",
+       "title": "Saudia Careers",
+       "url": "https://careers.saudia.com/job/Saudia-Cadet-Program-02/857339423/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (date shown 15 Nov 2026, no closing date)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "hire_route": "Saudia Cadet Program",
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true,
@@ -140081,6 +150634,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "cap"
      },
+     "checked_at": "2026-11-20",
+     "company": "scoot",
+     "cond_ja": "Direct Entry B787 Captain 2026 posting; posting location East Region, Singapore。補足: 2026-11-20 時点で掲載中（'2 weeks ago'・Apply）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Located in Sunny Singapore, Scoot is expanding our Boeing 787 Wide Body Aircraft operations",
+       "source_id": "src-sg-linkedin-com-dd35e9e6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a56726b67ea0cefa",
+     "id": "scoot.jobs.cap-base-cap.01f6465a",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-scoot",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "LinkedIn (Scoot posting)",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-sg-linkedin-com-dd35e9e6",
+       "source_type": "third_party_reference",
+       "title": "LinkedIn (Scoot posting)",
+       "url": "https://sg.linkedin.com/jobs/view/direct-entry-b787-captain-2026-singapore-assessment-centre-at-scoot-4393270375"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Singapore",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "scoot",
+     "cond_ja": "Direct Entry A320 & E190 Captain 2026 posting; posting location East Region, Singapore。補足: 題名が「A320 & E190 Captain」に変わっている（機材に E190 が加わった）。'1 week ago'・Apply。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Direct Entry A320 & E190 Captain 2026 (Singapore Assessment Centre) ... Located in Sunny Singapore, Scoot is expanding our Airbus narrow-body operations",
+       "source_id": "src-sg-linkedin-com-58952de2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "72694fca7084110d",
+     "id": "scoot.jobs.cap-base-cap.ffb23687",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-scoot",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "LinkedIn (Scoot posting)",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-sg-linkedin-com-58952de2",
+       "source_type": "third_party_reference",
+       "title": "LinkedIn (Scoot posting)",
+       "url": "https://sg.linkedin.com/jobs/view/direct-entry-a320-captain-2026-singapore-assessment-centre-at-scoot-4142985597"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Singapore",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
      "checked_at": "2026-10-29",
      "company": "scoot",
      "cond_ja": "Scoot本体; direct entry captain B787; 2026 Singapore Assessment Centre; 最低ICAO英語レベル4。補足: 会社Scoot名義の求人本文を2026-10-29にwebで実読。自社採用サイトの個別詳細は403/JS表示のため会社自身の公開求人原文を使用。公開HTML内JobPostingのdatePostedを実読し発行日へ使用。hiringOrganization=Scootを確認。予防接種/CAAS要件の一般文からMedical Classを推測しない。",
@@ -140602,6 +151261,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "A320 Type-Rated",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "scoot",
+     "cond_ja": "Direct Entry First Officer 2026 posting names the A320 family and B787 fleets; candidates are type-rated for the fleet they are assigned (company assigns)。補足: E190-E2 はこの求人に出てこない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "From the industry-leading Airbus A320 family to the wide-body Boeing 787 Dreamliners, ... Where applicable, successful candidates will be trained to acquire an Aircraft Type Rating for the assigned fleet.",
+       "source_id": "src-sg-linkedin-com-ed4552e8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "01fbb3a53630c94f",
+     "id": "scoot.jobs.fo-aircraft-fo.bcad21b4",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-scoot",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "LinkedIn (Scoot posting)",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-sg-linkedin-com-ed4552e8",
+       "source_type": "third_party_reference",
+       "title": "LinkedIn (Scoot posting)",
+       "url": "https://sg.linkedin.com/jobs/view/direct-entry-first-officer-2026-singapore-assessment-centre-at-scoot-4142982718"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320 family or B787 (assigned fleet)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "scoot",
+     "cond_ja": "Posting location field; assessment centre in Singapore。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Direct Entry First Officer 2026 (Singapore Assessment Centre) ... East Region, Singapore",
+       "source_id": "src-sg-linkedin-com-ed4552e8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fbdf0d3f7831f5dd",
+     "id": "scoot.jobs.fo-base-fo.f9ec4ef9",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-scoot",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "LinkedIn (Scoot posting)",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-sg-linkedin-com-ed4552e8",
+       "source_type": "third_party_reference",
+       "title": "LinkedIn (Scoot posting)",
+       "url": "https://sg.linkedin.com/jobs/view/direct-entry-first-officer-2026-singapore-assessment-centre-at-scoot-4142982718"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Singapore",
      "value_text": null
     },
     {
@@ -141925,6 +152690,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "条件つき",
      "value": "事業用操縦士（教官）/教官募集は受付終了",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "shin-nihon",
+     "cond_ja": "Flight Instructor posting names no type; company fleet = Cessna 172 x6 and BN-2B-20 Islander x1 (two types; company does flight training)。補足: 会社概要の2行を / でつないだもの。教官がどちらに乗るかは書いていない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "セスナ式172型　6機 / ブリテン・ノーマン式 BN2B-20型 アイランダー　1機",
+       "source_id": "src-newj-co-jp-7a01d2c0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3c827a7eac009af9",
+     "id": "shin-nihon.jobs.pilot-aircraft.97fa7ec3",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-shin-nihon",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "新日本航空 会社概要",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-newj-co-jp-7a01d2c0",
+       "source_type": "job_posting",
+       "title": "新日本航空 会社概要",
+       "url": "https://www.newj.co.jp/overview/outline.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: Cessna 172, BN-2B-20 Islander",
+     "value_text": null
     }
    ],
    "profile": [
@@ -142879,6 +153695,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "cap"
      },
+     "checked_at": "2026-11-20",
+     "company": "singapore-airlines",
+     "cond_ja": "Posting page now shows no text (filled); company hub。補足: 【Wikipedia】。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "with its hub located at Changi Airport",
+       "source_id": "src-en-wikipedia-org-f783d7d9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9b2e51d7713013e8",
+     "id": "singapore-airlines.jobs.cap-base-cap.e22ed578",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-singapore-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-en-wikipedia-org-f783d7d9",
+       "source_type": "third_party_reference",
+       "title": "Wikipedia",
+       "url": "https://en.wikipedia.org/wiki/Singapore_Airlines"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Singapore (Changi)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
      "checked_at": "2026-10-29",
      "company": "singapore-airlines",
      "cond_ja": "以上。補足: 更新日不明。Apply nowを掲載する現行公式求人。総時間はFO経験・型式経験の指定と混同しない。",
@@ -143136,6 +154005,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": 1500,
      "value_text": "1,500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "singapore-airlines",
+     "cond_ja": "SIA Pilots careers page (UK edition)。補足: ページに日付なし。WebFetch は 404、curl で取得。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Direct Entry Captain Please note that applications for Direct Entry Captain positions are currently closed. Do check our website for future recruitment.",
+       "source_id": "src-singaporeair-com-3386eea9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d7843ec2c0042b15",
+     "id": "singapore-airlines.jobs.cap-status-cap.72141f77",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_status",
+     "label_ja": "機長の求人の状況",
+     "pack": "pvr-20261120-cl-singapore-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Singapore Airlines (Pilots careers)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-singaporeair-com-3386eea9",
+       "source_type": "job_posting",
+       "title": "Singapore Airlines (Pilots careers)",
+       "url": "https://www.singaporeair.com/en_UK/gb/careers/cadet-pilots-career/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: Direct Entry Captain applications currently closed",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "singapore-airlines",
+     "cond_ja": "Direct Entry Captains (Contract) posting。補足: 現状の open は古い。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Sorry, this position has been filled.",
+       "source_id": "src-careers-singaporeair-com-8f6cb217",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6c425ea14c82233b",
+     "id": "singapore-airlines.jobs.cap-status-cap.bde3768a",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_status",
+     "label_ja": "機長の求人の状況",
+     "pack": "pvr-20261120-cl-singapore-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Singapore Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-singaporeair-com-8f6cb217",
+       "source_type": "job_posting",
+       "title": "Singapore Airlines Careers",
+       "url": "https://careers.singaporeair.com/sia/job/Direct-Entry-Captains-(Contract)/57638244/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: closed (\"position has been filled\", checked 2026-11-20)",
+     "value_text": null
     },
     {
      "amount": null,
@@ -143462,6 +154437,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "fo"
      },
+     "checked_at": "2026-11-20",
+     "company": "singapore-airlines",
+     "cond_ja": "Direct Entry First Officers (Contract) posting。補足: 現状の open は古い。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Sorry, this position has been filled.",
+       "source_id": "src-careers-singaporeair-com-209841a7",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6d01895f8b8460c9",
+     "id": "singapore-airlines.jobs.fo-status-fo.66e02e7d",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_status",
+     "label_ja": "副操縦士の求人の状況",
+     "pack": "pvr-20261120-cl-singapore-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Singapore Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-singaporeair-com-209841a7",
+       "source_type": "job_posting",
+       "title": "Singapore Airlines Careers",
+       "url": "https://careers.singaporeair.com/sia/job/Direct-Entry-First-Officers-(Contract)/57638444/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: closed (\"position has been filled\", checked 2026-11-20)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "singapore-airlines",
+     "cond_ja": "SIA Pilots careers page (UK edition)。補足: ページに日付なし。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Direct Entry First Officer Please note that applications for Direct Entry First Officer positions are currently closed. Do check our website for future recruitment.",
+       "source_id": "src-singaporeair-com-3386eea9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0a6b4d156881b276",
+     "id": "singapore-airlines.jobs.fo-status-fo.6eff0aa7",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_status",
+     "label_ja": "副操縦士の求人の状況",
+     "pack": "pvr-20261120-cl-singapore-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Singapore Airlines (Pilots careers)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-singaporeair-com-3386eea9",
+       "source_type": "job_posting",
+       "title": "Singapore Airlines (Pilots careers)",
+       "url": "https://www.singaporeair.com/en_UK/gb/careers/cadet-pilots-career/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: Direct Entry First Officer applications currently closed",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
      "checked_at": "2026-10-29",
      "company": "singapore-airlines",
      "cond_ja": "CAAS承認またはvalidation可能；択一。補足: 更新日不明。Apply nowを掲載する現行公式求人。総時間はFO経験・型式経験の指定と混同しない。",
@@ -143616,6 +154697,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "公式個別求人にApply nowあり。2026年9月27日付の現在一覧にも掲載。実際のクラス実施/定員とは別。",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "singapore-airlines",
+     "cond_ja": "Cadet page names no type (cadets \"undergo further training to become a First Officer\"); company passenger fleet has several types。補足: 公式の機材ページ（旅客機のみ。貨物機は載っていない）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Airbus A350-900 Airbus A380-800 Boeing 777-300ER Boeing 787-10 Boeing 737-8",
+       "source_id": "src-singaporeair-com-fd8cb395",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0f68e839a68e7eb1",
+     "id": "singapore-airlines.jobs.pilot-aircraft.8bed5f38",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-singapore-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Singapore Airlines (Our fleet)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-singaporeair-com-fd8cb395",
+       "source_type": "job_posting",
+       "title": "Singapore Airlines (Our fleet)",
+       "url": "https://www.singaporeair.com/en_UK/gb/flying-withus/our-story/our-fleet/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A350-900, A380-800, B777-300ER, B787-10, B737-8 (several types)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "singapore-airlines",
+     "cond_ja": "Ab Initio Cadet Pilot (Singapore) in SIA careers search。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Ab Initio Cadet Pilot (Singapore) ... SG ... Pilots ... 26 Oct 2026",
+       "source_id": "src-careers-singaporeair-com-4bdbe42f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "69f72b6c5961f06a",
+     "id": "singapore-airlines.jobs.pilot-status.ca982117",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-singapore-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-26",
+       "publisher": "Singapore Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-singaporeair-com-4bdbe42f",
+       "source_type": "job_posting",
+       "title": "Singapore Airlines Careers",
+       "url": "https://careers.singaporeair.com/search/?q=pilot&locationsearch="
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (listed 26 Oct 2026)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "singapore-airlines",
+     "cond_ja": "SIA Pilots careers page (UK edition), Ab Initio Cadet Pilot section。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Ab Initio Cadet Pilot (Singapore) SIA is recruiting Ab Initio Cadet Pilots in Singapore. ... Application Details Online application is now open.",
+       "source_id": "src-singaporeair-com-3386eea9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "0b7efbd269a5b11a",
+     "id": "singapore-airlines.jobs.pilot-status.dc2dfc0f",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-singapore-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Singapore Airlines (Pilots careers)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-singaporeair-com-3386eea9",
+       "source_type": "job_posting",
+       "title": "Singapore Airlines (Pilots careers)",
+       "url": "https://www.singaporeair.com/en_UK/gb/careers/cadet-pilots-career/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (\"Online application is now open\")",
      "value_text": null
     },
     {
@@ -143853,6 +155087,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "Direct Entry Second Officerの応募は現在停止（2026-10-20観測）",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（second_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "so"
+     },
+     "checked_at": "2026-11-20",
+     "company": "singapore-airlines",
+     "cond_ja": "SIA Pilots careers page (UK edition)。補足: 現状の none を再確認。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Direct Entry Second Officer Please note that applications for Direct Entry Second Officer positions are currently closed. Do check our website for future recruitment.",
+       "source_id": "src-singaporeair-com-3386eea9",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "eae2d3a6579f41de",
+     "id": "singapore-airlines.jobs.so-status-so.92d23549",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "so_status",
+     "label_ja": "セカンドオフィサーの求人の状況",
+     "pack": "pvr-20261120-cl-singapore-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Singapore Airlines (Pilots careers)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-singaporeair-com-3386eea9",
+       "source_type": "job_posting",
+       "title": "Singapore Airlines (Pilots careers)",
+       "url": "https://www.singaporeair.com/en_UK/gb/careers/cadet-pilots-career/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: Direct Entry Second Officer applications currently closed",
      "value_text": null
     }
    ],
@@ -145136,6 +156423,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "cap"
      },
+     "checked_at": "2026-11-20",
+     "company": "skymark",
+     "cond_ja": "B737 Captain-candidate (experienced) posting; posting names the work location。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "羽田空港または、会社が指定した場所",
+       "source_id": "src-hrmos-co-cde3a1a5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "30325654b6c0a558",
+     "id": "skymark.jobs.cap-base-cap.4ef4d924",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-skymark",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Skymark キャリア採用（HRMOS）",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-hrmos-co-cde3a1a5",
+       "source_type": "job_posting",
+       "title": "Skymark キャリア採用（HRMOS）",
+       "url": "https://hrmos.co/pages/skymark/jobs/00000006"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Tokyo Haneda (or company-designated place)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
      "checked_at": "2026-10-29",
      "company": "skymark",
      "cond_ja": "補足: 更新日不明。2027年3月以降入社・随時募集と明記する現行公式求人。FO求人URL00000045も試みたが取得不可。",
@@ -145291,6 +156631,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "skymark",
+     "cond_ja": "B737 Captain-candidate (experienced) posting。補足: 現状どおり。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "随時募集",
+       "source_id": "src-hrmos-co-cde3a1a5",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5c5349070e49dfd5",
+     "id": "skymark.jobs.cap-status-cap.524b7bb4",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_status",
+     "label_ja": "機長の求人の状況",
+     "pack": "pvr-20261120-cl-skymark",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Skymark キャリア採用（HRMOS）",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-hrmos-co-cde3a1a5",
+       "source_type": "job_posting",
+       "title": "Skymark キャリア採用（HRMOS）",
+       "url": "https://hrmos.co/pages/skymark/jobs/00000006"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open, rolling (checked 2026-11-20)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "employer": "Skymark Airlines",
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true,
@@ -145343,6 +156736,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "条件つき",
      "value": "2027年4月1日または会社指定時期",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "skymark",
+     "cond_ja": "B737 First Officer-candidate (experienced) posting; posting names the work location。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "羽田空港または、会社が指定した場所",
+       "source_id": "src-hrmos-co-f023f2bc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "afc651953664b86a",
+     "id": "skymark.jobs.fo-base-fo.81285b84",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-skymark",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Skymark キャリア採用（HRMOS）",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-hrmos-co-f023f2bc",
+       "source_type": "job_posting",
+       "title": "Skymark キャリア採用（HRMOS）",
+       "url": "https://hrmos.co/pages/skymark/jobs/0000045"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Tokyo Haneda (or company-designated place)",
      "value_text": null
     },
     {
@@ -145458,6 +156904,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "fo"
      },
+     "checked_at": "2026-11-20",
+     "company": "skymark",
+     "cond_ja": "B737 First Officer-candidate (experienced) posting。補足: 現状どおり。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "随時募集",
+       "source_id": "src-hrmos-co-f023f2bc",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e7f1ecfebcef20f0",
+     "id": "skymark.jobs.fo-status-fo.0e6e92e5",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_status",
+     "label_ja": "副操縦士の求人の状況",
+     "pack": "pvr-20261120-cl-skymark",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Skymark キャリア採用（HRMOS）",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-hrmos-co-f023f2bc",
+       "source_type": "job_posting",
+       "title": "Skymark キャリア採用（HRMOS）",
+       "url": "https://hrmos.co/pages/skymark/jobs/0000045"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open, rolling (checked 2026-11-20)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
      "checked_at": "2026-10-29",
      "company": "skymark",
      "cond_ja": "B737副操縦士候補者（他社経験者）／国内他社の定期航空運送事業者における総飛行時間500時間以上。補足: 会社ニュース内の現行リンクから実読。2027年3月以降入社、随時募集。",
@@ -145503,6 +157002,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": 500,
      "value_text": "500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "skymark",
+     "cond_ja": "Cadet page names no type; company aircraft page lists only Boeing 737-800 and 737-8 (one family, two variants)。補足: 機材ページの2つのリンク名を / でつないだもの。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ボーイング737-800（737-800） / ボーイング737-8（737-8）",
+       "source_id": "src-skymark-co-jp-229a324e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ec5b64181bf43204",
+     "id": "skymark.jobs.pilot-aircraft.b8e2c4d9",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-skymark",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Skymark 航空機のご紹介",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-skymark-co-jp-229a324e",
+       "source_type": "job_posting",
+       "title": "Skymark 航空機のご紹介",
+       "url": "https://www.skymark.co.jp/ja/service/seatmap/index.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: B737-800, B737-8",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "skymark",
+     "cond_ja": "Cadet (自社養成パイロット訓練生) section of new-graduate guidelines; work location 東京 and must live within Haneda commuting area。補足: 勤務地欄は「東京」。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "羽田：空港から直線距離で50km以内かつ自動車での走行距離が60km以内",
+       "source_id": "src-skymark-co-jp-66ab443e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6e54f3a28f14385d",
+     "id": "skymark.jobs.pilot-base.934c4d00",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-skymark",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Skymark 新卒採用（自社養成パイロット訓練生）",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-skymark-co-jp-66ab443e",
+       "source_type": "job_posting",
+       "title": "Skymark 新卒採用（自社養成パイロット訓練生）",
+       "url": "https://www.skymark.co.jp/ja/company/recruit/saiyo/recruit/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Tokyo (Haneda)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "skymark",
+     "cond_ja": "News on the start of FY2027 new-graduate hiring。補足: 締切は記事にも会社頁にも無い。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-03-09",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "自社養成パイロットはエントリー開始が4月3日午後1時で、2025年4月から2027年3月までに大学か大学院を卒業・修了見込みの人が対象となる。",
+       "source_id": "src-aviationwire-jp-a6018de1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "8eb9e4b0544e2840",
+     "id": "skymark.jobs.pilot-status.abac3075",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-skymark",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-03-09",
+       "publisher": "Aviation Wire",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-20",
+       "source_id": "src-aviationwire-jp-a6018de1",
+       "source_type": "third_party_reference",
+       "title": "Aviation Wire",
+       "url": "https://www.aviationwire.jp/?p=339511"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: April 2027 intake; entry opened 2026-04-03; no closing date shown",
+     "value_text": null
     }
    ],
    "profile": [
@@ -146407,6 +158059,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "cap"
      },
+     "checked_at": "2026-11-20",
+     "company": "solairus",
+     "cond_ja": "Gulfstream G450 & G550 Captain posting (ID 2026-2348) names the airport。補足: G450/G550 の機長求人は現在この1件（Austin）。他に G450 単独（South Bend・Camarillo）、G550 単独（Reno・New York Metro・Chicago・Fort Worth）の求人もある。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-13",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Solairus Aviation is currently searching for a Full-Time Gulfstream G450 & G550 Captain to join an operation at the KAUS airport.",
+       "source_id": "src-careers-solairus-icims-com-f5f8e59b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ef306f7909856e3f",
+     "id": "solairus.jobs.cap-base-cap.7ae01f71",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-solairus",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-13",
+       "publisher": "Solairus Aviation Careers (iCIMS)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-solairus-icims-com-f5f8e59b",
+       "source_type": "job_posting",
+       "title": "Solairus Aviation Careers (iCIMS)",
+       "url": "https://careers-solairus.icims.com/jobs/2348/gulfstream-g450-%26-g550-captain---austin%2c-tx/job"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Austin, TX (KAUS)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
      "checked_at": "2026-10-29",
      "company": "solairus",
      "cond_ja": "Falcon2000LX West Coast Commutable。補足: 確認日に公式求人本文を確認。発行日明記なし。機種・個別求人に限る条件。",
@@ -146505,6 +158210,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": 1500,
      "value_text": "1500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "solairus",
+     "cond_ja": "G450 & G550 Captain posting live; datePosted in page metadata (validThrough 2027-10-13)。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-13",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "\"datePosted\":\"2026-10-13T04:00:00.000Z\"",
+       "source_id": "src-careers-solairus-icims-com-f5f8e59b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b9e2ca9a78c25be5",
+     "id": "solairus.jobs.cap-status-cap.5bc23e2c",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_status",
+     "label_ja": "機長の求人の状況",
+     "pack": "pvr-20261120-cl-solairus",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-13",
+       "publisher": "Solairus Aviation Careers (iCIMS)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-solairus-icims-com-f5f8e59b",
+       "source_type": "job_posting",
+       "title": "Solairus Aviation Careers (iCIMS)",
+       "url": "https://careers-solairus.icims.com/jobs/2348/gulfstream-g450-%26-g550-captain---austin%2c-tx/job"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (posted 2026-10-13)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "solairus",
+     "cond_ja": "G700 Captain Van Nuys posting (job 1811) returns HTTP 410 with error message; not in current job list。補足: 2026-10-19 には掲載、2026-11-20 には閉じていた（閉じた日は不明）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Error: The job that you were looking for either does not exist or is no longer open.",
+       "source_id": "src-careers-solairus-icims-com-1a392e03",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "12cb6fb63d5501c5",
+     "id": "solairus.jobs.cap-status-cap.8743a66d",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_status",
+     "label_ja": "機長の求人の状況",
+     "pack": "pvr-20261120-cl-solairus",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Solairus Aviation Careers (iCIMS)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-solairus-icims-com-1a392e03",
+       "source_type": "job_posting",
+       "title": "Solairus Aviation Careers (iCIMS)",
+       "url": "https://careers-solairus.icims.com/jobs/1811/gulfstream-g700-captain---van-nuys%2C-ca/job?in_iframe=1"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: closed (no longer open as of 2026-11-20)",
+     "value_text": null
     },
     {
      "amount": null,
@@ -147513,6 +159324,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "cap"
      },
+     "checked_at": "2026-11-20",
+     "company": "solaseed",
+     "cond_ja": "Experienced Captain posting; posting names the work location。補足: 同じ頁に「東京 ＞羽田空港」、変更を命ずることがある旨の注記あり。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "勤務地 羽田空港",
+       "source_id": "src-solaseedair-recruit-snar-jp-8c07599c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "bff2a4ed2d11d603",
+     "id": "solaseed.jobs.cap-base-cap.b11a9ac3",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-solaseed",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Solaseed Air 採用（snar）",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-solaseedair-recruit-snar-jp-8c07599c",
+       "source_type": "job_posting",
+       "title": "Solaseed Air 採用（snar）",
+       "url": "https://solaseedair-recruit.snar.jp/jobboard/detail.aspx?id=c_NERMI-JCQ"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Tokyo Haneda",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
      "checked_at": "2026-10-29",
      "company": "solaseed",
      "cond_ja": null,
@@ -147610,6 +159474,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "第1種航空身体検査証明書",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "solaseed",
+     "cond_ja": "Experienced Captain posting still on the company job board。補足: 現状どおり。業務は「B737型式機長業務」。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "【中途採用】運航乗務員（機長要員）",
+       "source_id": "src-solaseedair-recruit-snar-jp-8c07599c",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b8399f61e3f05284",
+     "id": "solaseed.jobs.cap-status-cap.ad02ad04",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_status",
+     "label_ja": "機長の求人の状況",
+     "pack": "pvr-20261120-cl-solaseed",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Solaseed Air 採用（snar）",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-solaseedair-recruit-snar-jp-8c07599c",
+       "source_type": "job_posting",
+       "title": "Solaseed Air 採用（snar）",
+       "url": "https://solaseedair-recruit.snar.jp/jobboard/detail.aspx?id=c_NERMI-JCQ"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: listed (no date shown; checked 2026-11-20)",
      "value_text": null
     },
     {
@@ -148630,6 +160547,163 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "south-african-airways",
+     "cond_ja": "First Officer posting SAA231220-1 (job-board repost of the SAA ad); location given as Kempton Park。補足: 【第三者】 求人の転載頁（2025-07-03 掲載・2026-03-12 更新、Reference Number「SAA231220-1」、締切「Not specified」）。機種の記載なし。会社の e-recruit 頁は開けていない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-07-03",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Kempton Park, Gauteng, South Africa",
+       "source_id": "src-gauteng-net-fe76204f",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "858a91c2f65ecfb1",
+     "id": "south-african-airways.jobs.fo-base-fo.9738140e",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-south-african-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-07-03",
+       "publisher": "gauteng.net (job repost)",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-gauteng-net-fe76204f",
+       "source_type": "third_party_reference",
+       "title": "gauteng.net (job repost)",
+       "url": "https://www.gauteng.net/whats-on-g/first-officer-vacancy-at-south-african-airways/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Kempton Park, Gauteng",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "south-african-airways",
+     "cond_ja": "First Officer posting SAA231220-1 as listed on a job board; the job board marks it expired; no newer SAA pilot posting found。補足: 【第三者】 題「First Officer - Kempton Park at South African Airways (SAA)」、掲載「Jan 15, 2024」、頁に「has expired」。Location は「Gauteng」。2026 年の新しいパイロット募集は見つからず。会社の採用頁は 403 で現況を確かめられない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-01-15",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "as either a Second-In-Command Pilot (P2) or Cruise Relief Pilot (P3)",
+       "source_id": "src-myjobmag-co-za-43ac1067",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f2b83b77f04000f7",
+     "id": "south-african-airways.jobs.fo-status-fo.c00ee9ac",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_status",
+     "label_ja": "副操縦士の求人の状況",
+     "pack": "pvr-20261120-cl-south-african-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-01-15",
+       "publisher": "MyJobMag South Africa",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-myjobmag-co-za-43ac1067",
+       "source_type": "third_party_reference",
+       "title": "MyJobMag South Africa",
+       "url": "https://www.myjobmag.co.za/job/first-officer-kempton-park-south-african-airways-saa"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: past (posted 2024-01-15, expired)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "south-african-airways",
+     "cond_ja": "Generic pilot entry; the only First Officer posting found (SAA231220-1) names no type; company fleet has several types, so new pilots could go to any of them。補足: 会社の採用頁（flysaa.com …/direct-flight-to-your-career）は 403 で開けず。機材は業界ニュース（2025-12-10）。検索結果の抜粋に pilotsglobal の「AC on Seniority first officer」（機種は先任順）があったが頁が 403 で開けず使っていない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-12-10",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "SAA currently operates an in-house fleet of 18 aircraft, including fourteen leased A320-200s, two leased A330-300s, and two company-owned A340-300s.",
+       "source_id": "src-ch-aviation-com-7a355769",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c33e396c2386a957",
+     "id": "south-african-airways.jobs.pilot-aircraft.fb5a26b2",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-south-african-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-12-10",
+       "publisher": "ch-aviation",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-20",
+       "source_id": "src-ch-aviation-com-7a355769",
+       "source_type": "third_party_reference",
+       "title": "ch-aviation",
+       "url": "https://www.ch-aviation.com/news/161524-south-african-airways-added-leases-delayed-to-2026"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320-200, A330-300, A340-300",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -150589,6 +162663,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "fo"
      },
+     "checked_at": "2026-11-20",
+     "company": "southwest",
+     "cond_ja": "Pilot careers page lists pilot domiciles; monthly vacancy bid to change domicile; page does not say how a new hire is first placed。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "What are the Pilot domiciles at Southwest? Atlanta (ATL) Austin (AUS) Baltimore/Washington (BWI) Dallas Love Field (DAL) Denver (DEN) Houston (Hobby) (HOU) Las Vegas (LAS) Los Angeles (LAX) Nashville (BNA) Orlando (MCO) Chicago (Midway) (MDW) Oakland (OAK) Phoenix (PHX)",
+       "source_id": "src-careers-southwestair-com-e5925165",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cac849094af8c896",
+     "id": "southwest.jobs.fo-base-fo.b8a2237e",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-southwest",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Southwest Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-southwestair-com-e5925165",
+       "source_type": "job_posting",
+       "title": "Southwest Airlines Careers",
+       "url": "https://careers.southwestair.com/us/en/pilots"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Atlanta, Austin, Baltimore/Washington, Dallas Love Field, Denver, Houston Hobby, Las Vegas, Los Angeles, Nashville, Orlando, Chicago Midway, Oakland, Phoenix",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
      "checked_at": "2026-10-29",
      "company": "southwest",
      "cond_ja": "FAA certificate endorsement。補足: 更新日不明。現行公式要件。First Officer応募は現在closedと明記。固定翼タービン500時間はpreferredであり総時間に転用せず。",
@@ -150739,6 +162866,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "USA DOT/FAA First Class Medical Certificate",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "southwest",
+     "cond_ja": "Careers page says the First Officer application is closed。補足: 2026-11-20 時点でも閉じたまま。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Our Pilot - First Officer application is currently closed.",
+       "source_id": "src-careers-southwestair-com-e5925165",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a1e1373c3fa91a2a",
+     "id": "southwest.jobs.fo-status-fo.f101c8b7",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_status",
+     "label_ja": "副操縦士の求人の状況",
+     "pack": "pvr-20261120-cl-southwest",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Southwest Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-southwestair-com-e5925165",
+       "source_type": "job_posting",
+       "title": "Southwest Airlines Careers",
+       "url": "https://careers.southwestair.com/us/en/pilots"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: no current vacancy (application closed)",
      "value_text": null
     },
     {
@@ -151372,6 +163552,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "spring-japan",
+     "cond_ja": "Expat B737-800 Captain posting; posting names the flight base。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Flight Base: Tokyo Narita, Japan",
+       "source_id": "src-pages-ch-com-593e65b1",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a88f87ffcef40cb3",
+     "id": "spring-japan.jobs.cap-base-cap.927fdcc2",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-spring-japan",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "pages.ch.com (Spring Japan Expat Captain)",
+       "publisher_kind": "recruiter",
+       "retrieved": "2026-11-20",
+       "source_id": "src-pages-ch-com-593e65b1",
+       "source_type": "job_posting",
+       "title": "pages.ch.com (Spring Japan Expat Captain)",
+       "url": "https://pages.ch.com/en/Activitiesall/SpringJapan_B737-800_ExpatCaptain"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Tokyo Narita",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -152310,6 +164543,165 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "cap"
      },
+     "checked_at": "2026-11-20",
+     "company": "starflyer",
+     "cond_ja": "Captain-candidate posting names no type (asks 1,000 h jet PIC); company says it operates only the Airbus A320 (ceo and neo)。補足: 同じ頁の見出しに A320ceo（JA07MC～JA27MC）と A320neo（JA28MC～）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "スターフライヤーが使用する機材は、AIRBUS A320型機です。",
+       "source_id": "src-starflyer-jp-2c11e12e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "78c5b53ed87ef398",
+     "id": "starflyer.jobs.cap-aircraft-cap.72debc66",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_aircraft",
+     "label_ja": "機長の求人の機種",
+     "pack": "pvr-20261120-cl-starflyer",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "StarFlyer 機材・シートマップ",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-starflyer-jp-2c11e12e",
+       "source_type": "job_posting",
+       "title": "StarFlyer 機材・シートマップ",
+       "url": "https://www.starflyer.jp/inboard/airbus/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320ceo, A320neo (A320 only)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "starflyer",
+     "cond_ja": "Captain-candidate posting; posting names the work location。補足: 日付は頁の更新日。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-09-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "【雇入れ直後】 北九州空港もしくは羽田空港 ※訓練は北九州空港施設で実施 【変更の範囲】 会社の指定した場所 ※異動・転勤あり",
+       "source_id": "src-starflyer-jp-1269aae0",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "ee265fc1e19eac4f",
+     "id": "starflyer.jobs.cap-base-cap.238e274b",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-starflyer",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-09-04",
+       "publisher": "StarFlyer 採用（機長候補者）",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-starflyer-jp-1269aae0",
+       "source_type": "job_posting",
+       "title": "StarFlyer 採用（機長候補者）",
+       "url": "https://www.starflyer.jp/recruit/recruitment/professionals/pilot/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Kitakyushu or Tokyo Haneda (training at Kitakyushu)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "starflyer",
+     "cond_ja": "2024 Captain-candidate posting (news release annex); posting names the work location。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-07-29",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "【雇入れ直後】北九州空港もしくは羽田空港 ※訓練は北九州空港施設で実施 【変更の範囲】会社の指定した場所",
+       "source_id": "src-starflyer-jp-d2723779",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2c75581b60911259",
+     "id": "starflyer.jobs.cap-base-cap.3a82cbf2",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-starflyer",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-07-29",
+       "publisher": "StarFlyer ニュースリリース",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-starflyer-jp-d2723779",
+       "source_type": "job_posting",
+       "title": "StarFlyer ニュースリリース",
+       "url": "https://www.starflyer.jp/news/2024/news_20240729.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Kitakyushu or Tokyo Haneda (training at Kitakyushu)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
      "checked_at": "2026-10-29",
      "company": "starflyer",
      "cond_ja": "以上。補足: 過去。2024-07-29公表の募集要項。",
@@ -152514,6 +164906,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": 1000,
      "value_text": "1,000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "starflyer",
+     "cond_ja": "Mid-career list on company careers site。補足: 現状どおり。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-09-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "【採用：経験者】運航乗務員（機長候補者）の募集を開始しました。",
+       "source_id": "src-starflyer-jp-1e235d24",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b8cd5e89a9ae32fa",
+     "id": "starflyer.jobs.cap-status-cap.88bbe550",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_status",
+     "label_ja": "機長の求人の状況",
+     "pack": "pvr-20261120-cl-starflyer",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-09-04",
+       "publisher": "StarFlyer 採用（中途採用一覧）",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-starflyer-jp-1e235d24",
+       "source_type": "job_posting",
+       "title": "StarFlyer 採用（中途採用一覧）",
+       "url": "https://www.starflyer.jp/recruit/recruitment/professionals/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (page updated 2026-09-04; checked 2026-11-20)",
+     "value_text": null
     },
     {
      "amount": null,
@@ -152734,6 +165179,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": 60,
      "value_text": "60"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "starflyer",
+     "cond_ja": "A320-rated First Officer-candidate posting; posting names the work location。補足: 変更の範囲は「会社の指定した場所」「※異動・転勤あり」。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-09-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "【雇入れ直後】 北九州空港もしくは羽田空港 ※訓練は北九州空港施設で実施",
+       "source_id": "src-starflyer-jp-df7d3a21",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7121d758234244eb",
+     "id": "starflyer.jobs.fo-base-fo.a853a262",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-starflyer",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-09-18",
+       "publisher": "StarFlyer 採用（副操縦士候補者）",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-starflyer-jp-df7d3a21",
+       "source_type": "job_posting",
+       "title": "StarFlyer 採用（副操縦士候補者）",
+       "url": "https://www.starflyer.jp/recruit/recruitment/professionals/co-pilot/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Kitakyushu or Tokyo Haneda (training at Kitakyushu)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "starflyer",
+     "cond_ja": "Mid-career list on company careers site。補足: 現状どおり。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-09-18",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "【採用:経験者】運航乗務員（副操縦士候補者）の募集を開始しました。",
+       "source_id": "src-starflyer-jp-1e235d24",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "7e721e9b616e3c1b",
+     "id": "starflyer.jobs.fo-status-fo.50f3880d",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_status",
+     "label_ja": "副操縦士の求人の状況",
+     "pack": "pvr-20261120-cl-starflyer",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-09-04",
+       "publisher": "StarFlyer 採用（中途採用一覧）",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-starflyer-jp-1e235d24",
+       "source_type": "job_posting",
+       "title": "StarFlyer 採用（中途採用一覧）",
+       "url": "https://www.starflyer.jp/recruit/recruitment/professionals/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (page updated 2026-09-18; checked 2026-11-20)",
+     "value_text": null
     }
    ],
    "profile": [
@@ -153808,6 +166359,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "starlux",
+     "cond_ja": "Experienced Captain page names no type (lists accepted type ratings: A320 Family / A330 / A340 / A350 / A380 / Jet Category / Others); company fleet as of 2026-01-06 has several types。補足: 公式の機材ページは JS で機数が読めず、報道で代用（A350-1000 の初号機受領の日の記事）。今年さらに A350-1000 が入る予定。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-01-06",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "而包含今日交付的 A350-1000，星宇航空目前機隊共 30 架，13 架 A321neo、6 架 A330neo 及 10 架 A350-900，並已訂購 10 架 A350F 貨機，未來將同步布局貨運市場。",
+       "source_id": "src-technews-tw-92615c76",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "4928f7f9bc7c66f7",
+     "id": "starlux.jobs.cap-aircraft-cap.bc425b95",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_aircraft",
+     "label_ja": "機長の求人の機種",
+     "pack": "pvr-20261120-cl-starlux",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-01-06",
+       "publisher": "TechNews 科技新報",
+       "publisher_kind": "media",
+       "retrieved": "2026-11-20",
+       "source_id": "src-technews-tw-92615c76",
+       "source_type": "third_party_reference",
+       "title": "TechNews 科技新報",
+       "url": "https://technews.tw/2026/01/06/starlux-a350-1000/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: Several types: A321neo, A330neo, A350-900, A350-1000",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "starlux",
+     "cond_ja": "Experienced-pilot page names no base; STARLUX careers lists its pilot vacancy location as Taoyuan (ledger base Taoyuan/TPE)。補足: 経験者ページには拠点の記載なし。同じ採用サイトの操縦士の求人（培訓飛航員）の勤務地が Taoyuan。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "培訓飛航員 Pilot Taoyuan",
+       "source_id": "src-careers-jx-starlux-com-356054dd",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a7610082cb0c8448",
+     "id": "starlux.jobs.cap-base-cap.394e9230",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-starlux",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "STARLUX Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-jx-starlux-com-356054dd",
+       "source_type": "job_posting",
+       "title": "STARLUX Careers",
+       "url": "https://careers.jx-starlux.com/Jobs/1"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Taoyuan",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -156161,6 +168818,159 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": 800,
      "value_text": "800"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "swiss",
+     "cond_ja": "SWISS cadets train at European Flight Academy (Switzerland); type rating depends on the hiring airline。補足: 同ページは「Preliminary contract with SWISS or Edelweiss」。SWISS 自社の採用ページ（swiss.com）は 403 で読めず。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Whether this is an Airbus A320, an Embraer 195, or another type of aircraft depends on which airline you are going to join.",
+       "source_id": "src-european-flight-academy-com-128d020b",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c777eaf1f6ca1e87",
+     "id": "swiss.jobs.pilot-aircraft.c746eca6",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-swiss",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "European Flight Academy (Lufthansa Aviation Training)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-european-flight-academy-com-128d020b",
+       "source_type": "job_posting",
+       "title": "European Flight Academy (Lufthansa Aviation Training)",
+       "url": "https://www.european-flight-academy.com/en/training-details-and-schedule-ch"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320, Embraer 195 or other type, depending on the airline joined",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "swiss",
+     "cond_ja": "Cadet fact sheet names no base; SWISS flies from Zurich and Geneva。補足: PDF のメタ情報の作成日は 2022-05-05。訓練地は Zurich（理論）・Grenchen（飛行）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "It connects Switzerland to Europe and the rest of the world with direct flights from Zurich and Geneva airports.",
+       "source_id": "src-swiss-com-7566e453",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "781c658375774414",
+     "id": "swiss.jobs.pilot-base.5c1d4c6d",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-swiss",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "SWISS ab-initio fact sheet (PDF)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-swiss-com-7566e453",
+       "source_type": "job_posting",
+       "title": "SWISS ab-initio fact sheet (PDF)",
+       "url": "https://www.swiss.com/content/dam/swiss/pdfs/lx_fact-sheet_pilot_EN.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Zurich, Geneva",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "swiss",
+     "cond_ja": "SWISS cadets apply through European Flight Academy; the EFA ab-initio ad covering the Zurich location is live。補足: 日付は同ページ JSON-LD の datePosted / validThrough。SWISS の fact sheet は「Applications are submitted via the EFA website. The preferred airline (e.g. SWISS) can be specified in the application portal.」。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-10-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Location: Bremen / Zurich",
+       "source_id": "src-apply-lufthansagroup-careers-b44f0fb4",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2d46c7872996438e",
+     "id": "swiss.jobs.pilot-status.bfca6083",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-swiss",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-10-04",
+       "publisher": "Lufthansa Group Careers (EFA job ad)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-apply-lufthansagroup-careers-b44f0fb4",
+       "source_type": "job_posting",
+       "title": "Lufthansa Group Careers (EFA job ad)",
+       "url": "https://apply.lufthansagroup.careers/index.php?ac=jobad&id=84539"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (EFA ab-initio ad, Zurich location; posted 2024-10-04, valid through 2027-04-07)",
+     "value_text": null
     }
    ],
    "profile": [
@@ -157924,6 +170734,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "fo"
      },
+     "checked_at": "2026-11-20",
+     "company": "tap",
+     "cond_ja": "First Officer selection OP23set2026 regulation; hires take the A320F type rating / conversion course。補足: 同規程 10.4 は「curso de qualificação/conversão em A320」。日付は REF. OP23set2026 から。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-09-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Os candidatos terão de frequentar de seguida um curso de qualificação/refrescamento de tipo – definido em sede de “TAP ATO Training Manual A320F” e/ou um “Conversion Training and Checking” – definido em sede de “OM (D) Flight Crew A320F”.",
+       "source_id": "src-publish-p133109-e1368204-adobeaemcloud-c-68590125",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "3e8531af32d9d01c",
+     "id": "tap.jobs.fo-aircraft-fo.12c8bab8",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-tap",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-09-23",
+       "publisher": "TAP Air Portugal (Regulamento do Concurso OP23set2026)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-publish-p133109-e1368204-adobeaemcloud-c-68590125",
+       "source_type": "job_posting",
+       "title": "TAP Air Portugal (Regulamento do Concurso OP23set2026)",
+       "url": "https://publish-p133109-e1368204.adobeaemcloud.com/content/dam/tap-institucional/media/pdfs/23-sep26/Regulamento_Concurso_PNT_2026_2027.pdf"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320 family",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
      "checked_at": "2026-10-29",
      "company": "tap",
      "cond_ja": "TAP Air Portugal、Oficiais Piloto（会社英語採用分類First Officer）、2026年9月選考の過去の応募要件；最低レベル。Portuguese/English能力も必要。補足: 過去。記事がTAPの応募要件を出所と明記し、原規程へリンク。原規程で5/6は加点条件、最低4とは区別して報道を出所に記録。",
@@ -159500,6 +172363,210 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "過去",
      "value": "2026-03-09〜2026-03-31のみ応募受付。",
      "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "thai-airways",
+     "cond_ja": "Qualified Pilot 2026 posting: Airbus or Boeing type ratings get special consideration; no specific type。補足: 求人は機種名を書いていない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ในกรณีที่ผู้สมัครมีคุณสมบัติถือ Type Ratings อากาศยาน Airbus หรือ Boeing จะได้รับการพิจารณาเป็นพิเศษ",
+       "source_id": "src-career-thaiairways-com-d52e28fe",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "49d2f5fcb6c8027c",
+     "id": "thai-airways.jobs.pilot-aircraft.a5a41380",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-thai-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "THAI Career",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-career-thaiairways-com-d52e28fe",
+       "source_type": "job_posting",
+       "title": "THAI Career",
+       "url": "https://career.thaiairways.com/qualified-pilot-recruitment-2026/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: Airbus or Boeing (no model named)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "thai-airways",
+     "cond_ja": "Posting names no type; company fleet has several types。補足: 【Wikipedia】 公式の機材ページは 403。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "As of February 2026, Thai Airways International operates the following aircraft: [table] Airbus A320-200 20 / Airbus A321neo 1 / Airbus A330-300 6 / Airbus A350-900 23 / Boeing 777-200ER 3 / Boeing 777-300ER 17 / Boeing 787-8 6 / Boeing 787-9 4",
+       "source_id": "src-en-wikipedia-org-3bdd769d",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fcdeae01e9ff3b27",
+     "id": "thai-airways.jobs.pilot-aircraft.b5cf961c",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-thai-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-en-wikipedia-org-3bdd769d",
+       "source_type": "third_party_reference",
+       "title": "Wikipedia",
+       "url": "https://en.wikipedia.org/wiki/Thai_Airways_International_fleet"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320-200, A321neo, A330-300, A350-900, B777-200ER, B777-300ER, B787-8, B787-9 (several types)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "thai-airways",
+     "cond_ja": "Posting names no base; company primary hub。補足: 【Wikipedia】。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Operating from its primary hub at Bangkok's Suvarnabhumi Airport",
+       "source_id": "src-en-wikipedia-org-887f3bc2",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c3a8ac7b5f6cd884",
+     "id": "thai-airways.jobs.pilot-base.513b097e",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-thai-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-en-wikipedia-org-887f3bc2",
+       "source_type": "third_party_reference",
+       "title": "Wikipedia",
+       "url": "https://en.wikipedia.org/wiki/Thai_Airways_International"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Bangkok (Suvarnabhumi)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "thai-airways",
+     "cond_ja": "Qualified Pilot 2026: applications from 9 Mar 2026, only those registered by 31 Mar 2026 considered; document check (20 Apr) and written exam (9 May 2026) postponed。補足: 2569=2026。新しい日程は 2026-11-20 時点で未掲載（トップページにも新しい告知なし）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "บริษัทฯ จะพิจารณาเฉพาะผู้สมัครที่ลงทะเบียนภายในวันที่ 31 มีนาคม 2569 เท่านั้น ... บริษัทฯ ขอเรียนแจ้งให้ทราบว่า มีความจำเป็นต้องเลื่อนกำหนดการดังกล่าวออกไป ทั้งนี้จะแจ้งกำหนดการใหม่ให้ทราบในโอกาสต่อไป",
+       "source_id": "src-career-thaiairways-com-d52e28fe",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b5eba2c971ff4c3b",
+     "id": "thai-airways.jobs.pilot-status.f2970735",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-thai-airways",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "THAI Career",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-career-thaiairways-com-d52e28fe",
+       "source_type": "job_posting",
+       "title": "THAI Career",
+       "url": "https://career.thaiairways.com/qualified-pilot-recruitment-2026/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: Round 1 registration closed 31 Mar 2026; exams postponed, new dates to be announced (checked 2026-11-20)",
+     "value_text": null
     }
    ],
    "profile": [
@@ -160437,6 +173504,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "applies_to": {
       "pilot_specific": true
      },
+     "checked_at": "2026-11-20",
+     "company": "toho-air",
+     "cond_ja": "Company office list (the posting refers to 'company operating bases')。補足: 頁の事業所名の見出しを並べたもの。頁は「事業所」と呼び「運航拠点」とは書いていない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "本社 調布事業所 東北事業所 八丈島事業所 花巻事業所 栃木事業所 松本事業所 静岡事業所 富山事業所 八尾事業所",
+       "source_id": "src-tohoair-co-jp-f666128e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b4763745a53b71ae",
+     "id": "toho-air.jobs.pilot-base.0572bf72",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-toho-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "東邦航空 事業所一覧",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-tohoair-co-jp-f666128e",
+       "source_type": "job_posting",
+       "title": "東邦航空 事業所一覧",
+       "url": "https://www.tohoair.co.jp/company/office.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Company offices: HQ (Tokyo), Chofu, Tohoku, Hachijojima, Hanamaki, Tochigi, Matsumoto, Shizuoka, Toyama, Yao",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "toho-air",
+     "cond_ja": "Experienced helicopter pilot posting; posting names the work location。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "本社（東京へリポート）をはじめとする弊社運航拠点",
+       "source_id": "src-tohoair-co-jp-ec9f1c28",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "a9ad9503106bfabe",
+     "id": "toho-air.jobs.pilot-base.4f8d3915",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-toho-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "東邦航空 採用（中途）",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-tohoair-co-jp-ec9f1c28",
+       "source_type": "job_posting",
+       "title": "東邦航空 採用（中途）",
+       "url": "https://www.tohoair.co.jp/recruit/mid-career.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Tokyo Heliport (HQ) and other company bases",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
      "checked_at": "2026-10-29",
      "company": "toho-air",
      "cond_ja": "職位未記載。補足: 更新日不明。採用決定次第終了とする現行回転翼操縦士募集。職位未記載。",
@@ -160532,6 +173701,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "第1種航空身体検査証明書",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "toho-air",
+     "cond_ja": "Experienced helicopter pilot posting。補足: 現状どおり。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "採用が決定次第終了します。",
+       "source_id": "src-tohoair-co-jp-ec9f1c28",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "25d1554ba578ad9b",
+     "id": "toho-air.jobs.pilot-status.6b2bf314",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-toho-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "東邦航空 採用（中途）",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-tohoair-co-jp-ec9f1c28",
+       "source_type": "job_posting",
+       "title": "東邦航空 採用（中途）",
+       "url": "https://www.tohoair.co.jp/recruit/mid-career.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open until filled (checked 2026-11-20)",
      "value_text": null
     }
    ],
@@ -161891,6 +175111,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "cap"
      },
+     "checked_at": "2026-11-20",
+     "company": "toki-air",
+     "cond_ja": "Captain-candidate posting names no type; company operates ATR72-600 (JA01QQ, JA02QQ) and ATR42-600 (JA03QQ): two types。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ATR72-600型機及びATR42-600型機で運航しております。",
+       "source_id": "src-tokiair-com-39a57104",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fbcd4f76a1150b11",
+     "id": "toki-air.jobs.cap-aircraft-cap.4db080e9",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_aircraft",
+     "label_ja": "機長の求人の機種",
+     "pack": "pvr-20261120-cl-toki-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Toki Air 機材・シートマップ",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-tokiair-com-39a57104",
+       "source_type": "job_posting",
+       "title": "Toki Air 機材・シートマップ",
+       "url": "https://tokiair.com/service/seatmap/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: ATR72-600, ATR42-600",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "toki-air",
+     "cond_ja": "Captain-candidate posting; posting names the bases。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "新潟空港、丘珠空港、中部国際空港、神戸空港、その他会社の指定する場所",
+       "source_id": "src-tokiair-com-724cd921",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "65b5690705bcfb84",
+     "id": "toki-air.jobs.cap-base-cap.52638f58",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-toki-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Toki Air 採用（運航乗務員候補（機長））",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-tokiair-com-724cd921",
+       "source_type": "job_posting",
+       "title": "Toki Air 採用（運航乗務員候補（機長））",
+       "url": "https://tokiair.com/recruit/%E9%81%8B%E8%88%AA%E4%B9%97%E5%8B%99%E5%93%A1%E5%80%99%E8%A3%9C%EF%BC%88%E6%A9%9F%E9%95%B7%E3%83%BB%E5%89%AF%E6%93%8D%E7%B8%A6%E5%A3%AB%EF%BC%89/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Niigata, Sapporo Okadama, Chubu Centrair, Kobe",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
      "checked_at": "2026-10-29",
      "company": "toki-air",
      "cond_ja": "補足: 更新日不明。公式採用一覧で現在募集職として掲載。",
@@ -162042,6 +175368,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": 500,
      "value_text": "500"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "toki-air",
+     "cond_ja": "Captain-candidate posting still listed on company recruitment page。補足: 現状どおり。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "書類を受け取り次第、順次選考を開始致します。",
+       "source_id": "src-tokiair-com-724cd921",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "964cddfa0077d33d",
+     "id": "toki-air.jobs.cap-status-cap.41cd8eb7",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_status",
+     "label_ja": "機長の求人の状況",
+     "pack": "pvr-20261120-cl-toki-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Toki Air 採用（運航乗務員候補（機長））",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-tokiair-com-724cd921",
+       "source_type": "job_posting",
+       "title": "Toki Air 採用（運航乗務員候補（機長））",
+       "url": "https://tokiair.com/recruit/%E9%81%8B%E8%88%AA%E4%B9%97%E5%8B%99%E5%93%A1%E5%80%99%E8%A3%9C%EF%BC%88%E6%A9%9F%E9%95%B7%E3%83%BB%E5%89%AF%E6%93%8D%E7%B8%A6%E5%A3%AB%EF%BC%89/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: listed; rolling selection (no date shown; checked 2026-11-20)",
+     "value_text": null
     },
     {
      "amount": null,
@@ -163091,6 +176470,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "cap"
      },
+     "checked_at": "2026-11-20",
+     "company": "turkish-airlines",
+     "cond_ja": "Experienced Narrow Body Captain (B737 - Expat Pilots) posting; listed under Istanbul, and the candidate must accept the main base the company shows。補足: 求人の所在は「Türk Hava Yolları / İstanbul」。「Publish Date: 4.11.2024」「Applications will be accepted till 31.12.2024, 15:00.」、掲載終了の表示あり。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-11-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Accepting the place to be shown by the Company as the main base and residing there",
+       "source_id": "src-apply-turkishairlines-com-9d3afb3a",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "922ac5472a93a8fd",
+     "id": "turkish-airlines.jobs.cap-base-cap.7ab58129",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-turkish-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-11-04",
+       "publisher": "Turkish Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-apply-turkishairlines-com-9d3afb3a",
+       "source_type": "job_posting",
+       "title": "Turkish Airlines Careers",
+       "url": "https://apply.turkishairlines.com/KEPR6EBGUZJUWEL8AE2BHXXMKS.JOB"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Istanbul (company assigns the main base)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
      "checked_at": "2026-11-18",
      "company": "turkish-airlines",
      "cond_ja": "past posting (2024-11-04): Expat Captain license & ICAO Level 4 English requirement。補足: 過去の公式募集（2024-11-04）：有効なDGCA/EASA/FAA/ICAO ATPL(A)およびICAO英語航空無線通信士レベル4以上。",
@@ -163347,6 +176779,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "valid B737 type rating",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "turkish-airlines",
+     "cond_ja": "Experienced Narrow Body First Officer (B737 - Expat Pilots) posting; posting names the type。補足: 求人の題。型式限定は「with a valid type rating on the applied aircraft type」。「Publish Date: 4.11.2024」「Applications will be accepted till 31.12.2024, 15:00.」。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-11-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Experienced Narrow Body First Officer (B737 - Expat Pilots)",
+       "source_id": "src-apply-turkishairlines-com-0a4b01f7",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d3ba50ee94bcb8bd",
+     "id": "turkish-airlines.jobs.fo-aircraft-fo.4dfc2b62",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-turkish-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-11-04",
+       "publisher": "Turkish Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-apply-turkishairlines-com-0a4b01f7",
+       "source_type": "job_posting",
+       "title": "Turkish Airlines Careers",
+       "url": "https://apply.turkishairlines.com/AWRDGXGV64DLYENF6HP2BFM6Q3.JOB"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: B737",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "turkish-airlines",
+     "cond_ja": "Experienced Narrow Body First Officer (B737 - Expat Pilots) posting; listed under Istanbul, and the candidate must accept the main base the company shows。補足: 求人の所在は「Türk Hava Yolları / İstanbul」。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2024-11-04",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "the place to be shown by the Company as the main base and residing there",
+       "source_id": "src-apply-turkishairlines-com-0a4b01f7",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c6e6812a3f2305e7",
+     "id": "turkish-airlines.jobs.fo-base-fo.b41cacb8",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-turkish-airlines",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2024-11-04",
+       "publisher": "Turkish Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-apply-turkishairlines-com-0a4b01f7",
+       "source_type": "job_posting",
+       "title": "Turkish Airlines Careers",
+       "url": "https://apply.turkishairlines.com/AWRDGXGV64DLYENF6HP2BFM6Q3.JOB"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Istanbul (company assigns the main base)",
      "value_text": null
     },
     {
@@ -166458,6 +179996,218 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "united",
+     "cond_ja": "Posting names no type; company fleet has many types (narrowbody and widebody), so new hires could go to any。補足: 【APC】 機数は古い可能性（APCの更新表示は Hiring 2024-03-22 のみ）。現行の機種一覧は Wikipedia（2026年11月時点 1,152機）でも同系統。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "FLEET 737-700: 40 737-8: 85 737-800: 141 737-9: 79 737-900: 12 737-900ER: 136 757-200: 40 757-300: 21 A319: 81 A320: 89 A321: 6 B767-300: 37 B767-400: 16 B777: 74 B777-300ER: 22 B787: 21 B788: 12 B789: 38",
+       "source_id": "src-airlinepilotcentral-com-d3e3f423",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "807cba3051ab4f36",
+     "id": "united.jobs.fo-aircraft-fo.3a349ea8",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-united",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Airline Pilot Central",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-airlinepilotcentral-com-d3e3f423",
+       "source_type": "community_reference",
+       "title": "Airline Pilot Central",
+       "url": "https://www.airlinepilotcentral.com/airlines/legacy/united_airlines"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: B737 (700/800/900/900ER/MAX 8/MAX 9), B757, B767, B777, B787, A319, A320, A321",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "united",
+     "cond_ja": "Current fleet size and types (third-party summary)。補足: 【Wikipedia】 機種名は記事の表から（引用文には機種名なし）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "As of November 2026, the United Airlines fleet consists of 1,152 mainline aircraft, the largest of any airline worldwide.",
+       "source_id": "src-en-wikipedia-org-84496f84",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "2bd982b27df402d7",
+     "id": "united.jobs.fo-aircraft-fo.ccb3f17a",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-united",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Wikipedia (United Airlines fleet)",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-en-wikipedia-org-84496f84",
+       "source_type": "third_party_reference",
+       "title": "Wikipedia (United Airlines fleet)",
+       "url": "https://en.wikipedia.org/wiki/United_Airlines_fleet"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: mainline fleet 1,152 aircraft (A319, A320, A321neo, A321XLR, B737 family, B757, B767, B777, B787)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "united",
+     "cond_ja": "Posting names no base (only \"hubs and crew bases\"); domiciles per APC profile。補足: 【APC】 APC の更新表示は 2024-03-22（Hiring）。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "DOMICILES IAH LAX ORD DEN SFO EWR IAD GUM CLE MCO TPA",
+       "source_id": "src-airlinepilotcentral-com-d3e3f423",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "f2c898bb09067747",
+     "id": "united.jobs.fo-base-fo.b7d58800",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-united",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Airline Pilot Central",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-airlinepilotcentral-com-d3e3f423",
+       "source_type": "community_reference",
+       "title": "Airline Pilot Central",
+       "url": "https://www.airlinepilotcentral.com/airlines/legacy/united_airlines"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Houston, Los Angeles, Chicago, Denver, San Francisco, Newark, Washington Dulles, Guam, Cleveland, Orlando, Tampa",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "united",
+     "cond_ja": "First Officer posting says it is ongoing。補足: 2026-11-20 時点も同じ。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "This posting is ongoing and does not have a fixed end date.",
+       "source_id": "src-careers-united-com-bfcd5484",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d9c1e24be696ac2e",
+     "id": "united.jobs.fo-status-fo.c4c76e60",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_status",
+     "label_ja": "副操縦士の求人の状況",
+     "pack": "pvr-20261120-cl-united",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "United Airlines Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-united-com-bfcd5484",
+       "source_type": "job_posting",
+       "title": "United Airlines Careers",
+       "url": "https://careers.united.com/us/en/first-officer"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (ongoing, no end date)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true,
       "rank": "fo"
@@ -169225,6 +182975,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "cap"
      },
+     "checked_at": "2026-11-20",
+     "company": "vietjet",
+     "cond_ja": "Posting's 'Working location' field is blank (only the HCMC office address); company operating bases。補足: 【Wikipedia】 求人（Vacancy 2517「A320/A321F PILOT - Sky Career Day 2025」）の勤務地欄は空欄。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Operating bases Da Nang Hai Phong Hanoi Ho Chi Minh City Nha Trang",
+       "source_id": "src-en-wikipedia-org-32ba9ca6",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "929ef10870ad9fcb",
+     "id": "vietjet.jobs.cap-base-cap.fa6eb495",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-vietjet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Wikipedia",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-en-wikipedia-org-32ba9ca6",
+       "source_type": "third_party_reference",
+       "title": "Wikipedia",
+       "url": "https://en.wikipedia.org/wiki/VietJet_Air"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Da Nang, Hai Phong, Hanoi, Ho Chi Minh City, Nha Trang (company operating bases)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
      "checked_at": "2026-10-29",
      "company": "vietjet",
      "cond_ja": "過去求人; VietJet Air VJ・A320/A321; Sky Career Day2025; 応募2025-02-14〜2025-02-17; 経験者機長; CPL又はATPLの選択肢ATPL; Valid IR and Aircraft Ratingも必要。補足: 公式原文を実読。締切経過後の過去要件で、2026年の現在募集にはしない。FOの機種別1500hは総時間4000hとは区別し、総飛行時間欄に代入しない。",
@@ -169962,6 +183765,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "Pilotsカテゴリに求人表示なし",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "vietjet",
+     "cond_ja": "A320/A321F PILOT - Sky Career Day 2025 posting。補足: 現状の past を再確認。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "A320/A321F PILOT - Sky Career Day 2025 ... Open: 14/02/2025 ... Close: 17/02/2025",
+       "source_id": "src-jobs-vietjetair-com-ccb17024",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "5e633cbae183dfc5",
+     "id": "vietjet.jobs.pilot-status.109de9c7",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-vietjet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Vietjet Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-jobs-vietjetair-com-ccb17024",
+       "source_type": "job_posting",
+       "title": "Vietjet Careers",
+       "url": "https://jobs.vietjetair.com/Jobs/Vacancy/2517"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: closed 17 Feb 2025 (open 14 Feb 2025)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "vietjet",
+     "cond_ja": "Vietjet careers, Pilots category。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Pilots (0) ... Not Available",
+       "source_id": "src-jobs-vietjetair-com-7da1a6eb",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b37596a087709dcd",
+     "id": "vietjet.jobs.pilot-status.f1f75411",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-vietjet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Vietjet Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-jobs-vietjetair-com-7da1a6eb",
+       "source_type": "job_posting",
+       "title": "Vietjet Careers",
+       "url": "https://jobs.vietjetair.com/Jobs/Category/1"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: no current pilot vacancy (checked 2026-11-20)",
      "value_text": null
     }
    ],
@@ -173488,6 +187393,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "virgin-atlantic",
+     "cond_ja": "Pilot jobs page states DEC roles are not offered。補足: 機長の直接採用の求人が無いので、機種は会社の機材（上の行）で示す。status_now（none）は今も正しい。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-09-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "While we don’t offer direct entry Captain roles, we’re committed to supporting your journey to command within a 8–10 year timeframe (based on operational requirements).",
+       "source_id": "src-careers-virginatlantic-com-446c9238",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "47616cd8907d3f5e",
+     "id": "virgin-atlantic.jobs.cap-status-cap.373ca507",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_status",
+     "label_ja": "機長の求人の状況",
+     "pack": "pvr-20261120-cl-virgin-atlantic",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-09-26",
+       "publisher": "Virgin Atlantic Careers (Pilot Jobs)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-virginatlantic-com-446c9238",
+       "source_type": "job_posting",
+       "title": "Virgin Atlantic Careers (Pilot Jobs)",
+       "url": "https://careers.virginatlantic.com/pilots?region=/index.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: no direct-entry captain roles",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "virgin-atlantic",
+     "cond_ja": "Experienced FO/SFO; allocation based on operational requirements, fleet told at offer stage。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-04-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "We will take into account your experience, flying hours, type rating and preferences. Allocation is based solely on our operational requirements, but we will let you know the fleet you will be on at the offer stage.",
+       "source_id": "src-careers-virginatlantic-com-39a887bf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e9f823ff75bdb083",
+     "id": "virgin-atlantic.jobs.fo-aircraft-fo.17640b08",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_aircraft",
+     "label_ja": "副操縦士の求人の機種",
+     "pack": "pvr-20261120-cl-virgin-atlantic",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04-20",
+       "publisher": "Virgin Atlantic Careers (Pilot FAQs)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-virginatlantic-com-39a887bf",
+       "source_type": "job_posting",
+       "title": "Virgin Atlantic Careers (Pilot FAQs)",
+       "url": "https://careers.virginatlantic.com/pilot-faqs"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: Fleet allocated by the company at offer stage",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
       "pilot_specific": true,
       "rank": "fo"
@@ -173960,6 +187971,210 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "Current and Qualified type rating",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "virgin-atlantic",
+     "cond_ja": "Pilot jobs page (FO & SFO requirements, Airbus and Boeing) lists the fleet。補足: 見出し「Our Aircraft Fleet」の下の一覧。日付は dateModified。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2025-09-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Airbus A350-1000 Airbus A330-300 Airbus A330neo Boeing 787-9",
+       "source_id": "src-careers-virginatlantic-com-446c9238",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b596c511bb0fe795",
+     "id": "virgin-atlantic.jobs.pilot-aircraft.04d8d586",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-virgin-atlantic",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2025-09-26",
+       "publisher": "Virgin Atlantic Careers (Pilot Jobs)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-virginatlantic-com-446c9238",
+       "source_type": "job_posting",
+       "title": "Virgin Atlantic Careers (Pilot Jobs)",
+       "url": "https://careers.virginatlantic.com/pilots?region=/index.html"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A350-1000, A330-300, A330neo, B787-9",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "virgin-atlantic",
+     "cond_ja": "Future Flyers cadets (past programmes) became Second or First Officers on the Airbus or Boeing fleet。補足: 過去の制度の説明。次の制度の配属機種は未定。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-04-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "In the past programmes we have run, we have always created a structured pilot training programme that leads towards the Civil Aviation Authority’s latest Multi Pilot Licence (MPL) and a position as a Second or First Officer on the Airbus or Boeing.",
+       "source_id": "src-careers-virginatlantic-com-39a887bf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b08fa49d0ed7f308",
+     "id": "virgin-atlantic.jobs.pilot-aircraft.22fcbd4f",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-virgin-atlantic",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04-20",
+       "publisher": "Virgin Atlantic Careers (Pilot FAQs)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-virginatlantic-com-39a887bf",
+       "source_type": "job_posting",
+       "title": "Virgin Atlantic Careers (Pilot FAQs)",
+       "url": "https://careers.virginatlantic.com/pilot-faqs"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: Airbus or Boeing (Second or First Officer) in past programmes",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "virgin-atlantic",
+     "cond_ja": "Recruitment FAQ: pilots recruited for both Airbus and Boeing fleets depending on operational needs。補足: 日付はページの dateModified。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-04-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "At Virgin Atlantic, we operate both Airbus and Boeing aircrafts—including the A330-300, A330-900, A350, and the Boeing 787. As a result, we recruit pilots for both fleets depending on our operational needs.",
+       "source_id": "src-careers-virginatlantic-com-39a887bf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d3f960353e1cfba9",
+     "id": "virgin-atlantic.jobs.pilot-aircraft.f5200ccd",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-virgin-atlantic",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04-20",
+       "publisher": "Virgin Atlantic Careers (Pilot FAQs)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-virginatlantic-com-39a887bf",
+       "source_type": "job_posting",
+       "title": "Virgin Atlantic Careers (Pilot FAQs)",
+       "url": "https://careers.virginatlantic.com/pilot-faqs"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A330-300, A330-900, A350, B787 (Airbus and Boeing fleets)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "virgin-atlantic",
+     "cond_ja": "Recruitment FAQ answers which base new pilots fly from。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-04-20",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "We operate from two bases: London Heathrow Airport and Manchester Airport. However, please note that we’re currently only recruiting for our London Heathrow base.",
+       "source_id": "src-careers-virginatlantic-com-39a887bf",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "81830c0736c08291",
+     "id": "virgin-atlantic.jobs.pilot-base.2394a458",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-virgin-atlantic",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-04-20",
+       "publisher": "Virgin Atlantic Careers (Pilot FAQs)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-virginatlantic-com-39a887bf",
+       "source_type": "job_posting",
+       "title": "Virgin Atlantic Careers (Pilot FAQs)",
+       "url": "https://careers.virginatlantic.com/pilot-faqs"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: London Heathrow (currently recruiting only for LHR; Manchester is the other base)",
      "value_text": null
     }
    ],
@@ -174988,6 +189203,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     {
      "amount": null,
      "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "vueling",
+     "cond_ja": "Careers page names no type; fleet is a single family (A320 family)。補足: 【第三者】 パイロット向け求人情報の wiki。機材の行の最終更新は 26/Nov/23 と古い。同ページの発注は B737 MAX（未就航）。公式の機材ページは見つからず。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2023-11-26",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Current: 6x A319, 85x A320-200, 22x A320neo, 15x A321-200, 4x A321neo",
+       "source_id": "src-pilotjobsnetwork-com-d99ebfa8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "1d4c3763bf9ec728",
+     "id": "vueling.jobs.pilot-aircraft.b1b634ab",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-vueling",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-11-26",
+       "publisher": "Pilot Jobs Network",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-pilotjobsnetwork-com-d99ebfa8",
+       "source_type": "third_party_reference",
+       "title": "Pilot Jobs Network",
+       "url": "https://pilotjobsnetwork.com/jobs/Vueling"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320 family (A319, A320, A320neo, A321, A321neo)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "vueling",
+     "cond_ja": "Careers page names no base; pilot bases per pilot-jobs wiki。補足: 【第三者】 拠点の行の最終更新は 19/Jun/26。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-06-19",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "BCN AGP SVQ ALC PMI BIO SCQ VLC LPA TFN ORY FLR",
+       "source_id": "src-pilotjobsnetwork-com-d99ebfa8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "b682f46ba9eef129",
+     "id": "vueling.jobs.pilot-base.2a40fd59",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_base",
+     "label_ja": "求人の拠点",
+     "pack": "pvr-20261120-cl-vueling",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2023-11-26",
+       "publisher": "Pilot Jobs Network",
+       "publisher_kind": "other",
+       "retrieved": "2026-11-20",
+       "source_id": "src-pilotjobsnetwork-com-d99ebfa8",
+       "source_type": "third_party_reference",
+       "title": "Pilot Jobs Network",
+       "url": "https://pilotjobsnetwork.com/jobs/Vueling"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: BCN, AGP, SVQ, ALC, PMI, BIO, SCQ, VLC, LPA, TFN, ORY, FLR",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
       "note_ja": "適用対象は引用の明示部分に限る。不明欄はnull。会社の基本情報はパイロット向け制度を意味しない。",
       "pilot_specific": true
      },
@@ -175038,6 +189355,57 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "We are hiring見出しとNo matching jobs表示が併存",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "vueling",
+     "cond_ja": "Vueling pilots careers page shows no matching jobs。補足: status_now（none）は今も正しい。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "No matching jobs Connect with us to stay up-to-date on new openings.",
+       "source_id": "src-careers-vueling-com-87cd8c6e",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9a33da4262a62b7d",
+     "id": "vueling.jobs.pilot-status.904f73d5",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-vueling",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Vueling Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-vueling-com-87cd8c6e",
+       "source_type": "job_posting",
+       "title": "Vueling Careers",
+       "url": "https://careers.vueling.com/pages/pilots"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: no current vacancy",
      "value_text": null
     }
    ],
@@ -176855,6 +191223,165 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "fo"
      },
+     "checked_at": "2026-11-20",
+     "company": "westjet",
+     "cond_ja": "WestJet B737 First Officer posting (posted 2026-06-23, expired 2026-08-01) names YVR。補足: ページに「Expired Aug 1, 2026」「This position at WestJet is no longer accepting applications.」。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-06-23",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "We are accepting applications for future consideration, primarily in YVR.",
+       "source_id": "src-jobs-ca-e606b6f7",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "e0b7972d4b5a706e",
+     "id": "westjet.jobs.fo-base-fo.02d7ed7c",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-westjet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-06-23",
+       "publisher": "Jobs.ca (WestJet Group ad)",
+       "publisher_kind": "recruiter",
+       "retrieved": "2026-11-20",
+       "source_id": "src-jobs-ca-e606b6f7",
+       "source_type": "job_posting",
+       "title": "Jobs.ca (WestJet Group ad)",
+       "url": "https://www.jobs.ca/westjet-group/jobs/westjet-b737-pilot-first-officer-canada-c41792141b4e"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Vancouver (YVR), primarily",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "westjet",
+     "cond_ja": "Current WestJet B737 First Officer posting (posted 2026-10-15) builds a pool for future openings。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-15",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "primarily in our Western crew bases.",
+       "source_id": "src-jobs-ca-ebe41a19",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "cf44d4e67c27d3c9",
+     "id": "westjet.jobs.fo-base-fo.890ae6d7",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-westjet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-15",
+       "publisher": "Jobs.ca (WestJet Group ad)",
+       "publisher_kind": "recruiter",
+       "retrieved": "2026-11-20",
+       "source_id": "src-jobs-ca-ebe41a19",
+       "source_type": "job_posting",
+       "title": "Jobs.ca (WestJet Group ad)",
+       "url": "https://www.jobs.ca/westjet-group/jobs/westjet-b737-pilot-first-officer-canada-347903cc972f"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Western crew bases (primarily)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "westjet",
+     "cond_ja": "How base is set for WestJet Group hires (careers page)。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Clarity on placement: Know your base at the time of offer",
+       "source_id": "src-westjet-com-843387ae",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6f3db31a0bd591c2",
+     "id": "westjet.jobs.fo-base-fo.f6b21961",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_base",
+     "label_ja": "副操縦士の求人の拠点",
+     "pack": "pvr-20261120-cl-westjet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "WestJet Careers",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-westjet-com-843387ae",
+       "source_type": "job_posting",
+       "title": "WestJet Careers",
+       "url": "https://www.westjet.com/en-ca/careers/pilot"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Base known at time of offer",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
      "checked_at": "2026-10-29",
      "company": "westjet",
      "cond_ja": "過去2026年B737直接採用FO; oral/written proficiency; 等級は未記載。補足: 過去募集。求人サイトJobs.caがWestJetのOriginal job postingとして掲載、Posted Jun 23, 2026/Expired Aug 1, 2026を明記。公式WestJet Pilot CareersからDayforceに接続したが求人本文を取得不可、公開GETも401。原文再掲部分だけを使用し、同サイトの自動要約・分類（internship/Master等）は使わない。Encore Q400条件を混在させない。",
@@ -177111,6 +191638,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "unit": null,
      "use": "募集",
      "value": "permanent resident status",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "westjet",
+     "cond_ja": "Encore - Q400 - Pilot - First Officer - 2026 - YYC ad (Calgary); a second copy posted 2026-09-01 also apply by 2026-12-01。補足: Encore の求人は副操縦士。機種は De Havilland Dash 8-400 (Q400)、勤務地 Calgary, AB。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-07",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "Encore - Q400 - Pilot - First Officer - 2026 - YYC … Posted Oct 7, 2026 … Apply by Dec 1, 2026",
+       "source_id": "src-jobs-ca-b979afd7",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "fa382491c5e24378",
+     "id": "westjet.jobs.fo-status-fo.1577ce93",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_status",
+     "label_ja": "副操縦士の求人の状況",
+     "pack": "pvr-20261120-cl-westjet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-07",
+       "publisher": "Jobs.ca (WestJet Group ad)",
+       "publisher_kind": "recruiter",
+       "retrieved": "2026-11-20",
+       "source_id": "src-jobs-ca-b979afd7",
+       "source_type": "job_posting",
+       "title": "Jobs.ca (WestJet Group ad)",
+       "url": "https://www.jobs.ca/westjet-group/jobs/encore-q400-pilot-first-officer-2026-yyc-calgary-ab-f0b485201780"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (posted 2026-10-07, apply by 2026-12-01)",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（first_officer）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "fo"
+     },
+     "checked_at": "2026-11-20",
+     "company": "westjet",
+     "cond_ja": "WestJet - B737 - Pilot - First Officer ad live with Apply button。補足: WestJet の求人ボード（Dayforce）は JavaScript で開けず、jobs.ca の掲載で確認。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": "2026-10-15",
+      "note_ja": "資料の発行日・更新日（調査の表の published_date）を写した。いつから効くかを資料が書いているとは限らない。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "WestJet - B737 - Pilot - First Officer … Posted Oct 15, 2026",
+       "source_id": "src-jobs-ca-ebe41a19",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "d8dbc0310187912b",
+     "id": "westjet.jobs.fo-status-fo.ef009a42",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "fo_status",
+     "label_ja": "副操縦士の求人の状況",
+     "pack": "pvr-20261120-cl-westjet",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": "2026-10-15",
+       "publisher": "Jobs.ca (WestJet Group ad)",
+       "publisher_kind": "recruiter",
+       "retrieved": "2026-11-20",
+       "source_id": "src-jobs-ca-ebe41a19",
+       "source_type": "job_posting",
+       "title": "Jobs.ca (WestJet Group ad)",
+       "url": "https://www.jobs.ca/westjet-group/jobs/westjet-b737-pilot-first-officer-canada-347903cc972f"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (posted 2026-10-15; no closing date shown)",
      "value_text": null
     },
     {
@@ -177885,6 +192518,108 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
     }
    ],
    "jobs": [
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "wizz-air",
+     "cond_ja": "Pilot jobs page (covers Wizz Air UK) states the fleet is A320 family only。補足: 単一の機種系列。台帳の CAA 登録も A321neo。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "As one of Europe’s fastest-growing airlines, WIZZ flies passengers on a young fleet of Airbus A320 family.",
+       "source_id": "src-careers-wizzair-com-f9771126",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "c23d928319c2d7bf",
+     "id": "wizz-air.jobs.pilot-aircraft.f3062cb4",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_aircraft",
+     "label_ja": "求人の機種",
+     "pack": "pvr-20261120-cl-wizz-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Wizz Air Careers (Pilot Jobs)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-wizzair-com-f9771126",
+       "source_type": "job_posting",
+       "title": "Wizz Air Careers (Pilot Jobs)",
+       "url": "https://careers.wizzair.com/go/Pilot-Jobs/5258601/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: A320 family",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "pilot_specific": true
+     },
+     "checked_at": "2026-11-20",
+     "company": "wizz-air",
+     "cond_ja": "Selection-events section for the Wizz Air UK AOC。補足: 応募フォームは開いているが、UK の選考会は無し。同ページの「Meet Us in the USA this February – Wizz Air UK is recruiting Pilots」は日付なしの見出し。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "WIZZ AIR UK No Recruitment Events at the moment. We'll see you soon! Register your interest here",
+       "source_id": "src-careers-wizzair-com-f9771126",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "6d20e08bc4e3117a",
+     "id": "wizz-air.jobs.pilot-status.ab2c742b",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "pilot_status",
+     "label_ja": "求人の状況",
+     "pack": "pvr-20261120-cl-wizz-air",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "Wizz Air Careers (Pilot Jobs)",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-careers-wizzair-com-f9771126",
+       "source_type": "job_posting",
+       "title": "Wizz Air Careers (Pilot Jobs)",
+       "url": "https://careers.wizzair.com/go/Pilot-Jobs/5258601/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: no Wizz Air UK recruitment events at the moment (register interest only)",
+     "value_text": null
+    },
     {
      "amount": null,
      "applies_to": {
@@ -178970,6 +193705,112 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
       "pilot_specific": true,
       "rank": "cap"
      },
+     "checked_at": "2026-11-20",
+     "company": "zipair",
+     "cond_ja": "Posting PDF (zipair_pilot_2609.pdf) text not machine-readable; company fleet is a single type (B787-8 x8, as of July 2026)。補足: 頁の基準は「2026年7月現在」。募集要項PDFは文字を取り出せず（画像同様）、機種の記載は確認できず。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "ボーイング787-8型機（290人乗り）8機",
+       "source_id": "src-zipairtokyo-com-5fc15eaa",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "161bc790d66ea49a",
+     "id": "zipair.jobs.cap-aircraft-cap.5e2509d3",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_aircraft",
+     "label_ja": "機長の求人の機種",
+     "pack": "pvr-20261120-cl-zipair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ZIPAIR 企業情報",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-zipairtokyo-com-5fc15eaa",
+       "source_type": "job_posting",
+       "title": "ZIPAIR 企業情報",
+       "url": "https://www.zipairtokyo.com/ja/company/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Aircraft for this posting: B787-8",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "zipair",
+     "cond_ja": "Posting PDF not readable; company HQ is inside Narita Airport Terminal 1 and all routes are from Narita。補足: 本社の住所。乗員の拠点として明記されてはいない。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "千葉県成田市三里塚字御料牧場1-1 成田空港第1ターミナル内",
+       "source_id": "src-zipairtokyo-com-5fc15eaa",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "baa538e593622217",
+     "id": "zipair.jobs.cap-base-cap.9f93cbe3",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_base",
+     "label_ja": "機長の求人の拠点",
+     "pack": "pvr-20261120-cl-zipair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ZIPAIR 企業情報",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-zipairtokyo-com-5fc15eaa",
+       "source_type": "job_posting",
+       "title": "ZIPAIR 企業情報",
+       "url": "https://www.zipairtokyo.com/ja/company/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Base for this posting: Narita",
+     "value_text": null
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
      "checked_at": "2026-10-29",
      "company": "zipair",
      "cond_ja": "以上。補足: 公式現行採用ページからリンクされたPDFをダウンロードし全3ページを目視確認。発行日明記なし。",
@@ -179174,6 +194015,59 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
      "use": "募集",
      "value": 1000,
      "value_text": "1,000"
+    },
+    {
+     "amount": null,
+     "applies_to": {
+      "note_ja": "職位は調査の表の position（captain）から。引用がその職位の話かは、取り込みのときに確かめる。",
+      "pilot_specific": true,
+      "rank": "cap"
+     },
+     "checked_at": "2026-11-20",
+     "company": "zipair",
+     "cond_ja": "Company careers page, pilot (運航乗務職) section。補足: 現状どおり。",
+     "currency": null,
+     "domain": "jobs",
+     "effective": {
+      "from": null,
+      "note_ja": "資料に発行日の記載なし（調査の表の published_date が空）。",
+      "to": null
+     },
+     "evidence": [
+      {
+       "locator": "調査の表に、資料の中の場所の記録なし",
+       "quote": "募集中です。",
+       "source_id": "src-zipairtokyo-com-a756ecf8",
+       "supports": [
+        "value"
+       ]
+      }
+     ],
+     "h": "9af69f9c23b92db7",
+     "id": "zipair.jobs.cap-status-cap.95cdd85d",
+     "imported_on": "2026-11-20",
+     "info_kind": "recruitment_condition",
+     "key": "cap_status",
+     "label_ja": "機長の求人の状況",
+     "pack": "pvr-20261120-cl-zipair",
+     "per": null,
+     "rev": 1,
+     "src": [
+      {
+       "published": null,
+       "publisher": "ZIPAIR 採用情報",
+       "publisher_kind": "airline",
+       "retrieved": "2026-11-20",
+       "source_id": "src-zipairtokyo-com-a756ecf8",
+       "source_type": "job_posting",
+       "title": "ZIPAIR 採用情報",
+       "url": "https://www.zipairtokyo.com/ja/recruit/"
+      }
+     ],
+     "unit": null,
+     "use": "募集",
+     "value": "Status of this posting: open (careers page says recruiting; no date; checked 2026-11-20)",
+     "value_text": null
     },
     {
      "amount": null,
@@ -608162,6 +623056,868 @@ export const LEDGER = /*PV-IMPORT-JSON*/{
    },
    "revision": 1,
    "sha": "sha256:54cf476c6e15fdd3"
+  },
+  "pvr-20261120-cl-abx-air": {
+   "records": {
+    "abx-air.jobs.fo-base-fo.48204946": "dd237ae397c8e496",
+    "abx-air.jobs.fo-base-fo.f0132cc0": "1f70f6ffdad801c5"
+   },
+   "revision": 1,
+   "sha": "sha256:df86b091b88b6a92"
+  },
+  "pvr-20261120-cl-aegean": {
+   "records": {
+    "aegean.jobs.fo-base-fo.8aac2800": "ec547c74b2f39607",
+    "aegean.jobs.fo-status-fo.1cec8124": "88629785238f8b47",
+    "aegean.jobs.pilot-aircraft.814d3fd9": "64852d2a657b1705",
+    "aegean.jobs.pilot-aircraft.b9a08a10": "0bb9cf2ede7f833a",
+    "aegean.jobs.pilot-aircraft.bdded111": "be6c0539e4a0de77"
+   },
+   "revision": 1,
+   "sha": "sha256:f9c81a26cd1ed90b"
+  },
+  "pvr-20261120-cl-aer-lingus": {
+   "records": {
+    "aer-lingus.jobs.pilot-aircraft.ce3200b6": "393f28ce437bf75a"
+   },
+   "revision": 1,
+   "sha": "sha256:977ccc20c1af57b5"
+  },
+  "pvr-20261120-cl-air-canada": {
+   "records": {
+    "air-canada.jobs.pilot-aircraft.338feabf": "f9a0e983d4687536",
+    "air-canada.jobs.pilot-aircraft.4c33cbbf": "e54fd07c35ad4e77",
+    "air-canada.jobs.pilot-aircraft.6bddd9dd": "23412119dc1a27d6",
+    "air-canada.jobs.pilot-aircraft.c399aa1a": "ce142c8a7eaf67e4",
+    "air-canada.jobs.pilot-base.140af636": "4e2a99f86b6e9e97",
+    "air-canada.jobs.pilot-base.47e75c1a": "b9a04bea09704641",
+    "air-canada.jobs.pilot-base.594997aa": "3001c6eb04ca97b2",
+    "air-canada.jobs.pilot-status.8ca9ef72": "694246f1e753e6cd"
+   },
+   "revision": 1,
+   "sha": "sha256:9626d3401c3391b3"
+  },
+  "pvr-20261120-cl-air-china": {
+   "records": {
+    "air-china.jobs.pilot-aircraft.d311e567": "71a626965987c594",
+    "air-china.jobs.pilot-base.a2f2e3da": "3ab76aa4cfd1c722",
+    "air-china.jobs.pilot-status.2982ca58": "c5cfe0710ebf291b"
+   },
+   "revision": 1,
+   "sha": "sha256:bdf12fd215e43663"
+  },
+  "pvr-20261120-cl-air-france": {
+   "records": {
+    "air-france.jobs.fo-aircraft-fo.9c767a28": "22f68aaadbe48989",
+    "air-france.jobs.fo-aircraft-fo.f59c7c47": "95a43edc3e34446f",
+    "air-france.jobs.fo-status-fo.fd1e1f1d": "3d9350835fec22dd",
+    "air-france.jobs.pilot-aircraft.642f3fcf": "e70cf2dff57f765a",
+    "air-france.jobs.pilot-status.4c2273e1": "82676165bcf48c98"
+   },
+   "revision": 1,
+   "sha": "sha256:b8af3f397254218d"
+  },
+  "pvr-20261120-cl-air-india": {
+   "records": {
+    "air-india.jobs.pilot-aircraft.ab35a51a": "689d76aa85b23146",
+    "air-india.jobs.pilot-base.52aa6165": "f53da0834f6e9068",
+    "air-india.jobs.pilot-status.14ac4eff": "73605448446f6ad9",
+    "air-india.jobs.pilot-status.cddd7b2c": "2417a7c830e97d02"
+   },
+   "revision": 1,
+   "sha": "sha256:e1132d7a0afca1d2"
+  },
+  "pvr-20261120-cl-air-new-zealand": {
+   "records": {
+    "air-new-zealand.jobs.pilot-base.560bedcf": "0f86a2abdd673e3e"
+   },
+   "revision": 1,
+   "sha": "sha256:43ce77a1e6dc69dd"
+  },
+  "pvr-20261120-cl-air-peace": {
+   "records": {
+    "air-peace.jobs.cap-base-cap.6b7277d6": "39458826f8181bee",
+    "air-peace.jobs.fo-base-fo.ac799692": "aa67cd7562507b93"
+   },
+   "revision": 1,
+   "sha": "sha256:a9e27e13e6ff6dac"
+  },
+  "pvr-20261120-cl-airdo": {
+   "records": {
+    "airdo.jobs.cap-base-cap.c1850c13": "d82cb9c0a16eae1d"
+   },
+   "revision": 1,
+   "sha": "sha256:c860daa00c3d8b12"
+  },
+  "pvr-20261120-cl-airjapan": {
+   "records": {
+    "airjapan.jobs.cap-aircraft-cap.7b50a5e6": "c2182e51f85f2d30",
+    "airjapan.jobs.cap-base-cap.e3373ec0": "e6649e110b7e7d87",
+    "airjapan.jobs.pilot-base.0d084297": "a38b20639b0f91cf",
+    "airjapan.jobs.pilot-base.16bd0317": "96fae043e25600d7",
+    "airjapan.jobs.pilot-status.c2f26074": "5e2d4d99c5bf02f3"
+   },
+   "revision": 1,
+   "sha": "sha256:088880e4740632eb"
+  },
+  "pvr-20261120-cl-alaska-airlines": {
+   "records": {
+    "alaska-airlines.jobs.fo-aircraft-fo.aedb9d85": "fa7a4d151af5fa9c",
+    "alaska-airlines.jobs.fo-base-fo.63f547fa": "946b0243f46e0aa5",
+    "alaska-airlines.jobs.fo-status-fo.5658dfba": "5a414230b8744b83",
+    "alaska-airlines.jobs.pilot-aircraft.23773849": "4c027b1e70e98fed"
+   },
+   "revision": 1,
+   "sha": "sha256:226be8168aa2bf98"
+  },
+  "pvr-20261120-cl-allegiant": {
+   "records": {
+    "allegiant.jobs.fo-base-fo.5c5cb0e7": "73de2dba32e968ab",
+    "allegiant.jobs.fo-status-fo.34231426": "b4643f3071625350",
+    "allegiant.jobs.fo-status-fo.568b7f54": "3dec64626695233e",
+    "allegiant.jobs.pilot-aircraft.6ce13bd9": "55a7db69291004a5",
+    "allegiant.jobs.pilot-base.7a43bc38": "0686c675c38abc84",
+    "allegiant.jobs.pilot-status.5cf851fb": "e1c820513d874f11"
+   },
+   "revision": 1,
+   "sha": "sha256:15ea4f5444b364b2"
+  },
+  "pvr-20261120-cl-american": {
+   "records": {
+    "american.jobs.fo-aircraft-fo.92f86271": "35db60d43a41cf6e",
+    "american.jobs.fo-aircraft-fo.cdd36c62": "5f76e7aefb5f3030",
+    "american.jobs.fo-base-fo.189e4a18": "be3b62473a31e6b4",
+    "american.jobs.fo-base-fo.1ff4a044": "ffe0f2048815c6d1"
+   },
+   "revision": 1,
+   "sha": "sha256:bd604851f5f9205a"
+  },
+  "pvr-20261120-cl-amx": {
+   "records": {
+    "amx.jobs.cap-aircraft-cap.cb5e3dce": "706f6ef052329d66",
+    "amx.jobs.cap-base-cap.ad33e9c0": "69b118a24ff01b23",
+    "amx.jobs.pilot-base.a584877c": "970bb7508a0155c7"
+   },
+   "revision": 1,
+   "sha": "sha256:378c12363449fae8"
+  },
+  "pvr-20261120-cl-ana-wings": {
+   "records": {
+    "ana-wings.jobs.cap-aircraft-cap.889a4496": "b502df57ae46e0a4",
+    "ana-wings.jobs.cap-base-cap.f641d365": "456cdedc7de7a245",
+    "ana-wings.jobs.cap-status-cap.6434a805": "2addd919cf59895d",
+    "ana-wings.jobs.pilot-aircraft.121c168d": "88d6bde21de67b7e",
+    "ana-wings.jobs.pilot-base.9a7b12d0": "e6c7a264e0f9cd50"
+   },
+   "revision": 1,
+   "sha": "sha256:b2c0f510ed8f1adc"
+  },
+  "pvr-20261120-cl-asiana": {
+   "records": {
+    "asiana.jobs.pilot-aircraft.fc4edadb": "da6ecaac298d3dd7"
+   },
+   "revision": 1,
+   "sha": "sha256:e090abd0082f3bb4"
+  },
+  "pvr-20261120-cl-austrian": {
+   "records": {
+    "austrian.jobs.pilot-aircraft.23e4167c": "558fa651513984a4",
+    "austrian.jobs.pilot-status.1b4a0bd3": "5551ca25542b4ee6"
+   },
+   "revision": 1,
+   "sha": "sha256:8064aa9a7fb9006a"
+  },
+  "pvr-20261120-cl-avelo-airlines": {
+   "records": {
+    "avelo-airlines.jobs.fo-aircraft-fo.718aff41": "29955205d82aab02",
+    "avelo-airlines.jobs.fo-aircraft-fo.904c54bd": "2f98104d2df87b1f",
+    "avelo-airlines.jobs.pilot-base.15635189": "63964fc7612fe0a9",
+    "avelo-airlines.jobs.pilot-status.d3ef5b2f": "8054ce9e08f3bb82"
+   },
+   "revision": 1,
+   "sha": "sha256:7390a7b0a68bbe82"
+  },
+  "pvr-20261120-cl-avianca": {
+   "records": {
+    "avianca.jobs.pilot-aircraft.79e51833": "9daa4a80170f5664",
+    "avianca.jobs.pilot-aircraft.f4e19075": "d4f58e972aff0545",
+    "avianca.jobs.pilot-status.b4c3233a": "cb8d55aa139bf983"
+   },
+   "revision": 1,
+   "sha": "sha256:d4ec607ae7e4974b"
+  },
+  "pvr-20261120-cl-batik-air": {
+   "records": {
+    "batik-air.jobs.cap-aircraft-cap.732e7e79": "26d3fde6e8e2376c",
+    "batik-air.jobs.cap-base-cap.c6a9bb31": "487b60b8f5c47267"
+   },
+   "revision": 1,
+   "sha": "sha256:93f1f348854f134d"
+  },
+  "pvr-20261120-cl-breeze-airways": {
+   "records": {
+    "breeze-airways.jobs.fo-base-fo.0324cf02": "55ea6c67ea7db71f"
+   },
+   "revision": 1,
+   "sha": "sha256:626a4921ce6afc62"
+  },
+  "pvr-20261120-cl-british-airways": {
+   "records": {
+    "british-airways.jobs.fo-aircraft-fo.cea257db": "513868741fbfffeb",
+    "british-airways.jobs.fo-aircraft-fo.e9f4b3b5": "f85acec74e1a9236",
+    "british-airways.jobs.fo-base-fo.5c4d4eee": "596e62f3b9d7d241",
+    "british-airways.jobs.fo-status-fo.cde3690b": "393b6182f8f28eca",
+    "british-airways.jobs.pilot-aircraft.dc944d0b": "ecb01cb85dc3e512",
+    "british-airways.jobs.pilot-base.d294ce43": "1702a37fa9bb0226",
+    "british-airways.jobs.pilot-status.8b8655bf": "93584e8b58c6933f"
+   },
+   "revision": 1,
+   "sha": "sha256:d2cc887ef73cde0f"
+  },
+  "pvr-20261120-cl-china-airlines": {
+   "records": {
+    "china-airlines.jobs.cap-aircraft-cap.e3279756": "390e371a5c07a762"
+   },
+   "revision": 1,
+   "sha": "sha256:c4cdfaa5dd97a4a0"
+  },
+  "pvr-20261120-cl-china-eastern": {
+   "records": {
+    "china-eastern.jobs.pilot-aircraft.904bf31b": "b39d2c4cdb464709"
+   },
+   "revision": 1,
+   "sha": "sha256:fe389144d14f2bfc"
+  },
+  "pvr-20261120-cl-china-southern": {
+   "records": {
+    "china-southern.jobs.pilot-aircraft.d3764489": "36dc91709e4d8121",
+    "china-southern.jobs.pilot-base.9af34dc6": "b4cadb625e25c723"
+   },
+   "revision": 1,
+   "sha": "sha256:0ba51ee0e1f23a02"
+  },
+  "pvr-20261120-cl-contour": {
+   "records": {
+    "contour.jobs.cap-base-cap.743462ce": "572aa414b1f40341",
+    "contour.jobs.cap-base-cap.d87148dd": "70efb3c71dd08832",
+    "contour.jobs.cap-status-cap.0fe2e901": "b485ffc8260b2a42",
+    "contour.jobs.fo-status-fo.56d3849c": "969d9e212f2cd6c5"
+   },
+   "revision": 1,
+   "sha": "sha256:6a0ccdb0eda65d96"
+  },
+  "pvr-20261120-cl-daiichi-air": {
+   "records": {
+    "daiichi-air.jobs.pilot-aircraft.89fa709b": "a70524a9bf0c51a1",
+    "daiichi-air.jobs.pilot-aircraft.9f2d84fc": "4ded10f42db4cb3f",
+    "daiichi-air.jobs.pilot-base.0feec637": "d9d9c8ae58503067",
+    "daiichi-air.jobs.pilot-status.babe3f23": "ca422a8af46ab332"
+   },
+   "revision": 1,
+   "sha": "sha256:61b0aede6eb9bc18"
+  },
+  "pvr-20261120-cl-delta": {
+   "records": {
+    "delta.jobs.fo-aircraft-fo.80539819": "8a200152b5a55706",
+    "delta.jobs.fo-aircraft-fo.afa67245": "341216a89c2d9006",
+    "delta.jobs.fo-base-fo.623a5f89": "69ac96b610c2a6df",
+    "delta.jobs.fo-base-fo.e1d96d05": "25d1f7382cd00296"
+   },
+   "revision": 1,
+   "sha": "sha256:55758158cecc61f8"
+  },
+  "pvr-20261120-cl-eagle-jet": {
+   "records": {
+    "eagle-jet.jobs.fo-base-fo.9fd71e05": "71ee6f33838ce038",
+    "eagle-jet.jobs.fo-status-fo.43189068": "36facd78885f7412"
+   },
+   "revision": 1,
+   "sha": "sha256:3b2685a3c13b7208"
+  },
+  "pvr-20261120-cl-easyjet": {
+   "records": {
+    "easyjet.jobs.cap-aircraft-cap.a9655fbc": "64758da7fe893217",
+    "easyjet.jobs.cap-aircraft-cap.b645da10": "84dd49f8fb200535",
+    "easyjet.jobs.fo-status-fo.1e1aac50": "26867060f3560176",
+    "easyjet.jobs.fo-status-fo.68303a54": "38bf4f0ded81493f"
+   },
+   "revision": 1,
+   "sha": "sha256:08f57c9a3a6ee63c"
+  },
+  "pvr-20261120-cl-egyptair": {
+   "records": {
+    "egyptair.jobs.pilot-aircraft.8cd9fbbc": "d5657320cb50ab5c"
+   },
+   "revision": 1,
+   "sha": "sha256:78c9a415e834080e"
+  },
+  "pvr-20261120-cl-emirates": {
+   "records": {
+    "emirates.jobs.fo-aircraft-fo.b4b2c8e6": "65029dcd459036bd",
+    "emirates.jobs.fo-aircraft-fo.fc87b78f": "17ebf6cb240de488"
+   },
+   "revision": 1,
+   "sha": "sha256:f5d2c34f2af25f83"
+  },
+  "pvr-20261120-cl-ethiopian-airlines": {
+   "records": {
+    "ethiopian-airlines.jobs.cap-base-cap.882857ca": "8f9ba4f4b0bc53ed",
+    "ethiopian-airlines.jobs.cap-status-cap.d4cc8967": "c2eba22270d93d4d"
+   },
+   "revision": 1,
+   "sha": "sha256:3d694366f96ce216"
+  },
+  "pvr-20261120-cl-fda": {
+   "records": {
+    "fda.jobs.pilot-aircraft.5f62f734": "bf3f08311808c2f6"
+   },
+   "revision": 1,
+   "sha": "sha256:787c63597dcc40bb"
+  },
+  "pvr-20261120-cl-fedex-express": {
+   "records": {
+    "fedex-express.jobs.fo-aircraft-fo.34947adb": "9da8c9da43aaa01a",
+    "fedex-express.jobs.fo-aircraft-fo.7d085d13": "8ce27fc2eb615970",
+    "fedex-express.jobs.fo-aircraft-fo.a3379068": "e772ceff06660907",
+    "fedex-express.jobs.fo-base-fo.305848bb": "cb3c42f584fcce8e",
+    "fedex-express.jobs.fo-status-fo.31267661": "0c21546444ff86ce"
+   },
+   "revision": 1,
+   "sha": "sha256:1c38b2b7e3747482"
+  },
+  "pvr-20261120-cl-fiji-airways": {
+   "records": {
+    "fiji-airways.jobs.cap-base-cap.8c0b93f8": "6c5a866b2a670da2",
+    "fiji-airways.jobs.cap-base-cap.cc0e7600": "b6fd6673b6be70ec",
+    "fiji-airways.jobs.fo-base-fo.fb5fe15c": "ce1e9ab7e2fc285e"
+   },
+   "revision": 1,
+   "sha": "sha256:c6bf36d9438eae08"
+  },
+  "pvr-20261120-cl-finnair": {
+   "records": {
+    "finnair.jobs.pilot-aircraft.5fc92bba": "108a7fb45db35a48",
+    "finnair.jobs.pilot-aircraft.c2959789": "82c1999b0376c794",
+    "finnair.jobs.pilot-status.42c60c33": "39607bf6bb40e3ac"
+   },
+   "revision": 1,
+   "sha": "sha256:540c85c84fbbf683"
+  },
+  "pvr-20261120-cl-flydubai": {
+   "records": {
+    "flydubai.jobs.cap-base-cap.0d981926": "a270a97a12e31c13",
+    "flydubai.jobs.fo-base-fo.b57fe41b": "638c08bb546f07f4"
+   },
+   "revision": 1,
+   "sha": "sha256:3e1ab6c83add4a96"
+  },
+  "pvr-20261120-cl-frontier": {
+   "records": {
+    "frontier.jobs.fo-aircraft-fo.4691df55": "c035c0b0909a658a",
+    "frontier.jobs.fo-base-fo.5f97e936": "6739a747495fc816",
+    "frontier.jobs.pilot-aircraft.56f761e0": "a8e89fb243e1c3a0",
+    "frontier.jobs.pilot-status.8d156dac": "7014315bc937106b"
+   },
+   "revision": 1,
+   "sha": "sha256:99095f59a1db7cfd"
+  },
+  "pvr-20261120-cl-garuda-indonesia": {
+   "records": {
+    "garuda-indonesia.jobs.pilot-aircraft.b4bdae7f": "1359a7c6979b7eda",
+    "garuda-indonesia.jobs.pilot-base.1348bd76": "0b3895c63933709d",
+    "garuda-indonesia.jobs.pilot-status.4667b703": "89e51af5fecbfa30"
+   },
+   "revision": 1,
+   "sha": "sha256:d77bba02ed2cc877"
+  },
+  "pvr-20261120-cl-gulf-air": {
+   "records": {
+    "gulf-air.jobs.fo-base-fo.b3258264": "e8b46ad2cd6af69d",
+    "gulf-air.jobs.fo-base-fo.bfdbcc82": "b888dee14a2879db"
+   },
+   "revision": 1,
+   "sha": "sha256:70ad077d0ae04989"
+  },
+  "pvr-20261120-cl-hac": {
+   "records": {
+    "hac.jobs.pilot-aircraft.a0e3e032": "ed61a177c9091fef",
+    "hac.jobs.pilot-base.72221b97": "ede6af72f3e15b94"
+   },
+   "revision": 1,
+   "sha": "sha256:e996e2607a9411a0"
+  },
+  "pvr-20261120-cl-hong-kong-express": {
+   "records": {
+    "hong-kong-express.jobs.so-aircraft-so.71c8e18b": "ccb9cf0401a66cd6"
+   },
+   "revision": 1,
+   "sha": "sha256:5a50d059ddd07210"
+  },
+  "pvr-20261120-cl-iberia": {
+   "records": {
+    "iberia.jobs.fo-aircraft-fo.a5fbf750": "aa63bb695a6a23a9",
+    "iberia.jobs.fo-base-fo.16dc3710": "0b0ad57d0b454118",
+    "iberia.jobs.fo-status-fo.d40d6f4f": "62dfe77a2d28e699"
+   },
+   "revision": 1,
+   "sha": "sha256:6a7a5b35697241b8"
+  },
+  "pvr-20261120-cl-ibex": {
+   "records": {
+    "ibex.jobs.fo-base-fo.b7f67a76": "d54edea7a223448c"
+   },
+   "revision": 1,
+   "sha": "sha256:274db8a7ff81d3e9"
+  },
+  "pvr-20261120-cl-indigo": {
+   "records": {
+    "indigo.jobs.cap-base-cap.c7418815": "14d2bcd43280c92f",
+    "indigo.jobs.pilot-aircraft.45201644": "ee879b270cedfd26"
+   },
+   "revision": 1,
+   "sha": "sha256:88fb3bb315b8872d"
+  },
+  "pvr-20261120-cl-j-air": {
+   "records": {
+    "j-air.jobs.pilot-aircraft.51072529": "18a5df2f780a4f80",
+    "j-air.jobs.pilot-base.1365eff0": "0c12f3de8eeb287e",
+    "j-air.jobs.pilot-base.d4c431d9": "e74dc88df2731e45"
+   },
+   "revision": 1,
+   "sha": "sha256:9fcb27a3ef33bc63"
+  },
+  "pvr-20261120-cl-jac": {
+   "records": {
+    "jac.jobs.pilot-aircraft.8fe378a2": "30fe30650dbf4ae3",
+    "jac.jobs.pilot-base.3e121fdc": "fa6f0fdde931c9fa"
+   },
+   "revision": 1,
+   "sha": "sha256:772d8e61be511186"
+  },
+  "pvr-20261120-cl-jazz": {
+   "records": {
+    "jazz.jobs.fo-aircraft-fo.cd925ad9": "430b48d9a1521080",
+    "jazz.jobs.fo-base-fo.9d022b28": "2cc4e3a0616c76f6"
+   },
+   "revision": 1,
+   "sha": "sha256:2a9f849ff8f17543"
+  },
+  "pvr-20261120-cl-jetblue": {
+   "records": {
+    "jetblue.jobs.fo-aircraft-fo.22f79bc2": "2b19c2c9e14b0e72",
+    "jetblue.jobs.fo-aircraft-fo.8b19c93a": "6cddcff7027f05bd",
+    "jetblue.jobs.fo-status-fo.c6be1fd3": "ea7ea43567583241",
+    "jetblue.jobs.pilot-aircraft.e7dbf854": "e37e15a60700b339",
+    "jetblue.jobs.pilot-status.7ac9c188": "36802eb3ac102176"
+   },
+   "revision": 1,
+   "sha": "sha256:b668e780216e5801"
+  },
+  "pvr-20261120-cl-jetstar-japan": {
+   "records": {
+    "jetstar-japan.jobs.cap-base-cap.ad869fda": "83ca113a47083181",
+    "jetstar-japan.jobs.pilot-aircraft.318b234b": "7f6ac3fb176b5dc2",
+    "jetstar-japan.jobs.pilot-base.e88370a3": "6db42cbb7f46a93d"
+   },
+   "revision": 1,
+   "sha": "sha256:edaf754d18573e24"
+  },
+  "pvr-20261120-cl-jta": {
+   "records": {
+    "jta.jobs.cap-base-cap.5375555a": "d3c8e882068f6e56"
+   },
+   "revision": 1,
+   "sha": "sha256:6418c2dc5255441d"
+  },
+  "pvr-20261120-cl-kalitta-air": {
+   "records": {
+    "kalitta-air.jobs.cap-base-cap.f2efd2e9": "78fe4c5a76bba298",
+    "kalitta-air.jobs.cap-status-cap.81de33c5": "d3264bfd8fa7f0f2"
+   },
+   "revision": 1,
+   "sha": "sha256:9d402d2027786194"
+  },
+  "pvr-20261120-cl-kenya-airways": {
+   "records": {
+    "kenya-airways.jobs.fo-aircraft-fo.8d5fb9b6": "e99d65caf4ae01ab"
+   },
+   "revision": 1,
+   "sha": "sha256:a9f3cc82bcfd8d8b"
+  },
+  "pvr-20261120-cl-klm": {
+   "records": {
+    "klm.jobs.pilot-aircraft.564d38a1": "07668345af8c9302",
+    "klm.jobs.pilot-aircraft.b8ff6a5d": "023482a4396510e3",
+    "klm.jobs.pilot-status.21ede538": "db8f551e36c65d4e",
+    "klm.jobs.pilot-status.4d5d03bc": "e4885ec4d1de8e75"
+   },
+   "revision": 1,
+   "sha": "sha256:ad8d105c99c63a4b"
+  },
+  "pvr-20261120-cl-korean-air": {
+   "records": {
+    "korean-air.jobs.cap-base-cap.ae74d858": "ffe3a6023a96f876",
+    "korean-air.jobs.cap-status-cap.54001414": "4cfb68bd15887f40",
+    "korean-air.jobs.cap-status-cap.a987e8bc": "e51130a67d74a868",
+    "korean-air.jobs.pilot-aircraft.71a54ff6": "adfb5a122aaa1793",
+    "korean-air.jobs.pilot-status.2a333d05": "49b0703d9d01b77a"
+   },
+   "revision": 1,
+   "sha": "sha256:772f7c08233812b7"
+  },
+  "pvr-20261120-cl-kuwait-airways": {
+   "records": {
+    "kuwait-airways.jobs.pilot-aircraft.652b1ca9": "81d08aac35156723",
+    "kuwait-airways.jobs.pilot-base.41a70ee8": "1e8f032435f8fabb"
+   },
+   "revision": 1,
+   "sha": "sha256:c25ff53a020c7b9d"
+  },
+  "pvr-20261120-cl-latam": {
+   "records": {
+    "latam.jobs.fo-base-fo.0eca0601": "f39ebb595ede1267"
+   },
+   "revision": 1,
+   "sha": "sha256:746f8eb62d521cbe"
+  },
+  "pvr-20261120-cl-lufthansa": {
+   "records": {
+    "lufthansa.jobs.pilot-aircraft.0ea4ef94": "d64bb62aa42d03ad",
+    "lufthansa.jobs.pilot-base.548b5fa7": "840d7c3f8e458bf6",
+    "lufthansa.jobs.pilot-status.e688f0cf": "ffef4dd1c69fd7d8"
+   },
+   "revision": 1,
+   "sha": "sha256:fd066178ab514207"
+  },
+  "pvr-20261120-cl-malaysia-airlines": {
+   "records": {
+    "malaysia-airlines.jobs.pilot-aircraft.21443cf1": "49e1e5844ad03314",
+    "malaysia-airlines.jobs.pilot-base.dc14ed4a": "97da97eff13da940"
+   },
+   "revision": 1,
+   "sha": "sha256:8b63eb0db7100414"
+  },
+  "pvr-20261120-cl-oman-air": {
+   "records": {
+    "oman-air.jobs.pilot-aircraft.46ab13d5": "b12d73df3fc0fb4a",
+    "oman-air.jobs.pilot-base.22ae00d1": "8303ba2058c0ccff"
+   },
+   "revision": 1,
+   "sha": "sha256:53d99baa282d6ecb"
+  },
+  "pvr-20261120-cl-orc": {
+   "records": {
+    "orc.jobs.cap-aircraft-cap.5af02c5d": "9f138f4667484f16",
+    "orc.jobs.cap-aircraft-cap.9ad748e1": "8a0f8f8cca690c9d",
+    "orc.jobs.cap-aircraft-cap.a0bfe803": "767ccdba1a5826e3",
+    "orc.jobs.cap-aircraft-cap.f1fdc097": "83e18c70d1067350",
+    "orc.jobs.cap-base-cap.7b877f18": "ea646815b06087a6",
+    "orc.jobs.cap-base-cap.bd2d3b5b": "834227f1724aff12",
+    "orc.jobs.cap-status-cap.508b5d8b": "e20d182625b6666f"
+   },
+   "revision": 1,
+   "sha": "sha256:cb151ece2e0bc588"
+  },
+  "pvr-20261120-cl-peach": {
+   "records": {
+    "peach.jobs.cap-base-cap.0e498ee4": "dec6fd3135cb68c1",
+    "peach.jobs.pilot-aircraft.de6fa8d7": "8c23349276f4b420",
+    "peach.jobs.pilot-base.55a5b722": "ba83898330765d3e"
+   },
+   "revision": 1,
+   "sha": "sha256:ba18f8e72bbb6ebb"
+  },
+  "pvr-20261120-cl-philippine-airlines": {
+   "records": {
+    "philippine-airlines.jobs.pilot-aircraft.095aec6d": "484e994017691bb9",
+    "philippine-airlines.jobs.pilot-base.f0141396": "1bb65cb076faf26f",
+    "philippine-airlines.jobs.pilot-status.28c89111": "9e73a564d8b237ea"
+   },
+   "revision": 1,
+   "sha": "sha256:9ab5a61b4fe134de"
+  },
+  "pvr-20261120-cl-qantas": {
+   "records": {
+    "qantas.jobs.pilot-base.bc38edc7": "155027a63b1e0393",
+    "qantas.jobs.pilot-status.f6d958cd": "8862a243ee62be40"
+   },
+   "revision": 1,
+   "sha": "sha256:9a8942e9632b2ee7"
+  },
+  "pvr-20261120-cl-rac": {
+   "records": {
+    "rac.jobs.pilot-aircraft.ce1a35a0": "638d1f43ae33bea5"
+   },
+   "revision": 1,
+   "sha": "sha256:e09eaf6e8c719f7a"
+  },
+  "pvr-20261120-cl-riyadh-air": {
+   "records": {
+    "riyadh-air.jobs.cap-base-cap.e3a8ae90": "34b29f88ec037d9d"
+   },
+   "revision": 1,
+   "sha": "sha256:1735c4f14e6895c7"
+  },
+  "pvr-20261120-cl-royal-jordanian": {
+   "records": {
+    "royal-jordanian.jobs.pilot-aircraft.c74c25e3": "9145e02d4c2b3050",
+    "royal-jordanian.jobs.pilot-base.8e7318a7": "5056f882e07c3edc"
+   },
+   "revision": 1,
+   "sha": "sha256:e2dd659500fabeec"
+  },
+  "pvr-20261120-cl-ryanair": {
+   "records": {
+    "ryanair.jobs.pilot-base.19ff56af": "ce807db02b8d2973",
+    "ryanair.jobs.pilot-base.991f1be4": "c5e398d09a67321e",
+    "ryanair.jobs.pilot-status.9f1286df": "2b599d2ec1e0949d"
+   },
+   "revision": 1,
+   "sha": "sha256:8bdf27e50a321130"
+  },
+  "pvr-20261120-cl-sas": {
+   "records": {
+    "sas.jobs.fo-base-fo.b4059683": "7fbc704a03063471",
+    "sas.jobs.fo-status-fo.e91d289d": "8c0ff4ced052808a"
+   },
+   "revision": 1,
+   "sha": "sha256:397f3a04d62d18f4"
+  },
+  "pvr-20261120-cl-saudia": {
+   "records": {
+    "saudia.jobs.pilot-aircraft.91d52449": "15326865ca9c2075",
+    "saudia.jobs.pilot-base.02189ea8": "8fe9a9fd22ebf4cf",
+    "saudia.jobs.pilot-status.6b0e0dd9": "693e01d18637aeb1"
+   },
+   "revision": 1,
+   "sha": "sha256:2de72890bbba7f4e"
+  },
+  "pvr-20261120-cl-scoot": {
+   "records": {
+    "scoot.jobs.cap-base-cap.01f6465a": "a56726b67ea0cefa",
+    "scoot.jobs.cap-base-cap.ffb23687": "72694fca7084110d",
+    "scoot.jobs.fo-aircraft-fo.bcad21b4": "01fbb3a53630c94f",
+    "scoot.jobs.fo-base-fo.f9ec4ef9": "fbdf0d3f7831f5dd"
+   },
+   "revision": 1,
+   "sha": "sha256:bcde2879cf1a33e5"
+  },
+  "pvr-20261120-cl-shin-nihon": {
+   "records": {
+    "shin-nihon.jobs.pilot-aircraft.97fa7ec3": "3c827a7eac009af9"
+   },
+   "revision": 1,
+   "sha": "sha256:72992f94fdb8ad41"
+  },
+  "pvr-20261120-cl-singapore-airlines": {
+   "records": {
+    "singapore-airlines.jobs.cap-base-cap.e22ed578": "9b2e51d7713013e8",
+    "singapore-airlines.jobs.cap-status-cap.72141f77": "d7843ec2c0042b15",
+    "singapore-airlines.jobs.cap-status-cap.bde3768a": "6c425ea14c82233b",
+    "singapore-airlines.jobs.fo-status-fo.66e02e7d": "6d01895f8b8460c9",
+    "singapore-airlines.jobs.fo-status-fo.6eff0aa7": "0a6b4d156881b276",
+    "singapore-airlines.jobs.pilot-aircraft.8bed5f38": "0f68e839a68e7eb1",
+    "singapore-airlines.jobs.pilot-status.ca982117": "69f72b6c5961f06a",
+    "singapore-airlines.jobs.pilot-status.dc2dfc0f": "0b7efbd269a5b11a",
+    "singapore-airlines.jobs.so-status-so.92d23549": "eae2d3a6579f41de"
+   },
+   "revision": 1,
+   "sha": "sha256:313134850a487daf"
+  },
+  "pvr-20261120-cl-skymark": {
+   "records": {
+    "skymark.jobs.cap-base-cap.4ef4d924": "30325654b6c0a558",
+    "skymark.jobs.cap-status-cap.524b7bb4": "5c5349070e49dfd5",
+    "skymark.jobs.fo-base-fo.81285b84": "afc651953664b86a",
+    "skymark.jobs.fo-status-fo.0e6e92e5": "e7f1ecfebcef20f0",
+    "skymark.jobs.pilot-aircraft.b8e2c4d9": "ec5b64181bf43204",
+    "skymark.jobs.pilot-base.934c4d00": "6e54f3a28f14385d",
+    "skymark.jobs.pilot-status.abac3075": "8eb9e4b0544e2840"
+   },
+   "revision": 1,
+   "sha": "sha256:1e3b50bc205cd4a2"
+  },
+  "pvr-20261120-cl-solairus": {
+   "records": {
+    "solairus.jobs.cap-base-cap.7ae01f71": "ef306f7909856e3f",
+    "solairus.jobs.cap-status-cap.5bc23e2c": "b9e2ca9a78c25be5",
+    "solairus.jobs.cap-status-cap.8743a66d": "12cb6fb63d5501c5"
+   },
+   "revision": 1,
+   "sha": "sha256:e6f51ea98926abb1"
+  },
+  "pvr-20261120-cl-solaseed": {
+   "records": {
+    "solaseed.jobs.cap-base-cap.b11a9ac3": "bff2a4ed2d11d603",
+    "solaseed.jobs.cap-status-cap.ad02ad04": "b8399f61e3f05284"
+   },
+   "revision": 1,
+   "sha": "sha256:2213acd07637a8bd"
+  },
+  "pvr-20261120-cl-south-african-airways": {
+   "records": {
+    "south-african-airways.jobs.fo-base-fo.9738140e": "858a91c2f65ecfb1",
+    "south-african-airways.jobs.fo-status-fo.c00ee9ac": "f2b83b77f04000f7",
+    "south-african-airways.jobs.pilot-aircraft.fb5a26b2": "c33e396c2386a957"
+   },
+   "revision": 1,
+   "sha": "sha256:3c41ac862488f431"
+  },
+  "pvr-20261120-cl-southwest": {
+   "records": {
+    "southwest.jobs.fo-base-fo.b8a2237e": "cac849094af8c896",
+    "southwest.jobs.fo-status-fo.f101c8b7": "a1e1373c3fa91a2a"
+   },
+   "revision": 1,
+   "sha": "sha256:befe4a2958d77267"
+  },
+  "pvr-20261120-cl-spring-japan": {
+   "records": {
+    "spring-japan.jobs.cap-base-cap.927fdcc2": "a88f87ffcef40cb3"
+   },
+   "revision": 1,
+   "sha": "sha256:b06852354f74eb8f"
+  },
+  "pvr-20261120-cl-starflyer": {
+   "records": {
+    "starflyer.jobs.cap-aircraft-cap.72debc66": "78c5b53ed87ef398",
+    "starflyer.jobs.cap-base-cap.238e274b": "ee265fc1e19eac4f",
+    "starflyer.jobs.cap-base-cap.3a82cbf2": "2c75581b60911259",
+    "starflyer.jobs.cap-status-cap.88bbe550": "b8cd5e89a9ae32fa",
+    "starflyer.jobs.fo-base-fo.a853a262": "7121d758234244eb",
+    "starflyer.jobs.fo-status-fo.50f3880d": "7e721e9b616e3c1b"
+   },
+   "revision": 1,
+   "sha": "sha256:58ef597a3935025d"
+  },
+  "pvr-20261120-cl-starlux": {
+   "records": {
+    "starlux.jobs.cap-aircraft-cap.bc425b95": "4928f7f9bc7c66f7",
+    "starlux.jobs.cap-base-cap.394e9230": "a7610082cb0c8448"
+   },
+   "revision": 1,
+   "sha": "sha256:52c8f8da5ff763aa"
+  },
+  "pvr-20261120-cl-swiss": {
+   "records": {
+    "swiss.jobs.pilot-aircraft.c746eca6": "c777eaf1f6ca1e87",
+    "swiss.jobs.pilot-base.5c1d4c6d": "781c658375774414",
+    "swiss.jobs.pilot-status.bfca6083": "2d46c7872996438e"
+   },
+   "revision": 1,
+   "sha": "sha256:674a855cff83e02d"
+  },
+  "pvr-20261120-cl-tap": {
+   "records": {
+    "tap.jobs.fo-aircraft-fo.12c8bab8": "3e8531af32d9d01c"
+   },
+   "revision": 1,
+   "sha": "sha256:0c9491bff1ee2d62"
+  },
+  "pvr-20261120-cl-thai-airways": {
+   "records": {
+    "thai-airways.jobs.pilot-aircraft.a5a41380": "49d2f5fcb6c8027c",
+    "thai-airways.jobs.pilot-aircraft.b5cf961c": "fcdeae01e9ff3b27",
+    "thai-airways.jobs.pilot-base.513b097e": "c3a8ac7b5f6cd884",
+    "thai-airways.jobs.pilot-status.f2970735": "b5eba2c971ff4c3b"
+   },
+   "revision": 1,
+   "sha": "sha256:0c3641fd8f6c050a"
+  },
+  "pvr-20261120-cl-toho-air": {
+   "records": {
+    "toho-air.jobs.pilot-base.0572bf72": "b4763745a53b71ae",
+    "toho-air.jobs.pilot-base.4f8d3915": "a9ad9503106bfabe",
+    "toho-air.jobs.pilot-status.6b2bf314": "25d1554ba578ad9b"
+   },
+   "revision": 1,
+   "sha": "sha256:2f455759efc70c9e"
+  },
+  "pvr-20261120-cl-toki-air": {
+   "records": {
+    "toki-air.jobs.cap-aircraft-cap.4db080e9": "fbcd4f76a1150b11",
+    "toki-air.jobs.cap-base-cap.52638f58": "65b5690705bcfb84",
+    "toki-air.jobs.cap-status-cap.41cd8eb7": "964cddfa0077d33d"
+   },
+   "revision": 1,
+   "sha": "sha256:ec421090f26e398f"
+  },
+  "pvr-20261120-cl-turkish-airlines": {
+   "records": {
+    "turkish-airlines.jobs.cap-base-cap.7ab58129": "922ac5472a93a8fd",
+    "turkish-airlines.jobs.fo-aircraft-fo.4dfc2b62": "d3ba50ee94bcb8bd",
+    "turkish-airlines.jobs.fo-base-fo.b41cacb8": "c6e6812a3f2305e7"
+   },
+   "revision": 1,
+   "sha": "sha256:31625cd4b1aafe80"
+  },
+  "pvr-20261120-cl-united": {
+   "records": {
+    "united.jobs.fo-aircraft-fo.3a349ea8": "807cba3051ab4f36",
+    "united.jobs.fo-aircraft-fo.ccb3f17a": "2bd982b27df402d7",
+    "united.jobs.fo-base-fo.b7d58800": "f2c898bb09067747",
+    "united.jobs.fo-status-fo.c4c76e60": "d9c1e24be696ac2e"
+   },
+   "revision": 1,
+   "sha": "sha256:9d41cb448ae80636"
+  },
+  "pvr-20261120-cl-vietjet": {
+   "records": {
+    "vietjet.jobs.cap-base-cap.fa6eb495": "929ef10870ad9fcb",
+    "vietjet.jobs.pilot-status.109de9c7": "5e633cbae183dfc5",
+    "vietjet.jobs.pilot-status.f1f75411": "b37596a087709dcd"
+   },
+   "revision": 1,
+   "sha": "sha256:82e2a3415003b72d"
+  },
+  "pvr-20261120-cl-virgin-atlantic": {
+   "records": {
+    "virgin-atlantic.jobs.cap-status-cap.373ca507": "47616cd8907d3f5e",
+    "virgin-atlantic.jobs.fo-aircraft-fo.17640b08": "e9f823ff75bdb083",
+    "virgin-atlantic.jobs.pilot-aircraft.04d8d586": "b596c511bb0fe795",
+    "virgin-atlantic.jobs.pilot-aircraft.22fcbd4f": "b08fa49d0ed7f308",
+    "virgin-atlantic.jobs.pilot-aircraft.f5200ccd": "d3f960353e1cfba9",
+    "virgin-atlantic.jobs.pilot-base.2394a458": "81830c0736c08291"
+   },
+   "revision": 1,
+   "sha": "sha256:f58a9b9ef9f9bed1"
+  },
+  "pvr-20261120-cl-vueling": {
+   "records": {
+    "vueling.jobs.pilot-aircraft.b1b634ab": "1d4c3763bf9ec728",
+    "vueling.jobs.pilot-base.2a40fd59": "b682f46ba9eef129",
+    "vueling.jobs.pilot-status.904f73d5": "9a33da4262a62b7d"
+   },
+   "revision": 1,
+   "sha": "sha256:29707fb54b8b25ed"
+  },
+  "pvr-20261120-cl-westjet": {
+   "records": {
+    "westjet.jobs.fo-base-fo.02d7ed7c": "e0b7972d4b5a706e",
+    "westjet.jobs.fo-base-fo.890ae6d7": "cf44d4e67c27d3c9",
+    "westjet.jobs.fo-base-fo.f6b21961": "6f3db31a0bd591c2",
+    "westjet.jobs.fo-status-fo.1577ce93": "fa382491c5e24378",
+    "westjet.jobs.fo-status-fo.ef009a42": "d8dbc0310187912b"
+   },
+   "revision": 1,
+   "sha": "sha256:dc796fd5f9d64fe5"
+  },
+  "pvr-20261120-cl-wizz-air": {
+   "records": {
+    "wizz-air.jobs.pilot-aircraft.f3062cb4": "c23d928319c2d7bf",
+    "wizz-air.jobs.pilot-status.ab2c742b": "6d20e08bc4e3117a"
+   },
+   "revision": 1,
+   "sha": "sha256:06eea31bed00ec05"
+  },
+  "pvr-20261120-cl-zipair": {
+   "records": {
+    "zipair.jobs.cap-aircraft-cap.5e2509d3": "161bc790d66ea49a",
+    "zipair.jobs.cap-base-cap.9f93cbe3": "baa538e593622217",
+    "zipair.jobs.cap-status-cap.95cdd85d": "9af69f9c23b92db7"
+   },
+   "revision": 1,
+   "sha": "sha256:0b9c755a2a377308"
   },
   "pvr-city-rent": {
    "records": {

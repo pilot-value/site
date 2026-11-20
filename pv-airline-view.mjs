@@ -38,7 +38,7 @@ import { FACTS as EYF, introText as eyIntro, EN as EY_EN, introTextEn as eyIntro
 import { LIVING, CITY_OF, ABUDHABI, SITES, FAMILY, MODES, BAR_STATS, EN as LV_EN } from './living-facts.mjs';
 import { primary } from './airline-photos.mjs';
 import { axisEnd } from './pv-bars.mjs';
-import { LEAD, SWITCH, researchFacts, researchNetwork, researchCities, rowSource } from './airline-rollout.mjs';
+import { LEAD, SWITCH, researchFacts, researchNetwork, researchCities, rowSource, FIRST_HAND } from './airline-rollout.mjs';
 import { JOBS } from './airline-jobs.mjs';
 import { REGIONS, PLACES, networkOf, placeCountry } from './airline-destinations.mjs';
 import * as US from './us-housing.mjs';
@@ -688,10 +688,12 @@ function postsOf(slug, lang, jobs) {
   return (JOBS[slug] || []).map((p, i) => {
     const x = p[lang === 'en' ? 'en' : 'ja'];
     const srcs = p.ids.map(id => {
-      const f = LEAD.includes(slug) ? byKey.get(id) : rowSource(slug, id, lang);
+      const f = LEAD.includes(slug) ? (byKey.get(id) || rowSource(slug, id, lang)) : rowSource(slug, id, lang);   // 先行5社も、あとから調べた行（調べの台帳）は台帳から引く
       if (!f || !f.src) throw new Error(`${slug}: 募集の求人 ${i + 1} の行 ${id} の資料が引けない（airline-jobs.mjs）`);
       return { src: f.src, checked: f.checked || '', third: !!f.third };
     });
+    /* 先行5社の求人は、あとから調べた資料（機種・拠点・状況）を求人の extra に持つ（★2026-11-20 ── 先行5社の事実の台帳は人が直す決まりで、調べの台帳に入らないため） */
+    for (const e of p.extra || []) srcs.push({ src: { name: lang === 'en' ? e.name_en || e.name : e.name, url: e.url, kind: e.kind }, checked: e.checked || '', third: !FIRST_HAND.includes(e.kind) });
     const two = rows => (rows || []).map(r => [r[0], r[1]]);
     return { state: p.state || '', who: x.who, fleet: x.fleet || '', base: x.base || '', status: x.status || '',
       rows: two(x.rows), routes: (x.routes || []).map(r => ({ name: r.name, rows: two(r.rows) })), srcs };
