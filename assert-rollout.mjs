@@ -506,11 +506,13 @@ const cardText = h => textOf(h.replace(/<(p|dd) class="pvg-srcs">[\s\S]*?<\/\1>/
     const en = [p.en.who, p.en.fleet, p.en.base, p.en.status, ...p.en.rows.flat(), ...p.en.routes.flatMap(r => [r.name, ...r.rows.flat()])].join(' ');
     if (!['open', 'none', 'past', ''].includes(p.state) || !p.ja.who || !p.en.who || sh(p.ja) !== sh(p.en) || JA.test(en)
       || (p.ja.status && !/\d{4}年/.test(p.ja.status)) || (p.en.status && !/\d{4}/.test(p.en.status))) shape.push(`${s} 求人${i + 1}`);
+    /* 言い方の決まり（★2026-11-20 オーナー）：道の見出しは「〜の人」にしない（「A350 の募集」「B737 の型式限定あり」）・「機長の時間」ではなく「機長時間」 */
+    if (p.ja.routes.some(r => /の人|で採る人|を持つ人|が無い人|がある人/.test(r.name)) || JSON.stringify(p.ja).includes('機長の時間')) shape.push(`${s} 求人${i + 1}（言い方）`);
   });
   const all = Object.values(R.FACTS).reduce((n, F) => n + (F.jobs || []).length, 0);
   ok(!miss.length && !twice.length && !gone.length, `募集の1枚：台帳の募集の行（${all}行）は、どれも求人・DROP・MOVE のどこか1か所に在る（airline-jobs.mjs）`, [...miss, ...twice, ...gone].slice(0, 6).join(' ／ '));
   ok(!moved.length, `募集の1枚：MOVE の行（${Object.keys(MOVE).length}行）は、行き先の勤務・待遇の欄に出ている`, moved.slice(0, 6).join(' ／ '));
-  ok(!shape.length && Object.keys(JOBS).length >= 5, `募集の1枚：求人（${Object.values(JOBS).flat().length}件）は日英で同じ形・英語に日本語の字が無い・状況の1行に日付が在る・過去の行を使った求人は過去か締め切った募集`, shape.slice(0, 6).join(' ／ '));
+  ok(!shape.length && Object.keys(JOBS).length >= 5, `募集の1枚：求人（${Object.values(JOBS).flat().length}件）は日英で同じ形・英語に日本語の字が無い・状況の1行に日付が在る・過去の行を使った求人は過去か締め切った募集・道の見出しに「〜の人」が無い`, shape.slice(0, 6).join(' ／ '));
   ok(!word.length, '募集の1枚：求人の字に、調べた側の字（label_ja・cond_ja・値の文）をそのまま置いていない（L1）', word.slice(0, 6).join(' ／ '));
 }
 /* ═══ C) 古い節の台帳（107枚ぜんぶ）・どの会社も読み口が通る ═══ */
