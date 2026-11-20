@@ -472,7 +472,8 @@ const footSel = (s) => `#cr-go-rev-${s}`;                     // その会社の
 /* 保存先の数から、画面に出るはずの字（評価の平均・「n件の評価」・投稿の数）を作る ── stored() はこの検査の数え方 */
 const want = async (slug) => {
   const S = await stored(slug);
-  return { avg: S.rate ? S.rate.avg.toFixed(1) : null, cnt: S.rate ? `${S.rate.n}件の評価` : null, posts: String(S.posts) };
+  /* ★2026-11-19 ★の横の「n件の評価」は口コミの件数（書いた項目ごと ＝ S.posts）。本文の無い投稿しか無いときだけ点数を付けた投稿の数 */
+  return { avg: S.rate ? S.rate.avg.toFixed(1) : null, cnt: S.rate ? `${S.posts > 0 ? S.posts : S.rate.n}件の評価` : null, posts: String(S.posts) };
 };
 /* 会社ページ airlines/{slug}.html の公開の数（社名の横の評価の欄が読み終わり、投稿の数が出てから） */
 const coRead = async (page, slug) => {
@@ -514,8 +515,9 @@ const cmpStars = (page) => page.evaluate((re) => {
 }, READ_MARK.source);
 /* その会社のマス（札の名前で引く ── 列の順は並べた順） */
 const cellOf = (S, slug) => (S && S.heads.indexOf(AIR[slug].ja) >= 0 ? S.cells[S.heads.indexOf(AIR[slug].ja)] || null : null);
-/* マスが保存先の数と同じか（点数の付いた投稿が無い会社は、平均も「n件の評価」も描かない ── 2社とも投稿が無ければマスそのものが無い） */
-const sameCell = (c, w) => (w.cnt ? !!c && c.avg === w.avg && c.cnt === w.cnt && c.posts === `会員の投稿 ${w.posts}件`
+/* マスが保存先の数と同じか（点数の付いた投稿が無い会社は、平均も「n件の評価」も描かない ── 2社とも投稿が無ければマスそのものが無い）。
+   ★2026-11-19 ★が出ているマスには「会員の投稿」の行を置かない（★の横と同じ数を2度並べない） */
+const sameCell = (c, w) => (w.cnt ? !!c && c.avg === w.avg && c.cnt === w.cnt && c.posts === null
   : !c || (!c.avg && !c.cnt && (c.posts === null || c.posts === `会員の投稿 ${w.posts}件`)));
 /* 比較の推定年収の字（会社と職位で引く） */
 const estOf = (F, slug, rk) => { const r = (F.est[rk] || []).find((x) => x.airline === slug); return r ? r.v : null; };
@@ -657,7 +659,7 @@ async function b6(R, a, b) {
       const i = [...x.querySelectorAll('.crl-cmp-head .crl-co-n')].map((e) => e.textContent.trim()).indexOf(ja);
       const c = i >= 0 ? x.querySelectorAll('.crl-cmp-row > .crl-cmp-c')[i] : null;
       const t = (s) => { const e = c && c.querySelector(s); return e ? e.textContent.trim() : null; };
-      return !!c && t('.crl-cnt') === cnt && t('.crl-posts') === posts;
+      return !!c && t('.crl-cnt') === cnt && t('.crl-posts') === (cnt ? null : posts);   // ★が出ているマスに「会員の投稿」の行は無い（2026-11-19）
     }, { timeout: 30000, polling: 100 }, [`${b}|${a}`, AIR[a].ja, w.cnt, `会員の投稿 ${w.posts}件`]).then(() => true, () => false);
     await viewStill(page);
     const top1 = await steady(page, topOf, footSel(a));

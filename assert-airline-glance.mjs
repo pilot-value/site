@@ -3452,6 +3452,7 @@ const IS_SCORE = x => x.kind === 'stars' || x.kind === 'score';
    点数の付いた投稿が1件も無ければ null ＝「評価未取得」（0点ではない）。
    ★6角形の図を点数で塗るのは ratings が在る時だけ ── 社名の行の星と同じ1つの決まり（2026-10-22 オーナー P12.97：点数は誰にでも
      出ている。件数の下限をもう1つ作らない・鍵の有無で変えない）。ratings ＝ null の時は 3.0 の淡い面のまま・数字なし。 */
+const RV_ITEMS = ['culture', 'salary', 'benefits', 'wlb', 'ops', 'training', 'mgmt'];   // 口コミの件数を数える7項目（career-live.js の REV_CMT と同じ）
 function ratedWant(rows) {
   const mean = a => a.reduce((x, y) => x + y, 0) / a.length;
   const per = [], cat = SCORE_KEYS.map(() => []);
@@ -3504,7 +3505,9 @@ function scoreBad(s, sc, slots, rows, sum) {
     if (c.msg !== '会員からの投稿はまだありません') bad.push(`カードの知らせが「${c.msg}」`);
     if (c.give) bad.push(`口コミの欄の中に、入口がもう ${c.give}つ在る`);
   } else {
-    const fill = `${Math.round(W.avg / 5 * 1000) / 10}%`, cnt = `${W.n}件の評価`;
+    /* ★2026-11-19 ★の横の「n件の評価」は口コミの件数（書いた項目1つ＝1件・行の cats の数）。本文の無い投稿しか無いときだけ点数を付けた投稿の数 */
+    const items = rows.reduce((x, r) => x + (Array.isArray(r.cats) ? r.cats.length : RV_ITEMS.filter(k => String(r[k + '_comment'] || '').trim()).length), 0);
+    const fill = `${Math.round(W.avg / 5 * 1000) / 10}%`, cnt = `${items > 0 ? items : W.n}件の評価`;
     if (sc.hero.avg !== one(W.avg) || c.avg !== one(W.avg)) bad.push(`総合点が違う（社名の行 ${sc.hero.avg}・カード ${c.avg}・あるべき ${one(W.avg)}）`);
     if (sc.hero.fill !== fill || c.fill !== fill) bad.push(`星の塗りが違う（社名の行 ${sc.hero.fill}・カード ${c.fill}・あるべき ${fill}）`);
     if (sc.hero.cnt !== cnt || c.cnt !== cnt) bad.push(`件数が違う（社名の行「${sc.hero.cnt}」・カード「${c.cnt}」・あるべき「${cnt}」）`);
@@ -4546,20 +4549,22 @@ async function runRated(browser, s, [w, h, kind]) {
     if (process.env.PV_GLANCE_SHOT) await p.screenshot({ path: `${process.env.PV_GLANCE_SHOT.replace(/\/$/, '')}/rated-${s}-${w}.png`, clip: { x: 0, y: 0, width: w, height: w < 700 ? 2000 : 1500 } });
     if (process.env.PV_GLANCE_SHOT && w === 390) await sumShot(p, [w, h], `sum-key-${s}-${w}-overview`);
     {
-      /* 口コミの一覧（口コミのタブ）のカード。届いた2件が描かれるまで待つ ── 字として出たか、タグとして働いたかのどちらか。 */
+      /* 口コミの一覧（口コミのタブ）のカード。届いた行が描かれるまで待つ ── 字として出たか、タグとして働いたかのどちらか。
+         ★2026-11-19 から在籍年数は画面に出さない（サーバーも返さない）。古いサーバーを装って返しておき、
+         職位にタグを書いた1枚だけが字として出る（在籍年数にタグを書いた1枚には出ない）ことを見る。 */
       const META = '#airline-review-section .rv-reviewer-meta';
-      const drawn = await p.waitForFunction((sel, mark) => [...document.querySelectorAll(sel)].filter(e => e.textContent.includes(mark)).length >= 2 || !!document.querySelector(`${sel} img`),
+      const drawn = await p.waitForFunction((sel, mark) => [...document.querySelectorAll(sel)].filter(e => e.textContent.includes(mark)).length >= 1 || !!document.querySelector(`${sel} img`),
         { timeout: 8000 }, META, HOSTILE).then(() => true, () => false);
       const x = await ev((sel, mark) => {
         const m = [...document.querySelectorAll(sel)];
         return { shown: m.filter(e => e.textContent.includes(mark)).length, tags: m.reduce((n, e) => n + e.querySelectorAll(':not(.rv-meta-sep)').length, 0), hit: !!window.__pvgHit };
       }, META, HOSTILE);
       const bad = [];
-      if (!drawn) bad.push('タグを書いた2件が、一覧に描かれていない');
-      if (x.shown !== 2) bad.push(`書かれたタグが字として出ているカードが ${x.shown}枚（あるべき 2枚）`);
+      if (!drawn) bad.push('職位にタグを書いた1件が、一覧に描かれていない');
+      if (x.shown !== 1) bad.push(`書かれたタグが字として出ているカードが ${x.shown}枚（あるべき 1枚 ＝ 職位だけ。在籍年数は出さない）`);
       if (x.tags) bad.push(`職位・年数の所で、書かれたタグが ${x.tags}つ働いている`);
       if (x.hit) bad.push('書かれたタグの中の命令が動いた');
-      ok(!bad.length, `${tag}: 口コミのカードの職位・在籍年数に書かれたタグは、字として出るだけ（働かない）`, bad.join(' ／ '));
+      ok(!bad.length, `${tag}: 口コミのカードの職位に書かれたタグは、字として出るだけ（働かない）・在籍年数は届いても出さない`, bad.join(' ／ '));
     }
     /* ruling H3（A3）と Z11 b：鍵の無い会員。概要と口コミのタブの両方で、要約の欄は「鍵」の1行だけ（欄の中にリンクが無い）・
        カードの中で見えている錠前の1行はその1つ・ログインの入口は無い・口コミのタブでは、書く入口がそのタブの2行のボタン1つ（見えている・44px 以上）。
