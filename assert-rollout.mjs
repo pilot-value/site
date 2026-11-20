@@ -286,6 +286,7 @@ export function thirdLeak(html, facts, pubTerms, allow = new Set()) {
   return bad;
 }
 {
+  const { JOBS } = await import('./airline-jobs.mjs');
   const bad = [], seen = { n: 0, slugs: new Set() };
   let probe = null;
   for (const s of SWITCH.filter(x => !LEAD.includes(x))) for (const lang of ['ja', 'en']) {
@@ -295,6 +296,8 @@ export function thirdLeak(html, facts, pubTerms, allow = new Set()) {
     const firstLabels = new Set(facts.filter(f => !f.third).map(f => f.ja));
     if (third.length) { seen.n += third.length; seen.slugs.add(s); if (!probe && lang === 'ja' && third.some(f => !firstLabels.has(f.ja) && html.includes(`<dt>${f.ja.replace(/&/g, '&amp;')}`))) probe = { s, html, facts }; }
     const allow = new Set(((BASIS[s] || {}).src || []).map(x => x.url).filter(Boolean));
+    /* 求人ごとの「募集要項を見る」は出典の一覧ではなく応募する先（仲介会社の求人もある）── 開いて確かめた住所（airline-jobs.mjs の url）は例外（★2026-11-20 オーナー「募集要項の url 正しいところに飛ぶか」） */
+    for (const p of JOBS[s] || []) for (const u of [p.url, p.url_en]) if (u) allow.add(u);
     for (const b of thirdLeak(html, facts, WORDS[lang].pubTerms, allow)) bad.push(`${lang}/${s}: ${b}`);
   }
   ok(seen.n > 0 && !bad.length, `B-3 第三者の資料の行（${seen.slugs.size}社・${seen.n}行）は「会社が公表している条件」の下に出ない・その資料の住所もページに出ない`, bad.slice(0, 8).join(' ／ '));

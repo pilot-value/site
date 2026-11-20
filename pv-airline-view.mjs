@@ -39,7 +39,7 @@ import { LIVING, CITY_OF, ABUDHABI, SITES, FAMILY, MODES, BAR_STATS, EN as LV_EN
 import { primary } from './airline-photos.mjs';
 import { axisEnd } from './pv-bars.mjs';
 import { LEAD, SWITCH, researchFacts, researchNetwork, researchCities, rowSource, FIRST_HAND } from './airline-rollout.mjs';
-import { JOBS } from './airline-jobs.mjs';
+import { JOBS, PAGE } from './airline-jobs.mjs';
 import { REGIONS, PLACES, networkOf, placeCountry } from './airline-destinations.mjs';
 import * as US from './us-housing.mjs';
 import { ABOUT as US_ABOUT } from './us-town-notes.mjs';
@@ -695,13 +695,15 @@ function postsOf(slug, lang, jobs) {
     /* 先行5社の求人は、あとから調べた資料（機種・拠点・状況）を求人の extra に持つ（★2026-11-20 ── 先行5社の事実の台帳は人が直す決まりで、調べの台帳に入らないため） */
     for (const e of p.extra || []) srcs.push({ src: { name: lang === 'en' ? e.name_en || e.name : e.name, url: e.url, kind: e.kind }, checked: e.checked || '', third: !FIRST_HAND.includes(e.kind) });
     const two = rows => (rows || []).map(r => [r[0], r[1]]);
-    return { state: p.state || '', who: x.who, fleet: x.fleet || '', base: x.base || '', status: x.status || '',
+    /* 求人ごとの募集要項の住所（★2026-11-20 オーナー「募集要項の url は正しいところに飛ぶか」── 1件ずつ開いて確かめた住所だけ。英語の住所が別なら url_en） */
+    return { state: p.state || '', who: x.who, fleet: x.fleet || '', base: x.base || '', status: x.status || '', url: (lang === 'en' && p.url_en) || p.url || '',
       rows: two(x.rows), routes: (x.routes || []).map(r => ({ name: r.name, rows: two(r.rows) })), srcs };
   });
 }
 export function viewOf(slug, lang = 'ja') {
   const v = viewBase(slug, lang);
-  return { ...v, posts: postsOf(slug, lang, v.jobs || []) };
+  const pg = PAGE[slug];
+  return { ...v, posts: postsOf(slug, lang, v.jobs || []), page: pg ? (lang === 'en' && pg.url_en) || pg.url : null };   // '' ＝ 開いて確かめた入口が無い（リンクを出さない）
 }
 function viewBase(slug, lang = 'ja') {
   if (!SALARY[slug]) throw new Error(`${slug}: 年収の正本（SALARY）に無い`);

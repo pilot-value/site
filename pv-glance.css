@@ -1491,12 +1491,21 @@ a.pvg-topic-a:focus-visible{outline:2px solid var(--pv-accent);outline-offset:2p
    道が分かれる求人（型式限定がある人／無い人 など）は、道の名前の下に同じ表。字は gen-airline-glance.mjs の postHTML。 */
 .pvg-posts{display:grid;gap:0 28px}
 .pvg-post{padding:14px 0 12px;border-top:1px solid var(--pv-line-soft);min-width:0}
-.pvg-post-h{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:0}
-.pvg-post-h > b{font-size:15.5px;font-weight:700;line-height:1.4;color:var(--pv-ink);letter-spacing:-.01em}
-.pvg-post-c{font-size:12px;font-weight:600;line-height:20px;padding:0 8px;border-radius:999px;background:var(--pv-bg-sub);border:1px solid var(--pv-line-soft);color:var(--pv-ink-2)}
-.pvg-post-st{font-size:12px;font-weight:700;line-height:20px;padding:0 8px;border-radius:999px;margin-left:auto;color:var(--pv-ink-3);background:var(--pv-bg-sub)}
-.pvg-post-st[data-state="open"]{color:var(--pv-accent-ink);background:var(--pv-accent-soft)}
+.pvg-post-h{display:flex;align-items:baseline;justify-content:space-between;gap:2px 14px;margin:0}
+.pvg-post-h > b{font-size:15.5px;font-weight:700;line-height:1.4;color:var(--pv-ink);letter-spacing:-.01em;min-width:0}
+/* 状態は丸い枠にしない（2026-11-20 オーナー「丸く囲うと AI 感」）── 小さい点と字だけ。募集中だけ緑の点・黒の字 */
+.pvg-post-st{flex:none;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;line-height:20px;color:var(--pv-ink-3);white-space:nowrap}
+.pvg-post-st::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.45}
+.pvg-post-st[data-state="open"]{color:var(--pv-ink);font-weight:700}
+.pvg-post-st[data-state="open"]::before{background:var(--pv-accent);opacity:1}
+/* 機種・拠点は、小さい灰色の見出しと黒い字の対（押せない情報を押せる形にしない） */
+.pvg-post-m{display:flex;flex-wrap:wrap;gap:3px 22px;margin:5px 0 0}
+.pvg-post-m > div{display:flex;align-items:baseline;gap:8px;min-width:0}
+.pvg-post-m dt{flex:none;font-size:12px;font-weight:600;line-height:1.5;color:var(--pv-ink-3)}
+.pvg-post-m dd{margin:0;font-size:13.5px;font-weight:600;line-height:1.5;color:var(--pv-ink);min-width:0;overflow-wrap:anywhere}
 .pvg-post-s{margin:4px 0 6px!important;font-size:12.5px;line-height:1.5;color:var(--pv-ink-3);overflow-wrap:anywhere}
+/* 求人ごとの募集要項の住所（開いて確かめた住所だけ） */
+.pvg-post-a{margin:10px 0 0!important;font-size:12.5px;line-height:1.5}
 .pvg-post-r{margin:12px 0 2px!important;font-size:12.5px;font-weight:700;line-height:1.5;color:var(--pv-ink-2)}
 .pvg-req{list-style:none;margin:0;padding:0}
 .pvg-req li{display:grid;grid-template-columns:6.5em minmax(0,1fr);gap:12px;padding:6px 0;border-bottom:1px solid var(--pv-line-soft)}

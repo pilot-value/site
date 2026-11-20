@@ -1109,15 +1109,17 @@ ${rvCta(v, 'reviews')}
    応募の道が分かれる求人は、道の名前（「B737 の型式限定がある人」）の下に同じ表。 */
 const reqList = rows => `<ul class="pvg-req">${rows.map(([k, x]) => `<li><span>${prose(k)}</span><b>${rowVal(x)}</b></li>`).join('')}</ul>`;
 const postHTML = p => `<section class="pvg-post">
-<p class="pvg-post-h"><b>${prose(p.who)}</b>${[p.fleet, p.base].filter(Boolean).map(x => `<span class="pvg-post-c">${prose(x)}</span>`).join('')}${W.postState[p.state] ? `<span class="pvg-post-st" data-state="${p.state}">${W.postState[p.state]}</span>` : ''}</p>
-${p.status ? `<p class="pvg-post-s">${prose(p.status)}</p>` : ''}${p.rows.length ? reqList(p.rows) : ''}${p.routes.map(r => `<p class="pvg-post-r">${prose(r.name)}</p>${reqList(r.rows)}`).join('')}
+<p class="pvg-post-h"><b>${prose(p.who)}</b>${W.postState[p.state] ? `<span class="pvg-post-st" data-state="${p.state}">${W.postState[p.state]}</span>` : ''}</p>
+${p.fleet || p.base ? `<dl class="pvg-post-m">${[[W.postFleet, p.fleet], [W.base, p.base]].filter(x => x[1]).map(([k, v]) => `<div><dt>${k}</dt><dd>${prose(v)}</dd></div>`).join('')}</dl>
+` : ''}${p.status ? `<p class="pvg-post-s">${prose(p.status)}</p>` : ''}${p.rows.length ? reqList(p.rows) : ''}${p.routes.map(r => `<p class="pvg-post-r">${prose(r.name)}</p>${reqList(r.rows)}`).join('')}${p.url ? `\n<p class="pvg-post-a"><a class="pvg-link" href="${esc(p.url)}" target="_blank" rel="noopener">${p.state === 'open' ? W.postLink : W.postLinkOld}${IC.out}</a></p>` : ''}
 </section>`;
 function jobsCard(v) {
   const posts = v.posts || [];
   const srcs = posts.flatMap(p => p.srcs);
   /* 「会社の募集ページ」は会社自身の資料だけ（先行5社は募集の行のいちばん上の資料・ほかは求人の並びで最初の会社の資料） */
   const first = v.jobs.find(f => f.src && f.src.url && f.src.kind === 'company') || srcs.find(f => f.src && f.src.url && f.src.kind === 'company');
-  const link = first ? `<a class="pvg-link" href="${esc(first.src.url)}" target="_blank" rel="noopener">${W.jobsPage}${IC.out}</a>` : '';
+  const url = v.page != null ? v.page : first && first.src.url;   // PAGE（会社のパイロット採用の入口・開いて確かめた住所）が先
+  const link = url ? `<a class="pvg-link" href="${esc(url)}" target="_blank" rel="noopener">${W.jobsPage}${IC.out}</a>` : '';
   const body = posts.length ? `<div class="pvg-posts">\n${posts.map(postHTML).join('\n')}\n</div>\n${sources(srcs, true, true)}`
     : v.jobs.length ? factList(v.jobs) + sources(v.jobs, true, true) : `<p class="pvg-quiet">${W.jobsNone}</p>`;
   return `<article class="pvg-card pvg-jobs"${pane(v.slug, 'overview')}>
@@ -1470,7 +1472,7 @@ export const WORDS = Object.freeze({
     fleet: '機材', fleetTypes: '会社の資料に載っている型式', types: n => `${n}機種`, coMore: '会社情報', figures: n => `数字${n}つ`, company: '会社',
     rvCta: Object.freeze({ ...RV_CTA }), anonFree: '匿名・無料', score: 'パイロットによる評価スコア',
     jobsPage: '会社の募集ページ', jobs: '募集', jobsNone: '会社が公表している募集を確認できていません。',
-    postState: { open: '募集中', none: 'いま募集なし', past: '過去の募集' },
+    postFleet: '機種', postLink: '募集要項を見る', postLinkOld: '募集のページを見る', postState: { open: '募集中', none: 'いま募集なし', past: '過去の募集' },
     seasonal: '季節運航', hotelsTips: 'ホテル・おすすめ', base: '拠点', stay: 'ステイ',
     stayNone: '就航地ごとのホテル・レストランは、会社が公表する就航地の一覧を確認してから開きます。', official: '公式の就航地',
     netPartial: (n, d) => `調べで確かめた就航地・${n}空港・${d}時点です。全部の就航地とは限りません。`, netWhole: '会社全体の就航地です。',
@@ -1556,7 +1558,7 @@ export const WORDS = Object.freeze({
     fleet: 'Fleet', fleetTypes: 'Types listed by the airline', types: n => pl(n, 'type', 'types'), coMore: 'Company details', figures: n => pl(n, 'fact', 'facts'), company: 'Company',
     rvCta: Object.freeze({ ...RV_CTA_EN }), anonFree: 'Anonymous · free', score: 'Pilot ratings',
     jobsPage: 'Airline’s careers page', jobs: 'Jobs', jobsNone: 'We have not been able to confirm any vacancies published by the airline.',
-    postState: { open: 'Hiring', none: 'No current openings', past: 'Past posting' },
+    postFleet: 'Aircraft', postLink: 'View the posting', postLinkOld: 'View the recruitment page', postState: { open: 'Hiring', none: 'No current openings', past: 'Past posting' },
     seasonal: 'Seasonal', hotelsTips: 'Hotels &amp; tips', base: 'Base', stay: 'Layovers',
     stayNone: 'Hotels and restaurants by destination open once we have confirmed the airline’s published list of destinations.', official: 'Official destinations',
     netPartial: (n, d) => `Destinations confirmed in our research: ${pl(n, 'airport', 'airports')}, as of ${d}. This may not be every destination.`,

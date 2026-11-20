@@ -359,6 +359,7 @@ let faqOf = null;
   const { BASIS } = await import('./salary-basis.mjs');
   const { SOURCES } = await import('./salary-sources.mjs');
   const { LEDGER } = await import('./research-ledger.mjs');
+  const { JOBS } = await import('./airline-jobs.mjs');
   const { TERMS: US_TERMS } = await import('./us-terms.mjs');
   const { unbake, curCore } = await import('./cur-core.mjs');
   const C_EN = await curCore('USD', 'en');
@@ -419,6 +420,9 @@ let faqOf = null;
       for (const x of Object.values(v)) walk(x);
     };
     walk((LEDGER.FACTS || {})[slug]); walk(BASIS[slug]); walk(SOURCES[slug]);
+    /* ★2026-11-20 求人の確かめ：求人ごとに開いて確かめた資料（airline-jobs.mjs の extra・原文の引用つき）の時間も、その会社の資料の数 */
+    /* 引用は原文のまま（「250小時」「700 stick hours」のように単位の書き方がまちまち）なので、引用の中の数はどれも数える */
+    for (const p of JOBS[slug] || []) for (const e of p.extra || []) allNums(String(e.quote || '').normalize('NFKC').replace(/(\d)\.(\d{3})(?!\d)/g, (_, a, b) => a + b));   // 欧州の書き方「4.000」も4000
     /* ★2026-11-02 米国の会社の「調べた条件」（us-terms.mjs）も、その会社の台帳（保証・割増の時間はここに在る。行の字の数はどれも台帳の数として数える ── 「4〜8時間」の4も） */
     allNums(US_TERMS[slug]);
     return set;
