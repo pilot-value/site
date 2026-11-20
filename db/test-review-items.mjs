@@ -250,6 +250,22 @@ console.log('\n▼ 4. 板を出すか（7日に1回・待遇の板と同じ日�
   ok(J(b.order) === J(['salary', 'wlb', 'benefits', 'training', 'ops', 'culture', 'mgmt']), '聞く順は給与から');
   ok(!J(b).match(/"n"|count|people|人数/), '人数・件数は返さない');
 
+  /* 給与を出した人には、会社を聞かない（給与の会社がそのまま入る）。本物の submit_pay_report を通す。 */
+  const P2 = await member('fo');
+  const FLEET = (await one(`select code from public.pv_fleets where active order by code limit 1`)).code;
+  const NOW = await one(`select extract(year from current_date)::int as y, extract(month from current_date)::int as m`);
+  await db.query(`select set_config('pv.uid', $1, false)`, [P2]);
+  try {
+    await db.query(`select public.submit_pay_report($1::jsonb)`, [J({
+      currency: 'USD', lang: 'en', tax_rate_pct: 0, position: 'cap', fleet: FLEET, airline: 'ana',
+      period_year: NOW.m === 1 ? NOW.y - 1 : NOW.y, period_month: NOW.m === 1 ? 12 : NOW.m - 1,
+      base_pay: 9000, flight_variable_pay: 4000, other_allowance: 4400 })]);
+  } catch (e) { ok(false, '（準備が崩れた）給与を出せなかった', String(e.message || e)); }
+  finally { await asOwner(); await db.exec(`update public.profiles set pay_reports_today = 0`); }
+  const bp = await board(P2);
+  ok(bp.due === true && bp.airline === 'ana' && bp.position === 'captain' && bp.name_ja,
+     '給与を出した人：会社は給与の会社（板は会社を聞かない）・職位も給与の職位', J(bp));
+
   const B = await member('fo');
   await item(B, 'skymark', 'wlb', T('B', 'wlb'));
   const bb = await board(B);

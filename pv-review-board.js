@@ -72,10 +72,11 @@
       }
     },
     en: {
-      label: { culture: 'Company culture', salary: 'Salary', benefits: 'Benefits', wlb: 'Work-life balance',
-               ops: 'Flight operations', training: 'Training environment', mgmt: 'Suggestions to management' },
+      /* 項目名は Vote（vote.js の cat）と同じ呼び名 ── 板から Vote へ移っても同じ名前で探せる */
+      label: { culture: 'Culture', salary: 'Pay', benefits: 'Benefits', wlb: 'Work-life balance',
+               ops: 'Flight operations', training: 'Training', mgmt: 'Suggestions for management' },
       head: function (n) { return n ? 'Your ' + n + ' review — just one topic.' : 'Your review — just one topic.'; },
-      tile: { culture: 'Culture', salary: 'Salary', benefits: 'Benefits', wlb: 'Work-life', ops: 'Flight ops',
+      tile: { culture: 'Culture', salary: 'Pay', benefits: 'Benefits', wlb: 'Work-life', ops: 'Flight ops',
               training: 'Training', mgmt: 'Management' },
       lead: 'Each topic you write opens that topic for every airline',
       count: function (k) { return k + ' / 7 topics'; },
@@ -110,10 +111,10 @@
       }
     },
     es: {
-      label: { culture: 'Cultura de la empresa', salary: 'Sueldo', benefits: 'Beneficios', wlb: 'Equilibrio entre trabajo y vida personal',
-               ops: 'Operaciones de vuelo', training: 'Entorno de entrenamiento', mgmt: 'Sugerencias a la dirección' },
+      label: { culture: 'Cultura', salary: 'Remuneración', benefits: 'Beneficios', wlb: 'Equilibrio vida-trabajo',
+               ops: 'Operaciones de vuelo', training: 'Entrenamiento', mgmt: 'Sugerencias para la dirección' },
       head: function (n) { return n ? 'Tu reseña de ' + n + ': solo un tema.' : 'Tu reseña: solo un tema.'; },
-      tile: { culture: 'Cultura', salary: 'Sueldo', benefits: 'Beneficios', wlb: 'Vida y trabajo', ops: 'Operaciones',
+      tile: { culture: 'Cultura', salary: 'Remuneración', benefits: 'Beneficios', wlb: 'Vida y trabajo', ops: 'Operaciones',
               training: 'Entrenamiento', mgmt: 'Dirección' },
       lead: 'Cada tema que escribas se abre en todas las aerolíneas',
       count: function (k) { return k + ' / 7 temas'; },
@@ -499,7 +500,7 @@
 
   // ── 会社と職位（分からないときだけ1回）────────────────────────────
   Board.prototype.pick = function () {
-    var self = this;
+    var self = this, askAir = !self.air;   // 給与・書きかけで会社が決まっている人には会社を聞かない（職位だけ）
     loadAirs().then(function (airs) {
       if (!self.back) return;
       var groups = {};
@@ -516,17 +517,18 @@
           return '<option value="' + esc(c) + '"' + (c === self.air ? ' selected' : '') + '>' + esc(L === 'ja' ? airs[c].ja : airs[c].en) + '</option>';
         }).join('') + '</optgroup>';
       }).join('');
-      self.body.innerHTML = '<h2 class="pvrb-eb" id="pvrb-h">' + esc(T.head('')) + '</h2>'
+      self.body.innerHTML = '<h2 class="pvrb-eb" id="pvrb-h">' + esc(T.head(askAir ? '' : airName(self.air, self.st))) + '</h2>'
         + self.tiles(null)
-        + '<label class="pvrb-f"><span class="pvrb-fl">' + esc(T.air) + '</span><select class="pvrb-sel">' + opts + '</select></label>'
+        + (askAir ? '<label class="pvrb-f"><span class="pvrb-fl">' + esc(T.air) + '</span><select class="pvrb-sel">' + opts + '</select></label>' : '')
         + '<div class="pvrb-f"><span class="pvrb-fl">' + esc(T.pos) + '</span><div class="pvrb-pos">'
         + '<button type="button" data-pos="captain" aria-pressed="' + (self.pos === 'captain') + '">' + esc(T.cap) + '</button>'
         + '<button type="button" data-pos="fo" aria-pressed="' + (self.pos === 'fo') + '">' + esc(T.fo) + '</button></div></div>'
         + '<div class="pvrb-go"><button type="button" class="pvrb-btn pvrb-next" disabled>' + esc(T.next) + '</button></div>'
         + self.foot('', false, false);
       var sel = self.body.querySelector('.pvrb-sel'), next = self.body.querySelector('.pvrb-next');
-      var sync = function () { next.disabled = !(sel.value && self.pos); };
-      sel.addEventListener('change', function () { self.air = sel.value; sync(); });
+      var air = function () { return sel ? sel.value : self.air; };
+      var sync = function () { next.disabled = !(air() && self.pos); };
+      if (sel) sel.addEventListener('change', function () { self.air = sel.value; sync(); });
       Array.prototype.forEach.call(self.body.querySelectorAll('.pvrb-pos button'), function (b) {
         b.addEventListener('click', function () {
           self.pos = b.getAttribute('data-pos');
@@ -535,14 +537,14 @@
         });
       });
       next.addEventListener('click', function () {
-        if (!sel.value || !self.pos) return;
-        self.air = sel.value;
+        if (!air() || !self.pos) return;
+        self.air = air();
         self.st.name_ja = airs[self.air] && airs[self.air].ja;
         self.st.name_en = airs[self.air] && airs[self.air].en;
         self.show(self.o.cat && !self.done[self.o.cat] ? self.o.cat : self.nextCat());
       });
       sync();
-      sel.focus();
+      (sel || self.body.querySelector('.pvrb-pos button')).focus();
     });
   };
 
