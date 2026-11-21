@@ -422,7 +422,7 @@ let faqOf = null;
     walk((LEDGER.FACTS || {})[slug]); walk(BASIS[slug]); walk(SOURCES[slug]);
     /* ★2026-11-20 求人の確かめ：求人ごとに開いて確かめた資料（airline-jobs.mjs の extra・原文の引用つき）の時間も、その会社の資料の数 */
     /* 引用は原文のまま（「250小時」「700 stick hours」のように単位の書き方がまちまち）なので、引用の中の数はどれも数える */
-    for (const p of JOBS[slug] || []) for (const e of p.extra || []) allNums(String(e.quote || '').normalize('NFKC').replace(/(\d)\.(\d{3})(?!\d)/g, (_, a, b) => a + b));   // 欧州の書き方「4.000」も4000
+    for (const p of JOBS[slug] || []) for (const e of p.extra || []) allNums(String(e.quote || '').normalize('NFKC').replace(/(\d)[.\s\u00a0\u202f](\d{3})(?!\d)/g, (_, a, b) => a + b));   // 欧州の書き方「4.000」「1 500」も4000・1500
     /* ★2026-11-02 米国の会社の「調べた条件」（us-terms.mjs）も、その会社の台帳（保証・割増の時間はここに在る。行の字の数はどれも台帳の数として数える ── 「4〜8時間」の4も） */
     allNums(US_TERMS[slug]);
     return set;
