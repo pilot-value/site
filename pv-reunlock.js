@@ -143,6 +143,9 @@
   /* サーバに「自分の口コミ」を聞く。取れなければ null（0件と区別する）。
      ★ review-i18n.js には依存しない ── login.html / auth-callback.html は
        あれを読んでいないので、ここで呼ぶと再解放だけが黙って効かなくなる。 */
+  /* ★2026-11-20 サーバが「7項目ぜんぶ読める」と言ったか（pv_reviews の unlocked）。null ＝ 聞けていない。
+       口コミを1項目ずつ聞く板で書きかけの人は、口コミが1件あっても全部は読めない ── その人に口コミ枠の印を付けない。 */
+  var serverOpen = null;
   async function askServer(sb) {
     if (!sb || !sb.rpc) return null;
     try {
@@ -150,6 +153,7 @@
       if (!res || res.error) return null;
       var d0 = res.data;
       if (!d0 || Object.prototype.toString.call(d0.rows) !== "[object Array]") return null;
+      serverOpen = d0.unlocked === true;
       return d0.rows;
     } catch (e) { return null; }
   }
@@ -170,7 +174,7 @@
     var extra = (opts && opts.extraCols) || "";
     // キャッシュは「追加列つきで取れたもの」だけ再利用する。extra を後から
     // 足したくなったときに、列の足りない結果を返してしまわないようにする。
-    if (cache.reviews && cache.reviews.extra === extra) return cache.reviews.rows;
+    if (cache.reviews && cache.reviews.extra === extra) { serverOpen = cache.reviews.open; return cache.reviews.rows; }
 
     /* ★ まず pv_reviews({mine:true}) に聞く（db/reviews-gate.sql）。
        本文の列は DB 側で anon / authenticated から外してあり、鍵を持つ人にだけ
@@ -181,7 +185,7 @@
          どちらか一方だけが必ず働く形なので、貼る順番で口コミが消えない。 */
     var viaRpc = await askServer(sb);
     if (viaRpc) {
-      cache.reviews = { extra: extra, rows: viaRpc };
+      cache.reviews = { extra: extra, rows: viaRpc, open: serverOpen };
       return viaRpc;
     }
 
@@ -217,7 +221,7 @@
       rows.sort(function (a, b) {
         return String(b.created_at || "").localeCompare(String(a.created_at || ""));
       });
-      cache.reviews = { extra: extra, rows: rows };
+      cache.reviews = { extra: extra, rows: rows, open: null };
       return rows;
     } catch (e) {
       return null;
@@ -237,8 +241,9 @@
     // 匿名 reviews_v2 を proof_hash 群で照合（旧 reviews テーブルは廃止済み）
     // ★引けなかった（null）ときは解放を消さない。読めなかっただけで
     //   締め出さないため、判定は「1件でも取れたか」だけで行う。
+    serverOpen = null;
     var reviews = await window.pvFindMyReviews(sb, userId);
-    if (reviews && reviews.length > 0) { setUnlock(); return true; }
+    if (reviews && reviews.length > 0 && serverOpen !== false) { setUnlock(); return true; }
 
     return salary;
   };

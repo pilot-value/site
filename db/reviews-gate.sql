@@ -132,14 +132,10 @@ begin
      （2026-10-13・db/pay-rows.sql 1-e2。REAL PAY・DEEP PAY と同じ1つの関数）。
      口コミそのものは触らない＝承認した瞬間に元どおり開く。 */
   if public.pv_proof_blocked() then return false; end if;
-  return exists (
-    select 1
-      from public.reviews_v2 r
-     where r.proof_hash in (select public.pv_review_hash(v_uid, c)
-                              from public.pv_review_codes() c)
-       /* ★AI が保留にした口コミ（3-c）では鍵を開けない（2026-11-15 オーナー決定）。
-            運営が「載せる」を押した瞬間に開く（口コミそのものは書き換えない）。 */
-       and not public.pv_review_held('r', r.id));
+  /* ★2026-11-20 鍵 ＝「7項目ぜんぶ読める」。どの項目が読めるかは 3-d の pv_review_my_cats() の1か所で決める
+       （フォームで出した口コミ・前からある口コミは1件で7項目ぜんぶ＝今までどおり。板で書きかけの人は書いた項目だけ）。
+       ★AI が保留にした口コミ（3-c）では開けない（2026-11-15 オーナー決定）── それも pv_review_my_cats() の中。 */
+  return cardinality(public.pv_review_my_cats()) = 7;
 end
 $fn$;
 
@@ -147,7 +143,7 @@ revoke all on function public.pv_has_review_key() from public, anon;
 grant execute on function public.pv_has_review_key() to authenticated;
 
 comment on function public.pv_has_review_key() is
-  '口コミを1件でも出したことがあるか（＝本文を読める鍵を持つか）。運営は常に true。';
+  '7項目ぜんぶの本文を読めるか（フォームで口コミを1件出した・板で7項目書いた）。運営は常に true。項目ごとは pv_review_my_cats()。';
 
 
 -- ════════════════════════════════════════════════════════════════
@@ -403,6 +399,115 @@ $grant$;
 
 
 -- ════════════════════════════════════════════════════════════════
+-- 3-d. 項目ごとの鍵 ── 書いた項目は、全社ぶん読める（2026-11-20）
+--
+-- オーナー決定（2026-11-20）「書いた項目は、全社ぶん読める。7項目書けば全部読める。」
+--   ・戻ってきた会員に1項目ずつ聞く板（pv-review-board.js・db/review-items.sql）で書き始めた口コミは、
+--     7項目そろうまで「書きかけ」（表 pv_review_partial に id が1行）。書きかけの口コミしか持たない人は、
+--     そこで書いた項目だけ、全社の口コミのその項目が読める。7項目そろうと書きかけではない＝全部読める。
+--   ・フォーム（submit-review.html）・預かりの引き取り・それより前からある口コミは、書きかけではない
+--     ＝ 今までどおり1件で全部読める（サイトの「1件出すと全部読める」はそのまま正しい）。
+--   ・読める項目を決めるのはここ（pv_review_my_cats）の1か所。鍵（3. pv_has_review_key）は「7つぜんぶ」と同じ意味。
+--   ⚠️ 書きかけの印を reviews_v2 の列にしない（pv_reviews は to_jsonb(r) を丸ごと返す ＝ 足した列は公開される）。
+--   ⚠️ この表に誰の口コミかを書かない（口コミの id だけ）。会員からは読めない・書けない。
+-- ════════════════════════════════════════════════════════════════
+create table if not exists public.pv_review_partial (
+  rid uuid primary key references public.reviews_v2(id) on delete cascade,
+  at  timestamptz not null default now());
+alter table public.pv_review_partial enable row level security;
+revoke all on public.pv_review_partial from public, anon, authenticated;
+
+/* 7項目。並びは review-i18n.js の KEYS と同じ（culture … mgmt）。 */
+create or replace function public.pv_review_keys()
+returns text[]
+language sql
+immutable
+as $fn$ select array['culture', 'salary', 'benefits', 'wlb', 'ops', 'training', 'mgmt'] $fn$;
+revoke all on function public.pv_review_keys() from public, anon, authenticated;
+
+/* 1行のうち、本文を書いた項目（前後の空白だけの欄は書いていない）。並びは KEYS 順。 */
+create or replace function public.pv_review_written(j jsonb)
+returns text[]
+language sql
+immutable
+as $fn$
+  select coalesce(array_agg(u.k order by u.n), '{}'::text[])
+    from unnest(public.pv_review_keys()) with ordinality u(k, n)
+   where btrim(coalesce(j ->> (u.k || '_comment'), '')) <> ''
+$fn$;
+revoke all on function public.pv_review_written(jsonb) from public, anon, authenticated;
+
+/* ★呼んだ本人が本文を読める項目（KEYS 順）。7つなら全部。
+     未ログイン・止めた会員は空。運営は全部。
+     書きかけでない口コミを1件でも持つ（＝フォーム・引き取り・前からある）か、どれか1件で7項目そろえば全部。
+     そうでなければ、書きかけの口コミで書いた項目を合わせたもの。
+     ★AI が保留にした口コミ（3-c）は数えない（運営が「載せる」を押した瞬間に入る）。
+   ★誰にも grant しない（読む側の security definer の関数の中からだけ呼ぶ）。 */
+create or replace function public.pv_review_my_cats()
+returns text[]
+language plpgsql
+security definer
+stable
+set search_path = public, extensions
+as $fn$
+declare
+  v_uid uuid := auth.uid();
+  v_all boolean;
+  v_got text[];
+begin
+  if v_uid is null then return '{}'::text[]; end if;
+  if public.pv_is_operator() then return public.pv_review_keys(); end if;
+  if public.pv_proof_blocked() then return '{}'::text[]; end if;
+
+  with own as (
+    select r.id, public.pv_review_written(to_jsonb(r)) as w
+      from public.reviews_v2 r
+     where r.proof_hash in (select public.pv_review_hash(v_uid, c) from public.pv_review_codes() c)
+       and not public.pv_review_held('r', r.id)
+  )
+  select bool_or(cardinality(o.w) = 7
+                 or not exists (select 1 from public.pv_review_partial p where p.rid = o.id)),
+         array(select u.k from unnest(public.pv_review_keys()) with ordinality u(k, n)
+                where exists (select 1 from own o2 where u.k = any (o2.w))
+                order by u.n)
+    into v_all, v_got
+    from own o;
+
+  if coalesce(v_all, false) then return public.pv_review_keys(); end if;
+  return coalesce(v_got, '{}'::text[]);
+end
+$fn$;
+revoke all on function public.pv_review_my_cats() from public, anon, authenticated;
+
+/* ★読める項目の本文だけを1行に戻す（pv_reviews が、書きかけの人の行に足す）。
+     cats が空なら何も足さない。訳文も読める項目の分だけ。印 open ＝ 呼んだ人が読める項目（行ごとに同じ）。
+     ⚠️ 印 open を落とさない ── review-i18n.js は「*_comment が在るか」で鍵を見ている。open が無いと、
+        本文が1欄でも在る行は「全部読める」扱いになり、読めない項目が「コメントなし」に化ける。 */
+create or replace function public.pv_review_open_part(j jsonb, cats text[])
+returns jsonb
+language sql
+immutable
+as $fn$
+  select case when coalesce(cardinality(cats), 0) = 0 then '{}'::jsonb else
+    coalesce((select jsonb_object_agg(k || '_comment', j -> (k || '_comment'))
+                from unnest(cats) k
+               where btrim(coalesce(j ->> (k || '_comment'), '')) <> ''), '{}'::jsonb)
+    || coalesce((select case when count(*) > 0
+                             then jsonb_build_object('translations', jsonb_object_agg(l.key, t.v)) end
+                   from jsonb_each(case when jsonb_typeof(j -> 'translations') = 'object'
+                                        then j -> 'translations' else '{}'::jsonb end) l,
+                        lateral (select jsonb_object_agg(k, l.value -> k) as v
+                                   from unnest(cats) k
+                                  where jsonb_typeof(l.value) = 'object'
+                                    and nullif(l.value ->> k, '') is not null) t
+                  where t.v is not null), '{}'::jsonb)
+    || jsonb_build_object('open', to_jsonb(cats))
+  end
+$fn$;
+revoke all on function public.pv_review_open_part(jsonb, text[]) from public, anon, authenticated;
+
+
+-- ════════════════════════════════════════════════════════════════
 -- 4. pv_reviews — 口コミの一覧（本文は鍵を持つ人にだけ）
 --
 -- 引数 p（全部省略可）
@@ -445,7 +550,9 @@ set search_path = public, extensions
 as $fn$
 declare
   v_uid   uuid    := auth.uid();
-  v_open  boolean := public.pv_has_review_key();
+  /* ★2026-11-20 読める項目（3-d）。7つ ＝ 鍵（全部読める）。1〜6つ ＝ 板で書きかけの人（書いた項目だけ読める）。 */
+  v_cats  text[]  := public.pv_review_my_cats();
+  v_open  boolean := cardinality(v_cats) = 7;
   v_air   text    := nullif(btrim(p->>'airline'), '');
   v_airs  text[]  := null;
   v_mine  boolean := coalesce((p->>'mine')::boolean, false);
@@ -471,7 +578,7 @@ begin
        元の作り方と突き合わせている）。鍵を持つ人・自分の口コミ（mine）は今までどおり下で作る。
      ⚠️ ここに条件を足すときは、pv_review_card_of() と下の else の両方を直す（2つは同じでなければならない）。
      ★AI が保留にした口コミ（3-c）は、作り置きに最初から置かない（4-b の pv_review_card_put と rebuild）＝ 下の src と同じ行の集まり。 */
-  if not v_open and not v_mine then
+  if not v_open and not v_mine and cardinality(v_cats) = 0 then
     select coalesce(jsonb_agg(c.card order by c.at desc nulls last), '[]'::jsonb)
       into v_rows
       from (select k.card, k.at
@@ -480,7 +587,7 @@ begin
                and (v_airs is null or k.air = any (v_airs))
              order by k.at desc nulls last
              limit v_limit) c;
-    return jsonb_build_object('ok', true, 'unlocked', false, 'rows', v_rows);
+    return jsonb_build_object('ok', true, 'unlocked', false, 'open', '[]'::jsonb, 'rows', v_rows);
   end if;
 
   with mine as (
@@ -517,13 +624,14 @@ begin
     from (
       select row_number() over (order by pick.at desc nulls last) as ord,
              (case when v_open then pick.j - 'proof_hash'
-                   when v_mine then pick.j - 'proof_hash' - v_hide
+                   /* ★書きかけの人（3-d）には、読める項目の本文だけを戻す（pv_review_open_part）。cats が空なら何も足さない。 */
+                   when v_mine then pick.j - 'proof_hash' - v_hide || public.pv_review_open_part(pick.j, v_cats)
                    /* ★鍵の無い人には口コミの番号（id）も返さない（2026-10-17）。
                         要約の番号（pv_review_summary の ids）と同じく、本文を読める人と
                         自分の口コミ（mine）にだけ。画面は鍵の無い行の id を使っていない。
                       ⚠️ v_hide に 'id' を足さない ── v_hide は 7. の表の権限と同じ表で、
                          assert-unlock が2つの一致を見ている。 */
-                   else pick.j - 'proof_hash' - v_hide - 'id' end)
+                   else pick.j - 'proof_hash' - v_hide - 'id' || public.pv_review_open_part(pick.j, v_cats) end)
              /* n ＝ 7欄の本文の文字数の合計（前後の空白は数えない）。鍵の有無にかかわらず返す
                 （2026-10-29 オーナー指示「合計の文字数も表示」。字数は本文ではない）。 */
              || jsonb_build_object('cats', to_jsonb(ck.a), 'n', ck.n)
@@ -571,7 +679,7 @@ begin
                 public.pv_review_len(pick.j) as n) ck
     ) z;
 
-  return jsonb_build_object('ok', true, 'unlocked', v_open, 'rows', v_rows);
+  return jsonb_build_object('ok', true, 'unlocked', v_open, 'open', to_jsonb(v_cats), 'rows', v_rows);
 end
 $fn$;
 

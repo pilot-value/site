@@ -65,6 +65,18 @@ $guard$;
 -- ★会員は profiles のこの列を書き換えられない（db/admin.sql が列ごとの update しか渡していない）。
 --   書くのは pv_ask_seen だけ。
 alter table public.profiles add column if not exists ask_prompt_at timestamptz;
+/* ★2026-11-20 口コミを1項目ずつ聞く板（db/review-items.sql）を最後に開いた時刻。書くのはあちらの pv_review_board_seen だけ。
+     ここでも足すのは、下の pv_ask_next が読むため（貼る順がこのファイルの後でも、列が無くて止まらない）。 */
+alter table public.profiles add column if not exists review_prompt_at timestamptz;
+
+/* ★2026-11-20 待遇の板と口コミの板を同じ日に出さない（オーナー「待遇と被らないようにして」）。
+     片方を開いてからこの時間は、もう片方を出さない。両方の板がこの1つを読む（pv_ask_next と pv_review_board）。 */
+create or replace function public.pv_board_gap()
+returns interval
+language sql
+immutable
+as $fn$ select interval '24 hours' $fn$;
+revoke all on function public.pv_board_gap() from public, anon, authenticated;
 
 
 -- ── 2. 聞く会社（誰にも grant しない）──────────────────────────
@@ -227,6 +239,9 @@ begin
 
   if not v_cont then
     select pr.ask_prompt_at + make_interval(hours => v_hours) into v_next
+      from public.profiles pr where pr.id = v_uid;
+    /* ★口コミの板（db/review-items.sql）を開いてから pv_board_gap() のあいだは出さない（同じ日に2枚出さない）。 */
+    select greatest(v_next, pr.review_prompt_at + public.pv_board_gap()) into v_next
       from public.profiles pr where pr.id = v_uid;
     if v_next is not null and v_next > now() then
       return jsonb_build_object('ok', true, 'due', false, 'why', 'wait', 'next_at', v_next);

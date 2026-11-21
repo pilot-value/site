@@ -78,6 +78,7 @@ export const SQL_FILES = [
   'db/towns.generated.sql',
   'db/contrib.sql',
   'db/ask-own-airline.sql', // 戻ってきた会員に「〇〇のこと、ひとつ教えて。」（2026-10-30）。contrib.sql・reviews-gate.sql・airline-conditions.sql のあと
+  'db/review-items.sql',    // 口コミを1項目ずつ聞く板（2026-11-20）。reviews-gate.sql・review-pending.sql・ask-own-airline.sql のあと
   'db/hotel-suggest.sql',   // ホテルの名前の候補（Google）の月 10,000 回の数え札。ほかのファイルに頼らない（2026-10-19）
   'db/follow.sql',          // 気になる会社のフォロー（2026-11-07）。member-median.sql（テスト用アカウント）・pilot-proof.sql・reviews-gate.sql・airline-conditions.sql のあと
 ];
@@ -455,7 +456,20 @@ export async function start(opt = {}) {
   const askCol = (await db.query(`select 1 from information_schema.columns
      where table_schema = 'public' and table_name = 'profiles' and column_name = 'ask_prompt_at'`)).rows.length;
   if (askCol) {
-    await db.query(`update public.profiles set ask_prompt_at = ${opt.askBoard ? 'null' : `now() + interval '10 years'`}
+    /* ★口コミの板だけを出す回（reviewBoard）は、こちらを「25時間前に開いた」にする ── 先へ置くと、
+         「待遇の板と同じ日に出さない」（pv_board_gap）で口コミの板まで止まる。待遇の板は48時間の窓の中なので出ない。 */
+    const at = opt.askBoard ? 'null' : opt.reviewBoard ? `now() - interval '25 hours'` : `now() + interval '10 years'`;
+    await db.query(`update public.profiles set ask_prompt_at = ${at}
+                     where id = any($1::uuid[])`, [MEMBERS.map((m) => m.id)]);
+  }
+  /* 口コミを1項目ずつ聞く板（db/review-items.sql・2026-11-20）も同じ理由で、手元ではふだん出さない
+     （会員が全部読める状態でないと、どのページにも板が重なる）。見るときだけ start({ reviewBoard: true })。
+     ふだんは「25時間前に開いた」＝ 7日の窓の中（出ない）・待遇の板との間隔は過ぎている（待遇の板を止めない）。
+     ⚠️ 先（未来）へ置かない ── 待遇の板（askBoard の回）まで「同じ日に2枚出さない」で止まる。 */
+  const rvCol = (await db.query(`select 1 from information_schema.columns
+     where table_schema = 'public' and table_name = 'profiles' and column_name = 'review_prompt_at'`)).rows.length;
+  if (rvCol) {
+    await db.query(`update public.profiles set review_prompt_at = ${opt.reviewBoard ? 'null' : `now() - interval '25 hours'`}
                      where id = any($1::uuid[])`, [MEMBERS.map((m) => m.id)]);
   }
   /* ステイ情報（db/stays.sql の約束 1）を見てよい人。★手元だけの模擬:
@@ -964,6 +978,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       port: Number(val('--port') || process.env.PV_LOCAL_PORT || 3100),
       host: val('--host'), dir: val('--db'), reset: argv.includes('--reset'),
       askBoard: argv.includes('--ask-board'),   // 戻ってきた会員に聞く板を、手元の会員にも出す
+      reviewBoard: argv.includes('--review-board'),   // 口コミを1項目ずつ聞く板を、手元の会員にも出す
     });
     console.log(`  手元のサーバー ${srv.url}（本番とは通信しない・メールのコードは ${OTP}）`);
     const stop = () => srv.close().then(() => process.exit(0), () => process.exit(1));

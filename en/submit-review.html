@@ -156,6 +156,7 @@ textarea.form-input{resize:vertical;min-height:96px;line-height:1.7}
 .cat-block{border:1px solid var(--pv-line);border-radius:16px;padding:var(--pv-s-2);background:var(--pv-surface)}
 .rv-cat-h{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
 .rv-cat-n{font-size:.92rem;font-weight:600;line-height:1.4;color:var(--pv-ink)}
+.rv-partial-note{margin:10px 0 0;font-size:.8rem;font-weight:600;line-height:1.6;color:var(--pv-accent-ink)}
 .star-group{flex:none;display:flex;background:var(--pv-bg-sub);border:1px solid var(--pv-line);border-radius:10px;padding:2px}
 .star-btn{width:34px;height:32px;border:0;border-radius:8px;background:transparent;color:var(--pv-ink-3);font-size:.85rem;font-weight:700;font-family:inherit;font-variant-numeric:tabular-nums;cursor:pointer;transition:transform .2s var(--pv-ease)}
 .star-btn:hover{color:var(--pv-ink)}
@@ -232,7 +233,7 @@ textarea.form-input{resize:vertical;min-height:96px;line-height:1.7}
 })();
 </script>
 <!--/PV-3P-->
-<script src="../pv-session.js?v=c5cd5bac"></script>
+<script src="../pv-session.js?v=8542c2ab"></script>
 <link rel="stylesheet" href="../air-search.css?v=5c058016">
   <!-- PV-NAV: site-wide navigation (left rail on wide screens, left drawer on narrow).
        Written by patch-side-nav.mjs. app-nav.css loads last (after my-value.css). -->
@@ -520,6 +521,7 @@ textarea.form-input{resize:vertical;min-height:96px;line-height:1.7}
               </optgroup>
             </select>
             <input type="text" class="form-input" id="f-airline-other" maxlength="40" placeholder="Enter the airline name (required)" style="display:none;margin-top:10px"/>
+            <p id="rv-partial-note" class="rv-partial-note" hidden>The topics you wrote one at a time are filled in. Finish and post to open every airline’s reviews in full.</p>
           </div>
 
           <div>
@@ -763,6 +765,7 @@ let currentUserId = null;
   document.getElementById('login-gate').style.display = 'none';
   document.getElementById('form-wrap').style.display = '';
   claimReviews(session.user.id);
+  loadPartial();
 })();
 
 // ── ログインせずに出した口コミの預かり（2026-10-29）────────────────────────
@@ -795,6 +798,42 @@ function showPending() {
   document.getElementById('step-pending').style.display = '';
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+// ── 口コミを1項目ずつ聞く板で書きかけの口コミ（2026-11-20）─────────────────────
+// 板（pv-review-board.js）で書き始めた会社をここで選んだら、書いた項目と評価を入れておく。
+// 出すと submit_review_finish が同じ口コミを書き換える（1社1件のまま）＝ フォームで1件出したのと同じに全部読める。
+let partialRow = null;   // { airline, row }
+async function loadPartial() {
+  try {
+    const { data: b } = await _sb.rpc('pv_review_board', { p: { manual: true } });
+    if (!b || b.due !== true || !b.airline || !(b.done || []).length) return;
+    const { data: m } = await _sb.rpc('pv_reviews', { p: { mine: true, limit: 20 } });
+    const row = ((m && m.rows) || []).find((r) => r.airline === b.airline);
+    if (!row) return;
+    partialRow = { airline: b.airline, row };
+    fillPartial();
+  } catch (e) { /* 聞けなければ今までのフォームのまま */ }
+}
+function fillPartial() {
+  const sel = document.getElementById('f-airline');
+  const note = document.getElementById('rv-partial-note');
+  const on = !!(partialRow && sel && sel.value === partialRow.airline);
+  if (note) note.hidden = !on;
+  if (!on) return;
+  const r = partialRow.row;
+  if (r.position && !document.querySelector('input[name="f-pos"]:checked')) {
+    const ra = document.querySelector(`input[name="f-pos"][value="${r.position}"]`);
+    if (ra) { ra.checked = true; pickChip(ra, 'pos'); }
+  }
+  CAT_KEYS.forEach((k) => {
+    const ta = document.getElementById('fc-' + k);
+    if (ta && !ta.value.trim() && r[k + '_comment']) { ta.value = r[k + '_comment']; ta.dispatchEvent(new Event('input', { bubbles: true })); }
+    const sc = Number(r[k + '_score']);
+    const g = document.querySelector(`.star-group[data-cat="${k}"]`);
+    if (g && !g.dataset.score && sc >= 1 && sc <= 5) { const sb = g.querySelector(`.star-btn[data-v="${sc}"]`); if (sb) setStar(sb); }
+  });
+}
+document.getElementById('f-airline')?.addEventListener('change', fillPartial);
+
 function showUnlocked() {
   const exp = String((window.PVUnlock && window.PVUnlock.reviewUntil) ? window.PVUnlock.reviewUntil() : Date.now() + 100 * 365 * 24 * 60 * 60 * 1000);
   localStorage.setItem('pv_unlock_expiry', exp);
@@ -1469,18 +1508,27 @@ async function submitReview() {
       .eq('proof_hash', proofHash)
       .maybeSingle();
 
+    let payload = { airline: effectiveAirline(v), position: v.pos };
     if (existing) {
-      showFormAlert(err, 'You have already posted a review for this airline. Please select a different airline.');
-      btn.disabled = false;
-      btn.textContent = 'Post and unlock 🔓';
-      return;
-    }
+      /* ★板で書きかけの口コミ（db/review-items.sql）なら、同じ口コミをフォームの中身で出し切る */
+      const fin = await _sb.rpc('submit_review_finish', { p: {
+        airline: effectiveAirline(v), position: v.pos,
+        ...Object.fromEntries(CAT_KEYS.flatMap((k) => [[k + '_score', v.cats[k].score ? String(v.cats[k].score) : ''], [k + '_comment', v.cats[k].comment || '']])),
+      } });
+      if (fin.error) throw fin.error;
+      if (!(fin.data && fin.data.ok === true)) {
+        showFormAlert(err, 'You have already posted a review for this airline. Please select a different airline.');
+        btn.disabled = false;
+        btn.textContent = 'Post and unlock 🔓';
+        return;
+      }
+    } else {
 
     // No money is collected here — pay is gathered on pay-report.html (the payslip flow).
     // reviews_v2 keeps annual_salary / base_annual / flight_allowance_annual / monthly_salary /
     // bonus / input_currency / input_rate / salary_note as columns so older reviews still render,
     // but new reviews do not write to them.
-    const payload = {
+    payload = {
       proof_hash:       proofHash,
       airline:          effectiveAirline(v),
       position:         v.pos,
@@ -1513,6 +1561,7 @@ async function submitReview() {
     }
 
     if (error) throw error;
+    }
 
     // Unlock the review tier only. The salary tier (pv_salary_unlock_expiry) is left
     // alone here — actual pay is for people who have submitted a payslip on pay-report.html.

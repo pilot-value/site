@@ -1447,3 +1447,21 @@ CLAUDE.md 側にあり、ここにあるのは **各検査が何を約束して�
       パイロットの答えは**全部緑の字**（ある・ない・一部は印の形で分ける）。会社が公表した値は黒のまま（会社の公表と回答を見分ける）。
       ⚠️ 面を灰色にしない（「色で段差いまいち」）。⚠️ 字を 800 にしても日本語は太くならない（Noto Sans JP は 400/500/700 しか読み込んでいない）。
     - ぼかしの規則は増やしていない（影絵は `.crl-ghost-ans` の空の `<i>`）。`.crl-plate` と `.crl .crl-ghost` の2つのまま。
+31. `node db/test-review-items.mjs` / `node db/test-review-items-webhook.mjs` / `node assert-review-board.mjs` — **口コミを1項目ずつ聞く板**（2026-11-20）。
+    オーナー決定「書いた項目は、全社ぶん読める。7項目書けば全部読める。」全体の地図は [CLAUDE.md](../CLAUDE.md) の「口コミを1項目ずつ聞く板」。ここは**落ちたときに何が壊れているか**だけ。
+    - **「★書いていない項目の本文は…返らない」が落ちた** ── `pv_reviews` の `pv_review_open_part` を通さずに本文や訳を返した、か `pv_review_my_cats()` を通さない口を足した。
+      ⚠️ **画面は普通に動いたまま**、1項目書いただけの会員に全部の本文が届く（画面の鍵の箱は出るが、字は端末に来ている）。ぼかしや非表示で隠さない。
+    - **「フォームで出した口コミは今までどおり全部読める」が落ちた** ── フォームの口（`submit_review` / `claim_review_pending`）の行に `pv_review_partial` の印が付いた、
+      か `pv_review_my_cats()` の「印の無い行が1つでもあれば7つ」を外した。公開前から口コミを出していた会員が、ある日から読めなくなる。
+    - **「7日に1回」「待遇の板と同じ日に出さない」が落ちた** ── `pv_review_ask_gap` / `pv_board_gap` を直したか、`pv_ask_next` の `review_prompt_at` の1行を外した（両方向で見ている）。
+    - **「給与を出した人：会社は給与の会社」が落ちた** ── `pv_review_board_own` の給与の引き方（`pv_my_keys()`・一覧に在る会社だけ・`cap` → `captain`）を変えた。会社を毎回聞く板になる。
+    - **「書きかけの印つき」「1項目だけ保存」が落ちた** ── `submit_review_item` の `format('insert … %I, %I')` の列の名前（`cat` の白リスト）か、`reviews_v2` の6つの点の NOT NULL（0 章が外す）。
+      ⚠️ `reviews_v2` に列を足さない（CLAUDE.md「給与フォームの内訳」の 5）── 書きかけの印は別の表 `pv_review_partial` に置いてある。
+    - **Webhook の「輪にならない」が落ちた** ── `translate_review_items_update` の WHEN（訳が消えていて・本文のどれかが変わった）か列の指定を外した。
+      翻訳が訳を書くたびに自分を呼び、API の費用が止まらない。Edge Function 側の「書いている途中で本文が変わったらもう1回」（`translateRow(id, false)`）も同じ理由で1回きり。
+    - **assert-review-board の ① が落ちた** ── `pv-session.js` の `rvDue` が端末の写し（`pv_rvask`）を見る前に読み込むようになった、か `RV_SKIP` から画面が消えた。
+      ⚠️ 全ページで会員の通信が毎回1本増える。口コミのフォームは書きかけを読むために `pv_review_board` を自分で呼ぶ（`manual`）── それは正しい。
+    - **「自分で開いた板では pv_review_board_seen を呼ばない」が落ちた** ── Vote の「続きを書く」「書く」で7日の窓が延びる＝自分で書きに来た人に次の板が出なくなる。
+    - **「英語・スペイン語で日本語が混ざらない」が落ちた** ── `pv-review-board.js` の `T` に足した字を en / es に足していない。社名は `name_en`。Vote 側の字は `vote.js` の `T`（es は `node gen-msg.mjs`）。
+    - ⚠️ `pv-review-board.js` は `?v=` を付けていない（`pv-session.js` が自分の指紋つきの住所の横から読む）。`pv-session.js` を直したら `node inject-session.mjs`、
+      `vote.js` / `vote.css` を直したら3枚（日英西の `community.html`）の `?v=`。`pv-reunlock.js` は8枚の `?v=` の数字を1つ上げる。

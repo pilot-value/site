@@ -314,6 +314,9 @@
     del(K_GF);      // 「Give → Get を見せた」の記録もこのログインのもの
     del(K_PROOF);   // 「確認を求められているか」の写しもこのログインのもの
     del(K_ASK);     // 「次に聞いてよい時刻」の写しもこのログインのもの
+    del(K_RV);      // 口コミの板の「次に聞いてよい時刻」も同じ
+    del('pv_rvdraft');   // ★口コミの板の書きかけ（本文）を共有端末に置いていかない
+    del('pv_rvskip');
 
     /* ★給与の入力も置いていかない（2026-09-11）。ここが今まで抜けていた。
        共有端末で7日／30日の期限が来て切れたあと、次に使った人の画面に
@@ -651,8 +654,11 @@
     return !(n && Date.now() < n);
   }
 
-  function askLoad() {
-    if (!SELF || !askDue()) return;
+  /* then … 待遇の板を出さなかったとき（出す時刻でない・聞くことが無い）に呼ぶ ＝ 次の口コミの板へ。
+     出したとき・ほかの板が開いていたときは呼ばない（同じページに板は1枚）。 */
+  function askLoad(then) {
+    var next = function () { if (typeof then === 'function') then(); };
+    if (!SELF || !askDue()) { next(); return; }
     var run = function () {
       var C = window.PVConditions;
       if (!C || typeof C.askReturn !== 'function') { askWrite(Date.now() + ASK_RETRY); return; }
@@ -662,6 +668,7 @@
         if (r.why === 'busy') return;                     // ほかの板が開いていた ＝ 次のページでもう一度
         var at = r.next_at ? Date.parse(r.next_at) : NaN;
         askWrite(isFinite(at) && at > Date.now() ? at : Date.now() + ASK_RETRY);
+        if (!r.shown) next();
       }, function () { askWrite(Date.now() + ASK_RETRY); });
     };
     var later = function () { setTimeout(run, ASK_DELAY); };
@@ -671,6 +678,64 @@
       try { s.src = new URL('pv-conditions.js', SELF).href; } catch (e) { return; }
       s.onload = later;
       s.onerror = function () { askWrite(Date.now() + ASK_RETRY); };
+      (document.head || document.documentElement).appendChild(s);
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+    else start();
+  }
+
+  /* ── 口コミを1項目ずつ聞く板（pv-review-board.js・2026-11-20）───────────────
+     オーナー決定「書いた項目は、全社ぶん読める。7項目書けば全部読める」。誰に・いつ・どの会社かは全部サーバ
+     （db/review-items.sql の pv_review_board：7日に1回・待遇の板と同じ日に出さない・全部読める人には出さない）。
+     ★ここが決めるのは「このページで聞きに行ってよいか」だけ。端末の写し pv_rvask の時刻を過ぎるまで通信ゼロ。
+     ★同じページに板は1枚：パイロット確認 → Give & Get → 待遇の板 → この板。待遇の板を出したページでは聞かない。
+     ★Give & Get の板を見せてから RV_AFTER_GF のあいだも聞かない（閉じてすぐ次の板を被せない）。 */
+  var K_RV        = 'pv_rvask';              // {s:そのときのログインの印, n:次に聞いてよい時刻（ms）}
+  var RV_AFTER_GF = 10 * 60 * 1000;
+  /* 出さない画面（待遇の板と同じ考え。⚠️ ほかの集合と1本にまとめない） */
+  var RV_SKIP = /(?:^|\/)(pay-report|submit-review|signup|login|auth-callback|contact|admin|unsubscribe|404|terms|privacy|personal-data|airline-conditions)\.html$/;
+
+  function rvRead() {
+    var r;
+    try { r = JSON.parse(get(K_RV) || '{}') || {}; } catch (e) { r = {}; }
+    if (String(r.s || '') !== String(sessionStart())) return {};
+    return r;
+  }
+  function rvWrite(at) {
+    set(K_RV, JSON.stringify({ s: String(sessionStart()), n: Math.round(at) }));
+  }
+  function rvDue() {
+    if (!isLoggedIn() || !hasToken()) return false;
+    if (RV_SKIP.test(location.pathname)) return false;
+    if (location.search.indexOf('claim=') >= 0) return false;
+    if (proofDue() === 'show') return false;
+    if (giveFirstDue()) return false;
+    try {
+      var g = JSON.parse(get(K_GF) || '{}') || {};
+      if (g.t && Date.now() - Number(g.t) < RV_AFTER_GF) return false;
+    } catch (e) { /* 読めなければ見ない */ }
+    var n = Number(rvRead().n || 0);
+    return !(n && Date.now() < n);
+  }
+  function rvLoad() {
+    if (!SELF || !rvDue()) return;
+    var run = function () {
+      var B = window.PVReviewBoard;
+      if (!B || typeof B.askReturn !== 'function') { rvWrite(Date.now() + ASK_RETRY); return; }
+      if (!rvDue()) return;
+      B.askReturn({ rpc: rpc }).then(function (r) {
+        if (!r || r.why === 'busy') return;
+        var at = r.next_at ? Date.parse(r.next_at) : NaN;
+        rvWrite(isFinite(at) && at > Date.now() ? at : Date.now() + ASK_RETRY);
+      }, function () { rvWrite(Date.now() + ASK_RETRY); });
+    };
+    var later = function () { setTimeout(run, ASK_DELAY); };
+    var start = function () {
+      if (window.PVReviewBoard && window.PVReviewBoard.askReturn) { later(); return; }
+      var s = document.createElement('script');
+      try { s.src = new URL('pv-review-board.js', SELF).href; } catch (e) { return; }
+      s.onload = later;
+      s.onerror = function () { rvWrite(Date.now() + ASK_RETRY); };
       (document.head || document.documentElement).appendChild(s);
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
@@ -692,7 +757,7 @@
   if (isLoggedIn()) { sessionStart(); touch(); }
   proofLoad();
   giveFirstLoad();
-  askLoad();
+  askLoad(rvLoad);
 
   ['pointerdown', 'keydown', 'scroll', 'touchstart'].forEach(function (ev) {
     document.addEventListener(ev, touch, { passive: true, capture: true });
@@ -718,6 +783,8 @@
     proofDue: proofDue, proofRead: proofRead, proofWrite: proofWrite,
     /* 戻ってきた会員に聞く板（pv-conditions.js の askReturn）。判定はこちら側に1つだけ置く。 */
     askDue: askDue,
+    /* 口コミを1項目ずつ聞く板（pv-review-board.js）。判定はこちら側に1つだけ置く。 */
+    rvDue: rvDue,
     SB_URL: SB_URL, SB_KEY: SB_KEY,
     /* サーバの関数を呼ぶ（ページの sb → 生きたトークンで fetch → lazyOk のときだけ supabase-js）。 */
     rpc: rpc,

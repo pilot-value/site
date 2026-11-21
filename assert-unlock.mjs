@@ -80,6 +80,8 @@ const WRITERS = [
      知っているのはサーバだけになった。返事が「持っている」なら端末の写しを合わせる。 */
   'airlines/airline-reviews-ui.js',
   'en/airlines/en-airline-reviews.js',
+  /* 2026-11-20 口コミを1項目ずつ聞く板。7項目そろった（サーバが full と答えた）ときだけ書く */
+  'pv-review-board.js',
 ];
 {
   /* 書いている場所を数え上げてから照合する。新しい書き手が増えたらここで気づく。

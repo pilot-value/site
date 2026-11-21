@@ -228,7 +228,9 @@ const SERVER_COPIES = [
   'mail-bot/delete-review.mjs',
   'supabase/functions/notify-admin/index.ts',
 ];
-const ALL_COPIES = ['submit-review.html', 'en/submit-review.html', 'es/submit-review.html', ...SERVER_COPIES];
+/* ★2026-11-20 口コミを1項目ずつ聞く板（日英西で1本）。送る前に同じ判定をかける＝7か所目。上のブラウザでは流していないので、ケースもここで流す。 */
+const BOARD_COPIES = ['pv-review-board.js'];
+const ALL_COPIES = ['submit-review.html', 'en/submit-review.html', 'es/submit-review.html', ...SERVER_COPIES, ...BOARD_COPIES];
 
 // 型注釈を落として素の JavaScript にする（notify-admin だけ TypeScript）
 const stripTypes = (s) => s
@@ -294,13 +296,13 @@ for (const rel of ALL_COPIES) {
     console.log('     （型注釈を足したなら stripTypes を直す。判定そのものが壊れている可能性もある）');
     continue;
   }
-  ck('判定1の式が6か所と同じ（1回だけ）', code.split(R1).length - 1, 1);
-  ck('判定4の式が6か所と同じ（1回だけ）', code.split(R4).length - 1, 1);
-  if (!SERVER_COPIES.includes(rel)) continue;   // 投稿画面の3枚は上のブラウザで同じケースを流している
+  ck('判定1の式が7か所と同じ（1回だけ）', code.split(R1).length - 1, 1);
+  ck('判定4の式が7か所と同じ（1回だけ）', code.split(R4).length - 1, 1);
+  if (!SERVER_COPIES.includes(rel) && !BOARD_COPIES.includes(rel)) continue;   // 投稿画面の3枚は上のブラウザで同じケースを流している
   for (const [name, text, want] of CASES) ck(`${name}`, FNS[rel](text).ok, want);
 }
 
-console.log('\n── 6か所が同じ答えを返すか（決めたケース＋混ぜ物400本）─────────────────────────');
+console.log('\n── 7か所が同じ答えを返すか（決めたケース＋混ぜ物400本）─────────────────────────');
 {
   const names = Object.keys(FNS);
   let diff = 0;
@@ -308,8 +310,8 @@ console.log('\n── 6か所が同じ答えを返すか（決めたケース＋
     const ans = names.map((n) => FNS[n](s).ok);
     if (ans.some((a) => a !== ans[0])) { if (diff++ < 3) console.log(`  ✗ 答えが割れた: ${J(s).slice(0, 80)} → ${J(Object.fromEntries(names.map((n, i) => [n, ans[i]])))}`); }
   }
-  ck(`6か所すべてを動かせた`, names.length, 6);
-  ck(`6か所の答えが割れた入力の数（${CASES.length + FUZZ.length}本中）`, diff, 0);
+  ck(`7か所すべてを動かせた`, names.length, 7);
+  ck(`7か所の答えが割れた入力の数（${CASES.length + FUZZ.length}本中）`, diff, 0);
 }
 
 /* ── 壊す証明：判定1か判定4を元に戻すと、足した本物のケースが赤くなる（ケースが変更を本当に見ている） ── */

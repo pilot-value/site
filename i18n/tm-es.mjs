@@ -1,5 +1,16 @@
 /* 自動生成: node translate-tm.mjs es — 手で直すときは st を "manual" にする（機械が上書きしない） */
 export const TM = {
+  "js:{ culture: 'Culture', salary: 'Pay', benefits: 'Benefits', wlb: 'Work-life', ops: 'Flight ops', training: 'Training', mgmt: 'Management' }": {"es": "js:{ culture: 'Cultura', salary: 'Remuneración', benefits: 'Beneficios', wlb: 'Vida y trabajo', ops: 'Operaciones', training: 'Entrenamiento', mgmt: 'Dirección' }", "st": "manual", "by": "claude-review", "at": "2026-11-20", "pages": ["vote.js"]},
+  "js:'Your {n} review'": {"es": "js:'Tu reseña de {n}'", "st": "manual", "by": "claude-review", "at": "2026-11-20", "pages": ["vote.js"]},
+  "js:'Your review'": {"es": "js:'Tu reseña'", "st": "manual", "by": "claude-review", "at": "2026-11-20", "pages": ["vote.js"]},
+  "js:'Each topic you write opens that topic for every airline'": {"es": "js:'Cada tema que escribas se abre en todas las aerolíneas'", "st": "manual", "by": "claude-review", "at": "2026-11-20", "pages": ["vote.js"]},
+  "js:'{k} / 7 topics'": {"es": "js:'{k} / 7 temas'", "st": "manual", "by": "claude-review", "at": "2026-11-20", "pages": ["vote.js"]},
+  "js:'<b>{n} more</b> to open every airline’s reviews in full.'": {"es": "js:'Te faltan <b>{n}</b> para abrir todas las reseñas completas.'", "st": "manual", "by": "claude-review", "at": "2026-11-20", "pages": ["vote.js"]},
+  "js:'Keep writing (about 30 sec)'": {"es": "js:'Seguir escribiendo (unos 30 s)'", "st": "manual", "by": "claude-review", "at": "2026-11-20", "pages": ["vote.js"]},
+  "js:'Write one topic (about 30 sec)'": {"es": "js:'Escribir un tema (unos 30 s)'", "st": "manual", "by": "claude-review", "at": "2026-11-20", "pages": ["vote.js"]},
+  "js:'Write about {l} to read this topic for every airline.'": {"es": "js:'Escribe sobre {l} para leer este tema en todas las aerolíneas.'", "st": "manual", "by": "claude-review", "at": "2026-11-20", "pages": ["vote.js"]},
+  "js:'Write (about 30 sec)'": {"es": "js:'Escribir (unos 30 s)'", "st": "manual", "by": "claude-review", "at": "2026-11-20", "pages": ["vote.js"]},
+  "The topics you wrote one at a time are filled in. Finish and post to open every airline’s reviews in full.": {"es": "Los temas que escribiste uno por uno ya están cargados. Termina y publica para abrir completas las reseñas de todas las aerolíneas.", "st": "manual", "by": "claude-review", "at": "2026-11-20", "pages": ["en/submit-review.html"]},
   "#26 of 52 countries": {"es":"Puesto 26 de 52 países","st":"validated","by":"ai","model":"claude-opus-5-5","pv":4,"gl":"","at":"2026-11-02","pages":["en/countries/spain.html"]},
   "#32 of 52 countries": {"es":"Puesto 32 de 52 países","st":"validated","by":"ai","model":"claude-opus-5-5","pv":4,"gl":"","at":"2026-11-02","pages":["en/countries/mexico.html"]},
   "#33 of 52 countries": {"es":"Puesto 33 de 52 países","st":"validated","by":"ai","model":"claude-opus-5-5","pv":4,"gl":"","at":"2026-11-02","pages":["en/countries/panama.html"]},

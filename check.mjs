@@ -88,6 +88,9 @@ const SQL = [
   ['db/test-review-judge-webhook.mjs', 10],
   /* 2026-11-19 明細の Verified（db/payslip-verify.sql ＋ submit_pay_report）。券が合えば付く・書き換えたら付かない・一度きり・同じ明細で2人目は付かない・運営が外す・壊す証明 */
   ['db/test-payslip-verify.mjs', 5],
+  /* 2026-11-20 口コミを1項目ずつ聞く板（db/review-items.sql・reviews-gate.sql 3-d）。書いた項目だけ読める・7項目で全部・7日と待遇の板の間隔・壊す証明
+     ／本文の書き足しで翻訳と判定をやり直す Webhook（db/review-items-webhook.sql）。秒数は単独で流した実測 */
+  ['db/test-review-items.mjs', 6], ['db/test-review-items-webhook.mjs', 2],
 ];
 
 // localhost:3000 が要るもの。長い順に並べてある。
@@ -134,6 +137,8 @@ const WEB = [
   ['assert-towns.mjs', 199], ['assert-keep.mjs', 164], ['assert-proof-offer.mjs', 31],
   /* 2026-10-29 Vote（口コミ一覧の作り直し）。手元の使い捨ての保存先を OS が選ぶ番号で立てる。単独で約17秒。 */
   ['assert-vote.mjs', 17],
+  /* 2026-11-20 口コミを1項目ずつ聞く板（pv-review-board.js）。手元の使い捨ての保存先を OS が選ぶ番号で立てる。単独で約60秒。 */
+  ['assert-review-board.mjs', 60],
   /* 2026-11-12 すりガラスと動き（pv-glass.js）。3000 番を使わない（自分で配り口を立てる）・本番の Supabase へは出さない。
      動かしたときに止まったあと本当の形か／自動の検査と「動きを減らす」では動きの印が1つも付かないか。秒数は単独の実測 */
   ['assert-glass-motion.mjs', 150],

@@ -575,8 +575,9 @@ console.log('\n▼ 7. 口コミの番号（id）は、本文を読める人と�
        確認待ちのあいだは鍵が false になる。ここでは鍵の判定だけを false に差し替えて
        その形を作り、確かめたら流し直して戻す。 */
   await asOwner();
-  await db.exec(`create or replace function public.pv_has_review_key() returns boolean
-                   language sql stable as $$ select false $$`);
+  /* ★2026-11-20 一覧が読むのは「読める項目」（3-d の pv_review_my_cats）。鍵（pv_has_review_key）もそこから作る。 */
+  await db.exec(`create or replace function public.pv_review_my_cats() returns text[]
+                   language sql stable as $$ select '{}'::text[] $$`);
   await asUser(1);
   {
     const m = await call({ mine: true });
@@ -608,7 +609,8 @@ console.log('\n▼ 7. 口コミの番号（id）は、本文を読める人と�
     delete t.clip;
     if (JSON.stringify(t) !== JSON.stringify(f)) diff.push(`${i}: ${JSON.stringify(t).slice(0, 80)} ≠ ${JSON.stringify(f).slice(0, 80)}`);
   });
-  ok(Object.keys(shut).sort().join() === 'ok,rows,unlocked' && shut.rows.length === full.rows.length && diff.length === 0,
+  ok(Object.keys(shut).sort().join() === 'ok,open,rows,unlocked' && JSON.stringify(shut.open) === '[]'
+     && shut.rows.length === full.rows.length && diff.length === 0,
      '★★鍵の無い人の pv_reviews は「本文8欄と id が無い・抜粋が付く」のほかは、全部読める人の返事と1字も違わない',
      diff.join(' | ').slice(0, 300));
   ok(vShut.length === vFull.length
@@ -1078,8 +1080,9 @@ console.log('\n▼ 11. AI が保留にした口コミ（pv_review_judge・2026-1
       await db.exec(b);
     };
     const CASES = [
-      ['create or replace function public.pv_has_review_key()', /\n\s*\/\* ★AI が保留にした口コミ（3-c）では鍵を開けない[\s\S]*?\*\/\n\s*and not public\.pv_review_held\('r', r\.id\)/,
-       '本人の鍵（pv_has_review_key）', async () => await keyOf(31) === true],
+      /* ★2026-11-20 保留を外す1行は、読める項目を決める pv_review_my_cats（3-d）へ移った（鍵はそこから作る）。 */
+      ['create or replace function public.pv_review_my_cats()', /\n\s*and not public\.pv_review_held\('r', r\.id\)/,
+       '本人の鍵（pv_review_my_cats）', async () => await keyOf(31) === true],
       ['create or replace function public.pv_reviews(', /where v_mine or not public\.pv_review_held\('r', r\.id\)/,
        '鍵を持つ人の一覧（pv_reviews）', async () => (await st(1)).list, 'where true'],
       ['create or replace function public.pv_vote_latest()', /\n\s*where not public\.pv_review_held\('r', r\.id\)[^\n]*/,

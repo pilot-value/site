@@ -165,6 +165,42 @@
     var tr = (T && (T[to] || (to === 'es' && from !== 'en' ? T.en : null))) || null;
     var lab = pickT(LABELS, to), wrap = WRAP[to];
 
+    /* ★2026-11-20 書きかけの会員（口コミを1項目ずつ聞く板）。サーバは読める項目（open）の本文だけを送り、印 open を付ける。
+         書いてあるのに読めない項目が残る行は locked のまま（text は空 ── 錠前の UI を外さない）で、part を立てる。
+         cats には書いた項目を全部並べ、読める欄は本文、読めない欄は lock: true（抜粋の欄は抜粋の字）。
+         読める項目だけの行（書いた項目が全部読める）は、下のふつうの行と同じ形で返る。 */
+    var openK = (row && Object.prototype.toString.call(row.open) === '[object Array]') ? row.open : null;
+    var wroteK = (row && Object.prototype.toString.call(row.cats) === '[object Array]') ? row.cats : [];
+    if (openK && wroteK.some(function (k) { return openK.indexOf(k) < 0; })) {
+      var pcl = row.clip || null;
+      var pct = (pcl && pcl.k && pcl.t && (pcl.t[to] || (to === 'es' && from !== 'en' && pcl.t.en))) || '';
+      var psnip = (pcl && pcl.k) ? trimMoney(flatten(pct || pcl.o || '')) : '';
+      var pc = [], po = [], pused = false;
+      for (var pi = 0; pi < KEYS.length; pi++) {
+        var pk = KEYS[pi];
+        if (wroteK.indexOf(pk) < 0 || !lab[pk]) continue;
+        if (openK.indexOf(pk) >= 0) {
+          var porig = flatten(row[pk + '_comment']), pt = flatten(tr && tr[pk]);
+          var pshow = (from !== to && pt) ? pt : porig;
+          if (!pshow) continue;
+          if (from !== to && pt) pused = true;
+          pc.push({ k: pk, label: lab[pk], text: pshow, o: !(from !== to && pt) });
+          if (porig) po.push({ k: pk, label: lab[pk], text: porig });
+        } else {
+          pc.push({ k: pk, label: lab[pk], text: (psnip && pcl.k === pk) ? psnip : '', lock: true });
+        }
+      }
+      return {
+        /* translated は false のまま（鍵の無い行と同じ理由 ── 錠前の行で「原文を表示」を出さない）。訳した欄は o: false で分かる */
+        lang: to, from: from, translated: false, locked: true, part: true, partTranslated: pused,
+        clipped: !!psnip, clipKey: (psnip && pcl.k) || '', clipText: psnip, clipOrig: !!psnip && !pct,
+        cats: pc, text: '', origCats: po, origText: '',
+        /* 読める欄だけをつないだ本文（会社ページのカードが、錠前の上に出す）。text には入れない（上の理由） */
+        openText: pc.filter(function (c) { return !c.lock; }).map(function (c) { return wrap(c.label, c.text); }).join(' / '),
+        lockKeys: pc.filter(function (c) { return c.lock; }).map(function (c) { return c.k; }),
+      };
+    }
+
     // 本文の列が1つも来ていない＝鍵を持っていない。cats だけで組み立てる。
     var hasBody = false;
     for (var h = 0; h < KEYS.length; h++) {

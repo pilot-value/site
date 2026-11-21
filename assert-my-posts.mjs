@@ -68,8 +68,10 @@ console.log('\n════ ソース ════');
   /* ★引けなかったときは null。[] と同じにすると「まだ投稿していません」と言い切る。 */
   ok(/if \(!r2 \|\| r2\.error\) return null;/.test(ru),
      '★1つでも失敗した塊があれば null（＝0件と言わない）');
-  ok(/if \(reviews && reviews\.length > 0\)/.test(ru),
-     '引けなかった（null）ときに解放を消さない');
+  /* ★2026-11-20 口コミを1項目ずつ聞く板で書きかけの人（サーバが unlocked:false）には印を付けない。
+       聞けなかった（serverOpen が null）ときは今までどおり「1件でも取れたか」だけで付ける。 */
+  ok(/if \(reviews && reviews\.length > 0 && serverOpen !== false\)/.test(ru),
+     '引けなかった（null）ときに解放を消さない（サーバが「全部は読めない」と言ったときだけ付けない）');
 
   for (const [f, i18n, locale] of [
     ['profile.html', 'review-i18n.js', "'ja-JP'"],

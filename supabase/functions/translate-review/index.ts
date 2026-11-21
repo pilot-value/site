@@ -788,7 +788,7 @@ async function judgePending(id: string) {
   return { id, src: 'q', status: jr.status };
 }
 
-async function translateRow(id: string) {
+async function translateRow(id: string, again = true): Promise<Record<string, unknown>> {
   const cols = ['id', 'orig_lang', 'translations', 'airline', 'position',
     ...KEYS.map((k) => `${k}_comment`)].join(',');
   const res = await sb(`${TABLE}?id=eq.${encodeURIComponent(id)}&select=${cols}`);
@@ -825,12 +825,32 @@ async function translateRow(id: string) {
      足すだけ（前からある訳は書き換えない）。同時に2回呼ばれても先に書いた方を消さないよう、
      「その言語の訳がまだ無い」ことを書き込みの条件にする。 */
   const guard = guardFor(have, got);
-  const up = await sb(`${TABLE}?id=eq.${encodeURIComponent(id)}&${guard}`, {
+  const up = await sb(`${TABLE}?id=eq.${encodeURIComponent(id)}&${guard}&select=id`, {
     method: 'PATCH',
-    headers: { Prefer: 'return=minimal' },
+    headers: { Prefer: 'return=representation' },
     body: JSON.stringify({ orig_lang: from, translations: { ...have, ...done } }),
   });
   if (!up.ok) return { id, status: 'update_failed', detail: (await up.text()).slice(0, 200) };
+
+  /* ★2026-11-20 口コミを1項目ずつ聞く板（db/review-items.sql）は、同じ口コミに項目を1つずつ書き足す
+     （書き足すと訳を消し、db/review-items-webhook.sql の引き金がここをもう一度呼ぶ）。
+     訳している間に次の項目が届くと、ここで書けた訳は「古い本文の訳」になり、次の呼び出しは
+     「訳がもう在る」と見て何もしない ＝ 最後の項目だけ訳されずに残る。
+     → 書けたら本文を読み直し、変わっていたら訳を消して1回だけ訳し直す（判定も、指紋が変わるので取り直す）。 */
+  const put = await up.json().catch(() => null);
+  const wrote = Array.isArray(put) && put.length > 0;   // 書き込みの条件に合わなかった（先に誰かが書いた）なら [] が返る
+  if (wrote && again) {
+    const re = await sb(`${TABLE}?id=eq.${encodeURIComponent(id)}&select=${cols}`);
+    const now = re.ok ? ((await re.json()) as Array<Record<string, unknown>>)[0] : null;
+    if (now && await bodySha(now) !== await bodySha(row)) {
+      await sb(`${TABLE}?id=eq.${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        headers: { Prefer: 'return=minimal' },
+        body: JSON.stringify({ translations: null }),
+      });
+      return translateRow(id, false);
+    }
+  }
 
   return { id, status: 'translated', from, to: got, fields: fields.length, judge: jr.status };
 }
